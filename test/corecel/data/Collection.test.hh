@@ -31,7 +31,7 @@ struct MockMaterial
     ItemRange<MockElement> elements;
 };
 
-using MockPhysicsMaterialId = ItemId<MockMaterial>;
+using MockMaterialId = ItemId<MockMaterial>;
 
 template<Ownership W, MemSpace M>
 struct MockParamsData
@@ -71,7 +71,7 @@ struct MockStateData
 {
     //// DATA ////
 
-    StateCollection<MockPhysicsMaterialId, W, M> matid;
+    StateCollection<MockMaterialId, W, M> matid;
 
     //// MEMBER FUNCTIONS ////
 
@@ -106,7 +106,7 @@ class MockTrackView
         CELER_EXPECT(track_slot_ < states_.size());
     }
 
-    CELER_FUNCTION MockPhysicsMaterialId matid() const
+    CELER_FUNCTION MockMaterialId matid() const
     {
         return states_.matid[track_slot_];
     }
@@ -128,7 +128,7 @@ class MockTrackView
 
     CELER_FUNCTION MockMaterial const& mat() const
     {
-        MockPhysicsMaterialId id = this->matid();
+        MockMaterialId id = this->matid();
         CELER_ASSERT(id < params_.materials.size());
         return params_.materials[id];
     }

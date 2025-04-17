@@ -45,8 +45,8 @@ class MaterialView
     // ID of this optical material
     CELER_FORCEINLINE_FUNCTION MatId material_id() const;
 
-    // ID of the associated core material
-    CELER_FORCEINLINE_FUNCTION CorePhysicsMaterialId core_material_id() const;
+    // ID of the associated core physics material
+    CELER_FORCEINLINE_FUNCTION PhysMatId core_material_id() const;
 
     //// PARAMETER DATA ////
 
@@ -111,7 +111,7 @@ CELER_FUNCTION auto MaterialView::material_id() const -> MatId
 /*!
  * Get the id of the core material associated with this optical material.
  */
-CELER_FUNCTION CorePhysicsMaterialId MaterialView::core_material_id() const
+CELER_FUNCTION PhysMatId MaterialView::core_material_id() const
 {
     return params_.core_material_id[mat_id_];
 }

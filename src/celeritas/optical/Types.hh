@@ -21,18 +21,4 @@ using ScintillationParticleId = OpaqueId<struct ScintillationParticle_>;
 using ParticleScintSpectrumId = OpaqueId<struct ParScintSpectrumRecord_>;
 
 //---------------------------------------------------------------------------//
-/*!
- * Physics classes used inside the optical physics loop.
- *
- * Interface classes that integrate with the main Celeritas stepping loop are
- * in the main namespace.
- */
-namespace optical
-{
-//---------------------------------------------------------------------------//
-//! Alias for PhysMatId in core Celeritas namespace
-using CorePhysicsMaterialId = ::celeritas::PhysMatId;
-
-//---------------------------------------------------------------------------//
-}  // namespace optical
 }  // namespace celeritas

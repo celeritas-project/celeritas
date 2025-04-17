@@ -54,7 +54,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
         //! Map logical volume ID to optical material ID
         std::vector<OptMatId> volume_to_mat;
         //! Map optical material ID to core material ID
-        std::vector<CorePhysicsMaterialId> optical_to_core;
+        std::vector<PhysMatId> optical_to_core;
     };
 
   public:

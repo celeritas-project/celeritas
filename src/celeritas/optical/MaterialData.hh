@@ -36,7 +36,7 @@ struct MaterialParamsData
 
     OpticalMaterialItems<NonuniformGridRecord> refractive_index;
     VolumeItems<OptMatId> optical_id;
-    OpticalMaterialItems<CorePhysicsMaterialId> core_material_id;
+    OpticalMaterialItems<PhysMatId> core_material_id;
 
     // Backend data
     Items<real_type> reals;
