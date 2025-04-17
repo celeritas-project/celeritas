@@ -263,7 +263,7 @@ auto ConvexHullFinder<T>::is_clockwise(size_type i_prev,
 template<class T>
 size_type ConvexHullFinder<T>::calc_next(size_type i) const
 {
-    return (i + 1) % points_.size();
+    return (i < points_.size() - 1 ? i + 1 : 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -273,8 +273,7 @@ size_type ConvexHullFinder<T>::calc_next(size_type i) const
 template<class T>
 size_type ConvexHullFinder<T>::calc_previous(size_type i) const
 {
-    // add points_.size() before subtracting 1 to avoid a negative unsigned int
-    return (i + points_.size() - 1) % points_.size();
+    return (i > 0 ? i : points_.size()) - 1;
 }
 
 //---------------------------------------------------------------------------//
