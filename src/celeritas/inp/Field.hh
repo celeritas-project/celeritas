@@ -9,9 +9,13 @@
 #include <variant>
 #include <vector>
 
+#include "corecel/Config.hh"
+
 #include "geocel/Types.hh"
 #include "celeritas/UnitTypes.hh"
-#include "celeritas/field/CartMapFieldInput.hh"
+#if CELERITAS_USE_COVFIE
+#    include "celeritas/field/CartMapFieldInput.hh"
+#endif
 #include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
@@ -63,12 +67,16 @@ struct UniformField
  */
 using RZMapField = ::celeritas::RZMapFieldInput;
 using CylMapField = ::celeritas::CylMapFieldInput;
-using CartMapField = ::celeritas::CartMapFieldInput;
 
 //---------------------------------------------------------------------------//
 //! Field type
+#if CELERITAS_USE_COVFIE
+using CartMapField = ::celeritas::CartMapFieldInput;
 using Field
     = std::variant<NoField, UniformField, RZMapField, CylMapField, CartMapField>;
+#else
+using Field = std::variant<NoField, UniformField, RZMapField, CylMapField>;
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace inp

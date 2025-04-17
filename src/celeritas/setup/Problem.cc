@@ -27,7 +27,9 @@
 #include "geocel/GeantGdmlLoader.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/alongstep/AlongStepCartMapFieldMscAction.hh"
+#if CELERITAS_USE_COVFIE
+#    include "celeritas/alongstep/AlongStepCartMapFieldMscAction.hh"
+#endif
 #include "celeritas/alongstep/AlongStepCylMapFieldMscAction.hh"
 #include "celeritas/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/alongstep/AlongStepRZMapFieldMscAction.hh"
@@ -315,6 +317,7 @@ auto build_along_step(inp::Field const& var_field,
                                         msc,
                                         eloss);
             },
+#if CELERITAS_USE_COVFIE
             [&](inp::CartMapField const& field) {
                 using ASA = AlongStepCartMapFieldMscAction;
                 return ASA::from_params(next_id,
@@ -324,6 +327,7 @@ auto build_along_step(inp::Field const& var_field,
                                         msc,
                                         eloss);
             },
+#endif
         }),
         var_field);
 }
