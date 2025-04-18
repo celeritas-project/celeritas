@@ -38,8 +38,7 @@ struct CartMapFieldParamsData
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        // TODO: how to check with covfie
-        return true;
+        return static_cast<bool>(field);
     }
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
@@ -50,7 +49,14 @@ struct CartMapFieldParamsData
         static_assert(M == M2,
                       "Cannot assign references between different memory "
                       "spaces");
-        field = ObserverPtr<field_t const, M>(&other.field);
+        if constexpr (W2 == Ownership::value)
+        {
+            field = ObserverPtr<field_t const, M>(&other.field);
+        }
+        else
+        {
+            field = other.field;
+        }
         options = other.options;
         return *this;
     }
@@ -70,8 +76,8 @@ struct CartMapFieldParamsData<Ownership::value, M>
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        // TODO: how to check with covfie
-        return true;
+        return field.backend().get_backend().get_backend().get_backend().m_size
+               > 0;
     }
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>

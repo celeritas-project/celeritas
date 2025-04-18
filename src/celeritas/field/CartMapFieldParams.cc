@@ -38,17 +38,6 @@ CartMapFieldParams::CartMapFieldParams(Input const& inp)
                                        static_cast<size_type>(CartAxis::size_)};
         HyperslabIndexer const flat_index{dims};
 
-        covfie::algebra::affine<3> affine_translate
-            = covfie::algebra::affine<3>::translation(
-                -inp.min_x, -inp.min_y, -inp.min_z);
-
-        covfie::algebra::affine<3> affine_scale
-            = covfie::algebra::affine<3>::scaling(
-                (inp.num_x - 1) / (inp.max_x - inp.min_x),
-                (inp.num_y - 1) / (inp.max_y - inp.min_y),
-                (inp.num_z - 1) / (inp.max_z - inp.min_z));
-
-        using field_t = CovfieFieldTrait<MemSpace::host>::field_t;
         using builder_t = CovfieFieldTrait<MemSpace::host>::builder_t;
 
         builder_t builder{
@@ -71,11 +60,19 @@ CartMapFieldParams::CartMapFieldParams(Input const& inp)
             }
         }
 
+        auto affine_translate = covfie::algebra::affine<3>::translation(
+            -inp.min_x, -inp.min_y, -inp.min_z);
+
+        auto affine_scale = covfie::algebra::affine<3>::scaling(
+            (inp.num_x - 1) / (inp.max_x - inp.min_x),
+            (inp.num_y - 1) / (inp.max_y - inp.min_y),
+            (inp.num_z - 1) / (inp.max_z - inp.min_z));
+
+        using field_t = CovfieFieldTrait<MemSpace::host>::field_t;
         field_t field{covfie::make_parameter_pack(
             field_t::backend_t::configuration_t(affine_scale * affine_translate),
             field_t::backend_t::backend_t::configuration_t{},
             builder.backend())};
-
         host.field = std::move(field);
         host.options = inp.driver_options;
         return host;
