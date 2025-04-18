@@ -66,7 +66,7 @@ class RungeKuttaStepper
 
   private:
     // Return the final state by the 4th order Runge-Kutta method
-    CELER_FUNCTION auto advance(real_type step,
+    CELER_FUNCTION auto do_step(real_type step,
                                 OdeState const& beg_state,
                                 OdeState const& end_slope) const -> OdeState;
 
@@ -100,12 +100,12 @@ RungeKuttaStepper<E>::operator()(real_type step,
     OdeState beg_slope = calc_rhs_(beg_state);
 
     // Do two half steps
-    result.mid_state = this->advance(half_step, beg_state, beg_slope);
-    result.end_state = this->advance(
+    result.mid_state = this->do_step(half_step, beg_state, beg_slope);
+    result.end_state = this->do_step(
         half_step, result.mid_state, calc_rhs_(result.mid_state));
 
     // Do a full step
-    OdeState yt = this->advance(step, beg_state, beg_slope);
+    OdeState yt = this->do_step(step, beg_state, beg_slope);
 
     // Stepper error: difference between the full step and two half steps
     result.err_state = result.end_state;
@@ -123,7 +123,7 @@ RungeKuttaStepper<E>::operator()(real_type step,
  */
 template<class E>
 CELER_FUNCTION auto
-RungeKuttaStepper<E>::advance(real_type step,
+RungeKuttaStepper<E>::do_step(real_type step,
                               OdeState const& beg_state,
                               OdeState const& beg_slope) const -> OdeState
 {
