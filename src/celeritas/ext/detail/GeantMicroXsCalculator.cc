@@ -41,7 +41,7 @@ GeantMicroXsCalculator::GeantMicroXsCalculator(
  * Calculate cross sections for all elements in the material.
  */
 void GeantMicroXsCalculator::operator()(VecDouble const& energy_grid,
-                                        VecVecDouble* result_xs) const
+                                        VecGrid* result_xs) const
 {
     CELER_EXPECT(result_xs);
 
@@ -49,9 +49,10 @@ void GeantMicroXsCalculator::operator()(VecDouble const& energy_grid,
 
     // Resize microscopic cross sections for all elements
     result_xs->resize(elements.size());
-    for (auto& mxs_vec : *result_xs)
+    for (auto& grid : *result_xs)
     {
-        mxs_vec.resize(energy_grid.size());
+        grid.x = {std::log(energy_grid.front()), std::log(energy_grid.back())};
+        grid.y.resize(energy_grid.size());
     }
 
     auto calc_element_xs
@@ -77,27 +78,27 @@ void GeantMicroXsCalculator::operator()(VecDouble const& energy_grid,
         // Inner loop over elements
         for (auto elcomp_idx : range(elements.size()))
         {
-            (*result_xs)[elcomp_idx][energy_idx]
+            (*result_xs)[elcomp_idx].y[energy_idx]
                 = calc_element_xs(elcomp_idx, energy) * xs_scaling;
         }
     }
 
-    for (std::vector<double>& xs : *result_xs)
+    for (auto& grid : *result_xs)
     {
         // Avoid cross-section vectors starting or ending with zero values.
         // Geant4 simply uses the next/previous bin value when the vector's
         // front/back are zero. This probably isn't correct but it replicates
         // Geant4's behavior.
-        if (xs[0] == 0)
+        if (grid.y[0] == 0)
         {
-            xs[0] = xs[1];
+            grid.y[0] = grid.y[1];
         }
 
-        auto const last_idx = xs.size() - 1;
-        if (xs[last_idx] == 0)
+        auto const last_idx = grid.y.size() - 1;
+        if (grid.y[last_idx] == 0)
         {
             // Cross-section ends with zero, use previous bin value
-            xs[last_idx] = xs[last_idx - 1];
+            grid.y[last_idx] = grid.y[last_idx - 1];
         }
     }
 }

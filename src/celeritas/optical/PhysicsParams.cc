@@ -97,7 +97,7 @@ void PhysicsParams::build_mfps(MaterialParams const& mats, HostValue& data) cons
     {
         // Build all MFP tables for the model
         MfpBuilder builder(&data.reals, &data.grids);
-        for (auto opt_mat : range(OpticalMaterialId{mats.num_materials()}))
+        for (auto opt_mat : range(OptMatId{mats.num_materials()}))
         {
             model->build_mfps(opt_mat, builder);
         }

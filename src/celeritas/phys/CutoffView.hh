@@ -38,7 +38,7 @@ class CutoffView
   public:
     // Construct for the given particle and material ids
     inline CELER_FUNCTION
-    CutoffView(CutoffData const& params, MaterialId material);
+    CutoffView(CutoffData const& params, PhysMatId material);
 
     // Return energy cutoff value
     inline CELER_FUNCTION Energy energy(ParticleId particle) const;
@@ -54,7 +54,7 @@ class CutoffView
 
   private:
     CutoffData const& params_;
-    MaterialId material_;
+    PhysMatId material_;
 
     //// HELPER FUNCTIONS ////
 
@@ -69,7 +69,7 @@ class CutoffView
  * Construct view from host/device for the given material id.
  */
 CELER_FUNCTION
-CutoffView::CutoffView(CutoffData const& params, MaterialId material)
+CutoffView::CutoffView(CutoffData const& params, PhysMatId material)
     : params_(params), material_(material)
 {
     CELER_EXPECT(params_);

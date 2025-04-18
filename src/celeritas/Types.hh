@@ -38,14 +38,13 @@ using UniqueEventId = OpaqueId<struct Event_, std::uint64_t>;
 using IsotopeId = OpaqueId<struct IsotopeRecord>;
 
 //! Opaque index of a material modified by physics options
-// TODO: rename to PhysMatId; equivalent to "material cuts couple"
-using MaterialId = OpaqueId<struct Material_>;
+using PhysMatId = OpaqueId<struct PhysicsMaterial_>;
 
 //! Opaque index of model in the list of physics processes
 using ModelId = OpaqueId<struct Model_>;
 
 //! Opaque index to a material with optical properties
-using OpticalMaterialId = OpaqueId<struct OpticalMaterial_>;
+using OptMatId = OpaqueId<struct OpticalMaterial_>;
 
 //! Opaque index to ParticleRecord in a vector: represents a particle type
 using ParticleId = OpaqueId<struct Particle_>;
@@ -192,6 +191,16 @@ enum class NuclearFormFactorType
 };
 
 //---------------------------------------------------------------------------//
+//! Interpolation for physics grids
+enum class InterpolationType
+{
+    linear,
+    poly_spline,  //!< Piecewise polynomial interpolation
+    cubic_spline,  //!< Cubic spline interpolation with \f$ C^2 \f$ continuity
+    size_
+};
+
+//---------------------------------------------------------------------------//
 //! Cylindrical coordinates indices
 enum class CylAxis
 {
@@ -249,6 +258,9 @@ char const* to_cstring(MscStepLimitAlgorithm value);
 
 // Get a string corresponding to the nuclear form factor model
 char const* to_cstring(NuclearFormFactorType value);
+
+// Get a string corresponding to the interpolation method
+char const* to_cstring(InterpolationType value);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

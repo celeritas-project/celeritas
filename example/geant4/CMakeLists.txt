@@ -17,7 +17,7 @@ endif()
 
 add_executable(simple-offload simple-offload.cc)
 celeritas_target_link_libraries(simple-offload
-  Celeritas::accel
+  Celeritas::G4
   ${Geant4_LIBRARIES}
 )
 
@@ -27,7 +27,7 @@ endif()
 
 add_executable(fastsim-offload fastsim-offload.cc)
 celeritas_target_link_libraries(fastsim-offload
-  Celeritas::accel
+  Celeritas::G4
   ${Geant4_LIBRARIES}
 )
 
@@ -36,7 +36,7 @@ if(Geant4_VERSION VERSION_LESS 11.0)
 else()
   add_executable(trackingmanager-offload trackingmanager-offload.cc)
   celeritas_target_link_libraries(trackingmanager-offload
-    Celeritas::accel
+    Celeritas::G4
     ${Geant4_LIBRARIES}
   )
 endif()

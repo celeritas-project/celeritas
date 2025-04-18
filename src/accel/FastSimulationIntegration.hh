@@ -21,7 +21,6 @@ namespace celeritas
  * - Add the \c FastSimulationModel to regions of interest.
  * - Use \c SetOptions to set up options before \c G4RunManager::Initialize:
  *   usually in \c main for simple applications.
- * - Call \c Build and \c BuildForMaster from \c UserActionInitialization
  * - Call \c BeginOfRunAction and \c EndOfRunAction from \c UserRunAction
  *
  * The \c CELER_DISABLE environment variable, if set and non-empty, will

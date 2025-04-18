@@ -134,7 +134,7 @@ CELER_FUNCTION auto
 UrbanMscHelper::calc_inverse_range(real_type step) const -> Energy
 {
     auto range_to_energy = physics_.make_calculator<InverseRangeCalculator>(
-        physics_.range_grid());
+        physics_.inverse_range_grid());
     return range_to_energy(step);
 }
 

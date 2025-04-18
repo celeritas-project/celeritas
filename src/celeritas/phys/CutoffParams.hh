@@ -85,7 +85,7 @@ class CutoffParams final : public ParamsDataInterface<CutoffParamsData>
     explicit CutoffParams(Input const& input);
 
     // Access cutoffs on host
-    inline CutoffView get(MaterialId material) const;
+    inline CutoffView get(PhysMatId material) const;
 
     //! Access cutoff data on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }
@@ -110,7 +110,7 @@ class CutoffParams final : public ParamsDataInterface<CutoffParamsData>
 /*!
  * Access cutoffs on host.
  */
-CutoffView CutoffParams::get(MaterialId material) const
+CutoffView CutoffParams::get(PhysMatId material) const
 {
     CELER_EXPECT(material < this->host_ref().num_materials);
     return CutoffView(this->host_ref(), material);

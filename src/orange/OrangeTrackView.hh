@@ -11,6 +11,7 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/sys/ThreadId.hh"
 
+#include "LevelStateAccessor.hh"
 #include "OrangeData.hh"
 #include "OrangeTypes.hh"
 #include "transform/TransformVisitor.hh"
@@ -19,7 +20,6 @@
 #include "univ/UniverseTypeTraits.hh"
 #include "univ/detail/Types.hh"
 
-#include "detail/LevelStateAccessor.hh"
 #include "detail/UniverseIndexer.hh"
 
 #if !CELER_DEVICE_COMPILE
@@ -151,7 +151,7 @@ class OrangeTrackView
   private:
     //// TYPES ////
 
-    using LSA = detail::LevelStateAccessor;
+    using LSA = LevelStateAccessor;
 
     //// DATA ////
 

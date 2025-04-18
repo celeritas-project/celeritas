@@ -191,9 +191,6 @@ inp::Problem load_problem(RunnerInput const& ri)
 
         CELER_ASSERT(em.brems);
         em.brems->combined_model = ri.brem_combined;
-
-        // Spline energy loss order
-        em.eloss_spline_order = ri.spline_eloss_order;
     }
 
     // Tracking
@@ -279,7 +276,16 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
     {
         // Set up Geant4
         si.geant_setup = ri.physics_options;
-        si.physics_import = inp::GeantImport{};
+
+        inp::GeantImport geant_import;
+        CELER_VALIDATE(
+            ri.poly_spline_order == 1
+                || ri.interpolation == InterpolationType::poly_spline,
+            << "piecewise polynomial spline order cannot be set if "
+               "linear or cubic spline interpolation is enabled");
+        geant_import.data_selection.interpolation.type = ri.interpolation;
+        geant_import.data_selection.interpolation.order = ri.poly_spline_order;
+        si.physics_import = std::move(geant_import);
     }
     si.events = load_events(ri);
 

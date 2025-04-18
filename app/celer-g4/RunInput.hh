@@ -92,6 +92,8 @@ struct RunInput
     // Physics setup options
     PhysicsListSelection physics_list{PhysicsListSelection::celer_ftfp_bert};
     GeantPhysicsOptions physics_options;
+    InterpolationType interpolation{InterpolationType::linear};
+    size_type poly_spline_order{1};
 
     // Field setup options
     std::string field_type{"uniform"};

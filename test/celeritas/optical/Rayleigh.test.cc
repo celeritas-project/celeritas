@@ -161,7 +161,7 @@ TEST_F(RayleighModelTest, interaction_mfp)
     auto model = create_model();
     auto builder = storage.create_mfp_builder();
 
-    for (auto mat : range(OpticalMaterialId(this->num_optical_materials())))
+    for (auto mat : range(OptMatId(this->num_optical_materials())))
     {
         model->build_mfps(mat, builder);
     }

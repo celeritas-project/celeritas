@@ -112,23 +112,6 @@ output
 The ``--dump-default`` usage renders the default options.
 
 
-celer-dump-data
-^^^^^^^^^^^^^^^
-
-This utility prints an RST-formatted high-level dump of physics data exported
-via :ref:`celer-export-geant`.
-
-----
-
-Usage:
-
-.. literalinclude:: _usage/celer-dump-data.txt
-
-
-output
-  A ROOT file containing exported :ref:`api_importdata`.
-
-
 orange-update
 ^^^^^^^^^^^^^
 

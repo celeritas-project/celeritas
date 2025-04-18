@@ -189,7 +189,6 @@ auto build_physics(inp::Problem const& p,
         // Default: twice the number of track slots
         input.options.secondary_stack_factor = 2.0;
     }
-    input.options.spline_eloss_order = p.physics.em->eloss_spline_order;
     input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
     input.options.disable_integral_xs = !imported.em_params.integral_approach;
     input.options.light.lowest_energy

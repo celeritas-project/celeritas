@@ -2,12 +2,14 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/fastsim-offload.cc
+//! \file geant4/fastsim-offload.cc
 //---------------------------------------------------------------------------//
 
 #include <algorithm>
 #include <iterator>
 #include <type_traits>
+
+// Geant4
 #include <FTFP_BERT.hh>
 #include <G4Box.hh>
 #include <G4Electron.hh>
@@ -41,11 +43,10 @@
 #    include <G4MTRunManager.hh>
 #endif
 
-#include <accel/AlongStepFactory.hh>
-#include <accel/FastSimulationIntegration.hh>
-#include <accel/FastSimulationModel.hh>
-#include <accel/SetupOptions.hh>
-#include <corecel/Macros.hh>
+// Celeritas
+#include <CeleritasG4.hh>
+
+// Utility includes
 #include <corecel/io/Logger.hh>
 
 using celeritas::FastSimulationIntegration;
@@ -130,20 +131,9 @@ class RunAction final : public G4UserRunAction
 class ActionInitialization final : public G4VUserActionInitialization
 {
   public:
-    void BuildForMaster() const final
-    {
-        FastSimulationIntegration::Instance().BuildForMaster();
-
-        CELER_LOG_LOCAL(status) << "Constructing user actions";
-
-        this->SetUserAction(new RunAction{});
-    }
+    void BuildForMaster() const final { this->SetUserAction(new RunAction{}); }
     void Build() const final
     {
-        FastSimulationIntegration::Instance().Build();
-
-        CELER_LOG_LOCAL(status) << "Constructing user actions";
-
         this->SetUserAction(new PrimaryGeneratorAction{});
         this->SetUserAction(new RunAction{});
     }

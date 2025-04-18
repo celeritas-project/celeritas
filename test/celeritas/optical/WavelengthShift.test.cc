@@ -60,7 +60,6 @@ class WavelengthShiftTest : public InteractorHostTestBase
         wls.component.x = {get_energy().begin(), get_energy().end()};
         // Reemitted photon energy spectrum
         wls.component.y = {get_spectrum().begin(), get_spectrum().end()};
-        wls.component.vector_type = ImportPhysicsVectorType::free;
 
         WavelengthShiftParams::Input input;
         input.data.push_back(std::move(wls));
@@ -68,7 +67,7 @@ class WavelengthShiftTest : public InteractorHostTestBase
         data_ = params_->host_ref();
     }
 
-    OpticalMaterialId material_id_{0};
+    OptMatId material_id_{0};
     std::shared_ptr<WavelengthShiftParams const> params_;
     HostDataCRef data_;
 };

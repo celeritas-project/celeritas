@@ -21,12 +21,13 @@ recommended for all applications that support Geant4 11.0 or higher.
 1. Find and link in your CMake project:
 
    - Find the Celeritas package.
-   - Link ``Celeritas::accel`` .
+   - Link ``Celeritas::G4`` .
    - Use ``celeritas_target_link_libraries`` instead of
      ``target_link_libraries`` when both VecGeom and CUDA are enabled.
 
 2. Set up physics offloading in your "main" function.
 
+   - Include ``<CeleritasG4.hh>``
    - Register the ``TrackingManagerConstructor``, which tells Geant4 to send EM
      tracks to Celeritas rather than the main tracking loop.
    - Tweak the ``SetupOptions`` based on problem requirements, or use the
@@ -34,15 +35,14 @@ recommended for all applications that support Geant4 11.0 or higher.
 
 3. Add hooks to safely set up and tear down Celeritas and its GPU code.
 
-   - Initialize logging in ``UserActionInitialization``, using
-     ``BuildForMaster`` (MT mode) or ``Build`` (serial).
-   - In ``UserRunAction``, ``BeginOfRunAction`` initializes problem data
-     (master or serial) and local state (worker or serial), and
-     ``EndOfRunAction`` safely deallocates everything.
+   - Call ``BeginOfRunAction`` at the beginning of the run to initialize
+     problem data (master or serial) and local state (worker or serial).
+   - Call ``EndOfRunAction`` at the end of the run to safely deallocate
+     everything.
 
 The changes for a simple application look like:
 
-.. literalinclude:: ../../example/accel/add-celer.diff
+.. literalinclude:: ../../example/geant4/add-celer.diff
    :language: diff
 
 CMake integration

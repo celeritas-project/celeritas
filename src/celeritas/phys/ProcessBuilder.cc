@@ -200,7 +200,7 @@ auto ProcessBuilder::build_photoelectric() -> SPProcess
 {
     if (!read_livermore_)
     {
-        read_livermore_ = LivermorePEReader{};
+        read_livermore_ = LivermorePEReader{{}};
     }
 
     return std::make_shared<PhotoelectricProcess>(

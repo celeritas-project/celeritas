@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/DormandPrinceStepper.hh
+//! \file celeritas/field/DormandPrinceIntegrator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -55,21 +55,19 @@ namespace celeritas
      y_{n+1/2}   = y_n + (h/2) \Sigma_{n=1}^{7} c^{*}_i k_i
    \f]
  * with the coefficients \f$c^{*}\f$ taken from L. F. Shampine (1986).
- *
- * \todo Rename DormandPrinceIntegrator
  */
 template<class EquationT>
-class DormandPrinceStepper
+class DormandPrinceIntegrator
 {
   public:
     //!@{
     //! \name Type aliases
-    using result_type = FieldStepperResult;
+    using result_type = FieldIntegration;
     //!@}
 
   public:
     //! Construct with the equation of motion
-    explicit CELER_FUNCTION DormandPrinceStepper(EquationT&& eq)
+    explicit CELER_FUNCTION DormandPrinceIntegrator(EquationT&& eq)
         : calc_rhs_(::celeritas::forward<EquationT>(eq))
     {
     }
@@ -88,7 +86,7 @@ class DormandPrinceStepper
 //---------------------------------------------------------------------------//
 template<class EquationT>
 CELER_FUNCTION
-DormandPrinceStepper(EquationT&&) -> DormandPrinceStepper<EquationT>;
+DormandPrinceIntegrator(EquationT&&) -> DormandPrinceIntegrator<EquationT>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -97,7 +95,7 @@ DormandPrinceStepper(EquationT&&) -> DormandPrinceStepper<EquationT>;
  * Numerically integrate using the DormandPrince RK5(4)7M method.
  */
 template<class E>
-CELER_FUNCTION auto DormandPrinceStepper<E>::operator()(
+CELER_FUNCTION auto DormandPrinceIntegrator<E>::operator()(
     real_type step, OdeState const& beg_state) const -> result_type
 {
     using celeritas::axpy;

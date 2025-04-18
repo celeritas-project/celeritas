@@ -37,7 +37,7 @@ class NonuniformGridCalculator
     //@}
 
   public:
-    // Construct by *inverting* a monotonicially increasing generic grid
+    // Construct by *inverting* a monotonicially increasing nonuniform grid
     static inline CELER_FUNCTION NonuniformGridCalculator
     from_inverse(NonuniformGridRecord const& grid, Values const& reals);
 
@@ -83,7 +83,7 @@ class NonuniformGridCalculator
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct by \em inverting a monotonicially increasing generic grid.
+ * Construct by \em inverting a monotonicially increasing nonuniform grid.
  */
 CELER_FUNCTION NonuniformGridCalculator NonuniformGridCalculator::from_inverse(
     NonuniformGridRecord const& grid, Values const& reals)

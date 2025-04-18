@@ -23,7 +23,7 @@ namespace detail
 GeoOpticalIdMap::GeoOpticalIdMap(G4MaterialTable const& mt)
     : geo_to_opt_{mt.size()}
 {
-    OpticalMaterialId::size_type next_id{0};
+    OptMatId::size_type next_id{0};
     for (auto mat_idx : range(geo_to_opt_.size()))
     {
         G4Material const* material = mt[mat_idx];
@@ -35,7 +35,7 @@ GeoOpticalIdMap::GeoOpticalIdMap(G4MaterialTable const& mt)
         {
             if (mpt->GetProperty("RINDEX"))
             {
-                geo_to_opt_[mat_idx] = OpticalMaterialId{next_id++};
+                geo_to_opt_[mat_idx] = OptMatId{next_id++};
             }
         }
     }

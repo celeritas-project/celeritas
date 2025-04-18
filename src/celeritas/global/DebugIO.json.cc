@@ -102,7 +102,7 @@ struct FromId
     }
 
     //! Transform to a material label
-    nlohmann::json convert_impl(MaterialId id) const
+    nlohmann::json convert_impl(PhysMatId id) const
     {
         auto const& params = *this->params->material();
         return params.id_to_label(id);

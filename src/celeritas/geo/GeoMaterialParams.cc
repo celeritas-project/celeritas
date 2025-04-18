@@ -30,7 +30,7 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-using MapLabelMatId = std::unordered_map<Label, MaterialId>;
+using MapLabelMatId = std::unordered_map<Label, PhysMatId>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -41,15 +41,15 @@ using MapLabelMatId = std::unordered_map<Label, MaterialId>;
  */
 MapLabelMatId build_label_map(MaterialParams const& mat_params,
                               std::vector<Label>&& labels,
-                              std::vector<MaterialId> const& materials)
+                              std::vector<PhysMatId> const& materials)
 {
     CELER_EXPECT(materials.size() == labels.size());
     CELER_EXPECT(std::all_of(
-        materials.begin(), materials.end(), [&mat_params](MaterialId m) {
+        materials.begin(), materials.end(), [&mat_params](PhysMatId m) {
             return !m || m < mat_params.num_materials();
         }));
 
-    std::unordered_map<Label, MaterialId> lab_to_id;
+    std::unordered_map<Label, PhysMatId> lab_to_id;
     std::set<Label> duplicates;
 
     // Remap materials to volume IDs using given volume names:
@@ -89,7 +89,7 @@ class MaterialFinder
     {
     }
 
-    MaterialId operator()(VolumeId const& volume_id)
+    PhysMatId operator()(VolumeId const& volume_id)
     {
         Label const& vol_label = geo_.volumes().at(volume_id);
 
@@ -116,7 +116,7 @@ class MaterialFinder
             return {};
         }
 
-        std::set<MaterialId> found_mat;
+        std::set<PhysMatId> found_mat;
         for (auto iter = start; iter != stop; ++iter)
         {
             found_mat.insert(iter->second.second);
@@ -141,7 +141,7 @@ class MaterialFinder
     GeoParams const& geo_;
     MapLabelMatId const& materials_;
 
-    using PairExtMatid = std::pair<std::string, MaterialId>;
+    using PairExtMatid = std::pair<std::string, PhysMatId>;
     std::multimap<std::string, PairExtMatid> mat_labels_;
 
     void build_mat_labels()
@@ -170,12 +170,12 @@ bool ignore_volume_name(std::string const& name)
 /*!
  * Construct a label -> material map from the input.
  */
-std::vector<MaterialId>
+std::vector<PhysMatId>
 build_vol_to_mat(GeoParams const& geo, MapLabelMatId const& materials)
 {
     auto const& vols = geo.volumes();
     std::vector<Label> missing_volumes;
-    std::vector<MaterialId> result(vols.size(), MaterialId{});
+    std::vector<PhysMatId> result(vols.size(), PhysMatId{});
 
     // Make sure at least one volume maps correctly
     VolumeId::size_type num_missing{0};
@@ -261,7 +261,7 @@ GeoMaterialParams::from_import(ImportData const& data,
             continue;
 
         input.volume_to_mat[volume_idx]
-            = MaterialId(data.volumes[volume_idx].phys_material_id);
+            = PhysMatId(data.volumes[volume_idx].phys_material_id);
     }
 
     // Assume that since Geant4 is using internal geometry and

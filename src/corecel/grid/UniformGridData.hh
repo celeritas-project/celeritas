@@ -8,6 +8,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/EnumArray.hh"
 #include "corecel/data/Collection.hh"
 
 namespace celeritas
@@ -39,7 +40,7 @@ struct UniformGridData
 
     // Construct on host from front/back
     inline static UniformGridData
-    from_bounds(value_type front, value_type back, size_type size);
+    from_bounds(EnumArray<Bound, double> bounds, size_type size);
 };
 
 //---------------------------------------------------------------------------//
@@ -76,15 +77,15 @@ struct UniformGridRecord
  * Construct from min/max and number of grid points.
  */
 UniformGridData
-UniformGridData::from_bounds(value_type front, value_type back, size_type size)
+UniformGridData::from_bounds(EnumArray<Bound, double> bounds, size_type size)
 {
     CELER_EXPECT(size >= 2);
-    CELER_EXPECT(front < back);
+    CELER_EXPECT(bounds[Bound::lo] < bounds[Bound::hi]);
     UniformGridData result;
     result.size = size;
-    result.front = front;
-    result.back = back;
-    result.delta = (back - front) / (size - 1);
+    result.front = bounds[Bound::lo];
+    result.back = bounds[Bound::hi];
+    result.delta = (bounds[Bound::hi] - bounds[Bound::lo]) / (size - 1);
     CELER_ENSURE(result);
     return result;
 }

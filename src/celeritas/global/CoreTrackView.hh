@@ -221,7 +221,7 @@ CoreTrackView::particle_record(ParticleId pid) const -> ParticleView
  */
 CELER_FUNCTION auto CoreTrackView::cutoff() const -> CutoffView
 {
-    MaterialId mat_id = this->material().material_id();
+    PhysMatId mat_id = this->material().material_id();
     CELER_ASSERT(mat_id);
     return CutoffView{params_.cutoffs, mat_id};
 }
@@ -232,7 +232,7 @@ CELER_FUNCTION auto CoreTrackView::cutoff() const -> CutoffView
  */
 CELER_FUNCTION auto CoreTrackView::physics() const -> PhysicsTrackView
 {
-    MaterialId mat_id = this->material().material_id();
+    PhysMatId mat_id = this->material().material_id();
     CELER_ASSERT(mat_id);
     auto par = this->particle();
     return PhysicsTrackView{

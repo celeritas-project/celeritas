@@ -27,8 +27,8 @@ struct ImportData;
 /*!
  * Map a track's geometry state to a material ID.
  *
- * For the forseeable future this class should just be a vector of MaterialIds,
- * one per volume.
+ * For the forseeable future this class should just be a vector of
+ * PhysicsMaterialIds, one per volume.
  *
  * The constructor takes an array of material IDs for every volume. Missing
  * material IDs may be allowed if they correspond to unreachable volume IDs. If
@@ -56,7 +56,7 @@ class GeoMaterialParams final
     {
         SPConstGeo geometry;
         SPConstMaterial materials;
-        std::vector<MaterialId> volume_to_mat;
+        std::vector<PhysMatId> volume_to_mat;
         std::vector<Label> volume_labels;  // Optional
     };
 
@@ -80,7 +80,7 @@ class GeoMaterialParams final
     inline VolumeId::size_type num_volumes() const;
 
     // Get the material ID corresponding to a volume ID
-    inline MaterialId material_id(VolumeId v) const;
+    inline PhysMatId material_id(VolumeId v) const;
 
   private:
     CollectionMirror<GeoMaterialParamsData> data_;
@@ -105,7 +105,7 @@ VolumeId::size_type GeoMaterialParams::num_volumes() const
  *
  * Some "virtual" volumes may have a null ID.
  */
-MaterialId GeoMaterialParams::material_id(VolumeId v) const
+PhysMatId GeoMaterialParams::material_id(VolumeId v) const
 {
     CELER_EXPECT(v < this->num_volumes());
 

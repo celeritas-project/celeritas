@@ -220,7 +220,7 @@ std::vector<std::string> fill_strings(CsgUnit const& u)
         {
             result.push_back("<UNASSIGNED>");
         }
-        else if (auto* mid = std::get_if<GeoMaterialId>(&f))
+        else if (auto* mid = std::get_if<GeoMatId>(&f))
         {
             result.push_back("m" + std::to_string(mid->unchecked_get()));
         }
@@ -297,7 +297,7 @@ EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
 EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
 EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
 )cpp"
-              << "EXPECT_EQ(GeoMaterialId{";
+              << "EXPECT_EQ(GeoMatId{";
     if (u.background)
     {
         std::cout << u.background.unchecked_get();

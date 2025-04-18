@@ -41,7 +41,7 @@ class MatScintSpecInserter
     auto operator()(ImportMaterialScintSpectrum const& mat);
 
   private:
-    using MatId = OpticalMaterialId;
+    using MatId = OptMatId;
 
     CollectionBuilder<MatScintSpectrumRecord, MemSpace::host, MatId> materials_;
     DedupeCollectionBuilder<real_type> reals_;

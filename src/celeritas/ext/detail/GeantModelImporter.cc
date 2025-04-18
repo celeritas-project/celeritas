@@ -178,18 +178,14 @@ ImportModel GeantModelImporter::operator()(G4VEmModel const& model) const
                 bins_per_decade * std::log10(max_energy / min_energy));
 
             // Interpolate energy in log space with at least 3 bins
-            model_mat.energy = logspace(
+            auto energy = logspace(
                 min_energy, max_energy, std::max<size_type>(3, num_bins));
 
             // Calculate cross sections
             GeantMicroXsCalculator calc_xs(model, *g4particle_, g4mat, cutoff);
-            calc_xs(model_mat.energy, &model_mat.micro_xs);
+            calc_xs(energy, &model_mat.micro_xs);
         }
-        else
-        {
-            // Just save the energy bounds for the model
-            model_mat.energy = {min_energy, max_energy};
-        }
+        model_mat.energy = {min_energy, max_energy};
     }
 
     CELER_ENSURE(result);

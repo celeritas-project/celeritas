@@ -31,9 +31,9 @@ struct OdeState
 
 //---------------------------------------------------------------------------//
 /*!
- * The result of the integration stepper.
+ * The result of a single integration.
  */
-struct FieldStepperResult
+struct FieldIntegration
 {
     OdeState mid_state;  //!< OdeState at the middle
     OdeState end_state;  //!< OdeState at the end
@@ -44,10 +44,10 @@ struct FieldStepperResult
 /*!
  * The result of moving up to a certain distance along a step.
  */
-struct DriverResult
+struct Substep
 {
     OdeState state;  //!< Post-step state
-    real_type step;  //!< Actual curved step
+    real_type length;  //!< Actual curved step
 };
 
 //! \cond (CELERITAS_DOC_DEV)

@@ -18,7 +18,7 @@ namespace celeritas
 char const* to_cstring(ValueGridType value)
 {
     static EnumStringMapper<ValueGridType> const to_cstring_impl{
-        "macro_xs", "energy_loss", "range"};
+        "macro_xs", "energy_loss"};
     return to_cstring_impl(value);
 }
 

@@ -11,6 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 
+#include "../NonuniformGridData.hh"
 #include "../UniformGrid.hh"
 #include "../UniformGridData.hh"
 
@@ -24,6 +25,14 @@ namespace detail
  */
 class GridAccessor
 {
+  public:
+    //!@{
+    //! \name Type aliases
+    using SpanConstReal = Span<real_type const>;
+    using Values
+        = Collection<real_type, Ownership::const_reference, MemSpace::native>;
+    //!@}
+
   public:
     // Virtual destructor for polymorphic deletion
     virtual ~GridAccessor() = default;
@@ -49,19 +58,18 @@ class GridAccessor
 
 //---------------------------------------------------------------------------//
 /*!
- * Helper class for accessing grid data from spans.
+ * Helper class for accessing grid data from a nonuniform grid.
  */
-class SpanGridAccessor : public GridAccessor
+class NonuniformGridAccessor : public GridAccessor
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using SpanConstReal = Span<real_type const>;
-    //!@}
-
-  public:
     // Construct with spans
-    inline SpanGridAccessor(SpanConstReal x_values, SpanConstReal y_values);
+    inline NonuniformGridAccessor(SpanConstReal x_values,
+                                  SpanConstReal y_values);
+
+    // Construct with a nonuniform grid
+    inline NonuniformGridAccessor(NonuniformGridRecord const& grid,
+                                  Values const& values);
 
     // Get the x grid value at the given index
     inline real_type x(size_type index) const final;
@@ -84,6 +92,32 @@ class SpanGridAccessor : public GridAccessor
 class UniformGridAccessor : public GridAccessor
 {
   public:
+    // Construct with grid data
+    inline UniformGridAccessor(UniformGridRecord const& grid,
+                               Values const& values);
+
+    //! Get the x grid value at the given index
+    inline real_type x(size_type index) const final;
+
+    //! Get the y grid value at the given index
+    inline real_type y(size_type index) const final;
+
+    //! Get the grid size
+    size_type size() const final { return loge_grid_.size(); }
+
+  private:
+    UniformGridRecord const& data_;
+    Values const& reals_;
+    UniformGrid loge_grid_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Helper class for accessing grid data from an inverse uniform grid.
+ */
+class InverseGridAccessor : public GridAccessor
+{
+  public:
     //!@{
     //! \name Type aliases
     using Values
@@ -92,7 +126,7 @@ class UniformGridAccessor : public GridAccessor
 
   public:
     // Construct with grid data
-    inline UniformGridAccessor(UniformGridRecord const& grid,
+    inline InverseGridAccessor(UniformGridRecord const& grid,
                                Values const& values);
 
     //! Get the x grid value at the given index
@@ -146,10 +180,10 @@ real_type GridAccessor::delta_slope(size_type index) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Contruct from spans.
+ * Construct from spans.
  */
-SpanGridAccessor::SpanGridAccessor(SpanConstReal x_values,
-                                   SpanConstReal y_values)
+NonuniformGridAccessor::NonuniformGridAccessor(SpanConstReal x_values,
+                                               SpanConstReal y_values)
     : x_values_(x_values), y_values_(y_values)
 {
     CELER_EXPECT(x_values_.size() == y_values_.size());
@@ -157,9 +191,20 @@ SpanGridAccessor::SpanGridAccessor(SpanConstReal x_values,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct from a nonuniform grid.
+ */
+NonuniformGridAccessor::NonuniformGridAccessor(NonuniformGridRecord const& grid,
+                                               Values const& values)
+
+    : NonuniformGridAccessor(values[grid.grid], values[grid.value])
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the x grid value at the given index.
  */
-real_type SpanGridAccessor::x(size_type index) const
+real_type NonuniformGridAccessor::x(size_type index) const
 {
     CELER_EXPECT(index < this->size());
     return x_values_[index];
@@ -169,7 +214,7 @@ real_type SpanGridAccessor::x(size_type index) const
 /*!
  * Get the y grid value at the given index.
  */
-real_type SpanGridAccessor::y(size_type index) const
+real_type NonuniformGridAccessor::y(size_type index) const
 {
     CELER_EXPECT(index < this->size());
     return y_values_[index];
@@ -177,7 +222,7 @@ real_type SpanGridAccessor::y(size_type index) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Contruct from cross section grid.
+ * Construct from cross section grid.
  */
 UniformGridAccessor::UniformGridAccessor(UniformGridRecord const& grid,
                                          Values const& values)
@@ -204,6 +249,37 @@ real_type UniformGridAccessor::y(size_type index) const
 {
     CELER_EXPECT(index < this->size());
     return reals_[data_.value[index]];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Contruct from cross section grid.
+ */
+InverseGridAccessor::InverseGridAccessor(UniformGridRecord const& grid,
+                                         Values const& values)
+    : data_(grid), reals_(values), loge_grid_(data_.grid)
+{
+    CELER_EXPECT(data_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the x grid value at the given index.
+ */
+real_type InverseGridAccessor::x(size_type index) const
+{
+    CELER_EXPECT(index < this->size());
+    return reals_[data_.value[index]];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the y grid value at the given index.
+ */
+real_type InverseGridAccessor::y(size_type index) const
+{
+    CELER_EXPECT(index < this->size());
+    return std::exp(loge_grid_[index]);
 }
 
 //---------------------------------------------------------------------------//

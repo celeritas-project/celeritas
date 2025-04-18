@@ -9,6 +9,8 @@
 #include "corecel/Types.hh"
 #include "corecel/grid/UniformGridData.hh"
 
+#include "detail/GridUtils.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -16,7 +18,7 @@ namespace celeritas
  * Construct with a reference to mutable host data.
  */
 UniformGridInserter::UniformGridInserter(Values* reals, GridValues* grids)
-    : reals_(reals), grids_(grids)
+    : values_(reals), reals_(reals), grids_(grids)
 {
     CELER_EXPECT(reals && grids);
 }
@@ -25,36 +27,16 @@ UniformGridInserter::UniformGridInserter(Values* reals, GridValues* grids)
 /*!
  * Add a grid of physics data.
  */
-auto UniformGridInserter::operator()(UniformGridData const& grid,
-                                     SpanConstDbl values) -> GridId
-{
-    return this->insert(grid, values);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Add a grid of physics data.
- */
-auto UniformGridInserter::operator()(UniformGridData const& grid,
-                                     SpanConstFlt values) -> GridId
-{
-    return this->insert(grid, values);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Add a grid of physics data.
- */
-template<class T>
-auto UniformGridInserter::insert(UniformGridData const& grid,
-                                 Span<T const> values) -> GridId
+auto UniformGridInserter::operator()(inp::UniformGrid const& grid) -> GridId
 {
     CELER_EXPECT(grid);
-    CELER_EXPECT(grid.size == values.size());
 
     UniformGridRecord data;
-    data.grid = grid;
-    data.value = reals_.insert_back(values.begin(), values.end());
+    data.grid = UniformGridData::from_bounds(grid.x, grid.y.size());
+    data.value = reals_.insert_back(grid.y.begin(), grid.y.end());
+    detail::set_spline(values_, reals_, grid.interpolation, data);
+
+    CELER_ENSURE(data);
     return grids_.push_back(data);
 }
 

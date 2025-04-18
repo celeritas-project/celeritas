@@ -9,7 +9,7 @@
 #include <string>
 #include <G4Material.hh>
 
-#include "celeritas/io/ImportPhysicsVector.hh"
+#include "celeritas/inp/Grid.hh"
 #include "celeritas/io/ImportUnits.hh"
 
 #include "GeantProcessImporter.hh"
@@ -48,9 +48,8 @@ struct GeantMaterialPropertyGetter
     }
 
     //! Get property for a physics vector
-    bool operator()(ImportPhysicsVector* dst,
-                    std::string const& name,
-                    Array<ImportUnits, 2> q)
+    bool
+    operator()(inp::Grid* dst, std::string const& name, Array<ImportUnits, 2> q)
     {
         // Geant4@10.7: G4MaterialPropertiesTable.GetProperty is not const
         // and <=10.6 require const char*

@@ -39,10 +39,9 @@ TEST_F(XsCalculatorTest, simple)
 {
     // Energy from 1 to 1e5 MeV with 6 grid points; XS = E
     // *No* magical 1/E scaling
-    GridInput lower;
-    lower.emin = 1;
-    lower.emax = 1e5;
-    lower.value = VecReal{1, 10, 1e2, 1e3, 1e4, 1e5};
+    inp::UniformGrid lower;
+    lower.x = {1, 1e5};
+    lower.y = {1, 10, 1e2, 1e3, 1e4, 1e5};
     this->build(lower, {});
 
     XsCalculator calc(this->data(), this->values());
@@ -68,10 +67,9 @@ TEST_F(XsCalculatorTest, simple)
 TEST_F(XsCalculatorTest, scaled_lowest)
 {
     // Energy from .1 to 1e4 MeV with 6 grid points and values of 1
-    GridInput upper;
-    upper.emin = 0.1;
-    upper.emax = 1e4;
-    upper.value = VecReal(6, 1);
+    inp::UniformGrid upper;
+    upper.x = {0.1, 1e4};
+    upper.y = {1, 1, 1, 1, 1, 1};
     this->build({}, upper);
 
     XsCalculator calc(this->data(), this->values());
@@ -99,14 +97,12 @@ TEST_F(XsCalculatorTest, scaled_lowest)
 TEST_F(XsCalculatorTest, scaled_middle)
 {
     // Energy from .1 to 1e4 MeV with 6 grid points
-    GridInput lower;
-    lower.emin = 0.1;
-    lower.emax = 10;
-    lower.value = VecReal(3, 3);
-    GridInput upper;
-    upper.emin = lower.emax;
-    upper.emax = 1e4;
-    upper.value = VecReal(4, 3);
+    inp::UniformGrid lower;
+    lower.x = {0.1, 10};
+    lower.y = {3, 3, 3};
+    inp::UniformGrid upper;
+    upper.x = {lower.x[Bound::hi], 1e4};
+    upper.y = {3, 3, 3, 3};
     this->build(lower, upper);
 
     XsCalculator calc(this->data(), this->values());
@@ -141,14 +137,12 @@ TEST_F(XsCalculatorTest, scaled_linear)
         return result;
     };
 
-    GridInput lower;
-    lower.emin = 1e-3;
-    lower.emax = 1;
-    lower.value = VecReal{xs(1e-3), xs(1e-2), xs(1e-1), xs(1)};
-    GridInput upper;
-    upper.emin = lower.emax;
-    upper.emax = 1e3;
-    upper.value = VecReal{xs(1), xs(1e1), xs(1e2), xs(1e3)};
+    inp::UniformGrid lower;
+    lower.x = {1e-3, 1};
+    lower.y = {xs(1e-3), xs(1e-2), xs(1e-1), xs(1)};
+    inp::UniformGrid upper;
+    upper.x = {lower.x[Bound::hi], 1e3};
+    upper.y = {xs(1), xs(1e1), xs(1e2), xs(1e3)};
     this->build(lower, upper);
 
     XsCalculator interp_xs(this->data(), this->values());
@@ -159,20 +153,20 @@ TEST_F(XsCalculatorTest, scaled_linear)
     }
 }
 
-TEST_F(XsCalculatorTest, TEST_IF_CELERITAS_DEBUG(scaled_highest))
+TEST_F(XsCalculatorTest, scaled_highest)
 {
     // values of 1, 10, 100 --> actual xs = {1, 10, 1}
-    GridInput lower;
-    lower.emin = 1;
-    lower.emax = 100;
-    lower.value = VecReal{1, 10, 1};
-    GridInput upper;
-    upper.emin = lower.emax;
-    upper.emax = 100;
-    upper.value = VecReal{1, 1};
+    inp::UniformGrid lower;
+    lower.x = {1, 100};
+    lower.y = {1, 10, 1};
+    inp::UniformGrid upper;
+    upper.x = {lower.x[Bound::hi], 100};
+    upper.y = {1, 1};
 
-    // Can't have a single scaled value
-    EXPECT_THROW(this->build(lower, upper), DebugError);
+    // Can't have a single scaled value; only the lower grid is built
+    this->build(lower, upper);
+    EXPECT_TRUE(this->data().lower);
+    EXPECT_FALSE(this->data().upper);
 }
 
 //---------------------------------------------------------------------------//
