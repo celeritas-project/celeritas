@@ -68,6 +68,10 @@ jobs:
             geometry: "vecgeom"
             special: "clang-tidy"
             geant: "11.2"
+          - build_type: "reldeb"
+            geometry: "vecgeom"
+            special: "covfie"
+            geant: "11.3"
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "${{matrix.build_type == 'reldebinfo' && '400' || '200'}}Mi"
@@ -82,7 +86,7 @@ jobs:
       CC: "clang-18"
       CXX: "clang++-18"
       CLANG_TIDY: "clang-tidy-18"
-      CXXSTD: ${{(matrix.geant == '10.5' || matrix.geant == '10.6')
+      CXXSTD: ${{(matrix.special != 'covfie' && (matrix.geant == '10.5' || matrix.geant == '10.6'))
                  && 17 || 20}}
     runs-on: ubuntu-24.04
     continue-on-error: false
@@ -118,6 +122,9 @@ jobs:
                 && (matrix.special != 'static')
                 && (env.CXXSTD == '20')}}; then
             spack -e . add root
+          fi
+          if ${{matrix.special == 'covfie'}}; then
+            spack -e . add covfie
           fi
           if ${{matrix.geant != ''}}; then
             spack -e . add geant4@${{matrix.geant}}

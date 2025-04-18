@@ -24,6 +24,7 @@
         "CELERITAS_USE_Python":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_Covfie": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_HOSTNAME": "ubuntu-github",
         "CELERITAS_TEST_XML": "$env{GITHUB_WORKSPACE}/test-output/google/",
         "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
@@ -124,6 +125,14 @@
       "inherits": ["type-reldeb", ".vecgeom", "spack"],
       "cacheVariables": {
         "CELERITAS_UNITS": "CLHEP"
+      }
+    },
+    {
+      "name": "reldeb-vecgeom-covfie",
+      "description": "FINAL: Covfie field",
+      "inherits": ["type-reldeb", ".vecgeom", "spack"],
+      "cacheVariables": {
+        "CELERITAS_USE_Covfie": {"type": "BOOL", "value": "ON"}
       }
     },
     {
