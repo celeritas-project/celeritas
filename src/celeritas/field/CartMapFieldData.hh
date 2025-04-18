@@ -28,7 +28,36 @@ struct CartMapFieldParamsData
     using real_type = cartmap_real_type;
     using field_t = CovfieFieldTrait<M>::field_t;
 
-    // Pass ownership to CovfieFieldTrait and use a view if ownership is ref?
+    // Can we use a view instead of pointer?
+    field_t const* field;  //!< Covfie field data
+
+    //! Field propagation and substepping tolerances
+    FieldDriverOptions options;
+
+    //! Check whether the data is assigned
+    explicit inline CELER_FUNCTION operator bool() const
+    {
+        // TODO: how to check with covfie
+        return true;
+    }
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    CartMapFieldParamsData&
+    operator=(CartMapFieldParamsData<W2, M2> const& other)
+    {
+        CELER_EXPECT(other);
+        field = &other.field;
+        options = other.options;
+        return *this;
+    }
+};
+
+template<MemSpace M>
+struct CartMapFieldParamsData<Ownership::value, M>
+{
+    using real_type = cartmap_real_type;
+    using field_t = CovfieFieldTrait<M>::field_t;
+
     field_t field;  //!< Covfie field data
 
     //! Field propagation and substepping tolerances
@@ -47,6 +76,7 @@ struct CartMapFieldParamsData
     {
         CELER_EXPECT(other);
         field = other.field;
+        options = other.options;
         return *this;
     }
 };

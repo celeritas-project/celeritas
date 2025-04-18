@@ -35,6 +35,9 @@ struct CovfieFieldTrait<MemSpace::host>
     using field_t = covfie::field<covfie::backend::affine<covfie::backend::linear<
         covfie::backend::strided<covfie::vector::size3,
                                  covfie::backend::array<covfie::vector::float3>>>>>;
+    using builder_t = covfie::field<
+        covfie::backend::strided<covfie::vector::size3,
+                                 covfie::backend::array<covfie::vector::float3>>>;
 };
 
 template<>

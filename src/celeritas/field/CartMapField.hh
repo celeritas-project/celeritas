@@ -52,7 +52,8 @@ class CartMapField
  * Construct with the shared magnetic field map data.
  */
 CELER_FUNCTION
-CartMapField::CartMapField(FieldParamsRef const& shared) : field_{shared.field}
+CartMapField::CartMapField(FieldParamsRef const& shared)
+    : field_{*shared.field}
 {
 }
 
