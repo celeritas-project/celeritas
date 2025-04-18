@@ -132,7 +132,8 @@
       "description": "FINAL: Covfie field",
       "inherits": ["type-reldeb", ".vecgeom", "spack"],
       "cacheVariables": {
-        "CELERITAS_USE_Covfie": {"type": "BOOL", "value": "ON"}
+        "CELERITAS_USE_Covfie": {"type": "BOOL", "value": "ON"},
+        "CMAKE_CXX_STANDARD": "20"
       }
     },
     {
