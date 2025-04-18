@@ -79,8 +79,15 @@ struct CartMapFieldParamsData<Ownership::value, M>
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return field->backend().get_backend().get_backend().get_backend().m_size
-               > 0;
+        if constexpr (M == MemSpace::host)
+        {
+            return field->backend().get_backend().get_backend().get_backend().m_size
+                   > 0;
+        }
+        else if (M == MemSpace::device)
+        {
+            return field.get();
+        }
     }
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
@@ -89,7 +96,16 @@ struct CartMapFieldParamsData<Ownership::value, M>
     {
         CELER_EXPECT(other);
 
-        field = std::make_unique<field_t>(*other.field);
+        if constexpr (M == MemSpace::device && M2 == MemSpace::host)
+        {
+            field = std::make_unique<field_t>(covfie::make_parameter_pack(
+                other.field->backend().get_configuration(),
+                other.field->backend().get_backend().get_backend()));
+        }
+        else
+        {
+            field = std::make_unique<field_t>(*other.field);
+        }
         options = other.options;
         return *this;
     }
