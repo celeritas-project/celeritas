@@ -274,7 +274,6 @@ TEST_F(CylMapFieldTest, all)
 
     EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-7});
 }
-
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

@@ -96,10 +96,3 @@
 #else
 #    define TEST_IF_CELERITAS_USE_ROOT(name) DISABLED_##name
 #endif
-
-//! Construct a test name that is disabled when Covfie is disabled
-#if CELERITAS_USE_COVFIE
-#    define TEST_IF_CELERITAS_USE_COVFIE(name) name
-#else
-#    define TEST_IF_CELERITAS_USE_COVFIE(name) DISABLED_##name
-#endif
