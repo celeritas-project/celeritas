@@ -417,7 +417,7 @@ if(CELERITAS_USE_Covfie)
       20
     )
   endif()
-  find_package(Covfie REQUIRED)
+  find_package(covfie REQUIRED)
 endif()
 
 if(CELERITAS_USE_VecGeom)
