@@ -8,6 +8,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/data/ObserverPtr.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 
@@ -29,7 +30,7 @@ struct CartMapFieldParamsData
     using field_t = CovfieFieldTrait<M>::field_t;
 
     // Can we use a view instead of pointer?
-    field_t const* field;  //!< Covfie field data
+    ObserverPtr<field_t const, M> field;  //!< Covfie field data
 
     //! Field propagation and substepping tolerances
     FieldDriverOptions options;
@@ -46,7 +47,10 @@ struct CartMapFieldParamsData
     operator=(CartMapFieldParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        field = &other.field;
+        static_assert(M == M2,
+                      "Cannot assign references between different memory "
+                      "spaces");
+        field = ObserverPtr<field_t const, M>(&other.field);
         options = other.options;
         return *this;
     }
