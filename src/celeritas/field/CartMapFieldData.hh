@@ -6,9 +6,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/ObserverPtr.hh"
+#include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 
@@ -51,7 +54,7 @@ struct CartMapFieldParamsData
                       "spaces");
         if constexpr (W2 == Ownership::value)
         {
-            field = ObserverPtr<field_t const, M>(&other.field);
+            field = ObserverPtr<field_t const, M>(other.field.get());
         }
         else
         {
@@ -68,7 +71,7 @@ struct CartMapFieldParamsData<Ownership::value, M>
     using real_type = cartmap_real_type;
     using field_t = CovfieFieldTrait<M>::field_t;
 
-    field_t field;  //!< Covfie field data
+    std::unique_ptr<field_t> field;  //!< Covfie field data
 
     //! Field propagation and substepping tolerances
     FieldDriverOptions options;
@@ -76,7 +79,7 @@ struct CartMapFieldParamsData<Ownership::value, M>
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return field.backend().get_backend().get_backend().get_backend().m_size
+        return field->backend().get_backend().get_backend().get_backend().m_size
                > 0;
     }
     //! Assign from another set of data
@@ -85,7 +88,8 @@ struct CartMapFieldParamsData<Ownership::value, M>
     operator=(CartMapFieldParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        field = other.field;
+
+        field = std::make_unique<field_t>(*other.field);
         options = other.options;
         return *this;
     }

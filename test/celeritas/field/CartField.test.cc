@@ -5,12 +5,16 @@
 //! \file celeritas/field/CartField.test.cc
 //---------------------------------------------------------------------------//
 
+#include <cmath>
+
+#include "corecel/Types.hh"
 #include "corecel/data/HyperslabIndexer.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/field/CartMapField.hh"
 #include "celeritas/field/CartMapFieldInput.hh"
 #include "celeritas/field/CartMapFieldParams.hh"
 
+#include "TestMacros.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -51,9 +55,9 @@ TEST_F(CartMapFieldTest, all)
             for (size_type z = 0; z < inp.num_z; ++z)
             {
                 auto arr = inp.field.begin() + flat_index(x, y, z, 0);
-                arr[static_cast<size_type>(CartAxis::x)] = 0.1 * x;
-                arr[static_cast<size_type>(CartAxis::y)] = 0.2 * y;
-                arr[static_cast<size_type>(CartAxis::z)] = 0.3 * z;
+                arr[static_cast<size_type>(CartAxis::x)] = std::cos(x);
+                arr[static_cast<size_type>(CartAxis::y)] = std::sin(y);
+                arr[static_cast<size_type>(CartAxis::z)] = std::tan(z);
             }
         }
     }
@@ -78,14 +82,17 @@ TEST_F(CartMapFieldTest, all)
     {
         real_type x = inp.min_x
                       + ix * (inp.max_x - inp.min_x) / (nx_samples - 1);
+        x = std::min(x, inp.max_x - 1);
         for (size_type iy = 0; iy < ny_samples; ++iy)
         {
             real_type y = inp.min_y
                           + iy * (inp.max_y - inp.min_y) / (ny_samples - 1);
+            y = std::min(y, inp.max_y - 1);
             for (size_type iz = 0; iz < nz_samples; ++iz)
             {
                 real_type z = inp.min_z
                               + iz * (inp.max_z - inp.min_z) / (nz_samples - 1);
+                z = std::min(z, inp.max_z - 1);
 
                 CELER_LOG(info) << "x: " << x << " y: " << y << " z: " << z;
                 Real3 field = calc_field({x, y, z});
@@ -96,6 +103,92 @@ TEST_F(CartMapFieldTest, all)
             }
         }
     }
+
+    // Check that the field values are as expected
+    static real_type const expected_field[] = {
+        1,
+        0,
+        0,
+        1,
+        0,
+        0.169758066535,
+        1,
+        0,
+        0.33834862709045,
+        1,
+        0.95637559890747,
+        0,
+        1,
+        0.95637559890747,
+        0.169758066535,
+        1,
+        0.95637553930283,
+        0.33834862709045,
+        1,
+        -0.54941469430923,
+        0,
+        1,
+        -0.54941469430923,
+        0.169758066535,
+        1,
+        -0.54941469430923,
+        0.33834865689278,
+        -0.2921370267868,
+        0,
+        0,
+        -0.2921370267868,
+        0,
+        0.169758066535,
+        -0.2921370267868,
+        0,
+        0.33834862709045,
+        -0.2921370267868,
+        0.95637559890747,
+        0,
+        -0.2921370267868,
+        0.95637559890747,
+        0.169758066535,
+        -0.2921370267868,
+        0.95637559890747,
+        0.33834865689278,
+        -0.2921370267868,
+        -0.54941469430923,
+        0,
+        -0.2921370267868,
+        -0.54941469430923,
+        0.16975805163383,
+        -0.2921370267868,
+        -0.54941469430923,
+        0.33834862709045,
+        -0.83018344640732,
+        0,
+        0,
+        -0.83018350601196,
+        0,
+        0.169758066535,
+        -0.83018344640732,
+        0,
+        0.33834865689278,
+        -0.83018344640732,
+        0.95637553930283,
+        0,
+        -0.83018350601196,
+        0.95637559890747,
+        0.16975805163383,
+        -0.83018344640732,
+        0.95637553930283,
+        0.33834862709045,
+        -0.83018344640732,
+        -0.54941469430923,
+        0,
+        -0.83018344640732,
+        -0.54941469430923,
+        0.16975805163383,
+        -0.83018350601196,
+        -0.54941475391388,
+        0.33834865689278,
+    };
+    EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-7});
 }
 
 //---------------------------------------------------------------------------//

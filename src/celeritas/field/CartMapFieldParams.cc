@@ -69,11 +69,10 @@ CartMapFieldParams::CartMapFieldParams(Input const& inp)
             (inp.num_z - 1) / (inp.max_z - inp.min_z));
 
         using field_t = CovfieFieldTrait<MemSpace::host>::field_t;
-        field_t field{covfie::make_parameter_pack(
+        host.field = std::make_unique<field_t>(covfie::make_parameter_pack(
             field_t::backend_t::configuration_t(affine_scale * affine_translate),
             field_t::backend_t::backend_t::configuration_t{},
-            builder.backend())};
-        host.field = std::move(field);
+            builder.backend()));
         host.options = inp.driver_options;
         return host;
     }();
