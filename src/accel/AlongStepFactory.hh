@@ -215,7 +215,7 @@ class CartMapFieldAlongStepFactory final : public AlongStepFactoryInterface
     //!@}
 
   public:
-    // Construct with a function to return CylMapFieldInput
+    // Construct with a function to return CartMapFieldInput
     explicit CartMapFieldAlongStepFactory(CartMapFieldFunction f);
 
     // Emit an along-step action

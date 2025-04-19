@@ -29,9 +29,12 @@ struct CartMapFieldParamsDataBase
     using field_t = CovfieFieldTrait<M>::field_t;
     using view_t = field_t::view_t;
     using real_type = cartmap_real_type;
+
     FieldDriverOptions options;
 };
 
+// We need to specialize this for evey combination of ownership and memory
+// space to handle covfie move, ownership semantics.
 template<Ownership W, MemSpace M>
 struct CartMapFieldParamsData;
 
@@ -39,9 +42,11 @@ template<>
 struct CartMapFieldParamsData<Ownership::value, MemSpace::host>
     : CartMapFieldParamsDataBase<MemSpace::host>
 {
+    CELER_FUNCTION view_t get_view() const { return view_t(*field); }
+
     CELER_FUNCTION explicit operator bool() const { return field.get(); }
 
-    std::unique_ptr<field_t> field;  //!< Covfie field data
+    std::unique_ptr<field_t> field;
 };
 template<>
 struct CartMapFieldParamsData<Ownership::const_reference, MemSpace::host>
@@ -58,8 +63,10 @@ template<>
 struct CartMapFieldParamsData<Ownership::value, MemSpace::device>
     : CartMapFieldParamsDataBase<MemSpace::device>
 {
-    std::unique_ptr<field_t> field;  //!< Covfie field data
-    DeviceVector<view_t> field_view;  //!< Covfie field data
+    CELER_FUNCTION view_t const& get_view() const
+    {
+        return field_view.device_ref()[0];
+    }
 
     CELER_FUNCTION explicit operator bool() const
     {
@@ -85,13 +92,14 @@ struct CartMapFieldParamsData<Ownership::value, MemSpace::device>
         options = other.options;
         return *this;
     }
+
+    std::unique_ptr<field_t> field;
+    DeviceVector<view_t> field_view;
 };
 template<>
 struct CartMapFieldParamsData<Ownership::const_reference, MemSpace::device>
     : CartMapFieldParamsDataBase<MemSpace::device>
 {
-    view_t const* field_view;  //!< Covfie field data
-
     CELER_FUNCTION view_t const& get_view() const { return *field_view; }
 
     CELER_FUNCTION explicit operator bool() const { return field_view; }
@@ -103,6 +111,8 @@ struct CartMapFieldParamsData<Ownership::const_reference, MemSpace::device>
         options = other.options;
         return *this;
     }
+
+    view_t const* field_view;
 };
 
 //---------------------------------------------------------------------------//

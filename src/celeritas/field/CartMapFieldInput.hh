@@ -26,8 +26,9 @@ namespace celeritas
  * units, with allowable values of "si", "cgs", or "clhep". The native CLHEP
  * unit strength is 1000*tesla.
  *
- * The field values are all indexed with Z having stride 1, Y having stride
- * (num_grid_z), and X having stride (num_grid_y * num_grid_z): [X][Y][Z]
+ * The field values are all indexed with Z having stride 3, for the
+ * 3-dimensional vector at that position, Y having stride (num_grid_z), and X
+ * having stride (num_grid_y * num_grid_z): [X][Y][Z][3]
  */
 struct CartMapFieldInput
 {

@@ -244,7 +244,7 @@ CartMapFieldAlongStepFactory::CartMapFieldAlongStepFactory(CartMapFieldFunction 
 auto CartMapFieldAlongStepFactory::operator()(
     AlongStepFactoryInput const& input) const -> result_type
 {
-    CELER_LOG(info) << "Creating along-step action with a CylMapField";
+    CELER_LOG(info) << "Creating along-step action with a CartMapField";
 
     return celeritas::AlongStepCartMapFieldMscAction::from_params(
         input.action_id,
