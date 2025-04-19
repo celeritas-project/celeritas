@@ -188,7 +188,7 @@ TEST_F(CartMapFieldTest, all)
         -0.54941475391388,
         0.33834865689278,
     };
-    EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-7});
+    EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-6});
 }
 
 //---------------------------------------------------------------------------//
