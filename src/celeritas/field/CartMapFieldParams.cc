@@ -13,6 +13,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/HyperslabIndexer.hh"
+#include "corecel/sys/Device.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/field/CartMapFieldData.hh"
 #include "celeritas/field/detail/CovfieFieldType.hh"
