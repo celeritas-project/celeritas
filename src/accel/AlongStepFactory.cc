@@ -26,6 +26,11 @@
 #include "celeritas/inp/Field.hh"
 #include "celeritas/io/ImportData.hh"
 
+#if CELERITAS_USE_COVFIE
+#    include "celeritas/alongstep/AlongStepCartMapFieldMscAction.hh"
+#    include "celeritas/field/CartMapFieldInput.hh"
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -60,8 +65,8 @@ UniformAlongStepFactory::UniformAlongStepFactory(FieldFunction f,
  * The action will embed the linear propagator if the magnetic field strength
  * is zero (or the accessor is unset).
  */
-auto UniformAlongStepFactory::operator()(
-    AlongStepFactoryInput const& input) const -> result_type
+auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) const
+    -> result_type
 {
     // Get the field strength in tesla (or zero if accessor is undefined)
     auto field = this->get_field();
@@ -219,5 +224,46 @@ CylMapFieldInput CylMapFieldAlongStepFactory::get_field() const
     return this->get_fieldmap_();
 }
 
+#if CELERITAS_USE_COVFIE
+//---------------------------------------------------------------------------//
+/*!
+ * Emit an along-step action with a non-uniform magnetic field.
+ *
+ * The action will embed the field propagator with a CartMapField.
+ */
+CartMapFieldAlongStepFactory::CartMapFieldAlongStepFactory(CartMapFieldFunction f)
+    : get_fieldmap_(std::move(f))
+{
+    CELER_EXPECT(get_fieldmap_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Emit an along-step action.
+ */
+auto CartMapFieldAlongStepFactory::operator()(
+    AlongStepFactoryInput const& input) const -> result_type
+{
+    CELER_LOG(info) << "Creating along-step action with a CylMapField";
+
+    return celeritas::AlongStepCartMapFieldMscAction::from_params(
+        input.action_id,
+        *input.material,
+        *input.particle,
+        get_fieldmap_(),
+        celeritas::UrbanMscParams::from_import(
+            *input.particle, *input.material, *input.imported),
+        input.imported->em_params.energy_loss_fluct);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the field params (used for converting to celeritas::inp).
+ */
+CartMapFieldInput CartMapFieldAlongStepFactory::get_field() const
+{
+    return this->get_fieldmap_();
+}
+#endif
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -20,6 +20,7 @@ namespace celeritas
 {
 struct ImportData;
 struct RZMapFieldInput;
+struct CartMapFieldInput;
 struct CylMapFieldInput;
 class CutoffParams;
 class FluctuationParams;
@@ -198,5 +199,34 @@ class CylMapFieldAlongStepFactory final : public AlongStepFactoryInterface
   private:
     CylMapFieldFunction get_fieldmap_;
 };
+
+#if CELERITAS_USE_COVFIE
+//---------------------------------------------------------------------------//
+/*!
+ * Create an along-step method for a three-dimensional (x-y-z in the
+ * cartesian coordinate system) map field (CartMapField).
+ */
+class CartMapFieldAlongStepFactory final : public AlongStepFactoryInterface
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using CartMapFieldFunction = std::function<CartMapFieldInput()>;
+    //!@}
+
+  public:
+    // Construct with a function to return CylMapFieldInput
+    explicit CartMapFieldAlongStepFactory(CartMapFieldFunction f);
+
+    // Emit an along-step action
+    result_type operator()(argument_type input) const final;
+
+    // Get the field params (used for converting to celeritas::inp)
+    CartMapFieldInput get_field() const;
+
+  private:
+    CartMapFieldFunction get_fieldmap_;
+};
+#endif
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
