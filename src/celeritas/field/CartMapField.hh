@@ -30,7 +30,7 @@ class CartMapField
     using real_type = cartmap_real_type;
     using Real3 = Array<celeritas::real_type, 3>;
     using FieldParamsRef = NativeCRef<CartMapFieldParamsData>;
-    using field_view_t = FieldParamsRef::field_t::view_t;
+    using field_view_t = FieldParamsRef::view_t;
     //!@}
 
   public:
@@ -42,7 +42,7 @@ class CartMapField
     inline Real3 operator()(Real3 const& pos) const;
 
   private:
-    field_view_t field_;
+    field_view_t const& field_;
 };
 
 //---------------------------------------------------------------------------//
@@ -53,7 +53,7 @@ class CartMapField
  */
 CELER_FUNCTION
 CartMapField::CartMapField(FieldParamsRef const& shared)
-    : field_{*shared.field}
+    : field_{shared.get_view()}
 {
 }
 

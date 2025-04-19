@@ -7,11 +7,11 @@
 #pragma once
 
 #include <memory>
+#include <type_traits>
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/data/ObserverPtr.hh"
-#include "corecel/io/Logger.hh"
+#include "corecel/data/DeviceVector.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 
@@ -23,89 +23,83 @@ namespace celeritas
 using cartmap_real_type = float;
 
 //---------------------------------------------------------------------------//
-/*!
- * Device data for interpolating field values.
- */
-template<Ownership W, MemSpace M>
-struct CartMapFieldParamsData
+template<MemSpace M>
+struct CartMapFieldParamsDataBase
 {
-    using real_type = cartmap_real_type;
     using field_t = CovfieFieldTrait<M>::field_t;
-
-    // Can we use a view instead of pointer?
-    ObserverPtr<field_t const, M> field;  //!< Covfie field data
-
-    //! Field propagation and substepping tolerances
+    using view_t = field_t::view_t;
+    using real_type = cartmap_real_type;
     FieldDriverOptions options;
-
-    //! Check whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
-    {
-        return static_cast<bool>(field);
-    }
-    //! Assign from another set of data
-    template<Ownership W2, MemSpace M2>
-    CartMapFieldParamsData&
-    operator=(CartMapFieldParamsData<W2, M2> const& other)
-    {
-        CELER_EXPECT(other);
-        static_assert(M == M2,
-                      "Cannot assign references between different memory "
-                      "spaces");
-        if constexpr (W2 == Ownership::value)
-        {
-            field = ObserverPtr<field_t const, M>(other.field.get());
-        }
-        else
-        {
-            field = other.field;
-        }
-        options = other.options;
-        return *this;
-    }
 };
 
-template<MemSpace M>
-struct CartMapFieldParamsData<Ownership::value, M>
+template<Ownership W, MemSpace M>
+struct CartMapFieldParamsData;
+
+template<>
+struct CartMapFieldParamsData<Ownership::value, MemSpace::host>
+    : CartMapFieldParamsDataBase<MemSpace::host>
 {
-    using real_type = cartmap_real_type;
-    using field_t = CovfieFieldTrait<M>::field_t;
+    CELER_FUNCTION explicit operator bool() const { return field.get(); }
 
     std::unique_ptr<field_t> field;  //!< Covfie field data
+};
+template<>
+struct CartMapFieldParamsData<Ownership::const_reference, MemSpace::host>
+    : CartMapFieldParamsDataBase<MemSpace::host>
+{
+    CELER_FUNCTION view_t const& get_view() const { return field_view; }
 
-    //! Field propagation and substepping tolerances
-    FieldDriverOptions options;
+    CELER_FUNCTION explicit operator bool() const { return true; }
 
-    //! Check whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    view_t field_view;
+};
+
+template<>
+struct CartMapFieldParamsData<Ownership::value, MemSpace::device>
+    : CartMapFieldParamsDataBase<MemSpace::device>
+{
+    std::unique_ptr<field_t> field;  //!< Covfie field data
+    DeviceVector<view_t> field_view;  //!< Covfie field data
+
+    CELER_FUNCTION explicit operator bool() const
     {
-        if constexpr (M == MemSpace::host)
-        {
-            return field->backend().get_backend().get_backend().get_backend().m_size
-                   > 0;
-        }
-        else if (M == MemSpace::device)
-        {
-            return field.get();
-        }
+        return field.get() && field_view.size() == 1;
     }
-    //! Assign from another set of data
-    template<Ownership W2, MemSpace M2>
-    CartMapFieldParamsData&
-    operator=(CartMapFieldParamsData<W2, M2> const& other)
-    {
-        CELER_EXPECT(other);
 
-        if constexpr (M == MemSpace::device && M2 == MemSpace::host)
+    CartMapFieldParamsData& operator=(
+        CartMapFieldParamsData<Ownership::value, MemSpace::host> const& other)
+    {
+        if constexpr (!std::is_same_v<field_t,
+                                      CovfieFieldTrait<MemSpace::host>::field_t>)
         {
             field = std::make_unique<field_t>(covfie::make_parameter_pack(
                 other.field->backend().get_configuration(),
                 other.field->backend().get_backend().get_backend()));
+            field_view = DeviceVector<view_t>{1};
+            field_view.copy_to_device(make_span<view_t const>({{*field}}));
         }
         else
         {
             field = std::make_unique<field_t>(*other.field);
         }
+        options = other.options;
+        return *this;
+    }
+};
+template<>
+struct CartMapFieldParamsData<Ownership::const_reference, MemSpace::device>
+    : CartMapFieldParamsDataBase<MemSpace::device>
+{
+    view_t const* field_view;  //!< Covfie field data
+
+    CELER_FUNCTION view_t const& get_view() const { return *field_view; }
+
+    CELER_FUNCTION explicit operator bool() const { return field_view; }
+
+    CartMapFieldParamsData& operator=(
+        CartMapFieldParamsData<Ownership::value, MemSpace::device> const& other)
+    {
+        field_view = &other.field_view.device_ref()[0];
         options = other.options;
         return *this;
     }

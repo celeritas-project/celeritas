@@ -7,7 +7,6 @@
 #include "CartMapFieldParams.hh"
 
 #include <algorithm>
-#include <utility>
 #include <vector>
 
 #include "corecel/Assert.hh"
@@ -28,8 +27,7 @@ namespace celeritas
  * Construct from a user-defined field map.
  */
 CartMapFieldParams::CartMapFieldParams(Input const& inp)
-{
-    auto host_data = [&inp] {
+    : host_{[&inp] {
         HostVal<CartMapFieldParamsData> host;
 
         Array<size_type, 4> const dims{inp.num_x,
@@ -75,11 +73,17 @@ CartMapFieldParams::CartMapFieldParams(Input const& inp)
             builder.backend()));
         host.options = inp.driver_options;
         return host;
-    }();
-
-    // Move to mirrored data, copying to device
-    mirror_ = CollectionMirror<CartMapFieldParamsData>{std::move(host_data)};
-    CELER_ENSURE(this->mirror_);
+    }()}
+    , host_ref_{{host_.options}, *host_.field}
+{
+    if (celeritas::device())
+    {
+        device_ = host_;
+        device_ref_ = device_;
+        CELER_ENSURE(static_cast<bool>(device_)
+                     && static_cast<bool>(device_ref_));
+    }
+    CELER_ENSURE(static_cast<bool>(host_) && static_cast<bool>(host_ref_));
 }
 
 //---------------------------------------------------------------------------//

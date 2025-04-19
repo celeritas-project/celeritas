@@ -7,7 +7,6 @@
 #pragma once
 
 #include "corecel/Types.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 
 #include "CartMapFieldData.hh"
@@ -38,14 +37,17 @@ class CartMapFieldParams final
     explicit CartMapFieldParams(Input const& inp);
 
     //! Access field map data on the host
-    HostRef const& host_ref() const final { return mirror_.host_ref(); }
+    HostRef const& host_ref() const final { return host_ref_; }
 
     //! Access field map data on the device
-    DeviceRef const& device_ref() const final { return mirror_.device_ref(); }
+    DeviceRef const& device_ref() const final { return device_ref_; }
 
   private:
     // Host/device storage and reference
-    CollectionMirror<CartMapFieldParamsData> mirror_;
+    HostVal<CartMapFieldParamsData> host_;
+    HostCRef<CartMapFieldParamsData> host_ref_;
+    CartMapFieldParamsData<Ownership::value, MemSpace::device> device_;
+    DeviceRef device_ref_;
 };
 
 //---------------------------------------------------------------------------//
