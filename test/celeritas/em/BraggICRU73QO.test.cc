@@ -122,7 +122,7 @@ TEST_F(BraggICRU73QOTest, distribution)
 
     MevEnergy cutoff{1e-6};
 
-    std::vector<std::vector<real_type>> loge_pdf;
+    std::vector<std::vector<double>> loge_pdf;
     std::vector<real_type> min_energy;
     std::vector<real_type> max_energy;
     for (real_type energy : {1e-4, 1e-3, 1e-2, 0.1, 0.2, 0.5, 1.0})

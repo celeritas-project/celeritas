@@ -526,9 +526,9 @@ TEST_F(UrbanMscTest, msc_scattering)
     std::vector<real_type> alpha_over_mfp;
 
     // Binned scattering results
-    std::vector<std::vector<real_type>> angle;
+    std::vector<std::vector<double>> angle;
     std::vector<real_type> displace_frac;  // fraction of safety
-    std::vector<std::vector<real_type>> action;
+    std::vector<std::vector<double>> action;
 
     // Average RNG per scatter
     std::vector<real_type> avg_engine_samples;

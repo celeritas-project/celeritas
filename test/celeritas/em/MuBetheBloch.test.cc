@@ -112,7 +112,7 @@ TEST_F(MuBetheBlochTest, distribution)
 
     MevEnergy cutoff{0.001};
 
-    std::vector<std::vector<real_type>> loge_pdf;
+    std::vector<std::vector<double>> loge_pdf;
     std::vector<real_type> min_energy;
     std::vector<real_type> max_energy;
     for (real_type energy : {0.2, 1.0, 10.0, 1e2, 1e3, 1e4, 1e5, 1e7})

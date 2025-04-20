@@ -133,7 +133,7 @@ TEST_F(MuPairProductionTest, distribution)
 
     RandomEngine& rng = InteractorHostBase::rng();
 
-    std::vector<std::vector<real_type>> loge_pdf;
+    std::vector<std::vector<double>> loge_pdf;
     std::vector<real_type> min_energy;
     std::vector<real_type> max_energy;
     std::vector<real_type> avg_energy;
