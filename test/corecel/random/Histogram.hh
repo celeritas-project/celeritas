@@ -39,6 +39,9 @@ class Histogram
     // Update the histogram with a value
     inline void operator()(double value);
 
+    // Update the histogram with a vector of values
+    inline void operator()(VecDbl const& values);
+
     // Get the histogram
     VecCount const& counts() const { return counts_; }
 
@@ -49,27 +52,42 @@ class Histogram
     double offset_;
     double inv_width_;
     VecCount counts_;
-    size_type total_counts_{0};
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Update the histogram with a value.
  *
- * Values outside of \c range are allowable and will show as a deficit in the
- * resulting tally.
+ * Values outside of \c range are ignored. All bins are half-open except for
+ * the rightmost bin, which will include values equal to the upper edge.
  */
 void Histogram::operator()(double value)
 {
-    ++total_counts_;
     double frac = (value - offset_) * inv_width_;
-    if (frac < 0.0 || frac >= 1.0)
+    if (frac < 0.0 || frac > 1.0)
     {
         return;
     }
     auto index = static_cast<size_type>(frac * counts_.size());
+    if (frac == 1.0)
+    {
+        CELER_ASSERT(index == counts_.size());
+        --index;
+    }
     CELER_ASSERT(index < counts_.size());
     ++counts_[index];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Update the histogram with a vector of values.
+ */
+void Histogram::operator()(VecDbl const& values)
+{
+    for (auto v : values)
+    {
+        (*this)(v);
+    }
 }
 
 //---------------------------------------------------------------------------//
