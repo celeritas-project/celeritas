@@ -608,7 +608,7 @@ set(_cmake_files
   # For now, include in case downstream projects do `include(CudaRdcUtils)`.
   "${_LOCAL_RDCUTILS_FILENAME}"
 )
-foreach(_dep CLI11 Covfie Geant4 G4VG HepMC3 Perfetto ROOT Thrust VecGeom)
+foreach(_dep CLI11 covfie Geant4 G4VG HepMC3 Perfetto ROOT Thrust VecGeom)
   if(CELERITAS_USE_${_dep} AND NOT CELERITAS_BUILTIN_${_dep})
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
   endif()
@@ -671,7 +671,7 @@ endforeach()
 list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Hints for upstream dependencies")
 foreach(_key
   MPIEXEC_EXECUTABLE CUDAToolkit_BIN_DIR
-  Covfie_DIR Geant4_DIR GTest_DIR HepMC3_DIR nlohmann_json_DIR
+  covfie_DIR Geant4_DIR GTest_DIR HepMC3_DIR nlohmann_json_DIR
   Python_DIR ROOT_DIR VecCore_DIR VecGeom_DIR G4VG_DIR
   CLHEP_DIR ZLIB_DIR EXPAT_DIR XercesC_DIR PTL_DIR
   EXPAT_INCLUDE_DIR EXPAT_LIBRARY
