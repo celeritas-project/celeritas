@@ -14,7 +14,6 @@
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
-#include "celeritas/field/CartMapFieldData.hh"
 #include "celeritas/field/CartMapFieldParams.hh"
 #include "celeritas/global/ActionInterface.hh"
 

@@ -172,8 +172,7 @@ if(CELERITAS_USE_Covfie)
     list(APPEND PUBLIC_DEPS covfie::hip)
   endif()
   list(APPEND SOURCES
-    field/CartMapFieldParams.cc)
-  celeritas_polysource(alongstep/AlongStepCartMapFieldMscAction)
+    field/detail/CartMapFieldParams.covfie.cc)
 endif()
 
 if(CELERITAS_USE_Geant4)
@@ -304,6 +303,7 @@ macro(celeritas_polysource filename_we)
   celeritas_polysource_append(SOURCES ${filename_we})
 endmacro()
 
+celeritas_polysource(alongstep/AlongStepCartMapFieldMscAction)
 celeritas_polysource(alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(alongstep/AlongStepNeutralAction)
 celeritas_polysource(alongstep/AlongStepUniformMscAction)

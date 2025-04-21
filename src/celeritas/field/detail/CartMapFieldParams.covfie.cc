@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/CartMapFieldParams.cc
+//! \file celeritas/field/CartMapFieldParams.covfie.cc
 //---------------------------------------------------------------------------//
-#include "CartMapFieldParams.hh"
+#include "../CartMapFieldParams.hh"
 
 #include <algorithm>
 #include <memory>
@@ -17,11 +17,10 @@
 #include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/sys/Device.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/field/CartMapFieldData.hh"
+#include "celeritas/field/CartMapFieldInput.hh"
 
-#include "CartMapFieldData.hh"
-#include "CartMapFieldInput.hh"
-
-#include "detail/CovfieFieldType.hh"
+#include "CovfieFieldType.hh"
 
 namespace celeritas
 {

@@ -6,81 +6,59 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <type_traits>
+#include "corecel/Config.hh"
 
-#include "corecel/Macros.hh"
-#include "corecel/Types.hh"
-#include "corecel/cont/Array.hh"
-#include "corecel/cont/Range.hh"
-#include "celeritas/Types.hh"
+#include "corecel/Assert.hh"
 
-#include "CartMapFieldData.hh"
+#if CELERITAS_USE_COVFIE
+#    include "detail/CartMapField.covfie.hh"
+#else
+
+#    include "corecel/Macros.hh"
+#    include "corecel/Types.hh"
+#    include "corecel/cont/Array.hh"
+
+#    include "CartMapFieldData.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Interpolate a magnetic field vector on an x/y/z grid.
+ * Dummy class for cartesian map magnetic field when no backend is available.
  */
 class CartMapField
 {
   public:
     //!@{
     //! \name Type aliases
-    using real_type = cartmap_real_type;
+    using real_type = float;
     using Real3 = Array<celeritas::real_type, 3>;
-    using FieldParamsRef = NativeCRef<CartMapFieldParamsData>;
-    using field_view_t = FieldParamsRef::view_t;
+    using FieldParamsRef
+        = CartMapFieldParamsData<Ownership::const_reference, MemSpace::native>;
+    using field_view_t = void;
     //!@}
 
   public:
     // Construct with the shared map data
-    inline CELER_FUNCTION explicit CartMapField(FieldParamsRef const& shared);
+    inline CELER_FUNCTION explicit CartMapField(FieldParamsRef const&);
 
     // Evaluate the magnetic field value for the given position
     CELER_FUNCTION
-    inline Real3 operator()(Real3 const& pos) const;
-
-  private:
-    field_view_t const& field_;
+    inline Real3 operator()(Real3 const&) const;
 };
 
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Construct with the shared magnetic field map data.
- */
 CELER_FUNCTION
-CartMapField::CartMapField(FieldParamsRef const& shared)
-    : field_{shared.get_view()}
+CartMapField::CartMapField(FieldParamsRef const&)
 {
+    CELER_NOT_CONFIGURED("Covfie");
 }
 
-//---------------------------------------------------------------------------//
-/*!
- * Calculate the magnetic field vector for the given position.
- *
- * This does a 3-D interpolation on the input grid and reconstructs the
- * magnetic field vector from the stored X, Y, Z components of the field.
- * The result is in the native Celeritas unit system.
- */
-CELER_FUNCTION auto CartMapField::operator()(Real3 const& pos) const -> Real3
+CELER_FUNCTION auto CartMapField::operator()(Real3 const&) const -> Real3
 {
-    Real3 value;
-
-    // delegate interpolation to Covfie
-    auto bfield = field_.at(static_cast<real_type>(pos[0]),
-                            static_cast<real_type>(pos[1]),
-                            static_cast<real_type>(pos[2]));
-    for (auto i :
-         range(static_cast<std::underlying_type_t<CartAxis>>(CartAxis::size_)))
-    {
-        value[i] = bfield[i];
-    }
-
-    return value;
+    CELER_NOT_CONFIGURED("Covfie");
 }
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
+
+#endif  // CELERITAS_USE_COVFIE

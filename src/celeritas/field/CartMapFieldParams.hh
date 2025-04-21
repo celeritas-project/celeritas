@@ -55,15 +55,17 @@ class CartMapFieldParams final
 };
 
 #if !CELERITAS_USE_COVFIE
+
+class CartMapFieldParamsImpl
+{
+};
+
 inline CartMapFieldParams::CartMapFieldParams(Input const&)
 {
     CELER_NOT_CONFIGURED("Covfie");
 }
 
-inline CartMapFieldParams::~CartMapFieldParams()
-{
-    CELER_NOT_CONFIGURED("Covfie");
-}
+inline CartMapFieldParams::~CartMapFieldParams() = default;
 
 //! Access field map data on the host
 inline auto CartMapFieldParams::host_ref() const -> HostRef const&

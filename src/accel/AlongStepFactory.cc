@@ -13,6 +13,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/QuantityIO.hh"
 #include "geocel/g4/Convert.hh"
+#include "celeritas/alongstep/AlongStepCartMapFieldMscAction.hh"
 #include "celeritas/alongstep/AlongStepCylMapFieldMscAction.hh"
 #include "celeritas/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/alongstep/AlongStepRZMapFieldMscAction.hh"
@@ -20,16 +21,12 @@
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/ext/GeantVolumeMapper.hh"
+#include "celeritas/field/CartMapFieldInput.hh"
 #include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/inp/Field.hh"
 #include "celeritas/io/ImportData.hh"
-
-#if CELERITAS_USE_COVFIE
-#    include "celeritas/alongstep/AlongStepCartMapFieldMscAction.hh"
-#    include "celeritas/field/CartMapFieldInput.hh"
-#endif
 
 namespace celeritas
 {
@@ -224,7 +221,6 @@ CylMapFieldInput CylMapFieldAlongStepFactory::get_field() const
     return this->get_fieldmap_();
 }
 
-#if CELERITAS_USE_COVFIE
 //---------------------------------------------------------------------------//
 /*!
  * Emit an along-step action with a non-uniform magnetic field.
@@ -264,6 +260,6 @@ CartMapFieldInput CartMapFieldAlongStepFactory::get_field() const
 {
     return this->get_fieldmap_();
 }
-#endif
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

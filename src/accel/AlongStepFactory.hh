@@ -200,7 +200,6 @@ class CylMapFieldAlongStepFactory final : public AlongStepFactoryInterface
     CylMapFieldFunction get_fieldmap_;
 };
 
-#if CELERITAS_USE_COVFIE
 //---------------------------------------------------------------------------//
 /*!
  * Create an along-step method for a three-dimensional (x-y-z in the
@@ -227,6 +226,6 @@ class CartMapFieldAlongStepFactory final : public AlongStepFactoryInterface
   private:
     CartMapFieldFunction get_fieldmap_;
 };
-#endif
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

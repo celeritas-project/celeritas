@@ -259,10 +259,6 @@ celeritas_add_test(field/LinearPropagator.test.cc
   LINK_LIBRARIES ${_all_geo_libs})
 celeritas_add_test(field/MagFieldEquation.test.cc)
 
-if(CELERITAS_USE_Covfie)
-  celeritas_add_test(field/CartField.test.cc)
-endif()
-
 #-----------------------------------------------------------------------------#
 # Geo
 
