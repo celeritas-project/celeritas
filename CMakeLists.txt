@@ -345,7 +345,10 @@ endif()
 
 if(CELERITAS_USE_DD4hep)
   if(NOT DD4hep_FOUND)
-    find_package(DD4hep REQUIRED)
+    find_package(DD4hep 1.18 REQUIRED COMPONENTS DDCore DDG4)
+    include(${DD4hep_DIR}/cmake/DD4hep.cmake)
+    include(${DD4hep_DIR}/cmake/DD4hepBuild.cmake)
+    add_subdirectory(src/ddceler)
   endif()
 endif()
 
