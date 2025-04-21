@@ -546,7 +546,8 @@ From this we have the following policies:
   the methods and implementation in the paper and thus become authors.
 - Mentoring, coordinating, funding acquisition, and other supplementary roles
   are not sufficient in themselves to be marked as authors. However, these
-  activities should motivate direct participation (editing, revising) as authors.
+  activities should motivate direct participation (adding and editing) as
+  authors.
 
 .. note:: If possible, make the Celeritas release used in the article the
    *first* reference in the document.
