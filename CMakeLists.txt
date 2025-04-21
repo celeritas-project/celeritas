@@ -42,10 +42,10 @@ celeritas_optional_package(PNG "Enable PNG output with libpng")
 celeritas_optional_package(Python "Use Python to generate and preprocess")
 celeritas_optional_package(ROOT "Enable ROOT I/O")
 celeritas_optional_package(VecGeom "Use VecGeom geometry")
+celeritas_optional_package(DD4hep "Enable DD4hep integration")
 option(CELERITAS_USE_Perfetto "Perfetto tracing library" OFF)
 
 # Components
-option(CELERITAS_BUILD_APPS "Build Celeritas executables (strongly recommended)" ON)
 option(CELERITAS_BUILD_DOCS "Build Celeritas documentation" OFF)
 option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" OFF)
 
@@ -84,10 +84,6 @@ if(CELERITAS_BUILD_TESTS)
   )
   mark_as_advanced(CELERITAS_TEST_XML)
 endif()
-
-# Automatic options
-set(CELERITAS_USE_CLI11 ${CELERITAS_BUILD_APPS})
-set(CELERITAS_USE_GTest ${CELERITAS_BUILD_TESTS})
 
 #----------------------------------------------------------------------------#
 # CELERITAS CORE IMPLEMENTATION OPTIONS
@@ -296,9 +292,7 @@ set(CELERITAS_RUNTIME_OUTPUT_DIRECTORY
 
 include(CeleritasUtils)
 
-if(CELERITAS_USE_CLI11)
-  celeritas_find_or_builtin_package(CLI11 2.4)
-endif()
+celeritas_find_or_builtin_package(CLI11 2.4)
 
 if(BUILD_TESTING)
   # Build the test tree for unit and/or app tests
@@ -325,10 +319,6 @@ elseif(CELERITAS_USE_HIP)
       OFF
     )
   endif()
-  find_library(ROCTX_LIBRARY roctx64)
-  if(ROCTX_LIBRARY)
-    set(CELERITAS_HAVE_ROCTX ON)
-  endif()
 endif()
 
 if(CELERITAS_USE_CUDA)
@@ -351,6 +341,12 @@ if(CELERITAS_USE_Geant4 AND BUILD_TESTING AND NOT DEFINED CELER_G4ENV)
   # Set environment variables from Geant4-exported configuration or environment
   # currently used only for CTest setup
   celeritas_set_celer_g4env()
+endif()
+
+if(CELERITAS_USE_DD4hep)
+  if(NOT DD4hep_FOUND)
+    find_package(DD4hep REQUIRED)
+  endif()
 endif()
 
 if(CELERITAS_USE_HepMC3)
@@ -525,15 +521,13 @@ if(CELERITAS_BUILD_DOCS)
   include(ExternalProject)
 endif()
 
-if(CELERITAS_USE_GTest)
+if(CELERITAS_BUILD_TESTS)
   celeritas_find_or_builtin_package(GTest 1.10)
 endif()
 
 #----------------------------------------------------------------------------#
-# System properties
-
-# Availability of sincospi and related functions: all comibinations of:
-# `^${CELERITAS_SINCOSPI_PREFIX}(sincos(pi)?|(sin|cos)pi)f?$`
+# System property: availability of sincospi and related functions:
+# All of: `^${CELERITAS_SINCOSPI_PREFIX}(sincos(pi)?|(sin|cos)pi)f?$`
 if(NOT DEFINED CELERITAS_SINCOSPI_PREFIX)
   foreach(_prefix "__" "_" "")
     try_compile(CELERITAS_TRY_${_prefix}SINCOSPI
@@ -589,12 +583,10 @@ if(CELERITAS_BUILD_TESTS)
 endif()
 
 #----------------------------------------------------------------------------#
-# APPLICATIONS AND USER EXECUTABLES
+# APPLICATIONS AND BINARIES
 #----------------------------------------------------------------------------#
 
-if(CELERITAS_BUILD_APPS)
-  add_subdirectory(app)
-endif()
+add_subdirectory(app)
 
 #----------------------------------------------------------------------------#
 # DOCUMENTATION
