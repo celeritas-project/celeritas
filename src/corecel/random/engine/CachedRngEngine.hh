@@ -74,7 +74,7 @@ inline CELER_FUNCTION auto cache_rng_count(Engine& e)
 template<class T, size_type Count, class Engine>
 inline CELER_FUNCTION auto cache_rng_values(Engine& e)
 {
-    // Accout for the fact that some implementations uses 64-bit integers for
+    // Account for the fact that some implementations use 64-bit integers for
     // RNGs that have return 32 bits of entropy
     using result_type = typename Engine::result_type;
     static_assert(sizeof(result_type) == 4 || sizeof(result_type) == 8,

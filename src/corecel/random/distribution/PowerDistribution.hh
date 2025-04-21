@@ -89,9 +89,6 @@ CELER_FUNCTION PowerDistribution<RealType>::PowerDistribution(real_type p)
  * Construct on the interval [a, b).
  *
  * It is allowable for the two bounds to be out of order.
- *
- * Note that writing as \code (1/a) * b \endcode allows the compiler to
- * optimize better for the constexpr case a=1.
  */
 template<class RealType>
 CELER_FUNCTION PowerDistribution<RealType>::PowerDistribution(real_type p,
