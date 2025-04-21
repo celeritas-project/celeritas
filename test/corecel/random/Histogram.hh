@@ -85,22 +85,22 @@ void Histogram::operator()(double value)
     {
         ++out_of_range_[Bound::lo];
         extrema_[Bound::lo] = std::min(extrema_[Bound::lo], value);
-        return;
     }
-    else if (frac > 1.0)
+    else if (frac < 1.0)
+    {
+        auto index = static_cast<size_type>(frac * counts_.size());
+        CELER_ASSERT(index < counts_.size());
+        ++counts_[index];
+    }
+    else if (frac == 1.0)
+    {
+        ++counts_.back();
+    }
+    else
     {
         ++out_of_range_[Bound::hi];
         extrema_[Bound::hi] = std::max(extrema_[Bound::hi], value);
-        return;
     }
-    auto index = static_cast<size_type>(frac * counts_.size());
-    if (frac == 1.0)
-    {
-        CELER_ASSERT(index == counts_.size());
-        --index;
-    }
-    CELER_ASSERT(index < counts_.size());
-    ++counts_[index];
 }
 
 //---------------------------------------------------------------------------//
