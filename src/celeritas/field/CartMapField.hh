@@ -8,12 +8,11 @@
 
 #include "corecel/Config.hh"
 
-#include "corecel/Assert.hh"
-
 #if CELERITAS_USE_COVFIE
 #    include "detail/CartMapField.covfie.hh"
 #else
 
+#    include "corecel/Assert.hh"
 #    include "corecel/Macros.hh"
 #    include "corecel/Types.hh"
 #    include "corecel/cont/Array.hh"

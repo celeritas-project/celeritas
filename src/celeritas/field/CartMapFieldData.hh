@@ -8,14 +8,12 @@
 
 #include "corecel/Config.hh"
 
-#include "corecel/Types.hh"
-
-#include "FieldDriverOptions.hh"
-
 #if CELERITAS_USE_COVFIE
 #    include "detail/CartMapFieldData.covfie.hh"
 #else
+#    include "corecel/Types.hh"
 
+#    include "FieldDriverOptions.hh"
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
