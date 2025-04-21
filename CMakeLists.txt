@@ -42,7 +42,6 @@ celeritas_optional_package(PNG "Enable PNG output with libpng")
 celeritas_optional_package(Python "Use Python to generate and preprocess")
 celeritas_optional_package(ROOT "Enable ROOT I/O")
 celeritas_optional_package(VecGeom "Use VecGeom geometry")
-
 option(CELERITAS_USE_Perfetto "Perfetto tracing library" OFF)
 
 # Components

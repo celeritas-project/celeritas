@@ -9,8 +9,6 @@
 #include <variant>
 #include <vector>
 
-#include "corecel/Config.hh"
-
 #include "geocel/Types.hh"
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/field/CartMapFieldInput.hh"
