@@ -140,11 +140,9 @@ TEST_F(BraggICRU73QOTest, distribution)
         Histogram histogram(num_bins, {std::log(min), std::log(max)});
         for ([[maybe_unused]] int i : range(num_samples))
         {
-            auto e = value_as<MevEnergy>(sample(rng));
-            ASSERT_GE(e, min);
-            ASSERT_LE(e, max);
-            histogram(std::log(e));
+            histogram(std::log(value_as<MevEnergy>(sample(rng))));
         }
+        EXPECT_FALSE(histogram.underflow() || histogram.overflow());
         loge_pdf.push_back(histogram.calc_density());
         min_energy.push_back(min);
         max_energy.push_back(max);

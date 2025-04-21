@@ -56,14 +56,13 @@ TEST(RejectionSamplerTest, sample)
     Histogram histogram(4, {0, 2});
     for ([[maybe_unused]] int i : range(num_samples))
     {
-        double x = sample_target(rng);
-        ASSERT_GE(x, 0);
-        ASSERT_LT(x, 2);
-        histogram(x);
+        histogram(sample_target(rng));
     }
 
     static unsigned int const expected_counts[] = {3942, 7996, 2034, 2028};
     EXPECT_VEC_EQ(expected_counts, histogram.counts());
+    EXPECT_GE(histogram.min(), 0);
+    EXPECT_LE(histogram.max(), 2);
 
     EXPECT_EQ(127408, rng.count());
 }

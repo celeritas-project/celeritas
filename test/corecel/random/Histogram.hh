@@ -6,11 +6,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <algorithm>
+#include <limits>
 #include <vector>
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/cont/EnumArray.hh"
 
 namespace celeritas
 {
@@ -48,10 +51,24 @@ class Histogram
     // Get the result as a probability density
     VecDbl calc_density() const;
 
+    // Get the overflow and overflow counts
+    size_type underflow() const { return out_of_range_[Bound::lo]; }
+    size_type overflow() const { return out_of_range_[Bound::hi]; }
+
+    // Get the minimum and maximum values encountered
+    double min() const { return extrema_[Bound::lo]; }
+    double max() const { return extrema_[Bound::hi]; }
+
   private:
+    using Limits = std::numeric_limits<double>;
+
     double offset_;
     double inv_width_;
     VecCount counts_;
+
+    // Keep track of underflow and overflow
+    EnumArray<Bound, size_type> out_of_range_{};
+    EnumArray<Bound, double> extrema_{Limits::infinity(), -Limits::infinity()};
 };
 
 //---------------------------------------------------------------------------//
@@ -64,8 +81,16 @@ class Histogram
 void Histogram::operator()(double value)
 {
     double frac = (value - offset_) * inv_width_;
-    if (frac < 0.0 || frac > 1.0)
+    if (frac < 0.0)
     {
+        ++out_of_range_[Bound::lo];
+        extrema_[Bound::lo] = std::min(extrema_[Bound::lo], value);
+        return;
+    }
+    else if (frac > 1.0)
+    {
+        ++out_of_range_[Bound::hi];
+        extrema_[Bound::hi] = std::max(extrema_[Bound::hi], value);
         return;
     }
     auto index = static_cast<size_type>(frac * counts_.size());

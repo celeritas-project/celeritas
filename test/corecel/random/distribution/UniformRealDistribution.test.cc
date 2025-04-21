@@ -55,15 +55,14 @@ TEST_F(UniformRealDistributionTest, bin)
     Histogram histogram(5, {0, 5});
     for ([[maybe_unused]] int i : range(num_samples))
     {
-        double r = sample_uniform(rng);
-        ASSERT_GE(r, min);
-        ASSERT_LE(r, max);
-        histogram(r);
+        histogram(sample_uniform(rng));
     }
 
     static unsigned int const expected_counts[]
         = {2071, 1955, 1991, 2013, 1970};
     EXPECT_VEC_EQ(expected_counts, histogram.counts());
+    EXPECT_GE(histogram.min(), min);
+    EXPECT_LE(histogram.max(), max);
 }
 
 //---------------------------------------------------------------------------//

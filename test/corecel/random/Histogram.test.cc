@@ -64,9 +64,16 @@ TEST(HistogramTest, bin)
         EXPECT_VEC_EQ(expected_counts, bin.counts());
         EXPECT_VEC_SOFT_EQ(expected_density, bin.calc_density());
 
+        bin(32.00000000000001);
+        EXPECT_EQ(1, bin.overflow());
+        EXPECT_EQ(32.00000000000001, bin.max());
+
         bin(-1);
         bin(33);
-        bin(32.00000000000001);
+        EXPECT_EQ(1, bin.underflow());
+        EXPECT_EQ(2, bin.overflow());
+        EXPECT_EQ(-1, bin.min());
+        EXPECT_EQ(33, bin.max());
         EXPECT_VEC_EQ(expected_counts, bin.counts());
         EXPECT_VEC_SOFT_EQ(expected_density, bin.calc_density());
 

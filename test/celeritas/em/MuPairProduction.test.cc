@@ -155,12 +155,11 @@ TEST_F(MuPairProductionTest, distribution)
             // TODO: test energy partition
             auto e = sample(rng);
             auto e_pair = value_as<MevEnergy>(e.electron + e.positron);
-            ASSERT_GE(e_pair, min);
-            ASSERT_LE(e_pair, max);
             histogram(std::log(e_pair));
             sum_energy += e_pair;
             energy_fraction += value_as<MevEnergy>(e.electron) / e_pair;
         }
+        EXPECT_FALSE(histogram.underflow() || histogram.overflow());
         loge_pdf.push_back(histogram.calc_density());
         min_energy.push_back(min);
         max_energy.push_back(max);

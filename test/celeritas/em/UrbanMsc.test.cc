@@ -629,8 +629,10 @@ TEST_F(UrbanMscTest, msc_scattering)
             bin_action(static_cast<real_type>(interaction.action));
         }
 
+        EXPECT_FALSE(bin_angle.underflow() || bin_angle.overflow());
         angle.push_back(bin_angle.calc_density());
         displace_frac.push_back(avg_displacement / num_samples);
+        EXPECT_FALSE(bin_action.underflow() || bin_action.overflow());
         action.push_back(bin_action.calc_density());
         avg_engine_samples.push_back(
             static_cast<real_type>(rng.exchange_count())
