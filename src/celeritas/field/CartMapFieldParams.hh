@@ -6,15 +6,20 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Types.hh"
-#include "corecel/data/ParamsDataInterface.hh"
+#include <memory>
 
-#include "CartMapFieldData.hh"
+#include "corecel/Config.hh"
+
+#include "corecel/Assert.hh"
+#include "corecel/data/ParamsDataInterface.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 struct CartMapFieldInput;
+class CartMapFieldParamsImpl;
+template<Ownership W, MemSpace M>
+struct CartMapFieldParamsData;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -28,7 +33,8 @@ class CartMapFieldParams final
   public:
     //@{
     //! \name Type aliases
-    using real_type = cartmap_real_type;
+    // TODO: move definition
+    using real_type = float;
     using Input = CartMapFieldInput;
     //@}
 
@@ -36,19 +42,41 @@ class CartMapFieldParams final
     // Construct with a magnetic field map
     explicit CartMapFieldParams(Input const& inp);
 
+    ~CartMapFieldParams();
+
     //! Access field map data on the host
-    HostRef const& host_ref() const final { return host_ref_; }
+    HostRef const& host_ref() const final;
 
     //! Access field map data on the device
-    DeviceRef const& device_ref() const final { return device_ref_; }
+    DeviceRef const& device_ref() const final;
 
   private:
-    // Host/device storage and reference
-    HostVal<CartMapFieldParamsData> host_;
-    HostCRef<CartMapFieldParamsData> host_ref_;
-    CartMapFieldParamsData<Ownership::value, MemSpace::device> device_;
-    DeviceRef device_ref_;
+    std::unique_ptr<CartMapFieldParamsImpl> impl_;
 };
+
+#if !CELERITAS_USE_COVFIE
+inline CartMapFieldParams::CartMapFieldParams(Input const&)
+{
+    CELER_NOT_CONFIGURED("Covfie");
+}
+
+inline CartMapFieldParams::~CartMapFieldParams()
+{
+    CELER_NOT_CONFIGURED("Covfie");
+}
+
+//! Access field map data on the host
+inline auto CartMapFieldParams::host_ref() const -> HostRef const&
+{
+    CELER_NOT_CONFIGURED("Covfie");
+}
+
+//! Access field map data on the device
+inline auto CartMapFieldParams::device_ref() const -> DeviceRef const&
+{
+    CELER_NOT_CONFIGURED("Covfie");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
