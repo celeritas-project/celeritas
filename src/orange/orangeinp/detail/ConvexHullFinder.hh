@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/ConvexHullFinder.hh
+//! \file orange/orangeinp/detail/ConvexHullFinder.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -15,11 +15,13 @@
 #include "orange/OrangeTypes.hh"
 #include "orange/univ/detail/Utils.hh"
 
-#include "detail/PolygonUtils.hh"
+#include "PolygonUtils.hh"
 
 namespace celeritas
 {
 namespace orangeinp
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -259,7 +261,7 @@ auto ConvexHullFinder<T>::is_clockwise(size_type i_prev,
     // Create a SoftOrientation object based on the bump distance of the middle
     // point. Since the BumpCalculator operates on Real3, use a z-value of 0.
     auto abs_tol = calc_bump_({b[0], b[1], 0});
-    detail::SoftOrientation<real_type> soft_ori_(abs_tol);
+    SoftOrientation<real_type> soft_ori_(abs_tol);
 
     return soft_ori_(a, b, c) != detail::Orientation::counterclockwise;
 }
@@ -285,5 +287,6 @@ size_type ConvexHullFinder<T>::calc_previous(size_type i) const
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace orangeinp
 }  // namespace celeritas

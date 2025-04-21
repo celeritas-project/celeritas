@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/ConvexHullFinder.test.cc
+//! \file orange/orangeinp/detail/ConvexHullFinder.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/orangeinp/ConvexHullFinder.hh"
+#include "orange/orangeinp/detail/ConvexHullFinder.hh"
 
 #include "corecel/cont/Range.hh"
 
@@ -13,6 +13,8 @@
 namespace celeritas
 {
 namespace orangeinp
+{
+namespace detail
 {
 namespace test
 {
@@ -240,5 +242,6 @@ TEST_F(ConvexHullFinderTest, nested_concavity)
 }
 
 }  // namespace test
+}  // namespace detail
 }  // namespace orangeinp
 }  // namespace celeritas

@@ -69,7 +69,6 @@ celeritas_add_test(detail/LogicUtils.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Input construction
-celeritas_add_test(orangeinp/ConvexHullFinder.test.cc)
 celeritas_add_test(orangeinp/CsgObject.test.cc)
 celeritas_add_test(orangeinp/CsgTree.test.cc)
 celeritas_add_test(orangeinp/CsgTreeUtils.test.cc)
@@ -83,6 +82,7 @@ celeritas_add_test(orangeinp/UnitProto.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json)
 
 celeritas_add_test(orangeinp/detail/BoundingZone.test.cc)
+celeritas_add_test(orangeinp/detail/ConvexHullFinder.test.cc)
 celeritas_add_test(orangeinp/detail/PolygonUtils.test.cc)
 celeritas_add_test(orangeinp/detail/ProtoMap.test.cc)
 celeritas_add_test(orangeinp/detail/LocalSurfaceInserter.test.cc)
