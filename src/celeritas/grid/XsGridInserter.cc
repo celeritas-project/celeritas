@@ -10,6 +10,8 @@
 
 #include "XsGridData.hh"
 
+#include "detail/GridUtils.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -17,7 +19,7 @@ namespace celeritas
  * Construct with a reference to mutable host data.
  */
 XsGridInserter::XsGridInserter(Values* reals, GridValues* grids)
-    : reals_(reals), grids_(grids)
+    : values_(reals), reals_(reals), grids_(grids)
 {
     CELER_EXPECT(reals && grids);
 }
@@ -36,11 +38,13 @@ auto XsGridInserter::operator()(inp::UniformGrid const& lower,
     {
         grid.lower.grid = UniformGridData::from_bounds(lower.x, lower.y.size());
         grid.lower.value = reals_.insert_back(lower.y.begin(), lower.y.end());
+        detail::set_spline(values_, reals_, lower.interpolation, grid.lower);
     }
     if (upper)
     {
         grid.upper.grid = UniformGridData::from_bounds(upper.x, upper.y.size());
         grid.upper.value = reals_.insert_back(upper.y.begin(), upper.y.end());
+        detail::set_spline(values_, reals_, upper.interpolation, grid.upper);
     }
     CELER_ENSURE(grid);
     return grids_.push_back(grid);

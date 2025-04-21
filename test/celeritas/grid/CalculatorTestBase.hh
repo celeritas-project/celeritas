@@ -43,6 +43,9 @@ class CalculatorTestBase : public Test
     // Construct without scaled values
     void build(inp::UniformGrid grid);
 
+    // Construct inverted grid
+    void build_inverted(inp::UniformGrid grid);
+
     XsGridRecord const& data() const { return data_; }
     Data const& values() const { return value_ref_; }
 
@@ -51,7 +54,8 @@ class CalculatorTestBase : public Test
     Values value_storage_;
     Data value_ref_;
 
-    void build_grid(UniformGridRecord& data, inp::UniformGrid const& grid);
+    void build_impl(inp::UniformGrid, inp::UniformGrid, bool invert);
+    void build_grid(UniformGridRecord&, inp::UniformGrid const&, bool invert);
 };
 
 //---------------------------------------------------------------------------//

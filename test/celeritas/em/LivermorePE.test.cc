@@ -75,7 +75,7 @@ class LivermorePETest : public InteractorHostTestBase
 
         // Set Livermore photoelectric data
         std::string data_path = this->test_data_path("celeritas", "");
-        LivermorePEReader read_element_data(data_path.c_str());
+        LivermorePEReader read_element_data(data_path.c_str(), {});
         model_ = std::make_shared<LivermorePEModel>(
             ActionId{0}, particles, *this->material_params(), read_element_data);
 

@@ -9,6 +9,8 @@
 #include "corecel/Types.hh"
 #include "corecel/grid/UniformGridData.hh"
 
+#include "detail/GridUtils.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -16,7 +18,7 @@ namespace celeritas
  * Construct with a reference to mutable host data.
  */
 UniformGridInserter::UniformGridInserter(Values* reals, GridValues* grids)
-    : reals_(reals), grids_(grids)
+    : values_(reals), reals_(reals), grids_(grids)
 {
     CELER_EXPECT(reals && grids);
 }
@@ -32,6 +34,9 @@ auto UniformGridInserter::operator()(inp::UniformGrid const& grid) -> GridId
     UniformGridRecord data;
     data.grid = UniformGridData::from_bounds(grid.x, grid.y.size());
     data.value = reals_.insert_back(grid.y.begin(), grid.y.end());
+    detail::set_spline(values_, reals_, grid.interpolation, data);
+
+    CELER_ENSURE(data);
     return grids_.push_back(data);
 }
 

@@ -90,7 +90,8 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(max_steps);
     LDIO_LOAD_REQUIRED(initializer_capacity);
     LDIO_LOAD_REQUIRED(secondary_stack_factor);
-    LDIO_LOAD_OPTION(spline_eloss_order);
+    LDIO_LOAD_OPTION(interpolation);
+    LDIO_LOAD_OPTION(poly_spline_order);
     LDIO_LOAD_REQUIRED(use_device);
     LDIO_LOAD_OPTION(action_times);
     LDIO_LOAD_OPTION(merge_events);
@@ -186,7 +187,8 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE_OPTION(max_steps);
     LDIO_SAVE(initializer_capacity);
     LDIO_SAVE(secondary_stack_factor);
-    LDIO_SAVE_OPTION(spline_eloss_order);
+    LDIO_SAVE_OPTION(interpolation);
+    LDIO_SAVE_OPTION(poly_spline_order);
     LDIO_SAVE(use_device);
     LDIO_SAVE(action_times);
     LDIO_SAVE(merge_events);

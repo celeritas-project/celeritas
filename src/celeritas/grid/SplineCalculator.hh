@@ -204,6 +204,7 @@ CELER_FUNCTION real_type SplineCalculator::interpolate(real_type energy,
         }
         result += (num / denom) * (*this)[outer_idx];
     }
+    CELER_ENSURE(result >= 0);
     return result;
 }
 

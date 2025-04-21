@@ -12,6 +12,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/grid/Interpolator.hh"
 #include "corecel/grid/NonuniformGrid.hh"
+#include "corecel/grid/SplineInterpolator.hh"
 #include "corecel/grid/UniformGrid.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/Quantity.hh"
@@ -61,6 +62,7 @@ class InverseRangeCalculator
   private:
     UniformGrid log_energy_;
     NonuniformGrid<real_type> range_;
+    Span<real_type const> deriv_;
 };
 
 //---------------------------------------------------------------------------//
@@ -75,7 +77,9 @@ class InverseRangeCalculator
 CELER_FUNCTION
 InverseRangeCalculator::InverseRangeCalculator(XsGridRecord const& grid,
                                                Values const& values)
-    : log_energy_(grid.lower.grid), range_(grid.lower.value, values)
+    : log_energy_(grid.lower.grid)
+    , range_(grid.lower.value, values)
+    , deriv_(values[grid.lower.derivative])
 {
     CELER_EXPECT(range_.size() == log_energy_.size());
     CELER_EXPECT(!grid.upper);
@@ -109,12 +113,23 @@ InverseRangeCalculator::operator()(real_type range) const -> Energy
     auto idx = range_.find(range);
     CELER_ASSERT(idx + 1 < log_energy_.size());
 
-    // Interpolate: 'x' = range, y = log energy
-    LinearInterpolator<real_type> interpolate_log_energy(
-        {range_[idx], std::exp(log_energy_[idx])},
-        {range_[idx + 1], std::exp(log_energy_[idx + 1])});
-    auto loge = interpolate_log_energy(range);
-    return Energy{loge};
+    real_type result;
+    if (deriv_.empty())
+    {
+        // Interpolate: 'x' = range, y = log energy
+        result = LinearInterpolator<real_type>(
+            {range_[idx], std::exp(log_energy_[idx])},
+            {range_[idx + 1], std::exp(log_energy_[idx + 1])})(range);
+    }
+    else
+    {
+        // Use cubic spline interpolation
+        result = SplineInterpolator<real_type>(
+            {range_[idx], std::exp(log_energy_[idx]), deriv_[idx]},
+            {range_[idx + 1], std::exp(log_energy_[idx + 1]), deriv_[idx + 1]})(
+            range);
+    }
+    return Energy{result};
 }
 
 //---------------------------------------------------------------------------//

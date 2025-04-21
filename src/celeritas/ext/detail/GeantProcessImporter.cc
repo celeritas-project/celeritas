@@ -13,6 +13,7 @@
 #include <memory>
 #include <string>
 #include <type_traits>
+#include <unordered_set>
 #include <utility>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4ParticleDefinition.hh>
@@ -158,7 +159,9 @@ int get_secondary_pdg(T const& process)
  */
 void append_table(G4PhysicsTable const* g4table,
                   ImportTableType table_type,
-                  std::vector<ImportPhysicsTable>* tables)
+                  [[maybe_unused]] ImportProcessClass process_class,
+                  std::vector<ImportPhysicsTable>* tables,
+                  inp::Interpolation interpolation)
 {
     if (!g4table)
     {
@@ -191,11 +194,25 @@ void append_table(G4PhysicsTable const* g4table,
             CELER_ASSERT_UNREACHABLE();
     };
 
-    // Save physics vectors
+    // Save physics vectors, using spline interpolation if enabled and valid
     for (auto const* g4vector : *g4table)
     {
         table.physics_vectors.emplace_back(import_physics_log_vector(
             *g4vector, {table.x_units, table.y_units}));
+#if G4VERSION_NUMBER < 1100
+        // Hardcode whether the lambda table uses spline for older Geant4
+        // versions. Always use spline for lambda, energy loss, range, and msc
+        //! \todo Coulomb scattering disables spline when \c isCombined = false
+        static std::unordered_set<ImportProcessClass> disable_spline{
+            ImportProcessClass::rayleigh};
+
+        if (!disable_spline.count(process_class))
+#else
+        if (g4vector->GetSpline())
+#endif
+        {
+            table.physics_vectors.back().interpolation = interpolation;
+        }
     }
 
     CELER_ENSURE(
@@ -219,8 +236,9 @@ bool all_are_assigned(std::vector<T> const& arr)
  */
 GeantProcessImporter::GeantProcessImporter(
     std::vector<ImportPhysMaterial> const& materials,
-    std::vector<ImportElement> const& elements)
-    : materials_(materials), elements_(elements)
+    std::vector<ImportElement> const& elements,
+    inp::Interpolation interpolation)
+    : materials_(materials), elements_(elements), interpolation_(interpolation)
 {
     CELER_ENSURE(!materials_.empty());
     CELER_ENSURE(!elements_.empty());
@@ -254,11 +272,16 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
     }
 
     // Save cross section tables if available
-    append_table(
-        process.LambdaTable(), ImportTableType::lambda, &result.tables);
+    append_table(process.LambdaTable(),
+                 ImportTableType::lambda,
+                 result.process_class,
+                 &result.tables,
+                 interpolation_);
     append_table(process.LambdaTablePrim(),
                  ImportTableType::lambda_prim,
-                 &result.tables);
+                 result.process_class,
+                 &result.tables,
+                 interpolation_);
     CELER_ENSURE(result && all_are_assigned(result.models));
     return result;
 }
@@ -296,12 +319,18 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
         // each energy loss process are stored in the "ionization process"
         // (which might be ionization or might be another arbitrary energy loss
         // process if there is no ionization in the problem).
-        append_table(
-            process.DEDXTable(), ImportTableType::dedx, &result.tables);
+        append_table(process.DEDXTable(),
+                     ImportTableType::dedx,
+                     result.process_class,
+                     &result.tables,
+                     interpolation_);
     }
 
-    append_table(
-        process.LambdaTable(), ImportTableType::lambda, &result.tables);
+    append_table(process.LambdaTable(),
+                 ImportTableType::lambda,
+                 result.process_class,
+                 &result.tables,
+                 interpolation_);
 
     CELER_ENSURE(result && all_are_assigned(result.models));
     return result;
@@ -358,7 +387,9 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
             }
             append_table(model->GetCrossSectionTable(),
                          ImportTableType::msc_xs,
-                         &temp_tables);
+                         ImportProcessClass::size_,
+                         &temp_tables,
+                         interpolation_);
             CELER_EXPECT(temp_tables.size() == 1);
             imm.xs_table = std::move(temp_tables.back());
             temp_tables.clear();

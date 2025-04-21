@@ -456,11 +456,12 @@ TEST_F(StepLimiterTest, calc_physics_step_limit)
 
 class SplinePhysicsStepUtilsTest : public PhysicsStepUtilsTest
 {
-    PhysicsOptions build_physics_options() const override
+    inp::Interpolation interpolation() const override
     {
-        PhysicsOptions opts;
-        opts.spline_eloss_order = 2;
-        return opts;
+        inp::Interpolation interp;
+        interp.type = InterpolationType::poly_spline;
+        interp.order = 2;
+        return interp;
     }
 };
 

@@ -18,7 +18,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
-#include "celeritas/grid/NonuniformGridBuilder.hh"
+#include "celeritas/grid/NonuniformGridInserter.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 
@@ -104,8 +104,7 @@ MaterialParams::MaterialParams(Input const& inp)
     CELER_EXPECT(inp.optical_to_core.size() == inp.properties.size());
 
     HostVal<MaterialParamsData> data;
-    CollectionBuilder refractive_index{&data.refractive_index};
-    NonuniformGridBuilder build_grid(&data.reals);
+    NonuniformGridInserter insert_grid(&data.reals, &data.refractive_index);
     for (auto opt_mat_idx : range(inp.properties.size()))
     {
         auto const& mat = inp.properties[opt_mat_idx];
@@ -113,27 +112,26 @@ MaterialParams::MaterialParams(Input const& inp)
         // Store refractive index tabulated as a function of photon energy.
         // In a dispersive medium, the index of refraction is an increasing
         // function of photon energy
-        auto const& ri_vec = mat.refractive_index;
-        CELER_VALIDATE(ri_vec,
+        auto const& ri = mat.refractive_index;
+        CELER_VALIDATE(ri,
                        << "no refractive index data is defined for optical "
                           "material "
                        << opt_mat_idx);
-        CELER_VALIDATE(is_monotonic_increasing(make_span(ri_vec.x)),
+        CELER_VALIDATE(is_monotonic_increasing(make_span(ri.x)),
                        << "refractive index energy grid values are not "
                           "monotonically increasing");
-        CELER_VALIDATE(is_monotonic_increasing(make_span(ri_vec.y)),
+        CELER_VALIDATE(is_monotonic_increasing(make_span(ri.y)),
                        << "refractive index values are not monotonically "
                           "increasing");
-        if (ri_vec.y.front() < 1)
+        if (ri.y.front() < 1)
         {
             CELER_LOG(warning) << "Encountered refractive index below unity "
                                   "for optical material "
                                << opt_mat_idx;
         }
-
-        refractive_index.push_back(build_grid(ri_vec));
+        insert_grid(ri);
     }
-    CELER_ASSERT(refractive_index.size() == inp.properties.size());
+    CELER_ASSERT(data.refractive_index.size() == inp.properties.size());
 
     for (auto optmat : inp.volume_to_mat)
     {

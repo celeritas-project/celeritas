@@ -803,7 +803,7 @@ std::vector<ImportRegion> import_regions()
 /*!
  * Return a populated \c ImportProcess vector.
  */
-auto import_processes(GeantImporter::DataSelection::Flags process_flags,
+auto import_processes(GeantImporter::DataSelection selected,
                       std::vector<ImportParticle> const& particles,
                       std::vector<ImportElement> const& elements,
                       std::vector<ImportPhysMaterial> const& materials,
@@ -812,8 +812,8 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
                   std::vector<ImportMscModel>,
                   std::vector<ImportOpticalModel>>
 {
-    ParticleFilter include_particle{process_flags};
-    ProcessFilter include_process{process_flags};
+    ParticleFilter include_particle{selected.processes};
+    ProcessFilter include_process{selected.processes};
 
     std::vector<ImportProcess> processes;
     std::vector<ImportMscModel> msc_models;
@@ -821,7 +821,8 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
 
     static celeritas::TypeDemangler<G4VProcess> const demangle_process;
     std::unordered_map<G4VProcess const*, G4ParticleDefinition const*> visited;
-    detail::GeantProcessImporter import_process(materials, elements);
+    detail::GeantProcessImporter import_process(
+        materials, elements, selected.interpolation);
     detail::GeantOpticalModelImporter import_optical_model(geo_to_opt);
 
     auto append_process = [&](G4ParticleDefinition const& particle,
@@ -1116,9 +1117,8 @@ ImportMuPairProductionTable import_mupp_table(PDGNumber pdg)
             if (G4Physics2DVector const* pv = el_data->GetElement2DData(z))
             {
                 result.atomic_number.push_back(z);
-                result.physics_vectors.push_back(
-                    detail::import_physics_2dvector(
-                        *pv, {IU::unitless, IU::mev, IU::mev_len_sq}));
+                result.grids.push_back(detail::import_physics_2dvector(
+                    *pv, {IU::unitless, IU::mev, IU::mev_len_sq}));
             }
         }
     }
@@ -1131,7 +1131,7 @@ ImportMuPairProductionTable import_mupp_table(PDGNumber pdg)
         {
             G4Physics2DVector const* pv = el_data->GetElement2DData(i);
             CELER_ASSERT(pv);
-            result.physics_vectors.push_back(detail::import_physics_2dvector(
+            result.grids.push_back(detail::import_physics_2dvector(
                 *pv, {IU::unitless, IU::mev, IU::mev_len_sq}));
         }
     }
@@ -1231,7 +1231,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
             std::tie(imported.processes,
                      imported.msc_models,
                      imported.optical_models)
-                = import_processes(selected.processes,
+                = import_processes(selected,
                                    imported.particles,
                                    imported.elements,
                                    imported.phys_materials,
@@ -1241,11 +1241,10 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
             {
                 auto mu_minus = import_mupp_table(pdg::mu_minus());
                 auto mu_plus = import_mupp_table(pdg::mu_plus());
-                CELER_VALIDATE(
-                    mu_minus.atomic_number == mu_plus.atomic_number
-                        && mu_minus.physics_vectors == mu_plus.physics_vectors,
-                    << "muon pair production sampling tables for "
-                       "mu- and mu+ differ");
+                CELER_VALIDATE(mu_minus.atomic_number == mu_plus.atomic_number
+                                   && mu_minus.grids == mu_plus.grids,
+                               << "muon pair production sampling tables for "
+                                  "mu- and mu+ differ");
                 imported.mu_pair_production_data = std::move(mu_minus);
             }
         }
@@ -1281,7 +1280,8 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         }
         if (have_process(ImportProcessClass::photoelectric))
         {
-            imported.livermore_pe_data = load_data(LivermorePEReader{});
+            imported.livermore_pe_data
+                = load_data(LivermorePEReader{selected.interpolation});
         }
         if (G4EmParameters::Instance()->Fluo())
         {

@@ -104,6 +104,9 @@ class PhysicsTrackView
     // Get range table, null if not present for this particle/material
     inline CELER_FUNCTION ValueGridId range_grid() const;
 
+    // Get inverse range table, null if not present
+    inline CELER_FUNCTION ValueGridId inverse_range_grid() const;
+
     // Get data for processes that use the integral approach
     inline CELER_FUNCTION IntegralXsProcess const&
     integral_xs_process(ParticleProcessId ppid) const;
@@ -361,6 +364,27 @@ CELER_FUNCTION auto PhysicsTrackView::energy_loss_grid() const -> ValueGridId
 CELER_FUNCTION auto PhysicsTrackView::range_grid() const -> ValueGridId
 {
     return this->value_grid(this->process_group().range);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return the inverse range grid data if available.
+ *
+ * If spline interpolation is used, the inverse grid is explicity stored with
+ * the derivatives calculated using the range as the x values and the energy as
+ * the y values.
+ *
+ * The grid and values are identical to the range grid (i.e., not inverted)
+ * even if the inverse grid is explicitly stored: the inversion is done in the
+ * \c InverseRangeCalculator .
+ */
+CELER_FUNCTION auto PhysicsTrackView::inverse_range_grid() const -> ValueGridId
+{
+    if (auto const& grid = this->value_grid(this->process_group().inverse_range))
+    {
+        return grid;
+    }
+    return this->range_grid();
 }
 
 //---------------------------------------------------------------------------//

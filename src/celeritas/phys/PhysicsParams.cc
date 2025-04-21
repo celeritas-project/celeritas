@@ -320,15 +320,11 @@ void PhysicsParams::build_options(Options const& opts, HostValue* data) const
     CELER_VALIDATE(opts.safety_factor >= 0.1,
                    << "invalid safety_factor=" << opts.safety_factor
                    << " (should be >= 0.1)");
-    CELER_VALIDATE(opts.spline_eloss_order > 0,
-                   << "invalid spline_eloss_order=" << opts.spline_eloss_order
-                   << " (should be > 0)");
     data->scalars.min_eprime_over_e = opts.min_eprime_over_e;
     data->scalars.linear_loss_limit = opts.linear_loss_limit;
     data->scalars.secondary_stack_factor = opts.secondary_stack_factor;
     data->scalars.lambda_limit = opts.lambda_limit;
     data->scalars.safety_factor = opts.safety_factor;
-    data->scalars.spline_eloss_order = opts.spline_eloss_order;
 
     this->build_particle_options(opts.light, &data->scalars.light);
     this->build_particle_options(opts.heavy, &data->scalars.heavy);
@@ -545,6 +541,7 @@ void PhysicsParams::build_xs(Options const& opts,
         std::vector<ValueTable> xs_table(processes.size());
         ValueTable eloss_table;
         ValueTable range_table;
+        ValueTable inverse_range_table;
 
         // Processes with dE/dx and macro xs tables
         std::vector<IntegralXsProcess> temp_integral_xs(processes.size());
@@ -566,6 +563,7 @@ void PhysicsParams::build_xs(Options const& opts,
             std::vector<ValueGridId> xs_grid_ids(mats.size());
             std::vector<ValueGridId> eloss_grid_ids(mats.size());
             std::vector<ValueGridId> range_grid_ids(mats.size(), ValueGridId{});
+            std::vector<ValueGridId> inv_range_grid_ids;
 
             // Energy of maximum cross section for each material
             std::vector<real_type> energy_max_xs;
@@ -613,8 +611,6 @@ void PhysicsParams::build_xs(Options const& opts,
                     = build_grid(builders[VGT::energy_loss]);
                 if (auto grid_id = eloss_grid_ids[mat_idx])
                 {
-                    //! \todo make the interpolation method configurable?
-
                     // Build the range grid from the energy loss
                     auto dedx_builder
                         = dynamic_cast<ValueGridLogBuilder const*>(
@@ -623,18 +619,30 @@ void PhysicsParams::build_xs(Options const& opts,
                     auto range_grid
                         = RangeGridCalculator(BC::geant)(dedx_builder->grid());
                     range_grid_ids[mat_idx] = insert_grid(range_grid);
-                }
 
-                if (auto grid_id = eloss_grid_ids[mat_idx])
-                {
-                    /*
-                     * \todo Possibly set the spline order for other grid
-                     * types. Store in the import data which physics vectors
-                     * use spline interpolation. Update the physics options to
-                     * support cubic spline interpolation as well.
-                     */
-                    data->value_grids[grid_id].lower.spline_order
-                        = data->scalars.spline_eloss_order;
+                    if (range_grid.interpolation.type
+                        == InterpolationType::cubic_spline)
+                    {
+                        // Build the inverse range grid if cubic spline
+                        // interpolation is used
+                        inv_range_grid_ids.resize(mats.size(), ValueGridId{});
+
+                        // The range and energy values are not inverted on the
+                        // grid, but the derivatives are calculated using the
+                        // inverted grid.
+                        XsGridRecord inv_range_grid
+                            = data->value_grids[range_grid_ids[mat_idx]];
+                        auto deriv
+                            = SplineDerivCalculator(BC::geant).calc_from_inverse(
+                                inv_range_grid.lower,
+                                make_const_ref(*data).reals);
+                        inv_range_grid.lower.derivative
+                            = make_builder(&data->reals)
+                                  .insert_back(deriv.begin(), deriv.end());
+                        inv_range_grid_ids[mat_idx]
+                            = make_builder(&data->value_grids)
+                                  .push_back(inv_range_grid);
+                    }
                 }
 
                 if (use_integral_xs)
@@ -684,8 +692,12 @@ void PhysicsParams::build_xs(Options const& opts,
                     eloss_grid_ids.begin(), eloss_grid_ids.end());
                 range_table.grids = value_grid_ids.insert_back(
                     range_grid_ids.begin(), range_grid_ids.end());
+                inverse_range_table.grids = value_grid_ids.insert_back(
+                    inv_range_grid_ids.begin(), inv_range_grid_ids.end());
                 CELER_ASSERT(eloss_table.grids.size() == mats.size()
-                             && range_table.grids.size() == mats.size());
+                             && range_table.grids.size() == mats.size()
+                             && (inverse_range_table.grids.size() == mats.size()
+                                 || inverse_range_table.grids.empty()));
             }
 
             // Store the energies of the maximum cross sections
@@ -707,6 +719,8 @@ void PhysicsParams::build_xs(Options const& opts,
             = value_tables.insert_back(xs_table.begin(), xs_table.end());
         process_groups.energy_loss = value_tables.push_back(eloss_table);
         process_groups.range = value_tables.push_back(range_table);
+        process_groups.inverse_range
+            = value_tables.push_back(inverse_range_table);
     }
 }
 

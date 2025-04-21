@@ -6,84 +6,43 @@
 //---------------------------------------------------------------------------//
 #include "NonuniformGridBuilder.hh"
 
-#include "corecel/grid/VectorUtils.hh"
+#include "corecel/Types.hh"
+#include "corecel/grid/SplineDerivCalculator.hh"
+
+#include "detail/GridUtils.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with pointers to data that will be modified.
+ * Construct with a reference to mutable host data.
  */
-NonuniformGridBuilder::NonuniformGridBuilder(Items<real_type>* reals)
-    : NonuniformGridBuilder(reals, BC::size_)
-{
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct with pointers to data and boundary condtions.
- */
-NonuniformGridBuilder::NonuniformGridBuilder(Items<real_type>* reals, BC bc)
-    : values_(*reals), reals_{reals}, bc_(bc)
+NonuniformGridBuilder::NonuniformGridBuilder(Values* reals)
+    : values_(reals), reals_(reals)
 {
     CELER_EXPECT(reals);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Add a grid of generic data with linear interpolation.
- */
-auto NonuniformGridBuilder::operator()(SpanConstFlt grid, SpanConstFlt values)
-    -> Grid
-{
-    return this->insert_impl(grid, values);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Add a grid of generic data with linear interpolation.
- */
-auto NonuniformGridBuilder::operator()(SpanConstDbl grid, SpanConstDbl values)
-    -> Grid
-{
-    return this->insert_impl(grid, values);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Add a grid from an imported physics vector.
+ * Add a nonuniform grid.
  */
 auto NonuniformGridBuilder::operator()(inp::Grid const& grid) -> Grid
 {
-    return this->insert_impl(make_span(grid.x), make_span(grid.y));
-}
+    CELER_EXPECT(grid);
 
-//---------------------------------------------------------------------------//
-/*!
- * Add a grid from container references.
- */
-template<class T>
-auto NonuniformGridBuilder::insert_impl(Span<T const> grid,
-                                        Span<T const> values) -> Grid
-{
-    CELER_EXPECT(grid.size() >= 2);
-    CELER_EXPECT(grid.front() <= grid.back());
-    CELER_EXPECT(values.size() == grid.size());
+    CELER_VALIDATE(grid.interpolation.type != InterpolationType::poly_spline,
+                   << to_cstring(grid.interpolation.type)
+                   << " interpolation is not supported on a "
+                      "nonuniform grid");
 
-    Grid result;
-    result.grid = reals_.insert_back(grid.begin(), grid.end());
-    result.value = reals_.insert_back(values.begin(), values.end());
-    if (bc_ != BC::size_)
-    {
-        // Calculate second derivatives for cubic spline interpolation
-        CELER_ASSERT(is_monotonic_increasing(grid));
-        auto deriv = SplineDerivCalculator(bc_)(values_[result.grid],
-                                                values_[result.value]);
-        result.derivative = reals_.insert_back(deriv.begin(), deriv.end());
-    }
+    NonuniformGridRecord data;
+    data.grid = reals_.insert_back(grid.x.begin(), grid.x.end());
+    data.value = reals_.insert_back(grid.y.begin(), grid.y.end());
+    detail::set_spline(values_, reals_, grid.interpolation, data);
 
-    CELER_ENSURE(result);
-    return result;
+    CELER_ENSURE(data);
+    return data;
 }
 
 //---------------------------------------------------------------------------//
