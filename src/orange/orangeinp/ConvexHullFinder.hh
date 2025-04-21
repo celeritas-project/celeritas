@@ -12,6 +12,8 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
+#include "orange/OrangeTypes.hh"
+#include "orange/univ/detail/Utils.hh"
 
 #include "detail/PolygonUtils.hh"
 
@@ -45,8 +47,8 @@ class ConvexHullFinder
     //!@}
 
   public:
-    // Construct with vector of ordered points
-    explicit ConvexHullFinder(VecReal2 const& points);
+    // Construct with vector of ordered points and a tolerance
+    explicit ConvexHullFinder(VecReal2 const& points, Tolerance<T> const& tol);
 
     // Make the convex hull
     VecReal2 make_convex_hull() const;
@@ -60,9 +62,9 @@ class ConvexHullFinder
 
     /// DATA ///
     VecReal2 const& points_;
+    ::celeritas::detail::BumpCalculator calc_bump_;
     ConvexMask convex_mask_;
     size_type start_index_;
-    detail::SoftOrientation<real_type> soft_ori_;
 
     /// HELPER FUNCTIONS ///
 
@@ -94,8 +96,9 @@ class ConvexHullFinder
  * ordering.
  */
 template<class T>
-ConvexHullFinder<T>::ConvexHullFinder(ConvexHullFinder::VecReal2 const& points)
-    : points_{points}
+ConvexHullFinder<T>::ConvexHullFinder(ConvexHullFinder::VecReal2 const& points,
+                                      Tolerance<T> const& tol)
+    : points_{points}, calc_bump_{tol}
 {
     CELER_EXPECT(points_.size() > 2);
     start_index_ = this->min_element_idx();
@@ -252,6 +255,12 @@ auto ConvexHullFinder<T>::is_clockwise(size_type i_prev,
     auto const& a = points_[i_prev];
     auto const& b = points_[i];
     auto const& c = points_[i_next];
+
+    // Create a SoftOrientation object based on the bump distance of the middle
+    // point. Since the BumpCalculator operates on Real3, use a z-value of 0.
+    auto abs_tol = calc_bump_({b[0], b[1], 0});
+    detail::SoftOrientation<real_type> soft_ori_(abs_tol);
+
     return soft_ori_(a, b, c) != detail::Orientation::counterclockwise;
 }
 
