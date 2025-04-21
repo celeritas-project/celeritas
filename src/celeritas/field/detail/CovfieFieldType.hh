@@ -15,6 +15,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Types.hh"
+#include "geocel/Types.hh"
 
 #if CELERITAS_USE_CUDA
 #    include <covfie/cuda/backend/primitive/cuda_texture.hpp>
@@ -39,6 +40,11 @@ struct CovfieFieldTrait<MemSpace::host>
     using coordinates_transform_t = covfie::backend::affine<interp_t>;
     using field_t = covfie::field<coordinates_transform_t>;
     using builder_t = covfie::field<storage_order_t>;
+
+    static Real3 output(field_t::output_t const& vec)
+    {
+        return {vec[0], vec[1], vec[2]};
+    }
 };
 
 template<>
@@ -64,6 +70,10 @@ struct CovfieFieldTrait<MemSpace::device>
 #else
     using field_t = CovfieFieldTrait<MemSpace::host>::field_t;
 #endif
+    static Real3 output(field_t::output_t const& vec)
+    {
+        return {vec[0], vec[1], vec[2]};
+    }
 };
 
 //---------------------------------------------------------------------------//

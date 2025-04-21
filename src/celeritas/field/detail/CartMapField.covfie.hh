@@ -14,6 +14,7 @@
 #include "corecel/cont/Range.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/field/CartMapFieldData.hh"
+#include "celeritas/field/detail/CovfieFieldType.hh"
 
 namespace celeritas
 {
@@ -66,19 +67,10 @@ CartMapField::CartMapField(FieldParamsRef const& shared)
  */
 CELER_FUNCTION auto CartMapField::operator()(Real3 const& pos) const -> Real3
 {
-    Real3 value;
-
-    // delegate interpolation to Covfie
-    auto bfield = field_.at(static_cast<real_type>(pos[0]),
-                            static_cast<real_type>(pos[1]),
-                            static_cast<real_type>(pos[2]));
-    for (auto i :
-         range(static_cast<std::underlying_type_t<CartAxis>>(CartAxis::size_)))
-    {
-        value[i] = bfield[i];
-    }
-
-    return value;
+    return CovfieFieldTrait<MemSpace::native>::output(
+        field_.at(static_cast<real_type>(pos[0]),
+                  static_cast<real_type>(pos[1]),
+                  static_cast<real_type>(pos[2])));
 }
 
 //---------------------------------------------------------------------------//
