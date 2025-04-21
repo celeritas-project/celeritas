@@ -33,15 +33,15 @@ endif()
 
 # Optional dependencies
 # NOTE: when adding a new dependency, update the CMakeConfig "COMPONENTS"
+celeritas_optional_package(Covfie "Use Covfie field integrator")
 celeritas_optional_package(Geant4 "Enable Geant4 adapter tools")
 celeritas_optional_package(HepMC3 "Enable HepMC3 event record reader")
-celeritas_optional_package(PNG "Enable PNG output with libpng")
 celeritas_optional_package(MPI "Enable distributed memory parallelism")
 celeritas_optional_package(OpenMP "Enable CPU shared-memory parallelism")
+celeritas_optional_package(PNG "Enable PNG output with libpng")
 celeritas_optional_package(Python "Use Python to generate and preprocess")
 celeritas_optional_package(ROOT "Enable ROOT I/O")
 celeritas_optional_package(VecGeom "Use VecGeom geometry")
-celeritas_optional_package(Covfie "Use Covfie field integrator")
 
 option(CELERITAS_USE_Perfetto "Perfetto tracing library" OFF)
 
@@ -410,13 +410,6 @@ if(CELERITAS_USE_ROOT)
 endif()
 
 if(CELERITAS_USE_Covfie)
-  if(CMAKE_CXX_STANDARD LESS 20)
-    celeritas_error_incompatible_option(
-      "Covfie requires C++20 or higher"
-      CMAKE_CXX_STANDARD
-      20
-    )
-  endif()
   find_package(covfie REQUIRED)
 endif()
 
@@ -615,7 +608,7 @@ set(_cmake_files
   # For now, include in case downstream projects do `include(CudaRdcUtils)`.
   "${_LOCAL_RDCUTILS_FILENAME}"
 )
-foreach(_dep CLI11 Geant4 G4VG HepMC3 Perfetto ROOT Thrust VecGeom)
+foreach(_dep CLI11 Covfie Geant4 G4VG HepMC3 Perfetto ROOT Thrust VecGeom)
   if(CELERITAS_USE_${_dep} AND NOT CELERITAS_BUILTIN_${_dep})
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
   endif()
@@ -678,8 +671,8 @@ endforeach()
 list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Hints for upstream dependencies")
 foreach(_key
   MPIEXEC_EXECUTABLE CUDAToolkit_BIN_DIR
-  Geant4_DIR GTest_DIR HepMC3_DIR nlohmann_json_DIR Python_DIR ROOT_DIR
-  VecCore_DIR VecGeom_DIR G4VG_DIR
+  Covfie_DIR Geant4_DIR GTest_DIR HepMC3_DIR nlohmann_json_DIR
+  Python_DIR ROOT_DIR VecCore_DIR VecGeom_DIR G4VG_DIR
   CLHEP_DIR ZLIB_DIR EXPAT_DIR XercesC_DIR PTL_DIR
   EXPAT_INCLUDE_DIR EXPAT_LIBRARY
   VDT_INCLUDE_DIR VDT_LIBRARY

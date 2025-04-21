@@ -24,6 +24,7 @@
 //---------------------------------------------------------------------------//
 
 // Dependencies
+#cmakedefine01 CELERITAS_USE_COVFIE
 #cmakedefine01 CELERITAS_USE_CUDA
 #cmakedefine01 CELERITAS_USE_GEANT4
 #cmakedefine01 CELERITAS_USE_HEPMC3
@@ -34,7 +35,6 @@
 #cmakedefine01 CELERITAS_USE_PNG
 #cmakedefine01 CELERITAS_USE_ROOT
 #cmakedefine01 CELERITAS_USE_VECGEOM
-#cmakedefine01 CELERITAS_USE_COVFIE
 
 // Debugging
 #cmakedefine01 CELERITAS_DEBUG
