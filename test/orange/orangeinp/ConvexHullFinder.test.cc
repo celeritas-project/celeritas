@@ -58,7 +58,7 @@ class ConvexHullFinderTest : public ::celeritas::test::Test
         }
     }
 
-    Tolerance<double> t;
+    Tolerance<> t;
 };
 
 //---------------------------------------------------------------------------//

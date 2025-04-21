@@ -48,7 +48,7 @@ class ConvexHullFinder
 
   public:
     // Construct with vector of ordered points and a tolerance
-    explicit ConvexHullFinder(VecReal2 const& points, Tolerance<T> const& tol);
+    explicit ConvexHullFinder(VecReal2 const& points, Tolerance<> const& tol);
 
     // Make the convex hull
     VecReal2 make_convex_hull() const;
@@ -97,7 +97,7 @@ class ConvexHullFinder
  */
 template<class T>
 ConvexHullFinder<T>::ConvexHullFinder(ConvexHullFinder::VecReal2 const& points,
-                                      Tolerance<T> const& tol)
+                                      Tolerance<> const& tol)
     : points_{points}, calc_bump_{tol}
 {
     CELER_EXPECT(points_.size() > 2);
