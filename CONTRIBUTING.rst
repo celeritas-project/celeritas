@@ -3,7 +3,7 @@
 
 .. only:: github
 
-   You may be viewing this document through GitHub's native viewer. if so, hte
+   You may be viewing this document through GitHub's native viewer. if so, the
    links below may not work; please visit this page on the documentation web
    site:
 
