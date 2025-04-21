@@ -33,8 +33,6 @@ class CartMapFieldParams final
   public:
     //@{
     //! \name Type aliases
-    // TODO: move definition
-    using real_type = float;
     using Input = CartMapFieldInput;
     //@}
 

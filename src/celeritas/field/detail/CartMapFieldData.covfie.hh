@@ -19,16 +19,12 @@
 
 namespace celeritas
 {
-//! Real type for cartesian map field data
-using cartmap_real_type = float;
-
 //---------------------------------------------------------------------------//
 template<MemSpace M>
 struct CartMapFieldParamsDataBase
 {
     using field_t = CovfieFieldTrait<M>::field_t;
     using view_t = field_t::view_t;
-    using real_type = cartmap_real_type;
 
     FieldDriverOptions options;
 };

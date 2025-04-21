@@ -18,9 +18,7 @@
 
 namespace celeritas
 {
-//! Real type for cartesian map field data
-using cartmap_real_type = float;
-
+//---------------------------------------------------------------------------//
 template<Ownership W, MemSpace M>
 struct CartMapFieldParamsData
 {
