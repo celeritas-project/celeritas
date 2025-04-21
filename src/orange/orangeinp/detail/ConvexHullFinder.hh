@@ -27,12 +27,12 @@ namespace detail
 /*!
  * Find the convex hull of a sequence of 2D points.
  *
- * This helper class does not take ownership of the supplied points, so the
- * lifetime of objects of this class should be shorter than the lifetime of the
- * points. These points must be supplied in clockwise-order such that segments
- * between adjacent points, including the last and first points, comprise a
- * non-self-intersecting polygon. Exploiting this ordering, the Graham Scan
- * algorithm \citet{graham-convexhull-1972,
+ * This helper class does not take ownership of the supplied points and
+ * tolerance, so the lifetime of objects of this class should be shorter than
+ * the lifetime of these arguments. Points must be supplied in clockwise-order
+ * such that segments between adjacent points, including the last and first
+ * points, comprise a non-self-intersecting polygon. Exploiting this ordering,
+ * the Graham Scan algorithm \citet{graham-convexhull-1972,
  * https://doi.org/10.1016/0020-0190(72)90045-2} finds the convex hull with
  * O(N) time complexity.
  */
@@ -64,11 +64,15 @@ class ConvexHullFinder
 
     /// DATA ///
     VecReal2 const& points_;
-    ::celeritas::detail::BumpCalculator calc_bump_;
+    Tolerance<> const& tol_;
+    SoftOrientation<real_type> soft_ori_;
     ConvexMask convex_mask_;
     size_type start_index_;
 
     /// HELPER FUNCTIONS ///
+
+    // Make a SoftOrientation object based on the tolerance and polygon extents
+    SoftOrientation<real_type> make_soft_ori() const;
 
     // Calculate a mask that indicates which points are on the convex hull
     ConvexMask calc_convex_mask() const;
@@ -100,11 +104,37 @@ class ConvexHullFinder
 template<class T>
 ConvexHullFinder<T>::ConvexHullFinder(ConvexHullFinder::VecReal2 const& points,
                                       Tolerance<> const& tol)
-    : points_{points}, calc_bump_{tol}
+    : points_{points}, tol_{tol}
 {
     CELER_EXPECT(points_.size() > 2);
+
+    soft_ori_ = this->make_soft_ori();
     start_index_ = this->min_element_idx();
     convex_mask_ = this->calc_convex_mask();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Make a SoftOrientation object based on the tolerance and polygon extents.
+ */
+template<class T>
+auto ConvexHullFinder<T>::make_soft_ori() const -> SoftOrientation<real_type>
+{
+    auto const x_cmp
+        = [](Real2 const& a, Real2 const& b) { return a[0] < b[0]; };
+    auto const y_cmp
+        = [](Real2 const& a, Real2 const& b) { return a[1] < b[1]; };
+
+    auto const [x_min, x_max]
+        = std::minmax_element(points_.begin(), points_.end(), x_cmp);
+    auto const [y_min, y_max]
+        = std::minmax_element(points_.begin(), points_.end(), y_cmp);
+
+    Real3 const extents{
+        (*x_max)[0] - (*x_min)[0], (*y_max)[1] - (*y_min)[1], 0};
+
+    return SoftOrientation<real_type>(
+        ::celeritas::detail::BumpCalculator(tol_)(extents));
 }
 
 //---------------------------------------------------------------------------//
@@ -257,12 +287,6 @@ auto ConvexHullFinder<T>::is_clockwise(size_type i_prev,
     auto const& a = points_[i_prev];
     auto const& b = points_[i];
     auto const& c = points_[i_next];
-
-    // Create a SoftOrientation object based on the bump distance of the middle
-    // point. Since the BumpCalculator operates on Real3, use a z-value of 0.
-    auto abs_tol = calc_bump_({b[0], b[1], 0});
-    SoftOrientation<real_type> soft_ori_(abs_tol);
-
     return soft_ori_(a, b, c) != detail::Orientation::counterclockwise;
 }
 
