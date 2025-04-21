@@ -169,9 +169,9 @@ void ImportDataTrimmer::operator()(ImportMuPairProductionTable& data)
     }
 
     (*this)(data.atomic_number);
-    (*this)(data.physics_vectors);
+    (*this)(data.grids);
 
-    this->for_each(data.physics_vectors);
+    this->for_each(data.grids);
 
     CELER_ENSURE(data);
 }
@@ -197,7 +197,6 @@ void ImportDataTrimmer::operator()(ImportLivermoreSubshell& data)
         (*this)(data.param_lo);
         (*this)(data.param_hi);
         (*this)(data.xs);
-        (*this)(data.energy);
     }
 }
 

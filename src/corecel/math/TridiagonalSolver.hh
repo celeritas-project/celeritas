@@ -34,7 +34,7 @@ class TridiagonalSolver
     //!@}
 
   public:
-    // Contruct with coefficients
+    // Construct with coefficients
     explicit TridiagonalSolver(Coeffs&& tridiag);
 
     // Solve the tridiagonal system

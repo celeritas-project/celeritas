@@ -95,7 +95,7 @@ class CombinedBremTest : public InteractorHostTestBase
         this->set_material("Cu");
     }
 
-    EnergySq density_correction(MaterialId matid, Energy e) const
+    EnergySq density_correction(PhysMatId matid, Energy e) const
     {
         CELER_EXPECT(matid);
         CELER_EXPECT(e > zero_quantity());
@@ -130,7 +130,7 @@ TEST_F(CombinedBremTest, basic_seltzer_berger)
 
     // Production cuts
     auto material_view = this->material_track().material_record();
-    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
+    auto cutoffs = this->cutoff_params()->get(PhysMatId{0});
 
     // Create the interactor
     CombinedBremInteractor interact(model_->host_ref(),
@@ -194,7 +194,7 @@ TEST_F(CombinedBremTest, basic_relativistic_brem)
 
     // Production cuts
     auto material_view = this->material_track().material_record();
-    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
+    auto cutoffs = this->cutoff_params()->get(PhysMatId{0});
 
     // Set the incident particle energy
     this->set_inc_particle(pdg::electron(), MevEnergy{25000});
@@ -259,7 +259,7 @@ TEST_F(CombinedBremTest, stress_test_combined)
     std::vector<double> avg_energy_samples;
 
     // Views
-    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
+    auto cutoffs = this->cutoff_params()->get(PhysMatId{0});
     auto material_view = this->material_track().material_record();
 
     // Loop over a set of incident gamma energies

@@ -52,7 +52,7 @@ class UrbanMscSafetyStepLimit
                             UrbanMscHelper const& helper,
                             ParticleTrackView const& particle,
                             PhysicsTrackView* physics,
-                            MaterialId matid,
+                            PhysMatId matid,
                             bool on_boundary,
                             real_type safety,
                             real_type phys_step);
@@ -109,7 +109,7 @@ UrbanMscSafetyStepLimit::UrbanMscSafetyStepLimit(
     UrbanMscHelper const& helper,
     ParticleTrackView const& particle,
     PhysicsTrackView* physics,
-    MaterialId matid,
+    PhysMatId matid,
     bool on_boundary,
     real_type safety,
     real_type phys_step)

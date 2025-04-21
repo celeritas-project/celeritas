@@ -176,7 +176,7 @@ TEST_F(MuBetheBlochTest, basic)
     MuHadIonizationInteractor<MuBBEnergyDistribution> interact(
         model_->host_ref(),
         this->particle_track(),
-        this->cutoff_params()->get(MaterialId{0}),
+        this->cutoff_params()->get(PhysMatId{0}),
         this->direction(),
         this->secondary_allocator());
     RandomEngine& rng = this->rng();
@@ -233,7 +233,7 @@ TEST_F(MuBetheBlochTest, basic)
         MuHadIonizationInteractor<MuBBEnergyDistribution> interact(
             model_->host_ref(),
             this->particle_track(),
-            this->cutoff_params()->get(MaterialId{0}),
+            this->cutoff_params()->get(PhysMatId{0}),
             this->direction(),
             this->secondary_allocator());
 
@@ -272,7 +272,7 @@ TEST_F(MuBetheBlochTest, stress_test)
             MuHadIonizationInteractor<MuBBEnergyDistribution> interact(
                 model_->host_ref(),
                 this->particle_track(),
-                this->cutoff_params()->get(MaterialId{0}),
+                this->cutoff_params()->get(PhysMatId{0}),
                 this->direction(),
                 this->secondary_allocator());
 

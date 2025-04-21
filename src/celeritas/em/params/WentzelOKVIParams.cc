@@ -141,7 +141,7 @@ void WentzelOKVIParams::build_data(HostVal<WentzelOKVIData>& host_data,
     if (host_data.params.is_combined)
     {
         std::vector<real_type> inv_mass_cbrt_sq(materials.num_materials(), 0);
-        for (auto mat_id : range(MaterialId(materials.num_materials())))
+        for (auto mat_id : range(PhysMatId(materials.num_materials())))
         {
             auto mat = materials.get(mat_id);
             for (auto elcomp_id : range(ElementComponentId(mat.num_elements())))

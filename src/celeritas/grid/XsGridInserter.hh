@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "corecel/Types.hh"
-#include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
@@ -49,6 +48,7 @@ class XsGridInserter
     GridId operator()(inp::UniformGrid const& grid);
 
   private:
+    Values* values_;
     DedupeCollectionBuilder<real_type> reals_;
     CollectionBuilder<XsGridRecord, MemSpace::host, GridId> grids_;
 };

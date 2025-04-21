@@ -39,7 +39,7 @@ using SquareMatrixReal3 = SquareMatrix<real_type, 3>;
 using LevelId = OpaqueId<struct Level_>;
 
 //! Identifier for a material fill
-using GeoMaterialId = OpaqueId<struct GeoMaterial_>;
+using GeoMatId = OpaqueId<struct GeoMaterial_>;
 
 //! Identifier for a surface (for surface-based geometries)
 using SurfaceId = OpaqueId<struct Surface_>;

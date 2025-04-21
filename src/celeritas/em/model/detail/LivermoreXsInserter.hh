@@ -76,7 +76,8 @@ void LivermoreXsInserter::operator()(ImportLivermorePE const& inp)
 
     LivermoreElement el;
 
-    // Add tabulated total cross sections
+    // Add tabulated total cross sections. High energy cross sections use
+    // spline interpolation if enabled; low energy cross sections use linear.
     if (inp.xs_lo)
     {
         // Z < 3 have no low-energy cross sections
@@ -98,8 +99,7 @@ void LivermoreXsInserter::operator()(ImportLivermorePE const& inp)
         shells[i].binding_energy = MevEnergy(inp.shells[i].binding_energy);
 
         // Tabulated subshell cross section
-        shells[i].xs = build_grid_(make_span(inp.shells[i].energy),
-                                   make_span(inp.shells[i].xs));
+        shells[i].xs = build_grid_(inp.shells[i].xs);
 
         // Subshell cross section fit parameters
         std::copy(inp.shells[i].param_lo.begin(),

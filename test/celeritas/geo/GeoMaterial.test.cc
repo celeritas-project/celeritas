@@ -31,7 +31,7 @@ class GeoMaterialTestBase : virtual public GlobalTestBase
     using VecString = std::vector<std::string>;
 
   protected:
-    std::string material_name(MaterialId matid) const
+    std::string material_name(PhysMatId matid) const
     {
         if (!matid)
             return "---";

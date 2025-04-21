@@ -37,7 +37,7 @@ CherenkovParams::CherenkovParams(MaterialParams const& mats)
     HostVal<CherenkovData> data;
     NonuniformGridInserter insert_angle_integral(&data.reals,
                                                  &data.angle_integral);
-    for (auto mat_id : range(OpticalMaterialId(mats.num_materials())))
+    for (auto mat_id : range(OptMatId(mats.num_materials())))
     {
         NonuniformGridCalculator refractive_index
             = MaterialView{mats.host_ref(), mat_id}

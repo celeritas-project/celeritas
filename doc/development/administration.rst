@@ -53,11 +53,11 @@ Code lead
 
 Maintainer
    Maintainers should be familiar with most or all parts of the codebase and
-   are responsible for merging pull requests and closing issues.
+   are responsible for merging pull requests (PRs) and closing issues.
 
 Core team member
    The "core team" are those currently funded to work on Celeritas. Core team
-   members are responsible for reviewing pull requests in accordance with the
+   members are responsible for reviewing PRs in accordance with the
    :ref:`contributing guidelines <contributing>`. They should regularly
    contribute new code, perform code reviews, publish new results using
    Celeritas, and/or participate in Celeritas stand-up meetings and hackathons.
@@ -71,7 +71,7 @@ Core advisor
    project planning.
 
 Contributor
-   Anyone can submit a pull request that conforms to the contribution
+   Anyone can submit a PR that conforms to the contribution
    guidelines! Contributors are recognized by including their handle and pull
    requests in release notes but do not otherwise have a formal role.
 
@@ -108,7 +108,7 @@ increasing the `bus factor`_.
 Reviewing pull requests
 -----------------------
 
-Each pull request must be reviewed by at least one
+Each pull request (PR) must be reviewed by at least one
 member of the :ref:`core team <roles>` who is knowledgeable about
 the section of code being modified.
 
@@ -119,7 +119,7 @@ ugly"). When reviewing, you should focus almost exclusively on the new
 changeset, as opposed to larger systemic issues, or smaller problems with
 nearby sections of code that you happen to notice. If you do find such issues
 and they can reasonably be bundled into the submitted change set, you can work
-with the author to incorporate the changes, create a follow-on pull request
+with the author to incorporate the changes, create a follow-on PR
 yourself, or open an issue for later.
 
 Try to fully review the entirety of the changeset on your first review, *but*
@@ -137,7 +137,7 @@ Ensure readability and maintainability by checking that the :ref:`code
 <code_guidelines>` and :ref:`style <style_guidelines>` guidelines have been
 followed in the new code. Balance the desire for readability with the need to
 avoid bikeshedding_ by asking yourself whether your requests are
-substantive enough to merit a new pull request. Perfect is the enemy of good.
+substantive enough to merit a new PR. Perfect is the enemy of good.
 
 Check that the title meets the requirements below, that the description is
 adequate, and that the appropriate labels are set.
@@ -326,7 +326,6 @@ should be simple redirects to reduce maintenance:
 
 .. _github pages: https://celeritas-project.github.io/celeritas/
 
-
 Releases
 ========
 
@@ -348,6 +347,8 @@ almost exclusively on fixes and should generally not include new features or
 other major code changes.
 
 .. _Semantic Versioning: https://semver.org
+
+.. _release_process:
 
 Release process
 ---------------
@@ -405,22 +406,27 @@ each release.
     and pass the CI.
 #.  If releasing a backported version branch, cherry-pick this documentation
     commit into the backport branch.
-#.  Use the GitHub interface to create a new release with the documentation
-    update that was just added.
+#.  Use the release-notes `notebook`_ to push a draft release to GitHub.
+#.  Using the GitHub interface, verify the release notes and publish it.
+
+.. _notebook: https://github.com/celeritas-project/release-scripts
 
 After committing the release tag:
 
-#. Save the ``tar.gz`` and attach to the release, because the hash changes if
-   the git "describe" function returns a different result for the release tag's
-   hash (e.g., if a collaborative branch on the main repository points to that
-   commit).
+#. Use the release notebook to save and attach an archival version of the
+   tarball. (Otherwise, the hash changes if the git "describe" function returns
+   a different result for the release tag's hash, e.g., if a collaborative
+   branch on the main repository points to that commit.)
+#. Update the Spack recipe for Celeritas with the new version and sha256 value
+   (using the release notes to construct the version+hash) and submit a pull
+   request to the Spack project.
 #. Pull locally (make sure to use the ``--tags`` option) and build PDF user
    documentation for the release. Ensure breathe is activated (so the API is
    listed) and that the version is embedded correctly.  [TODO: We should add a
    documentation pipeline that builds and uploads to GitHub pages.]
-#. Update the Spack recipe for Celeritas with the new version and sha256 value
-   (either manually or using ``spack checksum``) and submit a pull request to
-   the Spack project.
+#. Use the release-notes notebook to submit a draft Zenodo release.
+#. On the Zenodo web site, check the contributors, license, target project, and
+   then publish it.
 #. Mark the GitHub release milestone as completed.
 
 The first commit that deviates from the most recent major or minor branch
@@ -464,3 +470,95 @@ mature, some functionality will become public and others will become "private."
 Making a public API private should be treated as a deprecation.
 
 .. [#] During initial development, deprecations will target ``v0.Y``.
+
+
+.. _authorship:
+
+Authorship and attribution
+==========================
+
+The Celeritas team have specified this policy, to give proper credit in correct
+proportions to the many people who have contributed over the course of this
+project. All works by the Celeritas team should be added to the Celeritas doc
+repo and the `Celeritas Zotero database`_.
+
+.. _Celeritas Zotero database: https://www.zotero.org/groups/2380941/celeritas
+
+Code objects
+------------
+
+Each major and minor version of the code will be published in the `Celeritas
+Zenodo group`_ (see :ref:`release_process`). Creator/contributor listings are
+based on contributions since the *previous major release* (PRs since the "dev"
+tag indicates divergence from the previous major series), ordered by level of
+effort:
+
+- Creator: contributors whose pull requests are incorporated into the release,
+  ordered by number of PRs.
+- Contributor as "Editor": reviewers of PRs, ordered by number of reviews
+- Contributor as "ProjectManager": code lead
+- Contributor as "ProjectMember": core team
+- Contributor as "ProjectLeader": core advisors
+
+Each major version of Celeritas should be a Zenodo "concept DOI"; minor and patch
+versions should be "version DOIs" (i.e., updates to the previous version).
+
+.. _Celeritas Zenodo group: https://zenodo.org/communities/celeritas
+
+Presentations
+-------------
+
+The title slide should credit anyone who worked directly on the presentation or
+contributed new data/visualizations to the work. The presenter should be
+highlighted either as first author or with emphasis. The author list should
+also include "Celeritas team".
+
+- Reusing slides from previous public presentations should contain small text
+  (e.g., thin, ultra-light italics in gray) with a citation of the
+  original source, and text such as "copied/updated/derivative from ..."
+- Visualizations/plots generated by anyone other than yourself should have
+  authorship credit: citation if in a published article, name if someone else
+  on the team
+- The acknowledgment slide should contain the list of creators from the last
+  major code release, the current core team, and the current core advisors.
+
+Articles and proceedings
+------------------------
+
+We encourage everyone to publish, and direct participation in the authorship
+progress should be awarded. Following authorship best practices from :cite:`cope-authorship-2014`, *only* direct contributors shall be credited as authors:
+
+   The minimum requirements for authorship, common to all definitions, are 1)
+   substantial contribution to the work and 2) accountability for the work that
+   was done and its presentation in a publication. ... Acknowledgements may be
+   used to denote contributions to the work that do not meet the criteria of
+   authorship such as, supporting the study, general mentoring, collecting
+   data, acting as study coordinator, and other related activities.
+
+From this we have the following policies:
+
+- Direct contributors to the article get authorship credit.
+- Every team member who wants to publish a paper should notify the whole team
+  and give them a chance to participate directly.
+- Code contributions are credited by proxy (and highlighted) through a direct
+  citation to the Zenodo code object of the Celeritas version used.
+- Team members whose work enables the paper are highly encouraged to describe
+  the methods and implementation in the paper and thus become authors.
+- Mentoring, coordinating, funding acquisition, and other supplementary roles
+  are not sufficient in themselves to be marked as authors. However, these
+  activities should motivate direct participation (adding and editing) as
+  authors.
+
+.. note:: If possible, make the Celeritas release used in the article the
+   *first* reference in the document.
+
+.. _CRediT: https://credit.niso.org
+
+Documentation
+-------------
+
+The user docs are partly manually written, partly extracted from many users'
+contribution to the source code. Editors should be credited directly, and
+minor contributions to documentation and source code should be credited as part
+of the team.
+

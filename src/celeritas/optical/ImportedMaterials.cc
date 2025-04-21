@@ -30,7 +30,7 @@ ImportedMaterials::from_import(ImportData const& data)
         return nullptr;
     }
 
-    OpticalMaterialId::size_type num_materials = data.optical_materials.size();
+    OptMatId::size_type num_materials = data.optical_materials.size();
 
     // Copy over Rayleigh and WLS data
 
@@ -69,7 +69,7 @@ ImportedMaterials::ImportedMaterials(std::vector<ImportOpticalRayleigh> rayleigh
 /*!
  * Number of imported optical materials.
  */
-OpticalMaterialId::size_type ImportedMaterials::num_materials() const
+OptMatId::size_type ImportedMaterials::num_materials() const
 {
     return rayleigh_.size();
 }
@@ -78,8 +78,7 @@ OpticalMaterialId::size_type ImportedMaterials::num_materials() const
 /*!
  * Get imported Rayleigh properties for the given material.
  */
-ImportOpticalRayleigh const&
-ImportedMaterials::rayleigh(OpticalMaterialId mat) const
+ImportOpticalRayleigh const& ImportedMaterials::rayleigh(OptMatId mat) const
 {
     CELER_EXPECT(mat < this->num_materials());
     return rayleigh_[mat.get()];
@@ -89,7 +88,7 @@ ImportedMaterials::rayleigh(OpticalMaterialId mat) const
 /*!
  * Get imported wavelength shifting properties for the given material.
  */
-ImportWavelengthShift const& ImportedMaterials::wls(OpticalMaterialId mat) const
+ImportWavelengthShift const& ImportedMaterials::wls(OptMatId mat) const
 {
     CELER_EXPECT(mat < this->num_materials());
     return wls_[mat.get()];

@@ -1093,13 +1093,13 @@ TEST_F(FourSteelSlabsEmStandard, mu_pair_production_data)
     int const expected_atomic_number[] = {1, 4, 13, 29, 92};
     EXPECT_VEC_EQ(expected_atomic_number, data.atomic_number);
 
-    EXPECT_EQ(5, data.physics_vectors.size());
+    EXPECT_EQ(5, data.grids.size());
 
     std::vector<double> table_x;
     std::vector<double> table_y;
     std::vector<double> table_value;
 
-    for (auto const& pv : data.physics_vectors)
+    for (auto const& pv : data.grids)
     {
         table_x.push_back(pv.x.front());
         table_y.push_back(pv.y.front());
@@ -1189,15 +1189,15 @@ TEST_F(FourSteelSlabsEmStandard, livermore_pe_data)
         shell_binding_energy.push_back(shells_front.binding_energy);
         shell_binding_energy.push_back(shells_back.binding_energy);
 
-        shell_xs.push_back(shells_front.xs.front());
-        shell_xs.push_back(shells_front.xs.back());
-        shell_energy.push_back(shells_front.energy.front());
-        shell_energy.push_back(shells_front.energy.back());
+        shell_xs.push_back(shells_front.xs.y.front());
+        shell_xs.push_back(shells_front.xs.y.back());
+        shell_energy.push_back(shells_front.xs.x.front());
+        shell_energy.push_back(shells_front.xs.x.back());
 
-        shell_xs.push_back(shells_back.xs.front());
-        shell_xs.push_back(shells_back.xs.back());
-        shell_energy.push_back(shells_back.energy.front());
-        shell_energy.push_back(shells_back.energy.back());
+        shell_xs.push_back(shells_back.xs.y.front());
+        shell_xs.push_back(shells_back.xs.y.back());
+        shell_energy.push_back(shells_back.xs.x.front());
+        shell_energy.push_back(shells_back.xs.x.back());
     }
 
     int const expected_atomic_numbers[] = {1, 24, 26, 28};

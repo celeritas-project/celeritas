@@ -21,8 +21,7 @@ struct ImportLivermoreSubshell
     double binding_energy;  //!< Ionization energy [MeV]
     std::vector<double> param_lo;  //!< Low energy xs fit parameters
     std::vector<double> param_hi;  //!< High energy xs fit parameters
-    std::vector<double> xs;  //!< Tabulated cross sections [b]
-    std::vector<double> energy;  //!< Tabulated energies [MeV]
+    inp::Grid xs;  //!< Tabulated cross sections [b]
 };
 
 struct ImportLivermorePE

@@ -106,10 +106,10 @@ TEST_F(UniformLogGridCalculatorTest, spline_deriv)
     static double const expected_deriv[] = {
         105520 / 33.0, 31880 / 11.0, -3160 / 33.0, -790 / 11.0, 5530 / 33.0};
 
+    SplineDerivCalculator calc_deriv(BC::not_a_knot);
     auto const& data = this->data().lower;
     {
-        auto deriv
-            = SplineDerivCalculator(BC::not_a_knot)(data, this->values());
+        auto deriv = calc_deriv(data, this->values());
         EXPECT_VEC_SOFT_EQ(expected_deriv, deriv);
     }
     {
@@ -123,8 +123,7 @@ TEST_F(UniformLogGridCalculatorTest, spline_deriv)
             EXPECT_SOFT_EQ(x[i], std::exp(loge_grid[i]));
             EXPECT_SOFT_EQ(y[i], calc[i]);
         }
-        auto deriv = SplineDerivCalculator(BC::not_a_knot)(make_span(x),
-                                                           make_span(y));
+        auto deriv = calc_deriv(make_span(x), make_span(y));
         EXPECT_VEC_SOFT_EQ(expected_deriv, deriv);
     }
 }

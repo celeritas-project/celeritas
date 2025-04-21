@@ -65,7 +65,7 @@ AtomicRelaxationParams::AtomicRelaxationParams(Input const& inp)
     size_type num_elements = inp.materials->num_elements();
     std::vector<MevEnergy> electron_cutoff(num_elements, max_quantity());
     std::vector<MevEnergy> gamma_cutoff(num_elements, max_quantity());
-    for (auto mat_id : range(MaterialId{inp.materials->num_materials()}))
+    for (auto mat_id : range(PhysMatId{inp.materials->num_materials()}))
     {
         // Electron and photon energy cutoffs for this material
         auto cutoffs = inp.cutoffs->get(mat_id);

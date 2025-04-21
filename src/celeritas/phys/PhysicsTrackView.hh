@@ -51,7 +51,7 @@ class PhysicsTrackView
     inline CELER_FUNCTION PhysicsTrackView(PhysicsParamsRef const& params,
                                            PhysicsStateRef const& states,
                                            ParticleTrackView const& particle,
-                                           MaterialId material,
+                                           PhysMatId material,
                                            TrackSlotId tid);
 
     // Initialize the track view
@@ -84,7 +84,7 @@ class PhysicsTrackView
     CELER_FORCEINLINE_FUNCTION MscRange const& msc_range() const;
 
     // Current material identifier
-    CELER_FORCEINLINE_FUNCTION MaterialId material_id() const;
+    CELER_FORCEINLINE_FUNCTION PhysMatId material_id() const;
 
     //// PROCESSES (depend on particle type and possibly material) ////
 
@@ -103,6 +103,9 @@ class PhysicsTrackView
 
     // Get range table, null if not present for this particle/material
     inline CELER_FUNCTION ValueGridId range_grid() const;
+
+    // Get inverse range table, null if not present
+    inline CELER_FUNCTION ValueGridId inverse_range_grid() const;
 
     // Get data for processes that use the integral approach
     inline CELER_FUNCTION IntegralXsProcess const&
@@ -171,7 +174,7 @@ class PhysicsTrackView
     PhysicsParamsRef const& params_;
     PhysicsStateRef const& states_;
     ParticleId const particle_;
-    MaterialId const material_;
+    PhysMatId const material_;
     TrackSlotId const track_slot_;
     bool is_heavy_;
 
@@ -195,7 +198,7 @@ CELER_FUNCTION
 PhysicsTrackView::PhysicsTrackView(PhysicsParamsRef const& params,
                                    PhysicsStateRef const& states,
                                    ParticleTrackView const& particle,
-                                   MaterialId mid,
+                                   PhysMatId mid,
                                    TrackSlotId tid)
     : params_(params)
     , states_(states)
@@ -269,7 +272,7 @@ CELER_FUNCTION void PhysicsTrackView::msc_range(MscRange const& msc_range)
 /*!
  * Current material identifier.
  */
-CELER_FUNCTION MaterialId PhysicsTrackView::material_id() const
+CELER_FUNCTION PhysMatId PhysicsTrackView::material_id() const
 {
     return material_;
 }
@@ -361,6 +364,27 @@ CELER_FUNCTION auto PhysicsTrackView::energy_loss_grid() const -> ValueGridId
 CELER_FUNCTION auto PhysicsTrackView::range_grid() const -> ValueGridId
 {
     return this->value_grid(this->process_group().range);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return the inverse range grid data if available.
+ *
+ * If spline interpolation is used, the inverse grid is explicity stored with
+ * the derivatives calculated using the range as the x values and the energy as
+ * the y values.
+ *
+ * The grid and values are identical to the range grid (i.e., not inverted)
+ * even if the inverse grid is explicitly stored: the inversion is done in the
+ * \c InverseRangeCalculator .
+ */
+CELER_FUNCTION auto PhysicsTrackView::inverse_range_grid() const -> ValueGridId
+{
+    if (auto const& grid = this->value_grid(this->process_group().inverse_range))
+    {
+        return grid;
+    }
+    return this->range_grid();
 }
 
 //---------------------------------------------------------------------------//

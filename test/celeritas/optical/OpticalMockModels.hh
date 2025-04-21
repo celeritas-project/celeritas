@@ -31,7 +31,7 @@ template<class FX, class FY>
 ModelMatGrid build_expected_grids(FX const& get_x, FY const& get_y)
 {
     ModelId::size_type num_models = 4;
-    OpticalMaterialId::size_type num_materials = 5;
+    OptMatId::size_type num_materials = 5;
 
     ModelMatGrid grids;
     grids.reserve(num_models);
@@ -39,7 +39,7 @@ ModelMatGrid build_expected_grids(FX const& get_x, FY const& get_y)
     {
         MatGrid mat_grids;
         mat_grids.reserve(num_materials);
-        for (auto mat : range(OpticalMaterialId{num_materials}))
+        for (auto mat : range(OptMatId{num_materials}))
         {
             size_type n = (model.get() + 1) * 10 + mat.get();
             inp::Grid grid;
@@ -61,7 +61,7 @@ ModelMatGrid build_expected_grids(FX const& get_x, FY const& get_y)
 /*!
  * Mock MFP grid for the given material and model.
  */
-inp::Grid const& expected_mfp_grid(OpticalMaterialId mat, ModelId model)
+inp::Grid const& expected_mfp_grid(OptMatId mat, ModelId model)
 {
     static ModelMatGrid grids;
 
@@ -94,7 +94,7 @@ class MockModel : public Model
     {
     }
 
-    void build_mfps(OpticalMaterialId mat, MfpBuilder& build) const final
+    void build_mfps(OptMatId mat, MfpBuilder& build) const final
     {
         ModelId model_id{this->action_id().get() - 1};
         build(expected_mfp_grid(mat, model_id));

@@ -64,15 +64,14 @@ NonuniformGridInserter<Index>::NonuniformGridInserter(Values* reals,
 
 //---------------------------------------------------------------------------//
 /*!
- * Add an imported physics vector as a generic grid to the collection.
+ * Add a nonuniform grid to the collection.
  *
- * Returns the id of the inserted grid, or an empty id if the vector is
- * empty.
+ * Returns the ID of the inserted grid, or an empty ID if the vector is empty.
  */
 template<class Index>
 auto NonuniformGridInserter<Index>::operator()(inp::Grid const& grid) -> Index
 {
-    CELER_EXPECT(!grid.x.empty());
+    CELER_EXPECT(grid);
     return grids_.push_back(build_(grid));
 }
 
