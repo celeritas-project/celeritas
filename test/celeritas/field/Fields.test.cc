@@ -293,13 +293,13 @@ TEST_F(CartMapFieldTest, all)
     CartMapFieldInput inp;
     inp.min_x = -2750;
     inp.max_x = 2750;
-    inp.num_x = inp.max_x * 2 / 100;
+    inp.num_x = static_cast<size_type>(inp.max_x * 2 / 100);
     inp.min_y = -2750;
     inp.max_y = 2750;
-    inp.num_y = inp.max_y * 2 / 100;
+    inp.num_y = static_cast<size_type>(inp.max_y * 2 / 100);
     inp.min_z = -6350;
     inp.max_z = 6350;
-    inp.num_z = inp.max_z * 2 / 100;
+    inp.num_z = static_cast<size_type>(inp.max_z * 2 / 100);
     Array<size_type, 4> const dims{inp.num_x,
                                    inp.num_y,
                                    inp.num_z,
