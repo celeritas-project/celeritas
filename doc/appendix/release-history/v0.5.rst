@@ -8,17 +8,13 @@ Series 0.5
 
 Version 0.5.3
 -------------
-*Released 2025/04/20*
+*Released 2025/04/21*
 
-Version 0.5.3 is a minor update to Celeritas featuring an important physics bugfix
-to Urban MSC and additional minor fixes targeting CUDA VecGeom compatibility.
+Version 0.5.3 is a minor update to Celeritas featuring an important physics bug
+fix to Urban MSC and additional minor fixes targeting CUDA VecGeom
+compatibility.
 
 Changes since v0.5.2 follow.
-
-New features
-------------
-
-* Update to CudaRdcUtils v12 -  *(@pcanal, #1721)*
 
 Bug fixes
 ---------
@@ -30,17 +26,19 @@ Documentation improvements
 --------------------------
 
 * Release v0.5.2 *(@sethrj, #1706)*
+* Add JLSE CMake preset and a few small fixes *(@amandalund, #1611)*
 
 Minor internal changes
 ----------------------
 
 * CUDA RDC: Improve handling of object library and CUDA_RUNTIME_LIBRARY *(@pcanal, #1696)*
 * CUDA RDC: fix static builds *(@pcanal, #1699)*
+* Update to CudaRdcUtils v12 -  *(@pcanal, #1721)*
 
 Reviewers
 ---------
 
-* Seth R. Johnson *(@sethrj)*: 5
+* Seth R. Johnson *(@sethrj)*: 6
 * Amanda Lund *(@amandalund)*: 1
 * Soon Yung Jun *(@whokion)*: 1
 
