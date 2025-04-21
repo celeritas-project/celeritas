@@ -35,17 +35,23 @@ enum class UrbanParMatType
  * factors are used in step limitation algorithms and default values are
  * chosen to balance between simulation time and precision.
  *
- *
- * \table
- * \brief Mapping of parameter names from Geant4 to Celeritas
- * | Geant4 Symbol   | Celeritas Symbol      |
- * |--------------- -|-----------------------|
- * | `dtrl`          | `small_range_frac`    |
- * | `tlimitminfix`  | `min_step`            |
- * | `stepmin`       | `min_step_fallback`   |
- * | `tlimitminfix2` | `min_step_transform`  |
- * | (hardcoded)     | `min_endpoint_energy` |
- * | `tlow`          | `min_scaling_energy`  |
+<table>
+  <caption>Mapping of parameter names from Geant4 to Celeritas</caption>
+  <thead>
+    <tr>
+      <th>Geant4 Symbol</th>
+      <th>Celeritas Symbol</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><code>dtrl</code></td><td><code>small_range_frac</code></td></tr>
+    <tr><td><code>tlimitminfix</code></td><td><code>min_step</code></td></tr>
+    <tr><td><code>stepmin</code></td><td><code>min_step_fallback</code></td></tr>
+    <tr><td><code>tlimitminfix2</code></td><td><code>min_step_transform</code></td></tr>
+    <tr><td><em>(hardcoded)</em></td><td><code>min_endpoint_energy</code></td></tr>
+    <tr><td><code>tlow</code></td><td><code>min_scaling_energy</code></td></tr>
+  </tbody>
+</table>
  *
  * \todo Unify min_endpoint_energy with low energy limit
  * \todo Combine with lambda_limit, safety_factor in physics params
