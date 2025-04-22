@@ -21,6 +21,7 @@
 #include "celeritas/field/CartMapFieldData.hh"
 #include "celeritas/field/CartMapFieldInput.hh"
 
+#include "CartMapField.covfie.hh"
 #include "CovfieFieldType.hh"
 
 namespace celeritas
@@ -65,13 +66,19 @@ struct CartMapFieldParams::Impl
                 }
             }
 
+            using field_real_type = CartMapField::real_type;
             auto affine_translate = covfie::algebra::affine<3>::translation(
-                static_cast<float>(-inp.min_x), static_cast<float>(-inp.min_y), static_cast<float>(-inp.min_z));
+                static_cast<field_real_type>(-inp.min_x),
+                static_cast<field_real_type>(-inp.min_y),
+                static_cast<field_real_type>(-inp.min_z));
 
             auto affine_scale = covfie::algebra::affine<3>::scaling(
-                static_cast<float>((inp.num_x - 1) / (inp.max_x - inp.min_x)),
-                static_cast<float>((inp.num_y - 1) / (inp.max_y - inp.min_y)),
-                static_cast<float>((inp.num_z - 1) / (inp.max_z - inp.min_z)));
+                static_cast<field_real_type>((inp.num_x - 1)
+                                             / (inp.max_x - inp.min_x)),
+                static_cast<field_real_type>((inp.num_y - 1)
+                                             / (inp.max_y - inp.min_y)),
+                static_cast<field_real_type>((inp.num_z - 1)
+                                             / (inp.max_z - inp.min_z)));
 
             using field_t = CovfieFieldTrait<MemSpace::host>::field_t;
             host.field = std::make_unique<field_t>(covfie::make_parameter_pack(
