@@ -1347,8 +1347,9 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
 
             // This message comes from the CheckedGeoTrackView
             static char const* const expected_log_messages[] = {
-                R"(Volume did not change from 3 when crossing boundary at {123.254,-20.8187,-40.8262})"};
-            EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+                R"(Volume did not change from 3 when crossing boundary at {123.3,-20.82,-40.83})"};
+            EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages())
+                << scoped_log_;
             static char const* const expected_log_levels[] = {"warning"};
             EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
         }
