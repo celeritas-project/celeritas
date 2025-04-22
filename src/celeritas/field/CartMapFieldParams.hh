@@ -49,7 +49,11 @@ class CartMapFieldParams final
 
   private:
     struct Impl;
-    std::unique_ptr<Impl> impl_;
+    struct ImplDeleter
+    {
+        void operator()(Impl*) noexcept;
+    };
+    std::unique_ptr<Impl, ImplDeleter> impl_;
 };
 
 #if !CELERITAS_USE_COVFIE
@@ -57,6 +61,11 @@ class CartMapFieldParams final
 struct CartMapFieldParams::Impl
 {
 };
+
+void CartMapFieldParams::ImplDeleter::operator()(Impl*) noexcept
+{
+    CELER_UNREACHABLE;
+}
 
 inline CartMapFieldParams::CartMapFieldParams(Input const&)
 {

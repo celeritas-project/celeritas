@@ -99,12 +99,22 @@ struct CartMapFieldParams::Impl
     CartMapFieldParamsData<Ownership::value, MemSpace::device> device_;
     DeviceRef device_ref_;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Custom deleter for the implementation.
+ */
+void CartMapFieldParams::ImplDeleter::operator()(Impl* impl) noexcept
+{
+    delete impl;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct from a user-defined field map.
  */
 CartMapFieldParams::CartMapFieldParams(Input const& inp)
-    : impl_{std::make_unique<Impl>(inp)}
+    : impl_{std::unique_ptr<Impl, ImplDeleter>(new Impl{inp})}
 
 {
 }
