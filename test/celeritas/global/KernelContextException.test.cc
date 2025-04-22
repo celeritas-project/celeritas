@@ -6,13 +6,14 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/global/KernelContextException.hh"
 
-#include <algorithm>
 #include <exception>
-#include <iterator>
+#include <regex>
 #include <sstream>
+#include <string>
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/StringSimplifier.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/SimpleTestBase.hh"
@@ -45,6 +46,7 @@ ThreadId find_thread(HostRef<CoreStateData> const& state, TrackSlotId track)
     CELER_EXPECT(state.track_slots.empty());
     return ThreadId{track.get()};
 }
+
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -115,10 +117,18 @@ TEST_F(KernelContextExceptionTest, typical)
 
     // Check for these values based on the step count and thread ID below
     this->check_kce = [&step](KernelContextException const& e) {
-        EXPECT_STREQ(
-            "kernel context: track slot 15 in 'test-kernel', track 3 of event "
-            "1",
-            e.what());
+        auto simplified_str = StringSimplifier{3}(e.what());
+        // Remove labels for reperoducibility
+        simplified_str = std::regex_replace(
+            simplified_str, std::regex("@(global|world)"), "");
+
+        if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+        {
+            EXPECT_EQ(
+                R"(track slot 15 in kernel 'test-kernel': {"geo":{"dir":[0.0,0.0,1.0],"is_on_boundary":true,"is_outside":false,"pos":[[0.0,1.0,5.0],"cm"],"volume_id":"world"},"mat":"hard vacuum","particle":{"energy":[10.0,"MeV"],"particle_id":"gamma"},"sim":{"along_step_action":"along-step-neutral","event_id":1,"num_steps":1,"parent_id":-1,"post_step_action":"geo-boundary","status":"alive","step_length":[5.0,"cm"],"time":[1.668e-10,"s"],"track_id":3},"thread_id":15,"track_slot_id":15})",
+                simplified_str)
+                << repr(simplified_str);
+        }
 
         EXPECT_EQ(find_thread(step.state_ref(), TrackSlotId{15}), e.thread());
         EXPECT_EQ(TrackSlotId{15}, e.track_slot());
@@ -170,7 +180,7 @@ TEST_F(KernelContextExceptionTest, uninitialized_track)
     this->check_kce = [](KernelContextException const& e) {
         // Don't test this with vecgeom which has more assertions when
         // acquiring data
-        EXPECT_STREQ("kernel context: track slot 1 in 'test-kernel'", e.what());
+        EXPECT_STREQ("track slot 1 in kernel 'test-kernel'", e.what());
         EXPECT_EQ(TrackSlotId{1}, e.track_slot());
         EXPECT_EQ(EventId{}, e.event());
         EXPECT_EQ(TrackId{}, e.track());

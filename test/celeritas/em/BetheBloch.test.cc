@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Range.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/random/Histogram.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/distribution/BetheBlochEnergyDistribution.hh"
 #include "celeritas/em/interactor/MuHadIonizationInteractor.hh"
@@ -107,11 +108,11 @@ class BetheBlochTest : public InteractorHostTestBase
 TEST_F(BetheBlochTest, distribution)
 {
     int num_samples = 100000;
-    int num_bins = 12;
+    int num_bins = 8;
 
     MevEnergy cutoff{0.001};
 
-    std::vector<int> counters;
+    std::vector<std::vector<double>> loge_pdf;
     std::vector<real_type> min_energy;
     std::vector<real_type> max_energy;
     for (real_type energy : {0.2, 1.0, 10.0, 1e2, 1e3, 1e4, 1e5, 1e7})
@@ -124,30 +125,82 @@ TEST_F(BetheBlochTest, distribution)
         real_type min = value_as<MevEnergy>(sample.min_secondary_energy());
         real_type max = value_as<MevEnergy>(sample.max_secondary_energy());
 
-        std::vector<int> count(num_bins);
+        Histogram histogram(num_bins, {std::log(min), std::log(max)});
         for ([[maybe_unused]] int i : range(num_samples))
         {
-            auto r = value_as<MevEnergy>(sample(rng));
-            ASSERT_GE(r, min);
-            ASSERT_LE(r, max);
-            int bin = int((1 / r - 1 / min) / (1 / max - 1 / min) * num_bins);
-            CELER_ASSERT(bin >= 0 && bin < num_bins);
-            ++count[bin];
+            histogram(std::log(value_as<MevEnergy>(sample(rng))));
         }
-        counters.insert(counters.end(), count.begin(), count.end());
+        EXPECT_FALSE(histogram.underflow() || histogram.overflow());
+        loge_pdf.push_back(histogram.calc_density());
         min_energy.push_back(min);
         max_energy.push_back(max);
     }
 
-    static int const expected_counters[] = {
-        8273, 8487, 8379, 8203, 8303, 8419, 8249, 8422, 8366, 8265, 8334, 8300,
-        8281, 8499, 8383, 8211, 8309, 8428, 8256, 8435, 8371, 8263, 8320, 8244,
-        8294, 8514, 8391, 8225, 8326, 8440, 8269, 8446, 8391, 8279, 8321, 8104,
-        8283, 8499, 8389, 8211, 8312, 8427, 8257, 8440, 8380, 8278, 8340, 8184,
-        8268, 8482, 8377, 8202, 8302, 8416, 8240, 8429, 8371, 8267, 8338, 8308,
-        8267, 8480, 8377, 8202, 8301, 8415, 8239, 8429, 8371, 8266, 8338, 8315,
-        8267, 8480, 8377, 8202, 8301, 8415, 8239, 8429, 8370, 8266, 8338, 8316,
-        8267, 8480, 8377, 8202, 8301, 8415, 8239, 8429, 8370, 8266, 8338, 8316,
+    static std::vector<double> const expected_loge_pdf[] = {
+        {1.2557990713191,
+         1.0433451482497,
+         0.89022359529248,
+         0.75596699852934,
+         0.63932562900108,
+         0.5275641535041,
+         0.45585351560535,
+         0.383012170553},
+        {0.88211666489957,
+         0.61061083952094,
+         0.42323205578101,
+         0.29030591989274,
+         0.19771207309877,
+         0.14022976972828,
+         0.094054573561969,
+         0.06678767389258},
+        {0.73674559952752,
+         0.38117106812658,
+         0.19405676251075,
+         0.100756178762,
+         0.05043845857139,
+         0.025913474975188,
+         0.013567975540299,
+         0.0065802417525811},
+        {0.63572412440919,
+         0.23503860035913,
+         0.087596407647674,
+         0.031419793168907,
+         0.011914724262319,
+         0.0045461426753856,
+         0.0015019407065021,
+         0.00027216375218495},
+        {0.53091561999972,
+         0.12455693922009,
+         0.029493383188432,
+         0.0073264702763824,
+         0.0017014077893021,
+         0.0003472260794494,
+         9.7223302245833e-05,
+         1.3889043177976e-05},
+        {0.4436570699713,
+         0.064641531394272,
+         0.0096962297091408,
+         0.0013874026432693,
+         0.00022343937700593,
+         2.0785058326133e-05,
+         0,
+         0},
+        {0.39234928695876,
+         0.039715762815737,
+         0.0042362315737041,
+         0.00037121616882974,
+         5.2406988540669e-05,
+         0,
+         0,
+         0},
+        {0.32789035833964,
+         0.018467068502439,
+         0.0010249831059679,
+         6.9490380065622e-05,
+         0,
+         0,
+         0,
+         0},
     };
     static double const expected_min_energy[]
         = {0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001};
@@ -161,7 +214,7 @@ TEST_F(BetheBlochTest, distribution)
         90256.629501068,
         9989193.9209199,
     };
-    EXPECT_VEC_EQ(expected_counters, counters);
+    EXPECT_VEC_SOFT_EQ(expected_loge_pdf, loge_pdf);
     EXPECT_VEC_SOFT_EQ(expected_min_energy, min_energy);
     EXPECT_VEC_SOFT_EQ(expected_max_energy, max_energy);
 }
@@ -176,7 +229,7 @@ TEST_F(BetheBlochTest, basic)
     MuHadIonizationInteractor<BetheBlochEnergyDistribution> interact(
         model_->host_ref(),
         this->particle_track(),
-        this->cutoff_params()->get(MaterialId{0}),
+        this->cutoff_params()->get(PhysMatId{0}),
         this->direction(),
         this->secondary_allocator());
     RandomEngine& rng = this->rng();
@@ -237,7 +290,7 @@ TEST_F(BetheBlochTest, basic)
         MuHadIonizationInteractor<BetheBlochEnergyDistribution> interact(
             model_->host_ref(),
             this->particle_track(),
-            this->cutoff_params()->get(MaterialId{0}),
+            this->cutoff_params()->get(PhysMatId{0}),
             this->direction(),
             this->secondary_allocator());
 
@@ -276,7 +329,7 @@ TEST_F(BetheBlochTest, stress_test)
             MuHadIonizationInteractor<BetheBlochEnergyDistribution> interact(
                 model_->host_ref(),
                 this->particle_track(),
-                this->cutoff_params()->get(MaterialId{0}),
+                this->cutoff_params()->get(PhysMatId{0}),
                 this->direction(),
                 this->secondary_allocator());
 

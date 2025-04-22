@@ -10,7 +10,7 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/em/params/FluctuationParams.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
-#include "celeritas/field/DormandPrinceStepper.hh"
+#include "celeritas/field/DormandPrinceIntegrator.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/UniformField.hh"
@@ -41,7 +41,7 @@ void AlongStepUniformMscAction::step(CoreParams const& params,
     }
     auto field = field_->ref<MemSpace::native>();
     {
-        ScopedProfiling profile_this{"propagate"};
+        ScopedProfiling profile_this{"propagate-uniform"};
         auto execute_thread = ConditionalTrackExecutor{
             params.ptr<MemSpace::native>(),
             state.ptr(),

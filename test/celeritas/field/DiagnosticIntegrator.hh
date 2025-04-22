@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/DiagnosticStepper.hh
+//! \file celeritas/field/DiagnosticIntegrator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,24 +17,25 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Count the number of invocations to the field stepper.
+ * Count the number of invocations to the field integrator.
  *
  * This helps diagnose how many times the field driver advances a step.
  */
-template<class StepperT>
-class DiagnosticStepper
+template<class IntegratorT>
+class DiagnosticIntegrator
 {
   public:
     //!@{
     //! \name Type aliases
-    using result_type = typename StepperT::result_type;
+    using result_type = typename IntegratorT::result_type;
     using size_type = std::size_t;
     //!@}
 
   public:
-    //! Forward construction arguments to the original stepper
+    //! Forward construction arguments to the original integrator
     template<class... Args>
-    DiagnosticStepper(Args&&... args) : do_step_(std::forward<Args>(args)...)
+    DiagnosticIntegrator(Args&&... args)
+        : do_step_(std::forward<Args>(args)...)
     {
     }
 
@@ -51,15 +52,16 @@ class DiagnosticStepper
     void reset_count() { count_ = 0; }
 
   private:
-    StepperT do_step_;
+    IntegratorT do_step_;
     mutable size_type count_ = 0;
 };
 
 //---------------------------------------------------------------------------//
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
-template<class StepperT>
-CELER_FUNCTION DiagnosticStepper(StepperT&&) -> DiagnosticStepper<StepperT>;
+template<class IntegratorT>
+CELER_FUNCTION
+DiagnosticIntegrator(IntegratorT&&) -> DiagnosticIntegrator<IntegratorT>;
 
 //---------------------------------------------------------------------------//
 }  // namespace test

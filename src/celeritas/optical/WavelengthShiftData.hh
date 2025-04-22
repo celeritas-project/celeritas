@@ -42,7 +42,7 @@ struct WavelengthShiftData
     template<class T>
     using Items = Collection<T, W, M>;
     template<class T>
-    using OpticalMaterialItems = Collection<T, W, M, OpticalMaterialId>;
+    using OpticalMaterialItems = Collection<T, W, M, OptMatId>;
 
     //// MEMBER DATA ////
 

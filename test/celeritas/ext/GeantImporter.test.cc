@@ -195,26 +195,27 @@ auto GeantImporterTest::summarize(VecModelMaterial const& materials) const
     ImportXsSummary result;
     for (auto const& mat : materials)
     {
-        result.size.push_back(mat.energy.size());
-        result.energy.push_back(mat.energy.front());
-        result.energy.push_back(mat.energy.back());
+        result.size.push_back(
+            mat.micro_xs.empty() ? 0 : mat.micro_xs.front().y.size());
+        result.energy.push_back(mat.energy[Bound::lo]);
+        result.energy.push_back(mat.energy[Bound::hi]);
     }
 
     // Skip export of first material, which is usually vacuum
-    auto mat_iter = materials.begin();
-    for (auto const& xs_vec : mat_iter->micro_xs)
+    std::size_t mat_idx = 0;
+    for (auto const& xs_vec : materials[mat_idx].micro_xs)
     {
-        EXPECT_EQ(mat_iter->energy.size(), xs_vec.size());
+        EXPECT_EQ(result.size[mat_idx], xs_vec.y.size());
     }
-    ++mat_iter;
+    ++mat_idx;
 
-    for (; mat_iter != materials.end(); ++mat_iter)
+    for (; mat_idx < materials.size(); ++mat_idx)
     {
-        for (auto const& xs_vec : mat_iter->micro_xs)
+        for (auto const& xs_vec : materials[mat_idx].micro_xs)
         {
-            EXPECT_EQ(mat_iter->energy.size(), xs_vec.size());
-            result.xs.push_back(xs_vec.front() / barn);
-            result.xs.push_back(xs_vec.back() / barn);
+            EXPECT_EQ(result.size[mat_idx], xs_vec.y.size());
+            result.xs.push_back(xs_vec.y.front() / barn);
+            result.xs.push_back(xs_vec.y.back() / barn);
         }
     }
     return result;
@@ -704,13 +705,12 @@ TEST_F(FourSteelSlabsEmStandard, eioni)
         EXPECT_EQ(ImportModelClass::moller_bhabha, model.model_class);
         for (auto const& m : model.materials)
         {
-            EXPECT_EQ(2, m.energy.size());
             EXPECT_EQ(0, m.micro_xs.size());
         }
     }
 
     auto const& tables = proc.tables;
-    ASSERT_EQ(3, tables.size());
+    ASSERT_EQ(2, tables.size());
     {
         // Test energy loss table
         ImportPhysicsTable const& dedx = tables[0];
@@ -719,46 +719,25 @@ TEST_F(FourSteelSlabsEmStandard, eioni)
         EXPECT_EQ(ImportUnits::mev_per_cm, dedx.y_units);
         ASSERT_EQ(2, dedx.physics_vectors.size());
 
-        ImportPhysicsVector const& steel = dedx.physics_vectors.back();
-        EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
-        ASSERT_EQ(steel.x.size(), steel.y.size());
-        ASSERT_EQ(85, steel.x.size());
-        EXPECT_SOFT_EQ(1e-4, steel.x.front());
-        EXPECT_SOFT_EQ(1e8, steel.x.back());
+        auto const& steel = dedx.physics_vectors.back();
+        ASSERT_EQ(85, steel.y.size());
+        EXPECT_SOFT_EQ(1e-4, std::exp(steel.x[Bound::lo]));
+        EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
         EXPECT_SOFT_NEAR(839.66835335480653, to_inv_cm(steel.y.front()), tol);
         EXPECT_SOFT_NEAR(11.378226755591747, to_inv_cm(steel.y.back()), tol);
     }
     {
-        // Test range table
-        ImportPhysicsTable const& range = tables[1];
-        ASSERT_EQ(ImportTableType::range, range.table_type);
-        EXPECT_EQ(ImportUnits::mev, range.x_units);
-        EXPECT_EQ(ImportUnits::cm, range.y_units);
-        ASSERT_EQ(2, range.physics_vectors.size());
-
-        ImportPhysicsVector const& steel = range.physics_vectors.back();
-        EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
-        ASSERT_EQ(steel.x.size(), steel.y.size());
-        ASSERT_EQ(85, steel.x.size());
-        EXPECT_SOFT_EQ(1e-4, steel.x.front());
-        EXPECT_SOFT_EQ(1e8, steel.x.back());
-        EXPECT_SOFT_NEAR(2.3818927937550707e-07, to_cm(steel.y.front()), tol);
-        EXPECT_SOFT_NEAR(8788715.7877501156, to_cm(steel.y.back()), tol);
-    }
-    {
         // Test cross-section table
-        ImportPhysicsTable const& xs = tables[2];
+        ImportPhysicsTable const& xs = tables[1];
         ASSERT_EQ(ImportTableType::lambda, xs.table_type);
         EXPECT_EQ(ImportUnits::mev, xs.x_units);
         EXPECT_EQ(ImportUnits::cm_inv, xs.y_units);
         ASSERT_EQ(2, xs.physics_vectors.size());
 
-        ImportPhysicsVector const& steel = xs.physics_vectors.back();
-        EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
-        ASSERT_EQ(steel.x.size(), steel.y.size());
-        ASSERT_EQ(54, steel.x.size());
-        EXPECT_SOFT_NEAR(2.616556310615175, steel.x.front(), tol);
-        EXPECT_SOFT_EQ(1e8, steel.x.back());
+        auto const& steel = xs.physics_vectors.back();
+        ASSERT_EQ(54, steel.y.size());
+        EXPECT_SOFT_NEAR(2.616556310615175, std::exp(steel.x[Bound::lo]), tol);
+        EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
         EXPECT_SOFT_EQ(0, steel.y.front());
         EXPECT_SOFT_NEAR(0.1905939505829807, to_inv_cm(steel.y[1]), tol);
         EXPECT_SOFT_NEAR(0.4373910150880348, to_inv_cm(steel.y.back()), tol);
@@ -868,9 +847,9 @@ TEST_F(FourSteelSlabsEmStandard, anni)
 
     EXPECT_EQ(2, model.materials.size());
     auto result = summarize(model.materials);
-    static unsigned int const expected_size[] = {2u, 2u};
     static double const expected_energy[]
         = {0.0001, 100000000, 0.0001, 100000000};
+    static unsigned int const expected_size[] = {0, 0};
     EXPECT_VEC_EQ(expected_size, result.size);
     EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
     EXPECT_TRUE(result.xs.empty());
@@ -896,7 +875,7 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
 
         auto result = summarize(model.materials);
         EXPECT_TRUE(result.xs.empty());
-        static unsigned int const expected_size[] = {2u, 2u};
+        static unsigned int const expected_size[] = {0, 0};
         EXPECT_VEC_EQ(expected_size, result.size);
         static double const expected_energy[] = {0.0001, 0.2, 0.0001, 0.2};
         EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
@@ -908,7 +887,7 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
 
         auto result = summarize(model.materials);
         EXPECT_TRUE(result.xs.empty());
-        static unsigned int const expected_size[] = {2u, 2u};
+        static unsigned int const expected_size[] = {0, 0};
         EXPECT_VEC_EQ(expected_size, result.size);
         static double const expected_energy[] = {0.2, 1000, 0.2, 1000};
         EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
@@ -919,7 +898,7 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
 
         auto result = summarize(model.materials);
         EXPECT_TRUE(result.xs.empty());
-        static unsigned int const expected_size[] = {2u, 2u};
+        static unsigned int const expected_size[] = {0, 0};
         EXPECT_VEC_EQ(expected_size, result.size);
         if (geant4_version < Version(11, 1, 0))
         {
@@ -936,7 +915,7 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
     }
 
     auto const& tables = mu_minus.tables;
-    ASSERT_EQ(3, tables.size());
+    ASSERT_EQ(2, tables.size());
     {
         // Test energy loss table
         ImportPhysicsTable const& dedx = tables[0];
@@ -945,46 +924,25 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
         EXPECT_EQ(ImportUnits::mev_per_cm, dedx.y_units);
         ASSERT_EQ(2, dedx.physics_vectors.size());
 
-        ImportPhysicsVector const& steel = dedx.physics_vectors.back();
-        EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
-        ASSERT_EQ(steel.x.size(), steel.y.size());
-        ASSERT_EQ(85, steel.x.size());
-        EXPECT_SOFT_EQ(1e-4, steel.x.front());
-        EXPECT_SOFT_EQ(1e8, steel.x.back());
+        auto const& steel = dedx.physics_vectors.back();
+        ASSERT_EQ(85, steel.y.size());
+        EXPECT_SOFT_EQ(1e-4, std::exp(steel.x[Bound::lo]));
+        EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
         EXPECT_SOFT_NEAR(83.221648535690946, to_inv_cm(steel.y.front()), tol);
         EXPECT_SOFT_NEAR(11.40198961519433, to_inv_cm(steel.y.back()), tol);
     }
     {
-        // Test range table
-        ImportPhysicsTable const& range = tables[1];
-        ASSERT_EQ(ImportTableType::range, range.table_type);
-        EXPECT_EQ(ImportUnits::mev, range.x_units);
-        EXPECT_EQ(ImportUnits::cm, range.y_units);
-        ASSERT_EQ(2, range.physics_vectors.size());
-
-        ImportPhysicsVector const& steel = range.physics_vectors.back();
-        EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
-        ASSERT_EQ(steel.x.size(), steel.y.size());
-        ASSERT_EQ(85, steel.x.size());
-        EXPECT_SOFT_EQ(1e-4, steel.x.front());
-        EXPECT_SOFT_EQ(1e8, steel.x.back());
-        EXPECT_SOFT_NEAR(2.4032208387968519e-06, to_cm(steel.y.front()), tol);
-        EXPECT_SOFT_NEAR(8772935.4124113899, to_cm(steel.y.back()), tol);
-    }
-    {
         // Test cross-section table
-        ImportPhysicsTable const& xs = tables[2];
+        ImportPhysicsTable const& xs = tables[1];
         ASSERT_EQ(ImportTableType::lambda, xs.table_type);
         EXPECT_EQ(ImportUnits::mev, xs.x_units);
         EXPECT_EQ(ImportUnits::cm_inv, xs.y_units);
         ASSERT_EQ(2, xs.physics_vectors.size());
 
-        ImportPhysicsVector const& steel = xs.physics_vectors.back();
-        EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
-        ASSERT_EQ(steel.x.size(), steel.y.size());
-        ASSERT_EQ(45, steel.x.size());
-        EXPECT_SOFT_NEAR(54.542938808612199, steel.x.front(), tol);
-        EXPECT_SOFT_EQ(1e8, steel.x.back());
+        auto const& steel = xs.physics_vectors.back();
+        ASSERT_EQ(45, steel.y.size());
+        EXPECT_SOFT_NEAR(54.542938808612199, std::exp(steel.x[Bound::lo]), tol);
+        EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
         EXPECT_SOFT_EQ(0, steel.y.front());
         EXPECT_SOFT_NEAR(0.10167398809855273, to_inv_cm(steel.y[1]), tol);
         EXPECT_SOFT_NEAR(0.47315182268065914, to_inv_cm(steel.y.back()), tol);
@@ -1135,13 +1093,13 @@ TEST_F(FourSteelSlabsEmStandard, mu_pair_production_data)
     int const expected_atomic_number[] = {1, 4, 13, 29, 92};
     EXPECT_VEC_EQ(expected_atomic_number, data.atomic_number);
 
-    EXPECT_EQ(5, data.physics_vectors.size());
+    EXPECT_EQ(5, data.grids.size());
 
     std::vector<double> table_x;
     std::vector<double> table_y;
     std::vector<double> table_value;
 
-    for (auto const& pv : data.physics_vectors)
+    for (auto const& pv : data.grids)
     {
         table_x.push_back(pv.x.front());
         table_y.push_back(pv.y.front());
@@ -1231,15 +1189,15 @@ TEST_F(FourSteelSlabsEmStandard, livermore_pe_data)
         shell_binding_energy.push_back(shells_front.binding_energy);
         shell_binding_energy.push_back(shells_back.binding_energy);
 
-        shell_xs.push_back(shells_front.xs.front());
-        shell_xs.push_back(shells_front.xs.back());
-        shell_energy.push_back(shells_front.energy.front());
-        shell_energy.push_back(shells_front.energy.back());
+        shell_xs.push_back(shells_front.xs.y.front());
+        shell_xs.push_back(shells_front.xs.y.back());
+        shell_energy.push_back(shells_front.xs.x.front());
+        shell_energy.push_back(shells_front.xs.x.back());
 
-        shell_xs.push_back(shells_back.xs.front());
-        shell_xs.push_back(shells_back.xs.back());
-        shell_energy.push_back(shells_back.energy.front());
-        shell_energy.push_back(shells_back.energy.back());
+        shell_xs.push_back(shells_back.xs.y.front());
+        shell_xs.push_back(shells_back.xs.y.back());
+        shell_energy.push_back(shells_back.xs.x.front());
+        shell_energy.push_back(shells_back.xs.x.back());
     }
 
     int const expected_atomic_numbers[] = {1, 24, 26, 28};
@@ -1505,7 +1463,7 @@ TEST_F(OneSteelSphere, physics)
         EXPECT_EQ(2, model.materials.size());
 
         auto result = summarize(model.materials);
-        static unsigned int const expected_size[] = {7u, 2u};
+        static unsigned int const expected_size[] = {7u, 0u};
         EXPECT_VEC_EQ(expected_size, result.size);
         static double const expected_energy[]
             = {0.001, 1000, 9549.6516356879, 1000};
@@ -1538,53 +1496,53 @@ TEST_F(OneSteelSphere, physics)
         // Check the bremsstrahlung macro xs
         ImportPhysicsTable const& xs = brems.tables[0];
         ASSERT_EQ(2, xs.physics_vectors.size());
-        ImportPhysicsVector const& steel = xs.physics_vectors.back();
-        ASSERT_EQ(29, steel.x.size());
-        EXPECT_SOFT_EQ(9549.651635687942, steel.x.front());
-        EXPECT_SOFT_EQ(1e8, steel.x.back());
+        auto const& steel = xs.physics_vectors.back();
+        ASSERT_EQ(29, steel.y.size());
+        EXPECT_SOFT_EQ(9549.651635687942, std::exp(steel.x[Bound::lo]));
+        EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
     }
     {
         // Check the ionization electron macro xs
         ImportProcess const& ioni = this->find_process(
             celeritas::pdg::electron(), ImportProcessClass::e_ioni);
-        ASSERT_EQ(3, ioni.tables.size());
+        ASSERT_EQ(2, ioni.tables.size());
 
         // Lambda table for steel
-        ImportPhysicsTable const& xs = ioni.tables[2];
+        ImportPhysicsTable const& xs = ioni.tables[1];
         ASSERT_EQ(2, xs.physics_vectors.size());
-        ImportPhysicsVector const& steel = xs.physics_vectors.back();
-        ASSERT_EQ(27, steel.x.size());
+        auto const& steel = xs.physics_vectors.back();
+        ASSERT_EQ(27, steel.y.size());
         // Starts at min primary energy = 2 * electron production cut for
         // primary electrons
-        EXPECT_SOFT_EQ(19099.303271375884, steel.x.front());
-        EXPECT_SOFT_EQ(1e8, steel.x.back());
+        EXPECT_SOFT_EQ(19099.303271375884, std::exp(steel.x[Bound::lo]));
+        EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
     }
     {
         // Check the ionization positron macro xs
         ImportProcess const& ioni = this->find_process(
             celeritas::pdg::positron(), ImportProcessClass::e_ioni);
-        ASSERT_EQ(3, ioni.tables.size());
+        ASSERT_EQ(2, ioni.tables.size());
 
         // Lambda table for steel
-        ImportPhysicsTable const& xs = ioni.tables[2];
+        ImportPhysicsTable const& xs = ioni.tables[1];
         ASSERT_EQ(2, xs.physics_vectors.size());
-        ImportPhysicsVector const& steel = xs.physics_vectors.back();
-        ASSERT_EQ(29, steel.x.size());
+        auto const& steel = xs.physics_vectors.back();
+        ASSERT_EQ(29, steel.y.size());
         // Start at min primary energy = electron production cut for primary
         // positrons
-        EXPECT_SOFT_EQ(9549.651635687942, steel.x.front());
-        EXPECT_SOFT_EQ(1e8, steel.x.back());
+        EXPECT_SOFT_EQ(9549.651635687942, std::exp(steel.x[Bound::lo]));
+        EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
     }
     {
         // Check Urban MSC bounds
         ImportMscModel const& msc = this->find_msc_model(
             celeritas::pdg::electron(), ImportModelClass::urban_msc);
         EXPECT_TRUE(msc);
-        for (ImportPhysicsVector const& pv : msc.xs_table.physics_vectors)
+        for (auto const& pv : msc.xs_table.physics_vectors)
         {
             ASSERT_TRUE(pv);
-            EXPECT_SOFT_EQ(1e-4, pv.x.front());
-            EXPECT_SOFT_EQ(1e2, pv.x.back());
+            EXPECT_SOFT_EQ(1e-4, std::exp(pv.x[Bound::lo]));
+            EXPECT_SOFT_EQ(1e2, std::exp(pv.x[Bound::hi]));
         }
         auto const& steel = msc.xs_table.physics_vectors.back();
         EXPECT_SOFT_NEAR(0.23785296407525, to_inv_cm(steel.y.front()), tol);
@@ -1595,11 +1553,11 @@ TEST_F(OneSteelSphere, physics)
         ImportMscModel const& msc = this->find_msc_model(
             celeritas::pdg::electron(), ImportModelClass::wentzel_vi_uni);
         EXPECT_TRUE(msc);
-        for (ImportPhysicsVector const& pv : msc.xs_table.physics_vectors)
+        for (auto const& pv : msc.xs_table.physics_vectors)
         {
             ASSERT_TRUE(pv);
-            EXPECT_SOFT_EQ(1e2, pv.x.front());
-            EXPECT_SOFT_EQ(1e8, pv.x.back());
+            EXPECT_SOFT_EQ(1e2, std::exp(pv.x[Bound::lo]));
+            EXPECT_SOFT_EQ(1e8, std::exp(pv.x[Bound::hi]));
         }
         auto const& steel = msc.xs_table.physics_vectors.back();
         EXPECT_SOFT_NEAR(114.93265072267, to_inv_cm(steel.y.front()), tol);
@@ -1638,17 +1596,17 @@ TEST_F(OneSteelSphereGG, physics)
         ImportMscModel const& msc = this->find_msc_model(
             celeritas::pdg::electron(), ImportModelClass::urban_msc);
         EXPECT_TRUE(msc);
-        for (ImportPhysicsVector const& pv : msc.xs_table.physics_vectors)
+        for (auto const& pv : msc.xs_table.physics_vectors)
         {
-            ASSERT_FALSE(pv.x.empty());
-            EXPECT_SOFT_EQ(1e-4, pv.x.front());
-            EXPECT_SOFT_EQ(1e8, pv.x.back());
+            EXPECT_SOFT_EQ(1e-4, std::exp(pv.x[Bound::lo]));
+            EXPECT_SOFT_EQ(1e8, std::exp(pv.x[Bound::hi]));
         }
     }
 }
 
 TEST_F(LarSphere, optical)
 {
+    ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::info};
     auto&& imported = this->imported_data();
     ASSERT_EQ(3, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
@@ -1666,8 +1624,6 @@ TEST_F(LarSphere, optical)
     EXPECT_EQ("lAr", imported.geo_materials[1].name);
     ASSERT_EQ(0, imported.phys_materials[1].optical_material_id);
 
-    real_type const tol = this->comparison_tolerance();
-
     // Most optical properties in the geometry are pulled from the Geant4
     // example examples/advanced/CaTS/gdml/LArTPC.gdml
 
@@ -1675,7 +1631,9 @@ TEST_F(LarSphere, optical)
     auto const& optical = imported.optical_materials[0];
     auto const& scint = optical.scintillation;
     EXPECT_TRUE(scint);
+
     // Material scintillation
+    constexpr auto tol = SoftEqual<real_type>{}.rel();
     EXPECT_REAL_EQ(1, scint.resolution_scale);
     EXPECT_REAL_EQ(50000, scint.material.yield_per_energy);
     EXPECT_EQ(3, scint.material.components.size());
@@ -1688,13 +1646,30 @@ TEST_F(LarSphere, optical)
         components.push_back(to_sec(comp.rise_time));
         components.push_back(to_sec(comp.fall_time));
     }
-    // clang-format off
-    static double const expected_components[]
-        = {3, 1.28e-05, 1e-06, 1e-08, 6e-09,
-           1, 1.28e-05, 1e-06, 1e-08, 1.5e-06,
-           1, 2e-05,    2e-06, 1e-08, 3e-06};
-    // clang-format on
+    static double const expected_components[] = {
+        3,
+        1.28e-05,
+        1e-06,
+        1e-08,
+        6e-09,
+        1,
+        1.28e-05,
+        1e-06,
+        1e-08,
+        1.5e-06,
+        1,
+        2e-05,
+        2.0099589626834e-06,
+        1e-08,
+        3e-06,
+    };
     EXPECT_VEC_NEAR(expected_components, components, tol);
+    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    {
+        static std::string const expected_messages
+            = R"(Estimated custom properties SCINTILLATIONLAMBDAMEAN3=2e-05 and SCINTILLATIONLAMBDASIGMA3=2.0100e-6 from Geant4-defined property SCINTILLATIONCOMPONENT3)";
+        EXPECT_VEC_EQ(expected_messages, scoped_log.messages()[1]);
+    }
 
     // Particle scintillation
     EXPECT_EQ(6, scint.particles.size());
@@ -1791,13 +1766,11 @@ TEST_F(LarSphere, optical)
     auto const& wls_mfp = wls_model.mfp_table.front();
     EXPECT_EQ(2, wls_mfp.x.size());
     EXPECT_EQ(wls_mfp.x.size(), wls_mfp.y.size());
-    EXPECT_EQ(ImportPhysicsVectorType::free, wls_mfp.vector_type);
 
     auto const& wls_mat = optical.wls;
     EXPECT_TRUE(wls_mat);
     EXPECT_REAL_EQ(3, wls_mat.mean_num_photons);
     EXPECT_REAL_EQ(6e-9, to_sec(wls_mat.time_constant));
-    EXPECT_EQ(wls_mat.component.vector_type, wls_mfp.vector_type);
 
     std::vector<double> abslen_grid, comp_grid;
     for (auto i : range(wls_mfp.x.size()))

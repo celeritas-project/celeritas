@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "corecel/Config.hh"
 
+#include "corecel/StringSimplifier.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "celeritas/geo/GeoParams.hh"
 
@@ -309,24 +310,14 @@ TEST_F(SimpleCmsTest, output)
     GeoParamsOutput out(this->geometry());
     EXPECT_EQ("geometry", out.label());
 
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
+    StringSimplifier simplify_str(1);
+    auto s = simplify_str(to_string(out));
+
+    if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE && CELERITAS_USE_GEANT4)
     {
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-1000.001,-1000.001,-2000.001],[1000.001,1000.001,2000.001]],"max_depth":2,"supports_safety":true,"volumes":{"label":["vacuum_tube","si_tracker","em_calorimeter","had_calorimeter","sc_solenoid","fe_muon_chambers","world"]}})json",
-            to_string(out));
-    }
-    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
-             && CELERITAS_USE_GEANT4)
-    {
-        EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-1000.0,-1000.0,-2000.0],[1000.0,1000.0,2000.0]],"max_depth":1,"supports_safety":false,"surfaces":{"label":["world_box@mx","world_box@px","world_box@my","world_box@py","world_box@mz","world_box@pz","crystal_em_calorimeter@excluded.mz","crystal_em_calorimeter@excluded.pz","lhc_vacuum_tube@cz","crystal_em_calorimeter@excluded.cz","crystal_em_calorimeter@interior.cz","hadron_calorimeter@interior.cz","iron_muon_chambers@excluded.cz","iron_muon_chambers@interior.cz"]},"volumes":{"label":["[EXTERIOR]@world","vacuum_tube@world","si_tracker@world","em_calorimeter@world","had_calorimeter@world","sc_solenoid@world","fe_muon_chambers@world","world@world"]}})json",
-            this->genericize_pointers(to_string(out)));
-    }
-    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-    {
-        EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-1000.0,-1000.0,-2000.0],[1000.0,1000.0,2000.0]],"max_depth":1,"supports_safety":false,"surfaces":{"label":["world_box.mx@global","world_box.px@global","world_box.my@global","world_box.py@global","world_box.mz@global","world_box.pz@global","guide_tube.coz@global","crystal_em_calorimeter_outer.mz@global","crystal_em_calorimeter_outer.pz@global","silicon_tracker_outer.coz@global","crystal_em_calorimeter_outer.coz@global","hadron_calorimeter_outer.coz@global","superconducting_solenoid_outer.coz@global","iron_muon_chambers_outer.coz@global"]},"volumes":{"label":["[EXTERIOR]@global","vacuum_tube@global","si_tracker@global","em_calorimeter@global","had_calorimeter@global","sc_solenoid@global","fe_muon_chambers@global","world@global"]}})json",
-            this->genericize_pointers(to_string(out)));
+            R"json({"_category":"internal","_label":"geometry","bbox":[[-1000.0,-1000.0,-2000.0],[1000.0,1000.0,2000.0]],"max_depth":2,"supports_safety":true,"volumes":{"label":["vacuum_tube","si_tracker","em_calorimeter","had_calorimeter","sc_solenoid","fe_muon_chambers","world"]}})json",
+            s);
     }
 }
 

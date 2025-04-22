@@ -10,6 +10,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
+#include "corecel/random/Histogram.hh"
 
 #include "celeritas_test.hh"
 
@@ -25,26 +26,14 @@ TEST(ExponentialDistributionTest, all)
     ExponentialDistribution<double> sample(lambda);
     test::DiagnosticRngEngine<std::mt19937> rng;
 
-    std::vector<int> counters(5);
+    Histogram histogram(8, {0, 16});
     for ([[maybe_unused]] int i : range(num_samples))
     {
-        double x = sample(rng);
-        ASSERT_GE(x, 0.0);
-        if (x < 1.0)
-            ++counters[0];
-        else if (x < 2.0)
-            ++counters[1];
-        else if (x < 4.0)
-            ++counters[2];
-        else if (x < 8.0)
-            ++counters[3];
-        else
-            ++counters[4];
+        histogram(sample(rng));
     }
-
-    // PRINT_EXPECTED(counters);
-    int const expected_counters[] = {2180, 1717, 2411, 2265, 1427};
-    EXPECT_VEC_EQ(expected_counters, counters);
+    static unsigned int const expected_counts[]
+        = {3897u, 2411u, 1368u, 897u, 587u, 354u, 184u, 127u};
+    EXPECT_VEC_EQ(expected_counts, histogram.counts());
     EXPECT_EQ(2 * num_samples, rng.count());
 }
 

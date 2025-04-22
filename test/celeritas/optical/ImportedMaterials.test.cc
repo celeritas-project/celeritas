@@ -39,8 +39,7 @@ TEST_F(ImportedMaterialsTest, simple)
 {
     ASSERT_TRUE(imported_materials);
 
-    for (auto opt_mat :
-         range(OpticalMaterialId{imported_materials->num_materials()}))
+    for (auto opt_mat : range(OptMatId{imported_materials->num_materials()}))
     {
         // Rayleigh data
         {

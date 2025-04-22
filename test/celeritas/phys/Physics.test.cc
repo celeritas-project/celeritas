@@ -141,7 +141,7 @@ TEST_F(PhysicsParamsTest, output)
         GTEST_SKIP() << "Test results are based on CGS units";
     }
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"physics","models":{"label":["mock-model-1","mock-model-2","mock-model-3","mock-model-4","mock-model-5","mock-model-6","mock-model-7","mock-model-8","mock-model-9","mock-model-10","mock-model-11"],"process_id":[0,0,1,2,2,2,3,3,4,4,5]},"options":{"fixed_step_limiter":0.0,"heavy.lowest_energy":[0.001,"MeV"],"heavy.max_step_over_range":0.2,"heavy.min_range":0.010000000000000002,"light.lowest_energy":[0.001,"MeV"],"light.max_step_over_range":0.2,"light.min_range":0.1,"linear_loss_limit":0.01,"min_eprime_over_e":0.8,"spline_eloss_order":1},"processes":{"label":["scattering","absorption","purrs","hisses","meows","barks"]},"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":5,"process_ids":8,"reals":269,"value_grid_ids":89,"value_grids":89,"value_tables":29}})json",
+        R"json({"_category":"internal","_label":"physics","models":{"label":["mock-model-1","mock-model-2","mock-model-3","mock-model-4","mock-model-5","mock-model-6","mock-model-7","mock-model-8","mock-model-9","mock-model-10","mock-model-11"],"process_id":[0,0,1,2,2,2,3,3,4,4,5]},"options":{"fixed_step_limiter":0.0,"heavy.lowest_energy":[0.001,"MeV"],"heavy.max_step_over_range":0.2,"heavy.min_range":0.010000000000000002,"light.lowest_energy":[0.001,"MeV"],"light.max_step_over_range":0.2,"light.min_range":0.1,"linear_loss_limit":0.01,"min_eprime_over_e":0.8},"processes":{"label":["scattering","absorption","purrs","hisses","meows","barks"]},"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":5,"process_ids":8,"reals":269,"value_grid_ids":89,"value_grids":89,"value_tables":34}})json",
         to_string(out));
 }
 
@@ -197,7 +197,7 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
         }
     }
 
-    PhysicsTrackView make_track_view(char const* particle, MaterialId mid)
+    PhysicsTrackView make_track_view(char const* particle, PhysMatId mid)
     {
         CELER_EXPECT(particle && mid);
 
@@ -262,8 +262,8 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
 
 TEST_F(PhysicsTrackViewHostTest, track_view)
 {
-    PhysicsTrackView gamma = this->make_track_view("gamma", MaterialId{0});
-    PhysicsTrackView celer = this->make_track_view("celeriton", MaterialId{1});
+    PhysicsTrackView gamma = this->make_track_view("gamma", PhysMatId{0});
+    PhysicsTrackView celer = this->make_track_view("celeriton", PhysMatId{1});
     PhysicsTrackView const& gamma_cref = gamma;
 
     // Interaction MFP
@@ -369,7 +369,7 @@ TEST_F(PhysicsTrackViewHostTest, processes)
     // Gamma
     {
         PhysicsTrackView const phys
-            = this->make_track_view("gamma", MaterialId{0});
+            = this->make_track_view("gamma", PhysMatId{0});
 
         EXPECT_EQ(2, phys.num_particle_processes());
         ParticleProcessId const scat_ppid{0};
@@ -382,7 +382,7 @@ TEST_F(PhysicsTrackViewHostTest, processes)
     // Celeriton
     {
         PhysicsTrackView const phys
-            = this->make_track_view("celeriton", MaterialId{0});
+            = this->make_track_view("celeriton", PhysMatId{0});
 
         EXPECT_EQ(3, phys.num_particle_processes());
         ParticleProcessId const scat_ppid{0};
@@ -397,7 +397,7 @@ TEST_F(PhysicsTrackViewHostTest, processes)
     // Anti-celeriton
     {
         PhysicsTrackView const phys
-            = this->make_track_view("anti-celeriton", MaterialId{1});
+            = this->make_track_view("anti-celeriton", PhysMatId{1});
 
         EXPECT_EQ(2, phys.num_particle_processes());
         ParticleProcessId const hiss_ppid{0};
@@ -411,7 +411,7 @@ TEST_F(PhysicsTrackViewHostTest, processes)
     {
         // No at-rest interaction
         PhysicsTrackView const phys
-            = this->make_track_view("electron", MaterialId{1});
+            = this->make_track_view("electron", PhysMatId{1});
         EXPECT_EQ(ParticleProcessId{}, phys.at_rest_process());
     }
 }
@@ -426,7 +426,7 @@ TEST_F(PhysicsTrackViewHostTest, value_grids)
 
     for (char const* particle : {"gamma", "celeriton", "anti-celeriton"})
     {
-        for (auto mat_id : range(MaterialId{this->material()->size()}))
+        for (auto mat_id : range(PhysMatId{this->material()->size()}))
         {
             PhysicsTrackView const phys
                 = this->make_track_view(particle, mat_id);
@@ -458,7 +458,7 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
     std::vector<real_type> xs;
     for (char const* particle : {"gamma", "celeriton"})
     {
-        for (auto mat_id : range(MaterialId{this->material()->size()}))
+        for (auto mat_id : range(PhysMatId{this->material()->size()}))
         {
             PhysicsTrackView const phys
                 = this->make_track_view(particle, mat_id);
@@ -489,7 +489,7 @@ TEST_F(PhysicsTrackViewHostTest, calc_eloss_range)
     for (char const* particle : {"celeriton", "anti-celeriton"})
     {
         PhysicsTrackView const phys
-            = this->make_track_view(particle, MaterialId{0});
+            = this->make_track_view(particle, PhysMatId{0});
 
         auto eloss_id = phys.energy_loss_grid();
         ASSERT_TRUE(eloss_id);
@@ -542,25 +542,25 @@ TEST_F(PhysicsTrackViewHostTest, use_integral)
 {
     {
         // No energy loss tables
-        auto const phys = this->make_track_view("celeriton", MaterialId{2});
+        auto const phys = this->make_track_view("celeriton", PhysMatId{2});
         auto ppid = this->find_ppid(phys, "scattering");
         ASSERT_TRUE(ppid);
         EXPECT_FALSE(phys.integral_xs_process(ppid));
 
-        MaterialView material = this->material()->get(MaterialId{2});
+        MaterialView material = this->material()->get(PhysMatId{2});
         EXPECT_SOFT_EQ(
             0.1, to_inv_cm(phys.calc_xs(ppid, material, MevEnergy{1.0})));
     }
     {
         // Energy loss tables and energy-dependent macro xs
         std::vector<real_type> xs, max_xs;
-        auto const phys = this->make_track_view("electron", MaterialId{2});
+        auto const phys = this->make_track_view("electron", PhysMatId{2});
         auto ppid = this->find_ppid(phys, "barks");
         ASSERT_TRUE(ppid);
         auto const& integral_proc = phys.integral_xs_process(ppid);
         EXPECT_TRUE(integral_proc);
 
-        MaterialView material = this->material()->get(MaterialId{2});
+        MaterialView material = this->material()->get(PhysMatId{2});
         for (real_type energy : {0.001, 0.01, 0.1, 0.11, 10.0})
         {
             xs.push_back(
@@ -578,7 +578,7 @@ TEST_F(PhysicsTrackViewHostTest, use_integral)
 TEST_F(PhysicsTrackViewHostTest, model_finder)
 {
     PhysicsTrackView const phys
-        = this->make_track_view("celeriton", MaterialId{0});
+        = this->make_track_view("celeriton", PhysMatId{0});
     auto purr_ppid = this->find_ppid(phys, "purrs");
     ASSERT_TRUE(purr_ppid);
     auto find_model = phys.make_model_finder(purr_ppid);
@@ -594,7 +594,7 @@ TEST_F(PhysicsTrackViewHostTest, model_finder)
 TEST_F(PhysicsTrackViewHostTest, element_selector)
 {
     MevEnergy energy{2};
-    MaterialId mid{2};
+    PhysMatId mid{2};
 
     // Get the sampled process (constant micro xs)
     PhysicsTrackView const phys = this->make_track_view("celeriton", mid);
@@ -628,7 +628,7 @@ TEST_F(PhysicsTrackViewHostTest, element_selector)
     // Material composed of a single element
     {
         PhysicsTrackView phys
-            = this->make_track_view("celeriton", MaterialId{1});
+            = this->make_track_view("celeriton", PhysMatId{1});
         auto table_id = phys.value_table(pmid);
         EXPECT_FALSE(table_id);
     }
@@ -639,7 +639,7 @@ TEST_F(PhysicsTrackViewHostTest, cuda_surrogate)
     std::vector<real_type> step;
     for (char const* particle : {"gamma", "anti-celeriton"})
     {
-        PhysicsTrackView phys = this->make_track_view(particle, MaterialId{1});
+        PhysicsTrackView phys = this->make_track_view(particle, PhysMatId{1});
         PhysicsStepView pstep = this->make_step_view(particle);
 
         for (real_type energy : {1e-5, 1e-3, 1., 100., 1e5})
@@ -702,7 +702,7 @@ TEST_F(PHYS_DEVICE_TEST, all)
         PhysTestInit thread_init;
         for (unsigned int matid : {0, 2})
         {
-            thread_init.mat = MaterialId{matid};
+            thread_init.mat = PhysMatId{matid};
             for (real_type energy : {1e-5, 1e-3, 1., 100., 1e5})
             {
                 thread_init.energy = MevEnergy{energy};
@@ -847,11 +847,8 @@ auto EPlusAnnihilationTest::build_physics() -> SPConstPhysics
     physics_inp.options = this->build_physics_options();
     physics_inp.action_registry = this->action_reg().get();
 
-    EPlusAnnihilationProcess::Options epgg_options;
-    epgg_options.use_integral_xs = true;
-
     physics_inp.processes.push_back(std::make_shared<EPlusAnnihilationProcess>(
-        physics_inp.particles, this->build_imported(), epgg_options));
+        physics_inp.particles, this->build_imported()));
     return std::make_shared<PhysicsParams>(std::move(physics_inp));
 }
 
@@ -879,7 +876,7 @@ TEST_F(EPlusAnnihilationTest, host_track_view)
     par = ParticleTrackView::Initializer_t{pid, MevEnergy{1}};
 
     ParticleProcessId const ppid{0};
-    MaterialId const matid{0};
+    PhysMatId const matid{0};
 
     PhysicsTrackView phys(params_ref, state.ref(), par, matid, TrackSlotId{0});
     phys = PhysicsTrackInitializer{};
@@ -890,7 +887,7 @@ TEST_F(EPlusAnnihilationTest, host_track_view)
     EXPECT_EQ(ModelId{0}, phys.hardwired_model(ppid, MevEnergy{0}));
 
     // Check cross section
-    MaterialView material_view = this->material()->get(MaterialId{0});
+    MaterialView material_view = this->material()->get(PhysMatId{0});
     EXPECT_SOFT_EQ(
         5.1172452607412999e-05,
         to_inv_cm(phys.calc_xs(ppid, material_view, MevEnergy{0.1})));

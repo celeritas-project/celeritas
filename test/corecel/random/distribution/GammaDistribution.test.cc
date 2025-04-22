@@ -8,6 +8,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
+#include "corecel/random/Histogram.hh"
 
 #include "celeritas_test.hh"
 
@@ -28,31 +29,16 @@ TEST_F(GammaDistributionTest, bin_large_alpha)
 
     double alpha = 9.0;
     double beta = 0.5;
-
     GammaDistribution<double> sample_gamma{alpha, beta};
 
-    std::vector<int> counters(7);
+    Histogram histogram(8, {0, 8});
     for ([[maybe_unused]] int i : range(num_samples))
     {
-        double x = sample_gamma(rng);
-        if (x < 2.0)
-            ++counters[0];
-        else if (x < 3.0)
-            ++counters[1];
-        else if (x < 4.0)
-            ++counters[2];
-        else if (x < 5.0)
-            ++counters[3];
-        else if (x < 6.0)
-            ++counters[4];
-        else if (x < 7.0)
-            ++counters[5];
-        else
-            ++counters[6];
+        histogram(sample_gamma(rng));
     }
-
-    int const expected_counters[] = {211, 1387, 2529, 2548, 1784, 916, 625};
-    EXPECT_VEC_EQ(expected_counters, counters);
+    static unsigned int const expected_counts[]
+        = {2, 209, 1387, 2529, 2548, 1784, 916, 413};
+    EXPECT_VEC_EQ(expected_counts, histogram.counts());
     EXPECT_EQ(40118, rng.count());
 }
 
@@ -62,27 +48,16 @@ TEST_F(GammaDistributionTest, bin_small_alpha)
 
     double alpha = 0.5;
     double beta = 1.0;
-
     GammaDistribution<double> sample_gamma{alpha, beta};
 
-    std::vector<int> counters(5);
+    Histogram histogram(8, {0, 8});
     for ([[maybe_unused]] int i : range(num_samples))
     {
-        double x = sample_gamma(rng);
-        if (x < 1.0)
-            ++counters[0];
-        else if (x < 2.0)
-            ++counters[1];
-        else if (x < 3.0)
-            ++counters[2];
-        else if (x < 4.0)
-            ++counters[3];
-        else
-            ++counters[4];
+        histogram(sample_gamma(rng));
     }
-
-    int const expected_counters[] = {8486, 1081, 310, 79, 44};
-    EXPECT_VEC_EQ(expected_counters, counters);
+    static unsigned int const expected_counts[]
+        = {8486, 1081, 310, 79, 28, 11, 1, 1};
+    EXPECT_VEC_EQ(expected_counts, histogram.counts());
     EXPECT_EQ(61136, rng.count());
 }
 

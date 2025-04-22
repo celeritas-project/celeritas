@@ -144,9 +144,9 @@ void ImportDataConverter::operator()(ImportModelMaterial* data)
 {
     CELER_EXPECT(data);
 
-    for (auto& xs_vec : data->micro_xs)
+    for (auto& xs_grid : data->micro_xs)
     {
-        for (double& xs : xs_vec)
+        for (double& xs : xs_grid.y)
         {
             xs *= xs_;
         }
@@ -190,10 +190,8 @@ void ImportDataConverter::operator()(ImportPhysicsTable* data)
     {
         for (auto& v : data->physics_vectors)
         {
-            for (auto& xval : v.x)
-            {
-                xval *= units;
-            }
+            v.x[Bound::lo] *= units;
+            v.x[Bound::hi] *= units;
         }
     }
 

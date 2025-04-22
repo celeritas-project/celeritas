@@ -16,7 +16,6 @@
 #include "orange/OrangeParams.hh"
 #include "orange/OrangeParamsOutput.hh"
 #include "orange/OrangeTrackView.hh"
-#include "celeritas/Types.hh"
 
 #include "OrangeGeoTestBase.hh"
 #include "TestMacros.hh"

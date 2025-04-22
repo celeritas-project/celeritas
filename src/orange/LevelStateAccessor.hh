@@ -2,22 +2,19 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/LevelStateAccessor.hh
+//! \file orange/LevelStateAccessor.hh
+// NOTE: this file is used by SCALE ORANGE; leave it public
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/data/Collection.hh"
-
-#include "../OrangeData.hh"
-#include "../OrangeTypes.hh"
+#include "OrangeData.hh"
+#include "OrangeTypes.hh"
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
- * Accesss the 2D fields (i.e., {thread, level}) of OrangeStateData
+ * Accesss the 2D fields (i.e., {track slot, level}) of OrangeStateData.
  */
 class LevelStateAccessor
 {
@@ -124,5 +121,4 @@ LevelStateAccessor::operator=(LevelStateAccessor const& other)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

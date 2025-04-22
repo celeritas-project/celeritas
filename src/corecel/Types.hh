@@ -79,15 +79,6 @@ enum class UnitSystem
 };
 
 //---------------------------------------------------------------------------//
-//! Interpolation type
-enum class Interp
-{
-    linear,
-    log,
-    size_
-};
-
-//---------------------------------------------------------------------------//
 //!@{
 //! \name Convenience typedefs for params and states.
 

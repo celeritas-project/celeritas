@@ -15,6 +15,7 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/StringSimplifier.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/io/StreamableVariant.hh"
@@ -107,19 +108,20 @@ std::string tree_string(CsgUnit const& u)
 std::vector<std::string> md_strings(CsgUnit const& u)
 {
     std::vector<std::string> result;
+    ::celeritas::test::StringSimplifier simplify;
     for (auto const& md_set : u.metadata)
     {
-        result.push_back(to_string(join_stream(
-            md_set.begin(),
-            md_set.end(),
-            ',',
-            [](std::ostream& os, Label const& l) {
-                os << ::celeritas::test::Test::genericize_pointers(l.name);
-                if (!l.ext.empty())
-                {
-                    os << Label::default_sep << l.ext;
-                }
-            })));
+        result.push_back(to_string(
+            join_stream(md_set.begin(),
+                        md_set.end(),
+                        ',',
+                        [&simplify](std::ostream& os, Label const& l) {
+                            os << simplify(l.name);
+                            if (!l.ext.empty())
+                            {
+                                os << Label::default_sep << l.ext;
+                            }
+                        })));
     }
     return result;
 }
@@ -218,7 +220,7 @@ std::vector<std::string> fill_strings(CsgUnit const& u)
         {
             result.push_back("<UNASSIGNED>");
         }
-        else if (auto* mid = std::get_if<GeoMaterialId>(&f))
+        else if (auto* mid = std::get_if<GeoMatId>(&f))
         {
             result.push_back("m" + std::to_string(mid->unchecked_get()));
         }
@@ -295,7 +297,7 @@ EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
 EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
 EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
 )cpp"
-              << "EXPECT_EQ(GeoMaterialId{";
+              << "EXPECT_EQ(GeoMatId{";
     if (u.background)
     {
         std::cout << u.background.unchecked_get();

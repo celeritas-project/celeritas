@@ -9,6 +9,7 @@
 #include <random>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/random/Histogram.hh"
 
 #include "celeritas_test.hh"
 
@@ -36,11 +37,6 @@ TEST_F(UniformRealDistributionTest, constructors)
         EXPECT_SOFT_EQ(1.0, sample_uniform.a());
         EXPECT_SOFT_EQ(2.0, sample_uniform.b());
     }
-    if (CELERITAS_DEBUG)
-    {
-        // b < a is not allowed
-        EXPECT_THROW(UniformRealDistribution<>(3, 2), DebugError);
-    }
 }
 
 TEST_F(UniformRealDistributionTest, bin)
@@ -51,18 +47,17 @@ TEST_F(UniformRealDistributionTest, bin)
     double max = 5.0;
     UniformRealDistribution<double> sample_uniform{min, max};
 
-    std::vector<int> counters(5);
+    Histogram histogram(5, {0, 5});
     for ([[maybe_unused]] int i : range(num_samples))
     {
-        double r = sample_uniform(rng);
-        ASSERT_GE(r, min);
-        ASSERT_LE(r, max);
-        counters[int(r)] += 1;
+        histogram(sample_uniform(rng));
     }
 
-    // PRINT_EXPECTED(counters);
-    int const expected_counters[] = {2071, 1955, 1991, 2013, 1970};
-    EXPECT_VEC_EQ(expected_counters, counters);
+    static unsigned int const expected_counts[]
+        = {2071, 1955, 1991, 2013, 1970};
+    EXPECT_VEC_EQ(expected_counts, histogram.counts());
+    EXPECT_GE(histogram.min(), min);
+    EXPECT_LE(histogram.max(), max);
 }
 
 //---------------------------------------------------------------------------//

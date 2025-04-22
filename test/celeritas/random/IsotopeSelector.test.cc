@@ -68,7 +68,7 @@ TEST_F(IsotopeSelectorTest, multiple_isotopes)
     std::size_t const num_loops = 1000;
 
     // Diatomic hydrogen: two isotopes (fractions 0.9 and 0.1)
-    MaterialView mat_h2(host_mats, MaterialId{2});
+    MaterialView mat_h2(host_mats, PhysMatId{2});
     auto const& element_h = mat_h2.element_record(ElementComponentId{0});
     IsotopeSelector select_iso_h(element_h);
 

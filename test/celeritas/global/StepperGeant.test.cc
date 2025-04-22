@@ -24,6 +24,7 @@
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/Primary.hh"
 
 #include "StepperTestBase.hh"
@@ -213,6 +214,32 @@ class TestEm15FieldMsc : public TestEm15Base, public StepperTestBase
     }
 
     size_type max_average_steps() const override { return 500; }
+};
+
+//---------------------------------------------------------------------------//
+#define TestEm3MscNoIntegral TEST_IF_CELERITAS_GEANT(TestEm3MscNoIntegral)
+class TestEm3MscNoIntegral : public TestEm3Msc
+{
+  public:
+    //! Make 10 MeV electrons along +x
+    std::vector<Primary> make_primaries(size_type count) const override
+    {
+        return this->make_primaries_with_energy(count, MevEnergy{10});
+    }
+
+    ProcessBuilderOptions build_process_options() const override
+    {
+        ProcessBuilderOptions opts = TestEm3Base::build_process_options();
+        opts.brem_combined = false;
+        return opts;
+    }
+
+    PhysicsParamsOptions build_physics_options() const override
+    {
+        auto opts = ImportedDataTestBase::build_physics_options();
+        opts.disable_integral_xs = true;
+        return opts;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -608,6 +635,40 @@ TEST_F(TestEm3MscNofluct, TEST_IF_CELER_DEVICE(device))
         EXPECT_GE(48.25, result.calc_avg_steps_per_primary());
         EXPECT_EQ(7, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({5, 7}), result.calc_queue_hwm());
+    }
+    else
+    {
+        cout << "No output saved for combination of "
+             << test::PrintableBuildConf{} << std::endl;
+        result.print_expected();
+
+        if (this->strict_testing())
+        {
+            FAIL() << "Updated stepper results are required for CI tests";
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
+// TESTEM15_MSC_NOINTEGRAL
+//---------------------------------------------------------------------------//
+
+TEST_F(TestEm3MscNoIntegral, host)
+{
+    size_type num_primaries = 24;
+    size_type num_tracks = 2048;
+
+    Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
+    auto result = this->run(step, num_primaries);
+
+    if (this->is_ci_build())
+    {
+        EXPECT_LE(86, result.num_step_iters());
+        EXPECT_GE(87, result.num_step_iters());
+        EXPECT_LE(54.7, result.calc_avg_steps_per_primary());
+        EXPECT_GE(54.75, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(8, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({6, 15}), result.calc_queue_hwm());
     }
     else
     {

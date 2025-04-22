@@ -8,6 +8,7 @@
 
 #include <vector>
 
+#include "celeritas/inp/Grid.hh"
 // IWYU pragma: begin_exports
 #include "ImportAtomicRelaxation.hh"
 #include "ImportElement.hh"
@@ -56,10 +57,10 @@ struct ImportData
     //! \name Type aliases
     using ZInt = int;
     using GeoMatIndex = unsigned int;
-    using ImportSBMap = std::map<ZInt, ImportPhysics2DVector>;
+    using ImportSBMap = std::map<ZInt, inp::TwodGrid>;
     using ImportLivermorePEMap = std::map<ZInt, ImportLivermorePE>;
     using ImportAtomicRelaxationMap = std::map<ZInt, ImportAtomicRelaxation>;
-    using ImportNeutronElasticMap = std::map<ZInt, ImportPhysicsVector>;
+    using ImportNeutronElasticMap = std::map<ZInt, inp::Grid>;
     //!@}
 
     //!@{

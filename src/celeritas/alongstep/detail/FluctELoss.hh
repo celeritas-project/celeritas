@@ -114,9 +114,8 @@ CELER_FUNCTION auto FluctELoss::calc_eloss(CoreTrackView const& track,
 
     // Calculate mean energy loss
     auto eloss = calc_mean_energy_loss(particle, phys, step);
-    CELER_EXPECT(eloss > zero_quantity());
 
-    if (eloss < particle.energy())
+    if (eloss < particle.energy() && eloss > zero_quantity())
     {
         // Apply energy loss fluctuations
         auto cutoffs = track.cutoff();

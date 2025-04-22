@@ -92,7 +92,7 @@ auto MockTestBase::build_geomaterial() -> SPConstGeoMaterial
     input.geometry = this->geometry();
     input.materials = this->material();
     input.volume_to_mat
-        = {MaterialId{0}, MaterialId{2}, MaterialId{1}, MaterialId{3}};
+        = {PhysMatId{0}, PhysMatId{2}, PhysMatId{1}, PhysMatId{3}};
     input.volume_labels
         = {Label{"inner"}, Label{"middle"}, Label{"outer"}, Label{"world"}};
     return std::make_shared<GeoMaterialParams>(std::move(input));
@@ -158,7 +158,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         inp.materials = this->material();
         inp.interact = interact;
         inp.label = "scattering";
-        inp.use_integral_xs = false;
+        inp.supports_integral_xs = false;
         inp.applic = {make_applicability("gamma", 1e-6, 100),
                       make_applicability("celeriton", 1, 100)};
         inp.xs = {Barn{1.0}, Barn{1.0}, Barn{1.0}};
@@ -170,7 +170,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         inp.materials = this->material();
         inp.interact = interact;
         inp.label = "absorption";
-        inp.use_integral_xs = false;
+        inp.supports_integral_xs = false;
         inp.applic = {make_applicability("gamma", 1e-6, 100)};
         inp.xs = {Barn{2.0}, Barn{2.0}};
         inp.energy_loss = {};
@@ -188,6 +188,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         inp.xs = {Barn{3.0}, Barn{3.0}};
         inp.energy_loss = MevCmSqLossDens{0.6 * 1e-20};  // 0.6 MeV/cm in
                                                          // celerogen
+        inp.interp = this->interpolation();
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     {
@@ -201,6 +202,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
                       make_applicability("anti-celeriton", 1, 100)};
         inp.xs = {Barn{4.0}, Barn{4.0}};
         inp.energy_loss = MevCmSqLossDens{0.7 * 1e-20};
+        inp.interp = this->interpolation();
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     {
@@ -223,6 +225,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         inp.applic = {make_applicability("electron", 1e-5, 10)};
         inp.xs = {Barn{0}, Barn{6.0}, Barn{12.0}, Barn{6.0}};
         inp.energy_loss = MevCmSqLossDens{0.5 * 1e-20};
+        inp.interp = this->interpolation();
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     return std::make_shared<PhysicsParams>(std::move(physics_inp));
@@ -265,6 +268,12 @@ auto MockTestBase::build_init() -> SPConstTrackInit
 
 //---------------------------------------------------------------------------//
 auto MockTestBase::build_physics_options() const -> PhysicsOptions
+{
+    return {};
+}
+
+//---------------------------------------------------------------------------//
+inp::Interpolation MockTestBase::interpolation() const
 {
     return {};
 }

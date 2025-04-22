@@ -64,6 +64,8 @@ TEST_F(BoundingBoxUtilsTest, is_degenerate)
 
 TEST_F(BoundingBoxUtilsTest, center)
 {
+    auto inf = std::numeric_limits<real_type>::infinity();
+
     BBox bbox = {{-10, -20, -30}, {1, 2, 3}};
     EXPECT_VEC_SOFT_EQ(Real3({-4.5, -9, -13.5}), calc_center(bbox));
 

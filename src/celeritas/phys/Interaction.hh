@@ -119,9 +119,10 @@ struct MscInteraction
     //! Interaction result category
     enum class Action
     {
-        displaced,  //!< Direction and position changed
+        unchanged,  //!< No state change
         scattered,  //!< Only direction changed
-        unchanged  //!< No state change
+        displaced,  //!< Direction and position changed
+        size_
     };
 
     Real3 direction;  //!< Post-step direction

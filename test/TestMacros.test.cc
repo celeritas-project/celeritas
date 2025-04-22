@@ -8,10 +8,12 @@
 
 #include <limits>
 
+#include "corecel/cont/Array.hh"
 #include "corecel/io/ScopedStreamRedirect.hh"
 
 #include "celeritas_test.hh"
 
+using Dbl2 = celeritas::Array<double, 2>;
 using VecInt = std::vector<int>;
 using VecDbl = std::vector<double>;
 using VecFlt = std::vector<float>;
@@ -194,6 +196,39 @@ TEST(IsVecSoftEquiv, mixed)
         "expected_flt", "actual_flt", ".1", expected_flt, actual_flt, 0.1f));
 }
 
+TEST(IsVecSoftEquiv, nested)
+{
+    std::vector<Dbl2> const expected[] = {
+        {{0.12, 0.23}, {0.34, 0.45}},
+        {{0.56, 0.67}, {0.78, 0.89}},
+        {{0.91, 0.12}, {0.23, 0.34}},
+    };
+    std::vector<std::vector<Dbl2>> actual = {
+        {{0.12, 0.23}, {0.34, 0.45}},
+        {{0.56, 0.671}},
+        {{0.91, 0.12}, {0.23, 0.34}},
+    };
+
+    // Different sizes
+    EXPECT_FALSE(
+        IsVecSoftEquiv("expected", "actual", "0.01", expected, actual, 0.01));
+    EXPECT_TRUE(IsVecSoftEquiv(
+        "expected[0]", "actual[0]", "0.01", expected[0], actual[0], 0.01));
+
+    // Test within tolerance
+    actual[1].push_back({0.78, 0.89});
+    EXPECT_TRUE(
+        IsVecSoftEquiv("expected", "actual", "0.01", expected, actual, 0.01));
+    EXPECT_FALSE(IsVecSoftEquiv(
+        "expected", "actual", "0.001", expected, actual, 0.001));
+    EXPECT_TRUE(IsVecSoftEquiv(
+        "expected", "actual", "0.01", "0.01", expected, actual, 0.01, 0.01));
+
+    // Identical
+    actual[1][0][1] = 0.67;
+    EXPECT_VEC_SOFT_EQ(expected, actual);
+}
+
 // NOTE: these should fail to compile and produce relatively understandable
 // error messages.
 #if 0
@@ -304,6 +339,16 @@ TEST(IsVecEq, successes)
     actual.push_back(3);
 
     EXPECT_VEC_EQ(static_array, actual);
+
+    // Test nested containers
+    std::vector<VecInt> expected_vec, actual_vec;
+    EXPECT_VEC_EQ(expected_vec, actual_vec);
+
+    expected_vec = {{{1}, {2, 3}, {4, 5, 5}}};
+    actual_vec = {{{1}, {2, 3}, {4, 5, 5}}};
+    EXPECT_TRUE(
+        IsVecEq("expected_vec", "actual_vec", expected_vec, actual_vec));
+    EXPECT_VEC_EQ(expected_vec, actual_vec);
 }
 
 // Note: to test what the output looks like, just change EXPECT_FALSE to
@@ -354,6 +399,20 @@ TEST(IsVecEq, failures)
     actual[100] = 3;
     actual[150] = 2;
     EXPECT_FALSE(IsVecEq("expected", "actual", expected, actual));
+
+    // Test nested containers
+    std::vector<VecInt> expected_vec = {{0, 1}, {2, 3, 4}};
+    std::vector<VecInt> actual_vec = {{0, 1}};
+    EXPECT_FALSE(
+        IsVecEq("expected_vec", "actual_vec", expected_vec, actual_vec));
+
+    actual_vec.push_back({2, 3});
+    EXPECT_FALSE(
+        IsVecEq("expected_vec", "actual_vec", expected_vec, actual_vec));
+
+    actual_vec[1].push_back(5);
+    EXPECT_FALSE(
+        IsVecEq("expected_vec", "actual_vec", expected_vec, actual_vec));
 }
 //---------------------------------------------------------------------------//
 }  // namespace testdetail

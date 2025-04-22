@@ -121,7 +121,7 @@ TEST_F(MockFluctuationTest, data)
 
     {
         // Celerogen: Z=1, I=19.2 eV
-        auto const& params = urban[MaterialId{0}];
+        auto const& params = urban[PhysMatId{0}];
         EXPECT_SOFT_EQ(1, params.oscillator_strength[0]);
         EXPECT_SOFT_EQ(0, params.oscillator_strength[1]);
         EXPECT_SOFT_EQ(19.2e-6, params.binding_energy[0]);
@@ -129,7 +129,7 @@ TEST_F(MockFluctuationTest, data)
     }
     {
         // Celer composite: Z_eff = 10.3, I=150.7 eV
-        auto const& params = urban[MaterialId{2}];
+        auto const& params = urban[PhysMatId{2}];
         EXPECT_SOFT_EQ(0.80582524271844658, params.oscillator_strength[0]);
         EXPECT_SOFT_EQ(0.1941747572815534, params.oscillator_strength[1]);
         EXPECT_SOFT_EQ(9.4193231228829647e-5, params.binding_energy[0]);
@@ -146,8 +146,8 @@ TEST_F(EnergyLossDistributionTest, none)
     particle = {ParticleId{0}, MevEnergy{1e-2}};
     MaterialTrackView material(
         materials->host_ref(), material_state.ref(), TrackSlotId{0});
-    material = {MaterialId{0}};
-    CutoffView cutoff(cutoffs->host_ref(), MaterialId{0});
+    material = {PhysMatId{0}};
+    CutoffView cutoff(cutoffs->host_ref(), PhysMatId{0});
     MevEnergy mean_loss{2e-6};
 
     // Tiny step, little energy loss
@@ -168,8 +168,8 @@ TEST_F(EnergyLossDistributionTest, gaussian)
     particle = {ParticleId{1}, MevEnergy{1e-2}};
     MaterialTrackView material(
         materials->host_ref(), material_state.ref(), TrackSlotId{0});
-    material = {MaterialId{0}};
-    CutoffView cutoff(cutoffs->host_ref(), MaterialId{0});
+    material = {PhysMatId{0}};
+    CutoffView cutoff(cutoffs->host_ref(), PhysMatId{0});
     MevEnergy mean_loss{0.1};
 
     int num_samples = 5000;
@@ -242,8 +242,8 @@ TEST_F(EnergyLossDistributionTest, urban)
     particle = {ParticleId{0}, MevEnergy{100}};
     MaterialTrackView material(
         materials->host_ref(), material_state.ref(), TrackSlotId{0});
-    material = {MaterialId{0}};
-    CutoffView cutoff(cutoffs->host_ref(), MaterialId{0});
+    material = {PhysMatId{0}};
+    CutoffView cutoff(cutoffs->host_ref(), PhysMatId{0});
     MevEnergy mean_loss{0.01};
     real_type step = 0.01 * units::centimeter;
 

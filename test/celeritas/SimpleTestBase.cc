@@ -49,7 +49,7 @@ auto SimpleTestBase::build_geomaterial() -> SPConstGeoMaterial
     GeoMaterialParams::Input input;
     input.geometry = this->geometry();
     input.materials = this->material();
-    input.volume_to_mat = {MaterialId{0}, MaterialId{1}, MaterialId{}};
+    input.volume_to_mat = {PhysMatId{0}, PhysMatId{1}, PhysMatId{}};
     input.volume_labels = {Label{"inner"}, Label{"world"}, Label{"[EXTERIOR]"}};
     return std::make_shared<GeoMaterialParams>(std::move(input));
 }
@@ -119,12 +119,14 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
         lambda.x_units = ImportUnits::mev;
         lambda.y_units = ImportUnits::len_inv;
         lambda.physics_vectors = {
-            {ImportPhysicsVectorType::log,
-             {1e-4, 1.0},  // energy
-             {1e1, 1e0}},  // lambda (detector)
-            {ImportPhysicsVectorType::log,
-             {1e-4, 1.0},  // energy
-             {1e-10, 1e-10}},  // lambda (world)
+            {{std::log(1e-4),  // energy
+              std::log(1.0)},
+             {1e1, 1e0},  // lambda (detector)
+             inp::Interpolation{}},
+            {{std::log(1e-4),  // energy
+              std::log(1.0)},
+             {1e-10, 1e-10},  // lambda (world)
+             inp::Interpolation{}},
         };
         compton_data.tables.push_back(std::move(lambda));
     }
@@ -134,12 +136,14 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
         lambdap.x_units = ImportUnits::mev;
         lambdap.y_units = ImportUnits::len_mev_inv;
         lambdap.physics_vectors = {
-            {ImportPhysicsVectorType::log,
-             {1.0, 1e4, 1e8},  // energy
-             {1e0, 1e-2, 1e-4}},  // lambda * energy (detector)
-            {ImportPhysicsVectorType::log,
-             {1.0, 1e4, 1e8},  // energy
-             {1e-10, 1e-10, 1e-10}},  // lambda * energy (world)
+            {{std::log(1.0),  // energy
+              std::log(1e8)},
+             {1e0, 1e-2, 1e-4},  // lambda * energy (detector)
+             inp::Interpolation{}},
+            {{std::log(1.0),  // energy
+              std::log(1e8)},
+             {1e-10, 1e-10, 1e-10},  // lambda * energy (world)
+             inp::Interpolation{}},
         };
         compton_data.tables.push_back(std::move(lambdap));
     }

@@ -106,7 +106,7 @@ TEST_F(ImportedModelAdapterTest, adapter_mfps)
         auto const& expected_model = expected_models[model_id.get()];
 
         ASSERT_EQ(expected_model.mfp_table.size(), adapter.num_materials());
-        for (auto mat_id : range(OpticalMaterialId{adapter.num_materials()}))
+        for (auto mat_id : range(OptMatId{adapter.num_materials()}))
         {
             EXPECT_GRID_EQ(expected_model.mfp_table[mat_id.get()],
                            adapter.mfp(mat_id));

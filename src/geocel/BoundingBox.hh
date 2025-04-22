@@ -13,6 +13,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/grid/GridTypes.hh"
 #include "corecel/math/NumericLimits.hh"
 
 #include "Types.hh"

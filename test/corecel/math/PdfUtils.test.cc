@@ -2,9 +2,13 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/math/CdfUtils.test.cc
+//! \file corecel/math/PdfUtils.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/math/CdfUtils.hh"
+#include "corecel/math/PdfUtils.hh"
+
+#include <cmath>
+
+#include "corecel/grid/VectorUtils.hh"
 
 #include "celeritas_test.hh"
 
@@ -14,13 +18,13 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-class CdfUtilsTest : public ::celeritas::test::Test
+class PdfUtilsTest : public ::celeritas::test::Test
 {
   protected:
     void SetUp() override {}
 };
 
-TEST_F(CdfUtilsTest, segment_integrators)
+TEST_F(PdfUtilsTest, segment_integrators)
 {
     using Arr2 = Array<double, 2>;
     EXPECT_SOFT_EQ(
@@ -29,7 +33,7 @@ TEST_F(CdfUtilsTest, segment_integrators)
                    TrapezoidSegmentIntegrator{}(Arr2{1, 0.5}, Arr2{3, 1.5}));
 }
 
-TEST_F(CdfUtilsTest, integrate_segments)
+TEST_F(PdfUtilsTest, integrate_segments)
 {
     static double const x[] = {-1, 0, 1, 3, 6};
     static double const f[] = {1, 0, 2, 1, 0};
@@ -55,7 +59,31 @@ TEST_F(CdfUtilsTest, integrate_segments)
     }
 }
 
-TEST_F(CdfUtilsTest, normalize_cdf)
+TEST_F(PdfUtilsTest, calc_moments)
+{
+    // Uniform distribution with (a, b) = (3, 7): mean = (a + b) / 2 = 5,
+    // variance = (b - a)^2 / 12 = 4/3
+    {
+        // Coarse grid
+        std::vector<double> const x{3, 3.5, 4.25, 5, 6.75, 7};
+        std::vector<double> const f{1, 1, 1, 1, 1, 1};
+
+        auto result = MomentCalculator()(make_span(x), make_span(f));
+        EXPECT_SOFT_EQ(5, result.mean);
+        EXPECT_SOFT_EQ(1.201171875, result.variance);
+    }
+    {
+        // Fine grid
+        std::vector<double> const x = linspace(3, 7, 1000);
+        std::vector<double> const f(1000, 1);
+
+        auto result = MomentCalculator()(make_span(x), make_span(f));
+        EXPECT_SOFT_EQ(5, result.mean);
+        EXPECT_SOFT_EQ(1.3333319973293456, result.variance);
+    }
+}
+
+TEST_F(PdfUtilsTest, normalize_cdf)
 {
     std::vector<double> cdf = {1, 2, 4, 4, 8};
 

@@ -79,16 +79,17 @@ class SequenceEngine
  * Specialization of GenerateCanonical for SequenceEngine.
  */
 template<class T>
-class GenerateCanonical<test::SequenceEngine, T>
+struct GenerateCanonical<test::SequenceEngine, T>
 {
-  public:
     //!@{
     //! \name Type aliases
     using real_type = T;
     using result_type = real_type;
     //!@}
 
-  public:
+    //! By default use standard library
+    static constexpr auto policy = GenerateCanonicalPolicy::custom;
+
     // Sample a random number
     inline result_type operator()(test::SequenceEngine& rng);
 };

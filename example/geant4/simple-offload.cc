@@ -2,16 +2,17 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/fastsim-offload.cc
+//! \file geant4/simple-offload.cc
 //---------------------------------------------------------------------------//
 
 #include <algorithm>
 #include <iterator>
 #include <type_traits>
+
+// Geant4
 #include <FTFP_BERT.hh>
 #include <G4Box.hh>
 #include <G4Electron.hh>
-#include <G4FastSimulationPhysics.hh>
 #include <G4Gamma.hh>
 #include <G4LogicalVolume.hh>
 #include <G4Material.hh>
@@ -20,8 +21,6 @@
 #include <G4ParticleGun.hh>
 #include <G4ParticleTable.hh>
 #include <G4Positron.hh>
-#include <G4Region.hh>
-#include <G4RegionStore.hh>
 #include <G4SystemOfUnits.hh>
 #include <G4Threading.hh>
 #include <G4ThreeVector.hh>
@@ -35,20 +34,19 @@
 #include <G4VUserDetectorConstruction.hh>
 #include <G4VUserPrimaryGeneratorAction.hh>
 #include <G4Version.hh>
-#if G4VERSION_NUMBER >= 1200
+#if G4VERSION_NUMBER >= 1100
 #    include <G4RunManagerFactory.hh>
 #else
 #    include <G4MTRunManager.hh>
 #endif
 
-#include <accel/AlongStepFactory.hh>
-#include <accel/FastSimulationIntegration.hh>
-#include <accel/FastSimulationModel.hh>
-#include <accel/SetupOptions.hh>
-#include <corecel/Macros.hh>
+// Celeritas
+#include <CeleritasG4.hh>
+
+// Utility includes
 #include <corecel/io/Logger.hh>
 
-using celeritas::FastSimulationIntegration;
+using celeritas::UserActionIntegration;
 
 namespace
 {
@@ -72,16 +70,7 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
         return pv;
     }
 
-    void ConstructSDandField() final
-    {
-        CELER_LOG_LOCAL(status)
-            << R"(Creating FastSimulationModel for default region)";
-        G4Region* default_region = G4RegionStore::GetInstance()->GetRegion(
-            "DefaultRegionForTheWorld");
-        // Underlying GVFastSimulationModel constructor handles ownership, so
-        // we must ignore the returned pointer...
-        new celeritas::FastSimulationModel(default_region);
-    }
+    void ConstructSDandField() final {}
 
   private:
     G4Material* aluminum_;
@@ -118,11 +107,56 @@ class RunAction final : public G4UserRunAction
   public:
     void BeginOfRunAction(G4Run const* run) final
     {
-        FastSimulationIntegration::Instance().BeginOfRunAction(run);
+        auto& uai = UserActionIntegration::Instance();
+        uai.BeginOfRunAction(run);
+
+        // Demonstrate offload mode query
+        using Mode = celeritas::OffloadMode;
+        auto msg = CELER_LOG(info);
+        msg << "Celeritas is ";
+        switch (uai.GetMode())
+        {
+            case Mode::disabled:
+                msg << "disabled: only Geant4 is tracking";
+                break;
+            case Mode::kill_offload:
+                msg << "killing EM tracks";
+                break;
+            case Mode::enabled:
+                msg << "active: EM tracks are sent from Geant4";
+                break;
+            default:
+                msg << "misbehaving, mode is unexpected!";
+        }
     }
     void EndOfRunAction(G4Run const* run) final
     {
-        FastSimulationIntegration::Instance().EndOfRunAction(run);
+        UserActionIntegration::Instance().EndOfRunAction(run);
+    }
+};
+
+//---------------------------------------------------------------------------//
+class EventAction final : public G4UserEventAction
+{
+  public:
+    void BeginOfEventAction(G4Event const* event) final
+    {
+        UserActionIntegration::Instance().BeginOfEventAction(event);
+    }
+
+    void EndOfEventAction(G4Event const* event) final
+    {
+        UserActionIntegration::Instance().EndOfEventAction(event);
+    }
+};
+
+//---------------------------------------------------------------------------//
+class TrackingAction final : public G4UserTrackingAction
+{
+    void PreUserTrackingAction(G4Track const* track) final
+    {
+        UserActionIntegration::Instance().PreUserTrackingAction(
+            const_cast<G4Track*>(track));
     }
 };
 
@@ -130,22 +164,13 @@ class RunAction final : public G4UserRunAction
 class ActionInitialization final : public G4VUserActionInitialization
 {
   public:
-    void BuildForMaster() const final
-    {
-        FastSimulationIntegration::Instance().BuildForMaster();
-
-        CELER_LOG_LOCAL(status) << "Constructing user actions";
-
-        this->SetUserAction(new RunAction{});
-    }
+    void BuildForMaster() const final { this->SetUserAction(new RunAction{}); }
     void Build() const final
     {
-        FastSimulationIntegration::Instance().Build();
-
-        CELER_LOG_LOCAL(status) << "Constructing user actions";
-
         this->SetUserAction(new PrimaryGeneratorAction{});
         this->SetUserAction(new RunAction{});
+        this->SetUserAction(new EventAction{});
+        this->SetUserAction(new TrackingAction{});
     }
 };
 
@@ -156,23 +181,32 @@ class ActionInitialization final : public G4VUserActionInitialization
 celeritas::SetupOptions MakeOptions()
 {
     celeritas::SetupOptions opts;
+
+    opts.make_along_step = celeritas::UniformAlongStepFactory();
+
+    // NOTE: since no SD is enabled, we must manually disable Celeritas hit
+    // processing
+    opts.sd.enabled = false;
+
     // NOTE: these numbers are appropriate for CPU execution
     opts.max_num_tracks = 2024;
     opts.initializer_capacity = 2024 * 128;
     // Celeritas does not support EmStandard MSC physics above 200 MeV
     opts.ignore_processes = {"CoulombScat"};
 
-    // NOTE: since no SD is enabled, we must manually disable Celeritas hit
-    // processing
-    opts.sd.enabled = false;
+    // Save GDML file
+    if (G4VERSION_NUMBER >= 1070)
+    {
+        opts.geometry_output_file = "simple-offload.gdml";
+    }
+    else
+    {
+        CELER_LOG(info) << "Not setting simple offload: older versions of "
+                           "Geant4 may fail on CI due to files stepping on "
+                           "each other";
+    }
 
-    // Use a uniform (zero) magnetic field
-    opts.make_along_step = celeritas::UniformAlongStepFactory();
-
-    // Export a GDML file with the problem setup and SDs
-    opts.geometry_output_file = "simple-example.gdml";
-    // Save diagnostic file to a unique name
-    opts.output_file = "fastsim-offload.out.json";
+    opts.output_file = "simple-offload.out.json";
     return opts;
 }
 
@@ -182,7 +216,7 @@ celeritas::SetupOptions MakeOptions()
 int main()
 {
     auto run_manager = [] {
-#if G4VERSION_NUMBER >= 1200
+#if G4VERSION_NUMBER >= 1100
         return std::unique_ptr<G4RunManager>{
             G4RunManagerFactory::CreateRunManager()};
 #else
@@ -191,21 +225,10 @@ int main()
     }();
 
     run_manager->SetUserInitialization(new DetectorConstruction{});
-
-    // We must add support for fast simulation models to the Physics List
-    // NOTE: we have to explicitly name the particles and this should be a
-    // superset of what Celeritas can offload
-    auto physics_list = new FTFP_BERT{/* verbosity = */ 0};
-    auto fast_physics = new G4FastSimulationPhysics();
-    fast_physics->ActivateFastSimulation("e-");
-    fast_physics->ActivateFastSimulation("e+");
-    fast_physics->ActivateFastSimulation("gamma");
-    physics_list->RegisterPhysics(fast_physics);
-    run_manager->SetUserInitialization(physics_list);
-
+    run_manager->SetUserInitialization(new FTFP_BERT{/* verbosity = */ 0});
     run_manager->SetUserInitialization(new ActionInitialization());
 
-    FastSimulationIntegration::Instance().SetOptions(MakeOptions());
+    UserActionIntegration::Instance().SetOptions(MakeOptions());
 
     run_manager->Initialize();
     run_manager->BeamOn(2);

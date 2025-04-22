@@ -144,7 +144,7 @@ celeritas_add_test(univ/detail/SenseCalculator.test.cc)
 if(_use_g4org)
   celeritas_add_test(g4org/Converter.test.cc)
   celeritas_add_test(g4org/SolidConverter.test.cc
-    LINK_LIBRARIES Celeritas::ExtGeant4Geo Celeritas::celeritas)
+    LINK_LIBRARIES Celeritas::ExtGeant4Geo)
   celeritas_add_test(g4org/PhysicalVolumeConverter.test.cc)
   celeritas_add_test(g4org/ProtoConstructor.test.cc)
   celeritas_add_test(g4org/Transformer.test.cc

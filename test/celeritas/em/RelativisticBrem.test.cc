@@ -184,7 +184,7 @@ TEST_F(RelativisticBremTest, basic_without_lpm)
 
     // Production cuts
     auto material_view = this->material_track().material_record();
-    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
+    auto cutoffs = this->cutoff_params()->get(PhysMatId{0});
 
     // Create the interactor
     RelativisticBremInteractor interact(model_->host_ref(),
@@ -249,7 +249,7 @@ TEST_F(RelativisticBremTest, basic_with_lpm)
 
     // Production cuts
     auto material_view = this->material_track().material_record();
-    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
+    auto cutoffs = this->cutoff_params()->get(PhysMatId{0});
 
     // Create the interactor
     RelativisticBremInteractor interact(model_lpm_->host_ref(),
@@ -306,7 +306,7 @@ TEST_F(RelativisticBremTest, stress_with_lpm)
 
     // Production cuts
     auto material_view = this->material_track().material_record();
-    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
+    auto cutoffs = this->cutoff_params()->get(PhysMatId{0});
 
     // Create the interactor
     RelativisticBremInteractor interact(model_lpm_->host_ref(),

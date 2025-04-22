@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/Steppers.test.cc
+//! \file celeritas/field/Integrators.test.cc
 //---------------------------------------------------------------------------//
 
 #include "corecel/Config.hh"
@@ -14,13 +14,13 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Units.hh"
-#include "celeritas/field/DormandPrinceStepper.hh"
+#include "celeritas/field/DormandPrinceIntegrator.hh"
 #include "celeritas/field/MagFieldEquation.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
-#include "celeritas/field/RungeKuttaStepper.hh"
+#include "celeritas/field/RungeKuttaIntegrator.hh"
 #include "celeritas/field/UniformField.hh"
 #include "celeritas/field/UniformZField.hh"
-#include "celeritas/field/ZHelixStepper.hh"
+#include "celeritas/field/ZHelixIntegrator.hh"
 
 #include "FieldTestParams.hh"
 #include "celeritas_test.hh"
@@ -29,7 +29,7 @@ namespace celeritas
 {
 namespace test
 {
-struct StepperTestOutput
+struct IntegratorTestOutput
 {
     std::vector<real_type> pos_x;
     std::vector<real_type> pos_z;
@@ -42,7 +42,7 @@ struct StepperTestOutput
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class SteppersTest : public Test
+class IntegratorsTest : public Test
 {
   protected:
     void SetUp() override
@@ -76,11 +76,11 @@ class SteppersTest : public Test
         param.epsilon = 1.0e-5;  //! tolerance error
     }
 
-    template<class FieldT, template<class> class StepperT>
-    void run_stepper(FieldT const& field)
+    template<class FieldT, template<class> class IntegratorT>
+    void run_integration(FieldT const& field)
     {
-        // Construct a stepper for testing
-        auto stepper = make_mag_field_stepper<StepperT>(
+        // Construct a integrate for testing
+        auto integrate = make_mag_field_integrator<IntegratorT>(
             field, units::ElementaryCharge{-1});
         // Test parameters and the sub-step size
         real_type hstep = 2 * constants::pi * param.radius / param.nsteps;
@@ -94,7 +94,8 @@ class SteppersTest : public Test
 
             OdeState expected_y = y;
 
-            // Try the stepper by hstep for (num_revolutions * num_steps) times
+            // Try the integrate by hstep for (num_revolutions * num_steps)
+            // times
             real_type total_err2 = 0;
             for (int nr : range(param.revolutions))
             {
@@ -103,7 +104,7 @@ class SteppersTest : public Test
                                     + i * real_type{1e-6};
                 for ([[maybe_unused]] int j : range(param.nsteps))
                 {
-                    FieldStepperResult result = stepper(hstep, y);
+                    FieldIntegration result = integrate(hstep, y);
                     y = result.end_state;
 
                     total_err2
@@ -118,9 +119,9 @@ class SteppersTest : public Test
         }
     }
 
-    void check_result(StepperTestOutput const& output)
+    void check_result(IntegratorTestOutput const& output)
     {
-        // Check gpu stepper results
+        // Check gpu integrate results
         real_type zstep = param.delta_z * param.revolutions;
         for (auto i : range(output.pos_x.size()))
         {
@@ -141,33 +142,33 @@ class SteppersTest : public Test
 //---------------------------------------------------------------------------//
 // HOST TESTS
 //---------------------------------------------------------------------------//
-TEST_F(SteppersTest, host_helix)
+TEST_F(IntegratorsTest, host_helix)
 {
     // Construct a uniform magnetic field along Z axis
     UniformZField field(param.field_value);
 
-    // Test the analytical ZHelix stepper
-    this->run_stepper<UniformZField, ZHelixStepper>(field);
+    // Test the analytical ZHelix integrate
+    this->run_integration<UniformZField, ZHelixIntegrator>(field);
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(SteppersTest, host_classical_rk4)
+TEST_F(IntegratorsTest, host_classical_rk4)
 {
     // Construct a uniform magnetic field
     UniformField field({0, 0, param.field_value});
 
-    // Test the classical 4th order Runge-Kutta stepper
-    this->run_stepper<UniformField, RungeKuttaStepper>(field);
+    // Test the classical 4th order Runge-Kutta integrate
+    this->run_integration<UniformField, RungeKuttaIntegrator>(field);
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(SteppersTest, host_dormand_prince_547)
+TEST_F(IntegratorsTest, host_dormand_prince_547)
 {
     // Construct a uniform magnetic field
     UniformField field({0, 0, param.field_value});
 
-    // Test the Dormand-Prince 547(M) stepper
-    this->run_stepper<UniformField, DormandPrinceStepper>(field);
+    // Test the Dormand-Prince 547(M) integrate
+    this->run_integration<UniformField, DormandPrinceIntegrator>(field);
 }  //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

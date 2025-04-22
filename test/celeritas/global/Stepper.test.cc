@@ -187,7 +187,7 @@ TEST_F(SimpleComptonTest, fail_initialize)
 
         static char const* const expected_log_messages[] = {
             "Track started outside the geometry",
-            R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":false,"is_outside":true,"pos":[[1001.0,0.0,0.0],"cm"]},"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":0,"parent_id":-1,"post_step_action":"tracking-cut","status":"errored","step_length":[0.0,"cm"],"time":[0.0,"s"],"track_id":15},"thread_id":31,"track_slot_id":31}: depositing 100 MeV)",
+            R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":false,"is_outside":true,"pos":[[1001.0,0.0,0.0],"cm"]},"mat":null,"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":0,"parent_id":-1,"post_step_action":"tracking-cut","status":"errored","step_length":[0.0,"cm"],"time":[0.0,"s"],"track_id":15},"thread_id":31,"track_slot_id":31}: depositing 100 MeV)",
         };
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
             && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
@@ -308,8 +308,8 @@ TEST_F(SimpleComptonTest, kill_active)
     {
         static char const* const expected_log_messages[] = {
             "Killing 2 active tracks",
-            R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":true,"is_outside":false,"pos":[[-5.0,0.0,0.0],"cm"],"volume_id":"inner@world"},"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":1,"parent_id":-1,"post_step_action":"tracking-cut","status":"errored","step_length":[17.0,"cm"],"time":[0.25,"s"],"track_id":0},"thread_id":6,"track_slot_id":6}: lost 100 MeV)",
-            R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":true,"is_outside":false,"pos":[[-5.0,0.0,0.0],"cm"],"volume_id":"inner@world"},"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":1,"parent_id":-1,"post_step_action":"tracking-cut","status":"errored","step_length":[17.0,"cm"],"time":[0.25,"s"],"track_id":1},"thread_id":7,"track_slot_id":7}: lost 100 MeV)",
+            R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":true,"is_outside":false,"pos":[[-5.0,0.0,0.0],"cm"],"volume_id":"inner@world"},"mat":"Al","particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":1,"parent_id":-1,"post_step_action":"tracking-cut","status":"errored","step_length":[17.0,"cm"],"time":[0.25,"s"],"track_id":0},"thread_id":6,"track_slot_id":6}: lost 100 MeV)",
+            R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":true,"is_outside":false,"pos":[[-5.0,0.0,0.0],"cm"],"volume_id":"inner@world"},"mat":"Al","particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":1,"parent_id":-1,"post_step_action":"tracking-cut","status":"errored","step_length":[17.0,"cm"],"time":[0.25,"s"],"track_id":1},"thread_id":7,"track_slot_id":7}: lost 100 MeV)",
         };
         EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages())
             << scoped_log;
@@ -408,12 +408,10 @@ TEST_F(BadGeometryTest, no_volume_host)
 {
     auto scoped_log = this->run_one_failure<MemSpace::host>({-5, 0, 0});
 
-    // clang-format off
     static char const* const expected_log_messages[] = {
-        "Failed to initialize geometry state: could not find associated volume in universe 0 at local position {-5, 0, 0}",
-        R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":false,"is_outside":true,"pos":[[-5.0,0.0,0.0],"cm"]},"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":0,"parent_id":-1,"post_step_action":"tracking-cut","status":"errored","step_length":[0.0,"cm"],"time":[0.0,"s"],"track_id":0},"thread_id":0,"track_slot_id":0}: depositing 100 MeV)",
+        R"(Failed to initialize geometry state: could not find associated volume in universe 0 at local position {-5, 0, 0})",
+        R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":false,"is_outside":true,"pos":[[-5.0,0.0,0.0],"cm"]},"mat":null,"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":0,"parent_id":-1,"post_step_action":"tracking-cut","status":"errored","step_length":[0.0,"cm"],"time":[0.0,"s"],"track_id":0},"thread_id":0,"track_slot_id":0}: depositing 100 MeV)",
     };
-    // clang-format on
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
         && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
@@ -430,11 +428,10 @@ TEST_F(BadGeometryTest, no_material_host)
 
     static char const* const expected_log_messages[] = {
         "Track started in an unknown material",
-        R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":false,"is_outside":false,"pos":[[5.0,0.0,0.0],"cm"],"volume_id":"[missing material]@world"},"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":0,"parent_id":-1,"post_step_action":"tracking-cut","status":"errored","step_length":[0.0,"cm"],"time":[0.0,"s"],"track_id":0},"thread_id":0,"track_slot_id":0}: lost 100 MeV)",
+        R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":false,"is_outside":false,"pos":[[5.0,0.0,0.0],"cm"],"volume_id":"[missing material]@world"},"mat":"<invalid>","particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":0,"parent_id":-1,"post_step_action":"tracking-cut","status":"errored","step_length":[0.0,"cm"],"time":[0.0,"s"],"track_id":0},"thread_id":0,"track_slot_id":0}: lost 100 MeV)",
     };
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
-        && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
         EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages());
     }
@@ -448,7 +445,7 @@ TEST_F(BadGeometryTest, no_new_volume_host)
     static char const* const expected_log_messages[] = {
         "track failed to cross local surface 2 in universe 0 at local "
         "position {-6, 0, 0} along local direction {1, 0, 0}",
-        R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":true,"is_outside":true,"pos":[[-6.0,0.0,0.0],"cm"]},"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":1,"parent_id":-1,"post_step_action":"tracking-cut","status":"errored","step_length":[0.001000000000000334,"cm"],"time":[3.335640951982634e-14,"s"],"track_id":0},"thread_id":0,"track_slot_id":0}: depositing 100 MeV)",
+        R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":true,"is_outside":true,"pos":[[-6.0,0.0,0.0],"cm"]},"mat":null,"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":1,"parent_id":-1,"post_step_action":"tracking-cut","status":"errored","step_length":[0.0010,"cm"],"time":[3.3356e-14,"s"],"track_id":0},"thread_id":0,"track_slot_id":0}: depositing 100 MeV)",
     };
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
@@ -466,7 +463,7 @@ TEST_F(BadGeometryTest, start_outside_host)
 
     static char const* const expected_log_messages[] = {
         "Track started outside the geometry",
-        R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":false,"is_outside":true,"pos":[[20.0,0.0,0.0],"cm"]},"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":0,"parent_id":-1,"post_step_action":"tracking-cut","status":"errored","step_length":[0.0,"cm"],"time":[0.0,"s"],"track_id":0},"thread_id":0,"track_slot_id":0}: depositing 100 MeV)",
+        R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":false,"is_outside":true,"pos":[[20.0,0.0,0.0],"cm"]},"mat":null,"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":0,"parent_id":-1,"post_step_action":"tracking-cut","status":"errored","step_length":[0.0,"cm"],"time":[0.0,"s"],"track_id":0},"thread_id":0,"track_slot_id":0}: depositing 100 MeV)",
     };
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE

@@ -25,7 +25,8 @@ class CoreParams;
  *
  * This implements common functionality for the Celeritas integration classes.
  * The \c GetParams and \c GetState methods may only be used during a run with
- * Celeritas offloading enabled.
+ * Celeritas offloading enabled. It cannot be accessed before the run manager
+ * is created (this requirement may be relaxed in the future).
  *
  * \sa celeritas::UserActionIntegration
  * \sa celeritas::TrackingManagerIntegration
@@ -42,11 +43,11 @@ class IntegrationBase
     // Set options before starting the run
     void SetOptions(SetupOptions&& opts);
 
-    // Initialize during ActionInitialization on non-worker thread
-    void BuildForMaster();
+    // REMOVE in v0.7
+    [[deprecated]] void BuildForMaster() {}
 
-    // Initialize during ActionInitialization
-    void Build();
+    // REMOVE in v0.7
+    [[deprecated]] void Build() {}
 
     // Start the run
     virtual void BeginOfRunAction(G4Run const* run) = 0;
@@ -63,7 +64,7 @@ class IntegrationBase
     CoreStateInterface& GetState();
 
   protected:
-    IntegrationBase() = default;
+    IntegrationBase();
     ~IntegrationBase() = default;
     CELER_DEFAULT_COPY_MOVE(IntegrationBase);
 };

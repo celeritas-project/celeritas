@@ -32,17 +32,18 @@ class MaterialView
     //!@{
     //! \name Type aliases
     using MaterialParamsRef = NativeCRef<MaterialParamsData>;
+    using MatId = PhysMatId;
     //!@}
 
   public:
     // Construct from params and material ID
     inline CELER_FUNCTION
-    MaterialView(MaterialParamsRef const& params, MaterialId id);
+    MaterialView(MaterialParamsRef const& params, MatId id);
 
     //// MATERIAL DATA ////
 
     // ID of this Material
-    CELER_FORCEINLINE_FUNCTION MaterialId material_id() const;
+    CELER_FORCEINLINE_FUNCTION MatId material_id() const;
 
     // Number density [1/len^3]
     CELER_FORCEINLINE_FUNCTION real_type number_density() const;
@@ -54,7 +55,7 @@ class MaterialView
     CELER_FORCEINLINE_FUNCTION MatterState matter_state() const;
 
     // ID of the optical properties for this material, if any
-    CELER_FORCEINLINE_FUNCTION OpticalMaterialId optical_material_id() const;
+    CELER_FORCEINLINE_FUNCTION OptMatId optical_material_id() const;
 
     //// ELEMENT ACCESS ////
 
@@ -97,7 +98,7 @@ class MaterialView
 
   private:
     MaterialParamsRef const& params_;
-    MaterialId material_;
+    MatId material_;
 
     // HELPER FUNCTIONS
 
@@ -111,7 +112,7 @@ class MaterialView
  * Construct from dynamic and static particle properties.
  */
 CELER_FUNCTION
-MaterialView::MaterialView(MaterialParamsRef const& params, MaterialId id)
+MaterialView::MaterialView(MaterialParamsRef const& params, MatId id)
     : params_(params), material_(id)
 {
     CELER_EXPECT(id < params.materials.size());
@@ -121,7 +122,7 @@ MaterialView::MaterialView(MaterialParamsRef const& params, MaterialId id)
 /*!
  * Get the material id being viewed.
  */
-CELER_FUNCTION MaterialId MaterialView::material_id() const
+CELER_FUNCTION auto MaterialView::material_id() const -> MatId
 {
     return material_;
 }
@@ -160,7 +161,7 @@ CELER_FUNCTION MatterState MaterialView::matter_state() const
  * This will return an invalid ID if the material has no optical properties
  * attached.
  */
-CELER_FUNCTION OpticalMaterialId MaterialView::optical_material_id() const
+CELER_FUNCTION OptMatId MaterialView::optical_material_id() const
 {
     if (params_.optical_id.empty())
     {

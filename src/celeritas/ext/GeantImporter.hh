@@ -47,6 +47,9 @@ struct GeantImportDataSelection
 
     // TODO expand/set reader flags automatically based on loaded processes
     bool reader_data = true;
+
+    //! Linear (default) or spline interpolation (for grids that support it)
+    inp::Interpolation interpolation{};
 };
 
 //---------------------------------------------------------------------------//

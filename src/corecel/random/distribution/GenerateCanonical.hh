@@ -26,28 +26,45 @@ template<class Generator>
 inline CELER_FUNCTION real_type generate_canonical(Generator& g);
 
 //---------------------------------------------------------------------------//
+//! Implementation of each GenerateCanonical, used for CachedRngEngine
+enum class GenerateCanonicalPolicy
+{
+    std,  //!< Use standard library
+    builtin32,  //!< Use detail::GenerateCanonical32
+    builtin64,  //!< Use detail::GenerateCanonical64 (not yet implemented)
+    custom,  //!< Custom method
+    size_
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Generate random numbers in [0, 1).
  *
  * This is essentially an implementation detail; partial specialization can be
  * used to sample using special functions with a given generator.
+ *
+ * \todo For 1.0 refactor so that if RNGs have a builtin policy we call our
+ * builtin functions; if they have a custom we call a function on the RNG
+ * itself; and if they don't define a policy (e.g. a standard library
+ * one) we fall back to calling std::generate_canonical.
  */
 template<class Generator, class RealType = ::celeritas::real_type>
-class GenerateCanonical
+struct GenerateCanonical
 {
     static_assert(std::is_floating_point<RealType>::value,
                   "RealType must be float or double");
 
-  public:
     //!@{
     //! \name Type aliases
     using real_type = RealType;
     using result_type = real_type;
     //!@}
 
-  public:
+    //! By default use standard library
+    static constexpr auto policy = GenerateCanonicalPolicy::std;
+
     // Sample a random number
-    result_type operator()(Generator& rng);
+    inline result_type operator()(Generator& rng);
 };
 
 //---------------------------------------------------------------------------//

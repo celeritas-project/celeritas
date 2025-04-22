@@ -6,8 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Range.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "celeritas/RootTestBase.hh"
+#include "corecel/random/Histogram.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/RootTestBase.hh"
 #include "celeritas/em/distribution/MuPPEnergyDistribution.hh"
 #include "celeritas/em/interactor/MuPairProductionInteractor.hh"
 #include "celeritas/em/model/MuPairProductionModel.hh"
@@ -118,7 +119,7 @@ class MuPairProductionTest : public InteractorHostBase,  public RootTestBase
 TEST_F(MuPairProductionTest, distribution)
 {
     int num_samples = 10000;
-    int num_bins = 12;
+    int num_bins = 8;
 
     real_type two_me
         = 2 * value_as<units::MevMass>(model_->host_ref().electron_mass);
@@ -128,11 +129,11 @@ TEST_F(MuPairProductionTest, distribution)
         ElementComponentId{0});
 
     // Get the production cuts
-    auto cutoff = this->cutoff_params()->get(MaterialId{0});
+    auto cutoff = this->cutoff_params()->get(PhysMatId{0});
 
     RandomEngine& rng = InteractorHostBase::rng();
 
-    std::vector<int> counters;
+    std::vector<std::vector<double>> loge_pdf;
     std::vector<real_type> min_energy;
     std::vector<real_type> max_energy;
     std::vector<real_type> avg_energy;
@@ -148,33 +149,65 @@ TEST_F(MuPairProductionTest, distribution)
 
         real_type sum_energy = 0;
         real_type energy_fraction = 0;
-        std::vector<int> count(num_bins);
+        Histogram histogram(num_bins, {std::log(min), std::log(max)});
         for ([[maybe_unused]] int i : range(num_samples))
         {
             // TODO: test energy partition
-            auto energy = sample(rng);
-            auto r = value_as<MevEnergy>(energy.electron + energy.positron);
-            ASSERT_GE(r, min);
-            ASSERT_LE(r, max);
-            int bin = int(std::log(r / min) / std::log(max / min) * num_bins);
-            CELER_ASSERT(bin >= 0 && bin < num_bins);
-            ++count[bin];
-            sum_energy += r;
-            energy_fraction += value_as<MevEnergy>(energy.electron) / r;
+            auto e = sample(rng);
+            auto e_pair = value_as<MevEnergy>(e.electron + e.positron);
+            histogram(std::log(e_pair));
+            sum_energy += e_pair;
+            energy_fraction += value_as<MevEnergy>(e.electron) / e_pair;
         }
-        counters.insert(counters.end(), count.begin(), count.end());
+        EXPECT_FALSE(histogram.underflow() || histogram.overflow());
+        loge_pdf.push_back(histogram.calc_density());
         min_energy.push_back(min);
         max_energy.push_back(max);
         avg_energy.push_back(sum_energy / num_samples);
         avg_energy_fraction.push_back(energy_fraction / num_samples);
     }
 
-    static int const expected_counters[] = {
-        152, 1046, 2143, 2684, 2053, 1123, 521,  200, 60,  13, 5, 0,
-        270, 933,  1871, 2496, 2099, 1514, 533,  212, 52,  15, 5, 0,
-        208, 811,  1610, 2146, 2099, 1667, 946,  387, 101, 20, 3, 2,
-        203, 782,  1564, 1987, 2016, 1717, 1057, 488, 162, 16, 8, 0,
-        197, 767,  1548, 1948, 1966, 1607, 1115, 605, 200, 43, 4, 0,
+    static std::vector<double> const expected_loge_pdf[] = {
+        {0.059504749208598,
+         0.34955979216162,
+         0.46905904160111,
+         0.24842620605812,
+         0.077258223766719,
+         0.018365663335987,
+         0.001959004089172,
+         0.0002448755111465},
+        {0.055817273482315,
+         0.21269962586766,
+         0.32110218673081,
+         0.21252492391623,
+         0.059835418365236,
+         0.0097833092801554,
+         0.0017470195143135,
+         0},
+        {0.036907454803994,
+         0.14616744836525,
+         0.22576220466896,
+         0.18593000816352,
+         0.084887146049187,
+         0.01497189204313,
+         0.001601644265079,
+         0.00013927341435469},
+        {0.030275229852726,
+         0.11756300940896,
+         0.17445956206322,
+         0.15729199877508,
+         0.079399980207627,
+         0.019603501322263,
+         0.0012759675416858,
+         0.00011599704924416},
+        {0.026490549171373,
+         0.09835796774887,
+         0.14607077676298,
+         0.12832757591085,
+         0.073805751443695,
+         0.021619866584517,
+         0.0022862387652592,
+         4.9700842723027e-05},
     };
     static double const expected_min_energy[] = {
         1.0219978922,
@@ -204,7 +237,7 @@ TEST_F(MuPairProductionTest, distribution)
         0.50543111979394,
         0.50102592402615,
     };
-    EXPECT_VEC_EQ(expected_counters, counters);
+    EXPECT_VEC_SOFT_EQ(expected_loge_pdf, loge_pdf);
     EXPECT_VEC_SOFT_EQ(expected_min_energy, min_energy);
     EXPECT_VEC_SOFT_EQ(expected_max_energy, max_energy);
     EXPECT_VEC_SOFT_EQ(expected_avg_energy, avg_energy);
@@ -222,7 +255,7 @@ TEST_F(MuPairProductionTest, basic)
         ElementComponentId{0});
 
     // Get the production cuts
-    auto cutoff = this->cutoff_params()->get(MaterialId{0});
+    auto cutoff = this->cutoff_params()->get(PhysMatId{0});
 
     // Create the interactor
     MuPairProductionInteractor interact(model_->host_ref(),
@@ -292,7 +325,7 @@ TEST_F(MuPairProductionTest, stress_test)
         ElementComponentId{0});
 
     // Get the production cuts
-    auto cutoff = this->cutoff_params()->get(MaterialId{0});
+    auto cutoff = this->cutoff_params()->get(PhysMatId{0});
 
     for (real_type inc_e : {1e3, 1e4, 1e5, 1e6, 1e7})
     {

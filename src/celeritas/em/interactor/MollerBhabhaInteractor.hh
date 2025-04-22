@@ -103,8 +103,6 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
 {
     CELER_EXPECT(particle.particle_id() == shared_.ids.electron
                  || particle.particle_id() == shared_.ids.positron);
-    CELER_EXPECT(inc_energy_
-                 > (inc_particle_is_electron_ ? 2 : 1) * electron_cutoff_);
 }
 
 //---------------------------------------------------------------------------//
@@ -117,6 +115,15 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
 {
+    if (inc_energy_ <= (inc_particle_is_electron_ ? 2 : 1) * electron_cutoff_)
+    {
+        /*!
+         * \todo Remove and replace with an assertion once material-dependent
+         * model bounds are supported
+         */
+        return Interaction::from_unchanged();
+    }
+
     // Allocate memory for the produced electron
     Secondary* electron_secondary = allocate_(1);
 

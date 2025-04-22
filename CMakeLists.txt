@@ -44,6 +44,7 @@ celeritas_optional_package(VecGeom "Use VecGeom geometry")
 option(CELERITAS_USE_Perfetto "Perfetto tracing library" OFF)
 
 # Components
+option(CELERITAS_BUILD_APPS "Build Celeritas executables (strongly recommended)" ON)
 option(CELERITAS_BUILD_DOCS "Build Celeritas documentation" OFF)
 option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" OFF)
 
@@ -82,6 +83,10 @@ if(CELERITAS_BUILD_TESTS)
   )
   mark_as_advanced(CELERITAS_TEST_XML)
 endif()
+
+# Automatic options
+set(CELERITAS_USE_CLI11 ${CELERITAS_BUILD_APPS})
+set(CELERITAS_USE_GTest ${CELERITAS_BUILD_TESTS})
 
 #----------------------------------------------------------------------------#
 # CELERITAS CORE IMPLEMENTATION OPTIONS
@@ -283,7 +288,9 @@ set(CELERITAS_RUNTIME_OUTPUT_DIRECTORY
 
 include(CeleritasUtils)
 
-celeritas_find_or_builtin_package(CLI11 2.4)
+if(CELERITAS_USE_CLI11)
+  celeritas_find_or_builtin_package(CLI11 2.4)
+endif()
 
 if(BUILD_TESTING)
   # Build the test tree for unit and/or app tests
@@ -309,6 +316,10 @@ elseif(CELERITAS_USE_HIP)
       CELERITAS_DEBUG
       OFF
     )
+  endif()
+  find_library(ROCTX_LIBRARY roctx64)
+  if(ROCTX_LIBRARY)
+    set(CELERITAS_HAVE_ROCTX ON)
   endif()
 endif()
 
@@ -497,13 +508,15 @@ if(CELERITAS_BUILD_DOCS)
   include(ExternalProject)
 endif()
 
-if(CELERITAS_BUILD_TESTS)
+if(CELERITAS_USE_GTest)
   celeritas_find_or_builtin_package(GTest 1.10)
 endif()
 
 #----------------------------------------------------------------------------#
-# System property: availability of sincospi and related functions:
-# All of: `^${CELERITAS_SINCOSPI_PREFIX}(sincos(pi)?|(sin|cos)pi)f?$`
+# System properties
+
+# Availability of sincospi and related functions: all comibinations of:
+# `^${CELERITAS_SINCOSPI_PREFIX}(sincos(pi)?|(sin|cos)pi)f?$`
 if(NOT DEFINED CELERITAS_SINCOSPI_PREFIX)
   foreach(_prefix "__" "_" "")
     try_compile(CELERITAS_TRY_${_prefix}SINCOSPI
@@ -559,10 +572,12 @@ if(CELERITAS_BUILD_TESTS)
 endif()
 
 #----------------------------------------------------------------------------#
-# APPLICATIONS AND BINARIES
+# APPLICATIONS AND USER EXECUTABLES
 #----------------------------------------------------------------------------#
 
-add_subdirectory(app)
+if(CELERITAS_BUILD_APPS)
+  add_subdirectory(app)
+endif()
 
 #----------------------------------------------------------------------------#
 # DOCUMENTATION

@@ -10,6 +10,8 @@
 
 #include "XsGridData.hh"
 
+#include "detail/GridUtils.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -17,7 +19,7 @@ namespace celeritas
  * Construct with a reference to mutable host data.
  */
 XsGridInserter::XsGridInserter(Values* reals, GridValues* grids)
-    : reals_(reals), grids_(grids)
+    : values_(reals), reals_(reals), grids_(grids)
 {
     CELER_EXPECT(reals && grids);
 }
@@ -26,70 +28,35 @@ XsGridInserter::XsGridInserter(Values* reals, GridValues* grids)
 /*!
  * Add a grid of physics xs data.
  */
-auto XsGridInserter::operator()(UniformGridData const& lower_grid,
-                                SpanConstDbl lower_values,
-                                UniformGridData const& upper_grid,
-                                SpanConstDbl upper_values) -> GridId
+auto XsGridInserter::operator()(inp::UniformGrid const& lower,
+                                inp::UniformGrid const& upper) -> GridId
 {
-    return this->insert(lower_grid, lower_values, upper_grid, upper_values);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Add a grid of physics xs data.
- */
-auto XsGridInserter::operator()(UniformGridData const& lower_grid,
-                                SpanConstFlt lower_values,
-                                UniformGridData const& upper_grid,
-                                SpanConstFlt upper_values) -> GridId
-{
-    return this->insert(lower_grid, lower_values, upper_grid, upper_values);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Add a grid of log-spaced data without 1/E scaling.
- */
-auto XsGridInserter::operator()(UniformGridData const& grid,
-                                SpanConstDbl values) -> GridId
-{
-    return (*this)(grid, values, UniformGridData{}, {});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Add a grid of log-spaced data without 1/E scaling.
- */
-auto XsGridInserter::operator()(UniformGridData const& grid,
-                                SpanConstFlt values) -> GridId
-{
-    return (*this)(grid, values, UniformGridData{}, {});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Add a grid of physics xs data.
- */
-template<class T>
-auto XsGridInserter::insert(UniformGridData const& lower_grid,
-                            Span<T const> lower_values,
-                            UniformGridData const& upper_grid,
-                            Span<T const> upper_values) -> GridId
-{
-    CELER_EXPECT(lower_grid || upper_grid);
-    CELER_EXPECT(!lower_grid || lower_grid.size == lower_values.size());
-    CELER_EXPECT(!upper_grid || upper_grid.size == upper_values.size());
+    CELER_EXPECT(lower || upper);
 
     XsGridRecord grid;
-    grid.lower.grid = lower_grid;
-    grid.upper.grid = upper_grid;
-    grid.lower.value
-        = reals_.insert_back(lower_values.begin(), lower_values.end());
-    grid.upper.value
-        = reals_.insert_back(upper_values.begin(), upper_values.end());
-
+    if (lower)
+    {
+        grid.lower.grid = UniformGridData::from_bounds(lower.x, lower.y.size());
+        grid.lower.value = reals_.insert_back(lower.y.begin(), lower.y.end());
+        detail::set_spline(values_, reals_, lower.interpolation, grid.lower);
+    }
+    if (upper)
+    {
+        grid.upper.grid = UniformGridData::from_bounds(upper.x, upper.y.size());
+        grid.upper.value = reals_.insert_back(upper.y.begin(), upper.y.end());
+        detail::set_spline(values_, reals_, upper.interpolation, grid.upper);
+    }
     CELER_ENSURE(grid);
     return grids_.push_back(grid);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add a grid of log-spaced data without 1/E scaling.
+ */
+auto XsGridInserter::operator()(inp::UniformGrid const& grid) -> GridId
+{
+    return (*this)(grid, {});
 }
 
 //---------------------------------------------------------------------------//

@@ -76,14 +76,6 @@ celeritas_target_link_libraries(celer-export-geant
   celer_app_utils
 )
 
-# Reader
-celeritas_add_executable(celer-dump-data celer-dump-data.cc)
-celeritas_target_link_libraries(celer-dump-data
-  Celeritas::celeritas
-  CLI11::CLI11
-  celer_app_utils
-)
-
 add_subdirectory(celer-sim)
 add_subdirectory(celer-g4)
 add_subdirectory(celer-geo)
@@ -109,17 +101,6 @@ add_test(NAME "app/celer-export-geant"
 set_tests_properties("app/celer-export-geant" PROPERTIES
   ENVIRONMENT "${CELER_G4ENV}"
   REQUIRED_FILES "${_geant_test_inp}"
-  LABELS "app"
-  ${_needs_g4_root}
-)
-
-add_test(NAME "app/celer-dump-data"
-  COMMAND "$<TARGET_FILE:celer-dump-data>"
-    "test-data.root"
-)
-set_tests_properties("app/celer-dump-data" PROPERTIES
-  DEPENDS "app/celer-export-geant"
-  REQUIRED_FILES "test-data.root"
   LABELS "app"
   ${_needs_g4_root}
 )

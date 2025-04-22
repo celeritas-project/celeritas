@@ -12,7 +12,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Contruct with the tridiagonal matrix coefficients.
+ * Construct with the tridiagonal matrix coefficients.
  */
 TridiagonalSolver::TridiagonalSolver(Coeffs&& tridiag)
     : tridiag_{std::move(tridiag)}

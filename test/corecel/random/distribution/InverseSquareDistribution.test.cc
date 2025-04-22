@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "corecel/random/distribution/InverseSquareDistribution.hh"
 
+#include "corecel/random/Histogram.hh"
+
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -23,20 +25,17 @@ TEST(InverseSquareDistributionTest, bin)
     InverseSquareDistribution<double> sample_esq{min, max};
     std::mt19937 rng;
 
-    std::vector<int> counters(10);
+    Histogram histogram(10, {0, 10});
     for ([[maybe_unused]] int i : range(num_samples))
     {
-        double r = sample_esq(rng);
-        ASSERT_GE(r, min);
-        ASSERT_LE(r, max);
-        int bin = int(1.0 / r);
-        CELER_ASSERT(bin >= 0 && bin < static_cast<int>(counters.size()));
-        ++counters[bin];
+        histogram(1.0 / sample_esq(rng));
     }
 
-    static int const expected_counters[]
+    static unsigned int const expected_counts[]
         = {0, 944, 1043, 959, 972, 1027, 1045, 981, 1009, 1020};
-    EXPECT_VEC_EQ(expected_counters, counters);
+    EXPECT_VEC_EQ(expected_counts, histogram.counts());
+    EXPECT_GE(histogram.min(), min);
+    EXPECT_LE(histogram.max(), max);
 }
 
 //---------------------------------------------------------------------------//
