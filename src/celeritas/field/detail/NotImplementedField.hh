@@ -28,7 +28,6 @@ class NotImplementedField
     using real_type = float;
     using Real3 = Array<celeritas::real_type, 3>;
     using FieldParamsRef = NativeCRef<CartMapFieldParamsData>;
-    using field_view_t = void;
     //!@}
 
   public:

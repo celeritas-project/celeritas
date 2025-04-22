@@ -31,7 +31,6 @@ class CartMapField
     using real_type = float;
     using Real3 = Array<celeritas::real_type, 3>;
     using FieldParamsRef = NativeCRef<CartMapFieldParamsData>;
-    using field_view_t = FieldParamsRef::view_t;
     //!@}
 
   public:
@@ -43,6 +42,7 @@ class CartMapField
     inline Real3 operator()(Real3 const& pos) const;
 
   private:
+    using field_view_t = FieldParamsRef::view_t;
     field_view_t const& field_;
 };
 
