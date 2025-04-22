@@ -18,6 +18,6 @@ namespace celeritas
 /*!
  * Dummy class for cartesian map magnetic field when no backend is available.
  */
-using CartMapField = NotImlementedField;
-}
+using CartMapField = NotImplementedField;
+}  // namespace celeritas
 #endif  // CELERITAS_USE_COVFIE

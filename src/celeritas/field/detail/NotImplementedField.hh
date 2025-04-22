@@ -18,7 +18,7 @@ namespace celeritas
 /*!
  * Dummy class for cartesian map magnetic field when no backend is available.
  */
-class NotImlementedField
+class NotImplementedField
 {
   public:
     //!@{
@@ -31,7 +31,7 @@ class NotImlementedField
 
   public:
     // Construct with the shared map data
-    inline CELER_FUNCTION explicit NotImlementedField(FieldParamsRef const&);
+    inline CELER_FUNCTION explicit NotImplementedField(FieldParamsRef const&);
 
     // Evaluate the magnetic field value for the given position
     CELER_FUNCTION
@@ -39,12 +39,12 @@ class NotImlementedField
 };
 
 CELER_FUNCTION
-NotImlementedField::NotImlementedField(FieldParamsRef const&)
+NotImplementedField::NotImplementedField(FieldParamsRef const&)
 {
     CELER_NOT_CONFIGURED("covfie");
 }
 
-CELER_FUNCTION auto NotImlementedField::operator()(Real3 const&) const -> Real3
+CELER_FUNCTION auto NotImplementedField::operator()(Real3 const&) const -> Real3
 {
     CELER_NOT_CONFIGURED("covfie");
 }
