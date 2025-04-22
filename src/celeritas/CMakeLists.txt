@@ -181,6 +181,9 @@ if(CELERITAS_USE_covfie)
   )
   list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_covfie>)
   list(APPEND PRIVATE_DEPS celeritas_covfie)
+else()
+  celeritas_polysource_append(SOURCES
+  alongstep/AlongStepCartMapFieldMscAction)
 endif()
 
 if(CELERITAS_USE_Geant4)
