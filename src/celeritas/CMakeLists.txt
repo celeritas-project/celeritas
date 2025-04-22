@@ -165,7 +165,7 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
 endif()
 
 if(CELERITAS_USE_covfie)
-  list(APPEND PRIVATE_DEPS ${_covfie_libs})
+  list(APPEND PRIVATE_DEPS Celeritas::Extcovfie)
   list(APPEND SOURCES
     field/detail/CartMapFieldParams.covfie.cc)
 endif()

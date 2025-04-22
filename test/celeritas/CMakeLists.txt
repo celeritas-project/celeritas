@@ -248,7 +248,7 @@ else()
 endif()
 
 celeritas_add_test(field/Fields.test.cc
-  LINK_LIBRARIES ${Extcovfie}
+  LINK_LIBRARIES Celeritas::Extcovfie
 )
 celeritas_add_test(field/Integrators.test.cc ${_fixme_cgs})
 celeritas_add_test(field/FieldSubstepper.test.cc ${_fixme_cgs})
