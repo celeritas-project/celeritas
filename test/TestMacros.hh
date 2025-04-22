@@ -119,4 +119,3 @@ using ::celeritas::testdetail::IsRefEq;
 }
 }  // namespace detail
 }  // namespace celeritas
-
