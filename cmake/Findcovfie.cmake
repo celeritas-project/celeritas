@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #[=======================================================================[.rst:
 
-FindCovfie
+Findcovfie
 ---------
 
 Find the Covfie magnetic field interpolation library.

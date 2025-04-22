@@ -41,12 +41,12 @@ class NotImlementedField
 CELER_FUNCTION
 NotImlementedField::NotImlementedField(FieldParamsRef const&)
 {
-    CELER_NOT_CONFIGURED("Covfie");
+    CELER_NOT_CONFIGURED("covfie");
 }
 
 CELER_FUNCTION auto NotImlementedField::operator()(Real3 const&) const -> Real3
 {
-    CELER_NOT_CONFIGURED("Covfie");
+    CELER_NOT_CONFIGURED("covfie");
 }
 
 //---------------------------------------------------------------------------//

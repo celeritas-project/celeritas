@@ -73,7 +73,7 @@ void BuildOutput::output(JsonPimpl* j) const
     {                                                      \
         deps[#NAME] = std::string(cmake::LOWER##_version); \
     }
-            CO_ADD_COND_VERS(COVFIE, Covfie, covfie);
+            CO_ADD_COND_VERS(COVFIE, covfie, covfie);
             CO_ADD_COND_VERS(CUDA, CUDA, cuda);
             CO_ADD_COND_VERS(CUDA, Thrust, thrust);
             CO_ADD_COND_VERS(GEANT4, CLHEP, clhep);

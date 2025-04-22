@@ -69,7 +69,7 @@ void CartMapFieldParams::ImplDeleter::operator()(Impl*) noexcept
 
 inline CartMapFieldParams::CartMapFieldParams(Input const&)
 {
-    CELER_NOT_CONFIGURED("Covfie");
+    CELER_NOT_CONFIGURED("covfie");
 }
 
 inline CartMapFieldParams::~CartMapFieldParams() = default;
@@ -77,13 +77,13 @@ inline CartMapFieldParams::~CartMapFieldParams() = default;
 //! Access field map data on the host
 inline auto CartMapFieldParams::host_ref() const -> HostRef const&
 {
-    CELER_NOT_CONFIGURED("Covfie");
+    CELER_NOT_CONFIGURED("covfie");
 }
 
 //! Access field map data on the device
 inline auto CartMapFieldParams::device_ref() const -> DeviceRef const&
 {
-    CELER_NOT_CONFIGURED("Covfie");
+    CELER_NOT_CONFIGURED("covfie");
 }
 #endif
 
