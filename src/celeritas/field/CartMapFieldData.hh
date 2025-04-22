@@ -8,8 +8,8 @@
 
 #include "corecel/Config.hh"
 
-#if CELERITAS_USE_COVFIE
-#    include "detail/CartMapFieldData.covfie.hh"
+#if CELERITAS_USE_COVFIE || __DOXYGEN__
+#    include "CartMapFieldData.covfie.hh"
 #else
 #    include "corecel/Types.hh"
 

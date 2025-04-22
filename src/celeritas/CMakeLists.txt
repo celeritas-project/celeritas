@@ -165,9 +165,22 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
 endif()
 
 if(CELERITAS_USE_covfie)
-  list(APPEND PRIVATE_DEPS Celeritas::Extcovfie)
-  list(APPEND SOURCES
-    field/detail/CartMapFieldParams.covfie.cc)
+  set(_celer_covfie_src
+    field/CartMapFieldParams.covfie.cc
+  )
+  celeritas_polysource_append(_celer_covfie_src
+    alongstep/AlongStepCartMapFieldMscAction)
+
+  celeritas_add_object_library(celeritas_covfie ${_celer_covfie_src})
+  celeritas_target_link_libraries(celeritas_covfie
+    PRIVATE
+      Celeritas::BuildFlags
+      Celeritas::geocel
+      ${_core_geo_deps}
+      Celeritas::Extcovfie
+  )
+  list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_covfie>)
+  list(APPEND PRIVATE_DEPS celeritas_covfie)
 endif()
 
 if(CELERITAS_USE_Geant4)
@@ -298,7 +311,6 @@ macro(celeritas_polysource filename_we)
   celeritas_polysource_append(SOURCES ${filename_we})
 endmacro()
 
-celeritas_polysource(alongstep/AlongStepCartMapFieldMscAction)
 celeritas_polysource(alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(alongstep/AlongStepNeutralAction)
 celeritas_polysource(alongstep/AlongStepUniformMscAction)

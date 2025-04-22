@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/field/CartMapFieldParams.covfie.cc
 //---------------------------------------------------------------------------//
-#include "../CartMapFieldParams.hh"
+#include "CartMapFieldParams.hh"
 
 #include <algorithm>
 #include <memory>
@@ -22,10 +22,12 @@
 #include "celeritas/field/CartMapFieldInput.hh"
 
 #include "CartMapField.covfie.hh"
-#include "CovfieFieldType.hh"
+
+#include "detail/CovfieFieldTraits.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 struct CartMapFieldParams::Impl
 {
   public:
@@ -43,7 +45,8 @@ struct CartMapFieldParams::Impl
                                            static_cast<size_type>(Axis::size_)};
             HyperslabIndexer const flat_index{dims};
 
-            using builder_t = CovfieFieldTrait<MemSpace::host>::builder_t;
+            using builder_t
+                = detail::CovfieFieldTraits<MemSpace::host>::builder_t;
 
             builder_t builder{covfie::make_parameter_pack(
                 builder_t::backend_t::configuration_t{
@@ -80,7 +83,7 @@ struct CartMapFieldParams::Impl
                 static_cast<field_real_type>((inp.num_z - 1)
                                              / (inp.max_z - inp.min_z)));
 
-            using field_t = CovfieFieldTrait<MemSpace::host>::field_t;
+            using field_t = detail::CovfieFieldTraits<MemSpace::host>::field_t;
             host.field = std::make_unique<field_t>(covfie::make_parameter_pack(
                 field_t::backend_t::configuration_t(affine_scale
                                                     * affine_translate),
@@ -126,12 +129,14 @@ CartMapFieldParams::CartMapFieldParams(Input const& inp)
 {
 }
 
+//---------------------------------------------------------------------------//
 //! Access field map data on the host
 auto CartMapFieldParams::host_ref() const -> HostRef const&
 {
     return impl_->host_ref_;
 }
 
+//---------------------------------------------------------------------------//
 //! Access field map data on the device
 auto CartMapFieldParams::device_ref() const -> DeviceRef const&
 {

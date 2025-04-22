@@ -14,6 +14,8 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * Dummy class for cartesian map magnetic field when no backend is available.
@@ -50,4 +52,5 @@ CELER_FUNCTION auto NotImplementedField::operator()(Real3 const&) const -> Real3
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

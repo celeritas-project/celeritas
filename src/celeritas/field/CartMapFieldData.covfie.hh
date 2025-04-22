@@ -15,7 +15,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 
-#include "CovfieFieldType.hh"
+#include "detail/CovfieFieldTraits.hh"
 
 namespace celeritas
 {
@@ -23,7 +23,7 @@ namespace celeritas
 template<MemSpace M>
 struct CartMapFieldParamsDataBase
 {
-    using field_t = CovfieFieldTrait<M>::field_t;
+    using field_t = detail::CovfieFieldTraits<M>::field_t;
     using view_t = field_t::view_t;
 
     FieldDriverOptions options;
@@ -72,8 +72,9 @@ struct CartMapFieldParamsData<Ownership::value, MemSpace::device>
     CartMapFieldParamsData& operator=(
         CartMapFieldParamsData<Ownership::value, MemSpace::host> const& other)
     {
-        if constexpr (!std::is_same_v<field_t,
-                                      CovfieFieldTrait<MemSpace::host>::field_t>)
+        if constexpr (!std::is_same_v<
+                          field_t,
+                          detail::CovfieFieldTraits<MemSpace::host>::field_t>)
         {
             field = std::make_unique<field_t>(covfie::make_parameter_pack(
                 other.field->backend().get_configuration(),

@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/detail/CovfieFieldType.hh
+//! \file celeritas/field/detail/CovfieFieldTraits.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -26,13 +26,15 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 //! Covfie field type
 template<MemSpace M>
-struct CovfieFieldTrait;
+struct CovfieFieldTraits;
 
 template<>
-struct CovfieFieldTrait<MemSpace::host>
+struct CovfieFieldTraits<MemSpace::host>
 {
     using storage_t = covfie::backend::array<covfie::vector::float3>;
     using storage_order_t
@@ -42,14 +44,14 @@ struct CovfieFieldTrait<MemSpace::host>
     using field_t = covfie::field<coordinates_transform_t>;
     using builder_t = covfie::field<storage_order_t>;
 
-    static Real3 output(field_t::output_t const& vec)
+    static Real3 to_array(field_t::output_t const& vec)
     {
         return {vec[0], vec[1], vec[2]};
     }
 };
 
 template<>
-struct CovfieFieldTrait<MemSpace::device>
+struct CovfieFieldTraits<MemSpace::device>
 {
     using float3 = covfie::vector::float3;
 #if CELERITAS_USE_CUDA
@@ -71,11 +73,12 @@ struct CovfieFieldTrait<MemSpace::device>
 
     using field_t = covfie::field<transformed_t>;
 
-    CELER_FUNCTION static Real3 output(field_t::output_t const& vec)
+    CELER_FUNCTION static Real3 to_array(field_t::output_t const& vec)
     {
         return {vec[0], vec[1], vec[2]};
     }
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

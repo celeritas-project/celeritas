@@ -54,7 +54,7 @@ class CartMapFieldParams final
     std::unique_ptr<Impl, ImplDeleter> impl_;
 };
 
-#if !CELERITAS_USE_COVFIE
+#if !(CELERITAS_USE_COVFIE || __DOXYGEN__)
 
 struct CartMapFieldParams::Impl
 {

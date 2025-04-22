@@ -8,14 +8,14 @@
 
 #include "corecel/Config.hh"
 
-#if CELERITAS_USE_COVFIE
-#    include "detail/CartMapField.covfie.hh"
+#if CELERITAS_USE_COVFIE || __DOXYGEN__
+#    include "CartMapField.covfie.hh"
 #else
 #    include "detail/NotImplementedField.hh"
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 //! Dummy class for cartesian map magnetic field when no backend is available.
-using CartMapField = NotImplementedField;
+using CartMapField = detail::NotImplementedField;
 }  // namespace celeritas
 #endif  // CELERITAS_USE_COVFIE
