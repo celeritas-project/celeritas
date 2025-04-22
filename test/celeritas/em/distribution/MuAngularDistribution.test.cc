@@ -6,10 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/em/distribution/MuAngularDistribution.hh"
 
-#include <random>
-
-#include "celeritas/Constants.hh"
-#include "celeritas/Units.hh"
+#include "corecel/random/HistogramSampler.hh"
+#include "celeritas/Quantities.hh"
 
 #include "celeritas_test.hh"
 

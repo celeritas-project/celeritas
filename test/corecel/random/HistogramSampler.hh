@@ -33,7 +33,9 @@ struct SampledHistogram
 };
 
 //---------------------------------------------------------------------------//
-//! Sampled distribution
+/*!
+ * Sample one or more distributions, returning a histogram.
+ */
 class HistogramSampler
 {
   public:
@@ -50,6 +52,11 @@ class HistogramSampler
     // Sample one distribution
     template<class DistributionT>
     inline SampledHistogram operator()(DistributionT&& sample_from);
+
+    // Sample one distribution, transforming the result to a single real number
+    template<class TransformT, class DistributionT>
+    inline SampledHistogram
+    operator()(TransformT&& transform, DistributionT&& sample_from);
 
   private:
     size_type num_bins_;
@@ -111,8 +118,23 @@ HistogramSampler::HistogramSampler(size_type num_bins,
 template<class DistributionT>
 SampledHistogram HistogramSampler::operator()(DistributionT&& sample_from)
 {
+    // Transform
+    return (*this)([](auto&& v) { return v; }, sample_from);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sample from and accumulate the given distribution using a transform.
+ */
+template<class TransformT, class DistributionT>
+SampledHistogram HistogramSampler::operator()(TransformT&& transform,
+                                              DistributionT&& sample_from)
+{
     Histogram hist{num_bins_, domain_};
-    accumulate_n(hist, sample_from, rng_, num_samples_);
+    accumulate_n([&hist, &transform](auto&& v) { hist(transform(v)); },
+                 sample_from,
+                 rng_,
+                 num_samples_);
     EXPECT_EQ(0, hist.underflow())
         << "Encountered values as low as " << hist.min();
     EXPECT_EQ(0, hist.overflow())

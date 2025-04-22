@@ -51,7 +51,7 @@ std::ostream& operator<<(std::ostream& os, SampledHistogram const& sh)
             expr1, expr2, val1.distribution, val2.distribution);
         if (!softeq_result)
         {
-            result.fail() << softeq_result;
+            result.fail() << softeq_result.message();
         }
     }
     else
