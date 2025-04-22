@@ -249,12 +249,12 @@ struct FVIT
 /*!
  * Check if type T is a container.
  */
-template<typename T, typename = void>
+template<class T, class = void>
 struct IsContainer : std::false_type
 {
 };
 
-template<typename T>
+template<class T>
 struct IsContainer<T, std::void_t<typename T::const_iterator>> : std::true_type
 {
 };
@@ -268,13 +268,13 @@ struct IsContainer<T[N]> : std::true_type
 /*!
  * Get the type of a container.
  */
-template<class T, typename = void>
+template<class T, class = void>
 struct ValueType
 {
     using type = typename T::value_type;
 };
 
-template<typename T, std::size_t N>
+template<class T, std::size_t N>
 struct ValueType<T[N]>
 {
     using type = T;
@@ -287,19 +287,19 @@ using ValueTypeT = typename ValueType<T>::type;
 /*!
  * Recursively get the underlying scalar type of a container.
  */
-template<typename T, typename = void>
+template<class T, class = void>
 struct ScalarValueType
 {
     using type = T;
 };
 
-template<typename T>
+template<class T>
 struct ScalarValueType<T, std::enable_if_t<IsContainer<T>::value>>
 {
     using type = typename ScalarValueType<ValueTypeT<T>>::type;
 };
 
-template<typename T>
+template<class T>
 using ScalarValueTypeT = typename ScalarValueType<T>::type;
 
 //---------------------------------------------------------------------------//
