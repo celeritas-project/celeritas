@@ -37,12 +37,12 @@ template<>
 struct CovfieFieldTraits<MemSpace::host>
 {
     using storage_t = covfie::backend::array<covfie::vector::float3>;
-    using storage_order_t
+    using dimensioned_t
         = covfie::backend::strided<covfie::vector::size3, storage_t>;
-    using interp_t = covfie::backend::linear<storage_order_t>;
-    using coordinates_transform_t = covfie::backend::affine<interp_t>;
-    using field_t = covfie::field<coordinates_transform_t>;
-    using builder_t = covfie::field<storage_order_t>;
+    using interp_t = covfie::backend::linear<dimensioned_t>;
+    using transformed_t = covfie::backend::affine<interp_t>;
+    using field_t = covfie::field<transformed_t>;
+    using builder_t = covfie::field<dimensioned_t>;
 
     static Real3 to_array(field_t::output_t const& vec)
     {
