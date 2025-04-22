@@ -10,7 +10,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
-#include "corecel/grid/SplineDerivCalculator.hh"
+#include "corecel/grid/GridTypes.hh"
 #include "celeritas/Types.hh"
 
 namespace celeritas
@@ -26,7 +26,7 @@ namespace inp
  */
 struct Interpolation
 {
-    using BC = SplineDerivCalculator::BoundaryCondition;
+    using BC = SplineBoundaryCondition;
 
     InterpolationType type{InterpolationType::linear};
     //! Polynomial order for spline interpolation

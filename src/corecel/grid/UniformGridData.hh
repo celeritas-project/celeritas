@@ -11,6 +11,8 @@
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/data/Collection.hh"
 
+#include "GridTypes.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//

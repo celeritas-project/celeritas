@@ -14,6 +14,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 
+#include "GridTypes.hh"
 #include "UniformGrid.hh"
 
 #include "detail/GridAccessor.hh"
@@ -77,16 +78,8 @@ class SplineDerivCalculator
     using SpanConstReal = detail::GridAccessor::SpanConstReal;
     using Values = detail::GridAccessor::Values;
     using VecReal = std::vector<real_type>;
+    using BoundaryCondition = SplineBoundaryCondition;
     //!@}
-
-    //! Cubic spline interpolation boundary conditions
-    enum class BoundaryCondition
-    {
-        natural = 0,
-        not_a_knot,
-        geant,  //!< Geant4's "not-a-knot"
-        size_
-    };
 
   public:
     // Construct with boundary conditions

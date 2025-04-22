@@ -14,6 +14,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/EnumArray.hh"
+#include "corecel/grid/GridTypes.hh"
 
 namespace celeritas
 {
