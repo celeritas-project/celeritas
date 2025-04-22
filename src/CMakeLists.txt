@@ -134,13 +134,13 @@ endif()
 
 celer_add_ext_library(covfie)
 if(CELERITAS_USE_covfie)
-  set(COVFIE_LIBS
+  set(_covfie_libs
     covfie::core
     covfie::cpu
     $<$<BOOL:${CELERITAS_USE_CUDA}>:covfie::cuda>
     $<$<BOOL:${CELERITAS_USE_HIP}>:covfie::hip>
   )
-  target_link_libraries(Extcovfie INTERFACE ${COVFIE_LIBS})
+  target_link_libraries(Extcovfie INTERFACE ${_covfie_libs})
 endif()
 
 #----------------------------------------------------------------------------#
