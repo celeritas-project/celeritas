@@ -137,9 +137,13 @@ if(CELERITAS_USE_covfie)
   set(_covfie_libs
     covfie::core
     covfie::cpu
-    $<$<BOOL:${CELERITAS_USE_CUDA}>:covfie::cuda>
-    $<$<BOOL:${CELERITAS_USE_HIP}>:covfie::hip>
   )
+  if(CELERITAS_USE_CUDA)
+    list(APPEND _covfie_libs covfie::cuda)
+  endif()
+  if(CELERITAS_USE_HIP)
+    list(APPEND _covfie_libs covfie::hip)
+  endif()
   target_link_libraries(Extcovfie INTERFACE ${_covfie_libs})
 endif()
 
