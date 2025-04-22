@@ -28,15 +28,14 @@ TEST(InverseSquareDistributionTest, bin)
     Histogram histogram(10, {0, 10});
     for ([[maybe_unused]] int i : range(num_samples))
     {
-        double r = sample_esq(rng);
-        ASSERT_GE(r, min);
-        ASSERT_LE(r, max);
-        histogram(1.0 / r);
+        histogram(1.0 / sample_esq(rng));
     }
 
     static unsigned int const expected_counts[]
         = {0, 944, 1043, 959, 972, 1027, 1045, 981, 1009, 1020};
     EXPECT_VEC_EQ(expected_counts, histogram.counts());
+    EXPECT_GE(histogram.min(), min);
+    EXPECT_LE(histogram.max(), max);
 }
 
 //---------------------------------------------------------------------------//

@@ -36,21 +36,14 @@ auto Histogram::calc_density() const -> VecDbl
     VecDbl result;
     result.reserve(counts_.size());
 
-    auto norm = 1 / static_cast<double>(total_counts_);
+    double norm
+        = counts_.size() * inv_width_
+          / std::accumulate(counts_.begin(), counts_.end(), size_type(0));
     for (auto count : counts_)
     {
         result.push_back(count * norm);
     }
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate the total number of samples within the domain.
- */
-size_type Histogram::calc_valid_samples() const
-{
-    return std::accumulate(counts_.begin(), counts_.end(), size_type{0});
 }
 
 //---------------------------------------------------------------------------//
