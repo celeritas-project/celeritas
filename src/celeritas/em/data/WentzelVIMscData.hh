@@ -29,11 +29,8 @@ struct WentzelVIMscParameters
     Energy low_energy_limit{0};
     Energy high_energy_limit{0};
 
-    //! The minimum value of the true path length limit: 1 nm
-    static CELER_CONSTEXPR_FUNCTION real_type limit_min_fix()
-    {
-        return 1e-7 * units::centimeter;
-    }
+    //! The minimum value of the true path length limit
+    static constexpr real_type min_step{real_type{1} * units::nanometer};
 };
 
 //---------------------------------------------------------------------------//

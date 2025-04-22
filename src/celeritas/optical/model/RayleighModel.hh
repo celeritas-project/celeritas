@@ -57,7 +57,7 @@ class RayleighModel : public Model
     RayleighModel(ActionId id, SPConstImported imported, Input input);
 
     // Build the mean free paths for this model
-    void build_mfps(OpticalMaterialId, MfpBuilder&) const final;
+    void build_mfps(OptMatId, MfpBuilder&) const final;
 
     // Execute the model with host data
     void step(CoreParams const&, CoreStateHost&) const final;

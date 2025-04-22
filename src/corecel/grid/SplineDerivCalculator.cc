@@ -26,6 +26,16 @@ SplineDerivCalculator::SplineDerivCalculator(BoundaryCondition bc) : bc_(bc)
 /*!
  * Calculate the second derivatives from grid data.
  */
+auto SplineDerivCalculator::operator()(NonuniformGridRecord const& data,
+                                       Values const& reals) const -> VecReal
+{
+    return (*this)(detail::NonuniformGridAccessor(data, reals));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the second derivatives from grid data.
+ */
 auto SplineDerivCalculator::operator()(UniformGridRecord const& data,
                                        Values const& reals) const -> VecReal
 {
@@ -39,7 +49,18 @@ auto SplineDerivCalculator::operator()(UniformGridRecord const& data,
 auto SplineDerivCalculator::operator()(SpanConstReal x, SpanConstReal y) const
     -> VecReal
 {
-    return (*this)(detail::SpanGridAccessor(x, y));
+    return (*this)(detail::NonuniformGridAccessor(x, y));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the second derivatives from inverted grid data.
+ */
+auto SplineDerivCalculator::calc_from_inverse(UniformGridRecord const& data,
+                                              Values const& reals) const
+    -> VecReal
+{
+    return (*this)(detail::InverseGridAccessor(data, reals));
 }
 
 //---------------------------------------------------------------------------//
@@ -49,7 +70,7 @@ auto SplineDerivCalculator::operator()(SpanConstReal x, SpanConstReal y) const
 template<class GA>
 auto SplineDerivCalculator::operator()(GA&& grid) const -> VecReal
 {
-    CELER_EXPECT(grid.size() >= 5);
+    CELER_EXPECT(grid.size() >= min_grid_size());
 
     if (bc_ == BoundaryCondition::geant)
     {

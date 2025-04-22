@@ -41,6 +41,7 @@ class UniformGridInserter
     GridId operator()(inp::UniformGrid const& grid);
 
   private:
+    Values* values_;
     DedupeCollectionBuilder<real_type> reals_;
     CollectionBuilder<UniformGridRecord, MemSpace::host, GridId> grids_;
 };

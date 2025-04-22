@@ -1,6 +1,15 @@
 .. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 .. SPDX-License-Identifier: CC-BY-4.0
 
+.. only:: github
+
+   You may be viewing this document through GitHub's native viewer. if so, the
+   links below may not work; please visit this page on the documentation web
+   site:
+
+   https://celeritas-project.github.io/celeritas/user/development/contributing.html
+
+
 .. _contributing:
 
 Contributing to Celeritas
@@ -23,8 +32,25 @@ the new code should be the shared responsibility of the project rather than the
 exclusive property of a single contributor.
 Celeritas is a collaborative project with *collective* ownership.
 
-
 .. _GitHub terms of service: https://docs.github.com/en/github/site-policy/github-terms-of-service#6-contributions-under-repository-license
+
+
+Attribution
+-----------
+
+You will get public credit for your work: your username and pull requests will
+be listed in the release notes, *and* you will receive official co-authorship on
+the Zenodo code object for the next major (and minor, if your fix is
+backported) releases that incorporate your contribution. By contributing, you
+acknowledge the attribution and authorship policy laid out in :ref:`authorship`.
+
+.. note:: To uniquely link your contribution for the next release, you must add
+   your ORCID to :file:`scripts/release/users.json` to your first PR.
+   (Otherwise, only your GitHub-derived name will show on the record.) If you
+   want the release to be automatically propagated to your ORCID account, you
+   must sign up for and connect it to OpenAIRE_.
+
+.. _OpenAIRE: https://www.openaire.eu/openaire-explore-integration-with-the-orcid-search-and-link-wizard
 
 
 Collaborating

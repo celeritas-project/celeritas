@@ -15,17 +15,8 @@ from sphinx import __version__ as sphinx_version
 
 project = 'Celeritas'
 all_authors = [
- 'Seth R Johnson',
- # Remaining core team in alphabetical order
- 'Philippe Canal',
- 'Julien Esseiva',
- 'Soon Yung Jun',
- 'Guilherme Lima',
- 'Amanda Lund',
- 'Ben Morgan'
- 'Stefano C Tognini',
- # Core advisors
- 'Thomas M Evans',
+ 'Seth R Johnson, Editor',
+ 'The Celeritas team',
 ]
 author = " and ".join(all_authors)
 copyright = '{:%Y}, UT–Battelle/ORNL and Celeritas team'.format(
@@ -149,8 +140,10 @@ mathjax3_config = {
     # See _static/macros.tex
     "tex": {
         "macros": {
+            "ee": r"\mathrm{e}",
             "dif": r"\;\mathrm{d}",
             "difd": [r"\frac{\mathrm{d}#1}{\mathrm{d}#2}", 2],
+            "vd": r"\mathbf{\cdot}",
             "norm": [r"\|#1\|", 1],
             "abs": [r"|#1|", 1],
         },

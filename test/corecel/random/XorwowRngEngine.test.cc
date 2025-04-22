@@ -128,16 +128,16 @@ class XorwowRngEngineTest : public Test
 
     void SetUp() override
     {
-        params = std::make_shared<XorwowRngParams>(12345);
+        params_ = std::make_shared<XorwowRngParams>(12345);
     }
 
-    std::shared_ptr<XorwowRngParams> params;
+    std::shared_ptr<XorwowRngParams> params_;
 };
 
 TEST_F(XorwowRngEngineTest, host)
 {
     // Construct and initialize
-    HostStore states(params->host_ref(), StreamId{0}, 8);
+    HostStore states(params_->host_ref(), StreamId{0}, 8);
 
     Span<XorwowState> state_ref = states.ref().state[AllItems<XorwowState>{}];
 
@@ -169,7 +169,7 @@ TEST_F(XorwowRngEngineTest, host)
 TEST_F(XorwowRngEngineTest, host_stream)
 {
     // Construct and initialize on "another thread"
-    HostStore states(params->host_ref(), StreamId{1}, 8);
+    HostStore states(params_->host_ref(), StreamId{1}, 8);
 
     Span<XorwowState> state_ref = states.ref().state[AllItems<XorwowState>{}];
     std::vector<uint_t> flattened(8);
@@ -190,12 +190,12 @@ TEST_F(XorwowRngEngineTest, moments)
     unsigned int num_samples = 1 << 12;
     unsigned int num_seeds = 1 << 8;
 
-    HostStore states(params->host_ref(), StreamId{0}, num_seeds);
+    HostStore states(params_->host_ref(), StreamId{0}, num_seeds);
     RngTally tally;
 
     for (unsigned int i = 0; i < num_seeds; ++i)
     {
-        XorwowRngEngine rng(params->host_ref(), states.ref(), TrackSlotId{i});
+        XorwowRngEngine rng(params_->host_ref(), states.ref(), TrackSlotId{i});
         for (unsigned int j = 0; j < num_samples; ++j)
         {
             tally(generate_canonical(rng));
@@ -208,9 +208,9 @@ TEST_F(XorwowRngEngineTest, jump)
 {
     unsigned int size = 2;
 
-    HostStore states(params->host_ref(), StreamId{0}, size);
-    XorwowRngEngine rng(params->host_ref(), states.ref(), TrackSlotId{0});
-    XorwowRngEngine skip_rng(params->host_ref(), states.ref(), TrackSlotId{1});
+    HostStore states(params_->host_ref(), StreamId{0}, size);
+    XorwowRngEngine rng(params_->host_ref(), states.ref(), TrackSlotId{0});
+    XorwowRngEngine skip_rng(params_->host_ref(), states.ref(), TrackSlotId{1});
 
     XorwowRngInitializer init;
     init.seed = {12345};
@@ -261,7 +261,7 @@ TEST_F(XorwowRngEngineTest, jump)
 TEST_F(XorwowRngEngineTest, TEST_IF_CELER_DEVICE(device))
 {
     // Create and initialize states
-    DeviceStore rng_store(params->host_ref(), StreamId{0}, 1024);
+    DeviceStore rng_store(params_->host_ref(), StreamId{0}, 1024);
     // Copy to host and check
     StateCollection<XorwowState, Ownership::value, MemSpace::host> host_state;
     host_state = rng_store.ref().state;

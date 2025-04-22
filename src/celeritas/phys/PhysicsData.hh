@@ -136,6 +136,7 @@ struct ProcessGroup
     ItemRange<ValueTable> macro_xs;  //!< [ppid]
     ValueTableId energy_loss;  //!< Process-integrated energy loss
     ValueTableId range;  //!< Process-integrated range
+    ValueTableId inverse_range;  //!< Inverse process-integrated range
     ParticleProcessId at_rest;  //!< ID of the particle's at-rest process
 
     //! True if assigned and valid
@@ -279,9 +280,6 @@ struct PhysicsParamsScalars
     ParticleScalars light;
     ParticleScalars heavy;
 
-    //! Order for energy loss interpolation
-    size_type spline_eloss_order{};
-
     real_type secondary_stack_factor = 3;  //!< Secondary storage per state
                                            //!< size
     // When fixed step limiter is used, this is the corresponding action ID
@@ -295,8 +293,7 @@ struct PhysicsParamsScalars
                && linear_loss_limit > 0 && secondary_stack_factor > 0
                && ((fixed_step_limiter > 0)
                    == static_cast<bool>(fixed_step_action))
-               && spline_eloss_order > 0 && lambda_limit > 0
-               && safety_factor >= 0.1 && light && heavy;
+               && lambda_limit > 0 && safety_factor >= 0.1 && light && heavy;
     }
 
     //! Stop early due to MSC limitation
@@ -339,7 +336,7 @@ struct PhysicsParamsScalars
  * range tables ordered by [particle][material][energy].
  *
  * So the first applicable process (ProcessId{0}) for an arbitrary particle
- * (ParticleId{1}) in material 2 (MaterialId{2}) will have the following
+ * (ParticleId{1}) in material 2 (PhysMatId{2}) will have the following
  * ID and cross section grid: \code
    ProcessId proc_id = params.particle[1].processes[0];
    const UniformGridData& grid

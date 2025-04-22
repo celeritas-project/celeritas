@@ -144,7 +144,7 @@ TEST_F(MuBremsstrahlungTest, basic)
         data_,
         this->particle_track(),
         this->direction(),
-        this->cutoff_params()->get(MaterialId{0}),
+        this->cutoff_params()->get(PhysMatId{0}),
         this->secondary_allocator(),
         material,
         ElementComponentId{0});
@@ -231,7 +231,7 @@ TEST_F(MuBremsstrahlungTest, stress_test)
                     data_,
                     this->particle_track(),
                     this->direction(),
-                    this->cutoff_params()->get(MaterialId{0}),
+                    this->cutoff_params()->get(PhysMatId{0}),
                     this->secondary_allocator(),
                     material,
                     ElementComponentId{0});

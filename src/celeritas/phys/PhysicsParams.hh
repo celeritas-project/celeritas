@@ -132,10 +132,6 @@ struct ParticleOptions
  *   processes use MC integration to sample the discrete interaction length
  *   with the correct probability. Disable this integral approach for all
  *   processes.
- *   \c spline_eloss_order: the order of interpolation to be used for the
- *   spline interpolation. If it is 1, then the existing linear interpolation
- *   is used. If it is 2+, the spline interpolation is used for energy loss
- *   using the specified order. Default value is 1.
  */
 struct PhysicsParamsOptions
 {
@@ -164,7 +160,6 @@ struct PhysicsParamsOptions
 
     real_type secondary_stack_factor{3};
     bool disable_integral_xs{false};
-    size_type spline_eloss_order{1};
 };
 
 //---------------------------------------------------------------------------//

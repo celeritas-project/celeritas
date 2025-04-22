@@ -272,11 +272,17 @@ calc_mean_energy_loss(ParticleTrackView const& particle,
         // this process. If the step is very near the range (a few ULP off, for
         // example), then the post-step energy will be calculated as zero
         // without going through the condition above.
-        auto calc_energy
-            = physics.make_calculator<InverseRangeCalculator>(grid_id);
+        auto calc_energy = physics.make_calculator<InverseRangeCalculator>(
+            physics.inverse_range_grid());
         eloss = pre_step_energy - calc_energy(range - step);
+
+        // Spline interpolation does not ensure roundtrip consistency between
+        // the range and the inverse. This can lead to negative values for the
+        // energy loss
+        eloss = clamp_to_nonneg(eloss);
     }
 
+    CELER_ENSURE(eloss >= zero_quantity());
     return eloss;
 }
 

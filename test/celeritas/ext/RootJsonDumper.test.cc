@@ -429,7 +429,7 @@ TEST_F(RootJsonDumperTest, all)
   "mu_pair_production_data" : {
     "_typename" : "celeritas::ImportMuPairProductionTable",
     "atomic_number" : [1, 92],
-    "physics_vectors" : [{
+    "grids" : [{
       "_typename" : "celeritas::inp::TwodGrid",
       "x" : [6.74523634948436, 18.4206807439524],
       "y" : [-6.03032981021759, 0],

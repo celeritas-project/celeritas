@@ -74,7 +74,8 @@ class GeantProcessImporter
   public:
     // Construct with selected list of tables
     GeantProcessImporter(std::vector<ImportPhysMaterial> const& materials,
-                         std::vector<ImportElement> const& elements);
+                         std::vector<ImportElement> const& elements,
+                         inp::Interpolation interpolation);
 
     // Import processes
     ImportProcess operator()(G4ParticleDefinition const& particle,
@@ -100,6 +101,7 @@ class GeantProcessImporter
     // Store material and element information for the element selector tables
     std::vector<ImportPhysMaterial> const& materials_;
     std::vector<ImportElement> const& elements_;
+    inp::Interpolation interpolation_;
 };
 
 //---------------------------------------------------------------------------//

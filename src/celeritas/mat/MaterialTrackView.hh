@@ -58,7 +58,7 @@ class MaterialTrackView
     //// DYNAMIC PROPERTIES (pure accessors, free) ////
 
     // Current material identifier
-    CELER_FORCEINLINE_FUNCTION MaterialId material_id() const;
+    CELER_FORCEINLINE_FUNCTION PhysMatId material_id() const;
 
     //// STATIC PROPERTIES ////
 
@@ -107,7 +107,7 @@ MaterialTrackView::operator=(Initializer_t const& other)
 /*!
  * Current material identifier.
  */
-CELER_FUNCTION MaterialId MaterialTrackView::material_id() const
+CELER_FUNCTION PhysMatId MaterialTrackView::material_id() const
 {
     return this->state().material_id;
 }

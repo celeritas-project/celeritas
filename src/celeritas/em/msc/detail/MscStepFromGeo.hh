@@ -100,7 +100,7 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
 {
     CELER_EXPECT(gstep >= 0 && gstep <= true_step_);
 
-    if (gstep < params_.min_step())
+    if (gstep < params_.min_step_transform)
     {
         // Geometrical path length is true path length for a very small step
         return gstep;
@@ -113,10 +113,9 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
             // z = lambda * (1 - exp(-g / lambda))
             // => g = -lambda * log(1 - g / lambda)
             real_type tstep = -lambda_ * std::log1p(-gstep / lambda_);
-            if (tstep < params_.min_step())
+            if (tstep < params_.min_step_transform)
             {
-                // Geometrical path length = true path length for a very small
-                // step
+                // Very small step: did not transform path length
                 return gstep;
             }
             return tstep;
@@ -148,8 +147,9 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
     // - a few ULP due to inexactness of log1p/expm1
     // - small travel distance results in roundoff error inside (1 -
     //   alpha/true)^w
-    // - gstep is just above min_step so that the updated recalculation of
-    //   tstep is just below min_step
+    // - gstep is just above min_step_transform so that the updated
+    // recalculation of
+    //   tstep is just below min_step_transform
     return clamp(tstep, gstep, true_step_);
 }
 

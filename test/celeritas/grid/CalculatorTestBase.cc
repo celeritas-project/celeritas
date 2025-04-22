@@ -24,6 +24,35 @@ namespace test
  */
 void CalculatorTestBase::build(inp::UniformGrid lower, inp::UniformGrid upper)
 {
+    return this->build_impl(lower, upper, false);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct without scaled values.
+ */
+void CalculatorTestBase::build(inp::UniformGrid grid)
+{
+    return this->build_impl(grid, {}, false);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct an inverted grid.
+ */
+void CalculatorTestBase::build_inverted(inp::UniformGrid grid)
+{
+    return this->build_impl(grid, {}, true);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from grid bounds and cross section values.
+ */
+void CalculatorTestBase::build_impl(inp::UniformGrid lower,
+                                    inp::UniformGrid upper,
+                                    bool invert)
+{
     CELER_EXPECT(
         (lower || upper)
         && (!lower || !upper || lower.x[Bound::hi] == upper.x[Bound::lo]));
@@ -34,7 +63,7 @@ void CalculatorTestBase::build(inp::UniformGrid lower, inp::UniformGrid upper)
 
     if (lower)
     {
-        this->build_grid(data_.lower, lower);
+        this->build_grid(data_.lower, lower, invert);
     }
     if (upper)
     {
@@ -47,7 +76,7 @@ void CalculatorTestBase::build(inp::UniformGrid lower, inp::UniformGrid upper)
         {
             upper.y[i] *= std::exp(loge[i]);
         }
-        this->build_grid(data_.upper, upper);
+        this->build_grid(data_.upper, upper, invert);
     }
 
     value_ref_ = value_storage_;
@@ -57,19 +86,11 @@ void CalculatorTestBase::build(inp::UniformGrid lower, inp::UniformGrid upper)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct without scaled values.
- */
-void CalculatorTestBase::build(inp::UniformGrid grid)
-{
-    return this->build(grid, {});
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Build a uniform grid.
  */
 void CalculatorTestBase::build_grid(UniformGridRecord& data,
-                                    inp::UniformGrid const& grid)
+                                    inp::UniformGrid const& grid,
+                                    bool invert)
 {
     CollectionBuilder build(&value_storage_);
 
@@ -82,8 +103,9 @@ void CalculatorTestBase::build_grid(UniformGridRecord& data,
     if (grid.interpolation.type == InterpolationType::cubic_spline)
     {
         Data value_ref{value_storage_};
-        auto deriv
-            = SplineDerivCalculator(grid.interpolation.bc)(data, value_ref);
+        SplineDerivCalculator calc(grid.interpolation.bc);
+        auto deriv = invert ? calc.calc_from_inverse(data, value_ref)
+                            : calc(data, value_ref);
         data.derivative = build.insert_back(deriv.begin(), deriv.end());
     }
 }

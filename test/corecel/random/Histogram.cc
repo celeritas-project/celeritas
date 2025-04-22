@@ -16,15 +16,15 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Contruct with the number of bins and range.
+ * Contruct with the number of bins and domain.
  */
-Histogram::Histogram(size_type num_bins, Dbl2 range)
-    : offset_{range[0]}
-    , inv_width_(1 / (range[1] - range[0]))
+Histogram::Histogram(size_type num_bins, Dbl2 domain)
+    : offset_{domain[0]}
+    , inv_width_(1 / (domain[1] - domain[0]))
     , counts_(num_bins)
 {
     CELER_EXPECT(num_bins > 0);
-    CELER_EXPECT(range[0] < range[1]);
+    CELER_EXPECT(domain[0] < domain[1]);
 }
 
 //---------------------------------------------------------------------------//
@@ -36,7 +36,9 @@ auto Histogram::calc_density() const -> VecDbl
     VecDbl result;
     result.reserve(counts_.size());
 
-    auto norm = 1 / static_cast<double>(total_counts_);
+    double norm
+        = counts_.size() * inv_width_
+          / std::accumulate(counts_.begin(), counts_.end(), size_type(0));
     for (auto count : counts_)
     {
         result.push_back(count * norm);

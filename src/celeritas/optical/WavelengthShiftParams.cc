@@ -11,7 +11,6 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/math/PdfUtils.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/NonuniformGridBuilder.hh"
 #include "celeritas/grid/NonuniformGridInserter.hh"
 #include "celeritas/io/ImportData.hh"
 

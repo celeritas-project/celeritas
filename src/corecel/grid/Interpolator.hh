@@ -13,6 +13,8 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 
+#include "GridTypes.hh"
+
 #include "detail/InterpolatorTraits.hh"
 
 namespace celeritas

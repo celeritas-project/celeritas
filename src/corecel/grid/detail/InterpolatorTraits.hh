@@ -9,6 +9,7 @@
 #include <cmath>
 
 #include "corecel/Macros.hh"
+#include "corecel/grid/GridTypes.hh"
 
 namespace celeritas
 {
