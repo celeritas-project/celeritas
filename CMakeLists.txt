@@ -409,7 +409,7 @@ if(CELERITAS_USE_ROOT)
 endif()
 
 if(CELERITAS_USE_covfie)
-  find_package(covfie REQUIRED)
+  celeritas_find_or_builtin_package(covfie)
 
   if(CELERITAS_USE_HIP AND covfie_VERSION VERSION_LESS "0.13.0")
     celeritas_error_incompatible_option("HIP support in Covfie is not available before 0.13.0"
