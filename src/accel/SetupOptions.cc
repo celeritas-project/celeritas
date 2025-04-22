@@ -169,7 +169,7 @@ void ProblemSetup::operator()(inp::Problem& p) const
     }
     else if (auto* u = so.make_along_step.target<CartMapFieldAlongStepFactory>())
     {
-        CELER_LOG(debug) << "Getting Cyl map field";
+        CELER_LOG(debug) << "Getting covfie cartesian map field";
         p.field = u->get_field();
     }
     else

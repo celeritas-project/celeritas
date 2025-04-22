@@ -176,7 +176,7 @@ jobs:
             . ${SPACK_VIEW}/rc
             test -n "${G4LEDATA}"
           fi
-          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE -DCELERITAS_USE_Covfie=${{env.CXXSTD == '20' && 'ON' || 'OFF'}}
+          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE -DCELERITAS_USE_covfie=${{env.CXXSTD == '20' && 'ON' || 'OFF'}}
 
       ### BUILD ###
 

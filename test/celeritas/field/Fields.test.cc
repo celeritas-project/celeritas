@@ -16,6 +16,7 @@
 #include "corecel/data/HyperslabIndexer.hh"
 #include "corecel/math/Quantity.hh"
 #include "corecel/math/Turn.hh"
+#include "geocel/Types.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/field/CartMapField.hh"
@@ -280,13 +281,10 @@ TEST_F(CylMapFieldTest, all)
     EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-7});
 }
 
-#if CELERITAS_USE_COVFIE
-using CartMapFieldTest_ = ::celeritas::test::Test;
-#    define CartMapFieldTest CartMapFieldTest_
-#else
-using DISABLED_CartMapFieldTest = ::celeritas::test::Test;
+#if !CELERITAS_USE_COVFIE
 #    define CartMapFieldTest DISABLED_CartMapFieldTest
 #endif
+using CartMapFieldTest = ::celeritas::test::Test;
 
 TEST_F(CartMapFieldTest, all)
 {
@@ -300,14 +298,12 @@ TEST_F(CartMapFieldTest, all)
     inp.min_z = -6350;
     inp.max_z = 6350;
     inp.num_z = static_cast<size_type>(inp.max_z * 2 / 100);
-    Array<size_type, 4> const dims{inp.num_x,
-                                   inp.num_y,
-                                   inp.num_z,
-                                   static_cast<size_type>(CartAxis::size_)};
+    Array<size_type, 4> const dims{
+        inp.num_x, inp.num_y, inp.num_z, static_cast<size_type>(Axis::size_)};
     size_type const total_points = inp.num_x * inp.num_y * inp.num_z;
 
     // Resize each component of the field
-    inp.field.resize(static_cast<size_type>(CartAxis::size_) * total_points);
+    inp.field.resize(static_cast<size_type>(Axis::size_) * total_points);
 
     // Fill with a simple field pattern
     HyperslabIndexer const flat_index{dims};
@@ -318,9 +314,9 @@ TEST_F(CartMapFieldTest, all)
             for (size_type z = 0; z < inp.num_z; ++z)
             {
                 auto arr = inp.field.begin() + flat_index(x, y, z, 0);
-                arr[static_cast<size_type>(CartAxis::x)] = std::cos(x);
-                arr[static_cast<size_type>(CartAxis::y)] = std::sin(y);
-                arr[static_cast<size_type>(CartAxis::z)] = std::tan(z);
+                arr[static_cast<size_type>(Axis::x)] = std::cos(x);
+                arr[static_cast<size_type>(Axis::y)] = std::sin(y);
+                arr[static_cast<size_type>(Axis::z)] = std::tan(z);
             }
         }
     }

@@ -20,7 +20,7 @@ celeritas_version_to_hex(CELERITAS_VERSION PROJECT_VERSION)
 #----------------------------------------------------------------------------#
 # Build configuration
 
-set(CELERITAS_USE_COVFIE ${CELERITAS_USE_Covfie})
+set(CELERITAS_USE_COVFIE ${CELERITAS_USE_covfie})
 set(CELERITAS_USE_GEANT4  ${CELERITAS_USE_Geant4})
 set(CELERITAS_USE_HEPMC3  ${CELERITAS_USE_HepMC3})
 set(CELERITAS_USE_OPENMP  ${CELERITAS_USE_OpenMP})

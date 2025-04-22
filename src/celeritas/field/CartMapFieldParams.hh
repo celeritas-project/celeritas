@@ -17,7 +17,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 struct CartMapFieldInput;
-class CartMapFieldParamsImpl;
 template<Ownership W, MemSpace M>
 struct CartMapFieldParamsData;
 
@@ -49,12 +48,13 @@ class CartMapFieldParams final
     DeviceRef const& device_ref() const final;
 
   private:
-    std::unique_ptr<CartMapFieldParamsImpl> impl_;
+    struct Impl;
+    std::unique_ptr<Impl> impl_;
 };
 
 #if !CELERITAS_USE_COVFIE
 
-class CartMapFieldParamsImpl
+struct CartMapFieldParams::Impl
 {
 };
 

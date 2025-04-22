@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "corecel/Types.hh"
+#include "geocel/Types.hh"
 #include "celeritas/Types.hh"
 
 #include "FieldDriverOptions.hh"
@@ -21,14 +22,11 @@ namespace celeritas
  *
  * The magnetic field is discretized at nodes on an X-Y-Z grid, and at each
  * point the field vector is approximated by a 3-D vector in X-Y-Z. The input
- * units of this field are in *NATIVE UNITS* (cm/gauss when CGS). An optional
- * \c _units field in the input can specify whether the input is in SI or CGS
- * units, with allowable values of "si", "cgs", or "clhep". The native CLHEP
- * unit strength is 1000*tesla.
+ * units of this field are in *NATIVE UNITS* (cm/gauss when CGS).
  *
  * The field values are all indexed with Z having stride 3, for the
- * 3-dimensional vector at that position, Y having stride (num_grid_z), and X
- * having stride (num_grid_y * num_grid_z): [X][Y][Z][3]
+ * 3-dimensional vector at that position, Y having stride (num_grid_z * 3), and
+ * X having stride (num_grid_y * num_grid_z * 3): [X][Y][Z][3]
  */
 struct CartMapFieldInput
 {
@@ -61,7 +59,7 @@ struct CartMapFieldInput
             && (num_y >= 2)
             && (max_z >= min_z)
             && (num_z >= 2)
-            && (field.size() == static_cast<size_type>(CartAxis::size_) * num_x * num_y * num_z);
+            && (field.size() == static_cast<size_type>(Axis::size_) * num_x * num_y * num_z);
         // clang-format on
     }
 };

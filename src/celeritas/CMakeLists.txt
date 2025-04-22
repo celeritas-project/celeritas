@@ -164,7 +164,7 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   )
 endif()
 
-if(CELERITAS_USE_Covfie)
+if(CELERITAS_USE_covfie)
   list(APPEND PUBLIC_DEPS covfie::core covfie::cpu)
   if(CELERITAS_USE_CUDA)
     list(APPEND PUBLIC_DEPS covfie::cuda)

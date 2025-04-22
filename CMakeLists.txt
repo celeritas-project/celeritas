@@ -33,7 +33,7 @@ endif()
 
 # Optional dependencies
 # NOTE: when adding a new dependency, update the CMakeConfig "COMPONENTS"
-celeritas_optional_package(Covfie "Use Covfie field integrator")
+celeritas_optional_package(covfie "Use Covfie field integrator")
 celeritas_optional_package(Geant4 "Enable Geant4 adapter tools")
 celeritas_optional_package(HepMC3 "Enable HepMC3 event record reader")
 celeritas_optional_package(MPI "Enable distributed memory parallelism")
@@ -408,12 +408,12 @@ if(CELERITAS_USE_ROOT)
   find_package(ROOT 6.24 REQUIRED)
 endif()
 
-if(CELERITAS_USE_Covfie)
+if(CELERITAS_USE_covfie)
   find_package(covfie REQUIRED)
 
   if(CELERITAS_USE_HIP AND covfie_VERSION VERSION_LESS "0.13.0")
     celeritas_error_incompatible_option("HIP support in Covfie is not available before 0.13.0"
-      CELERITAS_USE_Covfie
+      CELERITAS_USE_covfie
       OFF
     )
   endif()

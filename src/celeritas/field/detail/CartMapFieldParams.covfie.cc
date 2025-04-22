@@ -16,6 +16,7 @@
 #include "corecel/data/HyperslabIndexer.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/sys/Device.hh"
+#include "geocel/Types.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/field/CartMapFieldData.hh"
 #include "celeritas/field/CartMapFieldInput.hh"
@@ -24,27 +25,21 @@
 
 namespace celeritas
 {
-class CartMapFieldParamsImpl
+struct CartMapFieldParams::Impl
 {
   public:
     using HostRef = ParamsDataInterface<CartMapFieldParamsData>::HostRef;
     using DeviceRef = ParamsDataInterface<CartMapFieldParamsData>::DeviceRef;
     using Input = CartMapFieldParams::Input;
-    //! Access field map data on the host
-    HostRef const& host_ref() const { return host_ref_; }
 
-    //! Access field map data on the device
-    DeviceRef const& device_ref() const { return device_ref_; }
-
-    CartMapFieldParamsImpl(Input const& inp)
+    Impl(Input const& inp)
         : host_{[&inp] {
             HostVal<CartMapFieldParamsData> host;
 
-            Array<size_type, 4> const dims{
-                inp.num_x,
-                inp.num_y,
-                inp.num_z,
-                static_cast<size_type>(CartAxis::size_)};
+            Array<size_type, 4> const dims{inp.num_x,
+                                           inp.num_y,
+                                           inp.num_z,
+                                           static_cast<size_type>(Axis::size_)};
             HyperslabIndexer const flat_index{dims};
 
             using builder_t = CovfieFieldTrait<MemSpace::host>::builder_t;
@@ -63,10 +58,9 @@ class CartMapFieldParamsImpl
                         auto* fv = builder_view.at(ix, iy, iz).begin();
                         auto* finp = inp.field.data()
                                      + flat_index(ix, iy, iz, 0);
-                        std::copy(
-                            finp,
-                            finp + static_cast<size_type>(CartAxis::size_),
-                            fv);
+                        std::copy(finp,
+                                  finp + static_cast<size_type>(Axis::size_),
+                                  fv);
                     }
                 }
             }
@@ -100,7 +94,6 @@ class CartMapFieldParamsImpl
         CELER_ENSURE(static_cast<bool>(host_) && static_cast<bool>(host_ref_));
     }
 
-  private:
     HostVal<CartMapFieldParamsData> host_;
     HostCRef<CartMapFieldParamsData> host_ref_;
     CartMapFieldParamsData<Ownership::value, MemSpace::device> device_;
@@ -111,7 +104,7 @@ class CartMapFieldParamsImpl
  * Construct from a user-defined field map.
  */
 CartMapFieldParams::CartMapFieldParams(Input const& inp)
-    : impl_{std::make_unique<CartMapFieldParamsImpl>(inp)}
+    : impl_{std::make_unique<Impl>(inp)}
 
 {
 }
@@ -121,13 +114,13 @@ CartMapFieldParams::~CartMapFieldParams() = default;
 //! Access field map data on the host
 auto CartMapFieldParams::host_ref() const -> HostRef const&
 {
-    return impl_->host_ref();
+    return impl_->host_ref_;
 }
 
 //! Access field map data on the device
 auto CartMapFieldParams::device_ref() const -> DeviceRef const&
 {
-    return impl_->device_ref();
+    return impl_->device_ref_;
 }
 
 //---------------------------------------------------------------------------//
