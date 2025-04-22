@@ -50,7 +50,7 @@ class CuHipRngEngine
     CuHipRngThreadState* state_;
 
     template<class Generator, class RealType>
-    friend class GenerateCanonical;
+    friend struct GenerateCanonical;
 };
 
 //---------------------------------------------------------------------------//
@@ -58,16 +58,17 @@ class CuHipRngEngine
  * Specialization of GenerateCanonical for CuHipRngEngine, float
  */
 template<>
-class GenerateCanonical<CuHipRngEngine, float>
+struct GenerateCanonical<CuHipRngEngine, float>
 {
-  public:
     //!@{
     //! \name Type aliases
     using real_type = float;
     using result_type = real_type;
     //!@}
 
-  public:
+    //! Instead of using builtin canonical, we call CUDA/HIP
+    static constexpr auto policy = GenerateCanonicalPolicy::custom;
+
     // Sample a random number
     inline CELER_FUNCTION result_type operator()(CuHipRngEngine& rng);
 };
@@ -77,16 +78,17 @@ class GenerateCanonical<CuHipRngEngine, float>
  * Specialization for CuHipRngEngine, double
  */
 template<>
-class GenerateCanonical<CuHipRngEngine, double>
+struct GenerateCanonical<CuHipRngEngine, double>
 {
-  public:
     //!@{
     //! \name Type aliases
     using real_type = double;
     using result_type = real_type;
     //!@}
 
-  public:
+    //! Instead of using builtin canonical, we call CUDA/HIP
+    static constexpr auto policy = GenerateCanonicalPolicy::custom;
+
     // Sample a random number
     inline CELER_FUNCTION result_type operator()(CuHipRngEngine& rng);
 };

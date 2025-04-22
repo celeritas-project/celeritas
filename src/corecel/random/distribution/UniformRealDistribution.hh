@@ -23,8 +23,7 @@ namespace celeritas
  *
  * This distribution is defined between two arbitrary real numbers \em a and
  * \em b , and has a flat PDF between the two values. It \em is allowable for
- the
- * two numbers to have reversed order.
+ * the two numbers to have reversed order.
  * The normalized PDF is:
  * \f[
    f(x; a, b) = \frac{1}{b - a} \quad \mathrm{for} \ a \le x < b
@@ -48,10 +47,10 @@ class UniformRealDistribution
 
   public:
     // Construct on [0, 1)
-    inline CELER_FUNCTION UniformRealDistribution();
+    CELER_CONSTEXPR_FUNCTION UniformRealDistribution();
 
     // Construct on an arbitrary interval
-    inline CELER_FUNCTION UniformRealDistribution(real_type a, real_type b);
+    CELER_CONSTEXPR_FUNCTION UniformRealDistribution(real_type a, real_type b);
 
     // Sample a random number according to the distribution
     template<class Generator>
@@ -60,10 +59,10 @@ class UniformRealDistribution
     //// ACCESSORS ////
 
     //! Get the lower bound of the distribution
-    CELER_FUNCTION real_type a() const { return a_; }
+    CELER_CONSTEXPR_FUNCTION real_type a() const { return a_; }
 
     //! Get the upper bound of the distribution
-    CELER_FUNCTION real_type b() const { return delta_ + a_; }
+    CELER_CONSTEXPR_FUNCTION real_type b() const { return delta_ + a_; }
 
   private:
     RealType a_;
@@ -81,7 +80,8 @@ class UniformRealDistribution
  * the standard.
  */
 template<class RealType>
-CELER_FUNCTION UniformRealDistribution<RealType>::UniformRealDistribution()
+CELER_CONSTEXPR_FUNCTION
+UniformRealDistribution<RealType>::UniformRealDistribution()
     : UniformRealDistribution(0, 1)
 {
 }
@@ -89,14 +89,17 @@ CELER_FUNCTION UniformRealDistribution<RealType>::UniformRealDistribution()
 //---------------------------------------------------------------------------//
 /*!
  * Construct on the interval [a, b).
+ *
+ * Note that it's allowable for these two to be out of order to support other
+ * generators (inverse square, power) where they may be inverted and out of
+ * order.
  */
 template<class RealType>
-CELER_FUNCTION
+CELER_CONSTEXPR_FUNCTION
 UniformRealDistribution<RealType>::UniformRealDistribution(real_type a,
                                                            real_type b)
     : a_(a), delta_(b - a)
 {
-    CELER_EXPECT(a <= b);
 }
 
 //---------------------------------------------------------------------------//

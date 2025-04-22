@@ -241,9 +241,6 @@ CELER_CONSTEXPR_FUNCTION bool is_track_valid(TrackStatus status)
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//
 
-// Get a string corresponding to an interpolation
-char const* to_cstring(Interp);
-
 // Get a string corresponding to a material state
 char const* to_cstring(MatterState);
 

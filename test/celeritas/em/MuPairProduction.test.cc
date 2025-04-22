@@ -133,7 +133,7 @@ TEST_F(MuPairProductionTest, distribution)
 
     RandomEngine& rng = InteractorHostBase::rng();
 
-    std::vector<real_type> loge_pdf;
+    std::vector<std::vector<double>> loge_pdf;
     std::vector<real_type> min_energy;
     std::vector<real_type> max_energy;
     std::vector<real_type> avg_energy;
@@ -155,26 +155,59 @@ TEST_F(MuPairProductionTest, distribution)
             // TODO: test energy partition
             auto e = sample(rng);
             auto e_pair = value_as<MevEnergy>(e.electron + e.positron);
-            ASSERT_GE(e_pair, min);
-            ASSERT_LE(e_pair, max);
             histogram(std::log(e_pair));
             sum_energy += e_pair;
             energy_fraction += value_as<MevEnergy>(e.electron) / e_pair;
         }
-        auto density = histogram.calc_density();
-        loge_pdf.insert(loge_pdf.end(), density.begin(), density.end());
+        EXPECT_FALSE(histogram.underflow() || histogram.overflow());
+        loge_pdf.push_back(histogram.calc_density());
         min_energy.push_back(min);
         max_energy.push_back(max);
         avg_energy.push_back(sum_energy / num_samples);
         avg_energy_fraction.push_back(energy_fraction / num_samples);
     }
 
-    static double const expected_loge_pdf[] = {
-        0.0486, 0.2855, 0.3831, 0.2029, 0.0631, 0.015,  0.0016, 0.0002,
-        0.0639, 0.2435, 0.3676, 0.2433, 0.0685, 0.0112, 0.002,  0,
-        0.053,  0.2099, 0.3242, 0.267,  0.1219, 0.0215, 0.0023, 0.0002,
-        0.0522, 0.2027, 0.3008, 0.2712, 0.1369, 0.0338, 0.0022, 0.0002,
-        0.0533, 0.1979, 0.2939, 0.2582, 0.1485, 0.0435, 0.0046, 0.0001,
+    static std::vector<double> const expected_loge_pdf[] = {
+        {0.059504749208598,
+         0.34955979216162,
+         0.46905904160111,
+         0.24842620605812,
+         0.077258223766719,
+         0.018365663335987,
+         0.001959004089172,
+         0.0002448755111465},
+        {0.055817273482315,
+         0.21269962586766,
+         0.32110218673081,
+         0.21252492391623,
+         0.059835418365236,
+         0.0097833092801554,
+         0.0017470195143135,
+         0},
+        {0.036907454803994,
+         0.14616744836525,
+         0.22576220466896,
+         0.18593000816352,
+         0.084887146049187,
+         0.01497189204313,
+         0.001601644265079,
+         0.00013927341435469},
+        {0.030275229852726,
+         0.11756300940896,
+         0.17445956206322,
+         0.15729199877508,
+         0.079399980207627,
+         0.019603501322263,
+         0.0012759675416858,
+         0.00011599704924416},
+        {0.026490549171373,
+         0.09835796774887,
+         0.14607077676298,
+         0.12832757591085,
+         0.073805751443695,
+         0.021619866584517,
+         0.0022862387652592,
+         4.9700842723027e-05},
     };
     static double const expected_min_energy[] = {
         1.0219978922,

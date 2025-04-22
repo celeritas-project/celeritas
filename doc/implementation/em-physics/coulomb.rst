@@ -32,6 +32,7 @@ Models
 
 .. doxygenclass:: celeritas::CoulombScatteringInteractor
 .. doxygenclass:: celeritas::detail::UrbanMscScatter
+.. doxygenstruct:: celeritas::UrbanMscParameters
 
 Cross sections
 --------------
@@ -44,8 +45,20 @@ Distributions
 
 .. doxygenclass:: celeritas::WentzelDistribution
 
-The nuclear form factors used by this distribution are:
+Nuclear form factors
+^^^^^^^^^^^^^^^^^^^^
+
+The nuclear form factors used by :cpp:class:`celeritas::WentzelDistribution`
+are:
 
 .. doxygenclass:: celeritas::ExpNuclearFormFactor
 .. doxygenclass:: celeritas::GaussianNuclearFormFactor
 .. doxygenclass:: celeritas::UUNuclearFormFactor
+
+Multiple scattering
+^^^^^^^^^^^^^^^^^^^^
+
+Multiple scattering uses distributions for the exiting polar angles:
+
+.. doxygenclass:: celeritas::UrbanLargeAngleDistribution
+

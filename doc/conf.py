@@ -140,8 +140,10 @@ mathjax3_config = {
     # See _static/macros.tex
     "tex": {
         "macros": {
+            "ee": r"\mathrm{e}",
             "dif": r"\;\mathrm{d}",
             "difd": [r"\frac{\mathrm{d}#1}{\mathrm{d}#2}", 2],
+            "vd": r"\mathbf{\cdot}",
             "norm": [r"\|#1\|", 1],
             "abs": [r"|#1|", 1],
         },

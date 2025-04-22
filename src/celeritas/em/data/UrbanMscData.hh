@@ -34,6 +34,27 @@ enum class UrbanParMatType
  * is the mean free path of the multiple scattering. The range and safety
  * factors are used in step limitation algorithms and default values are
  * chosen to balance between simulation time and precision.
+ *
+<table>
+  <caption>Mapping of parameter names from Geant4 to Celeritas</caption>
+  <thead>
+    <tr>
+      <th>Geant4 Symbol</th>
+      <th>Celeritas Symbol</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><code>dtrl</code></td><td><code>small_range_frac</code></td></tr>
+    <tr><td><code>tlimitminfix</code></td><td><code>min_step</code></td></tr>
+    <tr><td><code>stepmin</code></td><td><code>min_step_fallback</code></td></tr>
+    <tr><td><code>tlimitminfix2</code></td><td><code>min_step_transform</code></td></tr>
+    <tr><td><em>(hardcoded)</em></td><td><code>min_endpoint_energy</code></td></tr>
+    <tr><td><code>tlow</code></td><td><code>min_scaling_energy</code></td></tr>
+  </tbody>
+</table>
+ *
+ * \todo Unify min_endpoint_energy with low energy limit
+ * \todo Combine with lambda_limit, safety_factor in physics params
  */
 struct UrbanMscParameters
 {
@@ -44,41 +65,28 @@ struct UrbanMscParameters
     real_type tau_limit{1e-6};  //!< limit of tau
     real_type safety_tol{0.01};  //!< safety tolerance
     real_type geom_limit{5e-8 * units::millimeter};  //!< minimum step
+    // TODO: move these to along-step applicability
     Energy low_energy_limit{0};
     Energy high_energy_limit{0};
 
-    //! Fraction of the range below which a step is assumed constant xs
-    static CELER_CONSTEXPR_FUNCTION real_type dtrl() { return 0.05; }
+    //! Assume constant xs if step / range < small_range_frac ("dtrl")
+    static constexpr real_type small_range_frac{0.05};
 
-    //! The minimum value of the true path length limit: 0.01 nm
-    static CELER_CONSTEXPR_FUNCTION real_type limit_min_fix()
-    {
-        return 0.01 * units::nanometer;
-    }
+    //! For steps smaller than this, *ignore* MSC
+    static constexpr real_type min_step{0.01 * units::nanometer};
 
     //! Minimum true path when not calculated in the step limiting
-    static CELER_CONSTEXPR_FUNCTION real_type limit_min()
-    {
-        return 10.0 * limit_min_fix();
-    }
+    static constexpr real_type min_step_fallback{10.0 * min_step};
 
-    //! For steps below this value, true = geometrical (no MSC to be applied)
-    static CELER_CONSTEXPR_FUNCTION real_type min_step()
-    {
-        return real_type{1} * units::nanometer;
-    }
+    //! For steps smaller than this, true path = geometrical path
+    static constexpr real_type min_step_transform{real_type{1}
+                                                  * units::nanometer};
 
     //! Below this endpoint energy, don't sample scattering: 1 eV
-    static CELER_CONSTEXPR_FUNCTION Energy min_sampling_energy()
-    {
-        return units::MevEnergy{1e-6};
-    }
+    static constexpr Energy min_endpoint_energy{1e-6};
 
     //! The lower bound of energy to scale the minimum true path length limit
-    static CELER_CONSTEXPR_FUNCTION Energy min_scaling_energy()
-    {
-        return units::MevEnergy(5e-3);
-    }
+    static constexpr Energy min_scaling_energy{5e-3};
 };
 
 //---------------------------------------------------------------------------//

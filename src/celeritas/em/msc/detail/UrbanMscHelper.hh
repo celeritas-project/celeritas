@@ -156,7 +156,7 @@ UrbanMscHelper::calc_end_energy(real_type step) const -> Energy
 {
     CELER_EXPECT(step <= physics_.dedx_range());
     real_type range = physics_.dedx_range();
-    if (step <= range * shared_.params.dtrl())
+    if (step <= range * shared_.params.small_range_frac)
     {
         // Assume constant energy loss rate over the step
         real_type dedx = physics_.make_calculator<EnergyLossCalculator>(

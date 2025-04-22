@@ -33,8 +33,8 @@ namespace detail
  * needed.
  *
  * \note This code performs the same method as in ComputeTruePathLengthLimit
- * of G4UrbanMscModel, as documented in section 8.1.6 of the Geant4 10.7
- * Physics Reference Manual or CERN-OPEN-2006-077 by L. Urban.
+ * of G4UrbanMscModel, as documented in section 8.1.6 of \cite{g4prm}
+ * or \citet{urban-msc-2006, https://cds.cern.ch/record/1004190/}.
  */
 class UrbanMscSafetyStepLimit
 {
@@ -117,7 +117,7 @@ UrbanMscSafetyStepLimit::UrbanMscSafetyStepLimit(
 {
     CELER_EXPECT(safety >= 0);
     CELER_EXPECT(safety < helper_.max_step());
-    CELER_EXPECT(max_step_ > shared_.params.limit_min_fix());
+    CELER_EXPECT(max_step_ > shared_.params.min_step);
     CELER_EXPECT(max_step_ <= physics->dedx_range());
 
     bool use_safety_plus = physics->particle_scalars().step_limit_algorithm
@@ -190,6 +190,8 @@ UrbanMscSafetyStepLimit::UrbanMscSafetyStepLimit(
 template<class Engine>
 CELER_FUNCTION real_type UrbanMscSafetyStepLimit::operator()(Engine& rng)
 {
+    // TODO: if start energy is below min_energy, also skip since we won't
+    // sample MSC
     if (max_step_ <= limit_)
     {
         // Skip sampling if the physics step is limiting
@@ -228,15 +230,15 @@ CELER_FUNCTION real_type UrbanMscSafetyStepLimit::calc_limit_min(
     // Scale based on particle type and effective atomic number
     xm *= helper_.scaled_zeff();
 
-    if (inc_energy < shared_.params.min_scaling_energy())
+    if (inc_energy < shared_.params.min_scaling_energy)
     {
         // Energy is below a pre-defined limit
         xm *= (real_type(0.5)
                + real_type(0.5) * value_as<Energy>(inc_energy)
-                     / value_as<Energy>(shared_.params.min_scaling_energy()));
+                     / value_as<Energy>(shared_.params.min_scaling_energy));
     }
 
-    return max<real_type>(xm, shared_.params.limit_min_fix());
+    return max<real_type>(xm, shared_.params.min_step);
 }
 
 //---------------------------------------------------------------------------//
