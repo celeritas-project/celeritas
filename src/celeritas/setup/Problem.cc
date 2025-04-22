@@ -468,6 +468,8 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 
     result.output_file = p.diagnostics.output_file;
 
+    // TODO: timers, counters, perfetto_file
+
     if (p.diagnostics.action)
     {
         ActionDiagnostic::make_and_insert(*core_params);
