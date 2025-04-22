@@ -130,8 +130,11 @@ auto ConvexHullFinder<T>::make_soft_ori() const -> SoftOrientation<real_type>
     auto const [y_min, y_max]
         = std::minmax_element(points_.begin(), points_.end(), y_cmp);
 
-    Real3 const extents{
-        (*x_max)[0] - (*x_min)[0], (*y_max)[1] - (*y_min)[1], 0};
+    // Convert min/max x and y values to extents
+    using extent_type = Real3::value_type;
+    Real3 const extents{static_cast<extent_type>((*x_max)[0] - (*x_min)[0]),
+                        static_cast<extent_type>((*y_max)[1] - (*y_min)[1]),
+                        0};
 
     return SoftOrientation<real_type>(
         ::celeritas::detail::BumpCalculator(tol_)(extents));
