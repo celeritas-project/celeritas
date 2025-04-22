@@ -59,26 +59,13 @@ GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
     using ::celeritas::testdetail::IsVecEq;
     using ::celeritas::testdetail::IsVecSoftEquiv;
 
-    // TODO: refine this and reuse in other cases
-    auto result = ::testing::AssertionSuccess();
-    auto fail = [&]() -> ::testing::AssertionResult& {
-        if (result)
-        {
-            result = ::testing::AssertionFailure();
-            result << "Expected: (" << expr1 << ") == (" << expr2 << "):\n";
-        }
-        else
-        {
-            result << '\n';
-        }
-        return result;
-    };
+    AssertionHelper result{expr1, expr2};
 
 #define IRE_VEC_EQ(ATTR)                                           \
     if (auto result = IsVecEq(expr1, #ATTR, val1.ATTR, val2.ATTR); \
         !static_cast<bool>(result))                                \
     {                                                              \
-        fail() << result.message();                                \
+        result.fail() << result.message();                                \
     }                                                              \
     else                                                           \
         (void)sizeof(char)
@@ -87,7 +74,7 @@ GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
         = IsVecSoftEquiv(expr1, #ATTR, #TOL, val1.ATTR, val2.ATTR, TOL); \
         !static_cast<bool>(result))                                      \
     {                                                                    \
-        fail() << result.message();                                      \
+        result.fail() << result.message();                                      \
     }                                                                    \
     else                                                                 \
         (void)sizeof(char)
@@ -96,7 +83,7 @@ GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
             expr1, #ATTR, #REL, #ABS, val1.ATTR, val2.ATTR, REL, ABS); \
         !static_cast<bool>(result))                                    \
     {                                                                  \
-        fail() << result.message();                                    \
+        result.fail() << result.message();                                    \
     }                                                                  \
     else                                                               \
         (void)sizeof(char)
@@ -130,25 +117,12 @@ void GenericGeoVolumeStackResult::print_expected()
                                       GenericGeoVolumeStackResult const& val1,
                                       GenericGeoVolumeStackResult const& val2)
 {
-    // TODO: refine this and reuse in other cases
-    auto result = ::testing::AssertionSuccess();
-    auto fail = [&]() -> ::testing::AssertionResult& {
-        if (result)
-        {
-            result = ::testing::AssertionFailure();
-            result << "Expected: (" << expr1 << ") == (" << expr2 << "):\n";
-        }
-        else
-        {
-            result << '\n';
-        }
-        return result;
-    };
+    AssertionHelper result{expr1, expr2};
 
 #define IRE_COMPARE(ATTR)                                           \
     if (val1.ATTR != val2.ATTR)                                     \
     {                                                               \
-        fail() << "Actual " #ATTR ": " << repr(val1.ATTR) << " vs " \
+        result.fail() << "Actual " #ATTR ": " << repr(val1.ATTR) << " vs " \
                << repr(val2.ATTR);                                  \
     }                                                               \
     else                                                            \
