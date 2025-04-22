@@ -196,7 +196,7 @@ endif()
 
 foreach(_dep
     CUDA HIP # Languages
-    Covfie Geant4 HepMC3 MPI OpenMP Perfetto PNG ROOT VecGeom # Packages
+    covfie Geant4 HepMC3 MPI OpenMP Perfetto PNG ROOT VecGeom # Packages
   )
   set(@PROJECT_NAME@_${_dep}_FOUND ${CELERITAS_USE_${_dep}})
 endforeach()
