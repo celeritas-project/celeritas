@@ -88,6 +88,28 @@ class Histogram
 
 //---------------------------------------------------------------------------//
 /*!
+ * Sample from and accumulate a distribution \c count times.
+ *
+ * \tparam AccumulatorT Accumulate a single estimator (usually Histogram)
+ * \tparam DistributionT Distribution to sample
+ * \tparam RandomEngineT PRNG
+ */
+template<class AccumulatorT, class DistributionT, class RandomEngineT>
+void accumulate_n(AccumulatorT&& accumulate,
+                  DistributionT&& sample_from,
+                  RandomEngineT& engine,
+                  size_type count)
+{
+    for (size_type i = 0; i < count; ++i)
+    {
+        accumulate(sample_from(engine));
+    }
+}
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
  * Update the histogram with a value.
  */
 void Histogram::operator()(double value)

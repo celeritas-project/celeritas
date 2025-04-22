@@ -37,7 +37,7 @@ namespace test
 //---------------------------------------------------------------------------//
 TEST(Distributions, UrbanLargeAngleDistribution)
 {
-    constexpr int num_samples{10000};
+    constexpr size_type num_samples{10000};
     std::vector<std::vector<double>> angle_dist;
 
     DiagnosticRngEngine<std::mt19937> rng;
@@ -47,13 +47,14 @@ TEST(Distributions, UrbanLargeAngleDistribution)
 
     // Separately sample tau = 1e-14 due to platform-dependent numerical issues
     {
-        UrbanLargeAngleDistribution sample_angle{real_type(1e-14)};
-        for (int i = 0; i < num_samples; ++i)
-        {
-            auto mu = sample_angle(rng);
-            EXPECT_LT(real_type(0.9999), mu);
-            EXPECT_LE(mu, real_type(1));
-        }
+        accumulate_n(
+            [](real_type mu) {
+                EXPECT_LT(real_type(0.9999), mu);
+                EXPECT_LE(mu, real_type(1));
+            },
+            UrbanLargeAngleDistribution{real_type(1e-14)},
+            rng,
+            num_samples);
         EXPECT_EQ(2 * samples_per_real * num_samples, rng.exchange_count());
     }
 
@@ -61,12 +62,8 @@ TEST(Distributions, UrbanLargeAngleDistribution)
     for (real_type tau : {1e-8, 1e-4, 1e-2, 0.1, 0.5, 1.0, 2.0, 10.0})
     {
         Histogram bin_angle(8, {-1, 1});
-
-        UrbanLargeAngleDistribution sample_angle{tau};
-        for (int i = 0; i < num_samples; ++i)
-        {
-            bin_angle(sample_angle(rng));
-        }
+        accumulate_n(
+            bin_angle, UrbanLargeAngleDistribution{tau}, rng, num_samples);
         angle_dist.push_back(bin_angle.calc_density());
         EXPECT_EQ(2 * samples_per_real * num_samples, rng.exchange_count());
 
