@@ -14,6 +14,7 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "geocel/Types.hh"
 
@@ -70,7 +71,7 @@ struct CovfieFieldTrait<MemSpace::device>
 
     using field_t = covfie::field<transformed_t>;
 
-    static Real3 output(field_t::output_t const& vec)
+    CELER_FUNCTION static Real3 output(field_t::output_t const& vec)
     {
         return {vec[0], vec[1], vec[2]};
     }
