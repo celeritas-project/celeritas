@@ -49,23 +49,23 @@ GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
     return tol;
 }
 
-::testing::AssertionResult IsRefEqual(char const* expr1,
-                                      char const* expr2,
-                                      char const*,
-                                      GenericGeoTrackingResult const& val1,
-                                      GenericGeoTrackingResult const& val2,
-                                      GenericGeoTrackingTolerance const& tol)
+::testing::AssertionResult IsRefEq(char const* expr1,
+                                   char const* expr2,
+                                   char const*,
+                                   GenericGeoTrackingResult const& val1,
+                                   GenericGeoTrackingResult const& val2,
+                                   GenericGeoTrackingTolerance const& tol)
 {
     using ::celeritas::testdetail::IsVecEq;
     using ::celeritas::testdetail::IsVecSoftEquiv;
 
-    AssertionHelper result{expr1, expr2};
+    AssertionHelper helper{expr1, expr2};
 
 #define IRE_VEC_EQ(ATTR)                                           \
     if (auto result = IsVecEq(expr1, #ATTR, val1.ATTR, val2.ATTR); \
         !static_cast<bool>(result))                                \
     {                                                              \
-        result.fail() << result.message();                                \
+        helper.fail() << result.message();                         \
     }                                                              \
     else                                                           \
         (void)sizeof(char)
@@ -74,7 +74,7 @@ GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
         = IsVecSoftEquiv(expr1, #ATTR, #TOL, val1.ATTR, val2.ATTR, TOL); \
         !static_cast<bool>(result))                                      \
     {                                                                    \
-        result.fail() << result.message();                                      \
+        helper.fail() << result.message();                               \
     }                                                                    \
     else                                                                 \
         (void)sizeof(char)
@@ -83,7 +83,7 @@ GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
             expr1, #ATTR, #REL, #ABS, val1.ATTR, val2.ATTR, REL, ABS); \
         !static_cast<bool>(result))                                    \
     {                                                                  \
-        result.fail() << result.message();                                    \
+        helper.fail() << result.message();                             \
     }                                                                  \
     else                                                               \
         (void)sizeof(char)
@@ -95,7 +95,7 @@ GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
     IRE_VEC_SOFT_EQ2(bumps, tol.safety, tol.safety);
 
 #undef IRE_COMPARE
-    return result;
+    return helper;
 }
 
 //---------------------------------------------------------------------------//
@@ -112,10 +112,10 @@ void GenericGeoVolumeStackResult::print_expected()
     // clang-format on
 }
 
-::testing::AssertionResult IsRefEqual(char const* expr1,
-                                      char const* expr2,
-                                      GenericGeoVolumeStackResult const& val1,
-                                      GenericGeoVolumeStackResult const& val2)
+::testing::AssertionResult IsRefEq(char const* expr1,
+                                   char const* expr2,
+                                   GenericGeoVolumeStackResult const& val1,
+                                   GenericGeoVolumeStackResult const& val2)
 {
     AssertionHelper result{expr1, expr2};
 

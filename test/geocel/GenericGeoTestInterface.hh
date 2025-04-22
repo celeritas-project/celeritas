@@ -61,30 +61,28 @@ struct GenericGeoVolumeStackResult
 };
 
 //---------------------------------------------------------------------------//
-::testing::AssertionResult IsRefEqual(char const* expected_expr,
-                                      char const* actual_expr,
-                                      char const* tol_expr,
-                                      GenericGeoTrackingResult const& expected,
-                                      GenericGeoTrackingResult const& actual,
-                                      GenericGeoTrackingTolerance const& tol);
+::testing::AssertionResult IsRefEq(char const* expected_expr,
+                                   char const* actual_expr,
+                                   char const* tol_expr,
+                                   GenericGeoTrackingResult const& expected,
+                                   GenericGeoTrackingResult const& actual,
+                                   GenericGeoTrackingTolerance const& tol);
 
 //---------------------------------------------------------------------------//
 inline ::testing::AssertionResult
-IsRefEqual(char const* expected_expr,
-           char const* actual_expr,
-           GenericGeoTrackingResult const& expected,
-           GenericGeoTrackingResult const& actual)
+IsRefEq(char const* expected_expr,
+        char const* actual_expr,
+        GenericGeoTrackingResult const& expected,
+        GenericGeoTrackingResult const& actual)
 {
-    return IsRefEqual(
-        expected_expr, actual_expr, "default", expected, actual, {});
+    return IsRefEq(expected_expr, actual_expr, "default", expected, actual, {});
 }
 
 //---------------------------------------------------------------------------//
-::testing::AssertionResult
-IsRefEqual(char const* expected_expr,
-           char const* actual_expr,
-           GenericGeoVolumeStackResult const& expected,
-           GenericGeoVolumeStackResult const& actual);
+::testing::AssertionResult IsRefEq(char const* expected_expr,
+                                   char const* actual_expr,
+                                   GenericGeoVolumeStackResult const& expected,
+                                   GenericGeoVolumeStackResult const& actual);
 
 //---------------------------------------------------------------------------//
 /*!

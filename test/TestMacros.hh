@@ -16,11 +16,13 @@
 // MACROS
 //---------------------------------------------------------------------------//
 
-//! Custom comparison for Celeritas test result types
+//! Custom comparison for Celeritas test result types, using ADL
 #define EXPECT_REF_EQ(EXPECTED, ACTUAL) \
-    EXPECT_PRED_FORMAT2(::celeritas::test::IsRefEqual, EXPECTED, ACTUAL)
+    EXPECT_PRED_FORMAT2(IsRefEq, EXPECTED, ACTUAL)
 #define EXPECT_REF_NEAR(EXPECTED, ACTUAL, TOL) \
-    EXPECT_PRED_FORMAT3(::celeritas::test::IsRefEqual, EXPECTED, ACTUAL, TOL)
+    EXPECT_PRED_FORMAT3(IsRefEq, EXPECTED, ACTUAL, TOL)
+
+using ::celeritas::testdetail::IsRefEq;
 
 //! Container equality macro
 #define EXPECT_VEC_EQ(expected, actual) \

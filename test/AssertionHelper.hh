@@ -16,9 +16,9 @@ namespace test
 /*!
  * Store and update an assertion result.
  *
- * This is used for IsRefEqual implementations. For example:
+ * This is used for IsRefEq implementations. For example:
  * \code
-    AssertionHelper result(expected_expr, actual_expr);
+    AssertionHelper result(expr1, expr2);
 
     if (a.foo != b.foo)
     {
