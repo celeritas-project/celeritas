@@ -245,6 +245,8 @@ inp::StandaloneInput to_input(RunInput const& ri)
 
     inp::GeantImport geant_import;
     geant_import.ignore_processes.push_back("CoulombScat");
+    geant_import.data_selection.interpolation.type = ri.interpolation;
+    geant_import.data_selection.interpolation.order = ri.poly_spline_order;
     si.physics_import = std::move(geant_import);
 
     si.geant_data = inp::GeantDataImport{};

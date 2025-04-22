@@ -69,8 +69,8 @@ class ModelImporterTest : public OpticalMockTestBase
         // Build imported tables
         OwningGridAccessor storage;
         auto mfp_builder = storage.create_mfp_builder();
-        for (auto mat : range(
-                 OpticalMaterialId{this->optical_material()->num_materials()}))
+        for (auto mat :
+             range(OptMatId{this->optical_material()->num_materials()}))
         {
             model->build_mfps(mat, mfp_builder);
         }

@@ -104,7 +104,7 @@ TEST_F(CutoffParamsTest, empty_cutoffs)
     std::vector<real_type> energies, ranges;
     for (auto const pid : range(ParticleId{particles->size()}))
     {
-        for (auto const mid : range(MaterialId{materials->size()}))
+        for (auto const mid : range(PhysMatId{materials->size()}))
         {
             CutoffView cutoffs(cutoff.host_ref(), mid);
             if (pid != particles->find(pdg::proton()))
@@ -143,7 +143,7 @@ TEST_F(CutoffParamsTest, electron_cutoffs)
     std::vector<real_type> energies, ranges;
     for (auto const pid : range(ParticleId{particles->size()}))
     {
-        for (auto const mid : range(MaterialId{materials->size()}))
+        for (auto const mid : range(PhysMatId{materials->size()}))
         {
             CutoffView cutoffs(cutoff.host_ref(), mid);
             if (pid != particles->find(pdg::proton()))
@@ -177,7 +177,7 @@ TEST_F(CutoffParamsTest, apply_post_interaction)
     input.apply_post_interaction = true;
     CutoffParams cutoff(input);
 
-    CutoffView cutoffs(cutoff.host_ref(), MaterialId{0});
+    CutoffView cutoffs(cutoff.host_ref(), PhysMatId{0});
     EXPECT_TRUE(cutoffs.apply_post_interaction());
 
     Secondary secondary;
@@ -221,7 +221,7 @@ TEST_F(CutoffParamsImportTest, import_cutoffs)
                            this->particle()->find(pdg::gamma()),
                            this->particle()->find(pdg::positron())})
     {
-        for (auto const mid : range(MaterialId{this->material()->size()}))
+        for (auto const mid : range(PhysMatId{this->material()->size()}))
         {
             CutoffView cutoffs(this->cutoff()->host_ref(), mid);
             energies.push_back(cutoffs.energy(pid).value());

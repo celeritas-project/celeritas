@@ -295,7 +295,7 @@ template<class Engine>
 CELER_FUNCTION real_type WentzelDistribution::sample_costheta(
     real_type cos_thetamin, real_type cos_thetamax, Engine& rng) const
 {
-    // Sample scattering angle [Fern] eqn 92, where cos(theta) = 1 - 2*mu
+    // Sample scattering angle [fern] eqn 92, where cos(theta) = 1 - 2*mu
     real_type const mu1 = real_type{0.5} * (1 - cos_thetamin);
     real_type const mu2 = real_type{0.5} * (1 - cos_thetamax);
     real_type const w = generate_canonical(rng) * (mu2 - mu1);

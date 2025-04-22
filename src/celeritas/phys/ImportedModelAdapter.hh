@@ -63,7 +63,7 @@ class ImportedModelAdapter
     MicroXsBuilders micro_xs(Applicability range) const;
 
     // Get the xs energy grid bounds for the given material and particle
-    EnergyBounds energy_grid_bounds(ParticleId, MaterialId) const;
+    EnergyBounds energy_grid_bounds(ParticleId, PhysMatId) const;
 
     // Get the low energy limit for the given particle
     Energy low_energy_limit(ParticleId) const;

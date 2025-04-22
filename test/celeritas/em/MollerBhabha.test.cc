@@ -121,7 +121,7 @@ TEST_F(MollerBhabhaInteractorTest, basic)
                                   {1e5, {3, 7, -6}}};
     // clang-format on
 
-    CutoffView cutoff_view(this->cutoff_params()->host_ref(), MaterialId{0});
+    CutoffView cutoff_view(this->cutoff_params()->host_ref(), PhysMatId{0});
 
     for (SampleInit const& init : samples)
     {
@@ -226,7 +226,7 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     cutoff_inp.cutoffs.insert({pdg::positron(), material_cutoffs});
     this->set_cutoff_params(cutoff_inp);
 
-    CutoffView cutoff_view(this->cutoff_params()->host_ref(), MaterialId{0});
+    CutoffView cutoff_view(this->cutoff_params()->host_ref(), PhysMatId{0});
 
     for (SampleInit const& init : samples)
     {
@@ -313,7 +313,7 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
     int const num_samples = 10000;
     std::vector<double> avg_engine_samples;
 
-    CutoffView cutoff_view(this->cutoff_params()->host_ref(), MaterialId{0});
+    CutoffView cutoff_view(this->cutoff_params()->host_ref(), PhysMatId{0});
 
     // Moller's max energy fraction is 0.5, which leads to E_K > 2e-3
     // Bhabha's max energy fraction is 1.0, which leads to E_K > 1e-3

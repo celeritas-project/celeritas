@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/field/DormandPrinceStepper.hh"
+#include "celeritas/field/DormandPrinceIntegrator.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/RZMapField.hh"  // IWYU pragma: associated
 #include "celeritas/field/RZMapFieldData.hh"  // IWYU pragma: associated
@@ -24,7 +24,7 @@ struct RZMapFieldPropagatorFactory
 {
     CELER_FUNCTION decltype(auto) operator()(CoreTrackView const& track) const
     {
-        return make_mag_field_propagator<DormandPrinceStepper>(
+        return make_mag_field_propagator<DormandPrinceIntegrator>(
             RZMapField{field},
             field.options,
             track.particle(),

@@ -25,6 +25,7 @@
         "CELERITAS_USE_ROOT":    {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL",   "value": "ON"},
+        "CELERITAS_BUILTIN_CLI11": {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_BUILTIN_G4VG": {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_BUILTIN_nlohmann_json": {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_BUILTIN_GTest": {"type": "BOOL",   "value": "OFF"},

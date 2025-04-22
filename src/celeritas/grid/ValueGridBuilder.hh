@@ -10,9 +10,9 @@
 #include <vector>
 
 #include "corecel/Types.hh"
-#include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/inp/Grid.hh"
 
 namespace celeritas
 {
@@ -63,40 +63,15 @@ class ValueGridBuilder
 class ValueGridXsBuilder final : public ValueGridBuilder
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using SpanConstDbl = Span<double const>;
-    using VecDbl = std::vector<double>;
-    //!@}
-
-    struct GridInput
-    {
-        double emin{0};
-        double emax{0};
-        VecDbl xs;
-    };
-
-  public:
-    // Construct from imported data
-    static std::unique_ptr<ValueGridXsBuilder>
-    from_geant(SpanConstDbl lambda_energy,
-               SpanConstDbl lambda,
-               SpanConstDbl lambda_prim_energy,
-               SpanConstDbl lambda_prim);
-
-    // Construct from just scaled cross sections
-    static std::unique_ptr<ValueGridXsBuilder>
-    from_scaled(SpanConstDbl lambda_prim_energy, SpanConstDbl lambda_prim);
-
-    // Construct
-    ValueGridXsBuilder(GridInput grid, GridInput grid_prime);
+    // Construct from lower (unscaled) and upper (scaled) cross section grids
+    ValueGridXsBuilder(inp::UniformGrid lower, inp::UniformGrid upper);
 
     // Construct in the given store
     ValueGridId build(XsGridInserter) const final;
 
   private:
-    GridInput lower_;
-    GridInput upper_;
+    inp::UniformGrid lower_;
+    inp::UniformGrid upper_;
 };
 
 //---------------------------------------------------------------------------//
@@ -111,33 +86,17 @@ class ValueGridXsBuilder final : public ValueGridBuilder
 class ValueGridLogBuilder : public ValueGridBuilder
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using VecDbl = std::vector<double>;
-    using SpanConstDbl = Span<double const>;
-    using UPLogBuilder = std::unique_ptr<ValueGridLogBuilder>;
-    //!@}
-
-  public:
-    // Construct from full grids
-    static UPLogBuilder from_geant(SpanConstDbl energy, SpanConstDbl value);
-
-    // Construct from range
-    static UPLogBuilder from_range(SpanConstDbl energy, SpanConstDbl range);
-
     // Construct
-    ValueGridLogBuilder(double emin, double emax, VecDbl value);
+    ValueGridLogBuilder(inp::UniformGrid);
 
     // Construct in the given store
     ValueGridId build(XsGridInserter) const final;
 
-    // Access values
-    SpanConstDbl value() const;
+    // Access the grid
+    inp::UniformGrid const& grid() const { return grid_; }
 
   private:
-    double log_emin_;
-    double log_emax_;
-    VecDbl value_;
+    inp::UniformGrid grid_;
 };
 
 //---------------------------------------------------------------------------//

@@ -22,7 +22,7 @@ namespace test
 
 TEST(FindInterpTest, uniform_real)
 {
-    auto data = UniformGridData::from_bounds(1.0, 5.0, 3);
+    auto data = UniformGridData::from_bounds({1.0, 5.0}, 3);
     UniformGrid const grid(data);
 
     {

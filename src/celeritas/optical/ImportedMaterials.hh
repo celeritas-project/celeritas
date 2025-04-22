@@ -37,13 +37,13 @@ class ImportedMaterials
                       std::vector<ImportWavelengthShift> wls);
 
     // Get number of imported optical materials
-    OpticalMaterialId::size_type num_materials() const;
+    OptMatId::size_type num_materials() const;
 
     // Get imported Rayleigh material parameters
-    ImportOpticalRayleigh const& rayleigh(OpticalMaterialId mat) const;
+    ImportOpticalRayleigh const& rayleigh(OptMatId mat) const;
 
     // Get imported wavelength shifting material parameters
-    ImportWavelengthShift const& wls(OpticalMaterialId mat) const;
+    ImportWavelengthShift const& wls(OptMatId mat) const;
 
   private:
     std::vector<ImportOpticalRayleigh> rayleigh_;

@@ -74,7 +74,6 @@ if not rootout_filename and "cms" in geometry_filename:
 num_tracks = 128 * 32 if use_device else 32
 num_primaries = 3 * 15 # assuming test hepmc input
 max_steps = 512 if physics_options['msc'] else 128
-spline_eloss_order = 2
 
 if not use_device:
     # Way more steps are needed since we're not tracking in parallel, but
@@ -89,7 +88,7 @@ inp = {
     'seed': 12345,
     'num_track_slots': num_tracks,
     'max_steps': max_steps,
-    'spline_eloss_order': spline_eloss_order,
+    'interpolation': 'linear',
     'initializer_capacity': 100 * num_tracks,
     'secondary_stack_factor': 3,
     'action_diagnostic': True,

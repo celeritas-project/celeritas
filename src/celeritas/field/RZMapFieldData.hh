@@ -45,7 +45,7 @@ struct RZMapFieldParamsData
     //! Grids of MapField
     MapFieldGridData grids;
 
-    //! Options for FieldDriver
+    //! Field propagation and substepping tolerances
     FieldDriverOptions options;
 
     //! Index of MapField Collection

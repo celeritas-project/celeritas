@@ -48,10 +48,11 @@ TEST(PoissonDistributionTest, bin_large)
     PoissonDistribution<double> sample_poisson{lambda};
     DiagnosticRngEngine<std::mt19937> rng;
 
-    Histogram histogram(60, {35, 95});
+    // Since the result are integers, bin centers should be integer
+    Histogram histogram(60, {34.5, 94.5});
     for ([[maybe_unused]] int i : range(num_samples))
     {
-        histogram(sample_poisson(rng));
+        histogram(static_cast<double>(sample_poisson(rng)));
     }
     static unsigned int const expected_counts[]
         = {1,   1,   5,   2,   5,   6,   6,   11,  11,  11,  28,  45,

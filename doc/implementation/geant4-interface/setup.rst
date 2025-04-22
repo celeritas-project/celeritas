@@ -50,6 +50,8 @@ fields (see :ref:`api_accel_adapters`).
 
 .. doxygenclass:: celeritas::CylMapFieldAlongStepFactory
 
+.. _g4_ui_macros:
+
 Macro UI Options
 ----------------
 

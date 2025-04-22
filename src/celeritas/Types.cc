@@ -91,4 +91,18 @@ char const* to_cstring(NuclearFormFactorType value)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get a string corresponding to the interpolation method.
+ */
+char const* to_cstring(InterpolationType value)
+{
+    static EnumStringMapper<InterpolationType> const to_cstring_impl{
+        "linear",
+        "poly_spline",
+        "cubic_spline",
+    };
+    return to_cstring_impl(value);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -67,7 +67,7 @@ class ScintillationTestBase : public ::celeritas::test::OpticalTestBase
     }
 
   protected:
-    OpticalMaterialId opt_mat_{0};
+    OptMatId opt_mat_{0};
 
     // Post-step values
     Real3 post_pos_{0, 0, from_cm(1)};
@@ -129,10 +129,9 @@ class ParticleScintillationTest : public ScintillationTestBase
     }
 
     //! Create particle yield vector
-    ImportPhysicsVector build_particle_yield()
+    inp::Grid build_particle_yield()
     {
-        ImportPhysicsVector vec;
-        vec.vector_type = ImportPhysicsVectorType::free;
+        inp::Grid vec;
         vec.x = {1e-6, 6};
         vec.y = {3750, 5000};
         return vec;

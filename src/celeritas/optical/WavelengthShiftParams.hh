@@ -27,7 +27,7 @@ class WavelengthShiftParams final
     : public ParamsDataInterface<WavelengthShiftData>
 {
   public:
-    //! Material-dependent WLS data, indexed by \c OpticalMaterialId
+    //! Material-dependent WLS data, indexed by \c OptMatId
     struct Input
     {
         std::vector<ImportWavelengthShift> data;

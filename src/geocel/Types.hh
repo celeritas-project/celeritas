@@ -39,7 +39,7 @@ using SquareMatrixReal3 = SquareMatrix<real_type, 3>;
 using LevelId = OpaqueId<struct Level_>;
 
 //! Identifier for a material fill
-using GeoMaterialId = OpaqueId<struct GeoMaterial_>;
+using GeoMatId = OpaqueId<struct GeoMaterial_>;
 
 //! Identifier for a surface (for surface-based geometries)
 using SurfaceId = OpaqueId<struct Surface_>;
@@ -62,20 +62,6 @@ enum class Axis
     y,  //!< Y axis/J index coordinate
     z,  //!< Z axis/K index coordinate
     size_  //!< Sentinel value for looping over axes
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Which of two bounding points, faces, etc.
- *
- * Here, lo/hi correspond to left/right, back/front, bottom/top. It's used for
- * the two points in a bounding box.
- */
-enum class Bound : unsigned char
-{
-    lo,
-    hi,
-    size_
 };
 
 //---------------------------------------------------------------------------//
@@ -125,13 +111,6 @@ inline CELER_FUNCTION Axis to_axis(int a)
 {
     CELER_EXPECT(a >= 0 && a < 3);
     return static_cast<Axis>(a);
-}
-
-//---------------------------------------------------------------------------//
-//! Convert Bound enum value to int
-CELER_CONSTEXPR_FUNCTION int to_int(Bound b)
-{
-    return static_cast<int>(b);
 }
 
 //---------------------------------------------------------------------------//

@@ -48,14 +48,14 @@ TEST_F(RayleighMfpCalculatorTest, mfp_table)
     std::vector<real_type> mfps;
     mfps.reserve(expected_mfps.size());
 
-    for (auto opt_mat : range(OpticalMaterialId(opt_materials.size())))
+    for (auto opt_mat : range(OptMatId(opt_materials.size())))
     {
         auto const& rayleigh = opt_materials[opt_mat.get()].rayleigh;
 
         RayleighMfpCalculator calc_mfp(
             this->optical_material()->get(opt_mat),
             rayleigh,
-            this->material()->get(::celeritas::MaterialId(opt_mat.get())));
+            this->material()->get(::celeritas::PhysMatId(opt_mat.get())));
 
         auto energies = calc_mfp.grid().values();
         for (auto i : range(energies.size()))

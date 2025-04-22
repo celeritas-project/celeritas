@@ -43,6 +43,10 @@ namespace celeritas
  * Geant4 uses Knuth's algorithm for \f$ \lambda \le 16 \f$ and a Gaussian
  * approximation for \f$ \lambda > 16 \f$ (see \c G4Poisson), which is faster
  * but less accurate than other methods. The same approach is used here.
+ *
+ * \todo Break this into two distributions: one actual poisson distribution,
+ * one "integer normal" distribution, and a variant type that selects between
+ * them. In most cases we care about, lambda is small.
  */
 template<class RealType = ::celeritas::real_type>
 class PoissonDistribution

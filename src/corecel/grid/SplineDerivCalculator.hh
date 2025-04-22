@@ -14,6 +14,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 
+#include "GridTypes.hh"
 #include "UniformGrid.hh"
 
 #include "detail/GridAccessor.hh"
@@ -74,19 +75,11 @@ class SplineDerivCalculator
   public:
     //!@{
     //! \name Type aliases
-    using SpanConstReal = detail::SpanGridAccessor::SpanConstReal;
-    using Values = detail::UniformGridAccessor::Values;
+    using SpanConstReal = detail::GridAccessor::SpanConstReal;
+    using Values = detail::GridAccessor::Values;
     using VecReal = std::vector<real_type>;
+    using BoundaryCondition = SplineBoundaryCondition;
     //!@}
-
-    //! Cubic spline interpolation boundary conditions
-    enum class BoundaryCondition
-    {
-        natural = 0,
-        not_a_knot,
-        geant,  //!< Geant4's "not-a-knot"
-        size_
-    };
 
   public:
     // Construct with boundary conditions
@@ -95,6 +88,13 @@ class SplineDerivCalculator
     // Calculate the second derivatives
     VecReal operator()(SpanConstReal, SpanConstReal) const;
     VecReal operator()(UniformGridRecord const&, Values const&) const;
+    VecReal operator()(NonuniformGridRecord const&, Values const&) const;
+
+    // Calculate the second derivatives from an inverted uniform grid
+    VecReal calc_from_inverse(UniformGridRecord const&, Values const&) const;
+
+    //! Minimum grid size for cubic spline interpolation
+    static CELER_CONSTEXPR_FUNCTION int min_grid_size() { return 5; }
 
   private:
     //// TYPES ////

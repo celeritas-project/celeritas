@@ -46,7 +46,7 @@ AbsorptionModel::AbsorptionModel(ActionId id, SPConstImported imported)
 /*!
  * Build the mean free paths for the model.
  */
-void AbsorptionModel::build_mfps(OpticalMaterialId mat, MfpBuilder& build) const
+void AbsorptionModel::build_mfps(OptMatId mat, MfpBuilder& build) const
 {
     CELER_EXPECT(mat < imported_.num_materials());
     build(imported_.mfp(mat));
