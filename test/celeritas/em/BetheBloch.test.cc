@@ -7,6 +7,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/random/Histogram.hh"
+#include "corecel/random/HistogramSampler.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/distribution/BetheBlochEnergyDistribution.hh"
 #include "celeritas/em/interactor/MuHadIonizationInteractor.hh"
