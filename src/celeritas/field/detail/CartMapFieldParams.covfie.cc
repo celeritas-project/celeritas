@@ -119,8 +119,6 @@ CartMapFieldParams::CartMapFieldParams(Input const& inp)
 {
 }
 
-CartMapFieldParams::~CartMapFieldParams() = default;
-
 //! Access field map data on the host
 auto CartMapFieldParams::host_ref() const -> HostRef const&
 {

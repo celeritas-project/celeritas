@@ -39,8 +39,6 @@ class CartMapFieldParams final
     // Construct with a magnetic field map
     explicit CartMapFieldParams(Input const& inp);
 
-    ~CartMapFieldParams();
-
     //! Access field map data on the host
     HostRef const& host_ref() const final;
 
