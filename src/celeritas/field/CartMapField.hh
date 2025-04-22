@@ -14,6 +14,10 @@
 #    include "detail/NotImplementedField.hh"
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Dummy class for cartesian map magnetic field when no backend is available.
+ */
 using CartMapField = NotImlementedField;
 }
 #endif  // CELERITAS_USE_COVFIE
