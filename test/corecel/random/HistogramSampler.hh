@@ -6,8 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <random>
 #include <iosfwd>
+#include <random>
 #include <vector>
 #include <gtest/gtest.h>
 

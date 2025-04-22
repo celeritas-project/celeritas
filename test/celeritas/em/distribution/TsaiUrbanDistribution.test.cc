@@ -6,11 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/em/distribution/TsaiUrbanDistribution.hh"
 
-#include <random>
-
 #include "corecel/random/HistogramSampler.hh"
-#include "corecel/random/Histogram.hh"
-#include "celeritas/Units.hh"
+#include "celeritas/Quantities.hh"
 
 #include "celeritas_test.hh"
 
