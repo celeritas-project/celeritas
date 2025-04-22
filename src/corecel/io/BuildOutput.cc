@@ -46,6 +46,7 @@ void BuildOutput::output(JsonPimpl* j) const
             CO_ADD_OPT(HIP);
             CO_ADD_OPT(MPI);
             CO_ADD_OPT(OPENMP);
+            CO_ADD_OPT(PERFETTO);
             CO_ADD_OPT(ROOT);
             CO_ADD_OPT(VECGEOM);
 #undef CO_ADD_OPT
