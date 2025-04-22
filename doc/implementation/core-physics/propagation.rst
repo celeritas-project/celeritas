@@ -41,7 +41,7 @@ Magnetic field types
 
 .. doxygenclass:: celeritas::RZMapField
 
-.. doxygenclass:: celeritas::CartMapField
+.. doxygentypedef:: celeritas::CartMapField
 
 .. doxygenclass:: celeritas::CylMapField
 
