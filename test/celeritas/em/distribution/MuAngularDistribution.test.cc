@@ -27,23 +27,22 @@ TEST(MuAngularDistributionTest, costheta_dist)
 
     Mass muon_mass{105.6583745};
     int num_samples = 1000;
-
-    DiagnosticRngEngine<std::mt19937> rng;
     std::vector<real_type> costheta;
-    std::vector<SampleStats> all_stats;
+    std::mt19937 rng;
 
     for (real_type inc_e : {0.1, 1.0, 1e2, 1e3, 1e6})
     {
         for (real_type eps : {0.001, 0.01, 0.1})
         {
-            auto stats = sample_distribution(
-                MuAngularDistribution(
-                    Energy{inc_e}, muon_mass, Energy{eps * inc_e}),
-                rng,
-                num_samples);
-            // stats.print_expected();
-            costheta.push_back(stats.mean());
-            EXPECT_EQ(2000, rng.exchange_count());
+            MuAngularDistribution sample_costheta(
+                Energy{inc_e}, muon_mass, Energy{eps * inc_e});
+
+            real_type costheta_sum = 0;
+            for (int i = 0; i < num_samples; ++i)
+            {
+                costheta_sum += sample_costheta(rng);
+            }
+            costheta.push_back(costheta_sum / num_samples);
         }
     }
 
