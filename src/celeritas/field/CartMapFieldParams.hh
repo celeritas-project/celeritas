@@ -70,8 +70,6 @@ inline CartMapFieldParams::CartMapFieldParams(Input const&)
     CELER_NOT_CONFIGURED("covfie");
 }
 
-inline CartMapFieldParams::~CartMapFieldParams() = default;
-
 //! Access field map data on the host
 inline auto CartMapFieldParams::host_ref() const -> HostRef const&
 {
