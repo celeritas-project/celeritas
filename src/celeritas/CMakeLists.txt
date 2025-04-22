@@ -165,12 +165,9 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
 endif()
 
 if(CELERITAS_USE_covfie)
-  list(APPEND PUBLIC_DEPS covfie::core covfie::cpu)
-  if(CELERITAS_USE_CUDA)
-    list(APPEND PUBLIC_DEPS covfie::cuda)
-  elseif(CELERITAS_USE_HIP)
-    list(APPEND PUBLIC_DEPS covfie::hip)
-  endif()
+  list(APPEND PRIVATE_DEPS
+    ${COVFIE_LIBS}
+  )
   list(APPEND SOURCES
     field/detail/CartMapFieldParams.covfie.cc)
 endif()
