@@ -489,7 +489,7 @@ TEST(IsRefEq, failures)
     // Vectors of same size
     {
         std::vector<Foo> vexpected(100, ref);
-        std::vector<Foo> vactual(100, Foo{20});
+        std::vector<Foo> vactual(100, Foo{50});
         EXPECT_FALSE(IsRefEq("expected", "actual", vexpected, vactual));
         EXPECT_FALSE(IsRefEq(
             "expected", "actual", "tol", vexpected, vactual, FooTol{20}));
