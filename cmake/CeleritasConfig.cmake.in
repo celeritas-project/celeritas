@@ -145,6 +145,10 @@ if(CELERITAS_USE_Thrust)
   find_dependency(Thrust REQUIRED)
 endif()
 
+if(CELERITAS_USE_covfie)
+  find_dependency(covfie REQUIRED)
+endif()
+
 if(CELERITAS_USE_VecGeom)
   find_dependency(VecGeom @VecGeom_VERSION@ REQUIRED)
 
@@ -192,7 +196,7 @@ endif()
 
 foreach(_dep
     CUDA HIP # Languages
-    Geant4 HepMC3 PNG MPI OpenMP Perfetto ROOT VecGeom # Packages
+    covfie Geant4 HepMC3 MPI OpenMP Perfetto PNG ROOT VecGeom # Packages
   )
   set(@PROJECT_NAME@_${_dep}_FOUND ${CELERITAS_USE_${_dep}})
 endforeach()

@@ -41,6 +41,8 @@ Magnetic field types
 
 .. doxygenclass:: celeritas::RZMapField
 
+.. doxygenclass:: celeritas::CartMapField
+
 .. doxygenclass:: celeritas::CylMapField
 
 .. _api_field_data:
@@ -55,7 +57,11 @@ JSON input for the field setup corresponds to the uniform field input
    :members:
    :no-link:
 
-as well as fully cylindrical input:
+as well as fully cartesian or cylindrical input:
+
+.. doxygenstruct:: celeritas::CartMapFieldInput
+   :members:
+   :no-link:
 
 .. doxygenstruct:: celeritas::CylMapFieldInput
    :members:

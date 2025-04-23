@@ -27,6 +27,7 @@
 #include "geocel/GeantGdmlLoader.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/alongstep/AlongStepCartMapFieldMscAction.hh"
 #include "celeritas/alongstep/AlongStepCylMapFieldMscAction.hh"
 #include "celeritas/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/alongstep/AlongStepRZMapFieldMscAction.hh"
@@ -313,6 +314,15 @@ auto build_along_step(inp::Field const& var_field,
                                         msc,
                                         eloss);
             },
+            [&](inp::CartMapField const& field) {
+                using ASA = AlongStepCartMapFieldMscAction;
+                return ASA::from_params(next_id,
+                                        *params.material,
+                                        *params.particle,
+                                        field,
+                                        msc,
+                                        eloss);
+            },
         }),
         var_field);
 }
@@ -466,6 +476,8 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
     //// DIAGNOSTICS ////
 
     result.output_file = p.diagnostics.output_file;
+
+    // TODO: timers, counters, perfetto_file
 
     if (p.diagnostics.action)
     {
