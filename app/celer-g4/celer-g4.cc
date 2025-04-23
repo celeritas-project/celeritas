@@ -44,6 +44,7 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "corecel/sys/TracingSession.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
@@ -106,6 +107,12 @@ void run(std::string_view filename, std::shared_ptr<SharedParams> params)
 
     // Construct global setup singleton and make options available to UI
     auto& setup = *GlobalSetup::Instance();
+    // Read user input
+    setup.ReadInput(std::string(filename));
+
+    // Start tracing session
+    celeritas::TracingSession tracing{setup.input().tracing_file};
+    tracing.start();
 
     auto run_manager = [] {
         // Run manager writes output that cannot be redirected with
@@ -146,9 +153,6 @@ void run(std::string_view filename, std::shared_ptr<SharedParams> params)
 
     CELER_LOG(info) << "Run manager type: "
                     << TypeDemangler<G4RunManager>{}(*run_manager);
-
-    // Read user input
-    setup.ReadInput(std::string(filename));
 
     std::vector<std::string> ignore_processes = {"CoulombScat"};
     setup.SetIgnoreProcesses(ignore_processes);
