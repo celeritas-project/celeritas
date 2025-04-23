@@ -5,7 +5,7 @@
 
 Version 0.6.0
 -------------
-*Released 2025/04/22*
+*Released 2025/04/23*
 
 Version 0.6.0 is a major update to Celeritas featuring:
 
@@ -40,7 +40,7 @@ Known deficiencies:
 - Surface optical physics (reflection, refraction) is not yet implemented
 - ORANGE performance is significantly degraded compared to v0.5
 
-Changes since v0.5.3 follow.
+Changes since v0.5.0, excluding those released in v0.5.3, follow.
 
 New features
 ------------
@@ -60,6 +60,7 @@ New features
 * Implement optical Rayleigh model *(@hhollenb, #1469)*
 * Allow core and optical loops to have different numbers of track slots *(@amandalund, #1491)*
 * Add muon decay interactor *(@stognini, #1456)*
+* Add option to use spline-interpolated energy loss *(@lebuller, #1496)*
 * Add option to use spline-interpolated energy loss *(@lebuller, #1496)*
 * Add an Optical WLS *(@whokion, #1507)*
 * Add muon pair production *(@amandalund, #1518)*
@@ -103,6 +104,7 @@ New features
 * Add timers to accel integration classes *(@amandalund, #1693)*
 * Use float for field interpolation *(@esseivaju, #1684)*
 * Allow some "required" SetupOptions to be set via Geant4 UI *(@sethrj, #1697)*
+* Support counter with NVTX *(@esseivaju, #1702)*
 * Use programmatic optical counters instead of absurdly verbose printout *(@sethrj, #1707)*
 * Allow G4 applications to query celeritas offload mode *(@sethrj, #1711)*
 * Reduce logging verbosity during Geant4 runs *(@sethrj, #1705)*
@@ -110,6 +112,7 @@ New features
 * Estimate scintillation wavelength distribution parameters from tabulated values when only the latter is provided *(@amandalund, #1722)*
 * Add utilities to stabilize downstream use of ORANGE *(@sethrj, #1736)*
 * Expand support for spline interpolation *(@amandalund, #1633)*
+* Add cartesian magnetic field using Covfie *(@esseivaju, #1744)*
 
 Bug fixes
 ---------
@@ -127,7 +130,6 @@ Bug fixes
 * Support different grid spacings for cross section data *(@amandalund, #1622)*
 * Fix crash in multithreaded celer-g4 *(@amandalund, #1627)*
 * Fix loading of GDML files with reflection *(@sethrj, #1626)*
-* Bump VecGeom minimum version to 1.2.10 *(@pcanal, #1628)*
 * Fix navigation and mapping of reflecting volumes *(@sethrj, #1629)*
 * Fix reading and writing HepMC3 events *(@amandalund, #1635)*
 * Initialize MPI in high-level integration classes *(@sethrj, #1672)*
@@ -209,6 +211,7 @@ Minor internal changes
 * Move ``PolyEvaluator`` to corecel/math *(@amandalund, #1610)*
 * Rename fast simulation offload *(@sethrj, #1613)*
 * Rename ``Generic`` grid to ``Nonuniform`` *(@amandalund, #1616)*
+* Require VecGeom 1.2.10 for CUDA RDC support *(@pcanal, #1628)*
 * Construct CoreParams from new problem input in celer-sim *(@sethrj, #1601)*
 * Move Geant4 SD integration into celeritas/ext *(@sethrj, #1631)*
 * Refactor log handlers for better reuse *(@sethrj, #1636)*
@@ -232,6 +235,7 @@ Minor internal changes
 * Rename material ID types *(@sethrj, #1742)*
 * Simplify grid construction in a few more places *(@amandalund, #1743)*
 * Fix ROCTX find: hip not cuda *(@sethrj, #1755)*
+* Move types around to fix ROOT error *(@sethrj, #1757)*
 * Simplify MSC angular sampling *(@sethrj, #1714)*
 
 Deprecation and removal
@@ -247,7 +251,7 @@ Deprecation and removal
 Reviewers
 ---------
 
-* Seth R. Johnson *(@sethrj)*: 87
+* Seth R. Johnson *(@sethrj)*: 89
 * Amanda Lund *(@amandalund)*: 68
 * Philippe Canal *(@pcanal)*: 22
 * Stefano Tognini *(@stognini)*: 10
