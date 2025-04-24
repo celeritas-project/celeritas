@@ -61,7 +61,6 @@ New features
 * Allow core and optical loops to have different numbers of track slots *(@amandalund, #1491)*
 * Add muon decay interactor *(@stognini, #1456)*
 * Add option to use spline-interpolated energy loss *(@lebuller, #1496)*
-* Add option to use spline-interpolated energy loss *(@lebuller, #1496)*
 * Add an Optical WLS *(@whokion, #1507)*
 * Add muon pair production *(@amandalund, #1518)*
 * Extend BIH capabilities for intersection operations *(@elliottbiondo, #1479)*
