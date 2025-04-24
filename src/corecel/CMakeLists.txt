@@ -20,11 +20,12 @@ celeritas_version_to_hex(CELERITAS_VERSION PROJECT_VERSION)
 #----------------------------------------------------------------------------#
 # Build configuration
 
+set(CELERITAS_USE_COVFIE ${CELERITAS_USE_covfie})
 set(CELERITAS_USE_GEANT4  ${CELERITAS_USE_Geant4})
 set(CELERITAS_USE_HEPMC3  ${CELERITAS_USE_HepMC3})
 set(CELERITAS_USE_OPENMP  ${CELERITAS_USE_OpenMP})
-set(CELERITAS_USE_VECGEOM ${CELERITAS_USE_VecGeom})
 set(CELERITAS_USE_PERFETTO ${CELERITAS_USE_Perfetto})
+set(CELERITAS_USE_VECGEOM ${CELERITAS_USE_VecGeom})
 
 # Set CELERITAS_CORE_RNG_CONFIG to a numeric table of RNG options and the
 # selection.
@@ -93,7 +94,7 @@ list(APPEND CELERITAS_CMAKE_STRINGS "")
 # Save dependency versions as strings
 set(CUDA_VERSION_STRING "${CUDAToolkit_VERSION}")
 set(HIP_VERSION_STRING "${hip-lang_VERSION}")
-foreach(_pkg CLHEP CUDA HepMC3 HIP Geant4 G4VG ROOT Thrust VecGeom)
+foreach(_pkg CLHEP covfie CUDA HepMC3 HIP Geant4 G4VG ROOT Thrust VecGeom)
   string(TOLOWER "${_pkg}" _lower)
   if(DEFINED ${_pkg}_VERSION_STRING)
     set(_value "${${_pkg}_VERSION_STRING}")

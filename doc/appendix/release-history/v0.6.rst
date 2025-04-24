@@ -1,0 +1,262 @@
+.. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+.. SPDX-License-Identifier: CC-BY-4.0
+
+.. _release_v0.6.0:
+
+Version 0.6.0
+-------------
+*Released 2025/04/23*
+
+Version 0.6.0 is a major update to Celeritas featuring:
+
+- High-level integration utilities for Geant4 applications
+- Optical physics implementation including volumetric physics
+- Advanced field mapping capabilities with 3D cylindrical and cartesian field maps and volume-specific uniform fields
+- Extended geometry conversion and optimization-oriented features for ORANGE
+- Support for VecGeom 2.0
+- Spline interpolation for cross-section calculations and energy loss
+
+A few minor features are noteworthy:
+
+- Improved debugging utilities for diagnosing stuck/errored tracks
+- Support for sensitive detectors in replica/parameterized volumes
+- Better handling of tracks that fail or get stuck during simulation
+
+Notable bug fixes include:
+
+- Fixed navigation and mapping of reflecting volumes for VecGeom
+- Resolved crashes related to process construction and memory access
+- Fixed issues with GDML file loading and SD hit scoring
+- Fixed Urban MSC scattering distribution (backported to v0.5.3)
+
+Some interfaces have been removed:
+
+- Obsolete demonstration apps and celer-dump-data
+- Macro setup from celer-g4
+- The ability to run on the default stream
+
+Known deficiencies:
+
+- Surface optical physics (reflection, refraction) is not yet implemented
+- ORANGE performance is significantly degraded compared to v0.5
+
+Changes since v0.5.0, excluding those released in v0.5.3, follow.
+
+New features
+------------
+
+* Add optical "locate vacancies" and pre-step actions *(@amandalund, #1441)*
+* Extend debug utilities for stuck/errored tracks *(@sethrj, #1451)*
+* Add CELER_NONFATAL_FLUSH to cleanly kill stuck tracks *(@sethrj, #1455)*
+* Add optical absorption model with imported data *(@hhollenb, #1440)*
+* Add multilevel "volume instance"  *(@sethrj, #1461)*
+* Reconstruct Geant4 navigation history from stack *(@sethrj, #1466)*
+* Add "cut" for individual track steps *(@sethrj, #1467)*
+* Improve error checking and diagnostic output for managing GPU *(@sethrj, #1464)*
+* Add distance-to-bbox function *(@elliottbiondo, #1446)*
+* Add multi-level state to detector step result *(@sethrj, #1471)*
+* Override and save Geant4 dataset variables at configure time *(@pcanal, #1475)*
+* Implement spline interpolation for cross-section calculation *(@lebuller, #1444)*
+* Implement optical Rayleigh model *(@hhollenb, #1469)*
+* Allow core and optical loops to have different numbers of track slots *(@amandalund, #1491)*
+* Add muon decay interactor *(@stognini, #1456)*
+* Add option to use spline-interpolated energy loss *(@lebuller, #1496)*
+* Add an Optical WLS *(@whokion, #1507)*
+* Add muon pair production *(@amandalund, #1518)*
+* Extend BIH capabilities for intersection operations *(@elliottbiondo, #1479)*
+* Add along-step and tracking cut optical executors *(@sethrj, #1540)*
+* Enable optical stepping loop *(@sethrj, #1546)*
+* Simplify UnitProto after building a CsgUnit *(@esseivaju, #1415)*
+* Implement device bitset *(@esseivaju, #1547)*
+* Reduce ``celer-sim`` memory usage and improve its ``CELER_LOG`` transport output *(@stognini, #1550)*
+* Support sense caching for future lazy evaluation *(@esseivaju, #1539)*
+* Support building infix logic representation *(@esseivaju, #1530)*
+* Import and use muon+hadron EM physics parameters *(@amandalund, #1581)*
+* Extend Coulomb scattering to support additional particle types *(@amandalund, #1574)*
+* Add optical model importer and refactor imported optical materials *(@hhollenb, #1520)*
+* Add global Celeritas input definition *(@sethrj, #1562)*
+* Always select at-rest process for stopped tracks *(@amandalund, #1592)*
+* Use BIH to accelerate background_intersect *(@elliottbiondo, #1599)*
+* Add ultra-simple tracking manager integration *(@sethrj, #1609)*
+* Implement cubic spline interpolation *(@amandalund, #1607)*
+* Add a calculator to integrate range from energy loss *(@amandalund, #1544)*
+* Add G4Ellipsoid without bottom/top cuts *(@elliottbiondo, #1617)*
+* Add safety visualization tool *(@sethrj, #1614)*
+* Remove pointers from Geant4 labels *(@sethrj, #1620)*
+* Add high-level user/fast sim integration helpers *(@sethrj, #1615)*
+* Support spline interpolation on a nonuniform grid *(@amandalund, #1625)*
+* Prune primaries that start outside the world volume *(@sethrj, #1624)*
+* Add support for Z cuts when converting G4Solids *(@elliottbiondo, #1638)*
+* Support sensitive detectors in replica/parameterized volumes *(@sethrj, #1649)*
+* Add an option to enable status checker through celer-sim *(@sethrj, #1650)*
+* Add support for elliptical cylinders and elliptical cones in orange and g4org *(@elliottbiondo, #1642)*
+* Support post-step touchable location and step status *(@sethrj, #1653)*
+* Support surface-based VecGeom 2.x navigator *(@mrguilima, #1422)*
+* Approximate G4Torus using inner/outer bounding cylinders *(@elliottbiondo, #1654)*
+* Support volume-specific uniform field *(@amandalund, #1659)*
+* Implement discrete optical physics *(@hhollenb, #1604)*
+* Add an example user action for gathering statistics on GPU *(@sethrj, #1664)*
+* Add quantity support to FindInterp and template Turn *(@sethrj, #1675)*
+* Support VecGeom 2.0 *(@sethrj, #1674)*
+* Add 3D Cylindrical field map *(@esseivaju, #1662)*
+* Make SB energy limit configurable and partially fix failures when using a single brems model *(@amandalund, #1686)*
+* Add timers to accel integration classes *(@amandalund, #1693)*
+* Use float for field interpolation *(@esseivaju, #1684)*
+* Allow some "required" SetupOptions to be set via Geant4 UI *(@sethrj, #1697)*
+* Support counter with NVTX *(@esseivaju, #1702)*
+* Use programmatic optical counters instead of absurdly verbose printout *(@sethrj, #1707)*
+* Allow G4 applications to query celeritas offload mode *(@sethrj, #1711)*
+* Reduce logging verbosity during Geant4 runs *(@sethrj, #1705)*
+* Improve messages when multiple tracks fail in flight *(@sethrj, #1715)*
+* Estimate scintillation wavelength distribution parameters from tabulated values when only the latter is provided *(@amandalund, #1722)*
+* Add utilities to stabilize downstream use of ORANGE *(@sethrj, #1736)*
+* Expand support for spline interpolation *(@amandalund, #1633)*
+* Add cartesian magnetic field using Covfie *(@esseivaju, #1744)*
+
+Bug fixes
+---------
+
+* Define a "unique event ID" different from event counter *(@sethrj, #1447)*
+* Fix optical import when unused materials are defined *(@sethrj, #1449)*
+* Remove trackid counter from primary *(@sethrj, #1448)*
+* Improve single-event mode in ``accel`` *(@sethrj, #1452)*
+* Fix GDML export messages and geometry-only use case *(@sethrj, #1454)*
+* Fix tracking cut message *(@sethrj, #1458)*
+* Anchor vtables to fix broken dynamic cast in tests *(@sethrj, #1474)*
+* Fix documentation *(@sethrj, #1502)*
+* Fix clang-tidy weekly cron *(@esseivaju, #1541)*
+* Fix multiple ``release()`` calls to ensure nullptr is not used in process construction *(@amandalund, #1612)*
+* Support different grid spacings for cross section data *(@amandalund, #1622)*
+* Fix crash in multithreaded celer-g4 *(@amandalund, #1627)*
+* Fix loading of GDML files with reflection *(@sethrj, #1626)*
+* Fix navigation and mapping of reflecting volumes *(@sethrj, #1629)*
+* Fix reading and writing HepMC3 events *(@amandalund, #1635)*
+* Initialize MPI in high-level integration classes *(@sethrj, #1672)*
+* Fix bremsstrahlung process construction when using only a single model *(@amandalund, #1677)*
+* Lazily fetch volumes for UniformAlongStepFactory  *(@rahmans1, #1666)*
+* Fix BoundingZone floating point issue *(@elliottbiondo, #1681)*
+* Fix out-of-bounds memory access in ``CylMapField`` *(@amandalund, #1689)*
+* Fix Geant4 SD hit scoring *(@amandalund, #1708)*
+* Fix field map usage from accel *(@sethrj, #1724)*
+* Fix failures when integral approach is disabled *(@amandalund, #1727)*
+
+Documentation improvements
+--------------------------
+
+* Improve XSCalculator documentation and tests *(@sethrj, #1450)*
+* Require clang-tidy in CI *(@esseivaju, #1524)*
+* Tidy headers *(@esseivaju, #1534)*
+* Run clang-tidy on modified files only *(@esseivaju, #1531)*
+* Build VecGeom in weekly clang-tidy cron *(@esseivaju, #1551)*
+* Document and slightly refactor Bethe-Heitler interactor *(@sethrj, #1553)*
+* Update copyrights *(@sethrj, #1560)*
+* Enable more dependencies in clang-tidy checks *(@esseivaju, #1561)*
+* Fix Doxygen member group formatting *(@amandalund, #1567)*
+* Improve and fix documentation *(@sethrj, #1588)*
+* Add generic geometry test interface to reduce duplication *(@sethrj, #1623)*
+* Improve testing and documentation for VecGeom *(@sethrj, #1639)*
+* Fix rendering of README *(@dalg24, #1640)*
+* Add ORCID to citation *(@esseivaju, #1645)*
+* Improve geometry testing *(@sethrj, #1652)*
+* Move offload template into a celeritas::example namespace *(@sethrj, #1663)*
+* Enable optical GPU tests *(@amandalund, #1682)*
+* Update ROOT data and tests with Geant4 version 11.3.0 *(@amandalund, #1687)*
+* Split EM physics and Geant4 interface into sub-files *(@sethrj, #1698)*
+* Improve doc generation and brems-related documentation *(@sethrj, #1701)*
+* Update Geant4 version to 11.3 in CI build *(@amandalund, #1712)*
+* Add histogram helper class to simplify distribution tests *(@amandalund, #1717)*
+* Add string simplifier helper class for testing *(@sethrj, #1719)*
+* Improve MSC test code coverage *(@sethrj, #1723)*
+* Add quick-start documentation for integrating *(@sethrj, #1725)*
+* Fix pedantic warning in tests *(@elliottbiondo, #1730)*
+* Add authorship guidelines *(@sethrj, #1747)*
+* Support testing nested container equivalence and tweak ``Histogram`` class *(@amandalund, #1753)*
+
+Minor internal changes
+----------------------
+
+* Give priority to existing environment variables for G4 data location *(@pcanal, #1457)*
+* Define ``id_cast`` helper function *(@sethrj, #1459)*
+* Simplify geometry "volume" interface *(@sethrj, #1460)*
+* Refactor step storage to use aux state *(@sethrj, #1465)*
+* Refactor pinned allocator to reduce need for templates *(@sethrj, #1468)*
+* Tweak Perfetto integration *(@sethrj, #1470)*
+* Escape semicolons in exported CMake variables *(@drbenmorgan, #1472)*
+* Require ``CELERITAS_DEBUG`` be on to enable ``CELERITAS_DEVICE_DEBUG`` *(@amandalund, #1476)*
+* Use kernel launchers instead of macros *(@sethrj, #1477)*
+* Fix missing brace and refactor #1475 *(@sethrj, #1480)*
+* Fix build with latest Geant4 develop *(@pcanal, #1484)*
+* Refactor "touchable updater" that uses a navigator *(@sethrj, #1483)*
+* Store edge bounding boxes on BIH and refactor for upcoming intersection capabilities *(@elliottbiondo, #1478)*
+* Add FourVector helper functions *(@sethrj, #1510)*
+* Define hypotenuse function using fma *(@sethrj, #1513)*
+* Add a helper class for inverse transform sampling *(@amandalund, #1525)*
+* Rename Cerenkov to Cherenkov *(@amandalund, #1533)*
+* Clean up optical mock test data *(@hhollenb, #1519)*
+* Store a single process-integrated energy loss and range table per particle *(@amandalund, #1536)*
+* Add piecewise integrator and CDF utilities *(@sethrj, #1537)*
+* Define precision-agnostic Constant class *(@sethrj, #1549)*
+* Adapt bitset word size *(@esseivaju, #1554)*
+* Add 'LogicalTrue' functor *(@sethrj, #1564)*
+* Fix unnecessary use of inline constexpr *(@sethrj, #1568)*
+* Replace "volid" with "vol_id" throughout ORANGE *(@elliottbiondo, #1486)*
+* Compose caching functionality of LazySenseCalculator *(@esseivaju, #1569)*
+* Use lazy sense calculator *(@esseivaju, #1576)*
+* Change PrimaryGeneratorAction to be a wrapper  *(@sethrj, #1593)*
+* Refactor primary generator using new ``inp`` *(@sethrj, #1583)*
+* Add postfix to infix conversion utility *(@esseivaju, #1582)*
+* Move physics lists out of details and rename tracking offload *(@sethrj, #1603)*
+* Add TrackingManagerConstructor and SharedParams::GetMode *(@sethrj, #1606)*
+* Move ``PolyEvaluator`` to corecel/math *(@amandalund, #1610)*
+* Rename fast simulation offload *(@sethrj, #1613)*
+* Rename ``Generic`` grid to ``Nonuniform`` *(@amandalund, #1616)*
+* Require VecGeom 1.2.10 for CUDA RDC support *(@pcanal, #1628)*
+* Construct CoreParams from new problem input in celer-sim *(@sethrj, #1601)*
+* Move Geant4 SD integration into celeritas/ext *(@sethrj, #1631)*
+* Refactor log handlers for better reuse *(@sethrj, #1636)*
+* Rename ``CoreTrackView`` methods *(@amandalund, #1658)*
+* Refactor geometry tests into common file *(@sethrj, #1656)*
+* Use extern static data for versions, configuration *(@sethrj, #1657)*
+* Use CLI11 for front end command line parsing *(@sethrj, #1660)*
+* Hide Thrust from .cc code *(@sethrj, #1670)*
+* Remove G4EmExtraPhysics from FtfpBertPhysicsList *(@whokion, #1644)*
+* Define dependency helper targets and reorganize CMakeLists *(@sethrj, #1673)*
+* Change default field substeps in accel *(@esseivaju, #1690)*
+* Update and fix G4VG external integration *(@sethrj, #1700)*
+* Use ``inp`` to build ``accel`` core params *(@sethrj, #1632)*
+* Move random to corecel *(@sethrj, #1716)*
+* Remove dependency of orange test on celeritas *(@sethrj, #1718)*
+* Simplify Geant4 user application interface *(@sethrj, #1729)*
+* Replace ``ImportPhysicsVector`` with ``inp::Grid`` *(@amandalund, #1735)*
+* Add ExtThrust for more explicit dependencies *(@sethrj, #1694)*
+* Rename field integration interfaces: Stepper→Integrators, Driver→Substepper *(@sethrj, #1737)*
+* Add uniform grid input and continue to simplify grid construction *(@amandalund, #1739)*
+* Rename material ID types *(@sethrj, #1742)*
+* Simplify grid construction in a few more places *(@amandalund, #1743)*
+* Fix ROCTX find: hip not cuda *(@sethrj, #1755)*
+* Move types around to fix ROOT error *(@sethrj, #1757)*
+* Simplify MSC angular sampling *(@sethrj, #1714)*
+
+Deprecation and removal
+-----------------------
+
+* Delete obsolete demonstration apps *(@sethrj, #1463)*
+* Remove 'default_stream' option *(@sethrj, #1667)*
+* Remove deprecations for v0.6 *(@sethrj, #1691)*
+* Remove macro setup from celer-g4 *(@sethrj, #1710)*
+* Remove per-process switch for integral cross section method *(@amandalund, #1734)*
+* Remove celer-dump-data app *(@amandalund, #1740)*
+
+Reviewers
+---------
+
+* Seth R. Johnson *(@sethrj)*: 89
+* Amanda Lund *(@amandalund)*: 68
+* Philippe Canal *(@pcanal)*: 22
+* Stefano Tognini *(@stognini)*: 10
+* Guilherme Lima *(@mrguilima)*: 9
+* Julien Esseiva *(@esseivaju)*: 7
+* Elliott Biondo *(@elliottbiondo)*: 5
+* Soon Yung Jun *(@whokion)*: 3
+
+**Full Changelog**: https://github.com/celeritas-project/celeritas/compare/v0.5.0...v0.6.0

@@ -37,7 +37,7 @@ namespace celeritas
  * the closest distance between two positions by the field stepper and the
  * linear projection to the volume boundary.
  *
- * \note This follows similar methods as in Geant4's G4PropagatorInField class.
+ * \note This follows similar methods to Geant4's G4PropagatorInField class.
  */
 template<class SubstepperT, class GTV>
 class FieldPropagator

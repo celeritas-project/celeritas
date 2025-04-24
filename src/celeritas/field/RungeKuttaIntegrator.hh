@@ -35,7 +35,7 @@ namespace celeritas
  * \f[
  *  y_{n+1} - y_{n} = h f(x_n, y_n) = \frac{h}{6} (k_1 + 2 k_2 + 2 k_3 + k_4)
  * \f]
- * which is the average slope at four different points,
+ * which is the average slope at four different points.
  * The truncation error is the difference of the final states of one full step
  * (\em y1) and two half steps (\em y2)
  * \f[

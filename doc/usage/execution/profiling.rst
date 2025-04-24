@@ -13,11 +13,36 @@ profiling is a necessity. Celeritas uses NVTX (CUDA),  ROCTX (HIP) or Perfetto (
 to annotate the different sections of the code, allowing for fine-grained
 profiling and improved visualization.
 
-Timelines
----------
+Tracing events in Celeritas
+---------------------------
+
+Celeritas includes a number of NVTX, HIP, and Perfetto events that can be used to
+trace different aspects of the code execution. These events are enabled
+when the environment variable ``CELER_ENABLE_PROFILING`` (see :ref:`environment`) is set.
+All profiling backends (CUDA, HIP, and Perfetto)
+support both Timeline and Counter events detailed below, except that HIP does not support Counters.
+
+Profiling backends allow grouping various events into "namespaces" (NVTX/HIP domains, Perfetto categories) so that users can selectively enable events they are interested in. Celeritas groups all events in the "celeritas" namespace.
+
+Slices
+^^^^^^
+Detailed timing of each step iteration is recorded with "slices" events in Celeritas. The step slice contains nested Slices
+for each action composing the step, some actions such as along-step actions contain more nested slices for fine-grained profiling.
+
+In addition to the slices in the simulation loop, slices events are also recorded when setting up the problem (e.g. detector construction)
+
+Counters
+^^^^^^^^
+Celeritas provides a few counter events. Currently it writes:
+
+- active, alive, and dead track counts at each step iteration, and
+- the number of hits in a step.
+
+Profling Celeritas example app
+------------------------------
 
 A detailed timeline of the Celeritas construction, steps, and kernel launches
-can be gathered using `NVIDIA Nsight systems`_.
+can be gathered, the example below illustrates how to do it using `NVIDIA Nsight systems`_.
 
 .. _NVIDIA Nsight systems: https://docs.nvidia.com/nsight-systems/UserGuide/index.html
 
@@ -41,8 +66,7 @@ Additional system backtracing is specified in line 5; line 6 writes (and
 overwrites) to a particular output file; the final line invokes the
 application.
 
-Timelines can also be generated on AMD hardware using the ROCProfiler_
-applications. Here's an example that writes out timeline information:
+On AMD hardware using the ROCProfiler_, here's an example that writes out timeline information:
 
 .. sourcecode::
    :linenos:
@@ -76,9 +100,16 @@ The system-level profiling, capturing both system and application events,
 requires starting external services. Details on how to setup the system services can be found in
 the `Perfetto documentation`_. Root access on the system is required.
 
-If you integrate Celeritas in your application, you need to create a ``TracingSession``
-instance. The profiling session will end when the object goes out of scope but it can be
-moved to extend its lifetime.
+Integration with user applications
+----------------------------------
+
+When using a CUDA or HIP backend, there is nothing that needs to be done on the user side.
+The commands shown in the previous sections can be used to profile your application. If your application
+already uses NVTX, or ROCTX, you can exclude Celeritas events by excluding the "celeritas" domain.
+
+When using Perfetto, you need to create a ``TracingSession``
+instance. The profiling session needs to be explictitly started, and will end when the object goes out of scope, 
+but it can be moved to extend its lifetime.
 
 .. sourcecode:: cpp
    :linenos:
@@ -91,6 +122,14 @@ moved to extend its lifetime.
       celeritas::TracingSession session;
       session.start()
    }
+
+As mentioned above, Perfetto can either profile application events only, or application and system events.
+The system-level profiling requires starting external services. Details on how to setup the system services can be found in the `Perfetto documentation`_. Root access on the system is required.
+
+When the tracing session is started with a filename, the application-level profiling is used and written to the specified file.
+Omitting the filename will use the system-level profiling, in which case you must have the external Perfetto tracing processes started. The container in ``scripts/docker/interactive`` provides an example Perfetto configuration for tracing both system-level and celeritas events.
+
+As with NVTX and ROCTX, if your application already uses Perfetto, you can exclude Celeritas events by excluding the "celeritas" category.
 
 .. _Perfetto documentation: https://perfetto.dev/docs/quickstart/linux-tracing
 

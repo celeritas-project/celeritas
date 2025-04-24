@@ -119,6 +119,9 @@ jobs:
                 && (env.CXXSTD == '20')}}; then
             spack -e . add root
           fi
+          if ${{env.CXXSTD == '20'}}; then
+            spack -e . add covfie
+          fi
           if ${{matrix.geant != ''}}; then
             spack -e . add geant4@${{matrix.geant}}
           fi
@@ -173,7 +176,7 @@ jobs:
             . ${SPACK_VIEW}/rc
             test -n "${G4LEDATA}"
           fi
-          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
+          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE -DCELERITAS_USE_covfie=${{env.CXXSTD == '20' && 'ON' || 'OFF'}}
 
       ### BUILD ###
 

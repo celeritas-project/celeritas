@@ -32,7 +32,14 @@ Propagation
 
 .. doxygenclass:: celeritas::FieldPropagator
 
-.. doxygenfunction:: celeritas::make_mag_field_propagator
+.. doxygenclass:: celeritas::FieldSubstepper
+
+Field integration
+-----------------
+
+.. doxygenclass:: celeritas::DormandPrinceIntegrator
+
+.. doxygenclass:: celeritas::RungeKuttaIntegrator
 
 Magnetic field types
 --------------------
@@ -40,6 +47,8 @@ Magnetic field types
 .. doxygenclass:: celeritas::UniformField
 
 .. doxygenclass:: celeritas::RZMapField
+
+.. doxygenclass:: celeritas::CartMapField
 
 .. doxygenclass:: celeritas::CylMapField
 
@@ -55,7 +64,11 @@ JSON input for the field setup corresponds to the uniform field input
    :members:
    :no-link:
 
-as well as fully cylindrical input:
+as well as fully cartesian or cylindrical input:
+
+.. doxygenstruct:: celeritas::CartMapFieldInput
+   :members:
+   :no-link:
 
 .. doxygenstruct:: celeritas::CylMapFieldInput
    :members:

@@ -114,6 +114,7 @@ struct RunInput
     bool step_diagnostic{false};
     int step_diagnostic_bins{1000};
     std::string slot_diagnostic_prefix;
+    std::string tracing_file;
 
     // Whether the run arguments are valid
     explicit operator bool() const;

@@ -247,7 +247,9 @@ else()
   set(_fieldprop_filter)
 endif()
 
-celeritas_add_test(field/Fields.test.cc)
+celeritas_add_test(field/Fields.test.cc
+  LINK_LIBRARIES Celeritas::Extcovfie
+)
 celeritas_add_test(field/Integrators.test.cc ${_fixme_cgs})
 celeritas_add_test(field/FieldSubstepper.test.cc ${_fixme_cgs})
 celeritas_add_test(field/FieldPropagator.test.cc

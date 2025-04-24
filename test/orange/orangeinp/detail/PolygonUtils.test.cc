@@ -36,6 +36,28 @@ constexpr auto col = Orientation::collinear;
 // TESTS
 //---------------------------------------------------------------------------//
 
+TEST(PolygonUtilsTest, soft_orientation)
+{
+    SoftOrientation tight_soft_ori(1e-10);
+    SoftOrientation loose_soft_ori(1e-1);
+
+    // Basic tests
+    EXPECT_EQ(ccw, tight_soft_ori({0, 0}, {4, 4}, {1, 2}));
+    EXPECT_EQ(cw, tight_soft_ori({0, 0}, {4, 4}, {2, 1}));
+    EXPECT_EQ(col, tight_soft_ori({0, 0}, {4, 4}, {2, 2}));
+    EXPECT_EQ(col, tight_soft_ori({0, 0}, {1, 1}, {2, 2}));
+    EXPECT_EQ(col, tight_soft_ori({2, 2}, {1, 1}, {0, 0}));
+    EXPECT_EQ(col, tight_soft_ori({0, 0}, {0, 0}, {1, 1}));
+    EXPECT_EQ(col, tight_soft_ori({0, 0}, {0, 0}, {0, 0}));
+
+    // Collinearity tests
+    EXPECT_EQ(ccw, tight_soft_ori({0, 0}, {1, 1}, {2, 2 + 0.01}));
+    EXPECT_EQ(col, loose_soft_ori({0, 0}, {1, 1}, {2, 2 + 0.01}));
+
+    EXPECT_EQ(cw, tight_soft_ori({0, 0}, {1, 1}, {2, 2 - 0.01}));
+    EXPECT_EQ(col, loose_soft_ori({0, 0}, {1, 1}, {2, 2 - 0.01}));
+}
+
 TEST(PolygonUtilsTest, calc_orientation)
 {
     EXPECT_EQ(ccw, calc_orientation({0, 0}, {4, 4}, {1, 2}));

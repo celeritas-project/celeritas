@@ -15,6 +15,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "orange/OrangeTypes.hh"
 
 namespace celeritas
@@ -32,6 +33,42 @@ enum class Orientation
     clockwise = -1,
     collinear = 0,
     counterclockwise = 1,
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Functor for calculating orientation with a tolerance for collinearity.
+ */
+template<class T>
+class SoftOrientation
+{
+  public:
+    using real_type = T;
+    using Real2 = Array<real_type, 2>;
+
+    // Construct with default tolerance
+    CELER_CONSTEXPR_FUNCTION SoftOrientation() : soft_zero_{} {}
+
+    // Construct with specified absolute tolerance
+    explicit CELER_FUNCTION SoftOrientation(real_type abs_tol)
+        : soft_zero_{abs_tol}
+    {
+    }
+
+    // Calculate orientation with tolerance for collinearity
+    CELER_FUNCTION Orientation operator()(Real2 const& a,
+                                          Real2 const& b,
+                                          Real2 const& c) const
+    {
+        auto crossp = (b[0] - a[0]) * (c[1] - b[1])
+                      - (b[1] - a[1]) * (c[0] - b[0]);
+        return soft_zero_(crossp) ? Orientation::collinear
+               : crossp < 0       ? Orientation::clockwise
+                                  : Orientation::counterclockwise;
+    }
+
+  private:
+    SoftZero<real_type> soft_zero_;
 };
 
 //---------------------------------------------------------------------------//

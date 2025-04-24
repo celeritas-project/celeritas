@@ -12,6 +12,7 @@
         "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
@@ -57,6 +58,7 @@
       "description": "Build with release ORANGE",
       "inherits": [".ndebug", "base"],
       "cacheVariables": {
+        "CELERITAS_USE_covfie": {"type": "BOOL", "value": "ON"},
         "BUILD_SHARED_LIBS":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_ROOT": {"type": "BOOL", "value": "OFF"}
       }
@@ -83,6 +85,7 @@
       "description": "Build release with vecgeom for testing *only* demos",
       "inherits": [".ndebug", ".vecgeom", "base"],
       "cacheVariables": {
+        "CELERITAS_USE_covfie": {"type": "BOOL", "value": "ON"},
         "BUILD_TESTING":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
       }

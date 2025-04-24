@@ -24,18 +24,21 @@ namespace celeritas
  * the coefficients to locate the mid point are taken from
  * \citet{shampine-rungekutta-1986, https://doi.org/10.2307/2008219}.
  *
- * For a given ordinary differential equation, \f$dy/dx = f(x, y)\f$, the
+ * For a given ordinary differential equation, \f$\difd{y}{x} = f(x, y)\f$,
+ * the
  * fifth order solution, \f$ y_{n+1} \f$, an embedded fourth order solution,
  * \f$ y^{*}_{n+1} \f$, and the error estimate as difference between them are
  * as follows,
  * \f[
-     y_{n+1}     = y_n + h \sum_{n=1}^{6} b_i  k_i + O(h^6)
-     y^{*}_{n+1} = y_n + h \sum_{n=1}^{7} b*_i k_i + O(h^5)
-     y_{error}   = y_{n+1} - y^{*}_{n+1} = \sum_{n=1}^{7} (b^{*}_i - b_i) k_i
-   \f]
- * where \f$h\f$ is the step to advance and k_i is the right hand side of the
- * function at \f$x_n + h c_i\f$, and the coefficients (The Butcher table) for
- * Dormand-Prince RK5(4)7M are
+ * \begin{aligned}
+     y_{n+1}     &= y_n + h \sum_{n=1}^{6} b_i  k_i + O(h^6) \\
+     y^{*}_{n+1} &= y_n + h \sum_{n=1}^{7} b*_i k_i + O(h^5) \\
+     y_{error}   &= y_{n+1} - y^{*}_{n+1} = \sum_{n=1}^{7} (b^{*}_i - b_i) k_i
+ * \end{aligned}
+ * \f]
+ * where \f$h\f$ is the step to advance and \f$k_i\f$ is the right hand side of
+ * the function at \f$x_n + h c_i\f$,
+ * and the coefficients (The Butcher table) for Dormand-Prince RK5(4)7M are
  * \verbatim
    c_i | a_ij
    0   |
@@ -52,9 +55,12 @@ namespace celeritas
  *
  * The result at the mid point is computed
  * \f[
-     y_{n+1/2}   = y_n + (h/2) \Sigma_{n=1}^{7} c^{*}_i k_i
+     y_{n+1/2}  = y_n + (h/2) \sum_{n=1}^{7} c^{*}_i k_i
    \f]
- * with the coefficients \f$c^{*}\f$ taken from L. F. Shampine (1986).
+ * with the coefficients \f$c^{*}\f$ taken from Shampine.
+ *
+ * \note The analogous class in Geant4 is \c G4DormandPrince745 , which
+ inherits from \c G4MagIntegratorStepper.
  */
 template<class EquationT>
 class DormandPrinceIntegrator
