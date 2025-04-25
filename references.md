@@ -99,8 +99,8 @@ These publications are extracted from the Celeritas team's Zotero database.
 - J. Apostolakis, M. Bandieramonte, S. Banerjee, N. Bartosik, G. Corti, *et al*. "Detector Simulation Challenges for Future Accelerator Experiments". *Frontiers in Physics*, Jun 2022. [10.3389/fphy.2022.913510](https://doi.org/10.3389/fphy.2022.913510)
 - "GDML user's guide". Jun 2022.
 - T. M. Evans, A. Siegel, E. W. Draeger, J. Deslippe, M. M. Francois, *et al*. "A survey of software implementations used by application codes in the Exascale Computing Project". *The International Journal of High Performance Computing Applications*, Jan 2022. [10.1177/10943420211028940](https://doi.org/10.1177/10943420211028940)
-- M. McManus, F. Romano, G. Royle, H. Palmans, A. Subiel, *et al*. "A Geant4 Fano test for novel very high energy electron beams". *Physics in Medicine & Biology*, Dec 2021. [10.1088/1361-6560/ac3e0f](https://doi.org/10.1088/1361-6560/ac3e0f)
 - X. Ai, G. Mania, H. M. Gray, M. Kuhn, N. Styles, *et al*. "A GPU-based Kalman Filter for Track Fitting". *Computing and Software for Big Science*, Dec 2021. [10.1007/s41781-021-00065-z](https://doi.org/10.1007/s41781-021-00065-z)
+- M. McManus, F. Romano, G. Royle, H. Palmans, A. Subiel, *et al*. "A Geant4 Fano test for novel very high energy electron beams". *Physics in Medicine & Biology*, Dec 2021. [10.1088/1361-6560/ac3e0f](https://doi.org/10.1088/1361-6560/ac3e0f)
 - M. Asai, M. A. Cortés-Giraldo, V. Giménez-Alventosa, V. Giménez Gómez, F. Salvat, *et al*. "The PENELOPE Physics Models and Transport Mechanics. Implementation into Geant4". *Frontiers in Physics*, Dec 2021. [10.3389/fphy.2021.738735](https://doi.org/10.3389/fphy.2021.738735)
 - Andrei Gheata, AdePT Team. "AdePT Status". Sep 2021. [indico.cern.ch](https://indico.cern.ch/event/1052654/contributions/4525306/attachments/2310908/3932523/AdePT%2026th%20Geant4%20Collaboration%20Meeting.pdf)
 - *[atlas-athena]*: ATLAS Collaboration. "Athena". May 2021. [zenodo.org](https://zenodo.org/record/2641996)
@@ -124,6 +124,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 - A. Valassi, M. Alef, J. Barbet, O. Datskova, R. De Maria, *et al*. "Using HEP experiment workflows for the benchmarking and accounting of WLCG computing resources". *EPJ Web of Conferences*, 2020. [10.1051/epjconf/202024507035](https://doi.org/10.1051/epjconf/202024507035)
 - *[hep-roadmap-2019]*: The HEP Software Foundation, J. Albrecht, A. A. Alves, G. Amadio, G. Andronico, *et al*. "A Roadmap for HEP Software and Computing R&D for the 2020s". *Computing and Software for Big Science*, Dec 2019. [10.1007/s41781-018-0018-8](https://doi.org/10.1007/s41781-018-0018-8)
 - P. Mato, P. Canal. "GeantV Conclusions and Follow-up". Oct 2019. [indico.cern.ch](https://indico.cern.ch/event/818702/)
+- *[cope-authorship-2014]*: COPE Council. "COPE Discussion Document: Authorship". Sep 2019. [publicationethics.org](https://publicationethics.org/guidance/discussion-document/authorship)
 - *[geantx-2019]*: P. Canal. "Geant Exascale Pilot Project". 2019.
 - *[geant-em-2019]*: V. Ivanchenko, A. Bagulya, S. Bakr, M. Bandieramonte, D. Bernard, *et al*. "Progress of Geant4 electromagnetic physics developments and applications". *EPJ Web of Conferences*, 2019. [10.1051/epjconf/201921402046](https://doi.org/10.1051/epjconf/201921402046)
 - S. Blyth. "Opticks: GPU Optical Photon Simulation for Particle Physics using NVIDIA OptiX". *EPJ Web of Conferences*, 2019. [10.1051/epjconf/201921402027](https://doi.org/10.1051/epjconf/201921402027)
@@ -141,7 +142,6 @@ These publications are extracted from the Celeritas team's Zotero database.
 - *[vecgeom-2015]*: J. Apostolakis, M. Bandieramonte, G. Bitzes, R. Brun, P. Canal, *et al*. "Towards a high performance geometry library for particle-detector simulations". *Journal of Physics: Conference Series*, May 2015. [10.1088/1742-6596/608/1/012023](https://doi.org/10.1088/1742-6596/608/1/012023)
 - H. Wan Chan Tseung, J. Ma, C. Beltran. "A fast GPU-based Monte Carlo simulation of proton transport with detailed modeling of nonelastic interactions". *Medical physics*, 2015.
 - *[dd4hep]*: M. Frank, F. Gaede, C. Grefe, P. Mato. "DD4hep: A Detector Description Toolkit for High Energy Physics Experiments". *Journal of Physics: Conference Series*, Jun 2014. [10.1088/1742-6596/513/2/022010](https://doi.org/10.1088/1742-6596/513/2/022010)
-- *[cope-authorship-2014]*: "COPE Discussion Document: Authorship". Jun 2014. [publicationethics.org](https://publicationethics.org/guidance/discussion-document/authorship)
 - M. Batic, G. Hoff, M. G. Pia, P. Saracco, G. Weidenspointner, *et al*. "Validation of Geant4 simulation of electron energy deposition". *IEEE Transactions on Nuclear Science*, Aug 2013. [10.1109/TNS.2013.2272404](https://doi.org/10.1109/TNS.2013.2272404)
 - R. Lucas, R. Roser, V. D. Elvira, R. Fowler, G. Cooperman, *et al*. "Transforming Geant4 for the Future". Sep 2012.
 - A. Buckley. "Simulation strategies for the LHC ATLAS experiment". in *IEEE Nuclear Science Symposuim & Medical Imaging Conference*, Knoxville, TN, Oct 2010. [10.1109/NSSMIC.2010.5873849](https://doi.org/10.1109/NSSMIC.2010.5873849)
@@ -199,4 +199,4 @@ These publications are extracted from the Celeritas team's Zotero database.
 - *[sphere-tracing-1996]*: J. C. Hart. "Sphere tracing: a geometric method for the antialiased ray tracing of implicit surfaces". *The Visual Computer*, Dec 1996. [10.1007/s003710050084](https://doi.org/10.1007/s003710050084)
 - P. S. Heckbert. "Graphics gems IV". AP Professional, Boston, 1994.
 - R. T. Farouki, C. Neff, M. A. O'Conner. "Automatic parsing of degenerate quadric-surface intersections". *ACM Transactions on Graphics*, Jul 1989. [10.1145/77055.77058](https://doi.org/10.1145/77055.77058)
-- R. Graham. "An efficient algorithm for determining the convex hull of a finite planar set". *Information Processing Letters*, Jun 1972. [https://doi.org/10.1016/0020-0190(72)90045-2](https://doi.org/https://doi.org/10.1016/0020-0190(72)90045-2)
+- *[graham-convexhull-1972]*: R. Graham. "An efficient algorithm for determining the convex hull of a finite planar set". *Information Processing Letters*, Jun 1972. [https://doi.org/10.1016/0020-0190(72)90045-2](https://doi.org/https://doi.org/10.1016/0020-0190(72)90045-2)
