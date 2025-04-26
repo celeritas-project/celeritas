@@ -9,6 +9,9 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/PolyEvaluator.hh"
+#include "corecel/math/Quantity.hh"
+#include "corecel/math/UnitUtils.hh"
+#include "celeritas/Quantities.hh"
 
 namespace celeritas
 {
@@ -39,36 +42,38 @@ struct BhwlScreeningFactors
  * Thomas-Fermi screening functions from Tsai.
  *
  * This calculates atomic screening factors given by  \citet{tsai-1974,
- * https://doi.org/10.1103/RevModPhys.46.815} Eq. 3.30-31:
+ * https://doi.org/10.1103/RevModPhys.46.815} Eq. 3.30-31, as part of the
+ * relativistic bremsstrahlung cross section calculation.
+ * This model is valid for \f$ Z \ge 5 \f$.
  *
- * \f[
- * \varphi_1(\gamma) = 20.863 - 2 \ln \left( 1 + (0.55846\gamma)^2 \right)
- * - 4 \left( 1 - 0.6 \exp(-0.9\gamma) - 0.4 \exp(-1.5\gamma) \right),
+ * The calculator argument is the fraction \f[
+ * \delta = \frac{k}{E(k - E)} \equiv \frac{2\delta_\mathrm{Tsai}}{m_e}
  * \f]
+ * where \f$k\f$ is the kinetic plus rest mass energy of the incident electron
+ * and \f$E\f$ is the exiting gamma energy.
  *
+ * The calculated screening functions are:
  * \f[
- * \varphi_2(\gamma) = \varphi_1(\gamma) - \frac{2}{3} \left( 1 + 6.5\gamma +
- * 6\gamma^2 \right)^{-1}, \f]
- *
- * \f[
- * \psi_1(\epsilon) = 28.340 - 2 \ln \left( 1 + (3.621\epsilon)^2 \right)
- * - 4 \left( 1 - 0.7 \exp(-8\epsilon) - 0.3 \exp(-29.2\epsilon) \right),
+   \begin{aligned}
+   \varphi_1(\gamma) &= 20.863 - 2 \ln \left( 1 + (0.55846\gamma)^2 \right)
+     - 4 \left( 1 - 0.6 \exp(-0.9\gamma) - 0.4 \exp(-1.5\gamma) \right), \\
+   \varphi_2(\gamma) = \varphi_1(\gamma)
+     - \frac{2}{3} \left( 1 + 6.5\gamma + 6\gamma^2 \right)^{-1}, \\
+   \psi_1(\epsilon) &= 28.340 - 2 \ln \left( 1 + (3.621\epsilon)^2 \right)
+     - 4 \left( 1 - 0.7 \exp(-8\epsilon) - 0.3 \exp(-29.2\epsilon) \right),
+   \psi_2(\epsilon) &= \psi_1(\epsilon)
+     - \frac{2}{3} \left( 1 + 40\epsilon + 400\epsilon^2 \right)^{-1}.
+   \end{aligned}
  * \f]
- *
- * \f[
- * \psi_2(\epsilon) = \psi_1(\epsilon) - \frac{2}{3} \left( 1 + 40\epsilon +
- * 400\epsilon^2 \right)^{-1}. \f]
  *
  * Here,
  * \f[
- * \gamma = \frac{100 m_e k}{E (k - E) Z^{1/3}}
+   \begin{aligned}
+   \gamma &= \frac{100 m_e k}{E (k - E) Z^{1/3}} \\
+   \epsilon &= \frac{100 m_e k}{E (k - E) Z^{2/3}}
  * \f]
- * and
- * \f[
- * f_\epsilon = \frac{100 m_e k}{E (k - E) Z^{2/3}}
- * \f]
- * from which we extract input factors preclaculated in
- * celeritas::RelativisticBremModel as
+ * from which we extract input factors precalculated in
+ * \c celeritas::RelativisticBremModel:
  * \f[
  * f_\gamma = \frac{100 m_e}{Z^{1/3}}
  * \f]
@@ -77,12 +82,7 @@ struct BhwlScreeningFactors
  * f_\epsilon = \frac{100 m_e}{Z^{2/3}}
  * \f]
  *
- * The calculator argument is the unitless fraction \f[
- * \delta' = \frac{k}{E(k - E)} \equiv \frac{2\delta_\mathrm{Tsai}}{m_e}
- * \f]
- * where \f$k\f$ is the kinetic plus rest mass energy of the incident electron
- * and \f$E\f$ is the exiting gamma energy.
- * This model is valid for \f$Z \ge 5\f$.
+ * \sa RBDiffXsCalculator
  */
 class TsaiScreeningCalculator
 {
@@ -90,15 +90,17 @@ class TsaiScreeningCalculator
     //!@{
     //! \name Type aliases
     using result_type = BhwlScreeningFactors;
+    using Mass = units::MevMass;
+    using InvEnergy = RealQuantity<UnitInverse<units::Mev>>;
     //!@}
 
   public:
     // Construct with defaults
-    CELER_FUNCTION inline TsaiScreeningCalculator(real_type gamma_factor,
-                                                  real_type epsilon_factor);
+    CELER_FUNCTION inline TsaiScreeningCalculator(Mass gamma_factor,
+                                                  Mass epsilon_factor);
 
     // Calculate screening function from energy transfer
-    CELER_FUNCTION inline result_type operator()(real_type delta) const;
+    CELER_FUNCTION inline result_type operator()(InvEnergy delta) const;
 
   private:
     real_type f_gamma_;
@@ -112,11 +114,11 @@ class TsaiScreeningCalculator
  * Construct with gamma and epsilon factors.
  */
 CELER_FUNCTION
-TsaiScreeningCalculator::TsaiScreeningCalculator(real_type gamma_factor,
-                                                 real_type epsilon_factor)
-    : f_gamma_{gamma_factor}, f_epsilon_{epsilon_factor}
+TsaiScreeningCalculator::TsaiScreeningCalculator(Mass gamma_factor,
+                                                 Mass epsilon_factor)
+    : f_gamma_{gamma_factor.value()}, f_epsilon_{epsilon_factor.value()}
 {
-    CELER_EXPECT(epsilon_factor > 0);
+    CELER_EXPECT(epsilon_factor > zero_quantity());
     CELER_EXPECT(gamma_factor > epsilon_factor);
 }
 
@@ -124,12 +126,11 @@ TsaiScreeningCalculator::TsaiScreeningCalculator(real_type gamma_factor,
 /*!
  * Calculate screening function from energy transfer.
  */
-CELER_FUNCTION auto TsaiScreeningCalculator::operator()(real_type delta) const
+CELER_FUNCTION auto TsaiScreeningCalculator::operator()(InvEnergy delta) const
     -> result_type
 {
-    CELER_EXPECT(delta >= 0 && delta <= 1);
-    real_type gam = delta * f_gamma_;
-    real_type eps = delta * f_epsilon_;
+    real_type gam = delta.value() * f_gamma_;
+    real_type eps = delta.value() * f_epsilon_;
 
     using PolyQuad = PolyEvaluator<real_type, 2>;
     using R = real_type;

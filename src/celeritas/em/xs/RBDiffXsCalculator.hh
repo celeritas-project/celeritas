@@ -18,6 +18,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/RelativisticBremData.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
+#include "celeritas/mat/ElementView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 
 #include "LPMCalculator.hh"
@@ -32,10 +33,8 @@ namespace celeritas
  * This accounts for the LPM effect if the option is enabled and the
  * electron energy is high enough.
  *
- * The screening function uses Tsai's analytical approximations of coherent and
- * incoherent screening function to the numerical screening functions computed
- * using the Thomas-Fermi model \citep{tsai-1974,
- * https://doi.org/10.1103/RevModPhys.46.815} .
+ * The screening functions are documented in \c
+ * celeritas::TsaiScreeningCalculator.
  *
  * \note This is currently used only as a shape function for rejection, so as
  * long as the resulting cross section is scaled by the maximum value the units
@@ -163,16 +162,16 @@ real_type RBDiffXsCalculator::dxsec_per_atom(real_type gamma_energy)
     }
     else
     {
-        // Tsai's analytical approximation.
+        // Tsai's analytical approximation
+        using Mass = ElementData::Mass;
+        using InvEnergy = RealQuantity<UnitInverse<Energy::unit_type>>;
+        auto sfunc = TsaiScreeningCalculator{Mass{elem_data_.gamma_factor},
+                                             Mass{elem_data_.epsilon_factor}}(
+            InvEnergy{y / (total_energy_ - gamma_energy)});
+
         real_type invz = 1
                          / static_cast<real_type>(
                              element_.atomic_number().unchecked_get());
-
-        // Evaluate the screening functions
-        auto sfunc = TsaiScreeningCalculator{
-            elem_data_.gamma_factor,
-            elem_data_.epsilon_factor}(y / (total_energy_ - gamma_energy));
-
         dxsec = term0
                     * ((R(0.25) * sfunc.phi1 - elem_data_.fz)
                        + (R(0.25) * sfunc.psi1 - 2 * element_.log_z() / 3)
