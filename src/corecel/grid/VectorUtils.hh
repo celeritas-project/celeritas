@@ -25,7 +25,7 @@ std::vector<double> linspace(double start, double stop, size_type n);
 
 //---------------------------------------------------------------------------//
 // Return logarithmically spaced numbers over a specific interval
-std::vector<double> logspace(double start, double stop, size_type n);
+std::vector<double> geomspace(double start, double stop, size_type n);
 
 //---------------------------------------------------------------------------//
 /*!
