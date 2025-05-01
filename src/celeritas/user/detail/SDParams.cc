@@ -88,6 +88,11 @@ SDParams::SDParams(std::string output_label,
     }()};
 }
 
+DetectorId SDParams::volume_to_detector_id(VolumeId vol_id)
+{
+    return host_ref().detector[vol_id];
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

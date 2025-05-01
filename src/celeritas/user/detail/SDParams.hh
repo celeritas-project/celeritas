@@ -33,16 +33,19 @@ class SDParams : public ParamsDataInterface<SDParamsData>,
     using VecLabel = std::vector<Label>;
 
   public:
+    // Construct from volume labels
     SDParams(std::string output_label,
              VecLabel volume_labels,
              GeoParamsInterface const& geo);
 
+    // Access volume ID based on detector ID
+    DetectorId volume_to_detector_id(VolumeId);
     //!@{
     //! \name Data interface
 
-    //! Access physics properties on the host
+    //! Access sensitive detector properties on the host
     HostRef const& host_ref() const final { return mirror_.host_ref(); }
-    //! Access physics properties on the device
+    //! Access sensitive detector properties on the device
     DeviceRef const& device_ref() const final { return mirror_.device_ref(); }
     //!@}
 
