@@ -116,9 +116,6 @@ class ImportedProcessAdapter
     // Construct step limits from the given particle/material type
     StepLimitBuilders step_limits(Applicability const& applic) const;
 
-    // Get the lambda table for the given particle ID
-    inline ImportPhysicsTable const& get_lambda(ParticleId id) const;
-
     // Access the imported processes
     SPConstImported const& processes() const { return imported_; }
 
@@ -129,21 +126,11 @@ class ImportedProcessAdapter
     inline bool applies_at_rest() const;
 
   private:
-    using ImportTableId = OpaqueId<ImportPhysicsTable>;
     using ImportProcessId = ImportedProcesses::ImportProcessId;
-
-    struct ParticleProcessIds
-    {
-        ImportProcessId process;
-        ImportTableId lambda;
-        ImportTableId lambda_prim;
-        ImportTableId dedx;
-        ImportTableId range;
-    };
 
     SPConstImported imported_;
     ImportProcessClass process_class_;
-    std::map<ParticleId, ParticleProcessIds> ids_;
+    std::map<ParticleId, ImportProcessId> ids_;
 };
 
 //---------------------------------------------------------------------------//
@@ -169,22 +156,6 @@ auto ImportedProcesses::size() const -> ImportProcessId::size_type
 
 //---------------------------------------------------------------------------//
 /*!
- * Get cross sections for the given particle ID.
- *
- * This is currently used for loading MSC data for calculating mean free paths.
- */
-ImportPhysicsTable const&
-ImportedProcessAdapter::get_lambda(ParticleId id) const
-{
-    auto iter = ids_.find(id);
-    CELER_EXPECT(iter != ids_.end());
-    ImportTableId tab = iter->second.lambda;
-    CELER_ENSURE(tab);
-    return imported_->get(iter->second.process).tables[tab.unchecked_get()];
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Whether the given model is present in the process.
  */
 bool ImportedProcessAdapter::has_model(PDGNumber pdg, ImportModelClass imc) const
@@ -204,13 +175,13 @@ bool ImportedProcessAdapter::has_model(PDGNumber pdg, ImportModelClass imc) cons
 bool ImportedProcessAdapter::applies_at_rest() const
 {
     auto it = ids_.begin();
-    bool result = imported_->get(it->second.process).applies_at_rest;
+    bool result = imported_->get(it->second).applies_at_rest;
     while (++it != ids_.end())
     {
-        CELER_VALIDATE(
-            result == imported_->get(it->second.process).applies_at_rest,
-            << "process '" << to_cstring(process_class_)
-            << "' applies at rest for some particles but not others");
+        CELER_VALIDATE(result == imported_->get(it->second).applies_at_rest,
+                       << "process '" << to_cstring(process_class_)
+                       << "' applies at rest for some particles but not "
+                          "others");
     }
     return result;
 }

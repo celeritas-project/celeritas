@@ -78,11 +78,10 @@ enum class ImportProcessClass
 /*!
  * Store physics process data.
  *
- * \note \c ImportPhysicsTable is process and type (lambda, dedx, and so
- * on) dependent, with each table type including physics vectors for all
- * materials. Therefore, the physics vector of a given material is retrieved
- * by finding the appropriate \c table_type in the \c tables vector and
- * selecting the material: \c table.physics_vectors.at(material_id) .
+ * \note In Geant4, the \c dedx table belonging to the ionization process is
+ * actually the sum of the de/dx for all processes that contribute to energy
+ * loss for the given particle, while the \c dedx tables for the remaining
+ * processes are the per-process energy loss.
  *
  * \todo remove \c secondary_pdg , rename \c particle_pdg to just \c pdg, also
  * in \c ImportMscModel
@@ -99,7 +98,9 @@ struct ImportProcess
     ImportProcessType process_type{ImportProcessType::size_};
     ImportProcessClass process_class{ImportProcessClass::size_};
     std::vector<ImportModel> models;
-    std::vector<ImportPhysicsTable> tables;
+    ImportPhysicsTable lambda;
+    ImportPhysicsTable lambda_prim;
+    ImportPhysicsTable dedx;
     bool applies_at_rest{false};
 
     explicit operator bool() const

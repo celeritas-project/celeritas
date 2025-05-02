@@ -87,7 +87,6 @@ list(APPEND SOURCES
   io/ImportMaterial.cc
   io/ImportModel.cc
   io/ImportOpticalModel.cc
-  io/ImportPhysicsTable.cc
   io/ImportProcess.cc
   io/ImportUnits.cc
   io/LivermorePEReader.cc
