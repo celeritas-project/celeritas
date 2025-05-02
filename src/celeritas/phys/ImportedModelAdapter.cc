@@ -85,8 +85,11 @@ auto ImportedModelAdapter::micro_xs(Applicability applic) const -> MicroXsBuilde
     MicroXsBuilders builders(imm.micro_xs.size());
     for (size_type elcomp_idx : range(builders.size()))
     {
+        auto grid = imm.micro_xs[elcomp_idx];
+        CELER_ASSERT(grid);
+        CELER_ASSERT(std::exp(grid.x[Bound::lo]) > 0 && grid.y.size() >= 2);
         builders[elcomp_idx]
-            = std::make_unique<ValueGridLogBuilder>(imm.micro_xs[elcomp_idx]);
+            = std::make_unique<ValueGridLogBuilder>(std::move(grid));
     }
     return builders;
 }

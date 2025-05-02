@@ -14,7 +14,6 @@
 #include "corecel/io/Logger.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/grid/UniformGridInserter.hh"
-#include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/XsGridData.hh"
 #include "celeritas/io/ImportModel.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -95,7 +94,7 @@ void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
 {
     // Scaled cross section builder
     CollectionBuilder xs(scaled_xs);
-    size_type num_materials = xs_tables_[0]->physics_vectors.size();
+    size_type num_materials = xs_tables_[0]->grids.size();
     xs.reserve(par_ids_.size() * num_materials);
 
     // TODO: simplify when refactoring GridInserter, etc
@@ -107,10 +106,10 @@ void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
         for (size_type par_idx : range(par_ids_.size()))
         {
             CELER_ASSERT(pid_to_xs_[par_ids_[par_idx].get()].get() == par_idx);
-            CELER_ASSERT(mat_idx < xs_tables_[par_idx]->physics_vectors.size());
+            CELER_ASSERT(mat_idx < xs_tables_[par_idx]->grids.size());
 
             // Get the cross section data for this particle and material
-            auto const& grid = xs_tables_[par_idx]->physics_vectors[mat_idx];
+            auto const& grid = xs_tables_[par_idx]->grids[mat_idx];
             CELER_ASSERT(grid && std::exp(grid.x[Bound::lo]) > 0);
 
             auto grid_id = insert(grid);
@@ -131,14 +130,14 @@ auto MscParamsHelper::energy_grid_bounds() const -> EnergyBounds
 {
     auto x = [this] {
         // Get initial high/low energy limits
-        CELER_ASSERT(!xs_tables_[0]->physics_vectors.empty());
-        auto const& grid = xs_tables_[0]->physics_vectors[0];
+        CELER_ASSERT(!xs_tables_[0]->grids.empty());
+        auto const& grid = xs_tables_[0]->grids[0];
         CELER_ASSERT(grid);
         return grid.x;
     }();
     for (size_type par_idx : range(par_ids_.size()))
     {
-        auto const& phys_vectors = xs_tables_[par_idx]->physics_vectors;
+        auto const& phys_vectors = xs_tables_[par_idx]->grids;
         for (auto const& grid : phys_vectors)
         {
             // Check that the limits are the same for all materials and
