@@ -22,4 +22,3 @@ unsigned int const version_patch = @PROJECT_VERSION_PATCH@;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
-

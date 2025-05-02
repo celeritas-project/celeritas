@@ -1,4 +1,4 @@
-Geometry visualization server 
+Geometry visualization server
 
 
 ./celer-geo [OPTIONS] filename
@@ -6,8 +6,8 @@ Geometry visualization server
 
 POSITIONALS:
   filename TEXT:(FILE) OR ('-' for stdin/stdout) REQUIRED
-                              Input JSON lines 
+                              Input JSON lines
 
 OPTIONS:
-  -h,     --help              Print this help message and exit 
-  -v,     --version           Display program version information and exit 
+  -h,     --help              Print this help message and exit
+  -v,     --version           Display program version information and exit

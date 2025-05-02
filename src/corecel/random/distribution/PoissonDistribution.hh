@@ -94,8 +94,8 @@ PoissonDistribution<RealType>::PoissonDistribution(real_type lambda)
  */
 template<class RealType>
 template<class Generator>
-CELER_FUNCTION auto
-PoissonDistribution<RealType>::operator()(Generator& rng) -> result_type
+CELER_FUNCTION auto PoissonDistribution<RealType>::operator()(Generator& rng)
+    -> result_type
 {
     if (lambda_ <= PoissonDistribution::lambda_threshold())
     {

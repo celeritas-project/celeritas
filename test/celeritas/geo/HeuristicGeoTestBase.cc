@@ -82,8 +82,8 @@ void HeuristicGeoTestBase::run(size_type num_states,
  * Run tracks on host *or* device and return the resulting path lengths.
  */
 template<MemSpace M>
-auto HeuristicGeoTestBase::run_impl(size_type num_states,
-                                    size_type num_steps) -> VecReal
+auto HeuristicGeoTestBase::run_impl(size_type num_states, size_type num_steps)
+    -> VecReal
 {
     auto host_params = this->build_test_params<MemSpace::host>();
     StateStore<M> state{host_params, num_states};
@@ -139,8 +139,9 @@ auto HeuristicGeoTestBase::build_test_params()
 
 //---------------------------------------------------------------------------//
 
-auto HeuristicGeoTestBase::get_avg_path_impl(
-    VecReal const& path, size_type num_states) const -> VecReal
+auto HeuristicGeoTestBase::get_avg_path_impl(VecReal const& path,
+                                             size_type num_states) const
+    -> VecReal
 {
     CELER_EXPECT(path.size() == this->geometry()->volumes().size());
 

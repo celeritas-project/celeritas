@@ -61,4 +61,3 @@ Multiple scattering
 Multiple scattering uses distributions for the exiting polar angles:
 
 .. doxygenclass:: celeritas::UrbanLargeAngleDistribution
-

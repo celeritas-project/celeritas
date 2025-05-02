@@ -52,8 +52,8 @@ class CherenkovGenerator
     // Construct from optical materials and distribution parameters
     inline CELER_FUNCTION
     CherenkovGenerator(MaterialView const& material,
-                      NativeCRef<CherenkovData> const& shared,
-                      GeneratorDistributionData const& dist);
+                       NativeCRef<CherenkovData> const& shared,
+                       GeneratorDistributionData const& dist);
 
     // Sample a Cherenkov photon from the distribution
     template<class Generator>

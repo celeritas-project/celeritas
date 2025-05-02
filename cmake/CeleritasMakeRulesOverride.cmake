@@ -17,21 +17,25 @@ https://cmake.org/cmake/help/latest/variable/CMAKE_USER_MAKE_RULES_OVERRIDE.html
 
 # Enable lots of warnings for GCC and Clang by default
 foreach(_lang C CXX)
-  set(_id "${CMAKE_${_lang}_COMPILER_ID}")
-  if(_id STREQUAL "GNU" OR _id MATCHES "Clang$")
-    string(APPEND CMAKE_${_lang}_FLAGS_INIT "-Wall -Wextra -pedantic")
-  endif()
+    set(_id "${CMAKE_${_lang}_COMPILER_ID}")
+    if(_id STREQUAL "GNU" OR _id MATCHES "Clang$")
+        string(APPEND CMAKE_${_lang}_FLAGS_INIT "-Wall -Wextra -pedantic")
+    endif()
 endforeach()
 
 if("$ENV{TERM}" MATCHES "xterm")
-  foreach(_lang C CXX)
-    set(_id "${CMAKE_${_lang}_COMPILER_ID}")
-    if(_id STREQUAL "GNU")
-      string(APPEND CMAKE_${_lang}_FLAGS_INIT " -fdiagnostics-color=always")
-    elseif(_id MATCHES "Clang$")
-      string(APPEND CMAKE_${_lang}_FLAGS_INIT " -fcolor-diagnostics")
-    endif()
-  endforeach()
+    foreach(_lang C CXX)
+        set(_id "${CMAKE_${_lang}_COMPILER_ID}")
+        if(_id STREQUAL "GNU")
+            string(
+                APPEND
+                CMAKE_${_lang}_FLAGS_INIT
+                " -fdiagnostics-color=always"
+            )
+        elseif(_id MATCHES "Clang$")
+            string(APPEND CMAKE_${_lang}_FLAGS_INIT " -fcolor-diagnostics")
+        endif()
+    endforeach()
 endif()
 
 unset(_id)

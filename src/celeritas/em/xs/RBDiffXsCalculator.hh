@@ -222,8 +222,8 @@ real_type RBDiffXsCalculator::dxsec_per_atom_lpm(real_type gamma_energy)
  * Compute screen_functions.
  */
 CELER_FUNCTION auto
-RBDiffXsCalculator::compute_screen_functions(real_type gam,
-                                             real_type eps) -> ScreenFunctions
+RBDiffXsCalculator::compute_screen_functions(real_type gam, real_type eps)
+    -> ScreenFunctions
 {
     ScreenFunctions func;
     real_type gam2 = ipow<2>(gam);

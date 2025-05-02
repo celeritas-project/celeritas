@@ -36,7 +36,8 @@ CoulombScatteringProcess::CoulombScatteringProcess(SPConstParticles particles,
 /*!
  * Construct the models associated with this process.
  */
-auto CoulombScatteringProcess::build_models(ActionIdIter start_id) const -> VecModel
+auto CoulombScatteringProcess::build_models(ActionIdIter start_id) const
+    -> VecModel
 {
     return {std::make_shared<CoulombScatteringModel>(
         *start_id++, *particles_, *materials_, imported_.processes())};

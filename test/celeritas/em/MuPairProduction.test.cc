@@ -28,7 +28,7 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class MuPairProductionTest : public InteractorHostBase,  public RootTestBase
+class MuPairProductionTest : public InteractorHostBase, public RootTestBase
 {
   protected:
     void SetUp() override

@@ -243,7 +243,8 @@ CELER_FUNCTION ValueGridId PhysicsTrackView::mfp_grid(ModelId model) const
 CELER_FUNCTION real_type PhysicsTrackView::calc_mfp(ModelId model,
                                                     Energy energy) const
 {
-    NonuniformGridCalculator calc{params_.grids[this->mfp_grid(model)], params_.reals};
+    NonuniformGridCalculator calc{params_.grids[this->mfp_grid(model)],
+                                  params_.reals};
     real_type result = calc(value_as<Energy>(energy));
     CELER_ENSURE(result > 0);
     return result;

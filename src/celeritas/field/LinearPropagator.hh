@@ -72,8 +72,8 @@ CELER_FUNCTION auto LinearPropagator<GTV>::operator()() -> result_type
  * Move track by a user-provided distance up to the next boundary.
  */
 template<class GTV>
-CELER_FUNCTION auto
-LinearPropagator<GTV>::operator()(real_type dist) -> result_type
+CELER_FUNCTION auto LinearPropagator<GTV>::operator()(real_type dist)
+    -> result_type
 {
     CELER_EXPECT(dist > 0);
 

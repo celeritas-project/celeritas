@@ -108,7 +108,7 @@ The commands shown in the previous sections can be used to profile your applicat
 already uses NVTX, or ROCTX, you can exclude Celeritas events by excluding the "celeritas" domain.
 
 When using Perfetto, you need to create a ``TracingSession``
-instance. The profiling session needs to be explictitly started, and will end when the object goes out of scope, 
+instance. The profiling session needs to be explictitly started, and will end when the object goes out of scope,
 but it can be moved to extend its lifetime.
 
 .. sourcecode:: cpp

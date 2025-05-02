@@ -119,13 +119,13 @@ void GenericGeoVolumeStackResult::print_expected()
 {
     AssertionHelper result{expr1, expr2};
 
-#define IRE_COMPARE(ATTR)                                           \
-    if (val1.ATTR != val2.ATTR)                                     \
-    {                                                               \
+#define IRE_COMPARE(ATTR)                                                  \
+    if (val1.ATTR != val2.ATTR)                                            \
+    {                                                                      \
         result.fail() << "Actual " #ATTR ": " << repr(val1.ATTR) << " vs " \
-               << repr(val2.ATTR);                                  \
-    }                                                               \
-    else                                                            \
+                      << repr(val2.ATTR);                                  \
+    }                                                                      \
+    else                                                                   \
         (void)sizeof(char)
     IRE_COMPARE(volume_instances);
     IRE_COMPARE(replicas);

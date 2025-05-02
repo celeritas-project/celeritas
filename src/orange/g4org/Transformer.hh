@@ -101,7 +101,8 @@ auto Transformer::operator()(G4ThreeVector const& t) const -> Translation
  * Create a transform from a translation plus rotation.
  */
 auto Transformer::operator()(G4ThreeVector const& trans,
-                             G4RotationMatrix const& rot) const -> Transformation
+                             G4RotationMatrix const& rot) const
+    -> Transformation
 {
     return Transformation{convert_from_geant(rot), scale_.to<Real3>(trans)};
 }

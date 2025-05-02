@@ -89,8 +89,8 @@ InverseRangeCalculator::InverseRangeCalculator(XsGridRecord const& grid,
 /*!
  * Calculate the energy of a particle that has the given range.
  */
-CELER_FUNCTION auto
-InverseRangeCalculator::operator()(real_type range) const -> Energy
+CELER_FUNCTION auto InverseRangeCalculator::operator()(real_type range) const
+    -> Energy
 {
     CELER_EXPECT(range >= 0 && range <= range_.back());
 

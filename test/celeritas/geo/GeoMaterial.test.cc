@@ -41,8 +41,8 @@ class GeoMaterialTestBase : virtual public GlobalTestBase
     VecString trace_materials(Real3 const& pos, Real3 dir);
 };
 
-auto GeoMaterialTestBase::trace_materials(Real3 const& pos_cm,
-                                          Real3 dir) -> VecString
+auto GeoMaterialTestBase::trace_materials(Real3 const& pos_cm, Real3 dir)
+    -> VecString
 {
     CollectionStateStore<GeoStateData, MemSpace::host> host_state{
         this->geometry()->host_ref(), 1};

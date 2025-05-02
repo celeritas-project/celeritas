@@ -77,8 +77,8 @@ class RungeKuttaIntegrator
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class EquationT>
-CELER_FUNCTION
-RungeKuttaIntegrator(EquationT&&) -> RungeKuttaIntegrator<EquationT>;
+CELER_FUNCTION RungeKuttaIntegrator(EquationT&&)
+    -> RungeKuttaIntegrator<EquationT>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -87,8 +87,10 @@ RungeKuttaIntegrator(EquationT&&) -> RungeKuttaIntegrator<EquationT>;
  * Numerically integrate and return the updated state with estimated error.
  */
 template<class E>
-CELER_FUNCTION auto RungeKuttaIntegrator<E>::operator()(
-    real_type step, OdeState const& beg_state) const -> result_type
+CELER_FUNCTION auto
+RungeKuttaIntegrator<E>::operator()(real_type step,
+                                    OdeState const& beg_state) const
+    -> result_type
 {
     using celeritas::axpy;
     real_type half_step = step / real_type(2);

@@ -195,7 +195,7 @@ if not use_device and "lar" in geometry_filename:
     }
 
 
-if expected_core_sizes: 
+if expected_core_sizes:
     assert core_sizes == expected_core_sizes, core_sizes
 if expected_opt_sizes:
     opt_sizes = internal["optical-sizes"].copy()

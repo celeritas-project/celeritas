@@ -235,8 +235,8 @@ CELER_FUNCTION EnergyLossUrbanDistribution::EnergyLossUrbanDistribution(
  * Sample energy loss according to the distribution.
  */
 template<class Generator>
-CELER_FUNCTION auto
-EnergyLossUrbanDistribution::operator()(Generator& rng) -> Energy
+CELER_FUNCTION auto EnergyLossUrbanDistribution::operator()(Generator& rng)
+    -> Energy
 {
     // Calculate actual energy loss from the loss contributions from excitation
     // and ionization

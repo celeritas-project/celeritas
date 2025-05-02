@@ -5,8 +5,9 @@
 
 set(SOURCES)
 set(PRIVATE_DEPS
-  nlohmann_json::nlohmann_json
-  Celeritas::ExtDeviceApi Celeritas::ExtThrust
+    nlohmann_json::nlohmann_json
+    Celeritas::ExtDeviceApi
+    Celeritas::ExtThrust
 )
 set(PUBLIC_DEPS Celeritas::BuildFlags)
 
@@ -21,9 +22,9 @@ celeritas_version_to_hex(CELERITAS_VERSION PROJECT_VERSION)
 # Build configuration
 
 set(CELERITAS_USE_COVFIE ${CELERITAS_USE_covfie})
-set(CELERITAS_USE_GEANT4  ${CELERITAS_USE_Geant4})
-set(CELERITAS_USE_HEPMC3  ${CELERITAS_USE_HepMC3})
-set(CELERITAS_USE_OPENMP  ${CELERITAS_USE_OpenMP})
+set(CELERITAS_USE_GEANT4 ${CELERITAS_USE_Geant4})
+set(CELERITAS_USE_HEPMC3 ${CELERITAS_USE_HepMC3})
+set(CELERITAS_USE_OPENMP ${CELERITAS_USE_OpenMP})
 set(CELERITAS_USE_PERFETTO ${CELERITAS_USE_Perfetto})
 set(CELERITAS_USE_VECGEOM ${CELERITAS_USE_VecGeom})
 
@@ -43,13 +44,16 @@ celeritas_generate_option_config(CELERITAS_UNITS)
 
 # Get host system information
 if(NOT DEFINED CELERITAS_HOSTNAME)
-  set(_hostname "$ENV{LMOD_SYSTEM_NAME}")
-  if(NOT _hostname)
-    cmake_host_system_information(RESULT _hostname QUERY HOSTNAME)
-    string(REGEX REPLACE "\\..*" "" _hostname "${_hostname}")
-  endif()
-  set(CELERITAS_HOSTNAME "${_hostname}" CACHE INTERNAL
-    "Build/deploy system name")
+    set(_hostname "$ENV{LMOD_SYSTEM_NAME}")
+    if(NOT _hostname)
+        cmake_host_system_information(RESULT _hostname QUERY HOSTNAME)
+        string(REGEX REPLACE "\\..*" "" _hostname "${_hostname}")
+    endif()
+    set(CELERITAS_HOSTNAME
+        "${_hostname}"
+        CACHE INTERNAL
+        "Build/deploy system name"
+    )
 endif()
 
 # Save CMake variables as strings
@@ -57,33 +61,42 @@ set(CELERITAS_CMAKE_STRINGS)
 set(CELERITAS_CMAKE_STRINGS_DECL)
 set(CELERITAS_CMAKE_STRINGS_DEF)
 macro(celeritas_append_cmake_string key value)
-  list(APPEND CELERITAS_CMAKE_STRINGS_DECL
-    "extern char const ${key}[]\;"
-  )
-  list(APPEND CELERITAS_CMAKE_STRINGS_DEF
-    "char const ${key}[] = R\"(${value})\"\;"
-  )
+    list(APPEND CELERITAS_CMAKE_STRINGS_DECL "extern char const ${key}[]\;")
+    list(
+        APPEND
+        CELERITAS_CMAKE_STRINGS_DEF
+        "char const ${key}[] = R\"(${value})\"\;"
+    )
 endmacro()
 
 string(TOLOWER "${CMAKE_BUILD_TYPE}," CELERITAS_BUILD_TYPE)
 if(BUILD_SHARED_LIBS)
-  string(APPEND CELERITAS_BUILD_TYPE "shared")
+    string(APPEND CELERITAS_BUILD_TYPE "shared")
 else()
-  string(APPEND CELERITAS_BUILD_TYPE "static")
-  if(CMAKE_POSITION_INDEPENDENT_CODE)
-    string(APPEND CELERITAS_BUILD_TYPE ",pic")
-  endif()
+    string(APPEND CELERITAS_BUILD_TYPE "static")
+    if(CMAKE_POSITION_INDEPENDENT_CODE)
+        string(APPEND CELERITAS_BUILD_TYPE ",pic")
+    endif()
 endif()
-foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS OPENMP CORE_GEO CORE_RNG)
-  string(TOLOWER "${_var}" _lower)
-  celeritas_append_cmake_string("${_lower}" "${CELERITAS_${_var}}")
+foreach(
+    _var
+    BUILD_TYPE
+    HOSTNAME
+    REAL_TYPE
+    UNITS
+    OPENMP
+    CORE_GEO
+    CORE_RNG
+)
+    string(TOLOWER "${_var}" _lower)
+    celeritas_append_cmake_string("${_lower}" "${CELERITAS_${_var}}")
 endforeach()
 
 set(_gpu_arch "")
 if(CELERITAS_USE_CUDA)
-  set(_gpu_arch "${CMAKE_CUDA_ARCHITECTURES}")
+    set(_gpu_arch "${CMAKE_CUDA_ARCHITECTURES}")
 elseif(CELERITAS_USE_HIP)
-  set(_gpu_arch "${CMAKE_HIP_ARCHITECTURES}")
+    set(_gpu_arch "${CMAKE_HIP_ARCHITECTURES}")
 endif()
 # Arch variable may be ;-separated list, so we need to escape the ;
 string(REPLACE ";" "\;" _gpu_arch "${_gpu_arch}")
@@ -94,16 +107,28 @@ list(APPEND CELERITAS_CMAKE_STRINGS "")
 # Save dependency versions as strings
 set(CUDA_VERSION_STRING "${CUDAToolkit_VERSION}")
 set(HIP_VERSION_STRING "${hip-lang_VERSION}")
-foreach(_pkg CLHEP covfie CUDA HepMC3 HIP Geant4 G4VG ROOT Thrust VecGeom)
-  string(TOLOWER "${_pkg}" _lower)
-  if(DEFINED ${_pkg}_VERSION_STRING)
-    set(_value "${${_pkg}_VERSION_STRING}")
-  elseif(DEFINED ${_pkg}_VERSION)
-    set(_value "${${_pkg}_VERSION}")
-  else()
-    set(_value "")
-  endif()
-  celeritas_append_cmake_string("${_lower}_version" "${_value}")
+foreach(
+    _pkg
+    CLHEP
+    covfie
+    CUDA
+    HepMC3
+    HIP
+    Geant4
+    G4VG
+    ROOT
+    Thrust
+    VecGeom
+)
+    string(TOLOWER "${_pkg}" _lower)
+    if(DEFINED ${_pkg}_VERSION_STRING)
+        set(_value "${${_pkg}_VERSION_STRING}")
+    elseif(DEFINED ${_pkg}_VERSION)
+        set(_value "${${_pkg}_VERSION}")
+    else()
+        set(_value "")
+    endif()
+    celeritas_append_cmake_string("${_lower}_version" "${_value}")
 endforeach()
 
 # NOTE: some values are defined in top-level CMakeLists
@@ -111,55 +136,65 @@ endforeach()
 # - CELERITAS_SINCOSPI_PREFIX
 
 if(DEFINED CELERITAS_SINCOSPI_PREFIX)
-  set(CELERITAS_SINCOSPI_PREFIX_DEF
-    "#define CELERITAS_SINCOSPI_PREFIX ${CELERITAS_SINCOSPI_PREFIX}"
-  )
+    set(CELERITAS_SINCOSPI_PREFIX_DEF
+        "#define CELERITAS_SINCOSPI_PREFIX ${CELERITAS_SINCOSPI_PREFIX}"
+    )
 endif()
 
 # Save dependency versions as hex
 set(CELERITAS_DEPENDENCY_VERSIONS)
 foreach(_dep Geant4 VecGeom HepMC3)
-  string(TOUPPER "${_dep}" _upper)
-  celeritas_version_to_hex(_temp_version_hex ${_dep}_VERSION)
-  list(APPEND CELERITAS_DEPENDENCY_VERSIONS
-    "#define CELERITAS_${_upper}_VERSION ${_temp_version_hex}"
-  )
+    string(TOUPPER "${_dep}" _upper)
+    celeritas_version_to_hex(_temp_version_hex ${_dep}_VERSION)
+    list(
+        APPEND
+        CELERITAS_DEPENDENCY_VERSIONS
+        "#define CELERITAS_${_upper}_VERSION ${_temp_version_hex}"
+    )
 endforeach()
 
 # Save VecGeom options as always-on macros to simplify testing
 set(CELERITAS_VECGEOM_CONFIG)
 if(DEFINED VecGeom_USE_SURF)
-  set(VecGeom_SURFACE ${VecGeom_USE_SURF})
+    set(VecGeom_SURFACE ${VecGeom_USE_SURF})
 endif()
 set(_vecgeom_opts)
 foreach(_opt SURFACE BVH_SINGLE SINGLE_PRECISION)
-  if(NOT DEFINED VecGeom_${_opt})
-    set(_val "0 /* not defined */")
-  elseif(VecGeom_${_opt})
-    set(_val 1)
-    string(TOLOWER "${_opt}" _lower_opt)
-    list(APPEND _vecgeom_opts "${_lower_opt}")
-  else()
-    set(_val 0)
-  endif()
-  list(APPEND CELERITAS_VECGEOM_CONFIG
-    "#define CELERITAS_VECGEOM_${_opt} ${_val}"
-  )
+    if(NOT DEFINED VecGeom_${_opt})
+        set(_val "0 /* not defined */")
+    elseif(VecGeom_${_opt})
+        set(_val 1)
+        string(TOLOWER "${_opt}" _lower_opt)
+        list(APPEND _vecgeom_opts "${_lower_opt}")
+    else()
+        set(_val 0)
+    endif()
+    list(
+        APPEND
+        CELERITAS_VECGEOM_CONFIG
+        "#define CELERITAS_VECGEOM_${_opt} ${_val}"
+    )
 endforeach()
 foreach(_opt NAV BACKEND)
-  if(DEFINED VecGeom_${_opt})
-    list(APPEND _vecgeom_opts "${VecGeom_${_opt}}")
-  endif()
+    if(DEFINED VecGeom_${_opt})
+        list(APPEND _vecgeom_opts "${VecGeom_${_opt}}")
+    endif()
 endforeach()
 if(NOT VecGeom_VECTOR STREQUAL "empty")
-  list(APPEND _vecgeom_opts "${VecGeom_VECTOR}")
+    list(APPEND _vecgeom_opts "${VecGeom_VECTOR}")
 endif()
 list(JOIN _vecgeom_opts "," _vecgeom_opts)
 celeritas_append_cmake_string("vecgeom_options" "${_vecgeom_opts}")
 
 # Convert lists to newline-separated strings
-foreach(_ext CMAKE_STRINGS_DECL CMAKE_STRINGS_DEF VECGEOM_CONFIG DEPENDENCY_VERSIONS)
-  list(JOIN CELERITAS_${_ext} "\n" CELERITAS_${_ext})
+foreach(
+    _ext
+    CMAKE_STRINGS_DECL
+    CMAKE_STRINGS_DEF
+    VECGEOM_CONFIG
+    DEPENDENCY_VERSIONS
+)
+    list(JOIN CELERITAS_${_ext} "\n" CELERITAS_${_ext})
 endforeach()
 
 #-----------------------------------------------------------------------------#
@@ -168,60 +203,62 @@ endforeach()
 celeritas_configure_file("Config.hh.in" "corecel/Config.hh" @ONLY)
 
 foreach(_file Version Config)
-  celeritas_configure_file("${_file}.hh.in" "corecel/${_file}.hh" @ONLY)
-  configure_file("${_file}.cc.in" "${_file}.cc" @ONLY)
-  list(APPEND SOURCES "${CMAKE_CURRENT_BINARY_DIR}/${_file}.cc")
+    celeritas_configure_file("${_file}.hh.in" "corecel/${_file}.hh" @ONLY)
+    configure_file("${_file}.cc.in" "${_file}.cc" @ONLY)
+    list(APPEND SOURCES "${CMAKE_CURRENT_BINARY_DIR}/${_file}.cc")
 endforeach()
 
 #-----------------------------------------------------------------------------#
 # Main code
 #-----------------------------------------------------------------------------#
 
-list(APPEND SOURCES
-  AssertIO.json.cc
-  Types.cc
-  data/Copier.cc
-  data/DeviceAllocation.cc
-  data/AuxInterface.cc
-  data/AuxParamsRegistry.cc
-  data/AuxStateVec.cc
-  data/detail/PinnedAllocatorImpl.cc
-  grid/SplineDerivCalculator.cc
-  grid/VectorUtils.cc
-  io/BuildOutput.cc
-  io/ColorUtils.cc
-  io/ExceptionOutput.cc
-  io/JsonUtils.json.cc
-  io/Label.cc
-  io/LogContextException.cc
-  io/LogHandlers.cc
-  io/LoggerTypes.cc
-  io/OutputInterface.cc
-  io/OutputRegistry.cc
-  io/ScopedStreamRedirect.cc
-  io/ScopedTimeAndRedirect.cc
-  io/StringUtils.cc
-  io/detail/EnumStringMapperImpl.cc
-  io/detail/LoggerMessage.cc
-  io/detail/ReprImpl.cc
-  math/TridiagonalSolver.cc
-  random/data/CuHipRngData.cc
-  random/data/XorwowRngData.cc
-  random/params/CuHipRngParams.cc
-  random/params/XorwowRngParams.cc
-  sys/ActionInterface.cc
-  sys/ActionRegistry.cc
-  sys/ActionRegistryOutput.cc
-  sys/DeviceIO.json.cc
-  sys/Environment.cc
-  sys/KernelRegistry.cc
-  sys/KernelRegistryIO.json.cc
-  sys/MemRegistry.cc
-  sys/MemRegistryIO.json.cc
-  sys/ScopedMem.cc
-  sys/ScopedSignalHandler.cc
-  sys/TypeDemangler.cc
-  sys/Version.cc
+list(
+    APPEND
+    SOURCES
+    AssertIO.json.cc
+    Types.cc
+    data/Copier.cc
+    data/DeviceAllocation.cc
+    data/AuxInterface.cc
+    data/AuxParamsRegistry.cc
+    data/AuxStateVec.cc
+    data/detail/PinnedAllocatorImpl.cc
+    grid/SplineDerivCalculator.cc
+    grid/VectorUtils.cc
+    io/BuildOutput.cc
+    io/ColorUtils.cc
+    io/ExceptionOutput.cc
+    io/JsonUtils.json.cc
+    io/Label.cc
+    io/LogContextException.cc
+    io/LogHandlers.cc
+    io/LoggerTypes.cc
+    io/OutputInterface.cc
+    io/OutputRegistry.cc
+    io/ScopedStreamRedirect.cc
+    io/ScopedTimeAndRedirect.cc
+    io/StringUtils.cc
+    io/detail/EnumStringMapperImpl.cc
+    io/detail/LoggerMessage.cc
+    io/detail/ReprImpl.cc
+    math/TridiagonalSolver.cc
+    random/data/CuHipRngData.cc
+    random/data/XorwowRngData.cc
+    random/params/CuHipRngParams.cc
+    random/params/XorwowRngParams.cc
+    sys/ActionInterface.cc
+    sys/ActionRegistry.cc
+    sys/ActionRegistryOutput.cc
+    sys/DeviceIO.json.cc
+    sys/Environment.cc
+    sys/KernelRegistry.cc
+    sys/KernelRegistryIO.json.cc
+    sys/MemRegistry.cc
+    sys/MemRegistryIO.json.cc
+    sys/ScopedMem.cc
+    sys/ScopedSignalHandler.cc
+    sys/TypeDemangler.cc
+    sys/Version.cc
 )
 
 #-----------------------------------------------------------------------------#
@@ -229,11 +266,12 @@ list(APPEND SOURCES
 #-----------------------------------------------------------------------------#
 
 # All these classes depend on OpenMP if available
-celeritas_add_object_library(corecel_openmp_obj
-  sys/MultiExceptionHandler.cc
-)
-celeritas_target_link_libraries(corecel_openmp_obj
-  PRIVATE Celeritas::ExtOpenMP Celeritas::BuildFlags
+celeritas_add_object_library(corecel_openmp_obj sys/MultiExceptionHandler.cc)
+celeritas_target_link_libraries(
+    corecel_openmp_obj
+    PRIVATE
+    Celeritas::ExtOpenMP
+    Celeritas::BuildFlags
 )
 list(APPEND SOURCES $<TARGET_OBJECTS:corecel_openmp_obj>)
 list(APPEND PRIVATE_DEPS corecel_openmp_obj)
@@ -241,33 +279,41 @@ list(APPEND PRIVATE_DEPS corecel_openmp_obj)
 #-----------------------------------------------------------------------------#
 
 # All these classes depend on MPI if available
-celeritas_add_object_library(corecel_mpi_obj
-  Assert.cc
-  io/Logger.cc
-  sys/Device.cc
-  sys/MpiCommunicator.cc
-  sys/ScopedMpiInit.cc
+celeritas_add_object_library(
+    corecel_mpi_obj
+    Assert.cc
+    io/Logger.cc
+    sys/Device.cc
+    sys/MpiCommunicator.cc
+    sys/ScopedMpiInit.cc
 )
-celeritas_target_link_libraries(corecel_mpi_obj
-  PRIVATE Celeritas::ExtMPI Celeritas::ExtDeviceApi Celeritas::BuildFlags
+celeritas_target_link_libraries(
+    corecel_mpi_obj
+    PRIVATE
+    Celeritas::ExtMPI
+    Celeritas::ExtDeviceApi
+    Celeritas::BuildFlags
 )
 list(APPEND SOURCES $<TARGET_OBJECTS:corecel_mpi_obj>)
 list(APPEND PRIVATE_DEPS corecel_mpi_obj)
 
 #-----------------------------------------------------------------------------#
 
-set(_profiling_sources
-  sys/ScopedProfiling.cc
-)
+set(_profiling_sources sys/ScopedProfiling.cc)
 if(CELERITAS_USE_Perfetto)
-  list(APPEND _profiling_sources
-    sys/detail/TraceCounterImpl.perfetto.cc
-    sys/TracingSession.perfetto.cc
-  )
+    list(
+        APPEND
+        _profiling_sources
+        sys/detail/TraceCounterImpl.perfetto.cc
+        sys/TracingSession.perfetto.cc
+    )
 endif()
 celeritas_add_object_library(corecel_profiling_obj ${_profiling_sources})
-celeritas_target_link_libraries(corecel_profiling_obj
-  PRIVATE Celeritas::ExtPerfetto Celeritas::BuildFlags
+celeritas_target_link_libraries(
+    corecel_profiling_obj
+    PRIVATE
+    Celeritas::ExtPerfetto
+    Celeritas::BuildFlags
 )
 list(APPEND SOURCES $<TARGET_OBJECTS:corecel_profiling_obj>)
 list(APPEND PRIVATE_DEPS corecel_profiling_obj)
@@ -277,34 +323,36 @@ list(APPEND PRIVATE_DEPS corecel_profiling_obj)
 #-----------------------------------------------------------------------------#
 
 macro(celeritas_polysource filename_we)
-  celeritas_polysource_append(SOURCES ${filename_we})
+    celeritas_polysource_append(SOURCES ${filename_we})
 endmacro()
 
 celeritas_polysource(random/data/detail/CuHipRngStateInit)
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-  list(APPEND SOURCES
-    data/Filler.cu
-    sys/KernelParamCalculator.device.cc
-    sys/Stream.cu
-    sys/detail/AsyncMemoryResource.cu
-  )
+    list(
+        APPEND
+        SOURCES
+        data/Filler.cu
+        sys/KernelParamCalculator.device.cc
+        sys/Stream.cu
+        sys/detail/AsyncMemoryResource.cu
+    )
 endif()
 
 if(CELERITAS_USE_CUDA)
-  # Note: we currently assume the CUDA install includes the nvtx header
-  list(APPEND SOURCES
-    sys/detail/NvtxUtils.cc
-    sys/detail/TraceCounterImpl.cuda.cc
-    sys/ScopedLimitSaver.cuda.cc
-    sys/ScopedProfiling.cuda.cc
-  )
+    # Note: we currently assume the CUDA install includes the nvtx header
+    list(
+        APPEND
+        SOURCES
+        sys/detail/NvtxUtils.cc
+        sys/detail/TraceCounterImpl.cuda.cc
+        sys/ScopedLimitSaver.cuda.cc
+        sys/ScopedProfiling.cuda.cc
+    )
 endif()
 
 if(CELERITAS_USE_HIP)
-  list(APPEND SOURCES
-    sys/ScopedProfiling.hip.cc
-  )
+    list(APPEND SOURCES sys/ScopedProfiling.hip.cc)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -312,9 +360,12 @@ endif()
 #-----------------------------------------------------------------------------#
 
 celeritas_add_src_library(corecel ${SOURCES})
-celeritas_target_link_libraries(corecel
-  PRIVATE ${PRIVATE_DEPS}
-  PUBLIC ${PUBLIC_DEPS}
+celeritas_target_link_libraries(
+    corecel
+    PRIVATE
+    ${PRIVATE_DEPS}
+    PUBLIC
+    ${PUBLIC_DEPS}
 )
 
 #-----------------------------------------------------------------------------#

@@ -168,8 +168,8 @@ NormalDistribution<RealType>::operator=(NormalDistribution&& other) noexcept
  */
 template<class RealType>
 template<class Generator>
-CELER_FUNCTION auto
-NormalDistribution<RealType>::operator()(Generator& rng) -> result_type
+CELER_FUNCTION auto NormalDistribution<RealType>::operator()(Generator& rng)
+    -> result_type
 {
     if (has_spare_)
     {

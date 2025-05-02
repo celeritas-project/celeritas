@@ -18,4 +18,3 @@ advanced implementation can be inspected in the :ref:`celer-g4` app.
    geant4-interface/setup.rst
    geant4-interface/details.rst
    geant4-interface/low-level.rst
-

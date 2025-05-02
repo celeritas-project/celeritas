@@ -34,11 +34,11 @@ namespace detail
  * Construct with action ID, data IDs, and optical properties.
  */
 CherenkovGeneratorAction::CherenkovGeneratorAction(ActionId id,
-                                                 AuxId offload_id,
-                                                 AuxId optical_id,
-                                                 SPConstMaterial material,
-                                                 SPConstCherenkov cherenkov,
-                                                 size_type auto_flush)
+                                                   AuxId offload_id,
+                                                   AuxId optical_id,
+                                                   SPConstMaterial material,
+                                                   SPConstCherenkov cherenkov,
+                                                   size_type auto_flush)
     : id_(id)
     , offload_id_{offload_id}
     , optical_id_{optical_id}
@@ -68,7 +68,7 @@ std::string_view CherenkovGeneratorAction::description() const
  * Execute the action with host data.
  */
 void CherenkovGeneratorAction::step(CoreParams const& params,
-                                   CoreStateHost& state) const
+                                    CoreStateHost& state) const
 {
     this->step_impl(params, state);
 }
@@ -78,7 +78,7 @@ void CherenkovGeneratorAction::step(CoreParams const& params,
  * Execute the action with device data.
  */
 void CherenkovGeneratorAction::step(CoreParams const& params,
-                                   CoreStateDevice& state) const
+                                    CoreStateDevice& state) const
 {
     this->step_impl(params, state);
 }
@@ -89,7 +89,7 @@ void CherenkovGeneratorAction::step(CoreParams const& params,
  */
 template<MemSpace M>
 void CherenkovGeneratorAction::step_impl(CoreParams const& core_params,
-                                        CoreState<M>& core_state) const
+                                         CoreState<M>& core_state) const
 {
     auto& offload_state
         = get<OpticalOffloadState<M>>(core_state.aux(), offload_id_);
@@ -142,7 +142,7 @@ void CherenkovGeneratorAction::step_impl(CoreParams const& core_params,
  * Launch a (host) kernel to generate optical photon initializers.
  */
 void CherenkovGeneratorAction::generate(CoreParams const& core_params,
-                                       CoreStateHost& core_state) const
+                                        CoreStateHost& core_state) const
 {
     auto& offload_state = get<OpticalOffloadState<MemSpace::native>>(
         core_state.aux(), offload_id_);
@@ -153,18 +153,19 @@ void CherenkovGeneratorAction::generate(CoreParams const& core_params,
         core_params.ptr<MemSpace::native>(),
         core_state.ptr(),
         detail::CherenkovGeneratorExecutor{core_state.ptr(),
-                                          material_->host_ref(),
-                                          cherenkov_->host_ref(),
-                                          offload_state.store.ref(),
-                                          optical_state.ptr(),
-                                          offload_state.buffer_size,
-                                          optical_state.counters()}};
+                                           material_->host_ref(),
+                                           cherenkov_->host_ref(),
+                                           offload_state.store.ref(),
+                                           optical_state.ptr(),
+                                           offload_state.buffer_size,
+                                           optical_state.counters()}};
     launch_action(*this, core_params, core_state, execute);
 }
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void CherenkovGeneratorAction::generate(CoreParams const&, CoreStateDevice&) const
+void CherenkovGeneratorAction::generate(CoreParams const&,
+                                        CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

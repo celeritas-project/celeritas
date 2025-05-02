@@ -61,8 +61,8 @@ CELER_FUNCTION IsotropicDistribution<RealType>::IsotropicDistribution()
  */
 template<class RealType>
 template<class Generator>
-CELER_FUNCTION auto
-IsotropicDistribution<RealType>::operator()(Generator& rng) -> result_type
+CELER_FUNCTION auto IsotropicDistribution<RealType>::operator()(Generator& rng)
+    -> result_type
 {
     real_type const costheta = sample_costheta_(rng);
     real_type const phi = sample_phi_(rng);
