@@ -30,4 +30,8 @@ repos:
 
   # TODO: https://github.com/celeritas-project/celeritas/issues/1763
 
+ci:
+  autoupdate_schedule: quarterly
+  autoupdate_commit_msg: "Update pre-commit version"
+
 # vim: set nowrap tw=100:
