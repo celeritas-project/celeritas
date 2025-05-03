@@ -515,7 +515,7 @@ void PhysicsParams::build_xs(Options const& opts,
     auto integral_xs = make_builder(&data->integral_xs);
     auto value_grid_ids = make_builder(&data->value_grid_ids);
     auto build_grid = [&insert_grid](inp::XsGrid const& grid) -> ValueGridId {
-        return grid ? insert_grid(grid.lower, grid.upper) : ValueGridId{};
+        return grid ? insert_grid(grid) : ValueGridId{};
     };
 
     Applicability applic;
@@ -600,11 +600,12 @@ void PhysicsParams::build_xs(Options const& opts,
                 if (energy_loss)
                 {
                     // Build the range grid from the energy loss
-                    auto range_grid
+                    inp::XsGrid range_grid;
+                    range_grid.lower
                         = RangeGridCalculator(BC::geant)(energy_loss.lower);
                     range_grid_ids[mat_idx] = insert_grid(range_grid);
 
-                    if (range_grid.interpolation.type
+                    if (range_grid.lower.interpolation.type
                         == InterpolationType::cubic_spline)
                     {
                         // Build the inverse range grid if cubic spline
@@ -795,7 +796,7 @@ void PhysicsParams::build_model_xs(MaterialParams const& mats,
 
                     for (auto elcomp_idx : range(material.num_elements()))
                     {
-                        grid_ids[elcomp_idx] = insert(grids[elcomp_idx].lower);
+                        grid_ids[elcomp_idx] = insert(grids[elcomp_idx]);
                     }
                 }
             }
