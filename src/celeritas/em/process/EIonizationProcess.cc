@@ -42,12 +42,21 @@ auto EIonizationProcess::build_models(ActionIdIter start_id) const -> VecModel
 
 //---------------------------------------------------------------------------//
 /*!
- * Get cross section values.
+ * Get the interaction cross sections for the given energy range.
  */
-auto EIonizationProcess::step_limits(Applicability applicability) const
-    -> StepLimitBuilders
+auto EIonizationProcess::macro_xs(Applicability applic) const -> XsGrid
 {
-    return imported_.step_limits(std::move(applicability));
+    return imported_.macro_xs(std::move(applic));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the energy loss for the given energy range.
+ */
+auto EIonizationProcess::energy_loss(Applicability applic) const
+    -> EnergyLossGrid
+{
+    return imported_.energy_loss(std::move(applic));
 }
 
 //---------------------------------------------------------------------------//

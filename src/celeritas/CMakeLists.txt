@@ -78,8 +78,6 @@ list(APPEND SOURCES
   grid/RangeGridCalculator.cc
   grid/TwodGridBuilder.cc
   grid/UniformGridInserter.cc
-  grid/ValueGridBuilder.cc
-  grid/ValueGridType.cc
   grid/XsGridInserter.cc
   io/AtomicRelaxationReader.cc
   io/ImportData.cc

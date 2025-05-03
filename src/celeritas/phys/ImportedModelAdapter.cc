@@ -15,7 +15,6 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Range.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/io/ImportModel.hh"
 
 #include "Applicability.hh"
@@ -72,7 +71,7 @@ ImportedModelAdapter::ImportedModelAdapter(
 /*!
  * Get the microscopic cross sections for the given material and particle.
  */
-auto ImportedModelAdapter::micro_xs(Applicability applic) const -> MicroXsBuilders
+auto ImportedModelAdapter::micro_xs(Applicability applic) const -> XsGrid
 {
     CELER_EXPECT(applic.material);
 
@@ -82,16 +81,15 @@ auto ImportedModelAdapter::micro_xs(Applicability applic) const -> MicroXsBuilde
     ImportModelMaterial const& imm
         = model.materials[applic.material.unchecked_get()];
 
-    MicroXsBuilders builders(imm.micro_xs.size());
-    for (size_type elcomp_idx : range(builders.size()))
+    XsGrid grids(imm.micro_xs.size());
+    for (size_type elcomp_idx : range(grids.size()))
     {
         auto grid = imm.micro_xs[elcomp_idx];
         CELER_ASSERT(grid);
         CELER_ASSERT(std::exp(grid.x[Bound::lo]) > 0 && grid.y.size() >= 2);
-        builders[elcomp_idx]
-            = std::make_unique<ValueGridLogBuilder>(std::move(grid));
+        grids[elcomp_idx].lower = std::move(grid);
     }
-    return builders;
+    return grids;
 }
 
 //---------------------------------------------------------------------------//

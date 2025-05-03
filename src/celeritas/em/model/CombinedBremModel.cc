@@ -92,7 +92,7 @@ auto CombinedBremModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto CombinedBremModel::micro_xs(Applicability) const -> MicroXsBuilders
+auto CombinedBremModel::micro_xs(Applicability) const -> XsGrid
 {
     // Multiple elements per material not supported for combined brems model
     return {};

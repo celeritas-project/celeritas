@@ -7,7 +7,6 @@
 #include "NeutronInelasticProcess.hh"
 
 #include "corecel/Assert.hh"
-#include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/neutron/model/CascadeOptions.hh"
 #include "celeritas/neutron/model/NeutronInelasticModel.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -45,17 +44,20 @@ auto NeutronInelasticProcess::build_models(ActionIdIter id) const -> VecModel
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the inelastic interaction cross sections for the given energy range.
+ * Get the interaction cross sections for the given energy range.
  */
-auto NeutronInelasticProcess::step_limits(Applicability applic) const
-    -> StepLimitBuilders
+auto NeutronInelasticProcess::macro_xs(Applicability) const -> XsGrid
 {
-    CELER_EXPECT(applic.particle == neutron_id_);
+    return {};
+}
 
-    // Cross sections are calculated on the fly
-    StepLimitBuilders builders;
-    builders[ValueGridType::macro_xs] = std::make_unique<ValueGridOTFBuilder>();
-    return builders;
+//---------------------------------------------------------------------------//
+/*!
+ * Get the energy loss for the given energy range.
+ */
+auto NeutronInelasticProcess::energy_loss(Applicability) const -> EnergyLossGrid
+{
+    return {};
 }
 
 //---------------------------------------------------------------------------//

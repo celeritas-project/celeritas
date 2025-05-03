@@ -382,7 +382,6 @@ celeritas_add_test(grid/RangeCalculator.test.cc)
 celeritas_add_test(grid/SplineCalculator.test.cc)
 celeritas_add_test(grid/UniformLogGridCalculator.test.cc)
 celeritas_add_test(grid/RangeGridCalculator.test.cc)
-celeritas_add_test(grid/ValueGridBuilder.test.cc)
 celeritas_add_test(grid/GridInserter.test.cc)
 celeritas_add_test(grid/XsCalculator.test.cc)
 
