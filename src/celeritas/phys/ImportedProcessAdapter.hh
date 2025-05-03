@@ -17,7 +17,6 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Span.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
 #include "celeritas/io/ImportProcess.hh"
 
@@ -96,7 +95,8 @@ class ImportedProcessAdapter
     //! \name Type aliases
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
-    using StepLimitBuilders = Process::StepLimitBuilders;
+    using XsGrid = Process::XsGrid;
+    using EnergyLossGrid = Process::EnergyLossGrid;
     using SpanConstPDG = Span<PDGNumber const>;
     //!@}
 
@@ -113,8 +113,11 @@ class ImportedProcessAdapter
                            ImportProcessClass process_class,
                            std::initializer_list<PDGNumber> pdg_numbers);
 
-    // Construct step limits from the given particle/material type
-    StepLimitBuilders step_limits(Applicability const& applic) const;
+    // Get cross sections for the given particle/material type
+    XsGrid macro_xs(Applicability const& applic) const;
+
+    // Get energy loss for the given particle/material type
+    EnergyLossGrid energy_loss(Applicability const& applic) const;
 
     // Access the imported processes
     SPConstImported const& processes() const { return imported_; }

@@ -18,8 +18,6 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/ValueGridBuilder.hh"
-#include "celeritas/grid/ValueGridType.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
 
@@ -181,88 +179,71 @@ ImportedProcessAdapter::ImportedProcessAdapter(
 /*!
  * Get the interaction cross sections for the given material and particle.
  */
-auto ImportedProcessAdapter::step_limits(Applicability const& applic) const
-    -> StepLimitBuilders
+auto ImportedProcessAdapter::macro_xs(Applicability const& applic) const
+    -> XsGrid
 {
     CELER_EXPECT(ids_.count(applic.particle));
     CELER_EXPECT(applic.material);
 
-    // Get list of physics tables
     auto const& process_id = ids_.find(applic.particle)->second;
     ImportProcess const& import_process = imported_->get(process_id);
 
-    StepLimitBuilders builders;
-
-    // Construct cross section tables
-    if (import_process.process_class == ImportProcessClass::msc)
-    {
-        // No cross sections
-    }
-    else if (import_process.lambda && import_process.lambda_prim)
+    // Get cross section tables
+    XsGrid result;
+    if (import_process.lambda)
     {
         CELER_ASSERT(applic.material < import_process.lambda.grids.size());
-        CELER_ASSERT(applic.material < import_process.lambda_prim.grids.size());
-
-        // Both unscaled and scaled values are present
-        auto lower = import_process.lambda.grids[applic.material.get()];
-        auto upper = import_process.lambda_prim.grids[applic.material.get()];
-        CELER_ASSERT(lower && upper);
-        CELER_ASSERT(std::exp(lower.x[Bound::lo]) > 0 && lower.y.size() >= 2);
-        CELER_ASSERT(std::exp(upper.x[Bound::lo]) > 0 && upper.y.size() >= 2);
-        CELER_ASSERT(is_nonnegative(make_span(lower.y)));
-        CELER_ASSERT(is_nonnegative(make_span(upper.y)));
-        CELER_ASSERT(is_contiguous_increasing(lower, upper));
-        CELER_ASSERT(soft_equal(lower.x[Bound::hi], upper.x[Bound::lo]));
-        CELER_ASSERT(soft_equal(
-            lower.y.back(), upper.y.front() / std::exp(upper.x[Bound::lo])));
-
-        lower.x[Bound::hi] = upper.x[Bound::lo];
-        builders[ValueGridType::macro_xs]
-            = std::make_unique<ValueGridXsBuilder>(std::move(lower),
-                                                   std::move(upper));
-    }
-    else if (import_process.lambda_prim)
-    {
-        CELER_ASSERT(applic.material < import_process.lambda_prim.grids.size());
-
-        // Only high-energy (energy-scale) cross sections are presesnt
-        auto grid = import_process.lambda_prim.grids[applic.material.get()];
-        CELER_ASSERT(grid);
-        CELER_ASSERT(std::exp(grid.x[Bound::lo]) > 0 && grid.y.size() >= 2);
-        CELER_ASSERT(is_nonnegative(make_span(grid.y)));
-
-        builders[ValueGridType::macro_xs]
-            = std::make_unique<ValueGridXsBuilder>(inp::UniformGrid{},
-                                                   std::move(grid));
-    }
-    else if (import_process.lambda)
-    {
-        CELER_ASSERT(applic.material < import_process.lambda.grids.size());
-
         auto grid = import_process.lambda.grids[applic.material.get()];
         CELER_ASSERT(grid);
         CELER_ASSERT(std::exp(grid.x[Bound::lo]) > 0 && grid.y.size() >= 2);
         CELER_ASSERT(is_nonnegative(make_span(grid.y)));
-
-        builders[ValueGridType::macro_xs]
-            = std::make_unique<ValueGridXsBuilder>(std::move(grid),
-                                                   inp::UniformGrid{});
+        result.lower = std::move(grid);
     }
+    if (import_process.lambda_prim)
+    {
+        CELER_ASSERT(applic.material < import_process.lambda_prim.grids.size());
+        auto grid = import_process.lambda_prim.grids[applic.material.get()];
+        CELER_ASSERT(grid);
+        CELER_ASSERT(std::exp(grid.x[Bound::lo]) > 0 && grid.y.size() >= 2);
+        CELER_ASSERT(is_nonnegative(make_span(grid.y)));
+        result.upper = std::move(grid);
+    }
+    if (result.lower && result.upper)
+    {
+        CELER_ASSERT(is_contiguous_increasing(result.lower, result.upper));
+        CELER_ASSERT(
+            soft_equal(result.lower.x[Bound::hi], result.upper.x[Bound::lo]));
+        CELER_ASSERT(soft_equal(
+            result.lower.y.back(),
+            result.upper.y.front() / std::exp(result.upper.x[Bound::lo])));
+        result.lower.x[Bound::hi] = result.upper.x[Bound::lo];
+    }
+    return result;
+}
 
-    // Construct slowing-down data
+//---------------------------------------------------------------------------//
+/*!
+ * Get the energy loss for the given material and particle.
+ */
+auto ImportedProcessAdapter::energy_loss(Applicability const& applic) const
+    -> EnergyLossGrid
+{
+    CELER_EXPECT(ids_.count(applic.particle));
+    CELER_EXPECT(applic.material);
+
+    auto const& process_id = ids_.find(applic.particle)->second;
+    ImportProcess const& import_process = imported_->get(process_id);
+
+    EnergyLossGrid result;
     if (import_process.dedx)
     {
         CELER_ASSERT(applic.material < import_process.dedx.grids.size());
-
         auto grid = import_process.dedx.grids[applic.material.get()];
         CELER_ASSERT(grid);
         CELER_ASSERT(std::exp(grid.x[Bound::lo]) > 0 && grid.y.size() >= 2);
-
-        builders[ValueGridType::energy_loss]
-            = std::make_unique<ValueGridLogBuilder>(std::move(grid));
+        result.lower = std::move(grid);
     }
-
-    return builders;
+    return result;
 }
 
 //---------------------------------------------------------------------------//
