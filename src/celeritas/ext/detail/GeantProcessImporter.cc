@@ -175,8 +175,7 @@ void assign_table(G4PhysicsTable const* g4table,
     // Save physics vectors, using spline interpolation if enabled and valid
     for (auto const* g4vector : *g4table)
     {
-        table->grids.emplace_back(import_physics_log_vector(
-            *g4vector, {table->x_units, table->y_units}));
+        table->grids.emplace_back(import_physics_log_vector(*g4vector, units));
 #if G4VERSION_NUMBER < 1100
         // Hardcode whether the lambda table uses spline for older Geant4
         // versions. Always use spline for lambda, energy loss, range, and msc
@@ -192,7 +191,6 @@ void assign_table(G4PhysicsTable const* g4table,
             table->grids.back().interpolation = interpolation;
         }
     }
-
     CELER_ENSURE(
         table->grids.size()
         == G4ProductionCutsTable::GetProductionCutsTable()->GetTableSize());
