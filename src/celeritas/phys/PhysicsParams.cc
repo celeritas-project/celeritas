@@ -590,22 +590,22 @@ void PhysicsParams::build_xs(Options const& opts,
             {
                 applic.material = PhysMatId(mat_idx);
 
-                // Construct step limiters
+                // Construct macroscopic cross section grid
                 auto macro_xs = proc.macro_xs(applic);
-                auto energy_loss = proc.energy_loss(applic);
-
-                // Construct grids
                 xs_grid_ids[mat_idx] = build_grid(macro_xs);
+
+                // Construct energy loss grid
+                auto energy_loss = proc.energy_loss(applic);
                 eloss_grid_ids[mat_idx] = build_grid(energy_loss);
+
+                // Construct range grid from energy loss
                 if (energy_loss)
                 {
-                    // Build the range grid from the energy loss
-                    inp::XsGrid range_grid;
-                    range_grid.lower
+                    auto range
                         = RangeGridCalculator(BC::geant)(energy_loss.lower);
-                    range_grid_ids[mat_idx] = insert_grid(range_grid);
+                    range_grid_ids[mat_idx] = insert_grid({range, {}});
 
-                    if (range_grid.lower.interpolation.type
+                    if (range.interpolation.type
                         == InterpolationType::cubic_spline)
                     {
                         // Build the inverse range grid if cubic spline
@@ -615,18 +615,17 @@ void PhysicsParams::build_xs(Options const& opts,
                         // The range and energy values are not inverted on the
                         // grid, but the derivatives are calculated using the
                         // inverted grid.
-                        XsGridRecord inv_range_grid
+                        XsGridRecord inv_range
                             = data->value_grids[range_grid_ids[mat_idx]];
                         auto deriv
                             = SplineDerivCalculator(BC::geant).calc_from_inverse(
-                                inv_range_grid.lower,
-                                make_const_ref(*data).reals);
-                        inv_range_grid.lower.derivative
+                                inv_range.lower, make_const_ref(*data).reals);
+                        inv_range.lower.derivative
                             = make_builder(&data->reals)
                                   .insert_back(deriv.begin(), deriv.end());
                         inv_range_grid_ids[mat_idx]
                             = make_builder(&data->value_grids)
-                                  .push_back(inv_range_grid);
+                                  .push_back(inv_range);
                     }
                 }
 
@@ -719,6 +718,10 @@ void PhysicsParams::build_model_xs(MaterialParams const& mats,
     CELER_EXPECT(*data);
 
     XsGridInserter insert(&data->reals, &data->value_grids);
+    CollectionBuilder model_xs(&data->model_xs);
+    CollectionBuilder value_tables(&data->value_tables);
+    CollectionBuilder value_table_ids(&data->value_table_ids);
+    CollectionBuilder value_grid_ids(&data->value_grid_ids);
 
     // Micro xs grid IDs for each model and applicable particle, each material,
     // and each element in the material
@@ -733,6 +736,7 @@ void PhysicsParams::build_model_xs(MaterialParams const& mats,
         // Loop over applicable particles
         for (Applicability applic : model.applicability())
         {
+            std::vector<ValueTableId> temp_table_ids(temp_grid_ids.size());
             for (auto mat_id : range(PhysMatId{mats.size()}))
             {
                 applic.material = mat_id;
@@ -765,74 +769,54 @@ void PhysicsParams::build_model_xs(MaterialParams const& mats,
                 size_type num_bins = grids.front().lower.y.size();
 
                 // Calculate the cross section CDF
-                auto const&& elements = mats.get(mat_id).elements();
+                auto elements = mats.get(mat_id).elements();
                 for (auto i : range(num_bins))
                 {
                     real_type cum_xs{0};
-                    for (auto elcomp_idx : range(elements.size()))
+                    for (auto elm : range(elements.size()))
                     {
-                        CELER_ASSERT(grids[elcomp_idx].lower);
-                        real_type& xs = grids[elcomp_idx].lower.y[i];
-                        cum_xs += xs * elements[elcomp_idx].fraction;
+                        CELER_ASSERT(grids[elm].lower);
+                        auto& xs = grids[elm].lower.y[i];
+                        cum_xs += xs * elements[elm].fraction;
                         xs = cum_xs;
                     }
                     if (cum_xs > 0)
                     {
                         // Normalize the CDF
-                        for (auto elcomp_idx : range(elements.size()))
+                        for (auto& grid : grids)
                         {
-                            grids[elcomp_idx].lower.y[i] /= cum_xs;
+                            grid.lower.y[i] /= cum_xs;
                         }
                     }
                 }
 
-                // Construct grids for each element in the material
                 CELER_ASSERT(pm_idx < temp_grid_ids.size());
                 temp_grid_ids[pm_idx].resize(mats.size());
                 if (material.num_elements() > 1)
                 {
+                    // Construct grids for each element in the material
                     auto& grid_ids = temp_grid_ids[pm_idx][mat_id.get()];
                     grid_ids.resize(material.num_elements());
-
                     for (auto elcomp_idx : range(material.num_elements()))
                     {
                         grid_ids[elcomp_idx] = insert(grids[elcomp_idx]);
                     }
+
+                    // Construct value grid table
+                    ValueTable temp_table;
+                    temp_table.grids = value_grid_ids.insert_back(
+                        grid_ids.begin(), grid_ids.end());
+                    temp_table_ids[mat_id.get()]
+                        = value_tables.push_back(temp_table);
                 }
             }
+            // Construct cross section table for this model
+            ModelXsTable temp_model_xs;
+            temp_model_xs.material = value_table_ids.insert_back(
+                temp_table_ids.begin(), temp_table_ids.end());
+            model_xs.push_back(temp_model_xs);
             ++pm_idx;
         }
-    }
-
-    CollectionBuilder model_xs(&data->model_xs);
-    CollectionBuilder tables(&data->value_tables);
-    CollectionBuilder table_ids(&data->value_table_ids);
-    CollectionBuilder grid_ids(&data->value_grid_ids);
-
-    // Construct model cross section CDF tables
-    for (auto& model_table : temp_grid_ids)
-    {
-        std::vector<ValueTableId> temp_table_ids(model_table.size());
-        for (auto mat_idx : range<PhysMatId::size_type>(model_table.size()))
-        {
-            auto& grids = model_table[mat_idx];
-            if (grids.empty())
-            {
-                // No micro xs stored for this material
-                continue;
-            }
-
-            // Construct value grid table
-            ValueTable temp_table;
-            temp_table.grids = grid_ids.insert_back(grids.begin(), grids.end());
-            temp_table_ids[mat_idx] = tables.push_back(temp_table);
-        }
-
-        // Construct cross section table for this model
-        ModelXsTable temp_model_xs;
-        temp_model_xs.material = table_ids.insert_back(temp_table_ids.begin(),
-                                                       temp_table_ids.end());
-        model_xs.push_back(temp_model_xs);
     }
 }
 
