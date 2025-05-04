@@ -60,3 +60,4 @@ by the Integration helper classes, provides a Geant4 "UI" macro interface to
 many of the options.
 
 .. doxygenclass:: celeritas::SetupOptionsMessenger
+

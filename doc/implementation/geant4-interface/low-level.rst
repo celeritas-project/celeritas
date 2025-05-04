@@ -29,3 +29,5 @@ Geant4 physics options
 .. doxygenstruct:: celeritas::GeantPhysicsOptions
    :members:
    :no-link:
+
+

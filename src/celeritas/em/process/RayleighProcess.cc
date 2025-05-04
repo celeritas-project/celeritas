@@ -46,8 +46,7 @@ auto RayleighProcess::build_models(ActionIdIter start_id) const -> VecModel
 /*!
  * Get the interaction cross sections for the given energy range.
  */
-auto RayleighProcess::step_limits(Applicability applic) const
-    -> StepLimitBuilders
+auto RayleighProcess::step_limits(Applicability applic) const -> StepLimitBuilders
 {
     return imported_.step_limits(std::move(applic));
 }

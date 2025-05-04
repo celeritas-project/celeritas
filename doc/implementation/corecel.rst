@@ -246,3 +246,4 @@ These functions and classes are for communicating helpfully with the user.
 .. doxygendefine:: CELER_LOG_LOCAL
 .. doxygenenum:: celeritas::LogLevel
    :no-link:
+

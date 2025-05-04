@@ -79,3 +79,4 @@ The field driver options are not yet a stable part of the API:
 .. doxygenstruct:: celeritas::FieldDriverOptions
    :members:
    :no-link:
+

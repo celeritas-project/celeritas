@@ -3,24 +3,18 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-celeritas_add_test_library(
-    testcel_orange
-    OrangeGeoTestBase.cc
-    OrangeTestBase.cc
-    g4org/GeantLoadTestBase.cc
-    orangeinp/CsgTestUtils.cc
-    orangeinp/ObjectTestBase.cc
+celeritas_add_test_library(testcel_orange
+  OrangeGeoTestBase.cc
+  OrangeTestBase.cc
+  g4org/GeantLoadTestBase.cc
+  orangeinp/CsgTestUtils.cc
+  orangeinp/ObjectTestBase.cc
 )
-celeritas_target_link_libraries(
-    testcel_orange
-    PUBLIC
-    Celeritas::orange
-    testcel_harness
-    testcel_core
-    testcel_geocel
-    PRIVATE
-    Celeritas::orange
-    nlohmann_json::nlohmann_json
+celeritas_target_link_libraries(testcel_orange
+  PUBLIC
+    Celeritas::orange testcel_harness testcel_core testcel_geocel
+  PRIVATE
+    Celeritas::orange nlohmann_json::nlohmann_json
 )
 
 #-----------------------------------------------------------------------------#
@@ -28,22 +22,19 @@ celeritas_target_link_libraries(
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
-    set(_use_g4org TRUE)
-    set(_needs_g4org)
+  set(_use_g4org TRUE)
+  set(_needs_g4org)
 else()
-    set(_use_g4org FALSE)
-    set(_needs_g4org DISABLE)
+  set(_use_g4org FALSE)
+  set(_needs_g4org DISABLE)
 endif()
 
 #-----------------------------------------------------------------------------#
 # SETUP
 #-----------------------------------------------------------------------------#
 
-celeritas_setup_tests(
-    SERIAL
-    LINK_LIBRARIES
-        testcel_orange
-        Celeritas::orange
+celeritas_setup_tests(SERIAL
+  LINK_LIBRARIES testcel_orange Celeritas::orange
 )
 
 #-----------------------------------------------------------------------------#
@@ -57,12 +48,8 @@ celeritas_add_test(RaytraceImager.test.cc GPU)
 
 # High level
 celeritas_add_test(Orange.test.cc)
-celeritas_add_test(
-    OrangeGeant.test.cc
-    ${_needs_g4org}
-    LINK_LIBRARIES
-        nlohmann_json::nlohmann_json
-)
+celeritas_add_test(OrangeGeant.test.cc ${_needs_g4org}
+  LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(OrangeJson.test.cc)
 celeritas_add_device_test(OrangeShift)
 
@@ -91,11 +78,8 @@ celeritas_add_test(orangeinp/PolySolid.test.cc)
 celeritas_add_test(orangeinp/Shape.test.cc)
 celeritas_add_test(orangeinp/Solid.test.cc)
 celeritas_add_test(orangeinp/Transformed.test.cc)
-celeritas_add_test(
-    orangeinp/UnitProto.test.cc
-    LINK_LIBRARIES
-        nlohmann_json::nlohmann_json
-)
+celeritas_add_test(orangeinp/UnitProto.test.cc
+  LINK_LIBRARIES nlohmann_json::nlohmann_json)
 
 celeritas_add_test(orangeinp/detail/BoundingZone.test.cc)
 celeritas_add_test(orangeinp/detail/ConvexHullFinder.test.cc)
@@ -159,19 +143,13 @@ celeritas_add_test(univ/detail/SenseCalculator.test.cc)
 #-----------------------------------------------------------------------------#
 # Geant4 construction
 if(_use_g4org)
-    celeritas_add_test(g4org/Converter.test.cc)
-    celeritas_add_test(
-        g4org/SolidConverter.test.cc
-        LINK_LIBRARIES
-            Celeritas::ExtGeant4Geo
-    )
-    celeritas_add_test(g4org/PhysicalVolumeConverter.test.cc)
-    celeritas_add_test(g4org/ProtoConstructor.test.cc)
-    celeritas_add_test(
-        g4org/Transformer.test.cc
-        LINK_LIBRARIES
-            Celeritas::ExtGeant4Geo
-    )
+  celeritas_add_test(g4org/Converter.test.cc)
+  celeritas_add_test(g4org/SolidConverter.test.cc
+    LINK_LIBRARIES Celeritas::ExtGeant4Geo)
+  celeritas_add_test(g4org/PhysicalVolumeConverter.test.cc)
+  celeritas_add_test(g4org/ProtoConstructor.test.cc)
+  celeritas_add_test(g4org/Transformer.test.cc
+    LINK_LIBRARIES Celeritas::ExtGeant4Geo)
 endif()
 
 #-----------------------------------------------------------------------------#

@@ -23,3 +23,4 @@ are sampled using external helper distributions.
 .. doxygenclass:: celeritas::BhabhaEnergyDistribution
 .. doxygenclass:: celeritas::MollerEnergyDistribution
 .. doxygenclass:: celeritas::MuBBEnergyDistribution
+

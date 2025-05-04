@@ -26,8 +26,7 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-auto ImportedDataTestBase::build_process_options() const
-    -> ProcessBuilderOptions
+auto ImportedDataTestBase::build_process_options() const -> ProcessBuilderOptions
 {
     return {};
 }

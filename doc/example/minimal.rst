@@ -25,3 +25,4 @@ Main executable
 
 .. literalinclude:: ../../example/minimal/minimal.cc
    :start-at: #include
+

@@ -12,7 +12,7 @@ for possible values.
 #]=======================================================================]
 
 if(NOT KEY)
-    set(KEY NUMBER_OF_LOGICAL_CORES)
+  set(KEY NUMBER_OF_LOGICAL_CORES)
 endif()
 cmake_host_system_information(RESULT result QUERY ${KEY})
 message(${result})

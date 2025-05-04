@@ -17,3 +17,4 @@ are used when :ref:`api_problem_setup`.
 .. doxygenstruct:: celeritas::inp::Device
    :members:
    :no-link:
+

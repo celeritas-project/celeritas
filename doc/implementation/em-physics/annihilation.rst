@@ -15,3 +15,4 @@ Cross sections
 Positron annihilation cross sections are calculated on the fly.
 
 .. doxygenclass:: celeritas::EPlusGGMacroXsCalculator
+

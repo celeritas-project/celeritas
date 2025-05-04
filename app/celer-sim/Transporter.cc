@@ -99,8 +99,7 @@ void Transporter<M>::operator()()
  * Transport the input primaries and all secondaries produced.
  */
 template<MemSpace M>
-auto Transporter<M>::operator()(SpanConstPrimary primaries)
-    -> TransporterResult
+auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
 {
     // Initialize results
     TransporterResult result;

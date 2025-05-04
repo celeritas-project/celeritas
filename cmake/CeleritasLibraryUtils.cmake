@@ -74,187 +74,146 @@ Helper functions
 include_guard(GLOBAL)
 
 if(NOT COMMAND celeritas_add_library)
-    message(
-        FATAL_ERROR
-        "This file can only be included after CeleritasLibrary is loaded."
-    )
+  message(FATAL_ERROR
+    "This file can only be included after CeleritasLibrary is loaded."
+  )
 endif()
 
 #-----------------------------------------------------------------------------#
 
 function(celeritas_get_cuda_source_args var ${ARGN})
-    # NOTE: this is the only function that uses CudaRdcUtils if VecGeom+CUDA is
-    # disabled: it's only needed when building with HIP
-    cuda_rdc_get_sources_and_options(_sources _cmake_options _options ${ARGN})
-    cuda_rdc_sources_contains_cuda(_cuda_sources ${_sources})
-    set(${var} ${_cuda_sources} PARENT_SCOPE)
+  # NOTE: this is the only function that uses CudaRdcUtils if VecGeom+CUDA is
+  # disabled: it's only needed when building with HIP
+  cuda_rdc_get_sources_and_options(_sources _cmake_options _options ${ARGN})
+  cuda_rdc_sources_contains_cuda(_cuda_sources ${_sources})
+  set(${var} ${_cuda_sources} PARENT_SCOPE)
 endfunction()
 
 #-----------------------------------------------------------------------------#
 
 function(celeritas_add_src_library target)
-    if(CELERITAS_USE_HIP)
-        celeritas_get_cuda_source_args(_cuda_sources ${ARGN})
-        if(_cuda_sources)
-            # When building Celeritas libraries, we put HIP/CUDA files in shared .cu
-            # suffixed files. Override the language if using HIP.
-            set_source_files_properties(
-                ${_cuda_sources}
-                PROPERTIES
-                    LANGUAGE
-                        HIP
-            )
-        endif()
+  if(CELERITAS_USE_HIP)
+    celeritas_get_cuda_source_args(_cuda_sources ${ARGN})
+    if(_cuda_sources)
+      # When building Celeritas libraries, we put HIP/CUDA files in shared .cu
+      # suffixed files. Override the language if using HIP.
+      set_source_files_properties(
+        ${_cuda_sources}
+        PROPERTIES LANGUAGE HIP
+      )
     endif()
+  endif()
 
-    celeritas_add_library(
-        ${target}
-        ${ARGN}
+  celeritas_add_library(${target} ${ARGN})
+
+  # Add Celeritas:: namespace alias
+  celeritas_add_library(Celeritas::${target} ALIAS ${target})
+
+  # Build all targets in lib/
+  set(_props
+    ARCHIVE_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
+    LIBRARY_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
+  )
+
+  if(CELERITAS_USE_ROOT)
+    # Require PIC for static libraries, including "object" RDC lib
+    list(APPEND _props
+      POSITION_INDEPENDENT_CODE ON
     )
+  endif()
 
-    # Add Celeritas:: namespace alias
-    celeritas_add_library(
-        Celeritas::${target}
-        ALIAS
-        ${target}
-    )
+  celeritas_set_target_properties(${target} PROPERTIES ${_props})
 
-    # Build all targets in lib/
-    set(_props
-        ARCHIVE_OUTPUT_DIRECTORY
-        "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
-        LIBRARY_OUTPUT_DIRECTORY
-        "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
-    )
-
-    if(CELERITAS_USE_ROOT)
-        # Require PIC for static libraries, including "object" RDC lib
-        list(
-            APPEND
-            _props
-            POSITION_INDEPENDENT_CODE
-            ON
-        )
-    endif()
-
-    celeritas_set_target_properties(
-        ${target}
-        PROPERTIES
-        ${_props}
-    )
-
-    # Install all targets to lib/
-    celeritas_install(
-        TARGETS
-        ${target}
-        EXPORT
-        celeritas-targets
-        ARCHIVE
-        DESTINATION
-        "${CMAKE_INSTALL_LIBDIR}"
-        LIBRARY
-        DESTINATION
-        "${CMAKE_INSTALL_LIBDIR}"
-        COMPONENT
-        runtime
-    )
+  # Install all targets to lib/
+  celeritas_install(TARGETS ${target}
+    EXPORT celeritas-targets
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    COMPONENT runtime
+  )
 endfunction()
 
 #-----------------------------------------------------------------------------#
 
 function(celeritas_add_test_library target)
-    if(CELERITAS_USE_HIP)
-        celeritas_get_cuda_source_args(_cuda_sources ${ARGN})
-        if(_cuda_sources)
-            # When building Celeritas libraries, we put HIP/CUDA files in shared .cu
-            # suffixed files. Override the language if using HIP.
-            set_source_files_properties(
-                ${_cuda_sources}
-                PROPERTIES
-                    LANGUAGE
-                        HIP
-            )
-        endif()
+  if(CELERITAS_USE_HIP)
+    celeritas_get_cuda_source_args(_cuda_sources ${ARGN})
+    if(_cuda_sources)
+      # When building Celeritas libraries, we put HIP/CUDA files in shared .cu
+      # suffixed files. Override the language if using HIP.
+      set_source_files_properties(
+        ${_cuda_sources}
+        PROPERTIES LANGUAGE HIP
+      )
     endif()
+  endif()
 
-    celeritas_add_library(${ARGV})
+  celeritas_add_library(${ARGV})
 
-    if(CELERITAS_USE_ROOT)
-        # Require PIC for static libraries, including "object" RDC lib
-        celeritas_set_target_properties(
-            ${target}
-            PROPERTIES
-            POSITION_INDEPENDENT_CODE
-            ON
-        )
-    endif()
+  if(CELERITAS_USE_ROOT)
+    # Require PIC for static libraries, including "object" RDC lib
+    celeritas_set_target_properties(${target} PROPERTIES
+      POSITION_INDEPENDENT_CODE ON
+    )
+  endif()
 endfunction()
 
 #-----------------------------------------------------------------------------#
 
 function(celeritas_add_interface_library target)
-    # Interface libraries don't need RDC wrappers
-    add_library(${target} INTERFACE ${ARGN})
-    add_library(Celeritas::${target} ALIAS ${target})
-    install(TARGETS ${target} EXPORT celeritas-targets COMPONENT runtime)
+  # Interface libraries don't need RDC wrappers
+  add_library(${target} INTERFACE ${ARGN})
+  add_library(Celeritas::${target} ALIAS ${target})
+  install(TARGETS ${target}
+    EXPORT celeritas-targets
+    COMPONENT runtime
+  )
 endfunction()
 
 #-----------------------------------------------------------------------------#
 
 function(celeritas_add_object_library target)
-    add_library(${target} OBJECT ${ARGN})
-    install(
-        TARGETS
-            ${target}
-        EXPORT celeritas-targets
-        ARCHIVE
-            DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-        LIBRARY
-            DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-            COMPONENT runtime
-    )
+  add_library(${target} OBJECT ${ARGN})
+  install(TARGETS ${target}
+    EXPORT celeritas-targets
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    COMPONENT runtime
+  )
 endfunction()
 
 #-----------------------------------------------------------------------------#
 
 function(celeritas_add_executable target)
-    add_executable(${ARGV})
-    install(
-        TARGETS
-            "${target}"
-        EXPORT celeritas-targets
-        RUNTIME
-            DESTINATION "${CMAKE_INSTALL_BINDIR}"
-            COMPONENT runtime
-    )
-    set_target_properties(
-        "${target}"
-        PROPERTIES
-            RUNTIME_OUTPUT_DIRECTORY
-                "${CELERITAS_RUNTIME_OUTPUT_DIRECTORY}"
-    )
+  add_executable(${ARGV})
+  install(TARGETS "${target}"
+    EXPORT celeritas-targets
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    COMPONENT runtime
+  )
+  set_target_properties("${target}" PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CELERITAS_RUNTIME_OUTPUT_DIRECTORY}"
+  )
 endfunction()
 
 #-----------------------------------------------------------------------------#
 
 function(celeritas_configure_file input output)
-    if(NOT IS_ABSOLUTE "${input}")
-        set(input "${CMAKE_CURRENT_SOURCE_DIR}/${input}")
-    endif()
-    configure_file(
-        "${input}"
-        "${CELERITAS_HEADER_CONFIG_DIRECTORY}/${output}"
-        ${ARGN}
-    )
+  if(NOT IS_ABSOLUTE "${input}")
+    set(input "${CMAKE_CURRENT_SOURCE_DIR}/${input}")
+  endif()
+  configure_file("${input}"
+    "${CELERITAS_HEADER_CONFIG_DIRECTORY}/${output}"
+    ${ARGN})
 endfunction()
 
 #-----------------------------------------------------------------------------#
 
 macro(celeritas_polysource_append var filename_we)
-    list(APPEND ${var} "${filename_we}.cc")
-    if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-        list(APPEND ${var} "${filename_we}.cu")
-    endif()
+  list(APPEND ${var} "${filename_we}.cc")
+  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+    list(APPEND ${var} "${filename_we}.cu")
+  endif()
 endmacro()
 
 #-----------------------------------------------------------------------------#

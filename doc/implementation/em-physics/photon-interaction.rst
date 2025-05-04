@@ -23,3 +23,4 @@ Livermore photoelectric cross sections are calculated
 on the fly.
 
 .. doxygenclass:: celeritas::LivermorePEMicroXsCalculator
+

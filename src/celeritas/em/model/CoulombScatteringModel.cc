@@ -98,8 +98,7 @@ auto CoulombScatteringModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto CoulombScatteringModel::micro_xs(Applicability applic) const
-    -> MicroXsBuilders
+auto CoulombScatteringModel::micro_xs(Applicability applic) const -> MicroXsBuilders
 {
     return imported_.micro_xs(std::move(applic));
 }

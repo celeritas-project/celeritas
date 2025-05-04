@@ -130,8 +130,9 @@ StepParams::StepParams(AuxId aux_id,
 /*!
  * Build state data for a stream.
  */
-auto StepParams::create_state(MemSpace m, StreamId stream, size_type size) const
-    -> UPState
+auto StepParams::create_state(MemSpace m,
+                              StreamId stream,
+                              size_type size) const -> UPState
 {
     return make_aux_state<StepStateData>(*this, m, stream, size);
 }

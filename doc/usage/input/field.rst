@@ -22,3 +22,4 @@ additional field types and may allow completely custom field implementations.
 The field type is selected with a variant:
 
 .. doxygentypedef:: celeritas::inp::Field
+

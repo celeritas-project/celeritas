@@ -101,8 +101,7 @@ Integrator<F>::Integrator(F&& func, Options opts)
  * Calculate the integral over the given dx.
  */
 template<class F>
-auto Integrator<F>::operator()(argument_type lo, argument_type hi)
-    -> result_type
+auto Integrator<F>::operator()(argument_type lo, argument_type hi) -> result_type
 {
     CELER_EXPECT(lo < hi);
     constexpr real_type half{0.5};
