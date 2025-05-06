@@ -71,7 +71,7 @@ ImportedModelAdapter::ImportedModelAdapter(
 /*!
  * Get the microscopic cross sections for the given material and particle.
  */
-auto ImportedModelAdapter::micro_xs(Applicability applic) const -> XsGrid
+auto ImportedModelAdapter::micro_xs(Applicability applic) const -> XsTable
 {
     CELER_EXPECT(applic.material);
 
@@ -81,7 +81,7 @@ auto ImportedModelAdapter::micro_xs(Applicability applic) const -> XsGrid
     ImportModelMaterial const& imm
         = model.materials[applic.material.unchecked_get()];
 
-    XsGrid grids(imm.micro_xs.size());
+    XsTable grids(imm.micro_xs.size());
     for (size_type elcomp_idx : range(grids.size()))
     {
         auto grid = imm.micro_xs[elcomp_idx];

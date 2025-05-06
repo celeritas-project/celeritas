@@ -52,7 +52,7 @@ class Model : public CoreStepActionInterface
   public:
     //@{
     //! Type aliases
-    using XsGrid = std::vector<inp::XsGrid>;
+    using XsTable = std::vector<inp::XsGrid>;
     using SetApplicability = std::set<Applicability>;
     //@}
 
@@ -61,7 +61,7 @@ class Model : public CoreStepActionInterface
     virtual SetApplicability applicability() const = 0;
 
     //! Get the microscopic cross sections for the given particle and material
-    virtual XsGrid micro_xs(Applicability range) const = 0;
+    virtual XsTable micro_xs(Applicability range) const = 0;
 
     //! Dependency ordering of the action
     StepActionOrder order() const final { return StepActionOrder::post; }

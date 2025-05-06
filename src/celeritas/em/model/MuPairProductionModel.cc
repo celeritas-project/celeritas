@@ -98,7 +98,7 @@ auto MuPairProductionModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto MuPairProductionModel::micro_xs(Applicability applic) const -> XsGrid
+auto MuPairProductionModel::micro_xs(Applicability applic) const -> XsTable
 {
     return imported_.micro_xs(std::move(applic));
 }

@@ -37,12 +37,12 @@ auto MockModel::applicability() const -> SetApplicability
     return {data_.applic};
 }
 
-auto MockModel::micro_xs(Applicability range) const -> XsGrid
+auto MockModel::micro_xs(Applicability range) const -> XsTable
 {
     CELER_EXPECT(range.material);
     CELER_EXPECT(range.particle);
 
-    XsGrid grids;
+    XsTable grids;
     MaterialView mat(data_.materials->host_ref(), range.material);
     if (!data_.xs.empty())
     {
