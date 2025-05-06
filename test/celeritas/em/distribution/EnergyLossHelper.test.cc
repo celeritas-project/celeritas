@@ -7,7 +7,7 @@
 #include "celeritas/em/distribution/EnergyLossHelper.hh"
 
 #include "corecel/data/CollectionStateStore.hh"
-#include "corecel/random/DiagnosticRngEngine.hh"
+#include "corecel/random/HistogramSampler.hh"
 #include "celeritas/MockTestBase.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/distribution/EnergyLossDeltaDistribution.hh"
@@ -19,6 +19,7 @@
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
+#include "TestMacros.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -28,6 +29,11 @@ namespace test
 //---------------------------------------------------------------------------//
 using units::MevEnergy;
 using EnergySq = RealQuantity<UnitProduct<units::Mev, units::Mev>>;
+
+real_type to_mev(MevEnergy e)
+{
+    return e.value();
+}
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -108,7 +114,6 @@ class EnergyLossDistributionTest : public Test
 
     ParticleStateStore particle_state;
     MaterialStateStore material_state;
-    DiagnosticRngEngine<std::mt19937> rng;
 };
 
 //---------------------------------------------------------------------------//
@@ -156,9 +161,10 @@ TEST_F(EnergyLossDistributionTest, none)
         fluct->host_ref(), cutoff, material, particle, mean_loss, step);
     EXPECT_EQ(EnergyLossFluctuationModel::none, helper.model());
 
+    DiagnosticRngEngine<std::mt19937> rng;
     EnergyLossDeltaDistribution sample_loss(helper);
     EXPECT_EQ(mean_loss, sample_loss(rng));
-    EXPECT_EQ(0, rng.count());
+    EXPECT_EQ(0, rng.exchange_count());
 }
 
 TEST_F(EnergyLossDistributionTest, gaussian)
@@ -172,16 +178,8 @@ TEST_F(EnergyLossDistributionTest, gaussian)
     CutoffView cutoff(cutoffs->host_ref(), PhysMatId{0});
     MevEnergy mean_loss{0.1};
 
-    int num_samples = 5000;
-    std::vector<real_type> mean;
-    std::vector<real_type> counts(20);
-    real_type upper = 7.0;
-    real_type lower = 0.0;
-    real_type width = (upper - lower) / counts.size();
-
     // Larger step samples from gamma distribution, smaller step from Gaussian
     {
-        real_type sum = 0;
         real_type step = 5e-2 * units::centimeter;
         EnergyLossHelper helper(
             fluct->host_ref(), cutoff, material, particle, mean_loss, step);
@@ -192,21 +190,19 @@ TEST_F(EnergyLossDistributionTest, gaussian)
         EXPECT_SOFT_EQ(0.13988041753438,
                        value_as<EnergySq>(helper.bohr_variance()));
 
-        EnergyLossGammaDistribution sample_loss(helper);
-        for ([[maybe_unused]] int i : range(num_samples))
-        {
-            auto loss = sample_loss(rng).value();
-            EXPECT_GE(loss, 0);
-            EXPECT_LT(loss, upper);
-            auto bin = static_cast<size_type>((loss - lower) / width);
-            CELER_ASSERT(bin < counts.size());
-            counts[bin]++;
-            sum += loss;
-        }
-        EXPECT_SOFT_EQ(0.096429312200727382, sum / num_samples);
+        HistogramSampler calc_histogram(21, {0, 7}, 10000);
+        auto sampled
+            = calc_histogram(to_mev, EnergyLossGammaDistribution{helper});
+        SampledHistogram ref;
+        ref.distribution = {
+            2.7684, 0.105,  0.0507, 0.0225, 0.0168, 0.0108, 0.0078,
+            0.006,  0.0042, 0.0033, 0.0012, 0.0006, 0,      0.0003,
+            0.0009, 0.0003, 0.0006, 0.0006, 0,      0,      0,
+        };
+        ref.rng_count = 6.1764;
+        EXPECT_REF_EQ(ref, sampled);
     }
     {
-        real_type sum = 0;
         real_type step = 5e-4 * units::centimeter;
         EnergyLossHelper helper(
             fluct->host_ref(), cutoff, material, particle, mean_loss, step);
@@ -217,22 +213,32 @@ TEST_F(EnergyLossDistributionTest, gaussian)
                        value_as<EnergySq>(helper.bohr_variance()));
         EXPECT_EQ(EnergyLossFluctuationModel::gaussian, helper.model());
 
-        EnergyLossGaussianDistribution sample_loss(helper);
-        for ([[maybe_unused]] int i : range(num_samples))
-        {
-            auto loss = sample_loss(rng).value();
-            auto bin = size_type((loss - lower) / width);
-            CELER_ASSERT(bin < counts.size());
-            counts[bin]++;
-            sum += loss;
-        }
-        EXPECT_SOFT_EQ(0.10031120242856037, sum / num_samples);
+        HistogramSampler calc_histogram(16, {0, 0.2}, 10000);
+        auto sampled
+            = calc_histogram(to_mev, EnergyLossGaussianDistribution{helper});
+        // sampled.print_expected();
+        SampledHistogram ref;
+        ref.distribution = {
+            0.32,
+            1.256,
+            2.008,
+            3.512,
+            5.568,
+            7.64,
+            9.256,
+            10.504,
+            10.68,
+            9.44,
+            7.456,
+            5.12,
+            3.576,
+            2.136,
+            1.064,
+            0.464,
+        };
+        ref.rng_count = 2.0148;
+        EXPECT_REF_EQ(ref, sampled) << sampled;
     }
-
-    static real_type const expected_counts[] = {
-        9636, 166, 85, 31, 27, 18, 13, 6, 6, 4, 2, 2, 0, 3, 0, 0, 1, 0, 0, 0};
-    EXPECT_VEC_SOFT_EQ(expected_counts, counts);
-    EXPECT_EQ(41006, rng.count());
 }
 
 TEST_F(EnergyLossDistributionTest, urban)
@@ -247,13 +253,6 @@ TEST_F(EnergyLossDistributionTest, urban)
     MevEnergy mean_loss{0.01};
     real_type step = 0.01 * units::centimeter;
 
-    int num_samples = 10000;
-    std::vector<real_type> counts(20);
-    real_type upper = 0.03;
-    real_type lower = 0.0;
-    real_type width = (upper - lower) / counts.size();
-    real_type sum = 0;
-
     EnergyLossHelper helper(
         fluct->host_ref(), cutoff, material, particle, mean_loss, step);
     EXPECT_SOFT_EQ(0.001, value_as<MevEnergy>(helper.max_energy()));
@@ -261,27 +260,33 @@ TEST_F(EnergyLossDistributionTest, urban)
     EXPECT_SOFT_EQ(1.3819085992495e-05,
                    value_as<EnergySq>(helper.bohr_variance()));
     EXPECT_EQ(EnergyLossFluctuationModel::urban, helper.model());
-    EnergyLossUrbanDistribution sample_loss(helper);
 
-    for ([[maybe_unused]] int i : range(num_samples))
-    {
-        auto loss = sample_loss(rng).value();
-        auto bin = size_type((loss - lower) / width);
-        CELER_ASSERT(bin < counts.size());
-        counts[bin]++;
-        sum += loss;
-    }
+    HistogramSampler calc_histogram(15, {0, 0.03}, 10000);
+    auto sampled = calc_histogram(to_mev, EnergyLossUrbanDistribution{helper});
 #ifdef _MSC_VER
     // TODO: determine why the sampled sequence is different
     GTEST_SKIP() << "Results differ statistically when built with MSVC...";
 #endif
-
-    static real_type const expected_counts[]
-        = {0,   0,   12, 223, 1174, 2359, 2661, 1867, 898, 369,
-           189, 107, 60, 48,  20,   9,    2,    2,    0,   0};
-    EXPECT_VEC_SOFT_EQ(expected_counts, counts);
-    EXPECT_SOFT_EQ(0.0099918954960280353, sum / num_samples);
-    EXPECT_EQ(551188, rng.count());
+    SampledHistogram ref;
+    ref.distribution = {
+        0,
+        0.2,
+        11.55,
+        95.35,
+        173,
+        134.7,
+        52.65,
+        17.55,
+        7.95,
+        4,
+        2.25,
+        0.6,
+        0.2,
+        0,
+        0,
+    };
+    ref.rng_count = 55.1188;
+    EXPECT_REF_EQ(ref, sampled);
 }
 //---------------------------------------------------------------------------//
 }  // namespace test

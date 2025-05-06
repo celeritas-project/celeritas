@@ -17,13 +17,10 @@
 
 class G4VPhysicalVolume;
 
-#ifndef EXPECT_RESULT_EQ
-#    define EXPECT_RESULT_EQ(EXPECTED, ACTUAL) \
-        EXPECT_PRED_FORMAT2(::celeritas::test::IsResultEqual, EXPECTED, ACTUAL)
-#    define EXPECT_RESULT_NEAR(EXPECTED, ACTUAL, TOL) \
-        EXPECT_PRED_FORMAT3(                          \
-            ::celeritas::test::IsResultEqual, EXPECTED, ACTUAL, TOL)
-#endif
+// DEPRECATED: remove in v0.7
+#define EXPECT_RESULT_EQ(EXPECTED, ACTUAL) EXPECT_REF_EQ(EXPECTED, ACTUAL)
+#define EXPECT_RESULT_NEAR(EXPECTED, ACTUAL, TOL) \
+    EXPECT_REF_NEAR(EXPECTED, ACTUAL, TOL)
 
 namespace celeritas
 {
@@ -64,31 +61,28 @@ struct GenericGeoVolumeStackResult
 };
 
 //---------------------------------------------------------------------------//
-::testing::AssertionResult
-IsResultEqual(char const* expected_expr,
-              char const* actual_expr,
-              char const* tol_expr,
-              GenericGeoTrackingResult const& expected,
-              GenericGeoTrackingResult const& actual,
-              GenericGeoTrackingTolerance const& tol);
+::testing::AssertionResult IsRefEq(char const* expected_expr,
+                                   char const* actual_expr,
+                                   char const* tol_expr,
+                                   GenericGeoTrackingResult const& expected,
+                                   GenericGeoTrackingResult const& actual,
+                                   GenericGeoTrackingTolerance const& tol);
 
 //---------------------------------------------------------------------------//
 inline ::testing::AssertionResult
-IsResultEqual(char const* expected_expr,
-              char const* actual_expr,
-              GenericGeoTrackingResult const& expected,
-              GenericGeoTrackingResult const& actual)
+IsRefEq(char const* expected_expr,
+        char const* actual_expr,
+        GenericGeoTrackingResult const& expected,
+        GenericGeoTrackingResult const& actual)
 {
-    return IsResultEqual(
-        expected_expr, actual_expr, "default", expected, actual, {});
+    return IsRefEq(expected_expr, actual_expr, "default", expected, actual, {});
 }
 
 //---------------------------------------------------------------------------//
-::testing::AssertionResult
-IsResultEqual(char const* expected_expr,
-              char const* actual_expr,
-              GenericGeoVolumeStackResult const& expected,
-              GenericGeoVolumeStackResult const& actual);
+::testing::AssertionResult IsRefEq(char const* expected_expr,
+                                   char const* actual_expr,
+                                   GenericGeoVolumeStackResult const& expected,
+                                   GenericGeoVolumeStackResult const& actual);
 
 //---------------------------------------------------------------------------//
 /*!

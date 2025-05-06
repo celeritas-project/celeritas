@@ -18,6 +18,9 @@
 #include "corecel/math/Constant.hh"
 #include "corecel/math/SoftEqual.hh"
 
+#include "../AssertionHelper.hh"
+#include "gtest/gtest.h"
+
 namespace celeritas
 {
 namespace testdetail
@@ -249,12 +252,12 @@ struct FVIT
 /*!
  * Check if type T is a container.
  */
-template<typename T, typename = void>
+template<class T, class = void>
 struct IsContainer : std::false_type
 {
 };
 
-template<typename T>
+template<class T>
 struct IsContainer<T, std::void_t<typename T::const_iterator>> : std::true_type
 {
 };
@@ -268,13 +271,13 @@ struct IsContainer<T[N]> : std::true_type
 /*!
  * Get the type of a container.
  */
-template<class T, typename = void>
+template<class T, class = void>
 struct ValueType
 {
     using type = typename T::value_type;
 };
 
-template<typename T, std::size_t N>
+template<class T, std::size_t N>
 struct ValueType<T[N]>
 {
     using type = T;
@@ -287,19 +290,19 @@ using ValueTypeT = typename ValueType<T>::type;
 /*!
  * Recursively get the underlying scalar type of a container.
  */
-template<typename T, typename = void>
+template<class T, class = void>
 struct ScalarValueType
 {
     using type = T;
 };
 
-template<typename T>
+template<class T>
 struct ScalarValueType<T, std::enable_if_t<IsContainer<T>::value>>
 {
     using type = typename ScalarValueType<ValueTypeT<T>>::type;
 };
 
-template<typename T>
+template<class T>
 using ScalarValueTypeT = typename ScalarValueType<T>::type;
 
 //---------------------------------------------------------------------------//
@@ -722,6 +725,81 @@ template<class ContainerE, class ContainerA, class T>
         actual,
         actual_expr,
         BinaryOp{static_cast<ValueT>(rel), static_cast<ValueT>(abs)});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Compare two vectors of reference values using a tolerance.
+ */
+template<class ContainerE, class ContainerA, class Tol>
+std::enable_if_t<IsContainer<ContainerE>::value && IsContainer<ContainerA>::value,
+                 ::testing::AssertionResult>
+IsRefEq(char const* expr1,
+        char const* expr2,
+        char const* tol_expr,
+        ContainerE const& val1,
+        ContainerA const& val2,
+        Tol const& tol)
+{
+    ::celeritas::test::AssertionHelper result{expr1, expr2};
+    using std::begin;
+    using std::end;
+
+    if (result.equal_size(std::distance(begin(val1), end(val1)),
+                          std::distance(begin(val2), end(val2))))
+    {
+        // Check each element
+        auto iter1 = begin(val1);
+        auto iter2 = begin(val2);
+        size_type i = 0;
+        size_type failures = 0;
+        constexpr size_type max_printable_failures = 10;
+        for (auto end1 = end(val1); iter1 != end1; ++i, ++iter1, ++iter2)
+        {
+            ::testing::AssertionResult item_result
+                = ::testing::AssertionSuccess();
+            if constexpr (!std::is_same_v<Tol, std::nullptr_t>)
+            {
+                // Compare with tolerance
+                item_result
+                    = IsRefEq(expr1, expr2, tol_expr, *iter1, *iter2, tol);
+            }
+            else
+            {
+                item_result = IsRefEq(expr1, expr2, *iter1, *iter2);
+            }
+            if (!item_result)
+            {
+                if (failures++ < max_printable_failures)
+                {
+                    result.fail() << item_result << "\n(Failed in element "
+                                  << i << " of " << expr2 << ")";
+                }
+            }
+        }
+        if (failures > max_printable_failures)
+        {
+            result.fail() << "(Suppressed "
+                          << failures - max_printable_failures
+                          << " additional failures)";
+        }
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Compare two vectors of reference values without a special tolerance.
+ */
+template<class ContainerE, class ContainerA>
+std::enable_if_t<IsContainer<ContainerE>::value && IsContainer<ContainerA>::value,
+                 ::testing::AssertionResult>
+IsRefEq(char const* expr1,
+        char const* expr2,
+        ContainerE const& val1,
+        ContainerA const& val2)
+{
+    return IsRefEq(expr1, expr2, nullptr, val1, val2, nullptr);
 }
 
 //---------------------------------------------------------------------------//

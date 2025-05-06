@@ -5,8 +5,10 @@
 
 celeritas_add_test_library(testcel_core
   StringSimplifier.cc
+  StringSimplifier.cc
   ScopedLogStorer.cc
   random/Histogram.cc
+  random/HistogramSampler.cc
 )
 celeritas_target_link_libraries(testcel_core
   PRIVATE testcel_harness Celeritas::corecel

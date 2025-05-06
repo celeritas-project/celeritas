@@ -24,6 +24,7 @@ namespace celeritas
 {
 namespace test
 {
+
 //---------------------------------------------------------------------------//
 
 TEST(PrintExpected, example)
@@ -63,7 +64,6 @@ static std::string const expected_strings[] = {"a", "", "special\nchars\t"};
 namespace testdetail
 {
 //---------------------------------------------------------------------------//
-
 TEST(IsSoftEquiv, successes)
 {
     EXPECT_TRUE(
@@ -414,6 +414,88 @@ TEST(IsVecEq, failures)
     EXPECT_FALSE(
         IsVecEq("expected_vec", "actual_vec", expected_vec, actual_vec));
 }
+
+struct Foo
+{
+    int val{0};
+};
+
+struct FooTol
+{
+    int val{0};
+};
+
+inline ::testing::AssertionResult
+IsRefEq(char const* expr1, char const* expr2, Foo const& val1, Foo const& val2)
+{
+    ::celeritas::test::AssertionHelper result(expr1, expr2);
+
+    if (val1.val != val2.val)
+    {
+        result.fail() << "  foo: " << val1.val << " != " << val2.val;
+    }
+    return result;
+}
+
+inline ::testing::AssertionResult IsRefEq(char const* expr1,
+                                          char const* expr2,
+                                          char const* tolexpr,
+                                          Foo const& val1,
+                                          Foo const& val2,
+                                          FooTol const& tol)
+{
+    ::celeritas::test::AssertionHelper result(expr1, expr2);
+
+    if (std::abs(val1.val - val2.val) >= tol.val)
+    {
+        result.fail() << "  foo: " << val1.val << " != " << val2.val
+                      << " within " << tolexpr << " (" << tol.val << ")";
+    }
+    return result;
+}
+
+TEST(IsRefEq, successes)
+{
+    Foo ref;
+    ref.val = 2;
+
+    EXPECT_REF_EQ(ref, ref);
+    EXPECT_REF_NEAR(ref, ref, FooTol{123});
+
+    // Vectors
+    static Foo const vexpected[] = {Foo{2}, Foo{2}};
+    std::vector<Foo> vactual = {ref, ref};
+    EXPECT_REF_EQ(vexpected, vactual);
+    EXPECT_REF_NEAR(vexpected, vactual, FooTol{123});
+}
+
+TEST(IsRefEq, failures)
+{
+    Foo ref;
+    ref.val = 2;
+
+    EXPECT_FALSE(IsRefEq("expected", "actual", ref, Foo{1}));
+    EXPECT_FALSE(IsRefEq("expected", "actual", "tol", ref, Foo{20}, FooTol{5}));
+
+    // Vectors of different size
+    {
+        static Foo const vexpected[] = {Foo{2}, Foo{2}};
+        std::vector<Foo> vactual = {ref, ref, ref};
+        EXPECT_FALSE(IsRefEq("expected", "actual", vexpected, vactual));
+        EXPECT_FALSE(IsRefEq(
+            "expected", "actual", "tol", vexpected, vactual, FooTol{5}));
+    }
+
+    // Vectors of same size
+    {
+        std::vector<Foo> vexpected(100, ref);
+        std::vector<Foo> vactual(100, Foo{50});
+        EXPECT_FALSE(IsRefEq("expected", "actual", vexpected, vactual));
+        EXPECT_FALSE(IsRefEq(
+            "expected", "actual", "tol", vexpected, vactual, FooTol{20}));
+    }
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace testdetail
 }  // namespace celeritas
