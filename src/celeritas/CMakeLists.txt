@@ -74,6 +74,7 @@ list(APPEND SOURCES
   global/DebugIO.json.cc
   global/KernelContextException.cc
   global/Stepper.cc
+  grid/ElementCdfCalculator.cc
   grid/NonuniformGridBuilder.cc
   grid/RangeGridCalculator.cc
   grid/TwodGridBuilder.cc

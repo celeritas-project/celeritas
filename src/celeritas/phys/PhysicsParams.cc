@@ -35,6 +35,7 @@
 #include "celeritas/em/model/LivermorePEModel.hh"
 #include "celeritas/em/params/AtomicRelaxationParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/grid/ElementCdfCalculator.hh"
 #include "celeritas/grid/RangeGridCalculator.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/grid/XsGridData.hh"
@@ -749,34 +750,9 @@ void PhysicsParams::build_model_tables(MaterialParams const& mats,
                     // won't have micro xs grids
                     continue;
                 }
+                // Calculate the cross section CDFs in place
                 auto elements = mats.get(mat_id).elements();
-                CELER_ASSERT(grids.size() == elements.size());
-
-                // Get the number of grid points: the energy grids are the
-                // same for each element in the material
-                CELER_ASSERT(grids.front().lower && !grids.front().upper);
-                size_type num_bins = grids.front().lower.y.size();
-
-                // Calculate the cross section CDF
-                for (auto i : range(num_bins))
-                {
-                    double cumulative_xs{0};
-                    for (auto elcomp_idx : range(elements.size()))
-                    {
-                        CELER_ASSERT(grids[elcomp_idx].lower);
-                        auto& xs = grids[elcomp_idx].lower.y[i];
-                        cumulative_xs += xs * elements[elcomp_idx].fraction;
-                        xs = cumulative_xs;
-                    }
-                    if (cumulative_xs > 0)
-                    {
-                        // Normalize the CDF
-                        for (auto& grid : grids)
-                        {
-                            grid.lower.y[i] /= cumulative_xs;
-                        }
-                    }
-                }
+                ElementCdfCalculator{elements}(grids);
 
                 CELER_ASSERT(pm_idx < temp_grid_ids.size());
                 temp_grid_ids[pm_idx].resize(mats.size());
