@@ -28,4 +28,3 @@ models and links to publications about related software.
 Celeritas documentation falls under the license below. The [code license](https://github.com/celeritas-project/celeritas/blob/develop/COPYRIGHT) may be different.
 
 {% include_relative COPYRIGHT.md %}
-

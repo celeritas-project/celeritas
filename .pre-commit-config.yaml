@@ -1,0 +1,15 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: cef0300fd0fc4d2a87a85fa2093c6b283ea36f4b # v5.0.0 , 5 Oct 2024
+    hooks:
+    - id: check-added-large-files
+      args: ['--maxkb=100']
+    - id: check-case-conflict
+    - id: check-shebang-scripts-are-executable
+    - id: check-yaml
+    - id: end-of-file-fixer
+      exclude: '\.(diff|patch)$'
+    - id: trailing-whitespace
+      exclude: '\.(diff|patch)$'
+
+# vim: set nowrap tw=100:
