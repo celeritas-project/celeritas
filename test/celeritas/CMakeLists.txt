@@ -426,7 +426,8 @@ celeritas_add_test(phys/CutoffParams.test.cc)
 celeritas_add_test(phys/FourVector.test.cc)
 celeritas_add_device_test(phys/Particle
   LINK_LIBRARIES Celeritas::ExtThrust)
-celeritas_add_device_test(phys/Physics)
+celeritas_add_device_test(phys/Physics
+  LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(phys/InteractionUtils.test.cc)
 celeritas_add_test(phys/PhysicsStepUtils.test.cc)
 celeritas_add_test(phys/PrimaryGenerator.test.cc
