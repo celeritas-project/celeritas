@@ -189,8 +189,8 @@ PhysicsParams::PhysicsParams(Input inp)
     HostValue host_data;
     this->build_options(inp.options, &host_data);
     this->build_ids(*inp.particles, &host_data);
-    this->build_xs(inp.options, *inp.materials, &host_data);
-    this->build_model_xs(*inp.materials, &host_data);
+    this->build_tables(inp.options, *inp.materials, &host_data);
+    this->build_model_tables(*inp.materials, &host_data);
 
     // Add step limiter if being used (TODO: remove this hack from physics)
     if (inp.options.fixed_step_limiter > 0)
@@ -502,9 +502,9 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
 /*!
  * Construct cross section data.
  */
-void PhysicsParams::build_xs(Options const& opts,
-                             MaterialParams const& mats,
-                             HostValue* data) const
+void PhysicsParams::build_tables(Options const& opts,
+                                 MaterialParams const& mats,
+                                 HostValue* data) const
 {
     CELER_EXPECT(*data);
 
@@ -712,8 +712,8 @@ void PhysicsParams::build_xs(Options const& opts,
 /*!
  * Construct model cross section CDFs.
  */
-void PhysicsParams::build_model_xs(MaterialParams const& mats,
-                                   HostValue* data) const
+void PhysicsParams::build_model_tables(MaterialParams const& mats,
+                                       HostValue* data) const
 {
     CELER_EXPECT(*data);
 
@@ -739,20 +739,8 @@ void PhysicsParams::build_model_xs(MaterialParams const& mats,
             std::vector<ValueTableId> temp_table_ids(temp_grid_ids.size());
             for (auto mat_id : range(PhysMatId{mats.size()}))
             {
-                applic.material = mat_id;
-                auto material = mats.get(mat_id);
-
-                // TODO: Create combined SB + RB micro xs grids or possibly
-                // remove combined bremsstrahlung model
-                CELER_VALIDATE(!(dynamic_cast<CombinedBremModel const*>(&model)
-                                 && material.num_elements() > 1),
-                               << "model '" << model.label()
-                               << "' cannot be used with materials composed "
-                                  "of more than one element (material '"
-                               << mats.id_to_label(mat_id) << "' has "
-                               << material.num_elements() << " elements)");
-
                 // Construct microscopic cross sections
+                applic.material = mat_id;
                 auto grids = model.micro_xs(applic);
                 if (grids.empty())
                 {
@@ -761,7 +749,8 @@ void PhysicsParams::build_model_xs(MaterialParams const& mats,
                     // won't have micro xs grids
                     continue;
                 }
-                CELER_ASSERT(grids.size() == material.num_elements());
+                auto elements = mats.get(mat_id).elements();
+                CELER_ASSERT(grids.size() == elements.size());
 
                 // Get the number of grid points: the energy grids are the
                 // same for each element in the material
@@ -769,35 +758,34 @@ void PhysicsParams::build_model_xs(MaterialParams const& mats,
                 size_type num_bins = grids.front().lower.y.size();
 
                 // Calculate the cross section CDF
-                auto elements = mats.get(mat_id).elements();
                 for (auto i : range(num_bins))
                 {
-                    real_type cum_xs{0};
-                    for (auto elm : range(elements.size()))
+                    double cumulative_xs{0};
+                    for (auto elcomp_idx : range(elements.size()))
                     {
-                        CELER_ASSERT(grids[elm].lower);
-                        auto& xs = grids[elm].lower.y[i];
-                        cum_xs += xs * elements[elm].fraction;
-                        xs = cum_xs;
+                        CELER_ASSERT(grids[elcomp_idx].lower);
+                        auto& xs = grids[elcomp_idx].lower.y[i];
+                        cumulative_xs += xs * elements[elcomp_idx].fraction;
+                        xs = cumulative_xs;
                     }
-                    if (cum_xs > 0)
+                    if (cumulative_xs > 0)
                     {
                         // Normalize the CDF
                         for (auto& grid : grids)
                         {
-                            grid.lower.y[i] /= cum_xs;
+                            grid.lower.y[i] /= cumulative_xs;
                         }
                     }
                 }
 
                 CELER_ASSERT(pm_idx < temp_grid_ids.size());
                 temp_grid_ids[pm_idx].resize(mats.size());
-                if (material.num_elements() > 1)
+                if (elements.size() > 1)
                 {
                     // Construct grids for each element in the material
                     auto& grid_ids = temp_grid_ids[pm_idx][mat_id.get()];
-                    grid_ids.resize(material.num_elements());
-                    for (auto elcomp_idx : range(material.num_elements()))
+                    grid_ids.resize(elements.size());
+                    for (auto elcomp_idx : range(elements.size()))
                     {
                         grid_ids[elcomp_idx] = insert(grids[elcomp_idx]);
                     }

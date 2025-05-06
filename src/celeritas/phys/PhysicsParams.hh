@@ -276,13 +276,11 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
 
   private:
     VecModel build_models(ActionRegistry*) const;
-    void build_options(Options const& opts, HostValue* data) const;
+    void build_options(Options const&, HostValue*) const;
     void build_particle_options(ParticleOptions const&, ParticleScalars*) const;
-    void build_ids(ParticleParams const& particles, HostValue* data) const;
-    void build_xs(Options const& opts,
-                  MaterialParams const& mats,
-                  HostValue* data) const;
-    void build_model_xs(MaterialParams const& mats, HostValue* data) const;
+    void build_ids(ParticleParams const&, HostValue*) const;
+    void build_tables(Options const&, MaterialParams const&, HostValue*) const;
+    void build_model_tables(MaterialParams const&, HostValue*) const;
 };
 
 //---------------------------------------------------------------------------//
