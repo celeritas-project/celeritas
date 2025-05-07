@@ -173,7 +173,7 @@ struct SetupOptions
     //! Maximum number of track initializers (primaries+secondaries)
     size_type initializer_capacity{};
     //! At least the average number of secondaries per track slot
-    real_type secondary_stack_factor{3.0};
+    real_type secondary_stack_factor{2.0};
     //! Number of tracks to buffer before offloading (if unset: max num tracks)
     size_type auto_flush{};
     //!@}
