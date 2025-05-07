@@ -114,7 +114,7 @@ struct RunnerInput
     size_type initializer_capacity{};  //!< Divided among streams
     InterpolationType interpolation{InterpolationType::linear};
     size_type poly_spline_order{1};
-    real_type secondary_stack_factor{};
+    real_type secondary_stack_factor{2};
     bool use_device{};
     bool action_times{};
     bool merge_events{false};  //!< Run all events at once on a single stream

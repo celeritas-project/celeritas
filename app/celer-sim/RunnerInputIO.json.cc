@@ -89,7 +89,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(num_track_slots);
     LDIO_LOAD_OPTION(max_steps);
     LDIO_LOAD_REQUIRED(initializer_capacity);
-    LDIO_LOAD_REQUIRED(secondary_stack_factor);
+    LDIO_LOAD_OPTION(secondary_stack_factor);
     LDIO_LOAD_OPTION(interpolation);
     LDIO_LOAD_OPTION(poly_spline_order);
     LDIO_LOAD_REQUIRED(use_device);
