@@ -111,7 +111,7 @@ struct CartMapFieldParams::Impl
 /*!
  * Custom deleter for the implementation.
  */
-void CartMapFieldParams::ImplDeleter::operator()(Impl* impl) noexcept
+void CartMapFieldParams::ImplDeleter::operator()(Impl* impl) const noexcept
 {
     delete impl;
 }

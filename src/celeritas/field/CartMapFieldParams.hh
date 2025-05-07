@@ -49,7 +49,7 @@ class CartMapFieldParams final
     struct Impl;
     struct ImplDeleter
     {
-        void operator()(Impl*) noexcept;
+        void operator()(Impl*) const noexcept;
     };
     std::unique_ptr<Impl, ImplDeleter> impl_;
 };
