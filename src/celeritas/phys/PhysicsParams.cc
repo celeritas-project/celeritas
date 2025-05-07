@@ -719,16 +719,10 @@ void PhysicsParams::build_model_tables(MaterialParams const& mats,
     CELER_EXPECT(*data);
 
     XsGridInserter insert(&data->reals, &data->value_grids);
-    CollectionBuilder model_xs(&data->model_xs);
-    CollectionBuilder value_tables(&data->value_tables);
-    CollectionBuilder value_table_ids(&data->value_table_ids);
-    CollectionBuilder value_grid_ids(&data->value_grid_ids);
-
-    // Micro xs grid IDs for each model and applicable particle, each material,
-    // and each element in the material
-    std::vector<std::vector<std::vector<ValueGridId>>> temp_grid_ids(
-        data->model_ids.size());
-    size_type pm_idx{0};
+    CollectionBuilder model_cdf(&data->model_cdf);
+    CollectionBuilder tables(&data->value_tables);
+    CollectionBuilder table_ids(&data->value_table_ids);
+    CollectionBuilder grid_ids(&data->value_grid_ids);
 
     for (auto model_idx : range(this->num_models()))
     {
@@ -737,49 +731,41 @@ void PhysicsParams::build_model_tables(MaterialParams const& mats,
         // Loop over applicable particles
         for (Applicability applic : model.applicability())
         {
-            std::vector<ValueTableId> temp_table_ids(temp_grid_ids.size());
+            std::vector<ValueTableId> temp_table_ids(data->model_ids.size());
             for (auto mat_id : range(PhysMatId{mats.size()}))
             {
                 // Construct microscopic cross sections
                 applic.material = mat_id;
+                auto elements = mats.get(mat_id).elements();
                 auto grids = model.micro_xs(applic);
-                if (grids.empty())
+
+                if (grids.empty() || elements.size() == 1)
                 {
-                    // Models that calculate xs on the fly and models
-                    // with material-independent discrete interactions
-                    // won't have micro xs grids
+                    // Models with material-independent discrete interactions
+                    // or on-the-fly xs calculation won't have micro xs grids
                     continue;
                 }
                 // Calculate the cross section CDFs in place
-                auto elements = mats.get(mat_id).elements();
                 ElementCdfCalculator{elements}(grids);
 
-                CELER_ASSERT(pm_idx < temp_grid_ids.size());
-                temp_grid_ids[pm_idx].resize(mats.size());
-                if (elements.size() > 1)
+                // Construct grids for each element in the material
+                std::vector<ValueGridId> temp_grid_ids(elements.size());
+                for (auto elcomp_idx : range(elements.size()))
                 {
-                    // Construct grids for each element in the material
-                    auto& grid_ids = temp_grid_ids[pm_idx][mat_id.get()];
-                    grid_ids.resize(elements.size());
-                    for (auto elcomp_idx : range(elements.size()))
-                    {
-                        grid_ids[elcomp_idx] = insert(grids[elcomp_idx]);
-                    }
-
-                    // Construct value grid table
-                    ValueTable temp_table;
-                    temp_table.grids = value_grid_ids.insert_back(
-                        grid_ids.begin(), grid_ids.end());
-                    temp_table_ids[mat_id.get()]
-                        = value_tables.push_back(temp_table);
+                    temp_grid_ids[elcomp_idx] = insert(grids[elcomp_idx]);
                 }
+
+                // Construct table for the material
+                ValueTable table;
+                table.grids = grid_ids.insert_back(temp_grid_ids.begin(),
+                                                   temp_grid_ids.end());
+                temp_table_ids[mat_id.get()] = tables.push_back(table);
             }
-            // Construct cross section table for this model
-            ModelXsTable temp_model_xs;
-            temp_model_xs.material = value_table_ids.insert_back(
-                temp_table_ids.begin(), temp_table_ids.end());
-            model_xs.push_back(temp_model_xs);
-            ++pm_idx;
+            // Construct table for the model
+            ModelCdfTable cdf;
+            cdf.material = table_ids.insert_back(temp_table_ids.begin(),
+                                                 temp_table_ids.end());
+            model_cdf.push_back(cdf);
         }
     }
 }
