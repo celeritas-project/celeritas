@@ -58,14 +58,19 @@ brought online, computational resource requirements will exceed availability by
 more than a factor of two, about 40% of which is Monte Carlo (MC) detector
 simulation, without substantial research and development improvements.
 
-Celeritas [#celeritas_vers]_ is a new MC particle transport code designed for
+Celeritas
+:cite:p:`celeritas-0.1,celeritas-0.2,celeritas-0.3,celeritas-0.4,celeritas-0.5,celeritas-0.6`
+is a MC particle transport code designed for
 high performance simulation of complex HEP detectors on GPU-accelerated
 hardware.  Its immediate goal is to simulate electromagnetic (EM) physics for
 HL-LHC detectors with no loss in fidelity, acting as a plugin to accelerate
 existing Geant4 :cite:`geant4-2016` workflows by "offloading" selected particles to
 Celeritas to transport on GPU.
 
-.. [#celeritas_vers] This documentation is generated from Celeritas |release|.
+.. only:: latex
+
+   This user manual was generated automatically from the documentation
+   in Celeritas |release|.
 
 Background
 ==========

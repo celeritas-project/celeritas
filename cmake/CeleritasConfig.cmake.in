@@ -146,7 +146,7 @@ if(CELERITAS_USE_Thrust)
 endif()
 
 if(CELERITAS_USE_covfie)
-  find_dependency(covfie REQUIRED)
+  find_dependency(covfie @covfie_VERSION@ REQUIRED)
 endif()
 
 if(CELERITAS_USE_VecGeom)

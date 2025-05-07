@@ -1,6 +1,12 @@
 .. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 .. SPDX-License-Identifier: CC-BY-4.0
 
+Series 0.6
+==========
+
+Major development version 0.6 can be cited through its Zenodo code release
+:cite:t:`celeritas-0.6`.
+
 .. _release_v0.6.0:
 
 Version 0.6.0
