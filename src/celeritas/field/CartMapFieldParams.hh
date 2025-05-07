@@ -60,7 +60,7 @@ struct CartMapFieldParams::Impl
 {
 };
 
-inline void CartMapFieldParams::ImplDeleter::operator()(Impl*) noexcept
+inline void CartMapFieldParams::ImplDeleter::operator()(Impl*) const noexcept
 {
     CELER_UNREACHABLE;
 }
