@@ -145,7 +145,7 @@ if(CELERITAS_USE_Thrust)
   find_dependency(Thrust REQUIRED)
 endif()
 
-if(CELERITAS_USE_covfie AND NOT CELERITAS_BUILTIN_covfie)
+if(CELERITAS_USE_covfie)
   find_dependency(covfie @covfie_VERSION@ REQUIRED)
 endif()
 

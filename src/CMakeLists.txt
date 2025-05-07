@@ -135,16 +135,16 @@ endif()
 celer_add_ext_library(covfie)
 if(CELERITAS_USE_covfie)
   set(_covfie_libs
-    covfie::core
-    covfie::cpu
+    $<BUILD_INTERFACE:covfie::core>
+    $<BUILD_INTERFACE:covfie::cpu>
   )
   if(CELERITAS_USE_CUDA)
     # Note that any header file including Covfie must also have CUDA headers
-    list(APPEND _covfie_libs covfie::cuda Celeritas::ExtDeviceApi)
+    list(APPEND _covfie_libs $<BUILD_INTERFACE:covfie::cuda> Celeritas::ExtDeviceApi)
   endif()
   if(CELERITAS_USE_HIP)
     # Note that any header file including Covfie must also have HIP headers
-    list(APPEND _covfie_libs covfie::hip Celeritas::ExtDeviceApi)
+    list(APPEND _covfie_libs $<BUILD_INTERFACE:covfie::hip> Celeritas::ExtDeviceApi)
   endif()
   target_link_libraries(Extcovfie INTERFACE ${_covfie_libs})
 endif()
