@@ -141,14 +141,10 @@ if(CELERITAS_USE_covfie)
   if(CELERITAS_USE_CUDA)
     # Note that any header file including Covfie must also have CUDA headers
     list(APPEND _covfie_libs covfie::cuda Celeritas::ExtDeviceApi)
-    # Needed for <= 0.13, see https://github.com/acts-project/covfie/pull/78
-    target_compile_features(Extcovfie INTERFACE cuda_std_20)
   endif()
   if(CELERITAS_USE_HIP)
     # Note that any header file including Covfie must also have HIP headers
     list(APPEND _covfie_libs covfie::hip Celeritas::ExtDeviceApi)
-    # Needed for <= 0.13, see https://github.com/acts-project/covfie/pull/78
-    target_compile_features(Extcovfie INTERFACE hip_std_20)
   endif()
   target_link_libraries(Extcovfie INTERFACE ${_covfie_libs})
 endif()
