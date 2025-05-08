@@ -350,8 +350,8 @@ BetheHeitlerInteractor::impact_parameter(real_type eps) const
  * on the bremsstrahlung cross sections, and the second is due to pair
  * production. The values are improved function fits by M Novak (Geant4).
  */
-CELER_FUNCTION auto
-BetheHeitlerInteractor::screening_phi(real_type delta) -> Real2
+CELER_FUNCTION auto BetheHeitlerInteractor::screening_phi(real_type delta)
+    -> Real2
 {
     using R = real_type;
 
@@ -385,8 +385,8 @@ BetheHeitlerInteractor::screening_phi(real_type delta) -> Real2
  * Note that there's a typo in the Geant4 manual in the formula for F2:
  * subtraction should be addition.
  */
-CELER_FUNCTION auto
-BetheHeitlerInteractor::screening_f(real_type delta) -> Real2
+CELER_FUNCTION auto BetheHeitlerInteractor::screening_f(real_type delta)
+    -> Real2
 {
     using R = real_type;
     auto temp = screening_phi(delta);

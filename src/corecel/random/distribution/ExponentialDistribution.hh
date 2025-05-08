@@ -80,8 +80,8 @@ ExponentialDistribution<RT>::ExponentialDistribution(real_type lambda)
  */
 template<class RT>
 template<class Generator>
-CELER_FUNCTION auto
-ExponentialDistribution<RT>::operator()(Generator& rng) -> result_type
+CELER_FUNCTION auto ExponentialDistribution<RT>::operator()(Generator& rng)
+    -> result_type
 {
     return std::log(generate_canonical<RT>(rng)) * neg_inv_lambda_;
 }

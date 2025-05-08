@@ -140,10 +140,10 @@ CELER_FUNCTION SignedSense Plane::calc_sense(Real3 const& pos) const
 /*!
  * Calculate all possible straight-line intersections with this surface.
  */
-CELER_FUNCTION auto
-Plane::calc_intersections(Real3 const& pos,
-                          Real3 const& dir,
-                          SurfaceState on_surface) const -> Intersections
+CELER_FUNCTION auto Plane::calc_intersections(Real3 const& pos,
+                                              Real3 const& dir,
+                                              SurfaceState on_surface) const
+    -> Intersections
 {
     real_type const n_dir = dot_product(normal_, dir);
     if (on_surface == SurfaceState::off && n_dir != 0)

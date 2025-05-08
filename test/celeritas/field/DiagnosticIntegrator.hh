@@ -60,8 +60,8 @@ class DiagnosticIntegrator
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class IntegratorT>
-CELER_FUNCTION
-DiagnosticIntegrator(IntegratorT&&) -> DiagnosticIntegrator<IntegratorT>;
+CELER_FUNCTION DiagnosticIntegrator(IntegratorT&&)
+    -> DiagnosticIntegrator<IntegratorT>;
 
 //---------------------------------------------------------------------------//
 }  // namespace test

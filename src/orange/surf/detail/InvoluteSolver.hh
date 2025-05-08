@@ -135,10 +135,10 @@ CELER_FUNCTION InvoluteSolver::InvoluteSolver(
  * {0, beta - a, beta - a - pi, beta - a + pi, beta - a - 2pi, beta - a + 2pi
  * ...} /f] Where \em beta is: \f[ beta = arctan(-v/u) \f]
  */
-CELER_FUNCTION auto
-InvoluteSolver::operator()(Real3 const& pos,
-                           Real3 const& dir,
-                           SurfaceState on_surface) const -> Intersections
+CELER_FUNCTION auto InvoluteSolver::operator()(Real3 const& pos,
+                                               Real3 const& dir,
+                                               SurfaceState on_surface) const
+    -> Intersections
 {
     using constants::pi;
     // Flatten pos and dir in xyz and uv respectively

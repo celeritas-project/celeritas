@@ -157,8 +157,9 @@ void RelativisticBremModel::build_data(HostValue* data,
  *
  * See \c G4eBremsstrahlungRelModel::InitialiseElementData() in Geant4.
  */
-auto RelativisticBremModel::compute_element_data(
-    ElementView const& elem, real_type electron_mass) -> ElementData
+auto RelativisticBremModel::compute_element_data(ElementView const& elem,
+                                                 real_type electron_mass)
+    -> ElementData
 {
     ElementData data;
 

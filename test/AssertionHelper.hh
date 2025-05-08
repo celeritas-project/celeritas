@@ -30,7 +30,7 @@ namespace test
 class AssertionHelper
 {
   public:
-  // Construct with expected/actual expressions
+    // Construct with expected/actual expressions
     AssertionHelper(char const* expected_expr, char const* actual_expr);
 
     // Fail and return a streamable object
@@ -41,7 +41,7 @@ class AssertionHelper
 
     //! Get the streamable assertion result
     operator ::testing::AssertionResult const&() const { return result_; }
-    operator ::testing::AssertionResult&& () && { return std::move(result_); }
+    operator ::testing::AssertionResult&&() && { return std::move(result_); }
 
   private:
     ::testing::AssertionResult result_;

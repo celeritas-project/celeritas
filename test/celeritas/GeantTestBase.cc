@@ -139,7 +139,8 @@ auto GeantTestBase::build_along_step() -> SPConstAction
 }
 
 //---------------------------------------------------------------------------//
-auto GeantTestBase::build_fresh_geometry(std::string_view filename) -> SPConstGeoI
+auto GeantTestBase::build_fresh_geometry(std::string_view filename)
+    -> SPConstGeoI
 {
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE \
     && CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE
