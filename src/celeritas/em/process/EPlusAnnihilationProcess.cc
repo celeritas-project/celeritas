@@ -12,8 +12,6 @@
 
 #include "corecel/cont/Range.hh"
 #include "celeritas/em/model/EPlusGGModel.hh"
-#include "celeritas/grid/ValueGridBuilder.hh"
-#include "celeritas/grid/ValueGridType.hh"
 #include "celeritas/phys/Model.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
@@ -50,15 +48,19 @@ auto EPlusAnnihilationProcess::build_models(ActionIdIter start_id) const -> VecM
 /*!
  * Get the interaction cross sections for the given energy range.
  */
-auto EPlusAnnihilationProcess::step_limits(Applicability range) const
-    -> StepLimitBuilders
+auto EPlusAnnihilationProcess::macro_xs(Applicability) const -> XsGrid
 {
-    CELER_EXPECT(range.particle == positron_id_);
+    return {};
+}
 
-    StepLimitBuilders builders;
-    builders[ValueGridType::macro_xs] = std::make_unique<ValueGridOTFBuilder>();
-
-    return builders;
+//---------------------------------------------------------------------------//
+/*!
+ * Get the energy loss for the given energy range.
+ */
+auto EPlusAnnihilationProcess::energy_loss(Applicability) const
+    -> EnergyLossGrid
+{
+    return {};
 }
 
 //---------------------------------------------------------------------------//

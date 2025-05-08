@@ -33,16 +33,19 @@ class CoulombScatteringProcess : public Process
     //!@}
 
   public:
-    //! Construct from Coulomb scattering data
+    // Construct from Coulomb scattering data
     CoulombScatteringProcess(SPConstParticles particles,
                              SPConstMaterials materials,
                              SPConstImported process_data);
 
-    //! Construct the models associated with this process
+    // Construct the models associated with this process
     VecModel build_models(ActionIdIter start_id) const final;
 
-    //! Get the interaction cross sections for the given energy range
-    StepLimitBuilders step_limits(Applicability range) const final;
+    // Get the interaction cross sections for the given energy range
+    XsGrid macro_xs(Applicability range) const final;
+
+    // Get the energy loss for the given energy range
+    EnergyLossGrid energy_loss(Applicability range) const final;
 
     //! Whether the integral method can be used to sample interaction length
     bool supports_integral_xs() const final { return true; }

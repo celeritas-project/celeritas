@@ -74,12 +74,11 @@ list(APPEND SOURCES
   global/DebugIO.json.cc
   global/KernelContextException.cc
   global/Stepper.cc
+  grid/ElementCdfCalculator.cc
   grid/NonuniformGridBuilder.cc
   grid/RangeGridCalculator.cc
   grid/TwodGridBuilder.cc
   grid/UniformGridInserter.cc
-  grid/ValueGridBuilder.cc
-  grid/ValueGridType.cc
   grid/XsGridInserter.cc
   io/AtomicRelaxationReader.cc
   io/ImportData.cc
@@ -87,7 +86,6 @@ list(APPEND SOURCES
   io/ImportMaterial.cc
   io/ImportModel.cc
   io/ImportOpticalModel.cc
-  io/ImportPhysicsTable.cc
   io/ImportProcess.cc
   io/ImportUnits.cc
   io/LivermorePEReader.cc

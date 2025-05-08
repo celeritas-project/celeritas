@@ -372,6 +372,7 @@ celeritas_add_test(global/StepperGeant.test.cc
 
 #-----------------------------------------------------------------------------#
 # Grid
+celeritas_add_test(grid/ElementCdfCalculator.test.cc)
 celeritas_add_test(grid/GridIdFinder.test.cc)
 celeritas_add_test(grid/InverseCdfFinder.test.cc)
 celeritas_add_test(grid/InverseRangeCalculator.test.cc)
@@ -382,7 +383,6 @@ celeritas_add_test(grid/RangeCalculator.test.cc)
 celeritas_add_test(grid/SplineCalculator.test.cc)
 celeritas_add_test(grid/UniformLogGridCalculator.test.cc)
 celeritas_add_test(grid/RangeGridCalculator.test.cc)
-celeritas_add_test(grid/ValueGridBuilder.test.cc)
 celeritas_add_test(grid/GridInserter.test.cc)
 celeritas_add_test(grid/XsCalculator.test.cc)
 
@@ -427,7 +427,8 @@ celeritas_add_test(phys/CutoffParams.test.cc)
 celeritas_add_test(phys/FourVector.test.cc)
 celeritas_add_device_test(phys/Particle
   LINK_LIBRARIES Celeritas::ExtThrust)
-celeritas_add_device_test(phys/Physics)
+celeritas_add_device_test(phys/Physics
+  LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(phys/InteractionUtils.test.cc)
 celeritas_add_test(phys/PhysicsStepUtils.test.cc)
 celeritas_add_test(phys/PrimaryGenerator.test.cc

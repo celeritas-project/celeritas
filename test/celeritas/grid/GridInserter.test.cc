@@ -38,15 +38,13 @@ TEST_F(GridInserterTest, xs)
     Collection<XsGridRecord, Ownership::value, MemSpace::host> grids;
     XsGridInserter insert(&reals, &grids);
     {
-        inp::UniformGrid lower;
-        lower.x = {1e-2, 1e-1};
-        lower.y = {10, 20};
+        inp::XsGrid grid;
+        grid.lower.x = {1e-2, 1e-1};
+        grid.lower.y = {10, 20};
+        grid.upper.x = {1e-1, 1};
+        grid.upper.y = {20, 3};
 
-        inp::UniformGrid upper;
-        upper.x = {1e-1, 1};
-        upper.y = {20, 3};
-
-        auto idx = insert(lower, upper);
+        auto idx = insert(grid);
         EXPECT_EQ(0, idx.unchecked_get());
         XsGridRecord const& inserted = grids[idx];
 
@@ -54,12 +52,12 @@ TEST_F(GridInserterTest, xs)
         EXPECT_TRUE(inserted.upper);
         EXPECT_EQ(2, inserted.lower.grid.size);
         EXPECT_EQ(2, inserted.upper.grid.size);
-        EXPECT_VEC_SOFT_EQ(lower.y, reals[inserted.lower.value]);
+        EXPECT_VEC_SOFT_EQ(grid.lower.y, reals[inserted.lower.value]);
     }
     {
-        inp::UniformGrid grid;
-        grid.x = {0, 10};
-        grid.y = {1, 2, 4, 6, 8};
+        inp::XsGrid grid;
+        grid.lower.x = {0, 10};
+        grid.lower.y = {1, 2, 4, 6, 8};
 
         auto idx = insert(grid);
         EXPECT_EQ(1, idx.unchecked_get());
@@ -68,7 +66,7 @@ TEST_F(GridInserterTest, xs)
         EXPECT_TRUE(inserted.lower);
         EXPECT_FALSE(inserted.upper);
         EXPECT_EQ(5, inserted.lower.grid.size);
-        EXPECT_VEC_SOFT_EQ(grid.y, reals[inserted.lower.value]);
+        EXPECT_VEC_SOFT_EQ(grid.lower.y, reals[inserted.lower.value]);
     }
     EXPECT_EQ(2, grids.size());
 }

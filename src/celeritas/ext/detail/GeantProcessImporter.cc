@@ -157,10 +157,10 @@ int get_secondary_pdg(T const& process)
 /*!
  * Import data from a Geant4 physics table if available.
  */
-void append_table(G4PhysicsTable const* g4table,
-                  ImportTableType table_type,
+void assign_table(G4PhysicsTable const* g4table,
+                  Array<ImportUnits, 2> units,
                   [[maybe_unused]] ImportProcessClass process_class,
-                  std::vector<ImportPhysicsTable>* tables,
+                  ImportPhysicsTable* table,
                   inp::Interpolation interpolation)
 {
     if (!g4table)
@@ -169,36 +169,13 @@ void append_table(G4PhysicsTable const* g4table,
         return;
     }
 
-    CELER_EXPECT(table_type != ImportTableType::size_);
-    ImportPhysicsTable table;
-    table.table_type = table_type;
-    switch (table_type)
-    {
-        case ImportTableType::dedx:
-            table.x_units = ImportUnits::mev;
-            table.y_units = ImportUnits::mev_per_len;
-            break;
-        case ImportTableType::lambda:
-            table.x_units = ImportUnits::mev;
-            table.y_units = ImportUnits::len_inv;
-            break;
-        case ImportTableType::lambda_prim:
-            table.x_units = ImportUnits::mev;
-            table.y_units = ImportUnits::len_mev_inv;
-            break;
-        case ImportTableType::msc_xs:
-            table.x_units = ImportUnits::mev;
-            table.y_units = ImportUnits::mev_sq_per_len;
-            break;
-        default:
-            CELER_ASSERT_UNREACHABLE();
-    };
+    table->x_units = units[0];
+    table->y_units = units[1];
 
     // Save physics vectors, using spline interpolation if enabled and valid
     for (auto const* g4vector : *g4table)
     {
-        table.physics_vectors.emplace_back(import_physics_log_vector(
-            *g4vector, {table.x_units, table.y_units}));
+        table->grids.emplace_back(import_physics_log_vector(*g4vector, units));
 #if G4VERSION_NUMBER < 1100
         // Hardcode whether the lambda table uses spline for older Geant4
         // versions. Always use spline for lambda, energy loss, range, and msc
@@ -211,14 +188,12 @@ void append_table(G4PhysicsTable const* g4table,
         if (g4vector->GetSpline())
 #endif
         {
-            table.physics_vectors.back().interpolation = interpolation;
+            table->grids.back().interpolation = interpolation;
         }
     }
-
     CELER_ENSURE(
-        table.physics_vectors.size()
+        table->grids.size()
         == G4ProductionCutsTable::GetProductionCutsTable()->GetTableSize());
-    tables->push_back(std::move(table));
 }
 
 template<class T>
@@ -272,15 +247,15 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
     }
 
     // Save cross section tables if available
-    append_table(process.LambdaTable(),
-                 ImportTableType::lambda,
+    assign_table(process.LambdaTable(),
+                 {ImportUnits::mev, ImportUnits::len_inv},
                  result.process_class,
-                 &result.tables,
+                 &result.lambda,
                  interpolation_);
-    append_table(process.LambdaTablePrim(),
-                 ImportTableType::lambda_prim,
+    assign_table(process.LambdaTablePrim(),
+                 {ImportUnits::mev, ImportUnits::len_mev_inv},
                  result.process_class,
-                 &result.tables,
+                 &result.lambda_prim,
                  interpolation_);
     CELER_ENSURE(result && all_are_assigned(result.models));
     return result;
@@ -319,17 +294,17 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
         // each energy loss process are stored in the "ionization process"
         // (which might be ionization or might be another arbitrary energy loss
         // process if there is no ionization in the problem).
-        append_table(process.DEDXTable(),
-                     ImportTableType::dedx,
+        assign_table(process.DEDXTable(),
+                     {ImportUnits::mev, ImportUnits::mev_per_len},
                      result.process_class,
-                     &result.tables,
+                     &result.dedx,
                      interpolation_);
     }
 
-    append_table(process.LambdaTable(),
-                 ImportTableType::lambda,
+    assign_table(process.LambdaTable(),
+                 {ImportUnits::mev, ImportUnits::len_inv},
                  result.process_class,
-                 &result.tables,
+                 &result.lambda,
                  interpolation_);
 
     CELER_ENSURE(result && all_are_assigned(result.models));
@@ -358,7 +333,6 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
 
     GeantModelImporter convert_model(
         materials_, PDGNumber{primary_pdg}, PDGNumber{});
-    std::vector<ImportPhysicsTable> temp_tables;
 
 #if G4VERSION_NUMBER < 1100
     for (auto i : celeritas::range(4))
@@ -385,14 +359,11 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
                                    << model->GetName() << "'";
                 imm.model_class = ImportModelClass::other;
             }
-            append_table(model->GetCrossSectionTable(),
-                         ImportTableType::msc_xs,
+            assign_table(model->GetCrossSectionTable(),
+                         {ImportUnits::mev, ImportUnits::mev_sq_per_len},
                          ImportProcessClass::size_,
-                         &temp_tables,
+                         &imm.xs_table,
                          interpolation_);
-            CELER_EXPECT(temp_tables.size() == 1);
-            imm.xs_table = std::move(temp_tables.back());
-            temp_tables.clear();
             result.push_back(std::move(imm));
         }
     }

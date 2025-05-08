@@ -709,17 +709,17 @@ TEST_F(FourSteelSlabsEmStandard, eioni)
         }
     }
 
-    auto const& tables = proc.tables;
-    ASSERT_EQ(2, tables.size());
+    EXPECT_TRUE(proc.dedx);
+    EXPECT_TRUE(proc.lambda);
+    EXPECT_FALSE(proc.lambda_prim);
     {
         // Test energy loss table
-        ImportPhysicsTable const& dedx = tables[0];
-        ASSERT_EQ(ImportTableType::dedx, dedx.table_type);
+        ImportPhysicsTable const& dedx = proc.dedx;
         EXPECT_EQ(ImportUnits::mev, dedx.x_units);
         EXPECT_EQ(ImportUnits::mev_per_cm, dedx.y_units);
-        ASSERT_EQ(2, dedx.physics_vectors.size());
+        ASSERT_EQ(2, dedx.grids.size());
 
-        auto const& steel = dedx.physics_vectors.back();
+        auto const& steel = dedx.grids.back();
         ASSERT_EQ(85, steel.y.size());
         EXPECT_SOFT_EQ(1e-4, std::exp(steel.x[Bound::lo]));
         EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
@@ -728,13 +728,12 @@ TEST_F(FourSteelSlabsEmStandard, eioni)
     }
     {
         // Test cross-section table
-        ImportPhysicsTable const& xs = tables[1];
-        ASSERT_EQ(ImportTableType::lambda, xs.table_type);
-        EXPECT_EQ(ImportUnits::mev, xs.x_units);
-        EXPECT_EQ(ImportUnits::cm_inv, xs.y_units);
-        ASSERT_EQ(2, xs.physics_vectors.size());
+        ImportPhysicsTable const& lambda = proc.lambda;
+        EXPECT_EQ(ImportUnits::mev, lambda.x_units);
+        EXPECT_EQ(ImportUnits::cm_inv, lambda.y_units);
+        ASSERT_EQ(2, lambda.grids.size());
 
-        auto const& steel = xs.physics_vectors.back();
+        auto const& steel = lambda.grids.back();
         ASSERT_EQ(54, steel.y.size());
         EXPECT_SOFT_NEAR(2.616556310615175, std::exp(steel.x[Bound::lo]), tol);
         EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
@@ -914,17 +913,17 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
         }
     }
 
-    auto const& tables = mu_minus.tables;
-    ASSERT_EQ(2, tables.size());
+    EXPECT_TRUE(mu_minus.dedx);
+    EXPECT_TRUE(mu_minus.lambda);
+    EXPECT_FALSE(mu_minus.lambda_prim);
     {
         // Test energy loss table
-        ImportPhysicsTable const& dedx = tables[0];
-        ASSERT_EQ(ImportTableType::dedx, dedx.table_type);
+        ImportPhysicsTable const& dedx = mu_minus.dedx;
         EXPECT_EQ(ImportUnits::mev, dedx.x_units);
         EXPECT_EQ(ImportUnits::mev_per_cm, dedx.y_units);
-        ASSERT_EQ(2, dedx.physics_vectors.size());
+        ASSERT_EQ(2, dedx.grids.size());
 
-        auto const& steel = dedx.physics_vectors.back();
+        auto const& steel = dedx.grids.back();
         ASSERT_EQ(85, steel.y.size());
         EXPECT_SOFT_EQ(1e-4, std::exp(steel.x[Bound::lo]));
         EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
@@ -933,13 +932,12 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
     }
     {
         // Test cross-section table
-        ImportPhysicsTable const& xs = tables[1];
-        ASSERT_EQ(ImportTableType::lambda, xs.table_type);
+        ImportPhysicsTable const& xs = mu_minus.lambda;
         EXPECT_EQ(ImportUnits::mev, xs.x_units);
         EXPECT_EQ(ImportUnits::cm_inv, xs.y_units);
-        ASSERT_EQ(2, xs.physics_vectors.size());
+        ASSERT_EQ(2, xs.grids.size());
 
-        auto const& steel = xs.physics_vectors.back();
+        auto const& steel = xs.grids.back();
         ASSERT_EQ(45, steel.y.size());
         EXPECT_SOFT_NEAR(54.542938808612199, std::exp(steel.x[Bound::lo]), tol);
         EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
@@ -1454,7 +1452,10 @@ TEST_F(OneSteelSphere, physics)
     ImportProcess const& brems = this->find_process(
         celeritas::pdg::electron(), ImportProcessClass::e_brems);
     EXPECT_FALSE(brems.applies_at_rest);
-    ASSERT_EQ(1, brems.tables.size());
+
+    EXPECT_FALSE(brems.dedx);
+    EXPECT_TRUE(brems.lambda);
+    EXPECT_FALSE(brems.lambda_prim);
     ASSERT_EQ(2, brems.models.size());
     {
         // Check Seltzer-Berger electron micro xs
@@ -1494,9 +1495,9 @@ TEST_F(OneSteelSphere, physics)
     }
     {
         // Check the bremsstrahlung macro xs
-        ImportPhysicsTable const& xs = brems.tables[0];
-        ASSERT_EQ(2, xs.physics_vectors.size());
-        auto const& steel = xs.physics_vectors.back();
+        ImportPhysicsTable const& xs = brems.lambda;
+        ASSERT_EQ(2, xs.grids.size());
+        auto const& steel = xs.grids.back();
         ASSERT_EQ(29, steel.y.size());
         EXPECT_SOFT_EQ(9549.651635687942, std::exp(steel.x[Bound::lo]));
         EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
@@ -1505,12 +1506,14 @@ TEST_F(OneSteelSphere, physics)
         // Check the ionization electron macro xs
         ImportProcess const& ioni = this->find_process(
             celeritas::pdg::electron(), ImportProcessClass::e_ioni);
-        ASSERT_EQ(2, ioni.tables.size());
+        EXPECT_TRUE(ioni.dedx);
+        EXPECT_TRUE(ioni.lambda);
+        EXPECT_FALSE(ioni.lambda_prim);
 
         // Lambda table for steel
-        ImportPhysicsTable const& xs = ioni.tables[1];
-        ASSERT_EQ(2, xs.physics_vectors.size());
-        auto const& steel = xs.physics_vectors.back();
+        ImportPhysicsTable const& xs = ioni.lambda;
+        ASSERT_EQ(2, xs.grids.size());
+        auto const& steel = xs.grids.back();
         ASSERT_EQ(27, steel.y.size());
         // Starts at min primary energy = 2 * electron production cut for
         // primary electrons
@@ -1521,12 +1524,14 @@ TEST_F(OneSteelSphere, physics)
         // Check the ionization positron macro xs
         ImportProcess const& ioni = this->find_process(
             celeritas::pdg::positron(), ImportProcessClass::e_ioni);
-        ASSERT_EQ(2, ioni.tables.size());
+        EXPECT_TRUE(ioni.dedx);
+        EXPECT_TRUE(ioni.lambda);
+        EXPECT_FALSE(ioni.lambda_prim);
 
         // Lambda table for steel
-        ImportPhysicsTable const& xs = ioni.tables[1];
-        ASSERT_EQ(2, xs.physics_vectors.size());
-        auto const& steel = xs.physics_vectors.back();
+        ImportPhysicsTable const& xs = ioni.lambda;
+        ASSERT_EQ(2, xs.grids.size());
+        auto const& steel = xs.grids.back();
         ASSERT_EQ(29, steel.y.size());
         // Start at min primary energy = electron production cut for primary
         // positrons
@@ -1538,13 +1543,13 @@ TEST_F(OneSteelSphere, physics)
         ImportMscModel const& msc = this->find_msc_model(
             celeritas::pdg::electron(), ImportModelClass::urban_msc);
         EXPECT_TRUE(msc);
-        for (auto const& pv : msc.xs_table.physics_vectors)
+        for (auto const& pv : msc.xs_table.grids)
         {
             ASSERT_TRUE(pv);
             EXPECT_SOFT_EQ(1e-4, std::exp(pv.x[Bound::lo]));
             EXPECT_SOFT_EQ(1e2, std::exp(pv.x[Bound::hi]));
         }
-        auto const& steel = msc.xs_table.physics_vectors.back();
+        auto const& steel = msc.xs_table.grids.back();
         EXPECT_SOFT_NEAR(0.23785296407525, to_inv_cm(steel.y.front()), tol);
         EXPECT_SOFT_NEAR(128.58803359467, to_inv_cm(steel.y.back()), tol);
     }
@@ -1553,13 +1558,13 @@ TEST_F(OneSteelSphere, physics)
         ImportMscModel const& msc = this->find_msc_model(
             celeritas::pdg::electron(), ImportModelClass::wentzel_vi_uni);
         EXPECT_TRUE(msc);
-        for (auto const& pv : msc.xs_table.physics_vectors)
+        for (auto const& pv : msc.xs_table.grids)
         {
             ASSERT_TRUE(pv);
             EXPECT_SOFT_EQ(1e2, std::exp(pv.x[Bound::lo]));
             EXPECT_SOFT_EQ(1e8, std::exp(pv.x[Bound::hi]));
         }
-        auto const& steel = msc.xs_table.physics_vectors.back();
+        auto const& steel = msc.xs_table.grids.back();
         EXPECT_SOFT_NEAR(114.93265072267, to_inv_cm(steel.y.front()), tol);
         EXPECT_SOFT_NEAR(116.59035766356, to_inv_cm(steel.y.back()), tol);
     }
@@ -1596,7 +1601,7 @@ TEST_F(OneSteelSphereGG, physics)
         ImportMscModel const& msc = this->find_msc_model(
             celeritas::pdg::electron(), ImportModelClass::urban_msc);
         EXPECT_TRUE(msc);
-        for (auto const& pv : msc.xs_table.physics_vectors)
+        for (auto const& pv : msc.xs_table.grids)
         {
             EXPECT_SOFT_EQ(1e-4, std::exp(pv.x[Bound::lo]));
             EXPECT_SOFT_EQ(1e8, std::exp(pv.x[Bound::hi]));

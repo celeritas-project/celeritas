@@ -12,13 +12,12 @@
 
 #include "corecel/cont/Range.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/ValueGridType.hh"
+#include "celeritas/inp/Grid.hh"
 
 namespace celeritas
 {
 struct Applicability;
 class Model;
-class ValueGridBuilder;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -34,11 +33,7 @@ class ValueGridBuilder;
  * Each process has an interaction ("post step doit") and may have both energy
  * loss and range limiters.
  *
- * The StepLimitBuilders is a fixed-size array corresponding to the physics
- * interface enum \c ValueGridType :
- * - macro_xs:    Cross section [1/len]
- * - energy_loss: dE/dx [MeV/len]
- * - range:       Range limit [len]
+ * \todo energy loss should use a \c UniformGrid
  */
 class Process
 {
@@ -46,10 +41,10 @@ class Process
     //!@{
     //! \name Type aliases
     using SPConstModel = std::shared_ptr<Model const>;
-    using UPConstGridBuilder = std::unique_ptr<ValueGridBuilder const>;
     using VecModel = std::vector<SPConstModel>;
-    using StepLimitBuilders = ValueGridArray<UPConstGridBuilder>;
     using ActionIdIter = RangeIter<ActionId>;
+    using XsGrid = inp::XsGrid;
+    using EnergyLossGrid = inp::XsGrid;
     //!@}
 
   public:
@@ -59,8 +54,11 @@ class Process
     //! Construct the models associated with this process
     virtual VecModel build_models(ActionIdIter start_id) const = 0;
 
-    //! Get the interaction cross sections for the given energy range
-    virtual StepLimitBuilders step_limits(Applicability range) const = 0;
+    //! Get the interaction cross sections [l/len] for the given energy range
+    virtual XsGrid macro_xs(Applicability range) const = 0;
+
+    //! Get the energy loss [MeV/len] for the given energy range
+    virtual EnergyLossGrid energy_loss(Applicability range) const = 0;
 
     //! Whether the integral method can be used to sample interaction length
     virtual bool supports_integral_xs() const = 0;

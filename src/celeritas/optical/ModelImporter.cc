@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "ModelImporter.hh"
 
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
@@ -80,8 +81,7 @@ auto ModelImporter::operator()(IMC imc) const -> std::optional<ModelBuilder>
     // Next, try built-in models
     auto iter = builtin_build.find(imc);
     CELER_VALIDATE(iter != builtin_build.end(),
-                   << "cannot build unsupported optical model '"
-                   << to_cstring(imc) << "'");
+                   << "cannot build unsupported optical model '" << imc << "'");
 
     BuilderMemFn build_impl{iter->second};
     return (this->*build_impl)();
@@ -115,7 +115,7 @@ auto ModelImporter::build_rayleigh() const -> ModelBuilder
 auto WarnAndIgnoreModel::operator()(UserBuildInput const&) const
     -> std::optional<ModelBuilder>
 {
-    CELER_LOG(warning) << "Omitting '" << to_cstring(model)
+    CELER_LOG(warning) << "Omitting '" << model
                        << "' from the optical physics model list";
     return std::nullopt;
 }

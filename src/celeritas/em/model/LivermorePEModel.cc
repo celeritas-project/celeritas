@@ -92,7 +92,7 @@ auto LivermorePEModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto LivermorePEModel::micro_xs(Applicability) const -> MicroXsBuilders
+auto LivermorePEModel::micro_xs(Applicability) const -> XsTable
 {
     // Cross sections are calculated on the fly
     return {};

@@ -133,7 +133,7 @@ auto SeltzerBergerModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto SeltzerBergerModel::micro_xs(Applicability applic) const -> MicroXsBuilders
+auto SeltzerBergerModel::micro_xs(Applicability applic) const -> XsTable
 {
     return imported_.micro_xs(std::move(applic));
 }

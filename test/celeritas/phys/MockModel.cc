@@ -8,7 +8,6 @@
 
 #include <sstream>
 
-#include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/mat/MaterialView.hh"
 
 namespace celeritas
@@ -38,32 +37,28 @@ auto MockModel::applicability() const -> SetApplicability
     return {data_.applic};
 }
 
-auto MockModel::micro_xs(Applicability range) const -> MicroXsBuilders
+auto MockModel::micro_xs(Applicability range) const -> XsTable
 {
     CELER_EXPECT(range.material);
     CELER_EXPECT(range.particle);
 
-    MicroXsBuilders builders;
+    XsTable grids;
     MaterialView mat(data_.materials->host_ref(), range.material);
     if (!data_.xs.empty())
     {
-        builders.resize(mat.num_elements());
+        grids.resize(mat.num_elements());
         for (auto elcomp_idx : celeritas::range(mat.num_elements()))
         {
-            std::vector<double> xs_grid;
+            auto& grid = grids[elcomp_idx].lower;
+            grid.x = {std::log(range.lower.value()),
+                      std::log(range.upper.value())};
             for (auto xs : data_.xs)
             {
-                xs_grid.push_back(native_value_from(xs));
+                grid.y.push_back(native_value_from(xs));
             }
-
-            builders[elcomp_idx] = std::make_unique<ValueGridLogBuilder>(
-                inp::UniformGrid{{std::log(range.lower.value()),
-                                  std::log(range.upper.value())},
-                                 xs_grid,
-                                 {}});
         }
     }
-    return builders;
+    return grids;
 }
 
 void MockModel::step(CoreParams const&, CoreStateHost&) const
