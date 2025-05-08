@@ -272,7 +272,7 @@ inp::StateCapacity get_default(SetupOptions const& so, size_type num_streams)
     result.tracks = num_streams * [&so] {
         if (so.max_num_tracks)
         {
-            return so.max_num_tracks;
+            return static_cast<size_type>(so.max_num_tracks);
         }
         if (celeritas::Device::num_devices())
         {
