@@ -55,8 +55,8 @@ IPAContextException::IPAContextException(ParticleId id,
                                          PhysMatId mid)
 {
     std::stringstream os;
-    os << "Particle ID=" << id.unchecked_get() << ", process '"
-       << to_cstring(ipc) << ", material ID=" << mid.unchecked_get();
+    os << "Particle ID=" << id.unchecked_get() << ", process '" << ipc
+       << ", material ID=" << mid.unchecked_get();
     what_ = os.str();
 }
 
@@ -106,8 +106,7 @@ ImportedProcesses::ImportedProcesses(std::vector<ImportProcess> io)
             {key_type{PDGNumber{ip.particle_pdg}, ip.process_class}, id});
         CELER_VALIDATE(insertion.second,
                        << "encountered duplicate imported process class '"
-                       << to_cstring(ip.process_class) << "' for PDG{"
-                       << ip.particle_pdg
+                       << ip.process_class << "' for PDG{" << ip.particle_pdg
                        << "} (each particle must have at most one process of "
                           "a given type)");
     }
@@ -147,14 +146,14 @@ ImportedProcessAdapter::ImportedProcessAdapter(SPConstImported imported,
         auto particle_id = particles->find(pdg);
         CELER_VALIDATE(particle_id,
                        << "particle PDG{" << pdg.get()
-                       << "} was not loaded (needed for '"
-                       << to_cstring(process_class) << "')");
+                       << "} was not loaded (needed for '" << process_class
+                       << "')");
 
         ids_[particle_id] = imported_->find({pdg, process_class});
         CELER_VALIDATE(ids_[particle_id],
                        << "imported process data is unavalable for PDG{"
-                       << pdg.get() << "} (needed for '"
-                       << to_cstring(process_class) << "')");
+                       << pdg.get() << "} (needed for '" << process_class
+                       << "')");
     }
     CELER_ENSURE(ids_.size() == pdg_numbers.size());
 }

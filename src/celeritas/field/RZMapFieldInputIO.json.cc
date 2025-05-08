@@ -15,6 +15,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "celeritas/Quantities.hh"
 
 #include "FieldDriverOptionsIO.json.hh"
@@ -97,7 +98,7 @@ void from_json(nlohmann::json const& j, RZMapFieldInput& inp)
     if (field_units != UnitSystem::native)
     {
         CELER_LOG(info) << "Converting magnetic field input strength from "
-                        << to_cstring(field_units) << " to ["
+                        << field_units << " to ["
                         << NativeTraits::BField::label() << "]";
 
         double field_scale = visit_unit_system(
@@ -122,7 +123,7 @@ void from_json(nlohmann::json const& j, RZMapFieldInput& inp)
     if (length_units != UnitSystem::native)
     {
         CELER_LOG(info) << "Converting magnetic field input positions from "
-                        << to_cstring(length_units) << " to ["
+                        << length_units << " to ["
                         << NativeTraits::Length::label() << "]";
 
         double length_scale = visit_unit_system(

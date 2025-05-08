@@ -9,6 +9,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/sys/Version.hh"
 
 #include "Logger.hh"
@@ -90,7 +91,7 @@ void check_units(nlohmann::json const& j, std::string_view format)
             << "incompatible unit system in " << format
             << " JSON file: constructed with " << iter->get<std::string>()
             << " units, but current executable requires "
-            << to_cstring(UnitSystem::native));
+            << UnitSystem::native);
     }
 }
 

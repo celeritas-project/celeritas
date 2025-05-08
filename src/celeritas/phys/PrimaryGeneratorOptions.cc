@@ -41,8 +41,8 @@ void check_params_size(char const* sampler,
     CELER_VALIDATE(options.params.size() == required_params,
                    << sampler << " input parameters have "
                    << options.params.size() << " elements but the '"
-                   << to_cstring(options.distribution)
-                   << "' distribution needs exactly " << required_params);
+                   << options.distribution << "' distribution needs exactly "
+                   << required_params);
 }
 
 //---------------------------------------------------------------------------//
@@ -59,8 +59,7 @@ inp::EnergyDistribution inp_from_energy(DistributionOptions const& options)
         default:
             CELER_VALIDATE(false,
                            << "invalid distribution type '"
-                           << to_cstring(options.distribution) << "' for "
-                           << sampler_name);
+                           << options.distribution << "' for " << sampler_name);
     }
     CELER_ASSERT_UNREACHABLE();
 }
@@ -82,8 +81,7 @@ inp::ShapeDistribution inp_from_position(DistributionOptions const& options)
         default:
             CELER_VALIDATE(false,
                            << "invalid distribution type '"
-                           << to_cstring(options.distribution) << "' for "
-                           << sampler_name);
+                           << options.distribution << "' for " << sampler_name);
     }
     CELER_ASSERT_UNREACHABLE();
 }
@@ -104,8 +102,7 @@ inp::AngleDistribution inp_from_direction(DistributionOptions const& options)
         default:
             CELER_VALIDATE(false,
                            << "invalid distribution type '"
-                           << to_cstring(options.distribution) << "' for "
-                           << sampler_name);
+                           << options.distribution << "' for " << sampler_name);
     }
     CELER_ASSERT_UNREACHABLE();
 }
