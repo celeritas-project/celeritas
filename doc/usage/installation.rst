@@ -58,7 +58,6 @@ internet if required but not available on the user's system.
    Sphinx_, Docs, "User documentation"
    sphinxbib_, Docs, "Reference generation for user documentation"
    clang-format_, Development, "C++ code formatting"
-   gersemi_, Development, "CMake code formatting"
    CMake_, Development, "Build system"
    Git_, Development, "Repository management"
    pre-commit_, Development, "Formatting enforcement"
@@ -74,7 +73,6 @@ internet if required but not available on the user's system.
 .. _G4EMLOW: https://geant4.web.cern.ch/support/download
 .. _Geant4: https://geant4.web.cern.ch/support/download
 .. _Git: https://git-scm.com
-.. _gersemi: https://github.com/BlankSpruce/gersemi
 .. _GoogleTest: https://github.com/google/googletest
 .. _HepMC3: http://hepmc.web.cern.ch/hepmc/
 .. _HIP: https://docs.amd.com
