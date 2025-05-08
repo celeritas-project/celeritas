@@ -12,6 +12,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "corecel/sys/Device.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/inp/Physics.hh"
@@ -237,6 +238,15 @@ struct SetupOptions
     explicit inline operator bool() const
     {
         return max_num_tracks > 0 && static_cast<bool>(make_along_step);
+    }
+
+    //! Initialize runtime-dependent defaults
+    SetupOptions()
+    {
+        // Set the default number of tracks per stream on device or host
+        max_num_tracks = celeritas::Device::num_devices() ? 262144 : 1024;
+        // Set the default initializer capacity from the number of tracks
+        initializer_capacity = 8 * max_num_tracks;
     }
 };
 

@@ -188,9 +188,6 @@ celeritas::SetupOptions MakeOptions()
     // processing
     opts.sd.enabled = false;
 
-    // NOTE: these numbers are appropriate for CPU execution
-    opts.max_num_tracks = 2024;
-    opts.initializer_capacity = 2024 * 128;
     // Celeritas does not support EmStandard MSC physics above 200 MeV
     opts.ignore_processes = {"CoulombScat"};
 

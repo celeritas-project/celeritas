@@ -34,6 +34,23 @@
     } while (0)
 
 /*!
+ * Load a field if present and set a default value otherwise.
+ */
+#define CELER_JSON_LOAD_DEFAULT(OBJ, STRUCT, NAME, DEFAULT) \
+    do                                                      \
+    {                                                       \
+        if (auto iter = OBJ.find(#NAME);                    \
+            iter != OBJ.end() && !iter->is_null())          \
+        {                                                   \
+            iter->get_to(STRUCT.NAME);                      \
+        }                                                   \
+        else                                                \
+        {                                                   \
+            STRUCT.NAME = DEFAULT;                          \
+        }                                                   \
+    } while (0)
+
+/*!
  * Load an optional field.
  *
  * If the field is missing or null, it is omitted.
