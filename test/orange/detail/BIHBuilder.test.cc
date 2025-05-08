@@ -559,6 +559,29 @@ TEST_F(BIHBuilderTest, TEST_IF_CELERITAS_DEBUG(semi_finite_volumes))
     EXPECT_THROW(build(std::move(bboxes_), implicit_vol_ids_), DebugError);
 }
 
+TEST_F(BIHBuilderTest, min_bih_size_not_met)
+{
+    // Supply two bounding boxes with a minimum tree size of 3
+    bboxes_.push_back({{0.5, 0.5, 0.5}, {1.5, 1.5, 1.5}});
+    bboxes_.push_back({{1.5, 1.5, 1.5}, {2.5, 2.5, 2.5}});
+
+    BIHBuilder build(&storage_, 3);
+    auto bih_tree = build(std::move(bboxes_), implicit_vol_ids_);
+
+    ASSERT_EQ(2, bih_tree.non_tree_vol_ids.size());
+    ASSERT_EQ(0, bih_tree.inner_nodes.size());
+    ASSERT_EQ(1, bih_tree.leaf_nodes.size());
+
+    auto node = storage_.leaf_nodes[bih_tree.leaf_nodes[0]];
+    ASSERT_EQ(BIHNodeId{}, node.parent);
+    EXPECT_EQ(0, node.vol_ids.size());
+
+    EXPECT_EQ(LocalVolumeId{0},
+              storage_.local_volume_ids[bih_tree.non_tree_vol_ids[0]]);
+    EXPECT_EQ(LocalVolumeId{1},
+              storage_.local_volume_ids[bih_tree.non_tree_vol_ids[1]]);
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace detail
