@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "corecel/io/EnumStringMapper.hh"
 
+#include <sstream>
+
 #include "celeritas_test.hh"
 // #include "EnumStringMapper.test.hh"
 
@@ -14,7 +16,7 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-enum class CeleritasLabs
+enum class Labs
 {
     argonne,
     fermilab,
@@ -28,26 +30,40 @@ enum class InvalidEnum
     bar
 };
 
+char const* to_cstring(Labs value)
+{
+    static EnumStringMapper<Labs> const to_cstring_impl{
+        "argonne",
+        "fermilab",
+        "ornl",
+    };
+    return to_cstring_impl(value);
+}
+
 //---------------------------------------------------------------------------//
 
 TEST(EnumStringMapperTest, all)
 {
-    static EnumStringMapper<CeleritasLabs> const to_string{
-        "argonne", "fermilab", "ornl"};
-
-    EXPECT_STREQ("argonne", to_string(CeleritasLabs::argonne));
-    EXPECT_STREQ("fermilab", to_string(CeleritasLabs::fermilab));
-    EXPECT_STREQ("ornl", to_string(CeleritasLabs::ornl));
-    EXPECT_TRUE(std::string{to_string(CeleritasLabs::size_)}.find("invalid")
+    EXPECT_STREQ("argonne", to_cstring(Labs::argonne));
+    EXPECT_STREQ("fermilab", to_cstring(Labs::fermilab));
+    EXPECT_STREQ("ornl", to_cstring(Labs::ornl));
+    EXPECT_TRUE(std::string{to_cstring(Labs::size_)}.find("invalid")
                 != std::string::npos);
+}
+
+TEST(EnumStringMapperTest, ostream)
+{
+    std::ostringstream msg;
+    msg << Labs::argonne << ", " << Labs::fermilab << " and " << Labs::ornl;
+    EXPECT_EQ("argonne, fermilab and ornl", msg.str());
 }
 
 // The following instances should fail to compile.
 #if 0
 TEST(EnumStringMapperTest, compiler_error)
 {
-    static EnumStringMapper<CeleritasLabs> const too_short{"argonne", "ornl"};
-    static EnumStringMapper<CeleritasLabs> const too_long{
+    static EnumStringMapper<Labs> const too_short{"argonne", "ornl"};
+    static EnumStringMapper<Labs> const too_long{
         "argonne", "ornl", "foo", "bar"};
     static EnumStringMapper<InvalidEnum> const no_size{"foo", "bar"};
 }

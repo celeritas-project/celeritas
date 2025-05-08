@@ -15,6 +15,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/cont/VariantUtils.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/math/Algorithms.hh"
@@ -152,7 +153,7 @@ auto build_physics_processes(inp::EmPhysics const& em,
         if (!result.back())
         {
             // Deliberately ignored process
-            CELER_LOG(debug) << "Ignored process class " << to_cstring(pc);
+            CELER_LOG(debug) << "Ignored process class " << pc;
             result.pop_back();
         }
     }
@@ -258,8 +259,7 @@ auto build_track_init(inp::Control const& c, size_type num_streams)
         {
             input.track_order = TrackOrder::none;
         }
-        CELER_LOG(debug) << "Set default track order "
-                         << to_cstring(input.track_order);
+        CELER_LOG(debug) << "Set default track order " << input.track_order;
     }
 
     return std::make_shared<TrackInitParams>(std::move(input));

@@ -11,6 +11,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -47,7 +48,7 @@ SortTracksAction::SortTracksAction(ActionId id, TrackOrder track_order)
 {
     CELER_EXPECT(id_);
     CELER_VALIDATE(is_action_sorted(track_order_),
-                   << "track ordering policy '" << to_cstring(track_order)
+                   << "track ordering policy '" << track_order
                    << "' should not sort tracks");
     CELER_EXPECT(track_order != TrackOrder::reindex_both_action);
 

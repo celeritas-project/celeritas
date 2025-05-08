@@ -11,6 +11,7 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/em/process/BremsstrahlungProcess.hh"
 #include "celeritas/em/process/ComptonProcess.hh"
@@ -150,8 +151,8 @@ auto ProcessBuilder::operator()(IPC ipc) -> SPProcess
     {
         auto iter = builtin_build.find(ipc);
         CELER_VALIDATE(iter != builtin_build.end(),
-                       << "cannot build unsupported EM process '"
-                       << to_cstring(ipc) << "'");
+                       << "cannot build unsupported EM process '" << ipc
+                       << "'");
 
         BuilderMemFn build_impl{iter->second};
         auto result = (this->*build_impl)();
@@ -271,7 +272,7 @@ auto ProcessBuilder::build_mupairprod() -> SPProcess
  */
 auto WarnAndIgnoreProcess::operator()(argument_type) const -> result_type
 {
-    CELER_LOG(warning) << "Omitting " << to_cstring(this->process)
+    CELER_LOG(warning) << "Omitting " << process
                        << " from physics process list";
     return nullptr;
 }
