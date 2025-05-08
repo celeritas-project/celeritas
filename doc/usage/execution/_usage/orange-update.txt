@@ -1,4 +1,4 @@
-Read in and write back an ORANGE JSON file 
+Read in and write back an ORANGE JSON file
 
 
 ./orange-update [OPTIONS] input output
@@ -6,10 +6,10 @@ Read in and write back an ORANGE JSON file
 
 POSITIONALS:
   input TEXT:(FILE) OR ('-' for stdin/stdout) REQUIRED
-                              Input ORANGE JSON file 
+                              Input ORANGE JSON file
   output TEXT:(FILE) OR ('-' for stdin/stdout) REQUIRED
-                              Output ORANGE JSON file 
+                              Output ORANGE JSON file
 
 OPTIONS:
-  -h,     --help              Print this help message and exit 
-  -v,     --version           Display program version information and exit 
+  -h,     --help              Print this help message and exit
+  -v,     --version           Display program version information and exit

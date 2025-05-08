@@ -31,7 +31,7 @@ export CXX=${CRAYPE_DIR}/bin/CC
 export CC=${CRAYPE_DIR}/bin/cc
 
 # Do NOT load the accelerator target, because it adds
-# -fopenmp-targets=amdgcn-amd-amdhsa 
+# -fopenmp-targets=amdgcn-amd-amdhsa
 # -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx90a
 # which implicitly defines __CUDA_ARCH__
 # module load craype-accel-amd-gfx90a
@@ -42,7 +42,7 @@ export PATH=${_worldwork}/opt-view/bin:${_ccsproj}/opt-view/bin:${_ccsproj}/cond
 export CMAKE_PREFIX_PATH=${_worldwork}/opt-view:${CMAKE_PREFIX_PATH}
 export MODULEPATH=${_worldwork}/share/lmod/linux-sles15-x86_64/Core:${MODULEPATH}
 
-# Set up Geant4 data 
+# Set up Geant4 data
 module load geant4-data/11.3
 test -n "${G4ENSDFSTATEDATA}" || fail_missing_var G4ENSDFSTATEDATA
 test -e "${G4ENSDFSTATEDATA}" || fail_bad_path G4ENSDFSTATEDATA

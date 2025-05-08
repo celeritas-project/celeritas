@@ -32,7 +32,7 @@
       <fraction n="0.6" ref="O"/>
     </material>
   </materials>
-    
+
   <solids>
     <sphere lunit="cm" name="inner_sph" rmax="1.0" deltaphi="360" deltatheta="180" aunit="deg"/>
     <sphere lunit="cm" name="middle_sph" rmin="1.0" rmax="3.0" deltaphi="360" deltatheta="180" aunit="deg"/>
