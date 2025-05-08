@@ -57,10 +57,10 @@ struct ValueTable
  * Each material has a set of value grids for its constituent elements; these
  * are used to sample an element from a material when required by a discrete
  * interaction. A null ValueTableId means the material only has a single
- * element, so no cross sections need to be stored. An empty ModelXsTable means
- * no element selection is required for the model.
+ * element, so no cross sections need to be stored. An empty ModelCdfTable
+ * means no element selection is required for the model.
  */
-struct ModelXsTable
+struct ModelCdfTable
 {
     ItemRange<ValueTableId> material;  //!< Value table by material index
 
@@ -372,7 +372,7 @@ struct PhysicsParamsData
     Items<ModelGroup> model_groups;
     ParticleItems<ProcessGroup> process_groups;
     ParticleModelItems<ModelId> model_ids;
-    ParticleModelItems<ModelXsTable> model_xs;
+    ParticleModelItems<ModelCdfTable> model_cdf;
 
     // Special data
     HardwiredModels<W, M> hardwired;
@@ -405,7 +405,7 @@ struct PhysicsParamsData
         model_groups = other.model_groups;
         process_groups = other.process_groups;
         model_ids = other.model_ids;
-        model_xs = other.model_xs;
+        model_cdf = other.model_cdf;
 
         hardwired = other.hardwired;
 

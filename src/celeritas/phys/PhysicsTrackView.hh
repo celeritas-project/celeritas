@@ -545,16 +545,16 @@ PhysicsTrackView::make_model_finder(ParticleProcessId ppid) const -> ModelFinder
 CELER_FUNCTION
 ValueTableId PhysicsTrackView::value_table(ParticleModelId pmid) const
 {
-    CELER_EXPECT(pmid < params_.model_xs.size());
+    CELER_EXPECT(pmid < params_.model_cdf.size());
 
     // Get the model xs table for the given particle/model
-    ModelXsTable const& model_xs = params_.model_xs[pmid];
-    if (!model_xs)
+    ModelCdfTable const& model_cdf = params_.model_cdf[pmid];
+    if (!model_cdf)
         return {};  // No tables stored for this model
 
     // Get the value table for the current material
-    CELER_ASSERT(material_ < model_xs.material.size());
-    auto const& table_id_ref = model_xs.material[material_.get()];
+    CELER_ASSERT(material_ < model_cdf.material.size());
+    auto const& table_id_ref = model_cdf.material[material_.get()];
     if (!table_id_ref)
         return {};  // Only one element in this material
 

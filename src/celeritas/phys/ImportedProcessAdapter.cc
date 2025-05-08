@@ -18,8 +18,6 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/ValueGridBuilder.hh"
-#include "celeritas/grid/ValueGridType.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
 
@@ -31,6 +29,13 @@ namespace celeritas
 {
 namespace
 {
+using SpanConstDbl = Span<double const>;
+
+bool is_nonnegative(SpanConstDbl vec)
+{
+    return std::all_of(vec.begin(), vec.end(), [](double v) { return v >= 0; });
+}
+
 bool is_contiguous_increasing(inp::UniformGrid const& lower,
                               inp::UniformGrid const& upper)
 {
@@ -139,56 +144,17 @@ ImportedProcessAdapter::ImportedProcessAdapter(SPConstImported imported,
     CELER_EXPECT(!pdg_numbers.empty());
     for (PDGNumber pdg : pdg_numbers)
     {
-        ParticleProcessIds proc_ids;
-        proc_ids.process = imported_->find({pdg, process_class});
-        CELER_VALIDATE(proc_ids.process,
-                       << "imported process data is unavalable for PDG{"
-                       << pdg.get() << "} (needed for '"
-                       << to_cstring(process_class) << "')");
-
-        // Loop through available tables
-        auto const& tables = imported_->get(proc_ids.process).tables;
-        for (auto table_id : range(ImportTableId(tables.size())))
-        {
-            // Map table types to IDs in our imported data
-            ImportTableId* dst = nullptr;
-            switch (tables[table_id.get()].table_type)
-            {
-                case ImportTableType::dedx:
-                    dst = &proc_ids.dedx;
-                    break;
-                case ImportTableType::range:
-                    dst = &proc_ids.range;
-                    break;
-                case ImportTableType::lambda:
-                    dst = &proc_ids.lambda;
-                    break;
-                case ImportTableType::lambda_prim:
-                    dst = &proc_ids.lambda_prim;
-                    break;
-                default:
-                    //  Not a data type we care about
-                    continue;
-            }
-            CELER_ASSERT(dst);
-            CELER_VALIDATE(!*dst,
-                           << "duplicate table type '"
-                           << to_cstring(tables[table_id.get()].table_type)
-                           << "' in process data for '"
-                           << to_cstring(process_class)
-                           << "' (each type should be unique to a process for "
-                              "a given partice)");
-            *dst = table_id;
-        }
-
         auto particle_id = particles->find(pdg);
         CELER_VALIDATE(particle_id,
                        << "particle PDG{" << pdg.get()
                        << "} was not loaded (needed for '"
                        << to_cstring(process_class) << "')");
 
-        // Save process data IDs for this particle type
-        ids_[particle_id] = proc_ids;
+        ids_[particle_id] = imported_->find({pdg, process_class});
+        CELER_VALIDATE(ids_[particle_id],
+                       << "imported process data is unavalable for PDG{"
+                       << pdg.get() << "} (needed for '"
+                       << to_cstring(process_class) << "')");
     }
     CELER_ENSURE(ids_.size() == pdg_numbers.size());
 }
@@ -213,66 +179,71 @@ ImportedProcessAdapter::ImportedProcessAdapter(
 /*!
  * Get the interaction cross sections for the given material and particle.
  */
-auto ImportedProcessAdapter::step_limits(Applicability const& applic) const
-    -> StepLimitBuilders
+auto ImportedProcessAdapter::macro_xs(Applicability const& applic) const
+    -> XsGrid
 {
     CELER_EXPECT(ids_.count(applic.particle));
     CELER_EXPECT(applic.material);
 
-    // Get list of physics tables
-    ParticleProcessIds const& ids = ids_.find(applic.particle)->second;
-    ImportProcess const& import_process = imported_->get(ids.process);
+    auto const& process_id = ids_.find(applic.particle)->second;
+    ImportProcess const& import_process = imported_->get(process_id);
 
-    auto get_vector = [&applic, &import_process](ImportTableId table_id) {
-        CELER_ASSERT(table_id < import_process.tables.size());
-        ImportPhysicsTable const& tab = import_process.tables[table_id.get()];
-        CELER_ASSERT(applic.material < tab.physics_vectors.size());
-        return tab.physics_vectors[applic.material.get()];
-    };
-
-    StepLimitBuilders builders;
-
-    // Construct cross section tables
-    if (import_process.process_class == ImportProcessClass::msc)
+    // Get cross section tables
+    XsGrid result;
+    if (import_process.lambda)
     {
-        // No cross sections
+        CELER_ASSERT(applic.material < import_process.lambda.grids.size());
+        auto grid = import_process.lambda.grids[applic.material.get()];
+        CELER_ASSERT(grid);
+        CELER_ASSERT(std::exp(grid.x[Bound::lo]) > 0 && grid.y.size() >= 2);
+        CELER_ASSERT(is_nonnegative(make_span(grid.y)));
+        result.lower = std::move(grid);
     }
-    else if (ids.lambda && ids.lambda_prim)
+    if (import_process.lambda_prim)
     {
-        // Both unscaled and scaled values are present
-        auto lower = get_vector(ids.lambda);
-        auto upper = get_vector(ids.lambda_prim);
-        CELER_ASSERT(lower && upper);
-        CELER_ASSERT(is_contiguous_increasing(lower, upper));
+        CELER_ASSERT(applic.material < import_process.lambda_prim.grids.size());
+        auto grid = import_process.lambda_prim.grids[applic.material.get()];
+        CELER_ASSERT(grid);
+        CELER_ASSERT(std::exp(grid.x[Bound::lo]) > 0 && grid.y.size() >= 2);
+        CELER_ASSERT(is_nonnegative(make_span(grid.y)));
+        result.upper = std::move(grid);
+    }
+    if (result.lower && result.upper)
+    {
+        CELER_ASSERT(is_contiguous_increasing(result.lower, result.upper));
+        CELER_ASSERT(
+            soft_equal(result.lower.x[Bound::hi], result.upper.x[Bound::lo]));
         CELER_ASSERT(soft_equal(
-            lower.y.back(), upper.y.front() / std::exp(upper.x[Bound::lo])));
-        lower.x[Bound::hi] = upper.x[Bound::lo];
-        builders[ValueGridType::macro_xs]
-            = std::make_unique<ValueGridXsBuilder>(std::move(lower),
-                                                   std::move(upper));
+            result.lower.y.back(),
+            result.upper.y.front() / std::exp(result.upper.x[Bound::lo])));
+        result.lower.x[Bound::hi] = result.upper.x[Bound::lo];
     }
-    else if (ids.lambda_prim)
-    {
-        // Only high-energy (energy-scale) cross sections are presesnt
-        builders[ValueGridType::macro_xs]
-            = std::make_unique<ValueGridXsBuilder>(
-                inp::UniformGrid{}, get_vector(ids.lambda_prim));
-    }
-    else if (ids.lambda)
-    {
-        builders[ValueGridType::macro_xs]
-            = std::make_unique<ValueGridXsBuilder>(get_vector(ids.lambda),
-                                                   inp::UniformGrid{});
-    }
+    return result;
+}
 
-    // Construct slowing-down data
-    if (ids.dedx)
-    {
-        builders[ValueGridType::energy_loss]
-            = std::make_unique<ValueGridLogBuilder>(get_vector(ids.dedx));
-    }
+//---------------------------------------------------------------------------//
+/*!
+ * Get the energy loss for the given material and particle.
+ */
+auto ImportedProcessAdapter::energy_loss(Applicability const& applic) const
+    -> EnergyLossGrid
+{
+    CELER_EXPECT(ids_.count(applic.particle));
+    CELER_EXPECT(applic.material);
 
-    return builders;
+    auto const& process_id = ids_.find(applic.particle)->second;
+    ImportProcess const& import_process = imported_->get(process_id);
+
+    EnergyLossGrid result;
+    if (import_process.dedx)
+    {
+        CELER_ASSERT(applic.material < import_process.dedx.grids.size());
+        auto grid = import_process.dedx.grids[applic.material.get()];
+        CELER_ASSERT(grid);
+        CELER_ASSERT(std::exp(grid.x[Bound::lo]) > 0 && grid.y.size() >= 2);
+        result.lower = std::move(grid);
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//

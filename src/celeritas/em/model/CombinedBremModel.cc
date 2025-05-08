@@ -20,6 +20,7 @@
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/InteractionApplier.hh"
 
 #include "RelativisticBremModel.hh"
@@ -44,6 +45,13 @@ CombinedBremModel::CombinedBremModel(ActionId id,
 {
     CELER_EXPECT(id);
     CELER_EXPECT(sb_table);
+
+    //! \todo Create combined SB + RB micro xs grids or remove combined model
+    CELER_VALIDATE(materials.max_element_components() == 1,
+                   << "model '" << this->label()
+                   << "' cannot be used with materials composed of more than "
+                      "one element, but a material is present with "
+                   << materials.max_element_components() << " elements");
 
     // Construct SeltzerBergerModel and RelativisticBremModel and save the
     // host data reference
@@ -92,7 +100,7 @@ auto CombinedBremModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto CombinedBremModel::micro_xs(Applicability) const -> MicroXsBuilders
+auto CombinedBremModel::micro_xs(Applicability) const -> XsTable
 {
     // Multiple elements per material not supported for combined brems model
     return {};

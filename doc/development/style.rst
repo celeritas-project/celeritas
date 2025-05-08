@@ -27,10 +27,10 @@ Formatting is determined by the clang-format file inside the top-level
 directory. One key restriction is the 80-column limit, which enables multiple
 code windows to be open side-by-side. Generally, statements longer than 80
 columns should be broken into sub-expressions for improved readability anyway
--- the ``auto`` keyword can help a lot with this. The post-commit formatting
-hook in :file:`scripts/dev` (execute
-:file:`scripts/dev/install-commit-hooks.sh` to set up this script) can take
-care of clang formatting automatically. The clang-format script will also
+-- the ``auto`` keyword can help a lot with this. The `pre-commit`_ utility
+(execute ``pre-commit install --install-hooks`` or run
+:file:`scripts/dev/install-commit-hooks.sh`) will take
+care of formatting automatically. Clang-format will also
 enforce the use of "`East const`_", where the ``const`` keyword is always to
 the right of the type that it modifies.
 
@@ -38,6 +38,10 @@ Certain decorations (separators, Doxygen comment structure,
 etc.) are standard throughout the code. Use the :file:`celeritas-gen.py` script
 (in the :file:`scripts/dev` directory) to generate skeletons for new files, and
 use existing source code as a guide to how to structure the decorations.
+
+.. _pre-commit: https://pre-commit.com
+.. _East const: https://hackingcpp.com/cpp/design/east_vs_west_const.html
+
 
 Documentation
 -------------
@@ -50,7 +54,6 @@ Document the effect of a function-like class's "call" operator``()`` in the clas
 itself, since this makes it easier and cleaner to document the class's behavior
 in the :ref:`api` documentation. Do the same for physics classes.
 
-.. _East const: https://hackingcpp.com/cpp/design/east_vs_west_const.html
 
 Symbol names
 ------------
@@ -122,7 +125,6 @@ Some files have special extensions:
 
 
 .. _device_compilation:
-
 
 Device compilation
 ------------------

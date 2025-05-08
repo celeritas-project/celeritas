@@ -9,7 +9,6 @@
 #include <algorithm>
 
 #include "corecel/sys/ActionRegistry.hh"
-#include "celeritas/grid/ValueGridBuilder.hh"
 
 #include "MockModel.hh"
 
@@ -51,43 +50,47 @@ auto MockProcess::build_models(ActionIdIter start_id) const -> VecModel
 }
 
 //---------------------------------------------------------------------------//
-auto MockProcess::step_limits(Applicability applic) const -> StepLimitBuilders
+auto MockProcess::macro_xs(Applicability applic) const -> XsGrid
+{
+    CELER_EXPECT(applic.material);
+    CELER_EXPECT(applic.particle);
+
+    XsGrid grid;
+    if (!data_.xs.empty())
+    {
+        MaterialView mat(data_.materials->host_ref(), applic.material);
+        real_type numdens = mat.number_density();
+
+        grid.lower.x
+            = {std::log(applic.lower.value()), std::log(applic.upper.value())};
+        for (auto xs : data_.xs)
+        {
+            grid.lower.y.push_back(native_value_from(xs) * numdens);
+        }
+    }
+    return grid;
+}
+
+//---------------------------------------------------------------------------//
+auto MockProcess::energy_loss(Applicability applic) const -> EnergyLossGrid
 {
     CELER_EXPECT(applic.material);
     CELER_EXPECT(applic.particle);
 
     using VecDbl = std::vector<double>;
 
-    MaterialView mat(data_.materials->host_ref(), applic.material);
-    real_type numdens = mat.number_density();
-
-    StepLimitBuilders builders;
-    if (!data_.xs.empty())
-    {
-        VecDbl xs_grid;
-        for (auto xs : data_.xs)
-        {
-            xs_grid.push_back(native_value_from(xs) * numdens);
-        }
-        builders[ValueGridType::macro_xs]
-            = std::make_unique<ValueGridLogBuilder>(inp::UniformGrid{
-                {std::log(applic.lower.value()), std::log(applic.upper.value())},
-                xs_grid,
-                {}});
-    }
+    EnergyLossGrid grid;
     if (data_.energy_loss > zero_quantity())
     {
+        MaterialView mat(data_.materials->host_ref(), applic.material);
         auto eloss_rate = native_value_to<units::MevEnergy>(
-            native_value_from(data_.energy_loss) * numdens);
+            native_value_from(data_.energy_loss) * mat.number_density());
 
-        builders[ValueGridType::energy_loss]
-            = std::make_unique<ValueGridLogBuilder>(inp::UniformGrid{
-                {std::log(applic.lower.value()), std::log(applic.upper.value())},
-                VecDbl(3, eloss_rate.value()),
-                {}});
+        grid.lower.x
+            = {std::log(applic.lower.value()), std::log(applic.upper.value())};
+        grid.lower.y = VecDbl(3, eloss_rate.value());
     }
-
-    return builders;
+    return grid;
 }
 
 //---------------------------------------------------------------------------//

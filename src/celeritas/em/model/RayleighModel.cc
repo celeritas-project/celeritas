@@ -76,7 +76,7 @@ auto RayleighModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto RayleighModel::micro_xs(Applicability applic) const -> MicroXsBuilders
+auto RayleighModel::micro_xs(Applicability applic) const -> XsTable
 {
     return imported_.micro_xs(std::move(applic));
 }

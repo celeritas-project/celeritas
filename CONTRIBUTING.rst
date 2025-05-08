@@ -73,9 +73,7 @@ main ``celeritas-project`` repository as an "upstream" so that you can apply
 changes from the main codebase as you work.
 
 To meet the :ref:`formatting` requirements described in the development guide,
-make sure that `clang-format`_ is installed on your development machine.
-Run ``scripts/dev/install-commit-hooks.sh`` to install a git post-commit hook
-that will amend each commit with clang-format updates if necessary.
+you **must** install the `pre-commit`_ utility. You can run ``scripts/dev/install-commit-hooks.sh`` to do this.
 
 A mostly consistent set of decorations (separators, Doxygen comment structure,
 etc.) are used throughout the code, so try to make new files look like existing
@@ -84,7 +82,7 @@ generate skeletons for new files, and use existing source code as a guide for
 how to structure the decorations.
 
 .. _fork: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/about-forks
-.. _clang-format: https://clang.llvm.org/docs/ClangFormat.html
+.. _pre-commit: https://pre-commit.com
 
 
 Submitting code changes
@@ -104,6 +102,14 @@ Before opening the pull request, check that the :ref:`code <code_guidelines>`
 and :ref:`style <style_guidelines>` guidelines have been followed for all new
 code and code changes.  Ensure the use of the correct formatting as well as the
 addition of documentation and unit tests for new code and bug fixes.
+
+After opening the pull request, the `pre-commit.ci`_ bot will run automatically
+and check your formatting. If it fails, you probably did not install the
+utility mentioned in the previous section. You can ``git pull`` the suggested
+changes and then install ``pre-commit``; or, if you've made changes locally,
+then install pre-commit, you can execute ``pre-commit run --from-ref
+upstream/develop --to-ref HEAD`` and ``git push -f`` to update all files and
+force push.
 
 All tests must pass on the CI runner before a PR can be merged. It's best to
 test locally first before submitting your pull
@@ -149,3 +155,4 @@ Congratulations!
    conversation since that makes it hard to find your comment.
 
 .. _pull request: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests
+.. _pre-commit.ci: https://pre-commit.ci

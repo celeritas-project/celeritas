@@ -114,11 +114,9 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
         compton_data.models.push_back(std::move(kn_model));
     }
     {
-        ImportPhysicsTable lambda;
-        lambda.table_type = ImportTableType::lambda;
-        lambda.x_units = ImportUnits::mev;
-        lambda.y_units = ImportUnits::len_inv;
-        lambda.physics_vectors = {
+        compton_data.lambda.x_units = ImportUnits::mev;
+        compton_data.lambda.y_units = ImportUnits::len_inv;
+        compton_data.lambda.grids = {
             {{std::log(1e-4),  // energy
               std::log(1.0)},
              {1e1, 1e0},  // lambda (detector)
@@ -128,14 +126,11 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
              {1e-10, 1e-10},  // lambda (world)
              inp::Interpolation{}},
         };
-        compton_data.tables.push_back(std::move(lambda));
     }
     {
-        ImportPhysicsTable lambdap;
-        lambdap.table_type = ImportTableType::lambda_prim;
-        lambdap.x_units = ImportUnits::mev;
-        lambdap.y_units = ImportUnits::len_mev_inv;
-        lambdap.physics_vectors = {
+        compton_data.lambda_prim.x_units = ImportUnits::mev;
+        compton_data.lambda_prim.y_units = ImportUnits::len_mev_inv;
+        compton_data.lambda_prim.grids = {
             {{std::log(1.0),  // energy
               std::log(1e8)},
              {1e0, 1e-2, 1e-4},  // lambda * energy (detector)
@@ -145,7 +140,6 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
              {1e-10, 1e-10, 1e-10},  // lambda * energy (world)
              inp::Interpolation{}},
         };
-        compton_data.tables.push_back(std::move(lambdap));
     }
 
     // Update data values from CGS

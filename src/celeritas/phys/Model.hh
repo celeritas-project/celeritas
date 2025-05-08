@@ -14,7 +14,7 @@
 #include "corecel/Types.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/ActionInterface.hh"  // IWYU pragma: export
-#include "celeritas/grid/ValueGridBuilder.hh"
+#include "celeritas/inp/Grid.hh"
 
 #include "Applicability.hh"  // IWYU pragma: export
 
@@ -44,14 +44,15 @@ namespace celeritas
  *
  * This class is similar to Geant4's G4VContinuousDiscrete process, but more
  * limited.
+ *
+ * \todo Microscopic cross sections should use a \c UniformGrid
  */
 class Model : public CoreStepActionInterface
 {
   public:
     //@{
     //! Type aliases
-    using UPConstGridBuilder = std::unique_ptr<ValueGridBuilder const>;
-    using MicroXsBuilders = std::vector<UPConstGridBuilder>;
+    using XsTable = std::vector<inp::XsGrid>;
     using SetApplicability = std::set<Applicability>;
     //@}
 
@@ -60,7 +61,7 @@ class Model : public CoreStepActionInterface
     virtual SetApplicability applicability() const = 0;
 
     //! Get the microscopic cross sections for the given particle and material
-    virtual MicroXsBuilders micro_xs(Applicability range) const = 0;
+    virtual XsTable micro_xs(Applicability range) const = 0;
 
     //! Dependency ordering of the action
     StepActionOrder order() const final { return StepActionOrder::post; }
