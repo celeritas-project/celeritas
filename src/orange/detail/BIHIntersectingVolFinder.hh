@@ -92,10 +92,11 @@ class BIHIntersectingVolFinder
                                                   Intersection intersection,
                                                   F&& visit_vol) const;
 
-    // Calculate the current min intersection, which may/may not be in inf_vols
+    // Calculate the current min intersection, which may/may not be in
+    // non_tree_vols
     template<class F>
-    inline CELER_FUNCTION Intersection visit_inf_vols(Intersection intersection,
-                                                      F&& visit_vol) const;
+    inline CELER_FUNCTION Intersection
+    visit_non_tree_vols(Intersection intersection, F&& visit_vol) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -151,7 +152,7 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
 
     } while (current_node);
 
-    return this->visit_inf_vols(intersection, visit_vol);
+    return this->visit_non_tree_vols(intersection, visit_vol);
 }
 
 //---------------------------------------------------------------------------//
@@ -267,14 +268,16 @@ BIHIntersectingVolFinder::visit_leaf(BIHLeafNode const& leaf_node,
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the current min intersection, which may/may not be in inf_vols.
+ * Calculate the current min intersection, which may/may not be in
+ * non_tree_vols.
  */
 template<class F>
 CELER_FUNCTION auto
-BIHIntersectingVolFinder::visit_inf_vols(Intersection min_intersection,
-                                         F&& visit_vol) const -> Intersection
+BIHIntersectingVolFinder::visit_non_tree_vols(Intersection min_intersection,
+                                              F&& visit_vol) const
+    -> Intersection
 {
-    for (auto id : view_.inf_vol_ids())
+    for (auto id : view_.non_tree_vol_ids())
     {
         auto intersection = visit_vol(id, min_intersection.distance);
         if (intersection && intersection.distance < min_intersection.distance)

@@ -19,11 +19,12 @@ namespace detail
 /*!
  * Construct from a Storage object.
  */
-BIHBuilder::BIHBuilder(Storage* storage)
+BIHBuilder::BIHBuilder(Storage* storage, size_type min_bih_size)
     : bboxes_{&storage->bboxes}
     , local_volume_ids_{&storage->local_volume_ids}
     , inner_nodes_{&storage->inner_nodes}
     , leaf_nodes_{&storage->leaf_nodes}
+    , min_bih_size_{min_bih_size}
 {
     CELER_EXPECT(storage);
 }
@@ -40,38 +41,50 @@ BIHBuilder::operator()(VecBBox&& bboxes,
 
     // Store bounding boxes and their corresponding centers
     temp_.bboxes = std::move(bboxes);
-    temp_.centers.resize(temp_.bboxes.size());
-    std::transform(temp_.bboxes.begin(),
-                   temp_.bboxes.end(),
-                   temp_.centers.begin(),
-                   &celeritas::calc_center<fast_real_type>);
+    VecIndices tree_vol_ids;
+    VecIndices non_tree_vol_ids;
 
-    // Separate infinite bounding boxes from finite
-    VecIndices indices;
-    VecIndices inf_vol_ids;
-    for (auto i : range(temp_.bboxes.size()))
+    if (temp_.bboxes.size() < min_bih_size_)
     {
-        LocalVolumeId id(i);
+        for (auto i : range(temp_.bboxes.size()))
+        {
+            LocalVolumeId id(i);
+            non_tree_vol_ids.push_back(id);
+        }
+    }
+    else
+    {
+        temp_.centers.resize(temp_.bboxes.size());
+        std::transform(temp_.bboxes.begin(),
+                       temp_.bboxes.end(),
+                       temp_.centers.begin(),
+                       &celeritas::calc_center<fast_real_type>);
 
-        if (implicit_vol_ids.find(id) != implicit_vol_ids.end())
+        // Separate infinite bounding boxes from finite
+        for (auto i : range(temp_.bboxes.size()))
         {
-            // Background volume, do not include bbox in tree
-        }
-        else if (is_infinite(temp_.bboxes[i]))
-        {
-            // Infinite in *every* direction
-            /*!
-             * \todo make an exception for "EXTERIOR" volume and remove the
-             * "infinite volume" exceptions?
-             */
-            inf_vol_ids.push_back(id);
-        }
-        else
-        {
-            // Prohibit semi-infinite bounding boxes because those break the
-            // cost function
-            CELER_ASSERT(is_finite(temp_.bboxes[i]));
-            indices.push_back(id);
+            LocalVolumeId id(i);
+
+            if (implicit_vol_ids.find(id) != implicit_vol_ids.end())
+            {
+                // Background volume, do not include bbox in tree
+            }
+            else if (is_infinite(temp_.bboxes[i]))
+            {
+                // Infinite in *every* direction
+                /*!
+                 * \todo make an exception for "EXTERIOR" volume and remove the
+                 * "infinite volume" exceptions?
+                 */
+                non_tree_vol_ids.push_back(id);
+            }
+            else
+            {
+                // Prohibit semi-infinite bounding boxes because those break
+                // the cost function
+                CELER_ASSERT(is_finite(temp_.bboxes[i]));
+                tree_vol_ids.push_back(id);
+            }
         }
     }
 
@@ -80,14 +93,14 @@ BIHBuilder::operator()(VecBBox&& bboxes,
     tree.bboxes = ItemMap<LocalVolumeId, FastBBoxId>(
         bboxes_.insert_back(temp_.bboxes.begin(), temp_.bboxes.end()));
 
-    tree.inf_vol_ids = local_volume_ids_.insert_back(inf_vol_ids.begin(),
-                                                     inf_vol_ids.end());
+    tree.non_tree_vol_ids = local_volume_ids_.insert_back(
+        non_tree_vol_ids.begin(), non_tree_vol_ids.end());
 
-    if (!indices.empty())
+    if (!tree_vol_ids.empty())
     {
         VecNodes nodes;
-        auto inf_bbox = FastBBox::from_infinite();
-        this->construct_tree(indices, &nodes, BIHNodeId{}, inf_bbox);
+        auto non_tree_bbox = FastBBox::from_infinite();
+        this->construct_tree(tree_vol_ids, &nodes, BIHNodeId{}, non_tree_bbox);
         auto [inner_nodes, leaf_nodes] = this->arrange_nodes(std::move(nodes));
 
         tree.inner_nodes
@@ -98,7 +111,7 @@ BIHBuilder::operator()(VecBBox&& bboxes,
     }
     else
     {
-        // Degenerate case where all bounding boxes are infinite. Create a
+        // Degenerate case where we only have non_tree_vols. Create a
         // single empty leaf node, so that the existence of leaf nodes does not
         // need to be checked at runtime.
         BIHLeafNode const empty_nodes[] = {{}};

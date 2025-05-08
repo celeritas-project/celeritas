@@ -77,11 +77,10 @@ struct BIHLeafNode
 
 //---------------------------------------------------------------------------//
 /*!
- * Bounding Interval Hierarchy tree.
+ * Bounding Interval Hierarchy tree record.
  *
- * Infinite bounding boxes are not included in the main tree.
- *
- * \todo Rename BihTreeRecord
+ * Provides storage for inner nodes, leaf nodes, and volumes not part of the
+ * tree for a single universe.
  */
 struct BIHTree
 {
@@ -94,8 +93,8 @@ struct BIHTree
     //! Leaf nodes
     ItemRange<BIHLeafNode> leaf_nodes;
 
-    //! Local volumes that have infinite bounding boxes
-    ItemRange<LocalVolumeId> inf_vol_ids;
+    //! Local volumes that are not part of the tree itself
+    ItemRange<LocalVolumeId> non_tree_vol_ids;
 
     explicit CELER_FUNCTION operator bool() const
     {
@@ -109,7 +108,8 @@ struct BIHTree
             // contains either:
             // a) a single volume
             // b) muliple non-partitionable volumes,
-            // b) only infinite volumes.
+            // c) only infinite volumes.
+            // d) not enough volumes to meet BIHBuilder::min_bih_vols
             return !bboxes.empty() && leaf_nodes.size() == 1;
         }
     }

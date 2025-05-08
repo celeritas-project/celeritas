@@ -22,24 +22,31 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-/*!
- * Create a bounding interval hierarchy from supplied bounding boxes.
+/*!  Create a bounding interval hierarchy from supplied bounding boxes.
  *
- * This implementation matches the structure proposed in the original
- * paper \citep{wachter-bih-2006, https://doi.org/10.2312/EGWR/EGSR06/139-149}.
+ * This implementation matches the structure proposed in the original paper
+ * \citep{wachter-bih-2006, https://doi.org/10.2312/EGWR/EGSR06/139-149}.
  * Partitioning is done on the basis of bounding box centers using the "longest
- * dimension" heuristic. All leaf nodes contain either a single volume id, or
- * multiple volume ids if the volumes have bounding boxes that share the same
- * center. A tree may consist of a single leaf node if the tree contains only 1
- * volume, or multiple non-partitionable volumes. In the event that all
- * bounding boxes are infinite, the tree will consist of a single empty leaf
- * node with all volumes in the stored inf_vols. This final case is useful in
- * the event that an ORANGE geometry is created via a method where volume
- * bounding boxes are not availible.
+ * dimension" heuristic. Bounding boxes are assumed to correspond to local
+ * volumes. A BIH tree is only built if the number of bounding boxes is greater
+ * than or equal to the min_bih_size_ parameter. The idea behind this parameter
+ * is that if the number of volumes in a universe is small, it is more
+ * efficient to perform a linear search over volumes rather than using a BIH.
+ *
+ * After partitioning, all volumes that are not background volumes will be
+ * stored in either leaf nodes or as non-tree volumes. All leaf nodes contain
+ * either a single volume, or multiple volumes if the volumes have bounding
+ * boxes that share the same center. Volumes with infinite bounding boxes are
+ * stored as non-tree volumes. In the event that only a single bounding box is
+ * supplied, or all supplied bounding boxes are non-partitionable, the tree
+ * will consist of a single leaf node. In the event  that all volumes have
+ * infinite bounding boxes, or the number of volumes is less than the
+ * min_bih_vols parameter, the tree will consist of a single *empty* leaf with
+ * all volumes stored as non-tree volumes.
  *
  * Bounding boxes supplied to this builder should "bumped," i.e. expanded
- * outward by at least floating-point epsilson from the volumes they bound.
- * This eliminates the possiblity of accidently missing a volume during
+ * outward by at least floating-point epsilon from the volumes they bound.
+ * This eliminates the possibility of accidentally missing a volume during
  * tracking.
  */
 class BIHBuilder
@@ -54,7 +61,7 @@ class BIHBuilder
 
   public:
     // Construct from a Storage object
-    explicit BIHBuilder(Storage* storage);
+    explicit BIHBuilder(Storage* storage, size_type min_bih_size = 0);
 
     // Create BIH Nodes
     BIHTree operator()(VecBBox&& bboxes, SetLocalVolId const& implicit_vol_ids);
@@ -83,6 +90,7 @@ class BIHBuilder
     CollectionBuilder<LocalVolumeId> local_volume_ids_;
     CollectionBuilder<BIHInnerNode> inner_nodes_;
     CollectionBuilder<BIHLeafNode> leaf_nodes_;
+    size_type min_bih_size_;
 
     //// HELPER FUNCTIONS ////
 

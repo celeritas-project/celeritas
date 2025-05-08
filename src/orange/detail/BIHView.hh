@@ -45,8 +45,8 @@ class BIHView
     inline CELER_FUNCTION Span<LocalVolumeId const>
     leaf_vol_ids(BIHLeafNode const& leaf) const;
 
-    // Get the inf_vol_ids
-    inline CELER_FUNCTION Span<LocalVolumeId const> inf_vol_ids() const;
+    // Get the non_tree_vol_ids
+    inline CELER_FUNCTION Span<LocalVolumeId const> non_tree_vol_ids() const;
 
   private:
     //// DATA ////
@@ -122,11 +122,11 @@ BIHView::leaf_vol_ids(BIHLeafNode const& leaf) const
 
 //---------------------------------------------------------------------------//
 /*!
- *  Get the inf_vol_ids.
+ *  Get the non_tree_vol_ids.
  */
-CELER_FUNCTION Span<LocalVolumeId const> BIHView::inf_vol_ids() const
+CELER_FUNCTION Span<LocalVolumeId const> BIHView::non_tree_vol_ids() const
 {
-    return storage_.local_volume_ids[tree_.inf_vol_ids];
+    return storage_.local_volume_ids[tree_.non_tree_vol_ids];
 }
 
 //---------------------------------------------------------------------------//

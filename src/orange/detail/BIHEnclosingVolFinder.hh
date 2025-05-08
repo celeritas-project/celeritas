@@ -66,9 +66,9 @@ class BIHEnclosingVolFinder
                                                    Real3 const& pos,
                                                    F&& is_inside) const;
 
-    // Determine if any inf_vols contain the point
+    // Determine if any non_tree_vols contain the point
     template<class F>
-    inline CELER_FUNCTION LocalVolumeId visit_inf_vols(F&& is_inside) const;
+    inline CELER_FUNCTION LocalVolumeId visit_non_tree_vols(F&& is_inside) const;
 
     // Determine if a single bbox contains the point
     inline CELER_FUNCTION bool
@@ -119,7 +119,7 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside) const
 
     } while (current_node);
 
-    return this->visit_inf_vols(is_inside);
+    return this->visit_non_tree_vols(is_inside);
 }
 
 //---------------------------------------------------------------------------//
@@ -220,13 +220,13 @@ CELER_FUNCTION LocalVolumeId BIHEnclosingVolFinder::visit_leaf(
 
 //---------------------------------------------------------------------------//
 /*!
- * Determine if any volumes in inf_vols contain the point.
+ * Determine if any volumes in non_tree_vols contain the point.
  */
 template<class F>
 CELER_FUNCTION LocalVolumeId
-BIHEnclosingVolFinder::visit_inf_vols(F&& is_inside) const
+BIHEnclosingVolFinder::visit_non_tree_vols(F&& is_inside) const
 {
-    for (auto id : view_.inf_vol_ids())
+    for (auto id : view_.non_tree_vol_ids())
     {
         if (is_inside(id))
         {
