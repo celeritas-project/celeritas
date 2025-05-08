@@ -45,4 +45,3 @@ Models
 .. doxygenstruct:: celeritas::inp::MuBremsModel
    :members:
    :no-link:
-

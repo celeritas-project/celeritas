@@ -11,4 +11,3 @@ This specifies the problem geometry and material properties.
 .. doxygenstruct:: celeritas::inp::Model
    :members:
    :no-link:
-

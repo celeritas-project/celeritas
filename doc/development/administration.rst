@@ -561,4 +561,3 @@ The user docs are partly manually written, partly extracted from many users'
 contribution to the source code. Editors should be credited directly, and
 minor contributions to documentation and source code should be credited as part
 of the team.
-
