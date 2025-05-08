@@ -15,6 +15,7 @@
 #include "corecel/sys/Device.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/inp/Control.hh"
 #include "celeritas/inp/Physics.hh"
 
 class G4LogicalVolume;
@@ -237,16 +238,7 @@ struct SetupOptions
 
     explicit inline operator bool() const
     {
-        return max_num_tracks > 0 && static_cast<bool>(make_along_step);
-    }
-
-    //! Initialize runtime-dependent defaults
-    SetupOptions()
-    {
-        // Set the default number of tracks per stream on device or host
-        max_num_tracks = celeritas::Device::num_devices() ? 262144 : 1024;
-        // Set the default initializer capacity from the number of tracks
-        initializer_capacity = 8 * max_num_tracks;
+        return static_cast<bool>(make_along_step);
     }
 };
 
@@ -263,6 +255,9 @@ inp::GeantSd to_inp(SDSetupOptions const& so);
 
 // Construct a framework input
 inp::FrameworkInput to_inp(SetupOptions const& so);
+
+// Get runtime-dependent default capacity values
+inp::StateCapacity get_default(SetupOptions const& so, size_type num_streams);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
