@@ -43,8 +43,8 @@ endif()
 if(CELERITAS_BUILTIN_covfie)
   celer_fetch_external(
     covfie
-    "https://github.com/acts-project/covfie/archive/refs/tags/v0.13.0.tar.gz"
-    e9cd0546c7bc9539f440273bbad303c97215ccd87403cedb4aa387a313938d57
+    "https://github.com/acts-project/covfie/archive/refs/tags/v0.14.0.tar.gz"
+    b4d8afa712c6fc0e2bc6474367d65fad652864b18d0255c5f2c18fd4c6943993
   )
   set(COVFIE_PLATFORM_CPU ON)
   set(COVFIE_PLATFORM_CUDA ${CELERITAS_USE_CUDA})

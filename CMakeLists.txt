@@ -409,14 +409,7 @@ if(CELERITAS_USE_ROOT)
 endif()
 
 if(CELERITAS_USE_covfie)
-  celeritas_find_or_builtin_package(covfie)
-
-  if(CELERITAS_USE_HIP AND covfie_VERSION VERSION_LESS "0.13.0")
-    celeritas_error_incompatible_option("HIP support in Covfie is not available before 0.13.0"
-      CELERITAS_USE_covfie
-      OFF
-    )
-  endif()
+  celeritas_find_or_builtin_package(covfie 0.14.0)
 endif()
 
 if(CELERITAS_USE_VecGeom)

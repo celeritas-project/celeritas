@@ -146,8 +146,7 @@ TEST_F(ProcessBuilderTest, compton)
         // Test micro xs
         for (auto const& model : models)
         {
-            auto builders = model->micro_xs(applic);
-            EXPECT_TRUE(builders.empty());
+            EXPECT_TRUE(model->micro_xs(applic).empty());
         }
     }
 }
@@ -182,8 +181,7 @@ TEST_F(ProcessBuilderTest, e_ionization)
             // Test micro xs
             for (auto const& model : models)
             {
-                auto builders = model->micro_xs(applic);
-                EXPECT_TRUE(builders.empty());
+                EXPECT_TRUE(model->micro_xs(applic).empty());
             }
         }
     }
@@ -220,8 +218,7 @@ TEST_F(ProcessBuilderTest, eplus_annihilation)
             // Test micro xs
             for (auto const& model : models)
             {
-                auto builders = model->micro_xs(applic);
-                EXPECT_TRUE(builders.empty());
+                EXPECT_TRUE(model->micro_xs(applic).empty());
             }
         }
     }
@@ -256,12 +253,12 @@ TEST_F(ProcessBuilderTest, gamma_conversion)
         // Test micro xs
         for (auto const& model : models)
         {
-            auto builders = model->micro_xs(applic);
+            auto micro_xs = model->micro_xs(applic);
             auto material = this->material()->get(mat_id);
-            EXPECT_EQ(material.num_elements(), builders.size());
+            EXPECT_EQ(material.num_elements(), micro_xs.size());
             for (auto elcomp_idx : range(material.num_elements()))
             {
-                EXPECT_TRUE(builders[elcomp_idx]);
+                EXPECT_TRUE(micro_xs[elcomp_idx]);
             }
         }
     }
@@ -301,8 +298,7 @@ TEST_F(ProcessBuilderTest, photoelectric)
         // Test micro xs
         for (auto const& model : models)
         {
-            auto builders = model->micro_xs(applic);
-            EXPECT_TRUE(builders.empty());
+            EXPECT_TRUE(model->micro_xs(applic).empty());
         }
     }
 }
@@ -347,12 +343,12 @@ TEST_F(ProcessBuilderTest, bremsstrahlung_multiple_models)
         // Test micro xs
         for (auto const& model : models)
         {
-            auto builders = model->micro_xs(applic);
+            auto micro_xs = model->micro_xs(applic);
             auto material = this->material()->get(mat_id);
-            EXPECT_EQ(material.num_elements(), builders.size());
+            EXPECT_EQ(material.num_elements(), micro_xs.size());
             for (auto elcomp_idx : range(material.num_elements()))
             {
-                EXPECT_TRUE(builders[elcomp_idx]);
+                EXPECT_TRUE(micro_xs[elcomp_idx]);
             }
         }
     }
@@ -410,12 +406,12 @@ TEST_F(ProcessBuilderTest, rayleigh)
         // Test micro xs
         for (auto const& model : models)
         {
-            auto builders = model->micro_xs(applic);
+            auto micro_xs = model->micro_xs(applic);
             auto material = this->material()->get(mat_id);
-            EXPECT_EQ(material.num_elements(), builders.size());
+            EXPECT_EQ(material.num_elements(), micro_xs.size());
             for (auto elcomp_idx : range(material.num_elements()))
             {
-                EXPECT_TRUE(builders[elcomp_idx]);
+                EXPECT_TRUE(micro_xs[elcomp_idx]);
             }
         }
     }
@@ -457,12 +453,12 @@ TEST_F(ProcessBuilderTest, coulomb)
         // Test micro xs
         for (auto const& model : models)
         {
-            auto builders = model->micro_xs(applic);
+            auto micro_xs = model->micro_xs(applic);
             auto material = this->material()->get(mat_id);
-            EXPECT_EQ(material.num_elements(), builders.size());
+            EXPECT_EQ(material.num_elements(), micro_xs.size());
             for (auto elcomp_idx : range(material.num_elements()))
             {
-                EXPECT_TRUE(builders[elcomp_idx]);
+                EXPECT_TRUE(micro_xs[elcomp_idx]);
             }
         }
     }
@@ -515,8 +511,7 @@ TEST_F(ProcessBuilderTest, neutron_elastic)
         // Test micro xs
         for (auto const& model : models)
         {
-            auto builders = model->micro_xs(applic);
-            EXPECT_TRUE(builders.empty());
+            EXPECT_TRUE(model->micro_xs(applic).empty());
         }
     }
 }
@@ -560,8 +555,7 @@ TEST_F(ProcessBuilderTest, mu_ionization)
             // Test micro xs
             for (auto const& model : models)
             {
-                auto builders = model->micro_xs(applic);
-                EXPECT_TRUE(builders.empty());
+                EXPECT_TRUE(model->micro_xs(applic).empty());
             }
         }
     }
@@ -599,12 +593,12 @@ TEST_F(ProcessBuilderTest, mu_bremsstrahlung)
         // Test micro xs
         for (auto const& model : models)
         {
-            auto builders = model->micro_xs(applic);
+            auto micro_xs = model->micro_xs(applic);
             auto material = this->material()->get(mat_id);
-            EXPECT_EQ(material.num_elements(), builders.size());
+            EXPECT_EQ(material.num_elements(), micro_xs.size());
             for (auto elcomp_idx : range(material.num_elements()))
             {
-                EXPECT_TRUE(builders[elcomp_idx]);
+                EXPECT_TRUE(micro_xs[elcomp_idx]);
             }
         }
     }

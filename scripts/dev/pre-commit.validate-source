@@ -1,51 +1,10 @@
 #!/bin/sh -e
-# Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+#-------------------------------- -*- sh -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
 
-exit_with_message() {
-  printf "\r\e[0;31m%s\e[0m\n" "$1"
-  exit 1
-}
-
-check_corecel_dependencies() {
-  CMD="grep -nHE"
-  IDX_FILE=0
-  IDX_LINE_NO=1
-  IDX_LINE_TXT=2
-
-  # use ripgrep if available, it's faster
-  if command -v rg >/dev/null; then
-    CMD="rg --vimgrep -e"
-    IDX_LINE_TXT=3
-  fi
-
-  cd "$(git rev-parse --show-toplevel)" || exit_with_message "Couldnt checkout to toplevel dir"
-  # list modified files in src/corecel
-  STAGED_FILES=
-  for f in $(git diff --name-only --cached --diff-filter=ACM src/corecel | grep -E '.*\.(cc|cu|hh)'); do
-    # file should always exist because of diff-filter
-    [[ -f $f ]] && STAGED_FILES="$STAGED_FILES $f"
-  done
-  # return if no file to check
-  [[ -z $STAGED_FILES ]] && return 0
-  # grep, rg return 1 if no match, so we ignore it
-  set +e
-  # search for accel, celeritas, geocel, orange in corecel
-  CHECK_INCLUDES=$($CMD '^[ \t]*#[ \t]*include[ \t]*["<](accel|celeritas|geocel|orange)/.*[">]' $STAGED_FILES)
-  set -e
-  # print files:line if we found any match
-  if [[ "$CHECK_INCLUDES" ]]; then
-    printf "\r\e[0;33mcorecel can't depend on accel, celeritas, geocel or orange:\n"
-    IFS=$'\n'
-    for e in $CHECK_INCLUDES; do
-      IFS=':' read -r -a fields <<<"$e"
-      printf 'In %s:%s: %s\n' "${fields[IDX_FILE]}" "${fields[IDX_LINE_NO]}" "${fields[IDX_LINE_TXT]}"
-    done
-    printf "\e[0m"
-    return 1
-  fi
-  return 0
-}
-
-check_corecel_dependencies || exit_with_message "Precommit failed at check_corecel_dependencies"
+printf "\e[33mRunning obsolete pre-commit hook: replacing with pre-commit utility\e[0m\n"
+DEVSCRIPTS="$(git rev-parse --show-toplevel)/scripts/dev"
+"${DEVSCRIPTS}/install-commit-hooks.sh"
+exit 1

@@ -57,12 +57,16 @@ internet if required but not available on the user's system.
    Doxygen_, Docs, "Code documentation"
    Sphinx_, Docs, "User documentation"
    sphinxbib_, Docs, "Reference generation for user documentation"
-   clang-format_, Development, "Code formatting enforcement"
+   clang-format_, Development, "C++ code formatting"
+   gersemi_, Development, "CMake code formatting"
    CMake_, Development, "Build system"
    Git_, Development, "Repository management"
+   pre-commit_, Development, "Formatting enforcement"
    GoogleTest_, Development*, "Test harness"
    Perfetto_, Development*, "CPU profiling"
 
+.. _breathe: https://github.com/michaeljones/breathe#readme
+.. _clang-format: https://clang.llvm.org/docs/ClangFormat.html
 .. _CLI11: https://cliutils.github.io/CLI11/book/
 .. _CMake: https://cmake.org
 .. _CUDA: https://developer.nvidia.com/cuda-toolkit
@@ -70,19 +74,19 @@ internet if required but not available on the user's system.
 .. _G4EMLOW: https://geant4.web.cern.ch/support/download
 .. _Geant4: https://geant4.web.cern.ch/support/download
 .. _Git: https://git-scm.com
+.. _gersemi: https://github.com/BlankSpruce/gersemi
 .. _GoogleTest: https://github.com/google/googletest
 .. _HepMC3: http://hepmc.web.cern.ch/hepmc/
-.. _libpng: http://www.libpng.org/
 .. _HIP: https://docs.amd.com
+.. _libpng: http://www.libpng.org/
+.. _nljson: https://github.com/nlohmann/json
 .. _Open MPI: https://www.open-mpi.org
+.. _Perfetto: https://perfetto.dev/
+.. _pre-commit: https://pre-commit.com
 .. _ROOT: https://root.cern
 .. _Sphinx: https://www.sphinx-doc.org/
-.. _VecGeom: https://gitlab.cern.ch/VecGeom/VecGeom
-.. _breathe: https://github.com/michaeljones/breathe#readme
-.. _clang-format: https://clang.llvm.org/docs/ClangFormat.html
-.. _nljson: https://github.com/nlohmann/json
 .. _sphinxbib: https://pypi.org/project/sphinxcontrib-bibtex/
-.. _Perfetto: https://perfetto.dev/
+.. _VecGeom: https://gitlab.cern.ch/VecGeom/VecGeom
 
 
 Ideally you will build Celeritas with all dependencies to gain the full

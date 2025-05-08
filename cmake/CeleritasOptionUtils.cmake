@@ -10,8 +10,8 @@ CMake configuration utility functions for Celeritas, primarily for option setup.
 
 .. command:: celeritas_find_or_builtin_package
 
-  Look for an external dependency ``<package>`` and cache whether we found it or
-  not.
+  Look for a *required* external dependency ``<package>`` and cache whether we
+  found it or not.
 
     celeritas_find_or_builtin_package(<package> [...])
 
@@ -20,6 +20,9 @@ CMake configuration utility functions for Celeritas, primarily for option setup.
   configured/installed ourself as a built-in (since CMake's search path includes
   the installation prefix). Additional arguments (e.g. a version number) will be
   forwarded to ``find_package``.
+
+  Previous logic must determine whether the package is needed or not: if not
+  already found, this will enable the builtin copy for later use.
 
 .. command:: celeritas_optional_language
 
@@ -159,6 +162,8 @@ endfunction()
 
 #-----------------------------------------------------------------------------#
 
+# Note: this is a macro so that `find_package` variables stay in the global
+# scope.
 macro(celeritas_find_or_builtin_package package)
   set(_var "CELERITAS_BUILTIN_${package}")
   set(_use_builtin "${${_var}}")
@@ -168,16 +173,19 @@ macro(celeritas_find_or_builtin_package package)
       # Celeritas is a subproject)
       find_package(${package} ${ARGN})
     endif()
+    set(_found "${${package}_FOUND}")
     if(NOT DEFINED ${_var})
-      set(_found "${${package}_FOUND}")
       if(NOT _found)
         set(_use_builtin ON)
       endif()
       set("${_var}" "${_use_builtin}" CACHE BOOL
         "Fetch and build ${package}")
       mark_as_advanced(${_var})
-      unset(_found)
+    elseif(NOT _found)
+      # First time looking, builtin defined, package not fuond
+      find_package(${package} ${ARGN} QUIET REQUIRED)
     endif()
+    unset(_found)
   endif()
   if(_use_builtin)
     set(CELERITAS_BUILTIN TRUE)
