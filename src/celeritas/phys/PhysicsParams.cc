@@ -21,6 +21,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/grid/UniformGrid.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
@@ -290,9 +291,9 @@ void PhysicsParams::build_particle_options(ParticleOptions const& opts,
         == MscStepLimitAlgorithm::distance_to_boundary)
     {
         CELER_LOG(warning) << "Unsupported MSC step limit algorithm '"
-                           << to_cstring(data->step_limit_algorithm)
+                           << data->step_limit_algorithm
                            << "': defaulting to '"
-                           << to_cstring(MscStepLimitAlgorithm::safety) << "'";
+                           << MscStepLimitAlgorithm::safety << "'";
         data->step_limit_algorithm = MscStepLimitAlgorithm::safety;
     }
 }

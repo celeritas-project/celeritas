@@ -11,6 +11,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/grid/VectorUtils.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/grid/UniformGridInserter.hh"
@@ -57,7 +58,7 @@ MscParamsHelper::MscParamsHelper(ParticleParams const& particles,
             // Warn: possibly multiple physics lists or different models in
             // different regions
             CELER_LOG(warning)
-                << "duplicate " << to_cstring(imm.model_class)
+                << "duplicate " << imm.model_class
                 << " physics data for particle " << particles_.id_to_label(pid)
                 << ": ignoring all but the first encountered model";
         }
@@ -69,7 +70,7 @@ MscParamsHelper::MscParamsHelper(ParticleParams const& particles,
         xs_tables_.push_back(&imm.xs_table);
     }
     CELER_VALIDATE(!xs_tables_.empty(),
-                   << "missing physics data for " << to_cstring(model_class));
+                   << "missing physics data for " << model_class);
 }
 
 //---------------------------------------------------------------------------//
