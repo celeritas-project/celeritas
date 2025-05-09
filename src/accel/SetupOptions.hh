@@ -26,7 +26,7 @@ namespace inp
 {
 struct FrameworkInput;
 struct GeantSd;
-}
+}  // namespace inp
 
 class CoreParams;
 struct AlongStepFactoryInput;

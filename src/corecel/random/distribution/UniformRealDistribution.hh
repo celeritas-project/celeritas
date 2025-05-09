@@ -109,7 +109,8 @@ UniformRealDistribution<RealType>::UniformRealDistribution(real_type a,
 template<class RealType>
 template<class Generator>
 CELER_FUNCTION auto
-UniformRealDistribution<RealType>::operator()(Generator& rng) const -> result_type
+UniformRealDistribution<RealType>::operator()(Generator& rng) const
+    -> result_type
 {
     return std::fma(delta_, generate_canonical<RealType>(rng), a_);
 }

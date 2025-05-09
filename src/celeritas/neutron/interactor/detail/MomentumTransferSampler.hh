@@ -141,8 +141,8 @@ MomentumTransferSampler::MomentumTransferSampler(NeutronElasticRef const& shared
  *
  */
 template<class Engine>
-CELER_FUNCTION auto
-MomentumTransferSampler::operator()(Engine& rng) -> real_type
+CELER_FUNCTION auto MomentumTransferSampler::operator()(Engine& rng)
+    -> real_type
 {
     // Sample \f$ Q^{2} \f$ below S-wave limit
     if (neutron_p_ < this->s_wave_limit())

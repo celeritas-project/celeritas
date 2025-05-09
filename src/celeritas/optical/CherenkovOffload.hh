@@ -40,11 +40,11 @@ class CherenkovOffload
     // Construct with optical material, Cherenkov, and step data
     inline CELER_FUNCTION
     CherenkovOffload(ParticleTrackView const& particle,
-                    SimTrackView const& sim,
-                    optical::MaterialView const& mat,
-                    Real3 const& pos,
-                    NativeCRef<optical::CherenkovData> const& shared,
-                    OffloadPreStepData const& step_data);
+                     SimTrackView const& sim,
+                     optical::MaterialView const& mat,
+                     Real3 const& pos,
+                     NativeCRef<optical::CherenkovData> const& shared,
+                     OffloadPreStepData const& step_data);
 
     // Return a populated optical distribution data for the Cherenkov Generator
     template<class Generator>
@@ -66,12 +66,13 @@ class CherenkovOffload
  * Construct with optical material, Cherenkov, and step information.
  */
 CELER_FUNCTION
-CherenkovOffload::CherenkovOffload(ParticleTrackView const& particle,
-                                 SimTrackView const& sim,
-                                 optical::MaterialView const& mat,
-                                 Real3 const& pos,
-                                 NativeCRef<optical::CherenkovData> const& shared,
-                                 OffloadPreStepData const& step_data)
+CherenkovOffload::CherenkovOffload(
+    ParticleTrackView const& particle,
+    SimTrackView const& sim,
+    optical::MaterialView const& mat,
+    Real3 const& pos,
+    NativeCRef<optical::CherenkovData> const& shared,
+    OffloadPreStepData const& step_data)
     : charge_(particle.charge())
     , step_length_(sim.step_length())
     , pre_step_(step_data)

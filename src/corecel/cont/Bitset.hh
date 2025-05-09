@@ -514,8 +514,8 @@ CELER_CONSTEXPR_FUNCTION size_type Bitset<N>::which_bit(size_type pos) noexcept
 //---------------------------------------------------------------------------//
 //! Create a mask for a given bit index
 template<size_type N>
-CELER_CONSTEXPR_FUNCTION auto
-Bitset<N>::mask(size_type pos) noexcept -> word_type
+CELER_CONSTEXPR_FUNCTION auto Bitset<N>::mask(size_type pos) noexcept
+    -> word_type
 {
     return word_type(1) << Bitset::which_bit(pos);
 }
@@ -527,8 +527,8 @@ Bitset<N>::mask(size_type pos) noexcept -> word_type
  * to the original word_type.
  */
 template<size_type N>
-CELER_CONSTEXPR_FUNCTION auto
-Bitset<N>::neg_mask(size_type pos) noexcept -> word_type
+CELER_CONSTEXPR_FUNCTION auto Bitset<N>::neg_mask(size_type pos) noexcept
+    -> word_type
 {
     return ~(word_type(1) << Bitset::which_bit(pos));
 }
@@ -564,7 +564,8 @@ CELER_CONSTEXPR_FUNCTION auto Bitset<N>::last_word() noexcept -> word_type&
 //---------------------------------------------------------------------------//
 //! Get the last word of the bitset
 template<size_type N>
-CELER_CONSTEXPR_FUNCTION auto Bitset<N>::last_word() const noexcept -> word_type
+CELER_CONSTEXPR_FUNCTION auto Bitset<N>::last_word() const noexcept
+    -> word_type
 {
     return words_[num_words_ - 1];
 }

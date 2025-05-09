@@ -91,8 +91,8 @@ class DormandPrinceIntegrator
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class EquationT>
-CELER_FUNCTION
-DormandPrinceIntegrator(EquationT&&) -> DormandPrinceIntegrator<EquationT>;
+CELER_FUNCTION DormandPrinceIntegrator(EquationT&&)
+    -> DormandPrinceIntegrator<EquationT>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -101,8 +101,10 @@ DormandPrinceIntegrator(EquationT&&) -> DormandPrinceIntegrator<EquationT>;
  * Numerically integrate using the DormandPrince RK5(4)7M method.
  */
 template<class E>
-CELER_FUNCTION auto DormandPrinceIntegrator<E>::operator()(
-    real_type step, OdeState const& beg_state) const -> result_type
+CELER_FUNCTION auto
+DormandPrinceIntegrator<E>::operator()(real_type step,
+                                       OdeState const& beg_state) const
+    -> result_type
 {
     using celeritas::axpy;
     using R = real_type;

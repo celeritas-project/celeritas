@@ -52,7 +52,7 @@ struct CartMapFieldInput
     explicit operator bool() const
     {
         // clang-format off
-        return 
+        return
              (max_x >= min_x)
             && (num_x >= 2)
             && (max_y >= min_y)

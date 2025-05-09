@@ -113,5 +113,3 @@ Output
 
 The ROOT "MC truth" output file, if enabled with the command above, contains
 hits from all the sensitive detectors.
-
-

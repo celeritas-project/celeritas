@@ -109,8 +109,8 @@
       <property name="RAYLEIGH" ref="RAY"/>
       <property name="ISOTHERMAL_COMPRESSIBILITY" ref="IC"/>
       <property name="ABSLENGTH" ref="ABS"/>
-      <property name="WLSCOMPONENT" ref="WLSC"/> 
-      <property name="WLSMEANNUMBERPHOTONS" ref="WLSMNP"/> 
+      <property name="WLSCOMPONENT" ref="WLSC"/>
+      <property name="WLSMEANNUMBERPHOTONS" ref="WLSMNP"/>
       <property name="WLSABSLENGTH" ref="ABS"/> <!-- Reused for simplicity -->
       <property name="WLSTIMECONSTANT" ref="TC1"/> <!-- Reused for simplicity -->
     </material>

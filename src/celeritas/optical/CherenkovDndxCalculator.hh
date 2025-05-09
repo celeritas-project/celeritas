@@ -54,8 +54,8 @@ class CherenkovDndxCalculator
     // Construct from optical materials and Cherenkov angle integrals
     inline CELER_FUNCTION
     CherenkovDndxCalculator(MaterialView const& material,
-                           NativeCRef<CherenkovData> const& shared,
-                           units::ElementaryCharge charge);
+                            NativeCRef<CherenkovData> const& shared,
+                            units::ElementaryCharge charge);
 
     // Calculate the mean number of Cherenkov photons produced per unit length
     inline CELER_FUNCTION real_type operator()(units::LightSpeed beta);

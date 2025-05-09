@@ -26,4 +26,3 @@ Both linear and spline interpolation are supported.
 .. doxygenstruct:: celeritas::inp::Interpolation
    :members:
    :no-link:
-

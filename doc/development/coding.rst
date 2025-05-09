@@ -175,4 +175,3 @@ in the context of a large project.
 .. _Google style guide: https://google.github.io/styleguide/cppguide.html
 .. _Software Engineering at Google: https://abseil.io/resources/swe-book
 .. _LLVM coding standards: https://llvm.org/docs/CodingStandards.html
-

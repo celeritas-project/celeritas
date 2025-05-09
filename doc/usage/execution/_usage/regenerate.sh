@@ -15,6 +15,6 @@ cd bin || (
 # Iterate over each executable in the working directory
 for app in *; do
     if [ -x "$app" ] && [ ! -d "$app" ]; then
-        "./$app" --help > "$TARGET_DIR/$app.txt" 2>&1 
+        "./$app" --help > "$TARGET_DIR/$app.txt" 2>&1
     fi
 done

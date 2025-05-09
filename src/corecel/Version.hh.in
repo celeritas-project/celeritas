@@ -5,7 +5,7 @@
 /*!
  * \file corecel/Version.hh
  * \brief Celeritas version macro and declaration.
- * 
+ *
  * This file should be the primary means of interrogating Celeritas
  * capabilities/APIs from downstream software.
  */

@@ -67,8 +67,8 @@ RadialDistribution<RealType>::RadialDistribution(real_type radius)
  */
 template<class RealType>
 template<class Generator>
-CELER_FUNCTION auto
-RadialDistribution<RealType>::operator()(Generator& rng) -> result_type
+CELER_FUNCTION auto RadialDistribution<RealType>::operator()(Generator& rng)
+    -> result_type
 {
     return std::cbrt(generate_canonical<RealType>(rng)) * radius_;
 }

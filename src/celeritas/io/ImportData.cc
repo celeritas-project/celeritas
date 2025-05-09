@@ -9,8 +9,8 @@
 #include <algorithm>
 
 #include "corecel/Assert.hh"
-#include "corecel/io/Logger.hh"
 #include "corecel/io/EnumStringMapper.hh"
+#include "corecel/io/Logger.hh"
 #include "celeritas/UnitTypes.hh"
 
 #include "detail/ImportDataConverter.hh"
