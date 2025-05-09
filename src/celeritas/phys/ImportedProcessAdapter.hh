@@ -16,6 +16,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
 #include "celeritas/io/ImportProcess.hh"
@@ -182,7 +183,7 @@ bool ImportedProcessAdapter::applies_at_rest() const
     while (++it != ids_.end())
     {
         CELER_VALIDATE(result == imported_->get(it->second).applies_at_rest,
-                       << "process '" << to_cstring(process_class_)
+                       << "process '" << process_class_
                        << "' applies at rest for some particles but not "
                           "others");
     }

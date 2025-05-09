@@ -23,8 +23,8 @@ namespace celeritas
 template<MemSpace M>
 struct CartMapFieldParamsDataBase
 {
-    using field_t = detail::CovfieFieldTraits<M>::field_t;
-    using view_t = field_t::view_t;
+    using field_t = typename detail::CovfieFieldTraits<M>::field_t;
+    using view_t = typename field_t::view_t;
 
     FieldDriverOptions options;
 };

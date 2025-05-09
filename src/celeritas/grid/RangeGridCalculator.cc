@@ -8,6 +8,7 @@
 #include "RangeGridCalculator.hh"
 
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 
 #include "UniformLogGridCalculator.hh"
@@ -69,7 +70,7 @@ RangeGridCalculator::operator()(inp::UniformGrid const& dedx_grid) const
     result.interpolation = dedx_grid.interpolation;
     if (result.interpolation.type == InterpolationType::poly_spline)
     {
-        CELER_LOG(warning) << to_cstring(InterpolationType::poly_spline)
+        CELER_LOG(warning) << InterpolationType::poly_spline
                            << " interpolation is not supported for range "
                               "or inverse range: defaulting to linear";
         result.interpolation.type = InterpolationType::linear;
