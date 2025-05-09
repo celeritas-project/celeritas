@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/detail/StepParams.cc
+//! \file celeritas/user/detail/SDParams.cc
 //---------------------------------------------------------------------------//
 #include "SDParams.hh"
 
@@ -25,6 +25,10 @@ SDParams::SDParams(std::string output_label,
     : output_label_{std::move(output_label)}, volume_labels_{std::move(labels)}
 {
     CELER_EXPECT(!output_label_.empty());
+    if (volume_labels_.empty())
+    {
+        return;
+    }
     CELER_EXPECT(!volume_labels_.empty());
 
     enum class HasDetectors

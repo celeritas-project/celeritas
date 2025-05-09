@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/detail/StepParams.cc
+//! \file celeritas/user/detail/SDParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -26,8 +26,7 @@ namespace detail
  * Manage params and state data for sensitive detectors.
  *
  */
-class SDParams : public ParamsDataInterface<SDParamsData>,
-                 public AuxParamsInterface
+class SDParams : public ParamsDataInterface<SDParamsData>
 {
   public:
     using VecLabel = std::vector<Label>;

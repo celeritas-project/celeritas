@@ -12,6 +12,7 @@
 #include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/random/params/RngParamsFwd.hh"
 #include "celeritas/geo/GeoFwd.hh"
+#include "celeritas/user/detail/SDParams.hh"
 
 #include "CoreTrackData.hh"
 
@@ -26,7 +27,7 @@ namespace optical
 class MaterialParams;
 class TrackInitParams;
 class PhysicsParams;
-
+// class SDParams;
 //---------------------------------------------------------------------------//
 /*!
  * Shared parameters for the optical photon loop.
@@ -42,6 +43,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstRng = std::shared_ptr<RngParams const>;
     using SPConstTrackInit = std::shared_ptr<TrackInitParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
+    using SPConstDetectors = std::shared_ptr<celeritas::detail::SDParams const>;
 
     template<MemSpace M>
     using ConstRef = CoreParamsData<Ownership::const_reference, M>;
@@ -56,6 +58,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstPhysics physics;
         SPConstRng rng;
         SPConstTrackInit init;
+        SPConstDetectors detectors;
 
         SPActionRegistry action_reg;
 

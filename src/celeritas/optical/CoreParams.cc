@@ -120,6 +120,16 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CP_VALIDATE_INPUT(max_streams);
 #undef CP_VALIDATE_INPUT
 
+    // If no detectors are input, build an empty detector input
+    if (!input_.detectors)
+    {
+        CELER_VALIDATE(input_.geometry,
+                       << "optical core input is missing geometry data");
+        std::vector<Label> detector_labels;
+        input_.detectors = std::make_shared<celeritas::detail::SDParams>(
+            "empty_optical_detectors", detector_labels, *(input_.geometry));
+    }
+
     CELER_EXPECT(input_);
 
     ScopedMem record_mem("optical::CoreParams.construct");
