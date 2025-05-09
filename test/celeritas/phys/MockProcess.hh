@@ -78,6 +78,7 @@ class MockProcess : public Process
         VecApplicability applic;  //!< Applicablity per model
         ModelCallback interact;  //!< MockModel::interact callback
         VecMicroXs xs;  //!< Constant per atom [bn]
+        VecMicroXs xs_scaled;  //!< Scaled by E
         MevCmSqLossDens energy_loss{};  //!< Constant per atom
         inp::Interpolation interp{};
     };

@@ -12,7 +12,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 struct ImportData;
-struct PhysicsParamsOptions;
+struct PhysicsOptions;
 struct ProcessBuilderOptions;
 
 namespace test
@@ -25,12 +25,6 @@ namespace test
  */
 class ImportedDataTestBase : virtual public GlobalGeoTestBase
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    using PhysicsOptions = PhysicsParamsOptions;
-    //!@}
-
   public:
     //! Access lazily loaded problem-dependent data
     virtual ImportData const& imported_data() const = 0;

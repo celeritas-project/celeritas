@@ -8,6 +8,7 @@
 
 #include <algorithm>
 
+#include "corecel/grid/VectorUtils.hh"
 #include "corecel/sys/ActionRegistry.hh"
 
 #include "MockModel.hh"
@@ -55,17 +56,37 @@ auto MockProcess::macro_xs(Applicability applic) const -> XsGrid
     CELER_EXPECT(applic.material);
     CELER_EXPECT(applic.particle);
 
-    XsGrid grid;
-    if (!data_.xs.empty())
-    {
-        MaterialView mat(data_.materials->host_ref(), applic.material);
-        real_type numdens = mat.number_density();
+    MaterialView mat(data_.materials->host_ref(), applic.material);
+    real_type numdens = mat.number_density();
 
-        grid.lower.x
-            = {std::log(applic.lower.value()), std::log(applic.upper.value())};
+    auto lower_size = data_.xs.size();
+    auto upper_size = data_.xs_scaled.size();
+    CELER_ASSERT(lower_size + upper_size > 1);
+
+    // Get the energy grid values
+    auto size = lower_size && upper_size ? lower_size + upper_size - 1
+                                         : std::max(lower_size, upper_size);
+    auto energy = logspace(applic.lower.value(), applic.upper.value(), size);
+
+    XsGrid grid;
+    if (lower_size)
+    {
+        // Create the unscaled cross section grid
+        grid.lower.x = {std::log(energy[0]), std::log(energy[lower_size - 1])};
         for (auto xs : data_.xs)
         {
             grid.lower.y.push_back(native_value_from(xs) * numdens);
+        }
+    }
+    if (upper_size)
+    {
+        // Create the scaled cross section grid
+        auto start = lower_size ? lower_size - 1 : 0;
+        grid.upper.x = {std::log(energy[start]), std::log(energy[size - 1])};
+        for (auto i : range(upper_size))
+        {
+            grid.upper.y.push_back(native_value_from(data_.xs_scaled[i])
+                                   * numdens * energy[start + i]);
         }
     }
     return grid;

@@ -53,16 +53,13 @@
 #include "Process.hh"
 
 #include "detail/DiscreteSelectAction.hh"
+#include "detail/EnergyMaxXsCalculator.hh"
 #include "detail/PreStepAction.hh"
 
 namespace celeritas
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-using Values
-    = Collection<real_type, Ownership::const_reference, MemSpace::native>;
-
 //---------------------------------------------------------------------------//
 class ImplicitPhysicsAction final : public StaticConcreteAction
 {
@@ -76,47 +73,6 @@ class ImplicitPhysicsAction final : public StaticConcreteAction
 bool is_fake_particle(PDGNumber pdg)
 {
     return pdg.get() >= 81 && pdg.get() <= 100;
-}
-
-//---------------------------------------------------------------------------//
-//! Calculate the energy of the maximum cross section.
-real_type calc_energy_max_xs(UniformGridRecord const& data, Values const& reals)
-{
-    UniformGrid loge_grid(data.grid);
-    UniformLogGridCalculator calc_xs(data, reals);
-
-    real_type xs_max = 0;
-    real_type result = 0;
-    for (auto i : range(loge_grid.size()))
-    {
-        real_type xs = calc_xs[i];
-        if (xs > xs_max)
-        {
-            xs_max = xs;
-            result = std::exp(loge_grid[i]);
-        }
-    }
-    CELER_ENSURE(result > 0);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-//! Calculate the energy of the maximum cross section.
-real_type calc_energy_max_xs(XsGridRecord const& data, Values const& reals)
-{
-    CELER_EXPECT(data);
-
-    real_type result{0};
-    if (data.lower)
-    {
-        result = calc_energy_max_xs(data.lower, reals);
-    }
-    if (data.upper)
-    {
-        result = max(result, calc_energy_max_xs(data.upper, reals));
-    }
-    CELER_ENSURE(result > 0);
-    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -562,10 +518,9 @@ void PhysicsParams::build_tables(Options const& opts,
             std::vector<ValueGridId> inv_range_ids;
 
             // Energy of maximum cross section for each material
+            detail::EnergyMaxXsCalculator calc_integral_xs(opts, proc);
             std::vector<real_type> energy_max_xs;
-            bool use_integral_xs = !opts.disable_integral_xs
-                                   && proc.supports_integral_xs();
-            if (use_integral_xs)
+            if (calc_integral_xs)
             {
                 energy_max_xs.resize(mats.size());
             }
@@ -626,24 +581,11 @@ void PhysicsParams::build_tables(Options const& opts,
                     }
                 }
 
-                if (use_integral_xs)
+                if (calc_integral_xs)
                 {
                     // Find and store the energy of the largest cross section
                     // for this material if the integral approach is used
-
-                    if (process_ids[pp_idx]
-                        == data->hardwired.positron_annihilation)
-                    {
-                        // Annihilation cross section is maximum at zero and
-                        // decreases with increasing energy
-                        energy_max_xs[mat_idx] = 0;
-                    }
-                    else if (auto grid_id = macro_xs_ids[mat_idx])
-                    {
-                        energy_max_xs[mat_idx]
-                            = calc_energy_max_xs(data->value_grids[grid_id],
-                                                 make_const_ref(*data).reals);
-                    }
+                    energy_max_xs[mat_idx] = calc_integral_xs(macro_xs);
                 }
             }
 
@@ -684,11 +626,8 @@ void PhysicsParams::build_tables(Options const& opts,
             }
 
             // Store the energies of the maximum cross sections
-            if (!energy_max_xs.empty())
-            {
-                temp_integral_xs[pp_idx].energy_max_xs = reals.insert_back(
-                    energy_max_xs.begin(), energy_max_xs.end());
-            }
+            temp_integral_xs[pp_idx].energy_max_xs = reals.insert_back(
+                energy_max_xs.begin(), energy_max_xs.end());
         }
         // Construct energy loss process data
         process_group.integral_xs = integral_xs.insert_back(

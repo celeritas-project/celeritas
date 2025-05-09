@@ -117,6 +117,7 @@ list(APPEND SOURCES
   optical/detail/OffloadParams.cc
   optical/detail/OpticalLaunchAction.cc
   phys/CutoffParams.cc
+  phys/detail/EnergyMaxXsCalculator.cc
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc
   phys/ParticleParams.cc

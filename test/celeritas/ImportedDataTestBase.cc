@@ -17,6 +17,7 @@
 #include "celeritas/optical/ScintillationParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/PhysicsOptions.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
 #include "celeritas/track/SimParams.hh"

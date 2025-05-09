@@ -234,7 +234,7 @@ class TestEm3MscNoIntegral : public TestEm3Msc
         return opts;
     }
 
-    PhysicsParamsOptions build_physics_options() const override
+    PhysicsOptions build_physics_options() const override
     {
         auto opts = ImportedDataTestBase::build_physics_options();
         opts.disable_integral_xs = true;
