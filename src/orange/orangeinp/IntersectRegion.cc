@@ -23,6 +23,7 @@
 #include "orange/surf/PlaneAligned.hh"
 #include "orange/surf/SimpleQuadric.hh"
 #include "orange/surf/SphereCentered.hh"
+#include "orange/univ/detail/Utils.hh"
 
 #include "IntersectSurfaceBuilder.hh"
 #include "ObjectIO.json.hh"
@@ -525,6 +526,143 @@ void EllipticalCone::build(IntersectSurfaceBuilder& insert_surface) const
 void EllipticalCone::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+// ExtrudedPolygon
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from a convex polygon, line segment, and scaling factors.
+ */
+ExtrudedPolygon::ExtrudedPolygon(
+    ExtrudedPolygon::VecReal2 const& polygon,
+    ExtrudedPolygon::ArrayReal3 const& line_segment,
+    ExtrudedPolygon::ArrayReal const& scaling_factors)
+    : line_segment_{line_segment}, scaling_factors_{scaling_factors}
+{
+    CELER_VALIDATE(polygon.size() >= 3,
+                   << "polygon must consist of at least 3 points");
+    CELER_VALIDATE(scaling_factors_[0] > 0 && scaling_factors_[1] > 0,
+                   << "scaling factors must be positive");
+    CELER_VALIDATE(line_segment_[BOT][Z] < line_segment_[TOP][Z],
+                   << "line segment must begin with lower z value");
+
+    // Calculate min/max x/y values, used as both characteristic lengths
+    // generating a floating-point tolerance, and generating surfaces for
+    // bounding box creation
+    this->calc_ranges(polygon);
+
+    // Store only non-colinear points
+    Real3 const extents{
+        x_range_[1] - x_range_[0], y_range_[1] - y_range_[0], 0};
+    real_type abs_tol = ::celeritas::detail::BumpCalculator(
+        Tolerance<>::from_default())(extents);
+
+    auto colinear_mask
+        = detail::make_colinear_mask(make_span(polygon), abs_tol);
+    CELER_ASSERT(colinear_mask.size() == polygon.size());
+    for (auto i : range(polygon.size()))
+    {
+        if (!colinear_mask[i])
+        {
+            polygon_.push_back(polygon[i]);
+        }
+    }
+
+    // After removing colinear points, at least 3 points must remain
+    CELER_VALIDATE(polygon_.size() >= 3,
+                   << "polygon must consist of at least 3 points");
+
+    // After removing colinear points, the polygon should have a strictly
+    // clockwise orientation, which also guarantees it is convex.
+    CELER_VALIDATE(
+        has_orientation(make_span(polygon_), detail::Orientation::clockwise),
+        << "polygon must be specified in strictly clockwise order");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void ExtrudedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    // Insert the upper and lower Z bounding planes
+    insert_surface(Sense::outside, PlaneZ{line_segment_[BOT][Z]});
+    insert_surface(Sense::inside, PlaneZ{line_segment_[TOP][Z]});
+
+    // Insert all vertical bounding planes
+    for (auto i : range(polygon_.size()))
+    {
+        // Current and next point on the polygon
+        auto const& p_a = polygon_[i];
+        auto const& p_b = polygon_[(i + 1) % polygon_.size()];
+
+        // Specify points in an order such that the normal is outward-facing
+        // (via the right-hand rule), given that the polygon is provided in
+        // clockwise order
+        auto p0 = scaling_factors_[BOT] * Real3{p_a[X], p_a[Y], 0}
+                  + line_segment_[BOT];
+        auto p1 = scaling_factors_[TOP] * Real3{p_a[X], p_a[Y], 0}
+                  + line_segment_[TOP];
+        auto p2 = scaling_factors_[BOT] * Real3{p_b[X], p_b[Y], 0}
+                  + line_segment_[BOT];
+
+        insert_surface(Sense::inside, Plane{p0, p1, p2});
+    }
+
+    // Insert additional planes for bounding box creation
+    insert_surface(Sense::outside, PlaneX{x_range_[0]});
+    insert_surface(Sense::inside, PlaneX{x_range_[1]});
+    insert_surface(Sense::outside, PlaneY{y_range_[0]});
+    insert_surface(Sense::inside, PlaneY{y_range_[1]});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void ExtrudedPolygon::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the min/max x/y values of the extruded IntersectRegion.
+ *
+ * Note that these are not simply the extrema of the polygon, but take into
+ * account the translation and scaling of the polygon as it is extruded along
+ * the line segment.
+ */
+void ExtrudedPolygon::calc_ranges(VecReal2 const& polygon)
+{
+    // Find min/max x/y values of the polygon itself
+    auto [poly_min_x_it, poly_max_x_it] = std::minmax_element(
+        polygon.begin(), polygon.end(), [](auto const& a, auto const& b) {
+            return a[0] < b[0];
+        });
+    auto [poly_min_y_it, poly_max_y_it] = std::minmax_element(
+        polygon.begin(), polygon.end(), [](auto const& a, auto const& b) {
+            return a[1] < b[1];
+        });
+    auto poly_min_x = (*poly_min_x_it)[X];
+    auto poly_max_x = (*poly_max_x_it)[X];
+    auto poly_min_y = (*poly_min_y_it)[Y];
+    auto poly_max_y = (*poly_max_y_it)[Y];
+
+    // Find the extrema taking into account the extrusion process
+    x_range_[0]
+        = std::min(poly_min_x * scaling_factors_[BOT] + line_segment_[BOT][X],
+                   poly_min_x * scaling_factors_[TOP] + line_segment_[TOP][X]);
+    x_range_[1]
+        = std::max(poly_max_x * scaling_factors_[BOT] + line_segment_[BOT][X],
+                   poly_max_x * scaling_factors_[TOP] + line_segment_[TOP][X]);
+    y_range_[0]
+        = std::min(poly_min_y * scaling_factors_[BOT] + line_segment_[BOT][Y],
+                   poly_min_y * scaling_factors_[TOP] + line_segment_[TOP][Y]);
+    y_range_[1]
+        = std::max(poly_max_y * scaling_factors_[BOT] + line_segment_[BOT][Y],
+                   poly_max_y * scaling_factors_[TOP] + line_segment_[TOP][Y]);
 }
 
 //---------------------------------------------------------------------------//

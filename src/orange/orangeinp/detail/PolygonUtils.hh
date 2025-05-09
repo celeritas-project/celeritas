@@ -151,6 +151,33 @@ inline bool is_convex(Span<Real2 const> corners, bool degen_ok = false)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Return a mask that is true if a point is colinear with its 2 neighbors.
+ */
+std::vector<bool>
+make_colinear_mask(Span<Real2 const> corners, real_type abs_tol)
+{
+    CELER_EXPECT(corners.size() > 2);
+
+    std::vector<bool> result(corners.size(), false);
+    SoftOrientation<Real2::value_type> soft_ori(abs_tol);
+
+    for (auto i : range<size_type>(corners.size()))
+    {
+        auto j = (i + 1) % corners.size();
+        auto k = (i + 2) % corners.size();
+
+        if (soft_ori(corners[i], corners[j], corners[k])
+            == Orientation::collinear)
+        {
+            result[j] = true;  // Middle point is the colinear one
+        }
+    }
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace orangeinp
 }  // namespace celeritas
