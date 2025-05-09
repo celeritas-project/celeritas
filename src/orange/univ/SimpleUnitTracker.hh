@@ -199,7 +199,8 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
  * Find the local volume on the opposite side of a surface.
  */
 CELER_FUNCTION auto
-SimpleUnitTracker::cross_boundary(LocalState const& state) const -> Initialization
+SimpleUnitTracker::cross_boundary(LocalState const& state) const
+    -> Initialization
 {
     CELER_EXPECT(state.surface && state.volume);
     detail::SenseCalculator calc_senses(
@@ -256,8 +257,8 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const -> Initializati
 /*!
  * Calculate distance-to-intercept for the next surface.
  */
-CELER_FUNCTION auto
-SimpleUnitTracker::intersect(LocalState const& state) const -> Intersection
+CELER_FUNCTION auto SimpleUnitTracker::intersect(LocalState const& state) const
+    -> Intersection
 {
     Intersection result = this->intersect_impl(state, detail::IsFinite{});
     return result;
@@ -268,8 +269,8 @@ SimpleUnitTracker::intersect(LocalState const& state) const -> Intersection
  * Calculate distance-to-intercept for the next surface.
  */
 CELER_FUNCTION auto
-SimpleUnitTracker::intersect(LocalState const& state,
-                             real_type max_dist) const -> Intersection
+SimpleUnitTracker::intersect(LocalState const& state, real_type max_dist) const
+    -> Intersection
 {
     CELER_EXPECT(max_dist > 0);
     Intersection result
@@ -389,8 +390,8 @@ SimpleUnitTracker::find_volume_where(Real3 const& pos, F&& predicate) const
  */
 template<class F>
 CELER_FUNCTION auto
-SimpleUnitTracker::intersect_impl(LocalState const& state,
-                                  F&& is_valid) const -> Intersection
+SimpleUnitTracker::intersect_impl(LocalState const& state, F&& is_valid) const
+    -> Intersection
 {
     CELER_EXPECT(state.volume && !state.temp_sense.empty());
 
@@ -590,8 +591,10 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
  * volume (alternatively we could introduce a mapping between Face and
  * LocalSurfaceId).
  */
-CELER_FUNCTION auto SimpleUnitTracker::background_intersect(
-    LocalState const& state, size_type num_isect) const -> Intersection
+CELER_FUNCTION auto
+SimpleUnitTracker::background_intersect(LocalState const& state,
+                                        size_type num_isect) const
+    -> Intersection
 {
     // Calculate bump distance
     real_type const bump_dist

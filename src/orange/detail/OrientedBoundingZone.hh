@@ -277,8 +277,8 @@ CELER_FUNCTION Real3 OrientedBoundingZone::translate(Real3 const& pos)
  * This function also reflects the point into quadrant one.
  */
 CELER_FUNCTION auto
-OrientedBoundingZone::apply_offset(Real3 const& trans_pos,
-                                   BBoxType bbt) -> OffsetPos
+OrientedBoundingZone::apply_offset(Real3 const& trans_pos, BBoxType bbt)
+    -> OffsetPos
 {
     TransformVisitor apply_transform(*sp_.transforms, *sp_.reals);
     auto transform_down

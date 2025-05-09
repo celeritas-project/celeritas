@@ -5,57 +5,60 @@
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_REAL_TYPE STREQUAL "double")
-  set(_needs_double)
-  set(_fixme_single)
+    set(_needs_double)
+    set(_fixme_single)
 else()
-  # Test relies on "gold" data; don't bother updating
-  set(_needs_double DISABLE)
-  # Test has legitimate errors and we should fix if we support
-  # single-precision in the long term
-  set(_fixme_single DISABLE)
+    # Test relies on "gold" data; don't bother updating
+    set(_needs_double DISABLE)
+    # Test has legitimate errors and we should fix if we support
+    # single-precision in the long term
+    set(_fixme_single DISABLE)
 endif()
 
 if(CELERITAS_DEBUG)
-  set(_disable_if_debug DISABLE)
+    set(_disable_if_debug DISABLE)
 endif()
 
 if(NOT CELERITAS_USE_Geant4)
-  set(_needs_geant4 DISABLE)
-  set(_g4_geo_libs)
+    set(_needs_geant4 DISABLE)
+    set(_g4_geo_libs)
 else()
-  set(_optional_geant4_env ENVIRONMENT "${CELER_G4ENV}")
-  set(_needs_geant4 ${_optional_geant4_env})
-  celeritas_get_g4libs(_g4_geo_libs geometry)
+    set(_optional_geant4_env ENVIRONMENT "${CELER_G4ENV}")
+    set(_needs_geant4 ${_optional_geant4_env})
+    celeritas_get_g4libs(_g4_geo_libs geometry)
 endif()
 
 if(NOT CELERITAS_USE_HepMC3)
-  set(_needs_hepmc DISABLE)
+    set(_needs_hepmc DISABLE)
 endif()
 
 if(NOT CELERITAS_USE_ROOT)
-  set(_needs_root DISABLE)
+    set(_needs_root DISABLE)
 endif()
 
 if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
-  set(_core_geo_libs testcel_orange Celeritas::orange)
+    set(_core_geo_libs testcel_orange Celeritas::orange)
 elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
-  set(_core_geo_libs testcel_geocel ${VecGeom_LIBRARIES})
+    set(_core_geo_libs testcel_geocel ${VecGeom_LIBRARIES})
 elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
-  set(_core_geo_libs testcel_geocel ${Geant4_LIBRARIES})
+    set(_core_geo_libs testcel_geocel ${Geant4_LIBRARIES})
 endif()
 
 set(_all_geo_libs
-  # Geometry includes
-  Celeritas::orange ${VecGeom_LIBRARIES} ${Geant4_LIBRARIES}
-  # Test harness instantiations
-  testcel_geocel testcel_orange
+    # Geometry includes
+    Celeritas::orange
+    ${VecGeom_LIBRARIES}
+    ${Geant4_LIBRARIES}
+    # Test harness instantiations
+    testcel_geocel
+    testcel_orange
 )
 
 if(CELERITAS_UNITS STREQUAL "CGS")
-  set(_fixme_cgs)
+    set(_fixme_cgs)
 else()
-  # Unit tests haven't yet been updated to include the correct units
-  set(_fixme_cgs DISABLE)
+    # Unit tests haven't yet been updated to include the correct units
+    set(_fixme_cgs DISABLE)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -116,7 +119,8 @@ celeritas_setup_tests(SERIAL
 #-----------------------------------------------------------------------------#
 
 celeritas_add_test(Constants.test.cc
-  LINK_LIBRARIES ${Geant4_LIBRARIES})
+  LINK_LIBRARIES ${Geant4_LIBRARIES}
+)
 celeritas_add_test(Units.test.cc)
 
 #-----------------------------------------------------------------------------#
@@ -147,25 +151,29 @@ celeritas_add_test(em/SeltzerBerger.test.cc ${_needs_double})
 celeritas_add_test(em/CoulombScattering.test.cc ${_fixme_single})
 
 celeritas_add_test(em/UrbanMsc.test.cc ${_needs_root}
-  ${_optional_geant4_env})
+  ${_optional_geant4_env}
+)
 celeritas_add_test(em/WentzelVIMsc.test.cc ${_needs_root}
-  ${_optional_geant4_env})
+  ${_optional_geant4_env}
+)
 
 #-----------------------------------------------------------------------------#
 # External
 set(_import_filter
-  "FourSteelSlabs*"
-  "TestEm3*"
-  "OneSteelSphere.*"
-  "OneSteelSphereGG.*"
-  "LarSphere.*"
-  "LarSphereExtramat.*"
-  "Solids.*"
+    "FourSteelSlabs*"
+    "TestEm3*"
+    "OneSteelSphere.*"
+    "OneSteelSphereGG.*"
+    "LarSphere.*"
+    "LarSphereExtramat.*"
+    "Solids.*"
 )
 if(Geant4_VERSION VERSION_LESS 11.0)
-  list(REMOVE_ITEM _import_filter
-    "OneSteelSphere.*" # cutoffs changed
-  )
+    list(
+        REMOVE_ITEM
+        _import_filter
+        "OneSteelSphere.*" # cutoffs changed
+    )
 endif()
 
 celeritas_add_test(ext/GeantImporter.test.cc
@@ -174,7 +182,8 @@ celeritas_add_test(ext/GeantImporter.test.cc
   FILTER ${_import_filter}
 )
 celeritas_add_test(ext/GeantVolumeMapper.test.cc ${_needs_geant4}
-  LINK_LIBRARIES ${Geant4_LIBRARIES} Celeritas::orange)
+  LINK_LIBRARIES ${Geant4_LIBRARIES} Celeritas::orange
+)
 celeritas_add_test(ext/RootImporter.test.cc ${_needs_root})
 celeritas_add_test(ext/RootJsonDumper.test.cc ${_needs_root})
 
@@ -186,76 +195,86 @@ celeritas_add_test(field/Steppers.test.cc ${_fixme_cgs})
 celeritas_add_test(field/FieldDriver.test.cc ${_fixme_cgs})
 celeritas_add_test(field/FieldPropagator.test.cc
  ${_fixme_cgs}
-  LINK_LIBRARIES ${_core_geo_libs})
+  LINK_LIBRARIES ${_core_geo_libs}
+)
 celeritas_add_test(field/LinearPropagator.test.cc
-  LINK_LIBRARIES ${_all_geo_libs})
+  LINK_LIBRARIES ${_all_geo_libs}
+)
 celeritas_add_test(field/MagFieldEquation.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Geo
 
-set(_geo_args GPU ${_needs_double} ${_fixme_cgs}
-  LINK_LIBRARIES ${_all_geo_libs}
-  SOURCES geo/HeuristicGeoTestBase.cc
+set(_geo_args
+    GPU
+    ${_needs_double}
+    ${_fixme_cgs}
+    LINK_LIBRARIES
+    ${_all_geo_libs}
+    SOURCES
+    geo/HeuristicGeoTestBase.cc
 )
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-  list(APPEND _geo_args geo/HeuristicGeoTestBase.cu)
+    list(APPEND _geo_args geo/HeuristicGeoTestBase.cu)
 endif()
 celeritas_add_test(geo/Geometry.test.cc ${_geo_args})
 
 if(NOT (CELERITAS_USE_Geant4 OR CELERITAS_USE_ROOT))
-  set(_needs_geant_or_root DISABLE)
+    set(_needs_geant_or_root DISABLE)
 else()
-  set(_needs_geant_or_root)
+    set(_needs_geant_or_root)
 endif()
 celeritas_add_test(geo/GeoMaterial.test.cc
-  ${_needs_geant_or_root} ${_optional_geant4_env})
+  ${_needs_geant_or_root} ${_optional_geant4_env}
+)
 
 #-----------------------------------------------------------------------------#
 # Global
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
-  set(_along_step_filter
-    "-Em3*:SimpleCms*:LeadBox*"
-    "Em3AlongStepTest.nofluct_nomsc"
-    "Em3AlongStepTest.msc_nofluct"
-    "Em3AlongStepTest.msc_nofluct_finegrid"
-    "Em3AlongStepTest.fluct_nomsc"
-    "SimpleCmsAlongStepTest.msc_field"
-    "SimpleCmsAlongStepTest.msc_field_finegrid"
-    "SimpleCmsRZFieldAlongStepTest.msc_rzfield"
-    "SimpleCmsRZFieldAlongStepTest.msc_rzfield_finegrid"
-  )
-  set(_stepper_filter
-    "-TestEm*:LeadBox*"
-    "TestEm3Compton.*"
-    "TestEm3NoMsc.*"
-    "TestEm3Msc.*"
-    "TestEm3MscNofluct.*"
-    "TestEm15FieldMsc.*"
-  )
-  if(Geant4_VERSION VERSION_LESS 11.0)
-    list(REMOVE_ITEM _along_step_filter
-      "Em3AlongStepTest.msc_nofluct_finegrid"
-      "LeadBox*"
+    set(_along_step_filter
+        "-Em3*:SimpleCms*:LeadBox*"
+        "Em3AlongStepTest.nofluct_nomsc"
+        "Em3AlongStepTest.msc_nofluct"
+        "Em3AlongStepTest.msc_nofluct_finegrid"
+        "Em3AlongStepTest.fluct_nomsc"
+        "SimpleCmsAlongStepTest.msc_field"
+        "SimpleCmsAlongStepTest.msc_field_finegrid"
+        "SimpleCmsRZFieldAlongStepTest.msc_rzfield"
+        "SimpleCmsRZFieldAlongStepTest.msc_rzfield_finegrid"
     )
-  endif()
+    set(_stepper_filter
+        "-TestEm*:LeadBox*"
+        "TestEm3Compton.*"
+        "TestEm3NoMsc.*"
+        "TestEm3Msc.*"
+        "TestEm3MscNofluct.*"
+        "TestEm15FieldMsc.*"
+    )
+    if(Geant4_VERSION VERSION_LESS 11.0)
+        list(
+            REMOVE_ITEM
+            _along_step_filter
+            "Em3AlongStepTest.msc_nofluct_finegrid"
+            "LeadBox*"
+        )
+    endif()
 elseif(CELERITAS_USE_Geant4)
-  set(_along_step_filter
-    "-Em3*:SimpleCms*:LeadBox*"
-    "Em3AlongStepTest.nofluct_nomsc"
-    "Em3AlongStepTest.fluct_nomsc"
-    "LeadBox*"
-  )
-  set(_stepper_filter
-    "-TestEm*:LeadBox*"
-    "TestEm3Compton.*"
-    "TestEm3Msc.*"
-    "TestEm3MscNofluct.*"
-    "TestEm15FieldMsc.*"
-  )
+    set(_along_step_filter
+        "-Em3*:SimpleCms*:LeadBox*"
+        "Em3AlongStepTest.nofluct_nomsc"
+        "Em3AlongStepTest.fluct_nomsc"
+        "LeadBox*"
+    )
+    set(_stepper_filter
+        "-TestEm*:LeadBox*"
+        "TestEm3Compton.*"
+        "TestEm3Msc.*"
+        "TestEm3MscNofluct.*"
+        "TestEm15FieldMsc.*"
+    )
 else()
-  set(_along_step_filter)
-  set(_stepper_filter)
+    set(_along_step_filter)
+    set(_stepper_filter)
 endif()
 
 celeritas_add_test(global/AlongStep.test.cc
@@ -291,7 +310,8 @@ celeritas_add_test(grid/XsCalculator.test.cc)
 #-----------------------------------------------------------------------------#
 # IO
 celeritas_add_test(io/EventIO.test.cc ${_needs_hepmc}
-  LINK_LIBRARIES ${HepMC3_LIBRARIES})
+  LINK_LIBRARIES ${HepMC3_LIBRARIES}
+)
 celeritas_add_test(io/ImportUnits.test.cc)
 celeritas_add_test(io/RootEventIO.test.cc ${_needs_root})
 celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
@@ -328,9 +348,11 @@ celeritas_add_device_test(phys/Physics)
 celeritas_add_test(phys/InteractionUtils.test.cc)
 celeritas_add_test(phys/PhysicsStepUtils.test.cc)
 celeritas_add_test(phys/PrimaryGenerator.test.cc
-  LINK_LIBRARIES nlohmann_json::nlohmann_json)
+  LINK_LIBRARIES nlohmann_json::nlohmann_json
+)
 celeritas_add_test(phys/ProcessBuilder.test.cc ${_needs_root}
-  ${_optional_geant4_env})
+  ${_optional_geant4_env}
+)
 
 #-----------------------------------------------------------------------------#
 # Random
@@ -359,13 +381,9 @@ celeritas_add_test(track/Sim.test.cc ${_needs_geant4})
 celeritas_add_test(track/StatusChecker.test.cc GPU)
 celeritas_add_test(track/TrackSort.test.cc GPU ${_needs_geant4})
 
-set(_trackinit_sources
-  track/MockInteractAction.cc
-)
+set(_trackinit_sources track/MockInteractAction.cc)
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-  list(APPEND _trackinit_sources
-    track/MockInteractAction.cu
-  )
+    list(APPEND _trackinit_sources track/MockInteractAction.cu)
 endif()
 
 celeritas_add_test(track/TrackInit.test.cc
@@ -376,22 +394,15 @@ celeritas_add_test(track/TrackInit.test.cc
 # User
 
 if(CELERITAS_USE_Geant4)
-  set(_diagnostic_filter
-    "-TestEm3*"
-    "TestEm3*"
-  )
-  set(_step_filter
-    "-TestEm3*:TestMultiEm3*"
-    "TestEm3*"
-    "TestMultiEm3*"
-  )
+    set(_diagnostic_filter "-TestEm3*" "TestEm3*")
+    set(_step_filter "-TestEm3*:TestMultiEm3*" "TestEm3*" "TestMultiEm3*")
 else()
-  set(_diagnostic_filter)
-  set(_step_filter)
+    set(_diagnostic_filter)
+    set(_step_filter)
 endif()
 if(CELERITAS_CORE_GEO STREQUAL "Geant4")
-  # EM track gets stuck
-  set(_fails_g4geo DISABLE)
+    # EM track gets stuck
+    set(_fails_g4geo DISABLE)
 endif()
 
 celeritas_add_test(user/DetectorSteps.test.cc GPU)
@@ -412,28 +423,23 @@ celeritas_add_test(user/StepCollector.test.cc
 # DATA UPDATE
 #-----------------------------------------------------------------------------#
 
-add_custom_target(update-root-test-data
-  COMMENT "Regenerate ROOT test data"
-)
+add_custom_target(update-root-test-data COMMENT "Regenerate ROOT test data")
 
 if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
-  foreach(_filename "four-steel-slabs" "simple-cms" "lar-sphere")
-    set(_gdml "${PROJECT_SOURCE_DIR}/test/geocel/data/${_filename}.gdml")
-    set(_basename "${CMAKE_CURRENT_SOURCE_DIR}/data/${_filename}")
-    set(_output "${_basename}.root")
-    add_custom_command(
-      TARGET update-root-test-data
-      POST_BUILD
-      COMMAND
-        "${CMAKE_COMMAND}" "-E" "env" ${CELER_G4ENV}
-        "$<TARGET_FILE:celer-export-geant>"
-        "${_gdml}"
-        "${_basename}.geant.json"
-        "${_output}"
-        "--gen-test"
-      VERBATIM
-    )
-  endforeach()
+    foreach(_filename "four-steel-slabs" "simple-cms" "lar-sphere")
+        set(_gdml "${PROJECT_SOURCE_DIR}/test/geocel/data/${_filename}.gdml")
+        set(_basename "${CMAKE_CURRENT_SOURCE_DIR}/data/${_filename}")
+        set(_output "${_basename}.root")
+        add_custom_command(
+            TARGET update-root-test-data
+            POST_BUILD
+            COMMAND
+                "${CMAKE_COMMAND}" "-E" "env" ${CELER_G4ENV}
+                "$<TARGET_FILE:celer-export-geant>" "${_gdml}"
+                "${_basename}.geant.json" "${_output}" "--gen-test"
+            VERBATIM
+        )
+    endforeach()
 endif()
 
 #-----------------------------------------------------------------------------#

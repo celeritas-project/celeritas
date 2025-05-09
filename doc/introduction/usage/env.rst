@@ -104,4 +104,3 @@ diagnostic messages and higher.
  error      Something went wrong, but execution can continue
  critical   Something went terribly wrong, program termination imminent
  ========== ==============================================================
-

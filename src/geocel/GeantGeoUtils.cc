@@ -259,7 +259,8 @@ void reset_geant_geometry()
         G4ReflectionFactory::Instance()->Clean();
 #endif
         free_and_clear(G4Material::GetMaterialTable());
-        free_and_clear(const_cast<std::vector<G4Element*>*>(G4Element::GetElementTable()));
+        free_and_clear(const_cast<std::vector<G4Element*>*>(
+            G4Element::GetElementTable()));
         free_and_clear(const_cast<std::vector<G4Isotope*>*>(
             G4Isotope::GetIsotopeTable()));
         msg = scoped_log.str();

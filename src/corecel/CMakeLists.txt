@@ -18,9 +18,9 @@ celeritas_version_to_hex(CELERITAS_VERSION PROJECT_VERSION)
 #----------------------------------------------------------------------------#
 # Build configuration
 
-set(CELERITAS_USE_GEANT4  ${CELERITAS_USE_Geant4})
-set(CELERITAS_USE_HEPMC3  ${CELERITAS_USE_HepMC3})
-set(CELERITAS_USE_OPENMP  ${CELERITAS_USE_OpenMP})
+set(CELERITAS_USE_GEANT4 ${CELERITAS_USE_Geant4})
+set(CELERITAS_USE_HEPMC3 ${CELERITAS_USE_HepMC3})
+set(CELERITAS_USE_OPENMP ${CELERITAS_USE_OpenMP})
 set(CELERITAS_USE_VECGEOM ${CELERITAS_USE_VecGeom})
 set(CELERITAS_USE_PERFETTO ${CELERITAS_USE_Perfetto})
 
@@ -40,42 +40,56 @@ celeritas_generate_option_config(CELERITAS_UNITS)
 
 # Get host system information
 if(NOT DEFINED CELERITAS_HOSTNAME)
-  set(_hostname "$ENV{LMOD_SYSTEM_NAME}")
-  if(NOT _hostname)
-    cmake_host_system_information(RESULT _hostname QUERY HOSTNAME)
-    string(REGEX REPLACE "\\..*" "" _hostname "${_hostname}")
-  endif()
-  set(CELERITAS_HOSTNAME "${_hostname}" CACHE INTERNAL
-    "Build/deploy system name")
+    set(_hostname "$ENV{LMOD_SYSTEM_NAME}")
+    if(NOT _hostname)
+        cmake_host_system_information(RESULT _hostname QUERY HOSTNAME)
+        string(REGEX REPLACE "\\..*" "" _hostname "${_hostname}")
+    endif()
+    set(CELERITAS_HOSTNAME
+        "${_hostname}"
+        CACHE INTERNAL
+        "Build/deploy system name"
+    )
 endif()
 
 # Save CMake variables as strings
 set(CELERITAS_CMAKE_STRINGS)
 macro(celeritas_append_cmake_string key value)
-  list(APPEND CELERITAS_CMAKE_STRINGS
-    "inline constexpr char ${key}[] = R\"(${value})\"\;"
-  )
+    list(
+        APPEND
+        CELERITAS_CMAKE_STRINGS
+        "inline constexpr char ${key}[] = R\"(${value})\"\;"
+    )
 endmacro()
 
 string(TOLOWER "${CMAKE_BUILD_TYPE}," CELERITAS_BUILD_TYPE)
 if(BUILD_SHARED_LIBS)
-  string(APPEND CELERITAS_BUILD_TYPE "shared")
+    string(APPEND CELERITAS_BUILD_TYPE "shared")
 else()
-  string(APPEND CELERITAS_BUILD_TYPE "static")
-  if(CMAKE_POSITION_INDEPENDENT_CODE)
-    string(APPEND CELERITAS_BUILD_TYPE ",pic")
-  endif()
+    string(APPEND CELERITAS_BUILD_TYPE "static")
+    if(CMAKE_POSITION_INDEPENDENT_CODE)
+        string(APPEND CELERITAS_BUILD_TYPE ",pic")
+    endif()
 endif()
-foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS OPENMP CORE_GEO CORE_RNG)
-  string(TOLOWER "celeritas_${_var}" _lower)
-  celeritas_append_cmake_string("${_lower}" "${CELERITAS_${_var}}")
+foreach(
+    _var
+    BUILD_TYPE
+    HOSTNAME
+    REAL_TYPE
+    UNITS
+    OPENMP
+    CORE_GEO
+    CORE_RNG
+)
+    string(TOLOWER "celeritas_${_var}" _lower)
+    celeritas_append_cmake_string("${_lower}" "${CELERITAS_${_var}}")
 endforeach()
 
 set(_gpu_arch "")
 if(CELERITAS_USE_CUDA)
-  set(_gpu_arch "${CMAKE_CUDA_ARCHITECTURES}")
+    set(_gpu_arch "${CMAKE_CUDA_ARCHITECTURES}")
 elseif(CELERITAS_USE_HIP)
-  set(_gpu_arch "${CMAKE_HIP_ARCHITECTURES}")
+    set(_gpu_arch "${CMAKE_HIP_ARCHITECTURES}")
 endif()
 # Arch variable may be ;-separated list, so we need to escape the ;
 string(REPLACE ";" "\;" _gpu_arch "${_gpu_arch}")
@@ -86,16 +100,26 @@ list(APPEND CELERITAS_CMAKE_STRINGS "")
 # Save dependency versions as strings
 set(CUDA_VERSION_STRING "${CUDAToolkit_VERSION}")
 set(HIP_VERSION_STRING "${hip-lang_VERSION}")
-foreach(_pkg CLHEP CUDA HepMC3 HIP Geant4 ROOT Thrust VecGeom)
-  string(TOLOWER "${_pkg}" _lower)
-  if(DEFINED ${_pkg}_VERSION_STRING)
-    set(_value "${${_pkg}_VERSION_STRING}")
-  elseif(DEFINED ${_pkg}_VERSION)
-    set(_value "${${_pkg}_VERSION}")
-  else()
-    set(_value "")
-  endif()
-  celeritas_append_cmake_string("celeritas_${_lower}_version" "${_value}")
+foreach(
+    _pkg
+    CLHEP
+    CUDA
+    HepMC3
+    HIP
+    Geant4
+    ROOT
+    Thrust
+    VecGeom
+)
+    string(TOLOWER "${_pkg}" _lower)
+    if(DEFINED ${_pkg}_VERSION_STRING)
+        set(_value "${${_pkg}_VERSION_STRING}")
+    elseif(DEFINED ${_pkg}_VERSION)
+        set(_value "${${_pkg}_VERSION}")
+    else()
+        set(_value "")
+    endif()
+    celeritas_append_cmake_string("celeritas_${_lower}_version" "${_value}")
 endforeach()
 
 list(JOIN CELERITAS_CMAKE_STRINGS "\n" CELERITAS_CMAKE_STRINGS)
@@ -105,19 +129,21 @@ list(JOIN CELERITAS_CMAKE_STRINGS "\n" CELERITAS_CMAKE_STRINGS)
 # - CELERITAS_SINCOSPI_PREFIX
 
 if(DEFINED CELERITAS_SINCOSPI_PREFIX)
-  set(CELERITAS_SINCOSPI_PREFIX_DEF
-    "#define CELERITAS_SINCOSPI_PREFIX ${CELERITAS_SINCOSPI_PREFIX}"
-  )
+    set(CELERITAS_SINCOSPI_PREFIX_DEF
+        "#define CELERITAS_SINCOSPI_PREFIX ${CELERITAS_SINCOSPI_PREFIX}"
+    )
 endif()
 
 # Save dependency versions as hex
 set(CELERITAS_DEPENDENCY_VERSIONS)
 foreach(_dep Geant4 VecGeom HepMC3)
-  string(TOUPPER "${_dep}" _upper)
-  celeritas_version_to_hex(_temp_version_hex ${_dep}_VERSION)
-  list(APPEND CELERITAS_DEPENDENCY_VERSIONS
-    "#define CELERITAS_${_upper}_VERSION ${_temp_version_hex}"
-  )
+    string(TOUPPER "${_dep}" _upper)
+    celeritas_version_to_hex(_temp_version_hex ${_dep}_VERSION)
+    list(
+        APPEND
+        CELERITAS_DEPENDENCY_VERSIONS
+        "#define CELERITAS_${_upper}_VERSION ${_temp_version_hex}"
+    )
 endforeach()
 list(JOIN CELERITAS_DEPENDENCY_VERSIONS "\n" CELERITAS_DEPENDENCY_VERSIONS)
 
@@ -130,52 +156,54 @@ celeritas_configure_file("Config.hh.in" "corecel/Config.hh" @ONLY)
 # Main code
 #-----------------------------------------------------------------------------#
 
-list(APPEND SOURCES
-  Assert.cc
-  AssertIO.json.cc
-  Types.cc
-  data/Copier.cc
-  data/DeviceAllocation.cc
-  data/AuxInterface.cc
-  data/AuxParamsRegistry.cc
-  data/AuxStateVec.cc
-  data/detail/PinnedAllocatorImpl.cc
-  grid/VectorUtils.cc
-  io/BuildOutput.cc
-  io/ColorUtils.cc
-  io/ExceptionOutput.cc
-  io/JsonUtils.json.cc
-  io/Label.cc
-  io/LogContextException.cc
-  io/Logger.cc
-  io/LoggerTypes.cc
-  io/OutputInterface.cc
-  io/OutputRegistry.cc
-  io/ScopedStreamRedirect.cc
-  io/ScopedTimeAndRedirect.cc
-  io/StringUtils.cc
-  io/detail/EnumStringMapperImpl.cc
-  io/detail/LoggerMessage.cc
-  io/detail/ReprImpl.cc
-  sys/ActionInterface.cc
-  sys/ActionRegistry.cc
-  sys/ActionRegistryOutput.cc
-  sys/Device.cc
-  sys/DeviceIO.json.cc
-  sys/Environment.cc
-  sys/KernelRegistry.cc
-  sys/KernelRegistryIO.json.cc
-  sys/MemRegistry.cc
-  sys/MemRegistryIO.json.cc
-  sys/MpiCommunicator.cc
-  sys/MultiExceptionHandler.cc
-  sys/ScopedMem.cc
-  sys/ScopedMpiInit.cc
-  sys/ScopedProfiling.cc
-  sys/ScopedSignalHandler.cc
-  sys/Stream.cc
-  sys/TypeDemangler.cc
-  sys/Version.cc
+list(
+    APPEND
+    SOURCES
+    Assert.cc
+    AssertIO.json.cc
+    Types.cc
+    data/Copier.cc
+    data/DeviceAllocation.cc
+    data/AuxInterface.cc
+    data/AuxParamsRegistry.cc
+    data/AuxStateVec.cc
+    data/detail/PinnedAllocatorImpl.cc
+    grid/VectorUtils.cc
+    io/BuildOutput.cc
+    io/ColorUtils.cc
+    io/ExceptionOutput.cc
+    io/JsonUtils.json.cc
+    io/Label.cc
+    io/LogContextException.cc
+    io/Logger.cc
+    io/LoggerTypes.cc
+    io/OutputInterface.cc
+    io/OutputRegistry.cc
+    io/ScopedStreamRedirect.cc
+    io/ScopedTimeAndRedirect.cc
+    io/StringUtils.cc
+    io/detail/EnumStringMapperImpl.cc
+    io/detail/LoggerMessage.cc
+    io/detail/ReprImpl.cc
+    sys/ActionInterface.cc
+    sys/ActionRegistry.cc
+    sys/ActionRegistryOutput.cc
+    sys/Device.cc
+    sys/DeviceIO.json.cc
+    sys/Environment.cc
+    sys/KernelRegistry.cc
+    sys/KernelRegistryIO.json.cc
+    sys/MemRegistry.cc
+    sys/MemRegistryIO.json.cc
+    sys/MpiCommunicator.cc
+    sys/MultiExceptionHandler.cc
+    sys/ScopedMem.cc
+    sys/ScopedMpiInit.cc
+    sys/ScopedProfiling.cc
+    sys/ScopedSignalHandler.cc
+    sys/Stream.cc
+    sys/TypeDemangler.cc
+    sys/Version.cc
 )
 
 #-----------------------------------------------------------------------------#
@@ -185,43 +213,37 @@ list(APPEND SOURCES
 list(APPEND PRIVATE_DEPS Celeritas::DeviceToolkit)
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-  list(APPEND SOURCES
-    data/Filler.cu
-    sys/KernelParamCalculator.device.cc
-  )
+    list(APPEND SOURCES data/Filler.cu sys/KernelParamCalculator.device.cc)
 endif()
 if(CELERITAS_USE_CUDA)
-  # Note: we currently assume the CUDA install includes the nvtx header
-  list(APPEND SOURCES
-    sys/ScopedLimitSaver.cuda.cc
-    sys/ScopedProfiling.cuda.cc
-  )
-  # NVTX requires `-ldl`
-  # This does not appears to be needed anymore with
-  # CMake 3.26.5 and CUDA sdk 12.6.
-  list(APPEND PRIVATE_DEPS ${CMAKE_DL_LIBS})
+    # Note: we currently assume the CUDA install includes the nvtx header
+    list(
+        APPEND
+        SOURCES
+        sys/ScopedLimitSaver.cuda.cc
+        sys/ScopedProfiling.cuda.cc
+    )
+    # NVTX requires `-ldl`
+    # This does not appears to be needed anymore with
+    # CMake 3.26.5 and CUDA sdk 12.6.
+    list(APPEND PRIVATE_DEPS ${CMAKE_DL_LIBS})
 endif()
 
 if(CELERITAS_USE_HIP)
-  list(APPEND SOURCES
-    sys/ScopedProfiling.hip.cc
-  )
+    list(APPEND SOURCES sys/ScopedProfiling.hip.cc)
 endif()
 
 if(CELERITAS_USE_MPI)
-  list(APPEND PRIVATE_DEPS MPI::MPI_CXX)
+    list(APPEND PRIVATE_DEPS MPI::MPI_CXX)
 endif()
 
 if(CELERITAS_USE_OpenMP)
-  list(APPEND PRIVATE_DEPS OpenMP::OpenMP_CXX)
+    list(APPEND PRIVATE_DEPS OpenMP::OpenMP_CXX)
 endif()
 
 if(CELERITAS_USE_Perfetto)
-  list(APPEND PRIVATE_DEPS Celeritas::perfetto)
-  list(APPEND SOURCES
-    sys/TraceCounter.perfetto.cc
-    sys/TracingSession.cc
-  )
+    list(APPEND PRIVATE_DEPS Celeritas::perfetto)
+    list(APPEND SOURCES sys/TraceCounter.perfetto.cc sys/TracingSession.cc)
 endif()
 
 #-----------------------------------------------------------------------------#

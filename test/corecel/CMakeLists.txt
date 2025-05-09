@@ -15,7 +15,7 @@ celeritas_setup_tests(SERIAL
   LINK_LIBRARIES testcel_core Celeritas::corecel
 )
 if(CELERITAS_USE_MPI)
-  set(_mpi_optional LINK_LIBRARIES MPI::MPI_CXX)
+    set(_mpi_optional LINK_LIBRARIES MPI::MPI_CXX)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -45,7 +45,8 @@ celeritas_add_test(data/LdgIterator.test.cc)
 celeritas_add_test(data/HyperslabIndexer.test.cc)
 celeritas_add_device_test(data/StackAllocator)
 celeritas_add_test(data/AuxInterface.test.cc
-  SOURCES data/AuxMockParams.cc)
+  SOURCES data/AuxMockParams.cc
+)
 
 # Grid
 celeritas_add_test(grid/Interpolator.test.cc)
@@ -62,7 +63,8 @@ celeritas_add_test(io/Logger.test.cc
   ${_mpi_optional}
 )
 celeritas_add_test(io/OutputRegistry.test.cc
-  LINK_LIBRARIES nlohmann_json::nlohmann_json)
+  LINK_LIBRARIES nlohmann_json::nlohmann_json
+)
 celeritas_add_test(io/Repr.test.cc)
 celeritas_add_test(io/StringEnumMapper.test.cc)
 celeritas_add_test(io/StringUtils.test.cc)
@@ -75,7 +77,8 @@ celeritas_add_test(math/HashUtils.test.cc)
 celeritas_add_test(math/Integrator.test.cc)
 celeritas_add_device_test(math/NumericLimits)
 celeritas_add_test(math/Quantity.test.cc
-  LINK_LIBRARIES nlohmann_json::nlohmann_json)
+  LINK_LIBRARIES nlohmann_json::nlohmann_json
+)
 celeritas_add_test(math/SoftEqual.test.cc)
 celeritas_add_test(math/RegulaFalsiRootFinder.test.cc)
 celeritas_add_test(math/BisectionRootFinder.test.cc)
@@ -89,7 +92,8 @@ celeritas_add_test(sys/Environment.test.cc
 )
 celeritas_add_test(sys/MpiCommunicator.test.cc
   ${_mpi_optional}
-  NP ${CELERITASTEST_NP_DEFAULT})
+  NP ${CELERITASTEST_NP_DEFAULT}
+)
 celeritas_add_test(sys/MultiExceptionHandler.test.cc)
 celeritas_add_test(sys/TypeDemangler.test.cc)
 celeritas_add_test(sys/ScopedSignalHandler.test.cc)
@@ -97,6 +101,5 @@ celeritas_add_test(sys/ScopedStreamRedirect.test.cc)
 celeritas_add_test(sys/Stopwatch.test.cc ADDED_TESTS _stopwatch)
 set_tests_properties(${_stopwatch} PROPERTIES LABELS "nomemcheck")
 celeritas_add_test(sys/Version.test.cc)
-
 
 #-----------------------------------------------------------------------------#

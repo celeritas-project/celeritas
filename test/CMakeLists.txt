@@ -14,17 +14,17 @@ file(TO_CMAKE_PATH "${PROJECT_SOURCE_DIR}" CELERITAS_SOURCE_DIR)
 configure_file(celeritas_test_config.h.in celeritas_test_config.h @ONLY)
 
 if(CELERITAS_USE_MPI)
-  set(_mpi_libs MPI::MPI_CXX)
+    set(_mpi_libs MPI::MPI_CXX)
 else()
-  set(_mpi_libs)
+    set(_mpi_libs)
 endif()
 
 set(_harness_sources
-  Test.cc
-  testdetail/JsonComparer.json.cc
-  testdetail/NonMasterResultPrinter.cc
-  testdetail/TestMacrosImpl.cc
-  testdetail/TestMainImpl.cc
+    Test.cc
+    testdetail/JsonComparer.json.cc
+    testdetail/NonMasterResultPrinter.cc
+    testdetail/TestMacrosImpl.cc
+    testdetail/TestMainImpl.cc
 )
 celeritas_add_test_library(testcel_harness ${_harness_sources})
 target_compile_features(testcel_harness PUBLIC cxx_std_17)
@@ -37,33 +37,34 @@ celeritas_target_include_directories(testcel_harness
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
 )
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
-    AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 13)
-  # GCC 13 and 14 have false positives with array bounds checking, string bounds
-  # checking, initialization checking, ...
-  celeritas_target_compile_options(testcel_harness
-    PUBLIC
-    "$<$<COMPILE_LANGUAGE:CXX>:-Wno-array-bounds;-Wno-stringop-overflow;-Wno-uninitialized>"
-  )
+if(
+    CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+    AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 13
+)
+    # GCC 13 and 14 have false positives with array bounds checking, string bounds
+    # checking, initialization checking, ...
+    celeritas_target_compile_options(testcel_harness
+      PUBLIC
+      "$<$<COMPILE_LANGUAGE:CXX>:-Wno-array-bounds;-Wno-stringop-overflow;-Wno-uninitialized>"
+    )
 endif()
-
 
 #-----------------------------------------------------------------------------#
 # TEST OPTIONS
 #-----------------------------------------------------------------------------#
 
 function(celeritas_add_device_test base)
-  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-    set(_cuda_args GPU SOURCES "${base}.test.cu")
-  endif()
-  celeritas_add_test("${base}.test.cc" ${_cuda_args} ${ARGN})
+    if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+        set(_cuda_args GPU SOURCES "${base}.test.cu")
+    endif()
+    celeritas_add_test("${base}.test.cc" ${_cuda_args} ${ARGN})
 endfunction()
 
 if(CELERITAS_UNITS STREQUAL "CGS")
-  set(_fixme_cgs)
+    set(_fixme_cgs)
 else()
-  # Unit tests haven't yet been updated to include the correct units
-  set(_fixme_cgs DISABLE)
+    # Unit tests haven't yet been updated to include the correct units
+    set(_fixme_cgs DISABLE)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -74,7 +75,7 @@ add_subdirectory(orange)
 add_subdirectory(celeritas)
 
 if(CELERITAS_USE_Geant4)
-  add_subdirectory(accel)
+    add_subdirectory(accel)
 endif()
 
 celeritas_setup_tests(SERIAL PREFIX testdetail)

@@ -89,7 +89,10 @@ class LabelIdMultiMap
     // Access the label+sublabel pair for an Id
     // DEPRECATED: remove in v0.6 (use 'at')
     [[deprecated]]
-    CELER_FORCEINLINE Label const& get(IdT id) const { return this->at(id); }
+    CELER_FORCEINLINE Label const& get(IdT id) const
+    {
+        return this->at(id);
+    }
 
     // Access the label+sublabel pair for an Id
     inline Label const& at(IdT id) const;
@@ -194,7 +197,8 @@ LabelIdMultiMap<I>::LabelIdMultiMap(std::string&& label, VecLabel&& keys)
  * with uniquifying "extensions", such as pointer addresses from Geant4.
  */
 template<class I>
-auto LabelIdMultiMap<I>::find_all(std::string const& name) const -> SpanConstIdT
+auto LabelIdMultiMap<I>::find_all(std::string const& name) const
+    -> SpanConstIdT
 {
     auto iter = ids_.find(name);
     if (iter == ids_.end())

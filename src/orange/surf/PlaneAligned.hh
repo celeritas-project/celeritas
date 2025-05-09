@@ -149,7 +149,8 @@ template<Axis T>
 CELER_FUNCTION auto
 PlaneAligned<T>::calc_intersections(Real3 const& pos,
                                     Real3 const& dir,
-                                    SurfaceState on_surface) const -> Intersections
+                                    SurfaceState on_surface) const
+    -> Intersections
 {
     real_type const n_dir = dir[to_int(T)];
     if (on_surface == SurfaceState::off && n_dir != 0)

@@ -216,8 +216,8 @@ auto ImportedProcessAdapter::step_limits(Applicability const& applic) const
 /*!
  * Get the interaction cross sections for the given material and particle.
  */
-auto ImportedProcessAdapter::step_limits_impl(
-    Applicability const& applic) const -> StepLimitBuilders
+auto ImportedProcessAdapter::step_limits_impl(Applicability const& applic) const
+    -> StepLimitBuilders
 {
     CELER_EXPECT(ids_.count(applic.particle));
     CELER_EXPECT(applic.material);

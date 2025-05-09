@@ -810,10 +810,14 @@ class OpticalMfpHelper
     };
 
     //! Construct helper for given model class out of the models
-    OpticalMfpHelper(std::vector<ImportOpticalModel> const& models, optical::ImportModelClass imc)
+    OpticalMfpHelper(std::vector<ImportOpticalModel> const& models,
+                     optical::ImportModelClass imc)
         : mfps_(nullptr)
     {
-        auto iter = std::find_if(models.begin(), models.end(), [imc] (auto const& m) { return m.model_class == imc; });
+        auto iter
+            = std::find_if(models.begin(), models.end(), [imc](auto const& m) {
+                  return m.model_class == imc;
+              });
         if (iter != models.end())
         {
             mfps_ = &iter->mfp_table;
@@ -901,7 +905,8 @@ void print_optical_materials(std::vector<ImportOpticalModel> const& io_models,
     }
 
     {
-        OpticalMfpHelper rayleigh_model(io_models, optical::ImportModelClass::rayleigh);
+        OpticalMfpHelper rayleigh_model(io_models,
+                                        optical::ImportModelClass::rayleigh);
 
         cout << "\n## Rayleigh";
         cout << header;
@@ -922,7 +927,8 @@ void print_optical_materials(std::vector<ImportOpticalModel> const& io_models,
     }
 
     {
-        OpticalMfpHelper absorption_helper(io_models, optical::ImportModelClass::absorption);
+        OpticalMfpHelper absorption_helper(
+            io_models, optical::ImportModelClass::absorption);
 
         cout << "\n## Absorption";
         cout << header;

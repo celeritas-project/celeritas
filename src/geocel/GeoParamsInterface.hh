@@ -69,7 +69,10 @@ class GeoParamsInterface
 
     //! Number of volumes
     [[deprecated]]
-    VolumeId::size_type num_volumes() const { return this->volumes().size(); }
+    VolumeId::size_type num_volumes() const
+    {
+        return this->volumes().size();
+    }
 
     //! Get the label for a placed volume ID
     [[deprecated]]

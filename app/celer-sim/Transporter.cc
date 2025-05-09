@@ -20,8 +20,8 @@
 #include "corecel/grid/VectorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
-#include "corecel/sys/TraceCounter.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
+#include "corecel/sys/TraceCounter.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/ActionSequence.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -80,7 +80,8 @@ void Transporter<M>::operator()()
  * Transport the input primaries and all secondaries produced.
  */
 template<MemSpace M>
-auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
+auto Transporter<M>::operator()(SpanConstPrimary primaries)
+    -> TransporterResult
 {
     // Initialize results
     TransporterResult result;

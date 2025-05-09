@@ -169,5 +169,3 @@ Runtime interfaces
 .. doxygenclass:: celeritas::OrangeParams
 
 .. doxygenclass:: celeritas::OrangeTrackView
-
-

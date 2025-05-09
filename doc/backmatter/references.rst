@@ -16,4 +16,3 @@ References
    .. _sphinxbib: https://pypi.org/project/sphinxcontrib-bibtex/
 
 .. bibliography:: ../_static/zotero.bib
-

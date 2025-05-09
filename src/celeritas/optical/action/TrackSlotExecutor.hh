@@ -145,11 +145,11 @@ CELER_FUNCTION TrackSlotExecutor(CoreParamsPtr<MemSpace::native>,
                                  T&&) -> TrackSlotExecutor<T>;
 
 template<class C, class T>
-CELER_FUNCTION
-ConditionalTrackSlotExecutor(CoreParamsPtr<MemSpace::native>,
-                             CoreStatePtr<MemSpace::native>,
-                             C&&,
-                             T&&) -> ConditionalTrackSlotExecutor<C, T>;
+CELER_FUNCTION ConditionalTrackSlotExecutor(CoreParamsPtr<MemSpace::native>,
+                                            CoreStatePtr<MemSpace::native>,
+                                            C&&,
+                                            T&&)
+    -> ConditionalTrackSlotExecutor<C, T>;
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS

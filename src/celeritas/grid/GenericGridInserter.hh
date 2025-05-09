@@ -89,7 +89,8 @@ GenericGridInserter<Index>::GenericGridInserter(RealCollection* real_data,
  * empty.
  */
 template<class Index>
-auto GenericGridInserter<Index>::operator()(ImportPhysicsVector const& vec) -> Index
+auto GenericGridInserter<Index>::operator()(ImportPhysicsVector const& vec)
+    -> Index
 {
     CELER_EXPECT(!vec.x.empty());
     return grids_.push_back(grid_builder_(vec));

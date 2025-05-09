@@ -22,15 +22,15 @@ celeritas_target_link_libraries(testcel_orange
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_USE_Geant4)
-  celeritas_get_g4libs(_g4_geo_libs geometry)
+    celeritas_get_g4libs(_g4_geo_libs geometry)
 endif()
 
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
-  set(_use_g4org TRUE)
-  set(_needs_g4org)
+    set(_use_g4org TRUE)
+    set(_needs_g4org)
 else()
-  set(_use_g4org FALSE)
-  set(_needs_g4org DISABLE)
+    set(_use_g4org FALSE)
+    set(_needs_g4org DISABLE)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -78,7 +78,8 @@ celeritas_add_test(orangeinp/Shape.test.cc)
 celeritas_add_test(orangeinp/Solid.test.cc)
 celeritas_add_test(orangeinp/Transformed.test.cc)
 celeritas_add_test(orangeinp/UnitProto.test.cc
-  LINK_LIBRARIES nlohmann_json::nlohmann_json)
+  LINK_LIBRARIES nlohmann_json::nlohmann_json
+)
 
 celeritas_add_test(orangeinp/detail/BoundingZone.test.cc)
 celeritas_add_test(orangeinp/detail/PolygonUtils.test.cc)
@@ -138,17 +139,18 @@ celeritas_add_test(univ/detail/RaggedRightIndexer.test.cc)
 celeritas_add_test(univ/detail/SurfaceFunctors.test.cc)
 celeritas_add_test(univ/detail/SenseCalculator.test.cc)
 
-
 #-----------------------------------------------------------------------------#
 # Geant4 construction
 if(_use_g4org)
-  celeritas_add_test(g4org/Converter.test.cc)
-  celeritas_add_test(g4org/SolidConverter.test.cc
-    LINK_LIBRARIES ${_g4_geo_libs} Celeritas::celeritas)
-  celeritas_add_test(g4org/PhysicalVolumeConverter.test.cc)
-  celeritas_add_test(g4org/ProtoConstructor.test.cc)
-  celeritas_add_test(g4org/Transformer.test.cc
-    LINK_LIBRARIES ${_g4_geo_libs})
+    celeritas_add_test(g4org/Converter.test.cc)
+    celeritas_add_test(g4org/SolidConverter.test.cc
+      LINK_LIBRARIES ${_g4_geo_libs} Celeritas::celeritas
+    )
+    celeritas_add_test(g4org/PhysicalVolumeConverter.test.cc)
+    celeritas_add_test(g4org/ProtoConstructor.test.cc)
+    celeritas_add_test(g4org/Transformer.test.cc
+      LINK_LIBRARIES ${_g4_geo_libs}
+    )
 endif()
 
 #-----------------------------------------------------------------------------#

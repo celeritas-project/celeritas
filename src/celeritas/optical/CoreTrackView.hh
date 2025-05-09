@@ -155,8 +155,8 @@ CELER_FORCEINLINE_FUNCTION auto CoreTrackView::material() const -> MaterialView
 /*!
  * Return a material view using an existing geo track view.
  */
-CELER_FUNCTION auto
-CoreTrackView::material(GeoTrackView const& geo) const -> MaterialView
+CELER_FUNCTION auto CoreTrackView::material(GeoTrackView const& geo) const
+    -> MaterialView
 {
     CELER_EXPECT(!geo.is_outside());
     return MaterialView{params_.material, geo.volume_id()};

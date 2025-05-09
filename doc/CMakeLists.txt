@@ -16,39 +16,38 @@ set(DOXYGEN_VERBATIM_VARS DOXYGEN_ALIASES)
 set(DOXYGEN_PROJECT_NUMBER "${Celeritas_VERSION_STRING}")
 
 # File setup
-set(DOXYGEN_EXCLUDE_PATTERNS
-  "*.nohepmc.cc"
-  "*/generated/*"
-)
+set(DOXYGEN_EXCLUDE_PATTERNS "*.nohepmc.cc" "*/generated/*")
 if(NOT CELERITAS_DEBUG)
-  list(APPEND DOXYGEN_EXCLUDE_PATTERNS "*/detail/*")
+    list(APPEND DOXYGEN_EXCLUDE_PATTERNS "*/detail/*")
 endif()
 
 set(DOXYGEN_FILE_PATTERNS
-  "*.h"
-  "*.hh"
-  "*.cc"
-  "*.cu"
-  "*.md"
+    "*.h"
+    "*.hh"
+    "*.cc"
+    "*.cu"
+    "*.md"
 )
 set(DOXYGEN_EXTENSION_MAPPING "cu=C++")
 set(_DOXYGEN_EXTRA_SOURCE
-  "${PROJECT_SOURCE_DIR}/README.md"
-  "${PROJECT_SOURCE_DIR}/scripts/README.md"
-  "${PROJECT_BINARY_DIR}/include/corecel/Version.hh"
-  "${PROJECT_BINARY_DIR}/include/corecel/Config.hh"
+    "${PROJECT_SOURCE_DIR}/README.md"
+    "${PROJECT_SOURCE_DIR}/scripts/README.md"
+    "${PROJECT_BINARY_DIR}/include/corecel/Version.hh"
+    "${PROJECT_BINARY_DIR}/include/corecel/Config.hh"
 )
-if((CELERITAS_DEBUG AND CELERITAS_BUILD_TESTS)
-  OR CELERITAS_DOXYGEN_BUILD_TESTS)
-  # Add documentation for Celeritas test harnesses when debugging or for CI
-  list(APPEND _DOXYGEN_TEST_SOURCE
-    "${PROJECT_SOURCE_DIR}/test"
-  )
-  list(APPEND DOXYGEN_EXCLUDE_PATTERNS
-    "*.test.hh" "*.test.cc" "*.test.cu" "*TestBase.cc"
-  )
+if((CELERITAS_DEBUG AND CELERITAS_BUILD_TESTS) OR CELERITAS_DOXYGEN_BUILD_TESTS)
+    # Add documentation for Celeritas test harnesses when debugging or for CI
+    list(APPEND _DOXYGEN_TEST_SOURCE "${PROJECT_SOURCE_DIR}/test")
+    list(
+        APPEND
+        DOXYGEN_EXCLUDE_PATTERNS
+        "*.test.hh"
+        "*.test.cc"
+        "*.test.cu"
+        "*TestBase.cc"
+    )
 else()
-  set(_DOXYGEN_TEST_SOURCE)
+    set(_DOXYGEN_TEST_SOURCE)
 endif()
 
 # Documentation usage
@@ -66,11 +65,11 @@ set(DOXYGEN_USE_MATHJAX YES)
 set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${PROJECT_SOURCE_DIR}/README.md")
 
 set(DOXYGEN_ALIASES
-  "cite{1}=\"[\\1]\""
-  "citep{2}=\"([\\1](\\2))\""
-  "citet{2}=\"[\\1](\\2)\""
-  "rst=\"^^\\if (0)^^\""
-  "endrst=\"^^\\endif^^\""
+    "cite{1}=\"[\\1]\""
+    "citep{2}=\"([\\1](\\2))\""
+    "citet{2}=\"[\\1](\\2)\""
+    "rst=\"^^\\if (0)^^\""
+    "endrst=\"^^\\endif^^\""
 )
 
 # Verbosity/warning levels
@@ -79,9 +78,11 @@ celeritas_set_default(DOXYGEN_WARN_IF_UNDOCUMENTED NO)
 
 # Output options
 set(DOXYGEN_PROJECT_LOGO
-  "${CMAKE_CURRENT_SOURCE_DIR}/_static/celeritas-square.svg")
+    "${CMAKE_CURRENT_SOURCE_DIR}/_static/celeritas-square.svg"
+)
 set(DOXYGEN_HTML_EXTRA_STYLESHEET
-  "${CMAKE_CURRENT_SOURCE_DIR}/_static/doxygen-custom.css")
+    "${CMAKE_CURRENT_SOURCE_DIR}/_static/doxygen-custom.css"
+)
 set(DOXYGEN_GENERATE_HTML YES)
 set(DOXYGEN_HTML_OUTPUT "doxygen-html")
 set(DOXYGEN_CREATE_SUBDIRS YES)
@@ -94,12 +95,13 @@ celeritas_set_default(DOXYGEN_INCLUDE_GRAPH NO)
 celeritas_set_default(DOXYGEN_MAX_DOT_GRAPH_DEPTH 2)
 celeritas_set_default(DOXYGEN_VERBATIM_HEADERS NO)
 
-doxygen_add_docs(doxygen
-  "${PROJECT_SOURCE_DIR}/src"
-  ${_DOXYGEN_EXTRA_SOURCE}
-  ${_DOXYGEN_TEST_SOURCE}
-  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-  COMMENT "Generating Doxygen to doc/doxygen-html/index.html"
+doxygen_add_docs(
+    doxygen
+    "${PROJECT_SOURCE_DIR}/src"
+    ${_DOXYGEN_EXTRA_SOURCE}
+    ${_DOXYGEN_TEST_SOURCE}
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    COMMENT "Generating Doxygen to doc/doxygen-html/index.html"
 )
 
 #-----------------------------------------------------------------------------#
@@ -107,62 +109,61 @@ doxygen_add_docs(doxygen
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_PYTHONPATH_RERUN)
-  message(SEND_ERROR "The last command must be manually rerun because "
-    "Sphinx was not found.")
-  unset(CELERITAS_PYTHONPATH_RERUN CACHE)
+    message(
+        SEND_ERROR
+        "The last command must be manually rerun because "
+        "Sphinx was not found."
+    )
+    unset(CELERITAS_PYTHONPATH_RERUN CACHE)
 endif()
 
 if(NOT Sphinx_FOUND)
-  function(celeritas_build_sphinx type output)
-    add_custom_command(
-      OUTPUT "${output}"
-      VERBATIM COMMAND
-        "${CMAKE_COMMAND}"
-        -UCELERITAS_PYTHONPATH
-        -UCELERITAS_CHECK_PYTHON_MODULE_sphinx
-        -DCELERITAS_PYTHONPATH_RERUN:BOOL=ON
-        "${CMAKE_BINARY_DIR}"
-      BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/${type}"
-      COMMENT "Rerunning CMake because Sphinx was not found"
-    )
-  endfunction()
+    function(celeritas_build_sphinx type output)
+        add_custom_command(
+            OUTPUT "${output}"
+            VERBATIM
+            COMMAND
+                "${CMAKE_COMMAND}" -UCELERITAS_PYTHONPATH
+                -UCELERITAS_CHECK_PYTHON_MODULE_sphinx
+                -DCELERITAS_PYTHONPATH_RERUN:BOOL=ON "${CMAKE_BINARY_DIR}"
+            BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/${type}"
+            COMMENT "Rerunning CMake because Sphinx was not found"
+        )
+    endfunction()
 else()
-  function(celeritas_build_sphinx type output)
-    add_custom_command(
-      OUTPUT "${output}"
-      VERBATIM COMMAND
-        "${CMAKE_COMMAND}" -E env
-          "PYTHONPATH=${CELERITAS_PYTHONPATH}"
-          "CMAKE_CURRENT_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}"
-        "$<TARGET_FILE:Python::Interpreter>" -m sphinx.cmd.build -q
-          -d "${CMAKE_CURRENT_BINARY_DIR}/doctrees"
-          -b ${type}
-          ${ARGN}
-          "${CMAKE_CURRENT_SOURCE_DIR}"
-          "${CMAKE_CURRENT_BINARY_DIR}/${type}"
-      COMMENT "Building ${type} documentation with Sphinx"
-      DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/conf.py"
-      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-    )
-  endfunction()
+    function(celeritas_build_sphinx type output)
+        add_custom_command(
+            OUTPUT "${output}"
+            VERBATIM
+            COMMAND
+                "${CMAKE_COMMAND}" -E env "PYTHONPATH=${CELERITAS_PYTHONPATH}"
+                "CMAKE_CURRENT_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+                "$<TARGET_FILE:Python::Interpreter>" -m sphinx.cmd.build -q -d
+                "${CMAKE_CURRENT_BINARY_DIR}/doctrees" -b ${type} ${ARGN}
+                "${CMAKE_CURRENT_SOURCE_DIR}"
+                "${CMAKE_CURRENT_BINARY_DIR}/${type}"
+            COMMENT "Building ${type} documentation with Sphinx"
+            DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/conf.py"
+            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+        )
+    endfunction()
 endif()
 
 set(_ORNLTM_BASE "${CMAKE_CURRENT_BINARY_DIR}/latex/ornltm")
 function(celeritas_build_latex input output)
-  set(_texenv
-    "LATEXOPTS="
-    "TEXINPUTS=${_ORNLTM_BASE}/ornltm:"
-  )
-  if(NOT LATEXMK_EXECUTABLE)
-    set(LATEXMK_EXECUTABLE "latexmk")
-  endif()
-  add_custom_command(OUTPUT "${output}"
-    VERBATIM COMMAND
-      "${CMAKE_COMMAND}" -E env ${_texenv}
-        "${LATEXMK_EXECUTABLE}" -pdf "${input}"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/latex"
-    ${ARGN}
-  )
+    set(_texenv "LATEXOPTS=" "TEXINPUTS=${_ORNLTM_BASE}/ornltm:")
+    if(NOT LATEXMK_EXECUTABLE)
+        set(LATEXMK_EXECUTABLE "latexmk")
+    endif()
+    add_custom_command(
+        OUTPUT "${output}"
+        VERBATIM
+        COMMAND
+            "${CMAKE_COMMAND}" -E env ${_texenv} "${LATEXMK_EXECUTABLE}" -pdf
+            "${input}"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/latex"
+        ${ARGN}
+    )
 endfunction()
 
 #-----------------------------------------------------------------------------#
@@ -175,21 +176,24 @@ set(CELERITAS_USE_FURO ${CELERITAS_USE_Furo})
 set(CELERITAS_USE_SPHINXBIBTEX ${CELERITAS_USE_SphinxBibtex})
 set(CELERITAS_USE_SPHINXMERMAID ${CELERITAS_USE_SphinxMermaid})
 if(Celeritas_VERSION STREQUAL Celeritas_VERSION_STRING)
-  set(Celeritas_SHORT_VERSION "${Celeritas_VERSION}")
-elseif("${Celeritas_VERSION_STRING}" MATCHES
-    "^(.*-rc[.-][0-9]+)(\\.[0-9]+\\+[0-9a-f]+)$")
-  # Use release candidate, stripping off stuff since the tag
-  set(Celeritas_SHORT_VERSION "${CMAKE_MATCH_1}")
+    set(Celeritas_SHORT_VERSION "${Celeritas_VERSION}")
+elseif(
+    "${Celeritas_VERSION_STRING}"
+        MATCHES
+        "^(.*-rc[.-][0-9]+)(\\.[0-9]+\\+[0-9a-f]+)$"
+)
+    # Use release candidate, stripping off stuff since the tag
+    set(Celeritas_SHORT_VERSION "${CMAKE_MATCH_1}")
 else()
-  # Development version
-  set(_patch "${PROJECT_VERSION_PATCH}")
-  if(NOT Celeritas_VERSION_STRING MATCHES "-dev")
-    # Before the next release
-    math(EXPR _patch "${PROJECT_VERSION_PATCH} + 1")
-  endif()
-  set(Celeritas_SHORT_VERSION
-    "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${_patch}-dev"
-  )
+    # Development version
+    set(_patch "${PROJECT_VERSION_PATCH}")
+    if(NOT Celeritas_VERSION_STRING MATCHES "-dev")
+        # Before the next release
+        math(EXPR _patch "${PROJECT_VERSION_PATCH} + 1")
+    endif()
+    set(Celeritas_SHORT_VERSION
+        "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${_patch}-dev"
+    )
 endif()
 configure_file("config.json.in" "config.json" @ONLY)
 
@@ -201,70 +205,82 @@ set(DOXYGEN_INCLUDE_GRAPH NO)
 set(DOXYGEN_XML_PROGRAMLISTING NO)
 
 set(DOXYGEN_ALIASES
-  "cite{1}=\"\\verbatim embed:rst:inline :cite:p:`\\1` \\endverbatim \""
-  "citep{2}=\"\\verbatim embed:rst:inline :cite:p:`\\1` \\endverbatim \""
-  "citet{2}=\"\\verbatim embed:rst:inline :cite:t:`\\1` \\endverbatim \""
-  "rst=\"^^\\verbatim embed:rst^^\""
-  "endrst=\"^^\\endverbatim \""
+    "cite{1}=\"\\verbatim embed:rst:inline :cite:p:`\\1` \\endverbatim \""
+    "citep{2}=\"\\verbatim embed:rst:inline :cite:p:`\\1` \\endverbatim \""
+    "citet{2}=\"\\verbatim embed:rst:inline :cite:t:`\\1` \\endverbatim \""
+    "rst=\"^^\\verbatim embed:rst^^\""
+    "endrst=\"^^\\endverbatim \""
 )
 
 # Annotations break breathe parsing
-foreach(_var
-  CELER_FUNCTION CELER_FORCEINLINE CELER_FORCEINLINE_FUNCTION CELER_CONSTEXPR_FUNCTION
-  [[maybe_unused]] CFIF_)
-  list(APPEND DOXYGEN_PREDEFINED "${_var}=")
+foreach(
+    _var
+    CELER_FUNCTION
+    CELER_FORCEINLINE
+    CELER_FORCEINLINE_FUNCTION
+    CELER_CONSTEXPR_FUNCTION
+    [[maybe_unused]]
+    CFIF_
+)
+    list(APPEND DOXYGEN_PREDEFINED "${_var}=")
 endforeach()
 
 # Only process top two levels (mostly no detail)
-file(GLOB _DOXYGEN_SOURCE
-  "${PROJECT_SOURCE_DIR}/src/*/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/*/*.cc"
-  "${PROJECT_SOURCE_DIR}/src/*/*/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/*/*/*.cc"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/em/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/em/*.cc"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/em/interactor/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/em/interactor/detail/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/em/model/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/em/model/*.cc"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/em/distribution/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/em/msc/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/em/msc/detail/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.cc"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/em/xs/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/interactor/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/interactor/detail/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/model/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/model/*.cc"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/random/distribution/*.hh"
-  "${PROJECT_SOURCE_DIR}/test/*.hh"
-  "${PROJECT_SOURCE_DIR}/test/*.cc"
+file(
+    GLOB _DOXYGEN_SOURCE
+    "${PROJECT_SOURCE_DIR}/src/*/*.hh"
+    "${PROJECT_SOURCE_DIR}/src/*/*.cc"
+    "${PROJECT_SOURCE_DIR}/src/*/*/*.hh"
+    "${PROJECT_SOURCE_DIR}/src/*/*/*.cc"
+    "${PROJECT_SOURCE_DIR}/src/celeritas/em/*.hh"
+    "${PROJECT_SOURCE_DIR}/src/celeritas/em/*.cc"
+    "${PROJECT_SOURCE_DIR}/src/celeritas/em/interactor/*.hh"
+    "${PROJECT_SOURCE_DIR}/src/celeritas/em/interactor/detail/*.hh"
+    "${PROJECT_SOURCE_DIR}/src/celeritas/em/model/*.hh"
+    "${PROJECT_SOURCE_DIR}/src/celeritas/em/model/*.cc"
+    "${PROJECT_SOURCE_DIR}/src/celeritas/em/distribution/*.hh"
+    "${PROJECT_SOURCE_DIR}/src/celeritas/em/msc/*.hh"
+    "${PROJECT_SOURCE_DIR}/src/celeritas/em/msc/detail/*.hh"
+    "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.hh"
+    "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.cc"
+    "${PROJECT_SOURCE_DIR}/src/celeritas/em/xs/*.hh"
+    "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/interactor/*.hh"
+    "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/interactor/detail/*.hh"
+    "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/model/*.hh"
+    "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/model/*.cc"
+    "${PROJECT_SOURCE_DIR}/src/celeritas/random/distribution/*.hh"
+    "${PROJECT_SOURCE_DIR}/test/*.hh"
+    "${PROJECT_SOURCE_DIR}/test/*.cc"
 )
-doxygen_add_docs(doxygen_xml
-  ${_DOXYGEN_SOURCE}
-  ${_DOXYGEN_EXTRA_SOURCE}
-  USE_STAMP_FILE
-  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-  COMMENT "Generating Doxygen XML"
+doxygen_add_docs(
+    doxygen_xml
+    ${_DOXYGEN_SOURCE}
+    ${_DOXYGEN_EXTRA_SOURCE}
+    USE_STAMP_FILE
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    COMMENT "Generating Doxygen XML"
 )
 
 #-----------------------------------------------------------------------------#
 # HTML
-set(CELERITAS_SPHINX_USER_HTML_ARGS "" CACHE STRING
-  "Additional arguments to pass to Sphinx to build HTML user docs")
+set(CELERITAS_SPHINX_USER_HTML_ARGS
+    ""
+    CACHE STRING
+    "Additional arguments to pass to Sphinx to build HTML user docs"
+)
 mark_as_advanced(CELERITAS_SPHINX_USER_HTML_ARGS)
 
 set(_doc_html "${CMAKE_CURRENT_BINARY_DIR}/html/index.html")
 celeritas_build_sphinx(html "${_doc_html}" ${CELERITAS_SPHINX_USER_HTML_ARGS})
 add_custom_target(doc DEPENDS "${_doc_html}")
 if(CELERITAS_USE_BREATHE)
-  add_dependencies(doc doxygen_xml)
+    add_dependencies(doc doxygen_xml)
 endif()
 
-install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html/"
-  DESTINATION "${CMAKE_INSTALL_DOCDIR}"
-  COMPONENT documentation
+install(
+    DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html/"
+    DESTINATION "${CMAKE_INSTALL_DOCDIR}"
+    COMPONENT documentation
 )
 
 #-----------------------------------------------------------------------------#
@@ -274,50 +290,53 @@ set(_doc_tex "${CMAKE_CURRENT_BINARY_DIR}/latex/Celeritas.tex")
 celeritas_build_sphinx(latex "${_doc_tex}")
 
 if(Sphinx_FOUND)
-  # Download ornltm class
-  ExternalProject_Add(ornltm
-    GIT_REPOSITORY https://code.ornl.gov/sethrj/ornltm.git
-    GIT_TAG c9d2ddcce2bfc8d7d51db8f4a131d71883f46528
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ""
-    INSTALL_COMMAND ""
-    SOURCE_DIR "${_ORNLTM_BASE}"
-  )
+    # Download ornltm class
+    ExternalProject_Add(
+        ornltm
+        GIT_REPOSITORY https://code.ornl.gov/sethrj/ornltm.git
+        GIT_TAG c9d2ddcce2bfc8d7d51db8f4a131d71883f46528
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ""
+        SOURCE_DIR "${_ORNLTM_BASE}"
+    )
 
-  # Generate header
-  set(_header_pdf "${CMAKE_CURRENT_BINARY_DIR}/latex/ornltm-header-celeritas.pdf")
-  celeritas_build_latex(
-    "${CMAKE_CURRENT_SOURCE_DIR}/_static/ornltm-header-celeritas.tex"
-    "${_header_pdf}"
-    COMMENT "Building tech memo header"
-    DEPENDS ornltm
-  )
+    # Generate header
+    set(_header_pdf
+        "${CMAKE_CURRENT_BINARY_DIR}/latex/ornltm-header-celeritas.pdf"
+    )
+    celeritas_build_latex(
+      "${CMAKE_CURRENT_SOURCE_DIR}/_static/ornltm-header-celeritas.tex"
+      "${_header_pdf}"
+      COMMENT "Building tech memo header"
+      DEPENDS ornltm
+    )
 
-  # Generate header
-  set(_footer_pdf "${CMAKE_CURRENT_BINARY_DIR}/latex/ornltm-footer.pdf")
-  celeritas_build_latex(
-    "${CMAKE_CURRENT_SOURCE_DIR}/_static/ornltm-footer.tex"
-    "${_footer_pdf}"
-    COMMENT "Building tech memo footer"
-    DEPENDS ornltm
-  )
+    # Generate header
+    set(_footer_pdf "${CMAKE_CURRENT_BINARY_DIR}/latex/ornltm-footer.pdf")
+    celeritas_build_latex(
+      "${CMAKE_CURRENT_SOURCE_DIR}/_static/ornltm-footer.tex"
+      "${_footer_pdf}"
+      COMMENT "Building tech memo footer"
+      DEPENDS ornltm
+    )
 
-  # Generate PDF
-  set(_doc_pdf "${CMAKE_CURRENT_BINARY_DIR}/latex/Celeritas.pdf")
-  celeritas_build_latex(
-    Celeritas
-    "${_doc_pdf}"
-    COMMENT "Building PDF documentation from LaTeX"
-    DEPENDS "${_doc_tex}" "${_header_pdf}" "${_footer_pdf}" ornltm
-  )
+    # Generate PDF
+    set(_doc_pdf "${CMAKE_CURRENT_BINARY_DIR}/latex/Celeritas.pdf")
+    celeritas_build_latex(
+      Celeritas
+      "${_doc_pdf}"
+      COMMENT "Building PDF documentation from LaTeX"
+      DEPENDS "${_doc_tex}" "${_header_pdf}" "${_footer_pdf}" ornltm
+    )
 else()
-  # No sphinx available: don't confuse people by downloading PDF classes
-  set(_doc_pdf "${_doc_tex}")
+    # No sphinx available: don't confuse people by downloading PDF classes
+    set(_doc_pdf "${_doc_tex}")
 endif()
 
 add_custom_target(doc_pdf DEPENDS "${_doc_pdf}")
 if(CELERITAS_USE_BREATHE)
-  add_dependencies(doc_pdf doxygen_xml)
+    add_dependencies(doc_pdf doxygen_xml)
 endif()
 
 #-----------------------------------------------------------------------------#

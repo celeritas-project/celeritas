@@ -84,4 +84,3 @@ over tracks when running on the CPU).
 
 See :ref:`api_stepping` for implementation details on the ordering of actions
 and the status of a track slot during iteration.
-

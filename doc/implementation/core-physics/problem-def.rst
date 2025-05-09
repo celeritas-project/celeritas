@@ -23,4 +23,3 @@ classes (see the `developer documentation`_ for details).
 .. doxygenclass:: celeritas::PhysicsParams
 
 .. doxygenclass:: celeritas::CutoffParams
-

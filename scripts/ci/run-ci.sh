@@ -52,13 +52,13 @@ cd ..
 test -x "${CELER_SOURCE_DIR}/install/bin/celer-sim"
 test -x "${CELER_SOURCE_DIR}/install/bin/celer-g4"
 "${CELER_SOURCE_DIR}/install/bin/celer-sim" --version
-  
+
 
 # Test examples against installed celeritas
 export CMAKE_PRESET
 export CELER_SOURCE_DIR
 case "${CMAKE_PRESET}" in
-  *-vecgeom*) 
+  *-vecgeom*)
     # VecGeom is in use: ubuntu flags are too strict for it
     export LDFLAGS=-Wl,--no-as-needed
     ;;

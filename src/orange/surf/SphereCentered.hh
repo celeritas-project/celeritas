@@ -134,7 +134,8 @@ CELER_FUNCTION SignedSense SphereCentered::calc_sense(Real3 const& pos) const
 CELER_FUNCTION auto
 SphereCentered::calc_intersections(Real3 const& pos,
                                    Real3 const& dir,
-                                   SurfaceState on_surface) const -> Intersections
+                                   SurfaceState on_surface) const
+    -> Intersections
 {
     detail::QuadraticSolver solve_quadric(real_type(1), dot_product(pos, dir));
     if (on_surface == SurfaceState::off)
