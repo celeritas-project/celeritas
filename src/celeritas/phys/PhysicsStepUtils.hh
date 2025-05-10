@@ -33,6 +33,16 @@ namespace
 //---------------------------------------------------------------------------//
 /*!
  * Sample the process for the discrete interaction.
+ *
+ * - If the particle is at rest and has an at-rest process, that is returned.
+ * - Sample a process by selecting from probabilities proportional to the cross
+ *   sections calculated at the beginning of the step.
+ * - If the particle has changed energy over the step by continuous energy
+ *   loss, and the process supports integral cross section rejection, then the
+ *   cross section is recalculated with the new energy. The collision is
+ *   sampled based by rejection sampling with the updated cross section.
+ *
+ * \todo Support competing at-rest processes?
  */
 template<class Engine>
 inline CELER_FUNCTION ParticleProcessId
@@ -82,6 +92,17 @@ find_ppid(MaterialView const& material,
 //---------------------------------------------------------------------------//
 /*!
  * Calculate physics step limits based on cross sections and range limiters.
+ *
+ * Processes with integral cross section rejection calculate an estimated
+ * "maximum" over the step: see PhysicsTrackView.calc_max_xs .
+ *
+ * \todo For particles with decay, macro XS calculation will incorporate
+ * decay probability, dividing decay constant by speed to become 1/len to
+ * compete with interactions.
+ *
+ * \todo For neutral particles that haven't changed material since the last
+ * step, we can reuse the previously calculated cross section (but may not want
+ * to if it's expensive).
  */
 inline CELER_FUNCTION StepLimit
 calc_physics_step_limit(MaterialTrackView const& material,
@@ -90,14 +111,6 @@ calc_physics_step_limit(MaterialTrackView const& material,
                         PhysicsStepView& pstep)
 {
     CELER_EXPECT(physics.has_interaction_mfp());
-
-    /*! \todo For particles with decay, macro XS calculation will incorporate
-     * decay probability, dividing decay constant by speed to become 1/len to
-     * compete with interactions.
-     *
-     * \todo For neutral particles that haven't changed material since the last
-     * step, we can reuse the previously calculated cross section.
-     */
 
     // Loop over all processes that apply to this track (based on particle
     // type) and calculate cross section and particle range.
@@ -179,7 +192,7 @@ calc_physics_step_limit(MaterialTrackView const& material,
  * term that varies based on the energy, the atomic number density, and the
  * element number:
  * \f[
- *   \frac{dE}{dx} = N_Z \int_0^{T_c} \frac{d \sigma_Z(E, T)}{dT} T dT
+ *   \difd{E}{x} = N_Z \int_0^{T_c} \frac{d \sigma_Z(E, T)}{dT} T \difT
  * \f]
  * Here, the cross section is a function of the primary's energy \em E and the
  * exiting secondary energy \em T.
@@ -189,20 +202,8 @@ calc_physics_step_limit(MaterialTrackView const& material,
  * take a particle (without discrete processes at play) from its current energy
  * to an energy of zero.
  * \f[
- *   R = \int_0 ^{E_0} - \frac{dx}{dE} dE .
+ *   R = \int_0 ^{E_0} - \difd{E}{x} \dif E .
  * \f]
- *
- * Both Celeritas and Geant4 approximate the range limit as the minimum range
- * over all processes, rather than the range as a result from integrating all
- * energy loss processes over the allowed energy range. This is usually not
- * a problem in practice because the range will get automatically decreased by
- * \c range_to_step , and the above range calculation neglects energy loss by
- * discrete processes.
- *
- * Both Geant4 and Celeritas integrate the energy loss terms across processes
- * to get a single energy loss vector per particle type. The range table is an
- * integral of the mean stopping power: the total distance for the particle's
- * energy to reach zero.
  *
  * \note The inverse range correction assumes range is always the integral of
  * the stopping power/energy loss.
@@ -220,9 +221,9 @@ calc_physics_step_limit(MaterialTrackView const& material,
  *
  * Zero energy loss can occur in the following cases:
  * - The energy loss value at the given energy is zero (e.g. high energy
- * particles)
- * - The urban model is selected and samples zero collisions (possible in thin
- * materials and/or small steps)
+ *   particles)
+ * - The Urban model is selected and samples zero collisions (possible in thin
+ *   materials and/or small steps)
  */
 inline CELER_FUNCTION ParticleTrackView::Energy
 calc_mean_energy_loss(ParticleTrackView const& particle,
@@ -288,8 +289,6 @@ calc_mean_energy_loss(ParticleTrackView const& particle,
 /*!
  * Choose the physics model for a track's pending interaction.
  *
- * - If the interaction MFP is zero, the particle is undergoing a discrete
- *   interaction. Otherwise, the result is a false ActionId.
  * - Sample from the previously calculated per-process cross section/decay to
  *   determine the interacting process ID.
  * - From the process ID and (post-slowing-down) particle energy, we obtain the

@@ -28,7 +28,7 @@ namespace celeritas
  *
  * This chooses between sampling scattering off an electron or nucleus based on
  * the relative cross sections. Electron scattering angle imposes a maximum
- * scattering angle (see WentzelHelper::cos_thetamax_electron), and nuclear
+ * scattering angle, and nuclear
  * sattering rejects an angular change based on the Mott cross section (see
  * MottRatioCalculator). Nuclear scattering depends on the electronic and
  * nuclear cross sections (calculated by \c WentzelHelper) and nuclear form

@@ -22,9 +22,9 @@ namespace celeritas
 /*!
  * Seltzer-Berger differential cross section tables for a single element.
  *
- * The 2D grid data is organized by log E on the x axis and fractional exiting
- * energy (0 to 1) on the y axis. The values are in millibarns, but their
- * magnitude isn't important since we always take ratios.
+ * The 2D grid data is organized by \f$ \log E \f$ on the *x* axis and
+ * fractional exiting energy (0 to 1) on the *y* axis. The values are in
+ * millibarns, but their magnitude isn't important since we always take ratios.
  *
  * \c argmax is the y index of the largest cross section at a given incident
  * energy point.

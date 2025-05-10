@@ -53,6 +53,12 @@ tracking loop:
      cherenkov-gen -->|inits| photons
 
 
+.. only:: nosphinxmer
+
+   .. warning:: The Mermaid extension was not used when building this version
+      of the documentation. This diagram cannot be rendered.
+
+
 Optical materials
 =================
 

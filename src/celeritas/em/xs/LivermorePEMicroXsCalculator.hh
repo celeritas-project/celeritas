@@ -21,6 +21,9 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Calculate photoelectric effect cross sections using the Livermore data.
+ *
+ * The Livermore photoelectric data is loaded from Geant4 low-energy EM data
+ * files.
  */
 class LivermorePEMicroXsCalculator
 {

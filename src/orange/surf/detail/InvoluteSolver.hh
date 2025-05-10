@@ -161,7 +161,7 @@ CELER_FUNCTION auto InvoluteSolver::operator()(Real3 const& pos,
     // Initial result vector.
     result = {no_intersection(), no_intersection(), no_intersection()};
 
-    // Return result if particle is travelling along z-axis.
+    // Return result if particle is travelling along the z axis
     if (u == 0 && v == 0)
     {
         return result;
