@@ -44,7 +44,7 @@ TEST_F(UniformLogGridCalculatorTest, simple)
     grid.y = {1, 10, 1e2, 1e3, 1e4, 1e5};
     this->build(grid);
 
-    UniformLogGridCalculator calc(this->data().lower, this->values());
+    UniformLogGridCalculator calc(this->uniform_grid(), this->values());
 
     // Test on grid points
     EXPECT_SOFT_EQ(1.0, calc(Energy{1}));
@@ -78,7 +78,7 @@ TEST_F(UniformLogGridCalculatorTest, spline)
     grid.interpolation.bc = BC::not_a_knot;
     this->build(grid);
 
-    UniformLogGridCalculator calc(this->data().lower, this->values());
+    UniformLogGridCalculator calc(this->uniform_grid(), this->values());
     EXPECT_SOFT_EQ(10, calc(Energy(0.1)));
     EXPECT_SOFT_EQ(-62.572615039281715, calc(Energy(0.2)));
     EXPECT_SOFT_EQ(1, calc(Energy(1)));
@@ -107,7 +107,7 @@ TEST_F(UniformLogGridCalculatorTest, spline_deriv)
         105520 / 33.0, 31880 / 11.0, -3160 / 33.0, -790 / 11.0, 5530 / 33.0};
 
     SplineDerivCalculator calc_deriv(BC::not_a_knot);
-    auto const& data = this->data().lower;
+    auto const& data = this->uniform_grid();
     {
         auto deriv = calc_deriv(data, this->values());
         EXPECT_VEC_SOFT_EQ(expected_deriv, deriv);
