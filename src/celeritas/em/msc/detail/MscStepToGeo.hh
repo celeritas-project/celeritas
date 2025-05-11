@@ -127,8 +127,8 @@ CELER_FUNCTION MscStepToGeo::MscStepToGeo(UrbanMscRef const& shared,
 /*!
  * Calculate the geometry step length for a given true step length.
  */
-CELER_FUNCTION auto
-MscStepToGeo::operator()(real_type tstep) const -> result_type
+CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
+    -> result_type
 {
     CELER_EXPECT(tstep >= 0 && tstep <= range_);
 

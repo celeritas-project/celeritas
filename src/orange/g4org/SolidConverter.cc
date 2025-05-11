@@ -138,8 +138,8 @@ SolidEnclosedAngle make_wedge_polar(S const& solid)
  * vector
  * \f$ (\mu \tan(\theta)\cos(\phi), \mu \tan(\theta)\sin(\phi), \mu) \f$.
  */
-[[maybe_unused]] auto
-to_polar(G4ThreeVector const& axis) -> std::pair<Turn, Turn>
+[[maybe_unused]] auto to_polar(G4ThreeVector const& axis)
+    -> std::pair<Turn, Turn>
 {
     CELER_EXPECT(axis.z() > 0);
     CELER_EXPECT(

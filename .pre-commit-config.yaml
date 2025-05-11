@@ -22,12 +22,6 @@ repos:
       types_or: [file]
       files: \.(cc|hh|h|cpp|hpp|cu|cuh)$
 
-  # CMake formatting
-  - repo: https://github.com/BlankSpruce/gersemi
-    rev: d5a7d835eaa967cd896fb38ef854a85502a54e2c # v0.19.2, 4 Mar 2025
-    hooks:
-    - id: gersemi
-
   # TODO: https://github.com/celeritas-project/celeritas/issues/1763
 
 ci:

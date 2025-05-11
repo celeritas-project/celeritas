@@ -54,4 +54,3 @@ Problems are loaded into the framework or application front end via :ref:`api_pr
    input/control.rst
    input/diagnostics.rst
    input/system.rst
-

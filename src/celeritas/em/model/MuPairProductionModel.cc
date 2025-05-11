@@ -40,7 +40,7 @@ MuPairProductionModel::MuPairProductionModel(
     SPConstImported data,
     ImportMuPairProductionTable const& imported)
     : StaticConcreteAction(
-        id, "pair-prod-muon", "interact by e-/e+ pair production by muons")
+          id, "pair-prod-muon", "interact by e-/e+ pair production by muons")
     , imported_(data,
                 particles,
                 ImportProcessClass::mu_pair_prod,

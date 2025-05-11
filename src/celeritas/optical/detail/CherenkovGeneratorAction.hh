@@ -50,11 +50,11 @@ class CherenkovGeneratorAction final : public CoreStepActionInterface
   public:
     // Construct with action ID, data IDs, and optical properties
     CherenkovGeneratorAction(ActionId id,
-                            AuxId offload_id,
-                            AuxId optical_id,
-                            SPConstMaterial material,
-                            SPConstCherenkov cherenkov,
-                            size_type auto_flush);
+                             AuxId offload_id,
+                             AuxId optical_id,
+                             SPConstMaterial material,
+                             SPConstCherenkov cherenkov,
+                             size_type auto_flush);
 
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;

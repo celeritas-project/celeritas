@@ -31,8 +31,8 @@ namespace optical
  * Create a model builder for Rayleigh scattering from imported data and
  * material parameters.
  */
-auto RayleighModel::make_builder(SPConstImported imported,
-                                 Input input) -> ModelBuilder
+auto RayleighModel::make_builder(SPConstImported imported, Input input)
+    -> ModelBuilder
 {
     CELER_EXPECT(imported);
     return [imported = std::move(imported),

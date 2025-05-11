@@ -131,9 +131,8 @@ StepStatistics StepDiagnostic::GetAndReset(CoreStateInterface& state) const
  * This creates and initializes "thread-local" data for the given stream on
  * host or device.
  */
-auto StepDiagnostic::create_state(MemSpace m,
-                                  StreamId id,
-                                  size_type size) const -> UPState
+auto StepDiagnostic::create_state(MemSpace m, StreamId id, size_type size) const
+    -> UPState
 {
     auto result = make_aux_state<StepStateData>(*this, m, id, size);
     CELER_ASSERT(result);

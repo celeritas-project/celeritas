@@ -127,4 +127,3 @@ Usage:
 
 Either of the filenames can be replaced by ``-`` to read from stdin or write to
 stdout.
-

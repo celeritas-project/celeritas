@@ -88,8 +88,8 @@ auto CMSParameterizedField::operator()(Real3 const& pos) const -> Real3
  * TODO: simplify and optimize
  */
 CELER_FUNCTION
-auto CMSParameterizedField::evaluate_field(real_type r,
-                                           real_type z) const -> Real3
+auto CMSParameterizedField::evaluate_field(real_type r, real_type z) const
+    -> Real3
 {
     using units::meter;
 

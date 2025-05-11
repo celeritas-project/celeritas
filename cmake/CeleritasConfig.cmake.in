@@ -179,7 +179,7 @@ if(NOT TARGET celeritas)
 
   # Load Celeritas library wrappers
   include("${CELERITAS_CMAKE_DIR}/CeleritasLibrary.cmake")
-  
+
   # Load targets created by `install(EXPORT celeritas-targets`
   include("${CELERITAS_CMAKE_DIR}/CeleritasTargets.cmake")
 

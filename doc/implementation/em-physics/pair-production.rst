@@ -19,4 +19,3 @@ The energy transfer for muon pair production is sampled using the inverse
 transform method with tabulated CDFs.
 
 .. doxygenclass:: celeritas::MuPPEnergyDistribution
-

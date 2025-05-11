@@ -64,7 +64,8 @@ NeutronInelasticMicroXsCalculator::NeutronInelasticMicroXsCalculator(
  * Compute microscopic (element) cross section
  */
 CELER_FUNCTION
-auto NeutronInelasticMicroXsCalculator::operator()(ElementId el_id) const -> BarnXs
+auto NeutronInelasticMicroXsCalculator::operator()(ElementId el_id) const
+    -> BarnXs
 {
     CELER_EXPECT(el_id < shared_.micro_xs.size());
 

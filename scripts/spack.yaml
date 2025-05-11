@@ -1,5 +1,5 @@
 spack:
-  specs: 
+  specs:
     - cli11
     - cmake
     - doxygen

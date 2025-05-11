@@ -44,9 +44,9 @@ class CherenkovOffloadAction final : public CoreStepActionInterface
   public:
     // Construct with action ID, optical material, and storage
     CherenkovOffloadAction(ActionId id,
-                          AuxId data_id,
-                          SPConstMaterial material,
-                          SPConstCherenkov cherenkov);
+                           AuxId data_id,
+                           SPConstMaterial material,
+                           SPConstCherenkov cherenkov);
 
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;

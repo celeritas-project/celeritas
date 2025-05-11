@@ -39,8 +39,8 @@ bool KernelRegistry::profiling()
 /*!
  * Add a new kernel definition to the list
  */
-auto KernelRegistry::insert(std::string_view name,
-                            KernelAttributes&& attrs) -> KernelProfiling*
+auto KernelRegistry::insert(std::string_view name, KernelAttributes&& attrs)
+    -> KernelProfiling*
 {
     // Create metadata for this kernel
     auto kmd = std::make_unique<KernelMetadata>();

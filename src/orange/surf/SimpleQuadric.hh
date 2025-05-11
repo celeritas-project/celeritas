@@ -158,7 +158,8 @@ CELER_FUNCTION SignedSense SimpleQuadric::calc_sense(Real3 const& pos) const
 CELER_FUNCTION auto
 SimpleQuadric::calc_intersections(Real3 const& pos,
                                   Real3 const& dir,
-                                  SurfaceState on_surface) const -> Intersections
+                                  SurfaceState on_surface) const
+    -> Intersections
 {
     real_type const x = pos[to_int(Axis::x)];
     real_type const y = pos[to_int(Axis::y)];

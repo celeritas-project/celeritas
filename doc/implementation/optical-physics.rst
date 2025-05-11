@@ -128,4 +128,3 @@ to provide cross sections, setup options, and other data to the optical physics.
 .. doxygenstruct:: celeritas::ImportMaterialScintSpectrum
 
 .. doxygenstruct:: celeritas::ImportWavelengthShift
-

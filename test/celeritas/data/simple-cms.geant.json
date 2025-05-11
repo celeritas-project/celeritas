@@ -1,5 +1,4 @@
 {
-"brems": "all",
 "compton_scattering": true,
 "coulomb_scattering": false,
 "photoelectric": false,

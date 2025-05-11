@@ -91,7 +91,8 @@ CherenkovGeneratorExecutor::operator()(CoreTrackView const& track) const
 
         // Generate one primary from the distribution
         optical::MaterialView opt_mat{material, dist.material};
-        celeritas::optical::CherenkovGenerator generate(opt_mat, cherenkov, dist);
+        celeritas::optical::CherenkovGenerator generate(
+            opt_mat, cherenkov, dist);
         size_type init_idx = counters.num_initializers + idx;
         CELER_ASSERT(init_idx < optical_state->init.initializers.size());
         optical_state->init.initializers[InitId(init_idx)] = generate(rng);

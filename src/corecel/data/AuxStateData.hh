@@ -69,7 +69,8 @@ class AuxStateData final : public AuxStateInterface
         *this, memspace, stream, size);
  * \endcode
  */
-template<template<Ownership, MemSpace> class S, template<Ownership, MemSpace> class P>
+template<template<Ownership, MemSpace> class S,
+         template<Ownership, MemSpace> class P>
 std::unique_ptr<AuxStateInterface>
 make_aux_state(ParamsDataInterface<P> const& params,
                MemSpace m,

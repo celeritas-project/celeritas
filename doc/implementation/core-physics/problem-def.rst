@@ -105,4 +105,3 @@ Setup
 ^^^^^
 
 .. doxygennamespace:: celeritas::setup
-

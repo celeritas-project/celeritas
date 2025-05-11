@@ -117,8 +117,8 @@ CELER_FUNCTION EnergyLossGaussianDistribution::EnergyLossGaussianDistribution(
  * Sample energy loss according to the distribution.
  */
 template<class Generator>
-CELER_FUNCTION auto
-EnergyLossGaussianDistribution::operator()(Generator& rng) -> Energy
+CELER_FUNCTION auto EnergyLossGaussianDistribution::operator()(Generator& rng)
+    -> Energy
 {
     real_type result;
     do

@@ -21,4 +21,3 @@ Release History
    release-history/v0.3.rst
    release-history/v0.2.rst
    release-history/v0.1.rst
-

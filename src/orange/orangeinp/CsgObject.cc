@@ -75,8 +75,8 @@ constexpr OperatorToken JoinObjects<Op>::op_token;
  * important.
  */
 template<OperatorToken Op>
-auto JoinObjects<Op>::or_object(std::string&& label,
-                                VecObject&& objects) -> SPConstObject
+auto JoinObjects<Op>::or_object(std::string&& label, VecObject&& objects)
+    -> SPConstObject
 {
     CELER_EXPECT(!objects.empty());
     if (objects.size() == 1)

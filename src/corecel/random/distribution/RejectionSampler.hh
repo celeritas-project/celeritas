@@ -95,8 +95,8 @@ RejectionSampler<RealType>::RejectionSampler(real_type f, real_type fmax)
  */
 template<class RealType>
 template<class Generator>
-CELER_FUNCTION auto
-RejectionSampler<RealType>::operator()(Generator& rng) -> result_type
+CELER_FUNCTION auto RejectionSampler<RealType>::operator()(Generator& rng)
+    -> result_type
 {
     return f_ < fmax_ * generate_canonical<RealType>(rng);
 }

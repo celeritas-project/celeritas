@@ -46,7 +46,8 @@ namespace celeritas
  * There is some additional complexity in the "state" accessors to allow for
  * const correctness.
  */
-template<template<Ownership, MemSpace> class P, template<Ownership, MemSpace> class S>
+template<template<Ownership, MemSpace> class P,
+         template<Ownership, MemSpace> class S>
 class StreamStore
 {
   public:
@@ -160,7 +161,8 @@ class StreamStore
  * The constructor is *not* thread safe and should be called during params
  * setup, not at run time.
  */
-template<template<Ownership, MemSpace> class P, template<Ownership, MemSpace> class S>
+template<template<Ownership, MemSpace> class P,
+         template<Ownership, MemSpace> class S>
 StreamStore<P, S>::StreamStore(ParamsHostVal&& host,
                                StreamId::size_type num_streams)
     : params_(std::move(host)), num_streams_(num_streams)
@@ -177,7 +179,8 @@ StreamStore<P, S>::StreamStore(ParamsHostVal&& host,
 /*!
  * Get a reference to the params data.
  */
-template<template<Ownership, MemSpace> class P, template<Ownership, MemSpace> class S>
+template<template<Ownership, MemSpace> class P,
+         template<Ownership, MemSpace> class S>
 template<MemSpace M>
 P<Ownership::const_reference, M> const& StreamStore<P, S>::params() const
 {
@@ -189,7 +192,8 @@ P<Ownership::const_reference, M> const& StreamStore<P, S>::params() const
 /*!
  * Get a reference to the state data, allocating if necessary.
  */
-template<template<Ownership, MemSpace> class P, template<Ownership, MemSpace> class S>
+template<template<Ownership, MemSpace> class P,
+         template<Ownership, MemSpace> class S>
 template<MemSpace M>
 S<Ownership::reference, M>&
 StreamStore<P, S>::state(StreamId stream_id, size_type size)

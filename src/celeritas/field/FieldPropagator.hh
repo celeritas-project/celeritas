@@ -87,9 +87,8 @@ class FieldPropagator
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class SubstepperT, class GTV>
-CELER_FUNCTION FieldPropagator(SubstepperT&&,
-                               ParticleTrackView const&,
-                               GTV&&) -> FieldPropagator<SubstepperT, GTV>;
+CELER_FUNCTION FieldPropagator(SubstepperT&&, ParticleTrackView const&, GTV&&)
+    -> FieldPropagator<SubstepperT, GTV>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -114,8 +113,8 @@ CELER_FUNCTION FieldPropagator<SubstepperT, GTV>::FieldPropagator(
  * Propagate a charged particle until it hits a boundary.
  */
 template<class SubstepperT, class GTV>
-CELER_FUNCTION auto
-FieldPropagator<SubstepperT, GTV>::operator()() -> result_type
+CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()()
+    -> result_type
 {
     return (*this)(numeric_limits<real_type>::infinity());
 }

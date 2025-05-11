@@ -35,7 +35,8 @@ MuBremsstrahlungProcess::MuBremsstrahlungProcess(SPConstParticles particles,
 /*!
  * Construct the models associated with this process.
  */
-auto MuBremsstrahlungProcess::build_models(ActionIdIter start_id) const -> VecModel
+auto MuBremsstrahlungProcess::build_models(ActionIdIter start_id) const
+    -> VecModel
 {
     return {std::make_shared<MuBremsstrahlungModel>(
         *start_id++, *particles_, imported_.processes())};
