@@ -529,9 +529,9 @@ void PhysicsParams::build_tables(Options const& opts,
         applic.particle = particle_id;
 
         // Processes for this particle
-        ProcessGroup& pg = data->process_groups[particle_id];
-        auto process_ids = data->process_ids[pg.processes];
-        auto model_groups = data->model_groups[pg.models];
+        ProcessGroup& process_group = data->process_groups[particle_id];
+        auto process_ids = data->process_ids[process_group.processes];
+        auto model_groups = data->model_groups[process_group.models];
         CELER_ASSERT(process_ids.size() == model_groups.size());
 
         // Material-dependent cross section tables (one per particle-process)
@@ -574,12 +574,12 @@ void PhysicsParams::build_tables(Options const& opts,
                  * interaction and choose that process in \c
                  * select_discrete_interaction.
                  */
-                CELER_VALIDATE(!pg.at_rest,
+                CELER_VALIDATE(!process_group.at_rest,
                                << "particle ID " << particle_id.get()
                                << " has multiple at-rest processes");
 
                 // Discrete interaction can occur at rest
-                pg.at_rest = ParticleProcessId(pp_idx);
+                process_group.at_rest = ParticleProcessId(pp_idx);
             }
 
             // Loop over materials
@@ -660,23 +660,25 @@ void PhysicsParams::build_tables(Options const& opts,
             if (has_grids(energy_loss_ids))
             {
                 CELER_ASSERT(has_grids(range_ids));
-                CELER_VALIDATE(!pg.energy_loss && !pg.range,
-                               << "more than one process for particle ID "
-                               << particle_id.get()
-                               << " has energy loss tables");
+                CELER_VALIDATE(
+                    !process_group.energy_loss && !process_group.range,
+                    << "more than one process for particle ID "
+                    << particle_id.get() << " has energy loss tables");
 
-                pg.energy_loss.grids = grid_ids.insert_back(
+                process_group.energy_loss.grids = grid_ids.insert_back(
                     energy_loss_ids.begin(), energy_loss_ids.end());
-                CELER_ASSERT(pg.energy_loss.grids.size() == mats.size());
+                CELER_ASSERT(process_group.energy_loss.grids.size()
+                             == mats.size());
 
-                pg.range.grids
+                process_group.range.grids
                     = grid_ids.insert_back(range_ids.begin(), range_ids.end());
-                CELER_ASSERT(pg.range.grids.size() == mats.size());
+                CELER_ASSERT(process_group.range.grids.size() == mats.size());
 
-                pg.inverse_range.grids = grid_ids.insert_back(
+                process_group.inverse_range.grids = grid_ids.insert_back(
                     inv_range_ids.begin(), inv_range_ids.end());
-                CELER_ASSERT(pg.inverse_range.grids.size() == mats.size()
-                             || pg.inverse_range.grids.empty());
+                CELER_ASSERT(process_group.inverse_range.grids.size()
+                                 == mats.size()
+                             || process_group.inverse_range.grids.empty());
             }
 
             // Store the energies of the maximum cross sections
@@ -687,11 +689,11 @@ void PhysicsParams::build_tables(Options const& opts,
             }
         }
         // Construct energy loss process data
-        pg.integral_xs = integral_xs.insert_back(temp_integral_xs.begin(),
-                                                 temp_integral_xs.end());
+        process_group.integral_xs = integral_xs.insert_back(
+            temp_integral_xs.begin(), temp_integral_xs.end());
 
         // Construct value tables
-        pg.macro_xs
+        process_group.macro_xs
             = tables.insert_back(temp_macro_xs.begin(), temp_macro_xs.end());
     }
 }
