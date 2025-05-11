@@ -183,7 +183,7 @@ class PhysicsTrackView
     CELER_FORCEINLINE_FUNCTION PhysicsTrackState& state();
     CELER_FORCEINLINE_FUNCTION PhysicsTrackState const& state() const;
     CELER_FORCEINLINE_FUNCTION ProcessGroup const& process_group() const;
-    inline CELER_FUNCTION ValueGridId value_grid(ValueTableId) const;
+    inline CELER_FUNCTION ValueGridId value_grid(ValueTable const&) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -345,7 +345,9 @@ CELER_FUNCTION auto
 PhysicsTrackView::macro_xs_grid(ParticleProcessId ppid) const -> ValueGridId
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
-    return this->value_grid(this->process_group().macro_xs[ppid.get()]);
+    auto table_id = this->process_group().macro_xs[ppid.get()];
+    CELER_ASSERT(table_id);
+    return this->value_grid(params_.value_tables[table_id]);
 }
 
 //---------------------------------------------------------------------------//
@@ -727,12 +729,9 @@ CELER_FUNCTION T PhysicsTrackView::make_calculator(ValueGridId id) const
  * associated value (e.g. if the table type is "energy_loss" and the process is
  * not a slowing-down process).
  */
-CELER_FUNCTION auto PhysicsTrackView::value_grid(ValueTableId table_id) const
+CELER_FUNCTION auto PhysicsTrackView::value_grid(ValueTable const& table) const
     -> ValueGridId
 {
-    CELER_EXPECT(table_id);
-
-    ValueTable const& table = params_.value_tables[table_id];
     if (!table)
         return {};  // No table for this process
 

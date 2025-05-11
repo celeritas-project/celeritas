@@ -529,17 +529,13 @@ void PhysicsParams::build_tables(Options const& opts,
         applic.particle = particle_id;
 
         // Processes for this particle
-        ProcessGroup& process_group = data->process_groups[particle_id];
-        auto process_ids = data->process_ids[process_group.processes];
-        auto model_groups = data->model_groups[process_group.models];
+        ProcessGroup& pg = data->process_groups[particle_id];
+        auto process_ids = data->process_ids[pg.processes];
+        auto model_groups = data->model_groups[pg.models];
         CELER_ASSERT(process_ids.size() == model_groups.size());
 
-        // Material-dependent physics tables, one cross section table per
-        // particle-process and one dedx/range table per particle
+        // Material-dependent cross section tables (one per particle-process)
         std::vector<ValueTable> temp_macro_xs(process_ids.size());
-        ValueTable temp_energy_loss;
-        ValueTable temp_range;
-        ValueTable temp_inv_range;
 
         // Processes with dE/dx and macro xs tables
         std::vector<IntegralXsProcess> temp_integral_xs(process_ids.size());
@@ -578,12 +574,12 @@ void PhysicsParams::build_tables(Options const& opts,
                  * interaction and choose that process in \c
                  * select_discrete_interaction.
                  */
-                CELER_VALIDATE(!process_group.at_rest,
+                CELER_VALIDATE(!pg.at_rest,
                                << "particle ID " << particle_id.get()
                                << " has multiple at-rest processes");
 
                 // Discrete interaction can occur at rest
-                process_group.at_rest = ParticleProcessId(pp_idx);
+                pg.at_rest = ParticleProcessId(pp_idx);
             }
 
             // Loop over materials
@@ -664,23 +660,23 @@ void PhysicsParams::build_tables(Options const& opts,
             if (has_grids(energy_loss_ids))
             {
                 CELER_ASSERT(has_grids(range_ids));
-                CELER_VALIDATE(!temp_energy_loss && !temp_range,
+                CELER_VALIDATE(!pg.energy_loss && !pg.range,
                                << "more than one process for particle ID "
                                << particle_id.get()
                                << " has energy loss tables");
 
-                temp_energy_loss.grids = grid_ids.insert_back(
+                pg.energy_loss.grids = grid_ids.insert_back(
                     energy_loss_ids.begin(), energy_loss_ids.end());
-                CELER_ASSERT(temp_energy_loss.grids.size() == mats.size());
+                CELER_ASSERT(pg.energy_loss.grids.size() == mats.size());
 
-                temp_range.grids
+                pg.range.grids
                     = grid_ids.insert_back(range_ids.begin(), range_ids.end());
-                CELER_ASSERT(temp_range.grids.size() == mats.size());
+                CELER_ASSERT(pg.range.grids.size() == mats.size());
 
-                temp_inv_range.grids = grid_ids.insert_back(
+                pg.inverse_range.grids = grid_ids.insert_back(
                     inv_range_ids.begin(), inv_range_ids.end());
-                CELER_ASSERT(temp_inv_range.grids.size() == mats.size()
-                             || temp_inv_range.grids.empty());
+                CELER_ASSERT(pg.inverse_range.grids.size() == mats.size()
+                             || pg.inverse_range.grids.empty());
             }
 
             // Store the energies of the maximum cross sections
@@ -691,15 +687,12 @@ void PhysicsParams::build_tables(Options const& opts,
             }
         }
         // Construct energy loss process data
-        process_group.integral_xs = integral_xs.insert_back(
-            temp_integral_xs.begin(), temp_integral_xs.end());
+        pg.integral_xs = integral_xs.insert_back(temp_integral_xs.begin(),
+                                                 temp_integral_xs.end());
 
         // Construct value tables
-        process_group.macro_xs
+        pg.macro_xs
             = tables.insert_back(temp_macro_xs.begin(), temp_macro_xs.end());
-        process_group.energy_loss = tables.push_back(temp_energy_loss);
-        process_group.range = tables.push_back(temp_range);
-        process_group.inverse_range = tables.push_back(temp_inv_range);
     }
 }
 

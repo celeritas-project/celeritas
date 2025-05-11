@@ -134,9 +134,9 @@ struct ProcessGroup
     ItemRange<ModelGroup> models;  //!< Model applicability [ppid]
     ItemRange<IntegralXsProcess> integral_xs;  //!< [ppid]
     ItemRange<ValueTable> macro_xs;  //!< [ppid]
-    ValueTableId energy_loss;  //!< Process-integrated energy loss
-    ValueTableId range;  //!< Process-integrated range
-    ValueTableId inverse_range;  //!< Inverse process-integrated range
+    ValueTable energy_loss;  //!< Process-integrated energy loss
+    ValueTable range;  //!< Process-integrated range
+    ValueTable inverse_range;  //!< Inverse process-integrated range
     ParticleProcessId at_rest;  //!< ID of the particle's at-rest process
 
     //! True if assigned and valid
