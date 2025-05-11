@@ -19,6 +19,7 @@
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 
 #include "LPMCalculator.hh"
+#include "ScreeningFunctions.hh"
 
 namespace celeritas
 {
@@ -72,15 +73,6 @@ class RBDiffXsCalculator
   private:
     //// TYPES ////
 
-    //! Intermediate data for screening functions
-    struct ScreenFunctions
-    {
-        real_type phi1{0};
-        real_type phi2{0};
-        real_type psi1{0};
-        real_type psi2{0};
-    };
-
     using R = real_type;
 
     //// DATA ////
@@ -107,10 +99,6 @@ class RBDiffXsCalculator
 
     //! Calculate the differential cross section per atom with the LPM effect
     inline CELER_FUNCTION real_type dxsec_per_atom_lpm(real_type energy);
-
-    //! Compute screening functions
-    inline CELER_FUNCTION ScreenFunctions
-    compute_screen_functions(real_type gamma, real_type epsilon);
 };
 
 //---------------------------------------------------------------------------//
@@ -178,12 +166,11 @@ real_type RBDiffXsCalculator::dxsec_per_atom(real_type gamma_energy)
         real_type invz = 1
                          / static_cast<real_type>(
                              element_.atomic_number().unchecked_get());
-        real_type term1 = y / (total_energy_ - gamma_energy);
-        real_type gamma = term1 * elem_data_.gamma_factor;
-        real_type epsilon = term1 * elem_data_.epsilon_factor;
 
         // Evaluate the screening functions
-        auto sfunc = compute_screen_functions(gamma, epsilon);
+        auto sfunc = TsaiScreeningCalculator{
+            elem_data_.gamma_factor,
+            elem_data_.epsilon_factor}(y / (total_energy_ - gamma_energy));
 
         dxsec = term0
                     * ((R(0.25) * sfunc.phi1 - elem_data_.fz)
@@ -215,31 +202,6 @@ real_type RBDiffXsCalculator::dxsec_per_atom_lpm(real_type gamma_energy)
     real_type dxsec = term * elem_data_.factor1 + onemy * elem_data_.factor2;
 
     return max(dxsec, R(0));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Compute screen_functions.
- */
-CELER_FUNCTION auto
-RBDiffXsCalculator::compute_screen_functions(real_type gam, real_type eps)
-    -> ScreenFunctions
-{
-    ScreenFunctions func;
-    real_type gam2 = ipow<2>(gam);
-    real_type eps2 = ipow<2>(eps);
-
-    func.phi1 = R(16.863) - 2 * std::log(1 + R(0.311877) * gam2)
-                + R(2.4) * std::exp(R(-0.9) * gam)
-                + R(1.6) * std::exp(R(-1.5) * gam);
-    func.phi2 = 2 / (3 + R(19.5) * gam + 18 * gam2);
-
-    func.psi1 = R(24.34) - 2 * std::log(1 + R(13.111641) * eps2)
-                + R(2.8) * std::exp(R(-8) * eps)
-                + R(1.2) * std::exp(R(-29.2) * eps);
-    func.psi2 = 2 / (3 + 120 * eps + 1200 * eps2);
-
-    return func;
 }
 
 //---------------------------------------------------------------------------//
