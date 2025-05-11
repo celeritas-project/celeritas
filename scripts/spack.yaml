@@ -1,6 +1,7 @@
 spack:
   specs:
     - cli11
+    - "covfie@0.13:"
     - cmake
     - doxygen
     - "geant4@11"
