@@ -717,7 +717,7 @@ void PhysicsParams::build_model_tables(MaterialParams const& mats,
         // Loop over applicable particles
         for (Applicability applic : model.applicability())
         {
-            std::vector<ValueTable> temp_tables(data->model_ids.size());
+            std::vector<ValueTable> temp_tables(mats.size());
             for (auto mat_id : range(PhysMatId{mats.size()}))
             {
                 // Construct microscopic cross sections
