@@ -53,7 +53,7 @@ Nuclear form factors
 The nuclear form factors used by :cpp:class:`celeritas::WentzelDistribution`
 are:
 
-.. doxygenclass:: celeritas::NuclearFormFactorTraits
+.. doxygenstruct:: celeritas::NuclearFormFactorTraits
 .. doxygenclass:: celeritas::ExpNuclearFormFactor
 .. doxygenclass:: celeritas::GaussianNuclearFormFactor
 .. doxygenclass:: celeritas::UUNuclearFormFactor

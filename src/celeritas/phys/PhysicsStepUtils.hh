@@ -28,8 +28,6 @@
 
 namespace celeritas
 {
-namespace
-{
 //---------------------------------------------------------------------------//
 /*!
  * Sample the process for the discrete interaction.
@@ -43,6 +41,9 @@ namespace
  *   sampled based by rejection sampling with the updated cross section.
  *
  * \todo Support competing at-rest processes?
+ *
+ * \return Sampled process, or null if integral xs rejection cancels
+ * interaction
  */
 template<class Engine>
 inline CELER_FUNCTION ParticleProcessId
@@ -85,9 +86,6 @@ find_ppid(MaterialView const& material,
     }
     return ppid;
 }
-
-//---------------------------------------------------------------------------//
-}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
