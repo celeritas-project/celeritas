@@ -708,7 +708,6 @@ void PhysicsParams::build_model_tables(MaterialParams const& mats,
     XsGridInserter insert(&data->reals, &data->value_grids);
     CollectionBuilder model_cdf(&data->model_cdf);
     CollectionBuilder tables(&data->value_tables);
-    CollectionBuilder table_ids(&data->value_table_ids);
     CollectionBuilder grid_ids(&data->value_grid_ids);
 
     for (auto model_idx : range(this->num_models()))
@@ -718,7 +717,7 @@ void PhysicsParams::build_model_tables(MaterialParams const& mats,
         // Loop over applicable particles
         for (Applicability applic : model.applicability())
         {
-            std::vector<ValueTableId> temp_table_ids(data->model_ids.size());
+            std::vector<ValueTable> temp_tables(data->model_ids.size());
             for (auto mat_id : range(PhysMatId{mats.size()}))
             {
                 // Construct microscopic cross sections
@@ -743,15 +742,13 @@ void PhysicsParams::build_model_tables(MaterialParams const& mats,
                 }
 
                 // Construct table for the material
-                ValueTable table;
-                table.grids = grid_ids.insert_back(temp_grid_ids.begin(),
-                                                   temp_grid_ids.end());
-                temp_table_ids[mat_id.get()] = tables.push_back(table);
+                temp_tables[mat_id.get()].grids = grid_ids.insert_back(
+                    temp_grid_ids.begin(), temp_grid_ids.end());
             }
             // Construct table for the model
             ModelCdfTable cdf;
-            cdf.material = table_ids.insert_back(temp_table_ids.begin(),
-                                                 temp_table_ids.end());
+            cdf.tables
+                = tables.insert_back(temp_tables.begin(), temp_tables.end());
             model_cdf.push_back(cdf);
         }
     }

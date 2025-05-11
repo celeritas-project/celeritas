@@ -551,19 +551,24 @@ ValueTableId PhysicsTrackView::value_table(ParticleModelId pmid) const
 {
     CELER_EXPECT(pmid < params_.model_cdf.size());
 
-    // Get the model xs table for the given particle/model
+    // Get the CDF table for the given particle and model
     ModelCdfTable const& model_cdf = params_.model_cdf[pmid];
     if (!model_cdf)
-        return {};  // No tables stored for this model
+    {
+        // No tables stored for this model
+        return {};
+    }
 
-    // Get the value table for the current material
-    CELER_ASSERT(material_ < model_cdf.material.size());
-    auto const& table_id_ref = model_cdf.material[material_.get()];
-    if (!table_id_ref)
-        return {};  // Only one element in this material
-
-    CELER_ASSERT(table_id_ref < params_.value_table_ids.size());
-    return params_.value_table_ids[table_id_ref];
+    // Get the value table ID for the current material
+    CELER_ASSERT(material_ < model_cdf.tables.size());
+    auto table_id = model_cdf.tables[material_.get()];
+    CELER_ASSERT(table_id < params_.value_tables.size());
+    if (!params_.value_tables[table_id])
+    {
+        // No tables stored for this material
+        return {};
+    }
+    return table_id;
 }
 
 //---------------------------------------------------------------------------//
