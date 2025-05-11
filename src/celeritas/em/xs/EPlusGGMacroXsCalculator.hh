@@ -25,7 +25,7 @@ namespace celeritas
 /*!
  * Calculates the macroscopic cross section of positron annihilation.
  *
- * The Heitler formula (section 10.3.2 of \cite{g4prm}) is used to compute the
+ * The Heitler formula (section 10.3.2 of \cite{g4prm} ) is used to compute the
  * macroscopic cross section for positron annihilation on the fly at the given
  * energy.
  */

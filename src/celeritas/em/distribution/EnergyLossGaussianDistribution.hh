@@ -26,17 +26,18 @@ namespace celeritas
  * energy losses from a large number of collisions. The central limit theorem
  * applies, and the energy loss fluctuations can be described by a Gaussian
  * distribution. See section 7.3.1 of \cite{g4prm} and
- * PHYS332 section 2.3 of \cite{geant3-1993}.
+ * PHYS332 section 2.3 of \cite{geant3-1993} .
  *
  * The Gaussian approximation is valid for heavy particles and in the
  * regime \f$ \kappa = \xi / T_\textrm{max} > 10 \f$.
- * Fluctuations of the unrestricted energy loss
- * follow a Gaussian distribution if \f$ \Delta E > \kappa T_{max} \f$,
- * where \f$ T_{max} \f$ is the maximum energy transfer (PHYS332 section
- * 2). For fluctuations of the \em restricted energy loss, the condition is
- * modified to \f$ \Delta E > \kappa T_{c} \f$ and \f$ T_{max} \le 2 T_c
- * \f$, where \f$ T_c \f$ is the delta ray cutoff energy
- * (Eq. 7.6--7.7 from \cite{g4prm}).
+ * Fluctuations of the unrestricted energy loss follow a Gaussian distribution
+ * if \f$ \Delta E > \kappa T_\textrm{max} \f$, where \f$ T_\textrm{max} \f$
+ * is the maximum energy transfer (PHYS332 section 2 of \cite{geant3-1993} ).
+ * For fluctuations of the \em restricted energy loss, the condition is
+ * modified to \f$ \Delta E > \kappa T_c \f$ and
+ * \f$ T_\textrm{max} \le 2 T_c \f$,
+ * where \f$ T_c \f$ is the delta ray cutoff energy (Eq. 7.6--7.7 from
+ * \cite{g4prm} ).
  */
 class EnergyLossGaussianDistribution
 {
