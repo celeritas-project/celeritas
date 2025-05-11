@@ -2,7 +2,7 @@ spack:
   specs:
     - cli11
     - "covfie@0.13:"
-    - "g4vg@1.0.2:"
+    - "g4vg@1.0.3:"
     - "geant4@11"
     - "googletest@1.10:"
     - hepmc3
