@@ -32,7 +32,7 @@ class RangeCalculatorTest : public CalculatorTestBase
 
 TEST_F(RangeCalculatorTest, all)
 {
-    RangeCalculator calc_range(this->data(), this->values());
+    RangeCalculator calc_range(this->uniform_grid(), this->values());
 
     // "stopped" particle case should not calculate range
     if (CELERITAS_DEBUG)

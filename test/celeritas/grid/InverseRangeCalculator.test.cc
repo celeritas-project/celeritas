@@ -35,7 +35,7 @@ TEST_F(InverseRangeCalculatorTest, simple)
     grid.y = {0.5, 5, 50, 500};
     this->build(grid);
 
-    InverseRangeCalculator calc_energy(this->data(), this->values());
+    InverseRangeCalculator calc_energy(this->uniform_grid(), this->values());
 
     // Values below should be scaled below emin
     EXPECT_SOFT_EQ(1.0, calc_energy(.5 * std::sqrt(1. / 10.)).value());
@@ -91,7 +91,8 @@ TEST_F(InverseRangeCalculatorTest, interpolation)
         };
 
         this->build(grid);
-        InverseRangeCalculator calc_energy(this->data(), this->values());
+        InverseRangeCalculator calc_energy(this->uniform_grid(),
+                                           this->values());
         for (size_type i = 0; i < range.size(); ++i)
         {
             EXPECT_SOFT_NEAR(
@@ -99,7 +100,7 @@ TEST_F(InverseRangeCalculatorTest, interpolation)
         }
 
         // Linear interpolation is invertible
-        RangeCalculator calc_range(this->data(), this->values());
+        RangeCalculator calc_range(this->uniform_grid(), this->values());
         for (size_type i = 0; i < range.size(); ++i)
         {
             EXPECT_SOFT_NEAR(range[i], calc_range(Energy(energy[i])), tol);
@@ -121,7 +122,8 @@ TEST_F(InverseRangeCalculatorTest, interpolation)
         };
 
         this->build_inverted(grid);
-        InverseRangeCalculator calc_energy(this->data(), this->values());
+        InverseRangeCalculator calc_energy(this->uniform_grid(),
+                                           this->values());
         for (size_type i = 0; i < range.size(); ++i)
         {
             EXPECT_SOFT_EQ(energy[i], value_as<Energy>(calc_energy(range[i])));
@@ -139,7 +141,7 @@ TEST_F(InverseRangeCalculatorTest, interpolation)
         };
 
         this->build(grid);
-        RangeCalculator calc_range(this->data(), this->values());
+        RangeCalculator calc_range(this->uniform_grid(), this->values());
         for (size_type i = 0; i < range.size(); ++i)
         {
             EXPECT_SOFT_EQ(roundtrip_range[i], calc_range(Energy(energy[i])));

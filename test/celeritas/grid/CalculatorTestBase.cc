@@ -20,16 +20,16 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from grid bounds and cross section values.
+ * Construct a cross section grid.
  */
-void CalculatorTestBase::build(inp::UniformGrid lower, inp::UniformGrid upper)
+void CalculatorTestBase::build(inp::XsGrid grid)
 {
-    return this->build_impl(lower, upper, false);
+    return this->build_impl(grid.lower, grid.upper, false);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct without scaled values.
+ * Construct a uniform grid.
  */
 void CalculatorTestBase::build(inp::UniformGrid grid)
 {
@@ -38,7 +38,7 @@ void CalculatorTestBase::build(inp::UniformGrid grid)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct an inverted grid.
+ * Construct an inverted uniform grid.
  */
 void CalculatorTestBase::build_inverted(inp::UniformGrid grid)
 {

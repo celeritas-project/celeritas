@@ -46,7 +46,7 @@ TEST_F(SplineCalculatorTest, simple)
         grid.interpolation.order = order;
         this->build(grid);
 
-        SplineCalculator calc(this->data().lower, this->values());
+        SplineCalculator calc(this->uniform_grid(), this->values());
 
         // Test on grid points
         EXPECT_SOFT_EQ(1.0, calc(Energy{1}));
@@ -89,7 +89,7 @@ TEST_F(SplineCalculatorTest, quadratic)
         grid.interpolation.order = order;
         this->build(grid);
 
-        SplineCalculator calc(this->data().lower, this->values());
+        SplineCalculator calc(this->uniform_grid(), this->values());
 
         for (real_type e : {1e-2, 5e-2, 1e-1, 5e-1, 1.0, 5.0, 1e1, 5e1, 1e2})
         {
@@ -134,7 +134,7 @@ TEST_F(SplineCalculatorTest, cubic)
         grid.interpolation.order = order;
         this->build(grid);
 
-        SplineCalculator calc(this->data().lower, this->values());
+        SplineCalculator calc(this->uniform_grid(), this->values());
 
         for (real_type e : {0.01, 0.05, 0.1, 0.5, 1.0, 5.0, 1e2, 5e2, 1e3})
         {

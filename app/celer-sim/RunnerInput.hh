@@ -109,12 +109,14 @@ struct RunnerInput
 
     // Control
     unsigned int seed{};
-    size_type num_track_slots{};  //!< Divided among streams
+    size_type num_track_slots{};  //!< Divided among streams. Defaults to 2^20
+                                  //!< on device, 2^12 on host
+    size_type initializer_capacity{};  //!< Divided among streams. Defaults to
+                                       //!< 8 * num_track_slots
     size_type max_steps = static_cast<size_type>(-1);  //!< Step *iterations*
-    size_type initializer_capacity{};  //!< Divided among streams
     InterpolationType interpolation{InterpolationType::linear};
     size_type poly_spline_order{1};
-    real_type secondary_stack_factor{};
+    real_type secondary_stack_factor{2};
     bool use_device{};
     bool action_times{};
     bool merge_events{false};  //!< Run all events at once on a single stream

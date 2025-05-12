@@ -231,9 +231,6 @@ calc_mean_energy_loss(ParticleTrackView const& particle,
 {
     CELER_EXPECT(step > 0);
     using Energy = ParticleTrackView::Energy;
-    static_assert(Energy::unit_type::value()
-                      == EnergyLossCalculator::Energy::unit_type::value(),
-                  "Incompatible energy types");
 
     Energy const pre_step_energy = particle.energy();
 
@@ -243,7 +240,8 @@ calc_mean_energy_loss(ParticleTrackView const& particle,
         auto grid_id = physics.energy_loss_grid();
         CELER_ASSERT(grid_id);
 
-        auto calc_eloss_rate = physics.make_calculator<XsCalculator>(grid_id);
+        auto calc_eloss_rate
+            = physics.make_calculator<EnergyLossCalculator>(grid_id);
         eloss = Energy{step * calc_eloss_rate(pre_step_energy)};
     }
 
@@ -330,7 +328,7 @@ select_discrete_interaction(MaterialView const& material,
     {
         elcomp_id = ElementComponentId{0};
     }
-    else if (auto table_id = physics.value_table(pmid))
+    else if (auto table_id = physics.cdf_table(pmid))
     {
         // Sample an element for discrete interactions that require it and for
         // materials with more than one element

@@ -12,8 +12,10 @@
 #include <unordered_set>
 #include <vector>
 
+#include "corecel/sys/Device.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/inp/Control.hh"
 #include "celeritas/inp/Physics.hh"
 
 class G4LogicalVolume;
@@ -173,7 +175,7 @@ struct SetupOptions
     //! Maximum number of track initializers (primaries+secondaries)
     size_type initializer_capacity{};
     //! At least the average number of secondaries per track slot
-    real_type secondary_stack_factor{3.0};
+    real_type secondary_stack_factor{2.0};
     //! Number of tracks to buffer before offloading (if unset: max num tracks)
     size_type auto_flush{};
     //!@}
@@ -236,7 +238,7 @@ struct SetupOptions
 
     explicit inline operator bool() const
     {
-        return max_num_tracks > 0 && static_cast<bool>(make_along_step);
+        return static_cast<bool>(make_along_step);
     }
 };
 
@@ -253,6 +255,9 @@ inp::GeantSd to_inp(SDSetupOptions const& so);
 
 // Construct a framework input
 inp::FrameworkInput to_inp(SetupOptions const& so);
+
+// Get runtime-dependent default capacity values
+inp::StateCapacity get_default(SetupOptions const& so, size_type num_streams);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

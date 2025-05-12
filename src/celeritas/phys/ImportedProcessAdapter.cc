@@ -240,7 +240,7 @@ auto ImportedProcessAdapter::energy_loss(Applicability const& applic) const
         auto grid = import_process.dedx.grids[applic.material.get()];
         CELER_ASSERT(grid);
         CELER_ASSERT(std::exp(grid.x[Bound::lo]) > 0 && grid.y.size() >= 2);
-        result.lower = std::move(grid);
+        result = std::move(grid);
     }
     return result;
 }
