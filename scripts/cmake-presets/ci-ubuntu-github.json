@@ -9,7 +9,6 @@
       "binaryDir": "${sourceDir}/build",
       "generator": "Ninja",
       "cacheVariables": {
-        "CELERITAS_BUILTIN_CLI11": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_TEST_VERBOSE":{"type": "BOOL", "value": "OFF"},
@@ -50,6 +49,11 @@
       "inherits": ["base"],
       "displayName": "CONFIG: use full spack toolchain",
       "cacheVariables": {
+        "CELERITAS_BUILTIN_CLI11": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_G4VG": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_GTest": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_covfie": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_nlohmann_json": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_ROOT":    null,
@@ -87,6 +91,7 @@
       "inherits": ["type-reldeb", "base"],
       "displayName": "FINAL: fast build using apt-get",
       "cacheVariables": {
+        "CELERITAS_BUILTIN_CLI11": {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"}
       }
     },
@@ -96,6 +101,7 @@
       "displayName": "FINAL: ultralite build with no externals",
       "cacheVariables": {
         "BUILD_TESTING":         {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILTIN_CLI11": {"type": "BOOL", "value": "ON"},
         "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
       }
