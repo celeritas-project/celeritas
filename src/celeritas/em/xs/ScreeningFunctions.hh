@@ -49,8 +49,9 @@ struct BhwlScreeningFactors
  * The calculator argument is the fraction \f[
  * \delta = \frac{k}{E(k - E)} \equiv \frac{2\delta_\mathrm{Tsai}}{m_e}
  * \f]
- * where \f$k\f$ is the kinetic plus rest mass energy of the incident electron
- * and \f$E\f$ is the exiting gamma energy.
+ * where \f$E\f$ is the kinetic plus rest mass energy of the electron
+ * and \f$k\f$ is the photon energy. (For Bremsstrahlung, the electron is
+ * incident and photon is exiting.)
  *
  * The calculated screening functions are:
  * \f[
