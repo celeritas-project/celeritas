@@ -180,14 +180,13 @@ auto RelativisticBremModel::compute_element_data(ElementView const& elem,
 
     real_type fc = elem.coulomb_correction();
     real_type invz = real_type(1) / z.unchecked_get();
-    real_type z13 = elem.cbrt_z();
-    real_type z23 = ipow<2>(z13);
 
     data.fz = elem.log_z() / 3 + fc;
     data.factor1 = (ff_el - fc) + ff_inel * invz;
     data.factor2 = (1 + invz) / 12;
-    data.gamma_factor = 100 * electron_mass / z13;
-    data.epsilon_factor = 100 * electron_mass / z23;
+    // See Eq. 3.32 in tsai-1974
+    data.gamma_factor = 100 * electron_mass / elem.cbrt_z();
+    data.epsilon_factor = 100 * electron_mass / ipow<2>(elem.cbrt_z());
 
     return data;
 }

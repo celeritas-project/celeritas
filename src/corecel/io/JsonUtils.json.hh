@@ -9,6 +9,9 @@
 #include <string_view>
 #include <nlohmann/json.hpp>
 
+#include "corecel/io/EnumStringMapper.hh"
+#include "corecel/io/Logger.hh"
+
 //---------------------------------------------------------------------------//
 // MACROS
 //---------------------------------------------------------------------------//
@@ -31,6 +34,24 @@
         {                                          \
             iter->get_to(STRUCT.NAME);             \
         }                                          \
+    } while (0)
+
+/*!
+ * Load a field if present and set a default value otherwise.
+ */
+#define CELER_JSON_LOAD_DEFAULT(OBJ, STRUCT, NAME, DEFAULT)                 \
+    do                                                                      \
+    {                                                                       \
+        if (auto iter = OBJ.find(#NAME);                                    \
+            iter != OBJ.end() && !iter->is_null())                          \
+        {                                                                   \
+            iter->get_to(STRUCT.NAME);                                      \
+        }                                                                   \
+        else                                                                \
+        {                                                                   \
+            STRUCT.NAME = DEFAULT;                                          \
+            CELER_LOG(debug) << "Set '" << #NAME << "' to " << STRUCT.NAME; \
+        }                                                                   \
     } while (0)
 
 /*!

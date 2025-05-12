@@ -66,7 +66,7 @@ auto MockProcess::macro_xs(Applicability applic) const -> XsGrid
     // Get the energy grid values
     auto size = lower_size && upper_size ? lower_size + upper_size - 1
                                          : std::max(lower_size, upper_size);
-    auto energy = logspace(applic.lower.value(), applic.upper.value(), size);
+    auto energy = geomspace(applic.lower.value(), applic.upper.value(), size);
 
     XsGrid grid;
     if (lower_size)
@@ -107,9 +107,9 @@ auto MockProcess::energy_loss(Applicability applic) const -> EnergyLossGrid
         auto eloss_rate = native_value_to<units::MevEnergy>(
             native_value_from(data_.energy_loss) * mat.number_density());
 
-        grid.lower.x
+        grid.x
             = {std::log(applic.lower.value()), std::log(applic.upper.value())};
-        grid.lower.y = VecDbl(3, eloss_rate.value());
+        grid.y = VecDbl(3, eloss_rate.value());
     }
     return grid;
 }

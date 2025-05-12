@@ -49,12 +49,11 @@ auto MockModel::micro_xs(Applicability range) const -> XsTable
         grids.resize(mat.num_elements());
         for (auto elcomp_idx : celeritas::range(mat.num_elements()))
         {
-            auto& grid = grids[elcomp_idx].lower;
-            grid.x = {std::log(range.lower.value()),
-                      std::log(range.upper.value())};
+            grids[elcomp_idx].x = {std::log(range.lower.value()),
+                                   std::log(range.upper.value())};
             for (auto xs : data_.xs)
             {
-                grid.y.push_back(native_value_from(xs));
+                grids[elcomp_idx].y.push_back(native_value_from(xs));
             }
         }
     }

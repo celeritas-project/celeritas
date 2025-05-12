@@ -42,22 +42,22 @@ class ElementCdfCalculatorTest : public Test
         grids = XsTable(xs.size());
         for (auto i : range(grids.size()))
         {
-            grids[i].lower.x = {0, 1e3};
-            grids[i].lower.y = xs[i];
+            grids[i].x = {0, 1e3};
+            grids[i].y = xs[i];
         }
     }
 
     //! Get the CDF values indexed as [energy][element]
     VecVecDbl get_cdf(XsTable const& cdf)
     {
-        auto grid_size = cdf.front().lower.y.size();
+        auto grid_size = cdf.front().y.size();
         VecVecDbl result(grid_size);
         for (auto i : range(grid_size))
         {
             result[i].resize(cdf.size());
             for (auto j : range(cdf.size()))
             {
-                result[i][j] = cdf[j].lower.y[i];
+                result[i][j] = cdf[j].y[i];
             }
         }
         return result;

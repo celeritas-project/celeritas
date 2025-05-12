@@ -28,17 +28,17 @@ void ElementCdfCalculator::operator()(XsTable& grids)
 {
     CELER_EXPECT(grids.size() == elements_.size());
     CELER_EXPECT(std::all_of(grids.begin(), grids.end(), [](auto const& g) {
-        return g.lower && !g.upper;
+        return static_cast<bool>(g);
     }));
 
     // Outer loop over energy: the energy grid is the same for each element
-    for (auto i : range(grids.front().lower.y.size()))
+    for (auto i : range(grids.front().y.size()))
     {
         // Calculate the CDF in place
         double accum{0};
         for (auto j : range(elements_.size()))
         {
-            auto& value = grids[j].lower.y[i];
+            auto& value = grids[j].y[i];
             accum += value * elements_[j].fraction;
             value = accum;
         }
@@ -48,9 +48,9 @@ void ElementCdfCalculator::operator()(XsTable& grids)
             double norm = 1 / accum;
             for (auto j : range(elements_.size() - 1))
             {
-                grids[j].lower.y[i] *= norm;
+                grids[j].y[i] *= norm;
             }
-            grids.back().lower.y[i] = 1;
+            grids.back().y[i] = 1;
         }
     }
 }

@@ -38,6 +38,7 @@
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/grid/ElementCdfCalculator.hh"
 #include "celeritas/grid/RangeGridCalculator.hh"
+#include "celeritas/grid/UniformGridInserter.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/grid/XsGridData.hh"
 #include "celeritas/grid/XsGridInserter.hh"
@@ -469,15 +470,14 @@ void PhysicsParams::build_tables(Options const& opts,
     using Energy = Applicability::Energy;
 
     DedupeCollectionBuilder reals(&data->reals);
-    CollectionBuilder grid_ids(&data->value_grid_ids);
-    CollectionBuilder grids(&data->value_grids);
-    CollectionBuilder tables(&data->value_tables);
     CollectionBuilder integral_xs(&data->integral_xs);
+    CollectionBuilder xs_grid_ids(&data->xs_grid_ids);
+    CollectionBuilder xs_tables(&data->xs_tables);
+    CollectionBuilder uniform_grid_ids(&data->uniform_grid_ids);
+    CollectionBuilder uniform_grids(&data->uniform_grids);
 
-    XsGridInserter insert_grid(&data->reals, &data->value_grids);
-    auto build_grid = [&insert_grid](inp::XsGrid const& grid) -> ValueGridId {
-        return grid ? insert_grid(grid) : ValueGridId{};
-    };
+    XsGridInserter insert_xs(&data->reals, &data->xs_grids);
+    UniformGridInserter insert_uniform(&data->reals, &data->uniform_grids);
 
     Applicability applic;
     for (auto particle_id : range(ParticleId(data->process_groups.size())))
@@ -490,12 +490,8 @@ void PhysicsParams::build_tables(Options const& opts,
         auto model_groups = data->model_groups[process_group.models];
         CELER_ASSERT(process_ids.size() == model_groups.size());
 
-        // Material-dependent physics tables, one cross section table per
-        // particle-process and one dedx/range table per particle
-        std::vector<ValueTable> temp_macro_xs(process_ids.size());
-        ValueTable temp_energy_loss;
-        ValueTable temp_range;
-        ValueTable temp_inv_range;
+        // Material-dependent cross section tables (one per particle-process)
+        std::vector<ValueTable<XsGridId>> temp_macro_xs(process_ids.size());
 
         // Processes with dE/dx and macro xs tables
         std::vector<IntegralXsProcess> temp_integral_xs(process_ids.size());
@@ -512,10 +508,10 @@ void PhysicsParams::build_tables(Options const& opts,
             Process const& proc = *this->process(process_ids[pp_idx]);
 
             // Grid IDs for each grid type, each material
-            std::vector<ValueGridId> macro_xs_ids(mats.size());
-            std::vector<ValueGridId> energy_loss_ids(mats.size());
-            std::vector<ValueGridId> range_ids(mats.size(), ValueGridId{});
-            std::vector<ValueGridId> inv_range_ids;
+            std::vector<XsGridId> macro_xs_ids(mats.size());
+            std::vector<UniformGridId> energy_loss_ids(mats.size());
+            std::vector<UniformGridId> range_ids(mats.size());
+            std::vector<UniformGridId> inverse_range_ids;
 
             // Energy of maximum cross section for each material
             detail::EnergyMaxXsCalculator calc_integral_xs(opts, proc);
@@ -548,36 +544,40 @@ void PhysicsParams::build_tables(Options const& opts,
 
                 // Construct macroscopic cross section grid
                 auto macro_xs = proc.macro_xs(applic);
-                macro_xs_ids[mat_idx] = build_grid(macro_xs);
+                if (macro_xs)
+                {
+                    macro_xs_ids[mat_idx] = insert_xs(macro_xs);
+                }
 
                 // Construct energy loss grid
                 auto energy_loss = proc.energy_loss(applic);
-                energy_loss_ids[mat_idx] = build_grid(energy_loss);
-
-                // Construct range grid from energy loss
                 if (energy_loss)
                 {
-                    auto range
-                        = RangeGridCalculator(BC::geant)(energy_loss.lower);
-                    range_ids[mat_idx] = insert_grid({range, {}});
+                    energy_loss_ids[mat_idx] = insert_uniform(energy_loss);
+
+                    // Construct range grid from energy loss
+                    auto range = RangeGridCalculator(BC::geant)(energy_loss);
+                    range_ids[mat_idx] = insert_uniform(range);
 
                     if (range.interpolation.type
                         == InterpolationType::cubic_spline)
                     {
                         // Build the inverse range grid if cubic spline
                         // interpolation is used
-                        inv_range_ids.resize(mats.size(), ValueGridId{});
+                        inverse_range_ids.resize(mats.size(), UniformGridId{});
 
                         // The range and energy values are not inverted on the
                         // grid, but the derivatives are calculated using the
                         // inverted grid.
-                        auto inv_range = data->value_grids[range_ids[mat_idx]];
+                        auto inverse_range
+                            = data->uniform_grids[range_ids[mat_idx]];
                         auto derivative
                             = SplineDerivCalculator(BC::geant).calc_from_inverse(
-                                inv_range.lower, make_const_ref(*data).reals);
-                        inv_range.lower.derivative = reals.insert_back(
+                                inverse_range, make_const_ref(*data).reals);
+                        inverse_range.derivative = reals.insert_back(
                             derivative.begin(), derivative.end());
-                        inv_range_ids[mat_idx] = grids.push_back(inv_range);
+                        inverse_range_ids[mat_idx]
+                            = uniform_grids.push_back(inverse_range);
                     }
                 }
 
@@ -590,8 +590,8 @@ void PhysicsParams::build_tables(Options const& opts,
             }
 
             // Check if any material has value grids
-            auto has_grids = [](std::vector<ValueGridId> const& v) {
-                return std::any_of(v.begin(), v.end(), [](ValueGridId id) {
+            auto has_grids = [](auto const& v) {
+                return std::any_of(v.begin(), v.end(), [](auto id) {
                     return static_cast<bool>(id);
                 });
             };
@@ -599,30 +599,24 @@ void PhysicsParams::build_tables(Options const& opts,
             // Construct value grid tables
             if (has_grids(macro_xs_ids))
             {
-                temp_macro_xs[pp_idx].grids = grid_ids.insert_back(
+                temp_macro_xs[pp_idx].grids = xs_grid_ids.insert_back(
                     macro_xs_ids.begin(), macro_xs_ids.end());
-                CELER_ASSERT(temp_macro_xs[pp_idx].grids.size() == mats.size());
             }
             if (has_grids(energy_loss_ids))
             {
                 CELER_ASSERT(has_grids(range_ids));
-                CELER_VALIDATE(!temp_energy_loss && !temp_range,
-                               << "more than one process for particle ID "
-                               << particle_id.get()
-                               << " has energy loss tables");
+                CELER_VALIDATE(
+                    !process_group.energy_loss && !process_group.range,
+                    << "more than one process for particle ID "
+                    << particle_id.get() << " has energy loss tables");
 
-                temp_energy_loss.grids = grid_ids.insert_back(
+                process_group.energy_loss.grids = uniform_grid_ids.insert_back(
                     energy_loss_ids.begin(), energy_loss_ids.end());
-                CELER_ASSERT(temp_energy_loss.grids.size() == mats.size());
-
-                temp_range.grids
-                    = grid_ids.insert_back(range_ids.begin(), range_ids.end());
-                CELER_ASSERT(temp_range.grids.size() == mats.size());
-
-                temp_inv_range.grids = grid_ids.insert_back(
-                    inv_range_ids.begin(), inv_range_ids.end());
-                CELER_ASSERT(temp_inv_range.grids.size() == mats.size()
-                             || temp_inv_range.grids.empty());
+                process_group.range.grids = uniform_grid_ids.insert_back(
+                    range_ids.begin(), range_ids.end());
+                process_group.inverse_range.grids
+                    = uniform_grid_ids.insert_back(inverse_range_ids.begin(),
+                                                   inverse_range_ids.end());
             }
 
             // Store the energies of the maximum cross sections
@@ -634,11 +628,8 @@ void PhysicsParams::build_tables(Options const& opts,
             temp_integral_xs.begin(), temp_integral_xs.end());
 
         // Construct value tables
-        process_group.macro_xs
-            = tables.insert_back(temp_macro_xs.begin(), temp_macro_xs.end());
-        process_group.energy_loss = tables.push_back(temp_energy_loss);
-        process_group.range = tables.push_back(temp_range);
-        process_group.inverse_range = tables.push_back(temp_inv_range);
+        process_group.macro_xs = xs_tables.insert_back(temp_macro_xs.begin(),
+                                                       temp_macro_xs.end());
     }
 }
 
@@ -651,11 +642,10 @@ void PhysicsParams::build_model_tables(MaterialParams const& mats,
 {
     CELER_EXPECT(*data);
 
-    XsGridInserter insert(&data->reals, &data->value_grids);
+    UniformGridInserter insert(&data->reals, &data->uniform_grids);
     CollectionBuilder model_cdf(&data->model_cdf);
-    CollectionBuilder tables(&data->value_tables);
-    CollectionBuilder table_ids(&data->value_table_ids);
-    CollectionBuilder grid_ids(&data->value_grid_ids);
+    CollectionBuilder tables(&data->uniform_tables);
+    CollectionBuilder grid_ids(&data->uniform_grid_ids);
 
     for (auto model_idx : range(this->num_models()))
     {
@@ -664,7 +654,7 @@ void PhysicsParams::build_model_tables(MaterialParams const& mats,
         // Loop over applicable particles
         for (Applicability applic : model.applicability())
         {
-            std::vector<ValueTableId> temp_table_ids(data->model_ids.size());
+            std::vector<UniformTable> temp_tables(mats.size());
             for (auto mat_id : range(PhysMatId{mats.size()}))
             {
                 // Construct microscopic cross sections
@@ -682,22 +672,20 @@ void PhysicsParams::build_model_tables(MaterialParams const& mats,
                 ElementCdfCalculator{elements}(grids);
 
                 // Construct grids for each element in the material
-                std::vector<ValueGridId> temp_grid_ids(elements.size());
+                std::vector<UniformGridId> temp_grid_ids(elements.size());
                 for (auto elcomp_idx : range(elements.size()))
                 {
                     temp_grid_ids[elcomp_idx] = insert(grids[elcomp_idx]);
                 }
 
                 // Construct table for the material
-                ValueTable table;
-                table.grids = grid_ids.insert_back(temp_grid_ids.begin(),
-                                                   temp_grid_ids.end());
-                temp_table_ids[mat_id.get()] = tables.push_back(table);
+                temp_tables[mat_id.get()].grids = grid_ids.insert_back(
+                    temp_grid_ids.begin(), temp_grid_ids.end());
             }
             // Construct table for the model
             ModelCdfTable cdf;
-            cdf.material = table_ids.insert_back(temp_table_ids.begin(),
-                                                 temp_table_ids.end());
+            cdf.tables
+                = tables.insert_back(temp_tables.begin(), temp_tables.end());
             model_cdf.push_back(cdf);
         }
     }
