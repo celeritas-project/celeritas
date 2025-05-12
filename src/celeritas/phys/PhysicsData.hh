@@ -56,16 +56,16 @@ struct ValueTable
  *
  * Each material has a set of value grids for its constituent elements; these
  * are used to sample an element from a material when required by a discrete
- * interaction. A null ValueTableId means the material only has a single
- * element, so no cross sections need to be stored. An empty ModelCdfTable
+ * interaction. A null \c ValueTableId means the material only has a single
+ * element, so no cross sections need to be stored. An empty \c ModelCdfTable
  * means no element selection is required for the model.
  */
 struct ModelCdfTable
 {
-    ItemRange<ValueTableId> material;  //!< Value table by material index
+    ItemRange<ValueTable> tables;  //!< Value table by material index
 
     //! True if assigned
-    explicit CELER_FUNCTION operator bool() const { return !material.empty(); }
+    explicit CELER_FUNCTION operator bool() const { return !tables.empty(); }
 };
 
 //---------------------------------------------------------------------------//
@@ -134,9 +134,9 @@ struct ProcessGroup
     ItemRange<ModelGroup> models;  //!< Model applicability [ppid]
     ItemRange<IntegralXsProcess> integral_xs;  //!< [ppid]
     ItemRange<ValueTable> macro_xs;  //!< [ppid]
-    ValueTableId energy_loss;  //!< Process-integrated energy loss
-    ValueTableId range;  //!< Process-integrated range
-    ValueTableId inverse_range;  //!< Inverse process-integrated range
+    ValueTable energy_loss;  //!< Process-integrated energy loss
+    ValueTable range;  //!< Process-integrated range
+    ValueTable inverse_range;  //!< Inverse process-integrated range
     ParticleProcessId at_rest;  //!< ID of the particle's at-rest process
 
     //! True if assigned and valid
@@ -367,7 +367,6 @@ struct PhysicsParamsData
     Items<ValueGridId> value_grid_ids;
     Items<ProcessId> process_ids;
     Items<ValueTable> value_tables;
-    Items<ValueTableId> value_table_ids;
     Items<IntegralXsProcess> integral_xs;
     Items<ModelGroup> model_groups;
     ParticleItems<ProcessGroup> process_groups;
@@ -400,7 +399,6 @@ struct PhysicsParamsData
         value_grid_ids = other.value_grid_ids;
         process_ids = other.process_ids;
         value_tables = other.value_tables;
-        value_table_ids = other.value_table_ids;
         integral_xs = other.integral_xs;
         model_groups = other.model_groups;
         process_groups = other.process_groups;
