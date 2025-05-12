@@ -37,6 +37,8 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
 {
 #define LDIO_LOAD_REQUIRED(NAME) CELER_JSON_LOAD_REQUIRED(j, v, NAME)
 #define LDIO_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, v, NAME)
+#define LDIO_LOAD_DEFAULT(NAME, DEFAULT) \
+    CELER_JSON_LOAD_DEFAULT(j, v, NAME, DEFAULT)
 #define LDIO_LOAD_DEPRECATED(OLD, NEW) \
     CELER_JSON_LOAD_DEPRECATED(j, v, OLD, NEW)
 
@@ -86,27 +88,20 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_DEPRECATED(sync, action_times);
 
     LDIO_LOAD_OPTION(seed);
-    LDIO_LOAD_OPTION(num_track_slots);
+    LDIO_LOAD_REQUIRED(use_device);
+    LDIO_LOAD_DEFAULT(num_track_slots, v.use_device ? 1048576 : 4096);
     LDIO_LOAD_OPTION(max_steps);
-    LDIO_LOAD_REQUIRED(initializer_capacity);
-    LDIO_LOAD_REQUIRED(secondary_stack_factor);
+    LDIO_LOAD_DEFAULT(initializer_capacity, 16 * v.num_track_slots);
+    LDIO_LOAD_OPTION(secondary_stack_factor);
     LDIO_LOAD_OPTION(interpolation);
     LDIO_LOAD_OPTION(poly_spline_order);
-    LDIO_LOAD_REQUIRED(use_device);
     LDIO_LOAD_OPTION(action_times);
     LDIO_LOAD_OPTION(merge_events);
     if (j.count("default_stream"))
     {
         CELER_LOG(warning) << "Ignoring removed option 'default_stream'";
     }
-    if (auto iter = j.find("warm_up"); iter != j.end())
-    {
-        iter->get_to(v.warm_up);
-    }
-    else if (v.use_device)
-    {
-        v.warm_up = true;
-    }
+    LDIO_LOAD_DEFAULT(warm_up, v.use_device ? true : false);
 
     LDIO_LOAD_DEPRECATED(mag_field, field);
 
@@ -117,14 +112,8 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
 
     LDIO_LOAD_OPTION(step_limiter);
     LDIO_LOAD_OPTION(brem_combined);
-    if (auto iter = j.find("track_order"); iter != j.end())
-    {
-        iter->get_to(v.track_order);
-    }
-    else if (v.use_device)
-    {
-        v.track_order = TrackOrder::init_charge;
-    }
+    LDIO_LOAD_DEFAULT(
+        track_order, v.use_device ? TrackOrder::init_charge : TrackOrder::none);
     LDIO_LOAD_OPTION(physics_options);
 
     LDIO_LOAD_OPTION(optical);

@@ -69,6 +69,8 @@ void from_json(nlohmann::json const& j, RunInput& v)
 #define RI_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, v, NAME)
 #define RI_LOAD_REQUIRED(NAME) CELER_JSON_LOAD_REQUIRED(j, v, NAME)
 #define RI_LOAD_DEPRECATED(OLD, NEW) CELER_JSON_LOAD_DEPRECATED(j, v, OLD, NEW)
+#define RI_LOAD_DEFAULT(NAME, DEFAULT) \
+    CELER_JSON_LOAD_DEFAULT(j, v, NAME, DEFAULT)
 
     // Check version (if available)
     check_format(j, "celer-g4");
@@ -86,8 +88,10 @@ void from_json(nlohmann::json const& j, RunInput& v)
     RI_LOAD_DEPRECATED(sync, action_times);
 
     RI_LOAD_OPTION(num_track_slots);
+    RI_LOAD_DEFAULT(num_track_slots,
+                    celeritas::Device::num_devices() ? 262144 : 1024);
     RI_LOAD_OPTION(max_steps);
-    RI_LOAD_OPTION(initializer_capacity);
+    RI_LOAD_DEFAULT(initializer_capacity, 8 * v.num_track_slots);
     RI_LOAD_OPTION(secondary_stack_factor);
     RI_LOAD_OPTION(action_times);
     if (j.count("default_stream"))
@@ -95,14 +99,7 @@ void from_json(nlohmann::json const& j, RunInput& v)
         // DEPRECATED: remove in v1.0
         CELER_LOG(warning) << "Ignoring removed option 'default_stream'";
     }
-    if (auto iter = j.find("auto_flush"); iter != j.end())
-    {
-        iter->get_to(v.auto_flush);
-    }
-    else
-    {
-        v.auto_flush = v.num_track_slots;
-    }
+    RI_LOAD_DEFAULT(auto_flush, v.num_track_slots);
 
     RI_LOAD_OPTION(track_order);
 
