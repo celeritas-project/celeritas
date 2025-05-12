@@ -108,7 +108,7 @@ TEST_F(PhysicsParamsTest, accessors)
            "MockModel(8, p=2, emin=1, emax=100)",
            "MockModel(9, p=1, emin=0.001, emax=10)",
            "MockModel(10, p=2, emin=0.001, emax=10)",
-           "MockModel(11, p=3, emin=1e-05, emax=1e+09)"};
+           "MockModel(11, p=3, emin=1e-05, emax=1000)"};
     EXPECT_VEC_EQ(expected_model_desc, model_desc);
 
     // Test host-accessible process map

@@ -224,9 +224,9 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         inp.materials = this->material();
         inp.interact = interact;
         inp.label = "barks";
-        inp.applic = {make_applicability("electron", 1e-5, 1e9)};
+        inp.applic = {make_applicability("electron", 1e-5, 1e3)};
         inp.xs = {Barn{0}, Barn{6.0}, Barn{12.0}, Barn{6.0}};
-        inp.xs_scaled = {Barn{6.0}, Barn{4.0}, Barn{2.0}, Barn{1}, Barn{0}};
+        inp.xs_scaled = {Barn{6.0}, Barn{0}};
         inp.energy_loss = MevCmSqLossDens{0.5 * 1e-20};
         inp.interp = this->interpolation();
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
