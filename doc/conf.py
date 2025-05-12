@@ -15,8 +15,8 @@ from sphinx import __version__ as sphinx_version
 
 project = 'Celeritas'
 all_authors = [
- 'Seth R Johnson, Editor',
- 'The Celeritas team',
+ 'Seth R Johnson, *editor*',
+ 'The Celeritas Team',
 ]
 author = " and ".join(all_authors)
 copyright = '{:%Y}, UT–Battelle/ORNL and Celeritas team'.format(

@@ -190,7 +190,7 @@ calc_physics_step_limit(MaterialTrackView const& material,
  * term that varies based on the energy, the atomic number density, and the
  * element number:
  * \f[
- *   \difd{E}{x} = N_Z \int_0^{T_c} \frac{d \sigma_Z(E, T)}{dT} T \difT
+ *   \difd{E}{x} = N_Z \int_0^{T_c} \frac{d \sigma_Z(E, T)}{dT} T \dif T
  * \f]
  * Here, the cross section is a function of the primary's energy \em E and the
  * exiting secondary energy \em T.

@@ -30,7 +30,7 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample Cherenkov photons from the given distribution.
+ * Sample Cherenkov photons from a generator distribution.
  *
  * Cherenkov radiation is emitted when a charged particle passes through a
  * dielectric medium faster than the speed of light in that medium. Photons are
