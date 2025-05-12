@@ -44,7 +44,7 @@ TEST_F(ScreeningFunctionsTest, all)
 
     for (auto z : all_z)
     {
-        auto cbrt_z = std::cbrt(static_cast<double>(z));
+        auto cbrt_z = std::cbrt(static_cast<real_type>(z));
         auto delta = emass * (100 / cbrt_z);
         auto epsilon = emass * (100 / ipow<2>(cbrt_z));
 
@@ -70,7 +70,7 @@ TEST_F(ScreeningFunctionsTest, all)
         psi1.push_back(std::move(el_psi1));
         dpsi.push_back(std::move(el_dpsi));
     }
-    static std::vector<double> const expected_phi1[] = {
+    static std::vector<real_type> const expected_phi1[] = {
         {-21.783857353441,
          -1.0608479235529,
          17.921623316243,
@@ -92,7 +92,7 @@ TEST_F(ScreeningFunctionsTest, all)
          20.853140248517,
          20.862944498335},
     };
-    static std::vector<double> const expected_dphi[] = {
+    static std::vector<real_type> const expected_dphi[] = {
         {1.404968089095e-10,
          4.4128108010779e-06,
          0.057844334589045,
@@ -114,7 +114,7 @@ TEST_F(ScreeningFunctionsTest, all)
          0.65739936870912,
          0.66661392713376},
     };
-    static std::vector<double> const expected_psi1[] = {
+    static std::vector<real_type> const expected_psi1[] = {
         {-19.395134777263,
          1.3281109201117,
          21.554317398657,
@@ -136,7 +136,7 @@ TEST_F(ScreeningFunctionsTest, all)
          28.310539210367,
          28.339833479292},
     };
-    static std::vector<double> const expected_dpsi[] = {
+    static std::vector<real_type> const expected_dpsi[] = {
         {6.9588767322661e-12,
          2.1980777911256e-07,
          0.0057285675287362,
@@ -159,7 +159,7 @@ TEST_F(ScreeningFunctionsTest, all)
          0.66658936348276},
     };
 
-    EXPECT_VEC_SOFT_EQ(expected_phi1, phi1);
+    EXPECT_VEC_NEAR(expected_phi1, phi1, 10 * fine_eps);
     EXPECT_VEC_SOFT_EQ(expected_dphi, dphi);
     EXPECT_VEC_SOFT_EQ(expected_psi1, psi1);
     EXPECT_VEC_SOFT_EQ(expected_dpsi, dpsi);
