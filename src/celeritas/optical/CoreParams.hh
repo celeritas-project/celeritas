@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <optional>
+
 #include "corecel/Assert.hh"
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ObserverPtr.hh"
@@ -44,6 +46,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstTrackInit = std::shared_ptr<TrackInitParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
     using SPConstDetectors = std::shared_ptr<celeritas::detail::SDParams const>;
+    using VecLabel = std::vector<Label>;
 
     template<MemSpace M>
     using ConstRef = CoreParamsData<Ownership::const_reference, M>;
@@ -58,7 +61,8 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstPhysics physics;
         SPConstRng rng;
         SPConstTrackInit init;
-        SPConstDetectors detectors;
+
+        std::optional<VecLabel> detector_labels;
 
         SPActionRegistry action_reg;
 
@@ -94,6 +98,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPConstRng const& rng() const { return input_.rng; }
     SPConstTrackInit const& init() const { return input_.init; }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
+    SPConstDetectors const& detectors() const { return detectors_; }
     //!@}
 
     // Access host pointers to core data
@@ -113,6 +118,8 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
     // Copy of DeviceRef in device memory
     DeviceVector<DeviceRef> device_ref_vec_;
+
+    SPConstDetectors detectors_;
 };
 
 //---------------------------------------------------------------------------//

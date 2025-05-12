@@ -7,10 +7,12 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string_view>
 
 #include "corecel/Macros.hh"
 #include "corecel/data/AuxInterface.hh"
+#include "corecel/io/Label.hh"
 #include "celeritas/global/ActionInterface.hh"
 
 #include "../Model.hh"
@@ -62,6 +64,8 @@ class OpticalLaunchAction : public AuxParamsInterface,
         SPOffloadParams offload;
         size_type num_track_slots{};
         size_type initializer_capacity{};
+
+        std::optional<std::vector<Label>> detector_labels;
 
         //! True if all input is assigned and valid
         explicit operator bool() const

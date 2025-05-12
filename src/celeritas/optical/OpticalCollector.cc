@@ -111,6 +111,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     la_inp.offload = offload_params_;
     la_inp.num_track_slots = inp.num_track_slots;
     la_inp.initializer_capacity = inp.initializer_capacity;
+    la_inp.detector_labels = inp.detector_labels;
     launch_action_ = detail::OpticalLaunchAction::make_and_insert(
         core, std::move(la_inp));
 
