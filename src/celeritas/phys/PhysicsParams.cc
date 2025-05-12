@@ -534,12 +534,8 @@ void PhysicsParams::build_tables(Options const& opts,
         auto model_groups = data->model_groups[process_group.models];
         CELER_ASSERT(process_ids.size() == model_groups.size());
 
-        // Material-dependent physics tables, one cross section table per
-        // particle-process and one dedx/range table per particle
+        // Material-dependent cross section tables (one per particle-process)
         std::vector<ValueTable> temp_macro_xs(process_ids.size());
-        ValueTable temp_energy_loss;
-        ValueTable temp_range;
-        ValueTable temp_inv_range;
 
         // Processes with dE/dx and macro xs tables
         std::vector<IntegralXsProcess> temp_integral_xs(process_ids.size());
@@ -664,23 +660,25 @@ void PhysicsParams::build_tables(Options const& opts,
             if (has_grids(energy_loss_ids))
             {
                 CELER_ASSERT(has_grids(range_ids));
-                CELER_VALIDATE(!temp_energy_loss && !temp_range,
-                               << "more than one process for particle ID "
-                               << particle_id.get()
-                               << " has energy loss tables");
+                CELER_VALIDATE(
+                    !process_group.energy_loss && !process_group.range,
+                    << "more than one process for particle ID "
+                    << particle_id.get() << " has energy loss tables");
 
-                temp_energy_loss.grids = grid_ids.insert_back(
+                process_group.energy_loss.grids = grid_ids.insert_back(
                     energy_loss_ids.begin(), energy_loss_ids.end());
-                CELER_ASSERT(temp_energy_loss.grids.size() == mats.size());
+                CELER_ASSERT(process_group.energy_loss.grids.size()
+                             == mats.size());
 
-                temp_range.grids
+                process_group.range.grids
                     = grid_ids.insert_back(range_ids.begin(), range_ids.end());
-                CELER_ASSERT(temp_range.grids.size() == mats.size());
+                CELER_ASSERT(process_group.range.grids.size() == mats.size());
 
-                temp_inv_range.grids = grid_ids.insert_back(
+                process_group.inverse_range.grids = grid_ids.insert_back(
                     inv_range_ids.begin(), inv_range_ids.end());
-                CELER_ASSERT(temp_inv_range.grids.size() == mats.size()
-                             || temp_inv_range.grids.empty());
+                CELER_ASSERT(process_group.inverse_range.grids.size()
+                                 == mats.size()
+                             || process_group.inverse_range.grids.empty());
             }
 
             // Store the energies of the maximum cross sections
@@ -697,9 +695,6 @@ void PhysicsParams::build_tables(Options const& opts,
         // Construct value tables
         process_group.macro_xs
             = tables.insert_back(temp_macro_xs.begin(), temp_macro_xs.end());
-        process_group.energy_loss = tables.push_back(temp_energy_loss);
-        process_group.range = tables.push_back(temp_range);
-        process_group.inverse_range = tables.push_back(temp_inv_range);
     }
 }
 
@@ -715,7 +710,6 @@ void PhysicsParams::build_model_tables(MaterialParams const& mats,
     XsGridInserter insert(&data->reals, &data->value_grids);
     CollectionBuilder model_cdf(&data->model_cdf);
     CollectionBuilder tables(&data->value_tables);
-    CollectionBuilder table_ids(&data->value_table_ids);
     CollectionBuilder grid_ids(&data->value_grid_ids);
 
     for (auto model_idx : range(this->num_models()))
@@ -725,7 +719,7 @@ void PhysicsParams::build_model_tables(MaterialParams const& mats,
         // Loop over applicable particles
         for (Applicability applic : model.applicability())
         {
-            std::vector<ValueTableId> temp_table_ids(data->model_ids.size());
+            std::vector<ValueTable> temp_tables(mats.size());
             for (auto mat_id : range(PhysMatId{mats.size()}))
             {
                 // Construct microscopic cross sections
@@ -750,15 +744,13 @@ void PhysicsParams::build_model_tables(MaterialParams const& mats,
                 }
 
                 // Construct table for the material
-                ValueTable table;
-                table.grids = grid_ids.insert_back(temp_grid_ids.begin(),
-                                                   temp_grid_ids.end());
-                temp_table_ids[mat_id.get()] = tables.push_back(table);
+                temp_tables[mat_id.get()].grids = grid_ids.insert_back(
+                    temp_grid_ids.begin(), temp_grid_ids.end());
             }
             // Construct table for the model
             ModelCdfTable cdf;
-            cdf.material = table_ids.insert_back(temp_table_ids.begin(),
-                                                 temp_table_ids.end());
+            cdf.tables
+                = tables.insert_back(temp_tables.begin(), temp_tables.end());
             model_cdf.push_back(cdf);
         }
     }
