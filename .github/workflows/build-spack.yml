@@ -130,8 +130,8 @@ jobs:
           if ${{(matrix.geometry == 'vecgeom'
                  || matrix.geometry == 'vecgeom2'
                  || matrix.geometry == 'vgsurf')
-                && matrix.geant}}; then
-            spack -e . add g4vg@1.0.2:
+                && matrix.geant != ''}}; then
+            spack -e . add g4vg@1.0.3:
           fi
           spack -vd -e . compiler find --mixed-toolchain
           # Add the spack ref so that updating spack will reconcretize
