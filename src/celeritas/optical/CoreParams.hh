@@ -29,7 +29,6 @@ namespace optical
 class MaterialParams;
 class TrackInitParams;
 class PhysicsParams;
-// class SDParams;
 //---------------------------------------------------------------------------//
 /*!
  * Shared parameters for the optical photon loop.
