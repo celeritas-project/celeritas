@@ -44,15 +44,13 @@ namespace celeritas
  *
  * This class is similar to Geant4's G4VContinuousDiscrete process, but more
  * limited.
- *
- * \todo Microscopic cross sections should use a \c UniformGrid
  */
 class Model : public CoreStepActionInterface
 {
   public:
     //@{
     //! Type aliases
-    using XsTable = std::vector<inp::XsGrid>;
+    using XsTable = std::vector<inp::UniformGrid>;
     using SetApplicability = std::set<Applicability>;
     //@}
 

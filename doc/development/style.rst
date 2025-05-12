@@ -50,7 +50,8 @@ Doxygen comments should be provided next to the *definition* of functions (both
 member and free) and classes. This means adding a one-line Doxygen comment for
 member functions defined inside the class's definition or multi-line Doxygen
 comments if a function is defined externally.
-Document the effect of a function-like class's "call" operator``()`` in the class's main definition rather than the operator
+Document the effect of a function-like class's ``operator()`` (aka the "call"
+operator) in the class's main definition rather than the operator
 itself, since this makes it easier and cleaner to document the class's behavior
 in the :ref:`api` documentation. Do the same for physics classes.
 

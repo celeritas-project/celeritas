@@ -14,10 +14,10 @@
 #include "corecel/grid/NonuniformGrid.hh"
 #include "corecel/grid/SplineInterpolator.hh"
 #include "corecel/grid/UniformGrid.hh"
+#include "corecel/grid/UniformGridData.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/Quantity.hh"
-
-#include "XsGridData.hh"
+#include "celeritas/Quantities.hh"
 
 namespace celeritas
 {
@@ -46,15 +46,15 @@ class InverseRangeCalculator
   public:
     //!@{
     //! \name Type aliases
-    using Energy = RealQuantity<XsGridRecord::EnergyUnits>;
+    using Energy = units::MevEnergy;
     using Values
         = Collection<real_type, Ownership::const_reference, MemSpace::native>;
     //!@}
 
   public:
     // Construct from state-independent data
-    inline CELER_FUNCTION
-    InverseRangeCalculator(XsGridRecord const& grid, Values const& values);
+    inline CELER_FUNCTION InverseRangeCalculator(UniformGridRecord const& grid,
+                                                 Values const& values);
 
     // Find and interpolate from the energy
     inline CELER_FUNCTION Energy operator()(real_type range) const;
@@ -75,14 +75,13 @@ class InverseRangeCalculator
  * Lower-energy particles have shorter ranges.
  */
 CELER_FUNCTION
-InverseRangeCalculator::InverseRangeCalculator(XsGridRecord const& grid,
+InverseRangeCalculator::InverseRangeCalculator(UniformGridRecord const& grid,
                                                Values const& values)
-    : log_energy_(grid.lower.grid)
-    , range_(grid.lower.value, values)
-    , deriv_(values[grid.lower.derivative])
+    : log_energy_(grid.grid)
+    , range_(grid.value, values)
+    , deriv_(values[grid.derivative])
 {
     CELER_EXPECT(range_.size() == log_energy_.size());
-    CELER_EXPECT(!grid.upper);
 }
 
 //---------------------------------------------------------------------------//

@@ -80,6 +80,12 @@ using ParticleModelId = OpaqueId<ModelId>;
 //! Opaque index of electron subshell
 using SubshellId = OpaqueId<struct Subshell_>;
 
+//! Opaque index of a uniform grid
+using UniformGridId = OpaqueId<struct UniformGridRecord>;
+
+//! Opaque index of a cross section grid
+using XsGridId = OpaqueId<struct XsGridRecord>;
+
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//

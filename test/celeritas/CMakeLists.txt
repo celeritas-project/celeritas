@@ -148,6 +148,7 @@ celeritas_add_test(em/distribution/TsaiUrbanDistribution.test.cc ${_needs_double
 
 # Cross section calculation
 celeritas_add_test(em/xs/NuclearFormFactors.test.cc)
+celeritas_add_test(em/xs/ScreeningFunctions.test.cc)
 
 # Models
 celeritas_add_test(em/BetheHeitler.test.cc ${_needs_double})

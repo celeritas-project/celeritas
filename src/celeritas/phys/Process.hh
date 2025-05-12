@@ -32,8 +32,6 @@ class Model;
  *
  * Each process has an interaction ("post step doit") and may have both energy
  * loss and range limiters.
- *
- * \todo energy loss should use a \c UniformGrid
  */
 class Process
 {
@@ -44,7 +42,7 @@ class Process
     using VecModel = std::vector<SPConstModel>;
     using ActionIdIter = RangeIter<ActionId>;
     using XsGrid = inp::XsGrid;
-    using EnergyLossGrid = inp::XsGrid;
+    using EnergyLossGrid = inp::UniformGrid;
     //!@}
 
   public:
