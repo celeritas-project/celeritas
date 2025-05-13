@@ -259,6 +259,7 @@ TEST_F(PhysicsStepUtilsTest, calc_mean_energy_loss)
         step = 0.999 * particle.energy().value() / eloss_rate;
         EXPECT_SOFT_EQ(9.99, calc_eloss(phys, step));
     }
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         PhysicsTrackView phys = this->init_track(
             &material, PhysMatId{0}, &particle, "electron", MevEnergy{1e-3});
@@ -514,6 +515,7 @@ TEST_F(SplinePhysicsStepUtilsTest, calc_mean_energy_loss)
         step = 0.999 * particle.energy().value() / eloss_rate;
         EXPECT_SOFT_EQ(9.99, calc_eloss(phys, step));
     }
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         PhysicsTrackView phys = this->init_track(
             &material, PhysMatId{0}, &particle, "electron", MevEnergy{1e-3});

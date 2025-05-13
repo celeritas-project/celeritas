@@ -109,7 +109,7 @@ auto MockProcess::energy_loss(Applicability applic) const -> EnergyLossGrid
 
         grid.x
             = {std::log(applic.lower.value()), std::log(applic.upper.value())};
-        grid.y = VecDbl(3, eloss_rate.value());
+        grid.y = VecDbl(2, eloss_rate.value());
     }
     return grid;
 }

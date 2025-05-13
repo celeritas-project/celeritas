@@ -251,8 +251,6 @@ calc_mean_energy_loss(ParticleTrackView const& particle,
         // approximation is probably wrong. Use the definition of the range as
         // the integral of 1/loss to back-calculate the actual energy loss
         // along the curve given the actual step.
-        auto grid_id = physics.range_grid();
-        CELER_ASSERT(grid_id);
 
         // Use the range limit stored from calc_physics_step_limit
         real_type range = physics.dedx_range();
