@@ -31,4 +31,4 @@ improved accuracy. These models are based on Geant4 energy loss heuristics.
 Integral rejection
 ------------------
 
-.. todo:: This section to be completex
+.. todo:: This section to be completed
