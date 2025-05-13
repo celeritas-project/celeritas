@@ -220,13 +220,11 @@ TEST_F(PhysicsStepUtilsTest, calc_mean_energy_loss)
     // input: cm; output: MeV
     auto calc_eloss = [&](PhysicsTrackView& phys, real_type step) -> real_type {
         // Calculate and store the energy loss range to PhysicsTrackView
-        auto grid_id = phys.range_grid();
-        auto calc_range = phys.make_calculator<RangeCalculator>(grid_id);
-        real_type range = calc_range(particle.energy());
+        real_type range = phys.make_calculator<RangeCalculator>(
+            phys.range_grid())(particle.energy());
         phys.dedx_range(range);
 
-        auto result
-            = calc_mean_energy_loss(particle, phys, step * units::centimeter);
+        auto result = calc_mean_energy_loss(particle, phys, from_cm(step));
         return value_as<MevEnergy>(result);
     };
 
@@ -268,7 +266,7 @@ TEST_F(PhysicsStepUtilsTest, calc_mean_energy_loss)
         // equal to the pre-step energy.
         real_type range = phys.make_calculator<RangeCalculator>(
             phys.range_grid())(particle.energy());
-        real_type step = range - fine_eps;
+        real_type step = to_cm(range) - fine_eps;
         EXPECT_SOFT_EQ(1e-3, calc_eloss(phys, step));
     }
 }
@@ -475,13 +473,11 @@ TEST_F(SplinePhysicsStepUtilsTest, calc_mean_energy_loss)
     // input: cm; output: MeV
     auto calc_eloss = [&](PhysicsTrackView& phys, real_type step) -> real_type {
         // Calculate and store the energy loss range to PhysicsTrackView
-        auto grid_id = phys.range_grid();
-        auto calc_range = phys.make_calculator<RangeCalculator>(grid_id);
-        real_type range = calc_range(particle.energy());
+        real_type range = phys.make_calculator<RangeCalculator>(
+            phys.range_grid())(particle.energy());
         phys.dedx_range(range);
 
-        auto result
-            = calc_mean_energy_loss(particle, phys, step * units::centimeter);
+        auto result = calc_mean_energy_loss(particle, phys, from_cm(step));
         return value_as<MevEnergy>(result);
     };
 
@@ -523,7 +519,7 @@ TEST_F(SplinePhysicsStepUtilsTest, calc_mean_energy_loss)
         // equal to the pre-step energy.
         real_type range = phys.make_calculator<RangeCalculator>(
             phys.range_grid())(particle.energy());
-        real_type step = range - fine_eps;
+        real_type step = to_cm(range) - fine_eps;
         EXPECT_SOFT_EQ(1e-3, calc_eloss(phys, step));
     }
 }
