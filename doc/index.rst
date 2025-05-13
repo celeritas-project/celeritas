@@ -384,6 +384,7 @@ References
 
 .. raw:: latex
 
+   \setcounter{secnumdepth}{1}
    \appendix
 
 .. _release_history:

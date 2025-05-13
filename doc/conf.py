@@ -175,8 +175,8 @@ latex_elements = {
 \usepackage{multirow}
 \usepackage{fancyhdr} % Headers and footers
 \usepackage{threeparttable}
-\usepackage{etoolbox}
 \usepackage{tocloft}
+\usepackage{etoolbox}
 % Reset styles changed by sphinx.sty
 \usepackage{ornltm-style}
 \usepackage{ornltm-extract}

@@ -299,7 +299,7 @@ if(Sphinx_FOUND)
   # Download ornltm class
   ExternalProject_Add(ornltm
     GIT_REPOSITORY https://code.ornl.gov/sethrj/ornltm.git
-    GIT_TAG 756e63b554b4d8b44e9689ab6b32546d82c9e68d
+    GIT_TAG 6379032d2f1e5e8bc1589d087465371fd8b432c1
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ""

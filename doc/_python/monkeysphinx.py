@@ -69,21 +69,22 @@ def run(self, **kwargs):
     from docutils import nodes
     from sphinx.builders.latex.nodes import thebibliography
     citations = thebibliography()
-    section_parent = None
-    for node in self.document.traverse(nodes.citation):
+    parent = None
+    for node in list(self.document.findall(nodes.citation)):
         parent = node.parent
         parent.remove(node)
         citations += node
-        if section_parent is None:
-            # Find first section parent
-            while parent:
-                if isinstance(parent, nodes.section):
-                    section_parent = parent
-                    break
-                parent = parent.parent
 
-    if section_parent and len(citations) > 0:
-        section_parent.replace_self(citations)
+    # Find the section containing the citations (assuming bibtex moved
+    # them)
+    while parent is not None:
+       if isinstance(parent, nodes.section):
+          break
+       parent = parent.parent
+
+    if parent is not None:
+        # Replace the section title
+        parent[0] = citations
 
 
 @monkey(LaTeXTranslator)
