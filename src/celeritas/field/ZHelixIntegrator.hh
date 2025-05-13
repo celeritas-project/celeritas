@@ -22,10 +22,10 @@ class UniformZField;
  *
  * Given a uniform magnetic field along the *z* axis, \f$B = (0, 0, B_z)\f$,
  * the motion of a charged particle is described by a helix trajectory.
- * For this algorithm,
- * the radius of the helix, \f$R = m gamma v/(qB)\f$ and the helicity, defined
- * as \f$ -\sgn(q B_z)\f$, are evaluated through the right hand side of the ODE
- * equation where q is the charge of the particle.
+ * For this algorithm, the radius of the helix, \f$R = \frac{m v}{q B_z}\f$ and
+ * the helicity, defined as \f$ -\sgn(q B_z)\f$, are evaluated through the
+ * right hand side of the ODE equation where \f$ q \f$ is the charge of the
+ * particle.
  *
  * The midpoint and endpoint states are calculated analytically.
  */

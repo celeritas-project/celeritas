@@ -16,8 +16,8 @@ Integrator
   Numerically integrates a new position/momentum state given the start,
   path derivative, and step length.
 Substepper
-  Integrate a path segment that satisfies certain error conditions, solving for
-  the required segment length.
+  Integrate a path segment that satisfies certain truncation error conditions,
+  solving for the required segment length.
 Propagator
   Given a maximum physics step, advance the geometry state and momentum along
   the field lines, satisfying constraints (see :ref:`field driver
@@ -40,6 +40,8 @@ Field integration
 .. doxygenclass:: celeritas::DormandPrinceIntegrator
 
 .. doxygenclass:: celeritas::RungeKuttaIntegrator
+
+.. doxygenclass:: celeritas::ZHelixIntegrator
 
 Magnetic field types
 --------------------
@@ -64,7 +66,7 @@ JSON input for the field setup corresponds to the uniform field input
    :members:
    :no-link:
 
-as well as fully cartesian or cylindrical input:
+as well as fully Cartesian or cylindrical input:
 
 .. doxygenstruct:: celeritas::CartMapFieldInput
    :members:
