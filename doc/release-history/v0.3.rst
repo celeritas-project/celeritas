@@ -5,7 +5,7 @@ Series 0.3
 ==========
 
 Major development version 0.3 can be cited through its Zenodo code release
-:cite:t:`celeritas-0.3`.
+:cite:p:`celeritas-0-3`.
 
 .. _release_v0.3.2:
 

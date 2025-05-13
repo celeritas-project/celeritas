@@ -5,7 +5,7 @@ Series 0.5
 ==========
 
 Major development version 0.5 can be cited through its Zenodo code release
-:cite:t:`celeritas-0.5`.
+:cite:p:`celeritas-0-5`.
 
 .. _release_v0.5.3:
 
@@ -20,26 +20,26 @@ compatibility.
 Changes since v0.5.2 follow.
 
 Bug fixes
----------
+^^^^^^^^^
 
 * Fix OBZ bugs *(@elliottbiondo, #1704)*
 * Fix sampling of angle in Urban MSC model *(@amandalund, #1709)*
 
 Documentation improvements
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Release v0.5.2 *(@sethrj, #1706)*
 * Add JLSE CMake preset and a few small fixes *(@amandalund, #1611)*
 
 Minor internal changes
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 * CUDA RDC: Improve handling of object library and CUDA_RUNTIME_LIBRARY *(@pcanal, #1696)*
 * CUDA RDC: fix static builds *(@pcanal, #1699)*
 * Update to CudaRdcUtils v12 -  *(@pcanal, #1721)*
 
 Reviewers
----------
+^^^^^^^^^
 
 * Seth R. Johnson *(@sethrj)*: 6
 * Amanda Lund *(@amandalund)*: 1

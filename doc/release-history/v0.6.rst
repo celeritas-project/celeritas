@@ -5,7 +5,7 @@ Series 0.6
 ==========
 
 Major development version 0.6 can be cited through its Zenodo code release
-:cite:t:`celeritas-0.6`.
+:cite:p:`celeritas-0-6`.
 
 .. _release_v0.6.0:
 
@@ -49,7 +49,7 @@ Known deficiencies:
 Changes since v0.5.0, excluding those released in v0.5.3, follow.
 
 New features
-------------
+^^^^^^^^^^^^
 
 * Add optical "locate vacancies" and pre-step actions *(@amandalund, #1441)*
 * Extend debug utilities for stuck/errored tracks *(@sethrj, #1451)*
@@ -120,7 +120,7 @@ New features
 * Add cartesian magnetic field using Covfie *(@esseivaju, #1744)*
 
 Bug fixes
----------
+^^^^^^^^^
 
 * Define a "unique event ID" different from event counter *(@sethrj, #1447)*
 * Fix optical import when unused materials are defined *(@sethrj, #1449)*
@@ -147,7 +147,7 @@ Bug fixes
 * Fix failures when integral approach is disabled *(@amandalund, #1727)*
 
 Documentation improvements
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Improve XSCalculator documentation and tests *(@sethrj, #1450)*
 * Require clang-tidy in CI *(@esseivaju, #1524)*
@@ -179,7 +179,7 @@ Documentation improvements
 * Support testing nested container equivalence and tweak ``Histogram`` class *(@amandalund, #1753)*
 
 Minor internal changes
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 * Give priority to existing environment variables for G4 data location *(@pcanal, #1457)*
 * Define ``id_cast`` helper function *(@sethrj, #1459)*
@@ -244,7 +244,7 @@ Minor internal changes
 * Simplify MSC angular sampling *(@sethrj, #1714)*
 
 Deprecation and removal
------------------------
+^^^^^^^^^^^^^^^^^^^^^^^
 
 * Delete obsolete demonstration apps *(@sethrj, #1463)*
 * Remove 'default_stream' option *(@sethrj, #1667)*
@@ -254,7 +254,7 @@ Deprecation and removal
 * Remove celer-dump-data app *(@amandalund, #1740)*
 
 Reviewers
----------
+^^^^^^^^^
 
 * Seth R. Johnson *(@sethrj)*: 89
 * Amanda Lund *(@amandalund)*: 68
