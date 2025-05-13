@@ -25,8 +25,8 @@ namespace optical
  * Calculate the Rayleigh MFP for a given set of material properties.
  *
  * Uses the Einstein-Smoluchowski formula to calculate the mean free path
- * at a given energy. In \cite{landau-electrodynamics-1884}, the mean free path
- * is given by equation (120.2):
+ * at a given energy. In \cite{landau-electrodynamics-1884} , the mean free
+ * path is given by equation (120.2):
  * \f[
     l^{-1} = \frac{1}{6\pi} k^4 \rho k_B T \left(\frac{\partial \rho}{\partial
  P}\right)_T \left(\frac{\partial \varepsilon}{\partial \rho}\right)_T^2

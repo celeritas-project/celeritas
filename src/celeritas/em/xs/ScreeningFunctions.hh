@@ -72,6 +72,7 @@ struct BhwlScreeningFactors
    \begin{aligned}
    \gamma &= \frac{100 m_e k}{E (k - E) Z^{1/3}} \\
    \epsilon &= \frac{100 m_e k}{E (k - E) Z^{2/3}}
+   \end{aligned}
  * \f]
  * from which we extract input factors precalculated in
  * \c celeritas::RelativisticBremModel:
