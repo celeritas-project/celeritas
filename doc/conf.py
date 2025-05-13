@@ -169,14 +169,17 @@ latex_elements = {
 
 # Additional stuff for the LaTeX preamble.
 'preamble': r"""
-% Reset styles changed by sphinx.sty
-\usepackage{ornltm-style}
-\usepackage{ornltm-extract}
 \usepackage{sphinxcustom}
 \usepackage{microtype}
 \usepackage{pdfpages}
 \usepackage{multirow}
+\usepackage{fancyhdr} % Headers and footers
 \usepackage{threeparttable}
+\usepackage{etoolbox}
+\usepackage{tocloft}
+% Reset styles changed by sphinx.sty
+\usepackage{ornltm-style}
+\usepackage{ornltm-extract}
 \input{./macros.tex}
 """,
 
@@ -185,20 +188,9 @@ latex_elements = {
 \frontmatter
 % Plain page
 \thispagestyle{plain}%
-\phantomsection\addcontentsline{toc}{section}{Contents}
+\cleardoublepage
 \tableofcontents
-% %
-% \cleardoublepage
-% \thispagestyle{plain}%
-% \phantomsection\addcontentsline{toc}{section}{List of Figures}
-% \listoffigures
-% %
-% \cleardoublepage
-% \thispagestyle{plain}%
-% \phantomsection\addcontentsline{toc}{section}{List of Tables}
-% \listoftables
-% \cleardoublepage
-% \pagestyle{normal}
+\listoftables
 """,
 # No chapter styles needed
 'fncychap': "",

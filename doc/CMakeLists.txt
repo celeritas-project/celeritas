@@ -158,7 +158,7 @@ function(celeritas_build_latex input output)
   add_custom_command(OUTPUT "${output}"
     VERBATIM COMMAND
       "${CMAKE_COMMAND}" -E env ${_texenv}
-        "${LATEXMK_EXECUTABLE}" -pdf "${input}"
+        "${LATEXMK_EXECUTABLE}" -f -pdf "${input}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/latex"
     ${ARGN}
   )
@@ -299,7 +299,7 @@ if(Sphinx_FOUND)
   # Download ornltm class
   ExternalProject_Add(ornltm
     GIT_REPOSITORY https://code.ornl.gov/sethrj/ornltm.git
-    GIT_TAG c9d2ddcce2bfc8d7d51db8f4a131d71883f46528
+    GIT_TAG 756e63b554b4d8b44e9689ab6b32546d82c9e68d
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
