@@ -179,16 +179,7 @@ The following table summarizes the EM processes and models in Celeritas.
 Imported data
 =============
 
-In addition to the core :ref:`api_importdata`, these import parameters are used
-to provide cross sections, setup options, and other data to the EM physics.
-
-.. doxygenstruct:: celeritas::ImportEmParameters
-.. doxygenstruct:: celeritas::ImportAtomicTransition
-.. doxygenstruct:: celeritas::ImportAtomicSubshell
-.. doxygenstruct:: celeritas::ImportAtomicRelaxation
-
-.. doxygenstruct:: celeritas::ImportLivermoreSubshell
-.. doxygenstruct:: celeritas::ImportLivermorePE
-
-.. doxygenstruct:: celeritas::ImportMuPairProductionTable
-.. doxygentypedef:: celeritas::ImportSBTable
+Celeritas reads physics data from Geant4 (or from a ROOT file exported from
+data previously loaded into Geant4). Different versions of Geant4 (and Geant4
+data) can be used seamlessly with any version of Celeritas, allowing
+differences to be isolated without respect to machine or model implementation.

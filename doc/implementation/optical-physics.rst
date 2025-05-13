@@ -128,22 +128,3 @@ precedence:
 
 .. todo:: Add this section once surface models are implemented. Move the
    precedence above into a surface property params.
-
-Imported data
-=============
-
-In addition to the core :ref:`api_importdata`, these import parameters are used
-to provide cross sections, setup options, and other data to the optical physics.
-
-.. doxygenstruct:: celeritas::ImportOpticalModel
-.. doxygenstruct:: celeritas::ImportOpticalMaterial
-.. doxygenstruct:: celeritas::ImportOpticalParameters
-.. doxygenstruct:: celeritas::ImportOpticalProperty
-.. doxygenstruct:: celeritas::ImportOpticalRayleigh
-
-.. doxygenstruct:: celeritas::ImportScintComponent
-.. doxygenstruct:: celeritas::ImportScintData
-.. doxygenstruct:: celeritas::ImportParticleScintSpectrum
-.. doxygenstruct:: celeritas::ImportMaterialScintSpectrum
-
-.. doxygenstruct:: celeritas::ImportWavelengthShift
