@@ -81,7 +81,7 @@ type::
 
 and ideally be defined either immediately after ``Foo`` or in a
 :file:`Types.hh` file.  Some ``OpaqueId`` use cases correspond to an abstract
-concept rather than a specific clasaccessor. In this case, a *tag struct* can
+concept rather than a specific class. In this case, a *tag struct* can
 be be defined inline, using
 an underscore suffix as a convention indicating the type does not correspond to
 an actual class::
@@ -115,7 +115,7 @@ extension for CUDA translation units.
    NVCC. Celeritas is currently *not* compatible with this build pattern due to
    the compatibility macros.
 
-Some "secondary extension" provide additional context:
+Some "secondary extensions" provide additional context:
 
 - ``.test.cc`` are unit test executables corresponding to the main ``.cc``
   file. These should only be in the main ``/test`` directory.

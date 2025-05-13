@@ -38,7 +38,7 @@ Using GoogleTest
 ----------------
 
 `Google test`_ is very well documented, and because so much testing code exists
-in AI training data, tools like ChatGPT and Copilot are very good at writing an
+in AI training data, tools like ChatGPT and Copilot are very good at writing a
 first pass at test code.
 Celeritas defines a base class test harness with some utility functions:
 
