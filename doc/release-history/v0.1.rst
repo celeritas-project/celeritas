@@ -152,7 +152,7 @@ Bug fixes
 * Fix ORANGE reentrant boundary crossings by *(@sethrj, #501)*
 
 Internal changes
-^^^^^^^^^^^^----
+^^^^^^^^^^^^^^^^
 
 * Rewrite field tests by *(@sethrj, #471)*
 * Add range-to-step tests and remove min by *(@sethrj, #479)*
