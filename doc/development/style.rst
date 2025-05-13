@@ -80,8 +80,9 @@ type::
     using FooId = OpaqueId<Foo>;
 
 and ideally be defined either immediately after ``Foo`` or in a
-:file:`Types.hh` file.  Some ``OpaqueId`` types may have only a "symbolic"
-corresponding type, in which case a tag struct can be be defined inline, using
+:file:`Types.hh` file.  Some ``OpaqueId`` use cases correspond to an abstract
+concept rather than a specific clasaccessor. In this case, a *tag struct* can
+be be defined inline, using
 an underscore suffix as a convention indicating the type does not correspond to
 an actual class::
 
@@ -96,34 +97,40 @@ File names
 ----------
 
 We choose the convention of ``.cc`` for C++ translation units and
-corresponding ``.hh`` files for C++ headers.
-
-Thus we have the following rules:
+corresponding ``.hh`` files for C++ headers, and we use the standard ``.cu``
+extension for CUDA translation units.
 
 - ``.hh`` is for C++ header code compatible with host compilers. The code in
   this file can be compatible with device code if it uses the
   ``CELER_FUNCTION`` family of macros defined in ``corecel/Macros.hh``.
-- ``.cc`` is for C++ code that will invariably be compiled by the host
+- ``.cc`` is for C++ code that will invariably [#kokkos]_ be compiled by the host
   compiler.
 - ``.cu`` is for ``__global__`` kernels and functions that launch them,
   including code that initializes device memory. Despite the filename, these
   files should generally also be HIP-compatible using Celeritas abstraction
   macros.
+
+.. [#kokkos] The exception to this rule is that the Kokkos compiler wrapper,
+   when using CUDA as a target execution mode, forces all .cc files through
+   NVCC. Celeritas is currently *not* compatible with this build pattern due to
+   the compatibility macros.
+
+Some "secondary extension" provide additional context:
+
+- ``.test.cc`` are unit test executables corresponding to the main ``.cc``
+  file. These should only be in the main ``/test`` directory.
+- ``.t.hh`` is for non-inlined ``template`` implementations intended to be
+  included and explicitly instantiated in a downstream C++ or CUDA compilation
+  unit.  Note that if the function in the ``.hh`` file is declared ``inline``,
+  the definition must be provided in the header as well.
+- ``.mylibrary.hh`` can be included or compiled only when the ``mylibrary``
+  configuration option is enabled (and the ``mylibrary`` CMake targets are
+  linked into the code using it).
 - ``.device.hh`` and ``.device.cc`` require CUDA/HIP to be enabled and use the
   library's runtime libraries and headers, but they do not execute any device
   code and thus can be built by a host compiler. If the CUDA-related code is
   guarded by ``#if CELER_USE_DEVICE`` macros then the special extension is not
   necessary.
-
-Some files have special extensions:
-
-- ``.t.hh`` is for non-inlined ``template`` implementations intended to be
-  included and explicitly instantiated in a downstream C++ or CUDA compilation
-  unit.  Note that if the function in the ``.hh`` file is declared ``inline``,
-  the definition must be provided in the header as well.
-- ``.test.cc`` are unit test executables corresponding to the main ``.cc``
-  file. These should only be in the main ``/test`` directory.
-
 
 .. _device_compilation:
 
@@ -175,11 +182,12 @@ constant functionally with ``atoms_per_mole``) and use ``atomic_number``
 instead of ``Z``. Physical constants should try to have the symbol concatenated
 to the context or meaning (e.g. `c_light` or `h_planck`).
 
-Use scoped enumerations (``enum class``) where possible (named like classes) so
-their values can safely be named like member variables (lowercase with
-underscores). Prefer enumerations to boolean values in function interfaces
-(since ``do_something(true)`` requires looking up the function interface
-definition to understand).
+Use scoped enumerations (``enum class``) where possible so
+their values can safely be named like member variables. Like classes with
+member data, the class and data should be capitalized ``EnumClass`` with
+``enum_values``. Prefer enumerations to boolean values in function interfaces
+for readability downstream: interpreting ``do_something(true)`` requires
+looking up the function interface definition.
 
 
 Function inputs and outputs
@@ -205,7 +213,8 @@ to that reference if not specified here.
   *optional* return values.
 - Host-only (e.g., runtime setup) code should almost never return raw pointers;
   use shared pointers instead to make the ownership semantics clear. When
-  interfacing with older libraries such as Geant4, try to use ``unique_ptr``
+  interfacing with libraries such as Geant4 that have unusual ownership
+  semantics, try to use ``unique_ptr``
   and its ``release``/``get`` semantics to indicate the transfer of pointer
   ownership.
 - Avoid ``const`` *values* (e.g. ``const int``), because the decision
@@ -235,7 +244,7 @@ Device code has exceptions from the rules above:
 Polymorphism and virtual functions
 ----------------------------------
 
-Since polymorphism on GPUs incurs severe performance and infrastructure
+Since polymorphism on GPUs incurs substantial performance and infrastructure
 penalties, virtual functions *must* be limited to host-only setup and runtime
 functions. If at all possible, follow these guidelines:
 
@@ -243,14 +252,15 @@ functions. If at all possible, follow these guidelines:
   defined; all methods should be ``virtual ... = 0;``). Instead of adding helper
   functions or protected data, use *composition* to define such things in a
   separate class.
-- If the abstract class is to be used in downstream code, `define an
-  out-of-line function to reduce potential code bloat
-  <https://stackoverflow.com/questions/12024642/placing-of-external-virtual-tables/12025816#12025816>`.
+- If the abstract class is to be used in downstream code, define_ an
+  out-of-line function to reduce potential code bloat.
 - Use public virtual destructors to allow base-class deletion (e.g., a
   ``unique_ptr`` to the base class) *or* use a protected nonvirtual destructor
   if the classes are not meant to be stored by the user.
 - Define protected ``CELER_DEFAULT_COPY_MOVE`` constructors to prohibit
   accidental operations between base classes.
+
+.. _define: https://stackoverflow.com/questions/12024642/placing-of-external-virtual-tables/12025816#12025816
 
 In daughter classes:
 

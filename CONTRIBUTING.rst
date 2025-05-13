@@ -58,8 +58,7 @@ Collaborating
 
 Working with other Celeritas team members is a critical part of the development
 process. Please join the ``#code`` channel on the `Celeritas Slack workspace`_,
-open an issue with a bug report or feature request, or start a discussion on
-GitHub.
+or open an issue with a bug report or feature request.
 
 .. _Celeritas Slack workspace: https://celeritasproject.slack.com/
 
@@ -69,7 +68,7 @@ Development prerequisites
 
 Create a fork_ of the Celeritas repository. You should clone this fork locally
 to your development machine as the "origin", and it's a good idea to add the
-main ``celeritas-project`` repository as an "upstream" so that you can apply
+main ``celeritas-project`` repository as an "upstream" so that you can merge
 changes from the main codebase as you work.
 
 To meet the :ref:`formatting` requirements described in the development guide,

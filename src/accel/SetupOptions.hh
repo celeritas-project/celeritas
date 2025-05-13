@@ -44,9 +44,6 @@ struct AlongStepFactoryInput;
  * - Reconstructing the full geometry status using \c locate_touchable is the
  *   most expensive detector option. Disable it unless your SDs require (e.g.)
  *   the volume's copy number to locate a detector submodule.
- * - Some reconstructed track attributes (such as post-step material) are
- *   currently never set because they are rarely used in practice. Contact the
- *   Celeritas team or submit a pull request to add this functionality.
  *
  * Various attributes on the step, track, and pre/post step points may be
  * available depending on the selected options.
@@ -56,9 +53,9 @@ struct AlongStepFactoryInput;
  * - Requested post-step data including \c GlobalTime, \c Position, \c
  *   KineticEnergy, and \c MomentumDirection will be copied to the \c Track
  *   when the combination of options is enabled.
- * - Some pre-step properties (\c Material and \c MaterialCutsCouple, and
- *   sensitive detector) are always updated. Post-step values for those are not
- *   set.
+ * - Some properties (\c Material and \c MaterialCutsCouple) are
+ *   set for the pre-step and, if the post-step touchable is reconstructed, for
+ *   post-step as well.
  * - Track and Parent IDs will \em never be a valid value since Celeritas track
  *   counters are independent from Geant4 track counters. Similarly, special
  *   Geant4 user-defined \c UserInformation and \c AuxiliaryTrackInformation
