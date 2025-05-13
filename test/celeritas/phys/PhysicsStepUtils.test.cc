@@ -259,17 +259,16 @@ TEST_F(PhysicsStepUtilsTest, calc_mean_energy_loss)
         step = 0.999 * particle.energy().value() / eloss_rate;
         EXPECT_SOFT_EQ(9.99, calc_eloss(phys, step));
     }
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         PhysicsTrackView phys = this->init_track(
             &material, PhysMatId{0}, &particle, "electron", MevEnergy{1e-3});
-        real_type const eloss_rate = 0.5;  // MeV / cm
 
         // Low energy particle which loses all its energy over the step will
         // call inverse lookup. Remaining range will be zero and eloss will be
         // equal to the pre-step energy.
-        real_type step = 1e-5 / eloss_rate
-                         + value_as<MevEnergy>(particle.energy()) / eloss_rate;
+        real_type range = phys.make_calculator<RangeCalculator>(
+            phys.range_grid())(particle.energy());
+        real_type step = range - fine_eps;
         EXPECT_SOFT_EQ(1e-3, calc_eloss(phys, step));
     }
 }
@@ -515,17 +514,16 @@ TEST_F(SplinePhysicsStepUtilsTest, calc_mean_energy_loss)
         step = 0.999 * particle.energy().value() / eloss_rate;
         EXPECT_SOFT_EQ(9.99, calc_eloss(phys, step));
     }
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         PhysicsTrackView phys = this->init_track(
             &material, PhysMatId{0}, &particle, "electron", MevEnergy{1e-3});
-        real_type const eloss_rate = 0.5;  // MeV / cm
 
         // Low energy particle which loses all its energy over the step will
         // call inverse lookup. Remaining range will be zero and eloss will be
         // equal to the pre-step energy.
-        real_type step = 1e-5 / eloss_rate
-                         + value_as<MevEnergy>(particle.energy()) / eloss_rate;
+        real_type range = phys.make_calculator<RangeCalculator>(
+            phys.range_grid())(particle.energy());
+        real_type step = range - fine_eps;
         EXPECT_SOFT_EQ(1e-3, calc_eloss(phys, step));
     }
 }
