@@ -1,10 +1,11 @@
 spack:
   specs:
     - cli11
+    - "covfie@0.13:"
     - cmake
     - doxygen
     - "geant4@11"
-    - "g4vg@1.0.2:"
+    - "g4vg@1.0.3:"
     - git
     - git-lfs
     - "googletest@1.10:"

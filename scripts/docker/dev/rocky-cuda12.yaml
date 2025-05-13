@@ -1,8 +1,9 @@
 spack:
   specs:
   - cli11
+  - "covfie@0.14:"
   - cmake
-  - "g4vg@1.0.2:"
+  - "g4vg@1.0.3:"
   - "geant4@11.0 cxxstd=20"
   - git
   - "googletest@1.10:"

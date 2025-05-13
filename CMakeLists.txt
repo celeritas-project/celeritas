@@ -409,7 +409,12 @@ if(CELERITAS_USE_ROOT)
 endif()
 
 if(CELERITAS_USE_covfie)
-  celeritas_find_or_builtin_package(covfie 0.14.0)
+  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+    set(_min_covfie_version 0.14)
+  else()
+    set(_min_covfie_version 0.13)
+  endif()
+  celeritas_find_or_builtin_package(covfie ${_min_covfie_version})
 endif()
 
 if(CELERITAS_USE_VecGeom)
