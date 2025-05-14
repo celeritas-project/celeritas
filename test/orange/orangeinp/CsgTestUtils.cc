@@ -13,13 +13,13 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "corecel/Config.hh"
-
+#include "corecel/Assert.hh"
 #include "corecel/StringSimplifier.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/io/StreamableVariant.hh"
 #include "orange/BoundingBoxUtils.hh"
+#include "orange/OrangeTypes.hh"
 #include "orange/orangeinp/CsgTree.hh"
 #include "orange/orangeinp/CsgTreeIO.json.hh"
 #include "orange/orangeinp/CsgTreeUtils.hh"
@@ -38,6 +38,7 @@ namespace orangeinp
 {
 namespace test
 {
+
 //---------------------------------------------------------------------------//
 std::string to_json_string(CsgTree const& tree)
 {
@@ -328,6 +329,58 @@ EXPECT_VEC_SOFT_EQ(expected_global_bz, flattened(css.global_bzone));
 EXPECT_VEC_EQ(expected_nodes, to_vec_int(css.nodes));
 /*************************/
 )cpp" << std::endl;
+}
+
+void stream_node_id(std::ostream& os, NodeId n)
+{
+    os << "N{";
+    if (n)
+    {
+        os << n.unchecked_get();
+    }
+    os << '}';
+}
+
+void stream_logic_int(std::ostream& os, logic_int value)
+{
+    using namespace logic;
+    if (is_operator_token(value))
+    {
+        os << "logic::";
+        switch (static_cast<OperatorToken>(value))
+        {
+            case lopen:
+                os << "lopen";
+                return;
+            case lclose:
+                os << "lclose";
+                return;
+            case lor:
+                os << "lor";
+                return;
+            case land:
+                os << "land";
+                return;
+            case lnot:
+                os << "lnot";
+                return;
+            case ltrue:
+                os << "ltrue";
+                return;
+            default:
+                CELER_ASSERT_UNREACHABLE();
+        }
+    }
+    os << value << 'u';
+}
+
+std::ostream& operator<<(std::ostream& os, ReprLogic const& rl)
+{
+    os << '{'
+       << join_stream(
+              std::begin(rl.logic), std::end(rl.logic), ", ", stream_logic_int)
+       << ",}";
+    return os;
 }
 
 //---------------------------------------------------------------------------//
