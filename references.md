@@ -39,6 +39,8 @@ These publications are extracted from the Celeritas team's Zotero database.
 - J. Fernández-Varea, R. Mayol, F. Salvat. "Cross sections for elastic scattering of fast electrons and positrons by atoms". *Nuclear Instruments and Methods in Physics Research Section B: Beam Interactions with Materials and Atoms*, Jul 1993. [10.1016/0168-583X(93)95079-K](https://doi.org/10.1016/0168-583X(93)95079-K)
 - *[fernandez-msc-1993]*: J. M. Fernández-Varea, J. B. Mayol,  Salvat. "On the theory and simulation of multiple elastic scattering of electrons". *Nuclear Instruments and Methods in Physics Research Section B: Beam Interactions with Materials and Atoms*, 1993. [https://doi.org/10.1016/0168-583X(93)95827-R](https://doi.org/https://doi.org/10.1016/0168-583X(93)95827-R)
 - E. W. Larsen. "A theoretical derivation of the Condensed History Algorithm". *Annals of Nuclear Energy*, Oct 1992. [10.1016/0306-4549(92)90013-2](https://doi.org/10.1016/0306-4549(92)90013-2)
+- S. Nayar, K. Ikeuchi, T. Kanade. "Surface reflection: physical and geometrical perspectives". *IEEE Transactions on Pattern Analysis and Machine Intelligence*, Jul 1991. [10.1109/34.85654](https://doi.org/10.1109/34.85654)
+- S. Nayar, K. Ikeuchi, T. Kanade. "Surface reflection: physical and geometrical perspectives". The Robotics Institute, Mar 1989.
 - G. Knoll, T. Knoll, T. Henderson. "Light collection in scintillation detector composites for neutron detection". *IEEE Transactions on Nuclear Science*, Feb 1988. [10.1109/23.12850](https://doi.org/10.1109/23.12850)
 - *[sb-brems-1986]*: S. M. Seltzer, M. J. Berger. "Bremsstrahlung energy spectra from electrons with kinetic energy 1 keV–10 GeV incident on screened nuclei and orbital electrons of neutral atoms with Z = 1–100". *Atomic Data and Nuclear Data Tables*, Nov 1986. [10.1016/0092-640X(86)90014-8](https://doi.org/10.1016/0092-640X(86)90014-8)
 - L. Kim, R. H. Pratt, S. M. Seltzer, M. J. Berger. "Ratio of positron to electron bremsstrahlung energy loss: An approximate scaling law". *Physical Review A*, May 1986. [10.1103/PhysRevA.33.3002](https://doi.org/10.1103/PhysRevA.33.3002)
@@ -189,6 +191,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 - *[allen-loop-1984]*: J. Allen, K. Kennedy. "Automatic Loop Interchange". in *SIGPLAN Notlce8*, Jun 1984.
 - *[dormand-rungekutta-1980]*: J. Dormand, P. Prince. "A family of embedded Runge-Kutta formulae". *Journal of Computational and Applied Mathematics*, Mar 1980. [10.1016/0771-050X(80)90013-3](https://doi.org/10.1016/0771-050X(80)90013-3)
 - *[everett-montecarlo-1972]*: C. J. Everett, E. D. Cashwell. "A Monte Carlo Sampler". 1972. [doi.org](https://doi.org/10.2172/4589395)
+- D. E. Knuth. "The art of computer programming". Addison-Wesley, Reading, Mass. Munich, 1968.
 - G. M. Amdahl. "Validity of the single processor approach to achieving large scale computing capabilities". in *Proceedings of the April 18-20, 1967, spring joint computer conference on - AFIPS '67 (Spring)*, Atlantic City, New Jersey, 1967. [10.1145/1465482.1465560](https://doi.org/10.1145/1465482.1465560)
 
 ## Computational geometry
