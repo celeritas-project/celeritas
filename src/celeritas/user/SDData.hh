@@ -26,15 +26,10 @@ struct SDParamsData
     // ! Mapping for volume -> sensitive detector
     Collection<DetectorId, W, M, VolumeId> detector;
 
-    // ! boolean for assignment of struct.
-    // ! TODO: this is a placeholder for now since COllection doesn't case to
-    // bool and is the only member
-    bool assigned;
-
     //! Whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return static_cast<bool>(assigned);
+        return static_cast<bool>(detector.empty());
     }
 
     //! Assign from another set of data
@@ -43,7 +38,6 @@ struct SDParamsData
     {
         CELER_EXPECT(other);
         detector = other.detector;
-        assigned = other.assigned;
         return *this;
     }
 };
