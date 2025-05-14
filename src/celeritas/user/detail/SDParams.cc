@@ -19,38 +19,21 @@ namespace detail
 /*!
  * Construct from list of volume labels.
  */
-SDParams::SDParams(std::string output_label,
-                   VecLabel labels,
-                   GeoParamsInterface const& geo)
-    : output_label_{std::move(output_label)}, volume_labels_{std::move(labels)}
+SDParams::SDParams(VecLabel volume_labels, GeoParamsInterface const& geo)
 {
-    CELER_EXPECT(!output_label_.empty());
-    if (volume_labels_.empty())
-    {
-        return;
-    }
-    CELER_EXPECT(!volume_labels_.empty());
-
-    enum class HasDetectors
-    {
-        unknown = -1,
-        none,
-        all
-    };
-
-    HasDetectors has_det = HasDetectors::unknown;
+    CELER_EXPECT(!volume_labels.empty());
 
     // Map labels to volume IDs
-    volume_ids_.resize(volume_labels_.size());
+    volume_ids_.resize(volume_labels.size());
 
     std::vector<std::reference_wrapper<Label const>> missing;
     GeoVolumeFinder find_volume(geo);
-    for (auto i : range(volume_labels_.size()))
+    for (auto i : range(volume_labels.size()))
     {
-        volume_ids_[i] = find_volume(volume_labels_[i]);
+        volume_ids_[i] = find_volume(volume_labels[i]);
         if (!volume_ids_[i])
         {
-            missing.emplace_back(volume_labels_[i]);
+            missing.emplace_back(volume_labels[i]);
         }
     }
 
@@ -58,19 +41,12 @@ SDParams::SDParams(std::string output_label,
                    << "failed to find " << cmake::core_geo
                    << " volume(s) for labels '"
                    << join(missing.begin(), missing.end(), "', '"));
-    CELER_ENSURE(volume_ids_.size() == volume_labels_.size());
+    CELER_ENSURE(volume_ids_.size() == volume_labels.size());
 
     std::map<VolumeId, DetectorId> detector_map;
     for (auto didx : range<DetectorId::size_type>(volume_ids_.size()))
     {
         detector_map[volume_ids_[didx]] = DetectorId{didx};
-    }
-
-    auto this_has_detectors = detector_map.empty() ? HasDetectors::none
-                                                   : HasDetectors::all;
-    if (has_det == HasDetectors::unknown)
-    {
-        has_det = this_has_detectors;
     }
 
     mirror_ = CollectionMirror{[&] {
@@ -95,6 +71,11 @@ SDParams::SDParams(std::string output_label,
 DetectorId SDParams::volume_to_detector_id(VolumeId vol_id)
 {
     return host_ref().detector[vol_id];
+}
+
+VolumeId SDParams::detector_to_volume_id(DetectorId det_id)
+{
+    return volume_ids_[det_id.get()];
 }
 
 //---------------------------------------------------------------------------//

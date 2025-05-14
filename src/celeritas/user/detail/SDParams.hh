@@ -26,19 +26,24 @@ namespace detail
  * Manage params and state data for sensitive detectors.
  *
  */
-class SDParams : public ParamsDataInterface<SDParamsData>
+class SDParams final : public ParamsDataInterface<SDParamsData>
 {
   public:
     using VecLabel = std::vector<Label>;
 
   public:
+    // Default Constructor
+    SDParams() {};
+
     // Construct from volume labels
-    SDParams(std::string output_label,
-             VecLabel volume_labels,
-             GeoParamsInterface const& geo);
+    SDParams(VecLabel volume_labels, GeoParamsInterface const& geo);
+
+    // Access detector ID based on volume ID
+    DetectorId volume_to_detector_id(VolumeId);
 
     // Access volume ID based on detector ID
-    DetectorId volume_to_detector_id(VolumeId);
+    VolumeId detector_to_volume_id(DetectorId);
+
     //!@{
     //! \name Data interface
 
@@ -49,8 +54,6 @@ class SDParams : public ParamsDataInterface<SDParamsData>
     //!@}
 
   private:
-    std::string output_label_;
-    VecLabel volume_labels_;
     std::vector<VolumeId> volume_ids_;
     CollectionMirror<SDParamsData> mirror_;
 };
