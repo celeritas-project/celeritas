@@ -149,61 +149,43 @@ struct ProcessGroup
 
 //---------------------------------------------------------------------------//
 /*!
+ * IDs for models that do on-the-fly cross section calculation.
+ */
+struct HardwiredIds
+{
+    ProcessId annihilation;
+    ModelId eplusgg;
+
+    ProcessId photoelectric;
+    ModelId livermore_pe;
+
+    ProcessId neutron_elastic;
+    ModelId chips;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Model data for special hardwired cases (on-the-fly xs calculations).
- *
- * TODO: livermore/relaxation are owned by other classes, but
- * because we assign <host, value> -> { <host, cref> ; <device, value> ->
- * <device, cref> }
  */
 template<Ownership W, MemSpace M>
 struct HardwiredModels
 {
-    //// DATA ////
+    // Process and model IDs
+    HardwiredIds ids;
 
-    // Photoelectric effect
-    ProcessId photoelectric;
-    units::MevEnergy photoelectric_table_thresh;
-    ModelId livermore_pe;
-    LivermorePEData<W, M> livermore_pe_data;
-    AtomicRelaxParamsData<W, M> relaxation_data;
+    // Model data
+    EPlusGGData eplusgg;
+    LivermorePEData<W, M> livermore_pe;
+    AtomicRelaxParamsData<W, M> relaxation;
+    NeutronElasticData<W, M> chips;
 
-    // Positron annihilation
-    ProcessId positron_annihilation;
-    ModelId eplusgg;
-    EPlusGGData eplusgg_data;
-
-    // Neutron elastic
-    ProcessId neutron_elastic;
-    ModelId chips;
-    NeutronElasticData<W, M> chips_data;
-
-    //// MEMBER FUNCTIONS ////
-
-    //! Assign from another set of hardwired models
+    //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     HardwiredModels& operator=(HardwiredModels<W2, M2> const& other)
     {
-        // Note: don't require the other set of hardwired models to be assigned
-        photoelectric = other.photoelectric;
-        if (photoelectric)
-        {
-            // Only assign photoelectric data if that process is present
-            photoelectric_table_thresh = other.photoelectric_table_thresh;
-            livermore_pe = other.livermore_pe;
-            livermore_pe_data = other.livermore_pe_data;
-        }
-        relaxation_data = other.relaxation_data;
-        positron_annihilation = other.positron_annihilation;
+        // Don't assign the references to model data
+        ids = other.ids;
         eplusgg = other.eplusgg;
-        eplusgg_data = other.eplusgg_data;
-
-        neutron_elastic = other.neutron_elastic;
-        if (neutron_elastic)
-        {
-            // Only assign neutron_elastic data if that process is present
-            chips = other.chips;
-            chips_data = other.chips_data;
-        }
 
         return *this;
     }
@@ -348,7 +330,7 @@ struct PhysicsParamsData
     PhysicsParamsScalars scalars;
 
     // Models that calculate cross sections on the fly
-    HardwiredModels<W, M> hardwired;
+    HardwiredModels<Ownership::const_reference, M> hardwired;
 
     // Grid and table storage
     Items<XsGridId> xs_grid_ids;
@@ -521,7 +503,7 @@ inline void resize(PhysicsStateData<Ownership::value, M>* state,
     resize(&state->msc_step, size);
     resize(&state->per_process_xs,
            size * params.scalars.max_particle_processes);
-    resize(&state->relaxation, params.hardwired.relaxation_data, size);
+    resize(&state->relaxation, params.hardwired.relaxation, size);
     resize(
         &state->secondaries,
         static_cast<size_type>(size * params.scalars.secondary_stack_factor));

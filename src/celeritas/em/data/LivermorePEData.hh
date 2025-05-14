@@ -76,6 +76,12 @@ struct LivermoreElement
     Energy thresh_lo;  //!< Use tabulated XS below this energy
     Energy thresh_hi;  //!< Use lower parameterization below, upper above
 
+    //! Energy below which cross sections are calculated on the fly
+    static CELER_CONSTEXPR_FUNCTION Energy tabulated_threshold()
+    {
+        return Energy{0.2};
+    }
+
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
@@ -179,10 +185,6 @@ struct LivermorePEData
         return *this;
     }
 };
-
-using LivermorePEDeviceRef = DeviceCRef<LivermorePEData>;
-using LivermorePEHostRef = HostCRef<LivermorePEData>;
-using LivermorePERef = NativeCRef<LivermorePEData>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

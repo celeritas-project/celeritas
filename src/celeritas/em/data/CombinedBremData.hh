@@ -46,9 +46,5 @@ struct CombinedBremData
     }
 };
 
-using CombinedBremDeviceRef = DeviceCRef<CombinedBremData>;
-using CombinedBremHostRef = HostCRef<CombinedBremData>;
-using CombinedBremRef = NativeCRef<CombinedBremData>;
-
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

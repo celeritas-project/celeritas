@@ -100,8 +100,4 @@ struct RelativisticBremData
     }
 };
 
-using RelativisticBremDeviceRef = DeviceCRef<RelativisticBremData>;
-using RelativisticBremHostRef = HostCRef<RelativisticBremData>;
-using RelativisticBremRef = NativeCRef<RelativisticBremData>;
-
 }  // namespace celeritas

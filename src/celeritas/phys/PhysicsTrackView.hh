@@ -452,23 +452,20 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
     {
         // Calculate macroscopic cross section on the fly for special
         // hardwired processes.
-        if (model_id == params_.hardwired.livermore_pe)
+        if (model_id == params_.hardwired.ids.livermore_pe)
         {
-            auto calc_xs = MacroXsCalculator<LivermorePEMicroXsCalculator>(
-                params_.hardwired.livermore_pe_data, material);
-            result = calc_xs(energy);
+            result = MacroXsCalculator<LivermorePEMicroXsCalculator>(
+                params_.hardwired.livermore_pe, material)(energy);
         }
-        else if (model_id == params_.hardwired.eplusgg)
+        else if (model_id == params_.hardwired.ids.eplusgg)
         {
-            auto calc_xs = EPlusGGMacroXsCalculator(
-                params_.hardwired.eplusgg_data, material);
-            result = calc_xs(energy);
+            result = EPlusGGMacroXsCalculator(params_.hardwired.eplusgg,
+                                              material)(energy);
         }
-        else if (model_id == params_.hardwired.chips)
+        else if (model_id == params_.hardwired.ids.chips)
         {
-            auto calc_xs = MacroXsCalculator<NeutronElasticMicroXsCalculator>(
-                params_.hardwired.chips_data, material);
-            result = calc_xs(energy);
+            result = MacroXsCalculator<NeutronElasticMicroXsCalculator>(
+                params_.hardwired.chips, material)(energy);
         }
     }
     else if (auto grid_id = this->macro_xs_grid(ppid))
@@ -520,18 +517,20 @@ PhysicsTrackView::calc_max_xs(IntegralXsProcess const& process,
 
 //---------------------------------------------------------------------------//
 /*!
- * Return the model ID that applies to the given process ID and energy if the
- * process is hardwired to calculate macroscopic cross sections on the fly. If
- * the result is null, tables should be used for this process/energy.
+ * Get a hardwired model for on-the-fly cross section calculation.
+ *
+ * This returns the model ID that applies to the given process ID and energy if
+ * the process is hardwired to calculate macroscopic cross sections on the fly.
+ * If the result is null, tables should be used for this process/energy.
  */
 CELER_FUNCTION ModelId PhysicsTrackView::hardwired_model(ParticleProcessId ppid,
                                                          Energy energy) const
 {
     ProcessId process = this->process(ppid);
-    if ((process == params_.hardwired.photoelectric
-         && energy < params_.hardwired.photoelectric_table_thresh)
-        || (process == params_.hardwired.positron_annihilation)
-        || (process == params_.hardwired.neutron_elastic))
+    if ((process == params_.hardwired.ids.photoelectric
+         && energy < LivermoreElement::tabulated_threshold())
+        || (process == params_.hardwired.ids.annihilation)
+        || (process == params_.hardwired.ids.neutron_elastic))
     {
         auto find_model = this->make_model_finder(ppid);
         return this->model_id(find_model(energy));

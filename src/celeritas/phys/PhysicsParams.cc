@@ -168,7 +168,17 @@ PhysicsParams::PhysicsParams(Input inp)
     }
 
     // Copy data to device
-    data_ = CollectionMirror<PhysicsParamsData>{std::move(host_data)};
+    //! \todo Assigning hardwired data refs prevents use of \c CollectionMirror
+    host_ = std::move(host_data);
+    host_ref_ = host_;
+    if (celeritas::device())
+    {
+        device_ = host_;
+        device_ref_ = device_;
+    }
+
+    // Assign the host/device references to hardwired model data
+    this->build_hardwired();
 
     CELER_ENSURE(range_action_->action_id()
                  == host_ref().scalars.range_action());
@@ -296,14 +306,15 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
 {
     CELER_EXPECT(data);
     CELER_EXPECT(!models_.empty());
+
     using ModelRange = std::tuple<real_type, real_type, ParticleModelId>;
+    using MapProcessModel = std::map<ProcessId, std::vector<ModelRange>>;
 
     // Offset from the index in the list of models to a model's ActionId
     data->scalars.model_to_action = this->model(ModelId{0})->action_id().get();
 
     // Note: use map to keep ProcessId sorted
-    std::vector<std::map<ProcessId, std::vector<ModelRange>>> particle_models(
-        particles.size());
+    std::vector<MapProcessModel> particle_models(particles.size());
     std::vector<ModelId> temp_model_ids;
     ParticleModelId::size_type pm_idx{0};
 
@@ -337,11 +348,11 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
     make_builder(&data->model_ids)
         .insert_back(temp_model_ids.begin(), temp_model_ids.end());
 
-    auto process_groups = make_builder(&data->process_groups);
-    auto process_ids = make_builder(&data->process_ids);
-    auto model_groups = make_builder(&data->model_groups);
-    auto pmodel_ids = make_builder(&data->pmodel_ids);
-    auto reals = make_builder(&data->reals);
+    CollectionBuilder process_groups(&data->process_groups);
+    CollectionBuilder process_ids(&data->process_ids);
+    CollectionBuilder model_groups(&data->model_groups);
+    CollectionBuilder pmodel_ids(&data->pmodel_ids);
+    DedupeCollectionBuilder reals(&data->reals);
 
     process_groups.reserve(particle_models.size());
 
@@ -360,9 +371,9 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
             max_particle_processes, process_to_models.size());
 
         std::vector<ProcessId> temp_processes;
-        std::vector<ModelGroup> temp_model_datas;
+        std::vector<ModelGroup> temp_model_groups;
         temp_processes.reserve(process_to_models.size());
-        temp_model_datas.reserve(process_to_models.size());
+        temp_model_groups.reserve(process_to_models.size());
         for (auto& pid_models : process_to_models)
         {
             // Add process ID
@@ -401,14 +412,14 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
             mdata.model = pmodel_ids.insert_back(temp_models.begin(),
                                                  temp_models.end());
             CELER_ASSERT(mdata);
-            temp_model_datas.push_back(mdata);
+            temp_model_groups.push_back(mdata);
         }
 
         ProcessGroup pdata;
         pdata.processes = process_ids.insert_back(temp_processes.begin(),
                                                   temp_processes.end());
-        pdata.models = model_groups.insert_back(temp_model_datas.begin(),
-                                                temp_model_datas.end());
+        pdata.models = model_groups.insert_back(temp_model_groups.begin(),
+                                                temp_model_groups.end());
 
         // It's ok to have particles defined in the problem that do not have
         // any processes (if they are ever created, they will just be
@@ -421,40 +432,60 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
     data->scalars.num_models = this->num_models();
 
     // Assign hardwired models that do on-the-fly xs calculation
-    for (auto model_idx : range(this->num_models()))
+    for (auto model_id : range(ModelId(this->num_models())))
     {
-        Model const& model = *models_[model_idx].first;
-        ProcessId const process_id = models_[model_idx].second;
-        if (auto* pe_model = dynamic_cast<LivermorePEModel const*>(&model))
+        Model const& model = *models_[model_id.get()].first;
+        ProcessId const process_id = models_[model_id.get()].second;
+        if (dynamic_cast<LivermorePEModel const*>(&model))
         {
-            data->hardwired.photoelectric = process_id;
-            data->hardwired.photoelectric_table_thresh = units::MevEnergy{0.2};
-            data->hardwired.livermore_pe = ModelId{model_idx};
-            data->hardwired.livermore_pe_data = pe_model->host_ref();
+            data->hardwired.ids.photoelectric = process_id;
+            data->hardwired.ids.livermore_pe = model_id;
         }
-        else if (auto* epgg_model = dynamic_cast<EPlusGGModel const*>(&model))
+        else if (auto const* m = dynamic_cast<EPlusGGModel const*>(&model))
         {
-            data->hardwired.positron_annihilation = process_id;
-            data->hardwired.eplusgg = ModelId{model_idx};
-            data->hardwired.eplusgg_data = epgg_model->device_ref();
+            data->hardwired.ids.annihilation = process_id;
+            data->hardwired.ids.eplusgg = model_id;
+            data->hardwired.eplusgg = m->host_ref();
         }
-        else if (auto* ne_model
-                 = dynamic_cast<ChipsNeutronElasticModel const*>(&model))
+        else if (dynamic_cast<ChipsNeutronElasticModel const*>(&model))
         {
-            data->hardwired.neutron_elastic = process_id;
-            data->hardwired.chips = ModelId{model_idx};
-            data->hardwired.chips_data = ne_model->device_ref();
+            data->hardwired.ids.neutron_elastic = process_id;
+            data->hardwired.ids.chips = model_id;
         }
-    }
-
-    if (relaxation_)
-    {
-        // TODO: this makes a copy of all the data rather than a
-        // host/device reference
-        data->hardwired.relaxation_data = relaxation_->host_ref();
     }
 
     CELER_ENSURE(*data);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Assign hardwired data for models that compute cross sections on the fly.
+ */
+void PhysicsParams::build_hardwired()
+{
+    CELER_EXPECT(host_ref_);
+
+    if (relaxation_)
+    {
+        host_ref_.hardwired.relaxation = relaxation_->host_ref();
+        device_ref_.hardwired.relaxation = relaxation_->device_ref();
+    }
+    if (auto model_id = host_ref_.hardwired.ids.livermore_pe)
+    {
+        auto const* model = dynamic_cast<LivermorePEModel const*>(
+            models_[model_id.get()].first.get());
+        CELER_ASSERT(model);
+        host_ref_.hardwired.livermore_pe = model->host_ref();
+        device_ref_.hardwired.livermore_pe = model->device_ref();
+    }
+    if (auto model_id = host_ref_.hardwired.ids.chips)
+    {
+        auto const* model = dynamic_cast<ChipsNeutronElasticModel const*>(
+            models_[model_id.get()].first.get());
+        CELER_ASSERT(model);
+        host_ref_.hardwired.chips = model->host_ref();
+        device_ref_.hardwired.chips = model->device_ref();
+    }
 }
 
 //---------------------------------------------------------------------------//

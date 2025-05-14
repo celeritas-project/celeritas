@@ -51,10 +51,11 @@ class RBDiffXsCalculator
 
   public:
     // Construct with incident electron and current element
-    inline CELER_FUNCTION RBDiffXsCalculator(RelativisticBremRef const& shared,
-                                             ParticleTrackView const& particle,
-                                             MaterialView const& material,
-                                             ElementComponentId elcomp_id);
+    inline CELER_FUNCTION
+    RBDiffXsCalculator(NativeCRef<RelativisticBremData> const& shared,
+                       ParticleTrackView const& particle,
+                       MaterialView const& material,
+                       ElementComponentId elcomp_id);
 
     // Compute cross section of exiting gamma energy
     inline CELER_FUNCTION real_type operator()(Energy energy);
@@ -109,10 +110,11 @@ class RBDiffXsCalculator
  * Construct with incident electron and current element.
  */
 CELER_FUNCTION
-RBDiffXsCalculator::RBDiffXsCalculator(RelativisticBremRef const& shared,
-                                       ParticleTrackView const& particle,
-                                       MaterialView const& material,
-                                       ElementComponentId elcomp_id)
+RBDiffXsCalculator::RBDiffXsCalculator(
+    NativeCRef<RelativisticBremData> const& shared,
+    ParticleTrackView const& particle,
+    MaterialView const& material,
+    ElementComponentId elcomp_id)
     : elem_data_(shared.elem_data[material.element_id(elcomp_id)])
     , material_(material)
     , element_(material.element_record(elcomp_id))

@@ -118,16 +118,17 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
     SpanConstProcessId processes(ParticleId) const;
 
     //! Access physics properties on the host
-    HostRef const& host_ref() const final { return data_.host_ref(); }
+    HostRef const& host_ref() const final { return host_ref_; }
 
     //! Access physics properties on the device
-    DeviceRef const& device_ref() const final { return data_.device_ref(); }
+    DeviceRef const& device_ref() const final { return device_ref_; }
 
   private:
     using BC = SplineDerivCalculator::BoundaryCondition;
     using SPAction = std::shared_ptr<StaticConcreteAction>;
     using VecModel = std::vector<std::pair<SPConstModel, ProcessId>>;
     using HostValue = celeritas::HostVal<PhysicsParamsData>;
+    using DeviceValue = PhysicsParamsData<Ownership::value, MemSpace::device>;
 
     // Kernels/actions
     SPAction pre_step_action_;
@@ -144,7 +145,10 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
     SPConstRelaxation relaxation_;
 
     // Host/device storage and reference
-    CollectionMirror<PhysicsParamsData> data_;
+    HostValue host_;
+    HostRef host_ref_;
+    DeviceValue device_;
+    DeviceRef device_ref_;
 
   private:
     VecModel build_models(ActionRegistry*) const;
@@ -153,6 +157,7 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
     void build_ids(ParticleParams const&, HostValue*) const;
     void build_tables(Options const&, MaterialParams const&, HostValue*) const;
     void build_model_tables(MaterialParams const&, HostValue*) const;
+    void build_hardwired();
 };
 
 //---------------------------------------------------------------------------//

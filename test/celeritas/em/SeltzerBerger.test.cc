@@ -132,7 +132,7 @@ class SeltzerBergerTest : public InteractorHostTestBase
 
   protected:
     std::shared_ptr<SeltzerBergerModel> model_;
-    SeltzerBergerRef data_;
+    NativeCRef<SeltzerBergerData> data_;
 };
 
 //---------------------------------------------------------------------------//

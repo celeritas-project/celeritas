@@ -26,7 +26,7 @@ struct CombinedBremExecutor
     inline CELER_FUNCTION Interaction
     operator()(celeritas::CoreTrackView const& track);
 
-    CombinedBremRef params;
+    NativeCRef<CombinedBremData> params;
 };
 
 //---------------------------------------------------------------------------//

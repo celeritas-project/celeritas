@@ -138,9 +138,5 @@ struct SeltzerBergerData
     }
 };
 
-using SeltzerBergerDeviceRef = DeviceCRef<SeltzerBergerData>;
-using SeltzerBergerHostRef = HostCRef<SeltzerBergerData>;
-using SeltzerBergerRef = NativeCRef<SeltzerBergerData>;
-
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

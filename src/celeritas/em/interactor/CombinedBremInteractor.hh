@@ -54,7 +54,7 @@ class CombinedBremInteractor
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    CombinedBremInteractor(CombinedBremRef const& shared,
+    CombinedBremInteractor(NativeCRef<CombinedBremData> const& shared,
                            ParticleTrackView const& particle,
                            Real3 const& direction,
                            CutoffView const& cutoffs,
@@ -70,7 +70,7 @@ class CombinedBremInteractor
     //// DATA ////
 
     // SB and relativistic data
-    CombinedBremRef const& shared_;
+    NativeCRef<CombinedBremData> const& shared_;
     // Incident particle
     ParticleTrackView const& particle_;
     // Incident particle direction
@@ -97,7 +97,7 @@ class CombinedBremInteractor
  */
 CELER_FUNCTION
 CombinedBremInteractor::CombinedBremInteractor(
-    CombinedBremRef const& shared,
+    NativeCRef<CombinedBremData> const& shared,
     ParticleTrackView const& particle,
     Real3 const& direction,
     CutoffView const& cutoffs,
