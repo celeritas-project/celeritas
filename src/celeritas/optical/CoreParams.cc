@@ -127,15 +127,11 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     if (input_.detector_labels)
     {
         detectors_ = std::make_shared<celeritas::detail::SDParams>(
-            "empty_optical_detectors",
-            *(input_.detector_labels),
-            *(input_.geometry));
+            *(input_.detector_labels), *(input_.geometry));
     }
     else
     {
-        std::vector<Label> detector_labels;
-        detectors_ = std::make_shared<celeritas::detail::SDParams>(
-            "empty_optical_detectors", detector_labels, *(input_.geometry));
+        detectors_ = std::make_shared<celeritas::detail::SDParams>();
     }
 
     ScopedMem record_mem("optical::CoreParams.construct");
