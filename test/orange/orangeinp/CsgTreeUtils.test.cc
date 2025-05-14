@@ -124,8 +124,10 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
     auto bdy = this->insert(Joined{op_and, {bdy_outer, mz, below_pz}});
     auto zslab = this->insert(Joined{op_and, {mz, below_pz}});
 
+    auto always_false = this->insert(Joined{op_and, {shell, inner_cyl}});
+
     EXPECT_EQ(
-        R"({0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: surface 2, 6: not{5}, 7: all{2,4,6}, 8: surface 3, 9: not{8}, 10: all{2,4,9}, 11: not{7}, 12: all{10,11}, 13: surface 4, 14: all{2,4,13}, 15: all{2,4}, })",
+        R"({0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: surface 2, 6: not{5}, 7: all{2,4,6}, 8: surface 3, 9: not{8}, 10: all{2,4,9}, 11: not{7}, 12: all{10,11}, 13: surface 4, 14: all{2,4,13}, 15: all{2,4}, 16: all{7,12}, })",
         to_string(tree_));
 
     // Test postfix and internal surface flagger
@@ -239,12 +241,30 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_VEC_EQ(expected_faces, faces);
         EXPECT_EQ("all(+0, -1, +4)", build_infix_string(tree_, bdy));
     }
+    {
+        EXPECT_TRUE(has_internal_surfaces(always_false));
+        auto&& [faces, lgc] = build_postfix(always_false);
+
+        static size_type const expected_lgc[] = {
+            0u,          1u,          logic::lnot, logic::land, 2u,
+            logic::lnot, logic::land, 0u,          1u,          logic::lnot,
+            logic::land, 3u,          logic::lnot, logic::land, 0u,
+            1u,          logic::lnot, logic::land, 2u,          logic::lnot,
+            logic::land, logic::lnot, logic::land, logic::land,
+        };
+        static S const expected_faces[] = {S{0}, S{1}, S{2}, S{3}};
+        EXPECT_VEC_EQ(expected_lgc, lgc) << ReprLogic{lgc};
+        EXPECT_VEC_EQ(expected_faces, faces);
+        EXPECT_EQ(
+            "all(all(+0, -1, -2), all(all(+0, -1, -3), !all(+0, -1, -2)))",
+            build_infix_string(tree_, always_false));
+    }
 
     // Imply inside boundary
     replace_and_simplify(&tree_, bdy, True{});
 
     EXPECT_EQ(
-        R"({0: true, 1: not{0}, 2: ->{0}, 3: ->{1}, 4: ->{0}, 5: surface 2, 6: not{5}, 7: ->{6}, 8: surface 3, 9: not{8}, 10: ->{9}, 11: ->{5}, 12: all{5,9}, 13: ->{0}, 14: ->{0}, 15: ->{0}, })",
+        R"({0: true, 1: not{0}, 2: ->{0}, 3: ->{1}, 4: ->{0}, 5: surface 2, 6: not{5}, 7: ->{6}, 8: surface 3, 9: not{8}, 10: ->{9}, 11: ->{5}, 12: all{5,9}, 13: ->{0}, 14: ->{0}, 15: ->{0}, 16: all{6,12}, })",
         to_string(tree_));
 
     // Test postfix builder with remapping
