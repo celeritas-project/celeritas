@@ -155,8 +155,6 @@ TEST_F(TestEm3DiagnosticTest, host)
             "annihil-2-gamma e+",
             "brems-sb e+",
             "brems-sb e-",
-            "brems-rel e+",
-            "brems-rel e-",
             "conv-bethe-heitler gamma",
             "eloss-range e+",
             "eloss-range e-",
