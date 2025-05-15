@@ -197,6 +197,11 @@ if(CMAKE_VERSION VERSION_LESS 3.22 AND CELERITAS_USE_HIP)
   message(WARNING "HIP support is immature; CMake 3.22+ is recommended.")
 endif()
 
+if(CMAKE_VERSION VERSION_LESS 3.27 AND CELERITAS_USE_covfie)
+  # See https://cmake.org/cmake/help/latest/manual/cmake-generator-expressions.7.html#id30
+  message(FATAL_ERROR "CMake 3.27 or greater is required for covfie support")
+endif()
+
 #----------------------------------------------------------------------------#
 # CMAKE INTRINSIC OPTIONS
 #
@@ -234,10 +239,12 @@ if(CELERITAS_USE_CUDA)
   # Default to setting CUDA C++ standard the same as C++
   celeritas_set_default(CMAKE_CUDA_STANDARD "${CMAKE_CXX_STANDARD}")
   celeritas_set_default(CMAKE_CUDA_EXTENSIONS "${CMAKE_CXX_EXTENSIONS}")
-  # Use host compiler by default to ensure ABI consistency
-  celeritas_set_default(CMAKE_CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}"
-    "Set to CMAKE_CXX_COMPILER by Celeritas CMakeLists"
-  )
+  if(NOT CMAKE_CUDA_HOST_COMPILER STREQUAL CMAKE_CXX_COMPILER)
+    # See https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_HOST_COMPILER.html#variable:CMAKE_%3CLANG%3E_HOST_COMPILER
+    message(WARNING "CUDA host compiler mismatch: "
+      "CMAKE_CUDA_HOST_COMPILER=${CMAKE_CUDA_HOST_COMPILER} "
+      "but CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
+  endif()
 endif()
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
