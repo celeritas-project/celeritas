@@ -171,7 +171,7 @@ CELER_FUNCTION TrackInitializer CherenkovGenerator::operator()(Generator& rng)
         = rotate(from_spherical(-std::sqrt(sin_theta_sq), phi), dir_);
 
     // Sample fraction along the step
-    UniformRealDistribution sample_step_fraction;
+    UniformRealDistribution<> sample_step_fraction;
     real_type u;
     do
     {
