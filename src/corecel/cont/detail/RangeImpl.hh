@@ -313,24 +313,26 @@ class step_range_iter : public range_iter<T>
         return {TraitsT::increment(value_, inc * step_)};
     }
 
-    template<class U = counter_type>
-    CELER_FUNCTION typename std::enable_if_t<std::is_signed<U>::value, bool>
-    operator==(step_range_iter const& other) const
+    CELER_FUNCTION bool operator==(step_range_iter const& other) const
     {
-        return step_ >= 0 ? !(value_ < other.value_) : value_ < other.value_;
-    }
-
-    template<class U = counter_type>
-    CELER_FUNCTION typename std::enable_if_t<std::is_unsigned<U>::value, bool>
-    operator==(step_range_iter const& other) const
-    {
-        return !(value_ < other.value_);
+        if constexpr (std::is_signed_v<counter_type>)
+        {
+            return step_ >= 0 ? !(value_ < other.value_)
+                              : value_ < other.value_;
+        }
+        else
+        {
+            return !(value_ < other.value_);
+        }
     }
 
     CELER_FUNCTION bool operator!=(step_range_iter const& other) const
     {
         return !(*this == other);
     }
+
+    // Access the underlying step
+    CELER_FORCEINLINE_FUNCTION counter_type step() const { return step_; }
 
   private:
     using Base::value_;
