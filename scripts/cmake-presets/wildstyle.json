@@ -9,9 +9,13 @@
       "binaryDir": "${sourceDir}/build-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_BUILTIN_CLI11": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_G4VG": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_GTest": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_BUILTIN_covfie": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_nlohmann_json": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "ON"},
@@ -29,12 +33,25 @@
     },
     {
       "name": "base",
-      "displayName": "Wildstyle default options (GCC, debug, no omp)",
+      "displayName": "Wildstyle default options (clang, debug, no omp)",
       "inherits": [".debug", ".base"],
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "cxx17",
+      "displayName": "Wildstyle old options (GCC, debug, no omp)",
+      "inherits": [".debug", ".base"],
+      "cacheVariables": {
+        "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
+        "CMAKE_CXX_STANDARD": "17"
+      },
+      "environment": {
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-cxx17/.spack-env/view"
       }
     },
     {
