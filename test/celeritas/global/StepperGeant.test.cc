@@ -227,13 +227,6 @@ class TestEm3MscNoIntegral : public TestEm3Msc
         return this->make_primaries_with_energy(count, MevEnergy{10});
     }
 
-    ProcessBuilderOptions build_process_options() const override
-    {
-        ProcessBuilderOptions opts = TestEm3Base::build_process_options();
-        opts.brem_combined = false;
-        return opts;
-    }
-
     PhysicsOptions build_physics_options() const override
     {
         auto opts = ImportedDataTestBase::build_physics_options();
@@ -367,7 +360,8 @@ TEST_F(TestEm3NoMsc, setup)
         "conv-bethe-heitler",
         "annihil-2-gamma",
         "ioni-moller-bhabha",
-        "brems-combined",
+        "brems-sb",
+        "brems-rel",
         "geo-boundary",
         "tracking-cut",
         "extend-from-secondaries",
@@ -501,7 +495,8 @@ TEST_F(TestEm3Msc, setup)
         "conv-bethe-heitler",
         "annihil-2-gamma",
         "ioni-moller-bhabha",
-        "brems-combined",
+        "brems-sb",
+        "brems-rel",
         "geo-boundary",
         "tracking-cut",
         "extend-from-secondaries",
@@ -520,7 +515,8 @@ TEST_F(TestEm3Msc, setup)
         "interact by Bethe-Heitler gamma conversion",
         "interact by positron annihilation yielding two gammas",
         "interact by Moller+Bhabha ionization",
-        "interact by bremsstrahlung (combined SB/relativistic, e+/-)",
+        "interact by Seltzer-Berger bremsstrahlung",
+        "interact by relativistic bremsstrahlung",
         "cross a geometry boundary",
         "kill a track and deposit its energy",
         "create track initializers from secondaries",

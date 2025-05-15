@@ -31,13 +31,6 @@ struct ImportLivermorePE;
 struct ImportMuPairProductionTable;
 
 //---------------------------------------------------------------------------//
-//! Options used for constructing built-in Celeritas processes
-struct ProcessBuilderOptions
-{
-    bool brem_combined{false};
-};
-
-//---------------------------------------------------------------------------//
 /*!
  * Construct Celeritas EM processes from imported data.
  *
@@ -62,7 +55,6 @@ class ProcessBuilder
     //!@{
     //! \name Type aliases
     using IPC = ImportProcessClass;
-    using Options = ProcessBuilderOptions;
     using SPProcess = std::shared_ptr<Process>;
     using SPConstParticle = std::shared_ptr<ParticleParams const>;
     using SPConstMaterial = std::shared_ptr<MaterialParams const>;
@@ -85,14 +77,12 @@ class ProcessBuilder
     ProcessBuilder(ImportData const& data,
                    SPConstParticle particle,
                    SPConstMaterial material,
-                   UserBuildMap user_build,
-                   Options options);
+                   UserBuildMap user_build);
 
     // Construct without custom user builders
     ProcessBuilder(ImportData const& data,
                    SPConstParticle particle,
-                   SPConstMaterial material,
-                   Options options);
+                   SPConstMaterial material);
 
     // Default destructor
     ~ProcessBuilder();
@@ -110,7 +100,6 @@ class ProcessBuilder
     std::function<inp::Grid(AtomicNumber)> read_neutron_elastic_;
     std::shared_ptr<ImportMuPairProductionTable> mu_pairprod_table_;
 
-    bool brem_combined_;
     bool enable_lpm_;
 
     //// HELPER FUNCTIONS ////

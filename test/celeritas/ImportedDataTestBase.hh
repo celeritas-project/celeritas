@@ -13,7 +13,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 struct ImportData;
 struct PhysicsOptions;
-struct ProcessBuilderOptions;
 
 namespace test
 {
@@ -30,9 +29,6 @@ class ImportedDataTestBase : virtual public GlobalGeoTestBase
     virtual ImportData const& imported_data() const = 0;
 
   protected:
-    // Set up options for loading processes
-    virtual ProcessBuilderOptions build_process_options() const;
-
     // Set up options for physics
     virtual PhysicsOptions build_physics_options() const;
 

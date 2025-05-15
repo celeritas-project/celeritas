@@ -139,14 +139,8 @@ auto build_physics_processes(inp::EmPhysics const& em,
     // TODO: process builder should be deleted; instead it should get
     // p.physics.em or whatever
     std::vector<std::shared_ptr<Process const>> result;
-    ProcessBuilder::Options opts;
-    if (em.brems)
-    {
-        opts.brem_combined = em.brems->combined_model;
-    }
-
     ProcessBuilder build_process(
-        imported, params.particle, params.material, em.user_processes, opts);
+        imported, params.particle, params.material, em.user_processes);
     for (auto pc : ProcessBuilder::get_all_process_classes(imported.processes))
     {
         result.push_back(build_process(pc));

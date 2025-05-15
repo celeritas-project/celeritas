@@ -27,13 +27,6 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-auto ImportedDataTestBase::build_process_options() const
-    -> ProcessBuilderOptions
-{
-    return {};
-}
-
-//---------------------------------------------------------------------------//
 auto ImportedDataTestBase::build_physics_options() const -> PhysicsOptions
 {
     PhysicsOptions options;
@@ -96,10 +89,7 @@ auto ImportedDataTestBase::build_physics() -> SPConstPhysics
 
     // Build proceses
     auto const& imported = this->imported_data();
-    ProcessBuilder build_process(imported,
-                                 input.particles,
-                                 input.materials,
-                                 this->build_process_options());
+    ProcessBuilder build_process(imported, input.particles, input.materials);
 
     // Start with the ordering of processes from the original test harness
     std::vector<IPC> ipc{

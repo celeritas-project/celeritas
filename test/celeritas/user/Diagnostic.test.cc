@@ -153,8 +153,10 @@ TEST_F(TestEm3DiagnosticTest, host)
     {
         static char const* const expected_nonzero_action_keys[] = {
             "annihil-2-gamma e+",
-            "brems-combined e+",
-            "brems-combined e-",
+            "brems-sb e+",
+            "brems-sb e-",
+            "brems-rel e+",
+            "brems-rel e-",
             "conv-bethe-heitler gamma",
             "eloss-range e+",
             "eloss-range e-",
@@ -206,8 +208,8 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
         // Check action diagnostic results
         static char const* const expected_nonzero_action_keys[] = {
             "annihil-2-gamma e+",
-            "brems-combined e+",
-            "brems-combined e-",
+            "brems-sb e+",
+            "brems-sb e-",
             "geo-boundary e+",
             "geo-boundary e-",
             "geo-boundary gamma",
@@ -235,7 +237,7 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
         EXPECT_VEC_EQ(expected_steps, result.steps);
 
         EXPECT_JSON_EQ(
-            R"json({"_category":"result","_index":["particle","action"],"_label":"action-diagnostic","actions":[[0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,10,0,0,0,0],[0,996,0,0,2,0,0,0,0,20,509,0,0,0,0,0,0,0,521,0,0,0,0],[0,908,0,0,9,0,0,0,11,21,568,0,0,0,0,0,0,0,519,0,0,0,0]]})json",
+            R"json({"_category":"result","_index":["particle","action"],"_label":"action-diagnostic","actions":[[0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,10,0,0,0,0],[0,996,0,0,2,0,0,0,0,20,509,0,0,0,0,0,0,0,0,521,0,0,0,0],[0,908,0,0,9,0,0,0,11,21,568,0,0,0,0,0,0,0,0,519,0,0,0,0]]})json",
             this->action_output());
         EXPECT_JSON_EQ(
             R"json({"_category":"result","_index":["particle","num_steps"],"_label":"step-diagnostic","steps":[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,5,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]})json",

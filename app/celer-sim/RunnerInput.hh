@@ -131,9 +131,6 @@ struct RunnerInput
     // (non-positive for unused)
     real_type step_limiter{};
 
-    // Options for physics
-    bool brem_combined{false};
-
     // Track reordering options
     TrackOrder track_order{TrackOrder::none};
 
