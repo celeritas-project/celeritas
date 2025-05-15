@@ -143,9 +143,9 @@ CELER_FUNCTION Plane::Plane(Real3 const& n, real_type d) : normal_{n}, d_{d}
  *        p2
  */
 CELER_FUNCTION Plane::Plane(Real3 const& p0, Real3 const& p1, Real3 const& p2)
+    : normal_{make_unit_vector(cross_product(p1 - p0, p2 - p0))}
+    , d_{dot_product(normal_, p0)}
 {
-    normal_ = make_unit_vector(cross_product(p1 - p0, p2 - p0));
-    d_ = dot_product(normal_, p0);
     CELER_EXPECT(is_soft_unit_vector(normal_));
 }
 
