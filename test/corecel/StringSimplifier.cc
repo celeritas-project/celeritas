@@ -157,7 +157,8 @@ std::string StringSimplifier::simplify_float(std::string s) const
 {
     CELER_EXPECT(!s.empty());
 
-    if (s.back() == 'f')
+    bool const is_float = (s.back() == 'f');
+    if (is_float)
     {
         // Remove float appendix
         s.pop_back();
@@ -174,7 +175,12 @@ std::string StringSimplifier::simplify_float(std::string s) const
     begin = std::find_if(begin, s.cend(), [](char c) { return c != '0'; });
     auto dec_iter = std::find(begin, s.cend(), '.');
     int lead_precision = std::distance(begin, dec_iter);
-    if (dec_iter == begin)
+    if (dec_iter == s.cend())
+    {
+        // No decimal found: either a float (1f) or a single-digit scientific
+        // (1e3)
+    }
+    else if (dec_iter == begin)
     {
         // Leading zeros: precision based on first digit after decimal
         lead_precision = 0;
@@ -187,11 +193,10 @@ std::string StringSimplifier::simplify_float(std::string s) const
         }
         else
         {
-            // Zeros are significant; strip leading decimal
             ++dec_iter;
         }
     }
-    else if (dec_iter != s.cend())
+    else
     {
         // Decimal is between two significant numbers
         ++dec_iter;
@@ -211,7 +216,7 @@ std::string StringSimplifier::simplify_float(std::string s) const
         s = to_float(std::stod(s), dec_precision);
         if (dec_precision == 0)
         {
-            // Don't make it an integer
+            // Don't make it an integer except if we parsed it as a float
             CELER_ASSERT(s.find('.') == std::string::npos);
             s.push_back('.');
         }
