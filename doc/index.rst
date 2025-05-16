@@ -278,7 +278,7 @@ configuration attributes.
 
    implementation/corecel.rst
    implementation/data-model.rst
-   implementation/orange.rst
+   implementation/geometry.rst
    implementation/units-constants.rst
    implementation/core-physics.rst
    implementation/em-physics.rst

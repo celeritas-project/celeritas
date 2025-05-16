@@ -13,8 +13,6 @@ classes (see the `developer documentation`_ for details).
 
 .. _developer documentation: https://celeritas-project.github.io/celeritas/dev/classes.html
 
-.. doxygenclass:: celeritas::GeoParamsInterface
-
 .. doxygenclass:: celeritas::MaterialParams
 
 .. doxygenclass:: celeritas::ParticleParams
