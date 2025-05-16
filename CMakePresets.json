@@ -119,7 +119,6 @@
       "description": "Setup for using spack environment",
       "hidden": true,
       "environment": {
-        "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view/bin:$penv{PATH}",
         "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view"
       },
       "condition": {
