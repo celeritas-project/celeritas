@@ -7,6 +7,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/random/Histogram.hh"
+#include "corecel/random/HistogramSampler.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/distribution/BetheBlochEnergyDistribution.hh"
 #include "celeritas/em/interactor/MuHadIonizationInteractor.hh"
@@ -107,8 +108,8 @@ class BetheBlochTest : public InteractorHostTestBase
 
 TEST_F(BetheBlochTest, distribution)
 {
-    int num_samples = 100000;
-    int num_bins = 8;
+    constexpr size_type num_samples = 100000;
+    constexpr size_type num_bins = 8;
 
     MevEnergy cutoff{0.001};
 
@@ -126,10 +127,11 @@ TEST_F(BetheBlochTest, distribution)
         real_type max = value_as<MevEnergy>(sample.max_secondary_energy());
 
         Histogram histogram(num_bins, {std::log(min), std::log(max)});
-        for ([[maybe_unused]] int i : range(num_samples))
-        {
-            histogram(std::log(value_as<MevEnergy>(sample(rng))));
-        }
+        accumulate_n(
+            [&histogram](MevEnergy e) { histogram(std::log(e.value())); },
+            sample,
+            rng,
+            num_samples);
         EXPECT_FALSE(histogram.underflow() || histogram.overflow());
         loge_pdf.push_back(histogram.calc_density());
         min_energy.push_back(min);

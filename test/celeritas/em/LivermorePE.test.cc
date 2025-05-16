@@ -18,7 +18,6 @@
 #include "celeritas/em/model/LivermorePEModel.hh"
 #include "celeritas/em/params/AtomicRelaxationParams.hh"
 #include "celeritas/em/xs/LivermorePEMicroXsCalculator.hh"
-#include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/io/AtomicRelaxationReader.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"

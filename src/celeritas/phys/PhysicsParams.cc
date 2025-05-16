@@ -21,6 +21,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/grid/UniformGrid.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
@@ -30,14 +31,13 @@
 #include "celeritas/em/data/AtomicRelaxationData.hh"
 #include "celeritas/em/data/EPlusGGData.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
-#include "celeritas/em/model/CombinedBremModel.hh"
 #include "celeritas/em/model/EPlusGGModel.hh"
 #include "celeritas/em/model/LivermorePEModel.hh"
 #include "celeritas/em/params/AtomicRelaxationParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/grid/ElementCdfCalculator.hh"
 #include "celeritas/grid/RangeGridCalculator.hh"
-#include "celeritas/grid/ValueGridBuilder.hh"
-#include "celeritas/grid/ValueGridType.hh"
+#include "celeritas/grid/UniformGridInserter.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/grid/XsGridData.hh"
 #include "celeritas/grid/XsGridInserter.hh"
@@ -53,16 +53,13 @@
 #include "Process.hh"
 
 #include "detail/DiscreteSelectAction.hh"
+#include "detail/EnergyMaxXsCalculator.hh"
 #include "detail/PreStepAction.hh"
 
 namespace celeritas
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-using Values
-    = Collection<real_type, Ownership::const_reference, MemSpace::native>;
-
 //---------------------------------------------------------------------------//
 class ImplicitPhysicsAction final : public StaticConcreteAction
 {
@@ -76,47 +73,6 @@ class ImplicitPhysicsAction final : public StaticConcreteAction
 bool is_fake_particle(PDGNumber pdg)
 {
     return pdg.get() >= 81 && pdg.get() <= 100;
-}
-
-//---------------------------------------------------------------------------//
-//! Calculate the energy of the maximum cross section.
-real_type calc_energy_max_xs(UniformGridRecord const& data, Values const& reals)
-{
-    UniformGrid loge_grid(data.grid);
-    UniformLogGridCalculator calc_xs(data, reals);
-
-    real_type xs_max = 0;
-    real_type result = 0;
-    for (auto i : range(loge_grid.size()))
-    {
-        real_type xs = calc_xs[i];
-        if (xs > xs_max)
-        {
-            xs_max = xs;
-            result = std::exp(loge_grid[i]);
-        }
-    }
-    CELER_ENSURE(result > 0);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-//! Calculate the energy of the maximum cross section.
-real_type calc_energy_max_xs(XsGridRecord const& data, Values const& reals)
-{
-    CELER_EXPECT(data);
-
-    real_type result{0};
-    if (data.lower)
-    {
-        result = calc_energy_max_xs(data.lower, reals);
-    }
-    if (data.upper)
-    {
-        result = max(result, calc_energy_max_xs(data.upper, reals));
-    }
-    CELER_ENSURE(result > 0);
-    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -191,8 +147,8 @@ PhysicsParams::PhysicsParams(Input inp)
     HostValue host_data;
     this->build_options(inp.options, &host_data);
     this->build_ids(*inp.particles, &host_data);
-    this->build_xs(inp.options, *inp.materials, &host_data);
-    this->build_model_xs(*inp.materials, &host_data);
+    this->build_tables(inp.options, *inp.materials, &host_data);
+    this->build_model_tables(*inp.materials, &host_data);
 
     // Add step limiter if being used (TODO: remove this hack from physics)
     if (inp.options.fixed_step_limiter > 0)
@@ -211,7 +167,17 @@ PhysicsParams::PhysicsParams(Input inp)
     }
 
     // Copy data to device
-    data_ = CollectionMirror<PhysicsParamsData>{std::move(host_data)};
+    //! \todo Assigning hardwired data refs prevents use of \c CollectionMirror
+    host_ = std::move(host_data);
+    host_ref_ = host_;
+    if (celeritas::device())
+    {
+        device_ = host_;
+        device_ref_ = device_;
+    }
+
+    // Assign the host/device references to hardwired model data
+    this->build_hardwired();
 
     CELER_ENSURE(range_action_->action_id()
                  == host_ref().scalars.range_action());
@@ -292,9 +258,9 @@ void PhysicsParams::build_particle_options(ParticleOptions const& opts,
         == MscStepLimitAlgorithm::distance_to_boundary)
     {
         CELER_LOG(warning) << "Unsupported MSC step limit algorithm '"
-                           << to_cstring(data->step_limit_algorithm)
+                           << data->step_limit_algorithm
                            << "': defaulting to '"
-                           << to_cstring(MscStepLimitAlgorithm::safety) << "'";
+                           << MscStepLimitAlgorithm::safety << "'";
         data->step_limit_algorithm = MscStepLimitAlgorithm::safety;
     }
 }
@@ -339,14 +305,15 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
 {
     CELER_EXPECT(data);
     CELER_EXPECT(!models_.empty());
+
     using ModelRange = std::tuple<real_type, real_type, ParticleModelId>;
+    using MapProcessModel = std::map<ProcessId, std::vector<ModelRange>>;
 
     // Offset from the index in the list of models to a model's ActionId
     data->scalars.model_to_action = this->model(ModelId{0})->action_id().get();
 
     // Note: use map to keep ProcessId sorted
-    std::vector<std::map<ProcessId, std::vector<ModelRange>>> particle_models(
-        particles.size());
+    std::vector<MapProcessModel> particle_models(particles.size());
     std::vector<ModelId> temp_model_ids;
     ParticleModelId::size_type pm_idx{0};
 
@@ -380,11 +347,11 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
     make_builder(&data->model_ids)
         .insert_back(temp_model_ids.begin(), temp_model_ids.end());
 
-    auto process_groups = make_builder(&data->process_groups);
-    auto process_ids = make_builder(&data->process_ids);
-    auto model_groups = make_builder(&data->model_groups);
-    auto pmodel_ids = make_builder(&data->pmodel_ids);
-    auto reals = make_builder(&data->reals);
+    CollectionBuilder process_groups(&data->process_groups);
+    CollectionBuilder process_ids(&data->process_ids);
+    CollectionBuilder model_groups(&data->model_groups);
+    CollectionBuilder pmodel_ids(&data->pmodel_ids);
+    DedupeCollectionBuilder reals(&data->reals);
 
     process_groups.reserve(particle_models.size());
 
@@ -403,9 +370,9 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
             max_particle_processes, process_to_models.size());
 
         std::vector<ProcessId> temp_processes;
-        std::vector<ModelGroup> temp_model_datas;
+        std::vector<ModelGroup> temp_model_groups;
         temp_processes.reserve(process_to_models.size());
-        temp_model_datas.reserve(process_to_models.size());
+        temp_model_groups.reserve(process_to_models.size());
         for (auto& pid_models : process_to_models)
         {
             // Add process ID
@@ -444,14 +411,14 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
             mdata.model = pmodel_ids.insert_back(temp_models.begin(),
                                                  temp_models.end());
             CELER_ASSERT(mdata);
-            temp_model_datas.push_back(mdata);
+            temp_model_groups.push_back(mdata);
         }
 
         ProcessGroup pdata;
         pdata.processes = process_ids.insert_back(temp_processes.begin(),
                                                   temp_processes.end());
-        pdata.models = model_groups.insert_back(temp_model_datas.begin(),
-                                                temp_model_datas.end());
+        pdata.models = model_groups.insert_back(temp_model_groups.begin(),
+                                                temp_model_groups.end());
 
         // It's ok to have particles defined in the problem that do not have
         // any processes (if they are ever created, they will just be
@@ -464,37 +431,26 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
     data->scalars.num_models = this->num_models();
 
     // Assign hardwired models that do on-the-fly xs calculation
-    for (auto model_idx : range(this->num_models()))
+    for (auto model_id : range(ModelId(this->num_models())))
     {
-        Model const& model = *models_[model_idx].first;
-        ProcessId const process_id = models_[model_idx].second;
-        if (auto* pe_model = dynamic_cast<LivermorePEModel const*>(&model))
+        Model const& model = *models_[model_id.get()].first;
+        ProcessId const process_id = models_[model_id.get()].second;
+        if (dynamic_cast<LivermorePEModel const*>(&model))
         {
-            data->hardwired.photoelectric = process_id;
-            data->hardwired.photoelectric_table_thresh = units::MevEnergy{0.2};
-            data->hardwired.livermore_pe = ModelId{model_idx};
-            data->hardwired.livermore_pe_data = pe_model->host_ref();
+            data->hardwired.ids.photoelectric = process_id;
+            data->hardwired.ids.livermore_pe = model_id;
         }
-        else if (auto* epgg_model = dynamic_cast<EPlusGGModel const*>(&model))
+        else if (auto const* m = dynamic_cast<EPlusGGModel const*>(&model))
         {
-            data->hardwired.positron_annihilation = process_id;
-            data->hardwired.eplusgg = ModelId{model_idx};
-            data->hardwired.eplusgg_data = epgg_model->device_ref();
+            data->hardwired.ids.annihilation = process_id;
+            data->hardwired.ids.eplusgg = model_id;
+            data->hardwired.eplusgg = m->host_ref();
         }
-        else if (auto* ne_model
-                 = dynamic_cast<ChipsNeutronElasticModel const*>(&model))
+        else if (dynamic_cast<ChipsNeutronElasticModel const*>(&model))
         {
-            data->hardwired.neutron_elastic = process_id;
-            data->hardwired.chips = ModelId{model_idx};
-            data->hardwired.chips_data = ne_model->device_ref();
+            data->hardwired.ids.neutron_elastic = process_id;
+            data->hardwired.ids.chips = model_id;
         }
-    }
-
-    if (relaxation_)
-    {
-        // TODO: this makes a copy of all the data rather than a
-        // host/device reference
-        data->hardwired.relaxation_data = relaxation_->host_ref();
     }
 
     CELER_ENSURE(*data);
@@ -502,26 +458,56 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Assign hardwired data for models that compute cross sections on the fly.
+ */
+void PhysicsParams::build_hardwired()
+{
+    CELER_EXPECT(host_ref_);
+
+    if (relaxation_)
+    {
+        host_ref_.hardwired.relaxation = relaxation_->host_ref();
+        device_ref_.hardwired.relaxation = relaxation_->device_ref();
+    }
+    if (auto model_id = host_ref_.hardwired.ids.livermore_pe)
+    {
+        auto const* model = dynamic_cast<LivermorePEModel const*>(
+            models_[model_id.get()].first.get());
+        CELER_ASSERT(model);
+        host_ref_.hardwired.livermore_pe = model->host_ref();
+        device_ref_.hardwired.livermore_pe = model->device_ref();
+    }
+    if (auto model_id = host_ref_.hardwired.ids.chips)
+    {
+        auto const* model = dynamic_cast<ChipsNeutronElasticModel const*>(
+            models_[model_id.get()].first.get());
+        CELER_ASSERT(model);
+        host_ref_.hardwired.chips = model->host_ref();
+        device_ref_.hardwired.chips = model->device_ref();
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct cross section data.
  */
-void PhysicsParams::build_xs(Options const& opts,
-                             MaterialParams const& mats,
-                             HostValue* data) const
+void PhysicsParams::build_tables(Options const& opts,
+                                 MaterialParams const& mats,
+                                 HostValue* data) const
 {
     CELER_EXPECT(*data);
 
-    using UPGridBuilder = Process::UPConstGridBuilder;
     using Energy = Applicability::Energy;
-    using VGT = ValueGridType;
 
-    XsGridInserter insert_grid(&data->reals, &data->value_grids);
-    auto value_tables = make_builder(&data->value_tables);
-    auto integral_xs = make_builder(&data->integral_xs);
-    auto value_grid_ids = make_builder(&data->value_grid_ids);
-    auto build_grid
-        = [insert_grid](UPGridBuilder const& builder) -> ValueGridId {
-        return builder ? builder->build(insert_grid) : ValueGridId{};
-    };
+    DedupeCollectionBuilder reals(&data->reals);
+    CollectionBuilder integral_xs(&data->integral_xs);
+    CollectionBuilder xs_grid_ids(&data->xs_grid_ids);
+    CollectionBuilder xs_tables(&data->xs_tables);
+    CollectionBuilder uniform_grid_ids(&data->uniform_grid_ids);
+    CollectionBuilder uniform_grids(&data->uniform_grids);
+
+    XsGridInserter insert_xs(&data->reals, &data->xs_grids);
+    UniformGridInserter insert_uniform(&data->reals, &data->uniform_grids);
 
     Applicability applic;
     for (auto particle_id : range(ParticleId(data->process_groups.size())))
@@ -529,47 +515,38 @@ void PhysicsParams::build_xs(Options const& opts,
         applic.particle = particle_id;
 
         // Processes for this particle
-        ProcessGroup& process_groups = data->process_groups[particle_id];
-        Span<ProcessId const> processes
-            = data->process_ids[process_groups.processes];
-        Span<ModelGroup const> model_groups
-            = data->model_groups[process_groups.models];
-        CELER_ASSERT(processes.size() == model_groups.size());
+        ProcessGroup& process_group = data->process_groups[particle_id];
+        auto process_ids = data->process_ids[process_group.processes];
+        auto model_groups = data->model_groups[process_group.models];
+        CELER_ASSERT(process_ids.size() == model_groups.size());
 
-        // Material-dependent physics tables, one cross section table per
-        // particle-process and one dedx/range table per particle
-        std::vector<ValueTable> xs_table(processes.size());
-        ValueTable eloss_table;
-        ValueTable range_table;
-        ValueTable inverse_range_table;
+        // Material-dependent cross section tables (one per particle-process)
+        std::vector<ValueTable<XsGridId>> temp_macro_xs(process_ids.size());
 
         // Processes with dE/dx and macro xs tables
-        std::vector<IntegralXsProcess> temp_integral_xs(processes.size());
+        std::vector<IntegralXsProcess> temp_integral_xs(process_ids.size());
 
         // Loop over per-particle processes
-        for (auto pp_idx :
-             range(ParticleProcessId::size_type(processes.size())))
+        for (auto pp_idx : range(process_ids.size()))
         {
             // Get energy bounds for this process
-            Span<real_type const> energy_grid
-                = data->reals[model_groups[pp_idx].energy];
+            auto energy_grid = data->reals[model_groups[pp_idx].energy];
             applic.lower = Energy{energy_grid.front()};
             applic.upper = Energy{energy_grid.back()};
             CELER_ASSERT(applic.lower < applic.upper);
 
-            Process const& proc = *this->process(processes[pp_idx]);
+            Process const& proc = *this->process(process_ids[pp_idx]);
 
             // Grid IDs for each grid type, each material
-            std::vector<ValueGridId> xs_grid_ids(mats.size());
-            std::vector<ValueGridId> eloss_grid_ids(mats.size());
-            std::vector<ValueGridId> range_grid_ids(mats.size(), ValueGridId{});
-            std::vector<ValueGridId> inv_range_grid_ids;
+            std::vector<XsGridId> macro_xs_ids(mats.size());
+            std::vector<UniformGridId> energy_loss_ids(mats.size());
+            std::vector<UniformGridId> range_ids(mats.size());
+            std::vector<UniformGridId> inverse_range_ids;
 
             // Energy of maximum cross section for each material
+            detail::EnergyMaxXsCalculator calc_integral_xs(opts, proc);
             std::vector<real_type> energy_max_xs;
-            bool use_integral_xs = !opts.disable_integral_xs
-                                   && proc.supports_integral_xs();
-            if (use_integral_xs)
+            if (calc_integral_xs)
             {
                 energy_max_xs.resize(mats.size());
             }
@@ -582,145 +559,107 @@ void PhysicsParams::build_xs(Options const& opts,
                  * interaction and choose that process in \c
                  * select_discrete_interaction.
                  */
-                CELER_VALIDATE(!process_groups.at_rest,
+                CELER_VALIDATE(!process_group.at_rest,
                                << "particle ID " << particle_id.get()
                                << " has multiple at-rest processes");
 
                 // Discrete interaction can occur at rest
-                process_groups.at_rest = ParticleProcessId(pp_idx);
+                process_group.at_rest = ParticleProcessId(pp_idx);
             }
 
             // Loop over materials
-            for (auto mat_idx : range(PhysMatId::size_type{mats.size()}))
+            for (auto mat_idx : range(mats.size()))
             {
                 applic.material = PhysMatId(mat_idx);
 
-                // Construct step limit builders
-                auto builders = proc.step_limits(applic);
-                CELER_VALIDATE(
-                    std::any_of(builders.begin(),
-                                builders.end(),
-                                [](UPGridBuilder const& p) { return bool(p); }),
-                    << "process '" << proc.label()
-                    << "' has neither interaction nor energy loss (it must "
-                       "have at least one)");
-
-                // Construct grids
-                xs_grid_ids[mat_idx] = build_grid(builders[VGT::macro_xs]);
-                eloss_grid_ids[mat_idx]
-                    = build_grid(builders[VGT::energy_loss]);
-                if (auto grid_id = eloss_grid_ids[mat_idx])
+                // Construct macroscopic cross section grid
+                auto macro_xs = proc.macro_xs(applic);
+                if (macro_xs)
                 {
-                    // Build the range grid from the energy loss
-                    auto dedx_builder
-                        = dynamic_cast<ValueGridLogBuilder const*>(
-                            builders[VGT::energy_loss].get());
-                    CELER_ASSERT(dedx_builder);
-                    auto range_grid
-                        = RangeGridCalculator(BC::geant)(dedx_builder->grid());
-                    range_grid_ids[mat_idx] = insert_grid(range_grid);
+                    macro_xs_ids[mat_idx] = insert_xs(macro_xs);
+                }
 
-                    if (range_grid.interpolation.type
+                // Construct energy loss grid
+                auto energy_loss = proc.energy_loss(applic);
+                if (energy_loss)
+                {
+                    energy_loss_ids[mat_idx] = insert_uniform(energy_loss);
+
+                    // Construct range grid from energy loss
+                    auto range = RangeGridCalculator(BC::geant)(energy_loss);
+                    range_ids[mat_idx] = insert_uniform(range);
+
+                    if (range.interpolation.type
                         == InterpolationType::cubic_spline)
                     {
                         // Build the inverse range grid if cubic spline
                         // interpolation is used
-                        inv_range_grid_ids.resize(mats.size(), ValueGridId{});
+                        inverse_range_ids.resize(mats.size(), UniformGridId{});
 
                         // The range and energy values are not inverted on the
                         // grid, but the derivatives are calculated using the
                         // inverted grid.
-                        XsGridRecord inv_range_grid
-                            = data->value_grids[range_grid_ids[mat_idx]];
-                        auto deriv
+                        auto inverse_range
+                            = data->uniform_grids[range_ids[mat_idx]];
+                        auto derivative
                             = SplineDerivCalculator(BC::geant).calc_from_inverse(
-                                inv_range_grid.lower,
-                                make_const_ref(*data).reals);
-                        inv_range_grid.lower.derivative
-                            = make_builder(&data->reals)
-                                  .insert_back(deriv.begin(), deriv.end());
-                        inv_range_grid_ids[mat_idx]
-                            = make_builder(&data->value_grids)
-                                  .push_back(inv_range_grid);
+                                inverse_range, make_const_ref(*data).reals);
+                        inverse_range.derivative = reals.insert_back(
+                            derivative.begin(), derivative.end());
+                        inverse_range_ids[mat_idx]
+                            = uniform_grids.push_back(inverse_range);
                     }
                 }
 
-                if (use_integral_xs)
+                if (calc_integral_xs)
                 {
                     // Find and store the energy of the largest cross section
                     // for this material if the integral approach is used
-
-                    if (processes[pp_idx]
-                        == data->hardwired.positron_annihilation)
-                    {
-                        // Annihilation cross section is maximum at zero and
-                        // decreases with increasing energy
-                        energy_max_xs[mat_idx] = 0;
-                    }
-                    else if (auto grid_id = xs_grid_ids[mat_idx])
-                    {
-                        energy_max_xs[mat_idx]
-                            = calc_energy_max_xs(data->value_grids[grid_id],
-                                                 make_const_ref(*data).reals);
-                    }
+                    energy_max_xs[mat_idx] = calc_integral_xs(macro_xs);
                 }
             }
 
             // Check if any material has value grids
-            auto has_grids = [](std::vector<ValueGridId> const& vec_id) {
-                return std::any_of(vec_id.begin(),
-                                   vec_id.end(),
-                                   [](ValueGridId id) { return bool(id); });
+            auto has_grids = [](auto const& v) {
+                return std::any_of(v.begin(), v.end(), [](auto id) {
+                    return static_cast<bool>(id);
+                });
             };
 
             // Construct value grid tables
-            if (has_grids(xs_grid_ids))
+            if (has_grids(macro_xs_ids))
             {
-                xs_table[pp_idx].grids = value_grid_ids.insert_back(
-                    xs_grid_ids.begin(), xs_grid_ids.end());
-                CELER_ASSERT(xs_table[pp_idx].grids.size() == mats.size());
+                temp_macro_xs[pp_idx].grids = xs_grid_ids.insert_back(
+                    macro_xs_ids.begin(), macro_xs_ids.end());
             }
-            if (has_grids(eloss_grid_ids))
+            if (has_grids(energy_loss_ids))
             {
-                CELER_VALIDATE(!eloss_table && !range_table,
-                               << "more than one process for particle ID "
-                               << particle_id.get()
-                               << " has energy loss tables");
+                CELER_ASSERT(has_grids(range_ids));
+                CELER_VALIDATE(
+                    !process_group.energy_loss && !process_group.range,
+                    << "more than one process for particle ID "
+                    << particle_id.get() << " has energy loss tables");
 
-                CELER_ASSERT(has_grids(range_grid_ids));
-                eloss_table.grids = value_grid_ids.insert_back(
-                    eloss_grid_ids.begin(), eloss_grid_ids.end());
-                range_table.grids = value_grid_ids.insert_back(
-                    range_grid_ids.begin(), range_grid_ids.end());
-                inverse_range_table.grids = value_grid_ids.insert_back(
-                    inv_range_grid_ids.begin(), inv_range_grid_ids.end());
-                CELER_ASSERT(eloss_table.grids.size() == mats.size()
-                             && range_table.grids.size() == mats.size()
-                             && (inverse_range_table.grids.size() == mats.size()
-                                 || inverse_range_table.grids.empty()));
+                process_group.energy_loss.grids = uniform_grid_ids.insert_back(
+                    energy_loss_ids.begin(), energy_loss_ids.end());
+                process_group.range.grids = uniform_grid_ids.insert_back(
+                    range_ids.begin(), range_ids.end());
+                process_group.inverse_range.grids
+                    = uniform_grid_ids.insert_back(inverse_range_ids.begin(),
+                                                   inverse_range_ids.end());
             }
 
             // Store the energies of the maximum cross sections
-            if (!energy_max_xs.empty())
-            {
-                temp_integral_xs[pp_idx].energy_max_xs
-                    = make_builder(&data->reals)
-                          .insert_back(energy_max_xs.begin(),
-                                       energy_max_xs.end());
-            }
+            temp_integral_xs[pp_idx].energy_max_xs = reals.insert_back(
+                energy_max_xs.begin(), energy_max_xs.end());
         }
-
         // Construct energy loss process data
-        process_groups.integral_xs = integral_xs.insert_back(
+        process_group.integral_xs = integral_xs.insert_back(
             temp_integral_xs.begin(), temp_integral_xs.end());
 
         // Construct value tables
-        process_groups.macro_xs
-            = value_tables.insert_back(xs_table.begin(), xs_table.end());
-        process_groups.energy_loss = value_tables.push_back(eloss_table);
-        process_groups.range = value_tables.push_back(range_table);
-        process_groups.inverse_range
-            = value_tables.push_back(inverse_range_table);
+        process_group.macro_xs = xs_tables.insert_back(temp_macro_xs.begin(),
+                                                       temp_macro_xs.end());
     }
 }
 
@@ -728,18 +667,15 @@ void PhysicsParams::build_xs(Options const& opts,
 /*!
  * Construct model cross section CDFs.
  */
-void PhysicsParams::build_model_xs(MaterialParams const& mats,
-                                   HostValue* data) const
+void PhysicsParams::build_model_tables(MaterialParams const& mats,
+                                       HostValue* data) const
 {
     CELER_EXPECT(*data);
 
-    XsGridInserter insert_grid(&data->reals, &data->value_grids);
-
-    // Micro xs grid IDs for each model and applicable particle, each material,
-    // and each element in the material
-    std::vector<std::vector<std::vector<ValueGridId>>> temp_grid_ids(
-        data->model_ids.size());
-    size_type pm_idx{0};
+    UniformGridInserter insert(&data->reals, &data->uniform_grids);
+    CollectionBuilder model_cdf(&data->model_cdf);
+    CollectionBuilder tables(&data->uniform_tables);
+    CollectionBuilder grid_ids(&data->uniform_grid_ids);
 
     for (auto model_idx : range(this->num_models()))
     {
@@ -748,118 +684,40 @@ void PhysicsParams::build_model_xs(MaterialParams const& mats,
         // Loop over applicable particles
         for (Applicability applic : model.applicability())
         {
+            std::vector<UniformTable> temp_tables(mats.size());
             for (auto mat_id : range(PhysMatId{mats.size()}))
             {
+                // Construct microscopic cross sections
                 applic.material = mat_id;
-                auto material = mats.get(mat_id);
+                auto elements = mats.get(mat_id).elements();
+                auto grids = model.micro_xs(applic);
 
-                // TODO: Create combined SB + RB micro xs grids or possibly
-                // remove combined bremsstrahlung model
-                CELER_VALIDATE(!(dynamic_cast<CombinedBremModel const*>(&model)
-                                 && material.num_elements() > 1),
-                               << "model '" << model.label()
-                               << "' cannot be used with materials composed "
-                                  "of more than one element (material '"
-                               << mats.id_to_label(mat_id) << "' has "
-                               << material.num_elements() << " elements)");
-
-                // Construct microscopic cross section builders
-                auto builders = model.micro_xs(applic);
-                if (builders.empty())
+                if (grids.empty() || elements.size() == 1)
                 {
-                    // Models that calculate xs on the fly and models
-                    // with material-independent discrete interactions
-                    // won't have micro xs grids
+                    // Models with material-independent discrete interactions
+                    // or on-the-fly xs calculation won't have micro xs grids
                     continue;
                 }
-                CELER_ASSERT(builders.size() == material.num_elements());
+                // Calculate the cross section CDFs in place
+                ElementCdfCalculator{elements}(grids);
 
                 // Construct grids for each element in the material
-                CELER_ASSERT(pm_idx < temp_grid_ids.size());
-                temp_grid_ids[pm_idx].resize(mats.size());
-                if (material.num_elements() > 1)
-                {
-                    auto& grid_ids = temp_grid_ids[pm_idx][mat_id.get()];
-                    grid_ids.resize(material.num_elements());
-
-                    for (auto elcomp_idx : range(material.num_elements()))
-                    {
-                        CELER_ASSERT(builders[elcomp_idx]);
-                        grid_ids[elcomp_idx]
-                            = builders[elcomp_idx]->build(insert_grid);
-                    }
-                }
-            }
-            ++pm_idx;
-        }
-    }
-
-    auto model_xs = make_builder(&data->model_xs);
-    auto value_tables = make_builder(&data->value_tables);
-    auto value_table_ids = make_builder(&data->value_table_ids);
-    auto value_grid_ids = make_builder(&data->value_grid_ids);
-
-    // Construct model cross section CDF tables
-    for (auto& model_table : temp_grid_ids)
-    {
-        std::vector<ValueTableId> temp_table_ids(model_table.size());
-        for (auto mat_idx : range<PhysMatId::size_type>(model_table.size()))
-        {
-            auto& grid_ids = model_table[mat_idx];
-            if (grid_ids.empty())
-            {
-                // No micro xs stored for this material
-                continue;
-            }
-
-            // Get the xs value for the given element and bin
-            auto get_value = [&](size_type elcomp, size_type bin) -> real_type& {
-                XsGridRecord& xs_grid = data->value_grids[grid_ids[elcomp]];
-                CELER_ASSERT(!xs_grid.upper);
-                UniformGridRecord& grid = xs_grid.lower;
-                CELER_ASSERT(bin < grid.value.size());
-                return data->reals[grid.value[bin]];
-            };
-
-            // Get the number of grid points: the energy grids are the
-            // same for each element in the material
-            CELER_ASSERT(!data->value_grids[grid_ids[0]].upper);
-            size_type num_bins
-                = data->value_grids[grid_ids[0]].lower.value.size();
-
-            // Calculate the cross section CDF
-            auto const&& elements = mats.get(PhysMatId{mat_idx}).elements();
-            for (auto bin_idx : range(num_bins))
-            {
-                real_type cum_xs{0};
+                std::vector<UniformGridId> temp_grid_ids(elements.size());
                 for (auto elcomp_idx : range(elements.size()))
                 {
-                    real_type& xs = get_value(elcomp_idx, bin_idx);
-                    cum_xs += xs * elements[elcomp_idx].fraction;
-                    xs = cum_xs;
+                    temp_grid_ids[elcomp_idx] = insert(grids[elcomp_idx]);
                 }
 
-                // Normalize
-                if (cum_xs > 0)
-                {
-                    for (auto elcomp_idx : range(elements.size()))
-                    {
-                        real_type& xs = get_value(elcomp_idx, bin_idx);
-                        xs /= cum_xs;
-                    }
-                }
+                // Construct table for the material
+                temp_tables[mat_id.get()].grids = grid_ids.insert_back(
+                    temp_grid_ids.begin(), temp_grid_ids.end());
             }
-            // Construct value grid table
-            ValueTable temp_table;
-            temp_table.grids
-                = value_grid_ids.insert_back(grid_ids.begin(), grid_ids.end());
-            temp_table_ids[mat_idx] = value_tables.push_back(temp_table);
+            // Construct table for the model
+            ModelCdfTable cdf;
+            cdf.tables
+                = tables.insert_back(temp_tables.begin(), temp_tables.end());
+            model_cdf.push_back(cdf);
         }
-        // Construct cross section table for this model
-        ModelXsTable temp_model_xs;
-        temp_model_xs.material = value_table_ids.insert_back(
-            temp_table_ids.begin(), temp_table_ids.end());
-        model_xs.push_back(temp_model_xs);
     }
 }
 

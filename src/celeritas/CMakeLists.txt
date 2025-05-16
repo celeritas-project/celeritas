@@ -74,12 +74,11 @@ list(APPEND SOURCES
   global/DebugIO.json.cc
   global/KernelContextException.cc
   global/Stepper.cc
+  grid/ElementCdfCalculator.cc
   grid/NonuniformGridBuilder.cc
   grid/RangeGridCalculator.cc
   grid/TwodGridBuilder.cc
   grid/UniformGridInserter.cc
-  grid/ValueGridBuilder.cc
-  grid/ValueGridType.cc
   grid/XsGridInserter.cc
   io/AtomicRelaxationReader.cc
   io/ImportData.cc
@@ -87,7 +86,6 @@ list(APPEND SOURCES
   io/ImportMaterial.cc
   io/ImportModel.cc
   io/ImportOpticalModel.cc
-  io/ImportPhysicsTable.cc
   io/ImportProcess.cc
   io/ImportUnits.cc
   io/LivermorePEReader.cc
@@ -119,6 +117,7 @@ list(APPEND SOURCES
   optical/detail/OffloadParams.cc
   optical/detail/OpticalLaunchAction.cc
   phys/CutoffParams.cc
+  phys/detail/EnergyMaxXsCalculator.cc
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc
   phys/ParticleParams.cc
@@ -162,6 +161,28 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     track/detail/Filler.cu
     alongstep/detail/AlongStepKernels.cu
   )
+endif()
+
+if(CELERITAS_USE_covfie)
+  set(_celer_covfie_src
+    field/CartMapFieldParams.covfie.cc
+  )
+  celeritas_polysource_append(_celer_covfie_src
+    alongstep/AlongStepCartMapFieldMscAction)
+
+  celeritas_add_object_library(celeritas_covfie ${_celer_covfie_src})
+  celeritas_target_link_libraries(celeritas_covfie
+    PRIVATE
+      Celeritas::BuildFlags
+      Celeritas::geocel
+      ${_core_geo_deps}
+      Celeritas::Extcovfie
+  )
+  list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_covfie>)
+  list(APPEND PRIVATE_DEPS celeritas_covfie)
+else()
+  celeritas_polysource_append(SOURCES
+  alongstep/AlongStepCartMapFieldMscAction)
 endif()
 
 if(CELERITAS_USE_Geant4)
@@ -300,7 +321,6 @@ celeritas_polysource(alongstep/AlongStepCylMapFieldMscAction)
 celeritas_polysource(em/model/BetheHeitlerModel)
 celeritas_polysource(em/model/BetheBlochModel)
 celeritas_polysource(em/model/BraggModel)
-celeritas_polysource(em/model/CombinedBremModel)
 celeritas_polysource(em/model/EPlusGGModel)
 celeritas_polysource(em/model/ICRU73QOModel)
 celeritas_polysource(em/model/KleinNishinaModel)

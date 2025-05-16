@@ -53,9 +53,9 @@ class SafetyCalculator
 //---------------------------------------------------------------------------//
 
 template<class GTV>
-CELER_FUNCTION SafetyCalculator(GTV&&,
-                                NativeCRef<ImageParamsData> const&,
-                                real_type) -> SafetyCalculator<GTV>;
+CELER_FUNCTION
+SafetyCalculator(GTV&&, NativeCRef<ImageParamsData> const&, real_type)
+    -> SafetyCalculator<GTV>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

@@ -50,9 +50,8 @@ OffloadParams::OffloadParams(AuxId aux_id, OffloadOptions const& setup)
 /*!
  * Build state data for a stream.
  */
-auto OffloadParams::create_state(MemSpace m,
-                                 StreamId sid,
-                                 size_type size) const -> UPState
+auto OffloadParams::create_state(MemSpace m, StreamId sid, size_type size) const
+    -> UPState
 {
     if (m == MemSpace::host)
     {

@@ -11,7 +11,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
 #include "corecel/random/Histogram.hh"
-#include "corecel/random/distribution/GenerateCanonical.hh"
+#include "corecel/random/HistogramSampler.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/em/msc/detail/MscStepFromGeo.hh"
 #include "celeritas/em/msc/detail/MscStepToGeo.hh"
@@ -28,6 +28,7 @@
 #include "celeritas/phys/PhysicsTrackView.hh"
 
 #include "MscTestBase.hh"
+#include "TestMacros.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -37,7 +38,7 @@ namespace test
 //---------------------------------------------------------------------------//
 TEST(Distributions, UrbanLargeAngleDistribution)
 {
-    constexpr int num_samples{10000};
+    constexpr size_type num_samples{10000};
     std::vector<std::vector<double>> angle_dist;
 
     DiagnosticRngEngine<std::mt19937> rng;
@@ -47,48 +48,41 @@ TEST(Distributions, UrbanLargeAngleDistribution)
 
     // Separately sample tau = 1e-14 due to platform-dependent numerical issues
     {
-        UrbanLargeAngleDistribution sample_angle{real_type(1e-14)};
-        for (int i = 0; i < num_samples; ++i)
-        {
-            auto mu = sample_angle(rng);
-            EXPECT_LT(real_type(0.9999), mu);
-            EXPECT_LE(mu, real_type(1));
-        }
+        accumulate_n(
+            [](real_type mu) {
+                EXPECT_LT(real_type(0.9999), mu);
+                EXPECT_LE(mu, real_type(1));
+            },
+            UrbanLargeAngleDistribution{real_type(1e-14)},
+            rng,
+            num_samples);
         EXPECT_EQ(2 * samples_per_real * num_samples, rng.exchange_count());
     }
 
-    // Sample larger tau
+    // Sample larger tau, binning into cos theta
+    std::vector<SampledHistogram> actual;
+    HistogramSampler calc_histogram(8, {-1, 1}, num_samples);
+
     for (real_type tau : {1e-8, 1e-4, 1e-2, 0.1, 0.5, 1.0, 2.0, 10.0})
     {
-        Histogram bin_angle(8, {-1, 1});
-
-        UrbanLargeAngleDistribution sample_angle{tau};
-        for (int i = 0; i < num_samples; ++i)
-        {
-            bin_angle(sample_angle(rng));
-        }
-        angle_dist.push_back(bin_angle.calc_density());
-        EXPECT_EQ(2 * samples_per_real * num_samples, rng.exchange_count());
-
-        EXPECT_EQ(0, bin_angle.underflow())
-            << "Encountered values as low as " << bin_angle.min();
-        EXPECT_EQ(0, bin_angle.overflow())
-            << "Encountered values as high as " << bin_angle.max();
+        UrbanLargeAngleDistribution sample_mu{tau};
+        actual.push_back(calc_histogram(sample_mu));
     }
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        static std::vector<double> const expected_angle_dist[] = {
-            {0, 0, 0, 0, 0, 0, 0, 4},
-            {0, 0, 0, 0, 0, 0, 0, 4},
-            {0.002, 0.0012, 0.0012, 0.0004, 0.0012, 0.0008, 0.002, 3.9912},
-            {0.014, 0.0104, 0.0124, 0.0116, 0.0144, 0.0172, 0.1188, 3.8012},
-            {0.0636, 0.064, 0.0852, 0.1292, 0.2464, 0.4964, 1.016, 1.8992},
-            {0.1424, 0.1784, 0.2292, 0.3416, 0.4732, 0.6324, 0.8588, 1.144},
-            {0.318, 0.3616, 0.4148, 0.488, 0.512, 0.5868, 0.6296, 0.6892},
-            {0.5148, 0.48, 0.516, 0.5212, 0.4884, 0.4848, 0.4868, 0.508},
-        };
-        EXPECT_VEC_SOFT_EQ(expected_angle_dist, angle_dist) << repr(angle_dist);
+        SampledHistogram const expected[] = {
+            {{0, 0, 0, 0, 0, 0, 0, 4}, 4},
+            {{0, 0, 0, 0, 0, 0, 0, 4}, 4},
+            {{0.0004, 0.0012, 0.0012, 0.0012, 0.0004, 0.0004, 0.0008, 3.9944},
+             4},
+            {{0.016, 0.012, 0.0144, 0.0104, 0.014, 0.0124, 0.1292, 3.7916}, 4},
+            {{0.0624, 0.0632, 0.0832, 0.1204, 0.2452, 0.502, 1.0064, 1.9172}, 4},
+            {{0.1492, 0.184, 0.2536, 0.3392, 0.4668, 0.6328, 0.8564, 1.118}, 4},
+            {{0.328, 0.3668, 0.416, 0.4708, 0.4996, 0.5796, 0.6384, 0.7008}, 4},
+            {{0.4708, 0.494, 0.4884, 0.5148, 0.5168, 0.5172, 0.5012, 0.4968},
+             4}};
+        EXPECT_REF_EQ(expected, actual);
     }
 }
 

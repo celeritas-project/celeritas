@@ -15,6 +15,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/cont/VariantUtils.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/math/Algorithms.hh"
@@ -27,6 +28,7 @@
 #include "geocel/GeantGdmlLoader.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/alongstep/AlongStepCartMapFieldMscAction.hh"
 #include "celeritas/alongstep/AlongStepCylMapFieldMscAction.hh"
 #include "celeritas/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/alongstep/AlongStepRZMapFieldMscAction.hh"
@@ -137,21 +139,15 @@ auto build_physics_processes(inp::EmPhysics const& em,
     // TODO: process builder should be deleted; instead it should get
     // p.physics.em or whatever
     std::vector<std::shared_ptr<Process const>> result;
-    ProcessBuilder::Options opts;
-    if (em.brems)
-    {
-        opts.brem_combined = em.brems->combined_model;
-    }
-
     ProcessBuilder build_process(
-        imported, params.particle, params.material, em.user_processes, opts);
+        imported, params.particle, params.material, em.user_processes);
     for (auto pc : ProcessBuilder::get_all_process_classes(imported.processes))
     {
         result.push_back(build_process(pc));
         if (!result.back())
         {
             // Deliberately ignored process
-            CELER_LOG(debug) << "Ignored process class " << to_cstring(pc);
+            CELER_LOG(debug) << "Ignored process class " << pc;
             result.pop_back();
         }
     }
@@ -257,8 +253,7 @@ auto build_track_init(inp::Control const& c, size_type num_streams)
         {
             input.track_order = TrackOrder::none;
         }
-        CELER_LOG(debug) << "Set default track order "
-                         << to_cstring(input.track_order);
+        CELER_LOG(debug) << "Set default track order " << input.track_order;
     }
 
     return std::make_shared<TrackInitParams>(std::move(input));
@@ -306,6 +301,15 @@ auto build_along_step(inp::Field const& var_field,
             },
             [&](inp::CylMapField const& field) {
                 using ASA = AlongStepCylMapFieldMscAction;
+                return ASA::from_params(next_id,
+                                        *params.material,
+                                        *params.particle,
+                                        field,
+                                        msc,
+                                        eloss);
+            },
+            [&](inp::CartMapField const& field) {
+                using ASA = AlongStepCartMapFieldMscAction;
                 return ASA::from_params(next_id,
                                         *params.material,
                                         *params.particle,
@@ -466,6 +470,8 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
     //// DIAGNOSTICS ////
 
     result.output_file = p.diagnostics.output_file;
+
+    // TODO: timers, counters, perfetto_file
 
     if (p.diagnostics.action)
     {

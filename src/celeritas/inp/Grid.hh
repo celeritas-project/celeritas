@@ -77,6 +77,25 @@ struct UniformGrid
 
 //---------------------------------------------------------------------------//
 /*!
+ * Uniform grids for storing macroscopic cross sections.
+ *
+ * The upper grid values are expected to be pre-scaled by a factor of 1 / E.
+ */
+struct XsGrid
+{
+    UniformGrid lower;
+    UniformGrid upper;
+
+    explicit operator bool() const
+    {
+        return (lower || upper)
+               && (!lower || !upper
+                   || lower.x[Bound::hi] == upper.x[Bound::lo]);
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * An increasing, sorted 2D grid with node-centered data.
  *
  * Data is interpolated linearly and indexed as '[x][y]'.

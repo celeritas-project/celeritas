@@ -28,4 +28,3 @@ CELER_DIR=$(readlink -f "$(dirname "$0")"/../../..)
 exec docker run --rm -it --mount source=celeritas_storage,target=/data \
         --mount type=bind,source="${HOST_MOUNT}",target=/host \
         --cap-add=SYS_ADMIN celeritas:"${TAG_NAME}"
-

@@ -20,6 +20,7 @@ namespace celeritas
 {
 struct ImportData;
 struct RZMapFieldInput;
+struct CartMapFieldInput;
 struct CylMapFieldInput;
 class CutoffParams;
 class FluctuationParams;
@@ -67,11 +68,11 @@ struct AlongStepFactoryInput
 /*!
  * Helper class for emitting an AlongStep action.
  *
- * Currently Celeritas accepts a single along-step action (i.e., the same
- * stepper is used for both neutral and charged particles, across all energies
- * and regions of the problem). The along-step action is a single GPU
- * kernel that combines the field stepper selection, the magnetic field,
- * slowing-down calculation, multiple scattering, and energy loss fluctuations.
+ * Currently Celeritas accepts a single custom along-step action (i.e., the
+ * same stepper is used for charged particles across all energies and regions
+ * of the problem). The along-step action is a single GPU kernel that combines
+ * the field stepper selection, the magnetic field, slowing-down calculation,
+ * multiple scattering, and energy loss fluctuations.
  *
  * The factory will be called from the thread that initializes \c SharedParams.
  * Instead of a daughter class, you can provide any function-like object that
@@ -198,5 +199,33 @@ class CylMapFieldAlongStepFactory final : public AlongStepFactoryInterface
   private:
     CylMapFieldFunction get_fieldmap_;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create an along-step method for a three-dimensional (x-y-z in the
+ * cartesian coordinate system) map field (CartMapField).
+ */
+class CartMapFieldAlongStepFactory final : public AlongStepFactoryInterface
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using CartMapFieldFunction = std::function<CartMapFieldInput()>;
+    //!@}
+
+  public:
+    // Construct with a function to return CartMapFieldInput
+    explicit CartMapFieldAlongStepFactory(CartMapFieldFunction f);
+
+    // Emit an along-step action
+    result_type operator()(argument_type input) const final;
+
+    // Get the field params (used for converting to celeritas::inp)
+    CartMapFieldInput get_field() const;
+
+  private:
+    CartMapFieldFunction get_fieldmap_;
+};
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

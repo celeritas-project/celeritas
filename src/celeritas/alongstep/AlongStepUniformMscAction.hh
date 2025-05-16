@@ -17,7 +17,6 @@
 #include "celeritas/field/UniformFieldParams.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/inp/Field.hh"
 
 namespace celeritas
 {
@@ -26,6 +25,11 @@ class FluctuationParams;
 class PhysicsParams;
 class MaterialParams;
 class ParticleParams;
+
+namespace inp
+{
+struct UniformField;
+}
 
 //---------------------------------------------------------------------------//
 /*!

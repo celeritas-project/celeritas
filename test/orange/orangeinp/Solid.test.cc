@@ -116,8 +116,9 @@ TEST_F(SolidTest, inner)
         "Cone z: t=0.05 at {0,0,-30}",
         "Cone z: t=0.05 at {0,0,-28}",
     };
-    static char const* const expected_volume_strings[]
-        = {"all(all(+0, -1, -2), !all(+0, -1, -3))"};
+    static char const* const expected_volume_strings[] = {
+        "all(+0, -1, -2, !all(+0, -1, -3))",
+    };
     static char const* const expected_md_strings[] = {
         "",
         "",
@@ -164,7 +165,7 @@ TEST_F(SolidTest, wedge)
         "Plane: n={0.70711,-0.70711,0}, d=0",
     };
     static char const* const expected_volume_strings[] = {
-        "all(all(+0, -1, -2), all(+3, +4))",
+        "all(+0, -1, -2, +3, +4)",
     };
     static char const* const expected_md_strings[] = {
         "",
@@ -208,8 +209,9 @@ TEST_F(SolidTest, antiwedge)
         "Plane: n={0.70711,0.70711,0}, d=0",
         "Plane: n={0.70711,-0.70711,0}, d=0",
     };
-    static char const* const expected_volume_strings[]
-        = {"all(all(+0, -1, -2), !all(+3, +4))"};
+    static char const* const expected_volume_strings[] = {
+        "all(+0, -1, -2, !all(+3, +4))",
+    };
     static char const* const expected_md_strings[] = {
         "",
         "",
@@ -257,7 +259,7 @@ TEST_F(SolidTest, both)
         "Plane: n={0.70711,-0.70711,0}, d=0",
     };
     static char const* const expected_volume_strings[] = {
-        "all(all(+0, -1, -2), !all(+0, -1, -3), all(+4, +5))",
+        "all(+0, -1, -2, !all(+0, -1, -3), +4, +5)",
     };
     static char const* const expected_md_strings[] = {
         "",
@@ -312,7 +314,7 @@ TEST_F(SolidTest, cyl)
         "Plane: n={0.70711,-0.70711,0}, d=0",
     };
     static char const* const expected_volume_strings[] = {
-        "all(all(+0, -1, -2), !all(+0, -1, -3), all(+4, +5))",
+        "all(+0, -1, -2, !all(+0, -1, -3), +4, +5)",
     };
 
     auto const& u = this->unit();

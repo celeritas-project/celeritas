@@ -58,14 +58,19 @@ brought online, computational resource requirements will exceed availability by
 more than a factor of two, about 40% of which is Monte Carlo (MC) detector
 simulation, without substantial research and development improvements.
 
-Celeritas [#celeritas_vers]_ is a new MC particle transport code designed for
+Celeritas
+:cite:p:`celeritas-0-1,celeritas-0-2,celeritas-0-3,celeritas-0-4,celeritas-0-5,celeritas-0-6`
+is a MC particle transport code designed for
 high performance simulation of complex HEP detectors on GPU-accelerated
 hardware.  Its immediate goal is to simulate electromagnetic (EM) physics for
 HL-LHC detectors with no loss in fidelity, acting as a plugin to accelerate
 existing Geant4 :cite:`geant4-2016` workflows by "offloading" selected particles to
 Celeritas to transport on GPU.
 
-.. [#celeritas_vers] This documentation is generated from Celeritas |release|.
+.. only:: latex
+
+   This user manual was generated automatically from the documentation
+   in Celeritas |release|.
 
 Background
 ==========
@@ -329,14 +334,88 @@ library, in independent and Geant4-integrated contexts.
    example/celer-geo.rst
 
 .. ***************************************************************************
+.. ACKNOWLEDGMENTS
+.. ***************************************************************************
+
+.. raw:: latex
+
+   \setcounter{secnumdepth}{0}
+
+.. _acknowledgments:
+
+***************
+Acknowledgments
+***************
+
+This material is based upon work supported by the U.S. Department of Energy,
+Office of Science, Office of Advanced Scientific Computing Research and Office
+of High Energy Physics, Scientific Discovery through Advanced Computing
+(**SciDAC**) program.
+
+This research was supported by the **Exascale Computing Project** (17-SC-20-SC),
+a joint project of the U.S. Department of Energy's Office of Science and
+National Nuclear Security Administration, responsible for delivering a capable
+exascale ecosystem, including software, applications, and hardware technology,
+to support the nation’s exascale computing imperative.
+
+This research used resources of the **Oak Ridge Leadership Computing Facility**,
+which is a DOE Office of Science User Facility supported under Contract
+DE-AC05-00OR22725.
+
+Finally, thanks to the many contributors to Celeritas, and to the greater HEP
+software community for the numerous interactions over the years.
+
+**********
+References
+**********
+
+.. only:: nosphinxbib
+
+   .. note:: The sphinxbib_ extension was not used when building this version
+      of the documentation. References will not be generated.
+
+   .. _sphinxbib: https://pypi.org/project/sphinxcontrib-bibtex/
+
+.. bibliography:: _static/zotero.bib
+
+.. ***************************************************************************
 .. APPENDICES
 .. ***************************************************************************
 
+.. raw:: latex
+
+   \setcounter{secnumdepth}{1}
+   \appendix
+
+.. _release_history:
+
+***************
+Release History
+***************
+
 .. toctree::
    :maxdepth: 2
-   :caption: Appendices
+   :caption: Release history
 
-   backmatter/acknowledgments.rst
-   backmatter/references.rst
-   appendix/release-history.rst
-   appendix/license.rst
+   release-history/v0.6.rst
+   release-history/v0.5.rst
+   release-history/v0.4.rst
+   release-history/v0.3.rst
+   release-history/v0.2.rst
+   release-history/v0.1.rst
+
+.. _license:
+
+*******
+License
+*******
+
+Celeritas is copyrighted and licensed under the following terms and conditions.
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Licenses
+
+   licenses/code.rst
+   licenses/documentation.rst
+   licenses/additional.rst

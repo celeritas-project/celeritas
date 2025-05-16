@@ -131,6 +131,7 @@ inp::Problem load_problem(RunInput const& ri)
         d.export_files.physics = ri.physics_output_file;
         d.export_files.offload = ri.offload_output_file;
         d.timers.action = ri.action_times;
+        d.perfetto_file = ri.tracing_file;
 
         if (!ri.slot_diagnostic_prefix.empty())
         {

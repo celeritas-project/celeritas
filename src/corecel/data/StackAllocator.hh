@@ -189,8 +189,8 @@ CELER_FUNCTION void StackAllocator<T>::clear()
  * shared size reflects the amount of data allocated.
  */
 template<class T>
-CELER_FUNCTION auto
-StackAllocator<T>::operator()(size_type count) -> result_type
+CELER_FUNCTION auto StackAllocator<T>::operator()(size_type count)
+    -> result_type
 {
     CELER_EXPECT(count > 0);
 

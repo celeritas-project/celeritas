@@ -99,7 +99,6 @@ inp = {
     'action_times': True,
     'merge_events': False,
     'default_stream': False,
-    'brem_combined': True,
     'physics_options': physics_options,
     'field': None,
     'slot_diagnostic_prefix': f"slot-diag-{run_name}-",
@@ -195,7 +194,7 @@ if not use_device and "lar" in geometry_filename:
     }
 
 
-if expected_core_sizes: 
+if expected_core_sizes:
     assert core_sizes == expected_core_sizes, core_sizes
 if expected_opt_sizes:
     opt_sizes = internal["optical-sizes"].copy()

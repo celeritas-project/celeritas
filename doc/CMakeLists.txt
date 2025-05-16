@@ -158,7 +158,7 @@ function(celeritas_build_latex input output)
   add_custom_command(OUTPUT "${output}"
     VERBATIM COMMAND
       "${CMAKE_COMMAND}" -E env ${_texenv}
-        "${LATEXMK_EXECUTABLE}" -pdf "${input}"
+        "${LATEXMK_EXECUTABLE}" -f -pdf "${input}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/latex"
     ${ARGN}
   )
@@ -299,7 +299,7 @@ if(Sphinx_FOUND)
   # Download ornltm class
   ExternalProject_Add(ornltm
     GIT_REPOSITORY https://code.ornl.gov/sethrj/ornltm.git
-    GIT_TAG c9d2ddcce2bfc8d7d51db8f4a131d71883f46528
+    GIT_TAG 6379032d2f1e5e8bc1589d087465371fd8b432c1
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
@@ -315,7 +315,7 @@ if(Sphinx_FOUND)
     DEPENDS ornltm
   )
 
-  # Generate header
+  # Generate footer
   set(_footer_pdf "${CMAKE_CURRENT_BINARY_DIR}/latex/ornltm-footer.pdf")
   celeritas_build_latex(
     "${CMAKE_CURRENT_SOURCE_DIR}/_static/ornltm-footer.tex"

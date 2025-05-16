@@ -99,9 +99,8 @@ SlotDiagnostic::SlotDiagnostic(ActionId action_id,
 /*!
  * Build state data for a stream.
  */
-auto SlotDiagnostic::create_state(MemSpace,
-                                  StreamId id,
-                                  size_type size) const -> UPState
+auto SlotDiagnostic::create_state(MemSpace, StreamId id, size_type size) const
+    -> UPState
 {
     auto result = std::make_unique<State>();
     result->buffer.resize(size);

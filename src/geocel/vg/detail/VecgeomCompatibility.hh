@@ -22,8 +22,8 @@ namespace detail
  * Create a Vector3D from a length-3 span.
  */
 template<class T>
-CELER_FUNCTION inline auto
-to_vector(Span<T, 3> s) -> vecgeom::Vector3D<std::remove_cv_t<T>>
+CELER_FUNCTION inline auto to_vector(Span<T, 3> s)
+    -> vecgeom::Vector3D<std::remove_cv_t<T>>
 {
     return {s[0], s[1], s[2]};
 }
@@ -33,8 +33,8 @@ to_vector(Span<T, 3> s) -> vecgeom::Vector3D<std::remove_cv_t<T>>
  * Create a Vector3D from a length-3 array.
  */
 template<class T>
-CELER_FUNCTION inline auto
-to_vector(Array<T, 3> const& arr) -> vecgeom::Vector3D<T>
+CELER_FUNCTION inline auto to_vector(Array<T, 3> const& arr)
+    -> vecgeom::Vector3D<T>
 {
     return to_vector(celeritas::make_span<T, 3>(arr));
 }
@@ -44,8 +44,8 @@ to_vector(Array<T, 3> const& arr) -> vecgeom::Vector3D<T>
  * Create a length-3 array from a VecGeom vector.
  */
 template<class T>
-CELER_FUNCTION inline auto
-to_array(vecgeom::Vector3D<T> const& arr) -> Array<T, 3>
+CELER_FUNCTION inline auto to_array(vecgeom::Vector3D<T> const& arr)
+    -> Array<T, 3>
 {
     return {arr[0], arr[1], arr[2]};
 }

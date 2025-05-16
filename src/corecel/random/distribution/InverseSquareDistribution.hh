@@ -77,7 +77,8 @@ InverseSquareDistribution<RealType>::InverseSquareDistribution(real_type a,
 template<class RealType>
 template<class Generator>
 CELER_FUNCTION auto
-InverseSquareDistribution<RealType>::operator()(Generator& rng) const -> result_type
+InverseSquareDistribution<RealType>::operator()(Generator& rng) const
+    -> result_type
 {
     return product_ / sample_denom_(rng);
 }

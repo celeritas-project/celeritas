@@ -55,6 +55,12 @@ class Test : public ::testing::Test
     // Define coarse epsilon (sqrt typical precision)
 
 #if CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+    static constexpr double fine_eps = 1e-12;
+#elif CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT
+    static constexpr float fine_eps = 1e-6f;
+#endif
+
+#if CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
     static constexpr double coarse_eps = 1e-6;
 #elif CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT
     static constexpr float coarse_eps = 1e-3f;

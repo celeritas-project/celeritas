@@ -77,9 +77,9 @@ struct RunInput
     PrimaryGeneratorOptions primary_options;
 
     // Control
-    size_type num_track_slots{};
+    size_type num_track_slots{};  //!< Defaults to 2^18 on device, 2^10 on host
     size_type max_steps{unspecified};
-    size_type initializer_capacity{};
+    size_type initializer_capacity{};  //!< Defaults to 8 * num_track_slots
     real_type secondary_stack_factor{2};
     size_type auto_flush{};  //!< Defaults to num_track_slots
 
@@ -114,6 +114,7 @@ struct RunInput
     bool step_diagnostic{false};
     int step_diagnostic_bins{1000};
     std::string slot_diagnostic_prefix;
+    std::string tracing_file;
 
     // Whether the run arguments are valid
     explicit operator bool() const;

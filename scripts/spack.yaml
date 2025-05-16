@@ -1,10 +1,11 @@
 spack:
-  specs: 
+  specs:
     - cli11
+    - "covfie@0.13:"
     - cmake
     - doxygen
     - "geant4@11"
-    - "g4vg@1.0.2:"
+    - "g4vg@1.0.3:"
     - git
     - git-lfs
     - "googletest@1.10:"
@@ -16,6 +17,7 @@ spack:
     - "python@3.6:"
     - py-breathe
     - py-furo
+    - py-pre-commit
     - py-sphinx
     - py-sphinxcontrib-bibtex
     - py-sphinxcontrib-mermaid
@@ -32,4 +34,4 @@ spack:
       # Note: C++17 is the minimum required
       # Note: for CUDA support run this command in your environment:
       # spack config add packages:all:variants:"cxxstd=17 +cuda cuda_arch=<ARCH>"
-      variants: cxxstd=17
+      variants: cxxstd=20

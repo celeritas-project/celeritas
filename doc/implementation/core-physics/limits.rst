@@ -27,6 +27,7 @@ along with range limiters.
 If undergoing an interaction, the process is sampled from the stored
 beginning-of-step cross sections.
 
+.. doxygenfunction:: celeritas::find_ppid
 .. doxygenfunction:: celeritas::select_discrete_interaction
 
 User-input

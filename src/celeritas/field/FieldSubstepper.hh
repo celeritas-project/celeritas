@@ -147,8 +147,8 @@ class FieldSubstepper
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class IntegratorT>
-CELER_FUNCTION FieldSubstepper(FieldDriverOptions const&,
-                               IntegratorT&&) -> FieldSubstepper<IntegratorT>;
+CELER_FUNCTION FieldSubstepper(FieldDriverOptions const&, IntegratorT&&)
+    -> FieldSubstepper<IntegratorT>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -224,8 +224,10 @@ FieldSubstepper<IntegratorT>::operator()(real_type step, OdeState const& state)
  * Find the maximum step length that satisfies a maximum "miss distance".
  */
 template<class IntegratorT>
-CELER_FUNCTION auto FieldSubstepper<IntegratorT>::find_next_chord(
-    real_type step, OdeState const& state) const -> ChordSearch
+CELER_FUNCTION auto
+FieldSubstepper<IntegratorT>::find_next_chord(real_type step,
+                                              OdeState const& state) const
+    -> ChordSearch
 {
     bool succeeded = false;
     auto remaining_steps = options_.max_nsteps;
@@ -337,8 +339,10 @@ CELER_FUNCTION Substep FieldSubstepper<IntegratorT>::accurate_advance(
  * Helper function for accurate_advance.
  */
 template<class IntegratorT>
-CELER_FUNCTION auto FieldSubstepper<IntegratorT>::integrate_step(
-    real_type step, OdeState const& state) const -> Integration
+CELER_FUNCTION auto
+FieldSubstepper<IntegratorT>::integrate_step(real_type step,
+                                             OdeState const& state) const
+    -> Integration
 {
     CELER_EXPECT(step > 0);
 
@@ -374,8 +378,10 @@ CELER_FUNCTION auto FieldSubstepper<IntegratorT>::integrate_step(
  * for the next integration.
  */
 template<class IntegratorT>
-CELER_FUNCTION auto FieldSubstepper<IntegratorT>::one_good_step(
-    real_type step, OdeState const& state) const -> Integration
+CELER_FUNCTION auto
+FieldSubstepper<IntegratorT>::one_good_step(real_type step,
+                                            OdeState const& state) const
+    -> Integration
 {
     // Perform integration for adaptive step control with the truncation error
     bool succeeded = false;

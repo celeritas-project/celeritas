@@ -11,6 +11,7 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/em/process/BremsstrahlungProcess.hh"
 #include "celeritas/em/process/ComptonProcess.hh"
@@ -62,11 +63,9 @@ auto ProcessBuilder::get_all_process_classes(
 ProcessBuilder::ProcessBuilder(ImportData const& data,
                                SPConstParticle particle,
                                SPConstMaterial material,
-                               UserBuildMap user_build,
-                               Options options)
+                               UserBuildMap user_build)
     : input_{std::move(material), std::move(particle), nullptr}
     , user_build_map_(std::move(user_build))
-    , brem_combined_(options.brem_combined)
     , enable_lpm_(data.em_params.lpm)
 {
     CELER_EXPECT(input_.material);
@@ -98,13 +97,9 @@ ProcessBuilder::ProcessBuilder(ImportData const& data,
  */
 ProcessBuilder::ProcessBuilder(ImportData const& data,
                                SPConstParticle particle,
-                               SPConstMaterial material,
-                               Options options)
-    : ProcessBuilder(data,
-                     std::move(particle),
-                     std::move(material),
-                     UserBuildMap{},
-                     options)
+                               SPConstMaterial material)
+    : ProcessBuilder(
+          data, std::move(particle), std::move(material), UserBuildMap{})
 {
 }
 
@@ -150,8 +145,8 @@ auto ProcessBuilder::operator()(IPC ipc) -> SPProcess
     {
         auto iter = builtin_build.find(ipc);
         CELER_VALIDATE(iter != builtin_build.end(),
-                       << "cannot build unsupported EM process '"
-                       << to_cstring(ipc) << "'");
+                       << "cannot build unsupported EM process '" << ipc
+                       << "'");
 
         BuilderMemFn build_impl{iter->second};
         auto result = (this->*build_impl)();
@@ -171,7 +166,6 @@ auto ProcessBuilder::build_eioni() -> SPProcess
 auto ProcessBuilder::build_ebrems() -> SPProcess
 {
     BremsstrahlungProcess::Options options;
-    options.combined_model = brem_combined_;
     options.enable_lpm = enable_lpm_;
 
     if (!read_sb_)
@@ -271,7 +265,7 @@ auto ProcessBuilder::build_mupairprod() -> SPProcess
  */
 auto WarnAndIgnoreProcess::operator()(argument_type) const -> result_type
 {
-    CELER_LOG(warning) << "Omitting " << to_cstring(this->process)
+    CELER_LOG(warning) << "Omitting " << process
                        << " from physics process list";
     return nullptr;
 }

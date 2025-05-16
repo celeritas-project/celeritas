@@ -37,7 +37,7 @@ namespace celeritas
  * the closest distance between two positions by the field stepper and the
  * linear projection to the volume boundary.
  *
- * \note This follows similar methods as in Geant4's G4PropagatorInField class.
+ * \note This follows similar methods to Geant4's G4PropagatorInField class.
  */
 template<class SubstepperT, class GTV>
 class FieldPropagator
@@ -87,9 +87,8 @@ class FieldPropagator
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class SubstepperT, class GTV>
-CELER_FUNCTION FieldPropagator(SubstepperT&&,
-                               ParticleTrackView const&,
-                               GTV&&) -> FieldPropagator<SubstepperT, GTV>;
+CELER_FUNCTION FieldPropagator(SubstepperT&&, ParticleTrackView const&, GTV&&)
+    -> FieldPropagator<SubstepperT, GTV>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -114,8 +113,8 @@ CELER_FUNCTION FieldPropagator<SubstepperT, GTV>::FieldPropagator(
  * Propagate a charged particle until it hits a boundary.
  */
 template<class SubstepperT, class GTV>
-CELER_FUNCTION auto
-FieldPropagator<SubstepperT, GTV>::operator()() -> result_type
+CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()()
+    -> result_type
 {
     return (*this)(numeric_limits<real_type>::infinity());
 }

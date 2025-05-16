@@ -29,7 +29,7 @@ namespace detail
  * Launch a kernel to generate optical distribution data post-step.
  */
 void CherenkovOffloadAction::pre_generate(CoreParams const& core_params,
-                                         CoreStateDevice& core_state) const
+                                          CoreStateDevice& core_state) const
 {
     auto& state = get<OpticalOffloadState<MemSpace::native>>(core_state.aux(),
                                                              data_id_);
@@ -37,9 +37,9 @@ void CherenkovOffloadAction::pre_generate(CoreParams const& core_params,
         core_params.ptr<MemSpace::native>(),
         core_state.ptr(),
         detail::CherenkovOffloadExecutor{material_->device_ref(),
-                                        cherenkov_->device_ref(),
-                                        state.store.ref(),
-                                        state.buffer_size}};
+                                         cherenkov_->device_ref(),
+                                         state.store.ref(),
+                                         state.buffer_size}};
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(core_state, execute);
 }

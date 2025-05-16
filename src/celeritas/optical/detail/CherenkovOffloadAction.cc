@@ -31,9 +31,9 @@ namespace detail
  * Construct with action ID, data ID, optical material.
  */
 CherenkovOffloadAction::CherenkovOffloadAction(ActionId id,
-                                             AuxId data_id,
-                                             SPConstMaterial material,
-                                             SPConstCherenkov cherenkov)
+                                               AuxId data_id,
+                                               SPConstMaterial material,
+                                               SPConstCherenkov cherenkov)
     : id_(id)
     , data_id_{data_id}
     , material_(std::move(material))
@@ -58,7 +58,7 @@ std::string_view CherenkovOffloadAction::description() const
  * Execute the action with host data.
  */
 void CherenkovOffloadAction::step(CoreParams const& params,
-                                 CoreStateHost& state) const
+                                  CoreStateHost& state) const
 {
     this->step_impl(params, state);
 }
@@ -68,7 +68,7 @@ void CherenkovOffloadAction::step(CoreParams const& params,
  * Execute the action with device data.
  */
 void CherenkovOffloadAction::step(CoreParams const& params,
-                                 CoreStateDevice& state) const
+                                  CoreStateDevice& state) const
 {
     this->step_impl(params, state);
 }
@@ -79,7 +79,7 @@ void CherenkovOffloadAction::step(CoreParams const& params,
  */
 template<MemSpace M>
 void CherenkovOffloadAction::step_impl(CoreParams const& core_params,
-                                      CoreState<M>& core_state) const
+                                       CoreState<M>& core_state) const
 {
     auto& state = get<OpticalOffloadState<M>>(core_state.aux(), data_id_);
     auto& buffer = state.store.ref().cherenkov;
@@ -110,24 +110,25 @@ void CherenkovOffloadAction::step_impl(CoreParams const& core_params,
  * Launch a (host) kernel to generate optical distribution data post-step.
  */
 void CherenkovOffloadAction::pre_generate(CoreParams const& core_params,
-                                         CoreStateHost& core_state) const
+                                          CoreStateHost& core_state) const
 {
     auto& state = get<OpticalOffloadState<MemSpace::native>>(core_state.aux(),
                                                              data_id_);
 
-    TrackExecutor execute{core_params.ptr<MemSpace::native>(),
-                          core_state.ptr(),
-                          detail::CherenkovOffloadExecutor{material_->host_ref(),
-                                                          cherenkov_->host_ref(),
-                                                          state.store.ref(),
-                                                          state.buffer_size}};
+    TrackExecutor execute{
+        core_params.ptr<MemSpace::native>(),
+        core_state.ptr(),
+        detail::CherenkovOffloadExecutor{material_->host_ref(),
+                                         cherenkov_->host_ref(),
+                                         state.store.ref(),
+                                         state.buffer_size}};
     launch_action(*this, core_params, core_state, execute);
 }
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 void CherenkovOffloadAction::pre_generate(CoreParams const&,
-                                         CoreStateDevice&) const
+                                          CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

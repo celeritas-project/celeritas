@@ -1,10 +1,11 @@
 # Note that Geant4, VecGeom, G4VG, and ROOT are added by the CI script.
-# Most of these specs should correspond to 
+# Most of these specs should correspond to
 # https://github.com/celeritas-project/spack-gha-buildcache/blob/main/spack.yaml
 spack:
   view: /opt/spack-view
   specs:
   - ccache
+  - cli11 +pic ~ipo
   - cmake
   - googletest
   - hepmc3
@@ -26,7 +27,7 @@ spack:
       variants: ~aqua ~davix ~examples ~opengl ~x ~tbb cxxstd=20
     all:
       require:
-      - "%clang@18 target=zen2" # FIXME: genericize on next rebuild
+      - "target=zen2 %clang@18" # FIXME: genericize on next rebuild
       - any_of: [+ipo, '@:']
       - any_of: [build_system=cmake, '@:']
       - any_of: [build_type=Release, '@:']

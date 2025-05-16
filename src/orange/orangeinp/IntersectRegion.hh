@@ -556,7 +556,7 @@ class Parallelepiped final : public IntersectRegionInterface
 
     //! Half-lengths of edge projections along each axis
     Real3 const& halfedges() const { return hpr_; }
-    //! Angle between slanted y-edges and the y-axis (in turns)
+    //! Angle between slanted *y* edges and the *y* axis (in turns)
     Turn alpha() const { return alpha_; }
     //! Polar angle of main axis (in turns)
     Turn theta() const { return theta_; }

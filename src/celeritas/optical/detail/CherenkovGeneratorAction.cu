@@ -29,7 +29,7 @@ namespace detail
  * Launch a kernel to generate optical photon initializers.
  */
 void CherenkovGeneratorAction::generate(CoreParams const& core_params,
-                                       CoreStateDevice& core_state) const
+                                        CoreStateDevice& core_state) const
 {
     auto& offload_state = get<OpticalOffloadState<MemSpace::native>>(
         core_state.aux(), offload_id_);
@@ -40,12 +40,12 @@ void CherenkovGeneratorAction::generate(CoreParams const& core_params,
         core_params.ptr<MemSpace::native>(),
         core_state.ptr(),
         detail::CherenkovGeneratorExecutor{core_state.ptr(),
-                                          material_->device_ref(),
-                                          cherenkov_->device_ref(),
-                                          offload_state.store.ref(),
-                                          optical_state.ptr(),
-                                          offload_state.buffer_size,
-                                          optical_state.counters()}};
+                                           material_->device_ref(),
+                                           cherenkov_->device_ref(),
+                                           offload_state.store.ref(),
+                                           optical_state.ptr(),
+                                           offload_state.buffer_size,
+                                           optical_state.counters()}};
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(core_state, execute);
 }

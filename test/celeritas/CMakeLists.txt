@@ -148,12 +148,12 @@ celeritas_add_test(em/distribution/TsaiUrbanDistribution.test.cc ${_needs_double
 
 # Cross section calculation
 celeritas_add_test(em/xs/NuclearFormFactors.test.cc)
+celeritas_add_test(em/xs/ScreeningFunctions.test.cc)
 
 # Models
 celeritas_add_test(em/BetheHeitler.test.cc ${_needs_double})
 celeritas_add_test(em/BetheBloch.test.cc ${_needs_double})
 celeritas_add_test(em/BraggICRU73QO.test.cc ${_needs_double})
-celeritas_add_test(em/CombinedBrem.test.cc ${_needs_double})
 celeritas_add_test(em/EPlusGG.test.cc ${_needs_double})
 celeritas_add_test(em/KleinNishina.test.cc ${_needs_double})
 celeritas_add_test(em/LivermorePE.test.cc ${_needs_double})
@@ -247,7 +247,9 @@ else()
   set(_fieldprop_filter)
 endif()
 
-celeritas_add_test(field/Fields.test.cc)
+celeritas_add_test(field/Fields.test.cc
+  LINK_LIBRARIES Celeritas::Extcovfie
+)
 celeritas_add_test(field/Integrators.test.cc ${_fixme_cgs})
 celeritas_add_test(field/FieldSubstepper.test.cc ${_fixme_cgs})
 celeritas_add_test(field/FieldPropagator.test.cc
@@ -370,6 +372,7 @@ celeritas_add_test(global/StepperGeant.test.cc
 
 #-----------------------------------------------------------------------------#
 # Grid
+celeritas_add_test(grid/ElementCdfCalculator.test.cc)
 celeritas_add_test(grid/GridIdFinder.test.cc)
 celeritas_add_test(grid/InverseCdfFinder.test.cc)
 celeritas_add_test(grid/InverseRangeCalculator.test.cc)
@@ -380,7 +383,6 @@ celeritas_add_test(grid/RangeCalculator.test.cc)
 celeritas_add_test(grid/SplineCalculator.test.cc)
 celeritas_add_test(grid/UniformLogGridCalculator.test.cc)
 celeritas_add_test(grid/RangeGridCalculator.test.cc)
-celeritas_add_test(grid/ValueGridBuilder.test.cc)
 celeritas_add_test(grid/GridInserter.test.cc)
 celeritas_add_test(grid/XsCalculator.test.cc)
 
@@ -425,7 +427,8 @@ celeritas_add_test(phys/CutoffParams.test.cc)
 celeritas_add_test(phys/FourVector.test.cc)
 celeritas_add_device_test(phys/Particle
   LINK_LIBRARIES Celeritas::ExtThrust)
-celeritas_add_device_test(phys/Physics)
+celeritas_add_device_test(phys/Physics
+  LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(phys/InteractionUtils.test.cc)
 celeritas_add_test(phys/PhysicsStepUtils.test.cc)
 celeritas_add_test(phys/PrimaryGenerator.test.cc

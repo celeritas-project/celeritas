@@ -71,14 +71,14 @@ jobs:
             sudo apt-get -y update
             sudo apt-get -y install \
                 cmake graphviz ninja-build doxygen nlohmann-json3-dev
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
       - name: Check out Celeritas
         uses: actions/checkout@v4
         with:
           fetch-depth: 383
           fetch-tags: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
       - name: Install Python packages
         run: |
             pip install --upgrade pip

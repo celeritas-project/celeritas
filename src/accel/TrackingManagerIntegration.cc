@@ -7,6 +7,7 @@
 #include "TrackingManagerIntegration.hh"
 
 #include <memory>
+#include <set>
 #include <G4ParticleDefinition.hh>
 #include <G4Threading.hh>
 

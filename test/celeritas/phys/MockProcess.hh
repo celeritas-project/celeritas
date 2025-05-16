@@ -78,6 +78,7 @@ class MockProcess : public Process
         VecApplicability applic;  //!< Applicablity per model
         ModelCallback interact;  //!< MockModel::interact callback
         VecMicroXs xs;  //!< Constant per atom [bn]
+        VecMicroXs xs_scaled;  //!< Scaled by E
         MevCmSqLossDens energy_loss{};  //!< Constant per atom
         inp::Interpolation interp{};
     };
@@ -86,7 +87,8 @@ class MockProcess : public Process
     explicit MockProcess(Input data);
 
     VecModel build_models(ActionIdIter start_id) const final;
-    StepLimitBuilders step_limits(Applicability range) const final;
+    XsGrid macro_xs(Applicability range) const final;
+    EnergyLossGrid energy_loss(Applicability range) const final;
     bool supports_integral_xs() const final;
     bool applies_at_rest() const final;
     std::string_view label() const final;

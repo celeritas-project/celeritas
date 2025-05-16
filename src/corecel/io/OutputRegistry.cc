@@ -16,6 +16,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/EnumStringMapper.hh"
 
 #include "JsonPimpl.hh"
 #include "Logger.hh"  // IWYU pragma: keep
@@ -40,7 +41,7 @@ void OutputRegistry::insert(SPConstInterface interface)
         = interfaces_[cat].insert({std::string{label}, std::move(interface)});
     CELER_VALIDATE(inserted,
                    << "duplicate output entry '" << prev->first
-                   << "' for category '" << to_cstring(cat) << "'");
+                   << "' for category '" << cat << "'");
 }
 
 //---------------------------------------------------------------------------//

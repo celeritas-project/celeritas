@@ -16,6 +16,7 @@
       "binaryDir": "${sourceDir}/build-${presetName}",
       "cacheVariables": {
         "BUILD_SHARED_LIBS":     {"type": "BOOL",   "value": "ON"},
+        "CELERITAS_USE_covfie":  {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_CUDA":    {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_HIP":     {"type": "BOOL",   "value": "OFF"},
@@ -54,7 +55,6 @@
       "inherits": [".ccache", ".base", ".debug", "default"],
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
-        "CELERITAS_USE_ROOT":    {"type": "BOOL",   "value": "OFF"},
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install"
       }
     },
@@ -63,6 +63,7 @@
       "displayName": "Single-precision arithmetic",
       "inherits": [".base", ".debug", "default"],
       "cacheVariables": {
+        "CELERITAS_USE_ROOT": {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_REAL_TYPE": "float"
       }
     },

@@ -1020,11 +1020,11 @@ void Parallelepiped::build(IntersectSurfaceBuilder& insert_surface) const
     insert_surface(Sense::outside, PlaneZ{-hpr_[Z]});
     insert_surface(Sense::inside, PlaneZ{hpr_[Z]});
 
-    // Build the side planes roughly perpendicular to y-axis
+    // Build the side planes roughly perpendicular to the y axis
     insert_surface(Sense::outside, Plane{ynorm, -yoffset});
     insert_surface(Sense::inside, Plane{ynorm, yoffset});
 
-    // Build the side planes roughly perpendicular to x-axis
+    // Build the side planes roughly perpendicular to the x axis
     insert_surface(Sense::outside, Plane{xnorm, -xoffset});
     insert_surface(Sense::inside, Plane{xnorm, xoffset});
 

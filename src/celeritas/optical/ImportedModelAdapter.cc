@@ -10,6 +10,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
@@ -55,7 +56,7 @@ ImportedModels::ImportedModels(std::vector<ImportOpticalModel> models)
         CELER_VALIDATE(
             model.mfp_table.size() == models_.front().mfp_table.size(),
             << "Imported optical model id '" << model_id << "' ("
-            << to_cstring(model.model_class)
+            << model.model_class
             << ") MFP table has differing number of optical "
                "materials than other imported models");
 
@@ -64,7 +65,7 @@ ImportedModels::ImportedModels(std::vector<ImportOpticalModel> models)
         CELER_VALIDATE(!mapped_id,
                        << "Duplicate imported data for built-in optical model "
                           "'"
-                       << to_cstring(model.model_class)
+                       << model.model_class
                        << "' (at most one built-in optical model of a given "
                           "type should be imported)");
 
@@ -126,7 +127,7 @@ ImportedModelAdapter::ImportedModelAdapter(ImportModelClass imc,
     CELER_EXPECT(imported_);
     model_id_ = imported_->builtin_model_id(imc);
     CELER_VALIDATE(model_id_,
-                   << "imported data for optical model '" << to_cstring(imc)
+                   << "imported data for optical model '" << imc
                    << "' is missing");
 }
 

@@ -10,7 +10,7 @@ Commit or stash all files before recursively formatting.\e[0m
 " >&2
   exit 1
 fi
-  
+
 set -x
 find $GIT_WORK_TREE \( -name '*.hh' -or -name '*.cc' -or -name '*.cu' \) \
   -exec clang-format -i {} +

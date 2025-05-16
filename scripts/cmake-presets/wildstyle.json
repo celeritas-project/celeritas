@@ -8,16 +8,21 @@
       "inherits": [".spack-base", ".cuda-volta", "full"],
       "binaryDir": "${sourceDir}/build-${presetName}",
       "generator": "Ninja",
-      "environment": {
-        "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view/bin:/usr/local/cuda-11.5/bin:$penv{PATH}"
-      },
       "cacheVariables": {
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_BUILTIN_CLI11": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_G4VG": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_GTest": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_covfie": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_nlohmann_json": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
-        "CMAKE_CXX_COMPILER": "/usr/bin/g++",
+        "CMAKE_CXX_COMPILER": "/usr/bin/clang++",
+        "CMAKE_CUDA_HOST_COMPILER": "/usr/bin/clang++",
+        "CMAKE_CXX_STANDARD": "20",
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror -Wno-error=deprecated-declarations -fdiagnostics-color=always",
         "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fno-inline -fno-omit-frame-pointer -mfma",
         "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG -march=skylake-avx512 -mtune=skylake-avx512",
@@ -28,12 +33,25 @@
     },
     {
       "name": "base",
-      "displayName": "Wildstyle default options (GCC, debug, no omp)",
+      "displayName": "Wildstyle default options (clang, debug, no omp)",
       "inherits": [".debug", ".base"],
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "cxx17",
+      "displayName": "Wildstyle old options (GCC, debug, no omp)",
+      "inherits": [".debug", ".base"],
+      "cacheVariables": {
+        "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
+        "CMAKE_CXX_STANDARD": "17"
+      },
+      "environment": {
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-cxx17/.spack-env/view"
       }
     },
     {
@@ -79,7 +97,6 @@
       "displayName": "Debug with VecGeom+surface",
       "inherits": ["vecgeom"],
       "environment": {
-        "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-vgsurf/.spack-env/view/bin:/usr/local/cuda-11.5/bin:$penv{PATH}",
         "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-vgsurf/.spack-env/view"
       }
     },
@@ -131,7 +148,6 @@
       "displayName": "Ndebug with VecGeom v1",
       "inherits": [".ndebug", "vecgeom"],
       "environment": {
-        "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-old/.spack-env/view/bin:/usr/local/cuda-11.5/bin:$penv{PATH}",
         "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-old/.spack-env/view"
       }
     },

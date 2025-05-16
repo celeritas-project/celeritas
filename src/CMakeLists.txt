@@ -132,6 +132,23 @@ if(CELERITAS_USE_Geant4)
   target_link_libraries(ExtGeant4Geo INTERFACE ${_cg4_libs})
 endif()
 
+celer_add_ext_library(covfie)
+if(CELERITAS_USE_covfie)
+  set(_covfie_libs
+    $<COMPILE_ONLY:covfie::core>
+    $<COMPILE_ONLY:covfie::cpu>
+  )
+  if(CELERITAS_USE_CUDA)
+    # Note that any header file including Covfie must also have CUDA headers
+    list(APPEND _covfie_libs $<COMPILE_ONLY:covfie::cuda> Celeritas::ExtDeviceApi)
+  endif()
+  if(CELERITAS_USE_HIP)
+    # Note that any header file including Covfie must also have HIP headers
+    list(APPEND _covfie_libs $<COMPILE_ONLY:covfie::hip> Celeritas::ExtDeviceApi)
+  endif()
+  target_link_libraries(Extcovfie INTERFACE ${_covfie_libs})
+endif()
+
 #----------------------------------------------------------------------------#
 # CODE LIBRARIES
 #----------------------------------------------------------------------------#

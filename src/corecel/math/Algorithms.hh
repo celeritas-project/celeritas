@@ -109,8 +109,8 @@ template<>
 struct Less<void>
 {
     template<class T, class U>
-    CELER_CONSTEXPR_FUNCTION auto
-    operator()(T&& lhs, U&& rhs) const -> decltype(auto)
+    CELER_CONSTEXPR_FUNCTION auto operator()(T&& lhs, U&& rhs) const
+        -> decltype(auto)
     {
         return ::celeritas::forward<T>(lhs) < ::celeritas::forward<U>(rhs);
     }

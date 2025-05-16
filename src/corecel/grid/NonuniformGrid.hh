@@ -95,8 +95,8 @@ CELER_FUNCTION NonuniformGrid<T>::NonuniformGrid(ItemRangeT const& values,
  * Get the value at the given grid point.
  */
 template<class T>
-CELER_FUNCTION auto
-NonuniformGrid<T>::operator[](size_type i) const -> value_type
+CELER_FUNCTION auto NonuniformGrid<T>::operator[](size_type i) const
+    -> value_type
 {
     CELER_EXPECT(i < offset_.size());
     return storage_[offset_[i]];

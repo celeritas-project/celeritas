@@ -38,6 +38,6 @@ shift
 
 set -x
 
-cmake --preset=${CMAKE_PRESET} "$@"
+cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE "$@"
 cmake --build --preset=${CMAKE_PRESET}
 ctest --preset=${CMAKE_PRESET}

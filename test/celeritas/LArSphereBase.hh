@@ -37,12 +37,6 @@ class LArSphereBase : public GeantTestBase
         return result;
     }
 
-    ProcessBuilderOptions build_process_options() const override
-    {
-        auto result = GeantTestBase::build_process_options();
-        return result;
-    }
-
     GeantImportDataSelection build_import_data_selection() const override
     {
         auto result = GeantTestBase::build_import_data_selection();
