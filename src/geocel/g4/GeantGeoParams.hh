@@ -50,8 +50,11 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Clean up on destruction
     ~GeantGeoParams() final;
 
+    //!@{
     //! Access the world volume
     G4VPhysicalVolume const* world() const { return host_ref_.world; }
+    G4VPhysicalVolume* world() { return host_ref_.world; }
+    //!@}
 
     //! Whether safety distance calculations are accurate and precise
     bool supports_safety() const final { return true; }

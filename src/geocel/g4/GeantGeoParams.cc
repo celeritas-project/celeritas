@@ -137,7 +137,11 @@ GeantGeoParams::~GeantGeoParams()
 {
     if (closed_geometry_)
     {
-        G4GeometryManager::GetInstance()->OpenGeometry(host_ref_.world);
+        auto* geo_man = G4GeometryManager::GetInstance();
+        if (geo_man)
+        {
+            geo_man->OpenGeometry(this->world());
+        }
     }
     if (loaded_gdml_)
     {
@@ -223,7 +227,7 @@ G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId id) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Complete geometry construction
+ * Complete geometry construction.
  */
 void GeantGeoParams::build_tracking()
 {
@@ -233,7 +237,7 @@ void GeantGeoParams::build_tracking()
     if (!geo_man->IsGeometryClosed())
     {
         geo_man->CloseGeometry(
-            /* optimize = */ true, /* verbose = */ false, host_ref_.world);
+            /* optimize = */ true, /* verbose = */ false, this->world());
         closed_geometry_ = true;
     }
 }
@@ -267,13 +271,13 @@ void GeantGeoParams::build_metadata()
     }
 
     // Construct volume labels
-    volumes_ = VolumeMap{"volume", make_logical_vol_labels(*host_ref_.world)};
-    vol_instances_ = VolInstanceMap{
-        "volume instance", make_physical_vol_labels(*host_ref_.world)};
-    max_depth_ = get_max_depth(*host_ref_.world);
+    volumes_ = VolumeMap{"volume", make_logical_vol_labels(*this->world())};
+    vol_instances_ = VolInstanceMap{"volume instance",
+                                    make_physical_vol_labels(*this->world())};
+    max_depth_ = get_max_depth(*this->world());
 
     // Save world bbox (NOTE: assumes no transformation on PV)
-    bbox_ = [world_lv = host_ref_.world->GetLogicalVolume()] {
+    bbox_ = [world_lv = this->world()->GetLogicalVolume()] {
         CELER_EXPECT(world_lv);
         G4VSolid const* solid = world_lv->GetSolid();
         CELER_ASSERT(solid);
