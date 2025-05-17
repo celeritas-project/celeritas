@@ -19,17 +19,14 @@ namespace celeritas
  * Construct from host data.
  */
 CoulombScatteringProcess::CoulombScatteringProcess(SPConstParticles particles,
-                                                   SPConstMaterials materials,
                                                    SPConstImported process_data)
     : particles_(std::move(particles))
-    , materials_(std::move(materials))
     , imported_(process_data,
                 particles_,
                 ImportProcessClass::coulomb_scat,
                 {pdg::electron(), pdg::positron()})
 {
     CELER_EXPECT(particles_);
-    CELER_EXPECT(materials_);
 }
 
 //---------------------------------------------------------------------------//
@@ -40,7 +37,7 @@ auto CoulombScatteringProcess::build_models(ActionIdIter start_id) const
     -> VecModel
 {
     return {std::make_shared<CoulombScatteringModel>(
-        *start_id++, *particles_, *materials_, imported_.processes())};
+        *start_id++, *particles_, imported_.processes())};
 }
 
 //---------------------------------------------------------------------------//

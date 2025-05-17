@@ -164,24 +164,21 @@ TEST_F(ProcessBuilderTest, e_ionization)
     ASSERT_TRUE(models.front());
     EXPECT_EQ("ioni-moller-bhabha", models.front()->label());
     auto all_applic = models.front()->applicability();
-    ASSERT_EQ(2, all_applic.size());
+    ASSERT_EQ(4, all_applic.size());
 
-    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
+    for (auto applic : all_applic)
     {
-        for (auto applic : all_applic)
+        // Test step limits
         {
-            // Test step limits
-            {
-                applic.material = mat_id;
-                EXPECT_TRUE(process->macro_xs(applic));
-                EXPECT_TRUE(process->energy_loss(applic));
-            }
+            EXPECT_TRUE(applic.material);
+            EXPECT_TRUE(process->macro_xs(applic));
+            EXPECT_TRUE(process->energy_loss(applic));
+        }
 
-            // Test micro xs
-            for (auto const& model : models)
-            {
-                EXPECT_TRUE(model->micro_xs(applic).empty());
-            }
+        // Test micro xs
+        for (auto const& model : models)
+        {
+            EXPECT_TRUE(model->micro_xs(applic).empty());
         }
     }
 }
@@ -302,7 +299,7 @@ TEST_F(ProcessBuilderTest, photoelectric)
     }
 }
 
-TEST_F(ProcessBuilderTest, bremsstrahlung_multiple_models)
+TEST_F(ProcessBuilderTest, bremsstrahlung)
 {
     if (!this->has_le_data())
     {
@@ -322,14 +319,13 @@ TEST_F(ProcessBuilderTest, bremsstrahlung_multiple_models)
     ASSERT_TRUE(models.front());
     EXPECT_EQ("brems-sb", models.front()->label());
     auto all_applic = models.front()->applicability();
-    ASSERT_EQ(2, all_applic.size());
-    Applicability applic = *all_applic.begin();
+    ASSERT_EQ(4, all_applic.size());
 
-    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
+    for (auto applic : all_applic)
     {
         // Test step limits
         {
-            applic.material = mat_id;
+            EXPECT_TRUE(applic.material);
             EXPECT_TRUE(process->macro_xs(applic));
 
             // Only the ionization process has and energy loss table, which is
@@ -341,7 +337,7 @@ TEST_F(ProcessBuilderTest, bremsstrahlung_multiple_models)
         for (auto const& model : models)
         {
             auto micro_xs = model->micro_xs(applic);
-            auto material = this->material()->get(mat_id);
+            auto material = this->material()->get(applic.material);
             EXPECT_EQ(material.num_elements(), micro_xs.size());
             for (auto elcomp_idx : range(material.num_elements()))
             {
@@ -411,8 +407,8 @@ TEST_F(ProcessBuilderTest, coulomb)
     auto all_applic = models.front()->applicability();
     ASSERT_EQ(2, all_applic.size());
     Applicability applic = *all_applic.begin();
-    EXPECT_EQ(100, value_as<units::MevEnergy>(applic.lower));
-    EXPECT_EQ(1e8, value_as<units::MevEnergy>(applic.upper));
+    EXPECT_SOFT_EQ(0, value_as<units::MevEnergy>(applic.lower));
+    EXPECT_SOFT_EQ(1e8, value_as<units::MevEnergy>(applic.upper));
 
     for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {

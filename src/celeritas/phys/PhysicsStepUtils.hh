@@ -317,6 +317,12 @@ select_discrete_interaction(MaterialView const& material,
     // Find the model that applies at the particle energy
     auto find_model = physics.make_model_finder(ppid);
     auto pmid = find_model(particle.energy());
+    if (!pmid)
+    {
+        // The integral approach is disabled and no model applies for the
+        // sampled process at the pre-step energy
+        return physics.scalars().integral_rejection_action();
+    }
 
     ElementComponentId elcomp_id{};
     if (material.num_elements() == 1)

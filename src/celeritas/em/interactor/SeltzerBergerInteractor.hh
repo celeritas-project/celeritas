@@ -128,6 +128,7 @@ CELER_FUNCTION SeltzerBergerInteractor::SeltzerBergerInteractor(
                  || particle.particle_id() == shared_.ids.positron);
     CELER_EXPECT(gamma_cutoff_ > zero_quantity());
     CELER_EXPECT(inc_energy_ < shared_.high_energy_limit);
+    CELER_EXPECT(inc_energy_ > gamma_cutoff_);
 }
 
 //---------------------------------------------------------------------------//
@@ -139,15 +140,6 @@ CELER_FUNCTION SeltzerBergerInteractor::SeltzerBergerInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
 {
-    if (inc_energy_ <= gamma_cutoff_)
-    {
-        /*!
-         * \todo Remove and replace with an assertion once material-dependent
-         * model bounds are supported
-         */
-        return Interaction::from_unchanged();
-    }
-
     // Allocate space for the brems photon
     Secondary* secondaries = allocate_(1);
     if (secondaries == nullptr)

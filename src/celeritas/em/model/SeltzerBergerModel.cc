@@ -112,21 +112,7 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
  */
 auto SeltzerBergerModel::applicability() const -> SetApplicability
 {
-    /*!
-     * \todo Set lower energy bound based on (material-dependent)
-     * BremsstrahlungProcess lambda table energy grid to avoid invoking the
-     * interactor for tracks with energy below the interaction threshold.
-     */
-
-    Applicability electron;
-    electron.particle = this->host_ref().ids.electron;
-    electron.lower = zero_quantity();
-    electron.upper = this->host_ref().high_energy_limit;
-
-    Applicability positron = electron;
-    positron.particle = this->host_ref().ids.positron;
-
-    return {electron, positron};
+    return imported_.applicability();
 }
 
 //---------------------------------------------------------------------------//

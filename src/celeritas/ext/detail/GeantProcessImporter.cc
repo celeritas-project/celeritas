@@ -12,6 +12,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <tuple>
 #include <type_traits>
 #include <unordered_set>
 #include <utility>
@@ -236,13 +237,23 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
     GeantModelImporter convert_model(materials_,
                                      PDGNumber{result.particle_pdg},
                                      PDGNumber{result.secondary_pdg});
+
 #if G4VERSION_NUMBER < 1100
-    for (auto i : celeritas::range(process.GetNumberOfModels()))
+    std::vector<std::tuple<double, int>> models(process.GetNumberOfModels());
 #else
-    for (auto i : celeritas::range(process.NumberOfModels()))
+    std::vector<std::tuple<double, int>> models(process.NumberOfModels());
 #endif
+    for (auto i : range(models.size()))
     {
-        result.models.push_back(convert_model(*process.GetModelByIndex(i)));
+        models[i] = {process.GetModelByIndex(i)->LowEnergyLimit(), i};
+    }
+    // Sort models from lowest to highest energy region
+    std::sort(models.begin(), models.end());
+
+    for (auto const& m : models)
+    {
+        result.models.push_back(
+            convert_model(*process.GetModelByIndex(std::get<1>(m))));
         CELER_ASSERT(result.models.back());
     }
 

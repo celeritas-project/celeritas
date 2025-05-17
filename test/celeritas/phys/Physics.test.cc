@@ -148,7 +148,7 @@ TEST_F(PhysicsParamsTest, output)
     auto j = nlohmann::json::parse(to_string(out));
     j["sizes"].erase("reals");
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"physics","models":{"label":["mock-model-1","mock-model-2","mock-model-3","mock-model-4","mock-model-5","mock-model-6","mock-model-7","mock-model-8","mock-model-9","mock-model-10","mock-model-11"],"process_id":[0,0,1,2,2,2,3,3,4,4,5]},"options":{"fixed_step_limiter":0.0,"heavy.lowest_energy":[0.001,"MeV"],"heavy.max_step_over_range":0.2,"heavy.min_range":0.010000000000000002,"light.lowest_energy":[0.001,"MeV"],"light.max_step_over_range":0.2,"light.min_range":0.1,"linear_loss_limit":0.01,"min_eprime_over_e":0.8},"processes":{"label":["scattering","absorption","purrs","hisses","meows","barks"]},"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":5,"process_ids":8,"uniform_grid_ids":57,"uniform_grids":57,"uniform_tables":44,"xs_grid_ids":32,"xs_grids":32,"xs_tables":8}})json",
+        R"json({"_category":"internal","_label":"physics","models":{"label":["mock-model-1","mock-model-2","mock-model-3","mock-model-4","mock-model-5","mock-model-6","mock-model-7","mock-model-8","mock-model-9","mock-model-10","mock-model-11"],"process_id":[0,0,1,2,2,2,3,3,4,4,5]},"options":{"fixed_step_limiter":0.0,"heavy.lowest_energy":[0.001,"MeV"],"heavy.max_step_over_range":0.2,"heavy.min_range":0.010000000000000002,"light.lowest_energy":[0.001,"MeV"],"light.max_step_over_range":0.2,"light.min_range":0.1,"linear_loss_limit":0.01,"min_eprime_over_e":0.8},"processes":{"label":["scattering","absorption","purrs","hisses","meows","barks"]},"sizes":{"integral_xs":8,"model_grids":8,"model_groups":8,"model_ids":11,"process_groups":5,"process_ids":8,"uniform_grid_ids":57,"uniform_grids":57,"uniform_tables":44,"xs_grid_ids":32,"xs_grids":32,"xs_tables":8}})json",
         j.dump());
 }
 
@@ -167,11 +167,6 @@ TEST_F(PhysicsParamsTest, energy_max_xs)
         auto proc_ids = data.process_ids[proc_group.processes];
         for (auto pp_idx : range(proc_ids.size()))
         {
-            auto model_group = data.model_groups[proc_group.models][pp_idx];
-            auto energy_grid = data.reals[model_group.energy];
-            applic.lower = MevEnergy{energy_grid.front()};
-            applic.upper = MevEnergy{energy_grid.back()};
-
             auto const& proc = p.process(proc_ids[pp_idx]);
             CELER_ASSERT(proc);
             detail::EnergyMaxXsCalculator calc(opts, *proc);
@@ -179,6 +174,15 @@ TEST_F(PhysicsParamsTest, energy_max_xs)
             for (auto mat_id : range(PhysMatId(this->material()->size())))
             {
                 applic.material = mat_id;
+
+                auto const& mats
+                    = data.model_groups[proc_group.models][pp_idx].materials;
+                auto const& model_grid
+                    = data.model_grids[mats[mats.size() > 1 ? mat_id.get() : 0]];
+                auto energy_grid = data.reals[model_grid.energy];
+                applic.lower = MevEnergy{energy_grid.front()};
+                applic.upper = MevEnergy{energy_grid.back()};
+
                 auto macro_xs = proc->macro_xs(applic);
                 energy.push_back(calc ? calc(macro_xs) : -1);
             }

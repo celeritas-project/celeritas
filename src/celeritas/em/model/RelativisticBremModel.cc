@@ -86,15 +86,7 @@ RelativisticBremModel::RelativisticBremModel(ActionId id,
  */
 auto RelativisticBremModel::applicability() const -> SetApplicability
 {
-    Applicability electron;
-    electron.particle = this->host_ref().ids.electron;
-    electron.lower = this->host_ref().low_energy_limit;
-    electron.upper = detail::high_energy_limit();
-
-    Applicability positron = electron;
-    positron.particle = this->host_ref().ids.positron;
-
-    return {electron, positron};
+    return imported_.applicability();
 }
 
 //---------------------------------------------------------------------------//

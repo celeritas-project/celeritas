@@ -15,7 +15,6 @@
 
 namespace celeritas
 {
-class MaterialParams;
 class ParticleParams;
 class IsotopeView;
 
@@ -35,7 +34,6 @@ class CoulombScatteringModel final : public Model, public StaticConcreteAction
     // Construct from model ID and other necessary data
     CoulombScatteringModel(ActionId id,
                            ParticleParams const& particles,
-                           MaterialParams const& materials,
                            SPConstImported data);
 
     // Particle types and energy ranges that this model applies to
@@ -59,7 +57,6 @@ class CoulombScatteringModel final : public Model, public StaticConcreteAction
   private:
     CoulombScatteringData data_;
     ImportedModelAdapter imported_;
-    ImportedModelAdapter::EnergyBounds energy_limit_;
 };
 
 //---------------------------------------------------------------------------//

@@ -100,10 +100,7 @@ class CoulombScatteringTest : public InteractorHostTestBase
         }
 
         model_ = std::make_shared<CoulombScatteringModel>(
-            ActionId{0},
-            *this->particle_params(),
-            *this->material_params(),
-            this->imported_processes());
+            ActionId{0}, *this->particle_params(), this->imported_processes());
 
         // Set cutoffs
         CutoffParams::Input input;

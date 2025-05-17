@@ -34,7 +34,6 @@ namespace celeritas
  */
 CoulombScatteringModel::CoulombScatteringModel(ActionId id,
                                                ParticleParams const& particles,
-                                               MaterialParams const& materials,
                                                SPConstImported data)
     : StaticConcreteAction(
           id, "coulomb-wentzel", "interact by Coulomb scattering (Wentzel)")
@@ -54,26 +53,6 @@ CoulombScatteringModel::CoulombScatteringModel(ActionId id,
         << R"(missing electron and/or positron particles (required for )"
         << this->description() << ")");
 
-    // Get high/low energy limits
-    energy_limit_
-        = imported_.energy_grid_bounds(data_.ids.electron, PhysMatId{0});
-
-    // Check that the bounds are the same for all particles/materials
-    // TODO: This is only expected when using Coulomb scattering with the
-    // Wentzel VI model above the MSC energy limit. When the MSC energy limit
-    // is not set, the model energy grid bounds are material dependent and
-    // require material-dependent applicability
-    for (auto pid : {data_.ids.electron, data_.ids.positron})
-    {
-        for (auto mid : range(PhysMatId{materials.num_materials()}))
-        {
-            CELER_VALIDATE(
-                energy_limit_ == imported_.energy_grid_bounds(pid, mid),
-                << "Coulomb scattering cross section energy limits are "
-                   "inconsistent across particles and/or materials");
-        }
-    }
-
     CELER_ENSURE(data_);
 }
 
@@ -83,15 +62,7 @@ CoulombScatteringModel::CoulombScatteringModel(ActionId id,
  */
 auto CoulombScatteringModel::applicability() const -> SetApplicability
 {
-    Applicability electron_applic;
-    electron_applic.particle = this->host_ref().ids.electron;
-    electron_applic.lower = energy_limit_[0];
-    electron_applic.upper = energy_limit_[1];
-
-    Applicability positron_applic = electron_applic;
-    positron_applic.particle = this->host_ref().ids.positron;
-
-    return {electron_applic, positron_applic};
+    return imported_.applicability();
 }
 
 //---------------------------------------------------------------------------//

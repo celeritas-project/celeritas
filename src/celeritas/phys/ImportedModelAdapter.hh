@@ -38,6 +38,7 @@ class ImportedModelAdapter
     //!@{
     //! \name Type aliases
     using XsTable = Model::XsTable;
+    using SetApplicability = Model::SetApplicability;
     using SpanConstPDG = Span<PDGNumber const>;
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     using Energy = units::MevEnergy;
@@ -62,6 +63,9 @@ class ImportedModelAdapter
     // Construct micro cross sections from the given particle/material type
     XsTable micro_xs(Applicability range) const;
 
+    // Get the applicable particle type and energy ranges of the model
+    SetApplicability applicability() const;
+
     // Get the xs energy grid bounds for the given material and particle
     EnergyBounds energy_grid_bounds(ParticleId, PhysMatId) const;
 
@@ -85,6 +89,7 @@ class ImportedModelAdapter
     //// HELPER FUNCTIONS ////
 
     ImportModel const& get_model(ParticleId) const;
+    EnergyBounds energy_grid_bounds(ImportProcess const&, PhysMatId) const;
 };
 
 //---------------------------------------------------------------------------//

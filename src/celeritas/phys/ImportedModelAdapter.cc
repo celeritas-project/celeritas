@@ -7,6 +7,7 @@
 #include "ImportedModelAdapter.hh"
 
 #include <map>
+#include <set>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -95,7 +96,97 @@ auto ImportedModelAdapter::micro_xs(Applicability applic) const -> XsTable
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the xs energy grid bounds for the given material and particle.
+ * Get the applicable particle type and energy ranges of the model.
+ */
+auto ImportedModelAdapter::applicability() const -> SetApplicability
+{
+    std::set<double> unique_process_energy;
+    SetApplicability par_applic;
+    SetApplicability parmat_applic;
+    for (auto [particle_id, process_id] : particle_to_process_)
+    {
+        ImportModel const& model = this->get_model(particle_id);
+        ImportProcess const& process = imported_->get(process_id);
+
+        for (auto mat_id : range(PhysMatId(model.materials.size())))
+        {
+            Applicability applic;
+            applic.particle = particle_id;
+
+            // Get the model grid bounds
+            auto const& energy = model.materials[mat_id.get()].energy;
+            applic.lower = Energy(energy[Bound::lo]);
+            applic.upper = Energy(energy[Bound::hi]);
+
+            // If this is the lowest- or highest-energy model, make sure the
+            // grid bounds are consistent with the process macro xs grid bounds
+            auto process_energy = this->energy_grid_bounds(process, mat_id);
+            if (model.model_class == process.models.front().model_class
+                || process_energy.front() > applic.lower)
+            {
+                applic.lower = process_energy.front();
+            }
+            if (model.model_class == process.models.back().model_class
+                || process_energy.back() < applic.upper)
+            {
+                applic.upper = process_energy.back();
+            }
+
+            // Check that the energy range is valide. This can be false e.g. in
+            // materials with very high production cuts
+            if (applic.lower > applic.upper)
+            {
+                applic.upper = applic.lower;
+            }
+
+            // Check for material dependence
+            unique_process_energy.insert(process_energy.front().value());
+            par_applic.insert(applic);
+
+            applic.material = mat_id;
+            parmat_applic.insert(applic);
+        }
+    }
+    if (par_applic.size() == particle_to_process_.size()
+        && unique_process_energy.size() == 1)
+    {
+        // If none of the model or process bounds are material dependent,
+        // return material-independent applicability
+        return par_applic;
+    }
+    return parmat_applic;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the macro xs energy grid bounds for the given material and process.
+ */
+auto ImportedModelAdapter::energy_grid_bounds(ImportProcess const& proc,
+                                              PhysMatId mid) const
+    -> EnergyBounds
+{
+    CELER_EXPECT(proc.lambda || proc.lambda_prim);
+    CELER_EXPECT(!proc.lambda || mid < proc.lambda.grids.size());
+    CELER_EXPECT(!proc.lambda_prim || mid < proc.lambda_prim.grids.size());
+
+    auto const& lower = proc.lambda ? proc.lambda.grids[mid.get()]
+                                    : proc.lambda_prim.grids[mid.get()];
+    auto const& upper = proc.lambda_prim ? proc.lambda_prim.grids[mid.get()]
+                                         : proc.lambda.grids[mid.get()];
+
+    // Cross sections are nonzero below the lower grid bound
+    bool start_from_zero = lower.y.front() != 0;
+
+    auto emin = Energy(start_from_zero ? 0 : std::exp(lower.x[Bound::lo]));
+    auto emax = Energy(std::exp(upper.x[Bound::hi]));
+
+    CELER_ENSURE(emin < emax);
+    return {emin, emax};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the micro xs energy grid bounds for the given material and particle.
  */
 auto ImportedModelAdapter::energy_grid_bounds(ParticleId pid,
                                               PhysMatId mid) const

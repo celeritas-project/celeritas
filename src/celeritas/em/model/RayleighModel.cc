@@ -13,6 +13,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/RayleighData.hh"
 #include "celeritas/em/executor/RayleighExecutor.hh"  // IWYU pragma: associated
+#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/TrackExecutor.hh"
@@ -64,12 +65,12 @@ RayleighModel::RayleighModel(ActionId id,
  */
 auto RayleighModel::applicability() const -> SetApplicability
 {
-    Applicability rayleigh_scattering;
-    rayleigh_scattering.particle = this->host_ref().gamma;
-    rayleigh_scattering.lower = zero_quantity();
-    rayleigh_scattering.upper = units::MevEnergy{1e+8};
+    Applicability applic;
+    applic.particle = this->host_ref().gamma;
+    applic.lower = zero_quantity();
+    applic.upper = detail::high_energy_limit();
 
-    return {rayleigh_scattering};
+    return {applic};
 }
 
 //---------------------------------------------------------------------------//

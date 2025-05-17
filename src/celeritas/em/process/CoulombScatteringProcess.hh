@@ -28,14 +28,12 @@ class CoulombScatteringProcess : public Process
     //!@{
     //! \name Type aliases
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
-    using SPConstMaterials = std::shared_ptr<MaterialParams const>;
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 
   public:
     // Construct from Coulomb scattering data
     CoulombScatteringProcess(SPConstParticles particles,
-                             SPConstMaterials materials,
                              SPConstImported process_data);
 
     // Construct the models associated with this process
@@ -58,7 +56,6 @@ class CoulombScatteringProcess : public Process
 
   private:
     SPConstParticles particles_;
-    SPConstMaterials materials_;
     ImportedProcessAdapter imported_;
 };
 

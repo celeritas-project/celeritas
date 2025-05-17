@@ -8,6 +8,7 @@
 
 #include "corecel/math/Quantity.hh"
 #include "celeritas/em/executor/KleinNishinaExecutor.hh"
+#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -48,12 +49,12 @@ KleinNishinaModel::KleinNishinaModel(ActionId id,
  */
 auto KleinNishinaModel::applicability() const -> SetApplicability
 {
-    Applicability photon_applic;
-    photon_applic.particle = data_.ids.gamma;
-    photon_applic.lower = zero_quantity();
-    photon_applic.upper = max_quantity();
+    Applicability applic;
+    applic.particle = data_.ids.gamma;
+    applic.lower = zero_quantity();
+    applic.upper = detail::high_energy_limit();
 
-    return {photon_applic};
+    return {applic};
 }
 
 //---------------------------------------------------------------------------//

@@ -65,14 +65,14 @@ struct ModelCdfTable
 
 //---------------------------------------------------------------------------//
 /*!
- * Energy-dependent model IDs for a single process and particle type.
+ * Energy-to-model mapping for a single process, particle type and material.
  *
  * For a given particle type, a single process should be divided into multiple
- * models as a function of energy. The \c ModelGroup represents this with an
- * energy grid, and each cell of the grid corresponding to a particular
- * \c ParticleModelId.
+ * models as a function of energy, where the energy grid can be material
+ * dependent. The \c ModelGrid represents this with an energy grid, and each
+ * cell of the grid corresponding to a particular \c ParticleModelId.
  */
-struct ModelGroup
+struct ModelGrid
 {
     using Energy = units::MevEnergy;
 
@@ -83,6 +83,24 @@ struct ModelGroup
     explicit CELER_FUNCTION operator bool() const
     {
         return (energy.size() >= 2) && (model.size() + 1 == energy.size());
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Energy-dependent model IDs for a single process and particle type.
+ *
+ * If the model energy bounds are material dependent, a separate grid is stored
+ * for each material. If not, only one is stored.
+ */
+struct ModelGroup
+{
+    ItemRange<ModelGrid> materials;
+
+    //! True if assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !materials.empty();
     }
 };
 
@@ -342,6 +360,7 @@ struct PhysicsParamsData
     ParticleModelItems<ModelCdfTable> model_cdf;
 
     // Process and model storage
+    Items<ModelGrid> model_grids;
     Items<ModelGroup> model_groups;
     Items<IntegralXsProcess> integral_xs;
     ParticleItems<ProcessGroup> process_groups;
@@ -378,6 +397,7 @@ struct PhysicsParamsData
         uniform_tables = other.uniform_tables;
         model_cdf = other.model_cdf;
 
+        model_grids = other.model_grids;
         model_groups = other.model_groups;
         integral_xs = other.integral_xs;
         process_groups = other.process_groups;

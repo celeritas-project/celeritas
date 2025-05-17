@@ -25,9 +25,15 @@ namespace celeritas
  * Construct from model ID and other necessary data.
  */
 MollerBhabhaModel::MollerBhabhaModel(ActionId id,
-                                     ParticleParams const& particles)
+                                     ParticleParams const& particles,
+                                     SPConstImported data)
     : StaticConcreteAction(
           id, "ioni-moller-bhabha", "interact by Moller+Bhabha ionization")
+    , imported_(data,
+                particles,
+                ImportProcessClass::e_ioni,
+                ImportModelClass::moller_bhabha,
+                {pdg::electron(), pdg::positron()})
 {
     CELER_EXPECT(id);
     data_.ids.electron = particles.find(pdg::electron());
@@ -49,23 +55,7 @@ MollerBhabhaModel::MollerBhabhaModel(ActionId id,
  */
 auto MollerBhabhaModel::applicability() const -> SetApplicability
 {
-    /*!
-     * \todo Set lower energy bound based on (material-dependent)
-     * IonizationProcess lambda table energy grid to avoid invoking the
-     * interactor for tracks with energy below the interaction threshold.
-     */
-
-    Applicability electron_applic, positron_applic;
-
-    electron_applic.particle = data_.ids.electron;
-    electron_applic.lower = zero_quantity();
-    electron_applic.upper = units::MevEnergy{data_.max_valid_energy()};
-
-    positron_applic.particle = data_.ids.positron;
-    positron_applic.lower = zero_quantity();
-    positron_applic.upper = electron_applic.upper;
-
-    return {electron_applic, positron_applic};
+    return imported_.applicability();
 }
 
 //---------------------------------------------------------------------------//

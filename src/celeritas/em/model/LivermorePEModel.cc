@@ -15,6 +15,7 @@
 #include "corecel/cont/Range.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/em/executor/LivermorePEExecutor.hh"
+#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -80,12 +81,12 @@ LivermorePEModel::LivermorePEModel(ActionId id,
  */
 auto LivermorePEModel::applicability() const -> SetApplicability
 {
-    Applicability photon_applic;
-    photon_applic.particle = this->host_ref().ids.gamma;
-    photon_applic.lower = zero_quantity();
-    photon_applic.upper = max_quantity();
+    Applicability applic;
+    applic.particle = this->host_ref().ids.gamma;
+    applic.lower = zero_quantity();
+    applic.upper = detail::high_energy_limit();
 
-    return {photon_applic};
+    return {applic};
 }
 
 //---------------------------------------------------------------------------//

@@ -7,6 +7,8 @@
 #pragma once
 
 #include "celeritas/em/data/MollerBhabhaData.hh"
+#include "celeritas/phys/ImportedModelAdapter.hh"
+#include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/Model.hh"
 
 namespace celeritas
@@ -20,8 +22,14 @@ class ParticleParams;
 class MollerBhabhaModel final : public Model, public StaticConcreteAction
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using SPConstImported = std::shared_ptr<ImportedProcesses const>;
+    //!@}
+
+  public:
     // Construct from model ID and other necessary data
-    MollerBhabhaModel(ActionId id, ParticleParams const& particles);
+    MollerBhabhaModel(ActionId, ParticleParams const&, SPConstImported);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -43,6 +51,7 @@ class MollerBhabhaModel final : public Model, public StaticConcreteAction
 
   private:
     MollerBhabhaData data_;
+    ImportedModelAdapter imported_;
 };
 
 //---------------------------------------------------------------------------//

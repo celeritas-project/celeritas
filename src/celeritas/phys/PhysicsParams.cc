@@ -307,13 +307,14 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
     CELER_EXPECT(!models_.empty());
 
     using ModelRange = std::tuple<real_type, real_type, ParticleModelId>;
-    using MapProcessModel = std::map<ProcessId, std::vector<ModelRange>>;
+    using VecMaterial = std::vector<ModelRange>;
+    using MapProcessModel = std::map<ProcessId, std::vector<VecMaterial>>;
 
     // Offset from the index in the list of models to a model's ActionId
     data->scalars.model_to_action = this->model(ModelId{0})->action_id().get();
 
-    // Note: use map to keep ProcessId sorted
-    std::vector<MapProcessModel> particle_models(particles.size());
+    // Note: use map to keep \c ParticleId and \c ProcessId sorted
+    std::map<ParticleId, MapProcessModel> particle_models;
     std::vector<ModelId> temp_model_ids;
     ParticleModelId::size_type pm_idx{0};
 
@@ -322,26 +323,34 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
     {
         Model const& m = *this->model(mid);
         ProcessId const process_id = this->process_id(mid);
+        ParticleId prev;
         for (Applicability const& applic : m.applicability())
         {
-            if (applic.material)
-            {
-                CELER_NOT_IMPLEMENTED("material-dependent models");
-            }
             CELER_VALIDATE(applic.particle < particles.size(),
                            << "invalid particle ID "
                            << applic.particle.unchecked_get());
-            CELER_VALIDATE(applic.lower < applic.upper,
+            CELER_VALIDATE(applic.lower <= applic.upper,
                            << "expected lower energy limit ("
-                           << value_as<ModelGroup::Energy>(applic.lower)
+                           << value_as<ModelGrid::Energy>(applic.lower)
                            << " MeV) to be less than upper energy limit ("
-                           << value_as<ModelGroup::Energy>(applic.upper)
+                           << value_as<ModelGrid::Energy>(applic.upper)
                            << " MeV) for model " << m.label());
-            particle_models[applic.particle.get()][process_id].push_back(
-                {value_as<ModelGroup::Energy>(applic.lower),
-                 value_as<ModelGroup::Energy>(applic.upper),
-                 ParticleModelId{pm_idx++}});
-            temp_model_ids.push_back(mid);
+            if (applic.particle != prev)
+            {
+                prev = applic.particle;
+                temp_model_ids.push_back(mid);
+                ++pm_idx;
+            }
+            auto& mat_to_model = particle_models[applic.particle][process_id];
+            size_type mat_idx = applic.material ? applic.material.get() : 0;
+            if (mat_idx + 1 > mat_to_model.size())
+            {
+                mat_to_model.resize(mat_idx + 1);
+            }
+            mat_to_model[mat_idx].push_back(
+                {value_as<ModelGrid::Energy>(applic.lower),
+                 value_as<ModelGrid::Energy>(applic.upper),
+                 ParticleModelId{pm_idx - 1}});
         }
     }
     make_builder(&data->model_ids)
@@ -350,6 +359,7 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
     CollectionBuilder process_groups(&data->process_groups);
     CollectionBuilder process_ids(&data->process_ids);
     CollectionBuilder model_groups(&data->model_groups);
+    CollectionBuilder model_grids(&data->model_grids);
     CollectionBuilder pmodel_ids(&data->pmodel_ids);
     DedupeCollectionBuilder reals(&data->reals);
 
@@ -359,7 +369,7 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
     ProcessId::size_type max_particle_processes = 0;
     for (auto par_id : range(ParticleId{particles.size()}))
     {
-        auto& process_to_models = particle_models[par_id.get()];
+        auto& process_to_models = particle_models[par_id];
         if (process_to_models.empty()
             && !is_fake_particle(particles.id_to_pdg(par_id)))
         {
@@ -378,54 +388,66 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
             // Add process ID
             temp_processes.push_back(pid_models.first);
 
-            std::vector<ModelRange>& models = pid_models.second;
-            CELER_ASSERT(!models.empty());
+            auto& mats = pid_models.second;
+            CELER_ASSERT(!mats.empty());
 
-            // Construct model data
-            std::vector<real_type> temp_energy_grid;
-            std::vector<ParticleModelId> temp_models;
-            temp_energy_grid.reserve(models.size() + 1);
-            temp_models.reserve(models.size());
-
-            // Sort, and add the first grid point
-            std::sort(models.begin(), models.end());
-            temp_energy_grid.push_back(std::get<0>(models[0]));
-
-            for (ModelRange const& r : models)
+            std::vector<ModelGrid> temp_model_grids;
+            temp_model_grids.reserve(mats.size());
+            for (auto& models : mats)
             {
-                CELER_VALIDATE(
-                    temp_energy_grid.back() == std::get<0>(r),
-                    << "models for process '"
-                    << this->process(pid_models.first)->label()
-                    << "' of particle type '" << particles.id_to_label(par_id)
-                    << "' has no data between energies of "
-                    << temp_energy_grid.back() << " and " << std::get<0>(r)
-                    << " (energy range must be contiguous)");
-                temp_energy_grid.push_back(std::get<1>(r));
-                temp_models.push_back(std::get<2>(r));
+                // Construct model data
+                std::vector<real_type> temp_energy;
+                std::vector<ParticleModelId> temp_model;
+                temp_energy.reserve(models.size() + 1);
+                temp_model.reserve(models.size());
+
+                // Sort, and add the first grid point
+                // TODO: are they already sorted?
+                std::sort(models.begin(), models.end());
+                temp_energy.push_back(std::get<0>(models[0]));
+
+                for (ModelRange const& r : models)
+                {
+                    CELER_VALIDATE(temp_energy.back() == std::get<0>(r),
+                                   << "models for process '"
+                                   << this->process(pid_models.first)->label()
+                                   << "' of particle type '"
+                                   << particles.id_to_label(par_id)
+                                   << "' has no data between energies of "
+                                   << temp_energy.back() << " and "
+                                   << std::get<0>(r)
+                                   << " (energy range must be contiguous)");
+                    temp_energy.push_back(std::get<1>(r));
+                    temp_model.push_back(std::get<2>(r));
+                }
+
+                ModelGrid mgrid;
+                mgrid.energy = reals.insert_back(temp_energy.begin(),
+                                                 temp_energy.end());
+                mgrid.model = pmodel_ids.insert_back(temp_model.begin(),
+                                                     temp_model.end());
+                CELER_ASSERT(mgrid);
+                temp_model_grids.push_back(mgrid);
             }
 
-            ModelGroup mdata;
-            mdata.energy = reals.insert_back(temp_energy_grid.begin(),
-                                             temp_energy_grid.end());
-            mdata.model = pmodel_ids.insert_back(temp_models.begin(),
-                                                 temp_models.end());
-            CELER_ASSERT(mdata);
-            temp_model_groups.push_back(mdata);
+            ModelGroup mgroup;
+            mgroup.materials = model_grids.insert_back(
+                temp_model_grids.begin(), temp_model_grids.end());
+            temp_model_groups.push_back(mgroup);
         }
 
-        ProcessGroup pdata;
-        pdata.processes = process_ids.insert_back(temp_processes.begin(),
-                                                  temp_processes.end());
-        pdata.models = model_groups.insert_back(temp_model_groups.begin(),
-                                                temp_model_groups.end());
+        ProcessGroup pgroup;
+        pgroup.processes = process_ids.insert_back(temp_processes.begin(),
+                                                   temp_processes.end());
+        pgroup.models = model_groups.insert_back(temp_model_groups.begin(),
+                                                 temp_model_groups.end());
 
         // It's ok to have particles defined in the problem that do not have
         // any processes (if they are ever created, they will just be
         // transported until they exit the geometry).
         // NOTE: data tables will be assigned later
-        CELER_ASSERT(process_to_models.empty() || pdata);
-        process_groups.push_back(pdata);
+        CELER_ASSERT(process_to_models.empty() || pgroup);
+        process_groups.push_back(pgroup);
     }
     data->scalars.max_particle_processes = max_particle_processes;
     data->scalars.num_models = this->num_models();
@@ -529,12 +551,6 @@ void PhysicsParams::build_tables(Options const& opts,
         // Loop over per-particle processes
         for (auto pp_idx : range(process_ids.size()))
         {
-            // Get energy bounds for this process
-            auto energy_grid = data->reals[model_groups[pp_idx].energy];
-            applic.lower = Energy{energy_grid.front()};
-            applic.upper = Energy{energy_grid.back()};
-            CELER_ASSERT(applic.lower < applic.upper);
-
             Process const& proc = *this->process(process_ids[pp_idx]);
 
             // Grid IDs for each grid type, each material
@@ -571,6 +587,15 @@ void PhysicsParams::build_tables(Options const& opts,
             for (auto mat_idx : range(mats.size()))
             {
                 applic.material = PhysMatId(mat_idx);
+
+                // Get energy bounds for this process and material
+                auto const& mats = model_groups[pp_idx].materials;
+                auto const& model_grid
+                    = data->model_grids[mats[mats.size() > 1 ? mat_idx : 0]];
+                auto energy_grid = data->reals[model_grid.energy];
+                applic.lower = Energy{energy_grid.front()};
+                applic.upper = Energy{energy_grid.back()};
+                CELER_ASSERT(applic.lower < applic.upper);
 
                 // Construct macroscopic cross section grid
                 auto macro_xs = proc.macro_xs(applic);
@@ -680,10 +705,17 @@ void PhysicsParams::build_model_tables(MaterialParams const& mats,
     for (auto model_idx : range(this->num_models()))
     {
         Model const& model = *models_[model_idx].first;
+        ParticleId prev{};
 
         // Loop over applicable particles
         for (Applicability applic : model.applicability())
         {
+            if (applic.particle == prev)
+            {
+                continue;
+            }
+            prev = applic.particle;
+
             std::vector<UniformTable> temp_tables(mats.size());
             for (auto mat_id : range(PhysMatId{mats.size()}))
             {

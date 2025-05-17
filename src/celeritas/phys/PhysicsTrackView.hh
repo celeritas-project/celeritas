@@ -548,9 +548,20 @@ PhysicsTrackView::make_model_finder(ParticleProcessId ppid) const
     -> ModelFinder
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
-    ModelGroup const& md
-        = params_.model_groups[this->process_group().models[ppid.get()]];
-    return ModelFinder(params_.reals[md.energy], params_.pmodel_ids[md.model]);
+
+    ModelGrid const& mg = [ppid, this] {
+        ModelGroup const& md
+            = params_.model_groups[this->process_group().models[ppid.get()]];
+        if (md.materials.size() > 1)
+        {
+            // Material-dependent energy bounds
+            CELER_ASSERT(material_ < md.materials.size());
+            return params_.model_grids[md.materials[material_.get()]];
+        }
+        CELER_ASSERT(!md.materials.empty());
+        return params_.model_grids[md.materials.front()];
+    }();
+    return ModelFinder(params_.reals[mg.energy], params_.pmodel_ids[mg.model]);
 }
 
 //---------------------------------------------------------------------------//

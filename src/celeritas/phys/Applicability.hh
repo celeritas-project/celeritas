@@ -50,14 +50,14 @@ struct Applicability
 //! Comparators
 inline bool operator==(Applicability const& lhs, Applicability const& rhs)
 {
-    return std::make_tuple(lhs.material, lhs.particle, lhs.lower, lhs.upper)
-           == std::make_tuple(rhs.material, rhs.particle, rhs.lower, rhs.upper);
+    return std::make_tuple(lhs.particle, lhs.material, lhs.lower, lhs.upper)
+           == std::make_tuple(rhs.particle, rhs.material, rhs.lower, rhs.upper);
 }
 
 inline bool operator<(Applicability const& lhs, Applicability const& rhs)
 {
-    return std::make_tuple(lhs.material, lhs.particle, lhs.lower, lhs.upper)
-           < std::make_tuple(rhs.material, rhs.particle, rhs.lower, rhs.upper);
+    return std::make_tuple(lhs.particle, lhs.material, lhs.lower, lhs.upper)
+           < std::make_tuple(rhs.particle, rhs.material, rhs.lower, rhs.upper);
 }
 //!@}
 

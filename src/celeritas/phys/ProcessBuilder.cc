@@ -234,8 +234,8 @@ auto ProcessBuilder::build_annihilation() -> SPProcess
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_coulomb() -> SPProcess
 {
-    return std::make_shared<CoulombScatteringProcess>(
-        this->particle(), this->material(), this->imported());
+    return std::make_shared<CoulombScatteringProcess>(this->particle(),
+                                                      this->imported());
 }
 
 //---------------------------------------------------------------------------//

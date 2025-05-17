@@ -107,6 +107,7 @@ void PhysicsParamsOutput::output(JsonPimpl* j) const
         PPO_SAVE_SIZE(uniform_tables);
         PPO_SAVE_SIZE(process_ids);
         PPO_SAVE_SIZE(integral_xs);
+        PPO_SAVE_SIZE(model_grids);
         PPO_SAVE_SIZE(model_groups);
         PPO_SAVE_SIZE(process_groups);
 #undef PPO_SAVE_SIZE
