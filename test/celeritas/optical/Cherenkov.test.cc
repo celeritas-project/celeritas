@@ -21,21 +21,19 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
-#include "celeritas/optical/CherenkovDndxCalculator.hh"
-#include "celeritas/optical/CherenkovGenerator.hh"
-#include "celeritas/optical/CherenkovOffload.hh"
-#include "celeritas/optical/CherenkovParams.hh"
-#include "celeritas/optical/GeneratorDistributionData.hh"
 #include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/detail/OpticalUtils.hh"
+#include "celeritas/optical/gen/CherenkovDndxCalculator.hh"
+#include "celeritas/optical/gen/CherenkovGenerator.hh"
+#include "celeritas/optical/gen/CherenkovOffload.hh"
+#include "celeritas/optical/gen/CherenkovParams.hh"
+#include "celeritas/optical/gen/GeneratorDistributionData.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
 #include "OpticalTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
-{
-namespace optical
 {
 namespace test
 {
@@ -116,7 +114,7 @@ Span<real_type const> get_refractive_index()
 // Convert a wavelength in [micrometer] to a photon energy in [MeV]
 real_type um_to_mev(real_type wavelength_um)
 {
-    return value_as<units::MevEnergy>(detail::wavelength_to_energy(
+    return value_as<units::MevEnergy>(optical::detail::wavelength_to_energy(
         1e-3 * units::millimeter * wavelength_um));
 }
 
@@ -141,17 +139,17 @@ class CherenkovTest : public ::celeritas::test::OpticalTestBase
         water.refractive_index.y
             = {get_refractive_index().begin(), get_refractive_index().end()};
 
-        MaterialParams::Input input;
+        optical::MaterialParams::Input input;
         input.properties.push_back(std::move(water));
         input.volume_to_mat = {OptMatId{0}};
         input.optical_to_core = {PhysMatId{0}};
-        material = std::make_shared<MaterialParams>(std::move(input));
+        material = std::make_shared<optical::MaterialParams>(std::move(input));
 
         // Build Cherenkov data
         params = std::make_shared<CherenkovParams>(*material);
     }
 
-    std::shared_ptr<MaterialParams const> material;
+    std::shared_ptr<optical::MaterialParams const> material;
     std::shared_ptr<CherenkovParams const> params;
     OptMatId material_id{0};
 };
@@ -188,7 +186,7 @@ TEST_F(CherenkovTest, dndx)
                          / (constants::hbar_planck * constants::c_light),
                      1e-6);
 
-    MaterialView mat_view{material->host_ref(), material_id};
+    optical::MaterialView mat_view{material->host_ref(), material_id};
     CherenkovDndxCalculator calc_dndx(
         mat_view,
         params->host_ref(),
@@ -223,7 +221,7 @@ TEST_F(CherenkovTest, dndx)
 TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
 {
     Rng rng;
-    MaterialView const mat_view{material->host_ref(), material_id};
+    optical::MaterialView const mat_view{material->host_ref(), material_id};
 
     // 500 keV e-
     {
@@ -299,7 +297,7 @@ TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
 TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
 {
     Rng rng;
-    MaterialView mat_view{material->host_ref(), material_id};
+    optical::MaterialView mat_view{material->host_ref(), material_id};
 
     // Mean values
     real_type avg_costheta;
@@ -477,5 +475,4 @@ TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
 
 //---------------------------------------------------------------------------//
 }  // namespace test
-}  // namespace optical
 }  // namespace celeritas
