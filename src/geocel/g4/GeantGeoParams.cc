@@ -42,6 +42,9 @@ namespace celeritas
 {
 namespace
 {
+
+using SPConstGeantGeoParams = std::shared_ptr<GeantGeoParams const>;
+
 //---------------------------------------------------------------------------//
 LevelId::size_type get_max_depth(G4VPhysicalVolume const& world)
 {
@@ -57,7 +60,57 @@ LevelId::size_type get_max_depth(G4VPhysicalVolume const& world)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Store a global tracking geometry.
+ */
+SPConstGeantGeoParams& global_geant_geo()
+{
+    static SPConstGeantGeoParams geo_;
+    return geo_;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set global geometry instance.
+ *
+ * This allows many parts of the codebase to independently access Geant4
+ * metadata.
+ *
+ * \note This is not thread safe; it should be done only during setup on the
+ * main thread.
+ */
+void geant_geo(std::shared_ptr<GeantGeoParams const>&& g)
+{
+    CELER_EXPECT(g);
+
+    global_geant_geo() = std::move(g);
+    CELER_ENSURE(geant_geo());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access the global geometry instance.
+ */
+std::shared_ptr<GeantGeoParams const> const& geant_geo()
+{
+    return global_geant_geo();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create from a running Geant4 application.
+ */
+std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
+{
+    auto* world = geant_world_volume();
+    CELER_VALIDATE(world,
+                   << "cannot create Geant geometry wrapper: Geant4 tracking "
+                      "manager is not active");
+    return std::make_shared<GeantGeoParams>(world);
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -141,6 +194,11 @@ GeantGeoParams::~GeantGeoParams()
         if (geo_man)
         {
             geo_man->OpenGeometry(this->world());
+        }
+        else
+        {
+            CELER_LOG(error) << "Geometry manager was deleted before Geant "
+                                "geo had a chance to clean up";
         }
     }
     if (loaded_gdml_)
@@ -226,6 +284,8 @@ G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId id) const
 }
 
 //---------------------------------------------------------------------------//
+// PRIVATE FUNCTIONS
+//---------------------------------------------------------------------------//
 /*!
  * Complete geometry construction.
  */
@@ -236,6 +296,7 @@ void GeantGeoParams::build_tracking()
     CELER_ASSERT(geo_man);
     if (!geo_man->IsGeometryClosed())
     {
+        CELER_LOG(debug) << "Building geometry manager tracking";
         geo_man->CloseGeometry(
             /* optimize = */ true, /* verbose = */ false, this->world());
         closed_geometry_ = true;

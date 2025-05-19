@@ -49,7 +49,9 @@ Runner::Runner(ModelSetup const& input) : input_{input}
     if (CELERITAS_USE_GEANT4 && ends_with(input_.geometry_file, ".gdml"))
     {
         // Retain the Geant4 world for possible reuse across geometries
-        this->load_geometry<Geometry::geant4>();
+        CELER_EXPECT(!celeritas::geant_geo());
+        auto geo = this->load_geometry<Geometry::geant4>();
+        celeritas::geant_geo(std::move(geo));
     }
 }
 

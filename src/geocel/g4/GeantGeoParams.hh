@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
 #include <string>
 
 #include "corecel/Macros.hh"
@@ -39,10 +40,13 @@ class GeantGeoParams final : public GeoParamsInterface,
                              public ParamsDataInterface<GeantGeoParamsData>
 {
   public:
+    // Create from a running Geant4 application
+    static std::shared_ptr<GeantGeoParams> from_tracking_manager();
+
     // Construct from a GDML filename
     explicit GeantGeoParams(std::string const& gdml_filename);
 
-    // Create a VecGeom model from a pre-existing Geant4 geometry
+    // Create a VecGeom model from an already-loaded Geant4 geometry
     explicit GeantGeoParams(G4VPhysicalVolume const* world);
 
     CELER_DEFAULT_MOVE_DELETE_COPY(GeantGeoParams);
@@ -129,6 +133,13 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Construct labels and other host-only metadata
     void build_metadata();
 };
+
+//---------------------------------------------------------------------------//
+// Set global tracking geometry instance
+void geant_geo(std::shared_ptr<GeantGeoParams const>&&);
+
+// Global tracking geometry instance
+std::shared_ptr<GeantGeoParams const> const& geant_geo();
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
