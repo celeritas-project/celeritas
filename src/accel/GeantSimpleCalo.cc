@@ -188,15 +188,16 @@ void GeantSimpleCalo::output(JsonPimpl* j) const
 
     // Save detector volumes
     {
-        auto const& geo = *params_->geant_geo_params();
+        auto const* geo = celeritas::geant_geo();
+        CELER_ASSERT(geo);
         std::vector<int> ids(volumes_.size());
         std::vector<Label> labels(volumes_.size());
 
         for (auto idx : range(volumes_.size()))
         {
-            auto id = geo.find_volume(volumes_[idx]);
+            auto id = geo->find_volume(volumes_[idx]);
             ids[idx] = id.unchecked_get();
-            labels[idx] = geo.volumes().at(id);
+            labels[idx] = geo->volumes().at(id);
         }
         obj["volume_ids"] = std::move(ids);
         obj["volume_labels"] = std::move(labels);

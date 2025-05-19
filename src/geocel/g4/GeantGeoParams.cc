@@ -63,6 +63,7 @@ LevelId::size_type get_max_depth(G4VPhysicalVolume const& world)
 // Global tracking geometry instance: may be nullptr
 GeantGeoParams const* g_geant_geo_ = nullptr;
 
+//---------------------------------------------------------------------------//
 // Clear the global geometry if it's being destroyed
 void destroying_geo(GeantGeoParams const* ggp)
 {
@@ -299,6 +300,26 @@ G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId id) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get the world bbox.
+ *
+ * This assumes no transformation on the global PV.
+ */
+BBox GeantGeoParams::get_clhep_bbox() const
+{
+    auto* world_lv = this->world()->GetLogicalVolume();
+    CELER_EXPECT(world_lv);
+    G4VSolid const* solid = world_lv->GetSolid();
+    CELER_ASSERT(solid);
+    G4VisExtent const& extent = solid->GetExtent();
+
+    BBox result{{extent.GetXmin(), extent.GetYmin(), extent.GetZmin()},
+                {extent.GetXmax(), extent.GetYmax(), extent.GetZmax()}};
+    CELER_ENSURE(result);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 // PRIVATE FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
@@ -352,22 +373,10 @@ void GeantGeoParams::build_metadata()
                                     make_physical_vol_labels(*this->world())};
     max_depth_ = get_max_depth(*this->world());
 
-    // Save world bbox (NOTE: assumes no transformation on PV)
-    bbox_ = [world_lv = this->world()->GetLogicalVolume()] {
-        CELER_EXPECT(world_lv);
-        G4VSolid const* solid = world_lv->GetSolid();
-        CELER_ASSERT(solid);
-        G4VisExtent const& extent = solid->GetExtent();
-
-        return BBox({convert_from_geant(G4ThreeVector(extent.GetXmin(),
-                                                      extent.GetYmin(),
-                                                      extent.GetZmin()),
-                                        clhep_length),
-                     convert_from_geant(G4ThreeVector(extent.GetXmax(),
-                                                      extent.GetYmax(),
-                                                      extent.GetZmax()),
-                                        clhep_length)});
-    }();
+    auto clhep_bbox = this->get_clhep_bbox();
+    bbox_ = {convert_from_geant(clhep_bbox.lower().data(), clhep_length),
+             convert_from_geant(clhep_bbox.upper().data(), clhep_length)};
+    CELER_ENSURE(bbox_);
 }
 
 //---------------------------------------------------------------------------//

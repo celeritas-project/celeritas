@@ -152,9 +152,6 @@ class SharedParams
     // Number of streams, lazily obtained from run manager
     unsigned int num_streams() const;
 
-    // Geant geometry wrapper, lazily created
-    SPConstGeantGeoParams const& geant_geo_params() const;
-
     // Geometry bounding box (CLHEP units)
     BBox const& bbox() const { return bbox_; }
     //!@}
@@ -164,20 +161,17 @@ class SharedParams
 
     // Created during initialization
     Mode mode_{Mode::uninitialized};
+    SPConstGeantGeoParams geant_geo_;
     std::shared_ptr<CoreParams> params_;
     std::shared_ptr<GeantSd> geant_sd_;
     std::shared_ptr<StepCollector> step_collector_;
     VecG4ParticleDef particles_;
     std::string output_filename_;
-    G4VPhysicalVolume const* world_{nullptr};
     SPOffloadWriter offload_writer_;
     std::vector<std::shared_ptr<CoreStateInterface>> states_;
     SPOutputRegistry output_reg_;
     SPTimeOutput timer_;
     BBox bbox_;
-
-    // Lazily created
-    SPConstGeantGeoParams geant_geo_;
 
     //// HELPER FUNCTIONS ////
 
