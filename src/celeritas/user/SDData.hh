@@ -25,7 +25,7 @@ struct SDParamsData
     //! Whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return static_cast<bool>(detector.empty());
+        return (detector.empty());
     }
 
     //! Assign from another set of data
