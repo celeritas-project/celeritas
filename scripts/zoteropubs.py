@@ -1,0 +1,246 @@
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+"""
+Download publications from the Zotero database.
+"""
+
+import re
+import sys
+from datetime import datetime
+from urllib.parse import urlparse
+
+from dateutil.parser import parse as parse_date
+
+API_KEY = None
+
+def log(text):
+    sys.stderr.write(text)
+    sys.stderr.flush()
+
+
+def data_from(iterable):
+    for entry in iterable:
+        yield entry["data"]
+
+
+DEFAULT_DATETIME = datetime(year=2000, month=1, day=1)
+YEAR_RE = re.compile(r"^\s*\d+\s*$")
+
+
+def parse_date_as(datestr, format):
+    date = parse_date(datestr, default=DEFAULT_DATETIME)
+    if YEAR_RE.match(datestr):
+        # Only put year
+        format = "%Y"
+    return date.strftime(format)
+
+
+def cached_collections(zot):
+    try:
+        ckeys = zot._collection_keys
+    except AttributeError:
+        ckeys = {e["name"]: e["key"] for e in data_from(zot.collections())}
+        zot._collection_keys = ckeys
+    return ckeys
+
+
+def collection_items_top(zot, name, *, limit=8):
+    """Return a verbose generator for items in a given collection name."""
+    ck = cached_collections(zot)[name]
+    log(f"Loading {name}")
+    items = zot.collection_items_top(ck, limit=limit)
+    log(".")
+    for group in zot.makeiter(items):
+        log("." * len(group))
+        yield from group
+    log("✔\n")
+
+
+def get_citation_key(item):
+    for line in item["extra"].splitlines():
+        (key, _, value) = line.partition(":")
+        if key.lower() == "citation key":
+            return value.strip()
+    return None
+
+
+def append_citation_key(bits, e):
+    if ck := get_citation_key(e):
+        bits.append(f"*[{ck}]*:")
+
+
+def format_name(c):
+    if name := c.get("name"):
+        return name
+    first = " ".join(w[0] + "." for w in c["firstName"].split())
+    last = c["lastName"]
+    return f"{first} {last}"
+
+
+CREATOR_ORDERING = {"author": 0, "programmer": 1, "presenter": 2, "contributor": 3}
+
+
+def creator_order(cdict):
+    return CREATOR_ORDERING.get(cdict["creatorType"], 3)
+
+
+def format_names(creators, limit=1):
+    creators = sorted(creators, key=creator_order)
+    if len(creators) < limit:
+        return ", ".join(format_name(c) for c in creators)
+    formatted_creators = [format_name(c) for c in creators[:limit]]
+    formatted_creators.append("*et al*.")
+    return ", ".join(formatted_creators)
+
+
+def append_names(bits, creators, /, **kwargs):
+    names = format_names(creators, **kwargs)
+    if not names:
+        return
+    if names and not names.endswith("."):
+        names += "."
+    bits.append(names)
+
+
+def format_presentation(e):
+    bits = []
+    append_citation_key(bits, e)
+    append_names(bits, e["creators"], limit=3)
+
+    bits.append('"{title}".'.format(**e))
+
+    if meeting := e.get("meetingName"):
+        bits.append(f"*{meeting}*,")
+
+    bits.append(parse_date_as(e["date"], "%d %b %Y") + ".")
+
+    if url := e.get("url"):
+        pt = e.get("presentationType", "").lower() or "presentation"
+        bits.append(f"[{pt}]({url})")
+
+    return " ".join(bits)
+
+
+def format_paper(e):
+    bits = []
+    append_citation_key(bits, e)
+    append_names(bits, e["creators"], limit=5)
+
+    bits.append('"{title}".'.format(**e))
+
+    if pub := e.get("publicationTitle"):
+        bits.append(f"*{pub}*,")
+    elif proc := e.get("proceedingsTitle"):
+        bits.append(f"in *{proc}*,")
+    elif pub := e.get("publisher"):
+        bits.append(f"{pub},")
+
+    if place := e.get("place"):
+        bits.append(f"{place},")
+
+    bits.append(parse_date_as(e["date"], "%b %Y") + ".")
+
+    if doi := e.get("DOI"):
+        bits.append(f"[{doi}](https://doi.org/{doi})")
+    elif url := e.get("url"):
+        hostname = urlparse(url).hostname
+        bits.append(f"[{hostname}]({url})")
+
+    return " ".join(bits)
+
+
+def format_software(e):
+    bits = []
+    append_citation_key(bits, e)
+    append_names(bits, e["creators"], limit=100)
+
+    title = e["title"]
+    if version := e.get("versionNumber"):
+        title = f"{title} *v{version}*"
+    if url := e.get("url"):
+        title = f"[{title}]({url})"
+    bits.append(f'"{title}".')
+
+    bits.append(parse_date_as(e["date"], "%b %Y") + ".")
+
+    return " ".join(bits)
+
+
+def sorted_data_by_date(items):
+    entries = data_from(items)
+    entries = (e for e in entries if e.get("date"))
+    return sorted(entries, key=lambda e: parse_date(e["date"]), reverse=True)
+
+
+def print_bibliography(get_collection_items, out):
+    print(
+        """\
+<!--
+NOTE: this page is generated automatically from
+https://github.com/celeritas-project/celeritas/tree/doc/gh-pages-base/scripts/generate-pubs.py
+-->
+# Publications
+
+These publications are extracted from the Celeritas team's Zotero database.""",
+        file=out,
+    )
+
+    def print_subheader(name):
+        print(f"\n## {name}\n", file=out)
+
+    print_subheader("Conference papers")
+    for e in get_collection_items("Conference papers"):
+        print("-", format_paper(e), file=out)
+
+    print_subheader("Presentations")
+    for e in get_collection_items("Presentations"):
+        print("-", format_presentation(e), file=out)
+
+    print_subheader("Journal articles")
+    for e in get_collection_items("Journal articles"):
+        print("-", format_paper(e), file=out)
+
+    print_subheader("Technical reports")
+    for e in get_collection_items("Reports"):
+        print("-", format_paper(e), file=out)
+
+    print_subheader("Code")
+    for e in get_collection_items("Code objects"):
+        print("-", format_software(e), file=out)
+
+
+def print_references(get_collection_items, out):
+    print(
+        f"""\
+<!--
+NOTE: this page is generated automatically from
+https://github.com/celeritas-project/celeritas/tree/doc/gh-pages-base/scripts/generate-pubs.py
+-->
+# References
+
+These publications are extracted from the Celeritas team's Zotero database.""",
+        file=out,
+    )
+
+    def print_subheader(name):
+        print(f"\n## {name}\n", file=out)
+
+    print_subheader("Physics models and validation")
+    for e in get_collection_items("Physics"):
+        print("-", format_paper(e), file=out)
+
+    print_subheader("HEP experiments")
+    for e in get_collection_items("HEP experiments"):
+        print("-", format_paper(e), file=out)
+
+    print_subheader("Software implementations")
+    for e in get_collection_items("Software"):
+        print("-", format_paper(e), file=out)
+
+    print_subheader("Computer science and mathematics")
+    for e in get_collection_items("Computer science"):
+        print("-", format_paper(e), file=out)
+
+    print_subheader("Computational geometry")
+    for e in get_collection_items("Geometry"):
+        print("-", format_paper(e), file=out)

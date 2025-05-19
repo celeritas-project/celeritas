@@ -85,6 +85,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 ## Software implementations
 
 - A. Borbely. "Power efficiency gains from GPU optimised workloads: Geant4 based detector simulations with Celeritas". Dec 2024. [indico.cern.ch](https://indico.cern.ch/event/1450885/contributions/6252612/attachments/2985924/5258935/WLCG%20sustainability%20workshop.pdf)
+- C. Lee, S. Ye. "A GPU-accelerated Monte Carlo code, RT<sup>2</sup> for coupled transport of photon, electron/positron, and neutron". *Physics in Medicine & Biology*, Sep 2024. [10.1088/1361-6560/ad694f](https://doi.org/10.1088/1361-6560/ad694f)
 - F. Vaselli, F. Cattafesta, P. Asenov, A. Rizzi. "End-to-end simulation of particle physics events with flow matching and generator oversampling". *Machine Learning: Science and Technology*, Sep 2024. [10.1088/2632-2153/ad563c](https://doi.org/10.1088/2632-2153/ad563c)
 - J. P. Morgan, A. Mote, S. L. Pasmann, G. Ridley, T. S. Palmer, *et al*. "The Monte Carlo Computational Summit – October 25 & 26, 2023 – Notre Dame, Indiana, USA". *Journal of Computational and Theoretical Transport*, Jun 2024. [10.1080/23324309.2024.2354401](https://doi.org/10.1080/23324309.2024.2354401)
 - *[opticks-chep-2024]*: S. C. Blyth, R. De Vita, X. Espinal, P. Laycock, O. Shadura, *et al*. "Opticks: GPU Optical Photon Simulation via NVIDIA OptiX". *EPJ Web of Conferences*, 2024. [10.1051/epjconf/202429511014](https://doi.org/10.1051/epjconf/202429511014)
@@ -106,9 +107,10 @@ These publications are extracted from the Celeritas team's Zotero database.
 - "GDML user's guide". Jun 2022.
 - T. M. Evans, A. Siegel, E. W. Draeger, J. Deslippe, M. M. Francois, *et al*. "A survey of software implementations used by application codes in the Exascale Computing Project". *The International Journal of High Performance Computing Applications*, Jan 2022. [10.1177/10943420211028940](https://doi.org/10.1177/10943420211028940)
 - M. McManus, F. Romano, G. Royle, H. Palmans, A. Subiel, *et al*. "A Geant4 Fano test for novel very high energy electron beams". *Physics in Medicine & Biology*, Dec 2021. [10.1088/1361-6560/ac3e0f](https://doi.org/10.1088/1361-6560/ac3e0f)
-- M. Asai, M. A. Cortés-Giraldo, V. Giménez-Alventosa, V. Giménez Gómez, F. Salvat, *et al*. "The PENELOPE Physics Models and Transport Mechanics. Implementation into Geant4". *Frontiers in Physics*, Dec 2021. [10.3389/fphy.2021.738735](https://doi.org/10.3389/fphy.2021.738735)
 - X. Ai, G. Mania, H. M. Gray, M. Kuhn, N. Styles, *et al*. "A GPU-based Kalman Filter for Track Fitting". *Computing and Software for Big Science*, Dec 2021. [10.1007/s41781-021-00065-z](https://doi.org/10.1007/s41781-021-00065-z)
+- M. Asai, M. A. Cortés-Giraldo, V. Giménez-Alventosa, V. Giménez Gómez, F. Salvat, *et al*. "The PENELOPE Physics Models and Transport Mechanics. Implementation into Geant4". *Frontiers in Physics*, Dec 2021. [10.3389/fphy.2021.738735](https://doi.org/10.3389/fphy.2021.738735)
 - Andrei Gheata, AdePT Team. "AdePT Status". Sep 2021. [indico.cern.ch](https://indico.cern.ch/event/1052654/contributions/4525306/attachments/2310908/3932523/AdePT%2026th%20Geant4%20Collaboration%20Meeting.pdf)
+- S. Blyth, C. Biscarat, S. Campana, B. Hegner, S. Roiser, *et al*. "Integration of JUNO simulation framework with Opticks: GPU accelerated optical propagation via NVIDIA® OptiX™". *EPJ Web of Conferences*, 2021. [10.1051/epjconf/202125103009](https://doi.org/10.1051/epjconf/202125103009)
 - *[fair4s-2021]*: N. P. Chue Hong, D. S. Katz, M. Barker, A. Lamprecht, C. Martinez, *et al*. "FAIR Principles for Research Software (FAIR4RS Principles)". 2021. [10.15497/RDA00068](https://doi.org/10.15497/RDA00068)
 - O. Creaner, S. Blyth, S. Eriksen, L. Gerhardt, M. E. Monzani, *et al*. "GPU simulation with Opticks: The future of optical simulations for LZ". *EPJ Web of Conferences*, 2021. [10.1051/epjconf/202125103037](https://doi.org/10.1051/epjconf/202125103037)
 - J. Hahnfeld, L. Moneta, C. Biscarat, S. Campana, B. Hegner, *et al*. "A Portable Implementation of RANLUX++". *EPJ Web of Conferences*, 2021. [10.1051/epjconf/202125103008](https://doi.org/10.1051/epjconf/202125103008)
@@ -171,6 +173,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 ## Computer science and mathematics
 
 - M. Barbone, G. Gaydadjiev, A. Howard, W. Luk, G. Savvidy, *et al*. "Fast, high-quality pseudo random number generators for heterogeneous computing". *EPJ Web of Conferences*, 2024. [10.1051/epjconf/202429511010](https://doi.org/10.1051/epjconf/202429511010)
+- P. Hijma, S. Heldens, A. Sclocco, B. Van Werkhoven, H. E. Bal, *et al*. "Optimization Techniques for GPU Programming". *ACM Computing Surveys*, Nov 2023. [10.1145/3570638](https://doi.org/10.1145/3570638)
 - *[frontier]*: S. Atchley, C. Zimmer, J. Lange, D. Bernholdt, V. Melesse Vergara, *et al*. "Frontier: Exploring Exascale". in *Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis*, Denver CO USA, Nov 2023. [10.1145/3581784.3607089](https://doi.org/10.1145/3581784.3607089)
 - C. Muratori. "Turns are Better than Radians". Sep 2022. [www.computerenhance.com](https://www.computerenhance.com/p/turns-are-better-than-radians)
 - *[sharvit-data-2022]*: Y. Sharvit. "Data-Oriented Programming: Reduce Software Complexity". Manning Publications Co. LLC, New York, 2022.
@@ -181,6 +184,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 - C. F. Borges. "An Improved Algorithm for hypot(a,b)". Jun 2019. [arxiv.org](http://arxiv.org/abs/1904.09481)
 - H. Haber. "Eigenvalues and eigenvectors of rotation matrices". 2019. [scipp.ucsc.edu](http://scipp.ucsc.edu/~haber/ph116A/Rotation2.pdf)
 - *[summit]*: O. R. L. C. Facility. "Summit: Oak Ridge National Laboratory's next High Performance Supercomputer". Apr 2018. [www.olcf.ornl.gov](https://www.olcf.ornl.gov/olcf-resources/compute-systems/summit)
+- C. A. Navarro, N. Hitschfeld-Kahler, L. Mateu. "A Survey on Parallel Computing and its Applications in Data-Parallel Problems Using GPU Architectures". *Communications in Computational Physics*, Feb 2014. [10.4208/cicp.110113.010813a](https://doi.org/10.4208/cicp.110113.010813a)
 - B. Chambers, P. Manolios, D. Vroon. "Faster SAT solving with better CNF generation". in *2009 Design, Automation & Test in Europe Conference & Exhibition*, Nice, Apr 2009. [10.1109/DATE.2009.5090918](https://doi.org/10.1109/DATE.2009.5090918)
 - *[haramato-jump-2008]*: H. Haramoto, M. Matsumoto, T. Nishimura, F. Panneton, P. L'Ecuyer, *et al*. "Efficient Jump Ahead for 𝔽<sub>2</sub> -Linear Random Number Generators". *INFORMS Journal on Computing*, Aug 2008. [10.1287/ijoc.1070.0251](https://doi.org/10.1287/ijoc.1070.0251)
 - *[collins-rng-2008]*: J. C. Collins. "Testing, Selection, and Implementation of Random Number Generators:". Fort Belvoir, VA, Jul 2008. [www.dtic.mil](http://www.dtic.mil/docs/citations/ADA486379)
