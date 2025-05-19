@@ -12,7 +12,7 @@
 #include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/io/Label.hh"
 
-#include "../SDData.hh"
+#include "SDData.hh"
 
 namespace celeritas
 {

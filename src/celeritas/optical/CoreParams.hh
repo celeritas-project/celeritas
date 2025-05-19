@@ -44,7 +44,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstRng = std::shared_ptr<RngParams const>;
     using SPConstTrackInit = std::shared_ptr<TrackInitParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
-    using SPConstDetectors = std::shared_ptr<celeritas::detail::SDParams const>;
+    using SPConstDetectors = std::shared_ptr<SDParams const>;
     using VecLabel = std::vector<Label>;
 
     template<MemSpace M>
