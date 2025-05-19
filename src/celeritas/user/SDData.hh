@@ -14,10 +14,6 @@
 
 namespace celeritas
 {
-
-namespace detail
-{
-
 template<Ownership W, MemSpace M>
 struct SDParamsData
 {
@@ -42,5 +38,5 @@ struct SDParamsData
     }
 };
 
-}  // namespace detail
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

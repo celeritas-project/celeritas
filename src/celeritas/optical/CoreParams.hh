@@ -14,7 +14,7 @@
 #include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/random/params/RngParamsFwd.hh"
 #include "celeritas/geo/GeoFwd.hh"
-#include "celeritas/user/detail/SDParams.hh"
+#include "celeritas/user/SDParams.hh"
 
 #include "CoreTrackData.hh"
 

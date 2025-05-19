@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/detail/SDParams.cc
+//! \file celeritas/user/SDParams.cc
 //---------------------------------------------------------------------------//
 #include "SDParams.hh"
 
@@ -11,9 +11,6 @@
 #include "geocel/GeoVolumeFinder.hh"
 
 namespace celeritas
-{
-
-namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -79,5 +76,4 @@ VolumeId SDParams::detector_to_volume_id(DetectorId det_id)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

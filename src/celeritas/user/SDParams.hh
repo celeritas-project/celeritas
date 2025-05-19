@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/detail/SDParams.hh
+//! \file celeritas/user/SDParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -19,8 +19,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 class GeoParamsInterface;
 
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Manage params and state data for sensitive detectors.
@@ -57,6 +55,6 @@ class SDParams final : public ParamsDataInterface<SDParamsData>
     std::vector<VolumeId> volume_ids_;
     CollectionMirror<SDParamsData> mirror_;
 };
-}  // namespace detail
 
+//---------------------------------------------------------------------------//
 }  // namespace celeritas
