@@ -60,13 +60,16 @@ LevelId::size_type get_max_depth(G4VPhysicalVolume const& world)
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Store a global tracking geometry.
- */
-SPConstGeantGeoParams& global_geant_geo()
+// Global tracking geometry instance: may be nullptr
+GeantGeoParams const* g_geant_geo_ = nullptr;
+
+// Clear the global geometry if it's being destroyed
+void destroying_geo(GeantGeoParams const* ggp)
 {
-    static SPConstGeantGeoParams geo_;
-    return geo_;
+    if (ggp == g_geant_geo_)
+    {
+        g_geant_geo_ = nullptr;
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -77,26 +80,35 @@ SPConstGeantGeoParams& global_geant_geo()
  * Set global geometry instance.
  *
  * This allows many parts of the codebase to independently access Geant4
- * metadata.
+ * metadata. It should be called during initialization of any Celeritas front
+ * end that integrates with Geant4. We can't use shared pointers here because
+ * of global initialization order issues (the low-level Geant4 objects may be
+ * cleared before a static celeritas::GeantGeoParams is destroyed).
  *
  * \note This is not thread safe; it should be done only during setup on the
  * main thread.
  */
-void geant_geo(std::shared_ptr<GeantGeoParams const>&& g)
+void geant_geo(GeantGeoParams const& gp)
 {
-    CELER_EXPECT(g);
-
-    global_geant_geo() = std::move(g);
-    CELER_ENSURE(geant_geo());
+    CELER_VALIDATE(!g_geant_geo_ || &gp == g_geant_geo_,
+                   << "global tracking Geant4 geometry wrapper has already "
+                      "been set");
+    g_geant_geo_ = &gp;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Access the global geometry instance.
+ *
+ * This should be used by Geant4 geometry-related helper functions throughout
+ * the code base. Make sure to check the result is not null! Do not save a
+ * pointer to it either.
+ *
+ * \return Reference to the global Geant4 wrapper, or nullptr if not set.
  */
-std::shared_ptr<GeantGeoParams const> const& geant_geo()
+GeantGeoParams const* geant_geo()
 {
-    return global_geant_geo();
+    return g_geant_geo_;
 }
 
 //---------------------------------------------------------------------------//
@@ -205,6 +217,9 @@ GeantGeoParams::~GeantGeoParams()
     {
         reset_geant_geometry();
     }
+
+    // If some part of the code set us up as the global geometry, clear it
+    destroying_geo(this);
 }
 
 //---------------------------------------------------------------------------//

@@ -135,11 +135,11 @@ class GeantGeoParams final : public GeoParamsInterface,
 };
 
 //---------------------------------------------------------------------------//
-// Set global tracking geometry instance
-void geant_geo(std::shared_ptr<GeantGeoParams const>&&);
+// Set non-owning reference to global tracking geometry instance
+void geant_geo(GeantGeoParams const&);
 
-// Global tracking geometry instance
-std::shared_ptr<GeantGeoParams const> const& geant_geo();
+// Global tracking geometry instance: may be nullptr
+GeantGeoParams const* geant_geo();
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
