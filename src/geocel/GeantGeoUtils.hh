@@ -64,10 +64,6 @@ std::ostream& operator<<(std::ostream&, PrintableLV const&);
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
-// Write a GDML file to the given filename
-void save_gdml(G4VPhysicalVolume const* world, std::string const& out_filename);
-
-//---------------------------------------------------------------------------//
 // Reset all Geant4 geometry stores if *not* using RunManager
 void reset_geant_geometry();
 

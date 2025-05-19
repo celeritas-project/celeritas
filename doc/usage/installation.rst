@@ -46,6 +46,7 @@ internet if required but not available on the user's system.
    CUDA_, Runtime, "GPU computation"
    Geant4_, Runtime, "Preprocessing physics data for a problem input"
    G4EMLOW_, Runtime, "EM physics model data"
+   G4VG_, Runtime, "Geant4-to-VecGeom translation"
    HepMC3_, Runtime, "Event input"
    HIP_, Runtime, "GPU computation"
    libpng_, Runtime, "PNG output for raytracing"
@@ -70,6 +71,7 @@ internet if required but not available on the user's system.
 .. _CMake: https://cmake.org
 .. _CUDA: https://developer.nvidia.com/cuda-toolkit
 .. _Doxygen: https://www.doxygen.nl
+.. _G4VG: https://github.com/celeritas-project/g4vg
 .. _G4EMLOW: https://geant4.web.cern.ch/support/download
 .. _Geant4: https://geant4.web.cern.ch/support/download
 .. _Git: https://git-scm.com

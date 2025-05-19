@@ -146,6 +146,7 @@ mathjax3_config = {
             "vd": r"\mathbf{\cdot}",
             "norm": [r"\|#1\|", 1],
             "abs": [r"|#1|", 1],
+            "sgn": r"\mathop{\mathrm{sgn}}\nolimits",
         },
     },
     "loader": {"load": ["ui/lazy", "output/svg"]},

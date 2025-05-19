@@ -13,7 +13,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <G4Element.hh>
-#include <G4GDMLParser.hh>
 #include <G4Isotope.hh>
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
