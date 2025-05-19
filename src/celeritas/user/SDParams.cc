@@ -16,7 +16,7 @@ namespace celeritas
 /*!
  * Construct from list of volume labels.
  */
-SDParams::SDParams(VecLabel volume_labels, GeoParamsInterface const& geo)
+SDParams::SDParams(VecLabel const volume_labels, GeoParamsInterface const& geo)
 {
     CELER_EXPECT(!volume_labels.empty());
 
@@ -48,31 +48,17 @@ SDParams::SDParams(VecLabel volume_labels, GeoParamsInterface const& geo)
 
     mirror_ = CollectionMirror{[&] {
         HostVal<SDParamsData> host_data;
-        if (!detector_map.empty())
+        std::vector<DetectorId> temp_det(geo.volumes().size(), DetectorId{});
+        for (auto const& det_pair : detector_map)
         {
-            std::vector<DetectorId> temp_det(geo.volumes().size(),
-                                             DetectorId{});
-            for (auto const& det_pair : detector_map)
-            {
-                CELER_ASSERT(det_pair.first < temp_det.size());
-                temp_det[det_pair.first.unchecked_get()] = det_pair.second;
-            }
-            CollectionBuilder{&host_data.detector}.insert_back(
-                temp_det.begin(), temp_det.end());
+            CELER_ASSERT(det_pair.first < temp_det.size());
+            temp_det[det_pair.first.unchecked_get()] = det_pair.second;
         }
+        CollectionBuilder{&host_data.detector}.insert_back(temp_det.begin(),
+                                                           temp_det.end());
 
         return host_data;
     }()};
-}
-
-DetectorId SDParams::volume_to_detector_id(VolumeId vol_id)
-{
-    return host_ref().detector[vol_id];
-}
-
-VolumeId SDParams::detector_to_volume_id(DetectorId det_id)
-{
-    return volume_ids_[det_id.get()];
 }
 
 //---------------------------------------------------------------------------//

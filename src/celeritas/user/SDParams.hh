@@ -34,13 +34,19 @@ class SDParams final : public ParamsDataInterface<SDParamsData>
     SDParams() {};
 
     // Construct from volume labels
-    SDParams(VecLabel volume_labels, GeoParamsInterface const& geo);
+    SDParams(VecLabel const volume_labels, GeoParamsInterface const& geo);
 
     // Access detector ID based on volume ID
-    DetectorId volume_to_detector_id(VolumeId);
+    DetectorId volume_to_detector_id(VolumeId vol_id)
+    {
+        return host_ref().detector[vol_id];
+    }
 
     // Access volume ID based on detector ID
-    VolumeId detector_to_volume_id(DetectorId);
+    VolumeId detector_to_volume_id(DetectorId det_id)
+    {
+        return volume_ids_[det_id.get()];
+    }
 
     //!@{
     //! \name Data interface
