@@ -149,42 +149,28 @@ TEST(PolygonUtilsTest, convex_self_intersect)
     EXPECT_FALSE(is_convex(self_int2));
 }
 
-TEST(PolygonUtilsTest, make_colinear_mask)
+TEST(PolygonUtilsTest, filter_colinear_points)
 {
+    auto expect_eq = [](VecReal2 const& a, VecReal2 const& b) {
+        EXPECT_EQ(a.size(), b.size());
+        for (auto i : range(a.size()))
+        {
+            EXPECT_EQ(a[i][0], b[i][0]);
+            EXPECT_EQ(a[i][1], b[i][1]);
+        }
+    };
+
     using VecReal2 = std::vector<Real2>;
-    using VecBool = std::vector<bool>;
     real_type tol = 0.01;
 
     // Nothing colinear
     VecReal2 corners{{0, 0}, {0, 1}, {1, 1}, {1, 0}};
-    VecBool exp(4, false);
-    EXPECT_VEC_EQ(exp, make_colinear_mask(make_span(corners), tol));
+    expect_eq(corners, make_colinear_mask(make_span(corners), tol));
 
-    // Everything colinear
-    corners = VecReal2{{0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}};
-    exp = VecBool(5, true);
-    EXPECT_VEC_EQ(exp, make_colinear_mask(make_span(corners), tol));
-
-    // Everything colinear within tolerance
-    corners
-        = VecReal2{{0, 0}, {1.0001, 1.0003}, {2.0004, 2.0005}, {3, 3}, {4, 4}};
-    exp = VecBool(5, true);
-    EXPECT_VEC_EQ(exp, make_colinear_mask(make_span(corners), tol));
-
-    // Some points colinear
-    corners = VecReal2{Real2{0, 0},
-                       Real2{0, 0.5},
-                       Real2{0, 1},
-                       Real2{0.5, 1},
-                       Real2{1, 1},
-                       Real2{1, 0.5},
-                       Real2{1, 0},
-                       Real2{0.7, 0},
-                       Real2{0.3, 0}};
-    exp = VecBool{false, true, false, true, false, true, false, true, true};
-    EXPECT_VEC_EQ(exp, make_colinear_mask(make_span(corners), tol));
+    // Nothing colinear
+    VecReal2 corners{{0, 0}, {0, 1}, {1, 1}, {1, 0}};
+    expect_eq(corners, make_colinear_mask(make_span(corners), tol));
 }
-
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace detail

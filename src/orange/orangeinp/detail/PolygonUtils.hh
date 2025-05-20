@@ -153,26 +153,48 @@ inline bool is_convex(Span<Real2 const> corners, bool degen_ok = false)
 //---------------------------------------------------------------------------//
 /*!
  * Return a mask that is true if a point is colinear with its 2 neighbors.
+ *
+ * Points are checked for colinearly dynamically, i.e, if a point is
+ * found to be colinear, it is not used for future colinearity checks.
  */
-std::vector<bool>
-make_colinear_mask(Span<Real2 const> corners, real_type abs_tol)
+std::vector<Real2>
+filter_colinear_points(std::vector<Real2> const& corners, double abs_tol)
 {
-    CELER_EXPECT(corners.size() > 2);
+    CELER_EXPECT(corners.size() >= 3);
 
-    std::vector<bool> result(corners.size(), false);
+    std::vector<Real2> result;
+    result.reserve(corners.size());
+
     SoftOrientation<Real2::value_type> soft_ori(abs_tol);
 
-    for (auto i : range<size_type>(corners.size()))
-    {
-        auto j = (i + 1) % corners.size();
-        auto k = (i + 2) % corners.size();
+    // Assume first point is NOT colinear. This is necessary to handle the case
+    // where all points are locally colinear, but some points are globally
+    // non-colinear, e.g., a many-sided regular polygon.
+    result.push_back(corners[0]);
 
-        if (soft_ori(corners[i], corners[j], corners[k])
-            == Orientation::collinear)
+    for (auto i : range<size_type>(1, corners.size()))
+    {
+        auto j = i + 1 < corners.size() ? i + 1 : 0;
+
+        if (soft_ori(result.back(), corners[i], corners[j])
+            != Orientation::collinear)
         {
-            result[j] = true;  // Middle point is the colinear one
+            result.push_back(corners[i]);
         }
     }
+
+    // Make sure there are enough filtered points to specificy a polygon.
+    CELER_ASSERT(result.size() >= 3);
+
+    // Handle case where first point is actually colinear.
+    if (soft_ori(result.back(), result[0], result[1]) == Orientation::collinear)
+    {
+        result.erase(result.begin());
+    }
+
+    // It shouldn't be possible for the potential removal of the first point
+    // leaves with fewer than 3 points, but check just in case.
+    CELER_ENSURE(result.size() >= 3);
 
     return result;
 }

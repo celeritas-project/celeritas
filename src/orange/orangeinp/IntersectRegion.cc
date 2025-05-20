@@ -534,10 +534,9 @@ void EllipticalCone::output(JsonPimpl* j) const
 /*!
  * Construct from a convex polygon, line segment, and scaling factors.
  */
-ExtrudedPolygon::ExtrudedPolygon(
-    ExtrudedPolygon::VecReal2 const& polygon,
-    ExtrudedPolygon::ArrayReal3 const& line_segment,
-    ExtrudedPolygon::ArrayReal const& scaling_factors)
+ExtrudedPolygon::ExtrudedPolygon(ExtrudedPolygon::VecReal2 const& polygon,
+                                 ExtrudedPolygon::ArrayReal3 line_segment,
+                                 ExtrudedPolygon::ArrayReal scaling_factors)
     : line_segment_{line_segment}, scaling_factors_{scaling_factors}
 {
     CELER_VALIDATE(polygon.size() >= 3,
@@ -558,16 +557,7 @@ ExtrudedPolygon::ExtrudedPolygon(
     real_type abs_tol = ::celeritas::detail::BumpCalculator(
         Tolerance<>::from_default())(extents);
 
-    auto colinear_mask
-        = detail::make_colinear_mask(make_span(polygon), abs_tol);
-    CELER_ASSERT(colinear_mask.size() == polygon.size());
-    for (auto i : range(polygon.size()))
-    {
-        if (!colinear_mask[i])
-        {
-            polygon_.push_back(polygon[i]);
-        }
-    }
+    polygon_ = detail::filter_colinear_points(polygon, abs_tol);
 
     // After removing colinear points, at least 3 points must remain
     CELER_VALIDATE(polygon_.size() >= 3,

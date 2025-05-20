@@ -254,9 +254,6 @@ class EllipticalCylinder final : public IntersectRegionInterface
  * to the upper and lower polygons via scalar multiplication with each polygon
  * point, then the points on the line are used to offset the upper and lower
  * polygons.
- *
- * The line_segment and scaling parameters are stored as const references and
- * must have lifetimes longer than this class.
  */
 class ExtrudedPolygon final : public IntersectRegionInterface
 {
@@ -271,8 +268,8 @@ class ExtrudedPolygon final : public IntersectRegionInterface
   public:
     // Construct from a convex polygon, line segment, and scaling factors
     ExtrudedPolygon(VecReal2 const& polygon,
-                    ArrayReal3 const& line_segment,
-                    ArrayReal const& scaling);
+                    ArrayReal3 line_segment,
+                    ArrayReal scaling);
 
     // Build surfaces
     void build(IntersectSurfaceBuilder&) const final;
@@ -304,8 +301,8 @@ class ExtrudedPolygon final : public IntersectRegionInterface
     //// DATA ////
 
     VecReal2 polygon_;
-    ArrayReal3 const& line_segment_;
-    ArrayReal const& scaling_factors_;
+    ArrayReal3 line_segment_;
+    ArrayReal scaling_factors_;
     ArrayReal x_range_;
     ArrayReal y_range_;
 
