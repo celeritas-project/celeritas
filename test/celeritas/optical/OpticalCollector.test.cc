@@ -26,13 +26,11 @@
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/ModelImporter.hh"
-#include "celeritas/optical/detail/OffloadParams.hh"
+#include "celeritas/optical/gen/OffloadParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 
 #include "celeritas_test.hh"
-
-using celeritas::detail::OpticalOffloadState;
 
 namespace celeritas
 {

@@ -11,21 +11,19 @@
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/optical/GeneratorDistributionData.hh"
-#include "celeritas/optical/ScintillationData.hh"
-#include "celeritas/optical/ScintillationGenerator.hh"
-#include "celeritas/optical/ScintillationOffload.hh"
-#include "celeritas/optical/ScintillationParams.hh"
 #include "celeritas/optical/TrackInitializer.hh"
 #include "celeritas/optical/detail/OpticalUtils.hh"
+#include "celeritas/optical/gen/GeneratorDistributionData.hh"
+#include "celeritas/optical/gen/ScintillationData.hh"
+#include "celeritas/optical/gen/ScintillationGenerator.hh"
+#include "celeritas/optical/gen/ScintillationOffload.hh"
+#include "celeritas/optical/gen/ScintillationParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
 #include "OpticalTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
-{
-namespace optical
 {
 namespace test
 {
@@ -119,7 +117,7 @@ class ParticleScintillationTest : public ScintillationTestBase
         inp.resolution_scale.push_back(1);
 
         // One particle, one component (based on lar-sphere.gdml)
-        inp.pid_to_scintpid.push_back(ScintillationParticleId(0));
+        inp.pid_to_scintpid.push_back(ScintParticleId(0));
         ImportParticleScintSpectrum ipss;
         ipss.yield_vector = this->build_particle_yield();
         ipss.components = this->build_particle_components();
@@ -293,7 +291,7 @@ TEST_F(MaterialScintillationTest, basic)
             auto p = generate_photon(rng);
 
             // Accumulate averages
-            avg_lambda += detail::energy_to_wavelength(p.energy);
+            avg_lambda += optical::detail::energy_to_wavelength(p.energy);
             avg_time += p.time;
             avg_cosine += dot_product(p.direction, inc_dir);
 
@@ -409,7 +407,7 @@ TEST_F(MaterialScintillationTest, stress_test)
     for ([[maybe_unused]] auto i : range(num_photons))
     {
         auto p = generate_photon(rng);
-        avg_lambda += detail::energy_to_wavelength(p.energy);
+        avg_lambda += optical::detail::energy_to_wavelength(p.energy);
     }
     avg_lambda /= static_cast<real_type>(num_photons);
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
@@ -437,5 +435,4 @@ TEST_F(MaterialScintillationTest, stress_test)
 
 //---------------------------------------------------------------------------//
 }  // namespace test
-}  // namespace optical
 }  // namespace celeritas

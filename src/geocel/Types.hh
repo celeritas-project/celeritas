@@ -50,6 +50,9 @@ using VolumeId = OpaqueId<struct Volume_>;
 //! Identifier for an instance of a geometry volume (aka physical/placed)
 using VolumeInstanceId = OpaqueId<struct VolumeInstance_>;
 
+//! Identifier for a unique volume in global space (aka touchable)
+using VolumeUniqueInstanceId = OpaqueId<struct VolumeInstance_, ull_int>;
+
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//

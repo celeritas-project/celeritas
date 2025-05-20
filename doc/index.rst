@@ -147,15 +147,15 @@ accessing the device.
 Geometry
 --------
 
-Celeritas has two choices of geometry implementation. VecGeom_ is a
-CUDA-compatible library for navigation on Geant4 detector geometries.
+Celeritas has two main choices for model geometry representation and
+navigation. VecGeom
+:cite:`vecgeom-2015` is a CUDA-compatible library for navigation on Geant4
+detector geometries.
 :ref:`api_orange` is a work in progress for surface-based geometry navigation
 that is "platform portable", i.e., able to run on GPUs from multiple vendors.
 
 Celeritas wraps both geometry packages with a uniform interface for changing
 and querying the geometry state.
-
-.. _VecGeom: https://gitlab.cern.ch/VecGeom/VecGeom
 
 Units
 -----
@@ -278,7 +278,7 @@ configuration attributes.
 
    implementation/corecel.rst
    implementation/data-model.rst
-   implementation/orange.rst
+   implementation/geometry.rst
    implementation/units-constants.rst
    implementation/core-physics.rst
    implementation/em-physics.rst

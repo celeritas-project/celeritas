@@ -59,11 +59,11 @@
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/RootCoreParamsOutput.hh"
 #include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/optical/CherenkovParams.hh"
 #include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/ModelImporter.hh"
 #include "celeritas/optical/OpticalCollector.hh"
-#include "celeritas/optical/ScintillationParams.hh"
+#include "celeritas/optical/gen/CherenkovParams.hh"
+#include "celeritas/optical/gen/ScintillationParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
@@ -329,9 +329,7 @@ auto build_optical_offload(inp::OpticalStateCapacity const& cap,
                            CoreParams& params,
                            ImportData const& imported)
 {
-    using optical::CherenkovParams;
     using optical::MaterialParams;
-    using optical::ScintillationParams;
 
     CELER_VALIDATE(
         !imported.optical_materials.empty(),

@@ -10,21 +10,21 @@
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/optical/gen/OffloadParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
-#include "CherenkovParams.hh"
 #include "CoreParams.hh"
 #include "MaterialParams.hh"
-#include "OffloadData.hh"
-#include "ScintillationParams.hh"
+#include "gen/CherenkovParams.hh"
+#include "gen/OffloadData.hh"
+#include "gen/ScintillationParams.hh"
+#include "gen/detail/CherenkovGeneratorAction.hh"
+#include "gen/detail/CherenkovOffloadAction.hh"
+#include "gen/detail/OffloadGatherAction.hh"
+#include "gen/detail/ScintGeneratorAction.hh"
+#include "gen/detail/ScintOffloadAction.hh"
 
-#include "detail/CherenkovGeneratorAction.hh"
-#include "detail/CherenkovOffloadAction.hh"
-#include "detail/OffloadGatherAction.hh"
-#include "detail/OffloadParams.hh"
 #include "detail/OpticalLaunchAction.hh"
-#include "detail/ScintGeneratorAction.hh"
-#include "detail/ScintOffloadAction.hh"
 
 namespace celeritas
 {
@@ -45,8 +45,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
 
     // Create offload params
     AuxParamsRegistry& aux = *core.aux_reg();
-    offload_params_
-        = std::make_shared<detail::OffloadParams>(aux.next_id(), setup);
+    offload_params_ = std::make_shared<OffloadParams>(aux.next_id(), setup);
     aux.insert(offload_params_);
 
     // Action to gather pre-step data needed to generate optical distributions
@@ -152,7 +151,7 @@ AuxId OpticalCollector::optical_aux_id() const
  */
 OpticalAccumStats OpticalCollector::exchange_counters(AuxStateVec& aux) const
 {
-    auto& state = dynamic_cast<detail::OpticalOffloadStateBase&>(
+    auto& state = dynamic_cast<OpticalOffloadStateBase&>(
         aux.at(this->offload_aux_id()));
     return std::exchange(state.accum, {});
 }
@@ -164,7 +163,7 @@ OpticalAccumStats OpticalCollector::exchange_counters(AuxStateVec& aux) const
 auto OpticalCollector::buffer_counts(AuxStateVec const& aux) const
     -> OpticalBufferSize const&
 {
-    auto& state = dynamic_cast<detail::OpticalOffloadStateBase const&>(
+    auto& state = dynamic_cast<OpticalOffloadStateBase const&>(
         aux.at(this->offload_aux_id()));
     return state.buffer_size;
 }
