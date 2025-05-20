@@ -9,6 +9,8 @@
 #include <memory>
 #include <random>
 
+#include "corecel/Config.hh"
+
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
@@ -301,6 +303,7 @@ TEST_F(SimpleComptonTest, kill_active)
     counters = step();
     EXPECT_EQ(0, counters.alive);
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS
+        && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
         && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
         && CELERITAS_USE_GEANT4)
     {
@@ -410,7 +413,8 @@ TEST_F(BadGeometryTest, no_volume_host)
         R"(Failed to initialize geometry state: could not find associated volume in universe 0 at local position {-5, 0, 0})",
         R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":false,"is_outside":true,"pos":[[-5.0,0.0,0.0],"cm"]},"mat":null,"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":0,"parent_id":-1,"post_step_action":"tracking-cut","status":"errored","step_length":[0.0,"cm"],"time":[0.0,"s"],"track_id":0},"thread_id":0,"track_slot_id":0}: depositing 100 MeV)",
     };
-    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS
+        && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages());
     }
@@ -445,7 +449,8 @@ TEST_F(BadGeometryTest, no_new_volume_host)
         R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":true,"is_outside":true,"pos":[[-6.0,0.0,0.0],"cm"]},"mat":null,"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":1,"parent_id":-1,"post_step_action":"tracking-cut","status":"errored","step_length":[0.0010,"cm"],"time":[3.336e-14,"s"],"track_id":0},"thread_id":0,"track_slot_id":0}: depositing 100 MeV)",
     };
 
-    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS
+        && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages())
             << scoped_log;
