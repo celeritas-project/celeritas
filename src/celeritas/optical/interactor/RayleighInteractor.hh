@@ -92,13 +92,16 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng) const
         else
         {
             // Project polarization onto plane perpendicular to new direction
-            new_pol = make_unit_vector(inc_pol_ - projected_pol * new_dir);
+            new_pol = inc_pol_ - projected_pol * new_dir;
+            new_pol = make_unit_vector(
+                new_pol - dot_product(new_pol, new_dir) * new_dir);
             new_pol *= BernoulliDistribution{real_type{0.5}}(rng) ? 1 : -1;
         }
 
         // Accept with the probability of the scattered polarization overlap
         // squared
-    } while (RejectionSampler{ipow<2>(dot_product(new_pol, inc_pol_))}(rng));
+    } while (RejectionSampler{ipow<2>(
+        clamp<real_type>(dot_product(new_pol, inc_pol_), -1, 1))}(rng));
 
     CELER_ENSURE(is_soft_unit_vector(new_dir));
     CELER_ENSURE(is_soft_unit_vector(new_pol));
