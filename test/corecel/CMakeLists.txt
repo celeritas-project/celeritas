@@ -76,7 +76,7 @@ celeritas_add_test(io/StringEnumMapper.test.cc)
 celeritas_add_test(io/StringUtils.test.cc)
 
 # Math
-celeritas_add_test(math/Algorithms.test.cc)
+celeritas_add_device_test(math/Algorithms)
 celeritas_add_test(math/ArrayOperators.test.cc)
 celeritas_add_test(math/ArrayUtils.test.cc)
 celeritas_add_test(math/PdfUtils.test.cc)

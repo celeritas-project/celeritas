@@ -12,7 +12,9 @@
 #include <utility>
 
 #include "corecel/Constants.hh"
+#include "corecel/data/CollectionMirror.hh"
 
+#include "Algorithms.test.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -596,6 +598,73 @@ TEST(PortabilityTest, popcount)
     EXPECT_EQ(1, popcount(x));
     x >>= 2;
     EXPECT_EQ(0, popcount(x));
+}
+
+//---------------------------------------------------------------------------//
+
+TEST(MathTest, TEST_IF_CELER_DEVICE(device))
+{
+    AlgorithmTestData data;
+    data.num_threads = 32;
+
+    auto mirror = [&] {
+        // Build the input data
+        HostVal<AlgorithmInputData> host_input;
+
+        // Input for testing sincospi
+        std::vector<double> pi_frac = {0.123, 0.0, 0.5, 1.0, 1.5};
+        make_builder(&host_input.pi_frac)
+            .insert_back(pi_frac.begin(), pi_frac.end());
+
+        // Input for testing fastpow, etc.
+        std::vector<double> a = {0.0, 0.0, 1234.0, 123.456, 1000.0, 2.0};
+        std::vector<double> b = {1.0, 5.55042, 0.0, 1.0, 1.0 / 3.0, -5.0};
+        make_builder(&host_input.a).insert_back(a.begin(), a.end());
+        make_builder(&host_input.b).insert_back(b.begin(), b.end());
+
+        // Copy to device
+        return CollectionMirror<AlgorithmInputData>{std::move(host_input)};
+    }();
+
+    // Built the output data
+    HostVal<AlgorithmOutputData> host_output;
+    resize(&host_output, mirror.host_ref(), data.num_threads);
+
+    // Copy to device
+    AlgorithmOutputData<Ownership::value, MemSpace::device> device_output;
+    device_output = host_output;
+
+    // Launch kernel
+    data.input = mirror.device_ref();
+    data.output = device_output;
+    alg_test(data);
+
+    // Copy result back to host
+    host_output = device_output;
+    {
+        // sincospi
+        auto threads = range(ThreadId{host_output.sinpi.size()});
+        static double const expected_sinpi[]
+            = {0.37687101041216264, 0.0, 1.0, 0.0, -1.0};
+        static double const expected_cospi[]
+            = {0.92626575101906661, 1.0, 0.0, -1.0, 0.0};
+        EXPECT_VEC_SOFT_EQ(expected_sinpi, host_output.sinpi[threads]);
+        EXPECT_VEC_SOFT_EQ(expected_cospi, host_output.cospi[threads]);
+    }
+    {
+        // fastpow
+        auto threads = range(ThreadId{host_output.fastpow.size()});
+        static double const expected_fastpow[]
+            = {0, 0, 1, 123.456, 10, 0.03125};
+        EXPECT_VEC_SOFT_EQ(expected_fastpow, host_output.fastpow[threads]);
+    }
+    {
+        // hypot
+        auto threads = range(ThreadId{host_output.hypot.size()});
+        static double const expected_hypot[] = {
+            1, 5.55042, 1234, 123.46004995949, 1000.0000555556, 5.3851648071345};
+        EXPECT_VEC_SOFT_EQ(expected_hypot, host_output.hypot[threads]);
+    }
 }
 
 //---------------------------------------------------------------------------//
