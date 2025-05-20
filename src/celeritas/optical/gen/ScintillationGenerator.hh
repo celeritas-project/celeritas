@@ -158,8 +158,11 @@ ScintillationGenerator::operator()(Generator& rng)
         {
             temp[j] = cosphi * temp[j] + sinphi * perp[j];
         }
+        // Enforce orthogonality
+        temp -= dot_product(temp, photon.direction) * photon.direction;
         return make_unit_vector(temp);
     }();
+    CELER_ASSERT(soft_zero(dot_product(photon.polarization, photon.direction)));
 
     // Sample position: endpoint (collision site) if neutral, else uniform
     real_type u = is_neutral_ ? 1 : UniformRealDist{}(rng);

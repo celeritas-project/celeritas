@@ -168,6 +168,7 @@ CherenkovGenerator::operator()(Generator& rng)
     // Photon polarization is perpendicular to the cone's surface
     photon.polarization
         = rotate(from_spherical(-std::sqrt(sin_theta_sq), phi), dir_);
+    CELER_ASSERT(soft_zero(dot_product(photon.polarization, photon.direction)));
 
     // Sample fraction along the step
     UniformRealDistribution<> sample_step_fraction;
