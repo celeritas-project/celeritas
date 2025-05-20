@@ -706,24 +706,19 @@ CELER_FORCEINLINE_FUNCTION double rsqrt(double value)
 #endif
 }
 
-#if CELER_DEVICE_SOURCE
+#ifndef CELER_DEVICE_SOURCE
 // CUDA/HIP define sinpi, cospi, sinpif, cospif, ...
-#    undef CELERITAS_SINCOSPI_PREFIX
-#    define CELERITAS_SINCOSPI_PREFIX
-#endif
-
-#ifdef CELERITAS_SINCOSPI_PREFIX
+#    ifdef CELERITAS_SINCOSPI_PREFIX
 // Apple-supplied headers define __sinpi, __sinpif, __sincospi, ...
-#    define CELER_CONCAT_IMPL(PREFIX, FUNC) PREFIX##FUNC
-#    define CELER_CONCAT(PREFIX, FUNC) CELER_CONCAT_IMPL(PREFIX, FUNC)
-#    define CELER_SINCOS_MANGLED(FUNC) \
-        CELER_CONCAT(CELERITAS_SINCOSPI_PREFIX, FUNC)
-#else
+#        define CELER_CONCAT_IMPL(PREFIX, FUNC) PREFIX##FUNC
+#        define CELER_CONCAT(PREFIX, FUNC) CELER_CONCAT_IMPL(PREFIX, FUNC)
+#        define CELER_SINCOS_MANGLED(FUNC) \
+            CELER_CONCAT(CELERITAS_SINCOSPI_PREFIX, FUNC)
+#    else
 // Use implementations from detail/MathImpl.hh
-#    define CELERITAS_SINCOSPI_PREFIX ::celeritas::detail::
-#    define CELER_SINCOS_MANGLED(FUNC) ::celeritas::detail::FUNC
-#endif
-
+#        define CELERITAS_SINCOSPI_PREFIX ::celeritas::detail::
+#        define CELER_SINCOS_MANGLED(FUNC) ::celeritas::detail::FUNC
+#    endif
 //!@{
 //! Get the sine or cosine of a value multiplied by pi for increased precision
 CELER_FORCEINLINE_FUNCTION float sinpi(float a)
@@ -767,6 +762,7 @@ CELER_FORCEINLINE_FUNCTION void sincospi(double a, double* s, double* c)
     return CELER_SINCOS_MANGLED(sincospi)(a, s, c);
 }
 //!@}
+#endif
 
 //!@}
 
