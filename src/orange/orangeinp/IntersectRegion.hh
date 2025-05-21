@@ -9,6 +9,8 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/cont/EnumArray.hh"
+#include "corecel/grid/GridTypes.hh"
 #include "corecel/math/Turn.hh"
 #include "orange/OrangeTypes.hh"
 
@@ -338,8 +340,6 @@ class ExtrudedPolygon final : public IntersectRegionInterface
     //!@{
     //! \name Type aliases
     using VecReal2 = std::vector<Real2>;
-    using ArrayReal3 = celeritas::Array<Real3, 2>;
-    using ArrayReal = celeritas::Array<real_type, 2>;
 
     //! Specifies the top or bottom face of the ExtrudedPolygon
     struct PolygonFace
@@ -370,27 +370,30 @@ class ExtrudedPolygon final : public IntersectRegionInterface
     //! Polygon points (2D)
     VecReal2 polygon() const { return polygon_; }
 
-    //! Line segment points (3D)
-    ArrayReal3 line_segment() const { return line_segment_; }
+    ////! Line segment points (3D)
+    // ArrayReal3 line_segment() const { return line_segment_; }
 
-    //! Scaling factors along the line segment
-    ArrayReal scaling_factors() const { return scaling_factors_; }
+    ////! Scaling factors along the line segment
+    // ArrayReal scaling_factors() const { return scaling_factors_; }
 
   private:
+    //// TYPES ////
+    using Range = celeritas::Array<real_type, 2>;
+
     //// DATA ////
 
     VecReal2 polygon_;
 
-    ArrayReal3 line_segment_;
-    ArrayReal scaling_factors_;
+    EnumArray<Bound, Real3> line_segment_;
+    EnumArray<Bound, real_type> scaling_factors_;
 
-    ArrayReal x_range_;
-    ArrayReal y_range_;
+    Range x_range_;
+    Range y_range_;
 
     // >> HELPER FUNCTIONS
 
     // Calculate the min/max x or y values of the extruded IntersectRegion
-    ArrayReal calc_range(VecReal2 const& polygon, size_type dir);
+    Range calc_range(VecReal2 const& polygon, size_type dir);
 };
 
 //---------------------------------------------------------------------------//

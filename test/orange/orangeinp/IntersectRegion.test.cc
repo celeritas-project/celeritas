@@ -665,9 +665,6 @@ TEST_F(ExtrudedPolygonTest, skewed)
                                       Real2{2, 2},
                                       Real2{1, 0}};
 
-    ExtrudedPolygon::ArrayReal3 line{Real3{4, 3, 10}, Real3{10, 11, 15}};
-    ExtrudedPolygon::ArrayReal scaling{0.7, 0.5};
-
     ExtrudedPolygon::PolygonFace bot{Real3{4, 3, 10}, 0.7};
     ExtrudedPolygon::PolygonFace top{Real3{10, 11, 15}, 0.5};
 
