@@ -557,7 +557,7 @@ ExtrudedPolygon::ExtrudedPolygon(ExtrudedPolygon::VecReal2 const& polygon,
     real_type abs_tol = ::celeritas::detail::BumpCalculator(
         Tolerance<>::from_default())(extents);
 
-    polygon_ = detail::filter_colinear_points(polygon, abs_tol);
+    polygon_ = detail::filter_collinear_points(polygon, abs_tol);
 
     // After removing colinear points, at least 3 points must remain
     CELER_VALIDATE(polygon_.size() >= 3,

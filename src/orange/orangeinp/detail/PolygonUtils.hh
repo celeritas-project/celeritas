@@ -200,7 +200,7 @@ inline bool is_convex(Span<Real2 const> corners, bool degen_ok = false)
  * found to be colinear, it is not used for future colinearity checks.
  */
 std::vector<Real2>
-filter_colinear_points(std::vector<Real2> const& corners, double abs_tol)
+filter_collinear_points(std::vector<Real2> const& corners, double abs_tol)
 {
     CELER_EXPECT(corners.size() >= 3);
 
