@@ -75,10 +75,21 @@ TEST(ArrayUtilsTest, make_unit_vector)
 {
     Dbl3 direction = make_unit_vector(Dbl3{1, 2, 3});
     double const norm = 1 / std::sqrt(1 + 4 + 9);
-    static double const expected[] = {1 * norm, 2 * norm, 3 * norm};
-    EXPECT_VEC_SOFT_EQ(expected, direction);
+    EXPECT_VEC_SOFT_EQ((Dbl3{1 * norm, 2 * norm, 3 * norm}), direction);
+
+    EXPECT_TRUE(std::isnan(make_unit_vector(Dbl3{0, 0, 0})[0]));
 }
 
+TEST(ArrayUtilsTest, make_orthogonal)
+{
+    EXPECT_VEC_SOFT_EQ((Dbl3{2, 0, 0}),
+                       make_orthogonal(Dbl3{2, 0, 0}, Dbl3{0, 0, 1}));
+    EXPECT_VEC_SOFT_EQ((Dbl3{0, 1, 3}),
+                       make_orthogonal(Dbl3{2, 1, 3}, Dbl3{1, 0, 0}));
+    EXPECT_VEC_SOFT_EQ(
+        (Dbl3{0.5, -0.5, 3}),
+        make_orthogonal(Dbl3{2, 1, 3}, make_unit_vector(Dbl3{1, 1, 0})));
+}
 TEST(ArrayUtilsTest, is_soft_unit_vector)
 {
     Real3 dir = make_unit_vector(Real3{1, 2, 3});
