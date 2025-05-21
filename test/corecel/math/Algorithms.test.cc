@@ -135,15 +135,18 @@ TEST(AlgorithmsTest, clamp)
     {
         EXPECT_THROW(clamp(150, 200, 100), DebugError);
     }
+
+    constexpr auto nan = std::numeric_limits<real_type>::quiet_NaN();
+    EXPECT_TRUE(std::isnan(clamp(nan, real_type{-1}, real_type{1})));
 }
 
 TEST(AlgorithmsTest, clamp_to_nonneg)
 {
-    constexpr auto nan = std::numeric_limits<double>::quiet_NaN();
-
     EXPECT_DOUBLE_EQ(1.2345, clamp_to_nonneg(1.2345));
     EXPECT_DOUBLE_EQ(0.0, clamp_to_nonneg(-123));
     EXPECT_EQ(pi, clamp_to_nonneg(pi));
+
+    constexpr auto nan = std::numeric_limits<double>::quiet_NaN();
     EXPECT_TRUE(std::isnan(clamp_to_nonneg(nan)));
 }
 
@@ -275,6 +278,12 @@ TEST(AlgorithmsTest, minmax)
 {
     EXPECT_EQ(1, min<int>(1, 2));
     EXPECT_EQ(2, max<int>(1, 2));
+
+    constexpr auto nan = std::numeric_limits<real_type>::quiet_NaN();
+    EXPECT_EQ(real_type{1}, min(real_type{1}, nan));
+    EXPECT_EQ(real_type{1}, min(nan, real_type{1}));
+    EXPECT_EQ(real_type{1}, max(real_type{1}, nan));
+    EXPECT_EQ(real_type{1}, max(nan, real_type{1}));
 }
 
 TEST(AlgorithmsTest, min_element)
