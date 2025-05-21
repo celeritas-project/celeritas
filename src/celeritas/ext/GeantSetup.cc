@@ -29,6 +29,7 @@
 #include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/ScopedGeantLogger.hh"
+#include "geocel/g4/GeantGeoParams.hh"
 
 #include "EmPhysicsList.hh"
 
@@ -106,11 +107,15 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
 
         // Load GDML and reference the world pointer
         // TODO: pass GdmlLoader options through SetupOptions
-        world_ = load_gdml(gdml_filename);
-        CELER_ASSERT(world_);
+        auto* world = load_gdml(gdml_filename);
+        CELER_ASSERT(world);
+
+        // Create Geant4 geo wrapper and save as global tracking geometry
+        geo_ = std::make_shared<GeantGeoParams>(world);
+        celeritas::geant_geo(*geo_);
 
         // Construct the geometry
-        auto detector = std::make_unique<DetectorConstruction>(world_);
+        auto detector = std::make_unique<DetectorConstruction>(world);
         run_manager_->SetUserInitialization(detector.release());
 
         // Construct the physics
@@ -127,7 +132,6 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
         run_manager_->RunInitialization();
     }
 
-    CELER_ENSURE(world_);
     CELER_ENSURE(*this);
 }
 

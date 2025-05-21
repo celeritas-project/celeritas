@@ -21,6 +21,7 @@ class G4RunManager;
 
 namespace celeritas
 {
+class GeantGeoParams;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -31,6 +32,9 @@ namespace celeritas
  * It is safe to include even when Geant4 is unavailable!
  *
  * The setup is targeted specifically for physics that Celeritas supports.
+ *
+ * \todo This is a hot mess; it needs to be unified with inp/setup and not
+ * passed around by moving it.
  */
 class GeantSetup
 {
@@ -38,6 +42,7 @@ class GeantSetup
     //!@{
     //! \name Type aliases
     using Options = GeantPhysicsOptions;
+    using SPGeantGeo = std::shared_ptr<GeantGeoParams>;
     //!@}
 
   public:
@@ -53,8 +58,8 @@ class GeantSetup
     //! Prevent copying but allow moving
     CELER_DEFAULT_MOVE_DELETE_COPY(GeantSetup);
 
-    // Get the world detector volume
-    inline G4VPhysicalVolume const* world() const;
+    //! Get the constructed geometry
+    SPGeantGeo const& geo_params() const { return geo_; }
 
     //! True if we own a run manager
     explicit operator bool() const { return static_cast<bool>(run_manager_); }
@@ -67,24 +72,11 @@ class GeantSetup
     using RMUniquePtr = std::unique_ptr<G4RunManager, RMDeleter>;
 
     RMUniquePtr run_manager_{nullptr};
-    G4VPhysicalVolume* world_{nullptr};
+    SPGeantGeo geo_;
 };
 
 //---------------------------------------------------------------------------//
-// FREE FUNCTIONS
-
-//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Get the world detector volume.
- */
-G4VPhysicalVolume const* GeantSetup::world() const
-{
-    CELER_EXPECT(*this);
-    return world_;
-}
-
 #if !CELERITAS_USE_GEANT4
 inline GeantSetup::GeantSetup(std::string const&, Options)
 {
