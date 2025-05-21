@@ -62,10 +62,7 @@ class GeantVolumeMapperTestBase : public ::celeritas::test::Test
     // Clean up geometry at destruction
     void TearDown() override
     {
-        if (CELERITAS_USE_GEANT4)
-        {
-            reset_geant_geometry();
-        }
+        geant_geo_params_.reset();
         geo_params_.reset();
     }
 
@@ -75,6 +72,8 @@ class GeantVolumeMapperTestBase : public ::celeritas::test::Test
         if (CELERITAS_USE_GEANT4)
         {
             this->build_g4();
+            CELER_ASSERT(geant_geo_params_);
+            celeritas::geant_geo(*geant_geo_params_);
         }
         CELER_ASSERT(!logical_.empty());
 
@@ -223,20 +222,6 @@ void NestedTest::build_orange()
     CELER_DISCARD(geo);
 #endif
 }
-
-//---------------------------------------------------------------------------//
-// NESTED TEST
-//---------------------------------------------------------------------------//
-class IntersectionTest : public GeantVolumeMapperTestBase
-{
-  private:
-    void build_g4() final;
-    void build_vecgeom() final;
-    void build_orange() final;
-
-  protected:
-    bool suffix_{false};
-};
 
 #if CELERITAS_CORE_GEO != CELERITAS_CORE_VECGEOM
 #    define SKIP_UNLESS_VECGEOM(NAME) DISABLED_##NAME

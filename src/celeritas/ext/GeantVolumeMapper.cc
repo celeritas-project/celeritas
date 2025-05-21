@@ -47,7 +47,7 @@ VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const& lv)
     CELER_VALIDATE(geant_geo, << "global Geant4 geometry is not loaded");
     id = geant_geo->geant_to_id(lv);
     CELER_VALIDATE(id,
-                   << "logical volume '" << PrintableLV{&lv}
+                   << "logical volume '" << lv.GetName()
                    << "' is not in the tracking volume");
     // TODO: volume ID should correspond one-to-one?
     auto const& label = geant_geo->volumes().at(id);

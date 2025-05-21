@@ -102,17 +102,14 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
     ScopedGeantLogger scoped_logger(celeritas::world_logger());
     ScopedGeantExceptionHandler scoped_exceptions;
 
+    G4VPhysicalVolume* world{nullptr};
     {
         CELER_LOG(status) << "Initializing Geant4 geometry and physics list";
 
         // Load GDML and reference the world pointer
         // TODO: pass GdmlLoader options through SetupOptions
-        auto* world = load_gdml(gdml_filename);
+        world = load_gdml(gdml_filename);
         CELER_ASSERT(world);
-
-        // Create Geant4 geo wrapper and save as global tracking geometry
-        geo_ = std::make_shared<GeantGeoParams>(world);
-        celeritas::geant_geo(*geo_);
 
         // Construct the geometry
         auto detector = std::make_unique<DetectorConstruction>(world);
@@ -130,6 +127,12 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
 
         run_manager_->Initialize();
         run_manager_->RunInitialization();
+    }
+
+    {
+        // Create Geant4 geo wrapper and save as global tracking geometry
+        geo_ = std::make_shared<GeantGeoParams>(world);
+        celeritas::geant_geo(*geo_);
     }
 
     CELER_ENSURE(*this);

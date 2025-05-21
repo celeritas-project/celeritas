@@ -252,7 +252,7 @@ TEST_F(SimpleCmsTest, detached_detector)
             this->make_hit_manager();
         } catch (celeritas::RuntimeError const& e) {
             EXPECT_EQ(
-                R"(logical volume 'unused' is not in the world volume 'world_PV' (7 volumes found))",
+                R"(logical volume 'unused' is not in the tracking volume)",
                 e.details().what);
             throw;
         },

@@ -266,8 +266,8 @@ SharedParams::SharedParams(SetupOptions const& options)
     CELER_ASSERT(params_);
 
     // Load geant4 geometry adapter and save as "global"
-    CELER_ASSERT(loaded.world);
-    geant_geo_ = std::make_shared<GeantGeoParams>(loaded.world);
+    CELER_ASSERT(loaded.geo);
+    geant_geo_ = std::move(loaded.geo);
     celeritas::geant_geo(*geant_geo_);
 
     // Save built attributes
