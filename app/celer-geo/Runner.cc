@@ -11,11 +11,9 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Stopwatch.hh"
+#include "geocel/g4/GeantGeoParams.hh"
 #include "geocel/rasterize/RaytraceImager.hh"
 #include "orange/OrangeParams.hh"
-#if CELERITAS_USE_GEANT4
-#    include "geocel/g4/GeantGeoParams.hh"
-#endif
 #if CELERITAS_USE_VECGEOM
 #    include "geocel/vg/VecgeomParams.hh"
 #endif
