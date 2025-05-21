@@ -159,7 +159,7 @@ ScintillationGenerator::operator()(Generator& rng)
             pol[j] = cosphi * pol[j] + sinphi * perp[j];
         }
         // Enforce orthogonality
-        return = make_unit_vector(make_orthogonal(pol, photon.direction));
+        return make_unit_vector(make_orthogonal(pol, photon.direction));
     }();
     CELER_ASSERT(soft_zero(dot_product(photon.polarization, photon.direction)));
 

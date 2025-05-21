@@ -134,14 +134,20 @@ void orthonormalize(SquareMatrix<T, N>* mat)
     {
         Array<T, N>& cur = (*mat)[i];
 
-        // Orthogonalize against previous (already orthogonal) rows
+        // Orthogonalize against previous rows
         for (size_type ip = 0; ip != i; ++ip)
         {
-            cur = make_orthogonal(cur, (*mat)[ip]);
+            Array<T, N>& prev = (*mat)[ip];
+            T proj = dot_product(cur, prev);
+            axpy(-proj, prev, &cur);
         }
 
         // Normalize row
-        cur[j] = make_unit_vector(cur[j]);
+        T inv_mag = 1 / norm(cur);
+        for (size_type j = 0; j != N; ++j)
+        {
+            cur[j] *= inv_mag;
+        }
     }
 
     // Check result for orthonormality

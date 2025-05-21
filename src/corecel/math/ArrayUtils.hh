@@ -159,12 +159,12 @@ CELER_FUNCTION Array<T, N> make_unit_vector(Array<T, N> const& v)
 /*!
  * Return the component of \em x that is orthogonal to the unit vector \em y.
  *
- * In this implementation, \em y must be normalized, and the result is normal.
+ * In this implementation, \em y must be normalized, and the result is not
+ * normalized.
  *
  * \f[
-  \mathbf{x}' \gets
- \mathbf{x} - \frac{\mathbf{x} \cdot \mathbf{y}}{\mathbf{y} \cdot \mathbf{y}}
-\mathbf{y}
+\mathbf{x}' \gets \mathbf{x} - (\mathbf{x} \cdot \mathbf{y}) \mathbf{y}
+\, , \quad \|\mathbf{y}\| = 1
 \f]
  */
 template<class T, size_type N>
