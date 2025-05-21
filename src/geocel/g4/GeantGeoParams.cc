@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "GeantGeoParams.hh"
 
+#include <unordered_map>
 #include <vector>
 #include <G4GeometryManager.hh>
 #include <G4LogicalVolume.hh>
@@ -33,6 +34,7 @@
 #include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/ScopedGeantLogger.hh"
+#include "geocel/detail/MakeLabelVector.hh"
 
 #include "Convert.hh"  // IWYU pragma: associated
 #include "GeantGeoData.hh"  // IWYU pragma: associated
@@ -57,6 +59,70 @@ LevelId::size_type get_max_depth(G4VPhysicalVolume const& world)
         world);
     // Maximum "depth" is one greater than "highest level"
     return result + 1;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a reproducible vector of LV instance ID -> label from the given world.
+ */
+std::vector<Label> make_logical_vol_labels(G4VPhysicalVolume const& world)
+{
+    std::unordered_map<std::string, std::vector<G4LogicalVolume const*>> names;
+
+    visit_volumes(
+        [&](G4LogicalVolume const& lv) {
+            std::string name = lv.GetName();
+            if (name.empty())
+            {
+                CELER_LOG(debug)
+                    << "Empty name for reachable LV id=" << lv.GetInstanceID();
+                name = "[UNTITLED]";
+            }
+            // Add to name map
+            names[std::move(name)].push_back(&lv);
+        },
+        world);
+
+    return detail::make_label_vector<G4LogicalVolume const*>(
+        std::move(names),
+        [](G4LogicalVolume const* lv) { return lv->GetInstanceID(); });
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a reproducible vector of PV instance ID -> label from the given world.
+ */
+std::vector<Label> make_physical_vol_labels(G4VPhysicalVolume const& world)
+{
+    std::unordered_map<G4VPhysicalVolume const*, int> max_depth;
+    std::unordered_map<std::string, std::vector<G4VPhysicalVolume const*>> names;
+
+    // Visit PVs, mapping names to instances, skipping those that have already
+    // been visited at a deeper level
+    visit_volume_instances(
+        [&](G4VPhysicalVolume const& pv, int depth) {
+            auto&& [iter, inserted] = max_depth.insert({&pv, depth});
+            if (!inserted)
+            {
+                if (iter->second >= depth)
+                {
+                    // Already visited PV at this depth or more
+                    return false;
+                }
+                // Update the max depth
+                iter->second = depth;
+            }
+
+            // Add to name map
+            names[pv.GetName()].push_back(&pv);
+            // Visit daughters
+            return true;
+        },
+        world);
+
+    return detail::make_label_vector<G4VPhysicalVolume const*>(
+        std::move(names),
+        [](G4VPhysicalVolume const* pv) { return pv->GetInstanceID(); });
 }
 
 //---------------------------------------------------------------------------//
@@ -250,7 +316,10 @@ VolumeId GeantGeoParams::find_volume(G4LogicalVolume const* volume) const
  *
  * \todo Create our own volume instance mapping for Geant4, where
  * VolumeInstanceId corresponds to a (G4PV*, int) pair rather than just G4PV*
- * (which in Geant4 is not sufficiently unique).
+ * (which in Geant4 is not sufficiently unique). See
+ * https://jira-geant4.kek.jp/browse/UR-100 and
+ * https://github.com/celeritas-project/celeritas/issues/1748 .
+ * When this is done, update g4org::PhysicalVolume .
  */
 GeantPhysicalInstance GeantGeoParams::id_to_geant(VolumeInstanceId id) const
 {
@@ -367,7 +436,7 @@ void GeantGeoParams::build_metadata()
                          << ", pv_offset=" << pv_offset_;
     }
 
-    // Construct volume labels
+    // Construct volume labels for physically reachable volumes
     volumes_ = VolumeMap{"volume", make_logical_vol_labels(*this->world())};
     vol_instances_ = VolInstanceMap{"volume instance",
                                     make_physical_vol_labels(*this->world())};
