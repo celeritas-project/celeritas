@@ -22,7 +22,6 @@ class GeoParamsInterface;
 //---------------------------------------------------------------------------//
 /*!
  * Manage params and state data for sensitive detectors.
- *
  */
 class SDParams final : public ParamsDataInterface<SDParamsData>
 {
@@ -30,21 +29,22 @@ class SDParams final : public ParamsDataInterface<SDParamsData>
     using VecLabel = std::vector<Label>;
 
   public:
-    // Default Constructor
+    //! Default Constructor
     SDParams() {};
 
-    // Construct from volume labels
+    //! Construct from volume labels
     SDParams(VecLabel const volume_labels, GeoParamsInterface const& geo);
 
-    // Access detector ID based on volume ID
+    //! Access detector ID based on volume ID
     DetectorId volume_to_detector_id(VolumeId vol_id)
     {
         return host_ref().detector[vol_id];
     }
 
-    // Access volume ID based on detector ID
+    //! Access volume ID based on detector ID
     VolumeId detector_to_volume_id(DetectorId det_id)
     {
+        CELER_EXPECT(det_id < volume_ids_.size());
         return volume_ids_[det_id.get()];
     }
 

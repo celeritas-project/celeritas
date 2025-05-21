@@ -19,7 +19,7 @@ struct SDParamsData
 {
     //// DATA ////
 
-    // ! Mapping for volume -> sensitive detector
+    //! Mapping for volume -> sensitive detector
     Collection<DetectorId, W, M, VolumeId> detector;
 
     //! Whether the data is assigned
