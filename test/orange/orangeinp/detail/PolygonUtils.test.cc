@@ -149,8 +149,24 @@ TEST(PolygonUtilsTest, convex_self_intersect)
     EXPECT_FALSE(is_convex(self_int2));
 }
 
+/* Test removal of colinear points using points a through g, which when
+ * traversed clockewise form a convex polygon.
+ *
+ *     c . . . . . d  |_ 2
+ *     .              |.
+ *     .              |     .
+ *    .               |         .
+ *    .               |_ 1          e
+ *    .               |           .
+ *   .                |          .
+ *   .                |         .
+ *   b________________a____g__f_________
+ *   |        |       |       |        |
+ *  -1       -0.5     0      0.5       1
+ */
 TEST(PolygonUtilsTest, filter_colinear_points)
 {
+    // Function for comparing filtered polygon results
     auto expect_eq = [](VecReal2 const& a, VecReal2 const& b) {
         EXPECT_EQ(a.size(), b.size());
         for (auto i : range(a.size()))
@@ -160,16 +176,72 @@ TEST(PolygonUtilsTest, filter_colinear_points)
         }
     };
 
+    // Points locations, as labled above
+    Real2 a = {0, 0};
+    Real2 b = {-1. - 1e-5};
+    Real2 c = {-0.9, -0.1};
+    Real2 d = {0.75, 1};
+    Real2 e = {0.75, 0.5};
+    Real2 f = {0.5, 1e-5};
+    Real2 g = {0.35, 1e-6};
+
     using VecReal2 = std::vector<Real2>;
     real_type tol = 0.01;
 
-    // Nothing colinear
-    VecReal2 corners{{0, 0}, {0, 1}, {1, 1}, {1, 0}};
-    expect_eq(corners, make_colinear_mask(make_span(corners), tol));
+    // no colinear points (b through f)
+    VecReal2 points{b, c, d, e, f};
+    VecReal2 exp = points;
+    expect_eq(exp, filter_colinear_points(points, tol));
 
-    // Nothing colinear
-    VecReal2 corners{{0, 0}, {0, 1}, {1, 1}, {1, 0}};
-    expect_eq(corners, make_colinear_mask(make_span(corners), tol));
+    // Point a is colinear, using a through f, and a comes first
+    points = {a, b, c, d, e, f};
+    exp = {b, c, d, e, f};
+    expect_eq(exp, filter_colinear_points(points, tol));
+
+    // Same, but a is second
+    points = {f, a, b, c, d, e};
+    exp = {f, b, c, d, e};
+    expect_eq(exp, filter_colinear_points(points, tol));
+
+    // Same, but a is third
+    points = {e, f, a, b, c, d};
+    exp = {e, f, b, c, d};
+    expect_eq(exp, filter_colinear_points(points, tol));
+
+    // Same, but a is last
+    points = {b, c, d, e, f, a};
+    exp = {b, c, d, e, f};
+    expect_eq(exp, filter_colinear_points(points, tol));
+
+    // Same, but a is second
+    points = {f, a, b, c, d, e};
+    exp = {f, b, c, d, e};
+    expect_eq(exp, filter_colinear_points(points, tol));
+
+    // Points a and g are colinear, using a through g, and a comes first
+    points = {a, b, c, d, e, f, g};
+    exp = {b, c, d, e, f};
+    expect_eq(exp, filter_colinear_points(points, tol));
+
+    // Same, but a comes second
+    points = {g, a, b, c, d, e, f};
+    exp = {b, c, d, e, f};
+    expect_eq(exp, filter_colinear_points(points, tol));
+
+    // Same, but a comes third
+    points = {f, g, a, b, c, d, e};
+    exp = {f, b, c, d, e};
+    expect_eq(exp, filter_colinear_points(points, tol));
+
+    // Same, but a comes second to last
+    points = {c, d, e, f, g, a, b};
+    exp = {c, d, e, f, b};
+    expect_eq(exp, filter_colinear_points(points, tol));
+
+    // Same, but a comes last
+    points = {b, c, d, e, f, g, a};
+    exp = {b, c, d, e, f};
+    expect_eq(exp, filter_colinear_points(points, tol));
 }
 //---------------------------------------------------------------------------//
 }  // namespace test
