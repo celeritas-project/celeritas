@@ -11,6 +11,7 @@
 #include "corecel/Constants.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/grid/GridTypes.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/math/SoftEqual.hh"
@@ -538,13 +539,18 @@ ExtrudedPolygon::ExtrudedPolygon(ExtrudedPolygon::VecReal2 const& polygon,
                                  ExtrudedPolygon::ArrayReal3 line_segment,
                                  ExtrudedPolygon::ArrayReal scaling_factors)
     : line_segment_{line_segment}, scaling_factors_{scaling_factors}
+
 {
+    constexpr auto bot = Bound::lo;
+    constexpr auto top = Bound::hi;
+
     CELER_VALIDATE(polygon.size() >= 3,
                    << "polygon must consist of at least 3 points");
     CELER_VALIDATE(scaling_factors_[0] > 0 && scaling_factors_[1] > 0,
                    << "scaling factors must be positive");
-    CELER_VALIDATE(line_segment_[BOT][Z] < line_segment_[TOP][Z],
-                   << "line segment must begin with lower z value");
+    CELER_VALIDATE(
+        line_segment_[to_int(bot)][Z] < line_segment_[to_int(top)][Z],
+        << "line segment must begin with lower z value");
 
     // Calculate min/max x/y values, used as both characteristic lengths
     // generating a floating-point tolerance, and generating surfaces for
@@ -577,9 +583,12 @@ ExtrudedPolygon::ExtrudedPolygon(ExtrudedPolygon::VecReal2 const& polygon,
  */
 void ExtrudedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
 {
+    constexpr auto bot = Bound::lo;
+    constexpr auto top = Bound::hi;
+
     // Insert the upper and lower Z bounding planes
-    insert_surface(Sense::outside, PlaneZ{line_segment_[BOT][Z]});
-    insert_surface(Sense::inside, PlaneZ{line_segment_[TOP][Z]});
+    insert_surface(Sense::outside, PlaneZ{line_segment_[to_int(bot)][Z]});
+    insert_surface(Sense::inside, PlaneZ{line_segment_[to_int(top)][Z]});
 
     // Insert all vertical bounding planes
     for (auto i : range(polygon_.size()))
@@ -591,12 +600,12 @@ void ExtrudedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
         // Specify points in an order such that the normal is outward-facing
         // (via the right-hand rule), given that the polygon is provided in
         // clockwise order
-        auto p0 = scaling_factors_[BOT] * Real3{p_a[X], p_a[Y], 0}
-                  + line_segment_[BOT];
-        auto p1 = scaling_factors_[TOP] * Real3{p_a[X], p_a[Y], 0}
-                  + line_segment_[TOP];
-        auto p2 = scaling_factors_[BOT] * Real3{p_b[X], p_b[Y], 0}
-                  + line_segment_[BOT];
+        auto p0 = scaling_factors_[to_int(bot)] * Real3{p_a[X], p_a[Y], 0}
+                  + line_segment_[to_int(bot)];
+        auto p1 = scaling_factors_[to_int(top)] * Real3{p_a[X], p_a[Y], 0}
+                  + line_segment_[to_int(top)];
+        auto p2 = scaling_factors_[to_int(bot)] * Real3{p_b[X], p_b[Y], 0}
+                  + line_segment_[to_int(bot)];
 
         insert_surface(Sense::inside, Plane{p0, p1, p2});
     }
@@ -629,6 +638,10 @@ auto ExtrudedPolygon::calc_range(VecReal2 const& polygon, size_type dir)
     -> ArrayReal
 {
     CELER_EXPECT(dir == X || dir == Y);
+
+    constexpr auto bot = Bound::lo;
+    constexpr auto top = Bound::hi;
+
     ArrayReal range;
 
     // Find min/max x/y values of the polygon itself
@@ -640,12 +653,14 @@ auto ExtrudedPolygon::calc_range(VecReal2 const& polygon, size_type dir)
     auto poly_max_x = (*poly_max_x_it)[dir];
 
     // Find the extrema taking into account the extrusion process
-    range[0] = std::min(
-        poly_min_x * scaling_factors_[BOT] + line_segment_[BOT][dir],
-        poly_min_x * scaling_factors_[TOP] + line_segment_[TOP][dir]);
-    range[1] = std::max(
-        poly_max_x * scaling_factors_[BOT] + line_segment_[BOT][dir],
-        poly_max_x * scaling_factors_[TOP] + line_segment_[TOP][dir]);
+    range[0] = std::min(poly_min_x * scaling_factors_[to_int(bot)]
+                            + line_segment_[to_int(bot)][dir],
+                        poly_min_x * scaling_factors_[to_int(top)]
+                            + line_segment_[to_int(top)][dir]);
+    range[1] = std::max(poly_max_x * scaling_factors_[to_int(bot)]
+                            + line_segment_[to_int(bot)][dir],
+                        poly_max_x * scaling_factors_[to_int(top)]
+                            + line_segment_[to_int(top)][dir]);
 
     return range;
 }
