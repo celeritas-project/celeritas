@@ -536,9 +536,10 @@ void EllipticalCone::output(JsonPimpl* j) const
  * Construct from a convex polygon, line segment, and scaling factors.
  */
 ExtrudedPolygon::ExtrudedPolygon(ExtrudedPolygon::VecReal2 const& polygon,
-                                 ExtrudedPolygon::ArrayReal3 line_segment,
-                                 ExtrudedPolygon::ArrayReal scaling_factors)
-    : line_segment_{line_segment}, scaling_factors_{scaling_factors}
+                                 ExtrudedPolygon::PolygonFace bot_face,
+                                 ExtrudedPolygon::PolygonFace top_face)
+    : line_segment_{bot_face.line_segment_point, top_face.line_segment_point}
+    , scaling_factors_{bot_face.scaling_factor, top_face.scaling_factor}
 
 {
     constexpr auto bot = Bound::lo;

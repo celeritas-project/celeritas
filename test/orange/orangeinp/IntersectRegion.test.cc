@@ -574,10 +574,10 @@ TEST_F(ExtrudedPolygonTest, simple_cube)
     ExtrudedPolygon::VecReal2 polygon{
         Real2{0, 0}, Real2{0, 1}, Real2{1, 1}, Real2{1, 0}};
 
-    ExtrudedPolygon::ArrayReal3 line{Real3{0, 0, 0}, Real3{0, 0, 1}};
-    ExtrudedPolygon::ArrayReal scaling{1, 1};
+    ExtrudedPolygon::PolygonFace bot{Real3{0, 0, 0}, 1};
+    ExtrudedPolygon::PolygonFace top{Real3{0, 0, 1}, 1};
 
-    auto result = this->test(ExtrudedPolygon(polygon, line, scaling));
+    auto result = this->test(ExtrudedPolygon(polygon, bot, top));
 
     static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
     static char const* const expected_surfaces[] = {"Plane: z=0",
@@ -607,10 +607,10 @@ TEST_F(ExtrudedPolygonTest, colinear)
                                       Real2{0.7, 0},
                                       Real2{0.3, 0}};
 
-    ExtrudedPolygon::ArrayReal3 line{Real3{0, 0, 0}, Real3{0, 0, 1}};
-    ExtrudedPolygon::ArrayReal scaling{1, 1};
+    ExtrudedPolygon::PolygonFace bot{Real3{0, 0, 0}, 1};
+    ExtrudedPolygon::PolygonFace top{Real3{0, 0, 1}, 1};
 
-    auto result = this->test(ExtrudedPolygon(polygon, line, scaling));
+    auto result = this->test(ExtrudedPolygon(polygon, bot, top));
 
     static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
     static char const* const expected_surfaces[] = {"Plane: z=0",
@@ -632,10 +632,10 @@ TEST_F(ExtrudedPolygonTest, flat_top_pyramid)
     ExtrudedPolygon::VecReal2 polygon{
         Real2{0, 0}, Real2{0, 1}, Real2{1, 1}, Real2{1, 0}};
 
-    ExtrudedPolygon::ArrayReal3 line{Real3{0, 0, 0}, Real3{0, 0, 0.5}};
-    ExtrudedPolygon::ArrayReal scaling{1, 0.5};
+    ExtrudedPolygon::PolygonFace bot{Real3{0, 0, 0}, 1};
+    ExtrudedPolygon::PolygonFace top{Real3{0, 0, 0.5}, 0.5};
 
-    auto result = this->test(ExtrudedPolygon(polygon, line, scaling));
+    auto result = this->test(ExtrudedPolygon(polygon, bot, top));
 
     static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
     // Planes have x- and y-slopes equal to +/- sqrt(2)/2, as expected
@@ -668,7 +668,10 @@ TEST_F(ExtrudedPolygonTest, skewed)
     ExtrudedPolygon::ArrayReal3 line{Real3{4, 3, 10}, Real3{10, 11, 15}};
     ExtrudedPolygon::ArrayReal scaling{0.7, 0.5};
 
-    auto result = this->test(ExtrudedPolygon(polygon, line, scaling));
+    ExtrudedPolygon::PolygonFace bot{Real3{4, 3, 10}, 0.7};
+    ExtrudedPolygon::PolygonFace top{Real3{10, 11, 15}, 0.5};
+
+    auto result = this->test(ExtrudedPolygon(polygon, bot, top));
 
     static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5, +6, +7)";
     static char const* const expected_surfaces[]

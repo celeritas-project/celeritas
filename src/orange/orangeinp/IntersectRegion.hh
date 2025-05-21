@@ -340,13 +340,24 @@ class ExtrudedPolygon final : public IntersectRegionInterface
     using VecReal2 = std::vector<Real2>;
     using ArrayReal3 = celeritas::Array<Real3, 2>;
     using ArrayReal = celeritas::Array<real_type, 2>;
+
+    //! Specifies the top or bottom face of the ExtrudedPolygon
+    struct PolygonFace
+    {
+        //! Start or end point of the line segment the polygon is extruded
+        //! along
+        Real3 line_segment_point{};
+
+        //! The fractional amount this face is scaled
+        real_type scaling_factor{};
+    };
     //!@}
 
   public:
     // Construct from a convex polygon, line segment, and scaling factors
     ExtrudedPolygon(VecReal2 const& polygon,
-                    ArrayReal3 line_segment,
-                    ArrayReal scaling);
+                    PolygonFace bot_face,
+                    PolygonFace top_face);
 
     // Build surfaces
     void build(IntersectSurfaceBuilder&) const final;
@@ -366,15 +377,6 @@ class ExtrudedPolygon final : public IntersectRegionInterface
     ArrayReal scaling_factors() const { return scaling_factors_; }
 
   private:
-    //// TYPES ////
-
-    // Enum for differenting between the bottom and top instance of the polygon
-    enum
-    {
-        BOT = 0,
-        TOP = 1
-    };
-
     //// DATA ////
 
     VecReal2 polygon_;
