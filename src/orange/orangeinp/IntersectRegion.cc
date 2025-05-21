@@ -549,7 +549,8 @@ ExtrudedPolygon::ExtrudedPolygon(ExtrudedPolygon::VecReal2 const& polygon,
     // Calculate min/max x/y values, used as both characteristic lengths
     // generating a floating-point tolerance, and generating surfaces for
     // bounding box creation
-    this->calc_ranges(polygon);
+    x_range_ = this->calc_range(polygon, X);
+    y_range_ = this->calc_range(polygon, Y);
 
     // Store only non-colinear points
     Real3 const extents{
@@ -618,41 +619,35 @@ void ExtrudedPolygon::output(JsonPimpl* j) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the min/max x/y values of the extruded IntersectRegion.
+ * Calculate the min/max x or y values of the extruded IntersectRegion
  *
  * Note that these are not simply the extrema of the polygon, but take into
  * account the translation and scaling of the polygon as it is extruded along
  * the line segment.
  */
-void ExtrudedPolygon::calc_ranges(VecReal2 const& polygon)
+auto ExtrudedPolygon::calc_range(VecReal2 const& polygon, size_type dir)
+    -> ArrayReal
 {
+    CELER_EXPECT(dir == X || dir == Y);
+    ArrayReal range;
+
     // Find min/max x/y values of the polygon itself
     auto [poly_min_x_it, poly_max_x_it] = std::minmax_element(
-        polygon.begin(), polygon.end(), [](auto const& a, auto const& b) {
-            return a[0] < b[0];
+        polygon.begin(), polygon.end(), [&dir](auto const& a, auto const& b) {
+            return a[dir] < b[dir];
         });
-    auto [poly_min_y_it, poly_max_y_it] = std::minmax_element(
-        polygon.begin(), polygon.end(), [](auto const& a, auto const& b) {
-            return a[1] < b[1];
-        });
-    auto poly_min_x = (*poly_min_x_it)[X];
-    auto poly_max_x = (*poly_max_x_it)[X];
-    auto poly_min_y = (*poly_min_y_it)[Y];
-    auto poly_max_y = (*poly_max_y_it)[Y];
+    auto poly_min_x = (*poly_min_x_it)[dir];
+    auto poly_max_x = (*poly_max_x_it)[dir];
 
     // Find the extrema taking into account the extrusion process
-    x_range_[0]
-        = std::min(poly_min_x * scaling_factors_[BOT] + line_segment_[BOT][X],
-                   poly_min_x * scaling_factors_[TOP] + line_segment_[TOP][X]);
-    x_range_[1]
-        = std::max(poly_max_x * scaling_factors_[BOT] + line_segment_[BOT][X],
-                   poly_max_x * scaling_factors_[TOP] + line_segment_[TOP][X]);
-    y_range_[0]
-        = std::min(poly_min_y * scaling_factors_[BOT] + line_segment_[BOT][Y],
-                   poly_min_y * scaling_factors_[TOP] + line_segment_[TOP][Y]);
-    y_range_[1]
-        = std::max(poly_max_y * scaling_factors_[BOT] + line_segment_[BOT][Y],
-                   poly_max_y * scaling_factors_[TOP] + line_segment_[TOP][Y]);
+    range[0] = std::min(
+        poly_min_x * scaling_factors_[BOT] + line_segment_[BOT][dir],
+        poly_min_x * scaling_factors_[TOP] + line_segment_[TOP][dir]);
+    range[1] = std::max(
+        poly_max_x * scaling_factors_[BOT] + line_segment_[BOT][dir],
+        poly_max_x * scaling_factors_[TOP] + line_segment_[TOP][dir]);
+
+    return range;
 }
 
 //---------------------------------------------------------------------------//

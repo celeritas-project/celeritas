@@ -387,8 +387,8 @@ class ExtrudedPolygon final : public IntersectRegionInterface
 
     // >> HELPER FUNCTIONS
 
-    // Calculate the min/max x/y values of the extruded IntersectRegion
-    void calc_ranges(VecReal2 const& polygon);
+    // Calculate the min/max x or y values of the extruded IntersectRegion
+    ArrayReal calc_range(VecReal2 const& polygon, size_type dir);
 };
 
 //---------------------------------------------------------------------------//
