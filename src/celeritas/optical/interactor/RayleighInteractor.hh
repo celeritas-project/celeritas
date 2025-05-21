@@ -93,9 +93,10 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng) const
         {
             // Project polarization onto plane perpendicular to new direction
             new_pol = inc_pol_ - projected_pol * new_dir;
+            // Enforce orthogonality
+            axpy(-dot_product(new_pol, new_dir), new_dir, &new_pol);
             new_pol = make_unit_vector(
-                new_pol - dot_product(new_pol, new_dir) * new_dir);
-            new_pol *= BernoulliDistribution{real_type{0.5}}(rng) ? 1 : -1;
+                BernoulliDistribution{0.5}(rng) ? new_pol : -new_pol);
         }
 
         // Accept with the probability of the scattered polarization overlap

@@ -149,18 +149,18 @@ ScintillationGenerator::operator()(Generator& rng)
 
     // Sample polarization perpendicular to the photon direction
     photon.polarization = [&] {
-        Real3 temp = from_spherical(
+        Real3 pol = from_spherical(
             (cost > 0 ? -1 : 1) * std::sqrt(1 - ipow<2>(cost)), phi);
         Real3 perp = {-std::sin(phi), std::cos(phi), 0};
         real_type sinphi, cosphi;
         sincospi(UniformRealDist{}(rng), &sinphi, &cosphi);
         for (auto j : range(3))
         {
-            temp[j] = cosphi * temp[j] + sinphi * perp[j];
+            pol[j] = cosphi * pol[j] + sinphi * perp[j];
         }
         // Enforce orthogonality
-        temp -= dot_product(temp, photon.direction) * photon.direction;
-        return make_unit_vector(temp);
+        axpy(-dot_product(pol, photon.direction), photon.direction, &pol);
+        return make_unit_vector(pol);
     }();
     CELER_ASSERT(soft_zero(dot_product(photon.polarization, photon.direction)));
 
