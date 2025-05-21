@@ -80,25 +80,19 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng) const
     do
     {
         new_dir = sample_direction(rng);
+        // Project polarization onto plane perpendicular to new direction.
+        // In the unlikely case that the incident polarization and new
+        // direction are coincident, make_orthogonal will return a zero vector,
+        // and all elements of new_pol will be NaN, which will reject the
+        // sample.
+        new_pol = make_unit_vector(make_orthogonal(inc_pol_, new_dir));
 
-        auto projected_pol = dot_product(new_dir, inc_pol_);
-
-        if (soft_zero(projected_pol))
+        if (!BernoulliDistribution{0.5}(rng))
         {
-            // If new direction is parallel to incident polarization, then
-            // randomly sample azimuthal direction
-            new_pol = ExitingDirectionSampler{0, new_dir}(rng);
+            // Flip direction with 50% probability: there are two polarizations
+            // perpendicular to the new direction and the original polarization
+            new_pol = -new_pol;
         }
-        else
-        {
-            // Project polarization onto plane perpendicular to new direction
-            new_pol = inc_pol_ - projected_pol * new_dir;
-            // Enforce orthogonality
-            axpy(-dot_product(new_pol, new_dir), new_dir, &new_pol);
-            new_pol = make_unit_vector(
-                BernoulliDistribution{0.5}(rng) ? new_pol : -new_pol);
-        }
-
         // Accept with the probability of the scattered polarization overlap
         // squared
     } while (RejectionSampler{ipow<2>(
