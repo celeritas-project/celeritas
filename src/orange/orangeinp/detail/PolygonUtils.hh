@@ -36,42 +36,6 @@ enum class Orientation
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Functor for calculating orientation with a tolerance for collinearity.
- */
-template<class T>
-class SoftOrientation
-{
-  public:
-    using real_type = T;
-    using Real2 = Array<real_type, 2>;
-
-    // Construct with default tolerance
-    CELER_CONSTEXPR_FUNCTION SoftOrientation() : soft_zero_{} {}
-
-    // Construct with specified absolute tolerance
-    explicit CELER_FUNCTION SoftOrientation(real_type abs_tol)
-        : soft_zero_{abs_tol}
-    {
-    }
-
-    // Calculate orientation with tolerance for collinearity
-    CELER_FUNCTION Orientation operator()(Real2 const& a,
-                                          Real2 const& b,
-                                          Real2 const& c) const
-    {
-        auto crossp = (b[0] - a[0]) * (c[1] - b[1])
-                      - (b[1] - a[1]) * (c[0] - b[0]);
-        return soft_zero_(crossp) ? Orientation::collinear
-               : crossp < 0       ? Orientation::clockwise
-                                  : Orientation::counterclockwise;
-    }
-
-  private:
-    SoftZero<real_type> soft_zero_;
-};
-
-//---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
@@ -118,6 +82,84 @@ is_same_orientation(Orientation a, Orientation b, bool degen_ok = false)
     }
     return (a == b);
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Functor for calculating orientation with a tolerance for collinearity.
+ *
+ * Collinearity is based on a supplied absolute tolerance. For three ordered
+ * points a, b, c, point b is collinear if the displacement, d, is less than
+ * the absolute tolerance.
+ *
+ *              b
+ *             . .
+ *           .  .  .
+ *         .    .    .
+ *       .      . d    .
+ *     .  t     .        .
+ *   a . . . . . . . . . . c
+ *
+ * The displacement is calculated as follows.
+ *
+ * Let:
+ * u = b - a
+ * v = c - a
+ *
+ * In 2D, the cross product is can be written as,
+ *
+ * u x v = |u| |v| sin(t),
+ *
+ * noting that this is a different cross product (different vectors) compared
+ * to the cross product used for orientation determination. Geometrically, the
+ * displacement can be calculated as,
+ *
+ * d = |u| sin(t).
+ *
+ * Therefore,
+ *
+ * d = |u| (u x v) / (|u| |v|)
+ *   = (u x v)/|v|.
+ */
+template<class T>
+class SoftOrientation
+{
+  public:
+    using real_type = T;
+    using Real2 = Array<real_type, 2>;
+
+    // Construct with default tolerance
+    CELER_CONSTEXPR_FUNCTION SoftOrientation() : soft_zero_{} {}
+
+    // Construct with specified absolute tolerance
+    explicit CELER_FUNCTION SoftOrientation(real_type abs_tol)
+        : soft_zero_{abs_tol}
+    {
+    }
+
+    // Calculate orientation with tolerance for collinearity
+    CELER_FUNCTION Orientation operator()(Real2 const& a,
+                                          Real2 const& b,
+                                          Real2 const& c) const
+    {
+        Real2 u{b[0] - a[0], b[1] - a[1]};
+        Real2 v{c[0] - a[0], c[1] - a[1]};
+
+        auto cross_product = (u[0] * v[1] - v[0] * u[1]);
+        auto magnitude = std::hypot(v[0], v[1]);
+
+        if (magnitude == 0 || soft_zero_(cross_product / magnitude))
+        {
+            return Orientation::collinear;
+        }
+        else
+        {
+            return calc_orientation(a, b, c);
+        }
+    }
+
+  private:
+    SoftZero<real_type> soft_zero_;
+};
 
 //---------------------------------------------------------------------------//
 /*!

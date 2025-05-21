@@ -36,28 +36,6 @@ constexpr auto col = Orientation::collinear;
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST(PolygonUtilsTest, soft_orientation)
-{
-    SoftOrientation tight_soft_ori(1e-10);
-    SoftOrientation loose_soft_ori(1e-1);
-
-    // Basic tests
-    EXPECT_EQ(ccw, tight_soft_ori({0, 0}, {4, 4}, {1, 2}));
-    EXPECT_EQ(cw, tight_soft_ori({0, 0}, {4, 4}, {2, 1}));
-    EXPECT_EQ(col, tight_soft_ori({0, 0}, {4, 4}, {2, 2}));
-    EXPECT_EQ(col, tight_soft_ori({0, 0}, {1, 1}, {2, 2}));
-    EXPECT_EQ(col, tight_soft_ori({2, 2}, {1, 1}, {0, 0}));
-    EXPECT_EQ(col, tight_soft_ori({0, 0}, {0, 0}, {1, 1}));
-    EXPECT_EQ(col, tight_soft_ori({0, 0}, {0, 0}, {0, 0}));
-
-    // Collinearity tests
-    EXPECT_EQ(ccw, tight_soft_ori({0, 0}, {1, 1}, {2, 2 + 0.01}));
-    EXPECT_EQ(col, loose_soft_ori({0, 0}, {1, 1}, {2, 2 + 0.01}));
-
-    EXPECT_EQ(cw, tight_soft_ori({0, 0}, {1, 1}, {2, 2 - 0.01}));
-    EXPECT_EQ(col, loose_soft_ori({0, 0}, {1, 1}, {2, 2 - 0.01}));
-}
-
 TEST(PolygonUtilsTest, calc_orientation)
 {
     EXPECT_EQ(ccw, calc_orientation({0, 0}, {4, 4}, {1, 2}));
@@ -94,6 +72,31 @@ TEST(PolygonUtilsTest, is_same_orientation)
     EXPECT_FALSE(is_same_orientation(ccw, cw, degen_ok));
     EXPECT_TRUE(is_same_orientation(cw, col, degen_ok));
     EXPECT_TRUE(is_same_orientation(col, cw, degen_ok));
+}
+
+TEST(PolygonUtilsTest, soft_orientation)
+{
+    SoftOrientation tight_soft_ori(1e-10);
+    SoftOrientation loose_soft_ori(0.01);
+
+    // Basic tests
+    EXPECT_EQ(ccw, tight_soft_ori({0, 0}, {4, 4}, {1, 2}));
+    EXPECT_EQ(cw, tight_soft_ori({0, 0}, {4, 4}, {2, 1}));
+    EXPECT_EQ(col, tight_soft_ori({0, 0}, {4, 4}, {2, 2}));
+    EXPECT_EQ(col, tight_soft_ori({0, 0}, {1, 1}, {2, 2}));
+    EXPECT_EQ(col, tight_soft_ori({2, 2}, {1, 1}, {0, 0}));
+    EXPECT_EQ(col, tight_soft_ori({0, 0}, {0, 0}, {1, 1}));
+    EXPECT_EQ(col, tight_soft_ori({0, 0}, {0, 0}, {0, 0}));
+
+    // Collinearity tests
+    EXPECT_EQ(cw, tight_soft_ori({0, 0}, {1, 0.009}, {2, 0}));
+    EXPECT_EQ(ccw, tight_soft_ori({0, 0}, {1, -0.009}, {2, 0}));
+
+    EXPECT_EQ(col, loose_soft_ori({0, 0}, {1, 0.009}, {2, 0}));
+    EXPECT_EQ(col, loose_soft_ori({0, 0}, {1, -0.009}, {2, 0}));
+
+    EXPECT_EQ(cw, loose_soft_ori({0, 0}, {1, 0.011}, {2, 0}));
+    EXPECT_EQ(ccw, loose_soft_ori({0, 0}, {1, -0.011}, {2, 0}));
 }
 
 TEST(PolygonUtilsTest, convex)
@@ -178,7 +181,7 @@ TEST(PolygonUtilsTest, filter_colinear_points)
 
     // Points locations, as labled above
     Real2 a = {0, 0};
-    Real2 b = {-1. - 1e-5};
+    Real2 b = {-1, -1e-5};
     Real2 c = {-0.9, -0.1};
     Real2 d = {0.75, 1};
     Real2 e = {0.75, 0.5};
