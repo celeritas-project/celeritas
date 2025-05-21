@@ -16,6 +16,7 @@
 
 namespace celeritas
 {
+class GeantGeoParams;
 namespace g4org
 {
 //---------------------------------------------------------------------------//
@@ -42,20 +43,30 @@ class ProtoConstructor
 
   public:
     //! Construct with verbosity setting
-    explicit ProtoConstructor(bool verbose) : verbose_{verbose} {}
+    ProtoConstructor(GeantGeoParams const& geo, bool verbose)
+        : geo_{geo}, verbose_{verbose}
+    {
+    }
 
     // Construct a proto from a logical volume
     SPUnitProto operator()(LogicalVolume const& lv);
 
   private:
+    GeantGeoParams const& geo_;
     std::unordered_map<LogicalVolume const*, SPUnitProto> protos_;
     int depth_{0};
     bool verbose_{false};
+
+    Label const& get_label(LogicalVolume const& lv);
+    Label const& get_label(PhysicalVolume const& lv);
 
     // Place a physical volume into the given unconstructed proto
     void place_pv(VariantTransform const& parent_transform,
                   PhysicalVolume const& pv,
                   ProtoInput* proto);
+
+    SPConstObject make_explicit_background(LogicalVolume const& lv,
+                                           VariantTransform const& transform);
 
     // (TODO: make this configurable)
     //! Number of daughters above which we use a "fill" material

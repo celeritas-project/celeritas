@@ -6,12 +6,17 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+
+#include "geocel/LazyGeoManager.hh"
+
 #include "Test.hh"
 
 class G4VPhysicalVolume;
 
 namespace celeritas
 {
+class GeantGeoParams;
 namespace g4org
 {
 namespace test
@@ -20,21 +25,29 @@ namespace test
 /*!
  * Load a Geant4 geometry and clean up as needed.
  */
-class GeantLoadTestBase : public ::celeritas::test::Test
+class GeantLoadTestBase : public ::celeritas::test::Test,
+                          public ::celeritas::test::LazyGeoManager
 {
   public:
+    using SPConstGeo = std::shared_ptr<GeantGeoParams const>;
+
     // Build via Geant4 GDML reader
-    G4VPhysicalVolume const* load_gdml(std::string const& filename);
+    void load_gdml(std::string const& filename);
 
     // Load a test input
-    G4VPhysicalVolume const* load_test_gdml(std::string_view basename);
+    void load_test_gdml(std::string_view basename);
 
-    // Reset the geometry
-    static void TearDownTestSuite();
+    // Access the geo params after loading
+    GeantGeoParams const& geo() const;
 
-  private:
-    static std::string loaded_filename_;
-    static G4VPhysicalVolume* world_volume_;
+    // Access the world volume after loading
+    G4VPhysicalVolume const& world() const;
+
+  protected:
+    // Construct a fresh geometry from a filename
+    SPConstGeoI build_fresh_geometry(std::string_view key) final;
+
+    SPConstGeo geo_;
 };
 
 //---------------------------------------------------------------------------//
