@@ -336,15 +336,7 @@ GeantPhysicalInstance GeantGeoParams::id_to_geant(VolumeInstanceId id) const
     GeantPhysicalInstance result;
     result.pv = (*pv_store)[index];
     CELER_ASSERT(result.pv);
-    if (result.pv->VolumeType() != EVolume::kNormal)
-    {
-        auto copy_no = result.pv->GetCopyNo();
-        // NOTE: if this line fails, Geant4 may be returning uninitialized
-        // memory on the local thread.
-        CELER_ASSERT(copy_no >= 0 && copy_no < result.pv->GetMultiplicity());
-        result.replica = id_cast<GeantPhysicalInstance::ReplicaId>(copy_no);
-    }
-
+    result.replica = this->replica_id(*result.pv);
     return result;
 }
 
@@ -366,6 +358,44 @@ G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId id) const
     auto index = id.unchecked_get() - lv_offset_;
     CELER_ASSERT(index < lv_store->size());
     return (*lv_store)[index];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the volume ID corresponding to a Geant4 physical volume.
+ *
+ * \note See id_to_geant: the volume instance ID may be non-unique.
+ */
+VolumeInstanceId
+GeantGeoParams::geant_to_id(G4VPhysicalVolume const& volume) const
+{
+    auto result = id_cast<VolumeInstanceId>(volume.GetInstanceID());
+    if (!(result < vol_instances_.size()))
+    {
+        // Volume is out of range: possibly a PV defined after this geometry
+        // class was created??
+        result = {};
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the replica ID corresponding to a Geant4 physical volume.
+ *
+ * If the volume is not parameterized or replicated, the result is false.
+ */
+auto GeantGeoParams::replica_id(G4VPhysicalVolume const& volume) const
+    -> ReplicaId
+{
+    if (volume.VolumeType() == EVolume::kNormal)
+        return {};
+
+    auto copy_no = volume.GetCopyNo();
+    // NOTE: if this line fails, Geant4 may be returning uninitialized
+    // memory on the local thread.
+    CELER_ASSERT(copy_no >= 0 && copy_no < volume.GetMultiplicity());
+    return id_cast<ReplicaId>(copy_no);
 }
 
 //---------------------------------------------------------------------------//

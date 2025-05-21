@@ -40,6 +40,12 @@ class GeantGeoParams final : public GeoParamsInterface,
                              public ParamsDataInterface<GeantGeoParamsData>
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using ReplicaId = GeantPhysicalInstance::ReplicaId;
+    //!@}
+
+  public:
     // Create from a running Geant4 application
     static std::shared_ptr<GeantGeoParams> from_tracking_manager();
 
@@ -90,6 +96,18 @@ class GeantGeoParams final : public GeoParamsInterface,
     VolumeId::size_type pv_offset() const { return pv_offset_; }
 
     //// G4 ACCESSORS ////
+
+    //! Get the volume ID corresponding to a Geant4 logical volume
+    VolumeId geant_to_id(G4LogicalVolume const& volume) const
+    {
+        return this->find_volume(&volume);
+    }
+
+    // Get the volume ID corresponding to a Geant4 physical volume
+    VolumeInstanceId geant_to_id(G4VPhysicalVolume const& volume) const;
+
+    // Get the replica ID corresponding to a Geant4 physical volume
+    ReplicaId replica_id(G4VPhysicalVolume const& volume) const;
 
     //!@{
     //! Access the world volume
@@ -170,5 +188,11 @@ auto GeantGeoParams::volume_instances() const -> VolInstanceMap const&
     return vol_instances_;
 }
 
+#if !CELERITAS_USE_GEANT4
+inline GeantGeoParams::GeantGeoParams(std::string const&)
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+#endif
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
