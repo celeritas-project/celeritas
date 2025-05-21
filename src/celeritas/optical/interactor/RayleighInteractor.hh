@@ -80,11 +80,13 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng) const
     do
     {
         new_dir = sample_direction(rng);
-        // Project polarization onto plane perpendicular to new direction.
-        // In the unlikely case that the incident polarization and new
-        // direction are coincident, make_orthogonal will return a zero vector,
-        // and all elements of new_pol will be NaN, which will reject the
-        // sample.
+        if (CELER_UNLIKELY(dot_product(inc_pol_, new_dir) == 0))
+        {
+            // In the edge case that the incident polarization and new
+            // direction are coincident, reject the sample
+            continue;
+        }
+        // Project polarization onto plane perpendicular to new direction
         new_pol = make_unit_vector(make_orthogonal(inc_pol_, new_dir));
 
         if (!BernoulliDistribution{0.5}(rng))

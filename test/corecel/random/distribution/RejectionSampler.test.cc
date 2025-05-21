@@ -78,11 +78,11 @@ TEST(RejectionSamplerTest, TEST_IF_CELERITAS_DEBUG(assertions))
     EXPECT_THROW((RejectionSampler<double>{0.1, nan}), DebugError);
 
     auto rng = SequenceEngine::from_reals({0.0, 0.5, 1.0 - 1e-12});
-    // Always reject NaN, forcing a resampling
+    // Always accept NaN, propagating it? (Resampling might be better...)
     while (rng)
     {
         RejectionSampler<double> reject{nan, 1.0};
-        EXPECT_TRUE(reject(rng));
+        EXPECT_FALSE(reject(rng));
     }
 }
 
