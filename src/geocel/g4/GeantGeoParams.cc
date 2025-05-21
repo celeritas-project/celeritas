@@ -32,8 +32,6 @@
 #include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeantUtils.hh"
-#include "geocel/ScopedGeantExceptionHandler.hh"
-#include "geocel/ScopedGeantLogger.hh"
 #include "geocel/detail/MakeLabelVector.hh"
 
 #include "Convert.hh"  // IWYU pragma: associated

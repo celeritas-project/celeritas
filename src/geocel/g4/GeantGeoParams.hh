@@ -15,6 +15,8 @@
 #include "corecel/data/ParamsDataInterface.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/GeoParamsInterface.hh"
+#include "geocel/ScopedGeantExceptionHandler.hh"
+#include "geocel/ScopedGeantLogger.hh"
 #include "geocel/Types.hh"
 
 #include "GeantGeoData.hh"
@@ -23,10 +25,6 @@ class G4VPhysicalVolume;
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-class ScopedGeantLogger;
-class ScopedGeantExceptionHandler;
-
 //---------------------------------------------------------------------------//
 /*!
  * Shared Geant4 geometry model wrapper.
@@ -189,9 +187,27 @@ auto GeantGeoParams::volume_instances() const -> VolInstanceMap const&
 }
 
 #if !CELERITAS_USE_GEANT4
+inline GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const*)
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
 inline GeantGeoParams::GeantGeoParams(std::string const&)
 {
     CELER_NOT_CONFIGURED("Geant4");
+}
+inline std::shared_ptr<GeantGeoParams>
+GeantGeoParams::GeantGeoParams::from_tracking_manager()
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+inline GeantGeoParams::~GeantGeoParams() {}
+inline void geant_geo(GeantGeoParams const&)
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+inline GeantGeoParams const* geant_geo()
+{
+    return nullptr;
 }
 #endif
 //---------------------------------------------------------------------------//
