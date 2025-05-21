@@ -241,79 +241,6 @@ class EllipticalCylinder final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * Region formed by extruding + scaling a convex polygon along a line segment.
- *
- * The convex polygon is supplied as a set of points on the XY plane in
- * clockwise order. The line segment is supplied as a length 2 array of 3D
- * points denoting the extrusion path traversed by the polygon's origin,
- * starting at the minimum Z and moving upward. Along the line, the size of the
- * polygon is linearly scaled in accordance with scaling factors supplied for
- * each line segment point.
- *
- * As is done in Geant4, construction is done by first applying scaling factors
- * to the upper and lower polygons via scalar multiplication with each polygon
- * point, then the points on the line are used to offset the upper and lower
- * polygons.
- */
-class ExtrudedPolygon final : public IntersectRegionInterface
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using VecReal2 = std::vector<Real2>;
-    using ArrayReal3 = celeritas::Array<Real3, 2>;
-    using ArrayReal = celeritas::Array<real_type, 2>;
-    //!@}
-
-  public:
-    // Construct from a convex polygon, line segment, and scaling factors
-    ExtrudedPolygon(VecReal2 const& polygon,
-                    ArrayReal3 line_segment,
-                    ArrayReal scaling);
-
-    // Build surfaces
-    void build(IntersectSurfaceBuilder&) const final;
-
-    // Output to JSON
-    void output(JsonPimpl*) const final;
-
-    //// ACCESSORS ////
-
-    //! Polygon points (2D)
-    VecReal2 polygon() const { return polygon_; }
-
-    //! Line segment points (3D)
-    ArrayReal3 line_segment() const { return line_segment_; }
-
-    //! Scaling factors along the line segment
-    ArrayReal scaling_factors() const { return scaling_factors_; }
-
-  private:
-    //// TYPES ////
-
-    // Enum for differenting between the bottom and top instance of the polygon
-    enum
-    {
-        BOT = 0,
-        TOP = 1
-    };
-
-    //// DATA ////
-
-    VecReal2 polygon_;
-    ArrayReal3 line_segment_;
-    ArrayReal scaling_factors_;
-    ArrayReal x_range_;
-    ArrayReal y_range_;
-
-    // >> HELPER FUNCTIONS
-
-    // Calculate the min/max x/y values of the extruded IntersectRegion
-    void calc_ranges(VecReal2 const& polygon);
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * A finite *z*-aligned cone with an elliptical cross section.
  *
  * The elliptical cone is defined in an analogous fashion to the regular
@@ -387,6 +314,81 @@ class EllipticalCone final : public IntersectRegionInterface
     Real2 lower_radii_;
     Real2 upper_radii_;
     real_type hh_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Region formed by extruding + scaling a convex polygon along a line segment.
+ *
+ * The convex polygon is supplied as a set of points on the XY plane in
+ * clockwise order. The line segment is supplied as a length 2 array of 3D
+ * points denoting the extrusion path traversed by the polygon's origin,
+ * starting at the minimum Z and moving upward. Along the line, the size of the
+ * polygon is linearly scaled in accordance with scaling factors supplied for
+ * each line segment point.
+ *
+ * As is done in Geant4, construction is done by first applying scaling factors
+ * to the upper and lower polygons via scalar multiplication with each polygon
+ * point, then the points on the line are used to offset the upper and lower
+ * polygons.
+ */
+class ExtrudedPolygon final : public IntersectRegionInterface
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using VecReal2 = std::vector<Real2>;
+    using ArrayReal3 = celeritas::Array<Real3, 2>;
+    using ArrayReal = celeritas::Array<real_type, 2>;
+    //!@}
+
+  public:
+    // Construct from a convex polygon, line segment, and scaling factors
+    ExtrudedPolygon(VecReal2 const& polygon,
+                    ArrayReal3 line_segment,
+                    ArrayReal scaling);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Polygon points (2D)
+    VecReal2 polygon() const { return polygon_; }
+
+    //! Line segment points (3D)
+    ArrayReal3 line_segment() const { return line_segment_; }
+
+    //! Scaling factors along the line segment
+    ArrayReal scaling_factors() const { return scaling_factors_; }
+
+  private:
+    //// TYPES ////
+
+    // Enum for differenting between the bottom and top instance of the polygon
+    enum
+    {
+        BOT = 0,
+        TOP = 1
+    };
+
+    //// DATA ////
+
+    VecReal2 polygon_;
+
+    ArrayReal3 line_segment_;
+    ArrayReal scaling_factors_;
+
+    ArrayReal x_range_;
+    ArrayReal y_range_;
+
+    // >> HELPER FUNCTIONS
+
+    // Calculate the min/max x/y values of the extruded IntersectRegion
+    void calc_ranges(VecReal2 const& polygon);
 };
 
 //---------------------------------------------------------------------------//
