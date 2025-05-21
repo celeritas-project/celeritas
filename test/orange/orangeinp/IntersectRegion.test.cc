@@ -637,7 +637,7 @@ TEST_F(ExtrudedPolygonTest, flat_top_pyramid)
 
     auto result = this->test(ExtrudedPolygon(polygon, line, scaling));
 
-    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5, -6, -7)";
+    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
     // Planes have x- and y-slopes equal to +/- sqrt(2)/2, as expected
     static char const* const expected_surfaces[]
         = {"Plane: z=0",
@@ -645,9 +645,7 @@ TEST_F(ExtrudedPolygonTest, flat_top_pyramid)
            "Plane: x=0",
            "Plane: n={-0,0.70711,0.70711}, d=0.70711",
            "Plane: n={0.70711,0,0.70711}, d=0.70711",
-           "Plane: y=0",
-           "Plane: x=1",
-           "Plane: y=1"};
+           "Plane: y=0"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -672,8 +670,7 @@ TEST_F(ExtrudedPolygonTest, skewed)
 
     auto result = this->test(ExtrudedPolygon(polygon, line, scaling));
 
-    static char const expected_node[]
-        = "all(+0, -1, +2, -3, +4, -5, +6, +7, +8, -9, +10, -11)";
+    static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5, +6, +7)";
     static char const* const expected_surfaces[]
         = {"Plane: z=10",
            "Plane: z=15",
@@ -682,11 +679,7 @@ TEST_F(ExtrudedPolygonTest, skewed)
            "Plane: n={0.35448,-0.70895,0.6097}, d=3.6511",
            "Plane: n={0.45718,0.22859,-0.8595}, d=-5.1204",
            "Plane: n={-0.85138,0.42569,0.3065}, d=0.34055",
-           "Plane: n={0,0.53,-0.848}, d=-6.89",
-           "Plane: x=2.6",
-           "Plane: x=11",
-           "Plane: y=3",
-           "Plane: y=13"};
+           "Plane: n={0,0.53,-0.848}, d=-6.89"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);

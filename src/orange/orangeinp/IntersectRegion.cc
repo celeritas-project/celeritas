@@ -600,11 +600,11 @@ void ExtrudedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
         insert_surface(Sense::inside, Plane{p0, p1, p2});
     }
 
-    // Insert additional planes for bounding box creation
-    insert_surface(Sense::outside, PlaneX{x_range_[0]});
-    insert_surface(Sense::inside, PlaneX{x_range_[1]});
-    insert_surface(Sense::outside, PlaneY{y_range_[0]});
-    insert_surface(Sense::inside, PlaneY{y_range_[1]});
+    // Establish bbox
+    constexpr auto inf = numeric_limits<real_type>::infinity();
+    insert_surface(Sense::inside,
+                   BBox::from_unchecked({x_range_[0], y_range_[0], -inf},
+                                        {x_range_[1], y_range_[1], inf}));
 }
 
 //---------------------------------------------------------------------------//
