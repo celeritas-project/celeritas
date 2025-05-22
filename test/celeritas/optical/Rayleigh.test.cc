@@ -102,9 +102,9 @@ TEST_F(RayleighInteractorTest, TEST_IF_CELERITAS_DOUBLE(basic))
 
 //---------------------------------------------------------------------------//
 // Test statistical consistency over larger number of samples
-TEST_F(RayleighInteractorTest, TEST_IF_CELERITAS_DOUBLE(stress_test))
+TEST_F(RayleighInteractorTest, stress_test)
 {
-    int const num_samples = 1'000;
+    int const num_samples = 1'000'000;
 
     RayleighInteractor interact{this->particle_track(), this->direction()};
 
@@ -131,14 +131,21 @@ TEST_F(RayleighInteractorTest, TEST_IF_CELERITAS_DOUBLE(stress_test))
     dir_moment /= num_samples;
     pol_moment /= num_samples;
 
-    static real_type const expected_dir_moment[]
-        = {-0.016961118324494, 0.39183211598064};
-    static real_type const expected_pol_moment[]
-        = {-0.034297422127708, 0.79634723763554};
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        static real_type const expected_dir_moment[]
+            = {-0.016961118324494, 0.39183211598064};
+        static real_type const expected_pol_moment[]
+            = {-0.034297422127708, 0.79634723763554};
 
-    EXPECT_VEC_SOFT_EQ(expected_dir_moment, dir_moment);
-    EXPECT_VEC_SOFT_EQ(expected_pol_moment, pol_moment);
-    EXPECT_EQ(12200, rng_engine.count());
+        EXPECT_VEC_SOFT_EQ(expected_dir_moment, dir_moment);
+        EXPECT_VEC_SOFT_EQ(expected_pol_moment, pol_moment);
+        EXPECT_EQ(12200, rng_engine.count());
+    }
+    else
+    {
+        EXPECT_EQ(0, rng_engine.count());
+    }
 }
 
 //---------------------------------------------------------------------------//
