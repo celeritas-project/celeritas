@@ -74,15 +74,14 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
     // most recently added and therefore the ones that still might have a
     // parent they can copy the geometry state from.
     TrackInitializer& init = data.initializers[ItemId<TrackInitializer>([&] {
-        size_type size = counters.num_initializers;
         if (params->init.track_order == TrackOrder::init_charge)
         {
             // Get the index into the track initializer or parent track slot ID
             // array from the sorted indices
             return data.indices[TrackSlotId(index_before(num_init, tid))]
-                   + size - num_init;
+                   + counters.num_initializers - num_init;
         }
-        return index_before(size, tid);
+        return index_before(counters.num_initializers, tid);
     }())];
 
     // View to the new track to be initialized

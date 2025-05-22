@@ -181,37 +181,24 @@ CoreTrackView::operator=(TrackInitializer const& init)
 
     // Initialize the geometry
     auto geo = this->geometry();
-    if (auto parent = init.geo.parent)
+    geo = init.geo;
+    if (CELER_UNLIKELY(geo.failed() || geo.is_outside()))
     {
-        // Copy the geometry state from the parent for improved performance
-        GeoTrackView parent_geo(params_.geometry, states_.geometry, parent);
-        CELER_ASSERT(parent_geo.pos() == init.geo.pos);
-        geo = GeoTrackView::DetailedInitializer{parent_geo, init.geo.dir};
-        CELER_ASSERT(!geo.is_outside());
-    }
-    else
-    {
-        // Initialize it from the position (more expensive)
-        geo = init.geo;
-        if (CELER_UNLIKELY(geo.failed() || geo.is_outside()))
-        {
 #if !CELER_DEVICE_COMPILE
-            if (!geo.failed())
-            {
-                // Print an error message if initialization was
-                // "successful" but track is outside
-                CELER_LOG_LOCAL(error)
-                    << R"(Track started outside the geometry)";
-            }
-            else
-            {
-                // Do not print anything: the geometry track view itself
-                // should've printed a detailed error message
-            }
-#endif
-            this->apply_errored();
-            return *this;
+        if (!geo.failed())
+        {
+            // Print an error message if initialization was "successful" but
+            // track is outside
+            CELER_LOG_LOCAL(error) << R"(Track started outside the geometry)";
         }
+        else
+        {
+            // Do not print anything: the geometry track view itself should've
+            // printed a detailed error message
+        }
+#endif
+        this->apply_errored();
+        return *this;
     }
 
     // Initialize the material

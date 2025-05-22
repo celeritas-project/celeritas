@@ -137,7 +137,7 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
                 // cleared. The material state will be the same as the
                 // parent's.
                 sim = ti.sim;
-                geo = GeoTrackView::DetailedInitializer{geo, ti.geo.dir};
+                geo = {ti.geo.pos, ti.geo.dir, tid};
                 particle = ti.particle;
                 phys = {};
                 initialized = true;
