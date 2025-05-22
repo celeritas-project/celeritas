@@ -323,11 +323,12 @@ class EllipticalCone final : public IntersectRegionInterface
  * Region formed by extruding + scaling a convex polygon along a line segment.
  *
  * The convex polygon is supplied as a set of points on the XY plane in
- * clockwise order. The line segment is supplied as a length 2 array of 3D
- * points denoting the extrusion path traversed by the polygon's origin,
- * starting at the minimum Z and moving upward. Along the line, the size of the
- * polygon is linearly scaled in accordance with scaling factors supplied for
- * each line segment point.
+ * clockwise order. The line segment and scaling factors are specified by
+ * providing a line segment point and scaling factor for the top and bottom
+ * polygon faces of the region. The line segment point of the top face must
+ * have a z value greater than that of the bottom face. Along the line segment,
+ * the size of the polygon is linearly scaled in accordance with scaling
+ * factors.
  *
  * As is done in Geant4, construction is done by first applying scaling factors
  * to the upper and lower polygons via scalar multiplication with each polygon
@@ -354,7 +355,7 @@ class ExtrudedPolygon final : public IntersectRegionInterface
     //!@}
 
   public:
-    // Construct from a convex polygon, line segment, and scaling factors
+    // Construct from a convex polygon and bottom/top faces
     ExtrudedPolygon(VecReal2 const& polygon,
                     PolygonFace bot_face,
                     PolygonFace top_face);
@@ -392,7 +393,7 @@ class ExtrudedPolygon final : public IntersectRegionInterface
 
     // >> HELPER FUNCTIONS
 
-    // Calculate the min/max x or y values of the extruded IntersectRegion
+    // Calculate the min/max x or y values of the extruded region
     Range calc_range(VecReal2 const& polygon, size_type dir);
 };
 

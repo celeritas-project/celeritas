@@ -194,7 +194,7 @@ inline bool is_convex(Span<Real2 const> corners, bool degen_ok = false)
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a mask that is true if a point is colinear with its 2 neighbors.
+ * Return the non-collinear subset of the supplied corners, as a copy.
  *
  * Points are checked for colinearly dynamically, i.e, if a point is
  * found to be colinear, it is not used for future colinearity checks.
@@ -209,9 +209,9 @@ filter_collinear_points(std::vector<Real2> const& corners, double abs_tol)
 
     SoftOrientation<Real2::value_type> soft_ori(abs_tol);
 
-    // Assume first point is NOT colinear. This is necessary to handle the case
-    // where all points are locally colinear, but some points are globally
-    // non-colinear, e.g., a many-sided regular polygon.
+    // Temporarily assume first point is not colinear. This is necessary to
+    // handle the case where all points are locally colinear, but some points
+    // are globally non-colinear, e.g., a many-sided regular polygon.
     result.push_back(corners[0]);
 
     for (auto i : range<size_type>(1, corners.size()))
@@ -228,14 +228,14 @@ filter_collinear_points(std::vector<Real2> const& corners, double abs_tol)
     // Make sure there are enough filtered points to specificy a polygon.
     CELER_ASSERT(result.size() >= 3);
 
-    // Handle case where first point is actually colinear.
+    // If it turns out that the first point is actually colinear, remove it.
     if (soft_ori(result.back(), result[0], result[1]) == Orientation::collinear)
     {
         result.erase(result.begin());
     }
 
     // It shouldn't be possible for the potential removal of the first point
-    // leaves with fewer than 3 points, but check just in case.
+    // to leave us with fewer than 3 points, but check just in case.
     CELER_ENSURE(result.size() >= 3);
 
     return result;

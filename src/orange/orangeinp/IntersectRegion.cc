@@ -532,7 +532,7 @@ void EllipticalCone::output(JsonPimpl* j) const
 // ExtrudedPolygon
 //---------------------------------------------------------------------------//
 /*!
- * Construct from a convex polygon, line segment, and scaling factors.
+ * Construct from a convex polygon and bottom/top faces.
  */
 ExtrudedPolygon::ExtrudedPolygon(ExtrudedPolygon::VecReal2 const& polygon,
                                  ExtrudedPolygon::PolygonFace bot_face,
@@ -569,7 +569,7 @@ ExtrudedPolygon::ExtrudedPolygon(ExtrudedPolygon::VecReal2 const& polygon,
     CELER_VALIDATE(polygon_.size() >= 3,
                    << "polygon must consist of at least 3 points");
 
-    // After removing colinear points, the polygon should have a strictly
+    // After removing colinear points, the polygon should have a *strictly*
     // clockwise orientation, which also guarantees it is convex.
     CELER_VALIDATE(
         has_orientation(make_span(polygon_), detail::Orientation::clockwise),
@@ -627,7 +627,7 @@ void ExtrudedPolygon::output(JsonPimpl* j) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the min/max x or y values of the extruded IntersectRegion
+ * Calculate the min/max x or y values of the extruded region.
  *
  * Note that these are not simply the extrema of the polygon, but take into
  * account the translation and scaling of the polygon as it is extruded along
@@ -643,7 +643,7 @@ auto ExtrudedPolygon::calc_range(VecReal2 const& polygon, size_type dir)
 
     Range range;
 
-    // Find min/max x/y values of the polygon itself
+    // Find min/max x or y values of the polygon itself
     auto [poly_min_x_it, poly_max_x_it] = std::minmax_element(
         polygon.begin(), polygon.end(), [&dir](auto const& a, auto const& b) {
             return a[dir] < b[dir];

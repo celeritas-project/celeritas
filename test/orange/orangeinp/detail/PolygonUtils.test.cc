@@ -179,7 +179,7 @@ TEST(PolygonUtilsTest, convex_self_intersect)
  */
 TEST(PolygonUtilsTest, filter_collinear_points)
 {
-    // Points locations, as labled above
+    // Point locations, as labled above
     Real2 a = {0, 0};
     Real2 b = {-1, -1e-5};
     Real2 c = {-0.9, -0.1};
@@ -191,7 +191,7 @@ TEST(PolygonUtilsTest, filter_collinear_points)
     using VecReal2 = std::vector<Real2>;
     real_type tol = 0.01;
 
-    // no collinear points (b through f)
+    // No collinear points (b through f)
     VecReal2 points{b, c, d, e, f};
     VecReal2 exp = points;
     expect_polygon_equal(exp, filter_collinear_points(points, tol));
@@ -201,22 +201,22 @@ TEST(PolygonUtilsTest, filter_collinear_points)
     exp = {b, c, d, e, f};
     expect_polygon_equal(exp, filter_collinear_points(points, tol));
 
-    // Same, but a is second
+    // Same, but a comes second
     points = {f, a, b, c, d, e};
     exp = {f, b, c, d, e};
     expect_polygon_equal(exp, filter_collinear_points(points, tol));
 
-    // Same, but a is third
+    // Same, but a comes third
     points = {e, f, a, b, c, d};
     exp = {e, f, b, c, d};
     expect_polygon_equal(exp, filter_collinear_points(points, tol));
 
-    // Same, but a is last
+    // Same, but a comes last
     points = {b, c, d, e, f, a};
     exp = {b, c, d, e, f};
     expect_polygon_equal(exp, filter_collinear_points(points, tol));
 
-    // Same, but a is second
+    // Same, but a comes second
     points = {f, a, b, c, d, e};
     exp = {f, b, c, d, e};
     expect_polygon_equal(exp, filter_collinear_points(points, tol));
@@ -248,12 +248,12 @@ TEST(PolygonUtilsTest, filter_collinear_points)
 }
 
 /* Test pathological case consisting of a many-sided regular polygon with every
- * point locally soft collinear with its neighbors due to a large tolerance.
+ * point soft collinear with its neighbors due to a large tolerance.
  */
 TEST(PolygonUtilsTest, filter_collinear_points_pathological)
 {
     // Create a many-sided regular polygon by placing 20 equally spaced points
-    // on a circule of radius = 1, in clockwise order.
+    // on a circle of radius = 1, in clockwise order.
     VecReal2 points(20);
     real_type step = static_cast<real_type>(2 * constants::pi / points.size());
 
@@ -263,14 +263,13 @@ TEST(PolygonUtilsTest, filter_collinear_points_pathological)
         points[i] = {std::cos(theta), std::sin(theta)};
     }
 
-    // Verify choose a tolerance such that the points are locally soft
-    // collinear
+    // Choose a tolerance such that adjacent points are soft collinear
     real_type tol = 0.1;
     SoftOrientation soft_ori(tol);
     EXPECT_EQ(Orientation::collinear,
               soft_ori(points[0], points[1], points[2]));
 
-    // Check that filtering gives us more that zero points, in this case 7
+    // Check that filtering provies more than zero points, in this case 7
     auto filtered_points = filter_collinear_points(points, tol);
     EXPECT_EQ(7, filtered_points.size());
 }

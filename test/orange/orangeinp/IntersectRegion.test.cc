@@ -596,7 +596,7 @@ TEST_F(ExtrudedPolygonTest, simple_cube)
 
 TEST_F(ExtrudedPolygonTest, colinear)
 {
-    // Same test as simple_cube, but with colinear points must be eliminated
+    // Same test as simple_cube, but with colinear points
     ExtrudedPolygon::VecReal2 polygon{Real2{0, 0},
                                       Real2{0, 0.5},
                                       Real2{0, 1},
