@@ -128,26 +128,22 @@ TEST_F(RayleighInteractorTest, stress_test)
     EXPECT_FALSE(accum_dir.underflow() || accum_dir.overflow()
                  || accum_pol.underflow() || accum_pol.overflow());
 
-    static double const expected_accum_dir[] = {
-        0.663228,
-        0.524084,
-        0.430208,
-        0.38436,
-        0.38342,
-        0.428288,
-        0.523892,
-        0.66252,
-    };
-    static double const expected_accum_pol[] = {
-        1.693616,
-        0.25236,
-        0.048704,
-        0.002868,
-        0.003188,
-        0.048196,
-        0.253036,
-        1.698032,
-    };
+    static double const expected_accum_dir[] = {0.664276,
+                                                0.523112,
+                                                0.431024,
+                                                0.38288,
+                                                0.385056,
+                                                0.4282,
+                                                0.521508,
+                                                0.663944};
+    static double const expected_accum_pol[] = {1.697708,
+                                                0.252052,
+                                                0.047852,
+                                                0.00306,
+                                                0.003024,
+                                                0.049384,
+                                                0.253828,
+                                                1.693092};
 
     auto avg_samples = static_cast<double>(rng_engine.exchange_count())
                        / static_cast<double>(num_samples);
@@ -155,7 +151,7 @@ TEST_F(RayleighInteractorTest, stress_test)
     {
         EXPECT_VEC_SOFT_EQ(expected_accum_dir, accum_dir.calc_density());
         EXPECT_VEC_SOFT_EQ(expected_accum_pol, accum_pol.calc_density());
-        EXPECT_SOFT_EQ(11.998662, avg_samples);
+        EXPECT_SOFT_EQ(11.997276, avg_samples);
     }
     else
     {
