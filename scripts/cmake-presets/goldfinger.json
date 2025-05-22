@@ -150,9 +150,7 @@
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"},
-        "CMAKE_CXX_COMPILER_LAUNCHER": "/opt/homebrew/bin/ccache",
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_UNITS": "CLHEP"
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
       }
     }
   ],
