@@ -10,6 +10,7 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/sys/ThreadId.hh"
 
 namespace celeritas
 {
@@ -77,6 +78,7 @@ struct GeoTrackInitializer
 {
     Real3 pos{0, 0, 0};
     Real3 dir{0, 0, 0};
+    TrackSlotId parent;
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const

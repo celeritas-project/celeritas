@@ -181,7 +181,7 @@ CELER_FUNCTION void Raytracer<GTV, F>::initialize_at_pixel(size_type pix)
 {
     CELER_EXPECT(pix < image_.max_index());
 
-    GeoTrackInitializer init{image_.start_pos(), image_.start_dir()};
+    GeoTrackInitializer init{image_.start_pos(), image_.start_dir(), {}};
     axpy(pix * image_.pixel_width(), init.dir, &init.pos);
     geo_ = init;
     pixel_ = pix;

@@ -93,7 +93,7 @@ GeoTrackView MscTestBase::make_geo_view(real_type r) const
 {
     GeoTrackView geo_view(
         this->geometry()->host_ref(), geo_state_.ref(), TrackSlotId{0});
-    geo_view = {{r, r, r}, Real3{0, 0, 1}};
+    geo_view = {{r, r, r}, Real3{0, 0, 1}, {}};
     return geo_view;
 }
 

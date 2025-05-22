@@ -147,7 +147,7 @@ void CheckedGeoTrackView<GTV>::move_internal(Real3 const& pos)
     if (!checked_internal_ && orig_safety > this->safety_tol())
     {
         VolumeId expected = this->volume_id();
-        Initializer_t here{this->pos(), this->dir()};
+        Initializer_t here{this->pos(), this->dir(), {}};
         *this = here;
         CELER_VALIDATE(!this->is_outside(),
                        << std::setprecision(16)

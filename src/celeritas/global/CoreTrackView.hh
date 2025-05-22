@@ -40,13 +40,6 @@ class CoreTrackView
     using StateRef = NativeRef<CoreStateData>;
     //!@}
 
-    //! Data for initializing a core track
-    struct Initializer
-    {
-        TrackInitializer const& init;
-        TrackSlotId parent;
-    };
-
   public:
     // Construct with comprehensive param/state data and thread
     inline CELER_FUNCTION CoreTrackView(ParamsRef const& params,
@@ -59,7 +52,7 @@ class CoreTrackView
                                         TrackSlotId slot);
 
     // Initialize the track states
-    inline CELER_FUNCTION CoreTrackView& operator=(Initializer const&);
+    inline CELER_FUNCTION CoreTrackView& operator=(TrackInitializer const&);
 
     // Return a simulation management view
     inline CELER_FUNCTION SimTrackView sim() const;
@@ -174,20 +167,11 @@ CoreTrackView::CoreTrackView(ParamsRef const& params,
 //---------------------------------------------------------------------------//
 /*!
  * Initialize the track states.
- *
- * The parent ID is used copy the geometry from the parent state to avoid the
- * expensive geometry initialization. The ID will be valid if the parent was
- * alive at the beginning of the step and was not overwritten by another track.
- *
- * \todo Once we can accelerate the geometry initialization, store the data
- * needed directly in the track initializer.
  */
 CELER_FUNCTION CoreTrackView&
-CoreTrackView::operator=(Initializer const& initializer)
+CoreTrackView::operator=(TrackInitializer const& init)
 {
-    CELER_EXPECT(initializer.init);
-
-    auto const& init = initializer.init;
+    CELER_EXPECT(init);
 
     // Initialize the simulation state
     this->sim() = init.sim;
@@ -197,7 +181,7 @@ CoreTrackView::operator=(Initializer const& initializer)
 
     // Initialize the geometry
     auto geo = this->geometry();
-    if (auto parent = initializer.parent)
+    if (auto parent = init.geo.parent)
     {
         // Copy the geometry state from the parent for improved performance
         GeoTrackView parent_geo(params_.geometry, states_.geometry, parent);

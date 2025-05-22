@@ -887,7 +887,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
         Real3 start_pos{-5 + start_delta, 0, 0};
         axpy(real_type(-1), first_pos, &start_pos);
 
-        geo = GeoTrackInitializer{start_pos, {0, 1, 0}};
+        geo = GeoTrackInitializer{start_pos, {0, 1, 0}, {}};
         integrate.reset_count();
         auto propagate
             = make_field_propagator(integrate, driver_options, particle, geo);

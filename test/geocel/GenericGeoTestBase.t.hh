@@ -162,7 +162,7 @@ auto GenericGeoTestBase<HP>::make_geo_track_view(Real3 const& pos, Real3 dir)
     -> GeoTrackView
 {
     auto geo = this->make_geo_track_view();
-    GeoTrackInitializer init{pos, make_unit_vector(dir)};
+    GeoTrackInitializer init{pos, make_unit_vector(dir), {}};
     init.pos *= static_cast<real_type>(this->unit_length());
     geo = init;
     return geo;
@@ -272,7 +272,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
             if (result.halfway_safeties.back() > 0)
             {
                 // Check reinitialization if not tangent to a surface
-                GeoTrackInitializer const init{geo.pos(), geo.dir()};
+                GeoTrackInitializer const init{geo.pos(), geo.dir(), {}};
                 auto prev_id = geo.volume_id();
                 geo = init;
                 if (geo.is_outside())

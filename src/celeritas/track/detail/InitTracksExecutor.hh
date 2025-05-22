@@ -46,7 +46,7 @@ struct InitTracksExecutor
 
     ParamsPtr params;
     StatePtr state;
-    size_type num_new_tracks{};
+    size_type num_init{};
     CoreStateCounters counters;
 
     //// FUNCTIONS ////
@@ -65,53 +65,47 @@ struct InitTracksExecutor
  */
 CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
 {
-    CELER_EXPECT(tid < num_new_tracks);
+    CELER_EXPECT(tid < num_init);
 
     auto const& data = state->init;
-
-    auto get_idx = [&](size_type size) {
-        if (params->init.track_order == TrackOrder::init_charge)
-        {
-            // Get the index into the track initializer or parent track slot ID
-            // array from the sorted indices
-            return data.indices[TrackSlotId(index_before(num_new_tracks, tid))]
-                   + size - num_new_tracks;
-        }
-        return index_before(size, tid);
-    };
 
     // Get the track initializer from the back of the vector. Since new
     // initializers are pushed to the back of the vector, these will be the
     // most recently added and therefore the ones that still might have a
     // parent they can copy the geometry state from.
-    TrackInitializer const& init = data.initializers[ItemId<TrackInitializer>(
-        get_idx(counters.num_initializers))];
+    TrackInitializer& init = data.initializers[ItemId<TrackInitializer>([&] {
+        size_type size = counters.num_initializers;
+        if (params->init.track_order == TrackOrder::init_charge)
+        {
+            // Get the index into the track initializer or parent track slot ID
+            // array from the sorted indices
+            return data.indices[TrackSlotId(index_before(num_init, tid))]
+                   + size - num_init;
+        }
+        return index_before(size, tid);
+    }())];
 
     // View to the new track to be initialized
     CoreTrackView vacancy{
         *params, *state, [&] {
             if (params->init.track_order == TrackOrder::init_charge)
             {
-                return data.vacancies[TrackSlotId(
-                    index_partitioned(num_new_tracks,
-                                      counters.num_vacancies,
-                                      IsNeutral{params}(init),
-                                      tid))];
+                return data.vacancies[TrackSlotId(index_partitioned(
+                    num_init, counters.num_vacancies, IsNeutral{params}(init), tid))];
             }
             return data.vacancies[TrackSlotId(
                 index_before(counters.num_vacancies, tid))];
         }()};
 
-    // Get the ID of the parent track, if available
-    auto parent = [&] {
-        if (!(tid < counters.num_secondaries))
-        {
-            return TrackSlotId{};
-        }
-        return data.parents[TrackSlotId(get_idx(data.parents.size()))];
-    }();
+    // Clear parent IDs if they are from a previous step, if new primaries were
+    // added this step, or if the initializers are sorted
+    if (!(tid < counters.num_secondaries) || counters.num_generated
+        || params->init.track_order == TrackOrder::init_charge)
+    {
+        init.geo.parent = {};
+    }
 
-    vacancy = {init, parent};
+    vacancy = init;
 }
 
 //---------------------------------------------------------------------------//

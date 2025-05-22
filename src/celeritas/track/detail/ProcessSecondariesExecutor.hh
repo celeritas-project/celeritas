@@ -155,7 +155,7 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
                     counters.num_initializers - offset}]
                     = ti;
 
-                if (offset <= data.parents.size()
+                if (offset <= state->size()
                     && (params->init.track_order != TrackOrder::init_charge
                         || sim.status() == TrackStatus::alive))
                 {
@@ -165,8 +165,7 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
                     // initialization of the secondary, so the parent track
                     // must still be alive to ensure the state isn't
                     // overwritten
-                    data.parents[TrackSlotId(data.parents.size() - offset)]
-                        = tid;
+                    ti.geo.parent = tid;
                 }
                 --offset;
             }

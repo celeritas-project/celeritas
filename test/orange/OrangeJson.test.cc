@@ -165,7 +165,7 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
     auto geo = this->make_geo_track_view();
 
     // Initialize in outermost universe
-    geo = Initializer_t{{-1, -2, 1}, {1, 0, 0}};
+    geo = Initializer_t{{-1, -2, 1}, {1, 0, 0}, {}};
     EXPECT_VEC_SOFT_EQ(Real3({-1, -2, 1}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
     EXPECT_EQ("johnny", this->volume_name(geo));
@@ -173,7 +173,7 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
     EXPECT_FALSE(geo.is_on_boundary());
 
     // Initialize in daughter universe
-    geo = Initializer_t{{0.625, -2, 1}, {1, 0, 0}};
+    geo = Initializer_t{{0.625, -2, 1}, {1, 0, 0}, {}};
     EXPECT_VEC_SOFT_EQ(Real3({0.625, -2, 1}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
     EXPECT_EQ("c", this->volume_name(geo));
@@ -205,7 +205,7 @@ TEST_F(UniversesTest, move_internal_multiple_universes)
     auto geo = this->make_geo_track_view();
 
     // Initialize in daughter universe
-    geo = Initializer_t{{0.625, -2, 1}, {0, 1, 0}};
+    geo = Initializer_t{{0.625, -2, 1}, {0, 1, 0}, {}};
 
     // Move internally, then check that the distance to boundary is correct
     geo.move_internal({0.625, -1, 1});
@@ -225,7 +225,7 @@ TEST_F(UniversesTest, change_dir_daughter_universe)
     auto geo = this->make_geo_track_view();
 
     // Initialize inside daughter universe a
-    geo = Initializer_t{{1.5, -2.0, 1.0}, {1.0, 0.0, 0.0}};
+    geo = Initializer_t{{1.5, -2.0, 1.0}, {1.0, 0.0, 0.0}, {}};
 
     // Change the direction
     geo.set_dir({0.0, 1.0, 0.0});
@@ -239,7 +239,7 @@ TEST_F(UniversesTest, change_dir_daughter_universe)
 TEST_F(UniversesTest, cross_into_daughter_non_coincident)
 {
     auto geo = this->make_geo_track_view();
-    geo = Initializer_t{{2, -5, 0.75}, {0, 1, 0}};
+    geo = Initializer_t{{2, -5, 0.75}, {0, 1, 0}, {}};
 
     auto next = geo.find_next_step();
     EXPECT_SOFT_EQ(1, next.distance);
@@ -268,7 +268,7 @@ TEST_F(UniversesTest, cross_into_daughter_non_coincident)
 TEST_F(UniversesTest, cross_into_parent_non_coincident)
 {
     auto geo = this->make_geo_track_view();
-    geo = Initializer_t{{2, -3.25, 0.75}, {0, -1, 0}};
+    geo = Initializer_t{{2, -3.25, 0.75}, {0, -1, 0}, {}};
 
     auto next = geo.find_next_step();
     EXPECT_SOFT_EQ(0.75, next.distance);
@@ -296,7 +296,7 @@ TEST_F(UniversesTest, cross_into_parent_non_coincident)
 TEST_F(UniversesTest, cross_into_daughter_coincident)
 {
     auto geo = this->make_geo_track_view();
-    geo = Initializer_t{{2, 1, 1}, {0, -1, 0}};
+    geo = Initializer_t{{2, 1, 1}, {0, -1, 0}, {}};
 
     auto next = geo.find_next_step();
     EXPECT_SOFT_EQ(1, next.distance);
@@ -325,7 +325,7 @@ TEST_F(UniversesTest, cross_into_daughter_coincident)
 TEST_F(UniversesTest, cross_into_parent_coincident)
 {
     auto geo = this->make_geo_track_view();
-    geo = Initializer_t{{2, -0.5, 1}, {0, 1, 0}};
+    geo = Initializer_t{{2, -0.5, 1}, {0, 1, 0}, {}};
 
     auto next = geo.find_next_step();
     EXPECT_SOFT_EQ(0.5, next.distance);
@@ -353,7 +353,7 @@ TEST_F(UniversesTest, cross_into_parent_coincident)
 TEST_F(UniversesTest, cross_into_daughter_doubly_coincident)
 {
     auto geo = this->make_geo_track_view();
-    geo = Initializer_t{{0.25, -4.5, 1}, {0, 1, 0}};
+    geo = Initializer_t{{0.25, -4.5, 1}, {0, 1, 0}, {}};
 
     auto next = geo.find_next_step();
     EXPECT_SOFT_EQ(0.5, next.distance);
@@ -381,7 +381,7 @@ TEST_F(UniversesTest, cross_into_daughter_doubly_coincident)
 TEST_F(UniversesTest, cross_into_parent_doubly_coincident)
 {
     auto geo = this->make_geo_track_view();
-    geo = Initializer_t{{0.25, -3.75, 1}, {0, -1, 0}};
+    geo = Initializer_t{{0.25, -3.75, 1}, {0, -1, 0}, {}};
 
     auto next = geo.find_next_step();
     EXPECT_SOFT_EQ(0.25, next.distance);
@@ -411,7 +411,7 @@ TEST_F(UniversesTest, cross_between_daughters)
     auto geo = this->make_geo_track_view();
 
     // Initialize in outermost universe
-    geo = Initializer_t{{2, -2, 0.7}, {0, 0, -1}};
+    geo = Initializer_t{{2, -2, 0.7}, {0, 0, -1}, {}};
 
     auto next = geo.find_next_step();
     EXPECT_SOFT_EQ(0.2, next.distance);
@@ -441,7 +441,7 @@ TEST_F(UniversesTest, reentrant)
     auto geo = this->make_geo_track_view();
 
     // Initialize in innermost universe
-    geo = Initializer_t{{0.25, -3.7, 0.7}, {0, 1, 0}};
+    geo = Initializer_t{{0.25, -3.7, 0.7}, {0, 1, 0}, {}};
     auto next = geo.find_next_step();
     EXPECT_SOFT_EQ(0.2, next.distance);
 
@@ -491,7 +491,7 @@ TEST_F(RectArrayTest, params)
 TEST_F(RectArrayTest, tracking)
 {
     auto geo = this->make_geo_track_view();
-    geo = Initializer_t{{-1, 1, -1}, {1, 0, 0}};
+    geo = Initializer_t{{-1, 1, -1}, {1, 0, 0}, {}};
 
     EXPECT_VEC_SOFT_EQ(Real3({-1, 1, -1}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
@@ -511,7 +511,7 @@ class NestedRectArraysTest : public JsonOrangeTest
 TEST_F(NestedRectArraysTest, tracking)
 {
     auto geo = this->make_geo_track_view();
-    geo = Initializer_t{{1.5, 0.5, 0.5}, {1, 0, 0}};
+    geo = Initializer_t{{1.5, 0.5, 0.5}, {1, 0, 0}, {}};
 
     EXPECT_VEC_SOFT_EQ(Real3({1.5, 0.5, 0.5}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
@@ -538,7 +538,7 @@ TEST_F(NestedRectArraysTest, tracking)
 TEST_F(NestedRectArraysTest, leaving)
 {
     auto geo = this->make_geo_track_view();
-    geo = Initializer_t{{3.5, 1.5, 0.5}, {1, 0, 0}};
+    geo = Initializer_t{{3.5, 1.5, 0.5}, {1, 0, 0}, {}};
 
     EXPECT_VEC_SOFT_EQ(Real3({3.5, 1.5, 0.5}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
@@ -572,7 +572,7 @@ TEST_F(Geant4Testem15Test, safety)
 {
     OrangeTrackView geo = this->make_geo_track_view();
 
-    geo = Initializer_t{{0, 0, 0}, {1, 0, 0}};
+    geo = Initializer_t{{0, 0, 0}, {1, 0, 0}, {}};
     EXPECT_VEC_SOFT_EQ(Real3({0, 0, 0}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
@@ -650,11 +650,11 @@ TEST_F(TestEM3Test, safety)
     auto geo = this->make_geo_track_view();
 
     // Initialize in innermost universe, near the universe boundary
-    geo = Initializer_t{{19.99, 19.9, 19.9}, {0, 1, 0}};
+    geo = Initializer_t{{19.99, 19.9, 19.9}, {0, 1, 0}, {}};
     EXPECT_SOFT_EQ(0.01, geo.find_safety());
 
     // Initialize on the other side of the same volume
-    geo = Initializer_t{{19.42, 19.9, 19.9}, {0, 1, 0}};
+    geo = Initializer_t{{19.42, 19.9, 19.9}, {0, 1, 0}, {}};
     EXPECT_SOFT_EQ(0.01, geo.find_safety());
 }
 
