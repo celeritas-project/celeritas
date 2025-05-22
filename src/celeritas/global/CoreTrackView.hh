@@ -19,6 +19,10 @@
 
 #include "CoreTrackData.hh"
 
+#if !CELER_DEVICE_COMPILE
+#    include "corecel/io/Logger.hh"
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -36,6 +40,13 @@ class CoreTrackView
     using StateRef = NativeRef<CoreStateData>;
     //!@}
 
+    //! Data for initializing a core track
+    struct Initializer
+    {
+        TrackInitializer const& init;
+        TrackSlotId parent;
+    };
+
   public:
     // Construct with comprehensive param/state data and thread
     inline CELER_FUNCTION CoreTrackView(ParamsRef const& params,
@@ -46,6 +57,9 @@ class CoreTrackView
     inline CELER_FUNCTION CoreTrackView(ParamsRef const& params,
                                         StateRef const& states,
                                         TrackSlotId slot);
+
+    // Initialize the track states
+    inline CELER_FUNCTION CoreTrackView& operator=(Initializer const&);
 
     // Return a simulation management view
     inline CELER_FUNCTION SimTrackView sim() const;
@@ -155,6 +169,83 @@ CoreTrackView::CoreTrackView(ParamsRef const& params,
     : states_(states), params_(params), track_slot_id_(track_slot)
 {
     CELER_EXPECT(track_slot_id_ < states_.size());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize the track states.
+ *
+ * The parent ID is used copy the geometry from the parent state to avoid the
+ * expensive geometry initialization. The ID will be valid if the parent was
+ * alive at the beginning of the step and was not overwritten by another track.
+ *
+ * \todo Once we can accelerate the geometry initialization, store the data
+ * needed directly in the track initializer.
+ */
+CELER_FUNCTION CoreTrackView&
+CoreTrackView::operator=(Initializer const& initializer)
+{
+    CELER_EXPECT(initializer.init);
+
+    auto const& init = initializer.init;
+
+    // Initialize the simulation state
+    this->sim() = init.sim;
+
+    // Initialize the particle attributes
+    this->particle() = init.particle;
+
+    // Initialize the geometry
+    auto geo = this->geometry();
+    if (auto parent = initializer.parent)
+    {
+        // Copy the geometry state from the parent for improved performance
+        GeoTrackView parent_geo(params_.geometry, states_.geometry, parent);
+        CELER_ASSERT(parent_geo.pos() == init.geo.pos);
+        geo = GeoTrackView::DetailedInitializer{parent_geo, init.geo.dir};
+        CELER_ASSERT(!geo.is_outside());
+    }
+    else
+    {
+        // Initialize it from the position (more expensive)
+        geo = init.geo;
+        if (CELER_UNLIKELY(geo.failed() || geo.is_outside()))
+        {
+#if !CELER_DEVICE_COMPILE
+            if (!geo.failed())
+            {
+                // Print an error message if initialization was
+                // "successful" but track is outside
+                CELER_LOG_LOCAL(error)
+                    << R"(Track started outside the geometry)";
+            }
+            else
+            {
+                // Do not print anything: the geometry track view itself
+                // should've printed a detailed error message
+            }
+#endif
+            this->apply_errored();
+            return *this;
+        }
+    }
+
+    // Initialize the material
+    auto matid = this->geo_material().material_id(geo.volume_id());
+    if (CELER_UNLIKELY(!matid))
+    {
+#if !CELER_DEVICE_COMPILE
+        CELER_LOG_LOCAL(error) << "Track started in an unknown material";
+#endif
+        this->apply_errored();
+        return *this;
+    }
+    this->material() = {matid};
+
+    // Initialize the physics state
+    this->physics() = {};
+
+    return *this;
 }
 
 //---------------------------------------------------------------------------//

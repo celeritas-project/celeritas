@@ -23,10 +23,6 @@
 #include "../CoreStateCounters.hh"
 #include "../SimTrackView.hh"
 
-#if !CELER_DEVICE_COMPILE
-#    include "corecel/io/Logger.hh"
-#endif
-
 namespace celeritas
 {
 namespace detail
@@ -106,70 +102,16 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
                 index_before(counters.num_vacancies, tid))];
         }()};
 
-    // Initialize the simulation state and particle attributes
-    vacancy.sim() = init.sim;
-    vacancy.particle() = init.particle;
-
-    // Initialize the geometry
-    {
-        auto geo = vacancy.geometry();
-        auto parent_id = [&] {
-            if (!(tid < counters.num_secondaries))
-            {
-                return TrackSlotId{};
-            }
-            return data.parents[TrackSlotId(get_idx(data.parents.size()))];
-        }();
-
-        if (parent_id)
+    // Get the ID of the parent track, if available
+    auto parent = [&] {
+        if (!(tid < counters.num_secondaries))
         {
-            // Copy the geometry state from the parent for improved performance
-            GeoTrackView const parent_geo(
-                params->geometry, state->geometry, parent_id);
-            CELER_ASSERT(parent_geo.pos() == init.geo.pos);
-            geo = GeoTrackView::DetailedInitializer{parent_geo, init.geo.dir};
-            CELER_ASSERT(!geo.is_outside());
+            return TrackSlotId{};
         }
-        else
-        {
-            // Initialize it from the position (more expensive)
-            geo = init.geo;
-            if (CELER_UNLIKELY(geo.failed() || geo.is_outside()))
-            {
-#if !CELER_DEVICE_COMPILE
-                if (!geo.failed())
-                {
-                    // Print an error message if initialization was
-                    // "successful" but track is outside
-                    CELER_LOG_LOCAL(error)
-                        << R"(Track started outside the geometry)";
-                }
-                else
-                {
-                    // Do not print anything: the geometry track view itself
-                    // should've printed a detailed error message
-                }
-#endif
-                vacancy.apply_errored();
-                return;
-            }
-        }
+        return data.parents[TrackSlotId(get_idx(data.parents.size()))];
+    }();
 
-        // Initialize the material
-        auto matid = vacancy.geo_material().material_id(geo.volume_id());
-        if (CELER_UNLIKELY(!matid))
-        {
-#if !CELER_DEVICE_COMPILE
-            CELER_LOG_LOCAL(error) << "Track started in an unknown material";
-#endif
-            vacancy.apply_errored();
-            return;
-        }
-        vacancy.material() = {matid};
-    }
-
-    // Initialize the physics state
-    vacancy.physics() = {};
+    vacancy = {init, parent};
 }
 
 //---------------------------------------------------------------------------//
