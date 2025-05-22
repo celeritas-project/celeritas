@@ -41,8 +41,10 @@ enum class Orientation
 /*!
  * Find orientation of ordered vertices in 2D coordinates.
  */
-inline Orientation
-calc_orientation(Real2 const& a, Real2 const& b, Real2 const& c)
+template<class T>
+inline Orientation calc_orientation(celeritas::Array<T, 2> const& a,
+                                    celeritas::Array<T, 2> const& b,
+                                    celeritas::Array<T, 2> const& c)
 {
     auto crossp = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]);
     return crossp < 0   ? Orientation::clockwise
@@ -63,7 +65,9 @@ inline bool has_orientation(Span<Real2 const> corners, Orientation o)
     {
         auto j = (i + 1) % corners.size();
         auto k = (i + 2) % corners.size();
-        if (calc_orientation(corners[i], corners[j], corners[k]) != o)
+        if (calc_orientation<Real2::value_type>(
+                corners[i], corners[j], corners[k])
+            != o)
             return false;
     }
     return true;
@@ -153,7 +157,7 @@ class SoftOrientation
         }
         else
         {
-            return calc_orientation(a, b, c);
+            return calc_orientation<real_type>(a, b, c);
         }
     }
 
@@ -176,7 +180,8 @@ inline bool is_convex(Span<Real2 const> corners, bool degen_ok = false)
     {
         auto j = (i + 1) % corners.size();
         auto k = (i + 2) % corners.size();
-        auto cur = calc_orientation(corners[i], corners[j], corners[k]);
+        auto cur = calc_orientation<Real2::value_type>(
+            corners[i], corners[j], corners[k]);
         if (ref == Orientation::collinear)
         {
             // First non-collinear point

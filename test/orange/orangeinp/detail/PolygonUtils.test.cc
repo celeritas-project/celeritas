@@ -48,13 +48,13 @@ auto expect_polygon_equal = [](VecReal2 const& a, VecReal2 const& b) {
 
 TEST(PolygonUtilsTest, calc_orientation)
 {
-    EXPECT_EQ(ccw, calc_orientation({0, 0}, {4, 4}, {1, 2}));
-    EXPECT_EQ(cw, calc_orientation({0, 0}, {4, 4}, {2, 1}));
-    EXPECT_EQ(col, calc_orientation({0, 0}, {4, 4}, {2, 2}));
-    EXPECT_EQ(col, calc_orientation({0, 0}, {1, 1}, {2, 2}));
-    EXPECT_EQ(col, calc_orientation({2, 2}, {1, 1}, {0, 0}));
-    EXPECT_EQ(col, calc_orientation({0, 0}, {0, 0}, {1, 1}));
-    EXPECT_EQ(col, calc_orientation({0, 0}, {0, 0}, {0, 0}));
+    EXPECT_EQ(ccw, calc_orientation<real_type>({0, 0}, {4, 4}, {1, 2}));
+    EXPECT_EQ(cw, calc_orientation<real_type>({0, 0}, {4, 4}, {2, 1}));
+    EXPECT_EQ(col, calc_orientation<real_type>({0, 0}, {4, 4}, {2, 2}));
+    EXPECT_EQ(col, calc_orientation<real_type>({0, 0}, {1, 1}, {2, 2}));
+    EXPECT_EQ(col, calc_orientation<real_type>({2, 2}, {1, 1}, {0, 0}));
+    EXPECT_EQ(col, calc_orientation<real_type>({0, 0}, {0, 0}, {1, 1}));
+    EXPECT_EQ(col, calc_orientation<real_type>({0, 0}, {0, 0}, {0, 0}));
 }
 
 TEST(PolygonUtilsTest, has_orientation)
