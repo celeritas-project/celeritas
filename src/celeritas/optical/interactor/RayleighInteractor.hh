@@ -79,17 +79,16 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng) const
     IsotropicDistribution sample_direction{};
     do
     {
-        new_dir = sample_direction(rng);
-
-        // Project polarization onto plane perpendicular to new direction
-        new_pol = make_unit_vector(make_orthogonal(inc_pol_, new_dir));
-
-        if (CELER_UNLIKELY(!soft_zero(dot_product(new_pol, new_dir))))
+        do
         {
-            // Incident polarization and new direction were coincident or
-            // nearly so
-            continue;
-        }
+            new_dir = sample_direction(rng);
+
+            // Project polarization onto plane perpendicular to new direction
+            new_pol = make_unit_vector(make_orthogonal(inc_pol_, new_dir));
+
+            // Prevent rare case of polarization and new direction being
+            // coincident or nearly so
+        } while (CELER_UNLIKELY(!soft_zero(dot_product(new_pol, new_dir))));
 
         if (!BernoulliDistribution{0.5}(rng))
         {

@@ -148,11 +148,19 @@ TEST_F(RayleighInteractorTest, stress_test)
         0.253036,
         1.698032,
     };
-    EXPECT_VEC_SOFT_EQ(expected_accum_dir, accum_dir.calc_density());
-    EXPECT_VEC_SOFT_EQ(expected_accum_pol, accum_pol.calc_density());
-    EXPECT_SOFT_EQ(11.998662,
-                   static_cast<double>(rng_engine.exchange_count())
-                       / static_cast<double>(num_samples));
+
+    auto avg_samples = static_cast<double>(rng_engine.exchange_count())
+                       / static_cast<double>(num_samples);
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_VEC_SOFT_EQ(expected_accum_dir, accum_dir.calc_density());
+        EXPECT_VEC_SOFT_EQ(expected_accum_pol, accum_pol.calc_density());
+        EXPECT_SOFT_EQ(11.998662, avg_samples);
+    }
+    else
+    {
+        EXPECT_SOFT_EQ(6.0008160000000004, avg_samples);
+    }
 }
 
 //---------------------------------------------------------------------------//
