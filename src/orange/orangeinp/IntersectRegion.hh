@@ -371,11 +371,23 @@ class ExtrudedPolygon final : public IntersectRegionInterface
     //! Polygon points (2D)
     VecReal2 polygon() const { return polygon_; }
 
-    ////! Line segment points (3D)
-    // ArrayReal3 line_segment() const { return line_segment_; }
+    //! Bottom point of the line segment
+    Real3 bot_line_segment_point() const { return line_segment_[Bound::lo]; }
 
-    ////! Scaling factors along the line segment
-    // ArrayReal scaling_factors() const { return scaling_factors_; }
+    //! Top point of the line segment
+    Real3 top_line_segment_point() const { return line_segment_[Bound::hi]; }
+
+    //! Bottom scaling factor
+    real_type bot_scaling_factor() const
+    {
+        return scaling_factors_[Bound::lo];
+    }
+
+    //! Top scaling factor
+    real_type top_scaling_factor() const
+    {
+        return scaling_factors_[Bound::hi];
+    }
 
   private:
     //// TYPES ////

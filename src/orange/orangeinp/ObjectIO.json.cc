@@ -199,11 +199,12 @@ void to_json(nlohmann::json& j, EllipticalCone const& cr)
 }
 void to_json(nlohmann::json& j, ExtrudedPolygon const& cr)
 {
-    j = {
-        {"_type", "extrudedpolygon"}, SIO_ATTR_PAIR(cr, polygon),
-        // SIO_ATTR_PAIR(cr, line_segment),
-        // SIO_ATTR_PAIR(cr, scaling_factors)
-    };
+    j = {{"_type", "extrudedpolygon"},
+         SIO_ATTR_PAIR(cr, polygon),
+         SIO_ATTR_PAIR(cr, bot_line_segment_point),
+         SIO_ATTR_PAIR(cr, top_line_segment_point),
+         SIO_ATTR_PAIR(cr, bot_scaling_factor),
+         SIO_ATTR_PAIR(cr, top_scaling_factor)};
 }
 void to_json(nlohmann::json& j, GenPrism const& cr)
 {
