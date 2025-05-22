@@ -4,12 +4,15 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/Rayleigh.test.cc
 //---------------------------------------------------------------------------//
+#include "corecel/random/Histogram.hh"
+#include "corecel/random/HistogramSampler.hh"
 #include "celeritas/optical/interactor/RayleighInteractor.hh"
 #include "celeritas/optical/model/RayleighMfpCalculator.hh"
 #include "celeritas/optical/model/RayleighModel.hh"
 
 #include "InteractorHostTestBase.hh"
 #include "OpticalMockTestBase.hh"
+#include "TestMacros.hh"
 #include "ValidationUtils.hh"
 #include "celeritas_test.hh"
 
@@ -104,48 +107,52 @@ TEST_F(RayleighInteractorTest, TEST_IF_CELERITAS_DOUBLE(basic))
 // Test statistical consistency over larger number of samples
 TEST_F(RayleighInteractorTest, stress_test)
 {
-    int const num_samples = 1'000'000;
+    constexpr size_type num_samples = 1'000'000;
 
     RayleighInteractor interact{this->particle_track(), this->direction()};
 
     auto& rng_engine = this->rng();
+    auto const dir = this->direction();
+    auto const pol = this->particle_track().polarization();
 
-    Array<real_type, 2> dir_moment = {0, 0};
-    Array<real_type, 2> pol_moment = {0, 0};
+    Histogram accum_dir{8, {-1, 1}};
+    Histogram accum_pol{8, {-1, 1}};
+    accumulate_n(
+        [&](auto&& result) {
+            accum_dir(dot_product(result.direction, dir));
+            accum_pol(dot_product(result.polarization, pol));
+        },
+        interact,
+        rng_engine,
+        num_samples);
+    EXPECT_FALSE(accum_dir.underflow() || accum_dir.overflow()
+                 || accum_pol.underflow() || accum_pol.overflow());
 
-    for ([[maybe_unused]] int i : range(num_samples))
-    {
-        Interaction result = interact(rng_engine);
-        this->sanity_check(result);
-
-        real_type dir_angle = dot_product(result.direction, this->direction());
-        dir_moment[0] += dir_angle;
-        dir_moment[1] += ipow<2>(dir_angle);
-
-        real_type pol_angle = dot_product(
-            result.polarization, this->particle_track().polarization());
-        pol_moment[0] += pol_angle;
-        pol_moment[1] += ipow<2>(pol_angle);
-    }
-
-    dir_moment /= num_samples;
-    pol_moment /= num_samples;
-
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-    {
-        static real_type const expected_dir_moment[]
-            = {-0.016961118324494, 0.39183211598064};
-        static real_type const expected_pol_moment[]
-            = {-0.034297422127708, 0.79634723763554};
-
-        EXPECT_VEC_SOFT_EQ(expected_dir_moment, dir_moment);
-        EXPECT_VEC_SOFT_EQ(expected_pol_moment, pol_moment);
-        EXPECT_EQ(12200, rng_engine.count());
-    }
-    else
-    {
-        EXPECT_EQ(0, rng_engine.count());
-    }
+    static double const expected_accum_dir[] = {
+        0.663228,
+        0.524084,
+        0.430208,
+        0.38436,
+        0.38342,
+        0.428288,
+        0.523892,
+        0.66252,
+    };
+    static double const expected_accum_pol[] = {
+        1.693616,
+        0.25236,
+        0.048704,
+        0.002868,
+        0.003188,
+        0.048196,
+        0.253036,
+        1.698032,
+    };
+    EXPECT_VEC_SOFT_EQ(expected_accum_dir, accum_dir.calc_density());
+    EXPECT_VEC_SOFT_EQ(expected_accum_pol, accum_pol.calc_density());
+    EXPECT_SOFT_EQ(11.998662,
+                   static_cast<double>(rng_engine.exchange_count())
+                       / static_cast<double>(num_samples));
 }
 
 //---------------------------------------------------------------------------//
