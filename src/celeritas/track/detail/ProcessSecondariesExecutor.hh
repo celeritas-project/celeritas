@@ -149,24 +149,27 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
             }
             else
             {
-                // Store the track initializer
                 CELER_ASSERT(offset > 0 && offset <= counters.num_initializers);
-                data.initializers[ItemId<TrackInitializer>{
-                    counters.num_initializers - offset}]
-                    = ti;
 
-                if (offset <= state->size()
+                if (offset <= min(counters.num_secondaries,
+                                  counters.num_vacancies)
                     && (params->init.track_order != TrackOrder::init_charge
                         || sim.status() == TrackStatus::alive))
                 {
                     // Store the thread ID of the secondary's parent if the
-                    // secondary could be initialized in the next step. If the
-                    // tracks are partitioned by charge we skip in-place
-                    // initialization of the secondary, so the parent track
-                    // must still be alive to ensure the state isn't
-                    // overwritten
+                    // secondary will be initialized in the next step. If the
+                    // initializers are partitioned by charge, the in-place
+                    // initialization of the secondary is skipped, so another
+                    // track might overwrite this state during initialization
+                    // unless the track is alive.
                     ti.geo.parent = tid;
                 }
+
+                // Store the track initializer
+                data.initializers[ItemId<TrackInitializer>{
+                    counters.num_initializers - offset}]
+                    = ti;
+
                 --offset;
             }
         }

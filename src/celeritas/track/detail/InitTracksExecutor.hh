@@ -96,10 +96,8 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
                 index_before(counters.num_vacancies, tid))];
         }()};
 
-    // Clear parent IDs if they are from a previous step, if new primaries were
-    // added this step, or if the initializers are sorted
-    if (!(tid < counters.num_secondaries) || counters.num_generated
-        || params->init.track_order == TrackOrder::init_charge)
+    // Clear parent IDs if new primaries were added this step
+    if (counters.num_generated)
     {
         init.geo.parent = {};
     }
