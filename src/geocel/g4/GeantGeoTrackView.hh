@@ -137,7 +137,7 @@ class GeantGeoTrackView
     struct DetailedInitializer
     {
         TrackSlotId parent;  //!< Parent track with existing geometry
-        Real3 dir;  //!< New direction
+        ::celeritas::Real3 const& dir;  //!< New direction
     };
 
     //// DATA ////
@@ -209,7 +209,6 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(Initializer_t const& init)
     {
         // Initialize from direction and copy of parent state
         *this = {init.parent, init.dir};
-        CELER_ENSURE(this->pos() == init.pos);
         return *this;
     }
 
@@ -261,7 +260,7 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(DetailedInitializer const& init)
     }
 
     // Set up the next state and initialize the direction
-    dir_ = init.dir;
+    std::copy(init.dir.begin(), init.dir.end(), dir_.begin());
     next_step_ = 0;
 
     CELER_ENSURE(!this->has_next_step());
