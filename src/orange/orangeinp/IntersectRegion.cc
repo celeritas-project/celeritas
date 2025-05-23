@@ -535,8 +535,8 @@ void EllipticalCone::output(JsonPimpl* j) const
  * Construct from a convex polygon and bottom/top faces.
  */
 ExtrudedPolygon::ExtrudedPolygon(ExtrudedPolygon::VecReal2 const& polygon,
-                                 ExtrudedPolygon::PolygonFace bot_face,
-                                 ExtrudedPolygon::PolygonFace top_face)
+                                 ExtrudedPolygon::PolygonFace const& bot_face,
+                                 ExtrudedPolygon::PolygonFace const& top_face)
     : line_segment_{bot_face.line_segment_point, top_face.line_segment_point}
     , scaling_factors_{bot_face.scaling_factor, top_face.scaling_factor}
 

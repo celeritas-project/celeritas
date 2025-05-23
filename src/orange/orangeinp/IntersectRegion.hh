@@ -357,8 +357,8 @@ class ExtrudedPolygon final : public IntersectRegionInterface
   public:
     // Construct from a convex polygon and bottom/top faces
     ExtrudedPolygon(VecReal2 const& polygon,
-                    PolygonFace bot_face,
-                    PolygonFace top_face);
+                    PolygonFace const& bot_face,
+                    PolygonFace const& top_face);
 
     // Build surfaces
     void build(IntersectSurfaceBuilder&) const final;
