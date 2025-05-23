@@ -644,20 +644,20 @@ auto ExtrudedPolygon::calc_range(VecReal2 const& polygon, size_type dir)
     Range range;
 
     // Find min/max x or y values of the polygon itself
-    auto [poly_min_x_it, poly_max_x_it] = std::minmax_element(
+    auto [poly_min_it, poly_max_it] = std::minmax_element(
         polygon.begin(), polygon.end(), [&dir](auto const& a, auto const& b) {
             return a[dir] < b[dir];
         });
-    auto poly_min_x = (*poly_min_x_it)[dir];
-    auto poly_max_x = (*poly_max_x_it)[dir];
+    auto poly_min = (*poly_min_it)[dir];
+    auto poly_max = (*poly_max_it)[dir];
 
     // Find the extrema taking into account the extrusion process
-    range[0] = std::min(
-        poly_min_x * scaling_factors_[bot] + line_segment_[bot][dir],
-        poly_min_x * scaling_factors_[top] + line_segment_[top][dir]);
-    range[1] = std::max(
-        poly_max_x * scaling_factors_[bot] + line_segment_[bot][dir],
-        poly_max_x * scaling_factors_[top] + line_segment_[top][dir]);
+    range[0]
+        = std::min(poly_min * scaling_factors_[bot] + line_segment_[bot][dir],
+                   poly_min * scaling_factors_[top] + line_segment_[top][dir]);
+    range[1]
+        = std::max(poly_max * scaling_factors_[bot] + line_segment_[bot][dir],
+                   poly_max * scaling_factors_[top] + line_segment_[top][dir]);
 
     return range;
 }
