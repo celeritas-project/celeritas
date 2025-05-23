@@ -145,7 +145,7 @@ TEST_F(ConvexHullFinderTest, last_concavity)
 
 //---------------------------------------------------------------------------//
 /*
- * Test case with many colinear points, including the first and last points
+ * Test case with many collinear points, including the first and last points
  * encountered.
  *
  * The starting point is point 7.
@@ -158,7 +158,7 @@ TEST_F(ConvexHullFinderTest, last_concavity)
  *           7
  *
  */
-TEST_F(ConvexHullFinderTest, colinear)
+TEST_F(ConvexHullFinderTest, collinear)
 {
     VecReal2 p{{0, 0},
                {0.5, 0},

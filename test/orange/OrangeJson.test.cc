@@ -181,7 +181,7 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
     EXPECT_FALSE(geo.is_on_boundary());
 
     // Initialize in daughter universe using "this == &other"
-    geo = OrangeTrackView::DetailedInitializer{geo, {0, 1, 0}};
+    geo = Initializer_t{geo.pos(), {0, 1, 0}, TrackSlotId{0}};
     EXPECT_VEC_SOFT_EQ(Real3({0.625, -2, 1}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({0, 1, 0}), geo.dir());
     EXPECT_EQ("c", this->volume_name(geo));
@@ -191,7 +191,7 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
     {
         // Initialize a separate track slot
         auto other = this->make_geo_track_view(TrackSlotId{1});
-        other = OrangeTrackView::DetailedInitializer{geo, {1, 0, 0}};
+        other = Initializer_t{geo.pos(), {1, 0, 0}, TrackSlotId{0}};
         EXPECT_VEC_SOFT_EQ(Real3({0.625, -2, 1}), other.pos());
         EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), other.dir());
         EXPECT_EQ("c", this->params().volumes().at(other.volume_id()).name);

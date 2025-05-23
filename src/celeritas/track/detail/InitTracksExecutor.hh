@@ -23,10 +23,6 @@
 #include "../CoreStateCounters.hh"
 #include "../SimTrackView.hh"
 
-#if !CELER_DEVICE_COMPILE
-#    include "corecel/io/Logger.hh"
-#endif
-
 namespace celeritas
 {
 namespace detail
@@ -50,7 +46,7 @@ struct InitTracksExecutor
 
     ParamsPtr params;
     StatePtr state;
-    size_type num_new_tracks{};
+    size_type num_init{};
     CoreStateCounters counters;
 
     //// FUNCTIONS ////
@@ -69,107 +65,46 @@ struct InitTracksExecutor
  */
 CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
 {
-    CELER_EXPECT(tid < num_new_tracks);
+    CELER_EXPECT(tid < num_init);
 
     auto const& data = state->init;
-
-    auto get_idx = [&](size_type size) {
-        if (params->init.track_order == TrackOrder::init_charge)
-        {
-            // Get the index into the track initializer or parent track slot ID
-            // array from the sorted indices
-            return data.indices[TrackSlotId(index_before(num_new_tracks, tid))]
-                   + size - num_new_tracks;
-        }
-        return index_before(size, tid);
-    };
 
     // Get the track initializer from the back of the vector. Since new
     // initializers are pushed to the back of the vector, these will be the
     // most recently added and therefore the ones that still might have a
     // parent they can copy the geometry state from.
-    TrackInitializer const& init = data.initializers[ItemId<TrackInitializer>(
-        get_idx(counters.num_initializers))];
+    TrackInitializer& init = data.initializers[ItemId<TrackInitializer>([&] {
+        if (params->init.track_order == TrackOrder::init_charge)
+        {
+            // Get the index into the track initializer or parent track slot ID
+            // array from the sorted indices
+            return data.indices[TrackSlotId(index_before(num_init, tid))]
+                   + counters.num_initializers - num_init;
+        }
+        return index_before(counters.num_initializers, tid);
+    }())];
 
     // View to the new track to be initialized
     CoreTrackView vacancy{
         *params, *state, [&] {
             if (params->init.track_order == TrackOrder::init_charge)
             {
-                return data.vacancies[TrackSlotId(
-                    index_partitioned(num_new_tracks,
-                                      counters.num_vacancies,
-                                      IsNeutral{params}(init),
-                                      tid))];
+                return data.vacancies[TrackSlotId(index_partitioned(
+                    num_init, counters.num_vacancies, IsNeutral{params}(init), tid))];
             }
             return data.vacancies[TrackSlotId(
                 index_before(counters.num_vacancies, tid))];
         }()};
 
-    // Initialize the simulation state and particle attributes
-    vacancy.sim() = init.sim;
-    vacancy.particle() = init.particle;
-
-    // Initialize the geometry
+    // Clear parent IDs if they are from a previous step, if new primaries were
+    // added this step, or if the initializers are sorted
+    if (!(tid < counters.num_secondaries) || counters.num_generated
+        || params->init.track_order == TrackOrder::init_charge)
     {
-        auto geo = vacancy.geometry();
-        auto parent_id = [&] {
-            if (!(tid < counters.num_secondaries))
-            {
-                return TrackSlotId{};
-            }
-            return data.parents[TrackSlotId(get_idx(data.parents.size()))];
-        }();
-
-        if (parent_id)
-        {
-            // Copy the geometry state from the parent for improved performance
-            GeoTrackView const parent_geo(
-                params->geometry, state->geometry, parent_id);
-            CELER_ASSERT(parent_geo.pos() == init.geo.pos);
-            geo = GeoTrackView::DetailedInitializer{parent_geo, init.geo.dir};
-            CELER_ASSERT(!geo.is_outside());
-        }
-        else
-        {
-            // Initialize it from the position (more expensive)
-            geo = init.geo;
-            if (CELER_UNLIKELY(geo.failed() || geo.is_outside()))
-            {
-#if !CELER_DEVICE_COMPILE
-                if (!geo.failed())
-                {
-                    // Print an error message if initialization was
-                    // "successful" but track is outside
-                    CELER_LOG_LOCAL(error)
-                        << R"(Track started outside the geometry)";
-                }
-                else
-                {
-                    // Do not print anything: the geometry track view itself
-                    // should've printed a detailed error message
-                }
-#endif
-                vacancy.apply_errored();
-                return;
-            }
-        }
-
-        // Initialize the material
-        auto matid = vacancy.geo_material().material_id(geo.volume_id());
-        if (CELER_UNLIKELY(!matid))
-        {
-#if !CELER_DEVICE_COMPILE
-            CELER_LOG_LOCAL(error) << "Track started in an unknown material";
-#endif
-            vacancy.apply_errored();
-            return;
-        }
-        vacancy.material() = {matid};
+        init.geo.parent = {};
     }
 
-    // Initialize the physics state
-    vacancy.physics() = {};
+    vacancy = init;
 }
 
 //---------------------------------------------------------------------------//

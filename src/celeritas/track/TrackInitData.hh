@@ -86,7 +86,6 @@ struct TrackInitializer
  * \c max_events.
  * - \c initializers stores the data for primaries and secondaries waiting to
  *   be turned into new tracks and can be any size up to \c capacity.
- * - \c parents is the \c TrackSlotId of the parent tracks of the initializers.
  * - \c vacancies stores the \c TrackSlotid of the tracks that have been
  *   killed; the size will be <= the number of track states.
  * - \c track_counters stores the total number of particles that have been
@@ -109,7 +108,6 @@ struct TrackInitStateData
 
     //// DATA ////
 
-    StateItems<TrackSlotId> parents;
     StateItems<size_type> indices;
     StateItems<size_type> secondary_counts;
     StateItems<TrackSlotId> vacancies;
@@ -124,8 +122,7 @@ struct TrackInitStateData
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return parents.size() == vacancies.size()
-               && (indices.size() == vacancies.size() || indices.empty())
+        return (indices.size() == vacancies.size() || indices.empty())
                && secondary_counts.size() == vacancies.size() + 1
                && !track_counters.empty() && !initializers.empty();
     }
@@ -136,7 +133,6 @@ struct TrackInitStateData
     {
         CELER_EXPECT(other);
 
-        parents = other.parents;
         indices = other.indices;
         secondary_counts = other.secondary_counts;
         track_counters = other.track_counters;
@@ -170,7 +166,6 @@ void resize(TrackInitStateData<Ownership::value, M>* data,
     CELER_EXPECT(M == MemSpace::host || celeritas::device());
 
     // Allocate device data
-    resize(&data->parents, size);
     resize(&data->secondary_counts, size + 1);
     resize(&data->track_counters, params.max_events);
     if (params.track_order == TrackOrder::init_charge)
