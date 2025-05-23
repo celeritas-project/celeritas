@@ -12,16 +12,12 @@
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/phys/ParticleData.hh"
-#include "celeritas/phys/ParticleTrackView.hh"
-#include "celeritas/phys/PhysicsStepView.hh"
-#include "celeritas/phys/PhysicsTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
 
 #include "../CoreStateCounters.hh"
-#include "../SimTrackView.hh"
 
 namespace celeritas
 {
@@ -70,7 +66,9 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
 {
     CELER_EXPECT(tid < state->size());
 
-    SimTrackView sim(params->sim, state->sim, tid);
+    CoreTrackView track(*params, *state, tid);
+
+    auto sim = track.sim();
     if (sim.status() == TrackStatus::inactive)
     {
         // Do not create secondaries from stale data on inactive tracks
@@ -82,15 +80,11 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
     CELER_ASSERT(data.secondary_counts[tid] <= counters.num_secondaries);
     size_type offset = counters.num_secondaries - data.secondary_counts[tid];
 
-    // A new track was initialized from a secondary in the parent's track slot
-    bool initialized = false;
-
     // Save the parent ID since it will be overwritten if a secondary is
     // initialized in this slot
-    TrackId const parent_id{sim.track_id()};
+    TrackId const track_id{sim.track_id()};
 
-    PhysicsStepView const phys_step(params->physics, state->physics, tid);
-    for (auto const& secondary : phys_step.secondaries())
+    for (auto const& secondary : track.physics_step().secondaries())
     {
         if (secondary)
         {
@@ -99,13 +93,13 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
 
             // Particles should not be making secondaries while crossing a
             // surface
-            GeoTrackView geo(params->geometry, state->geometry, tid);
+            auto geo = track.geometry();
             CELER_ASSERT(!geo.is_on_boundary());
 
             // Create a track initializer from the secondary
             TrackInitializer ti;
             ti.sim.track_id = make_track_id(params->init, data, sim.event_id());
-            ti.sim.parent_id = parent_id;
+            ti.sim.parent_id = track_id;
             ti.sim.event_id = sim.event_id();
             ti.sim.time = sim.time();
             ti.geo.pos = geo.pos();
@@ -114,7 +108,7 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
             ti.particle.energy = secondary.energy;
             CELER_ASSERT(ti);
 
-            if (!initialized && sim.status() != TrackStatus::alive
+            if (sim.track_id() == track_id && sim.status() != TrackStatus::alive
                 && params->init.track_order != TrackOrder::init_charge)
             {
                 /*!
@@ -125,27 +119,11 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
                  * same as the secondary's
                  */
 
-                ParticleTrackView particle(
-                    params->particles, state->particles, tid);
-                PhysicsTrackView phys(
-                    params->physics, state->physics, particle, {}, tid);
-
                 // The parent was killed, so initialize the first secondary in
                 // the parent's track slot. Keep the parent's geometry state
-                // but get the direction from the secondary. Reset the physics
-                // state so the multiple scattering range properties are
-                // cleared. The material state will be the same as the
-                // parent's.
-                sim = ti.sim;
-                geo = {ti.geo.pos, ti.geo.dir, tid};
-                particle = ti.particle;
-                phys = {};
-                initialized = true;
-
-                /*!
-                 * \todo make it easier to determine what states need to be
-                 * reset: the physics MFP, for example, is OK to preserve
-                 */
+                // but get the direction from the secondary.
+                ti.geo.parent = tid;
+                track = ti;
             }
             else
             {
@@ -175,7 +153,7 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
         }
     }
 
-    if (!initialized && sim.status() == TrackStatus::killed)
+    if (sim.track_id() == track_id && sim.status() == TrackStatus::killed)
     {
         // Track is no longer used as part of transport
         sim.status(TrackStatus::inactive);
