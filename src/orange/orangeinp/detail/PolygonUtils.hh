@@ -109,7 +109,7 @@ is_same_orientation(Orientation a, Orientation b, bool degen_ok = false)
  * u = b - a
  * v = c - a
  *
- * In 2D, the cross product is can be written as,
+ * In 2D, the cross product can be written as,
  *
  * u x v = |u| |v| sin(t),
  *

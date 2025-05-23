@@ -179,7 +179,7 @@ TEST(PolygonUtilsTest, convex_self_intersect)
  */
 TEST(PolygonUtilsTest, filter_collinear_points)
 {
-    // Point locations, as labled above
+    // Point locations, as labeled above
     Real2 a = {0, 0};
     Real2 b = {-1, -1e-5};
     Real2 c = {-0.9, -0.1};
