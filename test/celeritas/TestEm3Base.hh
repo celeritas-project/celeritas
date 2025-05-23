@@ -27,13 +27,6 @@ class TestEm3Base : virtual public GeantTestBase
     {
         return "testem3-flat";
     }
-
-    ProcessBuilderOptions build_process_options() const override
-    {
-        ProcessBuilderOptions opts = GeantTestBase::build_process_options();
-        opts.brem_combined = true;
-        return opts;
-    }
 };
 
 //---------------------------------------------------------------------------//

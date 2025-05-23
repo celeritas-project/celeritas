@@ -148,12 +148,12 @@ celeritas_add_test(em/distribution/TsaiUrbanDistribution.test.cc ${_needs_double
 
 # Cross section calculation
 celeritas_add_test(em/xs/NuclearFormFactors.test.cc)
+celeritas_add_test(em/xs/ScreeningFunctions.test.cc)
 
 # Models
 celeritas_add_test(em/BetheHeitler.test.cc ${_needs_double})
 celeritas_add_test(em/BetheBloch.test.cc ${_needs_double})
 celeritas_add_test(em/BraggICRU73QO.test.cc ${_needs_double})
-celeritas_add_test(em/CombinedBrem.test.cc ${_needs_double})
 celeritas_add_test(em/EPlusGG.test.cc ${_needs_double})
 celeritas_add_test(em/KleinNishina.test.cc ${_needs_double})
 celeritas_add_test(em/LivermorePE.test.cc ${_needs_double})

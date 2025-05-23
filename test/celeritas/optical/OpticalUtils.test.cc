@@ -17,6 +17,7 @@
 #include "corecel/data/Ref.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/optical/action/detail/TrackInitAlgorithms.hh"
+#include "celeritas/optical/gen/detail/OpticalGenAlgorithms.hh"
 
 #include "celeritas_test.hh"
 

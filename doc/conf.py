@@ -15,8 +15,8 @@ from sphinx import __version__ as sphinx_version
 
 project = 'Celeritas'
 all_authors = [
- 'Seth R Johnson, Editor',
- 'The Celeritas team',
+ 'Seth R Johnson, *editor*',
+ 'The Celeritas Team',
 ]
 author = " and ".join(all_authors)
 copyright = '{:%Y}, UT–Battelle/ORNL and Celeritas team'.format(
@@ -146,6 +146,7 @@ mathjax3_config = {
             "vd": r"\mathbf{\cdot}",
             "norm": [r"\|#1\|", 1],
             "abs": [r"|#1|", 1],
+            "sgn": r"\mathop{\mathrm{sgn}}\nolimits",
         },
     },
     "loader": {"load": ["ui/lazy", "output/svg"]},
@@ -169,14 +170,17 @@ latex_elements = {
 
 # Additional stuff for the LaTeX preamble.
 'preamble': r"""
-% Reset styles changed by sphinx.sty
-\usepackage{ornltm-style}
-\usepackage{ornltm-extract}
 \usepackage{sphinxcustom}
 \usepackage{microtype}
 \usepackage{pdfpages}
 \usepackage{multirow}
+\usepackage{fancyhdr} % Headers and footers
 \usepackage{threeparttable}
+\usepackage{tocloft}
+\usepackage{etoolbox}
+% Reset styles changed by sphinx.sty
+\usepackage{ornltm-style}
+\usepackage{ornltm-extract}
 \input{./macros.tex}
 """,
 
@@ -185,20 +189,9 @@ latex_elements = {
 \frontmatter
 % Plain page
 \thispagestyle{plain}%
-\phantomsection\addcontentsline{toc}{section}{Contents}
+\cleardoublepage
 \tableofcontents
-% %
-% \cleardoublepage
-% \thispagestyle{plain}%
-% \phantomsection\addcontentsline{toc}{section}{List of Figures}
-% \listoffigures
-% %
-% \cleardoublepage
-% \thispagestyle{plain}%
-% \phantomsection\addcontentsline{toc}{section}{List of Tables}
-% \listoftables
-% \cleardoublepage
-% \pagestyle{normal}
+\listoftables
 """,
 # No chapter styles needed
 'fncychap': "",

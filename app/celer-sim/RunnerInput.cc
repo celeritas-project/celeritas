@@ -184,15 +184,6 @@ inp::Problem load_problem(RunnerInput const& ri)
         p.control.track_order = ri.track_order;
     }
 
-    // Physics
-    {
-        CELER_ASSERT(p.physics.em);
-        auto& em = *p.physics.em;
-
-        CELER_ASSERT(em.brems);
-        em.brems->combined_model = ri.brem_combined;
-    }
-
     // Tracking
     p.tracking.limits.steps = ri.max_steps;
     p.tracking.force_step_limit = ri.step_limiter;

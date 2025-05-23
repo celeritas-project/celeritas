@@ -25,17 +25,17 @@ namespace celeritas
  *
  * This cross section calculator uses the same representation and interpolation
  * as Geant4's physics tables for EM physics:
- * - The energy grid is uniformly spaced in log(E),
- * - Values greater than or equal to an index i' are scaled by E and are stored
- *   on a separate energy grid also uniformly spaced in log(E) but not
- *   necessarily with the same spacing,
+ * - The energy grid is uniformly spaced in \f$\log E\f$,
+ * - Values greater than or equal to an index \f$i'\f$ are scaled by \em E and
+ *   are stored on a separate energy grid also uniformly spaced in \f$\log E\f$
+ *   but not necessarily with the same spacing,
  * - Linear interpolation between energy points is used to calculate the final
  *   value, and
- * - If the energy is at or above the i' index, the final result is scaled by
- *   1/E.
+ * - If the energy is at or above the \f$i'\f$ index, the final result is
+ *   scaled by \f$1/E\f$.
  *
  * This scaling and interpolation exactly reproduces functions
- * \f$ f(E) \sim a E + b \f$ below the E' threshold and
+ * \f$ f(E) \sim a E + b \f$ below the \f$E'\f$ threshold and
  * \f$ f(E) \sim \frac{a'}{E} + b' \f$ above that threshold.
  *
  * Note that linear interpolation is applied with energy points, not log-energy

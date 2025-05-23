@@ -53,7 +53,6 @@ class ProcessBuilderTest : public Test
     using SPConstMaterial = std::shared_ptr<MaterialParams const>;
 
     using ActionIdIter = Process::ActionIdIter;
-    using Options = ProcessBuilder::Options;
     using IPC = ImportProcessClass;
 
     static ImportData& import_data();
@@ -120,7 +119,7 @@ auto ProcessBuilderTest::material() -> SPConstMaterial&
 TEST_F(ProcessBuilderTest, compton)
 {
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material(), Options{});
+        this->import_data(), this->particle(), this->material());
     // Create process
     auto process = build_process(IPC::compton);
     EXPECT_PROCESS_TYPE(ComptonProcess, process.get());
@@ -154,7 +153,7 @@ TEST_F(ProcessBuilderTest, compton)
 TEST_F(ProcessBuilderTest, e_ionization)
 {
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material(), Options{});
+        this->import_data(), this->particle(), this->material());
     // Create process
     auto process = build_process(IPC::e_ioni);
     EXPECT_PROCESS_TYPE(EIonizationProcess, process.get());
@@ -190,7 +189,7 @@ TEST_F(ProcessBuilderTest, e_ionization)
 TEST_F(ProcessBuilderTest, eplus_annihilation)
 {
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material(), Options{});
+        this->import_data(), this->particle(), this->material());
     // Create process
     auto process = build_process(IPC::annihilation);
     EXPECT_PROCESS_TYPE(EPlusAnnihilationProcess, process.get());
@@ -227,7 +226,7 @@ TEST_F(ProcessBuilderTest, eplus_annihilation)
 TEST_F(ProcessBuilderTest, gamma_conversion)
 {
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material(), Options{});
+        this->import_data(), this->particle(), this->material());
     // Create process
     auto process = build_process(IPC::conversion);
     EXPECT_PROCESS_TYPE(GammaConversionProcess, process.get());
@@ -272,7 +271,7 @@ TEST_F(ProcessBuilderTest, photoelectric)
     }
 
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material(), Options{});
+        this->import_data(), this->particle(), this->material());
     // Create process
     auto process = build_process(IPC::photoelectric);
     EXPECT_PROCESS_TYPE(PhotoelectricProcess, process.get());
@@ -310,10 +309,8 @@ TEST_F(ProcessBuilderTest, bremsstrahlung_multiple_models)
         GTEST_SKIP() << "Missing G4LEDATA";
     }
 
-    Options pbopts;
-    pbopts.brem_combined = false;
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material(), pbopts);
+        this->import_data(), this->particle(), this->material());
 
     // Create process
     auto process = build_process(IPC::e_brems);
@@ -354,32 +351,10 @@ TEST_F(ProcessBuilderTest, bremsstrahlung_multiple_models)
     }
 }
 
-TEST_F(ProcessBuilderTest, bremsstrahlung_combined_model)
-{
-    if (!this->has_le_data())
-    {
-        GTEST_SKIP() << "Missing G4LEDATA";
-    }
-
-    Options pbopts;
-    pbopts.brem_combined = true;
-    ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material(), pbopts);
-
-    // Create process
-    auto process = build_process(IPC::e_brems);
-    EXPECT_PROCESS_TYPE(BremsstrahlungProcess, process.get());
-
-    // Combined brems can't be used with materials with more than one element
-    EXPECT_THROW(process->build_models(ActionIdIter{}), std::runtime_error);
-}
-
 TEST_F(ProcessBuilderTest, rayleigh)
 {
-    Options pbopts;
-    pbopts.brem_combined = false;
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material(), pbopts);
+        this->import_data(), this->particle(), this->material());
 
     // Create process
     auto process = build_process(IPC::rayleigh);
@@ -419,10 +394,8 @@ TEST_F(ProcessBuilderTest, rayleigh)
 
 TEST_F(ProcessBuilderTest, coulomb)
 {
-    Options pbopts;
-    pbopts.brem_combined = false;
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material(), pbopts);
+        this->import_data(), this->particle(), this->material());
 
     // Create process
     auto process = build_process(IPC::coulomb_scat);
@@ -483,7 +456,7 @@ TEST_F(ProcessBuilderTest, neutron_elastic)
         = std::make_shared<ParticleParams>(std::move(particle_inp));
 
     ProcessBuilder build_process(
-        this->import_data(), particle_params, this->material(), Options{});
+        this->import_data(), particle_params, this->material());
 
     // Create process
     auto process = build_process(IPC::neutron_elastic);
@@ -519,7 +492,7 @@ TEST_F(ProcessBuilderTest, neutron_elastic)
 TEST_F(ProcessBuilderTest, mu_ionization)
 {
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material(), Options{});
+        this->import_data(), this->particle(), this->material());
 
     // Create process
     auto process = build_process(IPC::mu_ioni);
@@ -564,7 +537,7 @@ TEST_F(ProcessBuilderTest, mu_ionization)
 TEST_F(ProcessBuilderTest, mu_bremsstrahlung)
 {
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material(), Options{});
+        this->import_data(), this->particle(), this->material());
 
     // Create process
     auto process = build_process(IPC::mu_brems);

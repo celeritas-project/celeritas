@@ -48,7 +48,7 @@ struct RZMapFieldInput
     FieldDriverOptions driver_options;
 
     //! Whether all data are assigned and valid
-    explicit CELER_FUNCTION operator bool() const
+    explicit operator bool() const
     {
         // clang-format off
         return (num_grid_z >= 2)

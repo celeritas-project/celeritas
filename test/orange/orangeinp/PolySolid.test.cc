@@ -133,8 +133,7 @@ TEST_F(PolyconeTest, hollow)
         "Cone z: t=0.125 at {0,0,-6}",
     };
     static char const* const expected_volume_strings[] = {
-        "any(all(all(+0, -1, -2), !all(+0, -1, -3)), all(all(+1, -4, -5), "
-        "!all(+1, -4, -6)), all(all(+4, -7, -8), !all(+4, -7, -9)))",
+        R"(any(all(+0, -1, -2, !all(+0, -1, -3)), all(+1, -4, -5, !all(+1, -4, -6)), all(+4, -7, -8, !all(+4, -7, -9))))",
     };
     static char const* const expected_md_strings[] = {
         "",
@@ -298,7 +297,7 @@ TEST_F(PolyconeTest, or_solid)
     };
     static char const* const expected_volume_strings[] = {
         "all(+0, -1, -2)",
-        "all(all(+0, -1, -2), !all(+0, -1, -3))",
+        "all(+0, -1, -2, !all(+0, -1, -3))",
         "all(+4, -5, -6)",
     };
 

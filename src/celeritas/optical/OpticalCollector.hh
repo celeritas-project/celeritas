@@ -12,20 +12,21 @@
 #include "celeritas/Types.hh"
 
 #include "Model.hh"
-#include "OffloadData.hh"
+#include "gen/OffloadData.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ActionRegistry;
 class AuxStateVec;
+class CherenkovParams;
 class CoreParams;
+class OffloadParams;
+class ScintillationParams;
 
 namespace optical
 {
-class CherenkovParams;
 class MaterialParams;
-class ScintillationParams;
 }  // namespace optical
 
 namespace detail
@@ -34,7 +35,6 @@ class CherenkovOffloadAction;
 class CherenkovGeneratorAction;
 class OffloadGatherAction;
 class OpticalLaunchAction;
-class OffloadParams;
 class ScintOffloadAction;
 class ScintGeneratorAction;
 }  // namespace detail
@@ -64,10 +64,9 @@ class OpticalCollector
   public:
     //!@{
     //! \name Type aliases
-    using SPConstCherenkov = std::shared_ptr<optical::CherenkovParams const>;
+    using SPConstCherenkov = std::shared_ptr<CherenkovParams const>;
     using SPConstMaterial = std::shared_ptr<optical::MaterialParams const>;
-    using SPConstScintillation
-        = std::shared_ptr<optical::ScintillationParams const>;
+    using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
     using OpticalBufferSize = OpticalOffloadCounters<size_type>;
     //!@}
 
@@ -122,7 +121,7 @@ class OpticalCollector
   private:
     //// TYPES ////
 
-    using SPOffloadParams = std::shared_ptr<detail::OffloadParams>;
+    using SPOffloadParams = std::shared_ptr<OffloadParams>;
     using SPCherenkovAction = std::shared_ptr<detail::CherenkovOffloadAction>;
     using SPScintAction = std::shared_ptr<detail::ScintOffloadAction>;
     using SPGatherAction = std::shared_ptr<detail::OffloadGatherAction>;

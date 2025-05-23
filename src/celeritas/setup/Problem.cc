@@ -59,11 +59,11 @@
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/RootCoreParamsOutput.hh"
 #include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/optical/CherenkovParams.hh"
 #include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/ModelImporter.hh"
 #include "celeritas/optical/OpticalCollector.hh"
-#include "celeritas/optical/ScintillationParams.hh"
+#include "celeritas/optical/gen/CherenkovParams.hh"
+#include "celeritas/optical/gen/ScintillationParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
@@ -139,14 +139,8 @@ auto build_physics_processes(inp::EmPhysics const& em,
     // TODO: process builder should be deleted; instead it should get
     // p.physics.em or whatever
     std::vector<std::shared_ptr<Process const>> result;
-    ProcessBuilder::Options opts;
-    if (em.brems)
-    {
-        opts.brem_combined = em.brems->combined_model;
-    }
-
     ProcessBuilder build_process(
-        imported, params.particle, params.material, em.user_processes, opts);
+        imported, params.particle, params.material, em.user_processes);
     for (auto pc : ProcessBuilder::get_all_process_classes(imported.processes))
     {
         result.push_back(build_process(pc));
@@ -335,9 +329,7 @@ auto build_optical_offload(inp::OpticalStateCapacity const& cap,
                            CoreParams& params,
                            ImportData const& imported)
 {
-    using optical::CherenkovParams;
     using optical::MaterialParams;
-    using optical::ScintillationParams;
 
     CELER_VALIDATE(
         !imported.optical_materials.empty(),

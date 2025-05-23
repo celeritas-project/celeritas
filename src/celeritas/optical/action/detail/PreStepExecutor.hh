@@ -8,8 +8,10 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/random/distribution/ExponentialDistribution.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/optical/CoreTrackView.hh"
+#include "celeritas/optical/PhysicsStepUtils.hh"
 #include "celeritas/optical/SimTrackView.hh"
 
 namespace celeritas
@@ -51,15 +53,21 @@ CELER_FUNCTION void PreStepExecutor::operator()(CoreTrackView const& track)
 
     CELER_ASSERT(sim.status() == TrackStatus::initializing
                  || sim.status() == TrackStatus::alive);
+    sim.status(TrackStatus::alive);
 
-    if (sim.status() == TrackStatus::initializing)
+    auto phys = track.physics();
+    if (!phys.has_interaction_mfp())
     {
-        sim.reset_step_limit();
-        sim.status(TrackStatus::alive);
+        // Sample mean free path
+        auto rng = track.rng();
+        ExponentialDistribution<real_type> sample_exponential;
+        phys.interaction_mfp(sample_exponential(rng));
     }
 
-    // TODO: reset secondaries
-    // TODO: calculate step limit
+    // Calculate physics step limits and total macro xs
+    auto particle = track.particle();
+    sim.reset_step_limit(calc_physics_step_limit(particle, phys));
+
     CELER_ENSURE(sim.step_length() > 0);
 }
 

@@ -29,8 +29,8 @@ class LivermorePEModel final : public Model, public StaticConcreteAction
   public:
     //!@{
     using ReadData = std::function<ImportLivermorePE(AtomicNumber)>;
-    using HostRef = LivermorePEHostRef;
-    using DeviceRef = LivermorePEDeviceRef;
+    using HostRef = HostCRef<LivermorePEData>;
+    using DeviceRef = DeviceCRef<LivermorePEData>;
     //!@}
 
   public:

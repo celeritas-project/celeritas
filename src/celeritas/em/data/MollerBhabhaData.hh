@@ -54,8 +54,5 @@ struct MollerBhabhaData
     }
 };
 
-using MollerBhabhaHostRef = MollerBhabhaData;
-using MollerBhabhaDeviceRef = MollerBhabhaData;
-
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

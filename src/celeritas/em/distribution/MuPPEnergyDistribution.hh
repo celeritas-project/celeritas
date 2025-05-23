@@ -29,8 +29,9 @@ namespace celeritas
  * Sample the electron and positron energies for muon pair production.
  *
  * The energy transfer to the electron-positron pair is sampled using inverse
- * transform sampling on a tabulated CDF. The CDF is calculated on a 2D grid,
- * where the x-axis is the log of the incident muon energy and the y-axis is
+ * transform sampling on a tabulated CDF. The CDF is calculated on a 2-D grid,
+ * where the *x* axis is the log of the incident muon energy and the *y* axis
+ is
  * the log of the ratio of the energy transfer to the incident particle energy.
  * Because the shape of the distribution depends only weakly on the atomic
  * number, the CDF is calculated for a hardcoded set of points equally spaced
@@ -40,7 +41,7 @@ namespace celeritas
  * maximum energy transfer to the electron-positron pair lies between \f$
  * \epsilon_{\text{min}} = 4 m \f$, where \f$ m \f$ is the electron mass, and
  * \f[
-   \epsilon_{\text{max}} = E + \frac{3 \sqrt{e}}{4} \mu Z^{1/3}),
+   \epsilon_{\text{max}} = E + \frac{3 \sqrt{e}}{4} \mu Z^{1/3},
  * \f]
  * where \f$ E = T + \mu \f$ is the total muon energy, \f$ \mu \f$ is the muon
  * mass, \f$ e \f$ is Euler's number, and \f$ Z \f$ is the atomic number.

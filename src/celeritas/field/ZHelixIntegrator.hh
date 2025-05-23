@@ -20,8 +20,14 @@ class UniformZField;
 /*!
  * Analytically step along a helical path for a uniform Z magnetic field.
  *
- * The analytical solution for the motion of a charged particle in a uniform
- * magnetic field along the z-direction.
+ * Given a uniform magnetic field along the *z* axis, \f$B = (0, 0, B_z)\f$,
+ * the motion of a charged particle is described by a helix trajectory.
+ * For this algorithm, the radius of the helix, \f$R = \frac{m v}{q B_z}\f$ and
+ * the helicity, defined as \f$ -\sgn(q B_z)\f$, are evaluated through the
+ * right hand side of the ODE equation where \f$ q \f$ is the charge of the
+ * particle.
+ *
+ * The midpoint and endpoint states are calculated analytically.
  */
 template<class EquationT>
 class ZHelixIntegrator
@@ -92,15 +98,6 @@ CELER_FUNCTION ZHelixIntegrator(EquationT&&) -> ZHelixIntegrator<EquationT>;
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * An explicit helix stepper with analytical solutions at the end and the
- * middle point for a given step.
- *
- * Assuming that the magnetic field is uniform and chosen to be parallel to
- * the z-axis, \f$B = (0, 0, B_z)\f$, without loss of generality, the motion of
- * a charged particle is described by a helix trajectory. For this algorithm,
- * the radius of the helix, \f$R = m gamma v/(qB)\f$ and the helicity, defined
- * as \f$ -sign(q B_z)\f$ are evaluated through the right hand side of the ODE
- * equation where q is the charge of the particle.
  */
 template<class E>
 CELER_FUNCTION auto

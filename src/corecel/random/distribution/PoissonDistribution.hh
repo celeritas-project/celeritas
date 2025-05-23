@@ -28,8 +28,8 @@ namespace celeritas
  * \f[
    f(k; \lambda) = \frac{\lambda^k e^{-\lambda}}{k!} \:.
    \f]
- * For small \f$ \lambda \f$, a direct method described in Knuth, Donald E.,
- * Seminumerical Algorithms, The Art of Computer Programming, Volume 2 can be
+ * For small \f$ \lambda \f$, a direct method described in
+ * \cite{knuth-artcomputer-1968} can be
  * used to generate samples from the Poisson distribution. Uniformly
  * distributed random numbers are generated until the relation
  * \f[

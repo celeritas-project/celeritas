@@ -6,9 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <ostream>
 #include <string>
 
-#include "geocel/Types.hh"
 #include "orange/orangeinp/CsgTypes.hh"
 
 namespace celeritas
@@ -42,6 +42,18 @@ std::vector<real_type> flattened(detail::BoundingZone const& bz);
 
 void print_expected(detail::CsgUnit const& u);
 void print_expected(detail::IntersectSurfaceState const& css);
+
+// Functions for `join_stream`
+void stream_node_id(std::ostream& os, NodeId n);
+void stream_logic_int(std::ostream& os, logic_int value);
+
+//! Pretty-print a vector of logic
+struct ReprLogic
+{
+    std::vector<logic_int> const& logic;
+};
+
+std::ostream& operator<<(std::ostream& os, ReprLogic const& rl);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

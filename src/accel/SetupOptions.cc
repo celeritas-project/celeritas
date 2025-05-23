@@ -89,12 +89,13 @@ void ProblemSetup::operator()(inp::Problem& p) const
     // NOTE: old SetupOptions input *per stream*, but inp::Problem needs
     // *integrated* over streams
     p.control.capacity = [this, num_streams = p.control.num_streams] {
+        auto capacity = get_default(so, num_streams);
         inp::CoreStateCapacity c;
-        c.tracks = so.max_num_tracks * num_streams;
-        c.initializers = so.initializer_capacity * num_streams;
+        c.tracks = capacity.tracks;
+        c.initializers = capacity.initializers;
+        c.primaries = capacity.primaries;
         c.secondaries
             = static_cast<size_type>(so.secondary_stack_factor * c.tracks);
-        c.primaries = so.auto_flush;
         return c;
     }();
 
@@ -256,6 +257,36 @@ inp::FrameworkInput to_inp(SetupOptions const& so)
     result.geant.data_selection.interpolation = so.interpolation;
 
     result.adjust = ProblemSetup{so};
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get runtime-dependent default capacity values.
+ *
+ * \note This must be called after CUDA/MPI have been initialized.
+ */
+inp::StateCapacity get_default(SetupOptions const& so, size_type num_streams)
+{
+    inp::StateCapacity result;
+    result.tracks = num_streams * [&so] {
+        if (so.max_num_tracks)
+        {
+            return static_cast<size_type>(so.max_num_tracks);
+        }
+        if (celeritas::Device::num_devices())
+        {
+            constexpr size_type device_default = 262144;
+            return device_default;
+        }
+        constexpr size_type host_default = 1024;
+        return host_default;
+    }();
+    result.initializers = so.initializer_capacity
+                              ? num_streams * so.initializer_capacity
+                              : 8 * result.tracks;
+    result.primaries = so.auto_flush ? so.auto_flush
+                                     : result.tracks / num_streams;
     return result;
 }
 

@@ -13,6 +13,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/Version.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "celeritas/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
@@ -52,17 +53,22 @@ class GeantTestBase::CleanupGeantEnvironment : public ::testing::Environment
 };
 
 //---------------------------------------------------------------------------//
-//! Whether results should be equivalent to the CI build
+//! Whether results should be equivalent to the main CI build
 bool GeantTestBase::is_ci_build()
 {
-    return CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
-           && CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4
-           && CELERITAS_UNITS == CELERITAS_UNITS_CGS
-           && cstring_equal(cmake::core_rng, "xorwow")
-           && (cstring_equal(cmake::clhep_version, "2.4.6.0")
-               || cstring_equal(cmake::clhep_version, "2.4.6.4")
-               || cstring_equal(cmake::clhep_version, "2.4.7.1"))
-           && cstring_equal(cmake::geant4_version, "11.3.0");
+    if (!(CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+          && CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4
+          && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+        && cstring_equal(cmake::core_rng, "xorwow"))
+    {
+        // Config options are different
+        return false;
+    }
+    // Check clhep/g4 versions
+    auto clhep = Version::from_string(cmake::clhep_version);
+    auto g4 = Version::from_string(cmake::geant4_version);
+    return clhep >= Version{2, 4, 6} && clhep < Version{2, 5}
+           && g4 >= Version{11, 3} && g4 < Version{11, 4};
 }
 
 //---------------------------------------------------------------------------//

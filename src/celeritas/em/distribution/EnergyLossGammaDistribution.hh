@@ -24,11 +24,7 @@ namespace celeritas
  *
  * This model is valid for heavy particles with small mean losses (less than 2
  * Bohr standard deviations). It is a special case of
- * \c EnergyLossGaussianDistribution (see that class for more documentation).
- *
- * Note that while this appears in G4UniversalFluctuation, the Geant4
- * documentation does not explain why the loss is sampled from a gamma
- * distribution in this case.
+ * \c EnergyLossGaussianDistribution.
  */
 class EnergyLossGammaDistribution
 {

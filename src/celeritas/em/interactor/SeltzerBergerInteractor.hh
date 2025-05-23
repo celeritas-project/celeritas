@@ -56,7 +56,7 @@ class SeltzerBergerInteractor
   public:
     //! Construct sampler from device/shared and state data
     inline CELER_FUNCTION
-    SeltzerBergerInteractor(SeltzerBergerRef const& shared,
+    SeltzerBergerInteractor(NativeCRef<SeltzerBergerData> const& shared,
                             ParticleTrackView const& particle,
                             Real3 const& inc_direction,
                             CutoffView const& cutoffs,
@@ -71,7 +71,7 @@ class SeltzerBergerInteractor
   private:
     //// DATA ////
     // Device (host CPU or GPU device) references
-    SeltzerBergerRef const& shared_;
+    NativeCRef<SeltzerBergerData> const& shared_;
     // Incident particle energy
     Energy const inc_energy_;
     // Incident particle direction
@@ -102,7 +102,7 @@ class SeltzerBergerInteractor
  * must be handled in code *before* the interactor is constructed.
  */
 CELER_FUNCTION SeltzerBergerInteractor::SeltzerBergerInteractor(
-    SeltzerBergerRef const& shared,
+    NativeCRef<SeltzerBergerData> const& shared,
     ParticleTrackView const& particle,
     Real3 const& inc_direction,
     CutoffView const& cutoffs,

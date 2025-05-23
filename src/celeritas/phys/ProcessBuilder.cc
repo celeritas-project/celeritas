@@ -63,11 +63,9 @@ auto ProcessBuilder::get_all_process_classes(
 ProcessBuilder::ProcessBuilder(ImportData const& data,
                                SPConstParticle particle,
                                SPConstMaterial material,
-                               UserBuildMap user_build,
-                               Options options)
+                               UserBuildMap user_build)
     : input_{std::move(material), std::move(particle), nullptr}
     , user_build_map_(std::move(user_build))
-    , brem_combined_(options.brem_combined)
     , enable_lpm_(data.em_params.lpm)
 {
     CELER_EXPECT(input_.material);
@@ -99,13 +97,9 @@ ProcessBuilder::ProcessBuilder(ImportData const& data,
  */
 ProcessBuilder::ProcessBuilder(ImportData const& data,
                                SPConstParticle particle,
-                               SPConstMaterial material,
-                               Options options)
-    : ProcessBuilder(data,
-                     std::move(particle),
-                     std::move(material),
-                     UserBuildMap{},
-                     options)
+                               SPConstMaterial material)
+    : ProcessBuilder(
+          data, std::move(particle), std::move(material), UserBuildMap{})
 {
 }
 
@@ -172,7 +166,6 @@ auto ProcessBuilder::build_eioni() -> SPProcess
 auto ProcessBuilder::build_ebrems() -> SPProcess
 {
     BremsstrahlungProcess::Options options;
-    options.combined_model = brem_combined_;
     options.enable_lpm = enable_lpm_;
 
     if (!read_sb_)

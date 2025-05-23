@@ -24,6 +24,7 @@
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
+#include "celeritas/phys/detail/EnergyMaxXsCalculator.hh"
 
 #include "celeritas_test.hh"
 
@@ -107,7 +108,7 @@ TEST_F(PhysicsParamsTest, accessors)
            "MockModel(8, p=2, emin=1, emax=100)",
            "MockModel(9, p=1, emin=0.001, emax=10)",
            "MockModel(10, p=2, emin=0.001, emax=10)",
-           "MockModel(11, p=3, emin=1e-05, emax=10)"};
+           "MockModel(11, p=3, emin=1e-05, emax=1000)"};
     EXPECT_VEC_EQ(expected_model_desc, model_desc);
 
     // Test host-accessible process map
@@ -147,8 +148,53 @@ TEST_F(PhysicsParamsTest, output)
     auto j = nlohmann::json::parse(to_string(out));
     j["sizes"].erase("reals");
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"physics","models":{"label":["mock-model-1","mock-model-2","mock-model-3","mock-model-4","mock-model-5","mock-model-6","mock-model-7","mock-model-8","mock-model-9","mock-model-10","mock-model-11"],"process_id":[0,0,1,2,2,2,3,3,4,4,5]},"options":{"fixed_step_limiter":0.0,"heavy.lowest_energy":[0.001,"MeV"],"heavy.max_step_over_range":0.2,"heavy.min_range":0.010000000000000002,"light.lowest_energy":[0.001,"MeV"],"light.max_step_over_range":0.2,"light.min_range":0.1,"linear_loss_limit":0.01,"min_eprime_over_e":0.8},"processes":{"label":["scattering","absorption","purrs","hisses","meows","barks"]},"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":5,"process_ids":8,"value_grid_ids":89,"value_grids":89,"value_tables":34}})json",
+        R"json({"_category":"internal","_label":"physics","models":{"label":["mock-model-1","mock-model-2","mock-model-3","mock-model-4","mock-model-5","mock-model-6","mock-model-7","mock-model-8","mock-model-9","mock-model-10","mock-model-11"],"process_id":[0,0,1,2,2,2,3,3,4,4,5]},"options":{"fixed_step_limiter":0.0,"heavy.lowest_energy":[0.001,"MeV"],"heavy.max_step_over_range":0.2,"heavy.min_range":0.010000000000000002,"light.lowest_energy":[0.001,"MeV"],"light.max_step_over_range":0.2,"light.min_range":0.1,"linear_loss_limit":0.01,"min_eprime_over_e":0.8},"processes":{"label":["scattering","absorption","purrs","hisses","meows","barks"]},"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":5,"process_ids":8,"uniform_grid_ids":57,"uniform_grids":57,"uniform_tables":44,"xs_grid_ids":32,"xs_grids":32,"xs_tables":8}})json",
         j.dump());
+}
+
+TEST_F(PhysicsParamsTest, energy_max_xs)
+{
+    PhysicsOptions opts = this->build_physics_options();
+    PhysicsParams const& p = *this->physics();
+    auto const& data = p.host_ref();
+
+    Applicability applic;
+    std::vector<std::vector<real_type>> energy_max_xs;
+    for (auto par_id : Range(ParticleId(data.process_groups.size())))
+    {
+        applic.particle = par_id;
+        auto proc_group = data.process_groups[par_id];
+        auto proc_ids = data.process_ids[proc_group.processes];
+        for (auto pp_idx : range(proc_ids.size()))
+        {
+            auto model_group = data.model_groups[proc_group.models][pp_idx];
+            auto energy_grid = data.reals[model_group.energy];
+            applic.lower = MevEnergy{energy_grid.front()};
+            applic.upper = MevEnergy{energy_grid.back()};
+
+            auto const& proc = p.process(proc_ids[pp_idx]);
+            CELER_ASSERT(proc);
+            detail::EnergyMaxXsCalculator calc(opts, *proc);
+            std::vector<real_type> energy;
+            for (auto mat_id : range(PhysMatId(this->material()->size())))
+            {
+                applic.material = mat_id;
+                auto macro_xs = proc->macro_xs(applic);
+                energy.push_back(calc ? calc(macro_xs) : -1);
+            }
+            energy_max_xs.push_back(std::move(energy));
+        }
+    }
+    static std::vector<double> const expected_energy_max_xs[]
+        = {{-1, -1, -1, -1},
+           {-1, -1, -1, -1},
+           {-1, -1, -1, -1},
+           {0.001, 0.001, 0.001, 0.001},
+           {0.001, 0.001, 0.001, 0.001},
+           {0.001, 0.001, 0.001, 0.001},
+           {0.001, 0.001, 0.001, 0.001},
+           {0.1, 0.1, 0.1, 0.1}};
+    EXPECT_VEC_SOFT_EQ(expected_energy_max_xs, energy_max_xs);
 }
 
 //---------------------------------------------------------------------------//
@@ -426,8 +472,8 @@ TEST_F(PhysicsTrackViewHostTest, value_grids)
 {
     std::vector<int> grid_ids;
 
-    auto id_to_int = [](ValueGridId vgid) {
-        return vgid ? static_cast<int>(vgid.unchecked_get()) : -1;
+    auto id_to_int = [](auto id) {
+        return id ? static_cast<int>(id.unchecked_get()) : -1;
     };
 
     for (char const* particle : {"gamma", "celeriton", "anti-celeriton"})
@@ -450,9 +496,9 @@ TEST_F(PhysicsTrackViewHostTest, value_grids)
     // Grid IDs should be unique if they exist. Gammas should have fewer
     // because there aren't any slowing down/range limiters.
     static int const expected_grid_ids[] = {
-        0,  4,  -1, -1, 1,  5,  -1, -1, 2,  6,  -1, -1, 3,  7,  -1, -1, 8,  12,
-        24, 13, 14, 9,  15, 25, 16, 17, 10, 18, 26, 19, 20, 11, 21, 27, 22, 23,
-        28, 40, 29, 30, 31, 41, 32, 33, 34, 42, 35, 36, 37, 43, 38, 39,
+        0,  4,  -1, -1, 1,  5,  -1, -1, 2,  6,  -1, -1, 3,  7,  -1, -1, 8, 12,
+        16, 0,  1,  9,  13, 17, 2,  3,  10, 14, 18, 4,  5,  11, 15, 19, 6, 7,
+        20, 24, 8,  9,  21, 25, 10, 11, 22, 26, 12, 13, 23, 27, 14, 15,
     };
     EXPECT_VEC_EQ(expected_grid_ids, grid_ids);
 }
@@ -468,11 +514,12 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
         {
             PhysicsTrackView const phys
                 = this->make_track_view(particle, mat_id);
+            MaterialView mat = this->material()->get(mat_id);
             auto scat_ppid = this->find_ppid(phys, "scattering");
             auto id = phys.macro_xs_grid(scat_ppid);
             ASSERT_TRUE(id);
-            auto calc_xs = phys.make_calculator<XsCalculator>(id);
-            xs.push_back(to_inv_cm(calc_xs(MevEnergy{1.0})));
+            xs.push_back(
+                to_inv_cm(phys.calc_xs(scat_ppid, mat, MevEnergy{1.0})));
         }
     }
 
@@ -614,7 +661,7 @@ TEST_F(PhysicsTrackViewHostTest, element_selector)
 
     // Sample from material composed of three elements (PMF = [0.1, 0.3, 0.6])
     {
-        auto table_id = phys.value_table(pmid);
+        auto table_id = phys.cdf_table(pmid);
         EXPECT_TRUE(table_id);
         auto select_element = phys.make_element_selector(table_id, energy);
         std::vector<int> counts(this->material()->get(mid).num_elements());
@@ -635,7 +682,7 @@ TEST_F(PhysicsTrackViewHostTest, element_selector)
     {
         PhysicsTrackView phys
             = this->make_track_view("celeriton", PhysMatId{1});
-        auto table_id = phys.value_table(pmid);
+        auto table_id = phys.cdf_table(pmid);
         EXPECT_FALSE(table_id);
     }
 }
@@ -647,11 +694,12 @@ TEST_F(PhysicsTrackViewHostTest, cuda_surrogate)
     {
         PhysicsTrackView phys = this->make_track_view(particle, PhysMatId{1});
         PhysicsStepView pstep = this->make_step_view(particle);
+        MaterialView mat = this->material()->get(PhysMatId{1});
 
         for (real_type energy : {1e-5, 1e-3, 1., 100., 1e5})
         {
             step.push_back(
-                to_cm(test::calc_step(phys, pstep, MevEnergy{energy})));
+                to_cm(test::calc_step(phys, pstep, mat, MevEnergy{energy})));
         }
     }
 
@@ -733,6 +781,7 @@ TEST_F(PHYS_DEVICE_TEST, all)
     inp.states = states.ref();
     inp.par_params = this->particles()->device_ref();
     inp.par_states = par_states.ref();
+    inp.mat_params = this->material()->device_ref();
     inp.inits = inits;
     inp.result = step.device_ref();
 

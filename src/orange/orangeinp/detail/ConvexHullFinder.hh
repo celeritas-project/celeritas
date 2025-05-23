@@ -274,7 +274,7 @@ size_type ConvexHullFinder<T>::min_element_idx() const
             return a[1] < b[1];
         });
     return std::distance(points_.begin(), starting_it);
-};
+}
 
 //---------------------------------------------------------------------------//
 /*!

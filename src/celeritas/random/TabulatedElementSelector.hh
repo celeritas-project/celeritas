@@ -11,7 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/random/distribution/GenerateCanonical.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/XsCalculator.hh"
+#include "celeritas/grid/UniformLogGridCalculator.hh"
 #include "celeritas/phys/PhysicsData.hh"
 
 namespace celeritas
@@ -32,16 +32,16 @@ class TabulatedElementSelector
     //! \name Type aliases
     using Energy = RealQuantity<XsGridRecord::EnergyUnits>;
     using GridValues
-        = Collection<ValueGrid, Ownership::const_reference, MemSpace::native>;
+        = Collection<UniformGridRecord, Ownership::const_reference, MemSpace::native>;
     using GridIdValues
-        = Collection<ValueGridId, Ownership::const_reference, MemSpace::native>;
+        = Collection<UniformGridId, Ownership::const_reference, MemSpace::native>;
     using Values
         = Collection<real_type, Ownership::const_reference, MemSpace::native>;
     //!@}
 
   public:
     // Construct with xs CDF data for a particular model and material
-    inline CELER_FUNCTION TabulatedElementSelector(ValueTable const& table,
+    inline CELER_FUNCTION TabulatedElementSelector(UniformTable const& table,
                                                    GridValues const& grids,
                                                    GridIdValues const& ids,
                                                    Values const& reals,
@@ -52,7 +52,7 @@ class TabulatedElementSelector
     inline CELER_FUNCTION ElementComponentId operator()(Engine& rng) const;
 
   private:
-    ValueTable const& table_;
+    UniformTable const& table_;
     GridValues const& grids_;
     GridIdValues const& ids_;
     Values const& reals_;
@@ -66,7 +66,7 @@ class TabulatedElementSelector
  * Construct with xs CDF data for a particular model and material.
  */
 CELER_FUNCTION
-TabulatedElementSelector::TabulatedElementSelector(ValueTable const& table,
+TabulatedElementSelector::TabulatedElementSelector(UniformTable const& table,
                                                    GridValues const& grids,
                                                    GridIdValues const& ids,
                                                    Values const& reals,
@@ -88,11 +88,14 @@ TabulatedElementSelector::operator()(Engine& rng) const
     real_type u = generate_canonical(rng);
     for (; i < table_.grids.size() - 1; ++i)
     {
-        ValueGridId grid_id = ids_[table_.grids[i]];
+        auto grid_id = ids_[table_.grids[i]];
         CELER_ASSERT(grid_id < grids_.size());
-        XsCalculator calc_xs(grids_[grid_id], reals_);
-        if (calc_xs(energy_) > u)
+        auto cdf = UniformLogGridCalculator(grids_[grid_id], reals_)(energy_);
+        CELER_ASSERT(cdf <= 1);
+        if (cdf > u)
+        {
             break;
+        }
     }
     return ElementComponentId{i};
 }

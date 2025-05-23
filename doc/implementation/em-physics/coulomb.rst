@@ -8,17 +8,19 @@ Coulomb scattering
 
 Elastic scattering of charged particles off atoms can be simulated in three ways:
 
-* A detailed single scattering model in which each scattering interaction is
-  sampled
-* A multiple scattering approach which calculates global effects from many
-  collisions
-* A combination of the two
+* a detailed single scattering model in which each scattering interaction is
+  sampled,
+* a multiple scattering approach which calculates global effects from many
+  collisions, or
+* a combination of the two.
 
 Though it is the most accurate, the single Coulomb scattering model is too
 computationally expensive to be used in most applications as the number of
 collisions can be extremely large. Instead, a "condensed" simulation algorithm
+:cite:`kawrakow-condensedhistory-1998`
 is typically used to determine the net energy loss, displacement, and direction
-change from many collisions after a given path length. The Urban model is the
+change from many collisions after a given path length. The Urban model
+described below is the
 default multiple scattering model in Celeritas for all energies and in Geant4
 below 100 MeV. A third "mixed" simulation approach uses multiple scattering to
 simulate interactions with scattering angles below a given polar angle limit
@@ -51,6 +53,7 @@ Nuclear form factors
 The nuclear form factors used by :cpp:class:`celeritas::WentzelDistribution`
 are:
 
+.. doxygenstruct:: celeritas::NuclearFormFactorTraits
 .. doxygenclass:: celeritas::ExpNuclearFormFactor
 .. doxygenclass:: celeritas::GaussianNuclearFormFactor
 .. doxygenclass:: celeritas::UUNuclearFormFactor

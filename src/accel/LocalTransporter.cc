@@ -132,8 +132,8 @@ void trace(StepperResult const& track_counts)
  */
 LocalTransporter::LocalTransporter(SetupOptions const& options,
                                    SharedParams& params)
-    : auto_flush_(options.auto_flush ? options.auto_flush
-                                     : options.max_num_tracks)
+    : auto_flush_(
+          get_default(options, params.Params()->max_streams()).primaries)
     , max_step_iters_(options.max_step_iters)
     , dump_primaries_{params.offload_writer()}
 {

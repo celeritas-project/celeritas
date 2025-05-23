@@ -88,7 +88,7 @@ class RayleighInteractorTest : public InteractorHostTestBase
 
   protected:
     std::shared_ptr<RayleighModel> model_;
-    RayleighRef model_ref_;
+    NativeCRef<RayleighData> model_ref_;
 };
 
 //---------------------------------------------------------------------------//

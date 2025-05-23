@@ -81,6 +81,8 @@ CELER_FUNCTION ParticleTrackView&
 ParticleTrackView::operator=(Initializer const& init)
 {
     CELER_EXPECT(init.energy >= zero_quantity());
+    CELER_EXPECT(is_soft_unit_vector(init.polarization));
+
     states_.energy[track_slot_] = value_as<Energy>(init.energy);
     states_.polarization[track_slot_] = init.polarization;
     return *this;

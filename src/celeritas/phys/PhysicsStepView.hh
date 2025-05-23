@@ -307,10 +307,8 @@ PhysicsStepView::make_relaxation_helper(ElementId el_id) const
     -> AtomicRelaxationHelper
 {
     CELER_ASSERT(el_id);
-    return AtomicRelaxationHelper{params_.hardwired.relaxation_data,
-                                  states_.relaxation,
-                                  el_id,
-                                  track_slot_};
+    return AtomicRelaxationHelper{
+        params_.hardwired.relaxation, states_.relaxation, el_id, track_slot_};
 }
 
 //---------------------------------------------------------------------------//

@@ -99,10 +99,13 @@ void PhysicsParamsOutput::output(JsonPimpl* j) const
 #define PPO_SAVE_SIZE(NAME) sizes[#NAME] = data.NAME.size()
         PPO_SAVE_SIZE(reals);
         PPO_SAVE_SIZE(model_ids);
-        PPO_SAVE_SIZE(value_grids);
-        PPO_SAVE_SIZE(value_grid_ids);
+        PPO_SAVE_SIZE(xs_grids);
+        PPO_SAVE_SIZE(xs_grid_ids);
+        PPO_SAVE_SIZE(xs_tables);
+        PPO_SAVE_SIZE(uniform_grids);
+        PPO_SAVE_SIZE(uniform_grid_ids);
+        PPO_SAVE_SIZE(uniform_tables);
         PPO_SAVE_SIZE(process_ids);
-        PPO_SAVE_SIZE(value_tables);
         PPO_SAVE_SIZE(integral_xs);
         PPO_SAVE_SIZE(model_groups);
         PPO_SAVE_SIZE(process_groups);

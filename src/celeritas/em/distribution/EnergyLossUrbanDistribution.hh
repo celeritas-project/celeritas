@@ -40,8 +40,8 @@ namespace celeritas
  * large and the energy loss can be sampled from a Gaussian distribution, and
  * an upper range in which the energy loss is sampled for each collision.
  *
- * See section 7.3.2 of the Geant4 Physics Reference Manual and GEANT3 PHYS332
- * section 2.4 for details.
+ * See section 7.3.2 of \cite{g4prm} and PHYS332 section 2.4 of
+ * \cite{geant3-1993} for details.
  */
 class EnergyLossUrbanDistribution
 {

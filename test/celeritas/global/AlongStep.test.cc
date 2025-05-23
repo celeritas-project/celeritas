@@ -767,8 +767,9 @@ TEST_F(LeadBoxAlongStepTest, position_change)
             if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
             {
                 static char const* const expected_log_messages[] = {
-                    R"(Propagation of step length 5.38e-8 due to post-step action 2 leading to distance 5.38e-8 failed to change position)"};
-                EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+                    R"(Propagation of step length 5.4e-8 due to post-step action 2 leading to distance 5.4e-8 failed to change position)"};
+                EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages())
+                    << scoped_log_;
             }
             static char const* const expected_log_levels[] = {"error"};
             EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());

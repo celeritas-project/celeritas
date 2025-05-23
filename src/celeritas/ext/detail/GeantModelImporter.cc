@@ -178,7 +178,7 @@ ImportModel GeantModelImporter::operator()(G4VEmModel const& model) const
                 bins_per_decade * std::log10(max_energy / min_energy));
 
             // Interpolate energy in log space with at least 3 bins
-            auto energy = logspace(
+            auto energy = geomspace(
                 min_energy, max_energy, std::max<size_type>(3, num_bins));
 
             // Calculate cross sections

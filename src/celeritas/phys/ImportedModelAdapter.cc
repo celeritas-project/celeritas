@@ -88,7 +88,7 @@ auto ImportedModelAdapter::micro_xs(Applicability applic) const -> XsTable
         auto grid = imm.micro_xs[elcomp_idx];
         CELER_ASSERT(grid);
         CELER_ASSERT(std::exp(grid.x[Bound::lo]) > 0 && grid.y.size() >= 2);
-        grids[elcomp_idx].lower = std::move(grid);
+        grids[elcomp_idx] = std::move(grid);
     }
     return grids;
 }

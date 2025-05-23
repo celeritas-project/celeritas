@@ -497,8 +497,8 @@ def generate(repodir, filename, namespace):
     dirname = os.path.relpath(filename, start=repodir)
     all_dirs = dirname.split(os.sep)[:-1]
     if not all_dirs:
-        print("Cannot generate files in the top level of the repository")
-        sys.exit(1)
+        print("warning: not inside a celeritas subdirectory")
+        all_dirs = [""]
 
     if namespace is None:
         namespace = 'celeritas'

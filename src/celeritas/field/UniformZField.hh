@@ -13,7 +13,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * A uniform field along the Z axis.
+ * A uniform field along the *z* axis.
  */
 class UniformZField
 {

@@ -86,12 +86,13 @@ void ExtendFromSecondariesAction::step_impl(CoreParams const& core_params,
      * - Copy to device to update the on-device refrences (state.ptr)
      */
     counters.num_initializers += counters.num_secondaries;
-    CELER_VALIDATE(counters.num_initializers <= init.initializers.size(),
-                   << "insufficient capacity (" << init.initializers.size()
-                   << ") for track initializers (created "
-                   << counters.num_secondaries
-                   << " new secondaries for a total capacity requirement of "
-                   << counters.num_initializers << ")");
+    CELER_VALIDATE(
+        counters.num_initializers <= init.initializers.size(),
+        << "insufficient capacity (" << init.initializers.size()
+        << ") for track initializers (created " << counters.num_secondaries
+        << " new secondaries for a total capacity requirement of "
+        << counters.num_initializers
+        << "): increase initializer capacity or decrease track slots");
 
     // Launch a kernel to create track initializers from secondaries
     counters.num_alive = core_state.size() - counters.num_vacancies;

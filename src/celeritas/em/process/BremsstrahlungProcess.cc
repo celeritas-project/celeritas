@@ -10,7 +10,6 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
-#include "celeritas/em/model/CombinedBremModel.hh"
 #include "celeritas/em/model/RelativisticBremModel.hh"
 #include "celeritas/em/model/SeltzerBergerModel.hh"
 #include "celeritas/io/ImportProcess.hh"
@@ -49,16 +48,6 @@ auto BremsstrahlungProcess::build_models(ActionIdIter start_id) const
     -> VecModel
 {
     using IMC = ImportModelClass;
-
-    if (options_.combined_model)
-    {
-        return {std::make_shared<CombinedBremModel>(*start_id++,
-                                                    *particles_,
-                                                    *materials_,
-                                                    imported_.processes(),
-                                                    load_sb_,
-                                                    options_.enable_lpm)};
-    }
 
     VecModel result;
     if (imported_.has_model(pdg::electron(), IMC::e_brems_sb))

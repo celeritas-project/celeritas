@@ -158,7 +158,7 @@ CELER_FUNCTION auto CascadeCollider::operator()(Engine& rng) -> FinalState
     }
 
     // Sample the momentum of outgoing particles in the center of mass frame
-    // Rotate the momentum along the reference z-axis
+    // Rotate the momentum along the reference z axis
     auto fv = FourVector::from_mass_momentum(
         bullet_.mass,
         Momentum{cm_p_},

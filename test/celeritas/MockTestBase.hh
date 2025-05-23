@@ -19,7 +19,7 @@
 namespace celeritas
 {
 struct Applicability;
-struct PhysicsParamsOptions;
+struct PhysicsOptions;
 }  // namespace celeritas
 
 namespace celeritas
@@ -49,7 +49,6 @@ class MockTestBase : virtual public GlobalGeoTestBase, public OnlyCoreTestBase
   public:
     //!@{
     //! \name Type aliases
-    using PhysicsOptions = PhysicsParamsOptions;
     using ModelCallback = std::function<void(ActionId)>;
     using SpanConstModel = Span<ModelId const>;
     //!@}
