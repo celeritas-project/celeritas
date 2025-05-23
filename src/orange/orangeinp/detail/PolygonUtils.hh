@@ -94,15 +94,15 @@ is_same_orientation(Orientation a, Orientation b, bool degen_ok = false)
  * Collinearity is based on a supplied absolute tolerance. For three ordered
  * points a, b, c, point b is collinear if the displacement, d, is less than
  * the absolute tolerance.
- *
- *              b
- *             . .
- *           .  .  .
- *         .    .    .
- *       .      . d    .
- *     .  t     .        .
- *   a . . . . . . . . . . c
- *
+ * \verbatim
+                b
+               . .
+             .  .  .
+           .    .    .
+         .      . d    .
+       .  t     .        .
+     a . . . . . . . . . . c
+   \endverbatim
  * The displacement is calculated as follows.
  *
  * Let:

@@ -133,16 +133,17 @@ CELER_FUNCTION Plane::Plane(Real3 const& n, real_type d) : normal_{n}, d_{d}
  * \vec{B} = \vec{p_2} - \vec{p_0},
  * \vec{C} = \vec{A} \times  \vec{B}.
  * \f]
- *
- *            ^
- *            | C
- *            |
- *            |
- *  p1 _______| p0
- *       A   /
- *          / B
- *         /
- *        p2
+ * \verbatim
+             ^
+             | C
+             |
+             |
+   p1 _______| p0
+        A   /
+           / B
+          /
+         p2
+   \endverbatim
  */
 CELER_FUNCTION Plane::Plane(Real3 const& p0, Real3 const& p1, Real3 const& p2)
     : normal_{make_unit_vector(cross_product(p1 - p0, p2 - p0))}
