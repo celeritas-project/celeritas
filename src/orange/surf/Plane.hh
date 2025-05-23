@@ -128,9 +128,11 @@ CELER_FUNCTION Plane::Plane(Real3 const& n, real_type d) : normal_{n}, d_{d}
  *
  * The direction of the normal is dictated by the right-hand rule, assuming
  * the normal vector, C, is given by:
- * A = (p1 - p0),
- * B = (p2 - p0),
- * C = A x B.
+ * \f[
+ * \vec{A} = \vec{p_1} - \vec{p_0},
+ * \vec{B} = \vec{p_2} - \vec{p_0},
+ * \vec{C} = \vec{A} \times  \vec{B}.
+ * \f]
  *
  *            ^
  *            | C
