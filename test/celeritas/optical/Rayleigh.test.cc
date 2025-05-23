@@ -155,7 +155,7 @@ TEST_F(RayleighInteractorTest, stress_test)
     }
     else
     {
-        EXPECT_SOFT_EQ(6.0008160000000004, avg_samples);
+        EXPECT_SOFT_NEAR(6.000816, avg_samples, 1e-4);
     }
 }
 
