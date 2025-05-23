@@ -280,7 +280,7 @@ size_type ConvexHullFinder<T>::min_element_idx() const
 /*!
  * Determine if three elements form a clockwise turn using the cross product.
  *
- * Here, colinear points are considered clockwise.
+ * Here, collinear points are considered clockwise.
  */
 template<class T>
 auto ConvexHullFinder<T>::is_clockwise(size_type i_prev,

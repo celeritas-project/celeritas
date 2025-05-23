@@ -201,8 +201,8 @@ inline bool is_convex(Span<Real2 const> corners, bool degen_ok = false)
 /*!
  * Return the non-collinear subset of the supplied corners, as a copy.
  *
- * Points are checked for colinearly dynamically, i.e, if a point is
- * found to be colinear, it is not used for future colinearity checks.
+ * Points are checked for collinearity dynamically, i.e, if a point is found to
+ * be collinear, it is not used for future collinearity checks.
  */
 inline std::vector<Real2>
 filter_collinear_points(std::vector<Real2> const& corners, double abs_tol)
@@ -214,9 +214,9 @@ filter_collinear_points(std::vector<Real2> const& corners, double abs_tol)
 
     SoftOrientation<Real2::value_type> soft_ori(abs_tol);
 
-    // Temporarily assume first point is not colinear. This is necessary to
-    // handle the case where all points are locally colinear, but some points
-    // are globally non-colinear, e.g., a many-sided regular polygon.
+    // Temporarily assume first point is not collinear. This is necessary to
+    // handle the case where all points are locally collinear, but some points
+    // are globally non-collinear, e.g., a many-sided regular polygon.
     result.push_back(corners[0]);
 
     for (auto i : range<size_type>(1, corners.size()))
@@ -233,7 +233,7 @@ filter_collinear_points(std::vector<Real2> const& corners, double abs_tol)
     // Make sure there are enough filtered points to specificy a polygon.
     CELER_ASSERT(result.size() >= 3);
 
-    // If it turns out that the first point is actually colinear, remove it.
+    // If it turns out that the first point is actually collinear, remove it.
     if (soft_ori(result.back(), result[0], result[1]) == Orientation::collinear)
     {
         result.erase(result.begin());

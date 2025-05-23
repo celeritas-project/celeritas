@@ -557,7 +557,7 @@ ExtrudedPolygon::ExtrudedPolygon(ExtrudedPolygon::VecReal2 const& polygon,
     x_range_ = this->calc_range(polygon, X);
     y_range_ = this->calc_range(polygon, Y);
 
-    // Store only non-colinear points
+    // Store only non-collinear points
     Real3 const extents{
         x_range_[1] - x_range_[0], y_range_[1] - y_range_[0], 0};
     real_type abs_tol = ::celeritas::detail::BumpCalculator(
@@ -565,11 +565,11 @@ ExtrudedPolygon::ExtrudedPolygon(ExtrudedPolygon::VecReal2 const& polygon,
 
     polygon_ = detail::filter_collinear_points(polygon, abs_tol);
 
-    // After removing colinear points, at least 3 points must remain
+    // After removing collinear points, at least 3 points must remain
     CELER_VALIDATE(polygon_.size() >= 3,
                    << "polygon must consist of at least 3 points");
 
-    // After removing colinear points, the polygon should have a *strictly*
+    // After removing collinear points, the polygon should have a *strictly*
     // clockwise orientation, which also guarantees it is convex.
     CELER_VALIDATE(
         has_orientation(make_span(polygon_), detail::Orientation::clockwise),

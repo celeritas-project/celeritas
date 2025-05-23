@@ -594,9 +594,9 @@ TEST_F(ExtrudedPolygonTest, simple_cube)
     EXPECT_VEC_SOFT_EQ((Real3{1, 1, 1}), result.exterior.upper());
 }
 
-TEST_F(ExtrudedPolygonTest, colinear)
+TEST_F(ExtrudedPolygonTest, collinear)
 {
-    // Same test as simple_cube, but with colinear points
+    // Same test as simple_cube, but with collinear points
     ExtrudedPolygon::VecReal2 polygon{Real2{0, 0},
                                       Real2{0, 0.5},
                                       Real2{0, 1},
@@ -656,7 +656,7 @@ TEST_F(ExtrudedPolygonTest, flat_top_pyramid)
 
 TEST_F(ExtrudedPolygonTest, skewed)
 {
-    // Irregular hexagon with a single colinear point at (0, 0)
+    // Irregular hexagon with a single collinear point at (0, 0)
     ExtrudedPolygon::VecReal2 polygon{Real2{0, 0},
                                       Real2{-1, 0},
                                       Real2{-2, 1},
