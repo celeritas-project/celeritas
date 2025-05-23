@@ -195,7 +195,7 @@ TEST_F(FourLevelsVgdmlTest, consecutive_compute)
     EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), safety_tol());
 
     // Find safety from a freshly initialized state
-    geo = {from_cm({-9, -10, -10}), {1, 0, 0}, {}};
+    geo = {from_cm({-9, -10, -10}), {1, 0, 0}};
     EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), safety_tol());
 }
 
@@ -219,7 +219,7 @@ TEST_F(FourLevelsVgdmlTest, safety)
     for (auto i : range(11))
     {
         real_type r = 2.0 * i + 0.1;
-        geo = {from_cm({r, r, r}), {1, 0, 0}, {}};
+        geo = {from_cm({r, r, r}), {1, 0, 0}};
 
         if (!geo.is_outside())
         {
@@ -255,14 +255,14 @@ TEST_F(FourLevelsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
 
     // Set up test input
     VGGTestInput input;
-    input.init = {{{10, 10, 10}, {1, 0, 0}, {}},
-                  {{10, 10, -10}, {1, 0, 0}, {}},
-                  {{10, -10, 10}, {1, 0, 0}, {}},
-                  {{10, -10, -10}, {1, 0, 0}, {}},
-                  {{-10, 10, 10}, {-1, 0, 0}, {}},
-                  {{-10, 10, -10}, {-1, 0, 0}, {}},
-                  {{-10, -10, 10}, {-1, 0, 0}, {}},
-                  {{-10, -10, -10}, {-1, 0, 0}, {}}};
+    input.init = {{{10, 10, 10}, {1, 0, 0}},
+                  {{10, 10, -10}, {1, 0, 0}},
+                  {{10, -10, 10}, {1, 0, 0}},
+                  {{10, -10, -10}, {1, 0, 0}},
+                  {{-10, 10, 10}, {-1, 0, 0}},
+                  {{-10, 10, -10}, {-1, 0, 0}},
+                  {{-10, -10, 10}, {-1, 0, 0}},
+                  {{-10, -10, -10}, {-1, 0, 0}}};
     StateStore device_states(this->geometry()->host_ref(), input.init.size());
     input.max_segments = 5;
     input.params = this->geometry()->device_ref();
@@ -328,14 +328,14 @@ TEST_F(SimpleCmsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
 
     // Set up test input
     VGGTestInput input;
-    input.init = {{{10, 0, 0}, {1, 0, 0}, {}},
-                  {{29.99, 0, 0}, {1, 0, 0}, {}},
-                  {{150, 0, 0}, {0, 1, 0}, {}},
-                  {{174, 0, 0}, {0, 1, 0}, {}},
-                  {{0, -250, 100}, {-1, 0, 0}, {}},
-                  {{250, -250, 100}, {-1, 0, 0}, {}},
-                  {{250, 0, 100}, {0, -1, 0}, {}},
-                  {{-250, 0, 100}, {0, -1, 0}, {}}};
+    input.init = {{{10, 0, 0}, {1, 0, 0}},
+                  {{29.99, 0, 0}, {1, 0, 0}},
+                  {{150, 0, 0}, {0, 1, 0}},
+                  {{174, 0, 0}, {0, 1, 0}},
+                  {{0, -250, 100}, {-1, 0, 0}},
+                  {{250, -250, 100}, {-1, 0, 0}},
+                  {{250, 0, 100}, {0, -1, 0}},
+                  {{-250, 0, 100}, {0, -1, 0}}};
     StateStore device_states(this->geometry()->host_ref(), input.init.size());
     input.max_segments = 5;
     input.params = this->geometry()->device_ref();

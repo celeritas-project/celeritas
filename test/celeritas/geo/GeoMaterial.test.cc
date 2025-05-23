@@ -55,7 +55,7 @@ auto GeoMaterialTestBase::trace_materials(Real3 const& pos_cm, Real3 dir)
     // comparison of material IDs encountered.
     VecString result;
 
-    geo = {from_cm(pos_cm), make_unit_vector(dir), {}};
+    geo = {from_cm(pos_cm), make_unit_vector(dir)};
     while (!geo.is_outside())
     {
         result.push_back(

@@ -44,7 +44,7 @@ class ShiftTrackerTest : public OrangeGeoTestBase
     void initialize(Real3 pos, Real3 dir)
     {
         auto track = this->make_geo_track_view();
-        track = {pos, dir, {}};
+        track = {pos, dir};
     }
 
     void distance_to_boundary(real_type& distance)

@@ -64,7 +64,7 @@ TEST_F(OneVolumeTest, track_view)
     OrangeTrackView geo = this->make_geo_track_view();
 
     // Initialize
-    geo = Initializer_t{{3, 4, 5}, {0, 1, 0}, {}};
+    geo = Initializer_t{{3, 4, 5}, {0, 1, 0}};
     EXPECT_VEC_SOFT_EQ(Real3({3, 4, 5}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({0, 1, 0}), geo.dir());
     EXPECT_EQ(VolumeId{0}, geo.volume_id());
@@ -73,7 +73,7 @@ TEST_F(OneVolumeTest, track_view)
     EXPECT_FALSE(geo.is_on_boundary());
 
     // Initialize from a pre-existing OrangeTrackView object
-    geo = {geo.pos(), Real3({1, 0, 0}), TrackSlotId{0}};
+    geo = Initializer_t{geo.pos(), Real3{1, 0, 0}, TrackSlotId{0}};
     EXPECT_VEC_SOFT_EQ(Real3({3, 4, 5}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
     EXPECT_EQ(VolumeId{0}, geo.volume_id());
@@ -161,7 +161,7 @@ TEST_F(TwoVolumeTest, simple_track)
     auto geo = this->make_geo_track_view();
 
     // Initialize
-    geo = Initializer_t{{0.5, 0, 0}, {0, 0, 1}, {}};
+    geo = Initializer_t{{0.5, 0, 0}, {0, 0, 1}};
     EXPECT_VEC_SOFT_EQ(Real3({0.5, 0, 0}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.dir());
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
@@ -229,7 +229,7 @@ TEST_F(TwoVolumeTest, simple_track)
 TEST_F(TwoVolumeTest, reentrant_boundary_setdir)
 {
     auto geo = this->make_geo_track_view();
-    geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}, {}};
+    geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
 
@@ -269,7 +269,7 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir)
 TEST_F(TwoVolumeTest, nonreentrant_boundary_setdir)
 {
     auto geo = this->make_geo_track_view();
-    geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}, {}};
+    geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
 
@@ -306,7 +306,7 @@ TEST_F(TwoVolumeTest, nonreentrant_boundary_setdir)
 TEST_F(TwoVolumeTest, doubly_reentrant_boundary_setdir)
 {
     auto geo = this->make_geo_track_view();
-    geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}, {}};
+    geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
 
@@ -348,7 +348,7 @@ TEST_F(TwoVolumeTest, doubly_reentrant_boundary_setdir)
 TEST_F(TwoVolumeTest, reentrant_boundary_setdir_post)
 {
     auto geo = this->make_geo_track_view();
-    geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}, {}};
+    geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
 
@@ -400,7 +400,7 @@ TEST_F(TwoVolumeTest, persistence)
 {
     {
         auto geo = this->make_geo_track_view();
-        geo = Initializer_t{{2.5, 0, 0}, {-1, 0, 0}, {}};
+        geo = Initializer_t{{2.5, 0, 0}, {-1, 0, 0}};
         geo.find_next_step();
         geo.move_to_boundary();
     }
@@ -464,7 +464,7 @@ TEST_F(TwoVolumeTest, intersect_limited)
     auto geo = this->make_geo_track_view();
 
     // Initialize
-    geo = Initializer_t{{0.0, 0, 0}, {1, 0, 0}, {}};
+    geo = Initializer_t{{0.0, 0, 0}, {1, 0, 0}};
 
     // Try a boundary; second call should be cached
     auto next = geo.find_next_step(0.5);

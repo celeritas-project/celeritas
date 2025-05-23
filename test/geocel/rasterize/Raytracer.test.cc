@@ -29,7 +29,7 @@ int calc_id(MockGeoTrackView const& geo)
 TEST(MockGeo, tracking)
 {
     MockGeoTrackView geo;
-    geo = GeoTrackInitializer{{0, 0, 5.25}, {0, 0, 1}, {}};
+    geo = GeoTrackInitializer{{0, 0, 5.25}, {0, 0, 1}};
     EXPECT_EQ(5, geo.volume_id().get());
     auto next_step = geo.find_next_step(2.0);
     EXPECT_TRUE(next_step.boundary);
@@ -54,15 +54,13 @@ TEST(MockGeo, tracking)
     EXPECT_TRUE(next_step.boundary);
     EXPECT_SOFT_EQ(0.75, next_step.distance);
 
-    geo = GeoTrackInitializer{
-        {0, 0, 4.75}, make_unit_vector(Real3{0, 0, -1}), {}};
+    geo = GeoTrackInitializer{{0, 0, 4.75}, make_unit_vector(Real3{0, 0, -1})};
     EXPECT_EQ(4, geo.volume_id().get());
     next_step = geo.find_next_step(100.0);
     EXPECT_TRUE(next_step.boundary);
     EXPECT_SOFT_EQ(0.75, next_step.distance);
 
-    geo = GeoTrackInitializer{
-        {0, 0, 9.75}, make_unit_vector(Real3{0, 4, -3}), {}};
+    geo = GeoTrackInitializer{{0, 0, 9.75}, make_unit_vector(Real3{0, 4, -3})};
     EXPECT_EQ(9, geo.volume_id().get());
     next_step = geo.find_next_step(100.0);
     EXPECT_TRUE(next_step.boundary);
