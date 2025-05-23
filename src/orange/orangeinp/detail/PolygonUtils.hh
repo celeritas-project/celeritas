@@ -106,23 +106,31 @@ is_same_orientation(Orientation a, Orientation b, bool degen_ok = false)
  * The displacement is calculated as follows.
  *
  * Let:
- * u = b - a
- * v = c - a
+ * \verbatim
+   u = b - a
+   v = c - a
+   \endverbatim
  *
  * In 2D, the cross product can be written as,
  *
- * u x v = |u| |v| sin(t),
+ * \verbatim
+   u x v = |u| |v| sin(t),
+   \endverbatim
  *
  * noting that this is a different cross product (different vectors) compared
  * to the cross product used for orientation determination. Geometrically, the
  * displacement can be calculated as,
  *
- * d = |u| sin(t).
+ *  \verbatim
+    d = |u| sin(t).
+    \endverbatim
  *
  * Therefore,
  *
- * d = |u| (u x v) / (|u| |v|)
- *   = (u x v)/|v|.
+ * \verbatim
+   d = |u| (u x v) / (|u| |v|)
+     = (u x v)/|v|.
+   \endverbatim
  */
 template<class T>
 class SoftOrientation
