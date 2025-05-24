@@ -211,6 +211,7 @@ void PhysicalVolumeConverter::Builder::place_child(
             // position (yes, this is how Geant4 does it too)
             param->ComputeTransformation(
                 j, const_cast<G4VPhysicalVolume*>(&g4pv));
+            const_cast<G4VPhysicalVolume&>(g4pv).SetCopyNo(j);
 
             // Add a copy
             lv->children.push_back(this->make_pv(depth, g4pv));
