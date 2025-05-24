@@ -70,6 +70,7 @@ CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
     ti.sim.time = primary.time;
     ti.geo.pos = primary.position;
     ti.geo.dir = primary.direction;
+    ti.geo.parent = {};
     ti.particle.particle_id = primary.particle_id;
     ti.particle.energy = primary.energy;
 }
