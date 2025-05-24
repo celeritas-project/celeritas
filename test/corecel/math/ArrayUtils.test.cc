@@ -75,8 +75,20 @@ TEST(ArrayUtilsTest, make_unit_vector)
 {
     Dbl3 direction = make_unit_vector(Dbl3{1, 2, 3});
     double const norm = 1 / std::sqrt(1 + 4 + 9);
-    static double const expected[] = {1 * norm, 2 * norm, 3 * norm};
-    EXPECT_VEC_SOFT_EQ(expected, direction);
+    EXPECT_VEC_SOFT_EQ((Dbl3{1 * norm, 2 * norm, 3 * norm}), direction);
+
+    EXPECT_TRUE(std::isnan(make_unit_vector(Dbl3{0, 0, 0})[0]));
+}
+
+TEST(ArrayUtilsTest, make_orthogonal)
+{
+    EXPECT_VEC_SOFT_EQ((Dbl3{2, 0, 0}),
+                       make_orthogonal(Dbl3{2, 0, 0}, Dbl3{0, 0, 1}));
+    EXPECT_VEC_SOFT_EQ((Dbl3{0, 1, 3}),
+                       make_orthogonal(Dbl3{2, 1, 3}, Dbl3{1, 0, 0}));
+    EXPECT_VEC_SOFT_EQ(
+        (Dbl3{0.5, -0.5, 3}),
+        make_orthogonal(Dbl3{2, 1, 3}, make_unit_vector(Dbl3{1, 1, 0})));
 }
 
 TEST(ArrayUtilsTest, is_soft_unit_vector)
@@ -93,6 +105,10 @@ TEST(ArrayUtilsTest, is_soft_unit_vector)
     EXPECT_TRUE(is_soft_unit_vector(dir));
     dir[0] += 10 * eps;
     EXPECT_FALSE(is_soft_unit_vector(dir));
+
+    // Test nan
+    constexpr auto nan = std::numeric_limits<real_type>::quiet_NaN();
+    EXPECT_FALSE(is_soft_unit_vector(Real3{nan, 1, 0}));
 }
 
 TEST(ArrayUtilsTest, rotate)

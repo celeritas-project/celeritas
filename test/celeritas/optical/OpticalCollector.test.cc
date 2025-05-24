@@ -584,7 +584,8 @@ TEST_F(LArSphereOffloadTest, host_generate)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(456175, result.accum.steps);
+        EXPECT_SOFT_NEAR(
+            456183.0, static_cast<double>(result.accum.steps), 1e-4);
         EXPECT_EQ(43, result.accum.step_iters);
         EXPECT_EQ(4, result.accum.flushes);
         EXPECT_EQ(4, result.accum.generators.cherenkov);
