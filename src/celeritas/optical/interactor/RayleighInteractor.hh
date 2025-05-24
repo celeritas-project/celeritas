@@ -16,7 +16,6 @@
 #include "geocel/random/IsotropicDistribution.hh"
 #include "celeritas/optical/Interaction.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
-#include "celeritas/phys/InteractionUtils.hh"
 
 namespace celeritas
 {
@@ -79,25 +78,23 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng) const
     SoftZero const soft_zero{SoftEqual{}.rel()};
     do
     {
-        new_dir = sample_direction(rng);
-
-        // Project polarization onto plane perpendicular to new direction
-        new_pol = make_unit_vector(make_orthogonal(inc_pol_, new_dir));
-
-        if (CELER_UNLIKELY(!soft_zero(dot_product(new_pol, new_dir))))
+        do
         {
-            // In rare case of polarization and new direction being
-            // nearly coincident, sample a random azimuthal direction
-            // perpendicular to the new direction
-            new_pol = ExitingDirectionSampler{0, new_dir}(rng);
-        }
-        else if (!BernoulliDistribution{0.5}(rng))
+            new_dir = sample_direction(rng);
+
+            // Project polarization onto plane perpendicular to new direction
+            new_pol = make_unit_vector(make_orthogonal(inc_pol_, new_dir));
+
+            // Reject rare case of polarization and new direction being
+            // coincident leading to loss of orthogonality
+        } while (CELER_UNLIKELY(!soft_zero(dot_product(new_pol, new_dir))));
+
+        if (!BernoulliDistribution{0.5}(rng))
         {
             // Flip direction with 50% probability: there are two polarizations
             // perpendicular to the new direction and the original polarization
             new_pol = -new_pol;
         }
-
         // Accept with the probability of the scattered polarization overlap
         // squared
     } while (RejectionSampler{ipow<2>(
