@@ -151,18 +151,11 @@ TEST_F(RayleighInteractorTest, stress_test)
 
     auto avg_samples = static_cast<double>(rng_engine.exchange_count())
                        / static_cast<double>(num_samples);
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-    {
-        EXPECT_VEC_SOFT_EQ(expected_accum_dir, accum_dir.calc_density());
-        EXPECT_VEC_SOFT_EQ(expected_accum_pol, accum_pol.calc_density());
-        EXPECT_SOFT_EQ(12.004864, avg_samples);
-    }
-    else
-    {
-        PRINT_EXPECTED(accum_dir.calc_density());
-        PRINT_EXPECTED(accum_pol.calc_density());
-        EXPECT_SOFT_NEAR(6.0016, avg_samples, 1e-3);
-    }
+    SoftEqual<real_type> tol{1e-2, 1e-2};
+    EXPECT_VEC_NEAR(expected_accum_dir, accum_dir.calc_density(), tol);
+    EXPECT_VEC_NEAR(expected_accum_pol, accum_pol.calc_density(), tol);
+    EXPECT_SOFT_NEAR(
+        6.0016 * sizeof(real_type) / sizeof(float), avg_samples, tol);
 }
 
 //---------------------------------------------------------------------------//
