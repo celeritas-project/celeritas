@@ -112,15 +112,15 @@ TEST_F(RayleighInteractorTest, stress_test)
     RayleighInteractor interact{this->particle_track(), this->direction()};
 
     auto& rng_engine = this->rng();
-    auto const dir = this->direction();
-    auto const pol = this->particle_track().polarization();
+    auto const inc_dir = this->direction();
+    auto const inc_pol = this->particle_track().polarization();
 
     Histogram accum_dir{8, {-1, 1}};
     Histogram accum_pol{8, {-1, 1}};
     accumulate_n(
         [&](auto&& result) {
-            accum_dir(dot_product(result.direction, dir));
-            accum_pol(dot_product(result.polarization, pol));
+            accum_dir(dot_product(result.direction, inc_dir));
+            accum_pol(dot_product(result.polarization, inc_pol));
         },
         interact,
         rng_engine,
@@ -128,22 +128,26 @@ TEST_F(RayleighInteractorTest, stress_test)
     EXPECT_FALSE(accum_dir.underflow() || accum_dir.overflow()
                  || accum_pol.underflow() || accum_pol.overflow());
 
-    static double const expected_accum_dir[] = {0.664276,
-                                                0.523112,
-                                                0.431024,
-                                                0.38288,
-                                                0.385056,
-                                                0.4282,
-                                                0.521508,
-                                                0.663944};
-    static double const expected_accum_pol[] = {1.697708,
-                                                0.252052,
-                                                0.047852,
-                                                0.00306,
-                                                0.003024,
-                                                0.049384,
-                                                0.253828,
-                                                1.693092};
+    static double const expected_accum_dir[] = {
+        0.664064,
+        0.523436,
+        0.431044,
+        0.38252,
+        0.383708,
+        0.42894,
+        0.523428,
+        0.66286,
+    };
+    static double const expected_accum_pol[] = {
+        1.696864,
+        0.25238,
+        0.04754,
+        0.003144,
+        0.002992,
+        0.04892,
+        0.252776,
+        1.695384,
+    };
 
     auto avg_samples = static_cast<double>(rng_engine.exchange_count())
                        / static_cast<double>(num_samples);
@@ -151,11 +155,13 @@ TEST_F(RayleighInteractorTest, stress_test)
     {
         EXPECT_VEC_SOFT_EQ(expected_accum_dir, accum_dir.calc_density());
         EXPECT_VEC_SOFT_EQ(expected_accum_pol, accum_pol.calc_density());
-        EXPECT_SOFT_EQ(11.997276, avg_samples);
+        EXPECT_SOFT_EQ(12.004864, avg_samples);
     }
     else
     {
-        EXPECT_SOFT_NEAR(6.000816, avg_samples, 1e-4);
+        PRINT_EXPECTED(accum_dir.calc_density());
+        PRINT_EXPECTED(accum_pol.calc_density());
+        EXPECT_SOFT_NEAR(6.0016, avg_samples, 1e-3);
     }
 }
 

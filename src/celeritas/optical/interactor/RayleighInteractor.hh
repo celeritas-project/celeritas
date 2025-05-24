@@ -27,10 +27,8 @@ namespace optical
  * Sample optical Rayleigh scattering.
  *
  * Optical Rayleigh scattering is the elastic scattering of optical photons
- * in a material. The scattered polarization is guarenteed to be in the
- * same plane as the original polarization and new direction if the latter
- * vectors are not parallel. Otherwise it will just be perpendicular to
- * the new direction.
+ * in a material. The scattered polarization is guaranteed to be in the
+ * same plane as the original polarization and new direction.
  */
 class RayleighInteractor
 {
@@ -66,8 +64,7 @@ RayleighInteractor::RayleighInteractor(ParticleTrackView const& particle,
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample the scattered direction and polarization for a single optical
- * Rayliegh interaction.
+ * Sample a single optical Rayleigh interaction.
  */
 template<class Engine>
 CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng) const
@@ -77,25 +74,30 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng) const
     Real3& new_pol = result.polarization;
 
     IsotropicDistribution sample_direction{};
+    // Note that the test for orthogonality should use relative tolerance, not
+    // absolute
+    SoftZero const soft_zero{SoftEqual{}.rel()};
     do
     {
-        do
+        new_dir = sample_direction(rng);
+
+        // Project polarization onto plane perpendicular to new direction
+        new_pol = make_unit_vector(make_orthogonal(inc_pol_, new_dir));
+
+        if (CELER_UNLIKELY(!soft_zero(dot_product(new_pol, new_dir))))
         {
-            new_dir = sample_direction(rng);
-
-            // Project polarization onto plane perpendicular to new direction
-            new_pol = make_unit_vector(make_orthogonal(inc_pol_, new_dir));
-
-            // Prevent rare case of polarization and new direction being
-            // coincident or nearly so
-        } while (CELER_UNLIKELY(!soft_zero(dot_product(new_pol, new_dir))));
-
-        if (!BernoulliDistribution{0.5}(rng))
+            // In rare case of polarization and new direction being
+            // nearly coincident, sample a random azimuthal direction
+            // perpendicular to the new direction
+            new_pol = ExitingDirectionSampler{0, new_dir}(rng);
+        }
+        else if (!BernoulliDistribution{0.5}(rng))
         {
             // Flip direction with 50% probability: there are two polarizations
             // perpendicular to the new direction and the original polarization
             new_pol = -new_pol;
         }
+
         // Accept with the probability of the scattered polarization overlap
         // squared
     } while (RejectionSampler{ipow<2>(
