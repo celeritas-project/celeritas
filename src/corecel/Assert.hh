@@ -71,12 +71,12 @@
   \endverbatim
  *
  * Examples with correct casing and punctuation:
- * - "failed to open '{filename}' (should contain relaxation data)"
- * - "unexpected end of file '{filename}' (data is inconsistent with
- * boundaries)"
- * - "MPI was not initialized (needed to construct a communicator). Maybe set
- * the environment variable CELER_DISABLE_PARALLEL=1 to disable externally?"
- * - "invalid min_range={opts.min_range} (must be positive)"
+ * - \"failed to open '{filename}' (should contain relaxation data)\"
+ * - \"unexpected end of file '{filename}' (data is inconsistent with
+ *   boundaries)\"
+ * - \"MPI was not initialized (needed to construct a communicator). Maybe set
+ *   the environment variable CELER_DISABLE_PARALLEL=1 to disable externally?\"
+ * - \"invalid min_range={opts.min_range} (must be positive)\"
  *
  * This looks in practice like:
  * \code
