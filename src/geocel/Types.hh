@@ -10,6 +10,7 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/sys/ThreadId.hh"
 
 namespace celeritas
 {
@@ -77,12 +78,18 @@ struct GeoTrackInitializer
 {
     Real3 pos{0, 0, 0};
     Real3 dir{0, 0, 0};
+    TrackSlotId parent;
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
         return dir[0] != 0 || dir[1] != 0 || dir[2] != 0;
     }
+
+    // Constructors
+    inline CELER_FUNCTION GeoTrackInitializer();
+    inline CELER_FUNCTION GeoTrackInitializer(Real3, Real3);
+    inline CELER_FUNCTION GeoTrackInitializer(Real3, Real3, TrackSlotId);
 };
 
 //---------------------------------------------------------------------------//
@@ -98,6 +105,26 @@ struct Propagation
     bool boundary{false};  //!< True if hit a boundary before given distance
     bool looping{false};  //!< True if track is looping in the field propagator
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+//! Default constructor
+CELER_FUNCTION GeoTrackInitializer::GeoTrackInitializer() = default;
+
+//! Construct with an invalid parent ID
+CELER_FUNCTION GeoTrackInitializer::GeoTrackInitializer(Real3 pos, Real3 dir)
+    : GeoTrackInitializer(pos, dir, {})
+{
+}
+
+//! Construct with position, direction, and parent ID
+CELER_FUNCTION GeoTrackInitializer::GeoTrackInitializer(Real3 pos,
+                                                        Real3 dir,
+                                                        TrackSlotId parent)
+    : pos(pos), dir(dir), parent(parent)
+{
+}
 
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS

@@ -210,6 +210,8 @@ inline CELER_FUNCTION bool all_adjacent(InputIt iter, InputIt last, Predicate p)
    max(v, min(v, lo))
  * \endcode
  * assuming that the relationship between \c lo and \c hi holds.
+ *
+ * This is constructed to propagate \c NaN.
  */
 template<class T>
 inline CELER_FUNCTION T const& clamp(T const& v, T const& lo, T const& hi)
@@ -222,7 +224,7 @@ inline CELER_FUNCTION T const& clamp(T const& v, T const& lo, T const& hi)
 /*!
  * Return the value or (if it's negative) then zero.
  *
- * This is constructed to correctly propagate \c NaN.
+ * This is constructed to propagate \c NaN.
  */
 template<class T>
 CELER_CONSTEXPR_FUNCTION T clamp_to_nonneg(T v) noexcept
@@ -400,6 +402,7 @@ CELER_CONSTEXPR_FUNCTION T const& max(T const& a, T const& b) noexcept
 }
 
 //!\cond (CELERITAS_DOC_DEV)
+// Note: fmax treats NaN as "missing data"
 template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
 CELER_CONSTEXPR_FUNCTION T max(T a, T b) noexcept
 {
@@ -421,6 +424,7 @@ CELER_CONSTEXPR_FUNCTION T const& min(T const& a, T const& b) noexcept
 }
 
 //!\cond (CELERITAS_DOC_DEV)
+// Note: fmin treats NaN as "missing data"
 template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
 CELER_CONSTEXPR_FUNCTION T min(T a, T b) noexcept
 {
@@ -706,24 +710,19 @@ CELER_FORCEINLINE_FUNCTION double rsqrt(double value)
 #endif
 }
 
-#if CELER_DEVICE_SOURCE
+#ifndef CELER_DEVICE_SOURCE
 // CUDA/HIP define sinpi, cospi, sinpif, cospif, ...
-#    undef CELERITAS_SINCOSPI_PREFIX
-#    define CELERITAS_SINCOSPI_PREFIX
-#endif
-
-#ifdef CELERITAS_SINCOSPI_PREFIX
+#    ifdef CELERITAS_SINCOSPI_PREFIX
 // Apple-supplied headers define __sinpi, __sinpif, __sincospi, ...
-#    define CELER_CONCAT_IMPL(PREFIX, FUNC) PREFIX##FUNC
-#    define CELER_CONCAT(PREFIX, FUNC) CELER_CONCAT_IMPL(PREFIX, FUNC)
-#    define CELER_SINCOS_MANGLED(FUNC) \
-        CELER_CONCAT(CELERITAS_SINCOSPI_PREFIX, FUNC)
-#else
+#        define CELER_CONCAT_IMPL(PREFIX, FUNC) PREFIX##FUNC
+#        define CELER_CONCAT(PREFIX, FUNC) CELER_CONCAT_IMPL(PREFIX, FUNC)
+#        define CELER_SINCOS_MANGLED(FUNC) \
+            CELER_CONCAT(CELERITAS_SINCOSPI_PREFIX, FUNC)
+#    else
 // Use implementations from detail/MathImpl.hh
-#    define CELERITAS_SINCOSPI_PREFIX ::celeritas::detail::
-#    define CELER_SINCOS_MANGLED(FUNC) ::celeritas::detail::FUNC
-#endif
-
+#        define CELERITAS_SINCOSPI_PREFIX ::celeritas::detail::
+#        define CELER_SINCOS_MANGLED(FUNC) ::celeritas::detail::FUNC
+#    endif
 //!@{
 //! Get the sine or cosine of a value multiplied by pi for increased precision
 CELER_FORCEINLINE_FUNCTION float sinpi(float a)
@@ -767,6 +766,7 @@ CELER_FORCEINLINE_FUNCTION void sincospi(double a, double* s, double* c)
     return CELER_SINCOS_MANGLED(sincospi)(a, s, c);
 }
 //!@}
+#endif
 
 //!@}
 

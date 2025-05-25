@@ -193,12 +193,6 @@ void ExtendFromPrimariesAction::step_impl(CoreParams const& params,
     // Mark that the primaries have been processed
     state.counters().num_generated += primaries.count;
     primaries.count = 0;
-
-    // Clear the track slot IDs of the track initializers' parent tracks. This
-    // is necessary when new primaries are inserted in the middle of a
-    // simulation and the parent IDs of secondaries produced in the previous
-    // step have been stored.
-    fill(TrackSlotId{}, &state.ref().init.parents);
 }
 
 //---------------------------------------------------------------------------//

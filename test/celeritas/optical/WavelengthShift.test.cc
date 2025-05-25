@@ -11,8 +11,8 @@
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/grid/NonuniformGridCalculator.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
-#include "celeritas/optical/WavelengthShiftParams.hh"
 #include "celeritas/optical/interactor/WavelengthShiftInteractor.hh"
+#include "celeritas/optical/model/WavelengthShiftParams.hh"
 
 #include "InteractorHostTestBase.hh"
 #include "celeritas_test.hh"

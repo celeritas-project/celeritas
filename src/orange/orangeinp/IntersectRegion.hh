@@ -9,6 +9,8 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/cont/EnumArray.hh"
+#include "corecel/grid/GridTypes.hh"
 #include "corecel/math/Turn.hh"
 #include "orange/OrangeTypes.hh"
 
@@ -314,6 +316,97 @@ class EllipticalCone final : public IntersectRegionInterface
     Real2 lower_radii_;
     Real2 upper_radii_;
     real_type hh_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Region formed by extruding + scaling a convex polygon along a line segment.
+ *
+ * The convex polygon is supplied as a set of points on the XY plane in
+ * clockwise order. The line segment and scaling factors are specified by
+ * providing a line segment point and scaling factor for the top and bottom
+ * polygon faces of the region. The line segment point of the top face must
+ * have a z value greater than that of the bottom face. Along the line segment,
+ * the size of the polygon is linearly scaled in accordance with scaling
+ * factors.
+ *
+ * As is done in Geant4, construction is done by first applying scaling factors
+ * to the upper and lower polygons via scalar multiplication with each polygon
+ * point, then the points on the line are used to offset the upper and lower
+ * polygons.
+ */
+class ExtrudedPolygon final : public IntersectRegionInterface
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using VecReal2 = std::vector<Real2>;
+
+    //! Specifies the top or bottom face of the ExtrudedPolygon
+    struct PolygonFace
+    {
+        //! Start or end point of the line segment the polygon is extruded
+        //! along
+        Real3 line_segment_point{};
+
+        //! The fractional amount this face is scaled
+        real_type scaling_factor{};
+    };
+    //!@}
+
+  public:
+    // Construct from a convex polygon and bottom/top faces
+    ExtrudedPolygon(VecReal2 const& polygon,
+                    PolygonFace const& bot_face,
+                    PolygonFace const& top_face);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Polygon points (2D)
+    VecReal2 polygon() const { return polygon_; }
+
+    //! Bottom point of the line segment
+    Real3 bot_line_segment_point() const { return line_segment_[Bound::lo]; }
+
+    //! Top point of the line segment
+    Real3 top_line_segment_point() const { return line_segment_[Bound::hi]; }
+
+    //! Bottom scaling factor
+    real_type bot_scaling_factor() const
+    {
+        return scaling_factors_[Bound::lo];
+    }
+
+    //! Top scaling factor
+    real_type top_scaling_factor() const
+    {
+        return scaling_factors_[Bound::hi];
+    }
+
+  private:
+    //// TYPES ////
+    using Range = celeritas::Array<real_type, 2>;
+
+    //// DATA ////
+
+    VecReal2 polygon_;
+
+    EnumArray<Bound, Real3> line_segment_;
+    EnumArray<Bound, real_type> scaling_factors_;
+
+    Range x_range_;
+    Range y_range_;
+
+    // >> HELPER FUNCTIONS
+
+    // Calculate the min/max x or y values of the extruded region
+    Range calc_range(VecReal2 const& polygon, size_type dir);
 };
 
 //---------------------------------------------------------------------------//

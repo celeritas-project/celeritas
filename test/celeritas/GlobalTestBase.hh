@@ -25,11 +25,13 @@ namespace celeritas
 
 class ActionRegistry;
 class AtomicRelaxationParams;
+class CherenkovParams;
 class CutoffParams;
 class GeoMaterialParams;
 class MaterialParams;
 class ParticleParams;
 class PhysicsParams;
+class ScintillationParams;
 class SimParams;
 class TrackInitParams;
 class AuxParamsRegistry;
@@ -46,10 +48,8 @@ struct Primary;
 
 namespace optical
 {
-class CherenkovParams;
 class MaterialParams;
 class PhysicsParams;
-class ScintillationParams;
 }  // namespace optical
 
 namespace test
@@ -87,10 +87,10 @@ class GlobalTestBase : public Test
     using SPOutputRegistry = SP<OutputRegistry>;
     using SPUserRegistry = SP<AuxParamsRegistry>;
 
-    using SPConstCherenkov = SP<optical::CherenkovParams const>;
+    using SPConstCherenkov = SP<CherenkovParams const>;
     using SPConstOpticalMaterial = SP<optical::MaterialParams const>;
     using SPConstOpticalPhysics = SP<optical::PhysicsParams const>;
-    using SPConstScintillation = SP<optical::ScintillationParams const>;
+    using SPConstScintillation = SP<ScintillationParams const>;
 
     using SPConstPrimariesAction = SP<ExtendFromPrimariesAction const>;
     using SpanConstPrimary = Span<Primary const>;

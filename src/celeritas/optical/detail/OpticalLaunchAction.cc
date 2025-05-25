@@ -14,9 +14,9 @@
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/optical/gen/OffloadParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
-#include "OffloadParams.hh"
 #include "OpticalSizes.json.hh"
 #include "../CoreParams.hh"
 #include "../CoreState.hh"

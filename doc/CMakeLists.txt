@@ -244,8 +244,11 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/interactor/detail/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/model/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/model/*.cc"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/optical/gen/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/optical/gen/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/interactor/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/model/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/optical/model/*.cc"
   "${PROJECT_SOURCE_DIR}/test/*.hh"
   "${PROJECT_SOURCE_DIR}/test/*.cc"
 )

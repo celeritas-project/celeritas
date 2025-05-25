@@ -125,7 +125,7 @@ TEST_F(KernelContextExceptionTest, typical)
         if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
         {
             EXPECT_EQ(
-                R"(track slot 15 in kernel 'test-kernel': {"geo":{"dir":[0.0,0.0,1.0],"is_on_boundary":true,"is_outside":false,"pos":[[0.0,1.0,5.0],"cm"],"volume_id":"world"},"mat":"hard vacuum","particle":{"energy":[10.0,"MeV"],"particle_id":"gamma"},"sim":{"along_step_action":"along-step-neutral","event_id":1,"num_steps":1,"parent_id":-1,"post_step_action":"geo-boundary","status":"alive","step_length":[5.0,"cm"],"time":[1.668e-10,"s"],"track_id":3},"thread_id":15,"track_slot_id":15})",
+                R"(track slot 15 in kernel 'test-kernel': {"geo":{"dir":[0.0,0.0,1.0],"is_on_boundary":true,"is_outside":false,"pos":[[0.0,1.0,5.0],"cm"],"volume_id":"world"},"mat":"hard vacuum","particle":{"energy":[10.0,"MeV"],"particle_id":"gamma"},"sim":{"along_step_action":"along-step-neutral","event_id":1,"num_steps":1,"parent_id":-1,"post_step_action":"geo-boundary","status":"alive","step_length":[5.0,"cm"],"time":[1.67e-10,"s"],"track_id":3},"thread_id":15,"track_slot_id":15})",
                 simplified_str)
                 << repr(simplified_str);
         }

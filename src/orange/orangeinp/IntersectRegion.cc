@@ -23,6 +23,7 @@
 #include "orange/surf/PlaneAligned.hh"
 #include "orange/surf/SimpleQuadric.hh"
 #include "orange/surf/SphereCentered.hh"
+#include "orange/univ/detail/Utils.hh"
 
 #include "IntersectSurfaceBuilder.hh"
 #include "ObjectIO.json.hh"
@@ -525,6 +526,140 @@ void EllipticalCone::build(IntersectSurfaceBuilder& insert_surface) const
 void EllipticalCone::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+// ExtrudedPolygon
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from a convex polygon and bottom/top faces.
+ */
+ExtrudedPolygon::ExtrudedPolygon(ExtrudedPolygon::VecReal2 const& polygon,
+                                 ExtrudedPolygon::PolygonFace const& bot_face,
+                                 ExtrudedPolygon::PolygonFace const& top_face)
+    : line_segment_{bot_face.line_segment_point, top_face.line_segment_point}
+    , scaling_factors_{bot_face.scaling_factor, top_face.scaling_factor}
+
+{
+    constexpr auto bot = Bound::lo;
+    constexpr auto top = Bound::hi;
+
+    CELER_VALIDATE(polygon.size() >= 3,
+                   << "polygon must consist of at least 3 points");
+    CELER_VALIDATE(scaling_factors_[bot] > 0 && scaling_factors_[top] > 0,
+                   << "scaling factors must be positive");
+    CELER_VALIDATE(line_segment_[bot][Z] < line_segment_[top][Z],
+                   << "line segment must begin with lower z value");
+
+    // Calculate min/max x/y values, used as both characteristic lengths
+    // generating a floating-point tolerance, and generating surfaces for
+    // bounding box creation
+    x_range_ = this->calc_range(polygon, X);
+    y_range_ = this->calc_range(polygon, Y);
+
+    // Store only non-collinear points
+    Real3 const extents{
+        x_range_[1] - x_range_[0], y_range_[1] - y_range_[0], 0};
+    real_type abs_tol = ::celeritas::detail::BumpCalculator(
+        Tolerance<>::from_default())(extents);
+
+    polygon_ = detail::filter_collinear_points(polygon, abs_tol);
+
+    // After removing collinear points, at least 3 points must remain
+    CELER_VALIDATE(polygon_.size() >= 3,
+                   << "polygon must consist of at least 3 points");
+
+    // After removing collinear points, the polygon should have a *strictly*
+    // clockwise orientation, which also guarantees it is convex.
+    CELER_VALIDATE(
+        has_orientation(make_span(polygon_), detail::Orientation::clockwise),
+        << "polygon must be specified in strictly clockwise order");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void ExtrudedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    constexpr auto bot = Bound::lo;
+    constexpr auto top = Bound::hi;
+
+    // Insert the upper and lower Z bounding planes
+    insert_surface(Sense::outside, PlaneZ{line_segment_[bot][Z]});
+    insert_surface(Sense::inside, PlaneZ{line_segment_[top][Z]});
+
+    // Insert all vertical bounding planes
+    for (auto i : range(polygon_.size()))
+    {
+        // Current and next point on the polygon
+        auto const& p_a = polygon_[i];
+        auto const& p_b = polygon_[(i + 1) % polygon_.size()];
+
+        // Specify points in an order such that the normal is outward-facing
+        // (via the right-hand rule), given that the polygon is provided in
+        // clockwise order
+        auto p0 = scaling_factors_[bot] * Real3{p_a[X], p_a[Y], 0}
+                  + line_segment_[bot];
+        auto p1 = scaling_factors_[top] * Real3{p_a[X], p_a[Y], 0}
+                  + line_segment_[top];
+        auto p2 = scaling_factors_[bot] * Real3{p_b[X], p_b[Y], 0}
+                  + line_segment_[bot];
+
+        insert_surface(Sense::inside, Plane{p0, p1, p2});
+    }
+
+    // Establish bbox
+    constexpr auto inf = numeric_limits<real_type>::infinity();
+    insert_surface(Sense::inside,
+                   BBox::from_unchecked({x_range_[0], y_range_[0], -inf},
+                                        {x_range_[1], y_range_[1], inf}));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void ExtrudedPolygon::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the min/max x or y values of the extruded region.
+ *
+ * Note that these are not simply the extrema of the polygon, but take into
+ * account the translation and scaling of the polygon as it is extruded along
+ * the line segment.
+ */
+auto ExtrudedPolygon::calc_range(VecReal2 const& polygon, size_type dir)
+    -> Range
+{
+    CELER_EXPECT(dir == X || dir == Y);
+
+    constexpr auto bot = Bound::lo;
+    constexpr auto top = Bound::hi;
+
+    Range range;
+
+    // Find min/max x or y values of the polygon itself
+    auto [poly_min_it, poly_max_it] = std::minmax_element(
+        polygon.begin(), polygon.end(), [&dir](auto const& a, auto const& b) {
+            return a[dir] < b[dir];
+        });
+    auto poly_min = (*poly_min_it)[dir];
+    auto poly_max = (*poly_max_it)[dir];
+
+    // Find the extrema taking into account the extrusion process
+    range[0]
+        = std::min(poly_min * scaling_factors_[bot] + line_segment_[bot][dir],
+                   poly_min * scaling_factors_[top] + line_segment_[top][dir]);
+    range[1]
+        = std::max(poly_max * scaling_factors_[bot] + line_segment_[bot][dir],
+                   poly_max * scaling_factors_[top] + line_segment_[top][dir]);
+
+    return range;
 }
 
 //---------------------------------------------------------------------------//

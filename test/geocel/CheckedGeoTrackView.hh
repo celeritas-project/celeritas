@@ -30,7 +30,6 @@ class CheckedGeoTrackView : public GTV
     //! \name Type aliases
     using GeoTrackViewT = GTV;
     using Initializer_t = typename GTV::Initializer_t;
-    using DetailedInitializer = typename GTV::DetailedInitializer;
     //!@}
 
   public:
@@ -42,9 +41,6 @@ class CheckedGeoTrackView : public GTV
 
     // Initialize the state
     CheckedGeoTrackView& operator=(GeoTrackInitializer const& init);
-
-    // Initialize the state from a parent state and new direction
-    CheckedGeoTrackView& operator=(DetailedInitializer const& init);
 
     //! Check volume consistency this far from the boundary
     static constexpr real_type safety_tol()

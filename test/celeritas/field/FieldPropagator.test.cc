@@ -1347,8 +1347,9 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
 
             // This message comes from the CheckedGeoTrackView
             static char const* const expected_log_messages[] = {
-                R"(Volume did not change from 3 when crossing boundary at {123.254,-20.8187,-40.8262})"};
-            EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+                R"(Volume did not change from 3 when crossing boundary at {123.3,-20.82,-40.83})"};
+            EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages())
+                << scoped_log_;
             static char const* const expected_log_levels[] = {"warning"};
             EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
         }
@@ -1419,7 +1420,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
             else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
             {
                 static char const* const expected_log_messages[] = {
-                    R"(Moved internally from boundary but safety didn't increase: volume 6 from {123.2541, -20.8187, -40.8262} to {123.2541, -20.8187, -40.8262} (distance: 1.0000e-6))",
+                    R"(Moved internally from boundary but safety didn't increase: volume 6 from {123.3, -20.82, -40.83} to {123.3, -20.82, -40.83} (distance: 1.000e-6))",
                 };
                 EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
                 static char const* const expected_log_levels[] = {"warning"};
@@ -1524,7 +1525,7 @@ TEST_F(CmseTest, coarse)
         expected_num_intercept = {30419, 19551, 16170, 9956};
         expected_num_integration = {80659, 58282, 41914, 26114};
         static char const* const expected_log_messages[] = {
-            R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.3161, -6.5649, 796.9228} to {10.3162, -6.5650, 796.9229} (distance: 1.0000e-4))"};
+            R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} to {10.32, -6.565, 796.9} (distance: 1.000e-4))"};
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages())
             << scoped_log_;
     }

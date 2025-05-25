@@ -1672,8 +1672,9 @@ TEST_F(LarSphere, optical)
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
         static std::string const expected_messages
-            = R"(Estimated custom properties SCINTILLATIONLAMBDAMEAN3=2e-05 and SCINTILLATIONLAMBDASIGMA3=2.0100e-6 from Geant4-defined property SCINTILLATIONCOMPONENT3)";
-        EXPECT_VEC_EQ(expected_messages, scoped_log.messages()[1]);
+            = R"(Estimated custom properties SCINTILLATIONLAMBDAMEAN3=2e-5 and SCINTILLATIONLAMBDASIGMA3=2.010e-6 from Geant4-defined property SCINTILLATIONCOMPONENT3)";
+        EXPECT_VEC_EQ(expected_messages, scoped_log.messages()[1])
+            << scoped_log;
     }
 
     // Particle scintillation
