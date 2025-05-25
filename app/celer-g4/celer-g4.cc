@@ -273,8 +273,17 @@ int main(int argc, char* argv[])
             std::current_exception());
         if (*params)
         {
-            params->output_reg()->insert(e_output);
-            params->Finalize();
+            try
+            {
+                params->output_reg()->insert(e_output);
+                params->Finalize();
+            }
+            catch (std::exception const& e)
+            {
+                CELER_LOG(critical)
+                    << "Another exception occurred while finalizing output: "
+                    << e.what();
+            }
         }
         else
         {
