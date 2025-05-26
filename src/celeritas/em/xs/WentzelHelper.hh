@@ -201,7 +201,8 @@ CELER_FUNCTION real_type WentzelHelper::calc_xs_factor(
 /*!
  * Calculate the Moliere screening coefficient as in [PRM] eqn 8.51.
  *
- * \note The \c screenZ in Geant4 is equal to twice the screening coefficient.
+ * \internal The \c screenZ in Geant4 is equal to twice the screening
+ * coefficient.
  */
 CELER_FUNCTION real_type WentzelHelper::calc_screening_coefficient(
     ParticleTrackView const& particle, CoulombIds const& ids) const
