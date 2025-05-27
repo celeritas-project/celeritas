@@ -29,7 +29,6 @@
 #    include <G4VPhysicalVolume.hh>
 #    include <G4VSolid.hh>
 
-#    include "geocel/GeantGeoParams.hh"
 #endif
 #if CELERITAS_USE_VECGEOM
 #    include "geocel/vg/VecgeomParams.hh"
@@ -37,6 +36,7 @@
 
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "orange/OrangeInput.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/surf/Sphere.hh"

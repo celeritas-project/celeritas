@@ -10,16 +10,14 @@
 #include <string>
 
 #include "corecel/Macros.hh"
-#include "corecel/Types.hh"
-#include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/data/ParamsDataInterface.hh"
-#include "geocel/BoundingBox.hh"
-#include "geocel/GeoParamsInterface.hh"
-#include "geocel/ScopedGeantExceptionHandler.hh"
-#include "geocel/ScopedGeantLogger.hh"
-#include "geocel/Types.hh"
 
-#include "GeantGeoData.hh"
+#include "BoundingBox.hh"
+#include "GeoParamsInterface.hh"
+#include "ScopedGeantExceptionHandler.hh"
+#include "ScopedGeantLogger.hh"
+#include "Types.hh"
+#include "g4/GeantGeoData.hh"
 
 class G4VPhysicalVolume;
 
@@ -209,6 +207,39 @@ inline GeantGeoParams const* geant_geo()
 {
     return nullptr;
 }
+
+inline VolumeId GeantGeoParams::find_volume(G4LogicalVolume const*) const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline GeantPhysicalInstance GeantGeoParams::id_to_geant(VolumeInstanceId) const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId) const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline VolumeInstanceId
+GeantGeoParams::geant_to_id(G4VPhysicalVolume const&) const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline GeantGeoParams::ReplicaId
+GeantGeoParams::replica_id(G4VPhysicalVolume const&) const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline BBox GeantGeoParams::get_clhep_bbox() const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
 #endif
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

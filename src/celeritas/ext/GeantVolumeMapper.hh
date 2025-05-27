@@ -46,12 +46,6 @@ inline GeantVolumeMapper::GeantVolumeMapper(GeoParamsInterface const& geo)
     CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline GeantVolumeMapper::GeantVolumeMapper(GeoParamsInterface const& geo)
-    : geo_{geo}
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-
 inline VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const&)
 {
     CELER_ASSERT_UNREACHABLE();
