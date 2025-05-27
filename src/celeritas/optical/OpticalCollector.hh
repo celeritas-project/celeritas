@@ -9,10 +9,14 @@
 #include <memory>
 
 #include "corecel/data/AuxInterface.hh"
+#include "corecel/data/AuxStateData.hh"
+#include "corecel/data/AuxStateVec.hh"
 #include "celeritas/Types.hh"
 
+#include "CoreState.hh"
 #include "Model.hh"
 #include "gen/OffloadData.hh"
+#include "gen/detail/GeneratorAction.hh"
 
 namespace celeritas
 {
@@ -21,7 +25,6 @@ class ActionRegistry;
 class AuxStateVec;
 class CherenkovParams;
 class CoreParams;
-class OffloadParams;
 class ScintillationParams;
 
 namespace optical
@@ -32,11 +35,9 @@ class MaterialParams;
 namespace detail
 {
 class CherenkovOffloadAction;
-class CherenkovGeneratorAction;
 class OffloadGatherAction;
 class OpticalLaunchAction;
 class ScintOffloadAction;
-class ScintGeneratorAction;
 }  // namespace detail
 
 //---------------------------------------------------------------------------//
@@ -106,41 +107,98 @@ class OpticalCollector
     // Construct with core data and optical params
     OpticalCollector(CoreParams const&, Input&&);
 
-    // Aux ID for optical offload data
-    AuxId offload_aux_id() const;
+    // Aux ID for optical Cherenkov offload data
+    AuxId cherenkov_aux_id() const;
+
+    // Aux ID for optical scintillation offload data
+    AuxId scintillation_aux_id() const;
 
     // Aux ID for optical state data
     AuxId optical_aux_id() const;
 
     // Get and reset cumulative statistics on optical tracks from a state
-    OpticalAccumStats exchange_counters(AuxStateVec& aux) const;
+    template<MemSpace M>
+    inline OpticalAccumStats exchange_counters(AuxStateVec& aux) const;
 
     // Get queued buffer sizes
-    OpticalBufferSize const& buffer_counts(AuxStateVec const& aux) const;
+    template<MemSpace M>
+    inline OpticalBufferSize buffer_counts(AuxStateVec const& aux) const;
 
   private:
     //// TYPES ////
 
-    using SPOffloadParams = std::shared_ptr<OffloadParams>;
-    using SPCherenkovAction = std::shared_ptr<detail::CherenkovOffloadAction>;
-    using SPScintAction = std::shared_ptr<detail::ScintOffloadAction>;
+    using SPCherenkovOffload = std::shared_ptr<detail::CherenkovOffloadAction>;
+    using SPScintOffload = std::shared_ptr<detail::ScintOffloadAction>;
     using SPGatherAction = std::shared_ptr<detail::OffloadGatherAction>;
-    using SPCherenkovGenAction
-        = std::shared_ptr<detail::CherenkovGeneratorAction>;
-    using SPScintGenAction = std::shared_ptr<detail::ScintGeneratorAction>;
+    using CherenkovGenAction
+        = detail::GeneratorAction<CherenkovData, CherenkovGenerator>;
+    using ScintGenAction
+        = detail::GeneratorAction<ScintillationData, ScintillationGenerator>;
+    using SPCherenkovGen = std::shared_ptr<CherenkovGenAction>;
+    using SPScintGen = std::shared_ptr<ScintGenAction>;
     using SPLaunchAction = std::shared_ptr<detail::OpticalLaunchAction>;
 
     //// DATA ////
 
-    SPOffloadParams offload_params_;
-
-    SPGatherAction gather_action_;
-    SPCherenkovAction cherenkov_action_;
-    SPScintAction scint_action_;
-    SPCherenkovGenAction cherenkov_gen_action_;
-    SPScintGenAction scint_gen_action_;
-    SPLaunchAction launch_action_;
+    SPGatherAction gather_;
+    SPCherenkovOffload cherenkov_offload_;
+    SPScintOffload scint_offload_;
+    SPCherenkovGen cherenkov_gen_;
+    SPScintGen scint_gen_;
+    SPLaunchAction launch_;
 };
 
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Get and reset cumulative statistics on optical generation from a state.
+ */
+template<MemSpace M>
+OpticalAccumStats OpticalCollector::exchange_counters(AuxStateVec& aux) const
+{
+    auto& state = get<optical::CoreState<M>>(aux, this->optical_aux_id());
+    auto& accum = state.accum();
+
+    if (auto id = this->cherenkov_aux_id())
+    {
+        auto& gen = dynamic_cast<GeneratorStateBase const&>(aux.at(id));
+        accum.cherenkov = gen.accum;
+    }
+    if (auto id = this->scintillation_aux_id())
+    {
+        auto& gen = dynamic_cast<GeneratorStateBase const&>(aux.at(id));
+        accum.scintillation = gen.accum;
+    }
+
+    return std::exchange(accum, {});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get info on the number of tracks in the buffer.
+ */
+template<MemSpace M>
+auto OpticalCollector::buffer_counts(AuxStateVec const& aux) const
+    -> OpticalBufferSize
+{
+    OpticalBufferSize result;
+
+    auto const& state = get<optical::CoreState<M>>(aux, this->optical_aux_id());
+    result.photons = state.counters().num_pending;
+
+    if (auto id = this->cherenkov_aux_id())
+    {
+        auto& gen = dynamic_cast<GeneratorStateBase const&>(aux.at(id));
+        result.distributions += gen.buffer_size;
+    }
+    if (auto id = this->scintillation_aux_id())
+    {
+        auto& gen = dynamic_cast<GeneratorStateBase const&>(aux.at(id));
+        result.distributions += gen.buffer_size;
+    }
+
+    return result;
+}
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

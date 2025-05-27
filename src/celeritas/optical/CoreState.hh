@@ -15,6 +15,7 @@
 
 #include "CoreTrackData.hh"
 #include "TrackInitializer.hh"
+#include "gen/OffloadData.hh"
 
 namespace celeritas
 {
@@ -116,6 +117,9 @@ class CoreState final : public CoreStateInterface
     //! Track initialization counters
     CoreStateCounters const& counters() const final { return counters_; }
 
+    //! Optical loop statistics
+    OpticalAccumStats& accum() { return accum_; }
+
     // Inject primaries to be turned into TrackInitializers
     void insert_primaries(Span<TrackInitializer const> host_primaries) final;
 
@@ -131,6 +135,9 @@ class CoreState final : public CoreStateInterface
 
     // Counters for track initialization and activity
     CoreStateCounters counters_;
+
+    //! Counts accumulated over the event for diagnostics
+    OpticalAccumStats accum_;
 };
 
 //---------------------------------------------------------------------------//

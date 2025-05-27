@@ -13,7 +13,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/optical/TrackInitializer.hh"
 #include "celeritas/optical/detail/OpticalUtils.hh"
-#include "celeritas/optical/gen/GeneratorDistributionData.hh"
+#include "celeritas/optical/gen/GeneratorData.hh"
 #include "celeritas/optical/gen/ScintillationData.hh"
 #include "celeritas/optical/gen/ScintillationGenerator.hh"
 #include "celeritas/optical/gen/ScintillationOffload.hh"

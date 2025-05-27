@@ -15,10 +15,10 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/optical/CoreState.hh"
 
 #include "OpticalGenAlgorithms.hh"
 #include "ScintOffloadExecutor.hh"
-#include "../OffloadParams.hh"
 #include "../ScintillationParams.hh"
 
 namespace celeritas
@@ -29,13 +29,21 @@ namespace detail
 /*!
  * Construct with action ID, data ID, optical properties.
  */
-ScintOffloadAction::ScintOffloadAction(ActionId id,
-                                       AuxId data_id,
+ScintOffloadAction::ScintOffloadAction(ActionId action_id,
+                                       AuxId step_id,
+                                       AuxId gen_id,
+                                       AuxId optical_id,
                                        SPConstScintillation scintillation)
-    : id_(id), data_id_{data_id}, scintillation_(std::move(scintillation))
+    : action_id_(action_id)
+    , step_id_{step_id}
+    , gen_id_{gen_id}
+    , optical_id_{optical_id}
+    , scintillation_(std::move(scintillation))
 {
-    CELER_EXPECT(id_);
-    CELER_EXPECT(data_id_);
+    CELER_EXPECT(action_id_);
+    CELER_EXPECT(step_id_);
+    CELER_EXPECT(gen_id_);
+    CELER_EXPECT(optical_id_);
     CELER_EXPECT(scintillation_);
 }
 
@@ -76,9 +84,9 @@ template<MemSpace M>
 void ScintOffloadAction::step_impl(CoreParams const& core_params,
                                    CoreState<M>& core_state) const
 {
-    auto& state = get<OpticalOffloadState<M>>(core_state.aux(), data_id_);
-    auto& buffer = state.store.ref().scintillation;
-    auto& buffer_size = state.buffer_size.scintillation;
+    auto& gen_state = get<GeneratorState<M>>(core_state.aux(), gen_id_);
+    auto& buffer = gen_state.store.ref().distributions;
+    auto& buffer_size = gen_state.buffer_size;
 
     CELER_VALIDATE(buffer_size + core_state.size() <= buffer.size(),
                    << "insufficient capacity (" << buffer.size()
@@ -87,7 +95,7 @@ void ScintOffloadAction::step_impl(CoreParams const& core_params,
                    << buffer_size + core_state.size() << ")");
 
     // Generate the optical distribution data
-    this->pre_generate(core_params, core_state);
+    this->offload(core_params, core_state);
 
     // Compact the buffer, returning the total number of valid distributions
     size_type start = buffer_size;
@@ -96,7 +104,9 @@ void ScintOffloadAction::step_impl(CoreParams const& core_params,
 
     // Count the number of optical photons that would be generated from the
     // distributions created in this step
-    state.buffer_size.photons += count_num_photons(
+    auto& optical_state
+        = get<optical::CoreState<M>>(core_state.aux(), optical_id_);
+    optical_state.counters().num_pending += count_num_photons(
         buffer, start, buffer_size, core_state.stream_id());
 }
 
@@ -104,22 +114,27 @@ void ScintOffloadAction::step_impl(CoreParams const& core_params,
 /*!
  * Launch a (host) kernel to generate optical distribution data post-step.
  */
-void ScintOffloadAction::pre_generate(CoreParams const& core_params,
-                                      CoreStateHost& core_state) const
+void ScintOffloadAction::offload(CoreParams const& core_params,
+                                 CoreStateHost& core_state) const
 {
-    auto& state = get<OpticalOffloadState<MemSpace::native>>(core_state.aux(),
-                                                             data_id_);
+    auto& step_state
+        = get<OffloadStepState<MemSpace::native>>(core_state.aux(), step_id_);
+    auto& gen_state
+        = get<GeneratorState<MemSpace::native>>(core_state.aux(), gen_id_);
+
     TrackExecutor execute{
         core_params.ptr<MemSpace::native>(),
         core_state.ptr(),
-        detail::ScintOffloadExecutor{
-            scintillation_->host_ref(), state.store.ref(), state.buffer_size}};
+        detail::ScintOffloadExecutor{scintillation_->host_ref(),
+                                     gen_state.store.ref(),
+                                     step_state.store.ref(),
+                                     gen_state.buffer_size}};
     launch_action(*this, core_params, core_state, execute);
 }
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void ScintOffloadAction::pre_generate(CoreParams const&, CoreStateDevice&) const
+void ScintOffloadAction::offload(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

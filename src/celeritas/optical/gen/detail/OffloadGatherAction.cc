@@ -9,6 +9,8 @@
 #include <algorithm>
 
 #include "corecel/Assert.hh"
+#include "corecel/data/AuxParamsRegistry.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -16,7 +18,6 @@
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "OffloadGatherExecutor.hh"
-#include "../OffloadParams.hh"
 
 namespace celeritas
 {
@@ -24,13 +25,59 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with action ID, optical properties, and storage.
+ * Construct and add to core params.
  */
-OffloadGatherAction::OffloadGatherAction(ActionId id, AuxId data_id)
-    : id_(id), data_id_(data_id)
+std::shared_ptr<OffloadGatherAction>
+OffloadGatherAction::make_and_insert(CoreParams const& core)
 {
-    CELER_EXPECT(id_);
-    CELER_EXPECT(data_id_);
+    ActionRegistry& actions = *core.action_reg();
+    AuxParamsRegistry& aux = *core.aux_reg();
+    auto result = std::make_shared<OffloadGatherAction>(actions.next_id(),
+                                                        aux.next_id());
+    actions.insert(result);
+    aux.insert(result);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with action ID and aux ID.
+ */
+OffloadGatherAction::OffloadGatherAction(ActionId action_id, AuxId aux_id)
+    : action_id_(action_id), aux_id_(aux_id)
+{
+    CELER_EXPECT(action_id_);
+    CELER_EXPECT(aux_id_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build state data for a stream.
+ */
+auto OffloadGatherAction::create_state(MemSpace m,
+                                       StreamId id,
+                                       size_type size) const -> UPState
+{
+    // TODO
+    if (m == MemSpace::host)
+    {
+        using StoreT
+            = CollectionStateStore<OffloadStepStateData, MemSpace::host>;
+        auto result = std::make_unique<OffloadStepState<MemSpace::host>>();
+        result->store = StoreT{id, size};
+        CELER_ENSURE(*result);
+        return result;
+    }
+    else if (m == MemSpace::device)
+    {
+        using StoreT
+            = CollectionStateStore<OffloadStepStateData, MemSpace::device>;
+        auto result = std::make_unique<OffloadStepState<MemSpace::device>>();
+        result->store = StoreT{id, size};
+        CELER_ENSURE(*result);
+        return result;
+    }
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
@@ -49,13 +96,13 @@ std::string_view OffloadGatherAction::description() const
 void OffloadGatherAction::step(CoreParams const& params,
                                CoreStateHost& state) const
 {
-    auto& optical_state
-        = get<OpticalOffloadState<MemSpace::native>>(state.aux(), data_id_);
+    auto& aux_state
+        = get<OffloadStepState<MemSpace::native>>(state.aux(), aux_id_);
 
     auto execute = make_active_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
-        detail::OffloadGatherExecutor{optical_state.store.ref()});
+        detail::OffloadGatherExecutor{aux_state.store.ref()});
     launch_action(*this, params, state, execute);
 }
 

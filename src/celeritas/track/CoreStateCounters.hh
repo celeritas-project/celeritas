@@ -28,7 +28,8 @@ namespace celeritas
 struct CoreStateCounters
 {
     //!@{
-    //! \name Set after primaries are generated
+    //! \name Set when primaries are generated
+    size_type num_pending{0};  //!< Number waiting to be generated
     size_type num_generated{0};  //!< Number of track initializers created
     //!@}
     //

@@ -16,7 +16,6 @@
 
 #include "OpticalGenAlgorithms.hh"
 #include "ScintOffloadExecutor.hh"
-#include "../OffloadParams.hh"
 #include "../ScintillationParams.hh"
 
 namespace celeritas
@@ -27,18 +26,21 @@ namespace detail
 /*!
  * Launch a kernel to generate optical distribution data post-step.
  */
-void ScintOffloadAction::pre_generate(CoreParams const& core_params,
-                                      CoreStateDevice& core_state) const
+void ScintOffloadAction::offload(CoreParams const& core_params,
+                                 CoreStateDevice& core_state) const
 {
-    auto& state = get<OpticalOffloadState<MemSpace::native>>(core_state.aux(),
-                                                             data_id_);
+    auto& step_state
+        = get<OffloadStepState<MemSpace::native>>(core_state.aux(), step_id_);
+    auto& gen_state
+        = get<GeneratorState<MemSpace::native>>(core_state.aux(), gen_id_);
 
     TrackExecutor execute{
         core_params.ptr<MemSpace::native>(),
         core_state.ptr(),
         detail::ScintOffloadExecutor{scintillation_->device_ref(),
-                                     state.store.ref(),
-                                     state.buffer_size}};
+                                     gen_state.store.ref(),
+                                     step_state.store.ref(),
+                                     gen_state.buffer_size}};
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(core_state, execute);
 }

@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/gen/detail/CherenkovGeneratorAction.cu
+//! \file celeritas/optical/gen/detail/GeneratorAction.cu
 //---------------------------------------------------------------------------//
-#include "CherenkovGeneratorAction.hh"
+#include "GeneratorAction.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/sys/ScopedProfiling.hh"
@@ -15,10 +15,12 @@
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/MaterialParams.hh"
 
-#include "CherenkovGeneratorExecutor.hh"
+#include "GeneratorExecutor.hh"
 #include "OpticalGenAlgorithms.hh"
-#include "../CherenkovParams.hh"
-#include "../OffloadParams.hh"
+#include "../CherenkovData.hh"
+#include "../CherenkovGenerator.hh"
+#include "../ScintillationData.hh"
+#include "../ScintillationGenerator.hh"
 
 namespace celeritas
 {
@@ -28,27 +30,35 @@ namespace detail
 /*!
  * Launch a kernel to generate optical photon initializers.
  */
-void CherenkovGeneratorAction::generate(CoreParams const& core_params,
-                                        CoreStateDevice& core_state) const
+template<template<Ownership, MemSpace> class D, class G>
+void GeneratorAction<D, G>::generate(CoreParams const& core_params,
+                                     CoreStateDevice& core_state) const
 {
-    auto& offload_state = get<OpticalOffloadState<MemSpace::native>>(
-        core_state.aux(), offload_id_);
+    auto& aux_state
+        = get<GeneratorState<MemSpace::native>>(core_state.aux(), aux_id_);
     auto& optical_state = get<optical::CoreState<MemSpace::native>>(
         core_state.aux(), optical_id_);
 
     TrackExecutor execute{
         core_params.ptr<MemSpace::native>(),
         core_state.ptr(),
-        detail::CherenkovGeneratorExecutor{core_state.ptr(),
-                                           material_->device_ref(),
-                                           cherenkov_->device_ref(),
-                                           offload_state.store.ref(),
-                                           optical_state.ptr(),
-                                           offload_state.buffer_size,
-                                           optical_state.counters()}};
+        detail::GeneratorExecutor<D, G>{core_state.ptr(),
+                                        material_->device_ref(),
+                                        shared_->device_ref(),
+                                        aux_state.store.ref(),
+                                        optical_state.ptr(),
+                                        aux_state.buffer_size,
+                                        optical_state.counters()}};
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(core_state, execute);
 }
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+template class GeneratorAction<CherenkovData, CherenkovGenerator>;
+template class GeneratorAction<ScintillationData, ScintillationGenerator>;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

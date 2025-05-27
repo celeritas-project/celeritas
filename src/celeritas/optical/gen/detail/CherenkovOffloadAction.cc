@@ -15,12 +15,13 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/MaterialParams.hh"
 
 #include "CherenkovOffloadExecutor.hh"
 #include "OpticalGenAlgorithms.hh"
 #include "../CherenkovParams.hh"
-#include "../OffloadParams.hh"
+#include "../GeneratorData.hh"
 
 namespace celeritas
 {
@@ -28,20 +29,27 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with action ID, data ID, optical material.
+ * Construct with action ID, aux IDs, and optical properties.
  */
-CherenkovOffloadAction::CherenkovOffloadAction(ActionId id,
-                                               AuxId data_id,
+CherenkovOffloadAction::CherenkovOffloadAction(ActionId action_id,
+                                               AuxId step_id,
+                                               AuxId gen_id,
+                                               AuxId optical_id,
                                                SPConstMaterial material,
                                                SPConstCherenkov cherenkov)
-    : id_(id)
-    , data_id_{data_id}
+    : action_id_(action_id)
+    , step_id_{step_id}
+    , gen_id_{gen_id}
+    , optical_id_{optical_id}
     , material_(std::move(material))
     , cherenkov_(std::move(cherenkov))
 {
-    CELER_EXPECT(id_);
-    CELER_EXPECT(data_id_);
-    CELER_EXPECT(cherenkov_ && material_);
+    CELER_EXPECT(action_id_);
+    CELER_EXPECT(step_id_);
+    CELER_EXPECT(gen_id_);
+    CELER_EXPECT(optical_id_);
+    CELER_EXPECT(material_);
+    CELER_EXPECT(cherenkov_);
 }
 
 //---------------------------------------------------------------------------//
@@ -81,9 +89,9 @@ template<MemSpace M>
 void CherenkovOffloadAction::step_impl(CoreParams const& core_params,
                                        CoreState<M>& core_state) const
 {
-    auto& state = get<OpticalOffloadState<M>>(core_state.aux(), data_id_);
-    auto& buffer = state.store.ref().cherenkov;
-    auto& buffer_size = state.buffer_size.cherenkov;
+    auto& gen_state = get<GeneratorState<M>>(core_state.aux(), gen_id_);
+    auto& buffer = gen_state.store.ref().distributions;
+    auto& buffer_size = gen_state.buffer_size;
 
     CELER_VALIDATE(buffer_size + core_state.size() <= buffer.size(),
                    << "insufficient capacity (" << buffer.size()
@@ -92,7 +100,7 @@ void CherenkovOffloadAction::step_impl(CoreParams const& core_params,
                    << buffer_size + core_state.size() << ")");
 
     // Generate the optical distribution data
-    this->pre_generate(core_params, core_state);
+    this->offload(core_params, core_state);
 
     // Compact the buffer, returning the total number of valid distributions
     size_type start = buffer_size;
@@ -101,7 +109,9 @@ void CherenkovOffloadAction::step_impl(CoreParams const& core_params,
 
     // Count the number of optical photons that would be generated from the
     // distributions created in this step
-    state.buffer_size.photons += count_num_photons(
+    auto& optical_state
+        = get<optical::CoreState<M>>(core_state.aux(), optical_id_);
+    optical_state.counters().num_pending += count_num_photons(
         buffer, start, buffer_size, core_state.stream_id());
 }
 
@@ -109,26 +119,28 @@ void CherenkovOffloadAction::step_impl(CoreParams const& core_params,
 /*!
  * Launch a (host) kernel to generate optical distribution data post-step.
  */
-void CherenkovOffloadAction::pre_generate(CoreParams const& core_params,
-                                          CoreStateHost& core_state) const
+void CherenkovOffloadAction::offload(CoreParams const& core_params,
+                                     CoreStateHost& core_state) const
 {
-    auto& state = get<OpticalOffloadState<MemSpace::native>>(core_state.aux(),
-                                                             data_id_);
+    auto& step_state
+        = get<OffloadStepState<MemSpace::native>>(core_state.aux(), step_id_);
+    auto& gen_state
+        = get<GeneratorState<MemSpace::native>>(core_state.aux(), gen_id_);
 
     TrackExecutor execute{
         core_params.ptr<MemSpace::native>(),
         core_state.ptr(),
         detail::CherenkovOffloadExecutor{material_->host_ref(),
                                          cherenkov_->host_ref(),
-                                         state.store.ref(),
-                                         state.buffer_size}};
+                                         gen_state.store.ref(),
+                                         step_state.store.ref(),
+                                         gen_state.buffer_size}};
     launch_action(*this, core_params, core_state, execute);
 }
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void CherenkovOffloadAction::pre_generate(CoreParams const&,
-                                          CoreStateDevice&) const
+void CherenkovOffloadAction::offload(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

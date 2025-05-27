@@ -14,7 +14,6 @@
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/optical/gen/OffloadParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "OpticalSizes.json.hh"
@@ -41,8 +40,7 @@ auto get_core_sizes(OpticalLaunchAction const& ola)
 
     // NOTE: quantities are *per-process* quantities: integrated over streams,
     // but not processes
-    result.generators = result.streams
-                        * ola.offload_params().host_ref().setup.capacity;
+    // TODO: Store generator sizes
     result.initializers = result.streams * cp.init()->capacity();
     result.tracks = result.streams * ola.state_size();
 
@@ -80,10 +78,8 @@ OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
                                          Input&& input)
     : action_id_{action_id}
     , aux_id_{data_id}
-    , offload_params_{std::move(input.offload)}
     , state_size_{input.num_track_slots}
 {
-    CELER_EXPECT(offload_params_);
     CELER_EXPECT(state_size_ > 0);
     CELER_EXPECT(input.material);
     CELER_EXPECT(input.initializer_capacity > 0);
@@ -185,26 +181,22 @@ template<MemSpace M>
 void OpticalLaunchAction::execute_impl(CoreParams const&,
                                        CoreState<M>& core_state) const
 {
-    auto& offload_state = get<OpticalOffloadState<M>>(
-        core_state.aux(), offload_params_->aux_id());
-    auto& optical_state
-        = get<optical::CoreState<M>>(core_state.aux(), this->aux_id());
-    CELER_ASSERT(offload_state);
-    CELER_ASSERT(optical_state.size() > 0);
+    auto& state = get<optical::CoreState<M>>(core_state.aux(), this->aux_id());
+    CELER_ASSERT(state.size() > 0);
 
     constexpr size_type max_step_iters{1024};
     size_type num_step_iters{0};
     size_type num_steps{0};
 
     // Loop while photons are yet to be tracked
-    auto& counters = optical_state.counters();
+    auto& counters = state.counters();
     auto const& step_actions = optical_actions_->step();
     while (counters.num_initializers > 0 || counters.num_alive > 0)
     {
         // Loop through actions
         for (auto const& action : step_actions)
         {
-            action->step(*optical_params_, optical_state);
+            action->step(*optical_params_, state);
         }
 
         num_steps += counters.num_active;
@@ -222,9 +214,9 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
     }
 
     // Update statistics
-    offload_state.accum.steps += num_steps;
-    offload_state.accum.step_iters += num_step_iters;
-    ++offload_state.accum.flushes;
+    state.accum().steps += num_steps;
+    state.accum().step_iters += num_step_iters;
+    ++state.accum().flushes;
 
     // TODO: generation is done *outside* of the optical tracking loop;
     // once we move it inside, update the generation count in the loop here

@@ -26,7 +26,6 @@
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/ModelImporter.hh"
-#include "celeritas/optical/gen/OffloadParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 
@@ -151,14 +150,18 @@ void LArSphereOffloadTest::RunResult::print_expected() const
          << this->accum.flushes
          << ", result.accum.flushes);\n"
             "EXPECT_EQ("
-         << this->accum.generators.cherenkov
-         << ", result.accum.generators.cherenkov);\n"
+         << this->accum.cherenkov.distributions
+         << ", result.accum.cherenkov.distributions);\n"
             "EXPECT_EQ("
-         << this->accum.generators.scintillation
-         << ", result.accum.generators.scintillation);\n"
+         << this->accum.cherenkov.photons
+         << ", result.accum.cherenkov.photons);\n"
             "EXPECT_EQ("
-         << this->accum.generators.photons
-         << ", result.accum.generators.photons);\n"
+         << this->accum.scintillation.distributions
+         << ", result.accum.scintillation.distributions);\n"
+            "EXPECT_EQ("
+         << this->accum.scintillation.photons
+         << ", result.accum.scintillation.photons);\n"
+            "EXPECT_EQ("
             "/*** END CODE ***/\n";
 }
 
@@ -275,10 +278,6 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
     Stepper<M> step(step_inp);
     LogContextException log_context{this->output_reg().get()};
 
-    // Access the optical offload data
-    auto const& offload_state = get<OpticalOffloadState<M>>(
-        step.state().aux(), collector_->offload_aux_id());
-
     RunResult result;
 
     // Initial step
@@ -289,7 +288,7 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
     size_type step_iter = 1;
     while (count && step_iter++ < num_steps)
     {
-        if (!offload_state.buffer_size.photons
+        if (!collector_->buffer_counts<M>(step.state().aux()).photons
             && step_iter < result.optical_launch_step)
         {
             result.optical_launch_step = step_iter;
@@ -322,13 +321,22 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
         result.charge.insert(result.charge.end(), charge.begin(), charge.end());
     };
 
-    auto const& state = offload_state.store.ref();
-    auto const& sizes = offload_state.buffer_size;
-    get_result(result.cherenkov, state.cherenkov, sizes.cherenkov);
-    get_result(result.scintillation, state.scintillation, sizes.scintillation);
-    result.num_photons = sizes.photons;
-
-    result.accum = collector_->exchange_counters(step.sp_state()->aux());
+    // Access the optical offload data
+    if (auto id = collector_->cherenkov_aux_id())
+    {
+        auto const& s = get<GeneratorState<M>>(step.state().aux(), id);
+        get_result(
+            result.cherenkov, s.store.ref().distributions, s.buffer_size);
+    }
+    if (auto id = collector_->scintillation_aux_id())
+    {
+        auto const& s = get<GeneratorState<M>>(step.state().aux(), id);
+        get_result(
+            result.scintillation, s.store.ref().distributions, s.buffer_size);
+    }
+    result.num_photons
+        = collector_->buffer_counts<M>(step.state().aux()).photons;
+    result.accum = collector_->exchange_counters<M>(step.sp_state()->aux());
 
     return result;
 }
@@ -535,9 +543,10 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
         EXPECT_EQ(0, result.accum.steps);
         EXPECT_EQ(0, result.accum.step_iters);
         EXPECT_EQ(16, result.accum.flushes);
-        EXPECT_EQ(0, result.accum.generators.cherenkov);
-        EXPECT_EQ(0, result.accum.generators.scintillation);
-        EXPECT_EQ(0, result.accum.generators.photons);
+        EXPECT_EQ(0, result.accum.cherenkov.distributions);
+        EXPECT_EQ(0, result.accum.scintillation.distributions);
+        EXPECT_EQ(0, result.accum.cherenkov.photons);
+        EXPECT_EQ(0, result.accum.scintillation.photons);
     }
     else
     {
@@ -565,9 +574,10 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
         EXPECT_EQ(1655, result.accum.steps);
         EXPECT_EQ(56, result.accum.step_iters);
         EXPECT_EQ(2, result.accum.flushes);
-        EXPECT_EQ(0, result.accum.generators.cherenkov);
-        EXPECT_EQ(2, result.accum.generators.scintillation);
-        EXPECT_EQ(1028, result.accum.generators.photons);
+        EXPECT_EQ(0, result.accum.cherenkov.distributions);
+        EXPECT_EQ(2, result.accum.scintillation.distributions);
+        EXPECT_EQ(0, result.accum.cherenkov.photons);
+        EXPECT_EQ(1028, result.accum.scintillation.photons);
     }
 }
 
@@ -588,9 +598,10 @@ TEST_F(LArSphereOffloadTest, host_generate)
             456183.0, static_cast<double>(result.accum.steps), 1e-4);
         EXPECT_EQ(43, result.accum.step_iters);
         EXPECT_EQ(4, result.accum.flushes);
-        EXPECT_EQ(4, result.accum.generators.cherenkov);
-        EXPECT_EQ(5, result.accum.generators.scintillation);
-        EXPECT_EQ(279742, result.accum.generators.photons);
+        EXPECT_EQ(4, result.accum.cherenkov.distributions);
+        EXPECT_EQ(5, result.accum.scintillation.distributions);
+        EXPECT_EQ(3810, result.accum.cherenkov.photons);
+        EXPECT_EQ(275932, result.accum.scintillation.photons);
     }
 
     EXPECT_EQ(2, result.optical_launch_step);

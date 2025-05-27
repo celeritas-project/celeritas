@@ -13,7 +13,7 @@
 #include "corecel/data/Collection.hh"
 #include "celeritas/global/ActionInterface.hh"
 
-#include "../GeneratorDistributionData.hh"
+#include "../GeneratorData.hh"
 
 namespace celeritas
 {
@@ -34,9 +34,11 @@ class ScintOffloadAction final : public CoreStepActionInterface
     //!@}
 
   public:
-    // Construct with action ID, optical properties, and storage
-    ScintOffloadAction(ActionId id,
-                       AuxId data_id,
+    // Construct with action ID, step data aux ID, and optical properties
+    ScintOffloadAction(ActionId action_id,
+                       AuxId step_id,
+                       AuxId gen_id,
+                       AuxId optical_id,
                        SPConstScintillation scintillation);
 
     // Launch kernel with host data
@@ -46,7 +48,7 @@ class ScintOffloadAction final : public CoreStepActionInterface
     void step(CoreParams const&, CoreStateDevice&) const final;
 
     //! ID of the model
-    ActionId action_id() const final { return id_; }
+    ActionId action_id() const final { return action_id_; }
 
     //! Short name for the action
     std::string_view label() const final { return "scintillation-offload"; }
@@ -60,8 +62,10 @@ class ScintOffloadAction final : public CoreStepActionInterface
   private:
     //// DATA ////
 
-    ActionId id_;
-    AuxId data_id_;
+    ActionId action_id_;
+    AuxId step_id_;
+    AuxId gen_id_;
+    AuxId optical_id_;
     SPConstScintillation scintillation_;
 
     //// HELPER FUNCTIONS ////
@@ -69,8 +73,8 @@ class ScintOffloadAction final : public CoreStepActionInterface
     template<MemSpace M>
     void step_impl(CoreParams const&, CoreState<M>&) const;
 
-    void pre_generate(CoreParams const&, CoreStateHost&) const;
-    void pre_generate(CoreParams const&, CoreStateDevice&) const;
+    void offload(CoreParams const&, CoreStateHost&) const;
+    void offload(CoreParams const&, CoreStateDevice&) const;
 };
 
 //---------------------------------------------------------------------------//

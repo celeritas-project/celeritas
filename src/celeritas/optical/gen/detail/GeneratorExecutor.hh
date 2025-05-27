@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/gen/detail/ScintGeneratorExecutor.hh
+//! \file celeritas/optical/gen/detail/GeneratorExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -10,12 +10,14 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/optical/CoreTrackView.hh"
+#include "celeritas/optical/MaterialData.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 
 #include "OpticalGenAlgorithms.hh"
+#include "../CherenkovGenerator.hh"
 #include "../OffloadData.hh"
-#include "../ScintillationGenerator.hh"
 
 namespace celeritas
 {
@@ -25,17 +27,19 @@ namespace detail
 // LAUNCHER
 //---------------------------------------------------------------------------//
 /*!
- * Generate scintillation photons from optical distribution data.
+ * Generate photons from optical distribution data.
  */
-struct ScintGeneratorExecutor
+template<template<Ownership, MemSpace> class Data, class Generator>
+struct GeneratorExecutor
 {
     //// DATA ////
 
     RefPtr<CoreStateData, MemSpace::native> state;
-    NativeCRef<ScintillationData> const scintillation;
-    NativeRef<OffloadStateData> const offload_state;
+    NativeCRef<celeritas::optical::MaterialParamsData> const material;
+    NativeCRef<Data> const shared;
+    NativeRef<GeneratorStateData> const offload;
     RefPtr<celeritas::optical::CoreStateData, MemSpace::native> optical_state;
-    OpticalOffloadCounters<> size;
+    size_type buffer_size;
     CoreStateCounters counters;
 
     //// FUNCTIONS ////
@@ -48,16 +52,18 @@ struct ScintGeneratorExecutor
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Generate scintillation photons from optical distribution data.
+ * Generate photons from optical distribution data.
  */
+template<template<Ownership, MemSpace> class D, class G>
 CELER_FUNCTION void
-ScintGeneratorExecutor::operator()(CoreTrackView const& track) const
+GeneratorExecutor<D, G>::operator()(CoreTrackView const& track) const
 {
     CELER_EXPECT(state);
-    CELER_EXPECT(scintillation);
-    CELER_EXPECT(offload_state);
+    CELER_EXPECT(shared);
+    CELER_EXPECT(material);
+    CELER_EXPECT(offload);
     CELER_EXPECT(optical_state);
-    CELER_EXPECT(size.scintillation <= offload_state.scintillation.size());
+    CELER_EXPECT(buffer_size <= offload.distributions.size());
 
     using DistId = ItemId<GeneratorDistributionData>;
     using InitId = ItemId<celeritas::optical::TrackInitializer>;
@@ -65,8 +71,8 @@ ScintGeneratorExecutor::operator()(CoreTrackView const& track) const
     // Get the cumulative sum of the number of photons in the distributions.
     // Each bin gives the range of thread IDs that will generate from the
     // corresponding distribution
-    auto offsets = offload_state.offsets[ItemRange<size_type>(
-        ItemId<size_type>(0), ItemId<size_type>(size.scintillation))];
+    auto offsets = offload.offsets[ItemRange<size_type>(
+        ItemId<size_type>(0), ItemId<size_type>(buffer_size))];
 
     // Get the total number of initializers to generate
     size_type total_work = offsets.back();
@@ -84,12 +90,13 @@ ScintGeneratorExecutor::operator()(CoreTrackView const& track) const
 
         // Find the distribution this thread will generate from
         size_type dist_idx = find_distribution_index(offsets, idx);
-        CELER_ASSERT(dist_idx < size.scintillation);
-        auto const& dist = offload_state.scintillation[DistId(dist_idx)];
+        CELER_ASSERT(dist_idx < buffer_size);
+        auto const& dist = offload.distributions[DistId(dist_idx)];
         CELER_ASSERT(dist);
 
         // Generate one primary from the distribution
-        ScintillationGenerator generate(scintillation, dist);
+        optical::MaterialView opt_mat{material, dist.material};
+        G generate(opt_mat, shared, dist);
         size_type init_idx = counters.num_initializers + idx;
         CELER_ASSERT(init_idx < optical_state->init.initializers.size());
         optical_state->init.initializers[InitId(init_idx)] = generate(rng);

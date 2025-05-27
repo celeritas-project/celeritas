@@ -13,7 +13,7 @@
 #include "corecel/data/Collection.hh"
 #include "celeritas/global/ActionInterface.hh"
 
-#include "../GeneratorDistributionData.hh"
+#include "../GeneratorData.hh"
 
 namespace celeritas
 {
@@ -41,9 +41,11 @@ class CherenkovOffloadAction final : public CoreStepActionInterface
     //!@}
 
   public:
-    // Construct with action ID, optical material, and storage
-    CherenkovOffloadAction(ActionId id,
-                           AuxId data_id,
+    // Construct with action ID, aux IDs, and optical properties
+    CherenkovOffloadAction(ActionId action_id,
+                           AuxId step_id,
+                           AuxId gen_id,
+                           AuxId optical_id,
                            SPConstMaterial material,
                            SPConstCherenkov cherenkov);
 
@@ -54,7 +56,7 @@ class CherenkovOffloadAction final : public CoreStepActionInterface
     void step(CoreParams const&, CoreStateDevice&) const final;
 
     //! ID of the model
-    ActionId action_id() const final { return id_; }
+    ActionId action_id() const final { return action_id_; }
 
     //! Short name for the action
     std::string_view label() const final { return "cherenkov-offload"; }
@@ -68,8 +70,10 @@ class CherenkovOffloadAction final : public CoreStepActionInterface
   private:
     //// DATA ////
 
-    ActionId id_;
-    AuxId data_id_;
+    ActionId action_id_;
+    AuxId step_id_;
+    AuxId gen_id_;
+    AuxId optical_id_;
     SPConstMaterial material_;
     SPConstCherenkov cherenkov_;
 
@@ -78,8 +82,8 @@ class CherenkovOffloadAction final : public CoreStepActionInterface
     template<MemSpace M>
     void step_impl(CoreParams const&, CoreState<M>&) const;
 
-    void pre_generate(CoreParams const&, CoreStateHost&) const;
-    void pre_generate(CoreParams const&, CoreStateDevice&) const;
+    void offload(CoreParams const&, CoreStateHost&) const;
+    void offload(CoreParams const&, CoreStateDevice&) const;
 };
 
 //---------------------------------------------------------------------------//

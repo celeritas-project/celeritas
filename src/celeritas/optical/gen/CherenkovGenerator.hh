@@ -18,7 +18,7 @@
 #include "celeritas/grid/NonuniformGridCalculator.hh"
 
 #include "CherenkovDndxCalculator.hh"
-#include "GeneratorDistributionData.hh"
+#include "GeneratorData.hh"
 #include "../MaterialView.hh"
 #include "../TrackInitializer.hh"
 

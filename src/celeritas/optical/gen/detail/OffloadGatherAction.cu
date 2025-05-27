@@ -14,7 +14,6 @@
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "OffloadGatherExecutor.hh"
-#include "../OffloadParams.hh"
 
 namespace celeritas
 {
@@ -27,12 +26,13 @@ namespace detail
 void OffloadGatherAction::step(CoreParams const& params,
                                CoreStateDevice& state) const
 {
-    auto& optical_state
-        = get<OpticalOffloadState<MemSpace::native>>(state.aux(), data_id_);
+    auto& aux_state
+        = get<OffloadStepState<MemSpace::native>>(state.aux(), aux_id_);
+
     auto execute = make_active_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
-        detail::OffloadGatherExecutor{optical_state.store.ref()});
+        detail::OffloadGatherExecutor{aux_state.store.ref()});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 }
