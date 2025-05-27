@@ -126,8 +126,8 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     // returns false, create an empty label vector.
     if (input_.detector_labels)
     {
-        detectors_ = std::make_shared<SDParams>(
-            *(input_.detector_labels), *(input_.geometry));
+        detectors_ = std::make_shared<SDParams>(*(input_.detector_labels),
+                                                *(input_.geometry));
     }
     else
     {
