@@ -9,7 +9,7 @@
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
-#include "geocel/g4/GeantGeoParams.hh"
+#include "geocel/GeantGeoParams.hh"
 
 namespace celeritas
 {

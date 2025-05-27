@@ -13,8 +13,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Environment.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
-#include "geocel/g4/GeantGeoParams.hh"
 
 #include "SolidConverter.hh"
 #include "Volume.hh"

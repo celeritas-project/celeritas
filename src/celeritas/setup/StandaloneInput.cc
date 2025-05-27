@@ -13,7 +13,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Logger.hh"
-#include "geocel/g4/GeantGeoParams.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootImporter.hh"

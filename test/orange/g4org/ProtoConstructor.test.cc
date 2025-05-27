@@ -8,7 +8,7 @@
 
 #include "corecel/StringSimplifier.hh"
 #include "corecel/io/Repr.hh"
-#include "geocel/g4/GeantGeoParams.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "orange/g4org/PhysicalVolumeConverter.hh"
 #include "orange/orangeinp/CsgTestUtils.hh"
 #include "orange/orangeinp/detail/CsgUnit.hh"

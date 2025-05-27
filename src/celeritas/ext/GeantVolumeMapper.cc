@@ -12,8 +12,8 @@
 
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
-#include "geocel/g4/GeantGeoParams.hh"
 
 namespace celeritas
 {

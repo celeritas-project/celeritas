@@ -9,7 +9,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StreamableVariant.hh"
 #include "corecel/sys/Environment.hh"
-#include "geocel/g4/GeantGeoParams.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "orange/MatrixUtils.hh"
 #include "orange/orangeinp/ObjectInterface.hh"
 #include "orange/transform/TransformIO.hh"

@@ -7,8 +7,8 @@
 #include "Converter.hh"
 
 #include "corecel/io/Logger.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/detail/LengthUnits.hh"
-#include "geocel/g4/GeantGeoParams.hh"
 #include "orange/orangeinp/InputBuilder.hh"
 
 #include "PhysicalVolumeConverter.hh"

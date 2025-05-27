@@ -15,12 +15,12 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Version.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GenericGeoParameterizedTest.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "geocel/GeoTests.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/g4/GeantGeoData.hh"
-#include "geocel/g4/GeantGeoParams.hh"
 #include "geocel/g4/GeantGeoTrackView.hh"
 #include "geocel/rasterize/SafetyImager.hh"
 

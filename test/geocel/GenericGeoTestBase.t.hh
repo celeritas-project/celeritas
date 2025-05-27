@@ -14,7 +14,7 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/TypeDemangler.hh"
-#include "geocel/g4/GeantGeoParams.hh"
+#include "geocel/GeantGeoParams.hh"
 
 #include "CheckedGeoTrackView.hh"
 #include "TestMacros.hh"

@@ -9,7 +9,7 @@
 #include <iostream>
 
 #include "corecel/io/StreamableVariant.hh"
-#include "geocel/g4/GeantGeoParams.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "orange/orangeinp/CsgObject.hh"
 #include "orange/orangeinp/PolySolid.hh"
 #include "orange/orangeinp/Transformed.hh"

@@ -29,14 +29,15 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedMem.hh"
-#include "geocel/GeantGdmlLoader.hh"
-#include "geocel/GeantGeoUtils.hh"
-#include "geocel/GeantUtils.hh"
-#include "geocel/detail/MakeLabelVector.hh"
 
-#include "Convert.hh"  // IWYU pragma: associated
-#include "GeantGeoData.hh"  // IWYU pragma: associated
-#include "VisitVolumes.hh"
+#include "GeantGdmlLoader.hh"
+#include "GeantGeoUtils.hh"
+#include "GeantUtils.hh"
+#include "g4/Convert.hh"  // IWYU pragma: associated
+#include "g4/GeantGeoData.hh"  // IWYU pragma: associated
+#include "g4/VisitVolumes.hh"
+
+#include "detail/MakeLabelVector.hh"
 
 namespace celeritas
 {

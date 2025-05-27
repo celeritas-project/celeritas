@@ -28,7 +28,7 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/BoundingBox.hh"
-#include "geocel/g4/GeantGeoParams.hh"
+#include "geocel/GeantGeoParams.hh"
 
 #include "OrangeData.hh"  // IWYU pragma: associated
 #include "OrangeInput.hh"

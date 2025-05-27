@@ -10,7 +10,7 @@
 
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
-#include "geocel/g4/GeantGeoParams.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/inp/FrameworkInput.hh"
 #include "celeritas/inp/Problem.hh"

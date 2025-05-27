@@ -26,10 +26,10 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantGdmlLoader.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/ScopedGeantLogger.hh"
-#include "geocel/g4/GeantGeoParams.hh"
 
 #include "EmPhysicsList.hh"
 

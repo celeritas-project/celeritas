@@ -29,7 +29,7 @@
 #    include <G4VPhysicalVolume.hh>
 #    include <G4VSolid.hh>
 
-#    include "geocel/g4/GeantGeoParams.hh"
+#    include "geocel/GeantGeoParams.hh"
 #endif
 #if CELERITAS_USE_VECGEOM
 #    include "geocel/vg/VecgeomParams.hh"

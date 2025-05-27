@@ -19,7 +19,7 @@
 #if CELERITAS_USE_GEANT4
 #    include <G4VPhysicalVolume.hh>
 
-#    include "geocel/g4/GeantGeoParams.hh"
+#    include "geocel/GeantGeoParams.hh"
 #endif
 
 namespace celeritas
