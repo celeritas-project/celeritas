@@ -33,7 +33,7 @@ GeantImportVolumeResult::from_import(GeoParamsInterface const& geom)
     Result result;
     result.volumes.resize(geant_geo->volumes().size());
 
-    for (auto i : range(result.volumes.size()))
+    for (auto i : range<VolumeId::size_type>(result.volumes.size()))
     {
         auto const& label = geant_geo->volumes().at(VolumeId{i});
         result.volumes[i] = [&] {
