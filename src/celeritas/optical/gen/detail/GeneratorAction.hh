@@ -14,15 +14,14 @@
 #include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/global/ActionInterface.hh"
 
-#include "../CherenkovData.hh"
-#include "../CherenkovGenerator.hh"
+#include "GeneratorTraits.hh"
 #include "../GeneratorData.hh"
 #include "../OffloadData.hh"
-#include "../ScintillationData.hh"
-#include "../ScintillationGenerator.hh"
 
 namespace celeritas
 {
+class CoreParams;
+
 namespace optical
 {
 class MaterialParams;
@@ -39,40 +38,43 @@ namespace detail
  * distribution, the work is split as evenly as possible among threads:
  * multiple threads may generate initializers from a single distribution.
  */
-template<template<Ownership, MemSpace> class Data, class Generator>
+template<GeneratorType G>
 class GeneratorAction final : public CoreStepActionInterface,
                               public AuxParamsInterface
 {
   public:
     //!@{
     //! \name Type aliases
+    template<Ownership W, MemSpace M>
+    using Data = typename GeneratorTraits<G>::template Data<W, M>;
     using SPConstParams = std::shared_ptr<ParamsDataInterface<Data> const>;
     using SPConstMaterial
         = std::shared_ptr<celeritas::optical::MaterialParams const>;
     //!@}
 
-    //! Input data
+    //! Generator nput data
     struct Input
     {
-        ActionId action;
-        AuxId aux;
-        AuxId optical;
+        AuxId optical_id;
         SPConstMaterial material;
         SPConstParams shared;
         size_type auto_flush{};
         size_type buffer_capacity{};
-        std::string label;
 
         explicit operator bool() const
         {
-            return action && aux && optical && material && shared
-                   && auto_flush > 0 && buffer_capacity > 0;
+            return optical_id && material && shared && auto_flush > 0
+                   && buffer_capacity > 0;
         }
     };
 
   public:
+    // Construct and add to core params
+    static std::shared_ptr<GeneratorAction>
+    make_and_insert(CoreParams const&, Input&&);
+
     // Construct with action ID, data IDs, and optical properties
-    explicit GeneratorAction(Input&&);
+    GeneratorAction(ActionId, AuxId, Input&&);
 
     //!@{
     //! \name Aux interface
@@ -89,9 +91,12 @@ class GeneratorAction final : public CoreStepActionInterface,
     //! ID of the action
     ActionId action_id() const final { return action_id_; }
     //! Short name for the action
-    std::string_view label() const final { return label_; }
+    std::string_view label() const final { return GeneratorTraits<G>::label; }
     // Name of the action (for user output)
-    std::string_view description() const final;
+    std::string_view description() const final
+    {
+        return GeneratorTraits<G>::description;
+    }
     //!@}
 
     //!@{
@@ -115,7 +120,6 @@ class GeneratorAction final : public CoreStepActionInterface,
     SPConstParams shared_;
     size_type auto_flush_;
     size_type buffer_capacity_;
-    std::string label_;
 
     //// HELPER FUNCTIONS ////
 
@@ -130,8 +134,8 @@ class GeneratorAction final : public CoreStepActionInterface,
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
-extern template class GeneratorAction<CherenkovData, CherenkovGenerator>;
-extern template class GeneratorAction<ScintillationData, ScintillationGenerator>;
+extern template class GeneratorAction<GeneratorType::cherenkov>;
+extern template class GeneratorAction<GeneratorType::scintillation>;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

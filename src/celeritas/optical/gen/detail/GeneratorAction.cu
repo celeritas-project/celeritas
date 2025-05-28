@@ -30,9 +30,9 @@ namespace detail
 /*!
  * Launch a kernel to generate optical photon initializers.
  */
-template<template<Ownership, MemSpace> class D, class G>
-void GeneratorAction<D, G>::generate(CoreParams const& core_params,
-                                     CoreStateDevice& core_state) const
+template<GeneratorType G>
+void GeneratorAction<G>::generate(CoreParams const& core_params,
+                                  CoreStateDevice& core_state) const
 {
     auto& aux_state
         = get<GeneratorState<MemSpace::native>>(core_state.aux(), aux_id_);
@@ -42,13 +42,13 @@ void GeneratorAction<D, G>::generate(CoreParams const& core_params,
     TrackExecutor execute{
         core_params.ptr<MemSpace::native>(),
         core_state.ptr(),
-        detail::GeneratorExecutor<D, G>{core_state.ptr(),
-                                        material_->device_ref(),
-                                        shared_->device_ref(),
-                                        aux_state.store.ref(),
-                                        optical_state.ptr(),
-                                        aux_state.buffer_size,
-                                        optical_state.counters()}};
+        detail::GeneratorExecutor<G>{core_state.ptr(),
+                                     material_->device_ref(),
+                                     shared_->device_ref(),
+                                     aux_state.store.ref(),
+                                     optical_state.ptr(),
+                                     aux_state.buffer_size,
+                                     optical_state.counters()}};
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(core_state, execute);
 }
@@ -57,8 +57,8 @@ void GeneratorAction<D, G>::generate(CoreParams const& core_params,
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
-template class GeneratorAction<CherenkovData, CherenkovGenerator>;
-template class GeneratorAction<ScintillationData, ScintillationGenerator>;
+template class GeneratorAction<GeneratorType::cherenkov>;
+template class GeneratorAction<GeneratorType::scintillation>;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

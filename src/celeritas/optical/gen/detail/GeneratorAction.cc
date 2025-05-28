@@ -9,8 +9,10 @@
 #include <algorithm>
 
 #include "corecel/Assert.hh"
+#include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -33,19 +35,39 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Construct and add to core params.
+ */
+template<GeneratorType G>
+std::shared_ptr<GeneratorAction<G>>
+GeneratorAction<G>::make_and_insert(CoreParams const& core, Input&& input)
+{
+    CELER_EXPECT(input);
+    ActionRegistry& actions = *core.action_reg();
+    AuxParamsRegistry& aux = *core.aux_reg();
+    auto result = std::make_shared<GeneratorAction<G>>(
+        actions.next_id(), aux.next_id(), std::move(input));
+
+    actions.insert(result);
+    aux.insert(result);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct with action ID, data IDs, and optical properties.
  */
-template<template<Ownership, MemSpace> class D, class G>
-GeneratorAction<D, G>::GeneratorAction(Input&& inp)
-    : action_id_(inp.action)
-    , aux_id_{inp.aux}
-    , optical_id_{inp.optical}
+template<GeneratorType G>
+GeneratorAction<G>::GeneratorAction(ActionId id, AuxId aux_id, Input&& inp)
+    : action_id_(id)
+    , aux_id_{aux_id}
+    , optical_id_{inp.optical_id}
     , material_(inp.material)
     , shared_(inp.shared)
     , auto_flush_(inp.auto_flush)
     , buffer_capacity_(inp.buffer_capacity)
-    , label_(inp.label)
 {
+    CELER_EXPECT(action_id_);
+    CELER_EXPECT(aux_id_);
     CELER_EXPECT(inp);
 }
 
@@ -53,10 +75,9 @@ GeneratorAction<D, G>::GeneratorAction(Input&& inp)
 /*!
  * Build state data for a stream.
  */
-template<template<Ownership, MemSpace> class D, class G>
-auto GeneratorAction<D, G>::create_state(MemSpace m,
-                                         StreamId id,
-                                         size_type) const -> UPState
+template<GeneratorType G>
+auto GeneratorAction<G>::create_state(MemSpace m, StreamId id, size_type) const
+    -> UPState
 {
     if (m == MemSpace::host)
     {
@@ -80,21 +101,11 @@ auto GeneratorAction<D, G>::create_state(MemSpace m,
 
 //---------------------------------------------------------------------------//
 /*!
- * Descriptive name of the action.
- */
-template<template<Ownership, MemSpace> class D, class G>
-std::string_view GeneratorAction<D, G>::description() const
-{
-    return "generate photons from optical distribution data";
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Execute the action with host data.
  */
-template<template<Ownership, MemSpace> class D, class G>
-void GeneratorAction<D, G>::step(CoreParams const& params,
-                                 CoreStateHost& state) const
+template<GeneratorType G>
+void GeneratorAction<G>::step(CoreParams const& params,
+                              CoreStateHost& state) const
 {
     this->step_impl(params, state);
 }
@@ -103,9 +114,9 @@ void GeneratorAction<D, G>::step(CoreParams const& params,
 /*!
  * Execute the action with device data.
  */
-template<template<Ownership, MemSpace> class D, class G>
-void GeneratorAction<D, G>::step(CoreParams const& params,
-                                 CoreStateDevice& state) const
+template<GeneratorType G>
+void GeneratorAction<G>::step(CoreParams const& params,
+                              CoreStateDevice& state) const
 {
     this->step_impl(params, state);
 }
@@ -114,10 +125,10 @@ void GeneratorAction<D, G>::step(CoreParams const& params,
 /*!
  * Generate optical track initializers from distribution data.
  */
-template<template<Ownership, MemSpace> class D, class G>
+template<GeneratorType G>
 template<MemSpace M>
-void GeneratorAction<D, G>::step_impl(CoreParams const& core_params,
-                                      CoreState<M>& core_state) const
+void GeneratorAction<G>::step_impl(CoreParams const& core_params,
+                                   CoreState<M>& core_state) const
 {
     auto& aux_state = get<GeneratorState<M>>(core_state.aux(), aux_id_);
     auto& optical_state
@@ -173,9 +184,9 @@ void GeneratorAction<D, G>::step_impl(CoreParams const& core_params,
 /*!
  * Launch a (host) kernel to generate optical photon initializers.
  */
-template<template<Ownership, MemSpace> class D, class G>
-void GeneratorAction<D, G>::generate(CoreParams const& core_params,
-                                     CoreStateHost& core_state) const
+template<GeneratorType G>
+void GeneratorAction<G>::generate(CoreParams const& core_params,
+                                  CoreStateHost& core_state) const
 {
     auto& aux_state
         = get<GeneratorState<MemSpace::native>>(core_state.aux(), aux_id_);
@@ -185,20 +196,20 @@ void GeneratorAction<D, G>::generate(CoreParams const& core_params,
     TrackExecutor execute{
         core_params.ptr<MemSpace::native>(),
         core_state.ptr(),
-        detail::GeneratorExecutor<D, G>{core_state.ptr(),
-                                        material_->host_ref(),
-                                        shared_->host_ref(),
-                                        aux_state.store.ref(),
-                                        optical_state.ptr(),
-                                        aux_state.buffer_size,
-                                        optical_state.counters()}};
+        detail::GeneratorExecutor<G>{core_state.ptr(),
+                                     material_->host_ref(),
+                                     shared_->host_ref(),
+                                     aux_state.store.ref(),
+                                     optical_state.ptr(),
+                                     aux_state.buffer_size,
+                                     optical_state.counters()}};
     launch_action(*this, core_params, core_state, execute);
 }
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-template<template<Ownership, MemSpace> class D, class G>
-void GeneratorAction<D, G>::generate(CoreParams const&, CoreStateDevice&) const
+template<GeneratorType G>
+void GeneratorAction<G>::generate(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
@@ -208,8 +219,8 @@ void GeneratorAction<D, G>::generate(CoreParams const&, CoreStateDevice&) const
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
-template class GeneratorAction<CherenkovData, CherenkovGenerator>;
-template class GeneratorAction<ScintillationData, ScintillationGenerator>;
+template class GeneratorAction<GeneratorType::cherenkov>;
+template class GeneratorAction<GeneratorType::scintillation>;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

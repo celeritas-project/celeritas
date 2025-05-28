@@ -127,15 +127,14 @@ class OpticalCollector
   private:
     //// TYPES ////
 
+    using GT = detail::GeneratorType;
+    template<GT G>
+    using GeneratorAction = detail::GeneratorAction<G>;
     using SPCherenkovOffload = std::shared_ptr<detail::CherenkovOffloadAction>;
     using SPScintOffload = std::shared_ptr<detail::ScintOffloadAction>;
     using SPGatherAction = std::shared_ptr<detail::OffloadGatherAction>;
-    using CherenkovGenAction
-        = detail::GeneratorAction<CherenkovData, CherenkovGenerator>;
-    using ScintGenAction
-        = detail::GeneratorAction<ScintillationData, ScintillationGenerator>;
-    using SPCherenkovGen = std::shared_ptr<CherenkovGenAction>;
-    using SPScintGen = std::shared_ptr<ScintGenAction>;
+    using SPCherenkovGen = std::shared_ptr<GeneratorAction<GT::cherenkov>>;
+    using SPScintGen = std::shared_ptr<GeneratorAction<GT::scintillation>>;
     using SPLaunchAction = std::shared_ptr<detail::OpticalLaunchAction>;
 
     //// DATA ////
@@ -143,8 +142,8 @@ class OpticalCollector
     SPGatherAction gather_;
     SPCherenkovOffload cherenkov_offload_;
     SPScintOffload scint_offload_;
-    SPCherenkovGen cherenkov_gen_;
-    SPScintGen scint_gen_;
+    SPCherenkovGen cherenkov_generate_;
+    SPScintGen scint_generate_;
     SPLaunchAction launch_;
 };
 

@@ -15,8 +15,8 @@
 #include "celeritas/optical/MaterialData.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 
+#include "GeneratorTraits.hh"
 #include "OpticalGenAlgorithms.hh"
-#include "../CherenkovGenerator.hh"
 #include "../OffloadData.hh"
 
 namespace celeritas
@@ -29,9 +29,15 @@ namespace detail
 /*!
  * Generate photons from optical distribution data.
  */
-template<template<Ownership, MemSpace> class Data, class Generator>
+template<GeneratorType G>
 struct GeneratorExecutor
 {
+    //// TYPES ////
+
+    template<Ownership W, MemSpace M>
+    using Data = typename GeneratorTraits<G>::template Data<W, M>;
+    using Generator = typename GeneratorTraits<G>::Generator;
+
     //// DATA ////
 
     RefPtr<CoreStateData, MemSpace::native> state;
@@ -54,9 +60,9 @@ struct GeneratorExecutor
 /*!
  * Generate photons from optical distribution data.
  */
-template<template<Ownership, MemSpace> class D, class G>
+template<GeneratorType G>
 CELER_FUNCTION void
-GeneratorExecutor<D, G>::operator()(CoreTrackView const& track) const
+GeneratorExecutor<G>::operator()(CoreTrackView const& track) const
 {
     CELER_EXPECT(state);
     CELER_EXPECT(shared);
@@ -96,7 +102,7 @@ GeneratorExecutor<D, G>::operator()(CoreTrackView const& track) const
 
         // Generate one primary from the distribution
         optical::MaterialView opt_mat{material, dist.material};
-        G generate(opt_mat, shared, dist);
+        Generator generate(opt_mat, shared, dist);
         size_type init_idx = counters.num_initializers + idx;
         CELER_ASSERT(init_idx < optical_state->init.initializers.size());
         optical_state->init.initializers[InitId(init_idx)] = generate(rng);
