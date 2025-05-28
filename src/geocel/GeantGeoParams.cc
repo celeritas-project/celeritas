@@ -235,9 +235,9 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world)
     G4VPhysicalVolume const* nav_world = geant_world_volume();
     if (world != nav_world)
     {
-        auto msg = CELER_LOG(warning);
-        msg << "Geant4 geometry was initialized with inconsistent "
-               "world volume: given '"
+        auto msg = CELER_LOG(debug);
+        msg << "GeantGeoParams constructed with a non-navigation world: given "
+               "'"
             << world->GetName() << "'@" << static_cast<void const*>(world)
             << "; navigation world is ";
         if (nav_world)
