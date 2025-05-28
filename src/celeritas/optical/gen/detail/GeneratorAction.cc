@@ -33,6 +33,25 @@ namespace celeritas
 {
 namespace detail
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+//! Construct a state
+template<class P, MemSpace M>
+auto make_state(P const& params, StreamId stream, size_type size)
+{
+    using StoreT = CollectionStateStore<GeneratorStateData, M>;
+
+    auto result = std::make_unique<GeneratorState<M>>();
+    result->store = StoreT{params.host_ref(), stream, size};
+
+    CELER_ENSURE(*result);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct and add to core params.
@@ -79,22 +98,14 @@ template<GeneratorType G>
 auto GeneratorAction<G>::create_state(MemSpace m, StreamId id, size_type) const
     -> UPState
 {
+    using Params = ParamsDataInterface<Data>;
     if (m == MemSpace::host)
     {
-        using StoreT = CollectionStateStore<GeneratorStateData, MemSpace::host>;
-        auto result = std::make_unique<GeneratorState<MemSpace::host>>();
-        result->store = StoreT{shared_->host_ref(), id, capacity_};
-        CELER_ENSURE(*result);
-        return result;
+        return make_state<Params, MemSpace::host>(*shared_, id, capacity_);
     }
     else if (m == MemSpace::device)
     {
-        using StoreT
-            = CollectionStateStore<GeneratorStateData, MemSpace::device>;
-        auto result = std::make_unique<GeneratorState<MemSpace::device>>();
-        result->store = StoreT{shared_->host_ref(), id, capacity_};
-        CELER_ENSURE(*result);
-        return result;
+        return make_state<Params, MemSpace::device>(*shared_, id, capacity_);
     }
     CELER_ASSERT_UNREACHABLE();
 }

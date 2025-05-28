@@ -110,15 +110,6 @@ struct OffloadStepStateData
     }
 };
 
-template<MemSpace M>
-struct OffloadStepState : public AuxStateInterface
-{
-    CollectionStateStore<OffloadStepStateData, M> store;
-
-    //! True if states have been allocated
-    explicit operator bool() const { return static_cast<bool>(store); }
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Resize optical step states.

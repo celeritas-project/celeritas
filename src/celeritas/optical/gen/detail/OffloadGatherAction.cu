@@ -26,13 +26,13 @@ namespace detail
 void OffloadGatherAction::step(CoreParams const& params,
                                CoreStateDevice& state) const
 {
-    auto& aux_state
-        = get<OffloadStepState<MemSpace::native>>(state.aux(), aux_id_);
+    using StateT = AuxStateData<OffloadStepStateData, MemSpace::native>;
+    auto& aux_state = get<StateT>(state.aux(), aux_id_);
 
     auto execute = make_active_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
-        detail::OffloadGatherExecutor{aux_state.store.ref()});
+        detail::OffloadGatherExecutor{aux_state.ref()});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 }

@@ -33,8 +33,8 @@ template<GeneratorType G>
 void OffloadAction<G>::offload(CoreParams const& core_params,
                                CoreStateDevice& core_state) const
 {
-    auto& step_state
-        = get<OffloadStepState<MemSpace::native>>(core_state.aux(), step_id_);
+    using StateT = AuxStateData<OffloadStepStateData, MemSpace::native>;
+    auto& step_state = get<StateT>(core_state.aux(), step_id_);
     auto& gen_state
         = get<GeneratorState<MemSpace::native>>(core_state.aux(), gen_id_);
 
@@ -43,7 +43,7 @@ void OffloadAction<G>::offload(CoreParams const& core_params,
                           Executor{material_->device_ref(),
                                    shared_->device_ref(),
                                    gen_state.store.ref(),
-                                   step_state.store.ref(),
+                                   step_state.ref(),
                                    gen_state.buffer_size}};
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(core_state, execute);

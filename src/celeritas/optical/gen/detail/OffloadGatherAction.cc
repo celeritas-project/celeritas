@@ -58,26 +58,7 @@ auto OffloadGatherAction::create_state(MemSpace m,
                                        StreamId id,
                                        size_type size) const -> UPState
 {
-    // TODO
-    if (m == MemSpace::host)
-    {
-        using StoreT
-            = CollectionStateStore<OffloadStepStateData, MemSpace::host>;
-        auto result = std::make_unique<OffloadStepState<MemSpace::host>>();
-        result->store = StoreT{id, size};
-        CELER_ENSURE(*result);
-        return result;
-    }
-    else if (m == MemSpace::device)
-    {
-        using StoreT
-            = CollectionStateStore<OffloadStepStateData, MemSpace::device>;
-        auto result = std::make_unique<OffloadStepState<MemSpace::device>>();
-        result->store = StoreT{id, size};
-        CELER_ENSURE(*result);
-        return result;
-    }
-    CELER_ASSERT_UNREACHABLE();
+    return make_aux_state<OffloadStepStateData>(m, id, size);
 }
 
 //---------------------------------------------------------------------------//
@@ -96,13 +77,13 @@ std::string_view OffloadGatherAction::description() const
 void OffloadGatherAction::step(CoreParams const& params,
                                CoreStateHost& state) const
 {
-    auto& aux_state
-        = get<OffloadStepState<MemSpace::native>>(state.aux(), aux_id_);
+    using StateT = AuxStateData<OffloadStepStateData, MemSpace::native>;
+    auto& aux_state = get<StateT>(state.aux(), aux_id_);
 
     auto execute = make_active_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
-        detail::OffloadGatherExecutor{aux_state.store.ref()});
+        detail::OffloadGatherExecutor{aux_state.ref()});
     launch_action(*this, params, state, execute);
 }
 
