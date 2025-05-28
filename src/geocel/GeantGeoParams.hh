@@ -184,7 +184,7 @@ auto GeantGeoParams::volume_instances() const -> VolInstanceMap const&
     return vol_instances_;
 }
 
-#if !CELERITAS_USE_GEANT4
+#if !CELERITAS_USE_GEANT4 && !defined(__DOXYGEN__)
 inline GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const*)
 {
     CELER_NOT_CONFIGURED("Geant4");

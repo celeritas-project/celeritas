@@ -44,8 +44,6 @@ namespace celeritas
 namespace
 {
 
-using SPConstGeantGeoParams = std::shared_ptr<GeantGeoParams const>;
-
 //---------------------------------------------------------------------------//
 LevelId::size_type get_max_depth(G4VPhysicalVolume const& world)
 {
