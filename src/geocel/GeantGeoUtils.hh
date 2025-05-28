@@ -18,10 +18,10 @@
 
 //---------------------------------------------------------------------------//
 // Forward declarations
+class G4Field;
 class G4LogicalVolume;
-class G4VPhysicalVolume;
-class G4Navigator;
 class G4NavigationHistory;
+class G4VPhysicalVolume;
 
 #if CELERITAS_GEANT4_VERSION >= 0x0b0200
 // Geant4 11.2 removed G4VTouchable
@@ -74,6 +74,10 @@ Span<G4LogicalVolume*> geant_logical_volumes();
 //---------------------------------------------------------------------------//
 // Get the world volume if the geometry has been set up
 G4VPhysicalVolume const* geant_world_volume();
+
+//---------------------------------------------------------------------------//
+// Get the field from the global field manager
+G4Field const* geant_field();
 
 //---------------------------------------------------------------------------//
 // Whether the volume is a replica/parameterization

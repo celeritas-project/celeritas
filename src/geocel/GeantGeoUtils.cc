@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <G4Element.hh>
+#include <G4FieldManager.hh>
 #include <G4Isotope.hh>
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
@@ -213,8 +214,27 @@ G4VPhysicalVolume const* geant_world_volume()
     auto* man = G4TransportationManager::GetTransportationManager();
     CELER_ASSERT(man);
     auto* nav = man->GetNavigatorForTracking();
-    CELER_ASSERT(nav);
+    if (!nav)
+        return nullptr;
     return nav->GetWorldVolume();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get an optional global magnetic field for the tracking geometry.
+ *
+ * \return Field if geometry has been initialized and field exists, nullptr
+ * otherwise.
+ */
+G4Field const* geant_field()
+{
+    auto* man = G4TransportationManager::GetTransportationManager();
+    CELER_ASSERT(man);
+    auto* field_mgr = man->GetFieldManager();
+    if (!field_mgr)
+        return nullptr;
+    auto* detector_field = field_mgr->GetDetectorField();
+    return detector_field;
 }
 
 //---------------------------------------------------------------------------//
