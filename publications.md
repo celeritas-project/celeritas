@@ -36,7 +36,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 - J. Esseiva. "Celeritas: Evaluating Performance of HEP Detector Simulation on GPUs". *ACAT 2024*, 14 Mar 2024. [poster](https://indico.cern.ch/event/1330797/contributions/5796653/attachments/2818102/4920368/acat24.pdf)
 - S. R. Johnson. "Celeritas for platform portable HEP comparison". 06 Mar 2024. [presentation](https://indico.cern.ch/event/1299569/)
 - J. Esseiva. "Celeritas: Efficient detector simulation on GPUs for Geant4". *LBNL ATLAS annual meeting*, 08 Jan 2024.
-- S. R. Johnson. "Celeritas R&D Summary". *Geant4 R&D Assessment*, 13 Dec 2023.
+- S. R. Johnson. "Celeritas R&D Summary". *Geant4 R&D Assessment*, 13 Dec 2023. [presentation](https://indico.cern.ch/event/1332507/contributions/5630782/attachments/2771072/4828307/rd-review.pdf)
 - S. R. Johnson. "Celeritas: efficient detector simulation on GPUs for Geant4". *Compute Accelerator Forum*, 11 Dec 2023. [presentation](https://indico.cern.ch/event/1264303/contributions/5309868/attachments/2768764/4824731/caf-seminar.pdf)
 - S. R. Johnson. "Full-featured Geant4 GPU acceleration using Celeritas". *SWIFT-HEP #6*, 21 Nov 2023. [presentation](https://indico.cern.ch/event/1324606/contributions/5679207/attachments/2756023/5120474/celeritas.pdf)
 - S. R. Johnson. "Celeritas v0.4: we’re ready!". *CMS Simulation Group Meeting*, 10 Nov 2023. [presentation](https://indico.cern.ch/event/1344583/contributions/5666830/attachments/2750423/4787039/Celeritas-update.pdf)
