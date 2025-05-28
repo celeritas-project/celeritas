@@ -9,7 +9,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
-#include "celeritas/geo/HeuristicGeoTestBase.hh"
+#include "celeritas/GlobalGeoTestBase.hh"
+#include "celeritas/OnlyCoreTestBase.hh"
+#include "celeritas/OnlyGeoTestBase.hh"
 
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
@@ -20,7 +22,9 @@ namespace celeritas
 
 namespace test
 {
-class SDParamsTest : public HeuristicGeoTestBase
+class SDParamsTest : public GlobalGeoTestBase,
+                     public OnlyGeoTestBase,
+                     public OnlyCoreTestBase
 {
   public:
     using VecLabel = std::vector<Label>;
@@ -28,13 +32,6 @@ class SDParamsTest : public HeuristicGeoTestBase
     {
         return "testem3-flat";
     }
-
-    //! Construct problem-specific attributes (sampling box etc)
-    HeuristicGeoScalars build_scalars() const { return {}; }
-    //! Build a list of volumes to compare average paths
-    SpanConstStr reference_volumes() const { return {}; }
-    //! Return the vector of path lengths mapped by sorted volume name
-    SpanConstReal reference_avg_path() const { return {}; }
 
   protected:
 };
