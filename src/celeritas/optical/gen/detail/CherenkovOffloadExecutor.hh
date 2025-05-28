@@ -28,10 +28,10 @@ struct CherenkovOffloadExecutor
     inline CELER_FUNCTION void
     operator()(celeritas::CoreTrackView const& track);
 
-    NativeCRef<celeritas::optical::MaterialParamsData> const material;
-    NativeCRef<CherenkovData> const cherenkov;
-    NativeRef<GeneratorStateData> const offload;
-    NativeRef<OffloadStepStateData> const steps;
+    NativeCRef<celeritas::optical::MaterialParamsData> material;
+    NativeCRef<CherenkovData> cherenkov;
+    NativeRef<GeneratorStateData> offload;
+    NativeRef<OffloadStepStateData> steps;
     size_type buffer_size;
 };
 

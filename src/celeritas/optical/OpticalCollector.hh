@@ -15,8 +15,9 @@
 
 #include "CoreState.hh"
 #include "Model.hh"
+#include "gen/GeneratorData.hh"
 #include "gen/OffloadData.hh"
-#include "gen/detail/GeneratorAction.hh"
+#include "gen/detail/GeneratorTraits.hh"
 
 namespace celeritas
 {
@@ -34,10 +35,12 @@ class MaterialParams;
 
 namespace detail
 {
-class CherenkovOffloadAction;
+template<GeneratorType G>
+class GeneratorAction;
+template<GeneratorType G>
+class OffloadAction;
 class OffloadGatherAction;
 class OpticalLaunchAction;
-class ScintOffloadAction;
 }  // namespace detail
 
 //---------------------------------------------------------------------------//
@@ -130,8 +133,10 @@ class OpticalCollector
     using GT = detail::GeneratorType;
     template<GT G>
     using GeneratorAction = detail::GeneratorAction<G>;
-    using SPCherenkovOffload = std::shared_ptr<detail::CherenkovOffloadAction>;
-    using SPScintOffload = std::shared_ptr<detail::ScintOffloadAction>;
+    template<GT G>
+    using OffloadAction = detail::OffloadAction<G>;
+    using SPCherenkovOffload = std::shared_ptr<OffloadAction<GT::cherenkov>>;
+    using SPScintOffload = std::shared_ptr<OffloadAction<GT::scintillation>>;
     using SPGatherAction = std::shared_ptr<detail::OffloadGatherAction>;
     using SPCherenkovGen = std::shared_ptr<GeneratorAction<GT::cherenkov>>;
     using SPScintGen = std::shared_ptr<GeneratorAction<GT::scintillation>>;

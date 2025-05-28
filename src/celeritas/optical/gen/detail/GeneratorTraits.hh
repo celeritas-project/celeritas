@@ -12,13 +12,16 @@ namespace celeritas
 {
 template<Ownership W, MemSpace M>
 struct CherenkovData;
-struct CherenkovGenerator;
+class CherenkovGenerator;
 template<Ownership W, MemSpace M>
 struct ScintillationData;
-struct ScintillationGenerator;
+class ScintillationGenerator;
 
 namespace detail
 {
+class CherenkovOffloadExecutor;
+class ScintOffloadExecutor;
+
 //---------------------------------------------------------------------------//
 //! Process used to generate optical photons
 enum class GeneratorType
@@ -28,6 +31,7 @@ enum class GeneratorType
 };
 
 //---------------------------------------------------------------------------//
+//! Traits for generating optical photons from a process
 template<GeneratorType G>
 struct GeneratorTraits;
 
@@ -41,10 +45,10 @@ struct GeneratorTraits<GeneratorType::cherenkov>
     //! Optical photon generator
     using Generator = CherenkovGenerator;
 
-    //! Label of the generating action
+    //! Label of the generator action
     static constexpr char const label[] = "generate-cherenkov-photons";
 
-    //! Description of the generating action
+    //! Description of the generator action
     static constexpr char const description[]
         = "generate Cherenkov photons from optical distribution data";
 };
@@ -59,12 +63,53 @@ struct GeneratorTraits<GeneratorType::scintillation>
     //! Optical photon generator
     using Generator = ScintillationGenerator;
 
-    //! Label of the generating action
+    //! Label of the generator action
     static constexpr char const label[] = "generate-scintillation-photons";
 
-    //! Description of the generating action
+    //! Description of the generator action
     static constexpr char const description[]
         = "generate scintillation photons from optical distribution data";
+};
+
+//---------------------------------------------------------------------------//
+//! Traits for offloading optical distribution data from a process
+template<GeneratorType G>
+struct OffloadTraits;
+
+template<>
+struct OffloadTraits<GeneratorType::cherenkov>
+{
+    //! Shared process data
+    template<Ownership W, MemSpace M>
+    using Data = CherenkovData<W, M>;
+
+    //! Optical offload executor
+    using Executor = CherenkovOffloadExecutor;
+
+    //! Label of the offload action
+    static constexpr char const label[] = "cherenkov-offload";
+
+    //! Description of the offload action
+    static constexpr char const description[]
+        = "generate Cherenkov optical distribution data";
+};
+
+template<>
+struct OffloadTraits<GeneratorType::scintillation>
+{
+    //! Shared process data
+    template<Ownership W, MemSpace M>
+    using Data = ScintillationData<W, M>;
+
+    //! Optical offload executor
+    using Executor = ScintOffloadExecutor;
+
+    //! Label of the offload action
+    static constexpr char const label[] = "scintillation-offload";
+
+    //! Description of the offload action
+    static constexpr char const description[]
+        = "generate scintillation optical distribution data";
 };
 
 //---------------------------------------------------------------------------//

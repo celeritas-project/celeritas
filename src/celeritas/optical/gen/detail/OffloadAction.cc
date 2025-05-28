@@ -2,23 +2,28 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/gen/detail/ScintOffloadAction.cc
+//! \file celeritas/optical/gen/detail/OffloadAction.cc
 //---------------------------------------------------------------------------//
-#include "ScintOffloadAction.hh"
+#include "OffloadAction.hh"
 
 #include <algorithm>
 
 #include "corecel/Assert.hh"
 #include "corecel/data/AuxStateVec.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/optical/CoreState.hh"
+#include "celeritas/optical/MaterialParams.hh"
 
+#include "CherenkovOffloadExecutor.hh"
 #include "OpticalGenAlgorithms.hh"
 #include "ScintOffloadExecutor.hh"
+#include "../CherenkovParams.hh"
+#include "../GeneratorData.hh"
 #include "../ScintillationParams.hh"
 
 namespace celeritas
@@ -27,41 +32,44 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with action ID, data ID, optical properties.
+ * Construct and add to core params.
  */
-ScintOffloadAction::ScintOffloadAction(ActionId action_id,
-                                       AuxId step_id,
-                                       AuxId gen_id,
-                                       AuxId optical_id,
-                                       SPConstScintillation scintillation)
-    : action_id_(action_id)
-    , step_id_{step_id}
-    , gen_id_{gen_id}
-    , optical_id_{optical_id}
-    , scintillation_(std::move(scintillation))
+template<GeneratorType G>
+std::shared_ptr<OffloadAction<G>>
+OffloadAction<G>::make_and_insert(CoreParams const& core, Input&& input)
 {
-    CELER_EXPECT(action_id_);
-    CELER_EXPECT(step_id_);
-    CELER_EXPECT(gen_id_);
-    CELER_EXPECT(optical_id_);
-    CELER_EXPECT(scintillation_);
+    CELER_EXPECT(input);
+    ActionRegistry& actions = *core.action_reg();
+    auto result = std::make_shared<OffloadAction<G>>(actions.next_id(),
+                                                     std::move(input));
+
+    actions.insert(result);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Descriptive name of the action.
+ * Construct with action ID, aux IDs, and optical properties.
  */
-std::string_view ScintOffloadAction::description() const
+template<GeneratorType G>
+OffloadAction<G>::OffloadAction(ActionId id, Input&& inp)
+    : action_id_(id)
+    , step_id_{inp.step_id}
+    , gen_id_{inp.gen_id}
+    , optical_id_{inp.optical_id}
+    , material_(inp.material)
+    , shared_(inp.shared)
 {
-    return "generate scintillation optical distribution data";
+    CELER_EXPECT(action_id_);
+    CELER_EXPECT(inp);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Execute the action with host data.
  */
-void ScintOffloadAction::step(CoreParams const& params,
-                              CoreStateHost& state) const
+template<GeneratorType G>
+void OffloadAction<G>::step(CoreParams const& params, CoreStateHost& state) const
 {
     this->step_impl(params, state);
 }
@@ -70,8 +78,9 @@ void ScintOffloadAction::step(CoreParams const& params,
 /*!
  * Execute the action with device data.
  */
-void ScintOffloadAction::step(CoreParams const& params,
-                              CoreStateDevice& state) const
+template<GeneratorType G>
+void OffloadAction<G>::step(CoreParams const& params,
+                            CoreStateDevice& state) const
 {
     this->step_impl(params, state);
 }
@@ -80,9 +89,10 @@ void ScintOffloadAction::step(CoreParams const& params,
 /*!
  * Generate optical distribution data post-step.
  */
+template<GeneratorType G>
 template<MemSpace M>
-void ScintOffloadAction::step_impl(CoreParams const& core_params,
-                                   CoreState<M>& core_state) const
+void OffloadAction<G>::step_impl(CoreParams const& core_params,
+                                 CoreState<M>& core_state) const
 {
     auto& gen_state = get<GeneratorState<M>>(core_state.aux(), gen_id_);
     auto& buffer = gen_state.store.ref().distributions;
@@ -90,7 +100,7 @@ void ScintOffloadAction::step_impl(CoreParams const& core_params,
 
     CELER_VALIDATE(buffer_size + core_state.size() <= buffer.size(),
                    << "insufficient capacity (" << buffer.size()
-                   << ") for buffered scintillation distribution data (total "
+                   << ") for buffered optical photon distribution data (total "
                       "capacity requirement of "
                    << buffer_size + core_state.size() << ")");
 
@@ -114,31 +124,40 @@ void ScintOffloadAction::step_impl(CoreParams const& core_params,
 /*!
  * Launch a (host) kernel to generate optical distribution data post-step.
  */
-void ScintOffloadAction::offload(CoreParams const& core_params,
-                                 CoreStateHost& core_state) const
+template<GeneratorType G>
+void OffloadAction<G>::offload(CoreParams const& core_params,
+                               CoreStateHost& core_state) const
 {
     auto& step_state
         = get<OffloadStepState<MemSpace::native>>(core_state.aux(), step_id_);
     auto& gen_state
         = get<GeneratorState<MemSpace::native>>(core_state.aux(), gen_id_);
 
-    TrackExecutor execute{
-        core_params.ptr<MemSpace::native>(),
-        core_state.ptr(),
-        detail::ScintOffloadExecutor{scintillation_->host_ref(),
-                                     gen_state.store.ref(),
-                                     step_state.store.ref(),
-                                     gen_state.buffer_size}};
+    TrackExecutor execute{core_params.ptr<MemSpace::native>(),
+                          core_state.ptr(),
+                          Executor{material_->host_ref(),
+                                   shared_->host_ref(),
+                                   gen_state.store.ref(),
+                                   step_state.store.ref(),
+                                   gen_state.buffer_size}};
     launch_action(*this, core_params, core_state, execute);
 }
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void ScintOffloadAction::offload(CoreParams const&, CoreStateDevice&) const
+template<GeneratorType G>
+void OffloadAction<G>::offload(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+template class OffloadAction<GeneratorType::cherenkov>;
+template class OffloadAction<GeneratorType::scintillation>;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

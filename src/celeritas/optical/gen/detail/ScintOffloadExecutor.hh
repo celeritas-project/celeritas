@@ -32,6 +32,7 @@ struct ScintOffloadExecutor
     inline CELER_FUNCTION void
     operator()(celeritas::CoreTrackView const& track);
 
+    NativeCRef<celeritas::optical::MaterialParamsData> const material;
     NativeCRef<ScintillationData> const scint;
     NativeRef<GeneratorStateData> const offload;
     NativeRef<OffloadStepStateData> const steps;

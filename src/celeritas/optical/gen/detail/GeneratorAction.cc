@@ -64,7 +64,7 @@ GeneratorAction<G>::GeneratorAction(ActionId id, AuxId aux_id, Input&& inp)
     , material_(inp.material)
     , shared_(inp.shared)
     , auto_flush_(inp.auto_flush)
-    , buffer_capacity_(inp.buffer_capacity)
+    , capacity_(inp.capacity)
 {
     CELER_EXPECT(action_id_);
     CELER_EXPECT(aux_id_);
@@ -83,7 +83,7 @@ auto GeneratorAction<G>::create_state(MemSpace m, StreamId id, size_type) const
     {
         using StoreT = CollectionStateStore<GeneratorStateData, MemSpace::host>;
         auto result = std::make_unique<GeneratorState<MemSpace::host>>();
-        result->store = StoreT{shared_->host_ref(), id, buffer_capacity_};
+        result->store = StoreT{shared_->host_ref(), id, capacity_};
         CELER_ENSURE(*result);
         return result;
     }
@@ -92,7 +92,7 @@ auto GeneratorAction<G>::create_state(MemSpace m, StreamId id, size_type) const
         using StoreT
             = CollectionStateStore<GeneratorStateData, MemSpace::device>;
         auto result = std::make_unique<GeneratorState<MemSpace::device>>();
-        result->store = StoreT{shared_->host_ref(), id, buffer_capacity_};
+        result->store = StoreT{shared_->host_ref(), id, capacity_};
         CELER_ENSURE(*result);
         return result;
     }
