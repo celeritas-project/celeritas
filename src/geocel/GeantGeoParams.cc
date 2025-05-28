@@ -401,7 +401,7 @@ auto GeantGeoParams::replica_id(G4VPhysicalVolume const& volume) const
  *
  * This assumes no transformation on the global PV.
  */
-BBox GeantGeoParams::get_clhep_bbox() const
+BoundingBox<double> GeantGeoParams::get_clhep_bbox() const
 {
     auto* world_lv = this->world()->GetLogicalVolume();
     CELER_EXPECT(world_lv);
@@ -409,8 +409,9 @@ BBox GeantGeoParams::get_clhep_bbox() const
     CELER_ASSERT(solid);
     G4VisExtent const& extent = solid->GetExtent();
 
-    BBox result{{extent.GetXmin(), extent.GetYmin(), extent.GetZmin()},
-                {extent.GetXmax(), extent.GetYmax(), extent.GetZmax()}};
+    BoundingBox<double> result{
+        {extent.GetXmin(), extent.GetYmin(), extent.GetZmin()},
+        {extent.GetXmax(), extent.GetYmax(), extent.GetZmax()}};
     CELER_ENSURE(result);
     return result;
 }

@@ -156,7 +156,7 @@ void NestedTest::build_g4()
         physical_.front());
     geant_geo_params_ = GeantGeoParams::from_tracking_manager();
 #    if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
-    geant_geo_ = geant_geo_params_;
+    geo_params_ = geant_geo_params_;
 #    endif
 #else
     CELER_NOT_CONFIGURED("Geant4");

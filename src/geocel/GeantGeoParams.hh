@@ -112,7 +112,7 @@ class GeantGeoParams final : public GeoParamsInterface,
     //!@}
 
     // Get the world extents in Geant4 units
-    BBox get_clhep_bbox() const;
+    BoundingBox<double> get_clhep_bbox() const;
 
     //// DATA ACCESS ////
 
@@ -235,7 +235,7 @@ GeantGeoParams::replica_id(G4VPhysicalVolume const&) const
     CELER_ASSERT_UNREACHABLE();
 }
 
-inline BBox GeantGeoParams::get_clhep_bbox() const
+inline BoundingBox<double> GeantGeoParams::get_clhep_bbox() const
 {
     CELER_ASSERT_UNREACHABLE();
 }
