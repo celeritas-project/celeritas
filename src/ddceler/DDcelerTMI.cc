@@ -9,6 +9,9 @@
 #include <DDG4/Factories.h>
 #include <QGSP_BERT.hh>
 
+#include "celeritas/field/FieldDriverOptions.hh"
+#include "celeritas/inp/Field.hh"
+
 using TMI = celeritas::TrackingManagerIntegration;
 
 namespace dd4hep
@@ -19,6 +22,7 @@ namespace sim
 celeritas::SetupOptions DDcelerTMI::makeOptions()
 {
     celeritas::SetupOptions opts;
+
     // NOTE: these numbers are appropriate for CPU execution and can be set
     // through the UI using `/celer/`
     opts.max_num_tracks = 2024;
@@ -26,8 +30,18 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
     // Celeritas does not support EmStandard MSC physics above 200 MeV
     opts.ignore_processes = {"CoulombScat"};
 
-    // Use a uniform (zero) magnetic field
-    opts.make_along_step = celeritas::UniformAlongStepFactory();
+    // Use a placeholder non-zero uniform magnetic field
+    auto make_field_input = []() {
+        celeritas::inp::UniformField input;
+
+        input.strength = {0, 3, 0};
+        constexpr auto celer_mm = celeritas::units::millimeter;
+        input.driver_options.minimum_step = 1e-6 * celer_mm;
+        input.driver_options.delta_chord = 0.025 * celer_mm;
+        input.driver_options.delta_intersection = 1e-5 * celer_mm;
+        return input;
+    };
+    opts.make_along_step = celeritas::UniformAlongStepFactory(make_field_input);
 
     // Save diagnostic file to a unique name
     opts.output_file = "trackingmanager-offload.out.json";
