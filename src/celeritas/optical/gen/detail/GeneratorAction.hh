@@ -109,11 +109,7 @@ class GeneratorAction final : public CoreStepActionInterface,
 
     ActionId action_id_;
     AuxId aux_id_;
-    AuxId optical_id_;
-    SPConstMaterial material_;
-    SPConstParams shared_;
-    size_type auto_flush_;
-    size_type capacity_;
+    Input data_;
 
     //// HELPER FUNCTIONS ////
 

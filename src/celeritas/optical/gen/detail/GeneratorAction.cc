@@ -77,17 +77,11 @@ GeneratorAction<G>::make_and_insert(CoreParams const& core, Input&& input)
  */
 template<GeneratorType G>
 GeneratorAction<G>::GeneratorAction(ActionId id, AuxId aux_id, Input&& inp)
-    : action_id_(id)
-    , aux_id_{aux_id}
-    , optical_id_{inp.optical_id}
-    , material_(inp.material)
-    , shared_(inp.shared)
-    , auto_flush_(inp.auto_flush)
-    , capacity_(inp.capacity)
+    : action_id_(id), aux_id_(aux_id), data_(std::move(inp))
 {
     CELER_EXPECT(action_id_);
     CELER_EXPECT(aux_id_);
-    CELER_EXPECT(inp);
+    CELER_EXPECT(data_);
 }
 
 //---------------------------------------------------------------------------//
@@ -101,11 +95,13 @@ auto GeneratorAction<G>::create_state(MemSpace m, StreamId id, size_type) const
     using Params = typename TraitsT::Params;
     if (m == MemSpace::host)
     {
-        return make_state<Params, MemSpace::host>(*shared_, id, capacity_);
+        return make_state<Params, MemSpace::host>(
+            *data_.shared, id, data_.capacity);
     }
     else if (m == MemSpace::device)
     {
-        return make_state<Params, MemSpace::device>(*shared_, id, capacity_);
+        return make_state<Params, MemSpace::device>(
+            *data_.shared, id, data_.capacity);
     }
     CELER_ASSERT_UNREACHABLE();
 }
@@ -143,12 +139,12 @@ void GeneratorAction<G>::step_impl(CoreParams const& core_params,
 {
     auto& aux_state = get<GeneratorState<M>>(core_state.aux(), aux_id_);
     auto& optical_state
-        = get<optical::CoreState<M>>(core_state.aux(), optical_id_);
+        = get<optical::CoreState<M>>(core_state.aux(), data_.optical_id);
 
     auto& photons = optical_state.counters().num_initializers;
     auto& num_new_photons = optical_state.counters().num_pending;
 
-    if (photons + num_new_photons < auto_flush_)
+    if (photons + num_new_photons < data_.auto_flush)
     {
         // Below the threshold for launching the optical loop
         return;
@@ -200,14 +196,14 @@ void GeneratorAction<G>::generate(CoreParams const& core_params,
     auto& aux_state
         = get<GeneratorState<MemSpace::native>>(core_state.aux(), aux_id_);
     auto& optical_state = get<optical::CoreState<MemSpace::native>>(
-        core_state.aux(), optical_id_);
+        core_state.aux(), data_.optical_id);
 
     TrackExecutor execute{
         core_params.ptr<MemSpace::native>(),
         core_state.ptr(),
         detail::GeneratorExecutor<G>{core_state.ptr(),
-                                     material_->host_ref(),
-                                     shared_->host_ref(),
+                                     data_.material->host_ref(),
+                                     data_.shared->host_ref(),
                                      aux_state.store.ref(),
                                      optical_state.ptr(),
                                      aux_state.buffer_size,

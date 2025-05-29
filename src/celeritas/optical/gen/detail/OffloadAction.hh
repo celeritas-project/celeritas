@@ -93,11 +93,7 @@ class OffloadAction final : public CoreStepActionInterface
     //// DATA ////
 
     ActionId action_id_;
-    AuxId step_id_;
-    AuxId gen_id_;
-    AuxId optical_id_;
-    SPConstMaterial material_;
-    SPConstParams shared_;
+    Input data_;
 
     //// HELPER FUNCTIONS ////
 

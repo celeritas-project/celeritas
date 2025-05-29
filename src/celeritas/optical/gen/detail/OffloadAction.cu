@@ -34,14 +34,14 @@ void OffloadAction<G>::offload(CoreParams const& core_params,
                                CoreStateDevice& core_state) const
 {
     using StateT = AuxStateData<OffloadStepStateData, MemSpace::native>;
-    auto& step_state = get<StateT>(core_state.aux(), step_id_);
-    auto& gen_state
-        = get<GeneratorState<MemSpace::native>>(core_state.aux(), gen_id_);
+    auto& step_state = get<StateT>(core_state.aux(), data_.step_id);
+    auto& gen_state = get<GeneratorState<MemSpace::native>>(core_state.aux(),
+                                                            data_.gen_id);
 
     TrackExecutor execute{core_params.ptr<MemSpace::native>(),
                           core_state.ptr(),
-                          Executor{material_->device_ref(),
-                                   shared_->device_ref(),
+                          Executor{data_.material->device_ref(),
+                                   data_.shared->device_ref(),
                                    gen_state.store.ref(),
                                    step_state.ref(),
                                    gen_state.buffer_size}};

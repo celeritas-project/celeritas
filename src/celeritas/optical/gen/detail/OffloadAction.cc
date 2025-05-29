@@ -52,15 +52,10 @@ OffloadAction<G>::make_and_insert(CoreParams const& core, Input&& input)
  */
 template<GeneratorType G>
 OffloadAction<G>::OffloadAction(ActionId id, Input&& inp)
-    : action_id_(id)
-    , step_id_{inp.step_id}
-    , gen_id_{inp.gen_id}
-    , optical_id_{inp.optical_id}
-    , material_(inp.material)
-    , shared_(inp.shared)
+    : action_id_(id), data_(std::move(inp))
 {
     CELER_EXPECT(action_id_);
-    CELER_EXPECT(inp);
+    CELER_EXPECT(data_);
 }
 
 //---------------------------------------------------------------------------//
@@ -93,7 +88,7 @@ template<MemSpace M>
 void OffloadAction<G>::step_impl(CoreParams const& core_params,
                                  CoreState<M>& core_state) const
 {
-    auto& gen_state = get<GeneratorState<M>>(core_state.aux(), gen_id_);
+    auto& gen_state = get<GeneratorState<M>>(core_state.aux(), data_.gen_id);
     auto& buffer = gen_state.store.ref().distributions;
     auto& buffer_size = gen_state.buffer_size;
 
@@ -114,7 +109,7 @@ void OffloadAction<G>::step_impl(CoreParams const& core_params,
     // Count the number of optical photons that would be generated from the
     // distributions created in this step
     auto& optical_state
-        = get<optical::CoreState<M>>(core_state.aux(), optical_id_);
+        = get<optical::CoreState<M>>(core_state.aux(), data_.optical_id);
     optical_state.counters().num_pending += count_num_photons(
         buffer, start, buffer_size, core_state.stream_id());
 }
@@ -128,14 +123,14 @@ void OffloadAction<G>::offload(CoreParams const& core_params,
                                CoreStateHost& core_state) const
 {
     using StateT = AuxStateData<OffloadStepStateData, MemSpace::native>;
-    auto& step_state = get<StateT>(core_state.aux(), step_id_);
-    auto& gen_state
-        = get<GeneratorState<MemSpace::native>>(core_state.aux(), gen_id_);
+    auto& step_state = get<StateT>(core_state.aux(), data_.step_id);
+    auto& gen_state = get<GeneratorState<MemSpace::native>>(core_state.aux(),
+                                                            data_.gen_id);
 
     TrackExecutor execute{core_params.ptr<MemSpace::native>(),
                           core_state.ptr(),
-                          Executor{material_->host_ref(),
-                                   shared_->host_ref(),
+                          Executor{data_.material->host_ref(),
+                                   data_.shared->host_ref(),
                                    gen_state.store.ref(),
                                    step_state.ref(),
                                    gen_state.buffer_size}};

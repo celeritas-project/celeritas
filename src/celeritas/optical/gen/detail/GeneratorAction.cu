@@ -37,14 +37,14 @@ void GeneratorAction<G>::generate(CoreParams const& core_params,
     auto& aux_state
         = get<GeneratorState<MemSpace::native>>(core_state.aux(), aux_id_);
     auto& optical_state = get<optical::CoreState<MemSpace::native>>(
-        core_state.aux(), optical_id_);
+        core_state.aux(), data_.optical_id);
 
     TrackExecutor execute{
         core_params.ptr<MemSpace::native>(),
         core_state.ptr(),
         detail::GeneratorExecutor<G>{core_state.ptr(),
-                                     material_->device_ref(),
-                                     shared_->device_ref(),
+                                     data_.material->device_ref(),
+                                     data_.shared->device_ref(),
                                      aux_state.store.ref(),
                                      optical_state.ptr(),
                                      aux_state.buffer_size,
