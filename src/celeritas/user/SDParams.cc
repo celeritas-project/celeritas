@@ -16,7 +16,7 @@ namespace celeritas
 /*!
  * Construct from list of volume labels.
  */
-SDParams::SDParams(VecLabel const volume_labels, GeoParamsInterface const& geo)
+SDParams::SDParams(VecLabel const& volume_labels, GeoParamsInterface const& geo)
 {
     CELER_EXPECT(!volume_labels.empty());
 
