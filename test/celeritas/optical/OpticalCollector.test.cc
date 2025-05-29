@@ -288,7 +288,7 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
     size_type step_iter = 1;
     while (count && step_iter++ < num_steps)
     {
-        if (!collector_->buffer_counts<M>(step.state().aux()).photons
+        if (!collector_->buffer_counts(step.state().aux()).photons
             && step_iter < result.optical_launch_step)
         {
             result.optical_launch_step = step_iter;
@@ -334,9 +334,8 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
         get_result(
             result.scintillation, s.store.ref().distributions, s.buffer_size);
     }
-    result.num_photons
-        = collector_->buffer_counts<M>(step.state().aux()).photons;
-    result.accum = collector_->exchange_counters<M>(step.sp_state()->aux());
+    result.num_photons = collector_->buffer_counts(step.state().aux()).photons;
+    result.accum = collector_->exchange_counters(step.sp_state()->aux());
 
     return result;
 }

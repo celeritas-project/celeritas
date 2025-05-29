@@ -13,7 +13,6 @@
 #include "corecel/data/AuxStateVec.hh"
 #include "celeritas/Types.hh"
 
-#include "CoreState.hh"
 #include "Model.hh"
 #include "gen/GeneratorData.hh"
 #include "gen/OffloadData.hh"
@@ -120,12 +119,10 @@ class OpticalCollector
     AuxId optical_aux_id() const;
 
     // Get and reset cumulative statistics on optical tracks from a state
-    template<MemSpace M>
-    inline OpticalAccumStats exchange_counters(AuxStateVec& aux) const;
+    OpticalAccumStats exchange_counters(AuxStateVec& aux) const;
 
     // Get queued buffer sizes
-    template<MemSpace M>
-    inline OpticalBufferSize buffer_counts(AuxStateVec const& aux) const;
+    OpticalBufferSize buffer_counts(AuxStateVec const& aux) const;
 
   private:
     //// TYPES ////
@@ -152,57 +149,5 @@ class OpticalCollector
     SPLaunchAction launch_;
 };
 
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Get and reset cumulative statistics on optical generation from a state.
- */
-template<MemSpace M>
-OpticalAccumStats OpticalCollector::exchange_counters(AuxStateVec& aux) const
-{
-    auto& state = get<optical::CoreState<M>>(aux, this->optical_aux_id());
-    auto& accum = state.accum();
-
-    if (auto id = this->cherenkov_aux_id())
-    {
-        auto& gen = dynamic_cast<GeneratorStateBase const&>(aux.at(id));
-        accum.cherenkov = gen.accum;
-    }
-    if (auto id = this->scintillation_aux_id())
-    {
-        auto& gen = dynamic_cast<GeneratorStateBase const&>(aux.at(id));
-        accum.scintillation = gen.accum;
-    }
-
-    return std::exchange(accum, {});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get info on the number of tracks in the buffer.
- */
-template<MemSpace M>
-auto OpticalCollector::buffer_counts(AuxStateVec const& aux) const
-    -> OpticalBufferSize
-{
-    OpticalBufferSize result;
-
-    auto const& state = get<optical::CoreState<M>>(aux, this->optical_aux_id());
-    result.photons = state.counters().num_pending;
-
-    if (auto id = this->cherenkov_aux_id())
-    {
-        auto& gen = dynamic_cast<GeneratorStateBase const&>(aux.at(id));
-        result.distributions += gen.buffer_size;
-    }
-    if (auto id = this->scintillation_aux_id())
-    {
-        auto& gen = dynamic_cast<GeneratorStateBase const&>(aux.at(id));
-        result.distributions += gen.buffer_size;
-    }
-
-    return result;
-}
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

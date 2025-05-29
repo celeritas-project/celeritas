@@ -62,6 +62,30 @@ class CoreStateInterface : public AuxStateInterface
 
 //---------------------------------------------------------------------------//
 /*!
+ * Manage the optical state counters.
+ */
+class CoreStateBase : public CoreStateInterface
+{
+  public:
+    //! Track initialization counters
+    CoreStateCounters& counters() { return counters_; }
+
+    //! Track initialization counters
+    CoreStateCounters const& counters() const final { return counters_; }
+
+    //! Optical loop statistics
+    OpticalAccumStats& accum() { return accum_; }
+
+  protected:
+    // Counters for track initialization and activity
+    CoreStateCounters counters_;
+
+    //! Counts accumulated over the event for diagnostics
+    OpticalAccumStats accum_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Store all state data for a single thread.
  *
  * When the state lives on the device, we maintain a separate copy of the
@@ -71,7 +95,7 @@ class CoreStateInterface : public AuxStateInterface
  * \todo Encapsulate all the action management accessors in a helper class.
  */
 template<MemSpace M>
-class CoreState final : public CoreStateInterface
+class CoreState final : public CoreStateBase
 {
   public:
     //!@{
@@ -109,17 +133,6 @@ class CoreState final : public CoreStateInterface
     //! Get a native-memspace pointer to the mutable state data
     Ptr ptr() { return ptr_; }
 
-    //// COUNTERS ////
-
-    //! Track initialization counters
-    CoreStateCounters& counters() { return counters_; }
-
-    //! Track initialization counters
-    CoreStateCounters const& counters() const final { return counters_; }
-
-    //! Optical loop statistics
-    OpticalAccumStats& accum() { return accum_; }
-
     // Inject primaries to be turned into TrackInitializers
     void insert_primaries(Span<TrackInitializer const> host_primaries) final;
 
@@ -132,12 +145,6 @@ class CoreState final : public CoreStateInterface
 
     // Native pointer to ref or
     Ptr ptr_;
-
-    // Counters for track initialization and activity
-    CoreStateCounters counters_;
-
-    //! Counts accumulated over the event for diagnostics
-    OpticalAccumStats accum_;
 };
 
 //---------------------------------------------------------------------------//

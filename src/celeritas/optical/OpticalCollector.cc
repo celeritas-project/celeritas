@@ -12,6 +12,7 @@
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "CoreParams.hh"
+#include "CoreState.hh"
 #include "MaterialParams.hh"
 #include "gen/CherenkovParams.hh"
 #include "gen/ScintillationParams.hh"
@@ -138,6 +139,57 @@ AuxId OpticalCollector::cherenkov_aux_id() const
 AuxId OpticalCollector::scintillation_aux_id() const
 {
     return scint_generate_ ? scint_generate_->aux_id() : AuxId{};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get and reset cumulative statistics on optical generation from a state.
+ */
+OpticalAccumStats OpticalCollector::exchange_counters(AuxStateVec& aux) const
+{
+    auto& state = dynamic_cast<optical::CoreStateBase&>(
+        aux.at(this->optical_aux_id()));
+    auto& accum = state.accum();
+
+    if (auto id = this->cherenkov_aux_id())
+    {
+        auto& gen = dynamic_cast<GeneratorStateBase const&>(aux.at(id));
+        accum.cherenkov = gen.accum;
+    }
+    if (auto id = this->scintillation_aux_id())
+    {
+        auto& gen = dynamic_cast<GeneratorStateBase const&>(aux.at(id));
+        accum.scintillation = gen.accum;
+    }
+
+    return std::exchange(accum, {});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get info on the number of tracks in the buffer.
+ */
+auto OpticalCollector::buffer_counts(AuxStateVec const& aux) const
+    -> OpticalBufferSize
+{
+    OpticalBufferSize result;
+
+    auto const& state = dynamic_cast<optical::CoreStateBase const&>(
+        aux.at(this->optical_aux_id()));
+    result.photons = state.counters().num_pending;
+
+    if (auto id = this->cherenkov_aux_id())
+    {
+        auto& gen = dynamic_cast<GeneratorStateBase const&>(aux.at(id));
+        result.distributions += gen.buffer_size;
+    }
+    if (auto id = this->scintillation_aux_id())
+    {
+        auto& gen = dynamic_cast<GeneratorStateBase const&>(aux.at(id));
+        result.distributions += gen.buffer_size;
+    }
+
+    return result;
 }
 
 //---------------------------------------------------------------------------//

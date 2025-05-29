@@ -205,7 +205,7 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
     if (optical_)
     {
         auto& aux = stepper_->sp_state()->aux();
-        auto counters = optical_->exchange_counters<M>(aux);
+        auto counters = optical_->exchange_counters(aux);
         auto const& cherenkov = counters.cherenkov;
         auto const& scint = counters.scintillation;
 
@@ -222,7 +222,7 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
             << counters.step_iters << " step iterations over " << oc.flushes
             << " flushes";
 
-        auto const& buffer_counts = optical_->buffer_counts<M>(aux);
+        auto const& buffer_counts = optical_->buffer_counts(aux);
         if (!buffer_counts.empty())
         {
             CELER_LOG_LOCAL(warning)
