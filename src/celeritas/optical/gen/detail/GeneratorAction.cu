@@ -17,10 +17,10 @@
 
 #include "GeneratorExecutor.hh"
 #include "OpticalGenAlgorithms.hh"
-#include "../CherenkovData.hh"
 #include "../CherenkovGenerator.hh"
-#include "../ScintillationData.hh"
+#include "../CherenkovParams.hh"
 #include "../ScintillationGenerator.hh"
+#include "../ScintillationParams.hh"
 
 namespace celeritas
 {

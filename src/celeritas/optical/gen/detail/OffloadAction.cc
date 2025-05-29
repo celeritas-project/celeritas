@@ -23,7 +23,6 @@
 #include "OpticalGenAlgorithms.hh"
 #include "ScintOffloadExecutor.hh"
 #include "../CherenkovParams.hh"
-#include "../GeneratorData.hh"
 #include "../ScintillationParams.hh"
 
 namespace celeritas

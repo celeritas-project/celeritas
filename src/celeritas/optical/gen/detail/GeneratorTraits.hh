@@ -13,9 +13,11 @@ namespace celeritas
 template<Ownership W, MemSpace M>
 struct CherenkovData;
 class CherenkovGenerator;
+class CherenkovParams;
 template<Ownership W, MemSpace M>
 struct ScintillationData;
 class ScintillationGenerator;
+class ScintillationParams;
 
 namespace detail
 {
@@ -42,6 +44,9 @@ struct GeneratorTraits<GeneratorType::cherenkov>
     template<Ownership W, MemSpace M>
     using Data = CherenkovData<W, M>;
 
+    //! Params class
+    using Params = CherenkovParams;
+
     //! Optical photon generator
     using Generator = CherenkovGenerator;
 
@@ -59,6 +64,9 @@ struct GeneratorTraits<GeneratorType::scintillation>
     //! Shared process data
     template<Ownership W, MemSpace M>
     using Data = ScintillationData<W, M>;
+
+    //! Params class
+    using Params = ScintillationParams;
 
     //! Optical photon generator
     using Generator = ScintillationGenerator;
@@ -79,9 +87,8 @@ struct OffloadTraits;
 template<>
 struct OffloadTraits<GeneratorType::cherenkov>
 {
-    //! Shared process data
-    template<Ownership W, MemSpace M>
-    using Data = CherenkovData<W, M>;
+    //! Params class
+    using Params = CherenkovParams;
 
     //! Optical offload executor
     using Executor = CherenkovOffloadExecutor;
@@ -97,9 +104,8 @@ struct OffloadTraits<GeneratorType::cherenkov>
 template<>
 struct OffloadTraits<GeneratorType::scintillation>
 {
-    //! Shared process data
-    template<Ownership W, MemSpace M>
-    using Data = ScintillationData<W, M>;
+    //! Params class
+    using Params = ScintillationParams;
 
     //! Optical offload executor
     using Executor = ScintOffloadExecutor;

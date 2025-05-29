@@ -11,7 +11,6 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/global/ActionInterface.hh"
 
 #include "GeneratorTraits.hh"
@@ -37,9 +36,7 @@ class OffloadAction final : public CoreStepActionInterface
     //!@{
     //! \name Type aliases
     using TraitsT = OffloadTraits<G>;
-    template<Ownership W, MemSpace M>
-    using Data = typename TraitsT::template Data<W, M>;
-    using SPConstParams = std::shared_ptr<ParamsDataInterface<Data> const>;
+    using SPConstParams = std::shared_ptr<typename TraitsT::Params const>;
     using SPConstMaterial = std::shared_ptr<optical::MaterialParams const>;
     //!@}
 

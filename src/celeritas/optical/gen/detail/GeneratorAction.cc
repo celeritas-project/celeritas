@@ -24,10 +24,10 @@
 
 #include "GeneratorExecutor.hh"
 #include "OpticalGenAlgorithms.hh"
-#include "../CherenkovData.hh"
 #include "../CherenkovGenerator.hh"
-#include "../ScintillationData.hh"
+#include "../CherenkovParams.hh"
 #include "../ScintillationGenerator.hh"
+#include "../ScintillationParams.hh"
 
 namespace celeritas
 {
@@ -98,7 +98,7 @@ template<GeneratorType G>
 auto GeneratorAction<G>::create_state(MemSpace m, StreamId id, size_type) const
     -> UPState
 {
-    using Params = ParamsDataInterface<Data>;
+    using Params = typename TraitsT::Params;
     if (m == MemSpace::host)
     {
         return make_state<Params, MemSpace::host>(*shared_, id, capacity_);
