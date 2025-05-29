@@ -76,7 +76,7 @@ class CoreStateBase : public CoreStateInterface
     //! Optical loop statistics
     OpticalAccumStats& accum() { return accum_; }
 
-  protected:
+  private:
     // Counters for track initialization and activity
     CoreStateCounters counters_;
 

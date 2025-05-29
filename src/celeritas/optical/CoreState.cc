@@ -41,7 +41,7 @@ CoreState<M>::CoreState(CoreParams const& params,
     states_ = CollectionStateStore<CoreStateData, M>(
         params.host_ref(), stream_id, num_track_slots);
 
-    counters_.num_vacancies = num_track_slots;
+    this->counters().num_vacancies = num_track_slots;
 
     if constexpr (M == MemSpace::device)
     {
@@ -73,7 +73,7 @@ template<MemSpace M>
 bool CoreState<M>::warming_up() const
 {
     CELER_NOT_IMPLEMENTED("warming up");
-    return counters_.num_active == 0;
+    return this->counters().num_active == 0;
 }
 
 //---------------------------------------------------------------------------//
