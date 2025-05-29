@@ -21,8 +21,8 @@ class ScintillationParams;
 
 namespace detail
 {
-class CherenkovOffloadExecutor;
-class ScintOffloadExecutor;
+struct CherenkovOffloadExecutor;
+struct ScintOffloadExecutor;
 
 //---------------------------------------------------------------------------//
 //! Process used to generate optical photons
