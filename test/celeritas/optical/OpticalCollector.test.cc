@@ -26,6 +26,7 @@
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/ModelImporter.hh"
+#include "celeritas/optical/gen/GeneratorData.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 
@@ -262,9 +263,6 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
                                size_type num_track_slots,
                                size_type num_steps) -> RunResult
 {
-    using DistRef
-        = Collection<GeneratorDistributionData, Ownership::reference, M>;
-
     if constexpr (M == MemSpace::device)
     {
         device().create_streams(1);
@@ -296,12 +294,15 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
         CELER_TRY_HANDLE(count = step(), log_context);
     }
 
-    auto get_result = [&](OffloadResult& result,
-                          DistRef const& buffer,
-                          size_type size) {
-        auto host_buffer = copy_to_host(buffer);
+    auto get_result = [&](OffloadResult& result, AuxId id) {
+        if (!id)
+        {
+            return;
+        }
+        auto const& state = get<GeneratorState<M>>(step.state().aux(), id);
+        auto buffer = copy_to_host(state.store.ref().distributions);
         std::set<real_type> charge;
-        for (auto const& dist : host_buffer[DistRange(DistId(0), DistId(size))])
+        for (auto const& dist : buffer[DistRange(DistId(state.buffer_size))])
         {
             result.total_num_photons += dist.num_photons;
             result.num_photons.push_back(dist.num_photons);
@@ -322,18 +323,8 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
     };
 
     // Access the optical offload data
-    if (auto id = collector_->cherenkov_aux_id())
-    {
-        auto const& s = get<GeneratorState<M>>(step.state().aux(), id);
-        get_result(
-            result.cherenkov, s.store.ref().distributions, s.buffer_size);
-    }
-    if (auto id = collector_->scintillation_aux_id())
-    {
-        auto const& s = get<GeneratorState<M>>(step.state().aux(), id);
-        get_result(
-            result.scintillation, s.store.ref().distributions, s.buffer_size);
-    }
+    get_result(result.cherenkov, collector_->cherenkov_aux_id());
+    get_result(result.scintillation, collector_->scintillation_aux_id());
     result.num_photons = collector_->buffer_counts(step.state().aux()).photons;
     result.accum = collector_->exchange_counters(step.sp_state()->aux());
 

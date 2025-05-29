@@ -40,8 +40,7 @@ class OffloadAction final : public CoreStepActionInterface
     template<Ownership W, MemSpace M>
     using Data = typename TraitsT::template Data<W, M>;
     using SPConstParams = std::shared_ptr<ParamsDataInterface<Data> const>;
-    using SPConstMaterial
-        = std::shared_ptr<celeritas::optical::MaterialParams const>;
+    using SPConstMaterial = std::shared_ptr<optical::MaterialParams const>;
     //!@}
 
     //! Offload input data

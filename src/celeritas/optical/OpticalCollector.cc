@@ -7,6 +7,7 @@
 #include "OpticalCollector.hh"
 
 #include "corecel/data/AuxParamsRegistry.hh"
+#include "corecel/data/AuxStateVec.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
@@ -39,7 +40,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
 
     // The offload, generator, and launch actions much be created in a specific
     // order but require auxiliary data IDs from actions created later.
-    // Precalculate the IDs for teh generator and optical statue aux data.
+    // Precalculate the IDs for the generator and optical state aux data.
     size_type num_gen = !!inp.cherenkov + !!inp.scintillation;
     auto gen_aux_id = core.aux_reg()->next_id();
     auto optical_aux_id = core.aux_reg()->next_id() + num_gen;
@@ -93,7 +94,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
             core, std::move(ga_inp));
     }
 
-    // Create launch action with optical params+state
+    // Create launch action with optical params+state and access to gen data
     detail::OpticalLaunchAction::Input la_inp;
     la_inp.model_builders = std::move(inp.model_builders);
     la_inp.material = inp.material;

@@ -40,7 +40,7 @@ auto get_core_sizes(OpticalLaunchAction const& ola)
 
     // NOTE: quantities are *per-process* quantities: integrated over streams,
     // but not processes
-    // TODO: Store generator sizes
+    //! \todo Store generator sizes
     result.initializers = result.streams * cp.init()->capacity();
     result.tracks = result.streams * ola.state_size();
 

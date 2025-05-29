@@ -162,9 +162,7 @@ void GeneratorAction<G>::step_impl(CoreParams const& core_params,
                    << photons + num_new_photons << " and current size "
                    << photons << ")");
 
-    auto& offload = aux_state.store.ref();
-    auto& buffer_size = aux_state.buffer_size;
-    if (buffer_size == 0)
+    if (aux_state.buffer_size == 0)
     {
         // No new photons
         return;
@@ -173,9 +171,9 @@ void GeneratorAction<G>::step_impl(CoreParams const& core_params,
     // Calculate the cumulative sum of the number of photons in the buffered
     // distributions. These values are used to determine which thread will
     // generate initializers from which distribution
-    auto count = inclusive_scan_photons(offload.distributions,
-                                        offload.offsets,
-                                        buffer_size,
+    auto count = inclusive_scan_photons(aux_state.store.ref().distributions,
+                                        aux_state.store.ref().offsets,
+                                        aux_state.buffer_size,
                                         core_state.stream_id());
     optical_state.counters().num_generated += count;
 
@@ -183,12 +181,12 @@ void GeneratorAction<G>::step_impl(CoreParams const& core_params,
     this->generate(core_params, core_state);
 
     // Update cumulative statistics
-    aux_state.accum.distributions += buffer_size;
+    aux_state.accum.distributions += aux_state.buffer_size;
     aux_state.accum.photons += count;
 
     photons += count;
     num_new_photons -= count;
-    buffer_size = 0;
+    aux_state.buffer_size = 0;
 }
 
 //---------------------------------------------------------------------------//

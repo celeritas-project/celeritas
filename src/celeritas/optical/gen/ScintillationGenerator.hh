@@ -56,11 +56,11 @@ class ScintillationGenerator
   public:
     // Construct from scintillation data and distribution parameters
     inline CELER_FUNCTION
-    ScintillationGenerator(optical::MaterialView const& material,
+    ScintillationGenerator(optical::MaterialView const&,
                            NativeCRef<ScintillationData> const& shared,
                            GeneratorDistributionData const& dist);
 
-    // Construct without material (for testting)
+    // Construct without material (for testing)
     inline CELER_FUNCTION
     ScintillationGenerator(NativeCRef<ScintillationData> const& shared,
                            GeneratorDistributionData const& dist);
@@ -123,6 +123,9 @@ ScintillationGenerator::ScintillationGenerator(
 //---------------------------------------------------------------------------//
 /*!
  * Construct from shared scintillation data and distribution parameters.
+ *
+ * The optical material is unused but required for the Cherenkov and
+ * scintillation generators to have the same signature.
  */
 CELER_FUNCTION
 ScintillationGenerator::ScintillationGenerator(

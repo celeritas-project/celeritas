@@ -9,12 +9,9 @@
 #include <memory>
 
 #include "corecel/data/AuxInterface.hh"
-#include "corecel/data/AuxStateData.hh"
-#include "corecel/data/AuxStateVec.hh"
 #include "celeritas/Types.hh"
 
 #include "Model.hh"
-#include "gen/GeneratorData.hh"
 #include "gen/OffloadData.hh"
 #include "gen/detail/GeneratorTraits.hh"
 
