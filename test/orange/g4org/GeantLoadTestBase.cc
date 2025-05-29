@@ -8,8 +8,8 @@
 
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
-#include "geocel/GeantGdmlLoader.hh"
-#include "geocel/GeantGeoUtils.hh"
+#include "corecel/io/StringUtils.hh"
+#include "geocel/GeantGeoParams.hh"
 
 namespace celeritas
 {
@@ -18,56 +18,65 @@ namespace g4org
 namespace test
 {
 //---------------------------------------------------------------------------//
-std::string GeantLoadTestBase::loaded_filename_{};
-G4VPhysicalVolume* GeantLoadTestBase::world_volume_{nullptr};
-
-//---------------------------------------------------------------------------//
 /*!
  * Helper function: build via Geant4 GDML reader.
  */
-G4VPhysicalVolume const*
-GeantLoadTestBase::load_gdml(std::string const& filename)
+void GeantLoadTestBase::load_gdml(std::string const& filename)
 {
-    CELER_EXPECT(!filename.empty());
-    if (filename == loaded_filename_)
-    {
-        return world_volume_;
-    }
-
-    if (world_volume_)
-    {
-        // Clear old geant4 data
-        TearDownTestSuite();
-    }
-    ::celeritas::test::ScopedLogStorer scoped_log_{&celeritas::self_logger(),
-                                                   LogLevel::warning};
-    world_volume_ = ::celeritas::load_gdml(filename);
-    EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
-    loaded_filename_ = filename;
-
-    return world_volume_;
+    auto geo = this->get_geometry(filename);
+    geo_ = std::dynamic_pointer_cast<GeantGeoParams const>(geo);
+    CELER_ENSURE(geo_);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Load a test input.
  */
-G4VPhysicalVolume const*
-GeantLoadTestBase::load_test_gdml(std::string_view basename)
+void GeantLoadTestBase::load_test_gdml(std::string_view basename)
 {
-    return this->load_gdml(
-        this->test_data_path("geocel", std::string(basename) + ".gdml"));
+    return this->load_gdml(std::string{"test:"} + std::string{basename});
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Reset the geometry.
+ * Access the geo params after loading.
  */
-void GeantLoadTestBase::TearDownTestSuite()
+GeantGeoParams const& GeantLoadTestBase::geo() const
 {
-    loaded_filename_ = {};
-    ::celeritas::reset_geant_geometry();
-    world_volume_ = nullptr;
+    CELER_VALIDATE(geo_, << "geometry was not loaded into the test harness");
+    return *geo_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access the geo params after loading.
+ */
+G4VPhysicalVolume const& GeantLoadTestBase::world() const
+{
+    return *this->geo().world();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a fresh geometry from a filename
+ */
+auto GeantLoadTestBase::build_fresh_geometry(std::string_view key)
+    -> SPConstGeoI
+{
+    std::string filename{key};
+    if (starts_with(filename, "test:"))
+    {
+        filename = this->test_data_path("geocel", filename.substr(5) + ".gdml");
+    }
+
+    SPConstGeoI result;
+    {
+        ::celeritas::test::ScopedLogStorer scoped_log_{
+            &celeritas::self_logger(), LogLevel::warning};
+        result = std::make_shared<GeantGeoParams>(filename);
+        EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//

@@ -14,9 +14,9 @@
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeantUtils.hh"
-#include "geocel/g4/GeantGeoParams.hh"
 
 #include "SharedParams.hh"
 
@@ -188,15 +188,26 @@ void GeantSimpleCalo::output(JsonPimpl* j) const
 
     // Save detector volumes
     {
-        auto const& geo = *params_->geant_geo_params();
+        auto const* geo = celeritas::geant_geo();
+        std::shared_ptr<GeantGeoParams> ggp;
+        if (!geo)
+        {
+            // This can happen if using this class without Celeritas offloading
+            // enabled, i.e. CELER_DISABLE=1
+            ggp = GeantGeoParams::from_tracking_manager();
+            geo = ggp.get();
+        }
         std::vector<int> ids(volumes_.size());
         std::vector<Label> labels(volumes_.size());
 
         for (auto idx : range(volumes_.size()))
         {
-            auto id = geo.find_volume(volumes_[idx]);
-            ids[idx] = id.unchecked_get();
-            labels[idx] = geo.volumes().at(id);
+            auto id = geo->find_volume(volumes_[idx]);
+            if (id)
+            {
+                ids[idx] = id.unchecked_get();
+                labels[idx] = geo->volumes().at(id);
+            }
         }
         obj["volume_ids"] = std::move(ids);
         obj["volume_labels"] = std::move(labels);

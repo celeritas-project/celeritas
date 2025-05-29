@@ -13,6 +13,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Environment.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
 
 #include "SolidConverter.hh"
@@ -26,9 +27,9 @@ namespace g4org
 /*!
  * Construct with solid conversion helper.
  */
-LogicalVolumeConverter::LogicalVolumeConverter(VecLabel const& labels,
+LogicalVolumeConverter::LogicalVolumeConverter(GeantGeoParams const& geo,
                                                SolidConverter& convert_solid)
-    : labels_{labels}, convert_solid_(convert_solid)
+    : geo_{geo}, convert_solid_(convert_solid)
 {
 }
 
@@ -65,24 +66,8 @@ auto LogicalVolumeConverter::construct_impl(arg_type g4lv) -> SPLV
 {
     auto result = std::make_shared<LogicalVolume>();
 
-    // Save Geant4 volume pointer for later mappings
-    result->g4lv = &g4lv;
-
-    // Save name
-    result->label = [&] {
-        Label result;
-        if (static_cast<std::size_t>(g4lv.GetInstanceID()) < labels_.size())
-        {
-            result = labels_[g4lv.GetInstanceID()];
-        }
-        if (result.empty())
-        {
-            result.name = g4lv.GetName();
-            CELER_LOG(warning) << "Logical volume '" << result.name
-                               << "' is not in the world geometry";
-        }
-        return result;
-    }();
+    // Save Geant4 volume ID
+    result->id = geo_.geant_to_id(g4lv);
 
     // Save material ID
     // NOTE: this is *not* the physics material ("cut couple")
@@ -92,7 +77,7 @@ auto LogicalVolumeConverter::construct_impl(arg_type g4lv) -> SPLV
     }
     else
     {
-        CELER_LOG(warning) << "Logical volume '" << result->label
+        CELER_LOG(warning) << "Logical volume '" << PrintableLV{&g4lv}
                            << "' has no associated material";
         result->material_id = GeoMatId{0};
     }

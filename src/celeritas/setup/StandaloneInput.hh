@@ -16,6 +16,7 @@
 namespace celeritas
 {
 class CoreParams;
+class GeantGeoParams;
 
 namespace inp
 {
@@ -32,6 +33,8 @@ struct StandaloneLoaded
 
     //! Problem setup
     ProblemLoaded problem;
+    //! Loaded Geant4 geometry (if inp.geant_setup)
+    std::shared_ptr<GeantGeoParams> geant_geo;
     //! Events to be run
     VecEvent events;
 };

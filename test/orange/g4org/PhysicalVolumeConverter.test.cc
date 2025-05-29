@@ -9,6 +9,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StreamableVariant.hh"
 #include "corecel/sys/Environment.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "orange/MatrixUtils.hh"
 #include "orange/orangeinp/ObjectInterface.hh"
 #include "orange/transform/TransformIO.hh"
@@ -36,20 +37,31 @@ auto make_options()
 //---------------------------------------------------------------------------//
 class PhysicalVolumeConverterTest : public GeantLoadTestBase
 {
+  public:
+    Label const& get_label(LogicalVolume const& lv)
+    {
+        CELER_EXPECT(lv.id);
+        return this->geo().volumes().at(lv.id);
+    }
+
+    Label const& get_label(PhysicalVolume const& pv)
+    {
+        CELER_EXPECT(pv.id);
+        return this->geo().volume_instances().at(pv.id);
+    }
 };
 
 //---------------------------------------------------------------------------//
 TEST_F(PhysicalVolumeConverterTest, DISABLED_four_levels)
 {
-    G4VPhysicalVolume const* g4world = this->load_test_gdml("four-levels");
+    this->load_test_gdml("four-levels");
     PhysicalVolumeConverter::Options opts;
     opts.verbose = false;
     opts.scale = 0.1;
-    PhysicalVolumeConverter convert{make_options()};
+    PhysicalVolumeConverter convert{this->geo(), make_options()};
 
-    PhysicalVolume world = convert(*g4world);
-    EXPECT_EQ("world_PV", world.label.name);
-    EXPECT_EQ(0, world.copy_number);
+    PhysicalVolume world = convert(this->world());
+    EXPECT_EQ("world_PV", this->get_label(world).name);
     if (!std::holds_alternative<NoTransformation>(world.transform))
     {
         ADD_FAILURE() << "Unexpected transform type: "
@@ -63,19 +75,18 @@ TEST_F(PhysicalVolumeConverterTest, DISABLED_four_levels)
 //---------------------------------------------------------------------------//
 TEST_F(PhysicalVolumeConverterTest, intersection_boxes)
 {
-    G4VPhysicalVolume const* g4world
-        = this->load_test_gdml("intersection-boxes");
+    this->load_test_gdml("intersection-boxes");
 
-    PhysicalVolumeConverter convert{make_options()};
-    PhysicalVolume world = convert(*g4world);
+    PhysicalVolumeConverter convert{this->geo(), make_options()};
+    PhysicalVolume world = convert(this->world());
 
     ASSERT_TRUE(world.lv);
-    EXPECT_EQ(Label{"world"}, world.lv->label);
+    EXPECT_EQ(Label{"world"}, this->get_label(*world.lv));
     ASSERT_EQ(1, world.lv->children.size());
 
     auto const& inner_pv = world.lv->children.front();
     ASSERT_TRUE(inner_pv.lv);
-    EXPECT_EQ(Label{"inner"}, inner_pv.lv->label);
+    EXPECT_EQ(Label{"inner"}, this->get_label(*inner_pv.lv));
     ASSERT_TRUE(inner_pv.lv->solid);
     EXPECT_JSON_EQ(
         R"json(
@@ -95,22 +106,21 @@ TEST_F(PhysicalVolumeConverterTest, intersection_boxes)
 TEST_F(PhysicalVolumeConverterTest, DISABLED_solids)
 {
     celeritas::environment().insert({"G4ORG_ALLOW_ERRORS", "1"});
-    G4VPhysicalVolume const* g4world = this->load_test_gdml("solids");
+    this->load_test_gdml("solids");
 
-    PhysicalVolumeConverter convert{make_options()};
+    PhysicalVolumeConverter convert{this->geo(), make_options()};
 
-    PhysicalVolume world = convert(*g4world);
+    PhysicalVolume world = convert(this->world());
 }
 
 //---------------------------------------------------------------------------//
 TEST_F(PhysicalVolumeConverterTest, testem3)
 {
-    G4VPhysicalVolume const* g4world = this->load_test_gdml("testem3");
-    PhysicalVolumeConverter convert{make_options()};
+    this->load_test_gdml("testem3");
+    PhysicalVolumeConverter convert{this->geo(), make_options()};
 
-    PhysicalVolume world = convert(*g4world);
-    EXPECT_EQ("world_PV", world.label.name);
-    EXPECT_EQ(0, world.copy_number);
+    PhysicalVolume world = convert(this->world());
+    EXPECT_EQ("world_PV", this->get_label(world).name);
 
     ASSERT_TRUE(world.lv);
     EXPECT_EQ(1, world.lv.use_count());
@@ -118,8 +128,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
 
     {
         // Test world's logical volume
-        EXPECT_NE(nullptr, lv->g4lv);
-        EXPECT_EQ(Label{"world"}, lv->label);
+        EXPECT_EQ(Label{"world"}, this->get_label(*lv));
         ASSERT_TRUE(lv->solid);
         EXPECT_JSON_EQ(
             R"json({"_type":"shape","interior":{"_type":"box","halfwidths":[24.0,24.0,24.0]},"label":"World"})json",
@@ -133,11 +142,10 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
     }
     {
         // Test calorimeter
-        EXPECT_EQ(Label{"calorimeter"}, lv->label);
+        EXPECT_EQ(Label{"calorimeter"}, this->get_label(*lv));
         ASSERT_EQ(50, lv->children.size());
 
         auto const& first_layer = lv->children.front();
-        EXPECT_EQ(1, first_layer.copy_number);
         EXPECT_EQ(50, first_layer.lv.use_count());
         if (auto* trans = std::get_if<Translation>(&first_layer.transform))
         {
@@ -150,7 +158,6 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
         }
 
         auto const& last_layer = lv->children.back();
-        EXPECT_EQ(50, last_layer.copy_number);
         EXPECT_EQ(first_layer.lv.get(), last_layer.lv.get());
 
         ASSERT_TRUE(first_layer.lv);
@@ -158,7 +165,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
     }
     {
         // Test layer
-        EXPECT_EQ(Label{"layer"}, lv->label);
+        EXPECT_EQ(Label{"layer"}, this->get_label(*lv));
         ASSERT_EQ(2, lv->children.size());
 
         ASSERT_TRUE(lv->solid);
@@ -174,7 +181,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
     }
     {
         // Test lead
-        EXPECT_EQ(Label{"pb"}, lv->label);
+        EXPECT_EQ(Label{"pb"}, this->get_label(*lv));
         EXPECT_EQ(0, lv->children.size());
     }
 }
@@ -182,18 +189,18 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
 //---------------------------------------------------------------------------//
 TEST_F(PhysicalVolumeConverterTest, transformed_box)
 {
-    G4VPhysicalVolume const* g4world = this->load_test_gdml("transformed-box");
+    this->load_test_gdml("transformed-box");
 
-    PhysicalVolumeConverter convert{make_options()};
-    PhysicalVolume world = convert(*g4world);
-    EXPECT_EQ(Label{"world_PV"}, world.label);
+    PhysicalVolumeConverter convert{this->geo(), make_options()};
+    PhysicalVolume world = convert(this->world());
+    EXPECT_EQ(Label{"world_PV"}, this->get_label(world));
 
     ASSERT_TRUE(world.lv);
     ASSERT_EQ(3, world.lv->children.size());
 
     {
         auto const& pv = world.lv->children[0];
-        EXPECT_EQ("transrot", pv.label.name);
+        EXPECT_EQ("transrot", this->get_label(pv).name);
         if (auto* trans = std::get_if<Transformation>(&pv.transform))
         {
             EXPECT_VEC_SOFT_EQ((Real3{0, 0, -10}), trans->translation());
@@ -211,7 +218,7 @@ TEST_F(PhysicalVolumeConverterTest, transformed_box)
     }
     {
         auto const& pv = world.lv->children[1];
-        EXPECT_EQ("default", pv.label.name);
+        EXPECT_EQ("default", this->get_label(pv).name);
         if (!std::holds_alternative<NoTransformation>(pv.transform))
         {
             ADD_FAILURE() << "Unexpected transform type: "
@@ -220,7 +227,7 @@ TEST_F(PhysicalVolumeConverterTest, transformed_box)
     }
     {
         auto const& pv = world.lv->children[2];
-        EXPECT_EQ("trans", pv.label.name);
+        EXPECT_EQ("trans", this->get_label(pv).name);
         if (auto* trans = std::get_if<Translation>(&pv.transform))
         {
             EXPECT_VEC_SOFT_EQ((Real3{0, 0, 10}), trans->translation());
@@ -236,7 +243,7 @@ TEST_F(PhysicalVolumeConverterTest, transformed_box)
         CELER_ASSERT(lv_parent);
         ASSERT_EQ(1, lv_parent->children.size());
         auto const& pv = lv_parent->children[0];
-        EXPECT_EQ("rot", pv.label.name);
+        EXPECT_EQ("rot", this->get_label(pv).name);
         if (auto* trans = std::get_if<Transformation>(&pv.transform))
         {
             EXPECT_VEC_SOFT_EQ((Real3{0, 0, 0}), trans->translation());
@@ -259,10 +266,12 @@ TEST_F(PhysicalVolumeConverterTest, transformed_box)
 //---------------------------------------------------------------------------//
 TEST_F(PhysicalVolumeConverterTest, znenv)
 {
-    G4VPhysicalVolume const* g4world = this->load_test_gdml("znenv");
-    PhysicalVolumeConverter convert{make_options()};
-    PhysicalVolume world = convert(*g4world);
+    this->load_test_gdml("znenv");
+    PhysicalVolumeConverter convert{this->geo(), make_options()};
+    PhysicalVolume world = convert(this->world());
     (void)sizeof(world);
+
+    // TODO: test parameterisation ReplicaId
 }
 
 //---------------------------------------------------------------------------//

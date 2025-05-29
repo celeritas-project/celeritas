@@ -11,11 +11,9 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Stopwatch.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/rasterize/RaytraceImager.hh"
 #include "orange/OrangeParams.hh"
-#if CELERITAS_USE_GEANT4
-#    include "geocel/g4/GeantGeoParams.hh"
-#endif
 #if CELERITAS_USE_VECGEOM
 #    include "geocel/vg/VecgeomParams.hh"
 #endif
@@ -49,7 +47,9 @@ Runner::Runner(ModelSetup const& input) : input_{input}
     if (CELERITAS_USE_GEANT4 && ends_with(input_.geometry_file, ".gdml"))
     {
         // Retain the Geant4 world for possible reuse across geometries
-        this->load_geometry<Geometry::geant4>();
+        CELER_EXPECT(!celeritas::geant_geo());
+        auto geo = this->load_geometry<Geometry::geant4>();
+        celeritas::geant_geo(*geo);
     }
 }
 

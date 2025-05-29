@@ -2,30 +2,27 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/g4/GeantGeoParams.hh
+//! \file geocel/GeantGeoParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
 #include <string>
 
 #include "corecel/Macros.hh"
-#include "corecel/Types.hh"
-#include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/data/ParamsDataInterface.hh"
-#include "geocel/BoundingBox.hh"
-#include "geocel/GeoParamsInterface.hh"
-#include "geocel/Types.hh"
 
-#include "GeantGeoData.hh"
+#include "BoundingBox.hh"
+#include "GeoParamsInterface.hh"
+#include "ScopedGeantExceptionHandler.hh"
+#include "ScopedGeantLogger.hh"
+#include "Types.hh"
+#include "g4/GeantGeoData.hh"
 
 class G4VPhysicalVolume;
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-class ScopedGeantLogger;
-class ScopedGeantExceptionHandler;
-
 //---------------------------------------------------------------------------//
 /*!
  * Shared Geant4 geometry model wrapper.
@@ -39,19 +36,25 @@ class GeantGeoParams final : public GeoParamsInterface,
                              public ParamsDataInterface<GeantGeoParamsData>
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using ReplicaId = GeantPhysicalInstance::ReplicaId;
+    //!@}
+
+  public:
+    // Create from a running Geant4 application
+    static std::shared_ptr<GeantGeoParams> from_tracking_manager();
+
     // Construct from a GDML filename
     explicit GeantGeoParams(std::string const& gdml_filename);
 
-    // Create a VecGeom model from a pre-existing Geant4 geometry
+    // Create a VecGeom model from an already-loaded Geant4 geometry
     explicit GeantGeoParams(G4VPhysicalVolume const* world);
 
     CELER_DEFAULT_MOVE_DELETE_COPY(GeantGeoParams);
 
     // Clean up on destruction
     ~GeantGeoParams() final;
-
-    //! Access the world volume
-    G4VPhysicalVolume const* world() const { return host_ref_.world; }
 
     //! Whether safety distance calculations are accurate and precise
     bool supports_safety() const final { return true; }
@@ -87,6 +90,29 @@ class GeantGeoParams final : public GeoParamsInterface,
 
     //! Offset of physical volume ID after reloading geometry
     VolumeId::size_type pv_offset() const { return pv_offset_; }
+
+    //// G4 ACCESSORS ////
+
+    //! Get the volume ID corresponding to a Geant4 logical volume
+    VolumeId geant_to_id(G4LogicalVolume const& volume) const
+    {
+        return this->find_volume(&volume);
+    }
+
+    // Get the volume ID corresponding to a Geant4 physical volume
+    VolumeInstanceId geant_to_id(G4VPhysicalVolume const& volume) const;
+
+    // Get the replica ID corresponding to a Geant4 physical volume
+    ReplicaId replica_id(G4VPhysicalVolume const& volume) const;
+
+    //!@{
+    //! Access the world volume
+    G4VPhysicalVolume const* world() const { return host_ref_.world; }
+    G4VPhysicalVolume* world() { return host_ref_.world; }
+    //!@}
+
+    // Get the world extents in Geant4 units
+    BoundingBox<double> get_clhep_bbox() const;
 
     //// DATA ACCESS ////
 
@@ -128,6 +154,13 @@ class GeantGeoParams final : public GeoParamsInterface,
 };
 
 //---------------------------------------------------------------------------//
+// Set non-owning reference to global tracking geometry instance
+void geant_geo(GeantGeoParams const&);
+
+// Global tracking geometry instance: may be nullptr
+GeantGeoParams const* geant_geo();
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
@@ -151,5 +184,62 @@ auto GeantGeoParams::volume_instances() const -> VolInstanceMap const&
     return vol_instances_;
 }
 
+#if !CELERITAS_USE_GEANT4 && !defined(__DOXYGEN__)
+inline GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const*)
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+inline GeantGeoParams::GeantGeoParams(std::string const&)
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+inline std::shared_ptr<GeantGeoParams>
+GeantGeoParams::GeantGeoParams::from_tracking_manager()
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+inline GeantGeoParams::~GeantGeoParams() {}
+inline void geant_geo(GeantGeoParams const&)
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+inline GeantGeoParams const* geant_geo()
+{
+    return nullptr;
+}
+
+inline VolumeId GeantGeoParams::find_volume(G4LogicalVolume const*) const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline GeantPhysicalInstance GeantGeoParams::id_to_geant(VolumeInstanceId) const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId) const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline VolumeInstanceId
+GeantGeoParams::geant_to_id(G4VPhysicalVolume const&) const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline GeantGeoParams::ReplicaId
+GeantGeoParams::replica_id(G4VPhysicalVolume const&) const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline BoundingBox<double> GeantGeoParams::get_clhep_bbox() const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+#endif
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

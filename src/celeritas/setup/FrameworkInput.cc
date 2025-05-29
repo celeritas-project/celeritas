@@ -10,6 +10,7 @@
 
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/inp/FrameworkInput.hh"
 #include "celeritas/inp/Problem.hh"
@@ -34,15 +35,19 @@ FrameworkLoaded framework_input(inp::FrameworkInput& fi)
     // Set up system
     setup::system(fi.system);
 
+    // Load Geant4 geometry wrapper and save as global
+    CELER_ASSERT(!celeritas::geant_geo());
+    auto geo = GeantGeoParams::from_tracking_manager();
+    CELER_ASSERT(geo);
+    celeritas::geant_geo(*geo);
+
     // Import physics data
-    auto* world = GeantImporter::get_world_volume();
-    CELER_ASSERT(world);
-    ImportData imported = GeantImporter{world}(fi.geant.data_selection);
+    ImportData imported = GeantImporter{}(fi.geant.data_selection);
 
     // Set up problem
     inp::Problem problem;
 
-    problem.model.geometry = world;
+    problem.model.geometry = geo->world();
     for (std::string const& process_name : fi.geant.ignore_processes)
     {
         ImportProcessClass ipc;
@@ -73,7 +78,7 @@ FrameworkLoaded framework_input(inp::FrameworkInput& fi)
     }
 
     FrameworkLoaded result;
-    result.world = world;
+    result.geo = std::move(geo);
 
     // Set up core params
     result.problem = setup::problem(problem, imported);

@@ -47,7 +47,7 @@ if(CELERITAS_USE_Geant4)
     GeantGdmlLoader.cc
     ScopedGeantExceptionHandler.cc
     ScopedGeantLogger.cc
-    g4/GeantGeoParams.cc
+    GeantGeoParams.cc
     g4/RaytraceImager.cc
     g4/SafetyImager.cc
     g4/detail/GeantGeoNavCollection.cc

@@ -14,6 +14,7 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/TypeDemangler.hh"
+#include "geocel/GeantGeoParams.hh"
 
 #include "CheckedGeoTrackView.hh"
 #include "TestMacros.hh"
@@ -52,7 +53,13 @@ auto GenericGeoTestBase<HP>::build_geometry_from_basename() -> SPConstGeo
     // ${SOURCE}/test/geocel/data/${basename}${fileext}
     auto filename = this->geometry_basename() + std::string{TraitsT::ext};
     std::string test_file = test_data_path("geocel", filename);
-    return std::make_shared<HP>(test_file);
+    auto result = std::make_shared<HP>(test_file);
+    if constexpr (std::is_same_v<HP, GeantGeoParams>)
+    {
+        // Save global geant geometry
+        ::celeritas::geant_geo(*result);
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//

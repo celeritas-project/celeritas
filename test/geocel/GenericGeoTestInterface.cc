@@ -18,6 +18,8 @@
 
 #if CELERITAS_USE_GEANT4
 #    include <G4VPhysicalVolume.hh>
+
+#    include "geocel/GeantGeoParams.hh"
 #endif
 
 namespace celeritas
@@ -211,16 +213,15 @@ GenericGeoTestInterface::get_volume_instance_labels() const
 //---------------------------------------------------------------------------//
 /*!
  * Get all Geant4 PV names corresponding to volume instances.
+ *
+ * TODO: clean this up and/or check that it's necessary when unifying volume
+ * instances etc.
  */
 std::vector<std::string> GenericGeoTestInterface::get_g4pv_labels() const
 {
-    auto* world = this->g4world();
-    CELER_VALIDATE(world,
-                   << "cannot get g4pv names from " << this->geometry_type()
-                   << " geometry: Geant4 world has not been set");
-
 #if CELERITAS_USE_GEANT4
-    auto pv_labels = make_physical_vol_labels(*world);
+    auto* geant_geo = celeritas::geant_geo();
+    CELER_VALIDATE(geant_geo, << "global Geant4 geometry is not loaded");
 
     auto& geo = *this->geometry_interface();
     auto const& vol_inst = geo.volume_instances();
@@ -228,7 +229,8 @@ std::vector<std::string> GenericGeoTestInterface::get_g4pv_labels() const
     std::vector<std::string> result;
     for (auto vidx : range(this->volume_instance_offset(), vol_inst.size()))
     {
-        if (vol_inst.at(VolumeInstanceId{vidx}).empty())
+        VolumeInstanceId vi_id{vidx};
+        if (vol_inst.at(vi_id).empty())
         {
             // Skip "virtual" PV
             continue;
@@ -237,17 +239,19 @@ std::vector<std::string> GenericGeoTestInterface::get_g4pv_labels() const
         result.push_back([&] {
             using namespace std::literals;
 
-            auto phys_inst = geo.id_to_geant(VolumeInstanceId{vidx});
+            auto phys_inst = geo.id_to_geant(vi_id);
             if (!phys_inst)
             {
                 return "<null>"s;
             }
-            auto id = static_cast<std::size_t>(phys_inst.pv->GetInstanceID());
-            if (id >= pv_labels.size())
+
+            auto vi_id = geant_geo->geant_to_id(*phys_inst.pv);
+            auto const& vol_inst = geant_geo->volume_instances();
+            if (!(vi_id < vol_inst.size()))
             {
                 return "<out of range: "s + phys_inst.pv->GetName() + ">"s;
             }
-            auto const& label = pv_labels[id];
+            auto const& label = vol_inst.at(vi_id);
             if (label.empty())
             {
                 return "<not visited: "s + phys_inst.pv->GetName() + ">"s;
