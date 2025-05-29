@@ -122,17 +122,15 @@ template<GeneratorType G>
 void OffloadAction<G>::offload(CoreParams const& core_params,
                                CoreStateHost& core_state) const
 {
-    using StateT = AuxStateData<OffloadStepStateData, MemSpace::native>;
-    auto& step_state = get<StateT>(core_state.aux(), data_.step_id);
+    auto& step = core_state.aux_data<OffloadStepStateData>(data_.step_id);
     auto& gen_state = get<GeneratorState<MemSpace::native>>(core_state.aux(),
                                                             data_.gen_id);
-
     TrackExecutor execute{core_params.ptr<MemSpace::native>(),
                           core_state.ptr(),
                           Executor{data_.material->host_ref(),
                                    data_.shared->host_ref(),
                                    gen_state.store.ref(),
-                                   step_state.ref(),
+                                   step,
                                    gen_state.buffer_size}};
     launch_action(*this, core_params, core_state, execute);
 }
