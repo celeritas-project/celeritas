@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/user/SDParams.test.cc
-//------------
+//---------------------------------------------------------------------------//
 
 #include "celeritas/user/SDParams.hh"
 
@@ -24,6 +24,7 @@ namespace celeritas
 {
 namespace test
 {
+//---------------------------------------------------------------------------//
 class SDParamsTest : public GlobalGeoTestBase,
                      public OnlyGeoTestBase,
                      public OnlyCoreTestBase
@@ -38,21 +39,24 @@ class SDParamsTest : public GlobalGeoTestBase,
 
 TEST_F(SDParamsTest, empty_constructor_test)
 {
-    auto test_detector_params = std::make_shared<SDParams>();
+    auto params = std::make_shared<SDParams>();
 
-    auto det_id = DetectorId{0};
-    auto vol_id = VolumeId{0};
-    EXPECT_THROW(test_detector_params->volume_to_detector_id(vol_id),
-                 celeritas::DebugError);
-    EXPECT_THROW(test_detector_params->detector_to_volume_id(det_id),
-                 celeritas::DebugError);
+    if (CELERITAS_DEBUG)
+    {
+        auto det_id = DetectorId{0};
+        auto vol_id = VolumeId{0};
+        EXPECT_THROW(params->volume_to_detector_id(vol_id),
+                     celeritas::DebugError);
+        EXPECT_THROW(params->detector_to_volume_id(det_id),
+                     celeritas::DebugError);
+    }
 }
 
-TEST_F(SDParamsTest, invalid_label_test)
+TEST_F(SDParamsTest, TEST_IF_CELERITAS_DEBUG(invalid_label_test))
 {
     VecLabel detector_labels = {"invalid_label"};
 
-    EXPECT_THROW(auto test_detector_params = std::make_shared<SDParams>(
+    EXPECT_THROW(auto params = std::make_shared<SDParams>(
                      detector_labels, *(this->build_geometry())),
                  celeritas::RuntimeError);
 }

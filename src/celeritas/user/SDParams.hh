@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionMirror.hh"
