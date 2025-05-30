@@ -127,14 +127,27 @@ include_guard(GLOBAL)
 
 include(CheckLanguage)
 
+# List of optional components
+set(CELERITAS_COMPONENTS)
+# List of enabled components
+set(CELERITAS_ENABLED_COMPONENTS)
+# List of forced packages
+set(CELERITAS_FORCED_PACKAGE_VARS)
 # List of variables configured via `celeritas_set_default`
 set(CELERITAS_DEFAULT_VARIABLES)
 # True if any CELERITAS_BUILTIN_XXX
 set(CELERITAS_BUILTIN FALSE)
 
 #-----------------------------------------------------------------------------#
+macro(_celeritas_append_optional_component var val)
+  # Append to list of components
+  list(APPEND CELERITAS_COMPONENTS ${var})
+  if("${val}")
+    list(APPEND CELERITAS_ENABLED_COMPONENTS ${var})
+  endif()
+endmacro()
 
-function(celeritas_optional_language lang)
+macro(celeritas_optional_language lang)
   set(_var "CELERITAS_USE_${lang}")
   if(DEFINED "${_var}")
     set(_val "${_var}")
@@ -147,8 +160,11 @@ function(celeritas_optional_language lang)
     message(STATUS "Set ${_var}=${_val} based on compiler availability")
   endif()
 
+  # Create option
   option("${_var}" "Enable the ${lang} language" "${_val}" )
-endfunction()
+  # Append to list of components
+  _celeritas_append_optional_component("${lang}" "${${_var}}")
+endmacro()
 
 #-----------------------------------------------------------------------------#
 
@@ -230,7 +246,19 @@ macro(celeritas_optional_package package)
     endif()
   endif()
 
+  # Create option
   option("${_var}" "${_docstring}" "${_val}")
+  # Append to list of components
+  _celeritas_append_optional_component(${package} "${${_var}}")
+endmacro()
+
+macro(celeritas_force_package package value)
+  set(_var "CELERITAS_USE_${package}")
+  set(${_var} ${value})
+  # Append to list of components
+  _celeritas_append_optional_component(${package} "${value}")
+  # Append to list of forced packages for export
+  list(APPEND CELERITAS_FORCED_PACKAGE_VARS ${_var})
 endmacro()
 
 #-----------------------------------------------------------------------------#

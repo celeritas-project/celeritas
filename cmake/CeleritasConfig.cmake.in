@@ -134,7 +134,6 @@ endif()
 
 if(CELERITAS_USE_Python)
   find_dependency(Python 3.6 REQUIRED COMPONENTS Interpreter)
-  unset(_components)
 endif()
 
 if(CELERITAS_USE_ROOT)
@@ -193,11 +192,11 @@ endif()
 
 #-----------------------------------------------------------------------------#
 # Set components for use by the caller
+if(NOT Celeritas_FIND_COMPONENTS)
+  set(Celeritas_FIND_COMPONENTS @CELERITAS_ENABLED_COMPONENTS@)
+endif()
 
-foreach(_dep
-    CUDA HIP # Languages
-    covfie Geant4 HepMC3 MPI OpenMP Perfetto PNG ROOT VecGeom # Packages
-  )
+foreach(_dep IN LISTS CELERITAS_COMPONENTS)
   set(@PROJECT_NAME@_${_dep}_FOUND ${CELERITAS_USE_${_dep}})
 endforeach()
 unset(_dep)
@@ -207,6 +206,6 @@ unset(_dep)
 
 include(FindPackageHandleStandardArgs)
 set(${CMAKE_FIND_PACKAGE_NAME}_CONFIG "${CMAKE_CURRENT_LIST_FILE}")
-find_package_handle_standard_args(@PROJECT_NAME@ CONFIG_MODE)
+find_package_handle_standard_args(@PROJECT_NAME@ CONFIG_MODE HANDLE_COMPONENTS)
 
 #-----------------------------------------------------------------------------#
