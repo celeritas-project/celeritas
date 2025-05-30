@@ -8,6 +8,7 @@
 
 #include "corecel/cont/Span.hh"
 #include "corecel/data/AuxInterface.hh"
+#include "corecel/data/AuxStateVec.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/ObserverPtr.hh"
 #include "celeritas/Types.hh"
@@ -102,6 +103,7 @@ class CoreState final : public CoreStateBase
     //! \name Type aliases
     template<template<Ownership, MemSpace> class S>
     using StateRef = S<Ownership::reference, M>;
+    using SPAuxStateVec = std::shared_ptr<AuxStateVec>;
 
     using Ref = StateRef<CoreStateData>;
     using Ptr = ObserverPtr<Ref, M>;
@@ -136,6 +138,14 @@ class CoreState final : public CoreStateBase
     // Inject primaries to be turned into TrackInitializers
     void insert_primaries(Span<TrackInitializer const> host_primaries) final;
 
+    //// AUXILIARY DATA ////
+
+    //! Access auxiliary core state data
+    SPAuxStateVec const& aux() const { return aux_state_; }
+
+    //! Access auxiliary core state data (mutable)
+    SPAuxStateVec& aux() { return aux_state_; }
+
   private:
     // State data
     CollectionStateStore<CoreStateData, M> states_;
@@ -145,6 +155,9 @@ class CoreState final : public CoreStateBase
 
     // Native pointer to ref or
     Ptr ptr_;
+
+    // Auxiliary data owned by the core state
+    SPAuxStateVec aux_state_;
 };
 
 //---------------------------------------------------------------------------//

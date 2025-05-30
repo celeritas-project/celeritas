@@ -10,7 +10,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/data/AuxInterface.hh"
-#include "celeritas/global/ActionInterface.hh"
+#include "celeritas/optical/action/ActionInterface.hh"
 
 #include "GeneratorTraits.hh"
 #include "../GeneratorData.hh"
@@ -37,7 +37,7 @@ namespace detail
  * multiple threads may generate initializers from a single distribution.
  */
 template<GeneratorType G>
-class GeneratorAction final : public CoreStepActionInterface,
+class GeneratorAction final : public optical::OpticalStepActionInterface,
                               public AuxParamsInterface
 {
   public:
@@ -56,19 +56,20 @@ class GeneratorAction final : public CoreStepActionInterface,
         AuxId optical_id;
         SPConstMaterial material;
         SPConstParams shared;
-        size_type auto_flush{};
         size_type capacity{};
 
         explicit operator bool() const
         {
-            return optical_id && material && shared && auto_flush && capacity;
+            return optical_id && material && shared && capacity > 0;
         }
     };
 
   public:
     // Construct and add to core params
     static std::shared_ptr<GeneratorAction>
-    make_and_insert(CoreParams const&, Input&&);
+    make_and_insert(::celeritas::CoreParams const&,
+                    optical::CoreParams const&,
+                    Input&&);
 
     // Construct with action ID, data IDs, and optical properties
     GeneratorAction(ActionId, AuxId, Input&&);
@@ -97,11 +98,11 @@ class GeneratorAction final : public CoreStepActionInterface,
     //! \name StepAction interface
 
     //! Dependency ordering of the action
-    StepActionOrder order() const final { return StepActionOrder::user_post; }
+    StepActionOrder order() const final { return StepActionOrder::generate; }
     // Launch kernel with host data
-    void step(CoreParams const&, CoreStateHost&) const final;
+    void step(optical::CoreParams const&, CoreStateHost&) const final;
     // Launch kernel with device data
-    void step(CoreParams const&, CoreStateDevice&) const final;
+    void step(optical::CoreParams const&, CoreStateDevice&) const final;
     //!@}
 
   private:
@@ -114,10 +115,10 @@ class GeneratorAction final : public CoreStepActionInterface,
     //// HELPER FUNCTIONS ////
 
     template<MemSpace M>
-    void step_impl(CoreParams const&, CoreState<M>&) const;
+    void step_impl(optical::CoreParams const&, optical::CoreState<M>&) const;
 
-    void generate(CoreParams const&, CoreStateHost&) const;
-    void generate(CoreParams const&, CoreStateDevice&) const;
+    void generate(optical::CoreParams const&, CoreStateHost&) const;
+    void generate(optical::CoreParams const&, CoreStateDevice&) const;
 };
 
 //---------------------------------------------------------------------------//

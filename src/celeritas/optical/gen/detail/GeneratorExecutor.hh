@@ -9,8 +9,6 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
-#include "celeritas/global/CoreTrackData.hh"
-#include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/optical/MaterialData.hh"
 #include "celeritas/track/CoreStateCounters.hh"
@@ -40,18 +38,17 @@ struct GeneratorExecutor
 
     //// DATA ////
 
-    RefPtr<CoreStateData, MemSpace::native> state;
+    RefPtr<celeritas::optical::CoreStateData, MemSpace::native> state;
     NativeCRef<celeritas::optical::MaterialParamsData> const material;
     NativeCRef<Data> const shared;
     NativeRef<GeneratorStateData> const offload;
-    RefPtr<celeritas::optical::CoreStateData, MemSpace::native> optical_state;
     size_type buffer_size;
     CoreStateCounters counters;
 
     //// FUNCTIONS ////
 
     // Generate optical track initializers
-    inline CELER_FUNCTION void operator()(CoreTrackView const& track) const;
+    inline CELER_FUNCTION void operator()(optical::CoreTrackView const&) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -62,13 +59,12 @@ struct GeneratorExecutor
  */
 template<GeneratorType G>
 CELER_FUNCTION void
-GeneratorExecutor<G>::operator()(CoreTrackView const& track) const
+GeneratorExecutor<G>::operator()(optical::CoreTrackView const& track) const
 {
     CELER_EXPECT(state);
     CELER_EXPECT(shared);
     CELER_EXPECT(material);
     CELER_EXPECT(offload);
-    CELER_EXPECT(optical_state);
     CELER_EXPECT(buffer_size <= offload.distributions.size());
 
     using DistId = ItemId<GeneratorDistributionData>;
@@ -85,14 +81,14 @@ GeneratorExecutor<G>::operator()(CoreTrackView const& track) const
 
     // Calculate the number of initializers for the thread to generate
     size_type local_work = LocalWorkCalculator<size_type>{
-        total_work, state->size()}(track.thread_id().get());
+        total_work, state->size()}(track.track_slot_id().get());
 
     auto rng = track.rng();
 
     for (auto i : range(local_work))
     {
         // Calculate the index in the initializer buffer (minus the offset)
-        size_type idx = i * state->size() + track.thread_id().get();
+        size_type idx = i * state->size() + track.track_slot_id().get();
 
         // Find the distribution this thread will generate from
         size_type dist_idx = find_distribution_index(offsets, idx);
@@ -104,8 +100,8 @@ GeneratorExecutor<G>::operator()(CoreTrackView const& track) const
         optical::MaterialView opt_mat{material, dist.material};
         Generator generate(opt_mat, shared, dist);
         size_type init_idx = counters.num_initializers + idx;
-        CELER_ASSERT(init_idx < optical_state->init.initializers.size());
-        optical_state->init.initializers[InitId(init_idx)] = generate(rng);
+        CELER_ASSERT(init_idx < state->init.initializers.size());
+        state->init.initializers[InitId(init_idx)] = generate(rng);
     }
 }
 
