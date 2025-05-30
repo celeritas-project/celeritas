@@ -192,14 +192,23 @@ endif()
 
 #-----------------------------------------------------------------------------#
 # Set components for use by the caller
-if(NOT Celeritas_FIND_COMPONENTS)
-  set(Celeritas_FIND_COMPONENTS @CELERITAS_ENABLED_COMPONENTS@)
-endif()
-
 foreach(_dep IN LISTS CELERITAS_COMPONENTS)
   set(@PROJECT_NAME@_${_dep}_FOUND ${CELERITAS_USE_${_dep}})
 endforeach()
 unset(_dep)
+
+foreach(_var IN LISTS CELERITAS_OPTION_VARS)
+  set(@PROJECT_NAME@_${_var}=${CELERITAS_${_var}}_FOUND TRUE)
+endforeach()
+
+if(NOT @PROJECT_NAME@_FIND_COMPONENTS)
+  set(@PROJECT_NAME@_FIND_COMPONENTS @CELERITAS_ENABLED_COMPONENTS@)
+  foreach(_var IN LISTS CELERITAS_OPTION_VARS)
+    list(APPEND @PROJECT_NAME@_FIND_COMPONENTS
+      "${_var}=${CELERITAS_${_var}}")
+  endforeach()
+endif()
+unset(_var)
 
 #-----------------------------------------------------------------------------#
 # Print a pretty message if the caller doesn't have a FindCeleritas.cmake

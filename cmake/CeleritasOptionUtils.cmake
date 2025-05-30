@@ -127,12 +127,14 @@ include_guard(GLOBAL)
 
 include(CheckLanguage)
 
-# List of optional components
+# List of available components
 set(CELERITAS_COMPONENTS)
 # List of enabled components
 set(CELERITAS_ENABLED_COMPONENTS)
 # List of forced packages
 set(CELERITAS_FORCED_PACKAGE_VARS)
+# List of configurable options
+set(CELERITAS_OPTION_VARS)
 # List of variables configured via `celeritas_set_default`
 set(CELERITAS_DEFAULT_VARIABLES)
 # True if any CELERITAS_BUILTIN_XXX
@@ -372,6 +374,9 @@ function(celeritas_define_options var doc)
     endif()
   endif()
   set(${_last_var} "${_val}" CACHE INTERNAL "")
+
+  string(REGEX REPLACE "^CELERITAS_" "" _shortvar "${var}")
+  set(CELERITAS_OPTION_VARS ${CELERITAS_OPTION_VARS} ${_shortvar} PARENT_SCOPE)
 endfunction()
 
 #-----------------------------------------------------------------------------#
