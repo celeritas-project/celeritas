@@ -7,8 +7,10 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 
 #include "corecel/data/AuxInterface.hh"
+#include "corecel/io/Label.hh"
 #include "celeritas/Types.hh"
 
 #include "Model.hh"
@@ -79,6 +81,8 @@ class OpticalCollector
         SPConstMaterial material;
         SPConstCherenkov cherenkov;
         SPConstScintillation scintillation;
+
+        std::optional<std::vector<Label>> detector_labels;
 
         //! Number track slots in the optical loop
         size_type num_track_slots{};

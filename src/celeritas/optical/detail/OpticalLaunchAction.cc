@@ -103,6 +103,7 @@ OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
             inp.physics = std::make_shared<optical::PhysicsParams>(
                 std::move(phys_input));
         }
+        inp.detector_labels = input.detector_labels;
         CELER_ENSURE(inp);
         return inp;
     }());
