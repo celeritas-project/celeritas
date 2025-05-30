@@ -65,10 +65,11 @@
     },
     {
       "name": "debug-vecgeom",
-      "description": "Build tests in debug with vecgeom",
-      "inherits": [".vecgeom", "base"],
+      "description": "Build tests with vecgeom and assertions enabled",
+      "inherits": [".ndebug", ".vecgeom", "base"],
       "cacheVariables": {
         "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_DEBUG": {"type": "BOOL", "value": "ON"},
         "CELERITAS_DEVICE_DEBUG": {"type": "BOOL", "value": "ON"}
       }
     },
