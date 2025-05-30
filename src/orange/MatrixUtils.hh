@@ -10,6 +10,7 @@
 #include <cmath>
 
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/Turn.hh"
@@ -100,6 +101,18 @@ SquareMatrixReal3 make_rotation(Axis ax, Turn rev);
 
 // Apply a rotation to an existing C-ordered rotation matrix
 SquareMatrixReal3 make_rotation(Axis ax, Turn rev, SquareMatrixReal3 const&);
+
+// Scale uniformly
+SquareMatrixReal3 make_scaling(real_type scale);
+
+// Scale along an axis
+SquareMatrixReal3 make_scaling(Axis ax, real_type scale);
+
+// Scale along all three cartesian axes
+SquareMatrixReal3 make_scaling(Real3 const& scale);
+
+// Reflect across a plane perpendicular to the axis
+SquareMatrixReal3 make_reflection(Axis ax);
 
 // Construct a transposed matrix
 SquareMatrixReal3 make_transpose(SquareMatrixReal3 const&);
