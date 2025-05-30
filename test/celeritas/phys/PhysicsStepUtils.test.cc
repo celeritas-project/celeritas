@@ -220,13 +220,11 @@ TEST_F(PhysicsStepUtilsTest, calc_mean_energy_loss)
     // input: cm; output: MeV
     auto calc_eloss = [&](PhysicsTrackView& phys, real_type step) -> real_type {
         // Calculate and store the energy loss range to PhysicsTrackView
-        auto grid_id = phys.range_grid();
-        auto calc_range = phys.make_calculator<RangeCalculator>(grid_id);
-        real_type range = calc_range(particle.energy());
+        real_type range = phys.make_calculator<RangeCalculator>(
+            phys.range_grid())(particle.energy());
         phys.dedx_range(range);
 
-        auto result
-            = calc_mean_energy_loss(particle, phys, step * units::centimeter);
+        auto result = calc_mean_energy_loss(particle, phys, from_cm(step));
         return value_as<MevEnergy>(result);
     };
 
@@ -262,13 +260,13 @@ TEST_F(PhysicsStepUtilsTest, calc_mean_energy_loss)
     {
         PhysicsTrackView phys = this->init_track(
             &material, PhysMatId{0}, &particle, "electron", MevEnergy{1e-3});
-        real_type const eloss_rate = 0.5;  // MeV / cm
 
         // Low energy particle which loses all its energy over the step will
         // call inverse lookup. Remaining range will be zero and eloss will be
         // equal to the pre-step energy.
-        real_type step = 1e-5 / eloss_rate
-                         + value_as<MevEnergy>(particle.energy()) / eloss_rate;
+        real_type range = phys.make_calculator<RangeCalculator>(
+            phys.range_grid())(particle.energy());
+        real_type step = to_cm(range) - fine_eps;
         EXPECT_SOFT_EQ(1e-3, calc_eloss(phys, step));
     }
 }
@@ -475,13 +473,11 @@ TEST_F(SplinePhysicsStepUtilsTest, calc_mean_energy_loss)
     // input: cm; output: MeV
     auto calc_eloss = [&](PhysicsTrackView& phys, real_type step) -> real_type {
         // Calculate and store the energy loss range to PhysicsTrackView
-        auto grid_id = phys.range_grid();
-        auto calc_range = phys.make_calculator<RangeCalculator>(grid_id);
-        real_type range = calc_range(particle.energy());
+        real_type range = phys.make_calculator<RangeCalculator>(
+            phys.range_grid())(particle.energy());
         phys.dedx_range(range);
 
-        auto result
-            = calc_mean_energy_loss(particle, phys, step * units::centimeter);
+        auto result = calc_mean_energy_loss(particle, phys, from_cm(step));
         return value_as<MevEnergy>(result);
     };
 
@@ -517,13 +513,13 @@ TEST_F(SplinePhysicsStepUtilsTest, calc_mean_energy_loss)
     {
         PhysicsTrackView phys = this->init_track(
             &material, PhysMatId{0}, &particle, "electron", MevEnergy{1e-3});
-        real_type const eloss_rate = 0.5;  // MeV / cm
 
         // Low energy particle which loses all its energy over the step will
         // call inverse lookup. Remaining range will be zero and eloss will be
         // equal to the pre-step energy.
-        real_type step = 1e-5 / eloss_rate
-                         + value_as<MevEnergy>(particle.energy()) / eloss_rate;
+        real_type range = phys.make_calculator<RangeCalculator>(
+            phys.range_grid())(particle.energy());
+        real_type step = to_cm(range) - fine_eps;
         EXPECT_SOFT_EQ(1e-3, calc_eloss(phys, step));
     }
 }

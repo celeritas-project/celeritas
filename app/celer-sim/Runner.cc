@@ -211,7 +211,8 @@ auto Runner::get_transporter(StreamId stream) -> TransporterBase&
 /*!
  * Get an already-constructed transporter for the given stream.
  */
-auto Runner::get_transporter_ptr(StreamId stream) const -> TransporterBase const*
+auto Runner::get_transporter_ptr(StreamId stream) const
+    -> TransporterBase const*
 {
     CELER_EXPECT(stream < transporters_.size());
     return transporters_[stream.get()].get();

@@ -91,7 +91,7 @@ auto ChipsNeutronElasticModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto ChipsNeutronElasticModel::micro_xs(Applicability) const -> MicroXsBuilders
+auto ChipsNeutronElasticModel::micro_xs(Applicability) const -> XsTable
 {
     // Cross sections are calculated on the fly
     return {};

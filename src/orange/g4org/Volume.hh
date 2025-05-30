@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "corecel/io/Label.hh"
+#include "geocel/GeoParamsInterface.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/transform/VariantTransform.hh"
 
@@ -36,8 +37,13 @@ struct LogicalVolume;
  */
 struct PhysicalVolume
 {
-    Label label;
-    size_type copy_number{};
+    using ReplicaId = GeantPhysicalInstance::ReplicaId;
+
+    //! Corresponding Geant4 physical volume
+    VolumeInstanceId id;
+    //! Replica/parameterization (see GeantGeoParams::id_to_geant TODO)
+    ReplicaId replica_id;
+
     VariantTransform transform;
     std::shared_ptr<LogicalVolume const> lv;
 };
@@ -47,17 +53,14 @@ struct PhysicalVolume
  * A reusable Object that can be turned into a UnitProto or a Material.
  *
  * This holds equivalent information to a Geant4 \c G4LogicalVolume, but with
- * \em only ORANGE data structures plus a reference to the original G4LV.
+ * \em only ORANGE data structures.
  */
 struct LogicalVolume
 {
     using SPConstObject = std::shared_ptr<orangeinp::ObjectInterface const>;
 
-    //! Associated Geant4 logical volume
-    G4LogicalVolume const* g4lv{nullptr};
-
-    //! Logical volume name and optional uniquifying extension
-    Label label;
+    //! Corresponding Geant4 logical volume
+    VolumeId id;
     //! Filled material ID
     GeoMatId material_id;
 

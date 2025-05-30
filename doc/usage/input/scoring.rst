@@ -36,4 +36,3 @@ This is used to set up :cpp:class:`celeritas::SimpleCalo`.
 .. doxygenstruct:: celeritas::inp::SimpleCalo
    :members:
    :no-link:
-

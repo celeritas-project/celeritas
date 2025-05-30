@@ -77,14 +77,12 @@ class GeantImporter final : public ImporterInterface
     //!@{
     //! \name Type aliases
     using DataSelection = GeantImportDataSelection;
+    using SPGeantGeo = GeantSetup::SPGeantGeo;
     //!@}
 
   public:
-    // Get the top-level geometry element from the run manager+navigator
-    static G4VPhysicalVolume const* get_world_volume();
-
-    // Construct from an existing Geant4 geometry, assuming physics is loaded
-    explicit GeantImporter(G4VPhysicalVolume const* world);
+    // Construct from global Geant4 geometry, assuming physics is loaded
+    GeantImporter();
 
     // Construct by capturing a GeantSetup object
     explicit GeantImporter(GeantSetup&& setup);
@@ -95,16 +93,15 @@ class GeantImporter final : public ImporterInterface
     //! Fill all available data from Geant4
     ImportData operator()() final { return (*this)(DataSelection{}); }
 
+    //! Get the constructed geometry if using setup (may be null)
+    SPGeantGeo const& geo_params() const { return setup_.geo_params(); }
+
   private:
     // Optional setup if celeritas handles initialization
     GeantSetup setup_;
-    // World physical volume
-    G4VPhysicalVolume const* world_{nullptr};
 };
 
 //---------------------------------------------------------------------------//
-
-std::vector<ImportVolume> import_volumes(G4VPhysicalVolume const& world);
 
 ImportParticle import_particle(G4ParticleDefinition const& p);
 
@@ -130,14 +127,8 @@ inline bool operator!=(GeantImporter::DataSelection const& lhs,
 }
 
 #if !CELERITAS_USE_GEANT4
-inline G4VPhysicalVolume const* GeantImporter::get_world_volume()
+inline GeantImporter::GeantImporter()
 {
-    CELER_NOT_CONFIGURED("Geant4");
-}
-
-inline GeantImporter::GeantImporter(G4VPhysicalVolume const*)
-{
-    CELER_DISCARD(world_);
     CELER_NOT_CONFIGURED("Geant4");
 }
 

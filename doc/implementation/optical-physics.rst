@@ -52,6 +52,11 @@ tracking loop:
      scintillation-gen -->|inits| photons
      cherenkov-gen -->|inits| photons
 
+.. only:: nosphinxmer
+
+   .. warning:: The Mermaid extension was not used when building this version
+      of the documentation. This diagram cannot be rendered.
+
 
 Optical materials
 =================
@@ -72,23 +77,25 @@ During the main :ref:`stepping loop <api_stepping>`, the :cpp:class:`celeritas::
 class adds a pre-step hook to store each track's speed, position, time, and
 material; at the end of the step, the track's updated properties and
 within-step energy distribution are used to "offload" optical photons by
-generating *distribution parameters* to be sampled in the stepping loop.
+generating *distribution parameters* to be sampled in the stepping loop. The
+*generator distribution* data is analogous to the "genstep" data structure in
+Opticks :cite:`blyth-opticks-2019`.
 
 .. doxygenclass:: celeritas::OpticalCollector
 .. doxygenclass:: celeritas::CherenkovOffload
 .. doxygenclass:: celeritas::ScintillationOffload
-.. doxygenstruct:: celeritas::optical::GeneratorDistributionData
+.. doxygenstruct:: celeritas::GeneratorDistributionData
 
 Generating
 ==========
 
-Depending on the process that emitted a photon, the "generator" classes
+Depending on the process that emitted a photon, the generator classes
 sample from the distribution of photons specified by the
-"generator distribution" to create optical photon *initializers* which are
+generator distribution to create optical photon *initializers* which are
 analogous to secondary particles in Geant4.
 
-.. doxygenclass:: celeritas::optical::CherenkovGenerator
-.. doxygenclass:: celeritas::optical::ScintillationGenerator
+.. doxygenclass:: celeritas::CherenkovGenerator
+.. doxygenclass:: celeritas::ScintillationGenerator
 
 Volumetric processes
 ====================
@@ -104,28 +111,20 @@ Surface processes
 =================
 
 Optical photons also have special interactions at material boundaries. These
-boundaries are imported from Geant4 using the "skin" definitions that specify
-properties of a volume's outer surface or of the surface between two specific
-volumes.
+boundaries are imported from Geant4 using the "skin" (boundary between two
+logical volumes) and "border" (the one-sided boundary exiting one physical volume
+and entering another)
+surface definitions that specify properties of a volume's outer surface or of
+the surface between two specific volumes.
 
-.. todo:: Add this section once surface models are implemented.
+Given a pair of (old, new) physical volumes (P0, P1) corresponding to logical
+volumes (L0, L1), the surface properties are determined in decreasing
+precedence:
 
-Imported data
-=============
+1. Ordered (P0, P1) border surface
+2. Skin surface of L1 if it's the daughter of L0
+3. Skin surface of L0
+4. Skin surface of L1
 
-In addition to the core :ref:`api_importdata`, these import parameters are used
-to provide cross sections, setup options, and other data to the optical physics.
-
-.. doxygenstruct:: celeritas::ImportOpticalModel
-.. doxygenstruct:: celeritas::ImportOpticalMaterial
-.. doxygenstruct:: celeritas::ImportOpticalParameters
-.. doxygenstruct:: celeritas::ImportOpticalProperty
-.. doxygenstruct:: celeritas::ImportOpticalRayleigh
-
-.. doxygenstruct:: celeritas::ImportScintComponent
-.. doxygenstruct:: celeritas::ImportScintData
-.. doxygenstruct:: celeritas::ImportParticleScintSpectrum
-.. doxygenstruct:: celeritas::ImportMaterialScintSpectrum
-
-.. doxygenstruct:: celeritas::ImportWavelengthShift
-
+.. todo:: Add this section once surface models are implemented. Move the
+   precedence above into a surface property params.

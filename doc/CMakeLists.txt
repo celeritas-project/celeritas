@@ -54,6 +54,7 @@ set(DOXYGEN_EXTRA_PACKAGES "amsmath")
 set(DOXYGEN_FORMULA_MACROFILE "${CMAKE_CURRENT_SOURCE_DIR}/_static/macros.tex")
 set(DOXYGEN_FULL_PATH_NAMES NO)
 set(DOXYGEN_IMAGE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/_static")
+set(DOXYGEN_INTERNAL_DOCS YES)
 set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
 set(DOXYGEN_MACRO_EXPANSION YES)
 set(DOXYGEN_PREDEFINED "__DOXYGEN__=${_doxy_version_hex}")
@@ -158,7 +159,7 @@ function(celeritas_build_latex input output)
   add_custom_command(OUTPUT "${output}"
     VERBATIM COMMAND
       "${CMAKE_COMMAND}" -E env ${_texenv}
-        "${LATEXMK_EXECUTABLE}" -pdf "${input}"
+        "${LATEXMK_EXECUTABLE}" -f -pdf "${input}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/latex"
     ${ARGN}
   )
@@ -201,6 +202,7 @@ set(DOXYGEN_COLLABORATION_GRAPH NO)
 set(DOXYGEN_CLASS_GRAPH NO)
 set(DOXYGEN_INCLUDED_BY_GRAPH NO)
 set(DOXYGEN_INCLUDE_GRAPH NO)
+set(DOXYGEN_INTERNAL_DOCS NO)
 
 set(DOXYGEN_ALIASES
   "cite{1}=\"\\verbatim embed:rst:inline :cite:p:`\\1` \\endverbatim \""
@@ -244,8 +246,11 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/interactor/detail/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/model/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/model/*.cc"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/optical/gen/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/optical/gen/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/interactor/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/model/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/optical/model/*.cc"
   "${PROJECT_SOURCE_DIR}/test/*.hh"
   "${PROJECT_SOURCE_DIR}/test/*.cc"
 )
@@ -299,7 +304,7 @@ if(Sphinx_FOUND)
   # Download ornltm class
   ExternalProject_Add(ornltm
     GIT_REPOSITORY https://code.ornl.gov/sethrj/ornltm.git
-    GIT_TAG c9d2ddcce2bfc8d7d51db8f4a131d71883f46528
+    GIT_TAG 6379032d2f1e5e8bc1589d087465371fd8b432c1
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ""

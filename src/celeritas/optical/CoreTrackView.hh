@@ -111,7 +111,7 @@ CoreTrackView::operator=(TrackInitializer const& init)
 
     // Initialize the geometry state
     auto geo = this->geometry();
-    geo = GeoTrackInitializer{init.position, init.direction};
+    geo = GeoTrackInitializer{init.position, init.direction, {}};
     if (CELER_UNLIKELY(geo.failed() || geo.is_outside()))
     {
 #if !CELER_DEVICE_COMPILE
@@ -150,8 +150,8 @@ CELER_FUNCTION auto CoreTrackView::geometry() const -> GeoTrackView
 /*!
  * Return a material view.
  */
-CELER_FORCEINLINE_FUNCTION auto
-CoreTrackView::material_record() const -> MaterialView
+CELER_FORCEINLINE_FUNCTION auto CoreTrackView::material_record() const
+    -> MaterialView
 {
     return this->material_record(this->geometry());
 }

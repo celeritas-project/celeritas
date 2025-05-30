@@ -40,6 +40,7 @@ struct RunResult
     std::vector<int> track_ids;
     std::vector<int> parent_ids;
     std::vector<int> init_ids;
+    std::vector<int> geo_parent_ids;
     std::vector<int> vacancies;
 
     template<MemSpace M>
@@ -80,6 +81,7 @@ RunResult RunResult::from_state(CoreState<M>& state)
     {
         auto const& init = data.initializers[init_id];
         result.init_ids.push_back(id_to_int(init.sim.track_id));
+        result.geo_parent_ids.push_back(id_to_int(init.geo.parent));
     }
 
     // Copy sim state to host
@@ -101,21 +103,19 @@ RunResult RunResult::from_state(CoreState<M>& state)
 // Print code for the expected attributes
 void RunResult::print_expected() const
 {
-    std::vector<int> track_ids;
-    std::vector<int> parent_ids;
-    std::vector<int> init_ids;
-    std::vector<int> vacancies;
-
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "static int const expected_track_ids[] = "
          << repr(this->track_ids) << ";\n"
          << "EXPECT_VEC_EQ(expected_track_ids, result.track_ids);\n"
             "static int const expected_parent_ids[] = "
          << repr(this->parent_ids) << ";\n"
-         << "EXPECT_VEC_EQ(expected_parent_ids, result.track_ids);\n"
+         << "EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);\n"
             "static int const expected_init_ids[] = "
          << repr(this->init_ids) << ";\n"
-         << "EXPECT_VEC_EQ(expected_init_ids, result.track_ids);\n"
+         << "EXPECT_VEC_EQ(expected_init_ids, result.init_ids);\n"
+            "static int const expected_geo_parent_ids[] = "
+         << repr(this->geo_parent_ids) << ";\n"
+         << "EXPECT_VEC_EQ(expected_geo_parent_ids, result.geo_parent_ids);\n"
             "static int const expected_vacancies[] = "
          << repr(this->vacancies) << ";\n"
          << "EXPECT_VEC_EQ(expected_vacancies, result.vacancies);\n"
@@ -329,20 +329,22 @@ TYPED_TEST(TrackInitTest, run)
     // Launch a kernel to create track initializers from secondaries
     ExtendFromSecondariesAction{ActionId{2}}.step(*this->core(), this->state());
 
-    // Check the vacancies
     {
+        // Check the vacancies
         auto result = RunResult::from_state(this->state());
         static int const expected_vacancies[] = {2, 6};
         EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
-    }
 
-    // Check the track IDs of the track initializers created from secondaries.
-    // Because IDs are not calculated deterministically and we don't know which
-    // IDs were used for the immediately-initialized secondaries and which were
-    // used for the track initializers, just check that there is the correct
-    // number and they are in the correct range.
-    {
-        auto result = RunResult::from_state(this->state());
+        // Check the parent IDs for copying the geometry state
+        static int const expected_geo_parent_ids[] = {-1, -1, -1, 5, 8};
+        EXPECT_VEC_EQ(expected_geo_parent_ids, result.geo_parent_ids);
+
+        // Check the track IDs of the track initializers created from
+        // secondaries. Because IDs are not calculated deterministically and we
+        // don't know which IDs were used for the immediately-initialized
+        // secondaries and which were used for the track initializers, just
+        // check that there is the correct number and they are in the correct
+        // range.
         EXPECT_TRUE(std::all_of(std::begin(result.init_ids),
                                 std::end(result.init_ids),
                                 [](int id) { return id >= 0 && id <= 18; }));
@@ -375,6 +377,10 @@ TYPED_TEST(TrackInitTest, run)
         std::sort(std::begin(expected_parent_ids),
                   std::end(expected_parent_ids));
         EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
+
+        // Check the parent IDs for copying the geometry state
+        static int const expected_geo_parent_ids[] = {-1, -1, -1};
+        EXPECT_VEC_EQ(expected_geo_parent_ids, result.geo_parent_ids);
     }
 }
 
@@ -494,6 +500,9 @@ TYPED_TEST(TrackInitTest, extend_from_secondaries)
         // no secondaries
         static int const expected_vacancies[] = {5u, 6u};
         EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
+
+        static int const expected_geo_parent_ids[] = {0, 2};
+        EXPECT_VEC_EQ(expected_geo_parent_ids, result.geo_parent_ids);
 
         // init ids may not be deterministic, but can guarantee they are in the
         // range 8<=x<=12 as we create 4 tracks per iteration, 2 in reused

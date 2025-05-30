@@ -96,8 +96,8 @@ GammaDistribution<RealType>::GammaDistribution(real_type alpha, real_type beta)
  */
 template<class RealType>
 template<class Generator>
-CELER_FUNCTION auto
-GammaDistribution<RealType>::operator()(Generator& rng) -> result_type
+CELER_FUNCTION auto GammaDistribution<RealType>::operator()(Generator& rng)
+    -> result_type
 {
     real_type u, v, z;
     do

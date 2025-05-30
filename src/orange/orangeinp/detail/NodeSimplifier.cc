@@ -67,6 +67,27 @@ struct NegationSimplifier
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Return a simplified negation via its target.
+ */
+struct IsJoinedLike
+{
+    OperatorToken op;
+
+    Joined const* operator()(Joined const& j) const
+    {
+        return j.op == op ? &j : nullptr;
+    }
+
+    // Other types are not joinable
+    template<class T>
+    Joined const* operator()(T const&) const
+    {
+        return nullptr;
+    }
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -109,25 +130,42 @@ auto NodeSimplifier::operator()(Joined& j) const -> Node
     auto const ignore_node = (j.op == op_and ? CsgTree::true_node_id()
                                              : CsgTree::false_node_id());
 
+    std::vector<NodeId> to_merge;
+
     // Replace any aliases in each daughter
     for (NodeId& d : j.nodes)
     {
+        // Replace first
         if (auto repl = visit_node_(AliasSimplifier{}, d))
         {
             d = repl;
         }
+
         if (d == constant_node)
         {
             // Short circuit logic based on the logical operator
             return Aliased{constant_node};
         }
-        if (d == ignore_node)
+        else if (d == ignore_node)
         {
             // Replace with a null ID that will be sorted to the back of the
             // list
             d = NodeId{};
         }
+        else if (Joined const* dj = visit_node_(IsJoinedLike{j.op}, d))
+        {
+            // Add nodes to merge; use a new list to avoid invalidating
+            // iterators
+            to_merge.insert(to_merge.end(), dj->nodes.begin(), dj->nodes.end());
+            d = NodeId{};
+        }
     }
+
+    // TODO: we can look for combinations of A + ~A, returning "false" for
+    // op_and or "true" for op_or
+
+    // Add any merged nodes
+    j.nodes.insert(j.nodes.end(), to_merge.begin(), to_merge.end());
 
     // Sort and uniquify the node ID
     std::sort(j.nodes.begin(), j.nodes.end());

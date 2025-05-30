@@ -73,7 +73,7 @@ TEST_F(OneVolumeTest, track_view)
     EXPECT_FALSE(geo.is_on_boundary());
 
     // Initialize from a pre-existing OrangeTrackView object
-    geo = OrangeTrackView::DetailedInitializer{geo, Real3({1, 0, 0})};
+    geo = Initializer_t{geo.pos(), Real3{1, 0, 0}, TrackSlotId{0}};
     EXPECT_VEC_SOFT_EQ(Real3({3, 4, 5}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
     EXPECT_EQ(VolumeId{0}, geo.volume_id());

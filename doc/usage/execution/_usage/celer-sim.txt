@@ -1,5 +1,5 @@
-Run standalone Celeritas 
-[Exactly 1 of the following options are required] 
+Run standalone Celeritas
+[Exactly 1 of the following options are required]
 
 
 ./celer-sim [OPTIONS] [filename]
@@ -7,11 +7,11 @@ Run standalone Celeritas
 
 POSITIONALS:
   filename TEXT:(FILE) OR ('-' for stdin/stdout)
-                              Input JSON 
+                              Input JSON
 
 OPTIONS:
-  -h,     --help              Print this help message and exit 
-  -v,     --version           Display program version information and exit 
-          --config            Show configuration 
-          --dump-default      Dump default input 
-          --device            Show device information 
+  -h,     --help              Print this help message and exit
+  -v,     --version           Display program version information and exit
+          --config            Show configuration
+          --dump-default      Dump default input
+          --device            Show device information

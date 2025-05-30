@@ -205,7 +205,6 @@ jobs:
 
       - name: Run unit tests
         id: unittest
-        continue-on-error: true
         run: |
           ctest --preset=$Env:CMAKE_PRESET-unit
       - name: Run app tests

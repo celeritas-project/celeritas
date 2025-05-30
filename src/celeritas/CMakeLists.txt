@@ -74,12 +74,11 @@ list(APPEND SOURCES
   global/DebugIO.json.cc
   global/KernelContextException.cc
   global/Stepper.cc
+  grid/ElementCdfCalculator.cc
   grid/NonuniformGridBuilder.cc
   grid/RangeGridCalculator.cc
   grid/TwodGridBuilder.cc
   grid/UniformGridInserter.cc
-  grid/ValueGridBuilder.cc
-  grid/ValueGridType.cc
   grid/XsGridInserter.cc
   io/AtomicRelaxationReader.cc
   io/ImportData.cc
@@ -87,7 +86,6 @@ list(APPEND SOURCES
   io/ImportMaterial.cc
   io/ImportModel.cc
   io/ImportOpticalModel.cc
-  io/ImportPhysicsTable.cc
   io/ImportProcess.cc
   io/ImportUnits.cc
   io/LivermorePEReader.cc
@@ -101,10 +99,12 @@ list(APPEND SOURCES
   neutron/model/CascadeOptionsIO.json.cc
   neutron/process/NeutronElasticProcess.cc
   neutron/process/NeutronInelasticProcess.cc
-  optical/CherenkovParams.cc
   optical/CoreParams.cc
   optical/CoreState.cc
   optical/CoreTrackData.cc
+  optical/gen/CherenkovParams.cc
+  optical/gen/OffloadParams.cc
+  optical/gen/ScintillationParams.cc
   optical/ImportedModelAdapter.cc
   optical/ImportedMaterials.cc
   optical/OpticalCollector.cc
@@ -112,13 +112,12 @@ list(APPEND SOURCES
   optical/ModelImporter.cc
   optical/PhysicsParams.cc
   optical/TrackInitParams.cc
-  optical/ScintillationParams.cc
-  optical/WavelengthShiftParams.cc
+  optical/model/WavelengthShiftParams.cc
   optical/action/ActionGroups.cc
   optical/action/LocateVacanciesAction.cc
-  optical/detail/OffloadParams.cc
   optical/detail/OpticalLaunchAction.cc
   phys/CutoffParams.cc
+  phys/detail/EnergyMaxXsCalculator.cc
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc
   phys/ParticleParams.cc
@@ -323,7 +322,6 @@ celeritas_polysource(alongstep/AlongStepCylMapFieldMscAction)
 celeritas_polysource(em/model/BetheHeitlerModel)
 celeritas_polysource(em/model/BetheBlochModel)
 celeritas_polysource(em/model/BraggModel)
-celeritas_polysource(em/model/CombinedBremModel)
 celeritas_polysource(em/model/EPlusGGModel)
 celeritas_polysource(em/model/ICRU73QOModel)
 celeritas_polysource(em/model/KleinNishinaModel)
@@ -350,12 +348,12 @@ celeritas_polysource(optical/action/InitializeTracksAction)
 celeritas_polysource(optical/action/PreStepAction)
 celeritas_polysource(optical/action/TrackingCutAction)
 celeritas_polysource(optical/action/detail/TrackInitAlgorithms)
-celeritas_polysource(optical/detail/CherenkovGeneratorAction)
-celeritas_polysource(optical/detail/CherenkovOffloadAction)
-celeritas_polysource(optical/detail/OpticalGenAlgorithms)
-celeritas_polysource(optical/detail/OffloadGatherAction)
-celeritas_polysource(optical/detail/ScintGeneratorAction)
-celeritas_polysource(optical/detail/ScintOffloadAction)
+celeritas_polysource(optical/gen/detail/CherenkovGeneratorAction)
+celeritas_polysource(optical/gen/detail/CherenkovOffloadAction)
+celeritas_polysource(optical/gen/detail/OpticalGenAlgorithms)
+celeritas_polysource(optical/gen/detail/OffloadGatherAction)
+celeritas_polysource(optical/gen/detail/ScintGeneratorAction)
+celeritas_polysource(optical/gen/detail/ScintOffloadAction)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)
 celeritas_polysource(phys/detail/TrackingCutAction)

@@ -26,6 +26,7 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantGdmlLoader.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/ScopedGeantLogger.hh"
@@ -101,16 +102,17 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
     ScopedGeantLogger scoped_logger(celeritas::world_logger());
     ScopedGeantExceptionHandler scoped_exceptions;
 
+    G4VPhysicalVolume* world{nullptr};
     {
         CELER_LOG(status) << "Initializing Geant4 geometry and physics list";
 
         // Load GDML and reference the world pointer
         // TODO: pass GdmlLoader options through SetupOptions
-        world_ = load_gdml(gdml_filename);
-        CELER_ASSERT(world_);
+        world = load_gdml(gdml_filename);
+        CELER_ASSERT(world);
 
         // Construct the geometry
-        auto detector = std::make_unique<DetectorConstruction>(world_);
+        auto detector = std::make_unique<DetectorConstruction>(world);
         run_manager_->SetUserInitialization(detector.release());
 
         // Construct the physics
@@ -127,7 +129,12 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
         run_manager_->RunInitialization();
     }
 
-    CELER_ENSURE(world_);
+    {
+        // Create Geant4 geo wrapper and save as global tracking geometry
+        geo_ = std::make_shared<GeantGeoParams>(world);
+        celeritas::geant_geo(*geo_);
+    }
+
     CELER_ENSURE(*this);
 }
 

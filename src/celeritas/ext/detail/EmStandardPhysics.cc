@@ -42,6 +42,7 @@
 #include <G4eplusAnnihilation.hh>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Quantities.hh"
 
@@ -529,7 +530,7 @@ void EmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
             CELER_VALIDATE(false,
                            << "unsupported muon multiple scattering model "
                               "selection '"
-                           << to_cstring(options_.muon.msc) << "'");
+                           << options_.muon.msc << "'");
         }
         physics_list->RegisterProcess(process.release(), p);
     }

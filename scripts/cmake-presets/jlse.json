@@ -77,6 +77,15 @@
       }
     },
     {
+      "name": "clhep",
+      "displayName": "Build with debug assertions and clhep units",
+      "inherits": [".base", "reldeb"],
+      "binaryDir": "${sourceDir}/build-clhep",
+      "cacheVariables": {
+        "CELERITAS_UNITS": "CLHEP"
+      }
+    },
+    {
       "name": "float",
       "displayName": "Build with single precision and disable VecGeom",
       "inherits": ["reldeb-orange"],
@@ -98,6 +107,7 @@
     {"name": "debug", "configurePreset": "debug", "inherits": "base"},
     {"name": "release-orange", "configurePreset": "release-orange", "inherits": "base"},
     {"name": "reldeb-orange", "configurePreset": "reldeb-orange", "inherits": "base"},
+    {"name": "clhep", "configurePreset": "clhep", "inherits": "base"},
     {"name": "float", "configurePreset": "float", "inherits": "base"}
   ],
   "testPresets": [
@@ -112,6 +122,7 @@
     {"name": "debug", "configurePreset": "debug", "inherits": "base"},
     {"name": "release-orange", "configurePreset": "release-orange", "inherits": "base"},
     {"name": "reldeb-orange", "configurePreset": "reldeb-orange", "inherits": "base"},
+    {"name": "clhep", "configurePreset": "clhep", "inherits": "base"},
     {"name": "float", "configurePreset": "float", "inherits": "base"}
   ]
 }

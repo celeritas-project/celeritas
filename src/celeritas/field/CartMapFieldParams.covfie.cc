@@ -30,12 +30,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 struct CartMapFieldParams::Impl
 {
-  public:
-    using HostRef = ParamsDataInterface<CartMapFieldParamsData>::HostRef;
-    using DeviceRef = ParamsDataInterface<CartMapFieldParamsData>::DeviceRef;
-    using Input = CartMapFieldParams::Input;
-
-    Impl(Input const& inp)
+    explicit Impl(Input const& inp)
         : host_{[&inp] {
             HostVal<CartMapFieldParamsData> host;
 
@@ -114,7 +109,7 @@ struct CartMapFieldParams::Impl
 /*!
  * Custom deleter for the implementation.
  */
-void CartMapFieldParams::ImplDeleter::operator()(Impl* impl) noexcept
+void CartMapFieldParams::ImplDeleter::operator()(Impl* impl) const noexcept
 {
     delete impl;
 }

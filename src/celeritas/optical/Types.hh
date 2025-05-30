@@ -15,10 +15,10 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 
 //! Opaque index to a scintillation particle id
-using ScintillationParticleId = OpaqueId<struct ScintillationParticle_>;
+using ScintParticleId = OpaqueId<struct ScintParticle_>;
 
 //! Opaque index to a scintillation spectrum
-using ParticleScintSpectrumId = OpaqueId<struct ParScintSpectrumRecord_>;
+using ParScintSpectrumId = OpaqueId<struct ParScintSpectrum>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

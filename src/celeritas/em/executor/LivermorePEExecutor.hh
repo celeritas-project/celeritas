@@ -22,7 +22,7 @@ struct LivermorePEExecutor
     inline CELER_FUNCTION Interaction
     operator()(celeritas::CoreTrackView const& track);
 
-    LivermorePERef params;
+    NativeCRef<LivermorePEData> params;
 };
 
 //---------------------------------------------------------------------------//

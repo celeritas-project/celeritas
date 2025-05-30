@@ -14,9 +14,9 @@
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/optical/gen/OffloadParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
-#include "OffloadParams.hh"
 #include "OpticalSizes.json.hh"
 #include "../CoreParams.hh"
 #include "../CoreState.hh"
@@ -142,9 +142,8 @@ std::string_view OpticalLaunchAction::description() const
 /*!
  * Build state data for a stream.
  */
-auto OpticalLaunchAction::create_state(MemSpace m,
-                                       StreamId sid,
-                                       size_type) const -> UPState
+auto OpticalLaunchAction::create_state(MemSpace m, StreamId sid, size_type) const
+    -> UPState
 {
     if (m == MemSpace::host)
     {

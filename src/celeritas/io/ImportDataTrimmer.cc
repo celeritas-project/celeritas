@@ -212,17 +212,16 @@ void ImportDataTrimmer::operator()(ImportParticle&) {}
 //---------------------------------------------------------------------------//
 void ImportDataTrimmer::operator()(ImportProcess& data)
 {
-    if (options_.materials)
-    {
-        (*this)(data.tables);
-    }
     if (options_.physics)
     {
         (*this)(data.models);
     }
 
     this->for_each(data.models);
-    this->for_each(data.tables);
+
+    (*this)(data.lambda);
+    (*this)(data.lambda_prim);
+    (*this)(data.dedx);
 
     CELER_ENSURE(data);
 }
@@ -245,10 +244,10 @@ void ImportDataTrimmer::operator()(ImportPhysicsTable& data)
 {
     if (options_.materials)
     {
-        (*this)(data.physics_vectors);
+        (*this)(data.grids);
     }
 
-    this->for_each(data.physics_vectors);
+    this->for_each(data.grids);
 }
 
 //---------------------------------------------------------------------------//

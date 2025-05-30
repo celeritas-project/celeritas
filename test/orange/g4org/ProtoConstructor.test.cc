@@ -8,6 +8,7 @@
 
 #include "corecel/StringSimplifier.hh"
 #include "corecel/io/Repr.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "orange/g4org/PhysicalVolumeConverter.hh"
 #include "orange/orangeinp/CsgTestUtils.hh"
 #include "orange/orangeinp/detail/CsgUnit.hh"
@@ -34,16 +35,15 @@ class ProtoConstructorTest : public GeantLoadTestBase
     using Unit = orangeinp::detail::CsgUnit;
     using Tol = Tolerance<>;
 
-    LogicalVolume load(std::string const& filename)
+    LogicalVolume load(std::string const& basename)
     {
-        G4VPhysicalVolume const* g4world
-            = this->load_gdml(this->test_data_path("geocel", filename));
-        CELER_ASSERT(g4world);
+        this->load_test_gdml(basename);
         PhysicalVolumeConverter::Options opts;
         opts.verbose = false;
         opts.scale = 0.1;
-        PhysicalVolumeConverter convert{std::move(opts)};
-        PhysicalVolume world = convert(*g4world);
+        auto const& geant_geo = this->geo();
+        PhysicalVolumeConverter convert{geant_geo, std::move(opts)};
+        PhysicalVolume world = convert(*geant_geo.world());
 
         EXPECT_TRUE(std::holds_alternative<NoTransformation>(world.transform));
         EXPECT_EQ(1, world.lv.use_count());
@@ -80,8 +80,9 @@ class ProtoConstructorTest : public GeantLoadTestBase
 //---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, one_box)
 {
-    LogicalVolume world = this->load("one-box.gdml");
-    auto global_proto = ProtoConstructor(/* verbose = */ true)(world);
+    LogicalVolume world = this->load("one-box");
+    auto global_proto
+        = ProtoConstructor(this->geo(), /* verbose = */ true)(world);
     ProtoMap protos{*global_proto};
     ASSERT_EQ(1, protos.size());
     {
@@ -126,8 +127,9 @@ TEST_F(ProtoConstructorTest, one_box)
 //---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, two_boxes)
 {
-    LogicalVolume world = this->load("two-boxes.gdml");
-    auto global_proto = ProtoConstructor(/* verbose = */ false)(world);
+    LogicalVolume world = this->load("two-boxes");
+    auto global_proto
+        = ProtoConstructor(this->geo(), /* verbose = */ false)(world);
     ProtoMap protos{*global_proto};
     ASSERT_EQ(1, protos.size());
     {
@@ -151,7 +153,7 @@ TEST_F(ProtoConstructorTest, two_boxes)
         static char const* const expected_volume_strings[] = {
             "!all(+0, -1, +2, -3, +4, -5)",
             "all(+6, -7, +8, -9, +10, -11)",
-            "all(all(+0, -1, +2, -3, +4, -5), !all(+6, -7, +8, -9, +10, -11))",
+            "all(+0, -1, +2, -3, +4, -5, !all(+6, -7, +8, -9, +10, -11))",
         };
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
@@ -161,8 +163,9 @@ TEST_F(ProtoConstructorTest, two_boxes)
 //---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, intersection_boxes)
 {
-    LogicalVolume world = this->load("intersection-boxes.gdml");
-    auto global_proto = ProtoConstructor(/* verbose = */ false)(world);
+    LogicalVolume world = this->load("intersection-boxes");
+    auto global_proto
+        = ProtoConstructor(this->geo(), /* verbose = */ false)(world);
     ProtoMap protos{*global_proto};
     ASSERT_EQ(1, protos.size());
     {
@@ -191,11 +194,8 @@ TEST_F(ProtoConstructorTest, intersection_boxes)
         };
         static char const* const expected_volume_strings[] = {
             "!all(+0, -1, +2, -3, +4, -5)",
-            "all(all(+6, -7, +8, -9, +10, -11), all(+12, -13, +14, -15, +16, "
-            "-17))",
-            "all(all(+0, -1, +2, -3, +4, -5), !all(all(+6, -7, +8, -9, +10, "
-            "-11), all(+12, -13, +14, -15, +16, -17)))",
-        };
+            "all(+6, -7, +8, -9, +10, -11, +12, -13, +14, -15, +16, -17)",
+            R"(all(+0, -1, +2, -3, +4, -5, !all(+6, -7, +8, -9, +10, -11, +12, -13, +14, -15, +16, -17)))"};
         static char const* const expected_md_strings[] = {
             "",
             "",
@@ -255,9 +255,10 @@ TEST_F(ProtoConstructorTest, intersection_boxes)
 TEST_F(ProtoConstructorTest, simple_cms)
 {
     // NOTE: GDML stores widths for box and cylinder Z; Geant4 uses halfwidths
-    LogicalVolume world = this->load("simple-cms.gdml");
+    LogicalVolume world = this->load("simple-cms");
 
-    auto global_proto = ProtoConstructor(/* verbose = */ false)(world);
+    auto global_proto
+        = ProtoConstructor(this->geo(), /* verbose = */ false)(world);
     ProtoMap protos{*global_proto};
 
     static std::string const expected_proto_names[] = {"world"};
@@ -287,11 +288,11 @@ TEST_F(ProtoConstructorTest, simple_cms)
         static char const* const expected_volume_strings[] = {
             "!all(+0, -1, +2, -3, +4, -5)",
             "all(+6, -7, -8)",
-            "all(all(+6, -7, -9), !all(+6, -7, -8))",
-            "all(all(+6, -7, -10), !all(+6, -7, -9))",
-            "all(all(+6, -7, -11), !all(+6, -7, -10))",
-            "all(all(+6, -7, -12), !all(+6, -7, -11))",
-            "all(all(+6, -7, -13), !all(+6, -7, -12))",
+            "all(+6, -7, -9, !all(+6, -7, -8))",
+            "all(+6, -7, -10, !all(+6, -7, -9))",
+            "all(+6, -7, -11, !all(+6, -7, -10))",
+            "all(+6, -7, -12, !all(+6, -7, -11))",
+            "all(+6, -7, -13, !all(+6, -7, -12))",
         };
         static char const* const expected_fill_strings[]
             = {"<UNASSIGNED>", "m0", "m1", "m2", "m3", "m4", "m5"};
@@ -308,9 +309,10 @@ TEST_F(ProtoConstructorTest, simple_cms)
 //---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, testem3)
 {
-    LogicalVolume world = this->load("testem3.gdml");
+    LogicalVolume world = this->load("testem3");
 
-    auto global_proto = ProtoConstructor(/* verbose = */ false)(world);
+    auto global_proto
+        = ProtoConstructor(this->geo(), /* verbose = */ false)(world);
     ProtoMap protos{*global_proto};
 
     static std::string const expected_proto_names[] = {"world", "layer"};
@@ -341,8 +343,7 @@ TEST_F(ProtoConstructorTest, testem3)
         ASSERT_EQ(53, vols.size());  // slabs, zero-size 'calo', world,
                                      // exterior
         EXPECT_EQ(
-            "all(all(+0, -1, +2, -3, +4, -5), !all(+6, +8, -9, +10, -11, "
-            "-84))",
+            R"(all(+0, -1, +2, -3, +4, -5, !all(+6, +8, -9, +10, -11, -84)))",
             vols.back());
         EXPECT_EQ(GeoMatId{}, u.background);
     }
@@ -387,9 +388,10 @@ TEST_F(ProtoConstructorTest, testem3)
 //---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, tilecal_plug)
 {
-    LogicalVolume world = this->load("tilecal-plug.gdml");
+    LogicalVolume world = this->load("tilecal-plug");
 
-    auto global_proto = ProtoConstructor(/* verbose = */ false)(world);
+    auto global_proto
+        = ProtoConstructor(this->geo(), /* verbose = */ false)(world);
     ProtoMap protos{*global_proto};
 
     static std::string const expected_proto_names[] = {
@@ -419,7 +421,7 @@ TEST_F(ProtoConstructorTest, tilecal_plug)
             = {"<UNASSIGNED>", "m1", "m0", "m1"};
         static int const expected_volume_nodes[] = {12, 28, 26, 30};
         static char const expected_tree_string[]
-            = R"json(["t",["~",0],["S",0],["S",1],["~",3],["S",2],["~",5],["S",3],["~",7],["S",4],["S",5],["&",[2,4,6,8,9,10]],["~",11],["S",6],["&",[4,6,8,9,10,13]],["S",9],["~",13],["S",10],["~",17],["&",[8,9,10,15,16,18]],["|",[14,19]],["S",13],["~",21],["S",14],["~",23],["S",15],["&",[6,9,13,22,24,25]],["~",26],["&",[20,27]],["~",20],["&",[11,29]]])json";
+            = R"json(["t",["~",0],["S",0],["S",1],["~",3],["S",2],["~",5],["S",3],["~",7],["S",4],["S",5],["&",[2,4,6,8,9,10]],["~",11],["S",6],["&",[4,6,8,9,10,13]],["S",9],["~",13],["S",10],["~",17],["&",[8,9,10,15,16,18]],["|",[14,19]],["S",13],["~",21],["S",14],["~",23],["S",15],["&",[6,9,13,22,24,25]],["~",26],["&",[20,27]],["~",20],["&",[2,4,6,8,9,10,29]]])json";
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
@@ -432,9 +434,10 @@ TEST_F(ProtoConstructorTest, tilecal_plug)
 //---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, znenv)
 {
-    LogicalVolume world = this->load("znenv.gdml");
+    LogicalVolume world = this->load("znenv");
 
-    auto global_proto = ProtoConstructor(/* verbose = */ false)(world);
+    auto global_proto
+        = ProtoConstructor(this->geo(), /* verbose = */ false)(world);
     ProtoMap protos{*global_proto};
 
     static std::string const expected_proto_names[] = {
@@ -475,7 +478,7 @@ TEST_F(ProtoConstructorTest, znenv)
         };
         static int const expected_volume_nodes[] = {12, 22, 25, 38, 41, 43};
         static char const expected_tree_string[]
-            = R"json(["t",["~",0],["S",0],["S",1],["~",3],["S",2],["S",3],["~",6],["S",4],["S",5],["~",9],["&",[2,4,5,7,8,10]],["~",11],["S",6],["S",7],["~",14],["S",8],["S",9],["~",17],["S",10],["S",11],["~",20],["&",[13,15,16,18,19,21]],["S",12],["~",23],["&",[14,16,18,19,21,24]],["S",13],["S",14],["~",27],["S",15],["S",16],["~",30],["S",17],["S",18],["~",33],["&",[26,28,29,31,32,34]],["&",[13,16,18,19,21,24]],["~",36],["&",[35,37]],["|",[22,25]],["~",39],["&",[36,40]],["~",35],["&",[11,42]]])json";
+            = R"json(["t",["~",0],["S",0],["S",1],["~",3],["S",2],["S",3],["~",6],["S",4],["S",5],["~",9],["&",[2,4,5,7,8,10]],["~",11],["S",6],["S",7],["~",14],["S",8],["S",9],["~",17],["S",10],["S",11],["~",20],["&",[13,15,16,18,19,21]],["S",12],["~",23],["&",[14,16,18,19,21,24]],["S",13],["S",14],["~",27],["S",15],["S",16],["~",30],["S",17],["S",18],["~",33],["&",[26,28,29,31,32,34]],["&",[13,16,18,19,21,24]],["~",36],["&",[26,28,29,31,32,34,37]],["|",[22,25]],["~",39],["&",[13,16,18,19,21,24,40]],["~",35],["&",[2,4,5,7,8,10,42]]])json";
         // clang-format on
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));

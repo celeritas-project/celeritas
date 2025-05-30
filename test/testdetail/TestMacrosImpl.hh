@@ -766,6 +766,7 @@ IsRefEq(char const* expr1,
             }
             else
             {
+                CELER_DISCARD(tol_expr);  // Needed for GCC 8.5
                 item_result = IsRefEq(expr1, expr2, *iter1, *iter2);
             }
             if (!item_result)

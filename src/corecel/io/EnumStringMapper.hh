@@ -70,4 +70,17 @@ char const* EnumStringMapper<T>::operator()(T value) const
 }
 
 //---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+// Write an enum to a stream
+template<class T>
+auto operator<<(std::ostream& os, T value) -> std::enable_if_t<
+    std::is_enum_v<T> && std::is_same_v<decltype(to_cstring(value)), char const*>,
+    std::ostream&>
+{
+    return os << to_cstring(value);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

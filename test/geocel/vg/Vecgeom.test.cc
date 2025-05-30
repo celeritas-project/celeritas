@@ -20,6 +20,7 @@
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/Version.hh"
 #include "geocel/GeantGdmlLoader.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeantImportVolumeResult.hh"
 #include "geocel/GenericGeoParameterizedTest.hh"
@@ -33,10 +34,6 @@
 
 #include "VecgeomTestBase.hh"
 #include "celeritas_test.hh"
-
-#if CELERITAS_USE_GEANT4
-#    include <G4VPhysicalVolume.hh>
-#endif
 
 namespace celeritas
 {
@@ -103,16 +100,14 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
     //! Helper function: build via Geant4 GDML reader
     SPConstGeo build_geometry() final
     {
-        if (world_volume_)
-        {
-            // Clear old geant4 data
-            ::celeritas::reset_geant_geometry();
-        }
         ScopedLogStorer scoped_log_{&celeritas::self_logger(),
                                     LogLevel::warning};
-        world_volume_ = ::celeritas::load_gdml(this->test_data_path(
+
+        auto& geo = geant_geo(this->test_data_path(
             "geocel", this->geometry_basename() + std::string{".gdml"}));
-        auto result = std::make_shared<VecgeomParams>(world_volume_);
+        CELER_ASSERT(geo);
+
+        auto result = std::make_shared<VecgeomParams>(geo->world());
         EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
             << scoped_log_;
         return result;
@@ -121,25 +116,61 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
     //! Test conversion for Geant4 geometry
     GeantVolResult get_import_geant_volumes()
     {
-        return GeantVolResult::from_import(*this->geometry(), world_volume_);
+        return GeantVolResult::from_import(*this->geometry());
     }
 
     //! Test conversion for Geant4 geometry
     GeantVolResult get_direct_geant_volumes()
     {
-        return GeantVolResult::from_pointers(*this->geometry(), world_volume_);
+        return GeantVolResult::from_pointers(*this->geometry());
     }
 
     SpanStringView expected_log_levels() const override { return {}; }
 
-    G4VPhysicalVolume const* g4world() const final { return world_volume_; }
-
   protected:
-    // Note that this is static because the geometry may be loaded
-    static G4VPhysicalVolume* world_volume_;
+    using SPGeantGeo = std::shared_ptr<GeantGeoParams>;
+
+    class CleanupGeantGeo : public ::testing::Environment
+    {
+      public:
+        void SetUp() final {}
+        void TearDown() final;
+    };
+
+    static SPGeantGeo& geant_geo(std::string filename)
+    {
+        static bool registered{false};
+        if (CELER_UNLIKELY(!registered))
+        {
+            CELER_LOG(debug) << "Registering CleanupGeantGeo";
+            ::testing::AddGlobalTestEnvironment(new CleanupGeantGeo());
+            registered = true;
+        }
+
+        static std::string filename_;
+        static SPGeantGeo geo_;
+        if (filename_ != filename)
+        {
+            // Reset before constructing
+            geo_.reset();
+            filename_.clear();
+        }
+        if (!filename.empty())
+        {
+            geo_ = std::make_shared<GeantGeoParams>(filename);
+            celeritas::geant_geo(*geo_);
+            filename_ = std::move(filename);
+        }
+
+        return geo_;
+    }
 };
 
-G4VPhysicalVolume* VecgeomGeantTestBase::world_volume_{nullptr};
+void VecgeomGeantTestBase::CleanupGeantGeo::TearDown()
+{
+    CELER_LOG(debug) << "Destroying Geant4 geometry";
+    VecgeomGeantTestBase::geant_geo({});
+}
 
 //---------------------------------------------------------------------------//
 // VGDML TESTS
@@ -664,7 +695,7 @@ TEST_F(SolidsTest, output)
         auto out_str = StringSimplifier{1}(to_string(out));
 
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.0,-300.0,-75.0],[600.0,300.0,75.0]],"max_depth":2,"supports_safety":true,"volumes":{"label":["box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","trd3_refl@1","tube100","","","","","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","","trd3_refl@0"]}})json",
+            R"json({"_category":"internal","_label":"geometry","bbox":[[-6e2,-3e2,-8e1],[6e2,3e2,8e1]],"max_depth":2,"supports_safety":true,"volumes":{"label":["box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","trd3_refl@1","tube100","","","","","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","","trd3_refl@0"]}})json",
             out_str);
     }
 }
@@ -793,8 +824,7 @@ G4VPhysicalVolume* ArbitraryGeantTest::world_volume_{nullptr};
 
 TEST_F(ArbitraryGeantTest, conversion)
 {
-    auto result = GeantImportVolumeResult::from_import(*this->geometry(),
-                                                       world_volume_);
+    auto result = GeantImportVolumeResult::from_import(*this->geometry());
     result.print_expected();
     EXPECT_EQ(0, result.missing_labels.size());
 }

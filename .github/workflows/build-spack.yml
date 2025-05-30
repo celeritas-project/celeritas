@@ -13,7 +13,8 @@ concurrency:
   group: build-spack-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
 
 env:
-  SPACK_REF: 38309ced3344d06168c25482083fc733bb654a63 # develop@2025-03-17
+  SPACK_REF: 84476f6f35ee367a3c8c4247edcde66441cee5e6 # ci @ 12 May 2025
+
 
 jobs:
   spack:
@@ -96,8 +97,9 @@ jobs:
       ### ENVIRONMENT ###
 
       - name: Check out Spack
-        uses: spack/setup-spack@5792f7c7055c3707819380b5e3831d2be6e64b6c # 2024/12
+        uses: sethrj/setup-spack@200141be54665bd75af4dbb131d08d24ea606a9c
         with:
+          repository: celeritas-project/spack
           ref: ${{env.SPACK_REF}}
           buildcache: true
           color: true
@@ -128,8 +130,8 @@ jobs:
           if ${{(matrix.geometry == 'vecgeom'
                  || matrix.geometry == 'vecgeom2'
                  || matrix.geometry == 'vgsurf')
-                && matrix.geant}}; then
-            spack -e . add g4vg@1.0.2:
+                && matrix.geant != ''}}; then
+            spack -e . add g4vg@1.0.4
           fi
           spack -vd -e . compiler find --mixed-toolchain
           # Add the spack ref so that updating spack will reconcretize

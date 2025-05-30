@@ -68,11 +68,11 @@ struct AlongStepFactoryInput
 /*!
  * Helper class for emitting an AlongStep action.
  *
- * Currently Celeritas accepts a single along-step action (i.e., the same
- * stepper is used for both neutral and charged particles, across all energies
- * and regions of the problem). The along-step action is a single GPU
- * kernel that combines the field stepper selection, the magnetic field,
- * slowing-down calculation, multiple scattering, and energy loss fluctuations.
+ * Currently Celeritas accepts a single custom along-step action (i.e., the
+ * same stepper is used for charged particles across all energies and regions
+ * of the problem). The along-step action is a single GPU kernel that combines
+ * the field stepper selection, the magnetic field, slowing-down calculation,
+ * multiple scattering, and energy loss fluctuations.
  *
  * The factory will be called from the thread that initializes \c SharedParams.
  * Instead of a daughter class, you can provide any function-like object that

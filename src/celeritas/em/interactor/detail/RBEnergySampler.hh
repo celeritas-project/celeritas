@@ -42,11 +42,12 @@ class RBEnergySampler
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION RBEnergySampler(RelativisticBremRef const& shared,
-                                          ParticleTrackView const& particle,
-                                          CutoffView const& cutoffs,
-                                          MaterialView const& material,
-                                          ElementComponentId elcomp_id);
+    inline CELER_FUNCTION
+    RBEnergySampler(NativeCRef<RelativisticBremData> const& shared,
+                    ParticleTrackView const& particle,
+                    CutoffView const& cutoffs,
+                    MaterialView const& material,
+                    ElementComponentId elcomp_id);
 
     // Sample the bremsstrahlung photon energy with the given RNG
     template<class Engine>
@@ -70,7 +71,7 @@ class RBEnergySampler
  * Construct from incident particle and energy.
  */
 CELER_FUNCTION
-RBEnergySampler::RBEnergySampler(RelativisticBremRef const& shared,
+RBEnergySampler::RBEnergySampler(NativeCRef<RelativisticBremData> const& shared,
                                  ParticleTrackView const& particle,
                                  CutoffView const& cutoffs,
                                  MaterialView const& material,

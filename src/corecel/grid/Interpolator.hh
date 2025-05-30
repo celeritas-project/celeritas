@@ -126,8 +126,8 @@ CELER_FUNCTION Interpolator<XI, YI, T>::Interpolator(Point left, Point right)
  * Interpolate linearly on the transformed type.
  */
 template<Interp XI, Interp YI, class T>
-CELER_FUNCTION auto
-Interpolator<XI, YI, T>::operator()(real_type x) const -> real_type
+CELER_FUNCTION auto Interpolator<XI, YI, T>::operator()(real_type x) const
+    -> real_type
 {
     CELER_EXPECT(XTraits_t::valid_domain(x));
     real_type result = YTraits_t::transform_inv(

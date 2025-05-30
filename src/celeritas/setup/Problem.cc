@@ -15,6 +15,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/cont/VariantUtils.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/math/Algorithms.hh"
@@ -58,11 +59,11 @@
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/RootCoreParamsOutput.hh"
 #include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/optical/CherenkovParams.hh"
 #include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/ModelImporter.hh"
 #include "celeritas/optical/OpticalCollector.hh"
-#include "celeritas/optical/ScintillationParams.hh"
+#include "celeritas/optical/gen/CherenkovParams.hh"
+#include "celeritas/optical/gen/ScintillationParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
@@ -138,21 +139,15 @@ auto build_physics_processes(inp::EmPhysics const& em,
     // TODO: process builder should be deleted; instead it should get
     // p.physics.em or whatever
     std::vector<std::shared_ptr<Process const>> result;
-    ProcessBuilder::Options opts;
-    if (em.brems)
-    {
-        opts.brem_combined = em.brems->combined_model;
-    }
-
     ProcessBuilder build_process(
-        imported, params.particle, params.material, em.user_processes, opts);
+        imported, params.particle, params.material, em.user_processes);
     for (auto pc : ProcessBuilder::get_all_process_classes(imported.processes))
     {
         result.push_back(build_process(pc));
         if (!result.back())
         {
             // Deliberately ignored process
-            CELER_LOG(debug) << "Ignored process class " << to_cstring(pc);
+            CELER_LOG(debug) << "Ignored process class " << pc;
             result.pop_back();
         }
     }
@@ -258,8 +253,7 @@ auto build_track_init(inp::Control const& c, size_type num_streams)
         {
             input.track_order = TrackOrder::none;
         }
-        CELER_LOG(debug) << "Set default track order "
-                         << to_cstring(input.track_order);
+        CELER_LOG(debug) << "Set default track order " << input.track_order;
     }
 
     return std::make_shared<TrackInitParams>(std::move(input));
@@ -335,9 +329,7 @@ auto build_optical_offload(inp::OpticalStateCapacity const& cap,
                            CoreParams& params,
                            ImportData const& imported)
 {
-    using optical::CherenkovParams;
     using optical::MaterialParams;
-    using optical::ScintillationParams;
 
     CELER_VALIDATE(
         !imported.optical_materials.empty(),

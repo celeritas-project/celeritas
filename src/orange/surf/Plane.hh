@@ -9,6 +9,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
@@ -55,6 +56,10 @@ class Plane
 
     // Construct with normal and displacement
     explicit inline CELER_FUNCTION Plane(Real3 const& n, real_type d);
+
+    // Construct from three points
+    explicit inline CELER_FUNCTION
+    Plane(Real3 const& p0, Real3 const& p1, Real3 const& p2);
 
     // Construct from raw data
     template<class R>
@@ -119,6 +124,36 @@ CELER_FUNCTION Plane::Plane(Real3 const& n, real_type d) : normal_{n}, d_{d}
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct from three points.
+ *
+ * The direction of the normal is dictated by the right-hand rule, assuming
+ * the normal vector, C, is given by:
+ * \f[
+ * \vec{A} = \vec{p_1} - \vec{p_0},
+ * \vec{B} = \vec{p_2} - \vec{p_0},
+ * \vec{C} = \vec{A} \times  \vec{B}.
+ * \f]
+ * \verbatim
+             ^
+             | C
+             |
+             |
+   p1 _______| p0
+        A   /
+           / B
+          /
+         p2
+   \endverbatim
+ */
+CELER_FUNCTION Plane::Plane(Real3 const& p0, Real3 const& p1, Real3 const& p2)
+    : normal_{make_unit_vector(cross_product(p1 - p0, p2 - p0))}
+    , d_{dot_product(normal_, p0)}
+{
+    CELER_EXPECT(is_soft_unit_vector(normal_));
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct from raw data.
  */
 template<class R>
@@ -140,10 +175,10 @@ CELER_FUNCTION SignedSense Plane::calc_sense(Real3 const& pos) const
 /*!
  * Calculate all possible straight-line intersections with this surface.
  */
-CELER_FUNCTION auto
-Plane::calc_intersections(Real3 const& pos,
-                          Real3 const& dir,
-                          SurfaceState on_surface) const -> Intersections
+CELER_FUNCTION auto Plane::calc_intersections(Real3 const& pos,
+                                              Real3 const& dir,
+                                              SurfaceState on_surface) const
+    -> Intersections
 {
     real_type const n_dir = dot_product(normal_, dir);
     if (on_surface == SurfaceState::off && n_dir != 0)

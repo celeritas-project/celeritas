@@ -38,6 +38,7 @@ struct SimStateData
     Items<real_type> step_length;
     Items<TrackStatus> status;
     Items<ActionId> post_step_action;
+    Items<size_type> num_steps;  //!< Total number of steps taken
 
     //// METHODS ////
 
@@ -45,7 +46,7 @@ struct SimStateData
     explicit CELER_FUNCTION operator bool() const
     {
         return !time.empty() && !step_length.empty() && !status.empty()
-               && !post_step_action.empty();
+               && !post_step_action.empty() && !num_steps.empty();
     }
 
     //! State size
@@ -60,6 +61,7 @@ struct SimStateData
         step_length = other.step_length;
         status = other.status;
         post_step_action = other.post_step_action;
+        num_steps = other.num_steps;
         return *this;
     }
 };
@@ -80,6 +82,7 @@ inline void resize(SimStateData<Ownership::value, M>* data, size_type size)
     fill(TrackStatus::inactive, &data->status);
 
     resize(&data->post_step_action, size);
+    resize(&data->num_steps, size);
 
     CELER_ENSURE(*data);
 }

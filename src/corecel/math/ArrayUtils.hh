@@ -50,6 +50,12 @@ template<class T, size_type N>
 make_unit_vector(Array<T, N> const& v);
 
 //---------------------------------------------------------------------------//
+// Return x - (x . y) * y for a unit vector y
+template<class T, size_type N>
+[[nodiscard]] inline CELER_FUNCTION Array<T, N>
+make_orthogonal(Array<T, N> const& x, Array<T, N> const& y);
+
+//---------------------------------------------------------------------------//
 // Calculate the Euclidian (2) distance between two points
 template<class T, size_type N>
 [[nodiscard]] inline CELER_FUNCTION T distance(Array<T, N> const& x,
@@ -146,6 +152,28 @@ CELER_FUNCTION Array<T, N> make_unit_vector(Array<T, N> const& v)
     {
         el *= scale_factor;
     }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return the component of \em x that is orthogonal to the unit vector \em y.
+ *
+ * In this implementation, \em y must be normalized, and the result is not
+ * normalized.
+ *
+ * \f[
+\mathbf{x}' \gets \mathbf{x} - (\mathbf{x} \cdot \mathbf{y}) \mathbf{y}
+\, , \quad \|\mathbf{y}\| = 1
+\f]
+ */
+template<class T, size_type N>
+[[nodiscard]] inline CELER_FUNCTION Array<T, N>
+make_orthogonal(Array<T, N> const& x, Array<T, N> const& y)
+{
+    CELER_EXPECT(is_soft_unit_vector(y));
+    Array<T, N> result{x};
+    axpy(-dot_product(x, y), y, &result);
     return result;
 }
 

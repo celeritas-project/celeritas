@@ -64,8 +64,9 @@ class ConverterTest : public GeantLoadTestBase
 TEST_F(ConverterTest, testem3)
 {
     std::string const basename = "testem3";
+    this->load_test_gdml(basename);
     auto convert = this->make_converter(basename);
-    auto result = convert(this->load_test_gdml(basename)).input;
+    auto result = convert(this->geo()).input;
     write_org_json(result, basename);
 
     ASSERT_EQ(2, result.universes.size());
@@ -102,8 +103,9 @@ TEST_F(ConverterTest, testem3)
 TEST_F(ConverterTest, tilecal_plug)
 {
     std::string const basename = "tilecal-plug";
+    this->load_test_gdml(basename);
     auto convert = this->make_converter(basename);
-    auto result = convert(this->load_test_gdml(basename)).input;
+    auto result = convert(this->geo()).input;
     write_org_json(result, basename);
 
     ASSERT_EQ(1, result.universes.size());
@@ -127,8 +129,9 @@ TEST_F(ConverterTest, DISABLED_arbitrary)
                       "--gtest_filter=*arbitrary "
                       "--gtest_also_run_disabled_tests");
 
+    this->load_gdml(filename);
     auto convert = this->make_converter(filename);
-    auto input = convert(this->load_gdml(filename)).input;
+    auto input = convert(this->geo()).input;
 
     write_org_json(input, filename);
 }

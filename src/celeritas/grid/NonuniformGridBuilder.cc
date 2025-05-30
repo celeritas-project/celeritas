@@ -8,6 +8,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/grid/SplineDerivCalculator.hh"
+#include "corecel/io/EnumStringMapper.hh"
 
 #include "detail/GridUtils.hh"
 
@@ -32,9 +33,8 @@ auto NonuniformGridBuilder::operator()(inp::Grid const& grid) -> Grid
     CELER_EXPECT(grid);
 
     CELER_VALIDATE(grid.interpolation.type != InterpolationType::poly_spline,
-                   << to_cstring(grid.interpolation.type)
-                   << " interpolation is not supported on a "
-                      "nonuniform grid");
+                   << grid.interpolation.type
+                   << " interpolation is not supported on a nonuniform grid");
 
     NonuniformGridRecord data;
     data.grid = reals_.insert_back(grid.x.begin(), grid.x.end());

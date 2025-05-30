@@ -240,8 +240,8 @@ auto SimpleUnitTrackerTest::run_heuristic_init_host(size_type num_tracks) const
 /*!
  * Initialize particles randomly and tally their resulting locations.
  */
-auto SimpleUnitTrackerTest::run_heuristic_init_device(
-    size_type num_tracks) const -> HeuristicInitResult
+auto SimpleUnitTrackerTest::run_heuristic_init_device(size_type num_tracks) const
+    -> HeuristicInitResult
 {
     using DStateStore = CollectionStateStore<OrangeStateData, MemSpace::device>;
     DStateStore states(this->setup_heuristic_states(num_tracks));
@@ -294,8 +294,9 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
 /*!
  * Process "heuristic init" test results.
  */
-auto SimpleUnitTrackerTest::reduce_heuristic_init(
-    StateHostRef const& host, double wall_time) const -> HeuristicInitResult
+auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostRef const& host,
+                                                  double wall_time) const
+    -> HeuristicInitResult
 {
     CELER_EXPECT(host);
     CELER_EXPECT(wall_time > 0);

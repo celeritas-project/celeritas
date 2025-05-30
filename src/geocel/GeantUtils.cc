@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/GeantUtils.cc
+//! \todo Move anything that's not geometry/materials to the celeritas lib
 //---------------------------------------------------------------------------//
 #include "GeantUtils.hh"
 

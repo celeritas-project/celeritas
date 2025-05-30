@@ -46,7 +46,7 @@ constexpr bool
 operator==(CherenkovPhysicsOptions const& a, CherenkovPhysicsOptions const& b)
 {
     // clang-format off
-    return a.enable == b.enable 
+    return a.enable == b.enable
            && a.stack_photons == b.stack_photons
            && a.track_secondaries_first == b.track_secondaries_first
            && a.max_photons == b.max_photons
@@ -83,7 +83,7 @@ constexpr bool operator==(ScintillationPhysicsOptions const& a,
                           ScintillationPhysicsOptions const& b)
 {
     // clang-format off
-    return a.enable == b.enable 
+    return a.enable == b.enable
            && a.stack_photons == b.stack_photons
            && a.track_secondaries_first == b.track_secondaries_first
            && a.by_particle_type == b.by_particle_type
@@ -112,7 +112,7 @@ constexpr bool
 operator==(BoundaryPhysicsOptions const& a, BoundaryPhysicsOptions const& b)
 {
     // clang-format off
-    return a.enable == b.enable 
+    return a.enable == b.enable
            && a.invoke_sd == b.invoke_sd;
     // clang-format on
 }
@@ -192,12 +192,12 @@ constexpr bool operator==(GeantOpticalPhysicsOptions const& a,
     // clang-format off
     return a.cherenkov == b.cherenkov
            && a.scintillation == b.scintillation
-           && a.wavelength_shifting == b.wavelength_shifting 
-           && a.wavelength_shifting2 == b.wavelength_shifting2 
-           && a.boundary == b.boundary 
-           && a.absorption == b.absorption 
-           && a.rayleigh_scattering == b.rayleigh_scattering 
-           && a.mie_scattering == b.mie_scattering 
+           && a.wavelength_shifting == b.wavelength_shifting
+           && a.wavelength_shifting2 == b.wavelength_shifting2
+           && a.boundary == b.boundary
+           && a.absorption == b.absorption
+           && a.rayleigh_scattering == b.rayleigh_scattering
+           && a.mie_scattering == b.mie_scattering
            && a.verbose == b.verbose;
     // clang-format on
 }

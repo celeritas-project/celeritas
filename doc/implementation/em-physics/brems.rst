@@ -34,6 +34,10 @@ cross section for low-energy gammas.
 
 .. doxygenclass:: celeritas::LPMCalculator
 
+They also use nuclear screening functions:
+
+.. doxygenclass:: celeritas::TsaiScreeningCalculator
+
 Muon bremsstrahlung calculates the differential cross section as part of
 rejection sampling.
 
@@ -54,4 +58,3 @@ Muon bremsstrahlung and pair production use a simple distribution to sample the
 exiting polar angles.
 
 .. doxygenclass:: celeritas::MuAngularDistribution
-

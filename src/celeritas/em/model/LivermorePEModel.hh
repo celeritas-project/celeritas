@@ -29,8 +29,8 @@ class LivermorePEModel final : public Model, public StaticConcreteAction
   public:
     //!@{
     using ReadData = std::function<ImportLivermorePE(AtomicNumber)>;
-    using HostRef = LivermorePEHostRef;
-    using DeviceRef = LivermorePEDeviceRef;
+    using HostRef = HostCRef<LivermorePEData>;
+    using DeviceRef = DeviceCRef<LivermorePEData>;
     //!@}
 
   public:
@@ -44,7 +44,7 @@ class LivermorePEModel final : public Model, public StaticConcreteAction
     SetApplicability applicability() const final;
 
     // Get the microscopic cross sections for the given particle and material
-    MicroXsBuilders micro_xs(Applicability) const final;
+    XsTable micro_xs(Applicability) const final;
 
     // Apply the interaction kernel on host
     void step(CoreParams const&, CoreStateHost&) const final;

@@ -20,10 +20,11 @@
 //---------------------------------------------------------------------------//
 
 class G4LogicalVolume;
-class G4VPhysicalVolume;
 
 namespace celeritas
 {
+class GeantGeoParams;
+
 struct OrangeInput;
 namespace orangeinp
 {
@@ -51,7 +52,7 @@ class Converter
   public:
     //!@{
     //! \name Type aliases
-    using arg_type = G4VPhysicalVolume const*;
+    using arg_type = GeantGeoParams const&;
     using MapLvVolId = std::unordered_map<G4LogicalVolume const*, VolumeId>;
     //!@}
 

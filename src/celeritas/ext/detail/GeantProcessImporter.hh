@@ -87,17 +87,6 @@ class GeantProcessImporter
                G4VMultipleScattering const& process);
 
   private:
-    //// TYPES ////
-
-    struct PrevTable
-    {
-        int particle_pdg;
-        celeritas::ImportProcessClass process_class;
-        celeritas::ImportTableType table_type;
-    };
-
-    //// DATA ////
-
     // Store material and element information for the element selector tables
     std::vector<ImportPhysMaterial> const& materials_;
     std::vector<ImportElement> const& elements_;

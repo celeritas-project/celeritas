@@ -37,16 +37,17 @@ class CalculatorTestBase : public Test
     //!@}
 
   public:
-    // Construct from grid bounds and cross section values
-    void build(inp::UniformGrid lower, inp::UniformGrid upper);
+    // Construct a cross section grid
+    void build(inp::XsGrid grid);
 
-    // Construct without scaled values
+    // Construct a uniform grid
     void build(inp::UniformGrid grid);
 
-    // Construct inverted grid
+    // Construct an inverted uniform grid
     void build_inverted(inp::UniformGrid grid);
 
-    XsGridRecord const& data() const { return data_; }
+    XsGridRecord const& xs_grid() const { return data_; }
+    UniformGridRecord const& uniform_grid() const { return data_.lower; }
     Data const& values() const { return value_ref_; }
 
   private:

@@ -25,7 +25,7 @@ struct SeltzerBergerExecutor
     inline CELER_FUNCTION Interaction
     operator()(celeritas::CoreTrackView const& track);
 
-    SeltzerBergerRef params;
+    NativeCRef<SeltzerBergerData> params;
 };
 
 //---------------------------------------------------------------------------//

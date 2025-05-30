@@ -1,5 +1,5 @@
-Export Geant4 data to ROOT or JSON 
-[At least 1 of the following options are required] 
+Export Geant4 data to ROOT or JSON
+[At least 1 of the following options are required]
 
 
 ./celer-export-geant [OPTIONS] [gdml] [physopt] [output]
@@ -7,14 +7,14 @@ Export Geant4 data to ROOT or JSON
 
 POSITIONALS:
   gdml TEXT:FILE Needs: physopt output
-                              Input GDML file 
+                              Input GDML file
   physopt TEXT:((FILE) OR ('-' for stdin/stdout)) OR (Empty string)
-                              Geant physics options JSON 
-  output TEXT                 Output file (ROOT or JSON or '-' for stdout JSON) 
+                              Geant physics options JSON
+  output TEXT                 Output file (ROOT or JSON or '-' for stdout JSON)
 
 OPTIONS:
-  -h,     --help              Print this help message and exit 
-  -v,     --version           Display program version information and exit 
-          --dump-default      Dump default options 
-          --gen-test Needs: gdml 
-                              Generate test data 
+  -h,     --help              Print this help message and exit
+  -v,     --version           Display program version information and exit
+          --dump-default      Dump default options
+          --gen-test Needs: gdml
+                              Generate test data

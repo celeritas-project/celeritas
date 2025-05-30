@@ -43,6 +43,7 @@ struct PTestInput
     DeviceRef<PhysicsStateData> states;
     DeviceCRef<ParticleParamsData> par_params;
     DeviceRef<ParticleStateData> par_states;
+    DeviceCRef<MaterialParamsData> mat_params;
     StateCollection<PhysTestInit, Ownership::const_reference, MemSpace::device>
         inits;
 
@@ -55,6 +56,7 @@ struct PTestInput
 //---------------------------------------------------------------------------//
 inline CELER_FUNCTION real_type calc_step(PhysicsTrackView& phys,
                                           PhysicsStepView& pstep,
+                                          MaterialView const& mat,
                                           units::MevEnergy energy)
 {
     // Calc total macro_xs over processes
@@ -64,8 +66,7 @@ inline CELER_FUNCTION real_type calc_step(PhysicsTrackView& phys,
         real_type process_xs = 0;
         if (auto id = phys.macro_xs_grid(ppid))
         {
-            auto calc_xs = phys.make_calculator<XsCalculator>(id);
-            process_xs = calc_xs(energy);
+            process_xs = phys.calc_xs(ppid, mat, energy);
         }
 
         // Zero cross section if outside of model range

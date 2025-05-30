@@ -32,41 +32,29 @@ constexpr auto ccw = Orientation::counterclockwise;
 constexpr auto cw = Orientation::clockwise;
 constexpr auto col = Orientation::collinear;
 
+// Function for comparing filtered polygon results
+auto expect_polygon_equal = [](VecReal2 const& a, VecReal2 const& b) {
+    EXPECT_EQ(a.size(), b.size());
+    for (auto i : range(a.size()))
+    {
+        EXPECT_EQ(a[i][0], b[i][0]);
+        EXPECT_EQ(a[i][1], b[i][1]);
+    }
+};
+
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST(PolygonUtilsTest, soft_orientation)
-{
-    SoftOrientation tight_soft_ori(1e-10);
-    SoftOrientation loose_soft_ori(1e-1);
-
-    // Basic tests
-    EXPECT_EQ(ccw, tight_soft_ori({0, 0}, {4, 4}, {1, 2}));
-    EXPECT_EQ(cw, tight_soft_ori({0, 0}, {4, 4}, {2, 1}));
-    EXPECT_EQ(col, tight_soft_ori({0, 0}, {4, 4}, {2, 2}));
-    EXPECT_EQ(col, tight_soft_ori({0, 0}, {1, 1}, {2, 2}));
-    EXPECT_EQ(col, tight_soft_ori({2, 2}, {1, 1}, {0, 0}));
-    EXPECT_EQ(col, tight_soft_ori({0, 0}, {0, 0}, {1, 1}));
-    EXPECT_EQ(col, tight_soft_ori({0, 0}, {0, 0}, {0, 0}));
-
-    // Collinearity tests
-    EXPECT_EQ(ccw, tight_soft_ori({0, 0}, {1, 1}, {2, 2 + 0.01}));
-    EXPECT_EQ(col, loose_soft_ori({0, 0}, {1, 1}, {2, 2 + 0.01}));
-
-    EXPECT_EQ(cw, tight_soft_ori({0, 0}, {1, 1}, {2, 2 - 0.01}));
-    EXPECT_EQ(col, loose_soft_ori({0, 0}, {1, 1}, {2, 2 - 0.01}));
-}
-
 TEST(PolygonUtilsTest, calc_orientation)
 {
-    EXPECT_EQ(ccw, calc_orientation({0, 0}, {4, 4}, {1, 2}));
-    EXPECT_EQ(cw, calc_orientation({0, 0}, {4, 4}, {2, 1}));
-    EXPECT_EQ(col, calc_orientation({0, 0}, {4, 4}, {2, 2}));
-    EXPECT_EQ(col, calc_orientation({0, 0}, {1, 1}, {2, 2}));
-    EXPECT_EQ(col, calc_orientation({2, 2}, {1, 1}, {0, 0}));
-    EXPECT_EQ(col, calc_orientation({0, 0}, {0, 0}, {1, 1}));
-    EXPECT_EQ(col, calc_orientation({0, 0}, {0, 0}, {0, 0}));
+    EXPECT_EQ(ccw, calc_orientation<real_type>({0, 0}, {4, 4}, {1, 2}));
+    EXPECT_EQ(cw, calc_orientation<real_type>({0, 0}, {4, 4}, {2, 1}));
+    EXPECT_EQ(col, calc_orientation<real_type>({0, 0}, {4, 4}, {2, 2}));
+    EXPECT_EQ(col, calc_orientation<real_type>({0, 0}, {1, 1}, {2, 2}));
+    EXPECT_EQ(col, calc_orientation<real_type>({2, 2}, {1, 1}, {0, 0}));
+    EXPECT_EQ(col, calc_orientation<real_type>({0, 0}, {0, 0}, {1, 1}));
+    EXPECT_EQ(col, calc_orientation<real_type>({0, 0}, {0, 0}, {0, 0}));
 }
 
 TEST(PolygonUtilsTest, has_orientation)
@@ -94,6 +82,31 @@ TEST(PolygonUtilsTest, is_same_orientation)
     EXPECT_FALSE(is_same_orientation(ccw, cw, degen_ok));
     EXPECT_TRUE(is_same_orientation(cw, col, degen_ok));
     EXPECT_TRUE(is_same_orientation(col, cw, degen_ok));
+}
+
+TEST(PolygonUtilsTest, soft_orientation)
+{
+    SoftOrientation tight_soft_ori(1e-10);
+    SoftOrientation loose_soft_ori(0.01);
+
+    // Basic tests
+    EXPECT_EQ(ccw, tight_soft_ori({0, 0}, {4, 4}, {1, 2}));
+    EXPECT_EQ(cw, tight_soft_ori({0, 0}, {4, 4}, {2, 1}));
+    EXPECT_EQ(col, tight_soft_ori({0, 0}, {4, 4}, {2, 2}));
+    EXPECT_EQ(col, tight_soft_ori({0, 0}, {1, 1}, {2, 2}));
+    EXPECT_EQ(col, tight_soft_ori({2, 2}, {1, 1}, {0, 0}));
+    EXPECT_EQ(col, tight_soft_ori({0, 0}, {0, 0}, {1, 1}));
+    EXPECT_EQ(col, tight_soft_ori({0, 0}, {0, 0}, {0, 0}));
+
+    // Collinearity tests
+    EXPECT_EQ(cw, tight_soft_ori({0, 0}, {1, 0.009}, {2, 0}));
+    EXPECT_EQ(ccw, tight_soft_ori({0, 0}, {1, -0.009}, {2, 0}));
+
+    EXPECT_EQ(col, loose_soft_ori({0, 0}, {1, 0.009}, {2, 0}));
+    EXPECT_EQ(col, loose_soft_ori({0, 0}, {1, -0.009}, {2, 0}));
+
+    EXPECT_EQ(cw, loose_soft_ori({0, 0}, {1, 0.011}, {2, 0}));
+    EXPECT_EQ(ccw, loose_soft_ori({0, 0}, {1, -0.011}, {2, 0}));
 }
 
 TEST(PolygonUtilsTest, convex)
@@ -149,6 +162,117 @@ TEST(PolygonUtilsTest, convex_self_intersect)
     EXPECT_FALSE(is_convex(self_int2));
 }
 
+/* Test removal of collinear points using points a through g, which when
+ * traversed clockewise form a convex polygon.
+ *
+ *     c . . . . . d  |_ 2
+ *     .              |.
+ *     .              |     .
+ *    .               |         .
+ *    .               |_ 1          e
+ *    .               |           .
+ *   .                |          .
+ *   .                |         .
+ *   b________________a____g__f_________
+ *   |        |       |       |        |
+ *  -1       -0.5     0      0.5       1
+ */
+TEST(PolygonUtilsTest, filter_collinear_points)
+{
+    // Point locations, as labeled above
+    Real2 a = {0, 0};
+    Real2 b = {-1, -1e-5};
+    Real2 c = {-0.9, -0.1};
+    Real2 d = {0.75, 1};
+    Real2 e = {0.75, 0.5};
+    Real2 f = {0.5, 1e-5};
+    Real2 g = {0.35, 1e-6};
+
+    using VecReal2 = std::vector<Real2>;
+    real_type tol = 0.01;
+
+    // No collinear points (b through f)
+    VecReal2 points{b, c, d, e, f};
+    VecReal2 exp = points;
+    expect_polygon_equal(exp, filter_collinear_points(points, tol));
+
+    // Point a is collinear, using a through f, and a comes first
+    points = {a, b, c, d, e, f};
+    exp = {b, c, d, e, f};
+    expect_polygon_equal(exp, filter_collinear_points(points, tol));
+
+    // Same, but a comes second
+    points = {f, a, b, c, d, e};
+    exp = {f, b, c, d, e};
+    expect_polygon_equal(exp, filter_collinear_points(points, tol));
+
+    // Same, but a comes third
+    points = {e, f, a, b, c, d};
+    exp = {e, f, b, c, d};
+    expect_polygon_equal(exp, filter_collinear_points(points, tol));
+
+    // Same, but a comes last
+    points = {b, c, d, e, f, a};
+    exp = {b, c, d, e, f};
+    expect_polygon_equal(exp, filter_collinear_points(points, tol));
+
+    // Same, but a comes second
+    points = {f, a, b, c, d, e};
+    exp = {f, b, c, d, e};
+    expect_polygon_equal(exp, filter_collinear_points(points, tol));
+
+    // Points a and g are collinear, using a through g, and a comes first
+    points = {a, b, c, d, e, f, g};
+    exp = {b, c, d, e, f};
+    expect_polygon_equal(exp, filter_collinear_points(points, tol));
+
+    // Same, but a comes second
+    points = {g, a, b, c, d, e, f};
+    exp = {b, c, d, e, f};
+    expect_polygon_equal(exp, filter_collinear_points(points, tol));
+
+    // Same, but a comes third
+    points = {f, g, a, b, c, d, e};
+    exp = {f, b, c, d, e};
+    expect_polygon_equal(exp, filter_collinear_points(points, tol));
+
+    // Same, but a comes second to last
+    points = {c, d, e, f, g, a, b};
+    exp = {c, d, e, f, b};
+    expect_polygon_equal(exp, filter_collinear_points(points, tol));
+
+    // Same, but a comes last
+    points = {b, c, d, e, f, g, a};
+    exp = {b, c, d, e, f};
+    expect_polygon_equal(exp, filter_collinear_points(points, tol));
+}
+
+/* Test pathological case consisting of a many-sided regular polygon with every
+ * point soft collinear with its neighbors due to a large tolerance.
+ */
+TEST(PolygonUtilsTest, filter_collinear_points_pathological)
+{
+    // Create a many-sided regular polygon by placing 20 equally spaced points
+    // on a circle of radius = 1, in clockwise order.
+    VecReal2 points(20);
+    real_type step = static_cast<real_type>(2 * constants::pi / points.size());
+
+    for (auto i : range(points.size()))
+    {
+        real_type theta = -step * i;
+        points[i] = {std::cos(theta), std::sin(theta)};
+    }
+
+    // Choose a tolerance such that adjacent points are soft collinear
+    real_type tol = 0.1;
+    SoftOrientation soft_ori(tol);
+    EXPECT_EQ(Orientation::collinear,
+              soft_ori(points[0], points[1], points[2]));
+
+    // Check that filtering provies more than zero points, in this case 7
+    auto filtered_points = filter_collinear_points(points, tol);
+    EXPECT_EQ(7, filtered_points.size());
+}
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace detail

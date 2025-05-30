@@ -25,6 +25,7 @@ class G4VPhysicalVolume;
 namespace celeritas
 {
 struct OrangeInput;
+class GeantGeoParams;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -48,7 +49,7 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
     explicit OrangeParams(std::string const& filename);
 
     // Construct in-memory from Geant4
-    explicit OrangeParams(G4VPhysicalVolume const*);
+    explicit OrangeParams(G4VPhysicalVolume const* world);
 
     // ADVANCED usage: construct from explicit host data
     explicit OrangeParams(OrangeInput&& input);

@@ -244,7 +244,24 @@ TEST_F(RootJsonDumperTest, all)
       "low_energy_limit" : 1e-4,
       "high_energy_limit" : 100000000
     }],
-    "tables" : [],
+    "lambda" : {
+      "_typename" : "celeritas::ImportPhysicsTable",
+      "x_units" : 0,
+      "y_units" : 0,
+      "grids" : []
+    },
+    "lambda_prim" : {
+      "_typename" : "celeritas::ImportPhysicsTable",
+      "x_units" : 0,
+      "y_units" : 0,
+      "grids" : []
+    },
+    "dedx" : {
+      "_typename" : "celeritas::ImportPhysicsTable",
+      "x_units" : 0,
+      "y_units" : 0,
+      "grids" : []
+    },
     "applies_at_rest" : true
   }, {
     "_typename" : "celeritas::ImportProcess",
@@ -312,12 +329,11 @@ TEST_F(RootJsonDumperTest, all)
       "low_energy_limit" : 1e-4,
       "high_energy_limit" : 100000000
     }],
-    "tables" : [{
+    "lambda" : {
       "_typename" : "celeritas::ImportPhysicsTable",
-      "table_type" : 0,
       "x_units" : 1,
       "y_units" : 4,
-      "physics_vectors" : [{
+      "grids" : [{
         "_typename" : "celeritas::inp::UniformGrid",
         "x" : {
           "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
@@ -344,7 +360,19 @@ TEST_F(RootJsonDumperTest, all)
           "bc" : 2
         }
       }]
-    }],
+    },
+    "lambda_prim" : {
+      "_typename" : "celeritas::ImportPhysicsTable",
+      "x_units" : 0,
+      "y_units" : 0,
+      "grids" : []
+    },
+    "dedx" : {
+      "_typename" : "celeritas::ImportPhysicsTable",
+      "x_units" : 0,
+      "y_units" : 0,
+      "grids" : []
+    },
     "applies_at_rest" : false
   }],
   "msc_models" : [{
@@ -353,10 +381,9 @@ TEST_F(RootJsonDumperTest, all)
     "model_class" : 3,
     "xs_table" : {
       "_typename" : "celeritas::ImportPhysicsTable",
-      "table_type" : 4,
       "x_units" : 1,
       "y_units" : 6,
-      "physics_vectors" : [{
+      "grids" : [{
         "_typename" : "celeritas::inp::UniformGrid",
         "x" : {
           "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
@@ -390,10 +417,9 @@ TEST_F(RootJsonDumperTest, all)
     "model_class" : 5,
     "xs_table" : {
       "_typename" : "celeritas::ImportPhysicsTable",
-      "table_type" : 4,
       "x_units" : 1,
       "y_units" : 6,
-      "physics_vectors" : [{
+      "grids" : [{
         "_typename" : "celeritas::inp::UniformGrid",
         "x" : {
           "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",

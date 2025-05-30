@@ -136,7 +136,8 @@ struct ImportTransParameters
 
 //---------------------------------------------------------------------------//
 /*!
- * TODO: Placeholder for optical parameter data.
+ * Optical parameter options imported from Geant4.
+ *
  * See \c G4OpticalParameters .
  */
 struct ImportOpticalParameters

@@ -54,7 +54,7 @@ class RelativisticBremInteractor
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    RelativisticBremInteractor(RelativisticBremRef const& shared,
+    RelativisticBremInteractor(NativeCRef<RelativisticBremData> const& shared,
                                ParticleTrackView const& particle,
                                Real3 const& direction,
                                CutoffView const& cutoffs,
@@ -70,7 +70,7 @@ class RelativisticBremInteractor
     //// DATA ////
 
     // Shared constant physics properties
-    RelativisticBremRef const& shared_;
+    NativeCRef<RelativisticBremData> const& shared_;
     // Incident particle energy
     Energy const inc_energy_;
     // Incident particle momentum
@@ -96,7 +96,7 @@ class RelativisticBremInteractor
  */
 CELER_FUNCTION
 RelativisticBremInteractor::RelativisticBremInteractor(
-    RelativisticBremRef const& shared,
+    NativeCRef<RelativisticBremData> const& shared,
     ParticleTrackView const& particle,
     Real3 const& direction,
     CutoffView const& cutoffs,

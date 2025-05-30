@@ -41,11 +41,7 @@ class XsGridInserter
     XsGridInserter(Values* reals, GridValues* grids);
 
     // Add a grid of xs-like data
-    GridId
-    operator()(inp::UniformGrid const& lower, inp::UniformGrid const& upper);
-
-    // Add a grid of uniform log-grid data
-    GridId operator()(inp::UniformGrid const& grid);
+    GridId operator()(inp::XsGrid const& grid);
 
   private:
     Values* values_;

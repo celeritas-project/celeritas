@@ -10,9 +10,7 @@
 #include <algorithm>
 #include <cmath>
 #include <CLHEP/Units/SystemOfUnits.h>
-#include <G4FieldManager.hh>
 #include <G4MagneticField.hh>
-#include <G4TransportationManager.hh>
 #include <corecel/Assert.hh>
 
 #include "corecel/Types.hh"
@@ -20,6 +18,7 @@
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/math/Quantity.hh"
 #include "corecel/math/Turn.hh"
+#include "geocel/GeantGeoUtils.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -91,15 +90,10 @@ MakeCylMapFieldInput(std::vector<G4double> const& r_grid,
         nr, nphi, nz, static_cast<size_type>(CylAxis::size_)};
     HyperslabIndexer const flat_index{dims};
 
-    CELER_EXPECT(G4TransportationManager::GetTransportationManager());
-    CELER_EXPECT(
-        G4TransportationManager::GetTransportationManager()->GetFieldManager());
-    CELER_EXPECT(G4TransportationManager::GetTransportationManager()
-                     ->GetFieldManager()
-                     ->GetDetectorField());
-    auto& field = *G4TransportationManager::GetTransportationManager()
-                       ->GetFieldManager()
-                       ->GetDetectorField();
+    G4Field const* g4field = celeritas::geant_field();
+    CELER_VALIDATE(g4field,
+                   << "no Geant4 global field has been set: cannot build "
+                      "CylMapMagneticField");
     Array<G4double, 3> bfield;
     for (size_type ir = 0; ir < nr; ++ir)
     {
@@ -113,7 +107,7 @@ MakeCylMapFieldInput(std::vector<G4double> const& r_grid,
                                    + flat_index(ir, iphi, iz, 0);
                 Array<G4double, 4> pos
                     = {r * std::cos(phi), r * std::sin(phi), z_grid[iz], 0};
-                field.GetFieldValue(pos.data(), bfield.data());
+                g4field->GetFieldValue(pos.data(), bfield.data());
                 EnumArray<CylAxis, G4double> bfield_cyl;
                 cartesian_to_cylindrical(bfield, bfield_cyl);
                 auto bfield_cyl_native

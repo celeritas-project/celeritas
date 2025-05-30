@@ -13,6 +13,7 @@
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/PhysicsOptions.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
@@ -28,7 +29,8 @@ namespace test
 //---------------------------------------------------------------------------//
 auto MockTestBase::make_applicability(char const* name,
                                       real_type lo_energy,
-                                      real_type hi_energy) const -> Applicability
+                                      real_type hi_energy) const
+    -> Applicability
 {
     CELER_EXPECT(name);
     CELER_EXPECT(lo_energy <= hi_energy);
@@ -222,8 +224,9 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         inp.materials = this->material();
         inp.interact = interact;
         inp.label = "barks";
-        inp.applic = {make_applicability("electron", 1e-5, 10)};
+        inp.applic = {make_applicability("electron", 1e-5, 1e3)};
         inp.xs = {Barn{0}, Barn{6.0}, Barn{12.0}, Barn{6.0}};
+        inp.xs_scaled = {Barn{6.0}, Barn{0}};
         inp.energy_loss = MevCmSqLossDens{0.5 * 1e-20};
         inp.interp = this->interpolation();
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));

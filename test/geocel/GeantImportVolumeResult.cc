@@ -14,6 +14,7 @@
 #endif
 
 #include "corecel/io/Repr.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
 
 namespace celeritas
@@ -22,22 +23,20 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 GeantImportVolumeResult
-GeantImportVolumeResult::from_import(GeoParamsInterface const& geom,
-                                     G4VPhysicalVolume const* world)
+GeantImportVolumeResult::from_import(GeoParamsInterface const& geom)
 {
-    CELER_VALIDATE(world, << "world volume is nullptr");
-
 #if CELERITAS_USE_GEANT4
     using Result = GeantImportVolumeResult;
 
-    auto vol_labels = make_logical_vol_labels(*world);
-
+    auto* geant_geo = celeritas::geant_geo();
+    CELER_VALIDATE(geant_geo, << "global Geant4 geometry is not loaded");
     Result result;
-    result.volumes.resize(vol_labels.size());
+    result.volumes.resize(geant_geo->volumes().size());
 
-    for (auto i : range(vol_labels.size()))
+    for (auto i : range<VolumeId::size_type>(result.volumes.size()))
     {
-        result.volumes[i] = [&label = vol_labels[i], &geom, &result] {
+        auto const& label = geant_geo->volumes().at(VolumeId{i});
+        result.volumes[i] = [&] {
             if (label.empty())
             {
                 return Result::empty;
@@ -55,6 +54,7 @@ GeantImportVolumeResult::from_import(GeoParamsInterface const& geom,
     }
 
     // Trim leading 'empty' values
+    // TODO: delete when doing LV/PV ID remapping
     auto first_nonempty = std::find_if(
         result.volumes.begin(), result.volumes.end(), [](int i) {
             return i != Result::empty;
@@ -70,10 +70,8 @@ GeantImportVolumeResult::from_import(GeoParamsInterface const& geom,
 
 //---------------------------------------------------------------------------//
 GeantImportVolumeResult
-GeantImportVolumeResult::from_pointers(GeoParamsInterface const& geom,
-                                       G4VPhysicalVolume const* world)
+GeantImportVolumeResult::from_pointers(GeoParamsInterface const& geom)
 {
-    CELER_VALIDATE(world, << "world volume is nullptr");
 #if CELERITAS_USE_GEANT4
     using Result = GeantImportVolumeResult;
 

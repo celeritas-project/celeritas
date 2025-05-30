@@ -23,9 +23,6 @@ struct BremsProcess
     std::optional<SeltzerBergerModel> sb{std::in_place};
     std::optional<RelBremsModel> rel{std::in_place};
     std::optional<MuBremsModel> mu;
-
-    //! Use a unified relativistic/SB interactor
-    bool combined_model{false};
 };
 //---------------------------------------------------------------------------//
 /*!

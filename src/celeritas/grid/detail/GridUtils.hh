@@ -11,6 +11,7 @@
 #include "corecel/grid/NonuniformGridData.hh"
 #include "corecel/grid/SplineDerivCalculator.hh"
 #include "corecel/grid/UniformGridData.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/inp/Grid.hh"
 
@@ -40,7 +41,7 @@ void set_spline(Values<Ownership::value>* values,
         if (data.value.size() < SplineDerivCalculator::min_grid_size())
         {
             CELER_LOG(warning)
-                << to_cstring(interpolation.type)
+                << interpolation.type
                 << " interpolation is not supported on a grid with size "
                 << data.value.size() << ": defaulting to linear";
             return;
@@ -60,8 +61,8 @@ void set_spline(Values<Ownership::value>* values,
         if (data.value.size() <= interpolation.order)
         {
             CELER_LOG(warning)
-                << to_cstring(interpolation.type)
-                << " interpolation with order " << interpolation.order
+                << interpolation.type << " interpolation with order "
+                << interpolation.order
                 << " is not supported on a grid with size "
                 << data.value.size() << ": defaulting to linear";
             return;

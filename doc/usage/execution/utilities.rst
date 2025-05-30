@@ -106,7 +106,7 @@ options
   corresponding to the :ref:`api_geant4_physics_options` struct.
 
 output
-  A ROOT/JSON output file with the exported :ref:`api_importdata`.
+  A ROOT/JSON output file with the exported import data.
 
 
 The ``--dump-default`` usage renders the default options.
@@ -127,4 +127,3 @@ Usage:
 
 Either of the filenames can be replaced by ``-`` to read from stdin or write to
 stdout.
-

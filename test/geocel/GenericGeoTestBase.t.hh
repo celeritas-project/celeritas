@@ -14,6 +14,7 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/TypeDemangler.hh"
+#include "geocel/GeantGeoParams.hh"
 
 #include "CheckedGeoTrackView.hh"
 #include "TestMacros.hh"
@@ -52,7 +53,13 @@ auto GenericGeoTestBase<HP>::build_geometry_from_basename() -> SPConstGeo
     // ${SOURCE}/test/geocel/data/${basename}${fileext}
     auto filename = this->geometry_basename() + std::string{TraitsT::ext};
     std::string test_file = test_data_path("geocel", filename);
-    return std::make_shared<HP>(test_file);
+    auto result = std::make_shared<HP>(test_file);
+    if constexpr (std::is_same_v<HP, GeantGeoParams>)
+    {
+        // Save global geant geometry
+        ::celeritas::geant_geo(*result);
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -143,7 +150,8 @@ GenericGeoTestBase<HP>::all_volume_instance_names(GeoTrackView const& geo) const
 
 //---------------------------------------------------------------------------//
 template<class HP>
-auto GenericGeoTestBase<HP>::make_geo_track_view(TrackSlotId tsid) -> GeoTrackView
+auto GenericGeoTestBase<HP>::make_geo_track_view(TrackSlotId tsid)
+    -> GeoTrackView
 {
     if (!host_state_)
     {
@@ -157,8 +165,8 @@ auto GenericGeoTestBase<HP>::make_geo_track_view(TrackSlotId tsid) -> GeoTrackVi
 //---------------------------------------------------------------------------//
 // Get and initialize a single-thread host track view
 template<class HP>
-auto GenericGeoTestBase<HP>::make_geo_track_view(Real3 const& pos,
-                                                 Real3 dir) -> GeoTrackView
+auto GenericGeoTestBase<HP>::make_geo_track_view(Real3 const& pos, Real3 dir)
+    -> GeoTrackView
 {
     auto geo = this->make_geo_track_view();
     GeoTrackInitializer init{pos, make_unit_vector(dir)};
@@ -169,8 +177,8 @@ auto GenericGeoTestBase<HP>::make_geo_track_view(Real3 const& pos,
 
 //---------------------------------------------------------------------------//
 template<class HP>
-auto GenericGeoTestBase<HP>::track(Real3 const& pos,
-                                   Real3 const& dir) -> TrackingResult
+auto GenericGeoTestBase<HP>::track(Real3 const& pos, Real3 const& dir)
+    -> TrackingResult
 {
     return this->track(pos, dir, std::numeric_limits<int>::max());
 }
@@ -324,7 +332,8 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
  * Get the volume instance stack at a position.
  */
 template<class HP>
-auto GenericGeoTestBase<HP>::volume_stack(Real3 const& pos) -> VolumeStackResult
+auto GenericGeoTestBase<HP>::volume_stack(Real3 const& pos)
+    -> VolumeStackResult
 {
     auto geo = this->make_geo_track_view(pos, Real3{0, 0, 1});
     auto const& geo_params = *this->geometry();
@@ -387,7 +396,8 @@ auto GenericGeoTestBase<HP>::geometry_interface() const -> SPConstGeoInterface
 
 //---------------------------------------------------------------------------//
 template<class HP>
-auto GenericGeoTestBase<HP>::build_fresh_geometry(std::string_view) -> SPConstGeoI
+auto GenericGeoTestBase<HP>::build_fresh_geometry(std::string_view)
+    -> SPConstGeoI
 {
     return this->build_geometry();
 }

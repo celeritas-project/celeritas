@@ -13,6 +13,8 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/Version.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "celeritas/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
@@ -33,6 +35,7 @@ struct GeantTestBase::ImportHelper
     // NOTE: the import function must be static for now so that Vecgeom or
     // other clients can access Geant4 after importing the data.
     std::unique_ptr<GeantImporter> import;
+    std::shared_ptr<GeantGeoParams> geo;
     std::string geometry_basename{};
     GeantPhysicsOptions options{};
     GeantImportDataSelection selection{};
@@ -52,17 +55,22 @@ class GeantTestBase::CleanupGeantEnvironment : public ::testing::Environment
 };
 
 //---------------------------------------------------------------------------//
-//! Whether results should be equivalent to the CI build
+//! Whether results should be equivalent to the main CI build
 bool GeantTestBase::is_ci_build()
 {
-    return CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
-           && CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4
-           && CELERITAS_UNITS == CELERITAS_UNITS_CGS
-           && cstring_equal(cmake::core_rng, "xorwow")
-           && (cstring_equal(cmake::clhep_version, "2.4.6.0")
-               || cstring_equal(cmake::clhep_version, "2.4.6.4")
-               || cstring_equal(cmake::clhep_version, "2.4.7.1"))
-           && cstring_equal(cmake::geant4_version, "11.3.0");
+    if (!(CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+          && CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4
+          && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+        && cstring_equal(cmake::core_rng, "xorwow"))
+    {
+        // Config options are different
+        return false;
+    }
+    // Check clhep/g4 versions
+    auto clhep = Version::from_string(cmake::clhep_version);
+    auto g4 = Version::from_string(cmake::geant4_version);
+    return clhep >= Version{2, 4, 6} && clhep < Version{2, 5}
+           && g4 >= Version{11, 3} && g4 < Version{11, 4};
 }
 
 //---------------------------------------------------------------------------//
@@ -83,7 +91,11 @@ bool GeantTestBase::is_summit_build()
 //! Get the Geant4 top-level geometry element (immutable)
 G4VPhysicalVolume const* GeantTestBase::get_world_volume() const
 {
-    return GeantImporter::get_world_volume();
+    auto* geo = celeritas::geant_geo();
+    if (!geo)
+        return nullptr;
+
+    return geo->world();
 }
 
 //---------------------------------------------------------------------------//
@@ -92,7 +104,9 @@ G4VPhysicalVolume const* GeantTestBase::get_world_volume()
 {
     // Load geometry
     this->imported_data();
-    return const_cast<GeantTestBase const*>(this)->get_world_volume();
+    auto* geo = celeritas::geant_geo();
+    CELER_ASSERT(geo);
+    return geo->world();
 }
 
 //---------------------------------------------------------------------------//
@@ -139,7 +153,8 @@ auto GeantTestBase::build_along_step() -> SPConstAction
 }
 
 //---------------------------------------------------------------------------//
-auto GeantTestBase::build_fresh_geometry(std::string_view filename) -> SPConstGeoI
+auto GeantTestBase::build_fresh_geometry(std::string_view filename)
+    -> SPConstGeoI
 {
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE \
     && CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE
@@ -151,7 +166,7 @@ auto GeantTestBase::build_fresh_geometry(std::string_view filename) -> SPConstGe
                        "from "
                     << filename << ")";
     auto* world = this->get_world_volume();
-    CELER_EXPECT(world);
+    CELER_ASSERT(world);
     return std::make_shared<GeoParams>(world);
 #endif
 }
@@ -168,10 +183,13 @@ auto GeantTestBase::imported_data() const -> ImportData const&
     {
         i.geometry_basename = this->geometry_basename();
         i.options = opts;
-        std::string gdml_inp = this->test_data_path(
-            "geocel", (i.geometry_basename + ".gdml").c_str());
-        i.import = std::make_unique<GeantImporter>(
-            GeantSetup{gdml_inp.c_str(), i.options});
+        i.import = std::make_unique<GeantImporter>(GeantSetup{
+            this->test_data_path("geocel", i.geometry_basename + ".gdml"),
+            i.options});
+        i.geo = i.import->geo_params();
+        CELER_ASSERT(i.geo);
+        CELER_ASSERT(celeritas::geant_geo());
+
         i.scoped_exceptions = std::make_unique<ScopedGeantExceptionHandler>();
         i.imported = (*i.import)(sel);
         i.options.verbose = false;

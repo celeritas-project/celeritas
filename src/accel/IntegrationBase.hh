@@ -31,7 +31,7 @@ class CoreParams;
  * \sa celeritas::UserActionIntegration
  * \sa celeritas::TrackingManagerIntegration
  *
- * \note For developers: this and the integration daughters all share common
+ * \internal This and the integration daughters all share common
  * data in \c detail::IntegrationSingleton.
  */
 class IntegrationBase

@@ -112,8 +112,8 @@ BraggICRU73QOEnergyDistribution::BraggICRU73QOEnergyDistribution(
  * Sample secondary electron energy.
  */
 template<class Engine>
-CELER_FUNCTION auto
-BraggICRU73QOEnergyDistribution::operator()(Engine& rng) -> Energy
+CELER_FUNCTION auto BraggICRU73QOEnergyDistribution::operator()(Engine& rng)
+    -> Energy
 {
     InverseSquareDistribution sample_energy(value_as<Energy>(min_energy_),
                                             value_as<Energy>(max_energy_));
