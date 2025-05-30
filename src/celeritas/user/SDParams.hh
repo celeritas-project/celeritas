@@ -11,6 +11,7 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/io/Label.hh"
+#include "celeritas/user/DetectorSteps.hh"
 
 #include "SDData.hh"
 
@@ -33,7 +34,10 @@ class SDParams final : public ParamsDataInterface<SDParamsData>
     SDParams() {};
 
     //! Construct from volume labels
-    SDParams(VecLabel const volume_labels, GeoParamsInterface const& geo);
+    SDParams(VecLabel const& volume_labels, GeoParamsInterface const& geo);
+
+    //! Number of detectors
+    DetectorId::size_type size() const { return volume_ids_.size(); }
 
     //! Access detector ID based on volume ID
     DetectorId volume_to_detector_id(VolumeId vol_id)
@@ -44,7 +48,7 @@ class SDParams final : public ParamsDataInterface<SDParamsData>
     //! Access volume ID based on detector ID
     VolumeId detector_to_volume_id(DetectorId det_id)
     {
-        CELER_EXPECT(det_id < volume_ids_.size());
+        CELER_EXPECT(det_id < this->size());
         return volume_ids_[det_id.get()];
     }
 
