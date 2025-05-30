@@ -16,10 +16,10 @@
 #include "MaterialData.hh"
 #include "ParticleData.hh"
 #include "PhysicsData.hh"
-#include "surface/SurfacePhysicsData.hh"
 #include "SimData.hh"
 #include "TrackInitData.hh"
 #include "Types.hh"
+#include "surface/SurfacePhysicsData.hh"
 
 namespace celeritas
 {
@@ -64,7 +64,8 @@ struct CoreParamsData
     //! True if all params are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && material && physics && surface && rng && init && scalars;
+        return geometry && material && physics && surface && rng && init
+               && scalars;
     }
 
     //! Assign from another set of data

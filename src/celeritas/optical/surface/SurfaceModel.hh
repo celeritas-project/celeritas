@@ -6,11 +6,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
+#include <memory>
+
 #include "celeritas/Types.hh"
 #include "celeritas/optical/action/ActionInterface.hh"
-
-#include <memory>
-#include <functional>
 
 namespace celeritas
 {
@@ -24,7 +24,7 @@ class SurfaceModel : public OpticalStepActionInterface, public ConcreteAction
   public:
     //!@{
     //! \name Type aliases
-    
+
     //! Function to build optical models with a given action id
     using ModelBuilder = std::function<std::shared_ptr<SurfaceModel>(ActionId)>;
 

@@ -23,7 +23,8 @@ namespace optical
 /*!
  * Wrap a surface interaction executor and apply it to a track.
  *
- * The function F must take a \c CoreTrackView and return a \c SurfaceInteraction
+ * The function F must take a \c CoreTrackView and return a \c
+ * SurfaceInteraction
  */
 template<class F>
 struct SurfaceInteractionApplierBaseImpl
@@ -45,11 +46,13 @@ struct SurfaceInteractionApplier : public SurfaceInteractionApplierBaseImpl<F>
 {
     CELER_FUNCTION SurfaceInteractionApplier(F&& f)
         : SurfaceInteractionApplierBaseImpl<F>{celeritas::forward<F>(f)}
-    {}
+    {
+    }
 };
 
 template<class F>
-struct SurfaceInteractionApplier<F, std::enable_if_t<kernel_max_blocks_min_warps<F>>>
+struct SurfaceInteractionApplier<F,
+                                 std::enable_if_t<kernel_max_blocks_min_warps<F>>>
     : public SurfaceInteractionApplierBaseImpl<F>
 {
     static constexpr int max_block_size = F::max_block_size;
@@ -57,7 +60,8 @@ struct SurfaceInteractionApplier<F, std::enable_if_t<kernel_max_blocks_min_warps
 
     CELER_FUNCTION SurfaceInteractionApplier(F&& f)
         : SurfaceInteractionApplierBaseImpl<F>{celeritas::forward<F>(f)}
-    {}
+    {
+    }
 };
 
 template<class F>
@@ -68,7 +72,8 @@ struct SurfaceInteractionApplier<F, std::enable_if_t<kernel_max_blocks<F>>>
 
     CELER_FUNCTION SurfaceInteractionApplier(F&& f)
         : SurfaceInteractionApplierBaseImpl<F>{celeritas::forward<F>(f)}
-    {}
+    {
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -119,8 +124,6 @@ SurfaceInteractionApplierBaseImpl<F>::operator()(CoreTrackView& track)
         track.particle().polarization(result.polarization);
     }
 }
-
-
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

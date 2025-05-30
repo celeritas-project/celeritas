@@ -11,8 +11,8 @@
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 
-#include "SurfacePhysicsData.hh"
 #include "SurfaceInteraction.hh"
+#include "SurfacePhysicsData.hh"
 
 namespace celeritas
 {
@@ -33,7 +33,8 @@ struct SimpleReflectionExecutor
 //---------------------------------------------------------------------------//
 /*!
  */
-CELER_FUNCTION SurfaceInteraction SimpleReflectionExecutor::operator()(CoreTrackView& track) const
+CELER_FUNCTION SurfaceInteraction
+SimpleReflectionExecutor::operator()(CoreTrackView& track) const
 {
     // TODO: add assertions
 
@@ -46,9 +47,11 @@ CELER_FUNCTION SurfaceInteraction SimpleReflectionExecutor::operator()(CoreTrack
     Real3 surface_normal = geo.global_surface_normal();
 
     real_type reflectivity = params.scalars.global_reflectivity;
-    real_type refl_and_trans = reflectivity + params.scalars.global_transmittance;
+    real_type refl_and_trans = reflectivity
+                               + params.scalars.global_transmittance;
 
-    CELER_EXPECT(0 <= reflectivity && reflectivity <= refl_and_trans && refl_and_trans <= 1);
+    CELER_EXPECT(0 <= reflectivity && reflectivity <= refl_and_trans
+                 && refl_and_trans <= 1);
 
     real_type p = generate_canonical(rng);
 
@@ -58,8 +61,12 @@ CELER_FUNCTION SurfaceInteraction SimpleReflectionExecutor::operator()(CoreTrack
         SurfaceInteraction result;
 
         result.action = SurfaceInteraction::Action::reflected;
-        result.direction = direction - 2 * dot_product(direction, surface_normal) * surface_normal;
-        result.polarization = -polarization + 2 * dot_product(polarization, surface_normal) * surface_normal;
+        result.direction = direction
+                           - 2 * dot_product(direction, surface_normal)
+                                 * surface_normal;
+        result.polarization = -polarization
+                              + 2 * dot_product(polarization, surface_normal)
+                                    * surface_normal;
 
         return result;
     }

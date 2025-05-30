@@ -22,7 +22,8 @@ namespace optical
 //---------------------------------------------------------------------------//
 /*!
  */
-class SurfacePhysicsParams final : public ParamsDataInterface<SurfacePhysicsParamsData>
+class SurfacePhysicsParams final
+    : public ParamsDataInterface<SurfacePhysicsParamsData>
 {
   public:
     //!@{
@@ -41,13 +42,15 @@ class SurfacePhysicsParams final : public ParamsDataInterface<SurfacePhysicsPara
         ActionRegistry* action_registry = nullptr;
     };
 
-
   public:
     // Construct from models
     explicit SurfacePhysicsParams(Input input);
 
     //! Number of surface models
-    inline SurfaceModelId::size_type num_models() const { return models_.size(); }
+    inline SurfaceModelId::size_type num_models() const
+    {
+        return models_.size();
+    }
 
     // Get a surface model
     inline SPConstModel model(SurfaceModelId mid) const;
@@ -62,7 +65,6 @@ class SurfacePhysicsParams final : public ParamsDataInterface<SurfacePhysicsPara
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
-
     // Actions
     VecModels models_;
 

@@ -1223,11 +1223,9 @@ CELER_FUNCTION Real3 OrangeTrackView::local_surface_normal()
     auto lsa = this->make_lsa(this->surface_level());
 
     TrackerVisitor visit_tracker{params_};
-    return visit_tracker(
-        [pos = lsa.pos(), local_surface = this->surf()](auto&& t) {
-            return t.normal(pos, local_surface);
-        },
-        lsa.universe());
+    return visit_tracker([pos = lsa.pos(), local_surface = this->surf()](
+                             auto&& t) { return t.normal(pos, local_surface); },
+                         lsa.universe());
 }
 
 CELER_FUNCTION Real3 OrangeTrackView::global_surface_normal()

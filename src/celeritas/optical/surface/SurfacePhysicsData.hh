@@ -36,7 +36,6 @@ struct SurfacePhysicsParamsScalars
     real_type global_transmittance{0.3};
     //!@}
 
-
     //! Whether data is assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
@@ -71,7 +70,8 @@ struct SurfacePhysicsParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    SurfacePhysicsParamsData<W, M>& operator=(SurfacePhysicsParamsData<W2, M2> const& other)
+    SurfacePhysicsParamsData<W, M>&
+    operator=(SurfacePhysicsParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         scalars = other.scalars;

@@ -12,8 +12,8 @@
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
 #include "SimpleReflectionExecutor.hh"
-#include "SurfacePhysicsParams.hh"
 #include "SurfaceInteractionApplier.hh"
+#include "SurfacePhysicsParams.hh"
 
 namespace celeritas
 {
@@ -21,12 +21,15 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 
-void SimpleReflectionModel::step(CoreParams const& params, CoreStateDevice& state) const
+void SimpleReflectionModel::step(CoreParams const& params,
+                                 CoreStateDevice& state) const
 {
-    auto execute = make_action_thread_executor(params.ptr<MemSpace::native>(),
-                                               state.ptr(),
-                                               this->action_id(),
-                                               SurfaceInteractionApplier{SimpleReflectionExecutor{params.surface()->device_ref()}});
+    auto execute = make_action_thread_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        this->action_id(),
+        SurfaceInteractionApplier{
+            SimpleReflectionExecutor{params.surface()->device_ref()}});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 }

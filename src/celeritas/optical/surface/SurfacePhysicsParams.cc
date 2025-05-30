@@ -32,7 +32,7 @@ SurfacePhysicsParams::SurfacePhysicsParams(Input input)
 
     // Construct data
     HostVal<SurfacePhysicsParamsData> data;
-    
+
     CELER_ENSURE(data);
 
     data_ = CollectionMirror<SurfacePhysicsParamsData>{std::move(data)};
@@ -42,7 +42,8 @@ SurfacePhysicsParams::SurfacePhysicsParams(Input input)
 /*!
  */
 auto SurfacePhysicsParams::build_models(VecModelBuilders const& model_builders,
-                                        ActionRegistry& action_reg) const -> VecModels
+                                        ActionRegistry& action_reg) const
+    -> VecModels
 {
     VecModels models;
     models.reserve(model_builders.size());
