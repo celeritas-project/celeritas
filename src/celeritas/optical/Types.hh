@@ -20,5 +20,13 @@ using ScintParticleId = OpaqueId<struct ScintParticle_>;
 //! Opaque index to a scintillation spectrum
 using ParScintSpectrumId = OpaqueId<struct ParScintSpectrum>;
 
+namespace optical
+{
+
+using ModelId = OpaqueId<class Model>;
+using SurfaceModelId = OpaqueId<class Surface>;
+
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -16,6 +16,7 @@
 #include "MaterialData.hh"
 #include "ParticleData.hh"
 #include "PhysicsData.hh"
+#include "surface/SurfacePhysicsData.hh"
 #include "SimData.hh"
 #include "TrackInitData.hh"
 #include "Types.hh"
@@ -54,6 +55,7 @@ struct CoreParamsData
     GeoParamsData<W, M> geometry;
     MaterialParamsData<W, M> material;
     PhysicsParamsData<W, M> physics;
+    SurfacePhysicsParamsData<W, M> surface;
     RngParamsData<W, M> rng;
     TrackInitParamsData<W, M> init;
 
@@ -62,7 +64,7 @@ struct CoreParamsData
     //! True if all params are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && material && physics && rng && init && scalars;
+        return geometry && material && physics && surface && rng && init && scalars;
     }
 
     //! Assign from another set of data
@@ -73,6 +75,7 @@ struct CoreParamsData
         geometry = other.geometry;
         material = other.material;
         physics = other.physics;
+        surface = other.surface;
         rng = other.rng;
         init = other.init;
         scalars = other.scalars;

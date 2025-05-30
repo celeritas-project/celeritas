@@ -119,6 +119,11 @@ class OrangeTrackView
     //! Whether the last operation resulted in an error
     CELER_FORCEINLINE_FUNCTION bool failed() const { return failed_; }
 
+    // Get the local normal vector of the current surface
+    inline CELER_FUNCTION Real3 local_surface_normal();
+    // Get the global normal vector of the current surface
+    inline CELER_FUNCTION Real3 global_surface_normal();
+
     //// OPERATIONS ////
 
     // Find the distance to the next boundary
@@ -1205,6 +1210,39 @@ CELER_FUNCTION TransformId OrangeTrackView::get_transform(LevelId lev)
     CELER_EXPECT(lev < this->level());
     LSA lsa(&states_, track_slot_, lev);
     return this->get_transform(this->get_daughter(lsa));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the surface normal vector of the surface the particle is currenlty on.
+ */
+CELER_FUNCTION Real3 OrangeTrackView::local_surface_normal()
+{
+    CELER_EXPECT(this->is_on_boundary());
+
+    auto lsa = this->make_lsa(this->surface_level());
+
+    TrackerVisitor visit_tracker{params_};
+    return visit_tracker(
+        [pos = lsa.pos(), local_surface = this->surf()](auto&& t) {
+            return t.normal(pos, local_surface);
+        },
+        lsa.universe());
+}
+
+CELER_FUNCTION Real3 OrangeTrackView::global_surface_normal()
+{
+    Real3 normal = this->local_surface_normal();
+
+    // Rotate up local surface normal to get the global surface normal
+    auto apply_transform = TransformVisitor{params_};
+    auto rotate_up = [&normal](auto&& t) { normal = t.rotate_up(normal); };
+    for (auto level : range<int>(this->level().unchecked_get()).step(-1))
+    {
+        apply_transform(rotate_up, this->get_transform(LevelId(level)));
+    }
+
+    return normal;
 }
 
 //---------------------------------------------------------------------------//
