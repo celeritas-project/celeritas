@@ -31,6 +31,7 @@
 #include <G4Polyhedra.hh>
 #include <G4ReflectedSolid.hh>
 #include <G4RotationMatrix.hh>
+#include <G4ScaledSolid.hh>
 #include <G4Sphere.hh>
 #include <G4SubtractionSolid.hh>
 #include <G4TessellatedSolid.hh>
@@ -281,6 +282,7 @@ auto SolidConverter::convert_impl(arg_type solid_base) -> result_type
         SC_TYPE_FUNC(Polycone         , polycone),
         SC_TYPE_FUNC(Polyhedra        , polyhedra),
         SC_TYPE_FUNC(ReflectedSolid   , reflectedsolid),
+        SC_TYPE_FUNC(ScaledSolid      , scaledsolid),
         SC_TYPE_FUNC(Sphere           , sphere),
         SC_TYPE_FUNC(SubtractionSolid , subtractionsolid),
         SC_TYPE_FUNC(TessellatedSolid , tessellatedsolid),
@@ -367,7 +369,7 @@ auto SolidConverter::displaced(arg_type solid_base) -> result_type
     // daughter-to-parent ("object") translation with an inverted
     // [parent-to-daughter, "frame"] rotation
     return std::make_shared<Transformed>(
-        daughter, transform_(solid.GetDirectTransform()));
+        std::move(daughter), transform_(solid.GetDirectTransform()));
 }
 
 //---------------------------------------------------------------------------//
@@ -601,8 +603,31 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
 auto SolidConverter::reflectedsolid(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4ReflectedSolid const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("reflectedsolid");
+    G4VSolid* underlying = solid.GetConstituentMovedSolid();
+    CELER_ASSERT(underlying);
+
+    // Convert unreflected solid
+    auto converted = (*this)(*underlying);
+
+    // Add a reflecting transform
+    return std::make_shared<Transformed>(
+        std::move(converted), transform_(solid.GetDirectTransform3D()));
+}
+
+//---------------------------------------------------------------------------//
+//! Convert a scaled solid
+auto SolidConverter::scaledsolid(arg_type solid_base) -> result_type
+{
+    auto const& solid = dynamic_cast<G4ScaledSolid const&>(solid_base);
+    G4VSolid* underlying = solid.GetUnscaledSolid();
+    CELER_ASSERT(underlying);
+
+    // Convert unscaled solid
+    auto converted = (*this)(*underlying);
+
+    // Add a scaling transform
+    return std::make_shared<Transformed>(
+        std::move(converted), transform_(solid.GetScaleTransform()));
 }
 
 //---------------------------------------------------------------------------//
