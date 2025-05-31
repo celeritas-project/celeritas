@@ -82,9 +82,11 @@ OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
     , aux_id_{data_id}
     , offload_params_{std::move(input.offload)}
     , state_size_{input.num_track_slots}
+    , max_step_iters_(input.max_step_iters)
 {
     CELER_EXPECT(offload_params_);
     CELER_EXPECT(state_size_ > 0);
+    CELER_EXPECT(max_step_iters_ > 0);
     CELER_EXPECT(input.material);
     CELER_EXPECT(input.initializer_capacity > 0);
 
@@ -193,7 +195,6 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
     CELER_ASSERT(offload_state);
     CELER_ASSERT(optical_state.size() > 0);
 
-    constexpr size_type max_step_iters{1024};
     size_type num_step_iters{0};
     size_type num_steps{0};
 
@@ -209,15 +210,17 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
         }
 
         num_steps += counters.num_active;
-        if (CELER_UNLIKELY(++num_step_iters == max_step_iters))
+        if (CELER_UNLIKELY(++num_step_iters == max_step_iters_))
         {
             CELER_LOG_LOCAL(error)
-                << "Exceeded step count of " << max_step_iters
+                << "Exceeded step count of " << max_step_iters_
                 << ": aborting optical transport loop with "
                 << counters.num_active << " active tracks, "
                 << counters.num_alive << " alive tracks, "
                 << counters.num_vacancies << " vacancies, and "
                 << counters.num_initializers << " queued";
+
+            optical_state.reset();
             break;
         }
     }
@@ -229,8 +232,6 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
 
     // TODO: generation is done *outside* of the optical tracking loop;
     // once we move it inside, update the generation count in the loop here
-    // TODO: is this correct if we abort the tracking loop early?
-    counters.num_generated = 0;
 }
 
 //---------------------------------------------------------------------------//

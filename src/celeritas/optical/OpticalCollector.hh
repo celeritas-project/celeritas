@@ -96,13 +96,16 @@ class OpticalCollector
         //! Threshold number of initializers for launching optical loop
         size_type auto_flush{};
 
+        //! Maximum step iterations before aborting optical loop
+        size_type max_step_iters{static_cast<size_type>(-1)};
+
         //! True if all input is assigned and valid
         explicit operator bool() const
         {
             return material && (scintillation || cherenkov)
                    && num_track_slots > 0 && buffer_capacity > 0
                    && initializer_capacity > 0 && auto_flush > 0
-                   && !model_builders.empty();
+                   && max_step_iters > 0 && !model_builders.empty();
         }
     };
 

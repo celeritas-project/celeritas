@@ -60,6 +60,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
         SPOffloadParams offload;
         size_type num_track_slots{};
         size_type initializer_capacity{};
+        size_type max_step_iters{};
 
         std::optional<std::vector<Label>> detector_labels;
 
@@ -67,7 +68,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
         explicit operator bool() const
         {
             return material && offload && num_track_slots > 0
-                   && initializer_capacity > 0;
+                   && initializer_capacity > 0 && max_step_iters > 0;
         }
     };
 
@@ -140,6 +141,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
     SPOpticalParams optical_params_;
     SPActionGroups optical_actions_;
     size_type state_size_;
+    size_type max_step_iters_;
 
     //// HELPERS ////
 
