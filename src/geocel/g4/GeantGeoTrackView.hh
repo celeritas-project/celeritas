@@ -111,7 +111,6 @@ class GeantGeoTrackView
     // Get the global normal vector of the current surface
     inline CELER_FUNCTION Real3 global_surface_normal() const;
 
-
     // Get the Geant4 navigation state
     inline G4NavigationHistory const* nav_history() const;
 
@@ -143,7 +142,6 @@ class GeantGeoTrackView
 
     // Change direction
     inline void set_dir(Real3 const& newdir);
-
 
     inline G4Navigator& navi() { return navi_; }
 
@@ -332,7 +330,8 @@ CELER_FORCEINLINE bool GeantGeoTrackView::is_on_boundary() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the surface normal of the boundary the track is currently on, in local coordinates.
+ * Get the surface normal of the boundary the track is currently on, in local
+ * coordinates.
  */
 CELER_FUNCTION Real3 GeantGeoTrackView::local_surface_normal() const
 {
@@ -350,7 +349,8 @@ CELER_FUNCTION Real3 GeantGeoTrackView::local_surface_normal() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the surface normal of the boundary the track is currently on, in global coordinates.
+ * Get the surface normal of the boundary the track is currently on, in global
+ * coordinates.
  */
 CELER_FUNCTION Real3 GeantGeoTrackView::global_surface_normal() const
 {
