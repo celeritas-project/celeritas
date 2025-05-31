@@ -21,7 +21,7 @@ class SignedPermutation;
 
 //---------------------------------------------------------------------------//
 /*!
- * Apply transformations with rotation, scaling, and/or reflection.
+ * Apply transformations with rotation and/or reflection.
  *
  * \note The nomenclature in this class assumes the translation vector and
  * rotation matrix given represent "daughter-to-parent"! This is because we
@@ -47,12 +47,14 @@ class SignedPermutation;
  * The rotation matrix is indexed with C ordering, [i][j]. If a rotation
  * matrix, it should be a orthonormal with a determinant is 1 if not reflecting
  * (proper) or -1 if reflecting (improper). A transformation that applies a
- * scaling has non-unit-magnitude eigenvalues
+ * scaling has non-unit eigenvalues.
  *
  * It is the caller's job to ensure a user-provided low-precision rotation
  * matrix is orthonormal: see \c celeritas::orthonormalize . (Add \c
  * CELER_VALIDATE to the calling code if constructing a transformation matrix
  * from user input or a suspect source.)
+ *
+ * \todo Scaling is not yet implemented correctly.
  */
 class Transformation
 {

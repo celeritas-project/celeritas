@@ -46,6 +46,10 @@ Transformation::Transformation(Mat3 const& rot, Real3 const& trans)
     CELER_EXPECT(std::all_of(data().begin(), data().end(), [](real_type v) {
         return !std::isnan(v);
     }));
+    if (CELER_UNLIKELY(this->calc_properties().scales))
+    {
+        CELER_NOT_IMPLEMENTED("transforms with scaling");
+    }
 }
 
 //---------------------------------------------------------------------------//

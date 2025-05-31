@@ -48,10 +48,6 @@ class SurfaceTransformerTest : public ::celeritas::test::Test
     // Reflect across the YZ plane
     SurfaceTransformer const reflect{
         Transformation{make_reflection(Axis::x), Real3{0, 0, 0}}};
-
-    // Scale by .5 in x, 1 in y, 2 in z
-    SurfaceTransformer const scale{
-        Transformation{make_scaling({0.5, 1, 2}), Real3{0, 0, 0}}};
 };
 
 TEST_F(SurfaceTransformerTest, plane_aligned)
@@ -64,9 +60,6 @@ TEST_F(SurfaceTransformerTest, plane_aligned)
 
     s = reflect(orig);
     EXPECT_VEC_SOFT_EQ(array(-1, 0, 0, 4), s.data());
-
-    s = scale(orig);
-    EXPECT_VEC_SOFT_EQ(array(1, 0, 0, 2), s.data());
 }
 
 TEST_F(SurfaceTransformerTest, cyl_centered)
@@ -96,9 +89,6 @@ TEST_F(SurfaceTransformerTest, sphere_centered)
 
     s = reflect(orig);
     EXPECT_VEC_SOFT_EQ(array(0, 0, 0, 0.25), s.data());
-
-    auto scaled = scale(orig);
-    EXPECT_EQ(SurfaceType::gq, scaled.surface_type());
 }
 
 TEST_F(SurfaceTransformerTest, cyl_aligned)
