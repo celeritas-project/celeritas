@@ -110,7 +110,7 @@ if "lar" in geometry_filename:
     inp['optical'] = {
         'num_track_slots': num_optical_tracks,
         'buffer_capacity': 3 * max_steps * num_optical_tracks,
-        'initializer_capacity': 1024 * num_optical_tracks,
+        'initializer_capacity': 2048 * num_optical_tracks,
         'max_steps': 4,
         'auto_flush': num_optical_tracks,
     }
@@ -192,7 +192,7 @@ if not use_device:
 if not use_device and "lar" in geometry_filename:
     expected_opt_sizes = {
        "generators": 3145728,
-       "initializers": 4194304,
+       "initializers": 8388608,
        "tracks": 4096
     }
 
