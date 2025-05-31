@@ -67,6 +67,10 @@ struct RunnerInput
                                  //!< launching optical tracking loop
         size_type max_steps = static_cast<size_type>(-1);  //!< Step iterations
 
+        // Optical photon generation
+        bool cherenkov{true};
+        bool scintillation{true};
+
         explicit operator bool() const
         {
             return num_track_slots > 0 && buffer_capacity > 0

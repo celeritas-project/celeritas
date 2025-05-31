@@ -59,6 +59,15 @@ struct EmPhysics
  */
 struct OpticalPhysics
 {
+    //!@{
+    //! \name Optical photon generation
+
+    //! Generate Cherenkov photons
+    bool cherenkov{true};
+
+    //! Generate scintillation photons
+    bool scintillation{true};
+    //!@}
 };
 
 //---------------------------------------------------------------------------//
