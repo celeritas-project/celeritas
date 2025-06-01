@@ -51,6 +51,22 @@ class GeantOrangeTest : public OrangeGeoTestBase
 };
 
 //---------------------------------------------------------------------------//
+
+using MultiLevelTest
+    = GenericGeoParameterizedTest<GeantOrangeTest, MultiLevelGeoTest>;
+
+TEST_F(MultiLevelTest, accessors)
+{
+    this->impl().test_accessors();
+}
+
+TEST_F(MultiLevelTest, trace)
+{
+    this->impl().test_trace();
+}
+
+//---------------------------------------------------------------------------//
+
 class PincellTest : public GeantOrangeTest
 {
     std::string geometry_basename() const final { return "pincell"; }
