@@ -77,13 +77,11 @@ std::string_view OffloadGatherAction::description() const
 void OffloadGatherAction::step(CoreParams const& params,
                                CoreStateHost& state) const
 {
-    using StateT = AuxStateData<OffloadStepStateData, MemSpace::native>;
-    auto& aux_state = get<StateT>(state.aux(), aux_id_);
-
-    auto execute = make_active_track_executor(
-        params.ptr<MemSpace::native>(),
-        state.ptr(),
-        detail::OffloadGatherExecutor{aux_state.ref()});
+    auto& step = state.aux_data<OffloadStepStateData>(aux_id_);
+    auto execute
+        = make_active_track_executor(params.ptr<MemSpace::native>(),
+                                     state.ptr(),
+                                     detail::OffloadGatherExecutor{step});
     launch_action(*this, params, state, execute);
 }
 
