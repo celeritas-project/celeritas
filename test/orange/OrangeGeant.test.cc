@@ -51,6 +51,16 @@ class GeantOrangeTest : public OrangeGeoTestBase
 };
 
 //---------------------------------------------------------------------------//
+
+using PolyhedraTest
+    = GenericGeoParameterizedTest<GeantOrangeTest, PolyhedraGeoTest>;
+
+TEST_F(PolyhedraTest, trace)
+{
+    this->impl().test_trace();
+}
+
+//---------------------------------------------------------------------------//
 class PincellTest : public GeantOrangeTest
 {
     std::string geometry_basename() const final { return "pincell"; }

@@ -621,6 +621,16 @@ TEST_F(MultiLevelTest, trace)
 }
 
 //---------------------------------------------------------------------------//
+
+using PolyhedraTest
+    = GenericGeoParameterizedTest<VecgeomGeantTestBase, PolyhedraGeoTest>;
+
+TEST_F(PolyhedraTest, trace)
+{
+    TestImpl(this).test_trace();
+}
+
+//---------------------------------------------------------------------------//
 class ReplicaTest
     : public GenericGeoParameterizedTest<VecgeomGeantTestBase, ReplicaGeoTest>
 {
