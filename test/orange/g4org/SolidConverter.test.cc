@@ -484,6 +484,33 @@ TEST_F(SolidConverterTest, polyhedra)
          {7.15, 7.15, 0.05},
          {3.0, 6.01, 0},
          {6.18, 7.15, 0}});
+
+    // Triangle
+    static double const z2[] = {10, 50};
+    static double const rmin2[] = {0, 0};
+    static double const rmax2[] = {10, 10};
+    this->build_and_test(
+        G4Polyhedra(
+            "tri", 30 * deg, 360 * deg, 3, std::size(z2), z2, rmin2, rmax2),
+        R"json({"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"prism","apothem":0.9999999999999999,"halfheight":2.0,"num_sides":3,"orientation":0.25},"label":"tri"},"transform":{"_type":"translation","data":[0.0,0.0,3.0]}})json",
+        {
+            {0, 0, 0.9},
+            {0, 0, 1.1},
+            {0, 0, 4.9},
+            {0, 0, 5.1},
+            {0, 1.01, 1.1},
+            {0, -1.01, 1.1},
+        });
+    // Rotate 60 degrees
+    this->build_and_test(
+        G4Polyhedra(
+            "tri", 60 * deg, 360 * deg, 3, std::size(z2), z2, rmin2, rmax2),
+        R"json({"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"prism","apothem":0.9999999999999999,"halfheight":2.0,"num_sides":3,"orientation":0.5},"label":"tri"},"transform":{"_type":"translation","data":[0.0,0.0,3.0]}})json");
+    // Rotate 90 degrees
+    this->build_and_test(
+        G4Polyhedra(
+            "tri", 90 * deg, 360 * deg, 3, std::size(z2), z2, rmin2, rmax2),
+        R"json({"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"prism","apothem":0.9999999999999999,"halfheight":2.0,"num_sides":3,"orientation":0.75},"label":"tri"},"transform":{"_type":"translation","data":[0.0,0.0,3.0]}})json");
 }
 
 TEST_F(SolidConverterTest, sphere)

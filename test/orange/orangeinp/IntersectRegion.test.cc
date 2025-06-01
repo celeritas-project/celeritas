@@ -1885,69 +1885,68 @@ TEST_F(PrismTest, errors)
 TEST_F(PrismTest, triangle)
 {
     auto result = this->test(Prism(3, 1.0, 1.2, 0.0));
-
-    static char const expected_node[] = "all(+0, -1, -2, +3, +4)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-1.2",
-        "Plane: z=1.2",
-        "Plane: n={0.86603,0.5,0}, d=1",
-        "Plane: n={0.86603,-0.5,0}, d=-1",
-        "Plane: y=-1",
-    };
+    static char const expected_node[] = "all(+0, -1, -2, +3, -4)";
+    static char const* const expected_surfaces[] = {"Plane: z=-1.2",
+                                                    "Plane: z=1.2",
+                                                    "Plane: "
+                                                    "n={0.5,0.86603,0}, d=1",
+                                                    "Plane: x=-1",
+                                                    "Plane: "
+                                                    "n={0.5,-0.86603,0}, d=1"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -1.2}), result.interior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{1, 1, 1.2}), result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-2, -1, -1.2}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{-1, -2, -1.2}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{2, 2, 1.2}), result.exterior.upper());
 }
 
 TEST_F(PrismTest, rtriangle)
 {
     auto result = this->test(Prism(3, 1.0, 1.2, 0.5));
-
-    static char const expected_node[] = "all(+0, -1, -2, +3, -4)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-1.2",
-        "Plane: z=1.2",
-        "Plane: y=1",
-        "Plane: n={0.86603,0.5,0}, d=-1",
-        "Plane: n={0.86603,-0.5,0}, d=1",
-    };
+    static char const expected_node[] = "all(+0, -1, -2, +3, +4)";
+    static char const* const expected_surfaces[] = {"Plane: z=-1.2",
+                                                    "Plane: z=1.2",
+                                                    "Plane: x=1",
+                                                    "Plane: "
+                                                    "n={0.5,-0.86603,0}, d=-1",
+                                                    "Plane: "
+                                                    "n={0.5,0.86603,0}, d=-1"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -1.2}), result.interior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{1, 1, 1.2}), result.interior.upper());
     EXPECT_VEC_SOFT_EQ((Real3{-2, -2, -1.2}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{2, 1, 1.2}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{1, 2, 1.2}), result.exterior.upper());
 }
 
 TEST_F(PrismTest, square)
 {
     auto result = this->test(Prism(4, 1.0, 2.0, 0.0));
-
-    static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
-    static char const* const expected_surfaces[] = {"Plane: z=-2",
-                                                    "Plane: z=2",
-                                                    "Plane: x=1",
-                                                    "Plane: y=1",
-                                                    "Plane: x=-1",
-                                                    "Plane: y=-1"};
+    static char const expected_node[] = "all(+0, -1, -2, +3, +4, -5)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-2",
+           "Plane: z=2",
+           "Plane: n={0.70711,0.70711,0}, d=1",
+           "Plane: n={0.70711,-0.70711,0}, d=-1",
+           "Plane: n={0.70711,0.70711,0}, d=-1",
+           "Plane: n={0.70711,-0.70711,0}, d=1"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -2}), result.interior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{1, 1, 2}), result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -2}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1, 1, 2}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-1.4142135623731, -1.4142135623731, -2}),
+                       result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1.4142135623731, 1.4142135623731, 2}),
+                       result.exterior.upper());
 }
 
 TEST_F(PrismTest, hex)
 {
     auto result = this->test(Prism(6, 1.0, 2.0, 0.0));
-
     static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5, +6, -7)";
     static char const* const expected_surfaces[]
         = {"Plane: z=-2",
@@ -1971,7 +1970,6 @@ TEST_F(PrismTest, hex)
 TEST_F(PrismTest, rhex)
 {
     auto result = this->test(Prism(6, 1.0, 2.0, 0.5));
-
     static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5, +6, -7)";
     static char const* const expected_surfaces[]
         = {"Plane: z=-2",

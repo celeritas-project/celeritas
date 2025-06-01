@@ -1216,8 +1216,9 @@ void Prism::build(IntersectSurfaceBuilder& insert_surface) const
     // -y face (sitting upright as visualized). An offset of 1 produces a
     // shape congruent with an offset of zero, except that every face has
     // an index that's decremented by 1.
-    real_type const offset = std::fmod(num_sides_ * 3 + 4 * orientation_, 4)
-                             / 4;
+    real_type const offset
+        = std::fmod(orientation_ + real_type{0.5}, real_type{1});
+
     CELER_ASSERT(offset >= 0 && offset < 1);
 
     // Change of angle in radians per side
@@ -1226,6 +1227,7 @@ void Prism::build(IntersectSurfaceBuilder& insert_surface) const
     // Build prismatic sides
     for (auto n : range(num_sides_))
     {
+        // Angle of outward normal, *not* of corner
         real_type const theta = delta_rad * (n + offset);
 
         // Create a normal vector along the X axis, then rotate it through
