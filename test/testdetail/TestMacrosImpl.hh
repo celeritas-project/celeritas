@@ -250,10 +250,15 @@ struct FVIT
 
 //---------------------------------------------------------------------------//
 /*!
- * Check if type T is a container.
+ * Check if type T is a container that needs recursive checking.
  */
 template<class T, class = void>
 struct IsContainer : std::false_type
+{
+};
+
+template<>
+struct IsContainer<std::string> : std::false_type
 {
 };
 
