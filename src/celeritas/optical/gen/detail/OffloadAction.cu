@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/gen/detail/CherenkovOffloadAction.cu
+//! \file celeritas/optical/gen/detail/OffloadAction.cu
 //---------------------------------------------------------------------------//
-#include "CherenkovOffloadAction.hh"
+#include "OffloadAction.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/sys/ScopedProfiling.hh"
@@ -17,8 +17,9 @@
 
 #include "CherenkovOffloadExecutor.hh"
 #include "OpticalGenAlgorithms.hh"
+#include "ScintOffloadExecutor.hh"
 #include "../CherenkovParams.hh"
-#include "../OffloadParams.hh"
+#include "../ScintillationParams.hh"
 
 namespace celeritas
 {
@@ -28,21 +29,30 @@ namespace detail
 /*!
  * Launch a kernel to generate optical distribution data post-step.
  */
-void CherenkovOffloadAction::pre_generate(CoreParams const& core_params,
-                                          CoreStateDevice& core_state) const
+template<GeneratorType G>
+void OffloadAction<G>::offload(CoreParams const& core_params,
+                               CoreStateDevice& core_state) const
 {
-    auto& state = get<OpticalOffloadState<MemSpace::native>>(core_state.aux(),
-                                                             data_id_);
-    TrackExecutor execute{
-        core_params.ptr<MemSpace::native>(),
-        core_state.ptr(),
-        detail::CherenkovOffloadExecutor{material_->device_ref(),
-                                         cherenkov_->device_ref(),
-                                         state.store.ref(),
-                                         state.buffer_size}};
+    auto& step = core_state.aux_data<OffloadStepStateData>(data_.step_id);
+    auto& gen_state = get<GeneratorState<MemSpace::native>>(core_state.aux(),
+                                                            data_.gen_id);
+    TrackExecutor execute{core_params.ptr<MemSpace::native>(),
+                          core_state.ptr(),
+                          Executor{data_.material->device_ref(),
+                                   data_.shared->device_ref(),
+                                   gen_state.store.ref(),
+                                   step,
+                                   gen_state.buffer_size}};
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(core_state, execute);
 }
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+template class OffloadAction<GeneratorType::cherenkov>;
+template class OffloadAction<GeneratorType::scintillation>;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

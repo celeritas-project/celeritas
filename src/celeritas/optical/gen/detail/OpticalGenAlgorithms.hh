@@ -12,7 +12,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/math/Algorithms.hh"
 
-#include "../GeneratorDistributionData.hh"
+#include "../GeneratorData.hh"
 
 namespace celeritas
 {
