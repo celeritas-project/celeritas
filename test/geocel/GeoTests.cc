@@ -40,6 +40,38 @@ BoundingBox<> calc_expected_bbox(std::string_view geo_type, Real3 lo, Real3 hi)
     return BoundingBox<>{lo, hi};
 }
 
+void fixup_orange(GenericGeoTestInterface const& interface,
+                  GenericGeoTrackingResult& ref,
+                  GenericGeoTrackingResult& result)
+{
+    if (interface.geometry_type() != "ORANGE")
+        return;
+
+    // Delete PV (not implemented)
+    ref.volume_instances.clear();
+
+    // Delete within-world safeties
+    for (auto i : range(std::max(ref.volumes.size(), result.volumes.size())))
+    {
+        if (ref.volumes[i] == "world")
+        {
+            result.halfway_safeties[i] = 0;
+            ref.halfway_safeties[i] = 0;
+        }
+    }
+}
+
+void delete_orange_safety(GenericGeoTestInterface const& interface,
+                          GenericGeoTrackingResult& ref,
+                          GenericGeoTrackingResult& result)
+{
+    if (interface.geometry_type() != "ORANGE")
+        return;
+
+    ref.halfway_safeties.clear();
+    result.halfway_safeties.clear();
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -554,27 +586,6 @@ void MultiLevelGeoTest::test_trace() const
 //---------------------------------------------------------------------------//
 void PolyhedraGeoTest::test_trace() const
 {
-    auto fixup_orange = [is_orange = (test_->geometry_type() == "ORANGE")](
-                            GenericGeoTrackingResult& ref,
-                            GenericGeoTrackingResult& result) {
-        if (!is_orange)
-            return;
-        ref.volume_instances.clear();
-        // Delete PV (not implmented)
-        ref.volume_instances.clear();
-
-        // Delete within-world safeties
-        for (auto i :
-             range(std::max(ref.volumes.size(), result.volumes.size())))
-        {
-            if (ref.volumes[i] == "world")
-            {
-                result.halfway_safeties[i] = 0;
-                ref.halfway_safeties[i] = 0;
-            }
-        }
-    };
-
     {
         SCOPED_TRACE("tri");
         auto result = test_->track({-6, 4.01, 0}, {1, 0, 0});
@@ -624,7 +635,7 @@ void PolyhedraGeoTest::test_trace() const
             4.5,
         };
         ref.bumps = {};
-        fixup_orange(ref, result);
+        fixup_orange(*test_, ref, result);
         auto tol = GenericGeoTrackingTolerance::from_test(*test_);
         EXPECT_RESULT_NEAR(ref, result, tol);
     }
@@ -677,7 +688,7 @@ void PolyhedraGeoTest::test_trace() const
             4.5,
         };
         ref.bumps = {};
-        fixup_orange(ref, result);
+        fixup_orange(*test_, ref, result);
         auto tol = GenericGeoTrackingTolerance::from_test(*test_);
         EXPECT_RESULT_NEAR(ref, result, tol);
     }
@@ -730,7 +741,7 @@ void PolyhedraGeoTest::test_trace() const
             4.5,
         };
         ref.bumps = {};
-        fixup_orange(ref, result);
+        fixup_orange(*test_, ref, result);
         auto tol = GenericGeoTrackingTolerance::from_test(*test_);
         EXPECT_RESULT_NEAR(ref, result, tol);
     }
@@ -783,7 +794,7 @@ void PolyhedraGeoTest::test_trace() const
             4.5,
         };
         ref.bumps = {};
-        fixup_orange(ref, result);
+        fixup_orange(*test_, ref, result);
         auto tol = GenericGeoTrackingTolerance::from_test(*test_);
         EXPECT_RESULT_NEAR(ref, result, tol);
     }
@@ -892,6 +903,8 @@ void ReplicaGeoTest::test_trace() const
             150,
         };
         ref.bumps = {};
+        fixup_orange(*test_, ref, result);
+        delete_orange_safety(*test_, ref, result);
         auto tol = GenericGeoTrackingTolerance::from_test(*test_);
         tol.distance *= 10;  // 2e-12 diff between g4, vg
         EXPECT_RESULT_NEAR(ref, result, tol);
@@ -1088,6 +1101,8 @@ void ReplicaGeoTest::test_trace() const
             131.90432759775,
         };
         ref.bumps = {};
+        fixup_orange(*test_, ref, result);
+        delete_orange_safety(*test_, ref, result);
         auto tol = GenericGeoTrackingTolerance::from_test(*test_);
         tol.distance *= 10;  // 2e-12 diff between g4, vg
         EXPECT_RESULT_NEAR(ref, result, tol);
