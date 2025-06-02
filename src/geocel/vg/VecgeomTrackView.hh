@@ -336,7 +336,8 @@ CELER_FUNCTION bool VecgeomTrackView::is_on_boundary() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the surface normal of the boundary the track is currently on, in local coordinates.
+ * Get the surface normal of the boundary the track is currently on, in local
+ * coordinates.
  */
 CELER_FUNCTION Real3 VecgeomTrackView::local_surface_normal() const
 {
@@ -344,14 +345,15 @@ CELER_FUNCTION Real3 VecgeomTrackView::local_surface_normal() const
     vecgeom::VPlacedVolume const* top = vgstate_.Top();
     CELER_ASSERT(top);
     // VecGeom Normal needs an L-value reference to store the normal
-    auto normal = detail::to_vector(Real3{1,0,0});
+    auto normal = detail::to_vector(Real3{1, 0, 0});
     top->Normal(detail::to_vector(pos_), normal);
     return detail::to_array(normal);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the surface normal of the boundary the track is currently on, in global coordinates.
+ * Get the surface normal of the boundary the track is currently on, in global
+ * coordinates.
  */
 CELER_FUNCTION Real3 VecgeomTrackView::global_surface_normal() const
 {

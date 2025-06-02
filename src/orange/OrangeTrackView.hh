@@ -1178,7 +1178,8 @@ CELER_FUNCTION DaughterId OrangeTrackView::get_daughter(LSA const& lsa) const
 /*!
  * Get the transform ID for the given daughter.
  */
-CELER_FUNCTION TransformId OrangeTrackView::get_transform(DaughterId daughter_id) const
+CELER_FUNCTION TransformId
+OrangeTrackView::get_transform(DaughterId daughter_id) const
 {
     CELER_EXPECT(daughter_id);
     return params_.daughters[daughter_id].trans_id;
@@ -1197,7 +1198,8 @@ CELER_FUNCTION TransformId OrangeTrackView::get_transform(LevelId lev) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the surface normal vector of the surface the particle is currenlty on, in local coordinates.
+ * Get the surface normal vector of the surface the particle is currenlty on,
+ * in local coordinates.
  */
 CELER_FUNCTION Real3 OrangeTrackView::local_surface_normal() const
 {
@@ -1206,16 +1208,15 @@ CELER_FUNCTION Real3 OrangeTrackView::local_surface_normal() const
     auto lsa = this->make_lsa(this->surface_level());
 
     TrackerVisitor visit_tracker{params_};
-    return visit_tracker(
-        [pos = lsa.pos(), local_surface = this->surf()](auto&& t) {
-            return t.normal(pos, local_surface);
-        },
-        lsa.universe());
+    return visit_tracker([pos = lsa.pos(), local_surface = this->surf()](
+                             auto&& t) { return t.normal(pos, local_surface); },
+                         lsa.universe());
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the surface normal vector of the surface the particle is currenlty on, in global coordinates.
+ * Get the surface normal vector of the surface the particle is currenlty on,
+ * in global coordinates.
  */
 CELER_FUNCTION Real3 OrangeTrackView::global_surface_normal() const
 {
