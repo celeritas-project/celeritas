@@ -57,6 +57,7 @@
 #include "orange/orangeinp/PolySolid.hh"
 #include "orange/orangeinp/Shape.hh"
 #include "orange/orangeinp/Solid.hh"
+#include "orange/orangeinp/StackedExtrudedPolygon.hh"
 #include "orange/orangeinp/Transformed.hh"
 
 #include "Scaler.hh"
@@ -457,9 +458,40 @@ auto SolidConverter::ellipticaltube(arg_type solid_base) -> result_type
 //! Convert an extruded solid
 auto SolidConverter::extrudedsolid(arg_type solid_base) -> result_type
 {
+    using VecReal = StackedExtrudedPolygon::VecReal;
+    using VecReal2 = StackedExtrudedPolygon::VecReal2;
+    using VecReal3 = StackedExtrudedPolygon::VecReal3;
+
     auto const& solid = dynamic_cast<G4ExtrudedSolid const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("extrudedsolid");
+
+    // Get the polygon
+    std::vector<G4TwoVector> g4polygon = solid.GetPolygon();
+    VecReal2 polygon;
+    for (auto i : range(g4polygon.size()))
+    {
+        auto point = g4polygon[i];
+        polygon.push_back(Real2{scale_(point[0]), scale_(point[1])});
+    }
+
+    // Construct polyline and scaling
+    VecReal3 polyline;
+    VecReal scaling;
+    polyline.reserve(solid.GetNofZSections());
+    scaling.reserve(solid.GetNofZSections());
+    for (auto const& z_section : solid.GetZSections())
+    {
+        polyline.push_back({
+            scale_(z_section.fOffset[0]),
+            scale_(z_section.fOffset[1]),
+            scale_(z_section.fZ),
+        });
+        scaling.push_back(z_section.fScale);
+    }
+
+    return StackedExtrudedPolygon::or_solid(std::string{solid.GetName()},
+                                            std::move(polygon),
+                                            std::move(polyline),
+                                            std::move(scaling));
 }
 
 //---------------------------------------------------------------------------//

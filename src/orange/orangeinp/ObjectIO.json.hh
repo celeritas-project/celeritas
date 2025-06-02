@@ -27,6 +27,7 @@ class PolyCone;
 class PolyPrism;
 class ShapeBase;
 class SolidBase;
+class StackedExtrudedPolygon;
 class Transformed;
 
 class PolySegments;
@@ -62,6 +63,7 @@ void to_json(nlohmann::json& j, PolyCone const&);
 void to_json(nlohmann::json& j, PolyPrism const&);
 void to_json(nlohmann::json& j, ShapeBase const&);
 void to_json(nlohmann::json& j, SolidBase const&);
+void to_json(nlohmann::json& j, StackedExtrudedPolygon const&);
 void to_json(nlohmann::json& j, Transformed const&);
 
 // Write helper classes to JSON

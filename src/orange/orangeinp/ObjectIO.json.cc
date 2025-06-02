@@ -18,6 +18,7 @@
 #include "PolySolid.hh"
 #include "Shape.hh"
 #include "Solid.hh"
+#include "StackedExtrudedPolygon.hh"
 #include "Transformed.hh"
 
 #define SIO_ATTR_PAIR(OBJ, ATTR) {#ATTR, OBJ.ATTR()}
@@ -121,6 +122,16 @@ void to_json(nlohmann::json& j, SolidBase const& obj)
     {
         j["z_slab"] = szs;
     }
+}
+
+void to_json(nlohmann::json& j, StackedExtrudedPolygon const& cr)
+{
+    j = {
+        {"_type", "stackedextrudedpolygon"},
+        SIO_ATTR_PAIR(cr, polygon),
+        SIO_ATTR_PAIR(cr, polyline),
+        SIO_ATTR_PAIR(cr, scaling),
+    };
 }
 
 void to_json(nlohmann::json& j, Transformed const& obj)

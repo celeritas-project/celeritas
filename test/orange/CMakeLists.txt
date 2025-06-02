@@ -77,6 +77,7 @@ celeritas_add_test(orangeinp/IntersectSurfaceBuilder.test.cc)
 celeritas_add_test(orangeinp/PolySolid.test.cc)
 celeritas_add_test(orangeinp/Shape.test.cc)
 celeritas_add_test(orangeinp/Solid.test.cc)
+celeritas_add_test(orangeinp/StackedExtrudedPolygon.test.cc)
 celeritas_add_test(orangeinp/Transformed.test.cc)
 celeritas_add_test(orangeinp/UnitProto.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json)
