@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "MatrixUtils.hh"
 
+#include <algorithm>
 #include <cmath>
 
 #include "corecel/cont/Range.hh"
