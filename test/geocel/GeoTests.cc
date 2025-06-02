@@ -532,11 +532,12 @@ void MultiLevelGeoTest::test_trace() const
 //---------------------------------------------------------------------------//
 void PolyhedraGeoTest::test_trace() const
 {
-    auto fixup_orange = [is_orange = test_->geometry_type() == "ORANGE"](
+    auto fixup_orange = [is_orange = (test_->geometry_type() == "ORANGE")](
                             GenericGeoTrackingResult& ref,
                             GenericGeoTrackingResult& result) {
         if (!is_orange)
-            return ref.volume_instances.clear();
+            return;
+        ref.volume_instances.clear();
         // Delete PV (not implmented)
         ref.volume_instances.clear();
 
