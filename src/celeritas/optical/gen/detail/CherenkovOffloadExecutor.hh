@@ -28,10 +28,11 @@ struct CherenkovOffloadExecutor
     inline CELER_FUNCTION void
     operator()(celeritas::CoreTrackView const& track);
 
-    NativeCRef<celeritas::optical::MaterialParamsData> const material;
-    NativeCRef<CherenkovData> const cherenkov;
-    NativeRef<OffloadStateData> const state;
-    OpticalOffloadCounters<> size;
+    NativeCRef<celeritas::optical::MaterialParamsData> material;
+    NativeCRef<CherenkovData> cherenkov;
+    NativeRef<GeneratorStateData> offload;
+    NativeRef<OffloadStepStateData> steps;
+    size_type buffer_size;
 };
 
 //---------------------------------------------------------------------------//
@@ -43,21 +44,22 @@ struct CherenkovOffloadExecutor
 CELER_FUNCTION void
 CherenkovOffloadExecutor::operator()(CoreTrackView const& track)
 {
-    CELER_EXPECT(state);
-    CELER_EXPECT(cherenkov);
     CELER_EXPECT(material);
+    CELER_EXPECT(cherenkov);
+    CELER_EXPECT(offload);
+    CELER_EXPECT(steps);
 
     using DistId = ItemId<GeneratorDistributionData>;
 
     auto tsid = track.track_slot_id();
-    CELER_ASSERT(size.cherenkov + tsid.get() < state.cherenkov.size());
-    auto& cherenkov_dist = state.cherenkov[DistId(size.cherenkov + tsid.get())];
+    CELER_ASSERT(buffer_size + tsid.get() < offload.distributions.size());
+    auto& dist = offload.distributions[DistId(buffer_size + tsid.get())];
 
     // Clear distribution data
-    cherenkov_dist = {};
+    dist = {};
 
     auto sim = track.sim();
-    auto const& step = state.step[tsid];
+    auto const& step = steps.step[tsid];
 
     if (!step || sim.status() == TrackStatus::inactive)
     {
@@ -75,8 +77,8 @@ CherenkovOffloadExecutor::operator()(CoreTrackView const& track)
         optical::MaterialView opt_mat{material, step.material};
         auto rng = track.rng();
 
-        CherenkovOffload generate(particle, sim, opt_mat, pos, cherenkov, step);
-        cherenkov_dist = generate(rng);
+        dist = CherenkovOffload(
+            particle, sim, opt_mat, pos, cherenkov, step)(rng);
     }
 }
 

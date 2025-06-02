@@ -122,6 +122,18 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
 
     CELER_EXPECT(input_);
 
+    // Build detector params based on input detector labels vector. If label
+    // returns false, create an empty label vector.
+    if (input_.detector_labels)
+    {
+        detectors_ = std::make_shared<SDParams>(*(input_.detector_labels),
+                                                *(input_.geometry));
+    }
+    else
+    {
+        detectors_ = std::make_shared<SDParams>();
+    }
+
     ScopedMem record_mem("optical::CoreParams.construct");
 
     // Construct always-on actions and save their IDs

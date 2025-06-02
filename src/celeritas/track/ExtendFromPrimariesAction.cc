@@ -192,6 +192,7 @@ void ExtendFromPrimariesAction::step_impl(CoreParams const& params,
 
     // Mark that the primaries have been processed
     state.counters().num_generated += primaries.count;
+    state.counters().num_pending = 0;
     primaries.count = 0;
 }
 

@@ -8,6 +8,7 @@
 
 #include "corecel/cont/Span.hh"
 #include "corecel/data/AuxInterface.hh"
+#include "corecel/data/AuxStateVec.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/ObserverPtr.hh"
 #include "celeritas/Types.hh"
@@ -15,6 +16,7 @@
 
 #include "CoreTrackData.hh"
 #include "TrackInitializer.hh"
+#include "gen/OffloadData.hh"
 
 namespace celeritas
 {
@@ -61,6 +63,30 @@ class CoreStateInterface : public AuxStateInterface
 
 //---------------------------------------------------------------------------//
 /*!
+ * Manage the optical state counters.
+ */
+class CoreStateBase : public CoreStateInterface
+{
+  public:
+    //! Track initialization counters
+    CoreStateCounters& counters() { return counters_; }
+
+    //! Track initialization counters
+    CoreStateCounters const& counters() const final { return counters_; }
+
+    //! Optical loop statistics
+    OpticalAccumStats& accum() { return accum_; }
+
+  private:
+    // Counters for track initialization and activity
+    CoreStateCounters counters_;
+
+    //! Counts accumulated over the event for diagnostics
+    OpticalAccumStats accum_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Store all state data for a single thread.
  *
  * When the state lives on the device, we maintain a separate copy of the
@@ -70,13 +96,14 @@ class CoreStateInterface : public AuxStateInterface
  * \todo Encapsulate all the action management accessors in a helper class.
  */
 template<MemSpace M>
-class CoreState final : public CoreStateInterface
+class CoreState final : public CoreStateBase
 {
   public:
     //!@{
     //! \name Type aliases
     template<template<Ownership, MemSpace> class S>
     using StateRef = S<Ownership::reference, M>;
+    using SPAuxStateVec = std::shared_ptr<AuxStateVec>;
 
     using Ref = StateRef<CoreStateData>;
     using Ptr = ObserverPtr<Ref, M>;
@@ -108,16 +135,16 @@ class CoreState final : public CoreStateInterface
     //! Get a native-memspace pointer to the mutable state data
     Ptr ptr() { return ptr_; }
 
-    //// COUNTERS ////
-
-    //! Track initialization counters
-    CoreStateCounters& counters() { return counters_; }
-
-    //! Track initialization counters
-    CoreStateCounters const& counters() const final { return counters_; }
-
     // Inject primaries to be turned into TrackInitializers
     void insert_primaries(Span<TrackInitializer const> host_primaries) final;
+
+    //// AUXILIARY DATA ////
+
+    //! Access auxiliary core state data
+    SPAuxStateVec const& aux() const { return aux_state_; }
+
+    //! Access auxiliary core state data (mutable)
+    SPAuxStateVec& aux() { return aux_state_; }
 
   private:
     // State data
@@ -129,8 +156,8 @@ class CoreState final : public CoreStateInterface
     // Native pointer to ref or
     Ptr ptr_;
 
-    // Counters for track initialization and activity
-    CoreStateCounters counters_;
+    // Auxiliary data owned by the core state
+    SPAuxStateVec aux_state_;
 };
 
 //---------------------------------------------------------------------------//

@@ -27,7 +27,7 @@
 #include "celeritas/optical/gen/CherenkovGenerator.hh"
 #include "celeritas/optical/gen/CherenkovOffload.hh"
 #include "celeritas/optical/gen/CherenkovParams.hh"
-#include "celeritas/optical/gen/GeneratorDistributionData.hh"
+#include "celeritas/optical/gen/GeneratorData.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
 #include "OpticalTestBase.hh"
