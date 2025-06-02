@@ -103,7 +103,6 @@ list(APPEND SOURCES
   optical/CoreState.cc
   optical/CoreTrackData.cc
   optical/gen/CherenkovParams.cc
-  optical/gen/OffloadParams.cc
   optical/gen/ScintillationParams.cc
   optical/ImportedModelAdapter.cc
   optical/ImportedMaterials.cc
@@ -141,6 +140,7 @@ list(APPEND SOURCES
   user/DetectorSteps.cc
   user/ParticleTallyData.cc
   user/RootStepWriterIO.json.cc
+  user/SDParams.cc
   user/SimpleCalo.cc
   user/SimpleCaloData.cc
   user/StepCollector.cc
@@ -347,12 +347,10 @@ celeritas_polysource(optical/action/InitializeTracksAction)
 celeritas_polysource(optical/action/PreStepAction)
 celeritas_polysource(optical/action/TrackingCutAction)
 celeritas_polysource(optical/action/detail/TrackInitAlgorithms)
-celeritas_polysource(optical/gen/detail/CherenkovGeneratorAction)
-celeritas_polysource(optical/gen/detail/CherenkovOffloadAction)
-celeritas_polysource(optical/gen/detail/OpticalGenAlgorithms)
+celeritas_polysource(optical/gen/detail/GeneratorAction)
+celeritas_polysource(optical/gen/detail/OffloadAction)
 celeritas_polysource(optical/gen/detail/OffloadGatherAction)
-celeritas_polysource(optical/gen/detail/ScintGeneratorAction)
-celeritas_polysource(optical/gen/detail/ScintOffloadAction)
+celeritas_polysource(optical/gen/detail/OpticalGenAlgorithms)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)
 celeritas_polysource(phys/detail/TrackingCutAction)

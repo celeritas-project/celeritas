@@ -483,6 +483,8 @@ if(CELERITAS_CORE_GEO STREQUAL "Geant4")
   set(_fails_g4geo DISABLE)
 endif()
 
+
+celeritas_add_test(user/SDParams.test.cc)
 celeritas_add_test(user/DetectorSteps.test.cc GPU)
 celeritas_add_test(user/Diagnostic.test.cc
   GPU NT 1 ${_optional_geant4_env} ${_fails_g4geo} ${_needs_double}

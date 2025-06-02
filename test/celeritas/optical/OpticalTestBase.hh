@@ -12,7 +12,7 @@
 #include "corecel/random/DiagnosticRngEngine.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/optical/gen/GeneratorDistributionData.hh"
+#include "celeritas/optical/gen/GeneratorData.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/track/SimData.hh"
 

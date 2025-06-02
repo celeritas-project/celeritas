@@ -14,7 +14,7 @@
 
 #include "CherenkovData.hh"
 #include "CherenkovDndxCalculator.hh"
-#include "GeneratorDistributionData.hh"
+#include "GeneratorData.hh"
 #include "OffloadData.hh"
 #include "../MaterialView.hh"
 
