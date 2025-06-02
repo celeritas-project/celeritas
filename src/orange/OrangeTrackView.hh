@@ -73,13 +73,6 @@ class OrangeTrackView
     using Initializer_t = GeoTrackInitializer;
     //!@}
 
-    //! Helper struct for initializing from an existing geometry state
-    struct DetailedInitializer
-    {
-        OrangeTrackView const& other;  //!< Existing geometry
-        Real3 const& dir;  //!< New direction
-    };
-
   public:
     // Construct from params and state
     inline CELER_FUNCTION OrangeTrackView(ParamsRef const& params,
@@ -88,9 +81,6 @@ class OrangeTrackView
 
     // Initialize the state
     inline CELER_FUNCTION OrangeTrackView& operator=(Initializer_t const& init);
-    // Initialize the state from a parent state and new direction
-    inline CELER_FUNCTION OrangeTrackView&
-    operator=(DetailedInitializer const& init);
 
     //// ACCESSORS ////
 
@@ -157,6 +147,13 @@ class OrangeTrackView
 
     using LSA = LevelStateAccessor;
 
+    //! Helper struct for initializing from an existing geometry state
+    struct DetailedInitializer
+    {
+        TrackSlotId parent;  //!< Parent track with existing geometry
+        Real3 const& dir;  //!< New direction
+    };
+
     //// DATA ////
 
     ParamsRef const& params_;
@@ -206,6 +203,10 @@ class OrangeTrackView
 
     //// HELPER FUNCTIONS ////
 
+    // Initialize the state from a parent state and new direction
+    inline CELER_FUNCTION OrangeTrackView&
+    operator=(DetailedInitializer const& init);
+
     // Iterate over lower levels to find the next step
     inline CELER_FUNCTION Propagation
     find_next_step_impl(detail::Intersection isect);
@@ -242,13 +243,13 @@ class OrangeTrackView
     inline CELER_FUNCTION LSA make_lsa(LevelId level) const;
 
     // Get the daughter ID for the volume in the universe (or null)
-    inline CELER_FUNCTION DaughterId get_daughter(LSA const& lsa) const;
+    inline CELER_FUNCTION DaughterId get_daughter(LSA const& lsa);
 
     // Get the transform ID for the given daughter.
-    inline CELER_FUNCTION TransformId get_transform(DaughterId daughter_id) const;
+    inline CELER_FUNCTION TransformId get_transform(DaughterId daughter_id);
 
     // Get the transform ID to move from this level to the one below.
-    inline CELER_FUNCTION TransformId get_transform(LevelId lev) const;
+    inline CELER_FUNCTION TransformId get_transform(LevelId lev);
 };
 
 //---------------------------------------------------------------------------//
@@ -280,6 +281,14 @@ CELER_FUNCTION OrangeTrackView&
 OrangeTrackView::operator=(Initializer_t const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
+
+    if (init.parent)
+    {
+        // Initialize from direction and copy of parent state
+        *this = {init.parent, init.dir};
+        CELER_ENSURE(this->pos() == init.pos);
+        return *this;
+    }
 
     failed_ = false;
 
@@ -375,19 +384,19 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
 
     failed_ = false;
 
-    if (this != &init.other)
+    if (track_slot_ != init.parent)
     {
         // Copy init track's position and logical state
-        this->level(states_.level[init.other.track_slot_]);
-        this->surface(init.other.surface_level(),
-                      {init.other.surf(), init.other.sense()});
-        this->boundary(init.other.boundary());
+        OrangeTrackView other(params_, states_, init.parent);
+        this->level(states_.level[other.track_slot_]);
+        this->surface(other.surface_level(), {other.surf(), other.sense()});
+        this->boundary(other.boundary());
 
         for (auto lev : range(LevelId{this->level() + 1}))
         {
             // Copy all data accessed via LSA
             auto lsa = this->make_lsa(lev);
-            lsa = init.other.make_lsa(lev);
+            lsa = other.make_lsa(lev);
         }
     }
 
@@ -808,7 +817,23 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
     {
         // Changing direction on a boundary, which may result in not leaving
         // current volume upon the cross_surface call
-        auto normal = this->global_surface_normal();
+        auto lsa = this->make_lsa(this->surface_level());
+
+        TrackerVisitor visit_tracker{params_};
+        auto normal = visit_tracker(
+            [pos = lsa.pos(), local_surface = this->surf()](auto&& t) {
+                return t.normal(pos, local_surface);
+            },
+            lsa.universe());
+
+        // Normal is in *local* coordinates but newdir is in *global*: rotate
+        // up to check
+        auto apply_transform = TransformVisitor{params_};
+        auto rotate_up = [&normal](auto&& t) { normal = t.rotate_up(normal); };
+        for (auto level : range<int>(this->level().unchecked_get()).step(-1))
+        {
+            apply_transform(rotate_up, this->get_transform(LevelId(level)));
+        }
 
         // Evaluate whether the direction dotted with the surface normal
         // changes (i.e. heading from inside to outside or vice versa).
@@ -1167,7 +1192,7 @@ CELER_FORCEINLINE_FUNCTION auto OrangeTrackView::make_lsa(LevelId level) const
  *
  * \return DaughterId or {} if the current volume is a leaf.
  */
-CELER_FUNCTION DaughterId OrangeTrackView::get_daughter(LSA const& lsa) const
+CELER_FUNCTION DaughterId OrangeTrackView::get_daughter(LSA const& lsa)
 {
     TrackerVisitor visit_tracker{params_};
     return visit_tracker([&lsa](auto&& t) { return t.daughter(lsa.vol()); },
@@ -1178,8 +1203,7 @@ CELER_FUNCTION DaughterId OrangeTrackView::get_daughter(LSA const& lsa) const
 /*!
  * Get the transform ID for the given daughter.
  */
-CELER_FUNCTION TransformId
-OrangeTrackView::get_transform(DaughterId daughter_id) const
+CELER_FUNCTION TransformId OrangeTrackView::get_transform(DaughterId daughter_id)
 {
     CELER_EXPECT(daughter_id);
     return params_.daughters[daughter_id].trans_id;
@@ -1189,7 +1213,7 @@ OrangeTrackView::get_transform(DaughterId daughter_id) const
 /*!
  * Get the transform ID for the given daughter.
  */
-CELER_FUNCTION TransformId OrangeTrackView::get_transform(LevelId lev) const
+CELER_FUNCTION TransformId OrangeTrackView::get_transform(LevelId lev)
 {
     CELER_EXPECT(lev < this->level());
     LSA lsa(&states_, track_slot_, lev);

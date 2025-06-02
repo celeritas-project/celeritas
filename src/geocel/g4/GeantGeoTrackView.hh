@@ -51,13 +51,6 @@ class GeantGeoTrackView
     using Real3 = Array<real_type, 3>;
     //!@}
 
-    //! Helper struct for initializing from an existing geometry state
-    struct DetailedInitializer
-    {
-        GeantGeoTrackView const& other;  //!< Existing geometry
-        Real3 dir;  //!< New direction
-    };
-
   public:
     // Construct from params and state data
     inline GeantGeoTrackView(ParamsRef const& params,
@@ -66,8 +59,6 @@ class GeantGeoTrackView
 
     // Initialize the state
     inline GeantGeoTrackView& operator=(Initializer_t const& init);
-    // Initialize the state from a parent state and new direction
-    inline GeantGeoTrackView& operator=(DetailedInitializer const& init);
 
     //// STATIC ACCESSORS ////
 
@@ -143,10 +134,22 @@ class GeantGeoTrackView
     // Change direction
     inline void set_dir(Real3 const& newdir);
 
-    inline G4Navigator& navi() { return navi_; }
-
   private:
+    //// TYPES ////
+
+    //! Helper struct for initializing from an existing geometry state
+    struct DetailedInitializer
+    {
+        TrackSlotId parent;  //!< Parent track with existing geometry
+        ::celeritas::Real3 const& dir;  //!< New direction
+    };
+
     //// DATA ////
+
+    // Geometry state data
+    //! \todo This is only needed for the detailed initialization
+    StateRef const& state_;
+    TrackSlotId tid_;
 
     //!@{
     //! Referenced thread-local data
@@ -165,6 +168,9 @@ class GeantGeoTrackView
 
     //// HELPER FUNCTIONS ////
 
+    // Initialize the state from a parent state and new direction
+    inline GeantGeoTrackView& operator=(DetailedInitializer const& init);
+
     // Whether any next distance-to-boundary has been found
     inline bool has_next_step() const;
 
@@ -181,7 +187,9 @@ class GeantGeoTrackView
 GeantGeoTrackView::GeantGeoTrackView(ParamsRef const&,
                                      StateRef const& states,
                                      TrackSlotId tid)
-    : pos_(states.pos[tid])
+    : state_(states)
+    , tid_(tid)
+    , pos_(states.pos[tid])
     , dir_(states.dir[tid])
     , next_step_(states.next_step[tid])
     , safety_radius_(states.safety_radius[tid])
@@ -200,6 +208,13 @@ GeantGeoTrackView::GeantGeoTrackView(ParamsRef const&,
 GeantGeoTrackView& GeantGeoTrackView::operator=(Initializer_t const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
+
+    if (init.parent)
+    {
+        // Initialize from direction and copy of parent state
+        *this = {init.parent, init.dir};
+        return *this;
+    }
 
     // Initialize position/direction
     std::copy(init.pos.begin(), init.pos.end(), pos_.begin());
@@ -232,23 +247,24 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(DetailedInitializer const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
 
-    if (this != &init.other)
+    if (tid_ != init.parent)
     {
         // Copy values from the parent state
-        pos_ = init.other.pos_;
-        safety_radius_ = init.other.safety_radius_;
-        g4pos_ = init.other.g4pos_;
-        g4dir_ = init.other.g4dir_;
-        g4safety_ = init.other.g4safety_;
+        GeantGeoTrackView other(ParamsRef{}, state_, init.parent);
+        pos_ = other.pos_;
+        safety_radius_ = other.safety_radius_;
+        g4pos_ = other.g4pos_;
+        g4dir_ = other.g4dir_;
+        g4safety_ = other.g4safety_;
 
         // Update the touchable and navigator
-        touch_handle_ = init.other.touch_handle_;
+        touch_handle_ = other.touch_handle_;
         navi_.ResetHierarchyAndLocate(
             g4pos_, g4dir_, dynamic_cast<G4TouchableHistory&>(*touch_handle_()));
     }
 
     // Set up the next state and initialize the direction
-    dir_ = init.dir;
+    std::copy(init.dir.begin(), init.dir.end(), dir_.begin());
     next_step_ = 0;
 
     CELER_ENSURE(!this->has_next_step());
@@ -335,16 +351,7 @@ CELER_FORCEINLINE bool GeantGeoTrackView::is_on_boundary() const
  */
 CELER_FUNCTION Real3 GeantGeoTrackView::local_surface_normal() const
 {
-    CELER_EXPECT(this->is_on_boundary());
-
-    auto local_g4pos = navi_.GetGlobalToLocalTransform().TransformPoint(g4pos_);
-    auto const* solid = this->volume()->GetSolid();
-    CELER_ASSERT(solid);
-
-    auto normal = -convert_from_geant(solid->SurfaceNormal(local_g4pos), 1);
-
-    CELER_ENSURE(is_soft_unit_vector(normal));
-    return normal;
+    CELER_NOT_IMPLEMENTED();
 }
 
 //---------------------------------------------------------------------------//
@@ -354,7 +361,7 @@ CELER_FUNCTION Real3 GeantGeoTrackView::local_surface_normal() const
  */
 CELER_FUNCTION Real3 GeantGeoTrackView::global_surface_normal() const
 {
-    return this->local_surface_normal();
+    CELER_NOT_IMPLEMENTED();
 }
 
 //---------------------------------------------------------------------------//
