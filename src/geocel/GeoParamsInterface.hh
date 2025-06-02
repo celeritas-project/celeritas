@@ -37,7 +37,7 @@ struct GeantPhysicalInstance
 {
     using ReplicaId = OpaqueId<struct Replica_>;
 
-    //! Geant4 physical volume
+    //! Geant4 physical volume pointer
     G4VPhysicalVolume const* pv{nullptr};
     //! Replica/parameterisation instance
     ReplicaId replica;
