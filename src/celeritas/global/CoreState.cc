@@ -68,8 +68,8 @@ CoreState<M>::CoreState(CoreParams const& params,
     if (params.aux_reg())
     {
         // Allocate auxiliary data
-        aux_state_
-            = AuxStateVec{*params.aux_reg(), M, stream_id, num_track_slots};
+        aux_state_ = std::make_shared<AuxStateVec>(
+            *params.aux_reg(), M, stream_id, num_track_slots);
     }
 
     if (is_action_sorted(params.init()->track_order()))
@@ -80,6 +80,7 @@ CoreState<M>::CoreState(CoreParams const& params,
     CELER_LOG(status) << "Celeritas core state initialization complete";
     CELER_ENSURE(states_);
     CELER_ENSURE(ptr_);
+    CELER_ENSURE(aux_state_);
 }
 
 //---------------------------------------------------------------------------//

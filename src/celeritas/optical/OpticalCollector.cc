@@ -8,6 +8,8 @@
 
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
+#include "corecel/io/OutputInterfaceAdapter.hh"
+#include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
@@ -15,6 +17,8 @@
 #include "CoreParams.hh"
 #include "CoreState.hh"
 #include "MaterialParams.hh"
+#include "PhysicsParams.hh"
+#include "TrackInitParams.hh"
 #include "gen/CherenkovParams.hh"
 #include "gen/ScintillationParams.hh"
 #include "gen/detail/GeneratorAction.hh"
@@ -22,6 +26,7 @@
 #include "gen/detail/OffloadGatherAction.hh"
 
 #include "detail/OpticalLaunchAction.hh"
+#include "detail/OpticalSizes.json.hh"
 
 namespace celeritas
 {
@@ -69,6 +74,31 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
         scint_offload_ = OffloadAction<GT::scintillation>::make_and_insert(
             core, std::move(oa_inp));
     }
+
+    // Create optical core params
+    auto optical_params = std::make_shared<optical::CoreParams>([&] {
+        optical::CoreParams::Input op_inp;
+        op_inp.geometry = core.geometry();
+        op_inp.material = inp.material;
+        // TODO: unique RNG streams for optical loop
+        op_inp.rng = core.rng();
+        op_inp.init = std::make_shared<optical::TrackInitParams>(
+            inp.initializer_capacity);
+        op_inp.action_reg = std::make_shared<ActionRegistry>();
+        op_inp.max_streams = core.max_streams();
+        {
+            optical::PhysicsParams::Input pp_inp;
+            pp_inp.model_builders = std::move(inp.model_builders);
+            pp_inp.materials = op_inp.material;
+            pp_inp.action_registry = op_inp.action_reg.get();
+            op_inp.physics
+                = std::make_shared<optical::PhysicsParams>(std::move(pp_inp));
+        }
+        op_inp.detector_labels = inp.detector_labels;
+        CELER_ENSURE(op_inp);
+        return op_inp;
+    }());
+
     if (inp.cherenkov)
     {
         // Create action to generate Cherenkov primaries
@@ -76,10 +106,9 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
         ga_inp.optical_id = optical_aux_id;
         ga_inp.material = inp.material;
         ga_inp.shared = inp.cherenkov;
-        ga_inp.auto_flush = inp.auto_flush;
         ga_inp.capacity = inp.buffer_capacity;
         cherenkov_generate_ = GeneratorAction<GT::cherenkov>::make_and_insert(
-            core, std::move(ga_inp));
+            core, *optical_params, std::move(ga_inp));
     }
     if (inp.scintillation)
     {
@@ -88,21 +117,31 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
         ga_inp.optical_id = optical_aux_id;
         ga_inp.material = inp.material;
         ga_inp.shared = inp.scintillation;
-        ga_inp.auto_flush = inp.auto_flush;
         ga_inp.capacity = inp.buffer_capacity;
         scint_generate_ = GeneratorAction<GT::scintillation>::make_and_insert(
-            core, std::move(ga_inp));
+            core, *optical_params, std::move(ga_inp));
     }
 
     // Create launch action with optical params+state and access to gen data
     detail::OpticalLaunchAction::Input la_inp;
-    la_inp.model_builders = std::move(inp.model_builders);
-    la_inp.material = inp.material;
     la_inp.num_track_slots = inp.num_track_slots;
-    la_inp.initializer_capacity = inp.initializer_capacity;
-    la_inp.detector_labels = inp.detector_labels;
+    la_inp.auto_flush = inp.auto_flush;
+    la_inp.optical_params = std::move(optical_params);
     launch_ = detail::OpticalLaunchAction::make_and_insert(core,
                                                            std::move(la_inp));
+
+    // Add optical sizes
+    detail::OpticalSizes sizes;
+    sizes.streams = core.max_streams();
+    sizes.generators = sizes.streams * inp.buffer_capacity;
+    sizes.initializers = sizes.streams * inp.initializer_capacity;
+    sizes.tracks = sizes.streams * inp.num_track_slots;
+
+    core.output_reg()->insert(
+        OutputInterfaceAdapter<detail::OpticalSizes>::from_rvalue_ref(
+            OutputInterface::Category::internal,
+            "optical-sizes",
+            std::move(sizes)));
 
     // Launch action must be *after* offload and generator actions
     CELER_ENSURE(!cherenkov_offload_
