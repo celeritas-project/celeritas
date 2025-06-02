@@ -731,7 +731,7 @@ class Prism final : public IntersectRegionInterface
     // Half the z height
     real_type hh_;
 
-    // Rotational offset (0 has bottom face at -Y, 1 is congruent)
+    // Rotational offset: 0 has point at (r, 0), 1 is congruent with 0
     real_type orientation_;
 };
 
