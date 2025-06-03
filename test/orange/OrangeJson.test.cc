@@ -576,7 +576,7 @@ TEST_F(Geant4Testem15Test, safety)
     EXPECT_VEC_SOFT_EQ(Real3({0, 0, 0}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
-    EXPECT_EQ(SurfaceId{}, geo.surface_id());
+    EXPECT_EQ(InternalSurfaceId{}, geo.internal_surface_id());
     EXPECT_FALSE(geo.is_outside());
 
     // Safety at middle should be to the box boundary

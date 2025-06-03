@@ -244,10 +244,11 @@ VolumeId::size_type OrangeGeoTestBase::num_volumes() const
 /*!
  * Find the surface from its label (nullptr allowed)
  */
-SurfaceId OrangeGeoTestBase::find_surface(std::string const& label) const
+InternalSurfaceId
+OrangeGeoTestBase::find_surface(std::string const& label) const
 {
     CELER_EXPECT(params_);
-    SurfaceId surface_id = params_->surfaces().find_unique(label);
+    InternalSurfaceId surface_id = params_->surfaces().find_unique(label);
     CELER_VALIDATE(surface_id,
                    << "nonexistent surface label '" << label << '\'');
     return surface_id;

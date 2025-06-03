@@ -40,7 +40,7 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
   public:
     //!@{
     //! \name Type aliases
-    using SurfaceMap = LabelIdMultiMap<SurfaceId>;
+    using SurfaceMap = LabelIdMultiMap<InternalSurfaceId>;
     using UniverseMap = LabelIdMultiMap<UniverseId>;
     //!@}
 

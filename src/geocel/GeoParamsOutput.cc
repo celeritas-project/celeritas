@@ -65,7 +65,7 @@ void GeoParamsOutput::output(JsonPimpl* j) const
         auto label = json::array();
 
         auto const& surfaces = surf_geo->surfaces();
-        for (auto id : range(SurfaceId{surfaces.size()}))
+        for (auto id : range(InternalSurfaceId{surfaces.size()}))
         {
             label.push_back(surfaces.at(id));
         }

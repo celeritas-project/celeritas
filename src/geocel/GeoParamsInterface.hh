@@ -107,7 +107,7 @@ class GeoParamsSurfaceInterface : public GeoParamsInterface
   public:
     //!@{
     //! \name Type aliases
-    using SurfaceMap = LabelIdMultiMap<SurfaceId>;
+    using SurfaceMap = LabelIdMultiMap<InternalSurfaceId>;
     //!@}
 
   public:
