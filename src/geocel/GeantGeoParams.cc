@@ -62,7 +62,8 @@ LevelId::size_type get_max_depth(G4VPhysicalVolume const& world)
 /*!
  * Get a reproducible vector of LV instance ID -> label from the given world.
  */
-std::vector<Label> make_logical_vol_labels(G4VPhysicalVolume const& world)
+std::vector<Label> make_logical_vol_labels(G4VPhysicalVolume const& world,
+                                           VolumeId::size_type offset)
 {
     std::unordered_map<std::string, std::vector<G4LogicalVolume const*>> names;
 
@@ -81,15 +82,17 @@ std::vector<Label> make_logical_vol_labels(G4VPhysicalVolume const& world)
         world);
 
     return detail::make_label_vector<G4LogicalVolume const*>(
-        std::move(names),
-        [](G4LogicalVolume const* lv) { return lv->GetInstanceID(); });
+        std::move(names), [offset](G4LogicalVolume const* lv) {
+            return lv->GetInstanceID() - offset;
+        });
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get a reproducible vector of PV instance ID -> label from the given world.
  */
-std::vector<Label> make_physical_vol_labels(G4VPhysicalVolume const& world)
+std::vector<Label> make_physical_vol_labels(G4VPhysicalVolume const& world,
+                                            VolumeInstanceId::size_type offset)
 {
     std::unordered_map<G4VPhysicalVolume const*, int> max_depth;
     std::unordered_map<std::string, std::vector<G4VPhysicalVolume const*>> names;
@@ -118,8 +121,9 @@ std::vector<Label> make_physical_vol_labels(G4VPhysicalVolume const& world)
         world);
 
     return detail::make_label_vector<G4VPhysicalVolume const*>(
-        std::move(names),
-        [](G4VPhysicalVolume const* pv) { return pv->GetInstanceID(); });
+        std::move(names), [offset](G4VPhysicalVolume const* pv) {
+            return pv->GetInstanceID() - offset;
+        });
 }
 
 //---------------------------------------------------------------------------//
@@ -210,14 +214,14 @@ GeantGeoParams::GeantGeoParams(std::string const& filename)
         CELER_LOG(warning) << "Expected '.gdml' extension for GDML input";
     }
 
-    host_ref_.world = load_gdml(filename);
+    data_.world = load_gdml(filename);
     loaded_gdml_ = true;
 
     this->build_tracking();
     this->build_metadata();
 
     CELER_ENSURE(volumes_);
-    CELER_ENSURE(host_ref_);
+    CELER_ENSURE(data_);
 }
 
 //---------------------------------------------------------------------------//
@@ -227,7 +231,7 @@ GeantGeoParams::GeantGeoParams(std::string const& filename)
 GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world)
 {
     CELER_EXPECT(world);
-    host_ref_.world = const_cast<G4VPhysicalVolume*>(world);
+    data_.world = const_cast<G4VPhysicalVolume*>(world);
 
     ScopedMem record_mem("GeantGeoParams.construct");
 
@@ -255,7 +259,7 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world)
     this->build_metadata();
 
     CELER_ENSURE(volumes_);
-    CELER_ENSURE(host_ref_);
+    CELER_ENSURE(data_);
 }
 
 //---------------------------------------------------------------------------//
@@ -293,7 +297,8 @@ GeantGeoParams::~GeantGeoParams()
 VolumeId GeantGeoParams::find_volume(G4LogicalVolume const* volume) const
 {
     CELER_EXPECT(volume);
-    auto result = id_cast<VolumeId>(volume->GetInstanceID());
+    auto result
+        = id_cast<VolumeId>(volume->GetInstanceID() - this->lv_offset());
     if (!(result < volumes_.size()))
     {
         // Volume is out of range: possibly an LV defined after this geometry
@@ -327,11 +332,10 @@ GeantPhysicalInstance GeantGeoParams::id_to_geant(VolumeInstanceId id) const
     }
 
     G4PhysicalVolumeStore* pv_store = G4PhysicalVolumeStore::GetInstance();
-    auto index = id.unchecked_get() - pv_offset_;
-    CELER_ASSERT(index < pv_store->size());
+    CELER_ASSERT(id < pv_store->size());
 
     GeantPhysicalInstance result;
-    result.pv = (*pv_store)[index];
+    result.pv = (*pv_store)[id.unchecked_get()];
     CELER_ASSERT(result.pv);
     result.replica = this->replica_id(*result.pv);
     return result;
@@ -352,7 +356,7 @@ G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId id) const
     }
 
     G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
-    auto index = id.unchecked_get() - lv_offset_;
+    auto index = id.unchecked_get();
     CELER_ASSERT(index < lv_store->size());
     return (*lv_store)[index];
 }
@@ -366,7 +370,8 @@ G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId id) const
 VolumeInstanceId
 GeantGeoParams::geant_to_id(G4VPhysicalVolume const& volume) const
 {
-    auto result = id_cast<VolumeInstanceId>(volume.GetInstanceID());
+    auto result = id_cast<VolumeInstanceId>(volume.GetInstanceID()
+                                            - this->pv_offset());
     if (!(result < vol_instances_.size()))
     {
         // Volume is out of range: possibly a PV defined after this geometry
@@ -442,32 +447,34 @@ void GeantGeoParams::build_tracking()
  */
 void GeantGeoParams::build_metadata()
 {
-    CELER_EXPECT(host_ref_);
+    CELER_EXPECT(data_);
 
     ScopedMem record_mem("GeantGeoParams.build_metadata");
 
     // Get offset of logical/physical volumes present in unit tests
-    lv_offset_ = [] {
+    data_.lv_offset = [] {
         G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
         CELER_ASSERT(lv_store && !lv_store->empty());
         return lv_store->front()->GetInstanceID();
     }();
-    pv_offset_ = [] {
+    data_.pv_offset = [] {
         G4PhysicalVolumeStore* pv_store = G4PhysicalVolumeStore::GetInstance();
         CELER_ASSERT(pv_store && !pv_store->empty());
         return pv_store->front()->GetInstanceID();
     }();
-    if (lv_offset_ != 0 || pv_offset_ != 0)
+    if (this->lv_offset() != 0 || this->pv_offset() != 0)
     {
         CELER_LOG(debug) << "Building after volume stores were cleared: "
-                         << "lv_offset=" << lv_offset_
-                         << ", pv_offset=" << pv_offset_;
+                         << "lv_offset=" << this->lv_offset()
+                         << ", pv_offset=" << this->pv_offset();
     }
 
     // Construct volume labels for physically reachable volumes
-    volumes_ = VolumeMap{"volume", make_logical_vol_labels(*this->world())};
-    vol_instances_ = VolInstanceMap{"volume instance",
-                                    make_physical_vol_labels(*this->world())};
+    volumes_ = VolumeMap{
+        "volume", make_logical_vol_labels(*this->world(), this->lv_offset())};
+    vol_instances_ = VolInstanceMap{
+        "volume instance",
+        make_physical_vol_labels(*this->world(), this->pv_offset())};
     max_depth_ = get_max_depth(*this->world());
 
     auto clhep_bbox = this->get_clhep_bbox();

@@ -178,7 +178,7 @@ std::vector<std::string> GenericGeoTestInterface::get_volume_labels() const
     std::vector<std::string> result;
 
     auto const& volumes = this->geometry_interface()->volumes();
-    for (auto vidx : range(this->volume_offset(), volumes.size()))
+    for (auto vidx : range(volumes.size()))
     {
         Label const& lab = volumes.at(VolumeId{vidx});
         if (!lab.empty())
@@ -199,7 +199,7 @@ GenericGeoTestInterface::get_volume_instance_labels() const
     std::vector<std::string> result;
 
     auto const& vol_inst = this->geometry_interface()->volume_instances();
-    for (auto vidx : range(this->volume_instance_offset(), vol_inst.size()))
+    for (auto vidx : range(vol_inst.size()))
     {
         Label const& lab = vol_inst.at(VolumeInstanceId{vidx});
         if (!lab.empty())
@@ -227,7 +227,7 @@ std::vector<std::string> GenericGeoTestInterface::get_g4pv_labels() const
     auto const& vol_inst = geo.volume_instances();
 
     std::vector<std::string> result;
-    for (auto vidx : range(this->volume_instance_offset(), vol_inst.size()))
+    for (auto vidx : range(vol_inst.size()))
     {
         VolumeInstanceId vi_id{vidx};
         if (vol_inst.at(vi_id).empty())
@@ -273,18 +273,17 @@ std::vector<std::string> GenericGeoTestInterface::get_g4pv_labels() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the volume name, adjusting for offsets from loading multiple geo.
+ * Get the volume name.
  */
 std::string_view GenericGeoTestInterface::get_volume_name(VolumeId i) const
 {
     CELER_EXPECT(i);
     auto const& volumes = this->geometry_interface()->volumes();
-    auto index = this->volume_offset() + i.get();
-    if (index >= volumes.size())
+    if (i < volumes.size())
     {
-        return "<out of range>";
+        return volumes.at(VolumeId{i.get()}).name;
     }
-    return volumes.at(VolumeId{index}).name;
+    return "<out of range>";
 }
 
 //---------------------------------------------------------------------------//
