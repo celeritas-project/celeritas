@@ -1,0 +1,107 @@
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file geocel/SurfaceData.hh
+//---------------------------------------------------------------------------//
+#pragma once
+
+#include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "geocel/Types.hh"
+
+namespace celeritas
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Store surface data corresponding to a volume.
+ *
+ * This stores information about the surfaces (both boundary and interface)
+ * of a volume. The \em boundary is a single optional surface ID, and the
+ * \em interface is an unzipped map \code (pre, post) -> surface \endcode.
+ *
+ * If \c interface_pre and \c interface_post are zipped, the result is \em
+ * sorted.  In other words, the pre-step surface can be searched with
+ * bisection, and the resulting subrange can also be searched with bisection to
+ * find the post-step surface. This then corresponds to the \c SurfaceId of
+ * that interface.
+ */
+struct VolumeSurfaceRecord
+{
+    //! Surface identifier for the volume boundary
+    SurfaceId boundary;
+
+    //! Sorted range of exiting volume instances (from this volume)
+    ItemRange<VolumeInstanceId> interface_pre;
+
+    //! Corresponding range of entering volume instances (to other volumes)
+    ItemRange<VolumeInstanceId> interface_post;
+
+    //! Surface IDs for the pre->post mapping
+    ItemRange<SurfaceId> interface;
+
+    //! True if valid data is present
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return boundary && !interface_pre.empty()
+               && interface_pre.size() == interface_post.size()
+               && interface_pre.size() == interface.size();
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Persistent data for mapping between volumes and their surfaces.
+ *
+ * This structure manages the relationship between volumes and their surfaces,
+ * particularly for tracking optical photons as they cross from one volume
+ * instance to another through shared surfaces.
+ *
+ * If no interface surfaces (aka 'border surface') are present then the backend
+ * storage arrays will be empty.
+ */
+template<Ownership W, MemSpace M>
+struct SurfaceParamsData
+{
+    //// TYPES ////
+
+    template<class T>
+    using VolumeItems = Collection<T, W, M, VolumeId>;
+    template<class T>
+    using Items = Collection<T, W, M>;
+
+    //// DATA ////
+
+    //! Surface properties for logical volumes
+    VolumeItems<VolumeSurfaceRecord> volume_surfaces;
+
+    //! Backend storage for PV->PV mapping
+    Items<VolumeInstanceId> volume_instance_ids;
+
+    //! Backend storage for surface interfaces
+    Items<SurfaceId> surface_ids;
+
+    //// METHODS ////
+
+    //! True if assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !volume_surfaces.empty();
+    }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    SurfaceParamsData& operator=(SurfaceParamsData<W2, M2> const& other)
+    {
+        CELER_EXPECT(other);
+
+        volume_surfaces = other.volume_surfaces;
+        volume_instance_ids = other.volume_instance_ids;
+
+        CELER_ENSURE(*this);
+        return *this;
+    }
+};
+
+//---------------------------------------------------------------------------//
+}  // namespace celeritas
