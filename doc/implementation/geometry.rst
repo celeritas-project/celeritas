@@ -51,10 +51,21 @@ VolumeUniqueInstanceId
   by pre-calculating the number of direct and indirect children for each node.
   Celeritas always uses 64-bit integers to store this unique instance ID.
 
+SurfaceId
+  A surface is defined as a contiguous area on the boundary of a volume,
+  sometimes on only a single side of the volume. (This is different to the
+  infinite surfaces of ORANGE and the surface frames of VecGeom.) The IDs are
+  ordered so that "interfaces" (one-sided surfaces defined by an ordered volume
+  instance pair, called "border" in Geant4) are before "boundaries"
+  (lower-priority two-sided surfaces surrounding a volume, called "skin" in
+  Geant4).
+
 
 .. doxygenstruct:: celeritas::GeantPhysicalInstance
 
 .. doxygenclass:: celeritas::GeoParamsInterface
+
+.. doxygenclass:: celeritas::SurfaceParams
 
 
 .. toctree::
