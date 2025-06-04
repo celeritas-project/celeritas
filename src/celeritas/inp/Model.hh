@@ -7,7 +7,11 @@
 #pragma once
 
 #include <string>
+#include <utility>
 #include <variant>
+#include <vector>
+
+#include "geocel/Types.hh"
 
 class G4VPhysicalVolume;
 
@@ -17,11 +21,36 @@ namespace inp
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Define surfaces, the boundaries between volumes.
+ *
+ * See \c SurfaceParams . These are typically loaded from Geant4 via \c
+ * celeritas::setup::load_geant .
+ */
+struct Surfaces
+{
+    using Interface = std::pair<VolumeInstanceId, VolumeInstanceId>;
+    using VecInterface = std::vector<VolumeInstanceId>;
+    using VecBoundary = std::vector<VolumeId>;
+
+    VecInterface interfaces;
+    VecBoundary boundaries;
+
+    //! Whether any surfaces have been specified
+    explicit operator bool() const
+    {
+        return !interfaces.empty() || !boundaries.empty();
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Set up geometry/material model.
  *
  * The geometry filename should almost always be a GDML path. As a temporary
  * measure we also support loading from a \c .org.json file if the \c
  * StandaloneInput::physics_import is a ROOT file with serialized physics data.
+ *
+ * Materials, regions, and surfaces may be loaded from the geometry.
  */
 struct Model
 {
@@ -30,6 +59,7 @@ struct Model
 
     // TODO: Materials
     // TODO: Regions
+    Surfaces surfaces;
 };
 
 //---------------------------------------------------------------------------//

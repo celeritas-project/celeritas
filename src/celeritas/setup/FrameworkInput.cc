@@ -16,6 +16,7 @@
 #include "celeritas/inp/Problem.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
 
+#include "FromGeant.hh"
 #include "Problem.hh"
 #include "System.hh"
 
@@ -47,7 +48,10 @@ FrameworkLoaded framework_input(inp::FrameworkInput& fi)
     // Set up problem
     inp::Problem problem;
 
-    problem.model.geometry = geo->world();
+    // Load geometry, surfaces, regions from Geant4 world pointer
+    problem.model = model_from_geant(geo->world());
+
+    // Load physics
     for (std::string const& process_name : fi.geant.ignore_processes)
     {
         ImportProcessClass ipc;

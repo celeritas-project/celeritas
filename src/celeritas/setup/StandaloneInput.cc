@@ -26,6 +26,7 @@
 #include "celeritas/io/ImportData.hh"
 
 #include "Events.hh"
+#include "FromGeant.hh"
 #include "Problem.hh"
 #include "System.hh"
 
@@ -67,8 +68,8 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
         CELER_ASSERT(geant_geo_params);
         celeritas::geant_geo(*geant_geo_params);
 
-        // Replace world geometry with Geant4 world pointer
-        problem->model.geometry = geant_geo_params->world();
+        // Load geometry, surfaces, regions from Geant4 world pointer
+        problem->model = model_from_geant(geant_geo_params->world());
     }
 
     // Import physics data
