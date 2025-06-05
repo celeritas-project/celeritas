@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define/>
+
+  <materials>
+    <isotope N="40" Z="18" name="Ar40">
+      <atom unit="g/mole" value="39.9624"/>
+    </isotope>
+    <element name="Ar">
+      <fraction n="1.0" ref="Ar40"/>
+    </element>
+    <material name="lAr" state="liquid">
+      <T unit="K" value="293.15"/>
+      <D unit="g/cm3" value="1.396"/>
+      <fraction n="1" ref="Ar"/>
+    </material>
+    <isotope N="208" Z="82" name="Pb208">
+      <atom unit="g/mole" value="207.977"/>
+    </isotope>
+    <element name="Pb-el">
+      <fraction n="0.524" ref="Pb208"/>
+    </element>
+    <material name="Pb" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="823"/>
+      <D unit="g/cm3" value="11.35"/>
+      <fraction n="1" ref="Pb-el"/>
+    </material>
+  </materials>
+
+  <solids>
+    <polyhedra name="tri" aunit="deg" deltaphi="360" lunit="mm" numsides="3" startphi="0">
+      <zplane rmax="10" rmin="0" z="-20"/>
+      <zplane rmax="10" rmin="0" z="20"/>
+    </polyhedra>
+    <polyhedra name="tri_third" aunit="deg" deltaphi="360" lunit="mm" numsides="3" startphi="40">
+      <zplane rmax="10" rmin="0" z="-20"/>
+      <zplane rmax="10" rmin="0" z="20"/>
+    </polyhedra>
+    <polyhedra name="tri_half" aunit="deg" deltaphi="360" lunit="mm" numsides="3" startphi="60">
+      <zplane rmax="10" rmin="0" z="-20"/>
+      <zplane rmax="10" rmin="0" z="20"/>
+    </polyhedra>
+    <polyhedra name="tri_full" aunit="deg" deltaphi="360" lunit="mm" numsides="3" startphi="120">
+      <zplane rmax="10" rmin="0" z="-20"/>
+      <zplane rmax="10" rmin="0" z="20"/>
+    </polyhedra>
+    <polyhedra name="quad" aunit="deg" deltaphi="360" lunit="mm" numsides="4" startphi="0">
+      <zplane rmax="10" rmin="0" z="-20"/>
+      <zplane rmax="10" rmin="0" z="20"/>
+    </polyhedra>
+    <polyhedra name="quad_third" aunit="deg" deltaphi="360" lunit="mm" numsides="4" startphi="30">
+      <zplane rmax="10" rmin="0" z="-20"/>
+      <zplane rmax="10" rmin="0" z="20"/>
+    </polyhedra>
+    <polyhedra name="quad_half" aunit="deg" deltaphi="360" lunit="mm" numsides="4" startphi="45">
+      <zplane rmax="10" rmin="0" z="-20"/>
+      <zplane rmax="10" rmin="0" z="20"/>
+    </polyhedra>
+    <polyhedra name="quad_full" aunit="deg" deltaphi="360" lunit="mm" numsides="4" startphi="90">
+      <zplane rmax="10" rmin="0" z="-20"/>
+      <zplane rmax="10" rmin="0" z="20"/>
+    </polyhedra>
+    <polyhedra name="penta" aunit="deg" deltaphi="360" lunit="mm" numsides="5" startphi="0">
+      <zplane rmax="10" rmin="0" z="-20"/>
+      <zplane rmax="10" rmin="0" z="20"/>
+    </polyhedra>
+    <polyhedra name="penta_third" aunit="deg" deltaphi="360" lunit="mm" numsides="5" startphi="24">
+      <zplane rmax="10" rmin="0" z="-20"/>
+      <zplane rmax="10" rmin="0" z="20"/>
+    </polyhedra>
+    <polyhedra name="penta_half" aunit="deg" deltaphi="360" lunit="mm" numsides="5" startphi="36">
+      <zplane rmax="10" rmin="0" z="-20"/>
+      <zplane rmax="10" rmin="0" z="20"/>
+    </polyhedra>
+    <polyhedra name="penta_full" aunit="deg" deltaphi="360" lunit="mm" numsides="5" startphi="72">
+      <zplane rmax="10" rmin="0" z="-20"/>
+      <zplane rmax="10" rmin="0" z="20"/>
+    </polyhedra>
+    <polyhedra name="hex" aunit="deg" deltaphi="360" lunit="mm" numsides="6" startphi="0">
+      <zplane rmax="10" rmin="0" z="-20"/>
+      <zplane rmax="10" rmin="0" z="20"/>
+    </polyhedra>
+    <polyhedra name="hex_third" aunit="deg" deltaphi="360" lunit="mm" numsides="6" startphi="20">
+      <zplane rmax="10" rmin="0" z="-20"/>
+      <zplane rmax="10" rmin="0" z="20"/>
+    </polyhedra>
+    <polyhedra name="hex_half" aunit="deg" deltaphi="360" lunit="mm" numsides="6" startphi="30">
+      <zplane rmax="10" rmin="0" z="-20"/>
+      <zplane rmax="10" rmin="0" z="20"/>
+    </polyhedra>
+    <polyhedra name="hex_full" aunit="deg" deltaphi="360" lunit="mm" numsides="6" startphi="60">
+      <zplane rmax="10" rmin="0" z="-20"/>
+      <zplane rmax="10" rmin="0" z="20"/>
+    </polyhedra>
+    <box lunit="mm" name="worldbox" x="400" y="400" z="90"/>
+  </solids>
+
+  <structure>
+    <volume name="tri">
+      <solidref ref="tri"/>
+      <materialref ref="Pb"/>
+    </volume>
+    <volume name="tri_third">
+      <solidref ref="tri_third"/>
+      <materialref ref="Pb"/>
+    </volume>
+    <volume name="tri_half">
+      <solidref ref="tri_half"/>
+      <materialref ref="Pb"/>
+    </volume>
+    <volume name="tri_full">
+      <solidref ref="tri_full"/>
+      <materialref ref="Pb"/>
+    </volume>
+    <volume name="quad">
+      <solidref ref="quad"/>
+      <materialref ref="Pb"/>
+    </volume>
+    <volume name="quad_third">
+      <solidref ref="quad_third"/>
+      <materialref ref="Pb"/>
+    </volume>
+    <volume name="quad_half">
+      <solidref ref="quad_half"/>
+      <materialref ref="Pb"/>
+    </volume>
+    <volume name="quad_full">
+      <solidref ref="quad_full"/>
+      <materialref ref="Pb"/>
+    </volume>
+    <volume name="penta">
+      <solidref ref="penta"/>
+      <materialref ref="Pb"/>
+    </volume>
+    <volume name="penta_third">
+      <solidref ref="penta_third"/>
+      <materialref ref="Pb"/>
+    </volume>
+    <volume name="penta_half">
+      <solidref ref="penta_half"/>
+      <materialref ref="Pb"/>
+    </volume>
+    <volume name="penta_full">
+      <solidref ref="penta_full"/>
+      <materialref ref="Pb"/>
+    </volume>
+    <volume name="hex">
+      <solidref ref="hex"/>
+      <materialref ref="Pb"/>
+    </volume>
+    <volume name="hex_third">
+      <solidref ref="hex_third"/>
+      <materialref ref="Pb"/>
+    </volume>
+    <volume name="hex_half">
+      <solidref ref="hex_half"/>
+      <materialref ref="Pb"/>
+    </volume>
+    <volume name="hex_full">
+      <solidref ref="hex_full"/>
+      <materialref ref="Pb"/>
+    </volume>
+    <volume name="world">
+      <solidref ref="worldbox"/>
+      <materialref ref="lAr"/>
+      <physvol name="tri0_pv">
+        <volumeref ref="tri"/>
+        <position unit="mm" x="-40.0" y="40.0" z="0.0"/>
+      </physvol>
+      <physvol name="tri30_pv">
+        <volumeref ref="tri_third"/>
+        <position unit="mm" x="0.0" y="40.0" z="0.0"/>
+      </physvol>
+      <physvol name="tri60_pv">
+        <volumeref ref="tri_half"/>
+        <position unit="mm" x="40.0" y="40.0" z="0.0"/>
+      </physvol>
+      <physvol name="tri90_pv">
+        <volumeref ref="tri_full"/>
+        <position unit="mm" x="80.0" y="40.0" z="0.0"/>
+      </physvol>
+      <physvol name="quad0_pv">
+        <volumeref ref="quad"/>
+        <position unit="mm" x="-40.0" y="0.0" z="0.0"/>
+      </physvol>
+      <physvol name="quad30_pv">
+        <volumeref ref="quad_third"/>
+        <position unit="mm" x="0.0" y="0.0" z="0.0"/>
+      </physvol>
+      <physvol name="quad60_pv">
+        <volumeref ref="quad_half"/>
+        <position unit="mm" x="40.0" y="0.0" z="0.0"/>
+      </physvol>
+      <physvol name="quad90_pv">
+        <volumeref ref="quad_full"/>
+        <position unit="mm" x="80.0" y="0.0" z="0.0"/>
+      </physvol>
+      <physvol name="penta0_pv">
+        <volumeref ref="penta"/>
+        <position unit="mm" x="-40.0" y="-40.0" z="0.0"/>
+      </physvol>
+      <physvol name="penta30_pv">
+        <volumeref ref="penta_third"/>
+        <position unit="mm" x="0.0" y="-40.0" z="0.0"/>
+      </physvol>
+      <physvol name="penta60_pv">
+        <volumeref ref="penta_half"/>
+        <position unit="mm" x="40.0" y="-40.0" z="0.0"/>
+      </physvol>
+      <physvol name="penta90_pv">
+        <volumeref ref="penta_full"/>
+        <position unit="mm" x="80.0" y="-40.0" z="0.0"/>
+      </physvol>
+      <physvol name="hex0_pv">
+        <volumeref ref="hex"/>
+        <position unit="mm" x="-40.0" y="-80.0" z="0.0"/>
+      </physvol>
+      <physvol name="hex30_pv">
+        <volumeref ref="hex_third"/>
+        <position unit="mm" x="0.0" y="-80.0" z="0.0"/>
+      </physvol>
+      <physvol name="hex60_pv">
+        <volumeref ref="hex_half"/>
+        <position unit="mm" x="40.0" y="-80.0" z="0.0"/>
+      </physvol>
+      <physvol name="hex90_pv">
+        <volumeref ref="hex_full"/>
+        <position unit="mm" x="80.0" y="-80.0" z="0.0"/>
+      </physvol>
+    </volume>
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="world"/>
+  </setup>
+
+</gdml>

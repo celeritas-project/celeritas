@@ -186,6 +186,10 @@ void SolidConverterTest::build_and_test(G4VSolid const& solid,
 }
 
 //---------------------------------------------------------------------------//
+// SOLID TESTS
+// NOTE: keep these alphabetically ordered
+//---------------------------------------------------------------------------//
+
 TEST_F(SolidConverterTest, box)
 {
     this->build_and_test(
@@ -264,18 +268,6 @@ TEST_F(SolidConverterTest, ellipticalcone)
         G4EllipticalCone("testEllipticalCone", 0.4, 0.8, 50, 25),
         R"json({"_type":"shape","interior":{"_type":"ellipticalcone","halfheight":2.5,"lower_radii":[3.0,6.0],"upper_radii":[1.0,2.0]},"label":"testEllipticalCone"})json",
         {{0, 0, 0}, {0, 0, 24.9}, {0., 0, -24.9}});
-}
-
-TEST_F(SolidConverterTest, torus)
-{
-    G4Torus torus("testTorus", 0 * cm, 20 * cm, 50 * cm, 0 * deg, 270 * deg);
-    auto json_str
-        = R"json({"_type":"solid","enclosed_angle":{"interior":0.75,"start":0.0},"excluded":{"_type":"cylinder","halfheight":20.0,"radius":30.0},"interior":{"_type":"cylinder","halfheight":20.0,"radius":70.0},"label":"testTorus"})json";
-
-    SolidConverter convert{scale_, transform_};
-    auto obj = convert(torus);
-    CELER_ASSERT(obj);
-    EXPECT_JSON_EQ(json_str, to_string(*obj));
 }
 
 TEST_F(SolidConverterTest, generictrap)
@@ -492,6 +484,33 @@ TEST_F(SolidConverterTest, polyhedra)
          {7.15, 7.15, 0.05},
          {3.0, 6.01, 0},
          {6.18, 7.15, 0}});
+
+    // Triangle
+    static double const z2[] = {10, 50};
+    static double const rmin2[] = {0, 0};
+    static double const rmax2[] = {10, 10};
+    this->build_and_test(
+        G4Polyhedra(
+            "tri", 30 * deg, 360 * deg, 3, std::size(z2), z2, rmin2, rmax2),
+        R"json({"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"prism","apothem":0.9999999999999999,"halfheight":2.0,"num_sides":3,"orientation":0.25},"label":"tri"},"transform":{"_type":"translation","data":[0.0,0.0,3.0]}})json",
+        {
+            {0, 0, 0.9},
+            {0, 0, 1.1},
+            {0, 0, 4.9},
+            {0, 0, 5.1},
+            {0, 1.01, 1.1},
+            {0, -1.01, 1.1},
+        });
+    // Rotate 60 degrees
+    this->build_and_test(
+        G4Polyhedra(
+            "tri", 60 * deg, 360 * deg, 3, std::size(z2), z2, rmin2, rmax2),
+        R"json({"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"prism","apothem":0.9999999999999999,"halfheight":2.0,"num_sides":3,"orientation":0.5},"label":"tri"},"transform":{"_type":"translation","data":[0.0,0.0,3.0]}})json");
+    // Rotate 90 degrees
+    this->build_and_test(
+        G4Polyhedra(
+            "tri", 90 * deg, 360 * deg, 3, std::size(z2), z2, rmin2, rmax2),
+        R"json({"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"prism","apothem":0.9999999999999999,"halfheight":2.0,"num_sides":3,"orientation":0.75},"label":"tri"},"transform":{"_type":"translation","data":[0.0,0.0,3.0]}})json");
 }
 
 TEST_F(SolidConverterTest, sphere)
@@ -540,6 +559,18 @@ TEST_F(SolidConverterTest, subtractionsolid)
         G4SubtractionSolid("t1Subtractionb3", &t1, &b3, transform),
         R"json({"_type":"all","daughters":[{"_type":"shape","interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Solid Tube #1"},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[1.0,2.0,5.0]},"label":"Test Box #3"},"transform":{"_type":"transformation","data":[-1.0,1.2246467991473532e-16,0.0,-1.2246467991473532e-16,-1.0,-0.0,0.0,0.0,1.0,0.0,3.0,0.0]}},"label":""}],"label":"t1Subtractionb3"})json",
         {{0, 0, 0}, {0, 0, 10}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1}});
+}
+
+TEST_F(SolidConverterTest, torus)
+{
+    G4Torus torus("testTorus", 0 * cm, 20 * cm, 50 * cm, 0 * deg, 270 * deg);
+    auto json_str
+        = R"json({"_type":"solid","enclosed_angle":{"interior":0.75,"start":0.0},"excluded":{"_type":"cylinder","halfheight":20.0,"radius":30.0},"interior":{"_type":"cylinder","halfheight":20.0,"radius":70.0},"label":"testTorus"})json";
+
+    SolidConverter convert{scale_, transform_};
+    auto obj = convert(torus);
+    CELER_ASSERT(obj);
+    EXPECT_JSON_EQ(json_str, to_string(*obj));
 }
 
 TEST_F(SolidConverterTest, trap)

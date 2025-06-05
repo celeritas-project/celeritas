@@ -99,6 +99,24 @@ class MultiLevelGeoTest
 
 //---------------------------------------------------------------------------//
 /*!
+ * Test a bunch of polyhedra.
+ */
+class PolyhedraGeoTest
+{
+  public:
+    static std::string_view geometry_basename() { return "polyhedra"; }
+
+    //! Construct with a reference to the GoogleTest
+    PolyhedraGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
+
+    void test_trace() const;
+
+  private:
+    GenericGeoTestInterface* test_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Test the B5 (replica) geometry.
  */
 class ReplicaGeoTest

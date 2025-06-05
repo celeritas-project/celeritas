@@ -77,6 +77,16 @@ TEST_F(PincellTest, imager)
 }
 
 //---------------------------------------------------------------------------//
+
+using PolyhedraTest
+    = GenericGeoParameterizedTest<GeantOrangeTest, PolyhedraGeoTest>;
+
+TEST_F(PolyhedraTest, trace)
+{
+    this->impl().test_trace();
+}
+
+//---------------------------------------------------------------------------//
 using SimpleCmsTest
     = GenericGeoParameterizedTest<GeantOrangeTest, SimpleCmsGeoTest>;
 

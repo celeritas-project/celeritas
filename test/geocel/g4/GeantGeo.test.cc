@@ -443,6 +443,16 @@ TEST_F(PincellTest, imager)
 }
 
 //---------------------------------------------------------------------------//
+
+using PolyhedraTest
+    = GenericGeoParameterizedTest<GeantGeoTest, PolyhedraGeoTest>;
+
+TEST_F(PolyhedraTest, trace)
+{
+    TestImpl(this).test_trace();
+}
+
+//---------------------------------------------------------------------------//
 using ReplicaTest = GenericGeoParameterizedTest<GeantGeoTest, ReplicaGeoTest>;
 
 TEST_F(ReplicaTest, trace)
