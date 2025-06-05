@@ -133,15 +133,6 @@ class GenericGeoTestInterface
     // Get the threshold in "unit lengths" for a movement being a "bump"
     virtual real_type bump_tol() const;
 
-    //! Ignore the first N VolumeId
-    virtual VolumeId::size_type volume_offset() const { return 0; }
-
-    //! Ignore the first N VolumeInstanceId
-    virtual VolumeInstanceId::size_type volume_instance_offset() const
-    {
-        return 0;
-    }
-
     //! Unit length for "track" testing and other results
     virtual Constant unit_length() const { return lengthunits::centimeter; }
 

@@ -105,11 +105,14 @@ inp = {
 }
 
 if "lar" in geometry_filename:
+    num_optical_tracks = 4096
+    inp['max_steps'] = 2
     inp['optical'] = {
-        'num_track_slots': num_tracks,
-        'buffer_capacity': 3 * max_steps * num_tracks,
-        'initializer_capacity': num_tracks,
-        'auto_flush': 2**31, # Large enough to never launch optical loop
+        'num_track_slots': num_optical_tracks,
+        'buffer_capacity': 3 * max_steps * num_optical_tracks,
+        'initializer_capacity': 2048 * num_optical_tracks,
+        'max_steps': 4,
+        'auto_flush': num_optical_tracks,
     }
 
 if "simple-cms" in geometry_filename:
@@ -188,9 +191,9 @@ if not use_device:
       }
 if not use_device and "lar" in geometry_filename:
     expected_opt_sizes = {
-       "generators": 24576,
-       "initializers": 32,
-       "tracks": 32
+       "generators": 3145728,
+       "initializers": 8388608,
+       "tracks": 4096
     }
 
 

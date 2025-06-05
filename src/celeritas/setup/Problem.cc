@@ -325,7 +325,7 @@ auto build_along_step(inp::Field const& var_field,
 /*!
  * Construct optical tracking offload.
  */
-auto build_optical_offload(inp::OpticalStateCapacity const& cap,
+auto build_optical_offload(inp::Problem const& p,
                            CoreParams& params,
                            ImportData const& imported)
 {
@@ -343,11 +343,14 @@ auto build_optical_offload(inp::OpticalStateCapacity const& cap,
         = ScintillationParams::from_import(imported, params.particle());
 
     // Map from optical capacity
+    CELER_ASSERT(p.control.optical_capacity);
+    inp::OpticalStateCapacity const& cap = *p.control.optical_capacity;
     auto num_streams = params.max_streams();
     oc_inp.num_track_slots = ceil_div(cap.tracks, num_streams);
     oc_inp.buffer_capacity = ceil_div(cap.generators, num_streams);
     oc_inp.initializer_capacity = ceil_div(cap.initializers, num_streams);
     oc_inp.auto_flush = ceil_div(cap.primaries, num_streams);
+    oc_inp.max_step_iters = p.tracking.limits.optical_step_iters;
 
     // Import models
     optical::ModelImporter importer{
@@ -600,8 +603,8 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 
     if (p.control.optical_capacity)
     {
-        result.optical_collector = build_optical_offload(
-            *p.control.optical_capacity, *core_params, imported);
+        result.optical_collector
+            = build_optical_offload(p, *core_params, imported);
     }
 
     if (result.root_manager)

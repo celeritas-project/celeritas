@@ -62,6 +62,9 @@ void SensitiveDetector::Initialize(G4HCofThisEvent* hce)
 //---------------------------------------------------------------------------//
 /*!
  * Add hits to the current hit collection.
+ *
+ * \todo This should be rewritten/discarded/replaced with EDM4HEP or something
+ * else useful.
  */
 bool SensitiveDetector::ProcessHits(G4Step* g4step, G4TouchableHistory*)
 {
@@ -82,6 +85,8 @@ bool SensitiveDetector::ProcessHits(G4Step* g4step, G4TouchableHistory*)
 
     // Insert hit (use pre-step time since post-steps can be undefined)
     EventHitData hit;
+    // NOTE: instance ID will differ from volume ID if geometry has been
+    // reloaded
     hit.volume = log_vol->GetInstanceID();
     hit.copy_num = phys_vol->GetCopyNo();
     hit.energy_dep = convert_from_geant(edep, CLHEP::MeV);
