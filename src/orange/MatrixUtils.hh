@@ -3,7 +3,8 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/MatrixUtils.hh
-// TODO: split into BLAS and host-only utils
+//! \todo Split into BLAS and host-only utils
+//! \todo Investigate Eigen for setup-time computations if necessary
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -93,10 +94,13 @@ SquareMatrix<T, N> gemm(matrix::TransposePolicy,
 template<class T, size_type N>
 void orthonormalize(SquareMatrix<T, N>* mat);
 
+// Create an identity 3x3 matrix
+SquareMatrixReal3 make_identity();
+
 // Create a C-ordered rotation matrix about an arbitrary axis
 SquareMatrixReal3 make_rotation(Real3 const& ax, Turn rev);
 
-// Create a C-ordered rotation matrix about a cartesian axis
+// Create a C-ordered rotation matrix about a Cartesian axis
 SquareMatrixReal3 make_rotation(Axis ax, Turn rev);
 
 // Apply a rotation to an existing C-ordered rotation matrix
@@ -108,7 +112,7 @@ SquareMatrixReal3 make_scaling(real_type scale);
 // Scale along an axis
 SquareMatrixReal3 make_scaling(Axis ax, real_type scale);
 
-// Scale along all three cartesian axes
+// Scale along all three Cartesian axes
 SquareMatrixReal3 make_scaling(Real3 const& scale);
 
 // Reflect across a plane perpendicular to the axis

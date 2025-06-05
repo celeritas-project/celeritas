@@ -247,6 +247,18 @@ Mat3 make_rotation(Axis ax, Turn theta, Mat3 const& other)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Create an identity matrix.
+ */
+SquareMatrixReal3 make_identity()
+{
+    SquareMatrixReal3 result;
+    result.fill(Real3{0, 0, 0});
+    result[0][0] = result[1][1] = result[2][2] = 1;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Create a uniform scaling matrix.
  *
  * This creates a matrix that scales by the given factor along all axes.
@@ -281,7 +293,7 @@ SquareMatrixReal3 make_scaling(Axis ax, real_type scale)
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a scaling matrix along all three cartesian axes.
+ * Create a scaling matrix along all three Cartesian axes.
  *
  * \param Scale scale factor for each axis
  */
@@ -290,12 +302,9 @@ SquareMatrixReal3 make_scaling(Real3 const& scale)
     CELER_EXPECT(std::all_of(
         scale.begin(), scale.end(), [](real_type s) { return s > 0; }));
 
-    // Create identity matrix
-    SquareMatrixReal3 result;
-    result.fill(Real3{0, 0, 0});
-    result[0][0] = result[1][1] = result[2][2] = 1;
+    SquareMatrixReal3 result = make_identity();
 
-    // Apply scale factor to the chosen axis
+    // Apply scale factor to each axis
     for (auto ax : range(to_int(Axis::size_)))
     {
         result[ax][ax] = scale[ax];
@@ -318,12 +327,9 @@ SquareMatrixReal3 make_reflection(Axis ax)
 {
     CELER_EXPECT(ax < Axis::size_);
 
-    // Create a matrix with 1 on the diagonal
-    SquareMatrixReal3 result;
-    result.fill(Real3{0, 0, 0});
-    result[0][0] = result[1][1] = result[2][2] = 1;
+    SquareMatrixReal3 result = make_identity();
 
-    // Reflect the givenaxis
+    // Reflect the given axis
     result[to_int(ax)][to_int(ax)] = -1;
 
     return result;
