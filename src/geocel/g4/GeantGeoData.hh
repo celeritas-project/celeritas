@@ -28,7 +28,13 @@ namespace celeritas
 template<Ownership W, MemSpace M>
 struct GeantGeoParamsData
 {
+    //! Pointer to the Geant4 world
     G4VPhysicalVolume* world{nullptr};
+
+    //! Instance ID of the first logical volume in the store
+    VolumeId::size_type lv_offset{0};
+    //! Instance ID of the first physical volume in the store
+    VolumeInstanceId::size_type pv_offset{0};
 
     //! Whether the interface is initialized
     explicit CELER_FUNCTION operator bool() const { return world != nullptr; }

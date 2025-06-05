@@ -9,11 +9,11 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/sys/ScopedProfiling.hh"
-#include "celeritas/global/ActionLauncher.device.hh"
-#include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/MaterialParams.hh"
+#include "celeritas/optical/action/ActionLauncher.device.hh"
+#include "celeritas/optical/action/TrackSlotExecutor.hh"
 
 #include "GeneratorExecutor.hh"
 #include "OpticalGenAlgorithms.hh"
@@ -31,26 +31,24 @@ namespace detail
  * Launch a kernel to generate optical photon initializers.
  */
 template<GeneratorType G>
-void GeneratorAction<G>::generate(CoreParams const& core_params,
-                                  CoreStateDevice& core_state) const
+void GeneratorAction<G>::generate(optical::CoreParams const& params,
+                                  CoreStateDevice& state) const
 {
-    auto& aux_state
-        = get<GeneratorState<MemSpace::native>>(core_state.aux(), aux_id_);
-    auto& optical_state = get<optical::CoreState<MemSpace::native>>(
-        core_state.aux(), data_.optical_id);
+    CELER_EXPECT(state.aux());
 
-    TrackExecutor execute{
-        core_params.ptr<MemSpace::native>(),
-        core_state.ptr(),
-        detail::GeneratorExecutor<G>{core_state.ptr(),
+    auto& aux_state
+        = get<GeneratorState<MemSpace::native>>(*state.aux(), aux_id_);
+    optical::TrackSlotExecutor execute{
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        detail::GeneratorExecutor<G>{state.ptr(),
                                      data_.material->device_ref(),
                                      data_.shared->device_ref(),
                                      aux_state.store.ref(),
-                                     optical_state.ptr(),
                                      aux_state.buffer_size,
-                                     optical_state.counters()}};
-    static ActionLauncher<decltype(execute)> const launch_kernel(*this);
-    launch_kernel(core_state, execute);
+                                     state.counters()}};
+    static optical::ActionLauncher<decltype(execute)> const launch(*this);
+    launch(state, execute);
 }
 
 //---------------------------------------------------------------------------//

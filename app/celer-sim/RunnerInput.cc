@@ -185,7 +185,7 @@ inp::Problem load_problem(RunnerInput const& ri)
     }
 
     // Tracking
-    p.tracking.limits.steps = ri.max_steps;
+    p.tracking.limits.step_iters = ri.max_steps;
     p.tracking.force_step_limit = ri.step_limiter;
     if (!std::holds_alternative<inp::NoField>(p.field))
     {
@@ -203,6 +203,7 @@ inp::Problem load_problem(RunnerInput const& ri)
             sc.generators = ri.optical.buffer_capacity;
             return sc;
         }();
+        p.tracking.limits.optical_step_iters = ri.optical.max_steps;
     }
 
     // Simple calorimeter scoring

@@ -78,6 +78,7 @@ class CoreState final : public CoreStateInterface
     //! \name Type aliases
     template<template<Ownership, MemSpace> class S>
     using StateRef = S<Ownership::reference, M>;
+    using SPAuxStateVec = std::shared_ptr<AuxStateVec>;
 
     using Ref = StateRef<CoreStateData>;
     using Ptr = ObserverPtr<Ref, M>;
@@ -135,13 +136,16 @@ class CoreState final : public CoreStateInterface
     //! Track initialization counters
     CoreStateCounters const& counters() const final { return counters_; }
 
-    //// USER DATA ////
+    //// AUXILIARY DATA ////
 
     //! Access auxiliary state data
-    AuxStateVec const& aux() const final { return aux_state_; }
+    AuxStateVec const& aux() const final { return *aux_state_; }
 
     //! Access auxiliary state data (mutable)
-    AuxStateVec& aux() final { return aux_state_; }
+    AuxStateVec& aux() final { return *aux_state_; }
+
+    //! Access auxiliary state data (mutable)
+    SPAuxStateVec& aux_ptr() { return aux_state_; }
 
     // Convenience function to access auxiliary "collection group" data
     template<template<Ownership, MemSpace> class S>
@@ -178,7 +182,7 @@ class CoreState final : public CoreStateInterface
     CoreStateCounters counters_;
 
     // User-added data associated with params
-    AuxStateVec aux_state_;
+    SPAuxStateVec aux_state_;
 
     // Indices of first thread assigned to a given action
     detail::CoreStateThreadOffsets<M> offsets_;
@@ -195,10 +199,10 @@ template<MemSpace M>
 template<template<Ownership, MemSpace> class S>
 auto CoreState<M>::aux_data(AuxId auxid) -> StateRef<S>&
 {
-    CELER_EXPECT(auxid < aux_state_.size());
+    CELER_EXPECT(auxid < aux_state_->size());
 
     // TODO: use "checked static cast" for better runtime performance
-    auto* state = dynamic_cast<AuxStateData<S, M>*>(&aux_state_.at(auxid));
+    auto* state = dynamic_cast<AuxStateData<S, M>*>(&aux_state_->at(auxid));
     CELER_ASSERT(state);
 
     CELER_ENSURE(*state);

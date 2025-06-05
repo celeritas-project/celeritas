@@ -532,7 +532,7 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
         // No steps ran
         EXPECT_EQ(0, result.accum.steps);
         EXPECT_EQ(0, result.accum.step_iters);
-        EXPECT_EQ(16, result.accum.flushes);
+        EXPECT_EQ(0, result.accum.flushes);
         EXPECT_EQ(0, result.accum.cherenkov.distributions);
         EXPECT_EQ(0, result.accum.scintillation.distributions);
         EXPECT_EQ(0, result.accum.cherenkov.photons);
@@ -556,14 +556,16 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
     auto_flush_ = 1;
     this->build_optical_collector();
 
-    // Run with 2 core track slots and 32 optical track slots
-    auto result = this->run<MemSpace::host>(4, 2, 2);
+    size_type primaries = 4;
+    size_type core_track_slots = 2;
+    size_type steps = 2;
+    auto result = this->run<MemSpace::host>(primaries, core_track_slots, steps);
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(1655, result.accum.steps);
-        EXPECT_EQ(56, result.accum.step_iters);
-        EXPECT_EQ(2, result.accum.flushes);
+        EXPECT_EQ(1712, result.accum.steps);
+        EXPECT_EQ(57, result.accum.step_iters);
+        EXPECT_EQ(1, result.accum.flushes);
         EXPECT_EQ(0, result.accum.cherenkov.distributions);
         EXPECT_EQ(2, result.accum.scintillation.distributions);
         EXPECT_EQ(0, result.accum.cherenkov.photons);
@@ -579,19 +581,21 @@ TEST_F(LArSphereOffloadTest, host_generate)
     auto_flush_ = 16384;
     this->build_optical_collector();
 
-    // Run with 512 core track slots and 2^18 optical track slots
-    auto result = this->run<MemSpace::host>(1, 512, 4);
+    size_type primaries = 1;
+    size_type core_track_slots = 512;
+    size_type steps = 4;
+    auto result = this->run<MemSpace::host>(primaries, core_track_slots, steps);
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_SOFT_NEAR(
-            456183.0, static_cast<double>(result.accum.steps), 1e-4);
-        EXPECT_EQ(43, result.accum.step_iters);
-        EXPECT_EQ(4, result.accum.flushes);
+            462263.0, static_cast<double>(result.accum.steps), 1e-4);
+        EXPECT_EQ(37, result.accum.step_iters);
+        EXPECT_EQ(3, result.accum.flushes);
         EXPECT_EQ(4, result.accum.cherenkov.distributions);
-        EXPECT_EQ(5, result.accum.scintillation.distributions);
-        EXPECT_EQ(3810, result.accum.cherenkov.photons);
-        EXPECT_EQ(275932, result.accum.scintillation.photons);
+        EXPECT_EQ(6, result.accum.scintillation.distributions);
+        EXPECT_EQ(3835, result.accum.cherenkov.photons);
+        EXPECT_EQ(279898, result.accum.scintillation.photons);
     }
 
     EXPECT_EQ(2, result.optical_launch_step);
@@ -607,13 +611,16 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
     auto_flush_ = 262144;
     this->build_optical_collector();
 
-    auto result = this->run<MemSpace::device>(1, num_track_slots_, 16);
-    result.print_expected();
+    size_type primaries = 1;
+    size_type core_track_slots = 1024;
+    size_type steps = 16;
+    auto result
+        = this->run<MemSpace::device>(primaries, core_track_slots, steps);
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(218370, result.scintillation.total_num_photons);
-        EXPECT_EQ(1798, result.cherenkov.total_num_photons);
+        EXPECT_EQ(218314, result.scintillation.total_num_photons);
+        EXPECT_EQ(2236, result.cherenkov.total_num_photons);
     }
     EXPECT_EQ(7, result.optical_launch_step);
 }

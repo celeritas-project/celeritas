@@ -13,14 +13,14 @@
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
-#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/CoreTrackData.hh"
 #include "celeritas/optical/MaterialParams.hh"
+#include "celeritas/optical/action/ActionLauncher.hh"
+#include "celeritas/optical/action/TrackSlotExecutor.hh"
 
 #include "GeneratorExecutor.hh"
 #include "OpticalGenAlgorithms.hh"
@@ -58,11 +58,13 @@ auto make_state(P const& params, StreamId stream, size_type size)
  */
 template<GeneratorType G>
 std::shared_ptr<GeneratorAction<G>>
-GeneratorAction<G>::make_and_insert(CoreParams const& core, Input&& input)
+GeneratorAction<G>::make_and_insert(::celeritas::CoreParams const& core_params,
+                                    optical::CoreParams const& params,
+                                    Input&& input)
 {
     CELER_EXPECT(input);
-    ActionRegistry& actions = *core.action_reg();
-    AuxParamsRegistry& aux = *core.aux_reg();
+    ActionRegistry& actions = *params.action_reg();
+    AuxParamsRegistry& aux = *core_params.aux_reg();
     auto result = std::make_shared<GeneratorAction<G>>(
         actions.next_id(), aux.next_id(), std::move(input));
 
@@ -111,7 +113,7 @@ auto GeneratorAction<G>::create_state(MemSpace m, StreamId id, size_type) const
  * Execute the action with host data.
  */
 template<GeneratorType G>
-void GeneratorAction<G>::step(CoreParams const& params,
+void GeneratorAction<G>::step(optical::CoreParams const& params,
                               CoreStateHost& state) const
 {
     this->step_impl(params, state);
@@ -122,7 +124,7 @@ void GeneratorAction<G>::step(CoreParams const& params,
  * Execute the action with device data.
  */
 template<GeneratorType G>
-void GeneratorAction<G>::step(CoreParams const& params,
+void GeneratorAction<G>::step(optical::CoreParams const& params,
                               CoreStateDevice& state) const
 {
     this->step_impl(params, state);
@@ -134,33 +136,16 @@ void GeneratorAction<G>::step(CoreParams const& params,
  */
 template<GeneratorType G>
 template<MemSpace M>
-void GeneratorAction<G>::step_impl(CoreParams const& core_params,
-                                   CoreState<M>& core_state) const
+void GeneratorAction<G>::step_impl(optical::CoreParams const& params,
+                                   optical::CoreState<M>& state) const
 {
-    auto& aux_state = get<GeneratorState<M>>(core_state.aux(), aux_id_);
-    auto& optical_state
-        = get<optical::CoreState<M>>(core_state.aux(), data_.optical_id);
+    CELER_EXPECT(state.aux());
 
-    auto& photons = optical_state.counters().num_initializers;
-    auto& num_new_photons = optical_state.counters().num_pending;
-
-    if (photons + num_new_photons < data_.auto_flush)
-    {
-        // Below the threshold for launching the optical loop
-        return;
-    }
-
-    auto initializers_size = optical_state.ref().init.initializers.size();
-    CELER_VALIDATE(photons + num_new_photons <= initializers_size,
-                   << "insufficient capacity (" << initializers_size
-                   << ") for optical photon initializers (total capacity "
-                      "requirement of "
-                   << photons + num_new_photons << " and current size "
-                   << photons << ")");
+    auto& aux_state = get<GeneratorState<M>>(*state.aux(), aux_id_);
 
     if (aux_state.buffer_size == 0)
     {
-        // No new photons
+        // No new photons from this generating process
         return;
     }
 
@@ -170,18 +155,18 @@ void GeneratorAction<G>::step_impl(CoreParams const& core_params,
     auto count = inclusive_scan_photons(aux_state.store.ref().distributions,
                                         aux_state.store.ref().offsets,
                                         aux_state.buffer_size,
-                                        core_state.stream_id());
-    optical_state.counters().num_generated += count;
+                                        state.stream_id());
+    state.counters().num_generated += count;
 
     // Generate the optical photon initializers from the distribution data
-    this->generate(core_params, core_state);
+    this->generate(params, state);
 
     // Update cumulative statistics
     aux_state.accum.distributions += aux_state.buffer_size;
     aux_state.accum.photons += count;
 
-    photons += count;
-    num_new_photons -= count;
+    state.counters().num_initializers += count;
+    state.counters().num_pending -= count;
     aux_state.buffer_size = 0;
 }
 
@@ -190,31 +175,30 @@ void GeneratorAction<G>::step_impl(CoreParams const& core_params,
  * Launch a (host) kernel to generate optical photon initializers.
  */
 template<GeneratorType G>
-void GeneratorAction<G>::generate(CoreParams const& core_params,
-                                  CoreStateHost& core_state) const
+void GeneratorAction<G>::generate(optical::CoreParams const& params,
+                                  CoreStateHost& state) const
 {
-    auto& aux_state
-        = get<GeneratorState<MemSpace::native>>(core_state.aux(), aux_id_);
-    auto& optical_state = get<optical::CoreState<MemSpace::native>>(
-        core_state.aux(), data_.optical_id);
+    CELER_EXPECT(state.aux());
 
-    TrackExecutor execute{
-        core_params.ptr<MemSpace::native>(),
-        core_state.ptr(),
-        detail::GeneratorExecutor<G>{core_state.ptr(),
+    auto& aux_state
+        = get<GeneratorState<MemSpace::native>>(*state.aux(), aux_id_);
+    optical::TrackSlotExecutor execute{
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        detail::GeneratorExecutor<G>{state.ptr(),
                                      data_.material->host_ref(),
                                      data_.shared->host_ref(),
                                      aux_state.store.ref(),
-                                     optical_state.ptr(),
                                      aux_state.buffer_size,
-                                     optical_state.counters()}};
-    launch_action(*this, core_params, core_state, execute);
+                                     state.counters()}};
+    optical::launch_action(state, execute);
 }
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 template<GeneratorType G>
-void GeneratorAction<G>::generate(CoreParams const&, CoreStateDevice&) const
+void GeneratorAction<G>::generate(optical::CoreParams const&,
+                                  CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

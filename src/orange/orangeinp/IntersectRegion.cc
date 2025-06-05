@@ -1212,34 +1212,34 @@ void Prism::build(IntersectSurfaceBuilder& insert_surface) const
     insert_surface(Sense::outside, PlaneZ{-hh_});
     insert_surface(Sense::inside, PlaneZ{hh_});
 
-    // Offset (if user offset is zero) is calculated to put a plane on the
-    // -y face (sitting upright as visualized). An offset of 1 produces a
-    // shape congruent with an offset of zero, except that every face has
-    // an index that's decremented by 1.
-    real_type const offset = std::fmod(num_sides_ * 3 + 4 * orientation_, 4)
-                             / 4;
+    // Offset (if user offset is zero) is calculated to put a point at y=0 on
+    // the +x axis. An offset of 1 would produce a shape congruent with an
+    // offset of zero, except that every face has an index that's decremented
+    // by 1. We prevent this by using fmod.
+    real_type const offset
+        = std::fmod(orientation_ + real_type{0.5}, real_type{1});
     CELER_ASSERT(offset >= 0 && offset < 1);
 
     // Change of angle in radians per side
-    real_type const delta_rad = 2 * pi / real_type(num_sides_);
+    Turn const delta{1 / static_cast<real_type>(num_sides_)};
 
     // Build prismatic sides
     for (auto n : range(num_sides_))
     {
-        real_type const theta = delta_rad * (n + offset);
+        // Angle of outward normal, *not* of corner
+        auto theta = delta * (static_cast<real_type>(n) + offset);
 
-        // Create a normal vector along the X axis, then rotate it through
-        // the angle theta
+        // Create a normal vector with the given angle
         Real3 normal{0, 0, 0};
-        normal[to_int(Axis::x)] = std::cos(theta);
-        normal[to_int(Axis::y)] = std::sin(theta);
+        sincos(theta, &normal[to_int(Axis::y)], &normal[to_int(Axis::x)]);
 
+        // Distance from the plane to the origin is the apothem
         insert_surface(Plane{normal, apothem_});
     }
 
     // Apothem is interior, circumradius exterior
     insert_surface(Sense::inside,
-                   make_xyradial_bbox(apothem_ / std::cos(delta_rad / 2)));
+                   make_xyradial_bbox(apothem_ / cos(delta / 2)));
 
     auto interior_bbox = make_xyradial_bbox(apothem_);
     interior_bbox.shrink(Bound::lo, Axis::z, -hh_);

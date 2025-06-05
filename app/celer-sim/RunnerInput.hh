@@ -65,11 +65,13 @@ struct RunnerInput
         size_type initializer_capacity{};  //!< Maximum queued tracks
         size_type auto_flush{};  //!< Threshold number of primaries for
                                  //!< launching optical tracking loop
+        size_type max_steps = static_cast<size_type>(-1);  //!< Step iterations
 
         explicit operator bool() const
         {
             return num_track_slots > 0 && buffer_capacity > 0
-                   && initializer_capacity > 0 && auto_flush > 0;
+                   && initializer_capacity > 0 && auto_flush > 0
+                   && max_steps > 0;
         }
     };
     static constexpr Real3 no_field() { return Real3{0, 0, 0}; }
