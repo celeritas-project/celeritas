@@ -295,7 +295,7 @@ SquareMatrixReal3 make_scaling(Axis ax, real_type scale)
 /*!
  * Create a scaling matrix along all three Cartesian axes.
  *
- * \param Scale scale factor for each axis
+ * \param scale Scale factor for each axis
  */
 SquareMatrixReal3 make_scaling(Real3 const& scale)
 {
