@@ -97,30 +97,4 @@ class GeoParamsInterface
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Interface class for a host geometry that supports surfaces.
- *
- * \todo Remove this interface, use empty surface map instead
- */
-class GeoParamsSurfaceInterface : public GeoParamsInterface
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using SurfaceMap = LabelIdMultiMap<SurfaceId>;
-    //!@}
-
-  public:
-    // Default destructor
-    ~GeoParamsSurfaceInterface() override = 0;
-
-    //! Get surface metadata
-    virtual SurfaceMap const& surfaces() const = 0;
-
-  protected:
-    GeoParamsSurfaceInterface() = default;
-    CELER_DEFAULT_COPY_MOVE(GeoParamsSurfaceInterface);
-};
-
-//---------------------------------------------------------------------------//
 }  // namespace celeritas

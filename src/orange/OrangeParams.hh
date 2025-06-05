@@ -34,13 +34,13 @@ class GeantGeoParams;
  * This class initializes and manages the data used by ORANGE (surfaces,
  * volumes) and provides a host-based interface for them.
  */
-class OrangeParams final : public GeoParamsSurfaceInterface,
+class OrangeParams final : public GeoParamsInterface,
                            public ParamsDataInterface<OrangeParamsData>
 {
   public:
     //!@{
     //! \name Type aliases
-    using SurfaceMap = LabelIdMultiMap<SurfaceId>;
+    using SurfaceMap = LabelIdMultiMap<InternalSurfaceId>;
     using UniverseMap = LabelIdMultiMap<UniverseId>;
     //!@}
 
@@ -72,7 +72,7 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
     //// LABELS AND MAPPING ////
 
     // Get surface metadata
-    inline SurfaceMap const& surfaces() const final;
+    inline SurfaceMap const& surfaces() const;
 
     // Get universe metadata
     inline UniverseMap const& universes() const;

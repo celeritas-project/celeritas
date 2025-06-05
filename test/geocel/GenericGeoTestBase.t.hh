@@ -104,22 +104,10 @@ std::string GenericGeoTestBase<HP>::volume_name(GeoTrackView const& geo) const
 
 //---------------------------------------------------------------------------//
 template<class HP>
-std::string GenericGeoTestBase<HP>::surface_name(GeoTrackView const& geo) const
+std::string GenericGeoTestBase<HP>::surface_name(GeoTrackView const&) const
 {
-    if (!geo.is_on_boundary())
-    {
-        return "---";
-    }
-
-    auto* ptr = dynamic_cast<GeoParamsSurfaceInterface const*>(
-        this->geometry().get());
-    if (!ptr)
-    {
-        return "---";
-    }
-
-    // Only call this function if the geometry supports surfaces
-    return ptr->surfaces().at(geo.surface_id()).name;
+    // TODO: use Surfaces class
+    return "---";
 }
 
 //---------------------------------------------------------------------------//

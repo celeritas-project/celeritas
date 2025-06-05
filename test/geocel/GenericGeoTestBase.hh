@@ -71,7 +71,7 @@ class GenericGeoTestBase : virtual public Test,
     //! Get the name of the current volume
     std::string volume_name(GeoTrackView const& geo) const;
     //! Get the name of the current surface if available
-    std::string surface_name(GeoTrackView const& geo) const;
+    virtual std::string surface_name(GeoTrackView const& geo) const;
     //! Get the stack of volume instances
     std::string all_volume_instance_names(GeoTrackView const& geo) const;
 
