@@ -334,8 +334,10 @@ auto build_optical_offload(inp::Problem const& p,
     CELER_VALIDATE(
         !imported.optical_materials.empty(),
         << R"(an optical tracking loop was requested but no optical materials are present)");
+    CELER_VALIDATE(p.physics.optical,
+                   << "optical physics options are required to construct an "
+                      "optical tracking loop");
 
-    CELER_ASSERT(p.physics.optical);
     inp::OpticalPhysics const& opt = *p.physics.optical;
     OpticalCollector::Input oc_inp;
     oc_inp.material = MaterialParams::from_import(
