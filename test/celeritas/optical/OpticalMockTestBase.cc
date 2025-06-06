@@ -20,6 +20,8 @@ namespace test
 //---------------------------------------------------------------------------//
 // UNITS
 //---------------------------------------------------------------------------//
+using TimeSecond = celeritas::RealQuantity<celeritas::units::Second>;
+
 struct Kelvin
 {
     static CELER_CONSTEXPR_FUNCTION Constant value() { return units::kelvin; }
@@ -186,6 +188,15 @@ void OpticalMockTestBase::build_import_data(ImportData& data) const
         data.optical_materials[0].rayleigh.scale_factor = 1;
         data.optical_materials[0].rayleigh.compressibility
             = native_value_from(Compressibility{7.658e-23});
+        data.optical_materials[0].wls.mean_num_photons = 2;
+        data.optical_materials[0].wls.time_constant
+            = native_value_from(TimeSecond(1e-9));
+        // Reemitted photon energy range (visible light)
+        data.optical_materials[0].wls.component.x
+            = {1.65e-6, 2e-6, 2.4e-6, 2.8e-6, 3.26e-6};
+        // Reemitted photon energy spectrum
+        data.optical_materials[0].wls.component.y
+            = {0.15, 0.25, 0.50, 0.40, 0.02};
 
         data.optical_materials[1].properties.refractive_index
             = native_physics_vector_from<units::ElectronVolt, units::Native>(

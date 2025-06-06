@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/model/WavelengthShiftParams.cc
+//! \file celeritas/optical/model/WavelengthShiftModel.cc
 //---------------------------------------------------------------------------//
-#include "WavelengthShiftParams.hh"
+#include "WavelengthShiftModel.hh"
 
 #include <vector>
 
@@ -13,6 +13,14 @@
 #include "celeritas/Types.hh"
 #include "celeritas/grid/NonuniformGridInserter.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/optical/CoreParams.hh"
+#include "celeritas/optical/CoreState.hh"
+#include "celeritas/optical/InteractionApplier.hh"
+#include "celeritas/optical/MfpBuilder.hh"
+#include "celeritas/optical/action/ActionLauncher.hh"
+#include "celeritas/optical/action/TrackSlotExecutor.hh"
+
+#include "WavelengthShiftExecutor.hh"
 
 namespace celeritas
 {
@@ -20,37 +28,29 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct wavelength shift (WLS) data with imported data.
+ * Create a model builder from imported data.
  */
-std::shared_ptr<WavelengthShiftParams>
-WavelengthShiftParams::from_import(ImportData const& data)
+auto WavelengthShiftModel::make_builder(SPConstImported imported, Input input)
+    -> ModelBuilder
 {
-    CELER_EXPECT(!data.optical_materials.empty());
-
-    if (!std::any_of(
-            data.optical_materials.begin(),
-            data.optical_materials.end(),
-            [](auto const& iter) { return static_cast<bool>(iter.wls); }))
-    {
-        // No wavelength shift data present
-        return nullptr;
-    }
-
-    Input input;
-    for (auto const& mat : data.optical_materials)
-    {
-        input.data.push_back(mat.wls);
-    }
-    return std::make_shared<WavelengthShiftParams>(std::move(input));
+    CELER_EXPECT(imported);
+    return [imported = std::move(imported),
+            input = std::move(input)](ActionId id) {
+        return std::make_shared<WavelengthShiftModel>(id, imported, input);
+    };
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with wavelength shift (WLS) input data.
+ * Construct the model from imported data and imported material parameters.
  */
-WavelengthShiftParams::WavelengthShiftParams(Input const& input)
+WavelengthShiftModel::WavelengthShiftModel(ActionId id,
+                                           SPConstImported imported,
+                                           Input input)
+    : Model(id, "wls", "interact by WLS")
+    , imported_(ImportModelClass::wls, std::move(imported))
 {
-    CELER_EXPECT(input.data.size() > 0);
+    CELER_EXPECT(input.data.size() == imported_.num_materials());
 
     SegmentIntegrator integrate_emission{TrapezoidSegmentIntegrator{}};
 
@@ -91,6 +91,43 @@ WavelengthShiftParams::WavelengthShiftParams(Input const& input)
     data_ = CollectionMirror<WavelengthShiftData>{std::move(data)};
     CELER_ENSURE(data_);
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build the mean free paths for the model.
+ */
+void WavelengthShiftModel::build_mfps(OptMatId mat, MfpBuilder& build) const
+{
+    CELER_EXPECT(mat < imported_.num_materials());
+    build(imported_.mfp(mat));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Execute the model on the host.
+ */
+void WavelengthShiftModel::step(CoreParams const& params,
+                                CoreStateHost& state) const
+{
+    launch_action(
+        state,
+        make_action_thread_executor(
+            params.ptr<MemSpace::native>(),
+            state.ptr(),
+            this->action_id(),
+            InteractionApplier{WavelengthShiftExecutor{this->host_ref()}}));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Execute the model on the device.
+ */
+#if !CELER_USE_DEVICE
+void WavelengthShiftModel::step(CoreParams const&, CoreStateDevice&) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

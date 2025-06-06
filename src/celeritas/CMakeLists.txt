@@ -111,7 +111,6 @@ list(APPEND SOURCES
   optical/ModelImporter.cc
   optical/PhysicsParams.cc
   optical/TrackInitParams.cc
-  optical/model/WavelengthShiftParams.cc
   optical/action/ActionGroups.cc
   optical/action/LocateVacanciesAction.cc
   optical/detail/OpticalLaunchAction.cc
@@ -340,6 +339,7 @@ celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
 celeritas_polysource(neutron/model/NeutronInelasticModel)
 celeritas_polysource(optical/model/AbsorptionModel)
 celeritas_polysource(optical/model/RayleighModel)
+celeritas_polysource(optical/model/WavelengthShiftModel)
 celeritas_polysource(optical/action/AlongStepAction)
 celeritas_polysource(optical/action/BoundaryAction)
 celeritas_polysource(optical/action/DiscreteSelectAction)

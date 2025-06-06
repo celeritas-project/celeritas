@@ -17,6 +17,7 @@
 #include "MaterialParams.hh"
 #include "model/AbsorptionModel.hh"
 #include "model/RayleighModel.hh"
+#include "model/WavelengthShiftModel.hh"
 
 namespace celeritas
 {
@@ -106,6 +107,21 @@ auto ModelImporter::build_rayleigh() const -> ModelBuilder
         this->imported(),
         RayleighModel::Input{
             this->material(), this->core_material(), this->import_material()});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create WLS model builder.
+ */
+auto ModelImporter::build_wls() const -> ModelBuilder
+{
+    WavelengthShiftModel::Input input;
+    for (auto mid : range(OptMatId{input_.import_material->num_materials()}))
+    {
+        input.data.push_back(input_.import_material->wls(mid));
+    }
+    return WavelengthShiftModel::make_builder(this->imported(),
+                                              std::move(input));
 }
 
 //---------------------------------------------------------------------------//
