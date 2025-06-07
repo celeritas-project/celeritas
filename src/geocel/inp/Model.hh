@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/inp/Model.hh
+//! \file geocel/inp/Model.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,7 +11,9 @@
 #include <variant>
 #include <vector>
 
-#include "geocel/Types.hh"
+#include "corecel/io/Label.hh"
+
+#include "Types.hh"
 
 class G4VPhysicalVolume;
 
@@ -21,25 +23,21 @@ namespace inp
 {
 //---------------------------------------------------------------------------//
 /*!
- * Define surfaces, the boundaries between volumes.
+ * Define a single surface, the boundary around or between volumes.
+ *
+ * An "interface" surface is an (exiting, entering) pair of volume instances.
+ * A "boundary" surface is the entire surface of a volume.
  *
  * See \c SurfaceParams . These are typically loaded from Geant4 via \c
  * celeritas::setup::load_geant .
  */
-struct Surfaces
+struct Surface
 {
     using Interface = std::pair<VolumeInstanceId, VolumeInstanceId>;
-    using VecInterface = std::vector<VolumeInstanceId>;
-    using VecBoundary = std::vector<VolumeId>;
+    using Boundary = VolumeId;
 
-    VecInterface interfaces;
-    VecBoundary boundaries;
-
-    //! Whether any surfaces have been specified
-    explicit operator bool() const
-    {
-        return !interfaces.empty() || !boundaries.empty();
-    }
+    std::variant<Interface, Boundary> surface;
+    Label label;
 };
 
 //---------------------------------------------------------------------------//
@@ -54,12 +52,14 @@ struct Surfaces
  */
 struct Model
 {
+    using VecSurface = std::vector<Surface>;
+
     //! Path to GDML file, or Geant4 world
     std::variant<std::string, G4VPhysicalVolume const*> geometry;
 
     // TODO: Materials
     // TODO: Regions
-    Surfaces surfaces;
+    VecSurface surfaces;
 };
 
 //---------------------------------------------------------------------------//
