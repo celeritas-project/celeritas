@@ -18,59 +18,74 @@ their enclosing parent [#]_ volume.
 .. [#] The Geant4 terms "daughter" and "mother" correspond to "child volume"
    and "parent volume" in Celeritas.
 
-To support multiple geometry applications (including detector descriptions that
-are not Geant4 hierarchies), and to make the code
-backend-agnostic for integrating with physics, Celeritas defines abstract
-geometry concepts indexed as IDs.
+Celeritas defines abstract geometry concepts, indexed as IDs, to support
+multiple geometry applications [#]_ and to make the code backend-agnostic for
+integrating with physics. These include "volumes" (known in some other
+fields as "cells") and "surfaces" defined by the relationships between volumes.
 
-VolumeId
-  A volume corresponds to a physical object that can have multiple instances
-  but is treated (almost always) identically: it has the same shape, material,
-  and associated scoring/sensitive region. In Geant4 this is a "logical
-  volume", and VecGeom refers to these as "unplaced volumes". This is simply a
-  *node* in the graph of volumes.
+.. [#] In the future the use of these abstract concepts will enable detector
+   descriptions, and geometry models for other application, that are *not*
+   Geant4 hierarchies.
 
-VolumeInstanceId
-  A volume *instance* is a unique placement of a volume in the geometry
-  hierarchy. The instance usually has a transformation to the enclosing
-  volume's coordinate system. In Geant4 this roughly corresponds to a physical
-  volume. (It corresponds exactly to a ``G4PVPlacement``, but "replica" and
-  "parameterized" volumes use a single physical volume to represent multiple
-  spatial elements. For those, we define a
-  :cpp:struct:`celeritas::GeantPhysicalInstance` that is a tuple containing a
-  physical volume and a replica instance.) VecGeom refers to volume instances
-  as *placed volumes*. In ORANGE for KENO, this would correspond to a hole
-  placement, array element, or local media. The volume instance is an *edge* in
-  the graph of volumes.
+Volume
+   A *volume* corresponds to a homogeneous physical object that can have multiple
+   instances but is treated identically. It has a specific shape, material,
+   metadata, and associated scoring/sensitive region. Each volume is
+   simply a *node* in the detector geometry graph. This definition differs
+   slightly from Geant4 and VecGeom, where the ``G4LogicalVolume`` and
+   ``UnplacedVolume`` classes directly reference the child geometry nodes and
+   thus implicitly include the objects embedded in a volume.
 
-VolumeUniqueInstanceId
-  A "unique" volume instance refers to a unique region of global space in the
-  geometry model. It is the full *directed trail* from the root volume node to
-  a node somewhere in the graph, thereby describing all enclosing volumes and
-  their locations. This path can be encoded uniquely as a single integer
-  by pre-calculating the number of direct and indirect children for each node.
-  Celeritas always uses 64-bit integers to store this unique instance ID.
+Volume instance
+   An *instance* of a volume is defined in conjunction with a transform and an
+   enclosing object (or, in the special case of the outermost or "world" volume
+   instance, no enclosing object). In Geant4 this roughly corresponds to a
+   physical volume. [#]_ VecGeom refers to volume instances as *placed
+   volumes*. In ORANGE for KENO, this would correspond to a hole
+   placement, array element, or local media. The volume instance is an *edge* in
+   the graph of volumes.
 
-SurfaceId
-  A surface is defined as a contiguous area on the boundary of a volume,
-  sometimes on only a single side of the volume. (This is different to the
-  infinite surfaces of ORANGE and the surface frames of VecGeom.) The IDs are
-  ordered so that "interfaces" (one-sided surfaces defined by an ordered volume
-  instance pair, called "border" in Geant4) are before "boundaries"
-  (lower-priority two-sided surfaces surrounding a volume, called "skin" in
-  Geant4).
+Unique instance
+   A *unique* instance of a volume refers to the logical definition of specific
+   region of global space in the geometry model. It is the full directed
+   trail :cite:`bender-listsdecisions-2010` from the root volume node (world
+   volume) to a node (logical volume) somewhere in the graph, thereby
+   describing all enclosing volumes and their locations. This path can be
+   encoded uniquely as a single integer by pre-calculating the number of direct
+   and indirect children for each node.  Celeritas always uses 64-bit integers
+   to store the ``VolumeUniqueInstanceId``.
 
+Surface
+   A *surface* is defined as a contiguous area on the boundary of a volume,
+   sometimes on only a single side of the volume. Note that this definition
+   different to the infinite surfaces of ORANGE and the surface frames of
+   VecGeom. Surfaces currently are defined in two ways: *Interface* surfaces
+   are one-directional surfaces defined as the interface from one
+   volume instance to another, called "border surfaces" in Geant4. *Boundary*
+   surfaces surrounding an entire volume and are called "skin" in Geant4.
 
-.. doxygenstruct:: celeritas::GeantPhysicalInstance
+.. [#] A VolumeInstanceId has a one-to-one mapping for ``G4PVPlacement``, but
+   "replica" and "parameterized" volumes use a single physical volume to
+   represent multiple spatial elements. For those, we currently define a
+   :cpp:struct:`celeritas::GeantPhysicalInstance` that is a tuple of
+   physical volume and a replica instance. Eventually that will become an
+   implementation detail.
 
-.. doxygenclass:: celeritas::GeoParamsInterface
+.. table:: Nomenclature comparison for geometry elements.
 
-.. doxygenclass:: celeritas::SurfaceParams
+   Celeritas       | VecGeom  | Geant4
+   --------------- | -------- | -----------------------------------------
+   Volume          | Unplaced | Logical volume
+   Volume instance | Placed   | Physical volume (plus copy number)
+   Interface       | n/a      | Border surface
+   Boundary        | n/a      | Skin surface
+   Surface         | n/a      | Surface property (or a duplicate thereof)
 
 
 .. toctree::
    :maxdepth: 2
 
+   geometry/interfaces.rst
    geometry/geant4.rst
    geometry/orange.rst
    geometry/vecgeom.rst

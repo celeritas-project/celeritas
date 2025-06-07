@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/setup/FromGeant.hh
+//! \file geocel/setup/FromGeant.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -18,6 +18,10 @@ namespace setup
 //---------------------------------------------------------------------------//
 // Load surfaces from global data
 inp::Surfaces surfaces_from_geant();
+
+//---------------------------------------------------------------------------//
+// Load volumes from global data
+inp::Volumes volumes_from_geant();
 
 //---------------------------------------------------------------------------//
 // Load a model from a Geant4 world

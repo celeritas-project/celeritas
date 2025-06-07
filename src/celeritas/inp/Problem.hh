@@ -6,10 +6,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "geocel/inp/Model.hh"
+
 #include "Control.hh"
 #include "Diagnostics.hh"
 #include "Field.hh"
-#include "Model.hh"
 #include "Physics.hh"
 #include "Scoring.hh"
 #include "Tracking.hh"

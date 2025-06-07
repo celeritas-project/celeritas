@@ -11,12 +11,12 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "geocel/GeantGeoParams.hh"
+#include "geocel/setup/FromGeant.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/inp/FrameworkInput.hh"
 #include "celeritas/inp/Problem.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
 
-#include "FromGeant.hh"
 #include "Problem.hh"
 #include "System.hh"
 

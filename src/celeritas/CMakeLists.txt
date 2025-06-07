@@ -208,7 +208,6 @@ if(CELERITAS_USE_Geant4)
     ext/detail/OpticalPhysics.cc
     ext/detail/SensDetInserter.cc
     ext/detail/TouchableUpdaterInterface.cc
-    setup/FromGeant.cc
   )
 
   celeritas_get_g4libs(_cg4_libs

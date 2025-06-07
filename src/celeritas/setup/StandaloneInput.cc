@@ -14,6 +14,7 @@
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/GeantGeoParams.hh"
+#include "geocel/setup/FromGeant.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootImporter.hh"
@@ -26,7 +27,6 @@
 #include "celeritas/io/ImportData.hh"
 
 #include "Events.hh"
-#include "FromGeant.hh"
 #include "Problem.hh"
 #include "System.hh"
 

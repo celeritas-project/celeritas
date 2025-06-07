@@ -50,7 +50,7 @@ struct PhysicalVolume
 
 //---------------------------------------------------------------------------//
 /*!
- * A reusable Object that can be turned into a UnitProto or a Material.
+ * A reusable object that can be turned into a UnitProto or a Material.
  *
  * This holds equivalent information to a Geant4 \c G4LogicalVolume, but with
  * \em only ORANGE data structures.
