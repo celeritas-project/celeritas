@@ -59,14 +59,13 @@ struct VolumeInstance
     // TODO: replica numbers
 
     //! True if it has a label and ID
-    explicit operator bool() const { return id && !label.empty(); }
+    explicit operator bool() const { return volume && !label.empty(); }
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Define a graph of geometry elements.
  *
- * \todo Construct from in-memory Geant4
  * \todo Construct from in-memory Geant4
  */
 struct Volumes
@@ -75,6 +74,9 @@ struct Volumes
     std::vector<Volume> volumes;
     //! Properties of edges in the graph (physical volumes)
     std::vector<VolumeInstance> volume_instances;
+
+    //! True if it has a label and ID
+    explicit operator bool() const { return !volumes.empty(); }
 };
 
 //---------------------------------------------------------------------------//

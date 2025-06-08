@@ -31,6 +31,8 @@ struct Volumes;
  * this allows conversion between the Celeritas geometry implementation and the
  * Geant4 geometry navigation.
  *
+ * Input material IDs are allowed to be null for testing purposes.
+ *
  * \todo We should be able to easily move the ID-related methods to a
  * GPU-friendly view rather than just this metadata class. It's not needed at
  * the moment though.
@@ -47,6 +49,15 @@ class VolumeParams
   public:
     // Construct from input
     explicit VolumeParams(inp::Volumes const&);
+
+    //! Number of volumes
+    VolumeId::size_type num_volumes() const { return v_labels_.size(); }
+
+    //! Number of volume instances
+    VolumeInstanceId::size_type num_volume_instances() const
+    {
+        return vi_labels_.size();
+    }
 
     //! Get volume metadata
     VolumeMap const& volume_labels() const { return v_labels_; }
@@ -117,9 +128,6 @@ VolumeId VolumeParams::volume(VolumeInstanceId vid) const
     CELER_EXPECT(vid < volumes_.size());
     return volumes_[vid.unchecked_get()];
 }
-
-//---------------------------------------------------------------------------//
-}  // namespace celeritas
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

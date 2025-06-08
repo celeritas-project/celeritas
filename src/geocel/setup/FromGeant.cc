@@ -11,7 +11,7 @@ namespace celeritas
 namespace setup
 {
 //---------------------------------------------------------------------------//
-inp::Surfaces volumes_from_geant()
+inp::Volumes volumes_from_geant()
 {
     CELER_NOT_IMPLEMENTED("volumes");
 }

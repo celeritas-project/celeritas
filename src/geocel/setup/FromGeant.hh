@@ -9,19 +9,19 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
-#include "celeritas/inp/Model.hh"
+#include "geocel/inp/Model.hh"
 
 namespace celeritas
 {
 namespace setup
 {
 //---------------------------------------------------------------------------//
-// Load surfaces from global data
-inp::Surfaces surfaces_from_geant();
-
-//---------------------------------------------------------------------------//
 // Load volumes from global data
 inp::Volumes volumes_from_geant();
+
+//---------------------------------------------------------------------------//
+// Load surfaces from global data
+inp::Surfaces surfaces_from_geant();
 
 //---------------------------------------------------------------------------//
 // Load a model from a Geant4 world
