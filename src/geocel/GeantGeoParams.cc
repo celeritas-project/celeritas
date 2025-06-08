@@ -9,6 +9,8 @@
 #include <unordered_map>
 #include <vector>
 #include <G4GeometryManager.hh>
+#include <G4LogicalBorderSurface.hh>
+#include <G4LogicalSkinSurface.hh>
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
 #include <G4PhysicalVolumeStore.hh>
@@ -18,6 +20,8 @@
 #include <G4VSolid.hh>
 #include <G4Version.hh>
 #include <G4VisExtent.hh>
+
+#include "geocel/inp/Model.hh"
 #if G4VERSION_NUMBER >= 1070
 #    include <G4Backtrace.hh>
 #endif
@@ -124,6 +128,120 @@ std::vector<Label> make_physical_vol_labels(G4VPhysicalVolume const& world,
         std::move(names), [offset](G4VPhysicalVolume const* pv) {
             return pv->GetInstanceID() - offset;
         });
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a reproducible list of surfaces.
+ */
+std::vector<G4LogicalSurface const*> make_surface_vec(GeantGeoParams const& geo)
+{
+    CELER_EXPECT(geo.volumes());
+    CELER_EXPECT(geo.volume_instances());
+
+    std::vector<G4LogicalSurface const*> result;
+    {
+        // Translate "skin" (boundary) surfaces
+        using G4Surface = G4LogicalSkinSurface;
+        std::map<VolumeId, G4Surface const*> temp;
+        auto const* table = G4Surface::GetSurfaceTable();
+        CELER_ASSERT(table);
+        // NOTE: may need updating for older Geant4
+        for (auto&& [key, surf] : *table)
+        {
+            CELER_ASSERT(key);
+            auto vol_id = geo.geant_to_id(*key);
+            CELER_ASSERT(vol_id);
+            auto iter_inserted = temp.insert({vol_id, surf});
+            CELER_ASSERT(iter_inserted.second);
+        }
+
+        // Add to table in order
+        result.reserve(table->size());
+        for (auto const& kv : temp)
+        {
+            result.push_back(kv.second);
+        }
+    }
+    {
+        // Translate "border" (interface) surfaces
+        using G4Surface = G4LogicalBorderSurface;
+        std::map<std::pair<VolumeInstanceId, VolumeInstanceId>, G4Surface const*>
+            temp;
+        auto const* table = G4Surface::GetSurfaceTable();
+        CELER_ASSERT(table);
+        // NOTE: may need updating for older Geant4
+        for (auto&& [key, surf] : *table)
+        {
+            CELER_ASSERT(key.first);
+            auto before = geo.geant_to_id(*key.first);
+            CELER_ASSERT(before);
+            CELER_ASSERT(key.second);
+            auto after = geo.geant_to_id(*key.second);
+            CELER_ASSERT(after);
+            auto iter_inserted = temp.insert({{before, after}, surf});
+            CELER_ASSERT(iter_inserted.second);
+        }
+
+        // Add to table in order
+        result.reserve(result.size() + table->size());
+        for (auto const& kv : temp)
+        {
+            result.push_back(kv.second);
+        }
+    }
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a volume input from a Geant4 logical volume by mapping IDs.
+ */
+inp::Volume inp_from_geant(GeantGeoParams const& geo,
+                           Label const& label,
+                           G4LogicalVolume const& g4lv)
+{
+    inp::Volume result;
+    result.label = label;
+
+    // Set material ID if available
+    if (auto* mat = g4lv.GetMaterial())
+    {
+        result.material = GeoMatId{mat->GetIndex()};
+    }
+    // Populate volume.children with child volume instances
+    auto num_children = g4lv.GetNoDaughters();
+    result.children.reserve(num_children);
+    for (auto i : range(num_children))
+    {
+        G4VPhysicalVolume* g4pv = g4lv.GetDaughter(i);
+        CELER_ASSERT(g4pv);
+        auto vol_inst_id = geo.geant_to_id(*g4pv);
+        for (auto i : range(g4pv->GetMultiplicity()))
+        {
+            // TODO: handle replicas correctly
+            CELER_DISCARD(i);
+            result.children.push_back(vol_inst_id);
+        }
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a Volume instance input from a Geant4 physical volume.
+ */
+inp::VolumeInstance inp_from_geant(GeantGeoParams const& geo,
+                                   Label const& label,
+                                   G4VPhysicalVolume const& g4pv)
+{
+    inp::VolumeInstance result;
+    result.label = label;
+    auto* g4lv = g4pv.GetLogicalVolume();
+    CELER_ASSERT(g4lv);
+    result.volume = geo.geant_to_id(*g4lv);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -288,6 +406,72 @@ GeantGeoParams::~GeantGeoParams()
 
     // If some part of the code set us up as the global geometry, clear it
     destroying_geo(this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create model params from a Geant4 world volume.
+ *
+ * \todo Eventually (see #1815) the label map will be stored as part of the
+ * volumes and referenced by the geometry, rather than vice versa.
+ */
+inp::Model GeantGeoParams::make_model_input() const
+{
+    inp::Model result;
+
+    result.geometry = this->world();
+    result.volumes = [this] {
+        inp::Volumes result;
+
+        // Get volumes from Geant4 geometry
+        auto const& vol_labels = this->volumes();
+        result.volumes.resize(vol_labels.size());
+
+        // Process each logical volume
+        for (auto vol_id : range(VolumeId{vol_labels.size()}))
+        {
+            auto const& label = vol_labels.at(vol_id);
+            if (label.empty())
+            {
+                // This volume isn't part of the world hierarchy
+                continue;
+            }
+
+            auto* g4lv = this->id_to_geant(vol_id);
+            CELER_ASSERT(g4lv);
+            result.volumes[vol_id.get()] = inp_from_geant(*this, label, *g4lv);
+        }
+
+        // Process volume instances
+        // Process each physical volume (volume instance)
+        auto const& vol_inst_labels = this->volume_instances();
+        result.volume_instances.resize(vol_inst_labels.size());
+
+        for (auto vol_inst_id : range(VolumeInstanceId{vol_inst_labels.size()}))
+        {
+            auto const& label = vol_inst_labels.at(vol_inst_id);
+            if (label.empty())
+            {
+                // This volume instance isn't part of the world hierarchy
+                continue;
+            }
+
+            auto g4pv_inst = this->id_to_geant(vol_inst_id);
+            if (!g4pv_inst.pv)
+            {
+                continue;
+            }
+            result.volume_instances[vol_inst_id.get()]
+                = inp_from_geant(*this, label, *g4pv_inst.pv);
+        }
+        return result;
+    }();
+    result.surfaces = [] {
+        inp::Surfaces result;
+        return result;
+    }();
+
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -475,6 +659,7 @@ void GeantGeoParams::build_metadata()
     vol_instances_ = VolInstanceMap{
         "volume instance",
         make_physical_vol_labels(*this->world(), this->pv_offset())};
+    surfaces_ = make_surface_vec(*this);
     max_depth_ = get_max_depth(*this->world());
 
     auto clhep_bbox = this->get_clhep_bbox();

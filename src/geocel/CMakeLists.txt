@@ -53,7 +53,6 @@ if(CELERITAS_USE_Geant4)
     g4/RaytraceImager.cc
     g4/SafetyImager.cc
     g4/detail/GeantGeoNavCollection.cc
-    setup/FromGeant.cc
   )
 
   celeritas_get_g4libs(_cg4_libs global geometry materials particles

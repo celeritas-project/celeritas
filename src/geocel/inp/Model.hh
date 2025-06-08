@@ -121,7 +121,7 @@ struct Surfaces
  */
 struct Model
 {
-    //! Path to GDML file, or Geant4 world
+    //! Path to GDML file, Geant4 world, or loaded geometry
     std::variant<std::string, G4VPhysicalVolume const*> geometry;
 
     // TODO: Materials

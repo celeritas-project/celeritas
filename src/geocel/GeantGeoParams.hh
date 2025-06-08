@@ -20,17 +20,21 @@
 #include "g4/GeantGeoData.hh"
 
 class G4VPhysicalVolume;
+class G4LogicalSurface;
 
 namespace celeritas
 {
+namespace inp
+{
+struct Model;
+}
 //---------------------------------------------------------------------------//
 /*!
  * Shared Geant4 geometry model wrapper.
  *
  * This can be constructed directly by loading a GDML file, or in-memory using
- * an existing physical volume. One "gotcha" is that due to persistent static
- * variables in Geant4, the volume IDs will be offset if a geometry has been
- * loaded and closed previously.
+ * an existing physical volume. The \c make_model_input function returns the
+ * geometry hierarchy including surface definitions for optical physics.
  *
  * The \c VolumeId used by Celeritas is equal to the index of a \c
  * G4LogicalVolume in the \c G4LogicalVolumeStore. Due to potential resetting
@@ -40,8 +44,17 @@ namespace celeritas
  * Analogously, the \c G4VPhysicalVolume is equivalent to the index in its
  * store. Due to the way Geant4 represents "parameterised" and "replicated"
  * placements, a single PV may correspond to multiple spatial placements and is
- * dismabiguated with \c ReplicaId , which corresponds to the PV's "copy
+ * disambiguated with \c ReplicaId , which corresponds to the PV's "copy
  * number".
+ *
+ * Each \c SurfaceId maps to a \c G4LogicalSurface instance, which is ether a
+ * \c G4LogicalBorderSurface (an "interface" surface between two volume
+ * instances) or a \c G4LogicalSkinSurface (a "boundary" surrounding a single
+ * logical volume). To ensure reproducible surface IDs across runs, we put
+ * boundaries before interfaces, and sort within each set by IDs (not by
+ * Geant4 object pointers, which is how the implementations store in a table).
+ * Surface labels are accessed via the SurfaceParams object which can be
+ * created by the model input returned by this class.
  */
 class GeantGeoParams final : public GeoParamsInterface,
                              public ParamsDataInterface<GeantGeoParamsData>
@@ -60,12 +73,18 @@ class GeantGeoParams final : public GeoParamsInterface,
     explicit GeantGeoParams(std::string const& gdml_filename);
 
     // Create a VecGeom model from an already-loaded Geant4 geometry
+    // TODO: also take model input? see #1815
     explicit GeantGeoParams(G4VPhysicalVolume const* world);
 
     CELER_DEFAULT_MOVE_DELETE_COPY(GeantGeoParams);
 
     // Clean up on destruction
     ~GeantGeoParams() final;
+
+    // Create model parameters corresponding to our internal representation
+    inp::Model make_model_input() const;
+
+    //// GEOMETRY INTERFACE ////
 
     //! Whether safety distance calculations are accurate and precise
     bool supports_safety() const final { return true; }
@@ -92,6 +111,9 @@ class GeantGeoParams final : public GeoParamsInterface,
 
     // Get the Geant4 logical volume corresponding to a volume ID
     G4LogicalVolume const* id_to_geant(VolumeId vol_id) const;
+
+    // Get the Geant4 logical volume corresponding to a volume ID
+    inline G4LogicalSurface const* id_to_geant(SurfaceId surf_id) const;
 
     // DEPRECATED
     using GeoParamsInterface::find_volume;
@@ -147,6 +169,7 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Host metadata/access
     VolumeMap volumes_;
     VolInstanceMap vol_instances_;
+    std::vector<G4LogicalSurface const*> surfaces_;
     BBox bbox_;
     LevelId::size_type max_depth_{0};
 
@@ -193,6 +216,22 @@ auto GeantGeoParams::volume_instances() const -> VolInstanceMap const&
     return vol_instances_;
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Get the Geant4 logical volume corresponding to a volume ID.
+ */
+G4LogicalSurface const* GeantGeoParams::id_to_geant(SurfaceId id) const
+{
+    CELER_EXPECT(!id || id < surfaces_.size());
+    if (!id)
+    {
+        return {};
+    }
+
+    return surfaces_[id.unchecked_get()];
+}
+
+//---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4 && !defined(__DOXYGEN__)
 inline GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const*)
 {
