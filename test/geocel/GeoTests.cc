@@ -13,6 +13,7 @@
 #include "corecel/math/Turn.hh"
 #include "corecel/sys/Version.hh"
 
+#include "GenericGeoResults.hh"
 #include "GenericGeoTestInterface.hh"
 #include "TestMacros.hh"
 #include "UnitUtils.hh"
