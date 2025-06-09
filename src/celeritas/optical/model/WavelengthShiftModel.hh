@@ -37,6 +37,7 @@ class WavelengthShiftModel : public Model
     //! Material-dependent WLS data, indexed by \c OptMatId
     struct Input
     {
+        ImportModelClass model{ImportModelClass::size_};
         std::vector<ImportWavelengthShift> data;
     };
 

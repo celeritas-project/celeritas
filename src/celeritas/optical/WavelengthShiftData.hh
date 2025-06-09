@@ -25,7 +25,7 @@ struct WlsDistributionData
 {
     size_type num_photons{};  //!< Sampled number of photons to generate
     units::MevEnergy energy;
-    real_type time{};  //!< Pre-step time
+    real_type time{};  //!< Post-step time
     Real3 position{};
     OptMatId material;
 

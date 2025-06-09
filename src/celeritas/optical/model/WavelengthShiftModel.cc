@@ -47,10 +47,12 @@ auto WavelengthShiftModel::make_builder(SPConstImported imported, Input input)
 WavelengthShiftModel::WavelengthShiftModel(ActionId id,
                                            SPConstImported imported,
                                            Input input)
-    : Model(id, "wls", "interact by WLS")
-    , imported_(ImportModelClass::wls, std::move(imported))
+    : Model(id, to_cstring(input.model), "interact by WLS")
+    , imported_(input.model, std::move(imported))
 {
     CELER_EXPECT(input.data.size() == imported_.num_materials());
+    CELER_EXPECT(input.model == ImportModelClass::wls
+                 || input.model == ImportModelClass::wls2);
 
     SegmentIntegrator integrate_emission{TrapezoidSegmentIntegrator{}};
 

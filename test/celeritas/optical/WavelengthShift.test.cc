@@ -39,6 +39,7 @@ class WavelengthShiftTest : public InteractorHostBase,
     {
         auto const& data = this->imported_data();
         WavelengthShiftModel::Input input;
+        input.model = ImportModelClass::wls;
         for (auto const& mat : data.optical_materials)
         {
             input.data.push_back(mat.wls);
@@ -109,12 +110,12 @@ TEST_F(WavelengthShiftTest, wls_basic)
     // Interactor with an energy point within the input component range
     real_type test_energy = 2e-6;
     this->set_inc_energy(Energy{test_energy});
-    auto sim = this->sim_track();
-    sim.step_length(1.0);
-    sim.add_time(sim.step_length() / constants::c_light);
 
-    WavelengthShiftInteractor interact(
-        data_, this->particle_track(), sim, position_, material_id_);
+    WavelengthShiftInteractor interact(data_,
+                                       this->particle_track(),
+                                       this->sim_track(),
+                                       position_,
+                                       material_id_);
 
     std::vector<size_type> num_photons;
 
@@ -145,9 +146,6 @@ TEST_F(WavelengthShiftTest, wls_stress)
     auto& rng = this->InteractorHostBase::rng();
 
     Real3 const inc_dir = {0, 0, 1};
-    auto sim = this->sim_track();
-    sim.step_length(1.0);
-    sim.add_time(sim.step_length() / constants::c_light);
 
     std::vector<real_type> avg_emitted;
     std::vector<real_type> avg_energy;
@@ -159,8 +157,11 @@ TEST_F(WavelengthShiftTest, wls_stress)
     for (real_type inc_e : {5., 10., 50., 100.})
     {
         this->set_inc_energy(Energy{inc_e});
-        WavelengthShiftInteractor interact(
-            data_, this->particle_track(), sim, position_, material_id_);
+        WavelengthShiftInteractor interact(data_,
+                                           this->particle_track(),
+                                           this->sim_track(),
+                                           position_,
+                                           material_id_);
 
         size_type sum_emitted{};
         real_type sum_energy{};

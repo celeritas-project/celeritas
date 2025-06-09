@@ -34,6 +34,10 @@ class LArSphereBase : public GeantTestBase
         auto result = GeantTestBase::build_geant_options();
         result.optical.absorption = true;
         result.optical.rayleigh_scattering = true;
+        result.optical.wavelength_shifting
+            = WLSTimeProfileSelection::exponential;
+        result.optical.wavelength_shifting2
+            = WLSTimeProfileSelection::exponential;
         return result;
     }
 

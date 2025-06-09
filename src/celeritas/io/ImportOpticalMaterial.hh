@@ -172,6 +172,7 @@ struct ImportOpticalMaterial
     //! \name Optical process data
     ImportOpticalRayleigh rayleigh;
     ImportWavelengthShift wls;
+    ImportWavelengthShift wls2;
     //!@}
 
     //! Whether minimal useful data is stored

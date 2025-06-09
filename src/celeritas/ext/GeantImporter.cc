@@ -34,6 +34,7 @@
 #include <G4OpAbsorption.hh>
 #include <G4OpRayleigh.hh>
 #include <G4OpWLS.hh>
+#include <G4OpWLS2.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
 #include <G4ProcessManager.hh>
@@ -587,6 +588,16 @@ import_optical(detail::GeoOpticalIdMap const& geo_to_opt)
                      "WLSCOMPONENT",
                      {ImportUnits::mev, ImportUnits::unitless});
 
+        // Save WLS2 properties
+        get_property(&optical.wls2.mean_num_photons,
+                     "WLSMEANNUMBERPHOTONS2",
+                     ImportUnits::unitless);
+        get_property(
+            &optical.wls2.time_constant, "WLSTIMECONSTANT2", ImportUnits::time);
+        get_property(&optical.wls2.component,
+                     "WLSCOMPONENT2",
+                     {ImportUnits::mev, ImportUnits::unitless});
+
         CELER_ASSERT(optical);
     }
 
@@ -898,6 +909,12 @@ auto import_processes(GeantImporter::DataSelection selected,
         {
             optical_models.push_back(
                 import_optical_model(optical::ImportModelClass::wls));
+        }
+        else if (import_optical_model
+                 && dynamic_cast<G4OpWLS2 const*>(&process))
+        {
+            optical_models.push_back(
+                import_optical_model(optical::ImportModelClass::wls2));
         }
         else
         {

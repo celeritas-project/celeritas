@@ -40,6 +40,9 @@ namespace optical
  *
  * \note This performs the same sampling routine as in the G4OpWLS class of
  * the Geant4 release 11.2.
+ *
+ * \todo The sampled time should either follow an exponential distribution or
+ * be a fixed time offset, depending on the specified distribution type.
  */
 class WavelengthShiftGenerator
 {

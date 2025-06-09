@@ -27,6 +27,8 @@ namespace optical
  *
  * The number of photons is sampled from a Poisson distribution. The secondary
  * photons are sampled later by the \c WavelengthShiftGenerator.
+ *
+ * \todo Initialize the first secondary directly in the parent's track slot.
  */
 class WavelengthShiftInteractor
 {
@@ -66,7 +68,7 @@ WavelengthShiftInteractor::WavelengthShiftInteractor(
     CELER_EXPECT(mat_id);
 
     distribution_.energy = particle.energy();
-    distribution_.time = sim.time() - sim.step_length() / constants::c_light;
+    distribution_.time = sim.time();
     distribution_.position = pos;
     distribution_.material = mat_id;
 }
