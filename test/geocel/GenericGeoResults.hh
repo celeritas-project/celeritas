@@ -22,11 +22,6 @@ namespace celeritas
 {
 class GeoParamsInterface;
 
-namespace inp
-{
-struct Model;
-}
-
 namespace test
 {
 class GenericGeoTestInterface;
@@ -95,28 +90,6 @@ struct GenericGeoVolumeStackResult
                                    char const* actual_expr,
                                    GenericGeoVolumeStackResult const& expected,
                                    GenericGeoVolumeStackResult const& actual);
-
-//---------------------------------------------------------------------------//
-// MODEL INPUT RESULT
-//---------------------------------------------------------------------------//
-
-//! Get the unfolded geometry model input
-struct GenericGeoModelInp
-{
-    std::vector<std::string> volumes;
-    std::vector<std::string> volume_instances;
-    std::vector<std::vector<int>> daughters;
-
-    static GenericGeoModelInp from_model_input(inp::Model const& in);
-    void print_expected() const;
-};
-
-//---------------------------------------------------------------------------//
-
-::testing::AssertionResult IsRefEq(char const* expected_expr,
-                                   char const* actual_expr,
-                                   GenericGeoModelInp const& expected,
-                                   GenericGeoModelInp const& actual);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

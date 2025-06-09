@@ -339,16 +339,6 @@ auto GenericGeoTestBase<HP>::volume_stack(Real3 const& pos)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the model input from the geometry.
- */
-template<class HP>
-auto GenericGeoTestBase<HP>::model_inp() const -> ModelInpResult
-{
-    CELER_NOT_IMPLEMENTED("model_inp");
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get the label for this geometry: Geant4, VecGeom, ORANGE.
  */
 template<class HP>

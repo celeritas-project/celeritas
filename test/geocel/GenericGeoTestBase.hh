@@ -94,9 +94,6 @@ class GenericGeoTestBase : virtual public Test,
     track(Real3 const& pos_cm, Real3 const& dir, int max_step) final;
     VolumeStackResult volume_stack(Real3 const& pos_cm) final;
 
-    // Get the model input from the geometry
-    ModelInpResult model_inp() const final;
-
   private:
     template<Ownership W, MemSpace M>
     using StateData = typename TraitsT::template StateData<W, M>;
