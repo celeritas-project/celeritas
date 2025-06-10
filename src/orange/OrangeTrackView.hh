@@ -61,6 +61,10 @@ namespace celeritas
  * \c cross_boundary depends on being on the boundary with a knowledge of the
  * post-boundary state.
  *
+ * The direction of \c normal is set to always point out of the volume the
+ * track is currently in. On the boundary this is determined by the sense
+ * of the track rather than its direction.
+ *
  * \todo \c move_internal with a position \em should depend on the safety
  * distance, but that check is not yet implemented.
  */
@@ -109,7 +113,7 @@ class OrangeTrackView
     inline CELER_FUNCTION bool is_on_boundary() const;
     //! Whether the last operation resulted in an error
     CELER_FORCEINLINE_FUNCTION bool failed() const { return failed_; }
-    // Get the normal vector of the current surface
+    // Get the normal vector pointing out of the current volume
     inline CELER_FUNCTION Real3 normal() const;
 
     //// OPERATIONS ////
@@ -547,6 +551,28 @@ CELER_FUNCTION bool OrangeTrackView::is_outside() const
 CELER_FORCEINLINE_FUNCTION bool OrangeTrackView::is_on_boundary() const
 {
     return static_cast<bool>(this->surface_level());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the normal vector of the current surface.
+ *
+ * The direction of the normal is determined by the sense of the track such
+ * that the normal always points out of the volume that the track is currently
+ * in.
+ */
+CELER_FUNCTION Real3 OrangeTrackView::normal() const
+{
+    CELER_EXPECT(this->is_on_boundary());
+
+    auto normal = this->geo_normal();
+    // Flip direction if on the outside of the surface
+    if (this->sense() == Sense::outside)
+    {
+        normal = negate(normal);
+    }
+
+    return normal;
 }
 
 //---------------------------------------------------------------------------//
@@ -1232,28 +1258,6 @@ CELER_FUNCTION Real3 OrangeTrackView::geo_normal() const
     }
 
     CELER_ENSURE(is_soft_unit_vector(normal));
-
-    return normal;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the normal vector of the current surface.
- *
- * When called after \c cross_boundary this function gives the surface
- * normal pointed into the previous volume. This ensures that the dot product
- * of the surface normal and the track direction is negative.
- */
-CELER_FUNCTION Real3 OrangeTrackView::normal() const
-{
-    CELER_EXPECT(this->is_on_boundary());
-
-    auto normal = this->geo_normal();
-    // Flip direction if on the outside of the surface
-    if (this->sense() == Sense::outside)
-    {
-        normal = negate(normal);
-    }
 
     return normal;
 }
