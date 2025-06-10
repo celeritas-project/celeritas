@@ -452,9 +452,10 @@ inp::Model GeantGeoParams::make_model_input() const
         }
 
         // Process volume instances
-        // Process each physical volume (volume instance)
         auto const& vol_inst_labels = this->volume_instances();
         result.volume_instances.resize(vol_inst_labels.size());
+        // Fix copy numbers to avoid invalid read/out-of-bounds
+        this->reset_replica_data();
 
         for (auto vol_inst_id : range(VolumeInstanceId{vol_inst_labels.size()}))
         {
@@ -587,8 +588,8 @@ auto GeantGeoParams::replica_id(G4VPhysicalVolume const& volume) const
         return {};
 
     auto copy_no = volume.GetCopyNo();
-    // NOTE: if this line fails, Geant4 may be returning uninitialized
-    // memory on the local thread.
+    // NOTE: if this line fails, you probably need to call \c
+    // reset_replica_data from the local thread.
     CELER_ASSERT(copy_no >= 0 && copy_no < volume.GetMultiplicity());
     return id_cast<ReplicaId>(copy_no);
 }
@@ -612,6 +613,28 @@ BoundingBox<double> GeantGeoParams::get_clhep_bbox() const
         {extent.GetXmax(), extent.GetYmax(), extent.GetZmax()}};
     CELER_ENSURE(result);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize thread-local mutable copy numbers for "replica" volumes.
+ *
+ * Copy numbers for "replica" volumes (where one instance pretends to be many
+ * different volumes) are uninitialized (older Geant4) or initialized to -1.
+ * To avoid reading invalid or returning an invalid instance, set all the
+ * replica copy numbers to zero.
+ */
+void GeantGeoParams::reset_replica_data() const
+{
+    G4PhysicalVolumeStore* pv_store = G4PhysicalVolumeStore::GetInstance();
+    CELER_ASSERT(pv_store);
+    for (auto* pv : *pv_store)
+    {
+        if (pv->IsReplicated())
+        {
+            pv->SetCopyNo(0);
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//

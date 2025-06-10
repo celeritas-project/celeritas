@@ -146,6 +146,9 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Get the world extents in Geant4 units
     BoundingBox<double> get_clhep_bbox() const;
 
+    // Initialize thread-local mutable copy numbers for "replica" volumes
+    void reset_replica_data() const;
+
     //// DATA ACCESS ////
 
     //! Access geometry data on host
