@@ -371,7 +371,7 @@ TEST_F(RevolutionFieldSubstepperTest, advance)
         }
 
         // Check the total error and the state (position, momentum)
-        EXPECT_VEC_CLOSE(y_expected.pos, y.pos, eps, eps);
+        EXPECT_VEC_NEAR(y_expected.pos, y.pos, (SoftEqual{eps, eps}));
     }
 
     // Check the total error, step/curve length

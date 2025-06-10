@@ -51,7 +51,6 @@ class GeantOrangeTest : public OrangeGeoTestBase
 };
 
 //---------------------------------------------------------------------------//
-
 using MultiLevelTest
     = GenericGeoParameterizedTest<GeantOrangeTest, MultiLevelGeoTest>;
 
@@ -93,13 +92,26 @@ TEST_F(PincellTest, imager)
 }
 
 //---------------------------------------------------------------------------//
-
 using PolyhedraTest
     = GenericGeoParameterizedTest<GeantOrangeTest, PolyhedraGeoTest>;
 
 TEST_F(PolyhedraTest, trace)
 {
     this->impl().test_trace();
+}
+
+//---------------------------------------------------------------------------//
+using ReplicaTest
+    = GenericGeoParameterizedTest<GeantOrangeTest, ReplicaGeoTest>;
+
+TEST_F(ReplicaTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(ReplicaTest, DISABLED_volume_stack)
+{
+    this->impl().test_volume_stack();
 }
 
 //---------------------------------------------------------------------------//
