@@ -354,7 +354,7 @@ CELER_FORCEINLINE bool GeantGeoTrackView::is_on_boundary() const
 /*!
  * Get the surface normal of the boundary the track is currently on.
  */
-CELER_FUNCTION Real3 GeantGeoTrackView::surface_normal() const
+CELER_FUNCTION auto GeantGeoTrackView::surface_normal() const -> Real3
 {
     CELER_NOT_IMPLEMENTED("GeantGeoTrackView::surface_normal");
 }
