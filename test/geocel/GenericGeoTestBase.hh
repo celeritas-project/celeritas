@@ -11,6 +11,7 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "geocel/GeoTraits.hh"
 
+#include "GenericGeoResults.hh"
 #include "GenericGeoTestInterface.hh"
 #include "LazyGeoManager.hh"
 #include "Test.hh"

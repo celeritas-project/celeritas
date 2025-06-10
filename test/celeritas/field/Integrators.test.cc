@@ -111,9 +111,10 @@ class IntegratorsTest : public Test
                         += detail::rel_err_sq(result.err_state, hstep, y.mom);
                 }
                 real_type tol = std::sqrt(total_err2) / 0.001;
+                SoftEqual soft_eq{tol, tol};
                 // Check the state after each revolution and the total error
-                EXPECT_VEC_CLOSE(expected_y.pos, y.pos, tol, tol);
-                EXPECT_VEC_CLOSE(expected_y.mom, y.mom, tol, tol);
+                EXPECT_VEC_NEAR(expected_y.pos, y.pos, soft_eq);
+                EXPECT_VEC_NEAR(expected_y.mom, y.mom, soft_eq);
                 EXPECT_LT(total_err2, param.epsilon);
             }
         }

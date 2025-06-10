@@ -119,7 +119,7 @@ TEST(IsVecSoftEquiv, successes_double)
     EXPECT_FALSE(
         IsVecSoftEquiv("expected", "actual", "0.01", expected, actual, 0.01));
     EXPECT_TRUE(IsVecSoftEquiv(
-        "expected", "actual", "0.01", "0.01", expected, actual, 0.01, 0.01));
+        "expected", "actual", "soft", expected, actual, (SoftEqual{0.01, 0.01})));
 
     EXPECT_TRUE(IsVecSoftEquiv(
         "expected_array", "actual", "0.01", expected_array, actual, 0.01));
@@ -147,7 +147,7 @@ TEST(IsVecSoftEquiv, floats)
     // Compare vector vs array
     EXPECT_VEC_SOFT_EQ(actual, expected_array);
     EXPECT_VEC_NEAR(actual, expected_array, 1.e-3f);
-    EXPECT_VEC_CLOSE(actual, expected_array, 1.e-3f, 1e-5f);
+    EXPECT_VEC_NEAR(actual, expected_array, (SoftEqual{1.e-3f, 1e-5f}));
 
     // Compare floating point tolerance is not 1e-12
     float actual_array[] = {1.000001f, 3.000001f, 5.000001f};
@@ -222,7 +222,7 @@ TEST(IsVecSoftEquiv, nested)
     EXPECT_FALSE(IsVecSoftEquiv(
         "expected", "actual", "0.001", expected, actual, 0.001));
     EXPECT_TRUE(IsVecSoftEquiv(
-        "expected", "actual", "0.01", "0.01", expected, actual, 0.01, 0.01));
+        "expected", "actual", "0.01", expected, actual, (SoftEqual{0.01, 0.01})));
 
     // Identical
     actual[1][0][1] = 0.67;

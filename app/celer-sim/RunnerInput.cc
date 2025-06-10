@@ -204,6 +204,13 @@ inp::Problem load_problem(RunnerInput const& ri)
             return sc;
         }();
         p.tracking.limits.optical_step_iters = ri.optical.max_steps;
+
+        p.physics.optical = [&ri] {
+            inp::OpticalPhysics op;
+            op.cherenkov = ri.optical.cherenkov;
+            op.scintillation = ri.optical.scintillation;
+            return op;
+        }();
     }
 
     // Simple calorimeter scoring

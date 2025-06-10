@@ -334,13 +334,25 @@ auto build_optical_offload(inp::Problem const& p,
     CELER_VALIDATE(
         !imported.optical_materials.empty(),
         << R"(an optical tracking loop was requested but no optical materials are present)");
+    CELER_VALIDATE(p.physics.optical,
+                   << "optical physics options are required to construct an "
+                      "optical tracking loop");
 
+    inp::OpticalPhysics const& opt = *p.physics.optical;
     OpticalCollector::Input oc_inp;
     oc_inp.material = MaterialParams::from_import(
         imported, *params.geomaterial(), *params.material());
-    oc_inp.cherenkov = std::make_shared<CherenkovParams>(*oc_inp.material);
-    oc_inp.scintillation
-        = ScintillationParams::from_import(imported, params.particle());
+    if (opt.cherenkov)
+    {
+        oc_inp.cherenkov = std::make_shared<CherenkovParams>(*oc_inp.material);
+    }
+    if (opt.scintillation)
+    {
+        oc_inp.scintillation
+            = ScintillationParams::from_import(imported, params.particle());
+        CELER_VALIDATE(oc_inp.scintillation,
+                       << "failed to construct scintillation process");
+    }
 
     // Map from optical capacity
     CELER_ASSERT(p.control.optical_capacity);
