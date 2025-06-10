@@ -248,6 +248,9 @@ class OrangeTrackView
 
     // Get the transform ID to move from this level to the one below.
     inline CELER_FUNCTION TransformId get_transform(LevelId lev) const;
+
+    // Get the surface normal as defined by the geometry
+    inline CELER_FUNCTION Real3 geo_surface_normal() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -815,7 +818,7 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
     {
         // Changing direction on a boundary, which may result in not leaving
         // current volume upon the cross_surface call
-        auto normal = this->surface_normal();
+        auto normal = this->geo_surface_normal();
 
         // Evaluate whether the direction dotted with the surface normal
         // changes (i.e. heading from inside to outside or vice versa).
@@ -1205,16 +1208,13 @@ CELER_FUNCTION TransformId OrangeTrackView::get_transform(LevelId lev) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the normal vector of the current surface.
+ * Get the normal vector of the current surface as defined by the geometry.
  */
-CELER_FUNCTION Real3 OrangeTrackView::surface_normal() const
+CELER_FUNCTION Real3 OrangeTrackView::geo_surface_normal() const
 {
     CELER_EXPECT(this->is_on_boundary());
 
-    // Changing direction on a boundary, which may result in not leaving
-    // current volume upon the cross_surface call
     auto lsa = this->make_lsa(this->surface_level());
-
     TrackerVisitor visit_tracker{params_};
     auto normal = visit_tracker(
         [pos = lsa.pos(), local_surface = this->surf()](auto&& t) {
@@ -1222,8 +1222,7 @@ CELER_FUNCTION Real3 OrangeTrackView::surface_normal() const
         },
         lsa.universe());
 
-    // Normal is in *local* coordinates but newdir is in *global*: rotate
-    // up to check
+    // Rotate normal up to global coordinates
     auto apply_transform = TransformVisitor{params_};
     auto rotate_up = [&normal](auto&& t) { normal = t.rotate_up(normal); };
     for (auto level : range<int>(this->level().unchecked_get()).step(-1))
@@ -1232,6 +1231,28 @@ CELER_FUNCTION Real3 OrangeTrackView::surface_normal() const
     }
 
     CELER_ENSURE(is_soft_unit_vector(normal));
+
+    return normal;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the normal vector of the current surface.
+ *
+ * When called after \c cross_boundary this function gives the surface
+ * normal pointed into the previous volume. This ensures that the dot product
+ * of the surface normal and the track direction is negative.
+ */
+CELER_FUNCTION Real3 OrangeTrackView::surface_normal() const
+{
+    CELER_EXPECT(this->is_on_boundary());
+
+    auto normal = this->geo_surface_normal();
+    // Flip direction if on the outside of the surface
+    if (this->sense() == Sense::outside)
+    {
+        normal *= real_type{-1};
+    }
 
     return normal;
 }
