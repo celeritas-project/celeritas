@@ -158,7 +158,7 @@ NodeId StackedExtrudedPolygon::make_levels(
     for (auto const i : range(concave_nodes.size()))
     {
         concave_nodes[i] = this->make_levels(
-            vb, concave_regions[i], SubRegionIndex{si.level + 1, i});
+            vb, concave_regions[i], SubRegionIndex{si.level + 1, size_type{i}});
     }
 
     auto level_label = this->make_level_label(si);
