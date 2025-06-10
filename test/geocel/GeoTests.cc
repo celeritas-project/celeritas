@@ -79,6 +79,79 @@ void delete_orange_safety(GenericGeoTestInterface const& interface,
 //---------------------------------------------------------------------------//
 // CMS EE
 //---------------------------------------------------------------------------//
+void CmsEeBackDeeGeoTest::test_model() const
+{
+    auto result = test_->model_inp();
+    GenericGeoModelInp ref;
+    ref.volumes = {
+        "CMStoZDC", "ZDCtoFP420", "Tracker", "CALO",    "MUON",
+        "BEAM",     "BEAM1",      "BEAM2",   "BEAM3",   "TrackerPixelNose",
+        "VCAL",     "TotemT1",    "TotemT2", "CastorF", "CastorB",
+        "OQUA",     "BSC2",       "ZDC",     "CMSE",    "OCMS",
+    };
+    ref.volume_instances = {
+        "CMStoZDC@0",
+        "CMStoZDC@1",
+        "ZDCtoFP420@0",
+        "ZDCtoFP420@1",
+        "Tracker",
+        "CALO",
+        "MUON",
+        "BEAM@0",
+        "BEAM@1",
+        "BEAM1@0",
+        "BEAM1@1",
+        "BEAM2@0",
+        "BEAM2@1",
+        "BEAM3@0",
+        "BEAM3@1",
+        "TrackerPixelNose@0",
+        "TrackerPixelNose@1",
+        "VCAL@0",
+        "VCAL@1",
+        "TotemT1@0",
+        "TotemT1@1",
+        "TotemT2@0",
+        "TotemT2@1",
+        "CastorF",
+        "CastorB",
+        "OQUA@0",
+        "OQUA@1",
+        "BSC2@0",
+        "BSC2@1",
+        "ZDC@0",
+        "ZDC@1",
+        "CMSE",
+        "OCMS_PV",
+    };
+    ref.daughters = {
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {
+            0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
+            16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+        },
+        {31},
+    };
+    EXPECT_RESULT_EQ(ref, result);
+}
+
 //! Test geometry accessors
 void CmsEeBackDeeGeoTest::test_accessors() const
 {
@@ -162,6 +235,11 @@ void CmsEeBackDeeGeoTest::test_trace() const
 //---------------------------------------------------------------------------//
 // CMSE
 //---------------------------------------------------------------------------//
+void CmseGeoTest::test_model() const
+{
+    auto result = test_->model_inp();
+    result.print_expected();
+}
 
 void CmseGeoTest::test_trace() const
 {
@@ -252,6 +330,14 @@ void CmseGeoTest::test_trace() const
 }
 
 //---------------------------------------------------------------------------//
+// FOUR LEVELS
+//---------------------------------------------------------------------------//
+void FourLevelsGeoTest::test_model() const
+{
+    auto result = test_->model_inp();
+    result.print_expected();
+}
+
 //! Test geometry accessors
 void FourLevelsGeoTest::test_accessors() const
 {
@@ -384,31 +470,13 @@ void FourLevelsGeoTest::test_trace() const
 //---------------------------------------------------------------------------//
 // MULTI-LEVEL
 //---------------------------------------------------------------------------//
-void MultiLevelGeoTest::test_accessors() const
+void MultiLevelGeoTest::test_model() const
 {
-    auto const& geo = *test_->geometry_interface();
-
-    if (test_->geometry_type() == "ORANGE")
-    {
-        // TODO: fix depth, volume labels
-        EXPECT_EQ(2, geo.max_depth());
-        return;
-    }
-
-    EXPECT_EQ(3, geo.max_depth());
-
-    static char const* const expected_vol_labels[] = {
-        "sph",
-        "tri",
-        "box",
-        "world",
-        "box_refl",
-        "sph_refl",
-        "tri_refl",
-    };
-    EXPECT_VEC_EQ(expected_vol_labels, test_->get_volume_labels());
-
-    static char const* const expected_vol_inst_labels[] = {
+    auto result = test_->model_inp();
+    GenericGeoModelInp ref;
+    ref.volumes
+        = {"sph", "tri", "box", "world", "box_refl", "sph_refl", "tri_refl"};
+    ref.volume_instances = {
         "boxsph1@0",
         "boxsph2@0",
         "boxtri@0",
@@ -422,20 +490,8 @@ void MultiLevelGeoTest::test_accessors() const
         "topbox4",
         "world_PV",
     };
-    EXPECT_VEC_EQ(expected_vol_inst_labels,
-                  test_->get_volume_instance_labels());
-
-    if (test_->g4world())
-    {
-        EXPECT_VEC_EQ(expected_vol_inst_labels, test_->get_g4pv_labels());
-    }
-}
-
-//---------------------------------------------------------------------------//
-void MultiLevelGeoTest::test_model() const
-{
-    auto result = test_->model_inp();
-    result.print_expected();
+    ref.daughters = {{}, {}, {0, 1, 2}, {3, 4, 5, 6, 10}, {7, 8, 9}, {}, {}};
+    EXPECT_RESULT_EQ(ref, result);
 }
 
 //---------------------------------------------------------------------------//
@@ -596,7 +652,25 @@ void MultiLevelGeoTest::test_trace() const
 void OpticalSurfacesGeoTest::test_model() const
 {
     auto result = test_->model_inp();
-    result.print_expected();
+    GenericGeoModelInp ref;
+    ref.volumes
+        = {"sph", "tri", "box", "world", "box_refl", "sph_refl", "tri_refl"};
+    ref.volume_instances = {
+        "boxsph1@0",
+        "boxsph2@0",
+        "boxtri@0",
+        "topbox1",
+        "topsph1",
+        "topbox2",
+        "topbox3",
+        "boxsph1@1",
+        "boxsph2@1",
+        "boxtri@1",
+        "topbox4",
+        "world_PV",
+    };
+    ref.daughters = {{}, {}, {0, 1, 2}, {3, 4, 5, 6, 10}, {7, 8, 9}, {}, {}};
+    EXPECT_RESULT_EQ(ref, result);
 }
 
 //---------------------------------------------------------------------------//
@@ -629,6 +703,13 @@ void OpticalSurfacesGeoTest::test_trace() const
 
 //---------------------------------------------------------------------------//
 // POLYHEDRA
+//---------------------------------------------------------------------------//
+void PolyhedraGeoTest::test_model() const
+{
+    auto result = test_->model_inp();
+    result.print_expected();
+}
+
 //---------------------------------------------------------------------------//
 void PolyhedraGeoTest::test_trace() const
 {
@@ -848,6 +929,13 @@ void PolyhedraGeoTest::test_trace() const
 
 //---------------------------------------------------------------------------//
 // REPLICA
+//---------------------------------------------------------------------------//
+void ReplicaGeoTest::test_model() const
+{
+    auto result = test_->model_inp();
+    result.print_expected();
+}
+
 //---------------------------------------------------------------------------//
 
 void ReplicaGeoTest::test_trace() const
@@ -1745,6 +1833,12 @@ void TestEm3FlatGeoTest::test_trace() const
 //---------------------------------------------------------------------------//
 // TRANSFORMED BOX
 //---------------------------------------------------------------------------//
+void TransformedBoxGeoTest::test_model() const
+{
+    auto result = test_->model_inp();
+    result.print_expected();
+}
+
 //! Test geometry accessors
 void TransformedBoxGeoTest::test_accessors() const
 {
@@ -1918,6 +2012,12 @@ void TransformedBoxGeoTest::test_trace() const
 //---------------------------------------------------------------------------//
 // TRANSFORMED BOX
 //---------------------------------------------------------------------------//
+void TwoBoxesGeoTest::test_model() const
+{
+    auto result = test_->model_inp();
+    result.print_expected();
+}
+
 //! Test geometry accessors
 void TwoBoxesGeoTest::test_accessors() const
 {
@@ -1950,6 +2050,12 @@ void TwoBoxesGeoTest::test_trace() const
 //---------------------------------------------------------------------------//
 // ZNENV
 //---------------------------------------------------------------------------//
+void ZnenvGeoTest::test_model() const
+{
+    auto result = test_->model_inp();
+    result.print_expected();
+}
+
 void ZnenvGeoTest::test_trace() const
 {
     // NOTE: This tests the capability of the G4PVDivision conversion based on

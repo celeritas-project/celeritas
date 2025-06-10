@@ -24,10 +24,6 @@ class G4LogicalSurface;
 
 namespace celeritas
 {
-namespace inp
-{
-struct Model;
-}
 //---------------------------------------------------------------------------//
 /*!
  * Shared Geant4 geometry model wrapper.
@@ -81,9 +77,6 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Clean up on destruction
     ~GeantGeoParams() final;
 
-    // Create model parameters corresponding to our internal representation
-    inp::Model make_model_input() const;
-
     //// GEOMETRY INTERFACE ////
 
     //! Whether safety distance calculations are accurate and precise
@@ -94,6 +87,9 @@ class GeantGeoParams final : public GeoParamsInterface,
 
     // Maximum nested scene/volume depth
     LevelId::size_type max_depth() const final { return max_depth_; }
+
+    // Create model parameters corresponding to our internal representation
+    inp::Model make_model_input() const final;
 
     //// VOLUMES ////
 
@@ -122,7 +118,10 @@ class GeantGeoParams final : public GeoParamsInterface,
     VolumeId::size_type lv_offset() const { return data_.lv_offset; }
 
     //! Offset of physical volume ID after reloading geometry
-    VolumeId::size_type pv_offset() const { return data_.pv_offset; }
+    VolumeInstanceId::size_type pv_offset() const { return data_.pv_offset; }
+
+    //! Offset of material index after reloading geometry
+    GeoMatId::size_type mat_offset() const { return data_.mat_offset; }
 
     //// G4 ACCESSORS ////
 

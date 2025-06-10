@@ -55,12 +55,16 @@ class VecgeomParams final : public GeoParamsInterface,
     BBox const& bbox() const final { return bbox_; }
 
     //! Maximum nested geometry depth
+    //! \todo move to VolumeParams
     LevelId::size_type max_depth() const final { return host_ref_.max_depth; }
 
-    //// VOLUMES ////
+    // Create model parameters corresponding to our internal representation
+    inp::Model make_model_input() const final
 
-    // Get volume metadata
-    inline VolumeMap const& volumes() const final;
+        //// VOLUMES ////
+
+        // Get volume metadata
+        inline VolumeMap const& volumes() const final;
 
     // Get (physical) volume instance metadata
     inline VolInstanceMap const& volume_instances() const final;
@@ -114,6 +118,15 @@ class VecgeomParams final : public GeoParamsInterface,
     // Construct labels and other host-only metadata
     void build_metadata();
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create model parameters corresponding to our internal representation.
+ */
+inp::Model VecgeomParams::make_model_input() const
+{
+    CELER_NOT_IMPLEMENTED("model input from VecGeom");
+}
 
 //---------------------------------------------------------------------------//
 /*!

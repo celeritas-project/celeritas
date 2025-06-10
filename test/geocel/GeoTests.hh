@@ -31,6 +31,7 @@ class CmsEeBackDeeGeoTest
     //! Construct with a reference to the GoogleTest
     CmsEeBackDeeGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
+    void test_model() const;
     void test_accessors() const;
     void test_trace() const;
 
@@ -50,6 +51,7 @@ class CmseGeoTest
     //! Construct with a reference to the GoogleTest
     CmseGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
+    void test_model() const;
     void test_trace() const;
 
   private:
@@ -68,6 +70,7 @@ class FourLevelsGeoTest
     //! Construct with a reference to the GoogleTest
     FourLevelsGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
+    void test_model() const;
     void test_accessors() const;
     void test_trace() const;
 
@@ -90,7 +93,6 @@ class MultiLevelGeoTest
     //! Construct with a reference to the GoogleTest
     MultiLevelGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
-    void test_accessors() const;
     void test_model() const;
     void test_trace() const;
 
@@ -131,6 +133,7 @@ class PolyhedraGeoTest
     //! Construct with a reference to the GoogleTest
     PolyhedraGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
+    void test_model() const;
     void test_trace() const;
 
   private:
@@ -149,6 +152,7 @@ class ReplicaGeoTest
     //! Construct with a reference to the GoogleTest
     ReplicaGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
+    void test_model() const;
     void test_trace() const;
     void test_volume_stack() const;
 
@@ -191,6 +195,7 @@ class SolidsGeoTest
     SolidsGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
     void test_accessors() const;
+    void test_model() const;
     void test_trace() const;
 
   private:
@@ -209,6 +214,7 @@ class TestEm3GeoTest
     //! Construct with a reference to the GoogleTest
     TestEm3GeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
+    void test_model() const;
     void test_trace() const;
 
   private:
@@ -248,6 +254,7 @@ class TransformedBoxGeoTest
     }
 
     void test_accessors() const;
+    void test_model() const;
     void test_trace() const;
 
   private:
@@ -267,6 +274,7 @@ class TwoBoxesGeoTest
     TwoBoxesGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
     void test_accessors() const;
+    void test_model() const;
     void test_trace() const;
 
     template<class GeoTest>
@@ -288,6 +296,7 @@ class ZnenvGeoTest
     //! Construct with a reference to the GoogleTest
     ZnenvGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
+    void test_model() const;
     void test_trace() const;
 
   private:

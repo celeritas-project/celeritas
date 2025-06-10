@@ -15,6 +15,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantGeoParams.hh"
+#include "geocel/inp/Model.hh"
 
 #include "CheckedGeoTrackView.hh"
 #include "GenericGeoResults.hh"
@@ -344,7 +345,8 @@ auto GenericGeoTestBase<HP>::volume_stack(Real3 const& pos)
 template<class HP>
 auto GenericGeoTestBase<HP>::model_inp() const -> ModelInpResult
 {
-    CELER_NOT_IMPLEMENTED("model_inp");
+    return ModelInpResult::from_model_input(
+        this->geometry()->make_model_input());
 }
 
 //---------------------------------------------------------------------------//

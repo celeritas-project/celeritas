@@ -103,9 +103,22 @@ struct GenericGeoVolumeStackResult
 //! Get the unfolded geometry model input
 struct GenericGeoModelInp
 {
-    std::vector<std::string> volumes;
-    std::vector<std::string> volume_instances;
-    std::vector<std::vector<int>> daughters;
+    struct
+    {
+        std::vector<std::string> names;
+        std::vector<int> materials;
+        std::vector<std::vector<int>> daughters;
+    } volume;
+    struct
+    {
+        std::vector<std::string> names;
+        std::vector<int> volumes;
+    } volume_instance;
+    struct
+    {
+        std::vector<std::string> names;
+        std::vector<std::string> volumes;
+    } surfaces;
 
     static GenericGeoModelInp from_model_input(inp::Model const& in);
     void print_expected() const;

@@ -13,6 +13,7 @@
 #include <G4LogicalSkinSurface.hh>
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
+#include <G4Material.hh>
 #include <G4PhysicalVolumeStore.hh>
 #include <G4Transportation.hh>
 #include <G4TransportationManager.hh>
@@ -216,7 +217,7 @@ inp::Volume inp_from_geant(GeantGeoParams const& geo,
     // Set material ID if available
     if (auto* mat = g4lv.GetMaterial())
     {
-        result.material = GeoMatId{mat->GetIndex()};
+        result.material = GeoMatId{mat->GetIndex() - geo.mat_offset()};
     }
     // Populate volume.children with child volume instances
     auto num_children = g4lv.GetNoDaughters();
@@ -645,20 +646,27 @@ void GeantGeoParams::build_metadata()
 
     // Get offset of logical/physical volumes present in unit tests
     data_.lv_offset = [] {
-        G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
+        auto* lv_store = G4LogicalVolumeStore::GetInstance();
         CELER_ASSERT(lv_store && !lv_store->empty());
         return lv_store->front()->GetInstanceID();
     }();
     data_.pv_offset = [] {
-        G4PhysicalVolumeStore* pv_store = G4PhysicalVolumeStore::GetInstance();
+        auto* pv_store = G4PhysicalVolumeStore::GetInstance();
         CELER_ASSERT(pv_store && !pv_store->empty());
         return pv_store->front()->GetInstanceID();
     }();
-    if (this->lv_offset() != 0 || this->pv_offset() != 0)
+    data_.mat_offset = [] {
+        auto* mat_store = G4Material::GetMaterialTable();
+        CELER_ASSERT(mat_store && !mat_store->empty());
+        return mat_store->front()->GetIndex();
+    }();
+    if (this->lv_offset() != 0 || this->pv_offset() != 0
+        || this->mat_offset() != 0)
     {
         CELER_LOG(debug) << "Building after volume stores were cleared: "
                          << "lv_offset=" << this->lv_offset()
-                         << ", pv_offset=" << this->pv_offset();
+                         << ", pv_offset=" << this->pv_offset()
+                         << ", mat_offset=" << this->mat_offset();
     }
 
     // Construct volume labels for physically reachable volumes
