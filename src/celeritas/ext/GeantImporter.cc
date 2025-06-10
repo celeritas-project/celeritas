@@ -34,7 +34,6 @@
 #include <G4OpAbsorption.hh>
 #include <G4OpRayleigh.hh>
 #include <G4OpWLS.hh>
-#include <G4OpWLS2.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
 #include <G4ProcessManager.hh>
@@ -59,6 +58,9 @@
 #include <G4VProcess.hh>
 #include <G4VRangeToEnergyConverter.hh>
 #include <G4Version.hh>
+#if G4VERSION_NUMBER >= 1070
+#    include <G4OpWLS2.hh>
+#endif
 
 #include "corecel/Config.hh"
 
@@ -910,12 +912,14 @@ auto import_processes(GeantImporter::DataSelection selected,
             optical_models.push_back(
                 import_optical_model(optical::ImportModelClass::wls));
         }
+#if G4VERSION_NUMBER >= 1070
         else if (import_optical_model
                  && dynamic_cast<G4OpWLS2 const*>(&process))
         {
             optical_models.push_back(
                 import_optical_model(optical::ImportModelClass::wls2));
         }
+#endif
         else
         {
             CELER_LOG(error)
