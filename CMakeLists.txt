@@ -32,7 +32,6 @@ if(NOT CELERITAS_USE_CUDA)
 endif()
 
 # Optional dependencies
-# NOTE: when adding a new dependency, update the CMakeConfig "COMPONENTS"
 celeritas_optional_package(covfie "Use Covfie field integrator")
 celeritas_optional_package(Geant4 "Enable Geant4 adapter tools")
 celeritas_optional_package(HepMC3 "Enable HepMC3 event record reader")
@@ -86,8 +85,8 @@ if(CELERITAS_BUILD_TESTS)
 endif()
 
 # Automatic options
-set(CELERITAS_USE_CLI11 ${CELERITAS_BUILD_APPS})
-set(CELERITAS_USE_GTest ${CELERITAS_BUILD_TESTS})
+celeritas_force_package(CLI11 ${CELERITAS_BUILD_APPS})
+celeritas_force_package(GTest ${CELERITAS_BUILD_TESTS})
 
 #----------------------------------------------------------------------------#
 # CELERITAS CORE IMPLEMENTATION OPTIONS
@@ -337,7 +336,7 @@ if(CELERITAS_USE_CUDA)
   find_package(Thrust)
 endif()
 # Unconditionally set Thrust availability for downstream configuration
-set(CELERITAS_USE_Thrust "${Thrust_FOUND}")
+celeritas_force_package(Thrust "${Thrust_FOUND}")
 
 if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
   find_package(Geant4 REQUIRED)
@@ -619,6 +618,7 @@ set(_cmake_files
   # For now, include in case downstream projects do `include(CudaRdcUtils)`.
   "${_LOCAL_RDCUTILS_FILENAME}"
 )
+# Add packages with custom Celeritas-provided FindX scripts
 foreach(_dep CLI11 covfie Geant4 G4VG HepMC3 Perfetto ROOT Thrust VecGeom)
   if(CELERITAS_USE_${_dep} AND NOT CELERITAS_BUILTIN_${_dep})
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
@@ -643,9 +643,15 @@ file(COPY ${_cmake_files}
 # Export all cache variables that start with CELERITAS_
 set(CELERITAS_EXPORT_VARIABLES)
 macro(celeritas_export_var varname)
-  list(APPEND CELERITAS_EXPORT_VARIABLES "set(${varname} \"${${varname}}\")")
+  # Value of _key may be ;-separated list, so we need to escape the ; if present
+  string(REPLACE ";" "\;" _key_val "${${varname}}")
+  list(APPEND CELERITAS_EXPORT_VARIABLES "set(${varname} \"${_key_val}\")")
 endmacro()
 celeritas_export_var(Celeritas_VERSION_STRING)
+list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Components")
+celeritas_export_var(CELERITAS_COMPONENTS)
+celeritas_export_var(CELERITAS_ENABLED_COMPONENTS)
+celeritas_export_var(CELERITAS_OPTION_VARS)
 list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Configuration options")
 get_directory_property(_cachevar_keys CACHE_VARIABLES)
 foreach(_key IN LISTS _cachevar_keys)
@@ -653,8 +659,6 @@ foreach(_key IN LISTS _cachevar_keys)
     celeritas_export_var(${_key})
   endif()
 endforeach()
-# Thrust dependency is not a cache variable
-celeritas_export_var(CELERITAS_USE_Thrust)
 
 # Save whether we need GDML requirement
 if(Geant4_gdml_FOUND OR VecGeom_GDML_FOUND)
@@ -663,8 +667,11 @@ else()
   set(CELERITAS_USE_GDML OFF)
 endif()
 celeritas_export_var(CELERITAS_USE_GDML)
+foreach(_key IN LISTS CELERITAS_FORCED_PACKAGE_VARS)
+  celeritas_export_var(${_key})
+endforeach()
 
-# Export defaulted variables
+# Export defaulted CMake variables
 list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Defaulted local variables")
 set(_celer_other_cmake_variables)
 if(CELERITAS_USE_CUDA)

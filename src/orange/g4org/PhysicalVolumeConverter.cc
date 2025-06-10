@@ -12,7 +12,6 @@
 #include <unordered_set>
 #include <G4LogicalVolume.hh>
 #include <G4PVPlacement.hh>
-#include <G4ReflectionFactory.hh>
 #include <G4VPVParameterisation.hh>
 #include <G4VPhysicalVolume.hh>
 
@@ -146,17 +145,8 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
         return NoTransformation{};
     }();
 
-    //! \todo fix reflection: https://github.com/celeritas-project/g4vg/pull/22
-    auto* g4lv = g4pv.GetLogicalVolume();
-    if (G4ReflectionFactory::Instance()->GetConstituentLV(g4lv))
-    {
-        // Replace with constituent volume, and reflect across Z.
-        // See G4ReflectionFactory::CheckScale: the reflection value is
-        // hardcoded to {1, 1, -1}
-        CELER_NOT_IMPLEMENTED("reflecting a placed volume");
-    }
-
     // Convert logical volume
+    auto* g4lv = g4pv.GetLogicalVolume();
     auto&& [lv, inserted] = this->data->make_lv(*g4lv);
     if (inserted)
     {
@@ -192,7 +182,7 @@ void PhysicalVolumeConverter::Builder::place_child(
 {
     if (dynamic_cast<G4PVPlacement const*>(&g4pv))
     {
-        // Place child, accounting for reflection
+        // Place child
         lv->children.push_back(this->make_pv(depth, g4pv));
     }
     else if (G4VPVParameterisation* param = g4pv.GetParameterisation())

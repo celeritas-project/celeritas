@@ -135,6 +135,9 @@ class CoreState final : public CoreStateBase
     //! Get a native-memspace pointer to the mutable state data
     Ptr ptr() { return ptr_; }
 
+    //! Reset the state data
+    void reset();
+
     // Inject primaries to be turned into TrackInitializers
     void insert_primaries(Span<TrackInitializer const> host_primaries) final;
 

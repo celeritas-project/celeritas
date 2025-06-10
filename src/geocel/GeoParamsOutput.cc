@@ -58,22 +58,6 @@ void GeoParamsOutput::output(JsonPimpl* j) const
         };
     }
 
-    // Save surface names
-    if (auto* surf_geo
-        = dynamic_cast<GeoParamsSurfaceInterface const*>(geo_.get()))
-    {
-        auto label = json::array();
-
-        auto const& surfaces = surf_geo->surfaces();
-        for (auto id : range(SurfaceId{surfaces.size()}))
-        {
-            label.push_back(surfaces.at(id));
-        }
-        obj["surfaces"] = {
-            {"label", std::move(label)},
-        };
-    }
-
     j->obj = std::move(obj);
 }
 

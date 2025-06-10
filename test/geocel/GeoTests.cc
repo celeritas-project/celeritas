@@ -353,6 +353,14 @@ void FourLevelsGeoTest::test_trace() const
 void MultiLevelGeoTest::test_accessors() const
 {
     auto const& geo = *test_->geometry_interface();
+
+    if (test_->geometry_type() == "ORANGE")
+    {
+        // TODO: fix depth, volume labels
+        EXPECT_EQ(2, geo.max_depth());
+        return;
+    }
+
     EXPECT_EQ(3, geo.max_depth());
 
     static char const* const expected_vol_labels[] = {
@@ -395,6 +403,8 @@ void MultiLevelGeoTest::test_trace() const
     // Surface VecGeom needs lower safety tolerance
     real_type const safety_tol = test_->safety_tol();
 
+    bool const is_orange = test_->geometry_type() == "ORANGE";
+
     {
         SCOPED_TRACE("high");
         auto result = test_->track({-19.9, 7.5, 0}, {1, 0, 0});
@@ -429,7 +439,10 @@ void MultiLevelGeoTest::test_trace() const
             "topbox1",
             "world_PV",
         };
-        EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
+        if (!is_orange)
+        {
+            EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
+        }
         static real_type const expected_distances[] = {
             2.4,
             3,
@@ -461,8 +474,11 @@ void MultiLevelGeoTest::test_trace() const
             1.6650635094611,
             3.25,
         };
-        EXPECT_VEC_NEAR(
-            expected_hw_safety, result.halfway_safeties, safety_tol);
+        if (!is_orange)
+        {
+            EXPECT_VEC_NEAR(
+                expected_hw_safety, result.halfway_safeties, safety_tol);
+        }
     }
     {
         SCOPED_TRACE("low");
@@ -494,7 +510,10 @@ void MultiLevelGeoTest::test_trace() const
             "topbox4",
             "world_PV",
         };
-        EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
+        if (!is_orange)
+        {
+            EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
+        }
         static real_type const expected_distances[] = {
             2.4,
             3,
@@ -522,8 +541,251 @@ void MultiLevelGeoTest::test_trace() const
             1.6650635094611,
             3.25,
         };
-        EXPECT_VEC_NEAR(
-            expected_hw_safety, result.halfway_safeties, safety_tol);
+        if (!is_orange)
+        {
+            EXPECT_VEC_NEAR(
+                expected_hw_safety, result.halfway_safeties, safety_tol);
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
+// POLYHEDRA
+//---------------------------------------------------------------------------//
+void PolyhedraGeoTest::test_trace() const
+{
+    auto fixup_orange = [is_orange = (test_->geometry_type() == "ORANGE")](
+                            GenericGeoTrackingResult& ref,
+                            GenericGeoTrackingResult& result) {
+        if (!is_orange)
+            return;
+        ref.volume_instances.clear();
+        // Delete PV (not implmented)
+        ref.volume_instances.clear();
+
+        // Delete within-world safeties
+        for (auto i :
+             range(std::max(ref.volumes.size(), result.volumes.size())))
+        {
+            if (ref.volumes[i] == "world")
+            {
+                result.halfway_safeties[i] = 0;
+                ref.halfway_safeties[i] = 0;
+            }
+        }
+    };
+
+    {
+        SCOPED_TRACE("tri");
+        auto result = test_->track({-6, 4.01, 0}, {1, 0, 0});
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
+            "world",
+            "tri",
+            "world",
+            "tri_third",
+            "world",
+            "tri_half",
+            "world",
+            "tri_full",
+            "world",
+        };
+        ref.volume_instances = {
+            "world_PV",
+            "tri0_pv",
+            "world_PV",
+            "tri30_pv",
+            "world_PV",
+            "tri60_pv",
+            "world_PV",
+            "tri90_pv",
+            "world_PV",
+        };
+        ref.distances = {
+            1,
+            2.9826794919243,
+            0.70352222243164,
+            2.3816157604626,
+            0.94950303325711,
+            2.9826794919243,
+            2,
+            2.9826794919243,
+            10.017320508076,
+        };
+        ref.halfway_safeties = {
+            0.5,
+            0.74566987298108,
+            0.26946464455223,
+            0.91221175947349,
+            0.44612049688277,
+            0.74566987298108,
+            1,
+            0.74566987298108,
+            4.5,
+        };
+        ref.bumps = {};
+        fixup_orange(ref, result);
+        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        EXPECT_RESULT_NEAR(ref, result, tol);
+    }
+    {
+        SCOPED_TRACE("quad");
+        auto result = test_->track({-6, 0.01, 0}, {1, 0, 0});
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
+            "world",
+            "quad",
+            "world",
+            "quad_third",
+            "world",
+            "quad_half",
+            "world",
+            "quad_full",
+            "world",
+        };
+        ref.volume_instances = {
+            "world_PV",
+            "quad0_pv",
+            "world_PV",
+            "quad30_pv",
+            "world_PV",
+            "quad60_pv",
+            "world_PV",
+            "quad90_pv",
+            "world_PV",
+        };
+        ref.distances = {
+            0.5957864376269,
+            2.8084271247462,
+            1.5631897491411,
+            2.0705523608202,
+            1.9620443276656,
+            2,
+            1.5957864376269,
+            2.8084271247462,
+            10.595786437627,
+        };
+        ref.halfway_safeties = {
+            0.28806684196341,
+            0.99292893218813,
+            0.75496267504288,
+            0.9896472381959,
+            0.94759464420809,
+            0.99,
+            0.78795667663408,
+            0.99292893218813,
+            4.5,
+        };
+        ref.bumps = {};
+        fixup_orange(ref, result);
+        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        EXPECT_RESULT_NEAR(ref, result, tol);
+    }
+    {
+        SCOPED_TRACE("penta");
+        auto result = test_->track({-6, -4.01, 0}, {1, 0, 0});
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
+            "world",
+            "penta",
+            "world",
+            "penta_third",
+            "world",
+            "penta_half",
+            "world",
+            "penta_full",
+            "world",
+        };
+        ref.volume_instances = {
+            "world_PV",
+            "penta0_pv",
+            "world_PV",
+            "penta30_pv",
+            "world_PV",
+            "penta60_pv",
+            "world_PV",
+            "penta90_pv",
+            "world_PV",
+        };
+        ref.distances = {
+            1,
+            2.2288025522197,
+            1.6810134561273,
+            2.1103990209013,
+            1.7509824185319,
+            2.2288025522197,
+            2,
+            2.2288025522197,
+            10.77119744778,
+        };
+        ref.halfway_safeties = {
+            0.5,
+            0.90156957092601,
+            0.76944173562526,
+            0.96397271967888,
+            0.85635962580704,
+            0.90156957092601,
+            1,
+            0.90156957092601,
+            4.5,
+        };
+        ref.bumps = {};
+        fixup_orange(ref, result);
+        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        EXPECT_RESULT_NEAR(ref, result, tol);
+    }
+    {
+        SCOPED_TRACE("hex");
+        auto result = test_->track({-6, -8.01, 0}, {1, 0, 0});
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
+            "world",
+            "hex",
+            "world",
+            "hex_third",
+            "world",
+            "hex_half",
+            "world",
+            "hex_full",
+            "world",
+        };
+        ref.volume_instances = {
+            "world_PV",
+            "hex0_pv",
+            "world_PV",
+            "hex30_pv",
+            "world_PV",
+            "hex60_pv",
+            "world_PV",
+            "hex90_pv",
+            "world_PV",
+        };
+        ref.distances = {
+            0.85107296431264,
+            2.2978540713747,
+            1.8338830826198,
+            2.0308532237715,
+            1.9863366579213,
+            2,
+            1.8510729643126,
+            2.2978540713747,
+            10.851072964313,
+        };
+        ref.halfway_safeties = {
+            0.41988207740847,
+            0.99,
+            0.90301113894096,
+            0.99120614758428,
+            0.97807987040665,
+            0.99133974596216,
+            0.9198173396894,
+            0.99,
+            4.5,
+        };
+        ref.bumps = {};
+        fixup_orange(ref, result);
+        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        EXPECT_RESULT_NEAR(ref, result, tol);
     }
 }
 

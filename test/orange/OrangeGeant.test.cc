@@ -51,6 +51,22 @@ class GeantOrangeTest : public OrangeGeoTestBase
 };
 
 //---------------------------------------------------------------------------//
+
+using MultiLevelTest
+    = GenericGeoParameterizedTest<GeantOrangeTest, MultiLevelGeoTest>;
+
+TEST_F(MultiLevelTest, accessors)
+{
+    this->impl().test_accessors();
+}
+
+TEST_F(MultiLevelTest, trace)
+{
+    this->impl().test_trace();
+}
+
+//---------------------------------------------------------------------------//
+
 class PincellTest : public GeantOrangeTest
 {
     std::string geometry_basename() const final { return "pincell"; }
@@ -74,6 +90,16 @@ TEST_F(PincellTest, imager)
     inp.lower_left = from_cm({-12, 0, -12});
     inp.upper_right = from_cm({12, 0, 12});
     write_image(ImageParams{inp}, "org-pincell-xz-mid.jsonl");
+}
+
+//---------------------------------------------------------------------------//
+
+using PolyhedraTest
+    = GenericGeoParameterizedTest<GeantOrangeTest, PolyhedraGeoTest>;
+
+TEST_F(PolyhedraTest, trace)
+{
+    this->impl().test_trace();
 }
 
 //---------------------------------------------------------------------------//

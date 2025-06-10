@@ -117,16 +117,7 @@ void log_state(Logger::Message& msg,
         msg << "\n- Volume ID: " << kce.volume();
     }
 
-    if (core_params && kce.surface())
-    {
-        if (auto* geo = dynamic_cast<GeoParamsSurfaceInterface const*>(
-                core_params->geometry().get()))
-        {
-            msg << "\n- Surface: " << geo->surfaces().at(kce.surface())
-                << " (ID=" << kce.surface() << ')';
-        }
-    }
-    else if (kce.surface())
+    if (kce.surface())
     {
         msg << "\n- Surface ID: " << kce.surface();
     }

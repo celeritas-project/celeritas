@@ -51,12 +51,14 @@ class OpticalLaunchAction : public AuxParamsInterface,
     {
         SPOpticalParams optical_params;
         size_type num_track_slots{};
+        size_type max_step_iters{};
         size_type auto_flush{};
 
         //! True if all input is assigned and valid
         explicit operator bool() const
         {
-            return optical_params && num_track_slots > 0 && auto_flush > 0;
+            return optical_params && num_track_slots > 0 && max_step_iters > 0
+                   && auto_flush > 0;
         }
     };
 
@@ -124,6 +126,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
     SPOpticalParams optical_params_;
     SPActionGroups optical_actions_;
     size_type state_size_;
+    size_type max_step_iters_;
     size_type auto_flush_;
 
     //// HELPERS ////

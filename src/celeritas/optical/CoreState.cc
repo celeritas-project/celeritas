@@ -89,6 +89,27 @@ void CoreState<M>::insert_primaries(Span<TrackInitializer const>)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Reset the state data.
+ *
+ * This clears the state counters and initializes the necessary state data so
+ * the state can be reused for the next step in the core stepping loop. This
+ * should only be necessary if the previous event aborted early.
+ */
+template<MemSpace M>
+void CoreState<M>::reset()
+{
+    this->counters() = CoreStateCounters{};
+    this->counters().num_vacancies = this->size();
+
+    // Reset all the track slots to inactive
+    fill(TrackStatus::inactive, &this->ref().sim.status);
+
+    // Mark all the track slots as empty
+    fill_sequence(&this->ref().init.vacancies, this->stream_id());
+}
+
+//---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 template class CoreState<MemSpace::host>;

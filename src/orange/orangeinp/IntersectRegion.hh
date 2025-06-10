@@ -672,19 +672,23 @@ class Parallelepiped final : public IntersectRegionInterface
  * A regular, z-extruded polygon centered on the origin.
  *
  * This is the base component of a G4Polyhedra (PGON). The default rotation is
- * to put a y-aligned plane on the bottom of the shape, so looking at an x-y
- * slice given an apothem \em a, every shape has a surface at \f$ y = -a \f$:
- * - n=3 is a triangle with a flat bottom, point up
- * - n=4 is a square with axis-aligned sides
- * - n=6 is a flat-top hexagon
+ * to put the first point at \f$ y = 0 \f$. Looking at an x-y
+ * slice for a prism with apothem \em a, odd-numbered prisms have a plane at
+ * \f$ x=-a \f$:
+ * - \f$ n=3 \f$ is a triangle pointing right,
+ * - \f$ n=4 \f$ is a diamond,
+ * - \f$ n=5 \f$ is a tilted pentagon (flat on the left), and
+ * - \f$ n=6 \f$ is a flat-top hexagon.
+ *
  *
  * The "orientation" parameter is a scaled counterclockwise rotation on
  * \f$[0, 1)\f$, where zero preserves the orientation described above, and
- * unity replicates the original shape but with the "p0" face being where the
- * "p1" originally was. With a value of 0.5:
- * - n=3 is a downward-pointing triangle
- * - n=4 is a diamond
- * - n=6 is a pointy-top hexagon
+ * unity would replicate the original shape but with the "p0" face being where
+ * the "p1" originally was. With a value of 0.5:
+ * - \f$ n=3 \f$ is a triangle pointing left
+ * - \f$ n=4 \f$ is an upright square,
+ * - \f$ n=5 \f$ is a tilted pentagon (flat on the right), and
+ * - \f$ n=6 \f$ is a pointy-top hexagon.
  */
 class Prism final : public IntersectRegionInterface
 {
@@ -727,7 +731,7 @@ class Prism final : public IntersectRegionInterface
     // Half the z height
     real_type hh_;
 
-    // Rotational offset (0 has bottom face at -Y, 1 is congruent)
+    // Rotational offset: 0 has point at (r, 0), 1 is congruent with 0
     real_type orientation_;
 };
 

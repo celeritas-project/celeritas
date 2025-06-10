@@ -283,6 +283,8 @@ int main(int argc, char* argv[])
                 CELER_LOG(critical)
                     << "Another exception occurred while finalizing output: "
                     << e.what();
+                // Write a null JSON oboject since we didn't output anything;
+                std::cout << "null\n";
             }
         }
         else

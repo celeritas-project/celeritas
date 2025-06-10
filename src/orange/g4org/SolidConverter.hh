@@ -82,6 +82,7 @@ class SolidConverter
     result_type polycone(arg_type);
     result_type polyhedra(arg_type);
     result_type reflectedsolid(arg_type);
+    result_type scaledsolid(arg_type);
     result_type sphere(arg_type);
     result_type subtractionsolid(arg_type);
     result_type tessellatedsolid(arg_type);

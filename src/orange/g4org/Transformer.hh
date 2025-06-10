@@ -9,7 +9,9 @@
 #include <G4AffineTransform.hh>
 #include <G4RotationMatrix.hh>
 #include <G4ThreeVector.hh>
+#include <G4Transform3D.hh>
 
+#include "geocel/Types.hh"
 #include "orange/transform/VariantTransform.hh"
 
 #include "Scaler.hh"
@@ -56,9 +58,8 @@ class Transformer
     inline Transformation
     operator()(G4ThreeVector const& t, G4RotationMatrix const& rot) const;
 
-    // Convert a translation + optional rotation
-    inline VariantTransform
-    operator()(G4ThreeVector const& t, G4RotationMatrix const* rot) const;
+    // Convert a more general transform (includes reflection)
+    inline Transformation operator()(G4Transform3D const& tran) const;
 
     // Convert an affine transform
     inline Transformation operator()(G4AffineTransform const& at) const;
@@ -105,6 +106,20 @@ auto Transformer::operator()(G4ThreeVector const& trans,
     -> Transformation
 {
     return Transformation{convert_from_geant(rot), scale_.to<Real3>(trans)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a more general transform (including possibly reflection).
+ */
+Transformation Transformer::operator()(G4Transform3D const& tran) const
+{
+    SquareMatrixReal3 rot{Real3{{tran.xx(), tran.xy(), tran.xz()}},
+                          Real3{{tran.yx(), tran.yy(), tran.yz()}},
+                          Real3{{tran.zx(), tran.zy(), tran.zz()}}};
+
+    return Transformation{rot,
+                          scale_.to<Real3>(tran.dx(), tran.dy(), tran.dz())};
 }
 
 //---------------------------------------------------------------------------//

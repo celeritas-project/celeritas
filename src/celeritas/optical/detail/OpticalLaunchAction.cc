@@ -50,10 +50,12 @@ OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
     , aux_id_{aux_id}
     , optical_params_(std::move(input.optical_params))
     , state_size_(input.num_track_slots)
+    , max_step_iters_(input.max_step_iters)
     , auto_flush_(input.auto_flush)
 {
     CELER_EXPECT(optical_params_);
     CELER_EXPECT(state_size_ > 0);
+    CELER_EXPECT(max_step_iters_ > 0);
 
     // TODO: Generate optical photons directly in the track slots rather than a
     // buffer. For now just make sure enough track initializers are allocated
@@ -125,7 +127,6 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
     auto& state = get<optical::CoreState<M>>(core_state.aux(), this->aux_id());
     CELER_ASSERT(state.size() > 0);
 
-    constexpr size_type max_step_iters{1024};
     size_type num_step_iters{0};
     size_type num_steps{0};
 
@@ -162,16 +163,18 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
         }
 
         num_steps += counters.num_active;
-        if (CELER_UNLIKELY(++num_step_iters == max_step_iters))
+        if (CELER_UNLIKELY(++num_step_iters == max_step_iters_))
         {
             CELER_LOG_LOCAL(error)
-                << "Exceeded step count of " << max_step_iters
+                << "Exceeded step count of " << max_step_iters_
                 << ": aborting optical transport loop with "
                 << counters.num_generated << " generated tracks, "
                 << counters.num_active << " active tracks, "
                 << counters.num_alive << " alive tracks, "
                 << counters.num_vacancies << " vacancies, and "
                 << counters.num_initializers << " queued";
+
+            state.reset();
             break;
         }
     }
@@ -180,8 +183,6 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
     state.accum().steps += num_steps;
     state.accum().step_iters += num_step_iters;
     ++state.accum().flushes;
-
-    // TODO: is this correct if we abort the tracking loop early?
 }
 
 //---------------------------------------------------------------------------//

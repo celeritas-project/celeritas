@@ -80,21 +80,12 @@ GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
     }                                                                    \
     else                                                                 \
         (void)sizeof(char)
-#define IRE_VEC_SOFT_EQ2(ATTR, REL, ABS)                               \
-    if (auto result = IsVecSoftEquiv(                                  \
-            expr1, #ATTR, #REL, #ABS, val1.ATTR, val2.ATTR, REL, ABS); \
-        !static_cast<bool>(result))                                    \
-    {                                                                  \
-        helper.fail() << result.message();                             \
-    }                                                                  \
-    else                                                               \
-        (void)sizeof(char)
 
     IRE_VEC_EQ(volumes);
     IRE_VEC_EQ(volume_instances);
     IRE_VEC_SOFT_EQ(distances, tol.distance);
-    IRE_VEC_SOFT_EQ2(halfway_safeties, tol.safety, tol.safety);
-    IRE_VEC_SOFT_EQ2(bumps, tol.safety, tol.safety);
+    IRE_VEC_SOFT_EQ(halfway_safeties, SoftEqual(tol.safety, tol.safety));
+    IRE_VEC_SOFT_EQ(bumps, SoftEqual(tol.safety, tol.safety));
 
 #undef IRE_COMPARE
     return helper;
@@ -178,7 +169,7 @@ std::vector<std::string> GenericGeoTestInterface::get_volume_labels() const
     std::vector<std::string> result;
 
     auto const& volumes = this->geometry_interface()->volumes();
-    for (auto vidx : range(this->volume_offset(), volumes.size()))
+    for (auto vidx : range(volumes.size()))
     {
         Label const& lab = volumes.at(VolumeId{vidx});
         if (!lab.empty())
@@ -199,7 +190,7 @@ GenericGeoTestInterface::get_volume_instance_labels() const
     std::vector<std::string> result;
 
     auto const& vol_inst = this->geometry_interface()->volume_instances();
-    for (auto vidx : range(this->volume_instance_offset(), vol_inst.size()))
+    for (auto vidx : range(vol_inst.size()))
     {
         Label const& lab = vol_inst.at(VolumeInstanceId{vidx});
         if (!lab.empty())
@@ -227,7 +218,7 @@ std::vector<std::string> GenericGeoTestInterface::get_g4pv_labels() const
     auto const& vol_inst = geo.volume_instances();
 
     std::vector<std::string> result;
-    for (auto vidx : range(this->volume_instance_offset(), vol_inst.size()))
+    for (auto vidx : range(vol_inst.size()))
     {
         VolumeInstanceId vi_id{vidx};
         if (vol_inst.at(vi_id).empty())
@@ -273,18 +264,17 @@ std::vector<std::string> GenericGeoTestInterface::get_g4pv_labels() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the volume name, adjusting for offsets from loading multiple geo.
+ * Get the volume name.
  */
 std::string_view GenericGeoTestInterface::get_volume_name(VolumeId i) const
 {
     CELER_EXPECT(i);
     auto const& volumes = this->geometry_interface()->volumes();
-    auto index = this->volume_offset() + i.get();
-    if (index >= volumes.size())
+    if (i < volumes.size())
     {
-        return "<out of range>";
+        return volumes.at(VolumeId{i.get()}).name;
     }
-    return volumes.at(VolumeId{index}).name;
+    return "<out of range>";
 }
 
 //---------------------------------------------------------------------------//

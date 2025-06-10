@@ -103,7 +103,7 @@ class VecgeomTrackView
 
     //!@{
     //! VecGeom states are never "on" a surface
-    CELER_FUNCTION SurfaceId surface_id() const { return {}; }
+    CELER_FUNCTION InternalSurfaceId internal_surface_id() const { return {}; }
     //!@}
 
     // Whether the track is outside the valid geometry region

@@ -81,6 +81,7 @@ if(CELERITAS_USE_VecGeom)
       "TwoBoxesVgdmlTest.*"
       "SimpleCmsVgdmlTest.*"
       "FourLevelsVgdmlTest.*"
+      # Polyhedra doesn't work because of anonymous position tags
     )
     if(NOT VecGeom_SURF_FOUND)
       list(APPEND _vecgeom_tests "SolidsVgdmlTest.*" "MultiLevelVgdmlTest.*")
@@ -92,6 +93,7 @@ if(CELERITAS_USE_VecGeom)
       "CmsEeBackDeeTest.*"
       "FourLevelsTest.*"
       "MultiLevelTest.*"
+      "PolyhedraTest.*"
       "ReplicaTest.*"
       "TransformedBoxTest.*"
       "ZnenvTest.*"

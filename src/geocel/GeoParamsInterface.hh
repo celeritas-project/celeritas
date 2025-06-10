@@ -37,7 +37,7 @@ struct GeantPhysicalInstance
 {
     using ReplicaId = OpaqueId<struct Replica_>;
 
-    //! Geant4 physical volume
+    //! Geant4 physical volume pointer
     G4VPhysicalVolume const* pv{nullptr};
     //! Replica/parameterisation instance
     ReplicaId replica;
@@ -94,32 +94,6 @@ class GeoParamsInterface
   protected:
     GeoParamsInterface() = default;
     CELER_DEFAULT_COPY_MOVE(GeoParamsInterface);
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Interface class for a host geometry that supports surfaces.
- *
- * \todo Remove this interface, use empty surface map instead
- */
-class GeoParamsSurfaceInterface : public GeoParamsInterface
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using SurfaceMap = LabelIdMultiMap<SurfaceId>;
-    //!@}
-
-  public:
-    // Default destructor
-    ~GeoParamsSurfaceInterface() override = 0;
-
-    //! Get surface metadata
-    virtual SurfaceMap const& surfaces() const = 0;
-
-  protected:
-    GeoParamsSurfaceInterface() = default;
-    CELER_DEFAULT_COPY_MOVE(GeoParamsSurfaceInterface);
 };
 
 //---------------------------------------------------------------------------//

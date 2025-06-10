@@ -31,6 +31,7 @@
 #include <G4Polyhedra.hh>
 #include <G4ReflectedSolid.hh>
 #include <G4RotationMatrix.hh>
+#include <G4ScaledSolid.hh>
 #include <G4Sphere.hh>
 #include <G4SubtractionSolid.hh>
 #include <G4TessellatedSolid.hh>
@@ -71,6 +72,25 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Get a SolidEnclosedAngle, avoiding values slightly beyond 1 turn.
+ *
+ * This constructs from native Geant4 radians and truncates to \c real_type,
+ * ensuring that roundoff doesn't push the turn beyond a full one.
+ */
+SolidEnclosedAngle make_wedge(double start_rad, double delta_rad)
+{
+    auto start = native_value_to<RealTurn>(start_rad);
+    auto delta = native_value_to<RealTurn>(delta_rad);
+    if (soft_equal(delta.value(), real_type{1}))
+    {
+        // Avoid roundoff error
+        delta = RealTurn{1};
+    }
+    return SolidEnclosedAngle{start, delta};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the enclosed azimuthal angle by a solid.
  *
  * This internally converts from native Geant4 radians.
@@ -78,8 +98,7 @@ namespace
 template<class S>
 SolidEnclosedAngle make_wedge_azimuthal(S const& solid)
 {
-    return SolidEnclosedAngle{native_value_to<Turn>(solid.GetStartPhiAngle()),
-                              native_value_to<Turn>(solid.GetDeltaPhiAngle())};
+    return make_wedge(solid.GetStartPhiAngle(), solid.GetDeltaPhiAngle());
 }
 
 //---------------------------------------------------------------------------//
@@ -93,8 +112,7 @@ SolidEnclosedAngle make_wedge_azimuthal(S const& solid)
 template<>
 SolidEnclosedAngle make_wedge_azimuthal<G4Torus>(G4Torus const& solid)
 {
-    return SolidEnclosedAngle{native_value_to<Turn>(solid.GetSPhi()),
-                              native_value_to<Turn>(solid.GetDPhi())};
+    return make_wedge(solid.GetSPhi(), solid.GetDPhi());
 }
 
 //---------------------------------------------------------------------------//
@@ -107,23 +125,19 @@ SolidEnclosedAngle make_wedge_azimuthal<G4Torus>(G4Torus const& solid)
 template<class S>
 SolidEnclosedAngle make_wedge_azimuthal_poly(S const& solid)
 {
-    auto start = native_value_to<Turn>(solid.GetStartPhi());
-    auto stop = native_value_to<Turn>(solid.GetEndPhi());
-    return SolidEnclosedAngle{start, stop - start};
+    auto start = solid.GetStartPhi();
+    auto stop = solid.GetEndPhi();
+    return make_wedge(start, stop - start);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the enclosed polar angle by a solid.
- *
- * This internally converts from native Geant4 radians.
  */
 template<class S>
 SolidEnclosedAngle make_wedge_polar(S const& solid)
 {
-    return SolidEnclosedAngle{
-        native_value_to<Turn>(solid.GetStartThetaAngle()),
-        native_value_to<Turn>(solid.GetDeltaThetaAngle())};
+    return make_wedge(solid.GetStartThetaAngle(), solid.GetDeltaThetaAngle());
 }
 
 //---------------------------------------------------------------------------//
@@ -281,6 +295,7 @@ auto SolidConverter::convert_impl(arg_type solid_base) -> result_type
         SC_TYPE_FUNC(Polycone         , polycone),
         SC_TYPE_FUNC(Polyhedra        , polyhedra),
         SC_TYPE_FUNC(ReflectedSolid   , reflectedsolid),
+        SC_TYPE_FUNC(ScaledSolid      , scaledsolid),
         SC_TYPE_FUNC(Sphere           , sphere),
         SC_TYPE_FUNC(SubtractionSolid , subtractionsolid),
         SC_TYPE_FUNC(TessellatedSolid , tessellatedsolid),
@@ -367,7 +382,7 @@ auto SolidConverter::displaced(arg_type solid_base) -> result_type
     // daughter-to-parent ("object") translation with an inverted
     // [parent-to-daughter, "frame"] rotation
     return std::make_shared<Transformed>(
-        daughter, transform_(solid.GetDirectTransform()));
+        std::move(daughter), transform_(solid.GetDirectTransform()));
 }
 
 //---------------------------------------------------------------------------//
@@ -601,8 +616,31 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
 auto SolidConverter::reflectedsolid(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4ReflectedSolid const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("reflectedsolid");
+    G4VSolid* underlying = solid.GetConstituentMovedSolid();
+    CELER_ASSERT(underlying);
+
+    // Convert unreflected solid
+    auto converted = (*this)(*underlying);
+
+    // Add a reflecting transform
+    return std::make_shared<Transformed>(
+        std::move(converted), transform_(solid.GetDirectTransform3D()));
+}
+
+//---------------------------------------------------------------------------//
+//! Convert a scaled solid
+auto SolidConverter::scaledsolid(arg_type solid_base) -> result_type
+{
+    auto const& solid = dynamic_cast<G4ScaledSolid const&>(solid_base);
+    G4VSolid* underlying = solid.GetUnscaledSolid();
+    CELER_ASSERT(underlying);
+
+    // Convert unscaled solid
+    auto converted = (*this)(*underlying);
+
+    // Add a scaling transform
+    return std::make_shared<Transformed>(
+        std::move(converted), transform_(solid.GetScaleTransform()));
 }
 
 //---------------------------------------------------------------------------//

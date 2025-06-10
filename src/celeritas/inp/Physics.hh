@@ -59,6 +59,19 @@ struct EmPhysics
  */
 struct OpticalPhysics
 {
+    //!@{
+    //! \name Optical photon generation
+
+    /*! \todo Replace with a mapping of \c VolumeId to \c ScintillationPhysics
+     * or \c CherenkovPhysics
+     */
+
+    //! Generate Cherenkov photons
+    bool cherenkov{true};
+
+    //! Generate scintillation photons
+    bool scintillation{true};
+    //!@}
 };
 
 //---------------------------------------------------------------------------//

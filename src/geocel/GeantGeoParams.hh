@@ -31,6 +31,17 @@ namespace celeritas
  * an existing physical volume. One "gotcha" is that due to persistent static
  * variables in Geant4, the volume IDs will be offset if a geometry has been
  * loaded and closed previously.
+ *
+ * The \c VolumeId used by Celeritas is equal to the index of a \c
+ * G4LogicalVolume in the \c G4LogicalVolumeStore. Due to potential resetting
+ * of the geometry, the "volume instance ID" for the logical volume may be
+ * offset from this index.
+ *
+ * Analogously, the \c G4VPhysicalVolume is equivalent to the index in its
+ * store. Due to the way Geant4 represents "parameterised" and "replicated"
+ * placements, a single PV may correspond to multiple spatial placements and is
+ * dismabiguated with \c ReplicaId , which corresponds to the PV's "copy
+ * number".
  */
 class GeantGeoParams final : public GeoParamsInterface,
                              public ParamsDataInterface<GeantGeoParamsData>
@@ -86,10 +97,10 @@ class GeantGeoParams final : public GeoParamsInterface,
     using GeoParamsInterface::find_volume;
 
     //! Offset of logical volume ID after reloading geometry
-    VolumeId::size_type lv_offset() const { return lv_offset_; }
+    VolumeId::size_type lv_offset() const { return data_.lv_offset; }
 
     //! Offset of physical volume ID after reloading geometry
-    VolumeId::size_type pv_offset() const { return pv_offset_; }
+    VolumeId::size_type pv_offset() const { return data_.pv_offset; }
 
     //// G4 ACCESSORS ////
 
@@ -107,8 +118,8 @@ class GeantGeoParams final : public GeoParamsInterface,
 
     //!@{
     //! Access the world volume
-    G4VPhysicalVolume const* world() const { return host_ref_.world; }
-    G4VPhysicalVolume* world() { return host_ref_.world; }
+    G4VPhysicalVolume const* world() const { return data_.world; }
+    G4VPhysicalVolume* world() { return data_.world; }
     //!@}
 
     // Get the world extents in Geant4 units
@@ -117,7 +128,7 @@ class GeantGeoParams final : public GeoParamsInterface,
     //// DATA ACCESS ////
 
     //! Access geometry data on host
-    HostRef const& host_ref() const final { return host_ref_; }
+    HostRef const& host_ref() const final { return data_; }
 
     //! No GPU support code
     DeviceRef const& device_ref() const final
@@ -138,11 +149,9 @@ class GeantGeoParams final : public GeoParamsInterface,
     VolInstanceMap vol_instances_;
     BBox bbox_;
     LevelId::size_type max_depth_{0};
-    VolumeId::size_type lv_offset_{0};
-    VolumeInstanceId::size_type pv_offset_{0};
 
-    // Host/device storage and reference
-    HostRef host_ref_;
+    // Storage
+    HostRef data_;
 
     //// HELPER FUNCTIONS ////
 
