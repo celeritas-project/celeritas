@@ -52,7 +52,7 @@ class PhysicalVolumeConverterTest : public GeantLoadTestBase
 };
 
 //---------------------------------------------------------------------------//
-TEST_F(PhysicalVolumeConverterTest, DISABLED_four_levels)
+TEST_F(PhysicalVolumeConverterTest, four_levels)
 {
     this->load_test_gdml("four-levels");
     PhysicalVolumeConverter::Options opts;
@@ -61,7 +61,7 @@ TEST_F(PhysicalVolumeConverterTest, DISABLED_four_levels)
     PhysicalVolumeConverter convert{this->geo(), make_options()};
 
     PhysicalVolume world = convert(this->world());
-    EXPECT_EQ("world_PV", this->get_label(world).name);
+    EXPECT_EQ("World_PV", this->get_label(world).name);
     if (!std::holds_alternative<NoTransformation>(world.transform))
     {
         ADD_FAILURE() << "Unexpected transform type: "

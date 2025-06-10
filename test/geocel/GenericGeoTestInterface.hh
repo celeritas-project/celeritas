@@ -17,72 +17,13 @@
 
 class G4VPhysicalVolume;
 
-// DEPRECATED: remove in v0.7
-#define EXPECT_RESULT_EQ(EXPECTED, ACTUAL) EXPECT_REF_EQ(EXPECTED, ACTUAL)
-#define EXPECT_RESULT_NEAR(EXPECTED, ACTUAL, TOL) \
-    EXPECT_REF_NEAR(EXPECTED, ACTUAL, TOL)
-
 namespace celeritas
 {
 namespace test
 {
-
-class GenericGeoTestInterface;
-
 //---------------------------------------------------------------------------//
-struct GenericGeoTrackingResult
-{
-    std::vector<std::string> volumes;
-    std::vector<std::string> volume_instances;
-    std::vector<real_type> distances;  //!< [cm]
-    std::vector<real_type> halfway_safeties;  //!< [cm]
-    // Locations the particle had a very tiny distance in a volume
-    std::vector<real_type> bumps;  //!< [cm * 3]
-
-    void print_expected();
-};
-
-struct GenericGeoTrackingTolerance
-{
-    real_type distance{0};
-    real_type safety{0};
-
-    static GenericGeoTrackingTolerance
-    from_test(GenericGeoTestInterface const&);
-};
-
-//---------------------------------------------------------------------------//
-struct GenericGeoVolumeStackResult
-{
-    std::vector<std::string> volume_instances;
-    std::vector<int> replicas;
-
-    void print_expected();
-};
-
-//---------------------------------------------------------------------------//
-::testing::AssertionResult IsRefEq(char const* expected_expr,
-                                   char const* actual_expr,
-                                   char const* tol_expr,
-                                   GenericGeoTrackingResult const& expected,
-                                   GenericGeoTrackingResult const& actual,
-                                   GenericGeoTrackingTolerance const& tol);
-
-//---------------------------------------------------------------------------//
-inline ::testing::AssertionResult
-IsRefEq(char const* expected_expr,
-        char const* actual_expr,
-        GenericGeoTrackingResult const& expected,
-        GenericGeoTrackingResult const& actual)
-{
-    return IsRefEq(expected_expr, actual_expr, "default", expected, actual, {});
-}
-
-//---------------------------------------------------------------------------//
-::testing::AssertionResult IsRefEq(char const* expected_expr,
-                                   char const* actual_expr,
-                                   GenericGeoVolumeStackResult const& expected,
-                                   GenericGeoVolumeStackResult const& actual);
+struct GenericGeoTrackingResult;
+struct GenericGeoVolumeStackResult;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -114,7 +55,7 @@ class GenericGeoTestInterface
     //!@}
 
     //!@{
-    // Obtain the "touchable history" at a point
+    //! Obtain the "touchable history" at a point
     virtual VolumeStackResult volume_stack(Real3 const& pos_cm) = 0;
     //!@}
 

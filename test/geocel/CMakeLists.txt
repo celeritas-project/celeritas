@@ -26,6 +26,7 @@ endif()
 set(SOURCES
   LazyGeoManager.cc
   GeantImportVolumeResult.cc
+  GenericGeoResults.cc
   GenericGeoTestInterface.cc
   GeoTests.cc
 )
