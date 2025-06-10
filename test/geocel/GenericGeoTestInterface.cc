@@ -80,21 +80,12 @@ GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
     }                                                                    \
     else                                                                 \
         (void)sizeof(char)
-#define IRE_VEC_SOFT_EQ2(ATTR, REL, ABS)                               \
-    if (auto result = IsVecSoftEquiv(                                  \
-            expr1, #ATTR, #REL, #ABS, val1.ATTR, val2.ATTR, REL, ABS); \
-        !static_cast<bool>(result))                                    \
-    {                                                                  \
-        helper.fail() << result.message();                             \
-    }                                                                  \
-    else                                                               \
-        (void)sizeof(char)
 
     IRE_VEC_EQ(volumes);
     IRE_VEC_EQ(volume_instances);
     IRE_VEC_SOFT_EQ(distances, tol.distance);
-    IRE_VEC_SOFT_EQ2(halfway_safeties, tol.safety, tol.safety);
-    IRE_VEC_SOFT_EQ2(bumps, tol.safety, tol.safety);
+    IRE_VEC_SOFT_EQ(halfway_safeties, SoftEqual(tol.safety, tol.safety));
+    IRE_VEC_SOFT_EQ(bumps, SoftEqual(tol.safety, tol.safety));
 
 #undef IRE_COMPARE
     return helper;
