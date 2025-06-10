@@ -322,6 +322,11 @@ TEST_F(MultiLevelTest, accessors)
     this->impl().test_accessors();
 }
 
+TEST_F(MultiLevelTest, model)
+{
+    this->impl().test_model();
+}
+
 TEST_F(MultiLevelTest, trace)
 {
     this->impl().test_trace();
@@ -414,6 +419,20 @@ TEST_F(MultiLevelTest, level_strings)
 
     EXPECT_VEC_EQ(expected_all_vol_inst, all_vol_inst);
     EXPECT_VEC_EQ(expected_all_vol, all_vol);
+}
+
+//---------------------------------------------------------------------------//
+using OpticalSurfacesTest
+    = GenericGeoParameterizedTest<GeantGeoTest, OpticalSurfacesGeoTest>;
+
+TEST_F(OpticalSurfacesTest, model)
+{
+    this->impl().test_model();
+}
+
+TEST_F(OpticalSurfacesTest, trace)
+{
+    this->impl().test_trace();
 }
 
 //---------------------------------------------------------------------------//
@@ -521,6 +540,11 @@ TEST_F(ReplicaTest, level_strings)
 
 using SimpleCmsTest
     = GenericGeoParameterizedTest<GeantGeoTest, SimpleCmsGeoTest>;
+
+TEST_F(SimpleCmsTest, model)
+{
+    this->impl().test_model();
+}
 
 TEST_F(SimpleCmsTest, trace)
 {

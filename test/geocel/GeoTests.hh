@@ -91,6 +91,28 @@ class MultiLevelGeoTest
     MultiLevelGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
     void test_accessors() const;
+    void test_model() const;
+    void test_trace() const;
+
+  private:
+    GenericGeoTestInterface* test_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Test the optical surfaces geometry.
+ */
+class OpticalSurfacesGeoTest
+{
+  public:
+    static std::string_view geometry_basename() { return "optical-surfaces"; }
+
+    //! Construct with a reference to the GoogleTest
+    OpticalSurfacesGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test}
+    {
+    }
+
+    void test_model() const;
     void test_trace() const;
 
   private:
@@ -146,6 +168,7 @@ class SimpleCmsGeoTest
     //! Construct with a reference to the GoogleTest
     SimpleCmsGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
+    void test_model() const;
     void test_trace() const;
 
     template<class GeoTest>

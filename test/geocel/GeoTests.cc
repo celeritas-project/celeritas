@@ -382,7 +382,8 @@ void FourLevelsGeoTest::test_trace() const
 }
 
 //---------------------------------------------------------------------------//
-//! Test geometry accessors
+// MULTI-LEVEL
+//---------------------------------------------------------------------------//
 void MultiLevelGeoTest::test_accessors() const
 {
     auto const& geo = *test_->geometry_interface();
@@ -428,6 +429,13 @@ void MultiLevelGeoTest::test_accessors() const
     {
         EXPECT_VEC_EQ(expected_vol_inst_labels, test_->get_g4pv_labels());
     }
+}
+
+//---------------------------------------------------------------------------//
+void MultiLevelGeoTest::test_model() const
+{
+    auto result = test_->model_inp();
+    result.print_expected();
 }
 
 //---------------------------------------------------------------------------//
@@ -579,6 +587,43 @@ void MultiLevelGeoTest::test_trace() const
             EXPECT_VEC_NEAR(
                 expected_hw_safety, result.halfway_safeties, safety_tol);
         }
+    }
+}
+
+//---------------------------------------------------------------------------//
+// OPTICAL SURFACES
+//---------------------------------------------------------------------------//
+void OpticalSurfacesGeoTest::test_model() const
+{
+    auto result = test_->model_inp();
+    result.print_expected();
+}
+
+//---------------------------------------------------------------------------//
+void OpticalSurfacesGeoTest::test_trace() const
+{
+    {
+        SCOPED_TRACE("Through tubes");
+        auto result = test_->track({0, 0, -21}, {0, 0, 1});
+        static char const* const expected_volumes[]
+            = {"world", "tube2", "tube1_mid", "tube2", "world"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {1, 10, 20, 10, 80};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {0.5, 5, 10, 5, 40};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        SCOPED_TRACE("Across tube through lAr");
+        auto result = test_->track({-11, 0, 0}, {1, 0, 0});
+
+        static char const* const expected_volumes[]
+            = {"world", "tube1_mid", "world", "lar_sphere", "world"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {1, 20, 5, 10, 75};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {0.5, 10, 2.5, 5, 37.5};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
 }
 
@@ -1511,6 +1556,13 @@ void SolidsGeoTest::test_trace() const
 
 //---------------------------------------------------------------------------//
 // SIMPLE CMS
+//---------------------------------------------------------------------------//
+void SimpleCmsGeoTest::test_model() const
+{
+    auto result = test_->model_inp();
+    result.print_expected();
+}
+
 //---------------------------------------------------------------------------//
 void SimpleCmsGeoTest::test_trace() const
 {

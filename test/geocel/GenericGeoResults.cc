@@ -8,6 +8,7 @@
 
 #include "corecel/io/Repr.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "geocel/inp/Model.hh"
 
 #include "GenericGeoTestInterface.hh"
 #include "testdetail/TestMacrosImpl.hh"
@@ -85,7 +86,8 @@ GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
     IRE_VEC_SOFT_EQ(halfway_safeties, SoftEqual(tol.safety, tol.safety));
     IRE_VEC_SOFT_EQ(bumps, SoftEqual(tol.safety, tol.safety));
 
-#undef IRE_COMPARE
+#undef IRE_VEC_EQ
+#undef IRE_VEC_SOFT_EQ
     return helper;
 }
 
@@ -154,11 +156,80 @@ void GenericGeoVolumeStackResult::print_expected() const
     {                                                                      \
         result.fail() << "Actual " #ATTR ": " << repr(val1.ATTR) << " vs " \
                       << repr(val2.ATTR);                                  \
-    }                                                                      \
-    else                                                                   \
-        (void)sizeof(char)
+    }
     IRE_COMPARE(volume_instances);
     IRE_COMPARE(replicas);
+#undef IRE_COMPARE
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+// MODEL INPUT RESULT
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a model input result from raw geometry model.
+ */
+GenericGeoModelInp GenericGeoModelInp::from_model_input(inp::Model const& in)
+{
+    GenericGeoModelInp result;
+
+    // Extract volume names
+    result.volumes.resize(in.volumes.volumes.size());
+    for (auto i : range(in.volumes.volumes.size()))
+    {
+        result.volumes[i] = to_string(in.volumes.volumes[i].label);
+    }
+
+    // Extract volume instance names
+    result.volume_instances.resize(in.volumes.volume_instances.size());
+    for (auto i : range(in.volumes.volume_instances.size()))
+    {
+        result.volume_instances[i]
+            = to_string(in.volumes.volume_instances[i].label);
+    }
+
+    // Extract daughter relationships
+    result.daughters.resize(in.volumes.volumes.size());
+    for (auto i : range(in.volumes.volumes.size()))
+    {
+        auto const& children = in.volumes.volumes[i].children;
+        result.daughters[i].reserve(children.size());
+        for (auto child_id : children)
+        {
+            result.daughters[i].push_back(child_id.get());
+        }
+    }
+
+    return result;
+}
+
+void GenericGeoModelInp::print_expected() const
+{
+    std::cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+            "GenericGeoModelInp ref;\n"
+            CELER_REF_ATTR(volumes)
+            CELER_REF_ATTR(volume_instances)
+            CELER_REF_ATTR(daughters)
+            "EXPECT_RESULT_EQ(ref, result);\n"
+            "/*** END CODE ***/\n";
+}
+
+::testing::AssertionResult IsRefEq(char const* expr1,
+                                   char const* expr2,
+                                   GenericGeoModelInp const& val1,
+                                   GenericGeoModelInp const& val2)
+{
+    AssertionHelper result{expr1, expr2};
+
+#define IRE_COMPARE(ATTR)                                                  \
+    if (val1.ATTR != val2.ATTR)                                            \
+    {                                                                      \
+        result.fail() << "Actual " #ATTR ": " << repr(val1.ATTR) << " vs " \
+                      << repr(val2.ATTR);                                  \
+    }
+    IRE_COMPARE(volumes);
+    IRE_COMPARE(volume_instances);
+    IRE_COMPARE(daughters);
 #undef IRE_COMPARE
     return result;
 }

@@ -146,21 +146,29 @@ std::vector<G4LogicalSurface const*> make_surface_vec(GeantGeoParams const& geo)
         std::map<VolumeId, G4Surface const*> temp;
         auto const* table = G4Surface::GetSurfaceTable();
         CELER_ASSERT(table);
-        // NOTE: may need updating for older Geant4
-        for (auto&& [key, surf] : *table)
+#if G4VERSION_NUMBER >= 1120
+        for (auto&& [lv, surf] : *table)
         {
-            CELER_ASSERT(key);
-            auto vol_id = geo.geant_to_id(*key);
-            CELER_ASSERT(vol_id);
-            auto iter_inserted = temp.insert({vol_id, surf});
-            CELER_ASSERT(iter_inserted.second);
-        }
+#else
+        for (auto const* surf : *table)
+        {
+            auto* lv = surf->GetLogicalVolume();
+#endif
 
-        // Add to table in order
-        result.reserve(table->size());
-        for (auto const& kv : temp)
-        {
-            result.push_back(kv.second);
+            {
+                CELER_ASSERT(lv);
+                auto vol_id = geo.geant_to_id(*lv);
+                CELER_ASSERT(vol_id);
+                auto iter_inserted = temp.insert({vol_id, surf});
+                CELER_ASSERT(iter_inserted.second);
+            }
+
+            // Add to table in order
+            result.reserve(table->size());
+            for (auto const& kv : temp)
+            {
+                result.push_back(kv.second);
+            }
         }
     }
     {
