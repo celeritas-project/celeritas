@@ -9,6 +9,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ThreadId.hh"
 
 #include "LevelStateAccessor.hh"
@@ -109,7 +110,7 @@ class OrangeTrackView
     //! Whether the last operation resulted in an error
     CELER_FORCEINLINE_FUNCTION bool failed() const { return failed_; }
     // Get the normal vector of the current surface
-    inline CELER_FUNCTION Real3 surface_normal() const;
+    inline CELER_FUNCTION Real3 normal() const;
 
     //// OPERATIONS ////
 
@@ -250,7 +251,7 @@ class OrangeTrackView
     inline CELER_FUNCTION TransformId get_transform(LevelId lev) const;
 
     // Get the surface normal as defined by the geometry
-    inline CELER_FUNCTION Real3 geo_surface_normal() const;
+    inline CELER_FUNCTION Real3 geo_normal() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -818,7 +819,7 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
     {
         // Changing direction on a boundary, which may result in not leaving
         // current volume upon the cross_surface call
-        auto normal = this->geo_surface_normal();
+        auto normal = this->geo_normal();
 
         // Evaluate whether the direction dotted with the surface normal
         // changes (i.e. heading from inside to outside or vice versa).
@@ -1210,7 +1211,7 @@ CELER_FUNCTION TransformId OrangeTrackView::get_transform(LevelId lev) const
 /*!
  * Get the normal vector of the current surface as defined by the geometry.
  */
-CELER_FUNCTION Real3 OrangeTrackView::geo_surface_normal() const
+CELER_FUNCTION Real3 OrangeTrackView::geo_normal() const
 {
     CELER_EXPECT(this->is_on_boundary());
 
@@ -1243,15 +1244,15 @@ CELER_FUNCTION Real3 OrangeTrackView::geo_surface_normal() const
  * normal pointed into the previous volume. This ensures that the dot product
  * of the surface normal and the track direction is negative.
  */
-CELER_FUNCTION Real3 OrangeTrackView::surface_normal() const
+CELER_FUNCTION Real3 OrangeTrackView::normal() const
 {
     CELER_EXPECT(this->is_on_boundary());
 
-    auto normal = this->geo_surface_normal();
+    auto normal = this->geo_normal();
     // Flip direction if on the outside of the surface
     if (this->sense() == Sense::outside)
     {
-        normal *= real_type{-1};
+        normal = negate(normal);
     }
 
     return normal;

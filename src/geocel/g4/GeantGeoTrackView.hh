@@ -98,7 +98,7 @@ class GeantGeoTrackView
     //! Whether the last operation resulted in an error
     CELER_FORCEINLINE bool failed() const { return false; }
     // Get the normal vector of the current surface
-    inline CELER_FUNCTION Real3 surface_normal() const;
+    inline CELER_FUNCTION Real3 normal() const;
 
     // Get the Geant4 navigation state
     inline G4NavigationHistory const* nav_history() const;
@@ -354,9 +354,9 @@ CELER_FORCEINLINE bool GeantGeoTrackView::is_on_boundary() const
 /*!
  * Get the surface normal of the boundary the track is currently on.
  */
-CELER_FUNCTION auto GeantGeoTrackView::surface_normal() const -> Real3
+CELER_FUNCTION auto GeantGeoTrackView::normal() const -> Real3
 {
-    CELER_NOT_IMPLEMENTED("GeantGeoTrackView::surface_normal");
+    CELER_NOT_IMPLEMENTED("GeantGeoTrackView::normal");
 }
 
 //---------------------------------------------------------------------------//
