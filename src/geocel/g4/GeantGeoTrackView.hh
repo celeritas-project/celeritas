@@ -97,10 +97,8 @@ class GeantGeoTrackView
     inline bool is_on_boundary() const;
     //! Whether the last operation resulted in an error
     CELER_FORCEINLINE bool failed() const { return false; }
-    // Get the local normal vector of the current surface
-    inline CELER_FUNCTION Real3 local_surface_normal() const;
-    // Get the global normal vector of the current surface
-    inline CELER_FUNCTION Real3 global_surface_normal() const;
+    // Get the normal vector of the current surface
+    inline CELER_FUNCTION Real3 surface_normal() const;
 
     // Get the Geant4 navigation state
     inline G4NavigationHistory const* nav_history() const;
@@ -346,22 +344,11 @@ CELER_FORCEINLINE bool GeantGeoTrackView::is_on_boundary() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the surface normal of the boundary the track is currently on, in local
- * coordinates.
+ * Get the surface normal of the boundary the track is currently on.
  */
-CELER_FUNCTION Real3 GeantGeoTrackView::local_surface_normal() const
+CELER_FUNCTION Real3 GeantGeoTrackView::surface_normal() const
 {
-    CELER_NOT_IMPLEMENTED();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the surface normal of the boundary the track is currently on, in global
- * coordinates.
- */
-CELER_FUNCTION Real3 GeantGeoTrackView::global_surface_normal() const
-{
-    CELER_NOT_IMPLEMENTED();
+    CELER_NOT_IMPLEMENTED("GeantGeoTrackView::surface_normal");
 }
 
 //---------------------------------------------------------------------------//

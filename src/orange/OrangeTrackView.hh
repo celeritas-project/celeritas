@@ -108,10 +108,8 @@ class OrangeTrackView
     inline CELER_FUNCTION bool is_on_boundary() const;
     //! Whether the last operation resulted in an error
     CELER_FORCEINLINE_FUNCTION bool failed() const { return failed_; }
-    // Get the local normal vector of the current surface
-    inline CELER_FUNCTION Real3 local_surface_normal() const;
-    // Get the global normal vector of the current surface
-    inline CELER_FUNCTION Real3 global_surface_normal() const;
+    // Get the normal vector of the current surface
+    inline CELER_FUNCTION Real3 surface_normal() const;
 
     //// OPERATIONS ////
 
@@ -243,13 +241,13 @@ class OrangeTrackView
     inline CELER_FUNCTION LSA make_lsa(LevelId level) const;
 
     // Get the daughter ID for the volume in the universe (or null)
-    inline CELER_FUNCTION DaughterId get_daughter(LSA const& lsa);
+    inline CELER_FUNCTION DaughterId get_daughter(LSA const& lsa) const;
 
     // Get the transform ID for the given daughter.
-    inline CELER_FUNCTION TransformId get_transform(DaughterId daughter_id);
+    inline CELER_FUNCTION TransformId get_transform(DaughterId daughter_id) const;
 
     // Get the transform ID to move from this level to the one below.
-    inline CELER_FUNCTION TransformId get_transform(LevelId lev);
+    inline CELER_FUNCTION TransformId get_transform(LevelId lev) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -817,23 +815,7 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
     {
         // Changing direction on a boundary, which may result in not leaving
         // current volume upon the cross_surface call
-        auto lsa = this->make_lsa(this->surface_level());
-
-        TrackerVisitor visit_tracker{params_};
-        auto normal = visit_tracker(
-            [pos = lsa.pos(), local_surface = this->surf()](auto&& t) {
-                return t.normal(pos, local_surface);
-            },
-            lsa.universe());
-
-        // Normal is in *local* coordinates but newdir is in *global*: rotate
-        // up to check
-        auto apply_transform = TransformVisitor{params_};
-        auto rotate_up = [&normal](auto&& t) { normal = t.rotate_up(normal); };
-        for (auto level : range<int>(this->level().unchecked_get()).step(-1))
-        {
-            apply_transform(rotate_up, this->get_transform(LevelId(level)));
-        }
+        auto normal = this->surface_normal();
 
         // Evaluate whether the direction dotted with the surface normal
         // changes (i.e. heading from inside to outside or vice versa).
@@ -1192,7 +1174,7 @@ CELER_FORCEINLINE_FUNCTION auto OrangeTrackView::make_lsa(LevelId level) const
  *
  * \return DaughterId or {} if the current volume is a leaf.
  */
-CELER_FUNCTION DaughterId OrangeTrackView::get_daughter(LSA const& lsa)
+CELER_FUNCTION DaughterId OrangeTrackView::get_daughter(LSA const& lsa) const
 {
     TrackerVisitor visit_tracker{params_};
     return visit_tracker([&lsa](auto&& t) { return t.daughter(lsa.vol()); },
@@ -1203,7 +1185,8 @@ CELER_FUNCTION DaughterId OrangeTrackView::get_daughter(LSA const& lsa)
 /*!
  * Get the transform ID for the given daughter.
  */
-CELER_FUNCTION TransformId OrangeTrackView::get_transform(DaughterId daughter_id)
+CELER_FUNCTION TransformId
+OrangeTrackView::get_transform(DaughterId daughter_id) const
 {
     CELER_EXPECT(daughter_id);
     return params_.daughters[daughter_id].trans_id;
@@ -1213,7 +1196,7 @@ CELER_FUNCTION TransformId OrangeTrackView::get_transform(DaughterId daughter_id
 /*!
  * Get the transform ID for the given daughter.
  */
-CELER_FUNCTION TransformId OrangeTrackView::get_transform(LevelId lev)
+CELER_FUNCTION TransformId OrangeTrackView::get_transform(LevelId lev) const
 {
     CELER_EXPECT(lev < this->level());
     LSA lsa(&states_, track_slot_, lev);
@@ -1222,31 +1205,23 @@ CELER_FUNCTION TransformId OrangeTrackView::get_transform(LevelId lev)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the surface normal vector of the surface the particle is currenlty on,
- * in local coordinates.
+ * Get the surface normal vector of the surface the particle is currenlty on.
+ *
+ * The surface normal should be called after \c cross_boundary so the normal
+ * should point out of the current volume back towards the original volume.
  */
-CELER_FUNCTION Real3 OrangeTrackView::local_surface_normal() const
+CELER_FUNCTION Real3 OrangeTrackView::surface_normal() const
 {
     CELER_EXPECT(this->is_on_boundary());
 
     auto lsa = this->make_lsa(this->surface_level());
 
     TrackerVisitor visit_tracker{params_};
-    return visit_tracker([pos = lsa.pos(), local_surface = this->surf()](
-                             auto&& t) { return t.normal(pos, local_surface); },
-                         lsa.universe());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the surface normal vector of the surface the particle is currenlty on,
- * in global coordinates.
- */
-CELER_FUNCTION Real3 OrangeTrackView::global_surface_normal() const
-{
-    CELER_EXPECT(this->is_on_boundary());
-
-    Real3 normal = this->local_surface_normal();
+    auto normal = visit_tracker(
+        [pos = lsa.pos(), local_surface = this->surf()](auto&& t) {
+            return t.normal(pos, local_surface);
+        },
+        lsa.universe());
 
     // Rotate up local surface normal to get the global surface normal
     auto apply_transform = TransformVisitor{params_};
@@ -1255,6 +1230,9 @@ CELER_FUNCTION Real3 OrangeTrackView::global_surface_normal() const
     {
         apply_transform(rotate_up, this->get_transform(LevelId(level)));
     }
+
+    CELER_ENSURE(is_soft_unit_vector(normal));
+    CELER_ENSURE(dot_product(normal, this->dir()) < 0);
 
     return normal;
 }

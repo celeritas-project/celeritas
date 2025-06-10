@@ -112,10 +112,8 @@ class VecgeomTrackView
     CELER_FORCEINLINE_FUNCTION bool is_on_boundary() const;
     //! Whether the last operation resulted in an error
     CELER_FORCEINLINE_FUNCTION bool failed() const { return false; }
-    // Get the local normal vector of the current surface
-    inline CELER_FUNCTION Real3 local_surface_normal() const;
-    // Get the global normal vector of the current surface
-    inline CELER_FUNCTION Real3 global_surface_normal() const;
+    // Get the normal vector of the current surface
+    inline CELER_FUNCTION Real3 surface_normal() const;
 
     //// OPERATIONS ////
 
@@ -336,29 +334,11 @@ CELER_FUNCTION bool VecgeomTrackView::is_on_boundary() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the surface normal of the boundary the track is currently on, in local
- * coordinates.
+ * Get the surface normal of the boundary the track is currently on.
  */
-CELER_FUNCTION Real3 VecgeomTrackView::local_surface_normal() const
+CELER_FUNCTION Real3 VecgeomTrackView::surface_normal() const
 {
-    CELER_EXPECT(this->is_on_boundary());
-    vecgeom::VPlacedVolume const* top = vgstate_.Top();
-    CELER_ASSERT(top);
-    // VecGeom Normal needs an L-value reference to store the normal
-    auto normal = detail::to_vector(Real3{1, 0, 0});
-    top->Normal(detail::to_vector(pos_), normal);
-    return detail::to_array(normal);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the surface normal of the boundary the track is currently on, in global
- * coordinates.
- */
-CELER_FUNCTION Real3 VecgeomTrackView::global_surface_normal() const
-{
-    CELER_EXPECT(this->is_on_boundary());
-    return this->local_surface_normal();
+    CELER_NOT_IMPLEMENTED("VecgeomTrackView::surface_normal");
 }
 
 //---------------------------------------------------------------------------//
