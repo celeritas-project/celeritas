@@ -9,11 +9,12 @@
 #include <algorithm>
 #include <iostream>
 #include <string>
-#include <string_view>
 #include <unordered_set>
 #include <G4Element.hh>
 #include <G4FieldManager.hh>
 #include <G4Isotope.hh>
+#include <G4LogicalBorderSurface.hh>
+#include <G4LogicalSkinSurface.hh>
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
 #include <G4Material.hh>
@@ -168,6 +169,8 @@ void reset_geant_geometry()
 #if G4VERSION_NUMBER >= 1100
         G4ReflectionFactory::Instance()->Clean();
 #endif
+        G4LogicalSkinSurface::CleanSurfaceTable();
+        G4LogicalBorderSurface::CleanSurfaceTable();
         free_and_clear(G4Material::GetMaterialTable());
         free_and_clear(const_cast<std::vector<G4Element*>*>(
             G4Element::GetElementTable()));
