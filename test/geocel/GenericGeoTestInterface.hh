@@ -24,6 +24,7 @@ namespace test
 //---------------------------------------------------------------------------//
 struct GenericGeoTrackingResult;
 struct GenericGeoVolumeStackResult;
+struct GenericGeoModelInp;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -42,6 +43,7 @@ class GenericGeoTestInterface
     //! \name Type aliases
     using TrackingResult = GenericGeoTrackingResult;
     using VolumeStackResult = GenericGeoVolumeStackResult;
+    using ModelInpResult = GenericGeoModelInp;
     using SPConstGeoInterface = std::shared_ptr<GeoParamsInterface const>;
     //!@}
 
@@ -58,6 +60,9 @@ class GenericGeoTestInterface
     //! Obtain the "touchable history" at a point
     virtual VolumeStackResult volume_stack(Real3 const& pos_cm) = 0;
     //!@}
+
+    //! Get the model input from the geometry
+    virtual ModelInpResult model_inp() const = 0;
 
     //! Get the label for this geometry: Geant4, VecGeom, ORANGE
     virtual std::string_view geometry_type() const = 0;
