@@ -112,6 +112,8 @@ class VecgeomTrackView
     CELER_FORCEINLINE_FUNCTION bool is_on_boundary() const;
     //! Whether the last operation resulted in an error
     CELER_FORCEINLINE_FUNCTION bool failed() const { return false; }
+    // Get the normal vector of the current surface
+    inline CELER_FUNCTION Real3 normal() const;
 
     //// OPERATIONS ////
 
@@ -328,6 +330,15 @@ CELER_FUNCTION bool VecgeomTrackView::is_outside() const
 CELER_FUNCTION bool VecgeomTrackView::is_on_boundary() const
 {
     return vgstate_.IsOnBoundary();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the surface normal of the boundary the track is currently on.
+ */
+CELER_FUNCTION Real3 VecgeomTrackView::normal() const
+{
+    CELER_NOT_IMPLEMENTED("VecgeomTrackView::normal");
 }
 
 //---------------------------------------------------------------------------//
