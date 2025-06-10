@@ -291,9 +291,7 @@ void OpticalPhysics::ConstructProcess()
     if (process_is_active(OpticalProcessType::wavelength_shifting_2, options_))
     {
         auto wls2 = std::make_unique<G4OpWLS2>();
-        wls2->UseTimeProfile(to_cstring(options_.wavelength_shifting2));
         process_manager->AddDiscreteProcess(wls2.release());
-        // I need to check how this differs from G4OpWLS...
         CELER_LOG(debug) << "Loaded second optical wavelength shifting with "
                             "G4OpWLS2 process ";
     }

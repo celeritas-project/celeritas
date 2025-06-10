@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/math/PdfUtils.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/NonuniformGridInserter.hh"
@@ -51,8 +52,11 @@ WavelengthShiftModel::WavelengthShiftModel(ActionId id,
     , imported_(input.model, std::move(imported))
 {
     CELER_EXPECT(input.data.size() == imported_.num_materials());
-    CELER_EXPECT(input.model == ImportModelClass::wls
-                 || input.model == ImportModelClass::wls2);
+
+    CELER_VALIDATE(input.model == ImportModelClass::wls
+                       || input.model == ImportModelClass::wls2,
+                   << "Invalid model '" << input.model
+                   << "' for optical wavelength shifting");
 
     SegmentIntegrator integrate_emission{TrapezoidSegmentIntegrator{}};
 
