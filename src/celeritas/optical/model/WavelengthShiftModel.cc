@@ -57,10 +57,15 @@ WavelengthShiftModel::WavelengthShiftModel(ActionId id,
                        || input.model == ImportModelClass::wls2,
                    << "Invalid model '" << input.model
                    << "' for optical wavelength shifting");
+    CELER_VALIDATE(input.time_profile == WlsTimeProfile::delta
+                       || input.time_profile == WlsTimeProfile::exponential,
+                   << "Unsupported time profile for model '" << input.model
+                   << "'");
 
     SegmentIntegrator integrate_emission{TrapezoidSegmentIntegrator{}};
 
     HostVal<WavelengthShiftData> data;
+    data.time_profile = input.time_profile;
     CollectionBuilder wls_record{&data.wls_record};
     NonuniformGridInserter insert_energy_cdf(&data.reals, &data.energy_cdf);
     for (auto const& wls : input.data)

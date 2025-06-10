@@ -19,15 +19,15 @@ namespace celeritas
 static char const format_str[] = "geant4-optical-physics";
 
 //---------------------------------------------------------------------------//
-void from_json(nlohmann::json const& j, WLSTimeProfileSelection& value)
+void from_json(nlohmann::json const& j, WlsTimeProfile& value)
 {
     static auto const from_string
-        = StringEnumMapper<WLSTimeProfileSelection>::from_cstring_func(
+        = StringEnumMapper<WlsTimeProfile>::from_cstring_func(
             to_cstring, "wls time profile");
     value = from_string(j.get<std::string>());
 }
 
-void to_json(nlohmann::json& j, WLSTimeProfileSelection const& value)
+void to_json(nlohmann::json& j, WlsTimeProfile const& value)
 {
     j = std::string{to_cstring(value)};
 }

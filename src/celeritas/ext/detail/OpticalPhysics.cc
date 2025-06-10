@@ -145,7 +145,7 @@ bool process_is_active(OpticalProcessType process,
         case OpticalProcessType::boundary:
             return bool(options.boundary);
         case OpticalProcessType::wavelength_shifting:
-            return options.wavelength_shifting != WLSTimeProfileSelection::none;
+            return options.wavelength_shifting != WlsTimeProfile::none;
         case OpticalProcessType::wavelength_shifting_2:
             // Technically reachable, but practically not supported pre 10.7
             CELER_ASSERT_UNREACHABLE();
@@ -177,10 +177,10 @@ OpticalPhysics::OpticalPhysics(Options const& options) : options_(options)
     activate_process(kRayleigh, options_.rayleigh_scattering);
     activate_process(kMieHG, options_.mie_scattering);
     activate_process(kBoundary, bool(options_.boundary));
-    activate_process(
-        kWLS, options_.wavelength_shifting != WLSTimeProfileSelection::none);
-    activate_process(
-        kWLS2, options_.wavelength_shifting2 != WLSTimeProfileSelection::none);
+    activate_process(kWLS,
+                     options_.wavelength_shifting != WlsTimeProfile::none);
+    activate_process(kWLS2,
+                     options_.wavelength_shifting2 != WlsTimeProfile::none);
 
     // Cherenkov
     params->SetCerenkovStackPhotons(options_.cherenkov.stack_photons);
@@ -206,8 +206,7 @@ OpticalPhysics::OpticalPhysics(Options const& options) : options_(options)
     // boundary
     params->SetBoundaryInvokeSD(options_.boundary.invoke_sd);
 
-    // Only set a global verbosity with same level for all optical
-    // processes
+    // Only set a global verbosity with same level for all optical processes
     params->SetVerboseLevel(options_.verbose);
 #endif
 }

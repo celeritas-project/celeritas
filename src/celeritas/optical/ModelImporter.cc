@@ -33,6 +33,7 @@ ModelImporter::ModelImporter(ImportData const& data,
                              UserBuildMap user_build)
     : input_{nullptr, std::move(material), nullptr, std::move(core_material)}
     , user_build_map_(std::move(user_build))
+    , params_(data.optical_params)
 {
     CELER_EXPECT(input_.material);
     CELER_EXPECT(input_.core_material);
@@ -119,6 +120,7 @@ auto ModelImporter::build_wls() const -> ModelBuilder
 {
     WavelengthShiftModel::Input input;
     input.model = ImportModelClass::wls;
+    input.time_profile = params_.wls_time_profile;
     for (auto mid : range(OptMatId{input_.import_material->num_materials()}))
     {
         input.data.push_back(input_.import_material->wls(mid));
@@ -135,6 +137,7 @@ auto ModelImporter::build_wls2() const -> ModelBuilder
 {
     WavelengthShiftModel::Input input;
     input.model = ImportModelClass::wls2;
+    input.time_profile = params_.wls2_time_profile;
     for (auto mid : range(OptMatId{input_.import_material->num_materials()}))
     {
         input.data.push_back(input_.import_material->wls2(mid));

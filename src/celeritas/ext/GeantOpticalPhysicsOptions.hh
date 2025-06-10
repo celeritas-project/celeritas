@@ -7,19 +7,10 @@
 #pragma once
 
 #include "corecel/Types.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-//! WLS time model selection
-enum class WLSTimeProfileSelection
-{
-    none,
-    delta,  //!< Delta function
-    exponential,  //!< Exponential decay
-    size_
-};
-
 //---------------------------------------------------------------------------//
 //! Cherenkov process options
 struct CherenkovPhysicsOptions
@@ -139,11 +130,9 @@ struct GeantOpticalPhysicsOptions
     //! \name Optical photon physics
 
     //! Enable wavelength shifting and select a time profile
-    WLSTimeProfileSelection wavelength_shifting{WLSTimeProfileSelection::delta};
-    //! Enable second wavelength shifting type and select a time profile (TODO:
-    //! clarify)
-    WLSTimeProfileSelection wavelength_shifting2{
-        WLSTimeProfileSelection::delta};
+    WlsTimeProfile wavelength_shifting{WlsTimeProfile::delta};
+    //! Enable second wavelength shifting and select a time profile
+    WlsTimeProfile wavelength_shifting2{WlsTimeProfile::delta};
     //! Enable boundary effects
     BoundaryPhysicsOptions boundary;
     //! Enable absorption
@@ -161,10 +150,9 @@ struct GeantOpticalPhysicsOptions
     explicit operator bool() const
     {
         return cherenkov || scintillation
-               || (wavelength_shifting != WLSTimeProfileSelection::none)
-               || (wavelength_shifting2 != WLSTimeProfileSelection::none)
-               || boundary || absorption || rayleigh_scattering
-               || mie_scattering;
+               || (wavelength_shifting != WlsTimeProfile::none)
+               || (wavelength_shifting2 != WlsTimeProfile::none) || boundary
+               || absorption || rayleigh_scattering || mie_scattering;
     }
 
     //! Return instance with all processes deactivated
@@ -173,8 +161,8 @@ struct GeantOpticalPhysicsOptions
         GeantOpticalPhysicsOptions opts;
         opts.cherenkov.enable = false;
         opts.scintillation.enable = false;
-        opts.wavelength_shifting = WLSTimeProfileSelection::none;
-        opts.wavelength_shifting2 = WLSTimeProfileSelection::none;
+        opts.wavelength_shifting = WlsTimeProfile::none;
+        opts.wavelength_shifting2 = WlsTimeProfile::none;
         opts.boundary.enable = false;
         opts.absorption = false;
         opts.rayleigh_scattering = false;
@@ -206,7 +194,7 @@ constexpr bool operator==(GeantOpticalPhysicsOptions const& a,
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
-char const* to_cstring(WLSTimeProfileSelection value);
+char const* to_cstring(WlsTimeProfile value);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

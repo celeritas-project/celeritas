@@ -151,8 +151,7 @@ struct ImportWavelengthShift
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
-        return mean_num_photons > 0 && time_constant > 0
-               && static_cast<bool>(component);
+        return mean_num_photons > 0 && time_constant > 0 && component;
     }
 };
 
