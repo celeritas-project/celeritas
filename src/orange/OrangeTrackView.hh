@@ -1205,15 +1205,14 @@ CELER_FUNCTION TransformId OrangeTrackView::get_transform(LevelId lev) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the surface normal vector of the surface the particle is currenlty on.
- *
- * The surface normal should be called after \c cross_boundary so the normal
- * should point out of the current volume back towards the original volume.
+ * Get the normal vector of the current surface.
  */
 CELER_FUNCTION Real3 OrangeTrackView::surface_normal() const
 {
     CELER_EXPECT(this->is_on_boundary());
 
+    // Changing direction on a boundary, which may result in not leaving
+    // current volume upon the cross_surface call
     auto lsa = this->make_lsa(this->surface_level());
 
     TrackerVisitor visit_tracker{params_};
@@ -1223,7 +1222,8 @@ CELER_FUNCTION Real3 OrangeTrackView::surface_normal() const
         },
         lsa.universe());
 
-    // Rotate up local surface normal to get the global surface normal
+    // Normal is in *local* coordinates but newdir is in *global*: rotate
+    // up to check
     auto apply_transform = TransformVisitor{params_};
     auto rotate_up = [&normal](auto&& t) { normal = t.rotate_up(normal); };
     for (auto level : range<int>(this->level().unchecked_get()).step(-1))
@@ -1232,7 +1232,6 @@ CELER_FUNCTION Real3 OrangeTrackView::surface_normal() const
     }
 
     CELER_ENSURE(is_soft_unit_vector(normal));
-    CELER_ENSURE(dot_product(normal, this->dir()) < 0);
 
     return normal;
 }
