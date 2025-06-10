@@ -12,6 +12,7 @@
 #include <unordered_set>
 #include <G4LogicalVolume.hh>
 #include <G4PVPlacement.hh>
+#include <G4ReplicaNavigation.hh>
 #include <G4VPVParameterisation.hh>
 #include <G4VPhysicalVolume.hh>
 
@@ -34,6 +35,32 @@ namespace celeritas
 {
 namespace g4org
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+struct ReplicaUpdater
+{
+    void operator()(int copy_no, G4VPhysicalVolume* g4pv)
+    {
+        // TODO: check and error if the replica uses the kRaxis replication
+        nav_.ComputeTransformation(copy_no, g4pv);
+    }
+
+    G4ReplicaNavigation nav_;
+};
+
+struct ParamUpdater
+{
+    void operator()(int copy_no, G4VPhysicalVolume* g4pv)
+    {
+        param_->ComputeTransformation(copy_no, g4pv);
+    }
+
+    G4VPVParameterisation* param_;
+};
+
+}  // namespace
+
 //---------------------------------------------------------------------------//
 struct PhysicalVolumeConverter::Data
 {
@@ -180,41 +207,43 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
 void PhysicalVolumeConverter::Builder::place_child(
     int depth, G4VPhysicalVolume const& g4pv, LogicalVolume* lv)
 {
-    if (dynamic_cast<G4PVPlacement const*>(&g4pv))
-    {
+    auto place_single = [&] {
         // Place child
         lv->children.push_back(this->make_pv(depth, g4pv));
-    }
-    else if (G4VPVParameterisation* param = g4pv.GetParameterisation())
-    {
-        if (CELER_UNLIKELY(data->verbose))
-        {
-            CELER_LOG(debug)
-                << "Processing parameterized volume " << g4pv.GetName()
-                << " with " << g4pv.GetMultiplicity() << " instances";
-        }
-
-        // Loop over number of replicas
+    };
+    auto place_multiple = [&](auto&& update_pv) {
+        auto* g4pv_mutable = const_cast<G4VPhysicalVolume*>(&g4pv);
         for (auto j : range(g4pv.GetMultiplicity()))
         {
-            // Use the parameterization to *change* the physical volume's
-            // position (yes, this is how Geant4 does it too)
-            param->ComputeTransformation(
-                j, const_cast<G4VPhysicalVolume*>(&g4pv));
-            const_cast<G4VPhysicalVolume&>(g4pv).SetCopyNo(j);
-
-            // Add a copy
-            lv->children.push_back(this->make_pv(depth, g4pv));
+            // Modify the volume's position/size/orientation in-place
+            update_pv(j, g4pv_mutable);
+            g4pv_mutable->SetCopyNo(j);
+            // Place the copy
+            place_single();
         }
-    }
-    else
+    };
+
+    switch (g4pv.VolumeType())
     {
-        TypeDemangler<G4VPhysicalVolume> demangle_pv_type;
-        CELER_LOG(error)
-            << "Unsupported type '" << demangle_pv_type(g4pv)
-            << "' for physical volume '" << g4pv.GetName()
-            << "' (corresponding LV: " << PrintableLV{g4pv.GetLogicalVolume()}
-            << ")";
+        case EVolume::kNormal:
+            // Place daughter once
+            place_single();
+            break;
+        case EVolume::kReplica:
+            // Place daughter in each replicated location
+            place_multiple(ReplicaUpdater{});
+            break;
+        case EVolume::kParameterised:
+            // Place each paramterized instance of the daughter
+            CELER_ASSERT(g4pv.GetParameterisation());
+            place_multiple(ParamUpdater{g4pv.GetParameterisation()});
+            break;
+        default:
+            CELER_LOG(error) << "Unsupported type '"
+                             << TypeDemangler<G4VPhysicalVolume>{}(g4pv)
+                             << "' for physical volume '" << g4pv.GetName()
+                             << "' (corresponding LV: "
+                             << PrintableLV{g4pv.GetLogicalVolume()} << ")";
     }
 }
 

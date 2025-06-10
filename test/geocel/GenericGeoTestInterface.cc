@@ -10,11 +10,8 @@
 
 #include "corecel/Config.hh"
 
-#include "corecel/io/Repr.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/GeantGeoUtils.hh"
-
-#include "testdetail/TestMacrosImpl.hh"
 
 #if CELERITAS_USE_GEANT4
 #    include <G4VPhysicalVolume.hh>
@@ -26,106 +23,6 @@ namespace celeritas
 {
 namespace test
 {
-//---------------------------------------------------------------------------//
-#define CELER_REF_ATTR(ATTR) "ref." #ATTR " = " << repr(this->ATTR) << ";\n"
-void GenericGeoTrackingResult::print_expected()
-{
-    std::cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "GenericGeoTrackingResult ref;\n"
-            CELER_REF_ATTR(volumes)
-            CELER_REF_ATTR(volume_instances)
-            CELER_REF_ATTR(distances)
-            CELER_REF_ATTR(halfway_safeties)
-            CELER_REF_ATTR(bumps)
-            "auto tol = GenericGeoTrackingTolerance::from_test(*test_);\n"
-            "EXPECT_RESULT_NEAR(ref, result, tol);\n"
-            "/*** END CODE ***/\n";
-}
-
-GenericGeoTrackingTolerance
-GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
-{
-    GenericGeoTrackingTolerance tol;
-    tol.safety = test.safety_tol();
-    tol.distance = SoftEqual{}.rel();
-    return tol;
-}
-
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   char const*,
-                                   GenericGeoTrackingResult const& val1,
-                                   GenericGeoTrackingResult const& val2,
-                                   GenericGeoTrackingTolerance const& tol)
-{
-    using ::celeritas::testdetail::IsVecEq;
-    using ::celeritas::testdetail::IsVecSoftEquiv;
-
-    AssertionHelper helper{expr1, expr2};
-
-#define IRE_VEC_EQ(ATTR)                                           \
-    if (auto result = IsVecEq(expr1, #ATTR, val1.ATTR, val2.ATTR); \
-        !static_cast<bool>(result))                                \
-    {                                                              \
-        helper.fail() << result.message();                         \
-    }                                                              \
-    else                                                           \
-        (void)sizeof(char)
-#define IRE_VEC_SOFT_EQ(ATTR, TOL)                                       \
-    if (auto result                                                      \
-        = IsVecSoftEquiv(expr1, #ATTR, #TOL, val1.ATTR, val2.ATTR, TOL); \
-        !static_cast<bool>(result))                                      \
-    {                                                                    \
-        helper.fail() << result.message();                               \
-    }                                                                    \
-    else                                                                 \
-        (void)sizeof(char)
-
-    IRE_VEC_EQ(volumes);
-    IRE_VEC_EQ(volume_instances);
-    IRE_VEC_SOFT_EQ(distances, tol.distance);
-    IRE_VEC_SOFT_EQ(halfway_safeties, SoftEqual(tol.safety, tol.safety));
-    IRE_VEC_SOFT_EQ(bumps, SoftEqual(tol.safety, tol.safety));
-
-#undef IRE_COMPARE
-    return helper;
-}
-
-//---------------------------------------------------------------------------//
-void GenericGeoVolumeStackResult::print_expected()
-{
-    using std::cout;
-    // clang-format off
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "GenericGeoVolumeStackResult ref;\n"
-            CELER_REF_ATTR(volume_instances)
-            CELER_REF_ATTR(replicas)
-            "EXPECT_RESULT_EQ(ref, result);\n"
-            "/*** END CODE ***/\n";
-    // clang-format on
-}
-
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   GenericGeoVolumeStackResult const& val1,
-                                   GenericGeoVolumeStackResult const& val2)
-{
-    AssertionHelper result{expr1, expr2};
-
-#define IRE_COMPARE(ATTR)                                                  \
-    if (val1.ATTR != val2.ATTR)                                            \
-    {                                                                      \
-        result.fail() << "Actual " #ATTR ": " << repr(val1.ATTR) << " vs " \
-                      << repr(val2.ATTR);                                  \
-    }                                                                      \
-    else                                                                   \
-        (void)sizeof(char)
-    IRE_COMPARE(volume_instances);
-    IRE_COMPARE(replicas);
-#undef IRE_COMPARE
-    return result;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Get the basename or unique geometry key (defaults to suite name).
