@@ -9,6 +9,7 @@
 #include <limits>
 #include <nlohmann/json.hpp>
 
+#include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
@@ -471,10 +472,6 @@ TEST_F(PhysicsTrackViewHostTest, processes)
 TEST_F(PhysicsTrackViewHostTest, value_grids)
 {
     std::vector<int> grid_ids;
-
-    auto id_to_int = [](auto id) {
-        return id ? static_cast<int>(id.unchecked_get()) : -1;
-    };
 
     for (char const* particle : {"gamma", "celeriton", "anti-celeriton"})
     {

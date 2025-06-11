@@ -10,6 +10,7 @@
 #include <numeric>
 #include <vector>
 
+#include "corecel/OpaqueIdUtils.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionStateStore.hh"
@@ -51,14 +52,6 @@ struct RunResult
 };
 
 //---------------------------------------------------------------------------//
-
-template<class T, class S>
-int id_to_int(OpaqueId<T, S> oid)
-{
-    if (!oid)
-        return -1;
-    return static_cast<int>(oid.unchecked_get());
-}
 
 template<MemSpace M>
 RunResult RunResult::from_state(CoreState<M>& state)

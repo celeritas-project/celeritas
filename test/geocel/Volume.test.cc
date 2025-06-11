@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include <type_traits>
 
+#include "corecel/OpaqueIdUtils.hh"
 #include "geocel/Types.hh"
 #include "geocel/VolumeParams.hh"
 #include "geocel/inp/Model.hh"
@@ -28,24 +29,6 @@ auto get_mm_labels(T const& multimap)
     for (auto id : range(id_cast<IdType>(multimap.size())))
     {
         result.push_back(multimap.at(id).name);
-    }
-    return result;
-}
-
-template<class I, class T>
-auto id_to_int(OpaqueId<I, T> val)
-{
-    return val ? static_cast<int>(val.unchecked_get()) : -1;
-}
-
-template<class I, class T>
-auto id_to_int(Span<OpaqueId<I, T> const> vals)
-{
-    std::vector<int> result;
-    result.reserve(vals.size());
-    for (auto const& val : vals)
-    {
-        result.push_back(id_to_int(val));
     }
     return result;
 }
