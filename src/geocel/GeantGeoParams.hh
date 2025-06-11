@@ -108,14 +108,6 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Get the Geant4 logical volume corresponding to a volume ID
     G4LogicalVolume const* id_to_geant(VolumeId vol_id) const;
 
-    //// SURFACES ////
-
-    //! Get the number of surfaces (TODO: maybe live in surface params?)
-    SurfaceId::size_type num_surfaces() const { return surfaces_.size(); }
-
-    // Get the Geant4 logical volume corresponding to a volume ID
-    inline G4LogicalSurface const* id_to_geant(SurfaceId surf_id) const;
-
     // DEPRECATED
     using GeoParamsInterface::find_volume;
 
@@ -176,7 +168,6 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Host metadata/access
     VolumeMap volumes_;
     VolInstanceMap vol_instances_;
-    std::vector<G4LogicalSurface const*> surfaces_;
     BBox bbox_;
     LevelId::size_type max_depth_{0};
 
@@ -221,21 +212,6 @@ auto GeantGeoParams::volumes() const -> VolumeMap const&
 auto GeantGeoParams::volume_instances() const -> VolInstanceMap const&
 {
     return vol_instances_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the Geant4 logical volume corresponding to a volume ID.
- */
-G4LogicalSurface const* GeantGeoParams::id_to_geant(SurfaceId id) const
-{
-    CELER_EXPECT(!id || id < surfaces_.size());
-    if (!id)
-    {
-        return {};
-    }
-
-    return surfaces_[id.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//

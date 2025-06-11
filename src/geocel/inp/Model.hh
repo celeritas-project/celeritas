@@ -81,36 +81,6 @@ struct Volumes
 
 //---------------------------------------------------------------------------//
 /*!
- * Define a single surface, the boundary around or between volumes.
- *
- * An "interface" surface is an (exiting, entering) pair of volume instances.
- * A "boundary" surface is the entire surface of a volume.
- *
- * See \c SurfaceParams . These are typically loaded from Geant4 via \c
- * celeritas::setup::load_geant .
- */
-struct Surface
-{
-    using Interface = std::pair<VolumeInstanceId, VolumeInstanceId>;
-    using Boundary = VolumeId;
-
-    std::variant<Interface, Boundary> surface;
-    Label label;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * List all surfaces in a problem.
- */
-struct Surfaces
-{
-    using VecSurface = std::vector<Surface>;
-
-    VecSurface surfaces;
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Set up geometry/material model.
  *
  * The geometry filename should almost always be a GDML path. As a temporary
@@ -127,7 +97,6 @@ struct Model
     // TODO: Materials
     // TODO: Regions
     Volumes volumes;
-    Surfaces surfaces;
 };
 
 //---------------------------------------------------------------------------//

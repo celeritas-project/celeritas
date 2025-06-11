@@ -135,78 +135,6 @@ std::vector<Label> make_physical_vol_labels(G4VPhysicalVolume const& world,
 
 //---------------------------------------------------------------------------//
 /*!
- * Get a reproducible list of surfaces.
- */
-std::vector<G4LogicalSurface const*> make_surface_vec(GeantGeoParams const& geo)
-{
-    CELER_EXPECT(geo.volumes());
-    CELER_EXPECT(geo.volume_instances());
-
-    std::vector<G4LogicalSurface const*> result;
-    {
-        // Translate "skin" (boundary) surfaces
-        using G4Surface = G4LogicalSkinSurface;
-        std::map<VolumeId, G4Surface const*> temp;
-        auto const* table = G4Surface::GetSurfaceTable();
-        CELER_ASSERT(table);
-#if G4VERSION_NUMBER >= 1120
-        for (auto&& [lv, surf] : *table)
-        {
-#else
-        for (auto const* surf : *table)
-        {
-            auto* lv = surf->GetLogicalVolume();
-#endif
-
-            {
-                CELER_ASSERT(lv);
-                auto vol_id = geo.geant_to_id(*lv);
-                CELER_ASSERT(vol_id);
-                auto iter_inserted = temp.insert({vol_id, surf});
-                CELER_ASSERT(iter_inserted.second);
-            }
-        }
-
-        // Add to table in order
-        result.reserve(table->size());
-        for (auto const& kv : temp)
-        {
-            result.push_back(kv.second);
-        }
-    }
-    {
-        // Translate "border" (interface) surfaces
-        using G4Surface = G4LogicalBorderSurface;
-        std::map<std::pair<VolumeInstanceId, VolumeInstanceId>, G4Surface const*>
-            temp;
-        auto const* table = G4Surface::GetSurfaceTable();
-        CELER_ASSERT(table);
-        // NOTE: may need updating for older Geant4
-        for (auto&& [key, surf] : *table)
-        {
-            CELER_ASSERT(key.first);
-            auto before = geo.geant_to_id(*key.first);
-            CELER_ASSERT(before);
-            CELER_ASSERT(key.second);
-            auto after = geo.geant_to_id(*key.second);
-            CELER_ASSERT(after);
-            auto iter_inserted = temp.insert({{before, after}, surf});
-            CELER_ASSERT(iter_inserted.second);
-        }
-
-        // Add to table in order
-        result.reserve(result.size() + table->size());
-        for (auto const& kv : temp)
-        {
-            result.push_back(kv.second);
-        }
-    }
-
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct a volume input from a Geant4 logical volume by mapping IDs.
  */
 inp::Volume inp_from_geant(GeantGeoParams const& geo,
@@ -312,48 +240,6 @@ make_inp_volume_instances(GeantGeoParams const& geo)
             continue;
         }
         result[vol_inst_id.get()] = inp_from_geant(geo, label, *g4pv_inst.pv);
-    }
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Create surfaces input from Geant4 surfaces.
- */
-std::vector<inp::Surface> make_inp_surfaces(GeantGeoParams const& geo)
-{
-    // Process surfaces
-    std::vector<inp::Surface> result(geo.num_surfaces());
-
-    for (auto surf_id : range(SurfaceId{geo.num_surfaces()}))
-    {
-        G4LogicalSurface const* surf_base = geo.id_to_geant(surf_id);
-        CELER_ASSERT(surf_base);
-
-        // TODO: deduplicate labels if needed
-        result[surf_id.get()].label = surf_base->GetName();
-
-        // Construct surface
-        auto& inp_surf = result[surf_id.get()].surface;
-        if (auto* surf = dynamic_cast<G4LogicalSkinSurface const*>(surf_base))
-        {
-            auto* lv = surf->GetLogicalVolume();
-            CELER_ASSERT(lv);
-            inp_surf = inp::Surface::Boundary{geo.geant_to_id(*lv)};
-        }
-        else if (auto* surf
-                 = dynamic_cast<G4LogicalBorderSurface const*>(surf_base))
-        {
-            auto* pv_enter = surf->GetVolume1();
-            auto* pv_exit = surf->GetVolume2();
-            CELER_ASSERT(pv_enter && pv_exit);
-            inp_surf = inp::Surface::Interface{geo.geant_to_id(*pv_enter),
-                                               geo.geant_to_id(*pv_exit)};
-        }
-        else
-        {
-            CELER_ASSERT_UNREACHABLE();
-        }
     }
     return result;
 }
@@ -541,11 +427,6 @@ inp::Model GeantGeoParams::make_model_input() const
         result.volumes = make_inp_volumes(*this);
         result.volume_instances = make_inp_volume_instances(*this);
 
-        return result;
-    }();
-    result.surfaces = [this] {
-        inp::Surfaces result;
-        result.surfaces = make_inp_surfaces(*this);
         return result;
     }();
 
@@ -770,7 +651,6 @@ void GeantGeoParams::build_metadata()
     vol_instances_ = VolInstanceMap{
         "volume instance",
         make_physical_vol_labels(*this->world(), this->pv_offset())};
-    surfaces_ = make_surface_vec(*this);
     max_depth_ = get_max_depth(*this->world());
 
     auto clhep_bbox = this->get_clhep_bbox();
