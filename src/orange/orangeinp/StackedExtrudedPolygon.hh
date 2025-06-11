@@ -71,15 +71,15 @@ namespace orangeinp
    \endverbatim
  * When labeing nodes, the following shorthand format is used:
  *
- * <label>@<level>.<stack>.<segment>.
+ * label@level.stack.segment
  *
  * For example, the final region in the example above might be named:
  *
- * my_shape@1.1.0.
+ * my_shape@1.1.0
  *
  * For each level, additional nodes are created in the form:
  *
- * <label>@<level>.<suffix>,
+ * label@level.suffix
  *
  * where suffixes have the following meanings:
  *
