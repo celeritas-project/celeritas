@@ -10,8 +10,6 @@
 #include <unordered_map>
 #include <vector>
 #include <G4GeometryManager.hh>
-#include <G4LogicalBorderSurface.hh>
-#include <G4LogicalSkinSurface.hh>
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
 #include <G4Material.hh>

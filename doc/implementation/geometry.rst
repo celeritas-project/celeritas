@@ -21,7 +21,7 @@ their enclosing parent [#]_ volume.
 Celeritas defines abstract geometry concepts, indexed as IDs, to support
 multiple geometry applications [#]_ and to make the code backend-agnostic for
 integrating with physics. These include "volumes" (known in some other
-fields as "cells") and "surfaces" defined by the relationships between volumes.
+fields as "cells").
 
 .. [#] In the future the use of these abstract concepts will enable detector
    descriptions, and geometry models for other application, that are *not*
@@ -55,15 +55,6 @@ Unique instance
    and indirect children for each node.  Celeritas always uses 64-bit integers
    to store the ``VolumeUniqueInstanceId``.
 
-Surface
-   A *surface* is defined as a contiguous area on the boundary of a volume,
-   sometimes on only a single side of the volume. Note that this definition
-   different to the infinite surfaces of ORANGE and the surface frames of
-   VecGeom. Surfaces currently are defined in two ways: *Interface* surfaces
-   are one-directional surfaces defined as the interface from one
-   volume instance to another, called "border surfaces" in Geant4. *Boundary*
-   surfaces surrounding an entire volume and are called "skin" in Geant4.
-
 .. [#] A VolumeInstanceId has a one-to-one mapping for ``G4PVPlacement``, but
    "replica" and "parameterized" volumes use a single physical volume to
    represent multiple spatial elements. For those, we currently define a
@@ -77,9 +68,6 @@ Surface
    --------------- | -------- | -----------------------------------------
    Volume          | Unplaced | Logical volume
    Volume instance | Placed   | Physical volume (plus copy number)
-   Interface       | n/a      | Border surface
-   Boundary        | n/a      | Skin surface
-   Surface         | n/a      | Surface property (or a duplicate thereof)
 
 
 .. toctree::

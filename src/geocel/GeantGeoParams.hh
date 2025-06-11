@@ -46,15 +46,6 @@ namespace celeritas
  * placements, a single PV may correspond to multiple spatial placements and is
  * disambiguated with \c ReplicaId , which corresponds to the PV's "copy
  * number".
- *
- * Each \c SurfaceId maps to a \c G4LogicalSurface instance, which is ether a
- * \c G4LogicalBorderSurface (an "interface" surface between two volume
- * instances) or a \c G4LogicalSkinSurface (a "boundary" surrounding a single
- * logical volume). To ensure reproducible surface IDs across runs, we put
- * boundaries before interfaces, and sort within each set by IDs (not by
- * Geant4 object pointers, which is how the implementations store in a table).
- * Surface labels are accessed via the SurfaceParams object which can be
- * created by the model input returned by this class.
  */
 class GeantGeoParams final : public GeoParamsInterface,
                              public ParamsDataInterface<GeantGeoParamsData>
@@ -73,7 +64,6 @@ class GeantGeoParams final : public GeoParamsInterface,
     explicit GeantGeoParams(std::string const& gdml_filename);
 
     // Create a VecGeom model from an already-loaded Geant4 geometry
-    // TODO: also take model input? see #1815
     explicit GeantGeoParams(G4VPhysicalVolume const* world);
 
     CELER_DEFAULT_MOVE_DELETE_COPY(GeantGeoParams);
