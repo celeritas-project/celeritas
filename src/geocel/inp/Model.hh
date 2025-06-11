@@ -75,7 +75,7 @@ struct Volumes
     //! Properties of edges in the graph (physical volumes)
     std::vector<VolumeInstance> volume_instances;
 
-    //! True if it has a label and ID
+    //! True if at least one node is defined
     explicit operator bool() const { return !volumes.empty(); }
 };
 

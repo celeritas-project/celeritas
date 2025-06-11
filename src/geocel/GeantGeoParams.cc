@@ -155,10 +155,10 @@ inp::Volume inp_from_geant(GeantGeoParams const& geo,
         G4VPhysicalVolume* g4pv = g4lv.GetDaughter(i);
         CELER_ASSERT(g4pv);
         auto vol_inst_id = geo.geant_to_id(*g4pv);
-        for (auto i : range(g4pv->GetMultiplicity()))
+        for (int j = 0, jmax = g4pv->GetMultiplicity(); j < jmax; ++j)
         {
-            // TODO: handle replicas correctly
-            CELER_DISCARD(i);
+            // TODO: handle replicas correctly by mapping G4PV independently
+            // from VIId (each replica gets its own volume instance)
             result.children.push_back(vol_inst_id);
         }
     }

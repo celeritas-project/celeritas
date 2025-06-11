@@ -26,7 +26,7 @@ struct Volumes;
  * a detailed description of volumes in the detector geometry description. This
  * class abstracts the graph of volumes, relating \em nodes (VolumeId, aka
  * logical volume) to \em edges (VolumeInstanceId, aka physical volume) and
- * providing the means to determine the \em trail (VolumeUniqueInstanceId, aka
+ * providing the means to determine the \em path (VolumeUniqueInstanceId, aka
  * touchable history) of a track state. In conjunction with \c GeantGeoParams
  * this allows conversion between the Celeritas geometry implementation and the
  * Geant4 geometry navigation.

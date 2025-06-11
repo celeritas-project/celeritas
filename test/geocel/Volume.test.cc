@@ -41,10 +41,7 @@ auto get_mm_labels(T const& multimap)
  * - volumes are alphabetical (A, B, C...)
  * - volume instances are numeric (0, 1, 2...)
  */
-class VolumeTest : public ::celeritas::test::Test
-{
-  protected:
-};
+using VolumeTest = ::celeritas::test::Test;
 
 /*!
  * Graph:
@@ -62,7 +59,6 @@ TEST_F(VolumeTest, single_volume)
         return in;
     }());
 
-    // Add tests here
     EXPECT_EQ(1, params.volume_labels().size());
     EXPECT_EQ(0, params.volume_instance_labels().size());
 

@@ -33,7 +33,7 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
         = VolInstMap("volume_instance", extract_labels(in.volume_instances));
 
     // Unzip volume properties
-    materials_.resize(in.volumes.size());
+    materials_.resize(this->num_volumes());
     children_.resize(this->num_volumes());
     for (auto vol_idx : range(this->num_volumes()))
     {

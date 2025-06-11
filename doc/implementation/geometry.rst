@@ -11,12 +11,25 @@ Detector geometry descriptions for HEP are almost universally defined using a
 hierarchy of fully nested volumes, often saved as a GDML file
 :cite:`gdml-2006`. These volumes can be represented as a directional
 acyclic graph (DAG): the nodes are the geometric elements, and the edges
-are a geometry placement (which is associated with a transformation and
-other metadata). In HEP geometries, child nodes may not overlap each other or
-their enclosing parent [#]_ volume.
+are an instantiation of the volume *below* inside the volume *above*. This
+instantiation is associated with a transformation and
+other metadata. In HEP geometries, child nodes may not overlap each other or
+their enclosing parent volume.
 
-.. [#] The Geant4 terms "daughter" and "mother" correspond to "child volume"
-   and "parent volume" in Celeritas.
+.. table:: Celeritas nomenclature tends toward computer science terminology.
+
+   +------------------+-----------+---------------------------------------------+
+   | Celeritas        | VecGeom   | Geant4                                      |
+   +==================+===========+=============================================+
+   | Volume           | Unplaced  | Logical volume                              |
+   +------------------+-----------+---------------------------------------------+
+   | Volume instance  | Placed    | Physical volume (plus copy number)          |
+   +------------------+-----------+---------------------------------------------+
+   | Child            | Daughter  | Daughter                                    |
+   +------------------+-----------+---------------------------------------------+
+   | Parent           | Mother    | Mother                                      |
+   +------------------+-----------+---------------------------------------------+
+
 
 Celeritas defines abstract geometry concepts, indexed as IDs, to support
 multiple geometry applications [#]_ and to make the code backend-agnostic for
@@ -24,7 +37,7 @@ integrating with physics. These include "volumes" (known in some other
 fields as "cells").
 
 .. [#] In the future the use of these abstract concepts will enable detector
-   descriptions, and geometry models for other application, that are *not*
+   descriptions, and geometry models for other applications, that are *not*
    Geant4 hierarchies.
 
 Volume
@@ -46,31 +59,21 @@ Volume instance
    the graph of volumes.
 
 Unique instance
-   A *unique* instance of a volume refers to the logical definition of specific
-   region of global space in the geometry model. It is the full directed
-   trail :cite:`bender-listsdecisions-2010` from the root volume node (world
-   volume) to a node (logical volume) somewhere in the graph, thereby
+   A *unique* instance of a volume refers to the logical definition of a
+   specific region of global space in the geometry model. It is the full
+   directed path :cite:`bender-listsdecisions-2010` from the root volume node
+   (world volume) to a node (logical volume) somewhere in the graph, thereby
    describing all enclosing volumes and their locations. This path can be
    encoded uniquely as a single integer by pre-calculating the number of direct
    and indirect children for each node.  Celeritas always uses 64-bit integers
    to store the ``VolumeUniqueInstanceId``.
 
-.. [#] A VolumeInstanceId has a one-to-one mapping for ``G4PVPlacement``, but
-   "replica" and "parameterized" volumes use a single physical volume to
+.. [#] A ``VolumeInstanceId`` has a one-to-one mapping for ``G4PVPlacement``,
+   but "replica" and "parameterized" volumes use a single physical volume to
    represent multiple spatial elements. For those, we currently define a
    :cpp:struct:`celeritas::GeantPhysicalInstance` that is a tuple of
    physical volume and a replica instance. Eventually that will become an
    implementation detail.
-
-.. table:: Nomenclature comparison for geometry elements.
-
-   +------------------+-----------+---------------------------------------------+
-   | Celeritas        | VecGeom   | Geant4                                      |
-   +==================+===========+=============================================+
-   | Volume           | Unplaced  | Logical volume                              |
-   +------------------+-----------+---------------------------------------------+
-   | Volume instance  | Placed    | Physical volume (plus copy number)          |
-   +------------------+-----------+---------------------------------------------+
 
 
 .. toctree::
