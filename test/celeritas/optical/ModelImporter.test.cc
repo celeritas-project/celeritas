@@ -11,6 +11,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/optical/model/AbsorptionModel.hh"
 #include "celeritas/optical/model/RayleighModel.hh"
+#include "celeritas/optical/model/WavelengthShiftModel.hh"
 
 #include "OpticalMockTestBase.hh"
 #include "ValidationUtils.hh"
@@ -107,8 +108,18 @@ TEST_F(ModelImporterTest, build_wls)
 {
     auto model_importer = this->build_importer();
 
-    // TODO: update when WLS model is supported
-    EXPECT_THROW(model_importer(ImportModelClass::wls), RuntimeError);
+    this->check_import_model<WavelengthShiftModel>(model_importer,
+                                                   ImportModelClass::wls);
+}
+
+//---------------------------------------------------------------------------//
+// Test building WLS
+TEST_F(ModelImporterTest, build_wls2)
+{
+    auto model_importer = this->build_importer();
+
+    this->check_import_model<WavelengthShiftModel>(model_importer,
+                                                   ImportModelClass::wls2);
 }
 
 //---------------------------------------------------------------------------//
