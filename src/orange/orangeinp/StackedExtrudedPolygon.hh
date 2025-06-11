@@ -69,6 +69,24 @@ namespace orangeinp
         .      |      | level 1, stack 1, segment 0
         . . .  |______|
    \endverbatim
+ * When labeing nodes, the following shorthand format is used:
+ *
+ * <label>@<level>.<stack>.<segment>.
+ *
+ * For example, the final region in the example above might be named:
+ *
+ * my_shape@1.1.0.
+ *
+ * For each level, additional nodes are created in the form:
+ *
+ * <label>@<level>.<suffix>,
+ *
+ * where suffixes have the following meanings:
+ *
+ * 1) .cu : the union of all convex regions on this level,
+ * 2) .ncu : the negation of the union of all convex regions on this level,
+ * 3) .d : the difference between this level's convex hull and the convex
+ * regions on this level.
  */
 class StackedExtrudedPolygon final : public ObjectInterface
 {

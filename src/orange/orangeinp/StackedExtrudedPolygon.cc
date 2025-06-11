@@ -165,16 +165,15 @@ NodeId StackedExtrudedPolygon::make_levels(
 
     // Create a union of all concave regions
     NodeId concave_union
-        = vb.insert_region(Label{label_, level_label + "_concave_union"},
+        = vb.insert_region(Label{label_, level_label + ".cu"},
                            Joined{op_or, std::move(concave_nodes)});
 
     // Create a negation of this union
-    auto sub_node = vb.insert_region(
-        Label{label_, level_label + "_negated_concave_union"},
-        Negated{concave_union});
+    auto sub_node = vb.insert_region(Label{label_, level_label + ".ncu"},
+                                     Negated{concave_union});
 
     // Subtract concave regions from the convex hull
-    return vb.insert_region(Label{label_, level_label + "_difference"},
+    return vb.insert_region(Label{label_, level_label + ".d"},
                             Joined{op_and, {result, sub_node}});
 }
 
@@ -214,7 +213,7 @@ StackedExtrudedPolygon::make_stack(detail::VolumeBuilder& vb,
 std::string StackedExtrudedPolygon::make_level_label(
     StackedExtrudedPolygon::SubRegionIndex si) const
 {
-    return "level" + std::to_string(si.level);
+    return std::to_string(si.level);
 }
 
 //---------------------------------------------------------------------------//
@@ -224,7 +223,7 @@ std::string StackedExtrudedPolygon::make_level_label(
 std::string StackedExtrudedPolygon::make_stack_label(
     StackedExtrudedPolygon::SubRegionIndex si) const
 {
-    return this->make_level_label(si) + "_stack" + std::to_string(si.stack);
+    return this->make_level_label(si) + "." + std::to_string(si.stack);
 }
 
 //---------------------------------------------------------------------------//
@@ -234,8 +233,7 @@ std::string StackedExtrudedPolygon::make_stack_label(
 std::string StackedExtrudedPolygon::make_segment_label(
     StackedExtrudedPolygon::SubRegionIndex si, size_type segment_idx) const
 {
-    return this->make_stack_label(si) + "_segment"
-           + std::to_string(segment_idx);
+    return this->make_stack_label(si) + "." + std::to_string(segment_idx);
 }
 
 //---------------------------------------------------------------------------//
