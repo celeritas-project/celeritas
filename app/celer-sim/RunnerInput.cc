@@ -20,7 +20,6 @@
 #include "celeritas/inp/Diagnostics.hh"
 #include "celeritas/inp/Events.hh"
 #include "celeritas/inp/Field.hh"
-#include "celeritas/inp/Model.hh"
 #include "celeritas/inp/Physics.hh"
 #include "celeritas/inp/PhysicsProcess.hh"
 #include "celeritas/inp/Scoring.hh"
