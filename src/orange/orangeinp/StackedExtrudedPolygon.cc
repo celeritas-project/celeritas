@@ -155,7 +155,7 @@ NodeId StackedExtrudedPolygon::make_levels(
 
     // Create a vector of all concave regions, via recursion
     std::vector<NodeId> concave_nodes(concave_regions.size());
-    for (size_type i : range(concave_nodes.size()))
+    for (auto i : range(static_cast<size_type>(concave_nodes.size())))
     {
         concave_nodes[i] = this->make_levels(
             vb, concave_regions[i], SubRegionIndex{si.level + 1, i});
