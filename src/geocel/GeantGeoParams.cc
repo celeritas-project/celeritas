@@ -145,7 +145,7 @@ inp::Volume inp_from_geant(GeantGeoParams const& geo,
     // Set material ID if available
     if (auto* mat = g4lv.GetMaterial())
     {
-        result.material = GeoMatId{mat->GetIndex() - geo.mat_offset()};
+        result.material = id_cast<GeoMatId>(mat->GetIndex() - geo.mat_offset());
     }
     // Populate volume.children with child volume instances
     auto num_children = g4lv.GetNoDaughters();
