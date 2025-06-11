@@ -337,8 +337,8 @@ class LarSphere : public GeantImporterTest
         auto opts = GeantImporterTest::build_geant_options();
         opts.optical.absorption = true;
         opts.optical.rayleigh_scattering = true;
-        opts.optical.wavelength_shifting = WlsTimeProfile::exponential;
-        opts.optical.wavelength_shifting2 = WlsTimeProfile::exponential;
+        opts.optical.wavelength_shifting.enable = true;
+        opts.optical.wavelength_shifting2.enable = true;
         return opts;
     }
 };
@@ -357,8 +357,8 @@ class LarSphereExtramat : public GeantImporterTest
         auto opts = GeantImporterTest::build_geant_options();
         opts.optical.absorption = true;
         opts.optical.rayleigh_scattering = true;
-        opts.optical.wavelength_shifting = WlsTimeProfile::exponential;
-        opts.optical.wavelength_shifting2 = WlsTimeProfile::exponential;
+        opts.optical.wavelength_shifting.enable = true;
+        opts.optical.wavelength_shifting2.enable = true;
         return opts;
     }
 };

@@ -97,7 +97,6 @@ char const* to_cstring(NuclearFormFactorType value)
 char const* to_cstring(WlsTimeProfile value)
 {
     static EnumStringMapper<WlsTimeProfile> const to_cstring_impl{
-        "none",
         "delta",
         "exponential",
     };

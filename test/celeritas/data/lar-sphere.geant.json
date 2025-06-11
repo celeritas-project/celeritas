@@ -49,8 +49,8 @@
  "optical": {
   "cherenkov": { "enable": false },
   "scintillation": { "enable": false },
-  "wavelength_shifting": "exponential",
-  "wavelength_shifting2": "exponential",
+  "wavelength_shifting": { "enable": true },
+  "wavelength_shifting2": { "enable": true },
   "boundary": {
    "enable": false
   },

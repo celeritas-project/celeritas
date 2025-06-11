@@ -72,7 +72,7 @@ struct WavelengthShiftData
     OpticalMaterialItems<NonuniformGridRecord> energy_cdf;
 
     // Time profile model
-    WlsTimeProfile time_profile{WlsTimeProfile::none};
+    WlsTimeProfile time_profile{WlsTimeProfile::size_};
 
     // Backend data
     Items<real_type> reals;
@@ -83,7 +83,7 @@ struct WavelengthShiftData
     explicit CELER_FUNCTION operator bool() const
     {
         return !wls_record.empty() && !energy_cdf.empty()
-               && time_profile != WlsTimeProfile::none;
+               && time_profile != WlsTimeProfile::size_;
     }
 
     //! Assign from another set of data

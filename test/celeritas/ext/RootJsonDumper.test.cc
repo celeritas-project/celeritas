@@ -518,8 +518,8 @@ TEST_F(RootJsonDumperTest, all)
   "optical_params" : {
     "_typename" : "celeritas::ImportOpticalParameters",
     "scintillation_by_particle" : false,
-    "wls_time_profile" : 1,
-    "wls2_time_profile" : 1
+    "wls_time_profile" : 0,
+    "wls2_time_profile" : 0
   },
   "optical_models" : [],
   "optical_materials" : [],

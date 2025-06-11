@@ -200,7 +200,6 @@ enum class NuclearFormFactorType
 //! Optical photon wavelength shifting time model
 enum class WlsTimeProfile
 {
-    none,  //!< Disable WLS
     delta,  //!< Delta function
     exponential,  //!< Exponential decay
     size_
