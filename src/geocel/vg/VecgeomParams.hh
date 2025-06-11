@@ -16,6 +16,7 @@
 #include "geocel/BoundingBox.hh"
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/Types.hh"
+#include "geocel/inp/Model.hh"
 
 #include "VecgeomData.hh"
 
@@ -59,12 +60,12 @@ class VecgeomParams final : public GeoParamsInterface,
     LevelId::size_type max_depth() const final { return host_ref_.max_depth; }
 
     // Create model parameters corresponding to our internal representation
-    inp::Model make_model_input() const final
+    inp::Model make_model_input() const final;
 
-        //// VOLUMES ////
+    //// VOLUMES ////
 
-        // Get volume metadata
-        inline VolumeMap const& volumes() const final;
+    // Get volume metadata
+    inline VolumeMap const& volumes() const final;
 
     // Get (physical) volume instance metadata
     inline VolInstanceMap const& volume_instances() const final;
@@ -118,15 +119,6 @@ class VecgeomParams final : public GeoParamsInterface,
     // Construct labels and other host-only metadata
     void build_metadata();
 };
-
-//---------------------------------------------------------------------------//
-/*!
- * Create model parameters corresponding to our internal representation.
- */
-inp::Model VecgeomParams::make_model_input() const
-{
-    CELER_NOT_IMPLEMENTED("model input from VecGeom");
-}
 
 //---------------------------------------------------------------------------//
 /*!

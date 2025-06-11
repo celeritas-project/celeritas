@@ -16,6 +16,7 @@
 #include "corecel/io/Label.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/GeoParamsInterface.hh"
+#include "geocel/inp/Model.hh"
 
 #include "OrangeData.hh"
 #include "OrangeTypes.hh"

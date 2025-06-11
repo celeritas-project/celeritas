@@ -11,7 +11,6 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "geocel/GeantGeoParams.hh"
-#include "geocel/setup/FromGeant.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/inp/FrameworkInput.hh"
 #include "celeritas/inp/Problem.hh"
@@ -49,7 +48,7 @@ FrameworkLoaded framework_input(inp::FrameworkInput& fi)
     inp::Problem problem;
 
     // Load geometry, surfaces, regions from Geant4 world pointer
-    problem.model = model_from_geant(geo->world());
+    problem.model = geo->make_model_input();
 
     // Load physics
     for (std::string const& process_name : fi.geant.ignore_processes)
