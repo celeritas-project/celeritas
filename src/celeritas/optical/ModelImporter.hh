@@ -95,6 +95,8 @@ class ModelImporter
 
     ModelBuilder build_absorption() const;
     ModelBuilder build_rayleigh() const;
+    ModelBuilder build_wls() const;
+    ModelBuilder build_wls2() const;
 };
 
 //---------------------------------------------------------------------------//

@@ -337,7 +337,9 @@ class LarSphere : public GeantImporterTest
         auto opts = GeantImporterTest::build_geant_options();
         opts.optical.absorption = true;
         opts.optical.rayleigh_scattering = true;
-        opts.optical.wavelength_shifting = WLSTimeProfileSelection::delta;
+        opts.optical.wavelength_shifting = WLSTimeProfileSelection::exponential;
+        opts.optical.wavelength_shifting2
+            = WLSTimeProfileSelection::exponential;
         return opts;
     }
 };
@@ -356,6 +358,9 @@ class LarSphereExtramat : public GeantImporterTest
         auto opts = GeantImporterTest::build_geant_options();
         opts.optical.absorption = true;
         opts.optical.rayleigh_scattering = true;
+        opts.optical.wavelength_shifting = WLSTimeProfileSelection::exponential;
+        opts.optical.wavelength_shifting2
+            = WLSTimeProfileSelection::exponential;
         return opts;
     }
 };
@@ -1613,7 +1618,7 @@ TEST_F(LarSphere, optical)
 {
     ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::info};
     auto&& imported = this->imported_data();
-    ASSERT_EQ(3, imported.optical_models.size());
+    ASSERT_EQ(4, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(2, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
@@ -1764,34 +1769,69 @@ TEST_F(LarSphere, optical)
     EXPECT_REAL_EQ(86.4473, to_cm(absorption_mfp.y.front()));
     EXPECT_REAL_EQ(0.000296154, to_cm(absorption_mfp.y.back()));
 
-    // Check WLS optical properties
-    auto const& wls_model = imported.optical_models[2];
-    EXPECT_EQ(optical::ImportModelClass::wls, wls_model.model_class);
-    ASSERT_EQ(1, wls_model.mfp_table.size());
-
-    auto const& wls_mfp = wls_model.mfp_table.front();
-    EXPECT_EQ(2, wls_mfp.x.size());
-    EXPECT_EQ(wls_mfp.x.size(), wls_mfp.y.size());
-
-    auto const& wls_mat = optical.wls;
-    EXPECT_TRUE(wls_mat);
-    EXPECT_REAL_EQ(3, wls_mat.mean_num_photons);
-    EXPECT_REAL_EQ(6e-9, to_sec(wls_mat.time_constant));
-
-    std::vector<double> abslen_grid, comp_grid;
-    for (auto i : range(wls_mfp.x.size()))
     {
-        abslen_grid.push_back(wls_mfp.x[i]);
-        abslen_grid.push_back(to_cm(wls_mfp.y[i]));
-        comp_grid.push_back(wls_mat.component.x[i]);
-        comp_grid.push_back(wls_mat.component.y[i]);
-    }
+        // Check WLS optical properties
+        auto const& model = imported.optical_models[2];
+        EXPECT_EQ(optical::ImportModelClass::wls, model.model_class);
+        ASSERT_EQ(1, model.mfp_table.size());
 
-    static real_type const expected_abslen_grid[]
-        = {1.3778e-06, 86.4473, 1.55e-05, 0.000296154};
-    static double const expected_comp_grid[] = {1.3778e-06, 10, 1.55e-05, 20};
-    EXPECT_VEC_SOFT_EQ(expected_abslen_grid, abslen_grid);
-    EXPECT_VEC_SOFT_EQ(expected_comp_grid, comp_grid);
+        auto const& mfp = model.mfp_table.front();
+        EXPECT_EQ(2, mfp.x.size());
+        EXPECT_EQ(mfp.x.size(), mfp.y.size());
+
+        auto const& mat = optical.wls;
+        EXPECT_TRUE(mat);
+        EXPECT_REAL_EQ(3, mat.mean_num_photons);
+        EXPECT_REAL_EQ(6e-9, to_sec(mat.time_constant));
+
+        std::vector<double> abslen_grid, comp_grid;
+        for (auto i : range(mfp.x.size()))
+        {
+            abslen_grid.push_back(mfp.x[i]);
+            abslen_grid.push_back(to_cm(mfp.y[i]));
+            comp_grid.push_back(mat.component.x[i]);
+            comp_grid.push_back(mat.component.y[i]);
+        }
+
+        static real_type const expected_abslen_grid[]
+            = {1.3778e-06, 86.4473, 1.55e-05, 0.000296154};
+        static double const expected_comp_grid[]
+            = {1.3778e-06, 10, 1.55e-05, 20};
+        EXPECT_VEC_SOFT_EQ(expected_abslen_grid, abslen_grid);
+        EXPECT_VEC_SOFT_EQ(expected_comp_grid, comp_grid);
+    }
+    {
+        // Check WLS2 optical properties
+        auto const& model = imported.optical_models[3];
+        EXPECT_EQ(optical::ImportModelClass::wls2, model.model_class);
+        ASSERT_EQ(1, model.mfp_table.size());
+
+        auto const& mfp = model.mfp_table.front();
+        EXPECT_EQ(2, mfp.x.size());
+        EXPECT_EQ(mfp.x.size(), mfp.y.size());
+
+        auto const& mat = optical.wls2;
+        EXPECT_TRUE(mat);
+        EXPECT_REAL_EQ(2, mat.mean_num_photons);
+        EXPECT_REAL_EQ(6e-9, to_sec(mat.time_constant));
+
+        std::vector<double> abslen_grid, comp_grid;
+        for (auto i : range(mfp.x.size()))
+        {
+            abslen_grid.push_back(mfp.x[i]);
+            abslen_grid.push_back(to_cm(mfp.y[i]));
+            comp_grid.push_back(mat.component.x[i]);
+            comp_grid.push_back(mat.component.y[i]);
+        }
+
+        static double const expected_abslen_grid[]
+            = {1.3778e-06, 86.4473, 1.55e-05, 0.000296154};
+        static double const expected_comp_grid[]
+            = {1.771e-06, 0.3, 2.484e-06, 0.8};
+        EXPECT_VEC_NEAR(
+            expected_abslen_grid, abslen_grid, this->comparison_tolerance());
+        EXPECT_VEC_SOFT_EQ(expected_comp_grid, comp_grid);
+    }
 
     // Check common optical properties
     // Refractive index data in the geometry comes from the refractive index
@@ -1812,7 +1852,7 @@ TEST_F(LarSphere, optical)
 TEST_F(LarSphereExtramat, optical)
 {
     auto&& imported = this->imported_data();
-    ASSERT_EQ(2, imported.optical_models.size());
+    ASSERT_EQ(4, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(3, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
@@ -1828,9 +1868,11 @@ TEST_F(LarSphereExtramat, optical)
     EXPECT_EQ("lAr", imported.geo_materials[1].name);
     ASSERT_EQ(0, imported.phys_materials[1].optical_material_id);
 
-    // Check scintillation optical properties
+    // Check scintillation, WLS, and WLS2 optical properties
     auto const& optical = imported.optical_materials[0];
     EXPECT_FALSE(optical.scintillation);
+    EXPECT_FALSE(optical.wls);
+    EXPECT_FALSE(optical.wls2);
 
     // Check Rayleigh optical properties
     auto const& rayleigh_model = imported.optical_models[1];

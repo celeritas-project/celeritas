@@ -11,10 +11,12 @@
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/grid/NonuniformGridCalculator.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
+#include "celeritas/optical/interactor/WavelengthShiftGenerator.hh"
 #include "celeritas/optical/interactor/WavelengthShiftInteractor.hh"
-#include "celeritas/optical/model/WavelengthShiftParams.hh"
+#include "celeritas/optical/model/WavelengthShiftModel.hh"
 
 #include "InteractorHostTestBase.hh"
+#include "OpticalMockTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -23,53 +25,36 @@ namespace optical
 {
 namespace test
 {
-using TimeSecond = celeritas::RealQuantity<celeritas::units::Second>;
-
-//---------------------------------------------------------------------------//
-/*!
- * Tabulated spectrum as a function of the reemitted photon energy [MeV].
- */
-Span<real_type const> get_energy()
-{
-    static real_type const energy[] = {1.65e-6, 2e-6, 2.4e-6, 2.8e-6, 3.26e-6};
-    return make_span(energy);
-}
-
-Span<real_type const> get_spectrum()
-{
-    static real_type const spectrum[] = {0.15, 0.25, 0.50, 0.40, 0.02};
-    return make_span(spectrum);
-}
-
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class WavelengthShiftTest : public InteractorHostTestBase
+class WavelengthShiftTest : public InteractorHostBase,
+                            public OpticalMockTestBase
 {
   protected:
     using HostDataCRef = HostCRef<WavelengthShiftData>;
 
     void SetUp() override
     {
-        // Build wavelength shift (WLS) property data from a test input
-        ImportWavelengthShift wls;
-        wls.mean_num_photons = 2;
-        wls.time_constant = native_value_from(TimeSecond(1e-9));
-        // Reemitted photon energy range (visible light)
-        wls.component.x = {get_energy().begin(), get_energy().end()};
-        // Reemitted photon energy spectrum
-        wls.component.y = {get_spectrum().begin(), get_spectrum().end()};
-
-        WavelengthShiftParams::Input input;
-        input.data.push_back(std::move(wls));
-        params_ = std::make_shared<WavelengthShiftParams>(input);
-        data_ = params_->host_ref();
+        auto const& data = this->imported_data();
+        WavelengthShiftModel::Input input;
+        input.model = ImportModelClass::wls;
+        for (auto const& mat : data.optical_materials)
+        {
+            input.data.push_back(mat.wls);
+        }
+        auto models
+            = std::make_shared<ImportedModels const>(data.optical_models);
+        model_ = std::make_shared<WavelengthShiftModel const>(
+            ActionId{0}, models, input);
+        data_ = model_->host_ref();
     }
 
     OptMatId material_id_{0};
-    std::shared_ptr<WavelengthShiftParams const> params_;
-    HostDataCRef data_;
+    Real3 position_{1, 2, 3};
+    std::shared_ptr<WavelengthShiftModel const> model_;
+    HostCRef<WavelengthShiftData> data_;
 };
 
 //---------------------------------------------------------------------------//
@@ -103,9 +88,10 @@ TEST_F(WavelengthShiftTest, data)
 
     std::vector<real_type> wls_energy;
 
+    auto& rng = this->InteractorHostBase::rng();
     for ([[maybe_unused]] auto i : range(4))
     {
-        wls_energy.push_back(calc_energy(generate_canonical(this->rng())));
+        wls_energy.push_back(calc_energy(generate_canonical(rng)));
     }
 
     static double const expected_wls_energy[] = {1.98638940166891e-06,
@@ -119,48 +105,46 @@ TEST_F(WavelengthShiftTest, data)
 TEST_F(WavelengthShiftTest, wls_basic)
 {
     int const num_samples = 4;
-    this->resize_secondaries(num_samples * 2);
-    auto& rng_engine = this->rng();
+    auto& rng = this->InteractorHostBase::rng();
 
     // Interactor with an energy point within the input component range
     real_type test_energy = 2e-6;
     this->set_inc_energy(Energy{test_energy});
 
-    WavelengthShiftInteractor interactor(data_,
-                                         this->particle_track(),
-                                         material_id_,
-                                         this->secondary_allocator());
+    WavelengthShiftInteractor interact(data_,
+                                       this->particle_track(),
+                                       this->sim_track(),
+                                       position_,
+                                       material_id_);
 
-    std::vector<size_type> num_secondaries;
+    std::vector<size_type> num_photons;
 
     for ([[maybe_unused]] int i : range(num_samples))
     {
-        Interaction result = interactor(rng_engine);
-        size_type num_emitted = result.secondaries.size();
-
-        num_secondaries.push_back(num_emitted);
-
+        Interaction result = interact(rng);
         EXPECT_EQ(Interaction::Action::absorbed, result.action);
-        for (auto j : range(num_emitted))
+
+        size_type num_emitted = result.distribution.num_photons;
+        num_photons.push_back(num_emitted);
+
+        for (size_type j = 0; j < num_emitted; ++j)
         {
-            EXPECT_LT(result.secondaries[j].energy.value(), test_energy);
+            auto photon
+                = WavelengthShiftGenerator(data_, result.distribution)(rng);
+            EXPECT_LT(photon.energy.value(), test_energy);
             EXPECT_SOFT_EQ(0,
-                           dot_product(result.secondaries[j].polarization,
-                                       result.secondaries[j].direction));
+                           dot_product(photon.polarization, photon.direction));
         }
     }
-    static size_type const expected_num_secondaries[] = {1, 4, 3, 0};
-    EXPECT_VEC_EQ(expected_num_secondaries, num_secondaries);
+    static size_type const expected_num_photons[] = {1, 4, 3, 0};
+    EXPECT_VEC_EQ(expected_num_photons, num_photons);
 }
 
 TEST_F(WavelengthShiftTest, wls_stress)
 {
     int const num_samples = 128;
+    auto& rng = this->InteractorHostBase::rng();
 
-    WlsMaterialRecord wls_record = data_.wls_record[material_id_];
-    this->resize_secondaries(
-        num_samples * static_cast<int>(wls_record.mean_num_photons) * 4);
-    auto& rng_engine = this->rng();
     Real3 const inc_dir = {0, 0, 1};
 
     std::vector<real_type> avg_emitted;
@@ -173,10 +157,11 @@ TEST_F(WavelengthShiftTest, wls_stress)
     for (real_type inc_e : {5., 10., 50., 100.})
     {
         this->set_inc_energy(Energy{inc_e});
-        WavelengthShiftInteractor interactor(data_,
-                                             this->particle_track(),
-                                             material_id_,
-                                             this->secondary_allocator());
+        WavelengthShiftInteractor interact(data_,
+                                           this->particle_track(),
+                                           this->sim_track(),
+                                           position_,
+                                           material_id_);
 
         size_type sum_emitted{};
         real_type sum_energy{};
@@ -186,26 +171,26 @@ TEST_F(WavelengthShiftTest, wls_stress)
 
         for ([[maybe_unused]] int i : range(num_samples))
         {
-            Interaction result = interactor(rng_engine);
-            size_type num_emitted = result.secondaries.size();
-
+            Interaction result = interact(rng);
+            size_type num_emitted = result.distribution.num_photons;
             sum_emitted += num_emitted;
-            for (auto j : range(num_emitted))
+
+            for (size_type j = 0; j < num_emitted; ++j)
             {
-                sum_energy += result.secondaries[j].energy.value();
-                sum_costheta
-                    += dot_product(result.secondaries[j].direction, inc_dir);
+                auto photon = WavelengthShiftGenerator(
+                    data_, result.distribution)(rng);
+                sum_energy += photon.energy.value();
+                sum_costheta += dot_product(photon.direction, inc_dir);
                 sum_orthogonality
-                    += dot_product(result.secondaries[j].polarization,
-                                   result.secondaries[j].direction);
-                sum_time += result.secondaries[j].time;
+                    += dot_product(photon.polarization, photon.direction);
+                sum_time += photon.time;
             }
         }
         avg_emitted.push_back(static_cast<double>(sum_emitted) / num_samples);
         avg_energy.push_back(sum_energy / sum_emitted);
         avg_costheta.push_back(sum_costheta / sum_emitted);
         avg_orthogonality.push_back(sum_orthogonality / sum_emitted);
-        avg_time.push_back(sum_time / sum_emitted / units::second);
+        avg_time.push_back(sum_time / sum_emitted / units::nanosecond);
     }
 
     static double const expected_avg_emitted[]
@@ -223,10 +208,8 @@ TEST_F(WavelengthShiftTest, wls_stress)
 
     static double const expected_avg_orthogonality[] = {0, 0, 0, 0};
 
-    static double const expected_avg_time[] = {1.08250310854364e-09,
-                                               1.01943566892086e-09,
-                                               1.05383398761085e-09,
-                                               9.64465413967612e-10};
+    static double const expected_avg_time[] = {
+        1.0825031085436, 1.0194356689209, 1.0538339876109, 0.96446541396761};
 
     EXPECT_VEC_EQ(expected_avg_emitted, avg_emitted);
     EXPECT_VEC_SOFT_EQ(expected_avg_energy, avg_energy);

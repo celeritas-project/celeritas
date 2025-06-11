@@ -124,6 +124,7 @@ ImportedModelAdapter::ImportedModelAdapter(ImportModelClass imc,
                                            SPConstImported imported)
     : imported_(imported)
 {
+    CELER_EXPECT(imc != ImportModelClass::size_);
     CELER_EXPECT(imported_);
     model_id_ = imported_->builtin_model_id(imc);
     CELER_VALIDATE(model_id_,

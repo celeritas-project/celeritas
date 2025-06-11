@@ -25,6 +25,7 @@ namespace celeritas
 {
 namespace test
 {
+
 //---------------------------------------------------------------------------//
 
 class JsonOrangeTest : public OrangeGeoTestBase
@@ -248,12 +249,16 @@ TEST_F(UniversesTest, cross_into_daughter_non_coincident)
     EXPECT_EQ("inner_a.my", this->surface_name(geo));
     EXPECT_EQ("johnny", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, -4, 0.75}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({0, 1, 0}), geo.normal());
+    EXPECT_GT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Cross universe boundary
     geo.cross_boundary();
     EXPECT_EQ("inner_a.my", this->surface_name(geo));
     EXPECT_EQ("c", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, -4, 0.75}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({0, -1, 0}), geo.normal());
+    EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after crossing
     next = geo.find_next_step();
@@ -276,12 +281,16 @@ TEST_F(UniversesTest, cross_into_parent_non_coincident)
     EXPECT_EQ("inner_a.my", this->surface_name(geo));
     EXPECT_EQ("c", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, -4, 0.75}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({0, -1, 0}), geo.normal());
+    EXPECT_GT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Cross universe boundary
     geo.cross_boundary();
     EXPECT_EQ("inner_a.my", this->surface_name(geo));
     EXPECT_EQ("johnny", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, -4, 0.75}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({0, 1, 0}), geo.normal());
+    EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after crossing
     next = geo.find_next_step();
@@ -305,12 +314,16 @@ TEST_F(UniversesTest, cross_into_daughter_coincident)
     EXPECT_EQ("bob.my", this->surface_name(geo));
     EXPECT_EQ("bobby", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, 0, 1}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({0, -1, 0}), geo.normal());
+    EXPECT_GT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Cross universe boundary
     geo.cross_boundary();
     EXPECT_EQ("bob.my", this->surface_name(geo));
     EXPECT_EQ("c", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, 0, 1}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({0, 1, 0}), geo.normal());
+    EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after crossing
     next = geo.find_next_step();
@@ -334,12 +347,16 @@ TEST_F(UniversesTest, cross_into_parent_coincident)
     EXPECT_EQ("bob.my", this->surface_name(geo));
     EXPECT_EQ("c", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, 0, 1}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({0, 1, 0}), geo.normal());
+    EXPECT_GT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Cross universe boundary
     geo.cross_boundary();
     EXPECT_EQ("bob.my", this->surface_name(geo));
     EXPECT_EQ("bobby", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, 0, 1}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({0, -1, 0}), geo.normal());
+    EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after crossing
     next = geo.find_next_step();
@@ -362,12 +379,16 @@ TEST_F(UniversesTest, cross_into_daughter_doubly_coincident)
     EXPECT_EQ("inner_a.my", this->surface_name(geo));
     EXPECT_EQ("johnny", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -4, 1}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({0, 1, 0}), geo.normal());
+    EXPECT_GT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Cross universe boundary
     geo.cross_boundary();
     EXPECT_EQ("inner_a.my", this->surface_name(geo));
     EXPECT_EQ("patty", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -4, 1}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({0, -1, 0}), geo.normal());
+    EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after crossing
     next = geo.find_next_step();
@@ -390,12 +411,16 @@ TEST_F(UniversesTest, cross_into_parent_doubly_coincident)
     EXPECT_EQ("inner_a.my", this->surface_name(geo));
     EXPECT_EQ("patty", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -4, 1}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({0, -1, 0}), geo.normal());
+    EXPECT_GT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Cross universe boundary
     geo.cross_boundary();
     EXPECT_EQ("inner_a.my", this->surface_name(geo));
     EXPECT_EQ("johnny", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -4, 1}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({0, 1, 0}), geo.normal());
+    EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after crossing
     next = geo.find_next_step();
@@ -420,12 +445,16 @@ TEST_F(UniversesTest, cross_between_daughters)
     EXPECT_EQ("inner_a.pz", this->surface_name(geo));
     EXPECT_EQ("a", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, -2, 0.5}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({0, 0, -1}), geo.normal());
+    EXPECT_GT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Cross universe boundary
     geo.cross_boundary();
     EXPECT_EQ("inner_a.pz", this->surface_name(geo));
     EXPECT_EQ("a", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, -2, 0.5}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.normal());
+    EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after crossing
     next = geo.find_next_step();
@@ -450,6 +479,8 @@ TEST_F(UniversesTest, reentrant)
     EXPECT_EQ("inner_c.py", this->surface_name(geo));
     EXPECT_EQ("patty", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -3.5, 0.7}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({0, 1, 0}), geo.normal());
+    EXPECT_GT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Change direction on the universe boundary such that we are no longer
     // exiting the universe
@@ -460,6 +491,8 @@ TEST_F(UniversesTest, reentrant)
     EXPECT_EQ("inner_c.py", this->surface_name(geo));
     EXPECT_EQ("patty", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -3.5, 0.7}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({0, 1, 0}), geo.normal());
+    EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after calling cross_boundary
     next = geo.find_next_step();
@@ -468,6 +501,8 @@ TEST_F(UniversesTest, reentrant)
     EXPECT_EQ("inner_a.my", this->surface_name(geo));
     EXPECT_EQ("patty", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -4, 0.7}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({0, -1, 0}), geo.normal());
+    EXPECT_GT(dot_product(geo.normal(), geo.dir()), 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -524,12 +559,16 @@ TEST_F(NestedRectArraysTest, tracking)
     EXPECT_EQ("{x,1}", this->surface_name(geo));
     EXPECT_EQ("Afill", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, 0.5, 0.5}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.normal());
+    EXPECT_GT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Cross universe boundary
     geo.cross_boundary();
     EXPECT_EQ("{x,1}", this->surface_name(geo));
     EXPECT_EQ("Bfill", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, 0.5, 0.5}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({-1, 0, 0}), geo.normal());
+    EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     next = geo.find_next_step();
     EXPECT_SOFT_EQ(1, next.distance);
@@ -551,12 +590,16 @@ TEST_F(NestedRectArraysTest, leaving)
     EXPECT_EQ("arrfill.px", this->surface_name(geo));
     EXPECT_EQ("Bfill", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({4, 1.5, 0.5}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.normal());
+    EXPECT_GT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Cross universe boundary
     geo.cross_boundary();
     EXPECT_EQ("arrfill.px", this->surface_name(geo));
     EXPECT_EQ("interior", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({4, 1.5, 0.5}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({-1, 0, 0}), geo.normal());
+    EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     next = geo.find_next_step();
     EXPECT_SOFT_EQ(16, next.distance);
