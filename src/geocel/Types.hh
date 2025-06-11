@@ -46,13 +46,13 @@ using GeoMatId = OpaqueId<struct GeoMaterial_>;
 using InternalSurfaceId = OpaqueId<struct Surface_>;
 
 //! Boundary/interface surface identifier
-using SurfaceId = OpaqueId<struct Surface_, unsigned int>;
+using SurfaceId = OpaqueId<struct Surface_>;
 
 //! Identifier for a geometry volume that may be repeated
-using VolumeId = OpaqueId<struct Volume_, unsigned int>;
+using VolumeId = OpaqueId<struct Volume_>;
 
 //! Identifier for an instance of a geometry volume (aka physical/placed)
-using VolumeInstanceId = OpaqueId<struct VolumeInstance_, unsigned int>;
+using VolumeInstanceId = OpaqueId<struct VolumeInstance_>;
 
 //! Identifier for a unique volume in global space (aka touchable)
 using VolumeUniqueInstanceId = OpaqueId<struct VolumeInstance_, ull_int>;
