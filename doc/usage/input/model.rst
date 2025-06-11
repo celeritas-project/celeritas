@@ -12,9 +12,19 @@ This specifies the problem geometry and material properties.
    :members:
    :no-link:
 
-Model components
-----------------
+Volumes
+-------
 
-.. doxygenstruct:: celeritas::inp::Surfaces
+These input classes describe the volume hierarchy.
+
+.. doxygenstruct:: celeritas::inp::Volumes
+   :members:
+   :no-link:
+
+.. doxygenstruct:: celeritas::inp::Volume
+   :members:
+   :no-link:
+
+.. doxygenstruct:: celeritas::inp::VolumeInstance
    :members:
    :no-link:

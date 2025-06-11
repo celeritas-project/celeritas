@@ -87,7 +87,8 @@ struct Volumes
  * measure we also support loading from a \c .org.json file if the \c
  * StandaloneInput::physics_import is a ROOT file with serialized physics data.
  *
- * Materials, regions, and surfaces may be loaded from the geometry.
+ * Materials, regions, and surfaces may be loaded from the geometry: this is
+ * usually done by \c GeantGeoParams::make_model_input .
  */
 struct Model
 {
