@@ -8,6 +8,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Quantity.hh"
+#include "corecel/random/Histogram.hh"
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/grid/NonuniformGridCalculator.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
@@ -35,11 +36,14 @@ class WavelengthShiftTest : public InteractorHostBase,
   protected:
     using HostDataCRef = HostCRef<WavelengthShiftData>;
 
-    void SetUp() override
+    void SetUp() override {}
+
+    void build_model(WlsTimeProfile time_profile)
     {
         auto const& data = this->imported_data();
         WavelengthShiftModel::Input input;
         input.model = ImportModelClass::wls;
+        input.time_profile = time_profile;
         for (auto const& mat : data.optical_materials)
         {
             input.data.push_back(mat.wls);
@@ -63,6 +67,8 @@ class WavelengthShiftTest : public InteractorHostBase,
 
 TEST_F(WavelengthShiftTest, data)
 {
+    this->build_model(WlsTimeProfile::exponential);
+
     // Test the material properties of WLS
     WlsMaterialRecord wls_record = data_.wls_record[material_id_];
     EXPECT_SOFT_EQ(2, wls_record.mean_num_photons);
@@ -102,8 +108,58 @@ TEST_F(WavelengthShiftTest, data)
     EXPECT_VEC_SOFT_EQ(expected_wls_energy, wls_energy);
 }
 
+TEST_F(WavelengthShiftTest, time_profile)
+{
+    auto& rng = this->InteractorHostBase::rng();
+
+    WlsDistributionData dist;
+    dist.num_photons = 1000;
+    dist.energy = Energy{2e-6};
+    dist.time = 5.0 * units::nanosecond;
+    dist.material = material_id_;
+
+    {
+        // Test delta time profile
+        this->build_model(WlsTimeProfile::delta);
+
+        real_type const expected_time
+            = dist.time + data_.wls_record[dist.material].time_constant;
+        for (size_type i = 0; i < dist.num_photons; ++i)
+        {
+            auto photon = WavelengthShiftGenerator(data_, dist)(rng);
+            EXPECT_EQ(expected_time, photon.time);
+        }
+    }
+    {
+        // Test exponential time profile
+        this->build_model(WlsTimeProfile::exponential);
+
+        real_type time_ns = dist.time / units::nanosecond;
+        Histogram bin(8, {time_ns, time_ns + 4});
+        for (size_type i = 0; i < dist.num_photons; ++i)
+        {
+            auto photon = WavelengthShiftGenerator(data_, dist)(rng);
+            bin(photon.time / units::nanosecond);
+        }
+        static double const expected_density[] = {
+            0.8118006103764,
+            0.4618514750763,
+            0.28077314343845,
+            0.17700915564598,
+            0.12817904374364,
+            0.077314343845371,
+            0.036622583926755,
+            0.026449643947101,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_density, bin.calc_density());
+        EXPECT_FALSE(bin.underflow());
+    }
+}
+
 TEST_F(WavelengthShiftTest, wls_basic)
 {
+    this->build_model(WlsTimeProfile::exponential);
+
     int const num_samples = 4;
     auto& rng = this->InteractorHostBase::rng();
 
@@ -142,6 +198,8 @@ TEST_F(WavelengthShiftTest, wls_basic)
 
 TEST_F(WavelengthShiftTest, wls_stress)
 {
+    this->build_model(WlsTimeProfile::exponential);
+
     int const num_samples = 128;
     auto& rng = this->InteractorHostBase::rng();
 

@@ -39,6 +39,7 @@ class WavelengthShiftModel : public Model
     {
         ImportModelClass model{ImportModelClass::size_};
         std::vector<ImportWavelengthShift> data;
+        WlsTimeProfile time_profile{WlsTimeProfile::size_};
     };
 
   public:

@@ -40,9 +40,6 @@ namespace optical
  *
  * \note This performs the same sampling routine as in the G4OpWLS class of
  * the Geant4 release 11.2.
- *
- * \todo The sampled time should either follow an exponential distribution or
- * be a fixed time offset, depending on the specified distribution type.
  */
 class WavelengthShiftGenerator
 {
@@ -64,7 +61,8 @@ class WavelengthShiftGenerator
     //// DATA ////
 
     WlsDistributionData const& distribution_;
-    ExponentialDistribution<real_type> sample_time_;
+    real_type time_constant_;
+    WlsTimeProfile time_profile_;
     NonuniformGridCalculator calc_cdf_;
 };
 
@@ -79,8 +77,8 @@ WavelengthShiftGenerator::WavelengthShiftGenerator(
     NativeCRef<WavelengthShiftData> const& shared,
     WlsDistributionData const& distribution)
     : distribution_(distribution)
-    , sample_time_(real_type{1}
-                   / shared.wls_record[distribution_.material].time_constant)
+    , time_constant_(shared.wls_record[distribution_.material].time_constant)
+    , time_profile_(shared.time_profile)
     , calc_cdf_(shared.energy_cdf[distribution_.material], shared.reals)
 {
     CELER_EXPECT(distribution_);
@@ -122,7 +120,11 @@ CELER_FUNCTION TrackInitializer WavelengthShiftGenerator::operator()(Engine& rng
     result.polarization = ExitingDirectionSampler{0, result.direction}(rng);
 
     // Sample the delta time (based on the exponential relaxation)
-    result.time = distribution_.time + sample_time_(rng);
+    result.time
+        = distribution_.time
+          + (time_profile_ == WlsTimeProfile::delta
+                 ? time_constant_
+                 : ExponentialDistribution(real_type{1} / time_constant_)(rng));
 
     CELER_ENSURE(is_soft_unit_vector(result.polarization));
     CELER_ENSURE(soft_zero(dot_product(result.direction, result.polarization)));

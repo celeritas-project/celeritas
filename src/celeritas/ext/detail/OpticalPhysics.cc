@@ -145,7 +145,7 @@ bool process_is_active(OpticalProcessType process,
         case OpticalProcessType::boundary:
             return bool(options.boundary);
         case OpticalProcessType::wavelength_shifting:
-            return options.wavelength_shifting != WLSTimeProfileSelection::none;
+            return bool(options.wavelength_shifting);
         case OpticalProcessType::wavelength_shifting_2:
             // Technically reachable, but practically not supported pre 10.7
             CELER_ASSERT_UNREACHABLE();
@@ -177,10 +177,8 @@ OpticalPhysics::OpticalPhysics(Options const& options) : options_(options)
     activate_process(kRayleigh, options_.rayleigh_scattering);
     activate_process(kMieHG, options_.mie_scattering);
     activate_process(kBoundary, bool(options_.boundary));
-    activate_process(
-        kWLS, options_.wavelength_shifting != WLSTimeProfileSelection::none);
-    activate_process(
-        kWLS2, options_.wavelength_shifting2 != WLSTimeProfileSelection::none);
+    activate_process(kWLS, bool(options_.wavelength_shifting));
+    activate_process(kWLS2, bool(options_.wavelength_shifting2));
 
     // Cherenkov
     params->SetCerenkovStackPhotons(options_.cherenkov.stack_photons);
@@ -198,16 +196,17 @@ OpticalPhysics::OpticalPhysics(Options const& options) : options_(options)
     params->SetScintTrackInfo(options_.scintillation.track_info);
 
     // WLS
-    params->SetWLSTimeProfile(to_cstring(options_.wavelength_shifting));
+    params->SetWLSTimeProfile(
+        to_cstring(options_.wavelength_shifting.time_profile));
 
     // WLS2
-    params->SetWLS2TimeProfile(to_cstring(options_.wavelength_shifting2));
+    params->SetWLS2TimeProfile(
+        to_cstring(options_.wavelength_shifting2.time_profile));
 
     // boundary
     params->SetBoundaryInvokeSD(options_.boundary.invoke_sd);
 
-    // Only set a global verbosity with same level for all optical
-    // processes
+    // Only set a global verbosity with same level for all optical processes
     params->SetVerboseLevel(options_.verbose);
 #endif
 }
@@ -280,7 +279,8 @@ void OpticalPhysics::ConstructProcess()
     {
         auto wls = std::make_unique<G4OpWLS>();
 #if G4VERSION_NUMBER < 1070
-        wls->UseTimeProfile(to_cstring(options_.wavelength_shifting));
+        wls->UseTimeProfile(
+            to_cstring(options_.wavelength_shifting.time_profile));
 #endif
         process_manager->AddDiscreteProcess(wls.release());
         CELER_LOG(debug) << "Loaded optical wavelength shifting with G4OpWLS "

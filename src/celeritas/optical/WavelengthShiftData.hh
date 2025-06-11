@@ -71,6 +71,9 @@ struct WavelengthShiftData
     // Cumulative probability of emission as a function of energy
     OpticalMaterialItems<NonuniformGridRecord> energy_cdf;
 
+    // Time profile model
+    WlsTimeProfile time_profile{WlsTimeProfile::size_};
+
     // Backend data
     Items<real_type> reals;
 
@@ -79,7 +82,8 @@ struct WavelengthShiftData
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !wls_record.empty() && !energy_cdf.empty();
+        return !wls_record.empty() && !energy_cdf.empty()
+               && time_profile != WlsTimeProfile::size_;
     }
 
     //! Assign from another set of data
@@ -89,6 +93,7 @@ struct WavelengthShiftData
         CELER_EXPECT(other);
         wls_record = other.wls_record;
         energy_cdf = other.energy_cdf;
+        time_profile = other.time_profile;
         reals = other.reals;
         return *this;
     }

@@ -42,8 +42,8 @@ physics_options = {
     'optical': {
         'absorption': True,
         'rayleigh_scattering': True,
-        'wavelength_shifting': "exponential",
-        'wavelength_shifting2': "exponential"
+        'wavelength_shifting': {"enable": True, "time_profile": "exponential"},
+        'wavelength_shifting2': {"enable": True, "time_profile": "exponential"}
     }
 }
 

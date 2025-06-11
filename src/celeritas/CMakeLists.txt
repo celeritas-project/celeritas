@@ -54,7 +54,6 @@ list(APPEND SOURCES
   em/process/MuPairProductionProcess.cc
   em/process/PhotoelectricProcess.cc
   em/process/RayleighProcess.cc
-  ext/GeantOpticalPhysicsOptions.cc
   ext/GeantOpticalPhysicsOptionsIO.json.cc
   ext/GeantPhysicsOptions.cc
   ext/GeantPhysicsOptionsIO.json.cc
