@@ -42,6 +42,8 @@ physics_options = {
     'optical': {
         'absorption': True,
         'rayleigh_scattering': True,
+        'wavelength_shifting': {"enable": True, "time_profile": "exponential"},
+        'wavelength_shifting2': {"enable": True, "time_profile": "exponential"}
     }
 }
 
@@ -98,7 +100,6 @@ inp = {
     'simple_calo': simple_calo,
     'action_times': True,
     'merge_events': False,
-    'default_stream': False,
     'physics_options': physics_options,
     'field': None,
     'slot_diagnostic_prefix': f"slot-diag-{run_name}-",

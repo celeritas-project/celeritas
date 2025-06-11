@@ -38,7 +38,9 @@
     <matrix name="IC" coldim="1" values="3.95306e-5"/>
     <matrix name="ABS" coldim="2" values="1.3778e-06 864.473 1.55e-05 0.00296154"/>
     <matrix name="WLSC" coldim="2" values="1.3778e-06 10 1.55e-05 20"/>
+    <matrix name="WLSC2" coldim="2" values="1.771e-06 0.3 2.484e-06 0.8"/>
     <matrix name="WLSMNP" coldim="1" values="3"/>
+    <matrix name="WLSMNP2" coldim="1" values="2"/>
   </define>
 
   <materials>
@@ -113,6 +115,10 @@
       <property name="WLSMEANNUMBERPHOTONS" ref="WLSMNP"/>
       <property name="WLSABSLENGTH" ref="ABS"/> <!-- Reused for simplicity -->
       <property name="WLSTIMECONSTANT" ref="TC1"/> <!-- Reused for simplicity -->
+      <property name="WLSCOMPONENT2" ref="WLSC2"/>
+      <property name="WLSMEANNUMBERPHOTONS2" ref="WLSMNP2"/>
+      <property name="WLSABSLENGTH2" ref="ABS"/> <!-- Reused for simplicity -->
+      <property name="WLSTIMECONSTANT2" ref="TC1"/> <!-- Reused for simplicity -->
     </material>
   </materials>
 

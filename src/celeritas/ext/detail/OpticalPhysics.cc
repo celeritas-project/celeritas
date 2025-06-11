@@ -145,7 +145,7 @@ bool process_is_active(OpticalProcessType process,
         case OpticalProcessType::boundary:
             return bool(options.boundary);
         case OpticalProcessType::wavelength_shifting:
-            return options.wavelength_shifting != WLSTimeProfileSelection::none;
+            return bool(options.wavelength_shifting);
         case OpticalProcessType::wavelength_shifting_2:
             // Technically reachable, but practically not supported pre 10.7
             CELER_ASSERT_UNREACHABLE();
@@ -177,10 +177,8 @@ OpticalPhysics::OpticalPhysics(Options const& options) : options_(options)
     activate_process(kRayleigh, options_.rayleigh_scattering);
     activate_process(kMieHG, options_.mie_scattering);
     activate_process(kBoundary, bool(options_.boundary));
-    activate_process(
-        kWLS, options_.wavelength_shifting != WLSTimeProfileSelection::none);
-    activate_process(
-        kWLS2, options_.wavelength_shifting2 != WLSTimeProfileSelection::none);
+    activate_process(kWLS, bool(options_.wavelength_shifting));
+    activate_process(kWLS2, bool(options_.wavelength_shifting2));
 
     // Cherenkov
     params->SetCerenkovStackPhotons(options_.cherenkov.stack_photons);
@@ -198,16 +196,17 @@ OpticalPhysics::OpticalPhysics(Options const& options) : options_(options)
     params->SetScintTrackInfo(options_.scintillation.track_info);
 
     // WLS
-    params->SetWLSTimeProfile(to_cstring(options_.wavelength_shifting));
+    params->SetWLSTimeProfile(
+        to_cstring(options_.wavelength_shifting.time_profile));
 
     // WLS2
-    params->SetWLS2TimeProfile(to_cstring(options_.wavelength_shifting2));
+    params->SetWLS2TimeProfile(
+        to_cstring(options_.wavelength_shifting2.time_profile));
 
     // boundary
     params->SetBoundaryInvokeSD(options_.boundary.invoke_sd);
 
-    // Only set a global verbosity with same level for all optical
-    // processes
+    // Only set a global verbosity with same level for all optical processes
     params->SetVerboseLevel(options_.verbose);
 #endif
 }
@@ -240,7 +239,7 @@ void OpticalPhysics::ConstructProcess()
     if (process_is_active(OpticalProcessType::absorption, options_))
     {
         process_manager->AddDiscreteProcess(absorption.release());
-        CELER_LOG(debug) << "Loaded Optical absorption with G4OpAbsorption "
+        CELER_LOG(debug) << "Loaded optical absorption with G4OpAbsorption "
                             "process";
     }
 
@@ -249,7 +248,7 @@ void OpticalPhysics::ConstructProcess()
     {
         process_manager->AddDiscreteProcess(rayleigh.release());
         CELER_LOG(debug)
-            << "Loaded Optical Rayleigh scattering with G4OpRayleigh "
+            << "Loaded optical Rayleigh scattering with G4OpRayleigh "
                "process";
     }
 
@@ -257,7 +256,7 @@ void OpticalPhysics::ConstructProcess()
     if (process_is_active(OpticalProcessType::mie_hg, options_))
     {
         process_manager->AddDiscreteProcess(mie.release());
-        CELER_LOG(debug) << "Loaded Optical Mie (Henyey-Greenstein phase "
+        CELER_LOG(debug) << "Loaded optical Mie (Henyey-Greenstein phase "
                             "function) scattering with G4OpMieHG "
                             "process";
     }
@@ -272,7 +271,7 @@ void OpticalPhysics::ConstructProcess()
     {
         process_manager->AddDiscreteProcess(boundary.release());
         CELER_LOG(debug)
-            << "Loaded Optical boundary process with G4OpBoundaryProcess "
+            << "Loaded optical boundary process with G4OpBoundaryProcess "
                "process";
     }
 
@@ -280,10 +279,11 @@ void OpticalPhysics::ConstructProcess()
     {
         auto wls = std::make_unique<G4OpWLS>();
 #if G4VERSION_NUMBER < 1070
-        wls->UseTimeProfile(to_cstring(options_.wavelength_shifting));
+        wls->UseTimeProfile(
+            to_cstring(options_.wavelength_shifting.time_profile));
 #endif
         process_manager->AddDiscreteProcess(wls.release());
-        CELER_LOG(debug) << "Loaded Optical wavelength shifting with G4OpWLS "
+        CELER_LOG(debug) << "Loaded optical wavelength shifting with G4OpWLS "
                             "process";
     }
 
@@ -292,7 +292,6 @@ void OpticalPhysics::ConstructProcess()
     {
         auto wls2 = std::make_unique<G4OpWLS2>();
         process_manager->AddDiscreteProcess(wls2.release());
-        // I need to check how this differs from G4OpWLS...
         CELER_LOG(debug) << "Loaded second optical wavelength shifting with "
                             "G4OpWLS2 process ";
     }
@@ -338,7 +337,7 @@ void OpticalPhysics::ConstructProcess()
         {
             process_manager->AddProcess(cherenkov.release_if_owned());
             process_manager->SetProcessOrdering(cherenkov, idxPostStep);
-            CELER_LOG(debug) << "Loaded Optical Cherenkov with G4Cerenkov "
+            CELER_LOG(debug) << "Loaded optical Cherenkov with G4Cerenkov "
                                 "process for particle "
                              << p->GetParticleName();
         }
@@ -349,7 +348,7 @@ void OpticalPhysics::ConstructProcess()
             process_manager->SetProcessOrderingToLast(scint, idxAtRest);
             process_manager->SetProcessOrderingToLast(scint, idxPostStep);
             CELER_LOG(debug)
-                << "Loaded Optical Scintillation with G4Scintillation "
+                << "Loaded optical Scintillation with G4Scintillation "
                    "process for particle "
                 << p->GetParticleName();
         }
