@@ -19,6 +19,10 @@
 #include "Types.hh"
 #include "g4/GeantGeoData.hh"
 
+#if !CELERITAS_USE_GEANT4
+#    include "inp/Model.hh"
+#endif
+
 class G4VPhysicalVolume;
 class G4LogicalSurface;
 
@@ -216,6 +220,16 @@ auto GeantGeoParams::volume_instances() const -> VolInstanceMap const&
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4 && !defined(__DOXYGEN__)
+inline void geant_geo(GeantGeoParams const&)
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+inline GeantGeoParams const* geant_geo()
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+//-----------------------------------//
+
 inline GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const*)
 {
     CELER_NOT_CONFIGURED("Geant4");
@@ -229,43 +243,37 @@ GeantGeoParams::GeantGeoParams::from_tracking_manager()
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
+
+//-----------------------------------//
 inline GeantGeoParams::~GeantGeoParams() {}
-inline void geant_geo(GeantGeoParams const&)
+
+//-----------------------------------//
+inline inp::Model GeantGeoParams::make_model_input() const
 {
     CELER_ASSERT_UNREACHABLE();
 }
-inline GeantGeoParams const* geant_geo()
-{
-    return nullptr;
-}
-
 inline VolumeId GeantGeoParams::find_volume(G4LogicalVolume const*) const
 {
     CELER_ASSERT_UNREACHABLE();
 }
-
 inline GeantPhysicalInstance GeantGeoParams::id_to_geant(VolumeInstanceId) const
 {
     CELER_ASSERT_UNREACHABLE();
 }
-
 inline G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId) const
 {
     CELER_ASSERT_UNREACHABLE();
 }
-
 inline VolumeInstanceId
 GeantGeoParams::geant_to_id(G4VPhysicalVolume const&) const
 {
     CELER_ASSERT_UNREACHABLE();
 }
-
 inline GeantGeoParams::ReplicaId
 GeantGeoParams::replica_id(G4VPhysicalVolume const&) const
 {
     CELER_ASSERT_UNREACHABLE();
 }
-
 inline BoundingBox<double> GeantGeoParams::get_clhep_bbox() const
 {
     CELER_ASSERT_UNREACHABLE();
