@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "GeantGeoParams.hh"
 
+#include <map>
 #include <unordered_map>
 #include <vector>
 #include <G4GeometryManager.hh>
@@ -164,13 +165,13 @@ std::vector<G4LogicalSurface const*> make_surface_vec(GeantGeoParams const& geo)
                 auto iter_inserted = temp.insert({vol_id, surf});
                 CELER_ASSERT(iter_inserted.second);
             }
+        }
 
-            // Add to table in order
-            result.reserve(table->size());
-            for (auto const& kv : temp)
-            {
-                result.push_back(kv.second);
-            }
+        // Add to table in order
+        result.reserve(table->size());
+        for (auto const& kv : temp)
+        {
+            result.push_back(kv.second);
         }
     }
     {

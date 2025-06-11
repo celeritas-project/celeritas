@@ -736,14 +736,13 @@ void OpticalSurfacesGeoTest::test_model() const
     };
     ref.volume_instance.volumes = {0, 2, 1, 2, 3};
     ref.surface.labels = {
-        "tube2_skin",
         "sphere_skin",
         "tube2_skin",
         "below_to_1",
         "mid_to_below",
         "mid_to_above",
     };
-    ref.surface.volumes = {"2", "0", "2", "1->2", "2->1", "2->3"};
+    ref.surface.volumes = {"0", "2", "1->2", "2->1", "2->3"};
     EXPECT_RESULT_EQ(ref, result);
 }
 
