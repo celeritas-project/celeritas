@@ -105,20 +105,20 @@ struct GenericGeoModelInp
 {
     struct
     {
-        std::vector<std::string> names;
+        std::vector<std::string> labels;
         std::vector<int> materials;
         std::vector<std::vector<int>> daughters;
     } volume;
     struct
     {
-        std::vector<std::string> names;
+        std::vector<std::string> labels;
         std::vector<int> volumes;
     } volume_instance;
     struct
     {
-        std::vector<std::string> names;
+        std::vector<std::string> labels;
         std::vector<std::string> volumes;
-    } surfaces;
+    } surface;
 
     static GenericGeoModelInp from_model_input(inp::Model const& in);
     void print_expected() const;

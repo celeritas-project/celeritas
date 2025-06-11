@@ -22,6 +22,7 @@
 #include <G4Version.hh>
 #include <G4VisExtent.hh>
 
+#include "corecel/Assert.hh"
 #include "geocel/inp/Model.hh"
 #if G4VERSION_NUMBER >= 1070
 #    include <G4Backtrace.hh>
@@ -239,6 +240,34 @@ inp::Volume inp_from_geant(GeantGeoParams const& geo,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Create volumes input from Geant4 volumes.
+ */
+std::vector<inp::Volume> make_inp_volumes(GeantGeoParams const& geo)
+{
+    std::vector<inp::Volume> result;
+
+    auto const& vol_labels = geo.volumes();
+    result.resize(vol_labels.size());
+
+    // Process each logical volume
+    for (auto vol_id : range(VolumeId{vol_labels.size()}))
+    {
+        auto const& label = vol_labels.at(vol_id);
+        if (label.empty())
+        {
+            // This volume isn't part of the world hierarchy
+            continue;
+        }
+
+        auto* g4lv = geo.id_to_geant(vol_id);
+        CELER_ASSERT(g4lv);
+        result[vol_id.get()] = inp_from_geant(geo, label, *g4lv);
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct a Volume instance input from a Geant4 physical volume.
  */
 inp::VolumeInstance inp_from_geant(GeantGeoParams const& geo,
@@ -250,6 +279,81 @@ inp::VolumeInstance inp_from_geant(GeantGeoParams const& geo,
     auto* g4lv = g4pv.GetLogicalVolume();
     CELER_ASSERT(g4lv);
     result.volume = geo.geant_to_id(*g4lv);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create volumes input from Geant4 volumes.
+ */
+std::vector<inp::VolumeInstance>
+make_inp_volume_instances(GeantGeoParams const& geo)
+{
+    // Process volume instances
+    auto const& vol_inst_labels = geo.volume_instances();
+    std::vector<inp::VolumeInstance> result(vol_inst_labels.size());
+
+    // Fix copy numbers to avoid invalid read/out-of-bounds
+    geo.reset_replica_data();
+
+    for (auto vol_inst_id : range(VolumeInstanceId{vol_inst_labels.size()}))
+    {
+        auto const& label = vol_inst_labels.at(vol_inst_id);
+        if (label.empty())
+        {
+            // This volume instance isn't part of the world hierarchy
+            continue;
+        }
+
+        auto g4pv_inst = geo.id_to_geant(vol_inst_id);
+        if (!g4pv_inst.pv)
+        {
+            continue;
+        }
+        result[vol_inst_id.get()] = inp_from_geant(geo, label, *g4pv_inst.pv);
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create surfaces input from Geant4 surfaces.
+ */
+std::vector<inp::Surface> make_inp_surfaces(GeantGeoParams const& geo)
+{
+    // Process surfaces
+    std::vector<inp::Surface> result(geo.num_surfaces());
+
+    for (auto surf_id : range(SurfaceId{geo.num_surfaces()}))
+    {
+        G4LogicalSurface const* surf_base = geo.id_to_geant(surf_id);
+        CELER_ASSERT(surf_base);
+
+        // TODO: deduplicate labels if needed
+        result[surf_id.get()].label = surf_base->GetName();
+
+        // Construct surface
+        auto& inp_surf = result[surf_id.get()].surface;
+        if (auto* surf = dynamic_cast<G4LogicalSkinSurface const*>(surf_base))
+        {
+            auto* lv = surf->GetLogicalVolume();
+            CELER_ASSERT(lv);
+            inp_surf = inp::Surface::Boundary{geo.geant_to_id(*lv)};
+        }
+        else if (auto* surf
+                 = dynamic_cast<G4LogicalBorderSurface const*>(surf_base))
+        {
+            auto* pv_enter = surf->GetVolume1();
+            auto* pv_exit = surf->GetVolume2();
+            CELER_ASSERT(pv_enter && pv_exit);
+            inp_surf = inp::Surface::Interface{geo.geant_to_id(*pv_enter),
+                                               geo.geant_to_id(*pv_exit)};
+        }
+        else
+        {
+            CELER_ASSERT_UNREACHABLE();
+        }
+    }
     return result;
 }
 
@@ -433,51 +537,14 @@ inp::Model GeantGeoParams::make_model_input() const
         inp::Volumes result;
 
         // Get volumes from Geant4 geometry
-        auto const& vol_labels = this->volumes();
-        result.volumes.resize(vol_labels.size());
+        result.volumes = make_inp_volumes(*this);
+        result.volume_instances = make_inp_volume_instances(*this);
 
-        // Process each logical volume
-        for (auto vol_id : range(VolumeId{vol_labels.size()}))
-        {
-            auto const& label = vol_labels.at(vol_id);
-            if (label.empty())
-            {
-                // This volume isn't part of the world hierarchy
-                continue;
-            }
-
-            auto* g4lv = this->id_to_geant(vol_id);
-            CELER_ASSERT(g4lv);
-            result.volumes[vol_id.get()] = inp_from_geant(*this, label, *g4lv);
-        }
-
-        // Process volume instances
-        auto const& vol_inst_labels = this->volume_instances();
-        result.volume_instances.resize(vol_inst_labels.size());
-        // Fix copy numbers to avoid invalid read/out-of-bounds
-        this->reset_replica_data();
-
-        for (auto vol_inst_id : range(VolumeInstanceId{vol_inst_labels.size()}))
-        {
-            auto const& label = vol_inst_labels.at(vol_inst_id);
-            if (label.empty())
-            {
-                // This volume instance isn't part of the world hierarchy
-                continue;
-            }
-
-            auto g4pv_inst = this->id_to_geant(vol_inst_id);
-            if (!g4pv_inst.pv)
-            {
-                continue;
-            }
-            result.volume_instances[vol_inst_id.get()]
-                = inp_from_geant(*this, label, *g4pv_inst.pv);
-        }
         return result;
     }();
-    result.surfaces = [] {
+    result.surfaces = [this] {
         inp::Surfaces result;
+        result.surfaces = make_inp_surfaces(*this);
         return result;
     }();
 
@@ -678,10 +745,14 @@ void GeantGeoParams::build_metadata()
         CELER_ASSERT(pv_store && !pv_store->empty());
         return pv_store->front()->GetInstanceID();
     }();
-    data_.mat_offset = [] {
+    data_.mat_offset = []() -> GeoMatId::size_type {
         auto* mat_store = G4Material::GetMaterialTable();
-        CELER_ASSERT(mat_store && !mat_store->empty());
-        return mat_store->front()->GetIndex();
+        CELER_ASSERT(mat_store);
+        if (!mat_store->empty())
+        {
+            return mat_store->front()->GetIndex();
+        }
+        return 0;
     }();
     if (this->lv_offset() != 0 || this->pv_offset() != 0
         || this->mat_offset() != 0)

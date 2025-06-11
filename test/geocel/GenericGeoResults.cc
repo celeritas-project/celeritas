@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "GenericGeoResults.hh"
 
+#include "corecel/OpaqueIdUtils.hh"
+#include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/inp/Model.hh"
@@ -18,6 +20,11 @@
 #define EXPECT_RESULT_NEAR(EXPECTED, ACTUAL, TOL) \
     EXPECT_REF_NEAR(EXPECTED, ACTUAL, TOL)
 
+//!@{
+//! Helper macros
+#define CELER_REF_ATTR(ATTR) "ref." #ATTR " = " << repr(this->ATTR) << ";\n"
+//!@}
+
 namespace celeritas
 {
 namespace test
@@ -26,17 +33,15 @@ namespace test
 // TRACKING RESULT
 //---------------------------------------------------------------------------//
 
-#define CELER_REF_ATTR(ATTR) "ref." #ATTR " = " << repr(this->ATTR) << ";\n"
 void GenericGeoTrackingResult::print_expected() const
 {
-    std::cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+    using std::cout;
+    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "GenericGeoTrackingResult ref;\n"
-            CELER_REF_ATTR(volumes)
-            CELER_REF_ATTR(volume_instances)
-            CELER_REF_ATTR(distances)
-            CELER_REF_ATTR(halfway_safeties)
-            CELER_REF_ATTR(bumps)
-            "auto tol = GenericGeoTrackingTolerance::from_test(*test_);\n"
+         << CELER_REF_ATTR(volumes) << CELER_REF_ATTR(volume_instances)
+         << CELER_REF_ATTR(distances) << CELER_REF_ATTR(halfway_safeties)
+         << CELER_REF_ATTR(bumps)
+         << "auto tol = GenericGeoTrackingTolerance::from_test(*test_);\n"
             "EXPECT_RESULT_NEAR(ref, result, tol);\n"
             "/*** END CODE ***/\n";
 }
@@ -119,7 +124,7 @@ GenericGeoVolumeStackResult::from_span(GeoParamsInterface const& geo,
         {
             if (phys_inst.replica)
             {
-                result.replicas[i] = phys_inst.replica.get();
+                result.replicas[i] = id_to_int(phys_inst.replica);
             }
         }
         // Only write extension if not a replica, because Geant4
@@ -134,14 +139,12 @@ GenericGeoVolumeStackResult::from_span(GeoParamsInterface const& geo,
 void GenericGeoVolumeStackResult::print_expected() const
 {
     using std::cout;
-    // clang-format off
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "GenericGeoVolumeStackResult ref;\n"
-            CELER_REF_ATTR(volume_instances)
-            CELER_REF_ATTR(replicas)
+            << CELER_REF_ATTR(volume_instances)
+            << CELER_REF_ATTR(replicas)
             "EXPECT_RESULT_EQ(ref, result);\n"
             "/*** END CODE ***/\n";
-    // clang-format on
 }
 
 ::testing::AssertionResult IsRefEq(char const* expr1,
@@ -151,11 +154,11 @@ void GenericGeoVolumeStackResult::print_expected() const
 {
     AssertionHelper result{expr1, expr2};
 
-#define IRE_COMPARE(ATTR)                                                  \
-    if (val1.ATTR != val2.ATTR)                                            \
-    {                                                                      \
-        result.fail() << "Actual " #ATTR ": " << repr(val1.ATTR) << " vs " \
-                      << repr(val2.ATTR);                                  \
+#define IRE_COMPARE(ATTR)                                          \
+    if (val1.ATTR != val2.ATTR)                                    \
+    {                                                              \
+        result.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
+                      << " but got " << repr(val2.ATTR);           \
     }
     IRE_COMPARE(volume_instances);
     IRE_COMPARE(replicas);
@@ -173,31 +176,54 @@ GenericGeoModelInp GenericGeoModelInp::from_model_input(inp::Model const& in)
 {
     GenericGeoModelInp result;
 
-    // Extract volume names
-    result.volumes.resize(in.volumes.volumes.size());
+    // Extract volume data
+    result.volume.labels.reserve(in.volumes.volumes.size());
+    result.volume.materials.reserve(in.volumes.volumes.size());
+    result.volume.daughters.reserve(in.volumes.volumes.size());
+
     for (auto i : range(in.volumes.volumes.size()))
     {
-        result.volumes[i] = to_string(in.volumes.volumes[i].label);
+        auto const& vol = in.volumes.volumes[i];
+        result.volume.labels.push_back(to_string(vol.label));
+        result.volume.materials.push_back(id_to_int(vol.material));
+
+        std::vector<int> daughters;
+        daughters.reserve(vol.children.size());
+        for (auto child_id : vol.children)
+        {
+            daughters.push_back(id_to_int(child_id));
+        }
+        result.volume.daughters.push_back(std::move(daughters));
     }
 
-    // Extract volume instance names
-    result.volume_instances.resize(in.volumes.volume_instances.size());
+    // Extract volume instance data
+    result.volume_instance.labels.reserve(in.volumes.volume_instances.size());
+    result.volume_instance.volumes.reserve(in.volumes.volume_instances.size());
+
     for (auto i : range(in.volumes.volume_instances.size()))
     {
-        result.volume_instances[i]
-            = to_string(in.volumes.volume_instances[i].label);
+        auto const& vol_inst = in.volumes.volume_instances[i];
+        result.volume_instance.labels.push_back(to_string(vol_inst.label));
+        result.volume_instance.volumes.push_back(id_to_int(vol_inst.volume));
     }
 
-    // Extract daughter relationships
-    result.daughters.resize(in.volumes.volumes.size());
-    for (auto i : range(in.volumes.volumes.size()))
+    // Extract surface data
+    result.surface.labels.reserve(in.surfaces.surfaces.size());
+    result.surface.volumes.reserve(in.surfaces.surfaces.size());
+
+    for (auto const& surf : in.surfaces.surfaces)
     {
-        auto const& children = in.volumes.volumes[i].children;
-        result.daughters[i].reserve(children.size());
-        for (auto child_id : children)
-        {
-            result.daughters[i].push_back(child_id.get());
-        }
+        result.surface.labels.push_back(to_string(surf.label));
+        result.surface.volumes.push_back(std::visit(
+            Overload{[](inp::Surface::Interface const& interface) {
+                         return std::to_string(id_to_int(interface.first))
+                                + "->"
+                                + std::to_string(id_to_int(interface.second));
+                     },
+                     [](inp::Surface::Boundary const& boundary) {
+                         return std::to_string(id_to_int(boundary));
+                     }},
+            surf.surface));
     }
 
     return result;
@@ -205,12 +231,20 @@ GenericGeoModelInp GenericGeoModelInp::from_model_input(inp::Model const& in)
 
 void GenericGeoModelInp::print_expected() const
 {
-    std::cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+    using std::cout;
+    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "GenericGeoModelInp ref;\n"
-            CELER_REF_ATTR(volumes)
-            CELER_REF_ATTR(volume_instances)
-            CELER_REF_ATTR(daughters)
-            "EXPECT_RESULT_EQ(ref, result);\n"
+         << CELER_REF_ATTR(volume.labels) << CELER_REF_ATTR(volume.materials)
+         << CELER_REF_ATTR(volume.daughters)
+         << CELER_REF_ATTR(volume_instance.labels)
+         << CELER_REF_ATTR(volume_instance.volumes);
+
+    if (!surface.labels.empty())
+    {
+        cout << CELER_REF_ATTR(surface.labels)
+             << CELER_REF_ATTR(surface.volumes);
+    }
+    cout << "EXPECT_RESULT_EQ(ref, result);\n"
             "/*** END CODE ***/\n";
 }
 
@@ -221,19 +255,26 @@ void GenericGeoModelInp::print_expected() const
 {
     AssertionHelper result{expr1, expr2};
 
-#define IRE_COMPARE(ATTR)                                                  \
-    if (val1.ATTR != val2.ATTR)                                            \
-    {                                                                      \
-        result.fail() << "Actual " #ATTR ": " << repr(val1.ATTR) << " vs " \
-                      << repr(val2.ATTR);                                  \
-    }
-    IRE_COMPARE(volumes);
-    IRE_COMPARE(volume_instances);
-    IRE_COMPARE(daughters);
+#define IRE_COMPARE(ATTR)                                          \
+    if (val1.ATTR != val2.ATTR)                                    \
+    {                                                              \
+        result.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
+                      << " but got " << repr(val2.ATTR);           \
+    }                                                              \
+    else                                                           \
+        (void)sizeof(char)
+
+    IRE_COMPARE(volume.labels);
+    IRE_COMPARE(volume.materials);
+    IRE_COMPARE(volume.daughters);
+    IRE_COMPARE(volume_instance.labels);
+    IRE_COMPARE(volume_instance.volumes);
+    IRE_COMPARE(surface.labels);
+    IRE_COMPARE(surface.volumes);
+
 #undef IRE_COMPARE
     return result;
 }
-
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

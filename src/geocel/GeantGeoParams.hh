@@ -108,6 +108,11 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Get the Geant4 logical volume corresponding to a volume ID
     G4LogicalVolume const* id_to_geant(VolumeId vol_id) const;
 
+    //// SURFACES ////
+
+    //! Get the number of surfaces (TODO: maybe live in surface params?)
+    SurfaceId::size_type num_surfaces() const { return surfaces_.size(); }
+
     // Get the Geant4 logical volume corresponding to a volume ID
     inline G4LogicalSurface const* id_to_geant(SurfaceId surf_id) const;
 
