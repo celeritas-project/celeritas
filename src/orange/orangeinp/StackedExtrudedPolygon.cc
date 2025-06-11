@@ -47,8 +47,8 @@ auto StackedExtrudedPolygon::or_solid(std::string&& label,
 
     // If the polygon is convex and the polyline is a single segment, make an
     // ExtrudedPolygon
-    bool degen_ok = true;
-    if (polyline.size() == 2 && detail::is_convex(make_span(polygon), degen_ok))
+    if (polyline.size() == 2
+        && detail::is_convex(make_span(polygon), /* degen_ok = */ true))
     {
         constexpr auto bot = to_int(Bound::lo);
         constexpr auto top = to_int(Bound::hi);
