@@ -22,7 +22,7 @@ struct Volumes;
 /*!
  * Define and manage a hierarchy of volumes and instances thereof.
  *
- * See the introduction to \rstref{the Geometry API section, api_geometry} for
+ * See the introduction to \rstref{the Geometry API section,api_geometry} for
  * a detailed description of volumes in the detector geometry description. This
  * class abstracts the graph of volumes, relating \em nodes (VolumeId, aka
  * logical volume) to \em edges (VolumeInstanceId, aka physical volume) and

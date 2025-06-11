@@ -64,10 +64,13 @@ Unique instance
 
 .. table:: Nomenclature comparison for geometry elements.
 
-   Celeritas       | VecGeom  | Geant4
-   --------------- | -------- | -----------------------------------------
-   Volume          | Unplaced | Logical volume
-   Volume instance | Placed   | Physical volume (plus copy number)
+   +------------------+-----------+---------------------------------------------+
+   | Celeritas        | VecGeom   | Geant4                                      |
+   +==================+===========+=============================================+
+   | Volume           | Unplaced  | Logical volume                              |
+   +------------------+-----------+---------------------------------------------+
+   | Volume instance  | Placed    | Physical volume (plus copy number)          |
+   +------------------+-----------+---------------------------------------------+
 
 
 .. toctree::

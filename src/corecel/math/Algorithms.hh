@@ -536,6 +536,7 @@ CELER_FORCEINLINE_FUNCTION T fma(T a, T b, T y)
     return std::fma(a, b, y);
 }
 
+//! \cond (CELERITAS_DOC_DEV)
 //---------------------------------------------------------------------------//
 /*!
  * Provide an FMA-like interface for integers.
@@ -545,6 +546,7 @@ CELER_CONSTEXPR_FUNCTION T fma(T a, T b, T y)
 {
     return a * b + y;
 }
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!

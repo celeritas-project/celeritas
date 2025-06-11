@@ -68,7 +68,7 @@ set(DOXYGEN_ALIASES
   "citet{2}=\"[\\1](\\2)\""
   "rst=\"^^\\if (0)^^\""
   "endrst=\"^^\\endif^^\""
-  "rstref{2}=\"[\\2](user#\\1)\""
+  "rstref{2}=\"\\1 (\\2 in user manual)\""
 )
 
 # Verbosity/warning levels
