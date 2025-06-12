@@ -192,8 +192,7 @@ void append_border_surfaces(GeantGeoParams const& geo,
 #endif
     {
 #if G4VERSION_NUMBER < 1060
-        std::pair<G4VPhysicalVolume*, G4VPhysicalVolume*> key{
-            surf->GetVolume1(), surf->GetVolume2()};
+        std::pair key{surf->GetVolume1(), surf->GetVolume2()};
 #endif
         CELER_ASSERT(key.first);
         auto before = geo.geant_to_id(*key.first);
