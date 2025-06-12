@@ -45,6 +45,9 @@ using GeoMatId = OpaqueId<struct GeoMaterial_>;
 //! Implementation detail surface (for surface-based geometries)
 using InternalSurfaceId = OpaqueId<struct Surface_>;
 
+//! Combined boundary/interface surface identifier
+using SurfaceId = OpaqueId<struct Surface_, unsigned int>;
+
 //! Identifier for a geometry volume that may be repeated
 using VolumeId = OpaqueId<struct Volume_>;
 

@@ -718,6 +718,63 @@ void MultiLevelGeoTest::test_trace() const
 }
 
 //---------------------------------------------------------------------------//
+// OPTICAL SURFACES
+//---------------------------------------------------------------------------//
+void OpticalSurfacesGeoTest::test_model() const
+{
+    auto result = test_->model_inp();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {"lar_sphere", "tube1_mid", "tube2", "world"};
+    ref.volume.materials = {1, 2, 2, 3};
+    ref.volume.daughters = {{}, {}, {}, {0, 1, 2, 3}};
+    ref.volume_instance.labels = {
+        "lar_pv",
+        "tube2_below_pv",
+        "tube1_mid_pv",
+        "tube2_above_pv",
+        "world_PV",
+    };
+    ref.volume_instance.volumes = {0, 2, 1, 2, 3};
+    ref.surface.labels = {
+        "sphere_skin",
+        "tube2_skin",
+        "below_to_1",
+        "mid_to_below",
+        "mid_to_above",
+    };
+    ref.surface.volumes = {"0", "2", "1->2", "2->1", "2->3"};
+    EXPECT_RESULT_EQ(ref, result);
+}
+
+//---------------------------------------------------------------------------//
+void OpticalSurfacesGeoTest::test_trace() const
+{
+    {
+        SCOPED_TRACE("Through tubes");
+        auto result = test_->track({0, 0, -21}, {0, 0, 1});
+        static char const* const expected_volumes[]
+            = {"world", "tube2", "tube1_mid", "tube2", "world"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {1, 10, 20, 10, 80};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {0.5, 5, 10, 5, 40};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        SCOPED_TRACE("Across tube through lAr");
+        auto result = test_->track({-11, 0, 0}, {1, 0, 0});
+
+        static char const* const expected_volumes[]
+            = {"world", "tube1_mid", "world", "lar_sphere", "world"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {1, 20, 5, 10, 75};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {0.5, 10, 2.5, 5, 37.5};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+}
+
+//---------------------------------------------------------------------------//
 // POLYHEDRA
 //---------------------------------------------------------------------------//
 void PolyhedraGeoTest::test_model() const

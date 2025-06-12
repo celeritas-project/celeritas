@@ -102,6 +102,27 @@ class MultiLevelGeoTest
 
 //---------------------------------------------------------------------------//
 /*!
+ * Test the optical surfaces geometry.
+ */
+class OpticalSurfacesGeoTest
+{
+  public:
+    static std::string_view geometry_basename() { return "optical-surfaces"; }
+
+    //! Construct with a reference to the GoogleTest
+    OpticalSurfacesGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test}
+    {
+    }
+
+    void test_model() const;
+    void test_trace() const;
+
+  private:
+    GenericGeoTestInterface* test_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Test a bunch of polyhedra.
  */
 class PolyhedraGeoTest

@@ -432,6 +432,20 @@ TEST_F(MultiLevelTest, level_strings)
 }
 
 //---------------------------------------------------------------------------//
+using OpticalSurfacesTest
+    = GenericGeoParameterizedTest<GeantGeoTest, OpticalSurfacesGeoTest>;
+
+TEST_F(OpticalSurfacesTest, model)
+{
+    this->impl().test_model();
+}
+
+TEST_F(OpticalSurfacesTest, trace)
+{
+    this->impl().test_trace();
+}
+
+//---------------------------------------------------------------------------//
 class PincellTest : public GeantGeoTest
 {
     std::string geometry_basename() const override { return "pincell"; }

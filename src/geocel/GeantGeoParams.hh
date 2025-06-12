@@ -46,6 +46,15 @@ namespace celeritas
  * placements, a single PV may correspond to multiple spatial placements and is
  * disambiguated with \c ReplicaId , which corresponds to the PV's "copy
  * number".
+ *
+ * Each \c SurfaceId maps to a \c G4LogicalSurface instance, which is ether a
+ * \c G4LogicalBorderSurface (an "interface" surface between two volume
+ * instances) or a \c G4LogicalSkinSurface (a "boundary" surrounding a single
+ * logical volume). To ensure reproducible surface IDs across runs, we put
+ * boundaries before interfaces, and sort within each set by IDs (not by
+ * Geant4 object pointers, which is how the implementations store in a table).
+ * Surface labels are accessed via the SurfaceParams object which can be
+ * created by the model input returned by this class.
  */
 class GeantGeoParams final : public GeoParamsInterface,
                              public ParamsDataInterface<GeantGeoParamsData>
@@ -64,6 +73,7 @@ class GeantGeoParams final : public GeoParamsInterface,
     explicit GeantGeoParams(std::string const& gdml_filename);
 
     // Create a VecGeom model from an already-loaded Geant4 geometry
+    // TODO: also take model input? see #1815
     explicit GeantGeoParams(G4VPhysicalVolume const* world);
 
     CELER_DEFAULT_MOVE_DELETE_COPY(GeantGeoParams);
@@ -101,6 +111,14 @@ class GeantGeoParams final : public GeoParamsInterface,
 
     // Get the Geant4 logical volume corresponding to a volume ID
     G4LogicalVolume const* id_to_geant(VolumeId vol_id) const;
+
+    //// SURFACES ////
+
+    //! Get the number of surfaces (TODO: maybe live in surface params?)
+    SurfaceId::size_type num_surfaces() const { return surfaces_.size(); }
+
+    // Get the Geant4 logical volume corresponding to a volume ID
+    inline G4LogicalSurface const* id_to_geant(SurfaceId surf_id) const;
 
     // DEPRECATED
     using GeoParamsInterface::find_volume;
@@ -162,6 +180,7 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Host metadata/access
     VolumeMap volumes_;
     VolInstanceMap vol_instances_;
+    std::vector<G4LogicalSurface const*> surfaces_;
     BBox bbox_;
     LevelId::size_type max_depth_{0};
 
@@ -206,6 +225,21 @@ auto GeantGeoParams::volumes() const -> VolumeMap const&
 auto GeantGeoParams::volume_instances() const -> VolInstanceMap const&
 {
     return vol_instances_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the Geant4 logical volume corresponding to a volume ID.
+ */
+G4LogicalSurface const* GeantGeoParams::id_to_geant(SurfaceId id) const
+{
+    CELER_EXPECT(!id || id < surfaces_.size());
+    if (!id)
+    {
+        return {};
+    }
+
+    return surfaces_[id.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//
