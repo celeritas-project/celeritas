@@ -37,3 +37,7 @@ Surfaces are defined by the relationship between volumes.
 .. doxygenstruct:: celeritas::inp::Surfaces
    :members:
    :no-link:
+
+.. doxygenstruct:: celeritas::inp::Surface
+   :members:
+   :no-link:
