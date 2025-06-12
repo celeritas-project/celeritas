@@ -6,6 +6,8 @@ Interfaces
 
 .. doxygenclass:: celeritas::VolumeParams
 
+.. doxygenclass:: celeritas::SurfaceParams
+
 .. doxygenclass:: celeritas::GeoParamsInterface
 
 .. doxygenstruct:: celeritas::GeantPhysicalInstance
