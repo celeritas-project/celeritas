@@ -25,9 +25,11 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-            sudo apt-get -y update
-            sudo apt-get -y install \
-                cmake graphviz ninja-build doxygen nlohmann-json3-dev
+          sudo debconf-set man-db/auto-update false
+          sudo rm /var/lib/man-db/auto-update
+          sudo apt-get -y update
+          sudo apt-get -y install \
+            cmake graphviz ninja-build doxygen nlohmann-json3-dev
       - name: Check out Celeritas
         uses: actions/checkout@v4
         with:
@@ -68,9 +70,11 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-            sudo apt-get -y update
-            sudo apt-get -y install \
-                cmake graphviz ninja-build doxygen nlohmann-json3-dev
+          sudo debconf-set man-db/auto-update false
+          sudo rm /var/lib/man-db/auto-update
+          sudo apt-get -y update
+          sudo apt-get -y install \
+            cmake graphviz ninja-build doxygen nlohmann-json3-dev
       - name: Check out Celeritas
         uses: actions/checkout@v4
         with:

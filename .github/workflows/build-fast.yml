@@ -58,6 +58,8 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo debconf-set man-db/auto-update false
+          sudo rm /var/lib/man-db/auto-update
           sudo apt-get -q -y update
           sudo apt-get -q -y install \
             ccache \
