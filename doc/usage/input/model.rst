@@ -28,3 +28,12 @@ These input classes describe the volume hierarchy.
 .. doxygenstruct:: celeritas::inp::VolumeInstance
    :members:
    :no-link:
+
+Surfaces
+--------
+
+Surfaces are defined by the relationship between volumes.
+
+.. doxygenstruct:: celeritas::inp::Surfaces
+   :members:
+   :no-link:

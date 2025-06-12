@@ -18,28 +18,38 @@ their enclosing parent volume.
 
 .. table:: Celeritas nomenclature tends toward computer science terminology.
 
-   +------------------+------------------------+----------------+--------------------+
-   | Celeritas        | Geant4                 | VecGeom        | KENO [#sc]_        |
-   +==================+========================+================+====================+
-   | (not used)       | Solid                  | Unplaced       | Shape              |
-   +------------------+------------------------+----------------+--------------------+
-   | Volume           | Logical volume         | Logical volume | Unit/array/media   |
-   +------------------+------------------------+----------------+--------------------+
-   | Volume instance  | Physical volume [#cn]_ | Placed volume  | Hole/array element |
-   +------------------+------------------------+----------------+--------------------+
-   | Child            | Daughter               | Daughter       | Hole/placement     |
-   +------------------+------------------------+----------------+--------------------+
-   | Parent           | Mother                 | Mother         | ---                |
-   +------------------+------------------------+----------------+--------------------+
+   +------------------+-------------------------+----------------+--------------------+
+   | Celeritas        | Geant4                  | VecGeom        | KENO [#sc]_        |
+   +==================+=========================+================+====================+
+   | (not used)       | Solid                   | Unplaced       | Shape              |
+   +------------------+-------------------------+----------------+--------------------+
+   | Volume           | Logical volume          | Logical volume | Unit/array/media   |
+   +------------------+-------------------------+----------------+--------------------+
+   | Volume instance  | Physical volume [#cn]_  | Placed volume  | Hole/array element |
+   +------------------+-------------------------+----------------+--------------------+
+   | Child            | Daughter                | Daughter       | Hole/placement     |
+   +------------------+-------------------------+----------------+--------------------+
+   | Parent           | Mother                  | Mother         | ---                |
+   +------------------+-------------------------+----------------+--------------------+
+   | Interface        | Border surface          | ---            | Hole/array element |
+   +------------------+-------------------------+----------------+--------------------+
+   | Boundary         | Skin surface            | ---            | Hole/placement     |
+   +------------------+-------------------------+----------------+--------------------+
+   | Surface          | Surface property [#sp]_ | ---            | ---                |
+   +------------------+-------------------------+----------------+--------------------+
 
 .. [#sc] The KENO geometry package in SCALE :cite:`scale-632` differs
    substantially from Geant4 geometry definitions. In KENO-VI :cite:`kenovi`
    geometry, parent units mask (rather than strictly contain) child units.
 
+.. [#sp] Surface properties in Geant4 can be referenced by multiple surfaces.
+   Celeritas will duplicate these (although lower-level data deduplication may
+   result in the referencing the same data again at runtime).
+
 Celeritas defines abstract geometry concepts, indexed as IDs, to support
 multiple geometry applications [#ga]_ and to make the code backend-agnostic for
 integrating with physics. These include "volumes" (known in some other
-fields as "cells").
+fields as "cells") and "surfaces" defined by the relationships between volumes.
 
 .. [#ga] In the future the use of these abstract concepts will enable detector
    descriptions, and geometry models for other applications, that are *not*
@@ -73,6 +83,16 @@ Unique instance
    encoded uniquely as a single integer by pre-calculating the number of direct
    and indirect children for each node.  Celeritas always uses 64-bit integers
    to store the ``VolumeUniqueInstanceId``.
+
+Surface
+   A *surface* is defined as a contiguous area on the boundary of a volume,
+   sometimes on only a single side of the volume. Note that this definition
+   different to the infinite surfaces of ORANGE and the surface frames of
+   VecGeom. Surfaces currently are defined in two ways: *Interface* surfaces
+   are one-directional surfaces defined as the interface from one
+   volume instance to another, called "border surfaces" in Geant4. *Boundary*
+   surfaces surrounding an entire volume and are called "skin" in Geant4.
+
 
 .. [#cn] A *volume instance* has a one-to-one mapping for ``G4PVPlacement``,
    but "replica" and "parameterized" volumes in Geant4 use a single physical
