@@ -14,13 +14,13 @@
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/GeantGeoParams.hh"
+#include "geocel/inp/Model.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/inp/Control.hh"
 #include "celeritas/inp/Import.hh"
-#include "celeritas/inp/Model.hh"
 #include "celeritas/inp/Problem.hh"
 #include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/io/ImportData.hh"
@@ -67,8 +67,8 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
         CELER_ASSERT(geant_geo_params);
         celeritas::geant_geo(*geant_geo_params);
 
-        // Replace world geometry with Geant4 world pointer
-        problem->model.geometry = geant_geo_params->world();
+        // Load geometry, surfaces, regions from Geant4 world pointer
+        problem->model = geant_geo_params->make_model_input();
     }
 
     // Import physics data

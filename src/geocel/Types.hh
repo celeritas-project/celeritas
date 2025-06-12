@@ -42,7 +42,7 @@ using LevelId = OpaqueId<struct Level_>;
 //! Identifier for a material fill
 using GeoMatId = OpaqueId<struct GeoMaterial_>;
 
-//! Identifier for a surface (for surface-based geometries)
+//! Implementation detail surface (for surface-based geometries)
 using InternalSurfaceId = OpaqueId<struct Surface_>;
 
 //! Identifier for a geometry volume that may be repeated

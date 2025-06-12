@@ -16,6 +16,7 @@ list(APPEND SOURCES
   GeoParamsInterface.cc
   GeoParamsOutput.cc
   GeoVolumeFinder.cc
+  VolumeParams.cc
   rasterize/Color.cc
   rasterize/Image.cc
   rasterize/ImageIO.json.cc

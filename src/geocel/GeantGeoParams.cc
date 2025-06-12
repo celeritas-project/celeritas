@@ -6,11 +6,13 @@
 //---------------------------------------------------------------------------//
 #include "GeantGeoParams.hh"
 
+#include <map>
 #include <unordered_map>
 #include <vector>
 #include <G4GeometryManager.hh>
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
+#include <G4Material.hh>
 #include <G4PhysicalVolumeStore.hh>
 #include <G4Transportation.hh>
 #include <G4TransportationManager.hh>
@@ -18,6 +20,9 @@
 #include <G4VSolid.hh>
 #include <G4Version.hh>
 #include <G4VisExtent.hh>
+
+#include "corecel/Assert.hh"
+#include "geocel/inp/Model.hh"
 #if G4VERSION_NUMBER >= 1070
 #    include <G4Backtrace.hh>
 #endif
@@ -124,6 +129,117 @@ std::vector<Label> make_physical_vol_labels(G4VPhysicalVolume const& world,
         std::move(names), [offset](G4VPhysicalVolume const* pv) {
             return pv->GetInstanceID() - offset;
         });
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a volume input from a Geant4 logical volume by mapping IDs.
+ */
+inp::Volume inp_from_geant(GeantGeoParams const& geo,
+                           Label const& label,
+                           G4LogicalVolume const& g4lv)
+{
+    inp::Volume result;
+    result.label = label;
+
+    // Set material ID if available
+    if (auto* mat = g4lv.GetMaterial())
+    {
+        result.material = id_cast<GeoMatId>(mat->GetIndex() - geo.mat_offset());
+    }
+    // Populate volume.children with child volume instances
+    auto num_children = g4lv.GetNoDaughters();
+    result.children.reserve(num_children);
+    for (auto i : range(num_children))
+    {
+        G4VPhysicalVolume* g4pv = g4lv.GetDaughter(i);
+        CELER_ASSERT(g4pv);
+        auto vol_inst_id = geo.geant_to_id(*g4pv);
+        for (int j = 0, jmax = g4pv->GetMultiplicity(); j < jmax; ++j)
+        {
+            // TODO: handle replicas correctly by mapping G4PV independently
+            // from VIId (each replica gets its own volume instance)
+            result.children.push_back(vol_inst_id);
+        }
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create volumes input from Geant4 volumes.
+ */
+std::vector<inp::Volume> make_inp_volumes(GeantGeoParams const& geo)
+{
+    std::vector<inp::Volume> result;
+
+    auto const& vol_labels = geo.volumes();
+    result.resize(vol_labels.size());
+
+    // Process each logical volume
+    for (auto vol_id : range(VolumeId{vol_labels.size()}))
+    {
+        auto const& label = vol_labels.at(vol_id);
+        if (label.empty())
+        {
+            // This volume isn't part of the world hierarchy
+            continue;
+        }
+
+        auto* g4lv = geo.id_to_geant(vol_id);
+        CELER_ASSERT(g4lv);
+        result[vol_id.get()] = inp_from_geant(geo, label, *g4lv);
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a Volume instance input from a Geant4 physical volume.
+ */
+inp::VolumeInstance inp_from_geant(GeantGeoParams const& geo,
+                                   Label const& label,
+                                   G4VPhysicalVolume const& g4pv)
+{
+    inp::VolumeInstance result;
+    result.label = label;
+    auto* g4lv = g4pv.GetLogicalVolume();
+    CELER_ASSERT(g4lv);
+    result.volume = geo.geant_to_id(*g4lv);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create volumes input from Geant4 volumes.
+ */
+std::vector<inp::VolumeInstance>
+make_inp_volume_instances(GeantGeoParams const& geo)
+{
+    // Process volume instances
+    auto const& vol_inst_labels = geo.volume_instances();
+    std::vector<inp::VolumeInstance> result(vol_inst_labels.size());
+
+    // Fix copy numbers to avoid invalid read/out-of-bounds
+    geo.reset_replica_data();
+
+    for (auto vol_inst_id : range(VolumeInstanceId{vol_inst_labels.size()}))
+    {
+        auto const& label = vol_inst_labels.at(vol_inst_id);
+        if (label.empty())
+        {
+            // This volume instance isn't part of the world hierarchy
+            continue;
+        }
+
+        auto g4pv_inst = geo.id_to_geant(vol_inst_id);
+        if (!g4pv_inst.pv)
+        {
+            continue;
+        }
+        result[vol_inst_id.get()] = inp_from_geant(geo, label, *g4pv_inst.pv);
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -292,6 +408,31 @@ GeantGeoParams::~GeantGeoParams()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Create model params from a Geant4 world volume.
+ *
+ * \todo Eventually (see #1815) the label map will be stored as part of the
+ * volumes and referenced by the geometry, rather than vice versa.
+ */
+inp::Model GeantGeoParams::make_model_input() const
+{
+    inp::Model result;
+
+    result.geometry = this->world();
+    result.volumes = [this] {
+        inp::Volumes result;
+
+        // Get volumes from Geant4 geometry
+        result.volumes = make_inp_volumes(*this);
+        result.volume_instances = make_inp_volume_instances(*this);
+
+        return result;
+    }();
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Locate the volume ID corresponding to a Geant4 logical volume.
  */
 VolumeId GeantGeoParams::find_volume(G4LogicalVolume const* volume) const
@@ -394,8 +535,8 @@ auto GeantGeoParams::replica_id(G4VPhysicalVolume const& volume) const
         return {};
 
     auto copy_no = volume.GetCopyNo();
-    // NOTE: if this line fails, Geant4 may be returning uninitialized
-    // memory on the local thread.
+    // NOTE: if this line fails, you probably need to call \c
+    // reset_replica_data from the local thread.
     CELER_ASSERT(copy_no >= 0 && copy_no < volume.GetMultiplicity());
     return id_cast<ReplicaId>(copy_no);
 }
@@ -419,6 +560,28 @@ BoundingBox<double> GeantGeoParams::get_clhep_bbox() const
         {extent.GetXmax(), extent.GetYmax(), extent.GetZmax()}};
     CELER_ENSURE(result);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize thread-local mutable copy numbers for "replica" volumes.
+ *
+ * Copy numbers for "replica" volumes (where one instance pretends to be many
+ * different volumes) are uninitialized (older Geant4) or initialized to -1.
+ * To avoid reading invalid or returning an invalid instance, set all the
+ * replica copy numbers to zero.
+ */
+void GeantGeoParams::reset_replica_data() const
+{
+    G4PhysicalVolumeStore* pv_store = G4PhysicalVolumeStore::GetInstance();
+    CELER_ASSERT(pv_store);
+    for (auto* pv : *pv_store)
+    {
+        if (pv->IsReplicated())
+        {
+            pv->SetCopyNo(0);
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -453,20 +616,31 @@ void GeantGeoParams::build_metadata()
 
     // Get offset of logical/physical volumes present in unit tests
     data_.lv_offset = [] {
-        G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
+        auto* lv_store = G4LogicalVolumeStore::GetInstance();
         CELER_ASSERT(lv_store && !lv_store->empty());
         return lv_store->front()->GetInstanceID();
     }();
     data_.pv_offset = [] {
-        G4PhysicalVolumeStore* pv_store = G4PhysicalVolumeStore::GetInstance();
+        auto* pv_store = G4PhysicalVolumeStore::GetInstance();
         CELER_ASSERT(pv_store && !pv_store->empty());
         return pv_store->front()->GetInstanceID();
     }();
-    if (this->lv_offset() != 0 || this->pv_offset() != 0)
+    data_.mat_offset = []() -> GeoMatId::size_type {
+        auto* mat_store = G4Material::GetMaterialTable();
+        CELER_ASSERT(mat_store);
+        if (!mat_store->empty())
+        {
+            return mat_store->front()->GetIndex();
+        }
+        return 0;
+    }();
+    if (this->lv_offset() != 0 || this->pv_offset() != 0
+        || this->mat_offset() != 0)
     {
         CELER_LOG(debug) << "Building after volume stores were cleared: "
                          << "lv_offset=" << this->lv_offset()
-                         << ", pv_offset=" << this->pv_offset();
+                         << ", pv_offset=" << this->pv_offset()
+                         << ", mat_offset=" << this->mat_offset();
     }
 
     // Construct volume labels for physically reachable volumes

@@ -9,57 +9,85 @@ Geometry
 
 Detector geometry descriptions for HEP are almost universally defined using a
 hierarchy of fully nested volumes, often saved as a GDML file
-:cite:`gdml-2006`. These volumes can be represented as a directional
+:cite:`gdml-2006`. These volumes can be represented as a directed
 acyclic graph (DAG): the nodes are the geometric elements, and the edges
-are a geometry placement (which is associated with a transformation and
-other metadata). In HEP geometries, child nodes may not overlap each other or
-their enclosing parent [#]_ volume.
+are an instantiation of the volume *below* inside the volume *above*. This
+instantiation is associated with a transformation and
+other metadata. In HEP geometries, child nodes may not overlap each other or
+their enclosing parent volume.
 
-.. [#] The Geant4 terms "daughter" and "mother" correspond to "child volume"
-   and "parent volume" in Celeritas.
+.. table:: Celeritas nomenclature tends toward computer science terminology.
 
-To support multiple geometry applications (including detector descriptions that
-are not Geant4 hierarchies), and to make the code
-backend-agnostic for integrating with physics, Celeritas defines abstract
-geometry concepts indexed as IDs.
+   +------------------+------------------------+----------------+--------------------+
+   | Celeritas        | Geant4                 | VecGeom        | KENO [#sc]_        |
+   +==================+========================+================+====================+
+   | (not used)       | Solid                  | Unplaced       | Shape              |
+   +------------------+------------------------+----------------+--------------------+
+   | Volume           | Logical volume         | Logical volume | Unit/array/media   |
+   +------------------+------------------------+----------------+--------------------+
+   | Volume instance  | Physical volume [#cn]_ | Placed volume  | Hole/array element |
+   +------------------+------------------------+----------------+--------------------+
+   | Child            | Daughter               | Daughter       | Hole/placement     |
+   +------------------+------------------------+----------------+--------------------+
+   | Parent           | Mother                 | Mother         | ---                |
+   +------------------+------------------------+----------------+--------------------+
 
-VolumeId
-  A volume corresponds to a physical object that can have multiple instances
-  but is treated (almost always) identically: it has the same shape, material,
-  and associated scoring/sensitive region. In Geant4 this is a "logical
-  volume", and VecGeom refers to these as "unplaced volumes". This is simply a
-  *node* in the graph of volumes.
+.. [#sc] The KENO geometry package in SCALE :cite:`scale-632` differs
+   substantially from Geant4 geometry definitions. In KENO-VI :cite:`kenovi`
+   geometry, parent units mask (rather than strictly contain) child units.
 
-VolumeInstanceId
-  A volume *instance* is a unique placement of a volume in the geometry
-  hierarchy. The instance usually has a transformation to the enclosing
-  volume's coordinate system. In Geant4 this roughly corresponds to a physical
-  volume. (It corresponds exactly to a ``G4PVPlacement``, but "replica" and
-  "parameterized" volumes use a single physical volume to represent multiple
-  spatial elements. For those, we define a
-  :cpp:struct:`celeritas::GeantPhysicalInstance` that is a tuple containing a
-  physical volume and a replica instance.) VecGeom refers to volume instances
-  as *placed volumes*. In ORANGE for KENO, this would correspond to a hole
-  placement, array element, or local media. The volume instance is an *edge* in
-  the graph of volumes.
+Celeritas defines abstract geometry concepts, indexed as IDs, to support
+multiple geometry applications [#ga]_ and to make the code backend-agnostic for
+integrating with physics. These include "volumes" (known in some other
+fields as "cells").
 
-VolumeUniqueInstanceId
-  A "unique" volume instance refers to a unique region of global space in the
-  geometry model. It is the full *directed trail* from the root volume node to
-  a node somewhere in the graph, thereby describing all enclosing volumes and
-  their locations. This path can be encoded uniquely as a single integer
-  by pre-calculating the number of direct and indirect children for each node.
-  Celeritas always uses 64-bit integers to store this unique instance ID.
+.. [#ga] In the future the use of these abstract concepts will enable detector
+   descriptions, and geometry models for other applications, that are *not*
+   Geant4 hierarchies.
 
+Volume
+   A *volume* corresponds to a homogeneous physical object that can have multiple
+   instances but is treated identically. It has a specific shape, material,
+   metadata, and associated scoring/sensitive region. Each volume is
+   simply a *node* in the detector geometry graph. This definition differs
+   slightly from Geant4 and VecGeom, where the ``G4LogicalVolume`` and
+   ``UnplacedVolume`` classes directly reference the child geometry nodes and
+   thus implicitly include the objects embedded in a volume.
 
-.. doxygenstruct:: celeritas::GeantPhysicalInstance
+Volume instance
+   An *instance* of a volume is defined in conjunction with a transform and an
+   enclosing object (or, in the special case of the outermost or "world" volume
+   instance, no enclosing object). In Geant4 this roughly corresponds to a
+   physical volume. [#cn]_ VecGeom refers to volume instances as *placed
+   volumes*. In a user-provided (or SCALE-generated) ORANGE geometry, a volume
+   instance might correspond to a particular hole placement (i.e., a universe
+   daughter), an array element, or a media entry (i.e., a cell). The volume
+   instance is an *edge* in the graph of volumes.
 
-.. doxygenclass:: celeritas::GeoParamsInterface
+Unique instance
+   A *unique* instance of a volume refers to the logical definition of a
+   specific region of global space in the geometry model. It is the full
+   directed path :cite:`bender-listsdecisions-2010` from the root volume node
+   (world volume) to a node (logical volume) somewhere in the graph, thereby
+   describing all enclosing volumes and their locations. This path can be
+   encoded uniquely as a single integer by pre-calculating the number of direct
+   and indirect children for each node.  Celeritas always uses 64-bit integers
+   to store the ``VolumeUniqueInstanceId``.
+
+.. [#cn] A *volume instance* has a one-to-one mapping for ``G4PVPlacement``,
+   but "replica" and "parameterized" volumes in Geant4 use a single physical
+   volume object to represent multiple spatial elements. For those, we
+   currently define a :cpp:struct:`celeritas::GeantPhysicalInstance` that is a
+   tuple of physical volume and a *replica instance*, which corresponds to the
+   "copy number" in a replica volume. In the future, the replica numbers will
+   be hidden and one volume instance will map directly to a PV pointer and copy
+   number.
 
 
 .. toctree::
    :maxdepth: 2
 
+   geometry/interfaces.rst
    geometry/geant4.rst
    geometry/orange.rst
    geometry/vecgeom.rst

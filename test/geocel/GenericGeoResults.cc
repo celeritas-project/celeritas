@@ -6,8 +6,11 @@
 //---------------------------------------------------------------------------//
 #include "GenericGeoResults.hh"
 
+#include "corecel/OpaqueIdUtils.hh"
+#include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "geocel/inp/Model.hh"
 
 #include "GenericGeoTestInterface.hh"
 #include "testdetail/TestMacrosImpl.hh"
@@ -17,6 +20,11 @@
 #define EXPECT_RESULT_NEAR(EXPECTED, ACTUAL, TOL) \
     EXPECT_REF_NEAR(EXPECTED, ACTUAL, TOL)
 
+//!@{
+//! Helper macros
+#define CELER_REF_ATTR(ATTR) "ref." #ATTR " = " << repr(this->ATTR) << ";\n"
+//!@}
+
 namespace celeritas
 {
 namespace test
@@ -25,17 +33,15 @@ namespace test
 // TRACKING RESULT
 //---------------------------------------------------------------------------//
 
-#define CELER_REF_ATTR(ATTR) "ref." #ATTR " = " << repr(this->ATTR) << ";\n"
 void GenericGeoTrackingResult::print_expected() const
 {
-    std::cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+    using std::cout;
+    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "GenericGeoTrackingResult ref;\n"
-            CELER_REF_ATTR(volumes)
-            CELER_REF_ATTR(volume_instances)
-            CELER_REF_ATTR(distances)
-            CELER_REF_ATTR(halfway_safeties)
-            CELER_REF_ATTR(bumps)
-            "auto tol = GenericGeoTrackingTolerance::from_test(*test_);\n"
+         << CELER_REF_ATTR(volumes) << CELER_REF_ATTR(volume_instances)
+         << CELER_REF_ATTR(distances) << CELER_REF_ATTR(halfway_safeties)
+         << CELER_REF_ATTR(bumps)
+         << "auto tol = GenericGeoTrackingTolerance::from_test(*test_);\n"
             "EXPECT_RESULT_NEAR(ref, result, tol);\n"
             "/*** END CODE ***/\n";
 }
@@ -85,7 +91,8 @@ GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
     IRE_VEC_SOFT_EQ(halfway_safeties, SoftEqual(tol.safety, tol.safety));
     IRE_VEC_SOFT_EQ(bumps, SoftEqual(tol.safety, tol.safety));
 
-#undef IRE_COMPARE
+#undef IRE_VEC_EQ
+#undef IRE_VEC_SOFT_EQ
     return helper;
 }
 
@@ -117,7 +124,7 @@ GenericGeoVolumeStackResult::from_span(GeoParamsInterface const& geo,
         {
             if (phys_inst.replica)
             {
-                result.replicas[i] = phys_inst.replica.get();
+                result.replicas[i] = id_to_int(phys_inst.replica);
             }
         }
         // Only write extension if not a replica, because Geant4
@@ -132,14 +139,12 @@ GenericGeoVolumeStackResult::from_span(GeoParamsInterface const& geo,
 void GenericGeoVolumeStackResult::print_expected() const
 {
     using std::cout;
-    // clang-format off
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "GenericGeoVolumeStackResult ref;\n"
-            CELER_REF_ATTR(volume_instances)
-            CELER_REF_ATTR(replicas)
+            << CELER_REF_ATTR(volume_instances)
+            << CELER_REF_ATTR(replicas)
             "EXPECT_RESULT_EQ(ref, result);\n"
             "/*** END CODE ***/\n";
-    // clang-format on
 }
 
 ::testing::AssertionResult IsRefEq(char const* expr1,
@@ -149,20 +154,101 @@ void GenericGeoVolumeStackResult::print_expected() const
 {
     AssertionHelper result{expr1, expr2};
 
-#define IRE_COMPARE(ATTR)                                                  \
-    if (val1.ATTR != val2.ATTR)                                            \
-    {                                                                      \
-        result.fail() << "Actual " #ATTR ": " << repr(val1.ATTR) << " vs " \
-                      << repr(val2.ATTR);                                  \
-    }                                                                      \
-    else                                                                   \
-        (void)sizeof(char)
+#define IRE_COMPARE(ATTR)                                          \
+    if (val1.ATTR != val2.ATTR)                                    \
+    {                                                              \
+        result.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
+                      << " but got " << repr(val2.ATTR);           \
+    }
     IRE_COMPARE(volume_instances);
     IRE_COMPARE(replicas);
 #undef IRE_COMPARE
     return result;
 }
 
+//---------------------------------------------------------------------------//
+// MODEL INPUT RESULT
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a model input result from raw geometry model.
+ */
+GenericGeoModelInp GenericGeoModelInp::from_model_input(inp::Model const& in)
+{
+    GenericGeoModelInp result;
+
+    // Extract volume data
+    result.volume.labels.reserve(in.volumes.volumes.size());
+    result.volume.materials.reserve(in.volumes.volumes.size());
+    result.volume.daughters.reserve(in.volumes.volumes.size());
+
+    for (auto i : range(in.volumes.volumes.size()))
+    {
+        auto const& vol = in.volumes.volumes[i];
+        result.volume.labels.push_back(to_string(vol.label));
+        result.volume.materials.push_back(id_to_int(vol.material));
+
+        std::vector<int> daughters;
+        daughters.reserve(vol.children.size());
+        for (auto child_id : vol.children)
+        {
+            daughters.push_back(id_to_int(child_id));
+        }
+        result.volume.daughters.push_back(std::move(daughters));
+    }
+
+    // Extract volume instance data
+    result.volume_instance.labels.reserve(in.volumes.volume_instances.size());
+    result.volume_instance.volumes.reserve(in.volumes.volume_instances.size());
+
+    for (auto i : range(in.volumes.volume_instances.size()))
+    {
+        auto const& vol_inst = in.volumes.volume_instances[i];
+        result.volume_instance.labels.push_back(to_string(vol_inst.label));
+        result.volume_instance.volumes.push_back(id_to_int(vol_inst.volume));
+    }
+
+    return result;
+}
+
+void GenericGeoModelInp::print_expected() const
+{
+    using std::cout;
+    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+            "GenericGeoModelInp ref;\n"
+         << CELER_REF_ATTR(volume.labels) << CELER_REF_ATTR(volume.materials)
+         << CELER_REF_ATTR(volume.daughters)
+         << CELER_REF_ATTR(volume_instance.labels)
+         << CELER_REF_ATTR(volume_instance.volumes);
+
+    cout << "EXPECT_RESULT_EQ(ref, result);\n"
+            "/*** END CODE ***/\n";
+}
+
+::testing::AssertionResult IsRefEq(char const* expr1,
+                                   char const* expr2,
+                                   GenericGeoModelInp const& val1,
+                                   GenericGeoModelInp const& val2)
+{
+    AssertionHelper result{expr1, expr2};
+
+#define IRE_COMPARE(ATTR)                                          \
+    if (val1.ATTR != val2.ATTR)                                    \
+    {                                                              \
+        result.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
+                      << " but got " << repr(val2.ATTR);           \
+    }                                                              \
+    else                                                           \
+        (void)sizeof(char)
+
+    IRE_COMPARE(volume.labels);
+    IRE_COMPARE(volume.materials);
+    IRE_COMPARE(volume.daughters);
+    IRE_COMPARE(volume_instance.labels);
+    IRE_COMPARE(volume_instance.volumes);
+
+#undef IRE_COMPARE
+    return result;
+}
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

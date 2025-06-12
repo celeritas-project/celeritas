@@ -19,7 +19,12 @@
 #include "Types.hh"
 #include "g4/GeantGeoData.hh"
 
+#if !CELERITAS_USE_GEANT4
+#    include "inp/Model.hh"
+#endif
+
 class G4VPhysicalVolume;
+class G4LogicalSurface;
 
 namespace celeritas
 {
@@ -28,9 +33,8 @@ namespace celeritas
  * Shared Geant4 geometry model wrapper.
  *
  * This can be constructed directly by loading a GDML file, or in-memory using
- * an existing physical volume. One "gotcha" is that due to persistent static
- * variables in Geant4, the volume IDs will be offset if a geometry has been
- * loaded and closed previously.
+ * an existing physical volume. The \c make_model_input function returns the
+ * geometry hierarchy including surface definitions for optical physics.
  *
  * The \c VolumeId used by Celeritas is equal to the index of a \c
  * G4LogicalVolume in the \c G4LogicalVolumeStore. Due to potential resetting
@@ -40,7 +44,7 @@ namespace celeritas
  * Analogously, the \c G4VPhysicalVolume is equivalent to the index in its
  * store. Due to the way Geant4 represents "parameterised" and "replicated"
  * placements, a single PV may correspond to multiple spatial placements and is
- * dismabiguated with \c ReplicaId , which corresponds to the PV's "copy
+ * disambiguated with \c ReplicaId , which corresponds to the PV's "copy
  * number".
  */
 class GeantGeoParams final : public GeoParamsInterface,
@@ -67,6 +71,8 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Clean up on destruction
     ~GeantGeoParams() final;
 
+    //// GEOMETRY INTERFACE ////
+
     //! Whether safety distance calculations are accurate and precise
     bool supports_safety() const final { return true; }
 
@@ -75,6 +81,9 @@ class GeantGeoParams final : public GeoParamsInterface,
 
     // Maximum nested scene/volume depth
     LevelId::size_type max_depth() const final { return max_depth_; }
+
+    // Create model parameters corresponding to our internal representation
+    inp::Model make_model_input() const final;
 
     //// VOLUMES ////
 
@@ -100,7 +109,10 @@ class GeantGeoParams final : public GeoParamsInterface,
     VolumeId::size_type lv_offset() const { return data_.lv_offset; }
 
     //! Offset of physical volume ID after reloading geometry
-    VolumeId::size_type pv_offset() const { return data_.pv_offset; }
+    VolumeInstanceId::size_type pv_offset() const { return data_.pv_offset; }
+
+    //! Offset of material index after reloading geometry
+    GeoMatId::size_type mat_offset() const { return data_.mat_offset; }
 
     //// G4 ACCESSORS ////
 
@@ -124,6 +136,9 @@ class GeantGeoParams final : public GeoParamsInterface,
 
     // Get the world extents in Geant4 units
     BoundingBox<double> get_clhep_bbox() const;
+
+    // Initialize thread-local mutable copy numbers for "replica" volumes
+    void reset_replica_data() const;
 
     //// DATA ACCESS ////
 
@@ -193,7 +208,18 @@ auto GeantGeoParams::volume_instances() const -> VolInstanceMap const&
     return vol_instances_;
 }
 
+//---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4 && !defined(__DOXYGEN__)
+inline void geant_geo(GeantGeoParams const&)
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+inline GeantGeoParams const* geant_geo()
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+//-----------------------------------//
+
 inline GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const*)
 {
     CELER_NOT_CONFIGURED("Geant4");
@@ -207,43 +233,37 @@ GeantGeoParams::GeantGeoParams::from_tracking_manager()
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
+
+//-----------------------------------//
 inline GeantGeoParams::~GeantGeoParams() {}
-inline void geant_geo(GeantGeoParams const&)
+
+//-----------------------------------//
+inline inp::Model GeantGeoParams::make_model_input() const
 {
     CELER_ASSERT_UNREACHABLE();
 }
-inline GeantGeoParams const* geant_geo()
-{
-    return nullptr;
-}
-
 inline VolumeId GeantGeoParams::find_volume(G4LogicalVolume const*) const
 {
     CELER_ASSERT_UNREACHABLE();
 }
-
 inline GeantPhysicalInstance GeantGeoParams::id_to_geant(VolumeInstanceId) const
 {
     CELER_ASSERT_UNREACHABLE();
 }
-
 inline G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId) const
 {
     CELER_ASSERT_UNREACHABLE();
 }
-
 inline VolumeInstanceId
 GeantGeoParams::geant_to_id(G4VPhysicalVolume const&) const
 {
     CELER_ASSERT_UNREACHABLE();
 }
-
 inline GeantGeoParams::ReplicaId
 GeantGeoParams::replica_id(G4VPhysicalVolume const&) const
 {
     CELER_ASSERT_UNREACHABLE();
 }
-
 inline BoundingBox<double> GeantGeoParams::get_clhep_bbox() const
 {
     CELER_ASSERT_UNREACHABLE();

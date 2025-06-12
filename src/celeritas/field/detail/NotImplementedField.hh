@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/detail/NotImlementedField.hh
+//! \file celeritas/field/detail/NotImplementedField.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

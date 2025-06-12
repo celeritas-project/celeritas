@@ -21,6 +21,10 @@ class G4VPhysicalVolume;
 
 namespace celeritas
 {
+namespace inp
+{
+struct Model;
+}
 //---------------------------------------------------------------------------//
 /*!
  * Unique placement/replica of a Geant4 physical volume.
@@ -75,7 +79,11 @@ class GeoParamsInterface
     virtual BBox const& bbox() const = 0;
 
     //! Maximum nested volume instance depth
+    //! \todo move to VolumeParams
     virtual LevelId::size_type max_depth() const = 0;
+
+    // Create model parameters corresponding to our internal representation
+    virtual inp::Model make_model_input() const = 0;
 
     //// VOLUMES ////
 

@@ -47,7 +47,10 @@ FrameworkLoaded framework_input(inp::FrameworkInput& fi)
     // Set up problem
     inp::Problem problem;
 
-    problem.model.geometry = geo->world();
+    // Load geometry, surfaces, regions from Geant4 world pointer
+    problem.model = geo->make_model_input();
+
+    // Load physics
     for (std::string const& process_name : fi.geant.ignore_processes)
     {
         ImportProcessClass ipc;

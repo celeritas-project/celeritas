@@ -12,6 +12,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "geocel/Types.hh"
 
 #include "detail/GeantGeoNavCollection.hh"
 
@@ -35,6 +36,8 @@ struct GeantGeoParamsData
     VolumeId::size_type lv_offset{0};
     //! Instance ID of the first physical volume in the store
     VolumeInstanceId::size_type pv_offset{0};
+    //! Instance ID of the first material in the store
+    GeoMatId::size_type mat_offset{0};
 
     //! Whether the interface is initialized
     explicit CELER_FUNCTION operator bool() const { return world != nullptr; }

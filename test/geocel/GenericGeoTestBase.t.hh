@@ -15,6 +15,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantGeoParams.hh"
+#include "geocel/inp/Model.hh"
 
 #include "CheckedGeoTrackView.hh"
 #include "GenericGeoResults.hh"
@@ -335,6 +336,17 @@ auto GenericGeoTestBase<HP>::volume_stack(Real3 const& pos)
     geo.volume_instance_id(make_span(inst_ids));
 
     return VolumeStackResult::from_span(*this->geometry(), make_span(inst_ids));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the model input from the geometry.
+ */
+template<class HP>
+auto GenericGeoTestBase<HP>::model_inp() const -> ModelInpResult
+{
+    return ModelInpResult::from_model_input(
+        this->geometry()->make_model_input());
 }
 
 //---------------------------------------------------------------------------//

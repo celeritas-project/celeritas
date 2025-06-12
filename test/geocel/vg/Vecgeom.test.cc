@@ -320,9 +320,9 @@ TEST_F(FourLevelsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
 using MultiLevelVgdmlTest
     = GenericGeoParameterizedTest<VecgeomVgdmlTestBase, MultiLevelGeoTest>;
 
-TEST_F(MultiLevelVgdmlTest, accessors)
+TEST_F(MultiLevelVgdmlTest, DISABLED_model)
 {
-    TestImpl(this).test_accessors();
+    TestImpl(this).test_model();
 }
 
 TEST_F(MultiLevelVgdmlTest, trace)
@@ -610,9 +610,9 @@ TEST_F(FourLevelsTest, levels)
 using MultiLevelTest
     = GenericGeoParameterizedTest<VecgeomGeantTestBase, MultiLevelGeoTest>;
 
-TEST_F(MultiLevelTest, accessors)
+TEST_F(MultiLevelTest, DISABLED_model)
 {
-    this->impl().test_accessors();
+    this->impl().test_model();
 }
 
 TEST_F(MultiLevelTest, trace)

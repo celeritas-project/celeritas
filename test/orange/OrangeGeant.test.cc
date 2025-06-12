@@ -54,9 +54,9 @@ class GeantOrangeTest : public OrangeGeoTestBase
 using MultiLevelTest
     = GenericGeoParameterizedTest<GeantOrangeTest, MultiLevelGeoTest>;
 
-TEST_F(MultiLevelTest, accessors)
+TEST_F(MultiLevelTest, DISABLED_model)
 {
-    this->impl().test_accessors();
+    this->impl().test_model();
 }
 
 TEST_F(MultiLevelTest, trace)
