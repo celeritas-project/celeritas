@@ -13,7 +13,7 @@ jobs:
     name: ultralite-ubuntu
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
-      CCACHE_MAXSIZE: "50Mi"
+      CCACHE_MAXSIZE: "100Mi"
       CMAKE_PRESET: ultralite
     runs-on: ubuntu-24.04
     steps:

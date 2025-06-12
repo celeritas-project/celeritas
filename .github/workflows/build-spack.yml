@@ -71,7 +71,7 @@ jobs:
             geant: "11.2"
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
-      CCACHE_MAXSIZE: "${{matrix.build_type == 'reldebinfo' && '400' || '200'}}Mi"
+      CCACHE_MAXSIZE: "${{matrix.build_type == 'reldebinfo' && '500' || '300'}}Mi"
       CMAKE_PRESET: >-
         ${{format('{0}-{1}{2}{3}',
                   matrix.build_type,
