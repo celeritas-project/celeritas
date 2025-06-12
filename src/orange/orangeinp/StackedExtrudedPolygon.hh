@@ -38,36 +38,40 @@ namespace orangeinp
  * shown below. Consider the following polygon, extruded along a single-segment
  * polyline:
  * \verbatim
-            ._________
-          . |         |
-        .___|         |
-        |             |
-        |             |
-        |       ______.
-        |      |   .
-        |______|.
+             __________
+            |          |
+         ___|          |
+        |              |
+        |              |
+        |              |
+        |            __|
+        |           |
+        |___________|
    \endverbatim
  * The convex hull of this polygon is used to create the first region:
  * \verbatim
-            ._________
-          /           |
-        /             |
-        |   level 0   |
-        |   stack 0   |
-        |   segment 0 |
-        |        ____/
-        |_______/
+             __________
+           /           |
+         /             |
+        |   level 0    |
+        |   stack 0    |
+        |   segment 0  |
+        |              |
+        |             /
+        |___________/
    \endverbatim
  * Recursing one level deeper, we create two additional regions:
  * \verbatim
-            + . . . . .
-          / | level 1, stack 0, segment 0
-        /___|         .
-        .             .
-        .             .
-        .       ______
-        .      | ____/  level 1, stack 1, segment 0
-        . . .  |/
+
+             ...........
+           /|  level 1, stack 0, segment 0
+         /__|          .
+        .              .
+        .              .
+        .              .
+        .           ___.
+        .          |  /  level 1, stack 1, segment 0
+        ...........|/
    \endverbatim
  * and subtract their union from the first region.
  *
