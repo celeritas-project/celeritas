@@ -6,7 +6,8 @@
 Model
 =====
 
-This specifies the problem geometry and material properties.
+This specifies the problem geometry and material properties. See
+:ref:`api_geometry` for details on the definition of volumes and surfaces.
 
 .. doxygenstruct:: celeritas::inp::Model
    :members:

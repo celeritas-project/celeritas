@@ -65,8 +65,6 @@ struct VolumeInstance
 //---------------------------------------------------------------------------//
 /*!
  * Define a graph of geometry elements.
- *
- * \todo Construct from in-memory Geant4
  */
 struct Volumes
 {
@@ -85,9 +83,6 @@ struct Volumes
  *
  * An "interface" surface is an (exiting, entering) pair of volume instances.
  * A "boundary" surface is the entire surface of a volume.
- *
- * See \c SurfaceParams . These are typically loaded from Geant4 via \c
- * celeritas::setup::load_geant .
  */
 struct Surface
 {
