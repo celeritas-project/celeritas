@@ -23,7 +23,7 @@ namespace orangeinp
  * coordinate system.
  *
  * Construction is performed using a convex decomposition approach
- * \cite{tor-convexdecomp-1984, https://doi.org/10.1145/357346.357348}. The
+ * \citep{tor-convexdecomp-1984, https://doi.org/10.1145/357346.357348}. The
  * convex hull of the polygon is first found, then extruded along the polyline
  * (with scaling) form a stack of ExtrudedPolygon shapes. Regions that
  * constitute the difference between the polygon and its convex hull are then
@@ -38,55 +38,48 @@ namespace orangeinp
  * shown below. Consider the following polygon, extruded along a single-segment
  * polyline:
  * \verbatim
-        . . ._________
-        .   |         |
+            ._________
+          . |         |
         .___|         |
         |             |
         |             |
-        |       ______|
-        |      |      .
-        |______|. . . .
+        |       ______.
+        |      |   .
+        |______|.
    \endverbatim
  * The convex hull of this polygon is used to create the first region:
  * \verbatim
-         _____________
-        |             |
-        |             |
+            ._________
+          /           |
+        /             |
         |   level 0   |
         |   stack 0   |
         |   segment 0 |
-        |             |
-        |_____________|
+        |        ____/
+        |_______/
    \endverbatim
  * Recursing one level deeper, we create two additional regions:
  * \verbatim
-         ____ . . . . .
-        |   | level 1, stack 0, segment 0
-        |___|         .
+            + . . . . .
+          / | level 1, stack 0, segment 0
+        /___|         .
         .             .
         .             .
         .       ______
-        .      |      | level 1, stack 1, segment 0
-        . . .  |______|
+        .      | ____/  level 1, stack 1, segment 0
+        . . .  |/
    \endverbatim
- * When labeing nodes, the following shorthand format is used:
+ * and subtract their union from the first region.
  *
- * label@level.stack.segment
- *
- * For example, the final region in the example above might be named:
- *
- * my_shape@1.1.0
- *
- * For each level, additional nodes are created in the form:
- *
- * label@level.suffix
- *
- * where suffixes have the following meanings:
- *
- * 1) .cu : the union of all convex regions on this level,
- * 2) .ncu : the negation of the union of all convex regions on this level,
- * 3) .d : the difference between this level's convex hull and the convex
- * regions on this level.
+ * \internal When labeing nodes in the CSG output, the following shorthand
+ *   format is used: `label@level.stack.segment`. For example, the final region
+ *   in the example above might be named `my_shape@1.1.0`. For each level,
+ *   additional nodes are created in the form: `label@level.suffix` where
+ *   suffixes have the following meanings:
+ *   1) .cu : the union of all convex regions on this level,
+ *   2) .ncu : the negation of the union of all convex regions on this level,
+ *   3) .d : the difference between this level's convex hull and the convex
+ *      regions on this level.
  */
 class StackedExtrudedPolygon final : public ObjectInterface
 {
