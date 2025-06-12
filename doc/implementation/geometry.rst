@@ -9,7 +9,7 @@ Geometry
 
 Detector geometry descriptions for HEP are almost universally defined using a
 hierarchy of fully nested volumes, often saved as a GDML file
-:cite:`gdml-2006`. These volumes can be represented as a directional
+:cite:`gdml-2006`. These volumes can be represented as a directed
 acyclic graph (DAG): the nodes are the geometric elements, and the edges
 are an instantiation of the volume *below* inside the volume *above*. This
 instantiation is associated with a transformation and
@@ -18,25 +18,30 @@ their enclosing parent volume.
 
 .. table:: Celeritas nomenclature tends toward computer science terminology.
 
-   +------------------+-----------+---------------------------------------------+
-   | Celeritas        | VecGeom   | Geant4                                      |
-   +==================+===========+=============================================+
-   | Volume           | Unplaced  | Logical volume                              |
-   +------------------+-----------+---------------------------------------------+
-   | Volume instance  | Placed    | Physical volume (plus copy number)          |
-   +------------------+-----------+---------------------------------------------+
-   | Child            | Daughter  | Daughter                                    |
-   +------------------+-----------+---------------------------------------------+
-   | Parent           | Mother    | Mother                                      |
-   +------------------+-----------+---------------------------------------------+
+   +------------------+------------------------+----------------+--------------------+
+   | Celeritas        | Geant4                 | VecGeom        | KENO [#sc]_        |
+   +==================+========================+================+====================+
+   | (not used)       | Solid                  | Unplaced       | Shape              |
+   +------------------+------------------------+----------------+--------------------+
+   | Volume           | Logical volume         | Logical volume | Unit/array/media   |
+   +------------------+------------------------+----------------+--------------------+
+   | Volume instance  | Physical volume [#cn]_ | Placed volume  | Hole/array element |
+   +------------------+------------------------+----------------+--------------------+
+   | Child            | Daughter               | Daughter       | Hole/placement     |
+   +------------------+------------------------+----------------+--------------------+
+   | Parent           | Mother                 | Mother         | ---                |
+   +------------------+------------------------+----------------+--------------------+
 
+.. [#sc] The KENO geometry package in SCALE :cite:`scale-632` differs
+   substantially from Geant4 geometry definitions. In KENO-VI :cite:`kenovi`
+   geometry, parent units mask (rather than strictly contain) child units.
 
 Celeritas defines abstract geometry concepts, indexed as IDs, to support
-multiple geometry applications [#]_ and to make the code backend-agnostic for
+multiple geometry applications [#ga]_ and to make the code backend-agnostic for
 integrating with physics. These include "volumes" (known in some other
 fields as "cells").
 
-.. [#] In the future the use of these abstract concepts will enable detector
+.. [#ga] In the future the use of these abstract concepts will enable detector
    descriptions, and geometry models for other applications, that are *not*
    Geant4 hierarchies.
 
@@ -53,10 +58,11 @@ Volume instance
    An *instance* of a volume is defined in conjunction with a transform and an
    enclosing object (or, in the special case of the outermost or "world" volume
    instance, no enclosing object). In Geant4 this roughly corresponds to a
-   physical volume. [#]_ VecGeom refers to volume instances as *placed
-   volumes*. In ORANGE for KENO, this would correspond to a hole
-   placement, array element, or local media. The volume instance is an *edge* in
-   the graph of volumes.
+   physical volume. [#cn]_ VecGeom refers to volume instances as *placed
+   volumes*. In a user-provided (or SCALE-generated) ORANGE geometry, a volume
+   instance might correspond to a particular hole placement (i.e., a universe
+   daughter), an array element, or a media entry (i.e., a cell). The volume
+   instance is an *edge* in the graph of volumes.
 
 Unique instance
    A *unique* instance of a volume refers to the logical definition of a
@@ -68,12 +74,14 @@ Unique instance
    and indirect children for each node.  Celeritas always uses 64-bit integers
    to store the ``VolumeUniqueInstanceId``.
 
-.. [#] A ``VolumeInstanceId`` has a one-to-one mapping for ``G4PVPlacement``,
-   but "replica" and "parameterized" volumes use a single physical volume to
-   represent multiple spatial elements. For those, we currently define a
-   :cpp:struct:`celeritas::GeantPhysicalInstance` that is a tuple of
-   physical volume and a replica instance. Eventually that will become an
-   implementation detail.
+.. [#cn] A *volume instance* has a one-to-one mapping for ``G4PVPlacement``,
+   but "replica" and "parameterized" volumes in Geant4 use a single physical
+   volume object to represent multiple spatial elements. For those, we
+   currently define a :cpp:struct:`celeritas::GeantPhysicalInstance` that is a
+   tuple of physical volume and a *replica instance*, which corresponds to the
+   "copy number" in a replica volume. In the future, the replica numbers will
+   be hidden and one volume instance will map directly to a PV pointer and copy
+   number.
 
 
 .. toctree::
