@@ -54,7 +54,7 @@ class EnclosedAzi
     EnclosedAzi(Turn start, Turn interior);
 
     // Construct a wedge shape to intersect (inside) or subtract (outside)
-    SenseWedge make_wedge() const;
+    SenseWedge make_sense_region() const;
 
     // Whether the enclosed angle is not a full circle
     explicit inline operator bool() const;

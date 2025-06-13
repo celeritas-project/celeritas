@@ -39,7 +39,7 @@ EnclosedAzi::EnclosedAzi(Turn start, Turn interior)
 /*!
  * Construct a wedge shape to intersect (inside) or subtract (outside).
  */
-auto EnclosedAzi::make_wedge() const -> SenseWedge
+auto EnclosedAzi::make_sense_region() const -> SenseWedge
 {
     CELER_EXPECT(*this);
     // Get the start value between [0, 1)
@@ -104,7 +104,7 @@ NodeId SolidBase::build(VolumeBuilder& vb) const
     {
         // The enclosed angle is "true" (specified by the user to truncate the
         // shape azimuthally): construct a wedge to be added or deleted
-        auto&& [sense, wedge] = azi.make_wedge();
+        auto&& [sense, wedge] = azi.make_sense_region();
         NodeId wedge_id
             = build_intersect_region(vb, this->label(), "angle", wedge);
         if (sense == Sense::outside)

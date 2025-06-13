@@ -33,12 +33,12 @@ TEST(EnclosedAziTest, null)
     EXPECT_FALSE(azi);
 }
 
-TEST(EnclosedAziTest, make_wedge)
+TEST(EnclosedAziTest, make_sense_region)
 {
     {
         SCOPED_TRACE("concave");
         EnclosedAzi azi(Turn{-0.25}, Turn{0.1});
-        auto&& [sense, wedge] = azi.make_wedge();
+        auto&& [sense, wedge] = azi.make_sense_region();
         EXPECT_EQ(Sense::inside, sense);
         EXPECT_SOFT_EQ(0.75, wedge.start().value());
         EXPECT_SOFT_EQ(0.1, wedge.interior().value());
@@ -46,7 +46,7 @@ TEST(EnclosedAziTest, make_wedge)
     {
         SCOPED_TRACE("convex");
         EnclosedAzi azi(Turn{0.25}, Turn{0.8});
-        auto&& [sense, wedge] = azi.make_wedge();
+        auto&& [sense, wedge] = azi.make_sense_region();
         EXPECT_EQ(Sense::outside, sense);
         EXPECT_SOFT_EQ(0.05, wedge.start().value());
         EXPECT_SOFT_EQ(0.2, wedge.interior().value());
@@ -54,7 +54,7 @@ TEST(EnclosedAziTest, make_wedge)
     {
         SCOPED_TRACE("half");
         EnclosedAzi azi(Turn{0.1}, Turn{0.5});
-        auto&& [sense, wedge] = azi.make_wedge();
+        auto&& [sense, wedge] = azi.make_sense_region();
         EXPECT_EQ(Sense::inside, sense);
         EXPECT_SOFT_EQ(0.1, wedge.start().value());
         EXPECT_SOFT_EQ(0.5, wedge.interior().value());
@@ -75,7 +75,7 @@ TEST(SolidZSlabTest, infinite)
     EXPECT_FALSE(szs);
 }
 
-TEST(SolidZSlabTest, make_wedge)
+TEST(SolidZSlabTest, make_sense_region)
 {
     SolidZSlab szs(5, 10);
     auto inf_slab = szs.make_inf_slab();
