@@ -116,7 +116,7 @@ Optical photons also have special interactions at material boundaries,
 specified largely by user-provided material properties. The surface
 definitions are translated from Geant4 "skin" and "border" surfaces to
 Celeritas "boundary" and "interface" surfaces, respectively (see
-:ref:`_api_geometry`). The "boundary" of a volume is currently defined, from
+:ref:`api_geometry`). The "boundary" of a volume is currently defined, from
 Geant4 input, as a *directional* property.
 
 Celeritas surface physics currently uses the following heuristic to reproduce
