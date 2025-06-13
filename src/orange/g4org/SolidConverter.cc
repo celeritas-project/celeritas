@@ -137,8 +137,9 @@ EnclosedAzi enclosed_azi_from_poly(S const& solid)
  * Get the enclosed polar angle by a solid.
  */
 template<class S>
-EnclosedAzi make_wedge_polar(S const& solid)
+EnclosedAzi enclosed_pol_from(S const& solid)
 {
+    // FIXME: polar angle will be a different class
     return enclosed_azi_radians(solid.GetStartThetaAngle(),
                                 solid.GetDeltaThetaAngle());
 }
@@ -688,7 +689,7 @@ auto SolidConverter::sphere(arg_type solid_base) -> result_type
         inner = Sphere{scale_(inner_r)};
     }
 
-    auto polar_wedge = make_wedge_polar(solid);
+    auto polar_cone = enclosed_pol_from(solid);
     if (!soft_equal(value_as<Turn>(polar_wedge.interior()), 0.5))
     {
         CELER_NOT_IMPLEMENTED("sphere with polar limits");
