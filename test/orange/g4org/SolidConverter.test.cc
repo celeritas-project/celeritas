@@ -216,12 +216,12 @@ TEST_F(SolidConverterTest, cons)
                1.0,
                0.17453292519943,
                5.235987755983),
-        R"json({"_type":"solid","enclosed_angle":{"interior":0.8333333333333353,"start":0.027777777777777308},"excluded":{"_type":"cone","halfheight":0.1,"radii":[2.0,6.0]},"interior":{"_type":"cone","halfheight":0.1,"radii":[8.0,14.0]},"label":"test10"})json");
+        R"json({"_type":"solid","enclosed_azi":{"interior":0.8333333333333353,"start":0.027777777777777308},"excluded":{"_type":"cone","halfheight":0.1,"radii":[2.0,6.0]},"interior":{"_type":"cone","halfheight":0.1,"radii":[8.0,14.0]},"label":"test10"})json");
 
     this->build_and_test(
         G4Cons(
             "aCone", 2 * cm, 6 * cm, 8 * cm, 14 * cm, 10 * cm, 10 * deg, 300 * deg),
-        R"json({"_type":"solid","enclosed_angle":{"interior":0.8333333333333334,"start":0.027777777777777776},"excluded":{"_type":"cone","halfheight":10.0,"radii":[2.0,8.0]},"interior":{"_type":"cone","halfheight":10.0,"radii":[6.0,14.0]},"label":"aCone"})json");
+        R"json({"_type":"solid","enclosed_azi":{"interior":0.8333333333333334,"start":0.027777777777777776},"excluded":{"_type":"cone","halfheight":10.0,"radii":[2.0,8.0]},"interior":{"_type":"cone","halfheight":10.0,"radii":[6.0,14.0]},"label":"aCone"})json");
 }
 
 TEST_F(SolidConverterTest, displaced)
@@ -537,7 +537,7 @@ TEST_F(SolidConverterTest, polycone)
                        z,
                        rmin,
                        rmax),
-            R"json({"_type":"polycone","enclosed_angle":{"interior":0.03125,"start":0.984375},"label":"EMEC_WideStretchers","segments":[{"outer":[207.0,207.0,207.0,207.0,207.0,207.0],"z":[-16.5,-1.0,-1.0,1.0,1.0,16.5]},["inner",[204.4,204.4,205.05,205.05,204.4,204.4]]]})json",
+            R"json({"_type":"polycone","enclosed_azi":{"interior":0.03125,"start":0.984375},"label":"EMEC_WideStretchers","segments":[{"outer":[207.0,207.0,207.0,207.0,207.0,207.0],"z":[-16.5,-1.0,-1.0,1.0,1.0,16.5]},["inner",[204.4,204.4,205.05,205.05,204.4,204.4]]]})json",
             {{206, 0, 0}, {-206, 0, 0}});
     }
 }
@@ -594,7 +594,7 @@ TEST_F(SolidConverterTest, sphere)
         R"json({"_type":"shape","interior":{"_type":"sphere","radius":5.0},"label":"Solid G4Sphere"})json");
     this->build_and_test(
         G4Sphere("sn1", 0, 50, halfpi, 3. * halfpi, 0, pi),
-        R"json({"_type":"solid","enclosed_angle":{"interior":0.75,"start":0.25},"interior":{"_type":"sphere","radius":5.0},"label":"sn1"})json",
+        R"json({"_type":"solid","enclosed_azi":{"interior":0.75,"start":0.25},"interior":{"_type":"sphere","radius":5.0},"label":"sn1"})json",
         {{-3, 0.05, 0}, {3, 0.5, 0}, {0, -0.01, 4.9}});
     EXPECT_THROW(
         this->build_and_test(G4Sphere("sn12", 0, 50, 0, twopi, 0., 0.25 * pi)),
@@ -611,7 +611,7 @@ TEST_F(SolidConverterTest, sphere)
 
     this->build_and_test(
         G4Sphere("Band (phi segment)", 5, 50, -pi, 3. * pi / 2., 0, twopi),
-        R"json({"_type":"solid","enclosed_angle":{"interior":0.75,"start":-0.5},"excluded":{"_type":"sphere","radius":0.5},"interior":{"_type":"sphere","radius":5.0},"label":"Band (phi segment)"})json");
+        R"json({"_type":"solid","enclosed_azi":{"interior":0.75,"start":-0.5},"excluded":{"_type":"sphere","radius":0.5},"interior":{"_type":"sphere","radius":5.0},"label":"Band (phi segment)"})json");
     EXPECT_THROW(
         this->build_and_test(G4Sphere(
             "Patch (phi/theta seg)", 45, 50, -pi / 4, halfpi, pi / 4, halfpi)),
@@ -619,7 +619,7 @@ TEST_F(SolidConverterTest, sphere)
 
     this->build_and_test(
         G4Sphere("John example", 300, 500, 0, 5.76, 0, pi),
-        R"json({"_type":"solid","enclosed_angle":{"interior":0.9167324722093171,"start":0.0},"excluded":{"_type":"sphere","radius":30.0},"interior":{"_type":"sphere","radius":50.0},"label":"John example"})json");
+        R"json({"_type":"solid","enclosed_azi":{"interior":0.9167324722093171,"start":0.0},"excluded":{"_type":"sphere","radius":30.0},"interior":{"_type":"sphere","radius":50.0},"label":"John example"})json");
 }
 
 TEST_F(SolidConverterTest, subtractionsolid)
@@ -687,7 +687,7 @@ TEST_F(SolidConverterTest, torus)
 {
     G4Torus torus("testTorus", 0 * cm, 20 * cm, 50 * cm, 0 * deg, 270 * deg);
     auto json_str
-        = R"json({"_type":"solid","enclosed_angle":{"interior":0.75,"start":0.0},"excluded":{"_type":"cylinder","halfheight":20.0,"radius":30.0},"interior":{"_type":"cylinder","halfheight":20.0,"radius":70.0},"label":"testTorus"})json";
+        = R"json({"_type":"solid","enclosed_azi":{"interior":0.75,"start":0.0},"excluded":{"_type":"cylinder","halfheight":20.0,"radius":30.0},"interior":{"_type":"cylinder","halfheight":20.0,"radius":70.0},"label":"testTorus"})json";
 
     SolidConverter convert{scale_, transform_};
     auto obj = convert(torus);
@@ -816,7 +816,7 @@ TEST_F(SolidConverterTest, tubs)
 
     this->build_and_test(
         G4Tubs("Solid Tube #1a", 0, 50 * mm, 50 * mm, 0, 0.5 * pi),
-        R"json({"_type":"solid","enclosed_angle":{"interior":0.25,"start":0.0},"interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Solid Tube #1a"})json");
+        R"json({"_type":"solid","enclosed_azi":{"interior":0.25,"start":0.0},"interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Solid Tube #1a"})json");
 
     this->build_and_test(
         G4Tubs("Hole Tube #2", 45 * mm, 50 * mm, 50 * mm, 0, 2 * pi),
@@ -840,19 +840,19 @@ TEST_F(SolidConverterTest, tubs)
 
     this->build_and_test(
         G4Tubs("Solid Sector #3", 0, 50 * mm, 50 * mm, halfpi, halfpi),
-        R"json({"_type":"solid","enclosed_angle":{"interior":0.25,"start":0.25},"interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Solid Sector #3"})json");
+        R"json({"_type":"solid","enclosed_azi":{"interior":0.25,"start":0.25},"interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Solid Sector #3"})json");
 
     this->build_and_test(
         G4Tubs("Hole Sector #4", 45 * mm, 50 * mm, 50 * mm, halfpi, halfpi),
-        R"json({"_type":"solid","enclosed_angle":{"interior":0.25,"start":0.25},"excluded":{"_type":"cylinder","halfheight":5.0,"radius":4.5},"interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Hole Sector #4"})json");
+        R"json({"_type":"solid","enclosed_azi":{"interior":0.25,"start":0.25},"excluded":{"_type":"cylinder","halfheight":5.0,"radius":4.5},"interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Hole Sector #4"})json");
 
     this->build_and_test(
         G4Tubs("Hole Sector #5", 50 * mm, 100 * mm, 50 * mm, 0.0, 270.0 * deg),
-        R"json({"_type":"solid","enclosed_angle":{"interior":0.75,"start":0.0},"excluded":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"interior":{"_type":"cylinder","halfheight":5.0,"radius":10.0},"label":"Hole Sector #5"})json");
+        R"json({"_type":"solid","enclosed_azi":{"interior":0.75,"start":0.0},"excluded":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"interior":{"_type":"cylinder","halfheight":5.0,"radius":10.0},"label":"Hole Sector #5"})json");
 
     this->build_and_test(
         G4Tubs("Solid Sector #3", 0, 50 * mm, 50 * mm, halfpi, 3. * halfpi),
-        R"json({"_type":"solid","enclosed_angle":{"interior":0.75,"start":0.25},"interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Solid Sector #3"})json");
+        R"json({"_type":"solid","enclosed_azi":{"interior":0.75,"start":0.25},"interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Solid Sector #3"})json");
 
     this->build_and_test(
         G4Tubs("Barrel",
@@ -861,7 +861,7 @@ TEST_F(SolidConverterTest, tubs)
                (5640.0 / 2) * mm,
                0 * deg,
                11.25 * deg),
-        R"json({"_type":"solid","enclosed_angle":{"interior":0.03125,"start":0.0},"excluded":{"_type":"cylinder","halfheight":282.0,"radius":228.8},"interior":{"_type":"cylinder","halfheight":282.0,"radius":425.0},"label":"Barrel"})json",
+        R"json({"_type":"solid","enclosed_azi":{"interior":0.03125,"start":0.0},"excluded":{"_type":"cylinder","halfheight":282.0,"radius":228.8},"interior":{"_type":"cylinder","halfheight":282.0,"radius":425.0},"label":"Barrel"})json",
         {{300, 25, 0.1}, {300, -25, 0.1}, {450, 0.1, 0.1}});
 }
 

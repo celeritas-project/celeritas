@@ -182,7 +182,7 @@ TEST_F(PolyconeTest, sliced)
 {
     this->build_volume(PolyCone{"pc",
                                 PolySegments{{2, 1, 3}, {-2, 0, 2}},
-                                SolidEnclosedAngle{Turn{0.125}, Turn{0.75}}});
+                                EnclosedAzi{Turn{0.125}, Turn{0.75}}});
 
     static char const* const expected_surface_strings[] = {
         "Plane: z=-2",
@@ -265,7 +265,7 @@ TEST_F(PolyconeTest, or_solid)
 {
     {
         auto s = PolyCone::or_solid(
-            "cone", PolySegments{{1, 2}, {-2, 2}}, SolidEnclosedAngle{});
+            "cone", PolySegments{{1, 2}, {-2, 2}}, EnclosedAzi{});
         EXPECT_TRUE(s);
         EXPECT_TRUE(dynamic_cast<ConeShape const*>(s.get()));
         this->build_volume(*s);
@@ -273,14 +273,14 @@ TEST_F(PolyconeTest, or_solid)
     {
         auto s = PolyCone::or_solid("hollowcone",
                                     PolySegments{{0.5, 0.75}, {1, 2}, {-2, 2}},
-                                    SolidEnclosedAngle{});
+                                    EnclosedAzi{});
         EXPECT_TRUE(s);
         EXPECT_TRUE(dynamic_cast<ConeSolid const*>(s.get()));
         this->build_volume(*s);
     }
     {
         auto s = PolyCone::or_solid(
-            "transcyl", PolySegments{{2, 2}, {0, 4}}, SolidEnclosedAngle{});
+            "transcyl", PolySegments{{2, 2}, {0, 4}}, EnclosedAzi{});
         EXPECT_TRUE(s);
         EXPECT_TRUE(dynamic_cast<Transformed const*>(s.get()));
         this->build_volume(*s);
