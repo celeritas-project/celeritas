@@ -87,11 +87,12 @@ Unique instance
 Surface
    A *surface* is defined as a contiguous area on the boundary of a volume,
    sometimes on only a single side of the volume. Note that this definition
-   different to the infinite surfaces of ORANGE and the surface frames of
+   differs from the infinite surfaces of ORANGE and the surface frames of
    VecGeom. Surfaces currently are defined in two ways: *Interface* surfaces
-   are one-directional surfaces defined as the interface from one
-   volume instance to another, called "border surfaces" in Geant4. *Boundary*
-   surfaces surrounding an entire volume and are called "skin" in Geant4.
+   ("border" surfaces in Geant4) are one-directional surfaces defined as the
+   interface from one volume instance to another. *Boundary* surfaces ("skin"
+   surfaces in Geant4) surround an entire volume, and their properties apply
+   symmetrically to tracks entering or exiting.
 
 
 .. [#cn] A *volume instance* has a one-to-one mapping for ``G4PVPlacement``,

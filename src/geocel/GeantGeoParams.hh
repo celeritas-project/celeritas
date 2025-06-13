@@ -51,10 +51,10 @@ namespace celeritas
  * \c G4LogicalBorderSurface (an "interface" surface between two volume
  * instances) or a \c G4LogicalSkinSurface (a "boundary" surrounding a single
  * logical volume). To ensure reproducible surface IDs across runs, we put
- * boundaries before interfaces, and sort within each set by IDs (not by
- * Geant4 object pointers, which is how the implementations store in a table).
- * Surface labels are accessed via the SurfaceParams object which can be
- * created by the model input returned by this class.
+ * boundaries before interfaces, and sort within each set by volume IDs (not by
+ * Geant4 object pointers, which is what the Geant4 implementation stores in a
+ * table).  Surface labels are accessed via the SurfaceParams object, which can
+ * be created by the model input returned by this class.
  */
 class GeantGeoParams final : public GeoParamsInterface,
                              public ParamsDataInterface<GeantGeoParamsData>
@@ -117,7 +117,7 @@ class GeantGeoParams final : public GeoParamsInterface,
     //! Get the number of surfaces (TODO: maybe live in surface params?)
     SurfaceId::size_type num_surfaces() const { return surfaces_.size(); }
 
-    // Get the Geant4 logical volume corresponding to a volume ID
+    // Get the Geant4 logical surface corresponding to a surface ID
     inline G4LogicalSurface const* id_to_geant(SurfaceId surf_id) const;
 
     // DEPRECATED
@@ -229,7 +229,7 @@ auto GeantGeoParams::volume_instances() const -> VolInstanceMap const&
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the Geant4 logical volume corresponding to a volume ID.
+ * Get the Geant4 logical surface corresponding to a surface ID.
  */
 G4LogicalSurface const* GeantGeoParams::id_to_geant(SurfaceId id) const
 {

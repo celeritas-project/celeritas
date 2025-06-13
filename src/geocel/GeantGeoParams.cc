@@ -155,13 +155,11 @@ void append_skin_surfaces(GeantGeoParams const& geo,
         auto* lv = surf->GetLogicalVolume();
 #endif
 
-        {
-            CELER_ASSERT(lv);
-            auto vol_id = geo.geant_to_id(*lv);
-            CELER_ASSERT(vol_id);
-            auto iter_inserted = temp.insert({vol_id, surf});
-            CELER_ASSERT(iter_inserted.second);
-        }
+        CELER_ASSERT(lv);
+        auto vol_id = geo.geant_to_id(*lv);
+        CELER_ASSERT(vol_id);
+        auto iter_inserted = temp.insert({vol_id, surf});
+        CELER_ASSERT(iter_inserted.second);
     }
 
     // Append to table in order
@@ -185,13 +183,13 @@ void append_border_surfaces(GeantGeoParams const& geo,
     std::map<std::pair<VolumeInstanceId, VolumeInstanceId>, G4Surface const*> temp;
     auto const* table = G4Surface::GetSurfaceTable();
     CELER_ASSERT(table);
-#if G4VERSION_NUMBER >= 1060
+#if G4VERSION_NUMBER >= 1070
     for (auto&& [key, surf] : *table)
 #else
     for (auto const* surf : *table)
 #endif
     {
-#if G4VERSION_NUMBER < 1060
+#if G4VERSION_NUMBER < 1070
         std::pair key{surf->GetVolume1(), surf->GetVolume2()};
 #endif
         CELER_ASSERT(key.first);
