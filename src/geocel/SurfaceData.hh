@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "geocel/Types.hh"
@@ -53,12 +54,11 @@ struct VolumeSurfaceRecord
 /*!
  * Persistent data for mapping between volumes and their surfaces.
  *
- * This structure manages the relationship between volumes and their surfaces,
- * particularly for tracking optical photons as they cross from one volume
- * instance to another through shared surfaces.
+ * This structure stores device-compatible data relating volumes and their
+ * surfaces, primarily for optical physics at material interfaces.
  *
- * If no interface surfaces (aka 'border surface') are present then the backend
- * storage arrays will be empty.
+ * If no "interface" surfaces are present then the backend storage arrays will
+ * be empty.
  */
 template<Ownership W, MemSpace M>
 struct SurfaceParamsData
@@ -72,6 +72,9 @@ struct SurfaceParamsData
 
     //// DATA ////
 
+    //! Number of surfaces
+    SurfaceId::size_type num_surfaces{0};
+
     //! Surface properties for logical volumes
     VolumeItems<VolumeSurfaceRecord> volume_surfaces;
 
@@ -83,18 +86,17 @@ struct SurfaceParamsData
 
     //// METHODS ////
 
-    //! True if assigned
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return !volume_surfaces.empty();
-    }
+    //! True if surfaces are present
+    explicit CELER_FUNCTION operator bool() const { return num_surfaces != 0; }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     SurfaceParamsData& operator=(SurfaceParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
+        CELER_EXPECT(!other.volume_surfaces.empty());
 
+        num_surfaces = other.num_surfaces;
         volume_surfaces = other.volume_surfaces;
         volume_instance_ids = other.volume_instance_ids;
 

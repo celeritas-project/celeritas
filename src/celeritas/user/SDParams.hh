@@ -7,12 +7,10 @@
 #pragma once
 
 #include "corecel/Assert.hh"
-#include "corecel/data/AuxInterface.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/io/Label.hh"
-#include "celeritas/user/DetectorSteps.hh"
 
 #include "SDData.hh"
 
@@ -32,10 +30,13 @@ class SDParams final : public ParamsDataInterface<SDParamsData>
 
   public:
     //! Default Constructor
-    SDParams() {};
+    SDParams() {}
 
     //! Construct from volume labels
     SDParams(VecLabel const& volume_labels, GeoParamsInterface const& geo);
+
+    //! Whether any detectors are present
+    bool empty() const { return !static_cast<bool>(mirror_); }
 
     //! Number of detectors
     DetectorId::size_type size() const { return volume_ids_.size(); }

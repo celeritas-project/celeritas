@@ -8,8 +8,10 @@
 
 #include <vector>
 
+#include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/io/Label.hh"
 
 #include "SurfaceData.hh"
 
@@ -19,6 +21,7 @@ namespace inp
 {
 struct Surfaces;
 }
+class VolumeParams;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -43,11 +46,26 @@ class SurfaceParams final : public ParamsDataInterface<SurfaceParamsData>
   public:
     //!@{
     //! \name Type aliases
+    using SurfaceMap = LabelIdMultiMap<SurfaceId>;
     //!@}
 
   public:
     // Construct from surface input
-    explicit SurfaceParams(inp::Surfaces const&);
+    SurfaceParams(inp::Surfaces const&, VolumeParams const& volumes);
+
+    // Construct without surfaces
+    SurfaceParams();
+
+    //// METADATA ACCESS ////
+
+    //! Whether any surfaces are present
+    bool empty() const { return !static_cast<bool>(data_); }
+
+    //! Number of surfaces
+    SurfaceId::size_type num_surfaces() const { return labels_.size(); }
+
+    //! Get surface metadata
+    SurfaceMap const& labels() const { return labels_; }
 
     //// DATA ACCESS ////
 
@@ -60,6 +78,8 @@ class SurfaceParams final : public ParamsDataInterface<SurfaceParamsData>
   private:
     // Host/device storage and reference
     CollectionMirror<SurfaceParamsData> data_;
+    // Metadata: surface labels
+    SurfaceMap labels_;
 };
 
 //---------------------------------------------------------------------------//
