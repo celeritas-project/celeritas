@@ -690,7 +690,7 @@ auto SolidConverter::sphere(arg_type solid_base) -> result_type
     }
 
     auto polar_cone = enclosed_pol_from(solid);
-    if (!soft_equal(value_as<Turn>(polar_wedge.interior()), 0.5))
+    if (!soft_equal(value_as<Turn>(polar_cone.interior()), 0.5))
     {
         CELER_NOT_IMPLEMENTED("sphere with polar limits");
     }
