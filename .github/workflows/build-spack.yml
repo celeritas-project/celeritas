@@ -13,7 +13,8 @@ concurrency:
   group: build-spack-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
 
 env:
-  SPACK_REF: 38309ced3344d06168c25482083fc733bb654a63 # develop@2025-03-17
+  SPACK_REF: 84476f6f35ee367a3c8c4247edcde66441cee5e6 # ci @ 12 May 2025
+
 
 jobs:
   spack:
@@ -70,7 +71,7 @@ jobs:
             geant: "11.2"
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
-      CCACHE_MAXSIZE: "${{matrix.build_type == 'reldebinfo' && '400' || '200'}}Mi"
+      CCACHE_MAXSIZE: "${{matrix.build_type == 'reldebinfo' && '500' || '300'}}Mi"
       CMAKE_PRESET: >-
         ${{format('{0}-{1}{2}{3}',
                   matrix.build_type,
@@ -96,8 +97,9 @@ jobs:
       ### ENVIRONMENT ###
 
       - name: Check out Spack
-        uses: spack/setup-spack@5792f7c7055c3707819380b5e3831d2be6e64b6c # 2024/12
+        uses: sethrj/setup-spack@200141be54665bd75af4dbb131d08d24ea606a9c
         with:
+          repository: celeritas-project/spack
           ref: ${{env.SPACK_REF}}
           buildcache: true
           color: true
@@ -107,11 +109,11 @@ jobs:
           sed -e 's/cxxstd=default/cxxstd=${{env.CXXSTD}}/' \
             scripts/ci/spack.yaml > spack.yaml
           if ${{matrix.geometry == 'vecgeom'}}; then
-            spack -e . add vecgeom@1.2.10:1+gdml
+            spack -e . add vecgeom@1.2.11:1+gdml
           elif ${{matrix.geometry == 'vecgeom2'}}; then
-            spack -e . add vecgeom@2.0.0-surfacedev.2~surface+gdml
+            spack -e . add vecgeom@2.0.0-rc.4~surface+gdml
           elif ${{matrix.geometry == 'vgsurf'}}; then
-            spack -e . add vecgeom@2.0.0-surfacedev.2+surface+gdml
+            spack -e . add vecgeom@2.0.0-rc.4+surface+gdml
           fi
           if ${{(matrix.special != 'minimal')
                 && (matrix.special != 'asanlite')
@@ -119,14 +121,17 @@ jobs:
                 && (env.CXXSTD == '20')}}; then
             spack -e . add root
           fi
+          if ${{env.CXXSTD == '20'}}; then
+            spack -e . add covfie
+          fi
           if ${{matrix.geant != ''}}; then
             spack -e . add geant4@${{matrix.geant}}
           fi
           if ${{(matrix.geometry == 'vecgeom'
                  || matrix.geometry == 'vecgeom2'
                  || matrix.geometry == 'vgsurf')
-                && matrix.geant}}; then
-            spack -e . add g4vg@1.0.2:
+                && matrix.geant != ''}}; then
+            spack -e . add g4vg@1.0.4
           fi
           spack -vd -e . compiler find --mixed-toolchain
           # Add the spack ref so that updating spack will reconcretize
@@ -173,7 +178,7 @@ jobs:
             . ${SPACK_VIEW}/rc
             test -n "${G4LEDATA}"
           fi
-          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
+          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE -DCELERITAS_USE_covfie=${{env.CXXSTD == '20' && 'ON' || 'OFF'}}
 
       ### BUILD ###
 
@@ -307,7 +312,7 @@ jobs:
             && matrix.special != 'clang-tidy'
           }}
         env:
-          CELER_DISABLE_ACCEL_EXAMPLES: 1 # Only run minimal example
+          CELER_DISABLE_G4_EXAMPLES: 1 # Only run minimal example
         run: |
           . ${SPACK_VIEW}/rc
           CELER_INSTALL_DIR=${PWD}/build ./scripts/ci/test-examples.sh
@@ -330,14 +335,14 @@ jobs:
           }}
         working-directory: install
         run: |
-          for exe in orange-update celer-export-geant celer-dump-data \
+          for exe in orange-update celer-export-geant \
             celer-sim celer-g4; do
             test -x "bin/${exe}"
           done
           ./bin/celer-sim --config
       - name: Build examples
         env:
-          CELER_DISABLE_ACCEL_EXAMPLES: >-
+          CELER_DISABLE_G4_EXAMPLES: >-
             ${{(
               matrix.special == 'float'
               || !matrix.geant
