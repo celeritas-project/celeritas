@@ -31,24 +31,7 @@ jobs:
         build_type: ["reldeb"]
         geometry: ["vecgeom"]
         special: [null]
-        geant: ["10.5", "10.6", "10.7", "11.0", "11.1", "11.2", "11.3"]
         include:
-          - build_type: "reldeb"
-            geometry: "orange"
-            special: "minimal"
-            geant: null
-          - build_type: "reldeb"
-            geometry: "orange"
-            special: "float"
-            geant: "11.3"
-          - build_type: "ndebug"
-            geometry: "orange"
-            special: "static"
-            geant: "11.3"
-          - build_type: "reldebinfo"
-            geometry: "orange"
-            special: "asanlite"
-            geant: null
           - build_type: "reldeb"
             geometry: "vecgeom"
             special: "clhep"
@@ -59,10 +42,6 @@ jobs:
             geant: "11.3"
           - build_type: "reldeb"
             geometry: "vecgeom2"
-            special: null
-            geant: "11.3"
-          - build_type: "reldeb"
-            geometry: "geant4"
             special: null
             geant: "11.3"
           - build_type: "reldeb"
