@@ -6,12 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <vector>
-
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
-#include "corecel/io/Label.hh"
 
 #include "SurfaceData.hh"
 

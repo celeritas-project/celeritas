@@ -39,14 +39,14 @@ struct VolumeSurfaceRecord
     ItemRange<VolumeInstanceId> interface_post;
 
     //! Surface IDs for the pre->post mapping
-    ItemRange<SurfaceId> interface;
+    ItemRange<SurfaceId> surface;
 
     //! True if valid data is present
     explicit CELER_FUNCTION operator bool() const
     {
         return boundary && !interface_pre.empty()
                && interface_pre.size() == interface_post.size()
-               && interface_pre.size() == interface.size();
+               && interface_pre.size() == surface.size();
     }
 };
 
@@ -99,6 +99,7 @@ struct SurfaceParamsData
         num_surfaces = other.num_surfaces;
         volume_surfaces = other.volume_surfaces;
         volume_instance_ids = other.volume_instance_ids;
+        surface_ids = other.surface_ids;
 
         CELER_ENSURE(*this);
         return *this;
