@@ -4,9 +4,8 @@
 //---------------------------------------------------------------------------//
 //! \file geocel/Volume.test.cc
 //---------------------------------------------------------------------------//
-#include <type_traits>
-
 #include "corecel/OpaqueIdUtils.hh"
+#include "corecel/cont/LabelIdMultiMapUtils.hh"
 #include "geocel/Types.hh"
 #include "geocel/VolumeParams.hh"
 #include "geocel/inp/Model.hh"
@@ -18,23 +17,6 @@ namespace celeritas
 {
 namespace test
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-template<class T>
-auto get_mm_labels(T const& multimap)
-{
-    using IdType = typename T::IdT;
-    std::vector<std::string> result;
-    for (auto id : range(id_cast<IdType>(multimap.size())))
-    {
-        result.push_back(multimap.at(id).name);
-    }
-    return result;
-}
-
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Note in the following tests:
@@ -143,9 +125,9 @@ TEST_F(VolumeTest, complex_hierarchy)
 
     // Check volume labels
     EXPECT_VEC_EQ(expected_volume_labels,
-                  get_mm_labels(params.volume_labels()));
+                  get_multimap_labels(params.volume_labels()));
     EXPECT_VEC_EQ(expected_volume_instance_labels,
-                  get_mm_labels(params.volume_instance_labels()));
+                  get_multimap_labels(params.volume_instance_labels()));
 
     std::vector<std::vector<int>> children;
     std::vector<std::vector<int>> parents;
