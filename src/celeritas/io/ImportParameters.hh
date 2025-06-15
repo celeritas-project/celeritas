@@ -136,12 +136,15 @@ struct ImportTransParameters
 
 //---------------------------------------------------------------------------//
 /*!
- * TODO: Placeholder for optical parameter data.
+ * Optical parameter options imported from Geant4.
+ *
  * See \c G4OpticalParameters .
  */
 struct ImportOpticalParameters
 {
     bool scintillation_by_particle{false};
+    WlsTimeProfile wls_time_profile{WlsTimeProfile::delta};
+    WlsTimeProfile wls2_time_profile{WlsTimeProfile::delta};
 };
 
 //---------------------------------------------------------------------------//

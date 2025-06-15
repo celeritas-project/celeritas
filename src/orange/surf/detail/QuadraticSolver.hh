@@ -78,11 +78,11 @@ class QuadraticSolver
  *
  * This is used for cones, simple quadrics, and general quadrics.
  */
-CELER_FUNCTION auto
-QuadraticSolver::solve_general(real_type a,
-                               real_type half_b,
-                               real_type c,
-                               SurfaceState on_surface) -> Intersections
+CELER_FUNCTION auto QuadraticSolver::solve_general(real_type a,
+                                                   real_type half_b,
+                                                   real_type c,
+                                                   SurfaceState on_surface)
+    -> Intersections
 {
     if (std::fabs(a) >= QuadraticSolver::min_a())
     {
@@ -111,8 +111,8 @@ QuadraticSolver::solve_general(real_type a,
  * corresponds to a ray crossing a surface at an extreme distance).
  */
 CELER_FUNCTION auto
-QuadraticSolver::solve_along_surface(real_type half_b,
-                                     real_type c) -> Intersections
+QuadraticSolver::solve_along_surface(real_type half_b, real_type c)
+    -> Intersections
 {
     Intersections result;
     if (std::fabs(half_b) > QuadraticSolver::min_a())
@@ -157,8 +157,8 @@ CELER_FUNCTION QuadraticSolver::QuadraticSolver(real_type a, real_type half_b)
  * - Sphere when not on surface
  * - Cylinder when not on surface
  */
-CELER_FUNCTION auto
-QuadraticSolver::operator()(real_type c) const -> Intersections
+CELER_FUNCTION auto QuadraticSolver::operator()(real_type c) const
+    -> Intersections
 {
     // Scale c by 1/a in accordance with scaling of b
     c *= a_inv_;

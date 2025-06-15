@@ -68,7 +68,7 @@ struct CylMapFieldParamsData
     //! Grids of MapField
     CylMapGridData<W, M> grids;
 
-    //! Options for FieldDriver
+    //! Field propagation and substepping tolerances
     FieldDriverOptions options;
 
     //! Index of MapField Collection

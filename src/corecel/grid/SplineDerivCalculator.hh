@@ -14,6 +14,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 
+#include "GridTypes.hh"
 #include "UniformGrid.hh"
 
 #include "detail/GridAccessor.hh"
@@ -42,11 +43,13 @@ namespace celeritas
  * Specifying the boundary conditions gives the remaining two equations.
  * Natural boundary conditions set \f$ S''_0 = S''_{n - 1} = 0 \f$, which leads
  * to the following initial and final equations:
- * \f{align}{
+ * \f[
+ * \begin{aligned}
    2 (h_0 + h_1) S''_1 + h_1 S''_2 &= 6 r_1 //
    h_{n - 3} S''_{n - 3} + 2 (h_{n - 3} + h_{n - 2}) S''_{n - 2}
    &= 6 r_{n - 2}.
- * \f}
+ * \end{aligned}
+ * \f]
  *
  * The points \f$ x_0, x_1, \dots , x_{n - 1} \f$ where the spline changes from
  * one cubic to the next are called knots. "Not-a-knot" boundary conditions
@@ -55,38 +58,35 @@ namespace celeritas
  * to the polynomials on the interval \f$ (x_0, x_1) \f$  and \f$ (x_1, x_2)
  * \f$ being the same cubic, so \f$ x_1 \f$ is "not a knot"). This constraint
  * gives the final two equations:
- * \f{align}{
+ * \f[
+ * \begin{aligned}
    \frac{(h_0 + 2 h_1)(h_0 + h_1)}{h_1} S''_1 + \frac{h_1^2 - h_0^2}{h_1}
    S''_2 &= 6 r_1 //
    \frac{h_{n - 3}^2 - h_{n - 2}^2}{h_{n - 3}} S''_{n - 3} + \frac{(h_{n - 3}
    + h_{n - 2})(2 h_{n - 3} + h_{n - 2})}{h_{n - 3}} S''_{n - 2} &= 6 r_{n - 2}
- * \f}
+ * \end{aligned}
+ * \f]
+
  * Once the system of equations has been solved for the second derivatives, the
  * derivatives \f$ S''_0 \f$ and \f$ S''_{n - 1} \f$ can be recovered:
- * \f{align}{
+ * \f[
+ * \begin{aligned}
    S''_0 &= \frac{(h_0 + h_1) S''_1 - h_0 S''_2}{h_1} \\
    S''_{n - 1} &= \frac{(h_{n - 3} + h_{n - 2}) S''_{n - 2} - h_{n - 2}
    S''_{n - 3}}{h_{n - 3}}
- * \f}
+ * \end{aligned}
+ * \f]
  */
 class SplineDerivCalculator
 {
   public:
     //!@{
     //! \name Type aliases
-    using SpanConstReal = detail::SpanGridAccessor::SpanConstReal;
-    using Values = detail::UniformGridAccessor::Values;
+    using SpanConstReal = detail::GridAccessor::SpanConstReal;
+    using Values = detail::GridAccessor::Values;
     using VecReal = std::vector<real_type>;
+    using BoundaryCondition = SplineBoundaryCondition;
     //!@}
-
-    //! Cubic spline interpolation boundary conditions
-    enum class BoundaryCondition
-    {
-        natural = 0,
-        not_a_knot,
-        geant,  //!< Geant4's "not-a-knot"
-        size_
-    };
 
   public:
     // Construct with boundary conditions
@@ -95,6 +95,13 @@ class SplineDerivCalculator
     // Calculate the second derivatives
     VecReal operator()(SpanConstReal, SpanConstReal) const;
     VecReal operator()(UniformGridRecord const&, Values const&) const;
+    VecReal operator()(NonuniformGridRecord const&, Values const&) const;
+
+    // Calculate the second derivatives from an inverted uniform grid
+    VecReal calc_from_inverse(UniformGridRecord const&, Values const&) const;
+
+    //! Minimum grid size for cubic spline interpolation
+    static CELER_CONSTEXPR_FUNCTION int min_grid_size() { return 5; }
 
   private:
     //// TYPES ////

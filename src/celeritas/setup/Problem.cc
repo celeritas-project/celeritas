@@ -15,6 +15,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/cont/VariantUtils.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/math/Algorithms.hh"
@@ -25,8 +26,10 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantGdmlLoader.hh"
+#include "geocel/inp/Model.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/alongstep/AlongStepCartMapFieldMscAction.hh"
 #include "celeritas/alongstep/AlongStepCylMapFieldMscAction.hh"
 #include "celeritas/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/alongstep/AlongStepRZMapFieldMscAction.hh"
@@ -47,7 +50,6 @@
 #include "celeritas/inp/Control.hh"
 #include "celeritas/inp/Diagnostics.hh"
 #include "celeritas/inp/Field.hh"
-#include "celeritas/inp/Model.hh"
 #include "celeritas/inp/Physics.hh"
 #include "celeritas/inp/PhysicsModel.hh"
 #include "celeritas/inp/PhysicsProcess.hh"
@@ -57,11 +59,11 @@
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/RootCoreParamsOutput.hh"
 #include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/optical/CherenkovParams.hh"
 #include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/ModelImporter.hh"
 #include "celeritas/optical/OpticalCollector.hh"
-#include "celeritas/optical/ScintillationParams.hh"
+#include "celeritas/optical/gen/CherenkovParams.hh"
+#include "celeritas/optical/gen/ScintillationParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
@@ -137,21 +139,15 @@ auto build_physics_processes(inp::EmPhysics const& em,
     // TODO: process builder should be deleted; instead it should get
     // p.physics.em or whatever
     std::vector<std::shared_ptr<Process const>> result;
-    ProcessBuilder::Options opts;
-    if (em.brems)
-    {
-        opts.brem_combined = em.brems->combined_model;
-    }
-
     ProcessBuilder build_process(
-        imported, params.particle, params.material, em.user_processes, opts);
+        imported, params.particle, params.material, em.user_processes);
     for (auto pc : ProcessBuilder::get_all_process_classes(imported.processes))
     {
         result.push_back(build_process(pc));
         if (!result.back())
         {
             // Deliberately ignored process
-            CELER_LOG(debug) << "Ignored process class " << to_cstring(pc);
+            CELER_LOG(debug) << "Ignored process class " << pc;
             result.pop_back();
         }
     }
@@ -189,7 +185,6 @@ auto build_physics(inp::Problem const& p,
         // Default: twice the number of track slots
         input.options.secondary_stack_factor = 2.0;
     }
-    input.options.spline_eloss_order = p.physics.em->eloss_spline_order;
     input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
     input.options.disable_integral_xs = !imported.em_params.integral_approach;
     input.options.light.lowest_energy
@@ -258,8 +253,7 @@ auto build_track_init(inp::Control const& c, size_type num_streams)
         {
             input.track_order = TrackOrder::none;
         }
-        CELER_LOG(debug) << "Set default track order "
-                         << to_cstring(input.track_order);
+        CELER_LOG(debug) << "Set default track order " << input.track_order;
     }
 
     return std::make_shared<TrackInitParams>(std::move(input));
@@ -314,6 +308,15 @@ auto build_along_step(inp::Field const& var_field,
                                         msc,
                                         eloss);
             },
+            [&](inp::CartMapField const& field) {
+                using ASA = AlongStepCartMapFieldMscAction;
+                return ASA::from_params(next_id,
+                                        *params.material,
+                                        *params.particle,
+                                        field,
+                                        msc,
+                                        eloss);
+            },
         }),
         var_field);
 }
@@ -322,31 +325,44 @@ auto build_along_step(inp::Field const& var_field,
 /*!
  * Construct optical tracking offload.
  */
-auto build_optical_offload(inp::OpticalStateCapacity const& cap,
+auto build_optical_offload(inp::Problem const& p,
                            CoreParams& params,
                            ImportData const& imported)
 {
-    using optical::CherenkovParams;
     using optical::MaterialParams;
-    using optical::ScintillationParams;
 
     CELER_VALIDATE(
         !imported.optical_materials.empty(),
         << R"(an optical tracking loop was requested but no optical materials are present)");
+    CELER_VALIDATE(p.physics.optical,
+                   << "optical physics options are required to construct an "
+                      "optical tracking loop");
 
+    inp::OpticalPhysics const& opt = *p.physics.optical;
     OpticalCollector::Input oc_inp;
     oc_inp.material = MaterialParams::from_import(
         imported, *params.geomaterial(), *params.material());
-    oc_inp.cherenkov = std::make_shared<CherenkovParams>(*oc_inp.material);
-    oc_inp.scintillation
-        = ScintillationParams::from_import(imported, params.particle());
+    if (opt.cherenkov)
+    {
+        oc_inp.cherenkov = std::make_shared<CherenkovParams>(*oc_inp.material);
+    }
+    if (opt.scintillation)
+    {
+        oc_inp.scintillation
+            = ScintillationParams::from_import(imported, params.particle());
+        CELER_VALIDATE(oc_inp.scintillation,
+                       << "failed to construct scintillation process");
+    }
 
     // Map from optical capacity
+    CELER_ASSERT(p.control.optical_capacity);
+    inp::OpticalStateCapacity const& cap = *p.control.optical_capacity;
     auto num_streams = params.max_streams();
     oc_inp.num_track_slots = ceil_div(cap.tracks, num_streams);
     oc_inp.buffer_capacity = ceil_div(cap.generators, num_streams);
     oc_inp.initializer_capacity = ceil_div(cap.initializers, num_streams);
     oc_inp.auto_flush = ceil_div(cap.primaries, num_streams);
+    oc_inp.max_step_iters = p.tracking.limits.optical_step_iters;
 
     // Import models
     optical::ModelImporter importer{
@@ -467,6 +483,8 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
     //// DIAGNOSTICS ////
 
     result.output_file = p.diagnostics.output_file;
+
+    // TODO: timers, counters, perfetto_file
 
     if (p.diagnostics.action)
     {
@@ -597,8 +615,8 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 
     if (p.control.optical_capacity)
     {
-        result.optical_collector = build_optical_offload(
-            *p.control.optical_capacity, *core_params, imported);
+        result.optical_collector
+            = build_optical_offload(p, *core_params, imported);
     }
 
     if (result.root_manager)

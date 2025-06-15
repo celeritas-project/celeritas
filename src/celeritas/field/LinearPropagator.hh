@@ -1,6 +1,5 @@
-//---------------------------------*-C++-*-----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------ -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/field/LinearPropagator.hh
@@ -72,8 +71,8 @@ CELER_FUNCTION auto LinearPropagator<GTV>::operator()() -> result_type
  * Move track by a user-provided distance up to the next boundary.
  */
 template<class GTV>
-CELER_FUNCTION auto
-LinearPropagator<GTV>::operator()(real_type dist) -> result_type
+CELER_FUNCTION auto LinearPropagator<GTV>::operator()(real_type dist)
+    -> result_type
 {
     CELER_EXPECT(dist > 0);
 

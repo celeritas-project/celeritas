@@ -34,7 +34,7 @@ class AbsorptionModel final : public Model
     AbsorptionModel(ActionId id, SPConstImported imported);
 
     // Build the mean free paths for this model
-    void build_mfps(OpticalMaterialId mat, MfpBuilder&) const final;
+    void build_mfps(OptMatId mat, MfpBuilder&) const final;
 
     // Execute the model with host data
     void step(CoreParams const&, CoreStateHost&) const final;

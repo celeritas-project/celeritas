@@ -328,6 +328,15 @@ VecgeomParams::~VecgeomParams()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Create model parameters corresponding to our internal representation.
+ */
+inp::Model VecgeomParams::make_model_input() const
+{
+    CELER_NOT_IMPLEMENTED("model input from VecGeom");
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the Geant4 physical volume corresponding to a volume instance ID.
  */
 GeantPhysicalInstance VecgeomParams::id_to_geant(VolumeInstanceId id) const

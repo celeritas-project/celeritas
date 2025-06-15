@@ -11,6 +11,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/optical/model/AbsorptionModel.hh"
 #include "celeritas/optical/model/RayleighModel.hh"
+#include "celeritas/optical/model/WavelengthShiftModel.hh"
 
 #include "OpticalMockTestBase.hh"
 #include "ValidationUtils.hh"
@@ -69,8 +70,8 @@ class ModelImporterTest : public OpticalMockTestBase
         // Build imported tables
         OwningGridAccessor storage;
         auto mfp_builder = storage.create_mfp_builder();
-        for (auto mat : range(
-                 OpticalMaterialId{this->optical_material()->num_materials()}))
+        for (auto mat :
+             range(OptMatId{this->optical_material()->num_materials()}))
         {
             model->build_mfps(mat, mfp_builder);
         }
@@ -107,8 +108,18 @@ TEST_F(ModelImporterTest, build_wls)
 {
     auto model_importer = this->build_importer();
 
-    // TODO: update when WLS model is supported
-    EXPECT_THROW(model_importer(ImportModelClass::wls), RuntimeError);
+    this->check_import_model<WavelengthShiftModel>(model_importer,
+                                                   ImportModelClass::wls);
+}
+
+//---------------------------------------------------------------------------//
+// Test building WLS
+TEST_F(ModelImporterTest, build_wls2)
+{
+    auto model_importer = this->build_importer();
+
+    this->check_import_model<WavelengthShiftModel>(model_importer,
+                                                   ImportModelClass::wls2);
 }
 
 //---------------------------------------------------------------------------//

@@ -17,8 +17,6 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Units.hh"
 
-#include "ImportPhysicsVector.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -59,7 +57,7 @@ NeutronXsReader::operator()(AtomicNumber atomic_number) const
     CELER_EXPECT(atomic_number);
 
     std::string z_str = std::to_string(atomic_number.unchecked_get());
-    CELER_LOG(debug) << "Reading neutron xs data for " << to_cstring(type_)
+    CELER_LOG(debug) << "Reading neutron xs data for " << type_
                      << " Z=" << z_str;
 
     result_type result;
@@ -71,9 +69,6 @@ NeutronXsReader::operator()(AtomicNumber atomic_number) const
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename
                        << "' (should contain cross section data)");
-
-        // Set the physics vector type
-        result.vector_type = ImportPhysicsVectorType::free;
 
         // Read tabulated energies and cross sections
         double energy_min = 0.;

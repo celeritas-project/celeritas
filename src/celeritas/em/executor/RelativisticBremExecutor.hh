@@ -20,7 +20,7 @@ struct RelativisticBremExecutor
     inline CELER_FUNCTION Interaction
     operator()(celeritas::CoreTrackView const& track);
 
-    RelativisticBremRef params;
+    NativeCRef<RelativisticBremData> params;
 };
 
 //---------------------------------------------------------------------------//

@@ -6,14 +6,17 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <unordered_set>
 #include <variant>
-#include <vector>
 
 #include "geocel/Types.hh"
 #include "celeritas/UnitTypes.hh"
+#include "celeritas/field/CartMapFieldInput.hh"
 #include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
+
+class G4LogicalVolume;
 
 namespace celeritas
 {
@@ -41,6 +44,10 @@ struct NoField
  */
 struct UniformField
 {
+    using SetVolume = std::unordered_set<G4LogicalVolume const*>;
+    using SetString = std::unordered_set<std::string>;
+    using VariantSetVolume = std::variant<std::monostate, SetVolume, SetString>;
+
     //! Default field units are tesla
     UnitSystem units{UnitSystem::si};
 
@@ -51,7 +58,7 @@ struct UniformField
     FieldDriverOptions driver_options;
 
     //! Volumes where the field is present (optional)
-    std::vector<VolumeId> volumes;
+    VariantSetVolume volumes;
 };
 
 //---------------------------------------------------------------------------//
@@ -62,10 +69,12 @@ struct UniformField
  */
 using RZMapField = ::celeritas::RZMapFieldInput;
 using CylMapField = ::celeritas::CylMapFieldInput;
+using CartMapField = ::celeritas::CartMapFieldInput;
 
 //---------------------------------------------------------------------------//
 //! Field type
-using Field = std::variant<NoField, UniformField, RZMapField, CylMapField>;
+using Field
+    = std::variant<NoField, UniformField, RZMapField, CylMapField, CartMapField>;
 
 //---------------------------------------------------------------------------//
 }  // namespace inp

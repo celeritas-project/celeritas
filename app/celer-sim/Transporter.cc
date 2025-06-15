@@ -99,7 +99,8 @@ void Transporter<M>::operator()()
  * Transport the input primaries and all secondaries produced.
  */
 template<MemSpace M>
-auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
+auto Transporter<M>::operator()(SpanConstPrimary primaries)
+    -> TransporterResult
 {
     // Initialize results
     TransporterResult result;
@@ -205,11 +206,12 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
     {
         auto& aux = stepper_->sp_state()->aux();
         auto counters = optical_->exchange_counters(aux);
-        auto const& gen = counters.generators;
+        auto const& cherenkov = counters.cherenkov;
+        auto const& scint = counters.scintillation;
 
         OpticalCounts oc;
-        oc.tracks = gen.photons;
-        oc.generators = gen.cherenkov + gen.scintillation;
+        oc.tracks = cherenkov.photons + scint.photons;
+        oc.generators = cherenkov.distributions + scint.distributions;
         oc.steps = counters.steps;
         oc.step_iters = counters.step_iters;
         oc.flushes = counters.flushes;
@@ -227,9 +229,7 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
                 << "Not all optical photons were tracked "
                    "at the end of the stepping loop: "
                 << buffer_counts.photons << " queued photons from "
-                << buffer_counts.cherenkov << " Cherenkov distributions and "
-                << buffer_counts.scintillation
-                << " scintillation distributions";
+                << buffer_counts.distributions << " distributions";
         }
 
         result.num_optical = std::move(oc);

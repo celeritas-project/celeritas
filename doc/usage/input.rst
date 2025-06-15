@@ -47,10 +47,10 @@ Problems are loaded into the framework or application front end via :ref:`api_pr
 
    input/model.rst
    input/physics.rst
+   input/grid.rst
    input/field.rst
    input/scoring.rst
    input/tracking.rst
    input/control.rst
    input/diagnostics.rst
    input/system.rst
-

@@ -1,6 +1,5 @@
-//---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------ -*- cuda -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/alongstep/AlongStepCylMapFieldMscAction.cu
@@ -43,7 +42,7 @@ void AlongStepCylMapFieldMscAction::step(CoreParams const& params,
             detail::PropagationApplier{detail::CylMapFieldPropagatorFactory{
                 field_->ref<MemSpace::native>()}});
         static ActionLauncher<decltype(execute_thread)> const launch_kernel(
-            *this, "propagate-CylMap");
+            *this, "propagate-cylmap");
         launch_kernel(*this, params, state, execute_thread);
     }
     if (this->has_msc())

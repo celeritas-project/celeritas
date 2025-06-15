@@ -132,21 +132,17 @@ class SimpleCmsFieldVolAlongStepTest : public SimpleCmsAlongStepTest
   public:
     SPConstAction build_along_step() override
     {
-        auto find = [&](std::string name) {
-            return this->geometry()->volumes().find_unique(name);
-        };
-
         auto& action_reg = *this->action_reg();
         UniformFieldParams::Input field_inp;
         field_inp.strength = {0, 0, 1};
 
         // No field in muon chambers or world volume
-        field_inp.volumes = {
-            find("vacuum_tube"),
-            find("si_tracker"),
-            find("em_calorimeter"),
-            find("had_calorimeter"),
-            find("sc_solenoid"),
+        field_inp.volumes = inp::UniformField::SetString{
+            "vacuum_tube",
+            "si_tracker",
+            "em_calorimeter",
+            "had_calorimeter",
+            "sc_solenoid",
         };
 
         auto msc = UrbanMscParams::from_import(
@@ -769,8 +765,9 @@ TEST_F(LeadBoxAlongStepTest, position_change)
             if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
             {
                 static char const* const expected_log_messages[] = {
-                    R"(Propagation of step length 5.38e-8 due to post-step action 2 leading to distance 5.38e-8 failed to change position)"};
-                EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+                    R"(Propagation of step length 5.4e-8 due to post-step action 2 leading to distance 5.4e-8 failed to change position)"};
+                EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages())
+                    << scoped_log_;
             }
             static char const* const expected_log_levels[] = {"error"};
             EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());

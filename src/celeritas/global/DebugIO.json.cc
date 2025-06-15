@@ -32,8 +32,8 @@ namespace
 {
 //---------------------------------------------------------------------------//
 //! Return an opaque ID as an integer value
-template<class T>
-int to_int(OpaqueId<T> id)
+template<class I, class T>
+constexpr int to_int(OpaqueId<I, T> id)
 {
     if (id)
         return id.unchecked_get();
@@ -102,7 +102,7 @@ struct FromId
     }
 
     //! Transform to a material label
-    nlohmann::json convert_impl(MaterialId id) const
+    nlohmann::json convert_impl(PhysMatId id) const
     {
         auto const& params = *this->params->material();
         return params.id_to_label(id);

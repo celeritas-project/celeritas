@@ -10,6 +10,7 @@
 
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/inp/Grid.hh"
 #include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/neutron/data/NeutronElasticData.hh"
@@ -18,7 +19,6 @@
 
 namespace celeritas
 {
-struct ImportPhysicsVector;
 class MaterialParams;
 class ParticleParams;
 
@@ -32,7 +32,7 @@ class ChipsNeutronElasticModel final : public Model, public StaticConcreteAction
     //!@{
     using AtomicMassNumber = IsotopeView::AtomicMassNumber;
     using MevEnergy = units::MevEnergy;
-    using ReadData = std::function<ImportPhysicsVector(AtomicNumber)>;
+    using ReadData = std::function<inp::Grid(AtomicNumber)>;
     using HostRef = NeutronElasticHostRef;
     using DeviceRef = NeutronElasticDeviceRef;
     //!@}
@@ -48,7 +48,7 @@ class ChipsNeutronElasticModel final : public Model, public StaticConcreteAction
     SetApplicability applicability() const final;
 
     // Get the microscopic cross sections for the given particle and material
-    MicroXsBuilders micro_xs(Applicability) const final;
+    XsTable micro_xs(Applicability) const final;
 
     //! Apply the interaction kernel to host data
     void step(CoreParams const&, CoreStateHost&) const final;

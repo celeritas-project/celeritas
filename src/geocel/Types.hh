@@ -10,6 +10,7 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/sys/ThreadId.hh"
 
 namespace celeritas
 {
@@ -39,16 +40,22 @@ using SquareMatrixReal3 = SquareMatrix<real_type, 3>;
 using LevelId = OpaqueId<struct Level_>;
 
 //! Identifier for a material fill
-using GeoMaterialId = OpaqueId<struct GeoMaterial_>;
+using GeoMatId = OpaqueId<struct GeoMaterial_>;
 
-//! Identifier for a surface (for surface-based geometries)
-using SurfaceId = OpaqueId<struct Surface_>;
+//! Implementation detail surface (for surface-based geometries)
+using InternalSurfaceId = OpaqueId<struct Surface_>;
+
+//! Combined boundary/interface surface identifier
+using SurfaceId = OpaqueId<struct Surface_, unsigned int>;
 
 //! Identifier for a geometry volume that may be repeated
 using VolumeId = OpaqueId<struct Volume_>;
 
 //! Identifier for an instance of a geometry volume (aka physical/placed)
 using VolumeInstanceId = OpaqueId<struct VolumeInstance_>;
+
+//! Identifier for a unique volume in global space (aka touchable)
+using VolumeUniqueInstanceId = OpaqueId<struct VolumeInstance_, ull_int>;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
@@ -65,20 +72,6 @@ enum class Axis
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Which of two bounding points, faces, etc.
- *
- * Here, lo/hi correspond to left/right, back/front, bottom/top. It's used for
- * the two points in a bounding box.
- */
-enum class Bound : unsigned char
-{
-    lo,
-    hi,
-    size_
-};
-
-//---------------------------------------------------------------------------//
 // STRUCTS
 //---------------------------------------------------------------------------//
 /*!
@@ -88,12 +81,18 @@ struct GeoTrackInitializer
 {
     Real3 pos{0, 0, 0};
     Real3 dir{0, 0, 0};
+    TrackSlotId parent;
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
         return dir[0] != 0 || dir[1] != 0 || dir[2] != 0;
     }
+
+    // Constructors
+    inline CELER_FUNCTION GeoTrackInitializer();
+    inline CELER_FUNCTION GeoTrackInitializer(Real3, Real3);
+    inline CELER_FUNCTION GeoTrackInitializer(Real3, Real3, TrackSlotId);
 };
 
 //---------------------------------------------------------------------------//
@@ -111,6 +110,26 @@ struct Propagation
 };
 
 //---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+//! Default constructor
+CELER_FUNCTION GeoTrackInitializer::GeoTrackInitializer() = default;
+
+//! Construct with an invalid parent ID
+CELER_FUNCTION GeoTrackInitializer::GeoTrackInitializer(Real3 pos, Real3 dir)
+    : GeoTrackInitializer(pos, dir, {})
+{
+}
+
+//! Construct with position, direction, and parent ID
+CELER_FUNCTION GeoTrackInitializer::GeoTrackInitializer(Real3 pos,
+                                                        Real3 dir,
+                                                        TrackSlotId parent)
+    : pos(pos), dir(dir), parent(parent)
+{
+}
+
+//---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 //! Convert Axis enum value to int
@@ -125,13 +144,6 @@ inline CELER_FUNCTION Axis to_axis(int a)
 {
     CELER_EXPECT(a >= 0 && a < 3);
     return static_cast<Axis>(a);
-}
-
-//---------------------------------------------------------------------------//
-//! Convert Bound enum value to int
-CELER_CONSTEXPR_FUNCTION int to_int(Bound b)
-{
-    return static_cast<int>(b);
 }
 
 //---------------------------------------------------------------------------//

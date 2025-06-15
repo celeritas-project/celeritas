@@ -31,8 +31,8 @@ namespace optical
  * Create a model builder for Rayleigh scattering from imported data and
  * material parameters.
  */
-auto RayleighModel::make_builder(SPConstImported imported,
-                                 Input input) -> ModelBuilder
+auto RayleighModel::make_builder(SPConstImported imported, Input input)
+    -> ModelBuilder
 {
     CELER_EXPECT(imported);
     return [imported = std::move(imported),
@@ -57,7 +57,7 @@ RayleighModel::RayleighModel(ActionId id, SPConstImported imported, Input input)
                  || input_.materials->num_materials()
                         == imported_.num_materials());
 
-    for (auto mat : range(OpticalMaterialId(imported_.num_materials())))
+    for (auto mat : range(OptMatId(imported_.num_materials())))
     {
         if (input_)
         {
@@ -80,7 +80,7 @@ RayleighModel::RayleighModel(ActionId id, SPConstImported imported, Input input)
 /*!
  * Build the mean free paths for the model.
  */
-void RayleighModel::build_mfps(OpticalMaterialId mat, MfpBuilder& build) const
+void RayleighModel::build_mfps(OptMatId mat, MfpBuilder& build) const
 {
     CELER_EXPECT(mat < imported_.num_materials());
 
@@ -99,18 +99,17 @@ void RayleighModel::build_mfps(OpticalMaterialId mat, MfpBuilder& build) const
 
         RayleighMfpCalculator calc_mfp(
             mat_view, input_.imported_materials->rayleigh(mat), core_mat_view);
+        auto energy = calc_mfp.grid().values();
 
         // Use index of refraction energy grid as calculated MFP energy grid
-        auto const& energy_grid = calc_mfp.grid().values();
-
-        std::vector<real_type> mfp_grid;
-        mfp_grid.reserve(energy_grid.size());
-        for (real_type energy : energy_grid)
+        inp::Grid grid;
+        grid.x = {energy.begin(), energy.end()};
+        grid.y.reserve(grid.x.size());
+        for (real_type e : grid.x)
         {
-            mfp_grid.push_back(calc_mfp(celeritas::units::MevEnergy{energy}));
+            grid.y.push_back(calc_mfp(units::MevEnergy{e}));
         }
-
-        build(energy_grid, make_span(mfp_grid));
+        build(grid);
     }
 }
 

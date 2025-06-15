@@ -13,6 +13,7 @@
 #include <memory>
 #include <string>
 #include <type_traits>
+#include <unordered_set>
 #include <utility>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4ParticleDefinition.hh>
@@ -37,6 +38,7 @@
 #include "corecel/data/HyperslabIndexer.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/io/ImportUnits.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -153,43 +155,13 @@ int get_secondary_pdg(T const& process)
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert physics vector type from Geant4 to Celeritas IO.
- *
- * Geant4 v11 has a different set of G4PhysicsVectorType enums.
- */
-ImportPhysicsVectorType
-to_import_physics_vector_type(G4PhysicsVectorType g4_vector_type)
-{
-    switch (g4_vector_type)
-    {
-#if G4VERSION_NUMBER < 1100
-        case T_G4PhysicsVector:
-            return ImportPhysicsVectorType::unknown;
-#endif
-        case T_G4PhysicsLinearVector:
-            return ImportPhysicsVectorType::linear;
-        case T_G4PhysicsLogVector:
-#if G4VERSION_NUMBER < 1100
-        case T_G4PhysicsLnVector:
-#endif
-            return ImportPhysicsVectorType::log;
-        case T_G4PhysicsFreeVector:
-#if G4VERSION_NUMBER < 1100
-        case T_G4PhysicsOrderedFreeVector:
-        case T_G4LPhysicsFreeVector:
-#endif
-            return ImportPhysicsVectorType::free;
-    }
-    CELER_ASSERT_UNREACHABLE();
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Import data from a Geant4 physics table if available.
  */
-void append_table(G4PhysicsTable const* g4table,
-                  ImportTableType table_type,
-                  std::vector<ImportPhysicsTable>* tables)
+void assign_table(G4PhysicsTable const* g4table,
+                  Array<ImportUnits, 2> units,
+                  [[maybe_unused]] ImportProcessClass process_class,
+                  ImportPhysicsTable* table,
+                  inp::Interpolation interpolation)
 {
     if (!g4table)
     {
@@ -197,46 +169,31 @@ void append_table(G4PhysicsTable const* g4table,
         return;
     }
 
-    CELER_EXPECT(table_type != ImportTableType::size_);
-    ImportPhysicsTable table;
-    table.table_type = table_type;
-    switch (table_type)
-    {
-        case ImportTableType::dedx:
-            table.x_units = ImportUnits::mev;
-            table.y_units = ImportUnits::mev_per_len;
-            break;
-        case ImportTableType::range:
-            table.x_units = ImportUnits::mev;
-            table.y_units = ImportUnits::len;
-            break;
-        case ImportTableType::lambda:
-            table.x_units = ImportUnits::mev;
-            table.y_units = ImportUnits::len_inv;
-            break;
-        case ImportTableType::lambda_prim:
-            table.x_units = ImportUnits::mev;
-            table.y_units = ImportUnits::len_mev_inv;
-            break;
-        case ImportTableType::msc_xs:
-            table.x_units = ImportUnits::mev;
-            table.y_units = ImportUnits::mev_sq_per_len;
-            break;
-        default:
-            CELER_ASSERT_UNREACHABLE();
-    };
+    table->x_units = units[0];
+    table->y_units = units[1];
 
-    // Save physics vectors
+    // Save physics vectors, using spline interpolation if enabled and valid
     for (auto const* g4vector : *g4table)
     {
-        table.physics_vectors.emplace_back(
-            import_physics_vector(*g4vector, {table.x_units, table.y_units}));
-    }
+        table->grids.emplace_back(import_physics_log_vector(*g4vector, units));
+#if G4VERSION_NUMBER < 1100
+        // Hardcode whether the lambda table uses spline for older Geant4
+        // versions. Always use spline for lambda, energy loss, range, and msc
+        //! \todo Coulomb scattering disables spline when \c isCombined = false
+        static std::unordered_set<ImportProcessClass> disable_spline{
+            ImportProcessClass::rayleigh};
 
+        if (!disable_spline.count(process_class))
+#else
+        if (g4vector->GetSpline())
+#endif
+        {
+            table->grids.back().interpolation = interpolation;
+        }
+    }
     CELER_ENSURE(
-        table.physics_vectors.size()
+        table->grids.size()
         == G4ProductionCutsTable::GetProductionCutsTable()->GetTableSize());
-    tables->push_back(std::move(table));
 }
 
 template<class T>
@@ -254,8 +211,9 @@ bool all_are_assigned(std::vector<T> const& arr)
  */
 GeantProcessImporter::GeantProcessImporter(
     std::vector<ImportPhysMaterial> const& materials,
-    std::vector<ImportElement> const& elements)
-    : materials_(materials), elements_(elements)
+    std::vector<ImportElement> const& elements,
+    inp::Interpolation interpolation)
+    : materials_(materials), elements_(elements), interpolation_(interpolation)
 {
     CELER_ENSURE(!materials_.empty());
     CELER_ENSURE(!elements_.empty());
@@ -289,11 +247,16 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
     }
 
     // Save cross section tables if available
-    append_table(
-        process.LambdaTable(), ImportTableType::lambda, &result.tables);
-    append_table(process.LambdaTablePrim(),
-                 ImportTableType::lambda_prim,
-                 &result.tables);
+    assign_table(process.LambdaTable(),
+                 {ImportUnits::mev, ImportUnits::len_inv},
+                 result.process_class,
+                 &result.lambda,
+                 interpolation_);
+    assign_table(process.LambdaTablePrim(),
+                 {ImportUnits::mev, ImportUnits::len_mev_inv},
+                 result.process_class,
+                 &result.lambda_prim,
+                 interpolation_);
     CELER_ENSURE(result && all_are_assigned(result.models));
     return result;
 }
@@ -331,15 +294,18 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
         // each energy loss process are stored in the "ionization process"
         // (which might be ionization or might be another arbitrary energy loss
         // process if there is no ionization in the problem).
-        append_table(
-            process.DEDXTable(), ImportTableType::dedx, &result.tables);
-        append_table(process.RangeTableForLoss(),
-                     ImportTableType::range,
-                     &result.tables);
+        assign_table(process.DEDXTable(),
+                     {ImportUnits::mev, ImportUnits::mev_per_len},
+                     result.process_class,
+                     &result.dedx,
+                     interpolation_);
     }
 
-    append_table(
-        process.LambdaTable(), ImportTableType::lambda, &result.tables);
+    assign_table(process.LambdaTable(),
+                 {ImportUnits::mev, ImportUnits::len_inv},
+                 result.process_class,
+                 &result.lambda,
+                 interpolation_);
 
     CELER_ENSURE(result && all_are_assigned(result.models));
     return result;
@@ -367,7 +333,6 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
 
     GeantModelImporter convert_model(
         materials_, PDGNumber{primary_pdg}, PDGNumber{});
-    std::vector<ImportPhysicsTable> temp_tables;
 
 #if G4VERSION_NUMBER < 1100
     for (auto i : celeritas::range(4))
@@ -394,12 +359,11 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
                                    << model->GetName() << "'";
                 imm.model_class = ImportModelClass::other;
             }
-            append_table(model->GetCrossSectionTable(),
-                         ImportTableType::msc_xs,
-                         &temp_tables);
-            CELER_EXPECT(temp_tables.size() == 1);
-            imm.xs_table = std::move(temp_tables.back());
-            temp_tables.clear();
+            assign_table(model->GetCrossSectionTable(),
+                         {ImportUnits::mev, ImportUnits::mev_sq_per_len},
+                         ImportProcessClass::size_,
+                         &imm.xs_table,
+                         interpolation_);
             result.push_back(std::move(imm));
         }
     }
@@ -410,26 +374,58 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
 
 //---------------------------------------------------------------------------//
 /*!
- * Import a physics vector with the given x, y units.
+ * Import a uniform physics vector with the given x, y units.
+ *
+ * The x-grid is uniform in log(x);
  */
-ImportPhysicsVector
-import_physics_vector(G4PhysicsVector const& g4v, Array<ImportUnits, 2> units)
+inp::UniformGrid import_physics_log_vector(G4PhysicsVector const& pv,
+                                           Array<ImportUnits, 2> units)
+{
+    // Convert units
+    double const x_scaling = native_value_from_clhep(units[0]);
+    double const y_scaling = native_value_from_clhep(units[1]);
+    auto size = pv.GetVectorLength();
+
+    inp::UniformGrid grid;
+    grid.x = {std::log(pv.Energy(0) * x_scaling),
+              std::log(pv.Energy(size - 1) * x_scaling)};
+    grid.y.resize(size);
+
+    double delta
+        = fastpow(pv.Energy(size - 1) / pv.Energy(0), 1.0 / (size - 1));
+    for (auto i : range(size))
+    {
+        // Check that the grid has log spacing
+        CELER_ASSERT(i == 0
+                     || soft_equal(delta, pv.Energy(i) / pv.Energy(i - 1)));
+        grid.y[i] = pv[i] * y_scaling;
+    }
+    CELER_ENSURE(grid);
+    return grid;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Import a generic physics vector with the given x, y units.
+ */
+inp::Grid
+import_physics_vector(G4PhysicsVector const& pv, Array<ImportUnits, 2> units)
 {
     // Convert units
     double const x_scaling = native_value_from_clhep(units[0]);
     double const y_scaling = native_value_from_clhep(units[1]);
 
-    ImportPhysicsVector import_vec;
-    import_vec.vector_type = to_import_physics_vector_type(g4v.GetType());
-    import_vec.x.resize(g4v.GetVectorLength());
-    import_vec.y.resize(import_vec.x.size());
+    inp::Grid grid;
+    grid.x.resize(pv.GetVectorLength());
+    grid.y.resize(grid.x.size());
 
-    for (auto i : range(g4v.GetVectorLength()))
+    for (auto i : range(pv.GetVectorLength()))
     {
-        import_vec.x[i] = g4v.Energy(i) * x_scaling;
-        import_vec.y[i] = g4v[i] * y_scaling;
+        grid.x[i] = pv.Energy(i) * x_scaling;
+        grid.y[i] = pv[i] * y_scaling;
     }
-    return import_vec;
+    CELER_ENSURE(grid);
+    return grid;
 }
 
 //---------------------------------------------------------------------------//
@@ -441,34 +437,34 @@ import_physics_vector(G4PhysicsVector const& g4v, Array<ImportUnits, 2> units)
  * TwodSubgridCalculator expect the y grid values to be on the inner dimension,
  * the table is inverted during import so that the x and y grids are swapped.
  */
-ImportPhysics2DVector import_physics_2dvector(G4Physics2DVector const& g4pv,
-                                              Array<ImportUnits, 3> units)
+inp::TwodGrid import_physics_2dvector(G4Physics2DVector const& pv,
+                                      Array<ImportUnits, 3> units)
 {
     // Convert units
     double const x_scaling = native_value_from_clhep(units[0]);
     double const y_scaling = native_value_from_clhep(units[1]);
     double const v_scaling = native_value_from_clhep(units[2]);
 
-    Array<size_type, 2> dims{static_cast<size_type>(g4pv.GetLengthY()),
-                             static_cast<size_type>(g4pv.GetLengthX())};
+    Array<size_type, 2> dims{static_cast<size_type>(pv.GetLengthY()),
+                             static_cast<size_type>(pv.GetLengthX())};
     HyperslabIndexer<2> index(dims);
 
-    ImportPhysics2DVector pv;
-    pv.x.resize(dims[0]);
-    pv.y.resize(dims[1]);
-    pv.value.resize(dims[0] * dims[1]);
+    inp::TwodGrid grid;
+    grid.x.resize(dims[0]);
+    grid.y.resize(dims[1]);
+    grid.value.resize(dims[0] * dims[1]);
 
     for (auto i : range(dims[0]))
     {
-        pv.x[i] = g4pv.GetY(i) * y_scaling;
+        grid.x[i] = pv.GetY(i) * y_scaling;
         for (auto j : range(dims[1]))
         {
-            pv.y[j] = g4pv.GetX(j) * x_scaling;
-            pv.value[index(i, j)] = g4pv.GetValue(j, i) * v_scaling;
+            grid.y[j] = pv.GetX(j) * x_scaling;
+            grid.value[index(i, j)] = pv.GetValue(j, i) * v_scaling;
         }
     }
-    CELER_ENSURE(pv);
-    return pv;
+    CELER_ENSURE(grid);
+    return grid;
 }
 
 //---------------------------------------------------------------------------//

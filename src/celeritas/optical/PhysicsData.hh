@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------ -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/PhysicsData.hh
@@ -36,7 +35,7 @@ struct PhysicsParamsScalars
     ModelId::size_type num_models{};
 
     //! Number of optical materials
-    OpticalMaterialId::size_type num_materials{};
+    OptMatId::size_type num_materials{};
 
     //! Offset to create an ActionId from a ModelId
     ActionId::size_type model_to_action{};

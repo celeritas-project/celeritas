@@ -21,13 +21,16 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Calculate photoelectric effect cross sections using the Livermore data.
+ *
+ * The Livermore photoelectric data is loaded from Geant4 low-energy EM data
+ * files.
  */
 class LivermorePEMicroXsCalculator
 {
   public:
     //!@{
     //! \name Type aliases
-    using ParamsRef = LivermorePERef;
+    using ParamsRef = NativeCRef<LivermorePEData>;
     using Energy = RealQuantity<LivermoreSubshell::EnergyUnits>;
     using BarnXs = units::BarnXs;
     //!@}
@@ -42,7 +45,7 @@ class LivermorePEMicroXsCalculator
 
   private:
     // Shared constant physics properties
-    LivermorePERef const& shared_;
+    ParamsRef const& shared_;
     // Incident gamma energy
     Energy const inc_energy_;
 };

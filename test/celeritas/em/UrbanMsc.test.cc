@@ -9,8 +9,9 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/grid/Interpolator.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/random/DiagnosticRngEngine.hh"
 #include "corecel/random/Histogram.hh"
-#include "corecel/random/distribution/GenerateCanonical.hh"
+#include "corecel/random/HistogramSampler.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/em/msc/detail/MscStepFromGeo.hh"
 #include "celeritas/em/msc/detail/MscStepToGeo.hh"
@@ -27,10 +28,67 @@
 #include "celeritas/phys/PhysicsTrackView.hh"
 
 #include "MscTestBase.hh"
+#include "TestMacros.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
 {
+namespace test
+{
+//---------------------------------------------------------------------------//
+TEST(Distributions, UrbanLargeAngleDistribution)
+{
+    constexpr size_type num_samples{10000};
+    std::vector<std::vector<double>> angle_dist;
+
+    DiagnosticRngEngine<std::mt19937> rng;
+
+    constexpr auto samples_per_real
+        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT ? 1 : 2);
+
+    // Separately sample tau = 1e-14 due to platform-dependent numerical issues
+    {
+        accumulate_n(
+            [](real_type mu) {
+                EXPECT_LT(real_type(0.9999), mu);
+                EXPECT_LE(mu, real_type(1));
+            },
+            UrbanLargeAngleDistribution{real_type(1e-14)},
+            rng,
+            num_samples);
+        EXPECT_EQ(2 * samples_per_real * num_samples, rng.exchange_count());
+    }
+
+    // Sample larger tau, binning into cos theta
+    std::vector<SampledHistogram> actual;
+    HistogramSampler calc_histogram(8, {-1, 1}, num_samples);
+
+    for (real_type tau : {1e-8, 1e-4, 1e-2, 0.1, 0.5, 1.0, 2.0, 10.0})
+    {
+        UrbanLargeAngleDistribution sample_mu{tau};
+        actual.push_back(calc_histogram(sample_mu));
+    }
+
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        SampledHistogram const expected[] = {
+            {{0, 0, 0, 0, 0, 0, 0, 4}, 4},
+            {{0, 0, 0, 0, 0, 0, 0, 4}, 4},
+            {{0.0004, 0.0012, 0.0012, 0.0012, 0.0004, 0.0004, 0.0008, 3.9944},
+             4},
+            {{0.016, 0.012, 0.0144, 0.0104, 0.014, 0.0124, 0.1292, 3.7916}, 4},
+            {{0.0624, 0.0632, 0.0832, 0.1204, 0.2452, 0.502, 1.0064, 1.9172}, 4},
+            {{0.1492, 0.184, 0.2536, 0.3392, 0.4668, 0.6328, 0.8564, 1.118}, 4},
+            {{0.328, 0.3668, 0.416, 0.4708, 0.4996, 0.5796, 0.6384, 0.7008}, 4},
+            {{0.4708, 0.494, 0.4884, 0.5148, 0.5168, 0.5172, 0.5012, 0.4968},
+             4}};
+        EXPECT_REF_EQ(expected, actual);
+    }
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace test
+
 namespace detail
 {
 namespace test
@@ -45,15 +103,8 @@ constexpr bool using_vecgeom_surface = CELERITAS_VECGEOM_SURFACE
                                        && CELERITAS_CORE_GEO
                                               == CELERITAS_CORE_GEO_VECGEOM;
 
-template<class T>
-void extend_from_histogram(std::vector<T>& v, Histogram const& h)
-{
-    auto dens = h.calc_density();
-    v.insert(v.end(), dens.begin(), dens.end());
-}
-
 //---------------------------------------------------------------------------//
-TEST(UrbanPositronCorrectorTest, all)
+TEST(Details, UrbanPositronCorrector)
 {
     UrbanPositronCorrector calc_h{1.0};  // Hydrogen
     UrbanPositronCorrector calc_w{74.0};  // Tungsten
@@ -205,7 +256,7 @@ TEST_F(UrbanMscTest, step_conversion)
         MscStepToGeo calc_geom_path(
             msc_params_->host_ref(), helper, energy, lambda, range);
 
-        LogInterp calc_pstep({0, real_type{0.9} * params.limit_min_fix()},
+        LogInterp calc_pstep({0, real_type{0.9} * params.min_step},
                              {static_cast<real_type>(pstep_points), range});
         for (auto ppt : celeritas::range(pstep_points + 1))
         {
@@ -229,7 +280,7 @@ TEST_F(UrbanMscTest, step_conversion)
             MscStepFromGeo geo_to_true(
                 msc_params_->host_ref().params, msc_step, range, lambda);
             LogInterp calc_gstep(
-                {0, real_type{0.9} * params.limit_min_fix()},
+                {0, real_type{0.9} * params.min_step},
                 {static_cast<real_type>(gstep_points), gp.step});
             for (auto gpt : celeritas::range(gstep_points + 1))
             {
@@ -342,7 +393,7 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
             for (int i = 0; i < num_samples; ++i)
             {
                 real_type step = phys.dedx_range();
-                EXPECT_FALSE(step < msc_params.params.limit_min_fix());
+                EXPECT_FALSE(step < msc_params.params.min_step);
                 if (alg == Algorithm::minimal)
                 {
                     // Minimal step limit algorithm
@@ -533,9 +584,9 @@ TEST_F(UrbanMscTest, msc_scattering)
     std::vector<real_type> alpha_over_mfp;
 
     // Binned scattering results
-    std::vector<real_type> angle;
+    std::vector<std::vector<double>> angle;
     std::vector<real_type> displace_frac;  // fraction of safety
-    std::vector<real_type> action;
+    std::vector<std::vector<double>> action;
 
     // Average RNG per scatter
     std::vector<real_type> avg_engine_samples;
@@ -564,7 +615,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         bool displaced;
         std::tie(true_path, displaced) = [&]() -> std::pair<real_type, bool> {
             EXPECT_FALSE(phys.msc_range());
-            if (this_pstep < msc_params.params.limit_min_fix()
+            if (this_pstep < msc_params.params.min_step
                 || safety >= helper.max_step())
             {
                 // Small step or far from boundary
@@ -616,7 +667,7 @@ TEST_F(UrbanMscTest, msc_scattering)
             msc_params, helper, par, phys, mat, geo.dir(), safety, step_result);
 
         // Angle is the change in angle (original was +z)
-        Histogram bin_angle(9, {-1, 1});
+        Histogram bin_angle(8, {-1, 1});
         // Fraction of safety
         real_type avg_displacement{0};
         // Interaction type: unchanged, scattered, displaced
@@ -636,9 +687,11 @@ TEST_F(UrbanMscTest, msc_scattering)
             bin_action(static_cast<real_type>(interaction.action));
         }
 
-        extend_from_histogram(angle, bin_angle);
+        EXPECT_FALSE(bin_angle.underflow() || bin_angle.overflow());
+        angle.push_back(bin_angle.calc_density());
         displace_frac.push_back(avg_displacement / num_samples);
-        extend_from_histogram(action, bin_action);
+        EXPECT_FALSE(bin_action.underflow() || bin_action.overflow());
+        action.push_back(bin_action.calc_density());
         avg_engine_samples.push_back(
             static_cast<real_type>(rng.exchange_count())
             / static_cast<real_type>(num_samples));
@@ -965,73 +1018,73 @@ TEST_F(UrbanMscTest, msc_scattering)
         0.37840329914137,
         0.37840329914137,
     };
-    static double const expected_angle[] = {
-        0,      0,      0,      0,      0,      0,      0,      0,      1,
-        0,      0,      0,      0,      0,      0,      0,      0,      1,
-        0,      0,      0,      0,      0,      0,      0,      0,      1,
-        0.0023, 0.0037, 0.0037, 0.0082, 0.011,  0.0206, 0.0509, 0.1731, 0.7265,
-        0.0208, 0.0187, 0.0221, 0.0307, 0.0516, 0.0898, 0.1481, 0.2403, 0.3779,
-        0.0175, 0.0182, 0.023,  0.0305, 0.0525, 0.0903, 0.1439, 0.2443, 0.3798,
-        0.0009, 0.0016, 0.0015, 0.0034, 0.0068, 0.0107, 0.0261, 0.0964, 0.8526,
-        0,      0,      0,      0,      0,      0,      0,      0,      0,
-        0,      0,      0,      0,      0,      0,      0,      0,      0,
-        0.001,  0.0009, 0.0017, 0.003,  0.0041, 0.0064, 0.016,  0.0655, 0.9014,
-        0.001,  0.0014, 0.0023, 0.0032, 0.006,  0.0101, 0.0229, 0.0855, 0.8676,
-        0.0011, 0.0015, 0.0015, 0.0031, 0.0055, 0.0091, 0.023,  0.0888, 0.8664,
-        0.0008, 0.0016, 0.0019, 0.0021, 0.003,  0.0089, 0.0173, 0.0621, 0.9023,
-        0.0251, 0.0292, 0.0362, 0.0545, 0.0759, 0.1182, 0.1631, 0.2154, 0.2824,
-        0,      0,      0,      0,      0,      0,      0,      0,      0,
-        0,      0,      0,      0,      0.0001, 0.0004, 0,      0.0004, 0.9991,
-        0,      0.0001, 0,      0,      0.0001, 0,      0.0002, 0.0007, 0.9989,
-        0,      0,      0,      0,      0.0001, 0.0001, 0.0001, 0.0009, 0.9988,
-        0,      0,      0,      0,      0,      0,      0,      0,      1,
-        0,      0,      0,      0,      0,      0,      0,      0,      1,
-        0,      0,      0,      0,      0,      0,      0,      0,      1,
-        0.0021, 0.0031, 0.0038, 0.0051, 0.0079, 0.0127, 0.0309, 0.0991, 0.8353,
-        0.0196, 0.0218, 0.0268, 0.0341, 0.0563, 0.091,  0.1552, 0.2426, 0.3526,
-        0,      0,      0,      0,      0,      0,      0,      0,      0,
-        0.0031, 0.0035, 0.005,  0.0068, 0.01,   0.0183, 0.0393, 0.1157, 0.7983,
-        0.0226, 0.0225, 0.0296, 0.0416, 0.0571, 0.0983, 0.1618, 0.2428, 0.3237,
-        0,      0,      0,      0,      0,      0,      0,      0,      0,
-        0.0033, 0.0036, 0.0053, 0.0072, 0.0084, 0.0173, 0.0321, 0.1038, 0.819,
-        0.0168, 0.0192, 0.0204, 0.033,  0.05,   0.0915, 0.149,  0.2479, 0.3722,
-        0,      0,      0,      0,      0,      0,      0,      0,      0,
-        0.0067, 0.0071, 0.0091, 0.0119, 0.0154, 0.0234, 0.0426, 0.1209, 0.7629,
-        0.0163, 0.0167, 0.0232, 0.0357, 0.0524, 0.0948, 0.1482, 0.2465, 0.3662,
-        0,      0,      0,      0,      0,      0,      0,      0,      0,
-        0,      0.0001, 0,      0,      0,      0,      0,      0,      0.9999,
-        0,      0,      0,      0,      0,      0,      0,      0,      1,
-        0,      0,      0,      0,      0,      0,      0,      0,      1,
-        0.0023, 0.0033, 0.004,  0.005,  0.011,  0.0162, 0.0444, 0.1615, 0.7523,
-        0.0136, 0.0163, 0.0177, 0.0244, 0.0438, 0.0884, 0.1436, 0.2526, 0.3996,
-        0.0143, 0.0144, 0.0166, 0.0249, 0.0433, 0.0779, 0.1457, 0.2601, 0.4028,
-        0.0023, 0.0027, 0.0046, 0.0058, 0.0091, 0.0192, 0.042,  0.1585, 0.7558,
-        0,      0,      0,      0,      0,      0,      0,      0,      0,
-        0,      0,      0,      0,      0,      0,      0,      0,      0,
-        0.0005, 0.0014, 0.0014, 0.002,  0.0042, 0.0056, 0.0156, 0.059,  0.9103,
-        0.0013, 0.0014, 0.002,  0.0037, 0.0045, 0.0099, 0.021,  0.0831, 0.8731,
-        0.0011, 0.0012, 0.0023, 0.0028, 0.0063, 0.0092, 0.0213, 0.0814, 0.8744,
-        0.0013, 0.0017, 0.0018, 0.0026, 0.0046, 0.0093, 0.0168, 0.073,  0.8889,
-        0.0194, 0.0181, 0.0224, 0.0327, 0.0535, 0.0942, 0.1521, 0.2403, 0.3673,
-        0,      0,      0,      0,      0,      0,      0,      0,      0,
-        0,      0,      0,      0.0001, 0.0001, 0.0001, 0.0002, 0.0007, 0.9988,
-        0,      0,      0,      0.0001, 0,      0.0001, 0,      0.0011, 0.9987,
-        0,      0,      0.0001, 0,      0.0001, 0.0001, 0.0002, 0.0006, 0.9989,
-        0,      0,      0,      0,      0,      0,      0,      0,      1,
-        0,      0,      0,      0,      0,      0,      0,      0,      1,
-        0,      0,      0,      0,      0,      0,      0,      0,      1,
-        0.0017, 0.0024, 0.0038, 0.0037, 0.0077, 0.0154, 0.0304, 0.0949, 0.84,
-        0.018,  0.018,  0.0222, 0.0352, 0.0536, 0.0897, 0.1505, 0.2467, 0.3661,
-        0,      0,      0,      0,      0,      0,      0,      0,      0,
-        0.0029, 0.0027, 0.0028, 0.0062, 0.0099, 0.016,  0.0345, 0.1028, 0.8222,
-        0.0201, 0.0238, 0.0281, 0.0439, 0.0649, 0.098,  0.1582, 0.2321, 0.3309,
-        0,      0,      0,      0,      0,      0,      0,      0,      0,
-        0.003,  0.0039, 0.0042, 0.0068, 0.0123, 0.016,  0.0369, 0.1041, 0.8128,
-        0.0199, 0.0224, 0.0291, 0.0403, 0.0626, 0.0959, 0.1568, 0.2363, 0.3367,
-        0,      0,      0,      0,      0,      0,      0,      0,      0,
-        0.0013, 0.0027, 0.0025, 0.0038, 0.005,  0.0102, 0.0207, 0.0548, 0.899,
-        0.0221, 0.023,  0.026,  0.0415, 0.0598, 0.0988, 0.1547, 0.2309, 0.3432,
-        0,      0,      0,      0,      0,      0,      0,      0,      0,
+    static std::vector<double> const expected_angle[] = {
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0.0112, 0.0152, 0.0224, 0.0432, 0.068, 0.168, 0.6308, 3.0412},
+        {0.092, 0.0888, 0.1052, 0.1708, 0.3208, 0.5624, 1.0008, 1.6592},
+        {0.0792, 0.0836, 0.118, 0.162, 0.336, 0.5556, 1.0032, 1.6624},
+        {0.004, 0.0072, 0.0088, 0.024, 0.0376, 0.086, 0.3308, 3.5016},
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0.0048, 0.0048, 0.0096, 0.012, 0.0232, 0.0556, 0.2228, 3.6672},
+        {0.004, 0.008, 0.012, 0.0212, 0.0288, 0.0816, 0.284, 3.5604},
+        {0.0052, 0.006, 0.008, 0.0188, 0.0308, 0.0724, 0.3144, 3.5444},
+        {0.004, 0.006, 0.0116, 0.008, 0.028, 0.056, 0.2168, 3.6696},
+        {0.1128, 0.1408, 0.1776, 0.2808, 0.4468, 0.6636, 0.9312, 1.2464},
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0, 0, 0, 0, 0.0016, 0.0004, 0.0012, 3.9968},
+        {0, 0.0004, 0, 0, 0.0004, 0.0004, 0.0024, 3.9964},
+        {0, 0, 0, 0.0004, 0, 0.0008, 0.0028, 3.996},
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0.0096, 0.0144, 0.0168, 0.0328, 0.0404, 0.1092, 0.3532, 3.4236},
+        {0.0872, 0.1004, 0.1308, 0.186, 0.3444, 0.5868, 1.0088, 1.5556},
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0.0136, 0.0188, 0.0212, 0.0344, 0.0696, 0.1364, 0.3988, 3.3072},
+        {0.104, 0.1056, 0.1484, 0.2112, 0.3484, 0.6304, 1.0072, 1.4448},
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0.0144, 0.0196, 0.0268, 0.0336, 0.0512, 0.1192, 0.364, 3.3712},
+        {0.076, 0.088, 0.1048, 0.1812, 0.3072, 0.5928, 1.0112, 1.6388},
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0.0304, 0.0332, 0.0396, 0.0612, 0.09, 0.1536, 0.4312, 3.1608},
+        {0.0732, 0.0796, 0.1148, 0.1912, 0.3292, 0.5856, 1.0092, 1.6172},
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0, 0.0004, 0, 0, 0, 0, 0, 3.9996},
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0.01, 0.0168, 0.0176, 0.0312, 0.0644, 0.1424, 0.564, 3.1536},
+        {0.0612, 0.0776, 0.0812, 0.142, 0.2932, 0.55, 1.0456, 1.7492},
+        {0.0648, 0.068, 0.0816, 0.1364, 0.2796, 0.532, 1.064, 1.7736},
+        {0.0104, 0.0136, 0.022, 0.03, 0.0632, 0.148, 0.54, 3.1728},
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0.0024, 0.0072, 0.006, 0.0132, 0.0232, 0.0512, 0.2004, 3.6964},
+        {0.006, 0.006, 0.0128, 0.0168, 0.0284, 0.0716, 0.2884, 3.57},
+        {0.0044, 0.0068, 0.0112, 0.0208, 0.0288, 0.0732, 0.2832, 3.5716},
+        {0.006, 0.0084, 0.0072, 0.0164, 0.0276, 0.0608, 0.2536, 3.62},
+        {0.086, 0.0872, 0.1108, 0.1848, 0.3376, 0.5728, 1.0272, 1.5936},
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0, 0, 0.0004, 0, 0.0008, 0.0008, 0.002, 3.996},
+        {0, 0, 0, 0.0004, 0.0004, 0, 0.0028, 3.9964},
+        {0, 0, 0.0004, 0, 0.0004, 0.0012, 0.0024, 3.9956},
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0.008, 0.0112, 0.0168, 0.026, 0.0472, 0.1088, 0.3452, 3.4368},
+        {0.0784, 0.0864, 0.1172, 0.1844, 0.324, 0.578, 1.0228, 1.6088},
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0.0128, 0.0112, 0.0152, 0.0344, 0.0596, 0.1184, 0.3636, 3.3848},
+        {0.0928, 0.1076, 0.1484, 0.2276, 0.3668, 0.6228, 0.982, 1.452},
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0.0156, 0.0164, 0.0204, 0.0396, 0.0612, 0.132, 0.3616, 3.3532},
+        {0.0932, 0.106, 0.1368, 0.2232, 0.3628, 0.6072, 0.9872, 1.4836},
+        {0, 0, 0, 0, 0, 0, 0, 4},
+        {0.0064, 0.0116, 0.0128, 0.0208, 0.0328, 0.0744, 0.196, 3.6452},
+        {0.098, 0.1088, 0.128, 0.2176, 0.3584, 0.6104, 0.9688, 1.51},
+        {0, 0, 0, 0, 0, 0, 0, 4},
     };
     static double const expected_displace_frac[] = {
         1.1567584797188e-05,
@@ -1101,16 +1154,18 @@ TEST_F(UrbanMscTest, msc_scattering)
         0.30188146067728,
         0,
     };
-    static double const expected_action[] = {
-        0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1,
-        0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0,
-        0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1,
-        0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1,
-        0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0,
-        1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0,
-        0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0,
-        1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0,
-        1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0,
+    static std::vector<double> const expected_action[] = {
+        {0, 0, 1}, {0, 1, 0}, {0, 1, 0}, {0, 0, 1}, {0, 1, 0}, {0, 1, 0},
+        {0, 0, 1}, {1, 0, 0}, {1, 0, 0}, {0, 0, 1}, {0, 1, 0}, {0, 1, 0},
+        {0, 0, 1}, {0, 0, 1}, {1, 0, 0}, {0, 0, 1}, {0, 0, 1}, {0, 1, 0},
+        {0, 1, 0}, {0, 1, 0}, {0, 1, 0}, {0, 0, 1}, {0, 0, 1}, {1, 0, 0},
+        {0, 0, 1}, {0, 0, 1}, {1, 0, 0}, {0, 0, 1}, {0, 0, 1}, {1, 0, 0},
+        {0, 0, 1}, {0, 0, 1}, {1, 0, 0}, {0, 0, 1}, {0, 1, 0}, {0, 1, 0},
+        {0, 0, 1}, {0, 1, 0}, {0, 1, 0}, {0, 0, 1}, {1, 0, 0}, {1, 0, 0},
+        {0, 0, 1}, {0, 1, 0}, {0, 1, 0}, {0, 0, 1}, {0, 0, 1}, {1, 0, 0},
+        {0, 0, 1}, {0, 0, 1}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0},
+        {0, 0, 1}, {0, 0, 1}, {1, 0, 0}, {0, 0, 1}, {0, 0, 1}, {1, 0, 0},
+        {0, 0, 1}, {0, 0, 1}, {1, 0, 0}, {0, 0, 1}, {0, 0, 1}, {1, 0, 0},
     };
     static double const expected_avg_engine_samples[] = {
         0, 12,      0, 8,  0, 7.9998,  4, 12, 0, 6,  0, 6,       4, 12,

@@ -9,6 +9,7 @@ set(PRIVATE_DEPS
   nlohmann_json::nlohmann_json
   Celeritas::ExtMPI
   Celeritas::ExtOpenMP
+  Celeritas::ExtThrust
 )
 set(PUBLIC_DEPS
   Celeritas::BuildFlags
@@ -53,7 +54,6 @@ list(APPEND SOURCES
   em/process/MuPairProductionProcess.cc
   em/process/PhotoelectricProcess.cc
   em/process/RayleighProcess.cc
-  ext/GeantOpticalPhysicsOptions.cc
   ext/GeantOpticalPhysicsOptionsIO.json.cc
   ext/GeantPhysicsOptions.cc
   ext/GeantPhysicsOptionsIO.json.cc
@@ -73,12 +73,11 @@ list(APPEND SOURCES
   global/DebugIO.json.cc
   global/KernelContextException.cc
   global/Stepper.cc
+  grid/ElementCdfCalculator.cc
   grid/NonuniformGridBuilder.cc
   grid/RangeGridCalculator.cc
   grid/TwodGridBuilder.cc
   grid/UniformGridInserter.cc
-  grid/ValueGridBuilder.cc
-  grid/ValueGridType.cc
   grid/XsGridInserter.cc
   io/AtomicRelaxationReader.cc
   io/ImportData.cc
@@ -86,8 +85,6 @@ list(APPEND SOURCES
   io/ImportMaterial.cc
   io/ImportModel.cc
   io/ImportOpticalModel.cc
-  io/ImportPhysicsTable.cc
-  io/ImportPhysicsVector.cc
   io/ImportProcess.cc
   io/ImportUnits.cc
   io/LivermorePEReader.cc
@@ -101,10 +98,11 @@ list(APPEND SOURCES
   neutron/model/CascadeOptionsIO.json.cc
   neutron/process/NeutronElasticProcess.cc
   neutron/process/NeutronInelasticProcess.cc
-  optical/CherenkovParams.cc
   optical/CoreParams.cc
   optical/CoreState.cc
   optical/CoreTrackData.cc
+  optical/gen/CherenkovParams.cc
+  optical/gen/ScintillationParams.cc
   optical/ImportedModelAdapter.cc
   optical/ImportedMaterials.cc
   optical/OpticalCollector.cc
@@ -112,13 +110,11 @@ list(APPEND SOURCES
   optical/ModelImporter.cc
   optical/PhysicsParams.cc
   optical/TrackInitParams.cc
-  optical/ScintillationParams.cc
-  optical/WavelengthShiftParams.cc
   optical/action/ActionGroups.cc
   optical/action/LocateVacanciesAction.cc
-  optical/detail/OffloadParams.cc
   optical/detail/OpticalLaunchAction.cc
   phys/CutoffParams.cc
+  phys/detail/EnergyMaxXsCalculator.cc
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc
   phys/ParticleParams.cc
@@ -142,6 +138,7 @@ list(APPEND SOURCES
   user/DetectorSteps.cc
   user/ParticleTallyData.cc
   user/RootStepWriterIO.json.cc
+  user/SDParams.cc
   user/SimpleCalo.cc
   user/SimpleCaloData.cc
   user/StepCollector.cc
@@ -162,6 +159,28 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     track/detail/Filler.cu
     alongstep/detail/AlongStepKernels.cu
   )
+endif()
+
+if(CELERITAS_USE_covfie)
+  set(_celer_covfie_src
+    field/CartMapFieldParams.covfie.cc
+  )
+  celeritas_polysource_append(_celer_covfie_src
+    alongstep/AlongStepCartMapFieldMscAction)
+
+  celeritas_add_object_library(celeritas_covfie ${_celer_covfie_src})
+  celeritas_target_link_libraries(celeritas_covfie
+    PRIVATE
+      Celeritas::BuildFlags
+      Celeritas::geocel
+      ${_core_geo_deps}
+      Celeritas::Extcovfie
+  )
+  list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_covfie>)
+  list(APPEND PRIVATE_DEPS celeritas_covfie)
+else()
+  celeritas_polysource_append(SOURCES
+  alongstep/AlongStepCartMapFieldMscAction)
 endif()
 
 if(CELERITAS_USE_Geant4)
@@ -240,11 +259,11 @@ if(CELERITAS_USE_ROOT)
     "celeritas/io/ImportMaterial.hh"
     "celeritas/io/ImportParticle.hh"
     "celeritas/io/ImportPhysicsTable.hh"
-    "celeritas/io/ImportPhysicsVector.hh"
     "celeritas/io/ImportProcess.hh"
     "celeritas/io/ImportUnits.hh"
     "celeritas/io/ImportVolume.hh"
     "celeritas/io/EventData.hh"
+    "celeritas/inp/Grid.hh"
     NOINSTALL
     MODULE celeritas
     LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/ext/RootInterfaceLinkDef.h"
@@ -300,7 +319,6 @@ celeritas_polysource(alongstep/AlongStepCylMapFieldMscAction)
 celeritas_polysource(em/model/BetheHeitlerModel)
 celeritas_polysource(em/model/BetheBlochModel)
 celeritas_polysource(em/model/BraggModel)
-celeritas_polysource(em/model/CombinedBremModel)
 celeritas_polysource(em/model/EPlusGGModel)
 celeritas_polysource(em/model/ICRU73QOModel)
 celeritas_polysource(em/model/KleinNishinaModel)
@@ -320,6 +338,7 @@ celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
 celeritas_polysource(neutron/model/NeutronInelasticModel)
 celeritas_polysource(optical/model/AbsorptionModel)
 celeritas_polysource(optical/model/RayleighModel)
+celeritas_polysource(optical/model/WavelengthShiftModel)
 celeritas_polysource(optical/action/AlongStepAction)
 celeritas_polysource(optical/action/BoundaryAction)
 celeritas_polysource(optical/action/DiscreteSelectAction)
@@ -327,12 +346,10 @@ celeritas_polysource(optical/action/InitializeTracksAction)
 celeritas_polysource(optical/action/PreStepAction)
 celeritas_polysource(optical/action/TrackingCutAction)
 celeritas_polysource(optical/action/detail/TrackInitAlgorithms)
-celeritas_polysource(optical/detail/CherenkovGeneratorAction)
-celeritas_polysource(optical/detail/CherenkovOffloadAction)
-celeritas_polysource(optical/detail/OpticalGenAlgorithms)
-celeritas_polysource(optical/detail/OffloadGatherAction)
-celeritas_polysource(optical/detail/ScintGeneratorAction)
-celeritas_polysource(optical/detail/ScintOffloadAction)
+celeritas_polysource(optical/gen/detail/GeneratorAction)
+celeritas_polysource(optical/gen/detail/OffloadAction)
+celeritas_polysource(optical/gen/detail/OffloadGatherAction)
+celeritas_polysource(optical/gen/detail/OpticalGenAlgorithms)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)
 celeritas_polysource(phys/detail/TrackingCutAction)

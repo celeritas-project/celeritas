@@ -11,6 +11,7 @@
 
 #include "corecel/cont/Span.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/inp/Physics.hh"
 
 #include "GlobalGeoTestBase.hh"
 #include "OnlyCoreTestBase.hh"
@@ -18,7 +19,7 @@
 namespace celeritas
 {
 struct Applicability;
-struct PhysicsParamsOptions;
+struct PhysicsOptions;
 }  // namespace celeritas
 
 namespace celeritas
@@ -48,7 +49,6 @@ class MockTestBase : virtual public GlobalGeoTestBase, public OnlyCoreTestBase
   public:
     //!@{
     //! \name Type aliases
-    using PhysicsOptions = PhysicsParamsOptions;
     using ModelCallback = std::function<void(ActionId)>;
     using SpanConstModel = Span<ModelId const>;
     //!@}
@@ -82,6 +82,7 @@ class MockTestBase : virtual public GlobalGeoTestBase, public OnlyCoreTestBase
     SPConstWentzelOKVI build_wentzel() override { return nullptr; }
 
     virtual PhysicsOptions build_physics_options() const;
+    virtual inp::Interpolation interpolation() const;
 
   private:
     //// DATA ////

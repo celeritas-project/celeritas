@@ -81,9 +81,8 @@ std::string_view StatusChecker::description() const
 /*!
  * Build state data for a stream.
  */
-auto StatusChecker::create_state(MemSpace m,
-                                 StreamId id,
-                                 size_type size) const -> UPState
+auto StatusChecker::create_state(MemSpace m, StreamId id, size_type size) const
+    -> UPState
 {
     return make_aux_state<StatusCheckStateData>(*this, m, id, size);
 }

@@ -33,6 +33,9 @@ struct GeantSimpleCaloStorage;
  * DetectorConstruction::Construct and added to the output parameters. Calling
  * \c MakeSensitiveDetector will emit a sensitive detector for the local thread
  * *and attach it* to the logical volumes on the local thread.
+ *
+ * \deprecated This class should be replaced by a more advanced scoring
+ * mechanism.
  */
 class GeantSimpleCalo final : public OutputInterface
 {

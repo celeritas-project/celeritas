@@ -7,6 +7,7 @@
 #include "StringSimplifier.hh"
 
 #include <iomanip>
+#include <ios>
 #include <regex>
 #include <sstream>
 
@@ -16,8 +17,28 @@ namespace test
 {
 namespace
 {
-void erase_exp_zeros(std::string& s)
+using StreamManip = std::ios_base& (*)(std::ios_base&);
+std::string to_str_impl(double value, int precision, StreamManip mode)
 {
+    CELER_EXPECT(precision >= 0);
+    std::ostringstream oss;
+    oss << mode << std::setprecision(precision) << value;
+    return std::move(oss).str();
+}
+
+std::string to_float(double value, int precision)
+{
+    CELER_EXPECT(precision >= 0);
+    return to_str_impl(value, precision, std::fixed);
+}
+
+std::string to_sci(double value, int precision)
+{
+    CELER_EXPECT(precision > 0);
+    auto s = to_str_impl(value, precision - 1, std::scientific);
+    CELER_ASSERT(!s.empty());
+    // Change e+001 -> e1
+
     // If using scientific notation, simplify the exponent
     auto exp_iter = std::find_if(
         s.begin(), s.end(), [](char c) { return c == 'e' || c == 'E'; });
@@ -41,9 +62,11 @@ void erase_exp_zeros(std::string& s)
     auto end_iter
         = std::find_if(num_iter, s.end() - 1, [](char c) { return c != '0'; });
     s.erase(exp_iter, end_iter);
+    return s;
 }
 
 }  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Simplify.
@@ -55,7 +78,9 @@ StringSimplifier::operator()(std::string const& old) const
     // notation) with optional scientific notation and trailing f
     static std::regex const combined_regex(
         "(?:"
-        R"(((?:-?\d*\.\d+|-?\d+\.\d*)(?:[eE][-+]?\d+)?f?))"
+        R"((-?(?:\d*\.\d+|\d+\.\d*|\d+)[eE][-+]?\d+f?)\b)"  // Sci
+        "|"
+        R"((-?(?:\d*\.\d+f?|\d+\.\d*f?|\d+f))(?![0-9e]+))"  // Float
         "|"
         "(\033\\[[0-9;]*m)"  // ANSI
         "|"
@@ -75,13 +100,17 @@ StringSimplifier::operator()(std::string const& old) const
 
         if (match[1].length() > 0)
         {
-            result.append(this->simplify_float(match[1].str()));
+            result.append(this->simplify_sci(match[1].str()));
         }
         else if (match[2].length() > 0)
         {
-            // Omit ANSI
+            result.append(this->simplify_float(match[2].str()));
         }
         else if (match[3].length() > 0)
+        {
+            // Omit ANSI
+        }
+        else if (match[4].length() > 0)
         {
             // Add placeholder pointer
             result.append("0x0");
@@ -97,7 +126,7 @@ StringSimplifier::operator()(std::string const& old) const
     return result;
 }
 
-std::string StringSimplifier::simplify_float(std::string&& s) const
+std::string StringSimplifier::simplify_sci(std::string s) const
 {
     CELER_EXPECT(!s.empty());
 
@@ -107,42 +136,93 @@ std::string StringSimplifier::simplify_float(std::string&& s) const
         ++end;
 
     auto iter = std::find(s.cbegin(), end, '.');
-    ++iter;
+    if (iter != end)
+    {
+        // Not e.g. 1e7
+        ++iter;
+    }
     auto exp_iter
         = std::find_if(iter, end, [](auto c) { return c == 'e' || c == 'E'; });
 
     int const precision
-        = std::min<int>(std::distance(iter, exp_iter), float_digits_);
-    bool const is_scientific = (exp_iter != end);
+        = std::min<int>(1 + std::distance(iter, exp_iter), precision_);
 
-    // Format the rounded number with appropriate notation using IIFE
-    auto new_s = [precision, value = std::stod(s), is_scientific]() {
-        std::ostringstream oss;
-        if (is_scientific)
+    // Format the rounded number with appropriate notation
+    s = to_sci(std::stod(s), precision);
+
+    return s;
+}
+
+std::string StringSimplifier::simplify_float(std::string s) const
+{
+    CELER_EXPECT(!s.empty());
+
+    bool const is_float = (s.back() == 'f');
+    if (is_float)
+    {
+        // Remove float appendix
+        s.pop_back();
+        CELER_ASSERT(!s.empty());
+    }
+
+    // Count the number of significant digits
+    auto begin = s.cbegin();
+    if (*begin == '-')
+    {
+        ++begin;
+    }
+    // Strip leading zeros
+    begin = std::find_if(begin, s.cend(), [](char c) { return c != '0'; });
+    auto dec_iter = std::find(begin, s.cend(), '.');
+    int lead_precision = std::distance(begin, dec_iter);
+    if (dec_iter == s.cend())
+    {
+        // No decimal found: either a float (1f) or a single-digit scientific
+        // (1e3)
+    }
+    else if (dec_iter == begin)
+    {
+        // Leading zeros: precision based on first digit after decimal
+        lead_precision = 0;
+        auto iter = std::find_if(
+            dec_iter + 1, s.cend(), [](char c) { return c != '0'; });
+        if (iter != s.cend())
         {
-            oss << std::scientific;
+            // Strip leading zeros
+            dec_iter = iter;
         }
         else
         {
-            oss << std::fixed;
+            ++dec_iter;
         }
-        oss << std::setprecision(precision) << value;
-        return std::move(oss).str();
-    }();
-    CELER_ASSERT(!new_s.empty());
-    if (precision == 0 && !is_scientific && new_s.back() != '.')
+    }
+    else
     {
-        // Add trailing decimal
-        new_s.push_back('.');
+        // Decimal is between two significant numbers
+        ++dec_iter;
+    }
+    int dec_precision = std::distance(dec_iter, s.cend());
+    int precision = std::min(lead_precision + dec_precision, precision_);
+
+    if (precision < lead_precision)
+    {
+        // Leading digits are too precise: write as scientific
+        s = to_sci(std::stod(s), precision);
+        CELER_ASSERT(!s.empty());
+    }
+    else
+    {
+        dec_precision = std::min(dec_precision, precision_ - lead_precision);
+        s = to_float(std::stod(s), dec_precision);
+        if (dec_precision == 0)
+        {
+            // Don't make it an integer except if we parsed it as a float
+            CELER_ASSERT(s.find('.') == std::string::npos);
+            s.push_back('.');
+        }
     }
 
-    if (is_scientific)
-    {
-        // Change e+001 -> e1
-        erase_exp_zeros(new_s);
-    }
-
-    return new_s;
+    return s;
 }
 
 //---------------------------------------------------------------------------//

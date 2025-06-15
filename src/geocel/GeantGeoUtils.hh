@@ -14,14 +14,13 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/io/Label.hh"
 
 //---------------------------------------------------------------------------//
 // Forward declarations
+class G4Field;
 class G4LogicalVolume;
-class G4VPhysicalVolume;
-class G4Navigator;
 class G4NavigationHistory;
+class G4VPhysicalVolume;
 
 #if CELERITAS_GEANT4_VERSION >= 0x0b0200
 // Geant4 11.2 removed G4VTouchable
@@ -64,10 +63,6 @@ std::ostream& operator<<(std::ostream&, PrintableLV const&);
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
-// Write a GDML file to the given filename
-void save_gdml(G4VPhysicalVolume const* world, std::string const& out_filename);
-
-//---------------------------------------------------------------------------//
 // Reset all Geant4 geometry stores if *not* using RunManager
 void reset_geant_geometry();
 
@@ -80,6 +75,10 @@ Span<G4LogicalVolume*> geant_logical_volumes();
 G4VPhysicalVolume const* geant_world_volume();
 
 //---------------------------------------------------------------------------//
+// Get the field from the global field manager
+G4Field const* geant_field();
+
+//---------------------------------------------------------------------------//
 // Whether the volume is a replica/parameterization
 bool is_replica(G4VPhysicalVolume const&);
 
@@ -87,12 +86,6 @@ bool is_replica(G4VPhysicalVolume const&);
 // Find Geant4 logical volumes corresponding to a list of names
 std::unordered_set<G4LogicalVolume const*>
     find_geant_volumes(std::unordered_set<std::string>);
-
-// Get a reproducible vector of LV instance ID -> label from the given world
-std::vector<Label> make_logical_vol_labels(G4VPhysicalVolume const& world);
-
-// Get a reproducible vector of PV instance ID -> label from the given world
-std::vector<Label> make_physical_vol_labels(G4VPhysicalVolume const& world);
 
 //---------------------------------------------------------------------------//
 // Update a nav history to match the given volume instance stack

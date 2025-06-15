@@ -87,42 +87,29 @@ library calls to support VecGeom's use of CUDA RDC:
      ${Geant4_LIBRARIES}
 ```
 
-A few includes expose Celeritas classes to the user code:
+One catch-all include exposes the Celeritas high-level offload classes to user
+code:
 ```diff
---- example/accel/trackingmanager-offload.cc
-+++ example/accel/trackingmanager-offload.cc
-@@ -36,2 +36,10 @@
+--- example/geant4/trackingmanager-offload.cc
++++ example/geant4/trackingmanager-offload.cc
+@@ -31,2 +31,4 @@
 
 +// Celeritas
-+#include <accel/AlongStepFactory.hh>
-+#include <accel/SetupOptions.hh>
-+#include <accel/TrackingManagerConstructor.hh>
-+#include <accel/TrackingManagerIntegration.hh>
-+
-+using TMI = celeritas::TrackingManagerIntegration;
-+
- namespace
++#include <CeleritasG4.hh>
+
 ```
 
-Celeritas uses the build/run actions to set up and tear down cleanly:
+Celeritas uses the run action to set up and tear down cleanly:
 ```diff
 --- example/accel/trackingmanager-offload.cc
 +++ example/accel/trackingmanager-offload.cc
-@@ -134,2 +142,3 @@ class RunAction final : public G4UserRunAction
-     void BeginOfRunAction(G4Run const* run) final {
+@@ -133,2 +138,3 @@ class RunAction final : public G4UserRunAction
+     {
 +        TMI::Instance().BeginOfRunAction(run);
      }
-@@ -137,2 +146,3 @@ class RunAction final : public G4UserRunAction
-     void EndOfRunAction(G4Run const* run) final {
+@@ -136,2 +142,3 @@ class RunAction final : public G4UserRunAction
+     {
 +        TMI::Instance().EndOfRunAction(run);
-     }
-@@ -179,2 +189,3 @@ class ActionInitialization final : public G4VUserActionInitialization
-      void BuildForMaster() const final {
-+        TMI::Instance().BuildForMaster();
-     }
-@@ -185,2 +197,3 @@ class ActionInitialization final : public G4VUserActionInitialization
-     void Build() const final{
-+        TMI::Instance().Build();
      }
 ```
 
@@ -141,6 +128,9 @@ interface:
 +        new celeritas::TrackingManagerConstructor(&tmi));
 ```
 
+More flexible alternatives to this high level interface, compatible with other
+run manager implementations and older versions of Geant4, are described in the
+manual.
 
 [integration]: https://celeritas-project.github.io/celeritas/user/usage/integration.html
 

@@ -23,17 +23,16 @@ class RangeCalculatorTest : public CalculatorTestBase
     void SetUp() override
     {
         // Energy from 1e1 to 1e4 MeV with 3 bins (4 points)
-        GridInput grid;
-        grid.emin = 10;
-        grid.emax = 1e4;
-        grid.value = VecReal{0.5, 5, 50, 500};
+        inp::UniformGrid grid;
+        grid.x = {10, 1e4};
+        grid.y = {0.5, 5, 50, 500};
         this->build(grid);
     }
 };
 
 TEST_F(RangeCalculatorTest, all)
 {
-    RangeCalculator calc_range(this->data(), this->values());
+    RangeCalculator calc_range(this->uniform_grid(), this->values());
 
     // "stopped" particle case should not calculate range
     if (CELERITAS_DEBUG)

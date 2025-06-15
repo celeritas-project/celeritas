@@ -35,19 +35,6 @@ CheckedGeoTrackView<GTV>::operator=(GeoTrackInitializer const& init)
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize the state from a parent state and new direction.
- */
-template<class GTV>
-CheckedGeoTrackView<GTV>&
-CheckedGeoTrackView<GTV>::operator=(DetailedInitializer const& init)
-{
-    GTV::operator=(init);
-    CELER_ENSURE(!this->is_outside());
-    return *this;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Calculate the safety distance.
  */
 template<class GTV>

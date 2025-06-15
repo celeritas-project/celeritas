@@ -9,6 +9,8 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/cont/EnumArray.hh"
+#include "corecel/grid/GridTypes.hh"
 #include "corecel/math/Turn.hh"
 #include "orange/OrangeTypes.hh"
 
@@ -318,6 +320,97 @@ class EllipticalCone final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
+ * Region formed by extruding + scaling a convex polygon along a line segment.
+ *
+ * The convex polygon is supplied as a set of points on the XY plane in
+ * clockwise order. The line segment and scaling factors are specified by
+ * providing a line segment point and scaling factor for the top and bottom
+ * polygon faces of the region. The line segment point of the top face must
+ * have a z value greater than that of the bottom face. Along the line segment,
+ * the size of the polygon is linearly scaled in accordance with scaling
+ * factors.
+ *
+ * As is done in Geant4, construction is done by first applying scaling factors
+ * to the upper and lower polygons via scalar multiplication with each polygon
+ * point, then the points on the line are used to offset the upper and lower
+ * polygons.
+ */
+class ExtrudedPolygon final : public IntersectRegionInterface
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using VecReal2 = std::vector<Real2>;
+
+    //! Specifies the top or bottom face of the ExtrudedPolygon
+    struct PolygonFace
+    {
+        //! Start or end point of the line segment the polygon is extruded
+        //! along
+        Real3 line_segment_point{};
+
+        //! The fractional amount this face is scaled
+        real_type scaling_factor{};
+    };
+    //!@}
+
+  public:
+    // Construct from a convex polygon and bottom/top faces
+    ExtrudedPolygon(VecReal2 const& polygon,
+                    PolygonFace const& bot_face,
+                    PolygonFace const& top_face);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Polygon points (2D)
+    VecReal2 polygon() const { return polygon_; }
+
+    //! Bottom point of the line segment
+    Real3 bot_line_segment_point() const { return line_segment_[Bound::lo]; }
+
+    //! Top point of the line segment
+    Real3 top_line_segment_point() const { return line_segment_[Bound::hi]; }
+
+    //! Bottom scaling factor
+    real_type bot_scaling_factor() const
+    {
+        return scaling_factors_[Bound::lo];
+    }
+
+    //! Top scaling factor
+    real_type top_scaling_factor() const
+    {
+        return scaling_factors_[Bound::hi];
+    }
+
+  private:
+    //// TYPES ////
+    using Range = celeritas::Array<real_type, 2>;
+
+    //// DATA ////
+
+    VecReal2 polygon_;
+
+    EnumArray<Bound, Real3> line_segment_;
+    EnumArray<Bound, real_type> scaling_factors_;
+
+    Range x_range_;
+    Range y_range_;
+
+    // >> HELPER FUNCTIONS
+
+    // Calculate the min/max x or y values of the extruded region
+    Range calc_range(VecReal2 const& polygon, size_type dir);
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * A generalized polygon with parallel flat faces along the *z* axis.
  *
  * A GenPrism, like VecGeom's GenTrap, ROOT's Arb8, and Geant4's
@@ -556,7 +649,7 @@ class Parallelepiped final : public IntersectRegionInterface
 
     //! Half-lengths of edge projections along each axis
     Real3 const& halfedges() const { return hpr_; }
-    //! Angle between slanted y-edges and the y-axis (in turns)
+    //! Angle between slanted *y* edges and the *y* axis (in turns)
     Turn alpha() const { return alpha_; }
     //! Polar angle of main axis (in turns)
     Turn theta() const { return theta_; }
@@ -579,19 +672,23 @@ class Parallelepiped final : public IntersectRegionInterface
  * A regular, z-extruded polygon centered on the origin.
  *
  * This is the base component of a G4Polyhedra (PGON). The default rotation is
- * to put a y-aligned plane on the bottom of the shape, so looking at an x-y
- * slice given an apothem \em a, every shape has a surface at \f$ y = -a \f$:
- * - n=3 is a triangle with a flat bottom, point up
- * - n=4 is a square with axis-aligned sides
- * - n=6 is a flat-top hexagon
+ * to put the first point at \f$ y = 0 \f$. Looking at an x-y
+ * slice for a prism with apothem \em a, odd-numbered prisms have a plane at
+ * \f$ x=-a \f$:
+ * - \f$ n=3 \f$ is a triangle pointing right,
+ * - \f$ n=4 \f$ is a diamond,
+ * - \f$ n=5 \f$ is a tilted pentagon (flat on the left), and
+ * - \f$ n=6 \f$ is a flat-top hexagon.
+ *
  *
  * The "orientation" parameter is a scaled counterclockwise rotation on
  * \f$[0, 1)\f$, where zero preserves the orientation described above, and
- * unity replicates the original shape but with the "p0" face being where the
- * "p1" originally was. With a value of 0.5:
- * - n=3 is a downward-pointing triangle
- * - n=4 is a diamond
- * - n=6 is a pointy-top hexagon
+ * unity would replicate the original shape but with the "p0" face being where
+ * the "p1" originally was. With a value of 0.5:
+ * - \f$ n=3 \f$ is a triangle pointing left
+ * - \f$ n=4 \f$ is an upright square,
+ * - \f$ n=5 \f$ is a tilted pentagon (flat on the right), and
+ * - \f$ n=6 \f$ is a pointy-top hexagon.
  */
 class Prism final : public IntersectRegionInterface
 {
@@ -634,7 +731,7 @@ class Prism final : public IntersectRegionInterface
     // Half the z height
     real_type hh_;
 
-    // Rotational offset (0 has bottom face at -Y, 1 is congruent)
+    // Rotational offset: 0 has point at (r, 0), 1 is congruent with 0
     real_type orientation_;
 };
 

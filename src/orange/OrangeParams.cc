@@ -28,8 +28,7 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/BoundingBox.hh"
-#include "geocel/GeantGdmlLoader.hh"
-#include "geocel/GeantGeoUtils.hh"
+#include "geocel/GeantGeoParams.hh"
 
 #include "OrangeData.hh"  // IWYU pragma: associated
 #include "OrangeInput.hh"
@@ -79,9 +78,12 @@ OrangeInput input_from_file(std::string filename)
             && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
             // Load with Geant4: must *not* be using run manager
-            auto* world = ::celeritas::load_gdml(filename);
-            auto result = g4org::Converter{}(world).input;
-            ::celeritas::reset_geant_geometry();
+            CELER_VALIDATE(!geant_geo(),
+                           << "cannot load Geant4 geometry into ORANGE from a "
+                              "file name: a global Geant4 geometry already "
+                              "exists");
+            GeantGeoParams temp_geant_geo(filename);
+            auto result = g4org::Converter{}(temp_geant_geo).input;
             return result;
         }
         else
@@ -100,6 +102,15 @@ OrangeInput input_from_file(std::string filename)
                        << filename << "'");
     }
     return input_from_json(std::move(filename));
+}
+
+GeantGeoParams const& get_geant_params(G4VPhysicalVolume const* world)
+{
+    auto* global_geo = celeritas::geant_geo();
+    CELER_VALIDATE(global_geo && global_geo->world() == world,
+                   << "world is not the globally defined world");
+
+    return *global_geo;
 }
 
 //---------------------------------------------------------------------------//
@@ -124,7 +135,7 @@ OrangeParams::OrangeParams(std::string const& filename)
  * TODO: expose options? Fix volume mappings?
  */
 OrangeParams::OrangeParams(G4VPhysicalVolume const* world)
-    : OrangeParams(std::move(g4org::Converter{}(world).input))
+    : OrangeParams(std::move(g4org::Converter{}(get_geant_params(world)).input))
 {
 }
 

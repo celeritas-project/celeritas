@@ -133,8 +133,7 @@ TEST_F(PolyconeTest, hollow)
         "Cone z: t=0.125 at {0,0,-6}",
     };
     static char const* const expected_volume_strings[] = {
-        "any(all(all(+0, -1, -2), !all(+0, -1, -3)), all(all(+1, -4, -5), "
-        "!all(+1, -4, -6)), all(all(+4, -7, -8), !all(+4, -7, -9)))",
+        R"(any(all(+0, -1, -2, !all(+0, -1, -3)), all(+1, -4, -5, !all(+1, -4, -6)), all(+4, -7, -8, !all(+4, -7, -9))))",
     };
     static char const* const expected_md_strings[] = {
         "",
@@ -183,7 +182,7 @@ TEST_F(PolyconeTest, sliced)
 {
     this->build_volume(PolyCone{"pc",
                                 PolySegments{{2, 1, 3}, {-2, 0, 2}},
-                                SolidEnclosedAngle{Turn{0.125}, Turn{0.75}}});
+                                EnclosedAzi{Turn{0.125}, Turn{0.75}}});
 
     static char const* const expected_surface_strings[] = {
         "Plane: z=-2",
@@ -266,7 +265,7 @@ TEST_F(PolyconeTest, or_solid)
 {
     {
         auto s = PolyCone::or_solid(
-            "cone", PolySegments{{1, 2}, {-2, 2}}, SolidEnclosedAngle{});
+            "cone", PolySegments{{1, 2}, {-2, 2}}, EnclosedAzi{});
         EXPECT_TRUE(s);
         EXPECT_TRUE(dynamic_cast<ConeShape const*>(s.get()));
         this->build_volume(*s);
@@ -274,14 +273,14 @@ TEST_F(PolyconeTest, or_solid)
     {
         auto s = PolyCone::or_solid("hollowcone",
                                     PolySegments{{0.5, 0.75}, {1, 2}, {-2, 2}},
-                                    SolidEnclosedAngle{});
+                                    EnclosedAzi{});
         EXPECT_TRUE(s);
         EXPECT_TRUE(dynamic_cast<ConeSolid const*>(s.get()));
         this->build_volume(*s);
     }
     {
         auto s = PolyCone::or_solid(
-            "transcyl", PolySegments{{2, 2}, {0, 4}}, SolidEnclosedAngle{});
+            "transcyl", PolySegments{{2, 2}, {0, 4}}, EnclosedAzi{});
         EXPECT_TRUE(s);
         EXPECT_TRUE(dynamic_cast<Transformed const*>(s.get()));
         this->build_volume(*s);
@@ -298,7 +297,7 @@ TEST_F(PolyconeTest, or_solid)
     };
     static char const* const expected_volume_strings[] = {
         "all(+0, -1, -2)",
-        "all(all(+0, -1, -2), !all(+0, -1, -3))",
+        "all(+0, -1, -2, !all(+0, -1, -3))",
         "all(+4, -5, -6)",
     };
 

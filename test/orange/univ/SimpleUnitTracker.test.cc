@@ -11,6 +11,7 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/Assert.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/Ref.hh"
@@ -239,8 +240,8 @@ auto SimpleUnitTrackerTest::run_heuristic_init_host(size_type num_tracks) const
 /*!
  * Initialize particles randomly and tally their resulting locations.
  */
-auto SimpleUnitTrackerTest::run_heuristic_init_device(
-    size_type num_tracks) const -> HeuristicInitResult
+auto SimpleUnitTrackerTest::run_heuristic_init_device(size_type num_tracks) const
+    -> HeuristicInitResult
 {
     using DStateStore = CollectionStateStore<OrangeStateData, MemSpace::device>;
     DStateStore states(this->setup_heuristic_states(num_tracks));
@@ -275,8 +276,7 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
     IsotropicDistribution<> sample_isotropic;
     for (auto i : range(num_tracks))
     {
-        auto lsa = detail::LevelStateAccessor(
-            &result_ref, TrackSlotId{i}, LevelId{0});
+        auto lsa = LevelStateAccessor(&result_ref, TrackSlotId{i}, LevelId{0});
         lsa.pos() = sample_box(rng);
         lsa.dir() = sample_isotropic(rng);
     }
@@ -294,19 +294,20 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
 /*!
  * Process "heuristic init" test results.
  */
-auto SimpleUnitTrackerTest::reduce_heuristic_init(
-    StateHostRef const& host, double wall_time) const -> HeuristicInitResult
+auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostRef const& host,
+                                                  double wall_time) const
+    -> HeuristicInitResult
 {
     CELER_EXPECT(host);
     CELER_EXPECT(wall_time > 0);
+    CELER_EXPECT(this->geometry()->max_depth() == 1);
     std::vector<size_type> counts(this->num_volumes());
     size_type error_count{};
 
     for (auto i : range(host.size()))
     {
         auto tid = TrackSlotId{i};
-        // TODO Update for multiple universes
-        detail::LevelStateAccessor lsa(&host, tid, LevelId{0});
+        LevelStateAccessor lsa(&host, tid, LevelId{0});
         auto vol = lsa.vol();
 
         if (vol < counts.size())

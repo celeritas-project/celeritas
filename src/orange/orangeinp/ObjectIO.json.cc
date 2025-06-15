@@ -18,6 +18,7 @@
 #include "PolySolid.hh"
 #include "Shape.hh"
 #include "Solid.hh"
+#include "StackedExtrudedPolygon.hh"
 #include "Transformed.hh"
 
 #define SIO_ATTR_PAIR(OBJ, ATTR) {#ATTR, OBJ.ATTR()}
@@ -76,9 +77,9 @@ void to_json(nlohmann::json& j, PolyCone const& obj)
     j = {{"_type", "polycone"},
          SIO_ATTR_PAIR(obj, label),
          SIO_ATTR_PAIR(obj, segments)};
-    if (auto sea = obj.enclosed_angle())
+    if (auto azi = obj.enclosed_azi())
     {
-        j["enclosed_angle"] = sea;
+        j["enclosed_azi"] = azi;
     }
 }
 
@@ -91,9 +92,9 @@ void to_json(nlohmann::json& j, PolyPrism const& obj)
         SIO_ATTR_PAIR(obj, num_sides),
         SIO_ATTR_PAIR(obj, orientation),
     };
-    if (auto sea = obj.enclosed_angle())
+    if (auto azi = obj.enclosed_azi())
     {
-        j["enclosed_angle"] = sea;
+        j["enclosed_azi"] = azi;
     }
 }
 
@@ -113,14 +114,24 @@ void to_json(nlohmann::json& j, SolidBase const& obj)
     {
         j["excluded"] = *cr;
     }
-    if (auto sea = obj.enclosed_angle())
+    if (auto azi = obj.enclosed_azi())
     {
-        j["enclosed_angle"] = sea;
+        j["enclosed_azi"] = azi;
     }
     if (auto szs = obj.z_slab())
     {
         j["z_slab"] = szs;
     }
+}
+
+void to_json(nlohmann::json& j, StackedExtrudedPolygon const& cr)
+{
+    j = {
+        {"_type", "stackedextrudedpolygon"},
+        SIO_ATTR_PAIR(cr, polygon),
+        SIO_ATTR_PAIR(cr, polyline),
+        SIO_ATTR_PAIR(cr, scaling),
+    };
 }
 
 void to_json(nlohmann::json& j, Transformed const& obj)
@@ -144,9 +155,9 @@ void to_json(nlohmann::json& j, PolySegments const& ps)
     }
 }
 
-void to_json(nlohmann::json& j, SolidEnclosedAngle const& sea)
+void to_json(nlohmann::json& j, EnclosedAzi const& azi)
 {
-    j = {{"start", sea.start().value()}, {"interior", sea.interior().value()}};
+    j = {{"start", azi.start().value()}, {"interior", azi.interior().value()}};
 }
 
 void to_json(nlohmann::json& j, SolidZSlab const& szs)
@@ -196,6 +207,15 @@ void to_json(nlohmann::json& j, EllipticalCone const& cr)
          SIO_ATTR_PAIR(cr, lower_radii),
          SIO_ATTR_PAIR(cr, upper_radii),
          SIO_ATTR_PAIR(cr, halfheight)};
+}
+void to_json(nlohmann::json& j, ExtrudedPolygon const& cr)
+{
+    j = {{"_type", "extrudedpolygon"},
+         SIO_ATTR_PAIR(cr, polygon),
+         SIO_ATTR_PAIR(cr, bot_line_segment_point),
+         SIO_ATTR_PAIR(cr, top_line_segment_point),
+         SIO_ATTR_PAIR(cr, bot_scaling_factor),
+         SIO_ATTR_PAIR(cr, top_scaling_factor)};
 }
 void to_json(nlohmann::json& j, GenPrism const& cr)
 {

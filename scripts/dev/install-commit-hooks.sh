@@ -1,55 +1,29 @@
 #!/bin/sh -e
-###############################################################################
-# File  : scripts/dev/install-commit-hooks.sh
-#
-# Install a script to run git-clang-format after each commit.
-###############################################################################
+#-------------------------------- -*- sh -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
 
-if ! hash git-clang-format ; then
-  printf "\e[31mgit-clang-format is not installed.\e[0m
-Install clang-format and update your paths.
+if ! hash pre-commit 2>/dev/null ; then
+  printf "\e[31mpre-commit is not installed.\e[0m
+Install pre-commit and update your PATH.
 "
+  for pgm in brew pip yum dnf; do
+    if hash ${pgm} 2>/dev/null ; then
+      printf "\e[33;40mmaybe:\e[0m ${pgm} install pre-commit\n"
+    fi
+  done
+  printf "See \e[34;40mhttps://pre-commit.com\e[0m\n"
   exit 1
 fi
 
-install_hook () {
-if [ ! -f "$1" ]; then
-  printf "\e[33mCreating post-commit hook at $1.\e[0m\n"
-  echo "#!/bin/sh" > "$1"
-  chmod a+x "$1"
-fi
-}
-
-add_hook_scripts () {
-  SUFFIX=$1
-  HOOK=$2
-  BASE=$(basename $HOOK)
-  if ! grep $SUFFIX ${HOOK} >/dev/null ; then
-    printf "\e[33mAppending ${SUFFIX} call to ${HOOK}\e[0m\n"
-    cat >> "${HOOK}" << EOF
-GCF="\$(git rev-parse --show-toplevel)/scripts/dev/$BASE.$SUFFIX"
-test -x "\${GCF}" && "\${GCF}" "\$@"
-EOF
+HOOK_DIR="$(git rev-parse --git-common-dir)/hooks"
+for script in pre-commit post-commit; do
+  FILENAME="${HOOK_DIR}/${script}"
+  if grep -l "scripts/dev" "${FILENAME}" >/dev/null 2>&1; then
+    printf "\e[31mDisabling obsolete ${script} hook at ${FILENAME}.\e[0m\n"
+    mv "$FILENAME" "$FILENAME.disabled"
   fi
-}
+done
 
-GIT_WORK_TREE="$(git rev-parse --show-toplevel)"
-POSTCOMMIT=${GIT_WORK_TREE}/.git/hooks/post-commit
-PRECOMMIT=${GIT_WORK_TREE}/.git/hooks/pre-commit
-
-# Ensure a post-commit hook exists (Git LFS might have created one).
-install_hook "$POSTCOMMIT"
-install_hook "$PRECOMMIT"
-
-printf "\e[2;37mSetting clang format options in git config\e[0m\n"
-git config clangFormat.extension "cc,hh,h,cpp,hpp,cu,cuh"
-git config clangFormat.style "file"
-
-add_hook_scripts "git-clang-format" "$POSTCOMMIT"
-add_hook_scripts "validate-source" "$PRECOMMIT"
-
-printf "\e[0;32mCommit hooks successfully installed for ${GIT_WORK_TREE}\e[0m\n"
-
-###############################################################################
-# end of scripts/dev/install-commit-hooks.sh
-###############################################################################
+pre-commit install --install-hooks

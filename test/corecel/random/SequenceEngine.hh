@@ -61,6 +61,9 @@ class SequenceEngine
     size_type count() const { return i_; }
     size_type max_count() const { return values_.size(); }
 
+    //! False if the sequence is exhausted
+    explicit operator bool() const { return i_ != values_.size(); }
+
     //!@{
     //! \name Engine limits
     static constexpr result_type min() { return LimitsT::min(); }
@@ -79,16 +82,17 @@ class SequenceEngine
  * Specialization of GenerateCanonical for SequenceEngine.
  */
 template<class T>
-class GenerateCanonical<test::SequenceEngine, T>
+struct GenerateCanonical<test::SequenceEngine, T>
 {
-  public:
     //!@{
     //! \name Type aliases
     using real_type = T;
     using result_type = real_type;
     //!@}
 
-  public:
+    //! By default use standard library
+    static constexpr auto policy = GenerateCanonicalPolicy::custom;
+
     // Sample a random number
     inline result_type operator()(test::SequenceEngine& rng);
 };
@@ -164,7 +168,7 @@ SequenceEngine::SequenceEngine(VecResult values)
  */
 auto SequenceEngine::operator()() -> result_type
 {
-    if (CELER_UNLIKELY(i_ == values_.size()))
+    if (CELER_UNLIKELY(!*this))
     {
         // Always throw a debug error rather than letting the test crash
         throw DebugError{{DebugErrorType::precondition,

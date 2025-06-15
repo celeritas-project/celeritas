@@ -130,11 +130,11 @@ CELER_FUNCTION real_type UrbanMscHelper::calc_msc_mfp(Energy energy) const
  * This is an exact value based on the range claculation. It can be used to
  * find the exact energy loss over a step.
  */
-CELER_FUNCTION auto
-UrbanMscHelper::calc_inverse_range(real_type step) const -> Energy
+CELER_FUNCTION auto UrbanMscHelper::calc_inverse_range(real_type step) const
+    -> Energy
 {
     auto range_to_energy = physics_.make_calculator<InverseRangeCalculator>(
-        physics_.range_grid());
+        physics_.inverse_range_grid());
     return range_to_energy(step);
 }
 
@@ -151,12 +151,12 @@ CELER_FUNCTION real_type UrbanMscHelper::max_step() const
 /*!
  * Evaluate the kinetic energy at the end of a given msc step.
  */
-CELER_FUNCTION auto
-UrbanMscHelper::calc_end_energy(real_type step) const -> Energy
+CELER_FUNCTION auto UrbanMscHelper::calc_end_energy(real_type step) const
+    -> Energy
 {
     CELER_EXPECT(step <= physics_.dedx_range());
     real_type range = physics_.dedx_range();
-    if (step <= range * shared_.params.dtrl())
+    if (step <= range * shared_.params.small_range_frac)
     {
         // Assume constant energy loss rate over the step
         real_type dedx = physics_.make_calculator<EnergyLossCalculator>(

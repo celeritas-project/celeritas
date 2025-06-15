@@ -228,17 +228,40 @@ TEST_F(RootJsonDumperTest, all)
       "model_class" : 13,
       "materials" : [{
         "_typename" : "celeritas::ImportModelMaterial",
-        "energy" : [1e-4, 100000000],
+        "energy" : {
+          "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
+          "data_" : [1e-4, 100000000]
+        },
         "micro_xs" : []
       }, {
         "_typename" : "celeritas::ImportModelMaterial",
-        "energy" : [1e-4, 100000000],
+        "energy" : {
+          "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
+          "data_" : [1e-4, 100000000]
+        },
         "micro_xs" : []
       }],
       "low_energy_limit" : 1e-4,
       "high_energy_limit" : 100000000
     }],
-    "tables" : [],
+    "lambda" : {
+      "_typename" : "celeritas::ImportPhysicsTable",
+      "x_units" : 0,
+      "y_units" : 0,
+      "grids" : []
+    },
+    "lambda_prim" : {
+      "_typename" : "celeritas::ImportPhysicsTable",
+      "x_units" : 0,
+      "y_units" : 0,
+      "grids" : []
+    },
+    "dedx" : {
+      "_typename" : "celeritas::ImportPhysicsTable",
+      "x_units" : 0,
+      "y_units" : 0,
+      "grids" : []
+    },
     "applies_at_rest" : true
   }, {
     "_typename" : "celeritas::ImportProcess",
@@ -251,33 +274,105 @@ TEST_F(RootJsonDumperTest, all)
       "model_class" : 20,
       "materials" : [{
         "_typename" : "celeritas::ImportModelMaterial",
-        "energy" : [100, 100000000],
-        "micro_xs" : [[1.44873278987692e-29, 3.86367883566152e-29]]
+        "energy" : {
+          "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
+          "data_" : [100, 100000000]
+        },
+        "micro_xs" : [{
+          "_typename" : "celeritas::inp::UniformGrid",
+          "x" : {
+            "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
+            "data_" : [4.60517018598809, 18.4206807439524]
+          },
+          "y" : [1.44873278987692e-29, 3.86367883566152e-29],
+          "interpolation" : {
+            "_typename" : "celeritas::inp::Interpolation",
+            "type" : 0,
+            "order" : 1,
+            "bc" : 2
+          }
+        }]
       }, {
         "_typename" : "celeritas::ImportModelMaterial",
-        "energy" : [100, 100000000],
-        "micro_xs" : [[3.00641640152192e-27, 8.8885205839549e-27], [3.46220315764337e-27, 1.02199532648639e-26]]
+        "energy" : {
+          "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
+          "data_" : [100, 100000000]
+        },
+        "micro_xs" : [{
+          "_typename" : "celeritas::inp::UniformGrid",
+          "x" : {
+            "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
+            "data_" : [4.60517018598809, 18.4206807439524]
+          },
+          "y" : [3.00641640152192e-27, 8.8885205839549e-27],
+          "interpolation" : {
+            "_typename" : "celeritas::inp::Interpolation",
+            "type" : 0,
+            "order" : 1,
+            "bc" : 2
+          }
+        }, {
+          "_typename" : "celeritas::inp::UniformGrid",
+          "x" : {
+            "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
+            "data_" : [4.60517018598809, 18.4206807439524]
+          },
+          "y" : [3.46220315764337e-27, 1.02199532648639e-26],
+          "interpolation" : {
+            "_typename" : "celeritas::inp::Interpolation",
+            "type" : 0,
+            "order" : 1,
+            "bc" : 2
+          }
+        }]
       }],
       "low_energy_limit" : 1e-4,
       "high_energy_limit" : 100000000
     }],
-    "tables" : [{
+    "lambda" : {
       "_typename" : "celeritas::ImportPhysicsTable",
-      "table_type" : 0,
       "x_units" : 1,
       "y_units" : 4,
-      "physics_vectors" : [{
-        "_typename" : "celeritas::ImportPhysicsVector",
-        "vector_type" : 2,
-        "x" : [100, 100000000],
-        "y" : [0, 2.30843109957244e-30]
+      "grids" : [{
+        "_typename" : "celeritas::inp::UniformGrid",
+        "x" : {
+          "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
+          "data_" : [4.60517018598809, 18.4206807439524]
+        },
+        "y" : [0, 2.30843109957244e-30],
+        "interpolation" : {
+          "_typename" : "celeritas::inp::Interpolation",
+          "type" : 0,
+          "order" : 1,
+          "bc" : 2
+        }
       }, {
-        "_typename" : "celeritas::ImportPhysicsVector",
-        "vector_type" : 2,
-        "x" : [100, 100000000],
-        "y" : [0, 7.63129425045843e-4]
+        "_typename" : "celeritas::inp::UniformGrid",
+        "x" : {
+          "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
+          "data_" : [4.60517018598809, 18.4206807439524]
+        },
+        "y" : [0, 7.63129425045843e-4],
+        "interpolation" : {
+          "_typename" : "celeritas::inp::Interpolation",
+          "type" : 0,
+          "order" : 1,
+          "bc" : 2
+        }
       }]
-    }],
+    },
+    "lambda_prim" : {
+      "_typename" : "celeritas::ImportPhysicsTable",
+      "x_units" : 0,
+      "y_units" : 0,
+      "grids" : []
+    },
+    "dedx" : {
+      "_typename" : "celeritas::ImportPhysicsTable",
+      "x_units" : 0,
+      "y_units" : 0,
+      "grids" : []
+    },
     "applies_at_rest" : false
   }],
   "msc_models" : [{
@@ -286,19 +381,34 @@ TEST_F(RootJsonDumperTest, all)
     "model_class" : 3,
     "xs_table" : {
       "_typename" : "celeritas::ImportPhysicsTable",
-      "table_type" : 4,
       "x_units" : 1,
       "y_units" : 6,
-      "physics_vectors" : [{
-        "_typename" : "celeritas::ImportPhysicsVector",
-        "vector_type" : 2,
-        "x" : [1e-4, 100],
-        "y" : [3.64953143614647e-27, 1.39709799580588e-25]
+      "grids" : [{
+        "_typename" : "celeritas::inp::UniformGrid",
+        "x" : {
+          "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
+          "data_" : [-9.21034037197618, 4.60517018598809]
+        },
+        "y" : [3.64953143614647e-27, 1.39709799580588e-25],
+        "interpolation" : {
+          "_typename" : "celeritas::inp::Interpolation",
+          "type" : 0,
+          "order" : 1,
+          "bc" : 2
+        }
       }, {
-        "_typename" : "celeritas::ImportPhysicsVector",
-        "vector_type" : 2,
-        "x" : [1e-4, 100],
-        "y" : [0.0919755519795958, 128.588033594672]
+        "_typename" : "celeritas::inp::UniformGrid",
+        "x" : {
+          "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
+          "data_" : [-9.21034037197618, 4.60517018598809]
+        },
+        "y" : [0.0919755519795958, 128.588033594672],
+        "interpolation" : {
+          "_typename" : "celeritas::inp::Interpolation",
+          "type" : 0,
+          "order" : 1,
+          "bc" : 2
+        }
       }]
     }
   }, {
@@ -307,19 +417,34 @@ TEST_F(RootJsonDumperTest, all)
     "model_class" : 5,
     "xs_table" : {
       "_typename" : "celeritas::ImportPhysicsTable",
-      "table_type" : 4,
       "x_units" : 1,
       "y_units" : 6,
-      "physics_vectors" : [{
-        "_typename" : "celeritas::ImportPhysicsVector",
-        "vector_type" : 2,
-        "x" : [100, 100000000],
-        "y" : [1.5060677760307e-25, 1.59603068918702e-25]
+      "grids" : [{
+        "_typename" : "celeritas::inp::UniformGrid",
+        "x" : {
+          "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
+          "data_" : [4.60517018598809, 18.4206807439524]
+        },
+        "y" : [1.5060677760307e-25, 1.59603068918702e-25],
+        "interpolation" : {
+          "_typename" : "celeritas::inp::Interpolation",
+          "type" : 0,
+          "order" : 1,
+          "bc" : 2
+        }
       }, {
-        "_typename" : "celeritas::ImportPhysicsVector",
-        "vector_type" : 2,
-        "x" : [100, 100000000],
-        "y" : [114.932650722669, 116.590357663561]
+        "_typename" : "celeritas::inp::UniformGrid",
+        "x" : {
+          "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
+          "data_" : [4.60517018598809, 18.4206807439524]
+        },
+        "y" : [114.932650722669, 116.590357663561],
+        "interpolation" : {
+          "_typename" : "celeritas::inp::Interpolation",
+          "type" : 0,
+          "order" : 1,
+          "bc" : 2
+        }
       }]
     }
   }],
@@ -330,13 +455,13 @@ TEST_F(RootJsonDumperTest, all)
   "mu_pair_production_data" : {
     "_typename" : "celeritas::ImportMuPairProductionTable",
     "atomic_number" : [1, 92],
-    "physics_vectors" : [{
-      "_typename" : "celeritas::ImportPhysics2DVector",
+    "grids" : [{
+      "_typename" : "celeritas::inp::TwodGrid",
       "x" : [6.74523634948436, 18.4206807439524],
       "y" : [-6.03032981021759, 0],
       "value" : [0, 2.97408672967084e-28, 0, 2.43638436260564e-25]
     }, {
-      "_typename" : "celeritas::ImportPhysics2DVector",
+      "_typename" : "celeritas::inp::TwodGrid",
       "x" : [6.74523634948436, 18.4206807439524],
       "y" : [-6.03032981021759, 0],
       "value" : [0, 2.39787798860303e-24, 0, 7.93413967608236e-22]
@@ -392,7 +517,9 @@ TEST_F(RootJsonDumperTest, all)
   },
   "optical_params" : {
     "_typename" : "celeritas::ImportOpticalParameters",
-    "scintillation_by_particle" : false
+    "scintillation_by_particle" : false,
+    "wls_time_profile" : 0,
+    "wls2_time_profile" : 0
   },
   "optical_models" : [],
   "optical_materials" : [],

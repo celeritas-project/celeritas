@@ -18,6 +18,9 @@
 #include "corecel/math/Constant.hh"
 #include "corecel/math/SoftEqual.hh"
 
+#include "../AssertionHelper.hh"
+#include "gtest/gtest.h"
+
 namespace celeritas
 {
 namespace testdetail
@@ -92,6 +95,25 @@ struct SoftPrecisionType<Constant, Constant>
 {
     using type = double;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a soft comparison function from a \c SOFT_NEAR argument.
+ *
+ * If a floating point value, it defaults to
+ */
+template<class VT, class CT>
+constexpr auto soft_comparator(CT&& cmp_or_tol)
+{
+    if constexpr (std::is_floating_point_v<std::remove_reference_t<CT>>)
+    {
+        return EqualOr<SoftEqual<VT>>{static_cast<VT>(cmp_or_tol)};
+    }
+    else
+    {
+        return std::forward<CT>(cmp_or_tol);
+    }
+}
 
 //---------------------------------------------------------------------------//
 //! Whether soft equivalence can be performed on the given types.
@@ -170,13 +192,13 @@ template<class Value_E, class Value_A>
 /*!
  * Predicate for relative error soft equivalence.
  */
-template<class Value_E, class Value_A, class Value_R>
+template<class Value_E, class Value_A, class T>
 ::testing::AssertionResult IsSoftEquiv(char const* expected_expr,
                                        char const* actual_expr,
                                        char const*,
                                        Value_E&& expected,
                                        Value_A&& actual,
-                                       Value_R rel)
+                                       T&& cmp_or_tol)
 {
     using VE = std::remove_cv_t<std::remove_reference_t<Value_E>>;
     using VA = std::remove_cv_t<std::remove_reference_t<Value_A>>;
@@ -186,13 +208,13 @@ template<class Value_E, class Value_A, class Value_R>
 
     // Construct with automatic or specified tolerances
     using ValueT = typename SoftPrecisionType<VE, VA>::type;
-    using BinaryOp = EqualOr<SoftEqual<ValueT>>;
 
-    return IsSoftEquivImpl(static_cast<ValueT>(expected),
-                           expected_expr,
-                           static_cast<ValueT>(actual),
-                           actual_expr,
-                           BinaryOp{static_cast<ValueT>(rel)});
+    return IsSoftEquivImpl(
+        static_cast<ValueT>(expected),
+        expected_expr,
+        static_cast<ValueT>(actual),
+        actual_expr,
+        soft_comparator<ValueT>(std::forward<T>(cmp_or_tol)));
 }
 
 //---------------------------------------------------------------------------//
@@ -244,6 +266,68 @@ struct FVIT
     using type = FailedValue<first_type, second_type>;
     using Vec_t = std::vector<type>;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Check if type T is a container that needs recursive checking.
+ */
+template<class T, class = void>
+struct IsContainer : std::false_type
+{
+};
+
+template<>
+struct IsContainer<std::string> : std::false_type
+{
+};
+
+template<class T>
+struct IsContainer<T, std::void_t<typename T::const_iterator>> : std::true_type
+{
+};
+
+template<typename T, std::size_t N>
+struct IsContainer<T[N]> : std::true_type
+{
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the type of a container.
+ */
+template<class T, class = void>
+struct ValueType
+{
+    using type = typename T::value_type;
+};
+
+template<class T, std::size_t N>
+struct ValueType<T[N]>
+{
+    using type = T;
+};
+
+template<class T>
+using ValueTypeT = typename ValueType<T>::type;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Recursively get the underlying scalar type of a container.
+ */
+template<class T, class = void>
+struct ScalarValueType
+{
+    using type = T;
+};
+
+template<class T>
+struct ScalarValueType<T, std::enable_if_t<IsContainer<T>::value>>
+{
+    using type = typename ScalarValueType<ValueTypeT<T>>::type;
+};
+
+template<class T>
+using ScalarValueTypeT = typename ScalarValueType<T>::type;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -319,37 +403,70 @@ template<class ContainerE, class ContainerA, class BinaryOp>
                                               char const* actual_expr,
                                               BinaryOp comp)
 {
-    using Traits_t = TCT<ContainerE, ContainerA>;
-    using Failed_t = FailedValue<typename Traits_t::first_type,
-                                 typename Traits_t::second_type>;
-    std::vector<Failed_t> failures;
-    ::testing::AssertionResult result = IsRangeEqImpl(std::begin(expected),
-                                                      std::end(expected),
-                                                      expected_expr,
-                                                      std::begin(actual),
-                                                      std::end(actual),
-                                                      actual_expr,
-                                                      failures,
-                                                      comp);
-
-    if (!result)
+    if constexpr (IsContainer<ValueTypeT<ContainerE>>::value
+                  && IsContainer<ValueTypeT<ContainerA>>::value)
     {
-        if (failures.empty())
+        // Handle nested containers recursively
+        auto exp_size = std::distance(std::begin(expected), std::end(expected));
+        auto act_size = std::distance(std::begin(actual), std::end(actual));
+
+        if (exp_size != act_size)
         {
-            // Size was different; print the actual vector
-            result << "Actual values: " << repr(actual) << ";\n";
+            ::testing::AssertionResult failure = ::testing::AssertionFailure();
+
+            failure << " Size of: " << actual_expr
+                    << "\n  Actual: " << act_size
+                    << "\nExpected: " << expected_expr
+                    << ".size()\nWhich is: " << exp_size << '\n';
+            return failure;
         }
-        else
+
+        for (auto i : range(exp_size))
         {
-            // Inform user of failing tolerance
-            result << "by " << comp.rel() << " relative error or "
-                   << comp.abs() << " absolute error\n";
-            // Print indices that were different
-            result << float_failure_msg(
-                expected_expr, actual_expr, failures, comp.abs());
+            auto result = IsVecSoftEquivImpl(
+                expected[i], expected_expr, actual[i], actual_expr, comp);
+            if (!result)
+            {
+                return result;
+            }
         }
+        return ::testing::AssertionSuccess();
     }
-    return result;
+    else
+    {
+        using Traits_t = TCT<ContainerE, ContainerA>;
+        using Failed_t = FailedValue<typename Traits_t::first_type,
+                                     typename Traits_t::second_type>;
+        std::vector<Failed_t> failures;
+
+        ::testing::AssertionResult result = IsRangeEqImpl(std::begin(expected),
+                                                          std::end(expected),
+                                                          expected_expr,
+                                                          std::begin(actual),
+                                                          std::end(actual),
+                                                          actual_expr,
+                                                          failures,
+                                                          comp);
+
+        if (!result)
+        {
+            if (failures.empty())
+            {
+                // Size was different; print the actual vector
+                result << "Actual values: " << repr(actual) << ";\n";
+            }
+            else
+            {
+                // Inform user of failing tolerance
+                result << "by " << comp.rel() << " relative error or "
+                       << comp.abs() << " absolute error\n";
+                // Print indices that were different
+                result << float_failure_msg(
+                    expected_expr, actual_expr, failures, comp.abs());
+            }
+        }
+        return result;
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -481,35 +598,67 @@ template<class ContainerE, class ContainerA>
                                    ContainerE const& expected,
                                    ContainerA const& actual)
 {
-    using Traits_t = TCT<ContainerE, ContainerA>;
-
-    typename Traits_t::VecFailedValue failures;
-
-    ::testing::AssertionResult result
-        = IsRangeEqImpl(std::begin(expected),
-                        std::end(expected),
-                        expected_expr,
-                        std::begin(actual),
-                        std::end(actual),
-                        actual_expr,
-                        failures,
-                        std::equal_to<typename Traits_t::common_type>());
-
-    if (!result)
+    if constexpr (IsContainer<ValueTypeT<ContainerE>>::value
+                  && IsContainer<ValueTypeT<ContainerA>>::value)
     {
-        if (failures.empty())
-        {
-            // Size was different; print the actual vector
-            result << "Actual values: " << repr(actual) << ";\n";
-        }
-        else
-        {
-            // Print indices that were different
-            result << failure_msg(expected_expr, actual_expr, failures);
-        }
-    }
+        // Handle nested containers recursively
+        auto exp_size = std::distance(std::begin(expected), std::end(expected));
+        auto act_size = std::distance(std::begin(actual), std::end(actual));
 
-    return result;
+        if (exp_size != act_size)
+        {
+            ::testing::AssertionResult failure = ::testing::AssertionFailure();
+
+            failure << " Size of: " << actual_expr
+                    << "\n  Actual: " << act_size
+                    << "\nExpected: " << expected_expr
+                    << ".size()\nWhich is: " << exp_size << '\n';
+            return failure;
+        }
+
+        for (auto i : range(exp_size))
+        {
+            auto result
+                = IsVecEq(expected_expr, actual_expr, expected[i], actual[i]);
+            if (!result)
+            {
+                return result;
+            }
+        }
+        return ::testing::AssertionSuccess();
+    }
+    else
+    {
+        using Traits_t = TCT<ContainerE, ContainerA>;
+
+        typename Traits_t::VecFailedValue failures;
+
+        ::testing::AssertionResult result
+            = IsRangeEqImpl(std::begin(expected),
+                            std::end(expected),
+                            expected_expr,
+                            std::begin(actual),
+                            std::end(actual),
+                            actual_expr,
+                            failures,
+                            std::equal_to<typename Traits_t::common_type>());
+
+        if (!result)
+        {
+            if (failures.empty())
+            {
+                // Size was different; print the actual vector
+                result << "Actual values: " << repr(actual) << ";\n";
+            }
+            else
+            {
+                // Print indices that were different
+                result << failure_msg(expected_expr, actual_expr, failures);
+            }
+        }
+
+        return result;
+    }
 }
 
 //-------------------------------------------------------------------------//
@@ -522,11 +671,8 @@ template<class ContainerE, class ContainerA>
                                           ContainerE const& expected,
                                           ContainerA const& actual)
 {
-    using Traits_t = TCT<ContainerE, ContainerA>;
-    using value_type_E = typename Traits_t::first_type;
-    using value_type_A = typename Traits_t::second_type;
-
-    typename Traits_t::VecFailedValue failures;
+    using value_type_E = ScalarValueTypeT<ContainerE>;
+    using value_type_A = ScalarValueTypeT<ContainerA>;
 
     static_assert(can_soft_equiv<value_type_E, value_type_A>(),
                   "Invalid types for soft equivalence");
@@ -552,51 +698,15 @@ template<class ContainerE, class ContainerA, class T>
                                           char const*,
                                           ContainerE const& expected,
                                           ContainerA const& actual,
-                                          T rel)
+                                          T&& cmp_or_tol)
 {
-    using Traits_t = TCT<ContainerE, ContainerA>;
-    using value_type_E = typename Traits_t::first_type;
-    using value_type_A = typename Traits_t::second_type;
+    using value_type_E = ScalarValueTypeT<ContainerE>;
+    using value_type_A = ScalarValueTypeT<ContainerA>;
 
     static_assert(can_soft_equiv<value_type_E, value_type_A>(),
                   "Invalid types for soft equivalence");
 
     using ValueT = typename SoftPrecisionType<value_type_E, value_type_A>::type;
-    using BinaryOp = EqualOr<SoftEqual<ValueT>>;
-
-    // Construct with given tolerance
-    return IsVecSoftEquivImpl(expected,
-                              expected_expr,
-                              actual,
-                              actual_expr,
-                              BinaryOp{static_cast<ValueT>(rel)});
-}
-
-//-------------------------------------------------------------------------//
-/*!
- * Compare two containers using soft equivalence.
- *
- * Used by \c EXPECT_VEC_CLOSE.
- */
-template<class ContainerE, class ContainerA, class T>
-::testing::AssertionResult IsVecSoftEquiv(char const* expected_expr,
-                                          char const* actual_expr,
-                                          char const*,
-                                          char const*,
-                                          ContainerE const& expected,
-                                          ContainerA const& actual,
-                                          T rel,
-                                          T abs)
-{
-    using Traits_t = TCT<ContainerE, ContainerA>;
-    using value_type_E = typename Traits_t::first_type;
-    using value_type_A = typename Traits_t::second_type;
-
-    static_assert(can_soft_equiv<value_type_E, value_type_A>(),
-                  "Invalid types for soft equivalence");
-
-    using ValueT = typename SoftPrecisionType<value_type_E, value_type_A>::type;
-    using BinaryOp = EqualOr<SoftEqual<ValueT>>;
 
     // Construct with given tolerance
     return IsVecSoftEquivImpl(
@@ -604,7 +714,83 @@ template<class ContainerE, class ContainerA, class T>
         expected_expr,
         actual,
         actual_expr,
-        BinaryOp{static_cast<ValueT>(rel), static_cast<ValueT>(abs)});
+        soft_comparator<ValueT>(std::forward<T>(cmp_or_tol)));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Compare two vectors of reference values using a tolerance.
+ */
+template<class ContainerE, class ContainerA, class Tol>
+std::enable_if_t<IsContainer<ContainerE>::value && IsContainer<ContainerA>::value,
+                 ::testing::AssertionResult>
+IsRefEq(char const* expr1,
+        char const* expr2,
+        char const* tol_expr,
+        ContainerE const& val1,
+        ContainerA const& val2,
+        Tol const& tol)
+{
+    ::celeritas::test::AssertionHelper result{expr1, expr2};
+    using std::begin;
+    using std::end;
+
+    if (result.equal_size(std::distance(begin(val1), end(val1)),
+                          std::distance(begin(val2), end(val2))))
+    {
+        // Check each element
+        auto iter1 = begin(val1);
+        auto iter2 = begin(val2);
+        size_type i = 0;
+        size_type failures = 0;
+        constexpr size_type max_printable_failures = 10;
+        for (auto end1 = end(val1); iter1 != end1; ++i, ++iter1, ++iter2)
+        {
+            ::testing::AssertionResult item_result
+                = ::testing::AssertionSuccess();
+            if constexpr (!std::is_same_v<Tol, std::nullptr_t>)
+            {
+                // Compare with tolerance
+                item_result
+                    = IsRefEq(expr1, expr2, tol_expr, *iter1, *iter2, tol);
+            }
+            else
+            {
+                CELER_DISCARD(tol_expr);  // Needed for GCC 8.5
+                item_result = IsRefEq(expr1, expr2, *iter1, *iter2);
+            }
+            if (!item_result)
+            {
+                if (failures++ < max_printable_failures)
+                {
+                    result.fail() << item_result << "\n(Failed in element "
+                                  << i << " of " << expr2 << ")";
+                }
+            }
+        }
+        if (failures > max_printable_failures)
+        {
+            result.fail() << "(Suppressed "
+                          << failures - max_printable_failures
+                          << " additional failures)";
+        }
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Compare two vectors of reference values without a special tolerance.
+ */
+template<class ContainerE, class ContainerA>
+std::enable_if_t<IsContainer<ContainerE>::value && IsContainer<ContainerA>::value,
+                 ::testing::AssertionResult>
+IsRefEq(char const* expr1,
+        char const* expr2,
+        ContainerE const& val1,
+        ContainerA const& val2)
+{
+    return IsRefEq(expr1, expr2, nullptr, val1, val2, nullptr);
 }
 
 //---------------------------------------------------------------------------//

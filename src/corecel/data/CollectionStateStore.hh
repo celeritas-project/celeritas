@@ -62,6 +62,9 @@ class CollectionStateStore
     template<template<Ownership, MemSpace> class P>
     inline CollectionStateStore(HostCRef<P> const& p, size_type size);
 
+    // Construct without parameters and with stream ID
+    explicit inline CollectionStateStore(StreamId stream_id, size_type size);
+
     // Construct without parameters
     explicit inline CollectionStateStore(size_type size);
 
@@ -135,6 +138,24 @@ CollectionStateStore<S, M>::CollectionStateStore(HostCRef<P> const& p,
 {
     CELER_EXPECT(size > 0);
     resize(&val_, p, size);
+    CELER_ASSERT(val_);
+
+    // Save reference
+    ref_ = val_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with stream ID and without parameters.
+ *
+ * A few states are constructed with a \c resize function that doesn't depend
+ * on any parameter data.
+ */
+template<template<Ownership, MemSpace> class S, MemSpace M>
+CollectionStateStore<S, M>::CollectionStateStore(StreamId sid, size_type size)
+{
+    CELER_EXPECT(size > 0);
+    resize(&val_, sid, size);
     CELER_ASSERT(val_);
 
     // Save reference

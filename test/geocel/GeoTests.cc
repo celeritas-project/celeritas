@@ -13,6 +13,7 @@
 #include "corecel/math/Turn.hh"
 #include "corecel/sys/Version.hh"
 
+#include "GenericGeoResults.hh"
 #include "GenericGeoTestInterface.hh"
 #include "TestMacros.hh"
 #include "UnitUtils.hh"
@@ -49,12 +50,68 @@ BoundingBox<> calc_expected_bbox(std::string_view geo_type, Real3 lo, Real3 hi)
     return BoundingBox<>{lo, hi};
 }
 
+void fixup_orange(GenericGeoTestInterface const& interface,
+                  GenericGeoTrackingResult& ref,
+                  GenericGeoTrackingResult& result)
+{
+    if (interface.geometry_type() != "ORANGE")
+        return;
+
+    // Delete PV (not implemented)
+    ref.volume_instances.clear();
+
+    // Delete within-world safeties
+    for (auto i : range(std::max(ref.volumes.size(), result.volumes.size())))
+    {
+        if (ref.volumes[i] == "world")
+        {
+            result.halfway_safeties[i] = 0;
+            ref.halfway_safeties[i] = 0;
+        }
+    }
+}
+
+void delete_orange_safety(GenericGeoTestInterface const& interface,
+                          GenericGeoTrackingResult& ref,
+                          GenericGeoTrackingResult& result)
+{
+    if (interface.geometry_type() != "ORANGE")
+        return;
+
+    ref.halfway_safeties.clear();
+    result.halfway_safeties.clear();
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
 // CMS EE
 //---------------------------------------------------------------------------//
+void CmsEeBackDeeGeoTest::test_model() const
+{
+    auto result = test_->model_inp();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {"EEBackPlate",
+                         "EESRing",
+                         "EEBackQuad",
+                         "EEBackDee",
+                         "EEBackQuad_refl",
+                         "EEBackPlate_refl",
+                         "EESRing_refl"};
+    ref.volume.materials = {0, 0, 1, 1, 1, 0, 0};
+    ref.volume.daughters = {{}, {}, {0, 1}, {2, 5}, {3, 4}, {}, {}};
+    ref.volume_instance.labels = {"EEBackPlate@0",
+                                  "EESRing@0",
+                                  "EEBackQuad@0",
+                                  "EEBackPlate@1",
+                                  "EESRing@1",
+                                  "EEBackQuad@1",
+                                  "EEBackDee_PV"};
+    ref.volume_instance.volumes = {0, 1, 2, 5, 6, 4, 3};
+    EXPECT_RESULT_EQ(ref, result);
+}
+
 //! Test geometry accessors
 void CmsEeBackDeeGeoTest::test_accessors() const
 {
@@ -138,6 +195,85 @@ void CmsEeBackDeeGeoTest::test_trace() const
 //---------------------------------------------------------------------------//
 // CMSE
 //---------------------------------------------------------------------------//
+void CmseGeoTest::test_model() const
+{
+    auto result = test_->model_inp();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {
+        "CMStoZDC", "ZDCtoFP420", "Tracker", "CALO",    "MUON",
+        "BEAM",     "BEAM1",      "BEAM2",   "BEAM3",   "TrackerPixelNose",
+        "VCAL",     "TotemT1",    "TotemT2", "CastorF", "CastorB",
+        "OQUA",     "BSC2",       "ZDC",     "CMSE",    "OCMS",
+    };
+    ref.volume.materials = {
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    };
+    ref.volume.daughters = {
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {
+            0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
+            16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+        },
+        {31},
+    };
+    ref.volume_instance.labels = {
+        "CMStoZDC@0",
+        "CMStoZDC@1",
+        "ZDCtoFP420@0",
+        "ZDCtoFP420@1",
+        "Tracker",
+        "CALO",
+        "MUON",
+        "BEAM@0",
+        "BEAM@1",
+        "BEAM1@0",
+        "BEAM1@1",
+        "BEAM2@0",
+        "BEAM2@1",
+        "BEAM3@0",
+        "BEAM3@1",
+        "TrackerPixelNose@0",
+        "TrackerPixelNose@1",
+        "VCAL@0",
+        "VCAL@1",
+        "TotemT1@0",
+        "TotemT1@1",
+        "TotemT2@0",
+        "TotemT2@1",
+        "CastorF",
+        "CastorB",
+        "OQUA@0",
+        "OQUA@1",
+        "BSC2@0",
+        "BSC2@1",
+        "ZDC@0",
+        "ZDC@1",
+        "CMSE",
+        "OCMS_PV",
+    };
+    ref.volume_instance.volumes = {
+        0,  0,  1,  1,  2,  3,  4,  5,  5,  6,  6,  7,  7,  8,  8,  9,  9,
+        10, 10, 11, 11, 12, 12, 13, 14, 15, 15, 16, 16, 17, 17, 18, 19,
+    };
+    EXPECT_RESULT_EQ(ref, result);
+}
 
 void CmseGeoTest::test_trace() const
 {
@@ -235,6 +371,44 @@ void CmseGeoTest::test_trace() const
 }
 
 //---------------------------------------------------------------------------//
+// FOUR LEVELS
+//---------------------------------------------------------------------------//
+void FourLevelsGeoTest::test_model() const
+{
+    auto result = test_->model_inp();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {"Shape2", "Shape1", "Envelope", "World"};
+    ref.volume.materials = {0, 1, 2, 3};
+    ref.volume.daughters = {{}, {0}, {1}, {2, 3, 4, 5, 6, 7, 8, 9}};
+    ref.volume_instance.labels = {
+        "Shape2",
+        "Shape1",
+        "env1",
+        "env2",
+        "env3",
+        "env4",
+        "env5",
+        "env6",
+        "env7",
+        "env8",
+        "World_PV",
+    };
+    ref.volume_instance.volumes = {
+        0,
+        1,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        3,
+    };
+    EXPECT_RESULT_EQ(ref, result);
+}
+
 //! Test geometry accessors
 void FourLevelsGeoTest::test_accessors() const
 {
@@ -365,24 +539,18 @@ void FourLevelsGeoTest::test_trace() const
 }
 
 //---------------------------------------------------------------------------//
-//! Test geometry accessors
-void MultiLevelGeoTest::test_accessors() const
+// MULTI-LEVEL
+//---------------------------------------------------------------------------//
+void MultiLevelGeoTest::test_model() const
 {
-    auto const& geo = *test_->geometry_interface();
-    EXPECT_EQ(3, geo.max_depth());
-
-    static char const* const expected_vol_labels[] = {
-        "sph",
-        "tri",
-        "box",
-        "world",
-        "box_refl",
-        "sph_refl",
-        "tri_refl",
-    };
-    EXPECT_VEC_EQ(expected_vol_labels, test_->get_volume_labels());
-
-    static char const* const expected_vol_inst_labels[] = {
+    auto result = test_->model_inp();
+    GenericGeoModelInp ref;
+    ref.volume.labels
+        = {"sph", "tri", "box", "world", "box_refl", "sph_refl", "tri_refl"};
+    ref.volume.materials = {0, 0, 1, 0, 1, 0, 0};
+    ref.volume.daughters
+        = {{}, {}, {0, 1, 2}, {3, 4, 5, 6, 10}, {7, 8, 9}, {}, {}};
+    ref.volume_instance.labels = {
         "boxsph1@0",
         "boxsph2@0",
         "boxtri@0",
@@ -396,13 +564,21 @@ void MultiLevelGeoTest::test_accessors() const
         "topbox4",
         "world_PV",
     };
-    EXPECT_VEC_EQ(expected_vol_inst_labels,
-                  test_->get_volume_instance_labels());
-
-    if (test_->g4world())
-    {
-        EXPECT_VEC_EQ(expected_vol_inst_labels, test_->get_g4pv_labels());
-    }
+    ref.volume_instance.volumes = {
+        0,
+        0,
+        1,
+        2,
+        0,
+        2,
+        2,
+        5,
+        5,
+        6,
+        4,
+        3,
+    };
+    EXPECT_RESULT_EQ(ref, result);
 }
 
 //---------------------------------------------------------------------------//
@@ -410,6 +586,8 @@ void MultiLevelGeoTest::test_trace() const
 {
     // Surface VecGeom needs lower safety tolerance
     real_type const safety_tol = test_->safety_tol();
+
+    bool const is_orange = test_->geometry_type() == "ORANGE";
 
     {
         SCOPED_TRACE("high");
@@ -445,7 +623,10 @@ void MultiLevelGeoTest::test_trace() const
             "topbox1",
             "world_PV",
         };
-        EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
+        if (!is_orange)
+        {
+            EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
+        }
         static real_type const expected_distances[] = {
             2.4,
             3,
@@ -477,8 +658,11 @@ void MultiLevelGeoTest::test_trace() const
             1.6650635094611,
             3.25,
         };
-        EXPECT_VEC_NEAR(
-            expected_hw_safety, result.halfway_safeties, safety_tol);
+        if (!is_orange)
+        {
+            EXPECT_VEC_NEAR(
+                expected_hw_safety, result.halfway_safeties, safety_tol);
+        }
     }
     {
         SCOPED_TRACE("low");
@@ -510,7 +694,10 @@ void MultiLevelGeoTest::test_trace() const
             "topbox4",
             "world_PV",
         };
-        EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
+        if (!is_orange)
+        {
+            EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
+        }
         static real_type const expected_distances[] = {
             2.4,
             3,
@@ -538,13 +725,427 @@ void MultiLevelGeoTest::test_trace() const
             1.6650635094611,
             3.25,
         };
-        EXPECT_VEC_NEAR(
-            expected_hw_safety, result.halfway_safeties, safety_tol);
+        if (!is_orange)
+        {
+            EXPECT_VEC_NEAR(
+                expected_hw_safety, result.halfway_safeties, safety_tol);
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
+// OPTICAL SURFACES
+//---------------------------------------------------------------------------//
+void OpticalSurfacesGeoTest::test_model() const
+{
+    auto result = test_->model_inp();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {"lar_sphere", "tube1_mid", "tube2", "world"};
+    ref.volume.materials = {1, 2, 2, 3};
+    ref.volume.daughters = {{}, {}, {}, {0, 1, 2, 3}};
+    ref.volume_instance.labels = {
+        "lar_pv",
+        "tube2_below_pv",
+        "tube1_mid_pv",
+        "tube2_above_pv",
+        "world_PV",
+    };
+    ref.volume_instance.volumes = {0, 2, 1, 2, 3};
+    ref.surface.labels = {
+        "sphere_skin",
+        "tube2_skin",
+        "below_to_1",
+        "mid_to_below",
+        "mid_to_above",
+    };
+    ref.surface.volumes = {"0", "2", "1->2", "2->1", "2->3"};
+    EXPECT_RESULT_EQ(ref, result);
+}
+
+//---------------------------------------------------------------------------//
+void OpticalSurfacesGeoTest::test_trace() const
+{
+    {
+        SCOPED_TRACE("Through tubes");
+        auto result = test_->track({0, 0, -21}, {0, 0, 1});
+        static char const* const expected_volumes[]
+            = {"world", "tube2", "tube1_mid", "tube2", "world"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {1, 10, 20, 10, 80};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {0.5, 5, 10, 5, 40};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        SCOPED_TRACE("Across tube through lAr");
+        auto result = test_->track({-11, 0, 0}, {1, 0, 0});
+
+        static char const* const expected_volumes[]
+            = {"world", "tube1_mid", "world", "lar_sphere", "world"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {1, 20, 5, 10, 75};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {0.5, 10, 2.5, 5, 37.5};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+}
+
+//---------------------------------------------------------------------------//
+// POLYHEDRA
+//---------------------------------------------------------------------------//
+void PolyhedraGeoTest::test_model() const
+{
+    auto result = test_->model_inp();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {
+        "tri",
+        "tri_third",
+        "tri_half",
+        "tri_full",
+        "quad",
+        "quad_third",
+        "quad_half",
+        "quad_full",
+        "penta",
+        "penta_third",
+        "penta_half",
+        "penta_full",
+        "hex",
+        "hex_third",
+        "hex_half",
+        "hex_full",
+        "world",
+    };
+    ref.volume.materials = {
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+    };
+    ref.volume.daughters = {
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+        },
+    };
+    ref.volume_instance.labels = {
+        "tri0_pv",
+        "tri30_pv",
+        "tri60_pv",
+        "tri90_pv",
+        "quad0_pv",
+        "quad30_pv",
+        "quad60_pv",
+        "quad90_pv",
+        "penta0_pv",
+        "penta30_pv",
+        "penta60_pv",
+        "penta90_pv",
+        "hex0_pv",
+        "hex30_pv",
+        "hex60_pv",
+        "hex90_pv",
+        "world_PV",
+    };
+    ref.volume_instance.volumes = {
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+    };
+    EXPECT_RESULT_EQ(ref, result);
+}
+
+//---------------------------------------------------------------------------//
+void PolyhedraGeoTest::test_trace() const
+{
+    {
+        SCOPED_TRACE("tri");
+        auto result = test_->track({-6, 4.01, 0}, {1, 0, 0});
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
+            "world",
+            "tri",
+            "world",
+            "tri_third",
+            "world",
+            "tri_half",
+            "world",
+            "tri_full",
+            "world",
+        };
+        ref.volume_instances = {
+            "world_PV",
+            "tri0_pv",
+            "world_PV",
+            "tri30_pv",
+            "world_PV",
+            "tri60_pv",
+            "world_PV",
+            "tri90_pv",
+            "world_PV",
+        };
+        ref.distances = {
+            1,
+            2.9826794919243,
+            0.70352222243164,
+            2.3816157604626,
+            0.94950303325711,
+            2.9826794919243,
+            2,
+            2.9826794919243,
+            10.017320508076,
+        };
+        ref.halfway_safeties = {
+            0.5,
+            0.74566987298108,
+            0.26946464455223,
+            0.91221175947349,
+            0.44612049688277,
+            0.74566987298108,
+            1,
+            0.74566987298108,
+            4.5,
+        };
+        ref.bumps = {};
+        fixup_orange(*test_, ref, result);
+        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        EXPECT_RESULT_NEAR(ref, result, tol);
+    }
+    {
+        SCOPED_TRACE("quad");
+        auto result = test_->track({-6, 0.01, 0}, {1, 0, 0});
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
+            "world",
+            "quad",
+            "world",
+            "quad_third",
+            "world",
+            "quad_half",
+            "world",
+            "quad_full",
+            "world",
+        };
+        ref.volume_instances = {
+            "world_PV",
+            "quad0_pv",
+            "world_PV",
+            "quad30_pv",
+            "world_PV",
+            "quad60_pv",
+            "world_PV",
+            "quad90_pv",
+            "world_PV",
+        };
+        ref.distances = {
+            0.5957864376269,
+            2.8084271247462,
+            1.5631897491411,
+            2.0705523608202,
+            1.9620443276656,
+            2,
+            1.5957864376269,
+            2.8084271247462,
+            10.595786437627,
+        };
+        ref.halfway_safeties = {
+            0.28806684196341,
+            0.99292893218813,
+            0.75496267504288,
+            0.9896472381959,
+            0.94759464420809,
+            0.99,
+            0.78795667663408,
+            0.99292893218813,
+            4.5,
+        };
+        ref.bumps = {};
+        fixup_orange(*test_, ref, result);
+        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        EXPECT_RESULT_NEAR(ref, result, tol);
+    }
+    {
+        SCOPED_TRACE("penta");
+        auto result = test_->track({-6, -4.01, 0}, {1, 0, 0});
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
+            "world",
+            "penta",
+            "world",
+            "penta_third",
+            "world",
+            "penta_half",
+            "world",
+            "penta_full",
+            "world",
+        };
+        ref.volume_instances = {
+            "world_PV",
+            "penta0_pv",
+            "world_PV",
+            "penta30_pv",
+            "world_PV",
+            "penta60_pv",
+            "world_PV",
+            "penta90_pv",
+            "world_PV",
+        };
+        ref.distances = {
+            1,
+            2.2288025522197,
+            1.6810134561273,
+            2.1103990209013,
+            1.7509824185319,
+            2.2288025522197,
+            2,
+            2.2288025522197,
+            10.77119744778,
+        };
+        ref.halfway_safeties = {
+            0.5,
+            0.90156957092601,
+            0.76944173562526,
+            0.96397271967888,
+            0.85635962580704,
+            0.90156957092601,
+            1,
+            0.90156957092601,
+            4.5,
+        };
+        ref.bumps = {};
+        fixup_orange(*test_, ref, result);
+        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        EXPECT_RESULT_NEAR(ref, result, tol);
+    }
+    {
+        SCOPED_TRACE("hex");
+        auto result = test_->track({-6, -8.01, 0}, {1, 0, 0});
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
+            "world",
+            "hex",
+            "world",
+            "hex_third",
+            "world",
+            "hex_half",
+            "world",
+            "hex_full",
+            "world",
+        };
+        ref.volume_instances = {
+            "world_PV",
+            "hex0_pv",
+            "world_PV",
+            "hex30_pv",
+            "world_PV",
+            "hex60_pv",
+            "world_PV",
+            "hex90_pv",
+            "world_PV",
+        };
+        ref.distances = {
+            0.85107296431264,
+            2.2978540713747,
+            1.8338830826198,
+            2.0308532237715,
+            1.9863366579213,
+            2,
+            1.8510729643126,
+            2.2978540713747,
+            10.851072964313,
+        };
+        ref.halfway_safeties = {
+            0.41988207740847,
+            0.99,
+            0.90301113894096,
+            0.99120614758428,
+            0.97807987040665,
+            0.99133974596216,
+            0.9198173396894,
+            0.99,
+            4.5,
+        };
+        ref.bumps = {};
+        fixup_orange(*test_, ref, result);
+        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        EXPECT_RESULT_NEAR(ref, result, tol);
     }
 }
 
 //---------------------------------------------------------------------------//
 // REPLICA
+//---------------------------------------------------------------------------//
+void ReplicaGeoTest::test_model() const
+{
+    auto result = test_->model_inp();
+    // clang-format off
+    GenericGeoModelInp ref;
+    ref.volume.labels = {"magnetic", "hodoscope1", "wirePlane1", "chamber1", "firstArm", "hodoscope2", "wirePlane2", "chamber2", "cell", "EMcalorimeter", "HadCalScinti", "HadCalLayer", "HadCalCell", "HadCalColumn", "HadCalorimeter", "secondArm", "world",};
+    ref.volume.materials = {0, 1, 2, 2, 0, 1, 2, 2, 3, 3, 1, 4, 4, 4, 4, 0, 0,};
+    ref.volume.daughters = {{}, {}, {}, {0}, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,}, {}, {}, {21}, {}, {22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22,}, {}, {23}, {24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,}, {25, 25}, {26, 26, 26, 26, 26, 26, 26, 26, 26, 26,}, {27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58,}, {59, 60, 61},};
+    ref.volume_instance.labels = {"wirePlane1", "hodoscope1@0", "hodoscope1@1", "hodoscope1@2", "hodoscope1@3", "hodoscope1@4", "hodoscope1@5", "hodoscope1@6", "hodoscope1@7", "hodoscope1@8", "hodoscope1@9", "hodoscope1@10", "hodoscope1@11", "hodoscope1@12", "hodoscope1@13", "hodoscope1@14", "chamber1@0", "chamber1@1", "chamber1@2", "chamber1@3", "chamber1@4", "wirePlane2", "cell_param", "HadCalScinti", "HadCalLayer_PV", "HadCalCell_PV", "HadCalColumn_PV", "hodoscope2@0", "hodoscope2@1", "hodoscope2@2", "hodoscope2@3", "hodoscope2@4", "hodoscope2@5", "hodoscope2@6", "hodoscope2@7", "hodoscope2@8", "hodoscope2@9", "hodoscope2@10", "hodoscope2@11", "hodoscope2@12", "hodoscope2@13", "hodoscope2@14", "hodoscope2@15", "hodoscope2@16", "hodoscope2@17", "hodoscope2@18", "hodoscope2@19", "hodoscope2@20", "hodoscope2@21", "hodoscope2@22", "hodoscope2@23", "hodoscope2@24", "chamber2@0", "chamber2@1", "chamber2@2", "chamber2@3", "chamber2@4", "EMcalorimeter", "HadCalorimeter", "magnetic", "firstArm", "fSecondArmPhys", "world_PV",};
+    ref.volume_instance.volumes = {2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 6, 8, 10, 11, 12, 13, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 7, 7, 7, 7, 9, 14, 0, 4, 15, 16,};
+    // clang-format on
+    EXPECT_RESULT_EQ(ref, result);
+}
+
 //---------------------------------------------------------------------------//
 
 void ReplicaGeoTest::test_trace() const
@@ -646,6 +1247,8 @@ void ReplicaGeoTest::test_trace() const
             150,
         };
         ref.bumps = {};
+        fixup_orange(*test_, ref, result);
+        delete_orange_safety(*test_, ref, result);
         auto tol = GenericGeoTrackingTolerance::from_test(*test_);
         tol.distance *= 10;  // 2e-12 diff between g4, vg
         EXPECT_RESULT_NEAR(ref, result, tol);
@@ -842,6 +1445,8 @@ void ReplicaGeoTest::test_trace() const
             131.90432759775,
         };
         ref.bumps = {};
+        fixup_orange(*test_, ref, result);
+        delete_orange_safety(*test_, ref, result);
         auto tol = GenericGeoTrackingTolerance::from_test(*test_);
         tol.distance *= 10;  // 2e-12 diff between g4, vg
         EXPECT_RESULT_NEAR(ref, result, tol);
@@ -1257,6 +1862,31 @@ void SolidsGeoTest::test_trace() const
 //---------------------------------------------------------------------------//
 // SIMPLE CMS
 //---------------------------------------------------------------------------//
+void SimpleCmsGeoTest::test_model() const
+{
+    auto result = test_->model_inp();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {"vacuum_tube",
+                         "si_tracker",
+                         "em_calorimeter",
+                         "had_calorimeter",
+                         "sc_solenoid",
+                         "fe_muon_chambers",
+                         "world"};
+    ref.volume.materials = {0, 1, 2, 3, 4, 5, 0};
+    ref.volume.daughters = {{}, {}, {}, {}, {}, {}, {0, 1, 2, 3, 4, 5}};
+    ref.volume_instance.labels = {"vacuum_tube_pv",
+                                  "si_tracker_pv",
+                                  "em_calorimeter_pv",
+                                  "had_calorimeter_pv",
+                                  "sc_solenoid_pv",
+                                  "iron_muon_chambers_pv",
+                                  "world_PV"};
+    ref.volume_instance.volumes = {0, 1, 2, 3, 4, 5, 6};
+    EXPECT_RESULT_EQ(ref, result);
+}
+
+//---------------------------------------------------------------------------//
 void SimpleCmsGeoTest::test_trace() const
 {
     bool const is_orange = test_->geometry_type() == "ORANGE";
@@ -1438,6 +2068,19 @@ void TestEm3FlatGeoTest::test_trace() const
 //---------------------------------------------------------------------------//
 // TRANSFORMED BOX
 //---------------------------------------------------------------------------//
+void TransformedBoxGeoTest::test_model() const
+{
+    auto result = test_->model_inp();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {"simple", "tiny", "enclosing", "world"};
+    ref.volume.materials = {0, 0, 0, 0};
+    ref.volume.daughters = {{}, {}, {0}, {1, 2, 3}};
+    ref.volume_instance.labels
+        = {"rot", "transrot", "default", "trans", "world_PV"};
+    ref.volume_instance.volumes = {1, 0, 2, 0, 3};
+    EXPECT_RESULT_EQ(ref, result);
+}
+
 //! Test geometry accessors
 void TransformedBoxGeoTest::test_accessors() const
 {
@@ -1611,6 +2254,18 @@ void TransformedBoxGeoTest::test_trace() const
 //---------------------------------------------------------------------------//
 // TRANSFORMED BOX
 //---------------------------------------------------------------------------//
+void TwoBoxesGeoTest::test_model() const
+{
+    auto result = test_->model_inp();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {"inner", "world"};
+    ref.volume.materials = {-1, -1};
+    ref.volume.daughters = {{}, {0}};
+    ref.volume_instance.labels = {"inner_PV", "world_PV"};
+    ref.volume_instance.volumes = {0, 1};
+    EXPECT_RESULT_EQ(ref, result);
+}
+
 //! Test geometry accessors
 void TwoBoxesGeoTest::test_accessors() const
 {
@@ -1643,6 +2298,122 @@ void TwoBoxesGeoTest::test_trace() const
 //---------------------------------------------------------------------------//
 // ZNENV
 //---------------------------------------------------------------------------//
+void ZnenvGeoTest::test_model() const
+{
+    auto result = test_->model_inp();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {
+        "ZNF1",
+        "ZNG1",
+        "ZNF2",
+        "ZNG2",
+        "ZNF3",
+        "ZNG3",
+        "ZNF4",
+        "ZNG4",
+        "ZNST",
+        "ZNSL",
+        "ZN1",
+        "ZNTX",
+        "ZNEU",
+        "ZNENV",
+        "World",
+    };
+    ref.volume.materials = {
+        0,
+        1,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1,
+        2,
+        2,
+        2,
+        2,
+        2,
+        3,
+        3,
+    };
+    ref.volume.daughters = {
+        {},
+        {0},
+        {},
+        {1},
+        {},
+        {2},
+        {},
+        {3},
+        {4, 5, 6, 7},
+        {
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+        },
+        {
+            9,
+            9,
+            9,
+            9,
+            9,
+            9,
+            9,
+            9,
+            9,
+            9,
+            9,
+        },
+        {10, 10},
+        {11, 11},
+        {12},
+        {13},
+    };
+    ref.volume_instance.labels = {
+        "ZNF1_1",
+        "ZNF2_1",
+        "ZNF3_1",
+        "ZNF4_1",
+        "ZNG1_1",
+        "ZNG2_1",
+        "ZNG3_1",
+        "ZNG4_1",
+        "ZNST_PV",
+        "ZNSL_PV",
+        "ZN1_PV",
+        "ZNTX_PV",
+        "ZNEU_1",
+        "WorldBoxPV",
+        "World_PV",
+    };
+    ref.volume_instance.volumes = {
+        0,
+        2,
+        4,
+        6,
+        1,
+        3,
+        5,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+    };
+    EXPECT_RESULT_EQ(ref, result);
+}
+
 void ZnenvGeoTest::test_trace() const
 {
     // NOTE: This tests the capability of the G4PVDivision conversion based on

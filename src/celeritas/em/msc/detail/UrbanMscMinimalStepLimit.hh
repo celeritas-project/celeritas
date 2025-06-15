@@ -30,6 +30,11 @@ namespace detail
  * \note This code performs the same method as in ComputeTruePathLengthLimit
  * of G4UrbanMscModel, as documented in section 8.1.6 of \cite{g4prm}
  * or \citet{urban-msc-2006, https://cds.cern.ch/record/1004190/}.
+ *
+ * \todo Here and \c UrbanMscSafetyStepLimit should simply calculate \c limit
+ * and \c limit_min; the caller should skip sampling if not MSC limited (or
+ * below min sampling step), and another helper (documented the hardcoded 0.1
+ * sigma width) does the gaussian sampling.
  */
 class UrbanMscMinimalStepLimit
 {
@@ -53,7 +58,7 @@ class UrbanMscMinimalStepLimit
     real_type max_step_{};
     // Cached approximation for the minimum step length
     real_type limit_min_{};
-    // Limit based on the range
+    // Step limit based on the range
     real_type limit_{};
 };
 
@@ -72,7 +77,7 @@ UrbanMscMinimalStepLimit::UrbanMscMinimalStepLimit(
     real_type phys_step)
     : max_step_(phys_step)
 {
-    CELER_EXPECT(max_step_ > shared.params.limit_min_fix());
+    CELER_EXPECT(max_step_ > shared.params.min_step);
     CELER_EXPECT(max_step_ <= physics->dedx_range());
 
     auto const& msc_range = physics->msc_range();
@@ -83,7 +88,7 @@ UrbanMscMinimalStepLimit::UrbanMscMinimalStepLimit(
         MscRange new_range;
         new_range.range_init = numeric_limits<real_type>::infinity();
         new_range.range_factor = physics->particle_scalars().range_factor;
-        new_range.limit_min = 10 * shared.params.limit_min_fix();
+        new_range.limit_min = 10 * shared.params.min_step;
         physics->msc_range(new_range);
         CELER_ASSERT(msc_range);
     }
@@ -105,6 +110,8 @@ UrbanMscMinimalStepLimit::UrbanMscMinimalStepLimit(
 //---------------------------------------------------------------------------//
 /*!
  * Sample the true path length using the Urban multiple scattering model.
+ *
+ * \todo This is identical to UrbanMscSafetyStepLimit::operator()
  */
 template<class Engine>
 CELER_FUNCTION real_type UrbanMscMinimalStepLimit::operator()(Engine& rng)

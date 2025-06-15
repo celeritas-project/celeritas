@@ -28,7 +28,7 @@ namespace celeritas
  *
  * This chooses between sampling scattering off an electron or nucleus based on
  * the relative cross sections. Electron scattering angle imposes a maximum
- * scattering angle (see WentzelHelper::cos_thetamax_electron), and nuclear
+ * scattering angle, and nuclear
  * sattering rejects an angular change based on the Mott cross section (see
  * MottRatioCalculator). Nuclear scattering depends on the electronic and
  * nuclear cross sections (calculated by \c WentzelHelper) and nuclear form
@@ -280,8 +280,8 @@ CELER_CONSTEXPR_FUNCTION real_type WentzelDistribution::flat_coeff()
 /*!
  * Get the constant prefactor of the squared momentum transfer.
  */
-CELER_FUNCTION auto
-WentzelDistribution::nuclear_form_prefactor() const -> InvMomSq
+CELER_FUNCTION auto WentzelDistribution::nuclear_form_prefactor() const
+    -> InvMomSq
 {
     CELER_EXPECT(target_.isotope_id() < wentzel_.nuclear_form_prefactor.size());
     return InvMomSq{wentzel_.nuclear_form_prefactor[target_.isotope_id()]};
@@ -295,7 +295,7 @@ template<class Engine>
 CELER_FUNCTION real_type WentzelDistribution::sample_costheta(
     real_type cos_thetamin, real_type cos_thetamax, Engine& rng) const
 {
-    // Sample scattering angle [Fern] eqn 92, where cos(theta) = 1 - 2*mu
+    // Sample scattering angle [fern] eqn 92, where cos(theta) = 1 - 2*mu
     real_type const mu1 = real_type{0.5} * (1 - cos_thetamin);
     real_type const mu2 = real_type{0.5} * (1 - cos_thetamax);
     real_type const w = generate_canonical(rng) * (mu2 - mu1);

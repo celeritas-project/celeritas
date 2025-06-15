@@ -132,7 +132,7 @@ void KernelContextException::initialize(CoreTrackView const& core)
             {
                 volume_ = geo.volume_id();
             }
-            surface_ = geo.surface_id();
+            surface_ = geo.internal_surface_id();
         }
     }
     {

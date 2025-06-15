@@ -155,7 +155,7 @@ bool Device::async()
 {
     if constexpr (CELER_STREAM_SUPPORTS_ASYNC)
     {
-        static bool const result = [] {
+        static bool const result = []() -> bool {
             constexpr bool default_val = CELERITAS_USE_CUDA
                                          || !CELER_BUGGY_HIP_ASYNC;
             auto result = getenv_flag("CELER_DEVICE_ASYNC", default_val);

@@ -106,27 +106,10 @@ options
   corresponding to the :ref:`api_geant4_physics_options` struct.
 
 output
-  A ROOT/JSON output file with the exported :ref:`api_importdata`.
+  A ROOT/JSON output file with the exported import data.
 
 
 The ``--dump-default`` usage renders the default options.
-
-
-celer-dump-data
-^^^^^^^^^^^^^^^
-
-This utility prints an RST-formatted high-level dump of physics data exported
-via :ref:`celer-export-geant`.
-
-----
-
-Usage:
-
-.. literalinclude:: _usage/celer-dump-data.txt
-
-
-output
-  A ROOT file containing exported :ref:`api_importdata`.
 
 
 orange-update
@@ -144,4 +127,3 @@ Usage:
 
 Either of the filenames can be replaced by ``-`` to read from stdin or write to
 stdout.
-

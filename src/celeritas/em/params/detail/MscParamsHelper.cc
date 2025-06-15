@@ -11,10 +11,10 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/grid/VectorUtils.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/grid/UniformGridInserter.hh"
-#include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/XsGridData.hh"
 #include "celeritas/io/ImportModel.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -58,7 +58,7 @@ MscParamsHelper::MscParamsHelper(ParticleParams const& particles,
             // Warn: possibly multiple physics lists or different models in
             // different regions
             CELER_LOG(warning)
-                << "duplicate " << to_cstring(imm.model_class)
+                << "duplicate " << imm.model_class
                 << " physics data for particle " << particles_.id_to_label(pid)
                 << ": ignoring all but the first encountered model";
         }
@@ -70,7 +70,7 @@ MscParamsHelper::MscParamsHelper(ParticleParams const& particles,
         xs_tables_.push_back(&imm.xs_table);
     }
     CELER_VALIDATE(!xs_tables_.empty(),
-                   << "missing physics data for " << to_cstring(model_class));
+                   << "missing physics data for " << model_class);
 }
 
 //---------------------------------------------------------------------------//
@@ -95,7 +95,7 @@ void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
 {
     // Scaled cross section builder
     CollectionBuilder xs(scaled_xs);
-    size_type num_materials = xs_tables_[0]->physics_vectors.size();
+    size_type num_materials = xs_tables_[0]->grids.size();
     xs.reserve(par_ids_.size() * num_materials);
 
     // TODO: simplify when refactoring GridInserter, etc
@@ -107,18 +107,13 @@ void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
         for (size_type par_idx : range(par_ids_.size()))
         {
             CELER_ASSERT(pid_to_xs_[par_ids_[par_idx].get()].get() == par_idx);
-            CELER_ASSERT(mat_idx < xs_tables_[par_idx]->physics_vectors.size());
+            CELER_ASSERT(mat_idx < xs_tables_[par_idx]->grids.size());
 
             // Get the cross section data for this particle and material
-            ImportPhysicsVector const& pv
-                = xs_tables_[par_idx]->physics_vectors[mat_idx];
-            CELER_ASSERT(pv.vector_type == ImportPhysicsVectorType::log);
-            CELER_ASSERT(pv.x.front() > 0 && pv.x.back() > pv.x.front());
-            CELER_ASSERT(has_log_spacing(make_span(pv.x)));
+            auto const& grid = xs_tables_[par_idx]->grids[mat_idx];
+            CELER_ASSERT(grid && std::exp(grid.x[Bound::lo]) > 0);
 
-            auto grid = UniformGridData::from_bounds(
-                std::log(pv.x.front()), std::log(pv.x.back()), pv.x.size());
-            auto grid_id = insert(grid, make_span(pv.y));
+            auto grid_id = insert(grid);
             CELER_ASSERT(grid_id.get() == xs.size());
 
             xs.push_back(grids[grid_id]);
@@ -134,31 +129,29 @@ void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
  */
 auto MscParamsHelper::energy_grid_bounds() const -> EnergyBounds
 {
-    EnergyBounds result;
-    {
+    auto x = [this] {
         // Get initial high/low energy limits
-        CELER_ASSERT(!xs_tables_[0]->physics_vectors.empty());
-        auto const& pvec = xs_tables_[0]->physics_vectors[0];
-        CELER_ASSERT(pvec);
-        result = {Energy(pvec.x.front()), Energy(pvec.x.back())};
-    }
+        CELER_ASSERT(!xs_tables_[0]->grids.empty());
+        auto const& grid = xs_tables_[0]->grids[0];
+        CELER_ASSERT(grid);
+        return grid.x;
+    }();
     for (size_type par_idx : range(par_ids_.size()))
     {
-        auto const& phys_vectors = xs_tables_[par_idx]->physics_vectors;
-        for (auto const& pvec : phys_vectors)
+        auto const& phys_vectors = xs_tables_[par_idx]->grids;
+        for (auto const& grid : phys_vectors)
         {
             // Check that the limits are the same for all materials and
             // particles; otherwise we need to change \c *Msc::is_applicable to
             // look up the particle and material
-            CELER_VALIDATE(result[0].value() == real_type(pvec.x.front())
-                               && result[1].value() == real_type(pvec.x.back()),
+            CELER_VALIDATE(x[Bound::lo] == grid.x[Bound::lo]
+                               && x[Bound::hi] == grid.x[Bound::hi],
                            << "multiple scattering cross section energy "
                               "limits are inconsistent across particles "
                               "and/or materials");
         }
     }
-    CELER_ENSURE(result[0] < result[1]);
-    return result;
+    return {Energy(std::exp(x[Bound::lo])), Energy(std::exp(x[Bound::hi]))};
 }
 
 //---------------------------------------------------------------------------//

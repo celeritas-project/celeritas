@@ -32,18 +32,19 @@ if(NOT CELERITAS_USE_CUDA)
 endif()
 
 # Optional dependencies
-# NOTE: when adding a new dependency, update the CMakeConfig "COMPONENTS"
+celeritas_optional_package(covfie "Use Covfie field integrator")
 celeritas_optional_package(Geant4 "Enable Geant4 adapter tools")
 celeritas_optional_package(HepMC3 "Enable HepMC3 event record reader")
-celeritas_optional_package(PNG "Enable PNG output with libpng")
 celeritas_optional_package(MPI "Enable distributed memory parallelism")
 celeritas_optional_package(OpenMP "Enable CPU shared-memory parallelism")
+celeritas_optional_package(PNG "Enable PNG output with libpng")
 celeritas_optional_package(Python "Use Python to generate and preprocess")
 celeritas_optional_package(ROOT "Enable ROOT I/O")
 celeritas_optional_package(VecGeom "Use VecGeom geometry")
 option(CELERITAS_USE_Perfetto "Perfetto tracing library" OFF)
 
 # Components
+option(CELERITAS_BUILD_APPS "Build Celeritas executables (strongly recommended)" ON)
 option(CELERITAS_BUILD_DOCS "Build Celeritas documentation" OFF)
 option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" OFF)
 
@@ -82,6 +83,10 @@ if(CELERITAS_BUILD_TESTS)
   )
   mark_as_advanced(CELERITAS_TEST_XML)
 endif()
+
+# Automatic options
+celeritas_force_package(CLI11 ${CELERITAS_BUILD_APPS})
+celeritas_force_package(GTest ${CELERITAS_BUILD_TESTS})
 
 #----------------------------------------------------------------------------#
 # CELERITAS CORE IMPLEMENTATION OPTIONS
@@ -191,6 +196,11 @@ if(CMAKE_VERSION VERSION_LESS 3.22 AND CELERITAS_USE_HIP)
   message(WARNING "HIP support is immature; CMake 3.22+ is recommended.")
 endif()
 
+if(CMAKE_VERSION VERSION_LESS 3.27 AND CELERITAS_USE_covfie)
+  # See https://cmake.org/cmake/help/latest/manual/cmake-generator-expressions.7.html#id30
+  message(FATAL_ERROR "CMake 3.27 or greater is required for covfie support")
+endif()
+
 #----------------------------------------------------------------------------#
 # CMAKE INTRINSIC OPTIONS
 #
@@ -228,10 +238,12 @@ if(CELERITAS_USE_CUDA)
   # Default to setting CUDA C++ standard the same as C++
   celeritas_set_default(CMAKE_CUDA_STANDARD "${CMAKE_CXX_STANDARD}")
   celeritas_set_default(CMAKE_CUDA_EXTENSIONS "${CMAKE_CXX_EXTENSIONS}")
-  # Use host compiler by default to ensure ABI consistency
-  celeritas_set_default(CMAKE_CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}"
-    "Set to CMAKE_CXX_COMPILER by Celeritas CMakeLists"
-  )
+  if(NOT CMAKE_CUDA_HOST_COMPILER STREQUAL CMAKE_CXX_COMPILER)
+    # See https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_HOST_COMPILER.html#variable:CMAKE_%3CLANG%3E_HOST_COMPILER
+    message(WARNING "CUDA host compiler mismatch: "
+      "CMAKE_CUDA_HOST_COMPILER=${CMAKE_CUDA_HOST_COMPILER} "
+      "but CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
+  endif()
 endif()
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
@@ -283,7 +295,9 @@ set(CELERITAS_RUNTIME_OUTPUT_DIRECTORY
 
 include(CeleritasUtils)
 
-celeritas_find_or_builtin_package(CLI11 2.4)
+if(CELERITAS_USE_CLI11)
+  celeritas_find_or_builtin_package(CLI11 2.4)
+endif()
 
 if(BUILD_TESTING)
   # Build the test tree for unit and/or app tests
@@ -310,6 +324,10 @@ elseif(CELERITAS_USE_HIP)
       OFF
     )
   endif()
+  find_library(ROCTX_LIBRARY roctx64)
+  if(ROCTX_LIBRARY)
+    set(CELERITAS_HAVE_ROCTX ON)
+  endif()
 endif()
 
 if(CELERITAS_USE_CUDA)
@@ -318,7 +336,7 @@ if(CELERITAS_USE_CUDA)
   find_package(Thrust)
 endif()
 # Unconditionally set Thrust availability for downstream configuration
-set(CELERITAS_USE_Thrust "${Thrust_FOUND}")
+celeritas_force_package(Thrust "${Thrust_FOUND}")
 
 if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
   find_package(Geant4 REQUIRED)
@@ -394,6 +412,15 @@ if(CELERITAS_USE_ROOT)
   endif()
   # Older ROOT versions are missing CMake macros
   find_package(ROOT 6.24 REQUIRED)
+endif()
+
+if(CELERITAS_USE_covfie)
+  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+    set(_min_covfie_version 0.14)
+  else()
+    set(_min_covfie_version 0.13)
+  endif()
+  celeritas_find_or_builtin_package(covfie ${_min_covfie_version})
 endif()
 
 if(CELERITAS_USE_VecGeom)
@@ -497,13 +524,15 @@ if(CELERITAS_BUILD_DOCS)
   include(ExternalProject)
 endif()
 
-if(CELERITAS_BUILD_TESTS)
+if(CELERITAS_USE_GTest)
   celeritas_find_or_builtin_package(GTest 1.10)
 endif()
 
 #----------------------------------------------------------------------------#
-# System property: availability of sincospi and related functions:
-# All of: `^${CELERITAS_SINCOSPI_PREFIX}(sincos(pi)?|(sin|cos)pi)f?$`
+# System properties
+
+# Availability of sincospi and related functions: all comibinations of:
+# `^${CELERITAS_SINCOSPI_PREFIX}(sincos(pi)?|(sin|cos)pi)f?$`
 if(NOT DEFINED CELERITAS_SINCOSPI_PREFIX)
   foreach(_prefix "__" "_" "")
     try_compile(CELERITAS_TRY_${_prefix}SINCOSPI
@@ -559,10 +588,12 @@ if(CELERITAS_BUILD_TESTS)
 endif()
 
 #----------------------------------------------------------------------------#
-# APPLICATIONS AND BINARIES
+# APPLICATIONS AND USER EXECUTABLES
 #----------------------------------------------------------------------------#
 
-add_subdirectory(app)
+if(CELERITAS_BUILD_APPS)
+  add_subdirectory(app)
+endif()
 
 #----------------------------------------------------------------------------#
 # DOCUMENTATION
@@ -587,7 +618,8 @@ set(_cmake_files
   # For now, include in case downstream projects do `include(CudaRdcUtils)`.
   "${_LOCAL_RDCUTILS_FILENAME}"
 )
-foreach(_dep CLI11 Geant4 G4VG HepMC3 Perfetto ROOT Thrust VecGeom)
+# Add packages with custom Celeritas-provided FindX scripts
+foreach(_dep CLI11 covfie Geant4 G4VG HepMC3 Perfetto ROOT Thrust VecGeom)
   if(CELERITAS_USE_${_dep} AND NOT CELERITAS_BUILTIN_${_dep})
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
   endif()
@@ -611,9 +643,15 @@ file(COPY ${_cmake_files}
 # Export all cache variables that start with CELERITAS_
 set(CELERITAS_EXPORT_VARIABLES)
 macro(celeritas_export_var varname)
-  list(APPEND CELERITAS_EXPORT_VARIABLES "set(${varname} \"${${varname}}\")")
+  # Value of _key may be ;-separated list, so we need to escape the ; if present
+  string(REPLACE ";" "\;" _key_val "${${varname}}")
+  list(APPEND CELERITAS_EXPORT_VARIABLES "set(${varname} \"${_key_val}\")")
 endmacro()
 celeritas_export_var(Celeritas_VERSION_STRING)
+list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Components")
+celeritas_export_var(CELERITAS_COMPONENTS)
+celeritas_export_var(CELERITAS_ENABLED_COMPONENTS)
+celeritas_export_var(CELERITAS_OPTION_VARS)
 list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Configuration options")
 get_directory_property(_cachevar_keys CACHE_VARIABLES)
 foreach(_key IN LISTS _cachevar_keys)
@@ -621,8 +659,6 @@ foreach(_key IN LISTS _cachevar_keys)
     celeritas_export_var(${_key})
   endif()
 endforeach()
-# Thrust dependency is not a cache variable
-celeritas_export_var(CELERITAS_USE_Thrust)
 
 # Save whether we need GDML requirement
 if(Geant4_gdml_FOUND OR VecGeom_GDML_FOUND)
@@ -631,8 +667,11 @@ else()
   set(CELERITAS_USE_GDML OFF)
 endif()
 celeritas_export_var(CELERITAS_USE_GDML)
+foreach(_key IN LISTS CELERITAS_FORCED_PACKAGE_VARS)
+  celeritas_export_var(${_key})
+endforeach()
 
-# Export defaulted variables
+# Export defaulted CMake variables
 list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Defaulted local variables")
 set(_celer_other_cmake_variables)
 if(CELERITAS_USE_CUDA)
@@ -650,8 +689,8 @@ endforeach()
 list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Hints for upstream dependencies")
 foreach(_key
   MPIEXEC_EXECUTABLE CUDAToolkit_BIN_DIR
-  Geant4_DIR GTest_DIR HepMC3_DIR nlohmann_json_DIR Python_DIR ROOT_DIR
-  VecCore_DIR VecGeom_DIR G4VG_DIR
+  covfie_DIR Geant4_DIR GTest_DIR HepMC3_DIR nlohmann_json_DIR
+  Python_DIR ROOT_DIR VecCore_DIR VecGeom_DIR G4VG_DIR
   CLHEP_DIR ZLIB_DIR EXPAT_DIR XercesC_DIR PTL_DIR
   EXPAT_INCLUDE_DIR EXPAT_LIBRARY
   VDT_INCLUDE_DIR VDT_LIBRARY

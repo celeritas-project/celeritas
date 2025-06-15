@@ -8,6 +8,7 @@
 
 #include <cmath>
 
+#include "corecel/math/ArraySoftUnit.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "orange/MatrixUtils.hh"
 
@@ -37,19 +38,18 @@ Transformation::Transformation() : Transformation{Translation{}} {}
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct and check the input.
- *
- * The input rotation matrix should be an orthonormal matrix. Its determinant
- * is 1 if not reflecting (proper) or -1 if reflecting (improper).  It is the
- * caller's job to ensure a user-provided low-precision matrix is
- * orthonormal: see \c celeritas::orthonormalize . (Add \c CELER_VALIDATE to
- * the calling code if constructing a transformation matrix from user input or
- * a suspect source.)
+ * Construct with rotation and translation.
  */
 Transformation::Transformation(Mat3 const& rot, Real3 const& trans)
     : rot_(rot), tra_(trans)
 {
-    CELER_EXPECT(soft_equal(std::fabs(determinant(rot_)), real_type(1)));
+    CELER_EXPECT(std::all_of(data().begin(), data().end(), [](real_type v) {
+        return !std::isnan(v);
+    }));
+    if (CELER_UNLIKELY(this->calc_properties().scales))
+    {
+        CELER_NOT_IMPLEMENTED("transforms with scaling");
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -69,6 +69,23 @@ Transformation::Transformation(Translation const& tr)
 Transformation Transformation::calc_inverse() const
 {
     return Transformation::from_inverse(rot_, tra_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate properties about the matrix.
+ */
+Transformation::Properties Transformation::calc_properties() const
+{
+    auto det = determinant(rot_);
+
+    Properties result;
+    result.reflects = det < 0;
+    result.scales = !std::all_of(rot_.begin(), rot_.end(), [](Real3 const& row) {
+        return is_soft_unit_vector(row);
+    });
+    CELER_ENSURE(soft_equal(std::fabs(det), real_type{1}) || result.scales);
+    return result;
 }
 
 //---------------------------------------------------------------------------//

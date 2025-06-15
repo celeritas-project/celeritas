@@ -25,12 +25,14 @@ ImportedMaterials::from_import(ImportData const& data)
     // If there's no material specific parameters, return a nullptr
     if (!std::any_of(data.optical_materials.begin(),
                      data.optical_materials.end(),
-                     [](auto const& mat) { return mat.rayleigh || mat.wls; }))
+                     [](auto const& mat) {
+                         return mat.rayleigh || mat.wls || mat.wls2;
+                     }))
     {
         return nullptr;
     }
 
-    OpticalMaterialId::size_type num_materials = data.optical_materials.size();
+    OptMatId::size_type num_materials = data.optical_materials.size();
 
     // Copy over Rayleigh and WLS data
 
@@ -40,17 +42,22 @@ ImportedMaterials::from_import(ImportData const& data)
     std::vector<ImportWavelengthShift> wls;
     wls.reserve(num_materials);
 
+    std::vector<ImportWavelengthShift> wls2;
+    wls2.reserve(num_materials);
+
     for (auto const& mat : data.optical_materials)
     {
         rayleigh.push_back(mat.rayleigh);
         wls.push_back(mat.wls);
+        wls2.push_back(mat.wls2);
     }
 
     CELER_ENSURE(rayleigh.size() == num_materials);
     CELER_ENSURE(wls.size() == num_materials);
+    CELER_ENSURE(wls2.size() == num_materials);
 
-    return std::make_shared<ImportedMaterials>(std::move(rayleigh),
-                                               std::move(wls));
+    return std::make_shared<ImportedMaterials>(
+        std::move(rayleigh), std::move(wls), std::move(wls2));
 }
 
 //---------------------------------------------------------------------------//
@@ -58,18 +65,22 @@ ImportedMaterials::from_import(ImportData const& data)
  * Construct directly from imported material properties.
  */
 ImportedMaterials::ImportedMaterials(std::vector<ImportOpticalRayleigh> rayleigh,
-                                     std::vector<ImportWavelengthShift> wls)
-    : rayleigh_(std::move(rayleigh)), wls_(std::move(wls))
+                                     std::vector<ImportWavelengthShift> wls,
+                                     std::vector<ImportWavelengthShift> wls2)
+    : rayleigh_(std::move(rayleigh))
+    , wls_(std::move(wls))
+    , wls2_(std::move(wls2))
 {
     CELER_EXPECT(!rayleigh_.empty());
     CELER_EXPECT(rayleigh_.size() == wls_.size());
+    CELER_EXPECT(rayleigh_.size() == wls2_.size());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Number of imported optical materials.
  */
-OpticalMaterialId::size_type ImportedMaterials::num_materials() const
+OptMatId::size_type ImportedMaterials::num_materials() const
 {
     return rayleigh_.size();
 }
@@ -78,8 +89,7 @@ OpticalMaterialId::size_type ImportedMaterials::num_materials() const
 /*!
  * Get imported Rayleigh properties for the given material.
  */
-ImportOpticalRayleigh const&
-ImportedMaterials::rayleigh(OpticalMaterialId mat) const
+ImportOpticalRayleigh const& ImportedMaterials::rayleigh(OptMatId mat) const
 {
     CELER_EXPECT(mat < this->num_materials());
     return rayleigh_[mat.get()];
@@ -89,10 +99,20 @@ ImportedMaterials::rayleigh(OpticalMaterialId mat) const
 /*!
  * Get imported wavelength shifting properties for the given material.
  */
-ImportWavelengthShift const& ImportedMaterials::wls(OpticalMaterialId mat) const
+ImportWavelengthShift const& ImportedMaterials::wls(OptMatId mat) const
 {
     CELER_EXPECT(mat < this->num_materials());
     return wls_[mat.get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get imported wavelength shifting properties for the given material.
+ */
+ImportWavelengthShift const& ImportedMaterials::wls2(OptMatId mat) const
+{
+    CELER_EXPECT(mat < this->num_materials());
+    return wls2_[mat.get()];
 }
 
 //---------------------------------------------------------------------------//

@@ -9,6 +9,7 @@
 #include <iostream>
 
 #include "corecel/io/StreamableVariant.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "orange/orangeinp/CsgObject.hh"
 #include "orange/orangeinp/PolySolid.hh"
 #include "orange/orangeinp/Transformed.hh"
@@ -23,52 +24,7 @@ namespace g4org
 namespace
 {
 //---------------------------------------------------------------------------//
-using SPConstObject = ProtoConstructor::SPConstObject;
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct an explicit "background" cell.
- *
- * This is the LV's volume with all of the direct daughter LVs subtracted.
- */
-SPConstObject make_explicit_background(LogicalVolume const& lv,
-                                       VariantTransform const& transform)
-{
-    using namespace orangeinp;
-
-    std::vector<SPConstObject> children;
-    children.reserve(lv.children.size());
-    for (auto const& child_pv : lv.children)
-    {
-        children.push_back(
-            Transformed::or_object(child_pv.lv->solid, child_pv.transform));
-    }
-
-    SPConstObject interior;
-    if (CELER_UNLIKELY(children.empty()))
-    {
-        // Rare case (world is the only volume!)
-        return lv.solid;
-    }
-    else if (children.size() == 1)
-    {
-        // One child: interior becomes that object
-        interior = std::move(children.front());
-    }
-    else
-    {
-        interior = std::make_shared<AnyObjects>(lv.label.name + ".children",
-                                                std::move(children));
-    }
-
-    return Transformed::or_object(
-        orangeinp::make_subtraction(
-            std::string{lv.label.name}, lv.solid, interior),
-        transform);
-}
-
-//---------------------------------------------------------------------------//
-bool is_union(SPConstObject const& obj)
+bool is_union(ProtoConstructor::SPConstObject const& obj)
 {
     return dynamic_cast<orangeinp::AnyObjects const*>(obj.get())
            || dynamic_cast<orangeinp::PolySolidBase const*>(obj.get());
@@ -83,13 +39,15 @@ bool is_union(SPConstObject const& obj)
  */
 auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
 {
+    auto const& label = this->get_label(lv);
+
     ProtoInput input;
     input.boundary.interior = lv.solid;
-    input.label = lv.label.name;
+    input.label = label.name;
 
     if (CELER_UNLIKELY(verbose_))
     {
-        std::clog << std::string(depth_, ' ') << "* New proto: " << lv.label
+        std::clog << std::string(depth_, ' ') << "* New proto: " << label
                   << " with shape " << to_string(*lv.solid) << std::endl;
     }
 
@@ -112,8 +70,9 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
         }
         // Create explicit "fill" for this logical volume
         orangeinp::UnitProto::MaterialInput background;
-        background.interior = make_explicit_background(lv, NoTransformation{});
-        background.label = lv.label;
+        background.interior
+            = this->make_explicit_background(lv, NoTransformation{});
+        background.label = label;
         background.fill = lv.material_id;
         input.boundary.zorder = ZOrder::media;
         input.materials.push_back(std::move(background));
@@ -126,11 +85,25 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
                       << std::endl;
         }
         input.background.fill = lv.material_id;
-        input.background.label = lv.label;
+        input.background.label = label;
     }
 
     CELER_ENSURE(input);
     return std::make_shared<orangeinp::UnitProto>(std::move(input));
+}
+
+//---------------------------------------------------------------------------//
+Label const& ProtoConstructor::get_label(LogicalVolume const& lv)
+{
+    CELER_EXPECT(lv.id);
+    return geo_.volumes().at(lv.id);
+}
+
+//---------------------------------------------------------------------------//
+Label const& ProtoConstructor::get_label(PhysicalVolume const& pv)
+{
+    CELER_EXPECT(pv.id);
+    return geo_.volume_instances().at(pv.id);
 }
 
 //---------------------------------------------------------------------------//
@@ -149,21 +122,23 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
     // that's subtracted from an inlined LV
     auto transform = apply_transform(parent_transform, pv.transform);
 
+    auto const& label = this->get_label(pv);
+
     if (CELER_UNLIKELY(verbose_))
     {
-        std::clog << std::string(depth_, ' ') << "- Add pv " << pv.label
+        std::clog << std::string(depth_, ' ') << "- Add pv " << label
                   << " use_count=" << pv.lv.use_count()
                   << ", num_children=" << pv.lv->children.size() << ", at "
                   << StreamableVariant{transform} << " to " << proto->label
                   << std::endl;
     }
 
-    auto add_material = [proto, &lv = *pv.lv](SPConstObject&& obj) {
+    auto add_material = [this, proto, &lv = *pv.lv](SPConstObject&& obj) {
         CELER_EXPECT(obj);
         UnitProto::MaterialInput mat;
         mat.interior = std::move(obj);
         mat.fill = lv.material_id;
-        mat.label = lv.label;
+        mat.label = this->get_label(lv);
         proto->materials.push_back(std::move(mat));
     };
 
@@ -204,7 +179,7 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
                       << to_string(*pv.lv->solid) << std::endl;
         }
 
-        add_material(make_explicit_background(*pv.lv, transform));
+        add_material(this->make_explicit_background(*pv.lv, transform));
 
         // Now build its daghters
         ++depth_;
@@ -245,6 +220,48 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
                       << std::endl;
         }
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct an explicit "background" cell.
+ *
+ * This is the LV's volume with all of the direct daughter LVs subtracted.
+ */
+auto ProtoConstructor::make_explicit_background(
+    LogicalVolume const& lv, VariantTransform const& transform) -> SPConstObject
+{
+    using namespace orangeinp;
+
+    std::vector<SPConstObject> children;
+    children.reserve(lv.children.size());
+    for (auto const& child_pv : lv.children)
+    {
+        children.push_back(
+            Transformed::or_object(child_pv.lv->solid, child_pv.transform));
+    }
+
+    SPConstObject interior;
+    if (CELER_UNLIKELY(children.empty()))
+    {
+        // Rare case (world is the only volume!)
+        return lv.solid;
+    }
+    else if (children.size() == 1)
+    {
+        // One child: interior becomes that object
+        interior = std::move(children.front());
+    }
+    else
+    {
+        interior = std::make_shared<AnyObjects>(
+            this->get_label(lv).name + ".children", std::move(children));
+    }
+
+    return Transformed::or_object(
+        orangeinp::make_subtraction(
+            std::string{this->get_label(lv).name}, lv.solid, interior),
+        transform);
 }
 
 //---------------------------------------------------------------------------//

@@ -14,8 +14,11 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/TypeDemangler.hh"
+#include "geocel/GeantGeoParams.hh"
+#include "geocel/inp/Model.hh"
 
 #include "CheckedGeoTrackView.hh"
+#include "GenericGeoResults.hh"
 #include "TestMacros.hh"
 #include "UnitUtils.hh"
 
@@ -52,7 +55,13 @@ auto GenericGeoTestBase<HP>::build_geometry_from_basename() -> SPConstGeo
     // ${SOURCE}/test/geocel/data/${basename}${fileext}
     auto filename = this->geometry_basename() + std::string{TraitsT::ext};
     std::string test_file = test_data_path("geocel", filename);
-    return std::make_shared<HP>(test_file);
+    auto result = std::make_shared<HP>(test_file);
+    if constexpr (std::is_same_v<HP, GeantGeoParams>)
+    {
+        // Save global geant geometry
+        ::celeritas::geant_geo(*result);
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -97,22 +106,10 @@ std::string GenericGeoTestBase<HP>::volume_name(GeoTrackView const& geo) const
 
 //---------------------------------------------------------------------------//
 template<class HP>
-std::string GenericGeoTestBase<HP>::surface_name(GeoTrackView const& geo) const
+std::string GenericGeoTestBase<HP>::surface_name(GeoTrackView const&) const
 {
-    if (!geo.is_on_boundary())
-    {
-        return "---";
-    }
-
-    auto* ptr = dynamic_cast<GeoParamsSurfaceInterface const*>(
-        this->geometry().get());
-    if (!ptr)
-    {
-        return "---";
-    }
-
-    // Only call this function if the geometry supports surfaces
-    return ptr->surfaces().at(geo.surface_id()).name;
+    // TODO: use Surfaces class
+    return "---";
 }
 
 //---------------------------------------------------------------------------//
@@ -143,7 +140,8 @@ GenericGeoTestBase<HP>::all_volume_instance_names(GeoTrackView const& geo) const
 
 //---------------------------------------------------------------------------//
 template<class HP>
-auto GenericGeoTestBase<HP>::make_geo_track_view(TrackSlotId tsid) -> GeoTrackView
+auto GenericGeoTestBase<HP>::make_geo_track_view(TrackSlotId tsid)
+    -> GeoTrackView
 {
     if (!host_state_)
     {
@@ -157,8 +155,8 @@ auto GenericGeoTestBase<HP>::make_geo_track_view(TrackSlotId tsid) -> GeoTrackVi
 //---------------------------------------------------------------------------//
 // Get and initialize a single-thread host track view
 template<class HP>
-auto GenericGeoTestBase<HP>::make_geo_track_view(Real3 const& pos,
-                                                 Real3 dir) -> GeoTrackView
+auto GenericGeoTestBase<HP>::make_geo_track_view(Real3 const& pos, Real3 dir)
+    -> GeoTrackView
 {
     auto geo = this->make_geo_track_view();
     GeoTrackInitializer init{pos, make_unit_vector(dir)};
@@ -169,8 +167,8 @@ auto GenericGeoTestBase<HP>::make_geo_track_view(Real3 const& pos,
 
 //---------------------------------------------------------------------------//
 template<class HP>
-auto GenericGeoTestBase<HP>::track(Real3 const& pos,
-                                   Real3 const& dir) -> TrackingResult
+auto GenericGeoTestBase<HP>::track(Real3 const& pos, Real3 const& dir)
+    -> TrackingResult
 {
     return this->track(pos, dir, std::numeric_limits<int>::max());
 }
@@ -324,11 +322,10 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
  * Get the volume instance stack at a position.
  */
 template<class HP>
-auto GenericGeoTestBase<HP>::volume_stack(Real3 const& pos) -> VolumeStackResult
+auto GenericGeoTestBase<HP>::volume_stack(Real3 const& pos)
+    -> VolumeStackResult
 {
     auto geo = this->make_geo_track_view(pos, Real3{0, 0, 1});
-    auto const& geo_params = *this->geometry();
-    auto const& vol_inst = geo_params.volume_instances();
 
     auto level = geo.level();
     if (!level)
@@ -338,31 +335,18 @@ auto GenericGeoTestBase<HP>::volume_stack(Real3 const& pos) -> VolumeStackResult
     std::vector<VolumeInstanceId> inst_ids(level.get() + 1);
     geo.volume_instance_id(make_span(inst_ids));
 
-    VolumeStackResult result;
-    result.volume_instances.resize(inst_ids.size());
-    result.replicas.assign(inst_ids.size(), -1);
-    for (auto i : range(inst_ids.size()))
-    {
-        auto vi_id = inst_ids[i];
-        if (!vi_id)
-        {
-            result.volume_instances[i] = "<null>";
-            continue;
-        }
-        auto const& label = vol_inst.at(vi_id);
-        if (auto phys_inst = geo_params.id_to_geant(vi_id))
-        {
-            if (phys_inst.replica)
-            {
-                result.replicas[i] = phys_inst.replica.get();
-            }
-        }
-        // Only write extension if not a replica, because Geant4
-        // effectively gives multiple volume instances the same name+ext
-        result.volume_instances[i] = !result.replicas[i] ? to_string(label)
-                                                         : label.name;
-    }
-    return result;
+    return VolumeStackResult::from_span(*this->geometry(), make_span(inst_ids));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the model input from the geometry.
+ */
+template<class HP>
+auto GenericGeoTestBase<HP>::model_inp() const -> ModelInpResult
+{
+    return ModelInpResult::from_model_input(
+        this->geometry()->make_model_input());
 }
 
 //---------------------------------------------------------------------------//
@@ -387,7 +371,8 @@ auto GenericGeoTestBase<HP>::geometry_interface() const -> SPConstGeoInterface
 
 //---------------------------------------------------------------------------//
 template<class HP>
-auto GenericGeoTestBase<HP>::build_fresh_geometry(std::string_view) -> SPConstGeoI
+auto GenericGeoTestBase<HP>::build_fresh_geometry(std::string_view)
+    -> SPConstGeoI
 {
     return this->build_geometry();
 }

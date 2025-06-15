@@ -10,14 +10,14 @@
 #include <exception>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/ValueGridBuilder.hh"
-#include "celeritas/grid/ValueGridType.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
 
@@ -27,14 +27,36 @@
 
 namespace celeritas
 {
+namespace
+{
+using SpanConstDbl = Span<double const>;
+
+bool is_nonnegative(SpanConstDbl vec)
+{
+    return std::all_of(vec.begin(), vec.end(), [](double v) { return v >= 0; });
+}
+
+bool is_contiguous_increasing(inp::UniformGrid const& lower,
+                              inp::UniformGrid const& upper)
+{
+    return lower.y.size() >= 2 && upper.y.size() >= 2
+           && std::exp(lower.x[Bound::lo]) > 0
+           && lower.x[Bound::hi] > lower.x[Bound::lo]
+           && upper.x[Bound::hi] > upper.x[Bound::lo]
+           && soft_equal(lower.x[Bound::hi], upper.x[Bound::lo]);
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 IPAContextException::IPAContextException(ParticleId id,
                                          ImportProcessClass ipc,
-                                         MaterialId mid)
+                                         PhysMatId mid)
 {
     std::stringstream os;
-    os << "Particle ID=" << id.unchecked_get() << ", process '"
-       << to_cstring(ipc) << ", material ID=" << mid.unchecked_get();
+    os << "Particle ID=" << id.unchecked_get() << ", process '" << ipc
+       << ", material ID=" << mid.unchecked_get();
     what_ = os.str();
 }
 
@@ -84,8 +106,7 @@ ImportedProcesses::ImportedProcesses(std::vector<ImportProcess> io)
             {key_type{PDGNumber{ip.particle_pdg}, ip.process_class}, id});
         CELER_VALIDATE(insertion.second,
                        << "encountered duplicate imported process class '"
-                       << to_cstring(ip.process_class) << "' for PDG{"
-                       << ip.particle_pdg
+                       << ip.process_class << "' for PDG{" << ip.particle_pdg
                        << "} (each particle must have at most one process of "
                           "a given type)");
     }
@@ -122,56 +143,17 @@ ImportedProcessAdapter::ImportedProcessAdapter(SPConstImported imported,
     CELER_EXPECT(!pdg_numbers.empty());
     for (PDGNumber pdg : pdg_numbers)
     {
-        ParticleProcessIds proc_ids;
-        proc_ids.process = imported_->find({pdg, process_class});
-        CELER_VALIDATE(proc_ids.process,
-                       << "imported process data is unavalable for PDG{"
-                       << pdg.get() << "} (needed for '"
-                       << to_cstring(process_class) << "')");
-
-        // Loop through available tables
-        auto const& tables = imported_->get(proc_ids.process).tables;
-        for (auto table_id : range(ImportTableId(tables.size())))
-        {
-            // Map table types to IDs in our imported data
-            ImportTableId* dst = nullptr;
-            switch (tables[table_id.get()].table_type)
-            {
-                case ImportTableType::dedx:
-                    dst = &proc_ids.dedx;
-                    break;
-                case ImportTableType::range:
-                    dst = &proc_ids.range;
-                    break;
-                case ImportTableType::lambda:
-                    dst = &proc_ids.lambda;
-                    break;
-                case ImportTableType::lambda_prim:
-                    dst = &proc_ids.lambda_prim;
-                    break;
-                default:
-                    //  Not a data type we care about
-                    continue;
-            }
-            CELER_ASSERT(dst);
-            CELER_VALIDATE(!*dst,
-                           << "duplicate table type '"
-                           << to_cstring(tables[table_id.get()].table_type)
-                           << "' in process data for '"
-                           << to_cstring(process_class)
-                           << "' (each type should be unique to a process for "
-                              "a given partice)");
-            *dst = table_id;
-        }
-
         auto particle_id = particles->find(pdg);
         CELER_VALIDATE(particle_id,
                        << "particle PDG{" << pdg.get()
-                       << "} was not loaded (needed for '"
-                       << to_cstring(process_class) << "')");
+                       << "} was not loaded (needed for '" << process_class
+                       << "')");
 
-        // Save process data IDs for this particle type
-        ids_[particle_id] = proc_ids;
+        ids_[particle_id] = imported_->find({pdg, process_class});
+        CELER_VALIDATE(ids_[particle_id],
+                       << "imported process data is unavalable for PDG{"
+                       << pdg.get() << "} (needed for '" << process_class
+                       << "')");
     }
     CELER_ENSURE(ids_.size() == pdg_numbers.size());
 }
@@ -196,95 +178,71 @@ ImportedProcessAdapter::ImportedProcessAdapter(
 /*!
  * Get the interaction cross sections for the given material and particle.
  */
-auto ImportedProcessAdapter::step_limits(Applicability const& applic) const
-    -> StepLimitBuilders
-{
-    try
-    {
-        return this->step_limits_impl(applic);
-    }
-    catch (...)
-    {
-        std::throw_with_nested(IPAContextException(
-            applic.particle, process_class_, applic.material));
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the interaction cross sections for the given material and particle.
- */
-auto ImportedProcessAdapter::step_limits_impl(
-    Applicability const& applic) const -> StepLimitBuilders
+auto ImportedProcessAdapter::macro_xs(Applicability const& applic) const
+    -> XsGrid
 {
     CELER_EXPECT(ids_.count(applic.particle));
     CELER_EXPECT(applic.material);
 
-    // Get list of physics tables
-    ParticleProcessIds const& ids = ids_.find(applic.particle)->second;
-    ImportProcess const& import_process = imported_->get(ids.process);
+    auto const& process_id = ids_.find(applic.particle)->second;
+    ImportProcess const& import_process = imported_->get(process_id);
 
-    auto get_vector = [&applic, &import_process](ImportTableId table_id) {
-        CELER_ASSERT(table_id < import_process.tables.size());
-        ImportPhysicsTable const& tab = import_process.tables[table_id.get()];
-        CELER_ASSERT(applic.material < tab.physics_vectors.size());
-        return tab.physics_vectors[applic.material.get()];
-    };
-
-    StepLimitBuilders builders;
-
-    // Construct cross section tables
-    if (import_process.process_class == ImportProcessClass::msc)
+    // Get cross section tables
+    XsGrid result;
+    if (import_process.lambda)
     {
-        // No cross sections
+        CELER_ASSERT(applic.material < import_process.lambda.grids.size());
+        auto grid = import_process.lambda.grids[applic.material.get()];
+        CELER_ASSERT(grid);
+        CELER_ASSERT(std::exp(grid.x[Bound::lo]) > 0 && grid.y.size() >= 2);
+        CELER_ASSERT(is_nonnegative(make_span(grid.y)));
+        result.lower = std::move(grid);
     }
-    else if (ids.lambda && ids.lambda_prim)
+    if (import_process.lambda_prim)
     {
-        // Both unscaled and scaled values are present
-        auto const& lo = get_vector(ids.lambda);
-        CELER_ASSERT(lo.vector_type == ImportPhysicsVectorType::log);
-        auto const& hi = get_vector(ids.lambda_prim);
-        CELER_ASSERT(hi.vector_type == ImportPhysicsVectorType::log);
-        builders[ValueGridType::macro_xs] = ValueGridXsBuilder::from_geant(
-            make_span(lo.x), make_span(lo.y), make_span(hi.x), make_span(hi.y));
+        CELER_ASSERT(applic.material < import_process.lambda_prim.grids.size());
+        auto grid = import_process.lambda_prim.grids[applic.material.get()];
+        CELER_ASSERT(grid);
+        CELER_ASSERT(std::exp(grid.x[Bound::lo]) > 0 && grid.y.size() >= 2);
+        CELER_ASSERT(is_nonnegative(make_span(grid.y)));
+        result.upper = std::move(grid);
     }
-    else if (ids.lambda_prim)
+    if (result.lower && result.upper)
     {
-        // Only high-energy (energy-scale) cross sections are presesnt
-        auto const& vec = get_vector(ids.lambda_prim);
-        CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
-        builders[ValueGridType::macro_xs] = ValueGridXsBuilder::from_scaled(
-            make_span(vec.x), make_span(vec.y));
+        CELER_ASSERT(is_contiguous_increasing(result.lower, result.upper));
+        CELER_ASSERT(
+            soft_equal(result.lower.x[Bound::hi], result.upper.x[Bound::lo]));
+        CELER_ASSERT(soft_equal(
+            result.lower.y.back(),
+            result.upper.y.front() / std::exp(result.upper.x[Bound::lo])));
+        result.lower.x[Bound::hi] = result.upper.x[Bound::lo];
     }
-    else if (ids.lambda)
-    {
-        // Only low-energy cross sections are presesnt
-        auto const& vec = get_vector(ids.lambda);
-        CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
+    return result;
+}
 
-        builders[ValueGridType::macro_xs] = ValueGridLogBuilder::from_geant(
-            make_span(vec.x), make_span(vec.y));
-    }
+//---------------------------------------------------------------------------//
+/*!
+ * Get the energy loss for the given material and particle.
+ */
+auto ImportedProcessAdapter::energy_loss(Applicability const& applic) const
+    -> EnergyLossGrid
+{
+    CELER_EXPECT(ids_.count(applic.particle));
+    CELER_EXPECT(applic.material);
 
-    // Construct slowing-down data
-    if (ids.dedx)
+    auto const& process_id = ids_.find(applic.particle)->second;
+    ImportProcess const& import_process = imported_->get(process_id);
+
+    EnergyLossGrid result;
+    if (import_process.dedx)
     {
-        auto const& vec = get_vector(ids.dedx);
-        CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
-        builders[ValueGridType::energy_loss] = ValueGridLogBuilder::from_geant(
-            make_span(vec.x), make_span(vec.y));
+        CELER_ASSERT(applic.material < import_process.dedx.grids.size());
+        auto grid = import_process.dedx.grids[applic.material.get()];
+        CELER_ASSERT(grid);
+        CELER_ASSERT(std::exp(grid.x[Bound::lo]) > 0 && grid.y.size() >= 2);
+        result = std::move(grid);
     }
-
-    // Construct range limiters
-    if (ids.range)
-    {
-        auto const& vec = get_vector(ids.range);
-        CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
-        builders[ValueGridType::range] = ValueGridLogBuilder::from_range(
-            make_span(vec.x), make_span(vec.y));
-    }
-
-    return builders;
+    return result;
 }
 
 //---------------------------------------------------------------------------//

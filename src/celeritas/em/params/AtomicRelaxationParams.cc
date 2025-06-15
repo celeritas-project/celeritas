@@ -36,10 +36,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Construct from a vector of element identifiers.
- *
- * \note The EADL only provides transition probabilities for 6 <= Z <= 100, so
- * there will be no atomic relaxation data for Z < 6. Transitions are only
- * provided for K, L, M, N, and some O shells.
  */
 AtomicRelaxationParams::AtomicRelaxationParams(Input const& inp)
     : is_auger_enabled_(inp.is_auger_enabled)
@@ -65,7 +61,7 @@ AtomicRelaxationParams::AtomicRelaxationParams(Input const& inp)
     size_type num_elements = inp.materials->num_elements();
     std::vector<MevEnergy> electron_cutoff(num_elements, max_quantity());
     std::vector<MevEnergy> gamma_cutoff(num_elements, max_quantity());
-    for (auto mat_id : range(MaterialId{inp.materials->num_materials()}))
+    for (auto mat_id : range(PhysMatId{inp.materials->num_materials()}))
     {
         // Electron and photon energy cutoffs for this material
         auto cutoffs = inp.cutoffs->get(mat_id);

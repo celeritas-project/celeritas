@@ -54,6 +54,7 @@ set(DOXYGEN_EXTRA_PACKAGES "amsmath")
 set(DOXYGEN_FORMULA_MACROFILE "${CMAKE_CURRENT_SOURCE_DIR}/_static/macros.tex")
 set(DOXYGEN_FULL_PATH_NAMES NO)
 set(DOXYGEN_IMAGE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/_static")
+set(DOXYGEN_INTERNAL_DOCS YES)
 set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
 set(DOXYGEN_MACRO_EXPANSION YES)
 set(DOXYGEN_PREDEFINED "__DOXYGEN__=${_doxy_version_hex}")
@@ -67,6 +68,7 @@ set(DOXYGEN_ALIASES
   "citet{2}=\"[\\1](\\2)\""
   "rst=\"^^\\if (0)^^\""
   "endrst=\"^^\\endif^^\""
+  "rstref{2}=\"\\1 (\\2 in user manual)\""
 )
 
 # Verbosity/warning levels
@@ -158,7 +160,7 @@ function(celeritas_build_latex input output)
   add_custom_command(OUTPUT "${output}"
     VERBATIM COMMAND
       "${CMAKE_COMMAND}" -E env ${_texenv}
-        "${LATEXMK_EXECUTABLE}" -pdf "${input}"
+        "${LATEXMK_EXECUTABLE}" -f -pdf "${input}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/latex"
     ${ARGN}
   )
@@ -201,6 +203,7 @@ set(DOXYGEN_COLLABORATION_GRAPH NO)
 set(DOXYGEN_CLASS_GRAPH NO)
 set(DOXYGEN_INCLUDED_BY_GRAPH NO)
 set(DOXYGEN_INCLUDE_GRAPH NO)
+set(DOXYGEN_INTERNAL_DOCS NO)
 
 set(DOXYGEN_ALIASES
   "cite{1}=\"\\verbatim embed:rst:inline :cite:p:`\\1` \\endverbatim \""
@@ -208,6 +211,7 @@ set(DOXYGEN_ALIASES
   "citet{2}=\"\\verbatim embed:rst:inline :cite:t:`\\1` \\endverbatim \""
   "rst=\"^^\\verbatim embed:rst^^\""
   "endrst=\"^^\\endverbatim \""
+  "rstref{2}=\"\\verbatim embed:rst:inline :ref:`\\1 <\\2>` \\endverbatim \""
 )
 
 # Annotations break breathe parsing
@@ -229,6 +233,7 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/celeritas/decay/interactor/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/*.cc"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/data/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/interactor/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/interactor/detail/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/model/*.hh"
@@ -243,8 +248,11 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/interactor/detail/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/model/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/model/*.cc"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/optical/gen/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/optical/gen/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/interactor/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/model/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/optical/model/*.cc"
   "${PROJECT_SOURCE_DIR}/test/*.hh"
   "${PROJECT_SOURCE_DIR}/test/*.cc"
 )
@@ -298,7 +306,7 @@ if(Sphinx_FOUND)
   # Download ornltm class
   ExternalProject_Add(ornltm
     GIT_REPOSITORY https://code.ornl.gov/sethrj/ornltm.git
-    GIT_TAG c9d2ddcce2bfc8d7d51db8f4a131d71883f46528
+    GIT_TAG 6379032d2f1e5e8bc1589d087465371fd8b432c1
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
@@ -314,7 +322,7 @@ if(Sphinx_FOUND)
     DEPENDS ornltm
   )
 
-  # Generate header
+  # Generate footer
   set(_footer_pdf "${CMAKE_CURRENT_BINARY_DIR}/latex/ornltm-footer.pdf")
   celeritas_build_latex(
     "${CMAKE_CURRENT_SOURCE_DIR}/_static/ornltm-footer.tex"

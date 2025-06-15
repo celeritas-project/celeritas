@@ -13,6 +13,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/QuantityIO.hh"
 #include "geocel/g4/Convert.hh"
+#include "celeritas/alongstep/AlongStepCartMapFieldMscAction.hh"
 #include "celeritas/alongstep/AlongStepCylMapFieldMscAction.hh"
 #include "celeritas/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/alongstep/AlongStepRZMapFieldMscAction.hh"
@@ -23,6 +24,7 @@
 #include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"
+#include "celeritas/inp/Field.hh"
 #include "celeritas/io/ImportData.hh"
 
 namespace celeritas
@@ -59,8 +61,8 @@ UniformAlongStepFactory::UniformAlongStepFactory(FieldFunction f,
  * The action will embed the linear propagator if the magnetic field strength
  * is zero (or the accessor is unset).
  */
-auto UniformAlongStepFactory::operator()(
-    AlongStepFactoryInput const& input) const -> result_type
+auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) const
+    -> result_type
 {
     // Get the field strength in tesla (or zero if accessor is undefined)
     auto field = this->get_field();
@@ -74,27 +76,15 @@ auto UniformAlongStepFactory::operator()(
         // Get the IDs of the volumes with field
         if (!volumes.empty())
         {
-            field.volumes.reserve(volumes.size());
-            GeantVolumeMapper find_volume(*input.geometry);
-            for (auto const* lv : volumes)
-            {
-                CELER_ASSERT(lv);
-                auto vol = find_volume(*lv);
-                CELER_VALIDATE(
-                    vol,
-                    << "failed to find volume corresponding to Geant4 volume "
-                    << lv->GetName() << " while setting up uniform field");
-                CELER_LOG(debug) << "Found volume " << lv->GetName()
-                                 << " that will be assigned a uniform field";
-                field.volumes.push_back(vol);
-            }
+            field.volumes
+                = inp::UniformField::SetVolume{volumes.begin(), volumes.end()};
         }
 
         // Create a uniform field
         CELER_LOG(info)
             << "Creating along-step action with field strength " << magnitude
             << " T in "
-            << (field.volumes.empty() ? "all" : std::to_string(volumes.size()))
+            << (volumes.empty() ? "all" : std::to_string(volumes.size()))
             << " volumes";
 
         return celeritas::AlongStepUniformMscAction::from_params(
@@ -214,6 +204,46 @@ auto CylMapFieldAlongStepFactory::operator()(
  * Get the field params (used for converting to celeritas::inp).
  */
 CylMapFieldInput CylMapFieldAlongStepFactory::get_field() const
+{
+    return this->get_fieldmap_();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Emit an along-step action with a non-uniform magnetic field.
+ *
+ * The action will embed the field propagator with a CartMapField.
+ */
+CartMapFieldAlongStepFactory::CartMapFieldAlongStepFactory(CartMapFieldFunction f)
+    : get_fieldmap_(std::move(f))
+{
+    CELER_EXPECT(get_fieldmap_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Emit an along-step action.
+ */
+auto CartMapFieldAlongStepFactory::operator()(
+    AlongStepFactoryInput const& input) const -> result_type
+{
+    CELER_LOG(info) << "Creating along-step action with a CartMapField";
+
+    return celeritas::AlongStepCartMapFieldMscAction::from_params(
+        input.action_id,
+        *input.material,
+        *input.particle,
+        get_fieldmap_(),
+        celeritas::UrbanMscParams::from_import(
+            *input.particle, *input.material, *input.imported),
+        input.imported->em_params.energy_loss_fluct);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the field params (used for converting to celeritas::inp).
+ */
+CartMapFieldInput CartMapFieldAlongStepFactory::get_field() const
 {
     return this->get_fieldmap_();
 }

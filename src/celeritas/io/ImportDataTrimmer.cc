@@ -135,8 +135,6 @@ void ImportDataTrimmer::operator()(ImportOpticalModel& data)
 //---------------------------------------------------------------------------//
 void ImportDataTrimmer::operator()(ImportModelMaterial& data)
 {
-    (*this)(data.energy);
-
     if (options_.materials)
     {
         (*this)(data.micro_xs);
@@ -171,9 +169,9 @@ void ImportDataTrimmer::operator()(ImportMuPairProductionTable& data)
     }
 
     (*this)(data.atomic_number);
-    (*this)(data.physics_vectors);
+    (*this)(data.grids);
 
-    this->for_each(data.physics_vectors);
+    this->for_each(data.grids);
 
     CELER_ENSURE(data);
 }
@@ -199,7 +197,6 @@ void ImportDataTrimmer::operator()(ImportLivermoreSubshell& data)
         (*this)(data.param_lo);
         (*this)(data.param_hi);
         (*this)(data.xs);
-        (*this)(data.energy);
     }
 }
 
@@ -215,25 +212,30 @@ void ImportDataTrimmer::operator()(ImportParticle&) {}
 //---------------------------------------------------------------------------//
 void ImportDataTrimmer::operator()(ImportProcess& data)
 {
-    if (options_.materials)
-    {
-        (*this)(data.tables);
-    }
     if (options_.physics)
     {
         (*this)(data.models);
     }
 
     this->for_each(data.models);
-    this->for_each(data.tables);
+
+    (*this)(data.lambda);
+    (*this)(data.lambda_prim);
+    (*this)(data.dedx);
 
     CELER_ENSURE(data);
 }
 
 //---------------------------------------------------------------------------//
-void ImportDataTrimmer::operator()(ImportPhysicsVector& data)
+void ImportDataTrimmer::operator()(inp::Grid& data)
 {
     (*this)(data.x);
+    (*this)(data.y);
+}
+
+//---------------------------------------------------------------------------//
+void ImportDataTrimmer::operator()(inp::UniformGrid& data)
+{
     (*this)(data.y);
 }
 
@@ -242,14 +244,14 @@ void ImportDataTrimmer::operator()(ImportPhysicsTable& data)
 {
     if (options_.materials)
     {
-        (*this)(data.physics_vectors);
+        (*this)(data.grids);
     }
 
-    this->for_each(data.physics_vectors);
+    this->for_each(data.grids);
 }
 
 //---------------------------------------------------------------------------//
-void ImportDataTrimmer::operator()(ImportPhysics2DVector& data)
+void ImportDataTrimmer::operator()(inp::TwodGrid& data)
 {
     auto x_filter = this->make_filterer(data.x.size());
     auto y_filter = this->make_filterer(data.y.size());

@@ -11,10 +11,10 @@
 #include <vector>
 
 #include "corecel/cont/Array.hh"
+#include "celeritas/inp/Grid.hh"
 #include "celeritas/io/ImportElement.hh"
 #include "celeritas/io/ImportMaterial.hh"
 #include "celeritas/io/ImportModel.hh"
-#include "celeritas/io/ImportPhysicsVector.hh"
 #include "celeritas/io/ImportProcess.hh"
 
 class G4VProcess;
@@ -74,7 +74,8 @@ class GeantProcessImporter
   public:
     // Construct with selected list of tables
     GeantProcessImporter(std::vector<ImportPhysMaterial> const& materials,
-                         std::vector<ImportElement> const& elements);
+                         std::vector<ImportElement> const& elements,
+                         inp::Interpolation interpolation);
 
     // Import processes
     ImportProcess operator()(G4ParticleDefinition const& particle,
@@ -86,32 +87,25 @@ class GeantProcessImporter
                G4VMultipleScattering const& process);
 
   private:
-    //// TYPES ////
-
-    struct PrevTable
-    {
-        int particle_pdg;
-        celeritas::ImportProcessClass process_class;
-        celeritas::ImportTableType table_type;
-    };
-
-    //// DATA ////
-
     // Store material and element information for the element selector tables
     std::vector<ImportPhysMaterial> const& materials_;
     std::vector<ImportElement> const& elements_;
+    inp::Interpolation interpolation_;
 };
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
-// Import a physics vector with the given x, y units
-ImportPhysicsVector
-import_physics_vector(G4PhysicsVector const& g4v, Array<ImportUnits, 2> units);
+// Import a uniform physics vector with the given x, y units
+inp::UniformGrid
+import_physics_log_vector(G4PhysicsVector const&, Array<ImportUnits, 2>);
+
+// Import a generic physics vector with the given x, y units
+inp::Grid import_physics_vector(G4PhysicsVector const&, Array<ImportUnits, 2>);
 
 // Import a 2D physics vector
-ImportPhysics2DVector import_physics_2dvector(G4Physics2DVector const& g4pv,
-                                              Array<ImportUnits, 3> units);
+inp::TwodGrid
+import_physics_2dvector(G4Physics2DVector const&, Array<ImportUnits, 3>);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

@@ -100,7 +100,7 @@ class CsgUnitBuilder
     void fill_exterior();
 
     // Fill a volume node with a material
-    void fill_volume(LocalVolumeId, GeoMaterialId);
+    void fill_volume(LocalVolumeId, GeoMatId);
 
     // Fill a volume node with a daughter using the local transform
     void

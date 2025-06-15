@@ -24,14 +24,6 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-// TYPES
-//---------------------------------------------------------------------------//
-//! Currently all value grids are cross section grids
-using ValueGrid = XsGridRecord;
-using ValueGridId = OpaqueId<XsGridRecord>;
-using ValueTableId = OpaqueId<struct ValueTable>;
-
-//---------------------------------------------------------------------------//
 // PARAMS
 //---------------------------------------------------------------------------//
 /*!
@@ -42,13 +34,16 @@ using ValueTableId = OpaqueId<struct ValueTable>;
  * example, an empty ValueTable macro_xs means that the process doesn't have a
  * discrete interaction.
  */
+template<class GridId>
 struct ValueTable
 {
-    ItemRange<ValueGridId> grids;  //!< Value grid by element or material index
+    ItemRange<GridId> grids;  //!< Value grid by element or material index
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const { return !grids.empty(); }
 };
+
+using UniformTable = ValueTable<UniformGridId>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -56,16 +51,16 @@ struct ValueTable
  *
  * Each material has a set of value grids for its constituent elements; these
  * are used to sample an element from a material when required by a discrete
- * interaction. A null ValueTableId means the material only has a single
- * element, so no cross sections need to be stored. An empty ModelXsTable means
- * no element selection is required for the model.
+ * interaction. A null \c ValueTableId means the material only has a single
+ * element, so no cross sections need to be stored. An empty \c ModelCdfTable
+ * means no element selection is required for the model.
  */
-struct ModelXsTable
+struct ModelCdfTable
 {
-    ItemRange<ValueTableId> material;  //!< Value table by material index
+    ItemRange<UniformTable> tables;  //!< Value table by material
 
     //! True if assigned
-    explicit CELER_FUNCTION operator bool() const { return !material.empty(); }
+    explicit CELER_FUNCTION operator bool() const { return !tables.empty(); }
 };
 
 //---------------------------------------------------------------------------//
@@ -73,9 +68,9 @@ struct ModelXsTable
  * Energy-dependent model IDs for a single process and particle type.
  *
  * For a given particle type, a single process should be divided into multiple
- * models as a function of energy. The ModelGroup represents this with an
+ * models as a function of energy. The \c ModelGroup represents this with an
  * energy grid, and each cell of the grid corresponding to a particular
- * ModelId.
+ * \c ParticleModelId.
  */
 struct ModelGroup
 {
@@ -133,9 +128,10 @@ struct ProcessGroup
     ItemRange<ProcessId> processes;  //!< Processes that apply [ppid]
     ItemRange<ModelGroup> models;  //!< Model applicability [ppid]
     ItemRange<IntegralXsProcess> integral_xs;  //!< [ppid]
-    ItemRange<ValueTable> macro_xs;  //!< [ppid]
-    ValueTableId energy_loss;  //!< Process-integrated energy loss
-    ValueTableId range;  //!< Process-integrated range
+    ItemRange<ValueTable<XsGridId>> macro_xs;  //!< [ppid]
+    UniformTable energy_loss;  //!< Process-integrated energy loss
+    UniformTable range;  //!< Process-integrated range
+    UniformTable inverse_range;  //!< Inverse process-integrated range
     ParticleProcessId at_rest;  //!< ID of the particle's at-rest process
 
     //! True if assigned and valid
@@ -153,61 +149,43 @@ struct ProcessGroup
 
 //---------------------------------------------------------------------------//
 /*!
+ * IDs for models that do on-the-fly cross section calculation.
+ */
+struct HardwiredIds
+{
+    ProcessId annihilation;
+    ModelId eplusgg;
+
+    ProcessId photoelectric;
+    ModelId livermore_pe;
+
+    ProcessId neutron_elastic;
+    ModelId chips;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Model data for special hardwired cases (on-the-fly xs calculations).
- *
- * TODO: livermore/relaxation are owned by other classes, but
- * because we assign <host, value> -> { <host, cref> ; <device, value> ->
- * <device, cref> }
  */
 template<Ownership W, MemSpace M>
 struct HardwiredModels
 {
-    //// DATA ////
+    // Process and model IDs
+    HardwiredIds ids;
 
-    // Photoelectric effect
-    ProcessId photoelectric;
-    units::MevEnergy photoelectric_table_thresh;
-    ModelId livermore_pe;
-    LivermorePEData<W, M> livermore_pe_data;
-    AtomicRelaxParamsData<W, M> relaxation_data;
+    // Model data
+    EPlusGGData eplusgg;
+    LivermorePEData<W, M> livermore_pe;
+    AtomicRelaxParamsData<W, M> relaxation;
+    NeutronElasticData<W, M> chips;
 
-    // Positron annihilation
-    ProcessId positron_annihilation;
-    ModelId eplusgg;
-    EPlusGGData eplusgg_data;
-
-    // Neutron elastic
-    ProcessId neutron_elastic;
-    ModelId chips;
-    NeutronElasticData<W, M> chips_data;
-
-    //// MEMBER FUNCTIONS ////
-
-    //! Assign from another set of hardwired models
+    //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     HardwiredModels& operator=(HardwiredModels<W2, M2> const& other)
     {
-        // Note: don't require the other set of hardwired models to be assigned
-        photoelectric = other.photoelectric;
-        if (photoelectric)
-        {
-            // Only assign photoelectric data if that process is present
-            photoelectric_table_thresh = other.photoelectric_table_thresh;
-            livermore_pe = other.livermore_pe;
-            livermore_pe_data = other.livermore_pe_data;
-        }
-        relaxation_data = other.relaxation_data;
-        positron_annihilation = other.positron_annihilation;
+        // Don't assign the references to model data
+        ids = other.ids;
         eplusgg = other.eplusgg;
-        eplusgg_data = other.eplusgg_data;
-
-        neutron_elastic = other.neutron_elastic;
-        if (neutron_elastic)
-        {
-            // Only assign neutron_elastic data if that process is present
-            chips = other.chips;
-            chips_data = other.chips_data;
-        }
 
         return *this;
     }
@@ -279,9 +257,6 @@ struct PhysicsParamsScalars
     ParticleScalars light;
     ParticleScalars heavy;
 
-    //! Order for energy loss interpolation
-    size_type spline_eloss_order{};
-
     real_type secondary_stack_factor = 3;  //!< Secondary storage per state
                                            //!< size
     // When fixed step limiter is used, this is the corresponding action ID
@@ -295,8 +270,7 @@ struct PhysicsParamsScalars
                && linear_loss_limit > 0 && secondary_stack_factor > 0
                && ((fixed_step_limiter > 0)
                    == static_cast<bool>(fixed_step_action))
-               && spline_eloss_order > 0 && lambda_limit > 0
-               && safety_factor >= 0.1 && light && heavy;
+               && lambda_limit > 0 && safety_factor >= 0.1 && light && heavy;
     }
 
     //! Stop early due to MSC limitation
@@ -337,17 +311,6 @@ struct PhysicsParamsScalars
  * This includes macroscopic cross section tables ordered by
  * [particle][process][material][energy] and process-integrated energy loss and
  * range tables ordered by [particle][material][energy].
- *
- * So the first applicable process (ProcessId{0}) for an arbitrary particle
- * (ParticleId{1}) in material 2 (MaterialId{2}) will have the following
- * ID and cross section grid: \code
-   ProcessId proc_id = params.particle[1].processes[0];
-   const UniformGridData& grid
-       = params.particle[1].macro_xs[0].material[2].log_energy;
- * \endcode
- *
- * \todo Energy loss, range, and model xs grids should use \c UniformGridRecord
- * instead of \c XsGridRecord because they have no scaled values.
  */
 template<Ownership W, MemSpace M>
 struct PhysicsParamsData
@@ -363,25 +326,31 @@ struct PhysicsParamsData
 
     //// DATA ////
 
-    // Backend storage
-    Items<real_type> reals;
-    Items<ParticleModelId> pmodel_ids;
-    Items<ValueGrid> value_grids;
-    Items<ValueGridId> value_grid_ids;
-    Items<ProcessId> process_ids;
-    Items<ValueTable> value_tables;
-    Items<ValueTableId> value_table_ids;
-    Items<IntegralXsProcess> integral_xs;
-    Items<ModelGroup> model_groups;
-    ParticleItems<ProcessGroup> process_groups;
-    ParticleModelItems<ModelId> model_ids;
-    ParticleModelItems<ModelXsTable> model_xs;
-
-    // Special data
-    HardwiredModels<W, M> hardwired;
-
     // Non-templated data
     PhysicsParamsScalars scalars;
+
+    // Models that calculate cross sections on the fly
+    HardwiredModels<Ownership::const_reference, M> hardwired;
+
+    // Grid and table storage
+    Items<XsGridId> xs_grid_ids;
+    Items<XsGridRecord> xs_grids;
+    Items<ValueTable<XsGridId>> xs_tables;
+    Items<UniformGridId> uniform_grid_ids;
+    Items<UniformGridRecord> uniform_grids;
+    Items<UniformTable> uniform_tables;
+    ParticleModelItems<ModelCdfTable> model_cdf;
+
+    // Process and model storage
+    Items<ModelGroup> model_groups;
+    Items<IntegralXsProcess> integral_xs;
+    ParticleItems<ProcessGroup> process_groups;
+    ParticleModelItems<ModelId> model_ids;
+    Items<ParticleModelId> pmodel_ids;
+    Items<ProcessId> process_ids;
+
+    // Backend storage
+    Items<real_type> reals;
 
     //// METHODS ////
 
@@ -397,22 +366,26 @@ struct PhysicsParamsData
     {
         CELER_EXPECT(other);
 
-        reals = other.reals;
-        pmodel_ids = other.pmodel_ids;
-        value_grids = other.value_grids;
-        value_grid_ids = other.value_grid_ids;
-        process_ids = other.process_ids;
-        value_tables = other.value_tables;
-        value_table_ids = other.value_table_ids;
-        integral_xs = other.integral_xs;
-        model_groups = other.model_groups;
-        process_groups = other.process_groups;
-        model_ids = other.model_ids;
-        model_xs = other.model_xs;
+        scalars = other.scalars;
 
         hardwired = other.hardwired;
 
-        scalars = other.scalars;
+        xs_grids = other.xs_grids;
+        xs_grid_ids = other.xs_grid_ids;
+        xs_tables = other.xs_tables;
+        uniform_grids = other.uniform_grids;
+        uniform_grid_ids = other.uniform_grid_ids;
+        uniform_tables = other.uniform_tables;
+        model_cdf = other.model_cdf;
+
+        model_groups = other.model_groups;
+        integral_xs = other.integral_xs;
+        process_groups = other.process_groups;
+        model_ids = other.model_ids;
+        pmodel_ids = other.pmodel_ids;
+        process_ids = other.process_ids;
+
+        reals = other.reals;
 
         return *this;
     }
@@ -530,7 +503,7 @@ inline void resize(PhysicsStateData<Ownership::value, M>* state,
     resize(&state->msc_step, size);
     resize(&state->per_process_xs,
            size * params.scalars.max_particle_processes);
-    resize(&state->relaxation, params.hardwired.relaxation_data, size);
+    resize(&state->relaxation, params.hardwired.relaxation, size);
     resize(
         &state->secondaries,
         static_cast<size_type>(size * params.scalars.secondary_stack_factor));

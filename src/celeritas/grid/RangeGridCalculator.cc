@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------ -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/grid/RangeGridCalculator.cc
@@ -8,6 +7,8 @@
 #include "RangeGridCalculator.hh"
 
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/io/EnumStringMapper.hh"
+#include "corecel/io/Logger.hh"
 
 #include "UniformLogGridCalculator.hh"
 
@@ -31,50 +32,55 @@ RangeGridCalculator::RangeGridCalculator(BC bc) : bc_(bc) {}
  *
  * This assumes the same log energy grid is used for range and energy loss.
  */
-auto RangeGridCalculator::operator()(UniformGridRecord const& orig_data,
-                                     Values const& orig_reals) const -> VecReal
+inp::UniformGrid
+RangeGridCalculator::operator()(inp::UniformGrid const& dedx_grid) const
 {
     using HostValues = Collection<real_type, Ownership::value, MemSpace::host>;
+    using HostCRef
+        = Collection<real_type, Ownership::const_reference, MemSpace::host>;
 
-    HostValues host_reals;
-    Values reals;
+    HostValues host_values;
+    HostCRef host_ref;
+
     UniformGridRecord data;
+    data.grid = UniformGridData::from_bounds(dedx_grid.x, dedx_grid.y.size());
 
     auto calc_dedx = [&] {
-        if (orig_data.value.size() < 5 || bc_ == BC::size_)
-        {
-            // Use linear interpolation
-            data = orig_data;
-            data.derivative = {};
-            return UniformLogGridCalculator(data, orig_reals);
-        }
-        else if (orig_data.derivative.empty())
+        // Create a copy of the grid data, with the derivatives if needed
+        CollectionBuilder build(&host_values);
+        data.value = build.insert_back(dedx_grid.y.begin(), dedx_grid.y.end());
+        host_ref = host_values;
+
+        if (dedx_grid.y.size() >= 5 && bc_ != BC::size_)
         {
             // Calculate the second derivatives for cubic spline interpolation
-            auto deriv = SplineDerivCalculator(bc_)(orig_data, orig_reals);
-
-            // Create a copy of the grid data with the derivatives
-            CollectionBuilder build(&host_reals);
-            data.grid = orig_data.grid;
-            data.value = build.insert_back(orig_reals[orig_data.value].begin(),
-                                           orig_reals[orig_data.value].end());
+            auto deriv = SplineDerivCalculator(bc_)(data, host_ref);
             data.derivative = build.insert_back(deriv.begin(), deriv.end());
-            reals = host_reals;
-            return UniformLogGridCalculator(data, reals);
+            host_ref = host_values;
         }
-        // The derivatives have already been calculated
-        return UniformLogGridCalculator(orig_data, orig_reals);
+        return UniformLogGridCalculator(data, host_ref);
     }();
 
-    UniformGrid loge_grid(orig_data.grid);
-    VecReal result(loge_grid.size());
+    UniformGrid loge_grid(data.grid);
+
+    inp::UniformGrid result;
+    result.x = dedx_grid.x;
+    result.y.resize(dedx_grid.y.size());
+    result.interpolation = dedx_grid.interpolation;
+    if (result.interpolation.type == InterpolationType::poly_spline)
+    {
+        CELER_LOG(warning) << InterpolationType::poly_spline
+                           << " interpolation is not supported for range "
+                              "or inverse range: defaulting to linear";
+        result.interpolation.type = InterpolationType::linear;
+    }
 
     constexpr real_type delta
         = 1 / static_cast<real_type>(integration_substeps());
 
     CELER_ASSERT(calc_dedx[0] > 0);
     real_type cum_range = 2 * std::exp(loge_grid[0]) / calc_dedx[0];
-    result[0] = cum_range;
+    result.y[0] = cum_range;
 
     // Integrate the range from the energy loss
     for (size_type i = 1; i < loge_grid.size(); ++i)
@@ -96,7 +102,7 @@ auto RangeGridCalculator::operator()(UniformGridRecord const& orig_data,
                               "interpolation method may be unstable");
             cum_range += delta_energy / dedx;
         }
-        result[i] = cum_range;
+        result.y[i] = cum_range;
     }
     return result;
 }

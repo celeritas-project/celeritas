@@ -19,15 +19,15 @@ namespace celeritas
 static char const format_str[] = "geant4-optical-physics";
 
 //---------------------------------------------------------------------------//
-void from_json(nlohmann::json const& j, WLSTimeProfileSelection& value)
+void from_json(nlohmann::json const& j, WlsTimeProfile& value)
 {
     static auto const from_string
-        = StringEnumMapper<WLSTimeProfileSelection>::from_cstring_func(
+        = StringEnumMapper<WlsTimeProfile>::from_cstring_func(
             to_cstring, "wls time profile");
     value = from_string(j.get<std::string>());
 }
 
-void to_json(nlohmann::json& j, WLSTimeProfileSelection const& value)
+void to_json(nlohmann::json& j, WlsTimeProfile const& value)
 {
     j = std::string{to_cstring(value)};
 }
@@ -109,6 +109,67 @@ void to_json(nlohmann::json& j, ScintillationPhysicsOptions const& inp)
 }
 
 //---------------------------------------------------------------------------//
+void from_json(nlohmann::json const& j, WavelengthShiftingOptions& options)
+{
+    if (j.is_null())
+    {
+        // Null json means deactivated process
+        options = WavelengthShiftingOptions{};
+        options.enable = false;
+        return;
+    }
+#define GBPO_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, options, NAME)
+    GBPO_LOAD_OPTION(enable);
+    GBPO_LOAD_OPTION(time_profile);
+#undef GBPO_LOAD_OPTION
+}
+
+void to_json(nlohmann::json& j, WavelengthShiftingOptions const& inp)
+{
+    if (!inp)
+    {
+        // Special case for process being inactivated
+        j = nullptr;
+        return;
+    }
+
+    j = {
+        CELER_JSON_PAIR(inp, enable),
+        CELER_JSON_PAIR(inp, time_profile),
+    };
+}
+
+//---------------------------------------------------------------------------//
+//! \todo Remove in version 1.0
+void from_json_deprecated(nlohmann::json const& j,
+                          WavelengthShiftingOptions& options,
+                          std::string name)
+{
+    if (auto iter = j.find(name); iter != j.end())
+    {
+        if (iter->is_string())
+        {
+            CELER_LOG(warning) << "Deprecated wavelength shifting option type "
+                                  "`WlsTimeProfile` string: refactor as "
+                                  "'WavelengthShiftingOptions'";
+            if (iter->get<std::string>() == "none")
+            {
+                options.enable = false;
+            }
+            else
+            {
+                iter->get_to(options.time_profile);
+                options.enable = true;
+            }
+        }
+        else
+        {
+            iter->get_to(options);
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
 void from_json(nlohmann::json const& j, BoundaryPhysicsOptions& options)
 {
     if (j.is_null())
@@ -156,8 +217,9 @@ void from_json(nlohmann::json const& j, GeantOpticalPhysicsOptions& options)
     check_format(j, format_str);
     GOPO_LOAD_OPTION(cherenkov);
     GOPO_LOAD_OPTION(scintillation);
-    GOPO_LOAD_OPTION(wavelength_shifting);
-    GOPO_LOAD_OPTION(wavelength_shifting2);
+    from_json_deprecated(j, options.wavelength_shifting, "wavelength_shifting");
+    from_json_deprecated(
+        j, options.wavelength_shifting2, "wavelength_shifting2");
     GOPO_LOAD_OPTION(boundary);
     GOPO_LOAD_OPTION(absorption);
     GOPO_LOAD_OPTION(rayleigh_scattering);

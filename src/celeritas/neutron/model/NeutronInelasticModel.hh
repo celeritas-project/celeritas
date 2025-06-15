@@ -10,6 +10,7 @@
 
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/inp/Grid.hh"
 #include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/neutron/data/NeutronInelasticData.hh"
@@ -19,7 +20,6 @@
 namespace celeritas
 {
 struct CascadeOptions;
-struct ImportPhysicsVector;
 class MaterialParams;
 class ParticleParams;
 
@@ -45,7 +45,7 @@ class NeutronInelasticModel final : public Model, public StaticConcreteAction
     //!@{
     using AtomicMassNumber = IsotopeView::AtomicMassNumber;
     using MevEnergy = units::MevEnergy;
-    using ReadData = std::function<ImportPhysicsVector(AtomicNumber)>;
+    using ReadData = std::function<inp::Grid(AtomicNumber)>;
     using HostRef = NeutronInelasticHostRef;
     using DeviceRef = NeutronInelasticDeviceRef;
     //!@}
@@ -62,7 +62,7 @@ class NeutronInelasticModel final : public Model, public StaticConcreteAction
     SetApplicability applicability() const final;
 
     // Get the microscopic cross sections for the given particle and material
-    MicroXsBuilders micro_xs(Applicability) const final;
+    XsTable micro_xs(Applicability) const final;
 
     //! Apply the interaction kernel to host data
     void step(CoreParams const&, CoreStateHost&) const final;
@@ -86,20 +86,11 @@ class NeutronInelasticModel final : public Model, public StaticConcreteAction
 
     using HostXsData = HostVal<NeutronInelasticData>;
 
-    struct ChannelData
-    {
-        StepanovParameters par;
-        Array<double, 13> xs;
-        Array<double, 6 * 19> cdf;  //! [energy][angle]
-    };
-
     //// HELPER FUNCTIONS ////
 
-    Span<double const> get_xs_energy_bins() const;
-    static ChannelData const& get_channel_data(ChannelId id);
-
-    Span<double const> get_cdf_energy_bins() const;
-    Span<double const> get_cos_theta_bins() const;
+    StepanovParameters const& get_channel_params(ChannelId id);
+    inp::Grid const& get_channel_xs(ChannelId id);
+    inp::TwodGrid const& get_channel_cdf(ChannelId id);
 };
 
 //---------------------------------------------------------------------------//

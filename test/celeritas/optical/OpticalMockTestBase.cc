@@ -20,6 +20,8 @@ namespace test
 //---------------------------------------------------------------------------//
 // UNITS
 //---------------------------------------------------------------------------//
+using TimeSecond = celeritas::RealQuantity<celeritas::units::Second>;
+
 struct Kelvin
 {
     static CELER_CONSTEXPR_FUNCTION Constant value() { return units::kelvin; }
@@ -41,18 +43,17 @@ struct MeterCubedPerMeV
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Helper function for converting hardcoded grids into \c ImportPhysicsVector.
+ * Helper function for converting hardcoded grids into \c inp::Grid.
  *
  * The grid energy is converted to units of MeV, while the values are converted
  * to native units.
  */
 template<class GridUnit, class ValueUnit>
-ImportPhysicsVector
+inp::Grid
 native_physics_vector_from(std::vector<double> xs, std::vector<double> ys)
 {
     CELER_EXPECT(xs.size() == ys.size());
-    ImportPhysicsVector v{
-        ImportPhysicsVectorType::free, std::move(xs), std::move(ys)};
+    inp::Grid v{std::move(xs), std::move(ys), inp::Interpolation{}};
     for (double& x : v.x)
     {
         x = value_as<units::MevEnergy>(native_value_to<units::MevEnergy>(
@@ -70,13 +71,13 @@ native_physics_vector_from(std::vector<double> xs, std::vector<double> ys)
 //---------------------------------------------------------------------------//
 /*!
  * Helper function for converting hardcoded tables (lists of grids) into
- * \c ImportPhysicsVector.
+ * \c inp::Grid.
  */
 template<class GridUnit, class ValueUnit>
-std::vector<ImportPhysicsVector> native_physics_table_from(
+std::vector<inp::Grid> native_physics_table_from(
     std::vector<std::tuple<std::vector<double>, std::vector<double>>> data)
 {
-    std::vector<ImportPhysicsVector> table;
+    std::vector<inp::Grid> table;
     table.reserve(data.size());
     for (auto&& arrs : data)
     {
@@ -105,11 +106,11 @@ auto OpticalMockTestBase::build_optical_material() -> SPConstOpticalMaterial
     for (auto opt_mat : range(8))
     {
         input.volume_to_mat.push_back(
-            OpticalMaterialId(opt_mat % input.properties.size()));
+            OptMatId(opt_mat % input.properties.size()));
     }
 
-    // mock MaterialId == OpticalMaterialId
-    for (auto mat : range(MaterialId(input.properties.size())))
+    // mock PhysMatId == OptMatId
+    for (auto mat : range(PhysMatId(input.properties.size())))
     {
         input.optical_to_core.push_back(mat);
     }
@@ -145,8 +146,8 @@ auto OpticalMockTestBase::build_material() -> SPConstMaterial
             {},
             std::to_string(i).c_str()});
 
-        // mock MaterialId == OpticalMaterialId
-        input.mat_to_optical.push_back(OpticalMaterialId(i));
+        // mock PhysMatId == OptMatId
+        input.mat_to_optical.push_back(OptMatId(i));
     }
 
     return std::make_shared<::celeritas::MaterialParams const>(
@@ -187,6 +188,26 @@ void OpticalMockTestBase::build_import_data(ImportData& data) const
         data.optical_materials[0].rayleigh.scale_factor = 1;
         data.optical_materials[0].rayleigh.compressibility
             = native_value_from(Compressibility{7.658e-23});
+        data.optical_materials[0].wls.mean_num_photons = 2;
+        data.optical_materials[0].wls.time_constant
+            = native_value_from(TimeSecond(1e-9));
+        // Reemitted photon energy range (visible light)
+        data.optical_materials[0].wls.component.x
+            = {1.65e-6, 2e-6, 2.4e-6, 2.8e-6, 3.26e-6};
+        // Reemitted photon energy spectrum
+        data.optical_materials[0].wls.component.y
+            = {0.15, 0.25, 0.50, 0.40, 0.02};
+        data.optical_materials[0].wls2.mean_num_photons = 1;
+        data.optical_materials[0].wls2.time_constant
+            = native_value_from(TimeSecond(21.7e-9));
+        // Reemitted photon energy range (visible light)
+        data.optical_materials[0].wls2.component.x
+            = {1.65e-6, 2e-6, 2.4e-6, 2.8e-6, 3.26e-6};
+        // Reemitted photon energy spectrum
+        data.optical_materials[0].wls2.component.y
+            = {0.016, 0.024, 0.040, 0.111, 0.206, 0.325, 0.413};
+        data.optical_materials[0].wls2.component.x = {
+            1.771e-6, 1.850e-6, 1.901e-6, 2.003e-6, 2.073e-6, 2.141e-6, 2.171e-6};
 
         data.optical_materials[1].properties.refractive_index
             = native_physics_vector_from<units::ElectronVolt, units::Native>(
@@ -220,7 +241,7 @@ void OpticalMockTestBase::build_import_data(ImportData& data) const
 
     // Build mock imported optical models
     {
-        data.optical_models.resize(3);
+        data.optical_models.resize(4);
 
         data.optical_models[0].model_class = ImportModelClass::absorption;
         data.optical_models[0].mfp_table
@@ -250,6 +271,16 @@ void OpticalMockTestBase::build_import_data(ImportData& data) const
                 {{1e-2, 3e2}, {1.2, 10.7}},
                 {{2e-3, 5e1, 1e2}, {1.3, 4.9, 9.4}},
                 {{1e-3, 2e-3, 5e-1}, {1.3, 4.9, 9.4}},
+            });
+
+        data.optical_models[3].model_class = ImportModelClass::wls2;
+        data.optical_models[3].mfp_table
+            = native_physics_table_from<units::Mev, units::Centimeter>({
+                {{1e-1, 1e1}, {2.3, 5.4}},
+                {{2e-2, 1e0, 3e2}, {5.7, 6.2, 9.3}},
+                {{3e-2, 3e2}, {3.2, 9.4}},
+                {{2e-3, 2e2}, {4.9, 9.4}},
+                {{1e-3, 4e-3, 5e-1}, {1.3, 5.9, 8.4}},
             });
     }
 }

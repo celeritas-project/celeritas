@@ -53,7 +53,7 @@ auto BraggModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto BraggModel::micro_xs(Applicability) const -> MicroXsBuilders
+auto BraggModel::micro_xs(Applicability) const -> XsTable
 {
     // Aside from the production cut, the discrete interaction is material
     // independent, so no element is sampled

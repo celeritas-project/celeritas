@@ -12,11 +12,12 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/grid/Interpolator.hh"
 #include "corecel/grid/NonuniformGrid.hh"
+#include "corecel/grid/SplineInterpolator.hh"
 #include "corecel/grid/UniformGrid.hh"
+#include "corecel/grid/UniformGridData.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/Quantity.hh"
-
-#include "XsGridData.hh"
+#include "celeritas/Quantities.hh"
 
 namespace celeritas
 {
@@ -45,15 +46,15 @@ class InverseRangeCalculator
   public:
     //!@{
     //! \name Type aliases
-    using Energy = RealQuantity<XsGridRecord::EnergyUnits>;
+    using Energy = units::MevEnergy;
     using Values
         = Collection<real_type, Ownership::const_reference, MemSpace::native>;
     //!@}
 
   public:
     // Construct from state-independent data
-    inline CELER_FUNCTION
-    InverseRangeCalculator(XsGridRecord const& grid, Values const& values);
+    inline CELER_FUNCTION InverseRangeCalculator(UniformGridRecord const& grid,
+                                                 Values const& values);
 
     // Find and interpolate from the energy
     inline CELER_FUNCTION Energy operator()(real_type range) const;
@@ -61,6 +62,7 @@ class InverseRangeCalculator
   private:
     UniformGrid log_energy_;
     NonuniformGrid<real_type> range_;
+    Span<real_type const> deriv_;
 };
 
 //---------------------------------------------------------------------------//
@@ -73,20 +75,21 @@ class InverseRangeCalculator
  * Lower-energy particles have shorter ranges.
  */
 CELER_FUNCTION
-InverseRangeCalculator::InverseRangeCalculator(XsGridRecord const& grid,
+InverseRangeCalculator::InverseRangeCalculator(UniformGridRecord const& grid,
                                                Values const& values)
-    : log_energy_(grid.lower.grid), range_(grid.lower.value, values)
+    : log_energy_(grid.grid)
+    , range_(grid.value, values)
+    , deriv_(values[grid.derivative])
 {
     CELER_EXPECT(range_.size() == log_energy_.size());
-    CELER_EXPECT(!grid.upper);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the energy of a particle that has the given range.
  */
-CELER_FUNCTION auto
-InverseRangeCalculator::operator()(real_type range) const -> Energy
+CELER_FUNCTION auto InverseRangeCalculator::operator()(real_type range) const
+    -> Energy
 {
     CELER_EXPECT(range >= 0 && range <= range_.back());
 
@@ -109,12 +112,23 @@ InverseRangeCalculator::operator()(real_type range) const -> Energy
     auto idx = range_.find(range);
     CELER_ASSERT(idx + 1 < log_energy_.size());
 
-    // Interpolate: 'x' = range, y = log energy
-    LinearInterpolator<real_type> interpolate_log_energy(
-        {range_[idx], std::exp(log_energy_[idx])},
-        {range_[idx + 1], std::exp(log_energy_[idx + 1])});
-    auto loge = interpolate_log_energy(range);
-    return Energy{loge};
+    real_type result;
+    if (deriv_.empty())
+    {
+        // Interpolate: 'x' = range, y = log energy
+        result = LinearInterpolator<real_type>(
+            {range_[idx], std::exp(log_energy_[idx])},
+            {range_[idx + 1], std::exp(log_energy_[idx + 1])})(range);
+    }
+    else
+    {
+        // Use cubic spline interpolation
+        result = SplineInterpolator<real_type>(
+            {range_[idx], std::exp(log_energy_[idx]), deriv_[idx]},
+            {range_[idx + 1], std::exp(log_energy_[idx + 1]), deriv_[idx + 1]})(
+            range);
+    }
+    return Energy{result};
 }
 
 //---------------------------------------------------------------------------//

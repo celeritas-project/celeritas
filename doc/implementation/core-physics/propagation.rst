@@ -15,9 +15,9 @@ Equation of motion
 Integrator
   Numerically integrates a new position/momentum state given the start,
   path derivative, and step length.
-Driver
-  Integrate path segments that satisfy certain error conditions, solving for
-  the required segment length.
+Substepper
+  Integrate a path segment that satisfies certain truncation error conditions,
+  solving for the required segment length.
 Propagator
   Given a maximum physics step, advance the geometry state and momentum along
   the field lines, satisfying constraints (see :ref:`field driver
@@ -32,7 +32,16 @@ Propagation
 
 .. doxygenclass:: celeritas::FieldPropagator
 
-.. doxygenfunction:: celeritas::make_mag_field_propagator
+.. doxygenclass:: celeritas::FieldSubstepper
+
+Field integration
+-----------------
+
+.. doxygenclass:: celeritas::DormandPrinceIntegrator
+
+.. doxygenclass:: celeritas::RungeKuttaIntegrator
+
+.. doxygenclass:: celeritas::ZHelixIntegrator
 
 Magnetic field types
 --------------------
@@ -40,6 +49,8 @@ Magnetic field types
 .. doxygenclass:: celeritas::UniformField
 
 .. doxygenclass:: celeritas::RZMapField
+
+.. doxygenclass:: celeritas::CartMapField
 
 .. doxygenclass:: celeritas::CylMapField
 
@@ -55,7 +66,11 @@ JSON input for the field setup corresponds to the uniform field input
    :members:
    :no-link:
 
-as well as fully cylindrical input:
+as well as fully Cartesian or cylindrical input:
+
+.. doxygenstruct:: celeritas::CartMapFieldInput
+   :members:
+   :no-link:
 
 .. doxygenstruct:: celeritas::CylMapFieldInput
    :members:
@@ -66,4 +81,3 @@ The field driver options are not yet a stable part of the API:
 .. doxygenstruct:: celeritas::FieldDriverOptions
    :members:
    :no-link:
-

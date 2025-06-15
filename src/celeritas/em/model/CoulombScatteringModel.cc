@@ -56,7 +56,7 @@ CoulombScatteringModel::CoulombScatteringModel(ActionId id,
 
     // Get high/low energy limits
     energy_limit_
-        = imported_.energy_grid_bounds(data_.ids.electron, MaterialId{0});
+        = imported_.energy_grid_bounds(data_.ids.electron, PhysMatId{0});
 
     // Check that the bounds are the same for all particles/materials
     // TODO: This is only expected when using Coulomb scattering with the
@@ -65,7 +65,7 @@ CoulombScatteringModel::CoulombScatteringModel(ActionId id,
     // require material-dependent applicability
     for (auto pid : {data_.ids.electron, data_.ids.positron})
     {
-        for (auto mid : range(MaterialId{materials.num_materials()}))
+        for (auto mid : range(PhysMatId{materials.num_materials()}))
         {
             CELER_VALIDATE(
                 energy_limit_ == imported_.energy_grid_bounds(pid, mid),
@@ -98,7 +98,7 @@ auto CoulombScatteringModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto CoulombScatteringModel::micro_xs(Applicability applic) const -> MicroXsBuilders
+auto CoulombScatteringModel::micro_xs(Applicability applic) const -> XsTable
 {
     return imported_.micro_xs(std::move(applic));
 }

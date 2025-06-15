@@ -138,16 +138,16 @@ struct MaterialParamsData
     template<class T>
     using Items = Collection<T, W, M>;
     template<class T>
-    using MaterialItems = Collection<T, W, M, MaterialId>;
+    using MaterialItems = Collection<T, W, M, PhysMatId>;
 
     Items<IsotopeRecord> isotopes;
     Items<ElementRecord> elements;
     Items<ElIsotopeComponent> isocomponents;
     Items<MatElementComponent> elcomponents;
-    Collection<MaterialRecord, W, M, MaterialId> materials;
+    Collection<MaterialRecord, W, M, PhysMatId> materials;
     IsotopeComponentId::size_type max_isotope_components{};
     ElementComponentId::size_type max_element_components{};
-    MaterialItems<OpticalMaterialId> optical_id;
+    MaterialItems<OptMatId> optical_id;
 
     //// MEMBER FUNCTIONS ////
 
@@ -182,7 +182,7 @@ struct MaterialParamsData
  */
 struct MaterialTrackState
 {
-    MaterialId material_id;  //!< Current material being tracked
+    PhysMatId material_id;  //!< Current material being tracked
 };
 
 //---------------------------------------------------------------------------//

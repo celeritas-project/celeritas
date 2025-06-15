@@ -84,12 +84,6 @@ void InitializeTracksAction::step_impl(CoreParams const& core_params,
         // Update initializers/vacancies
         counters.num_initializers -= num_new_tracks;
         counters.num_vacancies -= num_new_tracks;
-
-        if (core_params.init()->track_order() == TrackOrder::init_charge)
-        {
-            // Clear stale parent track IDs
-            fill(TrackSlotId{}, &core_state.ref().init.parents);
-        }
     }
 
     // Store number of active tracks at the start of the loop

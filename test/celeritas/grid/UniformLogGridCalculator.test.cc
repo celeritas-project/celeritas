@@ -39,13 +39,12 @@ class UniformLogGridCalculatorTest : public CalculatorTestBase
 TEST_F(UniformLogGridCalculatorTest, simple)
 {
     // Energy from 1 to 1e5 MeV with 6 grid points; XS = E
-    GridInput grid;
-    grid.emin = 1;
-    grid.emax = 1e5;
-    grid.value = VecReal{1, 10, 1e2, 1e3, 1e4, 1e5};
+    inp::UniformGrid grid;
+    grid.x = {1, 1e5};
+    grid.y = {1, 10, 1e2, 1e3, 1e4, 1e5};
     this->build(grid);
 
-    UniformLogGridCalculator calc(this->data().lower, this->values());
+    UniformLogGridCalculator calc(this->uniform_grid(), this->values());
 
     // Test on grid points
     EXPECT_SOFT_EQ(1.0, calc(Energy{1}));
@@ -72,13 +71,14 @@ TEST_F(UniformLogGridCalculatorTest, simple)
 
 TEST_F(UniformLogGridCalculatorTest, spline)
 {
-    GridInput grid;
-    grid.emin = 1e-2;
-    grid.emax = 1e2;
-    grid.value = VecReal{100, 10, 1, 10, 100};
-    this->build_spline(grid, BC::not_a_knot);
+    inp::UniformGrid grid;
+    grid.x = {1e-2, 1e2};
+    grid.y = {100, 10, 1, 10, 100};
+    grid.interpolation.type = InterpolationType::cubic_spline;
+    grid.interpolation.bc = BC::not_a_knot;
+    this->build(grid);
 
-    UniformLogGridCalculator calc(this->data().lower, this->values());
+    UniformLogGridCalculator calc(this->uniform_grid(), this->values());
     EXPECT_SOFT_EQ(10, calc(Energy(0.1)));
     EXPECT_SOFT_EQ(-62.572615039281715, calc(Energy(0.2)));
     EXPECT_SOFT_EQ(1, calc(Energy(1)));
@@ -96,19 +96,20 @@ TEST_F(UniformLogGridCalculatorTest, spline)
 
 TEST_F(UniformLogGridCalculatorTest, spline_deriv)
 {
-    GridInput grid;
-    grid.emin = 1e-2;
-    grid.emax = 1e2;
-    grid.value = VecReal{100, 10, 1, 10, 100};
-    this->build_spline(grid, BC::not_a_knot);
+    inp::UniformGrid grid;
+    grid.x = {1e-2, 1e2};
+    grid.y = {100, 10, 1, 10, 100};
+    grid.interpolation.type = InterpolationType::cubic_spline;
+    grid.interpolation.bc = BC::not_a_knot;
+    this->build(grid);
 
     static double const expected_deriv[] = {
         105520 / 33.0, 31880 / 11.0, -3160 / 33.0, -790 / 11.0, 5530 / 33.0};
 
-    auto const& data = this->data().lower;
+    SplineDerivCalculator calc_deriv(BC::not_a_knot);
+    auto const& data = this->uniform_grid();
     {
-        auto deriv
-            = SplineDerivCalculator(BC::not_a_knot)(data, this->values());
+        auto deriv = calc_deriv(data, this->values());
         EXPECT_VEC_SOFT_EQ(expected_deriv, deriv);
     }
     {
@@ -122,8 +123,7 @@ TEST_F(UniformLogGridCalculatorTest, spline_deriv)
             EXPECT_SOFT_EQ(x[i], std::exp(loge_grid[i]));
             EXPECT_SOFT_EQ(y[i], calc[i]);
         }
-        auto deriv = SplineDerivCalculator(BC::not_a_knot)(make_span(x),
-                                                           make_span(y));
+        auto deriv = calc_deriv(make_span(x), make_span(y));
         EXPECT_VEC_SOFT_EQ(expected_deriv, deriv);
     }
 }

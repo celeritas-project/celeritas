@@ -158,7 +158,7 @@ class CoulombScatteringTest : public InteractorHostTestBase
     IsotopeComponentId isocomp_id_{0};
     ElementComponentId elcomp_id_{0};
     ElementId el_id_{0};
-    MaterialId mat_id_{0};
+    PhysMatId mat_id_{0};
 };
 
 TEST_F(CoulombScatteringTest, helper)

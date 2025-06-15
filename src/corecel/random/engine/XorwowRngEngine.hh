@@ -32,6 +32,14 @@ namespace celeritas
  * "example" \c xorwow that combines an \em xorshift output with a Weyl
  * sequence (https://www.jstatsoft.org/index.php/jss/article/view/v008i14/916).
  *
+ * Initialization moves the state ahead to the given subsequence (a subsequence
+ * has size \f$2^{67}\f$) and skips \c offset random numbers.
+ * It is recommended to initialize the state using a very different generator
+ * from the one being initialized to avoid correlations. Here, the 64-bit
+ * SplitMix64 generator is used for initialization
+ * \citep{matsumoto-defects-2007,
+ * https://dl.acm.org/doi/10.1145/1276927.1276928}.
+ *
  * For a description of the jump ahead method using the polynomial
  * representation of the recurrence, see
  * \citet{haramato-jump-2008,
@@ -108,16 +116,17 @@ class XorwowRngEngine
  * Specialization of GenerateCanonical for XorwowRngEngine.
  */
 template<class RealType>
-class GenerateCanonical<XorwowRngEngine, RealType>
+struct GenerateCanonical<XorwowRngEngine, RealType>
 {
-  public:
     //!@{
     //! \name Type aliases
     using real_type = RealType;
     using result_type = RealType;
     //!@}
 
-  public:
+    //! Declare that we use the 32-bit canonical generator
+    static constexpr auto policy = GenerateCanonicalPolicy::builtin32;
+
     //! Sample a random number on [0, 1)
     CELER_FORCEINLINE_FUNCTION result_type operator()(XorwowRngEngine& rng)
     {
@@ -144,15 +153,6 @@ XorwowRngEngine::XorwowRngEngine(ParamsRef const& params,
 //---------------------------------------------------------------------------//
 /*!
  * Initialize the RNG engine.
- *
- * This moves the state ahead to the given subsequence (a subsequence has size
- * 2^67) and skips \c offset random numbers.
- *
- * It is recommended to initialize the state using a very different generator
- * from the one being initialized to avoid correlations. Here the 64-bit
- * SplitMix64 generator is used for initialization (See Matsumoto, Wada,
- * Kuramoto, and Ashihara, "Common defects in initialization of pseudorandom
- * number generators". https://dl.acm.org/doi/10.1145/1276927.1276928.)
  */
 CELER_FUNCTION XorwowRngEngine&
 XorwowRngEngine::operator=(Initializer_t const& init)

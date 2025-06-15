@@ -23,10 +23,9 @@ namespace celeritas
  * A common implementation of sampling from a "difficult" (non-analytically
  * invertible) probability distribution function is to bound the difficult
  * distribution \em f(x) with another easily sampled function \em g(x) . Given
- a
- * maximum value \em M over the \em x interval being sampled, it is equivalent
- * to sampling \em f(x) by instead sampling from \em g(x) and rejecting with
- * probability \f[
+ * a maximum value \em M over the \em x interval being sampled, it is
+ * equivalent to sampling \em f(x) by instead sampling from \em g(x) and
+ * rejecting with probability \f[
    \frac{f(x)}{M g(x)}
  * \f]
  *
@@ -95,8 +94,8 @@ RejectionSampler<RealType>::RejectionSampler(real_type f, real_type fmax)
  */
 template<class RealType>
 template<class Generator>
-CELER_FUNCTION auto
-RejectionSampler<RealType>::operator()(Generator& rng) -> result_type
+CELER_FUNCTION auto RejectionSampler<RealType>::operator()(Generator& rng)
+    -> result_type
 {
     return f_ < fmax_ * generate_canonical<RealType>(rng);
 }

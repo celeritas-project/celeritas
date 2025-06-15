@@ -214,8 +214,8 @@ CELER_FUNCTION FourVector MuDecayInteractor::to_lab_frame(Real3 const& dir,
  * fractional energy.
  */
 CELER_FUNCTION auto
-MuDecayInteractor::calc_momentum(real_type energy_frac,
-                                 Mass mass) const -> Momentum
+MuDecayInteractor::calc_momentum(real_type energy_frac, Mass mass) const
+    -> Momentum
 {
     return Momentum{std::sqrt(ipow<2>(energy_frac * max_energy_)
                               + 2 * energy_frac * max_energy_ * mass.value())};

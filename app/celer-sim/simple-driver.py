@@ -42,6 +42,8 @@ physics_options = {
     'optical': {
         'absorption': True,
         'rayleigh_scattering': True,
+        'wavelength_shifting': {"enable": True, "time_profile": "exponential"},
+        'wavelength_shifting2': {"enable": True, "time_profile": "exponential"}
     }
 }
 
@@ -74,7 +76,6 @@ if not rootout_filename and "cms" in geometry_filename:
 num_tracks = 128 * 32 if use_device else 32
 num_primaries = 3 * 15 # assuming test hepmc input
 max_steps = 512 if physics_options['msc'] else 128
-spline_eloss_order = 2
 
 if not use_device:
     # Way more steps are needed since we're not tracking in parallel, but
@@ -89,7 +90,7 @@ inp = {
     'seed': 12345,
     'num_track_slots': num_tracks,
     'max_steps': max_steps,
-    'spline_eloss_order': spline_eloss_order,
+    'interpolation': 'linear',
     'initializer_capacity': 100 * num_tracks,
     'secondary_stack_factor': 3,
     'action_diagnostic': True,
@@ -99,19 +100,20 @@ inp = {
     'simple_calo': simple_calo,
     'action_times': True,
     'merge_events': False,
-    'default_stream': False,
-    'brem_combined': True,
     'physics_options': physics_options,
     'field': None,
     'slot_diagnostic_prefix': f"slot-diag-{run_name}-",
 }
 
 if "lar" in geometry_filename:
+    num_optical_tracks = 4096
+    inp['max_steps'] = 2
     inp['optical'] = {
-        'num_track_slots': num_tracks,
-        'buffer_capacity': 3 * max_steps * num_tracks,
-        'initializer_capacity': num_tracks,
-        'auto_flush': 2**31, # Large enough to never launch optical loop
+        'num_track_slots': num_optical_tracks,
+        'buffer_capacity': 3 * max_steps * num_optical_tracks,
+        'initializer_capacity': 2048 * num_optical_tracks,
+        'max_steps': 4,
+        'auto_flush': num_optical_tracks,
     }
 
 if "simple-cms" in geometry_filename:
@@ -190,13 +192,13 @@ if not use_device:
       }
 if not use_device and "lar" in geometry_filename:
     expected_opt_sizes = {
-       "generators": 24576,
-       "initializers": 32,
-       "tracks": 32
+       "generators": 3145728,
+       "initializers": 8388608,
+       "tracks": 4096
     }
 
 
-if expected_core_sizes: 
+if expected_core_sizes:
     assert core_sizes == expected_core_sizes, core_sizes
 if expected_opt_sizes:
     opt_sizes = internal["optical-sizes"].copy()

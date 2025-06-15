@@ -1,6 +1,5 @@
-//---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------ -*- cuda -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/alongstep/AlongStepUniformMscAction.cu
@@ -10,7 +9,7 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/em/params/FluctuationParams.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
-#include "celeritas/field/DormandPrinceStepper.hh"
+#include "celeritas/field/DormandPrinceIntegrator.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/UniformField.hh"
@@ -41,7 +40,7 @@ void AlongStepUniformMscAction::step(CoreParams const& params,
     }
     auto field = field_->ref<MemSpace::native>();
     {
-        ScopedProfiling profile_this{"propagate"};
+        ScopedProfiling profile_this{"propagate-uniform"};
         auto execute_thread = ConditionalTrackExecutor{
             params.ptr<MemSpace::native>(),
             state.ptr(),

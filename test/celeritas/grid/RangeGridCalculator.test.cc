@@ -65,24 +65,19 @@ class RangeGridCalculatorTest : public Test
                real_type energy_max,
                Span<real_type const> dedx)
     {
-        CollectionBuilder build(&reals);
-        dedx_grid.grid = UniformGridData::from_bounds(
-            std::log(energy_min), std::log(energy_max), dedx.size());
-        dedx_grid.value = build.insert_back(dedx.begin(), dedx.end());
-        reals_ref = reals;
+        dedx_grid.x = {std::log(energy_min), std::log(energy_max)};
+        dedx_grid.y = {dedx.begin(), dedx.end()};
         CELER_ENSURE(dedx_grid);
     }
 
-    Collection<real_type, Ownership::value, MemSpace::host> reals;
-    Collection<real_type, Ownership::const_reference, MemSpace::host> reals_ref;
-    UniformGridRecord dedx_grid;
+    inp::UniformGrid dedx_grid;
 };
 
 TEST_F(RangeGridCalculatorTest, geant)
 {
     this->build(1e-4, 1e8, get_dedx());
 
-    auto range = RangeGridCalculator(BC::geant)(dedx_grid, reals_ref);
+    auto range = RangeGridCalculator(BC::geant)(dedx_grid);
 
     // Range values imported from Geant4
     static double const expected_range[] = {
@@ -118,7 +113,7 @@ TEST_F(RangeGridCalculatorTest, geant)
     };
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_VEC_SOFT_EQ(expected_range, range);
+        EXPECT_VEC_SOFT_EQ(expected_range, range.y);
     }
 }
 
@@ -129,10 +124,11 @@ TEST_F(RangeGridCalculatorTest, mock)
 
     // Linear interpolation will be used because there are fewer than 5 grid
     // points
-    auto range = RangeGridCalculator(BC::geant)(dedx_grid, reals_ref);
+    auto range = RangeGridCalculator(BC::geant)(dedx_grid);
 
+    constexpr auto tol = SoftEqual<real_type>{}.rel();
     static double const expected_range[] = {4e-05, 0.02002, 20.00002};
-    EXPECT_VEC_SOFT_EQ(expected_range, range);
+    EXPECT_VEC_NEAR(expected_range, range.y, tol);
 }
 
 TEST_F(RangeGridCalculatorTest, sparse)
@@ -162,11 +158,11 @@ TEST_F(RangeGridCalculatorTest, sparse)
         // but still has some negative values. Hopefully Geant4 always uses a
         // large enough grid for the energy loss table.
         RangeGridCalculator calc_range(BC::geant);
-        EXPECT_THROW(calc_range(dedx_grid, reals_ref), RuntimeError);
+        EXPECT_THROW(calc_range(dedx_grid), RuntimeError);
     }
     {
         // Linear interpolation
-        auto range = RangeGridCalculator()(dedx_grid, reals_ref);
+        auto range = RangeGridCalculator()(dedx_grid);
         static double const expected_range[] = {
             2.3818927937551e-07,
             1.7075905920016e-06,
@@ -184,7 +180,7 @@ TEST_F(RangeGridCalculatorTest, sparse)
         };
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
-            EXPECT_VEC_SOFT_EQ(expected_range, range);
+            EXPECT_VEC_SOFT_EQ(expected_range, range.y);
         }
     }
 }

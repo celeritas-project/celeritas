@@ -39,8 +39,6 @@ class BremsstrahlungProcess : public Process
     // TODO: update options based on ImportData
     struct Options
     {
-        //! Use a unified relativistic/SB interactor
-        bool combined_model{false};
         //! Account for LPM effect at very high energies
         bool enable_lpm{true};
     };
@@ -57,7 +55,10 @@ class BremsstrahlungProcess : public Process
     VecModel build_models(ActionIdIter start_id) const final;
 
     // Get the interaction cross sections for the given energy range
-    StepLimitBuilders step_limits(Applicability range) const final;
+    XsGrid macro_xs(Applicability range) const final;
+
+    // Get the energy loss for the given energy range
+    EnergyLossGrid energy_loss(Applicability range) const final;
 
     //! Whether the integral method can be used to sample interaction length
     bool supports_integral_xs() const final { return true; }

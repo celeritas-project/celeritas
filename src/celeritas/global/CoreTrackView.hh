@@ -19,6 +19,10 @@
 
 #include "CoreTrackData.hh"
 
+#if !CELER_DEVICE_COMPILE
+#    include "corecel/io/Logger.hh"
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -46,6 +50,9 @@ class CoreTrackView
     inline CELER_FUNCTION CoreTrackView(ParamsRef const& params,
                                         StateRef const& states,
                                         TrackSlotId slot);
+
+    // Initialize the track states
+    inline CELER_FUNCTION CoreTrackView& operator=(TrackInitializer const&);
 
     // Return a simulation management view
     inline CELER_FUNCTION SimTrackView sim() const;
@@ -159,6 +166,61 @@ CoreTrackView::CoreTrackView(ParamsRef const& params,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Initialize the track states.
+ */
+CELER_FUNCTION CoreTrackView&
+CoreTrackView::operator=(TrackInitializer const& init)
+{
+    CELER_EXPECT(init);
+
+    // Initialize the simulation state
+    this->sim() = init.sim;
+
+    // Initialize the particle attributes
+    this->particle() = init.particle;
+
+    // Initialize the geometry
+    auto geo = this->geometry();
+    geo = init.geo;
+    if (CELER_UNLIKELY(geo.failed() || geo.is_outside()))
+    {
+#if !CELER_DEVICE_COMPILE
+        if (!geo.failed())
+        {
+            // Print an error message if initialization was "successful" but
+            // track is outside
+            CELER_LOG_LOCAL(error) << R"(Track started outside the geometry)";
+        }
+        else
+        {
+            // Do not print anything: the geometry track view itself should've
+            // printed a detailed error message
+        }
+#endif
+        this->apply_errored();
+        return *this;
+    }
+
+    // Initialize the material
+    auto matid = this->geo_material().material_id(geo.volume_id());
+    if (CELER_UNLIKELY(!matid))
+    {
+#if !CELER_DEVICE_COMPILE
+        CELER_LOG_LOCAL(error) << "Track started in an unknown material";
+#endif
+        this->apply_errored();
+        return *this;
+    }
+    this->material() = {matid};
+
+    // Initialize the physics state
+    this->physics() = {};
+
+    return *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return a simulation management view.
  */
 CELER_FUNCTION SimTrackView CoreTrackView::sim() const
@@ -209,8 +271,8 @@ CELER_FUNCTION auto CoreTrackView::particle() const -> ParticleTrackView
 /*!
  * Return a particle view of another particle type.
  */
-CELER_FUNCTION auto
-CoreTrackView::particle_record(ParticleId pid) const -> ParticleView
+CELER_FUNCTION auto CoreTrackView::particle_record(ParticleId pid) const
+    -> ParticleView
 {
     return ParticleView{params_.particles, pid};
 }
@@ -221,7 +283,7 @@ CoreTrackView::particle_record(ParticleId pid) const -> ParticleView
  */
 CELER_FUNCTION auto CoreTrackView::cutoff() const -> CutoffView
 {
-    MaterialId mat_id = this->material().material_id();
+    PhysMatId mat_id = this->material().material_id();
     CELER_ASSERT(mat_id);
     return CutoffView{params_.cutoffs, mat_id};
 }
@@ -232,7 +294,7 @@ CELER_FUNCTION auto CoreTrackView::cutoff() const -> CutoffView
  */
 CELER_FUNCTION auto CoreTrackView::physics() const -> PhysicsTrackView
 {
-    MaterialId mat_id = this->material().material_id();
+    PhysMatId mat_id = this->material().material_id();
     CELER_ASSERT(mat_id);
     auto par = this->particle();
     return PhysicsTrackView{

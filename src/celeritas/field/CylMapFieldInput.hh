@@ -48,7 +48,7 @@ struct CylMapFieldInput
     explicit operator bool() const
     {
         // clang-format off
-        return 
+        return
              (grid_r.size() >= 2)
             && (grid_phi.size() >= 2)
             && (grid_z.size() >= 2)

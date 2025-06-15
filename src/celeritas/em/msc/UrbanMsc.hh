@@ -103,7 +103,7 @@ CELER_FUNCTION void UrbanMsc::limit_step(CoreTrackView const& track)
 
     // Sample multiple scattering step length
     real_type const true_path = [&] {
-        if (sim.step_length() <= shared_.params.limit_min_fix())
+        if (sim.step_length() <= shared_.params.min_step)
         {
             // Very short step: don't displace or limit
             return sim.step_length();

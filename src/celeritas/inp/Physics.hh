@@ -40,9 +40,6 @@ struct EmPhysics
     //!@{
     //! \name Energy loss and slowing down
 
-    //! Use spline interpolation for energy loss
-    size_type eloss_spline_order{1};
-
     // TODO: currently eloss fluctuations are set up via geant importer, then
     // read into ImportEmParams
 #if 0
@@ -62,6 +59,19 @@ struct EmPhysics
  */
 struct OpticalPhysics
 {
+    //!@{
+    //! \name Optical photon generation
+
+    /*! \todo Replace with a mapping of \c VolumeId to \c ScintillationPhysics
+     * or \c CherenkovPhysics
+     */
+
+    //! Generate Cherenkov photons
+    bool cherenkov{true};
+
+    //! Generate scintillation photons
+    bool scintillation{true};
+    //!@}
 };
 
 //---------------------------------------------------------------------------//

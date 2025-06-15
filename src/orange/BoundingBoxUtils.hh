@@ -10,9 +10,9 @@
 #include <cmath>
 #include <iosfwd>
 
+#include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/SoftEqual.hh"
 #include "geocel/BoundingBox.hh"
 
 #include "OrangeTypes.hh"
@@ -74,6 +74,19 @@ inline bool is_degenerate(BoundingBox<T> const& bbox)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether any axis has an infinity on one bound but not the other.
+ */
+template<class T>
+inline bool is_half_inf(BoundingBox<T> const& bbox)
+{
+    auto axes = range(to_int(Axis::size_));
+    return any_of(axes.begin(), axes.end(), [&bbox](int ax) {
+        return std::isinf(bbox.lower()[ax]) != std::isinf(bbox.upper()[ax]);
+    });
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Calculate the center of a bounding box.
  *
  * \pre The bounding box cannot be null, or "semi-infinite" (i.e., it may not
@@ -84,24 +97,16 @@ template<class T>
 inline Array<T, 3> calc_center(BoundingBox<T> const& bbox)
 {
     CELER_EXPECT(bbox);
-
-    auto isinf = [](T value) { return std::isinf(value); };
+    CELER_EXPECT(!is_half_inf(bbox));
 
     Array<T, 3> center;
     for (auto ax : range(to_int(Axis::size_)))
     {
-        if (CELER_UNLIKELY(isinf(bbox.lower()[ax]) || isinf(bbox.upper()[ax])))
+        center[ax] = (bbox.lower()[ax] + bbox.upper()[ax]) / 2;
+        if (CELER_UNLIKELY(std::isnan(center[ax])))
         {
-            // There is no useful way of defining the midpoint between a finite
-            // and infinite value
-            CELER_EXPECT(isinf(bbox.lower()[ax]) && isinf(bbox.upper()[ax]));
-
-            // Fully infinite in this dimension, center can be set to 0
+            // Infinite or half-infinite
             center[ax] = 0;
-        }
-        else
-        {
-            center[ax] = (bbox.lower()[ax] + bbox.upper()[ax]) / 2;
         }
     }
 

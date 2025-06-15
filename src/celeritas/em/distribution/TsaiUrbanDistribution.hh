@@ -16,7 +16,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Polar angular distribution for pair-production and bremsstrahlung processes.
+ * Sample exiting polar angle for pair production and bremsstrahlung.
  *
  * For pair production, the polar angle of the electron (or positron) is
  * defined with respect to the direction of the parent photon. The energy-
@@ -26,6 +26,9 @@ namespace celeritas
  * The angular distribution of the emitted photons is obtained from a
  * simplified formula based on the Tsai cross-section,
  * which is expected to become isotropic in the low energy limit.
+ *
+ * The sample result is the cosine of the exiting angle with respect to the
+ * incident angle.
  *
  * \note This performs the same sampling routine as in Geant4's
  * ModifiedTsai class, based on derivation from \cite{tsai-1974}
@@ -71,8 +74,6 @@ TsaiUrbanDistribution::TsaiUrbanDistribution(Energy energy, Mass mass)
 //---------------------------------------------------------------------------//
 /*!
  * Sample the cosine of the polar angle of the exiting gamma.
- *
- * The z-axis is with respect to the direction of the parent particle.
  */
 template<class Engine>
 CELER_FUNCTION real_type TsaiUrbanDistribution::operator()(Engine& rng)

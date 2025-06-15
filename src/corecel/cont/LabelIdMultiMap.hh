@@ -179,7 +179,8 @@ LabelIdMultiMap<I>::LabelIdMultiMap(std::string&& label, VecLabel&& keys)
  * with uniquifying "extensions", such as pointer addresses from Geant4.
  */
 template<class I>
-auto LabelIdMultiMap<I>::find_all(std::string const& name) const -> SpanConstIdT
+auto LabelIdMultiMap<I>::find_all(std::string const& name) const
+    -> SpanConstIdT
 {
     auto iter = ids_.find(name);
     if (iter == ids_.end())

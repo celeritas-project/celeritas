@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------ -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/PhysicsTrackView.hh
@@ -45,7 +44,7 @@ class PhysicsTrackView
     // Construct from params, state, and material ID for a given track
     inline CELER_FUNCTION PhysicsTrackView(PhysicsParamsRef const&,
                                            PhysicsStateRef const&,
-                                           OpticalMaterialId,
+                                           OptMatId,
                                            TrackSlotId);
 
     // Initialize the physics for the track
@@ -98,7 +97,7 @@ class PhysicsTrackView
   private:
     PhysicsParamsRef const& params_;
     PhysicsStateRef const& states_;
-    OpticalMaterialId const opt_material_;
+    OptMatId const opt_material_;
     TrackSlotId const track_id_;
 };
 
@@ -111,7 +110,7 @@ class PhysicsTrackView
 CELER_FUNCTION
 PhysicsTrackView::PhysicsTrackView(PhysicsParamsRef const& params,
                                    PhysicsStateRef const& states,
-                                   OpticalMaterialId opt_mat,
+                                   OptMatId opt_mat,
                                    TrackSlotId track_id)
     : params_(params)
     , states_(states)
@@ -243,7 +242,8 @@ CELER_FUNCTION ValueGridId PhysicsTrackView::mfp_grid(ModelId model) const
 CELER_FUNCTION real_type PhysicsTrackView::calc_mfp(ModelId model,
                                                     Energy energy) const
 {
-    NonuniformGridCalculator calc{params_.grids[this->mfp_grid(model)], params_.reals};
+    NonuniformGridCalculator calc{params_.grids[this->mfp_grid(model)],
+                                  params_.reals};
     real_type result = calc(value_as<Energy>(energy));
     CELER_ENSURE(result > 0);
     return result;

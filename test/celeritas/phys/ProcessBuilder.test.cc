@@ -53,8 +53,6 @@ class ProcessBuilderTest : public Test
     using SPConstMaterial = std::shared_ptr<MaterialParams const>;
 
     using ActionIdIter = Process::ActionIdIter;
-    using Options = ProcessBuilder::Options;
-    using VGT = ValueGridType;
     using IPC = ImportProcessClass;
 
     static ImportData& import_data();
@@ -121,7 +119,7 @@ auto ProcessBuilderTest::material() -> SPConstMaterial&
 TEST_F(ProcessBuilderTest, compton)
 {
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material(), Options{});
+        this->import_data(), this->particle(), this->material());
     // Create process
     auto process = build_process(IPC::compton);
     EXPECT_PROCESS_TYPE(ComptonProcess, process.get());
@@ -135,22 +133,19 @@ TEST_F(ProcessBuilderTest, compton)
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {
         // Test step limits
         {
             applic.material = mat_id;
-            auto builders = process->step_limits(applic);
-            EXPECT_TRUE(builders[VGT::macro_xs]);
-            EXPECT_FALSE(builders[VGT::energy_loss]);
-            EXPECT_FALSE(builders[VGT::range]);
+            EXPECT_TRUE(process->macro_xs(applic));
+            EXPECT_FALSE(process->energy_loss(applic));
         }
 
         // Test micro xs
         for (auto const& model : models)
         {
-            auto builders = model->micro_xs(applic);
-            EXPECT_TRUE(builders.empty());
+            EXPECT_TRUE(model->micro_xs(applic).empty());
         }
     }
 }
@@ -158,7 +153,7 @@ TEST_F(ProcessBuilderTest, compton)
 TEST_F(ProcessBuilderTest, e_ionization)
 {
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material(), Options{});
+        this->import_data(), this->particle(), this->material());
     // Create process
     auto process = build_process(IPC::e_ioni);
     EXPECT_PROCESS_TYPE(EIonizationProcess, process.get());
@@ -171,24 +166,21 @@ TEST_F(ProcessBuilderTest, e_ionization)
     auto all_applic = models.front()->applicability();
     ASSERT_EQ(2, all_applic.size());
 
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {
         for (auto applic : all_applic)
         {
             // Test step limits
             {
                 applic.material = mat_id;
-                auto builders = process->step_limits(applic);
-                EXPECT_TRUE(builders[VGT::macro_xs]);
-                EXPECT_TRUE(builders[VGT::energy_loss]);
-                EXPECT_TRUE(builders[VGT::range]);
+                EXPECT_TRUE(process->macro_xs(applic));
+                EXPECT_TRUE(process->energy_loss(applic));
             }
 
             // Test micro xs
             for (auto const& model : models)
             {
-                auto builders = model->micro_xs(applic);
-                EXPECT_TRUE(builders.empty());
+                EXPECT_TRUE(model->micro_xs(applic).empty());
             }
         }
     }
@@ -197,7 +189,7 @@ TEST_F(ProcessBuilderTest, e_ionization)
 TEST_F(ProcessBuilderTest, eplus_annihilation)
 {
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material(), Options{});
+        this->import_data(), this->particle(), this->material());
     // Create process
     auto process = build_process(IPC::annihilation);
     EXPECT_PROCESS_TYPE(EPlusAnnihilationProcess, process.get());
@@ -210,24 +202,22 @@ TEST_F(ProcessBuilderTest, eplus_annihilation)
     auto all_applic = models.front()->applicability();
     ASSERT_EQ(1, all_applic.size());
 
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {
         for (auto applic : all_applic)
         {
             // Test step limits
             {
                 applic.material = mat_id;
-                auto builders = process->step_limits(applic);
-                EXPECT_TRUE(builders[VGT::macro_xs]);
-                EXPECT_FALSE(builders[VGT::energy_loss]);
-                EXPECT_FALSE(builders[VGT::range]);
+                // Cross section calculated on the fly
+                EXPECT_FALSE(process->macro_xs(applic));
+                EXPECT_FALSE(process->energy_loss(applic));
             }
 
             // Test micro xs
             for (auto const& model : models)
             {
-                auto builders = model->micro_xs(applic);
-                EXPECT_TRUE(builders.empty());
+                EXPECT_TRUE(model->micro_xs(applic).empty());
             }
         }
     }
@@ -236,7 +226,7 @@ TEST_F(ProcessBuilderTest, eplus_annihilation)
 TEST_F(ProcessBuilderTest, gamma_conversion)
 {
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material(), Options{});
+        this->import_data(), this->particle(), this->material());
     // Create process
     auto process = build_process(IPC::conversion);
     EXPECT_PROCESS_TYPE(GammaConversionProcess, process.get());
@@ -250,26 +240,24 @@ TEST_F(ProcessBuilderTest, gamma_conversion)
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {
         // Test step limits
         {
             applic.material = mat_id;
-            auto builders = process->step_limits(applic);
-            EXPECT_TRUE(builders[VGT::macro_xs]);
-            EXPECT_FALSE(builders[VGT::energy_loss]);
-            EXPECT_FALSE(builders[VGT::range]);
+            EXPECT_TRUE(process->macro_xs(applic));
+            EXPECT_FALSE(process->energy_loss(applic));
         }
 
         // Test micro xs
         for (auto const& model : models)
         {
-            auto builders = model->micro_xs(applic);
+            auto micro_xs = model->micro_xs(applic);
             auto material = this->material()->get(mat_id);
-            EXPECT_EQ(material.num_elements(), builders.size());
+            EXPECT_EQ(material.num_elements(), micro_xs.size());
             for (auto elcomp_idx : range(material.num_elements()))
             {
-                EXPECT_TRUE(builders[elcomp_idx]);
+                EXPECT_TRUE(micro_xs[elcomp_idx]);
             }
         }
     }
@@ -283,7 +271,7 @@ TEST_F(ProcessBuilderTest, photoelectric)
     }
 
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material(), Options{});
+        this->import_data(), this->particle(), this->material());
     // Create process
     auto process = build_process(IPC::photoelectric);
     EXPECT_PROCESS_TYPE(PhotoelectricProcess, process.get());
@@ -297,22 +285,19 @@ TEST_F(ProcessBuilderTest, photoelectric)
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {
         // Test step limits
         {
             applic.material = mat_id;
-            auto builders = process->step_limits(applic);
-            EXPECT_TRUE(builders[VGT::macro_xs]);
-            EXPECT_FALSE(builders[VGT::energy_loss]);
-            EXPECT_FALSE(builders[VGT::range]);
+            EXPECT_TRUE(process->macro_xs(applic));
+            EXPECT_FALSE(process->energy_loss(applic));
         }
 
         // Test micro xs
         for (auto const& model : models)
         {
-            auto builders = model->micro_xs(applic);
-            EXPECT_TRUE(builders.empty());
+            EXPECT_TRUE(model->micro_xs(applic).empty());
         }
     }
 }
@@ -324,10 +309,8 @@ TEST_F(ProcessBuilderTest, bremsstrahlung_multiple_models)
         GTEST_SKIP() << "Missing G4LEDATA";
     }
 
-    Options pbopts;
-    pbopts.brem_combined = false;
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material(), pbopts);
+        this->import_data(), this->particle(), this->material());
 
     // Create process
     auto process = build_process(IPC::e_brems);
@@ -342,92 +325,36 @@ TEST_F(ProcessBuilderTest, bremsstrahlung_multiple_models)
     ASSERT_EQ(2, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {
         // Test step limits
         {
             applic.material = mat_id;
-            auto builders = process->step_limits(applic);
-            EXPECT_TRUE(builders[VGT::macro_xs]);
+            EXPECT_TRUE(process->macro_xs(applic));
 
-            // Only the ionization process has energy loss and range tables.
-            // It's de/dx table is the sum of the ionization and bremsstrahlung
-            // energy loss, and the range table is calculated from the summed
-            // de/dx.
-            EXPECT_FALSE(builders[VGT::energy_loss]);
-            EXPECT_FALSE(builders[VGT::range]);
+            // Only the ionization process has and energy loss table, which is
+            // the sum of the ionization and bremsstrahlung energy loss
+            EXPECT_FALSE(process->energy_loss(applic));
         }
 
         // Test micro xs
         for (auto const& model : models)
         {
-            auto builders = model->micro_xs(applic);
+            auto micro_xs = model->micro_xs(applic);
             auto material = this->material()->get(mat_id);
-            EXPECT_EQ(material.num_elements(), builders.size());
+            EXPECT_EQ(material.num_elements(), micro_xs.size());
             for (auto elcomp_idx : range(material.num_elements()))
             {
-                EXPECT_TRUE(builders[elcomp_idx]);
+                EXPECT_TRUE(micro_xs[elcomp_idx]);
             }
-        }
-    }
-}
-
-TEST_F(ProcessBuilderTest, bremsstrahlung_combined_model)
-{
-    if (!this->has_le_data())
-    {
-        GTEST_SKIP() << "Missing G4LEDATA";
-    }
-
-    Options pbopts;
-    pbopts.brem_combined = true;
-    ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material(), pbopts);
-
-    // Create process
-    auto process = build_process(IPC::e_brems);
-    EXPECT_PROCESS_TYPE(BremsstrahlungProcess, process.get());
-
-    // Test model
-    auto models = process->build_models(ActionIdIter{});
-    ASSERT_EQ(1, models.size());
-    ASSERT_TRUE(models.front());
-    EXPECT_EQ("brems-combined", models.front()->label());
-    auto all_applic = models.front()->applicability();
-    ASSERT_EQ(2, all_applic.size());
-    Applicability applic = *all_applic.begin();
-
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
-    {
-        // Test step limits
-        {
-            applic.material = mat_id;
-            auto builders = process->step_limits(applic);
-            EXPECT_TRUE(builders[VGT::macro_xs]);
-
-            // Only the ionization process has energy loss and range tables.
-            // It's de/dx table is the sum of the ionization and bremsstrahlung
-            // energy loss, and the range table is calculated from the summed
-            // de/dx.
-            EXPECT_FALSE(builders[VGT::energy_loss]);
-            EXPECT_FALSE(builders[VGT::range]);
-        }
-
-        // Test micro xs
-        for (auto const& model : models)
-        {
-            auto builders = model->micro_xs(applic);
-            EXPECT_TRUE(builders.empty());
         }
     }
 }
 
 TEST_F(ProcessBuilderTest, rayleigh)
 {
-    Options pbopts;
-    pbopts.brem_combined = false;
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material(), pbopts);
+        this->import_data(), this->particle(), this->material());
 
     // Create process
     auto process = build_process(IPC::rayleigh);
@@ -442,26 +369,24 @@ TEST_F(ProcessBuilderTest, rayleigh)
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {
         // Test step limits
         {
             applic.material = mat_id;
-            auto builders = process->step_limits(applic);
-            EXPECT_TRUE(builders[VGT::macro_xs]);
-            EXPECT_FALSE(builders[VGT::energy_loss]);
-            EXPECT_FALSE(builders[VGT::range]);
+            EXPECT_TRUE(process->macro_xs(applic));
+            EXPECT_FALSE(process->energy_loss(applic));
         }
 
         // Test micro xs
         for (auto const& model : models)
         {
-            auto builders = model->micro_xs(applic);
+            auto micro_xs = model->micro_xs(applic);
             auto material = this->material()->get(mat_id);
-            EXPECT_EQ(material.num_elements(), builders.size());
+            EXPECT_EQ(material.num_elements(), micro_xs.size());
             for (auto elcomp_idx : range(material.num_elements()))
             {
-                EXPECT_TRUE(builders[elcomp_idx]);
+                EXPECT_TRUE(micro_xs[elcomp_idx]);
             }
         }
     }
@@ -469,10 +394,8 @@ TEST_F(ProcessBuilderTest, rayleigh)
 
 TEST_F(ProcessBuilderTest, coulomb)
 {
-    Options pbopts;
-    pbopts.brem_combined = false;
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material(), pbopts);
+        this->import_data(), this->particle(), this->material());
 
     // Create process
     auto process = build_process(IPC::coulomb_scat);
@@ -491,26 +414,24 @@ TEST_F(ProcessBuilderTest, coulomb)
     EXPECT_EQ(100, value_as<units::MevEnergy>(applic.lower));
     EXPECT_EQ(1e8, value_as<units::MevEnergy>(applic.upper));
 
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {
         // Test step limits
         {
             applic.material = mat_id;
-            auto builders = process->step_limits(applic);
-            EXPECT_TRUE(builders[VGT::macro_xs]);
-            EXPECT_FALSE(builders[VGT::energy_loss]);
-            EXPECT_FALSE(builders[VGT::range]);
+            EXPECT_TRUE(process->macro_xs(applic));
+            EXPECT_FALSE(process->energy_loss(applic));
         }
 
         // Test micro xs
         for (auto const& model : models)
         {
-            auto builders = model->micro_xs(applic);
+            auto micro_xs = model->micro_xs(applic);
             auto material = this->material()->get(mat_id);
-            EXPECT_EQ(material.num_elements(), builders.size());
+            EXPECT_EQ(material.num_elements(), micro_xs.size());
             for (auto elcomp_idx : range(material.num_elements()))
             {
-                EXPECT_TRUE(builders[elcomp_idx]);
+                EXPECT_TRUE(micro_xs[elcomp_idx]);
             }
         }
     }
@@ -535,7 +456,7 @@ TEST_F(ProcessBuilderTest, neutron_elastic)
         = std::make_shared<ParticleParams>(std::move(particle_inp));
 
     ProcessBuilder build_process(
-        this->import_data(), particle_params, this->material(), Options{});
+        this->import_data(), particle_params, this->material());
 
     // Create process
     auto process = build_process(IPC::neutron_elastic);
@@ -550,22 +471,20 @@ TEST_F(ProcessBuilderTest, neutron_elastic)
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {
         // Test step limits
         {
             applic.material = mat_id;
-            auto builders = process->step_limits(applic);
-            EXPECT_TRUE(builders[VGT::macro_xs]);
-            EXPECT_FALSE(builders[VGT::energy_loss]);
-            EXPECT_FALSE(builders[VGT::range]);
+            // Cross section calculated on the fly
+            EXPECT_FALSE(process->macro_xs(applic));
+            EXPECT_FALSE(process->energy_loss(applic));
         }
 
         // Test micro xs
         for (auto const& model : models)
         {
-            auto builders = model->micro_xs(applic);
-            EXPECT_TRUE(builders.empty());
+            EXPECT_TRUE(model->micro_xs(applic).empty());
         }
     }
 }
@@ -573,7 +492,7 @@ TEST_F(ProcessBuilderTest, neutron_elastic)
 TEST_F(ProcessBuilderTest, mu_ionization)
 {
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material(), Options{});
+        this->import_data(), this->particle(), this->material());
 
     // Create process
     auto process = build_process(IPC::mu_ioni);
@@ -595,24 +514,21 @@ TEST_F(ProcessBuilderTest, mu_ionization)
     auto all_applic = models[2]->applicability();
     ASSERT_EQ(2, all_applic.size());
 
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {
         for (auto applic : all_applic)
         {
             // Test step limits
             {
                 applic.material = mat_id;
-                auto builders = process->step_limits(applic);
-                EXPECT_TRUE(builders[VGT::macro_xs]);
-                EXPECT_TRUE(builders[VGT::energy_loss]);
-                EXPECT_TRUE(builders[VGT::range]);
+                EXPECT_TRUE(process->macro_xs(applic));
+                EXPECT_TRUE(process->energy_loss(applic));
             }
 
             // Test micro xs
             for (auto const& model : models)
             {
-                auto builders = model->micro_xs(applic);
-                EXPECT_TRUE(builders.empty());
+                EXPECT_TRUE(model->micro_xs(applic).empty());
             }
         }
     }
@@ -621,7 +537,7 @@ TEST_F(ProcessBuilderTest, mu_ionization)
 TEST_F(ProcessBuilderTest, mu_bremsstrahlung)
 {
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material(), Options{});
+        this->import_data(), this->particle(), this->material());
 
     // Create process
     auto process = build_process(IPC::mu_brems);
@@ -636,27 +552,26 @@ TEST_F(ProcessBuilderTest, mu_bremsstrahlung)
     ASSERT_EQ(2, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
     {
         // Test step limits
         {
             applic.material = mat_id;
-            auto builders = process->step_limits(applic);
-            EXPECT_TRUE(builders[VGT::macro_xs]);
-            // Only the ionization process has energy loss and range tables.
-            EXPECT_FALSE(builders[VGT::energy_loss]);
-            EXPECT_FALSE(builders[VGT::range]);
+            EXPECT_TRUE(process->macro_xs(applic));
+            // Only the ionization process has and energy loss table, which is
+            // the sum of the ionization and bremsstrahlung energy loss
+            EXPECT_FALSE(process->energy_loss(applic));
         }
 
         // Test micro xs
         for (auto const& model : models)
         {
-            auto builders = model->micro_xs(applic);
+            auto micro_xs = model->micro_xs(applic);
             auto material = this->material()->get(mat_id);
-            EXPECT_EQ(material.num_elements(), builders.size());
+            EXPECT_EQ(material.num_elements(), micro_xs.size());
             for (auto elcomp_idx : range(material.num_elements()))
             {
-                EXPECT_TRUE(builders[elcomp_idx]);
+                EXPECT_TRUE(micro_xs[elcomp_idx]);
             }
         }
     }

@@ -8,7 +8,7 @@
 
 #include <vector>
 
-#include "ImportPhysicsVector.hh"
+#include "celeritas/inp/Grid.hh"
 
 namespace celeritas
 {
@@ -26,6 +26,7 @@ enum class ImportModelClass
     absorption,
     rayleigh,
     wls,
+    wls2,
     size_
 };
 
@@ -46,7 +47,7 @@ char const* to_cstring(ImportModelClass imc);
 struct ImportOpticalModel
 {
     optical::ImportModelClass model_class;
-    std::vector<ImportPhysicsVector> mfp_table;  //!< per optical material MFPs
+    std::vector<inp::Grid> mfp_table;  //!< per optical material MFPs
 };
 
 //---------------------------------------------------------------------------//

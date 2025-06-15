@@ -44,6 +44,7 @@ class PhysicsTrackView
     using PhysicsStateRef = NativeRef<PhysicsStateData>;
     using Energy = units::MevEnergy;
     using ModelFinder = GridIdFinder<Energy, ParticleModelId>;
+    using UniformTableId = OpaqueId<UniformTable>;
     //!@}
 
   public:
@@ -51,7 +52,7 @@ class PhysicsTrackView
     inline CELER_FUNCTION PhysicsTrackView(PhysicsParamsRef const& params,
                                            PhysicsStateRef const& states,
                                            ParticleTrackView const& particle,
-                                           MaterialId material,
+                                           PhysMatId material,
                                            TrackSlotId tid);
 
     // Initialize the track view
@@ -84,7 +85,7 @@ class PhysicsTrackView
     CELER_FORCEINLINE_FUNCTION MscRange const& msc_range() const;
 
     // Current material identifier
-    CELER_FORCEINLINE_FUNCTION MaterialId material_id() const;
+    CELER_FORCEINLINE_FUNCTION PhysMatId material_id() const;
 
     //// PROCESSES (depend on particle type and possibly material) ////
 
@@ -96,13 +97,16 @@ class PhysicsTrackView
     inline CELER_FUNCTION ProcessId process(ParticleProcessId) const;
 
     // Get macro xs table, null if not present for this particle/material
-    inline CELER_FUNCTION ValueGridId macro_xs_grid(ParticleProcessId) const;
+    inline CELER_FUNCTION XsGridId macro_xs_grid(ParticleProcessId) const;
 
     // Get energy loss table, null if not present for this particle/material
-    inline CELER_FUNCTION ValueGridId energy_loss_grid() const;
+    inline CELER_FUNCTION UniformGridId energy_loss_grid() const;
 
     // Get range table, null if not present for this particle/material
-    inline CELER_FUNCTION ValueGridId range_grid() const;
+    inline CELER_FUNCTION UniformGridId range_grid() const;
+
+    // Get inverse range table, null if not present
+    inline CELER_FUNCTION UniformGridId inverse_range_grid() const;
 
     // Get data for processes that use the integral approach
     inline CELER_FUNCTION IntegralXsProcess const&
@@ -123,12 +127,12 @@ class PhysicsTrackView
     inline CELER_FUNCTION
         ModelFinder make_model_finder(ParticleProcessId) const;
 
-    // Return value table data for the given particle/model/material
-    inline CELER_FUNCTION ValueTableId value_table(ParticleModelId) const;
+    // Return CDF table data for the given particle/model/material
+    inline CELER_FUNCTION UniformTableId cdf_table(ParticleModelId) const;
 
     // Construct an element selector
     inline CELER_FUNCTION
-        TabulatedElementSelector make_element_selector(ValueTableId,
+        TabulatedElementSelector make_element_selector(UniformTableId,
                                                        Energy) const;
 
     // ID of the particle's at-rest process
@@ -159,7 +163,7 @@ class PhysicsTrackView
 
     // Construct a grid calculator from a physics table
     template<class T>
-    inline CELER_FUNCTION T make_calculator(ValueGridId) const;
+    inline CELER_FUNCTION T make_calculator(UniformGridId) const;
 
     //// HACKS ////
 
@@ -171,7 +175,7 @@ class PhysicsTrackView
     PhysicsParamsRef const& params_;
     PhysicsStateRef const& states_;
     ParticleId const particle_;
-    MaterialId const material_;
+    PhysMatId const material_;
     TrackSlotId const track_slot_;
     bool is_heavy_;
 
@@ -180,7 +184,7 @@ class PhysicsTrackView
     CELER_FORCEINLINE_FUNCTION PhysicsTrackState& state();
     CELER_FORCEINLINE_FUNCTION PhysicsTrackState const& state() const;
     CELER_FORCEINLINE_FUNCTION ProcessGroup const& process_group() const;
-    inline CELER_FUNCTION ValueGridId value_grid(ValueTableId) const;
+    inline CELER_FUNCTION UniformGridId uniform_grid(UniformTable const&) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -195,7 +199,7 @@ CELER_FUNCTION
 PhysicsTrackView::PhysicsTrackView(PhysicsParamsRef const& params,
                                    PhysicsStateRef const& states,
                                    ParticleTrackView const& particle,
-                                   MaterialId mid,
+                                   PhysMatId mid,
                                    TrackSlotId tid)
     : params_(params)
     , states_(states)
@@ -269,7 +273,7 @@ CELER_FUNCTION void PhysicsTrackView::msc_range(MscRange const& msc_range)
 /*!
  * Current material identifier.
  */
-CELER_FUNCTION MaterialId PhysicsTrackView::material_id() const
+CELER_FUNCTION PhysMatId PhysicsTrackView::material_id() const
 {
     return material_;
 }
@@ -338,29 +342,66 @@ CELER_FUNCTION ProcessId PhysicsTrackView::process(ParticleProcessId ppid) const
 /*!
  * Return macro xs value grid data for the given process if available.
  */
-CELER_FUNCTION auto
-PhysicsTrackView::macro_xs_grid(ParticleProcessId ppid) const -> ValueGridId
+CELER_FUNCTION XsGridId
+PhysicsTrackView::macro_xs_grid(ParticleProcessId ppid) const
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
-    return this->value_grid(this->process_group().macro_xs[ppid.get()]);
+    auto table_id = this->process_group().macro_xs[ppid.get()];
+    CELER_ASSERT(table_id);
+    auto const& table = params_.xs_tables[table_id];
+    if (!table)
+    {
+        // No table for this process
+        return {};
+    }
+    CELER_ASSERT(material_ < table.grids.size());
+    auto grid_id = table.grids[material_.get()];
+    if (!grid_id)
+    {
+        // No table for this particular material
+        return {};
+    }
+    return params_.xs_grid_ids[grid_id];
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Return the energy loss grid data if available.
  */
-CELER_FUNCTION auto PhysicsTrackView::energy_loss_grid() const -> ValueGridId
+CELER_FUNCTION UniformGridId PhysicsTrackView::energy_loss_grid() const
 {
-    return this->value_grid(this->process_group().energy_loss);
+    return this->uniform_grid(this->process_group().energy_loss);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Return the range grid data if available.
  */
-CELER_FUNCTION auto PhysicsTrackView::range_grid() const -> ValueGridId
+CELER_FUNCTION UniformGridId PhysicsTrackView::range_grid() const
 {
-    return this->value_grid(this->process_group().range);
+    return this->uniform_grid(this->process_group().range);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return the inverse range grid data if available.
+ *
+ * If spline interpolation is used, the inverse grid is explicity stored with
+ * the derivatives calculated using the range as the x values and the energy as
+ * the y values.
+ *
+ * The grid and values are identical to the range grid (i.e., not inverted)
+ * even if the inverse grid is explicitly stored: the inversion is done in the
+ * \c InverseRangeCalculator .
+ */
+CELER_FUNCTION UniformGridId PhysicsTrackView::inverse_range_grid() const
+{
+    if (auto const& grid
+        = this->uniform_grid(this->process_group().inverse_range))
+    {
+        return grid;
+    }
+    return this->range_grid();
 }
 
 //---------------------------------------------------------------------------//
@@ -389,8 +430,9 @@ CELER_FUNCTION auto PhysicsTrackView::range_grid() const -> ValueGridId
  *
  * See section 7.4 of the Geant4 Physics Reference (release 10.6) for details.
  */
-CELER_FUNCTION auto PhysicsTrackView::integral_xs_process(
-    ParticleProcessId ppid) const -> IntegralXsProcess const&
+CELER_FUNCTION auto
+PhysicsTrackView::integral_xs_process(ParticleProcessId ppid) const
+    -> IntegralXsProcess const&
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
     return params_.integral_xs[this->process_group().integral_xs[ppid.get()]];
@@ -410,30 +452,27 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
     {
         // Calculate macroscopic cross section on the fly for special
         // hardwired processes.
-        if (model_id == params_.hardwired.livermore_pe)
+        if (model_id == params_.hardwired.ids.livermore_pe)
         {
-            auto calc_xs = MacroXsCalculator<LivermorePEMicroXsCalculator>(
-                params_.hardwired.livermore_pe_data, material);
-            result = calc_xs(energy);
+            result = MacroXsCalculator<LivermorePEMicroXsCalculator>(
+                params_.hardwired.livermore_pe, material)(energy);
         }
-        else if (model_id == params_.hardwired.eplusgg)
+        else if (model_id == params_.hardwired.ids.eplusgg)
         {
-            auto calc_xs = EPlusGGMacroXsCalculator(
-                params_.hardwired.eplusgg_data, material);
-            result = calc_xs(energy);
+            result = EPlusGGMacroXsCalculator(params_.hardwired.eplusgg,
+                                              material)(energy);
         }
-        else if (model_id == params_.hardwired.chips)
+        else if (model_id == params_.hardwired.ids.chips)
         {
-            auto calc_xs = MacroXsCalculator<NeutronElasticMicroXsCalculator>(
-                params_.hardwired.chips_data, material);
-            result = calc_xs(energy);
+            result = MacroXsCalculator<NeutronElasticMicroXsCalculator>(
+                params_.hardwired.chips, material)(energy);
         }
     }
     else if (auto grid_id = this->macro_xs_grid(ppid))
     {
         // Calculate cross section from the tabulated data
-        auto calc_xs = this->make_calculator<XsCalculator>(grid_id);
-        result = calc_xs(energy);
+        CELER_ASSERT(grid_id < params_.xs_grids.size());
+        result = XsCalculator(params_.xs_grids[grid_id], params_.reals)(energy);
     }
 
     CELER_ENSURE(result >= 0);
@@ -478,18 +517,20 @@ PhysicsTrackView::calc_max_xs(IntegralXsProcess const& process,
 
 //---------------------------------------------------------------------------//
 /*!
- * Return the model ID that applies to the given process ID and energy if the
- * process is hardwired to calculate macroscopic cross sections on the fly. If
- * the result is null, tables should be used for this process/energy.
+ * Get a hardwired model for on-the-fly cross section calculation.
+ *
+ * This returns the model ID that applies to the given process ID and energy if
+ * the process is hardwired to calculate macroscopic cross sections on the fly.
+ * If the result is null, tables should be used for this process/energy.
  */
 CELER_FUNCTION ModelId PhysicsTrackView::hardwired_model(ParticleProcessId ppid,
                                                          Energy energy) const
 {
     ProcessId process = this->process(ppid);
-    if ((process == params_.hardwired.photoelectric
-         && energy < params_.hardwired.photoelectric_table_thresh)
-        || (process == params_.hardwired.positron_annihilation)
-        || (process == params_.hardwired.neutron_elastic))
+    if ((process == params_.hardwired.ids.photoelectric
+         && energy < LivermoreElement::tabulated_threshold())
+        || (process == params_.hardwired.ids.annihilation)
+        || (process == params_.hardwired.ids.neutron_elastic))
     {
         auto find_model = this->make_model_finder(ppid);
         return this->model_id(find_model(energy));
@@ -503,7 +544,8 @@ CELER_FUNCTION ModelId PhysicsTrackView::hardwired_model(ParticleProcessId ppid,
  * Models that apply to the given process ID.
  */
 CELER_FUNCTION auto
-PhysicsTrackView::make_model_finder(ParticleProcessId ppid) const -> ModelFinder
+PhysicsTrackView::make_model_finder(ParticleProcessId ppid) const
+    -> ModelFinder
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
     ModelGroup const& md
@@ -519,23 +561,28 @@ PhysicsTrackView::make_model_finder(ParticleProcessId ppid) const -> ModelFinder
  * only has one element, so no cross section CDF tables are stored.
  */
 CELER_FUNCTION
-ValueTableId PhysicsTrackView::value_table(ParticleModelId pmid) const
+auto PhysicsTrackView::cdf_table(ParticleModelId pmid) const -> UniformTableId
 {
-    CELER_EXPECT(pmid < params_.model_xs.size());
+    CELER_EXPECT(pmid < params_.model_cdf.size());
 
-    // Get the model xs table for the given particle/model
-    ModelXsTable const& model_xs = params_.model_xs[pmid];
-    if (!model_xs)
-        return {};  // No tables stored for this model
+    // Get the CDF table for the given particle and model
+    ModelCdfTable const& model_cdf = params_.model_cdf[pmid];
+    if (!model_cdf)
+    {
+        // No tables stored for this model
+        return {};
+    }
 
-    // Get the value table for the current material
-    CELER_ASSERT(material_ < model_xs.material.size());
-    auto const& table_id_ref = model_xs.material[material_.get()];
-    if (!table_id_ref)
-        return {};  // Only one element in this material
-
-    CELER_ASSERT(table_id_ref < params_.value_table_ids.size());
-    return params_.value_table_ids[table_id_ref];
+    // Get the value table ID for the current material
+    CELER_ASSERT(material_ < model_cdf.tables.size());
+    auto table_id = model_cdf.tables[material_.get()];
+    CELER_ASSERT(table_id < params_.uniform_tables.size());
+    if (!params_.uniform_tables[table_id])
+    {
+        // No tables stored for this material
+        return {};
+    }
+    return table_id;
 }
 
 //---------------------------------------------------------------------------//
@@ -544,14 +591,14 @@ ValueTableId PhysicsTrackView::value_table(ParticleModelId pmid) const
  */
 CELER_FUNCTION
 TabulatedElementSelector
-PhysicsTrackView::make_element_selector(ValueTableId table_id,
+PhysicsTrackView::make_element_selector(UniformTableId table_id,
                                         Energy energy) const
 {
-    CELER_EXPECT(table_id < params_.value_tables.size());
-    ValueTable const& table = params_.value_tables[table_id];
+    CELER_EXPECT(table_id < params_.uniform_tables.size());
+    auto const& table = params_.uniform_tables[table_id];
     return TabulatedElementSelector{table,
-                                    params_.value_grids,
-                                    params_.value_grid_ids,
+                                    params_.uniform_grids,
+                                    params_.uniform_grid_ids,
                                     params_.reals,
                                     energy};
 }
@@ -678,14 +725,14 @@ CELER_FUNCTION size_type PhysicsTrackView::num_particles() const
 /*!
  * Construct a grid calculator of the given type.
  *
- * The calculator must take two arguments: a reference to XsGridRef, and a
- * reference to the Values data structure.
+ * The calculator must take two arguments: a reference to \c UniformGridRecord
+ * and a reference to the backend reals storage.
  */
 template<class T>
-CELER_FUNCTION T PhysicsTrackView::make_calculator(ValueGridId id) const
+CELER_FUNCTION T PhysicsTrackView::make_calculator(UniformGridId id) const
 {
-    CELER_EXPECT(id < params_.value_grids.size());
-    return T{params_.value_grids[id], params_.reals};
+    CELER_EXPECT(id < params_.uniform_grids.size());
+    return T{params_.uniform_grids[id], params_.reals};
 }
 
 //---------------------------------------------------------------------------//
@@ -701,21 +748,22 @@ CELER_FUNCTION T PhysicsTrackView::make_calculator(ValueGridId id) const
  * associated value (e.g. if the table type is "energy_loss" and the process is
  * not a slowing-down process).
  */
-CELER_FUNCTION auto PhysicsTrackView::value_grid(ValueTableId table_id) const
-    -> ValueGridId
+CELER_FUNCTION UniformGridId
+PhysicsTrackView::uniform_grid(UniformTable const& table) const
 {
-    CELER_EXPECT(table_id);
-
-    ValueTable const& table = params_.value_tables[table_id];
     if (!table)
-        return {};  // No table for this process
-
-    CELER_EXPECT(material_ < table.grids.size());
-    auto grid_id_ref = table.grids[material_.get()];
-    if (!grid_id_ref)
-        return {};  // No table for this particular material
-
-    return params_.value_grid_ids[grid_id_ref];
+    {
+        // No table for this process
+        return {};
+    }
+    CELER_ASSERT(material_ < table.grids.size());
+    auto grid_id = table.grids[material_.get()];
+    if (!grid_id)
+    {
+        // No table for this particular material
+        return {};
+    }
+    return params_.uniform_grid_ids[grid_id];
 }
 
 //! Get the thread-local state (mutable)

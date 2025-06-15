@@ -7,9 +7,9 @@
 #include "geocel/rasterize/SafetyImager.t.hh"
 
 #include "GeantGeoData.hh"
-#include "GeantGeoParams.hh"
 #include "GeantGeoTrackView.hh"
 #include "GeantGeoTraits.hh"
+#include "../GeantGeoParams.hh"
 
 namespace celeritas
 {

@@ -17,6 +17,7 @@
 #include "celeritas/optical/Interaction.hh"
 #include "celeritas/optical/ParticleData.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
+#include "celeritas/optical/SimTrackView.hh"
 
 #include "Test.hh"
 
@@ -35,7 +36,7 @@ using namespace celeritas::test;
  * Manages the direction and track view of an incident photon, and provides
  * access to a diagnostic RNG engine.
  */
-class InteractorHostTestBase : public Test
+class InteractorHostBase
 {
   public:
     //!@{
@@ -43,16 +44,14 @@ class InteractorHostTestBase : public Test
     using RandomEngine = DiagnosticRngEngine<std::mt19937>;
     using Energy = units::MevEnergy;
     using Action = Interaction::Action;
-    using SecondaryAllocator = StackAllocator<TrackInitializer>;
-    using constSpanSecondaries = Span<TrackInitializer const>;
     //!@}
 
   public:
     //! Initialize test base
-    InteractorHostTestBase();
+    InteractorHostBase();
 
     //! Clean up test base
-    virtual ~InteractorHostTestBase() = default;
+    virtual ~InteractorHostBase() = default;
 
     //! Get random number generator with clean counter
     RandomEngine& rng();
@@ -72,13 +71,8 @@ class InteractorHostTestBase : public Test
     //! Get incident photon track view
     ParticleTrackView const& particle_track() const;
 
-    //! Secondary stack storage and access
-    void resize_secondaries(int count);
-    SecondaryAllocator& secondary_allocator()
-    {
-        CELER_EXPECT(sa_view_);
-        return *sa_view_;
-    }
+    //! Get simulation track view
+    SimTrackView const& sim_track() const;
 
     //!@{
     //! Check direction and polarizations are physical
@@ -89,16 +83,18 @@ class InteractorHostTestBase : public Test
   private:
     template<template<Ownership, MemSpace> class S>
     using StateStore = CollectionStateStore<S, MemSpace::host>;
-    template<Ownership W, MemSpace M>
-    using SecondaryStackData = StackAllocatorData<TrackInitializer, W, M>;
 
     StateStore<ParticleStateData> ps_;
-    StateStore<SecondaryStackData> secondaries_;
+    StateStore<SimStateData> ss_;
 
     RandomEngine rng_;
     Real3 inc_direction_;
     std::shared_ptr<ParticleTrackView> pt_view_;
-    std::shared_ptr<SecondaryAllocator> sa_view_;
+    std::shared_ptr<SimTrackView> st_view_;
+};
+
+class InteractorHostTestBase : public InteractorHostBase, public Test
+{
 };
 
 //---------------------------------------------------------------------------//

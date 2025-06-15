@@ -1,6 +1,5 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------ -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/PhysicsParams.cc
@@ -97,7 +96,7 @@ void PhysicsParams::build_mfps(MaterialParams const& mats, HostValue& data) cons
     {
         // Build all MFP tables for the model
         MfpBuilder builder(&data.reals, &data.grids);
-        for (auto opt_mat : range(OpticalMaterialId{mats.num_materials()}))
+        for (auto opt_mat : range(OptMatId{mats.num_materials()}))
         {
             model->build_mfps(opt_mat, builder);
         }

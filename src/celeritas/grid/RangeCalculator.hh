@@ -10,10 +10,11 @@
 
 #include "corecel/data/Collection.hh"
 #include "corecel/grid/Interpolator.hh"
+#include "corecel/grid/SplineInterpolator.hh"
 #include "corecel/grid/UniformGrid.hh"
+#include "corecel/grid/UniformGridData.hh"
 #include "corecel/math/Quantity.hh"
-
-#include "XsGridData.hh"
+#include "celeritas/Quantities.hh"
 
 namespace celeritas
 {
@@ -38,7 +39,7 @@ class RangeCalculator
   public:
     //!@{
     //! \name Type aliases
-    using Energy = RealQuantity<XsGridRecord::EnergyUnits>;
+    using Energy = units::MevEnergy;
     using Values
         = Collection<real_type, Ownership::const_reference, MemSpace::native>;
     //!@}
@@ -46,7 +47,7 @@ class RangeCalculator
   public:
     // Construct from state-independent data
     inline CELER_FUNCTION
-    RangeCalculator(XsGridRecord const& grid, Values const& values);
+    RangeCalculator(UniformGridRecord const& grid, Values const& values);
 
     // Find and interpolate from the energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
@@ -67,11 +68,11 @@ class RangeCalculator
  * Range tables should be uniform in energy, without extra scaling.
  */
 CELER_FUNCTION
-RangeCalculator::RangeCalculator(XsGridRecord const& grid, Values const& values)
-    : data_(grid.lower), reals_(values)
+RangeCalculator::RangeCalculator(UniformGridRecord const& grid,
+                                 Values const& values)
+    : data_(grid), reals_(values)
 {
     CELER_EXPECT(data_);
-    CELER_EXPECT(!grid.upper);
 }
 
 //---------------------------------------------------------------------------//
@@ -101,11 +102,27 @@ CELER_FUNCTION real_type RangeCalculator::operator()(Energy energy) const
     auto idx = loge_grid.find(loge);
     CELER_ASSERT(idx + 1 < loge_grid.size());
 
-    // Interpolate *linearly* on energy
-    LinearInterpolator<real_type> interpolate_xs(
-        {std::exp(loge_grid[idx]), this->get(idx)},
-        {std::exp(loge_grid[idx + 1]), this->get(idx + 1)});
-    return interpolate_xs(energy.value());
+    real_type result;
+    if (data_.derivative.empty())
+    {
+        // Interpolate *linearly* on energy
+        result = LinearInterpolator<real_type>(
+            {std::exp(loge_grid[idx]), this->get(idx)},
+            {std::exp(loge_grid[idx + 1]), this->get(idx + 1)})(
+            value_as<Energy>(energy));
+    }
+    else
+    {
+        // Use cubic spline interpolation
+        real_type lower_deriv = reals_[data_.derivative[idx]];
+        real_type upper_deriv = reals_[data_.derivative[idx + 1]];
+
+        result = SplineInterpolator<real_type>(
+            {std::exp(loge_grid[idx]), this->get(idx), lower_deriv},
+            {std::exp(loge_grid[idx + 1]), this->get(idx + 1), upper_deriv})(
+            value_as<Energy>(energy));
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//

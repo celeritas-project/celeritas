@@ -10,6 +10,7 @@
 
 #include "corecel/random/DiagnosticRngEngine.hh"
 #include "corecel/random/Histogram.hh"
+#include "corecel/random/SequenceEngine.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
 
 #include "celeritas_test.hh"
@@ -56,16 +57,27 @@ TEST(RejectionSamplerTest, sample)
     Histogram histogram(4, {0, 2});
     for ([[maybe_unused]] int i : range(num_samples))
     {
-        double x = sample_target(rng);
-        ASSERT_GE(x, 0);
-        ASSERT_LT(x, 2);
-        histogram(x);
+        histogram(sample_target(rng));
     }
 
     static unsigned int const expected_counts[] = {3942, 7996, 2034, 2028};
     EXPECT_VEC_EQ(expected_counts, histogram.counts());
+    EXPECT_GE(histogram.min(), 0);
+    EXPECT_LE(histogram.max(), 2);
 
     EXPECT_EQ(127408, rng.count());
+}
+
+TEST(RejectionSamplerTest, TEST_IF_CELERITAS_DEBUG(assertions))
+{
+    constexpr auto nan = std::numeric_limits<double>::quiet_NaN();
+
+    // Sampled value can't exceed max
+    EXPECT_THROW((RejectionSampler<double>{1.0, 0.5}), DebugError);
+    // Can't have nan max
+    EXPECT_THROW((RejectionSampler<double>{0.1, nan}), DebugError);
+    // Can't have nan at all
+    EXPECT_THROW((RejectionSampler<double>{nan, 1.5}), DebugError);
 }
 
 //---------------------------------------------------------------------------//

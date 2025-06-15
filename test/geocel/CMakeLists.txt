@@ -26,6 +26,7 @@ endif()
 set(SOURCES
   LazyGeoManager.cc
   GeantImportVolumeResult.cc
+  GenericGeoResults.cc
   GenericGeoTestInterface.cc
   GeoTests.cc
 )
@@ -65,6 +66,7 @@ celeritas_setup_tests(SERIAL
 celeritas_add_test(BoundingBox.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json
 )
+celeritas_add_test(Volume.test.cc)
 
 celeritas_add_test(random/IsotropicDistribution.test.cc)
 celeritas_add_test(random/UniformBoxDistribution.test.cc)
@@ -81,6 +83,7 @@ if(CELERITAS_USE_VecGeom)
       "TwoBoxesVgdmlTest.*"
       "SimpleCmsVgdmlTest.*"
       "FourLevelsVgdmlTest.*"
+      # Polyhedra doesn't work because of anonymous position tags
     )
     if(NOT VecGeom_SURF_FOUND)
       list(APPEND _vecgeom_tests "SolidsVgdmlTest.*" "MultiLevelVgdmlTest.*")
@@ -92,6 +95,7 @@ if(CELERITAS_USE_VecGeom)
       "CmsEeBackDeeTest.*"
       "FourLevelsTest.*"
       "MultiLevelTest.*"
+      "PolyhedraTest.*"
       "ReplicaTest.*"
       "TransformedBoxTest.*"
       "ZnenvTest.*"
@@ -106,7 +110,8 @@ if(CELERITAS_USE_VecGeom)
   endif()
   celeritas_add_device_test(vg/Vecgeom
     LINK_LIBRARIES
-      VecGeom::vecgeom Celeritas::ExtGeant4Geo nlohmann_json::nlohmann_json
+      VecGeom::vecgeom Celeritas::ExtGeant4Geo Celeritas::ExtThrust
+      nlohmann_json::nlohmann_json
     FILTER ${_vecgeom_tests}
     ${_fixme_cgs}
   )

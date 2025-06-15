@@ -10,7 +10,6 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
-#include "celeritas/em/model/CombinedBremModel.hh"
 #include "celeritas/em/model/RelativisticBremModel.hh"
 #include "celeritas/em/model/SeltzerBergerModel.hh"
 #include "celeritas/io/ImportProcess.hh"
@@ -45,19 +44,10 @@ BremsstrahlungProcess::BremsstrahlungProcess(SPConstParticles particles,
 /*!
  * Construct the models associated with this process.
  */
-auto BremsstrahlungProcess::build_models(ActionIdIter start_id) const -> VecModel
+auto BremsstrahlungProcess::build_models(ActionIdIter start_id) const
+    -> VecModel
 {
     using IMC = ImportModelClass;
-
-    if (options_.combined_model)
-    {
-        return {std::make_shared<CombinedBremModel>(*start_id++,
-                                                    *particles_,
-                                                    *materials_,
-                                                    imported_.processes(),
-                                                    load_sb_,
-                                                    options_.enable_lpm)};
-    }
 
     VecModel result;
     if (imported_.has_model(pdg::electron(), IMC::e_brems_sb))
@@ -89,10 +79,19 @@ auto BremsstrahlungProcess::build_models(ActionIdIter start_id) const -> VecMode
 /*!
  * Get the interaction cross sections for the given energy range.
  */
-auto BremsstrahlungProcess::step_limits(Applicability applic) const
-    -> StepLimitBuilders
+auto BremsstrahlungProcess::macro_xs(Applicability applic) const -> XsGrid
 {
-    return imported_.step_limits(std::move(applic));
+    return imported_.macro_xs(std::move(applic));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the energy loss for the given energy range.
+ */
+auto BremsstrahlungProcess::energy_loss(Applicability applic) const
+    -> EnergyLossGrid
+{
+    return imported_.energy_loss(std::move(applic));
 }
 
 //---------------------------------------------------------------------------//

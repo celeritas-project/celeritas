@@ -37,7 +37,7 @@ GeantOpticalModelImporter::GeantOpticalModelImporter(
     }
 
     auto const& mt = *G4Material::GetMaterialTable();
-    for (auto geo_mat_id : range(GeoMaterialId(mt.size())))
+    for (auto geo_mat_id : range(GeoMatId(mt.size())))
     {
         auto opt_id = geo_to_opt[geo_mat_id];
         if (!opt_id)
@@ -73,6 +73,8 @@ ImportOpticalModel GeantOpticalModelImporter::operator()(IMC imc) const
             return ImportOpticalModel{imc, this->import_mfps("RAYLEIGH")};
         case IMC::wls:
             return ImportOpticalModel{imc, this->import_mfps("WLSABSLENGTH")};
+        case IMC::wls2:
+            return ImportOpticalModel{imc, this->import_mfps("WLSABSLENGTH2")};
         default:
             CELER_ASSERT_UNREACHABLE();
     }
@@ -82,10 +84,10 @@ ImportOpticalModel GeantOpticalModelImporter::operator()(IMC imc) const
 /*!
  * Import MFP table with the given property name.
  */
-std::vector<ImportPhysicsVector>
+std::vector<inp::Grid>
 GeantOpticalModelImporter::import_mfps(std::string const& mfp_property_name) const
 {
-    std::vector<ImportPhysicsVector> mfps(opt_to_mat_.size());
+    std::vector<inp::Grid> mfps(opt_to_mat_.size());
     for (auto opt_idx : range(mfps.size()))
     {
         GeantMaterialPropertyGetter get_property{*opt_to_mat_[opt_idx]};

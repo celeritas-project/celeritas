@@ -17,78 +17,14 @@
 
 class G4VPhysicalVolume;
 
-#ifndef EXPECT_RESULT_EQ
-#    define EXPECT_RESULT_EQ(EXPECTED, ACTUAL) \
-        EXPECT_PRED_FORMAT2(::celeritas::test::IsResultEqual, EXPECTED, ACTUAL)
-#    define EXPECT_RESULT_NEAR(EXPECTED, ACTUAL, TOL) \
-        EXPECT_PRED_FORMAT3(                          \
-            ::celeritas::test::IsResultEqual, EXPECTED, ACTUAL, TOL)
-#endif
-
 namespace celeritas
 {
 namespace test
 {
-
-class GenericGeoTestInterface;
-
 //---------------------------------------------------------------------------//
-struct GenericGeoTrackingResult
-{
-    std::vector<std::string> volumes;
-    std::vector<std::string> volume_instances;
-    std::vector<real_type> distances;  //!< [cm]
-    std::vector<real_type> halfway_safeties;  //!< [cm]
-    // Locations the particle had a very tiny distance in a volume
-    std::vector<real_type> bumps;  //!< [cm * 3]
-
-    void print_expected();
-};
-
-struct GenericGeoTrackingTolerance
-{
-    real_type distance{0};
-    real_type safety{0};
-
-    static GenericGeoTrackingTolerance
-    from_test(GenericGeoTestInterface const&);
-};
-
-//---------------------------------------------------------------------------//
-struct GenericGeoVolumeStackResult
-{
-    std::vector<std::string> volume_instances;
-    std::vector<int> replicas;
-
-    void print_expected();
-};
-
-//---------------------------------------------------------------------------//
-::testing::AssertionResult
-IsResultEqual(char const* expected_expr,
-              char const* actual_expr,
-              char const* tol_expr,
-              GenericGeoTrackingResult const& expected,
-              GenericGeoTrackingResult const& actual,
-              GenericGeoTrackingTolerance const& tol);
-
-//---------------------------------------------------------------------------//
-inline ::testing::AssertionResult
-IsResultEqual(char const* expected_expr,
-              char const* actual_expr,
-              GenericGeoTrackingResult const& expected,
-              GenericGeoTrackingResult const& actual)
-{
-    return IsResultEqual(
-        expected_expr, actual_expr, "default", expected, actual, {});
-}
-
-//---------------------------------------------------------------------------//
-::testing::AssertionResult
-IsResultEqual(char const* expected_expr,
-              char const* actual_expr,
-              GenericGeoVolumeStackResult const& expected,
-              GenericGeoVolumeStackResult const& actual);
+struct GenericGeoTrackingResult;
+struct GenericGeoVolumeStackResult;
+struct GenericGeoModelInp;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -107,6 +43,7 @@ class GenericGeoTestInterface
     //! \name Type aliases
     using TrackingResult = GenericGeoTrackingResult;
     using VolumeStackResult = GenericGeoVolumeStackResult;
+    using ModelInpResult = GenericGeoModelInp;
     using SPConstGeoInterface = std::shared_ptr<GeoParamsInterface const>;
     //!@}
 
@@ -120,9 +57,12 @@ class GenericGeoTestInterface
     //!@}
 
     //!@{
-    // Obtain the "touchable history" at a point
+    //! Obtain the "touchable history" at a point
     virtual VolumeStackResult volume_stack(Real3 const& pos_cm) = 0;
     //!@}
+
+    //! Get the model input from the geometry
+    virtual ModelInpResult model_inp() const = 0;
 
     //! Get the label for this geometry: Geant4, VecGeom, ORANGE
     virtual std::string_view geometry_type() const = 0;
@@ -138,15 +78,6 @@ class GenericGeoTestInterface
 
     // Get the threshold in "unit lengths" for a movement being a "bump"
     virtual real_type bump_tol() const;
-
-    //! Ignore the first N VolumeId
-    virtual VolumeId::size_type volume_offset() const { return 0; }
-
-    //! Ignore the first N VolumeInstanceId
-    virtual VolumeInstanceId::size_type volume_instance_offset() const
-    {
-        return 0;
-    }
 
     //! Unit length for "track" testing and other results
     virtual Constant unit_length() const { return lengthunits::centimeter; }

@@ -72,8 +72,7 @@ EventWriter::EventWriter(std::string const& filename,
     // See EventReader.hh
     set_hepmc3_verbosity_from_env();
 
-    CELER_LOG(info) << "Creating " << to_cstring(fmt) << " event file at "
-                    << filename;
+    CELER_LOG(info) << "Creating " << fmt << " event file at " << filename;
     ScopedTimeAndRedirect temp_{"HepMC3"};
 
     writer_ = [&]() -> std::shared_ptr<HepMC3::Writer> {

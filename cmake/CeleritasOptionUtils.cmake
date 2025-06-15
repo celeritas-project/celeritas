@@ -10,8 +10,8 @@ CMake configuration utility functions for Celeritas, primarily for option setup.
 
 .. command:: celeritas_find_or_builtin_package
 
-  Look for an external dependency ``<package>`` and cache whether we found it or
-  not.
+  Look for a *required* external dependency ``<package>`` and cache whether we
+  found it or not.
 
     celeritas_find_or_builtin_package(<package> [...])
 
@@ -20,6 +20,9 @@ CMake configuration utility functions for Celeritas, primarily for option setup.
   configured/installed ourself as a built-in (since CMake's search path includes
   the installation prefix). Additional arguments (e.g. a version number) will be
   forwarded to ``find_package``.
+
+  Previous logic must determine whether the package is needed or not: if not
+  already found, this will enable the builtin copy for later use.
 
 .. command:: celeritas_optional_language
 
@@ -124,14 +127,29 @@ include_guard(GLOBAL)
 
 include(CheckLanguage)
 
+# List of available components
+set(CELERITAS_COMPONENTS)
+# List of enabled components
+set(CELERITAS_ENABLED_COMPONENTS)
+# List of forced packages
+set(CELERITAS_FORCED_PACKAGE_VARS)
+# List of configurable options
+set(CELERITAS_OPTION_VARS)
 # List of variables configured via `celeritas_set_default`
 set(CELERITAS_DEFAULT_VARIABLES)
 # True if any CELERITAS_BUILTIN_XXX
 set(CELERITAS_BUILTIN FALSE)
 
 #-----------------------------------------------------------------------------#
+macro(_celeritas_append_optional_component var val)
+  # Append to list of components
+  list(APPEND CELERITAS_COMPONENTS ${var})
+  if("${val}")
+    list(APPEND CELERITAS_ENABLED_COMPONENTS ${var})
+  endif()
+endmacro()
 
-function(celeritas_optional_language lang)
+macro(celeritas_optional_language lang)
   set(_var "CELERITAS_USE_${lang}")
   if(DEFINED "${_var}")
     set(_val "${_var}")
@@ -144,8 +162,11 @@ function(celeritas_optional_language lang)
     message(STATUS "Set ${_var}=${_val} based on compiler availability")
   endif()
 
+  # Create option
   option("${_var}" "Enable the ${lang} language" "${_val}" )
-endfunction()
+  # Append to list of components
+  _celeritas_append_optional_component("${lang}" "${${_var}}")
+endmacro()
 
 #-----------------------------------------------------------------------------#
 
@@ -159,6 +180,8 @@ endfunction()
 
 #-----------------------------------------------------------------------------#
 
+# Note: this is a macro so that `find_package` variables stay in the global
+# scope.
 macro(celeritas_find_or_builtin_package package)
   set(_var "CELERITAS_BUILTIN_${package}")
   set(_use_builtin "${${_var}}")
@@ -168,16 +191,19 @@ macro(celeritas_find_or_builtin_package package)
       # Celeritas is a subproject)
       find_package(${package} ${ARGN})
     endif()
+    set(_found "${${package}_FOUND}")
     if(NOT DEFINED ${_var})
-      set(_found "${${package}_FOUND}")
       if(NOT _found)
         set(_use_builtin ON)
       endif()
       set("${_var}" "${_use_builtin}" CACHE BOOL
         "Fetch and build ${package}")
       mark_as_advanced(${_var})
-      unset(_found)
+    elseif(NOT _found)
+      # First time looking, builtin defined, package not fuond
+      find_package(${package} ${ARGN} QUIET REQUIRED)
     endif()
+    unset(_found)
   endif()
   if(_use_builtin)
     set(CELERITAS_BUILTIN TRUE)
@@ -222,7 +248,19 @@ macro(celeritas_optional_package package)
     endif()
   endif()
 
+  # Create option
   option("${_var}" "${_docstring}" "${_val}")
+  # Append to list of components
+  _celeritas_append_optional_component(${package} "${${_var}}")
+endmacro()
+
+macro(celeritas_force_package package value)
+  set(_var "CELERITAS_USE_${package}")
+  set(${_var} ${value})
+  # Append to list of components
+  _celeritas_append_optional_component(${package} "${value}")
+  # Append to list of forced packages for export
+  list(APPEND CELERITAS_FORCED_PACKAGE_VARS ${_var})
 endmacro()
 
 #-----------------------------------------------------------------------------#
@@ -336,6 +374,9 @@ function(celeritas_define_options var doc)
     endif()
   endif()
   set(${_last_var} "${_val}" CACHE INTERNAL "")
+
+  string(REGEX REPLACE "^CELERITAS_" "" _shortvar "${var}")
+  set(CELERITAS_OPTION_VARS ${CELERITAS_OPTION_VARS} ${_shortvar} PARENT_SCOPE)
 endfunction()
 
 #-----------------------------------------------------------------------------#

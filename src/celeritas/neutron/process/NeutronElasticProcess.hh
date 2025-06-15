@@ -9,6 +9,7 @@
 #include <functional>
 #include <memory>
 
+#include "celeritas/inp/Grid.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/Applicability.hh"
 #include "celeritas/phys/AtomicNumber.hh"
@@ -17,8 +18,6 @@
 
 namespace celeritas
 {
-struct ImportPhysicsVector;
-
 //---------------------------------------------------------------------------//
 /*!
  * Elastic scattering process for neutrons.
@@ -30,7 +29,7 @@ class NeutronElasticProcess : public Process
     //! \name Type aliases
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
-    using ReadData = std::function<ImportPhysicsVector(AtomicNumber)>;
+    using ReadData = std::function<inp::Grid(AtomicNumber)>;
     //!@}
 
   public:
@@ -43,7 +42,10 @@ class NeutronElasticProcess : public Process
     VecModel build_models(ActionIdIter start_id) const final;
 
     // Get the interaction cross sections for the given energy range
-    StepLimitBuilders step_limits(Applicability range) const final;
+    XsGrid macro_xs(Applicability range) const final;
+
+    // Get the energy loss for the given energy range
+    EnergyLossGrid energy_loss(Applicability range) const final;
 
     //! Whether the integral method can be used to sample interaction length
     bool supports_integral_xs() const final { return false; }

@@ -52,6 +52,8 @@ commands]
   \@mainmattertrue%
   \pagenumbering{arabic}%
 	\setcounter{page}{1}
+  % Don't break the first section in order to allow ``mainmatter'' abstracts to
+  % work correctly.
   \renewcommand{\sectionbreak}{\renewcommand\sectionbreak\cleardoublepage}
 }
 

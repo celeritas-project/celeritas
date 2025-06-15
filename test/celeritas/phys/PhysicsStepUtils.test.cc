@@ -57,7 +57,7 @@ class PhysicsStepUtilsTest : public MockTestBase
     RandomEngine& rng() { return rng_; }
 
     PhysicsTrackView init_track(MaterialTrackView* mat,
-                                MaterialId mid,
+                                PhysMatId mid,
                                 ParticleTrackView* par,
                                 char const* name,
                                 MevEnergy energy)
@@ -116,7 +116,7 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
     // Test a variety of energies and multiple material IDs
     {
         PhysicsTrackView phys = this->init_track(
-            &material, MaterialId{0}, &particle, "gamma", MevEnergy{1});
+            &material, PhysMatId{0}, &particle, "gamma", MevEnergy{1});
         phys.interaction_mfp(1);
         StepLimit step
             = calc_physics_step_limit(material, particle, phys, pstep);
@@ -125,7 +125,7 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
     }
     {
         PhysicsTrackView phys = this->init_track(
-            &material, MaterialId{1}, &particle, "celeriton", MevEnergy{10});
+            &material, PhysMatId{1}, &particle, "celeriton", MevEnergy{10});
         phys.interaction_mfp(1e-4);
         StepLimit step
             = calc_physics_step_limit(material, particle, phys, pstep);
@@ -140,7 +140,7 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
     }
     {
         PhysicsTrackView phys = this->init_track(
-            &material, MaterialId{1}, &particle, "celeriton", MevEnergy{1e-2});
+            &material, PhysMatId{1}, &particle, "celeriton", MevEnergy{1e-2});
         StepLimit step
             = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(range_action, step.action);
@@ -148,7 +148,7 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
     }
     {
         PhysicsTrackView phys = this->init_track(&material,
-                                                 MaterialId{2},
+                                                 PhysMatId{2},
                                                  &particle,
                                                  "anti-celeriton",
                                                  MevEnergy{1e-2});
@@ -165,11 +165,8 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
         EXPECT_SOFT_EQ(1.5714285714285705e-05, to_cm(step.step));
     }
     {
-        PhysicsTrackView phys = this->init_track(&material,
-                                                 MaterialId{2},
-                                                 &particle,
-                                                 "anti-celeriton",
-                                                 MevEnergy{10});
+        PhysicsTrackView phys = this->init_track(
+            &material, PhysMatId{2}, &particle, "anti-celeriton", MevEnergy{10});
         StepLimit step
             = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(range_action, step.action);
@@ -177,7 +174,7 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
     }
     {
         PhysicsTrackView phys = this->init_track(
-            &material, MaterialId{1}, &particle, "celeriton", MevEnergy{10});
+            &material, PhysMatId{1}, &particle, "celeriton", MevEnergy{10});
         phys.interaction_mfp(1e-4);
         StepLimit step
             = calc_physics_step_limit(material, particle, phys, pstep);
@@ -193,7 +190,7 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
     {
         // Test absurdly low energy (1 + E = 1)
         PhysicsTrackView phys = this->init_track(
-            &material, MaterialId{1}, &particle, "celeriton", MevEnergy{1e-18});
+            &material, PhysMatId{1}, &particle, "celeriton", MevEnergy{1e-18});
         phys.interaction_mfp(1e-10);
         StepLimit step
             = calc_physics_step_limit(material, particle, phys, pstep);
@@ -203,7 +200,7 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
     {
         // Celerino should have infinite step with no action
         PhysicsTrackView phys = this->init_track(
-            &material, MaterialId{0}, &particle, "celerino", MevEnergy{1});
+            &material, PhysMatId{0}, &particle, "celerino", MevEnergy{1});
         phys.interaction_mfp(1.234);
         StepLimit step
             = calc_physics_step_limit(material, particle, phys, pstep);
@@ -223,19 +220,17 @@ TEST_F(PhysicsStepUtilsTest, calc_mean_energy_loss)
     // input: cm; output: MeV
     auto calc_eloss = [&](PhysicsTrackView& phys, real_type step) -> real_type {
         // Calculate and store the energy loss range to PhysicsTrackView
-        auto grid_id = phys.range_grid();
-        auto calc_range = phys.make_calculator<RangeCalculator>(grid_id);
-        real_type range = calc_range(particle.energy());
+        real_type range = phys.make_calculator<RangeCalculator>(
+            phys.range_grid())(particle.energy());
         phys.dedx_range(range);
 
-        auto result
-            = calc_mean_energy_loss(particle, phys, step * units::centimeter);
+        auto result = calc_mean_energy_loss(particle, phys, from_cm(step));
         return value_as<MevEnergy>(result);
     };
 
     {
         PhysicsTrackView phys = this->init_track(
-            &material, MaterialId{0}, &particle, "gamma", MevEnergy{1});
+            &material, PhysMatId{0}, &particle, "gamma", MevEnergy{1});
         if (CELERITAS_DEBUG)
         {
             // Can't calc eloss for photons
@@ -244,7 +239,7 @@ TEST_F(PhysicsStepUtilsTest, calc_mean_energy_loss)
     }
     {
         PhysicsTrackView phys = this->init_track(
-            &material, MaterialId{0}, &particle, "celeriton", MevEnergy{10});
+            &material, PhysMatId{0}, &particle, "celeriton", MevEnergy{10});
         real_type const eloss_rate = (0.2 + 0.4);  // MeV / cm
 
         // Tiny step: should still be linear loss (single process)
@@ -264,14 +259,14 @@ TEST_F(PhysicsStepUtilsTest, calc_mean_energy_loss)
     }
     {
         PhysicsTrackView phys = this->init_track(
-            &material, MaterialId{0}, &particle, "electron", MevEnergy{1e-3});
-        real_type const eloss_rate = 0.5;  // MeV / cm
+            &material, PhysMatId{0}, &particle, "electron", MevEnergy{1e-3});
 
         // Low energy particle which loses all its energy over the step will
         // call inverse lookup. Remaining range will be zero and eloss will be
         // equal to the pre-step energy.
-        real_type step = 1e-5 / eloss_rate
-                         + value_as<MevEnergy>(particle.energy()) / eloss_rate;
+        real_type range = phys.make_calculator<RangeCalculator>(
+            phys.range_grid())(particle.energy());
+        real_type step = to_cm(range) - fine_eps;
         EXPECT_SOFT_EQ(1e-3, calc_eloss(phys, step));
     }
 }
@@ -290,9 +285,9 @@ TEST_F(PhysicsStepUtilsTest,
 
     // Test a variety of energy ranges and multiple material IDs
     {
-        MaterialView mat_view(this->material()->host_ref(), MaterialId{0});
+        MaterialView mat_view(this->material()->host_ref(), PhysMatId{0});
         PhysicsTrackView phys = this->init_track(
-            &material, MaterialId{0}, &particle, "gamma", MevEnergy{1});
+            &material, PhysMatId{0}, &particle, "gamma", MevEnergy{1});
         phys.interaction_mfp(1);
         StepLimit step
             = calc_physics_step_limit(material, particle, phys, pstep);
@@ -316,9 +311,9 @@ TEST_F(PhysicsStepUtilsTest,
     }
 
     {
-        MaterialView mat_view(this->material()->host_ref(), MaterialId{1});
+        MaterialView mat_view(this->material()->host_ref(), PhysMatId{1});
         PhysicsTrackView phys = this->init_track(
-            &material, MaterialId{1}, &particle, "celeriton", MevEnergy{10});
+            &material, PhysMatId{1}, &particle, "celeriton", MevEnergy{10});
         phys.interaction_mfp(1);
 
         StepLimit step
@@ -359,9 +354,9 @@ TEST_F(PhysicsStepUtilsTest,
 
         for (auto i : range(inc_energy.size()))
         {
-            MaterialView mat_view(this->material()->host_ref(), MaterialId{0});
+            MaterialView mat_view(this->material()->host_ref(), PhysMatId{0});
             PhysicsTrackView phys = this->init_track(&material,
-                                                     MaterialId{0},
+                                                     PhysMatId{0},
                                                      &particle,
                                                      "electron",
                                                      MevEnergy{inc_energy[i]});
@@ -432,7 +427,7 @@ TEST_F(StepLimiterTest, calc_physics_step_limit)
         // Gammas should not be limited since they have no energy loss
         // processes
         PhysicsTrackView phys = this->init_track(
-            &material, MaterialId{0}, &particle, "gamma", MevEnergy{1});
+            &material, PhysMatId{0}, &particle, "gamma", MevEnergy{1});
         phys.interaction_mfp(1);
         StepLimit step
             = calc_physics_step_limit(material, particle, phys, pstep);
@@ -441,7 +436,7 @@ TEST_F(StepLimiterTest, calc_physics_step_limit)
     }
     {
         PhysicsTrackView phys = this->init_track(
-            &material, MaterialId{1}, &particle, "celeriton", MevEnergy{1e-3});
+            &material, PhysMatId{1}, &particle, "celeriton", MevEnergy{1e-3});
 
         // Small energy: still range action
         StepLimit step
@@ -459,11 +454,12 @@ TEST_F(StepLimiterTest, calc_physics_step_limit)
 
 class SplinePhysicsStepUtilsTest : public PhysicsStepUtilsTest
 {
-    PhysicsOptions build_physics_options() const override
+    inp::Interpolation interpolation() const override
     {
-        PhysicsOptions opts;
-        opts.spline_eloss_order = 2;
-        return opts;
+        inp::Interpolation interp;
+        interp.type = InterpolationType::poly_spline;
+        interp.order = 2;
+        return interp;
     }
 };
 
@@ -477,19 +473,17 @@ TEST_F(SplinePhysicsStepUtilsTest, calc_mean_energy_loss)
     // input: cm; output: MeV
     auto calc_eloss = [&](PhysicsTrackView& phys, real_type step) -> real_type {
         // Calculate and store the energy loss range to PhysicsTrackView
-        auto grid_id = phys.range_grid();
-        auto calc_range = phys.make_calculator<RangeCalculator>(grid_id);
-        real_type range = calc_range(particle.energy());
+        real_type range = phys.make_calculator<RangeCalculator>(
+            phys.range_grid())(particle.energy());
         phys.dedx_range(range);
 
-        auto result
-            = calc_mean_energy_loss(particle, phys, step * units::centimeter);
+        auto result = calc_mean_energy_loss(particle, phys, from_cm(step));
         return value_as<MevEnergy>(result);
     };
 
     {
         PhysicsTrackView phys = this->init_track(
-            &material, MaterialId{0}, &particle, "gamma", MevEnergy{1});
+            &material, PhysMatId{0}, &particle, "gamma", MevEnergy{1});
         if (CELERITAS_DEBUG)
         {
             // Can't calc eloss for photons
@@ -498,7 +492,7 @@ TEST_F(SplinePhysicsStepUtilsTest, calc_mean_energy_loss)
     }
     {
         PhysicsTrackView phys = this->init_track(
-            &material, MaterialId{0}, &particle, "celeriton", MevEnergy{10});
+            &material, PhysMatId{0}, &particle, "celeriton", MevEnergy{10});
         real_type const eloss_rate = (0.2 + 0.4);  // MeV / cm
 
         // Tiny step: should still be linear loss (single process)
@@ -518,14 +512,14 @@ TEST_F(SplinePhysicsStepUtilsTest, calc_mean_energy_loss)
     }
     {
         PhysicsTrackView phys = this->init_track(
-            &material, MaterialId{0}, &particle, "electron", MevEnergy{1e-3});
-        real_type const eloss_rate = 0.5;  // MeV / cm
+            &material, PhysMatId{0}, &particle, "electron", MevEnergy{1e-3});
 
         // Low energy particle which loses all its energy over the step will
         // call inverse lookup. Remaining range will be zero and eloss will be
         // equal to the pre-step energy.
-        real_type step = 1e-5 / eloss_rate
-                         + value_as<MevEnergy>(particle.energy()) / eloss_rate;
+        real_type range = phys.make_calculator<RangeCalculator>(
+            phys.range_grid())(particle.energy());
+        real_type step = to_cm(range) - fine_eps;
         EXPECT_SOFT_EQ(1e-3, calc_eloss(phys, step));
     }
 }

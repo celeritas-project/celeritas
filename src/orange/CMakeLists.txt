@@ -42,6 +42,8 @@ list(APPEND SOURCES
   orangeinp/ProtoInterface.cc
   orangeinp/Shape.cc
   orangeinp/Solid.cc
+  orangeinp/StackedExtrudedPolygon.cc
+  orangeinp/ScaleUtils.cc
   orangeinp/Transformed.cc
   orangeinp/UnitProto.cc
   orangeinp/detail/BoundingZone.cc

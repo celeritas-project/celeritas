@@ -20,7 +20,6 @@
 #include "celeritas/inp/Diagnostics.hh"
 #include "celeritas/inp/Events.hh"
 #include "celeritas/inp/Field.hh"
-#include "celeritas/inp/Model.hh"
 #include "celeritas/inp/Physics.hh"
 #include "celeritas/inp/PhysicsProcess.hh"
 #include "celeritas/inp/Scoring.hh"
@@ -184,20 +183,8 @@ inp::Problem load_problem(RunnerInput const& ri)
         p.control.track_order = ri.track_order;
     }
 
-    // Physics
-    {
-        CELER_ASSERT(p.physics.em);
-        auto& em = *p.physics.em;
-
-        CELER_ASSERT(em.brems);
-        em.brems->combined_model = ri.brem_combined;
-
-        // Spline energy loss order
-        em.eloss_spline_order = ri.spline_eloss_order;
-    }
-
     // Tracking
-    p.tracking.limits.steps = ri.max_steps;
+    p.tracking.limits.step_iters = ri.max_steps;
     p.tracking.force_step_limit = ri.step_limiter;
     if (!std::holds_alternative<inp::NoField>(p.field))
     {
@@ -214,6 +201,14 @@ inp::Problem load_problem(RunnerInput const& ri)
             sc.tracks = ri.optical.num_track_slots;
             sc.generators = ri.optical.buffer_capacity;
             return sc;
+        }();
+        p.tracking.limits.optical_step_iters = ri.optical.max_steps;
+
+        p.physics.optical = [&ri] {
+            inp::OpticalPhysics op;
+            op.cherenkov = ri.optical.cherenkov;
+            op.scintillation = ri.optical.scintillation;
+            return op;
         }();
     }
 
@@ -279,7 +274,16 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
     {
         // Set up Geant4
         si.geant_setup = ri.physics_options;
-        si.physics_import = inp::GeantImport{};
+
+        inp::GeantImport geant_import;
+        CELER_VALIDATE(
+            ri.poly_spline_order == 1
+                || ri.interpolation == InterpolationType::poly_spline,
+            << "piecewise polynomial spline order cannot be set if "
+               "linear or cubic spline interpolation is enabled");
+        geant_import.data_selection.interpolation.type = ri.interpolation;
+        geant_import.data_selection.interpolation.order = ri.poly_spline_order;
+        si.physics_import = std::move(geant_import);
     }
     si.events = load_events(ri);
 

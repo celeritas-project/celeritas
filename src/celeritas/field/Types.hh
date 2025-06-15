@@ -1,6 +1,5 @@
-//---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------ -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/field/Types.hh
@@ -18,7 +17,7 @@ namespace celeritas
 // STRUCTS
 //---------------------------------------------------------------------------//
 /*!
- * A utility array of the equation of motion based on \ref celeritas::Array .
+ * Store a track's position and momentum for field integration.
  */
 struct OdeState
 {
@@ -31,9 +30,9 @@ struct OdeState
 
 //---------------------------------------------------------------------------//
 /*!
- * The result of the integration stepper.
+ * The result of a single integration.
  */
-struct FieldStepperResult
+struct FieldIntegration
 {
     OdeState mid_state;  //!< OdeState at the middle
     OdeState end_state;  //!< OdeState at the end
@@ -44,10 +43,10 @@ struct FieldStepperResult
 /*!
  * The result of moving up to a certain distance along a step.
  */
-struct DriverResult
+struct Substep
 {
     OdeState state;  //!< Post-step state
-    real_type step;  //!< Actual curved step
+    real_type length;  //!< Actual curved step
 };
 
 //! \cond (CELERITAS_DOC_DEV)

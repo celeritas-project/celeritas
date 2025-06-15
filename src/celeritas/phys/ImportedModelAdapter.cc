@@ -14,8 +14,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/io/ImportModel.hh"
 
 #include "Applicability.hh"
@@ -72,7 +72,7 @@ ImportedModelAdapter::ImportedModelAdapter(
 /*!
  * Get the microscopic cross sections for the given material and particle.
  */
-auto ImportedModelAdapter::micro_xs(Applicability applic) const -> MicroXsBuilders
+auto ImportedModelAdapter::micro_xs(Applicability applic) const -> XsTable
 {
     CELER_EXPECT(applic.material);
 
@@ -82,31 +82,33 @@ auto ImportedModelAdapter::micro_xs(Applicability applic) const -> MicroXsBuilde
     ImportModelMaterial const& imm
         = model.materials[applic.material.unchecked_get()];
 
-    MicroXsBuilders builders(imm.micro_xs.size());
-    for (size_type elcomp_idx : range(builders.size()))
+    XsTable grids(imm.micro_xs.size());
+    for (size_type elcomp_idx : range(grids.size()))
     {
-        builders[elcomp_idx] = ValueGridLogBuilder::from_geant(
-            make_span(imm.energy), make_span(imm.micro_xs[elcomp_idx]));
+        auto grid = imm.micro_xs[elcomp_idx];
+        CELER_ASSERT(grid);
+        CELER_ASSERT(std::exp(grid.x[Bound::lo]) > 0 && grid.y.size() >= 2);
+        grids[elcomp_idx] = std::move(grid);
     }
-    return builders;
+    return grids;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the xs energy grid bounds for the given material and particle.
  */
-auto ImportedModelAdapter::energy_grid_bounds(
-    ParticleId pid, MaterialId mid) const -> EnergyBounds
+auto ImportedModelAdapter::energy_grid_bounds(ParticleId pid,
+                                              PhysMatId mid) const
+    -> EnergyBounds
 {
     CELER_EXPECT(pid && mid);
 
     auto const& xs = this->get_model(pid).materials;
     CELER_ASSERT(mid < xs.size());
-    EnergyBounds result{Energy(xs[mid.get()].energy.front()),
-                        Energy(xs[mid.get()].energy.back())};
+    auto const& energy = xs[mid.get()].energy;
 
-    CELER_ENSURE(result[0] < result[1]);
-    return result;
+    CELER_ENSURE(energy[Bound::lo] < energy[Bound::hi]);
+    return {Energy(energy[Bound::lo]), Energy(energy[Bound::hi])};
 }
 
 //---------------------------------------------------------------------------//
@@ -149,7 +151,7 @@ ImportModel const& ImportedModelAdapter::get_model(ParticleId particle) const
                                      return m.model_class == model_class_;
                                  });
     CELER_VALIDATE(mod_iter != import_process.models.end(),
-                   << "missing imported model " << to_cstring(model_class_));
+                   << "missing imported model " << model_class_);
     return *mod_iter;
 }
 

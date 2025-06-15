@@ -15,12 +15,12 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Version.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GenericGeoParameterizedTest.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "geocel/GeoTests.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/g4/GeantGeoData.hh"
-#include "geocel/g4/GeantGeoParams.hh"
 #include "geocel/g4/GeantGeoTrackView.hh"
 #include "geocel/rasterize/SafetyImager.hh"
 
@@ -61,6 +61,11 @@ class GeantGeoTest : public GeantGeoTestBase
 //---------------------------------------------------------------------------//
 using CmseTest = GenericGeoParameterizedTest<GeantGeoTest, CmseGeoTest>;
 
+TEST_F(CmseTest, model)
+{
+    this->impl().test_model();
+}
+
 TEST_F(CmseTest, trace)
 {
     this->impl().test_trace();
@@ -90,6 +95,11 @@ TEST_F(CmsEeBackDeeTest, accessors)
     this->impl().test_accessors();
 }
 
+TEST_F(CmsEeBackDeeTest, model)
+{
+    this->impl().test_model();
+}
+
 TEST_F(CmsEeBackDeeTest, trace)
 {
     this->impl().test_trace();
@@ -102,6 +112,16 @@ using FourLevelsTest
 TEST_F(FourLevelsTest, accessors)
 {
     this->impl().test_accessors();
+}
+
+TEST_F(FourLevelsTest, model)
+{
+    this->impl().test_model();
+}
+
+TEST_F(FourLevelsTest, trace)
+{
+    this->impl().test_trace();
 }
 
 TEST_F(FourLevelsTest, consecutive_compute)
@@ -232,11 +252,6 @@ TEST_F(FourLevelsTest, reentrant_boundary)
     next = geo.find_next_step(from_cm(10.0));
 }
 
-TEST_F(FourLevelsTest, trace)
-{
-    this->impl().test_trace();
-}
-
 TEST_F(FourLevelsTest, safety)
 {
     auto geo = this->make_geo_track_view();
@@ -317,9 +332,9 @@ TEST_F(FourLevelsTest, levels)
 using MultiLevelTest
     = GenericGeoParameterizedTest<GeantGeoTest, MultiLevelGeoTest>;
 
-TEST_F(MultiLevelTest, accessors)
+TEST_F(MultiLevelTest, model)
 {
-    this->impl().test_accessors();
+    this->impl().test_model();
 }
 
 TEST_F(MultiLevelTest, trace)
@@ -417,6 +432,20 @@ TEST_F(MultiLevelTest, level_strings)
 }
 
 //---------------------------------------------------------------------------//
+using OpticalSurfacesTest
+    = GenericGeoParameterizedTest<GeantGeoTest, OpticalSurfacesGeoTest>;
+
+TEST_F(OpticalSurfacesTest, model)
+{
+    this->impl().test_model();
+}
+
+TEST_F(OpticalSurfacesTest, trace)
+{
+    this->impl().test_trace();
+}
+
+//---------------------------------------------------------------------------//
 class PincellTest : public GeantGeoTest
 {
     std::string geometry_basename() const override { return "pincell"; }
@@ -443,7 +472,27 @@ TEST_F(PincellTest, imager)
 }
 
 //---------------------------------------------------------------------------//
+
+using PolyhedraTest
+    = GenericGeoParameterizedTest<GeantGeoTest, PolyhedraGeoTest>;
+
+TEST_F(PolyhedraTest, model)
+{
+    this->impl().test_model();
+}
+
+TEST_F(PolyhedraTest, trace)
+{
+    TestImpl(this).test_trace();
+}
+
+//---------------------------------------------------------------------------//
 using ReplicaTest = GenericGeoParameterizedTest<GeantGeoTest, ReplicaGeoTest>;
+
+TEST_F(ReplicaTest, model)
+{
+    this->impl().test_model();
+}
 
 TEST_F(ReplicaTest, trace)
 {
@@ -512,6 +561,11 @@ TEST_F(ReplicaTest, level_strings)
 using SimpleCmsTest
     = GenericGeoParameterizedTest<GeantGeoTest, SimpleCmsGeoTest>;
 
+TEST_F(SimpleCmsTest, model)
+{
+    this->impl().test_model();
+}
+
 TEST_F(SimpleCmsTest, trace)
 {
     this->impl().test_trace();
@@ -572,7 +626,7 @@ TEST_F(SolidsTest, trace)
 TEST_F(SolidsTest, reflected_vol)
 {
     auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
-    EXPECT_EQ(25, geo.volume_id().unchecked_get() - this->volume_offset());
+    EXPECT_EQ(25, geo.volume_id().unchecked_get());
     auto const& label = this->geometry()->volumes().at(geo.volume_id());
     EXPECT_EQ("trd3_refl", label.name);
     EXPECT_FALSE(ends_with(label.ext, "_refl"));
@@ -633,6 +687,11 @@ TEST_F(TransformedBoxTest, accessors)
     this->impl().test_accessors();
 }
 
+TEST_F(TransformedBoxTest, model)
+{
+    this->impl().test_model();
+}
+
 TEST_F(TransformedBoxTest, trace)
 {
     this->impl().test_trace();
@@ -650,6 +709,11 @@ TEST_F(TwoBoxesTest, accessors)
     this->impl().test_accessors();
 }
 
+TEST_F(TwoBoxesTest, model)
+{
+    this->impl().test_model();
+}
+
 TEST_F(TwoBoxesTest, track)
 {
     // Templated test
@@ -658,6 +722,11 @@ TEST_F(TwoBoxesTest, track)
 
 //---------------------------------------------------------------------------//
 using ZnenvTest = GenericGeoParameterizedTest<GeantGeoTest, ZnenvGeoTest>;
+
+TEST_F(ZnenvTest, model)
+{
+    this->impl().test_model();
+}
 
 TEST_F(ZnenvTest, trace)
 {

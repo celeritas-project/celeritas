@@ -75,8 +75,8 @@ TEST_F(ImportedModelAdapterTest, build_mock)
 TEST_F(ImportedModelAdapterTest, builtin_map)
 {
     using IMC = ImportModelClass;
-    std::array<IMC, 3> expected_builtin_imcs{
-        IMC::absorption, IMC::rayleigh, IMC::wls};
+    std::array<IMC, 4> expected_builtin_imcs{
+        IMC::absorption, IMC::rayleigh, IMC::wls, IMC::wls2};
 
     auto imported_models = this->imported_models();
 
@@ -106,7 +106,7 @@ TEST_F(ImportedModelAdapterTest, adapter_mfps)
         auto const& expected_model = expected_models[model_id.get()];
 
         ASSERT_EQ(expected_model.mfp_table.size(), adapter.num_materials());
-        for (auto mat_id : range(OpticalMaterialId{adapter.num_materials()}))
+        for (auto mat_id : range(OptMatId{adapter.num_materials()}))
         {
             EXPECT_GRID_EQ(expected_model.mfp_table[mat_id.get()],
                            adapter.mfp(mat_id));

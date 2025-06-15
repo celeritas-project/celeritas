@@ -130,8 +130,8 @@ RectArrayTracker::RectArrayTracker(ParamsRef const& params, RectArrayId rid)
  * To avoid edge cases and inconsistent logical/physical states, it is
  * prohibited to initialize from an arbitrary point directly onto a surface.
  */
-CELER_FUNCTION auto
-RectArrayTracker::initialize(LocalState const& state) const -> Initialization
+CELER_FUNCTION auto RectArrayTracker::initialize(LocalState const& state) const
+    -> Initialization
 {
     CELER_EXPECT(params_);
     CELER_EXPECT(!state.surface && !state.volume);
@@ -169,7 +169,8 @@ RectArrayTracker::initialize(LocalState const& state) const -> Initialization
  * Find the local volume given a post-crossing state.
  */
 CELER_FUNCTION auto
-RectArrayTracker::cross_boundary(LocalState const& state) const -> Initialization
+RectArrayTracker::cross_boundary(LocalState const& state) const
+    -> Initialization
 {
     CELER_EXPECT(state.surface && state.volume);
 
@@ -198,8 +199,8 @@ RectArrayTracker::cross_boundary(LocalState const& state) const -> Initializatio
 /*!
  * Calculate distance-to-intercept for the next surface.
  */
-CELER_FUNCTION auto
-RectArrayTracker::intersect(LocalState const& state) const -> Intersection
+CELER_FUNCTION auto RectArrayTracker::intersect(LocalState const& state) const
+    -> Intersection
 {
     Intersection result = this->intersect_impl(state, detail::IsFinite{});
     return result;
@@ -210,8 +211,8 @@ RectArrayTracker::intersect(LocalState const& state) const -> Intersection
  * Calculate distance-to-intercept for the next surface, with max distance.
  */
 CELER_FUNCTION auto
-RectArrayTracker::intersect(LocalState const& state,
-                            real_type max_dist) const -> Intersection
+RectArrayTracker::intersect(LocalState const& state, real_type max_dist) const
+    -> Intersection
 {
     CELER_EXPECT(max_dist > 0);
     Intersection result
@@ -291,8 +292,8 @@ RectArrayTracker::daughter(LocalVolumeId vol) const
  */
 template<class F>
 CELER_FUNCTION auto
-RectArrayTracker::intersect_impl(LocalState const& state,
-                                 F is_valid) const -> Intersection
+RectArrayTracker::intersect_impl(LocalState const& state, F is_valid) const
+    -> Intersection
 {
     CELER_EXPECT(state.volume && !state.temp_sense.empty());
 

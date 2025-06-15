@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "ModelImporter.hh"
 
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
@@ -16,6 +17,7 @@
 #include "MaterialParams.hh"
 #include "model/AbsorptionModel.hh"
 #include "model/RayleighModel.hh"
+#include "model/WavelengthShiftModel.hh"
 
 namespace celeritas
 {
@@ -31,6 +33,7 @@ ModelImporter::ModelImporter(ImportData const& data,
                              UserBuildMap user_build)
     : input_{nullptr, std::move(material), nullptr, std::move(core_material)}
     , user_build_map_(std::move(user_build))
+    , params_(data.optical_params)
 {
     CELER_EXPECT(input_.material);
     CELER_EXPECT(input_.core_material);
@@ -75,13 +78,14 @@ auto ModelImporter::operator()(IMC imc) const -> std::optional<ModelBuilder>
     static std::unordered_map<IMC, BuilderMemFn> const builtin_build{
         {IMC::absorption, &ModelImporter::build_absorption},
         {IMC::rayleigh, &ModelImporter::build_rayleigh},
+        {IMC::wls, &ModelImporter::build_wls},
+        {IMC::wls2, &ModelImporter::build_wls2},
     };
 
     // Next, try built-in models
     auto iter = builtin_build.find(imc);
     CELER_VALIDATE(iter != builtin_build.end(),
-                   << "cannot build unsupported optical model '"
-                   << to_cstring(imc) << "'");
+                   << "cannot build unsupported optical model '" << imc << "'");
 
     BuilderMemFn build_impl{iter->second};
     return (this->*build_impl)();
@@ -110,12 +114,46 @@ auto ModelImporter::build_rayleigh() const -> ModelBuilder
 
 //---------------------------------------------------------------------------//
 /*!
+ * Create WLS model builder.
+ */
+auto ModelImporter::build_wls() const -> ModelBuilder
+{
+    WavelengthShiftModel::Input input;
+    input.model = ImportModelClass::wls;
+    input.time_profile = params_.wls_time_profile;
+    for (auto mid : range(OptMatId{input_.import_material->num_materials()}))
+    {
+        input.data.push_back(input_.import_material->wls(mid));
+    }
+    return WavelengthShiftModel::make_builder(this->imported(),
+                                              std::move(input));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create WLS model builder.
+ */
+auto ModelImporter::build_wls2() const -> ModelBuilder
+{
+    WavelengthShiftModel::Input input;
+    input.model = ImportModelClass::wls2;
+    input.time_profile = params_.wls2_time_profile;
+    for (auto mid : range(OptMatId{input_.import_material->num_materials()}))
+    {
+        input.data.push_back(input_.import_material->wls2(mid));
+    }
+    return WavelengthShiftModel::make_builder(this->imported(),
+                                              std::move(input));
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Warn the model is missing and return a null result.
  */
 auto WarnAndIgnoreModel::operator()(UserBuildInput const&) const
     -> std::optional<ModelBuilder>
 {
-    CELER_LOG(warning) << "Omitting '" << to_cstring(model)
+    CELER_LOG(warning) << "Omitting '" << model
                        << "' from the optical physics model list";
     return std::nullopt;
 }

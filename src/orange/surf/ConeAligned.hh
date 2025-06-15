@@ -191,7 +191,8 @@ template<Axis T>
 CELER_FUNCTION auto
 ConeAligned<T>::calc_intersections(Real3 const& pos,
                                    Real3 const& dir,
-                                   SurfaceState on_surface) const -> Intersections
+                                   SurfaceState on_surface) const
+    -> Intersections
 {
     // Expand translated positions into 'xyz' coordinate system
     real_type const x = pos[to_int(T)] - origin_[to_int(T)];

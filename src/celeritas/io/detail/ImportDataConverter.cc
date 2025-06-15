@@ -144,9 +144,9 @@ void ImportDataConverter::operator()(ImportModelMaterial* data)
 {
     CELER_EXPECT(data);
 
-    for (auto& xs_vec : data->micro_xs)
+    for (auto& xs_grid : data->micro_xs)
     {
-        for (double& xs : xs_vec)
+        for (double& xs : xs_grid.y)
         {
             xs *= xs_;
         }
@@ -188,19 +188,17 @@ void ImportDataConverter::operator()(ImportPhysicsTable* data)
     if (double const units = native_value_from(usys_, data->x_units);
         units != 1)
     {
-        for (auto& v : data->physics_vectors)
+        for (auto& v : data->grids)
         {
-            for (auto& xval : v.x)
-            {
-                xval *= units;
-            }
+            v.x[Bound::lo] *= units;
+            v.x[Bound::hi] *= units;
         }
     }
 
     if (double const units = native_value_from(usys_, data->y_units);
         units != 1)
     {
-        for (auto& v : data->physics_vectors)
+        for (auto& v : data->grids)
         {
             for (auto& yval : v.y)
             {
@@ -220,10 +218,9 @@ void ImportDataConverter::operator()(ImportProcess* data)
         (*this)(&m);
     }
 
-    for (auto& t : data->tables)
-    {
-        (*this)(&t);
-    }
+    (*this)(&data->lambda);
+    (*this)(&data->lambda_prim);
+    (*this)(&data->dedx);
 }
 
 //---------------------------------------------------------------------------//

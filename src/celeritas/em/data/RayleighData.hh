@@ -63,6 +63,5 @@ struct RayleighData
     }
 };
 
-using RayleighRef = NativeCRef<RayleighData>;
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

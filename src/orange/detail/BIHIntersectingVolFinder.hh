@@ -256,7 +256,7 @@ BIHIntersectingVolFinder::visit_leaf(BIHLeafNode const& leaf_node,
         {
             auto intersection = visit_vol(id, min_intersection.distance);
             if (intersection
-                && intersection.distance < min_intersection.distance)
+                && (intersection.distance) < (min_intersection.distance))
             {
                 min_intersection = intersection;
             }
@@ -277,7 +277,8 @@ BIHIntersectingVolFinder::visit_inf_vols(Intersection min_intersection,
     for (auto id : view_.inf_vol_ids())
     {
         auto intersection = visit_vol(id, min_intersection.distance);
-        if (intersection && intersection.distance < min_intersection.distance)
+        if (intersection
+            && (intersection.distance) < (min_intersection.distance))
         {
             min_intersection = intersection;
         }
