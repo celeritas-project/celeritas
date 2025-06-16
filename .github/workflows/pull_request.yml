@@ -41,7 +41,7 @@ jobs:
   all:
     if: ${{always()}}
     needs:
-    - build-docker
+    - doc
     - build-spack
     runs-on: ubuntu-24.04
     steps:
