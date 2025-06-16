@@ -132,21 +132,17 @@ class SimpleCmsFieldVolAlongStepTest : public SimpleCmsAlongStepTest
   public:
     SPConstAction build_along_step() override
     {
-        auto find = [&](std::string name) {
-            return this->geometry()->volumes().find_unique(name);
-        };
-
         auto& action_reg = *this->action_reg();
         UniformFieldParams::Input field_inp;
         field_inp.strength = {0, 0, 1};
 
         // No field in muon chambers or world volume
-        field_inp.volumes = {
-            find("vacuum_tube"),
-            find("si_tracker"),
-            find("em_calorimeter"),
-            find("had_calorimeter"),
-            find("sc_solenoid"),
+        field_inp.volumes = inp::UniformField::SetString{
+            "vacuum_tube",
+            "si_tracker",
+            "em_calorimeter",
+            "had_calorimeter",
+            "sc_solenoid",
         };
 
         auto msc = UrbanMscParams::from_import(

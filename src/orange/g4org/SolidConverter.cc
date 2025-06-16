@@ -73,12 +73,12 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Get a SolidEnclosedAngle, avoiding values slightly beyond 1 turn.
+ * Get an EnclosedAzi, avoiding values slightly beyond 1 turn.
  *
  * This constructs from native Geant4 radians and truncates to \c real_type,
  * ensuring that roundoff doesn't push the turn beyond a full one.
  */
-SolidEnclosedAngle make_wedge(double start_rad, double delta_rad)
+EnclosedAzi enclosed_azi_radians(double start_rad, double delta_rad)
 {
     auto start = native_value_to<RealTurn>(start_rad);
     auto delta = native_value_to<RealTurn>(delta_rad);
@@ -87,7 +87,7 @@ SolidEnclosedAngle make_wedge(double start_rad, double delta_rad)
         // Avoid roundoff error
         delta = RealTurn{1};
     }
-    return SolidEnclosedAngle{start, delta};
+    return EnclosedAzi{start, delta};
 }
 
 //---------------------------------------------------------------------------//
@@ -97,9 +97,10 @@ SolidEnclosedAngle make_wedge(double start_rad, double delta_rad)
  * This internally converts from native Geant4 radians.
  */
 template<class S>
-SolidEnclosedAngle make_wedge_azimuthal(S const& solid)
+EnclosedAzi enclosed_azi_from(S const& solid)
 {
-    return make_wedge(solid.GetStartPhiAngle(), solid.GetDeltaPhiAngle());
+    return enclosed_azi_radians(solid.GetStartPhiAngle(),
+                                solid.GetDeltaPhiAngle());
 }
 
 //---------------------------------------------------------------------------//
@@ -111,9 +112,9 @@ SolidEnclosedAngle make_wedge_azimuthal(S const& solid)
  * accessing the start- and delta-phi member variables.
  */
 template<>
-SolidEnclosedAngle make_wedge_azimuthal<G4Torus>(G4Torus const& solid)
+EnclosedAzi enclosed_azi_from<G4Torus>(G4Torus const& solid)
 {
-    return make_wedge(solid.GetSPhi(), solid.GetDPhi());
+    return enclosed_azi_radians(solid.GetSPhi(), solid.GetDPhi());
 }
 
 //---------------------------------------------------------------------------//
@@ -124,11 +125,11 @@ SolidEnclosedAngle make_wedge_azimuthal<G4Torus>(G4Torus const& solid)
  * polyhedra...
  */
 template<class S>
-SolidEnclosedAngle make_wedge_azimuthal_poly(S const& solid)
+EnclosedAzi enclosed_azi_from_poly(S const& solid)
 {
     auto start = solid.GetStartPhi();
     auto stop = solid.GetEndPhi();
-    return make_wedge(start, stop - start);
+    return enclosed_azi_radians(start, stop - start);
 }
 
 //---------------------------------------------------------------------------//
@@ -136,9 +137,11 @@ SolidEnclosedAngle make_wedge_azimuthal_poly(S const& solid)
  * Get the enclosed polar angle by a solid.
  */
 template<class S>
-SolidEnclosedAngle make_wedge_polar(S const& solid)
+EnclosedAzi enclosed_pol_from(S const& solid)
 {
-    return make_wedge(solid.GetStartThetaAngle(), solid.GetDeltaThetaAngle());
+    // FIXME: polar angle will be a different class
+    return enclosed_azi_radians(solid.GetStartThetaAngle(),
+                                solid.GetDeltaThetaAngle());
 }
 
 //---------------------------------------------------------------------------//
@@ -218,7 +221,7 @@ template<class CR>
 auto make_solid(G4VSolid const& solid,
                 CR&& interior,
                 std::optional<CR>&& excluded,
-                SolidEnclosedAngle&& enclosed)
+                EnclosedAzi&& enclosed)
 {
     return Solid<CR>::or_shape(std::string{solid.GetName()},
                                std::forward<CR>(interior),
@@ -358,7 +361,7 @@ auto SolidConverter::cons(arg_type solid_base) -> result_type
     }
 
     return make_solid(
-        solid, Cone{outer_r, hh}, std::move(inner), make_wedge_azimuthal(solid));
+        solid, Cone{outer_r, hh}, std::move(inner), enclosed_azi_from(solid));
 }
 
 //---------------------------------------------------------------------------//
@@ -602,7 +605,7 @@ auto SolidConverter::polycone(arg_type solid_base) -> result_type
     return PolyCone::or_solid(
         std::string{solid.GetName()},
         PolySegments{std::move(rmin), std::move(rmax), std::move(zs)},
-        make_wedge_azimuthal_poly(solid));
+        enclosed_azi_from_poly(solid));
 }
 
 //---------------------------------------------------------------------------//
@@ -631,7 +634,7 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
         rmin.clear();
     }
 
-    auto angle = make_wedge_azimuthal_poly(solid);
+    auto angle = enclosed_azi_from_poly(solid);
     double const orientation
         = std::fmod(params.numSide * angle.start().value(), real_type{1});
 
@@ -686,8 +689,8 @@ auto SolidConverter::sphere(arg_type solid_base) -> result_type
         inner = Sphere{scale_(inner_r)};
     }
 
-    auto polar_wedge = make_wedge_polar(solid);
-    if (!soft_equal(value_as<Turn>(polar_wedge.interior()), 0.5))
+    auto polar_cone = enclosed_pol_from(solid);
+    if (!soft_equal(value_as<Turn>(polar_cone.interior()), 0.5))
     {
         CELER_NOT_IMPLEMENTED("sphere with polar limits");
     }
@@ -695,7 +698,7 @@ auto SolidConverter::sphere(arg_type solid_base) -> result_type
     return make_solid(solid,
                       Sphere{scale_(solid.GetOuterRadius())},
                       std::move(inner),
-                      make_wedge_azimuthal(solid));
+                      enclosed_azi_from(solid));
 }
 
 //---------------------------------------------------------------------------//
@@ -742,7 +745,7 @@ auto SolidConverter::torus(arg_type solid_base) -> result_type
     return make_solid(solid,
                       Cylinder{rtor + rmax, rmax},
                       std::move(inner),
-                      make_wedge_azimuthal(solid));
+                      enclosed_azi_from(solid));
 }
 
 //---------------------------------------------------------------------------//
@@ -819,7 +822,7 @@ auto SolidConverter::tubs(arg_type solid_base) -> result_type
     return make_solid(solid,
                       Cylinder{scale_(solid.GetOuterRadius()), hh},
                       std::move(inner),
-                      make_wedge_azimuthal(solid));
+                      enclosed_azi_from(solid));
 }
 
 //---------------------------------------------------------------------------//

@@ -31,7 +31,7 @@ class StackedExtrudedPolygon;
 class Transformed;
 
 class PolySegments;
-class SolidEnclosedAngle;
+class EnclosedAzi;
 class SolidZSlab;
 
 class IntersectRegionInterface;
@@ -68,7 +68,7 @@ void to_json(nlohmann::json& j, Transformed const&);
 
 // Write helper classes to JSON
 void to_json(nlohmann::json& j, PolySegments const&);
-void to_json(nlohmann::json& j, SolidEnclosedAngle const&);
+void to_json(nlohmann::json& j, EnclosedAzi const&);
 void to_json(nlohmann::json& j, SolidZSlab const&);
 
 // Write intersect regions to JSON

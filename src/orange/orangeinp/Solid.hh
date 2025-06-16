@@ -33,12 +33,12 @@ namespace orangeinp
  *
  * \code
   // Truncates a solid to the east-facing quadrant:
-  SolidEnclosedAngle{Turn{-0.125}, Turn{0.25}};
+  EnclosedAzi{Turn{-0.125}, Turn{0.25}};
   // Removes the second quadrant (northwest) from a solid:
-  SolidEnclosedAngle{Turn{0.50}, Turn{0.75}};
+  EnclosedAzi{Turn{0.50}, Turn{0.75}};
   \endcode
  */
-class SolidEnclosedAngle
+class EnclosedAzi
 {
   public:
     //!@{
@@ -48,13 +48,13 @@ class SolidEnclosedAngle
 
   public:
     //! Default to "all angles"
-    SolidEnclosedAngle() = default;
+    EnclosedAzi() = default;
 
     // Construct from a starting angle and interior angle
-    SolidEnclosedAngle(Turn start, Turn interior);
+    EnclosedAzi(Turn start, Turn interior);
 
     // Construct a wedge shape to intersect (inside) or subtract (outside)
-    SenseWedge make_wedge() const;
+    SenseWedge make_sense_region() const;
 
     // Whether the enclosed angle is not a full circle
     explicit inline operator bool() const;
@@ -123,7 +123,7 @@ class SolidBase : public ObjectInterface
     virtual IntersectRegionInterface const* excluded() const = 0;
 
     //! Optional azimuthal angular restriction
-    virtual SolidEnclosedAngle enclosed_angle() const = 0;
+    virtual EnclosedAzi enclosed_azi() const = 0;
 
     //! Optional z-slab restriction
     virtual SolidZSlab z_slab() const = 0;
@@ -174,16 +174,16 @@ class Solid final : public SolidBase
     static SPConstObject or_shape(std::string&& label,
                                   T&& interior,
                                   OptionalRegion&& excluded,
-                                  SolidEnclosedAngle&& enclosed);
+                                  EnclosedAzi&& enclosed);
 
     // Construct with an excluded interior *and/or* enclosed angle
     Solid(std::string&& label,
           T&& interior,
           OptionalRegion&& excluded,
-          SolidEnclosedAngle&& enclosed);
+          EnclosedAzi&& enclosed);
 
     // Construct with only an enclosed angle
-    Solid(std::string&& label, T&& interior, SolidEnclosedAngle&& enclosed);
+    Solid(std::string&& label, T&& interior, EnclosedAzi&& enclosed);
 
     // Construct with only an excluded interior
     Solid(std::string&& label, T&& interior, T&& excluded);
@@ -204,7 +204,7 @@ class Solid final : public SolidBase
     IntersectRegionInterface const* excluded() const final;
 
     //! Optional angular restriction
-    SolidEnclosedAngle enclosed_angle() const final { return enclosed_; }
+    EnclosedAzi enclosed_azi() const final { return enclosed_; }
 
     //! Optional z-slab intersection
     SolidZSlab z_slab() const final { return z_slab_; }
@@ -213,7 +213,7 @@ class Solid final : public SolidBase
     std::string label_;
     T interior_;
     OptionalRegion exclusion_;
-    SolidEnclosedAngle enclosed_;
+    EnclosedAzi enclosed_;
     SolidZSlab z_slab_;
 };
 
@@ -250,7 +250,7 @@ extern template class Solid<Ellipsoid>;
 /*!
  * Whether the enclosed angle is not a full circle.
  */
-SolidEnclosedAngle::operator bool() const
+EnclosedAzi::operator bool() const
 {
     return interior_ != Turn{1};
 }

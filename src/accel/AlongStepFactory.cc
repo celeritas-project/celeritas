@@ -21,7 +21,6 @@
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/ext/GeantVolumeMapper.hh"
-#include "celeritas/field/CartMapFieldInput.hh"
 #include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"
@@ -77,27 +76,15 @@ auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) con
         // Get the IDs of the volumes with field
         if (!volumes.empty())
         {
-            field.volumes.reserve(volumes.size());
-            GeantVolumeMapper find_volume(*input.geometry);
-            for (auto const* lv : volumes)
-            {
-                CELER_ASSERT(lv);
-                auto vol = find_volume(*lv);
-                CELER_VALIDATE(
-                    vol,
-                    << "failed to find volume corresponding to Geant4 volume "
-                    << lv->GetName() << " while setting up uniform field");
-                CELER_LOG(debug) << "Found volume " << lv->GetName()
-                                 << " that will be assigned a uniform field";
-                field.volumes.push_back(vol);
-            }
+            field.volumes
+                = inp::UniformField::SetVolume{volumes.begin(), volumes.end()};
         }
 
         // Create a uniform field
         CELER_LOG(info)
             << "Creating along-step action with field strength " << magnitude
             << " T in "
-            << (field.volumes.empty() ? "all" : std::to_string(volumes.size()))
+            << (volumes.empty() ? "all" : std::to_string(volumes.size()))
             << " volumes";
 
         return celeritas::AlongStepUniformMscAction::from_params(

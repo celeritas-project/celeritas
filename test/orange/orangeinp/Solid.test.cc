@@ -20,41 +20,41 @@ namespace orangeinp
 namespace test
 {
 //---------------------------------------------------------------------------//
-TEST(SolidEnclosedAngleTest, errors)
+TEST(EnclosedAziTest, errors)
 {
-    EXPECT_THROW(SolidEnclosedAngle(Turn{0}, Turn{-0.5}), RuntimeError);
-    EXPECT_THROW(SolidEnclosedAngle(Turn{0}, Turn{0}), RuntimeError);
-    EXPECT_THROW(SolidEnclosedAngle(Turn{0}, Turn{1.5}), RuntimeError);
+    EXPECT_THROW(EnclosedAzi(Turn{0}, Turn{-0.5}), RuntimeError);
+    EXPECT_THROW(EnclosedAzi(Turn{0}, Turn{0}), RuntimeError);
+    EXPECT_THROW(EnclosedAzi(Turn{0}, Turn{1.5}), RuntimeError);
 }
 
-TEST(SolidEnclosedAngleTest, null)
+TEST(EnclosedAziTest, null)
 {
-    SolidEnclosedAngle sea;
-    EXPECT_FALSE(sea);
+    EnclosedAzi azi;
+    EXPECT_FALSE(azi);
 }
 
-TEST(SolidEnclosedAngleTest, make_wedge)
+TEST(EnclosedAziTest, make_sense_region)
 {
     {
         SCOPED_TRACE("concave");
-        SolidEnclosedAngle sea(Turn{-0.25}, Turn{0.1});
-        auto&& [sense, wedge] = sea.make_wedge();
+        EnclosedAzi azi(Turn{-0.25}, Turn{0.1});
+        auto&& [sense, wedge] = azi.make_sense_region();
         EXPECT_EQ(Sense::inside, sense);
         EXPECT_SOFT_EQ(0.75, wedge.start().value());
         EXPECT_SOFT_EQ(0.1, wedge.interior().value());
     }
     {
         SCOPED_TRACE("convex");
-        SolidEnclosedAngle sea(Turn{0.25}, Turn{0.8});
-        auto&& [sense, wedge] = sea.make_wedge();
+        EnclosedAzi azi(Turn{0.25}, Turn{0.8});
+        auto&& [sense, wedge] = azi.make_sense_region();
         EXPECT_EQ(Sense::outside, sense);
         EXPECT_SOFT_EQ(0.05, wedge.start().value());
         EXPECT_SOFT_EQ(0.2, wedge.interior().value());
     }
     {
         SCOPED_TRACE("half");
-        SolidEnclosedAngle sea(Turn{0.1}, Turn{0.5});
-        auto&& [sense, wedge] = sea.make_wedge();
+        EnclosedAzi azi(Turn{0.1}, Turn{0.5});
+        auto&& [sense, wedge] = azi.make_sense_region();
         EXPECT_EQ(Sense::inside, sense);
         EXPECT_SOFT_EQ(0.1, wedge.start().value());
         EXPECT_SOFT_EQ(0.5, wedge.interior().value());
@@ -75,7 +75,7 @@ TEST(SolidZSlabTest, infinite)
     EXPECT_FALSE(szs);
 }
 
-TEST(SolidZSlabTest, make_wedge)
+TEST(SolidZSlabTest, make_sense_region)
 {
     SolidZSlab szs(5, 10);
     auto inf_slab = szs.make_inf_slab();
@@ -97,11 +97,10 @@ TEST_F(SolidTest, errors)
     EXPECT_THROW(ConeSolid("cone", Cone{{1, 2}, 10.0}, Cone{{1.1, 1.9}, 10.0}),
                  RuntimeError);
     // No exclusion, no wedge
-    EXPECT_THROW(ConeSolid("cone", Cone{{1, 2}, 10.0}, SolidEnclosedAngle{}),
+    EXPECT_THROW(ConeSolid("cone", Cone{{1, 2}, 10.0}, EnclosedAzi{}),
                  RuntimeError);
     EXPECT_THROW(
-        ConeSolid(
-            "cone", Cone{{1, 2}, 10.0}, std::nullopt, SolidEnclosedAngle{}),
+        ConeSolid("cone", Cone{{1, 2}, 10.0}, std::nullopt, EnclosedAzi{}),
         RuntimeError);
 }
 
@@ -153,9 +152,8 @@ TEST_F(SolidTest, inner)
 
 TEST_F(SolidTest, wedge)
 {
-    ConeSolid cone("cone",
-                   Cone{{1, 2}, 10.0},
-                   SolidEnclosedAngle{Turn{-0.125}, Turn{0.25}});
+    ConeSolid cone(
+        "cone", Cone{{1, 2}, 10.0}, EnclosedAzi{Turn{-0.125}, Turn{0.25}});
     this->build_volume(cone);
     static char const* const expected_surface_strings[] = {
         "Plane: z=-10",
@@ -198,9 +196,8 @@ TEST_F(SolidTest, wedge)
 
 TEST_F(SolidTest, antiwedge)
 {
-    ConeSolid cone("cone",
-                   Cone{{1, 2}, 10.0},
-                   SolidEnclosedAngle{Turn{0.125}, Turn{0.75}});
+    ConeSolid cone(
+        "cone", Cone{{1, 2}, 10.0}, EnclosedAzi{Turn{0.125}, Turn{0.75}});
     this->build_volume(cone);
     static char const* const expected_surface_strings[] = {
         "Plane: z=-10",
@@ -248,7 +245,7 @@ TEST_F(SolidTest, both)
     ConeSolid cone("cone",
                    Cone{{1, 2}, 10.0},
                    Cone{{0.9, 1.9}, 10.0},
-                   SolidEnclosedAngle{Turn{-0.125}, Turn{0.25}});
+                   EnclosedAzi{Turn{-0.125}, Turn{0.25}});
     this->build_volume(cone);
     static char const* const expected_surface_strings[] = {
         "Plane: z=-10",
@@ -299,11 +296,10 @@ TEST_F(SolidTest, both)
 
 TEST_F(SolidTest, cyl)
 {
-    this->build_volume(
-        CylinderSolid("cyl",
-                      Cylinder{1, 10.0},
-                      Cylinder{0.9, 10.0},
-                      SolidEnclosedAngle{Turn{-0.125}, Turn{0.25}}));
+    this->build_volume(CylinderSolid("cyl",
+                                     Cylinder{1, 10.0},
+                                     Cylinder{0.9, 10.0},
+                                     EnclosedAzi{Turn{-0.125}, Turn{0.25}}));
 
     static char const* const expected_surface_strings[] = {
         "Plane: z=-10",
@@ -327,16 +323,14 @@ TEST_F(SolidTest, or_shape)
     TypeDemangler<ObjectInterface> demangle_shape;
     {
         auto shape = ConeSolid::or_shape(
-            "cone", Cone{{1, 2}, 10.0}, std::nullopt, SolidEnclosedAngle{});
+            "cone", Cone{{1, 2}, 10.0}, std::nullopt, EnclosedAzi{});
         EXPECT_TRUE(shape);
         EXPECT_TRUE(dynamic_cast<ConeShape const*>(shape.get()))
             << "actual shape: " << demangle_shape(*shape);
     }
     {
-        auto solid = ConeSolid::or_shape("cone",
-                                         Cone{{1.1, 2}, 10.0},
-                                         Cone{{0.9, 1.9}, 10.0},
-                                         SolidEnclosedAngle{});
+        auto solid = ConeSolid::or_shape(
+            "cone", Cone{{1.1, 2}, 10.0}, Cone{{0.9, 1.9}, 10.0}, EnclosedAzi{});
         EXPECT_TRUE(solid);
         EXPECT_TRUE(dynamic_cast<ConeSolid const*>(solid.get()))
             << demangle_shape(*solid);

@@ -77,9 +77,9 @@ void to_json(nlohmann::json& j, PolyCone const& obj)
     j = {{"_type", "polycone"},
          SIO_ATTR_PAIR(obj, label),
          SIO_ATTR_PAIR(obj, segments)};
-    if (auto sea = obj.enclosed_angle())
+    if (auto azi = obj.enclosed_azi())
     {
-        j["enclosed_angle"] = sea;
+        j["enclosed_azi"] = azi;
     }
 }
 
@@ -92,9 +92,9 @@ void to_json(nlohmann::json& j, PolyPrism const& obj)
         SIO_ATTR_PAIR(obj, num_sides),
         SIO_ATTR_PAIR(obj, orientation),
     };
-    if (auto sea = obj.enclosed_angle())
+    if (auto azi = obj.enclosed_azi())
     {
-        j["enclosed_angle"] = sea;
+        j["enclosed_azi"] = azi;
     }
 }
 
@@ -114,9 +114,9 @@ void to_json(nlohmann::json& j, SolidBase const& obj)
     {
         j["excluded"] = *cr;
     }
-    if (auto sea = obj.enclosed_angle())
+    if (auto azi = obj.enclosed_azi())
     {
-        j["enclosed_angle"] = sea;
+        j["enclosed_azi"] = azi;
     }
     if (auto szs = obj.z_slab())
     {
@@ -155,9 +155,9 @@ void to_json(nlohmann::json& j, PolySegments const& ps)
     }
 }
 
-void to_json(nlohmann::json& j, SolidEnclosedAngle const& sea)
+void to_json(nlohmann::json& j, EnclosedAzi const& azi)
 {
-    j = {{"start", sea.start().value()}, {"interior", sea.interior().value()}};
+    j = {{"start", azi.start().value()}, {"interior", azi.interior().value()}};
 }
 
 void to_json(nlohmann::json& j, SolidZSlab const& szs)
