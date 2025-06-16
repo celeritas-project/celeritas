@@ -18,7 +18,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Access surface properties attached for volume.
+ * Access surface properties attached to a volume.
  *
  * This class provides a view into surface data for a specific volume, usually
  * an exiting volume, allowing access to its optional boundary surfaces

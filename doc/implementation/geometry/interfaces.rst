@@ -4,6 +4,8 @@
 Interfaces
 ==========
 
+These classes manage access to geometric information throughout the codebase.
+
 .. doxygenclass:: celeritas::VolumeParams
 
 .. doxygenclass:: celeritas::SurfaceParams

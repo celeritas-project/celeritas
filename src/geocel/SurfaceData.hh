@@ -59,6 +59,10 @@ struct VolumeSurfaceRecord
  *
  * If no "interface" surfaces are present then the backend storage arrays will
  * be empty.
+ *
+ * \todo We might want to have separate arrays for boundary and interface
+ * surfaces since models typically have one or the other but not both, and it
+ * could potentially reduce memory access requirements.
  */
 template<Ownership W, MemSpace M>
 struct SurfaceParamsData
