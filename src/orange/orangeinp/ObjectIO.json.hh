@@ -33,7 +33,6 @@ class Truncated;
 
 class PolySegments;
 class EnclosedAzi;
-class SolidZSlab;
 
 class IntersectRegionInterface;
 class Box;
@@ -71,7 +70,6 @@ void to_json(nlohmann::json& j, Truncated const& tr);
 // Write helper classes to JSON
 void to_json(nlohmann::json& j, PolySegments const&);
 void to_json(nlohmann::json& j, EnclosedAzi const&);
-void to_json(nlohmann::json& j, SolidZSlab const&);
 
 // Write intersect regions to JSON
 void to_json(nlohmann::json& j, IntersectRegionInterface const& cr);
