@@ -21,12 +21,12 @@ namespace orangeinp
 {
 //---------------------------------------------------------------------------//
 /*!
- * Define the angular region of a solid.
+ * Define the azimuthal truncation of a solid.
  *
  * This is a pie slice infinite along the z axis and outward from it. Its cross
  * section is in the \em x-y plane, and a start
  * angle of zero corresponding to the \em +x axis. An interior angle of one
- * results in no radial excluded in the resulting solid. A interior angle of
+ * results in no radial exclusion from the resulting solid. A interior angle of
  * more than 0.5 turns (180 degrees) results in a wedge being subtracted from
  * the solid, and an angle of less than or equal to 0.5 turns results in the
  * intersection of the solid with a wedge.
@@ -72,36 +72,6 @@ class EnclosedAzi
 
 //---------------------------------------------------------------------------//
 /*!
- * Define a slab that is bound by the top/bottom z-cuts of the solid.
- */
-class SolidZSlab
-{
-  public:
-    //! Default to all space
-    SolidZSlab() = default;
-
-    // Construct from lower and upper z-plane
-    SolidZSlab(real_type lower, real_type upper);
-
-    // Construct an InfSlab shape to intersect with the solid
-    InfSlab make_inf_slab() const;
-
-    // Whether the z-slab is finite in z.
-    explicit inline operator bool() const;
-
-    //! Lower z-plane
-    real_type lower() const { return lower_; }
-
-    //! Upper z-plane
-    real_type upper() const { return upper_; }
-
-  private:
-    real_type lower_{-std::numeric_limits<real_type>::infinity()};
-    real_type upper_{std::numeric_limits<real_type>::infinity()};
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * A hollow shape with an optional start and end angle.
  *
  * Solids are a shape with (optionally) the same *kind* of shape subtracted
@@ -124,9 +94,6 @@ class SolidBase : public ObjectInterface
 
     //! Optional azimuthal angular restriction
     virtual EnclosedAzi enclosed_azi() const = 0;
-
-    //! Optional z-slab restriction
-    virtual SolidZSlab z_slab() const = 0;
 
     ~SolidBase() override = default;
 
@@ -188,9 +155,6 @@ class Solid final : public SolidBase
     // Construct with only an excluded interior
     Solid(std::string&& label, T&& interior, T&& excluded);
 
-    // Construct with only a z-slab
-    Solid(std::string&& label, T&& interior, SolidZSlab&& z_slab);
-
     //! Get the user-provided label
     std::string_view label() const final { return label_; }
 
@@ -206,15 +170,11 @@ class Solid final : public SolidBase
     //! Optional angular restriction
     EnclosedAzi enclosed_azi() const final { return enclosed_; }
 
-    //! Optional z-slab intersection
-    SolidZSlab z_slab() const final { return z_slab_; }
-
   private:
     std::string label_;
     T interior_;
     OptionalRegion exclusion_;
     EnclosedAzi enclosed_;
-    SolidZSlab z_slab_;
 };
 
 //---------------------------------------------------------------------------//
@@ -240,9 +200,9 @@ using EllipsoidSolid = Solid<Ellipsoid>;
 
 extern template class Solid<Cone>;
 extern template class Solid<Cylinder>;
+// TODO: hyperboloid
 extern template class Solid<Prism>;
 extern template class Solid<Sphere>;
-extern template class Solid<Ellipsoid>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -253,15 +213,6 @@ extern template class Solid<Ellipsoid>;
 EnclosedAzi::operator bool() const
 {
     return interior_ != Turn{1};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether the z-slab is finite in z.
- */
-SolidZSlab::operator bool() const
-{
-    return std::isfinite(lower_) || std::isfinite(upper_);
 }
 
 //---------------------------------------------------------------------------//

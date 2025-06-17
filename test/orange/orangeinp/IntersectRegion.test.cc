@@ -1812,6 +1812,34 @@ TEST_F(ParallelepipedTest, full)
 }
 
 //---------------------------------------------------------------------------//
+// PLANEALIGNED
+//---------------------------------------------------------------------------//
+using PlaneAlignedTest = IntersectRegionTest;
+
+TEST_F(PlaneAlignedTest, basic)
+{
+    {
+        auto result = this->test(PlaneAligned(Sense::inside, Axis::x, -1.5));
+        IntersectTestResult ref;
+        ref.node = "-0";
+        ref.surfaces = {"Plane: x=-1.5"};
+        ref.interior = {{-inf, -inf, -inf}, {-1.5, inf, inf}};
+        ref.exterior = {{-inf, -inf, -inf}, {-1.5, inf, inf}};
+        EXPECT_REF_EQ(ref, result);
+    }
+    {
+        auto result = this->test(PlaneAligned(Sense::outside, Axis::z, 2));
+
+        IntersectTestResult ref;
+        ref.node = "+1";
+        ref.surfaces = {"Plane: x=-1.5", "Plane: z=2"};
+        ref.interior = {{-inf, -inf, 2}, {inf, inf, inf}};
+        ref.exterior = {{-inf, -inf, 2}, {inf, inf, inf}};
+        EXPECT_REF_EQ(ref, result);
+    }
+}
+
+//---------------------------------------------------------------------------//
 // PRISM
 //---------------------------------------------------------------------------//
 using PrismTest = IntersectRegionTest;

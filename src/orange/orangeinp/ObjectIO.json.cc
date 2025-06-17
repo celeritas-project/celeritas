@@ -20,6 +20,7 @@
 #include "Solid.hh"
 #include "StackedExtrudedPolygon.hh"
 #include "Transformed.hh"
+#include "Truncated.hh"
 
 #define SIO_ATTR_PAIR(OBJ, ATTR) {#ATTR, OBJ.ATTR()}
 
@@ -118,10 +119,6 @@ void to_json(nlohmann::json& j, SolidBase const& obj)
     {
         j["enclosed_azi"] = azi;
     }
-    if (auto szs = obj.z_slab())
-    {
-        j["z_slab"] = szs;
-    }
 }
 
 void to_json(nlohmann::json& j, StackedExtrudedPolygon const& cr)
@@ -141,6 +138,13 @@ void to_json(nlohmann::json& j, Transformed const& obj)
          SIO_ATTR_PAIR(obj, daughter),
          SIO_ATTR_PAIR(obj, transform)};
 }
+
+void to_json(nlohmann::json& j, Truncated const& tr)
+{
+    j = {{"_type", "truncated"},
+         {"region", tr.region()},
+         {"planes", tr.planes()}};
+}
 //!@}
 
 //---------------------------------------------------------------------------//
@@ -158,11 +162,6 @@ void to_json(nlohmann::json& j, PolySegments const& ps)
 void to_json(nlohmann::json& j, EnclosedAzi const& azi)
 {
     j = {{"start", azi.start().value()}, {"interior", azi.interior().value()}};
-}
-
-void to_json(nlohmann::json& j, SolidZSlab const& szs)
-{
-    j = {{"lower", szs.lower()}, {"upper", szs.upper()}};
 }
 
 //---------------------------------------------------------------------------//
@@ -224,36 +223,14 @@ void to_json(nlohmann::json& j, GenPrism const& cr)
          SIO_ATTR_PAIR(cr, lower),
          SIO_ATTR_PAIR(cr, upper)};
 }
-void to_json(nlohmann::json& j, InfSlab const& cr)
-{
-    j = {{"_type", "infslab"}, {"lower", cr.lower()}, {"upper", cr.upper()}};
-}
+
 void to_json(nlohmann::json& j, InfWedge const& cr)
 {
     j = {{"_type", "infwedge"},
          {"start", cr.start().value()},
          {"interior", cr.interior().value()}};
 }
-void to_json(nlohmann::json& j, Parallelepiped const& cr)
-{
-    j = {{"_type", "parallelepiped"},
-         SIO_ATTR_PAIR(cr, halfedges),
-         {"alpha", cr.alpha().value()},
-         {"theta", cr.theta().value()},
-         {"phi", cr.phi().value()}};
-}
-void to_json(nlohmann::json& j, Prism const& cr)
-{
-    j = {{"_type", "prism"},
-         SIO_ATTR_PAIR(cr, num_sides),
-         SIO_ATTR_PAIR(cr, apothem),
-         SIO_ATTR_PAIR(cr, halfheight),
-         SIO_ATTR_PAIR(cr, orientation)};
-}
-void to_json(nlohmann::json& j, Sphere const& cr)
-{
-    j = {{"_type", "sphere"}, SIO_ATTR_PAIR(cr, radius)};
-}
+
 void to_json(nlohmann::json& j, Involute const& cr)
 {
     j = {{"_type", "involute"},
@@ -262,6 +239,36 @@ void to_json(nlohmann::json& j, Involute const& cr)
          SIO_ATTR_PAIR(cr, t_bounds),
          SIO_ATTR_PAIR(cr, chirality),
          SIO_ATTR_PAIR(cr, halfheight)};
+}
+
+void to_json(nlohmann::json& j, Parallelepiped const& cr)
+{
+    j = {{"_type", "parallelepiped"},
+         SIO_ATTR_PAIR(cr, halfedges),
+         {"alpha", cr.alpha().value()},
+         {"theta", cr.theta().value()},
+         {"phi", cr.phi().value()}};
+}
+
+void to_json(nlohmann::json& j, PlaneAligned const& pa)
+{
+    j = {{"sense", to_cstring(pa.sense())},
+         {"axis", std::string(1, to_char(pa.axis()))},
+         {"position", pa.position()}};
+}
+
+void to_json(nlohmann::json& j, Prism const& cr)
+{
+    j = {{"_type", "prism"},
+         SIO_ATTR_PAIR(cr, num_sides),
+         SIO_ATTR_PAIR(cr, apothem),
+         SIO_ATTR_PAIR(cr, halfheight),
+         SIO_ATTR_PAIR(cr, orientation)};
+}
+
+void to_json(nlohmann::json& j, Sphere const& cr)
+{
+    j = {{"_type", "sphere"}, SIO_ATTR_PAIR(cr, radius)};
 }
 //!@}
 

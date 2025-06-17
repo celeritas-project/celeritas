@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "SolidConverter.hh"
 
+#include <memory>
 #include <typeindex>
 #include <typeinfo>
 #include <unordered_map>
@@ -54,11 +55,13 @@
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "orange/orangeinp/CsgObject.hh"
+#include "orange/orangeinp/IntersectRegion.hh"
 #include "orange/orangeinp/PolySolid.hh"
 #include "orange/orangeinp/Shape.hh"
 #include "orange/orangeinp/Solid.hh"
 #include "orange/orangeinp/StackedExtrudedPolygon.hh"
 #include "orange/orangeinp/Transformed.hh"
+#include "orange/orangeinp/Truncated.hh"
 
 #include "Scaler.hh"
 #include "Transformer.hh"
@@ -230,6 +233,26 @@ auto make_solid(G4VSolid const& solid,
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Construct an ORANGE solid using the G4Solid's name and forwarded arguments.
+ */
+template<class CR>
+auto make_truncated(G4VSolid const& solid,
+                    CR&& interior,
+                    std::vector<PlaneAligned>&& planes) -> SPConstObject
+{
+    if (planes.empty())
+    {
+        return make_shape<CR>(solid, std::forward<CR>(interior));
+    }
+
+    return std::make_shared<Truncated>(
+        std::string{solid.GetName()},
+        std::make_unique<CR>(std::forward<CR>(interior)),
+        std::move(planes));
+}
+
+//---------------------------------------------------------------------------//
 template<class Container>
 bool any_positive(Container const& c)
 {
@@ -398,21 +421,20 @@ auto SolidConverter::ellipsoid(arg_type solid_base) -> result_type
     auto radii = scale_.to<Real3>(solid.GetSemiAxisMax(to_int(Axis::x)),
                                   solid.GetSemiAxisMax(to_int(Axis::y)),
                                   solid.GetSemiAxisMax(to_int(Axis::z)));
-    auto bottom_cut = scale_(solid.GetZBottomCut());
-    auto top_cut = scale_(solid.GetZTopCut());
 
-    if (!(soft_equal(-radii[to_int(Axis::z)], bottom_cut)
-          && soft_equal(radii[to_int(Axis::z)], top_cut)))
+    std::vector<PlaneAligned> truncate;
+    if (auto cut = scale_(solid.GetZBottomCut());
+        !soft_equal(-radii[to_int(Axis::z)], cut))
     {
-        // Non-default z-cuts, make a solid instead of a shape
-        return std::make_shared<Solid<Ellipsoid>>(
-            std::string{solid.GetName()},
-            Ellipsoid(radii),
-            SolidZSlab{bottom_cut, top_cut});
+        truncate.push_back(PlaneAligned{Sense::outside, Axis::z, cut});
+    }
+    if (auto cut = scale_(solid.GetZTopCut());
+        !soft_equal(radii[to_int(Axis::z)], cut))
+    {
+        truncate.push_back(PlaneAligned{Sense::inside, Axis::z, cut});
     }
 
-    // No Z cuts, make an ellipsoid shape
-    return make_shape<Ellipsoid>(solid, radii);
+    return make_truncated(solid, Ellipsoid{radii}, std::move(truncate));
 }
 
 //---------------------------------------------------------------------------//

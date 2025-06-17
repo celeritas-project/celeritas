@@ -181,7 +181,7 @@ class Cylinder final : public IntersectRegionInterface
 class Ellipsoid final : public IntersectRegionInterface
 {
   public:
-    // Construct with radius
+    // Construct with radius along each Cartesian axis
     explicit Ellipsoid(Real3 const& radii);
 
     // Build surfaces
@@ -503,35 +503,6 @@ class GenPrism final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * An infinite slab bound by lower and upper z-planes.
- */
-class InfSlab final : public IntersectRegionInterface
-{
-  public:
-    // Construct from lower and upper z-planes
-    InfSlab(real_type lower, real_type upper);
-
-    // Build surfaces
-    void build(IntersectSurfaceBuilder&) const final;
-
-    // Write output to the given JSON object
-    void output(JsonPimpl*) const final;
-
-    //// ACCESSORS ////
-
-    //! Lower z-plane
-    real_type lower() const { return lower_; }
-
-    //! Upper z-plane
-    real_type upper() const { return upper_; }
-
-  private:
-    real_type lower_;
-    real_type upper_;
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * An open wedge shape from the *z* axis.
  *
  * The wedge is defined by an interior angle that \em must be less than or
@@ -665,6 +636,43 @@ class Parallelepiped final : public IntersectRegionInterface
     Turn theta_;
     // azimuthal angle of main axis
     Turn phi_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * An axis-aligned infinite half-space to use for truncation operations.
+ *
+ * An "inside" sense means to include everything *below* the position on the
+ * axis, and an "outside" sense means to include only what's *above* the
+ * position.
+ */
+class PlaneAligned : public IntersectRegionInterface
+{
+  public:
+    // Construct with sense, axis, and position
+    PlaneAligned(Sense sense, Axis axis, real_type position);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Get the sense (inside or outside)
+    Sense sense() const { return sense_; }
+
+    //! Get the axis (x, y, or z)
+    Axis axis() const { return axis_; }
+
+    //! Get the position along the axis
+    real_type position() const { return position_; }
+
+  private:
+    Sense sense_;
+    Axis axis_;
+    real_type position_;
 };
 
 //---------------------------------------------------------------------------//

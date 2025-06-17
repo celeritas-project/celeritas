@@ -59,28 +59,6 @@ auto EnclosedAzi::make_sense_region() const -> SenseWedge
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct from lower and upper z-planes.
- */
-SolidZSlab::SolidZSlab(real_type lower, real_type upper)
-    : lower_{lower}, upper_{upper}
-{
-    CELER_VALIDATE(lower < upper,
-                   << "invalid lower z-plane " << lower
-                   << " must be less than upper z plane " << upper);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct an InfSlab shape to intersect with the solid.
- */
-auto SolidZSlab::make_inf_slab() const -> InfSlab
-{
-    CELER_EXPECT(*this);
-    return InfSlab{lower_, upper_};
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct a volume from this shape.
  */
 NodeId SolidBase::build(VolumeBuilder& vb) const
@@ -112,12 +90,6 @@ NodeId SolidBase::build(VolumeBuilder& vb) const
             wedge_id = vb.insert_region({}, Negated{wedge_id});
         }
         nodes.push_back(wedge_id);
-    }
-
-    if (auto const& szs = this->z_slab())
-    {
-        nodes.push_back(build_intersect_region(
-            vb, this->label(), "z_slab", szs.make_inf_slab()));
     }
 
     // Intersect the given surfaces to create a new CSG node
@@ -170,7 +142,6 @@ Solid<T>::Solid(std::string&& label,
     , interior_{std::move(interior)}
     , exclusion_{std::move(excluded)}
     , enclosed_{std::move(enclosed)}
-    , z_slab_{}
 {
     CELER_VALIDATE(exclusion_ || enclosed_,
                    << "solid requires either an excluded region or a shape");
@@ -211,20 +182,6 @@ Solid<T>::Solid(std::string&& label, T&& interior, EnclosedAzi&& enclosed)
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Construct with only a z-slab.
- */
-template<class T>
-Solid<T>::Solid(std::string&& label, T&& interior, SolidZSlab&& z_slab)
-    : label_{std::move(label)}
-    , interior_{std::move(interior)}
-    , exclusion_{std::nullopt}
-    , enclosed_{EnclosedAzi{}}
-    , z_slab_{std::move(z_slab)}
-{
-}
-
-//---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
@@ -232,7 +189,6 @@ template class Solid<Cone>;
 template class Solid<Cylinder>;
 template class Solid<Prism>;
 template class Solid<Sphere>;
-template class Solid<Ellipsoid>;
 
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp

@@ -62,28 +62,6 @@ TEST(EnclosedAziTest, make_sense_region)
 }
 
 //---------------------------------------------------------------------------//
-TEST(SolidZSlabTest, errors)
-{
-    EXPECT_THROW(SolidZSlab(0.1, -0.1), RuntimeError);
-    EXPECT_THROW(SolidZSlab(0.1, 0.1), RuntimeError);
-}
-
-TEST(SolidZSlabTest, infinite)
-{
-    // The default slab spans R^3 and evaluates to false
-    SolidZSlab szs;
-    EXPECT_FALSE(szs);
-}
-
-TEST(SolidZSlabTest, make_sense_region)
-{
-    SolidZSlab szs(5, 10);
-    auto inf_slab = szs.make_inf_slab();
-    EXPECT_SOFT_EQ(5, inf_slab.lower());
-    EXPECT_SOFT_EQ(10, inf_slab.upper());
-}
-
-//---------------------------------------------------------------------------//
 class SolidTest : public ObjectTestBase
 {
   protected:
