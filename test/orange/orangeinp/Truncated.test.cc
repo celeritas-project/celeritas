@@ -57,10 +57,22 @@ TEST_F(TruncatedTest, ellipsoid)
         = {"SQuadric: {1,9,0.5625} {0,0,0} -2.25",
            "Plane: z=1.25",
            "Plane: z=-0.5"};
+    static char const* const expected_md_strings[] = {
+        "",
+        "",
+        "el@interior.sq",
+        "el@interior",
+        "el@trunc.pz",
+        "",
+        "el@trunc.mz",
+        "el@trunc",
+        "el",
+    };
     static char const* const expected_volume_strings[] = {"all(-0, -1, +2)"};
 
     auto const& u = this->unit();
     //::celeritas::orangeinp::test::print_expected(u);
+    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
 }
