@@ -43,6 +43,9 @@ class ShapeBase : public ObjectInterface
     // Write the shape to JSON
     void output(JsonPimpl*) const final;
 
+    //! Get the user-provided label
+    std::string_view label() const final { return label_; }
+
     //! Interior intersect region interface for construction and access
     virtual IntersectRegionInterface const& interior() const = 0;
 
@@ -51,9 +54,12 @@ class ShapeBase : public ObjectInterface
   protected:
     //!@{
     //! Allow construction and assignment only through daughter classes
-    ShapeBase() = default;
+    explicit ShapeBase(std::string&& label);
     CELER_DEFAULT_COPY_MOVE(ShapeBase);
     //!@}
+
+  private:
+    std::string label_;
 };
 
 //---------------------------------------------------------------------------//
@@ -79,26 +85,21 @@ class Shape final : public ShapeBase
     //! Construct with a label and arguments of the intersect region
     template<class... Ts>
     Shape(std::string&& label, Ts... region_args)
-        : label_{std::move(label)}, region_{std::forward<Ts>(region_args)...}
+        : ShapeBase{std::move(label)}
+        , region_{std::forward<Ts>(region_args)...}
     {
-        CELER_EXPECT(!label_.empty());
     }
 
     //! Construct with a label and intersect region
     Shape(std::string&& label, T&& region)
-        : label_{std::move(label)}, region_{std::move(region)}
+        : ShapeBase{std::move(label)}, region_{std::move(region)}
     {
-        CELER_EXPECT(!label_.empty());
     }
-
-    //! Get the user-provided label
-    std::string_view label() const final { return label_; }
 
     //! Interior intersect region
     IntersectRegionInterface const& interior() const final { return region_; }
 
   private:
-    std::string label_;
     T region_;
 };
 
