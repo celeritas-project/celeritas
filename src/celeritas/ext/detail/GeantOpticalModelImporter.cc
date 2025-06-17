@@ -73,6 +73,8 @@ ImportOpticalModel GeantOpticalModelImporter::operator()(IMC imc) const
             return ImportOpticalModel{imc, this->import_mfps("RAYLEIGH")};
         case IMC::wls:
             return ImportOpticalModel{imc, this->import_mfps("WLSABSLENGTH")};
+        case IMC::wls2:
+            return ImportOpticalModel{imc, this->import_mfps("WLSABSLENGTH2")};
         default:
             CELER_ASSERT_UNREACHABLE();
     }

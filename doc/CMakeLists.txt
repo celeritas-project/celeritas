@@ -54,6 +54,7 @@ set(DOXYGEN_EXTRA_PACKAGES "amsmath")
 set(DOXYGEN_FORMULA_MACROFILE "${CMAKE_CURRENT_SOURCE_DIR}/_static/macros.tex")
 set(DOXYGEN_FULL_PATH_NAMES NO)
 set(DOXYGEN_IMAGE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/_static")
+set(DOXYGEN_INTERNAL_DOCS YES)
 set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
 set(DOXYGEN_MACRO_EXPANSION YES)
 set(DOXYGEN_PREDEFINED "__DOXYGEN__=${_doxy_version_hex}")
@@ -67,6 +68,7 @@ set(DOXYGEN_ALIASES
   "citet{2}=\"[\\1](\\2)\""
   "rst=\"^^\\if (0)^^\""
   "endrst=\"^^\\endif^^\""
+  "rstref{2}=\"\\1 (\\2 in user manual)\""
 )
 
 # Verbosity/warning levels
@@ -201,6 +203,7 @@ set(DOXYGEN_COLLABORATION_GRAPH NO)
 set(DOXYGEN_CLASS_GRAPH NO)
 set(DOXYGEN_INCLUDED_BY_GRAPH NO)
 set(DOXYGEN_INCLUDE_GRAPH NO)
+set(DOXYGEN_INTERNAL_DOCS NO)
 
 set(DOXYGEN_ALIASES
   "cite{1}=\"\\verbatim embed:rst:inline :cite:p:`\\1` \\endverbatim \""
@@ -208,6 +211,7 @@ set(DOXYGEN_ALIASES
   "citet{2}=\"\\verbatim embed:rst:inline :cite:t:`\\1` \\endverbatim \""
   "rst=\"^^\\verbatim embed:rst^^\""
   "endrst=\"^^\\endverbatim \""
+  "rstref{2}=\"\\verbatim embed:rst:inline :ref:`\\1 <\\2>` \\endverbatim \""
 )
 
 # Annotations break breathe parsing

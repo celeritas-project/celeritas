@@ -26,7 +26,7 @@
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/ModelImporter.hh"
-#include "celeritas/optical/gen/OffloadParams.hh"
+#include "celeritas/optical/gen/GeneratorData.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 
@@ -63,8 +63,8 @@ class LArSphereOffloadTest : public LArSphereBase
         OffloadResult scintillation;
         OpticalAccumStats accum;
 
-        // Step iteration at which the optical tracking loop launched
-        size_type optical_launch_step{0};
+        // Step iteration at which the optical tracking loop first launched
+        size_type optical_launch_step{numeric_limits<size_type>::max()};
 
         void print_expected() const;
     };
@@ -151,14 +151,18 @@ void LArSphereOffloadTest::RunResult::print_expected() const
          << this->accum.flushes
          << ", result.accum.flushes);\n"
             "EXPECT_EQ("
-         << this->accum.generators.cherenkov
-         << ", result.accum.generators.cherenkov);\n"
+         << this->accum.cherenkov.distributions
+         << ", result.accum.cherenkov.distributions);\n"
             "EXPECT_EQ("
-         << this->accum.generators.scintillation
-         << ", result.accum.generators.scintillation);\n"
+         << this->accum.cherenkov.photons
+         << ", result.accum.cherenkov.photons);\n"
             "EXPECT_EQ("
-         << this->accum.generators.photons
-         << ", result.accum.generators.photons);\n"
+         << this->accum.scintillation.distributions
+         << ", result.accum.scintillation.distributions);\n"
+            "EXPECT_EQ("
+         << this->accum.scintillation.photons
+         << ", result.accum.scintillation.photons);\n"
+            "EXPECT_EQ("
             "/*** END CODE ***/\n";
 }
 
@@ -259,9 +263,6 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
                                size_type num_track_slots,
                                size_type num_steps) -> RunResult
 {
-    using DistRef
-        = Collection<GeneratorDistributionData, Ownership::reference, M>;
-
     if constexpr (M == MemSpace::device)
     {
         device().create_streams(1);
@@ -275,10 +276,6 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
     Stepper<M> step(step_inp);
     LogContextException log_context{this->output_reg().get()};
 
-    // Access the optical offload data
-    auto const& offload_state = get<OpticalOffloadState<M>>(
-        step.state().aux(), collector_->offload_aux_id());
-
     RunResult result;
 
     // Initial step
@@ -289,23 +286,23 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
     size_type step_iter = 1;
     while (count && step_iter++ < num_steps)
     {
-        if (!offload_state.buffer_size.photons)
+        if (!collector_->buffer_counts(step.state().aux()).photons
+            && step_iter < result.optical_launch_step)
         {
             result.optical_launch_step = step_iter;
-
-            // TODO: For now abort immediately after primaries are generated
-            // since the tracking loop hasn't been implemented
-            break;
         }
         CELER_TRY_HANDLE(count = step(), log_context);
     }
 
-    auto get_result = [&](OffloadResult& result,
-                          DistRef const& buffer,
-                          size_type size) {
-        auto host_buffer = copy_to_host(buffer);
+    auto get_result = [&](OffloadResult& result, AuxId id) {
+        if (!id)
+        {
+            return;
+        }
+        auto const& state = get<GeneratorState<M>>(step.state().aux(), id);
+        auto buffer = copy_to_host(state.store.ref().distributions);
         std::set<real_type> charge;
-        for (auto const& dist : host_buffer[DistRange(DistId(0), DistId(size))])
+        for (auto const& dist : buffer[DistRange(DistId(state.buffer_size))])
         {
             result.total_num_photons += dist.num_photons;
             result.num_photons.push_back(dist.num_photons);
@@ -325,12 +322,10 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
         result.charge.insert(result.charge.end(), charge.begin(), charge.end());
     };
 
-    auto const& state = offload_state.store.ref();
-    auto const& sizes = offload_state.buffer_size;
-    get_result(result.cherenkov, state.cherenkov, sizes.cherenkov);
-    get_result(result.scintillation, state.scintillation, sizes.scintillation);
-    result.num_photons = sizes.photons;
-
+    // Access the optical offload data
+    get_result(result.cherenkov, collector_->cherenkov_aux_id());
+    get_result(result.scintillation, collector_->scintillation_aux_id());
+    result.num_photons = collector_->buffer_counts(step.state().aux()).photons;
     result.accum = collector_->exchange_counters(step.sp_state()->aux());
 
     return result;
@@ -537,10 +532,11 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
         // No steps ran
         EXPECT_EQ(0, result.accum.steps);
         EXPECT_EQ(0, result.accum.step_iters);
-        EXPECT_EQ(16, result.accum.flushes);
-        EXPECT_EQ(0, result.accum.generators.cherenkov);
-        EXPECT_EQ(0, result.accum.generators.scintillation);
-        EXPECT_EQ(0, result.accum.generators.photons);
+        EXPECT_EQ(0, result.accum.flushes);
+        EXPECT_EQ(0, result.accum.cherenkov.distributions);
+        EXPECT_EQ(0, result.accum.scintillation.distributions);
+        EXPECT_EQ(0, result.accum.cherenkov.photons);
+        EXPECT_EQ(0, result.accum.scintillation.photons);
     }
     else
     {
@@ -560,17 +556,20 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
     auto_flush_ = 1;
     this->build_optical_collector();
 
-    // Run with 2 core track slots and 32 optical track slots
-    auto result = this->run<MemSpace::host>(4, 2, 2);
+    size_type primaries = 4;
+    size_type core_track_slots = 2;
+    size_type steps = 2;
+    auto result = this->run<MemSpace::host>(primaries, core_track_slots, steps);
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(1028, result.accum.steps);
-        EXPECT_EQ(33, result.accum.step_iters);
+        EXPECT_EQ(1712, result.accum.steps);
+        EXPECT_EQ(57, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
-        EXPECT_EQ(0, result.accum.generators.cherenkov);
-        EXPECT_EQ(2, result.accum.generators.scintillation);
-        EXPECT_EQ(1028, result.accum.generators.photons);
+        EXPECT_EQ(0, result.accum.cherenkov.distributions);
+        EXPECT_EQ(2, result.accum.scintillation.distributions);
+        EXPECT_EQ(0, result.accum.cherenkov.photons);
+        EXPECT_EQ(1028, result.accum.scintillation.photons);
     }
 }
 
@@ -582,17 +581,21 @@ TEST_F(LArSphereOffloadTest, host_generate)
     auto_flush_ = 16384;
     this->build_optical_collector();
 
-    // Run with 512 core track slots and 2^18 optical track slots
-    auto result = this->run<MemSpace::host>(4, 512, 16);
+    size_type primaries = 1;
+    size_type core_track_slots = 512;
+    size_type steps = 4;
+    auto result = this->run<MemSpace::host>(primaries, core_track_slots, steps);
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(323778, result.accum.steps);
-        EXPECT_EQ(2, result.accum.step_iters);
-        EXPECT_EQ(1, result.accum.flushes);
-        EXPECT_EQ(4, result.accum.generators.cherenkov);
-        EXPECT_EQ(4, result.accum.generators.scintillation);
-        EXPECT_EQ(323778, result.accum.generators.photons);
+        EXPECT_SOFT_NEAR(
+            462263.0, static_cast<double>(result.accum.steps), 1e-4);
+        EXPECT_EQ(37, result.accum.step_iters);
+        EXPECT_EQ(3, result.accum.flushes);
+        EXPECT_EQ(4, result.accum.cherenkov.distributions);
+        EXPECT_EQ(6, result.accum.scintillation.distributions);
+        EXPECT_EQ(3835, result.accum.cherenkov.photons);
+        EXPECT_EQ(279898, result.accum.scintillation.photons);
     }
 
     EXPECT_EQ(2, result.optical_launch_step);
@@ -608,12 +611,18 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
     auto_flush_ = 262144;
     this->build_optical_collector();
 
-    auto result = this->run<MemSpace::device>(1, num_track_slots_, 16);
-    result.print_expected();
+    size_type primaries = 1;
+    size_type core_track_slots = 1024;
+    size_type steps = 16;
+    auto result
+        = this->run<MemSpace::device>(primaries, core_track_slots, steps);
 
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_EQ(218314, result.scintillation.total_num_photons);
+        EXPECT_EQ(2236, result.cherenkov.total_num_photons);
+    }
     EXPECT_EQ(7, result.optical_launch_step);
-    EXPECT_EQ(0, result.scintillation.total_num_photons);
-    EXPECT_EQ(0, result.cherenkov.total_num_photons);
 }
 
 //---------------------------------------------------------------------------//

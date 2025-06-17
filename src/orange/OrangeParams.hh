@@ -16,6 +16,7 @@
 #include "corecel/io/Label.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/GeoParamsInterface.hh"
+#include "geocel/inp/Model.hh"
 
 #include "OrangeData.hh"
 #include "OrangeTypes.hh"
@@ -25,6 +26,7 @@ class G4VPhysicalVolume;
 namespace celeritas
 {
 struct OrangeInput;
+class GeantGeoParams;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -33,13 +35,13 @@ struct OrangeInput;
  * This class initializes and manages the data used by ORANGE (surfaces,
  * volumes) and provides a host-based interface for them.
  */
-class OrangeParams final : public GeoParamsSurfaceInterface,
+class OrangeParams final : public GeoParamsInterface,
                            public ParamsDataInterface<OrangeParamsData>
 {
   public:
     //!@{
     //! \name Type aliases
-    using SurfaceMap = LabelIdMultiMap<SurfaceId>;
+    using SurfaceMap = LabelIdMultiMap<InternalSurfaceId>;
     using UniverseMap = LabelIdMultiMap<UniverseId>;
     //!@}
 
@@ -48,7 +50,7 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
     explicit OrangeParams(std::string const& filename);
 
     // Construct in-memory from Geant4
-    explicit OrangeParams(G4VPhysicalVolume const*);
+    explicit OrangeParams(G4VPhysicalVolume const* world);
 
     // ADVANCED usage: construct from explicit host data
     explicit OrangeParams(OrangeInput&& input);
@@ -68,10 +70,13 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
     // Maximum universe depth
     inline size_type max_depth() const final;
 
+    // Create model parameters corresponding to our internal representation
+    inline inp::Model make_model_input() const final;
+
     //// LABELS AND MAPPING ////
 
     // Get surface metadata
-    inline SurfaceMap const& surfaces() const final;
+    inline SurfaceMap const& surfaces() const;
 
     // Get universe metadata
     inline UniverseMap const& universes() const;
@@ -124,6 +129,15 @@ extern template class ParamsDataInterface<OrangeParamsData>;
 size_type OrangeParams::max_depth() const
 {
     return this->host_ref().scalars.max_depth;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create model parameters corresponding to our internal representation.
+ */
+inp::Model OrangeParams::make_model_input() const
+{
+    CELER_NOT_IMPLEMENTED("model input from ORANGE");
 }
 
 //---------------------------------------------------------------------------//

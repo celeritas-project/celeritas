@@ -115,7 +115,11 @@ if use_celeritas:
 with open(inp_file, "w") as f:
     json.dump(inp, f, indent=1)
 
-print("Running", exe, inp_file, "from", getcwd(), file=stderr)
+envstr = " ".join(f"{k}={v}"
+                  for (k, v) in environ.items()
+                  if k.startswith("CELER_"))
+print("Running", envstr, exe, inp_file, file=stderr)
+print("working directory:", getcwd(), file=stderr)
 result = subprocess.run(args, **kwargs)
 
 if use_celeritas:

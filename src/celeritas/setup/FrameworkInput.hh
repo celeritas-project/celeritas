@@ -10,11 +10,10 @@
 
 #include "Problem.hh"
 
-class G4VPhysicalVolume;
-
 namespace celeritas
 {
 class CoreParams;
+class GeantGeoParams;
 
 namespace inp
 {
@@ -28,8 +27,8 @@ struct FrameworkLoaded
 {
     //! Loaded problem
     ProblemLoaded problem;
-    //! Geant4 world volume
-    G4VPhysicalVolume const* world{nullptr};
+    //! Geant4 geometry wrapper
+    std::shared_ptr<GeantGeoParams> geo;
 };
 
 //---------------------------------------------------------------------------//

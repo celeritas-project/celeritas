@@ -26,6 +26,7 @@ enum class ImportModelClass
     absorption,
     rayleigh,
     wls,
+    wls2,
     size_
 };
 

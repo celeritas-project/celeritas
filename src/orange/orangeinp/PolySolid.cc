@@ -89,11 +89,11 @@ template<class T>
                                               detail::VolumeBuilder& vb,
                                               NodeId result)
 {
-    if (auto const& sea = base.enclosed_angle())
+    if (auto const& azi = base.enclosed_azi())
     {
         // The enclosed angle is "true" (specified by the user to truncate the
         // shape azimuthally): construct a wedge to be added or deleted
-        auto&& [sense, wedge] = sea.make_wedge();
+        auto&& [sense, wedge] = azi.make_sense_region();
         NodeId wedge_id
             = build_intersect_region(vb, base.label(), "angle", wedge);
         if (sense == Sense::outside)
@@ -154,7 +154,7 @@ PolySegments::PolySegments(VecReal&& inner, VecReal&& outer, VecReal&& z)
  */
 PolySolidBase::PolySolidBase(std::string&& label,
                              PolySegments&& segments,
-                             SolidEnclosedAngle&& enclosed)
+                             EnclosedAzi&& enclosed)
     : label_{std::move(label)}
     , segments_{std::move(segments)}
     , enclosed_{std::move(enclosed)}
@@ -171,7 +171,7 @@ PolySolidBase::~PolySolidBase() = default;
  */
 auto PolyCone::or_solid(std::string&& label,
                         PolySegments&& segments,
-                        SolidEnclosedAngle&& enclosed) -> SPConstObject
+                        EnclosedAzi&& enclosed) -> SPConstObject
 {
     if (segments.size() > 1)
     {
@@ -209,7 +209,7 @@ auto PolyCone::or_solid(std::string&& label,
  */
 PolyCone::PolyCone(std::string&& label,
                    PolySegments&& segments,
-                   SolidEnclosedAngle&& enclosed)
+                   EnclosedAzi&& enclosed)
     : PolySolidBase{std::move(label), std::move(segments), std::move(enclosed)}
 {
 }
@@ -253,7 +253,7 @@ void PolyCone::output(JsonPimpl* j) const
  */
 auto PolyPrism::or_solid(std::string&& label,
                          PolySegments&& segments,
-                         SolidEnclosedAngle&& enclosed,
+                         EnclosedAzi&& enclosed,
                          int num_sides,
                          real_type orientation) -> SPConstObject
 {
@@ -308,7 +308,7 @@ auto PolyPrism::or_solid(std::string&& label,
  */
 PolyPrism::PolyPrism(std::string&& label,
                      PolySegments&& segments,
-                     SolidEnclosedAngle&& enclosed,
+                     EnclosedAzi&& enclosed,
                      int num_sides,
                      real_type orientation)
     : PolySolidBase{std::move(label), std::move(segments), std::move(enclosed)}

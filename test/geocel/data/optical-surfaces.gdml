@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define>
+    <matrix name="RINDEX_Air"     coldim="2" values="1.65e-06 1.59 1e-05 1.59"/>
+    <matrix name="RINDEX_LAr"     coldim="2" values="1.88e-06 1.22 1e-05 1.22"/>
+    <matrix name="RINDEX_Acrylic" coldim="2" values="4.13e-09 1.50 8.45e-09 1.50"/>
+    <matrix name="REFLECTIVITY_lo"    coldim="2" values="1.65e-06 0.6 1e-05 0.6"/>
+    <matrix name="REFLECTIVITY_lomid" coldim="2" values="1.65e-06 0.7 1e-05 0.7"/>
+    <matrix name="REFLECTIVITY_mid"   coldim="2" values="1.65e-06 0.8 1e-05 0.8"/>
+    <matrix name="REFLECTIVITY_hi"    coldim="2" values="1.65e-06 0.9 1e-05 0.9"/>
+    <matrix name="ABSLENGTH_Acrylic" coldim="2" values="1.13e-09 263.1 1.24e-09 263 1.55e-09 263 1.77e-09 250 2.07e-09 227 2.48e-09 200 3.10e-09 131 4.13e-09  161 4.96e-09 74 5.51e-09 13 5.90e-09 1 6.20e-09 0"/>
+  </define>
+  <materials>
+    <element name="C" formula="C" Z="6" N="12">
+      <atom unit="g/mole" value="12.0107"/>
+    </element>
+    <element name="H" formula="H" Z="1" N="1">
+      <atom unit="g/mole" value="1.00794"/>
+    </element>
+    <element name="N" Z="7" formula="N">
+      <atom unit="g/mole" value="14"/>
+    </element>
+    <element name="O" Z="8" formula="O">
+      <atom unit="g/mole" value="16"/>
+    </element>
+    <element name="Ar" Z="18" formula="Ar">
+      <atom unit="g/mole" value="40"/>
+    </element>
+
+    <material name="Air" state="gas">
+      <property name="RINDEX" ref="RINDEX_Air"/>
+      <T unit="K" value="293.15"/>
+      <D value="0.0012"/>
+      <fraction n="0.7" ref="N"/>
+      <fraction n="0.3" ref="O"/>
+    </material>
+    <material name="lAr" state="liquid">
+      <property name="RINDEX" ref="RINDEX_LAr"/>
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="188"/>
+      <D unit="g/cm3" value="1.396"/>
+      <fraction n="1" ref="Ar"/>
+    </material>
+    <material name="Acrylic">
+      <property name="RINDEX" ref="RINDEX_Acrylic"/>
+      <property name="ABSLENGTH" ref="ABSLENGTH_Acrylic"/>
+      <D unit="g/cm3" value="1.19"/>
+      <fraction n="0.6" ref="C"/>
+      <fraction n="0.1" ref="H"/>
+      <fraction n="0.3" ref="O"/>
+    </material>
+    <material name="vacuum" state="gas">
+      <T unit="K" value="2.73"/>
+      <P unit="pascal" value="3e-18"/>
+      <MEE unit="eV" value="21.8"/>
+      <D unit="g/cm3" value="1e-25"/>
+      <fraction n="1" ref="H"/>
+    </material>
+  </materials>
+
+  <solids>
+    <sphere lunit="cm" name="sphere" rmax="5.0" deltaphi="360" deltatheta="180" aunit="deg"/>
+    <tube aunit="deg" deltaphi="360" lunit="cm" name="tube1" rmax="10" startphi="0" z="20"/>
+    <tube aunit="deg" deltaphi="360" lunit="cm" name="tube2" rmax="5" startphi="0" z="10"/>
+    <sphere lunit="cm" name="world_sphere" rmin="0.0" rmax="100.0" deltaphi="360" deltatheta="180" aunit="deg"/>
+    <opticalsurface name="sphere_surf" model="glisur" finish="polished" type="dielectric_dielectric" value="1.0"/>
+    <opticalsurface name="tube2_surf" model="glisur" finish="polished" type="dielectric_dielectric" value="1.0">
+      <property name="REFLECTIVITY" ref="REFLECTIVITY_lo"/>
+    </opticalsurface>
+    <opticalsurface name="lomid_surf" model="unified" finish="polished" type="dielectric_metal" value="1.0">
+      <property name="REFLECTIVITY" ref="REFLECTIVITY_lomid"/>
+    </opticalsurface>
+    <opticalsurface name="midlo_surf" model="glisur" finish="polished" type="dielectric_metal" value="1.0">
+      <property name="REFLECTIVITY" ref="REFLECTIVITY_mid"/>
+    </opticalsurface>
+    <opticalsurface name="midhi_surf" model="glisur" finish="polished" type="dielectric_metal" value="1.0">
+      <property name="REFLECTIVITY" ref="REFLECTIVITY_hi"/>
+    </opticalsurface>
+  </solids>
+
+  <structure>
+    <volume name="lar_sphere">
+      <solidref ref="sphere"/>
+      <materialref ref="lAr"/>
+    </volume>
+    <volume name="tube1_mid">
+      <solidref ref="tube1"/>
+      <materialref ref="Acrylic"/>
+    </volume>
+    <volume name="tube2">
+      <solidref ref="tube2"/>
+      <materialref ref="Acrylic"/>
+    </volume>
+    <volume name="world">
+      <solidref ref="world_sphere"/>
+      <materialref ref="vacuum"/>
+      <physvol name="lar_pv">
+        <volumeref ref="lar_sphere"/>
+        <position name="lar_pos" unit="cm" x="20" y="0" z="0"/>
+      </physvol>
+      <physvol name="tube2_below_pv">
+        <volumeref ref="tube2"/>
+        <position name="tube2_below_pos" unit="cm" x="0" y="0" z="-15"/>
+      </physvol>
+      <physvol name="tube1_mid_pv">
+        <volumeref ref="tube1_mid"/>
+      </physvol>
+      <physvol name="tube2_above_pv">
+        <volumeref ref="tube2"/>
+        <position name="tube2_above_pos" unit="cm" x="0" y="0" z="15"/>
+      </physvol>
+    </volume>
+
+    <skinsurface name="sphere_skin" surfaceproperty="sphere_surf">
+      <volumeref ref="lar_sphere"/>
+    </skinsurface>
+    <skinsurface name="tube2_skin" surfaceproperty="tube2_surf">
+      <volumeref ref="tube2"/>
+    </skinsurface>
+
+    <bordersurface name="below_to_1" surfaceproperty="lomid_surf">
+      <physvolref ref="tube2_below_pv"/>
+      <physvolref ref="tube1_mid_pv"/>
+    </bordersurface>
+    <bordersurface name="mid_to_below" surfaceproperty="midlo_surf">
+      <physvolref ref="tube1_mid_pv"/>
+      <physvolref ref="tube2_below_pv"/>
+    </bordersurface>
+    <bordersurface name="mid_to_above" surfaceproperty="midhi_surf">
+      <physvolref ref="tube1_mid_pv"/>
+      <physvolref ref="tube2_above_pv"/>
+    </bordersurface>
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="world"/>
+  </setup>
+
+</gdml>

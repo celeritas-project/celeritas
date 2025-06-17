@@ -43,6 +43,7 @@ template class Shape<Box>;
 template class Shape<Cone>;
 template class Shape<Cylinder>;
 template class Shape<Ellipsoid>;
+template class Shape<ExtrudedPolygon>;
 template class Shape<GenPrism>;
 template class Shape<Involute>;
 template class Shape<Parallelepiped>;

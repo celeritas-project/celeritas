@@ -19,7 +19,11 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-using OrangeTestBase = GenericGeoTestBase<OrangeParams>;
+class OrangeTestBase : public GenericGeoTestBase<OrangeParams>
+{
+  public:
+    std::string surface_name(GeoTrackView const& geo) const final;
+};
 
 extern template class CheckedGeoTrackView<OrangeTrackView>;
 extern template class GenericGeoTestBase<OrangeParams>;

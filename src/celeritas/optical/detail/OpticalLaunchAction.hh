@@ -21,14 +21,12 @@ namespace celeritas
 template<class P, template<MemSpace M> class S>
 class ActionGroups;
 class CoreParams;
-class OffloadParams;
 
 namespace optical
 {
 class CoreParams;
 template<MemSpace M>
 class CoreState;
-class MaterialParams;
 }  // namespace optical
 
 namespace detail
@@ -38,8 +36,7 @@ namespace detail
  * Manage optical params and state, launching the optical stepping loop.
  *
  * This stores the optical tracking loop's core params, initializing them at
- * the beginning of the run, and stores the optical core state as "aux"
- * data.
+ * the beginning of the run, and stores the optical core state as "aux" data.
  */
 class OpticalLaunchAction : public AuxParamsInterface,
                             public CoreStepActionInterface
@@ -47,23 +44,21 @@ class OpticalLaunchAction : public AuxParamsInterface,
   public:
     //!@{
     //! \name Type aliases
-    using SPOffloadParams = std::shared_ptr<OffloadParams>;
-    using SPConstMaterial = std::shared_ptr<optical::MaterialParams const>;
+    using SPOpticalParams = std::shared_ptr<optical::CoreParams>;
     //!@}
 
     struct Input
     {
-        SPConstMaterial material;
-        std::vector<optical::Model::ModelBuilder> model_builders;
-        SPOffloadParams offload;
+        SPOpticalParams optical_params;
         size_type num_track_slots{};
-        size_type initializer_capacity{};
+        size_type max_step_iters{};
+        size_type auto_flush{};
 
         //! True if all input is assigned and valid
         explicit operator bool() const
         {
-            return material && offload && num_track_slots > 0
-                   && initializer_capacity > 0;
+            return optical_params && num_track_slots > 0 && max_step_iters > 0
+                   && auto_flush > 0;
         }
     };
 
@@ -72,8 +67,8 @@ class OpticalLaunchAction : public AuxParamsInterface,
     static std::shared_ptr<OpticalLaunchAction>
     make_and_insert(CoreParams const&, Input&&);
 
-    // Construct with IDs, core for copying params, offload gen data
-    OpticalLaunchAction(ActionId, AuxId, CoreParams const&, Input&&);
+    // Construct with IDs and optical params
+    OpticalLaunchAction(ActionId, AuxId, Input&&);
 
     //!@{
     //! \name Aux/action metadata interface
@@ -118,24 +113,21 @@ class OpticalLaunchAction : public AuxParamsInterface,
     {
         return *optical_params_;
     }
-    //! Offload params
-    OffloadParams const& offload_params() const { return *offload_params_; }
-
     //!@}
 
   private:
     using ActionGroupsT = ActionGroups<optical::CoreParams, optical::CoreState>;
-    using SPOpticalParams = std::shared_ptr<optical::CoreParams>;
     using SPActionGroups = std::shared_ptr<ActionGroupsT>;
 
     //// DATA ////
 
     ActionId action_id_;
     AuxId aux_id_;
-    SPOffloadParams offload_params_;
     SPOpticalParams optical_params_;
     SPActionGroups optical_actions_;
     size_type state_size_;
+    size_type max_step_iters_;
+    size_type auto_flush_;
 
     //// HELPERS ////
 

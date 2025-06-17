@@ -111,7 +111,7 @@ CoreTrackView::operator=(TrackInitializer const& init)
 
     // Initialize the geometry state
     auto geo = this->geometry();
-    geo = GeoTrackInitializer{init.position, init.direction};
+    geo = GeoTrackInitializer{init.position, init.direction, {}};
     if (CELER_UNLIKELY(geo.failed() || geo.is_outside()))
     {
 #if !CELER_DEVICE_COMPILE

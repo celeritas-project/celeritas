@@ -19,8 +19,9 @@
 #include "corecel/random/distribution/UniformRealDistribution.hh"
 #include "celeritas/optical/detail/OpticalUtils.hh"
 
-#include "GeneratorDistributionData.hh"
+#include "GeneratorData.hh"
 #include "ScintillationData.hh"
+#include "../MaterialView.hh"
 #include "../TrackInitializer.hh"
 
 namespace celeritas
@@ -54,6 +55,12 @@ class ScintillationGenerator
 
   public:
     // Construct from scintillation data and distribution parameters
+    inline CELER_FUNCTION
+    ScintillationGenerator(optical::MaterialView const&,
+                           NativeCRef<ScintillationData> const& shared,
+                           GeneratorDistributionData const& dist);
+
+    // Construct without material (for testing)
     inline CELER_FUNCTION
     ScintillationGenerator(NativeCRef<ScintillationData> const& shared,
                            GeneratorDistributionData const& dist);
@@ -115,6 +122,22 @@ ScintillationGenerator::ScintillationGenerator(
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct from shared scintillation data and distribution parameters.
+ *
+ * The optical material is unused but required for the Cherenkov and
+ * scintillation generators to have the same signature.
+ */
+CELER_FUNCTION
+ScintillationGenerator::ScintillationGenerator(
+    optical::MaterialView const&,
+    NativeCRef<ScintillationData> const& shared,
+    GeneratorDistributionData const& dist)
+    : ScintillationGenerator(shared, dist)
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Sample a single scintillation photon.
  */
 template<class Generator>
@@ -149,17 +172,19 @@ ScintillationGenerator::operator()(Generator& rng)
 
     // Sample polarization perpendicular to the photon direction
     photon.polarization = [&] {
-        Real3 temp = from_spherical(
+        Real3 pol = from_spherical(
             (cost > 0 ? -1 : 1) * std::sqrt(1 - ipow<2>(cost)), phi);
         Real3 perp = {-std::sin(phi), std::cos(phi), 0};
         real_type sinphi, cosphi;
         sincospi(UniformRealDist{}(rng), &sinphi, &cosphi);
         for (auto j : range(3))
         {
-            temp[j] = cosphi * temp[j] + sinphi * perp[j];
+            pol[j] = cosphi * pol[j] + sinphi * perp[j];
         }
-        return make_unit_vector(temp);
+        // Enforce orthogonality
+        return make_unit_vector(make_orthogonal(pol, photon.direction));
     }();
+    CELER_ASSERT(soft_zero(dot_product(photon.polarization, photon.direction)));
 
     // Sample position: endpoint (collision site) if neutral, else uniform
     real_type u = is_neutral_ ? 1 : UniformRealDist{}(rng);

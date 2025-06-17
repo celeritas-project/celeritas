@@ -28,6 +28,7 @@
 #    include <G4TransportationManager.hh>
 #    include <G4VPhysicalVolume.hh>
 #    include <G4VSolid.hh>
+
 #endif
 #if CELERITAS_USE_VECGEOM
 #    include "geocel/vg/VecgeomParams.hh"
@@ -35,6 +36,7 @@
 
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "orange/OrangeInput.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/surf/Sphere.hh"
@@ -60,10 +62,7 @@ class GeantVolumeMapperTestBase : public ::celeritas::test::Test
     // Clean up geometry at destruction
     void TearDown() override
     {
-        if (CELERITAS_USE_GEANT4)
-        {
-            reset_geant_geometry();
-        }
+        geant_geo_params_.reset();
         geo_params_.reset();
     }
 
@@ -73,6 +72,8 @@ class GeantVolumeMapperTestBase : public ::celeritas::test::Test
         if (CELERITAS_USE_GEANT4)
         {
             this->build_g4();
+            CELER_ASSERT(geant_geo_params_);
+            celeritas::geant_geo(*geant_geo_params_);
         }
         CELER_ASSERT(!logical_.empty());
 
@@ -101,6 +102,7 @@ class GeantVolumeMapperTestBase : public ::celeritas::test::Test
     std::vector<G4VPhysicalVolume*> physical_;
 
     // Celeritas data
+    std::shared_ptr<GeantGeoParams> geant_geo_params_;
     std::shared_ptr<GeoParams> geo_params_;
 
     ScopedLogStorer store_log_;
@@ -148,14 +150,16 @@ void NestedTest::build_g4()
     }
 
     CELER_ASSERT(mat);
+
+    // Construct Geant4 geometry
+    G4TransportationManager::GetTransportationManager()->SetWorldForTracking(
+        physical_.front());
+    geant_geo_params_ = GeantGeoParams::from_tracking_manager();
+#    if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
+    geo_params_ = geant_geo_params_;
+#    endif
 #else
     CELER_NOT_CONFIGURED("Geant4");
-#endif
-#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
-    // Suppress consistency warning from GeoParams constructor
-    G4TransportationManager::GetTransportationManager()->SetWorldForTracking(
-        const_cast<G4VPhysicalVolume*>(&this->world()));
-    geo_params_ = std::make_shared<GeantGeoParams>(&this->world());
 #endif
 }
 
@@ -219,20 +223,6 @@ void NestedTest::build_orange()
 #endif
 }
 
-//---------------------------------------------------------------------------//
-// NESTED TEST
-//---------------------------------------------------------------------------//
-class IntersectionTest : public GeantVolumeMapperTestBase
-{
-  private:
-    void build_g4() final;
-    void build_vecgeom() final;
-    void build_orange() final;
-
-  protected:
-    bool suffix_{false};
-};
-
 #if CELERITAS_CORE_GEO != CELERITAS_CORE_VECGEOM
 #    define SKIP_UNLESS_VECGEOM(NAME) DISABLED_##NAME
 #else
@@ -247,7 +237,7 @@ TEST_F(NestedTest, unique)
     this->build();
     CELER_ASSERT(logical_.size() == names_.size());
 
-    GeantVolumeMapper find_vol{this->world(), *geo_params_};
+    GeantVolumeMapper find_vol{*geo_params_};
     for (auto i : range(names_.size()))
     {
         VolumeId vol_id = find_vol(*logical_[i]);
@@ -282,7 +272,7 @@ TEST_F(NestedTest, SKIP_UNLESS_VECGEOM(duplicated))
     this->build();
     CELER_ASSERT(logical_.size() == names_.size());
 
-    GeantVolumeMapper find_vol{this->world(), *geo_params_};
+    GeantVolumeMapper find_vol{*geo_params_};
     for (auto i : range(names_.size()))
     {
         VolumeId vol_id = find_vol(*logical_[i]);

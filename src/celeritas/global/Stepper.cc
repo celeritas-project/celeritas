@@ -166,6 +166,7 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
                    << "event number " << max_id->event_id.unchecked_get()
                    << " exceeds max_events=" << params_->init()->max_events());
 
+    state_->counters().num_pending = primaries.size();
     primaries_action_->insert(*params_, *state_, primaries);
 
     return (*this)();

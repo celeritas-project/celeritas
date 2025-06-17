@@ -10,7 +10,7 @@
 #include "corecel/cont/Span.hh"
 #include "geocel/Types.hh"
 
-#include "TrackInitializer.hh"
+#include "WavelengthShiftData.hh"
 
 namespace celeritas
 {
@@ -36,8 +36,8 @@ struct Interaction
 
     Real3 direction;  //!< Post-interaction direction
     Real3 polarization;  //!< Post-interaction polarization
-    Span<TrackInitializer> secondaries;  //!< Emitted secondaries
     Action action{Action::scattered};  //!< Flags for interaction result
+    WlsDistributionData distribution;  //!< Data for generating WLS secondaries
 
     //! Return an interaction respresenting an absorbed process
     static inline CELER_FUNCTION Interaction from_absorption();

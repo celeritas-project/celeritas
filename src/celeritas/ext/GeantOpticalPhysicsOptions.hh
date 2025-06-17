@@ -7,19 +7,10 @@
 #pragma once
 
 #include "corecel/Types.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-//! WLS time model selection
-enum class WLSTimeProfileSelection
-{
-    none,
-    delta,  //!< Delta function
-    exponential,  //!< Exponential decay
-    size_
-};
-
 //---------------------------------------------------------------------------//
 //! Cherenkov process options
 struct CherenkovPhysicsOptions
@@ -40,8 +31,6 @@ struct CherenkovPhysicsOptions
 };
 
 //! Equality operator, mainly for test harness
-// TODO: when we require C++20, use `friend bool operator==(...) =
-// default;`
 constexpr bool
 operator==(CherenkovPhysicsOptions const& a, CherenkovPhysicsOptions const& b)
 {
@@ -77,8 +66,6 @@ struct ScintillationPhysicsOptions
 };
 
 //! Equality operator, mainly for test harness
-// TODO: when we require C++20, use `friend bool operator==(...) =
-// default;`
 constexpr bool operator==(ScintillationPhysicsOptions const& a,
                           ScintillationPhysicsOptions const& b)
 {
@@ -93,7 +80,27 @@ constexpr bool operator==(ScintillationPhysicsOptions const& a,
 }
 
 //---------------------------------------------------------------------------//
-//! Optical Boundary process options
+//! Optical wavelength shifting process options
+struct WavelengthShiftingOptions
+{
+    //! Enable the process
+    bool enable{true};
+    //! Select a model for sampling reemission time
+    WlsTimeProfile time_profile{WlsTimeProfile::delta};
+
+    //! True if the process is activated
+    explicit operator bool() const { return enable; }
+};
+
+//! Equality operator, mainly for test harness
+constexpr bool operator==(WavelengthShiftingOptions const& a,
+                          WavelengthShiftingOptions const& b)
+{
+    return a.enable == b.enable && a.time_profile == b.time_profile;
+}
+
+//---------------------------------------------------------------------------//
+//! Optical boundary process options
 struct BoundaryPhysicsOptions
 {
     //! Enable the process
@@ -106,15 +113,10 @@ struct BoundaryPhysicsOptions
 };
 
 //! Equality operator, mainly for test harness
-// TODO: when we require C++20, use `friend bool operator==(...) =
-// default;`
 constexpr bool
 operator==(BoundaryPhysicsOptions const& a, BoundaryPhysicsOptions const& b)
 {
-    // clang-format off
-    return a.enable == b.enable
-           && a.invoke_sd == b.invoke_sd;
-    // clang-format on
+    return a.enable == b.enable && a.invoke_sd == b.invoke_sd;
 }
 
 //---------------------------------------------------------------------------//
@@ -123,6 +125,9 @@ operator==(BoundaryPhysicsOptions const& a, BoundaryPhysicsOptions const& b)
  *
  * These options attempt to default to our closest match to \c
  * G4OpticalPhysics from Geant4 10.5 onwards.
+ *
+ * \todo When we require C++20, use `friend bool operator==(...) = default;`
+ * instead of manually writing the equality operators
  */
 struct GeantOpticalPhysicsOptions
 {
@@ -138,12 +143,10 @@ struct GeantOpticalPhysicsOptions
     //!@{
     //! \name Optical photon physics
 
-    //! Enable wavelength shifting and select a time profile
-    WLSTimeProfileSelection wavelength_shifting{WLSTimeProfileSelection::delta};
-    //! Enable second wavelength shifting type and select a time profile (TODO:
-    //! clarify)
-    WLSTimeProfileSelection wavelength_shifting2{
-        WLSTimeProfileSelection::delta};
+    //! Enable wavelength shifting
+    WavelengthShiftingOptions wavelength_shifting;
+    //! Enable second wavelength shifting
+    WavelengthShiftingOptions wavelength_shifting2;
     //! Enable boundary effects
     BoundaryPhysicsOptions boundary;
     //! Enable absorption
@@ -160,11 +163,9 @@ struct GeantOpticalPhysicsOptions
     //! True if any process is activated
     explicit operator bool() const
     {
-        return cherenkov || scintillation
-               || (wavelength_shifting != WLSTimeProfileSelection::none)
-               || (wavelength_shifting2 != WLSTimeProfileSelection::none)
-               || boundary || absorption || rayleigh_scattering
-               || mie_scattering;
+        return cherenkov || scintillation || wavelength_shifting
+               || wavelength_shifting2 || boundary || absorption
+               || rayleigh_scattering || mie_scattering;
     }
 
     //! Return instance with all processes deactivated
@@ -173,8 +174,8 @@ struct GeantOpticalPhysicsOptions
         GeantOpticalPhysicsOptions opts;
         opts.cherenkov.enable = false;
         opts.scintillation.enable = false;
-        opts.wavelength_shifting = WLSTimeProfileSelection::none;
-        opts.wavelength_shifting2 = WLSTimeProfileSelection::none;
+        opts.wavelength_shifting.enable = false;
+        opts.wavelength_shifting2.enable = false;
         opts.boundary.enable = false;
         opts.absorption = false;
         opts.rayleigh_scattering = false;
@@ -184,8 +185,6 @@ struct GeantOpticalPhysicsOptions
 };
 
 //! Equality operator, mainly for test harness
-// TODO: when we require C++20, use `friend bool operator==(...) =
-// default;`
 constexpr bool operator==(GeantOpticalPhysicsOptions const& a,
                           GeantOpticalPhysicsOptions const& b)
 {
@@ -206,7 +205,7 @@ constexpr bool operator==(GeantOpticalPhysicsOptions const& a,
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
-char const* to_cstring(WLSTimeProfileSelection value);
+char const* to_cstring(WlsTimeProfile value);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -10,12 +10,32 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/grid/NonuniformGridData.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
 namespace celeritas
 {
 namespace optical
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Input data for sampling WLS optical photons.
+ */
+struct WlsDistributionData
+{
+    size_type num_photons{};  //!< Sampled number of photons to generate
+    units::MevEnergy energy;
+    real_type time{};  //!< Post-step time
+    Real3 position{};
+    OptMatId material;
+
+    //! Check whether the data are assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return num_photons > 0 && energy > zero_quantity() && material;
+    }
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Material dependent scalar property of wavelength shift (WLS).
@@ -51,6 +71,9 @@ struct WavelengthShiftData
     // Cumulative probability of emission as a function of energy
     OpticalMaterialItems<NonuniformGridRecord> energy_cdf;
 
+    // Time profile model
+    WlsTimeProfile time_profile{WlsTimeProfile::size_};
+
     // Backend data
     Items<real_type> reals;
 
@@ -59,7 +82,8 @@ struct WavelengthShiftData
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !wls_record.empty() && !energy_cdf.empty();
+        return !wls_record.empty() && !energy_cdf.empty()
+               && time_profile != WlsTimeProfile::size_;
     }
 
     //! Assign from another set of data
@@ -69,6 +93,7 @@ struct WavelengthShiftData
         CELER_EXPECT(other);
         wls_record = other.wls_record;
         energy_cdf = other.energy_cdf;
+        time_profile = other.time_profile;
         reals = other.reals;
         return *this;
     }

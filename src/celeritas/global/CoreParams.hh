@@ -59,7 +59,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstMpiCommunicator = std::shared_ptr<MpiCommunicator const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
-    using SPUserRegistry = std::shared_ptr<AuxParamsRegistry>;
+    using SPAuxRegistry = std::shared_ptr<AuxParamsRegistry>;
 
     template<MemSpace M>
     using ConstRef = CoreParamsData<Ownership::const_reference, M>;
@@ -82,7 +82,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
         SPActionRegistry action_reg;
         SPOutputRegistry output_reg;
-        SPUserRegistry aux_reg;  //!< Optional, empty default
+        SPAuxRegistry aux_reg;  //!< Optional, empty default
         SPConstMpiCommunicator mpi_comm;  //!< Optional, world_comm default
 
         //! Maximum number of simultaneous threads/tasks per process
@@ -121,7 +121,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPConstWentzelOKVI const& wentzel() const { return input_.wentzel; }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
     SPOutputRegistry const& output_reg() const { return input_.output_reg; }
-    SPUserRegistry const& aux_reg() const { return input_.aux_reg; }
+    SPAuxRegistry const& aux_reg() const { return input_.aux_reg; }
     SPConstMpiCommunicator const& mpi_comm() const { return input_.mpi_comm; }
     //!@}
 

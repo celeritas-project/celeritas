@@ -26,6 +26,7 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantGdmlLoader.hh"
+#include "geocel/inp/Model.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/alongstep/AlongStepCartMapFieldMscAction.hh"
@@ -49,7 +50,6 @@
 #include "celeritas/inp/Control.hh"
 #include "celeritas/inp/Diagnostics.hh"
 #include "celeritas/inp/Field.hh"
-#include "celeritas/inp/Model.hh"
 #include "celeritas/inp/Physics.hh"
 #include "celeritas/inp/PhysicsModel.hh"
 #include "celeritas/inp/PhysicsProcess.hh"
@@ -325,7 +325,7 @@ auto build_along_step(inp::Field const& var_field,
 /*!
  * Construct optical tracking offload.
  */
-auto build_optical_offload(inp::OpticalStateCapacity const& cap,
+auto build_optical_offload(inp::Problem const& p,
                            CoreParams& params,
                            ImportData const& imported)
 {
@@ -334,20 +334,35 @@ auto build_optical_offload(inp::OpticalStateCapacity const& cap,
     CELER_VALIDATE(
         !imported.optical_materials.empty(),
         << R"(an optical tracking loop was requested but no optical materials are present)");
+    CELER_VALIDATE(p.physics.optical,
+                   << "optical physics options are required to construct an "
+                      "optical tracking loop");
 
+    inp::OpticalPhysics const& opt = *p.physics.optical;
     OpticalCollector::Input oc_inp;
     oc_inp.material = MaterialParams::from_import(
         imported, *params.geomaterial(), *params.material());
-    oc_inp.cherenkov = std::make_shared<CherenkovParams>(*oc_inp.material);
-    oc_inp.scintillation
-        = ScintillationParams::from_import(imported, params.particle());
+    if (opt.cherenkov)
+    {
+        oc_inp.cherenkov = std::make_shared<CherenkovParams>(*oc_inp.material);
+    }
+    if (opt.scintillation)
+    {
+        oc_inp.scintillation
+            = ScintillationParams::from_import(imported, params.particle());
+        CELER_VALIDATE(oc_inp.scintillation,
+                       << "failed to construct scintillation process");
+    }
 
     // Map from optical capacity
+    CELER_ASSERT(p.control.optical_capacity);
+    inp::OpticalStateCapacity const& cap = *p.control.optical_capacity;
     auto num_streams = params.max_streams();
     oc_inp.num_track_slots = ceil_div(cap.tracks, num_streams);
     oc_inp.buffer_capacity = ceil_div(cap.generators, num_streams);
     oc_inp.initializer_capacity = ceil_div(cap.initializers, num_streams);
     oc_inp.auto_flush = ceil_div(cap.primaries, num_streams);
+    oc_inp.max_step_iters = p.tracking.limits.optical_step_iters;
 
     // Import models
     optical::ModelImporter importer{
@@ -600,8 +615,8 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 
     if (p.control.optical_capacity)
     {
-        result.optical_collector = build_optical_offload(
-            *p.control.optical_capacity, *core_params, imported);
+        result.optical_collector
+            = build_optical_offload(p, *core_params, imported);
     }
 
     if (result.root_manager)

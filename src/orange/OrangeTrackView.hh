@@ -73,13 +73,6 @@ class OrangeTrackView
     using Initializer_t = GeoTrackInitializer;
     //!@}
 
-    //! Helper struct for initializing from an existing geometry state
-    struct DetailedInitializer
-    {
-        OrangeTrackView const& other;  //!< Existing geometry
-        Real3 const& dir;  //!< New direction
-    };
-
   public:
     // Construct from params and state
     inline CELER_FUNCTION OrangeTrackView(ParamsRef const& params,
@@ -88,9 +81,6 @@ class OrangeTrackView
 
     // Initialize the state
     inline CELER_FUNCTION OrangeTrackView& operator=(Initializer_t const& init);
-    // Initialize the state from a parent state and new direction
-    inline CELER_FUNCTION OrangeTrackView&
-    operator=(DetailedInitializer const& init);
 
     //// ACCESSORS ////
 
@@ -109,20 +99,15 @@ class OrangeTrackView
     inline CELER_FUNCTION void volume_instance_id(Span<VolumeInstanceId>) const;
 
     // The current surface ID
-    inline CELER_FUNCTION SurfaceId surface_id() const;
+    inline CELER_FUNCTION InternalSurfaceId internal_surface_id() const;
     // After 'find_next_step', the next straight-line surface
-    inline CELER_FUNCTION SurfaceId next_surface_id() const;
+    inline CELER_FUNCTION InternalSurfaceId next_internal_surface_id() const;
     // Whether the track is outside the valid geometry region
     inline CELER_FUNCTION bool is_outside() const;
     // Whether the track is exactly on a surface
     inline CELER_FUNCTION bool is_on_boundary() const;
     //! Whether the last operation resulted in an error
     CELER_FORCEINLINE_FUNCTION bool failed() const { return failed_; }
-
-    // Get the local normal vector of the current surface
-    inline CELER_FUNCTION Real3 local_surface_normal();
-    // Get the global normal vector of the current surface
-    inline CELER_FUNCTION Real3 global_surface_normal();
 
     //// OPERATIONS ////
 
@@ -157,6 +142,13 @@ class OrangeTrackView
     //// TYPES ////
 
     using LSA = LevelStateAccessor;
+
+    //! Helper struct for initializing from an existing geometry state
+    struct DetailedInitializer
+    {
+        TrackSlotId parent;  //!< Parent track with existing geometry
+        Real3 const& dir;  //!< New direction
+    };
 
     //// DATA ////
 
@@ -206,6 +198,10 @@ class OrangeTrackView
     inline CELER_FUNCTION LevelId const& next_surface_level() const;
 
     //// HELPER FUNCTIONS ////
+
+    // Initialize the state from a parent state and new direction
+    inline CELER_FUNCTION OrangeTrackView&
+    operator=(DetailedInitializer const& init);
 
     // Iterate over lower levels to find the next step
     inline CELER_FUNCTION Propagation
@@ -281,6 +277,14 @@ CELER_FUNCTION OrangeTrackView&
 OrangeTrackView::operator=(Initializer_t const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
+
+    if (init.parent)
+    {
+        // Initialize from direction and copy of parent state
+        *this = {init.parent, init.dir};
+        CELER_ENSURE(this->pos() == init.pos);
+        return *this;
+    }
 
     failed_ = false;
 
@@ -376,19 +380,19 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
 
     failed_ = false;
 
-    if (this != &init.other)
+    if (track_slot_ != init.parent)
     {
         // Copy init track's position and logical state
-        this->level(states_.level[init.other.track_slot_]);
-        this->surface(init.other.surface_level(),
-                      {init.other.surf(), init.other.sense()});
-        this->boundary(init.other.boundary());
+        OrangeTrackView other(params_, states_, init.parent);
+        this->level(states_.level[other.track_slot_]);
+        this->surface(other.surface_level(), {other.surf(), other.sense()});
+        this->boundary(other.boundary());
 
         for (auto lev : range(LevelId{this->level() + 1}))
         {
             // Copy all data accessed via LSA
             auto lsa = this->make_lsa(lev);
-            lsa = init.other.make_lsa(lev);
+            lsa = other.make_lsa(lev);
         }
     }
 
@@ -492,7 +496,7 @@ OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 /*!
  * The current surface ID.
  */
-CELER_FUNCTION SurfaceId OrangeTrackView::surface_id() const
+CELER_FUNCTION InternalSurfaceId OrangeTrackView::internal_surface_id() const
 {
     if (this->is_on_boundary())
     {
@@ -502,7 +506,7 @@ CELER_FUNCTION SurfaceId OrangeTrackView::surface_id() const
     }
     else
     {
-        return SurfaceId{};
+        return InternalSurfaceId{};
     }
 }
 
@@ -510,7 +514,7 @@ CELER_FUNCTION SurfaceId OrangeTrackView::surface_id() const
 /*!
  * After 'find_next_step', the next straight-line surface.
  */
-CELER_FUNCTION SurfaceId OrangeTrackView::next_surface_id() const
+CELER_FUNCTION InternalSurfaceId OrangeTrackView::next_internal_surface_id() const
 {
     CELER_EXPECT(this->has_next_surface());
     auto lsa = this->make_lsa(this->next_surface_level());
@@ -1210,39 +1214,6 @@ CELER_FUNCTION TransformId OrangeTrackView::get_transform(LevelId lev)
     CELER_EXPECT(lev < this->level());
     LSA lsa(&states_, track_slot_, lev);
     return this->get_transform(this->get_daughter(lsa));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the surface normal vector of the surface the particle is currenlty on.
- */
-CELER_FUNCTION Real3 OrangeTrackView::local_surface_normal()
-{
-    CELER_EXPECT(this->is_on_boundary());
-
-    auto lsa = this->make_lsa(this->surface_level());
-
-    TrackerVisitor visit_tracker{params_};
-    return visit_tracker(
-        [pos = lsa.pos(), local_surface = this->surf()](auto&& t) {
-            return t.normal(pos, local_surface);
-        },
-        lsa.universe());
-}
-
-CELER_FUNCTION Real3 OrangeTrackView::global_surface_normal()
-{
-    Real3 normal = this->local_surface_normal();
-
-    // Rotate up local surface normal to get the global surface normal
-    auto apply_transform = TransformVisitor{params_};
-    auto rotate_up = [&normal](auto&& t) { normal = t.rotate_up(normal); };
-    for (auto level : range<int>(this->level().unchecked_get()).step(-1))
-    {
-        apply_transform(rotate_up, this->get_transform(LevelId(level)));
-    }
-
-    return normal;
 }
 
 //---------------------------------------------------------------------------//

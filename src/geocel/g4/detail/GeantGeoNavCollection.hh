@@ -16,6 +16,7 @@
 
 template<class>
 class G4ReferenceCountedHandle;
+class G4Navigator;
 
 namespace celeritas
 {

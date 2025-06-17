@@ -99,7 +99,7 @@ class OrangeGeoTestBase : public OrangeTestBase
     VolumeId find_volume(std::string const& label) const;
 
     // Find the surface from its label (NULL pointer allowed)
-    SurfaceId find_surface(std::string const& label) const;
+    InternalSurfaceId find_surface(std::string const& label) const;
 
     // Surface name (or sentinel if no surface)
     std::string id_to_label(UniverseId uid, LocalSurfaceId surfid) const;

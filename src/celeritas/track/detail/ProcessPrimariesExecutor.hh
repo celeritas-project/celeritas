@@ -57,21 +57,23 @@ CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
     CELER_EXPECT(tid < primaries.size());
     CELER_EXPECT(primaries.size() <= counters.num_initializers + tid.get());
 
-    ItemId<TrackInitializer> idx{
-        index_after(counters.num_initializers - primaries.size(), tid)};
-    TrackInitializer& ti = state->init.initializers[idx];
     Primary const& primary = primaries[tid.unchecked_get()];
 
     // Construct a track initializer from a primary particle
+    TrackInitializer ti;
     ti.sim.track_id
         = make_track_id(params->init, state->init, primary.event_id);
-    ti.sim.parent_id = TrackId{};
     ti.sim.event_id = primary.event_id;
     ti.sim.time = primary.time;
     ti.geo.pos = primary.position;
     ti.geo.dir = primary.direction;
     ti.particle.particle_id = primary.particle_id;
     ti.particle.energy = primary.energy;
+
+    // Store the initializer
+    ItemId<TrackInitializer> idx{
+        index_after(counters.num_initializers - primaries.size(), tid)};
+    state->init.initializers[idx] = ti;
 }
 
 //---------------------------------------------------------------------------//

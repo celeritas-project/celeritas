@@ -54,7 +54,6 @@ list(APPEND SOURCES
   em/process/MuPairProductionProcess.cc
   em/process/PhotoelectricProcess.cc
   em/process/RayleighProcess.cc
-  ext/GeantOpticalPhysicsOptions.cc
   ext/GeantOpticalPhysicsOptionsIO.json.cc
   ext/GeantPhysicsOptions.cc
   ext/GeantPhysicsOptionsIO.json.cc
@@ -103,7 +102,6 @@ list(APPEND SOURCES
   optical/CoreState.cc
   optical/CoreTrackData.cc
   optical/gen/CherenkovParams.cc
-  optical/gen/OffloadParams.cc
   optical/gen/ScintillationParams.cc
   optical/ImportedModelAdapter.cc
   optical/ImportedMaterials.cc
@@ -112,7 +110,6 @@ list(APPEND SOURCES
   optical/ModelImporter.cc
   optical/PhysicsParams.cc
   optical/TrackInitParams.cc
-  optical/model/WavelengthShiftParams.cc
   optical/action/ActionGroups.cc
   optical/action/LocateVacanciesAction.cc
   optical/detail/OpticalLaunchAction.cc
@@ -142,6 +139,7 @@ list(APPEND SOURCES
   user/DetectorSteps.cc
   user/ParticleTallyData.cc
   user/RootStepWriterIO.json.cc
+  user/SDParams.cc
   user/SimpleCalo.cc
   user/SimpleCaloData.cc
   user/StepCollector.cc
@@ -341,6 +339,7 @@ celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
 celeritas_polysource(neutron/model/NeutronInelasticModel)
 celeritas_polysource(optical/model/AbsorptionModel)
 celeritas_polysource(optical/model/RayleighModel)
+celeritas_polysource(optical/model/WavelengthShiftModel)
 celeritas_polysource(optical/action/AlongStepAction)
 celeritas_polysource(optical/action/BoundaryAction)
 celeritas_polysource(optical/action/DiscreteSelectAction)
@@ -348,12 +347,10 @@ celeritas_polysource(optical/action/InitializeTracksAction)
 celeritas_polysource(optical/action/PreStepAction)
 celeritas_polysource(optical/action/TrackingCutAction)
 celeritas_polysource(optical/action/detail/TrackInitAlgorithms)
-celeritas_polysource(optical/gen/detail/CherenkovGeneratorAction)
-celeritas_polysource(optical/gen/detail/CherenkovOffloadAction)
-celeritas_polysource(optical/gen/detail/OpticalGenAlgorithms)
+celeritas_polysource(optical/gen/detail/GeneratorAction)
+celeritas_polysource(optical/gen/detail/OffloadAction)
 celeritas_polysource(optical/gen/detail/OffloadGatherAction)
-celeritas_polysource(optical/gen/detail/ScintGeneratorAction)
-celeritas_polysource(optical/gen/detail/ScintOffloadAction)
+celeritas_polysource(optical/gen/detail/OpticalGenAlgorithms)
 celeritas_polysource(optical/surface/SimpleReflectionModel)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)

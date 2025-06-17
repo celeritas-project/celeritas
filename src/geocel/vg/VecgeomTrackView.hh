@@ -68,13 +68,6 @@ class VecgeomTrackView
 #endif
     //!@}
 
-    //! Helper struct for initializing from an existing geometry state
-    struct DetailedInitializer
-    {
-        VecgeomTrackView const& other;  //!< Existing geometry
-        Real3 const& dir;  //!< New direction
-    };
-
   public:
     // Construct from persistent and state data
     inline CELER_FUNCTION VecgeomTrackView(ParamsRef const& data,
@@ -84,9 +77,6 @@ class VecgeomTrackView
     // Initialize the state
     inline CELER_FUNCTION VecgeomTrackView&
     operator=(Initializer_t const& init);
-    // Initialize the state from a parent state and new direction
-    inline CELER_FUNCTION VecgeomTrackView&
-    operator=(DetailedInitializer const& init);
 
     //// STATIC ACCESSORS ////
 
@@ -113,7 +103,7 @@ class VecgeomTrackView
 
     //!@{
     //! VecGeom states are never "on" a surface
-    CELER_FUNCTION SurfaceId surface_id() const { return {}; }
+    CELER_FUNCTION InternalSurfaceId internal_surface_id() const { return {}; }
     //!@}
 
     // Whether the track is outside the valid geometry region
@@ -122,6 +112,8 @@ class VecgeomTrackView
     CELER_FORCEINLINE_FUNCTION bool is_on_boundary() const;
     //! Whether the last operation resulted in an error
     CELER_FORCEINLINE_FUNCTION bool failed() const { return false; }
+    // Get the normal vector of the current surface
+    inline CELER_FUNCTION Real3 normal() const;
 
     //// OPERATIONS ////
 
@@ -162,6 +154,8 @@ class VecgeomTrackView
 
     //! Shared/persistent geometry data
     ParamsRef const& params_;
+    StateRef const& state_;
+    TrackSlotId tid_;
 
     //!@{
     //! Referenced thread-local data
@@ -204,6 +198,8 @@ VecgeomTrackView::VecgeomTrackView(ParamsRef const& params,
                                    StateRef const& states,
                                    TrackSlotId tid)
     : params_(params)
+    , state_(states)
+    , tid_(tid)
     , vgstate_(states.vgstate.at(params_.max_depth, tid))
     , vgnext_(states.vgnext.at(params_.max_depth, tid))
     , pos_(states.pos[tid])
@@ -218,18 +214,41 @@ VecgeomTrackView::VecgeomTrackView(ParamsRef const& params,
 /*!
  * Construct the state.
  *
- * Expensive. This function should only be called to initialize an event from a
- * starting location and direction, but excess secondaries will also be
- * initialized this way.
+ * If a valid parent ID is provided, the state is constructed from a direction
+ * and a copy of the parent state.  This is a faster method of creating
+ * secondaries from a parent that has just been absorbed, or when filling in an
+ * empty track from a parent that is still alive.
+ *
+ * Otherwise, the state is initialized from a starting location and direction,
+ * which is expensive.
  */
 CELER_FUNCTION VecgeomTrackView&
 VecgeomTrackView::operator=(Initializer_t const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
 
-    // Initialize position/direction
-    pos_ = init.pos;
+    // Initialize direction
     dir_ = init.dir;
+
+    if (init.parent)
+    {
+        // Copy the navigation state and position from the parent state
+        if (tid_ != init.parent)
+        {
+            VecgeomTrackView other(params_, state_, init.parent);
+            other.vgstate_.CopyTo(&vgstate_);
+            pos_ = other.pos_;
+        }
+        // Set up the next state and initialize the direction
+        vgnext_ = vgstate_;
+
+        CELER_ENSURE(this->pos() == init.pos);
+        CELER_ENSURE(!this->has_next_step());
+        return *this;
+    }
+
+    // Initialize the state from a position
+    pos_ = init.pos;
 #ifdef VECGEOM_USE_SURF
     next_surface_ = null_surface();
 #endif
@@ -245,34 +264,6 @@ VecgeomTrackView::operator=(Initializer_t const& init)
     // LocatePointIn sets `vgstate_`
     Navigator::LocatePointIn(
         world, detail::to_vector(pos_), vgstate_, contains_point);
-    return *this;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct the state from a direction and a copy of the parent state.
- *
- * This is a faster method of creating secondaries from a parent that has just
- * been absorbed, or when filling in an empty track from a parent that is still
- * alive.
- */
-CELER_FUNCTION
-VecgeomTrackView& VecgeomTrackView::operator=(DetailedInitializer const& init)
-{
-    CELER_EXPECT(is_soft_unit_vector(init.dir));
-
-    if (this != &init.other)
-    {
-        // Copy the navigation state and position from the parent state
-        init.other.vgstate_.CopyTo(&vgstate_);
-        pos_ = init.other.pos_;
-    }
-
-    // Set up the next state and initialize the direction
-    vgnext_ = vgstate_;
-    dir_ = init.dir;
-
-    CELER_ENSURE(!this->has_next_step());
     return *this;
 }
 
@@ -339,6 +330,15 @@ CELER_FUNCTION bool VecgeomTrackView::is_outside() const
 CELER_FUNCTION bool VecgeomTrackView::is_on_boundary() const
 {
     return vgstate_.IsOnBoundary();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the surface normal of the boundary the track is currently on.
+ */
+CELER_FUNCTION Real3 VecgeomTrackView::normal() const
+{
+    CELER_NOT_IMPLEMENTED("VecgeomTrackView::normal");
 }
 
 //---------------------------------------------------------------------------//

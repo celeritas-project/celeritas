@@ -27,7 +27,7 @@ namespace orangeinp
 /*!
  * Construct from a starting angle and interior angle.
  */
-SolidEnclosedAngle::SolidEnclosedAngle(Turn start, Turn interior)
+EnclosedAzi::EnclosedAzi(Turn start, Turn interior)
     : start_{start}, interior_{interior}
 {
     CELER_VALIDATE(interior_ > zero_quantity() && interior_ <= Turn{1},
@@ -39,7 +39,7 @@ SolidEnclosedAngle::SolidEnclosedAngle(Turn start, Turn interior)
 /*!
  * Construct a wedge shape to intersect (inside) or subtract (outside).
  */
-auto SolidEnclosedAngle::make_wedge() const -> SenseWedge
+auto EnclosedAzi::make_sense_region() const -> SenseWedge
 {
     CELER_EXPECT(*this);
     // Get the start value between [0, 1)
@@ -100,11 +100,11 @@ NodeId SolidBase::build(VolumeBuilder& vb) const
         nodes.push_back(vb.insert_region({}, Negated{smaller}));
     }
 
-    if (auto const& sea = this->enclosed_angle())
+    if (auto const& azi = this->enclosed_azi())
     {
         // The enclosed angle is "true" (specified by the user to truncate the
         // shape azimuthally): construct a wedge to be added or deleted
-        auto&& [sense, wedge] = sea.make_wedge();
+        auto&& [sense, wedge] = azi.make_sense_region();
         NodeId wedge_id
             = build_intersect_region(vb, this->label(), "angle", wedge);
         if (sense == Sense::outside)
@@ -142,7 +142,7 @@ template<class T>
 auto Solid<T>::or_shape(std::string&& label,
                         T&& interior,
                         OptionalRegion&& excluded,
-                        SolidEnclosedAngle&& enclosed) -> SPConstObject
+                        EnclosedAzi&& enclosed) -> SPConstObject
 {
     if (!excluded && !enclosed)
     {
@@ -165,7 +165,7 @@ template<class T>
 Solid<T>::Solid(std::string&& label,
                 T&& interior,
                 OptionalRegion&& excluded,
-                SolidEnclosedAngle&& enclosed)
+                EnclosedAzi&& enclosed)
     : label_{std::move(label)}
     , interior_{std::move(interior)}
     , exclusion_{std::move(excluded)}
@@ -189,7 +189,7 @@ Solid<T>::Solid(std::string&& label, T&& interior, T&& excluded)
     : Solid{std::move(label),
             std::move(interior),
             std::move(excluded),
-            SolidEnclosedAngle{}}
+            EnclosedAzi{}}
 {
 }
 
@@ -198,7 +198,7 @@ Solid<T>::Solid(std::string&& label, T&& interior, T&& excluded)
  * Construct with an enclosed angle.
  */
 template<class T>
-Solid<T>::Solid(std::string&& label, T&& interior, SolidEnclosedAngle&& enclosed)
+Solid<T>::Solid(std::string&& label, T&& interior, EnclosedAzi&& enclosed)
     : Solid{std::move(label),
             std::move(interior),
             std::nullopt,
@@ -219,7 +219,7 @@ Solid<T>::Solid(std::string&& label, T&& interior, SolidZSlab&& z_slab)
     : label_{std::move(label)}
     , interior_{std::move(interior)}
     , exclusion_{std::nullopt}
-    , enclosed_{SolidEnclosedAngle{}}
+    , enclosed_{EnclosedAzi{}}
     , z_slab_{std::move(z_slab)}
 {
 }

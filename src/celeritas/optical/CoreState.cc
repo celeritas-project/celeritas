@@ -41,7 +41,7 @@ CoreState<M>::CoreState(CoreParams const& params,
     states_ = CollectionStateStore<CoreStateData, M>(
         params.host_ref(), stream_id, num_track_slots);
 
-    counters_.num_vacancies = num_track_slots;
+    this->counters().num_vacancies = num_track_slots;
 
     if constexpr (M == MemSpace::device)
     {
@@ -73,7 +73,7 @@ template<MemSpace M>
 bool CoreState<M>::warming_up() const
 {
     CELER_NOT_IMPLEMENTED("warming up");
-    return counters_.num_active == 0;
+    return this->counters().num_active == 0;
 }
 
 //---------------------------------------------------------------------------//
@@ -86,6 +86,27 @@ template<MemSpace M>
 void CoreState<M>::insert_primaries(Span<TrackInitializer const>)
 {
     CELER_NOT_IMPLEMENTED("primary insertion");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reset the state data.
+ *
+ * This clears the state counters and initializes the necessary state data so
+ * the state can be reused for the next step in the core stepping loop. This
+ * should only be necessary if the previous event aborted early.
+ */
+template<MemSpace M>
+void CoreState<M>::reset()
+{
+    this->counters() = CoreStateCounters{};
+    this->counters().num_vacancies = this->size();
+
+    // Reset all the track slots to inactive
+    fill(TrackStatus::inactive, &this->ref().sim.status);
+
+    // Mark all the track slots as empty
+    fill_sequence(&this->ref().init.vacancies, this->stream_id());
 }
 
 //---------------------------------------------------------------------------//

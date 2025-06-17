@@ -143,6 +143,8 @@ struct ImportTransParameters
 struct ImportOpticalParameters
 {
     bool scintillation_by_particle{false};
+    WlsTimeProfile wls_time_profile{WlsTimeProfile::delta};
+    WlsTimeProfile wls2_time_profile{WlsTimeProfile::delta};
 };
 
 //---------------------------------------------------------------------------//

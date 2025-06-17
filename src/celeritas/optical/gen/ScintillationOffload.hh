@@ -14,7 +14,7 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/track/SimTrackView.hh"
 
-#include "GeneratorDistributionData.hh"
+#include "GeneratorData.hh"
 #include "OffloadData.hh"
 #include "ScintillationData.hh"
 
