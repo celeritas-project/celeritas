@@ -16,6 +16,7 @@
 #include "orange/orangeinp/detail/SenseEvaluator.hh"
 
 #include "CsgTestUtils.hh"
+#include "IntersectTestResult.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -43,18 +44,7 @@ class IntersectRegionTest : public ::celeritas::test::Test
     using UnitBuilder = orangeinp::detail::CsgUnitBuilder;
     using State = orangeinp::detail::IntersectSurfaceState;
     using Tol = UnitBuilder::Tol;
-
-  protected:
-    struct TestResult
-    {
-        std::string node;
-        std::vector<std::string> surfaces;
-        BBox interior;
-        BBox exterior;
-        NodeId node_id;
-
-        void print_expected() const;
-    };
+    using TestResult = IntersectTestResult;
 
   protected:
     // Test with an explicit name and transform
@@ -134,34 +124,6 @@ auto IntersectRegionTest::test(std::string&& name,
     result.exterior = merged_bzone.exterior;
 
     return result;
-}
-
-//---------------------------------------------------------------------------//
-void IntersectRegionTest::TestResult::print_expected() const
-{
-    using std::cout;
-    cout << "/***** EXPECTED REGION *****/\n"
-         << "static char const expected_node[] = " << repr(this->node) << ";\n"
-         << "static char const * const expected_surfaces[] = "
-         << repr(this->surfaces) << ";\n\n"
-         << "EXPECT_EQ(expected_node, result.node);\n"
-         << "EXPECT_VEC_EQ(expected_surfaces, result.surfaces);\n";
-
-    auto print_expect_req = [](char const* s, Real3 const& v) {
-        cout << "EXPECT_VEC_SOFT_EQ((Real3" << repr(v) << "), " << s << ");\n";
-    };
-    if (this->interior)
-    {
-        print_expect_req("result.interior.lower()", this->interior.lower());
-        print_expect_req("result.interior.upper()", this->interior.upper());
-    }
-    else
-    {
-        cout << "EXPECT_FALSE(result.interior) << result.interior;\n";
-    }
-    print_expect_req("result.exterior.lower()", this->exterior.lower());
-    print_expect_req("result.exterior.upper()", this->exterior.upper());
-    cout << "/***************************/\n";
 }
 
 //---------------------------------------------------------------------------//
@@ -1442,33 +1404,6 @@ TEST_F(GenPrismTest, adjacent_twisted)
         "",
     };
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
-}
-
-//---------------------------------------------------------------------------//
-// INFSLAB
-//---------------------------------------------------------------------------//
-using InfSlabTest = IntersectRegionTest;
-
-TEST_F(InfSlabTest, errors)
-{
-    EXPECT_THROW(InfSlab(1.0, 1.0), RuntimeError);
-    EXPECT_THROW(InfSlab(2.0, 1.0), RuntimeError);
-}
-
-TEST_F(InfSlabTest, basic)
-{
-    auto inf = std::numeric_limits<real_type>::infinity();
-    auto result = this->test(InfSlab(-5.5, 6.6));
-    static char const expected_node[] = "all(+0, -1)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-5.5", "Plane: z=6.6"};
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -5.5}), result.interior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 6.6}), result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -5.5}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 6.6}), result.exterior.upper());
 }
 
 //---------------------------------------------------------------------------//
