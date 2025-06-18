@@ -29,6 +29,7 @@ list(APPEND SOURCES
   IntegrationBase.cc
   Logger.cc
   LocalTransporter.cc
+  CartMapMagneticField.cc
   CylMapMagneticField.cc
   SetupOptions.cc
   SetupOptionsMessenger.cc
