@@ -117,7 +117,7 @@ MakeCartMapFieldInput(CartMapFieldGridParams const& params)
     };
 
     // Sample field using common utility
-    setup_and_sample_field(
+    detail::setup_and_sample_field(
         field_input.field.data(), dims, position_calculator, field_converter);
 
     CELER_ENSURE(field_input);

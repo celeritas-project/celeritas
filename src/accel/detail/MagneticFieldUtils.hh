@@ -17,6 +17,8 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * Common field sampling setup and execution.
@@ -74,4 +76,5 @@ inline void setup_and_sample_field(real_type* field_data,
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas
