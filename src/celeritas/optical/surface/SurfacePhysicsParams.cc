@@ -20,11 +20,38 @@ SurfacePhysicsParams::SurfacePhysicsParams(Input input)
     CELER_EXPECT(!input.model_builders.empty());
     CELER_EXPECT(input.action_registry);
 
+    // Reserve slots in action registry for models
+
+    // Build facet normal actions
+    {
+        SurfaceModelBuilder::NormalActionBuilder normal_builder{
+            input.action_registry};
+        for (auto const& model_builder : input.model_builders)
+        {
+            model_builder.build_facet_normal_actions(normal_builder);
+        }
+    }
+    // Build calculate reflectivity actions
+    {
+        SurfaceModelBuilder::ReflectivityActionBuilder refl_builder{
+            input.action_registry};
+        for (auto const& model_builder : input.model_builders)
+        {
+            model_builder.build_calc_reflectivity_actions(refl_builder);
+        }
+    }
+    // Build interaction actions
+    {
+        SurfaceModelBuilder::InteractionActionBuilder interaction_builder{
+            input.action_registry};
+        for (auto const& model_builder : input.model_builders)
+        {
+            model_builder.build_interation_actions(interaction_builder);
+        }
+    }
     // Create and register actions
     {
         auto& action_reg = *input.action_registry;
-
-        // TODO: build any explicit actions?
 
         // Build models
         models_ = this->build_models(input.model_builders, action_reg);
@@ -32,7 +59,7 @@ SurfacePhysicsParams::SurfacePhysicsParams(Input input)
 
     // Construct data
     HostVal<SurfacePhysicsParamsData> data;
-    
+
     CELER_ENSURE(data);
 
     data_ = CollectionMirror<SurfacePhysicsParamsData>{std::move(data)};
@@ -42,7 +69,8 @@ SurfacePhysicsParams::SurfacePhysicsParams(Input input)
 /*!
  */
 auto SurfacePhysicsParams::build_models(VecModelBuilders const& model_builders,
-                                        ActionRegistry& action_reg) const -> VecModels
+                                        ActionRegistry& action_reg) const
+    -> VecModels
 {
     VecModels models;
     models.reserve(model_builders.size());

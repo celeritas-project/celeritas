@@ -2,15 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/surface/SurfaceModel.hh
+//! \file celeritas/optical/surface/TrivialFacetNormalAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
-
-#include <functional>
-#include <memory>
-
-#include "celeritas/Types.hh"
-#include "celeritas/optical/action/ActionInterface.hh"
 
 namespace celeritas
 {
@@ -18,14 +12,26 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Brief class description.
+ *
+ * Optional detailed class description, and possibly example usage:
+ * \code
+    TrivialFacetNormalAction ...;
+   \endcode
  */
-class SurfaceModel : public OpticalStepActionInterface, public ConcreteAction
+class TrivialFacetNormalAction : public OpticalStepActionInterface,
+                                 public ConcreteAction
 {
   public:
-    using ConcreteAction::ConcreteAction;
+    TrivialFacetNormalAction(ActionId);
 
-    //! Action order for surface models is always post-step
-    StepActionOrder order() const override { return StepActionOrder::post; }
+    inline StepActionOrder order() const final
+    {
+        return StepActionOrder::post;
+    }
+
+    void step(CoreParams const&, CoreStateHost&) const final;
+    void step(CoreParams const&, CoreStateDevice&) const final;
 };
 
 //---------------------------------------------------------------------------//

@@ -2,14 +2,10 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/surface/SurfaceModel.hh
+//! \file celeritas/optical/surface/BoundaryAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <functional>
-#include <memory>
-
-#include "celeritas/Types.hh"
 #include "celeritas/optical/action/ActionInterface.hh"
 
 namespace celeritas
@@ -18,14 +14,23 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Move a track across a boundary.
  */
-class SurfaceModel : public OpticalStepActionInterface, public ConcreteAction
+class BoundaryAction final : public OpticalStepActionInterface,
+                             public ConcreteAction
 {
   public:
-    using ConcreteAction::ConcreteAction;
+    // Construct with ID
+    explicit BoundaryAction(ActionId);
 
-    //! Action order for surface models is always post-step
-    StepActionOrder order() const override { return StepActionOrder::post; }
+    // Launch kernel with host data
+    void step(CoreParams const&, CoreStateHost&) const final;
+
+    // Launch kernel with device data
+    void step(CoreParams const&, CoreStateDevice&) const final;
+
+    //! Dependency ordering of the action
+    StepActionOrder order() const final { return StepActionOrder::post; }
 };
 
 //---------------------------------------------------------------------------//

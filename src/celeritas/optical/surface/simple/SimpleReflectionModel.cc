@@ -13,9 +13,9 @@
 #include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
+#include "SimpleReflectionExecutor.hh"
 #include "SurfaceInteractionApplier.hh"
 #include "SurfacePhysicsParams.hh"
-#include "SimpleReflectionExecutor.hh"
 
 namespace celeritas
 {
@@ -30,17 +30,22 @@ auto SimpleReflectionModel::make_builder() -> ModelBuilder
 }
 
 SimpleReflectionModel::SimpleReflectionModel(ActionId id)
-    : SurfaceModel(id, "optical-surface-simple", "simple optical reflection surface model")
+    : SurfaceModel(id,
+                   "optical-surface-simple",
+                   "simple optical reflection surface model")
 {
 }
 
-void SimpleReflectionModel::step(CoreParams const& params, CoreStateHost& state) const 
+void SimpleReflectionModel::step(CoreParams const& params,
+                                 CoreStateHost& state) const
 {
-    launch_action(state, make_action_thread_executor(params.ptr<MemSpace::native>(),
-                                                     state.ptr(),
-                                                     this->action_id(),
-                                                     SurfaceInteractionApplier{SimpleReflectionExecutor{params.surface()->host_ref()}}));
-
+    launch_action(state,
+                  make_action_thread_executor(
+                      params.ptr<MemSpace::native>(),
+                      state.ptr(),
+                      this->action_id(),
+                      SurfaceInteractionApplier{SimpleReflectionExecutor{
+                          params.surface()->host_ref()}}));
 }
 
 #if !CELER_USE_DEVICE
