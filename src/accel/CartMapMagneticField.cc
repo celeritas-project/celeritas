@@ -24,8 +24,38 @@
 #include "celeritas/field/CartMapFieldInput.hh"
 #include "celeritas/field/CartMapFieldParams.hh"
 
+#include "detail/MagneticFieldUtils.hh"
+
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+
+/*!
+ * Validate grid dimension parameters.
+ *
+ * \param min_val Minimum coordinate value
+ * \param max_val Maximum coordinate value
+ * \param num_points Number of grid points
+ * \param dim_name Name of dimension for error messages
+ */
+void validate_grid_dimension(G4double min_val,
+                             G4double max_val,
+                             size_type num_points,
+                             char const* dim_name)
+{
+    CELER_VALIDATE(max_val > min_val,
+                   << "maximum " << dim_name
+                   << " must be greater than minimum " << dim_name);
+    CELER_VALIDATE(num_points >= 2,
+                   << "number of " << dim_name
+                   << " grid points must be at least 2");
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Generates input for CartMapField params with configurable uniform grid
@@ -36,18 +66,10 @@ namespace celeritas
 CartMapFieldParams::Input
 MakeCartMapFieldInput(CartMapFieldGridParams const& params)
 {
-    CELER_VALIDATE(params.max_x > params.min_x,
-                   << "maximum X must be greater than minimum X");
-    CELER_VALIDATE(params.max_y > params.min_y,
-                   << "maximum Y must be greater than minimum Y");
-    CELER_VALIDATE(params.max_z > params.min_z,
-                   << "maximum Z must be greater than minimum Z");
-    CELER_VALIDATE(params.num_x >= 2,
-                   << "number of X grid points must be at least 2");
-    CELER_VALIDATE(params.num_y >= 2,
-                   << "number of Y grid points must be at least 2");
-    CELER_VALIDATE(params.num_z >= 2,
-                   << "number of Z grid points must be at least 2");
+    // Validate input parameters
+    validate_grid_dimension(params.min_x, params.max_x, params.num_x, "X");
+    validate_grid_dimension(params.min_y, params.max_y, params.num_y, "Y");
+    validate_grid_dimension(params.min_z, params.max_z, params.num_z, "Z");
 
     CartMapFieldParams::Input field_input;
 
@@ -64,6 +86,7 @@ MakeCartMapFieldInput(CartMapFieldGridParams const& params)
     field_input.max_z = convert_from_geant(params.max_z, clhep_length);
     field_input.num_z = params.num_z;
 
+    // Prepare field data storage
     size_type const total_points = params.num_x * params.num_y * params.num_z;
     field_input.field.resize(static_cast<size_type>(Axis::size_)
                              * total_points);
@@ -72,43 +95,31 @@ MakeCartMapFieldInput(CartMapFieldGridParams const& params)
                                    params.num_y,
                                    params.num_z,
                                    static_cast<size_type>(Axis::size_)};
-    HyperslabIndexer const flat_index{dims};
-
-    G4Field const* g4field = celeritas::geant_field();
-    CELER_VALIDATE(g4field,
-                   << "no Geant4 global field has been set: cannot build "
-                      "CartMapMagneticField");
 
     // Calculate grid spacing
     G4double const dx = (params.max_x - params.min_x) / (params.num_x - 1);
     G4double const dy = (params.max_y - params.min_y) / (params.num_y - 1);
     G4double const dz = (params.max_z - params.min_z) / (params.num_z - 1);
 
-    Array<G4double, 3> bfield;
-    for (size_type ix = 0; ix < params.num_x; ++ix)
-    {
+    // Position calculator for Cartesian grid
+    auto position_calculator = [&](size_type ix, size_type iy, size_type iz) {
         G4double x = params.min_x + ix * dx;
-        for (size_type iy = 0; iy < params.num_y; ++iy)
-        {
-            G4double y = params.min_y + iy * dy;
-            for (size_type iz = 0; iz < params.num_z; ++iz)
-            {
-                G4double z = params.min_z + iz * dz;
+        G4double y = params.min_y + iy * dy;
+        G4double z = params.min_z + iz * dz;
+        return Array<G4double, 4>{x, y, z, 0};
+    };
 
-                auto* cur_bfield = field_input.field.data()
-                                   + flat_index(ix, iy, iz, 0);
+    // Field converter for Cartesian coordinates (no transformation needed)
+    auto field_converter = [](Array<G4double, 3> const& bfield,
+                              real_type* cur_bfield) {
+        auto bfield_native = convert_from_geant(bfield.data(), clhep_field);
+        std::copy(bfield_native.cbegin(), bfield_native.cend(), cur_bfield);
+    };
 
-                Array<G4double, 4> pos = {x, y, z, 0};
-                g4field->GetFieldValue(pos.data(), bfield.data());
+    // Sample field using common utility
+    setup_and_sample_field(
+        field_input.field.data(), dims, position_calculator, field_converter);
 
-                // Convert field values from Geant4 units to native units
-                auto bfield_native
-                    = convert_from_geant(bfield.data(), clhep_field);
-                std::copy(
-                    bfield_native.cbegin(), bfield_native.cend(), cur_bfield);
-            }
-        }
-    }
     CELER_ENSURE(field_input);
     return field_input;
 }
