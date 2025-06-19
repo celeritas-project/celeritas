@@ -36,7 +36,7 @@ namespace detail
  *                           Array<G4double, 4>(size_type, size_type,
  *                           size_type) returning [x, y, z, 0] coordinates
  * \param field_converter Callable that converts field from G4 to
- *                        native units in the correct coodinate space. Must
+ *                        native units in the correct coordinate space. Must
  *                        have signature: void(Array<G4double, 3> const&,
  *                        real_type*) taking G4 field [Bx, By, Bz] and writing
  *                        converted values to output pointer

@@ -48,36 +48,6 @@ struct CartMapMagneticField::Impl
 };
 
 //---------------------------------------------------------------------------//
-
-namespace
-{
-//---------------------------------------------------------------------------//
-
-/*!
- * Validate grid dimension parameters.
- *
- * \param min_val Minimum coordinate value
- * \param max_val Maximum coordinate value
- * \param num_points Number of grid points
- * \param dim_name Name of dimension for error messages
- */
-void validate_grid_dimension(G4double min_val,
-                             G4double max_val,
-                             size_type num_points,
-                             char const* dim_name)
-{
-    CELER_VALIDATE(max_val > min_val,
-                   << "maximum " << dim_name
-                   << " must be greater than minimum " << dim_name);
-    CELER_VALIDATE(num_points >= 2,
-                   << "number of " << dim_name
-                   << " grid points must be at least 2");
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
-//---------------------------------------------------------------------------//
 /*!
  * Generates input for CartMapField params with configurable uniform grid
  * dimensions in native Geant4 units. This must be called after
@@ -88,9 +58,7 @@ CartMapFieldParams::Input
 MakeCartMapFieldInput(CartMapFieldGridParams const& params)
 {
     // Validate input parameters
-    validate_grid_dimension(params.min_x, params.max_x, params.num_x, "X");
-    validate_grid_dimension(params.min_y, params.max_y, params.num_y, "Y");
-    validate_grid_dimension(params.min_z, params.max_z, params.num_z, "Z");
+    CELER_VALIDATE(params, << "invalid CartMapFieldGridParams provided");
 
     CartMapFieldParams::Input field_input;
 
