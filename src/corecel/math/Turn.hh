@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cmath>
+#include <cstdlib>
 #include <type_traits>
 
 #include "corecel/Constants.hh"
@@ -88,6 +89,12 @@ CELER_FORCEINLINE_FUNCTION T cos(Turn_t<T> r)
 }
 
 template<class T>
+CELER_FORCEINLINE_FUNCTION T tan(Turn_t<T> r)
+{
+    return std::tan(native_value_from(r));
+}
+
+template<class T>
 CELER_FORCEINLINE_FUNCTION void sincos(Turn_t<T> r, T* sinv, T* cosv)
 {
     return sincospi(r.value() * 2, sinv, cosv);
@@ -125,7 +132,7 @@ CELER_CONSTEXPR_FUNCTION void sincos(IntQuarterTurn r, int* sinv, int* cosv)
 template<class T>
 CELER_FORCEINLINE_FUNCTION Turn_t<T> atan2turn(T y, T x)
 {
-    // TODO: some OS/lib has this natively; use that instad
+    // TODO: some hardware/libraries have this natively; use that instad
     return native_value_to<Turn_t<T>>(std::atan2(y, x));
 }
 

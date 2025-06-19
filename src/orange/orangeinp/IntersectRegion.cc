@@ -139,8 +139,7 @@ bool Cone::encloses(Cone const& other) const
  */
 void Cone::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    if (CELER_UNLIKELY(
-            SoftEqual{insert_surface.tol().rel}(radii_[0], radii_[1])))
+    if (CELER_UNLIKELY(make_soft_equal(insert_surface)(radii_[0], radii_[1])))
     {
         // Degenerate cone: build a cylinder instead
         Cylinder cyl{real_type{0.5} * (radii_[0] + radii_[1]), hh_};
@@ -711,7 +710,7 @@ GenPrism GenPrism::from_trap(
     auto [dxdz_hz, dydz_hz] = [&]() -> std::pair<real_type, real_type> {
         real_type cos_phi{}, sin_phi{};
         sincos(phi, &sin_phi, &cos_phi);
-        real_type const tan_theta = std::tan(native_value_from(theta));
+        real_type const tan_theta = tan(theta);
         return {hz * tan_theta * cos_phi, hz * tan_theta * sin_phi};
     }();
 
@@ -733,8 +732,7 @@ GenPrism GenPrism::from_trap(
 
         real_type const xoff = (i == 0 ? -dxdz_hz : dxdz_hz);
         real_type const yoff = (i == 0 ? -dydz_hz : dydz_hz);
-        real_type const shear = std::tan(native_value_from(face.alpha))
-                                * face.hy;
+        real_type const shear = tan(face.alpha) * face.hy;
 
         // Construct points counterclockwise from lower right
         points[i] = {{xoff - shear + face.hx_lo, yoff - face.hy},
