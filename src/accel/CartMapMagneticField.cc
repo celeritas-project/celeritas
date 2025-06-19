@@ -17,6 +17,7 @@
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantUnits.hh"
+#include "celeritas/field/CartMapField.hh"
 #include "celeritas/field/CartMapFieldInput.hh"
 #include "celeritas/field/CartMapFieldParams.hh"
 
@@ -24,6 +25,30 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+// PIMPL IMPLEMENTATION
+//---------------------------------------------------------------------------//
+
+/*!
+ * Implementation struct for CartMapMagneticField.
+ *
+ * This hides the C++20 dependency (CartMapField) from the header file.
+ */
+struct CartMapMagneticField::Impl
+{
+    CartMapMagneticField::SPConstFieldParams params;
+    CartMapField calc_field;
+
+    explicit Impl(CartMapMagneticField::SPConstFieldParams field_params)
+        : params(std::move(field_params))
+        , calc_field(CartMapField{params->ref<MemSpace::native>()})
+    {
+        CELER_EXPECT(params);
+    }
+};
+
+//---------------------------------------------------------------------------//
+
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -118,6 +143,41 @@ MakeCartMapFieldInput(CartMapFieldGridParams const& params)
 
     CELER_ENSURE(field_input);
     return field_input;
+}
+
+//---------------------------------------------------------------------------//
+// CARTMAPMAGNETIC FIELD IMPLEMENTATION
+//---------------------------------------------------------------------------//
+
+/*!
+ * Construct with the Celeritas shared CartMapFieldParams.
+ */
+CartMapMagneticField::CartMapMagneticField(SPConstFieldParams field_params)
+    : pimpl_(std::make_unique<Impl>(std::move(field_params)))
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Destructor.
+ */
+CartMapMagneticField::~CartMapMagneticField() = default;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the magnetic field vector at the given position.
+ */
+void CartMapMagneticField::GetFieldValue(G4double const pos[3],
+                                         G4double* field) const
+{
+    // Calculate the magnetic field value in the native Celeritas unit system
+    Real3 result = pimpl_->calc_field(convert_from_geant(pos, clhep_length));
+    for (auto i = 0; i < 3; ++i)
+    {
+        // Return values of the field vector in CLHEP::tesla for Geant4
+        auto ft = native_value_to<units::FieldTesla>(result[i]);
+        field[i] = convert_to_geant(ft.value(), CLHEP::tesla);
+    }
 }
 
 //---------------------------------------------------------------------------//

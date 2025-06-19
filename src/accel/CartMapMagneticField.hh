@@ -14,10 +14,6 @@
 #include <corecel/Assert.hh>
 
 #include "corecel/Types.hh"
-#include "corecel/math/Quantity.hh"
-#include "geocel/g4/Convert.hh"
-#include "celeritas/Quantities.hh"
-#include "celeritas/field/CartMapField.hh"
 #include "celeritas/field/CartMapFieldParams.hh"
 
 namespace celeritas
@@ -58,44 +54,21 @@ class CartMapMagneticField : public G4MagneticField
 
   public:
     // Construct with CartMapFieldParams
-    inline explicit CartMapMagneticField(SPConstFieldParams field_params);
+    explicit CartMapMagneticField(SPConstFieldParams field_params);
+
+    // Destructor
+    ~CartMapMagneticField() override;
 
     // Calculate values of the magnetic field vector
-    inline void
-    GetFieldValue(G4double const point[3], G4double* field) const override;
+    void GetFieldValue(G4double const point[3], G4double* field) const override;
 
   private:
-    SPConstFieldParams params_;
-    CartMapField calc_field_;
+    // Forward declaration for PIMPL
+    struct Impl;
+    std::unique_ptr<Impl> pimpl_;
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Construct with the Celeritas shared CartMapFieldParams.
- */
-CartMapMagneticField::CartMapMagneticField(SPConstFieldParams params)
-    : params_(std::move(params))
-    , calc_field_(CartMapField{params_->ref<MemSpace::native>()})
-{
-    CELER_EXPECT(params_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate the magnetic field vector at the given position.
- */
-void CartMapMagneticField::GetFieldValue(G4double const pos[3],
-                                         G4double* field) const
-{
-    // Calculate the magnetic field value in the native Celeritas unit system
-    Real3 result = calc_field_(convert_from_geant(pos, clhep_length));
-    for (auto i = 0; i < 3; ++i)
-    {
-        // Return values of the field vector in CLHEP::tesla for Geant4
-        auto ft = native_value_to<units::FieldTesla>(result[i]);
-        field[i] = convert_to_geant(ft.value(), CLHEP::tesla);
-    }
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
