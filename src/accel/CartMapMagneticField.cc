@@ -14,11 +14,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
-#include "corecel/data/HyperslabIndexer.hh"
-#include "corecel/math/Quantity.hh"
-#include "geocel/GeantGeoUtils.hh"
 #include "geocel/g4/Convert.hh"
-#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/field/CartMapFieldInput.hh"
