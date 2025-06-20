@@ -96,7 +96,8 @@ CELER_FORCEINLINE_FUNCTION void sincos(Turn_t<T> r, T* sinv, T* cosv)
 CELER_CONSTEXPR_FUNCTION int cos(IntQuarterTurn r)
 {
     // Cosine is symmetric and periodic: modulo with 4
-    auto i = std::abs(r.value()) % 4;
+    // (note: avoid std::abs which isn't constexpr till C++23)
+    auto i = (r.value() > 0 ? r.value() : -r.value()) % 4;
     // Map to {1, 0, -1, 0}[i] by encoding the 2-bit values into an int
     // offset by one: {2, 1, 0, 1}. Since ints are written big endian,
     // the bits below are:   { 1,0,1,2}
