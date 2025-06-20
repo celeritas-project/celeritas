@@ -10,6 +10,17 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Construct from origin and tangent of the angle of its opening.
+ */
+template<Axis T>
+ConeAligned<T>::ConeAligned(Real3 const& origin, real_type tangent)
+    : origin_{origin}, tsq_{ipow<2>(tangent)}
+{
+    CELER_EXPECT(tsq_ > 0);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct with square of tangent for simplification.
  */
 template<Axis T>
