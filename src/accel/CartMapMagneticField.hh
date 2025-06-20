@@ -44,7 +44,6 @@ class CartMapMagneticField : public G4MagneticField
     using SPConstFieldParams = std::shared_ptr<CartMapFieldParams const>;
     //!@}
 
-  public:
     // Construct with CartMapFieldParams
     explicit CartMapMagneticField(SPConstFieldParams field_params);
 
