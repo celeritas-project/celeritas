@@ -31,11 +31,11 @@ namespace detail
  * \param field_data Output parameter array to store field values (must be
  *                   pre-allocated with size equal to the product of all dims)
  * \param dims Grid dimensions
- * \param position_calculator Callable that computes position given
+ * \param calc_position Callable that computes position given
  *                           grid indices. Must have signature:
  *                           Array<G4double, 4>(size_type, size_type,
  *                           size_type) returning [x, y, z, 0] coordinates
- * \param field_converter Callable that converts field from G4 to
+ * \param convert_field Callable that converts field from G4 to
  *                        native units in the correct coordinate space. Must
  *                        have signature: void(Array<G4double, 3> const&,
  *                        real_type*) taking G4 field [Bx, By, Bz] and writing
