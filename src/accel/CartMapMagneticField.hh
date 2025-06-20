@@ -10,6 +10,7 @@
 #include <G4MagneticField.hh>
 
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 #include "celeritas/field/CartMapFieldInput.hh"
 #include "celeritas/field/CartMapFieldParams.hh"
 
@@ -19,9 +20,9 @@ namespace celeritas
 //! POD struct for CartMap field grid parameters
 struct CartMapFieldGridParams
 {
-    AxisGrid<G4double> x{};  //!< X-axis grid specification
-    AxisGrid<G4double> y{};  //!< Y-axis grid specification
-    AxisGrid<G4double> z{};  //!< Z-axis grid specification
+    AxisGrid<real_type> x{};  //!< X-axis grid specification
+    AxisGrid<real_type> y{};  //!< Y-axis grid specification
+    AxisGrid<real_type> z{};  //!< Z-axis grid specification
 
     //! Check if parameters are valid for field generation
     explicit operator bool() const { return x && y && z; }
