@@ -9,7 +9,6 @@
 #include <memory>
 #include <G4MagneticField.hh>
 
-#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "celeritas/field/CartMapFieldInput.hh"
 #include "celeritas/field/CartMapFieldParams.hh"
