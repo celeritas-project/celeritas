@@ -44,8 +44,8 @@ namespace detail
 template<typename PositionCalc, typename FieldConverter>
 inline void setup_and_sample_field(real_type* field_data,
                                    Array<size_type, 4> const& dims,
-                                   PositionCalc const& position_calculator,
-                                   FieldConverter const& field_converter)
+                                   PositionCalc const& calc_position,
+                                   FieldConverter const& convert_field)
 {
     HyperslabIndexer const flat_index{dims};
     G4Field const* g4field = celeritas::geant_field();
@@ -62,14 +62,14 @@ inline void setup_and_sample_field(real_type* field_data,
             for (size_type k = 0; k < dims[2]; ++k)
             {
                 // Calculate position for this grid point
-                Array<G4double, 4> pos = position_calculator(i, j, k);
+                Array<G4double, 4> pos = calc_position(i, j, k);
 
                 // Sample field at this position
                 g4field->GetFieldValue(pos.data(), bfield.data());
 
                 // Convert and store field values
                 auto* cur_bfield = field_data + flat_index(i, j, k, 0);
-                field_converter(bfield, cur_bfield);
+                convert_field(bfield, cur_bfield);
             }
         }
     }

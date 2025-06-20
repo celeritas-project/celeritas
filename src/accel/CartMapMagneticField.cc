@@ -14,6 +14,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantUnits.hh"
@@ -118,18 +119,21 @@ MakeCartMapFieldInput(CartMapFieldGridParams const& params)
 //---------------------------------------------------------------------------//
 
 /*!
- * Construct with the Celeritas shared CartMapFieldParams.
+ * Custom deleter implementation for PIMPL idiom.
  */
-CartMapMagneticField::CartMapMagneticField(SPConstFieldParams field_params)
-    : pimpl_(std::make_unique<Impl>(std::move(field_params)))
+void CartMapMagneticField::ImplDeleter::operator()(Impl* ptr) const
 {
+    delete ptr;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Destructor.
+ * Construct with the Celeritas shared CartMapFieldParams.
  */
-CartMapMagneticField::~CartMapMagneticField() = default;
+CartMapMagneticField::CartMapMagneticField(SPConstFieldParams field_params)
+    : pimpl_(new Impl(std::move(field_params)))
+{
+}
 
 //---------------------------------------------------------------------------//
 /*!

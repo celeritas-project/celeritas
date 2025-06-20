@@ -7,12 +7,9 @@
 #pragma once
 
 #include <memory>
-#include <CLHEP/Units/SystemOfUnits.h>
-#include <G4FieldManager.hh>
 #include <G4MagneticField.hh>
-#include <G4TransportationManager.hh>
-#include <corecel/Assert.hh>
 
+#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "celeritas/field/CartMapFieldParams.hh"
 
@@ -59,20 +56,31 @@ class CartMapMagneticField : public G4MagneticField
     using SPConstFieldParams = std::shared_ptr<CartMapFieldParams const>;
     //!@}
 
+  private:
+    // Forward declaration for pImpl
+    struct Impl;
+
+    // Custom deleter for pImpl
+    struct ImplDeleter
+    {
+        void operator()(Impl* ptr) const;
+    };
+
   public:
     // Construct with CartMapFieldParams
     explicit CartMapMagneticField(SPConstFieldParams field_params);
 
+    // Default move semantics work with custom deleter
+    CELER_DEFAULT_MOVE_DELETE_COPY(CartMapMagneticField);
+
     // Destructor
-    ~CartMapMagneticField() override;
+    ~CartMapMagneticField() override = default;
 
     // Calculate values of the magnetic field vector
     void GetFieldValue(G4double const point[3], G4double* field) const override;
 
   private:
-    // Forward declaration for PIMPL
-    struct Impl;
-    std::unique_ptr<Impl> pimpl_;
+    std::unique_ptr<Impl, ImplDeleter> pimpl_;
 };
 
 //---------------------------------------------------------------------------//
