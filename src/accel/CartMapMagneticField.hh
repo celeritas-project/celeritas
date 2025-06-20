@@ -10,30 +10,18 @@
 #include <G4MagneticField.hh>
 
 #include "corecel/Macros.hh"
-#include "corecel/Types.hh"
+#include "celeritas/field/CartMapFieldInput.hh"
 #include "celeritas/field/CartMapFieldParams.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//! Uniform grid specification for a single axis
-struct Uniform
-{
-    G4double min{};  //!< Minimum coordinate value
-    G4double max{};  //!< Maximum coordinate value
-    size_type num{};  //!< Number of grid points
-
-    //! Check if parameters are valid
-    explicit operator bool() const { return max > min && num > 1; }
-};
-
-//---------------------------------------------------------------------------//
 //! POD struct for CartMap field grid parameters
 struct CartMapFieldGridParams
 {
-    Uniform x{};  //!< X-axis grid specification
-    Uniform y{};  //!< Y-axis grid specification
-    Uniform z{};  //!< Z-axis grid specification
+    AxisGrid<G4double> x{};  //!< X-axis grid specification
+    AxisGrid<G4double> y{};  //!< Y-axis grid specification
+    AxisGrid<G4double> z{};  //!< Z-axis grid specification
 
     //! Check if parameters are valid for field generation
     explicit operator bool() const { return x && y && z; }

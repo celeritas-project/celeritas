@@ -64,17 +64,17 @@ MakeCartMapFieldInput(CartMapFieldGridParams const& params)
     CartMapFieldParams::Input field_input;
 
     // Convert from Geant4 units to native units
-    field_input.min_x = convert_from_geant(params.x.min, clhep_length);
-    field_input.max_x = convert_from_geant(params.x.max, clhep_length);
-    field_input.num_x = params.x.num;
+    field_input.x.min = convert_from_geant(params.x.min, clhep_length);
+    field_input.x.max = convert_from_geant(params.x.max, clhep_length);
+    field_input.x.num = params.x.num;
 
-    field_input.min_y = convert_from_geant(params.y.min, clhep_length);
-    field_input.max_y = convert_from_geant(params.y.max, clhep_length);
-    field_input.num_y = params.y.num;
+    field_input.y.min = convert_from_geant(params.y.min, clhep_length);
+    field_input.y.max = convert_from_geant(params.y.max, clhep_length);
+    field_input.y.num = params.y.num;
 
-    field_input.min_z = convert_from_geant(params.z.min, clhep_length);
-    field_input.max_z = convert_from_geant(params.z.max, clhep_length);
-    field_input.num_z = params.z.num;
+    field_input.z.min = convert_from_geant(params.z.min, clhep_length);
+    field_input.z.max = convert_from_geant(params.z.max, clhep_length);
+    field_input.z.num = params.z.num;
 
     // Prepare field data storage
     size_type const total_points = params.x.num * params.y.num * params.z.num;
