@@ -45,6 +45,13 @@ class CartMapMagneticField : public G4MagneticField
     using SPConstFieldParams = std::shared_ptr<CartMapFieldParams const>;
     //!@}
 
+  public:
+    // Construct with CartMapFieldParams
+    explicit CartMapMagneticField(SPConstFieldParams field_params);
+
+    // Calculate values of the magnetic field vector
+    void GetFieldValue(G4double const point[3], G4double* field) const override;
+
   private:
     // Forward declaration for pImpl
     struct Impl;
@@ -54,21 +61,6 @@ class CartMapMagneticField : public G4MagneticField
     {
         void operator()(Impl* ptr) const;
     };
-
-  public:
-    // Construct with CartMapFieldParams
-    explicit CartMapMagneticField(SPConstFieldParams field_params);
-
-    // Default move semantics work with custom deleter
-    CELER_DEFAULT_MOVE_DELETE_COPY(CartMapMagneticField);
-
-    // Destructor
-    ~CartMapMagneticField() override = default;
-
-    // Calculate values of the magnetic field vector
-    void GetFieldValue(G4double const point[3], G4double* field) const override;
-
-  private:
     std::unique_ptr<Impl, ImplDeleter> pimpl_;
 };
 
