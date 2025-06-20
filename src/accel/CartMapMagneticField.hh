@@ -16,27 +16,27 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+//! Uniform grid specification for a single axis
+struct Uniform
+{
+    G4double min{};  //!< Minimum coordinate value
+    G4double max{};  //!< Maximum coordinate value
+    size_type num{};  //!< Number of grid points
+
+    //! Check if parameters are valid
+    explicit operator bool() const { return max > min && num > 1; }
+};
+
+//---------------------------------------------------------------------------//
 //! POD struct for CartMap field grid parameters
 struct CartMapFieldGridParams
 {
-    G4double min_x{};  //!< Minimum X coordinate
-    G4double max_x{};  //!< Maximum X coordinate
-    size_type num_x{};  //!< Number of grid points in X direction
-
-    G4double min_y{};  //!< Minimum Y coordinate
-    G4double max_y{};  //!< Maximum Y coordinate
-    size_type num_y{};  //!< Number of grid points in Y direction
-
-    G4double min_z{};  //!< Minimum Z coordinate
-    G4double max_z{};  //!< Maximum Z coordinate
-    size_type num_z{};  //!< Number of grid points in Z direction
+    Uniform x{};  //!< X-axis grid specification
+    Uniform y{};  //!< Y-axis grid specification
+    Uniform z{};  //!< Z-axis grid specification
 
     //! Check if parameters are valid for field generation
-    explicit operator bool() const
-    {
-        return (max_x > min_x && num_x > 1) && (max_y > min_y && num_y > 1)
-               && (max_z > min_z && num_z > 1);
-    }
+    explicit operator bool() const { return x && y && z; }
 };
 
 //---------------------------------------------------------------------------//

@@ -64,38 +64,38 @@ MakeCartMapFieldInput(CartMapFieldGridParams const& params)
     CartMapFieldParams::Input field_input;
 
     // Convert from Geant4 units to native units
-    field_input.min_x = convert_from_geant(params.min_x, clhep_length);
-    field_input.max_x = convert_from_geant(params.max_x, clhep_length);
-    field_input.num_x = params.num_x;
+    field_input.min_x = convert_from_geant(params.x.min, clhep_length);
+    field_input.max_x = convert_from_geant(params.x.max, clhep_length);
+    field_input.num_x = params.x.num;
 
-    field_input.min_y = convert_from_geant(params.min_y, clhep_length);
-    field_input.max_y = convert_from_geant(params.max_y, clhep_length);
-    field_input.num_y = params.num_y;
+    field_input.min_y = convert_from_geant(params.y.min, clhep_length);
+    field_input.max_y = convert_from_geant(params.y.max, clhep_length);
+    field_input.num_y = params.y.num;
 
-    field_input.min_z = convert_from_geant(params.min_z, clhep_length);
-    field_input.max_z = convert_from_geant(params.max_z, clhep_length);
-    field_input.num_z = params.num_z;
+    field_input.min_z = convert_from_geant(params.z.min, clhep_length);
+    field_input.max_z = convert_from_geant(params.z.max, clhep_length);
+    field_input.num_z = params.z.num;
 
     // Prepare field data storage
-    size_type const total_points = params.num_x * params.num_y * params.num_z;
+    size_type const total_points = params.x.num * params.y.num * params.z.num;
     field_input.field.resize(static_cast<size_type>(Axis::size_)
                              * total_points);
 
-    Array<size_type, 4> const dims{params.num_x,
-                                   params.num_y,
-                                   params.num_z,
+    Array<size_type, 4> const dims{params.x.num,
+                                   params.y.num,
+                                   params.z.num,
                                    static_cast<size_type>(Axis::size_)};
 
     // Calculate grid spacing
-    G4double const dx = (params.max_x - params.min_x) / (params.num_x - 1);
-    G4double const dy = (params.max_y - params.min_y) / (params.num_y - 1);
-    G4double const dz = (params.max_z - params.min_z) / (params.num_z - 1);
+    G4double const dx = (params.x.max - params.x.min) / (params.x.num - 1);
+    G4double const dy = (params.y.max - params.y.min) / (params.y.num - 1);
+    G4double const dz = (params.z.max - params.z.min) / (params.z.num - 1);
 
     // Position calculator for Cartesian grid
     auto position_calculator = [&](size_type ix, size_type iy, size_type iz) {
-        G4double x = params.min_x + ix * dx;
-        G4double y = params.min_y + iy * dy;
-        G4double z = params.min_z + iz * dz;
+        G4double x = params.x.min + ix * dx;
+        G4double y = params.y.min + iy * dy;
+        G4double z = params.z.min + iz * dz;
         return Array<G4double, 4>{x, y, z, 0};
     };
 
