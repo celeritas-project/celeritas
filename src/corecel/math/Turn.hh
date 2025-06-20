@@ -109,8 +109,8 @@ CELER_CONSTEXPR_FUNCTION int cos(IntQuarterTurn r)
 
 CELER_CONSTEXPR_FUNCTION int sin(IntQuarterTurn r)
 {
-    // Define in terms of the symmetric "cos"
-    return cos(IntQuarterTurn{r.value() - 1});
+    // Define in terms of the symmetric "cos": sin(x) = cos(x - pi/2)
+    return cos(r - IntQuarterTurn{1});
 }
 
 CELER_CONSTEXPR_FUNCTION void sincos(IntQuarterTurn r, int* sinv, int* cosv)
