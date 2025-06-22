@@ -161,7 +161,7 @@ void to_json(nlohmann::json& j, PolySegments const& ps)
 
 void to_json(nlohmann::json& j, EnclosedAzi const& azi)
 {
-    j = {{"start", azi.start().value()}, {"interior", azi.interior().value()}};
+    j = {{"start", azi.start().value()}, {"stop", azi.stop().value()}};
 }
 
 //---------------------------------------------------------------------------//
@@ -238,11 +238,11 @@ void to_json(nlohmann::json& j, InfPlane const& pa)
          {"position", pa.position()}};
 }
 
-void to_json(nlohmann::json& j, InfWedge const& cr)
+void to_json(nlohmann::json& j, InfAziWedge const& cr)
 {
-    j = {{"_type", "infwedge"},
+    j = {{"_type", "infaziwedge"},
          {"start", cr.start().value()},
-         {"interior", cr.interior().value()}};
+         {"stop", cr.stop().value()}};
 }
 
 void to_json(nlohmann::json& j, Involute const& cr)

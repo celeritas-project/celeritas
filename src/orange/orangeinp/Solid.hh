@@ -33,9 +33,9 @@ namespace orangeinp
  *
  * \code
   // Truncates a solid to the east-facing quadrant:
-  EnclosedAzi{Turn{-0.125}, Turn{0.25}};
+  EnclosedAzi{Turn{-0.125}, Turn{0.125}};
   // Removes the second quadrant (northwest) from a solid:
-  EnclosedAzi{Turn{0.50}, Turn{0.75}};
+  EnclosedAzi{Turn{0.50}, Turn{1.25}};
   \endcode
  */
 class EnclosedAzi
@@ -43,31 +43,31 @@ class EnclosedAzi
   public:
     //!@{
     //! \name Type aliases
-    using SenseWedge = std::pair<Sense, InfWedge>;
+    using SenseWedge = std::pair<Sense, InfAziWedge>;
     //!@}
 
   public:
     //! Default to "all angles"
     EnclosedAzi() = default;
 
-    // Construct from a starting angle and interior angle
-    EnclosedAzi(Turn start, Turn interior);
+    // Construct from a starting angle and stop angle
+    EnclosedAzi(Turn start, Turn stop);
 
     // Construct a wedge shape to intersect (inside) or subtract (outside)
     SenseWedge make_sense_region() const;
 
     // Whether the enclosed angle is not a full circle
-    explicit inline operator bool() const;
+    constexpr explicit inline operator bool() const;
 
     //! Starting angle
     Turn start() const { return start_; }
 
-    //! Interior angle
-    Turn interior() const { return interior_; }
+    //! stop angle
+    Turn stop() const { return stop_; }
 
   private:
     Turn start_{0};
-    Turn interior_{1};
+    Turn stop_{1};
 };
 
 //---------------------------------------------------------------------------//
@@ -93,7 +93,7 @@ class SolidBase : public ObjectInterface
     virtual IntersectRegionInterface const* excluded() const = 0;
 
     //! Optional azimuthal angular restriction
-    virtual EnclosedAzi enclosed_azi() const = 0;
+    virtual EnclosedAzi const& enclosed_azi() const = 0;
 
     ~SolidBase() override = default;
 
@@ -167,14 +167,14 @@ class Solid final : public SolidBase
     // Optional excluded
     IntersectRegionInterface const* excluded() const final;
 
-    //! Optional angular restriction
-    EnclosedAzi enclosed_azi() const final { return enclosed_; }
+    //! Optional azimuthal restriction
+    EnclosedAzi const& enclosed_azi() const final { return azi_; }
 
   private:
     std::string label_;
     T interior_;
     OptionalRegion exclusion_;
-    EnclosedAzi enclosed_;
+    EnclosedAzi azi_;
 };
 
 //---------------------------------------------------------------------------//
@@ -209,10 +209,13 @@ extern template class Solid<Sphere>;
 //---------------------------------------------------------------------------//
 /*!
  * Whether the enclosed angle is not a full circle.
+ *
+ * Note that the constructor does not allow a full circle, so only the default
+ * constructor can set values of zero and 1.
  */
-EnclosedAzi::operator bool() const
+constexpr EnclosedAzi::operator bool() const
 {
-    return interior_ != Turn{1};
+    return !(start_ == Turn{0} && stop_ == Turn{1});
 }
 
 //---------------------------------------------------------------------------//

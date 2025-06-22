@@ -81,16 +81,17 @@ namespace
  * This constructs from native Geant4 radians and truncates to \c real_type,
  * ensuring that roundoff doesn't push the turn beyond a full one.
  */
-EnclosedAzi enclosed_azi_radians(double start_rad, double delta_rad)
+auto enclosed_azi_radians(double start_rad, double stop_rad)
 {
     auto start = native_value_to<RealTurn>(start_rad);
-    auto delta = native_value_to<RealTurn>(delta_rad);
-    if (soft_equal(delta.value(), real_type{1}))
+    auto stop = native_value_to<RealTurn>(stop_rad);
+    if (soft_equal(stop.value() - start.value(), real_type{1}))
     {
-        // Avoid roundoff error
-        delta = RealTurn{1};
+        // Avoid roundoff error: return full region, *but* keep orientation,
+        // needed for polyhedra
+        return EnclosedAzi{};
     }
-    return EnclosedAzi{start, delta};
+    return EnclosedAzi{start, stop};
 }
 
 //---------------------------------------------------------------------------//
@@ -102,8 +103,8 @@ EnclosedAzi enclosed_azi_radians(double start_rad, double delta_rad)
 template<class S>
 EnclosedAzi enclosed_azi_from(S const& solid)
 {
-    return enclosed_azi_radians(solid.GetStartPhiAngle(),
-                                solid.GetDeltaPhiAngle());
+    auto start = solid.GetStartPhiAngle();
+    return enclosed_azi_radians(start, start + solid.GetDeltaPhiAngle());
 }
 
 //---------------------------------------------------------------------------//
@@ -117,7 +118,8 @@ EnclosedAzi enclosed_azi_from(S const& solid)
 template<>
 EnclosedAzi enclosed_azi_from<G4Torus>(G4Torus const& solid)
 {
-    return enclosed_azi_radians(solid.GetSPhi(), solid.GetDPhi());
+    auto start = solid.GetSPhi();
+    return enclosed_azi_radians(start, start + solid.GetDPhi());
 }
 
 //---------------------------------------------------------------------------//
@@ -130,9 +132,7 @@ EnclosedAzi enclosed_azi_from<G4Torus>(G4Torus const& solid)
 template<class S>
 EnclosedAzi enclosed_azi_from_poly(S const& solid)
 {
-    auto start = solid.GetStartPhi();
-    auto stop = solid.GetEndPhi();
-    return enclosed_azi_radians(start, stop - start);
+    return enclosed_azi_radians(solid.GetStartPhi(), solid.GetEndPhi());
 }
 
 //---------------------------------------------------------------------------//
@@ -166,8 +166,7 @@ EnclosedAzi enclosed_pol_from(S const& solid)
     CELER_EXPECT(
         is_soft_unit_vector(Array<double, 3>{axis.x(), axis.y(), axis.z()}));
 
-    double const theta = std::acos(axis.z());
-    return {native_value_to<Turn>(theta),
+    return {native_value_to<Turn>(std::acos(axis.z())),
             atan2turn<real_type>(axis.y(), axis.x())};
 }
 
@@ -220,16 +219,12 @@ auto make_shape(G4VSolid const& solid, Args&&... args)
 /*!
  * Construct an ORANGE solid using the G4Solid's name and forwarded arguments.
  */
-template<class CR>
-auto make_solid(G4VSolid const& solid,
-                CR&& interior,
-                std::optional<CR>&& excluded,
-                EnclosedAzi&& enclosed)
+template<class CR, class... Args>
+auto make_solid(G4VSolid const& solid, CR&& interior, Args&&... args)
 {
     return Solid<CR>::or_shape(std::string{solid.GetName()},
                                std::forward<CR>(interior),
-                               std::move(excluded),
-                               std::move(enclosed));
+                               std::forward<Args>(args)...);
 }
 
 //---------------------------------------------------------------------------//
@@ -657,14 +652,15 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
         rmin.clear();
     }
 
-    auto angle = enclosed_azi_from_poly(solid);
+    // Get orientation from the start/end phi, which still may be a full Turn
+    auto frac_turn = native_value_to<Turn>(solid.GetStartPhi()).value();
     double const orientation
-        = std::fmod(params.numSide * angle.start().value(), real_type{1});
+        = std::fmod(params.numSide * frac_turn, real_type{1});
 
     return PolyPrism::or_solid(
         std::string{solid.GetName()},
         PolySegments{std::move(rmin), std::move(rmax), std::move(zs)},
-        std::move(angle),
+        enclosed_azi_from_poly(solid),
         params.numSide,
         orientation);
 }
@@ -713,7 +709,7 @@ auto SolidConverter::sphere(arg_type solid_base) -> result_type
     }
 
     auto polar_cone = enclosed_pol_from(solid);
-    if (!soft_equal(value_as<Turn>(polar_cone.interior()), 0.5))
+    if (!soft_equal(value_as<Turn>(polar_cone.stop() - polar_cone.start()), 0.5))
     {
         CELER_NOT_IMPLEMENTED("sphere with polar limits");
     }

@@ -547,11 +547,11 @@ class InfPlane : public IntersectRegionInterface
  * subtracted, or its negation can be subtracted. The start angle is mapped
  * onto \f$[0, 1)\f$ on construction.
  */
-class InfWedge final : public IntersectRegionInterface
+class InfAziWedge final : public IntersectRegionInterface
 {
   public:
-    // Construct from a starting angle and interior angle
-    InfWedge(Turn start, Turn interior);
+    // Construct from an angular range less than 180
+    InfAziWedge(Turn start, Turn stop);
 
     // Build surfaces
     void build(IntersectSurfaceBuilder&) const final;
@@ -564,12 +564,12 @@ class InfWedge final : public IntersectRegionInterface
     //! Starting angle
     Turn start() const { return start_; }
 
-    //! Interior angle
-    Turn interior() const { return interior_; }
+    //! stop angle
+    Turn stop() const { return stop_; }
 
   private:
     Turn start_;
-    Turn interior_;
+    Turn stop_;
 };
 
 //---------------------------------------------------------------------------//
