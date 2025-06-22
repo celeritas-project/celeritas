@@ -96,6 +96,27 @@ auto enclosed_azi_radians(double start_rad, double stop_rad)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get an EnclosedPolar, avoiding values slightly beyond a half turn.
+ *
+ * This constructs from native Geant4 radians and truncates to \c real_type,
+ * ensuring that roundoff doesn't push the turn beyond a full one. The
+ * G4Sphere::CheckThetaAngles implementation prevents the endpoint being
+ * greater than 180 degrees, so we do the same here.
+ */
+auto enclosed_polar_radians(double start_rad, double stop_rad)
+{
+    auto start = native_value_to<RealTurn>(start_rad);
+    auto stop = native_value_to<RealTurn>(stop_rad);
+    if (stop > RealTurn{0.5})
+    {
+        // Avoid roundoff error: clip to +pi
+        stop = RealTurn{0.5};
+    }
+    return EnclosedPolar{start, stop};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the enclosed azimuthal angle by a solid.
  *
  * This internally converts from native Geant4 radians.
@@ -140,11 +161,11 @@ EnclosedAzi enclosed_azi_from_poly(S const& solid)
  * Get the enclosed polar angle by a solid.
  */
 template<class S>
-EnclosedAzi enclosed_pol_from(S const& solid)
+EnclosedPolar enclosed_pol_from(S const& solid)
 {
-    // FIXME: polar angle will be a different class
-    return enclosed_azi_radians(solid.GetStartThetaAngle(),
-                                solid.GetDeltaThetaAngle());
+    auto start = solid.GetStartThetaAngle();
+    auto delta = solid.GetDeltaThetaAngle();
+    return enclosed_polar_radians(start, start + delta);
 }
 
 //---------------------------------------------------------------------------//
@@ -709,15 +730,12 @@ auto SolidConverter::sphere(arg_type solid_base) -> result_type
     }
 
     auto polar_cone = enclosed_pol_from(solid);
-    if (!soft_equal(value_as<Turn>(polar_cone.stop() - polar_cone.start()), 0.5))
-    {
-        CELER_NOT_IMPLEMENTED("sphere with polar limits");
-    }
 
     return make_solid(solid,
                       Sphere{scale_(solid.GetOuterRadius())},
                       std::move(inner),
-                      enclosed_azi_from(solid));
+                      enclosed_azi_from(solid),
+                      std::move(polar_cone));
 }
 
 //---------------------------------------------------------------------------//

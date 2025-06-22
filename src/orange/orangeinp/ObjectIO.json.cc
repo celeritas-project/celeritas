@@ -119,6 +119,10 @@ void to_json(nlohmann::json& j, SolidBase const& obj)
     {
         j["enclosed_azi"] = azi;
     }
+    if (auto polar = obj.enclosed_polar())
+    {
+        j["enclosed_polar"] = polar;
+    }
 }
 
 void to_json(nlohmann::json& j, StackedExtrudedPolygon const& cr)
@@ -162,6 +166,11 @@ void to_json(nlohmann::json& j, PolySegments const& ps)
 void to_json(nlohmann::json& j, EnclosedAzi const& azi)
 {
     j = {{"start", azi.start().value()}, {"stop", azi.stop().value()}};
+}
+
+void to_json(nlohmann::json& j, EnclosedPolar const& pol)
+{
+    j = {{"start", pol.start().value()}, {"stop", pol.stop().value()}};
 }
 
 //---------------------------------------------------------------------------//
@@ -241,6 +250,13 @@ void to_json(nlohmann::json& j, InfPlane const& pa)
 void to_json(nlohmann::json& j, InfAziWedge const& cr)
 {
     j = {{"_type", "infaziwedge"},
+         {"start", cr.start().value()},
+         {"stop", cr.stop().value()}};
+}
+
+void to_json(nlohmann::json& j, InfPolarWedge const& cr)
+{
+    j = {{"_type", "infpolarwedge"},
          {"start", cr.start().value()},
          {"stop", cr.stop().value()}};
 }

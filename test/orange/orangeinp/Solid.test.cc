@@ -100,15 +100,16 @@ TEST_F(SolidTest, errors)
 {
     // Inner region is outside outer
     EXPECT_THROW(
-        ConeSolid("cone", Cone{{1, 2}, 10.0}, Cone{{1.1, 1.9}, 10.0}, {}),
+        ConeSolid("cone", Cone{{1, 2}, 10.0}, Cone{{1.1, 1.9}, 10.0}, {}, {}),
         RuntimeError);
     // No exclusion, no wedge
-    EXPECT_THROW(ConeSolid("cone", Cone{{1, 2}, 10.0}, {}, {}), RuntimeError);
+    EXPECT_THROW(ConeSolid("cone", Cone{{1, 2}, 10.0}, {}, {}, {}),
+                 RuntimeError);
 }
 
 TEST_F(SolidTest, inner)
 {
-    ConeSolid cone("cone", Cone{{1, 2}, 10.0}, Cone{{0.9, 1.9}, 10.0}, {});
+    ConeSolid cone("cone", Cone{{1, 2}, 10.0}, Cone{{0.9, 1.9}, 10.0}, {}, {});
     this->build_volume(cone);
 
     static char const* const expected_surface_strings[] = {
@@ -154,8 +155,11 @@ TEST_F(SolidTest, inner)
 
 TEST_F(SolidTest, wedge)
 {
-    ConeSolid cone(
-        "cone", Cone{{1, 2}, 10.0}, {}, EnclosedAzi{Turn{-0.125}, Turn{0.125}});
+    ConeSolid cone("cone",
+                   Cone{{1, 2}, 10.0},
+                   {},
+                   EnclosedAzi{Turn{-0.125}, Turn{0.125}},
+                   {});
     this->build_volume(cone);
     static char const* const expected_surface_strings[] = {
         "Plane: z=-10",
@@ -198,8 +202,11 @@ TEST_F(SolidTest, wedge)
 
 TEST_F(SolidTest, antiwedge)
 {
-    ConeSolid cone(
-        "cone", Cone{{1, 2}, 10.0}, {}, EnclosedAzi{Turn{0.125}, Turn{0.875}});
+    ConeSolid cone("cone",
+                   Cone{{1, 2}, 10.0},
+                   {},
+                   EnclosedAzi{Turn{0.125}, Turn{0.875}},
+                   {});
     this->build_volume(cone);
     static char const* const expected_surface_strings[] = {
         "Plane: z=-10",
@@ -247,7 +254,8 @@ TEST_F(SolidTest, both)
     ConeSolid cone("cone",
                    Cone{{1, 2}, 10.0},
                    Cone{{0.9, 1.9}, 10.0},
-                   EnclosedAzi{Turn{-0.125}, Turn{0.125}});
+                   EnclosedAzi{Turn{-0.125}, Turn{0.125}},
+                   {});
     this->build_volume(cone);
     static char const* const expected_surface_strings[] = {
         "Plane: z=-10",
@@ -301,7 +309,8 @@ TEST_F(SolidTest, cyl)
     this->build_volume(CylinderSolid("cyl",
                                      Cylinder{1, 10.0},
                                      Cylinder{0.9, 10.0},
-                                     EnclosedAzi{Turn{-0.125}, Turn{0.125}}));
+                                     EnclosedAzi{Turn{-0.125}, Turn{0.125}},
+                                     {}));
 
     static char const* const expected_surface_strings[] = {
         "Plane: z=-10",
@@ -318,6 +327,74 @@ TEST_F(SolidTest, cyl)
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+}
+
+TEST_F(SolidTest, sphere_polar)
+{
+    using SS = SphereSolid;
+    using EP = EnclosedPolar;
+    {
+        this->build_volume(
+            SS("top", Sphere{10.0}, {}, {}, EP{Turn{0.0}, Turn{0.125}}));
+    }
+    {
+        this->build_volume(
+            SS("mid", Sphere{10.0}, {}, {}, EP{Turn{0.125}, Turn{0.5}}));
+    }
+    {
+        this->build_volume(
+            SS("bot", Sphere{10.0}, {}, {}, EP{Turn{0.375}, Turn{0.5}}));
+    }
+    {
+        // --+ octant
+        this->build_volume(SS("oct",
+                              Sphere{10.0},
+                              {},
+                              EnclosedAzi{Turn{0.5}, Turn{1.25}},
+                              EP{Turn{0.0}, Turn{0.25}}));
+    }
+
+    auto const& u = this->unit();
+    static char const* const expected_surface_strings[] = {
+        "Sphere: r=10",
+        "Plane: z=0",
+        "Cone z: t=1 at {0,0,0}",
+        "Plane: x=0",
+        "Plane: y=0",
+    };
+    static char const* const expected_volume_strings[] = {
+        "all(-0, +1, -2)",
+        "all(-0, any(all(+1, +2), -1))",
+        "all(-0, -2, -1)",
+        "all(-0, +1, !all(-4, +5))",
+    };
+    static char const* const expected_md_strings[] = {
+        "",
+        "",
+        "bot@int.s,mid@int.s,oct@int.s,top@int.s",
+        "bot@int,mid@int,oct@int,top@int",
+        R"(,bot@pol.pz,mid@pol.mz,mid@pol.pz,oct@pol,oct@pol.mz,top@pol.mz)",
+        "bot@pol.kz,mid@pol.kz,top@pol.kz",
+        "",
+        ",top@pol",
+        "top",
+        "mid@pol",
+        "mid@pol",
+        "",
+        "mid",
+        ",bot@pol",
+        "bot",
+        "oct@azi.p0",
+        "",
+        "oct@azi.p1",
+        "oct@azi",
+        "",
+        "oct",
+    };
+
+    EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+    EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
 }
 
 TEST_F(SolidTest, or_shape)

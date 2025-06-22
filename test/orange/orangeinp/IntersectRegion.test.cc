@@ -1536,6 +1536,89 @@ TEST_F(InfAziWedgeTest, half_turn)
         EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     }
 }
+//---------------------------------------------------------------------------//
+// INFPOLARWEDGE
+//---------------------------------------------------------------------------//
+using InfPolarWedgeTest = IntersectRegionTest;
+
+TEST_F(InfPolarWedgeTest, errors)
+{
+    EXPECT_THROW(InfPolarWedge(Turn{-0.2}, Turn{-0.001}), RuntimeError);
+    EXPECT_THROW(InfPolarWedge(Turn{-0.1}, Turn{0.1}), RuntimeError);
+    EXPECT_THROW(InfPolarWedge(Turn{0}, Turn{-0.1}), RuntimeError);
+    EXPECT_THROW(InfPolarWedge(Turn{0}, Turn{0.26}), RuntimeError);
+    EXPECT_THROW(InfPolarWedge(Turn{0.1}, Turn{0.1}), RuntimeError);
+    EXPECT_THROW(InfPolarWedge(Turn{0.24}, Turn{0.26}), RuntimeError);
+    EXPECT_THROW(InfPolarWedge(Turn{0.26}, Turn{0.52}), RuntimeError);
+}
+
+TEST_F(InfPolarWedgeTest, quarter_turn)
+{
+    {
+        SCOPED_TRACE("top half");
+        auto result = this->test(InfPolarWedge(Turn{0}, Turn{0.25}));
+        IntersectTestResult ref;
+        ref.node = "+0";
+        ref.surfaces = {"Plane: z=0"};
+        ref.interior = {{-inf, -inf, 0}, {inf, inf, inf}};
+        ref.exterior = {{-inf, -inf, 0}, {inf, inf, inf}};
+        EXPECT_REF_EQ(ref, result);
+    }
+    {
+        SCOPED_TRACE("bottom half");
+        auto result = this->test(InfPolarWedge(Turn{0.25}, Turn{0.5}));
+        IntersectTestResult ref;
+        ref.node = "-0";
+        ref.surfaces = {"Plane: z=0"};
+        ref.interior = {{-inf, -inf, -inf}, {inf, inf, 0}};
+        ref.exterior = {{-inf, -inf, -inf}, {inf, inf, 0}};
+        EXPECT_REF_EQ(ref, result);
+    }
+}
+
+TEST_F(InfPolarWedgeTest, eighth_turn)
+{
+    {
+        SCOPED_TRACE("north pole");
+        auto result = this->test(InfPolarWedge(Turn{0}, Turn{0.125}));
+        IntersectTestResult ref;
+        ref.node = "all(+0, -1)";
+        ref.surfaces = {"Plane: z=0", "Cone z: t=1 at {0,0,0}"};
+        ref.interior = {};
+        ref.exterior = {{-inf, -inf, 0}, {inf, inf, inf}};
+        EXPECT_REF_EQ(ref, result);
+    }
+    {
+        SCOPED_TRACE("north tropic");
+        auto result = this->test(InfPolarWedge(Turn{0.125}, Turn{0.25}));
+        IntersectTestResult ref;
+        ref.node = "all(+0, +1)";
+        ref.surfaces = {"Plane: z=0", "Cone z: t=1 at {0,0,0}"};
+        ref.interior = {};
+        ref.exterior = {{-inf, -inf, 0}, {inf, inf, inf}};
+        EXPECT_REF_EQ(ref, result);
+    }
+    {
+        SCOPED_TRACE("south tropic");
+        auto result = this->test(InfPolarWedge(Turn{0.25}, Turn{0.375}));
+        IntersectTestResult ref;
+        ref.node = "all(+1, -0)";
+        ref.surfaces = {"Plane: z=0", "Cone z: t=1 at {0,0,0}"};
+        ref.interior = {};
+        ref.exterior = {{-inf, -inf, -inf}, {inf, inf, 0}};
+        EXPECT_REF_EQ(ref, result);
+    }
+    {
+        SCOPED_TRACE("south pole");
+        auto result = this->test(InfPolarWedge(Turn{0.375}, Turn{0.5}));
+        IntersectTestResult ref;
+        ref.node = "all(-1, -0)";
+        ref.surfaces = {"Plane: z=0", "Cone z: t=1 at {0,0,0}"};
+        ref.interior = {};
+        ref.exterior = {{-inf, -inf, -inf}, {inf, inf, 0}};
+        EXPECT_REF_EQ(ref, result);
+    }
+}
 
 //---------------------------------------------------------------------------//
 // INVOLUTE

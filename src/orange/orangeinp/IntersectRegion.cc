@@ -39,6 +39,16 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Create a SoftEqual instance using the surface builder tolerance.
+ */
+auto make_soft_equal(IntersectSurfaceBuilder const& sb)
+{
+    auto tol = sb.tol();
+    return SoftEqual{tol.rel, tol.abs};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Create a z-aligned bounding box infinite along z and symmetric in r.
  */
 BBox make_xyradial_bbox(real_type r)
@@ -1027,6 +1037,64 @@ void InfAziWedge::build(IntersectSurfaceBuilder& insert_surface) const
  * Write output to the given JSON object.
  */
 void InfAziWedge::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+// INFPOLARWEDGE
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from a starting angle and stop angle.
+ */
+InfPolarWedge::InfPolarWedge(Turn start, Turn stop)
+    : start_{start}, stop_{stop}
+{
+    CELER_VALIDATE(start_ >= zero_quantity() && start_ < Turn{0.5},
+                   << "invalid start angle " << start_.value()
+                   << " [turns]: must be in the range [0, 0.5)");
+
+    // Stay only on a single side of z=0
+    auto max_endpoint = Turn{start_ < equator ? equator : south_pole};
+    CELER_VALIDATE(stop_ > start_ && stop_ <= max_endpoint
+                       || soft_equal(stop_.value(), max_endpoint.value()),
+                   << "invalid stop wedge angle " << stop.value()
+                   << " [turns]: must be in [0, "
+                   << (max_endpoint - start_).value() << ")");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void InfPolarWedge::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    auto soft_equal = make_soft_equal(insert_surface);
+
+    // Greater-than-equator start means below z (southern hemisphere)
+    auto sense = start_ >= equator ? Sense::inside : Sense::outside;
+    insert_surface(sense, PlaneZ{0});
+
+    if (!soft_equal(start_.value(), north_pole.value())
+        && !soft_equal(start_.value(), equator.value()))
+    {
+        // If wedge is in the top hemisphere, we're outside the start
+        insert_surface(sense, ConeZ{Real3{0, 0, 0}, tan(start_)});
+    }
+
+    if (!soft_equal(stop_.value(), south_pole.value())
+        && !soft_equal(stop_.value(), equator.value()))
+    {
+        // If wedge is in the top hemisphere, we're inside the end
+        insert_surface(flip_sense(sense), ConeZ{Real3{0, 0, 0}, tan(stop_)});
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void InfPolarWedge::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
 }

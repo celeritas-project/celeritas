@@ -33,6 +33,7 @@ class Truncated;
 
 class PolySegments;
 class EnclosedAzi;
+class EnclosedPolar;
 
 class IntersectRegionInterface;
 class Box;
@@ -43,8 +44,9 @@ class EllipticalCone;
 class EllipticalCylinder;
 class ExtrudedPolygon;
 class GenPrism;
-class InfAziWedge;
 class InfPlane;
+class InfAziWedge;
+class InfPolarWedge;
 class Involute;
 class Parallelepiped;
 class Prism;
@@ -70,6 +72,7 @@ void to_json(nlohmann::json& j, Truncated const& tr);
 // Write helper classes to JSON
 void to_json(nlohmann::json& j, PolySegments const&);
 void to_json(nlohmann::json& j, EnclosedAzi const&);
+void to_json(nlohmann::json& j, EnclosedPolar const&);
 
 // Write intersect regions to JSON
 void to_json(nlohmann::json& j, IntersectRegionInterface const& cr);
@@ -83,6 +86,7 @@ void to_json(nlohmann::json& j, ExtrudedPolygon const& cr);
 void to_json(nlohmann::json& j, GenPrism const& cr);
 void to_json(nlohmann::json& j, InfPlane const& pa);
 void to_json(nlohmann::json& j, InfAziWedge const& cr);
+void to_json(nlohmann::json& j, InfPolarWedge const& cr);
 void to_json(nlohmann::json& j, Involute const& cr);
 void to_json(nlohmann::json& j, Parallelepiped const& cr);
 void to_json(nlohmann::json& j, Prism const& cr);
