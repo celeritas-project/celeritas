@@ -1055,12 +1055,13 @@ InfPolarWedge::InfPolarWedge(Turn start, Turn stop)
                    << " [turns]: must be in the range [0, 0.5)");
 
     // Stay only on a single side of z=0
-    auto max_endpoint = Turn{start_ < equator ? equator : south_pole};
-    CELER_VALIDATE(stop_ > start_ && stop_ <= max_endpoint
-                       || soft_equal(stop_.value(), max_endpoint.value()),
+    auto max_stop = Turn{start_ < equator ? equator : south_pole};
+    CELER_VALIDATE(stop_ > start_
+                       && (stop_ <= max_stop
+                           || soft_equal(stop_.value(), max_stop.value())),
                    << "invalid stop wedge angle " << stop.value()
                    << " [turns]: must be in [0, "
-                   << (max_endpoint - start_).value() << ")");
+                   << (max_stop - start_).value() << ")");
 }
 
 //---------------------------------------------------------------------------//
@@ -1078,14 +1079,16 @@ void InfPolarWedge::build(IntersectSurfaceBuilder& insert_surface) const
     if (!soft_equal(start_.value(), north_pole.value())
         && !soft_equal(start_.value(), equator.value()))
     {
-        // If wedge is in the top hemisphere, we're outside the start
+        // Start point is not a degenerate cone: we're "outside" if top
+        // hemisphere, "inside" if bottom
         insert_surface(sense, ConeZ{Real3{0, 0, 0}, tan(start_)});
     }
 
     if (!soft_equal(stop_.value(), south_pole.value())
         && !soft_equal(stop_.value(), equator.value()))
     {
-        // If wedge is in the top hemisphere, we're inside the end
+        // End point is not a degenerate cone: we're "inside" if top
+        // hemisphere, "outside" if bottom
         insert_surface(flip_sense(sense), ConeZ{Real3{0, 0, 0}, tan(stop_)});
     }
 }
