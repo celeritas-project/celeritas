@@ -61,8 +61,8 @@ class SurfaceInputInserter
   public:
     // Construct with pointers to target data and volume params
     SurfaceInputInserter(VolumeParams const& volumes,
-                         std::vector<Label>* labels,
-                         std::vector<VolumeSurfaceData>* volume_surfaces);
+                         std::vector<Label>& labels,
+                         std::vector<VolumeSurfaceData>& volume_surfaces);
 
     // Process an input surface and return its ID
     SurfaceId operator()(inp::Surface const& surf);
@@ -75,8 +75,8 @@ class SurfaceInputInserter
 
   private:
     VolumeParams const& volumes_;
-    std::vector<Label>* labels_;
-    std::vector<VolumeSurfaceData>* volume_surfaces_;
+    std::vector<Label>& labels_;
+    std::vector<VolumeSurfaceData>& volume_surfaces_;
 
     //// HELPER FUNCTIONS ////
 

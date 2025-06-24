@@ -30,7 +30,7 @@ SurfaceParams::SurfaceParams(inp::Surfaces const& input,
 
     // Process input surfaces
     detail::SurfaceInputInserter insert_surface(
-        volumes, &surface_labels, &temp_volume_surfaces);
+        volumes, surface_labels, temp_volume_surfaces);
     std::for_each(input.surfaces.begin(), input.surfaces.end(), insert_surface);
     labels_ = {"surfaces", std::move(surface_labels)};
 

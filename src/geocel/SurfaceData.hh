@@ -44,9 +44,10 @@ struct VolumeSurfaceRecord
     //! True if valid data is present
     explicit CELER_FUNCTION operator bool() const
     {
-        return boundary && !interface_pre.empty()
-               && interface_pre.size() == interface_post.size()
-               && interface_pre.size() == surface.size();
+        return boundary
+               || (!interface_pre.empty()
+                   && interface_pre.size() == interface_post.size()
+                   && interface_pre.size() == surface.size());
     }
 };
 

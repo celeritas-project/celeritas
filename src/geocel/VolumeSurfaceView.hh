@@ -10,6 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/math/Algorithms.hh"
 #include "geocel/Types.hh"
 
 #include "SurfaceData.hh"
@@ -47,7 +48,7 @@ class VolumeSurfaceView
     // Check if this volume has least one interface surface
     CELER_FORCEINLINE_FUNCTION bool has_interface() const;
 
-    // Find surface ID for a transition to another volume instances
+    // Find surface ID for a transition to another volume instance
     inline CELER_FUNCTION SurfaceId
     find_interface(VolumeInstanceId pre_id, VolumeInstanceId post_id) const;
 
@@ -87,7 +88,7 @@ CELER_FUNCTION auto VolumeSurfaceView::volume_id() const -> VolumeId
 /*!
  * Get the optional boundary surface ID for this volume.
 
- * If the result is null,
+ * If the result is null, no boundary surface is present.
  */
 CELER_FUNCTION SurfaceId VolumeSurfaceView::boundary_id() const
 {
@@ -109,9 +110,10 @@ CELER_FUNCTION bool VolumeSurfaceView::has_interface() const
  *
  * This searches for the surface ID associated with a pre->post
  * volume instance transition.
- * \todo The current implementation as a linear search, which is unsuitable for
+ *
+ * \todo The current implementation uses linear search, which is unsuitable for
  * complex detectors such as LHCB's RICH, whose pvRichGrandPMTQuartz has 770
- * specific interfaces. We should either implenent an \c equal_range function
+ * specific interfaces. We should either implement an \c equal_range function
  * for searching these sorted arrays, or (better) use a hash lookup for {pre,
  * post} -> surface.
  *

@@ -23,7 +23,7 @@ namespace detail
  */
 SurfaceId SurfaceInputInserter::next_surface_id() const
 {
-    return id_cast<SurfaceId>(labels_->size());
+    return id_cast<SurfaceId>(labels_.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -52,8 +52,8 @@ Label const& SurfaceInputInserter::label(VolumeInstanceId vol_inst_id) const
  */
 Label const& SurfaceInputInserter::label(SurfaceId surface_id) const
 {
-    CELER_EXPECT(surface_id < labels_->size());
-    return (*labels_)[surface_id.get()];
+    CELER_EXPECT(surface_id < labels_.size());
+    return labels_[surface_id.get()];
 }
 
 //---------------------------------------------------------------------------//
@@ -62,15 +62,14 @@ Label const& SurfaceInputInserter::label(SurfaceId surface_id) const
  */
 SurfaceInputInserter::SurfaceInputInserter(
     VolumeParams const& volumes,
-    std::vector<Label>* labels,
-    std::vector<VolumeSurfaceData>* volume_surfaces)
+    std::vector<Label>& labels,
+    std::vector<VolumeSurfaceData>& volume_surfaces)
     : volumes_(volumes), labels_{labels}, volume_surfaces_(volume_surfaces)
 {
-    CELER_EXPECT(labels_ && volume_surfaces_);
-    CELER_EXPECT(labels_->empty());
+    CELER_EXPECT(labels_.empty());
 
     // Resize the vector to match the number of volumes
-    volume_surfaces_->resize(volumes_.num_volumes());
+    volume_surfaces_.resize(volumes_.num_volumes());
 }
 
 //---------------------------------------------------------------------------//
@@ -90,7 +89,7 @@ SurfaceId SurfaceInputInserter::operator()(inp::Surface const& surf)
         CELER_LOG(error) << "While processing surface '" << surf.label << "'";
         throw;
     }
-    labels_->push_back(surf.label);
+    labels_.push_back(surf.label);
     CELER_ENSURE(result);
     return result;
 }
@@ -103,7 +102,7 @@ SurfaceId SurfaceInputInserter::operator()(inp::Surface::Boundary const& vol_id)
 {
     CELER_EXPECT(vol_id < volumes_.num_volumes());
 
-    auto& vol_data = (*volume_surfaces_)[vol_id.get()];
+    auto& vol_data = volume_surfaces_[vol_id.get()];
 
     // Check if a boundary already exists for this volume
     SurfaceId surf_id = this->next_surface_id();
@@ -127,8 +126,8 @@ SurfaceInputInserter::operator()(inp::Surface::Interface const& interface)
 
     // Get the volume associated with the pre-step volume instance
     VolumeId pre_vol_id = volumes_.volume(interface.first);
-    CELER_ASSERT(pre_vol_id < volume_surfaces_->size());
-    auto& vol_data = (*volume_surfaces_)[pre_vol_id.get()];
+    CELER_ASSERT(pre_vol_id < volume_surfaces_.size());
+    auto& vol_data = volume_surfaces_[pre_vol_id.get()];
 
     // Try to insert the new mapping
     SurfaceId surf_id = this->next_surface_id();
