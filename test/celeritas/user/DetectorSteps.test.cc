@@ -126,7 +126,7 @@ class DetectorStepsTest : public ::celeritas::test::Test
                         VolumeInstanceId val;
                         if (j <= depth)
                         {
-                            val = VolumeInstanceId{(j + i) % 8};
+                            val = id_cast<VolumeInstanceId>((j + i) % 8);
                         }
                         ViId vi_id{result.volume_instance_depth
                                        * tid.unchecked_get()

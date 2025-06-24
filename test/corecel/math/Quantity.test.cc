@@ -307,25 +307,23 @@ TEST(QuarterTurnTest, basic)
 
 TEST(QuarterTurnTest, sincos)
 {
-    std::vector<int> result;
+    std::vector<int> actual;
+    std::vector<int> expected;
+    auto push_expected_int = [&expected](double v) {
+        expected.push_back(static_cast<int>(std::round(v)));
+    };
+
     for (auto i : range(-4, 5))
     {
-        result.push_back(sin(IntQuarterTurn{i}));
-        result.push_back(cos(IntQuarterTurn{i}));
+        IntQuarterTurn theta{i};
+        actual.push_back(sin(theta));
+        actual.push_back(cos(theta));
+
+        auto theta_dbl = static_cast<double>(native_value_from(theta));
+        push_expected_int(std::sin(theta_dbl));
+        push_expected_int(std::cos(theta_dbl));
     }
-    // clang-format off
-    static int const expected_result[]
-        = {  0,  1, // -1 turn
-             1,  0, // -3/4 turn
-             0, -1, // -1/2 turn
-            -1,  0, // -1/4 turn
-             0,  1, // 0 turn
-             1,  0, // 1/4
-             0, -1, // 1/2
-            -1,  0, // 3/4
-             0,  1}; // 1
-    // clang-format on
-    EXPECT_VEC_EQ(expected_result, result);
+    EXPECT_VEC_EQ(expected, actual);
 }
 
 //---------------------------------------------------------------------------//

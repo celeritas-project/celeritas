@@ -6,6 +6,7 @@
 set(SOURCES)
 set(PRIVATE_DEPS
   nlohmann_json::nlohmann_json
+  Celeritas::Extcovfie
   Celeritas::ExtThrust # TODO: add thrust exception conversion to corecel?
   Celeritas::ExtOpenMP # TODO: provide thread utils in corecel
 )
@@ -29,6 +30,7 @@ list(APPEND SOURCES
   IntegrationBase.cc
   Logger.cc
   LocalTransporter.cc
+  CartMapMagneticField.cc
   CylMapMagneticField.cc
   SetupOptions.cc
   SetupOptionsMessenger.cc
