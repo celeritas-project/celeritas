@@ -250,7 +250,7 @@ void to_json(nlohmann::json& j, Parallelepiped const& cr)
          {"phi", cr.phi().value()}};
 }
 
-void to_json(nlohmann::json& j, PlaneAligned const& pa)
+void to_json(nlohmann::json& j, PlaneAlignedHalfspace const& pa)
 {
     j = {{"sense", to_cstring(pa.sense())},
          {"axis", std::string(1, to_char(pa.axis()))},

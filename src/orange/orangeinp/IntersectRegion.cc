@@ -1151,7 +1151,9 @@ void Parallelepiped::output(JsonPimpl* j) const
 /*!
  * Construct with sense, axis, and position.
  */
-PlaneAligned::PlaneAligned(Sense sense, Axis axis, real_type position)
+PlaneAlignedHalfspace::PlaneAlignedHalfspace(Sense sense,
+                                             Axis axis,
+                                             real_type position)
     : sense_{sense}, axis_{axis}, position_{position}
 {
     CELER_EXPECT(axis_ < Axis::size_);
@@ -1162,7 +1164,7 @@ PlaneAligned::PlaneAligned(Sense sense, Axis axis, real_type position)
 /*!
  * Build the surface.
  */
-void PlaneAligned::build(IntersectSurfaceBuilder& insert_surface) const
+void PlaneAlignedHalfspace::build(IntersectSurfaceBuilder& insert_surface) const
 {
     // NOTE: these use the Plane surface aliases.
     switch (axis_)
@@ -1185,7 +1187,7 @@ void PlaneAligned::build(IntersectSurfaceBuilder& insert_surface) const
 /*!
  * Write output to the given JSON object.
  */
-void PlaneAligned::output(JsonPimpl* j) const
+void PlaneAlignedHalfspace::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
 }

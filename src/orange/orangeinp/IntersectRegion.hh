@@ -646,11 +646,11 @@ class Parallelepiped final : public IntersectRegionInterface
  * axis, and an "outside" sense means to include only what's *above* the
  * position.
  */
-class PlaneAligned : public IntersectRegionInterface
+class PlaneAlignedHalfspace : public IntersectRegionInterface
 {
   public:
     // Construct with sense, axis, and position
-    PlaneAligned(Sense sense, Axis axis, real_type position);
+    PlaneAlignedHalfspace(Sense sense, Axis axis, real_type position);
 
     // Build surfaces
     void build(IntersectSurfaceBuilder&) const final;

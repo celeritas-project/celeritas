@@ -239,7 +239,7 @@ auto make_solid(G4VSolid const& solid,
 template<class CR>
 auto make_truncated(G4VSolid const& solid,
                     CR&& interior,
-                    std::vector<PlaneAligned>&& planes) -> SPConstObject
+                    Truncated::VecPlane&& planes) -> SPConstObject
 {
     if (planes.empty())
     {
@@ -422,16 +422,17 @@ auto SolidConverter::ellipsoid(arg_type solid_base) -> result_type
                                   solid.GetSemiAxisMax(to_int(Axis::y)),
                                   solid.GetSemiAxisMax(to_int(Axis::z)));
 
-    std::vector<PlaneAligned> truncate;
+    using Plane = PlaneAlignedHalfspace;
+    std::vector<Plane> truncate;
     if (auto cut = scale_(solid.GetZBottomCut());
         !soft_equal(-radii[to_int(Axis::z)], cut))
     {
-        truncate.push_back(PlaneAligned{Sense::outside, Axis::z, cut});
+        truncate.push_back(PlaneAlignedHalfspace{Sense::outside, Axis::z, cut});
     }
     if (auto cut = scale_(solid.GetZTopCut());
         !soft_equal(radii[to_int(Axis::z)], cut))
     {
-        truncate.push_back(PlaneAligned{Sense::inside, Axis::z, cut});
+        truncate.push_back(PlaneAlignedHalfspace{Sense::inside, Axis::z, cut});
     }
 
     return make_truncated(solid, Ellipsoid{radii}, std::move(truncate));

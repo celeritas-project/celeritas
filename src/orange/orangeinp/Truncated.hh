@@ -28,7 +28,8 @@ namespace orangeinp
 class Truncated final : public ObjectInterface
 {
   public:
-    using VecPlane = std::vector<PlaneAligned>;
+    using Plane = PlaneAlignedHalfspace;
+    using VecPlane = std::vector<Plane>;
     using UPRegion = std::unique_ptr<IntersectRegionInterface>;
 
   public:
@@ -55,12 +56,12 @@ class Truncated final : public ObjectInterface
     IntersectRegionInterface const& region() const { return *region_; }
 
     //! Get the truncating planes
-    std::vector<PlaneAligned> const& planes() const { return planes_; }
+    VecPlane const& planes() const { return planes_; }
 
   private:
     std::string label_;
     std::unique_ptr<IntersectRegionInterface> region_;
-    std::vector<PlaneAligned> planes_;
+    VecPlane planes_;
 };
 
 //---------------------------------------------------------------------------//

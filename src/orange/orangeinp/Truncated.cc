@@ -26,14 +26,13 @@ namespace
 class TruncatedRegion final : public IntersectRegionInterface
 {
   public:
-    explicit TruncatedRegion(std::vector<PlaneAligned> const& planes)
-        : planes_(planes)
-    {
-    }
+    using VecPlane = Truncated::VecPlane;
+
+    explicit TruncatedRegion(VecPlane const& planes) : planes_(planes) {}
 
     void build(IntersectSurfaceBuilder& build_surface) const final
     {
-        for (PlaneAligned const& p : planes_)
+        for (auto const& p : planes_)
         {
             p.build(build_surface);
         }
@@ -42,7 +41,7 @@ class TruncatedRegion final : public IntersectRegionInterface
     void output(JsonPimpl*) const final { CELER_ASSERT_UNREACHABLE(); }
 
   private:
-    std::vector<PlaneAligned> const& planes_;
+    VecPlane const& planes_;
 };
 }  // namespace
 
@@ -50,9 +49,7 @@ class TruncatedRegion final : public IntersectRegionInterface
 /*!
  * Construct with region to truncate and truncating planes.
  */
-Truncated::Truncated(std::string&& label,
-                     UPRegion&& region,
-                     std::vector<PlaneAligned>&& planes)
+Truncated::Truncated(std::string&& label, UPRegion&& region, VecPlane&& planes)
     : label_{std::move(label)}
     , region_{std::move(region)}
     , planes_{std::move(planes)}
@@ -62,21 +59,20 @@ Truncated::Truncated(std::string&& label,
                    << "truncated requires at least one truncated plane");
 
     // Sort planes by axis and sense for consistency
-    auto as_tuple = [](PlaneAligned const& p) {
+    auto as_tuple = [](Plane const& p) {
         return std::tuple(to_int(p.axis()), static_cast<bool>(p.sense()));
     };
     std::sort(planes_.begin(),
               planes_.end(),
-              [as_tuple](PlaneAligned const& a, PlaneAligned const& b) {
+              [as_tuple](Plane const& a, Plane const& b) {
                   return as_tuple(a) < as_tuple(b);
               });
     // Check for duplicates
-    auto it = std::adjacent_find(
-        planes_.begin(),
-        planes_.end(),
-        [as_tuple](PlaneAligned const& a, PlaneAligned const& b) {
-            return as_tuple(a) == as_tuple(b);
-        });
+    auto it = std::adjacent_find(planes_.begin(),
+                                 planes_.end(),
+                                 [as_tuple](Plane const& a, Plane const& b) {
+                                     return as_tuple(a) == as_tuple(b);
+                                 });
 
     CELER_VALIDATE(it == planes_.end(),
                    << "duplicate axis/sense combination in truncated region");

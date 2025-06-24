@@ -26,6 +26,8 @@ namespace test
 class TruncatedTest : public ObjectTestBase
 {
   protected:
+    using Plane = PlaneAlignedHalfspace;
+
     void SetUp() override {}
     Tol tolerance() const override { return Tol::from_relative(1e-4); }
 };
@@ -39,19 +41,18 @@ TEST_F(TruncatedTest, errors)
     // Redundant truncating planes
     EXPECT_THROW(Truncated("el",
                            std::make_unique<Sphere>(1.0),
-                           {PlaneAligned{Sense::inside, Axis::z, 1.25},
-                            PlaneAligned{Sense::inside, Axis::z, 0.25}}),
+                           {Plane{Sense::inside, Axis::z, 1.25},
+                            Plane{Sense::inside, Axis::z, 0.25}}),
                  RuntimeError);
 }
 
 TEST_F(TruncatedTest, ellipsoid)
 {
     Real3 radii{1.5, 0.5, 2.0};
-    this->build_volume(
-        Truncated("el",
-                  std::make_unique<Ellipsoid>(radii),
-                  {PlaneAligned{Sense::inside, Axis::z, 1.25},
-                   PlaneAligned{Sense::outside, Axis::z, -0.5}}));
+    this->build_volume(Truncated("el",
+                                 std::make_unique<Ellipsoid>(radii),
+                                 {Plane{Sense::inside, Axis::z, 1.25},
+                                  Plane{Sense::outside, Axis::z, -0.5}}));
 
     static char const* const expected_surface_strings[]
         = {"SQuadric: {1,9,0.5625} {0,0,0} -2.25",
@@ -92,7 +93,7 @@ TEST_F(TruncatedTest, or_shape)
         auto trunc = Truncated::or_shape(
             "el",
             Ellipsoid{radii},
-            {PlaneAligned{Sense::inside, Axis::x, 1.25}});
+            {PlaneAlignedHalfspace{Sense::inside, Axis::x, 1.25}});
         EXPECT_TRUE(trunc);
         EXPECT_TRUE(dynamic_cast<Truncated const*>(trunc.get()))
             << demangle_shape(*trunc);

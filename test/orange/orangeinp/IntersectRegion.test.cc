@@ -1812,14 +1812,15 @@ TEST_F(ParallelepipedTest, full)
 }
 
 //---------------------------------------------------------------------------//
-// PLANEALIGNED
+// PLANEALIGNEDHALFSPACE
 //---------------------------------------------------------------------------//
-using PlaneAlignedTest = IntersectRegionTest;
+using PlaneAlignedHalfspaceTest = IntersectRegionTest;
 
-TEST_F(PlaneAlignedTest, basic)
+TEST_F(PlaneAlignedHalfspaceTest, basic)
 {
+    using Plane = PlaneAlignedHalfspace;
     {
-        auto result = this->test(PlaneAligned(Sense::inside, Axis::x, -1.5));
+        auto result = this->test(Plane(Sense::inside, Axis::x, -1.5));
         IntersectTestResult ref;
         ref.node = "-0";
         ref.surfaces = {"Plane: x=-1.5"};
@@ -1828,7 +1829,7 @@ TEST_F(PlaneAlignedTest, basic)
         EXPECT_REF_EQ(ref, result);
     }
     {
-        auto result = this->test(PlaneAligned(Sense::outside, Axis::z, 2));
+        auto result = this->test(Plane(Sense::outside, Axis::z, 2));
 
         IntersectTestResult ref;
         ref.node = "+1";

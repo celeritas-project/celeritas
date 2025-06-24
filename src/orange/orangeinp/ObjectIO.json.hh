@@ -46,7 +46,7 @@ class GenPrism;
 class InfWedge;
 class Involute;
 class Parallelepiped;
-class PlaneAligned;
+class PlaneAlignedHalfspace;
 class Prism;
 class Sphere;
 
@@ -84,7 +84,7 @@ void to_json(nlohmann::json& j, GenPrism const& cr);
 void to_json(nlohmann::json& j, InfWedge const& cr);
 void to_json(nlohmann::json& j, Involute const& cr);
 void to_json(nlohmann::json& j, Parallelepiped const& cr);
-void to_json(nlohmann::json& j, PlaneAligned const& pa);
+void to_json(nlohmann::json& j, PlaneAlignedHalfspace const& pa);
 void to_json(nlohmann::json& j, Prism const& cr);
 void to_json(nlohmann::json& j, Sphere const& cr);
 
