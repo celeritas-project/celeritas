@@ -72,7 +72,6 @@ TEST_F(TruncatedTest, ellipsoid)
     static char const* const expected_volume_strings[] = {"all(-0, -1, +2)"};
 
     auto const& u = this->unit();
-    //::celeritas::orangeinp::test::print_expected(u);
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
