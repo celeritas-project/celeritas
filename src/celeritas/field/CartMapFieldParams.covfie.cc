@@ -34,9 +34,9 @@ struct CartMapFieldParams::Impl
         : host_{[&inp] {
             HostVal<CartMapFieldParamsData> host;
 
-            Array<size_type, 4> const dims{inp.num_x,
-                                           inp.num_y,
-                                           inp.num_z,
+            Array<size_type, 4> const dims{inp.x.num,
+                                           inp.y.num,
+                                           inp.z.num,
                                            static_cast<size_type>(Axis::size_)};
             HyperslabIndexer const flat_index{dims};
 
@@ -45,14 +45,14 @@ struct CartMapFieldParams::Impl
 
             builder_t builder{covfie::make_parameter_pack(
                 builder_t::backend_t::configuration_t{
-                    inp.num_x, inp.num_y, inp.num_z})};
+                    inp.x.num, inp.y.num, inp.z.num})};
             builder_t::view_t builder_view{builder};
             // fill the covfie field data
-            for (auto ix : range(inp.num_x))
+            for (auto ix : range(inp.x.num))
             {
-                for (auto iy : range(inp.num_y))
+                for (auto iy : range(inp.y.num))
                 {
-                    for (auto iz : range(inp.num_z))
+                    for (auto iz : range(inp.z.num))
                     {
                         auto* fv = builder_view.at(ix, iy, iz).begin();
                         auto* finp = inp.field.data()
@@ -66,17 +66,17 @@ struct CartMapFieldParams::Impl
 
             using field_real_type = CartMapField::real_type;
             auto affine_translate = covfie::algebra::affine<3>::translation(
-                static_cast<field_real_type>(-inp.min_x),
-                static_cast<field_real_type>(-inp.min_y),
-                static_cast<field_real_type>(-inp.min_z));
+                static_cast<field_real_type>(-inp.x.min),
+                static_cast<field_real_type>(-inp.y.min),
+                static_cast<field_real_type>(-inp.z.min));
 
             auto affine_scale = covfie::algebra::affine<3>::scaling(
-                static_cast<field_real_type>((inp.num_x - 1)
-                                             / (inp.max_x - inp.min_x)),
-                static_cast<field_real_type>((inp.num_y - 1)
-                                             / (inp.max_y - inp.min_y)),
-                static_cast<field_real_type>((inp.num_z - 1)
-                                             / (inp.max_z - inp.min_z)));
+                static_cast<field_real_type>((inp.x.num - 1)
+                                             / (inp.x.max - inp.x.min)),
+                static_cast<field_real_type>((inp.y.num - 1)
+                                             / (inp.y.max - inp.y.min)),
+                static_cast<field_real_type>((inp.z.num - 1)
+                                             / (inp.z.max - inp.z.min)));
 
             using field_t = detail::CovfieFieldTraits<MemSpace::host>::field_t;
             host.field = std::make_unique<field_t>(covfie::make_parameter_pack(
