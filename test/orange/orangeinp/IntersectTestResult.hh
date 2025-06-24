@@ -19,7 +19,16 @@ namespace orangeinp
 namespace test
 {
 //---------------------------------------------------------------------------//
-
+/*!
+ * This helper struct is returned by IntersectRegionTest's harness.
+ *
+ * It embeds all the meaningful output from constructing an intersect region:
+ * the logical definition, surfaces, and bounding boxes.
+ *
+ * Use \c print_expected to generate output to copy-paste into a test; this
+ * output defines a \c IntersectTestResult that can be compared using \c
+ * EXPECT_REF_EQ.
+ */
 struct IntersectTestResult
 {
     std::string node;
@@ -34,6 +43,7 @@ struct IntersectTestResult
     void print_expected() const;
 };
 
+// Compare with EXPECT_REF_EQ
 ::testing::AssertionResult IsRefEq(char const* expr1,
                                    char const* expr2,
                                    IntersectTestResult const& val1,
