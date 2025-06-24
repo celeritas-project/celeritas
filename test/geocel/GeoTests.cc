@@ -1006,7 +1006,7 @@ void PolyhedraGeoTest::test_trace() const
             10.595786437627,
         };
         ref.halfway_safeties = {
-            0.28806684196341,
+            0.288066841963407,
             0.99292893218813,
             0.75496267504288,
             0.9896472381959,
@@ -1016,6 +1016,12 @@ void PolyhedraGeoTest::test_trace() const
             0.99292893218813,
             4.5,
         };
+        if (test_->geometry_type() == "VecGeom" && using_vecgeom_surface)
+        {
+            // Geant4 has a different safety for the halfway point
+            ref.halfway_safeties[0] = 0.210641235113144;
+            ref.halfway_safeties[6] = 0.56419426202774;
+        }
         ref.bumps = {};
         fixup_orange(*test_, ref, result);
         auto tol = GenericGeoTrackingTolerance::from_test(*test_);
@@ -1061,7 +1067,7 @@ void PolyhedraGeoTest::test_trace() const
         ref.halfway_safeties = {
             0.5,
             0.90156957092601,
-            0.76944173562526,
+            0.769441735625259,
             0.96397271967888,
             0.85635962580704,
             0.90156957092601,
@@ -1069,6 +1075,12 @@ void PolyhedraGeoTest::test_trace() const
             0.90156957092601,
             4.5,
         };
+        if (test_->geometry_type() == "VecGeom" && using_vecgeom_surface)
+        {
+            // Geant4 has a different safety for the halfway point
+            ref.halfway_safeties[2] = 0.679982662200928;
+            ref.halfway_safeties[8] = 4.35703563690186;
+        }
         ref.bumps = {};
         fixup_orange(*test_, ref, result);
         auto tol = GenericGeoTrackingTolerance::from_test(*test_);
@@ -1112,16 +1124,24 @@ void PolyhedraGeoTest::test_trace() const
             10.851072964313,
         };
         ref.halfway_safeties = {
-            0.41988207740847,
+            0.368524014949799,
             0.99,
-            0.90301113894096,
+            0.897850394248962,
             0.99120614758428,
-            0.97807987040665,
+            0.966398000717163,
             0.99133974596216,
-            0.9198173396894,
+            0.801536321640015,
             0.99,
             4.5,
         };
+        if (test_->geometry_type() == "Geant4")
+        {
+            // Geant4 has a different safety for the halfway point
+            ref.halfway_safeties[0] = 0.41988207740847;
+            ref.halfway_safeties[2] = 0.90301113894096;
+            ref.halfway_safeties[4] = 0.978079870406647;
+            ref.halfway_safeties[6] = 0.919817339689397;
+        }
         ref.bumps = {};
         fixup_orange(*test_, ref, result);
         auto tol = GenericGeoTrackingTolerance::from_test(*test_);
