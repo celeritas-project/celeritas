@@ -105,7 +105,7 @@ class OpticalCollector
             return material && (scintillation || cherenkov)
                    && num_track_slots > 0 && buffer_capacity > 0
                    && initializer_capacity > 0 && auto_flush > 0
-                   && max_step_iters > 0 && !model_builders.empty();
+                   && !model_builders.empty();
         }
     };
 

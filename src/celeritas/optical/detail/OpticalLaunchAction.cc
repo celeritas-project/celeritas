@@ -55,7 +55,6 @@ OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
 {
     CELER_EXPECT(optical_params_);
     CELER_EXPECT(state_size_ > 0);
-    CELER_EXPECT(max_step_iters_ > 0);
 
     // TODO: Generate optical photons directly in the track slots rather than a
     // buffer. For now just make sure enough track initializers are allocated
@@ -136,11 +135,16 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
         state.aux() = core_state.aux_ptr();
     }
 
+    auto const& core_counters = core_state.counters();
     auto& counters = state.counters();
     CELER_ASSERT(counters.num_initializers == 0);
-    if (counters.num_pending < auto_flush_)
+
+    if ((counters.num_pending < auto_flush_
+         && (core_counters.num_alive > 0 || core_counters.num_initializers > 0))
+        || max_step_iters_ == 0)
     {
-        // Below the threshold for launching the optical loop
+        // Don't launch the optical loop if the number of pending tracks is
+        // below the threshold and the core stepping loop hasn't completed yet
         return;
     }
 

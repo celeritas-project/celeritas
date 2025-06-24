@@ -57,8 +57,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
         //! True if all input is assigned and valid
         explicit operator bool() const
         {
-            return optical_params && num_track_slots > 0 && max_step_iters > 0
-                   && auto_flush > 0;
+            return optical_params && num_track_slots > 0 && auto_flush > 0;
         }
     };
 
@@ -94,7 +93,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
     //! ID of the model
     ActionId action_id() const final { return action_id_; }
     //! Dependency ordering of the action
-    StepActionOrder order() const final { return StepActionOrder::user_post; }
+    StepActionOrder order() const final { return StepActionOrder::end; }
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;
     // Launch kernel with device data
