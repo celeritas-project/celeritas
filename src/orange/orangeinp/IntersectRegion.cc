@@ -946,6 +946,51 @@ void GenPrism::output(JsonPimpl* j) const
 }
 
 //---------------------------------------------------------------------------//
+// INFPLANE
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with sense, axis, and position.
+ */
+InfPlane::InfPlane(Sense sense, Axis axis, real_type position)
+    : sense_{sense}, axis_{axis}, position_{position}
+{
+    CELER_EXPECT(axis_ < Axis::size_);
+    CELER_EXPECT(!std::isnan(position));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build the surface.
+ */
+void InfPlane::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    // NOTE: these use the Plane surface aliases.
+    switch (axis_)
+    {
+        case Axis::x:
+            insert_surface(sense_, PlaneX{position_});
+            break;
+        case Axis::y:
+            insert_surface(sense_, PlaneY{position_});
+            break;
+        case Axis::z:
+            insert_surface(sense_, PlaneZ{position_});
+            break;
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void InfPlane::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
 // INFWEDGE
 //---------------------------------------------------------------------------//
 /*!
@@ -1141,53 +1186,6 @@ void Parallelepiped::build(IntersectSurfaceBuilder& insert_surface) const
  * Write output to the given JSON object.
  */
 void Parallelepiped::output(JsonPimpl* j) const
-{
-    to_json_pimpl(j, *this);
-}
-
-//---------------------------------------------------------------------------//
-// PLANEALIGNED
-//---------------------------------------------------------------------------//
-/*!
- * Construct with sense, axis, and position.
- */
-PlaneAlignedHalfspace::PlaneAlignedHalfspace(Sense sense,
-                                             Axis axis,
-                                             real_type position)
-    : sense_{sense}, axis_{axis}, position_{position}
-{
-    CELER_EXPECT(axis_ < Axis::size_);
-    CELER_EXPECT(!std::isnan(position));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Build the surface.
- */
-void PlaneAlignedHalfspace::build(IntersectSurfaceBuilder& insert_surface) const
-{
-    // NOTE: these use the Plane surface aliases.
-    switch (axis_)
-    {
-        case Axis::x:
-            insert_surface(sense_, PlaneX{position_});
-            break;
-        case Axis::y:
-            insert_surface(sense_, PlaneY{position_});
-            break;
-        case Axis::z:
-            insert_surface(sense_, PlaneZ{position_});
-            break;
-        default:
-            CELER_ASSERT_UNREACHABLE();
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Write output to the given JSON object.
- */
-void PlaneAlignedHalfspace::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
 }

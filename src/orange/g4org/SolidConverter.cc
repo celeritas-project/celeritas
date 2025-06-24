@@ -422,17 +422,17 @@ auto SolidConverter::ellipsoid(arg_type solid_base) -> result_type
                                   solid.GetSemiAxisMax(to_int(Axis::y)),
                                   solid.GetSemiAxisMax(to_int(Axis::z)));
 
-    using Plane = PlaneAlignedHalfspace;
+    using Plane = InfPlane;
     std::vector<Plane> truncate;
     if (auto cut = scale_(solid.GetZBottomCut());
         !soft_equal(-radii[to_int(Axis::z)], cut))
     {
-        truncate.push_back(PlaneAlignedHalfspace{Sense::outside, Axis::z, cut});
+        truncate.push_back(InfPlane{Sense::outside, Axis::z, cut});
     }
     if (auto cut = scale_(solid.GetZTopCut());
         !soft_equal(radii[to_int(Axis::z)], cut))
     {
-        truncate.push_back(PlaneAlignedHalfspace{Sense::inside, Axis::z, cut});
+        truncate.push_back(InfPlane{Sense::inside, Axis::z, cut});
     }
 
     return make_truncated(solid, Ellipsoid{radii}, std::move(truncate));

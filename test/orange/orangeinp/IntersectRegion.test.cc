@@ -1407,6 +1407,35 @@ TEST_F(GenPrismTest, adjacent_twisted)
 }
 
 //---------------------------------------------------------------------------//
+// INFPLANE
+//---------------------------------------------------------------------------//
+using InfPlaneTest = IntersectRegionTest;
+
+TEST_F(InfPlaneTest, basic)
+{
+    using Plane = InfPlane;
+    {
+        auto result = this->test(Plane(Sense::inside, Axis::x, -1.5));
+        IntersectTestResult ref;
+        ref.node = "-0";
+        ref.surfaces = {"Plane: x=-1.5"};
+        ref.interior = {{-inf, -inf, -inf}, {-1.5, inf, inf}};
+        ref.exterior = {{-inf, -inf, -inf}, {-1.5, inf, inf}};
+        EXPECT_REF_EQ(ref, result);
+    }
+    {
+        auto result = this->test(Plane(Sense::outside, Axis::z, 2));
+
+        IntersectTestResult ref;
+        ref.node = "+1";
+        ref.surfaces = {"Plane: x=-1.5", "Plane: z=2"};
+        ref.interior = {{-inf, -inf, 2}, {inf, inf, inf}};
+        ref.exterior = {{-inf, -inf, 2}, {inf, inf, inf}};
+        EXPECT_REF_EQ(ref, result);
+    }
+}
+
+//---------------------------------------------------------------------------//
 // INFWEDGE
 //---------------------------------------------------------------------------//
 using InfWedgeTest = IntersectRegionTest;
@@ -1809,35 +1838,6 @@ TEST_F(ParallelepipedTest, full)
     EXPECT_VEC_SOFT_EQ(
         (Real3{2.720477400589, 2.3680339887499, 2.8531695488855}),
         result.exterior.upper());
-}
-
-//---------------------------------------------------------------------------//
-// PLANEALIGNEDHALFSPACE
-//---------------------------------------------------------------------------//
-using PlaneAlignedHalfspaceTest = IntersectRegionTest;
-
-TEST_F(PlaneAlignedHalfspaceTest, basic)
-{
-    using Plane = PlaneAlignedHalfspace;
-    {
-        auto result = this->test(Plane(Sense::inside, Axis::x, -1.5));
-        IntersectTestResult ref;
-        ref.node = "-0";
-        ref.surfaces = {"Plane: x=-1.5"};
-        ref.interior = {{-inf, -inf, -inf}, {-1.5, inf, inf}};
-        ref.exterior = {{-inf, -inf, -inf}, {-1.5, inf, inf}};
-        EXPECT_REF_EQ(ref, result);
-    }
-    {
-        auto result = this->test(Plane(Sense::outside, Axis::z, 2));
-
-        IntersectTestResult ref;
-        ref.node = "+1";
-        ref.surfaces = {"Plane: x=-1.5", "Plane: z=2"};
-        ref.interior = {{-inf, -inf, 2}, {inf, inf, inf}};
-        ref.exterior = {{-inf, -inf, 2}, {inf, inf, inf}};
-        EXPECT_REF_EQ(ref, result);
-    }
 }
 
 //---------------------------------------------------------------------------//

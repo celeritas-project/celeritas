@@ -26,7 +26,7 @@ namespace test
 class TruncatedTest : public ObjectTestBase
 {
   protected:
-    using Plane = PlaneAlignedHalfspace;
+    using Plane = InfPlane;
 
     void SetUp() override {}
     Tol tolerance() const override { return Tol::from_relative(1e-4); }
@@ -91,9 +91,7 @@ TEST_F(TruncatedTest, or_shape)
     }
     {
         auto trunc = Truncated::or_shape(
-            "el",
-            Ellipsoid{radii},
-            {PlaneAlignedHalfspace{Sense::inside, Axis::x, 1.25}});
+            "el", Ellipsoid{radii}, {InfPlane{Sense::inside, Axis::x, 1.25}});
         EXPECT_TRUE(trunc);
         EXPECT_TRUE(dynamic_cast<Truncated const*>(trunc.get()))
             << demangle_shape(*trunc);

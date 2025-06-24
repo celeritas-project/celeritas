@@ -28,7 +28,7 @@ namespace orangeinp
 class Truncated final : public ObjectInterface
 {
   public:
-    using Plane = PlaneAlignedHalfspace;
+    using Plane = InfPlane;
     using VecPlane = std::vector<Plane>;
     using UPRegion = std::unique_ptr<IntersectRegionInterface>;
 

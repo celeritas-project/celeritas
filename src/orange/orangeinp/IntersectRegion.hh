@@ -503,6 +503,43 @@ class GenPrism final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
+ * An axis-aligned infinite half-space to use for truncation operations.
+ *
+ * An "inside" sense means to include everything *below* the position on the
+ * axis, and an "outside" sense means to include only what's *above* the
+ * position.
+ */
+class InfPlane : public IntersectRegionInterface
+{
+  public:
+    // Construct with sense, axis, and position
+    InfPlane(Sense sense, Axis axis, real_type position);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Get the sense (inside or outside)
+    Sense sense() const { return sense_; }
+
+    //! Get the axis (x, y, or z)
+    Axis axis() const { return axis_; }
+
+    //! Get the position along the axis
+    real_type position() const { return position_; }
+
+  private:
+    Sense sense_;
+    Axis axis_;
+    real_type position_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * An open wedge shape from the *z* axis.
  *
  * The wedge is defined by an interior angle that \em must be less than or
@@ -636,43 +673,6 @@ class Parallelepiped final : public IntersectRegionInterface
     Turn theta_;
     // azimuthal angle of main axis
     Turn phi_;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * An axis-aligned infinite half-space to use for truncation operations.
- *
- * An "inside" sense means to include everything *below* the position on the
- * axis, and an "outside" sense means to include only what's *above* the
- * position.
- */
-class PlaneAlignedHalfspace : public IntersectRegionInterface
-{
-  public:
-    // Construct with sense, axis, and position
-    PlaneAlignedHalfspace(Sense sense, Axis axis, real_type position);
-
-    // Build surfaces
-    void build(IntersectSurfaceBuilder&) const final;
-
-    // Output to JSON
-    void output(JsonPimpl*) const final;
-
-    //// ACCESSORS ////
-
-    //! Get the sense (inside or outside)
-    Sense sense() const { return sense_; }
-
-    //! Get the axis (x, y, or z)
-    Axis axis() const { return axis_; }
-
-    //! Get the position along the axis
-    real_type position() const { return position_; }
-
-  private:
-    Sense sense_;
-    Axis axis_;
-    real_type position_;
 };
 
 //---------------------------------------------------------------------------//
