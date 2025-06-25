@@ -15,11 +15,12 @@
 #include "GenericGeoTestInterface.hh"
 #include "testdetail/TestMacrosImpl.hh"
 
-// DEPRECATED: remove in v0.7
+// Redefined in .hh -- removed from here
+/*// DEPRECATED: remove in v0.7
 #define EXPECT_RESULT_EQ(EXPECTED, ACTUAL) EXPECT_REF_EQ(EXPECTED, ACTUAL)
 #define EXPECT_RESULT_NEAR(EXPECTED, ACTUAL, TOL) \
     EXPECT_REF_NEAR(EXPECTED, ACTUAL, TOL)
-
+*/
 //!@{
 //! Helper macros
 #define CELER_REF_ATTR(ATTR) "ref." #ATTR " = " << repr(this->ATTR) << ";\n"
