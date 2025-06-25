@@ -34,10 +34,10 @@ helps construct these objects.
 .. doxygenclass:: celeritas::orangeinp::EllipticalCone
 .. doxygenclass:: celeritas::orangeinp::ExtrudedPolygon
 .. doxygenclass:: celeritas::orangeinp::GenPrism
+.. doxygenclass:: celeritas::orangeinp::InfPlane
 .. doxygenclass:: celeritas::orangeinp::InfWedge
 .. doxygenclass:: celeritas::orangeinp::Involute
 .. doxygenclass:: celeritas::orangeinp::Parallelepiped
-.. doxygenclass:: celeritas::orangeinp::PlaneAligned
 .. doxygenclass:: celeritas::orangeinp::Prism
 .. doxygenclass:: celeritas::orangeinp::Sphere
 
