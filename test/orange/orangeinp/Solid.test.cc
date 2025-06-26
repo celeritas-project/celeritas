@@ -33,54 +33,59 @@ TEST(EnclosedAziTest, null)
     EXPECT_FALSE(azi);
 }
 
+TEST(EnclosedAziTest, transforming)
+{
+    {
+        EnclosedAzi azi{Turn{-2.5}, Turn{-2}};
+        EXPECT_REAL_EQ(0.5, azi.start().value());
+        EXPECT_REAL_EQ(1.0, azi.stop().value());
+    }
+    {
+        EnclosedAzi azi{Turn{-1.5}, Turn{-0.75}};
+        EXPECT_REAL_EQ(0.5, azi.start().value());
+        EXPECT_REAL_EQ(1.25, azi.stop().value());
+    }
+    {
+        EnclosedAzi azi{Turn{-0.25}, Turn{-0.125}};
+        EXPECT_REAL_EQ(0.75, azi.start().value());
+        EXPECT_REAL_EQ(0.875, azi.stop().value());
+    }
+}
+
 TEST(EnclosedAziTest, make_sense_region)
 {
     {
         SCOPED_TRACE("concave");
-        EnclosedAzi azi(Turn{-0.25}, Turn{0.1});
+        EnclosedAzi azi(Turn{-0.25}, Turn{-0.15});
         auto&& [sense, wedge] = azi.make_sense_region();
         EXPECT_EQ(Sense::inside, sense);
-        EXPECT_SOFT_EQ(0.75, wedge.start().value());
-        EXPECT_SOFT_EQ(0.1, wedge.interior().value());
+        EXPECT_REAL_EQ(0.75, wedge.start().value());
+        EXPECT_REAL_EQ(0.85, wedge.stop().value());
     }
     {
         SCOPED_TRACE("convex");
-        EnclosedAzi azi(Turn{0.25}, Turn{0.8});
+        EnclosedAzi azi(Turn{0.25}, Turn{1.125});
         auto&& [sense, wedge] = azi.make_sense_region();
         EXPECT_EQ(Sense::outside, sense);
-        EXPECT_SOFT_EQ(0.05, wedge.start().value());
-        EXPECT_SOFT_EQ(0.2, wedge.interior().value());
+        EXPECT_REAL_EQ(1.125, wedge.start().value());
+        EXPECT_REAL_EQ(1.25, wedge.stop().value());
     }
     {
         SCOPED_TRACE("half");
-        EnclosedAzi azi(Turn{0.1}, Turn{0.5});
+        EnclosedAzi azi(Turn{0.1}, Turn{0.6});
         auto&& [sense, wedge] = azi.make_sense_region();
         EXPECT_EQ(Sense::inside, sense);
-        EXPECT_SOFT_EQ(0.1, wedge.start().value());
-        EXPECT_SOFT_EQ(0.5, wedge.interior().value());
+        EXPECT_REAL_EQ(0.1, wedge.start().value());
+        EXPECT_REAL_EQ(0.6, wedge.stop().value());
     }
-}
-
-//---------------------------------------------------------------------------//
-TEST(SolidZSlabTest, errors)
-{
-    EXPECT_THROW(SolidZSlab(0.1, -0.1), RuntimeError);
-    EXPECT_THROW(SolidZSlab(0.1, 0.1), RuntimeError);
-}
-
-TEST(SolidZSlabTest, infinite)
-{
-    // The default slab spans R^3 and evaluates to false
-    SolidZSlab szs;
-    EXPECT_FALSE(szs);
-}
-
-TEST(SolidZSlabTest, make_sense_region)
-{
-    SolidZSlab szs(5, 10);
-    auto inf_slab = szs.make_inf_slab();
-    EXPECT_SOFT_EQ(5, inf_slab.lower());
-    EXPECT_SOFT_EQ(10, inf_slab.upper());
+    {
+        SCOPED_TRACE("pac-man");
+        EnclosedAzi azi(Turn{0.125}, Turn{0.875});
+        auto&& [sense, wedge] = azi.make_sense_region();
+        EXPECT_EQ(Sense::outside, sense);
+        EXPECT_REAL_EQ(0.875, wedge.start().value());
+        EXPECT_REAL_EQ(1.125, wedge.stop().value());
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -94,19 +99,16 @@ class SolidTest : public ObjectTestBase
 TEST_F(SolidTest, errors)
 {
     // Inner region is outside outer
-    EXPECT_THROW(ConeSolid("cone", Cone{{1, 2}, 10.0}, Cone{{1.1, 1.9}, 10.0}),
-                 RuntimeError);
-    // No exclusion, no wedge
-    EXPECT_THROW(ConeSolid("cone", Cone{{1, 2}, 10.0}, EnclosedAzi{}),
-                 RuntimeError);
     EXPECT_THROW(
-        ConeSolid("cone", Cone{{1, 2}, 10.0}, std::nullopt, EnclosedAzi{}),
+        ConeSolid("cone", Cone{{1, 2}, 10.0}, Cone{{1.1, 1.9}, 10.0}, {}),
         RuntimeError);
+    // No exclusion, no wedge
+    EXPECT_THROW(ConeSolid("cone", Cone{{1, 2}, 10.0}, {}, {}), RuntimeError);
 }
 
 TEST_F(SolidTest, inner)
 {
-    ConeSolid cone("cone", Cone{{1, 2}, 10.0}, Cone{{0.9, 1.9}, 10.0});
+    ConeSolid cone("cone", Cone{{1, 2}, 10.0}, Cone{{0.9, 1.9}, 10.0}, {});
     this->build_volume(cone);
 
     static char const* const expected_surface_strings[] = {
@@ -121,15 +123,15 @@ TEST_F(SolidTest, inner)
     static char const* const expected_md_strings[] = {
         "",
         "",
-        "cone@excluded.mz,cone@interior.mz",
-        "cone@excluded.pz,cone@interior.pz",
+        "cone@exc.mz,cone@int.mz",
+        "cone@exc.pz,cone@int.pz",
         "",
-        "cone@interior.kz",
+        "cone@int.kz",
         "",
-        "cone@interior",
-        "cone@excluded.kz",
+        "cone@int",
+        "cone@exc.kz",
         "",
-        "cone@excluded",
+        "cone@exc",
         "",
         "cone",
     };
@@ -153,7 +155,7 @@ TEST_F(SolidTest, inner)
 TEST_F(SolidTest, wedge)
 {
     ConeSolid cone(
-        "cone", Cone{{1, 2}, 10.0}, EnclosedAzi{Turn{-0.125}, Turn{0.25}});
+        "cone", Cone{{1, 2}, 10.0}, {}, EnclosedAzi{Turn{-0.125}, Turn{0.125}});
     this->build_volume(cone);
     static char const* const expected_surface_strings[] = {
         "Plane: z=-10",
@@ -168,15 +170,15 @@ TEST_F(SolidTest, wedge)
     static char const* const expected_md_strings[] = {
         "",
         "",
-        "cone@interior.mz",
-        "cone@interior.pz",
+        "cone@int.mz",
+        "cone@int.pz",
         "",
-        "cone@interior.kz",
+        "cone@int.kz",
         "",
-        "cone@interior",
-        "cone@angle.p0",
-        "cone@angle.p1",
-        "cone@angle",
+        "cone@int",
+        "cone@azi.p0",
+        "cone@azi.p1",
+        "cone@azi",
         "cone",
     };
     // clang-format off
@@ -197,7 +199,7 @@ TEST_F(SolidTest, wedge)
 TEST_F(SolidTest, antiwedge)
 {
     ConeSolid cone(
-        "cone", Cone{{1, 2}, 10.0}, EnclosedAzi{Turn{0.125}, Turn{0.75}});
+        "cone", Cone{{1, 2}, 10.0}, {}, EnclosedAzi{Turn{0.125}, Turn{0.875}});
     this->build_volume(cone);
     static char const* const expected_surface_strings[] = {
         "Plane: z=-10",
@@ -212,15 +214,15 @@ TEST_F(SolidTest, antiwedge)
     static char const* const expected_md_strings[] = {
         "",
         "",
-        "cone@interior.mz",
-        "cone@interior.pz",
+        "cone@int.mz",
+        "cone@int.pz",
         "",
-        "cone@interior.kz",
+        "cone@int.kz",
         "",
-        "cone@interior",
-        "cone@angle.p0",
-        "cone@angle.p1",
-        "cone@angle",
+        "cone@int",
+        "cone@azi.p0",
+        "cone@azi.p1",
+        "cone@azi",
         "",
         "cone",
     };
@@ -245,7 +247,7 @@ TEST_F(SolidTest, both)
     ConeSolid cone("cone",
                    Cone{{1, 2}, 10.0},
                    Cone{{0.9, 1.9}, 10.0},
-                   EnclosedAzi{Turn{-0.125}, Turn{0.25}});
+                   EnclosedAzi{Turn{-0.125}, Turn{0.125}});
     this->build_volume(cone);
     static char const* const expected_surface_strings[] = {
         "Plane: z=-10",
@@ -261,19 +263,19 @@ TEST_F(SolidTest, both)
     static char const* const expected_md_strings[] = {
         "",
         "",
-        "cone@excluded.mz,cone@interior.mz",
-        "cone@excluded.pz,cone@interior.pz",
+        "cone@exc.mz,cone@int.mz",
+        "cone@exc.pz,cone@int.pz",
         "",
-        "cone@interior.kz",
+        "cone@int.kz",
         "",
-        "cone@interior",
-        "cone@excluded.kz",
+        "cone@int",
+        "cone@exc.kz",
         "",
-        "cone@excluded",
+        "cone@exc",
         "",
-        "cone@angle.p0",
-        "cone@angle.p1",
-        "cone@angle",
+        "cone@azi.p0",
+        "cone@azi.p1",
+        "cone@azi",
         "cone",
     };
     static char const* const expected_bound_strings[] = {
@@ -299,7 +301,7 @@ TEST_F(SolidTest, cyl)
     this->build_volume(CylinderSolid("cyl",
                                      Cylinder{1, 10.0},
                                      Cylinder{0.9, 10.0},
-                                     EnclosedAzi{Turn{-0.125}, Turn{0.25}}));
+                                     EnclosedAzi{Turn{-0.125}, Turn{0.125}}));
 
     static char const* const expected_surface_strings[] = {
         "Plane: z=-10",

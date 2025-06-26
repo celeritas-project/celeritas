@@ -16,6 +16,7 @@
 #include "orange/orangeinp/detail/SenseEvaluator.hh"
 
 #include "CsgTestUtils.hh"
+#include "IntersectTestResult.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -43,18 +44,7 @@ class IntersectRegionTest : public ::celeritas::test::Test
     using UnitBuilder = orangeinp::detail::CsgUnitBuilder;
     using State = orangeinp::detail::IntersectSurfaceState;
     using Tol = UnitBuilder::Tol;
-
-  protected:
-    struct TestResult
-    {
-        std::string node;
-        std::vector<std::string> surfaces;
-        BBox interior;
-        BBox exterior;
-        NodeId node_id;
-
-        void print_expected() const;
-    };
+    using TestResult = IntersectTestResult;
 
   protected:
     // Test with an explicit name and transform
@@ -134,34 +124,6 @@ auto IntersectRegionTest::test(std::string&& name,
     result.exterior = merged_bzone.exterior;
 
     return result;
-}
-
-//---------------------------------------------------------------------------//
-void IntersectRegionTest::TestResult::print_expected() const
-{
-    using std::cout;
-    cout << "/***** EXPECTED REGION *****/\n"
-         << "static char const expected_node[] = " << repr(this->node) << ";\n"
-         << "static char const * const expected_surfaces[] = "
-         << repr(this->surfaces) << ";\n\n"
-         << "EXPECT_EQ(expected_node, result.node);\n"
-         << "EXPECT_VEC_EQ(expected_surfaces, result.surfaces);\n";
-
-    auto print_expect_req = [](char const* s, Real3 const& v) {
-        cout << "EXPECT_VEC_SOFT_EQ((Real3" << repr(v) << "), " << s << ");\n";
-    };
-    if (this->interior)
-    {
-        print_expect_req("result.interior.lower()", this->interior.lower());
-        print_expect_req("result.interior.upper()", this->interior.upper());
-    }
-    else
-    {
-        cout << "EXPECT_FALSE(result.interior) << result.interior;\n";
-    }
-    print_expect_req("result.exterior.lower()", this->exterior.lower());
-    print_expect_req("result.exterior.upper()", this->exterior.upper());
-    cout << "/***************************/\n";
 }
 
 //---------------------------------------------------------------------------//
@@ -1445,52 +1407,54 @@ TEST_F(GenPrismTest, adjacent_twisted)
 }
 
 //---------------------------------------------------------------------------//
-// INFSLAB
+// INFPLANE
 //---------------------------------------------------------------------------//
-using InfSlabTest = IntersectRegionTest;
+using InfPlaneTest = IntersectRegionTest;
 
-TEST_F(InfSlabTest, errors)
+TEST_F(InfPlaneTest, basic)
 {
-    EXPECT_THROW(InfSlab(1.0, 1.0), RuntimeError);
-    EXPECT_THROW(InfSlab(2.0, 1.0), RuntimeError);
+    using Plane = InfPlane;
+    {
+        auto result = this->test(Plane(Sense::inside, Axis::x, -1.5));
+        IntersectTestResult ref;
+        ref.node = "-0";
+        ref.surfaces = {"Plane: x=-1.5"};
+        ref.interior = {{-inf, -inf, -inf}, {-1.5, inf, inf}};
+        ref.exterior = {{-inf, -inf, -inf}, {-1.5, inf, inf}};
+        EXPECT_REF_EQ(ref, result);
+    }
+    {
+        auto result = this->test(Plane(Sense::outside, Axis::z, 2));
+
+        IntersectTestResult ref;
+        ref.node = "+1";
+        ref.surfaces = {"Plane: x=-1.5", "Plane: z=2"};
+        ref.interior = {{-inf, -inf, 2}, {inf, inf, inf}};
+        ref.exterior = {{-inf, -inf, 2}, {inf, inf, inf}};
+        EXPECT_REF_EQ(ref, result);
+    }
 }
 
-TEST_F(InfSlabTest, basic)
-{
-    auto inf = std::numeric_limits<real_type>::infinity();
-    auto result = this->test(InfSlab(-5.5, 6.6));
-    static char const expected_node[] = "all(+0, -1)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-5.5", "Plane: z=6.6"};
+//---------------------------------------------------------------------------//
+// INFAZIWEDGE
+//---------------------------------------------------------------------------//
+using InfAziWedgeTest = IntersectRegionTest;
 
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -5.5}), result.interior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 6.6}), result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -5.5}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 6.6}), result.exterior.upper());
+TEST_F(InfAziWedgeTest, errors)
+{
+    EXPECT_THROW(InfAziWedge(Turn{0}, Turn{0.51}), RuntimeError);
+    EXPECT_THROW(InfAziWedge(Turn{0}, Turn{0}), RuntimeError);
+    EXPECT_THROW(InfAziWedge(Turn{0}, Turn{-0.5}), RuntimeError);
+    EXPECT_THROW(InfAziWedge(Turn{-0.1}, Turn{-0.5}), RuntimeError);
+    EXPECT_THROW(InfAziWedge(Turn{1.1}, Turn{-0.5}), RuntimeError);
 }
 
-//---------------------------------------------------------------------------//
-// INFWEDGE
-//---------------------------------------------------------------------------//
-using InfWedgeTest = IntersectRegionTest;
-
-TEST_F(InfWedgeTest, errors)
-{
-    EXPECT_THROW(InfWedge(Turn{0}, Turn{0.51}), RuntimeError);
-    EXPECT_THROW(InfWedge(Turn{0}, Turn{0}), RuntimeError);
-    EXPECT_THROW(InfWedge(Turn{0}, Turn{-0.5}), RuntimeError);
-    EXPECT_THROW(InfWedge(Turn{-0.1}, Turn{-0.5}), RuntimeError);
-    EXPECT_THROW(InfWedge(Turn{1.1}, Turn{-0.5}), RuntimeError);
-}
-
-TEST_F(InfWedgeTest, quarter_turn)
+TEST_F(InfAziWedgeTest, quarter_turn)
 {
     auto inf = std::numeric_limits<real_type>::infinity();
     {
         SCOPED_TRACE("first quadrant");
-        auto result = this->test(InfWedge(Turn{0}, Turn{0.25}));
+        auto result = this->test(InfAziWedge(Turn{0}, Turn{0.25}));
         static char const expected_node[] = "all(+0, +1)";
         static char const* const expected_surfaces[]
             = {"Plane: y=0", "Plane: x=0"};
@@ -1504,24 +1468,24 @@ TEST_F(InfWedgeTest, quarter_turn)
     }
     {
         SCOPED_TRACE("second quadrant");
-        auto result = this->test(InfWedge(Turn{.25}, Turn{0.25}));
+        auto result = this->test(InfAziWedge(Turn{.25}, Turn{0.5}));
         EXPECT_EQ("all(+0, -1)", result.node);
     }
     {
         SCOPED_TRACE("fourth quadrant");
-        InfWedge wedge(Turn{0.75}, Turn{0.25});
+        InfAziWedge wedge(Turn{0.75}, Turn{1.0});
         EXPECT_SOFT_EQ(0.75, wedge.start().value());
         auto result = this->test(wedge);
         EXPECT_EQ("all(+1, -0)", result.node);
     }
     {
         SCOPED_TRACE("north quadrant");
-        auto result = this->test(InfWedge(Turn{0.125}, Turn{0.25}));
+        auto result = this->test(InfAziWedge(Turn{0.125}, Turn{0.375}));
         EXPECT_EQ("all(-2, +3)", result.node);
     }
     {
         SCOPED_TRACE("east quadrant");
-        auto result = this->test(InfWedge(Turn{1 - 0.125}, Turn{0.25}));
+        auto result = this->test(InfAziWedge(Turn{0.875}, Turn{1.125}));
         EXPECT_EQ("all(+2, +3)", result.node);
         static char const expected_node[] = "all(+2, +3)";
         EXPECT_EQ(expected_node, result.node);
@@ -1530,7 +1494,7 @@ TEST_F(InfWedgeTest, quarter_turn)
     }
     {
         SCOPED_TRACE("west quadrant");
-        auto result = this->test(InfWedge(Turn{0.375}, Turn{0.25}));
+        auto result = this->test(InfAziWedge(Turn{0.375}, Turn{0.625}));
         static char const expected_node[] = "all(-2, -3)";
         static char const* const expected_surfaces[] = {
             "Plane: y=0",
@@ -1544,12 +1508,12 @@ TEST_F(InfWedgeTest, quarter_turn)
     }
 }
 
-TEST_F(InfWedgeTest, half_turn)
+TEST_F(InfAziWedgeTest, half_turn)
 {
     auto inf = std::numeric_limits<real_type>::infinity();
     {
         SCOPED_TRACE("north half");
-        auto result = this->test(InfWedge(Turn{0}, Turn{0.5}));
+        auto result = this->test(InfAziWedge(Turn{0}, Turn{0.5}));
         EXPECT_EQ("+0", result.node);
         EXPECT_VEC_SOFT_EQ((Real3{-inf, 0, -inf}), result.interior.lower());
         EXPECT_VEC_SOFT_EQ((Real3{inf, inf, inf}), result.interior.upper());
@@ -1558,12 +1522,12 @@ TEST_F(InfWedgeTest, half_turn)
     }
     {
         SCOPED_TRACE("south half");
-        auto result = this->test(InfWedge(Turn{0.5}, Turn{0.5}));
+        auto result = this->test(InfAziWedge(Turn{0.5}, Turn{1.0}));
         EXPECT_EQ("-0", result.node);
     }
     {
         SCOPED_TRACE("northeast half");
-        auto result = this->test(InfWedge(Turn{0.125}, Turn{0.5}));
+        auto result = this->test(InfAziWedge(Turn{0.125}, Turn{0.625}));
         static char const expected_node[] = "-1";
         static char const* const expected_surfaces[]
             = {"Plane: y=0", "Plane: n={0.70711,-0.70711,0}, d=0"};
@@ -1574,7 +1538,7 @@ TEST_F(InfWedgeTest, half_turn)
 }
 
 //---------------------------------------------------------------------------//
-// Involute
+// INVOLUTE
 //---------------------------------------------------------------------------//
 class InvoluteTest : public IntersectRegionTest
 {

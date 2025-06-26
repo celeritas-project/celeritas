@@ -7,12 +7,13 @@
 #include "IntersectRegion.hh"
 
 #include <cmath>
+#include <tuple>
 
+#include "corecel/Assert.hh"
 #include "corecel/Constants.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
-#include "corecel/io/Repr.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/Types.hh"
@@ -261,7 +262,7 @@ void Cylinder::output(JsonPimpl* j) const
 // ELLIPSOID
 //---------------------------------------------------------------------------//
 /*!
- * Construct with radii.
+ * Construct with radius along each Cartesian axis.
  */
 Ellipsoid::Ellipsoid(Real3 const& radii) : radii_{radii}
 {
@@ -945,52 +946,61 @@ void GenPrism::output(JsonPimpl* j) const
 }
 
 //---------------------------------------------------------------------------//
-// INFSLAB
+// INFPLANE
 //---------------------------------------------------------------------------//
 /*!
- * Construct from lower and upper z-planes.
+ * Construct with sense, axis, and position.
  */
-InfSlab::InfSlab(real_type lower, real_type upper)
-    : lower_{lower}, upper_{upper}
+InfPlane::InfPlane(Sense sense, Axis axis, real_type position)
+    : sense_{sense}, axis_{axis}, position_{position}
 {
-    CELER_VALIDATE(lower_ < upper_,
-                   << "invalid z planes, lower plane z value " << lower_
-                   << " must be less than upper plane z value" << upper_);
+    CELER_EXPECT(axis_ < Axis::size_);
+    CELER_EXPECT(!std::isnan(position));
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Build surfaces.
+ * Build the surface.
  */
-void InfSlab::build(IntersectSurfaceBuilder& insert_surface) const
+void InfPlane::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    insert_surface(Sense::outside, PlaneZ{lower_});
-    insert_surface(Sense::inside, PlaneZ{upper_});
+    // NOTE: these use the Plane surface aliases.
+    switch (axis_)
+    {
+        case Axis::x:
+            insert_surface(sense_, PlaneX{position_});
+            break;
+        case Axis::y:
+            insert_surface(sense_, PlaneY{position_});
+            break;
+        case Axis::z:
+            insert_surface(sense_, PlaneZ{position_});
+            break;
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    }
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Write output to the given JSON object.
  */
-void InfSlab::output(JsonPimpl* j) const
+void InfPlane::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
 }
 
 //---------------------------------------------------------------------------//
-// INFWEDGE
+// INFAZIWEDGE
 //---------------------------------------------------------------------------//
 /*!
- * Construct from a starting angle and interior angle.
+ * Construct from a starting angle and stop angle.
  */
-InfWedge::InfWedge(Turn start, Turn interior)
-    : start_{start}, interior_{interior}
+InfAziWedge::InfAziWedge(Turn start, Turn stop) : start_{start}, stop_{stop}
 {
-    CELER_VALIDATE(start_ >= zero_quantity() && start_ < Turn{1},
-                   << "invalid start angle " << start_.value()
-                   << " [turns]: must be in the range [0, 1)");
-    CELER_VALIDATE(interior_ > zero_quantity() && interior_ <= Turn{0.5},
-                   << "invalid interior wedge angle " << interior.value()
+    CELER_VALIDATE(stop_ > start_ && stop_ <= start_ + Turn{0.5},
+                   << "invalid interior wedge angle " << stop_.value() << " - "
+                   << start_.value() << " = " << (stop_ - start_).value()
                    << " [turns]: must be in the range (0, 0.5]");
 }
 
@@ -999,16 +1009,17 @@ InfWedge::InfWedge(Turn start, Turn interior)
  * Build surfaces.
  *
  * Both planes should point "outward" to the wedge. In the degenerate case of
- * interior = 0.5 we rely on CSG object deduplication.
+ * stop = 0.5 + start, we rely on CSG object deduplication.
  */
-void InfWedge::build(IntersectSurfaceBuilder& insert_surface) const
+void InfAziWedge::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    real_type sinstart, cosstart, sinend, cosend;
-    sincos(start_, &sinstart, &cosstart);
-    sincos(start_ + interior_, &sinend, &cosend);
-
-    insert_surface(Sense::inside, Plane{Real3{sinstart, -cosstart, 0}, 0.0});
-    insert_surface(Sense::outside, Plane{Real3{sinend, -cosend, 0}, 0.0});
+    for (auto [sense, angle] :
+         {std::pair{Sense::inside, start_}, std::pair{Sense::outside, stop_}})
+    {
+        real_type s, c;
+        sincos(angle, &s, &c);
+        insert_surface(sense, Plane{Real3{s, -c, 0}, 0});
+    }
 
     //! \todo Restrict bounding boxes, at least eliminating two quadrants...
 }
@@ -1017,13 +1028,13 @@ void InfWedge::build(IntersectSurfaceBuilder& insert_surface) const
 /*!
  * Write output to the given JSON object.
  */
-void InfWedge::output(JsonPimpl* j) const
+void InfAziWedge::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
 }
 
 //---------------------------------------------------------------------------//
-// Involute
+// INVOLUTE
 //---------------------------------------------------------------------------//
 /*!
  * Construct with prarameters and half height.
@@ -1258,7 +1269,7 @@ void Prism::output(JsonPimpl* j) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether this encloses another sphere.
+ * Whether this encloses another prism.
  */
 bool Prism::encloses(Prism const& other) const
 {

@@ -23,10 +23,7 @@ struct SDParamsData
     Collection<DetectorId, W, M, VolumeId> detector;
 
     //! Whether the data is assigned
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return (!detector.empty());
-    }
+    explicit CELER_FUNCTION operator bool() const { return !detector.empty(); }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>

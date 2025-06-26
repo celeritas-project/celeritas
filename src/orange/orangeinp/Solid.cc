@@ -23,60 +23,55 @@ namespace celeritas
 {
 namespace orangeinp
 {
+namespace
+{
+// Overload eumod to work with turn
+constexpr auto eumod(RealTurn numer, RealTurn denom)
+{
+    return RealTurn{celeritas::eumod(numer.value(), denom.value())};
+}
+
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
- * Construct from a starting angle and interior angle.
+ * Construct from a starting angle and stop angle.
  */
-EnclosedAzi::EnclosedAzi(Turn start, Turn interior)
-    : start_{start}, interior_{interior}
+EnclosedAzi::EnclosedAzi(Turn start, Turn stop) : start_{start}, stop_{stop}
 {
-    CELER_VALIDATE(interior_ > zero_quantity() && interior_ <= Turn{1},
-                   << "invalid interior angle " << interior.value()
-                   << " [turns]: must be in (0, 1]");
+    CELER_VALIDATE(stop_ > start_ && stop_ - start_ <= Turn{1},
+                   << "invalid stop angle " << stop.value()
+                   << " [turns]: must be in (" << start_.value() << ", "
+                   << start_.value() + 1 << "]");
+
+    if (start_ < Turn{0} || start_ >= Turn{1})
+    {
+        auto orig_start = start_;
+        start_ = eumod(start_, Turn{1});
+        stop_ = stop_ + (start_ - orig_start);
+    }
+    CELER_ENSURE(start_ >= Turn{0} && stop_ > start_
+                 && stop_ - start_ <= Turn{1});
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct a wedge shape to intersect (inside) or subtract (outside).
+ *
+ * The resulting wedge must be less than a half turn.
  */
 auto EnclosedAzi::make_sense_region() const -> SenseWedge
 {
     CELER_EXPECT(*this);
-    // Get the start value between [0, 1)
-    real_type start = eumod(start_.value(), real_type{1});
-    real_type interior = interior_.value();
-    Sense sense = Sense::inside;
-    if (interior > real_type{0.5})
+
+    if (stop_ - start_ <= Turn{0.5})
     {
-        // Subtract the complement of the wedge
-        sense = Sense::outside;
-        start = eumod(start + interior, real_type{1});
-        interior = 1 - interior;
+        // Wedge is already an "inside" shape
+        return {Sense::inside, InfAziWedge{start_, stop_}};
     }
 
-    return {sense, InfWedge{Turn{start}, Turn{interior}}};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct from lower and upper z-planes.
- */
-SolidZSlab::SolidZSlab(real_type lower, real_type upper)
-    : lower_{lower}, upper_{upper}
-{
-    CELER_VALIDATE(lower < upper,
-                   << "invalid lower z-plane " << lower
-                   << " must be less than upper z plane " << upper);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct an InfSlab shape to intersect with the solid.
- */
-auto SolidZSlab::make_inf_slab() const -> InfSlab
-{
-    CELER_EXPECT(*this);
-    return InfSlab{lower_, upper_};
+    // Subtract the complement of the wedge: add one turn to the start value
+    return {Sense::outside, InfAziWedge{stop_, start_ + Turn{1}}};
 }
 
 //---------------------------------------------------------------------------//
@@ -88,36 +83,30 @@ NodeId SolidBase::build(VolumeBuilder& vb) const
     std::vector<NodeId> nodes;
 
     // Build the outside-of-the-shell node
-    nodes.push_back(build_intersect_region(
-        vb, this->label(), "interior", this->interior()));
+    nodes.push_back(
+        build_intersect_region(vb, this->label(), "int", this->interior()));
 
     if (auto* exclu = this->excluded())
     {
         // Construct the excluded region by building a convex solid, then
         // negating it
         NodeId smaller
-            = build_intersect_region(vb, this->label(), "excluded", *exclu);
+            = build_intersect_region(vb, this->label(), "exc", *exclu);
         nodes.push_back(vb.insert_region({}, Negated{smaller}));
     }
 
     if (auto const& azi = this->enclosed_azi())
     {
-        // The enclosed angle is "true" (specified by the user to truncate the
-        // shape azimuthally): construct a wedge to be added or deleted
+        // The user is truncating the shape azimuthally: construct a wedge to
+        // be added or deleted
         auto&& [sense, wedge] = azi.make_sense_region();
         NodeId wedge_id
-            = build_intersect_region(vb, this->label(), "angle", wedge);
+            = build_intersect_region(vb, this->label(), "azi", wedge);
         if (sense == Sense::outside)
         {
             wedge_id = vb.insert_region({}, Negated{wedge_id});
         }
         nodes.push_back(wedge_id);
-    }
-
-    if (auto const& szs = this->z_slab())
-    {
-        nodes.push_back(build_intersect_region(
-            vb, this->label(), "z_slab", szs.make_inf_slab()));
     }
 
     // Intersect the given surfaces to create a new CSG node
@@ -136,15 +125,15 @@ void SolidBase::output(JsonPimpl* j) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a solid or shape given an optional interior or enclosed angle.
+ * Return a solid or shape given an optional interior or azi angle.
  */
 template<class T>
 auto Solid<T>::or_shape(std::string&& label,
                         T&& interior,
                         OptionalRegion&& excluded,
-                        EnclosedAzi&& enclosed) -> SPConstObject
+                        EnclosedAzi&& azi) -> SPConstObject
 {
-    if (!excluded && !enclosed)
+    if (!excluded && !azi)
     {
         // Just a shape
         return std::make_shared<Shape<T>>(std::move(label),
@@ -154,29 +143,28 @@ auto Solid<T>::or_shape(std::string&& label,
     return std::make_shared<Solid<T>>(std::move(label),
                                       std::move(interior),
                                       std::move(excluded),
-                                      std::move(enclosed));
+                                      std::move(azi));
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with optional optional excluded region and enclosed angle.
+ * Construct with optional optional excluded region and azi angle.
  */
 template<class T>
 Solid<T>::Solid(std::string&& label,
                 T&& interior,
                 OptionalRegion&& excluded,
-                EnclosedAzi&& enclosed)
+                EnclosedAzi&& azi)
     : label_{std::move(label)}
     , interior_{std::move(interior)}
     , exclusion_{std::move(excluded)}
-    , enclosed_{std::move(enclosed)}
-    , z_slab_{}
+    , azi_{std::move(azi)}
 {
-    CELER_VALIDATE(exclusion_ || enclosed_,
+    CELER_VALIDATE(exclusion_ || azi_,
                    << "solid requires either an excluded region or a shape");
     CELER_VALIDATE(!exclusion_ || interior_.encloses(*exclusion_),
                    << "solid '" << this->label()
-                   << "' was given an interior region that is not enclosed by "
+                   << "' was given an interior region that is not azi by "
                       "its exterior");
 }
 
@@ -195,33 +183,16 @@ Solid<T>::Solid(std::string&& label, T&& interior, T&& excluded)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with an enclosed angle.
+ * Construct with an azi angle.
  */
 template<class T>
-Solid<T>::Solid(std::string&& label, T&& interior, EnclosedAzi&& enclosed)
-    : Solid{std::move(label),
-            std::move(interior),
-            std::nullopt,
-            std::move(enclosed)}
+Solid<T>::Solid(std::string&& label, T&& interior, EnclosedAzi&& azi)
+    : Solid{std::move(label), std::move(interior), std::nullopt, std::move(azi)}
 {
-    CELER_VALIDATE(enclosed_,
+    CELER_VALIDATE(azi_,
                    << "solid '" << this->label()
                    << "' did not exclude an interior or a wedge (use a Shape "
                       "instead)");
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct with only a z-slab.
- */
-template<class T>
-Solid<T>::Solid(std::string&& label, T&& interior, SolidZSlab&& z_slab)
-    : label_{std::move(label)}
-    , interior_{std::move(interior)}
-    , exclusion_{std::nullopt}
-    , enclosed_{EnclosedAzi{}}
-    , z_slab_{std::move(z_slab)}
-{
 }
 
 //---------------------------------------------------------------------------//
@@ -232,7 +203,6 @@ template class Solid<Cone>;
 template class Solid<Cylinder>;
 template class Solid<Prism>;
 template class Solid<Sphere>;
-template class Solid<Ellipsoid>;
 
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp

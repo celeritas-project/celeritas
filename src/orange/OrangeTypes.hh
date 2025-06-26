@@ -393,6 +393,9 @@ CELER_CONSTEXPR_FUNCTION bool is_operator_token(logic_int lv)
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//
+// Get a string corresponding to a surface sense
+char const* to_cstring(Sense);
+
 // Get a string corresponding to a surface type
 char const* to_cstring(SurfaceType);
 

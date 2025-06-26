@@ -182,7 +182,7 @@ TEST_F(PolyconeTest, sliced)
 {
     this->build_volume(PolyCone{"pc",
                                 PolySegments{{2, 1, 3}, {-2, 0, 2}},
-                                EnclosedAzi{Turn{0.125}, Turn{0.75}}});
+                                EnclosedAzi{Turn{0.125}, Turn{0.875}}});
 
     static char const* const expected_surface_strings[] = {
         "Plane: z=-2",
