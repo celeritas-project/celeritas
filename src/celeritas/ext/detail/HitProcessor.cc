@@ -405,6 +405,13 @@ void HitProcessor::update_track(ParticleId id) const
         p->SetMass(pd.GetPDGMass());
         p->SetCharge(pd.GetPDGCharge());
     }
+
+    if (G4StepPoint* pre_step = step_points_[StepPoint::pre])
+    {
+        // Copy data from post-step to track
+        track.SetTouchableHandle(pre_step->GetTouchableHandle());
+    }
+
     if (G4StepPoint* post_step = step_points_[StepPoint::post])
     {
         // Copy data from post-step to track
