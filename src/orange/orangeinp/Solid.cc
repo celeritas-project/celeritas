@@ -120,6 +120,8 @@ auto EnclosedPolar::make_regions() const -> VecPolarWedge
     {
         result.emplace_back(std::max(equator, start_), stop_);
     }
+
+    CELER_ENSURE(!result.empty());
     return result;
 }
 
