@@ -359,7 +359,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
     {
         // Set the track particle type
         CELER_ASSERT(!out.particle.empty());
-        this->update_track(out.particle[i]);
+        this->update_track(out, i);
     }
 
     if (step_post_status_)
@@ -380,13 +380,19 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
  *
  * This is a bit like \c G4Step::UpdateTrack .
  */
-void HitProcessor::update_track(ParticleId id) const
+void HitProcessor::update_track(DetectorStepOutput const& out, size_type i) const
 {
+    ParticleId id = out.particle[i];
     CELER_EXPECT(id < tracks_.size());
     G4Track& track = *tracks_[id.unchecked_get()];
     step_->SetTrack(&track);
 
     G4ParticleDefinition const& pd = *track.GetParticleDefinition();
+
+    if (!out.parent_id.empty())
+    {
+        track.SetTrackID(out.parent_id[i].unchecked_get());
+    }
 
     for (G4StepPoint* p : step_points_)
     {

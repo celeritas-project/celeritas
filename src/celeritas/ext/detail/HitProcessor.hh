@@ -133,7 +133,7 @@ class HitProcessor
     //! Accumulated number of hits
     size_type num_hits_;
 
-    void update_track(ParticleId id) const;
+    void update_track(DetectorStepOutput const& out, size_type i) const;
 };
 
 //---------------------------------------------------------------------------//
