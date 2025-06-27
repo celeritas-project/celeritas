@@ -574,11 +574,12 @@ class InfAziWedge final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * Use a cone and plane to select a polar (latitudinal) region.
+ * Select a polar (latitudinal) region.
  *
- * A polar wedge always defines a region in a single hemisphere: either
- * \f$ z >= 0 \f$ or \f$ z <= 0 \f$, corresponding to an stop range of
- * [0, .25] turns or [0.25, 0.5] turns.
+ * This uses an equatorial plane and up to two cones to slice a
+ * polar-coordinate region from the origin.  A polar wedge always defines a
+ * region in a single hemisphere: either \f$ z >= 0 \f$ or \f$ z <= 0 \f$,
+ * corresponding to an stop range of [0, .25] turns or [0.25, 0.5] turns.
  */
 class InfPolarWedge final : public IntersectRegionInterface
 {

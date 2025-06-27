@@ -213,8 +213,8 @@ TEST_F(SolidTest, wedge)
         "Plane: z=-10",
         "Plane: z=10",
         "Cone z: t=0.05 at {0,0,-30}",
-        "Plane: n={0.70711,0.70711,0}, d=0",
         "Plane: n={0.70711,-0.70711,0}, d=0",
+        "Plane: n={0.70711,0.70711,0}, d=0",
     };
     static char const* const expected_volume_strings[] = {
         "all(+0, -1, -2, +3, +4)",
@@ -228,8 +228,8 @@ TEST_F(SolidTest, wedge)
         "cone@int.kz",
         "",
         "cone@int",
-        "cone@azi.p0",
-        "cone@azi.p1",
+        "cone@awm",
+        "cone@awp",
         "cone@azi",
         "cone",
     };
@@ -260,8 +260,8 @@ TEST_F(SolidTest, antiwedge)
         "Plane: z=-10",
         "Plane: z=10",
         "Cone z: t=0.05 at {0,0,-30}",
-        "Plane: n={0.70711,0.70711,0}, d=0",
         "Plane: n={0.70711,-0.70711,0}, d=0",
+        "Plane: n={0.70711,0.70711,0}, d=0",
     };
     static char const* const expected_volume_strings[] = {
         "all(+0, -1, -2, !all(+3, +4))",
@@ -275,9 +275,9 @@ TEST_F(SolidTest, antiwedge)
         "cone@int.kz",
         "",
         "cone@int",
-        "cone@azi.p0",
-        "cone@azi.p1",
-        "cone@azi",
+        "cone@awm",
+        "cone@awp",
+        "cone@~azi",
         "",
         "cone",
     };
@@ -310,8 +310,8 @@ TEST_F(SolidTest, both)
         "Plane: z=10",
         "Cone z: t=0.05 at {0,0,-30}",
         "Cone z: t=0.05 at {0,0,-28}",
-        "Plane: n={0.70711,0.70711,0}, d=0",
         "Plane: n={0.70711,-0.70711,0}, d=0",
+        "Plane: n={0.70711,0.70711,0}, d=0",
     };
     static char const* const expected_volume_strings[] = {
         "all(+0, -1, -2, !all(+0, -1, -3), +4, +5)",
@@ -329,8 +329,8 @@ TEST_F(SolidTest, both)
         "",
         "cone@exc",
         "",
-        "cone@azi.p0",
-        "cone@azi.p1",
+        "cone@awm",
+        "cone@awp",
         "cone@azi",
         "cone",
     };
@@ -365,8 +365,8 @@ TEST_F(SolidTest, cyl)
         "Plane: z=10",
         "Cyl z: r=1",
         "Cyl z: r=0.9",
-        "Plane: n={0.70711,0.70711,0}, d=0",
         "Plane: n={0.70711,-0.70711,0}, d=0",
+        "Plane: n={0.70711,0.70711,0}, d=0",
     };
     static char const* const expected_volume_strings[] = {
         "all(+0, -1, -2, !all(+0, -1, -3), +4, +5)",
@@ -421,8 +421,8 @@ TEST_F(SolidTest, sphere_polar)
         "Plane: z=0",
         "Cone z: t=1 at {0,0,0}",
         "Cone z: t=1.7321 at {0,0,0}",
-        "Plane: y=0",
         "Plane: x=0",
+        "Plane: y=0",
     };
     static char const* const expected_volume_strings[] = {
         "all(-0, +1, -2)",
@@ -437,8 +437,8 @@ TEST_F(SolidTest, sphere_polar)
         "",
         "bot@int.s,mid@int.s,midsym@int.s,negoct@int.s,oct@int.s,top@int.s",
         "bot@int,mid@int,midsym@int,negoct@int,oct@int,top@int",
-        R"(,bot@pol.pz,mid@pol.mz,mid@pol.pz,midsym@pol.mz,midsym@pol.pz,negoct@pol.pz,oct@pol,oct@pol.mz,top@pol.mz)",
-        "mid@pol.kz,midsym@pol.kz,top@pol.kz",
+        R"(,bot@pwm,mid@pwm,midsym@pwm,negoct@pwm,oct@pol,oct@pwm,top@pwm)",
+        "mid@pwt,midsym@pwb,midsym@pwt,top@pwb",
         "",
         ",top@pol",
         "top",
@@ -447,18 +447,18 @@ TEST_F(SolidTest, sphere_polar)
         "midsym@pol",
         "",
         "midsym",
-        "bot@pol.kz,mid@pol.kz",
+        "bot@pwt,mid@pwb",
         "mid@pol",
         "",
         "mid",
         "",
         ",bot@pol",
         "bot",
-        "negoct@azi.p0,oct@azi.p0",
+        "negoct@awm,oct@awm",
         "",
-        "negoct@azi.p1,oct@azi.p1",
+        "negoct@awp,oct@awp",
         "",
-        "negoct@azi,oct@azi",
+        "negoct@~azi,oct@azi",
         "oct",
         "",
         "negoct",

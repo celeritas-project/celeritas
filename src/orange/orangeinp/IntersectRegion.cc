@@ -1018,15 +1018,20 @@ InfAziWedge::InfAziWedge(Turn start, Turn stop) : start_{start}, stop_{stop}
  *
  * Both planes should point "outward" to the wedge. In the degenerate case of
  * stop = 0.5 + start, we rely on CSG object deduplication.
+ *
+ * Names are 'azimuthal wedge' with plus/minus
  */
 void InfAziWedge::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    for (auto [sense, angle] :
-         {std::pair{Sense::inside, start_}, std::pair{Sense::outside, stop_}})
+    for (auto&& [sense, angle, namechar] :
+         {std::tuple{Sense::outside, stop_, 'm'},
+          std::tuple{Sense::inside, start_, 'p'}})
     {
         real_type s, c;
         sincos(angle, &s, &c);
-        insert_surface(sense, Plane{Real3{s, -c, 0}, 0});
+        std::string facename("aw*");
+        facename[2] = namechar;
+        insert_surface(sense, Plane{Real3{s, -c, 0}, 0}, std::move(facename));
     }
 
     //! \todo Restrict bounding boxes, at least eliminating two quadrants...
@@ -1050,7 +1055,7 @@ void InfAziWedge::output(JsonPimpl* j) const
 InfPolarWedge::InfPolarWedge(Turn start, Turn stop)
     : start_{start}, stop_{stop}
 {
-    CELER_VALIDATE(start_ >= zero_quantity() && start_ < Turn{0.5},
+    CELER_VALIDATE(start_ >= north_pole && start_ < south_pole,
                    << "invalid start angle " << start_.value()
                    << " [turns]: must be in the range [0, 0.5)");
 
@@ -1067,6 +1072,11 @@ InfPolarWedge::InfPolarWedge(Turn start, Turn stop)
 //---------------------------------------------------------------------------//
 /*!
  * Build surfaces.
+ *
+ * Names use 'pw' for polar wedge, 'z' for plane:
+ *  - pwm: middle plane
+ *  - pwt: top cone
+ *  - pwb: bottom cone
  */
 void InfPolarWedge::build(IntersectSurfaceBuilder& insert_surface) const
 {
@@ -1074,22 +1084,23 @@ void InfPolarWedge::build(IntersectSurfaceBuilder& insert_surface) const
 
     // Greater-than-equator start means below z (southern hemisphere)
     auto sense = start_ >= equator ? Sense::inside : Sense::outside;
-    insert_surface(sense, PlaneZ{0});
+    insert_surface(sense, PlaneZ{0}, "pwm");
 
     if (!soft_equal(start_.value(), north_pole.value())
         && !soft_equal(start_.value(), equator.value()))
     {
         // Start point is not a degenerate cone: we're "outside" if top
-        // hemisphere, "inside" if bottom
-        insert_surface(sense, ConeZ{Real3{0, 0, 0}, tan(start_)});
+        // hemisphere, "inside" if bottom. "kt" means "cone top"
+        insert_surface(sense, ConeZ{Real3{0, 0, 0}, tan(start_)}, "pwt");
     }
 
     if (!soft_equal(stop_.value(), south_pole.value())
         && !soft_equal(stop_.value(), equator.value()))
     {
         // End point is not a degenerate cone: we're "inside" if top
-        // hemisphere, "outside" if bottom
-        insert_surface(flip_sense(sense), ConeZ{Real3{0, 0, 0}, tan(stop_)});
+        // hemisphere, "outside" if bottom. "kb" is "cone bottom".
+        insert_surface(
+            flip_sense(sense), ConeZ{Real3{0, 0, 0}, tan(stop_)}, "pwb");
     }
 }
 

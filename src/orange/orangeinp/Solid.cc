@@ -151,8 +151,8 @@ NodeId SolidBase::build(VolumeBuilder& vb) const
         // The user is truncating the shape azimuthally: construct a wedge to
         // be added or deleted
         auto&& [sense, wedge] = azi.make_sense_region();
-        NodeId wedge_id
-            = build_intersect_region(vb, this->label(), "azi", wedge);
+        char const* ext = (sense == Sense::outside ? "~azi" : "azi");
+        NodeId wedge_id = build_intersect_region(vb, this->label(), ext, wedge);
         if (sense == Sense::outside)
         {
             wedge_id = vb.insert_region({}, Negated{wedge_id});
