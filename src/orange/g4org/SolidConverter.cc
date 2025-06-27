@@ -85,7 +85,11 @@ auto enclosed_azi_radians(double start_rad, double stop_rad)
 {
     auto start = native_value_to<RealTurn>(start_rad);
     auto stop = native_value_to<RealTurn>(stop_rad);
-    if (soft_equal(stop.value() - start.value(), real_type{1}))
+    auto delta_turn = value_as<RealTurn>(stop - start);
+    CELER_VALIDATE(delta_turn <= 1 || soft_equal(delta_turn, real_type{1}),
+                   << "azimuthal restriction [" << start.value() << ", "
+                   << stop.value() << "] [turn] exceeds 1 turn");
+    if (delta_turn >= real_type{1})
     {
         // Avoid roundoff error: return full region, *but* keep orientation,
         // needed for polyhedra
@@ -107,11 +111,14 @@ auto enclosed_polar_radians(double start_rad, double stop_rad)
 {
     auto start = native_value_to<RealTurn>(start_rad);
     auto stop = native_value_to<RealTurn>(stop_rad);
-    if (stop > RealTurn{0.5})
-    {
-        // Avoid roundoff error: clip to +pi
-        stop = RealTurn{0.5};
-    }
+    CELER_VALIDATE(start.value() >= 0 || soft_zero(start.value()),
+                   << "polar start angle " << start.value()
+                   << " [turn] exceeds half a turn");
+    start = min(RealTurn{0.5}, start);
+    CELER_VALIDATE(stop.value() <= 0.5 || soft_equal(stop.value(), 0.5),
+                   << "polar end angle " << stop.value()
+                   << " [turn] exceeds half a turn");
+    stop = min(RealTurn{0.5}, stop);
     return EnclosedPolar{start, stop};
 }
 
