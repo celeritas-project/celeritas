@@ -483,11 +483,19 @@ TEST_F(SolidTest, sphere_polar)
         "~27: {{{-inf,-inf,-inf}, {0,0,inf}}, {{-inf,-inf,-inf}, {0,0,inf}}}",
         "28: {null, {{-inf,-inf,-inf}, {inf,inf,0}}}",
     };
+    static char const expected_tree_string[]
+        = R"json(["t",["~",0],["S",0],["~",2],["S",1],["S",2],["~",5],["&",[4,6]],["&",[3,4,6]],["&",[4,5]],["~",4],["&",[5,10]],["|",[9,11]],["&",[3,12]],["S",4],["&",[10,14]],["|",[9,15]],["&",[3,16]],["~",14],["&",[10,18]],["&",[3,10,18]],["S",5],["~",21],["S",6],["~",23],["&",[22,24]],["&",[3,4,22,24]],["~",25],["&",[3,10,27]]])json";
 
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
-    EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
     EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
+
+    if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        // Surface deduplication removes one of the cones a bit later
+        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+        EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
+    }
 }
 
 TEST_F(SolidTest, or_shape)
