@@ -6,10 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <functional>
-#include <memory>
-
-#include "celeritas/Types.hh"
+#include "celeritas/optical/Types.hh"
 #include "celeritas/optical/action/ActionInterface.hh"
 
 namespace celeritas

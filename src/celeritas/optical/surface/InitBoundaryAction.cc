@@ -2,39 +2,33 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/surface/SimpleReflectionModel.hh
+//! \file celeritas/optical/surface/InitBoundaryAction.cc
 //---------------------------------------------------------------------------//
-#pragma once
-
-#include "SurfaceModel.hh"
+#include "InitBoundaryAction.hh"
 
 namespace celeritas
 {
 namespace optical
 {
 //---------------------------------------------------------------------------//
-/*!
- */
-class SimpleReflectionModel : public SurfaceModel
+InitBoundaryAction::InitBoundaryAction(ActionId aid)
+    : ConcreteAction(aid,
+                     "optical-boundary-init",
+                     "Initialize optical boundary crossing action")
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    //!@}
+}
 
-  public:
-    // Create a model builder
-    static ModelBuilder make_builder();
+void InitBoundaryAction::step(CoreParams const& params,
+                              CoreStateHost& state) const
+{
+}
 
-    // Construct with action id
-    SimpleReflectionModel(ActionId id);
-
-    // Execute the model with host data
-    void step(CoreParams const&, CoreStateHost&) const final;
-
-    // Execute the model with device data
-    void step(CoreParams const&, CoreStateDevice&) const final;
-};
+#if !CELER_USE_DEVICE
+void InitBoundaryAction::step(CoreParams const&, CoreStateDevice&) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

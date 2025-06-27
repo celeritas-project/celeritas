@@ -26,6 +26,8 @@ class SurfacePhysicsView
     struct Initializer
     {
         Real3 normal;
+        SurfaceId surface;
+        SurfaceLayerId layer;
     };
 
   public:
@@ -38,22 +40,26 @@ class SurfacePhysicsView
     // Initialize the boundary crossing for the track
     inline CELER_FUNCTION SurfacePhysicsView& operator=(Initializer const&);
 
-    // Get surface model for the current surface
-    inline CELER_FUNCTION SurfaceModelId model() const;
-
     // Get surface ID
     inline CELER_FUNCTION SurfaceId surface_id() const;
 
-    inline CELER_FUNCTION PerModelSurfaceId model_surface_id() const;
+    inline CELER_FUNCTION SurfaceLayerId& current_layer();
+    inline CELER_FUNCTION SurfaceLayerId current_layer() const;
+    inline CELER_FUNCTION SurfaceLayerId::size_type num_layers() const;
 
-    inline CELER_FUNCTION void set_normal_action(ActionId);
-    inline CELER_FUNCTION void set_calc_reflectivity_action(ActionId);
-    inline CELER_FUNCTION void set_interaction_action(ActionId);
+    inline CELER_FUNCTION ActionId roughness_action_id() const;
+    inline CELER_FUNCTION ActionId reflectivity_action_id() const;
+    inline CELER_FUNCTION ActionId interaction_action_id() const;
+
+    // Geometric surface normal
+    inline CELER_FUNCTION Real3 const& surface_normal() const;
+
+    // Normal of the current surface layer
+    inline CELER_FUNCTION Real3 const& layer_normal() const;
 
   private:
     SurfaceParamsRef const& params_;
     SurfaceStateRef const& states_;
-    SurfaceId const surface_;
     TrackSlotId const track_id_;
 };
 
@@ -66,12 +72,10 @@ class SurfacePhysicsView
 CELER_FUNCTION
 SurfacePhysicsView::SurfacePhysicsView(SurfaceParamsRef const& params,
                                        SurfaceStateRef const& states,
-                                       SurfaceId surface,
                                        TrackSlotId track_id)
     : params_(params), states_(states), surface_(surface), track_id_(track_id)
 {
     CELER_EXPECT(track_id_ < states_.size());
-    CELER_EXPECT(surface_ < params_.scalars.num_surfaces);
 }
 
 //---------------------------------------------------------------------------//
@@ -81,8 +85,22 @@ SurfacePhysicsView::SurfacePhysicsView(SurfaceParamsRef const& params,
 CELER_FUNCTION SurfacePhysicsView&
 SurfacePhysicsView::operator=(Initializer const& init)
 {
+    // TODO: Add assertions
     states_.surface_normal[track_id_] = init.normal;
+    states_.surface[track_id_] = init.surface;
+    states_.current_layer[track_id_] = init.layer;
     return *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the normal for the geometry's boundary.
+ *
+ * Defines the order in which the layers of the surface are traversed.
+ */
+CELER_FUNCTION Real3 const& SurfacePhysicsView::surface_normal() const
+{
+    return states_.surface_normal[track_id_];
 }
 
 //---------------------------------------------------------------------------//

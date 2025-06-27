@@ -2,41 +2,33 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/surface/TrivialFacetNormalExecutor.hh
+//! \file celeritas/optical/surface/SurfaceRoughnessModel.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- * Optional detailed class description, and possibly example usage:
- * \code
-    TrivialFacetNormalExecutor ...;
-   \endcode
  */
-class TrivialFacetNormalExecutor
+class SurfaceRoughnessModel : public OpticalStepActionInterface,
+                              public ConcreteAction
 {
   public:
     //!@{
     //! \name Type aliases
-  <++>
-      //!@}
+    //! Function to build a surface roughness model with a given action ID
+    using ModelBuilder
+        = std::function<std::shared_ptr<SurfaceRoughnessModel>(ActionId)>;
+    //!@}
 
-      public :
-      // Construct with defaults
-      inline TrivialFacetNormalExecutor();
+  public:
+    using ConcreteAction::ConcreteAction;
+
+    StepActionOrder order() const override { return StepActionOrder::post; }
 };
-
 //---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Construct with defaults.
- */
-TrivialFacetNormalExecutor::TrivialFacetNormalExecutor() {}
-
-//---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

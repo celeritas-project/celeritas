@@ -26,15 +26,30 @@ using ValudGridId = OpaqueId<ValueGrid>;
 
 //---------------------------------------------------------------------------//
 /*!
- * Store optical physics data for a given surface.
+ * Store optical physics data for a given surface layer.
  */
-struct SurfaceRecord
+struct SurfaceLayerRecord
 {
-    ValueGridId reflectivity;
-    ValueGridId transmittance;
+    // TODO: Per model layer IDs
+
+    ActionId roughness_model{};
+    ActionId reflectivity_model{};
+    ActionId interaction_model{};
 
     //! Whether data is assigned and valid
     inline CELER_FUNCTION operator bool() const { return false; }
+};
+
+/*!
+ * Store interleaved layers and optical materials that constitute a surface.
+ *
+ * If there are N surface layers then there should be N+1 materials. The ith
+ * layer separates the ith and (i+1)th materials.
+ */
+struct SurfaceRecord
+{
+    ItemRange<SurfaceLayerRecordId> layers;
+    ItemRange<OpticalMaterialId> optical_materials;
 };
 
 //---------------------------------------------------------------------------//
@@ -44,20 +59,7 @@ struct SurfaceRecord
 struct SurfacePhysicsParamsScalars
 {
     //! Whether data is assigned and valid
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return global_reflectivity >= 0 && global_transmittance >= 0;
-    }
-
-    CELER_FUNCTION ActionId specular_facet_normal_action() const
-    {
-        return ActionId{-1};
-    }
-
-    CELER_FUNCTION ActionId grid_reflectivity_action() const
-    {
-        return ActionId{-1};
-    }
+    explicit CELER_FUNCTION operator bool() const {}
 };
 
 //---------------------------------------------------------------------------//
@@ -78,6 +80,9 @@ struct SurfacePhysicsParamsData
 
     //! Non-templated data
     SurfacePhysicsParamsScalars scalars;
+
+    //! Surface data
+    SurfaceItems<SurfaceRecord> surfaces;
 
     //! Whether data is assigned and valid
     explicit CELER_FUNCTION operator bool() const
@@ -113,17 +118,15 @@ struct SurfacePhysicsStateData
 
     //// Persistent State Data ////
 
+    StateItems<SurfaceId> surface;
+    StateItems<SurfaceLayerId> current_layer;
     StateItems<Real3> surface_normal;
+    StateItems<Real3> layer_normal;
 
     //// Temporary State Data ////
 
-    StateItems<ActionId> normal_action;
-    StateItems<ActionId> calc_reflectivity_action;
-    StateItems<ActionId> interaction_action;
-
     StateItems<Real3> facet_normal;
     StateItems<real_type> reflectivity;
-    StateItems<real_type> transmittance;
 
     //// Methods ////
 
@@ -157,9 +160,6 @@ inline void resize(PhysicsStateData<Ownership::value, M>* state, size_type size)
 {
     CELER_EXPECT(state);
     CELER_EXPECT(size > 0);
-
-    resize(&state->surface_normal, size);
-    resize(&state->facet_normal, size);
 
     CELER_ENSURE(*state);
 }

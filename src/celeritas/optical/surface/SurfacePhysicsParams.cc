@@ -12,73 +12,21 @@ namespace celeritas
 {
 namespace optical
 {
-//---------------------------------------------------------------------------//
-/*!
- */
-SurfacePhysicsParams::SurfacePhysicsParams(Input input)
+
+template<class M>
+std::vector<std::shared_ptr<M const>>
+build_models(std::vector<M::ModelBuilder> const& builders,
+             ActionRegistry& action_reg)
 {
-    CELER_EXPECT(!input.model_builders.empty());
-    CELER_EXPECT(input.action_registry);
+    using SPConstM = std::shared_ptr<M const>;
 
-    // Reserve slots in action registry for models
+    std::vector<SPConstM> models;
+    models.reserve(builders.size());
 
-    // Build facet normal actions
-    {
-        SurfaceModelBuilder::NormalActionBuilder normal_builder{
-            input.action_registry};
-        for (auto const& model_builder : input.model_builders)
-        {
-            model_builder.build_facet_normal_actions(normal_builder);
-        }
-    }
-    // Build calculate reflectivity actions
-    {
-        SurfaceModelBuilder::ReflectivityActionBuilder refl_builder{
-            input.action_registry};
-        for (auto const& model_builder : input.model_builders)
-        {
-            model_builder.build_calc_reflectivity_actions(refl_builder);
-        }
-    }
-    // Build interaction actions
-    {
-        SurfaceModelBuilder::InteractionActionBuilder interaction_builder{
-            input.action_registry};
-        for (auto const& model_builder : input.model_builders)
-        {
-            model_builder.build_interation_actions(interaction_builder);
-        }
-    }
-    // Create and register actions
-    {
-        auto& action_reg = *input.action_registry;
-
-        // Build models
-        models_ = this->build_models(input.model_builders, action_reg);
-    }
-
-    // Construct data
-    HostVal<SurfacePhysicsParamsData> data;
-
-    CELER_ENSURE(data);
-
-    data_ = CollectionMirror<SurfacePhysicsParamsData>{std::move(data)};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- */
-auto SurfacePhysicsParams::build_models(VecModelBuilders const& model_builders,
-                                        ActionRegistry& action_reg) const
-    -> VecModels
-{
-    VecModels models;
-    models.reserve(model_builders.size());
-
-    for (auto const& builder : model_builders)
+    for (auto const& build : builders)
     {
         auto action_id = action_reg.next_id();
-        SPConstModel model = builder(action_id);
+        SPConstM model = build(action_id);
 
         CELER_ASSERT(model);
         CELER_ASSERT(model->action_id() == action_id);
@@ -87,8 +35,50 @@ auto SurfacePhysicsParams::build_models(VecModelBuilders const& model_builders,
         models.push_back(std::move(model));
     }
 
-    CELER_ENSURE(models.size() == model_builders.size());
+    CELER_ENSURE(models.size() == builders.size());
     return models;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ */
+SurfacePhysicsParams::SurfacePhysicsParams(Input input)
+{
+    // Register roughness actions
+    roughness_models_ = build_models<SurfaceRoughnessModel>(
+        input.roughness_model_builders, *input.action_reg);
+
+    // Register reflectivity actions
+    reflectivity_models_ = build_models<SurfaceReflectivityModel>(
+        input.reflectivity_model_builders, *input.action_reg);
+
+    // Register interaction actions
+    interaction_models_ = build_models<SurfaceModel>(
+        input.interaction_model_builders, *input.action_reg);
+
+    // Construct data
+    HostVal<SurfacePhysicsParamsData> data;
+
+    // Construct scalars
+
+    // Construct surfaces
+    for (auto const& surface : input.surfaces)
+    {
+        SurfaceRecord record;
+        record.roughness_model
+            = roughness_models_[surface.roughness_model.get()]->action_id();
+        record.reflectivity_model
+            = reflectivity_models_[surface.reflectivity_model.get()]->action_id();
+        record.interaction_model
+            = interaction_models_[surface.interaction_model.get()]->action_id();
+        data.surfaces.push_back(std::move(record));
+    }
+
+    // Finalize data
+
+    CELER_ENSURE(data);
+
+    data_ = CollectionMirror<SurfacePhysicsParamsData>{std::move(data)};
 }
 
 //---------------------------------------------------------------------------//

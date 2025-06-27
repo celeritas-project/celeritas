@@ -28,36 +28,39 @@ class SurfacePhysicsParams final
   public:
     //!@{
     //! \name Type aliases
-    using SPConstModel = std::shared_ptr<SurfaceModel const>;
-    using SPConstModelBuilder = std::shared_ptr<SurfaceModelBuilder const>;
+    using SPConstRoughnessModel = std::shared_ptr<SurfaceRoughnessModel const>;
+    using SPConstReflectivityModel
+        = std::shared_ptr<SurfaceReflectivityModel const>;
+    using SPConstInteractionModel = std::shared_ptr<SurfaceModel const>;
 
-    using VecModels = std::vector<SPConstModel>;
-    using VecModelBuilders = std::vector<SPConstModelBuilder>;
+    using VecRoughnessModels = std::vector<SPConstRoughnessModel>;
+    using VecReflectivityModels = std::vector<SPConstReflectivityModel>;
+    using VecInteractionModels = std::vector<SPConstModel>;
 
     using ActionIdRange = Range<ActionId>;
     //!@}
 
+    struct SurfaceInput
+    {
+        SurfaceRoughnessModelId roughness_model;
+        SurfaceReflectivityModelId reflectivity_model;
+        SurfaceModelId interaction_model;
+    };
+
     struct Input
     {
-        VecModelBuilders model_builders;
+        std::vector<SurfaceRoughnessModelBuilder> roughness_model_builders;
+        std::vector<SurfaceReflectivityModelBuilder> reflectivity_model_builders;
+        std::vector<SurfaceModelBuilder> interaction_model_builders;
+
+        std::vector<SurfaceInput> surfaces;
+
         ActionRegistry* action_registry = nullptr;
     };
 
   public:
     // Construct from models
     explicit SurfacePhysicsParams(Input input);
-
-    //! Number of surface models
-    inline SurfaceModelId::size_type num_models() const
-    {
-        return models_.size();
-    }
-
-    // Get a surface model
-    inline SPConstModel model(SurfaceModelId mid) const;
-
-    // Get the boundary action for surface physics
-    inline ActionId boundary_action() const;
 
     //! Access surface physics data on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }
@@ -67,39 +70,13 @@ class SurfacePhysicsParams final
 
   private:
     // Actions
-    VecModels models_;
+    VecRoughnessModels roughness_models_;
+    VecReflectivityModels reflectivity_models_;
+    VecInteractionModels interaction_models_;
 
     // Host/device storage
     CollectionMirror<SurfacePhysicsParamsData> data_;
-
-    //!@{
-    //! \name Data construction helper functions
-    VecModels build_models(VecModelBuilders const&, ActionRegistry&) const;
-    //!@}
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Get an optical surface model associated with the given model identifier.
- */
-auto SurfacePhysicsParams::model(SurfaceModelId mid) const -> SPConstModel
-{
-    CELER_EXPECT(mid < this->num_models());
-    return models_[mid.get()];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the boundary action for surface physics.
- */
-ActionId SurfacePhysicsParams::boundary_action() const
-{
-    // TODO: temporary placeholder for getting the initial boundary action
-    CELER_EXPECT(models_.size() >= 1);
-    return models_.front()->action_id();
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

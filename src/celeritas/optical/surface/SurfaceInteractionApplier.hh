@@ -23,7 +23,8 @@ namespace optical
 /*!
  * Wrap a surface interaction executor and apply it to a track.
  *
- * The function F must take a \c CoreTrackView and return a \c SurfaceInteraction
+ * The function F must take a \c CoreTrackView and return a \c
+ * SurfaceInteraction
  */
 template<class F>
 struct SurfaceInteractionApplierBaseImpl
@@ -45,11 +46,13 @@ struct SurfaceInteractionApplier : public SurfaceInteractionApplierBaseImpl<F>
 {
     CELER_FUNCTION SurfaceInteractionApplier(F&& f)
         : SurfaceInteractionApplierBaseImpl<F>{celeritas::forward<F>(f)}
-    {}
+    {
+    }
 };
 
 template<class F>
-struct SurfaceInteractionApplier<F, std::enable_if_t<kernel_max_blocks_min_warps<F>>>
+struct SurfaceInteractionApplier<F,
+                                 std::enable_if_t<kernel_max_blocks_min_warps<F>>>
     : public SurfaceInteractionApplierBaseImpl<F>
 {
     static constexpr int max_block_size = F::max_block_size;
@@ -57,7 +60,8 @@ struct SurfaceInteractionApplier<F, std::enable_if_t<kernel_max_blocks_min_warps
 
     CELER_FUNCTION SurfaceInteractionApplier(F&& f)
         : SurfaceInteractionApplierBaseImpl<F>{celeritas::forward<F>(f)}
-    {}
+    {
+    }
 };
 
 template<class F>
@@ -68,7 +72,8 @@ struct SurfaceInteractionApplier<F, std::enable_if_t<kernel_max_blocks<F>>>
 
     CELER_FUNCTION SurfaceInteractionApplier(F&& f)
         : SurfaceInteractionApplierBaseImpl<F>{celeritas::forward<F>(f)}
-    {}
+    {
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -99,28 +104,45 @@ SurfaceInteractionApplierBaseImpl<F>::operator()(CoreTrackView& track)
     }
     else
     {
-        if (result.action == SurfaceInteraction::Action::transmitted)
-        {
-            // Photon has crossed the surface into a new volume
-            auto geo = track.geometry();
-            CELER_EXPECT(geo.is_on_boundary());
-
-            geo.cross_boundary();
-
-            if (CELER_UNLIKELY(geo.failed()))
-            {
-                track.apply_errored();
-                return;
-            }
-        }
-
         // Update direction and polarization
         track.geometry().set_dir(result.direction);
         track.particle().polarization(result.polarization);
+
+        if (result.action == SurfaceInteraction::Action::transmitted)
+        {
+            auto surface = track.surface();
+
+            if (dot_product(track.geometry().dir(), surface.surface_normal())
+                < 0)
+            {
+                // Decrement layer
+
+                if (surface.current_layer() == SurfaceLayerId{0})
+                {
+                    // Exit boundary process
+                }
+                else
+                {
+                    surface.current_layer()--;
+                }
+            }
+            else
+            {
+                // Increment layer
+
+                if (surface.current_layer()
+                    == SurfaceLayerId{surface.num_layers() - 1})
+                {
+                    // Exit boundary process
+                }
+                else
+                {
+                    surface.current_layer()++;
+                }
+            }
+        }
     }
 }
-
-
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

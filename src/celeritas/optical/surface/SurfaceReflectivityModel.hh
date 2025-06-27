@@ -2,41 +2,34 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/surface/BoundaryExecutor.hh
+//! \file celeritas/optical/surface/SurfaceReflectivityModel.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- * Optional detailed class description, and possibly example usage:
- * \code
-    BoundaryExecutor ...;
-   \endcode
  */
-class BoundaryExecutor
+class SurfaceReflectivityModel : public OpticalStepActionInterface,
+                                 public ConcreteAction
 {
   public:
     //!@{
     //! \name Type aliases
-  <++>
-      //!@}
+    //! Function to build a surface reflectivity model with a given action ID
+    using ModelBuilder
+        = std::function<std::shared_ptr<SurfaceReflectivityModel>(ActionId)>;
+    //!@}
 
-      public :
-      // Construct with defaults
-      inline BoundaryExecutor();
+  public:
+    using ConcreteAction::ConcreteAction;
+
+    StepActionOrder order() const override { return StepActionOrder::post; }
 };
 
 //---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Construct with defaults.
- */
-BoundaryExecutor::BoundaryExecutor() {}
-
-//---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

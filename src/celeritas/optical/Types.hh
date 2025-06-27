@@ -24,9 +24,11 @@ namespace optical
 {
 
 using ModelId = OpaqueId<class Model>;
-using SurfaceModelId = OpaqueId<class Surface>;
+using SurfaceModelId = OpaqueId<class SurfaceModel>;
+using RoughnessModelId = OpaqueId<class SurfaceRoughnessModel>;
+using ReflectivityModelId = OpaqueId<class SurfaceReflectivityModel>;
 
-}
+}  // namespace optical
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

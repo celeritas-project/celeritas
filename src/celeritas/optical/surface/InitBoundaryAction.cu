@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/surface/BoundaryAction.cu
+//! \file celeritas/optical/surface/InitBoundaryAction.cu
 //---------------------------------------------------------------------------//
-#include "BoundaryAction.hh"
+#include "InitBoundaryAction.hh"
 
 namespace celeritas
 {
