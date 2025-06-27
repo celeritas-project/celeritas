@@ -89,10 +89,9 @@ auto enclosed_azi_radians(double start_rad, double stop_rad)
     CELER_VALIDATE(delta_turn <= 1 || soft_equal(delta_turn, real_type{1}),
                    << "azimuthal restriction [" << start.value() << ", "
                    << stop.value() << "] [turn] exceeds 1 turn");
-    if (delta_turn >= real_type{1})
+    if (delta_turn >= real_type{1} || soft_equal(delta_turn, real_type{1}))
     {
-        // Avoid roundoff error: return full region, *but* keep orientation,
-        // needed for polyhedra
+        // Avoid roundoff error: return full region
         return EnclosedAzi{};
     }
     return EnclosedAzi{start, stop};

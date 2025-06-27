@@ -603,7 +603,7 @@ TEST_F(SolidConverterTest, sphere)
     this->build_and_test(
         G4Sphere("sn1", 0, 50, halfpi, 3. * halfpi, 0, pi),
         R"json({"_type":"solid","enclosed_azi":{"stop":1.0,"start":0.25},"interior":{"_type":"sphere","radius":5.0},"label":"sn1"})json",
-        {{-3, 0.05, 0}, {3, 0.5, 0}, {0, -0.01, 4.9}});
+        {{-3, 0.05, 0}, {3, 0.5, 0}, {-0.01, -0.01, 4.9}});
     this->build_and_test(
         G4Sphere("sn12", 0, 50, 0, twopi, 0., 0.25 * pi),
         R"json({"_type":"solid","enclosed_polar":{"start":0.0,"stop":0.125},"interior":{"_type":"sphere","radius":5.0},"label":"sn12"})json");

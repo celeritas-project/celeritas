@@ -1457,7 +1457,7 @@ TEST_F(InfAziWedgeTest, quarter_turn)
         auto result = this->test(InfAziWedge(Turn{0}, Turn{0.25}));
         static char const expected_node[] = "all(+0, +1)";
         static char const* const expected_surfaces[]
-            = {"Plane: y=0", "Plane: x=0"};
+            = {"Plane: x=0", "Plane: y=0"};
 
         EXPECT_EQ(expected_node, result.node);
         EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -1469,19 +1469,19 @@ TEST_F(InfAziWedgeTest, quarter_turn)
     {
         SCOPED_TRACE("second quadrant");
         auto result = this->test(InfAziWedge(Turn{.25}, Turn{0.5}));
-        EXPECT_EQ("all(+0, -1)", result.node);
+        EXPECT_EQ("all(+1, -0)", result.node);
     }
     {
         SCOPED_TRACE("fourth quadrant");
         InfAziWedge wedge(Turn{0.75}, Turn{1.0});
         EXPECT_SOFT_EQ(0.75, wedge.start().value());
         auto result = this->test(wedge);
-        EXPECT_EQ("all(+1, -0)", result.node);
+        EXPECT_EQ("all(+0, -1)", result.node);
     }
     {
         SCOPED_TRACE("north quadrant");
         auto result = this->test(InfAziWedge(Turn{0.125}, Turn{0.375}));
-        EXPECT_EQ("all(-2, +3)", result.node);
+        EXPECT_EQ("all(+2, -3)", result.node);
     }
     {
         SCOPED_TRACE("east quadrant");
@@ -1495,12 +1495,12 @@ TEST_F(InfAziWedgeTest, quarter_turn)
     {
         SCOPED_TRACE("west quadrant");
         auto result = this->test(InfAziWedge(Turn{0.375}, Turn{0.625}));
-        static char const expected_node[] = "all(-2, -3)";
+        static char const expected_node[] = "all(-3, -2)";
         static char const* const expected_surfaces[] = {
-            "Plane: y=0",
             "Plane: x=0",
-            "Plane: n={0.70711,-0.70711,0}, d=0",
+            "Plane: y=0",
             "Plane: n={0.70711,0.70711,0}, d=0",
+            "Plane: n={0.70711,-0.70711,0}, d=0",
         };
 
         EXPECT_EQ(expected_node, result.node);
