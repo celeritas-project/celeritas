@@ -164,7 +164,7 @@ NodeId SolidBase::build(VolumeBuilder& vb) const
     {
         // Union the polar wedge components
         std::vector<NodeId> wedge_nodes;
-        for (auto wedge : pol.make_regions())
+        for (auto const& wedge : pol.make_regions())
         {
             wedge_nodes.push_back(
                 build_intersect_region(vb, this->label(), "pol", wedge));

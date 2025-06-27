@@ -81,10 +81,13 @@ class EnclosedAzi
  * A start angle of zero corresponding to the \em +z axis. An interior angle of
  * 0.5 results in no exclusion from the resulting solid.
  * \code
-  // Truncates a solid to the top hemisphere
+  // Truncates a solid to the top hemisphere (no cones, just equatorial plane)
   EnclosedPolar{Turn{0}, Turn{0.25}};
-  // Truncates a solid to the equatorial region (18 degrees N/S)
-  EnclosedPolar{Turn{0.2}, Turn{0.3}};
+  // Truncates a solid to northern latitudes (intersect two cones and a plane)
+  EnclosedPolar{Turn{0.15}, Turn{0.2}};
+  // Truncates a solid to an equatorial region (18 degrees N to 36 S: the union
+  // of two polar wedge cones)
+  EnclosedPolar{Turn{0.2}, Turn{0.35}};
   \endcode
  */
 class EnclosedPolar
