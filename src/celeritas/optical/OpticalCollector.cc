@@ -11,6 +11,7 @@
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/ActionRegistryOutput.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
@@ -121,6 +122,10 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
         scint_generate_ = GeneratorAction<GT::scintillation>::make_and_insert(
             core, *optical_params, std::move(ga_inp));
     }
+
+    // Save optical diagnostic information
+    core.output_reg()->insert(std::make_shared<ActionRegistryOutput>(
+        optical_params->action_reg(), "optical-actions"));
 
     // Create launch action with optical params+state and access to gen data
     detail::OpticalLaunchAction::Input la_inp;

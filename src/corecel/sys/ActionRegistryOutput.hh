@@ -29,17 +29,21 @@ class ActionRegistryOutput final : public OutputInterface
     // Construct from a shared action manager
     explicit ActionRegistryOutput(SPConstActionRegistry actions);
 
+    // Construct from a shared action manager and label
+    explicit ActionRegistryOutput(SPConstActionRegistry, std::string);
+
     //! Category of data to write
     Category category() const final { return Category::internal; }
 
     //! Name of the entry inside the category.
-    std::string_view label() const final { return "actions"; }
+    std::string_view label() const final { return label_; }
 
     // Write output to the given JSON object
     void output(JsonPimpl*) const final;
 
   private:
     SPConstActionRegistry actions_;
+    std::string label_;
 };
 
 //---------------------------------------------------------------------------//
