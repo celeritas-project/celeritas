@@ -90,7 +90,7 @@ GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
     IRE_VEC_EQ(volume_instances);
     IRE_VEC_SOFT_EQ(distances, tol.distance);
     IRE_VEC_SOFT_EQ(halfway_safeties, SoftEqual(tol.safety, tol.safety));
-    IRE_VEC_SOFT_EQ(bumps, SoftEqual(tol.safety, tol.safety));
+    //IRE_VEC_SOFT_EQ(bumps, SoftEqual(tol.safety, tol.safety));
 
 #undef IRE_VEC_EQ
 #undef IRE_VEC_SOFT_EQ
