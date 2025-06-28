@@ -72,7 +72,7 @@ VolumeSurfaceView::VolumeSurfaceView(SurfaceParamsRef const& params,
                                      VolumeId id)
     : params_(params), volume_(id)
 {
-    CELER_EXPECT(id < params.volume_surfaces.size());
+    CELER_EXPECT(id < params.volume_surfaces.size() || !params_);
 }
 
 //---------------------------------------------------------------------------//
@@ -92,6 +92,11 @@ CELER_FUNCTION auto VolumeSurfaceView::volume_id() const -> VolumeId
  */
 CELER_FUNCTION SurfaceId VolumeSurfaceView::boundary_id() const
 {
+    if (!params_)
+    {
+        // No surfaces are present
+        return {};
+    }
     return this->volume_record().boundary;
 }
 
@@ -101,6 +106,11 @@ CELER_FUNCTION SurfaceId VolumeSurfaceView::boundary_id() const
  */
 CELER_FUNCTION bool VolumeSurfaceView::has_interface() const
 {
+    if (!params_)
+    {
+        // No surfaces are present
+        return false;
+    }
     return !this->volume_record().surface.empty();
 }
 
@@ -175,6 +185,7 @@ CELER_FUNCTION SurfaceId VolumeSurfaceView::find_interface(
 CELER_FUNCTION VolumeSurfaceRecord const&
 VolumeSurfaceView::volume_record() const
 {
+    CELER_EXPECT(params_);
     return params_.volume_surfaces[volume_];
 }
 

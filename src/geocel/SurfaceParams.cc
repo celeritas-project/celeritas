@@ -22,7 +22,7 @@ namespace celeritas
 SurfaceParams::SurfaceParams(inp::Surfaces const& input,
                              VolumeParams const& volumes)
 {
-    CELER_EXPECT(!input.surfaces.empty());
+    CELER_EXPECT(input);
 
     // Set up temporary storage
     std::vector<detail::VolumeSurfaceData> temp_volume_surfaces;

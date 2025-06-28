@@ -33,6 +33,7 @@ class ParticleParams;
 class PhysicsParams;
 class ScintillationParams;
 class SimParams;
+class SurfaceParams;
 class TrackInitParams;
 class AuxParamsRegistry;
 class WentzelOKVIParams;
@@ -79,6 +80,7 @@ class GlobalTestBase : public Test
     using SPConstAction = SP<CoreStepActionInterface const>;
     using SPConstRng = SP<RngParams const>;
     using SPConstSim = SP<SimParams const>;
+    using SPConstSurface = SP<SurfaceParams const>;
     using SPConstTrackInit = SP<TrackInitParams const>;
     using SPConstWentzelOKVI = SP<WentzelOKVIParams const>;
     using SPConstCore = SP<CoreParams const>;
@@ -115,6 +117,7 @@ class GlobalTestBase : public Test
     inline SPConstAction const& along_step();
     inline SPConstRng const& rng();
     inline SPConstSim const& sim();
+    inline SPConstSurface const& surface();
     inline SPConstTrackInit const& init();
     inline SPConstWentzelOKVI const& wentzel();
     inline SPActionRegistry const& action_reg();
@@ -134,6 +137,7 @@ class GlobalTestBase : public Test
     inline SPConstAction const& along_step() const;
     inline SPConstRng const& rng() const;
     inline SPConstSim const& sim() const;
+    inline SPConstSurface const& surface() const;
     inline SPConstTrackInit const& init() const;
     inline SPConstWentzelOKVI const& wentzel() const;
     inline SPActionRegistry const& action_reg() const;
@@ -164,6 +168,7 @@ class GlobalTestBase : public Test
     [[nodiscard]] virtual SPConstCutoff build_cutoff() = 0;
     [[nodiscard]] virtual SPConstPhysics build_physics() = 0;
     [[nodiscard]] virtual SPConstSim build_sim() = 0;
+    [[nodiscard]] virtual SPConstSurface build_surface() = 0;
     [[nodiscard]] virtual SPConstTrackInit build_init() = 0;
     [[nodiscard]] virtual SPConstWentzelOKVI build_wentzel() = 0;
     [[nodiscard]] virtual SPConstAction build_along_step() = 0;
@@ -193,6 +198,7 @@ class GlobalTestBase : public Test
     SPConstAction along_step_;
     SPConstRng rng_;
     SPConstSim sim_;
+    SPConstSurface surface_;
     SPConstTrackInit init_;
     SPConstWentzelOKVI wentzel_;
     SPConstCore core_;
@@ -235,6 +241,7 @@ DEF_GTB_ACCESSORS(SPConstPhysics, physics)
 DEF_GTB_ACCESSORS(SPConstAction, along_step)
 DEF_GTB_ACCESSORS(SPConstRng, rng)
 DEF_GTB_ACCESSORS(SPConstSim, sim)
+DEF_GTB_ACCESSORS(SPConstSurface, surface)
 DEF_GTB_ACCESSORS(SPConstTrackInit, init)
 DEF_GTB_ACCESSORS(SPActionRegistry, action_reg)
 DEF_GTB_ACCESSORS(SPUserRegistry, aux_reg)
