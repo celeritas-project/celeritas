@@ -106,6 +106,9 @@ inp = {
 }
 
 if "lar" in geometry_filename:
+    # Volume and surface properties are currently only loaded if Geant4 import
+    # is enabled
+    physics_filename = None
     num_optical_tracks = 4096
     inp['max_steps'] = 2
     inp['optical'] = {

@@ -420,9 +420,9 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
                "result in arbitrarily small steps without displacement";
     }
 
-    // Construct optical surfaces, if present
+    // Construct optical surfaces if optical physics is enabled
     params.surface = [&] {
-        if (p.model.surfaces)
+        if (p.control.optical_capacity)
         {
             auto volume = std::make_shared<VolumeParams>(p.model.volumes);
             return std::make_shared<SurfaceParams>(p.model.surfaces, *volume);

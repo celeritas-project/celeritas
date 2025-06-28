@@ -79,7 +79,7 @@ auto ImportedDataTestBase::build_surface() -> SPConstSurface
     if (auto const* geo = geant_geo())
     {
         auto model = geo->make_model_input();
-        if (model.surfaces)
+        if (!this->imported_data().optical_materials.empty())
         {
             auto volume = std::make_shared<VolumeParams>(model.volumes);
             return std::make_shared<SurfaceParams>(model.surfaces, *volume);

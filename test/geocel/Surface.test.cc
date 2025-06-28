@@ -110,10 +110,10 @@ TEST_F(SurfacesTest, none)
     EXPECT_EQ(0, sp.num_surfaces());
     EXPECT_EQ(0, sp.labels().size());
 
-    VolumeSurfaceView vsv(sp.host_ref(), VolumeId{0});
-    EXPECT_EQ(VolumeId{0}, vsv.volume_id());
-    EXPECT_EQ(SurfaceId{}, vsv.boundary_id());
-    EXPECT_FALSE(vsv.has_interface());
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(VolumeSurfaceView(sp.host_ref(), VolumeId{0}), DebugError);
+    }
 }
 
 TEST_F(SurfacesTest, errors)
