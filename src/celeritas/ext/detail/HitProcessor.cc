@@ -192,8 +192,8 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
         CELER_ASSERT(pd);
         auto track = std::make_unique<G4Track>(
             new G4DynamicParticle(pd, G4ThreeVector()), 0.0, G4ThreeVector());
-        track->SetTrackID(-1);
-        track->SetParentID(-1);
+        track->SetTrackID(0);
+        track->SetParentID(0);
         track->SetStep(step_.get());
 
         tracks_.emplace_back(std::move(track));
