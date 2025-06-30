@@ -350,8 +350,6 @@ struct OrangeParamsData
     template<class T>
     using Items = Collection<T, W, M>;
     template<class T>
-    using InternalVolumeItems = Collection<T, W, M, ImplVolumeId>;
-    template<class T>
     using UnivItems = Collection<T, W, M, UniverseId>;
 
     using RealId = SurfacesRecord::RealId;
@@ -367,11 +365,6 @@ struct OrangeParamsData
     Items<SimpleUnitRecord> simple_units;
     Items<RectArrayRecord> rect_arrays;
     Items<TransformRecord> transforms;
-
-    // Map of ORANGE internal volume ID -> Celeritas volume ID
-    InternalVolumeItems<VolumeId> volume_ids;
-    InternalVolumeItems<PhysicalVolumeId> phys_volume_ids;
-    InternalVolumeItems<ImplVolumeId> parent_internal_volume;
 
     // BIH tree storage
     BIHTreeData<W, M> bih_tree_data;
