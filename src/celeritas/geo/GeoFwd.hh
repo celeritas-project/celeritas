@@ -4,6 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/geo/GeoFwd.hh
 //! \brief Forward-declare configure-time geometry implementation
+//! \todo v1.0: Rename CoreGeoFwd.hh, rename type aliases
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -18,28 +19,40 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
-using GeoParams = VecgeomParams;
-using GeoTrackView = VecgeomTrackView;
+using CoreGeoParams = VecgeomParams;
+using CoreGeoTrackView = VecgeomTrackView;
 template<Ownership W, MemSpace M>
-using GeoParamsData = VecgeomParamsData<W, M>;
+using CoreGeoParamsData = VecgeomParamsData<W, M>;
 template<Ownership W, MemSpace M>
-using GeoStateData = VecgeomStateData<W, M>;
+using CoreGeoStateData = VecgeomStateData<W, M>;
 
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
-using GeoParams = OrangeParams;
-using GeoTrackView = OrangeTrackView;
+using CoreGeoParams = OrangeParams;
+using CoreGeoTrackView = OrangeTrackView;
 template<Ownership W, MemSpace M>
-using GeoParamsData = OrangeParamsData<W, M>;
+using CoreGeoParamsData = OrangeParamsData<W, M>;
 template<Ownership W, MemSpace M>
-using GeoStateData = OrangeStateData<W, M>;
+using CoreGeoStateData = OrangeStateData<W, M>;
 
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
-using GeoParams = GeantGeoParams;
-using GeoTrackView = GeantGeoTrackView;
+using CoreGeoParams = GeantGeoParams;
+using CoreGeoTrackView = GeantGeoTrackView;
 template<Ownership W, MemSpace M>
-using GeoParamsData = GeantGeoParamsData<W, M>;
+using CoreGeoParamsData = GeantGeoParamsData<W, M>;
 template<Ownership W, MemSpace M>
-using GeoStateData = GeantGeoStateData<W, M>;
+using CoreGeoStateData = GeantGeoStateData<W, M>;
 #endif
+//!@}
+
+//---------------------------------------------------------------------------//
+
+//!@{
+//! \deprecated Use CoreX instead
+using GeoParams = CoreGeoParams;
+using GeoTrackView = CoreGeoTrackView;
+using GeoParamsData = CoreGeoParamsData;
+using GeoStateData = CoreGeoStateData;
+//!@}
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
