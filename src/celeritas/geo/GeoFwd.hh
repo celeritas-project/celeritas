@@ -18,6 +18,9 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+
+//!@{
+//! \name Core geometry type aliases
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
 using CoreGeoParams = VecgeomParams;
 using CoreGeoTrackView = VecgeomTrackView;
@@ -47,6 +50,7 @@ using CoreGeoStateData = GeantGeoStateData<W, M>;
 //---------------------------------------------------------------------------//
 
 //!@{
+//! \name Old geometry type aliases
 //! \deprecated Use CoreX instead
 using GeoParams = CoreGeoParams;
 using GeoTrackView = CoreGeoTrackView;
