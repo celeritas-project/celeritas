@@ -12,6 +12,7 @@
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/math/QuantityIO.json.hh"
 #include "corecel/sys/Environment.hh"
+#include "celeritas/geo/CoreGeoTraits.hh"
 
 #include "CoreTrackView.hh"
 #include "Debug.hh"
@@ -132,7 +133,10 @@ void KernelContextException::initialize(CoreTrackView const& core)
             {
                 volume_ = geo.volume_id();
             }
-            surface_ = geo.impl_surface_id();
+            if constexpr (CoreGeoTraits::has_impl_surface)
+            {
+                surface_ = geo.impl_surface_id();
+            }
         }
     }
     {

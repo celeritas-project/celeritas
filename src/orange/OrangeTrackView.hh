@@ -106,7 +106,7 @@ class OrangeTrackView
     // The current surface ID
     inline CELER_FUNCTION ImplSurfaceId impl_surface_id() const;
     // After 'find_next_step', the next straight-line surface
-    inline CELER_FUNCTION ImplSurfaceId next_internal_surface_id() const;
+    inline CELER_FUNCTION ImplSurfaceId next_impl_surface_id() const;
     // Whether the track is outside the valid geometry region
     inline CELER_FUNCTION bool is_outside() const;
     // Whether the track is exactly on a surface
@@ -524,7 +524,7 @@ CELER_FUNCTION ImplSurfaceId OrangeTrackView::impl_surface_id() const
 /*!
  * After 'find_next_step', the next straight-line surface.
  */
-CELER_FUNCTION ImplSurfaceId OrangeTrackView::next_internal_surface_id() const
+CELER_FUNCTION ImplSurfaceId OrangeTrackView::next_impl_surface_id() const
 {
     CELER_EXPECT(this->has_next_surface());
     auto lsa = this->make_lsa(this->next_surface_level());

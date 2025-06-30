@@ -36,6 +36,9 @@ struct GeoTraits<OrangeParams>
     //! Geometry track view
     using TrackView = OrangeTrackView;
 
+    //! ORANGE implementation uses surfaces
+    static constexpr bool has_impl_surface = true;
+
     //! Descriptive name for the geometry
     static constexpr char const name[] = "ORANGE";
 
