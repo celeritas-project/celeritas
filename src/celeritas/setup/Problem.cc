@@ -26,6 +26,8 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantGdmlLoader.hh"
+#include "geocel/SurfaceParams.hh"
+#include "geocel/VolumeParams.hh"
 #include "geocel/inp/Model.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -417,6 +419,16 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
                "safety algorithm: multiple scattering may "
                "result in arbitrarily small steps without displacement";
     }
+
+    // Construct optical surfaces if optical physics is enabled
+    params.surface = [&] {
+        if (p.control.optical_capacity)
+        {
+            auto volume = std::make_shared<VolumeParams>(p.model.volumes);
+            return std::make_shared<SurfaceParams>(p.model.surfaces, *volume);
+        }
+        return std::make_shared<SurfaceParams>();
+    }();
 
     // Load materials
     params.material = MaterialParams::from_import(imported);

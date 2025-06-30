@@ -85,6 +85,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
         op_inp.rng = core.rng();
         op_inp.init = std::make_shared<optical::TrackInitParams>(
             inp.initializer_capacity);
+        op_inp.surface = core.surface();
         op_inp.action_reg = std::make_shared<ActionRegistry>();
         op_inp.max_streams = core.max_streams();
         {

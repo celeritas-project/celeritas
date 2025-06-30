@@ -603,27 +603,26 @@ TEST_F(SolidConverterTest, sphere)
     this->build_and_test(
         G4Sphere("sn1", 0, 50, halfpi, 3. * halfpi, 0, pi),
         R"json({"_type":"solid","enclosed_azi":{"stop":1.0,"start":0.25},"interior":{"_type":"sphere","radius":5.0},"label":"sn1"})json",
-        {{-3, 0.05, 0}, {3, 0.5, 0}, {0, -0.01, 4.9}});
-    EXPECT_THROW(
-        this->build_and_test(G4Sphere("sn12", 0, 50, 0, twopi, 0., 0.25 * pi)),
-        RuntimeError);
+        {{-3, 0.05, 0}, {3, 0.5, 0}, {-0.01, -0.01, 4.9}});
+    this->build_and_test(
+        G4Sphere("sn12", 0, 50, 0, twopi, 0., 0.25 * pi),
+        R"json({"_type":"solid","enclosed_polar":{"start":0.0,"stop":0.125},"interior":{"_type":"sphere","radius":5.0},"label":"sn12"})json");
 
     this->build_and_test(
         G4Sphere("Spherical Shell", 45, 50, 0, twopi, 0, pi),
         R"json({"_type":"solid","excluded":{"_type":"sphere","radius":4.5},"interior":{"_type":"sphere","radius":5.0},"label":"Spherical Shell"})json",
         {{0, 0, 4.4}, {0, 0, 4.6}, {0, 0, 5.1}});
-    EXPECT_THROW(
-        this->build_and_test(G4Sphere(
-            "Band (theta segment1)", 45, 50, 0, twopi, pi * 3 / 4, pi / 4)),
-        RuntimeError);
+    this->build_and_test(
+        G4Sphere("Band (theta segment1)", 45, 50, 0, twopi, pi * 3 / 4, pi / 4),
+        R"json({"_type":"solid","enclosed_polar":{"start":0.375,"stop":0.5},"excluded":{"_type":"sphere","radius":4.5},"interior":{"_type":"sphere","radius":5.0},"label":"Band (theta segment1)"})json");
 
     this->build_and_test(
         G4Sphere("Band (phi segment)", 5, 50, -pi, 3. * pi / 2., 0, twopi),
-        R"json({"_type":"solid","enclosed_azi":{"stop":1.25,"start":0.5},"excluded":{"_type":"sphere","radius":0.5},"interior":{"_type":"sphere","radius":5.0},"label":"Band (phi segment)"})json");
-    EXPECT_THROW(
-        this->build_and_test(G4Sphere(
-            "Patch (phi/theta seg)", 45, 50, -pi / 4, halfpi, pi / 4, halfpi)),
-        RuntimeError);
+        R"json({"_type":"solid","enclosed_azi":{"start":0.5,"stop":1.25},"excluded":{"_type":"sphere","radius":0.5},"interior":{"_type":"sphere","radius":5.0},"label":"Band (phi segment)"})json");
+    this->build_and_test(
+        G4Sphere(
+            "Patch (phi/theta seg)", 45, 50, -pi / 4, halfpi, pi / 4, halfpi),
+        R"json({"_type":"solid","enclosed_azi":{"start":0.875,"stop":1.125},"enclosed_polar":{"start":0.125,"stop":0.375},"excluded":{"_type":"sphere","radius":4.5},"interior":{"_type":"sphere","radius":5.0},"label":"Patch (phi/theta seg)"})json");
 
     this->build_and_test(
         G4Sphere("John example", 300, 500, 0, 5.76, 0, pi),

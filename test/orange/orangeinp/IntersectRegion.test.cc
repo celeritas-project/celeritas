@@ -1457,7 +1457,7 @@ TEST_F(InfAziWedgeTest, quarter_turn)
         auto result = this->test(InfAziWedge(Turn{0}, Turn{0.25}));
         static char const expected_node[] = "all(+0, +1)";
         static char const* const expected_surfaces[]
-            = {"Plane: y=0", "Plane: x=0"};
+            = {"Plane: x=0", "Plane: y=0"};
 
         EXPECT_EQ(expected_node, result.node);
         EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -1469,19 +1469,19 @@ TEST_F(InfAziWedgeTest, quarter_turn)
     {
         SCOPED_TRACE("second quadrant");
         auto result = this->test(InfAziWedge(Turn{.25}, Turn{0.5}));
-        EXPECT_EQ("all(+0, -1)", result.node);
+        EXPECT_EQ("all(+1, -0)", result.node);
     }
     {
         SCOPED_TRACE("fourth quadrant");
         InfAziWedge wedge(Turn{0.75}, Turn{1.0});
         EXPECT_SOFT_EQ(0.75, wedge.start().value());
         auto result = this->test(wedge);
-        EXPECT_EQ("all(+1, -0)", result.node);
+        EXPECT_EQ("all(+0, -1)", result.node);
     }
     {
         SCOPED_TRACE("north quadrant");
         auto result = this->test(InfAziWedge(Turn{0.125}, Turn{0.375}));
-        EXPECT_EQ("all(-2, +3)", result.node);
+        EXPECT_EQ("all(+2, -3)", result.node);
     }
     {
         SCOPED_TRACE("east quadrant");
@@ -1495,12 +1495,12 @@ TEST_F(InfAziWedgeTest, quarter_turn)
     {
         SCOPED_TRACE("west quadrant");
         auto result = this->test(InfAziWedge(Turn{0.375}, Turn{0.625}));
-        static char const expected_node[] = "all(-2, -3)";
+        static char const expected_node[] = "all(-3, -2)";
         static char const* const expected_surfaces[] = {
-            "Plane: y=0",
             "Plane: x=0",
-            "Plane: n={0.70711,-0.70711,0}, d=0",
+            "Plane: y=0",
             "Plane: n={0.70711,0.70711,0}, d=0",
+            "Plane: n={0.70711,-0.70711,0}, d=0",
         };
 
         EXPECT_EQ(expected_node, result.node);
@@ -1534,6 +1534,121 @@ TEST_F(InfAziWedgeTest, half_turn)
 
         EXPECT_EQ(expected_node, result.node);
         EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    }
+}
+//---------------------------------------------------------------------------//
+// INFPOLARWEDGE
+//---------------------------------------------------------------------------//
+using InfPolarWedgeTest = IntersectRegionTest;
+
+TEST_F(InfPolarWedgeTest, errors)
+{
+    EXPECT_THROW(InfPolarWedge(Turn{-0.2}, Turn{-0.001}), RuntimeError);
+    EXPECT_THROW(InfPolarWedge(Turn{-0.1}, Turn{0.1}), RuntimeError);
+    EXPECT_THROW(InfPolarWedge(Turn{0}, Turn{-0.1}), RuntimeError);
+    EXPECT_THROW(InfPolarWedge(Turn{0}, Turn{0.26}), RuntimeError);
+    EXPECT_THROW(InfPolarWedge(Turn{0.1}, Turn{0.1}), RuntimeError);
+    EXPECT_THROW(InfPolarWedge(Turn{0.24}, Turn{0.26}), RuntimeError);
+    EXPECT_THROW(InfPolarWedge(Turn{0.26}, Turn{0.52}), RuntimeError);
+}
+
+TEST_F(InfPolarWedgeTest, quarter_turn)
+{
+    {
+        SCOPED_TRACE("top half");
+        auto result = this->test(InfPolarWedge(Turn{0}, Turn{0.25}));
+        IntersectTestResult ref;
+        ref.node = "+0";
+        ref.surfaces = {"Plane: z=0"};
+        ref.interior = {{-inf, -inf, 0}, {inf, inf, inf}};
+        ref.exterior = {{-inf, -inf, 0}, {inf, inf, inf}};
+        EXPECT_REF_EQ(ref, result);
+    }
+    {
+        SCOPED_TRACE("bottom half");
+        auto result = this->test(InfPolarWedge(Turn{0.25}, Turn{0.5}));
+        IntersectTestResult ref;
+        ref.node = "-0";
+        ref.surfaces = {"Plane: z=0"};
+        ref.interior = {{-inf, -inf, -inf}, {inf, inf, 0}};
+        ref.exterior = {{-inf, -inf, -inf}, {inf, inf, 0}};
+        EXPECT_REF_EQ(ref, result);
+    }
+}
+
+TEST_F(InfPolarWedgeTest, eighth_turn)
+{
+    {
+        SCOPED_TRACE("north pole");
+        auto result = this->test(InfPolarWedge(Turn{0}, Turn{0.125}));
+        IntersectTestResult ref;
+        ref.node = "all(+0, -1)";
+        ref.surfaces = {"Plane: z=0", "Cone z: t=1 at {0,0,0}"};
+        ref.interior = {};
+        ref.exterior = {{-inf, -inf, 0}, {inf, inf, inf}};
+        EXPECT_REF_EQ(ref, result);
+    }
+    {
+        SCOPED_TRACE("north tropic");
+        auto result = this->test(InfPolarWedge(Turn{0.125}, Turn{0.25}));
+        IntersectTestResult ref;
+        ref.node = "all(+0, +1)";
+        ref.surfaces = {"Plane: z=0", "Cone z: t=1 at {0,0,0}"};
+        ref.interior = {};
+        ref.exterior = {{-inf, -inf, 0}, {inf, inf, inf}};
+        EXPECT_REF_EQ(ref, result);
+    }
+    {
+        SCOPED_TRACE("south tropic");
+        auto result = this->test(InfPolarWedge(Turn{0.25}, Turn{0.375}));
+        IntersectTestResult ref;
+        ref.node = "all(+1, -0)";
+        ref.surfaces = {"Plane: z=0", "Cone z: t=1 at {0,0,0}"};
+        ref.interior = {};
+        ref.exterior = {{-inf, -inf, -inf}, {inf, inf, 0}};
+        EXPECT_REF_EQ(ref, result);
+    }
+    {
+        SCOPED_TRACE("south pole");
+        auto result = this->test(InfPolarWedge(Turn{0.375}, Turn{0.5}));
+        IntersectTestResult ref;
+        ref.node = "all(-1, -0)";
+        ref.surfaces = {"Plane: z=0", "Cone z: t=1 at {0,0,0}"};
+        ref.interior = {};
+        ref.exterior = {{-inf, -inf, -inf}, {inf, inf, 0}};
+        EXPECT_REF_EQ(ref, result);
+    }
+}
+
+TEST_F(InfPolarWedgeTest, sliver)
+{
+    {
+        SCOPED_TRACE("north");
+        auto result = this->test(InfPolarWedge(Turn{0.0625}, Turn{0.125}));
+        IntersectTestResult ref;
+        ref.node = "all(+0, +1, -2)";
+        ref.surfaces = {
+            "Plane: z=0",
+            "Cone z: t=0.41421 at {0,0,0}",
+            "Cone z: t=1 at {0,0,0}",
+        };
+        ref.interior = {};
+        ref.exterior = {{-inf, -inf, 0}, {inf, inf, inf}};
+        EXPECT_REF_EQ(ref, result);
+    }
+    {
+        SCOPED_TRACE("south");
+        auto result = this->test(InfPolarWedge(Turn{0.375}, Turn{0.4375}));
+        IntersectTestResult ref;
+        ref.node = "all(+1, -2, -0)";
+        ref.surfaces = {
+            "Plane: z=0",
+            "Cone z: t=0.41421 at {0,0,0}",
+            "Cone z: t=1 at {0,0,0}",
+        };
+        ref.interior = {};
+        ref.exterior = {{-inf, -inf, -inf}, {inf, inf, 0}};
+        EXPECT_REF_EQ(ref, result);
     }
 }
 
