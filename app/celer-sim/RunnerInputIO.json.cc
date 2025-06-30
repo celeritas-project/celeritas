@@ -226,6 +226,9 @@ void from_json(nlohmann::json const& j, app::RunnerInput::OpticalOptions& oo)
         CELER_JSON_LOAD_REQUIRED(j, oo, initializer_capacity);
     }
     CELER_JSON_LOAD_REQUIRED(j, oo, auto_flush);
+    CELER_JSON_LOAD_OPTION(j, oo, max_steps);
+    CELER_JSON_LOAD_OPTION(j, oo, cherenkov);
+    CELER_JSON_LOAD_OPTION(j, oo, scintillation);
 }
 
 void to_json(nlohmann::json& j, app::RunnerInput::OpticalOptions const& oo)
@@ -235,6 +238,9 @@ void to_json(nlohmann::json& j, app::RunnerInput::OpticalOptions const& oo)
         CELER_JSON_PAIR(oo, buffer_capacity),
         CELER_JSON_PAIR(oo, initializer_capacity),
         CELER_JSON_PAIR(oo, auto_flush),
+        CELER_JSON_PAIR(oo, max_steps),
+        CELER_JSON_PAIR(oo, cherenkov),
+        CELER_JSON_PAIR(oo, scintillation),
     };
 }
 

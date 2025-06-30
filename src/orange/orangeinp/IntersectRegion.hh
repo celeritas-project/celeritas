@@ -181,7 +181,7 @@ class Cylinder final : public IntersectRegionInterface
 class Ellipsoid final : public IntersectRegionInterface
 {
   public:
-    // Construct with radius
+    // Construct with radius along each Cartesian axis
     explicit Ellipsoid(Real3 const& radii);
 
     // Build surfaces
@@ -503,31 +503,39 @@ class GenPrism final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * An infinite slab bound by lower and upper z-planes.
+ * An axis-aligned infinite half-space to use for truncation operations.
+ *
+ * An "inside" sense means to include everything *below* the position on the
+ * axis, and an "outside" sense means to include only what's *above* the
+ * position.
  */
-class InfSlab final : public IntersectRegionInterface
+class InfPlane : public IntersectRegionInterface
 {
   public:
-    // Construct from lower and upper z-planes
-    InfSlab(real_type lower, real_type upper);
+    // Construct with sense, axis, and position
+    InfPlane(Sense sense, Axis axis, real_type position);
 
     // Build surfaces
     void build(IntersectSurfaceBuilder&) const final;
 
-    // Write output to the given JSON object
+    // Output to JSON
     void output(JsonPimpl*) const final;
 
     //// ACCESSORS ////
 
-    //! Lower z-plane
-    real_type lower() const { return lower_; }
+    //! Get the sense (inside or outside)
+    Sense sense() const { return sense_; }
 
-    //! Upper z-plane
-    real_type upper() const { return upper_; }
+    //! Get the axis (x, y, or z)
+    Axis axis() const { return axis_; }
+
+    //! Get the position along the axis
+    real_type position() const { return position_; }
 
   private:
-    real_type lower_;
-    real_type upper_;
+    Sense sense_;
+    Axis axis_;
+    real_type position_;
 };
 
 //---------------------------------------------------------------------------//
@@ -539,11 +547,11 @@ class InfSlab final : public IntersectRegionInterface
  * subtracted, or its negation can be subtracted. The start angle is mapped
  * onto \f$[0, 1)\f$ on construction.
  */
-class InfWedge final : public IntersectRegionInterface
+class InfAziWedge final : public IntersectRegionInterface
 {
   public:
-    // Construct from a starting angle and interior angle
-    InfWedge(Turn start, Turn interior);
+    // Construct from an angular range less than 180
+    InfAziWedge(Turn start, Turn stop);
 
     // Build surfaces
     void build(IntersectSurfaceBuilder&) const final;
@@ -556,12 +564,50 @@ class InfWedge final : public IntersectRegionInterface
     //! Starting angle
     Turn start() const { return start_; }
 
-    //! Interior angle
-    Turn interior() const { return interior_; }
+    //! stop angle
+    Turn stop() const { return stop_; }
 
   private:
     Turn start_;
-    Turn interior_;
+    Turn stop_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Select a polar (latitudinal) region.
+ *
+ * This uses an equatorial plane and up to two cones to slice a
+ * polar-coordinate region from the origin.  A polar wedge always defines a
+ * region in a single hemisphere: either \f$ z >= 0 \f$ or \f$ z <= 0 \f$,
+ * corresponding to an stop range of [0, .25] turns or [0.25, 0.5] turns.
+ */
+class InfPolarWedge final : public IntersectRegionInterface
+{
+  public:
+    // Construct from a starting angle and stop angle
+    InfPolarWedge(Turn start, Turn stop);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Starting angle
+    Turn start() const { return start_; }
+
+    //! stop angle
+    Turn stop() const { return stop_; }
+
+  private:
+    Turn start_;
+    Turn stop_;
+
+    static constexpr Turn north_pole{0};
+    static constexpr Turn equator{0.25};
+    static constexpr Turn south_pole{0.5};
 };
 
 //---------------------------------------------------------------------------//
@@ -672,19 +718,23 @@ class Parallelepiped final : public IntersectRegionInterface
  * A regular, z-extruded polygon centered on the origin.
  *
  * This is the base component of a G4Polyhedra (PGON). The default rotation is
- * to put a y-aligned plane on the bottom of the shape, so looking at an x-y
- * slice given an apothem \em a, every shape has a surface at \f$ y = -a \f$:
- * - n=3 is a triangle with a flat bottom, point up
- * - n=4 is a square with axis-aligned sides
- * - n=6 is a flat-top hexagon
+ * to put the first point at \f$ y = 0 \f$. Looking at an x-y
+ * slice for a prism with apothem \em a, odd-numbered prisms have a plane at
+ * \f$ x=-a \f$:
+ * - \f$ n=3 \f$ is a triangle pointing right,
+ * - \f$ n=4 \f$ is a diamond,
+ * - \f$ n=5 \f$ is a tilted pentagon (flat on the left), and
+ * - \f$ n=6 \f$ is a flat-top hexagon.
+ *
  *
  * The "orientation" parameter is a scaled counterclockwise rotation on
  * \f$[0, 1)\f$, where zero preserves the orientation described above, and
- * unity replicates the original shape but with the "p0" face being where the
- * "p1" originally was. With a value of 0.5:
- * - n=3 is a downward-pointing triangle
- * - n=4 is a diamond
- * - n=6 is a pointy-top hexagon
+ * unity would replicate the original shape but with the "p0" face being where
+ * the "p1" originally was. With a value of 0.5:
+ * - \f$ n=3 \f$ is a triangle pointing left
+ * - \f$ n=4 \f$ is an upright square,
+ * - \f$ n=5 \f$ is a tilted pentagon (flat on the right), and
+ * - \f$ n=6 \f$ is a pointy-top hexagon.
  */
 class Prism final : public IntersectRegionInterface
 {
@@ -727,7 +777,7 @@ class Prism final : public IntersectRegionInterface
     // Half the z height
     real_type hh_;
 
-    // Rotational offset (0 has bottom face at -Y, 1 is congruent)
+    // Rotational offset: 0 has point at (r, 0), 1 is congruent with 0
     real_type orientation_;
 };
 

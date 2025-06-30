@@ -55,9 +55,9 @@ TEST_F(UniverseIndexerTest, single)
     EXPECT_EQ(4, indexer.num_surfaces());
     EXPECT_EQ(10, indexer.num_volumes());
 
-    EXPECT_EQ(SurfaceId(0),
+    EXPECT_EQ(InternalSurfaceId(0),
               indexer.global_surface(UniverseId{0}, LocalSurfaceId{0}));
-    EXPECT_EQ(SurfaceId(3),
+    EXPECT_EQ(InternalSurfaceId(3),
               indexer.global_surface(UniverseId{0}, LocalSurfaceId{3}));
 
     EXPECT_EQ(VolumeId(0),
@@ -65,10 +65,10 @@ TEST_F(UniverseIndexerTest, single)
     EXPECT_EQ(VolumeId(9),
               indexer.global_volume(UniverseId{0}, LocalVolumeId{9}));
 
-    auto local_s = indexer.local_surface(SurfaceId{0});
+    auto local_s = indexer.local_surface(InternalSurfaceId{0});
     EXPECT_EQ(UniverseId(0), local_s.universe);
     EXPECT_EQ(LocalSurfaceId(0), local_s.surface);
-    local_s = indexer.local_surface(SurfaceId{3});
+    local_s = indexer.local_surface(InternalSurfaceId{3});
     EXPECT_EQ(UniverseId(0), local_s.universe);
     EXPECT_EQ(LocalSurfaceId(3), local_s.surface);
 
@@ -94,7 +94,7 @@ TEST_F(UniverseIndexerTest, TEST_IF_CELERITAS_DEBUG(errors))
     EXPECT_THROW(indexer.global_volume(UniverseId{1}, LocalVolumeId{0}),
                  DebugError);
 
-    EXPECT_THROW(indexer.local_surface(SurfaceId(4)), DebugError);
+    EXPECT_THROW(indexer.local_surface(InternalSurfaceId(4)), DebugError);
     EXPECT_THROW(indexer.local_volume(VolumeId(10)), DebugError);
 }
 
@@ -119,7 +119,8 @@ TEST_F(UniverseIndexerTest, multi)
 
         for (auto s : range(surfaces_per_uni[u]))
         {
-            auto local = indexer.local_surface(SurfaceId{global_surface});
+            auto local
+                = indexer.local_surface(InternalSurfaceId{global_surface});
             EXPECT_EQ(u, local.universe.unchecked_get());
             EXPECT_EQ(s, local.surface.unchecked_get());
             EXPECT_EQ(global_surface,

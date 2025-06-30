@@ -10,6 +10,7 @@
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "geocel/SurfaceParams.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/track/SimParams.hh"
@@ -48,6 +49,7 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.geometry = get_ref<M>(*p.geometry);
     ref.material = get_ref<M>(*p.material);
     ref.physics = get_ref<M>(*p.physics);
+    ref.surface = get_ref<M>(*p.surface);
     ref.rng = get_ref<M>(*p.rng);
     ref.init = get_ref<M>(*p.init);
 
@@ -115,12 +117,25 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CP_VALIDATE_INPUT(material);
     CP_VALIDATE_INPUT(physics);
     CP_VALIDATE_INPUT(rng);
+    CP_VALIDATE_INPUT(surface);
     CP_VALIDATE_INPUT(init);
     CP_VALIDATE_INPUT(action_reg);
     CP_VALIDATE_INPUT(max_streams);
 #undef CP_VALIDATE_INPUT
 
     CELER_EXPECT(input_);
+
+    // Build detector params based on input detector labels vector. If label
+    // returns false, create an empty label vector.
+    if (input_.detector_labels)
+    {
+        detectors_ = std::make_shared<SDParams>(*(input_.detector_labels),
+                                                *(input_.geometry));
+    }
+    else
+    {
+        detectors_ = std::make_shared<SDParams>();
+    }
 
     ScopedMem record_mem("optical::CoreParams.construct");
 

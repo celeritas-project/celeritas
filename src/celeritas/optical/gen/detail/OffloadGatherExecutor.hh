@@ -30,7 +30,7 @@ struct OffloadGatherExecutor
     inline CELER_FUNCTION void
     operator()(celeritas::CoreTrackView const& track);
 
-    NativeRef<OffloadStateData> const state;
+    NativeRef<OffloadStepStateData> const state;
 };
 
 //---------------------------------------------------------------------------//

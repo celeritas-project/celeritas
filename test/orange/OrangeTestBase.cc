@@ -17,6 +17,18 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+std::string OrangeTestBase::surface_name(GeoTrackView const& geo) const
+{
+    if (!geo.is_on_boundary())
+    {
+        return "---";
+    }
+
+    // Only call this function if the geometry supports surfaces
+    return this->geometry()->surfaces().at(geo.internal_surface_id()).name;
+}
+
+//---------------------------------------------------------------------------//
 template class CheckedGeoTrackView<OrangeTrackView>;
 template class GenericGeoTestBase<OrangeParams>;
 

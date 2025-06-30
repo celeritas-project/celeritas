@@ -45,11 +45,10 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/GeantGdmlLoader.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantUtils.hh"
-#include "geocel/g4/GeantGeoParams.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
-#include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSd.hh"
 #include "celeritas/ext/GeantSdOutput.hh"
 #include "celeritas/ext/RootExporter.hh"
@@ -264,8 +263,12 @@ SharedParams::SharedParams(SetupOptions const& options)
     auto loaded = setup::framework_input(framework_inp);
     params_ = std::move(loaded.problem.core_params);
     output_filename_ = loaded.problem.output_file;
-    world_ = loaded.world;
     CELER_ASSERT(params_);
+
+    // Load geant4 geometry adapter and save as "global"
+    CELER_ASSERT(loaded.geo);
+    geant_geo_ = std::move(loaded.geo);
+    celeritas::geant_geo(*geant_geo_);
 
     // Save built attributes
     output_reg_ = params_->output_reg();
@@ -276,22 +279,7 @@ SharedParams::SharedParams(SetupOptions const& options)
     particles_ = build_g4_particles(params_->particle(), params_->physics());
 
     // Create bounding box from navigator geometry
-    // TODO: move to GeantGeoUtils
-    bbox_ = [world = this->world_] {
-        CELER_ASSERT(world);
-        G4LogicalVolume const* world_lv = world->GetLogicalVolume();
-        CELER_ASSERT(world_lv);
-        G4VSolid const* solid = world_lv->GetSolid();
-        CELER_ASSERT(solid);
-        G4VisExtent const& extent = solid->GetExtent();
-
-        BBox result{{extent.GetXmin(), extent.GetYmin(), extent.GetZmin()},
-                    {extent.GetXmax(), extent.GetYmax(), extent.GetZmax()}};
-        CELER_VALIDATE(result,
-                       << "world bounding box {" << result.lower() << ", "
-                       << result.upper() << "} is invalid");
-        return result;
-    }();
+    bbox_ = geant_geo_->get_clhep_bbox();
 
     // Create streams
     this->set_num_streams(params_->max_streams());
@@ -411,37 +399,6 @@ unsigned int SharedParams::num_streams() const
 
     CELER_ENSURE(!states_.empty());
     return states_.size();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Lazily created Geant geometry parameters.
- *
- * \todo Remove this for 0.7; it's only used in GeantSimpleCalo and that should
- * be converted to use make_logical_vol_labels from GeantGeoUtils. Also it
- * can cause segfaults (Geant4 allocators as usual) if called during cleanup.
- */
-auto SharedParams::geant_geo_params() const -> SPConstGeantGeoParams const&
-{
-    if (CELER_UNLIKELY(!geant_geo_))
-    {
-        // Initial lock-free check failed; now lock and create if needed
-        std::lock_guard scoped_lock{updating_mutex()};
-        if (!geant_geo_)
-        {
-            CELER_LOG(debug) << "Constructing GeantGeoParams wrapper";
-            auto world = world_;
-            if (!world)
-            {
-                world = GeantImporter::get_world_volume();
-            }
-
-            auto geo_params = std::make_shared<GeantGeoParams>(world);
-            const_cast<SharedParams*>(this)->geant_geo_ = std::move(geo_params);
-            CELER_ENSURE(geant_geo_);
-        }
-    }
-    return geant_geo_;
 }
 
 //---------------------------------------------------------------------------//

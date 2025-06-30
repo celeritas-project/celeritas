@@ -58,6 +58,10 @@
 #include <G4VProcess.hh>
 #include <G4VRangeToEnergyConverter.hh>
 #include <G4Version.hh>
+#if G4VERSION_NUMBER >= 1070
+#    include <G4OpWLS2.hh>
+#    include <G4OpticalParameters.hh>
+#endif
 
 #include "corecel/Config.hh"
 
@@ -71,6 +75,7 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TypeDemangler.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/g4/VisitVolumes.hh"
@@ -586,6 +591,16 @@ import_optical(detail::GeoOpticalIdMap const& geo_to_opt)
                      "WLSCOMPONENT",
                      {ImportUnits::mev, ImportUnits::unitless});
 
+        // Save WLS2 properties
+        get_property(&optical.wls2.mean_num_photons,
+                     "WLSMEANNUMBERPHOTONS2",
+                     ImportUnits::unitless);
+        get_property(
+            &optical.wls2.time_constant, "WLSTIMECONSTANT2", ImportUnits::time);
+        get_property(&optical.wls2.component,
+                     "WLSCOMPONENT2",
+                     {ImportUnits::mev, ImportUnits::unitless});
+
         CELER_ASSERT(optical);
     }
 
@@ -898,6 +913,14 @@ auto import_processes(GeantImporter::DataSelection selected,
             optical_models.push_back(
                 import_optical_model(optical::ImportModelClass::wls));
         }
+#if G4VERSION_NUMBER >= 1070
+        else if (import_optical_model
+                 && dynamic_cast<G4OpWLS2 const*>(&process))
+        {
+            optical_models.push_back(
+                import_optical_model(optical::ImportModelClass::wls2));
+        }
+#endif
         else
         {
             CELER_LOG(error)
@@ -1043,6 +1066,39 @@ import_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Import optical parameters.
+ */
+ImportOpticalParameters import_optical_parameters()
+{
+    ImportOpticalParameters iop;
+
+#if G4VERSION_NUMBER >= 1070
+    auto* params = G4OpticalParameters::Instance();
+    CELER_ASSERT(params);
+
+    auto to_enum = [](std::string time_profile) {
+        if (time_profile == "delta")
+        {
+            return WlsTimeProfile::delta;
+        }
+        if (time_profile == "exponential")
+        {
+            return WlsTimeProfile::exponential;
+        }
+        CELER_ASSERT_UNREACHABLE();
+    };
+    iop.wls_time_profile = to_enum(params->GetWLSTimeProfile());
+    iop.wls2_time_profile = to_enum(params->GetWLS2TimeProfile());
+
+    //! \todo Set \c scintillation_by_particle when supported
+    //! \todo For older Geant4 versions, set based on user input?
+#endif
+
+    return iop;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return a \c ImportData::ImportEmParamsMap .
  */
 ImportEmParameters import_em_parameters()
@@ -1141,30 +1197,62 @@ ImportMuPairProductionTable import_mupp_table(PDGNumber pdg)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace
+/*!
+ * Return a populated \c ImportVolume vector.
+ */
+std::vector<ImportVolume> import_volumes()
+{
+    auto* geo = celeritas::geant_geo();
+    CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
+
+    auto const& volumes = geo->volumes();
+    std::vector<ImportVolume> result(volumes.size());
+    size_type count{0};
+
+    for (auto vol_id : range(VolumeId{volumes.size()}))
+    {
+        auto const& label = volumes.at(vol_id);
+        if (label.empty())
+            continue;
+
+        auto* g4lv = geo->id_to_geant(vol_id);
+        CELER_ASSERT(g4lv);
+        ImportVolume& volume = result[vol_id.get()];
+        if (auto* mat = g4lv->GetMaterial())
+        {
+            volume.geo_material_id = mat->GetIndex();
+        }
+        if (auto* reg = g4lv->GetRegion())
+        {
+            volume.region_id = reg->GetInstanceID();
+        }
+        if (auto* cuts = g4lv->GetMaterialCutsCouple())
+        {
+            volume.phys_material_id = cuts->GetIndex();
+        }
+        // TODO: when changing to celeritas::inp, just make this a label
+        // instead of converting to and from a std::string
+        volume.name = to_string(label);
+        volume.solid_name = g4lv->GetSolid()->GetName();
+
+        ++count;
+    }
+
+    CELER_LOG(debug) << "Loaded " << count << " of " << result.size()
+                     << " volumes";
+    return result;
+}
 
 //---------------------------------------------------------------------------//
-/*!
- * Get an externally loaded Geant4 top-level geometry element.
- *
- * This is only defined if Geant4 has already been set up. It's meant to be
- * used in concert with GeantImporter or other Geant-importing classes.
- */
-G4VPhysicalVolume const* GeantImporter::get_world_volume()
-{
-    auto* world = celeritas::geant_world_volume();
-    CELER_VALIDATE(world,
-                   << "no world volume has been defined in the navigator");
-    return world;
-}
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct from an existing Geant4 geometry, assuming physics is loaded.
  */
-GeantImporter::GeantImporter(G4VPhysicalVolume const* world) : world_(world)
+GeantImporter::GeantImporter()
 {
-    CELER_EXPECT(world_);
+    CELER_EXPECT(celeritas::geant_geo());
 }
 
 //---------------------------------------------------------------------------//
@@ -1174,8 +1262,7 @@ GeantImporter::GeantImporter(G4VPhysicalVolume const* world) : world_(world)
 GeantImporter::GeantImporter(GeantSetup&& setup) : setup_(std::move(setup))
 {
     CELER_EXPECT(setup_);
-    world_ = setup_.world();
-    CELER_ENSURE(world_);
+    CELER_EXPECT(celeritas::geant_geo());
 }
 
 //---------------------------------------------------------------------------//
@@ -1256,7 +1343,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         }
 
         imported.regions = import_regions();
-        imported.volumes = import_volumes(*world_);
+        imported.volumes = import_volumes();
         if (selected.particles != DataSelection::none)
         {
             imported.trans_params = import_trans_parameters(selected.particles);
@@ -1264,6 +1351,10 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         if (selected.processes & DataSelection::em)
         {
             imported.em_params = import_em_parameters();
+        }
+        if (selected.processes & DataSelection::optical)
+        {
+            imported.optical_params = import_optical_parameters();
         }
     }
 
@@ -1298,55 +1389,6 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
 
     imported.units = units::NativeTraits::label();
     return imported;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return a populated \c ImportVolume vector.
- */
-std::vector<ImportVolume> import_volumes(G4VPhysicalVolume const& world)
-{
-    auto labels = make_logical_vol_labels(world);
-    std::vector<ImportVolume> result(labels.size());
-
-    // Recursive loop over all logical volumes to populate volumes
-    int count = 0;
-    visit_volumes(
-        [&](G4LogicalVolume const& lv) {
-            CELER_ASSERT(static_cast<std::size_t>(lv.GetInstanceID())
-                         < labels.size());
-            ++count;
-
-            ImportVolume& volume = result[lv.GetInstanceID()];
-            if (auto* mat = lv.GetMaterial())
-            {
-                volume.geo_material_id = mat->GetIndex();
-            }
-            if (auto* reg = lv.GetRegion())
-            {
-                volume.region_id = reg->GetInstanceID();
-            }
-            if (auto* cuts = lv.GetMaterialCutsCouple())
-            {
-                volume.phys_material_id = cuts->GetIndex();
-            }
-            // TODO: when changing to celeritas::inp, just make this a label
-            // instead of converting to and from a std::string
-            volume.name = to_string(labels[lv.GetInstanceID()]);
-            volume.solid_name = lv.GetSolid()->GetName();
-
-            if (volume.name.empty())
-            {
-                CELER_LOG(warning) << "No logical volume name specified for "
-                                   << PrintableLV{&lv} << " (material "
-                                   << volume.phys_material_id << ")";
-            }
-        },
-        world);
-
-    CELER_LOG(debug) << "Loaded " << count << " of " << result.size()
-                     << " volumes";
-    return result;
 }
 
 //---------------------------------------------------------------------------//

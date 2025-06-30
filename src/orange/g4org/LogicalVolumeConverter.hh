@@ -22,6 +22,7 @@ class G4LogicalVolume;
 
 namespace celeritas
 {
+class GeantGeoParams;
 namespace g4org
 {
 //---------------------------------------------------------------------------//
@@ -47,7 +48,7 @@ class LogicalVolumeConverter
     //!@}
 
   public:
-    LogicalVolumeConverter(VecLabel const& labels,
+    LogicalVolumeConverter(GeantGeoParams const& geo,
                            SolidConverter& convert_solid);
 
     // Convert a volume, return result plus insertion
@@ -58,7 +59,7 @@ class LogicalVolumeConverter
 
     //// DATA ////
 
-    VecLabel const& labels_;
+    GeantGeoParams const& geo_;
     SolidConverter& convert_solid_;
     std::unordered_map<G4LogicalVolume const*, WPLV> cache_;
 

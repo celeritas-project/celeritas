@@ -9,12 +9,12 @@
 #include <algorithm>
 #include <iostream>
 #include <string>
-#include <string_view>
-#include <unordered_map>
 #include <unordered_set>
 #include <G4Element.hh>
 #include <G4FieldManager.hh>
 #include <G4Isotope.hh>
+#include <G4LogicalBorderSurface.hh>
+#include <G4LogicalSkinSurface.hh>
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
 #include <G4Material.hh>
@@ -42,8 +42,6 @@
 
 #include "GeoParamsInterface.hh"
 #include "g4/VisitVolumes.hh"
-
-#include "detail/MakeLabelVector.hh"
 
 // Check Geant4-reported and CMake-configured versions, mapping from
 // Geant4's base-10 XXYZ -> to Celeritas base-16 0xXXYYZZ
@@ -171,6 +169,8 @@ void reset_geant_geometry()
 #if G4VERSION_NUMBER >= 1100
         G4ReflectionFactory::Instance()->Clean();
 #endif
+        G4LogicalSkinSurface::CleanSurfaceTable();
+        G4LogicalBorderSurface::CleanSurfaceTable();
         free_and_clear(G4Material::GetMaterialTable());
         free_and_clear(const_cast<std::vector<G4Element*>*>(
             G4Element::GetElementTable()));
@@ -297,63 +297,6 @@ find_geant_volumes(std::unordered_set<std::string> names)
                    << join(names.begin(), names.end(), ", "));
 
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a reproducible vector of LV instance ID -> label from the given world.
- */
-std::vector<Label> make_logical_vol_labels(G4VPhysicalVolume const& world)
-{
-    std::unordered_map<std::string, std::vector<G4LogicalVolume const*>> names;
-
-    visit_volumes(
-        [&](G4LogicalVolume const& lv) {
-            // Add to name map
-            names[lv.GetName()].push_back(&lv);
-        },
-        world);
-
-    return detail::make_label_vector<G4LogicalVolume const*>(
-        std::move(names),
-        [](G4LogicalVolume const* lv) { return lv->GetInstanceID(); });
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a reproducible vector of PV instance ID -> label from the given world.
- */
-std::vector<Label> make_physical_vol_labels(G4VPhysicalVolume const& world)
-{
-    std::unordered_map<G4VPhysicalVolume const*, int> max_depth;
-    std::unordered_map<std::string, std::vector<G4VPhysicalVolume const*>> names;
-
-    // Visit PVs, mapping names to instances, skipping those that have already
-    // been visited at a deeper level
-    visit_volume_instances(
-        [&](G4VPhysicalVolume const& pv, int depth) {
-            auto&& [iter, inserted] = max_depth.insert({&pv, depth});
-            if (!inserted)
-            {
-                if (iter->second >= depth)
-                {
-                    // Already visited PV at this depth or more
-                    return false;
-                }
-                // Update the max depth
-                iter->second = depth;
-            }
-
-            // Add to name map
-            names[pv.GetName()].push_back(&pv);
-            // Visit daughters
-            return true;
-        },
-        world);
-
-    return detail::make_label_vector<G4VPhysicalVolume const*>(
-        std::move(names),
-        [](G4VPhysicalVolume const* pv) { return pv->GetInstanceID(); });
 }
 
 //---------------------------------------------------------------------------//

@@ -6,22 +6,69 @@
 //---------------------------------------------------------------------------//
 #include "UniformFieldParams.hh"
 
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "geocel/GeantGeoUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Units.hh"
+#include "celeritas/ext/GeantVolumeMapper.hh"
 
 #include "UniformFieldData.hh"
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+std::unordered_set<VolumeId>
+make_volume_ids(GeoParams const& geo, inp::UniformField const& inp)
+{
+    using SetVolume = std::unordered_set<VolumeId>;
+
+    return std::visit(
+        Overload{[&](inp::UniformField::SetVolume const& s) {
+                     SetVolume result;
+                     GeantVolumeMapper find_volume(geo);
+                     for (auto const* lv : s)
+                     {
+                         CELER_ASSERT(lv);
+                         auto vol = find_volume(*lv);
+                         CELER_VALIDATE(vol < geo.volumes().size(),
+                                        << "failed to find volume while "
+                                           "constructing a uniform field");
+                         result.insert(vol);
+                     }
+                     return result;
+                 },
+                 [&](inp::UniformField::SetString const& s) {
+                     SetVolume result;
+                     for (auto const& name : s)
+                     {
+                         auto vols = geo.volumes().find_all(name);
+                         CELER_VALIDATE(!vols.empty(),
+                                        << "failed to find volume '" << name
+                                        << "' while constructing a uniform "
+                                           "field");
+                         result.insert(vols.begin(), vols.end());
+                     }
+                     return result;
+                 },
+                 [](std::monostate) { return SetVolume{}; }},
+        inp.volumes);
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct from a user-defined field.
@@ -50,10 +97,11 @@ UniformFieldParams::UniformFieldParams(GeoParams const& geo, Input const& inp)
 
     // If logical volumes are specified, flag whether or not the field should
     // be present in each volume
-    if (!inp.volumes.empty())
+    auto volumes = make_volume_ids(geo, inp);
+    if (!volumes.empty())
     {
         std::vector<char> has_field(geo.volumes().size(), 0);
-        for (auto vol : inp.volumes)
+        for (auto vol : volumes)
         {
             CELER_VALIDATE(vol < geo.volumes().size(),
                            << "invalid volume ID "

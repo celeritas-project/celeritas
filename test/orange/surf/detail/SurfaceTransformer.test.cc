@@ -44,19 +44,28 @@ class SurfaceTransformerTest : public ::celeritas::test::Test
         make_rotation(
             Axis::z, Turn{1.0 / 12.0}, make_rotation(Axis::x, Turn{1.0 / 6.0})),
         {1, 2, 3}}};
+
+    // Reflect across the YZ plane
+    SurfaceTransformer const reflect{
+        Transformation{make_reflection(Axis::x), Real3{0, 0, 0}}};
 };
 
 TEST_F(SurfaceTransformerTest, plane_aligned)
 {
-    auto s = transform(PlaneX{4.0});
+    PlaneX const orig{4};
+    auto s = transform(orig);
     EXPECT_EQ(SurfaceType::p, s.surface_type());
     EXPECT_VEC_SOFT_EQ(array(0.86602540378444, 0.5, 0, 5.86602540378444),
                        s.data());
+
+    s = reflect(orig);
+    EXPECT_VEC_SOFT_EQ(array(-1, 0, 0, 4), s.data());
 }
 
 TEST_F(SurfaceTransformerTest, cyl_centered)
 {
-    auto s = transform(CCylX{4.0});
+    CCylX const orig{4};
+    auto s = transform(orig);
     EXPECT_EQ(SurfaceType::gq, s.surface_type());
     EXPECT_VEC_SOFT_EQ(array(0.25,
                              0.75,
@@ -73,9 +82,13 @@ TEST_F(SurfaceTransformerTest, cyl_centered)
 
 TEST_F(SurfaceTransformerTest, sphere_centered)
 {
-    auto s = transform(SphereCentered{0.5});
+    SphereCentered orig{0.5};
+    auto s = transform(orig);
     EXPECT_EQ(SurfaceType::s, s.surface_type());
     EXPECT_VEC_SOFT_EQ(array(1, 2, 3, 0.25), s.data());
+
+    s = reflect(orig);
+    EXPECT_VEC_SOFT_EQ(array(0, 0, 0, 0.25), s.data());
 }
 
 TEST_F(SurfaceTransformerTest, cyl_aligned)
@@ -108,11 +121,16 @@ TEST_F(SurfaceTransformerTest, plane)
 
 TEST_F(SurfaceTransformerTest, sphere)
 {
-    auto s = transform(Sphere{{1, 2, 3}, 0.5});
+    Sphere const orig{{1, 2, 3}, 0.5};
+
+    auto s = transform(orig);
     EXPECT_EQ(SurfaceType::s, s.surface_type());
     EXPECT_VEC_SOFT_EQ(
         array(2.6650635094611, 1.1160254037844, 6.2320508075689, 0.25),
         s.data());
+
+    s = reflect(orig);
+    EXPECT_VEC_SOFT_EQ(array(-1, 2, 3, 0.25), s.data());
 }
 
 TEST_F(SurfaceTransformerTest, cone_aligned)

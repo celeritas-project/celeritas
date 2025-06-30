@@ -13,13 +13,14 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/GeantGeoParams.hh"
+#include "geocel/inp/Model.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/inp/Control.hh"
 #include "celeritas/inp/Import.hh"
-#include "celeritas/inp/Model.hh"
 #include "celeritas/inp/Problem.hh"
 #include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/io/ImportData.hh"
@@ -51,6 +52,7 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
 
     // Set up Geant4
     std::optional<GeantSetup> geant_setup;
+    std::shared_ptr<GeantGeoParams> geant_geo_params;
     if (si.geant_setup)
     {
         // Take file name from problem and physics options from the arguments,
@@ -60,30 +62,32 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
         geant_setup.emplace(std::get<std::string>(problem->model.geometry),
                             *si.geant_setup);
 
-        // Replace world geometry with Geant4 world pointer
-        problem->model.geometry = geant_setup->world();
+        // Keep the geant4 geometry and set it as global
+        geant_geo_params = geant_setup->geo_params();
+        CELER_ASSERT(geant_geo_params);
+        celeritas::geant_geo(*geant_geo_params);
+
+        // Load geometry, surfaces, regions from Geant4 world pointer
+        problem->model = geant_geo_params->make_model_input();
     }
 
     // Import physics data
     ImportData imported = std::visit(
-        Overload{
-            [](inp::FileImport const& fi) {
-                CELER_VALIDATE(!fi.input.empty(),
-                               << "no file import specified");
-                // Import physics data from ROOT file
-                return RootImporter(fi.input)();
-            },
-            [&geo = problem->model.geometry](inp::GeantImport const& gi) {
-                // For standalone, no processes should need to be ignored
-                CELER_ASSERT(gi.ignore_processes.empty());
-                CELER_ASSUME(
-                    std::holds_alternative<G4VPhysicalVolume const*>(geo));
+        Overload{[](inp::FileImport const& fi) {
+                     CELER_VALIDATE(!fi.input.empty(),
+                                    << "no file import specified");
+                     // Import physics data from ROOT file
+                     return RootImporter(fi.input)();
+                 },
+                 [&geant_geo_params](inp::GeantImport const& gi) {
+                     // For standalone, no processes should need to be ignored
+                     CELER_ASSERT(gi.ignore_processes.empty());
+                     CELER_EXPECT(geant_geo_params);
 
-                // Don't capture the setup; leave Geant4 alive for now
-                GeantImporter import{std::get<G4VPhysicalVolume const*>(geo)};
-                return import(gi.data_selection);
-            },
-        },
+                     // Don't capture the setup; leave Geant4 alive for now
+                     GeantImporter import{};
+                     return import(gi.data_selection);
+                 }},
         si.physics_import);
 
     if (si.geant_data)
@@ -100,6 +104,9 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
 
     // Set up core params
     result.problem = setup::problem(*problem, imported);
+
+    // Save geometry if loaded
+    result.geant_geo = geant_geo_params;
 
     // Load events
     result.events = events(si.events, result.problem.core_params->particle());

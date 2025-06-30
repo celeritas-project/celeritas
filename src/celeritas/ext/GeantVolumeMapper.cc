@@ -12,6 +12,7 @@
 
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
 
 namespace celeritas
@@ -20,19 +21,7 @@ namespace celeritas
 /*!
  * Convert to target geometry from geant4 transportation world.
  */
-GeantVolumeMapper::GeantVolumeMapper(GeoParamsInterface const& geo)
-    : world_{geant_world_volume()}, geo_{geo}
-{
-    CELER_VALIDATE(world_, << "world was not set up before mapping volumes");
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Convert from Geant4 world *to* geometry interface ID.
- */
-GeantVolumeMapper::GeantVolumeMapper(G4VPhysicalVolume const& world,
-                                     GeoParamsInterface const& geo)
-    : world_{&world}, geo_{geo}
+GeantVolumeMapper::GeantVolumeMapper(GeoParamsInterface const& geo) : geo_{geo}
 {
 }
 
@@ -45,26 +34,25 @@ GeantVolumeMapper::GeantVolumeMapper(G4VPhysicalVolume const& world,
  */
 VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const& lv)
 {
-    if (VolumeId id = geo_.find_volume(&lv))
+    // TODO: move pointer->id mapping to GeantGeoParams
+    VolumeId id = geo_.find_volume(&lv);
+    if (id)
     {
         // Volume is mapped from an externally loaded Geant4 geometry
         return id;
     }
 
-    if (CELER_UNLIKELY(labels_.empty()))
-    {
-        // Lazily construct labels if lookup via pointer fails
-        labels_ = make_logical_vol_labels(*world_);
-    }
+    // Get geant volume ID and corresponding label
+    auto* geant_geo = celeritas::geant_geo();
+    CELER_VALIDATE(geant_geo, << "global Geant4 geometry is not loaded");
+    id = geant_geo->geant_to_id(lv);
+    CELER_VALIDATE(id,
+                   << "logical volume '" << lv.GetName()
+                   << "' is not in the tracking volume");
+    // TODO: volume ID should correspond one-to-one?
+    auto const& label = geant_geo->volumes().at(id);
 
-    // Convert volume name to GPU geometry ID
-    CELER_VALIDATE(
-        static_cast<std::size_t>(lv.GetInstanceID()) < labels_.size(),
-        << "logical volume '" << lv.GetName()
-        << "' is not in the world volume '" << world_->GetName() << "' ("
-        << labels_.size() << " volumes found)");
-    auto const& label = labels_[lv.GetInstanceID()];
-
+    // Compare Geant4 label to main geometry label
     auto const& volumes = geo_.volumes();
     if (auto id = volumes.find_exact(label))
     {

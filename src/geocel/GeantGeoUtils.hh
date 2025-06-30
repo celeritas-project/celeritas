@@ -14,7 +14,6 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/io/Label.hh"
 
 //---------------------------------------------------------------------------//
 // Forward declarations
@@ -87,12 +86,6 @@ bool is_replica(G4VPhysicalVolume const&);
 // Find Geant4 logical volumes corresponding to a list of names
 std::unordered_set<G4LogicalVolume const*>
     find_geant_volumes(std::unordered_set<std::string>);
-
-// Get a reproducible vector of LV instance ID -> label from the given world
-std::vector<Label> make_logical_vol_labels(G4VPhysicalVolume const& world);
-
-// Get a reproducible vector of PV instance ID -> label from the given world
-std::vector<Label> make_physical_vol_labels(G4VPhysicalVolume const& world);
 
 //---------------------------------------------------------------------------//
 // Update a nav history to match the given volume instance stack

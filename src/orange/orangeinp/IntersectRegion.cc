@@ -7,12 +7,13 @@
 #include "IntersectRegion.hh"
 
 #include <cmath>
+#include <tuple>
 
+#include "corecel/Assert.hh"
 #include "corecel/Constants.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
-#include "corecel/io/Repr.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/Types.hh"
@@ -36,6 +37,16 @@ namespace orangeinp
 {
 namespace
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Create a SoftEqual instance using the surface builder tolerance.
+ */
+auto make_soft_equal(IntersectSurfaceBuilder const& sb)
+{
+    auto tol = sb.tol();
+    return SoftEqual{tol.rel, tol.abs};
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Create a z-aligned bounding box infinite along z and symmetric in r.
@@ -138,8 +149,7 @@ bool Cone::encloses(Cone const& other) const
  */
 void Cone::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    if (CELER_UNLIKELY(
-            SoftEqual{insert_surface.tol().rel}(radii_[0], radii_[1])))
+    if (CELER_UNLIKELY(make_soft_equal(insert_surface)(radii_[0], radii_[1])))
     {
         // Degenerate cone: build a cylinder instead
         Cylinder cyl{real_type{0.5} * (radii_[0] + radii_[1]), hh_};
@@ -261,7 +271,7 @@ void Cylinder::output(JsonPimpl* j) const
 // ELLIPSOID
 //---------------------------------------------------------------------------//
 /*!
- * Construct with radii.
+ * Construct with radius along each Cartesian axis.
  */
 Ellipsoid::Ellipsoid(Real3 const& radii) : radii_{radii}
 {
@@ -710,7 +720,7 @@ GenPrism GenPrism::from_trap(
     auto [dxdz_hz, dydz_hz] = [&]() -> std::pair<real_type, real_type> {
         real_type cos_phi{}, sin_phi{};
         sincos(phi, &sin_phi, &cos_phi);
-        real_type const tan_theta = std::tan(native_value_from(theta));
+        real_type const tan_theta = tan(theta);
         return {hz * tan_theta * cos_phi, hz * tan_theta * sin_phi};
     }();
 
@@ -732,8 +742,7 @@ GenPrism GenPrism::from_trap(
 
         real_type const xoff = (i == 0 ? -dxdz_hz : dxdz_hz);
         real_type const yoff = (i == 0 ? -dydz_hz : dydz_hz);
-        real_type const shear = std::tan(native_value_from(face.alpha))
-                                * face.hy;
+        real_type const shear = tan(face.alpha) * face.hy;
 
         // Construct points counterclockwise from lower right
         points[i] = {{xoff - shear + face.hx_lo, yoff - face.hy},
@@ -945,52 +954,61 @@ void GenPrism::output(JsonPimpl* j) const
 }
 
 //---------------------------------------------------------------------------//
-// INFSLAB
+// INFPLANE
 //---------------------------------------------------------------------------//
 /*!
- * Construct from lower and upper z-planes.
+ * Construct with sense, axis, and position.
  */
-InfSlab::InfSlab(real_type lower, real_type upper)
-    : lower_{lower}, upper_{upper}
+InfPlane::InfPlane(Sense sense, Axis axis, real_type position)
+    : sense_{sense}, axis_{axis}, position_{position}
 {
-    CELER_VALIDATE(lower_ < upper_,
-                   << "invalid z planes, lower plane z value " << lower_
-                   << " must be less than upper plane z value" << upper_);
+    CELER_EXPECT(axis_ < Axis::size_);
+    CELER_EXPECT(!std::isnan(position));
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Build surfaces.
+ * Build the surface.
  */
-void InfSlab::build(IntersectSurfaceBuilder& insert_surface) const
+void InfPlane::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    insert_surface(Sense::outside, PlaneZ{lower_});
-    insert_surface(Sense::inside, PlaneZ{upper_});
+    // NOTE: these use the Plane surface aliases.
+    switch (axis_)
+    {
+        case Axis::x:
+            insert_surface(sense_, PlaneX{position_});
+            break;
+        case Axis::y:
+            insert_surface(sense_, PlaneY{position_});
+            break;
+        case Axis::z:
+            insert_surface(sense_, PlaneZ{position_});
+            break;
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    }
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Write output to the given JSON object.
  */
-void InfSlab::output(JsonPimpl* j) const
+void InfPlane::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
 }
 
 //---------------------------------------------------------------------------//
-// INFWEDGE
+// INFAZIWEDGE
 //---------------------------------------------------------------------------//
 /*!
- * Construct from a starting angle and interior angle.
+ * Construct from a starting angle and stop angle.
  */
-InfWedge::InfWedge(Turn start, Turn interior)
-    : start_{start}, interior_{interior}
+InfAziWedge::InfAziWedge(Turn start, Turn stop) : start_{start}, stop_{stop}
 {
-    CELER_VALIDATE(start_ >= zero_quantity() && start_ < Turn{1},
-                   << "invalid start angle " << start_.value()
-                   << " [turns]: must be in the range [0, 1)");
-    CELER_VALIDATE(interior_ > zero_quantity() && interior_ <= Turn{0.5},
-                   << "invalid interior wedge angle " << interior.value()
+    CELER_VALIDATE(stop_ > start_ && stop_ <= start_ + Turn{0.5},
+                   << "invalid interior wedge angle " << stop_.value() << " - "
+                   << start_.value() << " = " << (stop_ - start_).value()
                    << " [turns]: must be in the range (0, 0.5]");
 }
 
@@ -999,16 +1017,22 @@ InfWedge::InfWedge(Turn start, Turn interior)
  * Build surfaces.
  *
  * Both planes should point "outward" to the wedge. In the degenerate case of
- * interior = 0.5 we rely on CSG object deduplication.
+ * stop = 0.5 + start, we rely on CSG object deduplication.
+ *
+ * Names are 'azimuthal wedge' with plus/minus
  */
-void InfWedge::build(IntersectSurfaceBuilder& insert_surface) const
+void InfAziWedge::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    real_type sinstart, cosstart, sinend, cosend;
-    sincos(start_, &sinstart, &cosstart);
-    sincos(start_ + interior_, &sinend, &cosend);
-
-    insert_surface(Sense::inside, Plane{Real3{sinstart, -cosstart, 0}, 0.0});
-    insert_surface(Sense::outside, Plane{Real3{sinend, -cosend, 0}, 0.0});
+    for (auto&& [sense, angle, namechar] :
+         {std::tuple{Sense::outside, stop_, 'm'},
+          std::tuple{Sense::inside, start_, 'p'}})
+    {
+        real_type s, c;
+        sincos(angle, &s, &c);
+        std::string facename("aw*");
+        facename[2] = namechar;
+        insert_surface(sense, Plane{Real3{s, -c, 0}, 0}, std::move(facename));
+    }
 
     //! \todo Restrict bounding boxes, at least eliminating two quadrants...
 }
@@ -1017,13 +1041,80 @@ void InfWedge::build(IntersectSurfaceBuilder& insert_surface) const
 /*!
  * Write output to the given JSON object.
  */
-void InfWedge::output(JsonPimpl* j) const
+void InfAziWedge::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
 }
 
 //---------------------------------------------------------------------------//
-// Involute
+// INFPOLARWEDGE
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from a starting angle and stop angle.
+ */
+InfPolarWedge::InfPolarWedge(Turn start, Turn stop)
+    : start_{start}, stop_{stop}
+{
+    CELER_VALIDATE(start_ >= north_pole && start_ < south_pole,
+                   << "invalid start angle " << start_.value()
+                   << " [turns]: must be in the range [0, 0.5)");
+
+    // Stay only on a single side of z=0
+    auto max_stop = Turn{start_ < equator ? equator : south_pole};
+    CELER_VALIDATE(stop_ > start_
+                       && (stop_ <= max_stop
+                           || soft_equal(stop_.value(), max_stop.value())),
+                   << "invalid stop wedge angle " << stop.value()
+                   << " [turns]: must be in [0, "
+                   << (max_stop - start_).value() << ")");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ *
+ * Names use 'pw' for polar wedge, 'z' for plane:
+ *  - pwm: middle plane
+ *  - pwt: top cone
+ *  - pwb: bottom cone
+ */
+void InfPolarWedge::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    auto soft_equal = make_soft_equal(insert_surface);
+
+    // Greater-than-equator start means below z (southern hemisphere)
+    auto sense = start_ >= equator ? Sense::inside : Sense::outside;
+    insert_surface(sense, PlaneZ{0}, "pwm");
+
+    if (!soft_equal(start_.value(), north_pole.value())
+        && !soft_equal(start_.value(), equator.value()))
+    {
+        // Start point is not a degenerate cone: we're "outside" if top
+        // hemisphere, "inside" if bottom. "kt" means "cone top"
+        insert_surface(sense, ConeZ{Real3{0, 0, 0}, tan(start_)}, "pwt");
+    }
+
+    if (!soft_equal(stop_.value(), south_pole.value())
+        && !soft_equal(stop_.value(), equator.value()))
+    {
+        // End point is not a degenerate cone: we're "inside" if top
+        // hemisphere, "outside" if bottom. "kb" is "cone bottom".
+        insert_surface(
+            flip_sense(sense), ConeZ{Real3{0, 0, 0}, tan(stop_)}, "pwb");
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void InfPolarWedge::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+// INVOLUTE
 //---------------------------------------------------------------------------//
 /*!
  * Construct with prarameters and half height.
@@ -1212,34 +1303,34 @@ void Prism::build(IntersectSurfaceBuilder& insert_surface) const
     insert_surface(Sense::outside, PlaneZ{-hh_});
     insert_surface(Sense::inside, PlaneZ{hh_});
 
-    // Offset (if user offset is zero) is calculated to put a plane on the
-    // -y face (sitting upright as visualized). An offset of 1 produces a
-    // shape congruent with an offset of zero, except that every face has
-    // an index that's decremented by 1.
-    real_type const offset = std::fmod(num_sides_ * 3 + 4 * orientation_, 4)
-                             / 4;
+    // Offset (if user offset is zero) is calculated to put a point at y=0 on
+    // the +x axis. An offset of 1 would produce a shape congruent with an
+    // offset of zero, except that every face has an index that's decremented
+    // by 1. We prevent this by using fmod.
+    real_type const offset
+        = std::fmod(orientation_ + real_type{0.5}, real_type{1});
     CELER_ASSERT(offset >= 0 && offset < 1);
 
     // Change of angle in radians per side
-    real_type const delta_rad = 2 * pi / real_type(num_sides_);
+    Turn const delta{1 / static_cast<real_type>(num_sides_)};
 
     // Build prismatic sides
     for (auto n : range(num_sides_))
     {
-        real_type const theta = delta_rad * (n + offset);
+        // Angle of outward normal, *not* of corner
+        auto theta = delta * (static_cast<real_type>(n) + offset);
 
-        // Create a normal vector along the X axis, then rotate it through
-        // the angle theta
+        // Create a normal vector with the given angle
         Real3 normal{0, 0, 0};
-        normal[to_int(Axis::x)] = std::cos(theta);
-        normal[to_int(Axis::y)] = std::sin(theta);
+        sincos(theta, &normal[to_int(Axis::y)], &normal[to_int(Axis::x)]);
 
+        // Distance from the plane to the origin is the apothem
         insert_surface(Plane{normal, apothem_});
     }
 
     // Apothem is interior, circumradius exterior
     insert_surface(Sense::inside,
-                   make_xyradial_bbox(apothem_ / std::cos(delta_rad / 2)));
+                   make_xyradial_bbox(apothem_ / cos(delta / 2)));
 
     auto interior_bbox = make_xyradial_bbox(apothem_);
     interior_bbox.shrink(Bound::lo, Axis::z, -hh_);
@@ -1258,7 +1349,7 @@ void Prism::output(JsonPimpl* j) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether this encloses another sphere.
+ * Whether this encloses another prism.
  */
 bool Prism::encloses(Prism const& other) const
 {

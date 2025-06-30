@@ -107,24 +107,29 @@ optical materials.
 .. doxygenclass:: celeritas::optical::RayleighModel
 .. doxygenclass:: celeritas::optical::RayleighMfpCalculator
 
+.. _surface_processes:
+
 Surface processes
 =================
 
-Optical photons also have special interactions at material boundaries. These
-boundaries are imported from Geant4 using the "skin" (boundary between two
-logical volumes) and "border" (the one-sided boundary exiting one physical volume
-and entering another)
-surface definitions that specify properties of a volume's outer surface or of
-the surface between two specific volumes.
+Optical photons also have special interactions at material boundaries,
+specified largely by user-provided material properties. The surface
+definitions are translated from Geant4 "skin" and "border" surfaces to
+Celeritas "boundary" and "interface" surfaces, respectively (see
+:ref:`api_geometry`). The "boundary" of a volume is currently defined, from
+Geant4 input, as a *directional* property.
 
-Given a pair of (old, new) physical volumes (P0, P1) corresponding to logical
-volumes (L0, L1), the surface properties are determined in decreasing
-precedence:
+Celeritas surface physics currently uses the following heuristic to reproduce
+Geant4 boundary physics behavior.  Given a pair of old→new volume instances
+P0→P1 corresponding to volumes L0→L1, the surface properties are determined in
+decreasing precedence by:
 
-1. Ordered (P0, P1) border surface
-2. Skin surface of L1 if it's the daughter of L0
-3. Skin surface of L0
-4. Skin surface of L1
+1. The interface surface from P0 to P1
+2. If L1 is the child of L0 (crossing into an "enclosed" volume), then the
+   boundary surface of L1
+3. The boundary surface of L0
+4. The boundary surface of L1
+5. The volumetric material properties of L0 and L1
 
-.. todo:: Add this section once surface models are implemented. Move the
-   precedence above into a surface property params.
+.. todo:: Once surface models are implemented, move the
+   precedence above into SurfacePhysics documentation.

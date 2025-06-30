@@ -103,6 +103,4 @@ Users and other parts of the code can add their own shared and stream-local
 
 .. doxygenclass:: celeritas::AuxStateData
 
-.. doxygenfunction:: celeritas::make_aux_state
-
 .. doxygenclass:: celeritas::AuxStateVec

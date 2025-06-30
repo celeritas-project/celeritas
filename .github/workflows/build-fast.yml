@@ -41,7 +41,7 @@ jobs:
     env:
       GHA_JOB_NAME: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}${{matrix.cxxstd && format('-c++{0}', matrix.cxxstd) || ''}}"
       CCACHE_DIR: "${{github.workspace}}/.ccache"
-      CCACHE_MAXSIZE: "100Mi"
+      CCACHE_MAXSIZE: "200Mi"
       CMAKE_PRESET: fast
       CC: ${{matrix.compiler}}-${{matrix.version}}
       CXX: ${{matrix.compiler == 'gcc' && 'g++' || 'clang++'}}-${{matrix.version}}
@@ -151,7 +151,7 @@ jobs:
         shell: pwsh
     env:
       CCACHE_DIR: "${{github.workspace}}\\.ccache"
-      CCACHE_MAXSIZE: "100Mi"
+      CCACHE_MAXSIZE: "200Mi"
       CMAKE_PRESET: fast
     runs-on: windows-latest
     steps:

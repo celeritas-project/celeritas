@@ -44,7 +44,17 @@ class SignedPermutation;
  * where the transpose of \b R is equal to its inverse because the matrix is
  * unitary.
  *
- * The rotation matrix is indexed with C ordering, [i][j].
+ * The rotation matrix is indexed with C ordering, [i][j]. If a rotation
+ * matrix, it should be a orthonormal with a determinant is 1 if not reflecting
+ * (proper) or -1 if reflecting (improper). A transformation that applies a
+ * scaling has non-unit eigenvalues.
+ *
+ * It is the caller's job to ensure a user-provided low-precision rotation
+ * matrix is orthonormal: see \c celeritas::orthonormalize . (Add \c
+ * CELER_VALIDATE to the calling code if constructing a transformation matrix
+ * from user input or a suspect source.)
+ *
+ * \todo Scaling is not yet implemented correctly.
  */
 class Transformation
 {
@@ -54,6 +64,13 @@ class Transformation
     using StorageSpan = Span<real_type const, 12>;
     using Mat3 = SquareMatrixReal3;
     //@}
+
+    //! Calculated properties about the transformation
+    struct Properties
+    {
+        bool reflects{false};  //!< Improper: applies a reflection
+        bool scales{false};  //!< Applies a scale factor
+    };
 
     //! Transformation type identifier
     static CELER_CONSTEXPR_FUNCTION TransformType transform_type()
@@ -115,6 +132,9 @@ class Transformation
 
     // Calculate the inverse during preprocessing
     Transformation calc_inverse() const;
+
+    // Calculate properties about the matrix
+    Properties calc_properties() const;
 
   private:
     Mat3 rot_;

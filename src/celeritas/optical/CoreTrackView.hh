@@ -7,6 +7,7 @@
 #pragma once
 
 #include "corecel/random/engine/RngEngine.hh"
+#include "geocel/VolumeSurfaceView.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 
 #include "CoreTrackData.hh"
@@ -63,6 +64,9 @@ class CoreTrackView
 
     // Return a physics view
     inline CELER_FUNCTION PhysicsTrackView physics() const;
+
+    // Return a view to surface properties attached to a volume
+    inline CELER_FUNCTION VolumeSurfaceView volume_surface(VolumeId vid) const;
 
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
@@ -186,6 +190,16 @@ CELER_FUNCTION auto CoreTrackView::physics() const -> PhysicsTrackView
     CELER_ASSERT(mat_id);
     return PhysicsTrackView{
         params_.physics, states_.physics, mat_id, this->track_slot_id()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a view to surface properties attached to a volume.
+ */
+CELER_FUNCTION auto CoreTrackView::volume_surface(VolumeId vid) const
+    -> VolumeSurfaceView
+{
+    return VolumeSurfaceView{params_.surface, vid};
 }
 
 //---------------------------------------------------------------------------//

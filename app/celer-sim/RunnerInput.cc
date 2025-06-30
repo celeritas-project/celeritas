@@ -20,7 +20,6 @@
 #include "celeritas/inp/Diagnostics.hh"
 #include "celeritas/inp/Events.hh"
 #include "celeritas/inp/Field.hh"
-#include "celeritas/inp/Model.hh"
 #include "celeritas/inp/Physics.hh"
 #include "celeritas/inp/PhysicsProcess.hh"
 #include "celeritas/inp/Scoring.hh"
@@ -185,7 +184,7 @@ inp::Problem load_problem(RunnerInput const& ri)
     }
 
     // Tracking
-    p.tracking.limits.steps = ri.max_steps;
+    p.tracking.limits.step_iters = ri.max_steps;
     p.tracking.force_step_limit = ri.step_limiter;
     if (!std::holds_alternative<inp::NoField>(p.field))
     {
@@ -202,6 +201,14 @@ inp::Problem load_problem(RunnerInput const& ri)
             sc.tracks = ri.optical.num_track_slots;
             sc.generators = ri.optical.buffer_capacity;
             return sc;
+        }();
+        p.tracking.limits.optical_step_iters = ri.optical.max_steps;
+
+        p.physics.optical = [&ri] {
+            inp::OpticalPhysics op;
+            op.cherenkov = ri.optical.cherenkov;
+            op.scintillation = ri.optical.scintillation;
+            return op;
         }();
     }
 

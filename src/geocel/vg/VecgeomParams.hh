@@ -16,6 +16,7 @@
 #include "geocel/BoundingBox.hh"
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/Types.hh"
+#include "geocel/inp/Model.hh"
 
 #include "VecgeomData.hh"
 
@@ -55,7 +56,11 @@ class VecgeomParams final : public GeoParamsInterface,
     BBox const& bbox() const final { return bbox_; }
 
     //! Maximum nested geometry depth
+    //! \todo move to VolumeParams
     LevelId::size_type max_depth() const final { return host_ref_.max_depth; }
+
+    // Create model parameters corresponding to our internal representation
+    inp::Model make_model_input() const final;
 
     //// VOLUMES ////
 

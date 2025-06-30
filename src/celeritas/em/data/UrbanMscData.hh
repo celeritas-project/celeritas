@@ -35,8 +35,8 @@ enum class UrbanParMatType
  * factors are used in step limitation algorithms and default values are
  * chosen to balance between simulation time and precision.
  *
+ * Mapping of parameter names from Geant4 to Celeritas:
 <table>
-  <caption>Mapping of parameter names from Geant4 to Celeritas</caption>
   <thead>
     <tr>
       <th>Geant4 Symbol</th>

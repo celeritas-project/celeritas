@@ -68,6 +68,7 @@ set(DOXYGEN_ALIASES
   "citet{2}=\"[\\1](\\2)\""
   "rst=\"^^\\if (0)^^\""
   "endrst=\"^^\\endif^^\""
+  "rstref{2}=\"\\1 (\\2 in user manual)\""
 )
 
 # Verbosity/warning levels
@@ -210,6 +211,7 @@ set(DOXYGEN_ALIASES
   "citet{2}=\"\\verbatim embed:rst:inline :cite:t:`\\1` \\endverbatim \""
   "rst=\"^^\\verbatim embed:rst^^\""
   "endrst=\"^^\\endverbatim \""
+  "rstref{2}=\"\\verbatim embed:rst:inline :ref:`\\1 <\\2>` \\endverbatim \""
 )
 
 # Annotations break breathe parsing

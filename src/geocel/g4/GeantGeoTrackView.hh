@@ -87,8 +87,8 @@ class GeantGeoTrackView
 
     //!@{
     //! Geant4 states are never "on" a surface
-    SurfaceId surface_id() const { return {}; }
-    SurfaceId next_surface_id() const { return {}; }
+    InternalSurfaceId internal_surface_id() const { return {}; }
+    InternalSurfaceId next_internal_surface_id() const { return {}; }
     //!@}
 
     // Whether the track is outside the valid geometry region
@@ -97,6 +97,8 @@ class GeantGeoTrackView
     inline bool is_on_boundary() const;
     //! Whether the last operation resulted in an error
     CELER_FORCEINLINE bool failed() const { return false; }
+    // Get the normal vector of the current surface
+    inline CELER_FUNCTION Real3 normal() const;
 
     // Get the Geant4 navigation state
     inline G4NavigationHistory const* nav_history() const;
@@ -142,6 +144,8 @@ class GeantGeoTrackView
 
     //// DATA ////
 
+    // Shared data
+    ParamsRef const& params_;
     // Geometry state data
     //! \todo This is only needed for the detailed initialization
     StateRef const& state_;
@@ -180,10 +184,11 @@ class GeantGeoTrackView
 /*!
  * Construct from params and state data.
  */
-GeantGeoTrackView::GeantGeoTrackView(ParamsRef const&,
+GeantGeoTrackView::GeantGeoTrackView(ParamsRef const& params,
                                      StateRef const& states,
                                      TrackSlotId tid)
-    : state_(states)
+    : params_{params}
+    , state_(states)
     , tid_(tid)
     , pos_(states.pos[tid])
     , dir_(states.dir[tid])
@@ -274,7 +279,8 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(DetailedInitializer const& init)
 VolumeId GeantGeoTrackView::volume_id() const
 {
     CELER_EXPECT(!this->is_outside());
-    return id_cast<VolumeId>(this->volume()->GetInstanceID());
+    return id_cast<VolumeId>(this->volume()->GetInstanceID()
+                             - params_.lv_offset);
 }
 
 //---------------------------------------------------------------------------//
@@ -287,7 +293,7 @@ VolumeInstanceId GeantGeoTrackView::volume_instance_id() const
     G4VPhysicalVolume* pv = touch_handle_()->GetVolume(0);
     if (!pv)
         return {};
-    return id_cast<VolumeInstanceId>(pv->GetInstanceID());
+    return id_cast<VolumeInstanceId>(pv->GetInstanceID() - params_.pv_offset);
 }
 
 //---------------------------------------------------------------------------//
@@ -316,9 +322,13 @@ void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
     auto const max_depth = static_cast<size_type>(touch->GetHistoryDepth());
     for (auto lev : range(levels.size()))
     {
-        G4VPhysicalVolume* pv = touch->GetVolume(max_depth - lev);
-        levels[lev] = pv ? id_cast<VolumeInstanceId>(pv->GetInstanceID())
-                         : VolumeInstanceId{};
+        VolumeInstanceId vi_id;
+        if (G4VPhysicalVolume* pv = touch->GetVolume(max_depth - lev))
+        {
+            vi_id = id_cast<VolumeInstanceId>(pv->GetInstanceID()
+                                              - params_.pv_offset);
+        }
+        levels[lev] = vi_id;
     }
 }
 
@@ -338,6 +348,15 @@ CELER_FORCEINLINE bool GeantGeoTrackView::is_outside() const
 CELER_FORCEINLINE bool GeantGeoTrackView::is_on_boundary() const
 {
     return safety_radius_ == 0.0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the surface normal of the boundary the track is currently on.
+ */
+CELER_FUNCTION auto GeantGeoTrackView::normal() const -> Real3
+{
+    CELER_NOT_IMPLEMENTED("GeantGeoTrackView::normal");
 }
 
 //---------------------------------------------------------------------------//

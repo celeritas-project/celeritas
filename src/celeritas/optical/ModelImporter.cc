@@ -17,6 +17,7 @@
 #include "MaterialParams.hh"
 #include "model/AbsorptionModel.hh"
 #include "model/RayleighModel.hh"
+#include "model/WavelengthShiftModel.hh"
 
 namespace celeritas
 {
@@ -32,6 +33,7 @@ ModelImporter::ModelImporter(ImportData const& data,
                              UserBuildMap user_build)
     : input_{nullptr, std::move(material), nullptr, std::move(core_material)}
     , user_build_map_(std::move(user_build))
+    , params_(data.optical_params)
 {
     CELER_EXPECT(input_.material);
     CELER_EXPECT(input_.core_material);
@@ -41,7 +43,6 @@ ModelImporter::ModelImporter(ImportData const& data,
     input_.import_material = ImportedMaterials::from_import(data);
 
     CELER_ENSURE(input_.imported);
-    CELER_ENSURE(input_.import_material);
 }
 
 //---------------------------------------------------------------------------//
@@ -76,6 +77,8 @@ auto ModelImporter::operator()(IMC imc) const -> std::optional<ModelBuilder>
     static std::unordered_map<IMC, BuilderMemFn> const builtin_build{
         {IMC::absorption, &ModelImporter::build_absorption},
         {IMC::rayleigh, &ModelImporter::build_rayleigh},
+        {IMC::wls, &ModelImporter::build_wls},
+        {IMC::wls2, &ModelImporter::build_wls2},
     };
 
     // Next, try built-in models
@@ -102,10 +105,50 @@ auto ModelImporter::build_absorption() const -> ModelBuilder
  */
 auto ModelImporter::build_rayleigh() const -> ModelBuilder
 {
+    CELER_EXPECT(input_.import_material);
+
     return RayleighModel::make_builder(
         this->imported(),
         RayleighModel::Input{
             this->material(), this->core_material(), this->import_material()});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create WLS model builder.
+ */
+auto ModelImporter::build_wls() const -> ModelBuilder
+{
+    CELER_EXPECT(input_.import_material);
+
+    WavelengthShiftModel::Input input;
+    input.model = ImportModelClass::wls;
+    input.time_profile = params_.wls_time_profile;
+    for (auto mid : range(OptMatId{input_.import_material->num_materials()}))
+    {
+        input.data.push_back(input_.import_material->wls(mid));
+    }
+    return WavelengthShiftModel::make_builder(this->imported(),
+                                              std::move(input));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create WLS model builder.
+ */
+auto ModelImporter::build_wls2() const -> ModelBuilder
+{
+    CELER_EXPECT(input_.import_material);
+
+    WavelengthShiftModel::Input input;
+    input.model = ImportModelClass::wls2;
+    input.time_profile = params_.wls2_time_profile;
+    for (auto mid : range(OptMatId{input_.import_material->num_materials()}))
+    {
+        input.data.push_back(input_.import_material->wls2(mid));
+    }
+    return WavelengthShiftModel::make_builder(this->imported(),
+                                              std::move(input));
 }
 
 //---------------------------------------------------------------------------//

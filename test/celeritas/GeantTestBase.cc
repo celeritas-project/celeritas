@@ -14,6 +14,7 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Version.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "celeritas/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
@@ -34,6 +35,7 @@ struct GeantTestBase::ImportHelper
     // NOTE: the import function must be static for now so that Vecgeom or
     // other clients can access Geant4 after importing the data.
     std::unique_ptr<GeantImporter> import;
+    std::shared_ptr<GeantGeoParams> geo;
     std::string geometry_basename{};
     GeantPhysicsOptions options{};
     GeantImportDataSelection selection{};
@@ -89,7 +91,11 @@ bool GeantTestBase::is_summit_build()
 //! Get the Geant4 top-level geometry element (immutable)
 G4VPhysicalVolume const* GeantTestBase::get_world_volume() const
 {
-    return GeantImporter::get_world_volume();
+    auto* geo = celeritas::geant_geo();
+    if (!geo)
+        return nullptr;
+
+    return geo->world();
 }
 
 //---------------------------------------------------------------------------//
@@ -98,7 +104,9 @@ G4VPhysicalVolume const* GeantTestBase::get_world_volume()
 {
     // Load geometry
     this->imported_data();
-    return const_cast<GeantTestBase const*>(this)->get_world_volume();
+    auto* geo = celeritas::geant_geo();
+    CELER_ASSERT(geo);
+    return geo->world();
 }
 
 //---------------------------------------------------------------------------//
@@ -158,7 +166,7 @@ auto GeantTestBase::build_fresh_geometry(std::string_view filename)
                        "from "
                     << filename << ")";
     auto* world = this->get_world_volume();
-    CELER_EXPECT(world);
+    CELER_ASSERT(world);
     return std::make_shared<GeoParams>(world);
 #endif
 }
@@ -175,10 +183,13 @@ auto GeantTestBase::imported_data() const -> ImportData const&
     {
         i.geometry_basename = this->geometry_basename();
         i.options = opts;
-        std::string gdml_inp = this->test_data_path(
-            "geocel", (i.geometry_basename + ".gdml").c_str());
-        i.import = std::make_unique<GeantImporter>(
-            GeantSetup{gdml_inp.c_str(), i.options});
+        i.import = std::make_unique<GeantImporter>(GeantSetup{
+            this->test_data_path("geocel", i.geometry_basename + ".gdml"),
+            i.options});
+        i.geo = i.import->geo_params();
+        CELER_ASSERT(i.geo);
+        CELER_ASSERT(celeritas::geant_geo());
+
         i.scoped_exceptions = std::make_unique<ScopedGeantExceptionHandler>();
         i.imported = (*i.import)(sel);
         i.options.verbose = false;

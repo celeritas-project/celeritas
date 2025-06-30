@@ -21,6 +21,10 @@ class G4VPhysicalVolume;
 
 namespace celeritas
 {
+namespace inp
+{
+struct Model;
+}
 //---------------------------------------------------------------------------//
 /*!
  * Unique placement/replica of a Geant4 physical volume.
@@ -37,7 +41,7 @@ struct GeantPhysicalInstance
 {
     using ReplicaId = OpaqueId<struct Replica_>;
 
-    //! Geant4 physical volume
+    //! Geant4 physical volume pointer
     G4VPhysicalVolume const* pv{nullptr};
     //! Replica/parameterisation instance
     ReplicaId replica;
@@ -75,7 +79,11 @@ class GeoParamsInterface
     virtual BBox const& bbox() const = 0;
 
     //! Maximum nested volume instance depth
+    //! \todo move to VolumeParams
     virtual LevelId::size_type max_depth() const = 0;
+
+    // Create model parameters corresponding to our internal representation
+    virtual inp::Model make_model_input() const = 0;
 
     //// VOLUMES ////
 
@@ -94,32 +102,6 @@ class GeoParamsInterface
   protected:
     GeoParamsInterface() = default;
     CELER_DEFAULT_COPY_MOVE(GeoParamsInterface);
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Interface class for a host geometry that supports surfaces.
- *
- * \todo Remove this interface, use empty surface map instead
- */
-class GeoParamsSurfaceInterface : public GeoParamsInterface
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using SurfaceMap = LabelIdMultiMap<SurfaceId>;
-    //!@}
-
-  public:
-    // Default destructor
-    ~GeoParamsSurfaceInterface() override = 0;
-
-    //! Get surface metadata
-    virtual SurfaceMap const& surfaces() const = 0;
-
-  protected:
-    GeoParamsSurfaceInterface() = default;
-    CELER_DEFAULT_COPY_MOVE(GeoParamsSurfaceInterface);
 };
 
 //---------------------------------------------------------------------------//

@@ -11,6 +11,7 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "geocel/GeoTraits.hh"
 
+#include "GenericGeoResults.hh"
 #include "GenericGeoTestInterface.hh"
 #include "LazyGeoManager.hh"
 #include "Test.hh"
@@ -71,7 +72,7 @@ class GenericGeoTestBase : virtual public Test,
     //! Get the name of the current volume
     std::string volume_name(GeoTrackView const& geo) const;
     //! Get the name of the current surface if available
-    std::string surface_name(GeoTrackView const& geo) const;
+    virtual std::string surface_name(GeoTrackView const& geo) const;
     //! Get the stack of volume instances
     std::string all_volume_instance_names(GeoTrackView const& geo) const;
 
@@ -92,6 +93,9 @@ class GenericGeoTestBase : virtual public Test,
     TrackingResult
     track(Real3 const& pos_cm, Real3 const& dir, int max_step) final;
     VolumeStackResult volume_stack(Real3 const& pos_cm) final;
+
+    // Get the model input from the geometry
+    ModelInpResult model_inp() const final;
 
   private:
     template<Ownership W, MemSpace M>

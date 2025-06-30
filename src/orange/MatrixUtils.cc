@@ -6,8 +6,10 @@
 //---------------------------------------------------------------------------//
 #include "MatrixUtils.hh"
 
+#include <algorithm>
 #include <cmath>
 
+#include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
@@ -241,6 +243,96 @@ Mat3 make_rotation(Axis ax, Turn theta)
 Mat3 make_rotation(Axis ax, Turn theta, Mat3 const& other)
 {
     return gemm(make_rotation(ax, theta), other);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create an identity matrix.
+ */
+SquareMatrixReal3 make_identity()
+{
+    SquareMatrixReal3 result;
+    result.fill(Real3{0, 0, 0});
+    result[0][0] = result[1][1] = result[2][2] = 1;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a uniform scaling matrix.
+ *
+ * This creates a matrix that scales by the given factor along all axes.
+ *
+ * \param scale Scale factor to apply
+ */
+SquareMatrixReal3 make_scaling(real_type scale)
+{
+    CELER_EXPECT(scale > 0);
+    return make_scaling(Real3{scale, scale, scale});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a scaling matrix along a given axis.
+ *
+ * This creates a matrix that scales by the given factor along the specified
+ * axis while preserving the other dimensions.
+ *
+ * \param ax Axis along which to scale
+ * \param scale Scale factor to apply
+ */
+SquareMatrixReal3 make_scaling(Axis ax, real_type scale)
+{
+    CELER_EXPECT(ax < Axis::size_);
+    CELER_EXPECT(scale > 0);
+
+    Real3 temp_scale{1, 1, 1};
+    temp_scale[to_int(ax)] = scale;
+    return make_scaling(temp_scale);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a scaling matrix along all three Cartesian axes.
+ *
+ * \param scale Scale factor for each axis
+ */
+SquareMatrixReal3 make_scaling(Real3 const& scale)
+{
+    CELER_EXPECT(std::all_of(
+        scale.begin(), scale.end(), [](real_type s) { return s > 0; }));
+
+    SquareMatrixReal3 result = make_identity();
+
+    // Apply scale factor to each axis
+    for (auto ax : range(to_int(Axis::size_)))
+    {
+        result[ax][ax] = scale[ax];
+    }
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a reflection matrix perpendicular to a given axis.
+ *
+ * This creates a matrix that reflects across a plane on the origin, normal to
+ * the specified axis. The sign of the coordinate on that axis is reversed.
+ *
+ * \param ax Axis to reflect
+ * \return Matrix that represents reflection across the given axis
+ */
+SquareMatrixReal3 make_reflection(Axis ax)
+{
+    CELER_EXPECT(ax < Axis::size_);
+
+    SquareMatrixReal3 result = make_identity();
+
+    // Reflect the given axis
+    result[to_int(ax)][to_int(ax)] = -1;
+
+    return result;
 }
 
 //---------------------------------------------------------------------------//
