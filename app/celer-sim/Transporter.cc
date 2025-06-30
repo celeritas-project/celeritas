@@ -166,7 +166,8 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
     append_track_counts(track_counts);
     record_step_time();
 
-    while (track_counts)
+    OpticalOffloadCounters optical_counts;
+    while (track_counts || !optical_counts.empty())
     {
         if (CELER_UNLIKELY(--remaining_steps == 0))
         {
@@ -185,6 +186,12 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
         track_counts = step();
         append_track_counts(track_counts);
         record_step_time();
+
+        if (optical_)
+        {
+            auto& aux = stepper_->sp_state()->aux();
+            optical_counts = optical_->buffer_counts(aux);
+        }
     }
 
     auto counters = copy_to_host(stepper_->state_ref().init.track_counters);

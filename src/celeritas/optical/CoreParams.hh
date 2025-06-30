@@ -22,6 +22,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ActionRegistry;
+class SurfaceParams;
 
 namespace optical
 {
@@ -44,7 +45,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstMaterial = std::shared_ptr<MaterialParams const>;
     using SPConstPhysics = std::shared_ptr<PhysicsParams const>;
     using SPConstRng = std::shared_ptr<RngParams const>;
-    using SPConstSurface = std::shared_ptr<SurfacePhysicsParams const>;
+    using SPConstSurface = std::shared_ptr<SurfaceParams const>;
     using SPConstTrackInit = std::shared_ptr<TrackInitParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
     using SPConstDetectors = std::shared_ptr<SDParams const>;

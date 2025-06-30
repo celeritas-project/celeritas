@@ -10,6 +10,7 @@
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "geocel/SurfaceParams.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/track/SimParams.hh"
@@ -49,6 +50,7 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.geometry = get_ref<M>(*p.geometry);
     ref.material = get_ref<M>(*p.material);
     ref.physics = get_ref<M>(*p.physics);
+    ref.surface = get_ref<M>(*p.surface);
     ref.rng = get_ref<M>(*p.rng);
     ref.surface = get_ref<M>(*p.surface);
     ref.init = get_ref<M>(*p.init);

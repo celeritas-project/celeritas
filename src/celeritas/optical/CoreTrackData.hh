@@ -9,6 +9,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/random/data/RngData.hh"
+#include "geocel/SurfaceData.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoData.hh"
 
@@ -57,6 +58,7 @@ struct CoreParamsData
     PhysicsParamsData<W, M> physics;
     SurfacePhysicsParamsData<W, M> surface;
     RngParamsData<W, M> rng;
+    SurfaceParamsData<W, M> surface;
     TrackInitParamsData<W, M> init;
 
     CoreScalars scalars;
@@ -78,6 +80,7 @@ struct CoreParamsData
         physics = other.physics;
         surface = other.surface;
         rng = other.rng;
+        surface = other.surface;
         init = other.init;
         scalars = other.scalars;
         return *this;
