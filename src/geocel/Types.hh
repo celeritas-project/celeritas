@@ -42,9 +42,6 @@ using LevelId = OpaqueId<struct Level_>;
 //! Identifier for a material fill
 using GeoMatId = OpaqueId<struct GeoMaterial_>;
 
-//! Implementation detail surface (for surface-based geometries)
-using InternalSurfaceId = OpaqueId<struct Surface_>;
-
 //! Combined boundary/interface surface identifier
 using SurfaceId = OpaqueId<struct Surface_, unsigned int>;
 
@@ -56,6 +53,17 @@ using VolumeInstanceId = OpaqueId<struct VolumeInstance_, unsigned int>;
 
 //! Identifier for a unique volume in global space (aka touchable)
 using VolumeUniqueInstanceId = OpaqueId<struct VolumeInstance_, ull_int>;
+
+//---------------------------------------------------------------------------//
+
+//! Implementation detail surface (for surface-based geometries)
+using InternalSurfaceId = OpaqueId<struct Surface_>;
+
+//! TEMPORARY: universe + local volume index; may be different from structural
+using InternalVolumeId = VolumeId;
+
+//! Identifier for a unique volume in global space (aka touchable)
+using InternalVolumeUniqueInstanceId = VolumeUniqueInstanceId;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
