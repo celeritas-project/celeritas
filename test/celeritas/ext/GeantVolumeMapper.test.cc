@@ -13,7 +13,7 @@
 #include "corecel/Config.hh"
 
 #include "geocel/GeantGeoUtils.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 
 #include "celeritas_test.hh"
 
@@ -103,7 +103,7 @@ class GeantVolumeMapperTestBase : public ::celeritas::test::Test
 
     // Celeritas data
     std::shared_ptr<GeantGeoParams> geant_geo_params_;
-    std::shared_ptr<GeoParams> geo_params_;
+    std::shared_ptr<CoreGeoParams> geo_params_;
 
     ScopedLogStorer store_log_;
 };

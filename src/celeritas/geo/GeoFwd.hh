@@ -50,8 +50,10 @@ using CoreGeoStateData = GeantGeoStateData<W, M>;
 //! \deprecated Use CoreX instead
 using GeoParams = CoreGeoParams;
 using GeoTrackView = CoreGeoTrackView;
-using GeoParamsData = CoreGeoParamsData;
-using GeoStateData = CoreGeoStateData;
+template<Ownership W, MemSpace M>
+using GeoParamsData = CoreGeoParamsData<W, M>;
+template<Ownership W, MemSpace M>
+using GeoStateData = CoreGeoStateData<W, M>;
 //!@}
 
 //---------------------------------------------------------------------------//

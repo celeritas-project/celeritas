@@ -39,7 +39,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
   public:
     //!@{
     //! \name Type aliases
-    using SPConstGeo = std::shared_ptr<GeoParams const>;
+    using SPConstCoreGeo = std::shared_ptr<CoreGeoParams const>;
     using SPConstMaterial = std::shared_ptr<MaterialParams const>;
     using SPConstPhysics = std::shared_ptr<PhysicsParams const>;
     using SPConstRng = std::shared_ptr<RngParams const>;
@@ -57,7 +57,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
     struct Input
     {
-        SPConstGeo geometry;
+        SPConstCoreGeo geometry;
         SPConstMaterial material;
         SPConstPhysics physics;
         SPConstRng rng;
@@ -94,7 +94,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
     //!@{
     //! Access shared problem parameter data.
-    SPConstGeo const& geometry() const { return input_.geometry; }
+    SPConstCoreGeo const& geometry() const { return input_.geometry; }
     SPConstMaterial const& material() const { return input_.material; }
     SPConstPhysics const& physics() const { return input_.physics; }
     SPConstRng const& rng() const { return input_.rng; }

@@ -17,7 +17,7 @@
 #include "celeritas/TestEm3Base.hh"
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"

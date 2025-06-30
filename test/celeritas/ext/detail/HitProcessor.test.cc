@@ -10,7 +10,7 @@
 
 #include "geocel/UnitUtils.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"

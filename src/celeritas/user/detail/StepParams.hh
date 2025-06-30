@@ -40,7 +40,7 @@ class StepParams : public ParamsDataInterface<StepParamsData>,
   public:
     // Construct from data IDs and interfaces
     StepParams(AuxId aux_id,
-               GeoParams const& geo,
+               CoreGeoParams const& geo,
                VecInterface const& interfaces);
 
     //!@{

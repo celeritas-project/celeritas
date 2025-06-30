@@ -130,7 +130,7 @@ struct VecgeomNavCollection<Ownership::value, MemSpace::device>
  *
  * The NavStatePool underpinning the storage returns a void pointer that must
  * be manually manipulated to get a single state pointer. The max_depth
- * argument must be the same as the GeoParams.
+ * argument must be the same as the given to VecgeomGeoParams.
  */
 template<>
 struct VecgeomNavCollection<Ownership::reference, MemSpace::device>

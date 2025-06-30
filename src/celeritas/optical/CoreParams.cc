@@ -11,7 +11,7 @@
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "geocel/SurfaceParams.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"

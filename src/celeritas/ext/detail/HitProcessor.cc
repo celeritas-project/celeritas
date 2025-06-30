@@ -88,7 +88,7 @@ get_step_status(DetectorStepOutput const& out, size_type step_index)
  * Construct local navigator and step data.
  */
 HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
-                           SPConstGeo const& geo,
+                           SPConstCoreGeo const& geo,
                            VecParticle const& particles,
                            StepSelection const& selection,
                            StepPointBool const& locate_touchable)

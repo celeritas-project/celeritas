@@ -35,7 +35,7 @@ class GlobalGeoTestBase : virtual public GlobalTestBase,
     virtual std::string_view geometry_basename() const = 0;
 
     // Construct a geometry that's persistent across tests
-    SPConstGeo build_geometry() override;
+    SPConstCoreGeo build_geometry() override;
 
   protected:
     //// LAZY GEOMETRY CONSTRUCTION AND CLEANUP ////

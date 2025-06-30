@@ -47,14 +47,14 @@ class GeoMaterialParams final
   public:
     //!@{
     //! \name Type aliases
-    using SPConstGeo = std::shared_ptr<GeoParams const>;
+    using SPConstCoreGeo = std::shared_ptr<CoreGeoParams const>;
     using SPConstMaterial = std::shared_ptr<MaterialParams const>;
     //!@}
 
     //! Input parameters
     struct Input
     {
-        SPConstGeo geometry;
+        SPConstCoreGeo geometry;
         SPConstMaterial materials;
         std::vector<PhysMatId> volume_to_mat;
         std::vector<Label> volume_labels;  // Optional
@@ -64,7 +64,7 @@ class GeoMaterialParams final
     // Construct with imported data
     static std::shared_ptr<GeoMaterialParams>
     from_import(ImportData const& data,
-                SPConstGeo geo_params,
+                SPConstCoreGeo geo_params,
                 SPConstMaterial material_params);
 
     // Construct from geometry and material params

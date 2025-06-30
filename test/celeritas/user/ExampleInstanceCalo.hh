@@ -30,7 +30,7 @@ class ExampleInstanceCalo final : public StepInterface
   public:
     //!@{
     //! \name Type aliases
-    using SPConstGeo = std::shared_ptr<GeoParams const>;
+    using SPConstCoreGeo = std::shared_ptr<CoreGeoParams const>;
     using VecLabel = std::vector<Label>;
     //!@}
 
@@ -44,7 +44,7 @@ class ExampleInstanceCalo final : public StepInterface
 
   public:
     // Construct with geometry
-    ExampleInstanceCalo(SPConstGeo geo, VecLabel vol_labels);
+    ExampleInstanceCalo(SPConstCoreGeo geo, VecLabel vol_labels);
 
     // Selection of data required for this interface
     Filters filters() const final;
@@ -65,7 +65,7 @@ class ExampleInstanceCalo final : public StepInterface
     Result result() const;
 
   private:
-    SPConstGeo geo_;
+    SPConstCoreGeo geo_;
     VecLabel det_labels_;
     std::vector<VolumeId> volume_ids_;
 
