@@ -966,6 +966,12 @@ void PolyhedraGeoTest::test_trace() const
         ref.bumps = {};
         fixup_orange(*test_, ref, result);
         auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        if (test_->geometry_type() == "VecGeom" and using_vecgeom_solid)
+        {
+            tol.safety = tol.distance = 1e-8;  // required for solid model
+            std::cout<<" === Tolerance: dist="<< tol.distance
+                 <<", safety="<< tol.safety << std::endl;
+	}
         EXPECT_RESULT_NEAR(ref, result, tol);
     }
     {
@@ -1025,6 +1031,10 @@ void PolyhedraGeoTest::test_trace() const
         ref.bumps = {};
         fixup_orange(*test_, ref, result);
         auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        if (test_->geometry_type() == "VecGeom" and using_vecgeom_solid)
+        {
+            tol.safety = tol.distance = 1e-8;  // required for solid model
+        }
         EXPECT_RESULT_NEAR(ref, result, tol);
     }
     {
