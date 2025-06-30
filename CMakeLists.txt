@@ -61,6 +61,9 @@ cmake_dependent_option(CELERITAS_DEVICE_DEBUG
   "_celeritas_use_device;CELERITAS_DEBUG" OFF
 )
 
+option(CELERITAS_CODE_COVERAGE "Instrument code to produce gcov data and notes files" OFF)
+mark_as_advanced(CELERITAS_CODE_COVERAGE)
+
 # Secondary testing options (only applies to CTest)
 if(NOT CELERITAS_DEBUG OR CELERITAS_USE_VecGeom)
   set(_default_lock ON)
@@ -213,6 +216,18 @@ endif()
 if(CMAKE_VERSION VERSION_LESS 3.27 AND CELERITAS_USE_covfie)
   # See https://cmake.org/cmake/help/latest/manual/cmake-generator-expressions.7.html#id30
   message(FATAL_ERROR "CMake 3.27 or greater is required for covfie support")
+endif()
+
+#----------------------------------------------------------------------------#
+# Enable test coverage
+#----------------------------------------------------------------------------#
+if(CELERITAS_CODE_COVERAGE)
+  set(GCC_COVERAGE_COMPILE_FLAGS "-fprofile-arcs -ftest-coverage")
+  set(GCC_COVERAGE_LINK_FLAGS    "-fprofile-arcs")
+  set(CMAKE_CXX_FLAGS            "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}")
+  set(CMAKE_EXE_LINKER_FLAGS     "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}")
+  set(CMAKE_SHARED_LINKER_FLAGS  "${CMAKE_SHAREDLINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}")
+  set(CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS "${CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}")
 endif()
 
 #----------------------------------------------------------------------------#
