@@ -95,7 +95,7 @@ class OrangeTrackView
     inline CELER_FUNCTION Real3 const& dir() const;
 
     // The current volume ID (null if outside)
-    inline CELER_FUNCTION VolumeId volume_id() const;
+    inline CELER_FUNCTION InternalVolumeId volume_id() const;
     // Get the physical volume ID in the current cell
     inline CELER_FUNCTION VolumeInstanceId volume_instance_id() const;
     // The current level
@@ -456,7 +456,7 @@ CELER_FUNCTION Real3 const& OrangeTrackView::dir() const
  * outside in ORANGE is just a special volume. Other geometries may not have
  * that behavior.
  */
-CELER_FUNCTION VolumeId OrangeTrackView::volume_id() const
+CELER_FUNCTION InternalVolumeId OrangeTrackView::volume_id() const
 {
     auto lsa = this->make_lsa();
     detail::UniverseIndexer ui(params_.universe_indexer_data);
@@ -467,8 +467,8 @@ CELER_FUNCTION VolumeId OrangeTrackView::volume_id() const
 /*!
  * The current volume instance.
  *
- * \todo not implemented; VolumeId is already halfway between a "reusable
- * volume" and a "volume instance" anyway...
+ * \todo not implemented; InternalVolumeId is already halfway between a
+ * "reusable volume" and a "volume instance" anyway...
  */
 CELER_FUNCTION VolumeInstanceId OrangeTrackView::volume_instance_id() const
 {

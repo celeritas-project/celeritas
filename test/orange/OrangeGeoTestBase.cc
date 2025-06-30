@@ -234,7 +234,7 @@ void OrangeGeoTestBase::describe(std::ostream& os) const
 /*!
  * Return the number of volumes.
  */
-VolumeId::size_type OrangeGeoTestBase::num_volumes() const
+InternalVolumeId::size_type OrangeGeoTestBase::num_volumes() const
 {
     CELER_EXPECT(params_);
     return params_->volumes().size();
@@ -258,10 +258,10 @@ OrangeGeoTestBase::find_surface(std::string const& label) const
 /*!
  * Find the volume from its label (nullptr allowed)
  */
-VolumeId OrangeGeoTestBase::find_volume(std::string const& label) const
+InternalVolumeId OrangeGeoTestBase::find_volume(std::string const& label) const
 {
     CELER_EXPECT(params_);
-    VolumeId volume_id = params_->volumes().find_unique(label);
+    InternalVolumeId volume_id = params_->volumes().find_unique(label);
     CELER_VALIDATE(volume_id, << "nonexistent volume label '" << label << '\'');
     return volume_id;
 }

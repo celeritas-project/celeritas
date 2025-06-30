@@ -30,6 +30,8 @@ constexpr real_type sqrt_two{constants::sqrt_two};
 class OrangeTest : public OrangeGeoTestBase
 {
   protected:
+    // Volumes are not quite the same as structural volumes
+    using VolumeId = InternalVolumeId;
     // Surfaces are not the same as user-defined/optical surfaces
     using SurfaceId = InternalSurfaceId;
 

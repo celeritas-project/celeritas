@@ -21,6 +21,7 @@ namespace test
 class UniverseIndexerTest : public Test
 {
   public:
+    using VolumeId = InternalVolumeId;
     using CollectionHostRef
         = UniverseIndexerData<Ownership::const_reference, MemSpace::host>;
     using VecSize = std::vector<size_type>;

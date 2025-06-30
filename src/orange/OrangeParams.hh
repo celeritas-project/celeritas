@@ -182,9 +182,9 @@ auto OrangeParams::volume_instances() const -> VolInstanceMap const&
  *
  * \todo Implement using \c g4org::Converter
  */
-VolumeId OrangeParams::find_volume(G4LogicalVolume const*) const
+InternalVolumeId OrangeParams::find_volume(G4LogicalVolume const*) const
 {
-    return VolumeId{};
+    return InternalVolumeId{};
 }
 
 //---------------------------------------------------------------------------//

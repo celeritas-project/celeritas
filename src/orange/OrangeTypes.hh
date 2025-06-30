@@ -58,6 +58,9 @@ using FastBBoxId = OpaqueId<FastBBox>;
 //! Identifier for an array of length three of floating point values
 using FastReal3 = Array<float, 3>;
 
+//! TEMPORARY: universe + local volume index; may be different from structural
+using InternalVolumeId = VolumeId;
+
 //! Local identifier for a surface within a universe
 using LocalSurfaceId = OpaqueId<struct LocalSurface_>;
 

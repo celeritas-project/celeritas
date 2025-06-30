@@ -53,12 +53,12 @@ class UniverseIndexer
     // Local-to-global
     inline CELER_FUNCTION InternalSurfaceId
     global_surface(UniverseId uni, LocalSurfaceId surface) const;
-    inline CELER_FUNCTION VolumeId global_volume(UniverseId uni,
-                                                 LocalVolumeId volume) const;
+    inline CELER_FUNCTION InternalVolumeId
+    global_volume(UniverseId uni, LocalVolumeId volume) const;
 
     // Global-to-local
     inline CELER_FUNCTION LocalSurface local_surface(InternalSurfaceId id) const;
-    inline CELER_FUNCTION LocalVolume local_volume(VolumeId id) const;
+    inline CELER_FUNCTION LocalVolume local_volume(InternalVolumeId id) const;
 
     //! Total number of universes
     CELER_FUNCTION size_type num_universes() const
@@ -126,14 +126,14 @@ UniverseIndexer::global_surface(UniverseId uni, LocalSurfaceId surf) const
 /*!
  * Transform local to global volume ID.
  */
-CELER_FUNCTION VolumeId UniverseIndexer::global_volume(UniverseId uni,
-                                                       LocalVolumeId volume) const
+CELER_FUNCTION InternalVolumeId
+UniverseIndexer::global_volume(UniverseId uni, LocalVolumeId volume) const
 {
     CELER_EXPECT(uni < this->num_universes());
     CELER_EXPECT(volume < this->local_size(data_.volumes, uni));
 
-    return VolumeId(data_.volumes[SizeId{uni.unchecked_get()}]
-                    + volume.unchecked_get());
+    return InternalVolumeId(data_.volumes[SizeId{uni.unchecked_get()}]
+                            + volume.unchecked_get());
 }
 
 //---------------------------------------------------------------------------//
@@ -157,7 +157,7 @@ UniverseIndexer::local_surface(InternalSurfaceId id) const
  * Transform global to local volume ID.
  */
 CELER_FUNCTION UniverseIndexer::LocalVolume
-UniverseIndexer::local_volume(VolumeId id) const
+UniverseIndexer::local_volume(InternalVolumeId id) const
 {
     CELER_EXPECT(id < this->num_volumes());
     auto iter = this->find_local(data_.volumes, id.unchecked_get());
