@@ -9,6 +9,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ThreadId.hh"
 
 #include "LevelStateAccessor.hh"
@@ -60,6 +61,10 @@ namespace celeritas
  * \c cross_boundary depends on being on the boundary with a knowledge of the
  * post-boundary state.
  *
+ * The direction of \c normal is set to always point out of the volume the
+ * track is currently in. On the boundary this is determined by the sense
+ * of the track rather than its direction.
+ *
  * \todo \c move_internal with a position \em should depend on the safety
  * distance, but that check is not yet implemented.
  */
@@ -108,6 +113,8 @@ class OrangeTrackView
     inline CELER_FUNCTION bool is_on_boundary() const;
     //! Whether the last operation resulted in an error
     CELER_FORCEINLINE_FUNCTION bool failed() const { return failed_; }
+    // Get the normal vector pointing out of the current volume
+    inline CELER_FUNCTION Real3 normal() const;
 
     //// OPERATIONS ////
 
@@ -239,13 +246,16 @@ class OrangeTrackView
     inline CELER_FUNCTION LSA make_lsa(LevelId level) const;
 
     // Get the daughter ID for the volume in the universe (or null)
-    inline CELER_FUNCTION DaughterId get_daughter(LSA const& lsa);
+    inline CELER_FUNCTION DaughterId get_daughter(LSA const& lsa) const;
 
     // Get the transform ID for the given daughter.
-    inline CELER_FUNCTION TransformId get_transform(DaughterId daughter_id);
+    inline CELER_FUNCTION TransformId get_transform(DaughterId daughter_id) const;
 
     // Get the transform ID to move from this level to the one below.
-    inline CELER_FUNCTION TransformId get_transform(LevelId lev);
+    inline CELER_FUNCTION TransformId get_transform(LevelId lev) const;
+
+    // Get the surface normal as defined by the geometry
+    inline CELER_FUNCTION Real3 geo_normal() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -545,6 +555,28 @@ CELER_FORCEINLINE_FUNCTION bool OrangeTrackView::is_on_boundary() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the normal vector of the current surface.
+ *
+ * The direction of the normal is determined by the sense of the track such
+ * that the normal always points out of the volume that the track is currently
+ * in.
+ */
+CELER_FUNCTION Real3 OrangeTrackView::normal() const
+{
+    CELER_EXPECT(this->is_on_boundary());
+
+    auto normal = this->geo_normal();
+    // Flip direction if on the outside of the surface
+    if (this->sense() == Sense::outside)
+    {
+        normal = negate(normal);
+    }
+
+    return normal;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Find the distance to the next geometric boundary.
  */
 CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
@@ -813,23 +845,7 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
     {
         // Changing direction on a boundary, which may result in not leaving
         // current volume upon the cross_surface call
-        auto lsa = this->make_lsa(this->surface_level());
-
-        TrackerVisitor visit_tracker{params_};
-        auto normal = visit_tracker(
-            [pos = lsa.pos(), local_surface = this->surf()](auto&& t) {
-                return t.normal(pos, local_surface);
-            },
-            lsa.universe());
-
-        // Normal is in *local* coordinates but newdir is in *global*: rotate
-        // up to check
-        auto apply_transform = TransformVisitor{params_};
-        auto rotate_up = [&normal](auto&& t) { normal = t.rotate_up(normal); };
-        for (auto level : range<int>(this->level().unchecked_get()).step(-1))
-        {
-            apply_transform(rotate_up, this->get_transform(LevelId(level)));
-        }
+        auto normal = this->geo_normal();
 
         // Evaluate whether the direction dotted with the surface normal
         // changes (i.e. heading from inside to outside or vice versa).
@@ -1188,7 +1204,7 @@ CELER_FORCEINLINE_FUNCTION auto OrangeTrackView::make_lsa(LevelId level) const
  *
  * \return DaughterId or {} if the current volume is a leaf.
  */
-CELER_FUNCTION DaughterId OrangeTrackView::get_daughter(LSA const& lsa)
+CELER_FUNCTION DaughterId OrangeTrackView::get_daughter(LSA const& lsa) const
 {
     TrackerVisitor visit_tracker{params_};
     return visit_tracker([&lsa](auto&& t) { return t.daughter(lsa.vol()); },
@@ -1199,7 +1215,8 @@ CELER_FUNCTION DaughterId OrangeTrackView::get_daughter(LSA const& lsa)
 /*!
  * Get the transform ID for the given daughter.
  */
-CELER_FUNCTION TransformId OrangeTrackView::get_transform(DaughterId daughter_id)
+CELER_FUNCTION TransformId
+OrangeTrackView::get_transform(DaughterId daughter_id) const
 {
     CELER_EXPECT(daughter_id);
     return params_.daughters[daughter_id].trans_id;
@@ -1209,11 +1226,40 @@ CELER_FUNCTION TransformId OrangeTrackView::get_transform(DaughterId daughter_id
 /*!
  * Get the transform ID for the given daughter.
  */
-CELER_FUNCTION TransformId OrangeTrackView::get_transform(LevelId lev)
+CELER_FUNCTION TransformId OrangeTrackView::get_transform(LevelId lev) const
 {
     CELER_EXPECT(lev < this->level());
     LSA lsa(&states_, track_slot_, lev);
     return this->get_transform(this->get_daughter(lsa));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the normal vector of the current surface as defined by the geometry.
+ */
+CELER_FUNCTION Real3 OrangeTrackView::geo_normal() const
+{
+    CELER_EXPECT(this->is_on_boundary());
+
+    auto lsa = this->make_lsa(this->surface_level());
+    TrackerVisitor visit_tracker{params_};
+    auto normal = visit_tracker(
+        [pos = lsa.pos(), local_surface = this->surf()](auto&& t) {
+            return t.normal(pos, local_surface);
+        },
+        lsa.universe());
+
+    // Rotate normal up to global coordinates
+    auto apply_transform = TransformVisitor{params_};
+    auto rotate_up = [&normal](auto&& t) { normal = t.rotate_up(normal); };
+    for (auto level : range<int>(this->level().unchecked_get()).step(-1))
+    {
+        apply_transform(rotate_up, this->get_transform(LevelId(level)));
+    }
+
+    CELER_ENSURE(is_soft_unit_vector(normal));
+
+    return normal;
 }
 
 //---------------------------------------------------------------------------//

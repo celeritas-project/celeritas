@@ -16,13 +16,24 @@ namespace optical
 //---------------------------------------------------------------------------//
 /*!
  */
+template<SurfacePhysicsStep S>
 class SurfaceModel : public OpticalStepActionInterface, public ConcreteAction
 {
+  public:
+    //!@{
+    //! \name Type aliases
+    using ModelBuilder
+        = std::function<std::shared_ptr<SurfaceModel<S>>(ActionId)>;
+    //!@}
+
   public:
     using ConcreteAction::ConcreteAction;
 
     //! Action order for surface models is always post-step
     StepActionOrder order() const override { return StepActionOrder::post; }
+
+    //! Surface physics step for this model
+    static constexpr SurfacePhysicsStep surface_step() { return S; }
 };
 
 //---------------------------------------------------------------------------//

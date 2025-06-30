@@ -19,47 +19,21 @@ namespace optical
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
 
-using SurfaceId = OpaqueId<struct OpticalSurface_>;
-
 using ValueGrid = NonuniformGridRecord;
 using ValudGridId = OpaqueId<ValueGrid>;
 
 //---------------------------------------------------------------------------//
 /*!
- * Store optical physics data for a given surface layer.
+ * Store optical physics data for a given surface.
  */
-struct SurfaceLayerRecord
+struct SurfaceRecord
 {
-    // TODO: Per model layer IDs
-
     ActionId roughness_model{};
     ActionId reflectivity_model{};
     ActionId interaction_model{};
 
     //! Whether data is assigned and valid
     inline CELER_FUNCTION operator bool() const { return false; }
-};
-
-/*!
- * Store interleaved layers and optical materials that constitute a surface.
- *
- * If there are N surface layers then there should be N+1 materials. The ith
- * layer separates the ith and (i+1)th materials.
- */
-struct SurfaceRecord
-{
-    ItemRange<SurfaceLayerRecordId> layers;
-    ItemRange<OpticalMaterialId> optical_materials;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Scalar quantities used by optical surface physics.
- */
-struct SurfacePhysicsParamsScalars
-{
-    //! Whether data is assigned and valid
-    explicit CELER_FUNCTION operator bool() const {}
 };
 
 //---------------------------------------------------------------------------//
@@ -78,17 +52,11 @@ struct SurfacePhysicsParamsData
     using SurfaceItems = Collection<T, W, M, SurfaceId>;
     //!@}
 
-    //! Non-templated data
-    SurfacePhysicsParamsScalars scalars;
-
     //! Surface data
     SurfaceItems<SurfaceRecord> surfaces;
 
     //! Whether data is assigned and valid
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return static_cast<bool>(scalars);
-    }
+    explicit CELER_FUNCTION operator bool() const { return false; }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
@@ -96,7 +64,6 @@ struct SurfacePhysicsParamsData
     operator=(SurfacePhysicsParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        scalars = other.scalars;
         return *this;
     }
 };
@@ -119,9 +86,7 @@ struct SurfacePhysicsStateData
     //// Persistent State Data ////
 
     StateItems<SurfaceId> surface;
-    StateItems<SurfaceLayerId> current_layer;
     StateItems<Real3> surface_normal;
-    StateItems<Real3> layer_normal;
 
     //// Temporary State Data ////
 
@@ -145,8 +110,10 @@ struct SurfacePhysicsStateData
     operator=(SurfacePhysicsStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
+        surface = other.surface;
         surface_normal = other.surface_normal;
         facet_normal = other.facet_normal;
+        reflectivity = other.reflectivity;
         return *this;
     }
 };
@@ -156,12 +123,19 @@ struct SurfacePhysicsStateData
  * Resize the state in host code.
  */
 template<MemSpace M>
-inline void resize(PhysicsStateData<Ownership::value, M>* state, size_type size)
+inline void
+resize(SurfacePhysicsStateData<Ownership::value, M>* state, size_type size)
 {
     CELER_EXPECT(state);
     CELER_EXPECT(size > 0);
 
+    resize(&state->surface, size);
+    resize(&state->surface_normal, size);
+    resize(&state->facet_normal, size);
+    resize(&state->reflectivity, size);
+
     CELER_ENSURE(*state);
+    CELER_ENSURE(state->size() == size);
 }
 
 //---------------------------------------------------------------------------//

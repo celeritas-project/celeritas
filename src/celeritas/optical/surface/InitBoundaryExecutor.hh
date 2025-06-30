@@ -6,6 +6,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/optical/CoreTrackView.hh"
+#include "celeritas/optical/SimTrackView.hh"
+#include "celeritas/optical/Types.hh"
+
+#include "SurfacePhysicsView.hh"
+
 namespace celeritas
 {
 namespace optical
@@ -34,6 +43,9 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
     auto geo = track.geometry();
     CELER_EXPECT(geo.is_on_boundary());
 
+    auto pre_surface = track.volume_surface(geo.volume_id());
+    auto pre_volume_inst = geo.volume_instance_id();
+
     // Move the particle across the boundary
     geo.cross_boundary();
     if (CELER_UNLIKELY(geo.failed()))
@@ -43,10 +55,35 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
     }
     else
     {
-        // get the surface from Seth's code
+        auto post_volume = geo.volume_id();
+        auto post_volume_inst = geo.volume_instance_id();
 
-        // initialize surface state
-        track.surface() = SurfaceView::Initializer_t{geo.surface_normal()};
+        // Lookup first by interface
+        auto surface_id
+            = pre_surface.find_interface(pre_volume_inst, post_volume_inst);
+        if (!surface_id)
+        {
+            // Lookup pre-volume boundary
+            surface_id = pre_surface.boundary_id();
+
+            if (!surface_id)
+            {
+                // Lookup post-volume boundary
+                surface_id = track.volume_surface(post_volume).boundary_id();
+            }
+        }
+
+        if (!surface_id)
+        {
+            // If there's no surface, mark photon as killed
+            track.sim().status(TrackStatus::killed);
+        }
+        else
+        {
+            // initialize surface state
+            track.surface_physics()
+                = SurfacePhysicsView::Initializer{surface_id, geo.normal()};
+        }
     }
 }
 

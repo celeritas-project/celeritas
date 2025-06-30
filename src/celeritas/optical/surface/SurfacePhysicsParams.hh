@@ -8,8 +8,10 @@
 
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "celeritas/optical/Types.hh"
 #include "celeritas/optical/action/ActionInterface.hh"
 
+#include "InitBoundaryAction.hh"
 #include "SurfaceModel.hh"
 #include "SurfacePhysicsData.hh"
 
@@ -31,30 +33,32 @@ class SurfacePhysicsParams final
     using SPConstRoughnessModel = std::shared_ptr<SurfaceRoughnessModel const>;
     using SPConstReflectivityModel
         = std::shared_ptr<SurfaceReflectivityModel const>;
-    using SPConstInteractionModel = std::shared_ptr<SurfaceModel const>;
+    using SPConstInteractionModel
+        = std::shared_ptr<SurfaceInteractionModel const>;
 
     using VecRoughnessModels = std::vector<SPConstRoughnessModel>;
     using VecReflectivityModels = std::vector<SPConstReflectivityModel>;
-    using VecInteractionModels = std::vector<SPConstModel>;
+    using VecInteractionModels = std::vector<SPConstInteractionModel>;
 
     using ActionIdRange = Range<ActionId>;
     //!@}
 
     struct SurfaceInput
     {
-        SurfaceRoughnessModelId roughness_model;
-        SurfaceReflectivityModelId reflectivity_model;
-        SurfaceModelId interaction_model;
+        RoughnessModelId roughness_model;
+        ReflectivityModelId reflectivity_model;
+        InteractionModelId interaction_model;
     };
 
     struct Input
     {
-        std::vector<SurfaceRoughnessModelBuilder> roughness_model_builders;
-        std::vector<SurfaceReflectivityModelBuilder> reflectivity_model_builders;
-        std::vector<SurfaceModelBuilder> interaction_model_builders;
+        std::vector<SurfaceRoughnessModel::ModelBuilder> roughness_model_builders;
+        std::vector<SurfaceReflectivityModel::ModelBuilder>
+            reflectivity_model_builders;
+        std::vector<SurfaceInteractionModel::ModelBuilder>
+            interaction_model_builders;
 
         std::vector<SurfaceInput> surfaces;
-
         ActionRegistry* action_registry = nullptr;
     };
 
@@ -68,11 +72,19 @@ class SurfacePhysicsParams final
     //! Access surface physics data on the device
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
+    //! Action ID for initializing boundary interactions
+    ActionId init_boundary_action() const
+    {
+        return this->init_boundary_action_->action_id();
+    }
+
   private:
     // Actions
     VecRoughnessModels roughness_models_;
     VecReflectivityModels reflectivity_models_;
     VecInteractionModels interaction_models_;
+
+    std::shared_ptr<InitBoundaryAction> init_boundary_action_;
 
     // Host/device storage
     CollectionMirror<SurfacePhysicsParamsData> data_;

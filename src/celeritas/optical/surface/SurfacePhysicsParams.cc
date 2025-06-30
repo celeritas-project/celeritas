@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "SurfacePhysicsParams.hh"
 
+#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ActionRegistry.hh"
 
 namespace celeritas
@@ -15,7 +16,7 @@ namespace optical
 
 template<class M>
 std::vector<std::shared_ptr<M const>>
-build_models(std::vector<M::ModelBuilder> const& builders,
+build_models(std::vector<typename M::ModelBuilder> const& builders,
              ActionRegistry& action_reg)
 {
     using SPConstM = std::shared_ptr<M const>;
@@ -44,17 +45,29 @@ build_models(std::vector<M::ModelBuilder> const& builders,
  */
 SurfacePhysicsParams::SurfacePhysicsParams(Input input)
 {
+    CELER_EXPECT(input.action_registry);
+
+    auto& action_reg = *input.action_registry;
+
+    // Init boundary action
+    {
+        init_boundary_action_
+            = std::make_shared<InitBoundaryAction>(action_reg.next_id());
+        CELER_ASSERT(init_boundary_action_);
+        action_reg.insert(init_boundary_action_);
+    }
+
     // Register roughness actions
     roughness_models_ = build_models<SurfaceRoughnessModel>(
-        input.roughness_model_builders, *input.action_reg);
+        input.roughness_model_builders, *input.action_registry);
 
     // Register reflectivity actions
     reflectivity_models_ = build_models<SurfaceReflectivityModel>(
-        input.reflectivity_model_builders, *input.action_reg);
+        input.reflectivity_model_builders, *input.action_registry);
 
     // Register interaction actions
-    interaction_models_ = build_models<SurfaceModel>(
-        input.interaction_model_builders, *input.action_reg);
+    interaction_models_ = build_models<SurfaceInteractionModel>(
+        input.interaction_model_builders, *input.action_registry);
 
     // Construct data
     HostVal<SurfacePhysicsParamsData> data;
@@ -62,6 +75,7 @@ SurfacePhysicsParams::SurfacePhysicsParams(Input input)
     // Construct scalars
 
     // Construct surfaces
+    auto build_surface = make_builder(&data.surfaces);
     for (auto const& surface : input.surfaces)
     {
         SurfaceRecord record;
@@ -71,7 +85,7 @@ SurfacePhysicsParams::SurfacePhysicsParams(Input input)
             = reflectivity_models_[surface.reflectivity_model.get()]->action_id();
         record.interaction_model
             = interaction_models_[surface.interaction_model.get()]->action_id();
-        data.surfaces.push_back(std::move(record));
+        build_surface.push_back(std::move(record));
     }
 
     // Finalize data

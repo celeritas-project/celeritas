@@ -56,9 +56,9 @@ struct CoreParamsData
     GeoParamsData<W, M> geometry;
     MaterialParamsData<W, M> material;
     PhysicsParamsData<W, M> physics;
-    SurfacePhysicsParamsData<W, M> surface;
     RngParamsData<W, M> rng;
     SurfaceParamsData<W, M> surface;
+    SurfacePhysicsParamsData<W, M> surface_physics;
     TrackInitParamsData<W, M> init;
 
     CoreScalars scalars;
@@ -78,9 +78,9 @@ struct CoreParamsData
         geometry = other.geometry;
         material = other.material;
         physics = other.physics;
-        surface = other.surface;
         rng = other.rng;
         surface = other.surface;
+        surface_physics = other.surface_physics;
         init = other.init;
         scalars = other.scalars;
         return *this;
@@ -103,6 +103,7 @@ struct CoreStateData
     PhysicsStateData<W, M> physics;
     RngStateData<W, M> rng;
     SimStateData<W, M> sim;
+    SurfacePhysicsStateData<W, M> surface_physics;
     TrackInitStateData<W, M> init;
 
     //! Unique identifier for "thread-local" data.
@@ -128,6 +129,7 @@ struct CoreStateData
         physics = other.physics;
         rng = other.rng;
         sim = other.sim;
+        surface_physics = other.surface_physics;
         init = other.init;
         stream_id = other.stream_id;
         return *this;

@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
+
 #include "celeritas/Types.hh"
 
 namespace celeritas
@@ -24,9 +26,25 @@ namespace optical
 {
 
 using ModelId = OpaqueId<class Model>;
-using SurfaceModelId = OpaqueId<class SurfaceModel>;
-using RoughnessModelId = OpaqueId<class SurfaceRoughnessModel>;
-using ReflectivityModelId = OpaqueId<class SurfaceReflectivityModel>;
+
+enum class SurfacePhysicsStep
+{
+    Roughness,
+    Reflectivity,
+    Interaction,
+    size_
+};
+
+template<SurfacePhysicsStep S>
+class SurfaceModel;
+
+using SurfaceRoughnessModel = SurfaceModel<SurfacePhysicsStep::Roughness>;
+using SurfaceReflectivityModel = SurfaceModel<SurfacePhysicsStep::Reflectivity>;
+using SurfaceInteractionModel = SurfaceModel<SurfacePhysicsStep::Interaction>;
+
+using RoughnessModelId = OpaqueId<SurfaceRoughnessModel>;
+using ReflectivityModelId = OpaqueId<SurfaceReflectivityModel>;
+using InteractionModelId = OpaqueId<SurfaceInteractionModel>;
 
 }  // namespace optical
 

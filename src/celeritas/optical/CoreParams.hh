@@ -46,6 +46,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstPhysics = std::shared_ptr<PhysicsParams const>;
     using SPConstRng = std::shared_ptr<RngParams const>;
     using SPConstSurface = std::shared_ptr<SurfaceParams const>;
+    using SPConstSurfacePhysics = std::shared_ptr<SurfacePhysicsParams const>;
     using SPConstTrackInit = std::shared_ptr<TrackInitParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
     using SPConstDetectors = std::shared_ptr<SDParams const>;
@@ -64,6 +65,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstPhysics physics;
         SPConstRng rng;
         SPConstSurface surface;
+        SPConstSurfacePhysics surface_physics;
         SPConstTrackInit init;
 
         std::optional<VecLabel> detector_labels;
@@ -101,6 +103,10 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPConstPhysics const& physics() const { return input_.physics; }
     SPConstRng const& rng() const { return input_.rng; }
     SPConstSurface const& surface() const { return input_.surface; }
+    SPConstSurfacePhysics const& surface_physics() const
+    {
+        return input_.surface_physics;
+    }
     SPConstTrackInit const& init() const { return input_.init; }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
     SPConstDetectors const& detectors() const { return detectors_; }

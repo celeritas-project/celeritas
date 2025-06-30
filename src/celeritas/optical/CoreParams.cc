@@ -138,7 +138,7 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     // Construct always-on actions and save their IDs
     CoreScalars scalars = build_actions(input_.action_reg.get());
 
-    scalars.boundary_action = input_.surface->boundary_action();
+    scalars.boundary_action = input_.surface_physics->init_boundary_action();
 
     // Save maximum number of streams
     scalars.max_streams = input_.max_streams;

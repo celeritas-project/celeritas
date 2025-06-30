@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas/optical/action/ActionInterface.hh"
+
 namespace celeritas
 {
 namespace optical
