@@ -55,15 +55,16 @@ using VolumeInstanceId = OpaqueId<struct VolumeInstance_, unsigned int>;
 using VolumeUniqueInstanceId = OpaqueId<struct VolumeInstance_, ull_int>;
 
 //---------------------------------------------------------------------------//
+//!{ Geometry-specific implementation details used by
 
 //! Implementation detail surface (for surface-based geometries)
-using InternalSurfaceId = OpaqueId<struct Surface_>;
+using ImplSurfaceId = OpaqueId<struct Surface_>;
 
-//! TEMPORARY: universe + local volume index; may be different from structural
-using InternalVolumeId = VolumeId;
+//! Implementation detail "global" volume index
+using ImplVolumeId = VolumeId;
 
 //! Identifier for a unique volume in global space (aka touchable)
-using InternalVolumeUniqueInstanceId = VolumeUniqueInstanceId;
+using ImplVolumeUniqueInstanceId = VolumeUniqueInstanceId;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS

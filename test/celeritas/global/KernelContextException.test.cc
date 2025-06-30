@@ -143,7 +143,7 @@ TEST_F(KernelContextExceptionTest, typical)
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             EXPECT_EQ(VolumeId{2}, e.volume());
-            EXPECT_EQ(InternalSurfaceId{11}, e.surface());
+            EXPECT_EQ(ImplSurfaceId{11}, e.surface());
         }
         if (CELERITAS_UNITS == CELERITAS_UNITS_CGS
             && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)

@@ -25,7 +25,7 @@ std::string OrangeTestBase::surface_name(GeoTrackView const& geo) const
     }
 
     // Only call this function if the geometry supports surfaces
-    return this->geometry()->surfaces().at(geo.internal_surface_id()).name;
+    return this->geometry()->surfaces().at(geo.impl_surface_id()).name;
 }
 
 //---------------------------------------------------------------------------//

@@ -87,8 +87,8 @@ class GeantGeoTrackView
 
     //!@{
     //! Geant4 states are never "on" a surface
-    InternalSurfaceId internal_surface_id() const { return {}; }
-    InternalSurfaceId next_internal_surface_id() const { return {}; }
+    ImplSurfaceId impl_surface_id() const { return {}; }
+    ImplSurfaceId next_internal_surface_id() const { return {}; }
     //!@}
 
     // Whether the track is outside the valid geometry region
