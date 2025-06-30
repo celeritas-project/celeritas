@@ -389,9 +389,9 @@ void HitProcessor::update_track(DetectorStepOutput const& out, size_type i) cons
 
     G4ParticleDefinition const& pd = *track.GetParticleDefinition();
 
-    if (!out.parent_id.empty())
+    if (!out.primary_id.empty())
     {
-        track.SetTrackID(out.parent_id[i].unchecked_get());
+        track.SetTrackID(out.primary_id[i].unchecked_get());
     }
 
     for (G4StepPoint* p : step_points_)

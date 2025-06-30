@@ -11,6 +11,7 @@
 #include "corecel/Types.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/user/StepData.hh"
 
 namespace celeritas
 {
@@ -132,6 +133,7 @@ StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
         {
             SGL_SET_IF_SELECTED(event_id, sim.event_id());
             SGL_SET_IF_SELECTED(parent_id, sim.parent_id());
+            SGL_SET_IF_SELECTED(primary_id, sim.primary_id());
             SGL_SET_IF_SELECTED(track_step_count, sim.num_steps());
 
             SGL_SET_IF_SELECTED(action_id, sim.post_step_action());

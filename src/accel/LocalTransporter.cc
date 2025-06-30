@@ -261,7 +261,7 @@ void LocalTransporter::Push(G4Track const& g4track)
 
     PDGNumber const pdg{g4track.GetDefinition()->GetPDGEncoding()};
     track.particle_id = particles_->find(pdg);
-    track.track_id = TrackId{static_cast<size_type>(g4track.GetTrackID())};
+    track.primary_id = PrimaryId{static_cast<size_type>(g4track.GetTrackID())};
     track.energy = units::MevEnergy(
         convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV));
 
