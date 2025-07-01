@@ -1276,15 +1276,23 @@ RevolvedPolygon::RevolvedPolygon(RevolvedPolygon::VecReal2 const& polygon)
     : polygon_(polygon)
 
 {
+    constexpr size_type R = 0;
+    constexpr size_type Z = 1;
+
     CELER_VALIDATE(polygon_.size() >= 3,
                    << "polygon must consist of at least 3 points");
 
     // Calculate the floating point tolerance to use for soft equality
-    auto [r_min, r_max] = detail::find_extrema(polygon_, /* r */ 0);
-    auto [z_min, z_max] = detail::find_extrema(polygon_, /* z */ 1);
+    auto [r_min, r_max] = detail::find_extrema(polygon_, R);
+    auto [z_min, z_max] = detail::find_extrema(polygon_, Z);
     Real3 const extents{r_max - r_min, z_max - z_min, 0};
     real_type abs_tol = ::celeritas::detail::BumpCalculator(
         Tolerance<>::from_default())(extents);
+
+    // Store operative extents for bounding box creation
+    r_max_ = r_max;
+    z_min_ = z_min;
+    z_max_ = z_max;
 
     // Store only non-collinear points
     polygon_ = detail::filter_collinear_points(polygon, abs_tol);
@@ -1302,50 +1310,103 @@ RevolvedPolygon::RevolvedPolygon(RevolvedPolygon::VecReal2 const& polygon)
     CELER_VALIDATE(
         has_orientation(make_span(polygon_), detail::Orientation::clockwise),
         << "polygon must be specified in strictly clockwise order");
+
+    // All points must be positive
+    CELER_VALIDATE(
+        std::all_of(polygon_.begin(),
+                    polygon_.end(),
+                    [](Real2 const& p) { return p[R] >= 0 && p[Z] >= 0; }),
+        << "polygon must consist of only positive R and Z values");
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Build surfaces.
+ *
+ * Building is done by revolve each line segment around the z axis to create
+ * conical surfaces. Line segments parallel and perpendicular the xy plane are
+ * produce z planes and z cylinders, respectively. If segment is coincident
+ with
+ * the z axis, it is not created as it would enclose no volume.
+ *
+ * The northeast point is point with the maxiumum R value amoung those with the
+ * maximum Z value. The southwest point is the point with the minimum R value
+ * of those with the minimum Z value.  Calculating the sense of each segment is
+ * done by calculating the "southeast" and "northwest" points. The southeast
+ * point is point with the maximum R value among those with the minimum Z
+ * value. The southwest point is the point with the minimum R value of those
+ * with the maximum Z value. A simple example of this appears below:
+ * \verbatim
+   NW point ._____________
+            |             |
+            |             |
+            |             |
+            |_____________* SE point
+ * \endverbatim
+ * By begining construction at the northeast point and proceeding clockwise,
+ * surfaces senses are all positive until reaching segment beging at the
+ * southeast point, where the senses flip to negative.
  */
 void RevolvedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
 {
     constexpr size_type R = 0;
     constexpr size_type Z = 1;
 
+    // Get SE and NW point
+    auto [start, sense_change] = this->calc_southeast_northwest();
+    printf("START: %lu, SENSE CHANGE %lu\n", start, sense_change);
+
     size_type num_points = polygon_.size();
-
-    auto [start, sense_change] = this->calc_northeast_southwest();
-
     Sense sense = Sense::outside;
 
-    for (auto i : range(num_points))
+    // Revolve each segment around z
+    size_type current_idx = start;
+    for ([[maybe_unused]] auto i : range(num_points))
     {
-        auto idx = start + i;
-        auto const& p0 = polygon_[idx];
-        auto const& p1 = polygon_[calc_next(idx)];
+        size_type next_idx = this->calc_next(current_idx);
+        auto const& p0 = polygon_[current_idx];
+        auto const& p1 = polygon_[next_idx];
 
-        if (idx == sense_change)
+        if (current_idx == sense_change)
         {
             sense = flip_sense(sense);
         }
 
-        if (soft_equal_(p0[R], p0[R]))
+        printf("CONSIDERING POINTS (%f, %f) (%f, %f)\n",
+               p0[R],
+               p0[Z],
+               p1[R],
+               p1[Z]);
+        if (soft_equal_(p0[R], p1[R]))
         {
-            // Cylindrical surface
-            insert_surface(sense, CCylZ(p0[R]));
+            printf("MAKING CYLINDER \n");
+            // Segment results in a cylindrical surface (provided it is not
+            // coincide with the z axis
+            if (!soft_equal_(0, p0[R]))
+            {
+                insert_surface(sense, CCylZ(p0[R]));
+            }
         }
-        else if (soft_equal_(p0[Z], p0[Z]))
+        else if (soft_equal_(p0[Z], p1[Z]))
         {
-            // Z plane
+            printf("MAKING Z PLANE \n");
+            // Segment results in a Z plane
             insert_surface(sense, PlaneZ{p0[Z]});
         }
         else
         {
-            // Conical surface
+            printf("MAKING CONE \n");
+            // Segment results in a conical surface
             insert_surface(sense, this->make_cone(p0, p1));
         }
+
+        current_idx = next_idx;
     }
+
+    // Establish bbox
+    insert_surface(Sense::inside,
+                   BBox::from_unchecked({-r_max_, -r_max_, z_min_},
+                                        {r_max_, r_max_, z_max_}));
 }
 
 //---------------------------------------------------------------------------//
@@ -1359,43 +1420,45 @@ void RevolvedPolygon::output(JsonPimpl* j) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the northeast and southwest point.
+ * Calculate the southeast and northwest points
  *
- * The northeast point is point with the maxiumum R value amoung those with the
- * maximum Z value. The southwest point is the point with the minimum R value
- * of those with the minimum Z value.
+ * The southeast point is point with the maximum R value among those with the
+ * minimum Z value. The southwest point is the point with the minimum R value
+ * of those with the maximum Z value. Because we know we have no collinear
+ * points, once we know the points with the min/max Z values, we just have to
+ * check one neighbor for each in order to determine the NE and SW points.
  */
 std::pair<size_type, size_type>
-RevolvedPolygon::calc_northeast_southwest() const
+RevolvedPolygon::calc_southeast_northwest() const
 {
     constexpr size_type R = 0;
     constexpr size_type Z = 1;
 
-    auto [ne_it, sw_it] = std::minmax_element(
+    auto [se_it, nw_it] = std::minmax_element(
         polygon_.begin(), polygon_.end(), [&Z](auto const& a, auto const& b) {
             return a[Z] < b[Z];
         });
-    size_type ne = ne_it - polygon_.begin();
-    size_type sw = sw_it - polygon_.begin();
+    size_type se = se_it - polygon_.begin();
+    size_type nw = nw_it - polygon_.begin();
 
     // Reassign ne and sw if a neighboring point has a more easterly/westerly R
     // value
-    auto ne_neighbor = calc_next(ne);
-    auto sw_neighbor = calc_prev(sw);
+    auto se_neighbor = this->calc_prev(se);
+    auto nw_neighbor = this->calc_prev(nw);
 
-    if (soft_equal_(polygon_[ne][Z], polygon_[ne_neighbor][Z])
-        && polygon_[ne_neighbor][R] > polygon_[ne][R])
+    if (soft_equal_(polygon_[se][Z], polygon_[se_neighbor][Z])
+        && polygon_[se_neighbor][R] > polygon_[se][R])
     {
-        ne = ne_neighbor;
+        se = se_neighbor;
     }
 
-    if (soft_equal_(polygon_[sw][Z], polygon_[sw_neighbor][Z])
-        && polygon_[sw_neighbor][R] < polygon_[sw][R])
+    if (soft_equal_(polygon_[nw][Z], polygon_[nw_neighbor][Z])
+        && polygon_[nw_neighbor][R] < polygon_[nw][R])
     {
-        sw = sw_neighbor;
+        nw = nw_neighbor;
     }
 
-    return {ne, sw};
+    return {se, nw};
 }
 
 //---------------------------------------------------------------------------//
@@ -1404,7 +1467,7 @@ RevolvedPolygon::calc_northeast_southwest() const
  */
 size_type RevolvedPolygon::calc_next(size_type i) const
 {
-    return i + 1 % polygon_.size();
+    return (i + 1) % polygon_.size();
 }
 
 //---------------------------------------------------------------------------//
@@ -1413,7 +1476,7 @@ size_type RevolvedPolygon::calc_next(size_type i) const
  */
 size_type RevolvedPolygon::calc_prev(size_type i) const
 {
-    return i - 1 % polygon_.size();
+    return (i - 1) % polygon_.size();
 }
 
 //---------------------------------------------------------------------------//

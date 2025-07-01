@@ -2000,6 +2000,50 @@ TEST_F(PrismTest, rhex)
 }
 
 //---------------------------------------------------------------------------//
+// REVOLVEDPOLYGON
+//---------------------------------------------------------------------------//
+using RevolvedPolygonTest = IntersectRegionTest;
+
+TEST_F(RevolvedPolygonTest, simple_cube)
+{
+    // Test revolving a simple cube around z
+    RevolvedPolygon::VecReal2 polygon{
+        Real2{1, 1}, Real2{1, 2}, Real2{2, 2}, Real2{2, 1}};
+
+    auto result = this->test(RevolvedPolygon(polygon));
+
+    static char const expected_node[] = "all(+0, +1, -2, -3)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=1", "Cyl z: r=1", "Plane: z=2", "Cyl z: r=2"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+
+    EXPECT_VEC_SOFT_EQ((Real3{-2, -2, 1}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 2, 2}), result.exterior.upper());
+}
+
+TEST_F(RevolvedPolygonTest, coincident_segment)
+{
+    // Test revolving a simple cube around z, but now one segment is coincident
+    //  with the z axis, so we don't get an interior cylinder
+    RevolvedPolygon::VecReal2 polygon{
+        Real2{0, 1}, Real2{0, 2}, Real2{2, 2}, Real2{2, 1}};
+
+    auto result = this->test(RevolvedPolygon(polygon));
+
+    static char const expected_node[] = "all(+0, -1, -2)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=1", "Plane: z=2", "Cyl z: r=2"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+
+    EXPECT_VEC_SOFT_EQ((Real3{-2, -2, 1}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 2, 2}), result.exterior.upper());
+}
+
+//---------------------------------------------------------------------------//
 // SPHERE
 //---------------------------------------------------------------------------//
 using SphereTest = IntersectRegionTest;
