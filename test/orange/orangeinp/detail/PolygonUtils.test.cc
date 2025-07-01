@@ -273,6 +273,19 @@ TEST(PolygonUtilsTest, filter_collinear_points_pathological)
     auto filtered_points = filter_collinear_points(points, tol);
     EXPECT_EQ(7, filtered_points.size());
 }
+
+TEST(PolygonUtilsTest, calc_extrema)
+{
+    std::vector<Real2> polygon = {
+        {2, -3.5}, {0.1, -3.8}, {-5.03, 0.3}, {-1, 5.8}, {10.11, 9.1}, {6, 5.3}};
+    auto [x_min, x_max] = find_extrema(polygon, 0);
+    auto [y_min, y_max] = find_extrema(polygon, 1);
+
+    EXPECT_SOFT_EQ(-5.03, x_min);
+    EXPECT_SOFT_EQ(10.11, x_max);
+    EXPECT_SOFT_EQ(-3.8, y_min);
+    EXPECT_SOFT_EQ(9.1, y_max);
+}
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace detail
