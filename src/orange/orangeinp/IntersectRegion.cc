@@ -1315,16 +1315,20 @@ void RevolvedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
 
     size_type num_points = polygon_.size();
 
-    auto calc_next = [&num_points](size_type i) {
-        return i + 1 < num_points ? i + 1 : 0;
-    };
+    auto [start, sense_change] = this->calc_northeast_southwest();
 
-    Sense sense = Sense::inside;
+    Sense sense = Sense::outside;
 
     for (auto i : range(num_points))
     {
-        auto const& p0 = polygon_[i];
-        auto const& p1 = polygon_[calc_next(i)];
+        auto idx = start + i;
+        auto const& p0 = polygon_[idx];
+        auto const& p1 = polygon_[calc_next(idx)];
+
+        if (idx == sense_change)
+        {
+            sense = flip_sense(sense);
+        }
 
         if (soft_equal_(p0[R], p0[R]))
         {
@@ -1351,6 +1355,65 @@ void RevolvedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
 void RevolvedPolygon::output(JsonPimpl* j) const
 {
     // to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the northeast and southwest point.
+ *
+ * The northeast point is point with the maxiumum R value amoung those with the
+ * maximum Z value. The southwest point is the point with the minimum R value
+ * of those with the minimum Z value.
+ */
+std::pair<size_type, size_type>
+RevolvedPolygon::calc_northeast_southwest() const
+{
+    constexpr size_type R = 0;
+    constexpr size_type Z = 1;
+
+    auto [ne_it, sw_it] = std::minmax_element(
+        polygon_.begin(), polygon_.end(), [&Z](auto const& a, auto const& b) {
+            return a[Z] < b[Z];
+        });
+    size_type ne = ne_it - polygon_.begin();
+    size_type sw = sw_it - polygon_.begin();
+
+    // Reassign ne and sw if a neighboring point has a more easterly/westerly R
+    // value
+    auto ne_neighbor = calc_next(ne);
+    auto sw_neighbor = calc_prev(sw);
+
+    if (soft_equal_(polygon_[ne][Z], polygon_[ne_neighbor][Z])
+        && polygon_[ne_neighbor][R] > polygon_[ne][R])
+    {
+        ne = ne_neighbor;
+    }
+
+    if (soft_equal_(polygon_[sw][Z], polygon_[sw_neighbor][Z])
+        && polygon_[sw_neighbor][R] < polygon_[sw][R])
+    {
+        sw = sw_neighbor;
+    }
+
+    return {ne, sw};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Determine the next index, with modular indexing.
+ */
+size_type RevolvedPolygon::calc_next(size_type i) const
+{
+    return i + 1 % polygon_.size();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Determine the previous index, with modular indexing.
+ */
+size_type RevolvedPolygon::calc_prev(size_type i) const
+{
+    return i - 1 % polygon_.size();
 }
 
 //---------------------------------------------------------------------------//

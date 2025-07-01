@@ -776,15 +776,24 @@ class RevolvedPolygon final : public IntersectRegionInterface
     //! Polygon points (2D)
     VecReal2 polygon() const { return polygon_; }
 
-    //// HELPER FUNCTIONS ////
-
-    // Create a cone from two RZ points
-    ConeZ make_cone(Real2 point0, Real2 point1) const;
-
   private:
     //// DATA ////
     VecReal2 polygon_;
     SoftEqual<> soft_equal_;
+
+    //// HELPER FUNCTIONS ////
+
+    // Calculate the northeast and southwest points
+    std::pair<size_type, size_type> calc_northeast_southwest() const;
+
+    // Determine the next index, with modular indexing
+    size_type calc_next(size_type i) const;
+
+    // Determine the previous index, with modular indexing
+    size_type calc_prev(size_type i) const;
+
+    // Create a cone from two RZ points
+    ConeZ make_cone(Real2 point0, Real2 point1) const;
 };
 
 //---------------------------------------------------------------------------//
