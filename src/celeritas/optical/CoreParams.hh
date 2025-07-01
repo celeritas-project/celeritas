@@ -78,8 +78,8 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         //! True if all params are assigned and valid
         explicit operator bool() const
         {
-            return geometry && material && rng && surface && init && action_reg
-                   && max_streams;
+            return geometry && material && rng && surface && surface_physics
+                   && init && action_reg && max_streams;
         }
     };
 

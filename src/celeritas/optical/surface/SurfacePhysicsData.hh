@@ -33,7 +33,10 @@ struct SurfaceRecord
     ActionId interaction_model{};
 
     //! Whether data is assigned and valid
-    inline CELER_FUNCTION operator bool() const { return false; }
+    inline CELER_FUNCTION operator bool() const
+    {
+        return roughness_model && reflectivity_model && interaction_model;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -56,7 +59,7 @@ struct SurfacePhysicsParamsData
     SurfaceItems<SurfaceRecord> surfaces;
 
     //! Whether data is assigned and valid
-    explicit CELER_FUNCTION operator bool() const { return false; }
+    explicit CELER_FUNCTION operator bool() const { return true; }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
@@ -64,6 +67,7 @@ struct SurfacePhysicsParamsData
     operator=(SurfacePhysicsParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
+        surfaces = other.surfaces;
         return *this;
     }
 };
@@ -98,11 +102,12 @@ struct SurfacePhysicsStateData
     //! Whether data is assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !surface_normal.empty();
+        return !surface.empty() && !surface_normal.empty()
+               && !facet_normal.empty() && !reflectivity.empty();
     }
 
     //! State size
-    CELER_FUNCTION size_type size() const { return surface_normal.size(); }
+    CELER_FUNCTION size_type size() const { return surface.size(); }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>

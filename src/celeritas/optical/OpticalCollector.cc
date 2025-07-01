@@ -25,6 +25,7 @@
 #include "gen/detail/GeneratorAction.hh"
 #include "gen/detail/OffloadAction.hh"
 #include "gen/detail/OffloadGatherAction.hh"
+#include "surface/SurfacePhysicsParams.hh"
 
 #include "detail/OpticalLaunchAction.hh"
 #include "detail/OpticalSizes.json.hh"
@@ -95,6 +96,13 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
             pp_inp.action_registry = op_inp.action_reg.get();
             op_inp.physics
                 = std::make_shared<optical::PhysicsParams>(std::move(pp_inp));
+        }
+        {
+            optical::SurfacePhysicsParams::Input spp_inp;
+            spp_inp.action_registry = op_inp.action_reg.get();
+            op_inp.surface_physics
+                = std::make_shared<optical::SurfacePhysicsParams>(
+                    std::move(spp_inp));
         }
         op_inp.detector_labels = inp.detector_labels;
         CELER_ENSURE(op_inp);
