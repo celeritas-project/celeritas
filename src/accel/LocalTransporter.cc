@@ -7,6 +7,7 @@
 #include "LocalTransporter.hh"
 
 #include <csignal>
+#include <memory>
 #include <string>
 #include <type_traits>
 #include <CLHEP/Units/SystemOfUnits.h>
@@ -222,6 +223,13 @@ void LocalTransporter::InitializeEvent(int id)
     event_id_ = id_cast<UniqueEventId>(id);
     ++run_accum_.events;
 
+    // Clear PrimaryID mapping in HitProcessor and reset counter for new event
+    if (hit_processor_)
+    {
+        hit_processor_->clear_primary_id_mapping();
+    }
+    next_celeritas_primary_id_ = 0;
+
     if (!(G4Threading::IsMultithreadedApplication()
           && G4MTRunManager::SeedOncePerCommunication()))
     {
@@ -261,7 +269,16 @@ void LocalTransporter::Push(G4Track const& g4track)
 
     PDGNumber const pdg{g4track.GetDefinition()->GetPDGEncoding()};
     track.particle_id = particles_->find(pdg);
-    track.primary_id = PrimaryId{static_cast<size_type>(g4track.GetTrackID())};
+
+    // Generate Celeritas-specific PrimaryID and notify HitProcessor of mapping
+    PrimaryId celeritas_primary_id{next_celeritas_primary_id_++};
+    track.primary_id = celeritas_primary_id;
+    if (hit_processor_)
+    {
+        hit_processor_->register_primary_id_mapping(celeritas_primary_id,
+                                                    g4track.GetTrackID());
+    }
+
     track.energy = units::MevEnergy(
         convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV));
 

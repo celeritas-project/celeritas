@@ -13,6 +13,7 @@
 #include <G4TouchableHandle.hh>
 
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoFwd.hh"
@@ -108,6 +109,13 @@ class HitProcessor
     // Get and reset the hits counted (generally once per event)
     inline size_type exchange_hits();
 
+    // Register mapping from Celeritas PrimaryID to Geant4 TrackID
+    void
+    register_primary_id_mapping(PrimaryId celeritas_id, int geant4_track_id);
+
+    // Clear PrimaryID mapping (called at start of new event)
+    void clear_primary_id_mapping();
+
   private:
     //! Detector volumes for navigation updating
     SPConstVecLV detector_volumes_;
@@ -132,6 +140,9 @@ class HitProcessor
 
     //! Accumulated number of hits
     size_type num_hits_;
+
+    //! Vector storing Geant4 TrackIDs indexed by Celeritas PrimaryID
+    std::vector<int> celeritas_to_g4_track_id_;
 
     void update_track(DetectorStepOutput const& out, size_type i) const;
 };

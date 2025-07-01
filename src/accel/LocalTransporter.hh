@@ -141,6 +141,9 @@ class LocalTransporter
     BufferAccum buffer_accum_;
     RunAccum run_accum_;
 
+    // Counter for generating Celeritas-specific PrimaryIDs
+    size_type next_celeritas_primary_id_{0};
+
     // Shared across threads to write flushed particles
     SPOffloadWriter dump_primaries_;
 };
