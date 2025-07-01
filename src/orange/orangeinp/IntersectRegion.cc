@@ -1354,12 +1354,10 @@ void RevolvedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
 
     // Get SE and NW point
     auto [start, sense_change] = this->calc_southeast_northwest();
-    printf("START: %lu, SENSE CHANGE %lu\n", start, sense_change);
-
-    size_type num_points = polygon_.size();
-    Sense sense = Sense::outside;
 
     // Revolve each segment around z
+    size_type num_points = polygon_.size();
+    Sense sense = Sense::outside;
     size_type current_idx = start;
     for ([[maybe_unused]] auto i : range(num_points))
     {
@@ -1372,14 +1370,8 @@ void RevolvedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
             sense = flip_sense(sense);
         }
 
-        printf("CONSIDERING POINTS (%f, %f) (%f, %f)\n",
-               p0[R],
-               p0[Z],
-               p1[R],
-               p1[Z]);
         if (soft_equal_(p0[R], p1[R]))
         {
-            printf("MAKING CYLINDER \n");
             // Segment results in a cylindrical surface (provided it is not
             // coincide with the z axis
             if (!soft_equal_(0, p0[R]))
@@ -1389,13 +1381,11 @@ void RevolvedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
         }
         else if (soft_equal_(p0[Z], p1[Z]))
         {
-            printf("MAKING Z PLANE \n");
             // Segment results in a Z plane
             insert_surface(sense, PlaneZ{p0[Z]});
         }
         else
         {
-            printf("MAKING CONE \n");
             // Segment results in a conical surface
             insert_surface(sense, this->make_cone(p0, p1));
         }
