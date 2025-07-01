@@ -11,8 +11,10 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/grid/GridTypes.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "corecel/math/Turn.hh"
 #include "orange/OrangeTypes.hh"
+#include "orange/surf/ConeAligned.hh"
 
 namespace celeritas
 {
@@ -776,13 +778,13 @@ class RevolvedPolygon final : public IntersectRegionInterface
 
     //// HELPER FUNCTIONS ////
 
-    // Create a cone from a point and slope components
-    ConeZ make_cone(Real2 point, real_type delta_r, real_type delta_z) const;
+    // Create a cone from two RZ points
+    ConeZ make_cone(Real2 point0, Real2 point1) const;
 
   private:
     //// DATA ////
     VecReal2 polygon_;
-    real_type abs_tol_;
+    SoftEqual<> soft_equal_;
 };
 
 //---------------------------------------------------------------------------//

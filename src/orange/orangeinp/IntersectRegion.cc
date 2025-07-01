@@ -16,7 +16,6 @@
 #include "geocel/BoundingBox.hh"
 #include "geocel/Types.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/surf/ConeAligned.hh"
 #include "orange/surf/CylCentered.hh"
 #include "orange/surf/Involute.hh"
 #include "orange/surf/PlaneAligned.hh"
@@ -1284,11 +1283,15 @@ RevolvedPolygon::RevolvedPolygon(RevolvedPolygon::VecReal2 const& polygon)
     auto [r_min, r_max] = detail::find_extrema(polygon_, /* r */ 0);
     auto [z_min, z_max] = detail::find_extrema(polygon_, /* z */ 1);
     Real3 const extents{r_max - r_min, z_max - z_min, 0};
-    abs_tol_ = ::celeritas::detail::BumpCalculator(
+    real_type abs_tol = ::celeritas::detail::BumpCalculator(
         Tolerance<>::from_default())(extents);
 
     // Store only non-collinear points
     polygon_ = detail::filter_collinear_points(polygon, abs_tol);
+
+    // Store a SoftEqual object employing the same criteron used for testing
+    // collinearity
+    soft_equal_(0, abs_tol);
 
     // After removing collinear points, at least 3 points must remain
     CELER_VALIDATE(polygon_.size() >= 3,
@@ -1310,26 +1313,25 @@ void RevolvedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
     constexpr size_type R = 0;
     constexpr size_type Z = 1;
 
-    SoftZero soft_zero(abs_tol);
-    size_type num_points = points.size();
+    size_type num_points = polygon_.size();
 
-    auto calc_next
-        = [&num_points](size_type i) { return i + 1 < num_points ? i + 1 : 0 };
+    auto calc_next = [&num_points](size_type i) {
+        return i + 1 < num_points ? i + 1 : 0;
+    };
+
+    Sense sense = Sense::inside;
 
     for (auto i : range(num_points))
     {
-        auto const& p0 = points_[i];
-        auto const& p1 = points_[calc_next(i)];
+        auto const& p0 = polygon_[i];
+        auto const& p1 = polygon_[calc_next(i)];
 
-        auto delta_r = p1[R] - p0[R];
-        auto delta_z = p1[Z] - p0[Z];
-
-        if (soft_zero(delta_r))
+        if (soft_equal_(p0[R], p0[R]))
         {
             // Cylindrical surface
-            insert_surface(sense, CylinderZ(p0[R]));
+            insert_surface(sense, CCylZ(p0[R]));
         }
-        else if (soft_zero(delta_z))
+        else if (soft_equal_(p0[Z], p0[Z]))
         {
             // Z plane
             insert_surface(sense, PlaneZ{p0[Z]});
@@ -1337,7 +1339,7 @@ void RevolvedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
         else
         {
             // Conical surface
-            insert_surface(sense, this->make_cone(p0, delta_r, delta_z));
+            insert_surface(sense, this->make_cone(p0, p1));
         }
     }
 }
@@ -1353,17 +1355,20 @@ void RevolvedPolygon::output(JsonPimpl* j) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a cone from a point and slope components
+ * Create a cone from two RSZ points.
+ *
+ * The cone is created by revolved the line segment between the points around
+ * the Z axis
  */
-ConeZ RevolvedPolygon::make_cone(Real2 point,
-                                 real_type delta_r,
-                                 real_type delta_z) const;
+ConeZ RevolvedPolygon::make_cone(Real2 point0, Real2 point1) const
 {
     constexpr size_type R = 0;
     constexpr size_type Z = 1;
 
+    auto delta_r = point1[R] - point0[R];
+    auto delta_z = point1[Z] - point0[Z];
     auto tangent = delta_r / delta_z;
-    auto intercept = point[Z] - point[R] * delta_z / delta_r;
+    auto intercept = point0[Z] - point0[R] * delta_z / delta_r;
 
     return ConeZ{Real3{0, 0, intercept}, tangent};
 }
