@@ -774,9 +774,15 @@ class RevolvedPolygon final : public IntersectRegionInterface
     //! Polygon points (2D)
     VecReal2 polygon() const { return polygon_; }
 
+    //// HELPER FUNCTIONS ////
+
+    // Create a cone from a point and slope components
+    ConeZ make_cone(Real2 point, real_type delta_r, real_type delta_z) const;
+
   private:
     //// DATA ////
     VecReal2 polygon_;
+    real_type abs_tol_;
 };
 
 //---------------------------------------------------------------------------//
