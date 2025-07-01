@@ -1354,7 +1354,7 @@ void RevolvedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void RevolvedPolygon::output(JsonPimpl* j) const
 {
-    // to_json_pimpl(j, *this);
+    to_json_pimpl(j, *this);
 }
 
 //---------------------------------------------------------------------------//

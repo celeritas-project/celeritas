@@ -250,6 +250,10 @@ void to_json(nlohmann::json& j, Prism const& cr)
          SIO_ATTR_PAIR(cr, halfheight),
          SIO_ATTR_PAIR(cr, orientation)};
 }
+void to_json(nlohmann::json& j, RevolvedPolygon const& cr)
+{
+    j = {{"_type", "extrudedpolygon"}, SIO_ATTR_PAIR(cr, polygon)};
+}
 void to_json(nlohmann::json& j, Sphere const& cr)
 {
     j = {{"_type", "sphere"}, SIO_ATTR_PAIR(cr, radius)};
