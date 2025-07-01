@@ -1,4 +1,3 @@
-//------------------------------- -*- C++ -*- -------------------------------//
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -641,17 +640,11 @@ auto ExtrudedPolygon::calc_range(VecReal2 const& polygon, size_type dir)
     constexpr auto bot = Bound::lo;
     constexpr auto top = Bound::hi;
 
-    Range range;
-
-    // Find min/max x or y values of the polygon itself
-    auto [poly_min_it, poly_max_it] = std::minmax_element(
-        polygon.begin(), polygon.end(), [&dir](auto const& a, auto const& b) {
-            return a[dir] < b[dir];
-        });
-    auto poly_min = (*poly_min_it)[dir];
-    auto poly_max = (*poly_max_it)[dir];
+    // Find extrema of unextruded polygon
+    auto [poly_min, poly_max] = detail::find_extrema(polygon, dir);
 
     // Find the extrema taking into account the extrusion process
+    Range range;
     range[0]
         = std::min(poly_min * scaling_factors_[bot] + line_segment_[bot][dir],
                    poly_min * scaling_factors_[top] + line_segment_[top][dir]);
@@ -1269,6 +1262,58 @@ bool Prism::encloses(Prism const& other) const
             "identical");
     }
     return apothem_ >= other.apothem() && hh_ >= other.halfheight();
+}
+
+//---------------------------------------------------------------------------//
+// RevolvedPolygon
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from a convex polygon.
+ *
+ * The polygon must consist of (r, z) points specified in clockwise order. The
+ * polygon must not cross the z axis (i.e., no negative r values).
+ */
+RevolvedPolygon::RevolvedPolygon(RevolvedPolygon::VecReal2 const& polygon)
+    : polygon_(polygon)
+
+{
+    CELER_VALIDATE(polygon_.size() >= 3,
+                   << "polygon must consist of at least 3 points");
+
+    // Calculate extents of the polygon
+    auto [r_min, r_max] = detail::find_extrema(polygon_, /* r */ 0);
+    auto [z_min, z_max] = detail::find_extrema(polygon_, /* z */ 1);
+
+    // Store only non-collinear points
+    Real3 const extents{r_max - r_min, z_max - z_min, 0};
+    real_type abs_tol = ::celeritas::detail::BumpCalculator(
+        Tolerance<>::from_default())(extents);
+    polygon_ = detail::filter_collinear_points(polygon, abs_tol);
+
+    // After removing collinear points, at least 3 points must remain
+    CELER_VALIDATE(polygon_.size() >= 3,
+                   << "polygon must consist of at least 3 points");
+
+    // After removing collinear points, the polygon should have a *strictly*
+    // clockwise orientation, which also guarantees it is convex.
+    CELER_VALIDATE(
+        has_orientation(make_span(polygon_), detail::Orientation::clockwise),
+        << "polygon must be specified in strictly clockwise order");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void RevolvedPolygon::build(IntersectSurfaceBuilder& insert_surface) const {}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void RevolvedPolygon::output(JsonPimpl* j) const
+{
+    // to_json_pimpl(j, *this);
 }
 
 //---------------------------------------------------------------------------//

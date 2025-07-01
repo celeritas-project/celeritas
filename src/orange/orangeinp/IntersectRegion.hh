@@ -403,7 +403,7 @@ class ExtrudedPolygon final : public IntersectRegionInterface
     Range x_range_;
     Range y_range_;
 
-    // >> HELPER FUNCTIONS
+    //// HELPER FUNCTIONS ////
 
     // Calculate the min/max x or y values of the extruded region
     Range calc_range(VecReal2 const& polygon, size_type dir);
@@ -733,6 +733,50 @@ class Prism final : public IntersectRegionInterface
 
     // Rotational offset: 0 has point at (r, 0), 1 is congruent with 0
     real_type orientation_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * A region formed by revolving a convex polygon around the z axis.
+ *
+ * This polygon must be specified in clockwise order.
+ * \verbatim
+                              |
+     ........            ^    |     .           ________
+   .         .            .   |    .           /         \
+ .             .           . . . .           /             \
+ .               .            |            /               /
+  ..................          |          /________________/
+                              |        user-specified polygon
+                           z axis
+ * \endverbatim
+ */
+class RevolvedPolygon final : public IntersectRegionInterface
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using VecReal2 = std::vector<Real2>;
+    //!@}
+
+  public:
+    // Construct from a convex polygon
+    RevolvedPolygon(VecReal2 const& polygon);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Polygon points (2D)
+    VecReal2 polygon() const { return polygon_; }
+
+  private:
+    //// DATA ////
+    VecReal2 polygon_;
 };
 
 //---------------------------------------------------------------------------//
