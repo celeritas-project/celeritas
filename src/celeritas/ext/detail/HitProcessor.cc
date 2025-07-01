@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "HitProcessor.hh"
 
+#include <cstddef>
 #include <string>
 #include <utility>
 #include <CLHEP/Units/SystemOfUnits.h>
@@ -21,6 +22,7 @@
 #include <G4Version.hh>
 
 #include "corecel/Assert.hh"
+#include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
@@ -238,7 +240,8 @@ void HitProcessor::register_primary_id_mapping(PrimaryId celeritas_id,
     if (id >= celeritas_to_g4_track_id_.size())
     {
         celeritas_to_g4_track_id_.resize(
-            std::max(celeritas_to_g4_track_id_.size() * 2, id + 1));
+            std::max(celeritas_to_g4_track_id_.size() * 2,
+                     static_cast<std::size_t>(id + 1)));
     }
     celeritas_to_g4_track_id_[id] = geant4_track_id;
 }
