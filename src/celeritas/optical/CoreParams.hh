@@ -28,7 +28,6 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 class MaterialParams;
-class TrackInitParams;
 class PhysicsParams;
 //---------------------------------------------------------------------------//
 /*!
@@ -44,7 +43,6 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstPhysics = std::shared_ptr<PhysicsParams const>;
     using SPConstRng = std::shared_ptr<RngParams const>;
     using SPConstSurface = std::shared_ptr<SurfaceParams const>;
-    using SPConstTrackInit = std::shared_ptr<TrackInitParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
     using SPConstDetectors = std::shared_ptr<SDParams const>;
     using VecLabel = std::vector<Label>;
@@ -62,7 +60,6 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstPhysics physics;
         SPConstRng rng;
         SPConstSurface surface;
-        SPConstTrackInit init;
 
         std::optional<VecLabel> detector_labels;
 
@@ -74,7 +71,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         //! True if all params are assigned and valid
         explicit operator bool() const
         {
-            return geometry && material && rng && surface && init && action_reg
+            return geometry && material && rng && surface && action_reg
                    && max_streams;
         }
     };
@@ -99,7 +96,6 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPConstPhysics const& physics() const { return input_.physics; }
     SPConstRng const& rng() const { return input_.rng; }
     SPConstSurface const& surface() const { return input_.surface; }
-    SPConstTrackInit const& init() const { return input_.init; }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
     SPConstDetectors const& detectors() const { return detectors_; }
     //!@}

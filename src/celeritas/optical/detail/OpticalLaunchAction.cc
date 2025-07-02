@@ -137,7 +137,6 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
 
     auto const& core_counters = core_state.counters();
     auto& counters = state.counters();
-    CELER_ASSERT(counters.num_initializers == 0);
 
     if ((counters.num_pending < auto_flush_
          && (core_counters.num_alive > 0 || core_counters.num_initializers > 0))
@@ -148,17 +147,9 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
         return;
     }
 
-    auto init_capacity = state.ref().init.initializers.size();
-    CELER_VALIDATE(counters.num_pending <= init_capacity,
-                   << "insufficient capacity (" << init_capacity
-                   << ") for optical photon initializers (total capacity "
-                      "requirement of "
-                   << counters.num_pending << ")");
-
     // Loop while photons are yet to be tracked
     auto const& step_actions = optical_actions_->step();
-    while (counters.num_pending > 0 || counters.num_initializers > 0
-           || counters.num_alive > 0)
+    while (counters.num_pending > 0 || counters.num_alive > 0)
     {
         // Loop through actions
         for (auto const& action : step_actions)
@@ -176,7 +167,7 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
                 << counters.num_active << " active tracks, "
                 << counters.num_alive << " alive tracks, "
                 << counters.num_vacancies << " vacancies, and "
-                << counters.num_initializers << " queued";
+                << counters.num_pending << " queued";
 
             state.reset();
             break;

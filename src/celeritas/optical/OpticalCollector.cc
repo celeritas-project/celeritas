@@ -13,13 +13,11 @@
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ActionRegistryOutput.hh"
 #include "celeritas/global/CoreParams.hh"
-#include "celeritas/track/TrackInitParams.hh"
 
 #include "CoreParams.hh"
 #include "CoreState.hh"
 #include "MaterialParams.hh"
 #include "PhysicsParams.hh"
-#include "TrackInitParams.hh"
 #include "gen/CherenkovParams.hh"
 #include "gen/ScintillationParams.hh"
 #include "gen/detail/GeneratorAction.hh"
@@ -83,8 +81,6 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
         op_inp.material = inp.material;
         // TODO: unique RNG streams for optical loop
         op_inp.rng = core.rng();
-        op_inp.init = std::make_shared<optical::TrackInitParams>(
-            inp.initializer_capacity);
         op_inp.surface = core.surface();
         op_inp.action_reg = std::make_shared<ActionRegistry>();
         op_inp.max_streams = core.max_streams();
@@ -141,7 +137,6 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     detail::OpticalSizes sizes;
     sizes.streams = core.max_streams();
     sizes.generators = sizes.streams * inp.buffer_capacity;
-    sizes.initializers = sizes.streams * inp.initializer_capacity;
     sizes.tracks = sizes.streams * inp.num_track_slots;
 
     core.output_reg()->insert(

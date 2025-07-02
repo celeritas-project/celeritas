@@ -362,7 +362,6 @@ auto build_optical_offload(inp::Problem const& p,
     auto num_streams = params.max_streams();
     oc_inp.num_track_slots = ceil_div(cap.tracks, num_streams);
     oc_inp.buffer_capacity = ceil_div(cap.generators, num_streams);
-    oc_inp.initializer_capacity = ceil_div(cap.initializers, num_streams);
     oc_inp.auto_flush = ceil_div(cap.primaries, num_streams);
     oc_inp.max_step_iters = p.tracking.limits.optical_step_iters;
 

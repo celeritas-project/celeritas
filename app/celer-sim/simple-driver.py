@@ -196,7 +196,6 @@ if not use_device:
 if not use_device and "lar" in geometry_filename:
     expected_opt_sizes = {
        "generators": 3145728,
-       "initializers": 8388608,
        "tracks": 4096
     }
 

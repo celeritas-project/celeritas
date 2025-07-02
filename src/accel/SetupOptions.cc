@@ -269,9 +269,10 @@ inp::FrameworkInput to_inp(SetupOptions const& so)
  *
  * \note This must be called after CUDA/MPI have been initialized.
  */
-inp::StateCapacity get_default(SetupOptions const& so, size_type num_streams)
+inp::CoreStateCapacity
+get_default(SetupOptions const& so, size_type num_streams)
 {
-    inp::StateCapacity result;
+    inp::CoreStateCapacity result;
     result.tracks = num_streams * [&so] {
         if (so.max_num_tracks)
         {
