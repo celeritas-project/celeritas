@@ -145,25 +145,44 @@ void append_skin_surfaces(GeantGeoParams const& geo,
     std::map<VolumeId, G4Surface const*> temp;
     auto const* table = G4Surface::GetSurfaceTable();
     CELER_ASSERT(table);
+    size_type num_null_surfaces{0};
 #if G4VERSION_NUMBER >= 1120
     for (auto&& [lv, surf] : *table)
 #else
     for (auto const* surf : *table)
 #endif
     {
+        if (!surf)
+        {
+            ++num_null_surfaces;
+            continue;
+        }
+
 #if G4VERSION_NUMBER < 1120
         auto* lv = surf->GetLogicalVolume();
 #endif
+        if (!lv)
+        {
+            CELER_LOG(warning) << "G4 skin surface '" << surf->GetName()
+                               << "' references a null logical volume";
+            continue;
+        }
 
-        CELER_ASSERT(lv);
         auto vol_id = geo.geant_to_id(*lv);
         CELER_ASSERT(vol_id);
         auto iter_inserted = temp.insert({vol_id, surf});
         CELER_ASSERT(iter_inserted.second);
     }
 
+    if (num_null_surfaces != 0)
+    {
+        CELER_LOG(warning) << "Geant4 skin surface table contains "
+                           << num_null_surfaces << " null surface"
+                           << (num_null_surfaces > 1 ? "s" : "");
+    }
+
     // Append to table in order
-    result.reserve(table->size());
+    result.reserve(result.size() + temp.size());
     for (auto const& kv : temp)
     {
         result.push_back(kv.second);
@@ -183,27 +202,46 @@ void append_border_surfaces(GeantGeoParams const& geo,
     std::map<std::pair<VolumeInstanceId, VolumeInstanceId>, G4Surface const*> temp;
     auto const* table = G4Surface::GetSurfaceTable();
     CELER_ASSERT(table);
+
+    size_type num_null_surfaces{0};
 #if G4VERSION_NUMBER >= 1070
     for (auto&& [key, surf] : *table)
 #else
     for (auto const* surf : *table)
 #endif
     {
+        if (!surf)
+        {
+            ++num_null_surfaces;
+            continue;
+        }
+
 #if G4VERSION_NUMBER < 1070
         std::pair key{surf->GetVolume1(), surf->GetVolume2()};
 #endif
-        CELER_ASSERT(key.first);
+        if (!(key.first && key.second))
+        {
+            CELER_LOG(warning) << "G4 border surface '" << surf->GetName()
+                               << "' references a null physical volume";
+            continue;
+        }
         auto before = geo.geant_to_id(*key.first);
         CELER_ASSERT(before);
-        CELER_ASSERT(key.second);
         auto after = geo.geant_to_id(*key.second);
         CELER_ASSERT(after);
         auto iter_inserted = temp.insert({{before, after}, surf});
         CELER_ASSERT(iter_inserted.second);
     }
 
+    if (num_null_surfaces != 0)
+    {
+        CELER_LOG(warning) << "Geant4 border surface table contains "
+                           << num_null_surfaces << " null surface"
+                           << (num_null_surfaces > 1 ? "s" : "");
+    }
+
     // Add to table in order
-    result.reserve(result.size() + table->size());
+    result.reserve(result.size() + temp.size());
     for (auto const& kv : temp)
     {
         result.push_back(kv.second);
