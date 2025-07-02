@@ -275,12 +275,7 @@ inp::Volume inp_from_geant(GeantGeoParams const& geo,
 {
     inp::Volume result;
     result.label = label;
-
-    // Set material ID if available
-    if (auto* mat = g4lv.GetMaterial())
-    {
-        result.material = id_cast<GeoMatId>(mat->GetIndex() - geo.mat_offset());
-    }
+    result.material = geo.geant_to_mat_id(g4lv);
     // Populate volume.children with child volume instances
     auto num_children = g4lv.GetNoDaughters();
     result.children.reserve(num_children);
@@ -700,6 +695,19 @@ GeantGeoParams::geant_to_id(G4VPhysicalVolume const& volume) const
         result = {};
     }
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the geometry material ID for a logical volume (may be null).
+ */
+GeoMatId GeantGeoParams::geant_to_mat_id(G4LogicalVolume const& g4lv) const
+{
+    if (auto* mat = g4lv.GetMaterial())
+    {
+        return id_cast<GeoMatId>(mat->GetIndex() - this->mat_offset());
+    }
+    return {};
 }
 
 //---------------------------------------------------------------------------//

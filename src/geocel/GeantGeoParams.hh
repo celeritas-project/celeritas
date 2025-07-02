@@ -146,6 +146,9 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Get the volume ID corresponding to a Geant4 physical volume
     VolumeInstanceId geant_to_id(G4VPhysicalVolume const& volume) const;
 
+    // Get the geometry material ID for a logical volume (may be null)
+    GeoMatId geant_to_mat_id(G4LogicalVolume const& mat) const;
+
     // Get the replica ID corresponding to a Geant4 physical volume
     ReplicaId replica_id(G4VPhysicalVolume const& volume) const;
 
@@ -306,6 +309,10 @@ GeantGeoParams::geant_to_id(G4VPhysicalVolume const&) const
 }
 inline GeantGeoParams::ReplicaId
 GeantGeoParams::replica_id(G4VPhysicalVolume const&) const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+inline GeoMatId GeantGeoParams::geant_to_mat_id(G4LogicalVolume const&) const
 {
     CELER_ASSERT_UNREACHABLE();
 }
