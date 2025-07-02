@@ -1269,12 +1269,11 @@ bool Prism::encloses(Prism const& other) const
 /*!
  * Construct from a convex polygon.
  *
- * The polygon must consist of (r, z) points specified in clockwise order. The
- * polygon must not cross the z axis (i.e., no negative r values).
+ * The polygon must consist of (r, z) points specified in clockwise order. All
+ * (r, z) points must be positive.
  */
 RevolvedPolygon::RevolvedPolygon(RevolvedPolygon::VecReal2 const& polygon)
     : polygon_(polygon)
-
 {
     constexpr size_type R = 0;
     constexpr size_type Z = 1;
@@ -1282,7 +1281,7 @@ RevolvedPolygon::RevolvedPolygon(RevolvedPolygon::VecReal2 const& polygon)
     CELER_VALIDATE(polygon_.size() >= 3,
                    << "polygon must consist of at least 3 points");
 
-    // Calculate the floating point tolerance to use for soft equality
+    // Calculate the tolerance to use throughout for soft equality
     auto [r_min, r_max] = detail::find_extrema(polygon_, R);
     auto [z_min, z_max] = detail::find_extrema(polygon_, Z);
     Real3 const extents{r_max - r_min, z_max - z_min, 0};
@@ -1316,26 +1315,24 @@ RevolvedPolygon::RevolvedPolygon(RevolvedPolygon::VecReal2 const& polygon)
         std::all_of(polygon_.begin(),
                     polygon_.end(),
                     [](Real2 const& p) { return p[R] >= 0 && p[Z] >= 0; }),
-        << "polygon must consist of only positive R and Z values");
+        << "polygon must consist of only positive r and z values");
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Build surfaces.
  *
- * Building is done by revolve each line segment around the z axis to create
- * conical surfaces. Line segments parallel and perpendicular the xy plane are
- * produce z planes and z cylinders, respectively. If segment is coincident
- with
- * the z axis, it is not created as it would enclose no volume.
+ * Building is done by revolving each line segment around the z axis to create
+ * conical surfaces. Line segments parallel and perpendicular the rz plane
+ * produce degenerate cones, i.e. z-orthogonal planes and z-aligned cylinders,
+ * respectively. If segment is coincident with the z axis, no surface is
+ * created as it would enclose no volume.
  *
- * The northeast point is point with the maxiumum R value amoung those with the
- * maximum Z value. The southwest point is the point with the minimum R value
- * of those with the minimum Z value.  Calculating the sense of each segment is
- * done by calculating the "southeast" and "northwest" points. The southeast
- * point is point with the maximum R value among those with the minimum Z
- * value. The southwest point is the point with the minimum R value of those
- * with the maximum Z value. A simple example of this appears below:
+ * Calculating the sense of each surface is done by calculating the "southeast"
+ * and "northwest" points of the polygon. The southeast point is point with the
+ * maximum r value among those with the minimum z value. The northwest point is
+ * the point with the minimum r value of those with the maximum z value. A
+ * simple example of this appears below.
  * \verbatim
    NW point ._____________
             |             |
@@ -1343,9 +1340,9 @@ RevolvedPolygon::RevolvedPolygon(RevolvedPolygon::VecReal2 const& polygon)
             |             |
             |_____________* SE point
  * \endverbatim
- * By begining construction at the northeast point and proceeding clockwise,
- * surfaces senses are all positive until reaching segment beging at the
- * southeast point, where the senses flip to negative.
+ * By begining construction at the southeast point and proceeding clockwise,
+ * surfaces senses are all positive until reaching segment begining at the
+ * northwest point, where the senses then flip to negative.
  */
 void RevolvedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
 {
@@ -1356,15 +1353,15 @@ void RevolvedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
     auto [start, sense_change] = this->calc_southeast_northwest();
 
     // Revolve each segment around z
-    size_type num_points = polygon_.size();
     Sense sense = Sense::outside;
     size_type current_idx = start;
-    for ([[maybe_unused]] auto i : range(num_points))
+    for ([[maybe_unused]] auto i : range(polygon_.size()))
     {
         size_type next_idx = this->calc_next(current_idx);
         auto const& p0 = polygon_[current_idx];
         auto const& p1 = polygon_[next_idx];
 
+        // Flip the sense if we have looped around past the NW point
         if (current_idx == sense_change)
         {
             sense = flip_sense(sense);
@@ -1372,8 +1369,8 @@ void RevolvedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
 
         if (soft_equal_(p0[R], p1[R]))
         {
-            // Segment results in a cylindrical surface (provided it is not
-            // coincide with the z axis
+            // Segment produces a cylindrical surface (provided it is not
+            // coincide with the z axis)
             if (!soft_equal_(0, p0[R]))
             {
                 insert_surface(sense, CCylZ(p0[R]));
@@ -1381,12 +1378,12 @@ void RevolvedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
         }
         else if (soft_equal_(p0[Z], p1[Z]))
         {
-            // Segment results in a Z plane
+            // Segment produces a z plane
             insert_surface(sense, PlaneZ{p0[Z]});
         }
         else
         {
-            // Segment results in a conical surface
+            // Segment produces a conical surface
             insert_surface(sense, this->make_cone(p0, p1));
         }
 
@@ -1410,13 +1407,13 @@ void RevolvedPolygon::output(JsonPimpl* j) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the southeast and northwest points
+ * Calculate the southeast and northwest points.
  *
- * The southeast point is point with the maximum R value among those with the
- * minimum Z value. The southwest point is the point with the minimum R value
- * of those with the maximum Z value. Because we know we have no collinear
- * points, once we know the points with the min/max Z values, we just have to
- * check one neighbor for each in order to determine the NE and SW points.
+ * The southeast point is point with the maximum r value among those with the
+ * minimum z value. The southwest point is the point with the minimum r value
+ * of those with the maximum z value. Because there are no collinear points,
+ * after finding the points with the min/max z values, only a single neighbor
+ * of each points needs to be checked to determine the SE and NW points.
  */
 std::pair<size_type, size_type>
 RevolvedPolygon::calc_southeast_northwest() const
@@ -1424,6 +1421,7 @@ RevolvedPolygon::calc_southeast_northwest() const
     constexpr size_type R = 0;
     constexpr size_type Z = 1;
 
+    // Find the points with the min and max z value
     auto [se_it, nw_it] = std::minmax_element(
         polygon_.begin(), polygon_.end(), [&Z](auto const& a, auto const& b) {
             return a[Z] < b[Z];
@@ -1431,8 +1429,7 @@ RevolvedPolygon::calc_southeast_northwest() const
     size_type se = se_it - polygon_.begin();
     size_type nw = nw_it - polygon_.begin();
 
-    // Reassign ne and sw if a neighboring point has a more easterly/westerly R
-    // value
+    // Reassign ne/sw if the previous point has a more eastern/western r value
     auto se_neighbor = this->calc_prev(se);
     auto nw_neighbor = this->calc_prev(nw);
 
@@ -1471,10 +1468,10 @@ size_type RevolvedPolygon::calc_prev(size_type i) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a cone from two RSZ points.
+ * Create a cone from two (r, z) points.
  *
- * The cone is created by revolved the line segment between the points around
- * the Z axis
+ * The cone is created by revolving the line segment between the points around
+ * the z axis.
  */
 ConeZ RevolvedPolygon::make_cone(Real2 point0, Real2 point1) const
 {

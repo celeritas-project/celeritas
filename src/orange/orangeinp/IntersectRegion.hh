@@ -741,7 +741,7 @@ class Prism final : public IntersectRegionInterface
 /*!
  * A region formed by revolving a convex polygon around the z axis.
  *
- * This polygon must be specified in clockwise order and R/Z points must be
+ * This polygon must be specified in clockwise order and (r, z) points must be
  * non-negative.
  * \verbatim
                               |
@@ -787,7 +787,7 @@ class RevolvedPolygon final : public IntersectRegionInterface
 
     //// HELPER FUNCTIONS ////
 
-    // Calculate the northeast and southwest points
+    // Calculate the southeast and northwest points
     std::pair<size_type, size_type> calc_southeast_northwest() const;
 
     // Determine the next index, with modular indexing
@@ -796,7 +796,7 @@ class RevolvedPolygon final : public IntersectRegionInterface
     // Determine the previous index, with modular indexing
     size_type calc_prev(size_type i) const;
 
-    // Create a cone from two RZ points
+    // Create a cone from two (r, z) points
     ConeZ make_cone(Real2 point0, Real2 point1) const;
 };
 
