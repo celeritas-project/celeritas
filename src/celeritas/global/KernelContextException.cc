@@ -34,6 +34,17 @@ void insert_if_valid(char const* key,
 }
 
 //---------------------------------------------------------------------------//
+template<class Traits, class GTV>
+ImplSurfaceId impl_surface_id(GTV const& geo)
+{
+    if constexpr (Traits::has_impl_surface)
+    {
+        return geo.impl_surface_id();
+    }
+    return {};
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -133,10 +144,7 @@ void KernelContextException::initialize(CoreTrackView const& core)
             {
                 volume_ = geo.volume_id();
             }
-            if constexpr (CoreGeoTraits::has_impl_surface)
-            {
-                surface_ = geo.impl_surface_id();
-            }
+            surface_ = impl_surface_id<CoreGeoTraits>(geo);
         }
     }
     {
