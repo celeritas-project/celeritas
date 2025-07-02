@@ -2004,9 +2004,12 @@ TEST_F(PrismTest, rhex)
 //---------------------------------------------------------------------------//
 using RevolvedPolygonTest = IntersectRegionTest;
 
+//---------------------------------------------------------------------------//
+/*
+ * Test revolving a simple cube around z
+ */
 TEST_F(RevolvedPolygonTest, simple_cube)
 {
-    // Test revolving a simple cube around z
     RevolvedPolygon::VecReal2 polygon{
         Real2{1, 1}, Real2{1, 2}, Real2{2, 2}, Real2{2, 1}};
 
@@ -2023,10 +2026,13 @@ TEST_F(RevolvedPolygonTest, simple_cube)
     EXPECT_VEC_SOFT_EQ((Real3{2, 2, 2}), result.exterior.upper());
 }
 
+//---------------------------------------------------------------------------//
+/*
+ * Test revolving a simple cube around z, but now one segment is coincident
+ * with the z axis, so we don't get an interior cylinder
+ */
 TEST_F(RevolvedPolygonTest, coincident_segment)
 {
-    // Test revolving a simple cube around z, but now one segment is coincident
-    //  with the z axis, so we don't get an interior cylinder
     RevolvedPolygon::VecReal2 polygon{
         Real2{0, 1}, Real2{0, 2}, Real2{2, 2}, Real2{2, 1}};
 
@@ -2041,6 +2047,48 @@ TEST_F(RevolvedPolygonTest, coincident_segment)
 
     EXPECT_VEC_SOFT_EQ((Real3{-2, -2, 1}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{2, 2, 2}), result.exterior.upper());
+}
+
+//---------------------------------------------------------------------------//
+/*
+ * Test an irregular shape.
+ *
+ *                     (2, 6)
+ *     6 _|            /\
+ *        |          /     \
+ *     5 _|        /          \
+ *        |      /               \
+ *     4 _|    /                    \
+ *        |  /                        \  (4, 3.5)
+ *     3 _|/ (0, 3)                   /
+ *        |\                        /
+ *     2 _| \                    /
+ *        |  \               /
+ *     1 _|   \ (1, 0)    /
+ *        |    \     /
+ *     0 _|_____\/_____________________
+ *        |      |      |      |      |
+ *        0      1      2      3      4
+ */
+TEST_F(RevolvedPolygonTest, pentagon)
+{
+    RevolvedPolygon::VecReal2 polygon{
+        Real2{4, 3.5}, Real2{1, 0}, Real2{0, 3}, Real2{2, 6}};
+
+    auto result = this->test(RevolvedPolygon(polygon));
+
+    static char const expected_node[] = "all(+0, +1, -2, -3)";
+    static char const* const expected_surfaces[]
+        = {"Cone z: t=0.33333 at {0,0,3}",
+           "Cone z: t=0.66667 at {0,0,3}",
+           "Cone z: t=0.8 at {0,0,8.5}",
+           "Cone z: t=0.85714 at {0,0,-1.1667}"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+
+    EXPECT_VEC_SOFT_EQ((Real3{-4, -4, 0}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{4, 4, 6}), result.exterior.upper());
 }
 
 //---------------------------------------------------------------------------//

@@ -1483,7 +1483,10 @@ ConeZ RevolvedPolygon::make_cone(Real2 point0, Real2 point1) const
     auto tangent = delta_r / delta_z;
     auto intercept = point0[Z] - point0[R] * delta_z / delta_r;
 
-    return ConeZ{Real3{0, 0, intercept}, tangent};
+    // The tangent value given to ConeZ must be positive. However, since ConeZ
+    // creates a double-sheeted cone, the negative cone will be properly
+    // produced as well.
+    return ConeZ{Real3{0, 0, intercept}, std::abs(tangent)};
 }
 
 //---------------------------------------------------------------------------//
