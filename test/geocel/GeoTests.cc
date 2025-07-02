@@ -971,7 +971,7 @@ void PolyhedraGeoTest::test_trace() const
             tol.safety = tol.distance = 1e-8;  // required for solid model
             std::cout<<" === Tolerance: dist="<< tol.distance
                  <<", safety="<< tol.safety << std::endl;
-	}
+        }
         EXPECT_RESULT_NEAR(ref, result, tol);
     }
     {
@@ -1094,6 +1094,12 @@ void PolyhedraGeoTest::test_trace() const
         ref.bumps = {};
         fixup_orange(*test_, ref, result);
         auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        if(test_->geometry_type() == "VecGeom" and using_vecgeom_solid)
+        {
+            tol.safety = tol.distance = 1e-9;  // required for solid model
+            std::cout<<" === Tolerance: dist="<< tol.distance
+                 <<", safety="<< tol.safety << std::endl;
+        }
         EXPECT_RESULT_NEAR(ref, result, tol);
     }
     {
@@ -1144,7 +1150,8 @@ void PolyhedraGeoTest::test_trace() const
             0.99,
             4.5,
         };
-        if (test_->geometry_type() == "Geant4")
+        if (test_->geometry_type() == "Geant4" ||
+            (test_->geometry_type() == "VecGeom" && using_vecgeom_solid))
         {
             // Geant4 has a different safety for the halfway point
             ref.halfway_safeties[0] = 0.41988207740847;
@@ -1155,6 +1162,12 @@ void PolyhedraGeoTest::test_trace() const
         ref.bumps = {};
         fixup_orange(*test_, ref, result);
         auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        if(test_->geometry_type() == "VecGeom" and using_vecgeom_solid)
+        {
+            tol.distance = tol.safety = 1e-9;  // required for solid model
+            std::cout<<" === Tolerance: dist="<< tol.distance
+                 <<", safety="<< tol.safety << std::endl;
+        }
         EXPECT_RESULT_NEAR(ref, result, tol);
     }
 }
@@ -1954,6 +1967,12 @@ void SimpleCmsGeoTest::test_trace() const
             ref.halfway_safeties[1] = 700;
         }
         auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        if (test_->geometry_type() == "VecGeom" and using_vecgeom_solid)
+        {
+            tol.safety = tol.distance = 1e-10;  // required for solid model
+            std::cout<<" === Tolerance: dist="<< tol.distance
+                 <<", safety="<< tol.safety << std::endl;
+        }
         EXPECT_RESULT_NEAR(ref, result, tol);
     }
     {
