@@ -11,7 +11,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
-#include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/TrackInitParams.hh"
@@ -95,17 +94,9 @@ void InitializeTracksAction::step_impl(CoreParams const& params,
                                        CoreStateHost& state,
                                        size_type num_new_tracks) const
 {
-    MultiExceptionHandler capture_exception;
-    detail::InitTracksExecutor execute_thread{
+    detail::InitTracksExecutor execute{
         params.ptr<MemSpace::native>(), state.ptr(), state.counters()};
-#if defined(_OPENMP) && CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
-#    pragma omp parallel for
-#endif
-    for (size_type i = 0; i < num_new_tracks; ++i)
-    {
-        CELER_TRY_HANDLE(execute_thread(ThreadId{i}), capture_exception);
-    }
-    log_and_rethrow(std::move(capture_exception));
+    return launch_action(num_new_tracks, execute);
 }
 
 //---------------------------------------------------------------------------//
