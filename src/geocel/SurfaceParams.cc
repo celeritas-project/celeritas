@@ -19,10 +19,13 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-
+/*!
+ * Construct from surface input and volume structure information.
+ */
 SurfaceParams::SurfaceParams(inp::Surfaces const& input,
                              VolumeParams const& volumes)
 {
+    CELER_EXPECT(!volumes.empty() || !input);
     if (!input)
     {
         CELER_LOG(warning) << "No optical surfaces are defined";
@@ -56,10 +59,18 @@ SurfaceParams::SurfaceParams(inp::Surfaces const& input,
     CELER_ENSURE(labels_.size() == this->host_ref().num_surfaces);
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Construct empty surfaces for when optical physics is disabled.
+ */
 SurfaceParams::SurfaceParams()
 {
     labels_ = {"surfaces", {}};
 }
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
 
 template class CollectionMirror<SurfaceParamsData>;
 template class ParamsDataInterface<SurfaceParamsData>;
