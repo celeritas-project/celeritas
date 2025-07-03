@@ -8,7 +8,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 ## Conference papers
 
-- *[celer-chep-2025]*: A. L. Lund, J. Esseiva, S. R. Johnson, E. Biondo, P. Canal, *et al*. "Accelerating detector simulations with Celeritas: profiling and performance optimizations". Mar 2025. [10.48550/arXiv.2503.17608](https://doi.org/10.48550/arXiv.2503.17608)
+- A. L. Lund, J. Esseiva, S. R. Johnson, E. Biondo, P. Canal, *et al*. "Accelerating detector simulations with Celeritas: profiling and performance optimizations". Mar 2025. [10.48550/arXiv.2503.17608](https://doi.org/10.48550/arXiv.2503.17608)
 - *[gnu-parallel-2024]*: K. Maheshwari, W. Arndt, A. M. Karimi, J. Yin, F. Suter, *et al*. "GNU parallel: enabling low-overhead HT-HPC workflows at extreme scale". Atlanta, GA, Nov 2024. [10.1109/SCW63240.2024.00257](https://doi.org/10.1109/SCW63240.2024.00257)
 - *[celer-chep-2024]*: S. R. Johnson, A. Lund, P. Canal, S. C. Tognini, J. Esseiva, *et al*. "Celeritas: accelerating Geant4 with GPUs". *EPJ Web of Conferences*, 2024. [10.1051/epjconf/202429511005](https://doi.org/10.1051/epjconf/202429511005)
 - *[celer-snowmass-2022]*: S. C. Tognini, P. Canal, T. M. Evans, G. Lima, A. L. Lund, *et al*. "Celeritas: GPU-accelerated particle transport for detector simulation in High Energy Physics experiments". in *Snowmass white papers*, Mar 2022. [10.48550/arXiv.2203.09467](https://doi.org/10.48550/arXiv.2203.09467)
