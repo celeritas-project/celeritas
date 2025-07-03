@@ -100,11 +100,6 @@ class GeantGeoTrackView
     // Get the normal vector of the current surface
     inline CELER_FUNCTION Real3 normal() const;
 
-    // Get the local normal vector of the current surface
-    inline CELER_FUNCTION Real3 local_surface_normal();
-    // Get the global normal vector of the current surface
-    inline CELER_FUNCTION Real3 global_surface_normal();
-
     // Get the Geant4 navigation state
     inline G4NavigationHistory const* nav_history() const;
 
@@ -583,26 +578,6 @@ auto GeantGeoTrackView::volume() const -> G4LogicalVolume const*
         return nullptr;
 
     return pv->GetLogicalVolume();
-}
-
-CELER_FUNCTION Real3 GeantGeoTrackView::local_surface_normal()
-{
-    CELER_EXPECT(this->is_on_boundary());
-    bool success = true;
-    Real3 normal = convert_from_geant(
-        navi_.GetLocalExitNormalAndCheck(g4pos_, &success), 1);
-    CELER_ENSURE(success);
-    return normal;
-}
-
-CELER_FUNCTION Real3 GeantGeoTrackView::global_surface_normal()
-{
-    CELER_EXPECT(this->is_on_boundary());
-    bool success = true;
-    Real3 normal
-        = convert_from_geant(navi_.GetGlobalExitNormal(g4pos_, &success), 1);
-    CELER_ENSURE(success);
-    return normal;
 }
 
 //---------------------------------------------------------------------------//
