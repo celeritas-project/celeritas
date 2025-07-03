@@ -21,7 +21,6 @@
 #include "PhysicsParams.hh"
 #include "TrackInitParams.hh"
 #include "action/AlongStepAction.hh"
-#include "action/BoundaryAction.hh"
 #include "action/InitializeTracksAction.hh"
 #include "action/LocateVacanciesAction.hh"
 #include "action/PreStepAction.hh"
@@ -114,6 +113,7 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CP_VALIDATE_INPUT(physics);
     CP_VALIDATE_INPUT(rng);
     CP_VALIDATE_INPUT(surface);
+    CP_VALIDATE_INPUT(surface_physics);
     CP_VALIDATE_INPUT(init);
     CP_VALIDATE_INPUT(action_reg);
     CP_VALIDATE_INPUT(max_streams);

@@ -9,6 +9,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/grid/NonuniformGridData.hh"
+#include "corecel/math/Algorithms.hh"
 #include "celeritas/optical/Types.hh"
 
 namespace celeritas

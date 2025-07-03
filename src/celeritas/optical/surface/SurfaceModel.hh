@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+
 #include "celeritas/optical/Types.hh"
 #include "celeritas/optical/action/ActionInterface.hh"
 

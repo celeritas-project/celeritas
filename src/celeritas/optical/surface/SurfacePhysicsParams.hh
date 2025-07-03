@@ -78,6 +78,19 @@ class SurfacePhysicsParams final
         return this->init_boundary_action_->action_id();
     }
 
+    VecRoughnessModels const& roughness_models() const
+    {
+        return roughness_models_;
+    }
+    VecReflectivityModels const& reflectivity_models() const
+    {
+        return reflectivity_models_;
+    }
+    VecInteractionModels const& interaction_models() const
+    {
+        return interaction_models_;
+    }
+
   private:
     // Actions
     VecRoughnessModels roughness_models_;

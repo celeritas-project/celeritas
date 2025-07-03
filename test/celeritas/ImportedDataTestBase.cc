@@ -19,6 +19,7 @@
 #include "celeritas/optical/PhysicsParams.hh"
 #include "celeritas/optical/gen/CherenkovParams.hh"
 #include "celeritas/optical/gen/ScintillationParams.hh"
+#include "celeritas/optical/surface/SurfacePhysicsParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsOptions.hh"
@@ -186,6 +187,15 @@ auto ImportedDataTestBase::build_optical_physics() -> SPConstOpticalPhysics
     }
 
     return std::make_shared<optical::PhysicsParams>(std::move(input));
+}
+
+//---------------------------------------------------------------------------//
+auto ImportedDataTestBase::build_surface_physics() -> SPConstSurfacePhysics
+{
+    optical::SurfacePhysicsParams::Input input;
+    input.action_registry = this->action_reg().get();
+
+    return std::make_shared<optical::SurfacePhysicsParams>(std::move(input));
 }
 
 //---------------------------------------------------------------------------//

@@ -55,7 +55,7 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
     }
     else
     {
-        auto post_volume = geo.volume_id();
+        // auto post_volume = geo.volume_id();
         auto post_volume_inst = geo.volume_instance_id();
 
         // Lookup first by interface
@@ -66,11 +66,12 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
             // Lookup pre-volume boundary
             surface_id = pre_surface.boundary_id();
 
-            if (!surface_id)
-            {
-                // Lookup post-volume boundary
-                surface_id = track.volume_surface(post_volume).boundary_id();
-            }
+            // if (!surface_id)
+            // {
+            //     // Lookup post-volume boundary
+            //     surface_id =
+            //     track.volume_surface(post_volume).boundary_id();
+            // }
         }
 
         if (!surface_id)

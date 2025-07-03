@@ -67,6 +67,10 @@ class OpticalMockTestBase : public GlobalTestBase
     {
         CELER_ASSERT_UNREACHABLE();
     }
+    SPConstSurfacePhysics build_surface_physics() override
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
     //!@}
 
   private:

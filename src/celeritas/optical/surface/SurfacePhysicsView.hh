@@ -16,6 +16,12 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Optical surface physics data for a track.
+ *
+ * The surface physics view provides an interface for data and operations
+ * used to manage an optical photon crossing a boundary. Tracks crossing
+ * a boundary should be initialized first through the \c InitBoundaryAction
+ * step.
  */
 class SurfacePhysicsView
 {
@@ -45,8 +51,13 @@ class SurfacePhysicsView
     // Get surface ID
     inline CELER_FUNCTION SurfaceId surface_id() const;
 
+    // Get roughness model for the surface
     inline CELER_FUNCTION ActionId roughness_action_id() const;
+
+    // Get reflectivity model for the surface
     inline CELER_FUNCTION ActionId reflectivity_action_id() const;
+
+    // Get interaction model for the surface
     inline CELER_FUNCTION ActionId interaction_action_id() const;
 
     // Geometric surface normal
@@ -56,6 +67,9 @@ class SurfacePhysicsView
     SurfaceParamsRef const& params_;
     SurfaceStateRef const& states_;
     TrackSlotId const track_id_;
+
+    // Get the surface record
+    inline CELER_FUNCTION SurfaceRecord const& surface_record() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -93,6 +107,52 @@ SurfacePhysicsView::operator=(Initializer const& init)
 CELER_FUNCTION Real3 const& SurfacePhysicsView::surface_normal() const
 {
     return states_.surface_normal[track_id_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the ID of the surface the track is currently on.
+ */
+CELER_FUNCTION SurfaceId SurfacePhysicsView::surface_id() const
+{
+    return states_.surface[track_id_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the action ID for the roughness action of the surface.
+ */
+CELER_FUNCTION ActionId SurfacePhysicsView::roughness_action_id() const
+{
+    return this->surface_record().roughness_model;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the action ID for the reflectivity action of the surface.
+ */
+CELER_FUNCTION ActionId SurfacePhysicsView::reflectivity_action_id() const
+{
+    return this->surface_record().reflectivity_model;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the action ID for the interaction model of the surface.
+ */
+CELER_FUNCTION ActionId SurfacePhysicsView::interaction_action_id() const
+{
+    return this->surface_record().interaction_model;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Helper function to access the surface record for this track.
+ */
+CELER_FUNCTION SurfaceRecord const& SurfacePhysicsView::surface_record() const
+{
+    CELER_EXPECT(this->surface_id() < params_.surfaces.size());
+    return params_.surfaces[this->surface_id()];
 }
 
 //---------------------------------------------------------------------------//

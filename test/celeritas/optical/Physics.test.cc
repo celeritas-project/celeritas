@@ -96,8 +96,6 @@ class OpticalPhysicsTest : public OpticalMockTestBase
     }
 
   private:
-    SPConstOpticalPhysics optical_physics_;
-
     CollectionStateStore<ParticleStateData, MemSpace::host> particle_state_;
     CollectionStateStore<PhysicsStateData, MemSpace::host> physics_state_;
 };
