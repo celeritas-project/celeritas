@@ -126,6 +126,8 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
 
     // Create launch action with optical params+state and access to gen data
     detail::OpticalLaunchAction::Input la_inp;
+    la_inp.cherenkov_aux_id = this->cherenkov_aux_id();
+    la_inp.scintillation_aux_id = this->scintillation_aux_id();
     la_inp.num_track_slots = inp.num_track_slots;
     la_inp.max_step_iters = inp.max_step_iters;
     la_inp.auto_flush = inp.auto_flush;
