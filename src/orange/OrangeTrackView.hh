@@ -103,10 +103,13 @@ class OrangeTrackView
     // Get the volume instance ID for all levels
     inline CELER_FUNCTION void volume_instance_id(Span<VolumeInstanceId>) const;
 
+    // The current implementation volume ID
+    inline CELER_FUNCTION ImplVolumeId impl_volume_id() const;
     // The current surface ID
-    inline CELER_FUNCTION InternalSurfaceId internal_surface_id() const;
+    inline CELER_FUNCTION ImplSurfaceId impl_surface_id() const;
     // After 'find_next_step', the next straight-line surface
-    inline CELER_FUNCTION InternalSurfaceId next_internal_surface_id() const;
+    inline CELER_FUNCTION ImplSurfaceId next_impl_surface_id() const;
+
     // Whether the track is outside the valid geometry region
     inline CELER_FUNCTION bool is_outside() const;
     // Whether the track is exactly on a surface
@@ -458,20 +461,34 @@ CELER_FUNCTION Real3 const& OrangeTrackView::dir() const
  */
 CELER_FUNCTION VolumeId OrangeTrackView::volume_id() const
 {
-    auto lsa = this->make_lsa();
-    detail::UniverseIndexer ui(params_.universe_indexer_data);
-    return ui.global_volume(lsa.universe(), lsa.vol());
+    ImplVolumeId impl_id = this->impl_volume_id();
+    if (!params_.volume_ids.empty())
+    {
+        // Return structural volume mapping
+        CELER_ASSERT(impl_id);
+        return params_.volume_ids[impl_id];
+    }
+    // No volume mapping specified (unit test or SCALE embedding)
+    return impl_id;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * The current volume instance.
  *
- * \todo not implemented; VolumeId is already halfway between a "reusable
- * volume" and a "volume instance" anyway...
+ * \todo not implemented; ImplVolumeId is already halfway between a
+ * "reusable volume" and a "volume instance" anyway...
  */
 CELER_FUNCTION VolumeInstanceId OrangeTrackView::volume_instance_id() const
 {
+    if (!params_.volume_instance_ids.empty())
+    {
+        // Return structural volume mapping
+        ImplVolumeId impl_id = this->impl_volume_id();
+        CELER_ASSERT(impl_id);
+        return params_.volume_instance_ids[impl_id];
+    }
+    // No volume mapping specified (unit test or SCALE embedding)
     return {};
 }
 
@@ -504,9 +521,24 @@ OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * The current "global" volume ID.
+ *
+ * \note It is allowable to call this function when "outside", because the
+ * outside in ORANGE is just a special volume. Other geometries may not have
+ * that behavior.
+ */
+CELER_FUNCTION ImplVolumeId OrangeTrackView::impl_volume_id() const
+{
+    auto lsa = this->make_lsa();
+    detail::UniverseIndexer ui(params_.universe_indexer_data);
+    return ui.global_volume(lsa.universe(), lsa.vol());
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * The current surface ID.
  */
-CELER_FUNCTION InternalSurfaceId OrangeTrackView::internal_surface_id() const
+CELER_FUNCTION ImplSurfaceId OrangeTrackView::impl_surface_id() const
 {
     if (this->is_on_boundary())
     {
@@ -516,7 +548,7 @@ CELER_FUNCTION InternalSurfaceId OrangeTrackView::internal_surface_id() const
     }
     else
     {
-        return InternalSurfaceId{};
+        return ImplSurfaceId{};
     }
 }
 
@@ -524,7 +556,7 @@ CELER_FUNCTION InternalSurfaceId OrangeTrackView::internal_surface_id() const
 /*!
  * After 'find_next_step', the next straight-line surface.
  */
-CELER_FUNCTION InternalSurfaceId OrangeTrackView::next_internal_surface_id() const
+CELER_FUNCTION ImplSurfaceId OrangeTrackView::next_impl_surface_id() const
 {
     CELER_EXPECT(this->has_next_surface());
     auto lsa = this->make_lsa(this->next_surface_level());

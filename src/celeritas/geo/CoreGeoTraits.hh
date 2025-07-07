@@ -2,10 +2,19 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/geo/GeoParams.hh
-//! \brief Select geometry implementation at configure time
-//! \deprecated Use CoreGeoParams.hh
+//! \file celeritas/geo/CoreGeoTraits.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "CoreGeoParams.hh"  // IWYU pragma: export
+#include "geocel/GeoTraits.hh"
+
+#include "GeoFwd.hh"
+
+namespace celeritas
+{
+//---------------------------------------------------------------------------//
+
+using CoreGeoTraits = GeoTraits<CoreGeoParams>;
+
+//---------------------------------------------------------------------------//
+}  // namespace celeritas

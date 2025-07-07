@@ -37,7 +37,7 @@ class LevelTouchableUpdater final : public TouchableUpdaterInterface
     //!@{
     //! \name Type aliases
     using SpanVolInst = Span<VolumeInstanceId const>;
-    using SPConstGeo = std::shared_ptr<GeoParams const>;
+    using SPConstCoreGeo = std::shared_ptr<CoreGeoParams const>;
     //!@}
 
   public:
@@ -47,7 +47,7 @@ class LevelTouchableUpdater final : public TouchableUpdaterInterface
                                                StepPoint step_point);
 
     // Construct with the geometry
-    explicit LevelTouchableUpdater(SPConstGeo);
+    explicit LevelTouchableUpdater(SPConstCoreGeo);
 
     // Destroy pointers
     ~LevelTouchableUpdater() final;
@@ -63,7 +63,7 @@ class LevelTouchableUpdater final : public TouchableUpdaterInterface
 
   private:
     // Geometry for doing G4PV translation
-    SPConstGeo geo_;
+    SPConstCoreGeo geo_;
     // Temporary storage for physical volumes
     std::vector<GeantPhysicalInstance> phys_inst_;
     // Temporary history

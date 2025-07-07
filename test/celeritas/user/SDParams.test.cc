@@ -15,7 +15,7 @@
 #include "celeritas/GlobalGeoTestBase.hh"
 #include "celeritas/OnlyCoreTestBase.hh"
 #include "celeritas/OnlyGeoTestBase.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 
 #include "celeritas_test.hh"
 #include "gtest/gtest.h"

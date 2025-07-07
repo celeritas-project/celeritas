@@ -12,6 +12,7 @@
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/math/QuantityIO.json.hh"
 #include "corecel/sys/Environment.hh"
+#include "celeritas/geo/CoreGeoTraits.hh"
 
 #include "CoreTrackView.hh"
 #include "Debug.hh"
@@ -30,6 +31,17 @@ void insert_if_valid(char const* key,
     {
         (*obj)[key] = val.unchecked_get();
     }
+}
+
+//---------------------------------------------------------------------------//
+template<class Traits, class GTV>
+ImplSurfaceId impl_surface_id(GTV const& geo)
+{
+    if constexpr (Traits::has_impl_surface)
+    {
+        return geo.impl_surface_id();
+    }
+    return {};
 }
 
 //---------------------------------------------------------------------------//
@@ -132,7 +144,7 @@ void KernelContextException::initialize(CoreTrackView const& core)
             {
                 volume_ = geo.volume_id();
             }
-            surface_ = geo.internal_surface_id();
+            surface_ = impl_surface_id<CoreGeoTraits>(geo);
         }
     }
     {

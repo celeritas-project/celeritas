@@ -17,7 +17,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
 #include "geocel/GeoVolumeFinder.cc"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 
 namespace celeritas
 {
@@ -48,7 +48,8 @@ void ExampleInstanceCalo::Result::print_expected() const
 /*!
  * Construct with geometry.
  */
-ExampleInstanceCalo::ExampleInstanceCalo(SPConstGeo geo, VecLabel vol_labels)
+ExampleInstanceCalo::ExampleInstanceCalo(SPConstCoreGeo geo,
+                                         VecLabel vol_labels)
     : geo_{std::move(geo)}, det_labels_{std::move(vol_labels)}
 {
     // Map labels to volume IDs

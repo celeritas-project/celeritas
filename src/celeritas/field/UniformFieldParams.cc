@@ -30,7 +30,7 @@ namespace
 {
 //---------------------------------------------------------------------------//
 std::unordered_set<VolumeId>
-make_volume_ids(GeoParams const& geo, inp::UniformField const& inp)
+make_volume_ids(CoreGeoParams const& geo, inp::UniformField const& inp)
 {
     using SetVolume = std::unordered_set<VolumeId>;
 
@@ -73,7 +73,8 @@ make_volume_ids(GeoParams const& geo, inp::UniformField const& inp)
 /*!
  * Construct from a user-defined field.
  */
-UniformFieldParams::UniformFieldParams(GeoParams const& geo, Input const& inp)
+UniformFieldParams::UniformFieldParams(CoreGeoParams const& geo,
+                                       Input const& inp)
 {
     if (inp.units != UnitSystem::si)
     {

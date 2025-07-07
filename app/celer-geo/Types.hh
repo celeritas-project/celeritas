@@ -29,7 +29,7 @@ enum class Geometry
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the user-facing GeoParams class from a Geometry enum.
+ * Get the user-facing CoreGeoParams class from a Geometry enum.
  */
 template<Geometry>
 struct GeoTraitsFromEnum;
@@ -53,7 +53,7 @@ struct GeoTraitsFromEnum<Geometry::geant4>
 };
 
 //---------------------------------------------------------------------------//
-//! Type alias for accessing GeoParams from a Geometry enum
+//! Type alias for accessing GeoParams class from a Geometry enum
 template<Geometry G>
 using GeoParams_t = typename GeoTraitsFromEnum<G>::type;
 

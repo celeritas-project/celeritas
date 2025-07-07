@@ -56,7 +56,7 @@ auto make_material(std::string&& label, GeoMatId::size_type m, SPConstObject obj
 }  // namespace
 
 //---------------------------------------------------------------------------//
-auto InvalidOrangeTestBase::build_geometry() -> SPConstGeo
+auto InvalidOrangeTestBase::build_geometry() -> SPConstCoreGeo
 {
     using namespace orangeinp;
     constexpr auto inside = Sense::inside;

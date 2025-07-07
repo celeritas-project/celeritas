@@ -45,8 +45,8 @@
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/UniformFieldData.hh"
+#include "celeritas/geo/CoreGeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/GeoMaterialParams.hh"
-#include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/inp/Control.hh"
@@ -91,14 +91,14 @@ namespace
 //---------------------------------------------------------------------------//
 struct GeoBuilder
 {
-    using result_type = std::shared_ptr<GeoParams>;
+    using result_type = std::shared_ptr<CoreGeoParams>;
 
     //! Build from filename
     result_type operator()(std::string const& filename)
     {
         CELER_VALIDATE(!filename.empty(),
                        << "empty filename in problem.model.geometry");
-        return std::make_shared<GeoParams>(filename);
+        return std::make_shared<CoreGeoParams>(filename);
     }
 
     //! Build from Geant4
@@ -121,7 +121,7 @@ struct GeoBuilder
         }
         CELER_VALIDATE(world,
                        << "null world pointer in problem.model.geometry");
-        return std::make_shared<GeoParams>(world);
+        return std::make_shared<CoreGeoParams>(world);
     }
 };
 
