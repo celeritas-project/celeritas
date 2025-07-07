@@ -20,8 +20,11 @@
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/setup/Problem.hh"
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/StatusChecker.hh"
 
@@ -125,7 +128,6 @@ auto GlobalTestBase::build_core() -> SPConstCore
     inp.physics = this->physics();
     inp.rng = this->rng();
     inp.sim = this->sim();
-    inp.surface = this->surface();
     inp.init = this->init();
     inp.wentzel = this->wentzel();
     inp.action_reg = this->action_reg();
