@@ -233,24 +233,18 @@ HitProcessor::~HitProcessor()
 /*!
  * Register mapping from Celeritas PrimaryID to Geant4 TrackID.
  */
-void HitProcessor::register_primary_id_mapping(PrimaryId celeritas_id,
-                                               int geant4_track_id)
+PrimaryId HitProcessor::register_primary(G4Track const& primary)
 {
-    auto id = celeritas_id.unchecked_get();
-    if (id >= celeritas_to_g4_track_id_.size())
-    {
-        celeritas_to_g4_track_id_.resize(
-            std::max(celeritas_to_g4_track_id_.size() * 2,
-                     static_cast<std::size_t>(id + 1)));
-    }
-    celeritas_to_g4_track_id_[id] = geant4_track_id;
+    auto primary_id = id_cast<PrimaryId>(celeritas_to_g4_track_id_.size());
+    celeritas_to_g4_track_id_.push_back(primary.GetTrackID());
+    return primary_id;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Clear PrimaryID mapping (called at start of new event).
  */
-void HitProcessor::clear_primary_id_mapping()
+void HitProcessor::begin_event()
 {
     celeritas_to_g4_track_id_.clear();
 }
@@ -421,7 +415,7 @@ void HitProcessor::update_track(DetectorStepOutput const& out, size_type i) cons
     if (!out.primary_id.empty())
     {
         PrimaryId celeritas_primary_id = out.primary_id[i];
-        CELER_EXPECT(celeritas_primary_id < celeritas_to_g4_track_id_.size());
+        CELER_ASSERT(celeritas_primary_id < celeritas_to_g4_track_id_.size());
         track.SetTrackID(
             celeritas_to_g4_track_id_[celeritas_primary_id.unchecked_get()]);
     }

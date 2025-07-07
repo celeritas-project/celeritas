@@ -226,9 +226,8 @@ void LocalTransporter::InitializeEvent(int id)
     // Clear PrimaryID mapping in HitProcessor and reset counter for new event
     if (hit_processor_)
     {
-        hit_processor_->clear_primary_id_mapping();
+        hit_processor_->begin_event();
     }
-    next_celeritas_primary_id_ = 0;
 
     if (!(G4Threading::IsMultithreadedApplication()
           && G4MTRunManager::SeedOncePerCommunication()))
@@ -271,12 +270,9 @@ void LocalTransporter::Push(G4Track const& g4track)
     track.particle_id = particles_->find(pdg);
 
     // Generate Celeritas-specific PrimaryID and notify HitProcessor of mapping
-    PrimaryId celeritas_primary_id{next_celeritas_primary_id_++};
-    track.primary_id = celeritas_primary_id;
     if (hit_processor_)
     {
-        hit_processor_->register_primary_id_mapping(celeritas_primary_id,
-                                                    g4track.GetTrackID());
+        track.primary_id = hit_processor_->register_primary(g4track);
     }
 
     track.energy = units::MevEnergy(

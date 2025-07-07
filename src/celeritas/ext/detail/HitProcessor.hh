@@ -110,11 +110,10 @@ class HitProcessor
     inline size_type exchange_hits();
 
     // Register mapping from Celeritas PrimaryID to Geant4 TrackID
-    void
-    register_primary_id_mapping(PrimaryId celeritas_id, int geant4_track_id);
+    [[nodiscard]] PrimaryId register_primary(G4Track const&);
 
     // Clear PrimaryID mapping (called at start of new event)
-    void clear_primary_id_mapping();
+    void begin_event();
 
   private:
     //! Detector volumes for navigation updating
