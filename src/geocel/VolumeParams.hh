@@ -31,7 +31,9 @@ struct Volumes;
  * this allows conversion between the Celeritas geometry implementation and the
  * Geant4 geometry navigation.
  *
- * Input material IDs are allowed to be null for testing purposes.
+ * \internal Construction requirements:
+ * - At least one volume must be defined.
+ * - Material IDs are allowed to be null for testing purposes.
  *
  * \todo We should be able to easily move the ID-related methods to a
  * GPU-friendly view rather than just this metadata class. It's not needed at

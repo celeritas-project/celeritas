@@ -83,7 +83,7 @@ struct SurfaceParamsData
     //! Surface properties for logical volumes
     VolumeItems<VolumeSurfaceRecord> volume_surfaces;
 
-    //! Backend storage for PV->PV mapping
+    //! Backend storage for surface interfaces
     Items<VolumeInstanceId> volume_instance_ids;
 
     //! Backend storage for surface interfaces
@@ -91,10 +91,11 @@ struct SurfaceParamsData
 
     //// METHODS ////
 
-    //! True if surfaces are present
+    //! True if data is consistent
     explicit CELER_FUNCTION operator bool() const
     {
-        return !volume_surfaces.empty();
+        return ((num_surfaces > 0) == !volume_surfaces.empty())
+               && (volume_instance_ids.empty() == surface_ids.empty());
     }
 
     //! Assign from another set of data
@@ -102,7 +103,6 @@ struct SurfaceParamsData
     SurfaceParamsData& operator=(SurfaceParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        CELER_EXPECT(!other.volume_surfaces.empty());
 
         num_surfaces = other.num_surfaces;
         volume_surfaces = other.volume_surfaces;
