@@ -38,7 +38,7 @@ namespace celeritas
  */
 std::shared_ptr<AlongStepUniformMscAction>
 AlongStepUniformMscAction::from_params(ActionId id,
-                                       GeoParams const& geometry,
+                                       CoreGeoParams const& geometry,
                                        MaterialParams const& materials,
                                        ParticleParams const& particles,
                                        Input const& field_input,
@@ -59,11 +59,12 @@ AlongStepUniformMscAction::from_params(ActionId id,
 /*!
  * Construct with MSC data and field driver options.
  */
-AlongStepUniformMscAction::AlongStepUniformMscAction(ActionId id,
-                                                     GeoParams const& geometry,
-                                                     Input const& input,
-                                                     SPConstFluctuations fluct,
-                                                     SPConstMsc msc)
+AlongStepUniformMscAction::AlongStepUniformMscAction(
+    ActionId id,
+    CoreGeoParams const& geometry,
+    Input const& input,
+    SPConstFluctuations fluct,
+    SPConstMsc msc)
     : id_(id)
     , field_{std::make_shared<UniformFieldParams>(geometry, input)}
     , fluct_(std::move(fluct))

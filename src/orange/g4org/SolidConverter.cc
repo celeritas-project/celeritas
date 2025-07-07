@@ -85,13 +85,40 @@ auto enclosed_azi_radians(double start_rad, double stop_rad)
 {
     auto start = native_value_to<RealTurn>(start_rad);
     auto stop = native_value_to<RealTurn>(stop_rad);
-    if (soft_equal(stop.value() - start.value(), real_type{1}))
+    auto delta_turn = value_as<RealTurn>(stop - start);
+    CELER_VALIDATE(delta_turn <= 1 || soft_equal(delta_turn, real_type{1}),
+                   << "azimuthal restriction [" << start.value() << ", "
+                   << stop.value() << "] [turn] exceeds 1 turn");
+    if (delta_turn >= real_type{1} || soft_equal(delta_turn, real_type{1}))
     {
-        // Avoid roundoff error: return full region, *but* keep orientation,
-        // needed for polyhedra
+        // Avoid roundoff error: return full region
         return EnclosedAzi{};
     }
     return EnclosedAzi{start, stop};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get an EnclosedPolar, avoiding values slightly beyond a half turn.
+ *
+ * This constructs from native Geant4 radians and truncates to \c real_type,
+ * ensuring that roundoff doesn't push the turn beyond a full one. The
+ * G4Sphere::CheckThetaAngles implementation prevents the endpoint being
+ * greater than 180 degrees, so we do the same here.
+ */
+auto enclosed_polar_radians(double start_rad, double stop_rad)
+{
+    auto start = native_value_to<RealTurn>(start_rad);
+    auto stop = native_value_to<RealTurn>(stop_rad);
+    CELER_VALIDATE(start.value() >= 0 || soft_zero(start.value()),
+                   << "polar start angle " << start.value()
+                   << " [turn] exceeds half a turn");
+    start = min(RealTurn{0.5}, start);
+    CELER_VALIDATE(stop.value() <= 0.5 || soft_equal(stop.value(), 0.5),
+                   << "polar end angle " << stop.value()
+                   << " [turn] exceeds half a turn");
+    stop = min(RealTurn{0.5}, stop);
+    return EnclosedPolar{start, stop};
 }
 
 //---------------------------------------------------------------------------//
@@ -140,11 +167,11 @@ EnclosedAzi enclosed_azi_from_poly(S const& solid)
  * Get the enclosed polar angle by a solid.
  */
 template<class S>
-EnclosedAzi enclosed_pol_from(S const& solid)
+EnclosedPolar enclosed_pol_from(S const& solid)
 {
-    // FIXME: polar angle will be a different class
-    return enclosed_azi_radians(solid.GetStartThetaAngle(),
-                                solid.GetDeltaThetaAngle());
+    auto start = solid.GetStartThetaAngle();
+    auto delta = solid.GetDeltaThetaAngle();
+    return enclosed_polar_radians(start, start + delta);
 }
 
 //---------------------------------------------------------------------------//
@@ -709,15 +736,12 @@ auto SolidConverter::sphere(arg_type solid_base) -> result_type
     }
 
     auto polar_cone = enclosed_pol_from(solid);
-    if (!soft_equal(value_as<Turn>(polar_cone.stop() - polar_cone.start()), 0.5))
-    {
-        CELER_NOT_IMPLEMENTED("sphere with polar limits");
-    }
 
     return make_solid(solid,
                       Sphere{scale_(solid.GetOuterRadius())},
                       std::move(inner),
-                      enclosed_azi_from(solid));
+                      enclosed_azi_from(solid),
+                      std::move(polar_cone));
 }
 
 //---------------------------------------------------------------------------//

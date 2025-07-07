@@ -9,6 +9,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/random/data/RngData.hh"
+#include "geocel/SurfaceData.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoData.hh"
 
@@ -55,14 +56,14 @@ struct CoreParamsData
     MaterialParamsData<W, M> material;
     PhysicsParamsData<W, M> physics;
     RngParamsData<W, M> rng;
-    TrackInitParamsData<W, M> init;
+    SurfaceParamsData<W, M> surface;
 
     CoreScalars scalars;
 
     //! True if all params are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && material && physics && rng && init && scalars;
+        return geometry && material && physics && rng && scalars;
     }
 
     //! Assign from another set of data
@@ -74,7 +75,7 @@ struct CoreParamsData
         material = other.material;
         physics = other.physics;
         rng = other.rng;
-        init = other.init;
+        surface = other.surface;
         scalars = other.scalars;
         return *this;
     }

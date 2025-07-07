@@ -19,7 +19,7 @@
 #include "geocel/GeantGeoUtils.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
 #include "celeritas/ext/GeantSdOutput.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/inp/Scoring.hh"
 
 #include "SDTestBase.hh"

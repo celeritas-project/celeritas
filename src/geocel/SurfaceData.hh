@@ -92,7 +92,10 @@ struct SurfaceParamsData
     //// METHODS ////
 
     //! True if surfaces are present
-    explicit CELER_FUNCTION operator bool() const { return num_surfaces != 0; }
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !volume_surfaces.empty();
+    }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>

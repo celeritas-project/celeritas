@@ -9,6 +9,7 @@
 #include <algorithm>
 
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/io/Logger.hh"
 
 #include "SurfaceData.hh"
 #include "VolumeParams.hh"
@@ -22,7 +23,10 @@ namespace celeritas
 SurfaceParams::SurfaceParams(inp::Surfaces const& input,
                              VolumeParams const& volumes)
 {
-    CELER_EXPECT(!input.surfaces.empty());
+    if (!input)
+    {
+        CELER_LOG(warning) << "No optical surfaces are defined";
+    }
 
     // Set up temporary storage
     std::vector<detail::VolumeSurfaceData> temp_volume_surfaces;

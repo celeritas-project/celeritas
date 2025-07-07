@@ -22,12 +22,12 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ActionRegistry;
+class SurfaceParams;
 
 namespace optical
 {
 //---------------------------------------------------------------------------//
 class MaterialParams;
-class TrackInitParams;
 class PhysicsParams;
 //---------------------------------------------------------------------------//
 /*!
@@ -38,11 +38,11 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
   public:
     //!@{
     //! \name Type aliases
-    using SPConstGeo = std::shared_ptr<GeoParams const>;
+    using SPConstCoreGeo = std::shared_ptr<CoreGeoParams const>;
     using SPConstMaterial = std::shared_ptr<MaterialParams const>;
     using SPConstPhysics = std::shared_ptr<PhysicsParams const>;
     using SPConstRng = std::shared_ptr<RngParams const>;
-    using SPConstTrackInit = std::shared_ptr<TrackInitParams const>;
+    using SPConstSurface = std::shared_ptr<SurfaceParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
     using SPConstDetectors = std::shared_ptr<SDParams const>;
     using VecLabel = std::vector<Label>;
@@ -55,11 +55,11 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
     struct Input
     {
-        SPConstGeo geometry;
+        SPConstCoreGeo geometry;
         SPConstMaterial material;
         SPConstPhysics physics;
         SPConstRng rng;
-        SPConstTrackInit init;
+        SPConstSurface surface;
 
         std::optional<VecLabel> detector_labels;
 
@@ -71,7 +71,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         //! True if all params are assigned and valid
         explicit operator bool() const
         {
-            return geometry && material && rng && init && action_reg
+            return geometry && material && rng && surface && action_reg
                    && max_streams;
         }
     };
@@ -91,11 +91,11 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
     //!@{
     //! Access shared problem parameter data.
-    SPConstGeo const& geometry() const { return input_.geometry; }
+    SPConstCoreGeo const& geometry() const { return input_.geometry; }
     SPConstMaterial const& material() const { return input_.material; }
     SPConstPhysics const& physics() const { return input_.physics; }
     SPConstRng const& rng() const { return input_.rng; }
-    SPConstTrackInit const& init() const { return input_.init; }
+    SPConstSurface const& surface() const { return input_.surface; }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
     SPConstDetectors const& detectors() const { return detectors_; }
     //!@}

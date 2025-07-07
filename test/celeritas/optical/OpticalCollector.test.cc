@@ -93,7 +93,6 @@ class LArSphereOffloadTest : public LArSphereBase
     bool use_cherenkov_{true};
     size_type num_track_slots_{4096};
     size_type buffer_capacity_{256};
-    size_type initializer_capacity_{8192};
     size_type auto_flush_{4096};
     size_type max_step_iters_{static_cast<size_type>(-1)};
     units::MevEnergy primary_energy_{10.0};
@@ -205,7 +204,6 @@ void LArSphereOffloadTest::build_optical_collector()
     }
     inp.num_track_slots = num_track_slots_;
     inp.buffer_capacity = buffer_capacity_;
-    inp.initializer_capacity = initializer_capacity_;
     inp.auto_flush = auto_flush_;
     inp.max_step_iters = max_step_iters_;
 
@@ -554,7 +552,6 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
     primary_energy_ = units::MevEnergy{0.01};
     num_track_slots_ = 32;
     buffer_capacity_ = 4096;
-    initializer_capacity_ = 4096;
     auto_flush_ = 1;
     this->build_optical_collector();
 
@@ -565,7 +562,7 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(1712, result.accum.steps);
+        EXPECT_EQ(1804, result.accum.steps);
         EXPECT_EQ(57, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
         EXPECT_EQ(0, result.accum.cherenkov.distributions);
@@ -579,7 +576,6 @@ TEST_F(LArSphereOffloadTest, host_generate)
 {
     num_track_slots_ = 262144;
     buffer_capacity_ = 1024;
-    initializer_capacity_ = 524288;
     auto_flush_ = 16384;
     this->build_optical_collector();
 
@@ -591,8 +587,8 @@ TEST_F(LArSphereOffloadTest, host_generate)
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_SOFT_NEAR(
-            462263.0, static_cast<double>(result.accum.steps), 1e-4);
-        EXPECT_EQ(37, result.accum.step_iters);
+            4593666, static_cast<double>(result.accum.steps), 1e-4);
+        EXPECT_EQ(49, result.accum.step_iters);
         EXPECT_EQ(3, result.accum.flushes);
         EXPECT_EQ(4, result.accum.cherenkov.distributions);
         EXPECT_EQ(6, result.accum.scintillation.distributions);
@@ -609,7 +605,6 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
 {
     num_track_slots_ = 1024;
     buffer_capacity_ = 2048;
-    initializer_capacity_ = 524288;
     auto_flush_ = 262144;
     this->build_optical_collector();
 

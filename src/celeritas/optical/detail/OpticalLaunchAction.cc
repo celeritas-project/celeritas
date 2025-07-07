@@ -16,6 +16,7 @@
 #include "../CoreParams.hh"
 #include "../CoreState.hh"
 #include "../action/ActionGroups.hh"
+#include "../gen/GeneratorData.hh"
 
 namespace celeritas
 {
@@ -46,24 +47,14 @@ OpticalLaunchAction::make_and_insert(CoreParams const& core, Input&& input)
 OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
                                          AuxId aux_id,
                                          Input&& input)
-    : action_id_{action_id}
-    , aux_id_{aux_id}
-    , optical_params_(std::move(input.optical_params))
-    , state_size_(input.num_track_slots)
-    , max_step_iters_(input.max_step_iters)
-    , auto_flush_(input.auto_flush)
+    : action_id_{action_id}, aux_id_{aux_id}, data_(std::move(input))
 {
-    CELER_EXPECT(optical_params_);
-    CELER_EXPECT(state_size_ > 0);
-
-    // TODO: Generate optical photons directly in the track slots rather than a
-    // buffer. For now just make sure enough track initializers are allocated
-    // so that we can initialize them all at the start of the first step
+    CELER_EXPECT(data_);
 
     // TODO: should we initialize this at begin-run so that we can add
     // additional optical actions?
     optical_actions_
-        = std::make_shared<ActionGroupsT>(*optical_params_->action_reg());
+        = std::make_shared<ActionGroupsT>(*data_.optical_params->action_reg());
 }
 
 //---------------------------------------------------------------------------//
@@ -85,12 +76,12 @@ auto OpticalLaunchAction::create_state(MemSpace m, StreamId sid, size_type) cons
     if (m == MemSpace::host)
     {
         return std::make_unique<optical::CoreState<MemSpace::host>>(
-            *optical_params_, sid, state_size_);
+            this->optical_params(), sid, this->state_size());
     }
     else if (m == MemSpace::device)
     {
         return std::make_unique<optical::CoreState<MemSpace::device>>(
-            *optical_params_, sid, state_size_);
+            this->optical_params(), sid, this->state_size());
     }
     CELER_ASSERT_UNREACHABLE();
 }
@@ -137,48 +128,40 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
 
     auto const& core_counters = core_state.counters();
     auto& counters = state.counters();
-    CELER_ASSERT(counters.num_initializers == 0);
 
-    if ((counters.num_pending < auto_flush_
+    if ((counters.num_pending < data_.auto_flush
          && (core_counters.num_alive > 0 || core_counters.num_initializers > 0))
-        || max_step_iters_ == 0)
+        || counters.num_pending == 0 || data_.max_step_iters == 0)
     {
         // Don't launch the optical loop if the number of pending tracks is
         // below the threshold and the core stepping loop hasn't completed yet
         return;
     }
 
-    auto init_capacity = state.ref().init.initializers.size();
-    CELER_VALIDATE(counters.num_pending <= init_capacity,
-                   << "insufficient capacity (" << init_capacity
-                   << ") for optical photon initializers (total capacity "
-                      "requirement of "
-                   << counters.num_pending << ")");
-
     // Loop while photons are yet to be tracked
     auto const& step_actions = optical_actions_->step();
-    while (counters.num_pending > 0 || counters.num_initializers > 0
-           || counters.num_alive > 0)
+    while (counters.num_pending > 0 || counters.num_alive > 0)
     {
         // Loop through actions
         for (auto const& action : step_actions)
         {
-            action->step(*optical_params_, state);
+            action->step(this->optical_params(), state);
         }
 
         num_steps += counters.num_active;
-        if (CELER_UNLIKELY(++num_step_iters == max_step_iters_))
+        if (CELER_UNLIKELY(++num_step_iters == data_.max_step_iters))
         {
             CELER_LOG_LOCAL(error)
-                << "Exceeded step count of " << max_step_iters_
+                << "Exceeded step count of " << data_.max_step_iters
                 << ": aborting optical transport loop with "
                 << counters.num_generated << " generated tracks, "
                 << counters.num_active << " active tracks, "
                 << counters.num_alive << " alive tracks, "
                 << counters.num_vacancies << " vacancies, and "
-                << counters.num_initializers << " queued";
+                << counters.num_pending << " queued";
 
             state.reset();
+            this->reset_generators(core_state.aux());
             break;
         }
     }
@@ -187,6 +170,24 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
     state.accum().steps += num_steps;
     state.accum().step_iters += num_step_iters;
     ++state.accum().flushes;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reset the generator counts if the loop was aborted early.
+ */
+void OpticalLaunchAction::reset_generators(AuxStateVec& aux) const
+{
+    for (AuxId id : {data_.cherenkov_aux_id, data_.scintillation_aux_id})
+    {
+        if (id)
+        {
+            auto& gen = dynamic_cast<GeneratorStateBase&>(aux.at(id));
+            gen.buffer_size = {};
+            gen.num_pending = {};
+            gen.num_generated = {};
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//

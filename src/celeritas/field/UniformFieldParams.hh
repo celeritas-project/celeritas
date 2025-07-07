@@ -8,8 +8,8 @@
 
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/geo/GeoFwd.hh"
-#include "celeritas/geo/GeoParams.hh"
 #include "celeritas/inp/Field.hh"
 
 #include "UniformFieldData.hh"
@@ -31,7 +31,7 @@ class UniformFieldParams final
 
   public:
     // Construct with a uniform magnetic field
-    UniformFieldParams(GeoParams const& geo, Input const& inp);
+    UniformFieldParams(CoreGeoParams const& geo, Input const& inp);
 
     //! Access field data on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }

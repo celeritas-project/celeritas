@@ -31,10 +31,9 @@ namespace detail
 /*!
  * Generate photons from optical distribution data.
  *
- * This samples and buffers new optical track initializers in a reproducible
- * way. Rather than let each thread generate all initializers from one
- * distribution, the work is split as evenly as possible among threads:
- * multiple threads may generate initializers from a single distribution.
+ * This samples and initializes optical photons directly in a track slot in a
+ * reproducible way.  Multiple threads may generate initializers from a single
+ * distribution.
  */
 template<GeneratorType G>
 class GeneratorAction final : public optical::OpticalStepActionInterface,

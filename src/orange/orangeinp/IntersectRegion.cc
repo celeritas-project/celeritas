@@ -39,6 +39,16 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Create a SoftEqual instance using the surface builder tolerance.
+ */
+auto make_soft_equal(IntersectSurfaceBuilder const& sb)
+{
+    auto tol = sb.tol();
+    return SoftEqual{tol.rel, tol.abs};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Create a z-aligned bounding box infinite along z and symmetric in r.
  */
 BBox make_xyradial_bbox(real_type r)
@@ -139,8 +149,7 @@ bool Cone::encloses(Cone const& other) const
  */
 void Cone::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    if (CELER_UNLIKELY(
-            SoftEqual{insert_surface.tol().rel}(radii_[0], radii_[1])))
+    if (CELER_UNLIKELY(make_soft_equal(insert_surface)(radii_[0], radii_[1])))
     {
         // Degenerate cone: build a cylinder instead
         Cylinder cyl{real_type{0.5} * (radii_[0] + radii_[1]), hh_};
@@ -711,7 +720,7 @@ GenPrism GenPrism::from_trap(
     auto [dxdz_hz, dydz_hz] = [&]() -> std::pair<real_type, real_type> {
         real_type cos_phi{}, sin_phi{};
         sincos(phi, &sin_phi, &cos_phi);
-        real_type const tan_theta = std::tan(native_value_from(theta));
+        real_type const tan_theta = tan(theta);
         return {hz * tan_theta * cos_phi, hz * tan_theta * sin_phi};
     }();
 
@@ -733,8 +742,7 @@ GenPrism GenPrism::from_trap(
 
         real_type const xoff = (i == 0 ? -dxdz_hz : dxdz_hz);
         real_type const yoff = (i == 0 ? -dydz_hz : dydz_hz);
-        real_type const shear = std::tan(native_value_from(face.alpha))
-                                * face.hy;
+        real_type const shear = tan(face.alpha) * face.hy;
 
         // Construct points counterclockwise from lower right
         points[i] = {{xoff - shear + face.hx_lo, yoff - face.hy},
@@ -1010,15 +1018,20 @@ InfAziWedge::InfAziWedge(Turn start, Turn stop) : start_{start}, stop_{stop}
  *
  * Both planes should point "outward" to the wedge. In the degenerate case of
  * stop = 0.5 + start, we rely on CSG object deduplication.
+ *
+ * Names are 'azimuthal wedge' with plus/minus
  */
 void InfAziWedge::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    for (auto [sense, angle] :
-         {std::pair{Sense::inside, start_}, std::pair{Sense::outside, stop_}})
+    for (auto&& [sense, angle, namechar] :
+         {std::tuple{Sense::outside, stop_, 'm'},
+          std::tuple{Sense::inside, start_, 'p'}})
     {
         real_type s, c;
         sincos(angle, &s, &c);
-        insert_surface(sense, Plane{Real3{s, -c, 0}, 0});
+        std::string facename("aw*");
+        facename[2] = namechar;
+        insert_surface(sense, Plane{Real3{s, -c, 0}, 0}, std::move(facename));
     }
 
     //! \todo Restrict bounding boxes, at least eliminating two quadrants...
@@ -1029,6 +1042,73 @@ void InfAziWedge::build(IntersectSurfaceBuilder& insert_surface) const
  * Write output to the given JSON object.
  */
 void InfAziWedge::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+// INFPOLARWEDGE
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from a starting angle and stop angle.
+ */
+InfPolarWedge::InfPolarWedge(Turn start, Turn stop)
+    : start_{start}, stop_{stop}
+{
+    CELER_VALIDATE(start_ >= north_pole && start_ < south_pole,
+                   << "invalid start angle " << start_.value()
+                   << " [turns]: must be in the range [0, 0.5)");
+
+    // Stay only on a single side of z=0
+    auto max_stop = Turn{start_ < equator ? equator : south_pole};
+    CELER_VALIDATE(stop_ > start_
+                       && (stop_ <= max_stop
+                           || soft_equal(stop_.value(), max_stop.value())),
+                   << "invalid stop wedge angle " << stop.value()
+                   << " [turns]: must be in [0, "
+                   << (max_stop - start_).value() << ")");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ *
+ * Names use 'pw' for polar wedge, 'z' for plane:
+ *  - pwm: middle plane
+ *  - pwt: top cone
+ *  - pwb: bottom cone
+ */
+void InfPolarWedge::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    auto soft_equal = make_soft_equal(insert_surface);
+
+    // Greater-than-equator start means below z (southern hemisphere)
+    auto sense = start_ >= equator ? Sense::inside : Sense::outside;
+    insert_surface(sense, PlaneZ{0}, "pwm");
+
+    if (!soft_equal(start_.value(), north_pole.value())
+        && !soft_equal(start_.value(), equator.value()))
+    {
+        // Start point is not a degenerate cone: we're "outside" if top
+        // hemisphere, "inside" if bottom. "kt" means "cone top"
+        insert_surface(sense, ConeZ{Real3{0, 0, 0}, tan(start_)}, "pwt");
+    }
+
+    if (!soft_equal(stop_.value(), south_pole.value())
+        && !soft_equal(stop_.value(), equator.value()))
+    {
+        // End point is not a degenerate cone: we're "inside" if top
+        // hemisphere, "outside" if bottom. "kb" is "cone bottom".
+        insert_surface(
+            flip_sense(sense), ConeZ{Real3{0, 0, 0}, tan(stop_)}, "pwb");
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void InfPolarWedge::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
 }

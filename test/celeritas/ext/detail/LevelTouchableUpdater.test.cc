@@ -15,7 +15,7 @@
 #include "celeritas/GlobalGeoTestBase.hh"
 #include "celeritas/OnlyCoreTestBase.hh"
 #include "celeritas/OnlyGeoTestBase.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 
 #include "celeritas_test.hh"
 
@@ -71,7 +71,7 @@ class LevelTouchableUpdaterTest : public ::celeritas::test::GlobalGeoTestBase,
         auto* world_volume = ::celeritas::load_gdml(
             this->test_data_path("geocel", std::string(basename) + ".gdml"));
 
-        return std::make_shared<GeoParams>(world_volume);
+        return std::make_shared<CoreGeoParams>(world_volume);
     }
 
     TouchableUpdater make_touchable_updater()

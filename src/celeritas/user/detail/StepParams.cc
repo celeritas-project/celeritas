@@ -12,7 +12,7 @@
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Label.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 
 #include "../StepInterface.hh"
 
@@ -25,7 +25,7 @@ namespace detail
  * Construct from data IDs and interfaces.
  */
 StepParams::StepParams(AuxId aux_id,
-                       GeoParams const& geo,
+                       CoreGeoParams const& geo,
                        VecInterface const& callbacks)
     : aux_id_{aux_id}
 {

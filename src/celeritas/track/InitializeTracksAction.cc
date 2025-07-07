@@ -11,7 +11,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
-#include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -101,20 +100,12 @@ void InitializeTracksAction::step_impl(CoreParams const& core_params,
                                        CoreStateHost& core_state,
                                        size_type num_new_tracks) const
 {
-    MultiExceptionHandler capture_exception;
-    detail::InitTracksExecutor execute_thread{
-        core_params.ptr<MemSpace::native>(),
-        core_state.ptr(),
-        num_new_tracks,
-        core_state.counters()};
-#if defined(_OPENMP) && CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
-#    pragma omp parallel for
-#endif
-    for (size_type i = 0; i < num_new_tracks; ++i)
-    {
-        CELER_TRY_HANDLE(execute_thread(ThreadId{i}), capture_exception);
-    }
-    log_and_rethrow(std::move(capture_exception));
+    detail::InitTracksExecutor execute{core_params.ptr<MemSpace::native>(),
+                                       core_state.ptr(),
+                                       num_new_tracks,
+                                       core_state.counters()};
+    return launch_action(
+        *this, num_new_tracks, core_params, core_state, execute);
 }
 
 //---------------------------------------------------------------------------//

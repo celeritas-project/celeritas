@@ -72,8 +72,8 @@ auto LazyGeoManager::lazy_geo() -> LazyGeo&
          *
          * This is needed because VecGeom stores its objects as static globals,
          * and only makes those objects visible with references/raw data. Thus
-         * we can't guarantee that the GeoParams destructor is calling a valid
-         * global VecGeom pointer when it destructs, since static
+         * we can't guarantee that the CoreGeoParams destructor is calling a
+         * valid global VecGeom pointer when it destructs, since static
          * initialization/destruction order is undefined across translation
          * units.
          */

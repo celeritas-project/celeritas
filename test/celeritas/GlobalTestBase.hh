@@ -33,6 +33,7 @@ class ParticleParams;
 class PhysicsParams;
 class ScintillationParams;
 class SimParams;
+class SurfaceParams;
 class TrackInitParams;
 class AuxParamsRegistry;
 class WentzelOKVIParams;
@@ -61,6 +62,9 @@ namespace test
  * \note Inherit from this class (or \c GlobalGeoTestBase) using \c
  * virtual \c public so that tests can create mixins (see e.g. \c
  * SimpleStepperTest).
+ *
+ * \todo Replace the construction with modifiers to \c celeritas::inp data
+ * structures, and build the core geometry with \c celeritas::setup.
  */
 class GlobalTestBase : public Test
 {
@@ -70,7 +74,7 @@ class GlobalTestBase : public Test
     template<class T>
     using SP = std::shared_ptr<T>;
 
-    using SPConstGeo = SP<GeoParams const>;
+    using SPConstCoreGeo = SP<CoreGeoParams const>;
     using SPConstMaterial = SP<MaterialParams const>;
     using SPConstGeoMaterial = SP<GeoMaterialParams const>;
     using SPConstParticle = SP<ParticleParams const>;
@@ -79,6 +83,7 @@ class GlobalTestBase : public Test
     using SPConstAction = SP<CoreStepActionInterface const>;
     using SPConstRng = SP<RngParams const>;
     using SPConstSim = SP<SimParams const>;
+    using SPConstSurface = SP<SurfaceParams const>;
     using SPConstTrackInit = SP<TrackInitParams const>;
     using SPConstWentzelOKVI = SP<WentzelOKVIParams const>;
     using SPConstCore = SP<CoreParams const>;
@@ -106,7 +111,7 @@ class GlobalTestBase : public Test
 
     //!@{
     //! Access lazily constructed objects.
-    inline SPConstGeo const& geometry();
+    inline SPConstCoreGeo const& geometry();
     inline SPConstMaterial const& material();
     inline SPConstGeoMaterial const& geomaterial();
     inline SPConstParticle const& particle();
@@ -115,6 +120,7 @@ class GlobalTestBase : public Test
     inline SPConstAction const& along_step();
     inline SPConstRng const& rng();
     inline SPConstSim const& sim();
+    inline SPConstSurface const& surface();
     inline SPConstTrackInit const& init();
     inline SPConstWentzelOKVI const& wentzel();
     inline SPActionRegistry const& action_reg();
@@ -125,7 +131,7 @@ class GlobalTestBase : public Test
     inline SPConstOpticalPhysics const& optical_physics();
     inline SPConstScintillation const& scintillation();
 
-    inline SPConstGeo const& geometry() const;
+    inline SPConstCoreGeo const& geometry() const;
     inline SPConstMaterial const& material() const;
     inline SPConstGeoMaterial const& geomaterial() const;
     inline SPConstParticle const& particle() const;
@@ -134,6 +140,7 @@ class GlobalTestBase : public Test
     inline SPConstAction const& along_step() const;
     inline SPConstRng const& rng() const;
     inline SPConstSim const& sim() const;
+    inline SPConstSurface const& surface() const;
     inline SPConstTrackInit const& init() const;
     inline SPConstWentzelOKVI const& wentzel() const;
     inline SPActionRegistry const& action_reg() const;
@@ -157,13 +164,14 @@ class GlobalTestBase : public Test
     void write_output();
 
   protected:
-    [[nodiscard]] virtual SPConstGeo build_geometry() = 0;
+    [[nodiscard]] virtual SPConstCoreGeo build_geometry() = 0;
     [[nodiscard]] virtual SPConstMaterial build_material() = 0;
     [[nodiscard]] virtual SPConstGeoMaterial build_geomaterial() = 0;
     [[nodiscard]] virtual SPConstParticle build_particle() = 0;
     [[nodiscard]] virtual SPConstCutoff build_cutoff() = 0;
     [[nodiscard]] virtual SPConstPhysics build_physics() = 0;
     [[nodiscard]] virtual SPConstSim build_sim() = 0;
+    [[nodiscard]] virtual SPConstSurface build_surface() = 0;
     [[nodiscard]] virtual SPConstTrackInit build_init() = 0;
     [[nodiscard]] virtual SPConstWentzelOKVI build_wentzel() = 0;
     [[nodiscard]] virtual SPConstAction build_along_step() = 0;
@@ -182,7 +190,7 @@ class GlobalTestBase : public Test
     SPConstCore build_core();
 
   private:
-    SPConstGeo geometry_;
+    SPConstCoreGeo geometry_;
     SPConstMaterial material_;
     SPConstGeoMaterial geomaterial_;
     SPConstParticle particle_;
@@ -193,6 +201,7 @@ class GlobalTestBase : public Test
     SPConstAction along_step_;
     SPConstRng rng_;
     SPConstSim sim_;
+    SPConstSurface surface_;
     SPConstTrackInit init_;
     SPConstWentzelOKVI wentzel_;
     SPConstCore core_;
@@ -226,7 +235,7 @@ class GlobalTestBase : public Test
         return this->NAME##_;                       \
     }
 
-DEF_GTB_ACCESSORS(SPConstGeo, geometry)
+DEF_GTB_ACCESSORS(SPConstCoreGeo, geometry)
 DEF_GTB_ACCESSORS(SPConstMaterial, material)
 DEF_GTB_ACCESSORS(SPConstGeoMaterial, geomaterial)
 DEF_GTB_ACCESSORS(SPConstParticle, particle)
@@ -235,6 +244,7 @@ DEF_GTB_ACCESSORS(SPConstPhysics, physics)
 DEF_GTB_ACCESSORS(SPConstAction, along_step)
 DEF_GTB_ACCESSORS(SPConstRng, rng)
 DEF_GTB_ACCESSORS(SPConstSim, sim)
+DEF_GTB_ACCESSORS(SPConstSurface, surface)
 DEF_GTB_ACCESSORS(SPConstTrackInit, init)
 DEF_GTB_ACCESSORS(SPActionRegistry, action_reg)
 DEF_GTB_ACCESSORS(SPUserRegistry, aux_reg)

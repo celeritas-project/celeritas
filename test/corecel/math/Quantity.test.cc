@@ -267,6 +267,7 @@ TEST(TurnTest, basic)
 
 TEST(TurnTest, math)
 {
+    // Fractional powers of two should yield exact results
     EXPECT_EQ(double(1), sin(make_turn(0.25)));
     EXPECT_EQ(double(-1), cos(make_turn(0.5)));
     {
@@ -293,6 +294,15 @@ TEST(TurnTest, math)
         EXPECT_DOUBLE_EQ(-0.5, ta.value());
         ta = atan2turn(-1.0, 0.0);
         EXPECT_DOUBLE_EQ(-0.25, ta.value());
+    }
+    {
+        auto t = make_turn(1.0 / 6);
+
+        double s, c;
+        sincos(t, &s, &c);
+        EXPECT_DOUBLE_EQ(0.8660254037844386, s);
+        EXPECT_DOUBLE_EQ(0.5, c);
+        EXPECT_DOUBLE_EQ(1.7320508075688767, tan(t));
     }
 }
 

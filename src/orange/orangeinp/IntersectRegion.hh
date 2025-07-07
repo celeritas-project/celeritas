@@ -574,6 +574,44 @@ class InfAziWedge final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
+ * Select a polar (latitudinal) region.
+ *
+ * This uses an equatorial plane and up to two cones to slice a
+ * polar-coordinate region from the origin.  A polar wedge always defines a
+ * region in a single hemisphere: either \f$ z >= 0 \f$ or \f$ z <= 0 \f$,
+ * corresponding to an stop range of [0, .25] turns or [0.25, 0.5] turns.
+ */
+class InfPolarWedge final : public IntersectRegionInterface
+{
+  public:
+    // Construct from a starting angle and stop angle
+    InfPolarWedge(Turn start, Turn stop);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Starting angle
+    Turn start() const { return start_; }
+
+    //! stop angle
+    Turn stop() const { return stop_; }
+
+  private:
+    Turn start_;
+    Turn stop_;
+
+    static constexpr Turn north_pole{0};
+    static constexpr Turn equator{0.25};
+    static constexpr Turn south_pole{0.5};
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * An involute "blade" centered on the origin.
  *
  * This is the intersection of two parallel involutes with a cylindrical shell.

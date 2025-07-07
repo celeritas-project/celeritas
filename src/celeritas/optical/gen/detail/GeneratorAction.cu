@@ -7,6 +7,7 @@
 #include "GeneratorAction.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/sys/KernelLauncher.device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
@@ -16,6 +17,7 @@
 
 #include "GeneratorExecutor.hh"
 #include "OpticalGenAlgorithms.hh"
+#include "UpdateSumExecutor.hh"
 #include "../CherenkovGenerator.hh"
 #include "../CherenkovParams.hh"
 #include "../ScintillationGenerator.hh"
@@ -27,7 +29,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Launch a kernel to generate optical photon initializers.
+ * Launch a kernel to generate optical photons.
  */
 template<GeneratorType G>
 void GeneratorAction<G>::generate(optical::CoreParams const& params,
@@ -37,17 +39,28 @@ void GeneratorAction<G>::generate(optical::CoreParams const& params,
 
     auto& aux_state
         = get<GeneratorState<MemSpace::native>>(*state.aux(), aux_id_);
-    optical::TrackSlotExecutor execute{
-        params.ptr<MemSpace::native>(),
-        state.ptr(),
-        detail::GeneratorExecutor<G>{state.ptr(),
-                                     data_.material->device_ref(),
-                                     data_.shared->device_ref(),
-                                     aux_state.store.ref(),
-                                     aux_state.buffer_size,
-                                     state.counters()}};
-    static optical::ActionLauncher<decltype(execute)> const launch(*this);
-    launch(state, execute);
+    size_type num_gen
+        = min(state.counters().num_vacancies, aux_state.num_pending);
+    {
+        // Generate optical photons in vacant track slots
+        detail::GeneratorExecutor<G> execute{params.ptr<MemSpace::native>(),
+                                             state.ptr(),
+                                             data_.material->device_ref(),
+                                             data_.shared->device_ref(),
+                                             aux_state.store.ref(),
+                                             aux_state.buffer_size,
+                                             state.counters()};
+        static optical::ActionLauncher<decltype(execute)> const launch(*this);
+        launch(num_gen, state.stream_id(), execute);
+    }
+    {
+        // Update the cumulative sum of the number of photons per distribution
+        // according to how many were generated
+        detail::UpdateSumExecutor execute{aux_state.store.ref(), num_gen};
+        static KernelLauncher<decltype(execute)> const launch_kernel(
+            "update-sum");
+        launch_kernel(aux_state.buffer_size, state.stream_id(), execute);
+    }
 }
 
 //---------------------------------------------------------------------------//

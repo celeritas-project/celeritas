@@ -41,7 +41,7 @@ class OrangeParams final : public GeoParamsInterface,
   public:
     //!@{
     //! \name Type aliases
-    using SurfaceMap = LabelIdMultiMap<InternalSurfaceId>;
+    using SurfaceMap = LabelIdMultiMap<ImplSurfaceId>;
     using UniverseMap = LabelIdMultiMap<UniverseId>;
     //!@}
 
@@ -182,9 +182,9 @@ auto OrangeParams::volume_instances() const -> VolInstanceMap const&
  *
  * \todo Implement using \c g4org::Converter
  */
-VolumeId OrangeParams::find_volume(G4LogicalVolume const*) const
+ImplVolumeId OrangeParams::find_volume(G4LogicalVolume const*) const
 {
-    return VolumeId{};
+    return ImplVolumeId{};
 }
 
 //---------------------------------------------------------------------------//

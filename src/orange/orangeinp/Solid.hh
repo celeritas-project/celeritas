@@ -9,6 +9,7 @@
 #include <optional>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 #include "corecel/math/Turn.hh"
 
@@ -72,6 +73,57 @@ class EnclosedAzi
 
 //---------------------------------------------------------------------------//
 /*!
+ * Define the polar trunction of a solid.
+ *
+ * This subtracts up to two infinite cones centered along the z axis from the
+ * origin.
+ *
+ * A start angle of zero corresponding to the \em +z axis. An interior angle of
+ * 0.5 results in no exclusion from the resulting solid.
+ * \code
+  // Truncates a solid to the top hemisphere (no cones, just equatorial plane)
+  EnclosedPolar{Turn{0}, Turn{0.25}};
+  // Truncates a solid to northern latitudes (intersect two cones and a plane)
+  EnclosedPolar{Turn{0.15}, Turn{0.2}};
+  // Truncates a solid to an equatorial region (18 degrees N to 36 S: the union
+  // of two polar wedge cones)
+  EnclosedPolar{Turn{0.2}, Turn{0.35}};
+  \endcode
+ */
+class EnclosedPolar
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using VecPolarWedge = std::vector<InfPolarWedge>;
+    //!@}
+
+  public:
+    //! Default to "all angles"
+    EnclosedPolar() = default;
+
+    // Construct from a starting angle and stop angle
+    EnclosedPolar(Turn start, Turn stop);
+
+    // Construct one or two wedges to union then intersect with the solid
+    VecPolarWedge make_regions() const;
+
+    // Whether the enclosed angle is not a full circle
+    constexpr explicit inline operator bool() const;
+
+    //! Starting angle
+    Turn start() const { return start_; }
+
+    //! stop angle
+    Turn stop() const { return stop_; }
+
+  private:
+    Turn start_{0};
+    Turn stop_{0.5};
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * A hollow shape with an optional start and end angle.
  *
  * Solids are a shape with (optionally) the same *kind* of shape subtracted
@@ -94,6 +146,9 @@ class SolidBase : public ObjectInterface
 
     //! Optional azimuthal angular restriction
     virtual EnclosedAzi const& enclosed_azi() const = 0;
+
+    //! Optional polar angular restriction
+    virtual EnclosedPolar const& enclosed_polar() const = 0;
 
     ~SolidBase() override = default;
 
@@ -140,20 +195,16 @@ class Solid final : public SolidBase
     // Return a solid *or* shape given an optional interior or enclosed angle
     static SPConstObject or_shape(std::string&& label,
                                   T&& interior,
-                                  OptionalRegion&& excluded,
-                                  EnclosedAzi&& enclosed);
+                                  OptionalRegion&& excluded = {},
+                                  EnclosedAzi&& enclosed = {},
+                                  EnclosedPolar&& polar = {});
 
-    // Construct with an excluded interior *and/or* enclosed angle
+    // Construct with everything
     Solid(std::string&& label,
           T&& interior,
           OptionalRegion&& excluded,
-          EnclosedAzi&& enclosed);
-
-    // Construct with only an enclosed angle
-    Solid(std::string&& label, T&& interior, EnclosedAzi&& enclosed);
-
-    // Construct with only an excluded interior
-    Solid(std::string&& label, T&& interior, T&& excluded);
+          EnclosedAzi&& enclosed,
+          EnclosedPolar&& polar);
 
     //! Get the user-provided label
     std::string_view label() const final { return label_; }
@@ -170,11 +221,15 @@ class Solid final : public SolidBase
     //! Optional azimuthal restriction
     EnclosedAzi const& enclosed_azi() const final { return azi_; }
 
+    //! Optional polar restriction
+    EnclosedPolar const& enclosed_polar() const final { return polar_; }
+
   private:
     std::string label_;
     T interior_;
     OptionalRegion exclusion_;
     EnclosedAzi azi_;
+    EnclosedPolar polar_;
 };
 
 //---------------------------------------------------------------------------//
@@ -216,6 +271,15 @@ extern template class Solid<Sphere>;
 constexpr EnclosedAzi::operator bool() const
 {
     return !(start_ == Turn{0} && stop_ == Turn{1});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the enclosed angle is less than the whole polar range.
+ */
+constexpr EnclosedPolar::operator bool() const
+{
+    return !(start_ == Turn{0} && stop_ == Turn{0.5});
 }
 
 //---------------------------------------------------------------------------//

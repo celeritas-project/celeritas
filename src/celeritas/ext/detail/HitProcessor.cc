@@ -91,7 +91,7 @@ get_step_status(DetectorStepOutput const& out, size_type step_index)
  * Construct local navigator and step data.
  */
 HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
-                           SPConstGeo const& geo,
+                           SPConstCoreGeo const& geo,
                            VecParticle const& particles,
                            StepSelection const& selection,
                            StepPointBool const& locate_touchable)
@@ -181,7 +181,7 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
         p->SetLocalTime(std::numeric_limits<double>::infinity());
         // Time in rest frame since track was created
         p->SetProperTime(std::numeric_limits<double>::infinity());
-        // Speed
+        // Speed (TODO: use ParticleView)
         p->SetVelocity(std::numeric_limits<double>::infinity());
         // Safety distance
         p->SetSafety(std::numeric_limits<double>::infinity());
@@ -193,10 +193,13 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     for (G4ParticleDefinition const* pd : particles)
     {
         CELER_ASSERT(pd);
-        tracks_.emplace_back(new G4Track(
-            new G4DynamicParticle(pd, G4ThreeVector()), 0.0, G4ThreeVector()));
-        tracks_.back()->SetTrackID(-1);
-        tracks_.back()->SetParentID(-1);
+        auto track = std::make_unique<G4Track>(
+            new G4DynamicParticle(pd, G4ThreeVector()), 0.0, G4ThreeVector());
+        track->SetTrackID(0);
+        track->SetParentID(0);
+        track->SetStep(step_.get());
+
+        tracks_.emplace_back(std::move(track));
     }
 
     // Convert logical volumes (global) to sensitive detectors (thread local)
@@ -410,6 +413,9 @@ void HitProcessor::update_track(DetectorStepOutput const& out, size_type i) cons
     G4Track& track = *tracks_[id.unchecked_get()];
     step_->SetTrack(&track);
 
+    // Copy data from step to track
+    track.SetStepLength(step_->GetStepLength());
+
     G4ParticleDefinition const& pd = *track.GetParticleDefinition();
 
     if (!out.primary_id.empty())
@@ -431,6 +437,13 @@ void HitProcessor::update_track(DetectorStepOutput const& out, size_type i) cons
         p->SetMass(pd.GetPDGMass());
         p->SetCharge(pd.GetPDGCharge());
     }
+
+    if (G4StepPoint* pre_step = step_points_[StepPoint::pre])
+    {
+        // Copy data from post-step to track
+        track.SetTouchableHandle(pre_step->GetTouchableHandle());
+    }
+
     if (G4StepPoint* post_step = step_points_[StepPoint::post])
     {
         // Copy data from post-step to track
@@ -439,6 +452,9 @@ void HitProcessor::update_track(DetectorStepOutput const& out, size_type i) cons
         track.SetKineticEnergy(post_step->GetKineticEnergy());
         track.SetMomentumDirection(post_step->GetMomentumDirection());
         track.SetWeight(post_step->GetWeight());
+
+        track.SetNextTouchableHandle(post_step->GetTouchableHandle());
+        track.SetVelocity(post_step->GetVelocity());
     }
 }
 

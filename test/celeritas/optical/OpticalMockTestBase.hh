@@ -45,7 +45,7 @@ class OpticalMockTestBase : public GlobalTestBase
 
     //!@{
     //! \name Unsupported params builders
-    SPConstGeo build_geometry() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstCoreGeo build_geometry() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstGeoMaterial build_geomaterial() override
     {
         CELER_ASSERT_UNREACHABLE();
@@ -54,6 +54,7 @@ class OpticalMockTestBase : public GlobalTestBase
     SPConstCutoff build_cutoff() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstPhysics build_physics() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstSim build_sim() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstSurface build_surface() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstTrackInit build_init() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstWentzelOKVI build_wentzel() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstAction build_along_step() override { CELER_ASSERT_UNREACHABLE(); }

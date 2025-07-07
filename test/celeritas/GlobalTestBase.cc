@@ -125,6 +125,7 @@ auto GlobalTestBase::build_core() -> SPConstCore
     inp.physics = this->physics();
     inp.rng = this->rng();
     inp.sim = this->sim();
+    inp.surface = this->surface();
     inp.init = this->init();
     inp.wentzel = this->wentzel();
     inp.action_reg = this->action_reg();

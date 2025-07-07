@@ -8,7 +8,7 @@
 
 #include "corecel/StringSimplifier.hh"
 #include "geocel/GeoParamsOutput.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 
 #include "HeuristicGeoTestBase.hh"
 #include "TestMacros.hh"
