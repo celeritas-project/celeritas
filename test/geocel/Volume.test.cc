@@ -53,7 +53,7 @@ TEST_F(VolumeTest, single_volume)
 
     EXPECT_FALSE(params.empty());
     EXPECT_EQ(1, params.num_volumes());
-    EXPECT_EQ(1, params.num_volume_instances());
+    EXPECT_EQ(0, params.num_volume_instances());
     EXPECT_EQ(1, params.volume_labels().size());
     EXPECT_EQ(0, params.volume_instance_labels().size());
 
