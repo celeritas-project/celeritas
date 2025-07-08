@@ -95,6 +95,8 @@ class SimTrackView
 
     // Limiting step
     inline CELER_FUNCTION real_type step_length() const;
+    // weight
+    inline CELER_FUNCTION real_type weight() const;
 
     // Update limiting step
     inline CELER_FUNCTION void step_length(real_type length);
@@ -151,6 +153,7 @@ CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer_t const& other)
     states_.parent_ids[track_slot_] = other.parent_id;
     states_.event_ids[track_slot_] = other.event_id;
     states_.num_steps[track_slot_] = 0;
+    states_.weight[track_slot_] = other.weight;
     if (!states_.num_looping_steps.empty())
     {
         states_.num_looping_steps[track_slot_] = 0;
@@ -391,6 +394,15 @@ CELER_FORCEINLINE_FUNCTION real_type SimTrackView::step_length() const
 {
     return states_.step_length[track_slot_];
 }
+//---------------------------------------------------------------------------//
+/*!
+ * Get the weight.
+ */
+CELER_FORCEINLINE_FUNCTION real_type SimTrackView::weight() const
+{
+    return states_.weight[track_slot_];
+}
+
 
 //---------------------------------------------------------------------------//
 /*!
