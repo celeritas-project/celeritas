@@ -4,8 +4,7 @@
   "configurePresets": [
     {
       "name": "default",
-      "displayName": "Automatic options",
-      "description": "Dependencies are enabled based on environment probing",
+      "displayName": "Dependencies enabled by probing environment",
       "binaryDir": "${sourceDir}/build-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
@@ -16,13 +15,12 @@
     },
     {
       "name": "full",
-      "displayName": "Full",
-      "description": "All external dependencies are expected",
-      "binaryDir": "${sourceDir}/build",
+      "displayName": "All external dependencies expected",
       "inherits": "default",
       "cacheVariables": {
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "ON"},
@@ -33,10 +31,9 @@
     },
     {
       "name": "minimal",
-      "displayName": "Minimal",
-      "description": "Smallest capabilities for useful development",
+      "displayName": "Smallest capabilities for useful development",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build-${presetName}",
+      "inherits": "default",
       "cacheVariables": {
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "OFF"},
@@ -46,8 +43,7 @@
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-${presetName}"
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
       }
     },
     {
@@ -110,14 +106,37 @@
       "description": "Enable debug mode",
       "cacheVariables": {
         "BUILD_SHARED_LIBS":{"type": "BOOL", "value": "ON"},
-        "CELERITAS_DEBUG":      {"type": "BOOL",   "value": "ON"},
-        "CMAKE_BUILD_TYPE":     {"type": "STRING", "value": "Debug"}
+        "CELERITAS_DEBUG":  {"type": "BOOL",   "value": "ON"},
+        "CMAKE_BUILD_TYPE": {"type": "STRING", "value": "Debug"}
+      }
+    },
+    {
+      "name": ".dev",
+      "hidden": true,
+      "description": "Build for standard development",
+      "inherits": [".debug"],
+      "cacheVariables": {
+        "CELERITAS_USE_MPI": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "OFF"}
       }
     },
     {
       "name": ".spack-base",
-      "description": "Setup for using spack environment",
+      "description": "Setup for using Spack, possibly in a local env",
       "hidden": true,
+      "cacheVariables": {
+        "CELERITAS_BUILTIN_CLI11": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_G4VG": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_GTest": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_covfie": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_nlohmann_json": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": ".spack-env",
+      "description": "Setup for using a Spack environment named 'celeritas'",
+      "hidden": true,
+      "inherits": [".spack-base"],
       "environment": {
         "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view"
       },
