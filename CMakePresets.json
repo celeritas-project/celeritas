@@ -38,15 +38,6 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build-${presetName}",
       "cacheVariables": {
-        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-${presetName}"
       }
     },
@@ -112,6 +103,22 @@
         "BUILD_SHARED_LIBS":{"type": "BOOL", "value": "ON"},
         "CELERITAS_DEBUG":      {"type": "BOOL",   "value": "ON"},
         "CMAKE_BUILD_TYPE":     {"type": "STRING", "value": "Debug"}
+      }
+    },
+    {
+      "name": ".minimal",
+      "hidden": true,
+      "description": "Base options for disabling everything",
+      "cacheVariables": {
+        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
       }
     },
     {
