@@ -5,7 +5,7 @@
     {
       "name": ".base",
       "hidden": true,
-      "inherits": [".spack-base", ".cuda-volta", "full"],
+      "inherits": [".spack-env", ".cuda-volta", "full"],
       "binaryDir": "${sourceDir}/build-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
