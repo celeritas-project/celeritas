@@ -16,21 +16,18 @@ log() {
 
 check_ccache_usage() {
     # Check if ccache is full and warn user
-    if ccache --print-stats >/dev/null 2>&1; then
-        cache_stats=$(ccache --print-stats)
-        current_kb=$(echo "$cache_stats" | grep "^cache_size_kibibyte" | cut -f2)
-        max_kb=$(echo "$cache_stats" | grep "^max_cache_size_kibibyte" | cut -f2)
+    cache_stats=$(ccache --print-stats)
+    current_kb=$(echo "$cache_stats" | grep "^cache_size_kibibyte" | cut -f2)
+    max_kb=$(echo "$cache_stats" | grep "^max_cache_size_kibibyte" | cut -f2)
 
-        if [ -n "$current_kb" ] && [ -n "$max_kb" ] && [ "$max_kb" -gt 0 ] 2>/dev/null; then
-            # Calculate percentage: current * 100 / max
-            usage_percent=$((current_kb * 100 / max_kb))
+    if [ -n "$current_kb" ] && [ -n "$max_kb" ] && [ "$max_kb" -gt 0 ] 2>/dev/null; then
+        usage_percent=$((current_kb * 100 / max_kb))
 
-            if [ "$usage_percent" -gt 40 ] 2>/dev/null; then
-                # Convert to human-readable sizes (GiB)
-                current_gb=$((current_kb / 1024 / 1024))
-                max_gb=$((max_kb / 1024 / 1024))
-                log warning "ccache is ${usage_percent}% full (${current_gb}/${max_gb} GiB). Consider increasing cache size with 'ccache -M <size>G'"
-            fi
+        if [ "$usage_percent" -gt 90 ] 2>/dev/null; then
+            # Convert to human-readable sizes (GiB)
+            current_gb=$((current_kb / 1024 / 1024))
+            max_gb=$((max_kb / 1024 / 1024))
+            log warning "ccache is ${usage_percent}% full (${current_gb}/${max_gb} GiB). Consider increasing cache size with 'ccache -M <size>G'"
         fi
     fi
 }
@@ -73,7 +70,7 @@ if [ -f "${_ENV_SCRIPT}" ]; then
   . "${_ENV_SCRIPT}"
 fi
 
-# Setup ccache with usage warning
+# Setup ccache
 setup_ccache
 
 # Check arguments and give presets
