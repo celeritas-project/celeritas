@@ -34,6 +34,7 @@ struct CoreScalars
 {
     // TODO: maybe replace with a surface crossing manager to handle boundary
     // conditions (see CoreParams.cc)
+    ActionId init_boundary_action;
     ActionId boundary_action;
     ActionId tracking_cut_action;
 
@@ -42,7 +43,7 @@ struct CoreScalars
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return boundary_action && max_streams > 0;
+        return init_boundary_action && boundary_action && max_streams > 0;
     }
 };
 

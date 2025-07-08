@@ -57,6 +57,14 @@ SurfacePhysicsParams::SurfacePhysicsParams(Input input)
         action_reg.insert(init_boundary_action_);
     }
 
+    // Boundary action
+    {
+        boundary_action_
+            = std::make_shared<BoundaryAction>(action_reg.next_id());
+        CELER_ASSERT(boundary_action_);
+        action_reg.insert(boundary_action_);
+    }
+
     // Register roughness actions
     roughness_models_ = build_models<SurfaceRoughnessModel>(
         input.roughness_model_builders, *input.action_registry);

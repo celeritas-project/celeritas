@@ -18,6 +18,9 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Construct the boundary crossing initialization action from an action ID.
+ */
 InitBoundaryAction::InitBoundaryAction(ActionId aid)
     : ConcreteAction(aid,
                      "optical-boundary-init",
@@ -25,16 +28,24 @@ InitBoundaryAction::InitBoundaryAction(ActionId aid)
 {
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Execute the model on the host.
+ */
 void InitBoundaryAction::step(CoreParams const& params,
                               CoreStateHost& state) const
 {
-    auto execute = make_action_thread_executor(params.ptr<MemSpace::native>(),
-                                               state.ptr(),
-                                               this->action_id(),
-                                               InitBoundaryExecutor{});
-    return launch_action(state, execute);
+    launch_action(state,
+                  make_action_thread_executor(params.ptr<MemSpace::native>(),
+                                              state.ptr(),
+                                              this->action_id(),
+                                              InitBoundaryExecutor{}));
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Execute the model on the device.
+ */
 #if !CELER_USE_DEVICE
 void InitBoundaryAction::step(CoreParams const&, CoreStateDevice&) const
 {

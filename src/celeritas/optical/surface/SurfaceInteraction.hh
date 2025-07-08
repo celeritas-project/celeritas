@@ -15,6 +15,11 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Store results from a boundary crossing interaction step.
+ *
+ * The \c Action enum determines whether the photon has been absorbed on the
+ * surface, if it has crossed the boundary, or has remained in the initial
+ * boundary.
  */
 struct SurfaceInteraction
 {

@@ -13,25 +13,10 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
-/*!
- * Predicate on whether the track is undergoing a boundary interaction.
- */
-template<class F>
-struct IsBoundaryAction
-{
-    ActionId action;
-    F const& select_boundary_action;
-
-    inline CELER_FUNCTION bool operator()(CoreTrackView const& c) const
-    {
-        return false && action == select_boundary_action(c);
-    }
-};
-
-//---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
+ * Make a track slot executor for roughness models during a boundary crossing.
  */
 template<class T>
 inline CELER_FUNCTION decltype(auto)
@@ -44,13 +29,18 @@ make_boundary_roughness_executor(CoreParamsPtr<MemSpace::native> params,
     return ConditionalTrackSlotExecutor{
         params,
         state,
-        IsBoundaryAction{action,
-                         [](CoreTrackView const& c) {
-                             return c.surface().roughness_action_id();
-                         }},
+        [action](CoreTrackView const& c) {
+            return c.is_crossing_boundary()
+                   && action == c.surface().roughness_action_id();
+        },
         celeritas::forward<T>(apply_track)};
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Make a track slot executor for reflectivity models during a boundary
+ * crossing.
+ */
 template<class T>
 inline CELER_FUNCTION decltype(auto)
 make_boundary_reflectivity_executor(CoreParamsPtr<MemSpace::native> params,
@@ -62,13 +52,18 @@ make_boundary_reflectivity_executor(CoreParamsPtr<MemSpace::native> params,
     return ConditionalTrackSlotExecutor{
         params,
         state,
-        IsBoundaryAction{action,
-                         [](CoreTrackView const& c) {
-                             return c.surface().reflectivity_action_id();
-                         }},
+        [action](CoreTrackView const& c) {
+            return c.is_crossing_boundary()
+                   && action == c.surface().reflectivity_action_id();
+        },
         celeritas::forward<T>(apply_track)};
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Make a track slot executor for interaction models during a boundary
+ * crossing.
+ */
 template<class T>
 inline CELER_FUNCTION decltype(auto)
 make_boundary_interaction_executor(CoreParamsPtr<MemSpace::native> params,
@@ -80,10 +75,10 @@ make_boundary_interaction_executor(CoreParamsPtr<MemSpace::native> params,
     return ConditionalTrackSlotExecutor{
         params,
         state,
-        IsBoundaryAction{action,
-                         [](CoreTrackView const& c) {
-                             return c.surface().interaction_action_id();
-                         }},
+        [action](CoreTrackView const& c) {
+            return c.is_crossing_boundary()
+                   && action == c.surface().interaction_action_id();
+        },
         celeritas::forward<T>(apply_track)};
 }
 

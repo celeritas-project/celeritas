@@ -162,27 +162,27 @@ TEST_F(SurfaceTest, surface_physics_params)
     }
 
     static std::string_view expected_names[] = {
-        "mock-surface-1",
         "mock-surface-2",
         "mock-surface-3",
         "mock-surface-4",
         "mock-surface-5",
         "mock-surface-6",
+        "mock-surface-7",
     };
     EXPECT_VEC_EQ(expected_names, model_names);
 
     static std::string_view expected_descs[] = {
-        "mock-surface-description-1",
         "mock-surface-description-2",
         "mock-surface-description-3",
         "mock-surface-description-4",
         "mock-surface-description-5",
         "mock-surface-description-6",
+        "mock-surface-description-7",
     };
     EXPECT_VEC_EQ(expected_descs, model_descs);
 
     EXPECT_EQ(6, action_ids.size());
-    for (auto action_id : range(ActionId{1}, ActionId{7}))
+    for (auto action_id : range(ActionId{2}, ActionId{8}))
     {
         EXPECT_EQ(1, action_ids.count(action_id));
     }
@@ -204,13 +204,13 @@ TEST_F(SurfaceTest, surface_physics_params)
         interaction_models.push_back(surfaces[sid].interaction_model.get());
     }
 
-    static unsigned int expected_roughness_models[] = {1, 3, 2, 2, 3};
+    static unsigned int expected_roughness_models[] = {2, 4, 3, 3, 4};
     EXPECT_VEC_EQ(expected_roughness_models, roughness_models);
 
-    static unsigned int expected_reflectivity_models[] = {4, 4, 4, 4, 4};
+    static unsigned int expected_reflectivity_models[] = {5, 5, 5, 5, 5};
     EXPECT_VEC_EQ(expected_reflectivity_models, reflectivity_models);
 
-    static unsigned int expected_interaction_models[] = {5, 6, 6, 5, 5};
+    static unsigned int expected_interaction_models[] = {6, 7, 7, 6, 6};
     EXPECT_VEC_EQ(expected_interaction_models, interaction_models);
 }
 
@@ -264,15 +264,15 @@ TEST_F(SurfaceTest, init_surface_physics_view)
     EXPECT_VEC_EQ(expected_surface_normals, surface_normals);
 
     static unsigned int expected_roughness_ids[]
-        = {2, 1, 3, 3, 3, 2, 2, 3, 1, 2};
+        = {3, 2, 4, 4, 4, 3, 3, 4, 2, 3};
     EXPECT_VEC_EQ(expected_roughness_ids, roughness_models);
 
     static unsigned int expected_reflectivity_ids[]
-        = {4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
+        = {5, 5, 5, 5, 5, 5, 5, 5, 5, 5};
     EXPECT_VEC_EQ(expected_reflectivity_ids, reflectivity_models);
 
     static unsigned int expected_interaction_ids[]
-        = {5, 5, 5, 6, 6, 6, 5, 5, 5, 6};
+        = {6, 6, 6, 7, 7, 7, 6, 6, 6, 7};
     EXPECT_VEC_EQ(expected_interaction_ids, interaction_models);
 }
 

@@ -21,9 +21,17 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Initialize a track for crossing a boundary that has surface physics enabled.
+ *
+ * The track is expected to be on a boundary in the pre-crossing volume, and is
+ * then crosses the boundary to get the post-crossing volume. If a surface
+ * exists between these volumes then the surface ID and normal are filled in
+ * the track's surface state data. Otherwise the track is killed at the
+ * surface.
  */
 struct InitBoundaryExecutor
 {
+    // Initialize track for boundary crossing
     inline CELER_FUNCTION void operator()(CoreTrackView& track) const;
 };
 
@@ -31,12 +39,13 @@ struct InitBoundaryExecutor
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
+ * Initialize the track for boundary crossing.
  */
 CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
 {
     CELER_EXPECT([track] {
         auto sim = track.sim();
-        return sim.post_step_action() == track.boundary_action()
+        return sim.post_step_action() == track.init_boundary_action()
                && sim.status() == TrackStatus::alive;
     }());
 

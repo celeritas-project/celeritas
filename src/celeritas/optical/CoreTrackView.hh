@@ -79,7 +79,10 @@ class CoreTrackView
     inline CELER_FUNCTION TrackSlotId track_slot_id() const;
 
     // Action ID for encountering a geometry boundary
-    inline CELER_FUNCTION ActionId boundary_action() const;
+    inline CELER_FUNCTION ActionId init_boundary_action() const;
+
+    // Whether the track is currently undergoing boundary crossing physics
+    inline CELER_FUNCTION bool is_crossing_boundary() const;
 
     // Flag a track for deletion
     inline CELER_FUNCTION void apply_errored();
@@ -248,9 +251,18 @@ CELER_FORCEINLINE_FUNCTION TrackSlotId CoreTrackView::track_slot_id() const
 /*!
  * Get the action ID for encountering a geometry boundary.
  */
-CELER_FUNCTION ActionId CoreTrackView::boundary_action() const
+CELER_FUNCTION ActionId CoreTrackView::init_boundary_action() const
 {
-    return params_.scalars.boundary_action;
+    return params_.scalars.init_boundary_action;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the track is currently undergoing boundary crossing physics.
+ */
+CELER_FUNCTION bool CoreTrackView::is_crossing_boundary() const
+{
+    return this->sim().post_step_action() == params_.scalars.boundary_action;
 }
 
 //---------------------------------------------------------------------------//

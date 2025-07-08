@@ -11,6 +11,7 @@
 #include "celeritas/optical/Types.hh"
 #include "celeritas/optical/action/ActionInterface.hh"
 
+#include "BoundaryAction.hh"
 #include "InitBoundaryAction.hh"
 #include "SurfaceModel.hh"
 #include "SurfacePhysicsData.hh"
@@ -78,6 +79,12 @@ class SurfacePhysicsParams final
         return this->init_boundary_action_->action_id();
     }
 
+    //! Action ID for boundary crossing physics
+    ActionId boundary_action() const
+    {
+        return this->boundary_action_->action_id();
+    }
+
     VecRoughnessModels const& roughness_models() const
     {
         return roughness_models_;
@@ -98,6 +105,7 @@ class SurfacePhysicsParams final
     VecInteractionModels interaction_models_;
 
     std::shared_ptr<InitBoundaryAction> init_boundary_action_;
+    std::shared_ptr<BoundaryAction> boundary_action_;
 
     // Host/device storage
     CollectionMirror<SurfacePhysicsParamsData> data_;

@@ -34,6 +34,15 @@ struct AlongStepExecutor
 //---------------------------------------------------------------------------//
 CELER_FUNCTION void AlongStepExecutor::operator()(CoreTrackView& track)
 {
+    if (track.is_crossing_boundary())
+    {
+        // If the track is crossing a boundary, don't update it's movement
+        //! \todo should there be a separate step counter for boundary
+        //! crossing?
+        track.sim().increment_num_steps();
+        return;
+    }
+
     auto sim = track.sim();
 
     CELER_ASSERT(sim.status() == TrackStatus::alive);
