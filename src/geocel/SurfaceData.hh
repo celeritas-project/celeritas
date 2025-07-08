@@ -94,7 +94,7 @@ struct SurfaceParamsData
     //! True if data is consistent
     explicit CELER_FUNCTION operator bool() const
     {
-        return (num_surfaces > 0 == !volume_surfaces.empty())
+        return ((num_surfaces > 0) == !volume_surfaces.empty())
                && (volume_instance_ids.empty() == surface_ids.empty());
     }
 
