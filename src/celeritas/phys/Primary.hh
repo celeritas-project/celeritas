@@ -29,5 +29,6 @@ struct Primary
     EventId event_id;
     real_type weight{1.0};
 };
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
