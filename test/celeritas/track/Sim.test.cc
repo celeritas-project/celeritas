@@ -157,7 +157,3 @@ TEST_F(SimTest, weight){
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
-/* 
-then pull it back into geant4*
-traclomtotest/cc - testinmg the mechanics od time, antoher tests to have weight, trackin/
-*/

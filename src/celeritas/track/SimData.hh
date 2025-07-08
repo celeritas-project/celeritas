@@ -146,7 +146,7 @@ struct SimStateData
     Items<ActionId> post_step_action;
     Items<ActionId> along_step_action;
     Items<real_type> weight;
- //   Items<real_type> weight;
+ 
     //// METHODS ////
 
     //! Check whether the interface is assigned
@@ -211,7 +211,6 @@ void resize(SimStateData<Ownership::value, M>* data,
     resize(&data->step_length, size);
     resize(&data->post_step_action, size);
     resize(&data->along_step_action, size);
-    
     resize(&data->weight, size); 
     
     CELER_ENSURE(*data);

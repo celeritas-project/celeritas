@@ -270,7 +270,7 @@ void LocalTransporter::Push(G4Track const& g4track)
     track.position = convert_from_geant(g4track.GetPosition(), clhep_length);
     track.direction = convert_from_geant(g4track.GetMomentumDirection(), 1);
     track.time = convert_from_geant(g4track.GetGlobalTime(), clhep_time);
-
+    track.weight = g4track.GetWeight();
     if (CELER_UNLIKELY(g4track.GetWeight() != 1.0))
     {
         //! \todo Non-unit weights: see issue #1268
