@@ -1,18 +1,17 @@
 #!/bin/sh -e
 
-function log() {
-    local level=$1
-    local message=$2
-    local color=""
+log() {
+    level=$1
+    message=$2
 
     case "$level" in
-        "info") color="\e[32;40m"; level="INFO" ;;
-        "warning") color="\e[33;40m"; level="WARNING" ;;
-        "error") color="\e[31;40m"; level="ERROR" ;;
-        *) color="\e[2;37;40m" ;;
+        "info") color="32;40"; level="INFO" ;;
+        "warning") color="33;40"; level="WARNING" ;;
+        "error") color="31;40"; level="ERROR" ;;
+        *) color="2;37;40" ;;
     esac
 
-    printf "${color}%s:\e[0m %s\n" "$level" "$message" >&2
+    printf "\033[${color}m%s:\033[0m %s\n" "$level" "$message" >&2
 }
 
 cd "$(dirname $0)"/..
