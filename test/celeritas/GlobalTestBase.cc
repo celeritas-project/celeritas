@@ -24,7 +24,7 @@
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/global/CoreParams.hh"
-#include "celeritas/setup/Problem.hh"
+#include "celeritas/setup/Model.hh"
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/StatusChecker.hh"
 
@@ -133,6 +133,24 @@ auto GlobalTestBase::build_core() -> SPConstCore
     inp.action_reg = this->action_reg();
     inp.output_reg = this->output_reg();
     inp.aux_reg = this->aux_reg();
+
+    {
+        // Build "under the hood" parameters
+        auto const& model_geo = [&inp]() -> GeoParamsInterface const& {
+            if (auto* ggeo = celeritas::geant_geo())
+            {
+                // Load geometry, surfaces, regions from Geant4 world pointer
+                return *ggeo;
+            }
+            // Load from the native geometry (e.g. ORANGE internal testing)
+            CELER_ASSERT(inp.geometry);
+            return *inp.geometry;
+        }();
+        auto loaded = setup::model(model_geo.make_model_input());
+        inp.volume = loaded.volume;
+        inp.surface = loaded.surface;
+    }
+
     CELER_ASSERT(inp);
 
     // Build along-step action to add to the stepping loop
