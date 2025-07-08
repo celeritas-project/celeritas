@@ -145,10 +145,10 @@ TEST_F(SimTest, weight){
     init.event_id = EventId{0};
     init.time = 0.0;
    
-    sim = init;
-   
-    real_type expected_weight = 0.3; 
+    
+    real_type expected_weight = 0.5; 
     init.weight = expected_weight;
+    sim = init;
 
     // Check if weight was correctly stored
     EXPECT_EQ(expected_weight, sim.weight());
@@ -157,36 +157,7 @@ TEST_F(SimTest, weight){
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
-/*test_d 
-sim track vwiwe, 
-sim track intialiser
-so,tracl intiailiser
-init.weigfhr = 0.1 
-sim = initi
-experct real_ eq (0.1, weioght()) 
-later can 
-test_f (simtesst, weight){
-simtrackview sim()}
-
-
-TEST_F(SimTest, weight)
-{
-    SimTrackView sim(this->sim()->host_ref(), sim_state_.ref(), TrackSlotId{0});
-
-    // Initialize the track with custom weight
-    SimTrackInitializer init;
-    init.track_id = TrackId{0};
-    init.parent_id = TrackId{};
-    init.event_id = EventId{0};
-    init.time = 0.0;
-
-    sim = init;
-    real_type expected_weight = 0.1234;
-    sim.set_weight(expected_weight);
-
-    // Check if weight was correctly stored
-    EXPECT_EQ(expected_weight, sim.weight());
-}
+/* 
 then pull it back into geant4*
 traclomtotest/cc - testinmg the mechanics od time, antoher tests to have weight, trackin/
 */

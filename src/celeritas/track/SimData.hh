@@ -105,7 +105,7 @@ struct SimTrackInitializer
     TrackId parent_id;  //!< ID of parent that created it
     EventId event_id;  //!< ID of originating event
     real_type time{0};  //!< Time elapsed in lab frame since start of event
-    real_type weight{0.3};
+    real_type weight{1.0};
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
@@ -213,8 +213,7 @@ void resize(SimStateData<Ownership::value, M>* data,
     resize(&data->along_step_action, size);
     
     resize(&data->weight, size); 
-    fill(0.3, &data->weight); 
-
+    
     CELER_ENSURE(*data);
 }
 

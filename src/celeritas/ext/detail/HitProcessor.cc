@@ -326,8 +326,11 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
          * \todo Celeritas currently ignores incoming particle weight and
          * does not perform any variance reduction. See issue #1268.
          */
-        g4sp->SetWeight(1.0);
-
+        //g4sp->SetWeight(1.0);
+        if (!out.weight.empty())
+        {
+            g4sp->SetWeight(out.weight[i]); 
+        }
         G4LogicalVolume const* point_lv = [&]() -> G4LogicalVolume const* {
             if (sp == StepPoint::pre)
                 return lv;
