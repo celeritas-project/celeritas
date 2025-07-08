@@ -114,6 +114,8 @@ list(APPEND SOURCES
   optical/detail/OpticalLaunchAction.cc
   phys/CutoffParams.cc
   phys/detail/EnergyMaxXsCalculator.cc
+  phys/GeneratorInterface.cc
+  phys/GeneratorRegistry.cc
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc
   phys/ParticleParams.cc

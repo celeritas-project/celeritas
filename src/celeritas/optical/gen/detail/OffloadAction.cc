@@ -90,7 +90,7 @@ void OffloadAction<G>::step_impl(CoreParams const& core_params,
 {
     auto& gen_state = get<GeneratorState<M>>(core_state.aux(), data_.gen_id);
     auto& buffer = gen_state.store.ref().distributions;
-    auto& buffer_size = gen_state.buffer_size;
+    auto& buffer_size = gen_state.counters.buffer_size;
 
     CELER_VALIDATE(buffer_size + core_state.size() <= buffer.size(),
                    << "insufficient capacity (" << buffer.size()
@@ -131,7 +131,7 @@ void OffloadAction<G>::offload(CoreParams const& core_params,
                                    data_.shared->host_ref(),
                                    gen_state.store.ref(),
                                    step,
-                                   gen_state.buffer_size}};
+                                   gen_state.counters.buffer_size}};
     launch_action(*this, core_params, core_state, execute);
 }
 

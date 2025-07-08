@@ -10,7 +10,9 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/data/AuxInterface.hh"
+#include "corecel/data/AuxStateVec.hh"
 #include "celeritas/optical/action/ActionInterface.hh"
+#include "celeritas/phys/GeneratorInterface.hh"
 
 #include "GeneratorTraits.hh"
 #include "../GeneratorData.hh"
@@ -37,7 +39,8 @@ namespace detail
  */
 template<GeneratorType G>
 class GeneratorAction final : public optical::OpticalStepActionInterface,
-                              public AuxParamsInterface
+                              public AuxParamsInterface,
+                              public GeneratorInterface
 {
   public:
     //!@{
@@ -71,7 +74,7 @@ class GeneratorAction final : public optical::OpticalStepActionInterface,
                     Input&&);
 
     // Construct with action ID, data IDs, and optical properties
-    GeneratorAction(ActionId, AuxId, Input&&);
+    GeneratorAction(ActionId, AuxId, GeneratorId, Input&&);
 
     //!@{
     //! \name Aux interface
@@ -104,11 +107,23 @@ class GeneratorAction final : public optical::OpticalStepActionInterface,
     void step(optical::CoreParams const&, CoreStateDevice&) const final;
     //!@}
 
+    //!@{
+    //! \name Generator interface
+
+    //! ID of the generator
+    GeneratorId generator_id() const final { return gen_id_; }
+    // Get generator counters (mutable)
+    GeneratorStateBase& counters(AuxStateVec&) const final;
+    // Get generator counters
+    GeneratorStateBase const& counters(AuxStateVec const&) const final;
+    //!@}
+
   private:
     //// DATA ////
 
     ActionId action_id_;
     AuxId aux_id_;
+    GeneratorId gen_id_;
     Input data_;
 
     //// HELPER FUNCTIONS ////
