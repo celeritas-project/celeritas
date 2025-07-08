@@ -71,7 +71,7 @@ class OrangeParams final : public GeoParamsInterface,
     inline size_type max_depth() const final;
 
     // Create model parameters corresponding to our internal representation
-    inline inp::Model make_model_input() const final;
+    inp::Model make_model_input() const final;
 
     //// LABELS AND MAPPING ////
 
@@ -129,15 +129,6 @@ extern template class ParamsDataInterface<OrangeParamsData>;
 size_type OrangeParams::max_depth() const
 {
     return this->host_ref().scalars.max_depth;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Create model parameters corresponding to our internal representation.
- */
-inp::Model OrangeParams::make_model_input() const
-{
-    CELER_NOT_IMPLEMENTED("model input from ORANGE");
 }
 
 //---------------------------------------------------------------------------//
