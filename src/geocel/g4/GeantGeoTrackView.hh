@@ -85,12 +85,6 @@ class GeantGeoTrackView
     // Get the volume instance ID for all levels
     inline void volume_instance_id(Span<VolumeInstanceId> levels) const;
 
-    //!@{
-    //! Geant4 states are never "on" a surface
-    InternalSurfaceId internal_surface_id() const { return {}; }
-    InternalSurfaceId next_internal_surface_id() const { return {}; }
-    //!@}
-
     // Whether the track is outside the valid geometry region
     inline bool is_outside() const;
     // Whether the track is exactly on a surface

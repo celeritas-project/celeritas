@@ -11,17 +11,14 @@
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "geocel/SurfaceParams.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/track/SimParams.hh"
-#include "celeritas/track/TrackInitParams.hh"
 
 #include "CoreState.hh"
 #include "MaterialParams.hh"
 #include "PhysicsParams.hh"
-#include "TrackInitParams.hh"
 #include "action/AlongStepAction.hh"
-#include "action/InitializeTracksAction.hh"
 #include "action/LocateVacanciesAction.hh"
 #include "action/PreStepAction.hh"
 #include "action/TrackingCutAction.hh"
@@ -52,7 +49,6 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.surface = get_ref<M>(*p.surface);
     ref.rng = get_ref<M>(*p.rng);
     ref.surface_physics = get_ref<M>(*p.surface_physics);
-    ref.init = get_ref<M>(*p.init);
 
     CELER_ENSURE(ref);
     return ref;
@@ -67,10 +63,6 @@ CoreScalars build_actions(ActionRegistry* reg)
     using std::make_shared;
 
     CoreScalars scalars;
-
-    //// START ACTIONS ////
-
-    reg->insert(make_shared<InitializeTracksAction>(reg->next_id()));
 
     //// PRE-STEP ACTIONS ////
 
@@ -90,8 +82,6 @@ CoreScalars build_actions(ActionRegistry* reg)
     //// END ACTIONS ////
 
     reg->insert(make_shared<LocateVacanciesAction>(reg->next_id()));
-
-    // TODO: extend from secondaries action
 
     return scalars;
 }
@@ -114,7 +104,6 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CP_VALIDATE_INPUT(rng);
     CP_VALIDATE_INPUT(surface);
     CP_VALIDATE_INPUT(surface_physics);
-    CP_VALIDATE_INPUT(init);
     CP_VALIDATE_INPUT(action_reg);
     CP_VALIDATE_INPUT(max_streams);
 #undef CP_VALIDATE_INPUT

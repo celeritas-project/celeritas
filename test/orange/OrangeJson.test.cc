@@ -93,7 +93,7 @@ TEST_F(UniversesTest, params)
                                          "[EXTERIOR]",
                                          "patty"};
     std::vector<std::string> actual;
-    for (auto const id : range(VolumeId{geo.volumes().size()}))
+    for (auto const id : range(ImplVolumeId{geo.volumes().size()}))
     {
         actual.push_back(geo.volumes().at(id).name);
     }
@@ -618,8 +618,8 @@ TEST_F(Geant4Testem15Test, safety)
     geo = Initializer_t{{0, 0, 0}, {1, 0, 0}};
     EXPECT_VEC_SOFT_EQ(Real3({0, 0, 0}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
-    EXPECT_EQ(VolumeId{1}, geo.volume_id());
-    EXPECT_EQ(InternalSurfaceId{}, geo.internal_surface_id());
+    EXPECT_EQ(ImplVolumeId{1}, geo.volume_id());
+    EXPECT_EQ(ImplSurfaceId{}, geo.impl_surface_id());
     EXPECT_FALSE(geo.is_outside());
 
     // Safety at middle should be to the box boundary

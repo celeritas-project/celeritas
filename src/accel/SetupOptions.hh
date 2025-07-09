@@ -254,7 +254,8 @@ inp::GeantSd to_inp(SDSetupOptions const& so);
 inp::FrameworkInput to_inp(SetupOptions const& so);
 
 // Get runtime-dependent default capacity values
-inp::StateCapacity get_default(SetupOptions const& so, size_type num_streams);
+inp::CoreStateCapacity
+get_default(SetupOptions const& so, size_type num_streams);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -60,15 +60,13 @@ struct CoreParamsData
     RngParamsData<W, M> rng;
     SurfaceParamsData<W, M> surface;
     SurfacePhysicsParamsData<W, M> surface_physics;
-    TrackInitParamsData<W, M> init;
 
     CoreScalars scalars;
 
     //! True if all params are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && material && physics && surface && rng && init
-               && scalars;
+        return geometry && material && physics && surface && rng && scalars;
     }
 
     //! Assign from another set of data
@@ -82,7 +80,6 @@ struct CoreParamsData
         rng = other.rng;
         surface = other.surface;
         surface_physics = other.surface_physics;
-        init = other.init;
         scalars = other.scalars;
         return *this;
     }

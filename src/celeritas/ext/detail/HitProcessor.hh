@@ -68,7 +68,7 @@ class HitProcessor
     //! \name Type aliases
     using StepStateHostRef = HostRef<StepStateData>;
     using StepStateDeviceRef = DeviceRef<StepStateData>;
-    using SPConstGeo = std::shared_ptr<GeoParams const>;
+    using SPConstCoreGeo = std::shared_ptr<CoreGeoParams const>;
     using SPConstVecLV
         = std::shared_ptr<std::vector<G4LogicalVolume const*> const>;
     using VecParticle = std::vector<G4ParticleDefinition const*>;
@@ -78,7 +78,7 @@ class HitProcessor
   public:
     // Construct from volumes that have SDs and step selection
     HitProcessor(SPConstVecLV detector_volumes,
-                 SPConstGeo const& geo,
+                 SPConstCoreGeo const& geo,
                  VecParticle const& particles,
                  StepSelection const& selection,
                  StepPointBool const& locate_touchable);

@@ -11,6 +11,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/data/AuxInterface.hh"
+#include "corecel/data/AuxStateVec.hh"
 #include "celeritas/global/ActionInterface.hh"
 
 #include "../Model.hh"
@@ -50,6 +51,8 @@ class OpticalLaunchAction : public AuxParamsInterface,
     struct Input
     {
         SPOpticalParams optical_params;
+        AuxId cherenkov_aux_id;
+        AuxId scintillation_aux_id;
         size_type num_track_slots{};
         size_type max_step_iters{};
         size_type auto_flush{};
@@ -57,7 +60,8 @@ class OpticalLaunchAction : public AuxParamsInterface,
         //! True if all input is assigned and valid
         explicit operator bool() const
         {
-            return optical_params && num_track_slots > 0 && auto_flush > 0;
+            return optical_params && (cherenkov_aux_id || scintillation_aux_id)
+                   && num_track_slots > 0 && auto_flush > 0;
         }
     };
 
@@ -106,11 +110,11 @@ class OpticalLaunchAction : public AuxParamsInterface,
     //! \name Accessors
 
     //! Optical tracks per stream
-    size_type state_size() const { return state_size_; }
+    size_type state_size() const { return data_.num_track_slots; }
     //! Optical core params
     optical::CoreParams const& optical_params() const
     {
-        return *optical_params_;
+        return *data_.optical_params;
     }
     //!@}
 
@@ -122,16 +126,14 @@ class OpticalLaunchAction : public AuxParamsInterface,
 
     ActionId action_id_;
     AuxId aux_id_;
-    SPOpticalParams optical_params_;
+    Input data_;
     SPActionGroups optical_actions_;
-    size_type state_size_;
-    size_type max_step_iters_;
-    size_type auto_flush_;
 
     //// HELPERS ////
 
     template<MemSpace M>
     void execute_impl(CoreParams const&, CoreState<M>&) const;
+    void reset_generators(AuxStateVec& aux) const;
 };
 
 //---------------------------------------------------------------------------//

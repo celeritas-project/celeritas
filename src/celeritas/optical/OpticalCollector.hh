@@ -90,10 +90,7 @@ class OpticalCollector
         //! Number of steps that have created optical particles
         size_type buffer_capacity{};
 
-        //! Maximum number of buffered initializers in optical tracking loop
-        size_type initializer_capacity{};
-
-        //! Threshold number of initializers for launching optical loop
+        //! Threshold number of photons for launching optical loop
         size_type auto_flush{};
 
         //! Maximum step iterations before aborting optical loop
@@ -104,8 +101,7 @@ class OpticalCollector
         {
             return material && (scintillation || cherenkov)
                    && num_track_slots > 0 && buffer_capacity > 0
-                   && initializer_capacity > 0 && auto_flush > 0
-                   && !model_builders.empty();
+                   && auto_flush > 0 && !model_builders.empty();
         }
     };
 

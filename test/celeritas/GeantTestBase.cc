@@ -21,7 +21,7 @@
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantSetup.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
@@ -167,7 +167,7 @@ auto GeantTestBase::build_fresh_geometry(std::string_view filename)
                     << filename << ")";
     auto* world = this->get_world_volume();
     CELER_ASSERT(world);
-    return std::make_shared<GeoParams>(world);
+    return std::make_shared<CoreGeoParams>(world);
 #endif
 }
 

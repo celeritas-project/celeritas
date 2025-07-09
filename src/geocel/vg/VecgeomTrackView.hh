@@ -101,10 +101,10 @@ class VecgeomTrackView
     inline CELER_FUNCTION void
     volume_instance_id(Span<VolumeInstanceId> levels) const;
 
-    //!@{
-    //! VecGeom states are never "on" a surface
-    CELER_FUNCTION InternalSurfaceId internal_surface_id() const { return {}; }
-    //!@}
+    // The current surface ID
+    inline CELER_FUNCTION ImplSurfaceId impl_surface_id() const;
+    // After 'find_next_step', the next straight-line surface
+    inline CELER_FUNCTION ImplSurfaceId next_impl_surface_id() const;
 
     // Whether the track is outside the valid geometry region
     CELER_FORCEINLINE_FUNCTION bool is_outside() const;
@@ -265,6 +265,40 @@ VecgeomTrackView::operator=(Initializer_t const& init)
     Navigator::LocatePointIn(
         world, detail::to_vector(pos_), vgstate_, contains_point);
     return *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * The current surface frame ID.
+ */
+CELER_FUNCTION ImplSurfaceId VecgeomTrackView::impl_surface_id() const
+{
+#ifdef VECGEOM_USE_SURF
+    if (this->is_on_boundary())
+    {
+        return id_cast<ImplSurfaceId>(next_surface_);
+    }
+    return {};
+#else
+    CELER_ASSERT_UNREACHABLE();
+#endif
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * After 'find_next_step', the next straight-line surface.
+ */
+CELER_FUNCTION ImplSurfaceId VecgeomTrackView::next_impl_surface_id() const
+{
+#ifdef VECGEOM_USE_SURF
+    if (!this->is_on_boundary())
+    {
+        return id_cast<ImplSurfaceId>(next_surface_);
+    }
+    return {};
+#else
+    CELER_ASSERT_UNREACHABLE();
+#endif
 }
 
 //---------------------------------------------------------------------------//

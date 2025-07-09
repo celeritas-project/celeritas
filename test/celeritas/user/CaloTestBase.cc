@@ -9,7 +9,7 @@
 #include <iostream>
 
 #include "corecel/cont/Span.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/user/SimpleCalo.hh"
 #include "celeritas/user/StepCollector.hh"
 

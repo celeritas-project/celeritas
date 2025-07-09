@@ -63,6 +63,9 @@ namespace test
  * \note Inherit from this class (or \c GlobalGeoTestBase) using \c
  * virtual \c public so that tests can create mixins (see e.g. \c
  * SimpleStepperTest).
+ *
+ * \todo Replace the construction with modifiers to \c celeritas::inp data
+ * structures, and build the core geometry with \c celeritas::setup.
  */
 class GlobalTestBase : public Test
 {
@@ -72,7 +75,7 @@ class GlobalTestBase : public Test
     template<class T>
     using SP = std::shared_ptr<T>;
 
-    using SPConstGeo = SP<GeoParams const>;
+    using SPConstCoreGeo = SP<CoreGeoParams const>;
     using SPConstMaterial = SP<MaterialParams const>;
     using SPConstGeoMaterial = SP<GeoMaterialParams const>;
     using SPConstParticle = SP<ParticleParams const>;
@@ -110,7 +113,7 @@ class GlobalTestBase : public Test
 
     //!@{
     //! Access lazily constructed objects.
-    inline SPConstGeo const& geometry();
+    inline SPConstCoreGeo const& geometry();
     inline SPConstMaterial const& material();
     inline SPConstGeoMaterial const& geomaterial();
     inline SPConstParticle const& particle();
@@ -131,7 +134,7 @@ class GlobalTestBase : public Test
     inline SPConstScintillation const& scintillation();
     inline SPConstSurfacePhysics const& surface_physics();
 
-    inline SPConstGeo const& geometry() const;
+    inline SPConstCoreGeo const& geometry() const;
     inline SPConstMaterial const& material() const;
     inline SPConstGeoMaterial const& geomaterial() const;
     inline SPConstParticle const& particle() const;
@@ -165,7 +168,7 @@ class GlobalTestBase : public Test
     void write_output();
 
   protected:
-    [[nodiscard]] virtual SPConstGeo build_geometry() = 0;
+    [[nodiscard]] virtual SPConstCoreGeo build_geometry() = 0;
     [[nodiscard]] virtual SPConstMaterial build_material() = 0;
     [[nodiscard]] virtual SPConstGeoMaterial build_geomaterial() = 0;
     [[nodiscard]] virtual SPConstParticle build_particle() = 0;
@@ -192,7 +195,7 @@ class GlobalTestBase : public Test
     SPConstCore build_core();
 
   private:
-    SPConstGeo geometry_;
+    SPConstCoreGeo geometry_;
     SPConstMaterial material_;
     SPConstGeoMaterial geomaterial_;
     SPConstParticle particle_;
@@ -238,7 +241,7 @@ class GlobalTestBase : public Test
         return this->NAME##_;                       \
     }
 
-DEF_GTB_ACCESSORS(SPConstGeo, geometry)
+DEF_GTB_ACCESSORS(SPConstCoreGeo, geometry)
 DEF_GTB_ACCESSORS(SPConstMaterial, material)
 DEF_GTB_ACCESSORS(SPConstGeoMaterial, geomaterial)
 DEF_GTB_ACCESSORS(SPConstParticle, particle)

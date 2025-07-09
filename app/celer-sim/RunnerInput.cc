@@ -197,7 +197,6 @@ inp::Problem load_problem(RunnerInput const& ri)
         p.control.optical_capacity = [&ri] {
             inp::OpticalStateCapacity sc;
             sc.primaries = ri.optical.auto_flush;
-            sc.initializers = ri.optical.initializer_capacity;
             sc.tracks = ri.optical.num_track_slots;
             sc.generators = ri.optical.buffer_capacity;
             return sc;
