@@ -282,9 +282,7 @@ TEST_F(LArSphereOffloadTest, host_distributions)
 
     auto result = this->run<MemSpace::host>(4, num_track_slots_, 64);
 
-    EXPECT_EQ(2122951,
-              result.cherenkov.total_num_photons
-                  + result.scintillation.total_num_photons);
+    EXPECT_EQ(2, result.accum.generators.size());
 
     static real_type const expected_cherenkov_charge[] = {-1, 1};
     EXPECT_VEC_EQ(expected_cherenkov_charge, result.cherenkov.charge);
@@ -294,6 +292,10 @@ TEST_F(LArSphereOffloadTest, host_distributions)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
+        EXPECT_EQ(2122951,
+                  result.cherenkov.total_num_photons
+                      + result.scintillation.total_num_photons);
+
         EXPECT_EQ(21541, result.cherenkov.total_num_photons);
         EXPECT_EQ(53, result.cherenkov.num_photons.size());
         static unsigned int const expected_cherenkov_num_photons[] = {
@@ -351,9 +353,7 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
 
     auto result = this->run<MemSpace::device>(8, num_track_slots_, 32);
 
-    EXPECT_EQ(3562272,
-              result.cherenkov.total_num_photons
-                  + result.scintillation.total_num_photons);
+    EXPECT_EQ(2, result.accum.generators.size());
 
     static real_type const expected_cherenkov_charge[] = {-1, 1};
     EXPECT_VEC_EQ(expected_cherenkov_charge, result.cherenkov.charge);
@@ -363,6 +363,10 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
+        EXPECT_EQ(3562272,
+                  result.cherenkov.total_num_photons
+                      + result.scintillation.total_num_photons);
+
         EXPECT_EQ(38699, result.cherenkov.total_num_photons);
         EXPECT_EQ(82, result.cherenkov.num_photons.size());
         static unsigned int const expected_cherenkov_num_photons[] = {
