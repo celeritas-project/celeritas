@@ -325,7 +325,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
 
         if (!out.weight.empty())
         {
-            g4sp->SetWeight(out.weight[i]); 
+            g4sp->SetWeight(out.weight[i]);
         }
         G4LogicalVolume const* point_lv = [&]() -> G4LogicalVolume const* {
             if (sp == StepPoint::pre)

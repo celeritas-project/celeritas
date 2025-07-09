@@ -403,7 +403,6 @@ CELER_FORCEINLINE_FUNCTION real_type SimTrackView::weight() const
     return states_.weight[track_slot_];
 }
 
-
 //---------------------------------------------------------------------------//
 /*!
  * Update the current limiting step.
