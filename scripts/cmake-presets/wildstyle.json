@@ -5,17 +5,12 @@
     {
       "name": ".base",
       "hidden": true,
-      "inherits": [".spack-base", ".cuda-volta", "full"],
+      "inherits": [".spack-env", ".cuda-volta", "full"],
       "binaryDir": "${sourceDir}/build-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_BUILTIN_CLI11": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_BUILTIN_G4VG": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_BUILTIN_GTest": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_BUILTIN_covfie": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_BUILTIN_nlohmann_json": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "ON"},

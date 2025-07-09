@@ -28,7 +28,7 @@ The easiest way to install Celeritas as a library/app is with Spack:
 - Follow these steps to install [Spack][spack-start].
 ```console
 # Install Spack
-git clone -c feature.manyFiles=true --depth=2 https://github.com/spack/spack.git
+git clone --depth=2 https://github.com/spack/spack.git
 # Add Spack to the shell environment
 # For bash/zsh/sh (See [spack-start] for other shell)
 . spack/share/spack/setup-env.sh
@@ -153,18 +153,25 @@ $ spack env create celeritas scripts/spack.yaml
 $ spack env activate celeritas
 $ spack config add packages:all:variants:"cxxstd=17 +cuda cuda_arch=80"
 $ spack install
-# Configure, build, and test
-$ ./build.sh base
+# Set up
+# Configure, build, and test with a default development configure
+$ ./scripts/build.sh dev
 ```
 
 If you don't use Spack but have all the dependencies you want (Geant4,
-googletest, VecGeom, etc.) in your `CMAKE_PREFIX_PATH`, you can configure and
+GoogleTest, VecGeom, etc.) in your `CMAKE_PREFIX_PATH`, you can configure and
 build Celeritas as you would any other project:
 ```console
 $ mkdir build && cd build
 $ cmake ..
 $ make && ctest
 ```
+
+> [!NOTE]
+> It is highly recommended to use the `build.sh` script to set up your user
+> environment, even when not using Spack. The first time you run it, edit the
+> `CMakeUserPresets.json` symlink it creates, and submit it in your next pull
+> request.
 
 Celeritas guarantees full compatibility and correctness only on the
 combinations of compilers and dependencies tested under continuous integration.
@@ -238,6 +245,10 @@ If using Celeritas in your work, we ask that you cite the following article:
 See also its [DOECode](https://www.osti.gov/doecode/biblio/94866) registration:
 
 > Johnson, Seth R., Amanda Lund, Soon Yung Jun, Stefano Tognini, Guilherme Lima, Philippe Canal, Ben Morgan, Tom Evans, and Julien Esseiva. 2022. “Celeritas.” https://doi.org/10.11578/dc.20221011.1.
+
+and its Zenodo release metadata for version 0.6: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15281110.svg)](https://doi.org/10.5281/zenodo.15281110)
+
+> Seth R. Johnson, Amanda Lund, Julien Esseiva, Philippe Canal, Elliott Biondo, Hayden Hollenbeck, Stefano Tognini, Lance Bullerwell, Soon Yung Jun, Guilherme Lima, Damien L-G, & Sakib Rahman. (2025). Celeritas 0.6 (0.6.0). Github. https://doi.org/10.5281/zenodo.15281110
 
 A continually evolving list of works authored by (or with content authored by)
 core team members is continually updated at [our publications page](https://github.com/celeritas-project/celeritas/blob/doc/gh-pages-base/publications.md)
