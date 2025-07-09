@@ -35,7 +35,7 @@ check_ccache_usage() {
 setup_ccache() {
     # Auto-detect and configure ccache if available
     if command -v ccache >/dev/null 2>&1; then
-        export CCACHE_PROGRAM="ccache"
+        export CCACHE_PROGRAM="$(which ccache)"
         log info "Using ccache"
         check_ccache_usage
     else
