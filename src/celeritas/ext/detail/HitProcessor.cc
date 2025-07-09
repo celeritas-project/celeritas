@@ -348,12 +348,11 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
         HP_SET(g4sp->SetPosition, out.points[sp].pos, clhep_length);
         HP_SET(g4sp->SetKineticEnergy, out.points[sp].energy, CLHEP::MeV);
         HP_SET(g4sp->SetMomentumDirection, out.points[sp].dir, 1);
-        /*!
-         * \todo Celeritas currently ignores incoming particle weight and
-         * does not perform any variance reduction. See issue #1268.
-         */
-        g4sp->SetWeight(1.0);
 
+        if (!out.weight.empty())
+        {
+            g4sp->SetWeight(out.weight[i]);
+        }
         G4LogicalVolume const* point_lv = [&]() -> G4LogicalVolume const* {
             if (sp == StepPoint::pre)
                 return lv;

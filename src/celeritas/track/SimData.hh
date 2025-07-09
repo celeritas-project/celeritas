@@ -106,7 +106,7 @@ struct SimTrackInitializer
     PrimaryId primary_id;  //!< ID of originating primary
     EventId event_id;  //!< ID of originating event
     real_type time{0};  //!< Time elapsed in lab frame since start of event
-
+    real_type weight{1.0};
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
@@ -147,6 +147,7 @@ struct SimStateData
     Items<real_type> step_length;
     Items<ActionId> post_step_action;
     Items<ActionId> along_step_action;
+    Items<real_type> weight;
 
     //// METHODS ////
 
@@ -182,6 +183,7 @@ struct SimStateData
         step_length = other.step_length;
         post_step_action = other.post_step_action;
         along_step_action = other.along_step_action;
+        weight = other.weight;
         return *this;
     }
 };
@@ -214,6 +216,7 @@ void resize(SimStateData<Ownership::value, M>* data,
     resize(&data->step_length, size);
     resize(&data->post_step_action, size);
     resize(&data->along_step_action, size);
+    resize(&data->weight, size);
 
     CELER_ENSURE(*data);
 }

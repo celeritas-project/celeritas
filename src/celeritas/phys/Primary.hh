@@ -28,6 +28,7 @@ struct Primary
     real_type time{};
     EventId event_id;
     PrimaryId primary_id;
+    real_type weight{1.0};
 };
 
 //---------------------------------------------------------------------------//

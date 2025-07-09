@@ -138,6 +138,23 @@ TEST_F(SimTest, looping)
     }
 }
 
+TEST_F(SimTest, weight)
+{
+    SimTrackView sim(this->sim()->host_ref(), sim_state_.ref(), TrackSlotId{0});
+    SimTrackInitializer init;
+    init.track_id = TrackId{0};
+    init.parent_id = TrackId{};
+    init.event_id = EventId{0};
+    init.time = 0.0;
+
+    real_type expected_weight = 0.5;
+    init.weight = expected_weight;
+    sim = init;
+
+    // Check if weight was correctly stored
+    EXPECT_EQ(expected_weight, sim.weight());
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
