@@ -25,8 +25,8 @@
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/UniformZField.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/geo/GeoData.hh"
-#include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -67,7 +67,7 @@ class FieldPropagatorTestBase : public CoreGeoTestBase, public FieldTestBase
     //!@}
 
   protected:
-    SPConstGeo build_geometry() final
+    SPConstCoreGeo build_geometry() final
     {
         return this->build_geometry_from_basename();
     }

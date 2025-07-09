@@ -182,7 +182,7 @@ TEST_F(PolyconeTest, sliced)
 {
     this->build_volume(PolyCone{"pc",
                                 PolySegments{{2, 1, 3}, {-2, 0, 2}},
-                                EnclosedAzi{Turn{0.125}, Turn{0.75}}});
+                                EnclosedAzi{Turn{0.125}, Turn{0.875}}});
 
     static char const* const expected_surface_strings[] = {
         "Plane: z=-2",
@@ -190,8 +190,8 @@ TEST_F(PolyconeTest, sliced)
         "Cone z: t=0.5 at {0,0,2}",
         "Plane: z=2",
         "Cone z: t=1 at {0,0,-1}",
-        "Plane: n={0.70711,0.70711,0}, d=0",
         "Plane: n={0.70711,-0.70711,0}, d=0",
+        "Plane: n={0.70711,0.70711,0}, d=0",
     };
     static char const* const expected_volume_strings[] = {
         "all(any(all(+0, -1, -2), all(+1, -3, -4)), !all(+5, +6))",
@@ -211,8 +211,8 @@ TEST_F(PolyconeTest, sliced)
         "",
         "pc@1.interior",
         "pc@segments",
-        "pc@angle.p0",
-        "pc@angle.p1",
+        "pc@awm",
+        "pc@awp",
         "pc@angle",
         "",
         "pc@restricted",

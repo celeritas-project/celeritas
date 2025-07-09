@@ -78,6 +78,7 @@ class MockTestBase : virtual public GlobalGeoTestBase, public OnlyCoreTestBase
     SPConstPhysics build_physics() override;
     SPConstAction build_along_step() override;
     SPConstSim build_sim() override;
+    SPConstSurface build_surface() override;
     SPConstTrackInit build_init() override;
     SPConstWentzelOKVI build_wentzel() override { return nullptr; }
 

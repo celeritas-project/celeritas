@@ -102,6 +102,9 @@ struct Surfaces
     using VecSurface = std::vector<Surface>;
 
     VecSurface surfaces;
+
+    //! True if at least one surface is defined
+    explicit operator bool() const { return !surfaces.empty(); }
 };
 
 //---------------------------------------------------------------------------//

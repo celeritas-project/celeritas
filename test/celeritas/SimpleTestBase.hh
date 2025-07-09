@@ -32,6 +32,7 @@ class SimpleTestBase : virtual public GlobalGeoTestBase, public OnlyCoreTestBase
     SPConstCutoff build_cutoff() override;
     SPConstPhysics build_physics() override;
     SPConstSim build_sim() override;
+    SPConstSurface build_surface() override;
     SPConstTrackInit build_init() override;
     SPConstAction build_along_step() override;
     SPConstWentzelOKVI build_wentzel() override;

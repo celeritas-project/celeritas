@@ -48,7 +48,7 @@ struct AlongStepFactoryInput
 {
     ActionId action_id;
 
-    std::shared_ptr<GeoParams const> geometry;
+    std::shared_ptr<CoreGeoParams const> geometry;
     std::shared_ptr<MaterialParams const> material;
     std::shared_ptr<GeoMaterialParams const> geomaterial;
     std::shared_ptr<ParticleParams const> particle;

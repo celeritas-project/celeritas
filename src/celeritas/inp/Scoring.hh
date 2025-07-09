@@ -13,6 +13,7 @@
 
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/io/Label.hh"
+#include "celeritas/Types.hh"
 
 class G4LogicalVolume;
 

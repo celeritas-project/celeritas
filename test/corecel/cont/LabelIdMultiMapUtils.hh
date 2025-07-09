@@ -2,34 +2,31 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/TrackInitParams.cc
+//! \file corecel/cont/LabelIdMultiMapUtils.hh
 //---------------------------------------------------------------------------//
-#include "TrackInitParams.hh"
+#pragma once
 
-#include <utility>
+#include <string>
+#include <vector>
 
-#include "corecel/Assert.hh"
-
-#include "TrackInitData.hh"
+#include "corecel/cont/LabelIdMultiMap.hh"
 
 namespace celeritas
 {
-namespace optical
+namespace test
 {
 //---------------------------------------------------------------------------//
-/*!
- * Construct with capacity.
- */
-TrackInitParams::TrackInitParams(size_type capacity)
+template<class I>
+inline auto get_multimap_labels(LabelIdMultiMap<I> const& multimap)
 {
-    CELER_EXPECT(capacity > 0);
-
-    HostVal<TrackInitParamsData> host_data;
-    host_data.capacity = capacity;
-    CELER_ASSERT(host_data);
-    data_ = CollectionMirror<TrackInitParamsData>{std::move(host_data)};
+    std::vector<std::string> result;
+    for (auto id : range(id_cast<I>(multimap.size())))
+    {
+        result.push_back(to_string(multimap.at(id)));
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace optical
+}  // namespace test
 }  // namespace celeritas

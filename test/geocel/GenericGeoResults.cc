@@ -15,11 +15,6 @@
 #include "GenericGeoTestInterface.hh"
 #include "testdetail/TestMacrosImpl.hh"
 
-// DEPRECATED: remove in v0.7
-#define EXPECT_RESULT_EQ(EXPECTED, ACTUAL) EXPECT_REF_EQ(EXPECTED, ACTUAL)
-#define EXPECT_RESULT_NEAR(EXPECTED, ACTUAL, TOL) \
-    EXPECT_REF_NEAR(EXPECTED, ACTUAL, TOL)
-
 //!@{
 //! Helper macros
 #define CELER_REF_ATTR(ATTR) "ref." #ATTR " = " << repr(this->ATTR) << ";\n"
@@ -42,7 +37,7 @@ void GenericGeoTrackingResult::print_expected() const
          << CELER_REF_ATTR(distances) << CELER_REF_ATTR(halfway_safeties)
          << CELER_REF_ATTR(bumps)
          << "auto tol = GenericGeoTrackingTolerance::from_test(*test_);\n"
-            "EXPECT_RESULT_NEAR(ref, result, tol);\n"
+            "EXPECT_REF_NEAR(ref, result, tol);\n"
             "/*** END CODE ***/\n";
 }
 
@@ -143,7 +138,7 @@ void GenericGeoVolumeStackResult::print_expected() const
             "GenericGeoVolumeStackResult ref;\n"
             << CELER_REF_ATTR(volume_instances)
             << CELER_REF_ATTR(replicas)
-            "EXPECT_RESULT_EQ(ref, result);\n"
+            "EXPECT_REF_EQ(ref, result);\n"
             "/*** END CODE ***/\n";
 }
 
@@ -244,7 +239,7 @@ void GenericGeoModelInp::print_expected() const
         cout << CELER_REF_ATTR(surface.labels)
              << CELER_REF_ATTR(surface.volumes);
     }
-    cout << "EXPECT_RESULT_EQ(ref, result);\n"
+    cout << "EXPECT_REF_EQ(ref, result);\n"
             "/*** END CODE ***/\n";
 }
 

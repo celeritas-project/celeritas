@@ -12,16 +12,16 @@
 
 #include "corecel/Config.hh"
 
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 
 namespace celeritas
 {
 namespace test
 {
 //---------------------------------------------------------------------------//
-auto GlobalGeoTestBase::build_geometry() -> SPConstGeo
+auto GlobalGeoTestBase::build_geometry() -> SPConstCoreGeo
 {
-    return std::dynamic_pointer_cast<GeoParams const>(
+    return std::dynamic_pointer_cast<CoreGeoParams const>(
         this->get_geometry(this->geometry_basename()));
 }
 
@@ -50,7 +50,7 @@ auto GlobalGeoTestBase::build_fresh_geometry(std::string_view basename)
     }
     auto filename = std::string{basename} + std::string{ext};
     std::string test_file = this->test_data_path("geocel", filename);
-    return std::make_shared<GeoParams>(test_file);
+    return std::make_shared<CoreGeoParams>(test_file);
 }
 
 //---------------------------------------------------------------------------//

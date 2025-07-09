@@ -33,10 +33,11 @@
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "geocel/GeoParamsOutput.hh"
+#include "geocel/SurfaceParams.hh"
 #include "celeritas/alongstep/AlongStepNeutralAction.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"  // IWYU pragma: keep
+#include "celeritas/geo/CoreGeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/GeoMaterialParams.hh"  // IWYU pragma: keep
-#include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/detail/BoundaryAction.hh"
 #include "celeritas/mat/MaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/mat/MaterialParamsOutput.hh"
@@ -90,6 +91,7 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.physics = get_ref<M>(*p.physics);
     ref.rng = get_ref<M>(*p.rng);
     ref.sim = get_ref<M>(*p.sim);
+    ref.surface = get_ref<M>(*p.surface);
     ref.init = get_ref<M>(*p.init);
     if (p.wentzel)
     {

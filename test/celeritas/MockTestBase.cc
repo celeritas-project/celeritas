@@ -8,6 +8,7 @@
 
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "geocel/SurfaceParams.hh"
 #include "celeritas/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -257,6 +258,12 @@ auto MockTestBase::build_sim() -> SPConstSim
     SimParams::Input input;
     input.particles = this->particle();
     return std::make_shared<SimParams>(input);
+}
+
+//---------------------------------------------------------------------------//
+auto MockTestBase::build_surface() -> SPConstSurface
+{
+    return std::make_shared<SurfaceParams>();
 }
 
 //---------------------------------------------------------------------------//

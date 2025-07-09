@@ -51,6 +51,7 @@ struct NotConfiguredGeoTraits
     template<Ownership W, MemSpace M>
     using StateData = void;
     using TrackView = void;
+    static constexpr bool has_impl_surface = false;
     static constexpr char const name[] = "";
     static constexpr char const ext[] = "";
 };

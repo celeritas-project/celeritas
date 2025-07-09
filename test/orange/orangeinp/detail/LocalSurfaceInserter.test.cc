@@ -118,7 +118,7 @@ TEST_F(LocalSurfaceInserterTest, soft_chain)
     EXPECT_EQ(0, insert(PlaneX{2 + eps / 2}).unchecked_get());
 }
 
-// Replicates InfWedge.quarter_turn from intersect region test
+// Replicates InfAziWedge.quarter_turn from intersect region test
 TEST_F(LocalSurfaceInserterTest, infwedge_quadrant)
 {
     auto tol = Tolerance<>::from_relative(1e-4);

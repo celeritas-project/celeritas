@@ -26,6 +26,8 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantGdmlLoader.hh"
+#include "geocel/SurfaceParams.hh"
+#include "geocel/VolumeParams.hh"
 #include "geocel/inp/Model.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -43,8 +45,8 @@
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/UniformFieldData.hh"
+#include "celeritas/geo/CoreGeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/GeoMaterialParams.hh"
-#include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/inp/Control.hh"
@@ -89,14 +91,14 @@ namespace
 //---------------------------------------------------------------------------//
 struct GeoBuilder
 {
-    using result_type = std::shared_ptr<GeoParams>;
+    using result_type = std::shared_ptr<CoreGeoParams>;
 
     //! Build from filename
     result_type operator()(std::string const& filename)
     {
         CELER_VALIDATE(!filename.empty(),
                        << "empty filename in problem.model.geometry");
-        return std::make_shared<GeoParams>(filename);
+        return std::make_shared<CoreGeoParams>(filename);
     }
 
     //! Build from Geant4
@@ -119,7 +121,7 @@ struct GeoBuilder
         }
         CELER_VALIDATE(world,
                        << "null world pointer in problem.model.geometry");
-        return std::make_shared<GeoParams>(world);
+        return std::make_shared<CoreGeoParams>(world);
     }
 };
 
@@ -360,7 +362,6 @@ auto build_optical_offload(inp::Problem const& p,
     auto num_streams = params.max_streams();
     oc_inp.num_track_slots = ceil_div(cap.tracks, num_streams);
     oc_inp.buffer_capacity = ceil_div(cap.generators, num_streams);
-    oc_inp.initializer_capacity = ceil_div(cap.initializers, num_streams);
     oc_inp.auto_flush = ceil_div(cap.primaries, num_streams);
     oc_inp.max_step_iters = p.tracking.limits.optical_step_iters;
 
@@ -417,6 +418,16 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
                "safety algorithm: multiple scattering may "
                "result in arbitrarily small steps without displacement";
     }
+
+    // Construct optical surfaces if optical physics is enabled
+    params.surface = [&] {
+        if (p.control.optical_capacity)
+        {
+            auto volume = std::make_shared<VolumeParams>(p.model.volumes);
+            return std::make_shared<SurfaceParams>(p.model.surfaces, *volume);
+        }
+        return std::make_shared<SurfaceParams>();
+    }();
 
     // Load materials
     params.material = MaterialParams::from_import(imported);
