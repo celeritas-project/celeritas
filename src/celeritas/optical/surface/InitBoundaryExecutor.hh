@@ -52,8 +52,7 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
     auto geo = track.geometry();
     CELER_EXPECT(geo.is_on_boundary());
 
-    auto pre_surface = track.volume_surface(geo.volume_id());
-    auto pre_volume_inst = geo.volume_instance_id();
+    auto select_surface = track.surface_selector();
 
     // Move the particle across the boundary
     geo.cross_boundary();
@@ -64,24 +63,7 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
     }
     else
     {
-        // auto post_volume = geo.volume_id();
-        auto post_volume_inst = geo.volume_instance_id();
-
-        // Lookup first by interface
-        auto surface_id
-            = pre_surface.find_interface(pre_volume_inst, post_volume_inst);
-        if (!surface_id)
-        {
-            // Lookup pre-volume boundary
-            surface_id = pre_surface.boundary_id();
-
-            // if (!surface_id)
-            // {
-            //     // Lookup post-volume boundary
-            //     surface_id =
-            //     track.volume_surface(post_volume).boundary_id();
-            // }
-        }
+        auto surface_id = select_surface(geo);
 
         if (!surface_id)
         {

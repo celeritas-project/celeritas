@@ -121,6 +121,16 @@ class SurfaceTest : public OpticalMockTestBase
 };
 
 //---------------------------------------------------------------------------//
+// Test initialization with trivial surface data
+TEST_F(SurfaceTest, trivial_init)
+{
+    SurfacePhysicsParams::Input input;
+    input.action_registry = this->action_reg().get();
+
+    EXPECT_TRUE(std::make_shared<SurfacePhysicsParams const>(std::move(input)));
+}
+
+//---------------------------------------------------------------------------//
 // Check construction of surface physics parameters from mock data.
 TEST_F(SurfaceTest, surface_physics_params)
 {
@@ -275,6 +285,10 @@ TEST_F(SurfaceTest, init_surface_physics_view)
         = {6, 6, 6, 7, 7, 7, 6, 6, 6, 7};
     EXPECT_VEC_EQ(expected_interaction_ids, interaction_models);
 }
+
+//---------------------------------------------------------------------------//
+// Test surface interaction applier
+TEST_F(SurfaceTest, surface_interaction_applier) {}
 
 //---------------------------------------------------------------------------//
 }  // namespace test

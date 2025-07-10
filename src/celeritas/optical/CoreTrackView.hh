@@ -17,6 +17,7 @@
 #include "SimTrackView.hh"
 #include "TrackInitializer.hh"
 #include "surface/SurfacePhysicsView.hh"
+#include "surface/VolumeSurfaceSelector.hh"
 
 #if !CELER_DEVICE_COMPILE
 #    include "corecel/io/Logger.hh"
@@ -66,8 +67,10 @@ class CoreTrackView
     // Return a physics view
     inline CELER_FUNCTION PhysicsTrackView physics() const;
 
-    // Return a view to surface properties attached to a volume
-    inline CELER_FUNCTION VolumeSurfaceView volume_surface(VolumeId vid) const;
+    // // Return a view to surface properties attached to a volume
+    // inline CELER_FUNCTION VolumeSurfaceView volume_surface(VolumeId vid)
+    // const; Return a selector for the volume surface
+    inline CELER_FUNCTION VolumeSurfaceSelector surface_selector() const;
 
     // Return a view to the current surface physics
     inline CELER_FUNCTION SurfacePhysicsView surface_physics() const;
@@ -199,14 +202,24 @@ CELER_FUNCTION auto CoreTrackView::physics() const -> PhysicsTrackView
         params_.physics, states_.physics, mat_id, this->track_slot_id()};
 }
 
+// //---------------------------------------------------------------------------//
+// /*!
+//  * Return a view to surface properties attached to a volume.
+//  */
+// CELER_FUNCTION auto CoreTrackView::volume_surface(VolumeId vid) const
+//     -> VolumeSurfaceView
+// {
+//     return VolumeSurfaceView{params_.surface, vid};
+// }
+
 //---------------------------------------------------------------------------//
 /*!
- * Return a view to surface properties attached to a volume.
+ * Return a selector for the volume surface.
  */
-CELER_FUNCTION auto CoreTrackView::volume_surface(VolumeId vid) const
-    -> VolumeSurfaceView
+CELER_FUNCTION auto CoreTrackView::surface_selector() const
+    -> VolumeSurfaceSelector
 {
-    return VolumeSurfaceView{params_.surface, vid};
+    return VolumeSurfaceSelector{params_.surface, this->geometry()};
 }
 
 //---------------------------------------------------------------------------//
