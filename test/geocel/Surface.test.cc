@@ -51,8 +51,7 @@ TEST_F(SurfacesTest, none)
 
 TEST_F(SurfacesTest, none_but_volumes)
 {
-    auto volumes = this->make_volume_params();
-    SurfaceParams sp{{}, volumes};
+    SurfaceParams sp{{}, volumes_};
     EXPECT_TRUE(sp.empty());
     EXPECT_EQ(0, sp.num_surfaces());
     EXPECT_EQ(0, sp.labels().size());
