@@ -13,6 +13,7 @@
 #include "geocel/SurfaceParams.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/track/SimParams.hh"
 
 #include "CoreState.hh"
@@ -109,6 +110,7 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CP_VALIDATE_INPUT(rng);
     CP_VALIDATE_INPUT(surface);
     CP_VALIDATE_INPUT(action_reg);
+    CP_VALIDATE_INPUT(gen_reg);
     CP_VALIDATE_INPUT(max_streams);
 #undef CP_VALIDATE_INPUT
 

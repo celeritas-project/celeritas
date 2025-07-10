@@ -14,6 +14,35 @@ log() {
     printf "\033[${color}m%s:\033[0m %s\n" "$level" "$message" >&2
 }
 
+check_ccache_usage() {
+    # Check if ccache is full and warn user
+    cache_stats=$(ccache --print-stats)
+    current_kb=$(echo "$cache_stats" | grep "^cache_size_kibibyte" | cut -f2)
+    max_kb=$(echo "$cache_stats" | grep "^max_cache_size_kibibyte" | cut -f2)
+
+    if [ -n "$current_kb" ] && [ -n "$max_kb" ] && [ "$max_kb" -gt 0 ] 2>/dev/null; then
+        usage_percent=$((current_kb * 100 / max_kb))
+
+        if [ "$usage_percent" -gt 90 ] 2>/dev/null; then
+            # Convert to human-readable sizes (GiB)
+            current_gb=$((current_kb / 1024 / 1024))
+            max_gb=$((max_kb / 1024 / 1024))
+            log warning "ccache is ${usage_percent}% full (${current_gb}/${max_gb} GiB). Consider increasing cache size with 'ccache -M <size>G'"
+        fi
+    fi
+}
+
+setup_ccache() {
+    # Auto-detect and configure ccache if available
+    if command -v ccache >/dev/null 2>&1; then
+        export CCACHE_PROGRAM="$(which ccache)"
+        log info "Using ccache"
+        check_ccache_usage
+    else
+        export CCACHE_PROGRAM=""
+    fi
+}
+
 cd "$(dirname $0)"/..
 
 SYSTEM_NAME=${LMOD_SYSTEM_NAME}
@@ -40,6 +69,9 @@ if [ -f "${_ENV_SCRIPT}" ]; then
   log info "Sourcing environment script at ${_ENV_SCRIPT}" >&2
   . "${_ENV_SCRIPT}"
 fi
+
+# Setup ccache
+setup_ccache
 
 # Check arguments and give presets
 if [ $# -eq 0 ]; then

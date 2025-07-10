@@ -40,7 +40,7 @@ void GeneratorAction<G>::generate(optical::CoreParams const& params,
     auto& aux_state
         = get<GeneratorState<MemSpace::native>>(*state.aux(), aux_id_);
     size_type num_gen
-        = min(state.counters().num_vacancies, aux_state.num_pending);
+        = min(state.counters().num_vacancies, aux_state.counters.num_pending);
     {
         // Generate optical photons in vacant track slots
         detail::GeneratorExecutor<G> execute{params.ptr<MemSpace::native>(),
@@ -48,7 +48,7 @@ void GeneratorAction<G>::generate(optical::CoreParams const& params,
                                              data_.material->device_ref(),
                                              data_.shared->device_ref(),
                                              aux_state.store.ref(),
-                                             aux_state.buffer_size,
+                                             aux_state.counters.buffer_size,
                                              state.counters()};
         static optical::ActionLauncher<decltype(execute)> const launch(*this);
         launch(num_gen, state.stream_id(), execute);
@@ -59,7 +59,8 @@ void GeneratorAction<G>::generate(optical::CoreParams const& params,
         detail::UpdateSumExecutor execute{aux_state.store.ref(), num_gen};
         static KernelLauncher<decltype(execute)> const launch_kernel(
             "update-sum");
-        launch_kernel(aux_state.buffer_size, state.stream_id(), execute);
+        launch_kernel(
+            aux_state.counters.buffer_size, state.stream_id(), execute);
     }
 }
 

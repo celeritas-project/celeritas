@@ -12,6 +12,8 @@
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/io/Label.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/phys/GeneratorCounters.hh"
+#include "celeritas/phys/GeneratorRegistry.hh"
 
 #include "Model.hh"
 #include "gen/OffloadData.hh"
@@ -69,7 +71,7 @@ class OpticalCollector
     using SPConstCherenkov = std::shared_ptr<CherenkovParams const>;
     using SPConstMaterial = std::shared_ptr<optical::MaterialParams const>;
     using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
-    using OpticalBufferSize = OpticalOffloadCounters<size_type>;
+    using OpticalBufferSize = GeneratorCounters<size_type>;
     //!@}
 
     struct Input
@@ -109,14 +111,8 @@ class OpticalCollector
     // Construct with core data and optical params
     OpticalCollector(CoreParams const&, Input&&);
 
-    // Aux ID for optical Cherenkov offload data
-    AuxId cherenkov_aux_id() const;
-
-    // Aux ID for optical scintillation offload data
-    AuxId scintillation_aux_id() const;
-
-    // Aux ID for optical state data
-    AuxId optical_aux_id() const;
+    // Get the generator registry
+    GeneratorRegistry const& gen_reg() const;
 
     // Get and reset cumulative statistics on optical tracks from a state
     OpticalAccumStats exchange_counters(AuxStateVec& aux) const;

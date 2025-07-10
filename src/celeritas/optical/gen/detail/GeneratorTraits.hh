@@ -51,7 +51,7 @@ struct GeneratorTraits<GeneratorType::cherenkov>
     using Generator = CherenkovGenerator;
 
     //! Label of the generator action
-    static constexpr char const label[] = "generate-cherenkov-photons";
+    static constexpr char const label[] = "cherenkov-generate";
 
     //! Description of the generator action
     static constexpr char const description[]
@@ -72,7 +72,7 @@ struct GeneratorTraits<GeneratorType::scintillation>
     using Generator = ScintillationGenerator;
 
     //! Label of the generator action
-    static constexpr char const label[] = "generate-scintillation-photons";
+    static constexpr char const label[] = "scintillation-generate";
 
     //! Description of the generator action
     static constexpr char const description[]

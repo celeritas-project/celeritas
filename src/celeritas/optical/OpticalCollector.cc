@@ -83,6 +83,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
         op_inp.rng = core.rng();
         op_inp.surface = core.surface();
         op_inp.action_reg = std::make_shared<ActionRegistry>();
+        op_inp.gen_reg = std::make_shared<GeneratorRegistry>();
         op_inp.max_streams = core.max_streams();
         {
             optical::PhysicsParams::Input pp_inp;
@@ -126,8 +127,6 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
 
     // Create launch action with optical params+state and access to gen data
     detail::OpticalLaunchAction::Input la_inp;
-    la_inp.cherenkov_aux_id = this->cherenkov_aux_id();
-    la_inp.scintillation_aux_id = this->scintillation_aux_id();
     la_inp.num_track_slots = inp.num_track_slots;
     la_inp.max_step_iters = inp.max_step_iters;
     la_inp.auto_flush = inp.auto_flush;
@@ -156,34 +155,16 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
                  || launch_->action_id() > cherenkov_generate_->action_id());
     CELER_ENSURE(!scint_generate_
                  || launch_->action_id() > scint_generate_->action_id());
-    CELER_ENSURE(this->optical_aux_id() == optical_aux_id);
+    CELER_ENSURE(launch_->aux_id() == optical_aux_id);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Aux ID for optical core state data.
+ * Get the generator registry.
  */
-AuxId OpticalCollector::optical_aux_id() const
+GeneratorRegistry const& OpticalCollector::gen_reg() const
 {
-    return launch_->aux_id();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Aux ID for optical Cherenkov offload data.
- */
-AuxId OpticalCollector::cherenkov_aux_id() const
-{
-    return cherenkov_generate_ ? cherenkov_generate_->aux_id() : AuxId{};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Aux ID for optical scintillation offload data.
- */
-AuxId OpticalCollector::scintillation_aux_id() const
-{
-    return scint_generate_ ? scint_generate_->aux_id() : AuxId{};
+    return *launch_->optical_params().gen_reg();
 }
 
 //---------------------------------------------------------------------------//
@@ -192,19 +173,15 @@ AuxId OpticalCollector::scintillation_aux_id() const
  */
 OpticalAccumStats OpticalCollector::exchange_counters(AuxStateVec& aux) const
 {
-    auto& state = dynamic_cast<optical::CoreStateBase&>(
-        aux.at(this->optical_aux_id()));
+    auto& state
+        = dynamic_cast<optical::CoreStateBase&>(aux.at(launch_->aux_id()));
     auto& accum = state.accum();
 
-    if (auto id = this->cherenkov_aux_id())
+    accum.generators.resize(this->gen_reg().size());
+    for (auto id : range(GeneratorId{this->gen_reg().size()}))
     {
-        auto& gen = dynamic_cast<GeneratorStateBase const&>(aux.at(id));
-        accum.cherenkov = gen.accum;
-    }
-    if (auto id = this->scintillation_aux_id())
-    {
-        auto& gen = dynamic_cast<GeneratorStateBase const&>(aux.at(id));
-        accum.scintillation = gen.accum;
+        auto& gen_accum = this->gen_reg().at(id)->counters(aux).accum;
+        accum.generators[id.get()] = std::exchange(gen_accum, {});
     }
 
     return std::exchange(accum, {});
@@ -219,19 +196,12 @@ auto OpticalCollector::buffer_counts(AuxStateVec const& aux) const
 {
     OpticalBufferSize result;
 
-    auto const& state = dynamic_cast<optical::CoreStateBase const&>(
-        aux.at(this->optical_aux_id()));
-    result.photons = state.counters().num_pending;
-
-    if (auto id = this->cherenkov_aux_id())
+    for (auto id : range(GeneratorId{this->gen_reg().size()}))
     {
-        auto& gen = dynamic_cast<GeneratorStateBase const&>(aux.at(id));
-        result.distributions += gen.buffer_size;
-    }
-    if (auto id = this->scintillation_aux_id())
-    {
-        auto& gen = dynamic_cast<GeneratorStateBase const&>(aux.at(id));
-        result.distributions += gen.buffer_size;
+        auto const& counters = this->gen_reg().at(id)->counters(aux).counters;
+        result.buffer_size += counters.buffer_size;
+        result.num_pending += counters.num_pending;
+        result.num_generated += counters.num_generated;
     }
 
     return result;

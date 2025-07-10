@@ -51,8 +51,6 @@ class OpticalLaunchAction : public AuxParamsInterface,
     struct Input
     {
         SPOpticalParams optical_params;
-        AuxId cherenkov_aux_id;
-        AuxId scintillation_aux_id;
         size_type num_track_slots{};
         size_type max_step_iters{};
         size_type auto_flush{};
@@ -60,8 +58,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
         //! True if all input is assigned and valid
         explicit operator bool() const
         {
-            return optical_params && (cherenkov_aux_id || scintillation_aux_id)
-                   && num_track_slots > 0 && auto_flush > 0;
+            return optical_params && num_track_slots > 0 && auto_flush > 0;
         }
     };
 
@@ -133,7 +130,6 @@ class OpticalLaunchAction : public AuxParamsInterface,
 
     template<MemSpace M>
     void execute_impl(CoreParams const&, CoreState<M>&) const;
-    void reset_generators(AuxStateVec& aux) const;
 };
 
 //---------------------------------------------------------------------------//

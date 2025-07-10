@@ -12,6 +12,7 @@
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/phys/GeneratorRegistry.hh"
 
 #include "../CoreParams.hh"
 #include "../CoreState.hh"
@@ -160,8 +161,8 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
                 << counters.num_vacancies << " vacancies, and "
                 << counters.num_pending << " queued";
 
+            this->optical_params().gen_reg()->reset(core_state.aux());
             state.reset();
-            this->reset_generators(core_state.aux());
             break;
         }
     }
@@ -170,24 +171,6 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
     state.accum().steps += num_steps;
     state.accum().step_iters += num_step_iters;
     ++state.accum().flushes;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Reset the generator counts if the loop was aborted early.
- */
-void OpticalLaunchAction::reset_generators(AuxStateVec& aux) const
-{
-    for (AuxId id : {data_.cherenkov_aux_id, data_.scintillation_aux_id})
-    {
-        if (id)
-        {
-            auto& gen = dynamic_cast<GeneratorStateBase&>(aux.at(id));
-            gen.buffer_size = {};
-            gen.num_pending = {};
-            gen.num_generated = {};
-        }
-    }
 }
 
 //---------------------------------------------------------------------------//
