@@ -435,6 +435,8 @@ celeritas_add_test(phys/PrimaryGenerator.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(phys/ProcessBuilder.test.cc ${_needs_root}
   ${_optional_geant4_env})
+celeritas_add_test(phys/SurfacePhysicsMap.test.cc
+  LINK_LIBRARIES testcel_geocel)
 
 #-----------------------------------------------------------------------------#
 # Random
