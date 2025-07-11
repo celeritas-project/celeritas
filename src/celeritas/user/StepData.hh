@@ -79,6 +79,7 @@ struct StepSelection
     bool track_step_count{false};
     bool action_id{false};
     bool step_length{false};
+    bool weight{false};
     bool particle{false};
     bool energy_deposition{false};
 
@@ -118,6 +119,7 @@ struct StepSelection
         this->track_step_count |= other.track_step_count;
         this->action_id |= other.action_id;
         this->step_length |= other.step_length;
+        this->weight |= other.weight;
         this->particle |= other.particle;
         this->energy_deposition |= other.energy_deposition;
         return *this;
@@ -461,6 +463,7 @@ inline void resize(StepStateDataImpl<Ownership::value, M>* state,
     SD_RESIZE_IF_SELECTED(parent_id);
     SD_RESIZE_IF_SELECTED(track_step_count);
     SD_RESIZE_IF_SELECTED(step_length);
+    SD_RESIZE_IF_SELECTED(weight);
     SD_RESIZE_IF_SELECTED(action_id);
     SD_RESIZE_IF_SELECTED(particle);
     SD_RESIZE_IF_SELECTED(energy_deposition);
