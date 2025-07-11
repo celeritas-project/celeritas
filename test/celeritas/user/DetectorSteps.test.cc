@@ -154,7 +154,7 @@ class DetectorStepsTest : public ::celeritas::test::Test
             if (!step.step_length.empty())
                 step.step_length[tid] = i++;
             if (!step.weight.empty())
-                step.weight[tid] = 0.8;
+                step.weight[tid] = 0.9;
             if (!step.particle.empty())
                 step.particle[tid] = ParticleId(i++);
             if (!step.energy_deposition.empty())

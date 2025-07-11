@@ -99,10 +99,8 @@ bool SimpleSensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
     {
         hits_.particle.push_back(track->GetDefinition()->GetParticleName());
         real_type weight = track->GetWeight();
-        if (weight != 0.0)
-        {
-            edep *= weight;
-        }
+        CELER_ASSERT(weight > 0);
+        edep *= weight;
     }
     hits_.energy_deposition.push_back(edep / CLHEP::MeV);
     hits_.pre_energy.push_back(pre_step->GetKineticEnergy() / CLHEP::MeV);
