@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "HitProcessor.hh"
 
+#include <cstddef>
 #include <string>
 #include <utility>
 #include <CLHEP/Units/SystemOfUnits.h>
@@ -20,6 +21,8 @@
 #include <G4VSensitiveDetector.hh>
 #include <G4Version.hh>
 
+#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
@@ -231,6 +234,26 @@ HitProcessor::~HitProcessor()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Register mapping from Celeritas PrimaryID to Geant4 TrackID.
+ */
+PrimaryId HitProcessor::register_primary(G4Track const& primary)
+{
+    auto primary_id = id_cast<PrimaryId>(celeritas_to_g4_track_id_.size());
+    celeritas_to_g4_track_id_.push_back(primary.GetTrackID());
+    return primary_id;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Clear PrimaryID mapping (called at start of new event).
+ */
+void HitProcessor::begin_event()
+{
+    celeritas_to_g4_track_id_.clear();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Process detector tallies (CPU).
  */
 void HitProcessor::operator()(StepStateHostRef const& states)
@@ -361,7 +384,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
     {
         // Set the track particle type
         CELER_ASSERT(!out.particle.empty());
-        this->update_track(out.particle[i]);
+        this->update_track(out, i);
     }
 
     if (step_post_status_)
@@ -382,8 +405,9 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
  *
  * This is a bit like \c G4Step::UpdateTrack .
  */
-void HitProcessor::update_track(ParticleId id) const
+void HitProcessor::update_track(DetectorStepOutput const& out, size_type i) const
 {
+    ParticleId id = out.particle[i];
     CELER_EXPECT(id < tracks_.size());
     G4Track& track = *tracks_[id.unchecked_get()];
     step_->SetTrack(&track);
@@ -392,6 +416,14 @@ void HitProcessor::update_track(ParticleId id) const
     track.SetStepLength(step_->GetStepLength());
 
     G4ParticleDefinition const& pd = *track.GetParticleDefinition();
+
+    if (!out.primary_id.empty())
+    {
+        PrimaryId celeritas_primary_id = out.primary_id[i];
+        CELER_ASSERT(celeritas_primary_id < celeritas_to_g4_track_id_.size());
+        track.SetTrackID(
+            celeritas_to_g4_track_id_[celeritas_primary_id.unchecked_get()]);
+    }
 
     for (G4StepPoint* p : step_points_)
     {

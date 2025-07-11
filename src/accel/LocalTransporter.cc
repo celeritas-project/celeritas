@@ -7,6 +7,7 @@
 #include "LocalTransporter.hh"
 
 #include <csignal>
+#include <memory>
 #include <string>
 #include <type_traits>
 #include <CLHEP/Units/SystemOfUnits.h>
@@ -23,6 +24,7 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/Types.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
@@ -35,6 +37,7 @@
 #include "geocel/GeantUtils.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/ext/GeantSd.hh"
 #include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/ext/detail/HitProcessor.hh"
@@ -220,6 +223,12 @@ void LocalTransporter::InitializeEvent(int id)
     event_id_ = id_cast<UniqueEventId>(id);
     ++run_accum_.events;
 
+    // Clear PrimaryID mapping in HitProcessor and reset counter for new event
+    if (hit_processor_)
+    {
+        hit_processor_->begin_event();
+    }
+
     if (!(G4Threading::IsMultithreadedApplication()
           && G4MTRunManager::SeedOncePerCommunication()))
     {
@@ -259,6 +268,13 @@ void LocalTransporter::Push(G4Track const& g4track)
 
     PDGNumber const pdg{g4track.GetDefinition()->GetPDGEncoding()};
     track.particle_id = particles_->find(pdg);
+
+    // Generate Celeritas-specific PrimaryID and notify HitProcessor of mapping
+    if (hit_processor_)
+    {
+        track.primary_id = hit_processor_->register_primary(g4track);
+    }
+
     track.energy = units::MevEnergy(
         convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV));
 

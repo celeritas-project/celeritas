@@ -75,6 +75,7 @@ struct StepSelection
 
     bool event_id{false};
     bool parent_id{false};
+    bool primary_id{false};
     bool track_step_count{false};
     bool action_id{false};
     bool step_length{false};
@@ -86,6 +87,7 @@ struct StepSelection
     {
         return StepSelection{
             {StepPointSelection::all(), StepPointSelection::all()},
+            true,
             true,
             true,
             true,
@@ -256,6 +258,7 @@ struct StepStateDataImpl
     // Sim
     StateItems<EventId> event_id;
     StateItems<TrackId> parent_id;
+    StateItems<PrimaryId> primary_id;
     StateItems<ActionId> action_id;
     StateItems<size_type> track_step_count;
     StateItems<real_type> step_length;
@@ -275,9 +278,9 @@ struct StepStateDataImpl
 
         return !track_id.empty() && right_sized(detector)
                && right_sized(event_id) && right_sized(parent_id)
-               && right_sized(track_step_count) && right_sized(action_id)
-               && right_sized(step_length) && right_sized(particle)
-               && right_sized(energy_deposition);
+               && right_sized(primary_id) && right_sized(track_step_count)
+               && right_sized(action_id) && right_sized(step_length)
+               && right_sized(particle) && right_sized(energy_deposition);
     }
 
     //! State size
@@ -301,6 +304,7 @@ struct StepStateDataImpl
 
         track_id = other.track_id;
         parent_id = other.parent_id;
+        primary_id = other.primary_id;
         detector = other.detector;
         event_id = other.event_id;
         track_step_count = other.track_step_count;
