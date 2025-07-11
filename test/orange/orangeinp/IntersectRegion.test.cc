@@ -1414,6 +1414,8 @@ using InfPlaneTest = IntersectRegionTest;
 TEST_F(InfPlaneTest, basic)
 {
     using Plane = InfPlane;
+
+    auto inf = std::numeric_limits<real_type>::infinity();
     {
         auto result = this->test(Plane(Sense::inside, Axis::x, -1.5));
         IntersectTestResult ref;
@@ -1554,6 +1556,7 @@ TEST_F(InfPolarWedgeTest, errors)
 
 TEST_F(InfPolarWedgeTest, quarter_turn)
 {
+    auto inf = std::numeric_limits<real_type>::infinity();
     {
         SCOPED_TRACE("top half");
         auto result = this->test(InfPolarWedge(Turn{0}, Turn{0.25}));
@@ -1578,6 +1581,7 @@ TEST_F(InfPolarWedgeTest, quarter_turn)
 
 TEST_F(InfPolarWedgeTest, eighth_turn)
 {
+    auto inf = std::numeric_limits<real_type>::infinity();
     {
         SCOPED_TRACE("north pole");
         auto result = this->test(InfPolarWedge(Turn{0}, Turn{0.125}));
@@ -1622,6 +1626,7 @@ TEST_F(InfPolarWedgeTest, eighth_turn)
 
 TEST_F(InfPolarWedgeTest, sliver)
 {
+    auto inf = std::numeric_limits<real_type>::infinity();
     {
         SCOPED_TRACE("north");
         auto result = this->test(InfPolarWedge(Turn{0.0625}, Turn{0.125}));

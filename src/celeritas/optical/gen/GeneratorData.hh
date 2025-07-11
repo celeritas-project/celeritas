@@ -13,6 +13,7 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/phys/GeneratorInterface.hh"
 
 #include "OffloadData.hh"
 #include "../Types.hh"
@@ -100,22 +101,6 @@ struct GeneratorStateData
         offsets = other.offsets;
         return *this;
     }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Manage counters for optical generation states.
- */
-struct GeneratorStateBase : public AuxStateInterface
-{
-    //! Distribution buffer size to be sent to GPU
-    size_type buffer_size{};
-    //! Number of photons remaining to be generated
-    size_type num_pending{};
-    //! Number of photons generated since the start of the optical loop
-    size_type num_generated{};
-    //! Counts accumulated over the event for diagnostics
-    OpticalOffloadCounters<OpticalAccumStats::size_type> accum;
 };
 
 //---------------------------------------------------------------------------//

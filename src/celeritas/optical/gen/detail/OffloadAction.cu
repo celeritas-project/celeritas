@@ -41,7 +41,7 @@ void OffloadAction<G>::offload(CoreParams const& core_params,
                                    data_.shared->device_ref(),
                                    gen_state.store.ref(),
                                    step,
-                                   gen_state.buffer_size}};
+                                   gen_state.counters.buffer_size}};
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(core_state, execute);
 }
