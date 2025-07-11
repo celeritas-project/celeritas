@@ -16,8 +16,6 @@ namespace celeritas
  */
 VolumeParams::VolumeParams(inp::Volumes const& in)
 {
-    CELER_VALIDATE(in, << "no volumes were available");
-
     // Build label maps
     auto extract_labels = [](auto const& items) {
         std::vector<Label> labels;
@@ -78,6 +76,10 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
     CELER_ENSURE(children_.size() == this->num_volumes());
     CELER_ENSURE(volumes_.size() == this->num_volume_instances());
 }
+
+//---------------------------------------------------------------------------//
+//! Construct with no volumes, often for unit testing
+VolumeParams::VolumeParams() : VolumeParams{inp::Volumes{}} {}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
