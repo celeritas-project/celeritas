@@ -262,6 +262,7 @@ struct StepStateDataImpl
     StateItems<ActionId> action_id;
     StateItems<size_type> track_step_count;
     StateItems<real_type> step_length;
+    StateItems<real_type> weight;
 
     // Physics
     StateItems<ParticleId> particle;
@@ -310,6 +311,7 @@ struct StepStateDataImpl
         track_step_count = other.track_step_count;
         action_id = other.action_id;
         step_length = other.step_length;
+        weight = other.weight;
         particle = other.particle;
         energy_deposition = other.energy_deposition;
         return *this;

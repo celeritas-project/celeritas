@@ -113,8 +113,7 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
  * Gather step data on device based on the user selection.
  */
 template<StepPoint P>
-CELER_FUNCTION void
-StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
+CELER_FUNCTION void<P>::fill(celeritas::CoreTrackView const& track)
 {
 #define SGL_SET_IF_SELECTED(ATTR, VALUE)                          \
     do                                                            \
@@ -138,6 +137,7 @@ StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
 
             SGL_SET_IF_SELECTED(action_id, sim.post_step_action());
             SGL_SET_IF_SELECTED(step_length, sim.step_length());
+            SGL_SET_IF_SELECTED(weight, sim.weight());
         }
     }
 
