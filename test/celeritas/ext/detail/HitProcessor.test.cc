@@ -251,7 +251,7 @@ TEST_F(SimpleCmsTest, no_touchable)
     {
         auto& result = this->get_hits("si_tracker");
         static real_type const expected_energy_deposition[]
-            = {dso_hits.weight[0] * 0.1, dso_hits.weight[0] * 0.4};
+            = {1.0 * 0.1, 1.0 * 0.4};
         EXPECT_VEC_SOFT_EQ(expected_energy_deposition,
                            result.energy_deposition);
         static real_type const expected_step_length[] = {0.1, 1.0};
@@ -266,7 +266,7 @@ TEST_F(SimpleCmsTest, no_touchable)
     {
         auto& result = this->get_hits("em_calorimeter");
         static real_type const expected_energy_deposition[]
-            = {dso_hits.weight[1] * 0.2, dso_hits.weight[1] * 0.5};
+            = {0.5 * 0.2, 0.5 * 0.5};
         EXPECT_VEC_SOFT_EQ(expected_energy_deposition,
                            result.energy_deposition);
         static char const* const expected_particle[] = {"e-", "e-"};
@@ -281,7 +281,7 @@ TEST_F(SimpleCmsTest, no_touchable)
     {
         auto& result = this->get_hits("had_calorimeter");
         static real_type const expected_energy_deposition[]
-            = {dso_hits.weight[2] * 0.3, dso_hits.weight[2] * 0.6};
+            = {0.8 * 0.3, 0.8 * 0.6};
         EXPECT_VEC_SOFT_EQ(expected_energy_deposition,
                            result.energy_deposition);
         static char const* const expected_particle[] = {"gamma", "gamma"};
