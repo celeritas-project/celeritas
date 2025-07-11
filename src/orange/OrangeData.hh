@@ -368,12 +368,6 @@ struct OrangeParamsData
     Items<RectArrayRecord> rect_arrays;
     Items<TransformRecord> transforms;
 
-    // Map of ORANGE internal volume ID -> Celeritas volume ID
-    ImplVolumeItems<VolumeId> volume_ids;
-    ImplVolumeItems<VolumeInstanceId> volume_instance_ids;
-    // TODO: for reconstructing hierarchy:
-    // ImplVolumeItems<ImplVolumeId> parent_impl_volumes;
-
     // BIH tree storage
     BIHTreeData<W, M> bih_tree_data;
 
