@@ -35,14 +35,16 @@ namespace celeritas
 class SurfaceModel : virtual public ActionInterface
 {
   public:
-    //@{
+    //!@{
     //! \name Type aliases
+
     //! Eventually to be a pair of surface+layer
     using SurfaceLayer = SurfaceId;
     //! Vector of surfaces
     using VecSurfaceLayer = std::vector<SurfaceLayer>;
     //! Opaque index of surface data in the list for a particular surface model
     using ModelSurfaceId = OpaqueId<struct ModelSurface_>;
+
     //!@}
 
   public:
