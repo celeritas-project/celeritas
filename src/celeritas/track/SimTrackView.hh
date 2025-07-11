@@ -75,6 +75,9 @@ class SimTrackView
     // Unique track identifier
     inline CELER_FUNCTION TrackId track_id() const;
 
+    // Originating primary identifier
+    inline CELER_FUNCTION PrimaryId primary_id() const;
+
     // Track ID of parent
     inline CELER_FUNCTION TrackId parent_id() const;
 
@@ -150,6 +153,7 @@ SimTrackView::SimTrackView(SimParamsRef const& params,
 CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer_t const& other)
 {
     states_.track_ids[track_slot_] = other.track_id;
+    states_.primary_ids[track_slot_] = other.primary_id;
     states_.parent_ids[track_slot_] = other.parent_id;
     states_.event_ids[track_slot_] = other.event_id;
     states_.num_steps[track_slot_] = 0;
@@ -330,6 +334,14 @@ CELER_FUNCTION void SimTrackView::status(TrackStatus status)
 CELER_FORCEINLINE_FUNCTION TrackId SimTrackView::track_id() const
 {
     return states_.track_ids[track_slot_];
+}
+
+/*!
+ * Originating primary identifier.
+ */
+CELER_FORCEINLINE_FUNCTION PrimaryId SimTrackView::primary_id() const
+{
+    return states_.primary_ids[track_slot_];
 }
 
 //---------------------------------------------------------------------------//

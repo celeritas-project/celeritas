@@ -148,6 +148,7 @@ void copy_steps<MemSpace::host>(
 
     DS_ASSIGN(event_id);
     DS_ASSIGN(parent_id);
+    DS_ASSIGN(primary_id);
     DS_ASSIGN(track_step_count);
     DS_ASSIGN(step_length);
     DS_ASSIGN(particle);

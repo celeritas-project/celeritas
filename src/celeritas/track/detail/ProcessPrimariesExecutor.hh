@@ -63,6 +63,7 @@ CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
     TrackInitializer ti;
     ti.sim.track_id
         = make_track_id(params->init, state->init, primary.event_id);
+    ti.sim.primary_id = primary.primary_id;
     ti.sim.event_id = primary.event_id;
     ti.sim.time = primary.time;
     ti.geo.pos = primary.position;

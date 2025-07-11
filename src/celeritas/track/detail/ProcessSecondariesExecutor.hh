@@ -99,6 +99,7 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
             // Create a track initializer from the secondary
             TrackInitializer ti;
             ti.sim.track_id = make_track_id(params->init, data, sim.event_id());
+            ti.sim.primary_id = sim.primary_id();
             ti.sim.parent_id = track_id;
             ti.sim.event_id = sim.event_id();
             ti.sim.time = sim.time();
