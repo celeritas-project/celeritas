@@ -21,10 +21,11 @@
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "geocel/GeantGeoParams.hh"
+#include "geocel/SurfaceParams.hh"
+#include "geocel/VolumeParams.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/global/CoreParams.hh"
-#include "celeritas/setup/Model.hh"
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/StatusChecker.hh"
 
@@ -146,9 +147,9 @@ auto GlobalTestBase::build_core() -> SPConstCore
             CELER_ASSERT(inp.geometry);
             return *inp.geometry;
         }();
-        auto loaded = setup::model(model_geo.make_model_input());
-        inp.volume = loaded.volume;
-        inp.surface = loaded.surface;
+        auto mi = model_geo.make_model_input();
+        inp.volume = std::make_shared<VolumeParams>(mi.volumes);
+        inp.surface = std::make_shared<SurfaceParams>(mi.surfaces, *inp.volume);
     }
 
     CELER_ASSERT(inp);

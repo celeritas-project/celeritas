@@ -70,9 +70,6 @@ auto build_geometry(inp::Model const& m)
  * Load a core geometry model.
  *
  * This is for unit tests and as an implementation detail of \c problem.
- *
- * \internal Construction requirements:
- * - The geometry is allowed to be an empty string only for unit tests
  */
 ModelLoaded model(inp::Model const& m)
 {
@@ -82,16 +79,17 @@ ModelLoaded model(inp::Model const& m)
     result.geometry = build_geometry(m);
 
     // Construct volume params if it was added to the input
-    result.volume = [&m] {
-        if (m.volumes)
-        {
-            return std::make_shared<VolumeParams>(m.volumes);
-        }
+    if (!m.volumes)
+    {
         CELER_LOG(debug) << "Volume structure data is unavailable";
-        return std::make_shared<VolumeParams>();
-    }();
+    }
+    result.volume = std::make_shared<VolumeParams>();
 
     // Construct surfaces
+    if (!m.surfaces)
+    {
+        CELER_LOG(debug) << "No surfaces are defined";
+    }
     result.surface
         = std::make_shared<SurfaceParams>(m.surfaces, *result.volume);
 
