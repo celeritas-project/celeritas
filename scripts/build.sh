@@ -24,9 +24,10 @@ log() {
 
   case "$level" in
     "debug")
-      color="2;37;40"; level="DEBUG" ;
+      color="2;37;40"
       printf "\033[${color}m%s\033[0m\n" "$message" >&2
-      return ;;
+      return
+      ;;
     "info") color="32;40"; level="INFO" ;;
     "warning") color="33;40"; level="WARNING" ;;
     "error") color="31;40"; level="ERROR" ;;
@@ -130,7 +131,7 @@ setup_ccache
 # Check arguments and give presets if missing
 if [ $# -eq 0 ]; then
   echo "Usage: $0 PRESET [config_args...]" >&2
-  if command cmake 2>/dev/null ; then
+  if hash cmake 2>/dev/null ; then
     cmake --list-presets >&2 \
       || log error "CMake may be too old or JSON file may be broken"
   else

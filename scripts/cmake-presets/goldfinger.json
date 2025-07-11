@@ -4,6 +4,7 @@
   "configurePresets": [
     {
       "name": ".ccache",
+      "hidden": true,
       "cacheVariables": {
         "CMAKE_CXX_COMPILER_LAUNCHER": "/opt/homebrew/bin/ccache",
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -Werror -Wno-error=deprecated -pedantic -fdiagnostics-color=always -ffile-prefix-map=${sourceDir}/=./"
@@ -11,6 +12,7 @@
     },
     {
       "name": ".base",
+      "hidden": true,
       "generator": "Ninja",
       "inherits": [".spack-env"],
       "binaryDir": "${sourceDir}/build-${presetName}",
