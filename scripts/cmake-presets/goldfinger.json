@@ -4,6 +4,7 @@
   "configurePresets": [
     {
       "name": ".ccache",
+      "hidden": true,
       "cacheVariables": {
         "CMAKE_CXX_COMPILER_LAUNCHER": "/opt/homebrew/bin/ccache",
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -Werror -Wno-error=deprecated -pedantic -fdiagnostics-color=always -ffile-prefix-map=${sourceDir}/=./"
@@ -11,6 +12,7 @@
     },
     {
       "name": ".base",
+      "hidden": true,
       "generator": "Ninja",
       "inherits": [".spack-env"],
       "binaryDir": "${sourceDir}/build-${presetName}",
@@ -30,6 +32,8 @@
         "CELERITAS_BUILTIN_G4VG": {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_BUILTIN_nlohmann_json": {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_BUILTIN_GTest": {"type": "BOOL",   "value": "OFF"},
+        "CMAKE_C_COMPILER_LAUNCHER": null,
+        "CMAKE_CXX_COMPILER_LAUNCHER": null,
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL",   "value": "ON"},
         "CMAKE_OSX_DEPLOYMENT_TARGET": {"type": "STRING", "value": "15"},
         "CMAKE_CXX_STANDARD":   {"type": "STRING",   "value": "17"},

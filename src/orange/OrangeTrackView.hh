@@ -462,13 +462,6 @@ CELER_FUNCTION Real3 const& OrangeTrackView::dir() const
 CELER_FUNCTION VolumeId OrangeTrackView::volume_id() const
 {
     ImplVolumeId impl_id = this->impl_volume_id();
-    if (!params_.volume_ids.empty())
-    {
-        // Return structural volume mapping
-        CELER_ASSERT(impl_id);
-        return params_.volume_ids[impl_id];
-    }
-    // No volume mapping specified (unit test or SCALE embedding)
     return impl_id;
 }
 
@@ -481,14 +474,6 @@ CELER_FUNCTION VolumeId OrangeTrackView::volume_id() const
  */
 CELER_FUNCTION VolumeInstanceId OrangeTrackView::volume_instance_id() const
 {
-    if (!params_.volume_instance_ids.empty())
-    {
-        // Return structural volume mapping
-        ImplVolumeId impl_id = this->impl_volume_id();
-        CELER_ASSERT(impl_id);
-        return params_.volume_instance_ids[impl_id];
-    }
-    // No volume mapping specified (unit test or SCALE embedding)
     return {};
 }
 
