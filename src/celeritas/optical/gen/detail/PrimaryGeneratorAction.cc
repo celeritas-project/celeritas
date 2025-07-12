@@ -59,7 +59,7 @@ std::shared_ptr<PrimaryGeneratorAction> PrimaryGeneratorAction::make_and_insert(
 PrimaryGeneratorAction::PrimaryGeneratorAction(ActionId id,
                                                AuxId aux_id,
                                                GeneratorId gen_id,
-                                               Input&& inp)
+                                               Input inp)
     : action_id_(id), aux_id_(aux_id), gen_id_(gen_id)
 {
     CELER_EXPECT(action_id_);

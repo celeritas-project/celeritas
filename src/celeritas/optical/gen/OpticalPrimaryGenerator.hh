@@ -67,9 +67,12 @@ OpticalPrimaryGenerator::operator()(Generator& rng)
     result.energy = data_.energy;
     result.position = data_.position;
     result.direction = sample_angle_(rng);
-    result.polarization = sample_angle_(rng);
-    result.polarization = make_unit_vector(
-        make_orthogonal(result.polarization, result.direction));
+    do
+    {
+        result.polarization = make_unit_vector(
+            make_orthogonal(sample_angle_(rng), result.direction));
+    } while (CELER_UNLIKELY(
+        !soft_zero(dot_product(result.polarization, result.direction))));
 
     return result;
 }

@@ -56,7 +56,7 @@ class PrimaryGeneratorAction final
                     Input&&);
 
     // Construct with action ID, data IDs, and optical properties
-    PrimaryGeneratorAction(ActionId, AuxId, GeneratorId, Input&&);
+    PrimaryGeneratorAction(ActionId, AuxId, GeneratorId, Input);
 
     //!@{
     //! \name Aux interface

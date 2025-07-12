@@ -149,8 +149,11 @@ TEST_F(LArSphereLaunchTest, primary_generator)
     // Get the accumulated counters
     auto result = this->counters();
 
-    EXPECT_EQ(105223, result.steps);
-    EXPECT_EQ(33, result.step_iters);
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_EQ(105163, result.steps);
+        EXPECT_EQ(34, result.step_iters);
+    }
     EXPECT_EQ(1, result.flushes);
     ASSERT_EQ(1, result.generators.size());
 
