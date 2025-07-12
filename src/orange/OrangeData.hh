@@ -368,7 +368,7 @@ struct OrangeParamsData
     Items<RectArrayRecord> rect_arrays;
     Items<TransformRecord> transforms;
 
-    // Map of ORANGE internal volume ID -> Celeritas volume ID
+    // Optional map of ORANGE internal volume ID -> Celeritas volume ID
     ImplVolumeItems<VolumeId> volume_ids;
     ImplVolumeItems<VolumeInstanceId> volume_instance_ids;
     // TODO: for reconstructing hierarchy:
@@ -399,6 +399,7 @@ struct OrangeParamsData
     {
         return scalars && !universe_types.empty()
                && universe_indices.size() == universe_types.size()
+               && volume_ids.size() == volume_instance_ids.size()
                && (bih_tree_data || !simple_units.empty())
                && ((!local_volume_ids.empty() && !logic_ints.empty()
                     && !reals.empty())
@@ -417,6 +418,9 @@ struct OrangeParamsData
         simple_units = other.simple_units;
         rect_arrays = other.rect_arrays;
         transforms = other.transforms;
+
+        volume_ids = other.volume_ids;
+        volume_instance_ids = other.volume_instance_ids;
 
         bih_tree_data = other.bih_tree_data;
 
