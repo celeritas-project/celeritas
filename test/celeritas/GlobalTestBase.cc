@@ -23,6 +23,7 @@
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/SurfaceParams.hh"
 #include "geocel/VolumeParams.hh"
+#include "geocel/inp/Model.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/global/CoreParams.hh"
