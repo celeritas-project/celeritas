@@ -52,7 +52,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
     {
         SPOpticalParams optical_params;
         size_type num_track_slots{};
-        size_type max_step_iters{};
+        size_type max_step_iters{static_cast<size_type>(-1)};
         size_type auto_flush{};
 
         //! True if all input is assigned and valid

@@ -18,7 +18,7 @@ namespace celeritas
 {
 namespace inp
 {
-struct PrimaryGenerator;
+struct CorePrimaryGenerator;
 }
 
 //---------------------------------------------------------------------------//
@@ -83,8 +83,8 @@ struct PrimaryGeneratorOptions
 };
 
 //---------------------------------------------------------------------------//
-// Convert PrimaryGeneratorOptions to inp::PrimaryGenerator.
-inp::PrimaryGenerator to_input(PrimaryGeneratorOptions const&);
+// Convert PrimaryGeneratorOptions to inp::CorePrimaryGenerator.
+inp::CorePrimaryGenerator to_input(PrimaryGeneratorOptions const&);
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
