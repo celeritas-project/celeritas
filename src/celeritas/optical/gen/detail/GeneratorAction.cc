@@ -152,18 +152,12 @@ void GeneratorAction<G>::step_impl(optical::CoreParams const& params,
     auto& aux_state = get<GeneratorState<M>>(*state.aux(), aux_id_);
     auto& gen_counters = aux_state.counters;
 
-    if (gen_counters.buffer_size == 0)
+    if (gen_counters.num_generated == 0 && gen_counters.buffer_size > 0)
     {
-        // No new photons from this generating process
-        return;
-    }
-
-    if (gen_counters.num_generated == 0)
-    {
-        // On the first step iteration, calculate the cumulative sum of the
-        // number of photons in the buffered distributions. These values are
-        // used to determine which thread will generate photons from which
-        // distribution
+        // If this process created photons, on the first step iteration
+        // calculate the cumulative sum of the number of photons in the
+        // buffered distributions. These values are used to determine which
+        // thread will generate photons from which distribution
         gen_counters.num_pending
             = inclusive_scan_photons(aux_state.store.ref().distributions,
                                      aux_state.store.ref().offsets,
@@ -173,6 +167,7 @@ void GeneratorAction<G>::step_impl(optical::CoreParams const& params,
 
     auto& counters = state.counters();
     size_type num_gen = min(counters.num_vacancies, gen_counters.num_pending);
+
     if (num_gen > 0)
     {
         // Generate the optical photons from the distribution data
@@ -191,10 +186,10 @@ void GeneratorAction<G>::step_impl(optical::CoreParams const& params,
         {
             // Reset the buffer size and number of photons generated
             aux_state.accum.buffer_size += gen_counters.buffer_size;
-            gen_counters.buffer_size = 0;
-            gen_counters.num_generated = 0;
+            gen_counters = {};
         }
     }
+
     counters.num_active = state.size() - counters.num_vacancies;
 }
 
