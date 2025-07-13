@@ -334,7 +334,7 @@ VecgeomParams::~VecgeomParams()
  */
 inp::Model VecgeomParams::make_model_input() const
 {
-    CELER_LOG(warning) << "ORANGE cannot yet construct model input";
+    CELER_LOG(warning) << "VecGeom cannot yet construct model input";
     inp::Model result;
 
     return result;

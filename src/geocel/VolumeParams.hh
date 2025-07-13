@@ -83,7 +83,7 @@ class VolumeParams
     inline GeoMatId material(VolumeId v_id) const;
 
     // Get the volume being instantiated (outgoing node)
-    inline VolumeId volume(VolumeInstanceId viid) const;
+    inline VolumeId volume(VolumeInstanceId vi_id) const;
 
   private:
     VolumeMap v_labels_;
