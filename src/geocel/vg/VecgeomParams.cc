@@ -329,10 +329,15 @@ VecgeomParams::~VecgeomParams()
 //---------------------------------------------------------------------------//
 /*!
  * Create model parameters corresponding to our internal representation.
+ *
+ * This could be used to eliminate the "gaps" from the `[TEMP]` volumes.
  */
 inp::Model VecgeomParams::make_model_input() const
 {
-    CELER_NOT_IMPLEMENTED("model input from VecGeom");
+    CELER_LOG(warning) << "VecGeom cannot yet construct model input";
+    inp::Model result;
+
+    return result;
 }
 
 //---------------------------------------------------------------------------//

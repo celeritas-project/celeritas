@@ -82,6 +82,9 @@ class LabelIdMultiMap
     //! Get the number of elements
     CELER_FORCEINLINE size_type size() const { return keys_.size(); }
 
+    //! Whether no elements are present
+    CELER_FORCEINLINE bool empty() const { return keys_.empty(); }
+
     // Whether this map is initialized
     inline explicit operator bool() const;
 

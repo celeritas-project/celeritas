@@ -130,6 +130,7 @@ list(APPEND SOURCES
   setup/Events.cc
   setup/FrameworkInput.cc
   setup/Import.cc
+  setup/Model.cc
   setup/Problem.cc
   setup/StandaloneInput.cc
   setup/System.cc
