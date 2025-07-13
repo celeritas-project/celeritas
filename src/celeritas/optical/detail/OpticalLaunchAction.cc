@@ -124,7 +124,7 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
     if (!state.aux())
     {
         // Get a pointer to the auxiliary state vector
-        //! \todo Set this in \c begin_run?
+        //! \todo Add a \c begin_run and set this there?
         state.aux() = core_state.aux_ptr();
     }
 

@@ -121,6 +121,8 @@ class LArSphereLaunchTest : public LArSphereBase
  */
 OpticalAccumStats LArSphereLaunchTest::counters() const
 {
+    CELER_EXPECT(core_state_->aux_ptr());
+
     auto& aux = core_state_->aux();
     auto& state
         = dynamic_cast<optical::CoreStateBase&>(aux.at(launch_->aux_id()));
@@ -135,7 +137,7 @@ OpticalAccumStats LArSphereLaunchTest::counters() const
 
 TEST_F(LArSphereLaunchTest, primary_generator)
 {
-    // Get a pointer to the auxiliary state vector
+    // Get the optical state and pointer to the auxiliary state vector
     auto& state = get<optical::CoreState<MemSpace::host>>(core_state_->aux(),
                                                           launch_->aux_id());
     state.aux() = core_state_->aux_ptr();

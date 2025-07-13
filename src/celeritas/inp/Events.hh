@@ -101,7 +101,7 @@ struct CorePrimaryGenerator : PrimaryGenerator
  * Generate optical photon primary particles.
  *
  * \todo Optionally sample within a set of volumes for shape distribution?
- * \todo Time distribution?
+ * \todo Time? Polarization?
  */
 using OpticalPrimaryGenerator = PrimaryGenerator;
 

@@ -34,8 +34,8 @@ namespace detail
 /*!
  * Generate optical primaries from user-configurable distributions.
  *
- * This samples and initializes optical photons directly in track slots in a
- * reproducible way.
+ * This reproducibly samples and initializes optical photons directly in track
+ * slots.
  */
 class PrimaryGeneratorAction final
     : public optical::OpticalStepActionInterface,
@@ -55,7 +55,7 @@ class PrimaryGeneratorAction final
                     optical::CoreParams const&,
                     Input&&);
 
-    // Construct with action ID, data IDs, and optical properties
+    // Construct with IDs and distributions
     PrimaryGeneratorAction(ActionId, AuxId, GeneratorId, Input);
 
     //!@{
@@ -131,7 +131,8 @@ class PrimaryGeneratorAction final
  * before the optical loop is launched.
  *
  * \todo Currently this is only called during testing, but it *must* be done at
- * the beginning of each event once this action is integrated into the code.
+ * the beginning of each event once this action is integrated into the stepping
+ * loop. Refactor/replace this.
  */
 template<MemSpace M>
 void PrimaryGeneratorAction::queue_primaries(optical::CoreState<M>& state) const

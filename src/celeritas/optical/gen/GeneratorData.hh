@@ -24,8 +24,8 @@ namespace celeritas
 /*!
  * Data for sampling optical photons from user-configurable distributions.
  *
- * \todo For now this is hardcoded to generate a point source of monoenergetic
- * photons with isotropically distributed direction. Make this configurable.
+ * \todo For now this is hardcoded to generate a point source of monoenergetic,
+ * isotropic photons. Make this configurable.
  */
 struct PrimaryDistributionData
 {
