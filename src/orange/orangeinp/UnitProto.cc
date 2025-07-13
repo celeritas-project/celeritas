@@ -17,6 +17,7 @@
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/VolumeToString.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeInput.hh"
 #include "orange/transform/VariantTransform.hh"
@@ -251,9 +252,14 @@ void UnitProto::build(ProtoBuilder& input) const
         LocalVolumeId const vol_id{
             static_cast<size_type>(vol_iter - result.volumes.begin())};
 
-        // Save daughter volume attributes
-        vol_iter->label
-            = Label{std::string{d.fill->label()}, std::string{this->label()}};
+        // Save daughter attributes
+        vol_iter->label = d.label;
+        if (vol_iter->label == VariantLabel{})
+        {
+            // Choose default label for the volume
+            vol_iter->label = Label{std::string{d.fill->label()},
+                                    std::string{this->label()}};
+        }
         vol_iter->zorder = d.zorder;
         /* TODO: the "embedded_universe" flag is *also* set by the unit
          * builder. Move that here. */
@@ -284,9 +290,12 @@ void UnitProto::build(ProtoBuilder& input) const
     for (auto const& m : input_.materials)
     {
         CELER_ASSERT(vol_iter != result.volumes.end());
-        vol_iter->label = !m.label.empty()
-                              ? m.label
-                              : Label{std::string(m.interior->label())};
+        vol_iter->label = m.label;
+        if (vol_iter->label == decltype(m.label){})
+        {
+            // Default: empty label
+            vol_iter->label = Label{std::string(m.interior->label())};
+        }
         vol_iter->zorder = ZOrder::media;
         ++vol_iter;
     }
@@ -294,9 +303,7 @@ void UnitProto::build(ProtoBuilder& input) const
     if (input_.background)
     {
         CELER_ASSERT(vol_iter != result.volumes.end());
-        vol_iter->label = !input_.background.label.empty()
-                              ? input_.background.label
-                              : Label{input_.label, "bg"};
+        vol_iter->label = Label{input_.label, "bg"};
         ++vol_iter;
     }
     CELER_EXPECT(vol_iter == result.volumes.end());
@@ -476,29 +483,29 @@ void UnitProto::output(JsonPimpl* j) const
     using json = nlohmann::json;
 
     auto obj = json::object({{"label", input_.label}});
+    VolumeToString to_string;
 
     if (auto& bg = input_.background)
     {
         obj["background"] = {
             {"fill", bg.fill.unchecked_get()},
-            {"label", bg.label},
         };
     }
 
-    obj["materials"] = [&ms = input_.materials] {
+    obj["materials"] = [&ms = input_.materials, to_string] {
         auto result = json::array();
         for (auto const& m : ms)
         {
             result.push_back({
                 {"interior", m.interior},
                 {"fill", m.fill.get()},
-                {"label", m.label},
+                {"label", std::visit(to_string, m.label)},
             });
         }
         return result;
     }();
 
-    obj["daughters"] = [&ds = input_.daughters] {
+    obj["daughters"] = [&ds = input_.daughters, to_string] {
         auto result = json::array();
         for (auto const& d : ds)
         {
@@ -506,6 +513,7 @@ void UnitProto::output(JsonPimpl* j) const
                 {"fill", d.fill->label()},
                 {"transform", d.transform},
                 {"zorder", to_cstring(d.zorder)},
+                {"label", std::visit(to_string, d.label)},
             });
         }
         return result;

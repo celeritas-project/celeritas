@@ -111,8 +111,8 @@
 ],
 "volume_labels": [
 "[EXTERIOR]@outer",
-"inner@outer",
-"inner@outer",
+"i0",
+"i1",
 "bobby",
 "johnny"
 ],
@@ -302,7 +302,7 @@
 ],
 "volume_labels": [
 "[EXTERIOR]@inner",
-"most_inner@inner",
+"p",
 "a",
 "b",
 "c"

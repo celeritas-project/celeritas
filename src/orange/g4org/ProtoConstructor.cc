@@ -85,7 +85,6 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
                       << std::endl;
         }
         input.background.fill = lv.material_id;
-        input.background.label = label;
     }
 
     CELER_ENSURE(input);
@@ -210,7 +209,8 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
             --depth_;
         }
         CELER_ASSERT(iter->second);
-        proto->daughters.push_back({iter->second, transform, ZOrder::media});
+        proto->daughters.push_back(
+            {iter->second, transform, ZOrder::media, pv.id});
 
         if (CELER_UNLIKELY(verbose_))
         {

@@ -110,6 +110,7 @@ void append_daughter(UnitProto::Input& inp,
     UnitProto::DaughterInput di;
     di.fill = std::move(fill);
     di.transform = std::move(transform);
+    di.label = std::move(label);
     inp.daughters.emplace_back(std::move(di));
 }
 
