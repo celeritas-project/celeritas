@@ -103,10 +103,12 @@ class SurfacesTest : public ::celeritas::test::Test
     }
 };
 
+//! Construct for EM-only physics
 TEST_F(SurfacesTest, none)
 {
     SurfaceParams sp;
     EXPECT_TRUE(sp.empty());
+    EXPECT_TRUE(sp.disabled());
     EXPECT_EQ(0, sp.num_surfaces());
     EXPECT_EQ(0, sp.labels().size());
 
@@ -116,17 +118,20 @@ TEST_F(SurfacesTest, none)
     }
 }
 
+//! Construct for optical physics
 TEST_F(SurfacesTest, none_but_volumes)
 {
     auto volumes = this->make_volume_params();
     SurfaceParams sp{{}, volumes};
     EXPECT_TRUE(sp.empty());
+    EXPECT_FALSE(sp.disabled());
     EXPECT_EQ(0, sp.num_surfaces());
     EXPECT_EQ(0, sp.labels().size());
 
-    if (CELERITAS_DEBUG)
     {
-        EXPECT_THROW(VolumeSurfaceView(sp.host_ref(), VolumeId{0}), DebugError);
+        VolumeSurfaceView vsv(sp.host_ref(), VolumeId{0});
+        EXPECT_EQ(SurfaceId{}, vsv.boundary_id());
+        EXPECT_FALSE(vsv.has_interface());
     }
 }
 
@@ -169,6 +174,7 @@ TEST_F(SurfacesTest, borders)
                      this->make_volume_params()};
 
     EXPECT_FALSE(sp.empty());
+    EXPECT_FALSE(sp.disabled());
     EXPECT_EQ(3, sp.num_surfaces());
     static char const* const expected_labels[] = {"b", "d", "e"};
     EXPECT_VEC_EQ(expected_labels, get_multimap_labels(sp.labels()));

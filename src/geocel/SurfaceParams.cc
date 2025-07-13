@@ -41,17 +41,14 @@ SurfaceParams::SurfaceParams(inp::Surfaces const& input,
         // Convert the temporary data to device-compatible format
         HostVal<SurfaceParamsData> host_data;
         host_data.num_surfaces = labels_.size();
-        if (host_data.num_surfaces > 0)
-        {
-            // Only resize surface array if surfaces are defined
-            detail::VolumeSurfaceRecordBuilder build_record(
-                &host_data.volume_surfaces,
-                &host_data.volume_instance_ids,
-                &host_data.surface_ids);
-            std::for_each(temp_volume_surfaces.begin(),
-                          temp_volume_surfaces.end(),
-                          build_record);
-        }
+        // Always resize surface array, even if no surfaces are defined
+        detail::VolumeSurfaceRecordBuilder build_record(
+            &host_data.volume_surfaces,
+            &host_data.volume_instance_ids,
+            &host_data.surface_ids);
+        std::for_each(temp_volume_surfaces.begin(),
+                      temp_volume_surfaces.end(),
+                      build_record);
         CELER_ENSURE(host_data);
         return host_data;
     }()};
@@ -62,9 +59,13 @@ SurfaceParams::SurfaceParams(inp::Surfaces const& input,
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct empty surfaces for when optical physics is disabled.
+ * Construct no surface data for when optical physics is disabled.
  */
-SurfaceParams::SurfaceParams() : SurfaceParams{{}, {}} {}
+SurfaceParams::SurfaceParams() : labels_{{"surfaces"}, {}}
+{
+    CELER_ENSURE(data_);
+    CELER_ENSURE(labels_.size() == this->host_ref().num_surfaces);
+}
 
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION
