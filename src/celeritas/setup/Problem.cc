@@ -383,7 +383,20 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
                    "result in arbitrarily small steps without displacement";
         }
         params.volume = std::move(loaded_model.volume);
-        params.surface = std::move(loaded_model.surface);
+        if (p.control.optical_capacity)
+        {
+            params.surface = std::move(loaded_model.surface);
+        }
+        else
+        {
+            CELER_ASSERT(loaded_model.surface);
+            if (!loaded_model.surface->empty())
+            {
+                CELER_LOG(debug) << "Ignoring surfaces for non-optical "
+                                    "problem";
+            }
+            params.surface = std::make_shared<SurfaceParams>();
+        }
     }
 
     // Load materials
