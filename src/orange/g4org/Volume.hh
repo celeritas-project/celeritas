@@ -59,8 +59,8 @@ struct LogicalVolume
 {
     using SPConstObject = std::shared_ptr<orangeinp::ObjectInterface const>;
 
-    //! Corresponding Geant4 logical volume
-    ImplVolumeId id;
+    //! Corresponding Geant4 logical volume, primarily for debug output
+    VolumeId id;
     //! Filled material ID
     GeoMatId material_id;
 

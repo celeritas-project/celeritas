@@ -57,9 +57,6 @@ class ProtoConstructor
     int depth_{0};
     bool verbose_{false};
 
-    Label const& get_label(LogicalVolume const& lv);
-    Label const& get_label(PhysicalVolume const& lv);
-
     // Place a physical volume into the given unconstructed proto
     void place_pv(VariantTransform const& parent_transform,
                   PhysicalVolume const& pv,

@@ -138,8 +138,8 @@ TEST_F(ConverterTest, tilecal_plug)
         EXPECT_EQ(4, unit.volumes.size());
         VolumeInstanceAccessor get_vi_id{unit.volumes};
         // See GeoTests
-        EXPECT_EQ("Tile_Plug1Module", get_vi_id(1));
-        EXPECT_EQ("Tile_Absorber", get_vi_id(2));
+        EXPECT_EQ("1", get_vi_id(1));  // Tile_Plug1Module
+        EXPECT_EQ("0", get_vi_id(2));  // Tile_Absorber
         EXPECT_EQ("Tile_ITCModule", get_vi_id(3));
     }
 }
