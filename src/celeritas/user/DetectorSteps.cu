@@ -156,9 +156,9 @@ void copy_steps<MemSpace::device>(
     DS_ASSIGN(primary_id);
     DS_ASSIGN(track_step_count);
     DS_ASSIGN(step_length);
+    DS_ASSIGN(weight);
     DS_ASSIGN(particle);
     DS_ASSIGN(energy_deposition);
-    DS_ASSIGN(weight);
 
     output->volume_instance_depth = state.volume_instance_depth;
 

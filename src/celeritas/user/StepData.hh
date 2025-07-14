@@ -103,7 +103,7 @@ struct StepSelection
     {
         return points[StepPoint::pre] || points[StepPoint::post] || event_id
                || parent_id || track_step_count || action_id || step_length
-               || particle || energy_deposition;
+               || weight || particle || energy_deposition;
     }
 
     //! Combine the selection with another
@@ -283,7 +283,8 @@ struct StepStateDataImpl
                && right_sized(event_id) && right_sized(parent_id)
                && right_sized(primary_id) && right_sized(track_step_count)
                && right_sized(action_id) && right_sized(step_length)
-               && right_sized(particle) && right_sized(energy_deposition);
+               && right_sized(weight) && right_sized(particle)
+               && right_sized(energy_deposition);
     }
 
     //! State size
