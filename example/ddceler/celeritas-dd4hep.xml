@@ -1,0 +1,152 @@
+<!------------------------------- -*- XML -*- ------------------------------->
+<!-- Copyright Celeritas contributors: see top-level COPYRIGHT file for details -->
+<!-- SPDX-License-Identifier: (Apache-2.0 OR MIT) -->
+<!--------------------------------------------------------------------------->
+<!-- \file ddceler/celertias-dd4hep.xml -->
+<!--------------------------------------------------------------------------->
+
+<?xml version="1.0" encoding="UTF-8"?>
+<lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0"
+       xmlns:xs="http://www.w3.org/2001/XMLSchema"
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
+
+  <info name="CeleritasDD4hep" title="Celeritas DD4hep Geometry" author="Sakib Rahman" url="http://dd4hep.cern.ch" status="development" version="1.0">
+    <comment>Minimal detector geometry with a calorimeter and 2 tracker layers to test the celeritas-dd4hep integration plugin</comment>
+  </info>
+
+  <define>
+    <!-- World dimensions -->
+    <constant name="world_side" value="5*m"/>
+    <constant name="world_x" value="world_side"/>
+    <constant name="world_y" value="world_side"/>
+    <constant name="world_z" value="world_side"/>
+    <constant name="tracker_region_rmax" value="world_side"/>
+    <constant name="tracker_region_zmax" value="world_side"/>
+
+    <!-- Beampipe parameters -->
+    <constant name="beampipe_inner_radius" value="15*mm"/>
+    <constant name="beampipe_outer_radius" value="17*mm"/>
+    <constant name="beampipe_length" value="2000*mm"/>
+    <constant name="beampipe_thickness" value="beampipe_outer_radius - beampipe_inner_radius"/>
+
+    <!-- Tracker parameters -->
+    <constant name="tracker_inner_radius" value="20*mm"/>
+    <constant name="tracker_outer_radius" value="200*mm"/>
+    <constant name="tracker_layer1_radius" value="50*mm"/>
+    <constant name="tracker_layer2_radius" value="100*mm"/>
+    <constant name="tracker_layer_thickness" value="0.3*mm"/>
+    <constant name="tracker_length" value="600*mm"/>
+
+    <!-- Calorimeter parameters -->
+    <constant name="calorimeter_inner_radius" value="250*mm"/>
+    <constant name="calorimeter_outer_radius" value="800*mm"/>
+    <constant name="calorimeter_length" value="1200*mm"/>
+  </define>
+
+  <includes>
+    <gdmlFile ref="${DD4hepINSTALL}/DDDetectors/compact/elements.xml"/>
+  </includes>
+
+  <materials>
+    <!-- Basic elements -->
+    <material name="Air" formula="N0.78O0.22Ar0.01">
+      <D unit="g/cm3" value="0.0012"/>
+      <composite n="0.78" ref="N"/>
+      <composite n="0.22" ref="O"/>
+      <composite n="0.01" ref="Ar"/>
+    </material>
+
+    <material name="Silicon" formula="Si">
+      <D unit="g/cm3" value="2.33"/>
+      <composite n="1" ref="Si"/>
+    </material>
+
+    <material name="Lead" formula="Pb">
+      <D unit="g/cm3" value="11.34"/>
+      <composite n="1" ref="Pb"/>
+    </material>
+
+    <material name="Beryllium" formula="Be">
+      <D unit="g/cm3" value="1.85"/>
+      <composite n="1" ref="Be"/>
+    </material>
+
+    <material name="Scintillator">
+      <D unit="g/cm3" value="1.032"/>
+      <composite n="9" ref="C"/>
+      <composite n="10" ref="H"/>
+    </material>
+
+    <!-- Vacuum for world volume -->
+    <material name="Vacuum">
+      <D unit="g/cm3" value="1e-25"/>
+      <composite n="1" ref="H"/>
+    </material>
+  </materials>
+
+  <limits>
+    <limitset name="cal_limits">
+      <limit name="step_length_max" particles="*" value="5.0" unit="mm"/>
+    </limitset>
+  </limits>
+
+  <regions>
+    <region name="BeamPipeRegion" eunit="MeV" lunit="mm" cut="0.001" threshold="0.001"/>
+    <region name="TrackerRegion" eunit="MeV" lunit="mm" cut="0.001" threshold="0.001"/>
+    <region name="CalorimeterRegion" eunit="MeV" lunit="mm" cut="0.001" threshold="0.001"/>
+  </regions>
+
+  <display>
+    <vis name="InvisibleNoDaughters" showDaughters="false" visible="false"/>
+    <vis name="InvisibleWithDaughters" showDaughters="true" visible="false"/>
+    <vis name="WorldVis" showDaughters="true" visible="false"/>
+    <vis name="BeampipeVis" alpha="0.3" r="0.5" g="0.5" b="0.5" showDaughters="true" visible="true"/>
+    <vis name="TrackerVis" alpha="0.5" r="0.0" g="0.0" b="1.0" showDaughters="true" visible="true"/>
+    <vis name="CalorimeterVis" alpha="0.5" r="1.0" g="0.0" b="0.0" showDaughters="true" visible="true"/>
+  </display>
+
+  <detectors>
+    <detector id="-1" name="WorldVolume" type="Box" vis="WorldVis">
+      <dimensions x="world_x" y="world_y" z="world_z"/>
+      <material name="Vacuum"/>
+    </detector>
+
+    <detector id="0" name="Beampipe" type="SimpleCylindrical" readout="BeampipeHits" vis="BeampipeVis" sens_type="passive">
+      <layer id="1" inner_r="beampipe_inner_radius" outer_r="beampipe_outer_radius" z_length="beampipe_length"/>
+      <material name="Beryllium"/>
+    </detector>
+
+    <detector id="1" name="InnerTracker" type="SimpleCylindrical" readout="TrackerHits" vis="TrackerVis" sens_type="tracker">
+      <layer id="1" inner_r="tracker_layer1_radius" outer_r="tracker_layer1_radius + tracker_layer_thickness" z_length="tracker_length" />
+      <layer id="2" inner_r="tracker_layer2_radius" outer_r="tracker_layer2_radius + tracker_layer_thickness" z_length="tracker_length" />
+      <material name="Silicon"/>
+    </detector>
+
+    <detector id="2" name="Calorimeter" type="SimpleCylindrical" readout="CalorimeterHits" vis="CalorimeterVis" sens_type="calorimeter">
+      <layer id="1" inner_r="calorimeter_inner_radius" outer_r="calorimeter_outer_radius" z_length="calorimeter_length"/>
+      <material name="Lead"/>
+    </detector>
+  </detectors>
+
+  <readouts>
+    <readout name="BeampipeHits">
+      <segmentation type="CartesianGridXY" grid_size_x="1*mm" grid_size_y="1*mm"/>
+      <id>system:8,layer:4,x:32:-16,y:-16</id>
+    </readout>
+
+    <readout name="TrackerHits">
+      <segmentation type="CartesianGridXY" grid_size_x="0.1*mm" grid_size_y="0.1*mm"/>
+      <id>system:8,layer:4,x:32:-16,y:-16</id>
+    </readout>
+
+    <readout name="CalorimeterHits">
+      <segmentation type="CartesianGridXY" grid_size_x="10*mm" grid_size_y="10*mm"/>
+      <id>system:8,layer:4,x:32:-16,y:-16</id>
+    </readout>
+  </readouts>
+
+  <fields>
+    <field name="GlobalSolenoid" type="solenoid" inner_field="3.5*tesla" outer_field="0*tesla" zmax="1.5*m" inner_radius="1.0*m" outer_radius="1.2*m"/>
+  </fields>
+
+</lccdd>
