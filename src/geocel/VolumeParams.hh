@@ -53,10 +53,10 @@ class VolumeParams
     explicit VolumeParams(inp::Volumes const&);
 
     // Construct empty volume params for unit testing: no volumes
-    VolumeParams() = default;
+    VolumeParams();
 
     //! Empty if no volumes are present (e.g., ORANGE debugging)
-    bool empty() const { return !v_labels_; }
+    bool empty() const { return v_labels_.empty(); }
 
     //! Number of volumes
     VolumeId::size_type num_volumes() const { return v_labels_.size(); }
@@ -83,7 +83,7 @@ class VolumeParams
     inline GeoMatId material(VolumeId v_id) const;
 
     // Get the volume being instantiated (outgoing node)
-    inline VolumeId volume(VolumeInstanceId viid) const;
+    inline VolumeId volume(VolumeInstanceId vi_id) const;
 
   private:
     VolumeMap v_labels_;

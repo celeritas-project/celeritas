@@ -219,6 +219,17 @@ OrangeParams::OrangeParams(OrangeInput&& input)
     CELER_ENSURE(vol_labels_.size() > 0);
     CELER_ENSURE(bbox_);
 }
+//---------------------------------------------------------------------------//
+/*!
+ * Create model parameters corresponding to our internal representation.
+ */
+inp::Model OrangeParams::make_model_input() const
+{
+    CELER_LOG(warning) << "ORANGE cannot yet construct model input";
+    inp::Model result;
+
+    return result;
+}
 
 //---------------------------------------------------------------------------//
 /*!

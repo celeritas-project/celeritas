@@ -7,7 +7,6 @@
 #include "SimpleTestBase.hh"
 
 #include "corecel/sys/ActionRegistry.hh"
-#include "geocel/SurfaceParams.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/alongstep/AlongStepNeutralAction.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
@@ -168,12 +167,6 @@ auto SimpleTestBase::build_sim() -> SPConstSim
     SimParams::Input input;
     input.particles = this->particle();
     return std::make_shared<SimParams>(input);
-}
-
-//---------------------------------------------------------------------------//
-auto SimpleTestBase::build_surface() -> SPConstSurface
-{
-    return std::make_shared<SurfaceParams>();
 }
 
 //---------------------------------------------------------------------------//

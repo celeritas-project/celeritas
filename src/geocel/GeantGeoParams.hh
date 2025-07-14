@@ -250,7 +250,7 @@ inline void geant_geo(GeantGeoParams const&)
 }
 inline GeantGeoParams const* geant_geo()
 {
-    CELER_ASSERT_UNREACHABLE();
+    return nullptr;
 }
 //-----------------------------------//
 

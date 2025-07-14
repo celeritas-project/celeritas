@@ -51,13 +51,16 @@ class SurfaceParams final : public ParamsDataInterface<SurfaceParamsData>
     // Construct from surface input
     SurfaceParams(inp::Surfaces const&, VolumeParams const& volumes);
 
-    // Construct without surfaces
+    // Construct without building any surface data structures
     SurfaceParams();
 
     //// METADATA ACCESS ////
 
     //! Whether any surfaces are present
     bool empty() const { return labels_.empty(); }
+
+    //! Whether surfaces are disabled for non-optical problems
+    bool disabled() const { return this->host_ref().volume_surfaces.empty(); }
 
     //! Number of surfaces
     SurfaceId::size_type num_surfaces() const { return labels_.size(); }

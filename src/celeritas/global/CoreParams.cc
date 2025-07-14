@@ -34,6 +34,7 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "geocel/SurfaceParams.hh"
+#include "geocel/VolumeParams.hh"
 #include "celeritas/alongstep/AlongStepNeutralAction.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/CoreGeoParams.hh"  // IWYU pragma: keep
@@ -93,6 +94,8 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.sim = get_ref<M>(*p.sim);
     ref.surface = get_ref<M>(*p.surface);
     ref.init = get_ref<M>(*p.init);
+    // TODO when volume params is visible on device:
+    // ref.volume = get_ref<M>(*p.volume);
     if (p.wentzel)
     {
         ref.wentzel = get_ref<M>(*p.wentzel);
@@ -253,7 +256,9 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     CP_VALIDATE_INPUT(physics);
     CP_VALIDATE_INPUT(rng);
     CP_VALIDATE_INPUT(sim);
+    CP_VALIDATE_INPUT(surface);
     CP_VALIDATE_INPUT(init);
+    CP_VALIDATE_INPUT(volume);
     CP_VALIDATE_INPUT(action_reg);
     CP_VALIDATE_INPUT(output_reg);
     CP_VALIDATE_INPUT(max_streams);

@@ -102,7 +102,6 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     {
         // Create action to generate Cherenkov primaries
         GeneratorAction<GT::cherenkov>::Input ga_inp;
-        ga_inp.optical_id = optical_aux_id;
         ga_inp.material = inp.material;
         ga_inp.shared = inp.cherenkov;
         ga_inp.capacity = inp.buffer_capacity;
@@ -113,7 +112,6 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     {
         // Create action to generate scintillation primaries
         GeneratorAction<GT::scintillation>::Input ga_inp;
-        ga_inp.optical_id = optical_aux_id;
         ga_inp.material = inp.material;
         ga_inp.shared = inp.scintillation;
         ga_inp.capacity = inp.buffer_capacity;

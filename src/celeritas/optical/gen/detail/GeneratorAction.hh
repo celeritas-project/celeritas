@@ -55,14 +55,13 @@ class GeneratorAction final : public optical::OpticalStepActionInterface,
     //! Generator input data
     struct Input
     {
-        AuxId optical_id;
         SPConstMaterial material;
         SPConstParams shared;
         size_type capacity{};
 
         explicit operator bool() const
         {
-            return optical_id && material && shared && capacity > 0;
+            return material && shared && capacity > 0;
         }
     };
 

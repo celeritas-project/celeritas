@@ -6,10 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "ImportedDataTestBase.hh"
 
-#include "geocel/GeantGeoParams.hh"
-#include "geocel/SurfaceParams.hh"
-#include "geocel/VolumeParams.hh"
-#include "geocel/inp/Model.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/io/ImportData.hh"
@@ -71,21 +67,6 @@ auto ImportedDataTestBase::build_sim() -> SPConstSim
         return SimParams::Input::from_import(this->imported_data(),
                                              this->particle());
     }());
-}
-
-//---------------------------------------------------------------------------//
-auto ImportedDataTestBase::build_surface() -> SPConstSurface
-{
-    if (auto const* geo = geant_geo())
-    {
-        auto model = geo->make_model_input();
-        if (!this->imported_data().optical_materials.empty())
-        {
-            auto volume = std::make_shared<VolumeParams>(model.volumes);
-            return std::make_shared<SurfaceParams>(model.surfaces, *volume);
-        }
-    }
-    return std::make_shared<SurfaceParams>();
 }
 
 //---------------------------------------------------------------------------//
