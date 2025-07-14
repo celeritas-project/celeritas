@@ -168,18 +168,14 @@ OrangeParams::OrangeParams(OrangeInput&& input, VolumeParams const& volumes)
         std::vector<Label> universe_labels;
         std::vector<Label> surface_labels;
         std::vector<Label> volume_labels;
-        // TODO: remove instance labels: will be used only by VolumeParams
-        std::vector<Label> volume_instance_labels;
 
-        detail::UniverseInserter insert_universe_base{
-            &universe_labels, &surface_labels, &volume_labels, &host_data};
+        detail::UniverseInserter insert_universe_base{volumes,
+                                                      &universe_labels,
+                                                      &surface_labels,
+                                                      &volume_labels,
+                                                      &host_data};
         Overload insert_universe{
-            detail::UnitInserter{volumes,
-                                 &insert_universe_base,
-                                 volumes.empty() ? nullptr
-                                                 : &volume_instance_labels,
-                                 &host_data},
-
+            detail::UnitInserter{&insert_universe_base, &host_data},
             detail::RectArrayInserter{&insert_universe_base, &host_data}};
 
         for (auto&& u : input.universes)

@@ -267,6 +267,10 @@ struct RectArrayRecord
  *
  * Each collection should be of length num_universes + 1. The first entry is
  * zero and the last item should be the total number of surfaces or volumes.
+ *
+ * \todo These should be indexed into by UniverseId, not the default
+ * OpaqueId<size_type>.
+ * \todo move to detail/UniverseIndexerData
  */
 template<Ownership W, MemSpace M>
 struct UniverseIndexerData
@@ -296,7 +300,7 @@ struct UniverseIndexerData
 /*!
  * Persistent data used by all BIH trees.
  *
- * \todo move to orange/BihTreeData
+ * \todo move to detail/BihTreeData
  */
 template<Ownership W, MemSpace M>
 struct BIHTreeData
