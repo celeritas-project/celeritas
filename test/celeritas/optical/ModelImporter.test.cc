@@ -61,11 +61,11 @@ class ModelImporterTest : public OpticalMockTestBase
 
         // Get expected MFP tables
         auto expected_iter = std::find_if(
-            this->imported_data().optical_models.begin(),
-            this->imported_data().optical_models.end(),
+            this->imported_data().legacy.optical_models.begin(),
+            this->imported_data().legacy.optical_models.end(),
             [imc](auto const& m) { return m.model_class == imc; });
         ASSERT_FALSE(expected_iter
-                     == this->imported_data().optical_models.end());
+                     == this->imported_data().legacy.optical_models.end());
 
         // Build imported tables
         OwningGridAccessor storage;

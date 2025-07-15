@@ -389,7 +389,9 @@ TEST_F(MaterialParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(root_materials))
 
 TEST_F(MaterialParamsImportTest, optical_materials)
 {
-    ImportData data;
+    ImportData inp_data;
+    auto& data = inp_data.legacy;
+
     data.units = "cgs";
     data.elements.push_back([] {
         ImportElement el;
@@ -435,7 +437,7 @@ TEST_F(MaterialParamsImportTest, optical_materials)
     constexpr MatId lar_id{1};
 
     // Check optical material ID
-    auto materials = MaterialParams::from_import(data);
+    auto materials = MaterialParams::from_import(inp_data);
     ASSERT_TRUE(materials);
     EXPECT_EQ(OptMatId{}, materials->get(vacuum_id).optical_material_id());
     EXPECT_EQ(OptMatId{0}, materials->get(lar_id).optical_material_id());

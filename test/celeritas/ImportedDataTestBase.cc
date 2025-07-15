@@ -100,7 +100,8 @@ auto ImportedDataTestBase::build_physics() -> SPConstPhysics
         IPC::e_ioni,
         IPC::e_brems,
     };
-    auto all_ipc = ProcessBuilder::get_all_process_classes(imported.processes);
+    auto all_ipc
+        = ProcessBuilder::get_all_process_classes(imported.legacy.processes);
 
     // Remove missing processes from `ipc` and found processes from `all_ipc`
     ipc.erase(std::remove_if(ipc.begin(),

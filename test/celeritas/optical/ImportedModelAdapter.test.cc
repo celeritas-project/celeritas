@@ -47,7 +47,7 @@ class ImportedModelAdapterTest : public OpticalMockTestBase
         if (!models)
         {
             models = std::make_shared<ImportedModels const>(
-                this->imported_data().optical_models);
+                this->imported_data().legacy.optical_models);
         }
         return models;
     }
@@ -59,7 +59,7 @@ class ImportedModelAdapterTest : public OpticalMockTestBase
 // Create ImportedModels from mock data
 TEST_F(ImportedModelAdapterTest, build_mock)
 {
-    auto const& expected_models = this->imported_data().optical_models;
+    auto const& expected_models = this->imported_data().legacy.optical_models;
     auto imported_models = this->imported_models();
 
     ASSERT_EQ(expected_models.size(), imported_models->num_models());
@@ -96,7 +96,7 @@ TEST_F(ImportedModelAdapterTest, builtin_map)
 // Check adapters correctly match MFPs
 TEST_F(ImportedModelAdapterTest, adapter_mfps)
 {
-    auto const& expected_models = this->imported_data().optical_models;
+    auto const& expected_models = this->imported_data().legacy.optical_models;
     auto imported_models = this->imported_models();
 
     ASSERT_EQ(expected_models.size(), imported_models->num_models());

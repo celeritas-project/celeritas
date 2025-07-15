@@ -97,7 +97,7 @@ std::vector<inp::Grid> native_physics_table_from(
 auto OpticalMockTestBase::build_optical_material() -> SPConstOpticalMaterial
 {
     MaterialParams::Input input;
-    for (auto mat : this->imported_data().optical_materials)
+    for (auto mat : this->imported_data().legacy.optical_materials)
     {
         input.properties.push_back(mat.properties);
     }
@@ -161,7 +161,7 @@ auto OpticalMockTestBase::build_material() -> SPConstMaterial
 ImportData const& OpticalMockTestBase::imported_data() const
 {
     static ImportData data;
-    if (data.optical_materials.empty())
+    if (data.legacy.optical_materials.empty())
     {
         this->build_import_data(data);
     }
@@ -172,8 +172,9 @@ ImportData const& OpticalMockTestBase::imported_data() const
 /*!
  * Create mock imported data in-place.
  */
-void OpticalMockTestBase::build_import_data(ImportData& data) const
+void OpticalMockTestBase::build_import_data(ImportData& inp) const
 {
+    auto& data = inp.legacy;
     data.units = units::NativeTraits::label();
     using Compressibility = RealQuantity<MeterCubedPerMeV>;
 
@@ -296,11 +297,11 @@ OpticalMockTestBase::import_model_by_class(ImportModelClass imc) const
     switch (imc)
     {
         case ImportModelClass::absorption:
-            return this->imported_data().optical_models[0];
+            return this->imported_data().legacy.optical_models[0];
         case ImportModelClass::rayleigh:
-            return this->imported_data().optical_models[1];
+            return this->imported_data().legacy.optical_models[1];
         case ImportModelClass::wls:
-            return this->imported_data().optical_models[2];
+            return this->imported_data().legacy.optical_models[2];
         default:
             CELER_ASSERT_UNREACHABLE();
     }

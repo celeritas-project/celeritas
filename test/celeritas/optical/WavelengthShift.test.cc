@@ -44,12 +44,12 @@ class WavelengthShiftTest : public InteractorHostBase,
         WavelengthShiftModel::Input input;
         input.model = ImportModelClass::wls;
         input.time_profile = time_profile;
-        for (auto const& mat : data.optical_materials)
+        for (auto const& mat : data.legacy.optical_materials)
         {
             input.data.push_back(mat.wls);
         }
-        auto models
-            = std::make_shared<ImportedModels const>(data.optical_models);
+        auto models = std::make_shared<ImportedModels const>(
+            data.legacy.optical_models);
         model_ = std::make_shared<WavelengthShiftModel const>(
             ActionId{0}, models, input);
         data_ = model_->host_ref();

@@ -97,7 +97,7 @@ class GeantImporterTest : public GeantTestBase
     ImportProcess const&
     find_process(PDGNumber pdg, ImportProcessClass ipc) const
     {
-        auto const& processes = this->imported_data().processes;
+        auto const& processes = this->imported_data().legacy.processes;
         auto result = std::find_if(processes.begin(),
                                    processes.end(),
                                    [pdg, ipc](ImportProcess const& proc) {
@@ -114,7 +114,7 @@ class GeantImporterTest : public GeantTestBase
     ImportMscModel const&
     find_msc_model(PDGNumber pdg, ImportModelClass imc) const
     {
-        auto const& models = this->imported_data().msc_models;
+        auto const& models = this->imported_data().legacy.msc_models;
         auto result = std::find_if(
             models.begin(), models.end(), [pdg, imc](ImportMscModel const& m) {
                 return PDGNumber{m.particle_pdg} == pdg && m.model_class == imc;
@@ -146,8 +146,9 @@ class GeantImporterTest : public GeantTestBase
 };
 
 //---------------------------------------------------------------------------//
-auto GeantImporterTest::summarize(ImportData const& data) const -> ImportSummary
+auto GeantImporterTest::summarize(ImportData const& inp) const -> ImportSummary
 {
+    auto& data = inp.legacy;
     ImportSummary s;
     for (auto const& p : data.particles)
     {
@@ -500,7 +501,7 @@ TEST_F(FourSteelSlabsEmStandard, em_hadronic)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, elements)
 {
-    auto&& import_data = this->imported_data();
+    auto&& import_data = this->imported_data().legacy;
 
     auto const& elements = import_data.elements;
     auto const& isotopes = import_data.isotopes;
@@ -562,7 +563,7 @@ TEST_F(FourSteelSlabsEmStandard, elements)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, isotopes)
 {
-    auto&& import_data = this->imported_data();
+    auto&& import_data = this->imported_data().legacy;
     auto const& isotopes = import_data.isotopes;
 
     std::vector<std::string> isotope_names;
@@ -605,7 +606,7 @@ TEST_F(FourSteelSlabsEmStandard, isotopes)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, geo_materials)
 {
-    auto&& import_data = this->imported_data();
+    auto&& import_data = this->imported_data().legacy;
 
     auto const& materials = import_data.geo_materials;
     EXPECT_EQ(2, materials.size());
@@ -654,7 +655,7 @@ TEST_F(FourSteelSlabsEmStandard, geo_materials)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, phys_materials)
 {
-    auto&& import_data = this->imported_data();
+    auto&& import_data = this->imported_data().legacy;
 
     auto const& materials = import_data.phys_materials;
     EXPECT_EQ(2, materials.size());
@@ -965,7 +966,7 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, volumes)
 {
-    auto&& import_data = this->imported_data();
+    auto&& import_data = this->imported_data().legacy;
 
     auto const& volumes = import_data.volumes;
     EXPECT_EQ(5, volumes.size());
@@ -1004,7 +1005,7 @@ TEST_F(FourSteelSlabsEmStandard, volumes)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, em_parameters)
 {
-    auto&& import_data = this->imported_data();
+    auto&& import_data = this->imported_data().legacy;
 
     auto const& em_params = import_data.em_params;
     EXPECT_EQ(true, em_params.energy_loss_fluct);
@@ -1027,7 +1028,7 @@ TEST_F(FourSteelSlabsEmStandard, em_parameters)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, trans_parameters)
 {
-    auto&& import_data = this->imported_data();
+    auto&& import_data = this->imported_data().legacy;
 
     EXPECT_EQ(1000, import_data.trans_params.max_substeps);
     EXPECT_EQ(5, import_data.trans_params.looping.size());
@@ -1041,7 +1042,7 @@ TEST_F(FourSteelSlabsEmStandard, trans_parameters)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, sb_data)
 {
-    auto&& import_data = this->imported_data();
+    auto&& import_data = this->imported_data().legacy;
 
     auto const& sb_map = import_data.sb_data;
     EXPECT_EQ(4, sb_map.size());
@@ -1087,7 +1088,7 @@ TEST_F(FourSteelSlabsEmStandard, sb_data)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, mu_pair_production_data)
 {
-    auto&& import_data = this->imported_data();
+    auto&& import_data = this->imported_data().legacy;
 
     auto const& data = import_data.mu_pair_production_data;
 
@@ -1158,7 +1159,7 @@ TEST_F(FourSteelSlabsEmStandard, mu_pair_production_data)
 TEST_F(FourSteelSlabsEmStandard, livermore_pe_data)
 {
     ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::warning};
-    auto&& import_data = this->imported_data();
+    auto&& import_data = this->imported_data().legacy;
     EXPECT_TRUE(scoped_log.empty()) << scoped_log;
 
     auto const& lpe_map = import_data.livermore_pe_data;
@@ -1263,7 +1264,7 @@ TEST_F(FourSteelSlabsEmStandard, livermore_pe_data)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, atomic_relaxation_data)
 {
-    auto&& import_data = this->imported_data();
+    auto&& import_data = this->imported_data().legacy;
 
     auto const& ar_map = import_data.atomic_relaxation_data;
     EXPECT_EQ(4, ar_map.size());
@@ -1383,7 +1384,7 @@ TEST_F(FourSteelSlabsEmStandard, atomic_relaxation_data)
 TEST_F(TestEm3, volume_names)
 {
     selection_.reader_data = false;
-    auto const& volumes = this->imported_data().volumes;
+    auto const& volumes = this->imported_data().legacy.volumes;
 
     std::vector<std::string> names;
     for (auto const& volume : volumes)
@@ -1404,7 +1405,7 @@ TEST_F(TestEm3, unique_volumes)
     selection_.reader_data = false;
     selection_.unique_volumes = true;
 
-    auto const& volumes = this->imported_data().volumes;
+    auto const& volumes = this->imported_data().legacy.volumes;
 
     EXPECT_EQ(101, volumes.size());
     EXPECT_EQ("gap_0", volumes.front().name)
@@ -1415,7 +1416,7 @@ TEST_F(TestEm3, unique_volumes)
 
 TEST_F(OneSteelSphere, cutoffs)
 {
-    auto&& import_data = this->imported_data();
+    auto&& import_data = this->imported_data().legacy;
 
     EXPECT_EQ(2, import_data.volumes.size());
     EXPECT_EQ(2, import_data.phys_materials.size());
@@ -1615,7 +1616,7 @@ TEST_F(OneSteelSphereGG, physics)
 TEST_F(LarSphere, optical)
 {
     ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::info};
-    auto&& imported = this->imported_data();
+    auto&& imported = this->imported_data().legacy;
     ASSERT_EQ(4, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(2, imported.geo_materials.size());
@@ -1849,7 +1850,7 @@ TEST_F(LarSphere, optical)
 
 TEST_F(LarSphereExtramat, optical)
 {
-    auto&& imported = this->imported_data();
+    auto&& imported = this->imported_data().legacy;
     ASSERT_EQ(4, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(3, imported.geo_materials.size());
@@ -1907,7 +1908,7 @@ TEST_F(Solids, volumes_only)
     selection_.reader_data = false;
     selection_.unique_volumes = false;
 
-    auto const& imported = this->imported_data();
+    auto const& imported = this->imported_data().legacy;
     EXPECT_EQ(0, imported.processes.size());
     EXPECT_EQ(0, imported.particles.size());
     EXPECT_EQ(0, imported.elements.size());
@@ -1940,7 +1941,7 @@ TEST_F(Solids, volumes_unique)
     selection_.reader_data = false;
     selection_.unique_volumes = true;  // emulates accel/SharedParams
 
-    auto const& imported = this->imported_data();
+    auto const& imported = this->imported_data().legacy;
 
     std::vector<std::string> names;
     for (auto const& volume : imported.volumes)

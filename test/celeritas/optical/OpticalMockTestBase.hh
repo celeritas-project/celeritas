@@ -40,7 +40,7 @@ class OpticalMockTestBase : public GlobalTestBase
     //! Number of mock optical materials
     OptMatId::size_type num_optical_materials() const
     {
-        return this->imported_data().optical_materials.size();
+        return this->imported_data().legacy.optical_materials.size();
     }
 
     //!@{

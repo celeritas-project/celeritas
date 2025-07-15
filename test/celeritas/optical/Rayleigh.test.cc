@@ -54,7 +54,7 @@ class RayleighModelTest : public OpticalMockTestBase
     std::shared_ptr<RayleighModel const> create_model()
     {
         auto models = std::make_shared<ImportedModels const>(
-            this->imported_data().optical_models);
+            this->imported_data().legacy.optical_models);
         return std::make_shared<RayleighModel const>(
             ActionId{0}, models, RayleighModel::Input{});
     }

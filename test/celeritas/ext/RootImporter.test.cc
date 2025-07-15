@@ -68,7 +68,7 @@ auto RootImporterTest::imported_data() const -> ImportData const&
         i.imported = import();
         scoped_root_error.throw_if_errors();
     }
-    CELER_ENSURE(!i.imported.particles.empty());
+    CELER_ENSURE(!i.imported.legacy.particles.empty());
     return i.imported;
 }
 
@@ -77,7 +77,7 @@ auto RootImporterTest::imported_data() const -> ImportData const&
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, particles)
 {
-    auto const& particles = this->imported_data().particles;
+    auto const& particles = this->imported_data().legacy.particles;
     EXPECT_EQ(5, particles.size());
 
     // Check all names/PDG codes
@@ -101,7 +101,7 @@ TEST_F(RootImporterTest, particles)
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, elements)
 {
-    auto const& elements = this->imported_data().elements;
+    auto const& elements = this->imported_data().legacy.elements;
     EXPECT_EQ(4, elements.size());
 
     std::vector<std::string> names;
@@ -117,7 +117,7 @@ TEST_F(RootImporterTest, elements)
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, geo_materials)
 {
-    auto const& materials = this->imported_data().geo_materials;
+    auto const& materials = this->imported_data().legacy.geo_materials;
     EXPECT_EQ(2, materials.size());
 
     std::vector<std::string> names;
@@ -133,7 +133,7 @@ TEST_F(RootImporterTest, geo_materials)
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, phys_materials)
 {
-    auto const& materials = this->imported_data().phys_materials;
+    auto const& materials = this->imported_data().legacy.phys_materials;
     EXPECT_EQ(2, materials.size());
 
     std::vector<unsigned int> ids;
@@ -149,7 +149,7 @@ TEST_F(RootImporterTest, phys_materials)
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, processes)
 {
-    auto const& processes = this->imported_data().processes;
+    auto const& processes = this->imported_data().legacy.processes;
     EXPECT_EQ(17, processes.size());
 
     auto find_process = [&processes](PDGNumber pdg, ImportProcessClass ipc) {
@@ -173,7 +173,7 @@ TEST_F(RootImporterTest, processes)
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, volumes)
 {
-    auto const& volumes = this->imported_data().volumes;
+    auto const& volumes = this->imported_data().legacy.volumes;
     EXPECT_EQ(5, volumes.size());
 
     std::vector<unsigned int> material_ids;
