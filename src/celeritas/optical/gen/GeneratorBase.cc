@@ -2,22 +2,22 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/gen/detail/OpticalGeneratorBase.cc
+//! \file celeritas/optical/gen/GeneratorBase.cc
 //---------------------------------------------------------------------------//
-#include "OpticalGeneratorBase.hh"
+#include "GeneratorBase.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/data/AuxStateVec.hh"
 
 namespace celeritas
 {
-namespace detail
+namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct with IDs, label, and description.
  */
-OpticalGeneratorBase::OpticalGeneratorBase(
+GeneratorBase::GeneratorBase(
     ActionId id,
     AuxId aux_id,
     GeneratorId gen_id,
@@ -33,7 +33,7 @@ OpticalGeneratorBase::OpticalGeneratorBase(
 /*!
  * Get generator counters (mutable).
  */
-GeneratorStateBase& OpticalGeneratorBase::counters(AuxStateVec& aux) const
+GeneratorStateBase& GeneratorBase::counters(AuxStateVec& aux) const
 {
     return dynamic_cast<GeneratorStateBase&>(aux.at(aux_id_));
 }
@@ -42,12 +42,11 @@ GeneratorStateBase& OpticalGeneratorBase::counters(AuxStateVec& aux) const
 /*!
  * Get generator counters.
  */
-GeneratorStateBase const&
-OpticalGeneratorBase::counters(AuxStateVec const& aux) const
+GeneratorStateBase const& GeneratorBase::counters(AuxStateVec const& aux) const
 {
     return dynamic_cast<GeneratorStateBase const&>(aux.at(aux_id_));
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

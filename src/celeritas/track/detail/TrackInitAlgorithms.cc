@@ -9,7 +9,9 @@
 #include <algorithm>
 #include <numeric>
 
-#include "Utils.hh"
+#include "corecel/math/Algorithms.hh"
+
+#include "../Utils.hh"
 
 namespace celeritas
 {
@@ -29,7 +31,7 @@ size_type remove_if_alive(
 {
     auto* start = vacancies.data().get();
     auto* stop
-        = std::remove_if(start, start + vacancies.size(), IsEqual{occupied()});
+        = std::remove_if(start, start + vacancies.size(), LogicalFalse{});
     return stop - start;
 }
 

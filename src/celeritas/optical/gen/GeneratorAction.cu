@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/gen/detail/GeneratorAction.cu
+//! \file celeritas/optical/gen/GeneratorAction.cu
 //---------------------------------------------------------------------------//
 #include "GeneratorAction.hh"
 
@@ -15,24 +15,24 @@
 #include "celeritas/optical/action/ActionLauncher.device.hh"
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
-#include "GeneratorExecutor.hh"
-#include "OpticalGenAlgorithms.hh"
-#include "UpdateSumExecutor.hh"
-#include "../CherenkovGenerator.hh"
-#include "../CherenkovParams.hh"
-#include "../ScintillationGenerator.hh"
-#include "../ScintillationParams.hh"
+#include "CherenkovGenerator.hh"
+#include "CherenkovParams.hh"
+#include "ScintillationGenerator.hh"
+#include "ScintillationParams.hh"
+
+#include "detail/GeneratorExecutor.hh"
+#include "detail/UpdateSumExecutor.hh"
 
 namespace celeritas
 {
-namespace detail
+namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
  * Launch a kernel to generate optical photons.
  */
 template<GeneratorType G>
-void GeneratorAction<G>::generate(optical::CoreParams const& params,
+void GeneratorAction<G>::generate(CoreParams const& params,
                                   CoreStateDevice& state) const
 {
     CELER_EXPECT(state.aux());
@@ -50,7 +50,7 @@ void GeneratorAction<G>::generate(optical::CoreParams const& params,
                                              aux_state.store.ref(),
                                              aux_state.counters.buffer_size,
                                              state.counters()};
-        static optical::ActionLauncher<decltype(execute)> const launch(*this);
+        static ActionLauncher<decltype(execute)> const launch(*this);
         launch(num_gen, state.stream_id(), execute);
     }
     {
@@ -72,5 +72,5 @@ template class GeneratorAction<GeneratorType::cherenkov>;
 template class GeneratorAction<GeneratorType::scintillation>;
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

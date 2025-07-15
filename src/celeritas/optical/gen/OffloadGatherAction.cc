@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/gen/detail/OffloadGatherAction.cc
+//! \file celeritas/optical/gen/OffloadGatherAction.cc
 //---------------------------------------------------------------------------//
 #include "OffloadGatherAction.hh"
 
@@ -17,11 +17,9 @@
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
-#include "OffloadGatherExecutor.hh"
+#include "detail/OffloadGatherExecutor.hh"
 
 namespace celeritas
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -94,5 +92,4 @@ void OffloadGatherAction::step(CoreParams const&, CoreStateDevice&) const
 #endif
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

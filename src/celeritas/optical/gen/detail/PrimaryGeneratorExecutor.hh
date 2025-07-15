@@ -10,12 +10,14 @@
 #include "corecel/Types.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/track/CoreStateCounters.hh"
-#include "celeritas/track/detail/Utils.hh"
+#include "celeritas/track/Utils.hh"
 
 #include "../GeneratorData.hh"
-#include "../OpticalPrimaryGenerator.hh"
+#include "../PrimaryGenerator.hh"
 
 namespace celeritas
+{
+namespace optical
 {
 namespace detail
 {
@@ -29,8 +31,8 @@ struct PrimaryGeneratorExecutor
 {
     //// DATA ////
 
-    CRefPtr<celeritas::optical::CoreParamsData, MemSpace::native> params;
-    RefPtr<celeritas::optical::CoreStateData, MemSpace::native> state;
+    CRefPtr<CoreParamsData, MemSpace::native> params;
+    RefPtr<CoreStateData, MemSpace::native> state;
     PrimaryDistributionData data;
     CoreStateCounters counters;
 
@@ -56,23 +58,23 @@ CELER_FUNCTION void PrimaryGeneratorExecutor::operator()(TrackSlotId tid) const
     CELER_EXPECT(state);
     CELER_EXPECT(data);
 
-    celeritas::optical::CoreTrackView track(*params, *state, tid);
+    CoreTrackView track(*params, *state, tid);
 
     // Create the view to the new track to be initialized
-    celeritas::optical::CoreTrackView vacancy{
-        *params, *state, [&] {
-            // Get the vacancy from the back in case there are more vacancies
-            // than photons left to generate
-            TrackSlotId idx{
-                index_before(counters.num_vacancies, ThreadId(tid.get()))};
-            return state->init.vacancies[idx];
-        }()};
+    CoreTrackView vacancy{*params, *state, [&] {
+                              // Get the vacancy from the back in case there
+                              // are more vacancies than photons to generate
+                              TrackSlotId idx{index_before(
+                                  counters.num_vacancies, ThreadId(tid.get()))};
+                              return state->init.vacancies[idx];
+                          }()};
 
     // Generate one primary from the distribution
     auto rng = track.rng();
-    vacancy = OpticalPrimaryGenerator(data)(rng);
+    vacancy = PrimaryGenerator(data)(rng);
 }
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

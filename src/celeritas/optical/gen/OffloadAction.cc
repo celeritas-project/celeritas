@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/gen/detail/OffloadAction.cc
+//! \file celeritas/optical/gen/OffloadAction.cc
 //---------------------------------------------------------------------------//
 #include "OffloadAction.hh"
 
@@ -19,15 +19,14 @@
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/MaterialParams.hh"
 
-#include "CherenkovOffloadExecutor.hh"
-#include "OpticalGenAlgorithms.hh"
-#include "ScintOffloadExecutor.hh"
-#include "../CherenkovParams.hh"
-#include "../ScintillationParams.hh"
+#include "CherenkovParams.hh"
+#include "ScintillationParams.hh"
+
+#include "detail/CherenkovOffloadExecutor.hh"
+#include "detail/OffloadAlgorithms.hh"
+#include "detail/ScintOffloadExecutor.hh"
 
 namespace celeritas
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -88,7 +87,8 @@ template<MemSpace M>
 void OffloadAction<G>::step_impl(CoreParams const& core_params,
                                  CoreState<M>& core_state) const
 {
-    auto& gen_state = get<GeneratorState<M>>(core_state.aux(), data_.gen_id);
+    auto& gen_state
+        = get<optical::GeneratorState<M>>(core_state.aux(), data_.gen_id);
     auto& buffer = gen_state.store.ref().distributions;
     auto& buffer_size = gen_state.counters.buffer_size;
 
@@ -103,14 +103,14 @@ void OffloadAction<G>::step_impl(CoreParams const& core_params,
 
     // Compact the buffer, returning the total number of valid distributions
     size_type start = buffer_size;
-    buffer_size = remove_if_invalid(
+    buffer_size = detail::remove_if_invalid(
         buffer, start, start + core_state.size(), core_state.stream_id());
 
     // Count the number of optical photons that would be generated from the
     // distributions created in this step
     auto& optical_state
         = get<optical::CoreState<M>>(core_state.aux(), data_.optical_id);
-    optical_state.counters().num_pending += count_num_photons(
+    optical_state.counters().num_pending += detail::count_num_photons(
         buffer, start, buffer_size, core_state.stream_id());
 }
 
@@ -123,8 +123,8 @@ void OffloadAction<G>::offload(CoreParams const& core_params,
                                CoreStateHost& core_state) const
 {
     auto& step = core_state.aux_data<OffloadStepStateData>(data_.step_id);
-    auto& gen_state = get<GeneratorState<MemSpace::native>>(core_state.aux(),
-                                                            data_.gen_id);
+    auto& gen_state = get<optical::GeneratorState<MemSpace::native>>(
+        core_state.aux(), data_.gen_id);
     TrackExecutor execute{core_params.ptr<MemSpace::native>(),
                           core_state.ptr(),
                           Executor{data_.material->host_ref(),
@@ -152,5 +152,4 @@ template class OffloadAction<GeneratorType::cherenkov>;
 template class OffloadAction<GeneratorType::scintillation>;
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

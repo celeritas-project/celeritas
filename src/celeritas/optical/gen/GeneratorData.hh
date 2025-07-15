@@ -20,6 +20,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
  * Data for sampling optical photons from user-configurable distributions.
@@ -125,6 +127,19 @@ struct GeneratorStateData
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the number of photons from a distribution.
+ */
+struct GetNumPhotons
+{
+    // Return the number of photons to generate
+    CELER_FUNCTION size_type operator()(GeneratorDistributionData const& data) const
+    {
+        return data.num_photons;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Store optical generation states in aux data.
  */
 template<MemSpace M>
@@ -153,4 +168,5 @@ void resize(GeneratorStateData<Ownership::value, M>* state,
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

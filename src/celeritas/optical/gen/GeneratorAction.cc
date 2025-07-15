@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/gen/detail/GeneratorAction.cc
+//! \file celeritas/optical/gen/GeneratorAction.cc
 //---------------------------------------------------------------------------//
 #include "GeneratorAction.hh"
 
@@ -23,17 +23,18 @@
 #include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 
-#include "GeneratorExecutor.hh"
-#include "OpticalGenAlgorithms.hh"
-#include "UpdateSumExecutor.hh"
-#include "../CherenkovGenerator.hh"
-#include "../CherenkovParams.hh"
-#include "../ScintillationGenerator.hh"
-#include "../ScintillationParams.hh"
+#include "CherenkovGenerator.hh"
+#include "CherenkovParams.hh"
+#include "ScintillationGenerator.hh"
+#include "ScintillationParams.hh"
+
+#include "detail/GeneratorAlgorithms.hh"
+#include "detail/GeneratorExecutor.hh"
+#include "detail/UpdateSumExecutor.hh"
 
 namespace celeritas
 {
-namespace detail
+namespace optical
 {
 namespace
 {
@@ -61,7 +62,7 @@ auto make_state(P const& params, StreamId stream, size_type size)
 template<GeneratorType G>
 std::shared_ptr<GeneratorAction<G>>
 GeneratorAction<G>::make_and_insert(::celeritas::CoreParams const& core_params,
-                                    optical::CoreParams const& params,
+                                    CoreParams const& params,
                                     Input&& input)
 {
     CELER_EXPECT(input);
@@ -86,8 +87,7 @@ GeneratorAction<G>::GeneratorAction(ActionId id,
                                     AuxId aux_id,
                                     GeneratorId gen_id,
                                     Input&& inp)
-    : OpticalGeneratorBase(
-          id, aux_id, gen_id, TraitsT::label, TraitsT::description)
+    : GeneratorBase(id, aux_id, gen_id, TraitsT::label, TraitsT::description)
     , data_(std::move(inp))
 {
     CELER_EXPECT(data_);
@@ -120,7 +120,7 @@ auto GeneratorAction<G>::create_state(MemSpace m, StreamId id, size_type) const
  * Execute the action with host data.
  */
 template<GeneratorType G>
-void GeneratorAction<G>::step(optical::CoreParams const& params,
+void GeneratorAction<G>::step(CoreParams const& params,
                               CoreStateHost& state) const
 {
     this->step_impl(params, state);
@@ -131,7 +131,7 @@ void GeneratorAction<G>::step(optical::CoreParams const& params,
  * Execute the action with device data.
  */
 template<GeneratorType G>
-void GeneratorAction<G>::step(optical::CoreParams const& params,
+void GeneratorAction<G>::step(CoreParams const& params,
                               CoreStateDevice& state) const
 {
     this->step_impl(params, state);
@@ -143,8 +143,8 @@ void GeneratorAction<G>::step(optical::CoreParams const& params,
  */
 template<GeneratorType G>
 template<MemSpace M>
-void GeneratorAction<G>::step_impl(optical::CoreParams const& params,
-                                   optical::CoreState<M>& state) const
+void GeneratorAction<G>::step_impl(CoreParams const& params,
+                                   CoreState<M>& state) const
 {
     CELER_EXPECT(state.aux());
 
@@ -157,11 +157,11 @@ void GeneratorAction<G>::step_impl(optical::CoreParams const& params,
         // calculate the cumulative sum of the number of photons in the
         // buffered distributions. These values are used to determine which
         // thread will generate photons from which distribution
-        counters.num_pending
-            = inclusive_scan_photons(aux_state.store.ref().distributions,
-                                     aux_state.store.ref().offsets,
-                                     counters.buffer_size,
-                                     state.stream_id());
+        counters.num_pending = detail::inclusive_scan_photons(
+            aux_state.store.ref().distributions,
+            aux_state.store.ref().offsets,
+            counters.buffer_size,
+            state.stream_id());
     }
 
     if (state.counters().num_vacancies > 0 && counters.num_pending > 0)
@@ -187,7 +187,7 @@ void GeneratorAction<G>::step_impl(optical::CoreParams const& params,
  * Launch a (host) kernel to generate optical photons.
  */
 template<GeneratorType G>
-void GeneratorAction<G>::generate(optical::CoreParams const& params,
+void GeneratorAction<G>::generate(CoreParams const& params,
                                   CoreStateHost& state) const
 {
     CELER_EXPECT(state.aux());
@@ -205,7 +205,7 @@ void GeneratorAction<G>::generate(optical::CoreParams const& params,
                                              aux_state.store.ref(),
                                              aux_state.counters.buffer_size,
                                              state.counters()};
-        celeritas::optical::launch_action(num_gen, execute);
+        launch_action(num_gen, execute);
     }
     {
         // Update the cumulative sum of the number of photons per distribution
@@ -218,8 +218,7 @@ void GeneratorAction<G>::generate(optical::CoreParams const& params,
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 template<GeneratorType G>
-void GeneratorAction<G>::generate(optical::CoreParams const&,
-                                  CoreStateDevice&) const
+void GeneratorAction<G>::generate(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
@@ -233,5 +232,5 @@ template class GeneratorAction<GeneratorType::cherenkov>;
 template class GeneratorAction<GeneratorType::scintillation>;
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

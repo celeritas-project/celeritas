@@ -350,7 +350,7 @@ TEST_F(CherenkovTest, generator)
             CELER_ASSERT(dist);
 
             // Sample the optical photons
-            CherenkovGenerator generate_photon(
+            optical::CherenkovGenerator generate_photon(
                 mat_view, params->host_ref(), dist);
 
             for (size_type j = 0; j < dist.num_photons; ++j)

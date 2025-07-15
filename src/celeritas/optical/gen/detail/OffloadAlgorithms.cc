@@ -2,14 +2,15 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/gen/detail/OpticalGenAlgorithms.cc
+//! \file celeritas/optical/gen/detail/OffloadAlgorithms.cc
 //---------------------------------------------------------------------------//
-#include "OpticalGenAlgorithms.hh"
+#include "OffloadAlgorithms.hh"
 
 #include <algorithm>
 #include <numeric>
 
 #include "corecel/Assert.hh"
+#include "corecel/math/Algorithms.hh"
 
 namespace celeritas
 {
@@ -45,7 +46,7 @@ remove_if_invalid(GeneratorDistributionRef<MemSpace::host> const& buffer,
                   StreamId)
 {
     auto* start = buffer.data().get();
-    auto* stop = std::remove_if(start + offset, start + size, IsInvalid{});
+    auto* stop = std::remove_if(start + offset, start + size, LogicalFalse{});
     return stop - start;
 }
 
@@ -63,37 +64,6 @@ count_num_photons(GeneratorDistributionRef<MemSpace::host> const& buffer,
     size_type count = std::accumulate(
         start + offset, start + size, size_type(0), AccumNumPhotons{});
     return count;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate the inclusive prefix sum of the number of optical photons.
- *
- * \return Total accumulated value
- */
-size_type inclusive_scan_photons(
-    GeneratorDistributionRef<MemSpace::host> const& buffer,
-    Collection<size_type, Ownership::reference, MemSpace::host> const& offsets,
-    size_type size,
-    StreamId)
-{
-    CELER_EXPECT(!buffer.empty());
-    CELER_EXPECT(size > 0 && size <= buffer.size());
-    CELER_EXPECT(offsets.size() == buffer.size());
-
-    auto* data = buffer.data().get();
-    auto* result = offsets.data().get();
-
-    size_type acc = 0;
-    auto* const stop = data + size;
-    for (; data != stop; ++data)
-    {
-        acc += data->num_photons;
-        *result++ = acc;
-    }
-
-    // Return the final value
-    return acc;
 }
 
 //---------------------------------------------------------------------------//

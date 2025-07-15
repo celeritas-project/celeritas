@@ -143,6 +143,30 @@ struct LogicalTrue<void>
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Evaluate whether the argument is "false".
+ */
+template<class T = void>
+struct LogicalFalse
+{
+    CELER_CONSTEXPR_FUNCTION bool operator()(T const& value) const noexcept
+    {
+        return !value;
+    }
+};
+
+//! Specialization with template deduction
+template<>
+struct LogicalFalse<void>
+{
+    template<class T>
+    CELER_CONSTEXPR_FUNCTION bool operator()(T const& value) const noexcept
+    {
+        return !value;
+    }
+};
+
+//---------------------------------------------------------------------------//
 // Replace/extend <algorithm>
 //---------------------------------------------------------------------------//
 /*!
