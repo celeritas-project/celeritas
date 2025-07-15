@@ -9,6 +9,7 @@
 #include <iostream>
 
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/sys/Version.hh"
 #include "geocel/SurfaceParams.hh"
 #include "geocel/VolumeParams.hh"
 #include "geocel/inp/Model.hh"
@@ -153,17 +154,8 @@ TEST_F(VolumeSurfaceSelectorTest, geo_view_wrapper)
 {
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
     {
-        CollectionStateStore<CoreGeoStateData, MemSpace::host> host_state{
-            this->geometry()->host_ref(), 1};
-        GeoTrackView geo{
-            this->geometry()->host_ref(), host_state.ref(), TrackSlotId{0}};
-        geo = GeoTrackInitializer{Real3{0, 0, 0}, Real3{1, 0, 0}};
-
-        EXPECT_EQ(VolumeId{1}, geo.volume_id());
-        EXPECT_EQ(VolumeInstanceId{2}, geo.volume_instance_id());
-
         // move across a surface and return the selected surface ID
-        auto cross_surface = [&]() {
+        auto cross_surface = [&](GeoTrackView& geo) {
             geo.find_next_step();
             geo.move_to_boundary();
 
@@ -174,38 +166,54 @@ TEST_F(VolumeSurfaceSelectorTest, geo_view_wrapper)
             return select(geo);
         };
 
-        // tube1_mid -> world
-        EXPECT_FALSE(cross_surface());
-        EXPECT_EQ(VolumeId{3}, geo.volume_id());
-        EXPECT_EQ(VolumeInstanceId{4}, geo.volume_instance_id());
+        CollectionStateStore<CoreGeoStateData, MemSpace::host> host_state{
+            this->geometry()->host_ref(), 2};
 
-        // world -> lar_sphere
-        EXPECT_EQ(SurfaceId{0}, cross_surface());
-        EXPECT_EQ(VolumeId{0}, geo.volume_id());
-        EXPECT_EQ(VolumeInstanceId{0}, geo.volume_instance_id());
+        {
+            GeoTrackView geo{
+                this->geometry()->host_ref(), host_state.ref(), TrackSlotId{0}};
+            geo = GeoTrackInitializer{Real3{0, 0, 0}, Real3{1, 0, 0}};
 
-        // tube2_below_pv -> tube1_mid_pv
-        geo = GeoTrackInitializer{Real3{0, 0, -15}, Real3{0, 0, 1}};
-        EXPECT_EQ(VolumeId{2}, geo.volume_id());
-        EXPECT_EQ(VolumeInstanceId{1}, geo.volume_instance_id());
+            EXPECT_EQ(VolumeId{1}, geo.volume_id());
+            EXPECT_EQ(VolumeInstanceId{2}, geo.volume_instance_id());
 
-        EXPECT_EQ(SurfaceId{2}, cross_surface());
-        EXPECT_EQ(VolumeId{1}, geo.volume_id());
-        EXPECT_EQ(VolumeInstanceId{2}, geo.volume_instance_id());
+            // tube1_mid -> world
+            EXPECT_FALSE(cross_surface(geo));
+            EXPECT_EQ(VolumeId{3}, geo.volume_id());
+            EXPECT_EQ(VolumeInstanceId{4}, geo.volume_instance_id());
 
-        // tube1_mid_pv -> tube2_above_pv
-        EXPECT_EQ(SurfaceId{4}, cross_surface());
-        EXPECT_EQ(VolumeId{2}, geo.volume_id());
-        EXPECT_EQ(VolumeInstanceId{3}, geo.volume_instance_id());
+            // world -> lar_sphere
+            EXPECT_EQ(SurfaceId{0}, cross_surface(geo));
+            EXPECT_EQ(VolumeId{0}, geo.volume_id());
+            EXPECT_EQ(VolumeInstanceId{0}, geo.volume_instance_id());
+        }
+        {
+            GeoTrackView geo{
+                this->geometry()->host_ref(), host_state.ref(), TrackSlotId{1}};
+            geo = GeoTrackInitializer{Real3{0, 0, -15}, Real3{0, 0, 1}};
 
-        // tube2_above_pv -> world
-        EXPECT_EQ(SurfaceId{1}, cross_surface());
-        EXPECT_EQ(VolumeId{3}, geo.volume_id());
-        EXPECT_EQ(VolumeInstanceId{4}, geo.volume_instance_id());
+            EXPECT_EQ(VolumeId{2}, geo.volume_id());
+            EXPECT_EQ(VolumeInstanceId{1}, geo.volume_instance_id());
 
-        // world -> outside
-        EXPECT_FALSE(cross_surface());
-        EXPECT_TRUE(geo.is_outside());
+            // tube2_below_pv -> tube1_mid_pv
+            EXPECT_EQ(SurfaceId{2}, cross_surface(geo));
+            EXPECT_EQ(VolumeId{1}, geo.volume_id());
+            EXPECT_EQ(VolumeInstanceId{2}, geo.volume_instance_id());
+
+            // tube1_mid_pv -> tube2_above_pv
+            EXPECT_EQ(SurfaceId{4}, cross_surface(geo));
+            EXPECT_EQ(VolumeId{2}, geo.volume_id());
+            EXPECT_EQ(VolumeInstanceId{3}, geo.volume_instance_id());
+
+            // tube2_above_pv -> world
+            EXPECT_EQ(SurfaceId{1}, cross_surface(geo));
+            EXPECT_EQ(VolumeId{3}, geo.volume_id());
+            EXPECT_EQ(VolumeInstanceId{4}, geo.volume_instance_id());
+
+            // world -> outside
+            EXPECT_FALSE(cross_surface(geo));
+            EXPECT_TRUE(geo.is_outside());
+        }
     }
 }
 
