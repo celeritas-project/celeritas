@@ -83,9 +83,9 @@ struct DetectorStepOutput
     PinnedVec<PrimaryId> primary_id;
     PinnedVec<size_type> track_step_count;
     PinnedVec<real_type> step_length;
+    PinnedVec<real_type> weight;
     PinnedVec<ParticleId> particle;
     PinnedVec<Energy> energy_deposition;
-    PinnedVec<real_type> weight;
 
     // 2D size for volume instances
     size_type volume_instance_depth{0};
