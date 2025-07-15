@@ -60,7 +60,7 @@ void SurfacePhysicsMapBuilder::operator()(SurfaceModel const& model)
         // Assign and check the action ID
         ActionId prev_id
             = std::exchange(data_.action_ids[surface_id], model.action_id());
-        CELER_VALIDATE(prev_id == ActionId{},
+        CELER_VALIDATE(!prev_id,
                        << "multiple surface physics models were assigned to "
                           "the same surface");
 

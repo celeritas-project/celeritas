@@ -14,12 +14,9 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
+ * Access surface physics mappings for a particular surface.
  *
- * Optional detailed class description, and possibly example usage:
- * \code
-    SurfacePhysicsMapView ...;
-   \endcode
+ * This simply encapsulates the \c SurfaceParamsData class.
  */
 class SurfacePhysicsMapView
 {
