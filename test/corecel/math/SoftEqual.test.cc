@@ -118,7 +118,6 @@ TYPED_TEST(FloatingTest, soft_equal)
 TYPED_TEST(FloatingTest, soft_near)
 {
     using value_type = typename TestFixture::value_type;
-    using R = value_type;
     using Limits_t = typename TestFixture::Limits_t;
     using Comp = SoftClose<value_type>;
 
