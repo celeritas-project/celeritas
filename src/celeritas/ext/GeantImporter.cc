@@ -88,6 +88,7 @@
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "GeantSetup.hh"
+#include "GeantSurfacePhysicsLoader.hh"
 
 #include "detail/AllElementReader.hh"
 #include "detail/GeantMaterialPropertyGetter.hh"
@@ -501,7 +502,7 @@ std::vector<ImportElement> import_elements()
  * material ID".
  */
 std::vector<ImportOpticalMaterial>
-import_optical(detail::GeoOpticalIdMap const& geo_to_opt)
+import_optical_materials(detail::GeoOpticalIdMap const& geo_to_opt)
 {
     if (geo_to_opt.empty())
     {
@@ -605,6 +606,18 @@ import_optical(detail::GeoOpticalIdMap const& geo_to_opt)
     }
 
     CELER_LOG(debug) << "Loaded " << result.size() << " optical materials";
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Import surface optical physics information.
+ */
+inp::OpticalPhysics import_optical_physics()
+{
+    inp::OpticalPhysics result;
+    result.surfaces = GeantSurfacePhysicsLoader()();
+    // \todo: CELER_ENSURE(result);
     return result;
 }
 
@@ -1274,14 +1287,15 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
     CELER_VALIDATE(
         (selected.materials && selected.particles != DataSelection::none)
             || selected.processes == DataSelection::none,
-        << "materials and particles must be enabled if requesting processes");
+        << "materials and particles must be enabled if requesting "
+           "processes");
     ScopedMem record_mem("GeantImporter.load");
     ScopedProfiling profile_this{"import-geant"};
     ImportData imported;
 
     auto have_process = [&imported](ImportProcessClass ipc) {
-        return std::any_of(imported.processes.begin(),
-                           imported.processes.end(),
+        return std::any_of(imported.legacy.processes.begin(),
+                           imported.legacy.processes.end(),
                            [ipc](ImportProcess const& ip) {
                                return ip.process_class == ipc;
                            });
@@ -1296,7 +1310,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
 
         if (selected.particles != DataSelection::none)
         {
-            imported.particles = import_particles(selected.particles);
+            imported.legacy.particles = import_particles(selected.particles);
         }
         if (selected.materials)
         {
@@ -1304,24 +1318,25 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
             {
                 geo_to_opt
                     = detail::GeoOpticalIdMap(*G4Material::GetMaterialTable());
-                imported.optical_materials = import_optical(geo_to_opt);
+                imported.legacy.optical_materials
+                    = import_optical_materials(geo_to_opt);
             }
 
-            imported.isotopes = import_isotopes();
-            imported.elements = import_elements();
-            imported.geo_materials = import_geo_materials();
-            imported.phys_materials
+            imported.legacy.isotopes = import_isotopes();
+            imported.legacy.elements = import_elements();
+            imported.legacy.geo_materials = import_geo_materials();
+            imported.legacy.phys_materials
                 = import_phys_materials(selected.particles, geo_to_opt);
         }
         if (selected.processes != DataSelection::none)
         {
-            std::tie(imported.processes,
-                     imported.msc_models,
-                     imported.optical_models)
+            std::tie(imported.legacy.processes,
+                     imported.legacy.msc_models,
+                     imported.legacy.optical_models)
                 = import_processes(selected,
-                                   imported.particles,
-                                   imported.elements,
-                                   imported.phys_materials,
+                                   imported.legacy.particles,
+                                   imported.legacy.elements,
+                                   imported.legacy.phys_materials,
                                    geo_to_opt);
 
             if (have_process(ImportProcessClass::mu_pair_prod))
@@ -1332,7 +1347,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
                                    && mu_minus.grids == mu_plus.grids,
                                << "muon pair production sampling tables for "
                                   "mu- and mu+ differ");
-                imported.mu_pair_production_data = std::move(mu_minus);
+                imported.legacy.mu_pair_production_data = std::move(mu_minus);
             }
         }
         if (selected.unique_volumes)
@@ -1342,19 +1357,21 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
                 << R"(DEPRECATED: volumes are always reproducibly uniquified)";
         }
 
-        imported.regions = import_regions();
-        imported.volumes = import_volumes();
+        imported.legacy.regions = import_regions();
+        imported.legacy.volumes = import_volumes();
         if (selected.particles != DataSelection::none)
         {
-            imported.trans_params = import_trans_parameters(selected.particles);
+            imported.legacy.trans_params
+                = import_trans_parameters(selected.particles);
         }
         if (selected.processes & DataSelection::em)
         {
-            imported.em_params = import_em_parameters();
+            imported.legacy.em_params = import_em_parameters();
         }
         if (selected.processes & DataSelection::optical)
         {
-            imported.optical_params = import_optical_parameters();
+            imported.legacy.optical_params = import_optical_parameters();
+            imported.optical_physics = import_optical_physics();
         }
     }
 
@@ -1363,21 +1380,21 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         CELER_LOG(status) << "Loading external elemental data";
         ScopedTimeLog scoped_time;
 
-        detail::AllElementReader load_data{imported.elements};
+        detail::AllElementReader load_data{imported.legacy.elements};
 
         if (have_process(ImportProcessClass::e_brems))
         {
-            imported.sb_data = load_data(SeltzerBergerReader{});
+            imported.legacy.sb_data = load_data(SeltzerBergerReader{});
         }
         if (have_process(ImportProcessClass::photoelectric))
         {
-            imported.livermore_pe_data
+            imported.legacy.livermore_pe_data
                 = load_data(LivermorePEReader{selected.interpolation});
         }
         if (G4EmParameters::Instance()->Fluo())
         {
             // TODO: only read auger data if that option is enabled
-            imported.atomic_relaxation_data
+            imported.legacy.atomic_relaxation_data
                 = load_data(AtomicRelaxationReader{});
         }
         else if (G4EmParameters::Instance()->Auger())
@@ -1387,7 +1404,8 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         }
     }
 
-    imported.units = units::NativeTraits::label();
+    imported.legacy.units = units::NativeTraits::label();
+
     return imported;
 }
 

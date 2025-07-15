@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "celeritas/inp/Grid.hh"
+#include "celeritas/inp/Physics.hh"
 // IWYU pragma: begin_exports
 #include "ImportAtomicRelaxation.hh"
 #include "ImportElement.hh"
@@ -51,7 +52,7 @@ namespace celeritas
  * the units label. Refer to \c base/Units.hh for further information on unit
  * systems.
  */
-struct ImportData
+struct LegacyImportData
 {
     //!@{
     //! \name Type aliases
@@ -104,6 +105,17 @@ struct ImportData
 
     //! Unit system of the stored data: "cgs", "clhep", or "si"
     std::string units;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * \c ImportData will eventually become \c inp::Problem once the import
+ * system populates all its \c inp:: objects.
+ */
+struct ImportData
+{
+    LegacyImportData legacy;  //!< Temporary container; Will be deprecated
+    inp::OpticalPhysics optical_physics;  //!< \todo: replace by inp::Physics
 };
 
 //---------------------------------------------------------------------------//
