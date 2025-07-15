@@ -11,6 +11,7 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/sys/Version.hh"
 #include "geocel/SurfaceParams.hh"
+#include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"
 #include "geocel/inp/Model.hh"
 #include "celeritas/CoreGeoTestBase.hh"
@@ -172,7 +173,7 @@ TEST_F(VolumeSurfaceSelectorTest, geo_view_wrapper)
         {
             GeoTrackView geo{
                 this->geometry()->host_ref(), host_state.ref(), TrackSlotId{0}};
-            geo = GeoTrackInitializer{Real3{0, 0, 0}, Real3{1, 0, 0}};
+            geo = GeoTrackInitializer{from_cm(Real3{0, 0, 0}), Real3{1, 0, 0}};
 
             EXPECT_EQ(VolumeId{1}, geo.volume_id());
             EXPECT_EQ(VolumeInstanceId{2}, geo.volume_instance_id());
@@ -190,7 +191,8 @@ TEST_F(VolumeSurfaceSelectorTest, geo_view_wrapper)
         {
             GeoTrackView geo{
                 this->geometry()->host_ref(), host_state.ref(), TrackSlotId{1}};
-            geo = GeoTrackInitializer{Real3{0, 0, -15}, Real3{0, 0, 1}};
+            geo = GeoTrackInitializer{from_cm(Real3{0, 0, -15}),
+                                      Real3{0, 0, 1}};
 
             EXPECT_EQ(VolumeId{2}, geo.volume_id());
             EXPECT_EQ(VolumeInstanceId{1}, geo.volume_instance_id());
