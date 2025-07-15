@@ -47,10 +47,23 @@
 #pragma link C++ class celeritas::ImportTransParameters+;
 #pragma link C++ class celeritas::ImportVolume+;
 #pragma link C++ class celeritas::ImportWavelengthShift+;
+#pragma link C++ class celeritas::LegacyImportData+;
 
 // Input data
+#pragma link C++ class celeritas::inp::GaussianRoughness+;
 #pragma link C++ class celeritas::inp::Grid+;
+#pragma link C++ class celeritas::inp::InteractionModels+;
 #pragma link C++ class celeritas::inp::Interpolation+;
+#pragma link C++ class celeritas::inp::OpticalPhysics+;
+#pragma link C++ class celeritas::inp::Polished+;
+#pragma link C++ class celeritas::inp::ReflectionAnalytic+;
+#pragma link C++ class celeritas::inp::ReflectionForm+;
+#pragma link C++ class celeritas::inp::ReflectionGrid+;
+#pragma link C++ class celeritas::inp::ReflectivityModels+;
+#pragma link C++ class celeritas::inp::RoughnessModels+;
+#pragma link C++ class celeritas::inp::SmearRoughness+;
+#pragma link C++ class celeritas::inp::SurfacePhysics+;
+#pragma link C++ class celeritas::inp::SurfaceNames+;
 #pragma link C++ class celeritas::inp::TwodGrid+;
 #pragma link C++ class celeritas::inp::UniformGrid+;
 #pragma link C++ class celeritas::inp::UniformGrid::GridBound+;
@@ -58,6 +71,9 @@
 // Event data used by Geant4/Celeritas offloading applications
 #pragma link C++ class celeritas::EventHitData+;
 #pragma link C++ class celeritas::EventData+;
+
+// List of OpaqueIds
+#pragma link C++ class celeritas::SurfaceId+;
 // clang-format on
 
 #endif
