@@ -260,7 +260,7 @@ CELER_CONSTEXPR_FUNCTION SoftClose<RealType>::SoftClose()
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with specified precision.
+ * Construct with absolute precision.
  *
  * \param abs threshold for absolute error (default 1.0e-14 for doubles)
  */
@@ -293,7 +293,7 @@ CELER_CONSTEXPR_FUNCTION SoftZero<RealType>::SoftZero()
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with specified precision.
+ * Construct with absolute precision.
  *
  * \param abs threshold for absolute error (default 1.0e-14 for doubles)
  */
