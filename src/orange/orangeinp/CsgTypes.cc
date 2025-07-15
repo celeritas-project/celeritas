@@ -103,9 +103,10 @@ SpecialTrapezoid::SpecialTrapezoid(ZSegment&& bot, ZSegment&& top)
         Tolerance<>::from_default())(extents);
 
     // Determine variety
-    SoftEqual soft_equal(real_type{0}, abs_tol_);
-    bool has_pointy_bot = soft_equal(bot_.r[left], bot_.r[right]);
-    bool has_pointy_top = soft_equal(top_.r[left], top_.r[right]);
+    SoftClose soft_close(abs_tol_);
+
+    bool has_pointy_bot = soft_close(bot_.r[left], bot_.r[right]);
+    bool has_pointy_top = soft_close(top_.r[left], top_.r[right]);
 
     CELER_VALIDATE(!(has_pointy_bot && has_pointy_top),
                    << "special trapezoids must contain at least 3 distinct "

@@ -2000,95 +2000,151 @@ TEST_F(PrismTest, rhex)
 }
 
 //---------------------------------------------------------------------------//
-// REVOLVEDPOLYGON
+// REVOLVEDSPECIALTRAPEZOID
 //---------------------------------------------------------------------------//
 using RevolvedSpecialTrapezoidTest = IntersectRegionTest;
 
 //---------------------------------------------------------------------------//
 /*
- * Test revolving a simple cube around z
+ * Test revolving a square around z.
  */
 TEST_F(RevolvedSpecialTrapezoidTest, simple_cube)
 {
-    // RevolvedSpecialTrapezoid::VecReal2 polygon{
-    //     Real2{1, 1}, Real2{1, 2}, Real2{2, 2}, Real2{2, 1}};
+    SpecialTrapezoid trap({{1, 2}, 1}, {{1, 2}, 2});
+    auto result = this->test(RevolvedSpecialTrapezoid(std::move(trap)));
 
-    // auto result = this->test(RevolvedSpecialTrapezoid(polygon));
+    static char const expected_node[] = "all(+0, -1, +2, -3)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=1", "Plane: z=2", "Cyl z: r=1", "Cyl z: r=2"};
 
-    // static char const expected_node[] = "all(+0, +1, -2, -3)";
-    // static char const* const expected_surfaces[]
-    //     = {"Plane: z=1", "Cyl z: r=1", "Plane: z=2", "Cyl z: r=2"};
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
 
-    // EXPECT_EQ(expected_node, result.node);
-    // EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-
-    // EXPECT_VEC_SOFT_EQ((Real3{-2, -2, 1}), result.exterior.lower());
-    // EXPECT_VEC_SOFT_EQ((Real3{2, 2, 2}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-2, -2, 1}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 2, 2}), result.exterior.upper());
 }
 
 //---------------------------------------------------------------------------//
 /*
- * Test revolving a simple cube around z, but now one segment is coincident
+ * Test revolving a square around z, but now one segment is coincident
  * with the z axis, so we don't get an interior cylinder
  */
 TEST_F(RevolvedSpecialTrapezoidTest, coincident_segment)
 {
-    // RevolvedSpecialTrapezoid::VecReal2 polygon{
-    //     Real2{0, 1}, Real2{0, 2}, Real2{2, 2}, Real2{2, 1}};
+    SpecialTrapezoid trap({{0, 2}, 1}, {{0, 2}, 2});
+    auto result = this->test(RevolvedSpecialTrapezoid(std::move(trap)));
 
-    // auto result = this->test(RevolvedSpecialTrapezoid(polygon));
+    static char const expected_node[] = "all(+0, -1, -2)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=1", "Plane: z=2", "Cyl z: r=2"};
 
-    // static char const expected_node[] = "all(+0, -1, -2)";
-    // static char const* const expected_surfaces[]
-    //     = {"Plane: z=1", "Plane: z=2", "Cyl z: r=2"};
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
 
-    // EXPECT_EQ(expected_node, result.node);
-    // EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-
-    // EXPECT_VEC_SOFT_EQ((Real3{-2, -2, 1}), result.exterior.lower());
-    // EXPECT_VEC_SOFT_EQ((Real3{2, 2, 2}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-2, -2, 1}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 2, 2}), result.exterior.upper());
 }
 
 //---------------------------------------------------------------------------//
 /*
- * Test an irregular shape.
+ * Test a pointy bottom triangle.
  *
- *                     (2, 6)
- *     6 _|            /\
- *        |          /     \
- *     5 _|        /          \
- *        |      /               \
- *     4 _|    /                    \
- *        |  /                        \  (4, 3.5)
- *     3 _|/ (0, 3)                   /
+ * \verbatim
+ *     3 _|__________________________
  *        |\                        /
  *     2 _| \                    /
  *        |  \               /
- *     1 _|   \ (1, 0)    /
+ *     1 _|   \          /
  *        |    \     /
  *     0 _|_____\/_____________________
  *        |      |      |      |      |
  *        0      1      2      3      4
+ * \endverbatim
  */
-TEST_F(RevolvedSpecialTrapezoidTest, pentagon)
+TEST_F(RevolvedSpecialTrapezoidTest, pointy_bot)
 {
-    // RevolvedSpecialTrapezoid::VecReal2 polygon{
-    //     Real2{4, 3.5}, Real2{1, 0}, Real2{0, 3}, Real2{2, 6}};
+    SpecialTrapezoid trap({{1, 1}, 0}, {{0, 4}, 3});
+    auto result = this->test(RevolvedSpecialTrapezoid(std::move(trap)));
 
-    // auto result = this->test(RevolvedSpecialTrapezoid(polygon));
+    static char const expected_node[] = "all(-0, +1, -2)";
+    static char const* const expected_surfaces[] = {"Plane: z=3",
+                                                    "Cone z: t=0.33333 at "
+                                                    "{0,0,3}",
+                                                    "Cone z: t=1 at {0,0,-1}"};
 
-    // static char const expected_node[] = "all(+0, +1, -2, -3)";
-    // static char const* const expected_surfaces[]
-    //     = {"Cone z: t=0.33333 at {0,0,3}",
-    //        "Cone z: t=0.66667 at {0,0,3}",
-    //        "Cone z: t=0.8 at {0,0,8.5}",
-    //        "Cone z: t=0.85714 at {0,0,-1.1667}"};
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
 
-    // EXPECT_EQ(expected_node, result.node);
-    // EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_VEC_SOFT_EQ((Real3{-4, -4, 0}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{4, 4, 3}), result.exterior.upper());
+}
 
-    // EXPECT_VEC_SOFT_EQ((Real3{-4, -4, 0}), result.exterior.lower());
-    // EXPECT_VEC_SOFT_EQ((Real3{4, 4, 6}), result.exterior.upper());
+//---------------------------------------------------------------------------//
+/*
+ * Test a pointy top triangle.
+ *
+ * \verbatim
+ *     3 _|
+ *        |            /|
+ *     2 _|          /  |
+ *        |        /    |
+ *     1 _|      /______|
+ *        |
+ *     0 _|____________________________
+ *        |      |      |      |      |
+ *        0      1      2      3      4
+ * \endverbatim
+ */
+TEST_F(RevolvedSpecialTrapezoidTest, pointy_top)
+{
+    SpecialTrapezoid trap({{1, 2}, 1}, {{2, 2}, 3});
+    auto result = this->test(RevolvedSpecialTrapezoid(std::move(trap)));
+
+    static char const expected_node[] = "all(+0, +1, -2)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=1", "Cone z: t=0.5 at {0,0,-1}", "Cyl z: r=2"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+
+    EXPECT_VEC_SOFT_EQ((Real3{-2, -2, 1}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 2, 3}), result.exterior.upper());
+}
+
+//---------------------------------------------------------------------------//
+/*
+ * Test a non-rectangular trapezoid.
+ *
+ * \verbatim
+ *     3 _|____________________
+ *        |\                    \
+ *     2 _| \                    \
+ *        |  \                    \
+ *     1 _|   \                    \
+ *        |    \                    \
+ *     0 _|_____\____________________\
+ *        |      |      |      |      |
+ *        0      1      2      3      4
+ * \endverbatim
+ */
+TEST_F(RevolvedSpecialTrapezoidTest, quad)
+{
+    SpecialTrapezoid trap({{1, 4}, 0}, {{0, 3}, 3});
+    auto result = this->test(RevolvedSpecialTrapezoid(std::move(trap)));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3)";
+    static char const* const expected_surfaces[] = {"Plane: z=0",
+                                                    "Plane: z=3",
+                                                    "Cone z: t=0.33333 at "
+                                                    "{0,0,3}",
+                                                    "Cone z: t=0.33333 at "
+                                                    "{0,0,12}"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+
+    EXPECT_VEC_SOFT_EQ((Real3{-4, -4, 0}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{4, 4, 3}), result.exterior.upper());
 }
 
 //---------------------------------------------------------------------------//

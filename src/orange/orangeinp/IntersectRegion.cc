@@ -1298,27 +1298,28 @@ void RevolvedSpecialTrapezoid::build(IntersectSurfaceBuilder& insert_surface) co
     constexpr auto left = Bound::lo;
     constexpr auto right = Bound::hi;
 
+    // Create z planes first for faster short circuiting
     if (trap_.variety() != SpecialTrapezoid::Variety::pointy_bot)
     {
-        // Create a bottom z plane
+        // Bottom z plane
         insert_surface(Sense::outside, PlaneZ{bot.z});
     }
-    if (trap_.variety() != SpecialTrapezoid::Variety::pointy_bot)
+    if (trap_.variety() != SpecialTrapezoid::Variety::pointy_top)
     {
-        // Create a top z plane
+        // Top z plane
         insert_surface(Sense::inside, PlaneZ{top.z});
     }
 
-    SoftEqual soft_equal(real_type{0}, trap_.abs_tol());
+    SoftClose soft_close(trap_.abs_tol());
 
     // Lambda for creating cylindrical/conical surface, or no surface
     auto make_vertical_surface = [&](real_type r0, real_type r1, Sense sense) {
-        if (!soft_equal(r0, r1))
+        if (!soft_close(r0, r1))
         {
             // Conical surface
             insert_surface(sense, this->make_cone({r0, bot.z}, {r1, top.z}));
         }
-        else if (!soft_equal(real_type{0}, r0))
+        else if (!soft_close(real_type{0}, r0))
         {
             // Cylindrical surface
             insert_surface(sense, CCylZ(r0));

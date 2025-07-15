@@ -168,8 +168,8 @@ class SpecialTrapezoid
 
     struct ZSegment
     {
-        real_type z;
         EnumArray<Bound, real_type> r;
+        real_type z;
     };
 
     enum class Variety
