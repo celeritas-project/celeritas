@@ -250,9 +250,10 @@ void to_json(nlohmann::json& j, Prism const& cr)
          SIO_ATTR_PAIR(cr, halfheight),
          SIO_ATTR_PAIR(cr, orientation)};
 }
-void to_json(nlohmann::json& j, RevolvedPolygon const& cr)
+void to_json(nlohmann::json& j, RevolvedSpecialTrapezoid const& cr)
 {
-    j = {{"_type", "extrudedpolygon"}, SIO_ATTR_PAIR(cr, polygon)};
+    j = {{"_type", "revolvedspecialtrapezoid"},
+         {"special_trapezoid", cr.trap().unique_points()}};
 }
 void to_json(nlohmann::json& j, Sphere const& cr)
 {

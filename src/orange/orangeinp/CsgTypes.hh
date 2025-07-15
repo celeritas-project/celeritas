@@ -15,6 +15,8 @@
 #include "corecel/Config.hh"
 
 #include "corecel/OpaqueId.hh"
+#include "corecel/cont/EnumArray.hh"
+#include "corecel/grid/GridTypes.hh"
 #include "corecel/math/HashUtils.hh"
 #include "orange/OrangeTypes.hh"
 
@@ -162,10 +164,12 @@ class SpecialTrapezoid
   public:
     //!@{
     //! \name Type aliases
+    using VecReal2 = std::vector<Real2>;
+
     struct ZSegment
     {
         real_type z;
-        celeritas::Array<real_type, 2> r;
+        EnumArray<Bound, real_type> r;
     };
 
     enum class Variety
@@ -191,11 +195,18 @@ class SpecialTrapezoid
     //! Get the variety
     Variety variety() const { return variety_; }
 
+    //! Get the absolute tolerance for soft equality
+    real_type abs_tol() const { return abs_tol_; }
+
+    // Get the unique points in clockwise order, starting with the bottom right
+    VecReal2 unique_points() const;
+
   private:
     //// DATA ////
-    ZSegment top_;
     ZSegment bot_;
+    ZSegment top_;
     Variety variety_;
+    real_type abs_tol_;
 };
 
 //---------------------------------------------------------------------------//

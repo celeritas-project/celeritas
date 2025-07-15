@@ -766,7 +766,7 @@ class RevolvedSpecialTrapezoid final : public IntersectRegionInterface
 {
   public:
     // Construct from a special trapezoid
-    RevolvedPolygon(SpecialTrapezoid&& trap);
+    RevolvedSpecialTrapezoid(SpecialTrapezoid&& trap);
 
     // Build surfaces
     void build(IntersectSurfaceBuilder&) const final;
