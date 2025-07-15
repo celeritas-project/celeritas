@@ -50,6 +50,9 @@ FrameworkLoaded framework_input(inp::FrameworkInput& fi)
     // Load geometry, surfaces, regions from Geant4 world pointer
     problem.model = geo->make_model_input();
 
+    // Load optical physics
+    problem.physics.optical = std::make_optional<inp::OpticalPhysics>();
+
     // Load physics
     for (std::string const& process_name : fi.geant.ignore_processes)
     {

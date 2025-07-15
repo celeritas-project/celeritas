@@ -23,8 +23,8 @@ std::shared_ptr<ImportedMaterials>
 ImportedMaterials::from_import(ImportData const& data)
 {
     // If there's no material specific parameters, return a nullptr
-    if (!std::any_of(data.optical_materials.begin(),
-                     data.optical_materials.end(),
+    if (!std::any_of(data.legacy.optical_materials.begin(),
+                     data.legacy.optical_materials.end(),
                      [](auto const& mat) {
                          return mat.rayleigh || mat.wls || mat.wls2;
                      }))
@@ -32,7 +32,7 @@ ImportedMaterials::from_import(ImportData const& data)
         return nullptr;
     }
 
-    OptMatId::size_type num_materials = data.optical_materials.size();
+    OptMatId::size_type num_materials = data.legacy.optical_materials.size();
 
     // Copy over Rayleigh and WLS data
 
@@ -45,7 +45,7 @@ ImportedMaterials::from_import(ImportData const& data)
     std::vector<ImportWavelengthShift> wls2;
     wls2.reserve(num_materials);
 
-    for (auto const& mat : data.optical_materials)
+    for (auto const& mat : data.legacy.optical_materials)
     {
         rayleigh.push_back(mat.rayleigh);
         wls.push_back(mat.wls);

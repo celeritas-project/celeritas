@@ -31,7 +31,8 @@ WentzelVIMscParams::from_import(ParticleParams const& particles,
         // No WentzelVI MSC present
         return nullptr;
     }
-    return std::make_shared<WentzelVIMscParams>(particles, data.msc_models);
+    return std::make_shared<WentzelVIMscParams>(particles,
+                                                data.legacy.msc_models);
 }
 
 //---------------------------------------------------------------------------//

@@ -95,7 +95,7 @@ auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) con
             field,
             celeritas::UrbanMscParams::from_import(
                 *input.particle, *input.material, *input.imported),
-            input.imported->em_params.energy_loss_fluct);
+            input.imported->legacy.em_params.energy_loss_fluct);
     }
     else
     {
@@ -106,7 +106,7 @@ auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) con
             *input.particle,
             celeritas::UrbanMscParams::from_import(
                 *input.particle, *input.material, *input.imported),
-            input.imported->em_params.energy_loss_fluct);
+            input.imported->legacy.em_params.energy_loss_fluct);
     }
 }
 
@@ -156,7 +156,7 @@ auto RZMapFieldAlongStepFactory::operator()(
         get_fieldmap_(),
         celeritas::UrbanMscParams::from_import(
             *input.particle, *input.material, *input.imported),
-        input.imported->em_params.energy_loss_fluct);
+        input.imported->legacy.em_params.energy_loss_fluct);
 }
 
 //---------------------------------------------------------------------------//
@@ -196,7 +196,7 @@ auto CylMapFieldAlongStepFactory::operator()(
         get_fieldmap_(),
         celeritas::UrbanMscParams::from_import(
             *input.particle, *input.material, *input.imported),
-        input.imported->em_params.energy_loss_fluct);
+        input.imported->legacy.em_params.energy_loss_fluct);
 }
 
 //---------------------------------------------------------------------------//
@@ -236,7 +236,7 @@ auto CartMapFieldAlongStepFactory::operator()(
         get_fieldmap_(),
         celeritas::UrbanMscParams::from_import(
             *input.particle, *input.material, *input.imported),
-        input.imported->em_params.energy_loss_fluct);
+        input.imported->legacy.em_params.energy_loss_fluct);
 }
 
 //---------------------------------------------------------------------------//

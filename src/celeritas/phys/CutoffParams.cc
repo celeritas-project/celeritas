@@ -32,7 +32,7 @@ CutoffParams::from_import(ImportData const& data,
                           SPConstParticles particle_params,
                           SPConstMaterials material_params)
 {
-    CELER_EXPECT(!data.phys_materials.empty());
+    CELER_EXPECT(!data.legacy.phys_materials.empty());
     CELER_EXPECT(particle_params);
     CELER_EXPECT(material_params);
 
@@ -43,7 +43,7 @@ CutoffParams::from_import(ImportData const& data,
     for (auto const& pdg : CutoffParams::pdg_numbers())
     {
         CutoffParams::MaterialCutoffs mat_cutoffs;
-        for (auto const& material : data.phys_materials)
+        for (auto const& material : data.legacy.phys_materials)
         {
             auto iter = material.pdg_cutoffs.find(pdg.get());
             if (iter != material.pdg_cutoffs.end())
@@ -60,7 +60,7 @@ CutoffParams::from_import(ImportData const& data,
         }
         input.cutoffs.insert({pdg, mat_cutoffs});
     }
-    input.apply_post_interaction = data.em_params.apply_cuts;
+    input.apply_post_interaction = data.legacy.em_params.apply_cuts;
 
     return std::make_shared<CutoffParams>(input);
 }

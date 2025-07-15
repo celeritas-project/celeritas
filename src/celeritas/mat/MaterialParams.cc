@@ -62,14 +62,14 @@ MatterState to_matter_state(ImportMaterialState state)
 std::shared_ptr<MaterialParams>
 MaterialParams::from_import(ImportData const& data)
 {
-    CELER_EXPECT(!data.geo_materials.empty());
-    CELER_EXPECT(!data.phys_materials.empty());
-    CELER_EXPECT(!data.elements.empty());
+    CELER_EXPECT(!data.legacy.geo_materials.empty());
+    CELER_EXPECT(!data.legacy.phys_materials.empty());
+    CELER_EXPECT(!data.legacy.elements.empty());
 
     MaterialParams::Input input;
 
     // Populate input.isotopes
-    for (auto const& isotope : data.isotopes)
+    for (auto const& isotope : data.legacy.isotopes)
     {
         MaterialParams::IsotopeInput isotope_params;
         isotope_params.label = isotope.name;
@@ -89,7 +89,7 @@ MaterialParams::from_import(ImportData const& data)
     }
 
     // Populate input.elements
-    for (auto const& element : data.elements)
+    for (auto const& element : data.legacy.elements)
     {
         MaterialParams::ElementInput element_params;
         element_params.atomic_number = AtomicNumber{element.atomic_number};
@@ -106,23 +106,25 @@ MaterialParams::from_import(ImportData const& data)
         input.elements.push_back(std::move(element_params));
     }
 
-    if (!data.optical_materials.empty())
+    if (!data.legacy.optical_materials.empty())
     {
         // Initialize optical material array with "not an optical material"
-        input.mat_to_optical.assign(data.phys_materials.size(), OptMatId{});
+        input.mat_to_optical.assign(data.legacy.phys_materials.size(),
+                                    OptMatId{});
     }
 
     // Populate input.materials *using physics material ID* but with *geo
     // material data* (possibly duplicating it)
-    for (auto mat_idx : range(data.phys_materials.size()))
+    for (auto mat_idx : range(data.legacy.phys_materials.size()))
     {
-        ImportPhysMaterial const& phys_mat = data.phys_materials[mat_idx];
+        ImportPhysMaterial const& phys_mat
+            = data.legacy.phys_materials[mat_idx];
 
         auto geo_mat_idx = phys_mat.geo_material_id;
-        CELER_VALIDATE(geo_mat_idx < data.geo_materials.size(),
+        CELER_VALIDATE(geo_mat_idx < data.legacy.geo_materials.size(),
                        << "geo material id " << geo_mat_idx
                        << " is out of range");
-        auto const& geo_mat = data.geo_materials[geo_mat_idx];
+        auto const& geo_mat = data.legacy.geo_materials[geo_mat_idx];
 
         MaterialParams::MaterialInput material_params;
         material_params.temperature = geo_mat.temperature;
@@ -142,7 +144,7 @@ MaterialParams::from_import(ImportData const& data)
         if (opt_mat_idx != ImportPhysMaterial::unspecified)
         {
             // Save optical material ID
-            CELER_VALIDATE(opt_mat_idx < data.optical_materials.size(),
+            CELER_VALIDATE(opt_mat_idx < data.legacy.optical_materials.size(),
                            << "optical material id " << opt_mat_idx
                            << " is out of range");
             input.mat_to_optical[mat_idx] = OptMatId{opt_mat_idx};

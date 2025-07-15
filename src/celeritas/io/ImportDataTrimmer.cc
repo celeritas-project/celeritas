@@ -42,48 +42,48 @@ void ImportDataTrimmer::operator()(ImportData& data)
     if (options_.materials)
     {
         // Reduce the number of materials, elements, etc.
-        (*this)(data.isotopes);
-        (*this)(data.elements);
-        (*this)(data.geo_materials);
-        (*this)(data.phys_materials);
+        (*this)(data.legacy.isotopes);
+        (*this)(data.legacy.elements);
+        (*this)(data.legacy.geo_materials);
+        (*this)(data.legacy.phys_materials);
 
-        (*this)(data.regions);
-        (*this)(data.volumes);
+        (*this)(data.legacy.regions);
+        (*this)(data.legacy.volumes);
 
-        (*this)(data.sb_data);
-        (*this)(data.livermore_pe_data);
-        (*this)(data.neutron_elastic_data);
-        (*this)(data.atomic_relaxation_data);
+        (*this)(data.legacy.sb_data);
+        (*this)(data.legacy.livermore_pe_data);
+        (*this)(data.legacy.neutron_elastic_data);
+        (*this)(data.legacy.atomic_relaxation_data);
 
-        (*this)(data.optical_materials);
+        (*this)(data.legacy.optical_materials);
 
-        this->for_each(data.elements);
-        this->for_each(data.geo_materials);
-        this->for_each(data.phys_materials);
+        this->for_each(data.legacy.elements);
+        this->for_each(data.legacy.geo_materials);
+        this->for_each(data.legacy.phys_materials);
     }
 
     if (options_.physics)
     {
         // Reduce the number of physics processes
-        (*this)(data.particles);
-        (*this)(data.processes);
-        (*this)(data.msc_models);
+        (*this)(data.legacy.particles);
+        (*this)(data.legacy.processes);
+        (*this)(data.legacy.msc_models);
 
-        this->for_each(data.processes);
-        this->for_each(data.msc_models);
-        this->for_each(data.sb_data);
-        this->for_each(data.livermore_pe_data);
-        this->for_each(data.neutron_elastic_data);
-        this->for_each(data.atomic_relaxation_data);
+        this->for_each(data.legacy.processes);
+        this->for_each(data.legacy.msc_models);
+        this->for_each(data.legacy.sb_data);
+        this->for_each(data.legacy.livermore_pe_data);
+        this->for_each(data.legacy.neutron_elastic_data);
+        this->for_each(data.legacy.atomic_relaxation_data);
 
-        this->for_each(data.optical_models);
-        this->for_each(data.optical_materials);
+        this->for_each(data.legacy.optical_models);
+        this->for_each(data.legacy.optical_materials);
     }
 
     if (options_.mupp)
     {
         // Reduce the resolution of the muon pair production table
-        (*this)(data.mu_pair_production_data);
+        (*this)(data.legacy.mu_pair_production_data);
     }
 }
 
