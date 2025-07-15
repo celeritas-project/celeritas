@@ -744,12 +744,13 @@ class Prism final : public IntersectRegionInterface
  * A region formed by revolving a SpecialTrapezoid around the z-axis.
  *
  * The special trapezoid constraints are imposed by the general quadratic
- * capability in orange/surf, which supports handles double-sheeted conical
- * surfaces. As result, polygons more complicated than special trapezoids
- * cannot be created in general case, as the undesired sheet can erroneously
- * clip the polygon.
+ * capability in orange/surf, which only supports double-sheeted conical
+ * surfaces. As result, polygons more complex than special trapezoids cannot be
+ * created in general case, as the undesired sheet can erroneously clip the
+ * polygon.
  *
- * As a convention, all r values must be positive. An example of the revolution
+ * As a convention, all r values must be positive, which also guarentees the
+ * polygon does not cross the z axis. An example of the revolution
  * process is shown below.
  * \verbatim
                               |

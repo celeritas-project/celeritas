@@ -1274,7 +1274,7 @@ RevolvedSpecialTrapezoid::RevolvedSpecialTrapezoid(SpecialTrapezoid&& trap)
     : trap_(std::move(trap))
 {
     CELER_VALIDATE(
-        trap_.bot().r[Bound::lo] >= 0 && trap_.top().r[Bound::hi] >= 0,
+        trap_.bot().r[Bound::lo] >= 0 && trap_.top().r[Bound::lo] >= 0,
         << "r values must be positive");
 }
 
@@ -1282,14 +1282,13 @@ RevolvedSpecialTrapezoid::RevolvedSpecialTrapezoid(SpecialTrapezoid&& trap)
 /*!
  * Build surfaces.
  *
- * Surface are constructed by revolving each line segment around the z
- * axis. Thus:
+ * Surface are constructed by revolving each segment around the z axis. Thus:
  * - segments parallel to z become z-aligned cylinders,
  * - segments perpendicular to z become z-orthagonal planes,
  * - other segments become z-aligned cones.
  *
- * If segment is coincident with the z axis, no surface is created as it
- * would enclose no volume.
+ * If segment is coincident with the z axis, no surface is created, as it
+ * would enclose zero volume.
  */
 void RevolvedSpecialTrapezoid::build(IntersectSurfaceBuilder& insert_surface) const
 {
@@ -1312,19 +1311,21 @@ void RevolvedSpecialTrapezoid::build(IntersectSurfaceBuilder& insert_surface) co
 
     SoftClose soft_close(trap_.abs_tol());
 
-    // Lambda for creating cylindrical/conical surface, or no surface
-    auto make_vertical_surface = [&](real_type r0, real_type r1, Sense sense) {
-        if (!soft_close(r0, r1))
-        {
-            // Conical surface
-            insert_surface(sense, this->make_cone({r0, bot.z}, {r1, top.z}));
-        }
-        else if (!soft_close(real_type{0}, r0))
-        {
-            // Cylindrical surface
-            insert_surface(sense, CCylZ(r0));
-        }
-    };
+    // Lambda for creating a cylindrical/conical surface, or no surface
+    auto make_vertical_surface
+        = [&](real_type r_bot, real_type r_top, Sense sense) {
+              if (!soft_close(r_bot, r_top))
+              {
+                  // Conical surface
+                  insert_surface(
+                      sense, this->make_cone({r_bot, bot.z}, {r_top, top.z}));
+              }
+              else if (!soft_close(real_type{0}, r_bot))
+              {
+                  // Cylindrical surface
+                  insert_surface(sense, CCylZ(r_bot));
+              }
+          };
 
     // Create two vericle surfaces
     make_vertical_surface(bot.r[left], top.r[left], Sense::outside);

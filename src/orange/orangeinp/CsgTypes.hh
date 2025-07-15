@@ -152,12 +152,12 @@ inline constexpr bool is_boolean_node(Node const& n)
 // INTERFACE TYPES
 //---------------------------------------------------------------------------//
 /*!
- * Polygon bound by lower/upper z segments, one of which may be a single point.
+ * Polygon bound by top/bottom z segments, one of which may be a single point.
  *
  * Thus, valid polygons are:
  *
- * 1) a quadrilateral with two segments parallel to the z-axis,
- * 2) a triangle with one segment parallel to the z-axis.
+ * 1) quadrilaterals with two segments parallel to the z axis,
+ * 2) triangles with one segment parallel to the z axis.
  */
 class SpecialTrapezoid
 {
@@ -176,12 +176,12 @@ class SpecialTrapezoid
     {
         quad,
         pointy_top,
-        pointy_bot,
+        pointy_bot
     };
     //!@}
 
   public:
-    // Construct from low/high z segments
+    // Construct from bottom/top z segments
     SpecialTrapezoid(ZSegment&& bot, ZSegment&& top);
 
     /// ACCESSORS ///

@@ -83,7 +83,7 @@ std::string to_string(Node const& n)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct from low/high z segments.
+ * Construct from bottom/top z segments.
  */
 SpecialTrapezoid::SpecialTrapezoid(ZSegment&& bot, ZSegment&& top)
     : bot_(std::move(bot)), top_(std::move(top))
@@ -92,10 +92,10 @@ SpecialTrapezoid::SpecialTrapezoid(ZSegment&& bot, ZSegment&& top)
     constexpr auto right = Bound::hi;
 
     CELER_VALIDATE(bot_.z < top_.z,
-                   << "bottom segment must have a lower z than the upper "
+                   << "bottom segment must have a lower z than the top "
                       "segment");
 
-    // Calculate abs_tol_ based on extents and create a soft_equal
+    // Calculate abs_tol_ based on extents
     auto r_min = std::min(bot_.r[left], top_.r[left]);
     auto r_max = std::max(bot_.r[right], top_.r[right]);
     Real3 const extents{r_max - r_min, top_.z - bot_.z, 0};
@@ -109,8 +109,7 @@ SpecialTrapezoid::SpecialTrapezoid(ZSegment&& bot, ZSegment&& top)
     bool has_pointy_top = soft_close(top_.r[left], top_.r[right]);
 
     CELER_VALIDATE(!(has_pointy_bot && has_pointy_top),
-                   << "special trapezoids must contain at least 3 distinct "
-                      "points");
+                   << "must contain at least 3 distinct points");
 
     if (has_pointy_bot)
     {

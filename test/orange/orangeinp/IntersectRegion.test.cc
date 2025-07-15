@@ -1344,17 +1344,17 @@ TEST_F(GenPrismTest, trap_even_twist)
  * Test deduplication of two opposing quadric surfaces.
  *
  * \verbatim
- * Lower polygons:      Upper polygons:
- *
- * x=-1      x=1           x=-0.5
- * +----+----+ y=1      +--+------+ y=1
- * |    |    |          |   \     |
- * |    |  R |          |    \  R |
- * |  L |    |          |  L  \   |
- * |    |    |          |      \  |
- * +----+----+ y=-1     +-------+-+ y=-1
- *      x=0                     x=0.5
- * \endverbatim
+   Lower polygons:      Upper polygons:
+
+   x=-1      x=1           x=-0.5
+   +----+----+ y=1      +--+------+ y=1
+   |    |    |          |   \     |
+   |    |  R |          |    \  R |
+   |  L |    |          |  L  \   |
+   |    |    |          |      \  |
+   +----+----+ y=-1     +-------+-+ y=-1
+        x=0                     x=0.5
+   \endverbatim
  */
 TEST_F(GenPrismTest, adjacent_twisted)
 {
@@ -2050,16 +2050,16 @@ TEST_F(RevolvedSpecialTrapezoidTest, coincident_segment)
  * Test a pointy bottom triangle.
  *
  * \verbatim
- *     3 _|__________________________
- *        |\                        /
- *     2 _| \                    /
- *        |  \               /
- *     1 _|   \          /
- *        |    \     /
- *     0 _|_____\/_____________________
- *        |      |      |      |      |
- *        0      1      2      3      4
- * \endverbatim
+   3 _|__________________________
+      |\                        /
+   2 _| \                    /
+      |  \               /
+   1 _|   \          /
+      |    \     /
+   0 _|_____\/_____________________
+      |      |      |      |      |
+      0      1      2      3      4
+   \endverbatim
  */
 TEST_F(RevolvedSpecialTrapezoidTest, pointy_bot)
 {
@@ -2084,16 +2084,16 @@ TEST_F(RevolvedSpecialTrapezoidTest, pointy_bot)
  * Test a pointy top triangle.
  *
  * \verbatim
- *     3 _|
- *        |            /|
- *     2 _|          /  |
- *        |        /    |
- *     1 _|      /______|
- *        |
- *     0 _|____________________________
- *        |      |      |      |      |
- *        0      1      2      3      4
- * \endverbatim
+   3 _|
+      |            /|
+   2 _|          /  |
+      |        /    |
+   1 _|      /______|
+      |
+   0 _|____________________________
+      |      |      |      |      |
+      0      1      2      3      4
+   \endverbatim
  */
 TEST_F(RevolvedSpecialTrapezoidTest, pointy_top)
 {
@@ -2116,16 +2116,16 @@ TEST_F(RevolvedSpecialTrapezoidTest, pointy_top)
  * Test a non-rectangular trapezoid.
  *
  * \verbatim
- *     3 _|____________________
- *        |\                    \
- *     2 _| \                    \
- *        |  \                    \
- *     1 _|   \                    \
- *        |    \                    \
- *     0 _|_____\____________________\
- *        |      |      |      |      |
- *        0      1      2      3      4
- * \endverbatim
+   3 _|____________________
+      |\                    \
+   2 _| \                    \
+      |  \                    \
+   1 _|   \                    \
+      |    \                    \
+   0 _|_____\____________________\
+      |      |      |      |      |
+      0      1      2      3      4
+   \endverbatim
  */
 TEST_F(RevolvedSpecialTrapezoidTest, quad)
 {
