@@ -239,7 +239,7 @@ TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
         Real3 pos = {sim.step_length(), 0, 0};
 
         CherenkovOffload pre_generate(
-            particle, sim, mat_view, pos, params->host_ref(), pre_step);
+            pre_step, mat_view, particle, sim, pos, params->host_ref());
 
         size_type num_samples = 10;
         std::vector<size_type> sampled_num_photons;
@@ -284,7 +284,7 @@ TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
         Real3 pos = {sim.step_length(), 0, 0};
 
         CherenkovOffload pre_generate(
-            particle, sim, mat_view, pos, params->host_ref(), pre_step);
+            pre_step, mat_view, particle, sim, pos, params->host_ref());
         auto const result = pre_generate(rng);
 
         EXPECT_FALSE(result);
@@ -336,7 +336,7 @@ TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
 
         // Calculate the average number of photons produced per unit length
         CherenkovOffload pre_generate(
-            particle, sim, mat_view, pos, params->host_ref(), pre_step);
+            pre_step, mat_view, particle, sim, pos, params->host_ref());
 
         Real3 inc_dir = make_unit_vector(pos - pre_step.pos);
         for (size_type i = 0; i < num_samples; ++i)
