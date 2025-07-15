@@ -848,7 +848,7 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
 
     /*! \todo Use plane normal equality from SoftSurfaceEqual, or maybe soft
      * equivalence on twist angle cosine?
-     */
+     *
     SoftEqual soft_equal{insert_surface.tol().rel};
 
     // Build the side planes
@@ -931,602 +931,490 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
 /*!
  * Write output to the given JSON object.
  */
-void GenPrism::output(JsonPimpl* j) const
-{
-    to_json_pimpl(j, *this);
-}
-
-//---------------------------------------------------------------------------//
-// INFSLAB
-//---------------------------------------------------------------------------//
-/*!
- * Construct from lower and upper z-planes.
- */
-InfSlab::InfSlab(real_type lower, real_type upper)
-    : lower_{lower}, upper_{upper}
-{
-    CELER_VALIDATE(lower_ < upper_,
-                   << "invalid z planes, lower plane z value " << lower_
-                   << " must be less than upper plane z value" << upper_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Build surfaces.
- */
-void InfSlab::build(IntersectSurfaceBuilder& insert_surface) const
-{
-    insert_surface(Sense::outside, PlaneZ{lower_});
-    insert_surface(Sense::inside, PlaneZ{upper_});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Write output to the given JSON object.
- */
-void InfSlab::output(JsonPimpl* j) const
-{
-    to_json_pimpl(j, *this);
-}
-
-//---------------------------------------------------------------------------//
-// INFWEDGE
-//---------------------------------------------------------------------------//
-/*!
- * Construct from a starting angle and interior angle.
- */
-InfWedge::InfWedge(Turn start, Turn interior)
-    : start_{start}, interior_{interior}
-{
-    CELER_VALIDATE(start_ >= zero_quantity() && start_ < Turn{1},
-                   << "invalid start angle " << start_.value()
-                   << " [turns]: must be in the range [0, 1)");
-    CELER_VALIDATE(interior_ > zero_quantity() && interior_ <= Turn{0.5},
-                   << "invalid interior wedge angle " << interior.value()
-                   << " [turns]: must be in the range (0, 0.5]");
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Build surfaces.
- *
- * Both planes should point "outward" to the wedge. In the degenerate case of
- * interior = 0.5 we rely on CSG object deduplication.
- */
-void InfWedge::build(IntersectSurfaceBuilder& insert_surface) const
-{
-    real_type sinstart, cosstart, sinend, cosend;
-    sincos(start_, &sinstart, &cosstart);
-    sincos(start_ + interior_, &sinend, &cosend);
-
-    insert_surface(Sense::inside, Plane{Real3{sinstart, -cosstart, 0}, 0.0});
-    insert_surface(Sense::outside, Plane{Real3{sinend, -cosend, 0}, 0.0});
-
-    //! \todo Restrict bounding boxes, at least eliminating two quadrants...
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Write output to the given JSON object.
- */
-void InfWedge::output(JsonPimpl* j) const
-{
-    to_json_pimpl(j, *this);
-}
-
-//---------------------------------------------------------------------------//
-// Involute
-//---------------------------------------------------------------------------//
-/*!
- * Construct with prarameters and half height.
- */
-Involute::Involute(Real3 const& radii,
-                   Real2 const& displacement,
-                   Chirality sign,
-                   real_type halfheight)
-    : radii_(radii), a_(displacement), t_bounds_(), sign_(sign), hh_{halfheight}
-{
-    CELER_VALIDATE(radii_[0] > 0,
-                   << "nonpositive involute radius: " << radii_[0]);
-    CELER_VALIDATE(radii_[1] > radii_[0],
-                   << "inner cylinder radius " << radii_[1]
-                   << " is not greater than involute radius " << radii_[0]);
-    CELER_VALIDATE(radii_[2] > radii_[1],
-                   << "outer cylinder radius " << radii_[2]
-                   << " is not greater than inner cyl radius " << radii_[1]);
-
-    CELER_VALIDATE(a_[1] > a_[0],
-                   << "nonpositive delta displacment: " << a_[1] - a_[0]);
-    CELER_VALIDATE(hh_ > 0, << "nonpositive half-height: " << hh_);
-
-    for (auto i : range(2))
+    void GenPrism::output(JsonPimpl * j) const
     {
-        t_bounds_[i] = std::sqrt(
-            clamp_to_nonneg(ipow<2>(radii_[i + 1] / radii_[0]) - 1));
-    }
-    auto outer_isect = t_bounds_[0] + 2 * constants::pi - (a_[1] - a_[0]);
-    CELER_VALIDATE(t_bounds_[1] < outer_isect,
-                   << "radial bounds result in angular overlap: "
-                   << outer_isect - t_bounds_[1]);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Build surfaces.
- */
-void Involute::build(IntersectSurfaceBuilder& insert_surface) const
-{
-    using InvSurf = ::celeritas::Involute;
-
-    insert_surface(Sense::outside, PlaneZ{-hh_});
-    insert_surface(Sense::inside, PlaneZ{hh_});
-    insert_surface(Sense::outside, CCylZ{radii_[1]});
-    insert_surface(Sense::inside, CCylZ{radii_[2]});
-    // Make an inside and outside involute
-    Real2 const xy{0, 0};
-    auto sense = (sign_ == Chirality::right ? Sense::outside : Sense::inside);
-    static char const* names[] = {"invl", "invr"};
-
-    for (auto i : range(2))
-    {
-        insert_surface(sense,
-                       InvSurf{xy,
-                               radii_[0],
-                               eumod(a_[i], real_type(2 * constants::pi)),
-                               sign_,
-                               t_bounds_[0],
-                               t_bounds_[1] + a_[1] - a_[0]},
-                       std::string{names[i]});
-        sense = flip_sense(sense);
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Write output to the given JSON object.
- */
-void Involute::output(JsonPimpl* j) const
-{
-    to_json_pimpl(j, *this);
-}
-
-//---------------------------------------------------------------------------//
-// PARALLELEPIPED
-//---------------------------------------------------------------------------//
-/*!
- * Construct with a 3-vector of half-edges and three angles.
- */
-Parallelepiped::Parallelepiped(Real3 const& half_projs,
-                               Turn alpha,
-                               Turn theta,
-                               Turn phi)
-    : hpr_{half_projs}, alpha_{alpha}, theta_{theta}, phi_{phi}
-{
-    for (auto ax : range(Axis::size_))
-    {
-        CELER_VALIDATE(hpr_[to_int(ax)] > 0,
-                       << "nonpositive half-edge - roughly along "
-                       << to_char(ax) << " axis: " << hpr_[to_int(ax)]);
+        to_json_pimpl(j, *this);
     }
 
-    CELER_VALIDATE(alpha_ > -Turn{0.25} && alpha_ < Turn{0.25},
-                   << "invalid angle " << alpha_.value()
-                   << " [turns]: must be in the range (-0.25, 0.25)");
-    CELER_VALIDATE(theta_ >= zero_quantity() && theta_ < Turn{0.25},
-                   << "invalid angle " << theta_.value()
-                   << " [turns]: must be in the range [0, 0.25)");
-    CELER_VALIDATE(phi_ >= zero_quantity() && phi_ < Turn{1.},
-                   << "invalid angle " << phi_.value()
-                   << " [turns]: must be in the range [0, 1)");
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Build surfaces.
- */
-void Parallelepiped::build(IntersectSurfaceBuilder& insert_surface) const
-{
-    // Cache trigonometric values
-    real_type sinth, costh, sinphi, cosphi, sinal, cosal;
-    sincos(theta_, &sinth, &costh);
-    sincos(phi_, &sinphi, &cosphi);
-    sincos(alpha_, &sinal, &cosal);
-
-    // Base vectors
-    auto a = hpr_[X] * Real3{1, 0, 0};
-    auto b = hpr_[Y] * Real3{sinal, cosal, 0};
-    auto c = hpr_[Z] * Real3{sinth * cosphi, sinth * sinphi, costh};
-
-    // Position the planes
-    auto xnorm = make_unit_vector(cross_product(b, c));
-    auto ynorm = make_unit_vector(cross_product(c, a));
-    auto xoffset = dot_product(a, xnorm);
-    auto yoffset = dot_product(b, ynorm);
-
-    // Build top and bottom planes
-    insert_surface(Sense::outside, PlaneZ{-hpr_[Z]});
-    insert_surface(Sense::inside, PlaneZ{hpr_[Z]});
-
-    // Build the side planes roughly perpendicular to the y axis
-    insert_surface(Sense::outside, Plane{ynorm, -yoffset});
-    insert_surface(Sense::inside, Plane{ynorm, yoffset});
-
-    // Build the side planes roughly perpendicular to the x axis
-    insert_surface(Sense::outside, Plane{xnorm, -xoffset});
-    insert_surface(Sense::inside, Plane{xnorm, xoffset});
-
-    // Add an exterior bounding box
-    auto half_diagonal = a + b + c;
-    insert_surface(Sense::inside, BBox{-half_diagonal, half_diagonal});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Write output to the given JSON object.
- */
-void Parallelepiped::output(JsonPimpl* j) const
-{
-    to_json_pimpl(j, *this);
-}
-
-//---------------------------------------------------------------------------//
-// PRISM
-//---------------------------------------------------------------------------//
-/*!
- * Construct with inner radius (apothem), half height, and orientation.
- */
-Prism::Prism(int num_sides,
-             real_type apothem,
-             real_type halfheight,
-             real_type orientation)
-    : num_sides_{num_sides}
-    , apothem_{apothem}
-    , hh_{halfheight}
-    , orientation_{orientation}
-{
-    CELER_VALIDATE(num_sides_ >= 3,
-                   << "degenerate prism (num_sides = " << num_sides_ << ')');
-    CELER_VALIDATE(apothem_ > 0, << "nonpositive apothem: " << apothem_);
-    CELER_VALIDATE(hh_ > 0, << "nonpositive half-height " << hh_);
-    CELER_VALIDATE(orientation_ >= 0 && orientation_ < 1,
-                   << "orientation is out of bounds [0, 1): " << orientation_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Build surfaces.
- */
-void Prism::build(IntersectSurfaceBuilder& insert_surface) const
-{
-    using constants::pi;
-
-    // Build top and bottom
-    insert_surface(Sense::outside, PlaneZ{-hh_});
-    insert_surface(Sense::inside, PlaneZ{hh_});
-
-    // Offset (if user offset is zero) is calculated to put a point at y=0 on
-    // the +x axis. An offset of 1 would produce a shape congruent with an
-    // offset of zero, except that every face has an index that's decremented
-    // by 1. We prevent this by using fmod.
-    real_type const offset
-        = std::fmod(orientation_ + real_type{0.5}, real_type{1});
-    CELER_ASSERT(offset >= 0 && offset < 1);
-
-    // Change of angle in radians per side
-    Turn const delta{1 / static_cast<real_type>(num_sides_)};
-
-    // Build prismatic sides
-    for (auto n : range(num_sides_))
+    //---------------------------------------------------------------------------//
+    // INFSLAB
+    //---------------------------------------------------------------------------//
+    /*!
+     * Construct from lower and upper z-planes.
+     */
+    InfSlab::InfSlab(real_type lower, real_type upper)
+        : lower_{lower}, upper_{upper}
     {
-        // Angle of outward normal, *not* of corner
-        auto theta = delta * (static_cast<real_type>(n) + offset);
-
-        // Create a normal vector with the given angle
-        Real3 normal{0, 0, 0};
-        sincos(theta, &normal[to_int(Axis::y)], &normal[to_int(Axis::x)]);
-
-        // Distance from the plane to the origin is the apothem
-        insert_surface(Plane{normal, apothem_});
+        CELER_VALIDATE(lower_ < upper_,
+                       << "invalid z planes, lower plane z value " << lower_
+                       << " must be less than upper plane z value" << upper_);
     }
 
-    // Apothem is interior, circumradius exterior
-    insert_surface(Sense::inside,
-                   make_xyradial_bbox(apothem_ / cos(delta / 2)));
-
-    auto interior_bbox = make_xyradial_bbox(apothem_);
-    interior_bbox.shrink(Bound::lo, Axis::z, -hh_);
-    interior_bbox.shrink(Bound::hi, Axis::z, hh_);
-    insert_surface(Sense::outside, interior_bbox);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Write output to the given JSON object.
- */
-void Prism::output(JsonPimpl* j) const
-{
-    to_json_pimpl(j, *this);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether this encloses another sphere.
- */
-bool Prism::encloses(Prism const& other) const
-{
-    if (num_sides_ != other.num_sides_ || orientation_ != other.orientation_)
+    //---------------------------------------------------------------------------//
+    /*!
+     * Build surfaces.
+     */
+    void InfSlab::build(IntersectSurfaceBuilder & insert_surface) const
     {
-        CELER_NOT_IMPLEMENTED(
-            "hollow prism unless number of sides and orientation are "
-            "identical");
+        insert_surface(Sense::outside, PlaneZ{lower_});
+        insert_surface(Sense::inside, PlaneZ{upper_});
     }
-    return apothem_ >= other.apothem() && hh_ >= other.halfheight();
-}
 
-//---------------------------------------------------------------------------//
-// RevolvedPolygon
-//---------------------------------------------------------------------------//
-/*!
- * Construct from a convex polygon.
- *
- * The polygon must consist of (r, z) points specified in clockwise order. All
- * (r, z) points must be positive.
- */
-RevolvedPolygon::RevolvedPolygon(RevolvedPolygon::VecReal2 const& polygon)
-    : polygon_(polygon)
-{
-    constexpr size_type R = 0;
-    constexpr size_type Z = 1;
-
-    CELER_VALIDATE(polygon_.size() >= 3,
-                   << "polygon must consist of at least 3 points");
-
-    // Calculate the tolerance to use throughout for soft equality
-    auto [r_min, r_max] = detail::find_extrema(polygon_, R);
-    auto [z_min, z_max] = detail::find_extrema(polygon_, Z);
-    Real3 const extents{r_max - r_min, z_max - z_min, 0};
-    real_type abs_tol = ::celeritas::detail::BumpCalculator(
-        Tolerance<>::from_default())(extents);
-
-    // Store operative extents for bounding box creation
-    r_max_ = r_max;
-    z_min_ = z_min;
-    z_max_ = z_max;
-
-    // Store only non-collinear points
-    polygon_ = detail::filter_collinear_points(polygon, abs_tol);
-
-    // Store a SoftEqual object employing the same criteron used for testing
-    // collinearity
-    soft_equal_(0, abs_tol);
-
-    // After removing collinear points, at least 3 points must remain
-    CELER_VALIDATE(polygon_.size() >= 3,
-                   << "polygon must consist of at least 3 points");
-
-    // After removing collinear points, the polygon should have a *strictly*
-    // clockwise orientation, which also guarantees it is convex.
-    CELER_VALIDATE(
-        has_orientation(make_span(polygon_), detail::Orientation::clockwise),
-        << "polygon must be specified in strictly clockwise order");
-
-    // All points must be positive
-    CELER_VALIDATE(
-        std::all_of(polygon_.begin(),
-                    polygon_.end(),
-                    [](Real2 const& p) { return p[R] >= 0 && p[Z] >= 0; }),
-        << "polygon must consist of only positive r and z values");
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Build surfaces.
- *
- * Building is done by revolving each line segment around the z axis to create
- * conical surfaces. Line segments parallel and perpendicular the rz plane
- * produce degenerate cones, i.e. z-orthogonal planes and z-aligned cylinders,
- * respectively. If segment is coincident with the z axis, no surface is
- * created as it would enclose no volume.
- *
- * Calculating the sense of each surface is done by calculating the "southeast"
- * and "northwest" points of the polygon. The southeast point is point with the
- * maximum r value among those with the minimum z value. The northwest point is
- * the point with the minimum r value of those with the maximum z value. A
- * simple example of this appears below.
- * \verbatim
-   NW point ._____________
-            |             |
-            |             |
-            |             |
-            |_____________* SE point
- * \endverbatim
- * By begining construction at the southeast point and proceeding clockwise,
- * surfaces senses are all positive until reaching segment begining at the
- * northwest point, where the senses then flip to negative.
- */
-void RevolvedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
-{
-    constexpr size_type R = 0;
-    constexpr size_type Z = 1;
-
-    // Get SE and NW point
-    auto [start, sense_change] = this->calc_southeast_northwest();
-
-    // Revolve each segment around z
-    Sense sense = Sense::outside;
-    size_type current_idx = start;
-    for ([[maybe_unused]] auto i : range(polygon_.size()))
+    //---------------------------------------------------------------------------//
+    /*!
+     * Write output to the given JSON object.
+     */
+    void InfSlab::output(JsonPimpl * j) const
     {
-        size_type next_idx = this->calc_next(current_idx);
-        auto const& p0 = polygon_[current_idx];
-        auto const& p1 = polygon_[next_idx];
+        to_json_pimpl(j, *this);
+    }
 
-        // Flip the sense if we have looped around past the NW point
-        if (current_idx == sense_change)
+    //---------------------------------------------------------------------------//
+    // INFWEDGE
+    //---------------------------------------------------------------------------//
+    /*!
+     * Construct from a starting angle and interior angle.
+     */
+    InfWedge::InfWedge(Turn start, Turn interior)
+        : start_{start}, interior_{interior}
+    {
+        CELER_VALIDATE(start_ >= zero_quantity() && start_ < Turn{1},
+                       << "invalid start angle " << start_.value()
+                       << " [turns]: must be in the range [0, 1)");
+        CELER_VALIDATE(interior_ > zero_quantity() && interior_ <= Turn{0.5},
+                       << "invalid interior wedge angle " << interior.value()
+                       << " [turns]: must be in the range (0, 0.5]");
+    }
+
+    //---------------------------------------------------------------------------//
+    /*!
+     * Build surfaces.
+     *
+     * Both planes should point "outward" to the wedge. In the degenerate case
+     * of interior = 0.5 we rely on CSG object deduplication.
+     */
+    void InfWedge::build(IntersectSurfaceBuilder & insert_surface) const
+    {
+        real_type sinstart, cosstart, sinend, cosend;
+        sincos(start_, &sinstart, &cosstart);
+        sincos(start_ + interior_, &sinend, &cosend);
+
+        insert_surface(Sense::inside,
+                       Plane{Real3{sinstart, -cosstart, 0}, 0.0});
+        insert_surface(Sense::outside, Plane{Real3{sinend, -cosend, 0}, 0.0});
+
+        //! \todo Restrict bounding boxes, at least eliminating two
+        //! quadrants...
+    }
+
+    //---------------------------------------------------------------------------//
+    /*!
+     * Write output to the given JSON object.
+     */
+    void InfWedge::output(JsonPimpl * j) const
+    {
+        to_json_pimpl(j, *this);
+    }
+
+    //---------------------------------------------------------------------------//
+    // Involute
+    //---------------------------------------------------------------------------//
+    /*!
+     * Construct with prarameters and half height.
+     */
+    Involute::Involute(Real3 const& radii,
+                       Real2 const& displacement,
+                       Chirality sign,
+                       real_type halfheight)
+        : radii_(radii)
+        , a_(displacement)
+        , t_bounds_()
+        , sign_(sign)
+        , hh_{halfheight}
+    {
+        CELER_VALIDATE(radii_[0] > 0,
+                       << "nonpositive involute radius: " << radii_[0]);
+        CELER_VALIDATE(radii_[1] > radii_[0],
+                       << "inner cylinder radius " << radii_[1]
+                       << " is not greater than involute radius " << radii_[0]);
+        CELER_VALIDATE(radii_[2] > radii_[1],
+                       << "outer cylinder radius " << radii_[2]
+                       << " is not greater than inner cyl radius "
+                       << radii_[1]);
+
+        CELER_VALIDATE(a_[1] > a_[0],
+                       << "nonpositive delta displacment: " << a_[1] - a_[0]);
+        CELER_VALIDATE(hh_ > 0, << "nonpositive half-height: " << hh_);
+
+        for (auto i : range(2))
         {
+            t_bounds_[i] = std::sqrt(
+                clamp_to_nonneg(ipow<2>(radii_[i + 1] / radii_[0]) - 1));
+        }
+        auto outer_isect = t_bounds_[0] + 2 * constants::pi - (a_[1] - a_[0]);
+        CELER_VALIDATE(t_bounds_[1] < outer_isect,
+                       << "radial bounds result in angular overlap: "
+                       << outer_isect - t_bounds_[1]);
+    }
+
+    //---------------------------------------------------------------------------//
+    /*!
+     * Build surfaces.
+     */
+    void Involute::build(IntersectSurfaceBuilder & insert_surface) const
+    {
+        using InvSurf = ::celeritas::Involute;
+
+        insert_surface(Sense::outside, PlaneZ{-hh_});
+        insert_surface(Sense::inside, PlaneZ{hh_});
+        insert_surface(Sense::outside, CCylZ{radii_[1]});
+        insert_surface(Sense::inside, CCylZ{radii_[2]});
+        // Make an inside and outside involute
+        Real2 const xy{0, 0};
+        auto sense
+            = (sign_ == Chirality::right ? Sense::outside : Sense::inside);
+        static char const* names[] = {"invl", "invr"};
+
+        for (auto i : range(2))
+        {
+            insert_surface(sense,
+                           InvSurf{xy,
+                                   radii_[0],
+                                   eumod(a_[i], real_type(2 * constants::pi)),
+                                   sign_,
+                                   t_bounds_[0],
+                                   t_bounds_[1] + a_[1] - a_[0]},
+                           std::string{names[i]});
             sense = flip_sense(sense);
         }
+    }
 
-        if (soft_equal_(p0[R], p1[R]))
+    //---------------------------------------------------------------------------//
+    /*!
+     * Write output to the given JSON object.
+     */
+    void Involute::output(JsonPimpl * j) const
+    {
+        to_json_pimpl(j, *this);
+    }
+
+    //---------------------------------------------------------------------------//
+    // PARALLELEPIPED
+    //---------------------------------------------------------------------------//
+    /*!
+     * Construct with a 3-vector of half-edges and three angles.
+     */
+    Parallelepiped::Parallelepiped(
+        Real3 const& half_projs, Turn alpha, Turn theta, Turn phi)
+        : hpr_{half_projs}, alpha_{alpha}, theta_{theta}, phi_{phi}
+    {
+        for (auto ax : range(Axis::size_))
         {
-            // Segment produces a cylindrical surface (provided it is not
-            // coincide with the z axis)
-            if (!soft_equal_(0, p0[R]))
-            {
-                insert_surface(sense, CCylZ(p0[R]));
+            CELER_VALIDATE(hpr_[to_int(ax)] > 0,
+                           << "nonpositive half-edge - roughly along "
+                           << to_char(ax) << " axis: " << hpr_[to_int(ax)]);
+        }
+
+        CELER_VALIDATE(alpha_ > -Turn{0.25} && alpha_ < Turn{0.25},
+                       << "invalid angle " << alpha_.value()
+                       << " [turns]: must be in the range (-0.25, 0.25)");
+        CELER_VALIDATE(theta_ >= zero_quantity() && theta_ < Turn{0.25},
+                       << "invalid angle " << theta_.value()
+                       << " [turns]: must be in the range [0, 0.25)");
+        CELER_VALIDATE(phi_ >= zero_quantity() && phi_ < Turn{1.},
+                       << "invalid angle " << phi_.value()
+                       << " [turns]: must be in the range [0, 1)");
+    }
+
+    //---------------------------------------------------------------------------//
+    /*!
+     * Build surfaces.
+     */
+    void Parallelepiped::build(IntersectSurfaceBuilder & insert_surface) const
+    {
+        // Cache trigonometric values
+        real_type sinth, costh, sinphi, cosphi, sinal, cosal;
+        sincos(theta_, &sinth, &costh);
+        sincos(phi_, &sinphi, &cosphi);
+        sincos(alpha_, &sinal, &cosal);
+
+        // Base vectors
+        auto a = hpr_[X] * Real3{1, 0, 0};
+        auto b = hpr_[Y] * Real3{sinal, cosal, 0};
+        auto c = hpr_[Z] * Real3{sinth * cosphi, sinth * sinphi, costh};
+
+        // Position the planes
+        auto xnorm = make_unit_vector(cross_product(b, c));
+        auto ynorm = make_unit_vector(cross_product(c, a));
+        auto xoffset = dot_product(a, xnorm);
+        auto yoffset = dot_product(b, ynorm);
+
+        // Build top and bottom planes
+        insert_surface(Sense::outside, PlaneZ{-hpr_[Z]});
+        insert_surface(Sense::inside, PlaneZ{hpr_[Z]});
+
+        // Build the side planes roughly perpendicular to the y axis
+        insert_surface(Sense::outside, Plane{ynorm, -yoffset});
+        insert_surface(Sense::inside, Plane{ynorm, yoffset});
+
+        // Build the side planes roughly perpendicular to the x axis
+        insert_surface(Sense::outside, Plane{xnorm, -xoffset});
+        insert_surface(Sense::inside, Plane{xnorm, xoffset});
+
+        // Add an exterior bounding box
+        auto half_diagonal = a + b + c;
+        insert_surface(Sense::inside, BBox{-half_diagonal, half_diagonal});
+    }
+
+    //---------------------------------------------------------------------------//
+    /*!
+     * Write output to the given JSON object.
+     */
+    void Parallelepiped::output(JsonPimpl * j) const
+    {
+        to_json_pimpl(j, *this);
+    }
+
+    //---------------------------------------------------------------------------//
+    // PRISM
+    //---------------------------------------------------------------------------//
+    /*!
+     * Construct with inner radius (apothem), half height, and orientation.
+     */
+    Prism::Prism(int num_sides,
+                 real_type apothem,
+                 real_type halfheight,
+                 real_type orientation)
+        : num_sides_{num_sides}
+        , apothem_{apothem}
+        , hh_{halfheight}
+        , orientation_{orientation}
+    {
+        CELER_VALIDATE(num_sides_ >= 3,
+                       << "degenerate prism (num_sides = " << num_sides_
+                       << ')');
+        CELER_VALIDATE(apothem_ > 0, << "nonpositive apothem: " << apothem_);
+        CELER_VALIDATE(hh_ > 0, << "nonpositive half-height " << hh_);
+        CELER_VALIDATE(orientation_ >= 0 && orientation_ < 1,
+                       << "orientation is out of bounds [0, 1): "
+                       << orientation_);
+    }
+
+    //---------------------------------------------------------------------------//
+    /*!
+     * Build surfaces.
+     */
+    void Prism::build(IntersectSurfaceBuilder & insert_surface) const
+    {
+        using constants::pi;
+
+        // Build top and bottom
+        insert_surface(Sense::outside, PlaneZ{-hh_});
+        insert_surface(Sense::inside, PlaneZ{hh_});
+
+        // Offset (if user offset is zero) is calculated to put a point at y=0
+        // on the +x axis. An offset of 1 would produce a shape congruent with
+        // an offset of zero, except that every face has an index that's
+        // decremented by 1. We prevent this by using fmod.
+        real_type const offset
+            = std::fmod(orientation_ + real_type{0.5}, real_type{1});
+        CELER_ASSERT(offset >= 0 && offset < 1);
+
+        // Change of angle in radians per side
+        Turn const delta{1 / static_cast<real_type>(num_sides_)};
+
+        // Build prismatic sides
+        for (auto n : range(num_sides_))
+        {
+            // Angle of outward normal, *not* of corner
+            auto theta = delta * (static_cast<real_type>(n) + offset);
+
+            // Create a normal vector with the given angle
+            Real3 normal{0, 0, 0};
+            sincos(theta, &normal[to_int(Axis::y)], &normal[to_int(Axis::x)]);
+
+            // Distance from the plane to the origin is the apothem
+            insert_surface(Plane{normal, apothem_});
+        }
+
+        // Apothem is interior, circumradius exterior
+        insert_surface(Sense::inside,
+                       make_xyradial_bbox(apothem_ / cos(delta / 2)));
+
+        auto interior_bbox = make_xyradial_bbox(apothem_);
+        interior_bbox.shrink(Bound::lo, Axis::z, -hh_);
+        interior_bbox.shrink(Bound::hi, Axis::z, hh_);
+        insert_surface(Sense::outside, interior_bbox);
+    }
+
+    //---------------------------------------------------------------------------//
+    /*!
+     * Write output to the given JSON object.
+     */
+    void Prism::output(JsonPimpl * j) const
+    {
+        to_json_pimpl(j, *this);
+    }
+
+    //---------------------------------------------------------------------------//
+    /*!
+     * Whether this encloses another sphere.
+     */
+    bool Prism::encloses(Prism const& other) const
+    {
+        if (num_sides_ != other.num_sides_
+            || orientation_ != other.orientation_)
+        {
+            CELER_NOT_IMPLEMENTED(
+                "hollow prism unless number of sides and orientation are "
+                "identical");
+        }
+        return apothem_ >= other.apothem() && hh_ >= other.halfheight();
+    }
+
+    //---------------------------------------------------------------------------//
+    // RevolvedSpecialTrapezoid
+    //---------------------------------------------------------------------------//
+    /*!
+     * Construct from a special trapezoid.
+     */
+    RevolvedPolygon::RevolvedPolygon(RevolvedPolygon::SpecialTrapezoid && trap)
+        : trap_(std::move(trap))
+    {
+        CELER_VALIDATE(
+            trap_.bot()[Bound::lo] >= 0 && trap_.top()[Bound::hi] >= 0,
+            << "r values must be positive");
+    }
+
+    //---------------------------------------------------------------------------//
+    /*!
+     * Build surfaces.
+     *
+     * Surface are constructed by revolving each line segment around the z
+     * axis. Thus:
+     * - segments parallel to z become z-aligned cylinders,
+     * - segments perpendicular to z become z-orthagonal planes,
+     * - other segments become z-aligned cones.
+     *
+     * If segment is coincident with the z axis, no surface is created as it
+     * would enclose no volume.
+     */
+    void RevolvedPolygon::build(IntersectSurfaceBuilder & insert_surface) const
+    {
+        auto const& bot = trap_.bot();
+        auto const& top = trap_.top();
+        constexpr auto left = Bound::lo;
+        constexpr auto right = Bound::hi;
+
+        if (trap_.variety() != SpecialTrapezoid::Variety::pointy_bot)
+        {
+            // Create a bottom z plane
+            insert_surface(Sense::outside, PlaneZ{bot.z});
+        }
+        if (trap_.variety() != SpecialTrapezoid::Variety::pointy_bot)
+        {
+            // Create a top z plane
+            insert_surface(Sense::inside, PlaneZ{top.z});
+        }
+
+        // Lambda for creating cylindrical/conical surface, or no surface
+        auto make_vertical_surface =
+            [z_min = bot.z,
+             z_max = top.z](real_type r0, real_type r1, Sense sense) {
+        if (!soft_equal_(r0, r1)
+        {
+                // Conical surface
+                insert_surface(sense,
+                               this->make_cone({r0, z_min}, {r1, z_max}));
+        }
+        else if (!soft_equal(0, r0))
+        {
+                // Cylindrical surface
+                insert_surface(sense, CCylZ(r0));
+        }
             }
-        }
-        else if (soft_equal_(p0[Z], p1[Z]))
-        {
-            // Segment produces a z plane
-            insert_surface(sense, PlaneZ{p0[Z]});
-        }
-        else
-        {
-            // Segment produces a conical surface
-            insert_surface(sense, this->make_cone(p0, p1));
-        }
 
-        current_idx = next_idx;
+        // Create two vericle surfaces
+        make_verticle_surface(bot.r[left], top.r[left], Sense::outside);
+        make_verticle_surface(bot.r[right], top.r[right], Sense::inside);
+
+        // Establish bbox
+        auto r_max = std::max(bot.r[right], top.r[right]);
+        insert_surface(Sense::inside,
+                       BBox::from_unchecked({-r_max, -r_max, bot.z},
+                                            {r_max, r_max, top.z}));
     }
 
-    // Establish bbox
-    insert_surface(Sense::inside,
-                   BBox::from_unchecked({-r_max_, -r_max_, z_min_},
-                                        {r_max_, r_max_, z_max_}));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Write output to the given JSON object.
- */
-void RevolvedPolygon::output(JsonPimpl* j) const
-{
-    to_json_pimpl(j, *this);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate the southeast and northwest points.
- *
- * The southeast point is point with the maximum r value among those with the
- * minimum z value. The southwest point is the point with the minimum r value
- * of those with the maximum z value. Because there are no collinear points,
- * after finding the points with the min/max z values, only a single neighbor
- * of each points needs to be checked to determine the SE and NW points.
- */
-std::pair<size_type, size_type>
-RevolvedPolygon::calc_southeast_northwest() const
-{
-    constexpr size_type R = 0;
-    constexpr size_type Z = 1;
-
-    // Find the points with the min and max z value
-    auto [se_it, nw_it] = std::minmax_element(
-        polygon_.begin(), polygon_.end(), [&Z](auto const& a, auto const& b) {
-            return a[Z] < b[Z];
-        });
-    size_type se = se_it - polygon_.begin();
-    size_type nw = nw_it - polygon_.begin();
-
-    // Reassign ne/sw if the previous point has a more eastern/western r value
-    auto se_neighbor = this->calc_prev(se);
-    auto nw_neighbor = this->calc_prev(nw);
-
-    if (soft_equal_(polygon_[se][Z], polygon_[se_neighbor][Z])
-        && polygon_[se_neighbor][R] > polygon_[se][R])
+    //---------------------------------------------------------------------------//
+    /*!
+     * Write output to the given JSON object.
+     */
+    void RevolvedPolygon::output(JsonPimpl * j) const
     {
-        se = se_neighbor;
+        to_json_pimpl(j, *this);
     }
 
-    if (soft_equal_(polygon_[nw][Z], polygon_[nw_neighbor][Z])
-        && polygon_[nw_neighbor][R] < polygon_[nw][R])
+    //---------------------------------------------------------------------------//
+    /*!
+     * Create a cone from two (r, z) points.
+     *
+     * The cone is created by revolving the line segment between the points
+     * around the z axis.
+     */
+    ConeZ RevolvedPolygon::make_cone(Real2 p0, Real2 p1) const
     {
-        nw = nw_neighbor;
+        constexpr size_type R = 0;
+        constexpr size_type Z = 1;
+
+        auto delta_r = p1[R] - p0[R];
+        auto delta_z = p1[Z] - p0[Z];
+        auto tangent = delta_r / delta_z;
+        auto intercept = p0[Z] - p0[R] * delta_z / delta_r;
+
+        // The tangent value given to ConeZ must be positive. However, since
+        // ConeZ creates a double-sheeted cone, the negative cone will be
+        // properly produced as well.
+        return ConeZ{Real3{0, 0, intercept}, std::abs(tangent)};
     }
 
-    return {se, nw};
-}
+    //---------------------------------------------------------------------------//
+    // SPHERE
+    //---------------------------------------------------------------------------//
+    /*!
+     * Construct with radius.
+     */
+    Sphere::Sphere(real_type radius) : radius_{radius}
+    {
+        CELER_VALIDATE(radius_ > 0, << "nonpositive radius: " << radius_);
+    }
 
-//---------------------------------------------------------------------------//
-/*!
- * Determine the next index, with modular indexing.
- */
-size_type RevolvedPolygon::calc_next(size_type i) const
-{
-    return (i + 1) % polygon_.size();
-}
+    //---------------------------------------------------------------------------//
+    /*!
+     * Build surfaces.
+     */
+    void Sphere::build(IntersectSurfaceBuilder & insert_surface) const
+    {
+        insert_surface(SphereCentered{radius_});
+    }
 
-//---------------------------------------------------------------------------//
-/*!
- * Determine the previous index, with modular indexing.
- */
-size_type RevolvedPolygon::calc_prev(size_type i) const
-{
-    return (i - 1) % polygon_.size();
-}
+    //---------------------------------------------------------------------------//
+    /*!
+     * Write output to the given JSON object.
+     */
+    void Sphere::output(JsonPimpl * j) const
+    {
+        to_json_pimpl(j, *this);
+    }
 
-//---------------------------------------------------------------------------//
-/*!
- * Create a cone from two (r, z) points.
- *
- * The cone is created by revolving the line segment between the points around
- * the z axis.
- */
-ConeZ RevolvedPolygon::make_cone(Real2 point0, Real2 point1) const
-{
-    constexpr size_type R = 0;
-    constexpr size_type Z = 1;
+    //---------------------------------------------------------------------------//
+    /*!
+     * Whether this encloses another sphere.
+     */
+    bool Sphere::encloses(Sphere const& other) const
+    {
+        return radius_ >= other.radius();
+    }
 
-    auto delta_r = point1[R] - point0[R];
-    auto delta_z = point1[Z] - point0[Z];
-    auto tangent = delta_r / delta_z;
-    auto intercept = point0[Z] - point0[R] * delta_z / delta_r;
-
-    // The tangent value given to ConeZ must be positive. However, since ConeZ
-    // creates a double-sheeted cone, the negative cone will be properly
-    // produced as well.
-    return ConeZ{Real3{0, 0, intercept}, std::abs(tangent)};
-}
-
-//---------------------------------------------------------------------------//
-// SPHERE
-//---------------------------------------------------------------------------//
-/*!
- * Construct with radius.
- */
-Sphere::Sphere(real_type radius) : radius_{radius}
-{
-    CELER_VALIDATE(radius_ > 0, << "nonpositive radius: " << radius_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Build surfaces.
- */
-void Sphere::build(IntersectSurfaceBuilder& insert_surface) const
-{
-    insert_surface(SphereCentered{radius_});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Write output to the given JSON object.
- */
-void Sphere::output(JsonPimpl* j) const
-{
-    to_json_pimpl(j, *this);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether this encloses another sphere.
- */
-bool Sphere::encloses(Sphere const& other) const
-{
-    return radius_ >= other.radius();
-}
-
-//---------------------------------------------------------------------------//
+    //---------------------------------------------------------------------------//
 }  // namespace orangeinp
 }  // namespace celeritas

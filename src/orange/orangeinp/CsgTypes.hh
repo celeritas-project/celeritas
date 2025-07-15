@@ -147,6 +147,58 @@ inline constexpr bool is_boolean_node(Node const& n)
 }
 
 //---------------------------------------------------------------------------//
+// INTERFACE TYPES
+//---------------------------------------------------------------------------//
+/*!
+ * Polygon bound by lower/upper z segments, one of which may be a single point.
+ *
+ * Thus, valid polygons are:
+ *
+ * 1) a quadrilateral with two segments parallel to the z-axis,
+ * 2) a triangle with one segment parallel to the z-axis.
+ */
+class SpecialTrapezoid
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    struct ZSegment
+    {
+        real_type z;
+        celeritas::Array<real_type, 2> r;
+    };
+
+    enum class Variety
+    {
+        quad,
+        pointy_top,
+        pointy_bot,
+    };
+    //!@}
+
+  public:
+    // Construct from low/high z segments
+    SpecialTrapezoid(ZSegment&& bot, ZSegment&& top);
+
+    /// ACCESSORS ///
+
+    //! Get the bottom z segment
+    ZSegment const& bot() const { return bot_; }
+
+    //! Get the top z segment
+    ZSegment const& top() const { return top_; }
+
+    //! Get the variety
+    Variety variety() const { return variety_; }
+
+  private:
+    //// DATA ////
+    ZSegment top_;
+    ZSegment bot_;
+    Variety variety_;
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace orangeinp
 }  // namespace celeritas
 

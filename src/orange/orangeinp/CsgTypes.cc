@@ -80,5 +80,58 @@ std::string to_string(Node const& n)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Construct from low/high z segments.
+ */
+SpecialTrapezoid::SpecialTrapezoid(ZSegment&& bot, ZSegment&& top)
+    : bot_(std::move(bot)), top_(std::move(top))
+{
+    constexpr auto left = Bound::lo;
+    constexpr auto right = Bound::hi;
+
+    CELER_VALIDATE(bot_.z < top_.z,
+                   << "bottom segment must have a lower z than the upper "
+                      "segment");
+
+    // Create a soft_equal functor based on extents
+    auto r_min = std::min(bot_.r[left], top_.r[left]);
+    auto r_max = std::max(bot_.r[right], top_.r[right]);
+    Real3 const extents{r_max - r_min, top_.z - bot_.z, 0};
+    real_type abs_tol = ::celeritas::detail::BumpCalculator(
+        Tolerance<>::from_default())(extents);
+    SoftEqual soft_equal(0, abs_tol);
+
+    // Determine variety
+    bool has_pointy_bot = soft_equal(bot_.r[left], bot_.r[right]);
+    bool has_pointy_top = soft_equal(top_.r[left], top_.r[right]);
+
+    CELER_VALIDATE(!(has_pointy_bot && has_pointy_top),
+                   << "special trapezoids must contain at least 3 distinct "
+                      "points");
+
+    if (has_pointy_bot)
+    {
+        CELER_VALIDATE(top_.r[left] < top_.r[right],
+                       << "r values must appear in increasing order");
+        variety_ = Variety::pointy_bot;
+    }
+    else if (has_pointy_top)
+    {
+        CELER_VALIDATE(bot_.r[left] < bot_.r[right],
+                       << "r values must appear in increasing order");
+        variety_ = Variety::pointy_top;
+    }
+    else
+    {
+        CELER_VALIDATE(top_.r[left] < top_.r[right]
+                       && bot_.r[left] < bot_.r[right] << "r values must "
+                                                          "apper in "
+                                                          "increasing "
+                                                          "order");
+        variety_ = Variety::quad;
+    }
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace orangeinp
 }  // namespace celeritas

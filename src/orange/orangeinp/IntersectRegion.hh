@@ -16,6 +16,8 @@
 #include "orange/OrangeTypes.hh"
 #include "orange/surf/ConeAligned.hh"
 
+#include "CsgTypes.hh"
+
 namespace celeritas
 {
 struct JsonPimpl;
@@ -739,32 +741,32 @@ class Prism final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * A region formed by revolving a convex polygon around the z axis.
+ * A region formed by revolving a SpecialTrapezoid around the z-axis.
  *
- * This polygon must be specified in clockwise order and (r, z) points must be
- * non-negative.
+ * The special trapezoid constraints are imposed by the general quadratic
+ * capability in orange/surf, which supports handles double-sheeted conical
+ * surfaces. As result, polygons more complicated than special trapezoids
+ * cannot be created in general case, as the undesired sheet can erroneously
+ * clip the polygon.
+ *
+ * As a convention, all r values must be positive. An example of the revolution
+ * process is shown below.
  * \verbatim
                               |
      ........            ^    |     .           ________
-   .         .            .   |    .           /         \
- .             .           . . . .           /             \
- .               .            |            /               /
-  ..................          |          /________________/
-                              |        user-specified polygon
+     .       .            .   |    .           /        |
+     .         .           . . . .           /          |
+     .           .            |            /            |
+     ...............          |          /______________|
+                              |         supplied special trapezoid
                            z axis
  * \endverbatim
  */
-class RevolvedPolygon final : public IntersectRegionInterface
+class RevolvedSpecialTrapezoid final : public IntersectRegionInterface
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using VecReal2 = std::vector<Real2>;
-    //!@}
-
-  public:
-    // Construct from a convex polygon
-    RevolvedPolygon(VecReal2 const& polygon);
+    // Construct from a special trapezoid
+    RevolvedPolygon(SpecialTrapezoid&& trap);
 
     // Build surfaces
     void build(IntersectSurfaceBuilder&) const final;
@@ -774,30 +776,17 @@ class RevolvedPolygon final : public IntersectRegionInterface
 
     //// ACCESSORS ////
 
-    //! Polygon points (2D)
-    VecReal2 polygon() const { return polygon_; }
+    //! Return the special trapezoid
+    SpecialTrapezoid const& trap() const { return trap_; }
 
   private:
     //// DATA ////
-    VecReal2 polygon_;
-    SoftEqual<> soft_equal_;
-    real_type r_max_;
-    real_type z_min_;
-    real_type z_max_;
+    SpecialTrapezoid trap_;
 
     //// HELPER FUNCTIONS ////
 
-    // Calculate the southeast and northwest points
-    std::pair<size_type, size_type> calc_southeast_northwest() const;
-
-    // Determine the next index, with modular indexing
-    size_type calc_next(size_type i) const;
-
-    // Determine the previous index, with modular indexing
-    size_type calc_prev(size_type i) const;
-
     // Create a cone from two (r, z) points
-    ConeZ make_cone(Real2 point0, Real2 point1) const;
+    ConeZ make_cone(Real2 p0, Real2 p1) const;
 };
 
 //---------------------------------------------------------------------------//
