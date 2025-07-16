@@ -58,6 +58,10 @@ OpticalPrimaryGenerator::OpticalPrimaryGenerator(
 //---------------------------------------------------------------------------//
 /*!
  * Sample an optical photon from the distributions.
+ *
+ * \todo There are a couple places in the code where we resample the
+ * polarization if orthogonality fails: possibly add a helper function to
+ * reduce duplication
  */
 template<class Generator>
 CELER_FUNCTION optical::TrackInitializer

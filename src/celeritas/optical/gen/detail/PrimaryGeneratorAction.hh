@@ -15,18 +15,12 @@
 #include "celeritas/optical/action/ActionInterface.hh"
 #include "celeritas/phys/GeneratorInterface.hh"
 
-#include "GeneratorTraits.hh"
 #include "../GeneratorData.hh"
 #include "../OffloadData.hh"
 
 namespace celeritas
 {
 class CoreParams;
-
-namespace optical
-{
-class MaterialParams;
-}  // namespace optical
 
 namespace detail
 {

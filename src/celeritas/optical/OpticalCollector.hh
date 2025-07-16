@@ -11,6 +11,7 @@
 
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/io/Label.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/phys/GeneratorCounters.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
@@ -96,7 +97,7 @@ class OpticalCollector
         size_type auto_flush{};
 
         //! Maximum step iterations before aborting optical loop
-        size_type max_step_iters{static_cast<size_type>(-1)};
+        size_type max_step_iters{numeric_limits<size_type>::max()};
 
         //! True if all input is assigned and valid
         explicit operator bool() const
