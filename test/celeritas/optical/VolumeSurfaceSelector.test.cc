@@ -6,18 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/optical/surface/VolumeSurfaceSelector.hh"
 
-#include <iostream>
-
-#include "corecel/data/CollectionStateStore.hh"
-#include "corecel/sys/Version.hh"
 #include "geocel/SurfaceParams.hh"
-#include "geocel/UnitUtils.hh"
-#include "geocel/VolumeParams.hh"
-#include "geocel/inp/Model.hh"
-#include "celeritas/CoreGeoTestBase.hh"
-#include "celeritas/GlobalGeoTestBase.hh"
-#include "celeritas/OnlyCoreTestBase.hh"
-#include "celeritas/OnlyGeoTestBase.hh"
+#include "geocel/SurfaceTestBase.hh"
 
 #include "celeritas_test.hh"
 
@@ -32,55 +22,8 @@ using namespace ::celeritas::test;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class VolumeSurfaceSelectorTest : public OnlyGeoTestBase,
-                                  public GlobalGeoTestBase,
-                                  public OnlyCoreTestBase
+class VolumeSurfaceSelectorTest : public SurfaceTestBase
 {
-  public:
-    std::string_view geometry_basename() const override
-    {
-        return "optical-surfaces";
-    }
-
-  protected:
-    void SetUp() override
-    {
-        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
-        {
-            auto model = this->geometry()->make_model_input();
-
-            volumes_ = std::make_shared<VolumeParams>(model.volumes);
-            CELER_ENSURE(volumes_);
-
-            surfaces_
-                = std::make_shared<SurfaceParams>(model.surfaces, *volumes_);
-            CELER_ENSURE(surfaces_);
-        }
-    }
-
-    // Select surface for all volume instances besides the pre volume instance
-    std::vector<SurfaceId> select_surfaces(VolumeInstanceId pre_vol_inst) const
-    {
-        std::vector<SurfaceId> results;
-
-        VolumeSurfaceSelector select{surfaces_->host_ref(),
-                                     volumes_->volume(pre_vol_inst),
-                                     pre_vol_inst};
-        for (auto post_vol_inst :
-             range(VolumeInstanceId{volumes_->num_volume_instances()}))
-        {
-            if (post_vol_inst != pre_vol_inst)
-            {
-                results.push_back(
-                    select(volumes_->volume(post_vol_inst), post_vol_inst));
-            }
-        }
-
-        return results;
-    }
-
-    std::shared_ptr<VolumeParams const> volumes_;
-    std::shared_ptr<SurfaceParams const> surfaces_;
 };
 
 //---------------------------------------------------------------------------//
@@ -89,133 +32,94 @@ class VolumeSurfaceSelectorTest : public OnlyGeoTestBase,
 // Test surface selection for various pre and post volume instances
 TEST_F(VolumeSurfaceSelectorTest, select_surface)
 {
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
+    SurfaceParams surfaces{this->make_many_surfaces_inp(), volumes_};
+
+    auto select_surfaces = [&](VolumeInstanceId pre_vol_inst) {
+        std::vector<SurfaceId> results;
+
+        VolumeSurfaceSelector select{
+            surfaces.host_ref(), volumes_.volume(pre_vol_inst), pre_vol_inst};
+        for (auto post_vol_inst :
+             range(VolumeInstanceId{volumes_.num_volume_instances()}))
+        {
+            results.push_back(
+                select(volumes_.volume(post_vol_inst), post_vol_inst));
+        }
+
+        return results;
+    };
+
     {
-        {
-            static SurfaceId const expected_surfaces[] = {
-                SurfaceId{0},
-                SurfaceId{0},
-                SurfaceId{0},
-                SurfaceId{0},
-            };
-
-            EXPECT_VEC_EQ(expected_surfaces,
-                          this->select_surfaces(VolumeInstanceId{0}));
-        }
-        {
-            static SurfaceId const expected_surfaces[] = {
-                SurfaceId{1},
-                SurfaceId{2},
-                SurfaceId{1},
-                SurfaceId{1},
-            };
-
-            EXPECT_VEC_EQ(expected_surfaces,
-                          this->select_surfaces(VolumeInstanceId{1}));
-        }
-        {
-            static SurfaceId const expected_surfaces[] = {
-                SurfaceId{0},
-                SurfaceId{3},
-                SurfaceId{4},
-                SurfaceId{},
-            };
-
-            EXPECT_VEC_EQ(expected_surfaces,
-                          this->select_surfaces(VolumeInstanceId{2}));
-        }
-        {
-            static SurfaceId const expected_surfaces[] = {
-                SurfaceId{1},
-                SurfaceId{1},
-                SurfaceId{1},
-                SurfaceId{1},
-            };
-
-            EXPECT_VEC_EQ(expected_surfaces,
-                          this->select_surfaces(VolumeInstanceId{3}));
-        }
-        {
-            static SurfaceId const expected_surfaces[] = {
-                SurfaceId{0},
-                SurfaceId{1},
-                SurfaceId{},
-                SurfaceId{1},
-            };
-
-            EXPECT_VEC_EQ(expected_surfaces,
-                          this->select_surfaces(VolumeInstanceId{4}));
-        }
-    }
-}
-
-//---------------------------------------------------------------------------//
-// Check selector correctly uses volume instances from a geo view
-TEST_F(VolumeSurfaceSelectorTest, geo_view_wrapper)
-{
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
-    {
-        // move across a surface and return the selected surface ID
-        auto cross_surface = [&](GeoTrackView& geo) {
-            geo.find_next_step();
-            geo.move_to_boundary();
-
-            VolumeSurfaceSelector select{surfaces_->host_ref(), geo};
-
-            geo.cross_boundary();
-
-            return select(geo);
+        static SurfaceId const expected_surfaces[] = {
+            SurfaceId{2},
+            SurfaceId{5},
+            SurfaceId{6},
+            SurfaceId{2},
+            SurfaceId{2},
+            SurfaceId{2},
         };
 
-        CollectionStateStore<CoreGeoStateData, MemSpace::host> host_state{
-            this->geometry()->host_ref(), 2};
+        EXPECT_VEC_EQ(expected_surfaces, select_surfaces(VolumeInstanceId{0}));
+    }
+    {
+        static SurfaceId const expected_surfaces[] = {
+            SurfaceId{2},
+            SurfaceId{},
+            SurfaceId{3},
+            SurfaceId{},
+            SurfaceId{},
+            SurfaceId{},
+        };
 
-        {
-            GeoTrackView geo{
-                this->geometry()->host_ref(), host_state.ref(), TrackSlotId{0}};
-            geo = GeoTrackInitializer{from_cm(Real3{0, 0, 0}), Real3{1, 0, 0}};
+        EXPECT_VEC_EQ(expected_surfaces, select_surfaces(VolumeInstanceId{1}));
+    }
+    {
+        static SurfaceId const expected_surfaces[] = {
+            SurfaceId{0},
+            SurfaceId{},
+            SurfaceId{1},
+            SurfaceId{},
+            SurfaceId{},
+            SurfaceId{},
+        };
 
-            EXPECT_EQ(VolumeId{1}, geo.volume_id());
-            EXPECT_EQ(VolumeInstanceId{2}, geo.volume_instance_id());
+        EXPECT_VEC_EQ(expected_surfaces, select_surfaces(VolumeInstanceId{2}));
+    }
+    {
+        static SurfaceId const expected_surfaces[] = {
+            SurfaceId{2},
+            SurfaceId{4},
+            SurfaceId{},
+            SurfaceId{},
+            SurfaceId{},
+            SurfaceId{},
+        };
 
-            // tube1_mid -> world
-            EXPECT_FALSE(cross_surface(geo));
-            EXPECT_EQ(VolumeId{3}, geo.volume_id());
-            EXPECT_EQ(VolumeInstanceId{4}, geo.volume_instance_id());
+        EXPECT_VEC_EQ(expected_surfaces, select_surfaces(VolumeInstanceId{3}));
+    }
+    {
+        static SurfaceId const expected_surfaces[] = {
+            SurfaceId{2},
+            SurfaceId{8},
+            SurfaceId{},
+            SurfaceId{},
+            SurfaceId{},
+            SurfaceId{},
+        };
 
-            // world -> lar_sphere
-            EXPECT_EQ(SurfaceId{0}, cross_surface(geo));
-            EXPECT_EQ(VolumeId{0}, geo.volume_id());
-            EXPECT_EQ(VolumeInstanceId{0}, geo.volume_instance_id());
-        }
-        {
-            GeoTrackView geo{
-                this->geometry()->host_ref(), host_state.ref(), TrackSlotId{1}};
-            geo = GeoTrackInitializer{from_cm(Real3{0, 0, -15}),
-                                      Real3{0, 0, 1}};
+        EXPECT_VEC_EQ(expected_surfaces, select_surfaces(VolumeInstanceId{4}));
+    }
+    {
+        static SurfaceId const expected_surfaces[] = {
+            SurfaceId{2},
+            SurfaceId{7},
+            SurfaceId{},
+            SurfaceId{},
+            SurfaceId{},
+            SurfaceId{},
+        };
 
-            EXPECT_EQ(VolumeId{2}, geo.volume_id());
-            EXPECT_EQ(VolumeInstanceId{1}, geo.volume_instance_id());
-
-            // tube2_below_pv -> tube1_mid_pv
-            EXPECT_EQ(SurfaceId{2}, cross_surface(geo));
-            EXPECT_EQ(VolumeId{1}, geo.volume_id());
-            EXPECT_EQ(VolumeInstanceId{2}, geo.volume_instance_id());
-
-            // tube1_mid_pv -> tube2_above_pv
-            EXPECT_EQ(SurfaceId{4}, cross_surface(geo));
-            EXPECT_EQ(VolumeId{2}, geo.volume_id());
-            EXPECT_EQ(VolumeInstanceId{3}, geo.volume_instance_id());
-
-            // tube2_above_pv -> world
-            EXPECT_EQ(SurfaceId{1}, cross_surface(geo));
-            EXPECT_EQ(VolumeId{3}, geo.volume_id());
-            EXPECT_EQ(VolumeInstanceId{4}, geo.volume_instance_id());
-
-            // world -> outside
-            EXPECT_FALSE(cross_surface(geo));
-            EXPECT_TRUE(geo.is_outside());
-        }
+        EXPECT_VEC_EQ(expected_surfaces, select_surfaces(VolumeInstanceId{5}));
     }
 }
 
