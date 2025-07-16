@@ -15,6 +15,7 @@
 #include "celeritas/phys/GeneratorInterface.hh"
 
 #include "GeneratorTraits.hh"
+#include "OpticalGeneratorBase.hh"
 #include "../GeneratorData.hh"
 #include "../OffloadData.hh"
 
@@ -38,9 +39,7 @@ namespace detail
  * distribution.
  */
 template<GeneratorType G>
-class GeneratorAction final : public optical::OpticalStepActionInterface,
-                              public AuxParamsInterface,
-                              public GeneratorInterface
+class GeneratorAction final : public OpticalGeneratorBase
 {
   public:
     //!@{
@@ -78,51 +77,22 @@ class GeneratorAction final : public optical::OpticalStepActionInterface,
     //!@{
     //! \name Aux interface
 
-    //! Index of this class instance in its registry
-    AuxId aux_id() const final { return aux_id_; }
     // Build state data for a stream
     UPState create_state(MemSpace, StreamId, size_type) const final;
     //!@}
 
     //!@{
-    //! \name Action interface
-
-    //! ID of the action
-    ActionId action_id() const final { return action_id_; }
-    //! Short name for the action
-    std::string_view label() const final { return TraitsT::label; }
-    //! Description of the action
-    std::string_view description() const final { return TraitsT::description; }
-    //!@}
-
-    //!@{
     //! \name StepAction interface
 
-    //! Dependency ordering of the action
-    StepActionOrder order() const final { return StepActionOrder::generate; }
     // Launch kernel with host data
     void step(optical::CoreParams const&, CoreStateHost&) const final;
     // Launch kernel with device data
     void step(optical::CoreParams const&, CoreStateDevice&) const final;
     //!@}
 
-    //!@{
-    //! \name Generator interface
-
-    //! ID of the generator
-    GeneratorId generator_id() const final { return gen_id_; }
-    // Get generator counters (mutable)
-    GeneratorStateBase& counters(AuxStateVec&) const final;
-    // Get generator counters
-    GeneratorStateBase const& counters(AuxStateVec const&) const final;
-    //!@}
-
   private:
     //// DATA ////
 
-    ActionId action_id_;
-    AuxId aux_id_;
-    GeneratorId gen_id_;
     Input data_;
 
     //// HELPER FUNCTIONS ////

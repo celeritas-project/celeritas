@@ -52,7 +52,7 @@ std::shared_ptr<PrimaryGeneratorAction> PrimaryGeneratorAction::make_and_insert(
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with action ID, data IDs, and optical properties.
+ * Construct with IDs and distribution.
  *
  * \todo Support multiple events and distribution types
  */
@@ -60,12 +60,12 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(ActionId id,
                                                AuxId aux_id,
                                                GeneratorId gen_id,
                                                Input inp)
-    : action_id_(id), aux_id_(aux_id), gen_id_(gen_id)
+    : OpticalGeneratorBase(id,
+                           aux_id,
+                           gen_id,
+                           "primary-generate",
+                           "generate optical photon primaries")
 {
-    CELER_EXPECT(action_id_);
-    CELER_EXPECT(aux_id_);
-    CELER_EXPECT(gen_id_);
-
     CELER_VALIDATE(inp.num_events == 1,
                    << "multiple events are not supported for optical primary "
                       "generation");
@@ -93,15 +93,6 @@ auto PrimaryGeneratorAction::create_state(MemSpace, StreamId, size_type) const
     -> UPState
 {
     return std::make_unique<GeneratorStateBase>();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Description of the action.
- */
-std::string_view PrimaryGeneratorAction::description() const
-{
-    return "generate optical photon primaries";
 }
 
 //---------------------------------------------------------------------------//
@@ -134,27 +125,16 @@ void PrimaryGeneratorAction::step_impl(optical::CoreParams const& params,
 {
     CELER_EXPECT(state.aux());
 
-    auto& aux_state = this->counters(*state.aux());
-    auto& gen_counters = aux_state.counters;
-    auto& counters = state.counters();
+    auto const& counters = this->counters(*state.aux()).counters;
 
-    size_type num_gen = min(counters.num_vacancies, gen_counters.num_pending);
-    if (num_gen > 0)
+    if (state.counters().num_vacancies > 0 && counters.num_pending > 0)
     {
         // Generate the optical photons from the distribution data
         this->generate(params, state);
-
-        // Update the optical core state counters
-        counters.num_pending -= num_gen;
-        counters.num_generated += num_gen;
-        counters.num_vacancies -= num_gen;
-
-        // Update the generator counters and statistics
-        gen_counters.num_pending -= num_gen;
-        gen_counters.num_generated += num_gen;
-        aux_state.accum.num_generated += num_gen;
     }
-    counters.num_active = state.size() - counters.num_vacancies;
+
+    // Update the generator and optical core state counters
+    this->update_counters(state);
 }
 
 //---------------------------------------------------------------------------//
@@ -174,25 +154,6 @@ void PrimaryGeneratorAction::generate(optical::CoreParams const& params,
     detail::PrimaryGeneratorExecutor execute{
         params.ptr<MemSpace::native>(), state.ptr(), data_, state.counters()};
     celeritas::optical::launch_action(num_gen, execute);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get generator counters (mutable).
- */
-GeneratorStateBase& PrimaryGeneratorAction::counters(AuxStateVec& aux) const
-{
-    return get<GeneratorStateBase>(aux, aux_id_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get generator counters.
- */
-GeneratorStateBase const&
-PrimaryGeneratorAction::counters(AuxStateVec const& aux) const
-{
-    return get<GeneratorStateBase>(aux, aux_id_);
 }
 
 //---------------------------------------------------------------------------//
