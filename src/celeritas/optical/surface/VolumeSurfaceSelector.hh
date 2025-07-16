@@ -20,6 +20,14 @@ namespace optical
 /*!
  * Retrieve the surface ID between two volume instances based on Geant4's
  * interface / boundary priority.
+ *
+ * Given (old, new) physical volumes P0, P1 corresponding to logical volumes
+ * L0, L1
+ * - Ordered (P0, P1) border surface
+ * - Skin surface of L1 if it's the daughter of L0
+ * - Skin surface of L0
+ * - Skin surface of L1
+ *
  */
 class VolumeSurfaceSelector
 {
@@ -62,6 +70,8 @@ CELER_FUNCTION VolumeSurfaceSelector::VolumeSurfaceSelector(
     , pre_volume_(pre_volume)
     , pre_volume_inst_(pre_volume_inst)
 {
+    CELER_EXPECT(pre_volume_ < params_.volume_surfaces.size());
+    CELER_EXPECT(pre_volume_inst_);
 }
 
 //---------------------------------------------------------------------------//
@@ -84,27 +94,25 @@ CELER_FUNCTION VolumeSurfaceSelector::VolumeSurfaceSelector(
 CELER_FUNCTION SurfaceId VolumeSurfaceSelector::operator()(
     VolumeId post_volume, VolumeInstanceId post_volume_inst) const
 {
-    SurfaceId surface_id{};
+    VolumeSurfaceView pre_surface{params_, pre_volume_};
 
-    if (pre_volume_ < params_.volume_surfaces.size())
+    if (auto surface_id
+        = pre_surface.find_interface(pre_volume_inst_, post_volume_inst))
     {
-        VolumeSurfaceView pre_surface{params_, pre_volume_};
-
-        surface_id
-            = pre_surface.find_interface(pre_volume_inst_, post_volume_inst);
-        if (!surface_id)
-        {
-            surface_id = pre_surface.boundary_id();
-        }
+        return surface_id;
     }
 
-    if (!surface_id && post_volume < params_.volume_surfaces.size())
+    if (auto surface_id = pre_surface.boundary_id())
     {
-        VolumeSurfaceView post_surface{params_, post_volume};
-        surface_id = post_surface.boundary_id();
+        return surface_id;
     }
 
-    return surface_id;
+    if (post_volume < params_.volume_surfaces.size())
+    {
+        return VolumeSurfaceView{params_, post_volume}.boundary_id();
+    }
+
+    return SurfaceId{};
 }
 
 //---------------------------------------------------------------------------//
