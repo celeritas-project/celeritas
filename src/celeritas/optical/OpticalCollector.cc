@@ -174,6 +174,17 @@ auto OpticalCollector::cherenkov() const -> SPConstCherenkov
 
 //---------------------------------------------------------------------------//
 /*!
+ * Access scintillation params (may be null).
+ */
+auto OpticalCollector::scintillation() const -> SPConstScintillation
+{
+    if (!scint_offload_)
+        return nullptr;
+    return scint_offload_->params();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the generator registry.
  */
 GeneratorRegistry const& OpticalCollector::gen_reg() const
