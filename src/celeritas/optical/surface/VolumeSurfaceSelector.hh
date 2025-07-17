@@ -107,12 +107,7 @@ CELER_FUNCTION SurfaceId VolumeSurfaceSelector::operator()(
         return surface_id;
     }
 
-    if (post_volume < params_.volume_surfaces.size())
-    {
-        return VolumeSurfaceView{params_, post_volume}.boundary_id();
-    }
-
-    return SurfaceId{};
+    return VolumeSurfaceView{params_, post_volume}.boundary_id();
 }
 
 //---------------------------------------------------------------------------//
