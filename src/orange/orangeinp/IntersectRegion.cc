@@ -1364,7 +1364,7 @@ ConeZ RevolvedSpecialTrapezoid::make_cone(Real2 p0, Real2 p1) const
     // The tangent value given to ConeZ must be positive. However, since
     // ConeZ creates a double-sheeted cone, the negative cone will be
     // properly produced as well.
-    return ConeZ{Real3{0, 0, intercept}, std::abs(tangent)};
+    return ConeZ{Real3{0, 0, intercept}, tangent};
 }
 
 //---------------------------------------------------------------------------//
