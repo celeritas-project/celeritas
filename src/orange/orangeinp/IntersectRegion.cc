@@ -1318,6 +1318,10 @@ void RevolvedSpecialTrapezoid::build(IntersectSurfaceBuilder& insert_surface) co
                   // Cylindrical surface
                   insert_surface(sense, CCylZ(r_bot));
               }
+              else
+              {
+                  // r_top = r_bottom = 0: do not create a surface
+              }
           };
 
     // Create two vericle surfaces
