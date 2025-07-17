@@ -115,7 +115,7 @@ TYPED_TEST(FloatingTest, soft_equal)
     EXPECT_FALSE(comp(inf, inf));
 }
 
-TYPED_TEST(FloatingTest, soft_near)
+TYPED_TEST(FloatingTest, soft_close)
 {
     using value_type = typename TestFixture::value_type;
     using Limits_t = typename TestFixture::Limits_t;
