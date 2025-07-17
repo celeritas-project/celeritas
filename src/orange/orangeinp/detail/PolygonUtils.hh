@@ -265,7 +265,7 @@ find_extrema(std::vector<Real2> const& polygon, size_type dim)
                    << "polygon must consist of at least 3 points");
 
     auto [poly_min_it, poly_max_it] = std::minmax_element(
-        polygon.begin(), polygon.end(), [&dim](auto const& a, auto const& b) {
+        polygon.begin(), polygon.end(), [dim](auto const& a, auto const& b) {
             return a[dim] < b[dim];
         });
     return {(*poly_min_it)[dim], (*poly_max_it)[dim]};
