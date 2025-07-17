@@ -56,12 +56,6 @@ class GeantTestBase : public ImportedDataTestBase
 
     // Import data potentially with different selection options
     virtual GeantImportDataSelection build_import_data_selection() const;
-
-  private:
-    struct ImportHelper;
-    class CleanupGeantEnvironment;
-
-    static ImportHelper& import_helper();
 };
 
 //---------------------------------------------------------------------------//
