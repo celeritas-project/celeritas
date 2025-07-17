@@ -22,7 +22,7 @@ create_detector(Detector& description, xml_h e, SensitiveDetector sens)
     Material material = description.material(x_det.materialStr());
     string det_name = x_det.nameStr();
     string det_type = x_det.typeStr();
-    string sens_type = x_det.attr<string>(Unicode(sens_type));
+    string sens_type = x_det.attr<string>(Unicode("sens_type"));
     int det_id = x_det.id();
 
     DetElement detector(det_name, det_id);
@@ -37,7 +37,10 @@ create_detector(Detector& description, xml_h e, SensitiveDetector sens)
     }
 
     // Set sensor type
-    sens.setType(sens_type.c_str());
+    if (sens.isValid())
+    {
+        sens.setType(sens_type.c_str());
+    }
 
     // Create layers
     int layer_num = 0;
