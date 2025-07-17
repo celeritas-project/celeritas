@@ -417,18 +417,10 @@ std::vector<inp::Surface> make_inp_surfaces(GeantGeoParams const& geo)
 }
 
 //---------------------------------------------------------------------------//
-// Global tracking geometry instance: may be nullptr
-GeantGeoParams const* g_geant_geo_ = nullptr;
-
-//---------------------------------------------------------------------------//
-// Clear the global geometry if it's being destroyed
-void destroying_geo(GeantGeoParams const* ggp)
-{
-    if (ggp == g_geant_geo_)
-    {
-        g_geant_geo_ = nullptr;
-    }
-}
+//! Global tracking geometry instance: may be nullptr
+// Note that this is safe to declare statically: see
+// https://en.cppreference.com/w/cpp/memory/weak_ptr/weak_ptr
+std::weak_ptr<GeantGeoParams const> g_geant_geo_;
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -443,28 +435,30 @@ void destroying_geo(GeantGeoParams const* ggp)
  * of global initialization order issues (the low-level Geant4 objects may be
  * cleared before a static celeritas::GeantGeoParams is destroyed).
  *
- * \note This is not thread safe; it should be done only during setup on the
- * main thread.
+ * \note This should be done only during setup on the main thread.
  */
-void geant_geo(GeantGeoParams const& gp)
+void geant_geo(std::shared_ptr<GeantGeoParams const> const& gp)
 {
-    CELER_VALIDATE(!g_geant_geo_ || &gp == g_geant_geo_,
-                   << "global tracking Geant4 geometry wrapper has already "
-                      "been set");
-    g_geant_geo_ = &gp;
+    CELER_VALIDATE(
+        g_geant_geo_.expired() ||
+            [&] {
+                auto old_p = g_geant_geo_.lock();
+                return !old_p || old_p == gp;
+            }(),
+        << "global tracking Geant4 geometry wrapper has already been set");
+    g_geant_geo_ = gp;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Access the global geometry instance.
  *
- * This should be used by Geant4 geometry-related helper functions throughout
- * the code base. Make sure to check the result is not null! Do not save a
- * pointer to it either.
+ * This can be used by Geant4 geometry-related helper functions throughout
+ * the code base.
  *
- * \return Reference to the global Geant4 wrapper, or nullptr if not set.
+ * \return Weak pointer to the global Geant4 wrapper, which may be null.
  */
-GeantGeoParams const* geant_geo()
+std::weak_ptr<GeantGeoParams const> const& geant_geo()
 {
     return g_geant_geo_;
 }
@@ -582,9 +576,6 @@ GeantGeoParams::~GeantGeoParams()
     {
         reset_geant_geometry();
     }
-
-    // If some part of the code set us up as the global geometry, clear it
-    destroying_geo(this);
 }
 
 //---------------------------------------------------------------------------//

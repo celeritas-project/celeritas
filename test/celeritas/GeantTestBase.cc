@@ -172,7 +172,7 @@ auto GeantTestBase::load() const -> ImportSetup const&
             GeantSetup{this->test_data_path("geocel", key + ".gdml"), opts});
         i->geo = i->import->geo_params();
         CELER_ASSERT(i->geo);
-        CELER_ASSERT(celeritas::geant_geo());
+        CELER_ASSERT(!celeritas::geant_geo().expired());
 
         i->imported = (*i->import)(sel);
         i->selection = sel;

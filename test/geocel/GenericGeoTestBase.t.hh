@@ -59,7 +59,7 @@ auto GenericGeoTestBase<HP>::build_geometry_from_basename() -> SPConstGeo
     if constexpr (std::is_same_v<HP, GeantGeoParams>)
     {
         // Save global geant geometry
-        ::celeritas::geant_geo(*result);
+        ::celeritas::geant_geo(result);
     }
     return result;
 }

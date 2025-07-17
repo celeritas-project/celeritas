@@ -75,11 +75,11 @@ struct GeoBuilder
          */
         CELER_VALIDATE(world,
                        << "null world pointer in problem.model.geometry");
-        auto* geant_geo_params = celeritas::geant_geo();
-        CELER_VALIDATE(geant_geo_params && geant_geo_params->world() == world,
+        auto ggp = celeritas::geant_geo().lock();
+        CELER_VALIDATE(ggp && ggp->world() == world,
                        << "inconsistent Geant4 world pointer given to model "
                           "setup");
-        return CoreGeoParams::from_geant(*geant_geo_params);
+        return CoreGeoParams::from_geant(*ggp);
     }
 };
 

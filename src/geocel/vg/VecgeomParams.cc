@@ -258,10 +258,9 @@ VecgeomParams::from_gdml(std::string const& filename)
 std::shared_ptr<VecgeomParams>
 VecgeomParams::from_gdml_g4(std::string const& filename)
 {
-    CELER_VALIDATE(!geant_geo(),
+    CELER_VALIDATE(celeritas::geant_geo().expired(),
                    << "cannot load Geant4 geometry into VecGeom from a "
-                      "file name: a global Geant4 geometry already "
-                      "exists");
+                      "file name: a global Geant4 geometry already exists");
 
     // Load temporarily and convert
     auto temp_geant_geo = GeantGeoParams::from_gdml(filename);

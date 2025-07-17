@@ -53,7 +53,7 @@ namespace celeritas
 std::shared_ptr<OrangeParams>
 OrangeParams::from_gdml(std::string const& filename)
 {
-    CELER_VALIDATE(!geant_geo(),
+    CELER_VALIDATE(celeritas::geant_geo().expired(),
                    << "cannot load Geant4 geometry into ORANGE from a "
                       "file name: a global Geant4 geometry already "
                       "exists");
