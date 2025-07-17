@@ -34,7 +34,7 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-struct ImportSetup
+struct GeantTestBase::ImportSetup
 {
     // NOTE: the import function must be static for now so that Vecgeom or
     // other clients can access Geant4 after importing the data.
@@ -45,7 +45,6 @@ struct ImportSetup
     ImportData imported;
     ScopedGeantExceptionHandler scoped_exceptions;
 };
-using PersistentImportSetup = PersistentSP<ImportSetup>;
 
 //---------------------------------------------------------------------------//
 //! Whether results should be equivalent to the main CI build
@@ -78,28 +77,6 @@ bool GeantTestBase::is_wildstyle_build()
 bool GeantTestBase::is_summit_build()
 {
     return GeantTestBase::is_ci_build();
-}
-
-//---------------------------------------------------------------------------//
-//! Get the Geant4 top-level geometry element (immutable)
-G4VPhysicalVolume const* GeantTestBase::get_world_volume() const
-{
-    auto* geo = celeritas::geant_geo();
-    if (!geo)
-        return nullptr;
-
-    return geo->world();
-}
-
-//---------------------------------------------------------------------------//
-//! Get the Geant4 top-level geometry element
-G4VPhysicalVolume const* GeantTestBase::get_world_volume()
-{
-    // Load geometry
-    this->imported_data();
-    auto* geo = celeritas::geant_geo();
-    CELER_ASSERT(geo);
-    return geo->world();
 }
 
 //---------------------------------------------------------------------------//
@@ -149,28 +126,40 @@ auto GeantTestBase::build_along_step() -> SPConstAction
 auto GeantTestBase::build_fresh_geometry(std::string_view filename)
     -> SPConstGeoI
 {
-#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE \
-    && CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE
-    // Load fake version of geometry because Geant4 conversion isn't available
-    return Base::build_fresh_geometry(filename);
-#else
-    // Import geometry directly from in-memory Geant4
-    CELER_LOG(info) << "Importing " << CoreGeoTraits::name
-                    << " geometry from Geant4 (instead of directly "
-                       "from "
-                    << filename << ")";
-    auto* world = this->get_world_volume();
-    CELER_ASSERT(world);
-    return std::make_shared<CoreGeoParams>(world);
-#endif
+    constexpr bool use_orange = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE;
+    constexpr bool use_g4org
+        = use_orange && CELERITAS_USE_GEANT4
+          && (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE);
+
+    if (use_orange && !use_g4org)
+    {
+        // Load fake version of geometry because Geant4 conversion isn't
+        // available
+        return Base::build_fresh_geometry(filename);
+    }
+
+    // Typical case: import geometry directly from in-memory Geant4
+    CELER_LOG(info) << "Importing geometry from Geant4";
+
+    this->imported_data();
+    ImportSetup const& i = this->load();
+    CELER_ASSERT(i.geo);
+    return CoreGeoParams::from_geant(*i.geo);
 }
 
 //---------------------------------------------------------------------------//
 // Lazily set up and load geant4
 auto GeantTestBase::imported_data() const -> ImportData const&
 {
+    return this->load().imported;
+}
+
+auto GeantTestBase::load() const -> ImportSetup const&
+{
     GeantPhysicsOptions opts = this->build_geant_options();
     GeantImportDataSelection sel = this->build_import_data_selection();
+
+    using PersistentImportSetup = PersistentSP<GeantTestBase::ImportSetup>;
 
     static PersistentImportSetup ps{"Geant4 import"};
     std::shared_ptr<ImportSetup> i;
@@ -217,7 +206,7 @@ auto GeantTestBase::imported_data() const -> ImportData const&
     }
 
     CELER_ENSURE(i);
-    return i->imported;
+    return *i;
 }
 
 //---------------------------------------------------------------------------//

@@ -55,7 +55,7 @@ class PersistentSP
     //! Access the key (empty if unset)
     std::string const& key() const { return env_->key; }
 
-    //! Access the pointer
+    //! Access the pointer (null if unset)
     SP const& value() const { return env_->ptr; }
 
   private:

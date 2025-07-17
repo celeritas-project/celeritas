@@ -130,8 +130,7 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
     }
 
     {
-        // Create non-owning Geant4 geo wrapper and save as global tracking
-        // geometry
+        // Create non-owning Geant4 geo wrapper and save as tracking geometry
         geo_ = std::make_shared<GeantGeoParams>(world, Ownership::reference);
         celeritas::geant_geo(*geo_);
     }

@@ -101,22 +101,22 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
     //! Helper function: build via Geant4 GDML reader
     SPConstGeo build_geometry() final
     {
-        static PersistentSP<GeantGeoParams> pggp{"geant4 geometry"};
+        static PersistentSP<GeantGeoParams> pgg{"geant4 geometry"};
 
         ScopedLogStorer scoped_log_{&celeritas::self_logger(),
                                     LogLevel::warning};
 
         auto filename = this->test_data_path(
             "geocel", this->geometry_basename() + std::string{".gdml"});
-        if (filename != pggp.key())
+        if (filename != pgg.key())
         {
-            pggp.clear();
+            pgg.clear();
             auto new_geo = GeantGeoParams::from_gdml(filename);
             celeritas::geant_geo(*new_geo);
-            pggp.set(std::string{filename}, std::move(new_geo));
+            pgg.set(std::string{filename}, std::move(new_geo));
         }
-        CELER_ASSERT(pggp.value());
-        auto result = VecgeomParams::from_geant(*pggp.value());
+        CELER_ASSERT(pgg.value());
+        auto result = VecgeomParams::from_geant(*pgg.value());
         EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
             << scoped_log_;
         return result;
