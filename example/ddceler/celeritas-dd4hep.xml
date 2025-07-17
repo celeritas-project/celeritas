@@ -106,12 +106,7 @@
   </display>
 
   <detectors>
-    <detector id="-1" name="WorldVolume" type="Box" vis="WorldVis">
-      <dimensions x="world_x" y="world_y" z="world_z"/>
-      <material name="Vacuum"/>
-    </detector>
-
-    <detector id="0" name="Beampipe" type="SimpleCylindrical" readout="BeampipeHits" vis="BeampipeVis" sens_type="passive">
+    <detector id="0" name="Beampipe" type="SimpleCylindrical" vis="BeampipeVis">
       <layer id="1" inner_r="beampipe_inner_radius" outer_r="beampipe_outer_radius" z_length="beampipe_length"/>
       <material name="Beryllium"/>
     </detector>
@@ -129,11 +124,6 @@
   </detectors>
 
   <readouts>
-    <readout name="BeampipeHits">
-      <segmentation type="CartesianGridXY" grid_size_x="1*mm" grid_size_y="1*mm"/>
-      <id>system:8,layer:4,x:32:-16,y:-16</id>
-    </readout>
-
     <readout name="TrackerHits">
       <segmentation type="CartesianGridXY" grid_size_x="0.1*mm" grid_size_y="0.1*mm"/>
       <id>system:8,layer:4,x:32:-16,y:-16</id>
