@@ -43,13 +43,16 @@ class PersistentSP
     explicit inline PersistentSP(std::string&& desc);
     ~PersistentSP() = default;
 
+    //! Whether a value is stored
+    explicit operator bool() const { return static_cast<bool>(env_->ptr); }
+
     // Replace the pointer
     inline void set(std::string&& key, SP&& ptr);
 
     //! Clear stored value
     inline void clear() { env_->TearDown(); }
 
-    //! Access the key
+    //! Access the key (empty if unset)
     std::string const& key() const { return env_->key; }
 
     //! Access the pointer
@@ -98,6 +101,8 @@ PersistentSP<T>::PersistentSP(std::string&& desc)
 template<class T>
 void PersistentSP<T>::set(std::string&& key, SP&& ptr)
 {
+    CELER_EXPECT(!key.empty());
+    CELER_EXPECT(ptr);
     CELER_LOG(debug) << "Updating persistent " << env_->desc << " to '" << key
                      << "'";
     env_->key = std::move(key);
