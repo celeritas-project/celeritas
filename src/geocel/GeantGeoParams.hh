@@ -71,6 +71,10 @@ class GeantGeoParams final : public GeoParamsInterface,
     static std::shared_ptr<GeantGeoParams>
     from_gdml(std::string const& filename);
 
+    // Return the input geometry for a consistent interface
+    inline static std::shared_ptr<GeantGeoParams>
+    from_geant(std::shared_ptr<GeantGeoParams const> const& geo);
+
     // Create a VecGeom model from an already-loaded Geant4 geometry
     // TODO: also take model input? see #1815
     GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns);
@@ -201,6 +205,17 @@ std::weak_ptr<GeantGeoParams const> const& geant_geo();
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
+ * Return the input geometry for a consistent interface.
+ */
+std::shared_ptr<GeantGeoParams>
+GeantGeoParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
+{
+    CELER_EXPECT(geo);
+    return std::const_pointer_cast<GeantGeoParams>(geo);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get volume metadata.
  *
  * Volumes correspond directly to Geant4 logical volumes.
@@ -247,17 +262,18 @@ inline std::weak_ptr<GeantGeoParams const> const& geant_geo()
     return nullptr;
 }
 //-----------------------------------//
+inline std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
+{
+    return std::make_shared<GeantGeoParams>(nullptr, Ownership::reference);
+}
 
-inline GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const*)
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-inline GeantGeoParams::GeantGeoParams(std::string const&)
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
 inline std::shared_ptr<GeantGeoParams>
-GeantGeoParams::GeantGeoParams::from_tracking_manager()
+GeantGeoParams::from_gdml(std::string const&)
+{
+    return std::make_shared<GeantGeoParams>(nullptr, Ownership::reference);
+}
+
+inline GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const*, Ownership)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
