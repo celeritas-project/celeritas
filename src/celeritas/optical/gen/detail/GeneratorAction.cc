@@ -86,11 +86,10 @@ GeneratorAction<G>::GeneratorAction(ActionId id,
                                     AuxId aux_id,
                                     GeneratorId gen_id,
                                     Input&& inp)
-    : action_id_(id), aux_id_(aux_id), gen_id_(gen_id), data_(std::move(inp))
+    : OpticalGeneratorBase(
+          id, aux_id, gen_id, TraitsT::label, TraitsT::description)
+    , data_(std::move(inp))
 {
-    CELER_EXPECT(action_id_);
-    CELER_EXPECT(aux_id_);
-    CELER_EXPECT(gen_id_);
     CELER_EXPECT(data_);
 }
 
@@ -149,48 +148,38 @@ void GeneratorAction<G>::step_impl(optical::CoreParams const& params,
 {
     CELER_EXPECT(state.aux());
 
-    auto& aux_state = get<GeneratorState<M>>(*state.aux(), aux_id_);
-    auto& gen_counters = aux_state.counters;
+    auto& aux_state = get<GeneratorState<M>>(*state.aux(), this->aux_id());
+    auto& counters = aux_state.counters;
 
-    if (gen_counters.num_generated == 0 && gen_counters.buffer_size > 0)
+    if (counters.num_generated == 0 && counters.buffer_size > 0)
     {
         // If this process created photons, on the first step iteration
         // calculate the cumulative sum of the number of photons in the
         // buffered distributions. These values are used to determine which
         // thread will generate photons from which distribution
-        gen_counters.num_pending
+        counters.num_pending
             = inclusive_scan_photons(aux_state.store.ref().distributions,
                                      aux_state.store.ref().offsets,
-                                     gen_counters.buffer_size,
+                                     counters.buffer_size,
                                      state.stream_id());
     }
 
-    auto& counters = state.counters();
-    size_type num_gen = min(counters.num_vacancies, gen_counters.num_pending);
-
-    if (num_gen > 0)
+    if (state.counters().num_vacancies > 0 && counters.num_pending > 0)
     {
         // Generate the optical photons from the distribution data
         this->generate(params, state);
-
-        // Update the optical core state counters
-        counters.num_pending -= num_gen;
-        counters.num_generated += num_gen;
-        counters.num_vacancies -= num_gen;
-
-        // Update the generator counters and statistics
-        gen_counters.num_pending -= num_gen;
-        gen_counters.num_generated += num_gen;
-        aux_state.accum.num_generated += num_gen;
-        if (gen_counters.num_pending == 0)
-        {
-            // Reset the buffer size and number of photons generated
-            aux_state.accum.buffer_size += gen_counters.buffer_size;
-            gen_counters = {};
-        }
     }
 
-    counters.num_active = state.size() - counters.num_vacancies;
+    // Update the generator and optical core state counters
+    this->update_counters(state);
+
+    // If there are no more tracks to generate, reset the buffer size and
+    // number of photons generated
+    if (counters.num_pending == 0)
+    {
+        aux_state.accum.buffer_size += counters.buffer_size;
+        counters = {};
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -204,7 +193,7 @@ void GeneratorAction<G>::generate(optical::CoreParams const& params,
     CELER_EXPECT(state.aux());
 
     auto& aux_state
-        = get<GeneratorState<MemSpace::native>>(*state.aux(), aux_id_);
+        = get<GeneratorState<MemSpace::native>>(*state.aux(), this->aux_id());
     size_type num_gen
         = min(state.counters().num_vacancies, aux_state.counters.num_pending);
     {
@@ -224,27 +213,6 @@ void GeneratorAction<G>::generate(optical::CoreParams const& params,
         detail::UpdateSumExecutor execute{aux_state.store.ref(), num_gen};
         launch_kernel(aux_state.counters.buffer_size, execute);
     }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get generator counters (mutable).
- */
-template<GeneratorType G>
-GeneratorStateBase& GeneratorAction<G>::counters(AuxStateVec& aux) const
-{
-    return dynamic_cast<GeneratorStateBase&>(aux.at(aux_id_));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get generator counters.
- */
-template<GeneratorType G>
-GeneratorStateBase const&
-GeneratorAction<G>::counters(AuxStateVec const& aux) const
-{
-    return dynamic_cast<GeneratorStateBase const&>(aux.at(aux_id_));
 }
 
 //---------------------------------------------------------------------------//

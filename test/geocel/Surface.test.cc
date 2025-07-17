@@ -16,6 +16,7 @@
 #include "geocel/VolumeSurfaceView.hh"
 #include "geocel/inp/Model.hh"
 
+#include "SurfaceTestBase.hh"
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
 
@@ -23,84 +24,13 @@ namespace celeritas
 {
 namespace test
 {
-using inp::Surface;
-using inp::Surfaces;
-using Boundary = Surface::Boundary;
-using Interface = Surface::Interface;
 using VolInstId = VolumeInstanceId;
 
 //---------------------------------------------------------------------------//
 
-//! Helper to create a boundary surface
-Surface make_surface(std::string&& label, VolumeId vol)
-{
-    Surface surface;
-    surface.label = std::move(label);
-    surface.surface = vol;
-    return surface;
-}
-
-//! Helper to create an interface surface
-Surface make_surface(std::string&& label, VolInstId pre, VolInstId post)
-{
-    Surface surface;
-    surface.label = std::move(label);
-    surface.surface = Interface{pre, post};
-    return surface;
-}
-
-//---------------------------------------------------------------------------//
-
-class SurfacesTest : public ::celeritas::test::Test
+class SurfacesTest : public SurfaceTestBase
 {
   protected:
-    /*!
-     * Volumes: parent -> daughter [instance]
-     * A -> B [0]
-     * A -> C [1]
-     * B -> C [2]
-     * B -> C [3]
-     * C -> D [4]
-     * C -> E [5]
-     */
-    VolumeParams make_volume_params() const
-    {
-        return VolumeParams([] {
-            using namespace inp;
-            Volumes in;
-
-            // Helper to create volumes
-            auto add_volume
-                = [&in](std::string label, std::vector<VolInstId> children) {
-                      Volume v;
-                      v.label = std::move(label);
-                      v.material = id_cast<GeoMatId>(in.volumes.size());
-                      v.children = std::move(children);
-                      in.volumes.push_back(v);
-                  };
-            auto add_instance = [&in](VolumeId vol_id) {
-                VolumeInstance vi;
-                vi.label = std::to_string(in.volume_instances.size());
-                vi.volume = vol_id;
-                in.volume_instances.push_back(vi);
-            };
-
-            add_volume("A", {VolInstId{0}, VolInstId{1}});
-            add_volume("B", {VolInstId{2}, VolInstId{3}});
-            add_volume("C", {VolInstId{4}, VolInstId{5}});
-            add_volume("D", {});
-            add_volume("E", {});
-
-            add_instance(VolumeId{1});  // 0 -> B
-            add_instance(VolumeId{2});  // 1 -> C
-            add_instance(VolumeId{2});  // 2 -> C
-            add_instance(VolumeId{2});  // 3 -> C
-            add_instance(VolumeId{3});  // 4 -> D
-            add_instance(VolumeId{4});  // 5 -> E
-
-            return in;
-        }());
-    }
 };
 
 //! Construct for EM-only physics
@@ -121,7 +51,7 @@ TEST_F(SurfacesTest, none)
 //! Construct for optical physics
 TEST_F(SurfacesTest, none_but_volumes)
 {
-    auto volumes = this->make_volume_params();
+    auto volumes = this->volumes_;
     SurfaceParams sp{{}, volumes};
     EXPECT_TRUE(sp.empty());
     EXPECT_FALSE(sp.disabled());
@@ -139,9 +69,9 @@ TEST_F(SurfacesTest, errors)
 {
     ScopedLogStorer scoped_log_{&celeritas::world_logger()};
 
-    auto volumes = this->make_volume_params();
+    auto volumes = this->volumes_;
     // Duplicate boundary surface
-    EXPECT_THROW(SurfaceParams(Surfaces{{
+    EXPECT_THROW(SurfaceParams(inp::Surfaces{{
                                    make_surface("ok", VolumeId{1}),
                                    make_surface("bad", VolumeId{1}),
                                }},
@@ -150,7 +80,7 @@ TEST_F(SurfacesTest, errors)
 
     // Duplicate interface surface
     EXPECT_THROW(
-        SurfaceParams(Surfaces{{
+        SurfaceParams(inp::Surfaces{{
                           make_surface("ok2", VolInstId{1}, VolInstId{2}),
                           make_surface("bad2", VolInstId{1}, VolInstId{2}),
                       }},
@@ -166,12 +96,12 @@ TEST_F(SurfacesTest, errors)
 
 TEST_F(SurfacesTest, borders)
 {
-    SurfaceParams sp{Surfaces{{
+    SurfaceParams sp{inp::Surfaces{{
                          make_surface("b", VolumeId{1}),
                          make_surface("d", VolumeId{3}),
                          make_surface("e", VolumeId{4}),
                      }},
-                     this->make_volume_params()};
+                     this->volumes_};
 
     EXPECT_FALSE(sp.empty());
     EXPECT_FALSE(sp.disabled());
@@ -200,18 +130,7 @@ TEST_F(SurfacesTest, borders)
 
 TEST_F(SurfacesTest, interfaces)
 {
-    SurfaceParams sp{Surfaces{{
-                         make_surface("c2b", VolInstId{2}, VolInstId{0}),
-                         make_surface("c2c2", VolInstId{2}, VolInstId{2}),
-                         make_surface("b", VolumeId{1}),
-                         make_surface("cc2", VolInstId{1}, VolInstId{2}),
-                         make_surface("c3c", VolInstId{3}, VolInstId{1}),
-                         make_surface("bc", VolInstId{0}, VolInstId{1}),
-                         make_surface("bc2", VolInstId{0}, VolInstId{2}),
-                         make_surface("ec", VolInstId{5}, VolInstId{1}),
-                         make_surface("db", VolInstId{4}, VolInstId{1}),
-                     }},
-                     this->make_volume_params()};
+    SurfaceParams sp{this->make_many_surfaces_inp(), this->volumes_};
     {
         VolumeSurfaceView vsv(sp.host_ref(), VolumeId{0});  // A -> any
         EXPECT_FALSE(vsv.has_interface());

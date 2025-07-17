@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/gen/detail/GeneratorAction.hh
+//! \file celeritas/optical/gen/detail/PrimaryGeneratorAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,10 +11,10 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxStateVec.hh"
+#include "celeritas/inp/Events.hh"
 #include "celeritas/optical/action/ActionInterface.hh"
 #include "celeritas/phys/GeneratorInterface.hh"
 
-#include "GeneratorTraits.hh"
 #include "OpticalGeneratorBase.hh"
 #include "../GeneratorData.hh"
 #include "../OffloadData.hh"
@@ -23,56 +23,32 @@ namespace celeritas
 {
 class CoreParams;
 
-namespace optical
-{
-class MaterialParams;
-}  // namespace optical
-
 namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Generate photons from optical distribution data.
+ * Generate optical primaries from user-configurable distributions.
  *
- * This samples and initializes optical photons directly in a track slot in a
- * reproducible way.  Multiple threads may generate initializers from a single
- * distribution.
+ * This reproducibly samples and initializes optical photons directly in track
+ * slots.
  */
-template<GeneratorType G>
-class GeneratorAction final : public OpticalGeneratorBase
+class PrimaryGeneratorAction final : public OpticalGeneratorBase
 {
   public:
     //!@{
     //! \name Type aliases
-    using TraitsT = GeneratorTraits<G>;
-    template<Ownership W, MemSpace M>
-    using Data = typename TraitsT::template Data<W, M>;
-    using SPConstParams = std::shared_ptr<typename TraitsT::Params const>;
-    using SPConstMaterial = std::shared_ptr<optical::MaterialParams const>;
+    using Input = inp::OpticalPrimaryGenerator;
     //!@}
-
-    //! Generator input data
-    struct Input
-    {
-        SPConstMaterial material;
-        SPConstParams shared;
-        size_type capacity{};
-
-        explicit operator bool() const
-        {
-            return material && shared && capacity > 0;
-        }
-    };
 
   public:
     // Construct and add to core params
-    static std::shared_ptr<GeneratorAction>
+    static std::shared_ptr<PrimaryGeneratorAction>
     make_and_insert(::celeritas::CoreParams const&,
                     optical::CoreParams const&,
                     Input&&);
 
-    // Construct with action ID, data IDs, and optical properties
-    GeneratorAction(ActionId, AuxId, GeneratorId, Input&&);
+    // Construct with IDs and distributions
+    PrimaryGeneratorAction(ActionId, AuxId, GeneratorId, Input);
 
     //!@{
     //! \name Aux interface
@@ -90,10 +66,14 @@ class GeneratorAction final : public OpticalGeneratorBase
     void step(optical::CoreParams const&, CoreStateDevice&) const final;
     //!@}
 
+    // Set the number of pending tracks
+    template<MemSpace M>
+    inline void queue_primaries(optical::CoreState<M>&) const;
+
   private:
     //// DATA ////
 
-    Input data_;
+    PrimaryDistributionData data_;
 
     //// HELPER FUNCTIONS ////
 
@@ -105,11 +85,26 @@ class GeneratorAction final : public OpticalGeneratorBase
 };
 
 //---------------------------------------------------------------------------//
-// EXPLICIT INSTANTIATION
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
-
-extern template class GeneratorAction<GeneratorType::cherenkov>;
-extern template class GeneratorAction<GeneratorType::scintillation>;
+/*!
+ * Set the number of pending tracks.
+ *
+ * The number of tracks to generate must be set at the beginning of each event
+ * before the optical loop is launched.
+ *
+ * \todo Currently this is only called during testing, but it *must* be done at
+ * the beginning of each event once this action is integrated into the stepping
+ * loop. Refactor/replace this.
+ */
+template<MemSpace M>
+void PrimaryGeneratorAction::queue_primaries(optical::CoreState<M>& state) const
+{
+    CELER_EXPECT(state.aux());
+    auto& aux_state = this->counters(*state.aux());
+    aux_state.counters.num_pending = data_.num_photons;
+    state.counters().num_pending = data_.num_photons;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
