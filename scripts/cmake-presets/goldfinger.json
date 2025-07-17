@@ -81,6 +81,11 @@
       }
     },
     {
+      "name": "mini",
+      "displayName": "Minimal deps",
+      "inherits": ["minimal", ".base", ".debug"]
+    },
+    {
       "name": "si",
       "displayName": "With SI units",
       "inherits": [".base", ".debug", "default"],

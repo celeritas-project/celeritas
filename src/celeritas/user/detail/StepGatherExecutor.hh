@@ -138,6 +138,7 @@ StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
 
             SGL_SET_IF_SELECTED(action_id, sim.post_step_action());
             SGL_SET_IF_SELECTED(step_length, sim.step_length());
+            SGL_SET_IF_SELECTED(weight, sim.weight());
         }
     }
 

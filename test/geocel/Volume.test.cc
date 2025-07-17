@@ -26,6 +26,16 @@ namespace test
 using VolumeTest = ::celeritas::test::Test;
 
 /*!
+ * No volumes, for unit testing
+ */
+TEST_F(VolumeTest, no_volumes)
+{
+    VolumeParams const params;
+    EXPECT_TRUE(params.empty());
+    EXPECT_EQ(0, params.num_volumes());
+}
+
+/*!
  * Graph:
  *    A
  */
@@ -41,6 +51,9 @@ TEST_F(VolumeTest, single_volume)
         return in;
     }());
 
+    EXPECT_FALSE(params.empty());
+    EXPECT_EQ(1, params.num_volumes());
+    EXPECT_EQ(0, params.num_volume_instances());
     EXPECT_EQ(1, params.volume_labels().size());
     EXPECT_EQ(0, params.volume_instance_labels().size());
 

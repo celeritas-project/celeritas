@@ -56,14 +56,14 @@ struct VolumeSurfaceRecord
  * Persistent data for mapping between volumes and their surfaces.
  *
  * This structure stores device-compatible data relating volumes and their
- * surfaces, primarily for optical physics at material interfaces.
+ * surfaces, primarily for optical physics at material interfaces. If \c
+ * SurfaceParams is constructed with an empty surface input (no user-provided
+ * surfaces for an optical physics run) it will be correctly sized but have no
+ * surfaces. It can also be constructed in a "not very useful" but valid state
+ * for EM-only physics: the volume surfaces array can be empty.
  *
  * If no "interface" surfaces are present then the backend storage arrays will
  * be empty.
- *
- * \todo We might want to have separate arrays for boundary and interface
- * surfaces since models typically have one or the other but not both, and it
- * could potentially reduce memory access requirements.
  */
 template<Ownership W, MemSpace M>
 struct SurfaceParamsData
@@ -83,18 +83,26 @@ struct SurfaceParamsData
     //! Surface properties for logical volumes
     VolumeItems<VolumeSurfaceRecord> volume_surfaces;
 
-    //! Backend storage for PV->PV mapping
-    Items<VolumeInstanceId> volume_instance_ids;
-
+    //!@{
     //! Backend storage for surface interfaces
+    Items<VolumeInstanceId> volume_instance_ids;
     Items<SurfaceId> surface_ids;
+    //!@}
 
     //// METHODS ////
 
-    //! True if surfaces are present
+    //! True if data is consistent
     explicit CELER_FUNCTION operator bool() const
     {
-        return !volume_surfaces.empty();
+        if (volume_surfaces.empty())
+        {
+            // No surface data is present (no optical physics)
+            return num_surfaces == 0 && volume_surfaces.empty()
+                   && volume_instance_ids.empty() && surface_ids.empty();
+        }
+        // Surface volume data is present but there may still be no surfaces
+        return !volume_surfaces.empty()
+               && (volume_instance_ids.size() == 2 * surface_ids.size());
     }
 
     //! Assign from another set of data
@@ -102,7 +110,6 @@ struct SurfaceParamsData
     SurfaceParamsData& operator=(SurfaceParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        CELER_EXPECT(!other.volume_surfaces.empty());
 
         num_surfaces = other.num_surfaces;
         volume_surfaces = other.volume_surfaces;

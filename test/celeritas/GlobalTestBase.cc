@@ -20,7 +20,12 @@
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "geocel/GeantGeoParams.hh"
+#include "geocel/SurfaceParams.hh"
+#include "geocel/VolumeParams.hh"
+#include "geocel/inp/Model.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/StatusChecker.hh"
@@ -125,12 +130,29 @@ auto GlobalTestBase::build_core() -> SPConstCore
     inp.physics = this->physics();
     inp.rng = this->rng();
     inp.sim = this->sim();
-    inp.surface = this->surface();
     inp.init = this->init();
     inp.wentzel = this->wentzel();
     inp.action_reg = this->action_reg();
     inp.output_reg = this->output_reg();
     inp.aux_reg = this->aux_reg();
+
+    {
+        // Build "under the hood" parameters
+        auto const& model_geo = [&inp]() -> GeoParamsInterface const& {
+            if (auto* ggeo = celeritas::geant_geo())
+            {
+                // Load geometry, surfaces, regions from Geant4 world pointer
+                return *ggeo;
+            }
+            // Load from the native geometry (e.g. ORANGE internal testing)
+            CELER_ASSERT(inp.geometry);
+            return *inp.geometry;
+        }();
+        auto mi = model_geo.make_model_input();
+        inp.volume = std::make_shared<VolumeParams>(mi.volumes);
+        inp.surface = std::make_shared<SurfaceParams>(mi.surfaces, *inp.volume);
+    }
+
     CELER_ASSERT(inp);
 
     // Build along-step action to add to the stepping loop
