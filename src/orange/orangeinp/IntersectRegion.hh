@@ -747,8 +747,8 @@ class Prism final : public IntersectRegionInterface
  * z axis and never crosses the \em z axis. These special constraints ensure
  * that the revolved trapezoid's sides never touch both sheets of a cone, which
  * as a quadric is always double-sheeted about the cone's vanishing point. As a
- * convention, all \em r values must be positive. An example of the revolution
- * process is shown below.
+ * convention, all \em r values must be non-negative. An example of the
+ * revolution process is shown below.
  * \verbatim
                               |
      ........            ^    |     .           ________
