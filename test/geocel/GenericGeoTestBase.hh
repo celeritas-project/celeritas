@@ -62,7 +62,7 @@ class GenericGeoTestBase : virtual public Test,
 
     //// Geometry-specific functions ////
 
-    //! Construct from celeritas test data and "basename" value
+    //! Construct from celeritas test data: GDML file without extension
     SPConstGeo build_geometry_from_basename();
 
     // Access geometry

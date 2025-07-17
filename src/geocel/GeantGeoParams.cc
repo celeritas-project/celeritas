@@ -40,6 +40,8 @@
 #include "GeantGdmlLoader.hh"
 #include "GeantGeoUtils.hh"
 #include "GeantUtils.hh"
+#include "ScopedGeantExceptionHandler.hh"
+#include "ScopedGeantLogger.hh"
 #include "g4/Convert.hh"  // IWYU pragma: associated
 #include "g4/GeantGeoData.hh"  // IWYU pragma: associated
 #include "g4/VisitVolumes.hh"
@@ -477,7 +479,7 @@ std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
     CELER_VALIDATE(world,
                    << "cannot create Geant geometry wrapper: Geant4 tracking "
                       "manager is not active");
-    return std::make_shared<GeantGeoParams>(world);
+    return std::make_shared<GeantGeoParams>(world, Ownership::reference);
 }
 
 //---------------------------------------------------------------------------//
@@ -487,13 +489,13 @@ std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
  * This assumes that Celeritas is driving and will manage Geant4 logging
  * and exceptions.
  */
-GeantGeoParams::GeantGeoParams(std::string const& filename)
+std::shared_ptr<GeantGeoParams>
+GeantGeoParams::from_gdml(std::string const& filename)
 {
     ScopedMem record_mem("GeantGeoParams.construct");
 
-    scoped_logger_
-        = std::make_unique<ScopedGeantLogger>(celeritas::world_logger());
-    scoped_exceptions_ = std::make_unique<ScopedGeantExceptionHandler>();
+    ScopedGeantLogger logger(celeritas::world_logger());
+    ScopedGeantExceptionHandler exception_handler;
 
     disable_geant_signal_handler();
 
@@ -502,21 +504,16 @@ GeantGeoParams::GeantGeoParams(std::string const& filename)
         CELER_LOG(warning) << "Expected '.gdml' extension for GDML input";
     }
 
-    data_.world = load_gdml(filename);
-    loaded_gdml_ = true;
-
-    this->build_tracking();
-    this->build_metadata();
-
-    CELER_ENSURE(volumes_);
-    CELER_ENSURE(data_);
+    return std::make_shared<GeantGeoParams>(load_gdml(filename),
+                                            Ownership::value);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Use an existing loaded Geant4 geometry.
  */
-GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world)
+GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns)
+    : ownership_{owns}
 {
     CELER_EXPECT(world);
     data_.world = const_cast<G4VPhysicalVolume*>(world);
@@ -543,7 +540,19 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world)
         }
     }
 
-    this->build_tracking();
+    {
+        // Close the geometry if needed
+        auto* geo_man = G4GeometryManager::GetInstance();
+        CELER_ASSERT(geo_man);
+        if (!geo_man->IsGeometryClosed())
+        {
+            CELER_LOG(debug) << "Building geometry manager tracking";
+            geo_man->CloseGeometry(
+                /* optimize = */ true, /* verbose = */ false, this->world());
+            closed_geometry_ = true;
+        }
+    }
+
     this->build_metadata();
 
     CELER_ENSURE(volumes_);
@@ -569,7 +578,7 @@ GeantGeoParams::~GeantGeoParams()
                                 "geo had a chance to clean up";
         }
     }
-    if (loaded_gdml_)
+    if (ownership_ == Ownership::value)
     {
         reset_geant_geometry();
     }
@@ -763,24 +772,6 @@ void GeantGeoParams::reset_replica_data() const
 
 //---------------------------------------------------------------------------//
 // PRIVATE FUNCTIONS
-//---------------------------------------------------------------------------//
-/*!
- * Complete geometry construction.
- */
-void GeantGeoParams::build_tracking()
-{
-    // Close the geometry if needed
-    auto* geo_man = G4GeometryManager::GetInstance();
-    CELER_ASSERT(geo_man);
-    if (!geo_man->IsGeometryClosed())
-    {
-        CELER_LOG(debug) << "Building geometry manager tracking";
-        geo_man->CloseGeometry(
-            /* optimize = */ true, /* verbose = */ false, this->world());
-        closed_geometry_ = true;
-    }
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct Celeritas host-only metadata.

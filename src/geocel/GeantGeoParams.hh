@@ -14,8 +14,6 @@
 
 #include "BoundingBox.hh"
 #include "GeoParamsInterface.hh"
-#include "ScopedGeantExceptionHandler.hh"
-#include "ScopedGeantLogger.hh"
 #include "Types.hh"
 #include "g4/GeantGeoData.hh"
 
@@ -69,12 +67,13 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Create from a running Geant4 application
     static std::shared_ptr<GeantGeoParams> from_tracking_manager();
 
-    // Construct from a GDML filename
-    explicit GeantGeoParams(std::string const& gdml_filename);
+    // Create from a GDML file
+    static std::shared_ptr<GeantGeoParams>
+    from_gdml(std::string const& filename);
 
     // Create a VecGeom model from an already-loaded Geant4 geometry
     // TODO: also take model input? see #1815
-    explicit GeantGeoParams(G4VPhysicalVolume const* world);
+    GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns);
 
     CELER_DEFAULT_MOVE_DELETE_COPY(GeantGeoParams);
 
@@ -172,10 +171,8 @@ class GeantGeoParams final : public GeoParamsInterface,
   private:
     //// DATA ////
 
-    bool loaded_gdml_{false};
+    Ownership ownership_{Ownership::reference};
     bool closed_geometry_{false};
-    std::unique_ptr<ScopedGeantLogger> scoped_logger_;
-    std::unique_ptr<ScopedGeantExceptionHandler> scoped_exceptions_;
 
     // Host metadata/access
     VolumeMap volumes_;
@@ -188,9 +185,6 @@ class GeantGeoParams final : public GeoParamsInterface,
     HostRef data_;
 
     //// HELPER FUNCTIONS ////
-
-    // Complete geometry construction
-    void build_tracking();
 
     // Construct labels and other host-only metadata
     void build_metadata();

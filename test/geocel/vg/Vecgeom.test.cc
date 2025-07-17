@@ -84,7 +84,7 @@ class VecgeomVgdmlTestBase : public VecgeomTestBaseImpl
     {
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::warning};
-        auto result = std::make_shared<VecgeomParams>(this->test_data_path(
+        auto result = VecgeomParams::from_gdml_vg(this->test_data_path(
             "geocel", this->geometry_basename() + std::string{".gdml"}));
         EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
             << scoped_log_;
@@ -111,12 +111,12 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
         if (filename != pggp.key())
         {
             pggp.clear();
-            auto new_geo = std::make_shared<GeantGeoParams>(filename);
+            auto new_geo = GeantGeoParams::from_gdml(filename);
             celeritas::geant_geo(*new_geo);
             pggp.set(std::string{filename}, std::move(new_geo));
         }
         CELER_ASSERT(pggp.value());
-        auto result = std::make_shared<VecgeomParams>(pggp.value()->world());
+        auto result = VecgeomParams::from_geant(*pggp.value());
         EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
             << scoped_log_;
         return result;
@@ -766,7 +766,7 @@ class ArbitraryVgdmlTest : public VecgeomTestBase
         CELER_VALIDATE(
             !filename.empty(),
             << R"(Set the "GDML" environment variable and run this test with '--gtest_filter=*ArbitraryVgdmlTest*' --gtest_also_run_disabled_tests)");
-        return std::make_shared<VecgeomParams>(filename);
+        return VecgeomParams::from_gdml_vg(filename);
     }
 };
 
@@ -789,8 +789,7 @@ class ArbitraryGeantTest : public VecgeomTestBase
         CELER_VALIDATE(
             !filename.empty(),
             << R"(Set the "GDML" environment variable and run this test with '--gtest_filter=*ArbitraryGeantTest*' --gtest_also_run_disabled_tests)");
-        world_volume_ = ::celeritas::load_gdml(filename);
-        return std::make_shared<VecgeomParams>(world_volume_);
+        return VecgeomParams::from_gdml_g4(filename);
     }
     static G4VPhysicalVolume* world_volume_;
 };
