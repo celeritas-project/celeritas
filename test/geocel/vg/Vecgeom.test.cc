@@ -116,7 +116,7 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
             pgg.set(std::string{filename}, std::move(new_geo));
         }
         CELER_ASSERT(pgg.value());
-        auto result = VecgeomParams::from_geant(*pgg.value());
+        auto result = VecgeomParams::from_geant(pgg.value());
         EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
             << scoped_log_;
         return result;

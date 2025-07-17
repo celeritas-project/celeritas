@@ -144,7 +144,7 @@ auto GeantTestBase::build_fresh_geometry(std::string_view filename)
     this->imported_data();
     ImportSetup const& i = this->load();
     CELER_ASSERT(i.geo);
-    return CoreGeoParams::from_geant(*i.geo);
+    return CoreGeoParams::from_geant(i.geo);
 }
 
 //---------------------------------------------------------------------------//

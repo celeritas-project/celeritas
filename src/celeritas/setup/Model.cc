@@ -79,7 +79,7 @@ struct GeoBuilder
         CELER_VALIDATE(ggp && ggp->world() == world,
                        << "inconsistent Geant4 world pointer given to model "
                           "setup");
-        return CoreGeoParams::from_geant(*ggp);
+        return CoreGeoParams::from_geant(ggp);
     }
 };
 

@@ -75,7 +75,7 @@ OrangeParams::from_gdml(std::string const& filename)
 
     // Load temporarily and convert
     auto temp_geant_geo = GeantGeoParams::from_gdml(filename);
-    return OrangeParams::from_geant(*temp_geant_geo);
+    return OrangeParams::from_geant(temp_geant_geo);
 }
 
 //---------------------------------------------------------------------------//
@@ -83,9 +83,9 @@ OrangeParams::from_gdml(std::string const& filename)
  * Build from a Geant4 world.
  */
 std::shared_ptr<OrangeParams>
-OrangeParams::from_geant(GeantGeoParams const& geo)
+OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
 {
-    auto result = g4org::Converter{}(geo).input;
+    auto result = g4org::Converter{}(*geo).input;
     return std::make_shared<OrangeParams>(std::move(result));
 }
 

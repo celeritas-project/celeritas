@@ -75,7 +75,7 @@ auto GlobalGeoTestBase::build_fresh_geometry(std::string_view basename)
         pgg.set(std::string{basename}, std::move(new_geo));
 
         // Geant4 loading is supported
-        return CoreGeoParams::from_geant(*pgg.value());
+        return CoreGeoParams::from_geant(pgg.value());
     }
     else if (use_orange)
     {

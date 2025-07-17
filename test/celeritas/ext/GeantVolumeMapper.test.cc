@@ -168,7 +168,7 @@ void NestedTest::build_vecgeom()
     CELER_EXPECT(!physical_.empty());
 #if CELERITAS_USE_VECGEOM
     CELER_ASSERT(geant_geo_params_);
-    auto geo = VecgeomParams::from_geant(*geant_geo_params_);
+    auto geo = VecgeomParams::from_geant(geant_geo_params_);
 #else
     int geo;
     CELER_DISCARD(geo);

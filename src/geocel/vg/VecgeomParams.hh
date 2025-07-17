@@ -81,7 +81,8 @@ class VecgeomParams final : public GeoParamsInterface,
     from_gdml_vg(std::string const& filename);
 
     // Build from a Geant4 geometry
-    static std::shared_ptr<VecgeomParams> from_geant(GeantGeoParams const& geo);
+    static std::shared_ptr<VecgeomParams>
+    from_geant(std::shared_ptr<GeantGeoParams const> const& geo);
 
     //!@}
 

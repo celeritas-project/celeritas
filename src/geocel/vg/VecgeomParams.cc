@@ -263,8 +263,7 @@ VecgeomParams::from_gdml_g4(std::string const& filename)
                       "file name: a global Geant4 geometry already exists");
 
     // Load temporarily and convert
-    auto temp_geant_geo = GeantGeoParams::from_gdml(filename);
-    return VecgeomParams::from_geant(*temp_geant_geo);
+    return VecgeomParams::from_geant(GeantGeoParams::from_gdml(filename));
 }
 
 //---------------------------------------------------------------------------//
@@ -301,8 +300,9 @@ VecgeomParams::from_gdml_vg(std::string const& filename)
  * Build from a Geant4 geometry.
  */
 std::shared_ptr<VecgeomParams>
-VecgeomParams::from_geant(GeantGeoParams const& geo)
+VecgeomParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
 {
+    CELER_EXPECT(geo);
     CELER_LOG(status) << "Loading VecGeom geometry from in-memory Geant4 "
                          "geometry";
 #if CELERITAS_USE_GEANT4
@@ -316,7 +316,7 @@ VecgeomParams::from_geant(GeantGeoParams const& geo)
     opts.append_pointers = false;
     opts.verbose = static_cast<bool>(vecgeom_verbosity());
     opts.reflection_factory = false;
-    auto result = g4vg::convert(geo.world(), opts);
+    auto result = g4vg::convert(geo->world(), opts);
     CELER_ASSERT(result.world != nullptr);
 
     // Set as world volume
@@ -330,7 +330,6 @@ VecgeomParams::from_geant(GeantGeoParams const& geo)
                                            std::move(result.logical_volumes),
                                            std::move(result.physical_volumes));
 #else
-    CELER_DISCARD(geo);
     CELER_NOT_CONFIGURED("Geant4");
 #endif
 }
