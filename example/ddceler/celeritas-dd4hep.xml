@@ -106,7 +106,7 @@
   </display>
 
   <detectors>
-    <detector id="0" name="Beampipe" type="SimpleCylindrical" vis="BeampipeVis">
+    <detector id="0" name="Beampipe" type="SimpleCylindrical" vis="BeampipeVis" sens_type="passive">
       <layer id="1" inner_r="beampipe_inner_radius" outer_r="beampipe_outer_radius" z_length="beampipe_length"/>
       <material name="Beryllium"/>
     </detector>
