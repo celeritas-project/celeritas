@@ -1297,17 +1297,10 @@ void RevolvedSpecialTrapezoid::build(IntersectSurfaceBuilder& insert_surface) co
     constexpr auto left = Bound::lo;
     constexpr auto right = Bound::hi;
 
-    // Create z planes first for faster short circuiting
-    if (trap_.variety() != SpecialTrapezoid::Variety::pointy_bot)
-    {
-        // Bottom z plane
-        insert_surface(Sense::outside, PlaneZ{bot.z});
-    }
-    if (trap_.variety() != SpecialTrapezoid::Variety::pointy_top)
-    {
-        // Top z plane
-        insert_surface(Sense::inside, PlaneZ{top.z});
-    }
+    // Create both z planes first, even if one end is pointy, for short
+    // circutting
+    insert_surface(Sense::outside, PlaneZ{bot.z});
+    insert_surface(Sense::inside, PlaneZ{top.z});
 
     SoftClose soft_close(trap_.abs_tol());
 
