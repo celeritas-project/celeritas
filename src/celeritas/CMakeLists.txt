@@ -103,6 +103,7 @@ list(APPEND SOURCES
   optical/CoreTrackData.cc
   optical/gen/CherenkovParams.cc
   optical/gen/ScintillationParams.cc
+  optical/gen/detail/OpticalGeneratorBase.cc
   optical/ImportedModelAdapter.cc
   optical/ImportedMaterials.cc
   optical/OpticalCollector.cc
@@ -352,6 +353,7 @@ celeritas_polysource(optical/gen/detail/GeneratorAction)
 celeritas_polysource(optical/gen/detail/OffloadAction)
 celeritas_polysource(optical/gen/detail/OffloadGatherAction)
 celeritas_polysource(optical/gen/detail/OpticalGenAlgorithms)
+celeritas_polysource(optical/gen/detail/PrimaryGeneratorAction)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)
 celeritas_polysource(phys/detail/TrackingCutAction)

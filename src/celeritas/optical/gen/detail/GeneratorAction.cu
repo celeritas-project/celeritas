@@ -38,7 +38,7 @@ void GeneratorAction<G>::generate(optical::CoreParams const& params,
     CELER_EXPECT(state.aux());
 
     auto& aux_state
-        = get<GeneratorState<MemSpace::native>>(*state.aux(), aux_id_);
+        = get<GeneratorState<MemSpace::native>>(*state.aux(), this->aux_id());
     size_type num_gen
         = min(state.counters().num_vacancies, aux_state.counters.num_pending);
     {

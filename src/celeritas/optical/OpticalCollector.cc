@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "OpticalCollector.hh"
 
+#include "corecel/Assert.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
@@ -128,7 +129,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     la_inp.num_track_slots = inp.num_track_slots;
     la_inp.max_step_iters = inp.max_step_iters;
     la_inp.auto_flush = inp.auto_flush;
-    la_inp.optical_params = std::move(optical_params);
+    la_inp.optical_params = optical_params;
     launch_ = detail::OpticalLaunchAction::make_and_insert(core,
                                                            std::move(la_inp));
 
@@ -144,6 +145,9 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
             "optical-sizes",
             std::move(sizes)));
 
+    // Save core params
+    optical_params_ = optical_params;
+
     // Launch action must be *after* offload and generator actions
     CELER_ENSURE(!cherenkov_offload_
                  || launch_->action_id() > cherenkov_offload_->action_id());
@@ -154,6 +158,29 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     CELER_ENSURE(!scint_generate_
                  || launch_->action_id() > scint_generate_->action_id());
     CELER_ENSURE(launch_->aux_id() == optical_aux_id);
+    CELER_ENSURE(optical_params_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access Cherenkov params (may be null).
+ */
+auto OpticalCollector::cherenkov() const -> SPConstCherenkov
+{
+    if (!cherenkov_offload_)
+        return nullptr;
+    return cherenkov_offload_->params();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access scintillation params (may be null).
+ */
+auto OpticalCollector::scintillation() const -> SPConstScintillation
+{
+    if (!scint_offload_)
+        return nullptr;
+    return scint_offload_->params();
 }
 
 //---------------------------------------------------------------------------//
@@ -162,7 +189,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
  */
 GeneratorRegistry const& OpticalCollector::gen_reg() const
 {
-    return *launch_->optical_params().gen_reg();
+    return *optical_params_->gen_reg();
 }
 
 //---------------------------------------------------------------------------//
