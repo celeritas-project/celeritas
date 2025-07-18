@@ -262,6 +262,7 @@ SharedParams::SharedParams(SetupOptions const& options)
     auto framework_inp = to_inp(options);
     auto loaded = setup::framework_input(framework_inp);
     params_ = std::move(loaded.problem.core_params);
+    optical_ = std::move(loaded.problem.optical_collector);
     output_filename_ = loaded.problem.output_file;
     CELER_ASSERT(params_);
 

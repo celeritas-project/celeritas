@@ -112,9 +112,10 @@ CherenkovGenerator::CherenkovGenerator(optical::MaterialView const& material,
     sample_energy_ = UniformRealDist(energy_grid.front(), energy_grid.back());
 
     // Calculate 1 / beta and the max sin^2 theta
+    // note that with single precision, 10 GeV e- rounds to c=1
     inv_beta_
         = 2 / (value_as<LS>(pre_step.speed) + value_as<LS>(post_step.speed));
-    CELER_ASSERT(inv_beta_ > 1);
+    CELER_ASSERT(inv_beta_ >= 1);
     real_type cos_max = inv_beta_ / calc_refractive_index_(energy_grid.back());
     sin_max_sq_ = 1 - ipow<2>(cos_max);
 

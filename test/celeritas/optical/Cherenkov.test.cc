@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <vector>
 
+#include "corecel/Config.hh"
+
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionStateStore.hh"
@@ -218,7 +220,7 @@ TEST_F(CherenkovTest, dndx)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
+TEST_F(CherenkovTest, pre_generator)
 {
     Rng rng;
     optical::MaterialView const mat_view{material->host_ref(), material_id};
@@ -239,7 +241,7 @@ TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
         Real3 pos = {sim.step_length(), 0, 0};
 
         CherenkovOffload pre_generate(
-            particle, sim, mat_view, pos, params->host_ref(), pre_step);
+            pre_step, mat_view, particle, sim, pos, params->host_ref());
 
         size_type num_samples = 10;
         std::vector<size_type> sampled_num_photons;
@@ -262,10 +264,13 @@ TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
             EXPECT_VEC_EQ(pos, result.points[StepPoint::post].pos);
         }
 
-        // Only number of photons is sampled
-        static size_type const expected_num_photons[]
-            = {15, 17, 11, 15, 14, 19, 23, 13, 10, 12};
-        EXPECT_VEC_EQ(expected_num_photons, sampled_num_photons);
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            // Only number of photons is sampled
+            static size_type const expected_num_photons[]
+                = {15, 17, 11, 15, 14, 19, 23, 13, 10, 12};
+            EXPECT_VEC_EQ(expected_num_photons, sampled_num_photons);
+        }
     }
 
     // Below Cherenkov threshold
@@ -284,7 +289,7 @@ TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
         Real3 pos = {sim.step_length(), 0, 0};
 
         CherenkovOffload pre_generate(
-            particle, sim, mat_view, pos, params->host_ref(), pre_step);
+            pre_step, mat_view, particle, sim, pos, params->host_ref());
         auto const result = pre_generate(rng);
 
         EXPECT_FALSE(result);
@@ -294,7 +299,7 @@ TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
 
 //---------------------------------------------------------------------------//
 
-TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
+TEST_F(CherenkovTest, generator)
 {
     Rng rng;
     optical::MaterialView mat_view{material->host_ref(), material_id};
@@ -336,7 +341,7 @@ TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
 
         // Calculate the average number of photons produced per unit length
         CherenkovOffload pre_generate(
-            particle, sim, mat_view, pos, params->host_ref(), pre_step);
+            pre_step, mat_view, particle, sim, pos, params->host_ref());
 
         Real3 inc_dir = make_unit_vector(pos - pre_step.pos);
         for (size_type i = 0; i < num_samples; ++i)
@@ -426,14 +431,17 @@ TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
 
         sample(pre_step, particle, sim, pos, num_samples);
 
-        EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
-        EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
-        EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
-        EXPECT_SOFT_EQ(0.73055857883146702, avg_costheta);
-        EXPECT_SOFT_EQ(4.0497726102182314e-06, avg_energy);
-        EXPECT_SOFT_EQ(0.50020101984474064, avg_displacement);
-        EXPECT_SOFT_EQ(983.734375, total_num_photons / num_samples);
-        EXPECT_SOFT_EQ(10.609603075017075, avg_engine_samples);
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
+            EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
+            EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
+            EXPECT_SOFT_EQ(0.73055857883146702, avg_costheta);
+            EXPECT_SOFT_EQ(4.0497726102182314e-06, avg_energy);
+            EXPECT_SOFT_EQ(0.50020101984474064, avg_displacement);
+            EXPECT_SOFT_EQ(983.734375, total_num_photons / num_samples);
+            EXPECT_SOFT_EQ(10.609603075017075, avg_engine_samples);
+        }
     }
 
     // 500 keV e-: 1/beta_avg ~ 1.336
@@ -462,14 +470,17 @@ TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
 
         sample(pre_step, particle, sim, pos, num_samples);
 
-        EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
-        EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
-        EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
-        EXPECT_SOFT_EQ(0.95045221539598979, avg_costheta);
-        EXPECT_SOFT_EQ(5.5902203966702514e-06, avg_energy);
-        EXPECT_SOFT_EQ(0.049715603846029896, avg_displacement);
-        EXPECT_SOFT_EQ(15.484375, total_num_photons / num_samples);
-        EXPECT_SOFT_EQ(25.077699293642784, avg_engine_samples);
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
+            EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
+            EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
+            EXPECT_SOFT_EQ(0.95045221539598979, avg_costheta);
+            EXPECT_SOFT_EQ(5.5902203966702514e-06, avg_energy);
+            EXPECT_SOFT_EQ(0.049715603846029896, avg_displacement);
+            EXPECT_SOFT_EQ(15.484375, total_num_photons / num_samples);
+            EXPECT_SOFT_EQ(25.077699293642784, avg_engine_samples);
+        }
     }
 }
 

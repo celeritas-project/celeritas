@@ -60,7 +60,7 @@ events(inp::Events const& e,
 
     return std::visit(
         Overload{
-            [&particles](inp::PrimaryGenerator const& pg) {
+            [&particles](inp::CorePrimaryGenerator const& pg) {
                 return read_events(PrimaryGenerator{pg, *particles});
             },
             [&particles](inp::SampleFileEvents const& sfe) {
