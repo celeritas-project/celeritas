@@ -41,7 +41,8 @@ namespace detail
  * the beginning of the run, and stores the optical core state as "aux" data.
  */
 class OpticalLaunchAction : public AuxParamsInterface,
-                            public CoreStepActionInterface
+                            public CoreStepActionInterface,
+                            public CoreBeginRunActionInterface
 {
   public:
     //!@{
@@ -90,6 +91,15 @@ class OpticalLaunchAction : public AuxParamsInterface,
     //!@}
 
     //!@{
+    //! \name BeginRunAction interface
+
+    // Greate the action groups and get a pointer to the aux data
+    void begin_run(CoreParams const&, CoreStateHost&) final;
+    // Greate the action groups and get a pointer to the aux data
+    void begin_run(CoreParams const&, CoreStateDevice&) final;
+    //!@}
+
+    //!@{
     //! \name Action interface
 
     //! ID of the model
@@ -131,6 +141,8 @@ class OpticalLaunchAction : public AuxParamsInterface,
 
     template<MemSpace M>
     void execute_impl(CoreParams const&, CoreState<M>&) const;
+    template<MemSpace M>
+    void begin_run_impl(CoreState<M>&);
 };
 
 //---------------------------------------------------------------------------//
