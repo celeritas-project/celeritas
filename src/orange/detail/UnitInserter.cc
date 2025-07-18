@@ -17,12 +17,14 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/Environment.hh"
+#include "geocel/VolumeParams.hh"
 
 #include "UniverseInserter.hh"
 #include "../OrangeInput.hh"
@@ -146,17 +148,29 @@ std::vector<Label> make_surface_labels(UnitInput& inp)
 
 //---------------------------------------------------------------------------//
 //! Construct volume labels from the input volumes
-std::vector<Label> make_volume_labels(UnitInput const& inp)
+std::vector<Label>
+make_volume_labels(UnitInput const& inp, VolumeParams const& volumes)
 {
-    std::vector<Label> result;
-    for (auto const& v : inp.volumes)
-    {
-        Label vl = v.label;
+    auto from_label = [&inp](Label vl) {
         if (vl.ext.empty())
         {
             vl.ext = inp.label.name;
         }
-        result.push_back(std::move(vl));
+        return vl;
+    };
+    auto from_vol_inst = [&volumes](VolumeInstanceId vi_id) -> Label {
+        CELER_EXPECT(!vi_id || vi_id < volumes.num_volume_instances());
+        if (!vi_id)
+            return {};
+        auto vol_id = volumes.volume(vi_id);
+        return volumes.volume_labels().at(vol_id);
+    };
+
+    std::vector<Label> result;
+    for (auto const& v : inp.volumes)
+    {
+        result.push_back(
+            std::visit(Overload{from_label, from_vol_inst}, v.label));
     }
     return result;
 }
@@ -230,15 +244,30 @@ ForceMax const& forced_scalar_max()
     return result;
 }
 
+std::string to_string(VolumeInput::VariantLabel const& vlabel)
+{
+    return std::visit(Overload{[](Label const& lab) { return to_string(lab); },
+                               [](VolumeInstanceId const& id) -> std::string {
+                                   if (!id)
+                                       return "<null>";
+                                   return "vi " + std::to_string(id.get());
+                               }},
+                      vlabel);
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct from full parameter data.
+ * Construct from full parameter data with metadata inserters.
  */
-UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
-    : orange_data_(orange_data)
+UnitInserter::UnitInserter(VolumeParams const& volumes,
+                           UniverseInserter* insert_universe,
+                           VecLabel* vi_labels,
+                           Data* orange_data)
+    : volumes_{volumes}
+    , orange_data_(orange_data)
     , build_bih_tree_{&orange_data_->bih_tree_data}
     , insert_transform_{&orange_data_->transforms, &orange_data_->reals}
     , build_surfaces_{&orange_data_->surface_types,
@@ -258,6 +287,8 @@ UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
     , daughters_{&orange_data_->daughters}
     , calc_bumped_(make_bumper(orange_data_->scalars.tol))
 {
+    CELER_EXPECT(insert_universe_);
+    CELER_EXPECT(volumes.empty() == (vi_labels == nullptr));
     CELER_EXPECT(orange_data);
     CELER_EXPECT(orange_data->scalars.tol);
 
@@ -353,7 +384,8 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
                            invalid.end(),
                            ", ",
                            [&inp, &bboxes](std::ostream& os, size_type i) {
-                               os << i << "='" << inp.volumes[i].label
+                               os << i << "='"
+                                  << to_string(inp.volumes[i].label)
                                   << "': " << bboxes[i];
                            }));
     }
@@ -388,7 +420,7 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
     CELER_ASSERT(unit);
     simple_units_.push_back(unit);
     auto surf_labels = make_surface_labels(inp);
-    auto vol_labels = make_volume_labels(inp);
+    auto vol_labels = make_volume_labels(inp, volumes_);
     return (*insert_universe_)(UniverseType::simple,
                                std::move(inp.label),
                                std::move(surf_labels),
@@ -456,7 +488,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
         CELER_LOG(warning) << "Max intersections (" << output.max_intersections
                            << ") and/or faces (" << output.faces.size()
                            << ") exceed limits of '" << mfi_hack_envname
-                           << " in volume '" << v.label
+                           << " in volume '" << to_string(v.label)
                            << "': replacing with unreachable volume";
 
         output.faces = {};
@@ -478,6 +510,20 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     inplace_max<size_type>(&scalars.max_intersections,
                            output.max_intersections);
     inplace_max<size_type>(&scalars.max_logic_depth, max_depth);
+
+    // Save volume instance label
+    if (auto* vi_id = std::get_if<VolumeInstanceId>(&v.label))
+    {
+        CELER_ASSERT(*vi_id);
+        vi_labels_->resize(vi_id->get() + 1);
+        auto& label_dst = (*vi_labels_)[vi_id->get()];
+        if (label_dst.empty())
+        {
+            // This is the first 'volume' to instantiate the volume instance
+            (*vi_labels_)[vi_id->get()]
+                = volumes_.volume_instance_labels().at(*vi_id);
+        }
+    }
 
     return output;
 }

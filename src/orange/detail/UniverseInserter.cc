@@ -10,6 +10,8 @@
 #include <iterator>
 #include <numeric>
 
+#include "geocel/VolumeParams.hh"
+
 namespace celeritas
 {
 namespace detail

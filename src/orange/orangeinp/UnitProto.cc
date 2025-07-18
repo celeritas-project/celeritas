@@ -242,7 +242,7 @@ void UnitProto::build(ProtoBuilder& input) const
     {
         vol_iter->zorder = input_.boundary.zorder;
     }
-    vol_iter->label = {"[EXTERIOR]", input_.label};
+    vol_iter->label = Label{"[EXTERIOR]", input_.label};
     ++vol_iter;
 
     BoundingBoxBumper<real_type> bump_bbox{input.tol()};
@@ -324,7 +324,10 @@ void UnitProto::build(ProtoBuilder& input) const
         CELER_ASSERT(unit_volumes.size() <= result.volumes.size());
         for (auto vol_idx : range(unit_volumes.size()))
         {
-            jv[vol_idx]["label"] = result.volumes[vol_idx].label;
+            if (auto* label = std::get_if<Label>(&result.volumes[vol_idx].label))
+            {
+                jv[vol_idx]["label"] = *label;
+            }
         }
 
         // Save our universe label

@@ -28,6 +28,7 @@ namespace celeritas
 {
 struct OrangeInput;
 class GeantGeoParams;
+class VolumeParams;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -57,6 +58,11 @@ class OrangeParams final : public GeoParamsInterface,
 
     // Build from a Geant4 geometry
     static std::shared_ptr<OrangeParams>
+    from_geant(std::shared_ptr<GeantGeoParams const> const& geo,
+               VolumeParams const& volumes);
+
+    // Build from a Geant4 geometry (no volumes available?)
+    static std::shared_ptr<OrangeParams>
     from_geant(std::shared_ptr<GeantGeoParams const> const& geo);
 
     // Build from a JSON input
@@ -65,7 +71,10 @@ class OrangeParams final : public GeoParamsInterface,
     //!@}
 
     // ADVANCED usage: construct from explicit host data
-    explicit OrangeParams(OrangeInput&& input);
+    OrangeParams(OrangeInput&& input);
+
+    // ADVANCED usage: construct from explicit host data with volumes
+    OrangeParams(OrangeInput&& input, VolumeParams const& volumes);
 
     // Default destructor to anchor vtable
     ~OrangeParams() final;

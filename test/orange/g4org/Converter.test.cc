@@ -60,6 +60,30 @@ class ConverterTest : public GeantLoadTestBase
     bool verbose_{false};
 };
 
+struct VolumeInstanceAccessor
+{
+    std::vector<VolumeInput> const& volumes;
+
+    std::string operator()(size_type i) const
+    {
+        if (i >= volumes.size())
+        {
+            return "<out of bounds>";
+        }
+        auto const& var_label = volumes[i].label;
+        if (auto* vi_id = std::get_if<VolumeInstanceId>(&var_label))
+        {
+            if (*vi_id)
+            {
+                return std::to_string(vi_id->get());
+            }
+            return "<null>";
+        }
+        CELER_ASSUME(std::holds_alternative<Label>(var_label));
+        return std::get<Label>(var_label).name;
+    }
+};
+
 //---------------------------------------------------------------------------//
 TEST_F(ConverterTest, testem3)
 {
@@ -111,10 +135,12 @@ TEST_F(ConverterTest, tilecal_plug)
     ASSERT_EQ(1, result.universes.size());
     {
         auto const& unit = std::get<UnitInput>(result.universes[0]);
-        ASSERT_EQ(4, unit.volumes.size());
-        EXPECT_EQ("Tile_Plug1Module", unit.volumes[1].label.name);
-        EXPECT_EQ("Tile_Absorber", unit.volumes[2].label.name);
-        EXPECT_EQ("Tile_ITCModule", unit.volumes[3].label.name);
+        EXPECT_EQ(4, unit.volumes.size());
+        VolumeInstanceAccessor get_vi_id{unit.volumes};
+        // See GeoTests
+        EXPECT_EQ("Tile_Plug1Module", get_vi_id(1));
+        EXPECT_EQ("Tile_Absorber", get_vi_id(2));
+        EXPECT_EQ("Tile_ITCModule", get_vi_id(3));
     }
 }
 

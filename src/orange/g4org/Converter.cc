@@ -45,7 +45,7 @@ Converter::Converter(Options&& opts) : opts_{std::move(opts)}
 /*!
  * Convert the world.
  */
-auto Converter::operator()(arg_type geo) -> result_type
+auto Converter::operator()(GeantGeoParams const& geo) -> result_type
 {
     using orangeinp::InputBuilder;
 

@@ -20,6 +20,7 @@
 
 namespace celeritas
 {
+class VolumeParams;
 namespace detail
 {
 class UniverseInserter;
@@ -35,21 +36,28 @@ class UnitInserter
     //!@{
     //! \name Type aliases
     using Data = HostVal<OrangeParamsData>;
+    using VecLabel = std::vector<Label>;
     //!@}
 
   public:
     // Construct from full parameter data
-    UnitInserter(UniverseInserter* insert_universe, Data* orange_data);
+    UnitInserter(VolumeParams const& volumes,
+                 UniverseInserter* insert_universe,
+                 VecLabel* vi_labels,
+                 Data* orange_data);
 
     // Create a simple unit and store in in OrangeParamsData
     UniverseId operator()(UnitInput&& inp);
 
   private:
+    VolumeParams const& volumes_;
+
     Data* orange_data_{nullptr};
     BIHBuilder build_bih_tree_;
     TransformRecordInserter insert_transform_;
     SurfacesRecordBuilder build_surfaces_;
     UniverseInserter* insert_universe_;
+    VecLabel* vi_labels_;  //!< NOTE: may be null
 
     CollectionBuilder<SimpleUnitRecord> simple_units_;
 
