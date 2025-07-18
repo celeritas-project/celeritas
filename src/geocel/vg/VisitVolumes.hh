@@ -17,19 +17,26 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-template<>
-struct VolumeVisitorTraits<vecgeom::VPlacedVolume>
+class VecgeomVolumeAccessor final
+    : public VolumeAccessorInterface<vecgeom::LogicalVolume const*,
+                                     vecgeom::VPlacedVolume const*>
 {
-    using PV = vecgeom::VPlacedVolume;
-    using LV = vecgeom::LogicalVolume;
-
-    static void get_children(PV const& parent, std::vector<PV const*>& dst)
+  public:
+    //! Outgoing volume node from an instance
+    VolumeRef volume(VolumeInstanceRef parent) final
     {
-        auto const& daughters = parent.GetDaughters();
-        dst.assign(daughters.begin(), daughters.end());
+        CELER_EXPECT(parent);
+        auto result = parent->GetLogicalVolume();
+        CELER_ENSURE(result);
+        return result;
     }
 
-    static LV const& get_lv(PV const& pv) { return *pv.GetLogicalVolume(); }
+    //! Outgoing instance nodes from a volume
+    VecVolInstRef children(VolumeRef parent) final
+    {
+        auto&& daughters = parent->GetDaughters();
+        return VecVolInstRef(daughters.begin(), daughters.end());
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -46,10 +53,11 @@ struct VolumeVisitorTraits<vecgeom::VPlacedVolume>
  * them as visited using a set.
  */
 template<class F>
-void visit_volume_instances(F&& visit, vecgeom::VPlacedVolume const& world)
+void visit_volume_instances(F&& vis, vecgeom::VPlacedVolume const* world)
 {
     ScopedProfiling profile_this{"visit-vecgeom-volume-instance"};
-    VolumeVisitor{world}(std::forward<F>(visit));
+    VolumeInstanceVisitor visit_vol{VecgeomVolumeAccessor{}};
+    visit_vol(std::forward<F>(vis), world);
 }
 
 //---------------------------------------------------------------------------//
@@ -61,11 +69,12 @@ void visit_volume_instances(F&& visit, vecgeom::VPlacedVolume const& world)
  * \code void(*)(G4LogicalVolume const&) \endcode .
  */
 template<class F>
-void visit_volumes(F&& vis, vecgeom::VPlacedVolume const& parent_vol)
+void visit_volumes(F&& vis, vecgeom::VPlacedVolume const* world)
 {
     ScopedProfiling profile_this{"visit-vecgeom-volume"};
 
-    visit_logical_volumes(std::forward<F>(vis), parent_vol);
+    VolumeVisitor visit_vol{VecgeomVolumeAccessor{}};
+    visit_vol(std::forward<F>(vis), world);
 }
 
 //---------------------------------------------------------------------------//
