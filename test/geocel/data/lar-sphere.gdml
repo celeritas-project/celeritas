@@ -41,6 +41,14 @@
     <matrix name="WLSC2" coldim="2" values="1.771e-06 0.3 2.484e-06 0.8"/>
     <matrix name="WLSMNP" coldim="1" values="3"/>
     <matrix name="WLSMNP2" coldim="1" values="2"/>
+    <!-- Surface mock data -->
+    <matrix name="REF" coldim="2" values="2e-06 0.8 8e-06 0.8"/>
+    <matrix name="EFF" coldim="2" values="2e-06 0.1 8e-06 0.1"/>
+    <matrix name="TRA" coldim="2" values="2e-06 0.1 8e-06 0.1"/>
+    <matrix name="SLC" coldim="2" values="2e-06 0.1 8e-06 0.1"/>
+    <matrix name="SSC" coldim="2" values="2e-06 0.1 8e-06 0.1"/>
+    <matrix name="BSC" coldim="2" values="2e-06 0.1 8e-06 0.1"/>
+    <!-- End of surface mock data -->
   </define>
 
   <materials>
@@ -124,6 +132,14 @@
 
   <solids>
     <sphere lunit="cm" name="sphere" rmax="100.0" deltaphi="360" deltatheta="180" aunit="deg"/>
+    <opticalsurface finish="3" model="1" name="opt_surface" type="1" value="0.2">
+      <property name="REFLECTIVITY" ref="REF"/>
+      <property name="EFFICIENCY" ref="EFF"/>
+      <property name="TRANSMITTANCE" ref="TRA"/>
+      <property name="SPECULARLOBECONSTANT" ref="SLC"/>
+      <property name="SPECULARSPIKECONSTANT" ref="SSC"/>
+      <property name="BACKSCATTERCONSTANT" ref="BSC"/>
+    </opticalsurface>
     <sphere lunit="cm" name="world_sphere" rmin="0.0" rmax="1000.0" deltaphi="360" deltatheta="180" aunit="deg"/>
   </solids>
 
@@ -135,10 +151,13 @@
     <volume name="world">
       <solidref ref="world_sphere"/>
       <materialref ref="vacuum"/>
-      <physvol>
+      <physvol name="sphere_pv">
         <volumeref ref="sphere"/>
       </physvol>
     </volume>
+    <skinsurface name="skin_surface" surfaceproperty="opt_surface">
+      <volumeref ref="sphere"/>
+    </skinsurface>
   </structure>
 
   <setup name="Default" version="1.0">

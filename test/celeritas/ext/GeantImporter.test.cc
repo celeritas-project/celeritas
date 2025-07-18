@@ -1846,6 +1846,54 @@ TEST_F(LarSphere, optical)
     EXPECT_DOUBLE_EQ(1.0597e-05, properties.refractive_index.x.back());
     EXPECT_DOUBLE_EQ(1.2221243542166, properties.refractive_index.y.front());
     EXPECT_DOUBLE_EQ(1.6167515615703, properties.refractive_index.y.back());
+
+    // Optical surface physics
+    {
+        auto&& osp = this->imported_data().optical_physics.surfaces;
+        auto sid = SurfaceId{0};  // One skin surface applied to the LAr sphere
+
+        // Unified model applied to a dielectric-dielectric interface and with
+        // Gaussian surface roughness and given detector efficiency. Therefore,
+        // SurfaceId{0} should be available in the following maps:
+        EXPECT_EQ("opt_surface", osp.names.find(sid)->second);
+        EXPECT_EQ(1, osp.reflectivity.analytic.size());
+        EXPECT_EQ(1, osp.reflectivity.grid.size());
+        EXPECT_EQ(1, osp.roughness.gaussian.size());
+        EXPECT_EQ(1, osp.roughness.gaussian.size());
+        EXPECT_EQ(1, osp.interaction.dielectric_dielectric.size());
+        EXPECT_EQ(1, osp.efficiency.size());
+        // All other maps must be empty:
+        EXPECT_EQ(0, osp.roughness.polished.size());
+        EXPECT_EQ(0, osp.roughness.smear.size());
+        EXPECT_EQ(0, osp.interaction.dielectric_metal.size());
+
+        // Verify Gaussian roughness
+        EXPECT_SOFT_EQ(0.2,
+                       osp.roughness.gaussian.find(sid)->second.sigma_alpha);
+
+        // Verify that Reflection Form data is loaded correctly
+        auto const& rf
+            = osp.interaction.dielectric_dielectric.find(sid)->second;
+        EXPECT_EQ(2, rf.specular_lobe.x.size());
+        EXPECT_EQ(2, rf.specular_spike.x.size());
+        EXPECT_EQ(2, rf.back_scatter.x.size());
+        EXPECT_EQ(2, rf.diffuse_lobe.x.size());
+
+        static double const expected_energy[] = {2e-06, 8e-06};
+        EXPECT_VEC_SOFT_EQ(expected_energy, rf.specular_lobe.x);
+        EXPECT_VEC_SOFT_EQ(expected_energy, rf.specular_spike.x);
+        EXPECT_VEC_SOFT_EQ(expected_energy, rf.back_scatter.x);
+        EXPECT_VEC_SOFT_EQ(expected_energy, rf.diffuse_lobe.x);
+
+        static double const expected_specular_lobe_y[] = {0.1, 0.1};
+        static double const expected_specular_spike_y[] = {0.1, 0.1};
+        static double const expected_back_scatter_y[] = {0.1, 0.1};
+        static double const expected_diffuse_lobe_y[] = {0.7, 0.7};
+        EXPECT_VEC_SOFT_EQ(expected_specular_lobe_y, rf.specular_lobe.y);
+        EXPECT_VEC_SOFT_EQ(expected_specular_spike_y, rf.specular_spike.y);
+        EXPECT_VEC_SOFT_EQ(expected_back_scatter_y, rf.back_scatter.y);
+        EXPECT_VEC_SOFT_EQ(expected_diffuse_lobe_y, rf.diffuse_lobe.y);
+    }
 }
 
 TEST_F(LarSphereExtramat, optical)
