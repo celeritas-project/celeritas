@@ -259,7 +259,8 @@ inline void geant_geo(std::shared_ptr<GeantGeoParams const> const&)
 }
 inline std::weak_ptr<GeantGeoParams const> const& geant_geo()
 {
-    return nullptr;
+    static std::weak_ptr<GeantGeoParams const> const temp_;
+    return temp_;
 }
 //-----------------------------------//
 inline std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
@@ -279,7 +280,7 @@ inline GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const*, Ownership)
 }
 
 //-----------------------------------//
-inline GeantGeoParams::~GeantGeoParams() {}
+inline GeantGeoParams::~GeantGeoParams() = default;
 
 //-----------------------------------//
 inline inp::Model GeantGeoParams::make_model_input() const
