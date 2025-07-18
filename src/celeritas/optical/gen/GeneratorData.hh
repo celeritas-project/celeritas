@@ -128,6 +128,9 @@ struct GeneratorStateData
 //---------------------------------------------------------------------------//
 /*!
  * Get the number of photons from a distribution.
+ *
+ * This is a functor rather than a function because it's used for the thrust
+ * reduction and scan.
  */
 struct GetNumPhotons
 {
