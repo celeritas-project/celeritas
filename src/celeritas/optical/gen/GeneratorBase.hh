@@ -20,7 +20,7 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Common interface for genearating optical photons.
+ * Common interface for generating optical photons.
  */
 class GeneratorBase : virtual public optical::OpticalStepActionInterface,
                       virtual public AuxParamsInterface,
