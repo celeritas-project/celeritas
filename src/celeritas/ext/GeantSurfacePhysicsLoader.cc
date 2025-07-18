@@ -10,7 +10,6 @@
 #include <G4OpticalSurface.hh>
 #include <G4Version.hh>
 
-#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/SurfaceParams.hh"
 
@@ -145,9 +144,10 @@ inp::SurfacePhysics GeantSurfacePhysicsLoader::operator()()
         try
         {
             result.names.insert({sid, g4opt_surf->GetName()});
-            this->insert_reflectivity(sid, get_property, result);
+            this->insert_reflectivity(sid, *g4opt_surf, get_property, result);
             this->insert_roughness(sid, *g4opt_surf, result);
             this->insert_interaction(sid, get_property, *g4opt_surf, result);
+            this->insert_efficiency(sid, get_property, result);
         }
         catch (RuntimeError const& e)
         {
@@ -159,6 +159,7 @@ inp::SurfacePhysics GeantSurfacePhysicsLoader::operator()()
                 << ": " << e.details().which << ", " << e.details().what);
         }
     }
+
     return result;
 }
 
@@ -172,17 +173,21 @@ inp::SurfacePhysics GeantSurfacePhysicsLoader::operator()()
  */
 void GeantSurfacePhysicsLoader::insert_reflectivity(
     SurfaceId sid,
+    G4OpticalSurface const& surf,
     detail::GeantMaterialPropertyGetter& get_property,
     inp::SurfacePhysics& result)
 {
-    inp::ReflectionGrid refl_grid;
-    get_property(&refl_grid.grid,
-                 "REFLECTIVITY",
-                 {ImportUnits::mev, ImportUnits::unitless});
-    inp::ReflectionAnalytic refl_analytic;
     inp::ReflectivityModels refl_mods;
-    refl_mods.grid.insert({sid, std::move(refl_grid)});
-    refl_mods.analytic.insert({sid, std::move(refl_analytic)});
+    if (!this->analytic_reflection_only(surf))
+    {
+        // Insert any model that includes user-defined grid reflectivity
+        inp::ReflectionGrid refl_grid;
+        get_property(&refl_grid.grid,
+                     "REFLECTIVITY",
+                     {ImportUnits::mev, ImportUnits::unitless});
+        refl_mods.grid.insert({sid, std::move(refl_grid)});
+    }
+    refl_mods.analytic.insert({sid, inp::ReflectionAnalytic{}});
     result.reflectivity = std::move(refl_mods);
     CELER_ENSURE(result.reflectivity);
 }
@@ -248,43 +253,115 @@ void GeantSurfacePhysicsLoader::insert_interaction(
     using G4ST = G4SurfaceType;
 
     inp::ReflectionForm refl_form;
-    get_property(&refl_form.lambertian_roughness,
-                 "SURFACEROUGHNESS",
-                 ImportUnits::unitless);
     get_property(&refl_form.specular_lobe,
                  "SPECULARLOBECONSTANT",
-                 ImportUnits::unitless);
+                 {ImportUnits::mev, ImportUnits::unitless});
     get_property(&refl_form.specular_spike,
                  "SPECULARSPIKECONSTANT",
-                 ImportUnits::unitless);
-    get_property(
-        &refl_form.back_scatter, "BACKSCATTERCONSTANT", ImportUnits::unitless);
-
-    // Calculate diffuse lobe from input
-    refl_form.diffuse_lobe = real_type{1} - refl_form.specular_lobe
-                             - refl_form.specular_spike
-                             - refl_form.back_scatter;
+                 {ImportUnits::mev, ImportUnits::unitless});
+    get_property(&refl_form.back_scatter,
+                 "BACKSCATTERCONSTANT",
+                 {ImportUnits::mev, ImportUnits::unitless});
+    refl_form.diffuse_lobe = this->calc_diffuse_lobe(refl_form);
 
     if (refl_form)
     {
+        // ReflectionForm terms are correctly assigned; Add to interface type
         auto const interface_type = surf.GetType();
-        if (interface_type == G4ST::dielectric_dielectric)
+        switch (interface_type)
         {
-            result.interaction.dielectric_dielectric.insert(
-                {sid, std::move(refl_form)});
-        }
-        else if (interface_type == G4ST::dielectric_metal)
-        {
-            result.interaction.dielectric_metal.insert(
-                {sid, std::move(refl_form)});
-        }
-        else
-        {
-            CELER_LOG(error) << "G4SurfaceType '" << to_cstring(interface_type)
-                             << "' not available";
+            case G4ST::dielectric_dielectric:
+                result.interaction.dielectric_dielectric.insert(
+                    {sid, std::move(refl_form)});
+                break;
+            case G4ST::dielectric_metal:
+                result.interaction.dielectric_metal.insert(
+                    {sid, std::move(refl_form)});
+                break;
+            default:
+                CELER_LOG(error)
+                    << "G4SurfaceType '" << to_cstring(interface_type)
+                    << "' not available";
+                break;
         }
     }
+    else
+    {
+        CELER_LOG(error) << "inp::ReflectionForm incorrectly set up. Verify "
+                            "that all parameters have the same grid sizes and "
+                            "that their probability sums (for each energy "
+                            "point in the grid) are equal to 1";
+    }
     CELER_ENSURE(result.interaction);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Collect detection efficiency from a given optical surface.
+ */
+void GeantSurfacePhysicsLoader::insert_efficiency(
+    SurfaceId sid,
+    detail::GeantMaterialPropertyGetter& get_property,
+    inp::SurfacePhysics& result)
+{
+    inp::Grid eff;
+    get_property(&eff, "EFFICIENCY", {ImportUnits::mev, ImportUnits::unitless});
+    result.efficiency.insert({sid, eff});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return true for Geant4 models/finishes that *ONLY* use analytical
+ * reflection.
+ *
+ * Currently, only the Unified model with [polished/ground]backpainted undergo
+ * uniquely through analytical reflection (i.e. Fresnel equations).
+ */
+bool GeantSurfacePhysicsLoader::analytic_reflection_only(
+    G4OpticalSurface const& surf) const
+{
+    using G4OSM = G4OpticalSurfaceModel;
+    using G4OSF = G4OpticalSurfaceFinish;
+
+    if (surf.GetModel() == G4OSM::unified)
+    {
+        if (surf.GetFinish() == G4OSF::polishedbackpainted
+            || surf.GetFinish() == G4OSF::groundbackpainted)
+        {
+            // Unified [polished/ground]backpainted are *only* analytic
+            return true;
+        }
+    }
+
+    return false;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate diffuse lobe from the rest of the imported data.
+ *
+ * Since the total probability for all 4 properties is equal to one, the
+ * diffuse lobe can be calculated by subtracting the other three.
+ */
+inp::Grid GeantSurfacePhysicsLoader::calc_diffuse_lobe(
+    inp::ReflectionForm const& refl_form)
+{
+    auto const& sl = refl_form.specular_lobe;
+    auto const& ss = refl_form.specular_spike;
+    auto const& bc = refl_form.back_scatter;
+    auto const size = sl.x.size();
+    CELER_ASSERT(ss.x.size() == size && bc.x.size() == size);
+
+    inp::Grid result;
+    result.x = sl.x;
+    result.y.resize(size);
+    for (auto i : range(size))
+    {
+        // diffuse_lobe = 1 - specular_lobe - specular_spike - back_scatter
+        result.y[i] = real_type{1} - sl.y[i] - ss.y[i] - bc.y[i];
+    }
+    CELER_ENSURE(result);
+    return result;
 }
 
 //---------------------------------------------------------------------------//

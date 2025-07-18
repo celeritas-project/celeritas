@@ -9,6 +9,8 @@
 #include <map>
 
 #include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "geocel/Types.hh"
 #include "celeritas/inp/Grid.hh"
 
@@ -35,7 +37,7 @@ struct ReflectionGrid
 
 //---------------------------------------------------------------------------//
 /*!
- * Analytic reflectivity.
+ * Analytic reflectivity: use Fresnel equations.
  */
 struct ReflectionAnalytic
 {
@@ -100,8 +102,8 @@ using SurfaceLayer = SurfaceId;
  * Paramaters used by different reflection mechanisms.
  *
  * Parameters:
- * - \c lambertian_roughness : Roughness parameter used by Lambertian
- *   reflection.
+ * - \todo: Add \c lambertian_roughness : Roughness parameter used by
+ *   Lambertian reflection.
  * - \c specular_lobe : Reflection probability at the micro facet normal.
  * - \c specular_spike : Reflection probability at the average surface normal.
  * - \c back_scatter : Probability of back scattering after reflecting within a
@@ -114,23 +116,51 @@ using SurfaceLayer = SurfaceId;
  */
 struct ReflectionForm
 {
-    real_type lambertian_roughness{-1};  //! \todo: range?
-
     // The sum of these properties must be equal to 1
-    real_type specular_lobe{-1};  //!< [0, 1] probability
-    real_type specular_spike{-1};  //!< [0, 1] probability
-    real_type back_scatter{-1};  //!< [0, 1] probability
-    real_type diffuse_lobe{-1};  //!< [0, 1] probability
+    Grid specular_lobe;  //!< [0, 1] probability
+    Grid specular_spike;  //!< [0, 1] probability
+    Grid back_scatter;  //!< [0, 1] probability
+    Grid diffuse_lobe;  //!< [0, 1] probability
+
+    bool unity(Grid const& grid) const
+    {
+        return std::any_of(
+            grid.y.begin(), grid.y.end(), [](real_type const& val) {
+                return val >= 0 && val <= 1;
+            });
+    }
+
+    // Total probability for all 4 properties must be equal to 1
+    bool total_prob_is_unity() const
+    {
+        auto const& sl = this->specular_lobe;
+        auto const& ss = this->specular_spike;
+        auto const& bc = this->back_scatter;
+        auto const& dl = this->diffuse_lobe;
+        auto const size = sl.x.size();
+        CELER_ASSERT(ss.x.size() == size && bc.x.size() == size
+                     && dl.x.size() == size);
+
+        auto prob_sum = [&](size_type index) -> real_type {
+            return sl.y[index] + ss.y[index] + bc.y[index] + dl.y[index];
+        };
+
+        for (auto i : range(sl.x.size()))
+        {
+            if (!soft_equal(real_type{1}, prob_sum(i)))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
 
     //! Whether the data are assigned
     explicit operator bool() const
     {
-        return lambertian_roughness > 0 &&  // \todo VERIFY ME
-               (specular_lobe >= 0 && specular_lobe <= 1)
-               && (specular_spike >= 0 && specular_spike <= 1)
-               && (back_scatter >= 0 && back_scatter <= 1)
-               && (specular_lobe + specular_spike + back_scatter + diffuse_lobe
-                   == 1);  // Make it soft eq
+        return unity(specular_lobe) && unity(specular_spike)
+               && unity(back_scatter) && unity(diffuse_lobe)
+               && total_prob_is_unity();
     }
 };
 
@@ -199,15 +229,14 @@ struct SurfacePhysics
     //!@{
     //! \name type aliases
     using SurfaceNames = std::map<SurfaceLayer, std::string>;
+    using DetectionEfficiency = std::map<SurfaceLayer, Grid>;
     //!@}
 
     SurfaceNames names;
     ReflectivityModels reflectivity;
     RoughnessModels roughness;
     InteractionModels interaction;
-
-    bool validate_glisur();
-    bool validate_unified();
+    DetectionEfficiency efficiency;  //!< \todo: Keep as optional?
 
     //! Whether the data are assigned
     explicit operator bool() const

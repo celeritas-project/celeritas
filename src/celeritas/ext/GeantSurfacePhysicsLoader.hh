@@ -40,6 +40,7 @@ class GeantSurfacePhysicsLoader
 
     // Insert a given surface to inp::SurfacePhysics::ReflectivityModels
     void insert_reflectivity(SurfaceId sid,
+                             G4OpticalSurface const& surf,
                              detail::GeantMaterialPropertyGetter& get_property,
                              inp::SurfacePhysics& result);
 
@@ -53,6 +54,17 @@ class GeantSurfacePhysicsLoader
                             detail::GeantMaterialPropertyGetter& get_property,
                             G4OpticalSurface& surf,
                             inp::SurfacePhysics& result);
+
+    // Insert a given surface to inp::SurfacePhysics::DetectionEfficiency
+    void insert_efficiency(SurfaceId sid,
+                           detail::GeantMaterialPropertyGetter& get_property,
+                           inp::SurfacePhysics& result);
+
+    // Return true if the surface has *ONLY* analytic reflection
+    bool analytic_reflection_only(G4OpticalSurface const& surf) const;
+
+    // Calculate the diffuse lobe from the other ReflectionForm properties
+    inp::Grid calc_diffuse_lobe(inp::ReflectionForm const& refl_form);
 };
 
 //---------------------------------------------------------------------------//
