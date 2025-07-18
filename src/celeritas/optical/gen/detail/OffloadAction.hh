@@ -85,6 +85,11 @@ class OffloadAction final : public CoreStepActionInterface
     void step(CoreParams const&, CoreStateDevice&) const final;
     //!@}
 
+    //// ACCESSORS ////
+
+    //! Access shared data used by this offload physics
+    SPConstParams const& params() const { return data_.shared; }
+
   private:
     //// TYPES ////
 

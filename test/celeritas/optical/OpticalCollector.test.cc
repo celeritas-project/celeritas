@@ -152,6 +152,12 @@ void LArSphereOffloadTest::build_optical_collector()
 
     collector_
         = std::make_shared<OpticalCollector>(*this->core(), std::move(inp));
+
+    // Check accessors
+    EXPECT_TRUE(collector_->optical_params());
+    EXPECT_EQ(use_cherenkov_, static_cast<bool>(collector_->cherenkov()));
+    EXPECT_EQ(use_scintillation_,
+              static_cast<bool>(collector_->scintillation()));
 }
 
 //---------------------------------------------------------------------------//

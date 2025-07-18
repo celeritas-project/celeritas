@@ -73,12 +73,17 @@ CherenkovOffloadExecutor::operator()(CoreTrackView const& track)
     // Get the distribution data used to generate Cherenkov optical photons
     if (particle.charge() != zero_quantity())
     {
-        Real3 const& pos = track.geometry().pos();
-        optical::MaterialView opt_mat{material, step.material};
+        CherenkovOffload sample_dist(
+            // Pre-step:
+            step,
+            optical::MaterialView{material, step.material},
+            // Post-step:
+            particle,
+            sim,
+            track.geometry().pos(),
+            cherenkov);
         auto rng = track.rng();
-
-        dist = CherenkovOffload(
-            particle, sim, opt_mat, pos, cherenkov, step)(rng);
+        dist = sample_dist(rng);
     }
 }
 

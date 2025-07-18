@@ -12,6 +12,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxStateVec.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "celeritas/global/ActionInterface.hh"
 
 #include "../Model.hh"
@@ -52,7 +53,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
     {
         SPOpticalParams optical_params;
         size_type num_track_slots{};
-        size_type max_step_iters{};
+        size_type max_step_iters{numeric_limits<size_type>::max()};
         size_type auto_flush{};
 
         //! True if all input is assigned and valid
