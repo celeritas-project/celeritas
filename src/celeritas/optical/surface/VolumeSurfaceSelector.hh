@@ -18,16 +18,25 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Retrieve the surface ID between two volume instances based on Geant4's
- * interface / boundary priority.
+ * Retrieve the surface ID between two volume instances.
  *
  * Given (old, new) physical volumes P0, P1 corresponding to logical volumes
  * L0, L1
- * - Ordered (P0, P1) border surface
- * - Skin surface of L1 if it's the daughter of L0
- * - Skin surface of L0
- * - Skin surface of L1
+ * - Ordered (P0, P1) interface surface
+ * - Boundary surface of L0
+ * - Boundary surface of L1
  *
+ * This behavior differs from Geant4's order of precedence, which considers
+ * if there's a mother-daughter relation between L0 and L1 when both have
+ * a boundary surface:
+ * - Ordered (P0, P1) interface surface
+ * - Boundary surface of L1 if it's the daughter of L0
+ * - Boundary surface of L0
+ * - Boundary surface of L1
+ *
+ * When multiple layers are implemented, this selector will be responsible
+ * for determining the ordering of the layers between the volumes,
+ * including both interface and boundary surfaces.
  */
 class VolumeSurfaceSelector
 {

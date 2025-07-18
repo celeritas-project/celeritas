@@ -124,6 +124,33 @@ TEST_F(VolumeSurfaceSelectorTest, select_surface)
 }
 
 //---------------------------------------------------------------------------//
+// Explicitly check current precedence for mother-daughter boundaries
+TEST_F(VolumeSurfaceSelectorTest, mother_daughter)
+{
+    SurfaceParams surfaces{
+        ([&]() {
+            auto surface_input = this->make_many_surfaces_inp();
+            // Add a boundary surface to C volumes
+            surface_input.surfaces.push_back(make_surface("c", VolumeId{2}));
+            return surface_input;
+        })(),
+        volumes_};
+
+    // Mother volume B
+    VolumeInstanceId mother{0};
+    VolumeSurfaceSelector select{
+        surfaces.host_ref(), volumes_.volume(mother), mother};
+
+    // Daughter volume C3
+    VolumeInstanceId daughter{3};
+
+    // Check precedence of selecting boundary surfaces for mother-daughter
+    // relations Geant4: select daughter's boundary if present (SurfaceId{8})
+    // Celeritas: select pre-volume first (SurfaceId{2})
+    EXPECT_EQ(SurfaceId{2}, select(volumes_.volume(daughter), daughter));
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace optical
 }  // namespace celeritas
