@@ -24,17 +24,25 @@
 
 class G4VPhysicalVolume;
 
+// clang-format off
+#if CELERITAS_VECGEOM_VERSION < 0x020000
+#  if defined(__CUDACC__) || defined(__NVCC__)
+#    define CELERITAS_VECGEOM_GM_CXX_NS_BEGIN namespace cxx {
+#  else
+#    define CELERITAS_VECGEOM_GM_CXX_NS_BEGIN inline namespace cxx {
+#  endif
+#  define CELERITAS_VECGEOM_GM_CXX_NS_END } // end namespace cxx
+#else
+#  define CELERITAS_VECGEOM_GM_CXX_NS_BEGIN
+#  define CELERITAS_VECGEOM_GM_CXX_NS_END
+#endif
+// clang-format on
+
 namespace vecgeom
 {
-#if (CELERITAS_VECGEOM_VERSION < 0x020000) && !defined(__CUDACC__) \
-    && !defined(__NVCC__)
-inline namespace cxx
-{
-#endif
+CELERITAS_VECGEOM_GM_CXX_NS_BEGIN
 class GeoManager;
-#if CELERITAS_VECGEOM_VERSION < 0x020000
-}
-#endif
+CELERITAS_VECGEOM_GM_CXX_NS_END
 }  // namespace vecgeom
 
 namespace celeritas
