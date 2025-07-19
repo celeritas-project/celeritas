@@ -234,12 +234,24 @@ HitProcessor::~HitProcessor()
 
 //---------------------------------------------------------------------------//
 /*!
- * Register mapping from Celeritas PrimaryID to Geant4 TrackID.
+ * Register mapping from Celeritas PrimaryID to Geant4 TrackID and user info.
  */
 PrimaryId HitProcessor::register_primary(G4Track const& primary)
 {
-    auto primary_id = id_cast<PrimaryId>(celeritas_to_g4_track_id_.size());
-    celeritas_to_g4_track_id_.push_back(primary.GetTrackID());
+    auto primary_id = id_cast<PrimaryId>(celeritas_to_g4_track_data_.size());
+
+    G4TrackReconstructionData track_data;
+    track_data.track_id = primary.GetTrackID();
+
+    // Take ownership of user track information if present
+    if (auto* user_info = primary.GetUserInformation())
+    {
+        track_data.user_info.reset(user_info);
+        // Reset the original track to prevent double deletion
+        const_cast<G4Track&>(primary).SetUserInformation(nullptr);
+    }
+
+    celeritas_to_g4_track_data_.push_back(std::move(track_data));
     return primary_id;
 }
 
@@ -249,7 +261,7 @@ PrimaryId HitProcessor::register_primary(G4Track const& primary)
  */
 void HitProcessor::begin_event()
 {
-    celeritas_to_g4_track_id_.clear();
+    celeritas_to_g4_track_data_.clear();
 }
 
 //---------------------------------------------------------------------------//
@@ -420,9 +432,13 @@ void HitProcessor::update_track(DetectorStepOutput const& out, size_type i) cons
     if (!out.primary_id.empty())
     {
         PrimaryId celeritas_primary_id = out.primary_id[i];
-        CELER_ASSERT(celeritas_primary_id < celeritas_to_g4_track_id_.size());
-        track.SetTrackID(
-            celeritas_to_g4_track_id_[celeritas_primary_id.unchecked_get()]);
+        CELER_ASSERT(celeritas_primary_id < celeritas_to_g4_track_data_.size());
+        auto& track_data
+            = celeritas_to_g4_track_data_[celeritas_primary_id.unchecked_get()];
+
+        // Restore track ID
+        track.SetTrackID(track_data.track_id);
+        track.SetUserInformation(track_data.user_info.get());
     }
 
     for (G4StepPoint* p : step_points_)

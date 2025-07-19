@@ -28,6 +28,7 @@ class G4Step;
 class G4StepPoint;
 class G4Track;
 class G4VSensitiveDetector;
+class G4VUserTrackInformation;
 
 namespace celeritas
 {
@@ -36,6 +37,16 @@ struct DetectorStepOutput;
 
 namespace detail
 {
+//---------------------------------------------------------------------------//
+//! Data needed to reconstruct a G4Track from Celeritas transport
+struct G4TrackReconstructionData
+{
+    //!< Original Geant4 track ID
+    int track_id;
+    //!< User track information
+    std::unique_ptr<G4VUserTrackInformation> user_info;
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Transfer Celeritas sensitive detector hits to Geant4.
@@ -140,8 +151,8 @@ class HitProcessor
     //! Accumulated number of hits
     size_type num_hits_;
 
-    //! Vector storing Geant4 TrackIDs indexed by Celeritas PrimaryID
-    std::vector<int> celeritas_to_g4_track_id_;
+    //! G4Track reconstruction data indexed by Celeritas PrimaryID
+    std::vector<G4TrackReconstructionData> celeritas_to_g4_track_data_;
 
     void update_track(DetectorStepOutput const& out, size_type i) const;
 };
