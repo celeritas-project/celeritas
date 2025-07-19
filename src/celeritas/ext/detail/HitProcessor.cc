@@ -93,9 +93,9 @@ get_step_status(DetectorStepOutput const& out, size_type step_index)
  */
 HitProcessor::GeantTrackReconstructionData::GeantTrackReconstructionData(
     G4Track const& track)
-    : track_id{track.GetTrackID()}
-    , user_info{track.GetUserInformation()}
-    , creator_process{track.GetCreatorProcess()}
+    : track_id_{track.GetTrackID()}
+    , user_info_{track.GetUserInformation()}
+    , creator_process_{track.GetCreatorProcess()}
 {
     CELER_EXPECT(*this);
     // Clear user information so that it doesn't get deleted with the G4Track
@@ -111,9 +111,9 @@ HitProcessor::GeantTrackReconstructionData::GeantTrackReconstructionData(
 void HitProcessor::GeantTrackReconstructionData::restore_track(G4Track& track) const
 {
     CELER_EXPECT(*this);
-    track.SetTrackID(track_id);
-    track.SetUserInformation(user_info.get());
-    track.SetCreatorProcess(creator_process);
+    track.SetTrackID(track_id_);
+    track.SetUserInformation(user_info_.get());
+    track.SetCreatorProcess(creator_process_);
 }
 
 //---------------------------------------------------------------------------//

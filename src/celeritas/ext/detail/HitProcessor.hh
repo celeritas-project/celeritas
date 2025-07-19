@@ -125,17 +125,17 @@ class HitProcessor
         //! Save the G4Track reconstruction data
         explicit GeantTrackReconstructionData(G4Track const&);
         //! Whether the data is valid
-        explicit operator bool() const { return track_id >= 0; }
+        explicit operator bool() const { return track_id_ >= 0; }
         //! Restore the G4Track from the reconstruction data
         void restore_track(G4Track&) const;
 
       private:
         //! Original Geant4 track ID
-        int track_id{-1};
+        int track_id_{-1};
         //! User track information
-        std::unique_ptr<G4VUserTrackInformation> user_info;
+        std::unique_ptr<G4VUserTrackInformation> user_info_;
         //! Process that created the track
-        G4VProcess const* creator_process{nullptr};
+        G4VProcess const* creator_process_{nullptr};
     };
 
     //! Detector volumes for navigation updating
