@@ -1202,7 +1202,7 @@ ImportMuPairProductionTable import_mupp_table(PDGNumber pdg)
  */
 std::vector<ImportVolume> import_volumes()
 {
-    auto* geo = celeritas::geant_geo();
+    auto geo = celeritas::geant_geo().lock();
     CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
 
     auto const& volumes = geo->volumes();
@@ -1252,7 +1252,7 @@ std::vector<ImportVolume> import_volumes()
  */
 GeantImporter::GeantImporter()
 {
-    CELER_EXPECT(celeritas::geant_geo());
+    CELER_EXPECT(!celeritas::geant_geo().expired());
 }
 
 //---------------------------------------------------------------------------//
@@ -1262,7 +1262,7 @@ GeantImporter::GeantImporter()
 GeantImporter::GeantImporter(GeantSetup&& setup) : setup_(std::move(setup))
 {
     CELER_EXPECT(setup_);
-    CELER_EXPECT(celeritas::geant_geo());
+    CELER_EXPECT(!celeritas::geant_geo().expired());
 }
 
 //---------------------------------------------------------------------------//

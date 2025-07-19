@@ -52,14 +52,14 @@ template<class HP>
 auto GenericGeoTestBase<HP>::build_geometry_from_basename() -> SPConstGeo
 {
     // Construct filename:
-    // ${SOURCE}/test/geocel/data/${basename}${fileext}
-    auto filename = this->geometry_basename() + std::string{TraitsT::ext};
-    std::string test_file = test_data_path("geocel", filename);
-    auto result = std::make_shared<HP>(test_file);
+    // ${SOURCE}/test/geocel/data/${basename}.gdml
+    std::string test_file
+        = test_data_path("geocel", this->geometry_basename() + ".gdml");
+    auto result = HP::from_gdml(test_file);
     if constexpr (std::is_same_v<HP, GeantGeoParams>)
     {
         // Save global geant geometry
-        ::celeritas::geant_geo(*result);
+        ::celeritas::geant_geo(result);
     }
     return result;
 }

@@ -14,8 +14,6 @@
 
 #include "BoundingBox.hh"
 #include "GeoParamsInterface.hh"
-#include "ScopedGeantExceptionHandler.hh"
-#include "ScopedGeantLogger.hh"
 #include "Types.hh"
 #include "g4/GeantGeoData.hh"
 
@@ -69,12 +67,17 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Create from a running Geant4 application
     static std::shared_ptr<GeantGeoParams> from_tracking_manager();
 
-    // Construct from a GDML filename
-    explicit GeantGeoParams(std::string const& gdml_filename);
+    // Create from a GDML file
+    static std::shared_ptr<GeantGeoParams>
+    from_gdml(std::string const& filename);
+
+    // Return the input geometry for a consistent interface
+    inline static std::shared_ptr<GeantGeoParams>
+    from_geant(std::shared_ptr<GeantGeoParams const> const& geo);
 
     // Create a VecGeom model from an already-loaded Geant4 geometry
     // TODO: also take model input? see #1815
-    explicit GeantGeoParams(G4VPhysicalVolume const* world);
+    GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns);
 
     CELER_DEFAULT_MOVE_DELETE_COPY(GeantGeoParams);
 
@@ -172,10 +175,8 @@ class GeantGeoParams final : public GeoParamsInterface,
   private:
     //// DATA ////
 
-    bool loaded_gdml_{false};
+    Ownership ownership_{Ownership::reference};
     bool closed_geometry_{false};
-    std::unique_ptr<ScopedGeantLogger> scoped_logger_;
-    std::unique_ptr<ScopedGeantExceptionHandler> scoped_exceptions_;
 
     // Host metadata/access
     VolumeMap volumes_;
@@ -189,22 +190,30 @@ class GeantGeoParams final : public GeoParamsInterface,
 
     //// HELPER FUNCTIONS ////
 
-    // Complete geometry construction
-    void build_tracking();
-
     // Construct labels and other host-only metadata
     void build_metadata();
 };
 
 //---------------------------------------------------------------------------//
 // Set non-owning reference to global tracking geometry instance
-void geant_geo(GeantGeoParams const&);
+void geant_geo(std::shared_ptr<GeantGeoParams const> const&);
 
 // Global tracking geometry instance: may be nullptr
-GeantGeoParams const* geant_geo();
+std::weak_ptr<GeantGeoParams const> const& geant_geo();
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Return the input geometry for a consistent interface.
+ */
+std::shared_ptr<GeantGeoParams>
+GeantGeoParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
+{
+    CELER_EXPECT(geo);
+    return std::const_pointer_cast<GeantGeoParams>(geo);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Get volume metadata.
@@ -244,32 +253,34 @@ G4LogicalSurface const* GeantGeoParams::id_to_geant(SurfaceId id) const
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4 && !defined(__DOXYGEN__)
-inline void geant_geo(GeantGeoParams const&)
+inline void geant_geo(std::shared_ptr<GeantGeoParams const> const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
-inline GeantGeoParams const* geant_geo()
+inline std::weak_ptr<GeantGeoParams const> const& geant_geo()
 {
-    return nullptr;
+    static std::weak_ptr<GeantGeoParams const> const temp_;
+    return temp_;
 }
 //-----------------------------------//
+inline std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
+{
+    return std::make_shared<GeantGeoParams>(nullptr, Ownership::reference);
+}
 
-inline GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const*)
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-inline GeantGeoParams::GeantGeoParams(std::string const&)
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
 inline std::shared_ptr<GeantGeoParams>
-GeantGeoParams::GeantGeoParams::from_tracking_manager()
+GeantGeoParams::from_gdml(std::string const&)
+{
+    return std::make_shared<GeantGeoParams>(nullptr, Ownership::reference);
+}
+
+inline GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const*, Ownership)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
 
 //-----------------------------------//
-inline GeantGeoParams::~GeantGeoParams() {}
+inline GeantGeoParams::~GeantGeoParams() = default;
 
 //-----------------------------------//
 inline inp::Model GeantGeoParams::make_model_input() const

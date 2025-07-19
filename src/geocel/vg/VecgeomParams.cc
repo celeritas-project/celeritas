@@ -48,7 +48,7 @@
 #include "corecel/sys/ScopedLimitSaver.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
-#include "geocel/GeantGeoUtils.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/detail/LengthUnits.hh"
 #include "geocel/detail/MakeLabelVector.hh"
 
@@ -195,7 +195,144 @@ std::vector<Label> make_physical_vol_labels(vecgeom::VPlacedVolume const& world)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Construct VecGeom objects using the VGDML reader.
+ */
+auto make_lv_map(std::vector<G4LogicalVolume const*> const& all_lv)
+{
+    std::unordered_map<G4LogicalVolume const*, VolumeId> result;
+    result.reserve(all_lv.size());
+    for (auto vol_idx : range(all_lv.size()))
+    {
+        auto const* lv = all_lv[vol_idx];
+        if (lv == nullptr)
+        {
+            // VecGeom creates fake volumes for boolean volumes
+            continue;
+        }
+
+        auto&& [iter, inserted]
+            = result.insert({lv, id_cast<VolumeId>(vol_idx)});
+        if (CELER_UNLIKELY(!inserted))
+        {
+            // This shouldn't happen...
+            CELER_LOG(warning)
+                << "Geant4 logical volume " << PrintableLV{iter->first}
+                << " maps to multiple volume IDs";
+        }
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build by loading a GDML file.
+ */
+std::shared_ptr<VecgeomParams>
+VecgeomParams::from_gdml(std::string const& filename)
+{
+    if (CELERITAS_USE_GEANT4)
+    {
+        return VecgeomParams::from_gdml_g4(filename);
+    }
+    else if (VecgeomParams::use_vgdml())
+    {
+        return VecgeomParams::from_gdml_vg(filename);
+    }
+    else
+    {
+        CELER_NOT_CONFIGURED("Geant4 nor VGDML");
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build by loading a GDML file using Geant4.
+ *
+ * This mode is incompatible with having an existing run manager. It will clear
+ * the geometry once complete.
+ */
+std::shared_ptr<VecgeomParams>
+VecgeomParams::from_gdml_g4(std::string const& filename)
+{
+    CELER_VALIDATE(celeritas::geant_geo().expired(),
+                   << "cannot load Geant4 geometry into VecGeom from a "
+                      "file name: a global Geant4 geometry already exists");
+
+    // Load temporarily and convert
+    return VecgeomParams::from_geant(GeantGeoParams::from_gdml(filename));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build by loading a GDML file using VecGeom's (buggy) in-house loader.
+ */
+std::shared_ptr<VecgeomParams>
+VecgeomParams::from_gdml_vg(std::string const& filename)
+{
+    {
+        ScopedProfiling profile_this{"load-vecgeom"};
+        ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
+
+        CELER_LOG(status) << "Loading VecGeom geometry using VGDML from '"
+                          << filename << "'";
+#ifdef VECGEOM_GDML
+        vgdml::Frontend::Load(
+            filename,
+            /* validate_xml_schema = */ false,
+            /* mm_unit = */ static_cast<double>(lengthunits::millimeter),
+            /* verbose = */ vecgeom_verbosity());
+#else
+        CELER_DISCARD(filename);
+        CELER_NOT_CONFIGURED("VGDML");
+#endif
+    }
+
+    return std::make_shared<VecgeomParams>(
+        vecgeom::GeoManager::Instance(), Ownership::value, VecLv{}, VecPv{});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build from a Geant4 geometry.
+ */
+std::shared_ptr<VecgeomParams>
+VecgeomParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
+{
+    CELER_EXPECT(geo);
+    CELER_LOG(status) << "Loading VecGeom geometry from in-memory Geant4 "
+                         "geometry";
+#if CELERITAS_USE_GEANT4
+    // Convert the geometry to VecGeom
+    ScopedProfiling profile_this{"load-vecgeom"};
+    ScopedMem record_mem("Converter.convert");
+    ScopedTimeLog scoped_time;
+    g4vg::Options opts;
+    opts.compare_volumes = !celeritas::getenv("G4VG_COMPARE_VOLUMES").empty();
+    opts.scale = static_cast<double>(lengthunits::millimeter);
+    opts.append_pointers = false;
+    opts.verbose = static_cast<bool>(vecgeom_verbosity());
+    opts.reflection_factory = false;
+    auto result = g4vg::convert(geo->world(), opts);
+    CELER_ASSERT(result.world != nullptr);
+
+    // Set as world volume
+    // NOTE: setting and closing changes the world
+    auto& vg_manager = vecgeom::GeoManager::Instance();
+    vg_manager.RegisterPlacedVolume(result.world);
+    vg_manager.SetWorldAndClose(result.world);
+
+    return std::make_shared<VecgeomParams>(vg_manager,
+                                           Ownership::value,
+                                           std::move(result.logical_volumes),
+                                           std::move(result.physical_volumes));
+#else
+    CELER_NOT_CONFIGURED("Geant4");
+#endif
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -225,49 +362,84 @@ bool VecgeomParams::use_vgdml()
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct from a GDML input.
+ * Set up vecgeom given existing an already set up VecGeom CPU world.
  */
-VecgeomParams::VecgeomParams(std::string const& filename)
+VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
+                             Ownership owns,
+                             VecLv const& lv,
+                             VecPv&& pv)
+    : ownership_{owns}
+    , g4log_volid_map_{make_lv_map(lv)}
+    , g4_pv_map_{std::move(pv)}
 {
-    CELER_LOG(status) << "Loading VecGeom geometry from GDML at " << filename;
-    if (!ends_with(filename, ".gdml"))
-    {
-        CELER_LOG(warning) << "Expected '.gdml' extension for GDML input";
-    }
+    CELER_VALIDATE(geo.IsClosed(),
+                   << "VecGeom geometry was not closed before initialization");
+    CELER_VALIDATE(geo.GetWorld() != nullptr,
+                   << "VecGeom world was not set before initialization");
+    CELER_EXPECT(geo.GetRegisteredVolumesCount() > 0);
 
     ScopedMem record_mem("VecgeomParams.construct");
+    ScopedProfiling profile_this{"initialize-vecgeom"};
 
-    if (VecgeomParams::use_vgdml())
     {
-        this->build_volumes_vgdml(filename);
+        CELER_LOG(status) << "Initializing tracking information";
+
+        if (VecgeomParams::use_surface_tracking())
+        {
+            this->build_surface_tracking();
+        }
+        else
+        {
+            this->build_volume_tracking();
+        }
+
+        /*!
+         * \todo we still need to make volume tracking information when using
+         * CUDA, because we need a GPU world device pointer. We could probably
+         * just make a single world physical/logical volume that have the
+         * correct IDs.
+         */
+        if (CELERITAS_USE_CUDA && VecgeomParams::use_surface_tracking())
+        {
+            this->build_volume_tracking();
+        }
     }
-    else
     {
-        CELER_NOT_CONFIGURED("VGDML");
+        // Save host data
+        host_ref_.world_volume = geo.GetWorld();
+        host_ref_.max_depth = geo.getMaxDepth();
+
+        if (celeritas::device())
+        {
+#ifdef VECGEOM_ENABLE_CUDA
+            auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
+            device_ref_.world_volume = cuda_manager.world_gpu();
+#endif
+            device_ref_.max_depth = host_ref_.max_depth;
+            CELER_ENSURE(device_ref_.world_volume);
+        }
+        CELER_ENSURE(host_ref_);
+        CELER_ENSURE(!celeritas::device() || device_ref_);
     }
+    {
+        using namespace vecgeom;
+        CELER_ASSERT(host_ref_.world_volume);
+        auto const& world = *host_ref_.world_volume;
 
-    this->build_tracking();
-    this->build_data();
-    this->build_metadata();
+        // Construct volume labels
+        volumes_ = VolumeMap{"volume", make_logical_vol_labels(world)};
+        vol_instances_ = VolInstanceMap{"volume instance",
+                                        make_physical_vol_labels(world)};
 
-    CELER_ENSURE(volumes_);
-    CELER_ENSURE(host_ref_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Translate a geometry from Geant4.
- */
-VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
-{
-    CELER_EXPECT(world);
-    ScopedMem record_mem("VecgeomParams.construct");
-
-    this->build_volumes_geant4(world);
-
-    this->build_tracking();
-    this->build_data();
-    this->build_metadata();
+        // Save world bbox
+        bbox_ = [&world] {
+            // Calculate bounding box
+            auto bbox_mgr = detail::ABBoxManager_t::Instance();
+            Vector3D<real_type> lower, upper;
+            bbox_mgr.ComputeABBox(&world, &lower, &upper);
+            return BBox{detail::to_array(lower), detail::to_array(upper)};
+        }();
+    }
 
     CELER_ENSURE(volumes_);
     CELER_ENSURE(host_ref_);
@@ -317,12 +489,10 @@ VecgeomParams::~VecgeomParams()
             << "Failed during VecGeom surface model cleanup: " << e.what();
     }
 
-    CELER_LOG(debug) << "Clearing VecGeom CPU data";
-    vecgeom::GeoManager::Instance().Clear();
-
-    if (loaded_geant4_gdml_)
+    if (ownership_ == Ownership::value)
     {
-        reset_geant_geometry();
+        CELER_LOG(debug) << "Clearing VecGeom CPU data";
+        vecgeom::GeoManager::Instance().Clear();
     }
 }
 
@@ -387,113 +557,6 @@ VolumeId VecgeomParams::find_volume(G4LogicalVolume const* volume) const
             result = iter->second;
     }
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct VecGeom objects using the VGDML reader.
- */
-void VecgeomParams::build_volumes_vgdml(std::string const& filename)
-{
-    ScopedProfiling profile_this{"load-vecgeom"};
-    ScopedMem record_mem("VecgeomParams.load_geant_geometry");
-    ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
-
-#ifdef VECGEOM_GDML
-    vgdml::Frontend::Load(
-        filename,
-        /* validate_xml_schema = */ false,
-        /* mm_unit = */ static_cast<double>(lengthunits::millimeter),
-        /* verbose = */ vecgeom_verbosity());
-#else
-    CELER_DISCARD(filename);
-    CELER_NOT_CONFIGURED("VGDML");
-#endif
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct VecGeom objects using Geant4 objects in memory.
- */
-void VecgeomParams::build_volumes_geant4(G4VPhysicalVolume const* world)
-{
-    // Convert the geometry to VecGeom
-    ScopedProfiling profile_this{"load-vecgeom"};
-    ScopedMem record_mem("Converter.convert");
-    ScopedTimeLog scoped_time;
-#if CELERITAS_USE_GEANT4
-    g4vg::Options opts;
-    opts.compare_volumes = !celeritas::getenv("G4VG_COMPARE_VOLUMES").empty();
-    opts.scale = static_cast<double>(lengthunits::millimeter);
-    opts.append_pointers = false;
-    opts.verbose = static_cast<bool>(vecgeom_verbosity());
-    opts.reflection_factory = false;
-    auto result = g4vg::convert(world, opts);
-    CELER_ASSERT(result.world != nullptr);
-    g4log_volid_map_.reserve(result.logical_volumes.size());
-    for (auto vol_idx : range(result.logical_volumes.size()))
-    {
-        auto const* lv = result.logical_volumes[vol_idx];
-        if (lv == nullptr)
-        {
-            // VecGeom creates fake volumes for boolean volumes
-            continue;
-        }
-
-        auto&& [iter, inserted]
-            = g4log_volid_map_.insert({lv, id_cast<VolumeId>(vol_idx)});
-        if (CELER_UNLIKELY(!inserted))
-        {
-            // This shouldn't happen...
-            CELER_LOG(warning)
-                << "Geant4 logical volume " << PrintableLV{iter->first}
-                << " maps to multiple volume IDs";
-        }
-    }
-    g4_pv_map_ = std::move(result.physical_volumes);
-
-    // Set as world volume
-    auto& vg_manager = vecgeom::GeoManager::Instance();
-    vg_manager.RegisterPlacedVolume(result.world);
-    vg_manager.SetWorldAndClose(result.world);
-
-    // NOTE: setting and closing changes the world
-    CELER_ASSERT(vg_manager.GetWorld() != nullptr);
-#else
-    CELER_DISCARD(world);
-    CELER_NOT_CONFIGURED("Geant4");
-#endif
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * After loading solids+volumes, set up VecGeom tracking data and copy to GPU.
- */
-void VecgeomParams::build_tracking()
-{
-    CELER_EXPECT(vecgeom::GeoManager::Instance().GetWorld());
-    CELER_LOG(status) << "Initializing tracking information";
-    ScopedProfiling profile_this{"initialize-vecgeom"};
-    ScopedMem record_mem("VecgeomParams.build_tracking");
-
-    if (VecgeomParams::use_surface_tracking())
-    {
-        this->build_surface_tracking();
-    }
-    else
-    {
-        this->build_volume_tracking();
-    }
-
-    /*!
-     * \todo we still need to make volume tracking information when using CUDA,
-     * because we need a GPU world device pointer. We could probably just make
-     * a single world physical/logical volume that have the correct IDs.
-     */
-    if (CELERITAS_USE_CUDA && VecgeomParams::use_surface_tracking())
-    {
-        this->build_volume_tracking();
-    }
 }
 
 //---------------------------------------------------------------------------//
@@ -666,61 +729,6 @@ void VecgeomParams::build_volume_tracking()
             msg << " from VecGeom runtime symbol)";
         }
     }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct host/device Celeritas data after setting up VecGeom tracking.
- */
-void VecgeomParams::build_data()
-{
-    ScopedMem record_mem("VecgeomParams.build_data");
-    // Save host data
-    auto& vg_manager = vecgeom::GeoManager::Instance();
-    host_ref_.world_volume = vg_manager.GetWorld();
-    host_ref_.max_depth = vg_manager.getMaxDepth();
-
-    if (celeritas::device())
-    {
-#ifdef VECGEOM_ENABLE_CUDA
-        auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
-        device_ref_.world_volume = cuda_manager.world_gpu();
-#endif
-        device_ref_.max_depth = host_ref_.max_depth;
-        CELER_ENSURE(device_ref_.world_volume);
-    }
-    CELER_ENSURE(host_ref_);
-    CELER_ENSURE(!celeritas::device() || device_ref_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct Celeritas host-only metadata.
- */
-void VecgeomParams::build_metadata()
-{
-    ScopedMem record_mem("VecgeomParams.build_metadata");
-
-    using namespace vecgeom;
-
-    auto& vg_manager = GeoManager::Instance();
-    CELER_EXPECT(vg_manager.GetRegisteredVolumesCount() > 0);
-    VPlacedVolume const* world = vg_manager.GetWorld();
-    CELER_ASSERT(world);
-
-    // Construct volume labels
-    volumes_ = VolumeMap{"volume", make_logical_vol_labels(*world)};
-    vol_instances_
-        = VolInstanceMap{"volume instance", make_physical_vol_labels(*world)};
-
-    // Save world bbox
-    bbox_ = [world] {
-        // Calculate bounding box
-        auto bbox_mgr = detail::ABBoxManager_t::Instance();
-        Vector3D<real_type> lower, upper;
-        bbox_mgr.ComputeABBox(world, &lower, &upper);
-        return BBox{detail::to_array(lower), detail::to_array(upper)};
-    }();
 }
 
 //---------------------------------------------------------------------------//

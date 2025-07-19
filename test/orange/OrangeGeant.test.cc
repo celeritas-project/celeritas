@@ -40,8 +40,7 @@ class GeantOrangeTest : public OrangeGeoTestBase
                                     LogLevel::error};
 
         auto filename = this->geometry_basename() + std::string{".gdml"};
-        auto result
-            = std::make_shared<Params>(test_data_path("geocel", filename));
+        auto result = Params::from_gdml(test_data_path("geocel", filename));
 
         EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
         return result;

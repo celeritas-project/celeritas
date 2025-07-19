@@ -73,7 +73,7 @@ auto GeantLoadTestBase::build_fresh_geometry(std::string_view key)
     {
         ::celeritas::test::ScopedLogStorer scoped_log_{
             &celeritas::self_logger(), LogLevel::warning};
-        result = std::make_shared<GeantGeoParams>(filename);
+        result = GeantGeoParams::from_gdml(filename);
         EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
     }
     return result;

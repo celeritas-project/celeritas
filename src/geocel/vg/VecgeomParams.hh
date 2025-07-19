@@ -10,6 +10,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "corecel/Config.hh"
+
 #include "corecel/Types.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/data/ParamsDataInterface.hh"
@@ -22,8 +24,30 @@
 
 class G4VPhysicalVolume;
 
+// clang-format off
+#if CELERITAS_VECGEOM_VERSION < 0x020000
+#  if defined(__CUDACC__) || defined(__NVCC__)
+#    define CELERITAS_VECGEOM_GM_CXX_NS_BEGIN namespace cxx {
+#  else
+#    define CELERITAS_VECGEOM_GM_CXX_NS_BEGIN inline namespace cxx {
+#  endif
+#  define CELERITAS_VECGEOM_GM_CXX_NS_END } // end namespace cxx
+#else
+#  define CELERITAS_VECGEOM_GM_CXX_NS_BEGIN
+#  define CELERITAS_VECGEOM_GM_CXX_NS_END
+#endif
+// clang-format on
+
+namespace vecgeom
+{
+CELERITAS_VECGEOM_GM_CXX_NS_BEGIN
+class GeoManager;
+CELERITAS_VECGEOM_GM_CXX_NS_END
+}  // namespace vecgeom
+
 namespace celeritas
 {
+class GeantGeoParams;
 //---------------------------------------------------------------------------//
 /*!
  * Shared model parameters for a VecGeom geometry.
@@ -34,17 +58,44 @@ class VecgeomParams final : public GeoParamsInterface,
                             public ParamsDataInterface<VecgeomParamsData>
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using VecLv = std::vector<G4LogicalVolume const*>;
+    using VecPv = std::vector<G4VPhysicalVolume const*>;
+    //!@}
+
+  public:
     // Whether surface tracking is being used
     static bool use_surface_tracking();
 
     // Whether VecGeom GDML is being used to load the geometry
     static bool use_vgdml();
 
-    // Construct from a GDML filename
-    explicit VecgeomParams(std::string const& gdml_filename);
+    //!@{
+    //! \name Static constructor helpers
+    //! \todo: move these to a "model" abstraction that loads/emits geometry,
+    //! materials, volumes?
 
-    // Create a VecGeom model from a pre-existing Geant4 geometry
-    explicit VecgeomParams(G4VPhysicalVolume const* world);
+    // Build by loading a GDML file (best available method)
+    static std::shared_ptr<VecgeomParams>
+    from_gdml(std::string const& filename);
+
+    // Build by loading a GDML file through Geant4
+    static std::shared_ptr<VecgeomParams>
+    from_gdml_g4(std::string const& filename);
+
+    // Build by loading a GDML file through VecGeom VGDML
+    static std::shared_ptr<VecgeomParams>
+    from_gdml_vg(std::string const& filename);
+
+    // Build from a Geant4 geometry
+    static std::shared_ptr<VecgeomParams>
+    from_geant(std::shared_ptr<GeantGeoParams const> const& geo);
+
+    //!@}
+
+    // Build from existing geometry, with ownership and mappings
+    VecgeomParams(vecgeom::GeoManager const&, Ownership, VecLv const&, VecPv&&);
 
     // Clean up VecGeom on destruction
     ~VecgeomParams() final;
@@ -90,6 +141,9 @@ class VecgeomParams final : public GeoParamsInterface,
   private:
     //// DATA ////
 
+    // Flag for resetting VecGeom on destruction
+    Ownership ownership_{Ownership::reference};
+
     // Host metadata/access
     LabelIdMultiMap<VolumeId> volumes_;
     VolInstanceMap vol_instances_;
@@ -102,22 +156,11 @@ class VecgeomParams final : public GeoParamsInterface,
     HostRef host_ref_;
     DeviceRef device_ref_;
 
-    // If VGDML is unavailable and Geant4 is, we load and
-    bool loaded_geant4_gdml_{false};
-
     //// HELPER FUNCTIONS ////
 
     // Construct VecGeom tracking data and copy to GPU
-    void build_volumes_vgdml(std::string const& filename);
-    void build_volumes_geant4(G4VPhysicalVolume const* world);
-    void build_tracking();
     void build_surface_tracking();
     void build_volume_tracking();
-
-    // Construct host/device Celeritas data
-    void build_data();
-    // Construct labels and other host-only metadata
-    void build_metadata();
 };
 
 //---------------------------------------------------------------------------//

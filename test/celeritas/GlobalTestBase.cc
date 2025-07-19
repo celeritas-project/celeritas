@@ -138,17 +138,17 @@ auto GlobalTestBase::build_core() -> SPConstCore
 
     {
         // Build "under the hood" parameters
-        auto const& model_geo = [&inp]() -> GeoParamsInterface const& {
-            if (auto* ggeo = celeritas::geant_geo())
+        auto model_geo = [&inp]() -> std::shared_ptr<GeoParamsInterface const> {
+            if (auto ggeo = celeritas::geant_geo().lock())
             {
                 // Load geometry, surfaces, regions from Geant4 world pointer
-                return *ggeo;
+                return ggeo;
             }
             // Load from the native geometry (e.g. ORANGE internal testing)
-            CELER_ASSERT(inp.geometry);
-            return *inp.geometry;
+            return inp.geometry;
         }();
-        auto mi = model_geo.make_model_input();
+        CELER_ASSERT(model_geo);
+        auto mi = model_geo->make_model_input();
         inp.volume = std::make_shared<VolumeParams>(mi.volumes);
         inp.surface = std::make_shared<SurfaceParams>(mi.surfaces, *inp.volume);
     }

@@ -73,7 +73,7 @@ class GeantVolumeMapperTestBase : public ::celeritas::test::Test
         {
             this->build_g4();
             CELER_ASSERT(geant_geo_params_);
-            celeritas::geant_geo(*geant_geo_params_);
+            celeritas::geant_geo(geant_geo_params_);
         }
         CELER_ASSERT(!logical_.empty());
 
@@ -167,7 +167,8 @@ void NestedTest::build_vecgeom()
 {
     CELER_EXPECT(!physical_.empty());
 #if CELERITAS_USE_VECGEOM
-    auto geo = std::make_shared<VecgeomParams>(physical_.front());
+    CELER_ASSERT(geant_geo_params_);
+    auto geo = VecgeomParams::from_geant(geant_geo_params_);
 #else
     int geo;
     CELER_DISCARD(geo);
