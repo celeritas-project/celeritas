@@ -117,6 +117,7 @@ class HitProcessor
     // Clear G4Track reconstruction data
     void end_event();
 
+  private:
     //! Data needed to reconstruct a G4Track from Celeritas transport
     struct GeantTrackReconstructionData
     {
@@ -130,7 +131,6 @@ class HitProcessor
         explicit operator bool() const { return track_id >= 0; }
     };
 
-  private:
     //! Detector volumes for navigation updating
     SPConstVecLV detector_volumes_;
     //! Map detector IDs to sensitive detectors
@@ -157,6 +157,11 @@ class HitProcessor
 
     //! G4Track reconstruction data indexed by Celeritas PrimaryID
     std::vector<GeantTrackReconstructionData> g4_track_data_;
+
+    void restore_track(GeantTrackReconstructionData const& track_data,
+                       G4Track& track) const;
+
+    GeantTrackReconstructionData save_track(G4Track& track) const;
 
     void update_track(DetectorStepOutput const& out, size_type i) const;
 };
