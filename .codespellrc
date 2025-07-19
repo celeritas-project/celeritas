@@ -1,0 +1,4 @@
+[codespell]
+skip = ./app,./cmake,./doc,./example,./external,./scripts,./src,./test
+dictionary = ./scripts/dev/codespell-fixes.txt
+ignore-words-list = ./scripts/dev/codespell-ignore.txt
