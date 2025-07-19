@@ -319,7 +319,7 @@ TEST_F(SolidConverterTest, extrudedsolid_concave)
     ZSection top(2, {1, 2}, 1.5);
     std::vector<ZSection> z_sections{bot, mid, top};
 
-    // Buid and test, with 5 points near tricky corners explicity tested
+    // Build and test, with 5 points near tricky corners explicitly tested
     this->build_and_test(
         G4ExtrudedSolid("testExtrudedSolid", polygon, z_sections),
         R"json({"_type":"stackedextrudedpolygon","polygon":[[0.0,0.0],[-0.03,0.1],[0.015,0.05],[0.04000000000000001,0.06999999999999999],[0.045000000000000005,0.06],[0.05,0.06999999999999999],[0.08000000000000002,0.04000000000000001],[0.09000000000000001,0.12],[0.12,0.05],[0.1,0.0],[0.010000000000000002,0.0],[0.005000000000000001,0.001]],"polyline":[[0.0,0.0,0.0],[1.0,0.5,0.1],[0.1,0.2,0.2]],"scaling":[1.0,0.5,1.5]})json",
@@ -332,7 +332,7 @@ TEST_F(SolidConverterTest, extrudedsolid_concave)
 
 //---------------------------------------------------------------------------//
 /*
- * Test that xtru yeilds an ExtrudedPolygon, not a StackedExtrudedPolygon when
+ * Test that xtru yields an ExtrudedPolygon, not a StackedExtrudedPolygon when
  * a convex polygon is used with a one-segment polyline.
  */
 TEST_F(SolidConverterTest, extrudedsolid_simple)
