@@ -111,7 +111,7 @@ void PersistentSP<T>::set(std::string&& key, SP&& ptr)
 
 //---------------------------------------------------------------------------//
 /*!
- * Reset the shared poniter.
+ * Reset the shared pointer.
  */
 template<class T>
 void PersistentSP<T>::Env::TearDown()
