@@ -121,7 +121,7 @@ class FieldSubstepper
         real_type proposed_length;  //!< Proposed next step size
     };
 
-    //// HEPER FUNCTIONS ////
+    //// HELPER FUNCTIONS ////
 
     // Find the next acceptable chord whose sagitta is less than delta_chord
     inline CELER_FUNCTION ChordSearch

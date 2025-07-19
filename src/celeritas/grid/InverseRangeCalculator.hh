@@ -71,7 +71,7 @@ class InverseRangeCalculator
 /*!
  * Construct from range data.
  *
- * The range is expected to be monotonically increaing with energy.
+ * The range is expected to be monotonically increasing with energy.
  * Lower-energy particles have shorter ranges.
  */
 CELER_FUNCTION

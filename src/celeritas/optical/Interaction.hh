@@ -39,7 +39,7 @@ struct Interaction
     Action action{Action::scattered};  //!< Flags for interaction result
     WlsDistributionData distribution;  //!< Data for generating WLS secondaries
 
-    //! Return an interaction respresenting an absorbed process
+    //! Return an interaction representing an absorbed process
     static inline CELER_FUNCTION Interaction from_absorption();
 
     //! Return an interaction with no change in the track state

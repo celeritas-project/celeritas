@@ -108,7 +108,7 @@ class Bitset
     // Bitwise XOR with another bitset
     CELER_CONSTEXPR_FUNCTION Bitset& operator^=(Bitset const& other) noexcept;
 
-    // Return a copy with all bits flipped (bianry NOT)
+    // Return a copy with all bits flipped (binary NOT)
     CELER_CONSTEXPR_FUNCTION Bitset operator~() const noexcept;
 
     // Set all bits
@@ -410,7 +410,7 @@ Bitset<N>::operator^=(Bitset const& other) noexcept
 }
 
 //---------------------------------------------------------------------------//
-//! Return a copy with all bits flipped (bianry NOT)
+//! Return a copy with all bits flipped (binary NOT)
 template<size_type N>
 CELER_CONSTEXPR_FUNCTION Bitset<N> Bitset<N>::operator~() const noexcept
 {

@@ -1,4 +1,4 @@
 [codespell]
-skip =./src,./test,*.gdml,*.json,*.bib,./build*,./scripts/dev/*.txt
+skip = ./test,*.gdml,*.json,*.bib,./build*
 dictionary = ./scripts/dev/codespell-fixes.txt,-
-ignore-words-list = ./scripts/dev/codespell-ignore.txt
+ignore-words = ./scripts/dev/codespell-ignore.txt

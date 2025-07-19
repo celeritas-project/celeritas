@@ -53,7 +53,8 @@ namespace celeritas
  *
  * The points \f$ x_0, x_1, \dots , x_{n - 1} \f$ where the spline changes from
  * one cubic to the next are called knots. "Not-a-knot" boundary conditions
- * require the third derivative \f$ S'''_i \f$ to be continous across the first
+ * require the third derivative \f$ S'''_i \f$ to be continuous across the
+ first
  * and final interior knots, \f$ x_1 \f$ and \f$ x_{n - 2} \f$ (the name refers
  * to the polynomials on the interval \f$ (x_0, x_1) \f$  and \f$ (x_1, x_2)
  * \f$ being the same cubic, so \f$ x_1 \f$ is "not a knot"). This constraint
