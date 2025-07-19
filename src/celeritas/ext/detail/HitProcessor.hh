@@ -119,16 +119,23 @@ class HitProcessor
 
   private:
     //! Data needed to reconstruct a G4Track from Celeritas transport
-    struct GeantTrackReconstructionData
+    class GeantTrackReconstructionData
     {
+      public:
+        //! Save the G4Track reconstruction data
+        explicit GeantTrackReconstructionData(G4Track const&);
+        //! Whether the data is valid
+        explicit operator bool() const { return track_id >= 0; }
+        //! Restore the G4Track from the reconstruction data
+        void restore_track(G4Track&) const;
+
+      private:
         //! Original Geant4 track ID
         int track_id{-1};
         //! User track information
         std::unique_ptr<G4VUserTrackInformation> user_info;
         //! Process that created the track
         G4VProcess const* creator_process{nullptr};
-        //! Whether the data is valid
-        explicit operator bool() const { return track_id >= 0; }
     };
 
     //! Detector volumes for navigation updating
@@ -157,9 +164,6 @@ class HitProcessor
 
     //! G4Track reconstruction data indexed by Celeritas PrimaryID
     std::vector<GeantTrackReconstructionData> g4_track_data_;
-
-    void restore_track(GeantTrackReconstructionData const& track_data,
-                       G4Track& track) const;
 
     void update_track(DetectorStepOutput const& out, size_type i) const;
 };

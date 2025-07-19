@@ -88,6 +88,36 @@ get_step_status(DetectorStepOutput const& out, size_type step_index)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Restore the G4Track from the reconstruction data. Takes ownership of the
+ * user information by unsetting it in the original track.
+ */
+HitProcessor::GeantTrackReconstructionData::GeantTrackReconstructionData(
+    G4Track const& track)
+    : track_id{track.GetTrackID()}
+    , user_info{track.GetUserInformation()}
+    , creator_process{track.GetCreatorProcess()}
+{
+    CELER_EXPECT(*this);
+    // Clear user information so that it doesn't get deleted with the G4Track
+    track.SetUserInformation(nullptr);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Restore the G4Track from the reconstruction data. The restored track does
+ * not have ownership of the user information, user must take care to reset it
+ * before deletion of the track.
+ */
+void HitProcessor::GeantTrackReconstructionData::restore_track(G4Track& track) const
+{
+    CELER_EXPECT(*this);
+    track.SetTrackID(track_id);
+    track.SetUserInformation(user_info.get());
+    track.SetCreatorProcess(creator_process);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct local navigator and step data.
  */
 HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
@@ -245,12 +275,7 @@ HitProcessor::~HitProcessor()
 PrimaryId HitProcessor::register_primary(G4Track const& primary)
 {
     auto primary_id = id_cast<PrimaryId>(g4_track_data_.size());
-    g4_track_data_.emplace_back(GeantTrackReconstructionData{
-        primary.GetTrackID(),
-        std::unique_ptr<G4VUserTrackInformation>(primary.GetUserInformation()),
-        primary.GetCreatorProcess()});
-    // Clear user information so that it doesn't get deleted with the G4Track
-    primary.SetUserInformation(nullptr);
+    g4_track_data_.push_back(GeantTrackReconstructionData{primary});
     return primary_id;
 }
 
@@ -418,19 +443,6 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Restore the G4Track from the reconstruction data.
- */
-void HitProcessor::restore_track(GeantTrackReconstructionData const& track_data,
-                                 G4Track& track) const
-{
-    CELER_EXPECT(track_data);
-    track.SetTrackID(track_data.track_id);
-    track.SetUserInformation(track_data.user_info.get());
-    track.SetCreatorProcess(track_data.creator_process);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Recreate the track from the particle ID and saved post-step data.
  *
  * This is a bit like \c G4Step::UpdateTrack .
@@ -451,8 +463,8 @@ void HitProcessor::update_track(DetectorStepOutput const& out, size_type i) cons
     {
         PrimaryId celeritas_primary_id = out.primary_id[i];
         CELER_ASSERT(celeritas_primary_id < g4_track_data_.size());
-        this->restore_track(
-            g4_track_data_[celeritas_primary_id.unchecked_get()], track);
+        g4_track_data_[celeritas_primary_id.unchecked_get()].restore_track(
+            track);
     }
 
     for (G4StepPoint* p : step_points_)
