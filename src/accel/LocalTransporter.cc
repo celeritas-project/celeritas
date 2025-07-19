@@ -266,7 +266,8 @@ void LocalTransporter::Push(G4Track const& g4track)
     // Generate Celeritas-specific PrimaryID and notify HitProcessor of mapping
     if (hit_processor_)
     {
-        track.primary_id = hit_processor_->register_primary(g4track);
+        track.primary_id
+            = hit_processor_->register_primary(const_cast<G4Track&>(g4track));
     }
 
     track.energy = units::MevEnergy(

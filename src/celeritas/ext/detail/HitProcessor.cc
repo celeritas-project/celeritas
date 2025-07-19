@@ -92,7 +92,7 @@ get_step_status(DetectorStepOutput const& out, size_type step_index)
  * user information by unsetting it in the original track.
  */
 HitProcessor::GeantTrackReconstructionData::GeantTrackReconstructionData(
-    G4Track const& track)
+    G4Track& track)
     : track_id_{track.GetTrackID()}
     , user_info_{track.GetUserInformation()}
     , creator_process_{track.GetCreatorProcess()}
@@ -270,9 +270,10 @@ HitProcessor::~HitProcessor()
 
 //---------------------------------------------------------------------------//
 /*!
- * Register mapping from Celeritas PrimaryID to Geant4 TrackID.
+ * Register mapping from Celeritas PrimaryID to Geant4 TrackID. This will take
+ * ownership of the G4VUserTrackInformation and unset it in the primary track.
  */
-PrimaryId HitProcessor::register_primary(G4Track const& primary)
+PrimaryId HitProcessor::register_primary(G4Track& primary)
 {
     auto primary_id = id_cast<PrimaryId>(g4_track_data_.size());
     g4_track_data_.push_back(GeantTrackReconstructionData{primary});

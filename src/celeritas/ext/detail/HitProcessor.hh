@@ -112,7 +112,7 @@ class HitProcessor
     inline size_type exchange_hits();
 
     // Register mapping from Celeritas PrimaryID to Geant4 TrackID
-    [[nodiscard]] PrimaryId register_primary(G4Track const&);
+    [[nodiscard]] PrimaryId register_primary(G4Track&);
 
     // Clear G4Track reconstruction data
     void end_event();
@@ -123,7 +123,7 @@ class HitProcessor
     {
       public:
         //! Save the G4Track reconstruction data
-        explicit GeantTrackReconstructionData(G4Track const&);
+        explicit GeantTrackReconstructionData(G4Track&);
         //! Whether the data is valid
         explicit operator bool() const { return track_id_ >= 0; }
         //! Restore the G4Track from the reconstruction data
