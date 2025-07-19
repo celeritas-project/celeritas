@@ -137,10 +137,12 @@ OpticalAccumStats LArSphereLaunchTest::counters() const
 
 TEST_F(LArSphereLaunchTest, primary_generator)
 {
-    // Get the optical state and pointer to the auxiliary state vector
+    // Set actions and pointer to aux data during \c begin_run
+    launch_->begin_run(*this->core(), *core_state_);
+
+    // Get the optical state
     auto& state = get<optical::CoreState<MemSpace::host>>(core_state_->aux(),
                                                           launch_->aux_id());
-    state.aux() = core_state_->aux_ptr();
 
     // Queue primaries for one event
     generate_->queue_primaries(state);
