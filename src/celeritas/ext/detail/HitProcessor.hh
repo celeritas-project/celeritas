@@ -39,20 +39,6 @@ struct DetectorStepOutput;
 namespace detail
 {
 //---------------------------------------------------------------------------//
-//! Data needed to reconstruct a G4Track from Celeritas transport
-struct G4TrackReconstructionData
-{
-    //! Original Geant4 track ID
-    int track_id{-1};
-    //! User track information
-    std::unique_ptr<G4VUserTrackInformation> user_info;
-    //! Process that created the track
-    G4VProcess const* creator_process{nullptr};
-    //! Whether the data is valid
-    explicit operator bool() const { return track_id >= 0; }
-};
-
-//---------------------------------------------------------------------------//
 /*!
  * Transfer Celeritas sensitive detector hits to Geant4.
  *
@@ -128,8 +114,21 @@ class HitProcessor
     // Register mapping from Celeritas PrimaryID to Geant4 TrackID
     [[nodiscard]] PrimaryId register_primary(G4Track const&);
 
-    // Clear PrimaryID mapping (called at start of new event)
-    void begin_event();
+    // Clear G4Track reconstruction data
+    void end_event();
+
+    //! Data needed to reconstruct a G4Track from Celeritas transport
+    struct GeantTrackReconstructionData
+    {
+        //! Original Geant4 track ID
+        int track_id{-1};
+        //! User track information
+        std::unique_ptr<G4VUserTrackInformation> user_info;
+        //! Process that created the track
+        G4VProcess const* creator_process{nullptr};
+        //! Whether the data is valid
+        explicit operator bool() const { return track_id >= 0; }
+    };
 
   private:
     //! Detector volumes for navigation updating
@@ -157,7 +156,7 @@ class HitProcessor
     size_type num_hits_;
 
     //! G4Track reconstruction data indexed by Celeritas PrimaryID
-    std::vector<G4TrackReconstructionData> celeritas_to_g4_track_data_;
+    std::vector<GeantTrackReconstructionData> g4_track_data_;
 
     void update_track(DetectorStepOutput const& out, size_type i) const;
 };
