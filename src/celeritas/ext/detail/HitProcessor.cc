@@ -84,6 +84,40 @@ get_step_status(DetectorStepOutput const& out, size_type step_index)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Restore the G4Track from the reconstruction data.
+ */
+void restore(G4TrackReconstructionData const& track_data, G4Track& track)
+{
+    CELER_EXPECT(track_data);
+    track.SetTrackID(track_data.track_id);
+    if (track_data.user_info)
+    {
+        track.SetUserInformation(track_data.user_info.get());
+    }
+    track.SetCreatorProcess(track_data.creator_process);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Save the G4Track reconstruction data. G4VTrackUserInformation will be unset
+ * and the return reconstruction data will own the user information.
+ */
+G4TrackReconstructionData save(G4Track& track)
+{
+    G4TrackReconstructionData track_data;
+    track_data.track_id = track.GetTrackID();
+    if (auto* user_info = track.GetUserInformation())
+    {
+        track_data.user_info.reset(user_info);
+        // Reset the original track to prevent double deletion
+        track.SetUserInformation(nullptr);
+    }
+    track_data.creator_process = track.GetCreatorProcess();
+    return track_data;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -240,18 +274,7 @@ PrimaryId HitProcessor::register_primary(G4Track const& primary)
 {
     auto primary_id = id_cast<PrimaryId>(celeritas_to_g4_track_data_.size());
 
-    G4TrackReconstructionData track_data;
-    track_data.track_id = primary.GetTrackID();
-
-    // Take ownership of user track information if present
-    if (auto* user_info = primary.GetUserInformation())
-    {
-        track_data.user_info.reset(user_info);
-        // Reset the original track to prevent double deletion
-        const_cast<G4Track&>(primary).SetUserInformation(nullptr);
-    }
-
-    celeritas_to_g4_track_data_.push_back(std::move(track_data));
+    celeritas_to_g4_track_data_.push_back(save(const_cast<G4Track&>(primary)));
     return primary_id;
 }
 
@@ -433,12 +456,9 @@ void HitProcessor::update_track(DetectorStepOutput const& out, size_type i) cons
     {
         PrimaryId celeritas_primary_id = out.primary_id[i];
         CELER_ASSERT(celeritas_primary_id < celeritas_to_g4_track_data_.size());
-        auto& track_data
-            = celeritas_to_g4_track_data_[celeritas_primary_id.unchecked_get()];
-
-        // Restore track ID
-        track.SetTrackID(track_data.track_id);
-        track.SetUserInformation(track_data.user_info.get());
+        restore(
+            celeritas_to_g4_track_data_[celeritas_primary_id.unchecked_get()],
+            track);
     }
 
     for (G4StepPoint* p : step_points_)

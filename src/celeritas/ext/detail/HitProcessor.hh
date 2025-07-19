@@ -27,6 +27,7 @@ class G4ParticleDefinition;
 class G4Step;
 class G4StepPoint;
 class G4Track;
+class G4VProcess;
 class G4VSensitiveDetector;
 class G4VUserTrackInformation;
 
@@ -41,10 +42,14 @@ namespace detail
 //! Data needed to reconstruct a G4Track from Celeritas transport
 struct G4TrackReconstructionData
 {
-    //!< Original Geant4 track ID
-    int track_id;
-    //!< User track information
+    //! Original Geant4 track ID
+    int track_id{-1};
+    //! User track information
     std::unique_ptr<G4VUserTrackInformation> user_info;
+    //! Process that created the track
+    G4VProcess const* creator_process{nullptr};
+    //! Whether the data is valid
+    explicit operator bool() const { return track_id >= 0; }
 };
 
 //---------------------------------------------------------------------------//
