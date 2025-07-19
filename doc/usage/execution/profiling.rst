@@ -38,7 +38,7 @@ Celeritas provides a few counter events. Currently it writes:
 - active, alive, and dead track counts at each step iteration, and
 - the number of hits in a step.
 
-Profling Celeritas example app
+Profiling Celeritas example app
 ------------------------------
 
 A detailed timeline of the Celeritas construction, steps, and kernel launches

@@ -1,4 +1,4 @@
 [codespell]
-skip = ./cmake,./doc,./example,./external,./scripts,./src,./test,*.gdml,*.json,./build*
+skip =./src,./test,*.gdml,*.json,*.bib,./build*,./scripts/dev/*.txt
 dictionary = ./scripts/dev/codespell-fixes.txt,-
 ignore-words-list = ./scripts/dev/codespell-ignore.txt
