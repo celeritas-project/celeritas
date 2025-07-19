@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -46,11 +47,22 @@ class OrangeParams final : public GeoParamsInterface,
     //!@}
 
   public:
-    // Construct from a JSON or GDML file (if JSON or Geant4 are enabled)
-    explicit OrangeParams(std::string const& filename);
+    //!@{
+    //! \name Static constructor helpers
+    //! \todo: move these to a "model" abstraction that loads/emits geometry,
+    //! materials, volumes?
 
-    // Construct in-memory from Geant4
-    explicit OrangeParams(G4VPhysicalVolume const* world);
+    // Build by loading a GDML file
+    static std::shared_ptr<OrangeParams> from_gdml(std::string const& filename);
+
+    // Build from a Geant4 geometry
+    static std::shared_ptr<OrangeParams>
+    from_geant(std::shared_ptr<GeantGeoParams const> const& geo);
+
+    // Build from a JSON input
+    static std::shared_ptr<OrangeParams> from_json(std::string const& filename);
+
+    //!@}
 
     // ADVANCED usage: construct from explicit host data
     explicit OrangeParams(OrangeInput&& input);

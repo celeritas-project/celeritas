@@ -108,7 +108,7 @@ GenericGeoTestInterface::get_volume_instance_labels() const
 std::vector<std::string> GenericGeoTestInterface::get_g4pv_labels() const
 {
 #if CELERITAS_USE_GEANT4
-    auto* geant_geo = celeritas::geant_geo();
+    auto geant_geo = celeritas::geant_geo().lock();
     CELER_VALIDATE(geant_geo, << "global Geant4 geometry is not loaded");
 
     auto& geo = *this->geometry_interface();

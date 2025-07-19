@@ -21,6 +21,8 @@ namespace test
  *
  * This class automatically cleans up after all tests are done executing, and
  * ensures that only one geometry at a time is loaded.
+ *
+ * \sa PersistentSP
  */
 class LazyGeoManager
 {
@@ -39,11 +41,6 @@ class LazyGeoManager
 
     // Clear the lazy geometry
     static void reset_geometry();
-
-  private:
-    struct LazyGeo;
-    class CleanupGeoEnvironment;
-    static LazyGeo& lazy_geo();
 };
 
 //---------------------------------------------------------------------------//

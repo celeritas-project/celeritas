@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
 #include <string_view>
 
 #include "geocel/LazyGeoManager.hh"
@@ -14,6 +15,7 @@
 
 namespace celeritas
 {
+class GeantGeoParams;
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -38,8 +40,12 @@ class GlobalGeoTestBase : virtual public GlobalTestBase,
     SPConstCoreGeo build_geometry() override;
 
   protected:
-    //// LAZY GEOMETRY CONSTRUCTION AND CLEANUP ////
+    using SPGeantGeo = std::shared_ptr<GeantGeoParams>;
 
+    // Access persistent geant geometry after construction
+    static SPGeantGeo const& geant_geo();
+
+    // Lazy geometry construction and cleanup
     SPConstGeoI build_fresh_geometry(std::string_view) override;
 };
 

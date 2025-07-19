@@ -24,6 +24,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
  * Sample Cherenkov photons from a generator distribution.
@@ -47,13 +49,13 @@ class CherenkovGenerator
   public:
     // Construct from optical materials and distribution parameters
     inline CELER_FUNCTION
-    CherenkovGenerator(optical::MaterialView const& material,
+    CherenkovGenerator(MaterialView const& material,
                        NativeCRef<CherenkovData> const& shared,
                        GeneratorDistributionData const& dist);
 
     // Sample a Cherenkov photon from the distribution
     template<class Generator>
-    inline CELER_FUNCTION optical::TrackInitializer operator()(Generator& rng);
+    inline CELER_FUNCTION TrackInitializer operator()(Generator& rng);
 
   private:
     //// TYPES ////
@@ -83,7 +85,7 @@ class CherenkovGenerator
  * Construct from optical materials and distribution parameters.
  */
 CELER_FUNCTION
-CherenkovGenerator::CherenkovGenerator(optical::MaterialView const& material,
+CherenkovGenerator::CherenkovGenerator(MaterialView const& material,
                                        NativeCRef<CherenkovData> const& shared,
                                        GeneratorDistributionData const& dist)
     : dist_(dist)
@@ -133,8 +135,7 @@ CherenkovGenerator::CherenkovGenerator(optical::MaterialView const& material,
  * Sample Cherenkov photons from the distribution.
  */
 template<class Generator>
-CELER_FUNCTION optical::TrackInitializer
-CherenkovGenerator::operator()(Generator& rng)
+CELER_FUNCTION TrackInitializer CherenkovGenerator::operator()(Generator& rng)
 {
     // Sample energy and direction
     real_type energy;
@@ -162,7 +163,7 @@ CherenkovGenerator::operator()(Generator& rng)
 
     // Sample azimuthal photon direction
     real_type phi = sample_phi_(rng);
-    optical::TrackInitializer photon;
+    TrackInitializer photon;
     photon.direction = rotate(from_spherical(cos_theta, phi), dir_);
     photon.energy = units::MevEnergy(energy);
 
@@ -191,4 +192,5 @@ CherenkovGenerator::operator()(Generator& rng)
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

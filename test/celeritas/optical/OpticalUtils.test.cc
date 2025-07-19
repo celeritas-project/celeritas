@@ -17,7 +17,7 @@
 #include "corecel/data/Ref.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/optical/action/detail/TrackInitAlgorithms.hh"
-#include "celeritas/optical/gen/detail/OpticalGenAlgorithms.hh"
+#include "celeritas/optical/gen/detail/GeneratorAlgorithms.hh"
 
 #include "celeritas_test.hh"
 
@@ -67,7 +67,7 @@ std::vector<int> locate_vacancies(std::vector<TrackStatus> const& input)
 
 TEST(OpticalUtilsTest, find_distribution_index)
 {
-    using detail::find_distribution_index;
+    using optical::detail::find_distribution_index;
 
     size_type num_threads = 8;
     std::vector<size_type> vacancies = {1, 2, 4, 6, 7};

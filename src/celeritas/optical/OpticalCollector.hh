@@ -26,20 +26,20 @@ class ActionRegistry;
 class AuxStateVec;
 class CherenkovParams;
 class CoreParams;
+template<GeneratorType G>
+class OffloadAction;
+class OffloadGatherAction;
 class ScintillationParams;
 
 namespace optical
 {
+template<GeneratorType G>
+class GeneratorAction;
 class MaterialParams;
 }  // namespace optical
 
 namespace detail
 {
-template<GeneratorType G>
-class GeneratorAction;
-template<GeneratorType G>
-class OffloadAction;
-class OffloadGatherAction;
 class OpticalLaunchAction;
 }  // namespace detail
 
@@ -140,16 +140,14 @@ class OpticalCollector
   private:
     //// TYPES ////
 
-    using GT = detail::GeneratorType;
-    template<GT G>
-    using GeneratorAction = detail::GeneratorAction<G>;
-    template<GT G>
-    using OffloadAction = detail::OffloadAction<G>;
+    using GT = GeneratorType;
     using SPCherenkovOffload = std::shared_ptr<OffloadAction<GT::cherenkov>>;
     using SPScintOffload = std::shared_ptr<OffloadAction<GT::scintillation>>;
-    using SPGatherAction = std::shared_ptr<detail::OffloadGatherAction>;
-    using SPCherenkovGen = std::shared_ptr<GeneratorAction<GT::cherenkov>>;
-    using SPScintGen = std::shared_ptr<GeneratorAction<GT::scintillation>>;
+    using SPGatherAction = std::shared_ptr<OffloadGatherAction>;
+    using SPCherenkovGen
+        = std::shared_ptr<optical::GeneratorAction<GT::cherenkov>>;
+    using SPScintGen
+        = std::shared_ptr<optical::GeneratorAction<GT::scintillation>>;
     using SPLaunchAction = std::shared_ptr<detail::OpticalLaunchAction>;
 
     //// DATA ////

@@ -30,7 +30,7 @@ struct CherenkovOffloadExecutor
 
     NativeCRef<celeritas::optical::MaterialParamsData> material;
     NativeCRef<CherenkovData> cherenkov;
-    NativeRef<GeneratorStateData> offload;
+    NativeRef<optical::GeneratorStateData> offload;
     NativeRef<OffloadStepStateData> steps;
     size_type buffer_size;
 };
@@ -49,7 +49,7 @@ CherenkovOffloadExecutor::operator()(CoreTrackView const& track)
     CELER_EXPECT(offload);
     CELER_EXPECT(steps);
 
-    using DistId = ItemId<GeneratorDistributionData>;
+    using DistId = ItemId<optical::GeneratorDistributionData>;
 
     auto tsid = track.track_slot_id();
     CELER_ASSERT(buffer_size + tsid.get() < offload.distributions.size());

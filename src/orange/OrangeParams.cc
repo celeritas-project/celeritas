@@ -44,13 +44,57 @@
 
 namespace celeritas
 {
-namespace
-{
 //---------------------------------------------------------------------------//
 /*!
- * Load a geometry from the given JSON file.
+ * Build by loading a GDML file.
+ *
+ * This mode is incompatible with having an existing run manager.
  */
-OrangeInput input_from_json(std::string filename)
+std::shared_ptr<OrangeParams>
+OrangeParams::from_gdml(std::string const& filename)
+{
+    CELER_VALIDATE(celeritas::geant_geo().expired(),
+                   << "cannot load Geant4 geometry into ORANGE from a "
+                      "file name: a global Geant4 geometry already "
+                      "exists");
+
+    if (!(CELERITAS_USE_GEANT4
+          && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE))
+    {
+        CELER_LOG(warning) << "Using ORANGE geometry with GDML suffix "
+                              "when Geant4 conversion is disabled: trying "
+                              "`.org.json` instead";
+        CELER_VALIDATE(ends_with(filename, ".gdml"),
+                       << "invalid extension for GDML file '" << filename
+                       << "'");
+
+        std::string json_filename(filename.begin(), filename.end() - 5);
+        json_filename += ".org.json";
+        return OrangeParams::from_json(json_filename);
+    }
+
+    // Load temporarily and convert
+    auto temp_geant_geo = GeantGeoParams::from_gdml(filename);
+    return OrangeParams::from_geant(temp_geant_geo);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build from a Geant4 world.
+ */
+std::shared_ptr<OrangeParams>
+OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
+{
+    auto result = g4org::Converter{}(*geo).input;
+    return std::make_shared<OrangeParams>(std::move(result));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build from a JSON input.
+ */
+std::shared_ptr<OrangeParams>
+OrangeParams::from_json(std::string const& filename)
 {
     CELER_LOG(info) << "Loading ORANGE geometry from JSON at " << filename;
     ScopedTimeLog scoped_time;
@@ -63,80 +107,7 @@ OrangeInput input_from_json(std::string filename)
     // Use the `from_json` defined in OrangeInputIO.json to read the JSON input
     nlohmann::json::parse(infile).get_to(result);
 
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Load a geometry from the given filename.
- */
-OrangeInput input_from_file(std::string filename)
-{
-    if (ends_with(filename, ".gdml"))
-    {
-        if (CELERITAS_USE_GEANT4
-            && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-        {
-            // Load with Geant4: must *not* be using run manager
-            CELER_VALIDATE(!geant_geo(),
-                           << "cannot load Geant4 geometry into ORANGE from a "
-                              "file name: a global Geant4 geometry already "
-                              "exists");
-            GeantGeoParams temp_geant_geo(filename);
-            auto result = g4org::Converter{}(temp_geant_geo).input;
-            return result;
-        }
-        else
-        {
-            CELER_LOG(warning) << "Using ORANGE geometry with GDML suffix "
-                                  "when Geant4 conversion is disabled: trying "
-                                  "`.org.json` instead";
-            filename.erase(filename.end() - 5, filename.end());
-            filename += ".org.json";
-        }
-    }
-    else
-    {
-        CELER_VALIDATE(ends_with(filename, ".json"),
-                       << "expected JSON extension for ORANGE input '"
-                       << filename << "'");
-    }
-    return input_from_json(std::move(filename));
-}
-
-GeantGeoParams const& get_geant_params(G4VPhysicalVolume const* world)
-{
-    auto* global_geo = celeritas::geant_geo();
-    CELER_VALIDATE(global_geo && global_geo->world() == world,
-                   << "world is not the globally defined world");
-
-    return *global_geo;
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct from a JSON file (if JSON is enabled).
- *
- * The JSON format is defined by the SCALE ORANGE exporter (not currently
- * distributed).
- */
-OrangeParams::OrangeParams(std::string const& filename)
-    : OrangeParams(input_from_file(filename))
-{
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct in-memory from a Geant4 geometry.
- *
- * TODO: expose options? Fix volume mappings?
- */
-OrangeParams::OrangeParams(G4VPhysicalVolume const* world)
-    : OrangeParams(std::move(g4org::Converter{}(get_geant_params(world)).input))
-{
+    return std::make_shared<OrangeParams>(std::move(result));
 }
 
 //---------------------------------------------------------------------------//

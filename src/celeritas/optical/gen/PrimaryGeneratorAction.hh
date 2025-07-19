@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/gen/detail/PrimaryGeneratorAction.hh
+//! \file celeritas/optical/gen/PrimaryGeneratorAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -15,15 +15,15 @@
 #include "celeritas/optical/action/ActionInterface.hh"
 #include "celeritas/phys/GeneratorInterface.hh"
 
-#include "OpticalGeneratorBase.hh"
-#include "../GeneratorData.hh"
-#include "../OffloadData.hh"
+#include "GeneratorBase.hh"
+#include "GeneratorData.hh"
+#include "OffloadData.hh"
 
 namespace celeritas
 {
 class CoreParams;
 
-namespace detail
+namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -32,7 +32,7 @@ namespace detail
  * This reproducibly samples and initializes optical photons directly in track
  * slots.
  */
-class PrimaryGeneratorAction final : public OpticalGeneratorBase
+class PrimaryGeneratorAction final : public GeneratorBase
 {
   public:
     //!@{
@@ -43,9 +43,7 @@ class PrimaryGeneratorAction final : public OpticalGeneratorBase
   public:
     // Construct and add to core params
     static std::shared_ptr<PrimaryGeneratorAction>
-    make_and_insert(::celeritas::CoreParams const&,
-                    optical::CoreParams const&,
-                    Input&&);
+    make_and_insert(::celeritas::CoreParams const&, CoreParams const&, Input&&);
 
     // Construct with IDs and distributions
     PrimaryGeneratorAction(ActionId, AuxId, GeneratorId, Input);
@@ -61,14 +59,14 @@ class PrimaryGeneratorAction final : public OpticalGeneratorBase
     //! \name StepAction interface
 
     // Launch kernel with host data
-    void step(optical::CoreParams const&, CoreStateHost&) const final;
+    void step(CoreParams const&, CoreStateHost&) const final;
     // Launch kernel with device data
-    void step(optical::CoreParams const&, CoreStateDevice&) const final;
+    void step(CoreParams const&, CoreStateDevice&) const final;
     //!@}
 
     // Set the number of pending tracks
     template<MemSpace M>
-    inline void queue_primaries(optical::CoreState<M>&) const;
+    inline void queue_primaries(CoreState<M>&) const;
 
   private:
     //// DATA ////
@@ -78,10 +76,10 @@ class PrimaryGeneratorAction final : public OpticalGeneratorBase
     //// HELPER FUNCTIONS ////
 
     template<MemSpace M>
-    void step_impl(optical::CoreParams const&, optical::CoreState<M>&) const;
+    void step_impl(CoreParams const&, CoreState<M>&) const;
 
-    void generate(optical::CoreParams const&, CoreStateHost&) const;
-    void generate(optical::CoreParams const&, CoreStateDevice&) const;
+    void generate(CoreParams const&, CoreStateHost&) const;
+    void generate(CoreParams const&, CoreStateDevice&) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -98,7 +96,7 @@ class PrimaryGeneratorAction final : public OpticalGeneratorBase
  * loop. Refactor/replace this.
  */
 template<MemSpace M>
-void PrimaryGeneratorAction::queue_primaries(optical::CoreState<M>& state) const
+void PrimaryGeneratorAction::queue_primaries(CoreState<M>& state) const
 {
     CELER_EXPECT(state.aux());
     auto& aux_state = this->counters(*state.aux());
@@ -107,5 +105,5 @@ void PrimaryGeneratorAction::queue_primaries(optical::CoreState<M>& state) const
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

@@ -84,7 +84,7 @@ Opticks :cite:`blyth-opticks-2019`.
 .. doxygenclass:: celeritas::OpticalCollector
 .. doxygenclass:: celeritas::CherenkovOffload
 .. doxygenclass:: celeritas::ScintillationOffload
-.. doxygenstruct:: celeritas::GeneratorDistributionData
+.. doxygenstruct:: celeritas::optical::GeneratorDistributionData
 
 Generating
 ==========
@@ -94,8 +94,8 @@ sample from the distribution of photons specified by the
 generator distribution to create optical photon *initializers* which are
 analogous to secondary particles in Geant4.
 
-.. doxygenclass:: celeritas::CherenkovGenerator
-.. doxygenclass:: celeritas::ScintillationGenerator
+.. doxygenclass:: celeritas::optical::CherenkovGenerator
+.. doxygenclass:: celeritas::optical::ScintillationGenerator
 
 Volumetric processes
 ====================
