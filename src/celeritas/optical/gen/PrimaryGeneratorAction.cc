@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/gen/detail/PrimaryGeneratorAction.cc
+//! \file celeritas/optical/gen/PrimaryGeneratorAction.cc
 //---------------------------------------------------------------------------//
 #include "PrimaryGeneratorAction.hh"
 
@@ -22,11 +22,11 @@
 #include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 
-#include "PrimaryGeneratorExecutor.hh"
+#include "detail/PrimaryGeneratorExecutor.hh"
 
 namespace celeritas
 {
-namespace detail
+namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -34,7 +34,7 @@ namespace detail
  */
 std::shared_ptr<PrimaryGeneratorAction> PrimaryGeneratorAction::make_and_insert(
     ::celeritas::CoreParams const& core_params,
-    optical::CoreParams const& params,
+    CoreParams const& params,
     Input&& input)
 {
     CELER_EXPECT(input.num_events > 0 && input.primaries_per_event > 0);
@@ -60,11 +60,11 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(ActionId id,
                                                AuxId aux_id,
                                                GeneratorId gen_id,
                                                Input inp)
-    : OpticalGeneratorBase(id,
-                           aux_id,
-                           gen_id,
-                           "primary-generate",
-                           "generate optical photon primaries")
+    : GeneratorBase(id,
+                    aux_id,
+                    gen_id,
+                    "primary-generate",
+                    "generate optical photon primaries")
 {
     CELER_VALIDATE(inp.num_events == 1,
                    << "multiple events are not supported for optical primary "
@@ -99,7 +99,7 @@ auto PrimaryGeneratorAction::create_state(MemSpace, StreamId, size_type) const
 /*!
  * Execute the action with host data.
  */
-void PrimaryGeneratorAction::step(optical::CoreParams const& params,
+void PrimaryGeneratorAction::step(CoreParams const& params,
                                   CoreStateHost& state) const
 {
     this->step_impl(params, state);
@@ -109,7 +109,7 @@ void PrimaryGeneratorAction::step(optical::CoreParams const& params,
 /*!
  * Execute the action with device data.
  */
-void PrimaryGeneratorAction::step(optical::CoreParams const& params,
+void PrimaryGeneratorAction::step(CoreParams const& params,
                                   CoreStateDevice& state) const
 {
     this->step_impl(params, state);
@@ -120,8 +120,8 @@ void PrimaryGeneratorAction::step(optical::CoreParams const& params,
  * Generate optical photons from distribution data.
  */
 template<MemSpace M>
-void PrimaryGeneratorAction::step_impl(optical::CoreParams const& params,
-                                       optical::CoreState<M>& state) const
+void PrimaryGeneratorAction::step_impl(CoreParams const& params,
+                                       CoreState<M>& state) const
 {
     CELER_EXPECT(state.aux());
 
@@ -141,7 +141,7 @@ void PrimaryGeneratorAction::step_impl(optical::CoreParams const& params,
 /*!
  * Launch a (host) kernel to generate optical photons.
  */
-void PrimaryGeneratorAction::generate(optical::CoreParams const& params,
+void PrimaryGeneratorAction::generate(CoreParams const& params,
                                       CoreStateHost& state) const
 {
     CELER_EXPECT(state.aux());
@@ -153,18 +153,17 @@ void PrimaryGeneratorAction::generate(optical::CoreParams const& params,
     // Generate optical photons in vacant track slots
     detail::PrimaryGeneratorExecutor execute{
         params.ptr<MemSpace::native>(), state.ptr(), data_, state.counters()};
-    celeritas::optical::launch_action(num_gen, execute);
+    launch_action(num_gen, execute);
 }
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void PrimaryGeneratorAction::generate(optical::CoreParams const&,
-                                      CoreStateDevice&) const
+void PrimaryGeneratorAction::generate(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

@@ -32,6 +32,7 @@
 #include "geocel/vg/VecgeomParams.hh"
 #include "geocel/vg/VecgeomTrackView.hh"
 
+#include "PersistentSP.hh"
 #include "VecgeomTestBase.hh"
 #include "celeritas_test.hh"
 
@@ -83,7 +84,7 @@ class VecgeomVgdmlTestBase : public VecgeomTestBaseImpl
     {
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::warning};
-        auto result = std::make_shared<VecgeomParams>(this->test_data_path(
+        auto result = VecgeomParams::from_gdml_vg(this->test_data_path(
             "geocel", this->geometry_basename() + std::string{".gdml"}));
         EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
             << scoped_log_;
@@ -100,14 +101,22 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
     //! Helper function: build via Geant4 GDML reader
     SPConstGeo build_geometry() final
     {
+        static PersistentSP<GeantGeoParams> pgg{"geant4 geometry"};
+
         ScopedLogStorer scoped_log_{&celeritas::self_logger(),
                                     LogLevel::warning};
 
-        auto& geo = geant_geo(this->test_data_path(
-            "geocel", this->geometry_basename() + std::string{".gdml"}));
-        CELER_ASSERT(geo);
-
-        auto result = std::make_shared<VecgeomParams>(geo->world());
+        auto filename = this->test_data_path(
+            "geocel", this->geometry_basename() + std::string{".gdml"});
+        if (filename != pgg.key())
+        {
+            pgg.clear();
+            auto new_geo = GeantGeoParams::from_gdml(filename);
+            celeritas::geant_geo(new_geo);
+            pgg.set(std::string{filename}, std::move(new_geo));
+        }
+        CELER_ASSERT(pgg.value());
+        auto result = VecgeomParams::from_geant(pgg.value());
         EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
             << scoped_log_;
         return result;
@@ -126,51 +135,7 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
     }
 
     SpanStringView expected_log_levels() const override { return {}; }
-
-  protected:
-    using SPGeantGeo = std::shared_ptr<GeantGeoParams>;
-
-    class CleanupGeantGeo : public ::testing::Environment
-    {
-      public:
-        void SetUp() final {}
-        void TearDown() final;
-    };
-
-    static SPGeantGeo& geant_geo(std::string filename)
-    {
-        static bool registered{false};
-        if (CELER_UNLIKELY(!registered))
-        {
-            CELER_LOG(debug) << "Registering CleanupGeantGeo";
-            ::testing::AddGlobalTestEnvironment(new CleanupGeantGeo());
-            registered = true;
-        }
-
-        static std::string filename_;
-        static SPGeantGeo geo_;
-        if (filename_ != filename)
-        {
-            // Reset before constructing
-            geo_.reset();
-            filename_.clear();
-        }
-        if (!filename.empty())
-        {
-            geo_ = std::make_shared<GeantGeoParams>(filename);
-            celeritas::geant_geo(*geo_);
-            filename_ = std::move(filename);
-        }
-
-        return geo_;
-    }
 };
-
-void VecgeomGeantTestBase::CleanupGeantGeo::TearDown()
-{
-    CELER_LOG(debug) << "Destroying Geant4 geometry";
-    VecgeomGeantTestBase::geant_geo({});
-}
 
 //---------------------------------------------------------------------------//
 // VGDML TESTS
@@ -801,7 +766,7 @@ class ArbitraryVgdmlTest : public VecgeomTestBase
         CELER_VALIDATE(
             !filename.empty(),
             << R"(Set the "GDML" environment variable and run this test with '--gtest_filter=*ArbitraryVgdmlTest*' --gtest_also_run_disabled_tests)");
-        return std::make_shared<VecgeomParams>(filename);
+        return VecgeomParams::from_gdml_vg(filename);
     }
 };
 
@@ -824,8 +789,7 @@ class ArbitraryGeantTest : public VecgeomTestBase
         CELER_VALIDATE(
             !filename.empty(),
             << R"(Set the "GDML" environment variable and run this test with '--gtest_filter=*ArbitraryGeantTest*' --gtest_also_run_disabled_tests)");
-        world_volume_ = ::celeritas::load_gdml(filename);
-        return std::make_shared<VecgeomParams>(world_volume_);
+        return VecgeomParams::from_gdml_g4(filename);
     }
     static G4VPhysicalVolume* world_volume_;
 };

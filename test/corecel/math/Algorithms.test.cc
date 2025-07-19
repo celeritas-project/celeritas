@@ -91,6 +91,10 @@ TEST(AlgorithmsTest, all_of)
     EXPECT_TRUE(all_of(std::begin(items), std::begin(items), is_true));
     EXPECT_FALSE(all_of(std::begin(items), std::end(items), is_true));
     EXPECT_TRUE(all_of(std::begin(items) + 2, std::end(items), is_true));
+
+    LogicalFalse<bool> is_false;
+    EXPECT_FALSE(all_of(std::begin(items), std::end(items), is_false));
+    EXPECT_TRUE(all_of(std::begin(items) + 1, std::begin(items) + 2, is_false));
 }
 
 TEST(AlgorithmsTest, any_of)

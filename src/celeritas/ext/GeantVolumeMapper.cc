@@ -43,7 +43,7 @@ VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const& lv)
     }
 
     // Get geant volume ID and corresponding label
-    auto* geant_geo = celeritas::geant_geo();
+    auto geant_geo = celeritas::geant_geo().lock();
     CELER_VALIDATE(geant_geo, << "global Geant4 geometry is not loaded");
     id = geant_geo->geant_to_id(lv);
     CELER_VALIDATE(id,

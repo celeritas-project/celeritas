@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/gen/detail/PrimaryGeneratorAction.cu
+//! \file celeritas/optical/gen/PrimaryGeneratorAction.cu
 //---------------------------------------------------------------------------//
 #include "PrimaryGeneratorAction.hh"
 
@@ -15,17 +15,17 @@
 #include "celeritas/optical/action/ActionLauncher.device.hh"
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
-#include "PrimaryGeneratorExecutor.hh"
+#include "detail/PrimaryGeneratorExecutor.hh"
 
 namespace celeritas
 {
-namespace detail
+namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
  * Launch a kernel to generate optical photons.
  */
-void PrimaryGeneratorAction::generate(optical::CoreParams const& params,
+void PrimaryGeneratorAction::generate(CoreParams const& params,
                                       CoreStateDevice& state) const
 {
     CELER_EXPECT(state.aux());
@@ -37,10 +37,10 @@ void PrimaryGeneratorAction::generate(optical::CoreParams const& params,
     // Generate optical photons in vacant track slots
     detail::PrimaryGeneratorExecutor execute{
         params.ptr<MemSpace::native>(), state.ptr(), data_, state.counters()};
-    static optical::ActionLauncher<decltype(execute)> const launch(*this);
+    static ActionLauncher<decltype(execute)> const launch(*this);
     launch(num_gen, state.stream_id(), execute);
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

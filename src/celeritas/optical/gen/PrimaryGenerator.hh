@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/gen/OpticalPrimaryGenerator.hh
+//! \file celeritas/optical/gen/PrimaryGenerator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,18 +17,19 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
  * Sample optical photons from user-configurable distributions.
  *
  * \todo Support runtime-configurable distributions instead of hardcoding
  */
-class OpticalPrimaryGenerator
+class PrimaryGenerator
 {
   public:
     // Construct from distribution data
-    inline CELER_FUNCTION
-    OpticalPrimaryGenerator(PrimaryDistributionData const& data);
+    inline CELER_FUNCTION PrimaryGenerator(PrimaryDistributionData const& data);
 
     // Sample an optical photon from the distributions
     template<class Generator>
@@ -48,8 +49,7 @@ class OpticalPrimaryGenerator
  * Construct from optical materials and distribution parameters.
  */
 CELER_FUNCTION
-OpticalPrimaryGenerator::OpticalPrimaryGenerator(
-    PrimaryDistributionData const& data)
+PrimaryGenerator::PrimaryGenerator(PrimaryDistributionData const& data)
     : data_(data)
 {
     CELER_EXPECT(data_);
@@ -65,7 +65,7 @@ OpticalPrimaryGenerator::OpticalPrimaryGenerator(
  */
 template<class Generator>
 CELER_FUNCTION optical::TrackInitializer
-OpticalPrimaryGenerator::operator()(Generator& rng)
+PrimaryGenerator::operator()(Generator& rng)
 {
     optical::TrackInitializer result;
     result.energy = data_.energy;
@@ -82,4 +82,5 @@ OpticalPrimaryGenerator::operator()(Generator& rng)
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

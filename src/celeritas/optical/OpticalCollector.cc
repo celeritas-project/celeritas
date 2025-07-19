@@ -20,10 +20,10 @@
 #include "MaterialParams.hh"
 #include "PhysicsParams.hh"
 #include "gen/CherenkovParams.hh"
+#include "gen/GeneratorAction.hh"
+#include "gen/OffloadAction.hh"
+#include "gen/OffloadGatherAction.hh"
 #include "gen/ScintillationParams.hh"
-#include "gen/detail/GeneratorAction.hh"
-#include "gen/detail/OffloadAction.hh"
-#include "gen/detail/OffloadGatherAction.hh"
 
 #include "detail/OpticalLaunchAction.hh"
 #include "detail/OpticalSizes.json.hh"
@@ -41,7 +41,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     CELER_EXPECT(inp);
 
     // Create action to gather pre-step data for populating distributions
-    gather_ = detail::OffloadGatherAction::make_and_insert(core);
+    gather_ = OffloadGatherAction::make_and_insert(core);
 
     // The offload, generator, and launch actions much be created in a specific
     // order but require auxiliary data IDs from actions created later.
@@ -102,22 +102,24 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     if (inp.cherenkov)
     {
         // Create action to generate Cherenkov primaries
-        GeneratorAction<GT::cherenkov>::Input ga_inp;
+        optical::GeneratorAction<GT::cherenkov>::Input ga_inp;
         ga_inp.material = inp.material;
         ga_inp.shared = inp.cherenkov;
         ga_inp.capacity = inp.buffer_capacity;
-        cherenkov_generate_ = GeneratorAction<GT::cherenkov>::make_and_insert(
-            core, *optical_params, std::move(ga_inp));
+        cherenkov_generate_
+            = optical::GeneratorAction<GT::cherenkov>::make_and_insert(
+                core, *optical_params, std::move(ga_inp));
     }
     if (inp.scintillation)
     {
         // Create action to generate scintillation primaries
-        GeneratorAction<GT::scintillation>::Input ga_inp;
+        optical::GeneratorAction<GT::scintillation>::Input ga_inp;
         ga_inp.material = inp.material;
         ga_inp.shared = inp.scintillation;
         ga_inp.capacity = inp.buffer_capacity;
-        scint_generate_ = GeneratorAction<GT::scintillation>::make_and_insert(
-            core, *optical_params, std::move(ga_inp));
+        scint_generate_
+            = optical::GeneratorAction<GT::scintillation>::make_and_insert(
+                core, *optical_params, std::move(ga_inp));
     }
 
     // Save optical diagnostic information

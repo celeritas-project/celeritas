@@ -14,12 +14,13 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/data/ObserverPtr.device.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stream.hh"
 #include "corecel/sys/Thrust.device.hh"
 
-#include "Utils.hh"
+#include "../Utils.hh"
 
 namespace celeritas
 {
@@ -40,7 +41,7 @@ size_type remove_if_alive(
     auto end = thrust::remove_if(thrust_execute_on(stream_id),
                                  start,
                                  start + vacancies.size(),
-                                 IsEqual{occupied()});
+                                 LogicalFalse{});
     CELER_DEVICE_API_CALL(PeekAtLastError());
 
     // New size of the vacancy vector

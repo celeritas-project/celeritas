@@ -7,7 +7,9 @@
 #include "Model.hh"
 
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Environment.hh"
+#include "geocel/GeantGeoParams.hh"  // IWYU pragma: keep
 #include "geocel/SurfaceParams.hh"
 #include "geocel/VolumeParams.hh"
 #include "geocel/inp/Model.hh"
@@ -24,7 +26,7 @@ struct GeoBuilder
 {
     using result_type = std::shared_ptr<CoreGeoParams>;
 
-    //! Build from filename
+    //! Build from GDML (or JSON) filename
     result_type operator()(std::string const& filename)
     {
         if (filename.empty())
@@ -32,7 +34,17 @@ struct GeoBuilder
             CELER_LOG(debug) << "Skipping geometry setup";
             return nullptr;
         }
-        return std::make_shared<CoreGeoParams>(filename);
+        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+            && ends_with(filename, ".json"))
+        {
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+            return CoreGeoParams::from_json(filename);
+#else
+            CELER_ASSERT_UNREACHABLE();
+#endif
+        }
+
+        return CoreGeoParams::from_gdml(filename);
     }
 
     //! Build from Geant4
@@ -53,9 +65,21 @@ struct GeoBuilder
                 return (*this)(filename);
             }
         }
+
+        /*!
+         * \todo Fix the input loading: for now, we assume the given world
+         * already has been loaded into a Celeritas GeantGeoParams data
+         * structure. Going forward, the 'world' input should only be used in
+         * FrameworkInput.cc to build the Geant4 geometry for the first
+         * time.
+         */
         CELER_VALIDATE(world,
                        << "null world pointer in problem.model.geometry");
-        return std::make_shared<CoreGeoParams>(world);
+        auto ggp = celeritas::geant_geo().lock();
+        CELER_VALIDATE(ggp && ggp->world() == world,
+                       << "inconsistent Geant4 world pointer given to model "
+                          "setup");
+        return CoreGeoParams::from_geant(ggp);
     }
 };
 

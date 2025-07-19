@@ -58,13 +58,14 @@ class CherenkovOffload
 
     // Gather the input data needed to sample Cherenkov photons
     template<class Generator>
-    inline CELER_FUNCTION GeneratorDistributionData operator()(Generator& rng);
+    inline CELER_FUNCTION optical::GeneratorDistributionData
+    operator()(Generator& rng);
 
   private:
     units::ElementaryCharge charge_;
     real_type step_length_;
     OffloadPreStepData const& pre_step_;
-    GeneratorStepData post_step_;
+    optical::GeneratorStepData post_step_;
     real_type num_photons_per_len_;
 };
 
@@ -126,7 +127,7 @@ CherenkovOffload::CherenkovOffload(OffloadPreStepData const& pre_step,
  * If no photons are sampled an empty object is returned.
  */
 template<class Generator>
-CELER_FUNCTION GeneratorDistributionData
+CELER_FUNCTION optical::GeneratorDistributionData
 CherenkovOffload::operator()(Generator& rng)
 {
     if (num_photons_per_len_ == 0)
@@ -134,7 +135,7 @@ CherenkovOffload::operator()(Generator& rng)
         return {};
     }
 
-    GeneratorDistributionData data;
+    optical::GeneratorDistributionData data;
     data.num_photons = PoissonDistribution<real_type>(num_photons_per_len_
                                                       * step_length_)(rng);
     if (data.num_photons > 0)

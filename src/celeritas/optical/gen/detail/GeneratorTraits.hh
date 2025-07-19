@@ -7,31 +7,24 @@
 #pragma once
 
 #include "corecel/Types.hh"
+#include "celeritas/optical/Types.hh"
 
 namespace celeritas
 {
 template<Ownership W, MemSpace M>
 struct CherenkovData;
-class CherenkovGenerator;
 class CherenkovParams;
 template<Ownership W, MemSpace M>
 struct ScintillationData;
-class ScintillationGenerator;
 class ScintillationParams;
+
+namespace optical
+{
+class CherenkovGenerator;
+class ScintillationGenerator;
 
 namespace detail
 {
-struct CherenkovOffloadExecutor;
-struct ScintOffloadExecutor;
-
-//---------------------------------------------------------------------------//
-//! Process used to generate optical photons
-enum class GeneratorType
-{
-    cherenkov,
-    scintillation,
-};
-
 //---------------------------------------------------------------------------//
 //! Traits for generating optical photons from a process
 template<GeneratorType G>
@@ -80,44 +73,6 @@ struct GeneratorTraits<GeneratorType::scintillation>
 };
 
 //---------------------------------------------------------------------------//
-//! Traits for offloading optical distribution data from a process
-template<GeneratorType G>
-struct OffloadTraits;
-
-template<>
-struct OffloadTraits<GeneratorType::cherenkov>
-{
-    //! Params class
-    using Params = CherenkovParams;
-
-    //! Optical offload executor
-    using Executor = CherenkovOffloadExecutor;
-
-    //! Label of the offload action
-    static constexpr char const label[] = "cherenkov-offload";
-
-    //! Description of the offload action
-    static constexpr char const description[]
-        = "generate Cherenkov optical distribution data";
-};
-
-template<>
-struct OffloadTraits<GeneratorType::scintillation>
-{
-    //! Params class
-    using Params = ScintillationParams;
-
-    //! Optical offload executor
-    using Executor = ScintOffloadExecutor;
-
-    //! Label of the offload action
-    static constexpr char const label[] = "scintillation-offload";
-
-    //! Description of the offload action
-    static constexpr char const description[]
-        = "generate scintillation optical distribution data";
-};
-
-//---------------------------------------------------------------------------//
 }  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

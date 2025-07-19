@@ -12,13 +12,15 @@
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/optical/MaterialData.hh"
 #include "celeritas/track/CoreStateCounters.hh"
-#include "celeritas/track/detail/Utils.hh"
+#include "celeritas/track/Utils.hh"
 
+#include "GeneratorAlgorithms.hh"
 #include "GeneratorTraits.hh"
-#include "OpticalGenAlgorithms.hh"
 #include "../OffloadData.hh"
 
 namespace celeritas
+{
+namespace optical
 {
 namespace detail
 {
@@ -39,9 +41,9 @@ struct GeneratorExecutor
 
     //// DATA ////
 
-    CRefPtr<celeritas::optical::CoreParamsData, MemSpace::native> params;
-    RefPtr<celeritas::optical::CoreStateData, MemSpace::native> state;
-    NativeCRef<celeritas::optical::MaterialParamsData> const material;
+    CRefPtr<CoreParamsData, MemSpace::native> params;
+    RefPtr<CoreStateData, MemSpace::native> state;
+    NativeCRef<MaterialParamsData> const material;
     NativeCRef<Data> const shared;
     NativeRef<GeneratorStateData> const offload;
     size_type buffer_size{};
@@ -73,7 +75,7 @@ CELER_FUNCTION void GeneratorExecutor<G>::operator()(TrackSlotId tid) const
 
     using DistId = ItemId<GeneratorDistributionData>;
 
-    celeritas::optical::CoreTrackView track(*params, *state, tid);
+    CoreTrackView track(*params, *state, tid);
 
     // Find the index of the first distribution that has a nonzero number of
     // primaries left to generate
@@ -95,21 +97,21 @@ CELER_FUNCTION void GeneratorExecutor<G>::operator()(TrackSlotId tid) const
     CELER_ASSERT(dist);
 
     // Create the view to the new track to be initialized
-    celeritas::optical::CoreTrackView vacancy{
-        *params, *state, [&] {
-            // Get the vacancy from the back in case there are more vacancies
-            // than photons left to generate
-            TrackSlotId idx{
-                index_before(counters.num_vacancies, ThreadId(tid.get()))};
-            return state->init.vacancies[idx];
-        }()};
+    CoreTrackView vacancy{*params, *state, [&] {
+                              // Get the vacancy from the back in case there
+                              // are more vacancies than photons to generate
+                              TrackSlotId idx{index_before(
+                                  counters.num_vacancies, ThreadId(tid.get()))};
+                              return state->init.vacancies[idx];
+                          }()};
 
     // Generate one primary from the distribution
     auto rng = track.rng();
-    optical::MaterialView opt_mat{material, dist.material};
+    MaterialView opt_mat{material, dist.material};
     vacancy = Generator(opt_mat, shared, dist)(rng);
 }
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

@@ -36,10 +36,10 @@ FrameworkLoaded framework_input(inp::FrameworkInput& fi)
     setup::system(fi.system);
 
     // Load Geant4 geometry wrapper and save as global
-    CELER_ASSERT(!celeritas::geant_geo());
+    CELER_ASSERT(celeritas::geant_geo().expired());
     auto geo = GeantGeoParams::from_tracking_manager();
     CELER_ASSERT(geo);
-    celeritas::geant_geo(*geo);
+    celeritas::geant_geo(geo);
 
     // Import physics data
     ImportData imported = GeantImporter{}(fi.geant.data_selection);

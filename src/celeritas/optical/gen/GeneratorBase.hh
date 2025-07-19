@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/gen/detail/OpticalGeneratorBase.hh
+//! \file celeritas/optical/gen/GeneratorBase.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,24 +16,23 @@
 
 namespace celeritas
 {
-namespace detail
+namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Common interface for genearating optical photons.
+ * Common interface for generating optical photons.
  */
-class OpticalGeneratorBase
-    : virtual public optical::OpticalStepActionInterface,
-      virtual public AuxParamsInterface,
-      virtual public GeneratorInterface
+class GeneratorBase : virtual public optical::OpticalStepActionInterface,
+                      virtual public AuxParamsInterface,
+                      virtual public GeneratorInterface
 {
   public:
     // Construct from IDs, unique label, and description
-    OpticalGeneratorBase(ActionId id,
-                         AuxId aux_id,
-                         GeneratorId gen_id,
-                         std::string_view label,
-                         std::string_view description) noexcept(!CELERITAS_DEBUG);
+    GeneratorBase(ActionId id,
+                  AuxId aux_id,
+                  GeneratorId gen_id,
+                  std::string_view label,
+                  std::string_view description) noexcept(!CELERITAS_DEBUG);
 
     //!@{
     //! \name Aux interface
@@ -88,7 +87,7 @@ class OpticalGeneratorBase
  * Update the generator and state counters.
  */
 template<MemSpace M>
-void OpticalGeneratorBase::update_counters(optical::CoreState<M>& state) const
+void GeneratorBase::update_counters(optical::CoreState<M>& state) const
 {
     CELER_EXPECT(state.aux());
 
@@ -115,5 +114,5 @@ void OpticalGeneratorBase::update_counters(optical::CoreState<M>& state) const
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

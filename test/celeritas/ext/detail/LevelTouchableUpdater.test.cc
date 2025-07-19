@@ -64,16 +64,6 @@ class LevelTouchableUpdaterTest : public ::celeritas::test::GlobalGeoTestBase,
 
     void SetUp() override { touch_handle_ = new G4TouchableHistory; }
 
-    // We *must* build from a Geant4 geometry when using vecgeom/ORANGE:
-    // otherwise PV pointers won't be set
-    SPConstGeoI build_fresh_geometry(std::string_view basename) override
-    {
-        auto* world_volume = ::celeritas::load_gdml(
-            this->test_data_path("geocel", std::string(basename) + ".gdml"));
-
-        return std::make_shared<CoreGeoParams>(world_volume);
-    }
-
     TouchableUpdater make_touchable_updater()
     {
         return TouchableUpdater{this->geometry()};

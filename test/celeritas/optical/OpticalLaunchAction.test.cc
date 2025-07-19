@@ -22,7 +22,7 @@
 #include "celeritas/optical/PhysicsParams.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
 #include "celeritas/optical/gen/OffloadData.hh"
-#include "celeritas/optical/gen/detail/PrimaryGeneratorAction.hh"
+#include "celeritas/optical/gen/PrimaryGeneratorAction.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 
 #include "celeritas_test.hh"
@@ -82,7 +82,7 @@ class LArSphereLaunchTest : public LArSphereBase
             inp.primaries_per_event = 65536;
             inp.energy.energy = units::MevEnergy{1e-5};
             inp.shape = inp::PointShape{0, 0, 0};
-            generate_ = detail::PrimaryGeneratorAction::make_and_insert(
+            generate_ = optical::PrimaryGeneratorAction::make_and_insert(
                 core, *optical_params, std::move(inp));
         }
         {
@@ -110,7 +110,7 @@ class LArSphereLaunchTest : public LArSphereBase
     OpticalAccumStats counters() const;
 
   protected:
-    std::shared_ptr<detail::PrimaryGeneratorAction> generate_;
+    std::shared_ptr<optical::PrimaryGeneratorAction> generate_;
     std::shared_ptr<detail::OpticalLaunchAction> launch_;
     std::shared_ptr<CoreState<MemSpace::host>> core_state_;
 };

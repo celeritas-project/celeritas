@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/gen/detail/OffloadAction.hh
+//! \file celeritas/optical/gen/OffloadAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,8 +13,9 @@
 #include "corecel/data/Collection.hh"
 #include "celeritas/global/ActionInterface.hh"
 
-#include "GeneratorTraits.hh"
-#include "../GeneratorData.hh"
+#include "GeneratorData.hh"
+
+#include "detail/OffloadTraits.hh"
 
 namespace celeritas
 {
@@ -23,8 +24,6 @@ namespace optical
 class MaterialParams;
 }  // namespace optical
 
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Generate optical distribution data.
@@ -35,7 +34,7 @@ class OffloadAction final : public CoreStepActionInterface
   public:
     //!@{
     //! \name Type aliases
-    using TraitsT = OffloadTraits<G>;
+    using TraitsT = detail::OffloadTraits<G>;
     using SPConstParams = std::shared_ptr<typename TraitsT::Params const>;
     using SPConstMaterial = std::shared_ptr<optical::MaterialParams const>;
     //!@}
@@ -117,5 +116,4 @@ extern template class OffloadAction<GeneratorType::cherenkov>;
 extern template class OffloadAction<GeneratorType::scintillation>;
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas
