@@ -161,8 +161,6 @@ class HitProcessor
     void restore_track(GeantTrackReconstructionData const& track_data,
                        G4Track& track) const;
 
-    GeantTrackReconstructionData save_track(G4Track& track) const;
-
     void update_track(DetectorStepOutput const& out, size_type i) const;
 };
 

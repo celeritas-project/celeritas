@@ -245,8 +245,12 @@ HitProcessor::~HitProcessor()
 PrimaryId HitProcessor::register_primary(G4Track const& primary)
 {
     auto primary_id = id_cast<PrimaryId>(g4_track_data_.size());
-
-    g4_track_data_.push_back(this->save_track(const_cast<G4Track&>(primary)));
+    g4_track_data_.emplace_back(GeantTrackReconstructionData{
+        primary.GetTrackID(),
+        std::unique_ptr<G4VUserTrackInformation>(primary.GetUserInformation()),
+        primary.GetCreatorProcess()});
+    // Clear user information so that it doesn't get deleted with the G4Track
+    primary.SetUserInformation(nullptr);
     return primary_id;
 }
 
@@ -421,31 +425,8 @@ void HitProcessor::restore_track(GeantTrackReconstructionData const& track_data,
 {
     CELER_EXPECT(track_data);
     track.SetTrackID(track_data.track_id);
-    if (track_data.user_info)
-    {
-        track.SetUserInformation(track_data.user_info.get());
-    }
+    track.SetUserInformation(track_data.user_info.get());
     track.SetCreatorProcess(track_data.creator_process);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Save the G4Track reconstruction data. G4VTrackUserInformation will be unset
- * and the returned reconstruction data owns the user information.
- */
-auto HitProcessor::save_track(G4Track& track) const
-    -> GeantTrackReconstructionData
-{
-    GeantTrackReconstructionData track_data;
-    track_data.track_id = track.GetTrackID();
-    if (auto* user_info = track.GetUserInformation())
-    {
-        track_data.user_info.reset(user_info);
-        // Reset the original track to prevent double deletion
-        track.SetUserInformation(nullptr);
-    }
-    track_data.creator_process = track.GetCreatorProcess();
-    return track_data;
 }
 
 //---------------------------------------------------------------------------//
