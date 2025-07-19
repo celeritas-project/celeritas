@@ -259,6 +259,12 @@ HitProcessor::~HitProcessor()
     try
     {
         CELER_LOG(debug) << "Deallocating hit processor";
+        for (auto& track : tracks_)
+        {
+            // Clear the user information to prevent double deletion
+            // celeritas_to_g4_track_data_ owns the track user info
+            track->SetUserInformation(nullptr);
+        }
     }
     catch (...)  // NOLINT(bugprone-empty-catch)
     {
