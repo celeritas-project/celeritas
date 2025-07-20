@@ -237,7 +237,7 @@ void LocalTransporter::InitializeEvent(int id)
 /*!
  * Convert a Geant4 track to a Celeritas primary and add to buffer.
  */
-void LocalTransporter::Push(G4Track const& g4track)
+void LocalTransporter::Push(G4Track& g4track)
 {
     CELER_EXPECT(*this);
 
@@ -266,8 +266,7 @@ void LocalTransporter::Push(G4Track const& g4track)
     // Generate Celeritas-specific PrimaryID and notify HitProcessor of mapping
     if (hit_processor_)
     {
-        track.primary_id
-            = hit_processor_->register_primary(const_cast<G4Track&>(g4track));
+        track.primary_id = hit_processor_->register_primary(g4track);
     }
 
     track.energy = units::MevEnergy(
