@@ -88,36 +88,6 @@ get_step_status(DetectorStepOutput const& out, size_type step_index)
 
 //---------------------------------------------------------------------------//
 /*!
- * Restore the G4Track from the reconstruction data. Takes ownership of the
- * user information by unsetting it in the original track.
- */
-HitProcessor::GeantTrackReconstructionData::GeantTrackReconstructionData(
-    G4Track& track)
-    : track_id_{track.GetTrackID()}
-    , user_info_{track.GetUserInformation()}
-    , creator_process_{track.GetCreatorProcess()}
-{
-    CELER_EXPECT(*this);
-    // Clear user information so that it doesn't get deleted with the G4Track
-    track.SetUserInformation(nullptr);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Restore the G4Track from the reconstruction data. The restored track does
- * not have ownership of the user information, user must take care to reset it
- * before deletion of the track.
- */
-void HitProcessor::GeantTrackReconstructionData::restore_track(G4Track& track) const
-{
-    CELER_EXPECT(*this);
-    track.SetTrackID(track_id_);
-    track.SetUserInformation(user_info_.get());
-    track.SetCreatorProcess(creator_process_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct local navigator and step data.
  */
 HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
@@ -126,9 +96,9 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
                            StepSelection const& selection,
                            StepPointBool const& locate_touchable)
     : detector_volumes_(std::move(detector_volumes))
-    , step_post_status_{
-          selection.points[StepPoint::pre].volume_instance_ids
-          && selection.points[StepPoint::post].volume_instance_ids}
+    , step_post_status_{selection.points[StepPoint::pre].volume_instance_ids
+                        && selection.points[StepPoint::post].volume_instance_ids}
+    , track_processor_{particles}
 {
     CELER_EXPECT(detector_volumes_ && !detector_volumes_->empty());
     CELER_EXPECT(geo);
@@ -219,18 +189,8 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
         p->SetPolarization(G4ThreeVector());
     }
 
-    // Create track if user requested particle types
-    for (G4ParticleDefinition const* pd : particles)
-    {
-        CELER_ASSERT(pd);
-        auto track = std::make_unique<G4Track>(
-            new G4DynamicParticle(pd, G4ThreeVector()), 0.0, G4ThreeVector());
-        track->SetTrackID(0);
-        track->SetParentID(0);
-        track->SetStep(step_.get());
-
-        tracks_.emplace_back(std::move(track));
-    }
+    // Set the step for all tracks managed by TrackProcessor
+    track_processor_.set_step_for_tracks(step_.get());
 
     // Convert logical volumes (global) to sensitive detectors (thread local)
     detectors_.resize(detector_volumes_->size());
@@ -255,44 +215,11 @@ HitProcessor::~HitProcessor()
     try
     {
         CELER_LOG(debug) << "Deallocating hit processor";
-        for (auto& track : tracks_)
-        {
-            // Check that the track user information is unset
-            // g4_track_data_ owns the track user info
-            CELER_ASSERT(!track->GetUserInformation());
-        }
     }
     catch (...)  // NOLINT(bugprone-empty-catch)
     {
         // Ignore anything bad that happens while logging
     }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Register mapping from Celeritas PrimaryID to Geant4 TrackID. This will take
- * ownership of the G4VUserTrackInformation and unset it in the primary track.
- */
-PrimaryId HitProcessor::register_primary(G4Track& primary)
-{
-    auto primary_id = id_cast<PrimaryId>(g4_track_data_.size());
-    g4_track_data_.push_back(GeantTrackReconstructionData{primary});
-    return primary_id;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Clear G4Track reconstruction data.
- */
-void HitProcessor::end_event()
-{
-    for (auto& track : tracks_)
-    {
-        // Clear the user information to prevent double deletion
-        // g4_track_data_ owns the track user info
-        track->SetUserInformation(nullptr);
-    }
-    g4_track_data_.clear();
 }
 
 //---------------------------------------------------------------------------//
@@ -423,11 +350,16 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
     }
 #undef HP_SET
 
-    if (!tracks_.empty())
+    if (G4Track* g4track = !out.particle.empty()
+                               ? track_processor_.get_track(out.particle[i])
+                               : nullptr)
     {
-        // Set the track particle type
-        CELER_ASSERT(!out.particle.empty());
-        this->update_track(out, i);
+        if (PrimaryId celeritas_primary_id
+            = !out.primary_id.empty() ? out.primary_id[i] : PrimaryId{})
+        {
+            track_processor_.restore_track(celeritas_primary_id, *g4track);
+        }
+        this->update_track(*g4track);
     }
 
     if (step_post_status_)
@@ -448,25 +380,14 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
  *
  * This is a bit like \c G4Step::UpdateTrack .
  */
-void HitProcessor::update_track(DetectorStepOutput const& out, size_type i) const
+void HitProcessor::update_track(G4Track& track) const
 {
-    ParticleId id = out.particle[i];
-    CELER_EXPECT(id < tracks_.size());
-    G4Track& track = *tracks_[id.unchecked_get()];
     step_->SetTrack(&track);
 
     // Copy data from step to track
     track.SetStepLength(step_->GetStepLength());
 
     G4ParticleDefinition const& pd = *track.GetParticleDefinition();
-
-    if (!out.primary_id.empty())
-    {
-        PrimaryId celeritas_primary_id = out.primary_id[i];
-        CELER_ASSERT(celeritas_primary_id < g4_track_data_.size());
-        g4_track_data_[celeritas_primary_id.unchecked_get()].restore_track(
-            track);
-    }
 
     for (G4StepPoint* p : step_points_)
     {

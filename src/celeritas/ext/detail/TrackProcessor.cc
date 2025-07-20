@@ -1,0 +1,146 @@
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file celeritas/ext/detail/TrackProcessor.cc
+//---------------------------------------------------------------------------//
+#include "TrackProcessor.hh"
+
+#include <G4DynamicParticle.hh>
+#include <G4ParticleDefinition.hh>
+#include <G4Step.hh>
+#include <G4ThreeVector.hh>
+#include <G4Track.hh>
+#include <G4VProcess.hh>
+#include <G4VUserTrackInformation.hh>
+
+#include "corecel/Assert.hh"
+#include "celeritas/Types.hh"
+
+namespace celeritas
+{
+namespace detail
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Restore the G4Track from the reconstruction data. Takes ownership of the
+ * user information by unsetting it in the original track.
+ */
+TrackProcessor::GeantTrackReconstructionData::GeantTrackReconstructionData(
+    G4Track& track)
+    : track_id_{track.GetTrackID()}
+    , user_info_{track.GetUserInformation()}
+    , creator_process_{track.GetCreatorProcess()}
+{
+    CELER_EXPECT(*this);
+    // Clear user information so that it doesn't get deleted with the G4Track
+    track.SetUserInformation(nullptr);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Restore the G4Track from the reconstruction data. The restored track does
+ * not have ownership of the user information, user must take care to reset it
+ * before deletion of the track.
+ */
+void TrackProcessor::GeantTrackReconstructionData::restore_track(
+    G4Track& track) const
+{
+    CELER_EXPECT(*this);
+    track.SetTrackID(track_id_);
+    track.SetUserInformation(user_info_.get());
+    track.SetCreatorProcess(creator_process_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with particle definitions for track reconstruction.
+ */
+TrackProcessor::TrackProcessor(VecParticle const& particles)
+{
+    // Create track for each particle type
+    for (G4ParticleDefinition const* pd : particles)
+    {
+        CELER_ASSERT(pd);
+        auto track = std::make_unique<G4Track>(
+            new G4DynamicParticle(pd, G4ThreeVector()), 0.0, G4ThreeVector());
+        track->SetTrackID(0);
+        track->SetParentID(0);
+        tracks_.emplace_back(std::move(track));
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Unset the user information for all tracks
+ */
+TrackProcessor::~TrackProcessor()
+{
+    this->end_event();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Clear G4Track reconstruction data.
+ */
+void TrackProcessor::end_event()
+{
+    for (auto& track : tracks_)
+    {
+        // Clear the user information to prevent double deletion
+        // TrackProcessor owns the track user info
+        track->SetUserInformation(nullptr);
+    }
+    g4_track_data_.clear();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Register mapping from Celeritas PrimaryID to Geant4 TrackID. This will take
+ * ownership of the G4VUserTrackInformation and unset it in the primary track.
+ */
+PrimaryId TrackProcessor::register_primary(G4Track& primary)
+{
+    auto primary_id = id_cast<PrimaryId>(g4_track_data_.size());
+    g4_track_data_.push_back(GeantTrackReconstructionData{primary});
+    return primary_id;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Restore the G4Track from the reconstruction data. The restored track does
+ * not have ownership of the user information, user must take care to reset it
+ * before deletion of the track.
+ */
+void TrackProcessor::restore_track(PrimaryId primary_id, G4Track& track) const
+{
+    CELER_EXPECT(primary_id < g4_track_data_.size());
+    g4_track_data_[primary_id.unchecked_get()].restore_track(track);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set step for all tracks.
+ */
+void TrackProcessor::set_step_for_tracks(G4Step* step)
+{
+    for (auto const& track : tracks_)
+    {
+        track->SetStep(step);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get track for particle ID.
+ */
+G4Track* TrackProcessor::get_track(ParticleId particle_id) const
+{
+    return particle_id.unchecked_get() >= tracks_.size()
+               ? nullptr
+               : tracks_[particle_id.unchecked_get()].get();
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace detail
+}  // namespace celeritas
