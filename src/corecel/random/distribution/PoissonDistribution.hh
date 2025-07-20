@@ -23,7 +23,8 @@ namespace celeritas
  * Sample from a Poisson distribution.
  *
  * The Poisson distribution describes the probability of \f$ k \f$ events
- * occuring in a fixed interval given a mean rate of occurance \f$ \lambda \f$
+ * occurring in a fixed interval given a mean rate of occurrence \f$ \lambda
+ \f$
  * and has the PMF:
  * \f[
    f(k; \lambda) = \frac{\lambda^k e^{-\lambda}}{k!} \:.

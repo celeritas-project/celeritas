@@ -29,7 +29,7 @@ Commands
       Link test executables to these library.
 
     ``ADD_DEPENDENCIES``
-      Require the listed depenencies to be built before the tests.
+      Require the listed dependencies to be built before the tests.
 
     ``PREFIX``
       Add the given prefix to the constructed test name.
@@ -89,7 +89,7 @@ Add a CUDA/HIP/C++ GoogleTest test::
     ``SUFFIX``
       Add this suffix to the target and test name.
 
-    ``ENVRIONMENT``
+    ``ENVIRONMENT``
       Set the given environment variables when the test is run.
 
     ``FILTER``

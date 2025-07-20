@@ -131,7 +131,7 @@ PhysicsParams::PhysicsParams(Input inp)
         inp.action_registry->insert(integral_action);
         integral_rejection_action_ = std::move(integral_action);
 
-        // Emit models for associated proceses
+        // Emit models for associated processes
         models_ = this->build_models(inp.action_registry);
 
         // Place "failure" *after* all the model IDs

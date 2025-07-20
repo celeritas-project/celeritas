@@ -96,7 +96,7 @@ struct UrbanMscParameters
  * UrbanMsc material data (see UrbanMscParams::calc_material_data) is a set of
  * precalculated material dependent parameters used in sampling the angular
  * distribution of MSC, \f$ \cos\theta \f$, and in the step limiter. The
- * coeffient vectors are used in polynomial evaluation.
+ * coefficient vectors are used in polynomial evaluation.
  */
 struct UrbanMscMaterialData
 {

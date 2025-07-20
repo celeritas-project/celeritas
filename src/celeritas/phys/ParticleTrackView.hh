@@ -28,7 +28,7 @@ namespace celeritas
  * anything else that needs to access particle properties. Assume that all
  * these functions are expensive: when using them as accessors, locally store
  * the results rather than calling the function repeatedly. If any of the
- * calculations prove to be hot spots we will experiment with cacheing some of
+ * calculations prove to be hot spots we will experiment with caching some of
  * the variables.
  */
 class ParticleTrackView
@@ -360,7 +360,7 @@ CELER_FUNCTION auto ParticleTrackView::speed() const -> Speed
  * \f[
   E = \gamma mc^2 = K + mc^2
   \f]
- * which we ues here since \em K and \em m are the primary stored quantities of
+ * which we use here since \em K and \em m are the primary stored quantities of
  * the particles:
  * \f[
   \gamma = 1 + \frac{K}{mc^2}

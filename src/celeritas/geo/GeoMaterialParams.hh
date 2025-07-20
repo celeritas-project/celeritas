@@ -27,7 +27,7 @@ struct ImportData;
 /*!
  * Map a track's geometry state to a material ID.
  *
- * For the forseeable future this class should just be a vector of
+ * For the foreseeable future this class should just be a vector of
  * PhysicsMaterialIds, one per volume.
  *
  * The constructor takes an array of material IDs for every volume. Missing

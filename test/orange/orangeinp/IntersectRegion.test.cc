@@ -727,7 +727,7 @@ class GenPrismTest : public IntersectRegionTest
 
 TEST_F(GenPrismTest, construct)
 {
-    // Validate contruction parameters
+    // Validate construction parameters
     EXPECT_THROW(GenPrism(-3,
                           {{-1, -1}, {-1, 1}, {1, 1}, {1, -1}},
                           {{-2, -2}, {-2, 2}, {2, 2}, {2, -2}}),
@@ -1773,7 +1773,7 @@ TEST_F(InvoluteTest, two_ccw)
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
 }
 
-// Clockwise varient of previous
+// Clockwise variant of previous
 TEST_F(InvoluteTest, two_cw)
 {
     {

@@ -46,7 +46,7 @@ if(NOT DEFINED CELERITAS_USE_VecGeom)
 endif()
 
 if(NOT (CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA))
-  # Forward all arguments direcly to CMake builtins
+  # Forward all arguments directly to CMake builtins
   macro(celeritas_add_library)
     add_library(${ARGV})
   endmacro()

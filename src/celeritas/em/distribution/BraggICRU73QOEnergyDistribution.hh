@@ -57,7 +57,7 @@ class BraggICRU73QOEnergyDistribution
   private:
     //// DATA ////
 
-    // Incident partcle mass
+    // Incident particle mass
     real_type inc_mass_;
     // Square of fractional speed of light for incident particle
     real_type beta_sq_;

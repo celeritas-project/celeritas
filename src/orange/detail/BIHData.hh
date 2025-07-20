@@ -54,7 +54,7 @@ struct BIHInnerNode
     };
 
     BIHNodeId parent;  //!< Parent node ID
-    Axis axis;  //!< Axis that the partition is peformed on
+    Axis axis;  //!< Axis that the partition is performed on
     EnumArray<Side, Edge> edges;  //!< Left/right edges
 
     explicit CELER_FUNCTION operator bool() const

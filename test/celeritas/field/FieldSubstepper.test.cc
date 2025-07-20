@@ -346,7 +346,7 @@ TEST_F(RevolutionFieldSubstepperTest, advance)
     real_type circumference = 2 * constants::pi * test_params.radius;
     real_type hstep = circumference / test_params.nsteps;
 
-    // Initial state and the epected state after revolutions
+    // Initial state and the expected state after revolutions
     OdeState y;
     y.pos = {test_params.radius, 0, 0};
     y.mom = this->calc_momentum(MevEnergy{10.9181415106}, {0, 0.96, 0.28});
@@ -388,7 +388,7 @@ TEST_F(RevolutionFieldSubstepperTest, accurate_advance)
     real_type circumference = 2 * constants::pi * test_params.radius;
     real_type hstep = circumference / test_params.nsteps;
 
-    // Initial state and the epected state after revolutions
+    // Initial state and the expected state after revolutions
     OdeState y;
     y.pos = {test_params.radius, 0, 0};
     y.mom = this->calc_momentum(MevEnergy{10.9181415106}, {0, 0.96, 0.28});

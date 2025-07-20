@@ -245,7 +245,7 @@ if(CELERITAS_USE_ROOT)
   # Use directory includes because ROOT has trouble with build/install
   # interface dependencies propagated through corecel.
   # This is safe here as it is only adding project-local paths that are
-  # identical to those set in corecel's usage requirments.
+  # identical to those set in corecel's usage requirements.
   include_directories(
     "${PROJECT_SOURCE_DIR}/src"
     "${CELERITAS_HEADER_CONFIG_DIRECTORY}"

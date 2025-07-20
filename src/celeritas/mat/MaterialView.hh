@@ -21,7 +21,7 @@ namespace celeritas
  *
  * A material is a combination of nuclides/elements at a particular state (e.g.
  * density, temperature). The proportions and identities of a material's
- * constitutents are encoded in the \c elements accessor, where each index of
+ * constituents are encoded in the \c elements accessor, where each index of
  * the returned span corresponds to an \c ElementComponentId for this material.
  * The \c get_element_density and \c element_view helper functions can be used
  * to calculate elemental densities and properties.

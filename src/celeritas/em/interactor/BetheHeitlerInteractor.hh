@@ -83,7 +83,7 @@ class BetheHeitlerInteractor
     Real3 const& inc_direction_;
     // Allocate space for a secondary particle
     StackAllocator<Secondary>& allocate_;
-    // Whether LPM supression is applied
+    // Whether LPM suppression is applied
     bool const enable_lpm_;
     // Used to calculate the LPM suppression functions
     LPMCalculator calc_lpm_functions_;

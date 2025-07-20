@@ -42,7 +42,7 @@ class ParamsDataInterface
     // Protected destructor prevents deletion of pointer-to-interface
     ~ParamsDataInterface() = default;
 
-    // Prohibit copy/move beween interface classes
+    // Prohibit copy/move between interface classes
     ParamsDataInterface() = default;
     CELER_DEFAULT_COPY_MOVE(ParamsDataInterface);
 };

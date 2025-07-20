@@ -123,7 +123,7 @@ void Stepper<M>::warm_up()
 /*!
  * Transport already-initialized states.
  *
- * A single transport step is simply a loop over a toplogically sorted DAG
+ * A single transport step is simply a loop over a topologically sorted DAG
  * of kernels.
  */
 template<MemSpace M>

@@ -70,7 +70,7 @@ class BetheBlochEnergyDistribution
     CELER_FUNCTION Energy max_secondary_energy() const { return max_energy_; }
 
   private:
-    // Incident partcle mass
+    // Incident particle mass
     real_type inc_mass_;
     // Square of fractional speed of light for incident particle
     real_type beta_sq_;

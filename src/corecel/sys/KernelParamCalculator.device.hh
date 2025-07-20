@@ -116,7 +116,7 @@ class KernelParamCalculator
     using dim_type = unsigned int;
     //!@}
 
-    //! Parameters needed for a CUDA lauch call
+    //! Parameters needed for a CUDA launch call
     struct LaunchParams
     {
         dim3 blocks_per_grid;  //!< Number of blocks for kernel grid

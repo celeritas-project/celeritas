@@ -72,7 +72,7 @@ class LPMCalculator
                                         bool dielectric_suppression,
                                         units::MevEnergy gamma_energy);
 
-    // Compute the LPM supression functions
+    // Compute the LPM suppression functions
     inline CELER_FUNCTION LPMFunctions operator()(real_type epsilon);
 
   private:

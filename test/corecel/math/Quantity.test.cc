@@ -91,7 +91,7 @@ TEST(QuantityTest, zeros)
     zero_turn = zero_quantity();
     EXPECT_EQ(0, value_as<Revolution>(zero_turn));
 
-    // Check int/untyped commparisons
+    // Check int/untyped comparisons
     EXPECT_GT(Dozen{1}, zero_quantity());
     EXPECT_LT(Dozen{1}, max_quantity());
 }

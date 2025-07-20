@@ -94,7 +94,7 @@ void InitializeTracksAction::step_impl(CoreParams const& core_params,
  * Launch a (host) kernel to initialize tracks.
  *
  * The thread index here corresponds to initializer indices, not track slots
- * (or indicies into the track slot indirection array).
+ * (or indices into the track slot indirection array).
  */
 void InitializeTracksAction::step_impl(CoreParams const& core_params,
                                        CoreStateHost& core_state,

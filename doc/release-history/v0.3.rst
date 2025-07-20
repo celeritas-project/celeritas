@@ -266,7 +266,7 @@ Documentation improvements
 * Fix documentation links and update celeritas logo *(@sethrj, #686)*
 * Fix KernelContext Exception test for cases where ThreadId != TrackSlotId *(@esseivaju, #695)*
 * Improve documentation failure mode when sphinx is unavailable *(@sethrj, #712)*
-* Reenable and patch up HIP tests *(@sethrj, #711)*
+* Re-enable and patch up HIP tests *(@sethrj, #711)*
 * Add documentation about deprecation *(@sethrj, #723)*
 * Add tests for AlongStepAction with RZMapField *(@whokion, #747)*
 * Improve documentation and action descriptions *(@sethrj, #749)*

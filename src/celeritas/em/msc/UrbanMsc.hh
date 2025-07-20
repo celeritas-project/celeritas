@@ -275,7 +275,7 @@ CELER_FUNCTION void UrbanMsc::apply_step(CoreTrackView const& track)
     }
     if (msc_result.action == MscInteraction::Action::displaced)
     {
-        // Displacment during a boundary crossing is *not* OK
+        // Displacement during a boundary crossing is *not* OK
         CELER_ASSERT(!geo.is_on_boundary());
         geo.move_internal(geo.pos() + msc_result.displacement);
     }

@@ -1117,7 +1117,7 @@ void InfPolarWedge::output(JsonPimpl* j) const
 // INVOLUTE
 //---------------------------------------------------------------------------//
 /*!
- * Construct with prarameters and half height.
+ * Construct with parameters and half height.
  */
 Involute::Involute(Real3 const& radii,
                    Real2 const& displacement,
@@ -1135,7 +1135,7 @@ Involute::Involute(Real3 const& radii,
                    << " is not greater than inner cyl radius " << radii_[1]);
 
     CELER_VALIDATE(a_[1] > a_[0],
-                   << "nonpositive delta displacment: " << a_[1] - a_[0]);
+                   << "nonpositive delta displacement: " << a_[1] - a_[0]);
     CELER_VALIDATE(hh_ > 0, << "nonpositive half-height: " << hh_);
 
     for (auto i : range(2))
@@ -1226,15 +1226,15 @@ Parallelepiped::Parallelepiped(Real3 const& half_projs,
 void Parallelepiped::build(IntersectSurfaceBuilder& insert_surface) const
 {
     // Cache trigonometric values
-    real_type sinth, costh, sinphi, cosphi, sinal, cosal;
-    sincos(theta_, &sinth, &costh);
-    sincos(phi_, &sinphi, &cosphi);
-    sincos(alpha_, &sinal, &cosal);
+    real_type sin_th, cos_th, sin_phi, cos_phi, sin_al, cos_al;
+    sincos(theta_, &sin_th, &cos_th);
+    sincos(phi_, &sin_phi, &cos_phi);
+    sincos(alpha_, &sin_al, &cos_al);
 
     // Base vectors
     auto a = hpr_[X] * Real3{1, 0, 0};
-    auto b = hpr_[Y] * Real3{sinal, cosal, 0};
-    auto c = hpr_[Z] * Real3{sinth * cosphi, sinth * sinphi, costh};
+    auto b = hpr_[Y] * Real3{sin_al, cos_al, 0};
+    auto c = hpr_[Z] * Real3{sin_th * cos_phi, sin_th * sin_phi, cos_th};
 
     // Position the planes
     auto xnorm = make_unit_vector(cross_product(b, c));

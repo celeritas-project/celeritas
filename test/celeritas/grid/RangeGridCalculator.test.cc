@@ -19,7 +19,8 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Tabulated energy loss in steel as a funtion of energy from 0.1 keV--100 TeV.
+ * Tabulated energy loss in steel as a function of energy from 0.1 keV--100
+ * TeV.
  *
  * These values and the expected range are the imported values from Geant4 for
  * the electron ionization process taken from four-steel-slabs.root.

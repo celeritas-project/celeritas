@@ -269,7 +269,7 @@ TEST(PolygonUtilsTest, filter_collinear_points_pathological)
     EXPECT_EQ(Orientation::collinear,
               soft_ori(points[0], points[1], points[2]));
 
-    // Check that filtering provies more than zero points, in this case 7
+    // Check that filtering provides more than zero points, in this case 7
     auto filtered_points = filter_collinear_points(points, tol);
     EXPECT_EQ(7, filtered_points.size());
 }

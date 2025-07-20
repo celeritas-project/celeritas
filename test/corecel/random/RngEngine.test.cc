@@ -44,7 +44,7 @@ class SequenceEngineTest : public Test
          * rounded up to 2**-64, which results in a value of 5e-20 for
          * double.
          *
-         * Also note that the follwing two values are ommited because they're
+         * Also note that the following two values are omitted because they're
          * accurate to only 1e-10 for doubles -- so our "promise" of
          * reproducibility isn't quite right.
          * \code

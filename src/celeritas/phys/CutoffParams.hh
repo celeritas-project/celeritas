@@ -49,7 +49,7 @@ struct ImportData;
  *
  * Some processes (e.g. photoelectric effect, decay) can produce secondaries
  * below the production threshold, while others (e.g. bremsstrahlung,
- * ionization) use the production cut as their instrinsic limit. By default all
+ * ionization) use the production cut as their intrinsic limit. By default all
  * of these secondaries are transported, even if their energy is below the
  * threshold. If the \c apply_post_interaction option is enabled, any secondary
  * photon, electron, or positron with energy below the cutoff will be killed

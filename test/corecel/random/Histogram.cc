@@ -16,7 +16,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Contruct with the number of bins and domain.
+ * Construct with the number of bins and domain.
  */
 Histogram::Histogram(size_type num_bins, Dbl2 domain)
     : offset_{domain[0]}
@@ -29,7 +29,7 @@ Histogram::Histogram(size_type num_bins, Dbl2 domain)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the result as a probability desnity.
+ * Get the result as a probability density.
  */
 auto Histogram::calc_density() const -> VecDbl
 {

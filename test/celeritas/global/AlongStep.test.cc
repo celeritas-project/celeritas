@@ -483,7 +483,7 @@ TEST_F(Em3AlongStepTest, msc_nofluct_finegrid)
         // on a finer energy grid the discontinuity in the positron cross
         // section means the cross section could have a *positive* slope just
         // above 10 MeV.
-        SCOPED_TRACE("positron wth MSC cross section near discontinuity");
+        SCOPED_TRACE("positron with MSC cross section near discontinuity");
         inp.particle_id = this->particle()->find(pdg::positron());
         inp.energy = MevEnergy{10.6026777729432};
         inp.position

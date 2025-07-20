@@ -29,7 +29,7 @@ struct CartMapFieldParamsDataBase
     FieldDriverOptions options;
 };
 
-// We need to specialize this for evey combination of ownership and memory
+// We need to specialize this for every combination of ownership and memory
 // space to handle covfie move, ownership semantics.
 template<Ownership W, MemSpace M>
 struct CartMapFieldParamsData;

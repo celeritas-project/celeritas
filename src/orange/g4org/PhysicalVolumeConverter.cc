@@ -234,7 +234,7 @@ void PhysicalVolumeConverter::Builder::place_child(
             place_multiple(ReplicaUpdater{});
             break;
         case EVolume::kParameterised:
-            // Place each paramterized instance of the daughter
+            // Place each parameterized instance of the daughter
             CELER_ASSERT(g4pv.GetParameterisation());
             place_multiple(ParamUpdater{g4pv.GetParameterisation()});
             break;

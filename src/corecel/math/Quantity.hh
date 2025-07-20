@@ -234,7 +234,7 @@ CELER_CONSTEXPR_FUNCTION auto zero_quantity() noexcept
 
 //---------------------------------------------------------------------------//
 /*!
- * Get a typeless quantitity greater than any other numeric quantity.
+ * Get a typeless quantity greater than any other numeric quantity.
  */
 CELER_CONSTEXPR_FUNCTION auto max_quantity() noexcept
 {
@@ -243,7 +243,7 @@ CELER_CONSTEXPR_FUNCTION auto max_quantity() noexcept
 
 //---------------------------------------------------------------------------//
 /*!
- * Get a quantitity less than any other numeric quantity.
+ * Get a quantity less than any other numeric quantity.
  */
 CELER_CONSTEXPR_FUNCTION auto neg_max_quantity() noexcept
 {
