@@ -83,7 +83,7 @@ void ExtendFromSecondariesAction::step_impl(CoreParams const& core_params,
      *   nearest power of 2)?
      * - Update the collection references for track sim
      * - Update the *copies* of that reference (?) like in track state
-     * - Copy to device to update the on-device refrences (state.ptr)
+     * - Copy to device to update the on-device references (state.ptr)
      */
     counters.num_initializers += counters.num_secondaries;
     CELER_VALIDATE(

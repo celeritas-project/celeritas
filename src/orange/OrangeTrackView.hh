@@ -178,10 +178,10 @@ class OrangeTrackView
     // The next step distance, as stored on the state
     inline CELER_FUNCTION void next_step(real_type dist);
 
-    // The next surface to be encounted
+    // The next surface to be encountered
     inline CELER_FUNCTION void next_surf(detail::OnLocalSurface const&);
 
-    // The level of the next surface to be encounted
+    // The level of the next surface to be encountered
     inline CELER_FUNCTION void next_surface_level(LevelId);
 
     //// PRIVATE STATE ACCESSORS ////
@@ -201,10 +201,10 @@ class OrangeTrackView
     // The next step distance, as stored on the state
     inline CELER_FUNCTION real_type const& next_step() const;
 
-    // The next surface to be encounted
+    // The next surface to be encountered
     inline CELER_FUNCTION detail::OnLocalSurface next_surf() const;
 
-    // The level of the next surface to be encounted
+    // The level of the next surface to be encountered
     inline CELER_FUNCTION LevelId const& next_surface_level() const;
 
     //// HELPER FUNCTIONS ////
@@ -931,7 +931,7 @@ OrangeTrackView::next_surf(detail::OnLocalSurface const& s)
 }
 
 /*!
- * The level of the next surface to be encounted.
+ * The level of the next surface to be encountered.
  */
 CELER_FORCEINLINE_FUNCTION void OrangeTrackView::next_surface_level(LevelId lev)
 {
@@ -991,7 +991,7 @@ OrangeTrackView::next_surf() const
 }
 
 /*!
- * The level of the next surface to be encounted.
+ * The level of the next surface to be encountered.
  */
 CELER_FORCEINLINE_FUNCTION LevelId const&
 OrangeTrackView::next_surface_level() const
@@ -1017,7 +1017,7 @@ OrangeTrackView::find_next_step_impl(detail::Intersection isect)
     LevelId min_level{0};
 
     // Find the nearest intersection from level 0 to current level
-    // inclusive, prefering the shallowest level (i.e., lowest univ_id)
+    // inclusive, preferring the shallowest level (i.e., lowest univ_id)
     for (auto levelid : range(LevelId{1}, this->level() + 1))
     {
         auto univ_id = this->make_lsa(levelid).universe();

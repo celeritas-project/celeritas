@@ -54,7 +54,7 @@ __global__ void m_test_kernel(unsigned int const size,
     rad_len[tid.get()]
         = native_value_to<units::CmLength>(mat.radiation_length()).value();
 
-    // Fill elements with finctional cross sections
+    // Fill elements with functional cross sections
     Span<real_type> scratch = mat_track.element_scratch();
 
     for (auto ec : range(mat.num_elements()))

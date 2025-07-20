@@ -67,7 +67,7 @@ ParticleParams::from_import(ImportData const& data)
     // (more likely to be created by various processes, so more "light
     // particle" tracks) together at the beginning of the list will make it
     // easier to human-read the particles while debugging, and having them
-    // at adjacent memory locations could improve cacheing.
+    // at adjacent memory locations could improve caching.
     auto to_particle_key = [](auto const& inp) {
         int pdg = inp.pdg_code.get();
         return std::make_tuple(inp.mass, std::abs(pdg), pdg < 0);

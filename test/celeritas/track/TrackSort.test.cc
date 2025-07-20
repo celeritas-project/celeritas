@@ -287,7 +287,7 @@ TEST_F(TestTrackPartitionEm3Stepper, host_is_partitioned)
             });
     };
 
-    // we partition at the start of the step so we need to explictly partition
+    // we partition at the start of the step so we need to explicitly partition
     // again after a step before checking
     for (auto i = 0; i < 10; ++i)
     {
@@ -331,7 +331,7 @@ TEST_F(TestTrackPartitionEm3Stepper,
                        != TrackStatus::inactive;
             });
     };
-    // we partition at the start of the step so we need to explictly partition
+    // we partition at the start of the step so we need to explicitly partition
     // again after a step before checking
     for (auto i = 0; i < 10; ++i)
     {

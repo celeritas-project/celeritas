@@ -116,7 +116,7 @@ std::ostream& operator<<(std::ostream&, Environment const&);
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Get an environment variable from current or system enviroments.
+ * Get an environment variable from current or system environments.
  */
 auto Environment::operator[](key_type const& env_var) -> mapped_type const&
 {

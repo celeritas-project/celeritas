@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 #
-# Intelligently set up and run CMake using presets and user-defiend environment
+# Intelligently set up and run CMake using presets and user-defined environment
 # scripts that live in `scripts/cmake-presets`. This is intended primarily for
 # developers.
 #

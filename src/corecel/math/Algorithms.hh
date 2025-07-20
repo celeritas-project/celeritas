@@ -663,7 +663,9 @@ CELER_CONSTEXPR_FUNCTION T diffsq(T a, T b)
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the Euclidian modulus of two numbers.
+ * Calculate the Euclidean modulus of two numbers.
+ * \arg num numerator
+ * \arg denom denominator
  *
  * If both numbers are positive, this should be the same as fmod. If the
  * sign of the remainder and denominator don't match, the remainder will be
@@ -677,9 +679,9 @@ CELER_CONSTEXPR_FUNCTION T diffsq(T a, T b)
    \endcode
  */
 template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
-CELER_CONSTEXPR_FUNCTION T eumod(T numer, T denom)
+CELER_CONSTEXPR_FUNCTION T eumod(T num, T denom)
 {
-    T r = std::fmod(numer, denom);
+    T r = std::fmod(num, denom);
     if (r < 0)
     {
         if (denom >= 0)
