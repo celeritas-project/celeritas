@@ -88,6 +88,36 @@ get_step_status(DetectorStepOutput const& out, size_type step_index)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Restore the G4Track from the reconstruction data. Takes ownership of the
+ * user information by unsetting it in the original track.
+ */
+HitProcessor::GeantTrackReconstructionData::GeantTrackReconstructionData(
+    G4Track& track)
+    : track_id_{track.GetTrackID()}
+    , user_info_{track.GetUserInformation()}
+    , creator_process_{track.GetCreatorProcess()}
+{
+    CELER_EXPECT(*this);
+    // Clear user information so that it doesn't get deleted with the G4Track
+    track.SetUserInformation(nullptr);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Restore the G4Track from the reconstruction data. The restored track does
+ * not have ownership of the user information, user must take care to reset it
+ * before deletion of the track.
+ */
+void HitProcessor::GeantTrackReconstructionData::restore_track(G4Track& track) const
+{
+    CELER_EXPECT(*this);
+    track.SetTrackID(track_id_);
+    track.SetUserInformation(user_info_.get());
+    track.SetCreatorProcess(creator_process_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct local navigator and step data.
  */
 HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
@@ -225,6 +255,12 @@ HitProcessor::~HitProcessor()
     try
     {
         CELER_LOG(debug) << "Deallocating hit processor";
+        for (auto& track : tracks_)
+        {
+            // Check that the track user information is unset
+            // g4_track_data_ owns the track user info
+            CELER_ASSERT(!track->GetUserInformation());
+        }
     }
     catch (...)  // NOLINT(bugprone-empty-catch)
     {
@@ -234,22 +270,29 @@ HitProcessor::~HitProcessor()
 
 //---------------------------------------------------------------------------//
 /*!
- * Register mapping from Celeritas PrimaryID to Geant4 TrackID.
+ * Register mapping from Celeritas PrimaryID to Geant4 TrackID. This will take
+ * ownership of the G4VUserTrackInformation and unset it in the primary track.
  */
-PrimaryId HitProcessor::register_primary(G4Track const& primary)
+PrimaryId HitProcessor::register_primary(G4Track& primary)
 {
-    auto primary_id = id_cast<PrimaryId>(celeritas_to_g4_track_id_.size());
-    celeritas_to_g4_track_id_.push_back(primary.GetTrackID());
+    auto primary_id = id_cast<PrimaryId>(g4_track_data_.size());
+    g4_track_data_.push_back(GeantTrackReconstructionData{primary});
     return primary_id;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Clear PrimaryID mapping (called at start of new event).
+ * Clear G4Track reconstruction data.
  */
-void HitProcessor::begin_event()
+void HitProcessor::end_event()
 {
-    celeritas_to_g4_track_id_.clear();
+    for (auto& track : tracks_)
+    {
+        // Clear the user information to prevent double deletion
+        // g4_track_data_ owns the track user info
+        track->SetUserInformation(nullptr);
+    }
+    g4_track_data_.clear();
 }
 
 //---------------------------------------------------------------------------//
@@ -420,9 +463,9 @@ void HitProcessor::update_track(DetectorStepOutput const& out, size_type i) cons
     if (!out.primary_id.empty())
     {
         PrimaryId celeritas_primary_id = out.primary_id[i];
-        CELER_ASSERT(celeritas_primary_id < celeritas_to_g4_track_id_.size());
-        track.SetTrackID(
-            celeritas_to_g4_track_id_[celeritas_primary_id.unchecked_get()]);
+        CELER_ASSERT(celeritas_primary_id < g4_track_data_.size());
+        g4_track_data_[celeritas_primary_id.unchecked_get()].restore_track(
+            track);
     }
 
     for (G4StepPoint* p : step_points_)
