@@ -52,14 +52,11 @@ class TrackProcessor
     // Register mapping from Celeritas PrimaryID to Geant4 TrackID
     [[nodiscard]] PrimaryId register_primary(G4Track&);
 
-    // Restore track information for a given primary ID
-    void restore_track(PrimaryId, G4Track&) const;
+    // Restore track information for given primary and particle IDs
+    G4Track& restore_track(ParticleId, PrimaryId) const;
 
     // Set step for all tracks
     void set_step_for_tracks(G4Step*);
-
-    // Get track for particle ID
-    G4Track* get_track(ParticleId) const;
 
   private:
     //! Data needed to reconstruct a G4Track from Celeritas transport

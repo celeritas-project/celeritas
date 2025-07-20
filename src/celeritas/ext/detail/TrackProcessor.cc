@@ -108,14 +108,23 @@ PrimaryId TrackProcessor::register_primary(G4Track& primary)
 
 //---------------------------------------------------------------------------//
 /*!
- * Restore the G4Track from the reconstruction data. The restored track does
- * not have ownership of the user information, user must take care to reset it
- * before deletion of the track.
+ * Restore the G4Track from the reconstruction data. Returns the track for the
+ * given particle ID with restored primary track information if a valid
+ * PrimaryId is provided.
  */
-void TrackProcessor::restore_track(PrimaryId primary_id, G4Track& track) const
+G4Track& TrackProcessor::restore_track(ParticleId particle_id,
+                                       PrimaryId primary_id) const
 {
-    CELER_EXPECT(primary_id < g4_track_data_.size());
-    g4_track_data_[primary_id.unchecked_get()].restore_track(track);
+    CELER_EXPECT(particle_id.unchecked_get() < tracks_.size());
+
+    G4Track& track = *tracks_[particle_id.unchecked_get()];
+
+    if (primary_id)
+    {
+        CELER_ASSERT(primary_id.unchecked_get() < g4_track_data_.size());
+        g4_track_data_[primary_id.unchecked_get()].restore_track(track);
+    }
+    return track;
 }
 
 //---------------------------------------------------------------------------//
@@ -128,17 +137,6 @@ void TrackProcessor::set_step_for_tracks(G4Step* step)
     {
         track->SetStep(step);
     }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get track for particle ID.
- */
-G4Track* TrackProcessor::get_track(ParticleId particle_id) const
-{
-    return particle_id.unchecked_get() >= tracks_.size()
-               ? nullptr
-               : tracks_[particle_id.unchecked_get()].get();
 }
 
 //---------------------------------------------------------------------------//

@@ -350,16 +350,12 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
     }
 #undef HP_SET
 
-    if (G4Track* g4track = !out.particle.empty()
-                               ? track_processor_.get_track(out.particle[i])
-                               : nullptr)
+    if (!out.particle.empty())
     {
-        if (PrimaryId celeritas_primary_id
-            = !out.primary_id.empty() ? out.primary_id[i] : PrimaryId{})
-        {
-            track_processor_.restore_track(celeritas_primary_id, *g4track);
-        }
-        this->update_track(*g4track);
+        G4Track& g4track = track_processor_.restore_track(
+            out.particle[i],
+            !out.primary_id.empty() ? out.primary_id[i] : PrimaryId{});
+        this->update_track(g4track);
     }
 
     if (step_post_status_)
