@@ -91,9 +91,7 @@ SpecialTrapezoid::SpecialTrapezoid(ZSegment&& bot, ZSegment&& top)
     constexpr auto left = Bound::lo;
     constexpr auto right = Bound::hi;
 
-    CELER_VALIDATE(bot_.z < top_.z,
-                   << "bottom segment must have a lower z than the top "
-                      "segment");
+    CELER_EXPECT(bot_.z < top_.z);
 
     // Calculate abs_tol_ based on extents
     auto r_min = std::min(bot_.r[left], top_.r[left]);
@@ -108,26 +106,22 @@ SpecialTrapezoid::SpecialTrapezoid(ZSegment&& bot, ZSegment&& top)
     bool has_pointy_bot = soft_close(bot_.r[left], bot_.r[right]);
     bool has_pointy_top = soft_close(top_.r[left], top_.r[right]);
 
-    CELER_VALIDATE(!(has_pointy_bot && has_pointy_top),
-                   << "must contain at least 3 distinct points");
+    CELER_EXPECT(!(has_pointy_bot && has_pointy_top));
 
     if (has_pointy_bot)
     {
-        CELER_VALIDATE(top_.r[left] < top_.r[right],
-                       << "r values must appear in increasing order");
+        CELER_EXPECT(top_.r[left] < top_.r[right]);
         variety_ = Variety::pointy_bot;
     }
     else if (has_pointy_top)
     {
-        CELER_VALIDATE(bot_.r[left] < bot_.r[right],
-                       << "r values must appear in increasing order");
+        CELER_EXPECT(bot_.r[left] < bot_.r[right]);
         variety_ = Variety::pointy_top;
     }
     else
     {
-        CELER_VALIDATE(
-            top_.r[left] < top_.r[right] && bot_.r[left] < bot_.r[right],
-            << "r values must appear in increasing order");
+        CELER_EXPECT(top_.r[left] < top_.r[right]
+                     && bot_.r[left] < bot_.r[right]);
         variety_ = Variety::quad;
     }
 }
