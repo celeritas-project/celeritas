@@ -108,16 +108,18 @@ auto enclosed_azi_radians(double start_rad, double stop_rad)
  */
 auto enclosed_polar_radians(double start_rad, double stop_rad)
 {
+    constexpr RealTurn half_turn{0.5};
+
     auto start = native_value_to<RealTurn>(start_rad);
     auto stop = native_value_to<RealTurn>(stop_rad);
     CELER_VALIDATE(start.value() >= 0 || soft_zero(start.value()),
                    << "polar start angle " << start.value()
                    << " [turn] exceeds half a turn");
-    start = min(RealTurn{0.5}, start);
-    CELER_VALIDATE(stop.value() <= 0.5 || soft_equal(stop.value(), 0.5),
-                   << "polar end angle " << stop.value()
-                   << " [turn] exceeds half a turn");
-    stop = min(RealTurn{0.5}, stop);
+    start = min(half_turn, start);
+    CELER_VALIDATE(
+        stop <= half_turn || soft_equal(stop.value(), half_turn.value()),
+        << "polar end angle " << stop.value() << " [turn] exceeds half a turn");
+    stop = min(half_turn, stop);
     return EnclosedPolar{start, stop};
 }
 
@@ -190,8 +192,7 @@ EnclosedPolar enclosed_pol_from(S const& solid)
     -> std::pair<Turn, Turn>
 {
     CELER_EXPECT(axis.z() > 0);
-    CELER_EXPECT(
-        is_soft_unit_vector(Array<double, 3>{axis.x(), axis.y(), axis.z()}));
+    CELER_EXPECT(is_soft_unit_vector(convert_from_geant(axis)));
 
     return {native_value_to<Turn>(std::acos(axis.z())),
             atan2turn<real_type>(axis.y(), axis.x())};
@@ -308,7 +309,8 @@ auto SolidConverter::operator()(arg_type solid_base) -> result_type
 auto SolidConverter::to_sphere(arg_type solid_base) const -> result_type
 {
     double vol = this->calc_capacity(solid_base);
-    double radius = std::cbrt(vol / (4.0 / 3.0 * constants::pi));
+    auto radius
+        = static_cast<real_type>(std::cbrt(vol / (4.0 / 3.0 * constants::pi)));
     return make_shape<Sphere>(solid_base, radius);
 }
 
@@ -478,8 +480,8 @@ auto SolidConverter::ellipticalcone(arg_type solid_base) -> result_type
 
     // Read and scale parameters. Do not scale r_x and r_y because they are
     // unitless slopes within the context of this calculation.
-    auto r_x = solid.GetSemiAxisX();
-    auto r_y = solid.GetSemiAxisY();
+    auto r_x = static_cast<real_type>(solid.GetSemiAxisX());
+    auto r_y = static_cast<real_type>(solid.GetSemiAxisY());
     auto v = scale_(solid.GetZMax());
     auto hh = scale_(solid.GetZTopCut());
 
@@ -631,9 +633,9 @@ auto SolidConverter::polycone(arg_type solid_base) -> result_type
     auto const& solid = dynamic_cast<G4Polycone const&>(solid_base);
     auto const& params = *solid.GetOriginalParameters();
 
-    std::vector<double> zs(params.Num_z_planes);
-    std::vector<double> rmin(zs.size());
-    std::vector<double> rmax(zs.size());
+    std::vector<real_type> zs(params.Num_z_planes);
+    std::vector<real_type> rmin(zs.size());
+    std::vector<real_type> rmax(zs.size());
     for (auto i : range(zs.size()))
     {
         zs[i] = scale_(params.Z_values[i]);
@@ -663,9 +665,9 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
     // Convert from circumradius to apothem
     double const radius_factor = cospi(1 / static_cast<double>(params.numSide));
 
-    std::vector<double> zs(params.Num_z_planes);
-    std::vector<double> rmin(zs.size());
-    std::vector<double> rmax(zs.size());
+    std::vector<real_type> zs(params.Num_z_planes);
+    std::vector<real_type> rmin(zs.size());
+    std::vector<real_type> rmax(zs.size());
     for (auto i : range(zs.size()))
     {
         zs[i] = scale_(params.Z_values[i]);
@@ -900,7 +902,7 @@ auto SolidConverter::make_bool_solids(G4BooleanSolid const& bs)
 //! Calculate the capacity in native celeritas units
 double SolidConverter::calc_capacity(G4VSolid const& g4) const
 {
-    return const_cast<G4VSolid&>(g4).GetCubicVolume() * ipow<3>(scale_(1.0));
+    return const_cast<G4VSolid&>(g4).GetCubicVolume() * ipow<3>(scale_.value());
 }
 
 //---------------------------------------------------------------------------//
