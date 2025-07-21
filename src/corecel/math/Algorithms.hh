@@ -125,9 +125,9 @@ struct Less<void>
 template<class T = void>
 struct Identity
 {
-    CELER_CONSTEXPR_FUNCTION bool operator()(T const& value) const noexcept
+    CELER_CONSTEXPR_FUNCTION const T&& operator()(T const& value) const noexcept
     {
-        return static_cast<bool>(value);
+        return std::forward<T const>(value);
     }
 };
 
@@ -136,9 +136,9 @@ template<>
 struct Identity<void>
 {
     template<class T>
-    CELER_CONSTEXPR_FUNCTION bool operator()(T const& value) const noexcept
+    CELER_CONSTEXPR_FUNCTION const T&& operator()(T const& value) const noexcept
     {
-        return static_cast<bool>(value);
+        return std::forward<T const>(value);
     }
 };
 
