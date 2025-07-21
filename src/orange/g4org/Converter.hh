@@ -90,5 +90,19 @@ class Converter
 };
 
 //---------------------------------------------------------------------------//
+
+#if !CELERITAS_USE_GEANT4
+inline Converter::Converter(Options&&)
+{
+    CELER_DISCARD(opts_);
+}
+
+inline auto Converter::operator()(arg_type) -> result_type
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+#endif
+
+//---------------------------------------------------------------------------//
 }  // namespace g4org
 }  // namespace celeritas
