@@ -15,6 +15,7 @@
 #include <G4VUserTrackInformation.hh>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 
 namespace celeritas
@@ -86,7 +87,15 @@ TrackProcessor::TrackProcessor(VecParticle const& particles)
  */
 TrackProcessor::~TrackProcessor()
 {
-    this->end_event();
+    try
+    {
+        CELER_LOG(debug) << "Deallocating track processor";
+        this->end_event();
+    }
+    catch (...)  // NOLINT(bugprone-empty-catch)
+    {
+        // Ignore anything bad that happens while logging
+    }
 }
 
 //---------------------------------------------------------------------------//

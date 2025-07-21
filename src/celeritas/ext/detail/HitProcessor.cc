@@ -204,20 +204,6 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
 }
 
 //---------------------------------------------------------------------------//
-//! Log on destruction
-HitProcessor::~HitProcessor()
-{
-    try
-    {
-        CELER_LOG(debug) << "Deallocating hit processor";
-    }
-    catch (...)  // NOLINT(bugprone-empty-catch)
-    {
-        // Ignore anything bad that happens while logging
-    }
-}
-
-//---------------------------------------------------------------------------//
 /*!
  * Process detector tallies (CPU).
  */

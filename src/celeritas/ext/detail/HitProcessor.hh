@@ -85,8 +85,7 @@ class HitProcessor
                  StepSelection const& selection,
                  StepPointBool const& locate_touchable);
 
-    // Log on destruction
-    ~HitProcessor();
+    ~HitProcessor() = default;
     CELER_DEFAULT_MOVE_DELETE_COPY(HitProcessor);
 
     // Process CPU-generated hits
