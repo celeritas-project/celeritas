@@ -1207,8 +1207,8 @@ void Prism::build(IntersectSurfaceBuilder& insert_surface) const
 
     // Offset (if user offset is zero) is calculated to put a point at y=0 on
     // the +x axis. An offset of 1 would produce a shape congruent with an
-    // offset of zero, except that every face has an index that's
-    // decremented by 1. We prevent this by using fmod.
+    // offset of zero, except that every face has an index that's decremented
+    // by 1. We prevent this by using fmod.
     real_type const offset
         = std::fmod(orientation_ + real_type{0.5}, real_type{1});
     CELER_ASSERT(offset >= 0 && offset < 1);
