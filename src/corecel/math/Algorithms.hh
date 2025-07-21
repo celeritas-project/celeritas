@@ -147,7 +147,7 @@ struct LogicalTrue<void>
  * Evaluate whether the argument is "false".
  */
 template<class T = void>
-struct LogicalFalse
+struct LogicalNot
 {
     CELER_CONSTEXPR_FUNCTION bool operator()(T const& value) const noexcept
     {
@@ -157,7 +157,7 @@ struct LogicalFalse
 
 //! Specialization with template deduction
 template<>
-struct LogicalFalse<void>
+struct LogicalNot<void>
 {
     template<class T>
     CELER_CONSTEXPR_FUNCTION bool operator()(T const& value) const noexcept

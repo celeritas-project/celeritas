@@ -30,8 +30,7 @@ size_type remove_if_alive(
     StreamId)
 {
     auto* start = vacancies.data().get();
-    auto* stop
-        = std::remove_if(start, start + vacancies.size(), LogicalFalse{});
+    auto* stop = std::remove_if(start, start + vacancies.size(), LogicalNot{});
     return stop - start;
 }
 
