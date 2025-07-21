@@ -16,7 +16,7 @@
 #include <G4VProcess.hh>
 #include <G4VUserTrackInformation.hh>
 
-#include "celeritas/GeantTestBase.hh"
+#include "celeritas/SimpleCmsTestBase.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "celeritas_test.hh"
@@ -52,12 +52,10 @@ class MockProcessPointer
 
 //---------------------------------------------------------------------------//
 
-class TrackProcessorTest : virtual public celeritas::test::GeantTestBase
+class TrackProcessorTest : public ::celeritas::test::SimpleCmsTestBase
 {
   protected:
     using VecParticle = TrackProcessor::VecParticle;
-
-    std::string_view geometry_basename() const override { return "solids"; }
 
     VecParticle make_particles()
     {
