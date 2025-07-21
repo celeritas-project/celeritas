@@ -1,17 +1,20 @@
-<!------------------------------- -*- XML -*- ------------------------------->
-<!-- Copyright Celeritas contributors: see top-level COPYRIGHT file for details -->
-<!-- SPDX-License-Identifier: (Apache-2.0 OR MIT) -->
-<!--------------------------------------------------------------------------->
-<!-- \file ddceler/celertias-dd4hep.xml -->
-<!--------------------------------------------------------------------------->
-
 <?xml version="1.0" encoding="UTF-8"?>
 <lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0"
        xmlns:xs="http://www.w3.org/2001/XMLSchema"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
 
   <info name="CeleritasDD4hep" title="Celeritas DD4hep Geometry" author="Sakib Rahman" url="http://dd4hep.cern.ch" status="development" version="1.0">
-    <comment>Minimal detector geometry with a calorimeter and 2 tracker layers to test the celeritas-dd4hep integration plugin</comment>
+    <comment>
+    ------------------------------- -*- XML -*- ---------------------------------
+    Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+    SPDX-License-Identifier: (Apache-2.0 OR MIT)
+    -----------------------------------------------------------------------------
+    \file ddceler/celertias-dd4hep.xml
+    -----------------------------------------------------------------------------
+    Minimal detector geometry with a calorimeter and 2 tracker layers to test the
+    celeritas-dd4hep integration plugin
+    -----------------------------------------------------------------------------
+    </comment>
   </info>
 
   <define>
