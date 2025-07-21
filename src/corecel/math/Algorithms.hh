@@ -123,7 +123,7 @@ struct Less<void>
  * This is useful for calls to \c std::all_of .
  */
 template<class T = void>
-struct LogicalTrue
+struct Identity
 {
     CELER_CONSTEXPR_FUNCTION bool operator()(T const& value) const noexcept
     {
@@ -131,9 +131,9 @@ struct LogicalTrue
     }
 };
 
-//! Specialization of LogicalTrue with template deduction
+//! Specialization of Identity with template deduction
 template<>
-struct LogicalTrue<void>
+struct Identity<void>
 {
     template<class T>
     CELER_CONSTEXPR_FUNCTION bool operator()(T const& value) const noexcept

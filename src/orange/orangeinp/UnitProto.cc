@@ -48,11 +48,11 @@ UnitProto::UnitProto(Input&& inp) : input_{std::move(inp)}
     CELER_VALIDATE(input_, << "no fill, daughters, or volumes are defined");
     CELER_VALIDATE(std::all_of(input_.materials.begin(),
                                input_.materials.begin(),
-                               LogicalTrue{}),
+                               Identity{}),
                    << "incomplete material definition(s)");
     CELER_VALIDATE(std::all_of(input_.daughters.begin(),
                                input_.daughters.begin(),
-                               LogicalTrue{}),
+                               Identity{}),
                    << "incomplete daughter definition(s)");
     CELER_VALIDATE(input_.boundary.zorder == ZOrder::media
                        || input_.boundary.zorder == ZOrder::exterior,

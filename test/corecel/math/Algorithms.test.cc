@@ -87,7 +87,7 @@ TEST(UtilityTest, exchange)
 TEST(AlgorithmsTest, all_of)
 {
     static bool const items[] = {true, false, true, true};
-    LogicalTrue<bool> is_true;
+    Identity<bool> is_true;
     EXPECT_TRUE(all_of(std::begin(items), std::begin(items), is_true));
     EXPECT_FALSE(all_of(std::begin(items), std::end(items), is_true));
     EXPECT_TRUE(all_of(std::begin(items) + 2, std::end(items), is_true));
@@ -100,7 +100,7 @@ TEST(AlgorithmsTest, all_of)
 TEST(AlgorithmsTest, any_of)
 {
     static bool const items[] = {false, true, false, false};
-    LogicalTrue<> is_true;
+    Identity<> is_true;
     EXPECT_FALSE(any_of(std::begin(items), std::begin(items), is_true));
     EXPECT_TRUE(any_of(std::begin(items), std::end(items), is_true));
     EXPECT_FALSE(any_of(std::begin(items) + 2, std::end(items), is_true));

@@ -127,7 +127,7 @@ PrimaryGenerator::PrimaryGenerator(Input const& i,
     this->seed(UniqueEventId{0});
 
     CELER_VALIDATE(
-        std::all_of(particle_id_.begin(), particle_id_.end(), LogicalTrue{}),
+        std::all_of(particle_id_.begin(), particle_id_.end(), Identity{}),
         << R"(invalid or missing particle types specified for primary generator)");
 }
 
