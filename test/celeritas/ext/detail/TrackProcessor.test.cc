@@ -16,6 +16,7 @@
 #include <G4VProcess.hh>
 #include <G4VUserTrackInformation.hh>
 
+#include "corecel/Types.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
@@ -56,11 +57,12 @@ class TrackProcessorTest : public ::celeritas::test::SimpleCmsTestBase
 {
   protected:
     using VecParticle = TrackProcessor::VecParticle;
+    using size_type = ::celeritas::size_type;
 
     VecParticle make_particles()
     {
         // Load particles from Geant4
-        this->geometry();
+        this->physics();
 
         VecParticle result;
         auto& table = *G4ParticleTable::GetParticleTable();
@@ -211,7 +213,8 @@ TEST_F(TrackProcessorTest, step_assignment)
     processor.set_step_for_tracks(step_ptr);
 
     // Verify each particle type track has the step assigned
-    for (auto particle_id : range(ParticleId{particles.size()}))
+    for (auto particle_id :
+         range(ParticleId{static_cast<size_type>(particles.size())}))
     {
         G4Track& track = processor.restore_track(particle_id, PrimaryId{});
         EXPECT_EQ(step_ptr, track.GetStep());
@@ -273,7 +276,8 @@ TEST_F(TrackProcessorTest, end_event_cleanup)
     processor.end_event();
 
     // Verify all tracks have cleared user information
-    for (auto particle_id : range(ParticleId{particles.size()}))
+    for (auto particle_id :
+         range(ParticleId{static_cast<size_type>(particles.size())}))
     {
         G4Track& track = processor.restore_track(particle_id, PrimaryId{});
         EXPECT_EQ(nullptr, track.GetUserInformation());
@@ -290,7 +294,7 @@ TEST_F(TrackProcessorTest, multiple_particle_types)
     // Test all particle types can be restored
     for (auto i : range(particles.size()))
     {
-        ParticleId particle_id{i};
+        ParticleId particle_id{static_cast<size_type>(i)};
         G4Track& track = processor.restore_track(particle_id, PrimaryId{});
 
         EXPECT_EQ(particles[i], track.GetDefinition());
