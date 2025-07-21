@@ -258,7 +258,7 @@ filter_collinear_points(std::vector<Real2> const& corners, double abs_tol)
 /*!
  * Calculate the min/max values of a polygon for a given dimension.
  */
-inline std::pair<Real2::value_type, Real2::value_type>
+inline std::pair<real_type, real_type>
 find_extrema(std::vector<Real2> const& polygon, size_type dim)
 {
     CELER_VALIDATE(polygon.size() >= 3,
