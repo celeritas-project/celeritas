@@ -44,9 +44,7 @@ TEST_F(ImportedMaterialsTest, simple)
         // Rayleigh data
         {
             auto const& expected_rayleigh
-                = this->imported_data()
-                      .legacy.optical_materials[opt_mat.get()]
-                      .rayleigh;
+                = this->imported_data().optical_materials[opt_mat.get()].rayleigh;
             auto const& imported_rayleigh
                 = this->imported_materials->rayleigh(opt_mat);
 
@@ -59,7 +57,7 @@ TEST_F(ImportedMaterialsTest, simple)
         // Wavelength shifting
         {
             auto const& expected_wls
-                = this->imported_data().legacy.optical_materials[opt_mat.get()].wls;
+                = this->imported_data().optical_materials[opt_mat.get()].wls;
             auto const& imported_wls = this->imported_materials->wls(opt_mat);
 
             EXPECT_EQ(expected_wls.mean_num_photons,

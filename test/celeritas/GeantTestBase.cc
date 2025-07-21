@@ -141,7 +141,7 @@ auto GeantTestBase::build_along_step() -> SPConstAction
         *this->material(),
         *this->particle(),
         msc,
-        this->imported_data().legacy.em_params.energy_loss_fluct);
+        this->imported_data().em_params.energy_loss_fluct);
     CELER_ASSERT(result);
     CELER_ASSERT(result->has_fluct()
                  == this->build_geant_options().eloss_fluctuation);

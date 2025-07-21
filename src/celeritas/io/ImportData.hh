@@ -51,8 +51,11 @@ namespace celeritas
  * convert_to_native function will convert a data structure in place and update
  * the units label. Refer to \c base/Units.hh for further information on unit
  * systems.
+ *
+ * \note  \c ImportData will eventually become \c inp::Problem once the import
+ * system populates all its \c inp:: objects.
  */
-struct LegacyImportData
+struct ImportData
 {
     //!@{
     //! \name Type aliases
@@ -105,17 +108,11 @@ struct LegacyImportData
 
     //! Unit system of the stored data: "cgs", "clhep", or "si"
     std::string units;
-};
 
-//---------------------------------------------------------------------------//
-/*!
- * \c ImportData will eventually become \c inp::Problem once the import
- * system populates all its \c inp:: objects.
- */
-struct ImportData
-{
-    LegacyImportData legacy;  //!< Temporary container; Will be deprecated
+    //!@{
+    //! \name Current \c inp::Problem data that has been ported
     inp::OpticalPhysics optical_physics;  //!< \todo: replace by inp::Physics
+    //!@}
 };
 
 //---------------------------------------------------------------------------//

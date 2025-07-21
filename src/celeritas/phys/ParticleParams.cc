@@ -54,10 +54,10 @@ auto ParticleParams::ParticleInput::from_import(ImportParticle const& ip)
 std::shared_ptr<ParticleParams>
 ParticleParams::from_import(ImportData const& data)
 {
-    CELER_EXPECT(!data.legacy.particles.empty());
+    CELER_EXPECT(!data.particles.empty());
 
     Input defs;
-    for (auto const& ip : data.legacy.particles)
+    for (auto const& ip : data.particles)
     {
         defs.push_back(ParticleInput::from_import(ip));
     }

@@ -39,9 +39,8 @@ SimParams::Input SimParams::Input::from_import(ImportData const& data,
                                                size_type max_field_substeps)
 {
     CELER_EXPECT(particle_params);
-    CELER_EXPECT(data.legacy.trans_params);
-    CELER_EXPECT(data.legacy.trans_params.looping.size()
-                 == particle_params->size());
+    CELER_EXPECT(data.trans_params);
+    CELER_EXPECT(data.trans_params.looping.size() == particle_params->size());
 
     using MaxSubstepsInt = decltype(FieldDriverOptions{}.max_substeps);
 
@@ -58,16 +57,16 @@ SimParams::Input SimParams::Input::from_import(ImportData const& data,
     // Calculate the maximum number of steps a track below the threshold energy
     // can take while looping (ceil(max Geant4 field propagator substeps / max
     // Celeritas field propagator substeps))
-    CELER_ASSERT(data.legacy.trans_params.max_substeps
+    CELER_ASSERT(data.trans_params.max_substeps
                  >= static_cast<int>(max_field_substeps));
     auto max_subthreshold_steps = ceil_div<size_type>(
-        data.legacy.trans_params.max_substeps, max_field_substeps);
+        data.trans_params.max_substeps, max_field_substeps);
 
     for (auto pid : range(ParticleId{input.particles->size()}))
     {
         auto pdg = input.particles->id_to_pdg(pid);
-        auto iter = data.legacy.trans_params.looping.find(pdg.get());
-        CELER_ASSERT(iter != data.legacy.trans_params.looping.end());
+        auto iter = data.trans_params.looping.find(pdg.get());
+        CELER_ASSERT(iter != data.trans_params.looping.end());
 
         // Store the parameters for this particle
         LoopingThreshold looping;

@@ -66,32 +66,29 @@ ProcessBuilder::ProcessBuilder(ImportData const& data,
                                UserBuildMap user_build)
     : input_{std::move(material), std::move(particle), nullptr}
     , user_build_map_(std::move(user_build))
-    , enable_lpm_(data.legacy.em_params.lpm)
+    , enable_lpm_(data.em_params.lpm)
 {
     CELER_EXPECT(input_.material);
     CELER_EXPECT(input_.particle);
-    CELER_EXPECT(std::string(data.legacy.units)
-                 == units::NativeTraits::label());
+    CELER_EXPECT(std::string(data.units) == units::NativeTraits::label());
 
-    input_.imported
-        = std::make_shared<ImportedProcesses>(data.legacy.processes);
+    input_.imported = std::make_shared<ImportedProcesses>(data.processes);
 
-    if (!data.legacy.sb_data.empty())
+    if (!data.sb_data.empty())
     {
-        read_sb_ = make_imported_element_loader(data.legacy.sb_data);
+        read_sb_ = make_imported_element_loader(data.sb_data);
     }
-    if (!data.legacy.livermore_pe_data.empty())
+    if (!data.livermore_pe_data.empty())
     {
-        read_livermore_
-            = make_imported_element_loader(data.legacy.livermore_pe_data);
+        read_livermore_ = make_imported_element_loader(data.livermore_pe_data);
     }
-    if (!data.legacy.neutron_elastic_data.empty())
+    if (!data.neutron_elastic_data.empty())
     {
         read_neutron_elastic_
-            = make_imported_element_loader(data.legacy.neutron_elastic_data);
+            = make_imported_element_loader(data.neutron_elastic_data);
     }
     mu_pairprod_table_ = std::make_shared<ImportMuPairProductionTable>(
-        data.legacy.mu_pair_production_data);
+        data.mu_pair_production_data);
 }
 
 //---------------------------------------------------------------------------//

@@ -56,12 +56,12 @@ class MuPairProductionTest : public InteractorHostBase, public RootTestBase
 
         // Construct model
         auto imported = std::make_shared<ImportedProcesses>(
-            this->imported_data().legacy.processes);
+            this->imported_data().processes);
         model_ = std::make_shared<MuPairProductionModel>(
             ActionId{0},
             *this->particle_params(),
             imported,
-            this->imported_data().legacy.mu_pair_production_data);
+            this->imported_data().mu_pair_production_data);
 
         // Set default particle to 10 GeV muon
         this->set_inc_particle(pdg::mu_minus(), MevEnergy{1e4});

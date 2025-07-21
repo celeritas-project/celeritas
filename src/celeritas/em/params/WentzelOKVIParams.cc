@@ -53,11 +53,11 @@ WentzelOKVIParams::from_import(ImportData const& data,
         }
         // Polar angle limit between single and multiple scattering if both
         // models are present
-        return data.legacy.em_params.msc_theta_limit;
+        return data.em_params.msc_theta_limit;
     }();
-    opts.screening_factor = data.legacy.em_params.screening_factor;
-    opts.angle_limit_factor = data.legacy.em_params.angle_limit_factor;
-    opts.form_factor = data.legacy.em_params.form_factor;
+    opts.screening_factor = data.em_params.screening_factor;
+    opts.angle_limit_factor = data.em_params.angle_limit_factor;
+    opts.form_factor = data.em_params.form_factor;
 
     return std::make_shared<WentzelOKVIParams>(materials, particles, opts);
 }

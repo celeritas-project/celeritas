@@ -33,39 +33,39 @@ ImportDataConverter::ImportDataConverter(UnitSystem usys)
 //---------------------------------------------------------------------------//
 void ImportDataConverter::operator()(ImportData* data)
 {
-    for (auto& m : data->legacy.geo_materials)
+    for (auto& m : data->geo_materials)
     {
         (*this)(&m);
     }
 
-    for (auto& m : data->legacy.phys_materials)
+    for (auto& m : data->phys_materials)
     {
         (*this)(&m);
     }
 
-    for (auto& m : data->legacy.optical_materials)
+    for (auto& m : data->optical_materials)
     {
         (*this)(&m);
     }
 
-    for (auto& m : data->legacy.optical_models)
+    for (auto& m : data->optical_models)
     {
         (*this)(&m);
     }
 
-    for (auto& p : data->legacy.processes)
+    for (auto& p : data->processes)
     {
         (*this)(&p);
     }
 
-    for (auto& m : data->legacy.msc_models)
+    for (auto& m : data->msc_models)
     {
         (*this)(&m);
     }
 
-    (*this)(&data->legacy.em_params);
+    (*this)(&data->em_params);
 
-    data->legacy.units = units::NativeTraits::label();
+    data->units = units::NativeTraits::label();
 }
 
 //---------------------------------------------------------------------------//

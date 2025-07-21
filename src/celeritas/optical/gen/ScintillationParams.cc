@@ -27,10 +27,10 @@ std::shared_ptr<ScintillationParams>
 ScintillationParams::from_import(ImportData const& data,
                                  SPConstParticles particle_params)
 {
-    CELER_EXPECT(!data.legacy.optical_materials.empty());
+    CELER_EXPECT(!data.optical_materials.empty());
 
-    if (!std::any_of(data.legacy.optical_materials.begin(),
-                     data.legacy.optical_materials.end(),
+    if (!std::any_of(data.optical_materials.begin(),
+                     data.optical_materials.end(),
                      [](auto const& iter) {
                          return static_cast<bool>(iter.scintillation);
                      }))
@@ -39,15 +39,15 @@ ScintillationParams::from_import(ImportData const& data,
         return nullptr;
     }
 
-    size_type const num_optmats = data.legacy.optical_materials.size();
+    size_type const num_optmats = data.optical_materials.size();
 
     Input input;
-    if (data.legacy.optical_params.scintillation_by_particle)
+    if (data.optical_params.scintillation_by_particle)
     {
         // Create a mapping of \c ParticleId to \c ScintParticleId
-        input.pid_to_scintpid.resize(data.legacy.particles.size());
+        input.pid_to_scintpid.resize(data.particles.size());
         ScintParticleId spid{0};
-        for (auto const& opt_mat : data.legacy.optical_materials)
+        for (auto const& opt_mat : data.optical_materials)
         {
             auto const& pdg_to_spec = opt_mat.scintillation.particles;
             for (auto const& [pdg, spec] : pdg_to_spec)
@@ -70,12 +70,11 @@ ScintillationParams::from_import(ImportData const& data,
     input.resolution_scale.resize(num_optmats);
     for (auto opt_idx : range(num_optmats))
     {
-        ImportOpticalMaterial const& opt_mat
-            = data.legacy.optical_materials[opt_idx];
+        ImportOpticalMaterial const& opt_mat = data.optical_materials[opt_idx];
         input.resolution_scale[opt_idx]
             = opt_mat.scintillation.resolution_scale;
 
-        if (!data.legacy.optical_params.scintillation_by_particle)
+        if (!data.optical_params.scintillation_by_particle)
         {
             // Copy the material spectrum
             input.materials[opt_idx] = opt_mat.scintillation.material;

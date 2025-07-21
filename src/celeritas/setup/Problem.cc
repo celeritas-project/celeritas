@@ -99,8 +99,7 @@ auto build_physics_processes(inp::EmPhysics const& em,
     std::vector<std::shared_ptr<Process const>> result;
     ProcessBuilder build_process(
         imported, params.particle, params.material, em.user_processes);
-    for (auto pc :
-         ProcessBuilder::get_all_process_classes(imported.legacy.processes))
+    for (auto pc : ProcessBuilder::get_all_process_classes(imported.processes))
     {
         result.push_back(build_process(pc));
         if (!result.back())
@@ -144,29 +143,25 @@ auto build_physics(inp::Problem const& p,
         // Default: twice the number of track slots
         input.options.secondary_stack_factor = 2.0;
     }
-    input.options.linear_loss_limit
-        = imported.legacy.em_params.linear_loss_limit;
-    input.options.disable_integral_xs
-        = !imported.legacy.em_params.integral_approach;
-    input.options.light.lowest_energy = ParticleOptions::Energy(
-        imported.legacy.em_params.lowest_electron_energy);
-    input.options.heavy.lowest_energy = ParticleOptions::Energy(
-        imported.legacy.em_params.lowest_muhad_energy);
+    input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
+    input.options.disable_integral_xs = !imported.em_params.integral_approach;
+    input.options.light.lowest_energy
+        = ParticleOptions::Energy(imported.em_params.lowest_electron_energy);
+    input.options.heavy.lowest_energy
+        = ParticleOptions::Energy(imported.em_params.lowest_muhad_energy);
 
     // Set multiple scattering options
-    input.options.light.range_factor
-        = imported.legacy.em_params.msc_range_factor;
+    input.options.light.range_factor = imported.em_params.msc_range_factor;
     input.options.heavy.range_factor
-        = imported.legacy.em_params.msc_muhad_range_factor;
-    input.options.safety_factor = imported.legacy.em_params.msc_safety_factor;
-    input.options.lambda_limit = imported.legacy.em_params.msc_lambda_limit;
-    input.options.light.displaced = imported.legacy.em_params.msc_displaced;
-    input.options.heavy.displaced
-        = imported.legacy.em_params.msc_muhad_displaced;
+        = imported.em_params.msc_muhad_range_factor;
+    input.options.safety_factor = imported.em_params.msc_safety_factor;
+    input.options.lambda_limit = imported.em_params.msc_lambda_limit;
+    input.options.light.displaced = imported.em_params.msc_displaced;
+    input.options.heavy.displaced = imported.em_params.msc_muhad_displaced;
     input.options.light.step_limit_algorithm
-        = imported.legacy.em_params.msc_step_algorithm;
+        = imported.em_params.msc_step_algorithm;
     input.options.heavy.step_limit_algorithm
-        = imported.legacy.em_params.msc_muhad_step_algorithm;
+        = imported.em_params.msc_muhad_step_algorithm;
 
     // Build processes
     input.processes = build_physics_processes(*p.physics.em, params, imported);
@@ -230,7 +225,7 @@ auto build_along_step(inp::Field const& var_field,
                       CoreParams::Input const& params,
                       ImportData const& imported)
 {
-    bool const eloss = imported.legacy.em_params.energy_loss_fluct;
+    bool const eloss = imported.em_params.energy_loss_fluct;
     auto msc = UrbanMscParams::from_import(
         *params.particle, *params.material, imported);
 
@@ -295,7 +290,7 @@ auto build_optical_offload(inp::Problem const& p,
     using optical::MaterialParams;
 
     CELER_VALIDATE(
-        !imported.legacy.optical_materials.empty(),
+        !imported.optical_materials.empty(),
         << R"(an optical tracking loop was requested but no optical materials are present)");
     CELER_VALIDATE(p.physics.optical,
                    << "optical physics options are required to construct an "
@@ -329,7 +324,7 @@ auto build_optical_offload(inp::Problem const& p,
     // Import models
     optical::ModelImporter importer{
         imported, oc_inp.material, params.material()};
-    for (auto const& model : imported.legacy.optical_models)
+    for (auto const& model : imported.optical_models)
     {
         if (auto builder = importer(model.model_class))
         {
@@ -410,9 +405,6 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
     // Create geometry/material coupling
     params.geomaterial = GeoMaterialParams::from_import(
         imported, params.geometry, params.material);
-
-    // Create surface borders/interfaces
-    //! \todo: construct surface params
 
     // Construct particle params
     params.particle = ParticleParams::from_import(imported);

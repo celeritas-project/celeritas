@@ -35,19 +35,19 @@ MaterialParams::from_import(ImportData const& data,
                             ::celeritas::GeoMaterialParams const& geo_mat,
                             ::celeritas::MaterialParams const& mat)
 {
-    CELER_EXPECT(!data.legacy.optical_materials.empty());
+    CELER_EXPECT(!data.optical_materials.empty());
     CELER_EXPECT(geo_mat.num_volumes() > 0);
 
-    CELER_VALIDATE(std::all_of(data.legacy.optical_materials.begin(),
-                               data.legacy.optical_materials.end(),
+    CELER_VALIDATE(std::all_of(data.optical_materials.begin(),
+                               data.optical_materials.end(),
                                LogicalTrue{}),
                    << "one or more optical materials lack required data");
 
     Input inp;
 
     // Extract optical material properties
-    inp.properties.reserve(data.legacy.optical_materials.size());
-    for (ImportOpticalMaterial const& opt_mat : data.legacy.optical_materials)
+    inp.properties.reserve(data.optical_materials.size());
+    for (ImportOpticalMaterial const& opt_mat : data.optical_materials)
     {
         inp.properties.push_back(opt_mat.properties);
     }

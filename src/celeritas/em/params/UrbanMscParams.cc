@@ -48,7 +48,7 @@ UrbanMscParams::from_import(ParticleParams const& particles,
         return nullptr;
     }
     return std::make_shared<UrbanMscParams>(
-        particles, materials, data.legacy.msc_models);
+        particles, materials, data.msc_models);
 }
 
 //---------------------------------------------------------------------------//

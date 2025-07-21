@@ -26,7 +26,7 @@ namespace optical
 std::shared_ptr<ImportedModels>
 ImportedModels::from_import(ImportData const& io)
 {
-    return std::make_shared<ImportedModels>(io.legacy.optical_models);
+    return std::make_shared<ImportedModels>(io.optical_models);
 }
 
 //---------------------------------------------------------------------------//

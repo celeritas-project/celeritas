@@ -39,9 +39,9 @@ auto RootTestBase::imported_data() const -> ImportData const&
         // Raise an exception if non-fatal errors were encountered
         scoped_root_error.throw_if_errors();
     }
-    CELER_ENSURE(!i.imported.legacy.phys_materials.empty()
-                 && !i.imported.legacy.geo_materials.empty()
-                 && !i.imported.legacy.particles.empty());
+    CELER_ENSURE(!i.imported.phys_materials.empty()
+                 && !i.imported.geo_materials.empty()
+                 && !i.imported.particles.empty());
     return i.imported;
 }
 

@@ -253,30 +253,30 @@ GeoMaterialParams::from_import(ImportData const& data,
     input.geometry = std::move(geo_params);
     input.materials = std::move(material_params);
 
-    input.volume_to_mat.resize(data.legacy.volumes.size());
+    input.volume_to_mat.resize(data.volumes.size());
     for (auto volume_idx :
          range<VolumeId::size_type>(input.volume_to_mat.size()))
     {
-        if (!data.legacy.volumes[volume_idx])
+        if (!data.volumes[volume_idx])
             continue;
 
         input.volume_to_mat[volume_idx]
-            = PhysMatId(data.legacy.volumes[volume_idx].phys_material_id);
+            = PhysMatId(data.volumes[volume_idx].phys_material_id);
     }
 
     // Assume that since Geant4 is using internal geometry and
     // we're using ORANGE or VecGeom that volume IDs will not be
     // the same. We'll just remap them based on their labels (which should
     // include uniquifying suffix if needed).
-    input.volume_labels.resize(data.legacy.volumes.size());
-    for (auto volume_idx : range(data.legacy.volumes.size()))
+    input.volume_labels.resize(data.volumes.size());
+    for (auto volume_idx : range(data.volumes.size()))
     {
-        if (!data.legacy.volumes[volume_idx])
+        if (!data.volumes[volume_idx])
             continue;
 
-        CELER_EXPECT(!data.legacy.volumes[volume_idx].name.empty());
+        CELER_EXPECT(!data.volumes[volume_idx].name.empty());
         input.volume_labels[volume_idx]
-            = Label::from_separator(data.legacy.volumes[volume_idx].name);
+            = Label::from_separator(data.volumes[volume_idx].name);
     }
 
     return std::make_shared<GeoMaterialParams>(std::move(input));

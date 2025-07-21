@@ -34,7 +34,7 @@ TEST_F(MfpBuilderTest, construct_tables)
     OwningGridAccessor storage;
 
     std::vector<ItemRange<OwningGridAccessor::Grid>> tables;
-    auto const& models = this->imported_data().legacy.optical_models;
+    auto const& models = this->imported_data().optical_models;
 
     // Build MFP tables from imported data
     for (auto const& model : models)

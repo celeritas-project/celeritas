@@ -43,7 +43,7 @@ TEST_F(RayleighMfpCalculatorTest, mfp_table)
     );
 
     auto core_materials = this->material();
-    auto const& opt_materials = this->imported_data().legacy.optical_materials;
+    auto const& opt_materials = this->imported_data().optical_materials;
 
     std::vector<real_type> mfps;
     mfps.reserve(expected_mfps.size());

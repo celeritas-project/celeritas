@@ -33,12 +33,11 @@ ModelImporter::ModelImporter(ImportData const& data,
                              UserBuildMap user_build)
     : input_{nullptr, std::move(material), nullptr, std::move(core_material)}
     , user_build_map_(std::move(user_build))
-    , params_(data.legacy.optical_params)
+    , params_(data.optical_params)
 {
     CELER_EXPECT(input_.material);
     CELER_EXPECT(input_.core_material);
-    CELER_EXPECT(std::string(data.legacy.units)
-                 == units::NativeTraits::label());
+    CELER_EXPECT(std::string(data.units) == units::NativeTraits::label());
 
     input_.imported = ImportedModels::from_import(data);
     input_.import_material = ImportedMaterials::from_import(data);
