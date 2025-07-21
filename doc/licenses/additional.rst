@@ -43,7 +43,7 @@ from implementations in Geant4::
       software itself.
 
    3. The names "Geant4" and "The Geant4 toolkit" may not be used to endorse or
-      promote software,or products derived there from, except with prior written
+      promote software,or products derived therefrom, except with prior written
       permission  by  license@geant4.org.  If this software is redistributed in
       modified form,  the name  and  reference of  the modified version must be
       clearly distinguishable from that of this software.
