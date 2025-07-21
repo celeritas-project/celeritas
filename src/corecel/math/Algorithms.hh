@@ -125,9 +125,9 @@ struct Less<void>
 struct Identity
 {
     template<class T>
-    CELER_CONSTEXPR_FUNCTION const T&& operator()(T const& value) const noexcept
+    CELER_CONSTEXPR_FUNCTION T&& operator()(T&& value) const noexcept
     {
-        return std::forward<T const>(value);
+        return std::forward<T>(value);
     }
 };
 
