@@ -126,19 +126,6 @@ auto GeantTestBase::build_along_step() -> SPConstAction
 auto GeantTestBase::build_fresh_geometry(std::string_view filename)
     -> SPConstGeoI
 {
-    constexpr bool use_orange = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE;
-    constexpr bool use_g4org
-        = use_orange && CELERITAS_USE_GEANT4
-          && (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE);
-
-    if (use_orange && !use_g4org)
-    {
-        // Load fake version of geometry because Geant4 conversion isn't
-        // available
-        return Base::build_fresh_geometry(filename);
-    }
-
-    // Typical case: import geometry directly from in-memory Geant4
     CELER_LOG(info) << "Importing geometry from Geant4";
 
     this->imported_data();

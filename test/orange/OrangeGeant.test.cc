@@ -27,12 +27,7 @@ namespace test
 class GeantOrangeTest : public OrangeGeoTestBase
 {
   protected:
-    void SetUp() final
-    {
-        ASSERT_EQ(CELERITAS_REAL_TYPE, CELERITAS_REAL_TYPE_DOUBLE)
-            << "Converting Geant4 requires double-precision reals";
-        this->geometry();
-    }
+    void SetUp() final { this->geometry(); }
 
     SPConstGeo build_geometry() final
     {

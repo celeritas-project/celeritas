@@ -86,7 +86,7 @@ list(APPEND SOURCES
 )
 
 
-if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
+if(CELERITAS_USE_Geant4)
   set(_cg4org_sources
     g4org/Converter.cc
     g4org/LogicalVolumeConverter.cc
