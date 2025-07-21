@@ -568,7 +568,7 @@ TEST_F(EllipticalConeTest, vertex)
 //---------------------------------------------------------------------------//
 using ExtrudedPolygonTest = IntersectRegionTest;
 
-TEST_F(ExtrudedPolygonTest, simple_cube)
+TEST_F(ExtrudedPolygonTest, square)
 {
     // Test a simple unit cube
     ExtrudedPolygon::VecReal2 polygon{
