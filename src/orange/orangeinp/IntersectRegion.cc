@@ -1302,7 +1302,7 @@ void RevolvedSpecialTrapezoid::build(IntersectSurfaceBuilder& insert_surface) co
     insert_surface(Sense::outside, PlaneZ{bot.z});
     insert_surface(Sense::inside, PlaneZ{top.z});
 
-    SoftClose soft_close(trap_.abs_tol());
+    SoftClose soft_close(insert_surface.tol().abs);
 
     // Lambda for creating a cylindrical/conical surface, or no surface
     auto make_vertical_surface
