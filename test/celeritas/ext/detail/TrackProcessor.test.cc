@@ -196,6 +196,7 @@ TEST_F(TrackProcessorTest, track_restoration)
     // Verify restored track properties
     EXPECT_EQ(789, restored_track.GetTrackID());
     EXPECT_EQ(mock_process.get(), restored_track.GetCreatorProcess());
+    EXPECT_EQ(processor.step(), restored_track.GetStep());
 
     // Verify user information was restored
     auto* restored_user_info = dynamic_cast<MockUserTrackInformation*>(
