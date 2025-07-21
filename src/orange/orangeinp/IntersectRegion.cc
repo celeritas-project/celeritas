@@ -990,8 +990,8 @@ InfWedge::InfWedge(Turn start, Turn interior)
 /*!
  * Build surfaces.
  *
- * Both planes should point "outward" to the wedge. In the degenerate case
- * of interior = 0.5 we rely on CSG object deduplication.
+ * Both planes should point "outward" to the wedge. In the degenerate case of
+ * interior = 0.5 we rely on CSG object deduplication.
  */
 void InfWedge::build(IntersectSurfaceBuilder& insert_surface) const
 {
