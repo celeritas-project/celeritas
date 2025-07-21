@@ -108,29 +108,25 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     CELER_LOG(debug) << "Setting up thread-local hit processor for "
                      << detector_volumes_->size() << " sensitive detectors";
 
-    // Create step and step-owned structures
-    step_ = std::make_unique<G4Step>();
-    step_->NewSecondaryVector();
-
 #if G4VERSION_NUMBER >= 1103
-#    define HP_CLEAR_STEP_POINT(CMD) step_->CMD(nullptr)
+#    define HP_CLEAR_STEP_POINT(CMD) track_processor_.step()->CMD(nullptr)
 #else
 #    define HP_CLEAR_STEP_POINT(CMD) /* no "reset" before v11.0.3 */
 #endif
 
-#define HP_SETUP_POINT(LOWER, TITLE)                      \
-    do                                                    \
-    {                                                     \
-        if (!selection.points[StepPoint::LOWER])          \
-        {                                                 \
-            HP_CLEAR_STEP_POINT(Reset##TITLE##StepPoint); \
-        }                                                 \
-        else                                              \
-        {                                                 \
-            auto* sp = step_->Get##TITLE##StepPoint();    \
-            sp->SetStepStatus(fUserDefinedLimit);         \
-            step_points_[StepPoint::LOWER] = sp;          \
-        }                                                 \
+#define HP_SETUP_POINT(LOWER, TITLE)                                     \
+    do                                                                   \
+    {                                                                    \
+        if (!selection.points[StepPoint::LOWER])                         \
+        {                                                                \
+            HP_CLEAR_STEP_POINT(Reset##TITLE##StepPoint);                \
+        }                                                                \
+        else                                                             \
+        {                                                                \
+            auto* sp = track_processor_.step()->Get##TITLE##StepPoint(); \
+            sp->SetStepStatus(fUserDefinedLimit);                        \
+            step_points_[StepPoint::LOWER] = sp;                         \
+        }                                                                \
     } while (0)
 
     HP_SETUP_POINT(pre, Pre);
@@ -169,7 +165,7 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     }
 
     // Set invalid values for unsupported SD attributes
-    step_->SetNonIonizingEnergyDeposit(
+    track_processor_.step()->SetNonIonizingEnergyDeposit(
         -std::numeric_limits<double>::infinity());
     for (G4StepPoint* p : step_points_)
     {
@@ -188,9 +184,6 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
         // Polarization (default to zero)
         p->SetPolarization(G4ThreeVector());
     }
-
-    // Set the step for all tracks managed by TrackProcessor
-    track_processor_.set_step_for_tracks(step_.get());
 
     // Convert logical volumes (global) to sensitive detectors (thread local)
     detectors_.resize(detector_volumes_->size());
@@ -287,8 +280,9 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
 
     G4LogicalVolume const* lv = this->detector_volume(out.detector[i]);
 
-    HP_SET(step_->SetTotalEnergyDeposit, out.energy_deposition, CLHEP::MeV);
-    HP_SET(step_->SetStepLength, out.step_length, clhep_length);
+    G4Step* step = track_processor_.step();
+    HP_SET(step->SetTotalEnergyDeposit, out.energy_deposition, CLHEP::MeV);
+    HP_SET(step->SetStepLength, out.step_length, clhep_length);
 
     for (auto sp : range(StepPoint::size_))
     {
@@ -309,7 +303,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
                 // Inconsistent touchable: skip this energy deposition
                 CELER_LOG_LOCAL(error)
                     << "Omitting energy deposition of "
-                    << step_->GetTotalEnergyDeposit() / CLHEP::MeV << " [MeV]";
+                    << step->GetTotalEnergyDeposit() / CLHEP::MeV << " [MeV]";
                 return;
             }
         }
@@ -361,13 +355,13 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
     if (step_post_status_)
     {
         // Update the post-step status based on the geometry instances
-        auto* g4sp = step_->GetPostStepPoint();
+        auto* g4sp = step->GetPostStepPoint();
         CELER_ASSERT(g4sp);
         g4sp->SetStepStatus(get_step_status(out, i));
     }
 
     // Hit sensitive detector
-    this->detector(out.detector[i])->Hit(step_.get());
+    this->detector(out.detector[i])->Hit(step);
 }
 
 //---------------------------------------------------------------------------//
@@ -378,10 +372,8 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
  */
 void HitProcessor::update_track(G4Track& track) const
 {
-    step_->SetTrack(&track);
-
     // Copy data from step to track
-    track.SetStepLength(step_->GetStepLength());
+    track.SetStepLength(track_processor_.step()->GetStepLength());
 
     G4ParticleDefinition const& pd = *track.GetParticleDefinition();
 

@@ -227,29 +227,6 @@ TEST_F(TrackProcessorTest, track_restoration_without_primary)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(TrackProcessorTest, step_assignment)
-{
-    auto particles = make_particles();
-    TrackProcessor processor(particles);
-
-    // Create a step
-    auto step = std::make_unique<G4Step>();
-    auto* step_ptr = step.get();
-
-    // Set step for all tracks
-    processor.set_step_for_tracks(step_ptr);
-
-    // Verify each particle type track has the step assigned
-    for (auto particle_id :
-         range(ParticleId{static_cast<size_type>(particles.size())}))
-    {
-        G4Track& track = processor.restore_track(particle_id, PrimaryId{});
-        EXPECT_EQ(step_ptr, track.GetStep());
-    }
-}
-
-//---------------------------------------------------------------------------//
-
 TEST_F(TrackProcessorTest, end_event_cleanup)
 {
     auto particles = make_particles();

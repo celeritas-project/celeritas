@@ -68,6 +68,16 @@ TrackProcessor::TrackProcessor(VecParticle const& particles)
         track->SetParentID(0);
         tracks_.emplace_back(std::move(track));
     }
+
+    // Create step and step-owned structures
+    step_ = std::make_unique<G4Step>();
+    step_->NewSecondaryVector();
+
+    // Set the step for all tracks
+    for (auto const& track : tracks_)
+    {
+        track->SetStep(step_.get());
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -119,24 +129,14 @@ G4Track& TrackProcessor::restore_track(ParticleId particle_id,
 
     G4Track& track = *tracks_[particle_id.unchecked_get()];
 
+    step_->SetTrack(&track);
+
     if (primary_id)
     {
         CELER_ASSERT(primary_id.unchecked_get() < g4_track_data_.size());
         g4_track_data_[primary_id.unchecked_get()].restore_track(track);
     }
     return track;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Set step for all tracks.
- */
-void TrackProcessor::set_step_for_tracks(G4Step* step)
-{
-    for (auto const& track : tracks_)
-    {
-        track->SetStep(step);
-    }
 }
 
 //---------------------------------------------------------------------------//

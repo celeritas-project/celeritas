@@ -55,8 +55,8 @@ class TrackProcessor
     // Restore track information for given primary and particle IDs
     G4Track& restore_track(ParticleId, PrimaryId) const;
 
-    // Set step for all tracks
-    void set_step_for_tracks(G4Step*);
+    // Get the owned step
+    G4Step* step() const { return step_.get(); }
 
   private:
     //! Data needed to reconstruct a G4Track from Celeritas transport
@@ -83,6 +83,8 @@ class TrackProcessor
     std::vector<GeantTrackReconstructionData> g4_track_data_;
     //! Tracks for each particle type
     std::vector<std::unique_ptr<G4Track>> tracks_;
+    //! Owned step object
+    std::unique_ptr<G4Step> step_;
 };
 
 //---------------------------------------------------------------------------//

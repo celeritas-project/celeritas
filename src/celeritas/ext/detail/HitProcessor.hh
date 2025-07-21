@@ -124,9 +124,6 @@ class HitProcessor
     std::vector<G4VSensitiveDetector*> detectors_;
     //! Temporary CPU hit information
     DetectorStepOutput steps_;
-
-    //! Temporary step
-    std::unique_ptr<G4Step> step_;
     //! Step points
     EnumArray<StepPoint, G4StepPoint*> step_points_{{nullptr, nullptr}};
 
