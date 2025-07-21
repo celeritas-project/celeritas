@@ -41,14 +41,44 @@ class MockUserTrackInformation : public G4VUserTrackInformation
 };
 
 // Simple mock pointer class to test process pointer storage/restoration
-class MockProcessPointer
+class MockProcess : public G4VProcess
 {
   public:
-    explicit MockProcessPointer(std::string name) : name_(std::move(name)) {}
-    std::string const& GetTestName() const { return name_; }
+    explicit MockProcess(std::string name) : G4VProcess(name) {}
+    G4VParticleChange* PostStepDoIt(G4Track const&, G4Step const&) override
+    {
+        return nullptr;
+    }
 
-  private:
-    std::string name_;
+    G4VParticleChange* AlongStepDoIt(G4Track const&, G4Step const&) override
+    {
+        return nullptr;
+    }
+    G4VParticleChange* AtRestDoIt(G4Track const&, G4Step const&) override
+    {
+        return nullptr;
+    }
+    G4double AlongStepGetPhysicalInteractionLength(G4Track const&,
+                                                   G4double,
+                                                   G4double,
+                                                   G4double&,
+                                                   G4GPILSelection*) override
+    {
+        return 0.0;
+    }
+
+    G4double AtRestGetPhysicalInteractionLength(G4Track const&,
+                                                G4ForceCondition*) override
+    {
+        return 0.0;
+    }
+
+    G4double PostStepGetPhysicalInteractionLength(G4Track const&,
+                                                  G4double,
+                                                  G4ForceCondition*) override
+    {
+        return 0.0;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -106,9 +136,8 @@ TEST_F(TrackProcessorTest, primary_registration)
     primary_track->SetUserInformation(user_info.release());
 
     // Set creator process using mock process pointer
-    auto mock_process = std::make_unique<MockProcessPointer>("TestCompton");
-    auto* process_ptr = reinterpret_cast<G4VProcess*>(mock_process.get());
-    primary_track->SetCreatorProcess(process_ptr);
+    auto mock_process = std::make_unique<MockProcess>("TestCompton");
+    primary_track->SetCreatorProcess(mock_process.get());
 
     // Register primary
     PrimaryId primary_id = processor.register_primary(*primary_track);
@@ -121,7 +150,7 @@ TEST_F(TrackProcessorTest, primary_registration)
 
     // Test that process information can be retrieved by restoring the track
     G4Track& test_restored = processor.restore_track(ParticleId{0}, primary_id);
-    EXPECT_EQ(process_ptr, test_restored.GetCreatorProcess());
+    EXPECT_EQ(mock_process.get(), test_restored.GetCreatorProcess());
     EXPECT_EQ(123, test_restored.GetTrackID());
 
     // Register another primary
@@ -155,10 +184,8 @@ TEST_F(TrackProcessorTest, track_restoration)
     primary_track->SetUserInformation(user_info.release());
 
     // Set creator process using mock process pointer
-    auto mock_process
-        = std::make_unique<MockProcessPointer>("TestBremsstrahlung");
-    auto* test_process_ptr = reinterpret_cast<G4VProcess*>(mock_process.get());
-    primary_track->SetCreatorProcess(test_process_ptr);
+    auto mock_process = std::make_unique<MockProcess>("TestBremsstrahlung");
+    primary_track->SetCreatorProcess(mock_process.get());
 
     PrimaryId primary_id = processor.register_primary(*primary_track);
 
@@ -168,7 +195,7 @@ TEST_F(TrackProcessorTest, track_restoration)
 
     // Verify restored track properties
     EXPECT_EQ(789, restored_track.GetTrackID());
-    EXPECT_EQ(test_process_ptr, restored_track.GetCreatorProcess());
+    EXPECT_EQ(mock_process.get(), restored_track.GetCreatorProcess());
 
     // Verify user information was restored
     auto* restored_user_info = dynamic_cast<MockUserTrackInformation*>(
@@ -238,9 +265,8 @@ TEST_F(TrackProcessorTest, end_event_cleanup)
     primary_track1->SetUserInformation(user_info1.release());
 
     // Add different process pointers to test multiple process handling
-    auto mock_process1 = std::make_unique<MockProcessPointer>("TestProcess1");
-    auto* process_ptr1 = reinterpret_cast<G4VProcess*>(mock_process1.get());
-    primary_track1->SetCreatorProcess(process_ptr1);
+    auto mock_process1 = std::make_unique<MockProcess>("TestProcess1");
+    primary_track1->SetCreatorProcess(mock_process1.get());
 
     auto primary_track2 = std::make_unique<G4Track>(
         new G4DynamicParticle(particles[1], G4ThreeVector(0, 1, 0)),
@@ -250,9 +276,8 @@ TEST_F(TrackProcessorTest, end_event_cleanup)
     auto user_info2 = std::make_unique<MockUserTrackInformation>(20);
     primary_track2->SetUserInformation(user_info2.release());
 
-    auto mock_process2 = std::make_unique<MockProcessPointer>("TestProcess2");
-    auto* process_ptr2 = reinterpret_cast<G4VProcess*>(mock_process2.get());
-    primary_track2->SetCreatorProcess(process_ptr2);
+    auto mock_process2 = std::make_unique<MockProcess>("TestProcess2");
+    primary_track2->SetCreatorProcess(mock_process2.get());
 
     PrimaryId id1 = processor.register_primary(*primary_track1);
     PrimaryId id2 = processor.register_primary(*primary_track2);
@@ -268,8 +293,8 @@ TEST_F(TrackProcessorTest, end_event_cleanup)
     EXPECT_EQ(200, track2.GetTrackID());
 
     // Verify that different process pointers are correctly restored
-    EXPECT_EQ(process_ptr1, track1.GetCreatorProcess());
-    EXPECT_EQ(process_ptr2, track2.GetCreatorProcess());
+    EXPECT_EQ(mock_process1.get(), track1.GetCreatorProcess());
+    EXPECT_EQ(mock_process2.get(), track2.GetCreatorProcess());
     EXPECT_NE(track1.GetCreatorProcess(), track2.GetCreatorProcess());
 
     // End event should clear reconstruction data
@@ -322,9 +347,8 @@ TEST_F(TrackProcessorTest, reconstruction_data_persistence)
     primary_track->SetUserInformation(user_info.release());
 
     // Set creator process using mock process pointer
-    auto mock_process = std::make_unique<MockProcessPointer>("TestIonization");
-    auto* process_ptr = reinterpret_cast<G4VProcess*>(mock_process.get());
-    primary_track->SetCreatorProcess(process_ptr);
+    auto mock_process = std::make_unique<MockProcess>("TestIonization");
+    primary_track->SetCreatorProcess(mock_process.get());
 
     PrimaryId primary_id = processor.register_primary(*primary_track);
 
@@ -334,7 +358,7 @@ TEST_F(TrackProcessorTest, reconstruction_data_persistence)
         G4Track& restored = processor.restore_track(ParticleId{2}, primary_id);
 
         EXPECT_EQ(999, restored.GetTrackID());
-        EXPECT_EQ(process_ptr, restored.GetCreatorProcess());
+        EXPECT_EQ(mock_process.get(), restored.GetCreatorProcess());
 
         auto* restored_info = dynamic_cast<MockUserTrackInformation*>(
             restored.GetUserInformation());
