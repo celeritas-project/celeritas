@@ -13,7 +13,7 @@
 
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/sys/ActionRegistry.hh"
-#include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
+#include "celeritas/geo/CoreGeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/CoreParams.hh"
 
 #include "StepInterface.hh"
@@ -40,7 +40,7 @@ StepCollector::make_and_insert(CoreParams const& core, VecInterface callbacks)
 /*!
  * Construct with options and register pre and/or post-step actions.
  */
-StepCollector::StepCollector(SPConstGeo geo,
+StepCollector::StepCollector(SPConstCoreGeo geo,
                              VecInterface&& callbacks,
                              AuxParamsRegistry* aux_registry,
                              ActionRegistry* action_registry)

@@ -87,7 +87,7 @@ auto ImportedDataTestBase::build_physics() -> SPConstPhysics
     input.options = this->build_physics_options();
     input.action_registry = this->action_reg().get();
 
-    // Build proceses
+    // Build processes
     auto const& imported = this->imported_data();
     ProcessBuilder build_process(imported, input.particles, input.materials);
 

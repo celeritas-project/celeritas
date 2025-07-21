@@ -15,17 +15,16 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
-#include "corecel/data/Ref.hh"
-#include "corecel/grid/VectorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "corecel/sys/TraceCounter.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/ActionSequence.hh"
-#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/Stepper.hh"
-#include "celeritas/optical/OpticalCollector.hh"
+#include "celeritas/optical/OpticalCollector.hh"  // IWYU pragma: keep
+#include "celeritas/phys/GeneratorCounters.hh"
 #include "celeritas/phys/Model.hh"
 
 #include "StepTimer.hh"
@@ -166,7 +165,8 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
     append_track_counts(track_counts);
     record_step_time();
 
-    while (track_counts)
+    GeneratorCounters optical_counts;
+    while (track_counts || !optical_counts.empty())
     {
         if (CELER_UNLIKELY(--remaining_steps == 0))
         {
@@ -185,6 +185,12 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
         track_counts = step();
         append_track_counts(track_counts);
         record_step_time();
+
+        if (optical_)
+        {
+            auto& aux = stepper_->sp_state()->aux();
+            optical_counts = optical_->buffer_counts(aux);
+        }
     }
 
     auto counters = copy_to_host(stepper_->state_ref().init.track_counters);
@@ -206,12 +212,13 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
     {
         auto& aux = stepper_->sp_state()->aux();
         auto counters = optical_->exchange_counters(aux);
-        auto const& cherenkov = counters.cherenkov;
-        auto const& scint = counters.scintillation;
 
         OpticalCounts oc;
-        oc.tracks = cherenkov.photons + scint.photons;
-        oc.generators = cherenkov.distributions + scint.distributions;
+        for (auto const& gen : counters.generators)
+        {
+            oc.tracks += gen.num_generated;
+            oc.generators += gen.buffer_size;
+        }
         oc.steps = counters.steps;
         oc.step_iters = counters.step_iters;
         oc.flushes = counters.flushes;
@@ -228,8 +235,8 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
             CELER_LOG_LOCAL(warning)
                 << "Not all optical photons were tracked "
                    "at the end of the stepping loop: "
-                << buffer_counts.photons << " queued photons from "
-                << buffer_counts.distributions << " distributions";
+                << buffer_counts.num_pending << " queued photons from "
+                << buffer_counts.buffer_size << " distributions";
         }
 
         result.num_optical = std::move(oc);

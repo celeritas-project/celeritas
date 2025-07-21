@@ -27,6 +27,7 @@
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/ModelImporter.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
+#include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 
@@ -58,15 +59,9 @@ class LArSphereOffloadTest : public LArSphereBase
     struct RunResult
     {
         // Optical distribution data
-        size_type num_photons{0};
         OffloadResult cherenkov;
         OffloadResult scintillation;
         OpticalAccumStats accum;
-
-        // Step iteration at which the optical tracking loop first launched
-        size_type optical_launch_step{numeric_limits<size_type>::max()};
-
-        void print_expected() const;
     };
 
   public:
@@ -93,78 +88,13 @@ class LArSphereOffloadTest : public LArSphereBase
     bool use_cherenkov_{true};
     size_type num_track_slots_{4096};
     size_type buffer_capacity_{256};
-    size_type initializer_capacity_{8192};
     size_type auto_flush_{4096};
+    size_type max_step_iters_{static_cast<size_type>(-1)};
     units::MevEnergy primary_energy_{10.0};
 
     std::shared_ptr<OpticalCollector> collector_;
     StreamId stream_{0};
 };
-
-//---------------------------------------------------------------------------//
-//! Print the expected result
-void LArSphereOffloadTest::RunResult::print_expected() const
-{
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "EXPECT_EQ("
-         << this->num_photons
-         << ", result.num_photons);\n"
-            "EXPECT_EQ("
-         << this->cherenkov.total_num_photons
-         << ", result.cherenkov.total_num_photons);\n"
-            "EXPECT_EQ("
-         << this->cherenkov.num_photons.size()
-         << ", result.cherenkov.num_photons.size());\n"
-            "static size_type const expected_cherenkov_num_photons[] = "
-         << repr(this->cherenkov.num_photons)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_cherenkov_num_photons, "
-            "result.cherenkov.num_photons);\n"
-            "static real_type const expected_cherenkov_charge[] = "
-         << repr(this->cherenkov.charge)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_cherenkov_charge, "
-            "result.cherenkov.charge);\n"
-            "EXPECT_EQ("
-         << this->scintillation.total_num_photons
-         << ", result.scintillation.total_num_photons);\n"
-            "EXPECT_EQ("
-         << this->scintillation.num_photons.size()
-         << ", result.scintillation.num_photons.size());\n"
-            "static size_type const expected_scintillation_num_photons[] = "
-         << repr(this->scintillation.num_photons)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_scintillation_num_photons, "
-            "result.scintillation.num_photons);\n"
-            "static real_type const expected_scintillation_charge[] = "
-         << repr(this->scintillation.charge)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_scintillation_charge, "
-            "result.scintillation.charge);\n"
-            "EXPECT_EQ("
-         << this->accum.steps
-         << ", result.accum.steps);\n"
-            "EXPECT_EQ("
-         << this->accum.step_iters
-         << ", result.accum.step_iters);\n"
-            "EXPECT_EQ("
-         << this->accum.flushes
-         << ", result.accum.flushes);\n"
-            "EXPECT_EQ("
-         << this->accum.cherenkov.distributions
-         << ", result.accum.cherenkov.distributions);\n"
-            "EXPECT_EQ("
-         << this->accum.cherenkov.photons
-         << ", result.accum.cherenkov.photons);\n"
-            "EXPECT_EQ("
-         << this->accum.scintillation.distributions
-         << ", result.accum.scintillation.distributions);\n"
-            "EXPECT_EQ("
-         << this->accum.scintillation.photons
-         << ", result.accum.scintillation.photons);\n"
-            "EXPECT_EQ("
-            "/*** END CODE ***/\n";
-}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -204,8 +134,8 @@ void LArSphereOffloadTest::build_optical_collector()
     }
     inp.num_track_slots = num_track_slots_;
     inp.buffer_capacity = buffer_capacity_;
-    inp.initializer_capacity = initializer_capacity_;
     inp.auto_flush = auto_flush_;
+    inp.max_step_iters = max_step_iters_;
 
     using IMC = celeritas::optical::ImportModelClass;
 
@@ -222,6 +152,12 @@ void LArSphereOffloadTest::build_optical_collector()
 
     collector_
         = std::make_shared<OpticalCollector>(*this->core(), std::move(inp));
+
+    // Check accessors
+    EXPECT_TRUE(collector_->optical_params());
+    EXPECT_EQ(use_cherenkov_, static_cast<bool>(collector_->cherenkov()));
+    EXPECT_EQ(use_scintillation_,
+              static_cast<bool>(collector_->scintillation()));
 }
 
 //---------------------------------------------------------------------------//
@@ -286,23 +222,27 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
     size_type step_iter = 1;
     while (count && step_iter++ < num_steps)
     {
-        if (!collector_->buffer_counts(step.state().aux()).photons
-            && step_iter < result.optical_launch_step)
-        {
-            result.optical_launch_step = step_iter;
-        }
         CELER_TRY_HANDLE(count = step(), log_context);
     }
 
-    auto get_result = [&](OffloadResult& result, AuxId id) {
-        if (!id)
+    auto const& gen_reg = collector_->gen_reg();
+
+    auto get_result = [&](OffloadResult& result, GeneratorId gen_id) {
+        if (!gen_id)
         {
             return;
         }
-        auto const& state = get<GeneratorState<M>>(step.state().aux(), id);
+        // Access the auxiliary data for this generator
+        auto const* aux = dynamic_cast<AuxParamsInterface const*>(
+            gen_reg.at(gen_id).get());
+        CELER_ASSERT(aux);
+        auto const& state
+            = get<GeneratorState<M>>(step.state().aux(), aux->aux_id());
         auto buffer = copy_to_host(state.store.ref().distributions);
+
         std::set<real_type> charge;
-        for (auto const& dist : buffer[DistRange(DistId(state.buffer_size))])
+        for (auto const& dist :
+             buffer[DistRange(DistId(state.counters.buffer_size))])
         {
             result.total_num_photons += dist.num_photons;
             result.num_photons.push_back(dist.num_photons);
@@ -323,9 +263,8 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
     };
 
     // Access the optical offload data
-    get_result(result.cherenkov, collector_->cherenkov_aux_id());
-    get_result(result.scintillation, collector_->scintillation_aux_id());
-    result.num_photons = collector_->buffer_counts(step.state().aux()).photons;
+    get_result(result.cherenkov, gen_reg.find("cherenkov-generate"));
+    get_result(result.scintillation, gen_reg.find("scintillation-generate"));
     result.accum = collector_->exchange_counters(step.sp_state()->aux());
 
     return result;
@@ -343,15 +282,13 @@ template LArSphereOffloadTest::RunResult
 
 TEST_F(LArSphereOffloadTest, host_distributions)
 {
-    auto_flush_ = size_type(-1);
+    max_step_iters_ = 0;
     num_track_slots_ = 4;
     this->build_optical_collector();
 
     auto result = this->run<MemSpace::host>(4, num_track_slots_, 64);
 
-    EXPECT_EQ(result.cherenkov.total_num_photons
-                  + result.scintillation.total_num_photons,
-              result.num_photons);
+    EXPECT_EQ(2, result.accum.generators.size());
 
     static real_type const expected_cherenkov_charge[] = {-1, 1};
     EXPECT_VEC_EQ(expected_cherenkov_charge, result.cherenkov.charge);
@@ -361,6 +298,10 @@ TEST_F(LArSphereOffloadTest, host_distributions)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
+        EXPECT_EQ(2122951,
+                  result.cherenkov.total_num_photons
+                      + result.scintillation.total_num_photons);
+
         EXPECT_EQ(21541, result.cherenkov.total_num_photons);
         EXPECT_EQ(53, result.cherenkov.num_photons.size());
         static unsigned int const expected_cherenkov_num_photons[] = {
@@ -412,15 +353,13 @@ TEST_F(LArSphereOffloadTest, host_distributions)
 
 TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
 {
-    auto_flush_ = size_type(-1);
+    max_step_iters_ = 0;
     num_track_slots_ = 8;
     this->build_optical_collector();
 
     auto result = this->run<MemSpace::device>(8, num_track_slots_, 32);
 
-    EXPECT_EQ(result.cherenkov.total_num_photons
-                  + result.scintillation.total_num_photons,
-              result.num_photons);
+    EXPECT_EQ(2, result.accum.generators.size());
 
     static real_type const expected_cherenkov_charge[] = {-1, 1};
     EXPECT_VEC_EQ(expected_cherenkov_charge, result.cherenkov.charge);
@@ -430,6 +369,10 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
+        EXPECT_EQ(3562272,
+                  result.cherenkov.total_num_photons
+                      + result.scintillation.total_num_photons);
+
         EXPECT_EQ(38699, result.cherenkov.total_num_photons);
         EXPECT_EQ(82, result.cherenkov.num_photons.size());
         static unsigned int const expected_cherenkov_num_photons[] = {
@@ -491,7 +434,7 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
 TEST_F(LArSphereOffloadTest, cherenkov_distributiona)
 {
     use_scintillation_ = false;
-    auto_flush_ = size_type(-1);
+    max_step_iters_ = 0;
     num_track_slots_ = 4;
     this->build_optical_collector();
 
@@ -515,7 +458,7 @@ TEST_F(LArSphereOffloadTest, cherenkov_distributiona)
 TEST_F(LArSphereOffloadTest, scintillation_distributions)
 {
     use_cherenkov_ = false;
-    auto_flush_ = size_type(-1);
+    max_step_iters_ = 0;
     num_track_slots_ = 4;
     this->build_optical_collector();
 
@@ -533,10 +476,12 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
         EXPECT_EQ(0, result.accum.steps);
         EXPECT_EQ(0, result.accum.step_iters);
         EXPECT_EQ(0, result.accum.flushes);
-        EXPECT_EQ(0, result.accum.cherenkov.distributions);
-        EXPECT_EQ(0, result.accum.scintillation.distributions);
-        EXPECT_EQ(0, result.accum.cherenkov.photons);
-        EXPECT_EQ(0, result.accum.scintillation.photons);
+        ASSERT_EQ(1, result.accum.generators.size());
+
+        auto const& scint = result.accum.generators.front();
+        EXPECT_EQ(0, scint.buffer_size);
+        EXPECT_EQ(0, scint.num_pending);
+        EXPECT_EQ(0, scint.num_generated);
     }
     else
     {
@@ -552,7 +497,6 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
     primary_energy_ = units::MevEnergy{0.01};
     num_track_slots_ = 32;
     buffer_capacity_ = 4096;
-    initializer_capacity_ = 4096;
     auto_flush_ = 1;
     this->build_optical_collector();
 
@@ -563,13 +507,20 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(1712, result.accum.steps);
+        EXPECT_EQ(1711, result.accum.steps);
         EXPECT_EQ(57, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
-        EXPECT_EQ(0, result.accum.cherenkov.distributions);
-        EXPECT_EQ(2, result.accum.scintillation.distributions);
-        EXPECT_EQ(0, result.accum.cherenkov.photons);
-        EXPECT_EQ(1028, result.accum.scintillation.photons);
+        ASSERT_EQ(2, result.accum.generators.size());
+
+        auto const& cherenkov = result.accum.generators[0];
+        EXPECT_EQ(0, cherenkov.buffer_size);
+        EXPECT_EQ(0, cherenkov.num_pending);
+        EXPECT_EQ(0, cherenkov.num_generated);
+
+        auto const& scint = result.accum.generators[1];
+        EXPECT_EQ(2, scint.buffer_size);
+        EXPECT_EQ(0, scint.num_pending);
+        EXPECT_EQ(1028, scint.num_generated);
     }
 }
 
@@ -577,7 +528,6 @@ TEST_F(LArSphereOffloadTest, host_generate)
 {
     num_track_slots_ = 262144;
     buffer_capacity_ = 1024;
-    initializer_capacity_ = 524288;
     auto_flush_ = 16384;
     this->build_optical_collector();
 
@@ -588,17 +538,21 @@ TEST_F(LArSphereOffloadTest, host_generate)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_SOFT_NEAR(
-            462263.0, static_cast<double>(result.accum.steps), 1e-4);
-        EXPECT_EQ(37, result.accum.step_iters);
+        EXPECT_SOFT_NEAR(462229, static_cast<double>(result.accum.steps), 1e-4);
+        EXPECT_EQ(49, result.accum.step_iters);
         EXPECT_EQ(3, result.accum.flushes);
-        EXPECT_EQ(4, result.accum.cherenkov.distributions);
-        EXPECT_EQ(6, result.accum.scintillation.distributions);
-        EXPECT_EQ(3835, result.accum.cherenkov.photons);
-        EXPECT_EQ(279898, result.accum.scintillation.photons);
-    }
+        ASSERT_EQ(2, result.accum.generators.size());
 
-    EXPECT_EQ(2, result.optical_launch_step);
+        auto const& cherenkov = result.accum.generators[0];
+        EXPECT_EQ(4, cherenkov.buffer_size);
+        EXPECT_EQ(0, cherenkov.num_pending);
+        EXPECT_EQ(3835, cherenkov.num_generated);
+
+        auto const& scint = result.accum.generators[1];
+        EXPECT_EQ(6, scint.buffer_size);
+        EXPECT_EQ(0, scint.num_pending);
+        EXPECT_EQ(279898, scint.num_generated);
+    }
     EXPECT_EQ(0, result.scintillation.total_num_photons);
     EXPECT_EQ(0, result.cherenkov.total_num_photons);
 }
@@ -607,7 +561,6 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
 {
     num_track_slots_ = 1024;
     buffer_capacity_ = 2048;
-    initializer_capacity_ = 524288;
     auto_flush_ = 262144;
     this->build_optical_collector();
 
@@ -619,10 +572,22 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(218314, result.scintillation.total_num_photons);
-        EXPECT_EQ(2236, result.cherenkov.total_num_photons);
+        EXPECT_EQ(818, result.accum.step_iters);
+        EXPECT_EQ(2, result.accum.flushes);
+        ASSERT_EQ(2, result.accum.generators.size());
+
+        auto const& cherenkov = result.accum.generators[0];
+        EXPECT_EQ(12, cherenkov.buffer_size);
+        EXPECT_EQ(0, cherenkov.num_pending);
+        EXPECT_EQ(5338, cherenkov.num_generated);
+
+        auto const& scint = result.accum.generators[1];
+        EXPECT_EQ(35, scint.buffer_size);
+        EXPECT_EQ(0, scint.num_pending);
+        EXPECT_EQ(500472, scint.num_generated);
     }
-    EXPECT_EQ(7, result.optical_launch_step);
+    EXPECT_EQ(0, result.scintillation.total_num_photons);
+    EXPECT_EQ(0, result.cherenkov.total_num_photons);
 }
 
 //---------------------------------------------------------------------------//

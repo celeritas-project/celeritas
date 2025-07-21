@@ -40,6 +40,8 @@
 #include "GeantGdmlLoader.hh"
 #include "GeantGeoUtils.hh"
 #include "GeantUtils.hh"
+#include "ScopedGeantExceptionHandler.hh"
+#include "ScopedGeantLogger.hh"
 #include "g4/Convert.hh"  // IWYU pragma: associated
 #include "g4/GeantGeoData.hh"  // IWYU pragma: associated
 #include "g4/VisitVolumes.hh"
@@ -145,25 +147,44 @@ void append_skin_surfaces(GeantGeoParams const& geo,
     std::map<VolumeId, G4Surface const*> temp;
     auto const* table = G4Surface::GetSurfaceTable();
     CELER_ASSERT(table);
+    size_type num_null_surfaces{0};
 #if G4VERSION_NUMBER >= 1120
     for (auto&& [lv, surf] : *table)
 #else
     for (auto const* surf : *table)
 #endif
     {
+        if (!surf)
+        {
+            ++num_null_surfaces;
+            continue;
+        }
+
 #if G4VERSION_NUMBER < 1120
         auto* lv = surf->GetLogicalVolume();
 #endif
+        if (!lv)
+        {
+            CELER_LOG(warning) << "G4 skin surface '" << surf->GetName()
+                               << "' references a null logical volume";
+            continue;
+        }
 
-        CELER_ASSERT(lv);
         auto vol_id = geo.geant_to_id(*lv);
         CELER_ASSERT(vol_id);
         auto iter_inserted = temp.insert({vol_id, surf});
         CELER_ASSERT(iter_inserted.second);
     }
 
+    if (num_null_surfaces != 0)
+    {
+        CELER_LOG(warning) << "Geant4 skin surface table contains "
+                           << num_null_surfaces << " null surface"
+                           << (num_null_surfaces > 1 ? "s" : "");
+    }
+
     // Append to table in order
-    result.reserve(table->size());
+    result.reserve(result.size() + temp.size());
     for (auto const& kv : temp)
     {
         result.push_back(kv.second);
@@ -183,27 +204,46 @@ void append_border_surfaces(GeantGeoParams const& geo,
     std::map<std::pair<VolumeInstanceId, VolumeInstanceId>, G4Surface const*> temp;
     auto const* table = G4Surface::GetSurfaceTable();
     CELER_ASSERT(table);
+
+    size_type num_null_surfaces{0};
 #if G4VERSION_NUMBER >= 1070
     for (auto&& [key, surf] : *table)
 #else
     for (auto const* surf : *table)
 #endif
     {
+        if (!surf)
+        {
+            ++num_null_surfaces;
+            continue;
+        }
+
 #if G4VERSION_NUMBER < 1070
         std::pair key{surf->GetVolume1(), surf->GetVolume2()};
 #endif
-        CELER_ASSERT(key.first);
+        if (!(key.first && key.second))
+        {
+            CELER_LOG(warning) << "G4 border surface '" << surf->GetName()
+                               << "' references a null physical volume";
+            continue;
+        }
         auto before = geo.geant_to_id(*key.first);
         CELER_ASSERT(before);
-        CELER_ASSERT(key.second);
         auto after = geo.geant_to_id(*key.second);
         CELER_ASSERT(after);
         auto iter_inserted = temp.insert({{before, after}, surf});
         CELER_ASSERT(iter_inserted.second);
     }
 
+    if (num_null_surfaces != 0)
+    {
+        CELER_LOG(warning) << "Geant4 border surface table contains "
+                           << num_null_surfaces << " null surface"
+                           << (num_null_surfaces > 1 ? "s" : "");
+    }
+
     // Add to table in order
-    result.reserve(result.size() + table->size());
+    result.reserve(result.size() + temp.size());
     for (auto const& kv : temp)
     {
         result.push_back(kv.second);
@@ -377,18 +417,10 @@ std::vector<inp::Surface> make_inp_surfaces(GeantGeoParams const& geo)
 }
 
 //---------------------------------------------------------------------------//
-// Global tracking geometry instance: may be nullptr
-GeantGeoParams const* g_geant_geo_ = nullptr;
-
-//---------------------------------------------------------------------------//
-// Clear the global geometry if it's being destroyed
-void destroying_geo(GeantGeoParams const* ggp)
-{
-    if (ggp == g_geant_geo_)
-    {
-        g_geant_geo_ = nullptr;
-    }
-}
+//! Global tracking geometry instance: may be nullptr
+// Note that this is safe to declare statically: see
+// https://en.cppreference.com/w/cpp/memory/weak_ptr/weak_ptr
+std::weak_ptr<GeantGeoParams const> g_geant_geo_;
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -403,28 +435,30 @@ void destroying_geo(GeantGeoParams const* ggp)
  * of global initialization order issues (the low-level Geant4 objects may be
  * cleared before a static celeritas::GeantGeoParams is destroyed).
  *
- * \note This is not thread safe; it should be done only during setup on the
- * main thread.
+ * \note This should be done only during setup on the main thread.
  */
-void geant_geo(GeantGeoParams const& gp)
+void geant_geo(std::shared_ptr<GeantGeoParams const> const& gp)
 {
-    CELER_VALIDATE(!g_geant_geo_ || &gp == g_geant_geo_,
-                   << "global tracking Geant4 geometry wrapper has already "
-                      "been set");
-    g_geant_geo_ = &gp;
+    CELER_VALIDATE(
+        g_geant_geo_.expired() ||
+            [&] {
+                auto old_p = g_geant_geo_.lock();
+                return !old_p || old_p == gp;
+            }(),
+        << "global tracking Geant4 geometry wrapper has already been set");
+    g_geant_geo_ = gp;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Access the global geometry instance.
  *
- * This should be used by Geant4 geometry-related helper functions throughout
- * the code base. Make sure to check the result is not null! Do not save a
- * pointer to it either.
+ * This can be used by Geant4 geometry-related helper functions throughout
+ * the code base.
  *
- * \return Reference to the global Geant4 wrapper, or nullptr if not set.
+ * \return Weak pointer to the global Geant4 wrapper, which may be null.
  */
-GeantGeoParams const* geant_geo()
+std::weak_ptr<GeantGeoParams const> const& geant_geo()
 {
     return g_geant_geo_;
 }
@@ -439,7 +473,7 @@ std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
     CELER_VALIDATE(world,
                    << "cannot create Geant geometry wrapper: Geant4 tracking "
                       "manager is not active");
-    return std::make_shared<GeantGeoParams>(world);
+    return std::make_shared<GeantGeoParams>(world, Ownership::reference);
 }
 
 //---------------------------------------------------------------------------//
@@ -449,13 +483,13 @@ std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
  * This assumes that Celeritas is driving and will manage Geant4 logging
  * and exceptions.
  */
-GeantGeoParams::GeantGeoParams(std::string const& filename)
+std::shared_ptr<GeantGeoParams>
+GeantGeoParams::from_gdml(std::string const& filename)
 {
     ScopedMem record_mem("GeantGeoParams.construct");
 
-    scoped_logger_
-        = std::make_unique<ScopedGeantLogger>(celeritas::world_logger());
-    scoped_exceptions_ = std::make_unique<ScopedGeantExceptionHandler>();
+    ScopedGeantLogger logger(celeritas::world_logger());
+    ScopedGeantExceptionHandler exception_handler;
 
     disable_geant_signal_handler();
 
@@ -464,21 +498,16 @@ GeantGeoParams::GeantGeoParams(std::string const& filename)
         CELER_LOG(warning) << "Expected '.gdml' extension for GDML input";
     }
 
-    data_.world = load_gdml(filename);
-    loaded_gdml_ = true;
-
-    this->build_tracking();
-    this->build_metadata();
-
-    CELER_ENSURE(volumes_);
-    CELER_ENSURE(data_);
+    return std::make_shared<GeantGeoParams>(load_gdml(filename),
+                                            Ownership::value);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Use an existing loaded Geant4 geometry.
  */
-GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world)
+GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns)
+    : ownership_{owns}
 {
     CELER_EXPECT(world);
     data_.world = const_cast<G4VPhysicalVolume*>(world);
@@ -505,7 +534,19 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world)
         }
     }
 
-    this->build_tracking();
+    {
+        // Close the geometry if needed
+        auto* geo_man = G4GeometryManager::GetInstance();
+        CELER_ASSERT(geo_man);
+        if (!geo_man->IsGeometryClosed())
+        {
+            CELER_LOG(debug) << "Building geometry manager tracking";
+            geo_man->CloseGeometry(
+                /* optimize = */ true, /* verbose = */ false, this->world());
+            closed_geometry_ = true;
+        }
+    }
+
     this->build_metadata();
 
     CELER_ENSURE(volumes_);
@@ -531,13 +572,10 @@ GeantGeoParams::~GeantGeoParams()
                                 "geo had a chance to clean up";
         }
     }
-    if (loaded_gdml_)
+    if (ownership_ == Ownership::value)
     {
         reset_geant_geometry();
     }
-
-    // If some part of the code set us up as the global geometry, clear it
-    destroying_geo(this);
 }
 
 //---------------------------------------------------------------------------//
@@ -725,24 +763,6 @@ void GeantGeoParams::reset_replica_data() const
 
 //---------------------------------------------------------------------------//
 // PRIVATE FUNCTIONS
-//---------------------------------------------------------------------------//
-/*!
- * Complete geometry construction.
- */
-void GeantGeoParams::build_tracking()
-{
-    // Close the geometry if needed
-    auto* geo_man = G4GeometryManager::GetInstance();
-    CELER_ASSERT(geo_man);
-    if (!geo_man->IsGeometryClosed())
-    {
-        CELER_LOG(debug) << "Building geometry manager tracking";
-        geo_man->CloseGeometry(
-            /* optimize = */ true, /* verbose = */ false, this->world());
-        closed_geometry_ = true;
-    }
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct Celeritas host-only metadata.

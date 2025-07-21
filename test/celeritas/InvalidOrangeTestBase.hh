@@ -46,7 +46,7 @@ class InvalidOrangeTestBase : virtual public SimpleTestBase
     {
         return "<in-memory>";
     }
-    SPConstGeo build_geometry() override;
+    SPConstCoreGeo build_geometry() override;
     SPConstGeoMaterial build_geomaterial() override;
 };
 

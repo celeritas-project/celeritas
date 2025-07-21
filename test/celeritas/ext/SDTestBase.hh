@@ -47,7 +47,7 @@ class SDTestBase : virtual public GeantTestBase
     SPConstGeoI build_fresh_geometry(std::string_view) override;
 
     // Restore SD map and reset SDs when rebuilding geometry
-    SPConstGeo build_geometry() override;
+    SPConstCoreGeo build_geometry() override;
 
   private:
     // Constructed detectors

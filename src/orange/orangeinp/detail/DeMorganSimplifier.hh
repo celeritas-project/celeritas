@@ -57,7 +57,7 @@ class DeMorganSimplifier
     //! node id >= 2
     static constexpr auto has_parents_index_{NodeId{1}};
 
-    //! First meaningfull node id in a CsgTree
+    //! First meaningful node id in a CsgTree
     static constexpr auto first_node_id_{NodeId{2}};
 
     //! Helper struct to translate ids from the original tree to ids in the

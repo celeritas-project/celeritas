@@ -17,6 +17,19 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+//! Grid specification for a single axis
+template<class T>
+struct AxisGrid
+{
+    T min{};  //!< Minimum coordinate value
+    T max{};  //!< Maximum coordinate value
+    size_type num{};  //!< Number of grid points
+
+    //! Check if parameters are valid
+    explicit operator bool() const { return max > min && num > 1; }
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Input data for a magnetic X-Y-Z vector field stored on an X-Y-Z grid.
  *
@@ -30,17 +43,9 @@ namespace celeritas
  */
 struct CartMapFieldInput
 {
-    real_type min_x;  //!< Minimum X grid point [len]
-    real_type max_x;  //!< Maximum X grid point [len]
-    size_type num_x;  //!< Number of X grid points
-
-    real_type min_y;  //!< Minimum Y grid point [len]
-    real_type max_y;  //!< Maximum Y grid point [len]
-    size_type num_y;  //!< Number of Y grid points
-
-    real_type min_z;  //!< Minimum Z grid point [len]
-    real_type max_z;  //!< Maximum Z grid point [len]
-    size_type num_z;  //!< Number of Z grid points
+    AxisGrid<real_type> x;  //!< X-axis grid specification [len]
+    AxisGrid<real_type> y;  //!< Y-axis grid specification [len]
+    AxisGrid<real_type> z;  //!< Z-axis grid specification [len]
 
     std::vector<real_type> field;  //!< Flattened X-Y-Z field component
                                    //!< [bfield]
@@ -51,16 +56,10 @@ struct CartMapFieldInput
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
-        // clang-format off
-        return
-             (max_x >= min_x)
-            && (num_x >= 2)
-            && (max_y >= min_y)
-            && (num_y >= 2)
-            && (max_z >= min_z)
-            && (num_z >= 2)
-            && (field.size() == static_cast<size_type>(Axis::size_) * num_x * num_y * num_z);
-        // clang-format on
+        return x && y && z
+               && (field.size()
+                   == static_cast<size_type>(Axis::size_) * x.num * y.num
+                          * z.num);
     }
 };
 

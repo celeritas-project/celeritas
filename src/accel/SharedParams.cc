@@ -52,8 +52,8 @@
 #include "celeritas/ext/GeantSd.hh"
 #include "celeritas/ext/GeantSdOutput.hh"
 #include "celeritas/ext/RootExporter.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
-#include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/inp/FrameworkInput.hh"
 #include "celeritas/inp/Scoring.hh"
@@ -262,13 +262,14 @@ SharedParams::SharedParams(SetupOptions const& options)
     auto framework_inp = to_inp(options);
     auto loaded = setup::framework_input(framework_inp);
     params_ = std::move(loaded.problem.core_params);
+    optical_ = std::move(loaded.problem.optical_collector);
     output_filename_ = loaded.problem.output_file;
     CELER_ASSERT(params_);
 
     // Load geant4 geometry adapter and save as "global"
     CELER_ASSERT(loaded.geo);
     geant_geo_ = std::move(loaded.geo);
-    celeritas::geant_geo(*geant_geo_);
+    celeritas::geant_geo(geant_geo_);
 
     // Save built attributes
     output_reg_ = params_->output_reg();

@@ -68,7 +68,7 @@ auto SDTestBase::build_fresh_geometry(std::string_view basename) -> SPConstGeoI
 
 //---------------------------------------------------------------------------//
 //! Restore SD map when rebuilding geometry
-auto SDTestBase::build_geometry() -> SPConstGeo
+auto SDTestBase::build_geometry() -> SPConstCoreGeo
 {
     // Build or fetch geo
     auto result = Base::build_geometry();

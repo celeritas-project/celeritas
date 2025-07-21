@@ -38,9 +38,9 @@ inline constexpr UniverseId orange_global_universe{0};
  */
 struct OrangeParamsScalars
 {
-    // Maximum universe depth, i.e., depth of the universe tree DAG, equivalent
-    // to the VecGeom implementation. Has a value of 1 for a non-nested
-    // geometry.
+    // Maximum universe depth, i.e., depth of the universe tree DAG: its value
+    // is 1 for a non-nested geometry. It may not correspond to the depth of a
+    // Geant4 geometry since we may "inline" certain logical volumes.
     size_type max_depth{};
     size_type max_faces{};
     size_type max_intersections{};
@@ -82,7 +82,7 @@ struct VolumeRecord
         internal_surfaces = 0x1,  //!< "Complex" distance-to-boundary
         implicit_vol = 0x2,  //!< Background/exterior volume
         simple_safety = 0x4,  //!< Fast safety calculation
-        embedded_universe = 0x8  //!< Volume contains embeddded universe
+        embedded_universe = 0x8  //!< Volume contains embedded universe
     };
 };
 
@@ -220,7 +220,7 @@ struct SimpleUnitRecord
     // Volume data [index by LocalVolumeId]
     ItemMap<LocalVolumeId, VolumeRecordId> volumes;
 
-    // Bounding Interval Hierachy tree parameters
+    // Bounding Interval Hierarchy tree parameters
     detail::BIHTree bih_tree;
 
     LocalVolumeId background{};  //!< Default if not in any other volume
@@ -350,8 +350,11 @@ struct OrangeParamsData
     template<class T>
     using Items = Collection<T, W, M>;
     template<class T>
+    using ImplVolumeItems = Collection<T, W, M, ImplVolumeId>;
+    template<class T>
     using UnivItems = Collection<T, W, M, UniverseId>;
-    using RealId = OpaqueId<real_type>;
+
+    using RealId = SurfacesRecord::RealId;
 
     //// DATA ////
 

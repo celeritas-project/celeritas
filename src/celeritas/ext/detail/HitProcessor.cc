@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "HitProcessor.hh"
 
+#include <cstddef>
 #include <string>
 #include <utility>
 #include <CLHEP/Units/SystemOfUnits.h>
@@ -20,6 +21,8 @@
 #include <G4VSensitiveDetector.hh>
 #include <G4Version.hh>
 
+#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
@@ -85,10 +88,40 @@ get_step_status(DetectorStepOutput const& out, size_type step_index)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Restore the G4Track from the reconstruction data. Takes ownership of the
+ * user information by unsetting it in the original track.
+ */
+HitProcessor::GeantTrackReconstructionData::GeantTrackReconstructionData(
+    G4Track& track)
+    : track_id_{track.GetTrackID()}
+    , user_info_{track.GetUserInformation()}
+    , creator_process_{track.GetCreatorProcess()}
+{
+    CELER_EXPECT(*this);
+    // Clear user information so that it doesn't get deleted with the G4Track
+    track.SetUserInformation(nullptr);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Restore the G4Track from the reconstruction data. The restored track does
+ * not have ownership of the user information, user must take care to reset it
+ * before deletion of the track.
+ */
+void HitProcessor::GeantTrackReconstructionData::restore_track(G4Track& track) const
+{
+    CELER_EXPECT(*this);
+    track.SetTrackID(track_id_);
+    track.SetUserInformation(user_info_.get());
+    track.SetCreatorProcess(creator_process_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct local navigator and step data.
  */
 HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
-                           SPConstGeo const& geo,
+                           SPConstCoreGeo const& geo,
                            VecParticle const& particles,
                            StepSelection const& selection,
                            StepPointBool const& locate_touchable)
@@ -178,7 +211,7 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
         p->SetLocalTime(std::numeric_limits<double>::infinity());
         // Time in rest frame since track was created
         p->SetProperTime(std::numeric_limits<double>::infinity());
-        // Speed
+        // Speed (TODO: use ParticleView)
         p->SetVelocity(std::numeric_limits<double>::infinity());
         // Safety distance
         p->SetSafety(std::numeric_limits<double>::infinity());
@@ -190,10 +223,13 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     for (G4ParticleDefinition const* pd : particles)
     {
         CELER_ASSERT(pd);
-        tracks_.emplace_back(new G4Track(
-            new G4DynamicParticle(pd, G4ThreeVector()), 0.0, G4ThreeVector()));
-        tracks_.back()->SetTrackID(-1);
-        tracks_.back()->SetParentID(-1);
+        auto track = std::make_unique<G4Track>(
+            new G4DynamicParticle(pd, G4ThreeVector()), 0.0, G4ThreeVector());
+        track->SetTrackID(0);
+        track->SetParentID(0);
+        track->SetStep(step_.get());
+
+        tracks_.emplace_back(std::move(track));
     }
 
     // Convert logical volumes (global) to sensitive detectors (thread local)
@@ -219,11 +255,44 @@ HitProcessor::~HitProcessor()
     try
     {
         CELER_LOG(debug) << "Deallocating hit processor";
+        for (auto& track : tracks_)
+        {
+            // Check that the track user information is unset
+            // g4_track_data_ owns the track user info
+            CELER_ASSERT(!track->GetUserInformation());
+        }
     }
     catch (...)  // NOLINT(bugprone-empty-catch)
     {
         // Ignore anything bad that happens while logging
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Register mapping from Celeritas PrimaryID to Geant4 TrackID. This will take
+ * ownership of the G4VUserTrackInformation and unset it in the primary track.
+ */
+PrimaryId HitProcessor::register_primary(G4Track& primary)
+{
+    auto primary_id = id_cast<PrimaryId>(g4_track_data_.size());
+    g4_track_data_.push_back(GeantTrackReconstructionData{primary});
+    return primary_id;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Clear G4Track reconstruction data.
+ */
+void HitProcessor::end_event()
+{
+    for (auto& track : tracks_)
+    {
+        // Clear the user information to prevent double deletion
+        // g4_track_data_ owns the track user info
+        track->SetUserInformation(nullptr);
+    }
+    g4_track_data_.clear();
 }
 
 //---------------------------------------------------------------------------//
@@ -322,12 +391,11 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
         HP_SET(g4sp->SetPosition, out.points[sp].pos, clhep_length);
         HP_SET(g4sp->SetKineticEnergy, out.points[sp].energy, CLHEP::MeV);
         HP_SET(g4sp->SetMomentumDirection, out.points[sp].dir, 1);
-        /*!
-         * \todo Celeritas currently ignores incoming particle weight and
-         * does not perform any variance reduction. See issue #1268.
-         */
-        g4sp->SetWeight(1.0);
 
+        if (!out.weight.empty())
+        {
+            g4sp->SetWeight(out.weight[i]);
+        }
         G4LogicalVolume const* point_lv = [&]() -> G4LogicalVolume const* {
             if (sp == StepPoint::pre)
                 return lv;
@@ -359,7 +427,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
     {
         // Set the track particle type
         CELER_ASSERT(!out.particle.empty());
-        this->update_track(out.particle[i]);
+        this->update_track(out, i);
     }
 
     if (step_post_status_)
@@ -380,13 +448,25 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
  *
  * This is a bit like \c G4Step::UpdateTrack .
  */
-void HitProcessor::update_track(ParticleId id) const
+void HitProcessor::update_track(DetectorStepOutput const& out, size_type i) const
 {
+    ParticleId id = out.particle[i];
     CELER_EXPECT(id < tracks_.size());
     G4Track& track = *tracks_[id.unchecked_get()];
     step_->SetTrack(&track);
 
+    // Copy data from step to track
+    track.SetStepLength(step_->GetStepLength());
+
     G4ParticleDefinition const& pd = *track.GetParticleDefinition();
+
+    if (!out.primary_id.empty())
+    {
+        PrimaryId celeritas_primary_id = out.primary_id[i];
+        CELER_ASSERT(celeritas_primary_id < g4_track_data_.size());
+        g4_track_data_[celeritas_primary_id.unchecked_get()].restore_track(
+            track);
+    }
 
     for (G4StepPoint* p : step_points_)
     {
@@ -399,6 +479,13 @@ void HitProcessor::update_track(ParticleId id) const
         p->SetMass(pd.GetPDGMass());
         p->SetCharge(pd.GetPDGCharge());
     }
+
+    if (G4StepPoint* pre_step = step_points_[StepPoint::pre])
+    {
+        // Copy data from post-step to track
+        track.SetTouchableHandle(pre_step->GetTouchableHandle());
+    }
+
     if (G4StepPoint* post_step = step_points_[StepPoint::post])
     {
         // Copy data from post-step to track
@@ -407,6 +494,9 @@ void HitProcessor::update_track(ParticleId id) const
         track.SetKineticEnergy(post_step->GetKineticEnergy());
         track.SetMomentumDirection(post_step->GetMomentumDirection());
         track.SetWeight(post_step->GetWeight());
+
+        track.SetNextTouchableHandle(post_step->GetTouchableHandle());
+        track.SetVelocity(post_step->GetVelocity());
     }
 }
 

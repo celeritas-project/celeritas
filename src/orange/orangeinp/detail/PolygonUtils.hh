@@ -238,7 +238,7 @@ filter_collinear_points(std::vector<Real2> const& corners, double abs_tol)
         }
     }
 
-    // Make sure there are enough filtered points to specificy a polygon.
+    // Make sure there are enough filtered points to specify a polygon.
     CELER_ASSERT(result.size() >= 3);
 
     // If it turns out that the first point is actually collinear, remove it.

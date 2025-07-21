@@ -127,7 +127,7 @@ CELER_FUNCTION real_type UrbanMscHelper::calc_msc_mfp(Energy energy) const
 /*!
  * Calculate the energy corresponding to a given particle range.
  *
- * This is an exact value based on the range claculation. It can be used to
+ * This is an exact value based on the range calculation. It can be used to
  * find the exact energy loss over a step.
  */
 CELER_FUNCTION auto UrbanMscHelper::calc_inverse_range(real_type step) const

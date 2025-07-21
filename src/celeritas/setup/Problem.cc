@@ -22,11 +22,10 @@
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantGdmlLoader.hh"
-#include "geocel/inp/Model.hh"
+#include "geocel/SurfaceParams.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/alongstep/AlongStepCartMapFieldMscAction.hh"
@@ -44,7 +43,6 @@
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
-#include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/inp/Control.hh"
@@ -80,54 +78,14 @@
 #include "celeritas/user/StepData.hh"
 #include "celeritas/user/StepDiagnostic.hh"
 
+#include "Model.hh"
+
 namespace celeritas
 {
 namespace setup
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-struct GeoBuilder
-{
-    using result_type = std::shared_ptr<GeoParams>;
-
-    //! Build from filename
-    result_type operator()(std::string const& filename)
-    {
-        CELER_VALIDATE(!filename.empty(),
-                       << "empty filename in problem.model.geometry");
-        return std::make_shared<GeoParams>(filename);
-    }
-
-    //! Build from Geant4
-    result_type operator()(G4VPhysicalVolume const* world)
-    {
-        if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-        {
-            // NOTE: this is used to allow a custom "ideal" TestEM3 definition
-            // in our regression suite
-            static char const fi_hack_envname[] = "ORANGE_FORCE_INPUT";
-            auto const& filename = celeritas::getenv(fi_hack_envname);
-            if (!filename.empty())
-            {
-                CELER_LOG(warning)
-                    << "Using a temporary, unsupported, and dangerous "
-                       "hack to override the ORANGE geometry file: "
-                    << fi_hack_envname << "='" << filename << "'";
-                return (*this)(filename);
-            }
-        }
-        CELER_VALIDATE(world,
-                       << "null world pointer in problem.model.geometry");
-        return std::make_shared<GeoParams>(world);
-    }
-};
-
-auto build_geometry(inp::Model const& m)
-{
-    return std::visit(GeoBuilder{}, m.geometry);
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct physics processes.
@@ -360,7 +318,6 @@ auto build_optical_offload(inp::Problem const& p,
     auto num_streams = params.max_streams();
     oc_inp.num_track_slots = ceil_div(cap.tracks, num_streams);
     oc_inp.buffer_capacity = ceil_div(cap.generators, num_streams);
-    oc_inp.initializer_capacity = ceil_div(cap.initializers, num_streams);
     oc_inp.auto_flush = ceil_div(cap.primaries, num_streams);
     oc_inp.max_step_iters = p.tracking.limits.optical_step_iters;
 
@@ -406,16 +363,40 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
     params.action_reg = std::make_shared<ActionRegistry>();
     params.output_reg = std::make_shared<OutputRegistry>();
 
-    // Load geometry: use existing world volume or reload from geometry file
-    params.geometry = build_geometry(p.model);
-
-    if (!params.geometry->supports_safety())
+    // Load geometry and model
     {
-        CELER_LOG(warning)
-            << "Geometry contains surfaces that are "
-               "incompatible with the current ORANGE simple "
-               "safety algorithm: multiple scattering may "
-               "result in arbitrarily small steps without displacement";
+        if (auto* filename = std::get_if<std::string>(&p.model.geometry))
+        {
+            CELER_VALIDATE(!filename->empty(),
+                           << "empty filename in problem.model.geometry");
+        }
+
+        auto loaded_model = setup::model(p.model);
+        params.geometry = std::move(loaded_model.geometry);
+        CELER_ASSERT(params.geometry);
+        if (!params.geometry->supports_safety())
+        {
+            CELER_LOG(warning)
+                << "Geometry contains surfaces that are "
+                   "incompatible with the current ORANGE simple "
+                   "safety algorithm: multiple scattering may "
+                   "result in arbitrarily small steps without displacement";
+        }
+        params.volume = std::move(loaded_model.volume);
+        if (p.control.optical_capacity)
+        {
+            params.surface = std::move(loaded_model.surface);
+        }
+        else
+        {
+            CELER_ASSERT(loaded_model.surface);
+            if (!loaded_model.surface->empty())
+            {
+                CELER_LOG(debug) << "Ignoring surfaces for non-optical "
+                                    "problem";
+            }
+            params.surface = std::make_shared<SurfaceParams>();
+        }
     }
 
     // Load materials
@@ -615,6 +596,12 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 
     if (p.control.optical_capacity)
     {
+        if (core_params->surface()->empty())
+        {
+            CELER_LOG(warning) << "Problem contains optical physics without "
+                                  "any surface definitions";
+        }
+
         result.optical_collector
             = build_optical_offload(p, *core_params, imported);
     }

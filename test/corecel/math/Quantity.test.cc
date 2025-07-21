@@ -91,7 +91,7 @@ TEST(QuantityTest, zeros)
     zero_turn = zero_quantity();
     EXPECT_EQ(0, value_as<Revolution>(zero_turn));
 
-    // Check int/untyped commparisons
+    // Check int/untyped comparisons
     EXPECT_GT(Dozen{1}, zero_quantity());
     EXPECT_LT(Dozen{1}, max_quantity());
 }
@@ -267,6 +267,7 @@ TEST(TurnTest, basic)
 
 TEST(TurnTest, math)
 {
+    // Fractional powers of two should yield exact results
     EXPECT_EQ(double(1), sin(make_turn(0.25)));
     EXPECT_EQ(double(-1), cos(make_turn(0.5)));
     {
@@ -294,6 +295,15 @@ TEST(TurnTest, math)
         ta = atan2turn(-1.0, 0.0);
         EXPECT_DOUBLE_EQ(-0.25, ta.value());
     }
+    {
+        auto t = make_turn(1.0 / 6);
+
+        double s, c;
+        sincos(t, &s, &c);
+        EXPECT_DOUBLE_EQ(0.8660254037844386, s);
+        EXPECT_DOUBLE_EQ(0.5, c);
+        EXPECT_DOUBLE_EQ(1.7320508075688767, tan(t));
+    }
 }
 
 TEST(QuarterTurnTest, basic)
@@ -307,25 +317,23 @@ TEST(QuarterTurnTest, basic)
 
 TEST(QuarterTurnTest, sincos)
 {
-    std::vector<int> result;
+    std::vector<int> actual;
+    std::vector<int> expected;
+    auto push_expected_int = [&expected](double v) {
+        expected.push_back(static_cast<int>(std::round(v)));
+    };
+
     for (auto i : range(-4, 5))
     {
-        result.push_back(sin(IntQuarterTurn{i}));
-        result.push_back(cos(IntQuarterTurn{i}));
+        IntQuarterTurn theta{i};
+        actual.push_back(sin(theta));
+        actual.push_back(cos(theta));
+
+        auto theta_dbl = static_cast<double>(native_value_from(theta));
+        push_expected_int(std::sin(theta_dbl));
+        push_expected_int(std::cos(theta_dbl));
     }
-    // clang-format off
-    static int const expected_result[]
-        = {  0,  1, // -1 turn
-             1,  0, // -3/4 turn
-             0, -1, // -1/2 turn
-            -1,  0, // -1/4 turn
-             0,  1, // 0 turn
-             1,  0, // 1/4
-             0, -1, // 1/2
-            -1,  0, // 3/4
-             0,  1}; // 1
-    // clang-format on
-    EXPECT_VEC_EQ(expected_result, result);
+    EXPECT_VEC_EQ(expected, actual);
 }
 
 //---------------------------------------------------------------------------//

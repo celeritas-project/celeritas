@@ -104,7 +104,7 @@ JoinObjects<Op>::JoinObjects(std::string&& label, VecObject&& objects)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a volume from the joined objets.
+ * Construct a volume from the joined objects.
  */
 template<OperatorToken Op>
 NodeId JoinObjects<Op>::build(VolumeBuilder& vb) const

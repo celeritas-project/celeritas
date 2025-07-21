@@ -30,9 +30,12 @@ helps construct these objects.
 .. doxygenclass:: celeritas::orangeinp::Cone
 .. doxygenclass:: celeritas::orangeinp::Cylinder
 .. doxygenclass:: celeritas::orangeinp::Ellipsoid
+.. doxygenclass:: celeritas::orangeinp::EllipticalCylinder
+.. doxygenclass:: celeritas::orangeinp::EllipticalCone
 .. doxygenclass:: celeritas::orangeinp::ExtrudedPolygon
 .. doxygenclass:: celeritas::orangeinp::GenPrism
-.. doxygenclass:: celeritas::orangeinp::InfWedge
+.. doxygenclass:: celeritas::orangeinp::InfPlane
+.. doxygenclass:: celeritas::orangeinp::InfAziWedge
 .. doxygenclass:: celeritas::orangeinp::Involute
 .. doxygenclass:: celeritas::orangeinp::Parallelepiped
 .. doxygenclass:: celeritas::orangeinp::Prism
@@ -71,21 +74,19 @@ Objects are typically constructed and used as shared pointers so that they can
 be reused in multiple locations.
 
 .. doxygenclass:: celeritas::orangeinp::Shape
-
 .. doxygenclass:: celeritas::orangeinp::Solid
+.. doxygenclass:: celeritas::orangeinp::Truncated
 
 .. doxygenclass:: celeritas::orangeinp::PolyCone
-
+.. doxygenclass:: celeritas::orangeinp::PolyPrism
 .. doxygenclass:: celeritas::orangeinp::StackedExtrudedPolygon
 
 .. doxygenclass:: celeritas::orangeinp::Transformed
 
 .. doxygenclass:: celeritas::orangeinp::NegatedObject
-
 .. doxygenclass:: celeritas::orangeinp::JoinObjects
 
 .. doxygenfunction:: celeritas::orangeinp::make_subtraction
-
 .. doxygenfunction:: celeritas::orangeinp::make_rdv
 
 

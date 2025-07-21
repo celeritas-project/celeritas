@@ -22,8 +22,8 @@
 #include "geocel/Types.hh"
 #include "celeritas/io/ImportData.hh"
 
+#include "CoreGeoParams.hh"  // IWYU pragma: keep
 #include "GeoMaterialData.hh"  // IWYU pragma: associated
-#include "GeoParams.hh"  // IWYU pragma: keep
 
 namespace celeritas
 {
@@ -84,7 +84,7 @@ MapLabelMatId build_label_map(MaterialParams const& mat_params,
 class MaterialFinder
 {
   public:
-    MaterialFinder(GeoParams const& geo, MapLabelMatId const& materials)
+    MaterialFinder(CoreGeoParams const& geo, MapLabelMatId const& materials)
         : geo_{geo}, materials_{materials}
     {
     }
@@ -138,7 +138,7 @@ class MaterialFinder
     }
 
   private:
-    GeoParams const& geo_;
+    CoreGeoParams const& geo_;
     MapLabelMatId const& materials_;
 
     using PairExtMatid = std::pair<std::string, PhysMatId>;
@@ -171,7 +171,7 @@ bool ignore_volume_name(std::string const& name)
  * Construct a label -> material map from the input.
  */
 std::vector<PhysMatId>
-build_vol_to_mat(GeoParams const& geo, MapLabelMatId const& materials)
+build_vol_to_mat(CoreGeoParams const& geo, MapLabelMatId const& materials)
 {
     auto const& vols = geo.volumes();
     std::vector<Label> missing_volumes;
@@ -246,7 +246,7 @@ build_vol_to_mat(GeoParams const& geo, MapLabelMatId const& materials)
  */
 std::shared_ptr<GeoMaterialParams>
 GeoMaterialParams::from_import(ImportData const& data,
-                               SPConstGeo geo_params,
+                               SPConstCoreGeo geo_params,
                                SPConstMaterial material_params)
 {
     GeoMaterialParams::Input input;

@@ -8,6 +8,7 @@ celeritas_add_test_library(testcel_orange
   OrangeTestBase.cc
   g4org/GeantLoadTestBase.cc
   orangeinp/CsgTestUtils.cc
+  orangeinp/IntersectTestResult.cc
   orangeinp/ObjectTestBase.cc
 )
 celeritas_target_link_libraries(testcel_orange
@@ -79,6 +80,7 @@ celeritas_add_test(orangeinp/Shape.test.cc)
 celeritas_add_test(orangeinp/Solid.test.cc)
 celeritas_add_test(orangeinp/StackedExtrudedPolygon.test.cc)
 celeritas_add_test(orangeinp/Transformed.test.cc)
+celeritas_add_test(orangeinp/Truncated.test.cc)
 celeritas_add_test(orangeinp/UnitProto.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json)
 

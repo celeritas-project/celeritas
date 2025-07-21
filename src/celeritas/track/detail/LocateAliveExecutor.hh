@@ -14,8 +14,8 @@
 #include "celeritas/phys/PhysicsStepView.hh"
 #include "celeritas/phys/Secondary.hh"
 
-#include "Utils.hh"
 #include "../SimTrackView.hh"
+#include "../Utils.hh"
 
 namespace celeritas
 {
@@ -80,7 +80,7 @@ CELER_FUNCTION void LocateAliveExecutor::operator()(TrackSlotId tid) const
         if (sim.status() == TrackStatus::alive)
         {
             // The track is alive: mark this track slot as occupied
-            return occupied();
+            return TrackSlotId{};
         }
         else if (num_secondaries > 0
                  && params->init.track_order != TrackOrder::init_charge)
@@ -91,7 +91,7 @@ CELER_FUNCTION void LocateAliveExecutor::operator()(TrackSlotId tid) const
             // initialized in it yet, and don't include the first secondary in
             // the count
             --num_secondaries;
-            return occupied();
+            return TrackSlotId{};
         }
         else
         {

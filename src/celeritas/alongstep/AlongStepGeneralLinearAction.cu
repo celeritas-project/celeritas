@@ -17,7 +17,8 @@ namespace celeritas
 /*!
  * Launch the along-step action on device.
  *
- * The six kernels should correspons to the six function calls in \c AlongStep.
+ * The six kernels should correspond to the six function calls in \c
+ * AlongStep.
  */
 void AlongStepGeneralLinearAction::step(CoreParams const& params,
                                         CoreStateDevice& state) const

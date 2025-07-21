@@ -19,7 +19,7 @@
 #include "geocel/GeantGeoUtils.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
 #include "celeritas/ext/GeantSdOutput.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/inp/Scoring.hh"
 
 #include "SDTestBase.hh"
@@ -208,7 +208,7 @@ TEST_F(SimpleCmsTest, add_duplicate)
 TEST_F(SimpleCmsTest, add_one)
 {
     sd_setup_.force_volumes = find_geant_volumes({"si_tracker"});
-    // Since we're asking for a volume that doesn't curently have an
+    // Since we're asking for a volume that doesn't currently have an
     // SD attached, we can't make the hit processor
     GeantSd man = this->make_hit_manager(/* make_hit_proc = */ false);
 

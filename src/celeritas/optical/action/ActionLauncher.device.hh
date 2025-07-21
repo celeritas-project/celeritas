@@ -18,7 +18,6 @@
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
-#include "celeritas/track/TrackInitParams.hh"
 
 #include "ActionInterface.hh"
 

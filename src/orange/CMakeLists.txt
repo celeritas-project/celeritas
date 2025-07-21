@@ -45,6 +45,7 @@ list(APPEND SOURCES
   orangeinp/StackedExtrudedPolygon.cc
   orangeinp/ScaleUtils.cc
   orangeinp/Transformed.cc
+  orangeinp/Truncated.cc
   orangeinp/UnitProto.cc
   orangeinp/detail/BoundingZone.cc
   orangeinp/detail/BuildIntersectRegion.cc

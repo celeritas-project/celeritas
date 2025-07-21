@@ -29,6 +29,7 @@ set(SOURCES
   GenericGeoResults.cc
   GenericGeoTestInterface.cc
   GeoTests.cc
+  SurfaceTestBase.cc
 )
 
 set(PRIVATE_DEPS ${testcel_core} Celeritas::ExtGeant4Geo)
@@ -66,6 +67,7 @@ celeritas_setup_tests(SERIAL
 celeritas_add_test(BoundingBox.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json
 )
+celeritas_add_test(Surface.test.cc)
 celeritas_add_test(Volume.test.cc)
 
 celeritas_add_test(random/IsotropicDistribution.test.cc)

@@ -103,10 +103,13 @@ class OrangeTrackView
     // Get the volume instance ID for all levels
     inline CELER_FUNCTION void volume_instance_id(Span<VolumeInstanceId>) const;
 
+    // The current implementation volume ID
+    inline CELER_FUNCTION ImplVolumeId impl_volume_id() const;
     // The current surface ID
-    inline CELER_FUNCTION InternalSurfaceId internal_surface_id() const;
+    inline CELER_FUNCTION ImplSurfaceId impl_surface_id() const;
     // After 'find_next_step', the next straight-line surface
-    inline CELER_FUNCTION InternalSurfaceId next_internal_surface_id() const;
+    inline CELER_FUNCTION ImplSurfaceId next_impl_surface_id() const;
+
     // Whether the track is outside the valid geometry region
     inline CELER_FUNCTION bool is_outside() const;
     // Whether the track is exactly on a surface
@@ -175,10 +178,10 @@ class OrangeTrackView
     // The next step distance, as stored on the state
     inline CELER_FUNCTION void next_step(real_type dist);
 
-    // The next surface to be encounted
+    // The next surface to be encountered
     inline CELER_FUNCTION void next_surf(detail::OnLocalSurface const&);
 
-    // The level of the next surface to be encounted
+    // The level of the next surface to be encountered
     inline CELER_FUNCTION void next_surface_level(LevelId);
 
     //// PRIVATE STATE ACCESSORS ////
@@ -198,10 +201,10 @@ class OrangeTrackView
     // The next step distance, as stored on the state
     inline CELER_FUNCTION real_type const& next_step() const;
 
-    // The next surface to be encounted
+    // The next surface to be encountered
     inline CELER_FUNCTION detail::OnLocalSurface next_surf() const;
 
-    // The level of the next surface to be encounted
+    // The level of the next surface to be encountered
     inline CELER_FUNCTION LevelId const& next_surface_level() const;
 
     //// HELPER FUNCTIONS ////
@@ -458,17 +461,16 @@ CELER_FUNCTION Real3 const& OrangeTrackView::dir() const
  */
 CELER_FUNCTION VolumeId OrangeTrackView::volume_id() const
 {
-    auto lsa = this->make_lsa();
-    detail::UniverseIndexer ui(params_.universe_indexer_data);
-    return ui.global_volume(lsa.universe(), lsa.vol());
+    ImplVolumeId impl_id = this->impl_volume_id();
+    return impl_id;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * The current volume instance.
  *
- * \todo not implemented; VolumeId is already halfway between a "reusable
- * volume" and a "volume instance" anyway...
+ * \todo not implemented; ImplVolumeId is already halfway between a
+ * "reusable volume" and a "volume instance" anyway...
  */
 CELER_FUNCTION VolumeInstanceId OrangeTrackView::volume_instance_id() const
 {
@@ -504,9 +506,24 @@ OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * The current "global" volume ID.
+ *
+ * \note It is allowable to call this function when "outside", because the
+ * outside in ORANGE is just a special volume. Other geometries may not have
+ * that behavior.
+ */
+CELER_FUNCTION ImplVolumeId OrangeTrackView::impl_volume_id() const
+{
+    auto lsa = this->make_lsa();
+    detail::UniverseIndexer ui(params_.universe_indexer_data);
+    return ui.global_volume(lsa.universe(), lsa.vol());
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * The current surface ID.
  */
-CELER_FUNCTION InternalSurfaceId OrangeTrackView::internal_surface_id() const
+CELER_FUNCTION ImplSurfaceId OrangeTrackView::impl_surface_id() const
 {
     if (this->is_on_boundary())
     {
@@ -516,7 +533,7 @@ CELER_FUNCTION InternalSurfaceId OrangeTrackView::internal_surface_id() const
     }
     else
     {
-        return InternalSurfaceId{};
+        return ImplSurfaceId{};
     }
 }
 
@@ -524,7 +541,7 @@ CELER_FUNCTION InternalSurfaceId OrangeTrackView::internal_surface_id() const
 /*!
  * After 'find_next_step', the next straight-line surface.
  */
-CELER_FUNCTION InternalSurfaceId OrangeTrackView::next_internal_surface_id() const
+CELER_FUNCTION ImplSurfaceId OrangeTrackView::next_impl_surface_id() const
 {
     CELER_EXPECT(this->has_next_surface());
     auto lsa = this->make_lsa(this->next_surface_level());
@@ -914,7 +931,7 @@ OrangeTrackView::next_surf(detail::OnLocalSurface const& s)
 }
 
 /*!
- * The level of the next surface to be encounted.
+ * The level of the next surface to be encountered.
  */
 CELER_FORCEINLINE_FUNCTION void OrangeTrackView::next_surface_level(LevelId lev)
 {
@@ -974,7 +991,7 @@ OrangeTrackView::next_surf() const
 }
 
 /*!
- * The level of the next surface to be encounted.
+ * The level of the next surface to be encountered.
  */
 CELER_FORCEINLINE_FUNCTION LevelId const&
 OrangeTrackView::next_surface_level() const
@@ -1000,7 +1017,7 @@ OrangeTrackView::find_next_step_impl(detail::Intersection isect)
     LevelId min_level{0};
 
     // Find the nearest intersection from level 0 to current level
-    // inclusive, prefering the shallowest level (i.e., lowest univ_id)
+    // inclusive, preferring the shallowest level (i.e., lowest univ_id)
     for (auto levelid : range(LevelId{1}, this->level() + 1))
     {
         auto univ_id = this->make_lsa(levelid).universe();

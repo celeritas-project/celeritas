@@ -403,6 +403,7 @@ celeritas_add_test(optical/ImportedMaterials.test.cc)
 celeritas_add_test(optical/ModelImporter.test.cc)
 celeritas_add_test(optical/MfpBuilder.test.cc)
 celeritas_add_test(optical/OpticalCollector.test.cc GPU ${_needs_geant4})
+celeritas_add_test(optical/OpticalLaunchAction.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/OpticalUtils.test.cc GPU)
 celeritas_add_test(optical/Rayleigh.test.cc)
 celeritas_add_test(optical/RayleighMfpCalculator.test.cc)
@@ -410,6 +411,8 @@ celeritas_add_test(optical/OpticalRootImport.test.cc ${_needs_root})
 celeritas_add_test(optical/Scintillation.test.cc)
 celeritas_add_test(optical/WavelengthShift.test.cc ${_needs_double})
 celeritas_add_test(optical/Physics.test.cc)
+celeritas_add_test(optical/VolumeSurfaceSelector.test.cc
+    LINK_LIBRARIES testcel_geocel)
 
 #-----------------------------------------------------------------------------#
 # Mat
@@ -435,6 +438,8 @@ celeritas_add_test(phys/PrimaryGenerator.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(phys/ProcessBuilder.test.cc ${_needs_root}
   ${_optional_geant4_env})
+celeritas_add_test(phys/SurfacePhysicsMap.test.cc
+  LINK_LIBRARIES testcel_geocel)
 
 #-----------------------------------------------------------------------------#
 # Random

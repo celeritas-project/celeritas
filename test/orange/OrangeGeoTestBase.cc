@@ -79,15 +79,14 @@ void OrangeGeoTestBase::SetUp() {}
 
 //---------------------------------------------------------------------------//
 /*!
- * Load a geometry from the given JSON filename.
+ * Load a geometry from a JSON filename.
  */
 void OrangeGeoTestBase::build_geometry(std::string const& filename)
 {
     CELER_EXPECT(!params_);
 
     ScopedLogStorer scoped_log_{&celeritas::world_logger()};
-    params_
-        = std::make_unique<Params>(this->test_data_path("orange", filename));
+    params_ = OrangeParams::from_json(this->test_data_path("orange", filename));
 
     static std::string const expected_log_levels[] = {"info"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels()) << scoped_log_;
@@ -234,7 +233,7 @@ void OrangeGeoTestBase::describe(std::ostream& os) const
 /*!
  * Return the number of volumes.
  */
-VolumeId::size_type OrangeGeoTestBase::num_volumes() const
+ImplVolumeId::size_type OrangeGeoTestBase::num_volumes() const
 {
     CELER_EXPECT(params_);
     return params_->volumes().size();
@@ -244,11 +243,10 @@ VolumeId::size_type OrangeGeoTestBase::num_volumes() const
 /*!
  * Find the surface from its label (nullptr allowed)
  */
-InternalSurfaceId
-OrangeGeoTestBase::find_surface(std::string const& label) const
+ImplSurfaceId OrangeGeoTestBase::find_surface(std::string const& label) const
 {
     CELER_EXPECT(params_);
-    InternalSurfaceId surface_id = params_->surfaces().find_unique(label);
+    ImplSurfaceId surface_id = params_->surfaces().find_unique(label);
     CELER_VALIDATE(surface_id,
                    << "nonexistent surface label '" << label << '\'');
     return surface_id;
@@ -258,10 +256,10 @@ OrangeGeoTestBase::find_surface(std::string const& label) const
 /*!
  * Find the volume from its label (nullptr allowed)
  */
-VolumeId OrangeGeoTestBase::find_volume(std::string const& label) const
+ImplVolumeId OrangeGeoTestBase::find_volume(std::string const& label) const
 {
     CELER_EXPECT(params_);
-    VolumeId volume_id = params_->volumes().find_unique(label);
+    ImplVolumeId volume_id = params_->volumes().find_unique(label);
     CELER_VALIDATE(volume_id, << "nonexistent volume label '" << label << '\'');
     return volume_id;
 }

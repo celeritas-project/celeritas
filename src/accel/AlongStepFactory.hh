@@ -48,7 +48,7 @@ struct AlongStepFactoryInput
 {
     ActionId action_id;
 
-    std::shared_ptr<GeoParams const> geometry;
+    std::shared_ptr<CoreGeoParams const> geometry;
     std::shared_ptr<MaterialParams const> material;
     std::shared_ptr<GeoMaterialParams const> geomaterial;
     std::shared_ptr<ParticleParams const> particle;
@@ -148,7 +148,7 @@ class UniformAlongStepFactory final : public AlongStepFactoryInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * Create an along-step method for a two-dimensional (r-z in the cylindical
+ * Create an along-step method for a two-dimensional (r-z in the cylindrical
  * coordinate system) map field (RZMapField).
  */
 class RZMapFieldAlongStepFactory final : public AlongStepFactoryInterface
@@ -176,7 +176,7 @@ class RZMapFieldAlongStepFactory final : public AlongStepFactoryInterface
 //---------------------------------------------------------------------------//
 /*!
  * Create an along-step method for a three-dimensional (r-phi-z in the
- * cylindical coordinate system) map field (CylMapField).
+ * cylindrical coordinate system) map field (CylMapField).
  */
 class CylMapFieldAlongStepFactory final : public AlongStepFactoryInterface
 {

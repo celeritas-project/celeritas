@@ -15,9 +15,9 @@
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/Primary.hh"
 
-#include "Utils.hh"
 #include "../SimData.hh"
 #include "../TrackInitData.hh"
+#include "../Utils.hh"
 
 namespace celeritas
 {
@@ -63,6 +63,7 @@ CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
     TrackInitializer ti;
     ti.sim.track_id
         = make_track_id(params->init, state->init, primary.event_id);
+    ti.sim.primary_id = primary.primary_id;
     ti.sim.event_id = primary.event_id;
     ti.sim.time = primary.time;
     ti.geo.pos = primary.position;
@@ -71,9 +72,8 @@ CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
     ti.particle.energy = primary.energy;
 
     // Store the initializer
-    ItemId<TrackInitializer> idx{
-        index_after(counters.num_initializers - primaries.size(), tid)};
-    state->init.initializers[idx] = ti;
+    size_type idx = counters.num_initializers - primaries.size() + tid.get();
+    state->init.initializers[ItemId<TrackInitializer>(idx)] = ti;
 }
 
 //---------------------------------------------------------------------------//

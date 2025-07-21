@@ -22,7 +22,7 @@ namespace celeritas
 /*!
  * Construct a nonuniform grid.
  *
- * This uses a deduplicating inserter for real values to improve cacheing.
+ * This uses a deduplicating inserter for real values to improve caching.
  */
 class NonuniformGridBuilder
 {
