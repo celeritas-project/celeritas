@@ -125,7 +125,7 @@ PrimaryId TrackProcessor::register_primary(G4Track& primary)
 G4Track& TrackProcessor::restore_track(ParticleId particle_id,
                                        PrimaryId primary_id) const
 {
-    CELER_EXPECT(particle_id.unchecked_get() < tracks_.size());
+    CELER_EXPECT(particle_id < tracks_.size());
 
     G4Track& track = *tracks_[particle_id.unchecked_get()];
 
@@ -133,7 +133,7 @@ G4Track& TrackProcessor::restore_track(ParticleId particle_id,
 
     if (primary_id)
     {
-        CELER_ASSERT(primary_id.unchecked_get() < g4_track_data_.size());
+        CELER_ASSERT(primary_id < g4_track_data_.size());
         g4_track_data_[primary_id.unchecked_get()].restore_track(track);
     }
     return track;

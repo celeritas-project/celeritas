@@ -124,6 +124,12 @@ class HitProcessor
     std::vector<G4VSensitiveDetector*> detectors_;
     //! Temporary CPU hit information
     DetectorStepOutput steps_;
+
+    //! Track processor for track reconstruction
+    TrackProcessor track_processor_;
+
+    //! Temporary step
+    G4Step* step_;
     //! Step points
     EnumArray<StepPoint, G4StepPoint*> step_points_{{nullptr, nullptr}};
 
@@ -136,9 +142,6 @@ class HitProcessor
 
     //! Accumulated number of hits
     size_type num_hits_;
-
-    //! Track processor for track reconstruction
-    TrackProcessor track_processor_;
 
     void update_track(G4Track&) const;
 };

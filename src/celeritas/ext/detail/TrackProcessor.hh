@@ -56,7 +56,7 @@ class TrackProcessor
     G4Track& restore_track(ParticleId, PrimaryId) const;
 
     // Get the owned step
-    G4Step* step() const { return step_.get(); }
+    G4Step& step() { return *step_; }
 
   private:
     //! Data needed to reconstruct a G4Track from Celeritas transport
