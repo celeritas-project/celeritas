@@ -2154,7 +2154,7 @@ TEST_F(RevolvedSpecialTrapezoidTest, pointy_bot)
     static char const* const expected_surfaces[] = {
         "Plane: z=0",
         "Plane: z=3",
-        "Cone z: t=0.33333 at 0,0,3}",
+        "Cone z: t=0.33333 at {0,0,3}",
         "Cone z: t=1 at {0,0,-1}",
     };
 
