@@ -122,18 +122,7 @@ struct Less<void>
  *
  * This is useful for calls to \c std::all_of .
  */
-template<class T = void>
 struct Identity
-{
-    CELER_CONSTEXPR_FUNCTION const T&& operator()(T const& value) const noexcept
-    {
-        return std::forward<T const>(value);
-    }
-};
-
-//! Specialization of Identity with template deduction
-template<>
-struct Identity<void>
 {
     template<class T>
     CELER_CONSTEXPR_FUNCTION const T&& operator()(T const& value) const noexcept
