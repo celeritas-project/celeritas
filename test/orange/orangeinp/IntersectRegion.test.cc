@@ -2067,11 +2067,12 @@ TEST_F(RevolvedSpecialTrapezoidTest, pointy_bot)
     auto result = this->test(RevolvedSpecialTrapezoid(std::move(trap)));
 
     static char const expected_node[] = "all(+0, -1, +2, -3)";
-    static char const* const expected_surfaces[] = {"Plane: z=0",
-                                                    "Plane: z=3",
-                                                    "Cone z: t=0.33333 at "
-                                                    "{0,0,3}",
-                                                    "Cone z: t=1 at {0,0,-1}"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=0",
+        "Plane: z=3",
+        "Cone z: t=0.33333 at 0,0,3}",
+        "Cone z: t=1 at {0,0,-1}",
+    };
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
