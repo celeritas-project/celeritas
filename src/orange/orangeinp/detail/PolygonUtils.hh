@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <algorithm>
 #include <iostream>
 #include <vector>
 
@@ -252,6 +253,23 @@ filter_collinear_points(std::vector<Real2> const& corners, double abs_tol)
     CELER_ENSURE(result.size() >= 3);
 
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the min/max values of a polygon for a given dimension.
+ */
+inline std::pair<real_type, real_type>
+find_extrema(std::vector<Real2> const& polygon, size_type dim)
+{
+    CELER_VALIDATE(polygon.size() >= 3,
+                   << "polygon must consist of at least 3 points");
+
+    auto [poly_min_it, poly_max_it] = std::minmax_element(
+        polygon.begin(), polygon.end(), [dim](auto const& a, auto const& b) {
+            return a[dim] < b[dim];
+        });
+    return {(*poly_min_it)[dim], (*poly_max_it)[dim]};
 }
 
 //---------------------------------------------------------------------------//

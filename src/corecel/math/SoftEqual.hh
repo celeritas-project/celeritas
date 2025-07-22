@@ -115,7 +115,43 @@ class EqualOr : public F
 
 //---------------------------------------------------------------------------//
 /*!
- * Functor for floating point equality.
+ * Functor for comparing values with an absolute precision.
+ */
+template<class RealType = ::celeritas::real_type>
+class SoftClose
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using value_type = RealType;
+    //!@}
+
+  public:
+    // Construct with default absolute precision
+    CELER_CONSTEXPR_FUNCTION SoftClose();
+
+    // Construct with absolute precision
+    CELER_FUNCTION SoftClose(value_type abs);
+
+    //// COMPARISON ////
+
+    // Compare two values (implicitly casting arguments)
+    bool CELER_FUNCTION operator()(value_type a, value_type b) const;
+
+    //// ACCESSORS ////
+
+    //! Absolute tolerance
+    CELER_CONSTEXPR_FUNCTION value_type abs() const { return abs_; }
+
+  private:
+    value_type abs_;
+
+    using SETraits = detail::SoftEqualTraits<value_type>;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Functor for comparing values to zero with an absolute precision.
  */
 template<class RealType = ::celeritas::real_type>
 class SoftZero
@@ -128,7 +164,7 @@ class SoftZero
     //!@}
 
   public:
-    // Construct with default relative/absolute precision
+    // Construct with default absolute precision
     CELER_CONSTEXPR_FUNCTION SoftZero();
 
     // Construct with absolute precision
@@ -214,7 +250,40 @@ SoftEqual<RealType>::operator()(value_type a, value_type b) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with default relative/absolute precision.
+ * Construct with default absolute precision.
+ */
+template<class RealType>
+CELER_CONSTEXPR_FUNCTION SoftClose<RealType>::SoftClose()
+    : abs_(SETraits::abs_thresh())
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with absolute precision.
+ *
+ * \param abs threshold for absolute error (default 1.0e-14 for doubles)
+ */
+template<class RealType>
+CELER_FUNCTION SoftClose<RealType>::SoftClose(value_type abs) : abs_(abs)
+{
+    CELER_EXPECT(abs > 0);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Compare two values (implicitly casting arguments)
+ */
+template<class RealType>
+CELER_FUNCTION bool
+SoftClose<RealType>::operator()(value_type a, value_type b) const
+{
+    return std::fabs(a - b) < abs_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with default absolute precision.
  */
 template<class RealType>
 CELER_CONSTEXPR_FUNCTION SoftZero<RealType>::SoftZero()
@@ -224,7 +293,7 @@ CELER_CONSTEXPR_FUNCTION SoftZero<RealType>::SoftZero()
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with specified precision.
+ * Construct with absolute precision.
  *
  * \param abs threshold for absolute error (default 1.0e-14 for doubles)
  */

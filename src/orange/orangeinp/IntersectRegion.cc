@@ -1,4 +1,3 @@
-//------------------------------- -*- C++ -*- -------------------------------//
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -18,7 +17,6 @@
 #include "geocel/BoundingBox.hh"
 #include "geocel/Types.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/surf/ConeAligned.hh"
 #include "orange/surf/CylCentered.hh"
 #include "orange/surf/Involute.hh"
 #include "orange/surf/PlaneAligned.hh"
@@ -651,17 +649,11 @@ auto ExtrudedPolygon::calc_range(VecReal2 const& polygon, size_type dir)
     constexpr auto bot = Bound::lo;
     constexpr auto top = Bound::hi;
 
-    Range range;
-
-    // Find min/max x or y values of the polygon itself
-    auto [poly_min_it, poly_max_it] = std::minmax_element(
-        polygon.begin(), polygon.end(), [&dir](auto const& a, auto const& b) {
-            return a[dir] < b[dir];
-        });
-    auto poly_min = (*poly_min_it)[dir];
-    auto poly_max = (*poly_max_it)[dir];
+    // Find extrema of unextruded polygon
+    auto [poly_min, poly_max] = detail::find_extrema(polygon, dir);
 
     // Find the extrema taking into account the extrusion process
+    Range range;
     range[0]
         = std::min(poly_min * scaling_factors_[bot] + line_segment_[bot][dir],
                    poly_min * scaling_factors_[top] + line_segment_[top][dir]);
@@ -1034,7 +1026,8 @@ void InfAziWedge::build(IntersectSurfaceBuilder& insert_surface) const
         insert_surface(sense, Plane{Real3{s, -c, 0}, 0}, std::move(facename));
     }
 
-    //! \todo Restrict bounding boxes, at least eliminating two quadrants...
+    //! \todo Restrict bounding boxes, at least eliminating two
+    //! quadrants...
 }
 
 //---------------------------------------------------------------------------//
@@ -1360,6 +1353,109 @@ bool Prism::encloses(Prism const& other) const
             "identical");
     }
     return apothem_ >= other.apothem() && hh_ >= other.halfheight();
+}
+
+//---------------------------------------------------------------------------//
+// RevolvedSpecialTrapezoid
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from a special trapezoid.
+ */
+RevolvedSpecialTrapezoid::RevolvedSpecialTrapezoid(SpecialTrapezoid&& trap)
+    : trap_(std::move(trap))
+{
+    CELER_VALIDATE(
+        trap_.bot().r[Bound::lo] >= 0 && trap_.top().r[Bound::lo] >= 0,
+        << "r values must be positive");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ *
+ * Surface are constructed by revolving each segment around the z axis. Thus:
+ * - segments parallel to z become z-aligned cylinders,
+ * - segments perpendicular to z become z-orthogonal planes,
+ * - other segments become z-aligned cones.
+ *
+ * If segment is coincident with the z axis, no surface is created, as it
+ * would enclose zero volume.
+ */
+void RevolvedSpecialTrapezoid::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    auto const& bot = trap_.bot();
+    auto const& top = trap_.top();
+    constexpr auto left = Bound::lo;
+    constexpr auto right = Bound::hi;
+
+    // Create both z planes first, even if one end is pointy, for short
+    // circuiting
+    insert_surface(Sense::outside, PlaneZ{bot.z});
+    insert_surface(Sense::inside, PlaneZ{top.z});
+
+    SoftClose soft_close(insert_surface.tol().abs);
+
+    // Lambda for creating a cylindrical/conical surface, or no surface
+    auto make_vertical_surface
+        = [&](real_type r_bot, real_type r_top, Sense sense) {
+              if (!soft_close(r_bot, r_top))
+              {
+                  // Conical surface
+                  insert_surface(
+                      sense, this->make_cone({r_bot, bot.z}, {r_top, top.z}));
+              }
+              else if (!soft_close(real_type{0}, r_bot))
+              {
+                  // Cylindrical surface
+                  insert_surface(sense, CCylZ(r_bot));
+              }
+              else
+              {
+                  // r_top = r_bottom = 0: do not create a surface
+              }
+          };
+
+    // Create two vericle surfaces
+    make_vertical_surface(bot.r[left], top.r[left], Sense::outside);
+    make_vertical_surface(bot.r[right], top.r[right], Sense::inside);
+
+    // Establish bbox
+    auto r_max = std::max(bot.r[right], top.r[right]);
+    insert_surface(
+        Sense::inside,
+        BBox::from_unchecked({-r_max, -r_max, bot.z}, {r_max, r_max, top.z}));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void RevolvedSpecialTrapezoid::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a cone from two (r, z) points.
+ *
+ * The cone is created by revolving the line segment between the points
+ * around the z axis.
+ */
+ConeZ RevolvedSpecialTrapezoid::make_cone(Real2 p0, Real2 p1) const
+{
+    constexpr size_type R = 0;
+    constexpr size_type Z = 1;
+
+    auto delta_r = p1[R] - p0[R];
+    auto delta_z = p1[Z] - p0[Z];
+    auto tangent = delta_r / delta_z;
+    auto intercept = p0[Z] - p0[R] * delta_z / delta_r;
+
+    // The tangent value given to ConeZ must be positive. However, since
+    // ConeZ creates a double-sheeted cone, the negative cone will be
+    // properly produced as well.
+    return ConeZ{Real3{0, 0, intercept}, tangent};
 }
 
 //---------------------------------------------------------------------------//
