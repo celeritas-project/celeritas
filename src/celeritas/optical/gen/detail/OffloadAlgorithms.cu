@@ -39,7 +39,7 @@ remove_if_invalid(GeneratorDistributionRef<MemSpace::device> const& buffer,
     ScopedProfiling profile_this{"remove-if-invalid"};
     auto start = thrust::device_pointer_cast(buffer.data().get());
     auto stop = thrust::remove_if(
-        thrust_execute_on(stream), start + offset, start + size, LogicalFalse{});
+        thrust_execute_on(stream), start + offset, start + size, LogicalNot{});
     CELER_DEVICE_API_CALL(PeekAtLastError());
     return stop - start;
 }

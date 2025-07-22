@@ -103,7 +103,7 @@ celeritas_target_link_libraries(testcel_celeritas
 )
 
 if(CELERITAS_USE_Geant4)
-  celeritas_get_g4libs(_g4_mat_libs materials digits_hits)
+  celeritas_get_g4libs(_g4_mat_libs materials digits_hits processes)
 
   celeritas_add_test_library(testcel_celeritas_g4
     ext/SDTestBase.cc
@@ -204,6 +204,9 @@ if(CELERITAS_USE_Geant4)
     LINK_LIBRARIES testcel_celeritas_g4
     ENVIRONMENT "${CELER_G4ENV}")
   celeritas_add_test(ext/detail/HitProcessor.test.cc
+    LINK_LIBRARIES testcel_celeritas_g4
+    ENVIRONMENT "${CELER_G4ENV}")
+  celeritas_add_test(ext/detail/TrackProcessor.test.cc
     LINK_LIBRARIES testcel_celeritas_g4
     ENVIRONMENT "${CELER_G4ENV}")
 

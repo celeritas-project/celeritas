@@ -47,7 +47,7 @@ class PersistentSP
     explicit operator bool() const { return static_cast<bool>(env_->ptr); }
 
     // Replace the pointer
-    inline void set(std::string&& key, SP&& ptr);
+    inline void set(std::string key, SP ptr);
 
     //! Clear stored value
     inline void clear() { env_->TearDown(); }
@@ -99,7 +99,7 @@ PersistentSP<T>::PersistentSP(std::string&& desc)
  * Replace the pointer.
  */
 template<class T>
-void PersistentSP<T>::set(std::string&& key, SP&& ptr)
+void PersistentSP<T>::set(std::string key, SP ptr)
 {
     CELER_EXPECT(!key.empty());
     CELER_EXPECT(ptr);

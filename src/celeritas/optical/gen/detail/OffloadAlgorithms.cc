@@ -46,7 +46,7 @@ remove_if_invalid(GeneratorDistributionRef<MemSpace::host> const& buffer,
                   StreamId)
 {
     auto* start = buffer.data().get();
-    auto* stop = std::remove_if(start + offset, start + size, LogicalFalse{});
+    auto* stop = std::remove_if(start + offset, start + size, LogicalNot{});
     return stop - start;
 }
 

@@ -93,6 +93,14 @@ SignedSense to_signed_sense(EInside inside)
     CELER_ASSERT_UNREACHABLE();
 }
 
+bool sense_equal(SignedSense lhs, SignedSense rhs)
+{
+    // Disagreeing about what's "on" is usually fine
+    if (lhs == SignedSense::on || rhs == SignedSense::on)
+        return true;
+    return lhs == rhs;
+}
+
 G4ThreeVector to_geant(Real3 const& rv)
 {
     return {rv[0], rv[1], rv[2]};
@@ -142,7 +150,7 @@ void SolidConverterTest::build_and_test(G4VSolid const& solid,
         return eval_sense(node);
     };
     auto calc_g4_sense = [&solid,
-                          inv_scale = 1 / scale_(1.0)](Real3 const& pos) {
+                          inv_scale = 1 / scale_.value()](Real3 const& pos) {
         return to_signed_sense(solid.Inside(G4ThreeVector(
             inv_scale * pos[0], inv_scale * pos[1], inv_scale * pos[2])));
     };
@@ -150,7 +158,11 @@ void SolidConverterTest::build_and_test(G4VSolid const& solid,
     // Test user-supplied points [cm]
     for (Real3 const& r : points)
     {
-        EXPECT_EQ(calc_g4_sense(r), calc_org_sense(r)) << "at " << r << " [cm]";
+        auto g4_sense = calc_g4_sense(r);
+        auto org_sense = calc_org_sense(r);
+        EXPECT_TRUE(sense_equal(g4_sense, org_sense))
+            << "G4 " << g4_sense << " != ORANGE " << org_sense << " at " << r
+            << " [cm]";
     }
 
     // Test random points

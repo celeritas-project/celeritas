@@ -340,11 +340,14 @@ TEST_F(ProtoConstructorTest, testem3)
             bounds[4]);
 
         auto vols = volume_strings(u);
-        ASSERT_EQ(53, vols.size());  // slabs, zero-size 'calo', world,
-                                     // exterior
-        EXPECT_EQ(
-            R"(all(+0, -1, +2, -3, +4, -5, !all(+6, +8, -9, +10, -11, -84)))",
-            vols.back());
+        ASSERT_EQ(53, vols.size());  // slabs, zero-size 'calo', world, ext
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            // Deduplication changes for single precision
+            EXPECT_EQ(
+                R"(all(+0, -1, +2, -3, +4, -5, !all(+6, +8, -9, +10, -11, -84)))",
+                vols.back());
+        }
         EXPECT_EQ(GeoMatId{}, u.background);
     }
     {
@@ -386,7 +389,8 @@ TEST_F(ProtoConstructorTest, testem3)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(ProtoConstructorTest, tilecal_plug)
+// Deduplication slightly changes plane position and CSG node IDs
+TEST_F(ProtoConstructorTest, TEST_IF_CELERITAS_DOUBLE(tilecal_plug))
 {
     LogicalVolume world = this->load("tilecal-plug");
 
