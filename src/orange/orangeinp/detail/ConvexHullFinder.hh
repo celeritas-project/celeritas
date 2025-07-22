@@ -99,8 +99,8 @@ class ConvexHullFinder
  * and associated concave regions. Note that this function does not enforce
  * ordering.
  *
- * \todo Check that points form a non-self-intersecting polygon with clockwise
- * ordering.
+ * \todo Check that points form a non-self-intersecting polygon with
+ * counterclockwise ordering.
  */
 template<class T>
 ConvexHullFinder<T>::ConvexHullFinder(ConvexHullFinder::VecReal2 const& points,
@@ -186,7 +186,7 @@ auto ConvexHullFinder<T>::calc_concave_regions() const -> VecVecReal2
 
     // Since the original shape was supplied in counterclockwise order, we must
     // traverse the points backwards in order to obtain the concave regions in
-    // clockwise order.
+    // counterclockwise order.
     size_type i = this->calc_previous(start_index_);
     while (i != start_index_)
     {
