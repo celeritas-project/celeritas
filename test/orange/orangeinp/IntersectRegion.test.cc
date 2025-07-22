@@ -530,7 +530,7 @@ TEST_F(EllipticalConeTest, vertex)
 //---------------------------------------------------------------------------//
 using ExtrudedPolygonTest = IntersectRegionTest;
 
-TEST_F(ExtrudedPolygonTest, square)
+TEST_F(ExtrudedPolygonTest, simple_cube)
 {
     // Test a simple unit cube
     ExtrudedPolygon::VecReal2 polygon{
@@ -2092,7 +2092,7 @@ using RevolvedSpecialTrapezoidTest = IntersectRegionTest;
 /*
  * Test revolving a square around z.
  */
-TEST_F(RevolvedSpecialTrapezoidTest, simple_cube)
+TEST_F(RevolvedSpecialTrapezoidTest, square)
 {
     SpecialTrapezoid trap({{1, 2}, 1}, {{1, 2}, 2});
     auto result = this->test(RevolvedSpecialTrapezoid(std::move(trap)));
@@ -2219,12 +2219,12 @@ TEST_F(RevolvedSpecialTrapezoidTest, quad)
     auto result = this->test(RevolvedSpecialTrapezoid(std::move(trap)));
 
     static char const expected_node[] = "all(+0, -1, +2, -3)";
-    static char const* const expected_surfaces[] = {"Plane: z=0",
-                                                    "Plane: z=3",
-                                                    "Cone z: t=0.33333 at "
-                                                    "{0,0,3}",
-                                                    "Cone z: t=0.33333 at "
-                                                    "{0,0,12}"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=0",
+        "Plane: z=3",
+        "Cone z: t=0.33333 at {0,0,3}",
+        "Cone z: t=0.33333 at {0,0,12}",
+    };
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
