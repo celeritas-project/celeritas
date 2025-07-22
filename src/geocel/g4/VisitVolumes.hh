@@ -57,13 +57,13 @@ class GeantVolumeAccessor final
  * very expensive! If it's desired to only visit single physical volumes, mark
  * them as visited using a set.
  */
-template<class F>
-void visit_volume_instances(F&& vis, G4VPhysicalVolume const* world)
+template<class Visitor>
+void visit_volume_instances(Visitor&& vis, G4VPhysicalVolume const* world)
 {
     CELER_EXPECT(world);
     ScopedProfiling profile_this{"visit-geant-volume-instance"};
-    VolumeInstanceVisitor visit_vol{GeantVolumeAccessor{}};
-    visit_vol(std::forward<F>(vis), world);
+    VolumeVisitor visit_vol{GeantVolumeAccessor{}};
+    visit_vol(std::forward<Visitor>(vis), world);
 }
 
 //---------------------------------------------------------------------------//
@@ -71,17 +71,19 @@ void visit_volume_instances(F&& vis, G4VPhysicalVolume const* world)
  * Perform a depth-first traversal of Geant4 logical volumes.
  *
  * This will visit each volume exactly once based on when it's encountered in
- * the hierarchy. The visitor function F should have the signature
+ * the hierarchy. The visitor function Visitor should have the signature
  * \code void(*)(G4LogicalVolume const*) \endcode .
  */
-template<class F>
-void visit_volumes(F&& vis, G4VPhysicalVolume const* world)
+template<class Visitor>
+void visit_volumes(Visitor&& vis, G4VPhysicalVolume const* world)
 {
     CELER_EXPECT(world);
     ScopedProfiling profile_this{"visit-geant-volume"};
 
     VolumeVisitor visit_vol{GeantVolumeAccessor{}};
-    visit_vol(std::forward<F>(vis), world);
+    visit_vol(make_visit_volume_once<G4LogicalVolume const*>(
+                  std::forward<Visitor>(vis)),
+              world->GetLogicalVolume());
 }
 
 //---------------------------------------------------------------------------//
