@@ -118,7 +118,7 @@ struct Less<void>
 
 //---------------------------------------------------------------------------//
 /*!
- * Evaluate whether the argument is "true".
+ * A function object type whose operator() returns its argument unchanged.
  *
  * This is useful for calls to \c std::all_of .
  */
@@ -133,7 +133,8 @@ struct Identity
 
 //---------------------------------------------------------------------------//
 /*!
- * Evaluate whether the argument is "false".
+ * A Function object for performing logical NOT (logical negation). Effectively
+ * calls operator! for type T.
  */
 template<class T = void>
 struct LogicalNot
