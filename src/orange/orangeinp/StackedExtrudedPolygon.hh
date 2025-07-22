@@ -17,7 +17,8 @@ namespace orangeinp
 //---------------------------------------------------------------------------//
 /*! A convex/concave polygon extruded along a polyline, with scaling.
  *
- * The polygon must be specified in clockwise order. The polyline must be
+ * The polygon must be specified in counterclockwise order. The polyline must
+ be
  * strictly monotonically increasing in z. Scaling factors can be any positive
  * value. Scaling is assumed to occur with respect to the polygon's original
  * coordinate system.
