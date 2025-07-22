@@ -313,20 +313,18 @@ TEST_F(SolidConverterTest, extrudedsolid_concave)
     using ZSection = G4ExtrudedSolid::ZSection;
 
     // Setup G4Extruded solid construction commands
-    std::vector<G4TwoVector> polygon = {
-        {0.05, 0.01},
-        {0.1, 0},
-        {1, 0},
-        {1.2, 0.5},
-        {0.9, 1.2},
-        {0.8, 0.4},
-        {0.5, 0.7},
-        {0.45, 0.6},
-        {0.4, 0.7},
-        {0.15, 0.5},
-        {-0.3, 1},
-        {0, 0},
-    };
+    std::vector<G4TwoVector> polygon = {{0.05, 0.01},
+                                        {0.1, 0},
+                                        {1, 0},
+                                        {1.2, 0.5},
+                                        {0.9, 1.2},
+                                        {0.8, 0.4},
+                                        {0.5, 0.7},
+                                        {0.45, 0.6},
+                                        {0.4, 0.7},
+                                        {0.15, 0.5},
+                                        {-0.3, 1},
+                                        {0, 0}};
 
     ZSection bot(0, {0, 0}, 1);
     ZSection mid(1, {10, 5}, 0.5);

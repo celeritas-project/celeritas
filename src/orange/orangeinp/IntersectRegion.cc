@@ -547,7 +547,6 @@ ExtrudedPolygon::ExtrudedPolygon(ExtrudedPolygon::VecReal2 const& polygon,
                                  ExtrudedPolygon::PolygonFace const& top_face)
     : line_segment_{bot_face.line_segment_point, top_face.line_segment_point}
     , scaling_factors_{bot_face.scaling_factor, top_face.scaling_factor}
-
 {
     constexpr auto bot = Bound::lo;
     constexpr auto top = Bound::hi;

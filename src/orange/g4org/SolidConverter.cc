@@ -515,7 +515,7 @@ auto SolidConverter::extrudedsolid(arg_type solid_base) -> result_type
     auto const& solid = dynamic_cast<G4ExtrudedSolid const&>(solid_base);
 
     // Get the polygon and reverse its order; ORANGE uses standard
-    // counterclockwise ordering for polygons where GEANT4 uses clockwise
+    // counterclockwise ordering for polygons whereas GEANT4 uses clockwise
     // ordering.
     std::vector<G4TwoVector> g4polygon = solid.GetPolygon();
     VecReal2 polygon;

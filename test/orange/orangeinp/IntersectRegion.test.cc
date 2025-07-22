@@ -534,11 +534,7 @@ TEST_F(ExtrudedPolygonTest, simple_cube)
 {
     // Test a simple unit cube
     ExtrudedPolygon::VecReal2 polygon{
-        Real2{1, 0},
-        Real2{1, 1},
-        Real2{0, 1},
-        Real2{0, 0},
-    };
+        Real2{1, 0}, Real2{1, 1}, Real2{0, 1}, Real2{0, 0}};
 
     ExtrudedPolygon::PolygonFace bot{Real3{0, 0, 0}, 1};
     ExtrudedPolygon::PolygonFace top{Real3{0, 0, 1}, 1};
@@ -598,12 +594,7 @@ TEST_F(ExtrudedPolygonTest, collinear)
 TEST_F(ExtrudedPolygonTest, flat_top_pyramid)
 {
     ExtrudedPolygon::VecReal2 polygon{
-        Real2{1, 0},
-        Real2{1, 1},
-        Real2{0, 1},
-        Real2{0, 0},
-
-    };
+        Real2{1, 0}, Real2{1, 1}, Real2{0, 1}, Real2{0, 0}};
 
     ExtrudedPolygon::PolygonFace bot{Real3{0, 0, 0}, 1};
     ExtrudedPolygon::PolygonFace top{Real3{0, 0, 0.5}, 0.5};
@@ -630,15 +621,13 @@ TEST_F(ExtrudedPolygonTest, flat_top_pyramid)
 TEST_F(ExtrudedPolygonTest, skewed)
 {
     // Irregular hexagon with a single collinear point at (0, 0)
-    ExtrudedPolygon::VecReal2 polygon{
-        Real2{1, 0},
-        Real2{2, 2},
-        Real2{1, 4},
-        Real2{-1, 3},
-        Real2{-2, 1},
-        Real2{-1, 0},
-        Real2{0, 0},
-    };
+    ExtrudedPolygon::VecReal2 polygon{Real2{1, 0},
+                                      Real2{2, 2},
+                                      Real2{1, 4},
+                                      Real2{-1, 3},
+                                      Real2{-2, 1},
+                                      Real2{-1, 0},
+                                      Real2{0, 0}};
 
     ExtrudedPolygon::PolygonFace bot{Real3{4, 3, 10}, 0.7};
     ExtrudedPolygon::PolygonFace top{Real3{10, 11, 15}, 0.5};
