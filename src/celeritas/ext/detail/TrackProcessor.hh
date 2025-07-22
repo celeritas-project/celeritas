@@ -73,6 +73,8 @@ class TrackProcessor
       private:
         //! Original Geant4 track ID
         int track_id_{-1};
+        //! Original Geant4 parent ID
+        int parent_id_{0};
         //! User track information
         std::unique_ptr<G4VUserTrackInformation> user_info_;
         //! Process that created the track

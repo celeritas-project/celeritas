@@ -178,7 +178,7 @@ TEST_F(TrackProcessorTest, track_restoration)
         0.0,
         G4ThreeVector(0, 0, 0));
     primary_track->SetTrackID(789);
-    primary_track->SetParentID(0);
+    primary_track->SetParentID(1);
 
     auto user_info = std::make_unique<MockUserTrackInformation>(99);
     primary_track->SetUserInformation(user_info.release());
@@ -195,6 +195,7 @@ TEST_F(TrackProcessorTest, track_restoration)
 
     // Verify restored track properties
     EXPECT_EQ(789, restored_track.GetTrackID());
+    EXPECT_EQ(1, restored_track.GetParentID());
     EXPECT_EQ(mock_process.get(), restored_track.GetCreatorProcess());
     EXPECT_EQ(&processor.step(), restored_track.GetStep());
 
@@ -222,6 +223,7 @@ TEST_F(TrackProcessorTest, track_restoration_without_primary)
     // Verify basic track properties
     EXPECT_EQ(particles[0], restored_track.GetDefinition());
     EXPECT_EQ(0, restored_track.GetTrackID());
+    EXPECT_EQ(0, restored_track.GetParentID());
     EXPECT_EQ(nullptr, restored_track.GetUserInformation());
     EXPECT_EQ(nullptr, restored_track.GetCreatorProcess());
 }
@@ -319,7 +321,7 @@ TEST_F(TrackProcessorTest, reconstruction_data_persistence)
         0.0,
         G4ThreeVector(10, 20, 30));
     primary_track->SetTrackID(999);
-    primary_track->SetParentID(0);
+    primary_track->SetParentID(1);
 
     auto user_info = std::make_unique<MockUserTrackInformation>(777);
     primary_track->SetUserInformation(user_info.release());
@@ -336,6 +338,7 @@ TEST_F(TrackProcessorTest, reconstruction_data_persistence)
         G4Track& restored = processor.restore_track(ParticleId{2}, primary_id);
 
         EXPECT_EQ(999, restored.GetTrackID());
+        EXPECT_EQ(1, restored.GetParentID());
         EXPECT_EQ(mock_process.get(), restored.GetCreatorProcess());
 
         auto* restored_info = dynamic_cast<MockUserTrackInformation*>(

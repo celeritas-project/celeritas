@@ -30,6 +30,7 @@ namespace detail
 TrackProcessor::GeantTrackReconstructionData::GeantTrackReconstructionData(
     G4Track& track)
     : track_id_{track.GetTrackID()}
+    , parent_id_{track.GetParentID()}
     , user_info_{track.GetUserInformation()}
     , creator_process_{track.GetCreatorProcess()}
 {
@@ -49,6 +50,7 @@ void TrackProcessor::GeantTrackReconstructionData::restore_track(
 {
     CELER_EXPECT(*this);
     track.SetTrackID(track_id_);
+    track.SetParentID(parent_id_);
     track.SetUserInformation(user_info_.get());
     track.SetCreatorProcess(creator_process_);
 }
