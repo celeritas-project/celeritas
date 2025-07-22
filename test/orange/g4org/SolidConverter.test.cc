@@ -95,7 +95,7 @@ SignedSense to_signed_sense(EInside inside)
 
 bool sense_equal(SignedSense lhs, SignedSense rhs)
 {
-    // Disagreeing about'on' is fine
+    // Disagreeing about what's "on" is usually fine
     if (lhs == SignedSense::on || rhs == SignedSense::on)
         return true;
     return lhs == rhs;
