@@ -72,9 +72,11 @@ struct Volumes
     std::vector<Volume> volumes;
     //! Properties of edges in the graph (physical volumes)
     std::vector<VolumeInstance> volume_instances;
+    //! Root volume of the geometry graph
+    VolumeId world;
 
     //! True if at least one node is defined
-    explicit operator bool() const { return !volumes.empty(); }
+    explicit operator bool() const { return !volumes.empty() && world; }
 };
 
 //---------------------------------------------------------------------------//

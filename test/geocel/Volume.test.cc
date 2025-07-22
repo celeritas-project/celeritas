@@ -3,12 +3,14 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/Volume.test.cc
+//! Test VolumeParams and related utilities
 //---------------------------------------------------------------------------//
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/LabelIdMultiMapUtils.hh"
 #include "geocel/Types.hh"
 #include "geocel/VolumeParams.hh"
 #include "geocel/VolumeToString.hh"
+#include "geocel/VolumeVisitor.hh"
 #include "geocel/inp/Model.hh"
 
 #include "TestMacros.hh"
@@ -18,6 +20,62 @@ namespace celeritas
 {
 namespace test
 {
+//---------------------------------------------------------------------------//
+struct NameVisitor
+{
+    VolumeParams const& vols;
+    std::vector<std::string> names;
+
+    bool operator()(VolumeId id, int)
+    {
+        names.push_back(vols.volume_labels().at(id).name);
+        return true;
+    }
+
+    bool operator()(VolumeInstanceId id, int depth)
+    {
+        auto const& vlabels = vols.volume_instance_labels();
+        std::ostringstream os;
+        os << depth << ':' << vlabels.at(id).name;
+        names.push_back(std::move(os).str());
+        return true;
+    }
+};
+
+struct MaxVisitor
+{
+    VolumeParams::VolumeMap const& labels;
+    std::unordered_map<VolumeId, int> max_depth;
+
+    bool operator()(VolumeId id, int depth)
+    {
+        auto&& [iter, inserted] = max_depth.insert({id, depth});
+        if (!inserted)
+        {
+            if (iter->second >= depth)
+            {
+                // Already visited PV at this depth or more
+                return false;
+            }
+            // Update the max depth
+            iter->second = depth;
+        }
+        return true;
+    }
+
+    auto get_names() const
+    {
+        std::vector<std::string> names;
+        for (auto&& [id, depth] : max_depth)
+        {
+            std::ostringstream os;
+            os << depth << ':' << labels.at(id).name;
+            names.push_back(std::move(os).str());
+        }
+        return names;
+    }
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Note in the following tests:
@@ -43,6 +101,8 @@ TEST_F(NoVolumeTest, params)
     VolumeParams const& params = volumes_;
     EXPECT_TRUE(params.empty());
     EXPECT_EQ(0, params.num_volumes());
+    EXPECT_EQ(VolumeId{}, params.world());
+    EXPECT_EQ(0, params.depth());
 }
 
 TEST_F(NoVolumeTest, volume_to_string)
@@ -67,10 +127,13 @@ class SingleVolumeTest : public VolumeTest
         volumes_ = VolumeParams([] {
             using namespace inp;
             Volumes in;
-            Volume v;
-            v.label = "A";
-            v.material = GeoMatId{0};
-            in.volumes.push_back(v);
+            in.volumes.push_back([] {
+                Volume v;
+                v.label = "A";
+                v.material = GeoMatId{0};
+                return v;
+            }());
+            in.world = VolumeId{0};
             return in;
         }());
     }
@@ -83,6 +146,8 @@ TEST_F(SingleVolumeTest, params)
     EXPECT_FALSE(params.empty());
     EXPECT_EQ(1, params.num_volumes());
     EXPECT_EQ(0, params.num_volume_instances());
+    EXPECT_EQ(VolumeId{0}, params.world());
+    EXPECT_EQ(0, params.depth());
     EXPECT_EQ(1, params.volume_labels().size());
     EXPECT_EQ(0, params.volume_instance_labels().size());
 
@@ -117,6 +182,18 @@ TEST_F(SingleVolumeTest, volume_to_string)
     if (CELERITAS_DEBUG)
     {
         EXPECT_THROW(to_string(VolumeId{1}), DebugError);
+    }
+}
+
+TEST_F(SingleVolumeTest, visit)
+{
+    VolumeVisitor visit(volumes_);
+    {
+        NameVisitor nv{volumes_, {}};
+        visit(nv, VolumeId{0});
+
+        static std::string const expected_names[] = {"A"};
+        EXPECT_VEC_EQ(expected_names, nv.names);
     }
 }
 
@@ -170,9 +247,12 @@ class ComplexVolumeTest : public VolumeTest
             add_instance(VolumeId{2});  // 2 -> C
             add_instance(VolumeId{2});  // 3 -> C
             add_instance(VolumeId{3});  // 4 -> D
-            // Add 'null' instance
+            // Add 'null' (unused) instance
             in.volume_instances.push_back(VolumeInstance{});
             add_instance(VolumeId{4});  // 6 -> E
+
+            // Top-level volume is zero
+            in.world = VolumeId{0};
 
             return in;
         }());
@@ -231,6 +311,45 @@ TEST_F(ComplexVolumeTest, volume_to_string)
     VolumeToString to_string{volumes_};
     EXPECT_EQ("A", to_string(VolumeId{0}));
     EXPECT_EQ("1", to_string(VolumeInstanceId{1}));
+}
+
+TEST_F(ComplexVolumeTest, visit)
+{
+    VolumeVisitor visit(volumes_);
+
+    {
+        NameVisitor nv{volumes_, {}};
+        visit(nv, VolumeId{0});
+
+        static std::string const expected_names[] = {
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "C",
+            "D",
+            "E",
+            "C",
+            "D",
+            "E",
+        };
+        EXPECT_VEC_EQ(expected_names, nv.names);
+    }
+
+    {
+        NameVisitor nv{volumes_, {}};
+        visit(nv, VolumeInstanceId{0});
+
+        static std::string const expected_names[]
+            = {"0:0", "1:2", "2:4", "2:6", "1:3", "2:4", "2:6"};
+        EXPECT_VEC_EQ(expected_names, nv.names);
+    }
+
+    {
+        MaxVisitor mpv{volumes_.volume_labels(), {}};
+        visit(mpv, VolumeId{0});
+    }
 }
 
 //---------------------------------------------------------------------------//

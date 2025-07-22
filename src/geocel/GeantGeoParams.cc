@@ -598,6 +598,7 @@ inp::Model GeantGeoParams::make_model_input() const
         // Get volumes from Geant4 geometry
         result.volumes = make_inp_volumes(*this);
         result.volume_instances = make_inp_volume_instances(*this);
+        result.world = this->geant_to_id(*(this->world()->GetLogicalVolume()));
 
         return result;
     }();

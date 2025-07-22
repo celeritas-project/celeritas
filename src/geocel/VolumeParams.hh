@@ -65,6 +65,12 @@ class VolumeParams
     //! Empty if no volumes are present (e.g., ORANGE debugging)
     bool empty() const { return v_labels_.empty(); }
 
+    //! World volume
+    VolumeId world() const { return world_; }
+
+    //! Depth of the volume DAG (a world without children is depth zero)
+    LevelId::size_type depth() const { return depth_; }
+
     //! Number of volumes
     VolumeId::size_type num_volumes() const { return v_labels_.size(); }
 
@@ -95,6 +101,9 @@ class VolumeParams
   private:
     VolumeMap v_labels_;
     VolInstMap vi_labels_;
+
+    VolumeId world_;
+    size_type depth_{};
 
     std::vector<std::vector<VolumeInstanceId>> parents_;
     std::vector<std::vector<VolumeInstanceId>> children_;
