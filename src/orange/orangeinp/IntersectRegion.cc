@@ -1375,7 +1375,7 @@ RevolvedSpecialTrapezoid::RevolvedSpecialTrapezoid(SpecialTrapezoid&& trap)
  *
  * Surface are constructed by revolving each segment around the z axis. Thus:
  * - segments parallel to z become z-aligned cylinders,
- * - segments perpendicular to z become z-orthagonal planes,
+ * - segments perpendicular to z become z-orthogonal planes,
  * - other segments become z-aligned cones.
  *
  * If segment is coincident with the z axis, no surface is created, as it
@@ -1389,7 +1389,7 @@ void RevolvedSpecialTrapezoid::build(IntersectSurfaceBuilder& insert_surface) co
     constexpr auto right = Bound::hi;
 
     // Create both z planes first, even if one end is pointy, for short
-    // circutting
+    // circuiting
     insert_surface(Sense::outside, PlaneZ{bot.z});
     insert_surface(Sense::inside, PlaneZ{top.z});
 
