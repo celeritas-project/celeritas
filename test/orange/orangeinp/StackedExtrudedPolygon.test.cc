@@ -39,12 +39,7 @@ class StackedExtrudedPolygonTest : public ObjectTestBase
  */
 TEST_F(StackedExtrudedPolygonTest, scaled_convex_stack)
 {
-    VecReal2 polygon{
-        {1, -1},
-        {1, 1},
-        {-1, 1},
-        {-1, -1},
-    };
+    VecReal2 polygon{{1, -1}, {1, 1}, {-1, 1}, {-1, -1}};
 
     VecReal3 polyline{{0, 0, 0}, {0, 0, 1}, {0, 0, 1.5}};
     VecReal scaling{1, 1, 0.5};
@@ -105,12 +100,7 @@ TEST_F(StackedExtrudedPolygonTest, scaled_convex_stack)
  */
 TEST_F(StackedExtrudedPolygonTest, skewed_convex_stack)
 {
-    VecReal2 polygon{
-        {1, -1},
-        {1, 1},
-        {-1, 1},
-        {-1, -1},
-    };
+    VecReal2 polygon{{1, -1}, {1, 1}, {-1, 1}, {-1, -1}};
 
     VecReal3 polyline{{0, 0, 0}, {0, 0, 1}, {1, 1, 2}};
     VecReal scaling{1, 1, 1};
@@ -182,40 +172,36 @@ TEST_F(StackedExtrudedPolygonTest, skewed_convex_stack)
  */
 TEST_F(StackedExtrudedPolygonTest, concave_stack)
 {
-    VecReal2 polygon{
-        {5, 0},
-        {5, 3},
-        {4, 3},
-        {4, 1},
-        {3, 1},
-        {3, 2},
-        {2, 2},
-        {2, 1},
-        {1, 1},
-        {1, 3},
-        {0, 3},
-        {0, 0},
-    };
+    VecReal2 polygon{{5, 0},
+                     {5, 3},
+                     {4, 3},
+                     {4, 1},
+                     {3, 1},
+                     {3, 2},
+                     {2, 2},
+                     {2, 1},
+                     {1, 1},
+                     {1, 3},
+                     {0, 3},
+                     {0, 0}};
     VecReal3 polyline{{0, 0, 0}, {0, 0, 1}};
     VecReal scaling{1, 1};
 
     this->build_volume(StackedExtrudedPolygon{
         "pc", std::move(polygon), std::move(polyline), std::move(scaling)});
 
-    static char const* const expected_surface_strings[] = {
-        "Plane: z=0",
-        "Plane: z=1",
-        "Plane: x=5",
-        "Plane: y=3",
-        "Plane: x=0",
-        "Plane: y=0",
-        "Plane: x=1",
-        "Plane: y=1",
-        "Plane: x=4",
-        "Plane: x=3",
-        "Plane: y=2",
-        "Plane: x=2",
-    };
+    static char const* const expected_surface_strings[] = {"Plane: z=0",
+                                                           "Plane: z=1",
+                                                           "Plane: x=5",
+                                                           "Plane: y=3",
+                                                           "Plane: x=0",
+                                                           "Plane: y=0",
+                                                           "Plane: x=1",
+                                                           "Plane: y=1",
+                                                           "Plane: x=4",
+                                                           "Plane: x=3",
+                                                           "Plane: y=2",
+                                                           "Plane: x=2"};
 
     static char const* const expected_volume_strings[] = {
         R"(all(+0, -1, -2, -3, +4, +5, !all(+0, -1, -3, +6, +7, -8, !all(+0, -1, +7, -9, -10, +11))))"};
