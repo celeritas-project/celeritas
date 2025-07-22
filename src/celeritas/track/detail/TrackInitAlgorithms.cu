@@ -41,7 +41,7 @@ size_type remove_if_alive(
     auto end = thrust::remove_if(thrust_execute_on(stream_id),
                                  start,
                                  start + vacancies.size(),
-                                 LogicalFalse{});
+                                 LogicalNot{});
     CELER_DEVICE_API_CALL(PeekAtLastError());
 
     // New size of the vacancy vector

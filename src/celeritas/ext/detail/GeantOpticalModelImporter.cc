@@ -52,7 +52,7 @@ GeantOpticalModelImporter::GeantOpticalModelImporter(
     }
 
     CELER_ASSERT(
-        std::all_of(opt_to_mat_.begin(), opt_to_mat_.end(), LogicalTrue{}));
+        std::all_of(opt_to_mat_.begin(), opt_to_mat_.end(), Identity{}));
 }
 
 //---------------------------------------------------------------------------//

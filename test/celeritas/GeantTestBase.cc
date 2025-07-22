@@ -34,10 +34,10 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+//! Keep Geant4 setup persistently across tests
 struct GeantTestBase::ImportSetup
 {
-    // NOTE: the import function must be static for now so that Vecgeom or
-    // other clients can access Geant4 after importing the data.
+    std::string basename;
     std::unique_ptr<GeantImporter> import;
     std::shared_ptr<GeantGeoParams> geo;
     GeantPhysicsOptions options{};
@@ -123,27 +123,15 @@ auto GeantTestBase::build_along_step() -> SPConstAction
 }
 
 //---------------------------------------------------------------------------//
-auto GeantTestBase::build_fresh_geometry(std::string_view filename)
+auto GeantTestBase::build_fresh_geometry(std::string_view basename)
     -> SPConstGeoI
 {
-    constexpr bool use_orange = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE;
-    constexpr bool use_g4org
-        = use_orange && CELERITAS_USE_GEANT4
-          && (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE);
-
-    if (use_orange && !use_g4org)
-    {
-        // Load fake version of geometry because Geant4 conversion isn't
-        // available
-        return Base::build_fresh_geometry(filename);
-    }
-
-    // Typical case: import geometry directly from in-memory Geant4
     CELER_LOG(info) << "Importing geometry from Geant4";
 
     this->imported_data();
     ImportSetup const& i = this->load();
     CELER_ASSERT(i.geo);
+    CELER_ASSERT(i.basename == basename);
     return CoreGeoParams::from_geant(i.geo);
 }
 
@@ -165,11 +153,11 @@ auto GeantTestBase::load() const -> ImportSetup const&
     std::shared_ptr<ImportSetup> i;
     if (!ps)
     {
-        auto key = std::string{this->geometry_basename()};
         i = std::make_shared<ImportSetup>();
+        i->basename = this->geometry_basename();
         i->options = opts;
-        i->import = std::make_unique<GeantImporter>(
-            GeantSetup{this->test_data_path("geocel", key + ".gdml"), opts});
+        i->import = std::make_unique<GeantImporter>(GeantSetup{
+            this->test_data_path("geocel", i->basename + ".gdml"), opts});
         i->geo = i->import->geo_params();
         CELER_ASSERT(i->geo);
         CELER_ASSERT(!celeritas::geant_geo().expired());
@@ -177,7 +165,7 @@ auto GeantTestBase::load() const -> ImportSetup const&
         i->imported = (*i->import)(sel);
         i->selection = sel;
         i->options.verbose = false;
-        ps.set(std::move(key), PersistentImportSetup::SP{i});
+        ps.set(i->basename, i);
     }
     else
     {

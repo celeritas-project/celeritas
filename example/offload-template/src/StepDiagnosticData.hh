@@ -23,8 +23,6 @@ namespace example
 //! Step statistics gathered inside a kernel
 struct NativeStepStatistics
 {
-    using real_type = double;
-
     real_type step_length{};
     real_type energy_deposition{};  // MeV
 };

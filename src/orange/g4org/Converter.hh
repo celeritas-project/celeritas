@@ -91,8 +91,7 @@ class Converter
 
 //---------------------------------------------------------------------------//
 
-#if !(CELERITAS_USE_GEANT4 \
-      && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+#if !CELERITAS_USE_GEANT4
 inline Converter::Converter(Options&&)
 {
     CELER_DISCARD(opts_);
@@ -100,7 +99,7 @@ inline Converter::Converter(Options&&)
 
 inline auto Converter::operator()(arg_type) -> result_type
 {
-    CELER_NOT_CONFIGURED("Geant4 with double-precision real_type");
+    CELER_NOT_CONFIGURED("Geant4");
 }
 #endif
 

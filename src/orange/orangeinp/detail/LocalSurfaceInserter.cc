@@ -37,7 +37,7 @@ LocalSurfaceInserter::LocalSurfaceInserter(VecSurface* v,
                                            Tolerance<> const& tol)
     : surfaces_{v}
     , soft_surface_equal_{tol}
-    , calc_hashes_{bin_width_frac() * calc_length_scale(tol), 2 * tol.rel}
+    , calc_hashes_{bin_width_frac() * calc_length_scale(tol), 2 * tol.abs}
 {
     CELER_EXPECT(surfaces_);
     CELER_EXPECT(surfaces_->empty());

@@ -87,8 +87,7 @@ PhysicsParams::PhysicsParams(Input inp)
     , relaxation_(std::move(inp.relaxation))
 {
     CELER_EXPECT(!processes_.empty());
-    CELER_EXPECT(
-        std::all_of(processes_.begin(), processes_.end(), LogicalTrue{}));
+    CELER_EXPECT(std::all_of(processes_.begin(), processes_.end(), Identity{}));
     CELER_EXPECT(inp.particles);
     CELER_EXPECT(inp.materials);
     CELER_EXPECT(inp.action_registry);

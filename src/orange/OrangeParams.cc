@@ -58,11 +58,10 @@ OrangeParams::from_gdml(std::string const& filename)
                       "file name: a global Geant4 geometry already "
                       "exists");
 
-    if (!(CELERITAS_USE_GEANT4
-          && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE))
+    if (!CELERITAS_USE_GEANT4)
     {
         CELER_LOG(warning) << "Using ORANGE geometry with GDML suffix "
-                              "when Geant4 conversion is disabled: trying "
+                              "when Geant4 is disabled: trying "
                               "`.org.json` instead";
         CELER_VALIDATE(ends_with(filename, ".gdml"),
                        << "invalid extension for GDML file '" << filename
