@@ -75,8 +75,7 @@ struct PrimaryGeneratorOptions
     //! Whether the options are valid
     explicit operator bool() const
     {
-        return !pdg.empty()
-               && std::all_of(pdg.begin(), pdg.end(), LogicalTrue{})
+        return !pdg.empty() && std::all_of(pdg.begin(), pdg.end(), Identity{})
                && num_events > 0 && primaries_per_event > 0 && energy
                && position && direction;
     }

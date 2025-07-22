@@ -40,7 +40,7 @@ MaterialParams::from_import(ImportData const& data,
 
     CELER_VALIDATE(std::all_of(data.optical_materials.begin(),
                                data.optical_materials.end(),
-                               LogicalTrue{}),
+                               Identity{}),
                    << "one or more optical materials lack required data");
 
     Input inp;
@@ -88,7 +88,7 @@ MaterialParams::from_import(ImportData const& data,
     }
 
     CELER_ENSURE(std::all_of(
-        inp.optical_to_core.begin(), inp.optical_to_core.end(), LogicalTrue{}));
+        inp.optical_to_core.begin(), inp.optical_to_core.end(), Identity{}));
 
     return std::make_shared<MaterialParams>(std::move(inp));
 }
