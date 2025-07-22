@@ -32,10 +32,10 @@ class GeantVolumeAccessor final
     }
 
     //! Outgoing instance nodes from a volume
-    VecVolInstRef children(VolumeRef parent) final
+    ContainerVolInstRef children(VolumeRef parent) final
     {
         CELER_EXPECT(parent);
-        VecVolInstRef result;
+        ContainerVolInstRef result;
         for (auto i : range(parent->GetNoDaughters()))
         {
             result.push_back(parent->GetDaughter(i));

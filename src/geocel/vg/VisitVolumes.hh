@@ -32,10 +32,10 @@ class VecgeomVolumeAccessor final
     }
 
     //! Outgoing instance nodes from a volume
-    VecVolInstRef children(VolumeRef parent) final
+    ContainerVolInstRef children(VolumeRef parent) final
     {
         auto&& daughters = parent->GetDaughters();
-        return VecVolInstRef(daughters.begin(), daughters.end());
+        return ContainerVolInstRef(daughters.begin(), daughters.end());
     }
 };
 

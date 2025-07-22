@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <iterator>
 #include <unordered_set>
 #include <vector>
 
@@ -14,10 +15,16 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Interface for accessing the volume graph.
+ *
  * \tparam V Lightweight volume reference
  * \tparam VI Lightweight volume instance reference
+ * \tparam CVI Container of volume instance references
+ *
+ * Note that this helper class is a template interface specification, not a
+ * required base class. Providing the type aliases and member functions is all
+ * that's needed.
  */
-template<class V, class VI>
+template<class V, class VI, class CVI = std::vector<VI>>
 class VolumeAccessorInterface
 {
   public:
@@ -25,14 +32,14 @@ class VolumeAccessorInterface
     using VolumeRef = V;
     //! A lightweight identifier for a volume instance
     using VolumeInstanceRef = VI;
-    //! Result vector
-    using VecVolInstRef = std::vector<VolumeInstanceRef>;
+    //! Container of child volume instances
+    using ContainerVolInstRef = CVI;
 
   public:
     //! Outgoing volume node from an instance
     virtual VolumeRef volume(VolumeInstanceRef parent) = 0;
     //! Outgoing instance nodes from a volume
-    virtual VecVolInstRef children(VolumeRef parent) = 0;
+    virtual ContainerVolInstRef children(VolumeRef parent) = 0;
 
   protected:
     ~VolumeAccessorInterface() = default;
@@ -50,7 +57,8 @@ class VolumeAccessorInterface
  * The visitor function must have the signature
  * <code>bool(*)(VolumeInstanceRef, int)</code>
  * where the return value indicates whether the volume's children should be
- * visited, and the integer is the depth of the volume being visited.
+ * visited, and the integer is the depth of the volume being visited (world has
+ * depth zero).
  *
  * By default this will visit all unique instances, i.e. every path in the
  * graph (the entire "touchable" hierarchy): this may be
@@ -121,10 +129,12 @@ void VolumeInstanceVisitor<VA>::operator()(F&& visit, VolumeInstanceRef world)
     auto visit_impl = [&](VolumeInstanceRef vi, int depth) {
         if (visit(vi, depth))
         {
-            auto vol = accessor_.volume(vi);
-            auto&& children = accessor_.children(vol);
+            auto&& children = accessor_.children(accessor_.volume(vi));
             // Append children in *reverse* order since we pop back
-            for (auto iter = children.rbegin(); iter != children.rend(); ++iter)
+            auto const rend = std::reverse_iterator(children.begin());
+            for (auto iter = std::reverse_iterator(children.end());
+                 iter != rend;
+                 ++iter)
             {
                 queue.push_back({*iter, depth + 1});
             }
