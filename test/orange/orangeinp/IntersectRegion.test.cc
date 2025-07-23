@@ -534,19 +534,19 @@ TEST_F(ExtrudedPolygonTest, simple_cube)
 {
     // Test a simple unit cube
     ExtrudedPolygon::VecReal2 polygon{
-        Real2{0, 0}, Real2{0, 1}, Real2{1, 1}, Real2{1, 0}};
+        Real2{1, 0}, Real2{1, 1}, Real2{0, 1}, Real2{0, 0}};
 
     ExtrudedPolygon::PolygonFace bot{Real3{0, 0, 0}, 1};
     ExtrudedPolygon::PolygonFace top{Real3{0, 0, 1}, 1};
 
     auto result = this->test(ExtrudedPolygon(polygon, bot, top));
 
-    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
     static char const* const expected_surfaces[] = {"Plane: z=0",
                                                     "Plane: z=1",
-                                                    "Plane: x=0",
-                                                    "Plane: y=1",
                                                     "Plane: x=1",
+                                                    "Plane: y=1",
+                                                    "Plane: x=0",
                                                     "Plane: y=0"};
 
     EXPECT_EQ(expected_node, result.node);
@@ -559,27 +559,29 @@ TEST_F(ExtrudedPolygonTest, simple_cube)
 TEST_F(ExtrudedPolygonTest, collinear)
 {
     // Same test as simple_cube, but with collinear points
-    ExtrudedPolygon::VecReal2 polygon{Real2{0, 0},
-                                      Real2{0, 0.5},
-                                      Real2{0, 1},
-                                      Real2{0.5, 1},
-                                      Real2{1, 1},
-                                      Real2{1, 0.5},
-                                      Real2{1, 0},
-                                      Real2{0.7, 0},
-                                      Real2{0.3, 0}};
+    ExtrudedPolygon::VecReal2 polygon{
+        Real2{0.3, 0},
+        Real2{0.7, 0},
+        Real2{1, 0},
+        Real2{1, 0.5},
+        Real2{1, 1},
+        Real2{0.5, 1},
+        Real2{0, 1},
+        Real2{0, 0.5},
+        Real2{0, 0},
+    };
 
     ExtrudedPolygon::PolygonFace bot{Real3{0, 0, 0}, 1};
     ExtrudedPolygon::PolygonFace top{Real3{0, 0, 1}, 1};
 
     auto result = this->test(ExtrudedPolygon(polygon, bot, top));
 
-    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
     static char const* const expected_surfaces[] = {"Plane: z=0",
                                                     "Plane: z=1",
-                                                    "Plane: x=0",
-                                                    "Plane: y=1",
                                                     "Plane: x=1",
+                                                    "Plane: y=1",
+                                                    "Plane: x=0",
                                                     "Plane: y=0"};
 
     EXPECT_EQ(expected_node, result.node);
@@ -592,21 +594,21 @@ TEST_F(ExtrudedPolygonTest, collinear)
 TEST_F(ExtrudedPolygonTest, flat_top_pyramid)
 {
     ExtrudedPolygon::VecReal2 polygon{
-        Real2{0, 0}, Real2{0, 1}, Real2{1, 1}, Real2{1, 0}};
+        Real2{1, 0}, Real2{1, 1}, Real2{0, 1}, Real2{0, 0}};
 
     ExtrudedPolygon::PolygonFace bot{Real3{0, 0, 0}, 1};
     ExtrudedPolygon::PolygonFace top{Real3{0, 0, 0.5}, 0.5};
 
     auto result = this->test(ExtrudedPolygon(polygon, bot, top));
 
-    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
     // Planes have x- and y-slopes equal to +/- sqrt(2)/2, as expected
     static char const* const expected_surfaces[]
         = {"Plane: z=0",
            "Plane: z=0.5",
+           "Plane: n={0.70711,-0,0.70711}, d=0.70711",
+           "Plane: n={0,0.70711,0.70711}, d=0.70711",
            "Plane: x=0",
-           "Plane: n={-0,0.70711,0.70711}, d=0.70711",
-           "Plane: n={0.70711,0,0.70711}, d=0.70711",
            "Plane: y=0"};
 
     EXPECT_EQ(expected_node, result.node);
@@ -619,13 +621,13 @@ TEST_F(ExtrudedPolygonTest, flat_top_pyramid)
 TEST_F(ExtrudedPolygonTest, skewed)
 {
     // Irregular hexagon with a single collinear point at (0, 0)
-    ExtrudedPolygon::VecReal2 polygon{Real2{0, 0},
-                                      Real2{-1, 0},
-                                      Real2{-2, 1},
-                                      Real2{-1, 3},
-                                      Real2{1, 4},
+    ExtrudedPolygon::VecReal2 polygon{Real2{1, 0},
                                       Real2{2, 2},
-                                      Real2{1, 0}};
+                                      Real2{1, 4},
+                                      Real2{-1, 3},
+                                      Real2{-2, 1},
+                                      Real2{-1, 0},
+                                      Real2{0, 0}};
 
     ExtrudedPolygon::PolygonFace bot{Real3{4, 3, 10}, 0.7};
     ExtrudedPolygon::PolygonFace top{Real3{10, 11, 15}, 0.5};
@@ -636,11 +638,11 @@ TEST_F(ExtrudedPolygonTest, skewed)
     static char const* const expected_surfaces[]
         = {"Plane: z=10",
            "Plane: z=15",
-           "Plane: n={0.3152,0.3152,-0.89516}, d=-6.9658",
-           "Plane: n={-0.8165,0.40825,0.40825}, d=3.4701",
-           "Plane: n={0.35448,-0.70895,0.6097}, d=3.6511",
-           "Plane: n={0.45718,0.22859,-0.8595}, d=-5.1204",
            "Plane: n={-0.85138,0.42569,0.3065}, d=0.34055",
+           "Plane: n={0.45718,0.22859,-0.8595}, d=-5.1204",
+           "Plane: n={0.35448,-0.70895,0.6097}, d=3.6511",
+           "Plane: n={-0.8165,0.40825,0.40825}, d=3.4701",
+           "Plane: n={0.3152,0.3152,-0.89516}, d=-6.9658",
            "Plane: n={0,0.53,-0.848}, d=-6.89"};
 
     EXPECT_EQ(expected_node, result.node);

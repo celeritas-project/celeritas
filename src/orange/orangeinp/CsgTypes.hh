@@ -198,7 +198,7 @@ class SpecialTrapezoid
     //! Get the absolute tolerance for soft equality
     real_type abs_tol() const { return abs_tol_; }
 
-    // Get the unique points in clockwise order, starting with the bottom right
+    // Get the unique points in counterclockwise order, from the upper right
     VecReal2 unique_points() const;
 
   private:

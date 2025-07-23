@@ -29,12 +29,12 @@ namespace detail
  *
  * This helper class does not take ownership of the supplied points and
  * tolerance, so the lifetime of objects of this class should be shorter than
- * the lifetime of these arguments. Points must be supplied in clockwise-order
- * such that segments between adjacent points, including the last and first
- * points, comprise a non-self-intersecting polygon. Exploiting this ordering,
- * the Graham Scan algorithm \citet{graham-convexhull-1972,
- * https://doi.org/10.1016/0020-0190(72)90045-2} finds the convex hull with
- * O(N) time complexity.
+ * the lifetime of these arguments. Points must be supplied in
+ * counterclockwise-order such that segments between adjacent points, including
+ * the last and first points, comprise a non-self-intersecting polygon.
+ * Exploiting this ordering, the Graham Scan algorithm
+ * \citet{graham-convexhull-1972, https://doi.org/10.1016/0020-0190(72)90045-2}
+ * finds the convex hull with O(N) time complexity.
  */
 template<class T>
 class ConvexHullFinder
@@ -55,7 +55,7 @@ class ConvexHullFinder
     // Make the convex hull
     VecReal2 make_convex_hull() const;
 
-    // Calculate the concave regions, each supplied in clockwise order
+    // Calculate the concave regions, each supplied in counterclockwise order
     VecVecReal2 calc_concave_regions() const;
 
   private:
@@ -80,8 +80,9 @@ class ConvexHullFinder
     // Find the index of the element with the minimum y value
     size_type min_element_idx() const;
 
-    // Determine if three points, traversed in order, form a clockwise turn
-    bool is_clockwise(size_type i_prev, size_type i, size_type i_next) const;
+    // Determine if three points, traversed in order, are counterclockwise
+    bool
+    is_counterclockwise(size_type i_prev, size_type i, size_type i_next) const;
 
     // Determine the next index, with modular indexing
     size_type calc_next(size_type i) const;
@@ -98,8 +99,8 @@ class ConvexHullFinder
  * and associated concave regions. Note that this function does not enforce
  * ordering.
  *
- * \todo Check that points form a non-self-intersecting polygon with clockwise
- * ordering.
+ * \todo Check that points form a non-self-intersecting polygon with
+ * counterclockwise ordering.
  */
 template<class T>
 ConvexHullFinder<T>::ConvexHullFinder(ConvexHullFinder::VecReal2 const& points,
@@ -162,20 +163,20 @@ auto ConvexHullFinder<T>::make_convex_hull() const -> VecReal2
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the concave regions, each supplied in clockwise order.
+ * Calculate the concave regions, each supplied in counterclockwise order.
  *
  * Here, a "concave region" is a region that lies entirely within the convex
  * hull, that is concavity within the *original* shape. Note that a concave
  * region itself may be convex or concave. For example, consider the shape:
  *
- *   0 _______ 1
+ *   4 _______ 3
  *    |       |
- *    |     2 |____ 3
+ *    |     2 |____ 1
  *    |            |
- *  5 |____________| 4
+ *  5 |____________| 0
  *
  * The convex hull is (0, 1, 3, 4, 5). There is one concave region: the
- * triangle formed by (1, 2, 3).
+ * triangle formed by (1, 3, 2).
  */
 template<class T>
 auto ConvexHullFinder<T>::calc_concave_regions() const -> VecVecReal2
@@ -183,9 +184,9 @@ auto ConvexHullFinder<T>::calc_concave_regions() const -> VecVecReal2
     CELER_EXPECT(convex_mask_.size() > 2);
     VecVecReal2 concave_regions;
 
-    // Since the original shape was supplied in clockwise order, we must
+    // Since the original shape was supplied in counterclockwise order, we must
     // traverse the points backwards in order to obtain the concave regions in
-    // clockwise order.
+    // counterclockwise order.
     size_type i = this->calc_previous(start_index_);
     while (i != start_index_)
     {
@@ -232,17 +233,17 @@ auto ConvexHullFinder<T>::calc_convex_mask() const -> ConvexMask
     {
         size_type i_next = this->calc_next(i);
 
-        if (this->is_clockwise(hull.back(), i, i_next))
+        if (this->is_counterclockwise(hull.back(), i, i_next))
         {
-            // Clockwise point is part of the hull
+            // Counterclockwise point is part of the hull
             hull.push_back(i);
         }
         else
         {
             // Pop points off the hull until we can reach the next point by
-            // turning clockwise.
+            // turning counterclockwise.
             while (hull.size() >= 2
-                   && !this->is_clockwise(
+                   && !this->is_counterclockwise(
                        hull[hull.size() - 2], hull.back(), i_next))
             {
                 hull.pop_back();
@@ -283,14 +284,14 @@ size_type ConvexHullFinder<T>::min_element_idx() const
  * Here, collinear points are considered clockwise.
  */
 template<class T>
-auto ConvexHullFinder<T>::is_clockwise(size_type i_prev,
-                                       size_type i,
-                                       size_type i_next) const -> bool
+auto ConvexHullFinder<T>::is_counterclockwise(size_type i_prev,
+                                              size_type i,
+                                              size_type i_next) const -> bool
 {
     auto const& a = points_[i_prev];
     auto const& b = points_[i];
     auto const& c = points_[i_next];
-    return soft_ori_(a, b, c) != detail::Orientation::counterclockwise;
+    return soft_ori_(a, b, c) != detail::Orientation::clockwise;
 }
 
 //---------------------------------------------------------------------------//
