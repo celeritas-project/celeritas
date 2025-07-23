@@ -9,6 +9,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "geocel/SurfaceData.hh"
+#include "geocel/VolumeSurfaceView.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 
 namespace celeritas
@@ -17,8 +18,25 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Retrieve the surface ID between two volume instances based on Geant4's
- * interface / boundary priority.
+ * Retrieve the surface ID between two volume instances.
+ *
+ * Given (old, new) physical volumes P0, P1 corresponding to logical volumes
+ * L0, L1
+ * - Ordered (P0, P1) interface surface
+ * - Boundary surface of L0
+ * - Boundary surface of L1
+ *
+ * This behavior differs from Geant4's order of precedence, which considers
+ * if there's a mother-daughter relation between L0 and L1 when both have
+ * a boundary surface:
+ * - Ordered (P0, P1) interface surface
+ * - Boundary surface of L1 if it's the daughter of L0
+ * - Boundary surface of L0
+ * - Boundary surface of L1
+ *
+ * When multiple layers are implemented, this selector will be responsible
+ * for determining the ordering of the layers between the volumes,
+ * including both interface and boundary surfaces.
  */
 class VolumeSurfaceSelector
 {
@@ -61,6 +79,8 @@ CELER_FUNCTION VolumeSurfaceSelector::VolumeSurfaceSelector(
     , pre_volume_(pre_volume)
     , pre_volume_inst_(pre_volume_inst)
 {
+    CELER_EXPECT(pre_volume_ < params_.volume_surfaces.size());
+    CELER_EXPECT(pre_volume_inst_);
 }
 
 //---------------------------------------------------------------------------//
@@ -83,27 +103,20 @@ CELER_FUNCTION VolumeSurfaceSelector::VolumeSurfaceSelector(
 CELER_FUNCTION SurfaceId VolumeSurfaceSelector::operator()(
     VolumeId post_volume, VolumeInstanceId post_volume_inst) const
 {
-    SurfaceId surface_id{};
+    VolumeSurfaceView pre_surface{params_, pre_volume_};
 
-    if (pre_volume_ < params_.volume_surfaces.size())
+    if (auto surface_id
+        = pre_surface.find_interface(pre_volume_inst_, post_volume_inst))
     {
-        VolumeSurfaceView pre_surface{params_, pre_volume_};
-
-        auto surface_id
-            = pre_surface.find_interface(pre_volume_inst_, post_volume_inst);
-        if (!surface_id)
-        {
-            surface_id = pre_surface.boundary_id();
-        }
+        return surface_id;
     }
 
-    if (!surface_id && post_volume < params_.volume_surfaces.size())
+    if (auto surface_id = pre_surface.boundary_id())
     {
-        VolumeSurfaceView post_surface{params_, post_volume};
-        surface_id = post_surface.boundary_id();
+        return surface_id;
     }
 
-    return surface_id;
+    return VolumeSurfaceView{params_, post_volume}.boundary_id();
 }
 
 //---------------------------------------------------------------------------//

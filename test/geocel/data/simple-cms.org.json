@@ -149,20 +149,20 @@
 "provenance": "simple-cms.org.omn:18"
 },
 "surface_names": [
-"world_box.mx",
-"world_box.px",
-"world_box.my",
-"world_box.py",
-"world_box.mz",
-"world_box.pz",
-"guide_tube.coz",
-"crystal_em_calorimeter_outer.mz",
-"crystal_em_calorimeter_outer.pz",
-"silicon_tracker_outer.coz",
-"crystal_em_calorimeter_outer.coz",
-"hadron_calorimeter_outer.coz",
-"superconducting_solenoid_outer.coz",
-"iron_muon_chambers_outer.coz"
+"world_box@mx",
+"world_box@px",
+"world_box@my",
+"world_box@py",
+"world_box@mz",
+"world_box@pz",
+"guide_tube@cz",
+"crystal_em_calorimeter@mz",
+"crystal_em_calorimeter@pz",
+"silicon_tracker@cz",
+"crystal_em_calorimeter@cz",
+"hadron_calorimeter@cz",
+"superconducting_solenoid@cz",
+"iron_muon_chambers@cz"
 ],
 "surfaces": {
 "data": [

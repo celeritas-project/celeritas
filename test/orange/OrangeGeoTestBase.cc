@@ -79,15 +79,14 @@ void OrangeGeoTestBase::SetUp() {}
 
 //---------------------------------------------------------------------------//
 /*!
- * Load a geometry from the given JSON filename.
+ * Load a geometry from a JSON filename.
  */
 void OrangeGeoTestBase::build_geometry(std::string const& filename)
 {
     CELER_EXPECT(!params_);
 
     ScopedLogStorer scoped_log_{&celeritas::world_logger()};
-    params_
-        = std::make_unique<Params>(this->test_data_path("orange", filename));
+    params_ = OrangeParams::from_json(this->test_data_path("orange", filename));
 
     static std::string const expected_log_levels[] = {"info"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels()) << scoped_log_;

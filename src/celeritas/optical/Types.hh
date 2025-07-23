@@ -49,4 +49,14 @@ using InteractionModelId = OpaqueId<SurfaceInteractionModel>;
 }  // namespace optical
 
 //---------------------------------------------------------------------------//
+// ENUMERATIONS
+//---------------------------------------------------------------------------//
+//! Process used to generate optical photons
+enum class GeneratorType
+{
+    cherenkov,
+    scintillation,
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

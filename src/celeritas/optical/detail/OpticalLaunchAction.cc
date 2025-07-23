@@ -6,12 +6,15 @@
 //---------------------------------------------------------------------------//
 #include "OpticalLaunchAction.hh"
 
+#include <mutex>
+
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/phys/GeneratorRegistry.hh"
 
 #include "../CoreParams.hh"
 #include "../CoreState.hh"
@@ -50,11 +53,24 @@ OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
     : action_id_{action_id}, aux_id_{aux_id}, data_(std::move(input))
 {
     CELER_EXPECT(data_);
+}
 
-    // TODO: should we initialize this at begin-run so that we can add
-    // additional optical actions?
-    optical_actions_
-        = std::make_shared<ActionGroupsT>(*data_.optical_params->action_reg());
+//---------------------------------------------------------------------------//
+/*!
+ * Create the action groups and get a pointer to the aux data.
+ */
+void OpticalLaunchAction::begin_run(CoreParams const&, CoreStateHost& state)
+{
+    this->begin_run_impl(state);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create the action groups and get a pointer to the aux data.
+ */
+void OpticalLaunchAction::begin_run(CoreParams const&, CoreStateDevice& state)
+{
+    this->begin_run_impl(state);
 }
 
 //---------------------------------------------------------------------------//
@@ -120,12 +136,6 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
     size_type num_step_iters{0};
     size_type num_steps{0};
 
-    if (!state.aux())
-    {
-        // Get a pointer to the auxiliary state vector
-        state.aux() = core_state.aux_ptr();
-    }
-
     auto const& core_counters = core_state.counters();
     auto& counters = state.counters();
 
@@ -160,8 +170,8 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
                 << counters.num_vacancies << " vacancies, and "
                 << counters.num_pending << " queued";
 
+            this->optical_params().gen_reg()->reset(core_state.aux());
             state.reset();
-            this->reset_generators(core_state.aux());
             break;
         }
     }
@@ -174,20 +184,33 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
 
 //---------------------------------------------------------------------------//
 /*!
- * Reset the generator counts if the loop was aborted early.
+ * Create the action groups and cache a pointer to the auxiliary data.
+ *
+ * This allows additional optical actions to be added after the launch action
+ * has been constructed.
  */
-void OpticalLaunchAction::reset_generators(AuxStateVec& aux) const
+template<MemSpace M>
+void OpticalLaunchAction::begin_run_impl(CoreState<M>& core_state)
 {
-    for (AuxId id : {data_.cherenkov_aux_id, data_.scintillation_aux_id})
+    if (!optical_actions_)
     {
-        if (id)
+        static std::mutex launch_mutex;
+        std::lock_guard<std::mutex> scoped_lock{launch_mutex};
+
+        if (!optical_actions_)
         {
-            auto& gen = dynamic_cast<GeneratorStateBase&>(aux.at(id));
-            gen.buffer_size = {};
-            gen.num_pending = {};
-            gen.num_generated = {};
+            // Create the action groups
+            optical_actions_ = std::make_shared<ActionGroupsT>(
+                *this->optical_params().action_reg());
         }
     }
+
+    // Store a pointer to the auxiliary state vector
+    auto& state = get<optical::CoreState<M>>(core_state.aux(), this->aux_id());
+    state.aux() = core_state.aux_ptr();
+
+    CELER_ENSURE(optical_actions_);
+    CELER_ENSURE(state.aux());
 }
 
 //---------------------------------------------------------------------------//

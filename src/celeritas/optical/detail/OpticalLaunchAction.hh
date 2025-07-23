@@ -12,6 +12,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxStateVec.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "celeritas/global/ActionInterface.hh"
 
 #include "../Model.hh"
@@ -40,7 +41,8 @@ namespace detail
  * the beginning of the run, and stores the optical core state as "aux" data.
  */
 class OpticalLaunchAction : public AuxParamsInterface,
-                            public CoreStepActionInterface
+                            public CoreStepActionInterface,
+                            public CoreBeginRunActionInterface
 {
   public:
     //!@{
@@ -51,17 +53,14 @@ class OpticalLaunchAction : public AuxParamsInterface,
     struct Input
     {
         SPOpticalParams optical_params;
-        AuxId cherenkov_aux_id;
-        AuxId scintillation_aux_id;
         size_type num_track_slots{};
-        size_type max_step_iters{};
+        size_type max_step_iters{numeric_limits<size_type>::max()};
         size_type auto_flush{};
 
         //! True if all input is assigned and valid
         explicit operator bool() const
         {
-            return optical_params && (cherenkov_aux_id || scintillation_aux_id)
-                   && num_track_slots > 0 && auto_flush > 0;
+            return optical_params && num_track_slots > 0 && auto_flush > 0;
         }
     };
 
@@ -89,6 +88,15 @@ class OpticalLaunchAction : public AuxParamsInterface,
     AuxId aux_id() const final { return aux_id_; }
     // Build optical core state data for a stream
     UPState create_state(MemSpace, StreamId, size_type) const final;
+    //!@}
+
+    //!@{
+    //! \name BeginRunAction interface
+
+    // Create the action groups and get a pointer to the aux data
+    void begin_run(CoreParams const&, CoreStateHost&) final;
+    // Create the action groups and get a pointer to the aux data
+    void begin_run(CoreParams const&, CoreStateDevice&) final;
     //!@}
 
     //!@{
@@ -133,7 +141,8 @@ class OpticalLaunchAction : public AuxParamsInterface,
 
     template<MemSpace M>
     void execute_impl(CoreParams const&, CoreState<M>&) const;
-    void reset_generators(AuxStateVec& aux) const;
+    template<MemSpace M>
+    void begin_run_impl(CoreState<M>&);
 };
 
 //---------------------------------------------------------------------------//

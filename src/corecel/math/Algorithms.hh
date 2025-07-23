@@ -118,27 +118,41 @@ struct Less<void>
 
 //---------------------------------------------------------------------------//
 /*!
- * Evaluate whether the argument is "true".
+ * A function object type whose operator() returns its argument unchanged.
  *
  * This is useful for calls to \c std::all_of .
  */
-template<class T = void>
-struct LogicalTrue
+struct Identity
 {
-    CELER_CONSTEXPR_FUNCTION bool operator()(T const& value) const noexcept
+    template<class T>
+    CELER_CONSTEXPR_FUNCTION T&& operator()(T&& value) const noexcept
     {
-        return static_cast<bool>(value);
+        return std::forward<T>(value);
     }
 };
 
-//! Specialization of LogicalTrue with template deduction
+//---------------------------------------------------------------------------//
+/*!
+ * A Function object for performing logical NOT (logical negation). Effectively
+ * calls operator! for type T.
+ */
+template<class T = void>
+struct LogicalNot
+{
+    CELER_CONSTEXPR_FUNCTION bool operator()(T const& value) const noexcept
+    {
+        return !value;
+    }
+};
+
+//! Specialization with template deduction
 template<>
-struct LogicalTrue<void>
+struct LogicalNot<void>
 {
     template<class T>
     CELER_CONSTEXPR_FUNCTION bool operator()(T const& value) const noexcept
     {
-        return static_cast<bool>(value);
+        return !value;
     }
 };
 
@@ -639,7 +653,9 @@ CELER_CONSTEXPR_FUNCTION T diffsq(T a, T b)
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the Euclidian modulus of two numbers.
+ * Calculate the Euclidean modulus of two numbers.
+ * \arg num numerator
+ * \arg denom denominator
  *
  * If both numbers are positive, this should be the same as fmod. If the
  * sign of the remainder and denominator don't match, the remainder will be
@@ -653,9 +669,9 @@ CELER_CONSTEXPR_FUNCTION T diffsq(T a, T b)
    \endcode
  */
 template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
-CELER_CONSTEXPR_FUNCTION T eumod(T numer, T denom)
+CELER_CONSTEXPR_FUNCTION T eumod(T num, T denom)
 {
-    T r = std::fmod(numer, denom);
+    T r = std::fmod(num, denom);
     if (r < 0)
     {
         if (denom >= 0)

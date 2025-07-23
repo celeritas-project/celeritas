@@ -82,7 +82,7 @@ struct VolumeRecord
         internal_surfaces = 0x1,  //!< "Complex" distance-to-boundary
         implicit_vol = 0x2,  //!< Background/exterior volume
         simple_safety = 0x4,  //!< Fast safety calculation
-        embedded_universe = 0x8  //!< Volume contains embeddded universe
+        embedded_universe = 0x8  //!< Volume contains embedded universe
     };
 };
 
@@ -220,7 +220,7 @@ struct SimpleUnitRecord
     // Volume data [index by LocalVolumeId]
     ItemMap<LocalVolumeId, VolumeRecordId> volumes;
 
-    // Bounding Interval Hierachy tree parameters
+    // Bounding Interval Hierarchy tree parameters
     detail::BIHTree bih_tree;
 
     LocalVolumeId background{};  //!< Default if not in any other volume
@@ -367,12 +367,6 @@ struct OrangeParamsData
     Items<SimpleUnitRecord> simple_units;
     Items<RectArrayRecord> rect_arrays;
     Items<TransformRecord> transforms;
-
-    // Map of ORANGE internal volume ID -> Celeritas volume ID
-    ImplVolumeItems<VolumeId> volume_ids;
-    ImplVolumeItems<VolumeInstanceId> volume_instance_ids;
-    // TODO: for reconstructing hierarchy:
-    // ImplVolumeItems<ImplVolumeId> parent_impl_volumes;
 
     // BIH tree storage
     BIHTreeData<W, M> bih_tree_data;

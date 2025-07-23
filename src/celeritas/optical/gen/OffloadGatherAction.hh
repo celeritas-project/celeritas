@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/gen/detail/OffloadGatherAction.hh
+//! \file celeritas/optical/gen/OffloadGatherAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,14 +14,12 @@
 #include "corecel/data/Collection.hh"
 #include "celeritas/global/ActionInterface.hh"
 
-#include "../OffloadData.hh"
+#include "OffloadData.hh"
 
 namespace celeritas
 {
 class CoreParams;
 
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Collect pre-step data needed to generate optical distribution data.
@@ -82,5 +80,4 @@ class OffloadGatherAction final : public CoreStepActionInterface,
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

@@ -65,7 +65,7 @@ class Converter
         Tolerance<> tol;
         //! Write interpreted geometry to a JSON file
         std::string proto_output_file;
-        //! Write intermediate debug ouput (CSG construction) to a JSON file
+        //! Write intermediate debug output (CSG construction) to a JSON file
         std::string debug_output_file;
     };
 
@@ -91,8 +91,7 @@ class Converter
 
 //---------------------------------------------------------------------------//
 
-#if !(CELERITAS_USE_GEANT4 \
-      && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+#if !CELERITAS_USE_GEANT4
 inline Converter::Converter(Options&&)
 {
     CELER_DISCARD(opts_);
@@ -100,7 +99,7 @@ inline Converter::Converter(Options&&)
 
 inline auto Converter::operator()(arg_type) -> result_type
 {
-    CELER_NOT_CONFIGURED("Geant4 with double-precision real_type");
+    CELER_NOT_CONFIGURED("Geant4");
 }
 #endif
 

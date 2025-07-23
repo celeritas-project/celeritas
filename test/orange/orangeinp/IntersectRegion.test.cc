@@ -534,19 +534,19 @@ TEST_F(ExtrudedPolygonTest, simple_cube)
 {
     // Test a simple unit cube
     ExtrudedPolygon::VecReal2 polygon{
-        Real2{0, 0}, Real2{0, 1}, Real2{1, 1}, Real2{1, 0}};
+        Real2{1, 0}, Real2{1, 1}, Real2{0, 1}, Real2{0, 0}};
 
     ExtrudedPolygon::PolygonFace bot{Real3{0, 0, 0}, 1};
     ExtrudedPolygon::PolygonFace top{Real3{0, 0, 1}, 1};
 
     auto result = this->test(ExtrudedPolygon(polygon, bot, top));
 
-    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
     static char const* const expected_surfaces[] = {"Plane: z=0",
                                                     "Plane: z=1",
-                                                    "Plane: x=0",
-                                                    "Plane: y=1",
                                                     "Plane: x=1",
+                                                    "Plane: y=1",
+                                                    "Plane: x=0",
                                                     "Plane: y=0"};
 
     EXPECT_EQ(expected_node, result.node);
@@ -559,27 +559,29 @@ TEST_F(ExtrudedPolygonTest, simple_cube)
 TEST_F(ExtrudedPolygonTest, collinear)
 {
     // Same test as simple_cube, but with collinear points
-    ExtrudedPolygon::VecReal2 polygon{Real2{0, 0},
-                                      Real2{0, 0.5},
-                                      Real2{0, 1},
-                                      Real2{0.5, 1},
-                                      Real2{1, 1},
-                                      Real2{1, 0.5},
-                                      Real2{1, 0},
-                                      Real2{0.7, 0},
-                                      Real2{0.3, 0}};
+    ExtrudedPolygon::VecReal2 polygon{
+        Real2{0.3, 0},
+        Real2{0.7, 0},
+        Real2{1, 0},
+        Real2{1, 0.5},
+        Real2{1, 1},
+        Real2{0.5, 1},
+        Real2{0, 1},
+        Real2{0, 0.5},
+        Real2{0, 0},
+    };
 
     ExtrudedPolygon::PolygonFace bot{Real3{0, 0, 0}, 1};
     ExtrudedPolygon::PolygonFace top{Real3{0, 0, 1}, 1};
 
     auto result = this->test(ExtrudedPolygon(polygon, bot, top));
 
-    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
     static char const* const expected_surfaces[] = {"Plane: z=0",
                                                     "Plane: z=1",
-                                                    "Plane: x=0",
-                                                    "Plane: y=1",
                                                     "Plane: x=1",
+                                                    "Plane: y=1",
+                                                    "Plane: x=0",
                                                     "Plane: y=0"};
 
     EXPECT_EQ(expected_node, result.node);
@@ -592,21 +594,21 @@ TEST_F(ExtrudedPolygonTest, collinear)
 TEST_F(ExtrudedPolygonTest, flat_top_pyramid)
 {
     ExtrudedPolygon::VecReal2 polygon{
-        Real2{0, 0}, Real2{0, 1}, Real2{1, 1}, Real2{1, 0}};
+        Real2{1, 0}, Real2{1, 1}, Real2{0, 1}, Real2{0, 0}};
 
     ExtrudedPolygon::PolygonFace bot{Real3{0, 0, 0}, 1};
     ExtrudedPolygon::PolygonFace top{Real3{0, 0, 0.5}, 0.5};
 
     auto result = this->test(ExtrudedPolygon(polygon, bot, top));
 
-    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
     // Planes have x- and y-slopes equal to +/- sqrt(2)/2, as expected
     static char const* const expected_surfaces[]
         = {"Plane: z=0",
            "Plane: z=0.5",
+           "Plane: n={0.70711,-0,0.70711}, d=0.70711",
+           "Plane: n={0,0.70711,0.70711}, d=0.70711",
            "Plane: x=0",
-           "Plane: n={-0,0.70711,0.70711}, d=0.70711",
-           "Plane: n={0.70711,0,0.70711}, d=0.70711",
            "Plane: y=0"};
 
     EXPECT_EQ(expected_node, result.node);
@@ -619,13 +621,13 @@ TEST_F(ExtrudedPolygonTest, flat_top_pyramid)
 TEST_F(ExtrudedPolygonTest, skewed)
 {
     // Irregular hexagon with a single collinear point at (0, 0)
-    ExtrudedPolygon::VecReal2 polygon{Real2{0, 0},
-                                      Real2{-1, 0},
-                                      Real2{-2, 1},
-                                      Real2{-1, 3},
-                                      Real2{1, 4},
+    ExtrudedPolygon::VecReal2 polygon{Real2{1, 0},
                                       Real2{2, 2},
-                                      Real2{1, 0}};
+                                      Real2{1, 4},
+                                      Real2{-1, 3},
+                                      Real2{-2, 1},
+                                      Real2{-1, 0},
+                                      Real2{0, 0}};
 
     ExtrudedPolygon::PolygonFace bot{Real3{4, 3, 10}, 0.7};
     ExtrudedPolygon::PolygonFace top{Real3{10, 11, 15}, 0.5};
@@ -636,11 +638,11 @@ TEST_F(ExtrudedPolygonTest, skewed)
     static char const* const expected_surfaces[]
         = {"Plane: z=10",
            "Plane: z=15",
-           "Plane: n={0.3152,0.3152,-0.89516}, d=-6.9658",
-           "Plane: n={-0.8165,0.40825,0.40825}, d=3.4701",
-           "Plane: n={0.35448,-0.70895,0.6097}, d=3.6511",
-           "Plane: n={0.45718,0.22859,-0.8595}, d=-5.1204",
            "Plane: n={-0.85138,0.42569,0.3065}, d=0.34055",
+           "Plane: n={0.45718,0.22859,-0.8595}, d=-5.1204",
+           "Plane: n={0.35448,-0.70895,0.6097}, d=3.6511",
+           "Plane: n={-0.8165,0.40825,0.40825}, d=3.4701",
+           "Plane: n={0.3152,0.3152,-0.89516}, d=-6.9658",
            "Plane: n={0,0.53,-0.848}, d=-6.89"};
 
     EXPECT_EQ(expected_node, result.node);
@@ -727,7 +729,7 @@ class GenPrismTest : public IntersectRegionTest
 
 TEST_F(GenPrismTest, construct)
 {
-    // Validate contruction parameters
+    // Validate construction parameters
     EXPECT_THROW(GenPrism(-3,
                           {{-1, -1}, {-1, 1}, {1, 1}, {1, -1}},
                           {{-2, -2}, {-2, 2}, {2, 2}, {2, -2}}),
@@ -1306,17 +1308,17 @@ TEST_F(GenPrismTest, trap_even_twist)
  * Test deduplication of two opposing quadric surfaces.
  *
  * \verbatim
- * Lower polygons:      Upper polygons:
- *
- * x=-1      x=1           x=-0.5
- * +----+----+ y=1      +--+------+ y=1
- * |    |    |          |   \     |
- * |    |  R |          |    \  R |
- * |  L |    |          |  L  \   |
- * |    |    |          |      \  |
- * +----+----+ y=-1     +-------+-+ y=-1
- *      x=0                     x=0.5
- * \endverbatim
+   Lower polygons:      Upper polygons:
+
+   x=-1      x=1           x=-0.5
+   +----+----+ y=1      +--+------+ y=1
+   |    |    |          |   \     |
+   |    |  R |          |    \  R |
+   |  L |    |          |  L  \   |
+   |    |    |          |      \  |
+   +----+----+ y=-1     +-------+-+ y=-1
+        x=0                     x=0.5
+   \endverbatim
  */
 TEST_F(GenPrismTest, adjacent_twisted)
 {
@@ -1414,6 +1416,8 @@ using InfPlaneTest = IntersectRegionTest;
 TEST_F(InfPlaneTest, basic)
 {
     using Plane = InfPlane;
+
+    auto inf = std::numeric_limits<real_type>::infinity();
     {
         auto result = this->test(Plane(Sense::inside, Axis::x, -1.5));
         IntersectTestResult ref;
@@ -1554,6 +1558,7 @@ TEST_F(InfPolarWedgeTest, errors)
 
 TEST_F(InfPolarWedgeTest, quarter_turn)
 {
+    auto inf = std::numeric_limits<real_type>::infinity();
     {
         SCOPED_TRACE("top half");
         auto result = this->test(InfPolarWedge(Turn{0}, Turn{0.25}));
@@ -1578,6 +1583,7 @@ TEST_F(InfPolarWedgeTest, quarter_turn)
 
 TEST_F(InfPolarWedgeTest, eighth_turn)
 {
+    auto inf = std::numeric_limits<real_type>::infinity();
     {
         SCOPED_TRACE("north pole");
         auto result = this->test(InfPolarWedge(Turn{0}, Turn{0.125}));
@@ -1622,6 +1628,7 @@ TEST_F(InfPolarWedgeTest, eighth_turn)
 
 TEST_F(InfPolarWedgeTest, sliver)
 {
+    auto inf = std::numeric_limits<real_type>::infinity();
     {
         SCOPED_TRACE("north");
         auto result = this->test(InfPolarWedge(Turn{0.0625}, Turn{0.125}));
@@ -1768,7 +1775,7 @@ TEST_F(InvoluteTest, two_ccw)
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
 }
 
-// Clockwise varient of previous
+// Clockwise variant of previous
 TEST_F(InvoluteTest, two_cw)
 {
     {
@@ -2076,6 +2083,156 @@ TEST_F(PrismTest, rhex)
     EXPECT_VEC_SOFT_EQ((Real3{-1, -1.1547005383793, -2}),
                        result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{1, 1.1547005383793, 2}), result.exterior.upper());
+}
+
+//---------------------------------------------------------------------------//
+// REVOLVEDSPECIALTRAPEZOID
+//---------------------------------------------------------------------------//
+using RevolvedSpecialTrapezoidTest = IntersectRegionTest;
+
+//---------------------------------------------------------------------------//
+/*
+ * Test revolving a square around z.
+ */
+TEST_F(RevolvedSpecialTrapezoidTest, square)
+{
+    SpecialTrapezoid trap({{1, 2}, 1}, {{1, 2}, 2});
+    auto result = this->test(RevolvedSpecialTrapezoid(std::move(trap)));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=1", "Plane: z=2", "Cyl z: r=1", "Cyl z: r=2"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+
+    EXPECT_VEC_SOFT_EQ((Real3{-2, -2, 1}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 2, 2}), result.exterior.upper());
+}
+
+//---------------------------------------------------------------------------//
+/*
+ * Test revolving a square around z, but now one segment is coincident
+ * with the z axis, so we don't get an interior cylinder
+ */
+TEST_F(RevolvedSpecialTrapezoidTest, coincident_segment)
+{
+    SpecialTrapezoid trap({{0, 2}, 1}, {{0, 2}, 2});
+    auto result = this->test(RevolvedSpecialTrapezoid(std::move(trap)));
+
+    static char const expected_node[] = "all(+0, -1, -2)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=1", "Plane: z=2", "Cyl z: r=2"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+
+    EXPECT_VEC_SOFT_EQ((Real3{-2, -2, 1}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 2, 2}), result.exterior.upper());
+}
+
+//---------------------------------------------------------------------------//
+/*
+ * Test a pointy bottom triangle.
+ *
+ * \verbatim
+   3 _|__________________________
+      |\                        /
+   2 _| \                    /
+      |  \               /
+   1 _|   \          /
+      |    \     /
+   0 _|_____\/_____________________
+      |      |      |      |      |
+      0      1      2      3      4
+   \endverbatim
+ */
+TEST_F(RevolvedSpecialTrapezoidTest, pointy_bot)
+{
+    SpecialTrapezoid trap({{1, 1}, 0}, {{0, 4}, 3});
+    auto result = this->test(RevolvedSpecialTrapezoid(std::move(trap)));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3)";
+    static char const* const expected_surfaces[] = {
+        "Plane: z=0",
+        "Plane: z=3",
+        "Cone z: t=0.33333 at {0,0,3}",
+        "Cone z: t=1 at {0,0,-1}",
+    };
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+
+    EXPECT_VEC_SOFT_EQ((Real3{-4, -4, 0}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{4, 4, 3}), result.exterior.upper());
+}
+
+//---------------------------------------------------------------------------//
+/*
+ * Test a pointy top triangle.
+ *
+ * \verbatim
+   3 _|
+      |            /|
+   2 _|          /  |
+      |        /    |
+   1 _|      /______|
+      |
+   0 _|____________________________
+      |      |      |      |      |
+      0      1      2      3      4
+   \endverbatim
+ */
+TEST_F(RevolvedSpecialTrapezoidTest, pointy_top)
+{
+    SpecialTrapezoid trap({{1, 2}, 1}, {{2, 2}, 3});
+    auto result = this->test(RevolvedSpecialTrapezoid(std::move(trap)));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3)";
+    static char const* const expected_surfaces[] = {
+        "Plane: z=1", "Plane: z=3", "Cone z: t=0.5 at {0,0,-1}", "Cyl z: r=2"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+
+    EXPECT_VEC_SOFT_EQ((Real3{-2, -2, 1}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 2, 3}), result.exterior.upper());
+}
+
+//---------------------------------------------------------------------------//
+/*
+ * Test a non-rectangular trapezoid.
+ *
+ * \verbatim
+   3 _|____________________
+      |\                    \
+   2 _| \                    \
+      |  \                    \
+   1 _|   \                    \
+      |    \                    \
+   0 _|_____\____________________\
+      |      |      |      |      |
+      0      1      2      3      4
+   \endverbatim
+ */
+TEST_F(RevolvedSpecialTrapezoidTest, quad)
+{
+    SpecialTrapezoid trap({{1, 4}, 0}, {{0, 3}, 3});
+    auto result = this->test(RevolvedSpecialTrapezoid(std::move(trap)));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3)";
+    static char const* const expected_surfaces[] = {
+        "Plane: z=0",
+        "Plane: z=3",
+        "Cone z: t=0.33333 at {0,0,3}",
+        "Cone z: t=0.33333 at {0,0,12}",
+    };
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+
+    EXPECT_VEC_SOFT_EQ((Real3{-4, -4, 0}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{4, 4, 3}), result.exterior.upper());
 }
 
 //---------------------------------------------------------------------------//

@@ -286,7 +286,7 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
     }
     si.events = load_events(ri);
 
-    // Load actual number of events, needed to contruct core state before
+    // Load actual number of events, needed to construct core state before
     // loading events
     auto num_events = std::visit(
         Overload{

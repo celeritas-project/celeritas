@@ -103,6 +103,7 @@ list(APPEND SOURCES
   optical/CoreTrackData.cc
   optical/gen/CherenkovParams.cc
   optical/gen/ScintillationParams.cc
+  optical/gen/GeneratorBase.cc
   optical/ImportedModelAdapter.cc
   optical/ImportedMaterials.cc
   optical/OpticalCollector.cc
@@ -115,6 +116,8 @@ list(APPEND SOURCES
   optical/surface/SurfacePhysicsParams.cc
   phys/CutoffParams.cc
   phys/detail/EnergyMaxXsCalculator.cc
+  phys/GeneratorInterface.cc
+  phys/GeneratorRegistry.cc
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc
   phys/ParticleParams.cc
@@ -126,9 +129,11 @@ list(APPEND SOURCES
   phys/PrimaryGeneratorOptionsIO.json.cc
   phys/Process.cc
   phys/ProcessBuilder.cc
+  phys/SurfacePhysicsMapBuilder.cc
   setup/Events.cc
   setup/FrameworkInput.cc
   setup/Import.cc
+  setup/Model.cc
   setup/Problem.cc
   setup/StandaloneInput.cc
   setup/System.cc
@@ -206,6 +211,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/OpticalPhysics.cc
     ext/detail/SensDetInserter.cc
     ext/detail/TouchableUpdaterInterface.cc
+    ext/detail/TrackProcessor.cc
   )
 
   celeritas_get_g4libs(_cg4_libs
@@ -241,7 +247,7 @@ if(CELERITAS_USE_ROOT)
   # Use directory includes because ROOT has trouble with build/install
   # interface dependencies propagated through corecel.
   # This is safe here as it is only adding project-local paths that are
-  # identical to those set in corecel's usage requirments.
+  # identical to those set in corecel's usage requirements.
   include_directories(
     "${PROJECT_SOURCE_DIR}/src"
     "${CELERITAS_HEADER_CONFIG_DIRECTORY}"
@@ -344,10 +350,12 @@ celeritas_polysource(optical/action/DiscreteSelectAction)
 celeritas_polysource(optical/action/PreStepAction)
 celeritas_polysource(optical/action/TrackingCutAction)
 celeritas_polysource(optical/action/detail/TrackInitAlgorithms)
-celeritas_polysource(optical/gen/detail/GeneratorAction)
-celeritas_polysource(optical/gen/detail/OffloadAction)
-celeritas_polysource(optical/gen/detail/OffloadGatherAction)
-celeritas_polysource(optical/gen/detail/OpticalGenAlgorithms)
+celeritas_polysource(optical/gen/GeneratorAction)
+celeritas_polysource(optical/gen/OffloadAction)
+celeritas_polysource(optical/gen/OffloadGatherAction)
+celeritas_polysource(optical/gen/PrimaryGeneratorAction)
+celeritas_polysource(optical/gen/detail/GeneratorAlgorithms)
+celeritas_polysource(optical/gen/detail/OffloadAlgorithms)
 celeritas_polysource(optical/surface/InitBoundaryAction)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)

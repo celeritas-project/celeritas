@@ -18,7 +18,7 @@ namespace celeritas
 {
 namespace inp
 {
-struct PrimaryGenerator;
+struct CorePrimaryGenerator;
 }
 
 //---------------------------------------------------------------------------//
@@ -75,16 +75,15 @@ struct PrimaryGeneratorOptions
     //! Whether the options are valid
     explicit operator bool() const
     {
-        return !pdg.empty()
-               && std::all_of(pdg.begin(), pdg.end(), LogicalTrue{})
+        return !pdg.empty() && std::all_of(pdg.begin(), pdg.end(), Identity{})
                && num_events > 0 && primaries_per_event > 0 && energy
                && position && direction;
     }
 };
 
 //---------------------------------------------------------------------------//
-// Convert PrimaryGeneratorOptions to inp::PrimaryGenerator.
-inp::PrimaryGenerator to_input(PrimaryGeneratorOptions const&);
+// Convert PrimaryGeneratorOptions to inp::CorePrimaryGenerator.
+inp::CorePrimaryGenerator to_input(PrimaryGeneratorOptions const&);
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS

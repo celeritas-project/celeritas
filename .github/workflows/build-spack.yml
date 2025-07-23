@@ -343,10 +343,7 @@ jobs:
       - name: Build examples
         env:
           CELER_DISABLE_G4_EXAMPLES: >-
-            ${{(
-              matrix.special == 'float'
-              || !matrix.geant
-            ) && '1' || ''}}
+            ${{(!matrix.geant) && '1' || ''}}
         # TODO: ASAN requires flags downstream
         if: >-
           ${{

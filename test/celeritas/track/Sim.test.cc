@@ -83,7 +83,8 @@ TEST_F(SimTest, looping)
 
     // Check looping threshold parameters for each particle
     SimTrackView sim(this->sim()->host_ref(), sim_state_.ref(), TrackSlotId{0});
-    sim = SimTrackInitializer{TrackId{0}, TrackId{}, EventId{0}, 0};
+    sim = SimTrackInitializer{
+        TrackId{0}, TrackId{}, PrimaryId{}, EventId{0}, 0};
     for (auto pid : range(ParticleId{this->particle()->size()}))
     {
         auto const& looping = sim.looping_threshold(pid);
@@ -135,6 +136,23 @@ TEST_F(SimTest, looping)
         EXPECT_EQ(expected.max_steps, sim.num_looping_steps());
         EXPECT_TRUE(sim.is_looping(par.particle_id(), par.energy()));
     }
+}
+
+TEST_F(SimTest, weight)
+{
+    SimTrackView sim(this->sim()->host_ref(), sim_state_.ref(), TrackSlotId{0});
+    SimTrackInitializer init;
+    init.track_id = TrackId{0};
+    init.parent_id = TrackId{};
+    init.event_id = EventId{0};
+    init.time = 0.0;
+
+    real_type expected_weight = 0.5;
+    init.weight = expected_weight;
+    sim = init;
+
+    // Check if weight was correctly stored
+    EXPECT_EQ(expected_weight, sim.weight());
 }
 
 //---------------------------------------------------------------------------//

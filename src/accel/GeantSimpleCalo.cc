@@ -188,25 +188,25 @@ void GeantSimpleCalo::output(JsonPimpl* j) const
 
     // Save detector volumes
     {
-        auto const* geo = celeritas::geant_geo();
-        std::shared_ptr<GeantGeoParams> ggp;
-        if (!geo)
+        auto ggp = celeritas::geant_geo().lock();
+        if (!ggp)
         {
             // This can happen if using this class without Celeritas offloading
             // enabled, i.e. CELER_DISABLE=1
             ggp = GeantGeoParams::from_tracking_manager();
-            geo = ggp.get();
         }
+        CELER_ASSERT(ggp);
+
         std::vector<int> ids(volumes_.size());
         std::vector<Label> labels(volumes_.size());
 
         for (auto idx : range(volumes_.size()))
         {
-            auto id = geo->find_volume(volumes_[idx]);
+            auto id = ggp->find_volume(volumes_[idx]);
             if (id)
             {
                 ids[idx] = id.unchecked_get();
-                labels[idx] = geo->volumes().at(id);
+                labels[idx] = ggp->volumes().at(id);
             }
         }
         obj["volume_ids"] = std::move(ids);

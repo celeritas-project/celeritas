@@ -38,12 +38,6 @@ class GeantTestBase : public ImportedDataTestBase
     static bool is_summit_build();
     //!@}
 
-    //!@{
-    //! Get the Geant4 top-level geometry element
-    G4VPhysicalVolume const* get_world_volume();
-    G4VPhysicalVolume const* get_world_volume() const;
-    //!@}
-
   protected:
     virtual GeantPhysicsOptions build_geant_options() const;
 
@@ -58,10 +52,10 @@ class GeantTestBase : public ImportedDataTestBase
     virtual GeantImportDataSelection build_import_data_selection() const;
 
   private:
-    struct ImportHelper;
-    class CleanupGeantEnvironment;
+    struct ImportSetup;
 
-    static ImportHelper& import_helper();
+    // Lazily load static geant4 data
+    ImportSetup const& load() const;
 };
 
 //---------------------------------------------------------------------------//

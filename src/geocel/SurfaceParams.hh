@@ -34,6 +34,10 @@ class VolumeParams;
  * volumes. Since ORANGE and VecGeom 2 support true surface
  * definitions, a future extension will allow the user to attach surface
  * properties to, for example, different sides of a cube.
+ *
+ * \internal Construction requirements:
+ * - Volumes and instances in the surface input must be within bounds.
+ * - Volumes are allowed to be empty if no surfaces are defined.
  */
 class SurfaceParams final : public ParamsDataInterface<SurfaceParamsData>
 {
@@ -47,13 +51,16 @@ class SurfaceParams final : public ParamsDataInterface<SurfaceParamsData>
     // Construct from surface input
     SurfaceParams(inp::Surfaces const&, VolumeParams const& volumes);
 
-    // Construct without surfaces
+    // Construct without building any surface data structures
     SurfaceParams();
 
     //// METADATA ACCESS ////
 
     //! Whether any surfaces are present
-    bool empty() const { return !static_cast<bool>(data_); }
+    bool empty() const { return labels_.empty(); }
+
+    //! Whether surfaces are disabled for non-optical problems
+    bool disabled() const { return this->host_ref().volume_surfaces.empty(); }
 
     //! Number of surfaces
     SurfaceId::size_type num_surfaces() const { return labels_.size(); }

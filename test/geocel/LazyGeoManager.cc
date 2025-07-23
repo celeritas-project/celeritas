@@ -6,46 +6,43 @@
 //---------------------------------------------------------------------------//
 #include "LazyGeoManager.hh"
 
-#include <gtest/gtest.h>
-
-#include "corecel/Config.hh"
-
-#include "corecel/io/Logger.hh"
+#include "PersistentSP.hh"
 
 namespace celeritas
 {
 namespace test
 {
-//---------------------------------------------------------------------------//
-struct LazyGeoManager::LazyGeo
+namespace
 {
-    std::string key{};
-    SPConstGeoI geo{};
-};
+//---------------------------------------------------------------------------//
+using PersistentGeo = PersistentSP<GeoParamsInterface const>;
+
+PersistentGeo& persistent_geo()
+{
+    static PersistentGeo pg{"geometry"};
+    return pg;
+}
 
 //---------------------------------------------------------------------------//
-class LazyGeoManager::CleanupGeoEnvironment : public ::testing::Environment
-{
-  public:
-    void SetUp() override {}
-    void TearDown() override { LazyGeoManager::reset_geometry(); }
-};
+}  // namespace
 
 //---------------------------------------------------------------------------//
 auto LazyGeoManager::get_geometry(std::string_view key) -> SPConstGeoI
 {
-    auto& lazy = LazyGeoManager::lazy_geo();
+    auto& pg = persistent_geo();
 
-    if (key != lazy.key)
+    if (key != pg.key())
     {
         // MUST reset geometry before trying to build a new one
         // since VecGeom is all full of globals
-        this->reset_geometry();
-        lazy.geo = this->build_fresh_geometry(key);
-        lazy.key = key;
+        pg.clear();
+        auto new_geo = this->build_fresh_geometry(key);
+        CELER_ASSERT(new_geo);
+        pg.set(std::string{key}, std::move(new_geo));
     }
 
-    return lazy.geo;
+    CELER_ENSURE(pg.value());
+    return pg.value();
 }
 
 //---------------------------------------------------------------------------//
@@ -54,37 +51,7 @@ auto LazyGeoManager::get_geometry(std::string_view key) -> SPConstGeoI
  */
 void LazyGeoManager::reset_geometry()
 {
-    auto& lazy = LazyGeoManager::lazy_geo();
-    if (lazy.geo)
-    {
-        CELER_LOG(debug) << "Destroying '" << lazy.key << "' geometry";
-    }
-    lazy = {};
-}
-
-//---------------------------------------------------------------------------//
-auto LazyGeoManager::lazy_geo() -> LazyGeo&
-{
-    static bool registered_cleanup = false;
-    if (!registered_cleanup)
-    {
-        /*! Always reset geometry at end of testing before global destructors.
-         *
-         * This is needed because VecGeom stores its objects as static globals,
-         * and only makes those objects visible with references/raw data. Thus
-         * we can't guarantee that the CoreGeoParams destructor is calling a
-         * valid global VecGeom pointer when it destructs, since static
-         * initialization/destruction order is undefined across translation
-         * units.
-         */
-        CELER_LOG(debug) << "Registering CleanupGeoEnvironment";
-        ::testing::AddGlobalTestEnvironment(new CleanupGeoEnvironment());
-        registered_cleanup = true;
-    }
-
-    // Delayed initialization
-    static LazyGeo lg;
-    return lg;
+    persistent_geo().clear();
 }
 
 //---------------------------------------------------------------------------//

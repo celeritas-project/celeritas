@@ -56,7 +56,7 @@ enum class OpticalProcessType
 };
 
 /*!
- * Wrapper around a unique pointer to accomodate keeping track whether we
+ * Wrapper around a unique pointer to accommodate keeping track whether we
  * delegated ownership to Geant4. We have to assume that Geant4 won't free the
  * memory before we're done reading it...
  */

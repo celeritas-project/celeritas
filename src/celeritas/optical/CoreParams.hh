@@ -22,6 +22,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ActionRegistry;
+class GeneratorRegistry;
 class SurfaceParams;
 
 namespace optical
@@ -47,6 +48,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstSurface = std::shared_ptr<SurfaceParams const>;
     using SPConstSurfacePhysics = std::shared_ptr<SurfacePhysicsParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
+    using SPGeneratorRegistry = std::shared_ptr<GeneratorRegistry>;
     using SPConstDetectors = std::shared_ptr<SDParams const>;
     using VecLabel = std::vector<Label>;
 
@@ -68,6 +70,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         std::optional<VecLabel> detector_labels;
 
         SPActionRegistry action_reg;
+        SPGeneratorRegistry gen_reg;
 
         //! Maximum number of simultaneous threads/tasks per process
         StreamId::size_type max_streams{1};
@@ -76,7 +79,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         explicit operator bool() const
         {
             return geometry && material && rng && surface && surface_physics
-                   && action_reg && max_streams;
+                   && action_reg && gen_reg && max_streams;
         }
     };
 
@@ -105,6 +108,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         return input_.surface_physics;
     }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
+    SPGeneratorRegistry const& gen_reg() const { return input_.gen_reg; }
     SPConstDetectors const& detectors() const { return detectors_; }
     //!@}
 
