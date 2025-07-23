@@ -1,0 +1,80 @@
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file celeritas/optical/Transporter.hh
+//---------------------------------------------------------------------------//
+#pragma once
+
+#include <memory>
+
+#include "corecel/Types.hh"
+#include "corecel/math/NumericLimits.hh"
+#include "corecel/sys/ActionGroups.hh"
+#include "celeritas/Types.hh"
+
+#include "CoreState.hh"
+
+namespace celeritas
+{
+template<class P, template<MemSpace M> class S>
+class ActionGroups;
+
+namespace optical
+{
+class CoreParams;
+template<MemSpace M>
+class CoreState;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Execute a single optical step iteration on all tracks.
+ */
+class Transporter
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using CoreStateHost = CoreState<MemSpace::host>;
+    using CoreStateDevice = CoreState<MemSpace::device>;
+    using SPConstParams = std::shared_ptr<CoreParams const>;
+    //!@}
+
+    struct Input
+    {
+        SPConstParams params;
+        size_type max_step_iters{numeric_limits<size_type>::max()};
+
+        //! True if all input is assigned and valid
+        explicit operator bool() const { return static_cast<bool>(params); }
+    };
+
+  public:
+    // Construct with problem parameters and setup options
+    explicit Transporter(Input&&);
+
+    // Transport all pending optical tracks on the host
+    void operator()(CoreParams const&, CoreStateHost&) const;
+
+    // Transport all pending optical tracks on the device
+    void operator()(CoreParams const&, CoreStateDevice&) const;
+
+  private:
+    //// TYPES ////
+
+    using ActionGroupsT = ActionGroups<CoreParams, CoreState>;
+
+    //// DATA ////
+
+    size_type max_step_iters_{};
+    ActionGroupsT actions_;
+
+    //// HELPERS ////
+
+    template<MemSpace M>
+    void transport_impl(CoreParams const&, CoreState<M>&) const;
+};
+
+//---------------------------------------------------------------------------//
+}  // namespace optical
+}  // namespace celeritas
