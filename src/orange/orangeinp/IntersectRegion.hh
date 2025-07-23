@@ -327,8 +327,8 @@ class EllipticalCone final : public IntersectRegionInterface
  * Region formed by extruding + scaling a convex polygon along a line segment.
  *
  * The convex polygon is supplied as a set of points on the XY plane in
- * clockwise order. The line segment and scaling factors are specified by
- * providing a line segment point and scaling factor for the top and bottom
+ * counterclockwise order. The line segment and scaling factors are specified
+ * by providing a line segment point and scaling factor for the top and bottom
  * polygon faces of the region. The line segment point of the top face must
  * have a z value greater than that of the bottom face. Along the line segment,
  * the size of the polygon is linearly scaled in accordance with scaling

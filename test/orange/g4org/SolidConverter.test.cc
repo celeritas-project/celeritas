@@ -313,18 +313,18 @@ TEST_F(SolidConverterTest, extrudedsolid_concave)
     using ZSection = G4ExtrudedSolid::ZSection;
 
     // Setup G4Extruded solid construction commands
-    std::vector<G4TwoVector> polygon = {{0, 0},
-                                        {-0.3, 1},
-                                        {0.15, 0.5},
-                                        {0.4, 0.7},
-                                        {0.45, 0.6},
-                                        {0.5, 0.7},
-                                        {0.8, 0.4},
-                                        {0.9, 1.2},
-                                        {1.2, 0.5},
-                                        {1, 0},
+    std::vector<G4TwoVector> polygon = {{0.05, 0.01},
                                         {0.1, 0},
-                                        {0.05, 0.01}};
+                                        {1, 0},
+                                        {1.2, 0.5},
+                                        {0.9, 1.2},
+                                        {0.8, 0.4},
+                                        {0.5, 0.7},
+                                        {0.45, 0.6},
+                                        {0.4, 0.7},
+                                        {0.15, 0.5},
+                                        {-0.3, 1},
+                                        {0, 0}};
 
     ZSection bot(0, {0, 0}, 1);
     ZSection mid(1, {10, 5}, 0.5);
@@ -334,7 +334,7 @@ TEST_F(SolidConverterTest, extrudedsolid_concave)
     // Build and test, with 5 points near tricky corners explicitly tested
     this->build_and_test(
         G4ExtrudedSolid("testExtrudedSolid", polygon, z_sections),
-        R"json({"_type":"stackedextrudedpolygon","polygon":[[0.0,0.0],[-0.03,0.1],[0.015,0.05],[0.04000000000000001,0.06999999999999999],[0.045000000000000005,0.06],[0.05,0.06999999999999999],[0.08000000000000002,0.04000000000000001],[0.09000000000000001,0.12],[0.12,0.05],[0.1,0.0],[0.010000000000000002,0.0],[0.005000000000000001,0.001]],"polyline":[[0.0,0.0,0.0],[1.0,0.5,0.1],[0.1,0.2,0.2]],"scaling":[1.0,0.5,1.5]})json",
+        R"json({"_type":"stackedextrudedpolygon","polygon":[[0.005000000000000001,0.001],[0.010000000000000002,0.0],[0.1,0.0],[0.12,0.05],[0.09000000000000001,0.12],[0.08000000000000002,0.04000000000000001],[0.05,0.06999999999999999],[0.045000000000000005,0.06],[0.04000000000000001,0.06999999999999999],[0.015,0.05],[-0.03,0.1],[0.0,0.0]],"polyline":[[0.0,0.0,0.0],[1.0,0.5,0.1],[0.1,0.2,0.2]],"scaling":[1.0,0.5,1.5]})json",
         {{0.01, 0.011, 0.3},
          {0.39, 0.79, 1.5},
          {0.79, 0.39, 1.1},
@@ -359,7 +359,7 @@ TEST_F(SolidConverterTest, extrudedsolid_simple)
     // Test 4 points near tricky corners
     this->build_and_test(
         G4ExtrudedSolid("testExtrudedSolid", polygon, z_sections),
-        R"json({"_type":"shape","interior":{"_type":"extrudedpolygon","bot_line_segment_point":[0.0,0.0,0.0],"bot_scaling_factor":1.0,"polygon":[[0.0,0.0],[0.0,0.1],[0.1,0.1],[0.1,0.0]],"top_line_segment_point":[0.1,0.2,0.1],"top_scaling_factor":1.5},"label":"testExtrudedSolid"})json",
+        R"json({"_type":"shape","interior":{"_type":"extrudedpolygon","bot_line_segment_point":[0.0,0.0,0.0],"bot_scaling_factor":1.0,"polygon":[[0.1,0.0],[0.1,0.1],[0.0,0.1],[0.0,0.0]],"top_line_segment_point":[0.1,0.2,0.1],"top_scaling_factor":1.5},"label":"testExtrudedSolid"})json",
         {{0.5, 0.5, 0.5}, {-1, 0.5, 0.5}});
 }
 

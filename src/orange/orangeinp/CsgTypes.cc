@@ -128,10 +128,7 @@ SpecialTrapezoid::SpecialTrapezoid(ZSegment&& bot, ZSegment&& top)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the unique points in clockwise order, starting with the bottom right.
- *
- * TODO: use counterclockwise order, which is standard in the computational
- * geometry field.
+ * Get the unique points in counterclockwise order, from the upper right.
  */
 auto SpecialTrapezoid::unique_points() const -> VecReal2
 {
@@ -140,18 +137,18 @@ auto SpecialTrapezoid::unique_points() const -> VecReal2
 
     VecReal2 points;
 
-    // Add bottom points
-    points.push_back({bot_.r[right], bot_.z});
-    if (variety_ != Variety::pointy_bot)
-    {
-        points.push_back({bot_.r[left], bot_.z});
-    }
-
     // Add top points
-    points.push_back({top_.r[left], top_.z});
+    points.push_back({top_.r[right], top_.z});
     if (variety_ != Variety::pointy_top)
     {
-        points.push_back({top_.r[right], top_.z});
+        points.push_back({top_.r[left], top_.z});
+    }
+
+    // Add bottom points
+    points.push_back({bot_.r[left], bot_.z});
+    if (variety_ != Variety::pointy_bot)
+    {
+        points.push_back({bot_.r[right], bot_.z});
     }
 
     return points;

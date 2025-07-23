@@ -547,7 +547,6 @@ ExtrudedPolygon::ExtrudedPolygon(ExtrudedPolygon::VecReal2 const& polygon,
                                  ExtrudedPolygon::PolygonFace const& top_face)
     : line_segment_{bot_face.line_segment_point, top_face.line_segment_point}
     , scaling_factors_{bot_face.scaling_factor, top_face.scaling_factor}
-
 {
     constexpr auto bot = Bound::lo;
     constexpr auto top = Bound::hi;
@@ -578,10 +577,11 @@ ExtrudedPolygon::ExtrudedPolygon(ExtrudedPolygon::VecReal2 const& polygon,
                    << "polygon must consist of at least 3 points");
 
     // After removing collinear points, the polygon should have a *strictly*
-    // clockwise orientation, which also guarantees it is convex.
-    CELER_VALIDATE(
-        has_orientation(make_span(polygon_), detail::Orientation::clockwise),
-        << "polygon must be specified in strictly clockwise order");
+    // counterclockwise orientation, which also guarantees it is convex.
+    CELER_VALIDATE(has_orientation(make_span(polygon_),
+                                   detail::Orientation::counterclockwise),
+                   << "polygon must be specified in strictly counterclockwise "
+                      "order");
 }
 
 //---------------------------------------------------------------------------//
@@ -606,13 +606,13 @@ void ExtrudedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
 
         // Specify points in an order such that the normal is outward-facing
         // (via the right-hand rule), given that the polygon is provided in
-        // clockwise order
+        // counterclockwise order
         auto p0 = scaling_factors_[bot] * Real3{p_a[X], p_a[Y], 0}
                   + line_segment_[bot];
-        auto p1 = scaling_factors_[top] * Real3{p_a[X], p_a[Y], 0}
-                  + line_segment_[top];
-        auto p2 = scaling_factors_[bot] * Real3{p_b[X], p_b[Y], 0}
+        auto p1 = scaling_factors_[bot] * Real3{p_b[X], p_b[Y], 0}
                   + line_segment_[bot];
+        auto p2 = scaling_factors_[top] * Real3{p_a[X], p_a[Y], 0}
+                  + line_segment_[top];
 
         insert_surface(Sense::inside, Plane{p0, p1, p2});
     }
