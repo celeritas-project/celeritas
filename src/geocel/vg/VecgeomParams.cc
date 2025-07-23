@@ -219,7 +219,7 @@ auto make_lv_map(std::vector<G4LogicalVolume const*> const& all_lv)
             // This shouldn't happen...
             CELER_LOG(warning)
                 << "Geant4 logical volume " << PrintableLV{iter->first}
-                << " maps to multiple volume IDs";
+                << " maps to multiple VecGeom volume IDs";
         }
     }
     return result;

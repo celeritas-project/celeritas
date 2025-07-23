@@ -42,9 +42,9 @@ void GeoParamsOutput::output(JsonPimpl* j) const
 
     obj["supports_safety"] = geo_->supports_safety();
     obj["bbox"] = geo_->bbox();
-    obj["max_depth"] = geo_->max_depth();
 
     // Save volume names
+    // TODO: move to volume params output?
     {
         auto label = json::array();
 

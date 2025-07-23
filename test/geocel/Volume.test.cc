@@ -321,19 +321,8 @@ TEST_F(ComplexVolumeTest, visit)
         NameVisitor nv{volumes_, {}};
         visit(nv, VolumeId{0});
 
-        static std::string const expected_names[] = {
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "C",
-            "D",
-            "E",
-            "C",
-            "D",
-            "E",
-        };
+        static std::string const expected_names[]
+            = {"A", "B", "C", "D", "E", "C", "D", "E", "C", "D", "E"};
         EXPECT_VEC_EQ(expected_names, nv.names);
     }
 

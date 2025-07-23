@@ -52,21 +52,6 @@ namespace celeritas
 {
 namespace
 {
-
-//---------------------------------------------------------------------------//
-LevelId::size_type get_max_depth(G4VPhysicalVolume const& world)
-{
-    LevelId::size_type result{0};
-    visit_volume_instances(
-        [&result](G4VPhysicalVolume const*, int level) {
-            result = max(level, static_cast<int>(result));
-            return true;
-        },
-        &world);
-    // Maximum "depth" is one greater than "highest level"
-    return result + 1;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Get a reproducible vector of LV instance ID -> label from the given world.
@@ -812,7 +797,6 @@ void GeantGeoParams::build_metadata()
         "volume instance",
         make_physical_vol_labels(*this->world(), this->pv_offset())};
     surfaces_ = make_surface_vec(*this);
-    max_depth_ = get_max_depth(*this->world());
 
     auto clhep_bbox = this->get_clhep_bbox();
     bbox_ = {convert_from_geant(clhep_bbox.lower().data(), clhep_length),
