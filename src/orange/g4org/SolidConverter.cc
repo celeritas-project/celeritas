@@ -519,10 +519,9 @@ auto SolidConverter::extrudedsolid(arg_type solid_base) -> result_type
     // ordering.
     std::vector<G4TwoVector> g4polygon = solid.GetPolygon();
     VecReal2 polygon;
-    size_type n = g4polygon.size();
-    for (auto i : range(n))
+    for (auto i : range<int>(g4polygon.size()).step(-1))
     {
-        auto point = g4polygon[n - 1 - i];
+        auto point = g4polygon[i];
         polygon.push_back(Real2{scale_(point[0]), scale_(point[1])});
     }
 
