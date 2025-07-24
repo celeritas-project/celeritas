@@ -6,9 +6,10 @@
 //---------------------------------------------------------------------------//
 #include <memory>
 #include <set>
+#include <vector>
 
+#include "corecel/cont/Array.hh"
 #include "corecel/data/CollectionStateStore.hh"
-#include "celeritas/optical/surface/SurfaceModel.hh"
 #include "celeritas/optical/surface/SurfacePhysicsParams.hh"
 #include "celeritas/optical/surface/SurfacePhysicsView.hh"
 
@@ -22,35 +23,9 @@ namespace optical
 namespace test
 {
 using namespace ::celeritas::test;
-//---------------------------------------------------------------------------//
-/*!
- * A simple mock for surface models.
- */
-template<SurfacePhysicsStep S>
-class MockSurfaceModel : public SurfaceModel<S>
-{
-  public:
-    using typename SurfaceModel<S>::CoreStateHost;
-    using typename SurfaceModel<S>::CoreStateDevice;
 
-    static typename SurfaceModel<S>::ModelBuilder make_builder()
-    {
-        return [](ActionId aid) {
-            return std::make_shared<MockSurfaceModel<S>>(aid);
-        };
-    }
-
-    MockSurfaceModel(ActionId id)
-        : SurfaceModel<S>(
-              id,
-              "mock-surface-" + std::to_string(id.get()),
-              "mock-surface-description-" + std::to_string(id.get()))
-    {
-    }
-
-    void step(CoreParams const&, CoreStateHost&) const final {}
-    void step(CoreParams const&, CoreStateDevice&) const final {}
-};
+constexpr SubsurfaceDirection forward = SubsurfaceDirection::forward;
+constexpr SubsurfaceDirection reverse = SubsurfaceDirection::reverse;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -59,53 +34,57 @@ class MockSurfaceModel : public SurfaceModel<S>
 class SurfaceTest : public OpticalMockTestBase
 {
   protected:
+    Array<size_type, 3> const expected_num_subsurfaces{
+        3,
+        5,
+        2,
+    };
+    Array<SurfaceId, 5> const expected_track_surfaces{
+        SurfaceId{0},
+        SurfaceId{1},
+        SurfaceId{1},
+        SurfaceId{2},
+        SurfaceId{2},
+    };
+    Array<SubsurfaceDirection, 5> const expected_surface_orientations{
+        forward,
+        forward,
+        reverse,
+        reverse,
+        reverse,
+    };
+
     void SetUp() override {}
 
     SPConstSurfacePhysics build_surface_physics() override
     {
         SurfacePhysicsParams::Input input;
 
-        input.roughness_model_builders.push_back(
-            MockSurfaceModel<SurfacePhysicsStep::Roughness>::make_builder());
-        input.roughness_model_builders.push_back(
-            MockSurfaceModel<SurfacePhysicsStep::Roughness>::make_builder());
-        input.roughness_model_builders.push_back(
-            MockSurfaceModel<SurfacePhysicsStep::Roughness>::make_builder());
-
-        input.reflectivity_model_builders.push_back(
-            MockSurfaceModel<SurfacePhysicsStep::Reflectivity>::make_builder());
-
-        input.interaction_model_builders.push_back(
-            MockSurfaceModel<SurfacePhysicsStep::Interaction>::make_builder());
-        input.interaction_model_builders.push_back(
-            MockSurfaceModel<SurfacePhysicsStep::Interaction>::make_builder());
-
-        auto make_surface = [&input](unsigned int roughness,
-                                     unsigned int reflectivity,
-                                     unsigned int interaction) {
-            input.surfaces.push_back(SurfacePhysicsParams::SurfaceInput{
-                RoughnessModelId{roughness},
-                ReflectivityModelId{reflectivity},
-                InteractionModelId{interaction}});
-        };
-
-        make_surface(0, 0, 0);
-        make_surface(2, 0, 1);
-        make_surface(1, 0, 1);
-        make_surface(1, 0, 0);
-        make_surface(2, 0, 0);
-
         input.action_registry = this->action_reg().get();
+
+        // Make some mock surface records
+        for (size_type n : expected_num_subsurfaces)
+        {
+            input.num_subsurface_interfaces.push_back(n);
+        }
 
         return std::make_shared<SurfacePhysicsParams const>(std::move(input));
     }
 
-    void initialize_states(TrackSlotId::size_type num_tracks)
+    void initialize_states()
     {
+        size_type num_tracks = expected_track_surfaces.size();
         surface_physics_state_
             = CollectionStateStore<SurfacePhysicsStateData, MemSpace::host>(
                 num_tracks);
-        CELER_ENSURE(surface_physics_state_.ref().size() == num_tracks);
+        CELER_ASSERT(surface_physics_state_.ref().size() == num_tracks);
+
+        for (auto i : range(TrackSlotId{5}))
+        {
+            this->make_surface_view(i) = SurfacePhysicsView::Initializer{
+                expected_track_surfaces[i.get()],
+                expected_surface_orientations[i.get()]};
+        }
     }
 
     SurfacePhysicsView make_surface_view(TrackSlotId slot)
@@ -121,174 +100,304 @@ class SurfaceTest : public OpticalMockTestBase
 };
 
 //---------------------------------------------------------------------------//
-// Test initialization with trivial surface data
-TEST_F(SurfaceTest, trivial_init)
+// Test initialization
+TEST_F(SurfaceTest, init_params)
 {
-    SurfacePhysicsParams::Input input;
-    input.action_registry = this->action_reg().get();
+    auto params = this->surface_physics();
 
-    EXPECT_TRUE(std::make_shared<SurfacePhysicsParams const>(std::move(input)));
+    EXPECT_EQ(ActionId{0}, params->init_boundary_action());
+    EXPECT_EQ(ActionId{1}, params->post_boundary_action());
+
+    auto const& data = params->host_ref();
+
+    EXPECT_TRUE(data);
+    ASSERT_EQ(expected_num_subsurfaces.size(), data.surfaces.size());
+
+    for (auto i : range(expected_num_subsurfaces.size()))
+    {
+        auto const& surface = data.surfaces[SurfaceId(i)];
+        EXPECT_TRUE(surface);
+        EXPECT_EQ(expected_num_subsurfaces[i],
+                  surface.subsurface_interfaces.size());
+        EXPECT_EQ(expected_num_subsurfaces[i] + 1,
+                  surface.subsurface_materials.size());
+    }
 }
 
 //---------------------------------------------------------------------------//
-// Check construction of surface physics parameters from mock data.
-TEST_F(SurfaceTest, surface_physics_params)
+// Test surface physics view initialization
+TEST_F(SurfaceTest, surface_physics_view_init)
 {
-    auto sur_phys = this->surface_physics();
-    EXPECT_TRUE(sur_phys->init_boundary_action());
+    auto params = this->surface_physics();
+    this->initialize_states();
 
-    EXPECT_EQ(3, sur_phys->roughness_models().size());
-    EXPECT_EQ(1, sur_phys->reflectivity_models().size());
-    EXPECT_EQ(2, sur_phys->interaction_models().size());
+    // Views initialized in initialize_states, check here
 
-    // Check built model metadata
+    std::vector<SurfaceId> surfaces;
 
-    std::vector<std::string_view> model_names;
-    std::vector<std::string_view> model_descs;
-    std::set<ActionId> action_ids;
-
-    for (auto const& model : sur_phys->roughness_models())
+    for (auto i : range(TrackSlotId{5}))
     {
-        ASSERT_TRUE(model);
-        model_names.emplace_back(model->label());
-        model_descs.emplace_back(model->description());
-        action_ids.insert(model->action_id());
+        auto surface = this->make_surface_view(i);
+
+        surfaces.push_back(surface.surface_id());
+
+        EXPECT_EQ(SubsurfaceMaterialId{0}, surface.subsurface_material());
+        EXPECT_TRUE(surface.in_pre_volume());
+        EXPECT_EQ(
+            expected_num_subsurfaces[expected_track_surfaces[i.get()].get()],
+            surface.num_subsurface_interfaces());
     }
 
-    for (auto const& model : sur_phys->reflectivity_models())
-    {
-        ASSERT_TRUE(model);
-        model_names.emplace_back(model->label());
-        model_descs.emplace_back(model->description());
-        action_ids.insert(model->action_id());
-    }
-
-    for (auto const& model : sur_phys->interaction_models())
-    {
-        ASSERT_TRUE(model);
-        model_names.emplace_back(model->label());
-        model_descs.emplace_back(model->description());
-        action_ids.insert(model->action_id());
-    }
-
-    static std::string_view expected_names[] = {
-        "mock-surface-2",
-        "mock-surface-3",
-        "mock-surface-4",
-        "mock-surface-5",
-        "mock-surface-6",
-        "mock-surface-7",
-    };
-    EXPECT_VEC_EQ(expected_names, model_names);
-
-    static std::string_view expected_descs[] = {
-        "mock-surface-description-2",
-        "mock-surface-description-3",
-        "mock-surface-description-4",
-        "mock-surface-description-5",
-        "mock-surface-description-6",
-        "mock-surface-description-7",
-    };
-    EXPECT_VEC_EQ(expected_descs, model_descs);
-
-    EXPECT_EQ(6, action_ids.size());
-    for (auto action_id : range(ActionId{2}, ActionId{8}))
-    {
-        EXPECT_EQ(1, action_ids.count(action_id));
-    }
-
-    // Check built surface metadata
-
-    auto const& surfaces = sur_phys->host_ref().surfaces;
-
-    EXPECT_EQ(5, surfaces.size());
-
-    std::vector<unsigned int> roughness_models;
-    std::vector<unsigned int> reflectivity_models;
-    std::vector<unsigned int> interaction_models;
-
-    for (auto sid : range(SurfaceId{surfaces.size()}))
-    {
-        roughness_models.push_back(surfaces[sid].roughness_model.get());
-        reflectivity_models.push_back(surfaces[sid].reflectivity_model.get());
-        interaction_models.push_back(surfaces[sid].interaction_model.get());
-    }
-
-    static unsigned int expected_roughness_models[] = {2, 4, 3, 3, 4};
-    EXPECT_VEC_EQ(expected_roughness_models, roughness_models);
-
-    static unsigned int expected_reflectivity_models[] = {5, 5, 5, 5, 5};
-    EXPECT_VEC_EQ(expected_reflectivity_models, reflectivity_models);
-
-    static unsigned int expected_interaction_models[] = {6, 7, 7, 6, 6};
-    EXPECT_VEC_EQ(expected_interaction_models, interaction_models);
+    EXPECT_VEC_EQ(expected_track_surfaces, surfaces);
 }
 
 //---------------------------------------------------------------------------//
-// Test initializer for surface physics view
-TEST_F(SurfaceTest, init_surface_physics_view)
+// Test subsurface interface crossing
+TEST_F(SurfaceTest, cross_subsurface)
 {
-    TrackSlotId::size_type num_tracks{10};
-    this->initialize_states(num_tracks);
+    auto params = this->surface_physics();
+    this->initialize_states();
 
-    static unsigned int const expected_surface_ids[]
-        = {3, 0, 4, 1, 1, 2, 3, 4, 0, 2};
+    auto trace_directions
+        = [&](SurfacePhysicsView& surface,
+              std::vector<SubsurfaceDirection> const& directions) {
+              std::vector<size_type> subsurfaces;
+              std::vector<size_type> subsurface_records;
+              std::vector<size_type> subinterface_records;
 
-    static Real3 const expected_surface_normals[] = {
-        Real3{1, 0, 0},
-        Real3{-1, 0, 0},
-        Real3{1, 0, 0},
-        Real3{0, 0, 1},
-        Real3{1, 0, 0},
-        Real3{0, 1, 0},
-        Real3{0, 1, 0},
-        Real3{1, 0, 0},
-        Real3{0, 0, -1},
-        Real3{0, -1, 0},
-    };
+              subsurfaces.push_back(surface.subsurface_material().get());
+              subsurface_records.push_back(
+                  surface.subsurface_material_record().get());
 
-    for (auto tid : range(TrackSlotId{num_tracks}))
+              for (auto d : directions)
+              {
+                  subinterface_records.push_back(
+                      surface.subsurface_interface_record(d).get());
+
+                  surface.cross_subsurface_interface(d);
+
+                  subsurfaces.push_back(surface.subsurface_material().get());
+                  subsurface_records.push_back(
+                      surface.subsurface_material_record().get());
+              }
+
+              return std::make_tuple(std::move(subsurfaces),
+                                     std::move(subsurface_records),
+                                     std::move(subinterface_records));
+          };
+
     {
-        auto surface = this->make_surface_view(tid);
-        surface = SurfacePhysicsView::Initializer{
-            SurfaceId{expected_surface_ids[tid.get()]},
-            expected_surface_normals[tid.get()]};
-    }
+        auto surface = this->make_surface_view(TrackSlotId{0});
 
-    std::vector<unsigned int> surface_ids;
-    std::vector<unsigned int> roughness_models;
-    std::vector<unsigned int> reflectivity_models;
-    std::vector<unsigned int> interaction_models;
-    std::vector<Real3> surface_normals;
-    for (auto tid : range(TrackSlotId{num_tracks}))
+        // Directly forward
+        std::vector<SubsurfaceDirection> const directions{
+            forward,
+            forward,
+            forward,
+        };
+        static size_type const expected_subsurfaces[] = {
+            0,
+            1,
+            2,
+            3,
+        };
+        static size_type const expected_subsurface_records[] = {
+            0,
+            1,
+            2,
+            3,
+        };
+        static size_type const expected_subinterface_records[] = {
+            0,
+            1,
+            2,
+        };
+
+        EXPECT_TRUE(surface.in_pre_volume());
+        EXPECT_FALSE(surface.in_post_volume());
+
+        auto [subsurfaces, subsurface_records, subinterface_records]
+            = trace_directions(surface, directions);
+
+        EXPECT_FALSE(surface.in_pre_volume());
+        EXPECT_TRUE(surface.in_post_volume());
+
+        EXPECT_VEC_EQ(expected_subsurfaces, subsurfaces);
+        EXPECT_VEC_EQ(expected_subsurface_records, subsurface_records);
+        EXPECT_VEC_EQ(expected_subinterface_records, subinterface_records);
+    }
     {
-        auto const surface = this->make_surface_view(tid);
-        surface_ids.push_back(surface.surface_id().get());
-        roughness_models.push_back(surface.roughness_action_id().get());
-        reflectivity_models.push_back(surface.reflectivity_action_id().get());
-        interaction_models.push_back(surface.interaction_action_id().get());
-        surface_normals.push_back(surface.surface_normal());
+        auto surface = this->make_surface_view(TrackSlotId{1});
+
+        // Out and back
+        std::vector<SubsurfaceDirection> const directions{
+            forward,
+            forward,
+            forward,
+            reverse,
+            reverse,
+            reverse,
+        };
+        static size_type const expected_subsurfaces[] = {
+            0,
+            1,
+            2,
+            3,
+            2,
+            1,
+            0,
+        };
+        static size_type const expected_subsurface_records[] = {
+            0,
+            1,
+            2,
+            3,
+            2,
+            1,
+            0,
+        };
+        static size_type const expected_subinterface_records[] = {
+            0,
+            1,
+            2,
+            2,
+            1,
+            0,
+        };
+
+        EXPECT_TRUE(surface.in_pre_volume());
+        EXPECT_FALSE(surface.in_post_volume());
+
+        auto [subsurfaces, subsurface_records, subinterface_records]
+            = trace_directions(surface, directions);
+
+        EXPECT_TRUE(surface.in_pre_volume());
+        EXPECT_FALSE(surface.in_post_volume());
+
+        EXPECT_VEC_EQ(expected_subsurfaces, subsurfaces);
+        EXPECT_VEC_EQ(expected_subsurface_records, subsurface_records);
+        EXPECT_VEC_EQ(expected_subinterface_records, subinterface_records);
     }
+    {
+        auto surface = this->make_surface_view(TrackSlotId{2});
 
-    EXPECT_VEC_EQ(expected_surface_ids, surface_ids);
-    EXPECT_VEC_EQ(expected_surface_normals, surface_normals);
+        // (Reversed) out
+        std::vector<SubsurfaceDirection> const directions{
+            forward, forward, forward, forward, forward};
+        static size_type const expected_subsurfaces[] = {
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+        };
+        static size_type const expected_subsurface_records[] = {
+            5,
+            4,
+            3,
+            2,
+            1,
+            0,
+        };
+        static size_type const expected_subinterface_records[] = {
+            4,
+            3,
+            2,
+            1,
+            0,
+        };
 
-    static unsigned int expected_roughness_ids[]
-        = {3, 2, 4, 4, 4, 3, 3, 4, 2, 3};
-    EXPECT_VEC_EQ(expected_roughness_ids, roughness_models);
+        EXPECT_TRUE(surface.in_pre_volume());
+        EXPECT_FALSE(surface.in_post_volume());
 
-    static unsigned int expected_reflectivity_ids[]
-        = {5, 5, 5, 5, 5, 5, 5, 5, 5, 5};
-    EXPECT_VEC_EQ(expected_reflectivity_ids, reflectivity_models);
+        auto [subsurfaces, subsurface_records, subinterface_records]
+            = trace_directions(surface, directions);
 
-    static unsigned int expected_interaction_ids[]
-        = {6, 6, 6, 7, 7, 7, 6, 6, 6, 7};
-    EXPECT_VEC_EQ(expected_interaction_ids, interaction_models);
+        EXPECT_FALSE(surface.in_pre_volume());
+        EXPECT_TRUE(surface.in_post_volume());
+
+        EXPECT_VEC_EQ(expected_subsurfaces, subsurfaces);
+        EXPECT_VEC_EQ(expected_subsurface_records, subsurface_records);
+        EXPECT_VEC_EQ(expected_subinterface_records, subinterface_records);
+    }
+    {
+        auto surface = this->make_surface_view(TrackSlotId{3});
+
+        // (Reversed) out and back
+        std::vector<SubsurfaceDirection> const directions{
+            forward,
+            forward,
+            reverse,
+            reverse,
+        };
+        static size_type const expected_subsurfaces[] = {
+            0,
+            1,
+            2,
+            1,
+            0,
+        };
+        static size_type const expected_subsurface_records[] = {
+            2,
+            1,
+            0,
+            1,
+            2,
+        };
+        static size_type const expected_subinterface_records[] = {
+            1,
+            0,
+            0,
+            1,
+        };
+
+        EXPECT_TRUE(surface.in_pre_volume());
+        EXPECT_FALSE(surface.in_post_volume());
+
+        auto [subsurfaces, subsurface_records, subinterface_records]
+            = trace_directions(surface, directions);
+
+        EXPECT_TRUE(surface.in_pre_volume());
+        EXPECT_FALSE(surface.in_post_volume());
+
+        EXPECT_VEC_EQ(expected_subsurfaces, subsurfaces);
+        EXPECT_VEC_EQ(expected_subsurface_records, subsurface_records);
+        EXPECT_VEC_EQ(expected_subinterface_records, subinterface_records);
+    }
 }
 
 //---------------------------------------------------------------------------//
-// Test surface interaction applier
-TEST_F(SurfaceTest, surface_interaction_applier) {}
+// Test catching debug errors crossing off of the surface
+TEST_F(SurfaceTest, TEST_IF_CELERITAS_DEBUG(crossing_errors))
+{
+    auto params = this->surface_physics();
+    this->initialize_states();
+
+    {
+        auto surface = this->make_surface_view(TrackSlotId{3});
+
+        // Move past pre-volume
+        EXPECT_TRUE(surface.in_pre_volume());
+        EXPECT_FALSE(surface.in_post_volume());
+        EXPECT_EQ(SubsurfaceMaterialId{0}, surface.subsurface_material());
+
+        EXPECT_THROW(surface.cross_subsurface_interface(reverse), DebugError);
+    }
+    {
+        auto surface = this->make_surface_view(TrackSlotId{4});
+
+        // Move past post-volume
+        EXPECT_TRUE(surface.in_pre_volume());
+        EXPECT_FALSE(surface.in_post_volume());
+        EXPECT_EQ(SubsurfaceMaterialId{0}, surface.subsurface_material());
+
+        surface.cross_subsurface_interface(forward);
+        surface.cross_subsurface_interface(forward);
+
+        EXPECT_THROW(surface.cross_subsurface_interface(forward), DebugError);
+    }
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace test

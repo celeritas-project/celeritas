@@ -56,6 +56,18 @@ SurfacePhysicsParams::SurfacePhysicsParams(Input input)
     // Construct scalars
 
     // Construct surfaces
+    auto surface_builder = make_builder(&data.surfaces);
+    for (auto n : input.num_subsurface_interfaces)
+    {
+        SurfacePhysicsRecord r;
+        r.subsurface_materials
+            = ItemMap<SubsurfaceMaterialId, SubsurfaceMaterialRecordId>(
+                range(SubsurfaceMaterialRecordId{n + 1}));
+        r.subsurface_interfaces
+            = ItemMap<SubsurfaceInterfaceId, SubsurfaceInterfaceRecordId>(
+                range(SubsurfaceInterfaceRecordId{n}));
+        surface_builder.push_back(r);
+    }
 
     // Finalize data
 

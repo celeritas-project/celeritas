@@ -36,6 +36,11 @@ class SurfacePhysicsParams final
     struct Input
     {
         ActionRegistry* action_registry = nullptr;
+
+        //!@{
+        //! \name Temporary mock data to test building surface records
+        std::vector<SubsurfaceInterfaceId::size_type> num_subsurface_interfaces;
+        //!@}
     };
 
   public:
