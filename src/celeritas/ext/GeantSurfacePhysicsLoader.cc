@@ -148,6 +148,9 @@ inp::SurfacePhysics GeantSurfacePhysicsLoader::operator()()
             this->insert_roughness(sid, *g4opt_surf, result);
             this->insert_interaction(sid, get_property, *g4opt_surf, result);
             this->insert_efficiency(sid, get_property, result);
+
+            // Ensure that data is not incompatible with selected model
+            this->validate_model(sid, *g4opt_surf, result);
         }
         catch (RuntimeError const& e)
         {
@@ -197,7 +200,7 @@ void GeantSurfacePhysicsLoader::insert_reflectivity(
  * Collect roughness information from a given optical surface.
  */
 void GeantSurfacePhysicsLoader::insert_roughness(SurfaceId sid,
-                                                 G4OpticalSurface& surf,
+                                                 G4OpticalSurface const& surf,
                                                  inp::SurfacePhysics& result)
 {
     using G4OSM = G4OpticalSurfaceModel;
@@ -247,7 +250,7 @@ void GeantSurfacePhysicsLoader::insert_roughness(SurfaceId sid,
 void GeantSurfacePhysicsLoader::insert_interaction(
     SurfaceId sid,
     detail::GeantMaterialPropertyGetter& get_property,
-    G4OpticalSurface& surf,
+    G4OpticalSurface const& surf,
     inp::SurfacePhysics& result)
 {
     using G4ST = G4SurfaceType;
@@ -362,6 +365,65 @@ inp::Grid GeantSurfacePhysicsLoader::calc_diffuse_lobe(
     }
     CELER_ENSURE(result);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Ensure that a mapped optical surface does not hot have inconsistent model
+ * data assigned to it.
+ *
+ * \note
+ * - GLISUR
+ *   - Roughness: uses polished or smear; Gaussian is never used.
+ * - Unified
+ *   - Roughness: uses Gaussian or polished; smear is never used.
+ */
+void GeantSurfacePhysicsLoader::validate_model(SurfaceId sid,
+                                               G4OpticalSurface const& surf,
+                                               inp::SurfacePhysics const& result)
+{
+    CELER_EXPECT(sid);
+    CELER_EXPECT(result);
+    using G4OSM = G4OpticalSurfaceModel;
+
+#define GSPL_IS_MAPPED(MEMBER) (result.MEMBER.find(sid) != result.MEMBER.end())
+
+    auto const model = surf.GetModel();
+    switch (model)
+    {
+        case G4OSM::glisur:
+            // Minimum required data
+            CELER_VALIDATE((GSPL_IS_MAPPED(roughness.polished)
+                            || GSPL_IS_MAPPED(roughness.smear)),
+                           << "Missing polished or smear surface for the "
+                              "GLISUR model");
+
+            // Expected empty maps
+            CELER_VALIDATE(!GSPL_IS_MAPPED(roughness.gaussian),
+                           << "Gaussian surface cannot be added to GLISUR "
+                              "model");
+            break;
+
+        case G4OSM::unified:
+            // Minimum required data
+            CELER_VALIDATE((GSPL_IS_MAPPED(roughness.gaussian)
+                            || GSPL_IS_MAPPED(roughness.polished)),
+                           << "Missing Gaussian roughness or polished surface "
+                              "from Unified model");
+
+            // Expected empty maps
+            CELER_VALIDATE(!GSPL_IS_MAPPED(roughness.smear),
+                           << "Smear roughness is not used by the Unified "
+                              "model and therefore should not be assigned");
+            break;
+
+        default:
+            CELER_LOG(error) << "G4OpticalSurfaceModel '" << to_cstring(model)
+                             << "' not available";
+            break;
+    }
+
+#undef GSPL_IS_MAPPED
 }
 
 //---------------------------------------------------------------------------//

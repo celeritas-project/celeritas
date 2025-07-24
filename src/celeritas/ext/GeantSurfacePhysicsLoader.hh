@@ -46,13 +46,13 @@ class GeantSurfacePhysicsLoader
 
     // Insert a given surface to inp::SurfacePhysics::RoughnessModels
     void insert_roughness(SurfaceId sid,
-                          G4OpticalSurface& surf,
+                          G4OpticalSurface const& surf,
                           inp::SurfacePhysics& result);
 
     // Insert a given surface to inp::SurfacePhysics::InteractionModels
     void insert_interaction(SurfaceId sid,
                             detail::GeantMaterialPropertyGetter& get_property,
-                            G4OpticalSurface& surf,
+                            G4OpticalSurface const& surf,
                             inp::SurfacePhysics& result);
 
     // Insert a given surface to inp::SurfacePhysics::DetectionEfficiency
@@ -65,6 +65,11 @@ class GeantSurfacePhysicsLoader
 
     // Calculate the diffuse lobe from the other ReflectionForm properties
     inp::Grid calc_diffuse_lobe(inp::ReflectionForm const& refl_form);
+
+    // Validate model insertion
+    void validate_model(SurfaceId sid,
+                        G4OpticalSurface const& surf,
+                        inp::SurfacePhysics const& result);
 };
 
 //---------------------------------------------------------------------------//
