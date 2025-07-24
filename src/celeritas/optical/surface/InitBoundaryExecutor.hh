@@ -63,9 +63,9 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
     }
     else
     {
-        auto surface_id = select_surface(geo);
+        auto oriented_surface = select_surface(geo);
 
-        if (!surface_id)
+        if (!oriented_surface.surface)
         {
             // If there's no surface, mark photon as killed
             track.sim().status(TrackStatus::killed);
@@ -73,8 +73,9 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
         else
         {
             // initialize surface state
-            track.surface_physics()
-                = SurfacePhysicsView::Initializer{surface_id};
+            track.surface_physics() = SurfacePhysicsView::Initializer{
+                oriented_surface.surface, oriented_surface.orientation};
+            track.sim().post_step_action(track.post_boundary_action());
         }
     }
 }

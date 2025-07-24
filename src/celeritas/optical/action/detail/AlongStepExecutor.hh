@@ -39,7 +39,7 @@ CELER_FUNCTION void AlongStepExecutor::operator()(CoreTrackView& track)
         // If the track is crossing a boundary, don't update it's movement
         //! \todo should there be a separate step counter for boundary
         //! crossing?
-        track.sim().increment_num_steps();
+        // track.sim().increment_num_steps();
         return;
     }
 

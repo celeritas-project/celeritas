@@ -42,6 +42,7 @@ CELER_FUNCTION void PreStepExecutor::operator()(CoreTrackView const& track)
     {
         // Clear step limit and actions for an empty track slot
         sim.reset_step_limit();
+        track.surface_physics().reset();
         return;
     }
 

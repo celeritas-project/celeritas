@@ -81,6 +81,9 @@ class CoreTrackView
     // Action ID for encountering a geometry boundary
     inline CELER_FUNCTION ActionId init_boundary_action() const;
 
+    // Action ID for leaving a geometry boundary
+    inline CELER_FUNCTION ActionId post_boundary_action() const;
+
     // Whether the track is currently undergoing boundary crossing physics
     inline CELER_FUNCTION bool is_crossing_boundary() const;
 
@@ -143,6 +146,9 @@ CoreTrackView::operator=(TrackInitializer const& init)
 
     // Initialize the physics state
     this->physics() = PhysicsTrackView::Initializer{};
+
+    // Clear the surface physics state
+    this->surface_physics().reset();
 
     return *this;
 }
@@ -264,6 +270,15 @@ CELER_FORCEINLINE_FUNCTION TrackSlotId CoreTrackView::track_slot_id() const
 CELER_FUNCTION ActionId CoreTrackView::init_boundary_action() const
 {
     return params_.scalars.init_boundary_action;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the action ID for leaving a geometry boundary.
+ */
+CELER_FUNCTION ActionId CoreTrackView::post_boundary_action() const
+{
+    return params_.scalars.post_boundary_action;
 }
 
 //---------------------------------------------------------------------------//

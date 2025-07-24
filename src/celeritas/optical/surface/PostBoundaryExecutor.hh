@@ -44,6 +44,9 @@ CELER_FUNCTION void PostBoundaryExecutor::operator()(CoreTrackView& track) const
     }
 
     surface_physics.reset();
+
+    // Force-kill tracks for now
+    track.sim().status(TrackStatus::killed);
 }
 
 //---------------------------------------------------------------------------//

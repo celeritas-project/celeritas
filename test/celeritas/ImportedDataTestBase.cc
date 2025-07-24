@@ -175,6 +175,7 @@ auto ImportedDataTestBase::build_surface_physics() -> SPConstSurfacePhysics
 {
     optical::SurfacePhysicsParams::Input input;
     input.action_registry = this->action_reg().get();
+    input.num_subsurface_interfaces = {1};
 
     return std::make_shared<optical::SurfacePhysicsParams>(std::move(input));
 }

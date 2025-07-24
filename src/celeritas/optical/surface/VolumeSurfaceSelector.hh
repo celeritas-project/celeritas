@@ -11,6 +11,7 @@
 #include "geocel/SurfaceData.hh"
 #include "geocel/VolumeSurfaceView.hh"
 #include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/optical/Types.hh"
 
 namespace celeritas
 {
@@ -41,6 +42,13 @@ namespace optical
 class VolumeSurfaceSelector
 {
   public:
+    struct OrientedSurface
+    {
+        SurfaceId surface{};
+        SubsurfaceDirection orientation;
+    };
+
+  public:
     // Construct with pre-volume IDs
     inline CELER_FUNCTION
     VolumeSurfaceSelector(NativeCRef<SurfaceParamsData> const& params,
@@ -53,11 +61,11 @@ class VolumeSurfaceSelector
                           GeoTrackView const& geo);
 
     // Select surface based on post-volume IDs
-    inline CELER_FUNCTION SurfaceId
+    inline CELER_FUNCTION OrientedSurface
     operator()(VolumeId post_volume, VolumeInstanceId post_volume_inst) const;
 
     // Convenience function to use IDs from geometry
-    inline CELER_FUNCTION SurfaceId operator()(GeoTrackView const&) const;
+    inline CELER_FUNCTION OrientedSurface operator()(GeoTrackView const&) const;
 
   private:
     NativeCRef<SurfaceParamsData> const& params_;
@@ -100,34 +108,46 @@ CELER_FUNCTION VolumeSurfaceSelector::VolumeSurfaceSelector(
  *
  * Returns an invalid \c SurfaceId if no surface data exists for the volumes.
  */
-CELER_FUNCTION SurfaceId VolumeSurfaceSelector::operator()(
-    VolumeId post_volume, VolumeInstanceId post_volume_inst) const
+CELER_FUNCTION auto
+VolumeSurfaceSelector::operator()(VolumeId post_volume,
+                                  VolumeInstanceId post_volume_inst) const
+    -> OrientedSurface
 {
     VolumeSurfaceView pre_surface{params_, pre_volume_};
 
     if (auto surface_id
         = pre_surface.find_interface(pre_volume_inst_, post_volume_inst))
     {
-        return surface_id;
+        return OrientedSurface{surface_id, SubsurfaceDirection::forward};
     }
 
     if (auto surface_id = pre_surface.boundary_id())
     {
-        return surface_id;
+        return OrientedSurface{surface_id, SubsurfaceDirection::forward};
     }
 
-    return VolumeSurfaceView{params_, post_volume}.boundary_id();
+    VolumeSurfaceView post_surface{params_, post_volume};
+
+    if (auto surface_id
+        = post_surface.find_interface(post_volume_inst, pre_volume_inst_))
+    {
+        return OrientedSurface{surface_id, SubsurfaceDirection::reverse};
+    }
+
+    return OrientedSurface{post_surface.boundary_id(),
+                           SubsurfaceDirection::reverse};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Convenience function to use IDs from geometry.
  */
-CELER_FUNCTION SurfaceId
+CELER_FUNCTION auto
 VolumeSurfaceSelector::operator()(GeoTrackView const& geo) const
+    -> OrientedSurface
 {
     if (geo.is_outside())
-        return SurfaceId{};
+        return OrientedSurface{SurfaceId{}, SubsurfaceDirection::forward};
 
     return (*this)(geo.volume_id(), geo.volume_instance_id());
 }

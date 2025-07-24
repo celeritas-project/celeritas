@@ -23,6 +23,7 @@
 #include "celeritas/optical/gen/GeneratorData.hh"
 #include "celeritas/optical/gen/OffloadData.hh"
 #include "celeritas/optical/gen/PrimaryGeneratorAction.hh"
+#include "celeritas/optical/surface/SurfacePhysicsParams.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 
 #include "celeritas_test.hh"
@@ -70,6 +71,14 @@ class LArSphereLaunchTest : public LArSphereBase
                 pp_inp.action_registry = inp.action_reg.get();
                 inp.physics = std::make_shared<optical::PhysicsParams>(
                     std::move(pp_inp));
+            }
+            {
+                optical::SurfacePhysicsParams::Input spp_inp;
+                spp_inp.action_registry = inp.action_reg.get();
+                spp_inp.num_subsurface_interfaces = {1};
+                inp.surface_physics
+                    = std::make_shared<optical::SurfacePhysicsParams>(
+                        std::move(spp_inp));
             }
             CELER_ENSURE(inp);
             return inp;

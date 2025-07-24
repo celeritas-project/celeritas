@@ -63,6 +63,8 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
         {
             optical::SurfacePhysicsParams::Input spp_inp;
             spp_inp.action_registry = op_inp.action_reg.get();
+            // TODO: remove when surface physics input updated
+            spp_inp.num_subsurface_interfaces = {1};
             op_inp.surface_physics
                 = std::make_shared<optical::SurfacePhysicsParams>(
                     std::move(spp_inp));
