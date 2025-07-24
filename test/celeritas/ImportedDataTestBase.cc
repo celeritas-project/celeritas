@@ -152,7 +152,7 @@ auto ImportedDataTestBase::build_optical_physics() -> SPConstOpticalPhysics
 
     optical::PhysicsParams::Input input;
     input.materials = this->optical_material();
-    input.action_registry = this->action_reg().get();
+    input.action_registry = this->optical_action_reg().get();
 
     std::vector<IMC> imcs{IMC::absorption, IMC::rayleigh, IMC::wls};
     optical::ModelImporter importer(

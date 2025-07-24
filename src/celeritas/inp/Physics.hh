@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "corecel/Types.hh"
+#include "corecel/io/Label.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 
@@ -72,6 +73,9 @@ struct OpticalPhysics
     //! Generate scintillation photons
     bool scintillation{true};
     //!@}
+
+    //! Volume labels for sensitive detectors
+    std::optional<std::vector<Label>> detector_labels;
 };
 
 //---------------------------------------------------------------------------//

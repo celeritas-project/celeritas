@@ -28,7 +28,7 @@ class CoreState;
 
 //---------------------------------------------------------------------------//
 /*!
- * Execute a single optical step iteration on all tracks.
+ * Transport all pending optical tracks to completion.
  */
 class Transporter
 {
@@ -51,7 +51,7 @@ class Transporter
 
   public:
     // Construct with problem parameters and setup options
-    explicit Transporter(Input&&);
+    explicit Transporter(Input);
 
     // Transport all pending optical tracks on the host
     void operator()(CoreParams const&, CoreStateHost&) const;

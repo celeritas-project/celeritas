@@ -7,6 +7,9 @@
 #pragma once
 
 #include "celeritas/ext/GeantImporter.hh"
+#include "celeritas/optical/CoreParams.hh"
+#include "celeritas/optical/ModelImporter.hh"
+#include "celeritas/optical/PhysicsParams.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
 
 #include "GeantTestBase.hh"
@@ -44,6 +47,28 @@ class LArSphereBase : public GeantTestBase
         auto result = GeantTestBase::build_import_data_selection();
         result.processes |= GeantImportDataSelection::optical;
         return result;
+    }
+
+    SPConstOpticalPhysics build_optical_physics() override
+    {
+        using IMC = celeritas::optical::ImportModelClass;
+
+        optical::PhysicsParams::Input input;
+        input.materials = this->optical_material();
+        input.action_registry = this->optical_action_reg().get();
+
+        optical::ModelImporter importer(
+            this->imported_data(), this->optical_material(), this->material());
+
+        for (IMC imc : {IMC::absorption, IMC::rayleigh})
+        {
+            if (auto builder = importer(imc))
+            {
+                input.model_builders.push_back(*builder);
+            }
+        }
+
+        return std::make_shared<optical::PhysicsParams>(std::move(input));
     }
 };
 

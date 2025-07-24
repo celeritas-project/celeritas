@@ -25,7 +25,7 @@ namespace optical
 /*!
  * Construct with problem parameters.
  */
-Transporter::Transporter(Input&& inp)
+Transporter::Transporter(Input inp)
     : max_step_iters_(inp.max_step_iters)
     , actions_(ActionGroupsT(*inp.params->action_reg()))
 {
