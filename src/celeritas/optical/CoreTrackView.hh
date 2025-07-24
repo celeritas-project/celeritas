@@ -272,7 +272,7 @@ CELER_FUNCTION ActionId CoreTrackView::init_boundary_action() const
  */
 CELER_FUNCTION bool CoreTrackView::is_crossing_boundary() const
 {
-    return this->sim().post_step_action() == params_.scalars.boundary_action;
+    return static_cast<bool>(this->surface_physics().surface_id());
 }
 
 //---------------------------------------------------------------------------//

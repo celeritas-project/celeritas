@@ -27,24 +27,14 @@ namespace optical
 
 using ModelId = OpaqueId<class Model>;
 
-enum class SurfacePhysicsStep
+using SubsurfaceMaterialId = OpaqueId<struct SubsurfaceMaterial>;
+using SubsurfaceInterfaceId = OpaqueId<struct SubsurfaceInterface>;
+
+enum class SubsurfaceDirection : int
 {
-    Roughness,
-    Reflectivity,
-    Interaction,
-    size_
+    forward = 1,
+    reverse = -1
 };
-
-template<SurfacePhysicsStep S>
-class SurfaceModel;
-
-using SurfaceRoughnessModel = SurfaceModel<SurfacePhysicsStep::Roughness>;
-using SurfaceReflectivityModel = SurfaceModel<SurfacePhysicsStep::Reflectivity>;
-using SurfaceInteractionModel = SurfaceModel<SurfacePhysicsStep::Interaction>;
-
-using RoughnessModelId = OpaqueId<SurfaceRoughnessModel>;
-using ReflectivityModelId = OpaqueId<SurfaceReflectivityModel>;
-using InteractionModelId = OpaqueId<SurfaceInteractionModel>;
 
 }  // namespace optical
 

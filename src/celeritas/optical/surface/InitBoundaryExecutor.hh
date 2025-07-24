@@ -74,7 +74,7 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
         {
             // initialize surface state
             track.surface_physics()
-                = SurfacePhysicsView::Initializer{surface_id, geo.normal()};
+                = SurfacePhysicsView::Initializer{surface_id};
         }
     }
 }

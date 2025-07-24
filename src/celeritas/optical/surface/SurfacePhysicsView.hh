@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/Types.hh"
+#include "celeritas/optical/Types.hh"
 
 #include "SurfacePhysicsData.hh"
 
@@ -36,7 +36,6 @@ class SurfacePhysicsView
     struct Initializer
     {
         SurfaceId surface;
-        Real3 normal;
     };
 
   public:
@@ -51,25 +50,37 @@ class SurfacePhysicsView
     // Get surface ID
     inline CELER_FUNCTION SurfaceId surface_id() const;
 
-    // Get roughness model for the surface
-    inline CELER_FUNCTION ActionId roughness_action_id() const;
+    // Reset state after leaving surface
+    inline CELER_FUNCTION void reset();
 
-    // Get reflectivity model for the surface
-    inline CELER_FUNCTION ActionId reflectivity_action_id() const;
+    // In the pre-volume subsurface material
+    inline CELER_FUNCTION bool in_pre_volume() const;
 
-    // Get interaction model for the surface
-    inline CELER_FUNCTION ActionId interaction_action_id() const;
+    // In the post-volume subsurface material
+    inline CELER_FUNCTION bool in_post_volume() const;
 
-    // Geometric surface normal
-    inline CELER_FUNCTION Real3 const& surface_normal() const;
+    // Get current subsurface material
+    inline CELER_FUNCTION SubsurfaceMaterialId subsurface_material() const;
+
+    // Number of subsurface materials that make up the surface
+    inline CELER_FUNCTION SubsurfaceMaterialId::size_type
+    num_subsurface_materials() const;
+
+    // Move across a subsurface interface
+    inline CELER_FUNCTION void
+    cross_subsurface_interface(SubsurfaceDirection d);
 
   private:
     SurfaceParamsRef const& params_;
     SurfaceStateRef const& states_;
     TrackSlotId const track_id_;
 
-    // Get the surface record
-    inline CELER_FUNCTION SurfaceRecord const& surface_record() const;
+    // Access track's surface record
+    inline CELER_FUNCTION SurfacePhysicsRecord const& surface() const;
+
+    // Subsurface interface ID in surface record frame
+    inline CELER_FUNCTION SubsurfaceInterfaceId
+    subsurface_interface_frame(SubsurfaceDirection d) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -94,19 +105,9 @@ SurfacePhysicsView::SurfacePhysicsView(SurfaceParamsRef const& params,
 CELER_FUNCTION SurfacePhysicsView&
 SurfacePhysicsView::operator=(Initializer const& init)
 {
-    // TODO: Add assertions
-    states_.surface_normal[track_id_] = init.normal;
     states_.surface[track_id_] = init.surface;
+    states_.subsurface_material[track_id_] = SubsurfaceMaterialId{0};
     return *this;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the normal for the geometry's boundary.
- */
-CELER_FUNCTION Real3 const& SurfacePhysicsView::surface_normal() const
-{
-    return states_.surface_normal[track_id_];
 }
 
 //---------------------------------------------------------------------------//
@@ -120,39 +121,94 @@ CELER_FUNCTION SurfaceId SurfacePhysicsView::surface_id() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the action ID for the roughness action of the surface.
+ * Reset the state after leaving the surface.
  */
-CELER_FUNCTION ActionId SurfacePhysicsView::roughness_action_id() const
+CELER_FUNCTION void SurfacePhysicsView::reset()
 {
-    return this->surface_record().roughness_model;
+    states_.surface[track_id_] = SurfaceId{};
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the action ID for the reflectivity action of the surface.
+ * Whether the current subsurface material is the pre-volume.
  */
-CELER_FUNCTION ActionId SurfacePhysicsView::reflectivity_action_id() const
+CELER_FUNCTION bool SurfacePhysicsView::in_pre_volume() const
 {
-    return this->surface_record().reflectivity_model;
+    return this->subsurface_material() == SubsurfaceMaterialId{0};
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the action ID for the interaction model of the surface.
+ * Whether the current subsurface material is the post-volume.
  */
-CELER_FUNCTION ActionId SurfacePhysicsView::interaction_action_id() const
+CELER_FUNCTION bool SurfacePhysicsView::in_post_volume() const
 {
-    return this->surface_record().interaction_model;
+    return this->subsurface_material().get()
+           == this->surface().subsurface_interfaces.size();
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Helper function to access the surface record for this track.
+ * Get which subsurface material the track is currently on.
  */
-CELER_FUNCTION SurfaceRecord const& SurfacePhysicsView::surface_record() const
+CELER_FUNCTION SubsurfaceMaterialId SurfacePhysicsView::subsurface_material() const
+{
+    return states_.subsurface_material[track_id_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Number of subsurface materials that make up the surface.
+ */
+CELER_FUNCTION SubsurfaceMaterialId::size_type
+SurfacePhysicsView::num_subsurface_materials() const
+{
+    return this->surface().subsurface_materials.size();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Move track across a subsurface interface in the given direction.
+ */
+CELER_FUNCTION void
+SurfacePhysicsView::cross_subsurface_interface(SubsurfaceDirection d)
+{
+    states_.subsurface_material[track_id_] = this->subsurface_material()
+                                             + static_cast<int>(d);
+    CELER_ENSURE(this->subsurface_material()
+                 <= this->num_subsurface_materials());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access track's surface record.
+ */
+CELER_FUNCTION SurfacePhysicsRecord const& SurfacePhysicsView::surface() const
 {
     CELER_EXPECT(this->surface_id() < params_.surfaces.size());
     return params_.surfaces[this->surface_id()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the subsurface interface index in the surface record frame when the
+ * track is moving in direction \c d in the track local frame.
+ */
+CELER_FUNCTION SubsurfaceInterfaceId
+SurfacePhysicsView::subsurface_interface_frame(SubsurfaceDirection d) const
+{
+    // Layer index in the track local frame
+    SubsurfaceInterfaceId index{this->subsurface_material().get()
+                                + static_cast<int>(d)};
+
+    // Flip interval if oriented reversed
+    if (states_.surface_orientation[track_id_] == SubsurfaceDirection::reverse)
+    {
+        index = SubsurfaceInterfaceId{this->num_subsurface_materials()
+                                      - index.get()};
+    }
+
+    return index;
 }
 
 //---------------------------------------------------------------------------//

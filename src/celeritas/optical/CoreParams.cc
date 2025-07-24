@@ -131,7 +131,6 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
 
     scalars.init_boundary_action
         = input_.surface_physics->init_boundary_action();
-    scalars.boundary_action = input_.surface_physics->boundary_action();
 
     // Save maximum number of streams
     scalars.max_streams = input_.max_streams;

@@ -2,16 +2,16 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/surface/InitBoundaryAction.cc
+//! \file celeritas/optical/surface/PostBoundaryAction.cc
 //---------------------------------------------------------------------------//
-#include "InitBoundaryAction.hh"
+#include "PostBoundaryAction.hh"
 
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
-#include "InitBoundaryExecutor.hh"
+#include "PostBoundaryExecutor.hh"
 
 namespace celeritas
 {
@@ -19,12 +19,12 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct the boundary crossing initialization action from an action ID.
+ * Construct the post boundary crossing action from an action ID.
  */
-InitBoundaryAction::InitBoundaryAction(ActionId aid)
+PostBoundaryAction::PostBoundaryAction(ActionId aid)
     : ConcreteAction(aid,
-                     "optical-boundary-init",
-                     "Initialize optical boundary crossing action")
+                     "optical-boundary-post",
+                     "Finalize optical boundary crossing action")
 {
 }
 
@@ -32,14 +32,14 @@ InitBoundaryAction::InitBoundaryAction(ActionId aid)
 /*!
  * Execute the action on the host.
  */
-void InitBoundaryAction::step(CoreParams const& params,
+void PostBoundaryAction::step(CoreParams const& params,
                               CoreStateHost& state) const
 {
     launch_action(state,
                   make_action_thread_executor(params.ptr<MemSpace::native>(),
                                               state.ptr(),
                                               this->action_id(),
-                                              InitBoundaryExecutor{}));
+                                              PostBoundaryExecutor{}));
 }
 
 //---------------------------------------------------------------------------//
@@ -47,7 +47,7 @@ void InitBoundaryAction::step(CoreParams const& params,
  * Execute the action on the device.
  */
 #if !CELER_USE_DEVICE
-void InitBoundaryAction::step(CoreParams const&, CoreStateDevice&) const
+void PostBoundaryAction::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

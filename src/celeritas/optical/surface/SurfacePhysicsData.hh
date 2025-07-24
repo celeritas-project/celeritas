@@ -8,8 +8,6 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/grid/NonuniformGridData.hh"
-#include "corecel/math/Algorithms.hh"
 #include "celeritas/optical/Types.hh"
 
 namespace celeritas
@@ -17,26 +15,44 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
-// TYPE ALIASES
-//---------------------------------------------------------------------------//
 
-using ValueGrid = NonuniformGridRecord;
-using ValudGridId = OpaqueId<ValueGrid>;
+using SubsurfaceMaterialRecordId = OpaqueId<struct SubsurfaceMaterialRecord>;
+using SubsurfaceInterfaceRecordId = OpaqueId<struct SubsurfaceInterfaceRecord>;
+
+struct SubsurfaceMaterialRecord
+{
+    // TODO: Add subsurface material property data
+};
+
+struct SubsurfaceInterfaceRecord
+{
+    // TODO: Add subsurface interface property data
+};
 
 //---------------------------------------------------------------------------//
 /*!
- * Store optical physics data for a given surface.
+ * Storage for surface physics data.
+ *
+ * A surface between volumes A and B is an ordered list of N \c
+ * SubsurfaceInterface that separate N+1 \c SubsurfaceMaterial . The data is
+ * organized as:
+ *  - \c SubsurfaceMaterial 0 corresponds to material properties of A
+ *  - \c SubsurfaceMaterial N corresponds to material properties of B
+ *  - \c SubsurfaceInterface i corresponds to the interface between \c
+ * SubsurfaceMaterial i and i+1.
+ *  - There is always at least one \c SubsurfaceInterface i.e. N >= 1
  */
-struct SurfaceRecord
+struct SurfacePhysicsRecord
 {
-    ActionId roughness_model{};
-    ActionId reflectivity_model{};
-    ActionId interaction_model{};
+    ItemMap<SubsurfaceMaterialId, SubsurfaceMaterialRecordId> subsurface_materials;
+    ItemMap<SubsurfaceInterfaceId, SubsurfaceInterfaceRecordId>
+        subsurface_interfaces;
 
-    //! Whether data is assigned and valid
-    inline CELER_FUNCTION operator bool() const
+    explicit CELER_FUNCTION operator bool() const
     {
-        return roughness_model && reflectivity_model && interaction_model;
+        return !subsurface_interfaces.empty()
+               && subsurface_interfaces.size() + 1
+                      == subsurface_materials.size();
     }
 };
 
@@ -56,11 +72,10 @@ struct SurfacePhysicsParamsData
     using SurfaceItems = Collection<T, W, M, SurfaceId>;
     //!@}
 
-    //! Surface data
-    SurfaceItems<SurfaceRecord> surfaces;
+    SurfaceItems<SurfacePhysicsRecord> surfaces;
 
     //! Whether data is assigned and valid
-    explicit CELER_FUNCTION operator bool() const { return true; }
+    explicit CELER_FUNCTION operator bool() const { return !surfaces.empty(); }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
@@ -91,20 +106,16 @@ struct SurfacePhysicsStateData
     //// Persistent State Data ////
 
     StateItems<SurfaceId> surface;
-    StateItems<Real3> surface_normal;
-
-    //// Temporary State Data ////
-
-    StateItems<Real3> facet_normal;
-    StateItems<real_type> reflectivity;
+    StateItems<SubsurfaceDirection> surface_orientation;
+    StateItems<SubsurfaceMaterialId> subsurface_material;
 
     //// Methods ////
 
     //! Whether data is assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !surface.empty() && !surface_normal.empty()
-               && !facet_normal.empty() && !reflectivity.empty();
+        return !surface.empty() && !subsurface_material.empty()
+               && !surface_orientation.empty();
     }
 
     //! State size
@@ -117,9 +128,8 @@ struct SurfacePhysicsStateData
     {
         CELER_EXPECT(other);
         surface = other.surface;
-        surface_normal = other.surface_normal;
-        facet_normal = other.facet_normal;
-        reflectivity = other.reflectivity;
+        subsurface_material = other.subsurface_material;
+        surface_orientation = other.surface_orientation;
         return *this;
     }
 };
@@ -136,9 +146,8 @@ resize(SurfacePhysicsStateData<Ownership::value, M>* state, size_type size)
     CELER_EXPECT(size > 0);
 
     resize(&state->surface, size);
-    resize(&state->surface_normal, size);
-    resize(&state->facet_normal, size);
-    resize(&state->reflectivity, size);
+    resize(&state->subsurface_material, size);
+    resize(&state->surface_orientation, size);
 
     CELER_ENSURE(*state);
     CELER_ENSURE(state->size() == size);
