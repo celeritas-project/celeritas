@@ -114,7 +114,7 @@ S const& get(AuxStateVec const& vec, AuxId auxid)
 }
 
 //---------------------------------------------------------------------------//
-// INLINE DEFININTIONS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Access a mutable auxiliary state interface for a given ID.

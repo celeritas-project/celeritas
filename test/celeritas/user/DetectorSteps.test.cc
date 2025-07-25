@@ -84,6 +84,7 @@ class DetectorStepsTest : public ::celeritas::test::Test
         result.track_step_count = true;
         result.action_id = true;
         result.step_length = true;
+        result.weight = true;
         result.particle = true;
         result.energy_deposition = true;
         return result;
@@ -152,7 +153,8 @@ class DetectorStepsTest : public ::celeritas::test::Test
                 step.action_id[tid] = ActionId(i++);
             if (!step.step_length.empty())
                 step.step_length[tid] = i++;
-
+            if (!step.weight.empty())
+                step.weight[tid] = 0.9;
             if (!step.particle.empty())
                 step.particle[tid] = ParticleId(i++);
             if (!step.energy_deposition.empty())
@@ -198,6 +200,7 @@ TEST_F(DetectorStepsTest, host)
     EXPECT_EQ(num_tracks, output.event_id.size());
     EXPECT_EQ(num_tracks, output.track_step_count.size());
     EXPECT_EQ(num_tracks, output.step_length.size());
+    EXPECT_EQ(num_tracks, output.weight.size());
     EXPECT_EQ(num_tracks, output.particle.size());
     EXPECT_EQ(num_tracks, output.energy_deposition.size());
 
@@ -255,6 +258,7 @@ TEST_F(DetectorStepsTest, TEST_IF_CELER_DEVICE(device))
     EXPECT_VEC_EQ(host_output.event_id, output.event_id);
     EXPECT_VEC_EQ(host_output.track_step_count, output.track_step_count);
     EXPECT_VEC_EQ(host_output.step_length, output.step_length);
+    EXPECT_VEC_EQ(host_output.weight, output.weight);
     EXPECT_VEC_EQ(host_output.particle, output.particle);
     EXPECT_VEC_EQ(host_output.energy_deposition, output.energy_deposition);
 
@@ -292,6 +296,7 @@ TEST_F(SmallDetectorStepsTest, host)
     EXPECT_EQ(0, output.event_id.size());
     EXPECT_EQ(0, output.track_step_count.size());
     EXPECT_EQ(0, output.step_length.size());
+    EXPECT_EQ(0, output.weight.size());
     EXPECT_EQ(0, output.particle.size());
     EXPECT_EQ(num_tracks, output.energy_deposition.size());
 
@@ -333,6 +338,7 @@ TEST_F(SmallDetectorStepsTest, TEST_IF_CELER_DEVICE(device))
     EXPECT_EQ(0, output.event_id.size());
     EXPECT_EQ(0, output.track_step_count.size());
     EXPECT_EQ(0, output.step_length.size());
+    EXPECT_EQ(0, output.weight.size());
     EXPECT_EQ(0, output.particle.size());
     EXPECT_EQ(num_tracks, output.energy_deposition.size());
 

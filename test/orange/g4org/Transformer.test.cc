@@ -35,7 +35,7 @@ constexpr real_type mm{::celeritas::lengthunits::millimeter};
 
 Real3 from_geant(G4ThreeVector const& tv)
 {
-    return {tv[0], tv[1], tv[2]};
+    return convert_from_geant(tv);
 }
 
 G4ThreeVector to_geant(Real3 const& rv)

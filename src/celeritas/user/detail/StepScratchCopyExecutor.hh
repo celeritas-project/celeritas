@@ -32,7 +32,7 @@ CELER_FORCEINLINE_FUNCTION decltype(auto) fast_get(C&& cont, OpaqueId<O> tid)
 
 //---------------------------------------------------------------------------//
 /*!
- * In the CUDA implementation, "compress" by copying from scratch.
+ * Compact entries, copying from a full state vector to one with # hits.
  */
 struct StepScratchCopyExecutor
 {
@@ -99,6 +99,7 @@ CELER_FUNCTION void StepScratchCopyExecutor::operator()(ThreadId dst_id)
     DS_COPY_IF_SELECTED(parent_id);
     DS_COPY_IF_SELECTED(track_step_count);
     DS_COPY_IF_SELECTED(step_length);
+    DS_COPY_IF_SELECTED(weight);
     DS_COPY_IF_SELECTED(particle);
     DS_COPY_IF_SELECTED(energy_deposition);
 #undef DS_COPY_IF_SELECTED

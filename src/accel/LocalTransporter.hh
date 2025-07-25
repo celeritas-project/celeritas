@@ -76,7 +76,7 @@ class LocalTransporter
     void InitializeEvent(int);
 
     // Offload this track
-    void Push(G4Track const&);
+    void Push(G4Track&);
 
     // Transport all buffered tracks to completion
     void Flush();

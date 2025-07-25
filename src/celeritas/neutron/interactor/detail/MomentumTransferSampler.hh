@@ -92,7 +92,7 @@ class MomentumTransferSampler
 
     //// COMMON PROPERTIES ////
 
-    // Covert from clhep::MeV value to clhep::GeV value
+    // Convert from clhep::MeV value to clhep::GeV value
     static CELER_CONSTEXPR_FUNCTION real_type to_gev() { return 1e-3; }
 
     // S-wave limit for neutron, log(p) < -4.3 (GeV/c) (kinetic energy < 0.1

@@ -21,4 +21,14 @@ using ScintParticleId = OpaqueId<struct ScintParticle_>;
 using ParScintSpectrumId = OpaqueId<struct ParScintSpectrum>;
 
 //---------------------------------------------------------------------------//
+// ENUMERATIONS
+//---------------------------------------------------------------------------//
+//! Process used to generate optical photons
+enum class GeneratorType
+{
+    cherenkov,
+    scintillation,
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

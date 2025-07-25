@@ -64,7 +64,7 @@ class DeviceAllocation
     //! Whether memory is allocated
     bool empty() const { return size_ == 0; }
 
-    //! Access the stream, set for asynchonous allocation/copy
+    //! Access the stream, set for asynchronous allocation/copy
     StreamId stream_id() const { return stream_; }
 
     //// DEVICE ACCESSORS ////

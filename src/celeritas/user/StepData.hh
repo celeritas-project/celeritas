@@ -75,9 +75,11 @@ struct StepSelection
 
     bool event_id{false};
     bool parent_id{false};
+    bool primary_id{false};
     bool track_step_count{false};
     bool action_id{false};
     bool step_length{false};
+    bool weight{false};
     bool particle{false};
     bool energy_deposition{false};
 
@@ -92,6 +94,7 @@ struct StepSelection
             true,
             true,
             true,
+            true,
             true};
     }
 
@@ -100,7 +103,7 @@ struct StepSelection
     {
         return points[StepPoint::pre] || points[StepPoint::post] || event_id
                || parent_id || track_step_count || action_id || step_length
-               || particle || energy_deposition;
+               || weight || particle || energy_deposition;
     }
 
     //! Combine the selection with another
@@ -116,6 +119,7 @@ struct StepSelection
         this->track_step_count |= other.track_step_count;
         this->action_id |= other.action_id;
         this->step_length |= other.step_length;
+        this->weight |= other.weight;
         this->particle |= other.particle;
         this->energy_deposition |= other.energy_deposition;
         return *this;
@@ -256,9 +260,11 @@ struct StepStateDataImpl
     // Sim
     StateItems<EventId> event_id;
     StateItems<TrackId> parent_id;
+    StateItems<PrimaryId> primary_id;
     StateItems<ActionId> action_id;
     StateItems<size_type> track_step_count;
     StateItems<real_type> step_length;
+    StateItems<real_type> weight;
 
     // Physics
     StateItems<ParticleId> particle;
@@ -275,8 +281,9 @@ struct StepStateDataImpl
 
         return !track_id.empty() && right_sized(detector)
                && right_sized(event_id) && right_sized(parent_id)
-               && right_sized(track_step_count) && right_sized(action_id)
-               && right_sized(step_length) && right_sized(particle)
+               && right_sized(primary_id) && right_sized(track_step_count)
+               && right_sized(action_id) && right_sized(step_length)
+               && right_sized(weight) && right_sized(particle)
                && right_sized(energy_deposition);
     }
 
@@ -301,11 +308,13 @@ struct StepStateDataImpl
 
         track_id = other.track_id;
         parent_id = other.parent_id;
+        primary_id = other.primary_id;
         detector = other.detector;
         event_id = other.event_id;
         track_step_count = other.track_step_count;
         action_id = other.action_id;
         step_length = other.step_length;
+        weight = other.weight;
         particle = other.particle;
         energy_deposition = other.energy_deposition;
         return *this;
@@ -455,6 +464,7 @@ inline void resize(StepStateDataImpl<Ownership::value, M>* state,
     SD_RESIZE_IF_SELECTED(parent_id);
     SD_RESIZE_IF_SELECTED(track_step_count);
     SD_RESIZE_IF_SELECTED(step_length);
+    SD_RESIZE_IF_SELECTED(weight);
     SD_RESIZE_IF_SELECTED(action_id);
     SD_RESIZE_IF_SELECTED(particle);
     SD_RESIZE_IF_SELECTED(energy_deposition);

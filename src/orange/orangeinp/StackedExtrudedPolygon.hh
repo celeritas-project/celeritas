@@ -17,10 +17,10 @@ namespace orangeinp
 //---------------------------------------------------------------------------//
 /*! A convex/concave polygon extruded along a polyline, with scaling.
  *
- * The polygon must be specified in clockwise order. The polyline must be
- * strictly monotonically increasing in z. Scaling factors can be any positive
- * value. Scaling is assumed to occur with respect to the polygon's original
- * coordinate system.
+ * The polygon must be specified in counterclockwise order. The polyline must
+ * be strictly monotonically increasing in z. Scaling factors can be any
+ * positive value. Scaling is assumed to occur with respect to the polygon's
+ * original coordinate system.
  *
  * Construction is performed using a convex decomposition approach
  * \citep{tor-convexdecomp-1984, https://doi.org/10.1145/357346.357348}. The

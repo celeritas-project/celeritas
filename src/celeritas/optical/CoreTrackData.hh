@@ -57,14 +57,13 @@ struct CoreParamsData
     PhysicsParamsData<W, M> physics;
     RngParamsData<W, M> rng;
     SurfaceParamsData<W, M> surface;
-    TrackInitParamsData<W, M> init;
 
     CoreScalars scalars;
 
     //! True if all params are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && material && physics && rng && init && scalars;
+        return geometry && material && physics && rng && scalars;
     }
 
     //! Assign from another set of data
@@ -77,7 +76,6 @@ struct CoreParamsData
         physics = other.physics;
         rng = other.rng;
         surface = other.surface;
-        init = other.init;
         scalars = other.scalars;
         return *this;
     }

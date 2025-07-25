@@ -80,8 +80,10 @@ struct DetectorStepOutput
     // Additional optional data
     PinnedVec<EventId> event_id;
     PinnedVec<TrackId> parent_id;
+    PinnedVec<PrimaryId> primary_id;
     PinnedVec<size_type> track_step_count;
     PinnedVec<real_type> step_length;
+    PinnedVec<real_type> weight;
     PinnedVec<ParticleId> particle;
     PinnedVec<Energy> energy_deposition;
 

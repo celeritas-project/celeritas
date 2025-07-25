@@ -22,11 +22,9 @@ celeritas_target_link_libraries(testcel_orange
 # VARIABLES
 #-----------------------------------------------------------------------------#
 
-if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
-  set(_use_g4org TRUE)
+if(CELERITAS_USE_Geant4)
   set(_needs_g4org)
 else()
-  set(_use_g4org FALSE)
   set(_needs_g4org DISABLE)
 endif()
 
@@ -145,14 +143,15 @@ celeritas_add_test(univ/detail/SenseCalculator.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Geant4 construction
-if(_use_g4org)
-  celeritas_add_test(g4org/Converter.test.cc)
-  celeritas_add_test(g4org/SolidConverter.test.cc
-    LINK_LIBRARIES Celeritas::ExtGeant4Geo)
+if(CELERITAS_USE_Geant4)
   celeritas_add_test(g4org/PhysicalVolumeConverter.test.cc)
   celeritas_add_test(g4org/ProtoConstructor.test.cc)
+  celeritas_add_test(g4org/SolidConverter.test.cc
+    LINK_LIBRARIES Celeritas::ExtGeant4Geo)
   celeritas_add_test(g4org/Transformer.test.cc
     LINK_LIBRARIES Celeritas::ExtGeant4Geo)
 endif()
+
+celeritas_add_test(g4org/Converter.test.cc ${_needs_g4org})
 
 #-----------------------------------------------------------------------------#

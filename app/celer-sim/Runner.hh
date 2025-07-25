@@ -15,7 +15,6 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/Primary.hh"
 
 #include "Transporter.hh"
@@ -25,7 +24,6 @@ class G4VPhysicalVolume;  // IWYU pragma: keep
 namespace celeritas
 {
 class CoreParams;
-class OpticalCollector;
 class ParticleParams;
 class RootFileManager;
 class StepCollector;

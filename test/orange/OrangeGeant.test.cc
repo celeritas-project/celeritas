@@ -27,12 +27,7 @@ namespace test
 class GeantOrangeTest : public OrangeGeoTestBase
 {
   protected:
-    void SetUp() final
-    {
-        ASSERT_EQ(CELERITAS_REAL_TYPE, CELERITAS_REAL_TYPE_DOUBLE)
-            << "Converting Geant4 requires double-precision reals";
-        this->geometry();
-    }
+    void SetUp() final { this->geometry(); }
 
     SPConstGeo build_geometry() final
     {
@@ -40,8 +35,7 @@ class GeantOrangeTest : public OrangeGeoTestBase
                                     LogLevel::error};
 
         auto filename = this->geometry_basename() + std::string{".gdml"};
-        auto result
-            = std::make_shared<Params>(test_data_path("geocel", filename));
+        auto result = Params::from_gdml(test_data_path("geocel", filename));
 
         EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
         return result;

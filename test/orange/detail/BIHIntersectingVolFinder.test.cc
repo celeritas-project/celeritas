@@ -299,7 +299,7 @@ TEST_F(BIHIntersectingVolFinderTest, inside_first)
     this->check_result({pos, dir}, dist_map, LocalVolumeId{5}, 1.6, 1.2);
 }
 
-// Test the case where the first intersection does not yeilds the first volume
+// Test the case where the first intersection does not yields the first volume
 // collision
 TEST_F(BIHIntersectingVolFinderTest, not_first)
 {
@@ -317,7 +317,7 @@ TEST_F(BIHIntersectingVolFinderTest, not_first)
                 {LocalVolumeId{5}, inff_}};
     this->check_result({pos, dir}, dist_map, LocalVolumeId{2}, 1.7);
 
-    // Ray goes all the way through V1, V2 and V3, interects V0
+    // Ray goes all the way through V1, V2 and V3, intersects V0
     pos = {-0.5, 0.5, 50.};
     dir = {1., 0., 0.};
     dist_map = {{LocalVolumeId{0}, 11.},

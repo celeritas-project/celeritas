@@ -156,7 +156,7 @@ std::ostream& operator<<(std::ostream& os, PrintableLV const& plv)
  */
 void reset_geant_geometry()
 {
-    CELER_LOG(debug) << "Resetting Geant4 geometry stores";
+    CELER_LOG(status) << "Resetting Geant4 geometry stores";
 
     std::string msg;
     {
@@ -313,7 +313,7 @@ find_geant_volumes(std::unordered_set<std::string> names)
 void set_history(Span<GeantPhysicalInstance const> stack,
                  G4NavigationHistory* nav)
 {
-    CELER_EXPECT(std::all_of(stack.begin(), stack.end(), LogicalTrue{}));
+    CELER_EXPECT(std::all_of(stack.begin(), stack.end(), Identity{}));
     CELER_EXPECT(nav);
 
     size_type level = 0;

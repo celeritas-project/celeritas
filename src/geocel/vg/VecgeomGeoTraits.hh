@@ -44,9 +44,6 @@ struct GeoTraits<VecgeomParams>
 
     //! Descriptive name for the geometry
     static constexpr char const name[] = "VecGeom";
-
-    //! TO BE REMOVED: "native" file extension for this geometry
-    static constexpr char const ext[] = ".gdml";
 };
 #else
 //! VecGeom is unavailable

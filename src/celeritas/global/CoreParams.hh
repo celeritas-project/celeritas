@@ -21,7 +21,6 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-class ActionRegistry;
 class CutoffParams;
 class GeoMaterialParams;
 class MaterialParams;
@@ -32,8 +31,11 @@ class PhysicsParams;
 class SimParams;
 class SurfaceParams;
 class TrackInitParams;
-class AuxParamsRegistry;
+class VolumeParams;
 class WentzelOKVIParams;
+
+class ActionRegistry;
+class AuxParamsRegistry;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -57,11 +59,14 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstSim = std::shared_ptr<SimParams const>;
     using SPConstSurface = std::shared_ptr<SurfaceParams const>;
     using SPConstTrackInit = std::shared_ptr<TrackInitParams const>;
+    using SPConstVolume = std::shared_ptr<VolumeParams const>;
+
     using SPConstWentzelOKVI = std::shared_ptr<WentzelOKVIParams const>;
-    using SPConstMpiCommunicator = std::shared_ptr<MpiCommunicator const>;
+
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
     using SPAuxRegistry = std::shared_ptr<AuxParamsRegistry>;
+    using SPConstMpiCommunicator = std::shared_ptr<MpiCommunicator const>;
 
     template<MemSpace M>
     using ConstRef = CoreParamsData<Ownership::const_reference, M>;
@@ -81,7 +86,8 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstSim sim;
         SPConstSurface surface;
         SPConstTrackInit init;
-        SPConstWentzelOKVI wentzel;  //!< Optional (TODO: aux data?)
+        SPConstVolume volume;
+        SPConstWentzelOKVI wentzel;  //!< Optional (TODO: move to EM physics)
 
         SPActionRegistry action_reg;
         SPOutputRegistry output_reg;
@@ -98,8 +104,8 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         explicit operator bool() const
         {
             return geometry && material && geomaterial && particle && cutoff
-                   && physics && rng && sim && surface && init && action_reg
-                   && output_reg && max_streams;
+                   && physics && rng && sim && surface && init && volume
+                   && action_reg && output_reg && max_streams;
         }
     };
 
@@ -122,6 +128,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPConstSim const& sim() const { return input_.sim; }
     SPConstSurface const& surface() const { return input_.surface; }
     SPConstTrackInit const& init() const { return input_.init; }
+    SPConstVolume const& volume() const { return input_.volume; }
     SPConstWentzelOKVI const& wentzel() const { return input_.wentzel; }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
     SPOutputRegistry const& output_reg() const { return input_.output_reg; }

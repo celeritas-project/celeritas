@@ -386,7 +386,7 @@ CELER_FUNCTION UniformGridId PhysicsTrackView::range_grid() const
 /*!
  * Return the inverse range grid data if available.
  *
- * If spline interpolation is used, the inverse grid is explicity stored with
+ * If spline interpolation is used, the inverse grid is explicitly stored with
  * the derivatives calculated using the range as the x values and the energy as
  * the y values.
  *
@@ -607,7 +607,7 @@ PhysicsTrackView::make_element_selector(UniformTableId table_id,
 /*!
  * ID of the particle's at-rest process.
  *
- * If the partcle can have a discrete interaction at rest, this returns the \c
+ * If the particle can have a discrete interaction at rest, this returns the \c
  * ParticleProcessId of that process. Otherwise, it returns an invalid ID.
  */
 CELER_FUNCTION ParticleProcessId PhysicsTrackView::at_rest_process() const

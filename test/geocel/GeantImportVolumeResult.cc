@@ -28,7 +28,7 @@ GeantImportVolumeResult::from_import(GeoParamsInterface const& geom)
 #if CELERITAS_USE_GEANT4
     using Result = GeantImportVolumeResult;
 
-    auto* geant_geo = celeritas::geant_geo();
+    auto geant_geo = celeritas::geant_geo().lock();
     CELER_VALIDATE(geant_geo, << "global Geant4 geometry is not loaded");
     Result result;
     result.volumes.resize(geant_geo->volumes().size());

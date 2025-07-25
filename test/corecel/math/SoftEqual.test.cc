@@ -115,6 +115,50 @@ TYPED_TEST(FloatingTest, soft_equal)
     EXPECT_FALSE(comp(inf, inf));
 }
 
+TYPED_TEST(FloatingTest, soft_close)
+{
+    using value_type = typename TestFixture::value_type;
+    using Limits_t = typename TestFixture::Limits_t;
+    using Comp = SoftClose<value_type>;
+
+    Comp comp;
+
+    // Test basic equality
+    EXPECT_TRUE(comp(1, 1));
+    EXPECT_TRUE(comp(0, 0));
+    EXPECT_FALSE(comp(-1, 1));
+    EXPECT_FALSE(comp(1, -1));
+
+    // Test with tolerance
+    EXPECT_TRUE(comp(1, 1 + comp.abs() / 2));
+    EXPECT_FALSE(comp(1, 1 + comp.abs() * 2));
+
+    // Test signed zeros
+    EXPECT_FALSE(comp(-0, 1));
+    EXPECT_FALSE(comp(1, -0));
+    EXPECT_TRUE(comp(0, -0));
+    EXPECT_TRUE(comp(-0, 0));
+
+    // Test NaNs
+    value_type const nan = Limits_t::quiet_NaN();
+    EXPECT_FALSE(comp(1, nan));
+    EXPECT_FALSE(comp(nan, 1));
+    EXPECT_FALSE(comp(nan, nan));
+
+    // Test infinities
+    value_type const inf = Limits_t::infinity();
+    value_type const maxval = Limits_t::max();
+    EXPECT_FALSE(comp(0, inf));
+    EXPECT_FALSE(comp(inf, 0));
+    EXPECT_FALSE(comp(inf, -inf));
+    EXPECT_FALSE(comp(-inf, inf));
+    EXPECT_FALSE(comp(inf, maxval));
+
+    // NOTE: values that are legitimately infinite require additional testing
+    // outside of soft equal because they're an edge case.
+    EXPECT_FALSE(comp(inf, inf));
+}
+
 TYPED_TEST(FloatingTest, equal_or_soft_equal)
 {
     using value_type = typename TestFixture::value_type;

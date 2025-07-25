@@ -46,14 +46,9 @@
     },
     {
       "name": "spack",
-      "inherits": ["base"],
+      "inherits": ["base", ".spack-base"],
       "displayName": "CONFIG: use full spack toolchain",
       "cacheVariables": {
-        "CELERITAS_BUILTIN_CLI11": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_BUILTIN_G4VG": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_BUILTIN_GTest": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_BUILTIN_covfie": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_BUILTIN_nlohmann_json": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_ROOT":    null,

@@ -146,7 +146,7 @@ void write_mt_world(LogProvenance prov, LogLevel lev, std::string msg)
  * The \c CELER_LOG_ALL_LOCAL environment variable allows *all* CELER_LOG
  * invocations (on all worker threads) to be written for debugging.
  *
- * In the \c main of your application's exectuable, set the "process-global"
+ * In the \c main of your application's executable, set the "process-global"
  * logger:
  * \code
     celeritas::world_logger() = celeritas::MakeMTWorldLogger(*run_manager);
@@ -185,7 +185,7 @@ Logger MakeMTWorldLogger(G4RunManager const& runman)
  * G4cerr. It should be used for information about a current track or event,
  * specific to the current thread.
  *
- * In the \c main of your application's exectuable, set the "process-local"
+ * In the \c main of your application's executable, set the "process-local"
  * logger:
  * \code
     celeritas::self_logger() = celeritas::MakeMTSelfLogger(*run_manager);

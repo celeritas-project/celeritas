@@ -12,12 +12,29 @@
 
 #include "corecel/Config.hh"
 
+#include "geocel/GeantGeoParams.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
+
+#include "PersistentSP.hh"
 
 namespace celeritas
 {
 namespace test
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+using PersistentGeantGeo = PersistentSP<GeantGeoParams>;
+
+PersistentGeantGeo& persistent_geant_geo()
+{
+    static PersistentGeantGeo pgg{"geant4 geometry"};
+    return pgg;
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 auto GlobalGeoTestBase::build_geometry() -> SPConstCoreGeo
 {
@@ -37,20 +54,48 @@ auto GlobalGeoTestBase::build_fresh_geometry(std::string_view basename)
 {
     using namespace std::literals;
 
+    constexpr bool use_orange = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE;
+    constexpr bool use_g4
+        = CELERITAS_USE_GEANT4
+          && (!use_orange
+              || (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE));
+
     // Construct filename:
     // ${SOURCE}/test/celeritas/data/${basename}${fileext}
-    auto ext = ".gdml"sv;
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
-        && (!CELERITAS_USE_GEANT4
-            || CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE))
+    auto ext = use_g4 ? ".gdml" : use_orange ? ".org.json" : ".invalid-geo";
+    std::string filename
+        = this->test_data_path("geocel", std::string{basename} + ext);
+    if (use_g4)
+    {
+        auto& pgg = persistent_geant_geo();
+
+        pgg.clear();
+        auto new_geo = GeantGeoParams::from_gdml(filename);
+        celeritas::geant_geo(new_geo);
+        pgg.set(std::string{basename}, std::move(new_geo));
+
+        // Geant4 loading is supported
+        return CoreGeoParams::from_geant(pgg.value());
+    }
+    else if (use_orange)
     {
         // Using ORANGE, either without Geant4 or without double-precision
         // arithmetic
-        ext = ".org.json"sv;
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+        return CoreGeoParams::from_json(filename);
+#endif
     }
-    auto filename = std::string{basename} + std::string{ext};
-    std::string test_file = this->test_data_path("geocel", filename);
-    return std::make_shared<CoreGeoParams>(test_file);
+    CELER_ASSERT_UNREACHABLE();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access persistent geant geometry after construction.
+ */
+auto GlobalGeoTestBase::geant_geo() -> SPGeantGeo const&
+{
+    auto& pgg = persistent_geant_geo();
+    return pgg.value();
 }
 
 //---------------------------------------------------------------------------//

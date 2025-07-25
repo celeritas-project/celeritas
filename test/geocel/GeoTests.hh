@@ -526,7 +526,9 @@ void TwoBoxesGeoTest::test_detailed_tracking(GeoTest* test)
     }
 
     // Scatter to tangent along boundary
-    geo.set_dir({1e-8, 1, 0});
+    constexpr real_type dx
+        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e-8 : 1e-4);
+    geo.set_dir({dx, 1, 0});
     next = geo.find_next_step(from_cm(1000));
     EXPECT_SOFT_EQ(500, to_cm(next.distance));
     EXPECT_TRUE(next.boundary);
@@ -536,7 +538,7 @@ void TwoBoxesGeoTest::test_detailed_tracking(GeoTest* test)
     geo.set_dir({-1, 0, 0});
     next = geo.find_next_step(from_cm(1000));
     EXPECT_TRUE(next.boundary);
-    EXPECT_SOFT_NEAR(2e-8, to_cm(next.distance), 1e-4);
+    EXPECT_SOFT_NEAR(2 * dx, to_cm(next.distance), 1e-4);
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
     geo.cross_boundary();
