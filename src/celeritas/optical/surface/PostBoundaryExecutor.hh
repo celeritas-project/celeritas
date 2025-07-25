@@ -25,7 +25,7 @@ namespace optical
 struct PostBoundaryExecutor
 {
     // Finalize track's boundary crossing
-    CELER_FUNCTION void operator()(CoreTrackView&) const;
+    inline CELER_FUNCTION void operator()(CoreTrackView&) const;
 };
 
 //---------------------------------------------------------------------------//

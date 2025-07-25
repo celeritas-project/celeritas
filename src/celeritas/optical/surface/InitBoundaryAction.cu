@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "InitBoundaryAction.hh"
 
+#include "geocel/SurfaceParams.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/action/ActionLauncher.device.hh"
@@ -24,10 +25,11 @@ namespace optical
 void InitBoundaryAction::step(CoreParams const& params,
                               CoreStateDevice& state) const
 {
-    auto execute = make_action_thread_executor(params.ptr<MemSpace::native>(),
-                                               state.ptr(),
-                                               this->action_id(),
-                                               InitBoundaryExecutor{});
+    auto execute = make_action_thread_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        this->action_id(),
+        InitBoundaryExecutor{!params.surface()->disabled()});
 
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);

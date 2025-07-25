@@ -29,6 +29,9 @@ namespace optical
  */
 struct InitBoundaryExecutor
 {
+    //! TODO: remove when surface params fully implemented
+    bool surface_physics_enabled;
+
     // Initialize track for boundary crossing
     inline CELER_FUNCTION void operator()(CoreTrackView& track) const;
 };
@@ -49,6 +52,22 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
 
     auto geo = track.geometry();
     CELER_EXPECT(geo.is_on_boundary());
+
+    // SurfaceParams not built for all cases, use this to temporarily
+    // disable surface physics and kill tracks immediately
+    if (!surface_physics_enabled)
+    {
+        geo.cross_boundary();
+        if (CELER_UNLIKELY(geo.failed()))
+        {
+            track.apply_errored();
+        }
+        else
+        {
+            track.sim().status(TrackStatus::killed);
+        }
+        return;
+    }
 
     auto select_surface = track.surface_selector();
 

@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "InitBoundaryAction.hh"
 
+#include "geocel/SurfaceParams.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/action/ActionLauncher.hh"
@@ -36,10 +37,11 @@ void InitBoundaryAction::step(CoreParams const& params,
                               CoreStateHost& state) const
 {
     launch_action(state,
-                  make_action_thread_executor(params.ptr<MemSpace::native>(),
-                                              state.ptr(),
-                                              this->action_id(),
-                                              InitBoundaryExecutor{}));
+                  make_action_thread_executor(
+                      params.ptr<MemSpace::native>(),
+                      state.ptr(),
+                      this->action_id(),
+                      InitBoundaryExecutor{!params.surface()->disabled()}));
 }
 
 //---------------------------------------------------------------------------//
