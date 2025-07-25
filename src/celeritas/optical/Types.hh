@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
+
 #include "celeritas/Types.hh"
 
 namespace celeritas
@@ -19,6 +21,19 @@ using ScintParticleId = OpaqueId<struct ScintParticle_>;
 
 //! Opaque index to a scintillation spectrum
 using ParScintSpectrumId = OpaqueId<struct ParScintSpectrum>;
+
+namespace optical
+{
+
+using ModelId = OpaqueId<class Model>;
+
+enum class SubsurfaceDirection : int
+{
+    forward = 1,
+    reverse = -1
+};
+
+}  // namespace optical
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS

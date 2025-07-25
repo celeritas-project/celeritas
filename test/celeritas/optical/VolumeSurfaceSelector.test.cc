@@ -18,6 +18,11 @@ namespace optical
 namespace test
 {
 using namespace ::celeritas::test;
+
+constexpr int forward = static_cast<int>(SubsurfaceDirection::forward);
+constexpr int reverse = static_cast<int>(SubsurfaceDirection::reverse);
+constexpr int no_direction = 0;
+
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -32,21 +37,25 @@ class VolumeSurfaceSelectorTest : public SurfaceTestBase
 // Test surface selection for various pre and post volume instances
 TEST_F(VolumeSurfaceSelectorTest, select_surface)
 {
-    SurfaceParams surfaces{this->make_many_surfaces_inp(), volumes_};
+    SurfaceParams params{this->make_many_surfaces_inp(), volumes_};
 
     auto select_surfaces = [&](VolumeInstanceId pre_vol_inst) {
-        std::vector<SurfaceId> results;
+        std::vector<SurfaceId> surfaces;
+        std::vector<int> orientations;
 
         VolumeSurfaceSelector select{
-            surfaces.host_ref(), volumes_.volume(pre_vol_inst), pre_vol_inst};
+            params.host_ref(), volumes_.volume(pre_vol_inst), pre_vol_inst};
         for (auto post_vol_inst :
              range(VolumeInstanceId{volumes_.num_volume_instances()}))
         {
-            results.push_back(
-                select(volumes_.volume(post_vol_inst), post_vol_inst));
+            auto result = select(volumes_.volume(post_vol_inst), post_vol_inst);
+            surfaces.push_back(result.surface);
+            orientations.push_back(result.surface
+                                       ? static_cast<int>(result.orientation)
+                                       : no_direction);
         }
 
-        return results;
+        return std::make_tuple(std::move(surfaces), std::move(orientations));
     };
 
     {
@@ -59,31 +68,70 @@ TEST_F(VolumeSurfaceSelectorTest, select_surface)
             SurfaceId{2},
         };
 
-        EXPECT_VEC_EQ(expected_surfaces, select_surfaces(VolumeInstanceId{0}));
+        static int const expected_orientations[] = {
+            forward,
+            forward,
+            forward,
+            forward,
+            forward,
+            forward,
+        };
+
+        auto const [surfaces, orientations]
+            = select_surfaces(VolumeInstanceId{0});
+
+        EXPECT_VEC_EQ(expected_surfaces, surfaces);
+        EXPECT_VEC_EQ(expected_orientations, orientations);
     }
     {
         static SurfaceId const expected_surfaces[] = {
-            SurfaceId{2},
+            SurfaceId{5},
             SurfaceId{},
             SurfaceId{3},
-            SurfaceId{},
-            SurfaceId{},
-            SurfaceId{},
+            SurfaceId{4},
+            SurfaceId{8},
+            SurfaceId{7},
         };
 
-        EXPECT_VEC_EQ(expected_surfaces, select_surfaces(VolumeInstanceId{1}));
+        static int const expected_orientations[] = {
+            reverse,
+            no_direction,
+            forward,
+            reverse,
+            reverse,
+            reverse,
+        };
+
+        auto const [surfaces, orientations]
+            = select_surfaces(VolumeInstanceId{1});
+
+        EXPECT_VEC_EQ(expected_surfaces, surfaces);
+        EXPECT_VEC_EQ(expected_orientations, orientations);
     }
     {
         static SurfaceId const expected_surfaces[] = {
             SurfaceId{0},
-            SurfaceId{},
+            SurfaceId{3},
             SurfaceId{1},
             SurfaceId{},
             SurfaceId{},
             SurfaceId{},
         };
 
-        EXPECT_VEC_EQ(expected_surfaces, select_surfaces(VolumeInstanceId{2}));
+        static int const expected_orientations[] = {
+            forward,
+            reverse,
+            forward,
+            no_direction,
+            no_direction,
+            no_direction,
+        };
+
+        auto const [surfaces, orientations]
+            = select_surfaces(VolumeInstanceId{2});
+
+        EXPECT_VEC_EQ(expected_surfaces, surfaces);
+        EXPECT_VEC_EQ(expected_orientations, orientations);
     }
     {
         static SurfaceId const expected_surfaces[] = {
@@ -95,7 +143,20 @@ TEST_F(VolumeSurfaceSelectorTest, select_surface)
             SurfaceId{},
         };
 
-        EXPECT_VEC_EQ(expected_surfaces, select_surfaces(VolumeInstanceId{3}));
+        static int const expected_orientations[] = {
+            reverse,
+            forward,
+            no_direction,
+            no_direction,
+            no_direction,
+            no_direction,
+        };
+
+        auto const [surfaces, orientations]
+            = select_surfaces(VolumeInstanceId{3});
+
+        EXPECT_VEC_EQ(expected_surfaces, surfaces);
+        EXPECT_VEC_EQ(expected_orientations, orientations);
     }
     {
         static SurfaceId const expected_surfaces[] = {
@@ -107,7 +168,20 @@ TEST_F(VolumeSurfaceSelectorTest, select_surface)
             SurfaceId{},
         };
 
-        EXPECT_VEC_EQ(expected_surfaces, select_surfaces(VolumeInstanceId{4}));
+        static int const expected_orientations[] = {
+            reverse,
+            forward,
+            no_direction,
+            no_direction,
+            no_direction,
+            no_direction,
+        };
+
+        auto const [surfaces, orientations]
+            = select_surfaces(VolumeInstanceId{4});
+
+        EXPECT_VEC_EQ(expected_surfaces, surfaces);
+        EXPECT_VEC_EQ(expected_orientations, orientations);
     }
     {
         static SurfaceId const expected_surfaces[] = {
@@ -119,7 +193,20 @@ TEST_F(VolumeSurfaceSelectorTest, select_surface)
             SurfaceId{},
         };
 
-        EXPECT_VEC_EQ(expected_surfaces, select_surfaces(VolumeInstanceId{5}));
+        static int const expected_orientations[] = {
+            reverse,
+            forward,
+            no_direction,
+            no_direction,
+            no_direction,
+            no_direction,
+        };
+
+        auto const [surfaces, orientations]
+            = select_surfaces(VolumeInstanceId{5});
+
+        EXPECT_VEC_EQ(expected_surfaces, surfaces);
+        EXPECT_VEC_EQ(expected_orientations, orientations);
     }
 }
 
@@ -147,7 +234,8 @@ TEST_F(VolumeSurfaceSelectorTest, mother_daughter)
     // Check precedence of selecting boundary surfaces for mother-daughter
     // relations Geant4: select daughter's boundary if present (SurfaceId{8})
     // Celeritas: select pre-volume first (SurfaceId{2})
-    EXPECT_EQ(SurfaceId{2}, select(volumes_.volume(daughter), daughter));
+    EXPECT_EQ(SurfaceId{2},
+              select(volumes_.volume(daughter), daughter).surface);
 }
 
 //---------------------------------------------------------------------------//

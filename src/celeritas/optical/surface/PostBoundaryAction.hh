@@ -2,11 +2,11 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/action/BoundaryAction.hh
+//! \file celeritas/optical/surface/PostBoundaryAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "ActionInterface.hh"
+#include "celeritas/optical/action/ActionInterface.hh"
 
 namespace celeritas
 {
@@ -14,14 +14,18 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Move a track across a boundary.
+ * Finalize an optical boundary crossing action.
+ *
+ * Handle an optical photon finishing a boundary crossing and leaving a
+ * surface. The geometry state is updated depending on if it enters the
+ * post-volume or is reentrant on the pre-volume.
  */
-class BoundaryAction final : public OpticalStepActionInterface,
-                             public ConcreteAction
+class PostBoundaryAction : public OpticalStepActionInterface,
+                           public ConcreteAction
 {
   public:
     // Construct with ID
-    explicit BoundaryAction(ActionId);
+    explicit PostBoundaryAction(ActionId);
 
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;
