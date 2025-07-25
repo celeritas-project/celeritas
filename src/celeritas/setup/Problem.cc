@@ -285,9 +285,7 @@ auto build_along_step(inp::Field const& var_field,
 /*!
  * Construct optical parameters.
  */
-auto build_optical_params(inp::Problem const& p,
-                          CoreParams const& core,
-                          ImportData const& imported)
+auto build_optical_params(CoreParams const& core, ImportData const& imported)
 {
     CELER_VALIDATE(!imported.optical_materials.empty(),
                    << "an optical tracking loop was requested but no optical "
@@ -320,7 +318,7 @@ auto build_optical_params(inp::Problem const& p,
         params.physics
             = std::make_shared<optical::PhysicsParams>(std::move(pp_inp));
     }
-    params.detector_labels = p.scoring.detectors;
+    //! \todo Get sensitive detectors
 
     CELER_ENSURE(params);
 
@@ -336,7 +334,7 @@ auto build_optical_offload(inp::Problem const& p,
                            ImportData const& imported)
 {
     OpticalCollector::Input oc_inp;
-    oc_inp.optical_params = build_optical_params(p, params, imported);
+    oc_inp.optical_params = build_optical_params(params, imported);
 
     // Add photon generating processes
     CELER_ASSERT(p.physics.optical);
