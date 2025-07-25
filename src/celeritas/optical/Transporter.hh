@@ -44,35 +44,34 @@ class Transporter
     {
         SPConstParams params;
         size_type max_step_iters{numeric_limits<size_type>::max()};
-
-        //! True if all input is assigned and valid
-        explicit operator bool() const { return static_cast<bool>(params); }
     };
 
   public:
     // Construct with problem parameters and setup options
-    explicit Transporter(Input);
+    explicit Transporter(Input&&);
 
     // Transport all pending optical tracks on the host
-    void operator()(CoreParams const&, CoreStateHost&) const;
+    void operator()(CoreStateHost&) const;
 
     // Transport all pending optical tracks on the device
-    void operator()(CoreParams const&, CoreStateDevice&) const;
+    void operator()(CoreStateDevice&) const;
 
   private:
     //// TYPES ////
 
     using ActionGroupsT = ActionGroups<CoreParams, CoreState>;
+    using SPActionGroups = std::shared_ptr<ActionGroupsT>;
 
     //// DATA ////
 
+    SPConstParams params_;
     size_type max_step_iters_{};
-    ActionGroupsT actions_;
+    SPActionGroups actions_;
 
     //// HELPERS ////
 
     template<MemSpace M>
-    void transport_impl(CoreParams const&, CoreState<M>&) const;
+    void transport_impl(CoreState<M>&) const;
 };
 
 //---------------------------------------------------------------------------//

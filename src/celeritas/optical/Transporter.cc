@@ -25,31 +25,30 @@ namespace optical
 /*!
  * Construct with problem parameters.
  */
-Transporter::Transporter(Input inp)
-    : max_step_iters_(inp.max_step_iters)
-    , actions_(ActionGroupsT(*inp.params->action_reg()))
+Transporter::Transporter(Input&& inp)
+    : params_(std::move(inp.params)), max_step_iters_(inp.max_step_iters)
 {
-    CELER_EXPECT(inp);
+    CELER_EXPECT(params_);
+
+    actions_ = std::make_shared<ActionGroupsT>(*params_->action_reg());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Transport all pending optical tracks on the host.
  */
-void Transporter::operator()(CoreParams const& params,
-                             CoreStateHost& state) const
+void Transporter::operator()(CoreStateHost& state) const
 {
-    this->transport_impl(params, state);
+    this->transport_impl(state);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Transport all pending optical tracks on the device.
  */
-void Transporter::operator()(CoreParams const& params,
-                             CoreStateDevice& state) const
+void Transporter::operator()(CoreStateDevice& state) const
 {
-    this->transport_impl(params, state);
+    this->transport_impl(state);
 }
 
 //---------------------------------------------------------------------------//
@@ -57,8 +56,7 @@ void Transporter::operator()(CoreParams const& params,
  * Transport all pending optical tracks.
  */
 template<MemSpace M>
-void Transporter::transport_impl(CoreParams const& params,
-                                 CoreState<M>& state) const
+void Transporter::transport_impl(CoreState<M>& state) const
 {
     CELER_EXPECT(state.aux());
 
@@ -71,9 +69,9 @@ void Transporter::transport_impl(CoreParams const& params,
     while (counters.num_pending > 0 || counters.num_alive > 0)
     {
         // Loop through actions
-        for (auto const& action : actions_.step())
+        for (auto const& action : actions_->step())
         {
-            action->step(params, state);
+            action->step(*params_, state);
         }
 
         num_steps += counters.num_active;
@@ -88,7 +86,7 @@ void Transporter::transport_impl(CoreParams const& params,
                 << counters.num_vacancies << " vacancies, and "
                 << counters.num_pending << " queued";
 
-            params.gen_reg()->reset(*state.aux());
+            params_->gen_reg()->reset(*state.aux());
             state.reset();
             break;
         }

@@ -156,7 +156,7 @@ TEST_F(LArSpherePrimaryGeneratorTest, primary_generator)
     generate_->queue_primaries(state);
 
     // Launch the optical loop
-    (*transport_)(*this->optical_params(), state);
+    (*transport_)(state);
 
     // Get the accumulated counters
     auto result = this->counters();

@@ -147,7 +147,7 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
     }
 
     // Transport pending optical tracks
-    (*transport_)(this->optical_params(), state);
+    (*transport_)(state);
 }
 
 //---------------------------------------------------------------------------//

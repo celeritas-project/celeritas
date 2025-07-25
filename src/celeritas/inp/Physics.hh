@@ -73,9 +73,6 @@ struct OpticalPhysics
     //! Generate scintillation photons
     bool scintillation{true};
     //!@}
-
-    //! Volume labels for sensitive detectors
-    std::optional<std::vector<Label>> detector_labels;
 };
 
 //---------------------------------------------------------------------------//

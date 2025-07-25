@@ -112,7 +112,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
             std::move(sizes)));
 
     // Save core params
-    optical_params_ = inp.optical_params;
+    optical_params_ = std::move(inp.optical_params);
 
     CELER_ENSURE(optical_params_);
 }

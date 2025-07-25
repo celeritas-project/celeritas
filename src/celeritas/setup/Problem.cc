@@ -285,31 +285,31 @@ auto build_along_step(inp::Field const& var_field,
 /*!
  * Construct optical parameters.
  */
-auto build_optical_params(inp::OpticalPhysics const& optical,
-                          CoreParams const& params,
+auto build_optical_params(inp::Problem const& p,
+                          CoreParams const& core,
                           ImportData const& imported)
 {
     CELER_VALIDATE(!imported.optical_materials.empty(),
                    << "an optical tracking loop was requested but no optical "
                       "materials are present");
 
-    optical::CoreParams::Input inp;
-    inp.geometry = params.geometry();
-    inp.material = optical::MaterialParams::from_import(
-        imported, *params.geomaterial(), *params.material());
+    optical::CoreParams::Input params;
+    params.geometry = core.geometry();
+    params.material = optical::MaterialParams::from_import(
+        imported, *core.geomaterial(), *core.material());
     // TODO: unique RNG streams for optical loop
-    inp.rng = params.rng();
-    inp.surface = params.surface();
-    inp.action_reg = std::make_shared<ActionRegistry>();
-    inp.gen_reg = std::make_shared<GeneratorRegistry>();
-    inp.max_streams = params.max_streams();
+    params.rng = core.rng();
+    params.surface = core.surface();
+    params.action_reg = std::make_shared<ActionRegistry>();
+    params.gen_reg = std::make_shared<GeneratorRegistry>();
+    params.max_streams = core.max_streams();
     {
         // Construct optical physics models
         optical::PhysicsParams::Input pp_inp;
-        pp_inp.materials = inp.material;
-        pp_inp.action_registry = inp.action_reg.get();
+        pp_inp.materials = params.material;
+        pp_inp.action_registry = params.action_reg.get();
         optical::ModelImporter importer{
-            imported, inp.material, params.material()};
+            imported, params.material, core.material()};
         for (auto const& model : imported.optical_models)
         {
             if (auto builder = importer(model.model_class))
@@ -317,14 +317,14 @@ auto build_optical_params(inp::OpticalPhysics const& optical,
                 pp_inp.model_builders.push_back(*builder);
             }
         }
-        inp.physics
+        params.physics
             = std::make_shared<optical::PhysicsParams>(std::move(pp_inp));
     }
-    inp.detector_labels = optical.detector_labels;
+    params.detector_labels = p.scoring.detectors;
 
-    CELER_ENSURE(inp);
+    CELER_ENSURE(params);
 
-    return std::make_shared<optical::CoreParams>(std::move(inp));
+    return std::make_shared<optical::CoreParams>(std::move(params));
 }
 
 //---------------------------------------------------------------------------//
@@ -335,42 +335,37 @@ auto build_optical_offload(inp::Problem const& p,
                            CoreParams const& params,
                            ImportData const& imported)
 {
-    CELER_VALIDATE(p.physics.optical,
-                   << "optical physics options are required to construct an "
-                      "optical tracking loop");
-
-    OpticalCollector::Input inp;
-    inp.optical_params
-        = build_optical_params(*p.physics.optical, params, imported);
+    OpticalCollector::Input oc_inp;
+    oc_inp.optical_params = build_optical_params(p, params, imported);
 
     // Add photon generating processes
     CELER_ASSERT(p.physics.optical);
     inp::OpticalPhysics const& opt = *p.physics.optical;
     if (opt.cherenkov)
     {
-        inp.cherenkov = std::make_shared<CherenkovParams>(
-            *inp.optical_params->material());
+        oc_inp.cherenkov = std::make_shared<CherenkovParams>(
+            *oc_inp.optical_params->material());
     }
     if (opt.scintillation)
     {
-        inp.scintillation
+        oc_inp.scintillation
             = ScintillationParams::from_import(imported, params.particle());
-        CELER_VALIDATE(inp.scintillation,
+        CELER_VALIDATE(oc_inp.scintillation,
                        << "failed to construct scintillation process");
     }
 
     // Map from optical capacity
     CELER_ASSERT(p.control.optical_capacity);
     inp::OpticalStateCapacity const& cap = *p.control.optical_capacity;
-    auto num_streams = inp.optical_params->max_streams();
-    inp.num_track_slots = ceil_div(cap.tracks, num_streams);
-    inp.buffer_capacity = ceil_div(cap.generators, num_streams);
-    inp.auto_flush = ceil_div(cap.primaries, num_streams);
-    inp.max_step_iters = p.tracking.limits.optical_step_iters;
+    auto num_streams = oc_inp.optical_params->max_streams();
+    oc_inp.num_track_slots = ceil_div(cap.tracks, num_streams);
+    oc_inp.buffer_capacity = ceil_div(cap.generators, num_streams);
+    oc_inp.auto_flush = ceil_div(cap.primaries, num_streams);
+    oc_inp.max_step_iters = p.tracking.limits.optical_step_iters;
 
-    CELER_ENSURE(inp);
+    CELER_ENSURE(oc_inp);
 
-    return std::make_shared<OpticalCollector>(params, std::move(inp));
+    return std::make_shared<OpticalCollector>(params, std::move(oc_inp));
 }
 
 //---------------------------------------------------------------------------//
@@ -632,6 +627,10 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 
     if (p.control.optical_capacity)
     {
+        CELER_VALIDATE(p.physics.optical,
+                       << "optical physics options are required to construct "
+                          "an optical tracking loop");
+
         if (core_params->surface()->empty())
         {
             CELER_LOG(warning) << "Problem contains optical physics without "

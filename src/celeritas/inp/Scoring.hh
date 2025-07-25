@@ -143,6 +143,9 @@ struct Scoring
 
     //! Add simple on-device calorimeters integrated over events
     std::optional<SimpleCalo> simple_calo;
+
+    //! Volume labels for sensitive detectors
+    std::optional<std::vector<Label>> detectors;
 };
 
 //---------------------------------------------------------------------------//
