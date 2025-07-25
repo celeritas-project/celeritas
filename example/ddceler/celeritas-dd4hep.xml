@@ -44,6 +44,9 @@
     <constant name="calorimeter_inner_radius" value="250*mm"/>
     <constant name="calorimeter_outer_radius" value="800*mm"/>
     <constant name="calorimeter_length" value="1200*mm"/>
+
+    <!-- Field parameters -->
+    <constant name="field_strength" value="3.0*tesla"/>
   </define>
 
   <includes>
@@ -139,7 +142,7 @@
   </readouts>
 
   <fields>
-    <field name="GlobalSolenoid" type="solenoid" inner_field="3.5*tesla" outer_field="0*tesla" zmax="1.5*m" inner_radius="1.0*m" outer_radius="1.2*m"/>
+    <field name="UniformSolenoid" type="solenoid" strength="field_strength" inner_field="field_strength" outer_field="field_strength" zmin="-1.0*world_side" zmax="world_side" inner_radius="world_side" outer_radius="2.0*world_side"/>
   </fields>
 
 </lccdd>
