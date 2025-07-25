@@ -23,9 +23,10 @@ namespace optical
  *
  * Given (old, new) physical volumes P0, P1 corresponding to logical volumes
  * L0, L1
- * - Ordered (P0, P1) interface surface
- * - Boundary surface of L0
- * - Boundary surface of L1
+ * - Ordered (P0, P1) interface surface, forward
+ * - Ordered (P1, P0) interface surface, reverse
+ * - Boundary surface of L0, forward
+ * - Boundary surface of L1, reverse
  *
  * This behavior differs from Geant4's order of precedence, which considers
  * if there's a mother-daughter relation between L0 and L1 when both have
@@ -121,17 +122,17 @@ VolumeSurfaceSelector::operator()(VolumeId post_volume,
         return OrientedSurface{surface_id, SubsurfaceDirection::forward};
     }
 
-    if (auto surface_id = pre_surface.boundary_id())
-    {
-        return OrientedSurface{surface_id, SubsurfaceDirection::forward};
-    }
-
     VolumeSurfaceView post_surface{params_, post_volume};
 
     if (auto surface_id
         = post_surface.find_interface(post_volume_inst, pre_volume_inst_))
     {
         return OrientedSurface{surface_id, SubsurfaceDirection::reverse};
+    }
+
+    if (auto surface_id = pre_surface.boundary_id())
+    {
+        return OrientedSurface{surface_id, SubsurfaceDirection::forward};
     }
 
     return OrientedSurface{post_surface.boundary_id(),

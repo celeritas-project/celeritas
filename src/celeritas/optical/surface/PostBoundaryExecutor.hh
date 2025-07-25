@@ -16,9 +16,15 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Finalize the track's boundary crossing.
+ *
+ * Updates the track's state base on whether it is re-entrant in the
+ * pre-volume or entrant on the post-volume. The track's surface physics
+ * state will be reset.
  */
 struct PostBoundaryExecutor
 {
+    // Finalize track's boundary crossing
     CELER_FUNCTION void operator()(CoreTrackView&) const;
 };
 

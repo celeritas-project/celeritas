@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <functional>
-
 #include "celeritas/Types.hh"
 
 namespace celeritas
@@ -24,8 +22,6 @@ using ParScintSpectrumId = OpaqueId<struct ParScintSpectrum>;
 
 namespace optical
 {
-
-using ModelId = OpaqueId<class Model>;
 
 enum class SubsurfaceDirection : int
 {
