@@ -383,13 +383,15 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
                    "result in arbitrarily small steps without displacement";
         }
         params.volume = std::move(loaded_model.volume);
+        CELER_ASSERT(loaded_model.surface);
         if (p.control.optical_capacity)
         {
+            CELER_VALIDATE(!loaded_model.surface->disabled(),
+                           << "surfaces are required for optical physics");
             params.surface = std::move(loaded_model.surface);
         }
         else
         {
-            CELER_ASSERT(loaded_model.surface);
             if (!loaded_model.surface->empty())
             {
                 CELER_LOG(debug) << "Ignoring surfaces for non-optical "
