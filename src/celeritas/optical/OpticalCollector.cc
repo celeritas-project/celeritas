@@ -40,36 +40,12 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
 {
     CELER_EXPECT(inp);
 
-    // Create optical core params
-    auto optical_params = std::make_shared<optical::CoreParams>([&] {
-        optical::CoreParams::Input op_inp;
-        op_inp.geometry = core.geometry();
-        op_inp.material = inp.material;
-        // TODO: unique RNG streams for optical loop
-        op_inp.rng = core.rng();
-        op_inp.surface = core.surface();
-        op_inp.action_reg = std::make_shared<ActionRegistry>();
-        op_inp.gen_reg = std::make_shared<GeneratorRegistry>();
-        op_inp.max_streams = core.max_streams();
-        {
-            optical::PhysicsParams::Input pp_inp;
-            pp_inp.model_builders = std::move(inp.model_builders);
-            pp_inp.materials = op_inp.material;
-            pp_inp.action_registry = op_inp.action_reg.get();
-            op_inp.physics
-                = std::make_shared<optical::PhysicsParams>(std::move(pp_inp));
-        }
-        op_inp.detector_labels = inp.detector_labels;
-        CELER_ENSURE(op_inp);
-        return op_inp;
-    }());
-
     // Create launch action with optical params+state and access to aux data
     detail::OpticalLaunchAction::Input la_inp;
     la_inp.num_track_slots = inp.num_track_slots;
     la_inp.max_step_iters = inp.max_step_iters;
     la_inp.auto_flush = inp.auto_flush;
-    la_inp.optical_params = optical_params;
+    la_inp.optical_params = inp.optical_params;
     launch_ = detail::OpticalLaunchAction::make_and_insert(core,
                                                            std::move(la_inp));
 
@@ -80,19 +56,19 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     {
         // Create optical action to generate Cherenkov primaries
         optical::GeneratorAction<GT::cherenkov>::Input ga_inp;
-        ga_inp.material = inp.material;
+        ga_inp.material = inp.optical_params->material();
         ga_inp.shared = inp.cherenkov;
         ga_inp.capacity = inp.buffer_capacity;
         cherenkov_generate_
             = optical::GeneratorAction<GT::cherenkov>::make_and_insert(
-                core, *optical_params, std::move(ga_inp));
+                core, *inp.optical_params, std::move(ga_inp));
 
         // Create core action to generate Cherenkov optical distributions
         OffloadAction<GT::cherenkov>::Input oa_inp;
         oa_inp.step_id = gather_->aux_id();
         oa_inp.gen_id = cherenkov_generate_->aux_id();
         oa_inp.optical_id = launch_->aux_id();
-        oa_inp.material = inp.material;
+        oa_inp.material = inp.optical_params->material();
         oa_inp.shared = inp.cherenkov;
         cherenkov_offload_ = OffloadAction<GT::cherenkov>::make_and_insert(
             core, std::move(oa_inp));
@@ -101,19 +77,19 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     {
         // Create action to generate scintillation primaries
         optical::GeneratorAction<GT::scintillation>::Input ga_inp;
-        ga_inp.material = inp.material;
+        ga_inp.material = inp.optical_params->material();
         ga_inp.shared = inp.scintillation;
         ga_inp.capacity = inp.buffer_capacity;
         scint_generate_
             = optical::GeneratorAction<GT::scintillation>::make_and_insert(
-                core, *optical_params, std::move(ga_inp));
+                core, *inp.optical_params, std::move(ga_inp));
 
         // Create action to generate scintillation optical distributions
         OffloadAction<GT::scintillation>::Input oa_inp;
         oa_inp.step_id = gather_->aux_id();
         oa_inp.gen_id = scint_generate_->aux_id();
         oa_inp.optical_id = launch_->aux_id();
-        oa_inp.material = inp.material;
+        oa_inp.material = inp.optical_params->material();
         oa_inp.shared = inp.scintillation;
         scint_offload_ = OffloadAction<GT::scintillation>::make_and_insert(
             core, std::move(oa_inp));
@@ -121,7 +97,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
 
     // Save optical diagnostic information
     core.output_reg()->insert(std::make_shared<ActionRegistryOutput>(
-        optical_params->action_reg(), "optical-actions"));
+        inp.optical_params->action_reg(), "optical-actions"));
 
     // Add optical sizes
     detail::OpticalSizes sizes;
@@ -136,7 +112,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
             std::move(sizes)));
 
     // Save core params
-    optical_params_ = optical_params;
+    optical_params_ = std::move(inp.optical_params);
 
     CELER_ENSURE(optical_params_);
 }

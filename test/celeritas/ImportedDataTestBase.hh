@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas/io/ImportOpticalModel.hh"
+
 #include "GlobalGeoTestBase.hh"
 
 namespace celeritas
@@ -25,12 +27,18 @@ namespace test
 class ImportedDataTestBase : virtual public GlobalGeoTestBase
 {
   public:
+    using IMC = celeritas::optical::ImportModelClass;
+
+  public:
     //! Access lazily loaded problem-dependent data
     virtual ImportData const& imported_data() const = 0;
 
   protected:
     // Set up options for physics
     virtual PhysicsOptions build_physics_options() const;
+
+    // Determine which optical models to build
+    virtual std::vector<IMC> select_optical_models() const;
 
     // Implemented overrides that load from import data
     SPConstMaterial build_material() override;
