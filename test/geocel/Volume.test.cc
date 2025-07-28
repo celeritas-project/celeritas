@@ -72,6 +72,8 @@ struct MaxVisitor
             os << depth << ':' << labels.at(id).name;
             names.push_back(std::move(os).str());
         }
+        // Make reproducible across unordered map implementation
+        std::sort(names.begin(), names.end());
         return names;
     }
 };
@@ -338,6 +340,9 @@ TEST_F(ComplexVolumeTest, visit)
     {
         MaxVisitor mpv{volumes_.volume_labels(), {}};
         visit(mpv, VolumeId{0});
+        static std::string const expected_names[]
+            = {"0:A", "1:B", "2:C", "3:D", "3:E"};
+        EXPECT_VEC_EQ(expected_names, mpv.get_names());
     }
 }
 

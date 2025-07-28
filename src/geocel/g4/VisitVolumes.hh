@@ -31,7 +31,7 @@ class GeantVolumeAccessor final
         return result;
     }
 
-    //! Outgoing instance nodes from a volume
+    //! Outgoing instance edges from a volume
     ContainerVolInstRef children(VolumeRef parent) final
     {
         CELER_EXPECT(parent);
