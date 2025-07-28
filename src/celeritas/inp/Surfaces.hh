@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <algorithm>
 #include <map>
 
 #include "corecel/Types.hh"
