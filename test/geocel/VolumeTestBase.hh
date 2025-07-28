@@ -40,6 +40,21 @@ namespace test
    world      -> tube1_mid    "tube1_mid_pv"
    world      -> tube2        "tube2_above_pv"
  * \endverbatim
+ *
+ * The multi-level representation includes reflection and is:
+ * \verbatim
+   box       -> sph        "boxsph1:0"
+   box       -> sph        "boxsph2:0"
+   box       -> tri        "boxtri:0"
+   world     -> box        "topbox1"
+   world     -> sph        "topsph1"
+   world     -> box        "topbox2"
+   world     -> box        "topbox3"
+   world     -> box_refl   "topbox4"
+   box_refl  -> sph_refl   "boxsph1:1"
+   box_refl  -> sph_refl   "boxsph2:1"
+   box_refl  -> tri_refl   "boxtri:1"
+ * \endverbatim
  */
 class VolumeTestBase : public ::celeritas::test::Test
 {
@@ -52,6 +67,9 @@ class VolumeTestBase : public ::celeritas::test::Test
 
     // Create surfaces from the optical surfaces GDML
     inp::Volumes make_optical_volume_inp() const;
+
+    // Create multi-level volume output
+    inp::Volumes make_multi_level_volume_inp() const;
 };
 
 //---------------------------------------------------------------------------//

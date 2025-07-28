@@ -43,12 +43,13 @@ struct NameVisitor
     }
 };
 
+template<class T = VolumeId>
 struct MaxVisitor
 {
-    VolumeParams::VolumeMap const& labels;
-    std::unordered_map<VolumeId, int> max_depth;
+    LabelIdMultiMap<T> const& labels;
+    std::unordered_map<T, int> max_depth;
 
-    bool operator()(VolumeId id, int depth)
+    bool operator()(T id, int depth)
     {
         auto&& [iter, inserted] = max_depth.insert({id, depth});
         if (!inserted)
@@ -284,10 +285,117 @@ TEST_F(ComplexVolumeTest, visit)
     }
 
     {
-        MaxVisitor mpv{this->volumes().volume_labels(), {}};
+        MaxVisitor<> mpv{this->volumes().volume_labels(), {}};
         visit(mpv, VolumeId{0});
         static std::string const expected_names[]
             = {"0:A", "1:B", "2:C", "3:D", "3:E"};
+        EXPECT_VEC_EQ(expected_names, mpv.get_names());
+    }
+}
+
+//---------------------------------------------------------------------------//
+class MultiLevelTest : public VolumeTest
+{
+  public:
+    inp::Volumes make_volume_input() const final
+    {
+        return this->make_multi_level_volume_inp();
+    }
+};
+
+TEST_F(MultiLevelTest, visit)
+{
+    auto const& vols = this->volumes();
+    auto const world_vi
+        = vols.volume_instance_labels().find_unique("world_PV");
+    VolumeVisitor visit(vols);
+
+    {
+        NameVisitor nv{vols, {}};
+        visit(nv, vols.world());
+
+        static std::string const expected_names[] = {
+            "world",
+            "box",
+            "sph",
+            "sph",
+            "tri",
+            "sph",
+            "box",
+            "sph",
+            "sph",
+            "tri",
+            "box",
+            "sph",
+            "sph",
+            "tri",
+            "box_refl",
+            "sph_refl",
+            "sph_refl",
+            "tri_refl",
+        };
+        EXPECT_VEC_EQ(expected_names, nv.names);
+    }
+
+    {
+        NameVisitor nv{vols, {}};
+        visit(nv, world_vi);
+
+        static std::string const expected_names[] = {
+            "0:world_PV",
+            "1:topbox1",
+            "2:boxsph1",
+            "2:boxsph2",
+            "2:boxtri",
+            "1:topsph1",
+            "1:topbox2",
+            "2:boxsph1",
+            "2:boxsph2",
+            "2:boxtri",
+            "1:topbox3",
+            "2:boxsph1",
+            "2:boxsph2",
+            "2:boxtri",
+            "1:topbox4",
+            "2:boxsph1",
+            "2:boxsph2",
+            "2:boxtri",
+        };
+        EXPECT_VEC_EQ(expected_names, nv.names);
+    }
+
+    {
+        MaxVisitor<> mpv{vols.volume_labels(), {}};
+        visit(mpv, vols.world());
+        static std::string const expected_names[] = {
+            "0:world",
+            "1:box",
+            "1:box_refl",
+            "2:sph",
+            "2:sph_refl",
+            "2:tri",
+            "2:tri_refl",
+        };
+        EXPECT_VEC_EQ(expected_names, mpv.get_names());
+    }
+
+    {
+        MaxVisitor<VolumeInstanceId> mpv{vols.volume_instance_labels(), {}};
+        visit(mpv, world_vi);
+        static std::string const expected_names[] = {
+            "0:world_PV",
+            "1:topbox1",
+            "1:topbox2",
+            "1:topbox3",
+            "1:topbox4",
+            "1:topsph1",
+            "2:boxsph1",
+            "2:boxsph1",
+            "2:boxsph2",
+            "2:boxsph2",
+            "2:boxtri",
+            "2:boxtri",
+        };
         EXPECT_VEC_EQ(expected_names, mpv.get_names());
     }
 }

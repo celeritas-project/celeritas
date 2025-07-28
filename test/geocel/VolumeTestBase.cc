@@ -109,5 +109,49 @@ inp::Volumes VolumeTestBase::make_optical_volume_inp() const
 }
 
 //---------------------------------------------------------------------------//
+
+inp::Volumes VolumeTestBase::make_multi_level_volume_inp() const
+{
+    inp::Volumes in;
+    in.volumes = {
+        {"sph", GeoMatId{0}, {}},
+        {"tri", GeoMatId{0}, {}},
+        {"box",
+         GeoMatId{1},
+         {VolumeInstanceId{0}, VolumeInstanceId{1}, VolumeInstanceId{2}}},
+        {"world",
+         GeoMatId{0},
+         {VolumeInstanceId{3},
+          VolumeInstanceId{4},
+          VolumeInstanceId{5},
+          VolumeInstanceId{6},
+          VolumeInstanceId{10}}},
+        {"box_refl",
+         GeoMatId{1},
+         {VolumeInstanceId{7}, VolumeInstanceId{8}, VolumeInstanceId{9}}},
+        {"sph_refl", GeoMatId{0}, {}},
+        {"tri_refl", GeoMatId{0}, {}},
+    };
+
+    in.volume_instances = {
+        {Label{"boxsph1", "0"}, VolumeId{0}},
+        {Label{"boxsph2", "0"}, VolumeId{0}},
+        {Label{"boxtri", "0"}, VolumeId{1}},
+        {"topbox1", VolumeId{2}},
+        {"topsph1", VolumeId{0}},
+        {"topbox2", VolumeId{2}},
+        {"topbox3", VolumeId{2}},
+        {Label{"boxsph1", "1"}, VolumeId{5}},
+        {Label{"boxsph2", "1"}, VolumeId{5}},
+        {Label{"boxtri", "1"}, VolumeId{6}},
+        {"topbox4", VolumeId{4}},
+        {"world_PV", VolumeId{3}},
+    };
+
+    in.world = VolumeId{3};
+    return in;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
