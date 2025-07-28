@@ -617,7 +617,7 @@ inp::OpticalPhysics import_optical_physics()
 {
     inp::OpticalPhysics result;
     result.surfaces = GeantSurfacePhysicsLoader()();
-    // \todo: CELER_ENSURE(result);
+    //! \todo: CELER_ENSURE(result); when optical options are correctly set
     return result;
 }
 

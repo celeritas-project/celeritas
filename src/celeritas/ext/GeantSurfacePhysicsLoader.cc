@@ -377,6 +377,7 @@ inp::Grid GeantSurfacePhysicsLoader::calc_diffuse_lobe(
  *   - Roughness: uses polished or smear; Gaussian is never used.
  * - Unified
  *   - Roughness: uses Gaussian or polished; smear is never used.
+ *   - ReflectiomForm: \c specular_spike , \c specular_lobe , \c back_scatter .
  */
 void GeantSurfacePhysicsLoader::validate_model(SurfaceId sid,
                                                G4OpticalSurface const& surf,
@@ -410,6 +411,10 @@ void GeantSurfacePhysicsLoader::validate_model(SurfaceId sid,
                             || GSPL_IS_MAPPED(roughness.polished)),
                            << "Missing Gaussian roughness or polished surface "
                               "from Unified model");
+            CELER_VALIDATE((GSPL_IS_MAPPED(interaction.dielectric_dielectric)
+                            || GSPL_IS_MAPPED(interaction.dielectric_metal)),
+                           << "Missing ReflectionForm data for surface '"
+                           << result.names.find(sid)->second << "'");
 
             // Expected empty maps
             CELER_VALIDATE(!GSPL_IS_MAPPED(roughness.smear),

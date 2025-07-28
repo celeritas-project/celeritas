@@ -45,12 +45,18 @@ describing how optical photons should interact with it.
    :members:
    :no-link:
 
-``SurfacePhysics`` (below) untangles the Geant4 surface model design, which
-leads to high code-branching, into separate mechanisms for surface reflectivity,
-roughness, and interaction models. In the Celeritas design, a given Geant4 model
-(e.g. GLISUR or Unified) is represented by a combination of those 3 mechanisms.
-This unfolding leads to a less simple input, but reduces kernel size/complexity
-on the GPU.
+Celeritas' ``SurfacePhysics`` implementation is designed differently from Geant4
+and is meant to reduce code branching. In Geant4 one single model (e.g. Unified)
+encompasses interface type (e.g. dielectric-dielectric), multiple reflection
+mechanisms (specular spike, specular lobe, etc.), and surface roughness types
+(polished or Gaussian). Celeritas describes an optical surface based on its
+interface type, the possible reflection mechanisms it can undergo, its
+roughness, and other parameters, such as detector efficiency in case it is a
+scoring surface for an optical detector such as a PMT or SiPM. A specific Geant4
+model (e.g. Unified) is simply a specific combination of such characteristics.
+This "model unfolding" leads to a less simple input definition compared to
+Geant4, but allows for a more general surface definition system. This leads to
+better extensibility and reduces kernel size/complexity on the GPU.
 
 .. doxygenstruct:: celeritas::inp::SurfacePhysics
     :members:
