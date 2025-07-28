@@ -34,7 +34,7 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
     auto make_field_input = []() {
         celeritas::inp::UniformField input;
 
-        input.strength = {0, 3, 0};
+        input.strength = {0, 0, 3};
         constexpr auto celer_mm = celeritas::units::millimeter;
         input.driver_options.minimum_step = 1e-6 * celer_mm;
         input.driver_options.delta_chord = 0.025 * celer_mm;
