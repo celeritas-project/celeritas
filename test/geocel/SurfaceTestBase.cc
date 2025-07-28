@@ -51,6 +51,7 @@ std::shared_ptr<SurfaceParams> ManySurfacesTestBase::build_surfaces() const
         make_surface("bc2", VolInstId{0}, VolInstId{2}),
         make_surface("ec", VolInstId{6}, VolInstId{1}),
         make_surface("db", VolInstId{4}, VolInstId{1}),
+        make_surface("c", VolumeId{2}),
     }};
 
     return std::make_shared<SurfaceParams>(std::move(in), this->volumes());

@@ -8,6 +8,7 @@
 
 #include "geocel/SurfaceParams.hh"
 #include "geocel/SurfaceTestBase.hh"
+#include "geocel/VolumeParams.hh"
 
 #include "celeritas_test.hh"
 
@@ -17,22 +18,18 @@ namespace optical
 {
 namespace test
 {
-using namespace ::celeritas::test;
 //---------------------------------------------------------------------------//
-// TEST HARNESS
+// MANY-SURFACES
 //---------------------------------------------------------------------------//
 
-class VolumeSurfaceSelectorTest : public SurfaceTestBase
-{
-};
+using VolumeSurfaceSelectorTest = ::celeritas::test::ManySurfacesTestBase;
 
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
 // Test surface selection for various pre and post volume instances
 TEST_F(VolumeSurfaceSelectorTest, select_surface)
 {
-    SurfaceParams surfaces{this->make_many_surfaces_inp(), volumes_};
+    // TODO: fix after Hayden's merge
+    auto const& surfaces = this->surfaces();
+    auto const& volumes_ = this->volumes();
 
     auto select_surfaces = [&](VolumeInstanceId pre_vol_inst) {
         std::vector<SurfaceId> results;
@@ -127,14 +124,9 @@ TEST_F(VolumeSurfaceSelectorTest, select_surface)
 // Explicitly check current precedence for mother-daughter boundaries
 TEST_F(VolumeSurfaceSelectorTest, mother_daughter)
 {
-    SurfaceParams surfaces{
-        ([&]() {
-            auto surface_input = this->make_many_surfaces_inp();
-            // Add a boundary surface to C volumes
-            surface_input.surfaces.push_back(make_surface("c", VolumeId{2}));
-            return surface_input;
-        })(),
-        volumes_};
+    // TODO: fix after Hayden's merge
+    auto const& surfaces = this->surfaces();
+    auto const& volumes_ = this->volumes();
 
     // Mother volume B
     VolumeInstanceId mother{0};
