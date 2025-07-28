@@ -92,6 +92,9 @@ class GeantGeoParams final : public GeoParamsInterface,
     //! Outer bounding box of geometry
     BBox const& bbox() const final { return bbox_; }
 
+    // Maximum nested scene/volume depth
+    LevelId::size_type max_depth() const { return max_depth_; }
+
     // Create model parameters corresponding to our internal representation
     inp::Model make_model_input() const final;
 
@@ -180,6 +183,7 @@ class GeantGeoParams final : public GeoParamsInterface,
     VolInstanceMap vol_instances_;
     std::vector<G4LogicalSurface const*> surfaces_;
     BBox bbox_;
+    LevelId::size_type max_depth_{0};
 
     // Storage
     HostRef data_;
