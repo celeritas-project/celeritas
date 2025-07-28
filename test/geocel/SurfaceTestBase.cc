@@ -37,5 +37,22 @@ inp::Surfaces SurfaceTestBase::make_many_surfaces_inp()
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Create many-connected surfaces input.
+ */
+inp::Surfaces SurfaceTestBase::make_optical_surfaces_inp()
+{
+    volumes_ = VolumeParams(this->make_optical_volume_inp());
+
+    return inp::Surfaces{{
+        make_surface("sphere_skin", VolumeId{0}),
+        make_surface("tube2_skin", VolumeId{2}),
+        make_surface("below_to_1", VolumeInstanceId{1}, VolumeInstanceId{2}),
+        make_surface("mid_to_below", VolumeInstanceId{2}, VolumeInstanceId{1}),
+        make_surface("mid_to_above", VolumeInstanceId{2}, VolumeInstanceId{3}),
+    }};
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

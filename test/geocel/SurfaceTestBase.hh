@@ -53,12 +53,23 @@ make_surface(std::string&& label, VolumeInstanceId pre, VolumeInstanceId post)
     db  : interface 4 -> 1
  * \endverbatim
  *
+ * The optical surfaces are:
+ * \verbatim
+    sphere_skin   : boundary for 0 (lar_sphere)
+    tube2_skin    : boundary for 1 (tube2)
+    below_to_1    : interface 1 -> 2 (tube2_below_pv -> tube1_mid_pv)
+    mid_to_below  : interface 2 -> 1 (tube1_mid_pv -> tube2_below_pv)
+    mid_to_above  : interface 2 -> 3 (tube1_mid_pv -> tube2_above_pv)
+ * \endverbatim
  */
 class SurfaceTestBase : public VolumeTestBase
 {
   public:
     // Create many-connected surfaces input and corresponding volumes
     inp::Surfaces make_many_surfaces_inp();
+
+    // Create surfaces from `optical-surfaces.gdml`
+    inp::Surfaces make_optical_surfaces_inp();
 
     //! Access volumes created by surfaces input
     VolumeParams const& volumes() const { return volumes_; }

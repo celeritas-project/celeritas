@@ -74,5 +74,40 @@ inp::Volumes VolumeTestBase::make_complex_volume_inp() const
 }
 
 //---------------------------------------------------------------------------//
+
+inp::Volumes VolumeTestBase::make_optical_volume_inp() const
+{
+    using namespace inp;
+    Volumes in;
+    in.volumes = {
+        {"lar_sphere", GeoMatId{1}, {}},
+        {"tube1_mid", GeoMatId{2}, {}},
+        {"tube2", GeoMatId{2}, {}},
+        {
+            "world",
+            GeoMatId{3},
+            {
+                VolumeInstanceId{0},
+                VolumeInstanceId{1},
+                VolumeInstanceId{2},
+                VolumeInstanceId{3},
+            },
+        },
+    };
+
+    // 2) Physical‐volume instances
+    in.volume_instances = {
+        {"lar_pv", VolumeId{0}},
+        {"tube2_below_pv", VolumeId{2}},
+        {"tube1_mid_pv", VolumeId{1}},
+        {"tube2_above_pv", VolumeId{2}},
+        {"world_PV", VolumeId{3}},
+    };
+
+    in.world = VolumeId{3};
+    return in;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

@@ -33,6 +33,13 @@ namespace test
      C -> E "5"
  * \endverbatim
  *
+ * The "optical surfaces" test creates surfaces from `optical-surfaces.gdml`.
+ * \verbatim
+ * world      -> lar_sphere   "lar_pv"
+   world      -> tube2        "tube2_below_pv"
+   world      -> tube1_mid    "tube1_mid_pv"
+   world      -> tube2        "tube2_above_pv"
+ * \endverbatim
  */
 class VolumeTestBase : public ::celeritas::test::Test
 {
@@ -42,6 +49,9 @@ class VolumeTestBase : public ::celeritas::test::Test
 
     // Create volumes A-E with instances 0 through 5.
     inp::Volumes make_complex_volume_inp() const;
+
+    // Create surfaces from the optical surfaces GDML
+    inp::Volumes make_optical_volume_inp() const;
 };
 
 //---------------------------------------------------------------------------//

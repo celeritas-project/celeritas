@@ -217,5 +217,50 @@ TEST_F(ManySurfacesTest, vs_view)
 }
 
 //---------------------------------------------------------------------------//
+//! Construct with interfaces too
+class OpticalSurfacesTest : public SurfacesTest
+{
+  public:
+    inp::Surfaces make_surface_input() final
+    {
+        return this->make_optical_surfaces_inp();
+    }
+};
+
+TEST_F(OpticalSurfacesTest, params)
+{
+    auto const& sp = this->surfaces();
+    EXPECT_FALSE(sp.empty());
+    EXPECT_FALSE(sp.disabled());
+    EXPECT_EQ(5, sp.num_surfaces());
+    static char const* const expected_labels[] = {
+        "sphere_skin",
+        "tube2_skin",
+        "below_to_1",
+        "mid_to_below",
+        "mid_to_above",
+    };
+    EXPECT_VEC_EQ(expected_labels, get_multimap_labels(sp.labels()));
+}
+
+TEST_F(OpticalSurfacesTest, vs_view)
+{
+    auto const& sp = this->surfaces();
+    {
+        VolumeSurfaceView vsv(sp.host_ref(), VolumeId{0});  // lar_pv
+        EXPECT_EQ(SurfaceId{0}, vsv.boundary_id());
+        EXPECT_FALSE(vsv.has_interface());
+    }
+    {
+        VolumeSurfaceView vsv(sp.host_ref(), VolumeId{1});  // tube1_mid
+        EXPECT_EQ(SurfaceId{}, vsv.boundary_id());
+        EXPECT_TRUE(vsv.has_interface());
+        EXPECT_EQ(SurfaceId{3}, vsv.find_interface(VolInstId{2}, VolInstId{1}));
+        EXPECT_EQ(SurfaceId{4}, vsv.find_interface(VolInstId{2}, VolInstId{3}));
+        EXPECT_EQ(SurfaceId{}, vsv.find_interface(VolInstId{2}, VolInstId{2}));
+    }
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
