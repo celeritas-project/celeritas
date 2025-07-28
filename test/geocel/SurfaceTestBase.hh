@@ -10,6 +10,7 @@
 #include "geocel/inp/Model.hh"
 
 #include "Test.hh"
+#include "VolumeTestBase.hh"
 
 namespace celeritas
 {
@@ -37,20 +38,7 @@ make_surface(std::string&& label, VolumeInstanceId pre, VolumeInstanceId post)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct volume params at setup time.
- *
- * It constructs volumes A through E with three instances of C (one inside A,
- * two inside B), placing them in the hierarchy with the following volume
- * instances:
- * \verbatim
-   {parent} -> {daughter} "{volume instance label}"
-     A -> B "0"
-     A -> C "1"
-     B -> C "2"
-     B -> C "3"
-     C -> D "4"
-     C -> E "5"
- * \endverbatim
+ * Construct volume params and emit surface input on request.
  *
  * The "many surface" constructor builds the following surfaces:
  * \verbatim
@@ -66,14 +54,14 @@ make_surface(std::string&& label, VolumeInstanceId pre, VolumeInstanceId post)
  * \endverbatim
  *
  */
-class SurfaceTestBase : public ::celeritas::test::Test
+class SurfaceTestBase : public VolumeTestBase
 {
   public:
-    // Construct volumes
-    void SetUp() override;
+    // Create many-connected surfaces input and corresponding volumes
+    inp::Surfaces make_many_surfaces_inp();
 
-    // Create many-connected surfaces input
-    inp::Surfaces make_many_surfaces_inp() const;
+    //! Access volumes created by surfaces input
+    VolumeParams const& volumes() const { return volumes_; }
 
   protected:
     VolumeParams volumes_;

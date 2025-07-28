@@ -24,52 +24,16 @@ namespace celeritas
 {
 namespace test
 {
+//---------------------------------------------------------------------------//
 using VolInstId = VolumeInstanceId;
 
-//---------------------------------------------------------------------------//
-
-class SurfacesTest : public SurfaceTestBase
+using SurfaceErrorsTest = VolumeTestBase;
+TEST_F(SurfaceErrorsTest, errors)
 {
-  protected:
-};
+    VolumeParams const volumes{this->make_complex_volume_inp()};
 
-//! Construct for EM-only physics
-TEST_F(SurfacesTest, none)
-{
-    SurfaceParams sp;
-    EXPECT_TRUE(sp.empty());
-    EXPECT_TRUE(sp.disabled());
-    EXPECT_EQ(0, sp.num_surfaces());
-    EXPECT_EQ(0, sp.labels().size());
-
-    if (CELERITAS_DEBUG)
-    {
-        EXPECT_THROW(VolumeSurfaceView(sp.host_ref(), VolumeId{0}), DebugError);
-    }
-}
-
-//! Construct for optical physics
-TEST_F(SurfacesTest, none_but_volumes)
-{
-    auto volumes = this->volumes_;
-    SurfaceParams sp{{}, volumes};
-    EXPECT_TRUE(sp.empty());
-    EXPECT_FALSE(sp.disabled());
-    EXPECT_EQ(0, sp.num_surfaces());
-    EXPECT_EQ(0, sp.labels().size());
-
-    {
-        VolumeSurfaceView vsv(sp.host_ref(), VolumeId{0});
-        EXPECT_EQ(SurfaceId{}, vsv.boundary_id());
-        EXPECT_FALSE(vsv.has_interface());
-    }
-}
-
-TEST_F(SurfacesTest, errors)
-{
     ScopedLogStorer scoped_log_{&celeritas::world_logger()};
 
-    auto volumes = this->volumes_;
     // Duplicate boundary surface
     EXPECT_THROW(SurfaceParams(inp::Surfaces{{
                                    make_surface("ok", VolumeId{1}),
@@ -94,21 +58,108 @@ TEST_F(SurfacesTest, errors)
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
-TEST_F(SurfacesTest, borders)
-{
-    SurfaceParams sp{inp::Surfaces{{
-                         make_surface("b", VolumeId{1}),
-                         make_surface("d", VolumeId{3}),
-                         make_surface("e", VolumeId{4}),
-                     }},
-                     this->volumes_};
+//---------------------------------------------------------------------------//
 
+class SurfacesTest : public SurfaceTestBase
+{
+  public:
+    void SetUp()
+    {
+        surfaces_ = SurfaceParams{this->make_surface_input(), this->volumes()};
+    }
+
+    virtual inp::Surfaces make_surface_input() = 0;
+
+    SurfaceParams const& surfaces() const { return surfaces_; }
+
+  private:
+    SurfaceParams surfaces_;
+};
+
+//---------------------------------------------------------------------------//
+//! Construct for EM-only physics
+class NoSurfacesTest : public SurfacesTest
+{
+  public:
+    inp::Surfaces make_surface_input() final
+    {
+        CELER_ENSURE(this->volumes().empty());
+        return {};
+    }
+};
+
+TEST_F(NoSurfacesTest, params)
+{
+    auto const& sp = this->surfaces();
+    EXPECT_TRUE(sp.empty());
+    EXPECT_TRUE(sp.disabled());
+    EXPECT_EQ(0, sp.num_surfaces());
+    EXPECT_EQ(0, sp.labels().size());
+}
+
+TEST_F(NoSurfacesTest, TEST_IF_CELERITAS_DEBUG(vs_view))
+{
+    auto const& sp = this->surfaces();
+    EXPECT_THROW(VolumeSurfaceView(sp.host_ref(), VolumeId{0}), DebugError);
+}
+
+//---------------------------------------------------------------------------//
+//! Construct for optical physics
+class NoSurfacesWithVolsTest : public SurfacesTest
+{
+  public:
+    inp::Surfaces make_surface_input() final
+    {
+        volumes_ = VolumeParams{this->make_single_volume_inp()};
+        return {};
+    }
+};
+
+TEST_F(NoSurfacesWithVolsTest, params)
+{
+    auto const& sp = this->surfaces();
+    EXPECT_TRUE(sp.empty());
+    EXPECT_FALSE(sp.disabled());
+    EXPECT_EQ(0, sp.num_surfaces());
+    EXPECT_EQ(0, sp.labels().size());
+}
+
+TEST_F(NoSurfacesWithVolsTest, vs_view)
+{
+    VolumeSurfaceView vsv(this->surfaces().host_ref(), VolumeId{0});
+    EXPECT_EQ(SurfaceId{}, vsv.boundary_id());
+    EXPECT_FALSE(vsv.has_interface());
+}
+
+//---------------------------------------------------------------------------//
+//! Construct with just borders
+class BorderSurfacesTest : public SurfacesTest
+{
+  public:
+    inp::Surfaces make_surface_input() final
+    {
+        volumes_ = VolumeParams{this->make_complex_volume_inp()};
+        return {{
+            make_surface("b", VolumeId{1}),
+            make_surface("d", VolumeId{3}),
+            make_surface("e", VolumeId{4}),
+        }};
+    }
+};
+
+TEST_F(BorderSurfacesTest, params)
+{
+    auto const& sp = this->surfaces();
     EXPECT_FALSE(sp.empty());
     EXPECT_FALSE(sp.disabled());
     EXPECT_EQ(3, sp.num_surfaces());
     static char const* const expected_labels[] = {"b", "d", "e"};
     EXPECT_VEC_EQ(expected_labels, get_multimap_labels(sp.labels()));
+}
 
+TEST_F(BorderSurfacesTest, vs_view)
+{
+    auto const& sp = this->surfaces();
     {
         VolumeSurfaceView vsv(sp.host_ref(), VolumeId{0});
         EXPECT_EQ(VolumeId{0}, vsv.volume_id());
@@ -128,9 +179,21 @@ TEST_F(SurfacesTest, borders)
     }
 }
 
-TEST_F(SurfacesTest, interfaces)
+//---------------------------------------------------------------------------//
+//! Construct with interfaces too
+class ManySurfacesTest : public SurfacesTest
 {
-    SurfaceParams sp{this->make_many_surfaces_inp(), this->volumes_};
+  public:
+    inp::Surfaces make_surface_input() final
+    {
+        return this->make_many_surfaces_inp();
+    }
+};
+
+TEST_F(ManySurfacesTest, vs_view)
+{
+    auto const& sp = this->surfaces();
+    ASSERT_EQ(5, this->volumes().num_volumes());
     {
         VolumeSurfaceView vsv(sp.host_ref(), VolumeId{0});  // A -> any
         EXPECT_FALSE(vsv.has_interface());
