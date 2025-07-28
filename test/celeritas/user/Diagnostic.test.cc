@@ -10,6 +10,7 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "geocel/UnitUtils.hh"
+#include "geocel/VolumeParams.hh"
 #include "celeritas/SimpleTestBase.hh"
 #include "celeritas/TestEm3Base.hh"
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
@@ -72,7 +73,7 @@ class TestEm3DiagnosticTest : public TestEm3Base, public DiagnosticTestBase
             *this->particle(), *this->material(), this->imported_data());
 
         auto result = std::make_shared<AlongStepUniformMscAction>(
-            action_reg.next_id(), *this->geometry(), field_inp, nullptr, msc);
+            action_reg.next_id(), *this->volume(), field_inp, nullptr, msc);
         CELER_ASSERT(result);
         CELER_ASSERT(result->has_msc());
         action_reg.insert(result);

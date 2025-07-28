@@ -25,6 +25,7 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantGdmlLoader.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/SurfaceParams.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -42,6 +43,7 @@
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/UniformFieldData.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -241,7 +243,7 @@ auto build_along_step(inp::Field const& var_field,
             [&](inp::UniformField const& field) {
                 using ASA = AlongStepUniformMscAction;
                 return ASA::from_params(next_id,
-                                        *params.geometry,
+                                        *params.volume,
                                         *params.material,
                                         *params.particle,
                                         field,
@@ -406,7 +408,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 
     // Create geometry/material coupling
     params.geomaterial = GeoMaterialParams::from_import(
-        imported, params.geometry, params.material);
+        imported, params.volume, params.material);
 
     // Construct particle params
     params.particle = ParticleParams::from_import(imported);
@@ -569,19 +571,19 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 
     if (p.scoring.sd)
     {
-        result.geant_sd = std::make_shared<GeantSd>(core_params->geometry(),
-                                                    *core_params->particle(),
-                                                    *p.scoring.sd,
-                                                    core_params->max_streams());
+        result.geant_sd
+            = std::make_shared<GeantSd>(core_params->geometry(),
+                                        celeritas::geant_geo().lock(),
+                                        *core_params->particle(),
+                                        *p.scoring.sd,
+                                        core_params->max_streams());
         step_interfaces.push_back(result.geant_sd);
     }
 
     if (p.scoring.simple_calo)
     {
-        auto simple_calo
-            = std::make_shared<SimpleCalo>(p.scoring.simple_calo->volumes,
-                                           *core_params->geometry(),
-                                           num_streams);
+        auto simple_calo = std::make_shared<SimpleCalo>(
+            p.scoring.simple_calo->volumes, *core_params->volume(), num_streams);
 
         // Add to step interfaces
         step_interfaces.push_back(simple_calo);

@@ -22,6 +22,7 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/math/QuantityIO.hh"
 #include "corecel/sys/Environment.hh"
+#include "geocel/VolumeParams.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -108,8 +109,8 @@ void log_state(Logger::Message& msg,
 
     if (core_params && kce.volume())
     {
-        auto const& geo_params = *core_params->geometry();
-        msg << "\n- Volume: " << geo_params.impl_volumes().at(kce.volume())
+        auto const& volume_params = *core_params->volume();
+        msg << "\n- Volume: " << volume_params.volume_labels().at(kce.volume())
             << " (ID=" << kce.volume() << ')';
     }
     else

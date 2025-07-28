@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "celeritas/Types.hh"
-#include "celeritas/geo/GeoFwd.hh"
 
 #include "StepInterface.hh"
 
@@ -20,6 +19,7 @@ namespace celeritas
 class ActionRegistry;
 class AuxParamsRegistry;
 class CoreParams;
+class VolumeParams;
 
 namespace detail
 {
@@ -51,7 +51,7 @@ class StepCollector
     //!@{
     //! \name Type aliases
     using SPStepInterface = std::shared_ptr<StepInterface>;
-    using SPConstCoreGeo = std::shared_ptr<CoreGeoParams const>;
+    using SPConstVolumes = std::shared_ptr<VolumeParams const>;
     using VecInterface = std::vector<SPStepInterface>;
     //!@}
 
@@ -61,7 +61,7 @@ class StepCollector
     make_and_insert(CoreParams const& core, VecInterface callbacks);
 
     // Construct with options and register pre/post-step actions
-    StepCollector(SPConstCoreGeo geo,
+    StepCollector(SPConstVolumes volumes,
                   VecInterface&& callbacks,
                   AuxParamsRegistry* aux_registry,
                   ActionRegistry* action_registry);

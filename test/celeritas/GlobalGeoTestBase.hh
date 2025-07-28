@@ -39,6 +39,9 @@ class GlobalGeoTestBase : virtual public GlobalTestBase,
     // Construct a geometry that's persistent across tests
     SPConstCoreGeo build_geometry() override;
 
+    // Construct volume parameters from geometry
+    SPConstVolume build_volume() override;
+
   protected:
     using SPGeantGeo = std::shared_ptr<GeantGeoParams>;
 

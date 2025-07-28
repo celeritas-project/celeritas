@@ -13,7 +13,7 @@
 
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/sys/ActionRegistry.hh"
-#include "celeritas/geo/CoreGeoParams.hh"  // IWYU pragma: keep
+#include "geocel/VolumeParams.hh"
 #include "celeritas/global/CoreParams.hh"
 
 #include "StepInterface.hh"
@@ -30,7 +30,7 @@ namespace celeritas
 std::shared_ptr<StepCollector>
 StepCollector::make_and_insert(CoreParams const& core, VecInterface callbacks)
 {
-    return std::make_shared<StepCollector>(core.geometry(),
+    return std::make_shared<StepCollector>(core.volume(),
                                            std::move(callbacks),
                                            core.aux_reg().get(),
                                            core.action_reg().get());
@@ -40,19 +40,19 @@ StepCollector::make_and_insert(CoreParams const& core, VecInterface callbacks)
 /*!
  * Construct with options and register pre and/or post-step actions.
  */
-StepCollector::StepCollector(SPConstCoreGeo geo,
+StepCollector::StepCollector(SPConstVolumes volumes,
                              VecInterface&& callbacks,
                              AuxParamsRegistry* aux_registry,
                              ActionRegistry* action_registry)
 {
     CELER_EXPECT(!callbacks.empty());
     CELER_EXPECT(std::all_of(callbacks.begin(), callbacks.end(), Identity{}));
-    CELER_EXPECT(geo);
+    CELER_EXPECT(volumes);
     CELER_EXPECT(aux_registry);
     CELER_EXPECT(action_registry);
 
     params_ = std::make_shared<detail::StepParams>(
-        aux_registry->next_id(), *geo, callbacks);
+        aux_registry->next_id(), *volumes, callbacks);
     aux_registry->insert(params_);
 
     if (this->selection().points[StepPoint::pre] || params_->has_detectors())

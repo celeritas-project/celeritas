@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeoParamsInterface.hh"
 
@@ -36,12 +37,12 @@ class SensDetInserter
     //! \name Type aliases
     using SetLV = std::unordered_set<G4LogicalVolume const*>;
     using VecLV = std::vector<G4LogicalVolume const*>;
-    using MapIdLv = std::map<ImplVolumeId, G4LogicalVolume const*>;
+    using MapIdLv = std::map<VolumeId, G4LogicalVolume const*>;
     //!@}
 
   public:
     // Construct with defaults
-    inline SensDetInserter(GeoParamsInterface const& geo,
+    inline SensDetInserter(GeantGeoParams const& geo,
                            SetLV const& skip_volumes,
                            MapIdLv* found,
                            VecLV* missing);
@@ -53,13 +54,13 @@ class SensDetInserter
     void operator()(G4LogicalVolume const* lv);
 
   private:
-    GeoParamsInterface const& geo_;
+    GeantGeoParams const& geo_;
     GeantVolumeMapper g4_to_celer_;
     SetLV const& skip_volumes_;
     MapIdLv* found_;
     VecLV* missing_;
 
-    ImplVolumeId insert_impl(G4LogicalVolume const* lv);
+    VolumeId insert_impl(G4LogicalVolume const* lv);
 };
 
 //---------------------------------------------------------------------------//
@@ -68,7 +69,7 @@ class SensDetInserter
 /*!
  * Construct with references to the inserted data.
  */
-SensDetInserter::SensDetInserter(GeoParamsInterface const& geo,
+SensDetInserter::SensDetInserter(GeantGeoParams const& geo,
                                  SetLV const& skip_volumes,
                                  MapIdLv* found,
                                  VecLV* missing)

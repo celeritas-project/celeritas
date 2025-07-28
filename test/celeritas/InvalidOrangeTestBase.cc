@@ -110,7 +110,7 @@ auto InvalidOrangeTestBase::build_geometry() -> SPConstCoreGeo
 auto InvalidOrangeTestBase::build_geomaterial() -> SPConstGeoMaterial
 {
     GeoMaterialParams::Input input;
-    input.geometry = this->geometry();
+    input.volume_params = this->volume();
     input.materials = this->material();
     input.volume_to_mat = {
         PhysMatId{0},

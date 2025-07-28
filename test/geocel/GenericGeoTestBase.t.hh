@@ -101,7 +101,10 @@ std::string GenericGeoTestBase<HP>::volume_name(GeoTrackView const& geo) const
     {
         return "[OUTSIDE]";
     }
-    return this->geometry()->impl_volumes().at(geo.impl_volume_id()).name;
+    return this->geometry()
+        ->impl_volumes()
+        .at(this->geometry()->to_impl_volume(geo.volume_id()))
+        .name;
 }
 
 //---------------------------------------------------------------------------//
@@ -215,14 +218,14 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
                     return std::string{"---"};
                 }
                 std::string s = vol_inst.at(vi_id).name;
-                if (auto phys_inst = geo_params.id_to_geant(vi_id))
-                {
-                    if (phys_inst.replica)
-                    {
-                        s += '@';
-                        s += std::to_string(phys_inst.replica.get());
-                    }
-                }
+                // if (auto phys_inst = geo_params.id_to_geant(vi_id))
+                // {
+                //     if (phys_inst.replica)
+                //     {
+                //         s += '@';
+                //         s += std::to_string(phys_inst.replica.get());
+                //     }
+                // }
                 return s;
             }());
         }
@@ -270,7 +273,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
             {
                 // Check reinitialization if not tangent to a surface
                 GeoTrackInitializer const init{geo.pos(), geo.dir()};
-                auto prev_id = geo.impl_volume_id();
+                auto prev_id = geo.volume_id();
                 geo = init;
                 if (geo.is_outside())
                 {
@@ -279,7 +282,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
                                   << init.pos;
                     break;
                 }
-                if (geo.impl_volume_id() != prev_id)
+                if (geo.volume_id() != prev_id)
                 {
                     ADD_FAILURE()
                         << "reinitialization changed the volume at "

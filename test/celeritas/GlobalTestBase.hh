@@ -37,6 +37,7 @@ class TrackInitParams;
 class AuxParamsRegistry;
 class WentzelOKVIParams;
 class ExtendFromPrimariesAction;
+class VolumeParams;
 
 class CoreParams;
 template<MemSpace M>
@@ -84,6 +85,7 @@ class GlobalTestBase : public Test
     using SPConstSim = SP<SimParams const>;
     using SPConstTrackInit = SP<TrackInitParams const>;
     using SPConstWentzelOKVI = SP<WentzelOKVIParams const>;
+    using SPConstVolume = SP<VolumeParams const>;
     using SPConstCore = SP<CoreParams const>;
 
     using SPActionRegistry = SP<ActionRegistry>;
@@ -122,6 +124,7 @@ class GlobalTestBase : public Test
     inline SPConstWentzelOKVI const& wentzel();
     inline SPActionRegistry const& action_reg();
     inline SPUserRegistry const& aux_reg();
+    inline SPConstVolume const& volume();
     inline SPConstCore const& core();
     inline SPConstCherenkov const& cherenkov();
     inline SPConstOpticalMaterial const& optical_material();
@@ -141,6 +144,7 @@ class GlobalTestBase : public Test
     inline SPConstWentzelOKVI const& wentzel() const;
     inline SPActionRegistry const& action_reg() const;
     inline SPUserRegistry const& aux_reg() const;
+    inline SPConstVolume const& volume() const;
     inline SPConstCore const& core() const;
     inline SPConstCherenkov const& cherenkov() const;
     inline SPConstOpticalMaterial const& optical_material() const;
@@ -169,6 +173,7 @@ class GlobalTestBase : public Test
     [[nodiscard]] virtual SPConstSim build_sim() = 0;
     [[nodiscard]] virtual SPConstTrackInit build_init() = 0;
     [[nodiscard]] virtual SPConstWentzelOKVI build_wentzel() = 0;
+    [[nodiscard]] virtual SPConstVolume build_volume() = 0;
     [[nodiscard]] virtual SPConstAction build_along_step() = 0;
     [[nodiscard]] virtual SPConstCherenkov build_cherenkov() = 0;
     [[nodiscard]] virtual SPConstOpticalMaterial build_optical_material() = 0;
@@ -198,6 +203,7 @@ class GlobalTestBase : public Test
     SPConstSim sim_;
     SPConstTrackInit init_;
     SPConstWentzelOKVI wentzel_;
+    SPConstVolume volume_;
     SPConstCore core_;
     SPOutputRegistry output_reg_;
     SPConstCherenkov cherenkov_;
@@ -241,6 +247,7 @@ DEF_GTB_ACCESSORS(SPConstSim, sim)
 DEF_GTB_ACCESSORS(SPConstTrackInit, init)
 DEF_GTB_ACCESSORS(SPActionRegistry, action_reg)
 DEF_GTB_ACCESSORS(SPUserRegistry, aux_reg)
+DEF_GTB_ACCESSORS(SPConstVolume, volume)
 DEF_GTB_ACCESSORS(SPConstCore, core)
 DEF_GTB_ACCESSORS(SPConstCherenkov, cherenkov)
 DEF_GTB_ACCESSORS(SPConstOpticalMaterial, optical_material)

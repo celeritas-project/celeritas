@@ -127,7 +127,7 @@ std::vector<std::string> GenericGeoTestInterface::get_g4pv_labels() const
         result.push_back([&] {
             using namespace std::literals;
 
-            auto phys_inst = geo.id_to_geant(vi_id);
+            auto phys_inst = geant_geo->id_to_geant(vi_id);
             if (!phys_inst)
             {
                 return "<null>"s;

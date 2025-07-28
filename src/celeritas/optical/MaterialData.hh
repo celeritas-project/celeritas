@@ -30,7 +30,7 @@ struct MaterialParamsData
     template<class T>
     using OpticalMaterialItems = Collection<T, W, M, OptMatId>;
     template<class T>
-    using VolumeItems = celeritas::Collection<T, W, M, ImplVolumeId>;
+    using VolumeItems = celeritas::Collection<T, W, M, VolumeId>;
 
     //// MEMBER DATA ////
 

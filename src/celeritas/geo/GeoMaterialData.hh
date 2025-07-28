@@ -20,7 +20,7 @@ template<Ownership W, MemSpace M>
 struct GeoMaterialParamsData
 {
     template<class T>
-    using VolumeItems = celeritas::Collection<T, W, M, ImplVolumeId>;
+    using VolumeItems = celeritas::Collection<T, W, M, VolumeId>;
 
     VolumeItems<PhysMatId> materials;
 

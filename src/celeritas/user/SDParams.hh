@@ -17,7 +17,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-class GeoParamsInterface;
+class VolumeParams;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -33,7 +33,7 @@ class SDParams final : public ParamsDataInterface<SDParamsData>
     SDParams() {}
 
     //! Construct from volume labels
-    SDParams(VecLabel const& volume_labels, GeoParamsInterface const& geo);
+    SDParams(VecLabel const& volume_labels, VolumeParams const& params);
 
     //! Whether any detectors are present
     bool empty() const { return !static_cast<bool>(mirror_); }
@@ -42,13 +42,13 @@ class SDParams final : public ParamsDataInterface<SDParamsData>
     DetectorId::size_type size() const { return volume_ids_.size(); }
 
     //! Access detector ID based on volume ID
-    DetectorId volume_to_detector_id(ImplVolumeId vol_id)
+    DetectorId volume_to_detector_id(VolumeId vol_id)
     {
         return host_ref().detector[vol_id];
     }
 
     //! Access volume ID based on detector ID
-    ImplVolumeId detector_to_volume_id(DetectorId det_id)
+    VolumeId detector_to_volume_id(DetectorId det_id)
     {
         CELER_EXPECT(det_id < this->size());
         return volume_ids_[det_id.get()];
@@ -64,7 +64,7 @@ class SDParams final : public ParamsDataInterface<SDParamsData>
     //!@}
 
   private:
-    std::vector<ImplVolumeId> volume_ids_;
+    std::vector<VolumeId> volume_ids_;
     CollectionMirror<SDParamsData> mirror_;
 };
 

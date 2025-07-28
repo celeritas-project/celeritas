@@ -68,7 +68,7 @@ class ShiftTrackerTest : public OrangeGeoTestBase
         if (!track.is_outside())
         {
             boundary_state = BoundaryState::INSIDE;
-            cell = track.impl_volume_id().get();
+            cell = track.volume_id().get();
         }
         else
         {

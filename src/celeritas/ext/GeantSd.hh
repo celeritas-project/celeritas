@@ -32,6 +32,7 @@ class HitProcessor;
 }
 
 class ParticleParams;
+class GeantGeoParams;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -60,7 +61,8 @@ class GeantSd final : public StepInterface
     using HitProcessor = detail::HitProcessor;
     using SPProcessor = std::shared_ptr<HitProcessor>;
     using SPConstCoreGeo = std::shared_ptr<CoreGeoParams const>;
-    using VecVolId = std::vector<ImplVolumeId>;
+    using SPConstGeantGeo = std::shared_ptr<GeantGeoParams const>;
+    using VecVolId = std::vector<VolumeId>;
     using VecParticle = std::vector<G4ParticleDefinition const*>;
     using StepPointBool = EnumArray<StepPoint, bool>;
     using Input = inp::GeantSd;
@@ -69,6 +71,7 @@ class GeantSd final : public StepInterface
   public:
     // Construct with Celeritas objects for mapping
     GeantSd(SPConstCoreGeo geo,
+            SPConstGeantGeo geant_geo,
             ParticleParams const& par,
             Input const& setup,
             StreamId::size_type num_streams);
@@ -115,6 +118,7 @@ class GeantSd final : public StepInterface
 
     // Hit processor setup
     SPConstCoreGeo geo_;
+    SPConstGeantGeo geant_geo_;
     SPConstVecLV geant_vols_;
     VecParticle particles_;
     StepSelection selection_;
@@ -124,7 +128,7 @@ class GeantSd final : public StepInterface
     std::vector<HitProcessor*> processors_;
 
     // Construct vecgeom/geant volumes
-    void setup_volumes(CoreGeoParams const& geo, Input const& setup);
+    void setup_volumes(GeantGeoParams const& geo, Input const& setup);
     // Construct celeritas/geant particles
     void setup_particles(ParticleParams const& par);
 
@@ -135,6 +139,7 @@ class GeantSd final : public StepInterface
 #if !CELERITAS_USE_GEANT4
 
 inline GeantSd::GeantSd(SPConstCoreGeo,
+                        SPConstGeantGeo,
                         ParticleParams const&,
                         Input const&,
                         StreamId::size_type)

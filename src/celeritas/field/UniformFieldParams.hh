@@ -8,7 +8,6 @@
 
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
-#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/inp/Field.hh"
 
@@ -16,6 +15,8 @@
 
 namespace celeritas
 {
+class VolumeParams;
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct and store data for a uniform magnetic field.
@@ -27,11 +28,14 @@ class UniformFieldParams final
     //@{
     //! \name Type aliases
     using Input = inp::UniformField;
+    using SPConstGeantGeo = std::shared_ptr<GeantGeoParams const>;
     //@}
 
   public:
     // Construct with a uniform magnetic field
-    UniformFieldParams(CoreGeoParams const& geo, Input const& inp);
+    UniformFieldParams(VolumeParams const& volume_params,
+                       SPConstGeantGeo geant_geo,
+                       Input const& inp);
 
     //! Access field data on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }

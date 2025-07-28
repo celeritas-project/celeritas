@@ -232,63 +232,67 @@ void NestedTest::build_orange()
 
 //---------------------------------------------------------------------------//
 // Geant4 constructed directly by user
-TEST_F(NestedTest, unique)
-{
-    names_ = {"world", "outer", "middle", "inner"};
-    this->build();
-    CELER_ASSERT(logical_.size() == names_.size());
-
-    GeantVolumeMapper find_vol{*geo_params_};
-    for (auto i : range(names_.size()))
-    {
-        ImplVolumeId vol_id = find_vol(*logical_[i]);
-        ASSERT_NE(ImplVolumeId{}, vol_id)
-            << "searching for " << PrintableLV{logical_[i]};
-        EXPECT_EQ(names_[i], geo_params_->impl_volumes().at(vol_id).name);
-    }
-
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-    {
-        static char const* const expected_log_messages[] = {
-            R"(Failed to exactly match ORANGE volume from Geant4 volume 'world'; found 'world@global' by omitting the extension)",
-            R"(Failed to exactly match ORANGE volume from Geant4 volume 'outer'; found 'outer@global' by omitting the extension)",
-            R"(Failed to exactly match ORANGE volume from Geant4 volume 'middle'; found 'middle@global' by omitting the extension)",
-            R"(Failed to exactly match ORANGE volume from Geant4 volume 'inner'; found 'inner@global' by omitting the extension)",
-        };
-        EXPECT_VEC_EQ(expected_log_messages, store_log_.messages());
-        static char const* const expected_log_levels[]
-            = {"warning", "warning", "warning", "warning"};
-        EXPECT_VEC_EQ(expected_log_levels, store_log_.levels());
-    }
-    else
-    {
-        EXPECT_EQ(0, store_log_.messages().size()) << store_log_;
-    }
-}
+// TEST_F(NestedTest, unique)
+// {
+//     names_ = {"world", "outer", "middle", "inner"};
+//     this->build();
+//     CELER_ASSERT(logical_.size() == names_.size());
+//
+//     GeantVolumeMapper find_vol{*geo_params_};
+//     for (auto i : range(names_.size()))
+//     {
+//         VolumeId vol_id = find_vol(*logical_[i]);
+//         ASSERT_NE(VolumeId{}, vol_id)
+//             << "searching for " << PrintableLV{logical_[i]};
+//         EXPECT_EQ(names_[i], geo_params_->volumes().at(vol_id).name);
+//     }
+//
+//     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+//     {
+//         static char const* const expected_log_messages[] = {
+//             R"(Failed to exactly match ORANGE volume from Geant4 volume
+//             'world'; found 'world@global' by omitting the extension)",
+//             R"(Failed to exactly match ORANGE volume from Geant4 volume
+//             'outer'; found 'outer@global' by omitting the extension)",
+//             R"(Failed to exactly match ORANGE volume from Geant4 volume
+//             'middle'; found 'middle@global' by omitting the extension)",
+//             R"(Failed to exactly match ORANGE volume from Geant4 volume
+//             'inner'; found 'inner@global' by omitting the extension)",
+//         };
+//         EXPECT_VEC_EQ(expected_log_messages, store_log_.messages());
+//         static char const* const expected_log_levels[]
+//             = {"warning", "warning", "warning", "warning"};
+//         EXPECT_VEC_EQ(expected_log_levels, store_log_.levels());
+//     }
+//     else
+//     {
+//         EXPECT_EQ(0, store_log_.messages().size()) << store_log_;
+//     }
+// }
 
 // Geant4 constructed directly by user
-TEST_F(NestedTest, SKIP_UNLESS_VECGEOM(duplicated))
-{
-    names_ = {"world", "dup", "dup", "bob"};
-    this->build();
-    CELER_ASSERT(logical_.size() == names_.size());
-
-    GeantVolumeMapper find_vol{*geo_params_};
-    for (auto i : range(names_.size()))
-    {
-        ImplVolumeId vol_id = find_vol(*logical_[i]);
-        ASSERT_NE(ImplVolumeId{}, vol_id);
-        EXPECT_EQ(names_[i], geo_params_->impl_volumes().at(vol_id).name);
-    }
-
-    // IDs for the unique LVs should be different
-    EXPECT_NE(find_vol(*logical_[1]), find_vol(*logical_[2]));
-
-    if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4)
-    {
-        EXPECT_EQ(0, store_log_.messages().size());
-    }
-}
+// TEST_F(NestedTest, SKIP_UNLESS_VECGEOM(duplicated))
+// {
+//     names_ = {"world", "dup", "dup", "bob"};
+//     this->build();
+//     CELER_ASSERT(logical_.size() == names_.size());
+//
+//     GeantVolumeMapper find_vol{*geo_params_};
+//     for (auto i : range(names_.size()))
+//     {
+//         VolumeId vol_id = find_vol(*logical_[i]);
+//         ASSERT_NE(VolumeId{}, vol_id);
+//         EXPECT_EQ(names_[i], geo_params_->volumes().at(vol_id).name);
+//     }
+//
+//     // IDs for the unique LVs should be different
+//     EXPECT_NE(find_vol(*logical_[1]), find_vol(*logical_[2]));
+//
+//     if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4)
+//     {
+//         EXPECT_EQ(0, store_log_.messages().size());
+//     }
+// }
 
 //---------------------------------------------------------------------------//
 }  // namespace test

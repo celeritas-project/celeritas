@@ -85,6 +85,9 @@ class VolumeParams
     // Get the volume being instantiated (outgoing node)
     inline VolumeId volume(VolumeInstanceId vi_id) const;
 
+    // Maximum nested volume instance depth
+    VolumeInstanceId::size_type max_depth() const { return 0; }
+
   private:
     VolumeMap v_labels_;
     VolInstMap vi_labels_;

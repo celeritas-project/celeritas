@@ -14,6 +14,7 @@
 #include "corecel/io/Label.hh"  // IWYU pragma: export
 
 #include "BoundingBox.hh"  // IWYU pragma: export
+#include "ImplVolumeMapper.hh"
 #include "Types.hh"
 
 class G4LogicalVolume;
@@ -63,7 +64,6 @@ class GeoParamsInterface
   public:
     //!@{
     //! \name Type aliases
-    using SpanConstVolumeId = Span<ImplVolumeId const>;
     using ImplVolumeMap = LabelIdMultiMap<ImplVolumeId>;
     using VolInstanceMap = LabelIdMultiMap<VolumeInstanceId>;
     //!@}
@@ -78,31 +78,38 @@ class GeoParamsInterface
     //! Outer bounding box of geometry
     virtual BBox const& bbox() const = 0;
 
+    //! Maximum nested volume instance depth (DEPRECATED)
+    //! \todo move to VolumeParams
+    virtual LevelId::size_type max_depth() const = 0;
+
     // Create model parameters corresponding to our internal representation
-    // TODO: probably will be moved to a separate 'model' class
     virtual inp::Model make_model_input() const = 0;
+
+    //// VOLUMES ////
 
     //! Get volume metadata
     virtual ImplVolumeMap const& impl_volumes() const = 0;
 
-    //// TO BE DELETED SOON ////
-
-    //! Maximum nested volume instance depth
-    //! \todo move to VolumeParams
-    virtual LevelId::size_type max_depth() const = 0;
-
     //! Get volume instance metadata
     virtual VolInstanceMap const& volume_instances() const = 0;
 
-    //! Get the volume ID corresponding to a Geant4 logical volume
-    virtual ImplVolumeId find_volume(G4LogicalVolume const* volume) const = 0;
-
-    //! Get the Geant4 PV corresponding to a volume instance
-    virtual GeantPhysicalInstance id_to_geant(VolumeInstanceId id) const = 0;
+    ImplVolumeId to_impl_volume(VolumeId v) const
+    {
+        return this->volume_mapper()(v);
+    }
+    VolumeId from_impl_volume(ImplVolumeId v) const
+    {
+        return this->volume_mapper()(v);
+    }
 
   protected:
     GeoParamsInterface() = default;
     CELER_DEFAULT_COPY_MOVE(GeoParamsInterface);
+
+    virtual ImplVolumeMapper volume_mapper() const
+    {
+        return ImplVolumeMapper{};
+    }
 };
 
 //---------------------------------------------------------------------------//

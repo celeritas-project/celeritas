@@ -8,7 +8,7 @@
 
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Join.hh"
-#include "geocel/GeoVolumeFinder.hh"
+#include "geocel/VolumeParams.hh"
 
 namespace celeritas
 {
@@ -16,7 +16,7 @@ namespace celeritas
 /*!
  * Construct from list of volume labels.
  */
-SDParams::SDParams(VecLabel const& volume_labels, GeoParamsInterface const& geo)
+SDParams::SDParams(VecLabel const& volume_labels, VolumeParams const& params)
 {
     CELER_EXPECT(!volume_labels.empty());
 
@@ -24,10 +24,9 @@ SDParams::SDParams(VecLabel const& volume_labels, GeoParamsInterface const& geo)
     volume_ids_.resize(volume_labels.size());
 
     std::vector<std::reference_wrapper<Label const>> missing;
-    GeoVolumeFinder find_volume(geo);
     for (auto i : range(volume_labels.size()))
     {
-        volume_ids_[i] = find_volume(volume_labels[i]);
+        volume_ids_[i] = params.volume_labels().find_exact(volume_labels[i]);
         if (!volume_ids_[i])
         {
             missing.emplace_back(volume_labels[i]);
@@ -35,12 +34,11 @@ SDParams::SDParams(VecLabel const& volume_labels, GeoParamsInterface const& geo)
     }
 
     CELER_VALIDATE(missing.empty(),
-                   << "failed to find " << cmake::core_geo
-                   << " volume(s) for labels '"
+                   << "failed to find Celeritas volume(s) for labels '"
                    << join(missing.begin(), missing.end(), "', '"));
     CELER_ENSURE(volume_ids_.size() == volume_labels.size());
 
-    std::map<ImplVolumeId, DetectorId> detector_map;
+    std::map<VolumeId, DetectorId> detector_map;
     for (auto didx : range<DetectorId::size_type>(volume_ids_.size()))
     {
         detector_map[volume_ids_[didx]] = DetectorId{didx};
@@ -48,8 +46,7 @@ SDParams::SDParams(VecLabel const& volume_labels, GeoParamsInterface const& geo)
 
     mirror_ = CollectionMirror{[&] {
         HostVal<SDParamsData> host_data;
-        std::vector<DetectorId> temp_det(geo.impl_volumes().size(),
-                                         DetectorId{});
+        std::vector<DetectorId> temp_det(params.num_volumes(), DetectorId{});
         for (auto const& det_pair : detector_map)
         {
             CELER_ASSERT(det_pair.first < temp_det.size());

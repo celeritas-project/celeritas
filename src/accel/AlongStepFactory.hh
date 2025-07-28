@@ -11,7 +11,6 @@
 #include <memory>
 #include <G4ThreeVector.hh>
 
-#include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
 
 class G4LogicalVolume;
@@ -28,6 +27,7 @@ class GeoMaterialParams;
 class MaterialParams;
 class ParticleParams;
 class PhysicsParams;
+class VolumeParams;
 
 namespace inp
 {
@@ -48,7 +48,7 @@ struct AlongStepFactoryInput
 {
     ActionId action_id;
 
-    std::shared_ptr<CoreGeoParams const> geometry;
+    std::shared_ptr<VolumeParams const> volume;
     std::shared_ptr<MaterialParams const> material;
     std::shared_ptr<GeoMaterialParams const> geomaterial;
     std::shared_ptr<ParticleParams const> particle;
@@ -59,7 +59,7 @@ struct AlongStepFactoryInput
     //! True if all data is assigned
     explicit operator bool() const
     {
-        return action_id && geometry && material && geomaterial && particle
+        return action_id && volume && material && geomaterial && particle
                && cutoff && physics && imported;
     }
 };

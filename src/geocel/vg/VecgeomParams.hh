@@ -116,13 +116,13 @@ class VecgeomParams final : public GeoParamsInterface,
     //// VOLUMES ////
 
     // Get volume metadata
-    inline ImplVolumeMap const& impl_volumes() const final;
+    inline VolumeMap const& volumes() const final;
 
     // Get (physical) volume instance metadata
     inline VolInstanceMap const& volume_instances() const final;
 
     // Get the volume ID corresponding to a Geant4 logical volume
-    ImplVolumeId find_volume(G4LogicalVolume const* volume) const final;
+    VolumeId find_volume(G4LogicalVolume const* volume) const final;
 
     // Get the Geant4 physical volume corresponding to a volume instance ID
     GeantPhysicalInstance id_to_geant(VolumeInstanceId vol_id) const final;
@@ -145,9 +145,9 @@ class VecgeomParams final : public GeoParamsInterface,
     Ownership ownership_{Ownership::reference};
 
     // Host metadata/access
-    LabelIdMultiMap<ImplVolumeId> volumes_;
+    LabelIdMultiMap<VolumeId> volumes_;
     VolInstanceMap vol_instances_;
-    std::unordered_map<G4LogicalVolume const*, ImplVolumeId> g4log_volid_map_;
+    std::unordered_map<G4LogicalVolume const*, VolumeId> g4log_volid_map_;
     std::vector<G4VPhysicalVolume const*> g4_pv_map_;
 
     BBox bbox_;
@@ -167,7 +167,7 @@ class VecgeomParams final : public GeoParamsInterface,
 /*!
  * Get volume metadata.
  */
-auto VecgeomParams::impl_volumes() const -> ImplVolumeMap const&
+auto VecgeomParams::volumes() const -> VolumeMap const&
 {
     return volumes_;
 }

@@ -12,7 +12,7 @@
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Label.hh"
-#include "celeritas/geo/CoreGeoParams.hh"
+#include "geocel/VolumeParams.hh"
 
 #include "../StepInterface.hh"
 
@@ -25,7 +25,7 @@ namespace detail
  * Construct from data IDs and interfaces.
  */
 StepParams::StepParams(AuxId aux_id,
-                       CoreGeoParams const& geo,
+                       VolumeParams const& volume_params,
                        VecInterface const& callbacks)
     : aux_id_{aux_id}
 {
@@ -38,7 +38,7 @@ StepParams::StepParams(AuxId aux_id,
         all
     };
 
-    auto const& volumes = geo.impl_volumes();
+    auto const& volumes = volume_params.volume_labels();
     StepSelection selection;
     CELER_ASSERT(!selection);
     StepInterface::MapVolumeDetector detector_map;
@@ -96,7 +96,7 @@ StepParams::StepParams(AuxId aux_id,
         if (!detector_map.empty())
         {
             // Assign detector IDs for each ("logical" in Geant4) volume
-            std::vector<DetectorId> temp_det(geo.impl_volumes().size(),
+            std::vector<DetectorId> temp_det(volume_params.num_volumes(),
                                              DetectorId{});
             for (auto const& kv : detector_map)
             {
@@ -113,7 +113,7 @@ StepParams::StepParams(AuxId aux_id,
         if (selection.points[StepPoint::pre].volume_instance_ids
             || selection.points[StepPoint::post].volume_instance_ids)
         {
-            host_data.volume_instance_depth = geo.max_depth();
+            host_data.volume_instance_depth = volume_params.max_depth();
             CELER_VALIDATE(host_data.volume_instance_depth > 0,
                            << "geometry type does not support volume "
                               "instance IDs: max depth is "

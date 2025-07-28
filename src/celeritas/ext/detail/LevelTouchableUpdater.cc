@@ -10,6 +10,7 @@
 #include <G4VPhysicalVolume.hh>
 #include <G4VTouchable.hh>
 
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/GeoTraits.hh"
@@ -60,13 +61,16 @@ bool LevelTouchableUpdater::operator()(SpanVolInst ids,
 {
     CELER_EXPECT(touchable);
 
+    auto geant_geo = celeritas::geant_geo().lock();
+    CELER_VALIDATE(geant_geo, << "global Geant4 geometry is not loaded");
+
     // Update phys_inst_ from geometry and volume instance id
     phys_inst_.clear();
     for (auto vi_id : ids)
     {
         if (!vi_id)
             break;
-        auto phys_inst = geo_->id_to_geant(vi_id);
+        auto phys_inst = geant_geo->id_to_geant(vi_id);
         CELER_VALIDATE(
             phys_inst,
             << "no Geant4 physical volume is attached to volume instance "

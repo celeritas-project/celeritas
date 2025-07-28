@@ -70,10 +70,13 @@ GeantImportVolumeResult::from_import(GeoParamsInterface const& geom)
 
 //---------------------------------------------------------------------------//
 GeantImportVolumeResult
-GeantImportVolumeResult::from_pointers(GeoParamsInterface const& geom)
+GeantImportVolumeResult::from_pointers(GeoParamsInterface const& /* geom */)
 {
 #if CELERITAS_USE_GEANT4
     using Result = GeantImportVolumeResult;
+
+    auto geant_geo = celeritas::geant_geo().lock();
+    CELER_VALIDATE(geant_geo, << "global Geant4 geometry is not loaded");
 
     Result result;
     for (G4LogicalVolume* lv : celeritas::geant_logical_volumes())
@@ -83,7 +86,8 @@ GeantImportVolumeResult::from_pointers(GeoParamsInterface const& geom)
             result.volumes.push_back(Result::empty);
             continue;
         }
-        auto id = geom.find_volume(lv);
+        // LV -> Geant::ImplVolumeId -> VolumeId -> geom::ImplVolumeId
+        auto id = geant_geo->find_volume(lv);
         result.volumes.push_back(id ? static_cast<int>(id.unchecked_get())
                                     : Result::missing);
         if (!id)
@@ -93,7 +97,7 @@ GeantImportVolumeResult::from_pointers(GeoParamsInterface const& geom)
     }
     return result;
 #else
-    CELER_DISCARD(geom);
+    // CELER_DISCARD(geom);
     CELER_NOT_CONFIGURED("Geant4");
 #endif
 }

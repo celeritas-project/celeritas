@@ -91,7 +91,7 @@ auto MockTestBase::build_material() -> SPConstMaterial
 auto MockTestBase::build_geomaterial() -> SPConstGeoMaterial
 {
     GeoMaterialParams::Input input;
-    input.geometry = this->geometry();
+    input.volume_params = this->volume();
     input.materials = this->material();
     input.volume_to_mat
         = {PhysMatId{0}, PhysMatId{2}, PhysMatId{1}, PhysMatId{3}};

@@ -22,7 +22,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-class GeoParamsInterface;
+class VolumeParams;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -48,14 +48,15 @@ class SimpleCalo final : public StepInterface, public OutputInterface
     // Construct with all requirements
     SimpleCalo(std::string output_label,
                VecLabel labels,
-               GeoParamsInterface const& geo,
+               VolumeParams const& volume_params,
                size_type max_streams);
 
     //! Construct with default label
     SimpleCalo(VecLabel labels,
-               GeoParamsInterface const& geo,
+               VolumeParams const& volume_params,
                size_type max_streams)
-        : SimpleCalo{"simple_calo", std::move(labels), geo, max_streams}
+        : SimpleCalo{
+              "simple_calo", std::move(labels), volume_params, max_streams}
     {
     }
 
@@ -105,7 +106,7 @@ class SimpleCalo final : public StepInterface, public OutputInterface
 
     std::string output_label_;
     VecLabel volume_labels_;
-    std::vector<ImplVolumeId> volume_ids_;
+    std::vector<VolumeId> volume_ids_;
     StoreT store_;
 };
 

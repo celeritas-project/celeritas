@@ -89,7 +89,7 @@ auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) con
 
         return celeritas::AlongStepUniformMscAction::from_params(
             input.action_id,
-            *input.geometry,
+            *input.volume,
             *input.material,
             *input.particle,
             field,

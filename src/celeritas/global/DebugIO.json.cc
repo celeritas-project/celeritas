@@ -10,6 +10,7 @@
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/math/QuantityIO.json.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "geocel/VolumeParams.hh"
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/geo/GeoMaterialView.hh"
@@ -95,10 +96,10 @@ struct FromId
     }
 
     //! Transform to a volume label
-    nlohmann::json convert_impl(ImplVolumeId id) const
+    nlohmann::json convert_impl(VolumeId id) const
     {
-        auto const& params = *this->params->geometry();
-        return params.impl_volumes().at(id);
+        auto const& params = *this->params->volume();
+        return params.volume_labels().at(id);
     }
 
     //! Transform to a material label
@@ -143,7 +144,7 @@ void to_json_impl(nlohmann::json& j,
 {
     if (!geo.is_outside())
     {
-        j = from_id(view.material_id(geo.impl_volume_id()));
+        j = from_id(view.material_id(geo.volume_id()));
     }
     else
     {

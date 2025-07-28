@@ -15,7 +15,6 @@
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/field/UniformFieldParams.hh"
-#include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
 
 namespace celeritas
@@ -25,6 +24,7 @@ class FluctuationParams;
 class PhysicsParams;
 class MaterialParams;
 class ParticleParams;
+class VolumeParams;
 
 namespace inp
 {
@@ -50,7 +50,7 @@ class AlongStepUniformMscAction final : public CoreStepActionInterface
     // Construct the along-step action from input parameters
     static std::shared_ptr<AlongStepUniformMscAction>
     from_params(ActionId id,
-                CoreGeoParams const& geometry,
+                VolumeParams const& volumes,
                 MaterialParams const& materials,
                 ParticleParams const& particles,
                 Input const& field_input,
@@ -59,7 +59,7 @@ class AlongStepUniformMscAction final : public CoreStepActionInterface
 
     // Construct with next action ID, optional MSC, magnetic field
     AlongStepUniformMscAction(ActionId id,
-                              CoreGeoParams const& geometry,
+                              VolumeParams const& volumes,
                               Input const& field_input,
                               SPConstFluctuations fluct,
                               SPConstMsc msc);

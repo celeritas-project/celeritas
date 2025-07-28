@@ -35,8 +35,7 @@ class MaterialView
     inline CELER_FUNCTION MaterialView(ParamsRef const& params, MatId id);
 
     // Construct from params and volume ID
-    inline CELER_FUNCTION
-    MaterialView(ParamsRef const& params, ImplVolumeId vol);
+    inline CELER_FUNCTION MaterialView(ParamsRef const& params, VolumeId vol);
 
     // Whether the view is into an optical material
     inline CELER_FUNCTION operator bool() const;
@@ -80,7 +79,7 @@ MaterialView::MaterialView(ParamsRef const& params, MatId id)
  * Construct from the current geometry volume.
  */
 CELER_FUNCTION
-MaterialView::MaterialView(ParamsRef const& params, ImplVolumeId id)
+MaterialView::MaterialView(ParamsRef const& params, VolumeId id)
     : params_{params}
 {
     CELER_EXPECT(id < params_.optical_id.size());

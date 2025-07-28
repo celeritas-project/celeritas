@@ -17,6 +17,7 @@
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/GeantGeoUtils.hh"
+#include "geocel/VolumeParams.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
 #include "celeritas/ext/GeantSdOutput.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
@@ -60,14 +61,14 @@ class SimpleCmsTest : public SDTestBase, public SimpleCmsTestBase
     }
 
     std::vector<std::string>
-    volume_names(std::vector<ImplVolumeId> const& vols) const
+    volume_names(std::vector<VolumeId> const& vols) const
     {
-        auto const& geo = *this->geometry();
+        auto const& vol_params = *this->volume();
 
         std::vector<std::string> result;
-        for (ImplVolumeId vid : vols)
+        for (VolumeId vid : vols)
         {
-            result.push_back(geo.impl_volumes().at(vid).name);
+            result.push_back(vol_params.volume_labels().at(vid).name);
         }
         return result;
     }
@@ -87,7 +88,11 @@ class SimpleCmsTest : public SDTestBase, public SimpleCmsTestBase
     GeantSd make_hit_manager(bool make_hit_proc = true)
     {
         CELER_EXPECT(!processor_);
-        GeantSd result(this->geometry(), *this->particle(), sd_setup_, 1);
+        GeantSd result(this->geometry(),
+                       this->geant_geo(),
+                       *this->particle(),
+                       sd_setup_,
+                       1);
 
         if (make_hit_proc)
         {

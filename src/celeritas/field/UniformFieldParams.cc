@@ -17,7 +17,9 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
+#include "geocel/VolumeParams.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/ext/GeantVolumeMapper.hh"
@@ -29,20 +31,22 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-std::unordered_set<ImplVolumeId>
-make_volume_ids(CoreGeoParams const& geo, inp::UniformField const& inp)
+std::unordered_set<VolumeId> make_volume_ids(VolumeParams const& volumes,
+                                             GeantGeoParams const* geant_geo,
+                                             inp::UniformField const& inp)
 {
-    using SetVolume = std::unordered_set<ImplVolumeId>;
+    using SetVolume = std::unordered_set<VolumeId>;
 
     return std::visit(
         Overload{[&](inp::UniformField::SetVolume const& s) {
+                     CELER_EXPECT(geant_geo);
                      SetVolume result;
-                     GeantVolumeMapper find_volume(geo);
+                     GeantVolumeMapper find_volume(*geant_geo);
                      for (auto const* lv : s)
                      {
                          CELER_ASSERT(lv);
                          auto vol = find_volume(*lv);
-                         CELER_VALIDATE(vol < geo.impl_volumes().size(),
+                         CELER_VALIDATE(vol < volumes.num_volumes(),
                                         << "failed to find volume while "
                                            "constructing a uniform field");
                          result.insert(vol);
@@ -53,7 +57,7 @@ make_volume_ids(CoreGeoParams const& geo, inp::UniformField const& inp)
                      SetVolume result;
                      for (auto const& name : s)
                      {
-                         auto vols = geo.impl_volumes().find_all(name);
+                         auto vols = volumes.volume_labels().find_all(name);
                          CELER_VALIDATE(!vols.empty(),
                                         << "failed to find volume '" << name
                                         << "' while constructing a uniform "
@@ -73,7 +77,8 @@ make_volume_ids(CoreGeoParams const& geo, inp::UniformField const& inp)
 /*!
  * Construct from a user-defined field.
  */
-UniformFieldParams::UniformFieldParams(CoreGeoParams const& geo,
+UniformFieldParams::UniformFieldParams(VolumeParams const& volume_params,
+                                       SPConstGeantGeo geant_geo,
                                        Input const& inp)
 {
     if (inp.units != UnitSystem::si)
@@ -98,13 +103,13 @@ UniformFieldParams::UniformFieldParams(CoreGeoParams const& geo,
 
     // If logical volumes are specified, flag whether or not the field should
     // be present in each volume
-    auto volumes = make_volume_ids(geo, inp);
+    auto volumes = make_volume_ids(volume_params, geant_geo.get(), inp);
     if (!volumes.empty())
     {
-        std::vector<char> has_field(geo.impl_volumes().size(), 0);
+        std::vector<char> has_field(volume_params.num_volumes(), 0);
         for (auto vol : volumes)
         {
-            CELER_VALIDATE(vol < geo.impl_volumes().size(),
+            CELER_VALIDATE(vol < volume_params.num_volumes(),
                            << "invalid volume ID "
                            << (vol ? vol.unchecked_get() : -1)
                            << " encountered while setting up uniform field");

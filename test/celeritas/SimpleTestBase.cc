@@ -47,7 +47,7 @@ auto SimpleTestBase::build_material() -> SPConstMaterial
 auto SimpleTestBase::build_geomaterial() -> SPConstGeoMaterial
 {
     GeoMaterialParams::Input input;
-    input.geometry = this->geometry();
+    input.volume_params = this->volume();
     input.materials = this->material();
     input.volume_to_mat = {PhysMatId{0}, PhysMatId{1}, PhysMatId{}};
     input.volume_labels = {Label{"inner"}, Label{"world"}, Label{"[EXTERIOR]"}};

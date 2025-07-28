@@ -34,7 +34,7 @@ namespace celeritas
  * an existing physical volume. The \c make_model_input function returns the
  * geometry hierarchy including surface definitions for optical physics.
  *
- * The \c ImplVolumeId used by Celeritas is equal to the index of a \c
+ * The \c VolumeId used by Celeritas is equal to the index of a \c
  * G4LogicalVolume in the \c G4LogicalVolumeStore. Due to potential resetting
  * of the geometry, the "volume instance ID" for the logical volume may be
  * offset from this index.
@@ -107,10 +107,10 @@ class GeantGeoParams final : public GeoParamsInterface,
     inline VolInstanceMap const& volume_instances() const final;
 
     // Get the volume ID corresponding to a Geant4 logical volume
-    ImplVolumeId find_volume(G4LogicalVolume const* volume) const final;
+    ImplVolumeId find_volume(G4LogicalVolume const* volume) const;
 
     // Get the Geant4 physical volume corresponding to a volume instance ID
-    GeantPhysicalInstance id_to_geant(VolumeInstanceId vol_id) const final;
+    GeantPhysicalInstance id_to_geant(VolumeInstanceId vol_id) const;
 
     // Get the Geant4 logical volume corresponding to a volume ID
     G4LogicalVolume const* id_to_geant(ImplVolumeId vol_id) const;
@@ -123,11 +123,8 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Get the Geant4 logical surface corresponding to a surface ID
     inline G4LogicalSurface const* id_to_geant(SurfaceId surf_id) const;
 
-    // DEPRECATED
-    using GeoParamsInterface::find_volume;
-
     //! Offset of logical volume ID after reloading geometry
-    ImplVolumeId::size_type lv_offset() const { return data_.lv_offset; }
+    VolumeId::size_type lv_offset() const { return data_.lv_offset; }
 
     //! Offset of physical volume ID after reloading geometry
     VolumeInstanceId::size_type pv_offset() const { return data_.pv_offset; }

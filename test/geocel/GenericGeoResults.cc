@@ -10,6 +10,7 @@
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/inp/Model.hh"
 
 #include "GenericGeoTestInterface.hh"
@@ -101,6 +102,15 @@ GenericGeoVolumeStackResult
 GenericGeoVolumeStackResult::from_span(GeoParamsInterface const& geo,
                                        Span<VolumeInstanceId const> inst_ids)
 {
+#if CELERITAS_USE_GEANT4
+    auto geant_geo = celeritas::geant_geo().lock();
+    CELER_VALIDATE(geant_geo, << "global Geant4 geometry is not loaded");
+    auto id_to_geant
+        = [&](VolumeInstanceId v) { return geant_geo->id_to_geant(v); };
+#else
+    auto id_to_geant = [](VolumeInstanceId) { return PhysialInstance{}; };
+#endif
+
     auto const& vol_inst = geo.volume_instances();
 
     GenericGeoVolumeStackResult result;
@@ -115,7 +125,7 @@ GenericGeoVolumeStackResult::from_span(GeoParamsInterface const& geo,
             continue;
         }
         auto const& label = vol_inst.at(vi_id);
-        if (auto phys_inst = geo.id_to_geant(vi_id))
+        if (auto phys_inst = id_to_geant(vi_id))
         {
             if (phys_inst.replica)
             {

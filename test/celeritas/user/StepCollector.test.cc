@@ -86,7 +86,7 @@ class TestEm3CollectorTestBase : public TestEm3Base,
             *this->particle(), *this->material(), this->imported_data());
 
         auto result = std::make_shared<AlongStepUniformMscAction>(
-            action_reg.next_id(), *this->geometry(), field_inp, nullptr, msc);
+            action_reg.next_id(), *this->volume(), field_inp, nullptr, msc);
         CELER_ASSERT(result);
         CELER_ASSERT(result->has_msc());
         action_reg.insert(result);
@@ -152,7 +152,7 @@ class TestMultiEm3InstanceCaloTest : public TestEm3CollectorTestBase
     void SetUp() override
     {
         ExampleInstanceCalo::VecLabel labels = {"lar", "calorimeter", "world"};
-        calo_ = std::make_shared<ExampleInstanceCalo>(this->geometry(),
+        calo_ = std::make_shared<ExampleInstanceCalo>(this->volume(),
                                                       std::move(labels));
         collector_ = StepCollector::make_and_insert(*this->core(), {calo_});
     }
@@ -178,12 +178,12 @@ class TestMultiEm3InstanceCaloTest : public TestEm3CollectorTestBase
 TEST_F(KnSimpleLoopTestBase, mixing_types)
 {
     auto calo = std::make_shared<SimpleCalo>(
-        std::vector<Label>{"inner"}, *this->geometry(), 1);
+        std::vector<Label>{"inner"}, *this->volume(), 1);
     auto mctruth = std::make_shared<ExampleMctruth>();
 
     StepCollector::VecInterface interfaces = {calo, mctruth};
 
-    EXPECT_THROW((StepCollector{this->geometry(),
+    EXPECT_THROW((StepCollector{this->volume(),
                                 std::move(interfaces),
                                 this->aux_reg().get(),
                                 this->action_reg().get()}),

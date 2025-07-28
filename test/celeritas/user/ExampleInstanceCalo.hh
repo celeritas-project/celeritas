@@ -11,12 +11,13 @@
 #include <vector>
 
 #include "corecel/io/Label.hh"
-#include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepInterface.hh"
 
 namespace celeritas
 {
+class VolumeParams;
+
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -30,7 +31,7 @@ class ExampleInstanceCalo final : public StepInterface
   public:
     //!@{
     //! \name Type aliases
-    using SPConstCoreGeo = std::shared_ptr<CoreGeoParams const>;
+    using SPConstVolume = std::shared_ptr<VolumeParams const>;
     using VecLabel = std::vector<Label>;
     //!@}
 
@@ -44,7 +45,7 @@ class ExampleInstanceCalo final : public StepInterface
 
   public:
     // Construct with geometry
-    ExampleInstanceCalo(SPConstCoreGeo geo, VecLabel vol_labels);
+    ExampleInstanceCalo(SPConstVolume volume_params, VecLabel vol_labels);
 
     // Selection of data required for this interface
     Filters filters() const final;
@@ -65,9 +66,9 @@ class ExampleInstanceCalo final : public StepInterface
     Result result() const;
 
   private:
-    SPConstCoreGeo geo_;
+    SPConstVolume volume_params_;
     VecLabel det_labels_;
-    std::vector<ImplVolumeId> volume_ids_;
+    std::vector<VolumeId> volume_ids_;
 
     std::map<std::string, real_type> edep_;
 

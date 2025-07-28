@@ -383,7 +383,8 @@ TEST_F(MultiLevelTest, level_strings)
             names[i] = to_string(vol_inst.at(inst_ids[i]));
         }
         all_vol_inst.push_back(to_string(repr(names)));
-        all_vol.push_back(to_string(vol.at(geo.impl_volume_id())));
+        all_vol.push_back(to_string(
+            vol.at(this->geometry()->to_impl_volume(geo.volume_id()))));
     }
 
     static char const* const expected_all_vol_inst[] = {
@@ -626,9 +627,9 @@ TEST_F(SolidsTest, trace)
 TEST_F(SolidsTest, reflected_vol)
 {
     auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
-    EXPECT_EQ(25, geo.impl_volume_id().unchecked_get());
-    auto const& label
-        = this->geometry()->impl_volumes().at(geo.impl_volume_id());
+    EXPECT_EQ(25, geo.volume_id().unchecked_get());
+    auto const& label = this->geometry()->impl_volumes().at(
+        this->geometry()->to_impl_volume(geo.volume_id()));
     EXPECT_EQ("trd3_refl", label.name);
     EXPECT_FALSE(ends_with(label.ext, "_refl"));
 }

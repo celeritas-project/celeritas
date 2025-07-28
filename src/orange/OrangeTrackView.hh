@@ -453,10 +453,7 @@ CELER_FUNCTION Real3 const& OrangeTrackView::dir() const
 
 //---------------------------------------------------------------------------//
 /*!
- * The current canonical volume ID.
- *
- * This is the volume identifier in the user's geometry model, not the ORANGE
- * implementation of it.
+ * The current volume ID.
  *
  * \note It is allowable to call this function when "outside", because the
  * outside in ORANGE is just a special volume. Other geometries may not have
@@ -464,7 +461,7 @@ CELER_FUNCTION Real3 const& OrangeTrackView::dir() const
  */
 CELER_FUNCTION VolumeId OrangeTrackView::volume_id() const
 {
-    ImplVolumeId impl_id = this->impl_volume_id();
+    VolumeId impl_id = VolumeId(this->impl_volume_id().unchecked_get());
     return impl_id;
 }
 

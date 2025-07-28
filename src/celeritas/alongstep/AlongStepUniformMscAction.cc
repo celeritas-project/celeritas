@@ -13,6 +13,8 @@
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
+#include "geocel/GeantGeoParams.hh"
+#include "geocel/VolumeParams.hh"
 #include "celeritas/em/msc/UrbanMsc.hh"
 #include "celeritas/em/params/FluctuationParams.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"  // IWYU pragma: keep
@@ -38,7 +40,7 @@ namespace celeritas
  */
 std::shared_ptr<AlongStepUniformMscAction>
 AlongStepUniformMscAction::from_params(ActionId id,
-                                       CoreGeoParams const& geometry,
+                                       VolumeParams const& volumes,
                                        MaterialParams const& materials,
                                        ParticleParams const& particles,
                                        Input const& field_input,
@@ -52,21 +54,21 @@ AlongStepUniformMscAction::from_params(ActionId id,
     }
 
     return std::make_shared<AlongStepUniformMscAction>(
-        id, geometry, field_input, std::move(fluct), msc);
+        id, volumes, field_input, std::move(fluct), msc);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with MSC data and field driver options.
  */
-AlongStepUniformMscAction::AlongStepUniformMscAction(
-    ActionId id,
-    CoreGeoParams const& geometry,
-    Input const& input,
-    SPConstFluctuations fluct,
-    SPConstMsc msc)
+AlongStepUniformMscAction::AlongStepUniformMscAction(ActionId id,
+                                                     VolumeParams const& volumes,
+                                                     Input const& input,
+                                                     SPConstFluctuations fluct,
+                                                     SPConstMsc msc)
     : id_(id)
-    , field_{std::make_shared<UniformFieldParams>(geometry, input)}
+    , field_{std::make_shared<UniformFieldParams>(
+          volumes, celeritas::geant_geo().lock(), input)}
     , fluct_(std::move(fluct))
     , msc_(std::move(msc))
 {

@@ -53,7 +53,7 @@ class Converter
     //!@{
     //! \name Type aliases
     using arg_type = GeantGeoParams const&;
-    using MapLvVolId = std::unordered_map<G4LogicalVolume const*, ImplVolumeId>;
+    using MapLvVolId = std::unordered_map<G4LogicalVolume const*, VolumeId>;
     //!@}
 
     //! Input options for the conversion

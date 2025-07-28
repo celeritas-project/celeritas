@@ -195,8 +195,11 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
         other = Initializer_t{geo.pos(), {1, 0, 0}, TrackSlotId{0}};
         EXPECT_VEC_SOFT_EQ(Real3({0.625, -2, 1}), other.pos());
         EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), other.dir());
-        EXPECT_EQ(
-            "c", this->params().impl_volumes().at(other.impl_volume_id()).name);
+        EXPECT_EQ("c",
+                  this->params()
+                      .impl_volumes()
+                      .at(this->params().to_impl_volume(other.volume_id()))
+                      .name);
         EXPECT_FALSE(other.is_outside());
         EXPECT_FALSE(other.is_on_boundary());
     }
@@ -619,7 +622,7 @@ TEST_F(Geant4Testem15Test, safety)
     geo = Initializer_t{{0, 0, 0}, {1, 0, 0}};
     EXPECT_VEC_SOFT_EQ(Real3({0, 0, 0}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
-    EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
+    EXPECT_EQ(VolumeId{1}, geo.volume_id());
     EXPECT_EQ(ImplSurfaceId{}, geo.impl_surface_id());
     EXPECT_FALSE(geo.is_outside());
 

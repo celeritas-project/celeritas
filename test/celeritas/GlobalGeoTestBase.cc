@@ -13,6 +13,7 @@
 #include "corecel/Config.hh"
 
 #include "geocel/GeantGeoParams.hh"
+#include "geocel/VolumeParams.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 
 #include "PersistentSP.hh"
@@ -40,6 +41,13 @@ auto GlobalGeoTestBase::build_geometry() -> SPConstCoreGeo
 {
     return std::dynamic_pointer_cast<CoreGeoParams const>(
         this->get_geometry(this->geometry_basename()));
+}
+
+//---------------------------------------------------------------------------//
+auto GlobalGeoTestBase::build_volume() -> SPConstVolume
+{
+    auto mi = this->geometry()->make_model_input();
+    return std::make_shared<VolumeParams const>(mi.volumes);
 }
 
 //---------------------------------------------------------------------------//

@@ -11,7 +11,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/io/Label.hh"
-#include "geocel/GeoParamsInterface.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "celeritas/Types.hh"
 
 // Geant4 forward declaration
@@ -26,14 +26,14 @@ namespace celeritas
 class GeantVolumeMapper
 {
   public:
-    // Convert to target geometry from geant4 transportation world
-    explicit GeantVolumeMapper(GeoParamsInterface const& tgt);
+    // Convert to Celeritas geometry from geant4 transportation world
+    explicit GeantVolumeMapper(GeantGeoParams const&);
 
     // Convert a volume; null if not found; warn if inexact match
-    ImplVolumeId operator()(G4LogicalVolume const&);
+    VolumeId operator()(G4LogicalVolume const&);
 
   private:
-    GeoParamsInterface const& geo_;
+    GeantGeoParams const& geo_;
     std::vector<Label> labels_;
 };
 
@@ -46,7 +46,7 @@ inline GeantVolumeMapper::GeantVolumeMapper(GeoParamsInterface const& geo)
     CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline ImplVolumeId GeantVolumeMapper::operator()(G4LogicalVolume const&)
+inline VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

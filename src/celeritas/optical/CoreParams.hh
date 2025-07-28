@@ -24,6 +24,7 @@ namespace celeritas
 class ActionRegistry;
 class GeneratorRegistry;
 class SurfaceParams;
+class VolumeParams;
 
 namespace optical
 {
@@ -44,6 +45,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstPhysics = std::shared_ptr<PhysicsParams const>;
     using SPConstRng = std::shared_ptr<RngParams const>;
     using SPConstSurface = std::shared_ptr<SurfaceParams const>;
+    using SPConstVolume = std::shared_ptr<VolumeParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
     using SPGeneratorRegistry = std::shared_ptr<GeneratorRegistry>;
     using SPConstDetectors = std::shared_ptr<SDParams const>;
@@ -61,6 +63,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstMaterial material;
         SPConstPhysics physics;
         SPConstRng rng;
+        SPConstVolume volume;
         SPConstSurface surface;
 
         std::optional<VecLabel> detector_labels;

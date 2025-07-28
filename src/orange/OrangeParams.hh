@@ -22,8 +22,6 @@
 #include "OrangeData.hh"
 #include "OrangeTypes.hh"
 
-class G4VPhysicalVolume;
-
 namespace celeritas
 {
 struct OrangeInput;
@@ -99,13 +97,6 @@ class OrangeParams final : public GeoParamsInterface,
     // Get (physical) volume instance metadata
     inline VolInstanceMap const& volume_instances() const final;
 
-    // Get the volume ID corresponding to a Geant4 logical volume
-    inline ImplVolumeId find_volume(G4LogicalVolume const* volume) const final;
-
-    // Get the Geant4 physical volume corresponding to a volume instance ID
-    inline GeantPhysicalInstance
-    id_to_geant(VolumeInstanceId vol_id) const final;
-
     //// DATA ACCESS ////
 
     //! Reference to CPU geometry data
@@ -177,28 +168,6 @@ auto OrangeParams::impl_volumes() const -> ImplVolumeMap const&
 auto OrangeParams::volume_instances() const -> VolInstanceMap const&
 {
     return vol_instances_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Locate the volume ID corresponding to a Geant4 volume.
- *
- * \todo Implement using \c g4org::Converter
- */
-ImplVolumeId OrangeParams::find_volume(G4LogicalVolume const*) const
-{
-    return ImplVolumeId{};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the Geant4 physical volume corresponding to a volume instance ID.
- *
- * \todo Implement using \c g4org::Converter
- */
-GeantPhysicalInstance OrangeParams::id_to_geant(VolumeInstanceId) const
-{
-    return {};
 }
 
 //---------------------------------------------------------------------------//

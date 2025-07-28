@@ -18,7 +18,7 @@
 #include "corecel/io/Label.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/Logger.hh"
-#include "geocel/GeoVolumeFinder.hh"
+#include "geocel/VolumeParams.hh"
 
 #include "detail/SimpleCaloImpl.hh"
 
@@ -30,7 +30,7 @@ namespace celeritas
  */
 SimpleCalo::SimpleCalo(std::string output_label,
                        VecLabel labels,
-                       GeoParamsInterface const& geo,
+                       VolumeParams const& volume_params,
                        size_type num_streams)
     : output_label_{std::move(output_label)}, volume_labels_{std::move(labels)}
 {
@@ -41,10 +41,10 @@ SimpleCalo::SimpleCalo(std::string output_label,
     // Map labels to volume IDs
     volume_ids_.resize(volume_labels_.size());
     std::vector<std::reference_wrapper<Label const>> missing;
-    GeoVolumeFinder find_volume(geo);
     for (auto i : range(volume_labels_.size()))
     {
-        volume_ids_[i] = find_volume(volume_labels_[i]);
+        volume_ids_[i]
+            = volume_params.volume_labels().find_exact(volume_labels_[i]);
         if (!volume_ids_[i])
         {
             missing.emplace_back(volume_labels_[i]);
@@ -128,7 +128,7 @@ void SimpleCalo::output(JsonPimpl* j) const
     {
         std::vector<int> ids;
         ids.reserve(volume_ids_.size());
-        for (ImplVolumeId vid : volume_ids_)
+        for (VolumeId vid : volume_ids_)
         {
             ids.push_back(static_cast<int>(vid.get()));
         }

@@ -41,7 +41,7 @@ class HeuristicGeoTestBase : public GlobalGeoTestBase,
     using StateStore = CollectionStateStore<HeuristicGeoStateData, M>;
     template<MemSpace M>
     using PathLengthRef
-        = Collection<real_type, Ownership::reference, M, ImplVolumeId>;
+        = Collection<real_type, Ownership::reference, M, VolumeId>;
     using SpanConstReal = Span<real_type const>;
     using SpanConstStr = Span<std::string const>;
     //!@}

@@ -21,6 +21,7 @@
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
@@ -85,11 +86,13 @@ auto make_set_lv(inp::GeantSd::VariantSetVolume const& sv)
  * Map detector IDs on construction.
  */
 GeantSd::GeantSd(SPConstCoreGeo geo,
+                 SPConstGeantGeo geant_geo,
                  ParticleParams const& par,
                  Input const& setup,
                  StreamId::size_type num_streams)
     : nonzero_energy_deposition_(setup.ignore_zero_deposition)
     , geo_{std::move(geo)}
+    , geant_geo_{std::move(geant_geo)}
 {
     CELER_EXPECT(num_streams > 0);
 
@@ -113,7 +116,7 @@ GeantSd::GeantSd(SPConstCoreGeo geo,
     processors_.resize(num_streams);
 
     // Map detector volumes
-    this->setup_volumes(*geo_, setup);
+    this->setup_volumes(*geant_geo, setup);
 
     if (setup.track)
     {
@@ -189,7 +192,8 @@ void GeantSd::process_steps(DeviceStepState state)
 //---------------------------------------------------------------------------//
 // PRIVATE MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
-void GeantSd::setup_volumes(CoreGeoParams const& geo, inp::GeantSd const& setup)
+void GeantSd::setup_volumes(GeantGeoParams const& geo,
+                            inp::GeantSd const& setup)
 {
     // Convert labels or other set types
     auto skip_volumes = make_set_lv(setup.skip_volumes);

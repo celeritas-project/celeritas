@@ -56,6 +56,7 @@ class OpticalMockTestBase : public GlobalTestBase
     SPConstSim build_sim() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstTrackInit build_init() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstWentzelOKVI build_wentzel() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstVolume build_volume() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstAction build_along_step() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstCherenkov build_cherenkov() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstOpticalPhysics build_optical_physics() override

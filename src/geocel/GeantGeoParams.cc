@@ -53,6 +53,11 @@ namespace celeritas
 namespace
 {
 
+VolumeId geant_to_inp(ImplVolumeId v)
+{
+    return VolumeId(v.unchecked_get());
+}
+
 //---------------------------------------------------------------------------//
 LevelId::size_type get_max_depth(G4VPhysicalVolume const& world)
 {
@@ -337,7 +342,7 @@ inp::VolumeInstance inp_from_geant(GeantGeoParams const& geo,
     result.label = label;
     auto* g4lv = g4pv.GetLogicalVolume();
     CELER_ASSERT(g4lv);
-    result.volume = geo.geant_to_id(*g4lv);
+    result.volume = geant_to_inp(geo.geant_to_id(*g4lv));
     return result;
 }
 
@@ -397,7 +402,8 @@ std::vector<inp::Surface> make_inp_surfaces(GeantGeoParams const& geo)
         {
             auto* lv = surf->GetLogicalVolume();
             CELER_ASSERT(lv);
-            inp_surf = inp::Surface::Boundary{geo.geant_to_id(*lv)};
+            inp_surf
+                = inp::Surface::Boundary{geant_to_inp(geo.geant_to_id(*lv))};
         }
         else if (auto* surf
                  = dynamic_cast<G4LogicalBorderSurface const*>(surf_base))

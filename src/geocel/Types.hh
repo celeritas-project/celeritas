@@ -61,7 +61,7 @@ using VolumeUniqueInstanceId = OpaqueId<struct VolumeInstance_, ull_int>;
 using ImplSurfaceId = OpaqueId<struct Surface_>;
 
 //! Implementation detail "global" volume index
-using ImplVolumeId = VolumeId;
+using ImplVolumeId = OpaqueId<struct ImplVolume_>;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
