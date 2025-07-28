@@ -117,7 +117,7 @@ char const* to_cstring(G4OpticalSurfaceFinish value)
  * Construct with Geant4 geometry data.
  */
 GeantSurfacePhysicsLoader::GeantSurfacePhysicsLoader()
-    : geo_(celeritas::geant_geo())
+    : geo_(celeritas::geant_geo().lock())
 {
     CELER_VALIDATE(geo_, << "global Geant4 geometry is not loaded");
 }

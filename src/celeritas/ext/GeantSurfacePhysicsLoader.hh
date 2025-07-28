@@ -34,7 +34,7 @@ class GeantSurfacePhysicsLoader
 
   private:
     //// DATA ////
-    GeantGeoParams const* geo_;
+    std::shared_ptr<GeantGeoParams const> geo_;
 
     //// HELPER FUNCTIONS ////
 
