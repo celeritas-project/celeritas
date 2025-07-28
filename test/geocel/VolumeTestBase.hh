@@ -6,21 +6,51 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "geocel/inp/Model.hh"
+#include <memory>
 
 #include "Test.hh"
 
 namespace celeritas
 {
+class VolumeParams;
+
 namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Create inputs for different geometry hierarchies.
+ * Base class for volume tests.
  *
- * The "single volume" input constructs a single volume A.
- *
- * The "complex volume" input constructs volumes A through E with three
+ * This provides common functionality for all volume-based tests.
+ */
+class VolumeTestBase : public ::celeritas::test::Test
+{
+  public:
+    void SetUp() override;
+
+    // Get the volume parameters
+    VolumeParams const& volumes() const;
+
+  protected:
+    // Create volume parameters
+    virtual std::shared_ptr<VolumeParams> build_volumes() const = 0;
+
+  private:
+    std::shared_ptr<VolumeParams> volumes_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Base for tests with a single volume A.
+ */
+class SingleVolumeTestBase : public virtual VolumeTestBase
+{
+  protected:
+    std::shared_ptr<VolumeParams> build_volumes() const override;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Base for tests with complex volumes A through E with three
  * instances of C (one inside A, two inside B), placing them in the hierarchy
  * with the following volume instances:
  * \verbatim
@@ -32,16 +62,32 @@ namespace test
      C -> D "4"
      C -> E "5"
  * \endverbatim
- *
- * The "optical surfaces" test creates surfaces from `optical-surfaces.gdml`.
+ */
+class ComplexVolumeTestBase : public virtual VolumeTestBase
+{
+  protected:
+    std::shared_ptr<VolumeParams> build_volumes() const override;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Base for tests with optical surfaces from `optical-surfaces.gdml`.
  * \verbatim
  * world      -> lar_sphere   "lar_pv"
    world      -> tube2        "tube2_below_pv"
    world      -> tube1_mid    "tube1_mid_pv"
    world      -> tube2        "tube2_above_pv"
  * \endverbatim
- *
- * The multi-level representation includes reflection and is:
+ */
+class OpticalVolumeTestBase : public virtual VolumeTestBase
+{
+  protected:
+    std::shared_ptr<VolumeParams> build_volumes() const override;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Base for tests with multi-level representation including reflection:
  * \verbatim
    box       -> sph        "boxsph1:0"
    box       -> sph        "boxsph2:0"
@@ -56,20 +102,10 @@ namespace test
    box_refl  -> tri_refl   "boxtri:1"
  * \endverbatim
  */
-class VolumeTestBase : public ::celeritas::test::Test
+class MultiLevelVolumeTestBase : public virtual VolumeTestBase
 {
-  public:
-    // Create a single volume A
-    inp::Volumes make_single_volume_inp() const;
-
-    // Create volumes A-E with instances 0 through 5.
-    inp::Volumes make_complex_volume_inp() const;
-
-    // Create surfaces from the optical surfaces GDML
-    inp::Volumes make_optical_volume_inp() const;
-
-    // Create multi-level volume output
-    inp::Volumes make_multi_level_volume_inp() const;
+  protected:
+    std::shared_ptr<VolumeParams> build_volumes() const override;
 };
 
 //---------------------------------------------------------------------------//

@@ -17,6 +17,7 @@
 #include "geocel/inp/Model.hh"
 
 #include "SurfaceTestBase.hh"
+#include "SurfaceUtils.hh"
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
 
@@ -27,11 +28,15 @@ namespace test
 //---------------------------------------------------------------------------//
 using VolInstId = VolumeInstanceId;
 
-using SurfaceErrorsTest = VolumeTestBase;
+// Test class for checking surface construction errors
+class SurfaceErrorsTest : public ComplexVolumeTestBase
+{
+    // This class only needs volumes for testing errors
+    // It doesn't need to build any surfaces
+};
+
 TEST_F(SurfaceErrorsTest, errors)
 {
-    VolumeParams const volumes{this->make_complex_volume_inp()};
-
     ScopedLogStorer scoped_log_{&celeritas::world_logger()};
 
     // Duplicate boundary surface
@@ -39,7 +44,7 @@ TEST_F(SurfaceErrorsTest, errors)
                                    make_surface("ok", VolumeId{1}),
                                    make_surface("bad", VolumeId{1}),
                                }},
-                               volumes),
+                               this->volumes()),
                  RuntimeError);
 
     // Duplicate interface surface
@@ -48,7 +53,7 @@ TEST_F(SurfaceErrorsTest, errors)
                           make_surface("ok2", VolInstId{1}, VolInstId{2}),
                           make_surface("bad2", VolInstId{1}, VolInstId{2}),
                       }},
-                      volumes),
+                      this->volumes()),
         RuntimeError);
 
     static char const* const expected_log_messages[] = {
@@ -59,32 +64,19 @@ TEST_F(SurfaceErrorsTest, errors)
 }
 
 //---------------------------------------------------------------------------//
-
-class SurfacesTest : public SurfaceTestBase
+//! Construct for EM-only physics
+class NoSurfacesTest : public virtual VolumeTestBase, public SurfaceTestBase
 {
-  public:
-    void SetUp()
+  protected:
+    std::shared_ptr<VolumeParams> build_volumes() const override
     {
-        surfaces_ = SurfaceParams{this->make_surface_input(), this->volumes()};
+        return std::make_shared<VolumeParams>();
     }
 
-    virtual inp::Surfaces make_surface_input() = 0;
-
-    SurfaceParams const& surfaces() const { return surfaces_; }
-
-  private:
-    SurfaceParams surfaces_;
-};
-
-//---------------------------------------------------------------------------//
-//! Construct for EM-only physics
-class NoSurfacesTest : public SurfacesTest
-{
-  public:
-    inp::Surfaces make_surface_input() final
+    std::shared_ptr<SurfaceParams> build_surfaces() const override
     {
-        CELER_ENSURE(this->volumes().empty());
-        return {};
+        CELER_ENSURE(this->VolumeTestBase::volumes().empty());
+        return std::make_shared<SurfaceParams>();
     }
 };
 
@@ -105,13 +97,14 @@ TEST_F(NoSurfacesTest, TEST_IF_CELERITAS_DEBUG(vs_view))
 
 //---------------------------------------------------------------------------//
 //! Construct for optical physics
-class NoSurfacesWithVolsTest : public SurfacesTest
+class NoSurfacesWithVolsTest : public SingleVolumeTestBase,
+                               public SurfaceTestBase
 {
-  public:
-    inp::Surfaces make_surface_input() final
+  protected:
+    std::shared_ptr<SurfaceParams> build_surfaces() const override
     {
-        volumes_ = VolumeParams{this->make_single_volume_inp()};
-        return {};
+        return std::make_shared<SurfaceParams>(
+            inp::Surfaces{}, this->SingleVolumeTestBase::volumes());
     }
 };
 
@@ -133,17 +126,17 @@ TEST_F(NoSurfacesWithVolsTest, vs_view)
 
 //---------------------------------------------------------------------------//
 //! Construct with just borders
-class BorderSurfacesTest : public SurfacesTest
+class BorderSurfacesTest : public ComplexVolumeTestBase, public SurfaceTestBase
 {
-  public:
-    inp::Surfaces make_surface_input() final
+  protected:
+    std::shared_ptr<SurfaceParams> build_surfaces() const override
     {
-        volumes_ = VolumeParams{this->make_complex_volume_inp()};
-        return {{
+        inp::Surfaces in{{
             make_surface("b", VolumeId{1}),
             make_surface("d", VolumeId{3}),
             make_surface("e", VolumeId{4}),
         }};
+        return std::make_shared<SurfaceParams>(std::move(in), this->volumes());
     }
 };
 
@@ -181,19 +174,13 @@ TEST_F(BorderSurfacesTest, vs_view)
 
 //---------------------------------------------------------------------------//
 //! Construct with interfaces too
-class ManySurfacesTest : public SurfacesTest
-{
-  public:
-    inp::Surfaces make_surface_input() final
-    {
-        return this->make_many_surfaces_inp();
-    }
-};
+using ManySurfacesTest = ManySurfacesTestBase;
 
 TEST_F(ManySurfacesTest, vs_view)
 {
     auto const& sp = this->surfaces();
-    ASSERT_EQ(5, this->volumes().num_volumes());
+    // We know there are 5 volumes in the complex volume test
+    ASSERT_EQ(5, this->ComplexVolumeTestBase::volumes().num_volumes());
     {
         VolumeSurfaceView vsv(sp.host_ref(), VolumeId{0});  // A -> any
         EXPECT_FALSE(vsv.has_interface());
@@ -217,15 +204,8 @@ TEST_F(ManySurfacesTest, vs_view)
 }
 
 //---------------------------------------------------------------------------//
-//! Construct with interfaces too
-class OpticalSurfacesTest : public SurfacesTest
-{
-  public:
-    inp::Surfaces make_surface_input() final
-    {
-        return this->make_optical_surfaces_inp();
-    }
-};
+//! Construct with optical interfaces
+using OpticalSurfacesTest = OpticalSurfacesTestBase;
 
 TEST_F(OpticalSurfacesTest, params)
 {

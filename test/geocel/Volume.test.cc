@@ -11,7 +11,6 @@
 #include "geocel/VolumeParams.hh"
 #include "geocel/VolumeToString.hh"
 #include "geocel/VolumeVisitor.hh"
-#include "geocel/inp/Model.hh"
 
 #include "TestMacros.hh"
 #include "VolumeTestBase.hh"
@@ -86,23 +85,15 @@ struct MaxVisitor
  * - volumes are alphabetical (A, B, C...)
  * - volume instances are numeric (0, 1, 2...)
  */
-class VolumeTest : public VolumeTestBase
-{
-  public:
-    void SetUp() { volumes_ = VolumeParams(this->make_volume_input()); }
-
-    virtual inp::Volumes make_volume_input() const = 0;
-
-    VolumeParams const& volumes() const { return volumes_; }
-
-  private:
-    VolumeParams volumes_;
-};
 
 //---------------------------------------------------------------------------//
-class NoVolumeTest : public VolumeTest
+class NoVolumeTest : public VolumeTestBase
 {
-    inp::Volumes make_volume_input() const final { return {}; }
+  protected:
+    std::shared_ptr<VolumeParams> build_volumes() const override
+    {
+        return std::make_shared<VolumeParams>();
+    }
 };
 
 /*!
@@ -131,14 +122,7 @@ TEST_F(NoVolumeTest, volume_to_string)
  * Graph:
  *    A
  */
-class SingleVolumeTest : public VolumeTest
-{
-  public:
-    inp::Volumes make_volume_input() const final
-    {
-        return this->make_single_volume_inp();
-    }
-};
+using SingleVolumeTest = SingleVolumeTestBase;
 
 TEST_F(SingleVolumeTest, params)
 {
@@ -199,14 +183,7 @@ TEST_F(SingleVolumeTest, visit)
 }
 
 //---------------------------------------------------------------------------//
-class ComplexVolumeTest : public VolumeTest
-{
-  public:
-    inp::Volumes make_volume_input() const final
-    {
-        return this->make_complex_volume_inp();
-    }
-};
+using ComplexVolumeTest = ComplexVolumeTestBase;
 
 TEST_F(ComplexVolumeTest, params)
 {
@@ -294,14 +271,7 @@ TEST_F(ComplexVolumeTest, visit)
 }
 
 //---------------------------------------------------------------------------//
-class MultiLevelTest : public VolumeTest
-{
-  public:
-    inp::Volumes make_volume_input() const final
-    {
-        return this->make_multi_level_volume_inp();
-    }
-};
+using MultiLevelTest = MultiLevelVolumeTestBase;
 
 TEST_F(MultiLevelTest, visit)
 {

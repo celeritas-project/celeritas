@@ -6,6 +6,10 @@
 //---------------------------------------------------------------------------//
 #include "VolumeTestBase.hh"
 
+#include "corecel/Assert.hh"
+#include "geocel/VolumeParams.hh"
+#include "geocel/inp/Model.hh"
+
 namespace celeritas
 {
 namespace test
@@ -13,7 +17,23 @@ namespace test
 //---------------------------------------------------------------------------//
 using VolInstId = VolumeInstanceId;
 
-inp::Volumes VolumeTestBase::make_single_volume_inp() const
+void VolumeTestBase::SetUp()
+{
+    volumes_ = this->build_volumes();
+    CELER_ASSERT(volumes_);
+}
+
+//---------------------------------------------------------------------------//
+
+VolumeParams const& VolumeTestBase::volumes() const
+{
+    CELER_EXPECT(volumes_);
+    return *volumes_;
+}
+
+//---------------------------------------------------------------------------//
+
+std::shared_ptr<VolumeParams> SingleVolumeTestBase::build_volumes() const
 {
     using namespace inp;
     Volumes in;
@@ -24,12 +44,12 @@ inp::Volumes VolumeTestBase::make_single_volume_inp() const
         return v;
     }());
     in.world = VolumeId{0};
-    return in;
+    return std::make_shared<VolumeParams>(std::move(in));
 }
 
 //---------------------------------------------------------------------------//
 
-inp::Volumes VolumeTestBase::make_complex_volume_inp() const
+std::shared_ptr<VolumeParams> ComplexVolumeTestBase::build_volumes() const
 {
     using namespace inp;
     Volumes in;
@@ -70,12 +90,12 @@ inp::Volumes VolumeTestBase::make_complex_volume_inp() const
     // Top-level volume is zero
     in.world = VolumeId{0};
 
-    return in;
+    return std::make_shared<VolumeParams>(std::move(in));
 }
 
 //---------------------------------------------------------------------------//
 
-inp::Volumes VolumeTestBase::make_optical_volume_inp() const
+std::shared_ptr<VolumeParams> OpticalVolumeTestBase::build_volumes() const
 {
     using namespace inp;
     Volumes in;
@@ -105,14 +125,15 @@ inp::Volumes VolumeTestBase::make_optical_volume_inp() const
     };
 
     in.world = VolumeId{3};
-    return in;
+    return std::make_shared<VolumeParams>(std::move(in));
 }
 
 //---------------------------------------------------------------------------//
 
-inp::Volumes VolumeTestBase::make_multi_level_volume_inp() const
+std::shared_ptr<VolumeParams> MultiLevelVolumeTestBase::build_volumes() const
 {
-    inp::Volumes in;
+    using namespace inp;
+    Volumes in;
     in.volumes = {
         {"sph", GeoMatId{0}, {}},
         {"tri", GeoMatId{0}, {}},
@@ -149,8 +170,10 @@ inp::Volumes VolumeTestBase::make_multi_level_volume_inp() const
     };
 
     in.world = VolumeId{3};
-    return in;
+    return std::make_shared<VolumeParams>(std::move(in));
 }
+
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 }  // namespace test
