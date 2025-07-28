@@ -79,8 +79,8 @@ class OrangeParams final : public GeoParamsInterface,
     //! Outer bounding box of geometry
     BBox const& bbox() const final { return bbox_; }
 
-    // Maximum universe depth
-    inline size_type max_depth() const final;
+    // Maximum universe depth (not geometry volume depth!)
+    inline size_type max_depth() const;
 
     // Create model parameters corresponding to our internal representation
     inp::Model make_model_input() const final;

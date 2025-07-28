@@ -58,11 +58,11 @@ LevelId::size_type get_max_depth(G4VPhysicalVolume const& world)
 {
     LevelId::size_type result{0};
     visit_volume_instances(
-        [&result](G4VPhysicalVolume const&, int level) {
+        [&result](G4VPhysicalVolume const*, int level) {
             result = max(level, static_cast<int>(result));
             return true;
         },
-        world);
+        &world);
     // Maximum "depth" is one greater than "highest level"
     return result + 1;
 }
@@ -77,18 +77,19 @@ std::vector<Label> make_logical_vol_labels(G4VPhysicalVolume const& world,
     std::unordered_map<std::string, std::vector<G4LogicalVolume const*>> names;
 
     visit_volumes(
-        [&](G4LogicalVolume const& lv) {
-            std::string name = lv.GetName();
+        [&](G4LogicalVolume const* lv) {
+            CELER_EXPECT(lv);
+            std::string name = lv->GetName();
             if (name.empty())
             {
-                CELER_LOG(debug)
-                    << "Empty name for reachable LV id=" << lv.GetInstanceID();
+                CELER_LOG(debug) << "Empty name for reachable LV id="
+                                 << lv->GetInstanceID();
                 name = "[UNTITLED]";
             }
             // Add to name map
-            names[std::move(name)].push_back(&lv);
+            names[std::move(name)].push_back(lv);
         },
-        world);
+        &world);
 
     return detail::make_label_vector<G4LogicalVolume const*>(
         std::move(names), [offset](G4LogicalVolume const* lv) {
@@ -109,8 +110,9 @@ std::vector<Label> make_physical_vol_labels(G4VPhysicalVolume const& world,
     // Visit PVs, mapping names to instances, skipping those that have already
     // been visited at a deeper level
     visit_volume_instances(
-        [&](G4VPhysicalVolume const& pv, int depth) {
-            auto&& [iter, inserted] = max_depth.insert({&pv, depth});
+        [&](G4VPhysicalVolume const* pv, int depth) {
+            CELER_EXPECT(pv);
+            auto&& [iter, inserted] = max_depth.insert({pv, depth});
             if (!inserted)
             {
                 if (iter->second >= depth)
@@ -123,11 +125,11 @@ std::vector<Label> make_physical_vol_labels(G4VPhysicalVolume const& world,
             }
 
             // Add to name map
-            names[pv.GetName()].push_back(&pv);
+            names[pv->GetName()].push_back(pv);
             // Visit daughters
             return true;
         },
-        world);
+        &world);
 
     return detail::make_label_vector<G4VPhysicalVolume const*>(
         std::move(names), [offset](G4VPhysicalVolume const* pv) {
@@ -596,6 +598,7 @@ inp::Model GeantGeoParams::make_model_input() const
         // Get volumes from Geant4 geometry
         result.volumes = make_inp_volumes(*this);
         result.volume_instances = make_inp_volume_instances(*this);
+        result.world = this->geant_to_id(*(this->world()->GetLogicalVolume()));
 
         return result;
     }();
