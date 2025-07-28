@@ -21,6 +21,7 @@
 #include "celeritas/user/StepData.hh"
 
 #include "TouchableUpdaterInterface.hh"
+#include "TrackProcessor.hh"
 
 class G4LogicalVolume;
 class G4ParticleDefinition;
@@ -84,8 +85,7 @@ class HitProcessor
                  StepSelection const& selection,
                  StepPointBool const& locate_touchable);
 
-    // Log on destruction
-    ~HitProcessor();
+    ~HitProcessor() = default;
     CELER_DEFAULT_MOVE_DELETE_COPY(HitProcessor);
 
     // Process CPU-generated hits
@@ -109,11 +109,12 @@ class HitProcessor
     // Get and reset the hits counted (generally once per event)
     inline size_type exchange_hits();
 
-    // Register mapping from Celeritas PrimaryID to Geant4 TrackID
-    [[nodiscard]] PrimaryId register_primary(G4Track const&);
-
-    // Clear PrimaryID mapping (called at start of new event)
-    void begin_event();
+    // Access track processor
+    inline TrackProcessor& track_processor() { return track_processor_; }
+    inline TrackProcessor const& track_processor() const
+    {
+        return track_processor_;
+    }
 
   private:
     //! Detector volumes for navigation updating
@@ -123,12 +124,13 @@ class HitProcessor
     //! Temporary CPU hit information
     DetectorStepOutput steps_;
 
+    //! Track processor for track reconstruction
+    TrackProcessor track_processor_;
+
     //! Temporary step
-    std::unique_ptr<G4Step> step_;
+    G4Step* step_;
     //! Step points
     EnumArray<StepPoint, G4StepPoint*> step_points_{{nullptr, nullptr}};
-    //! Tracks for each particle type
-    std::vector<std::unique_ptr<G4Track>> tracks_;
 
     //! Geant4 reference-counted pointer to a G4VTouchable
     EnumArray<StepPoint, G4TouchableHandle> touch_handle_;
@@ -140,10 +142,7 @@ class HitProcessor
     //! Accumulated number of hits
     size_type num_hits_;
 
-    //! Vector storing Geant4 TrackIDs indexed by Celeritas PrimaryID
-    std::vector<int> celeritas_to_g4_track_id_;
-
-    void update_track(DetectorStepOutput const& out, size_type i) const;
+    void update_track(G4Track&) const;
 };
 
 //---------------------------------------------------------------------------//

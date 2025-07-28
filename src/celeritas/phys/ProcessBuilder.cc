@@ -109,7 +109,7 @@ ProcessBuilder::~ProcessBuilder() = default;
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a \c Process from a given processs class.
+ * Construct a \c Process from a given process class.
  *
  * This may return a null process (with a warning) if the user specifically
  * requests that the process be omitted.

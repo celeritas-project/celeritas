@@ -97,7 +97,7 @@ class RaggedRightInverseIndexer
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct fom RaggedRightIndexerData.
+ * Construct from RaggedRightIndexerData.
  */
 template<size_type N>
 CELER_FUNCTION
@@ -122,7 +122,7 @@ CELER_FUNCTION size_type RaggedRightIndexer<N>::operator()(Coords coords) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct fom RaggedRightIndexerData.
+ * Construct from RaggedRightIndexerData.
  */
 template<size_type N>
 CELER_FUNCTION RaggedRightInverseIndexer<N>::RaggedRightInverseIndexer(

@@ -30,7 +30,7 @@ struct CherenkovOffloadExecutor
 
     NativeCRef<celeritas::optical::MaterialParamsData> material;
     NativeCRef<CherenkovData> cherenkov;
-    NativeRef<GeneratorStateData> offload;
+    NativeRef<optical::GeneratorStateData> offload;
     NativeRef<OffloadStepStateData> steps;
     size_type buffer_size;
 };
@@ -49,7 +49,7 @@ CherenkovOffloadExecutor::operator()(CoreTrackView const& track)
     CELER_EXPECT(offload);
     CELER_EXPECT(steps);
 
-    using DistId = ItemId<GeneratorDistributionData>;
+    using DistId = ItemId<optical::GeneratorDistributionData>;
 
     auto tsid = track.track_slot_id();
     CELER_ASSERT(buffer_size + tsid.get() < offload.distributions.size());
@@ -73,12 +73,17 @@ CherenkovOffloadExecutor::operator()(CoreTrackView const& track)
     // Get the distribution data used to generate Cherenkov optical photons
     if (particle.charge() != zero_quantity())
     {
-        Real3 const& pos = track.geometry().pos();
-        optical::MaterialView opt_mat{material, step.material};
+        CherenkovOffload sample_dist(
+            // Pre-step:
+            step,
+            optical::MaterialView{material, step.material},
+            // Post-step:
+            particle,
+            sim,
+            track.geometry().pos(),
+            cherenkov);
         auto rng = track.rng();
-
-        dist = CherenkovOffload(
-            particle, sim, opt_mat, pos, cherenkov, step)(rng);
+        dist = sample_dist(rng);
     }
 }
 

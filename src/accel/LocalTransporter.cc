@@ -223,12 +223,6 @@ void LocalTransporter::InitializeEvent(int id)
     event_id_ = id_cast<UniqueEventId>(id);
     ++run_accum_.events;
 
-    // Clear PrimaryID mapping in HitProcessor and reset counter for new event
-    if (hit_processor_)
-    {
-        hit_processor_->begin_event();
-    }
-
     if (!(G4Threading::IsMultithreadedApplication()
           && G4MTRunManager::SeedOncePerCommunication()))
     {
@@ -243,7 +237,7 @@ void LocalTransporter::InitializeEvent(int id)
 /*!
  * Convert a Geant4 track to a Celeritas primary and add to buffer.
  */
-void LocalTransporter::Push(G4Track const& g4track)
+void LocalTransporter::Push(G4Track& g4track)
 {
     CELER_EXPECT(*this);
 
@@ -269,10 +263,11 @@ void LocalTransporter::Push(G4Track const& g4track)
     PDGNumber const pdg{g4track.GetDefinition()->GetPDGEncoding()};
     track.particle_id = particles_->find(pdg);
 
-    // Generate Celeritas-specific PrimaryID and notify HitProcessor of mapping
+    // Generate Celeritas-specific PrimaryID
     if (hit_processor_)
     {
-        track.primary_id = hit_processor_->register_primary(g4track);
+        track.primary_id
+            = hit_processor_->track_processor().register_primary(g4track);
     }
 
     track.energy = units::MevEnergy(
@@ -414,6 +409,7 @@ void LocalTransporter::Flush()
                                    << " hits for event " << event_id_.get();
             run_accum_.hits += num_hits;
         }
+        hit_processor_->track_processor().end_event();
     }
 }
 

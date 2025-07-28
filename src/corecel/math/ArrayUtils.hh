@@ -39,7 +39,7 @@ template<class T>
 cross_product(Array<T, 3> const& x, Array<T, 3> const& y);
 
 //---------------------------------------------------------------------------//
-// Calculate the Euclidian (2) norm of a vector
+// Calculate the Euclidean (2) norm of a vector
 template<class T, size_type N>
 [[nodiscard]] inline CELER_FUNCTION T norm(Array<T, N> const& vec);
 
@@ -56,7 +56,7 @@ template<class T, size_type N>
 make_orthogonal(Array<T, N> const& x, Array<T, N> const& y);
 
 //---------------------------------------------------------------------------//
-// Calculate the Euclidian (2) distance between two points
+// Calculate the Euclidean (2) distance between two points
 template<class T, size_type N>
 [[nodiscard]] inline CELER_FUNCTION T distance(Array<T, N> const& x,
                                                Array<T, N> const& y);
@@ -129,7 +129,7 @@ cross_product(Array<T, 3> const& x, Array<T, 3> const& y)
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the Euclidian (2) norm of a vector.
+ * Calculate the Euclidean (2) norm of a vector.
  */
 template<class T, size_type N>
 CELER_FUNCTION T norm(Array<T, N> const& v)
@@ -141,7 +141,7 @@ CELER_FUNCTION T norm(Array<T, N> const& v)
 /*!
  * Construct a unit vector.
  *
- * Unit vectors have an Euclidian norm magnitude of 1.
+ * Unit vectors have an Euclidean norm magnitude of 1.
  */
 template<class T, size_type N>
 CELER_FUNCTION Array<T, N> make_unit_vector(Array<T, N> const& v)
@@ -179,7 +179,7 @@ make_orthogonal(Array<T, N> const& x, Array<T, N> const& y)
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the Euclidian (2) distance between two points.
+ * Calculate the Euclidean (2) distance between two points.
  */
 template<class T, size_type N>
 CELER_FUNCTION T distance(Array<T, N> const& x, Array<T, N> const& y)

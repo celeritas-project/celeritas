@@ -1,0 +1,4 @@
+[codespell]
+skip = *.gdml,*.json,*.bib,./build*
+dictionary = ./scripts/dev/codespell-fixes.txt,-
+ignore-words = ./scripts/dev/codespell-ignore.txt

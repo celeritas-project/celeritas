@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/gen/detail/OffloadAction.cu
+//! \file celeritas/optical/gen/OffloadAction.cu
 //---------------------------------------------------------------------------//
 #include "OffloadAction.hh"
 
@@ -14,15 +14,13 @@
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/optical/MaterialParams.hh"
 
-#include "CherenkovOffloadExecutor.hh"
-#include "OpticalGenAlgorithms.hh"
-#include "ScintOffloadExecutor.hh"
-#include "../CherenkovParams.hh"
-#include "../ScintillationParams.hh"
+#include "CherenkovParams.hh"
+#include "ScintillationParams.hh"
+
+#include "detail/CherenkovOffloadExecutor.hh"
+#include "detail/ScintOffloadExecutor.hh"
 
 namespace celeritas
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -33,8 +31,8 @@ void OffloadAction<G>::offload(CoreParams const& core_params,
                                CoreStateDevice& core_state) const
 {
     auto& step = core_state.aux_data<OffloadStepStateData>(data_.step_id);
-    auto& gen_state = get<GeneratorState<MemSpace::native>>(core_state.aux(),
-                                                            data_.gen_id);
+    auto& gen_state = get<optical::GeneratorState<MemSpace::native>>(
+        core_state.aux(), data_.gen_id);
     TrackExecutor execute{core_params.ptr<MemSpace::native>(),
                           core_state.ptr(),
                           Executor{data_.material->device_ref(),
@@ -54,5 +52,4 @@ template class OffloadAction<GeneratorType::cherenkov>;
 template class OffloadAction<GeneratorType::scintillation>;
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

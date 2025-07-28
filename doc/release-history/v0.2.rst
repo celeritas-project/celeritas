@@ -31,7 +31,7 @@ Reviewers: @stognini *(1)*, @amandalund *(1)*, @sethrj *(1)*
 Documentation improvements
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* Reenable and patch up HIP tests *(@sethrj, #711)*
+* Re-enable and patch up HIP tests *(@sethrj, #711)*
 
 Reviewers: @amandalund *(1)*
 

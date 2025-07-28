@@ -29,6 +29,7 @@ set(SOURCES
   GenericGeoResults.cc
   GenericGeoTestInterface.cc
   GeoTests.cc
+  SurfaceTestBase.cc
 )
 
 set(PRIVATE_DEPS ${testcel_core} Celeritas::ExtGeant4Geo)

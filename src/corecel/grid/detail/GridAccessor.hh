@@ -253,7 +253,7 @@ real_type UniformGridAccessor::y(size_type index) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Contruct from cross section grid.
+ * Construct from cross section grid.
  */
 InverseGridAccessor::InverseGridAccessor(UniformGridRecord const& grid,
                                          Values const& values)

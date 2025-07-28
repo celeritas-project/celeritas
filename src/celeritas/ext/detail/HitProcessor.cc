@@ -96,6 +96,8 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
                            StepSelection const& selection,
                            StepPointBool const& locate_touchable)
     : detector_volumes_(std::move(detector_volumes))
+    , track_processor_{particles}
+    , step_{&track_processor_.step()}
     , step_post_status_{
           selection.points[StepPoint::pre].volume_instance_ids
           && selection.points[StepPoint::post].volume_instance_ids}
@@ -107,10 +109,6 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     // same thing
     CELER_LOG(debug) << "Setting up thread-local hit processor for "
                      << detector_volumes_->size() << " sensitive detectors";
-
-    // Create step and step-owned structures
-    step_ = std::make_unique<G4Step>();
-    step_->NewSecondaryVector();
 
 #if G4VERSION_NUMBER >= 1103
 #    define HP_CLEAR_STEP_POINT(CMD) step_->CMD(nullptr)
@@ -189,19 +187,6 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
         p->SetPolarization(G4ThreeVector());
     }
 
-    // Create track if user requested particle types
-    for (G4ParticleDefinition const* pd : particles)
-    {
-        CELER_ASSERT(pd);
-        auto track = std::make_unique<G4Track>(
-            new G4DynamicParticle(pd, G4ThreeVector()), 0.0, G4ThreeVector());
-        track->SetTrackID(0);
-        track->SetParentID(0);
-        track->SetStep(step_.get());
-
-        tracks_.emplace_back(std::move(track));
-    }
-
     // Convert logical volumes (global) to sensitive detectors (thread local)
     detectors_.resize(detector_volumes_->size());
     for (auto i : range(detectors_.size()))
@@ -216,40 +201,6 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     }
 
     CELER_ENSURE(!detectors_.empty());
-}
-
-//---------------------------------------------------------------------------//
-//! Log on destruction
-HitProcessor::~HitProcessor()
-{
-    try
-    {
-        CELER_LOG(debug) << "Deallocating hit processor";
-    }
-    catch (...)  // NOLINT(bugprone-empty-catch)
-    {
-        // Ignore anything bad that happens while logging
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Register mapping from Celeritas PrimaryID to Geant4 TrackID.
- */
-PrimaryId HitProcessor::register_primary(G4Track const& primary)
-{
-    auto primary_id = id_cast<PrimaryId>(celeritas_to_g4_track_id_.size());
-    celeritas_to_g4_track_id_.push_back(primary.GetTrackID());
-    return primary_id;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Clear PrimaryID mapping (called at start of new event).
- */
-void HitProcessor::begin_event()
-{
-    celeritas_to_g4_track_id_.clear();
 }
 
 //---------------------------------------------------------------------------//
@@ -380,11 +331,12 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
     }
 #undef HP_SET
 
-    if (!tracks_.empty())
+    if (!out.particle.empty())
     {
-        // Set the track particle type
-        CELER_ASSERT(!out.particle.empty());
-        this->update_track(out, i);
+        G4Track& g4track = track_processor_.restore_track(
+            out.particle[i],
+            !out.primary_id.empty() ? out.primary_id[i] : PrimaryId{});
+        this->update_track(g4track);
     }
 
     if (step_post_status_)
@@ -396,7 +348,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
     }
 
     // Hit sensitive detector
-    this->detector(out.detector[i])->Hit(step_.get());
+    this->detector(out.detector[i])->Hit(step_);
 }
 
 //---------------------------------------------------------------------------//
@@ -405,25 +357,12 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
  *
  * This is a bit like \c G4Step::UpdateTrack .
  */
-void HitProcessor::update_track(DetectorStepOutput const& out, size_type i) const
+void HitProcessor::update_track(G4Track& track) const
 {
-    ParticleId id = out.particle[i];
-    CELER_EXPECT(id < tracks_.size());
-    G4Track& track = *tracks_[id.unchecked_get()];
-    step_->SetTrack(&track);
-
     // Copy data from step to track
     track.SetStepLength(step_->GetStepLength());
 
     G4ParticleDefinition const& pd = *track.GetParticleDefinition();
-
-    if (!out.primary_id.empty())
-    {
-        PrimaryId celeritas_primary_id = out.primary_id[i];
-        CELER_ASSERT(celeritas_primary_id < celeritas_to_g4_track_id_.size());
-        track.SetTrackID(
-            celeritas_to_g4_track_id_[celeritas_primary_id.unchecked_get()]);
-    }
 
     for (G4StepPoint* p : step_points_)
     {

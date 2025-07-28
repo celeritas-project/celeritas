@@ -52,7 +52,7 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
 
     // Set up Geant4
     std::optional<GeantSetup> geant_setup;
-    std::shared_ptr<GeantGeoParams> geant_geo_params;
+    std::shared_ptr<GeantGeoParams> ggp;
     if (si.geant_setup)
     {
         // Take file name from problem and physics options from the arguments,
@@ -63,12 +63,12 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
                             *si.geant_setup);
 
         // Keep the geant4 geometry and set it as global
-        geant_geo_params = geant_setup->geo_params();
-        CELER_ASSERT(geant_geo_params);
-        celeritas::geant_geo(*geant_geo_params);
+        ggp = geant_setup->geo_params();
+        CELER_ASSERT(ggp);
+        celeritas::geant_geo(ggp);
 
         // Load geometry, surfaces, regions from Geant4 world pointer
-        problem->model = geant_geo_params->make_model_input();
+        problem->model = ggp->make_model_input();
     }
 
     // Import physics data
@@ -79,10 +79,10 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
                      // Import physics data from ROOT file
                      return RootImporter(fi.input)();
                  },
-                 [&geant_geo_params](inp::GeantImport const& gi) {
+                 [&ggp](inp::GeantImport const& gi) {
                      // For standalone, no processes should need to be ignored
                      CELER_ASSERT(gi.ignore_processes.empty());
-                     CELER_EXPECT(geant_geo_params);
+                     CELER_EXPECT(ggp);
 
                      // Don't capture the setup; leave Geant4 alive for now
                      GeantImporter import{};
@@ -106,7 +106,7 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
     result.problem = setup::problem(*problem, imported);
 
     // Save geometry if loaded
-    result.geant_geo = geant_geo_params;
+    result.geant_geo = ggp;
 
     // Load events
     result.events = events(si.events, result.problem.core_params->particle());

@@ -68,8 +68,8 @@ std::shared_ptr<ImportedProcesses>
 ImportedProcesses::from_import(ImportData const& data,
                                SPConstParticles particle_params)
 {
-    CELER_EXPECT(std::all_of(
-        data.processes.begin(), data.processes.end(), LogicalTrue{}));
+    CELER_EXPECT(
+        std::all_of(data.processes.begin(), data.processes.end(), Identity{}));
     CELER_EXPECT(particle_params);
 
     // Sort processes based on particle def IDs, process types, etc.

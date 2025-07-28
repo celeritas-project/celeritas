@@ -374,7 +374,7 @@ TEST_F(NeutronInelasticTest, model_data)
 
 TEST_F(NeutronInelasticTest, angular_cdf)
 {
-    // Check the tabulated cummulative distribution function (c.d.f) data used
+    // Check the tabulated cumulative distribution function (c.d.f) data used
     // for sampling cos\theta of the intra-nucleus nucleon-nucleon collision
     NeutronInelasticRef shared = model_->host_ref();
 

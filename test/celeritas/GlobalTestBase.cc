@@ -27,6 +27,8 @@
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/optical/CoreParams.hh"
+#include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/StatusChecker.hh"
 
@@ -119,6 +121,29 @@ auto GlobalTestBase::build_aux_reg() const -> SPUserRegistry
 }
 
 //---------------------------------------------------------------------------//
+auto GlobalTestBase::build_optical_action_reg() const -> SPActionRegistry
+{
+    return std::make_shared<ActionRegistry>();
+}
+
+//---------------------------------------------------------------------------//
+auto GlobalTestBase::build_optical_params() -> SPOpticalParams
+{
+    optical::CoreParams::Input inp;
+    inp.geometry = this->geometry();
+    inp.material = this->optical_material();
+    inp.rng = this->rng();
+    inp.surface = this->core()->surface();
+    inp.action_reg = this->optical_action_reg();
+    inp.gen_reg = std::make_shared<GeneratorRegistry>();
+    inp.physics = this->optical_physics();
+
+    CELER_ENSURE(inp);
+
+    return std::make_shared<optical::CoreParams>(std::move(inp));
+}
+
+//---------------------------------------------------------------------------//
 auto GlobalTestBase::build_core() -> SPConstCore
 {
     CoreParams::Input inp;
@@ -138,17 +163,17 @@ auto GlobalTestBase::build_core() -> SPConstCore
 
     {
         // Build "under the hood" parameters
-        auto const& model_geo = [&inp]() -> GeoParamsInterface const& {
-            if (auto* ggeo = celeritas::geant_geo())
+        auto model_geo = [&inp]() -> std::shared_ptr<GeoParamsInterface const> {
+            if (auto ggeo = celeritas::geant_geo().lock())
             {
                 // Load geometry, surfaces, regions from Geant4 world pointer
-                return *ggeo;
+                return ggeo;
             }
             // Load from the native geometry (e.g. ORANGE internal testing)
-            CELER_ASSERT(inp.geometry);
-            return *inp.geometry;
+            return inp.geometry;
         }();
-        auto mi = model_geo.make_model_input();
+        CELER_ASSERT(model_geo);
+        auto mi = model_geo->make_model_input();
         inp.volume = std::make_shared<VolumeParams>(mi.volumes);
         inp.surface = std::make_shared<SurfaceParams>(mi.surfaces, *inp.volume);
     }

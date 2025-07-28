@@ -87,8 +87,7 @@ PhysicsParams::PhysicsParams(Input inp)
     , relaxation_(std::move(inp.relaxation))
 {
     CELER_EXPECT(!processes_.empty());
-    CELER_EXPECT(
-        std::all_of(processes_.begin(), processes_.end(), LogicalTrue{}));
+    CELER_EXPECT(std::all_of(processes_.begin(), processes_.end(), Identity{}));
     CELER_EXPECT(inp.particles);
     CELER_EXPECT(inp.materials);
     CELER_EXPECT(inp.action_registry);
@@ -131,7 +130,7 @@ PhysicsParams::PhysicsParams(Input inp)
         inp.action_registry->insert(integral_action);
         integral_rejection_action_ = std::move(integral_action);
 
-        // Emit models for associated proceses
+        // Emit models for associated processes
         models_ = this->build_models(inp.action_registry);
 
         // Place "failure" *after* all the model IDs

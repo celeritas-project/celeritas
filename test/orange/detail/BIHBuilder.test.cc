@@ -248,7 +248,7 @@ TEST_F(BIHBuilderTest, basic)
  *
  *
  * Here, we test only the N1 side for the tree for brevity, as the N6 side is
- * directly analogus.
+ * directly analogous.
  */
 TEST_F(BIHBuilderTest, grid)
 {

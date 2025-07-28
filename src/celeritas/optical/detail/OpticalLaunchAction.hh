@@ -12,15 +12,13 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxStateVec.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "celeritas/global/ActionInterface.hh"
 
 #include "../Model.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-template<class P, template<MemSpace M> class S>
-class ActionGroups;
 class CoreParams;
 
 namespace optical
@@ -28,6 +26,7 @@ namespace optical
 class CoreParams;
 template<MemSpace M>
 class CoreState;
+class Transporter;
 }  // namespace optical
 
 namespace detail
@@ -40,7 +39,8 @@ namespace detail
  * the beginning of the run, and stores the optical core state as "aux" data.
  */
 class OpticalLaunchAction : public AuxParamsInterface,
-                            public CoreStepActionInterface
+                            public CoreStepActionInterface,
+                            public CoreBeginRunActionInterface
 {
   public:
     //!@{
@@ -52,7 +52,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
     {
         SPOpticalParams optical_params;
         size_type num_track_slots{};
-        size_type max_step_iters{};
+        size_type max_step_iters{numeric_limits<size_type>::max()};
         size_type auto_flush{};
 
         //! True if all input is assigned and valid
@@ -89,6 +89,15 @@ class OpticalLaunchAction : public AuxParamsInterface,
     //!@}
 
     //!@{
+    //! \name BeginRunAction interface
+
+    // Create the action groups and get a pointer to the aux data
+    void begin_run(CoreParams const&, CoreStateHost&) final;
+    // Create the action groups and get a pointer to the aux data
+    void begin_run(CoreParams const&, CoreStateDevice&) final;
+    //!@}
+
+    //!@{
     //! \name Action interface
 
     //! ID of the model
@@ -116,20 +125,21 @@ class OpticalLaunchAction : public AuxParamsInterface,
     //!@}
 
   private:
-    using ActionGroupsT = ActionGroups<optical::CoreParams, optical::CoreState>;
-    using SPActionGroups = std::shared_ptr<ActionGroupsT>;
+    using SPTransporter = std::shared_ptr<optical::Transporter>;
 
     //// DATA ////
 
     ActionId action_id_;
     AuxId aux_id_;
     Input data_;
-    SPActionGroups optical_actions_;
+    SPTransporter transport_;
 
     //// HELPERS ////
 
     template<MemSpace M>
     void execute_impl(CoreParams const&, CoreState<M>&) const;
+    template<MemSpace M>
+    void begin_run_impl(CoreState<M>&);
 };
 
 //---------------------------------------------------------------------------//

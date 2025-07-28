@@ -87,7 +87,7 @@ namespace celeritas
  * collections. The MaterialParamsData demonstrates additional complexity
  * by having a multi-level data hierarchy, and MaterialStateData has a resize
  * function that uses params data. PhysicsParamsData is a very complex example,
- * and GeoParamsData demonstates how to use template specialization to adapt
+ * and GeoParamsData demonstrates how to use template specialization to adapt
  * Collections to another codebase with a different convention for host-device
  * portability.
  */
@@ -154,7 +154,7 @@ class ItemMap
 
     ItemMap() = default;
 
-    //! Construct from an exising Range<T2>
+    //! Construct from an existing Range<T2>
     explicit CELER_FUNCTION ItemMap(Range<T2> range) : range_(range) {}
 
     //// ACCESS ////
@@ -320,7 +320,7 @@ class Collection
     CELER_FORCEINLINE_FUNCTION SpanConstT operator[](AllItemsT) const;
 
     //!@{
-    //! Direct accesors to underlying data
+    //! Direct accessors to underlying data
     CELER_FORCEINLINE_FUNCTION size_type size() const
     {
         return static_cast<size_type>(this->storage().size());

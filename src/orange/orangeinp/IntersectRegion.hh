@@ -11,8 +11,12 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/grid/GridTypes.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "corecel/math/Turn.hh"
 #include "orange/OrangeTypes.hh"
+#include "orange/surf/ConeAligned.hh"
+
+#include "CsgTypes.hh"
 
 namespace celeritas
 {
@@ -323,8 +327,8 @@ class EllipticalCone final : public IntersectRegionInterface
  * Region formed by extruding + scaling a convex polygon along a line segment.
  *
  * The convex polygon is supplied as a set of points on the XY plane in
- * clockwise order. The line segment and scaling factors are specified by
- * providing a line segment point and scaling factor for the top and bottom
+ * counterclockwise order. The line segment and scaling factors are specified
+ * by providing a line segment point and scaling factor for the top and bottom
  * polygon faces of the region. The line segment point of the top face must
  * have a z value greater than that of the bottom face. Along the line segment,
  * the size of the polygon is linearly scaled in accordance with scaling
@@ -403,7 +407,7 @@ class ExtrudedPolygon final : public IntersectRegionInterface
     Range x_range_;
     Range y_range_;
 
-    // >> HELPER FUNCTIONS
+    //// HELPER FUNCTIONS ////
 
     // Calculate the min/max x or y values of the extruded region
     Range calc_range(VecReal2 const& polygon, size_type dir);
@@ -779,6 +783,54 @@ class Prism final : public IntersectRegionInterface
 
     // Rotational offset: 0 has point at (r, 0), 1 is congruent with 0
     real_type orientation_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * A region formed by revolving a SpecialTrapezoid around the z-axis.
+ *
+ * The trapezoid being revolved always has a flat top and bottom along the \em
+ * z axis and never crosses the \em z axis. These special constraints ensure
+ * that the revolved trapezoid's sides never touch both sheets of a cone, which
+ * as a quadric is always double-sheeted about the cone's vanishing point. As a
+ * convention, all \em r values must be non-negative. An example of the
+ * revolution process is shown below.
+ * \verbatim
+                              |
+     ........            ^    |     .           ________
+     .       .            .   |    .           /        |
+     .         .           . . . .           /          |
+     .           .            |            /            |
+     ...............          |          /______________|
+                              |         supplied special trapezoid
+                           z axis
+ * \endverbatim
+ */
+class RevolvedSpecialTrapezoid final : public IntersectRegionInterface
+{
+  public:
+    // Construct from a special trapezoid
+    RevolvedSpecialTrapezoid(SpecialTrapezoid&& trap);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Return the special trapezoid
+    SpecialTrapezoid const& trap() const { return trap_; }
+
+  private:
+    //// DATA ////
+    SpecialTrapezoid trap_;
+
+    //// HELPER FUNCTIONS ////
+
+    // Create a cone from two (r, z) points
+    ConeZ make_cone(Real2 p0, Real2 p1) const;
 };
 
 //---------------------------------------------------------------------------//
