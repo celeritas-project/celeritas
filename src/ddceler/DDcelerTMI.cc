@@ -42,6 +42,7 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
         return input;
     };
     opts.make_along_step = celeritas::UniformAlongStepFactory(make_field_input);
+    opts.sd.ignore_zero_deposition = false;
 
     // Save diagnostic file to a unique name
     opts.output_file = "trackingmanager-offload.out.json";
