@@ -39,8 +39,15 @@ TEST_F(VolumeSurfaceSelectorTest, select_surface)
         for (auto post_vol_inst :
              range(VolumeInstanceId{volumes_.num_volume_instances()}))
         {
-            results.push_back(
-                select(volumes_.volume(post_vol_inst), post_vol_inst));
+            auto post_vol = volumes_.volume(post_vol_inst);
+            if (!post_vol)
+            {
+                // Not used in geometry; this represents Geant4 skipping some
+                // volumes in its list
+                continue;
+            }
+
+            results.push_back(select(post_vol, post_vol_inst));
         }
 
         return results;
@@ -116,7 +123,7 @@ TEST_F(VolumeSurfaceSelectorTest, select_surface)
             SurfaceId{},
         };
 
-        EXPECT_VEC_EQ(expected_surfaces, select_surfaces(VolumeInstanceId{5}));
+        EXPECT_VEC_EQ(expected_surfaces, select_surfaces(VolumeInstanceId{6}));
     }
 }
 
