@@ -37,10 +37,10 @@ class VolumeSurfaceView
   public:
     // Construct from params and pre-step volume ID
     inline CELER_FUNCTION
-    VolumeSurfaceView(SurfaceParamsRef const& params, ImplVolumeId id);
+    VolumeSurfaceView(SurfaceParamsRef const& params, VolumeId id);
 
     // ID of the Volume
-    CELER_FORCEINLINE_FUNCTION ImplVolumeId impl_volume_id() const;
+    CELER_FORCEINLINE_FUNCTION VolumeId volume_id() const;
 
     // ID of the boundary surface for this volume, if any
     CELER_FORCEINLINE_FUNCTION SurfaceId boundary_id() const;
@@ -54,7 +54,7 @@ class VolumeSurfaceView
 
   private:
     SurfaceParamsRef const& params_;
-    ImplVolumeId volume_;
+    VolumeId volume_;
 
     // HELPER FUNCTIONS
 
@@ -69,7 +69,7 @@ class VolumeSurfaceView
  */
 CELER_FUNCTION
 VolumeSurfaceView::VolumeSurfaceView(SurfaceParamsRef const& params,
-                                     ImplVolumeId id)
+                                     VolumeId id)
     : params_(params), volume_(id)
 {
     CELER_EXPECT(id < params.volume_surfaces.size());
@@ -79,7 +79,7 @@ VolumeSurfaceView::VolumeSurfaceView(SurfaceParamsRef const& params,
 /*!
  * Get the volume ID being viewed.
  */
-CELER_FUNCTION auto VolumeSurfaceView::impl_volume_id() const -> ImplVolumeId
+CELER_FUNCTION auto VolumeSurfaceView::volume_id() const -> VolumeId
 {
     return volume_;
 }

@@ -44,8 +44,7 @@ TEST_F(SurfacesTest, none)
 
     if (CELERITAS_DEBUG)
     {
-        EXPECT_THROW(VolumeSurfaceView(sp.host_ref(), ImplVolumeId{0}),
-                     DebugError);
+        EXPECT_THROW(VolumeSurfaceView(sp.host_ref(), VolumeId{0}), DebugError);
     }
 }
 
@@ -60,7 +59,7 @@ TEST_F(SurfacesTest, none_but_volumes)
     EXPECT_EQ(0, sp.labels().size());
 
     {
-        VolumeSurfaceView vsv(sp.host_ref(), ImplVolumeId{0});
+        VolumeSurfaceView vsv(sp.host_ref(), VolumeId{0});
         EXPECT_EQ(SurfaceId{}, vsv.boundary_id());
         EXPECT_FALSE(vsv.has_interface());
     }
@@ -73,8 +72,8 @@ TEST_F(SurfacesTest, errors)
     auto volumes = this->volumes_;
     // Duplicate boundary surface
     EXPECT_THROW(SurfaceParams(inp::Surfaces{{
-                                   make_surface("ok", ImplVolumeId{1}),
-                                   make_surface("bad", ImplVolumeId{1}),
+                                   make_surface("ok", VolumeId{1}),
+                                   make_surface("bad", VolumeId{1}),
                                }},
                                volumes),
                  RuntimeError);
@@ -98,9 +97,9 @@ TEST_F(SurfacesTest, errors)
 TEST_F(SurfacesTest, borders)
 {
     SurfaceParams sp{inp::Surfaces{{
-                         make_surface("b", ImplVolumeId{1}),
-                         make_surface("d", ImplVolumeId{3}),
-                         make_surface("e", ImplVolumeId{4}),
+                         make_surface("b", VolumeId{1}),
+                         make_surface("d", VolumeId{3}),
+                         make_surface("e", VolumeId{4}),
                      }},
                      this->volumes_};
 
@@ -111,19 +110,19 @@ TEST_F(SurfacesTest, borders)
     EXPECT_VEC_EQ(expected_labels, get_multimap_labels(sp.labels()));
 
     {
-        VolumeSurfaceView vsv(sp.host_ref(), ImplVolumeId{0});
-        EXPECT_EQ(ImplVolumeId{0}, vsv.impl_volume_id());
+        VolumeSurfaceView vsv(sp.host_ref(), VolumeId{0});
+        EXPECT_EQ(VolumeId{0}, vsv.volume_id());
         EXPECT_EQ(SurfaceId{}, vsv.boundary_id());
         EXPECT_FALSE(vsv.has_interface());
         EXPECT_EQ(SurfaceId{}, vsv.find_interface(VolInstId{0}, VolInstId{0}));
     }
     {
-        VolumeSurfaceView vsv(sp.host_ref(), ImplVolumeId{1});
+        VolumeSurfaceView vsv(sp.host_ref(), VolumeId{1});
         EXPECT_EQ(SurfaceId{0}, vsv.boundary_id());
         EXPECT_FALSE(vsv.has_interface());
     }
     {
-        VolumeSurfaceView vsv(sp.host_ref(), ImplVolumeId{3});
+        VolumeSurfaceView vsv(sp.host_ref(), VolumeId{3});
         EXPECT_EQ(SurfaceId{1}, vsv.boundary_id());
         EXPECT_FALSE(vsv.has_interface());
     }
@@ -133,11 +132,11 @@ TEST_F(SurfacesTest, interfaces)
 {
     SurfaceParams sp{this->make_many_surfaces_inp(), this->volumes_};
     {
-        VolumeSurfaceView vsv(sp.host_ref(), ImplVolumeId{0});  // A -> any
+        VolumeSurfaceView vsv(sp.host_ref(), VolumeId{0});  // A -> any
         EXPECT_FALSE(vsv.has_interface());
     }
     {
-        VolumeSurfaceView vsv(sp.host_ref(), ImplVolumeId{1});  // B -> any
+        VolumeSurfaceView vsv(sp.host_ref(), VolumeId{1});  // B -> any
         EXPECT_EQ(SurfaceId{2}, vsv.boundary_id());
         EXPECT_TRUE(vsv.has_interface());
         EXPECT_EQ(SurfaceId{}, vsv.find_interface(VolInstId{0}, VolInstId{0}));
@@ -145,7 +144,7 @@ TEST_F(SurfacesTest, interfaces)
         EXPECT_EQ(SurfaceId{6}, vsv.find_interface(VolInstId{0}, VolInstId{2}));
     }
     {
-        VolumeSurfaceView vsv(sp.host_ref(), ImplVolumeId{2});  // C -> any
+        VolumeSurfaceView vsv(sp.host_ref(), VolumeId{2});  // C -> any
         EXPECT_EQ(SurfaceId{0}, vsv.find_interface(VolInstId{2}, VolInstId{0}));
         EXPECT_EQ(SurfaceId{1}, vsv.find_interface(VolInstId{2}, VolInstId{2}));
         EXPECT_EQ(SurfaceId{3}, vsv.find_interface(VolInstId{1}, VolInstId{2}));

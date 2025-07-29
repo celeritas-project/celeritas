@@ -54,7 +54,7 @@ struct VolumeInstance
     //! Name for the edge
     Label label;
     //! Logical volume referenced by this instance
-    ImplVolumeId volume;
+    VolumeId volume;
 
     // TODO: replica numbers
 
@@ -87,7 +87,7 @@ struct Volumes
 struct Surface
 {
     using Interface = std::pair<VolumeInstanceId, VolumeInstanceId>;
-    using Boundary = ImplVolumeId;
+    using Boundary = VolumeId;
 
     std::variant<Interface, Boundary> surface;
     Label label;

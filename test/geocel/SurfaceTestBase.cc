@@ -32,7 +32,7 @@ void SurfaceTestBase::SetUp()
                   v.children = std::move(children);
                   in.volumes.push_back(v);
               };
-        auto add_instance = [&in](ImplVolumeId vol_id) {
+        auto add_instance = [&in](VolumeId vol_id) {
             VolumeInstance vi;
             vi.label = std::to_string(in.volume_instances.size());
             vi.volume = vol_id;
@@ -45,12 +45,12 @@ void SurfaceTestBase::SetUp()
         add_volume("D", {});
         add_volume("E", {});
 
-        add_instance(ImplVolumeId{1});  // 0 -> B
-        add_instance(ImplVolumeId{2});  // 1 -> C
-        add_instance(ImplVolumeId{2});  // 2 -> C
-        add_instance(ImplVolumeId{2});  // 3 -> C
-        add_instance(ImplVolumeId{3});  // 4 -> D
-        add_instance(ImplVolumeId{4});  // 5 -> E
+        add_instance(VolumeId{1});  // 0 -> B
+        add_instance(VolumeId{2});  // 1 -> C
+        add_instance(VolumeId{2});  // 2 -> C
+        add_instance(VolumeId{2});  // 3 -> C
+        add_instance(VolumeId{3});  // 4 -> D
+        add_instance(VolumeId{4});  // 5 -> E
 
         return in;
     }());
@@ -69,7 +69,7 @@ inp::Surfaces SurfaceTestBase::make_many_surfaces_inp() const
     return inp::Surfaces{{
         make_surface("c2b", VolInstId{2}, VolInstId{0}),
         make_surface("c2c2", VolInstId{2}, VolInstId{2}),
-        make_surface("b", ImplVolumeId{1}),
+        make_surface("b", VolumeId{1}),
         make_surface("cc2", VolInstId{1}, VolInstId{2}),
         make_surface("c3c", VolInstId{3}, VolInstId{1}),
         make_surface("bc", VolInstId{0}, VolInstId{1}),

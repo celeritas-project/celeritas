@@ -17,7 +17,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 //! Helper to create a boundary surface
-inline inp::Surface make_surface(std::string&& label, ImplVolumeId vol)
+inline inp::Surface make_surface(std::string&& label, VolumeId vol)
 {
     inp::Surface surface;
     surface.label = std::move(label);

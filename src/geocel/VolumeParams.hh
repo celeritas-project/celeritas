@@ -24,7 +24,7 @@ struct Volumes;
  *
  * See the introduction to \rstref{the Geometry API section,api_geometry} for
  * a detailed description of volumes in the detector geometry description. This
- * class abstracts the graph of volumes, relating \em nodes (ImplVolumeId, aka
+ * class abstracts the graph of volumes, relating \em nodes (VolumeId, aka
  * logical volume) to \em edges (VolumeInstanceId, aka physical volume) and
  * providing the means to determine the \em path (VolumeUniqueInstanceId, aka
  * touchable history) of a track state. In conjunction with \c GeantGeoParams
@@ -44,7 +44,7 @@ class VolumeParams
   public:
     //!@{
     //! \name Type aliases
-    using ImplVolumeMap = LabelIdMultiMap<ImplVolumeId>;
+    using VolumeMap = LabelIdMultiMap<VolumeId>;
     using VolInstMap = LabelIdMultiMap<VolumeInstanceId>;
     //!@}
 
@@ -59,7 +59,7 @@ class VolumeParams
     bool empty() const { return v_labels_.empty(); }
 
     //! Number of volumes
-    ImplVolumeId::size_type num_volumes() const { return v_labels_.size(); }
+    VolumeId::size_type num_volumes() const { return v_labels_.size(); }
 
     //! Number of volume instances
     VolumeInstanceId::size_type num_volume_instances() const
@@ -68,31 +68,31 @@ class VolumeParams
     }
 
     //! Get volume metadata
-    ImplVolumeMap const& volume_labels() const { return v_labels_; }
+    VolumeMap const& volume_labels() const { return v_labels_; }
 
     //! Get volume instance metadata
     VolInstMap const& volume_instance_labels() const { return vi_labels_; }
 
     // Find all instances of a volume (incoming edges)
-    inline Span<VolumeInstanceId const> parents(ImplVolumeId v_id) const;
+    inline Span<VolumeInstanceId const> parents(VolumeId v_id) const;
 
     // Get the list of daughter volumes (outgoing edges)
-    inline Span<VolumeInstanceId const> children(ImplVolumeId v_id) const;
+    inline Span<VolumeInstanceId const> children(VolumeId v_id) const;
 
     // Get the geometry material of a volume
-    inline GeoMatId material(ImplVolumeId v_id) const;
+    inline GeoMatId material(VolumeId v_id) const;
 
     // Get the volume being instantiated (outgoing node)
-    inline ImplVolumeId volume(VolumeInstanceId vi_id) const;
+    inline VolumeId volume(VolumeInstanceId vi_id) const;
 
   private:
-    ImplVolumeMap v_labels_;
+    VolumeMap v_labels_;
     VolInstMap vi_labels_;
 
     std::vector<std::vector<VolumeInstanceId>> parents_;
     std::vector<std::vector<VolumeInstanceId>> children_;
     std::vector<GeoMatId> materials_;
-    std::vector<ImplVolumeId> volumes_;
+    std::vector<VolumeId> volumes_;
 };
 
 //---------------------------------------------------------------------------//
@@ -101,7 +101,7 @@ class VolumeParams
 /*!
  * Find all instances of a volume (incoming edges).
  */
-Span<VolumeInstanceId const> VolumeParams::parents(ImplVolumeId v_id) const
+Span<VolumeInstanceId const> VolumeParams::parents(VolumeId v_id) const
 {
     CELER_EXPECT(v_id < parents_.size());
     return make_span(parents_[v_id.unchecked_get()]);
@@ -111,7 +111,7 @@ Span<VolumeInstanceId const> VolumeParams::parents(ImplVolumeId v_id) const
 /*!
  * Get the list of daughter volumes (outgoing edges).
  */
-Span<VolumeInstanceId const> VolumeParams::children(ImplVolumeId v_id) const
+Span<VolumeInstanceId const> VolumeParams::children(VolumeId v_id) const
 {
     CELER_EXPECT(v_id < children_.size());
     return make_span(children_[v_id.unchecked_get()]);
@@ -121,7 +121,7 @@ Span<VolumeInstanceId const> VolumeParams::children(ImplVolumeId v_id) const
 /*!
  * Get the geometry material of a volume.
  */
-GeoMatId VolumeParams::material(ImplVolumeId v_id) const
+GeoMatId VolumeParams::material(VolumeId v_id) const
 {
     CELER_EXPECT(v_id < materials_.size());
     return materials_[v_id.unchecked_get()];
@@ -131,7 +131,7 @@ GeoMatId VolumeParams::material(ImplVolumeId v_id) const
 /*!
  * Get the volume being instantiated (outgoing node).
  */
-ImplVolumeId VolumeParams::volume(VolumeInstanceId vi_id) const
+VolumeId VolumeParams::volume(VolumeInstanceId vi_id) const
 {
     CELER_EXPECT(vi_id < volumes_.size());
     return volumes_[vi_id.unchecked_get()];
