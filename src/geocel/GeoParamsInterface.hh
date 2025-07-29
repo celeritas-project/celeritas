@@ -78,17 +78,18 @@ class GeoParamsInterface
     //! Outer bounding box of geometry
     virtual BBox const& bbox() const = 0;
 
-    //! Maximum nested volume instance depth
-    //! \todo move to VolumeParams
-    virtual LevelId::size_type max_depth() const = 0;
-
     // Create model parameters corresponding to our internal representation
+    // TODO: probably will be moved to a separate 'model' class
     virtual inp::Model make_model_input() const = 0;
-
-    //// VOLUMES ////
 
     //! Get volume metadata
     virtual ImplVolumeMap const& impl_volumes() const = 0;
+
+    //// TO BE DELETED SOON ////
+
+    //! Maximum nested volume instance depth
+    //! \todo move to VolumeParams
+    virtual LevelId::size_type max_depth() const = 0;
 
     //! Get volume instance metadata
     virtual VolInstanceMap const& volume_instances() const = 0;
