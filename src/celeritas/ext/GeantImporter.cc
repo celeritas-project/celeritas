@@ -17,6 +17,7 @@
 #include <utility>
 #include <vector>
 #include <CLHEP/Units/SystemOfUnits.h>
+#include <G4Cerenkov.hh>
 #include <G4Element.hh>
 #include <G4ElementTable.hh>
 #include <G4ElementVector.hh>
@@ -48,6 +49,7 @@
 #include <G4RToEConvForProton.hh>
 #include <G4Region.hh>
 #include <G4RegionStore.hh>
+#include <G4Scintillation.hh>
 #include <G4String.hh>
 #include <G4Transportation.hh>
 #include <G4TransportationManager.hh>
@@ -921,6 +923,12 @@ auto import_processes(GeantImporter::DataSelection selected,
                 import_optical_model(optical::ImportModelClass::wls2));
         }
 #endif
+        else if (dynamic_cast<G4Cerenkov const*>(&process)
+                 || dynamic_cast<G4Scintillation const*>(&process))
+        {
+            // The data needed for Cherenkov and scintillation is imported from
+            // the optical material property table
+        }
         else
         {
             CELER_LOG(error)
