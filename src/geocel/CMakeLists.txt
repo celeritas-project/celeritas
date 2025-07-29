@@ -18,6 +18,7 @@ list(APPEND SOURCES
   GeoVolumeFinder.cc
   SurfaceParams.cc
   VolumeParams.cc
+  VolumeToString.cc
   detail/SurfaceParamsBuilder.cc
   rasterize/Color.cc
   rasterize/Image.cc

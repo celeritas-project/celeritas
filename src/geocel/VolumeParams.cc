@@ -6,10 +6,32 @@
 //---------------------------------------------------------------------------//
 #include "VolumeParams.hh"
 
+#include "VolumeVisitor.hh"
 #include "inp/Model.hh"
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+LevelId::size_type calc_depth(VolumeParams const& params)
+{
+    CELER_EXPECT(params.world());
+    LevelId::size_type result{0};
+
+    VolumeVisitor visit_vol{params};
+    visit_vol(
+        [&result](VolumeId, int level) {
+            CELER_ASSERT(level >= 0);
+            result = std::max(result, static_cast<LevelId::size_type>(level));
+            return true;
+        },
+        params.world());
+    return result;
+}
+
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct from input.
@@ -65,6 +87,16 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
         CELER_EXPECT(vol_inst.volume < this->num_volumes());
         parents_[vol_inst.volume.unchecked_get()].push_back(
             VolumeInstanceId{vi_idx});
+    }
+
+    // Save world
+    CELER_EXPECT(!in.world || in.world < in.volumes.size());
+    world_ = in.world;
+
+    // Calculate additional properties
+    if (world_)
+    {
+        depth_ = calc_depth(*this);
     }
 
     CELER_ENSURE(this->num_volumes() == in.volumes.size());
