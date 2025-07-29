@@ -2,14 +2,14 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/OpticalLaunchAction.test.cc
+//! \file celeritas/optical/PrimaryGenerator.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/optical/detail/OpticalLaunchAction.hh"
-
 #include <memory>
 #include <utility>
 
 #include "corecel/Types.hh"
+#include "corecel/data/AuxInterface.hh"
+#include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ActionRegistry.hh"
@@ -20,6 +20,7 @@
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/ModelImporter.hh"
 #include "celeritas/optical/PhysicsParams.hh"
+#include "celeritas/optical/Transporter.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
 #include "celeritas/optical/gen/OffloadData.hh"
 #include "celeritas/optical/gen/PrimaryGeneratorAction.hh"
@@ -32,49 +33,52 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Temporary helper class for constructing optical aux state data.
+ */
+class OpticalAux : public AuxParamsInterface
+{
+  public:
+    using SPConstParams = std::shared_ptr<optical::CoreParams const>;
+
+  public:
+    OpticalAux(SPConstParams params, AuxId id) : params_(params), aux_id_(id)
+    {
+        CELER_EXPECT(params_);
+        CELER_EXPECT(aux_id_);
+    }
+
+    AuxId aux_id() const final { return aux_id_; }
+    std::string_view label() const final { return "optical-aux"; }
+    UPState create_state(MemSpace m, StreamId id, size_type size) const final
+    {
+        if (m == MemSpace::host)
+        {
+            return std::make_unique<optical::CoreState<MemSpace::host>>(
+                *params_, id, size);
+        }
+        else if (m == MemSpace::device)
+        {
+            return std::make_unique<optical::CoreState<MemSpace::device>>(
+                *params_, id, size);
+        }
+        CELER_ASSERT_UNREACHABLE();
+    }
+
+  private:
+    SPConstParams params_;
+    AuxId aux_id_;
+};
+
+//---------------------------------------------------------------------------//
 // TEST FIXTURES
 //---------------------------------------------------------------------------//
 
-class LArSphereLaunchTest : public LArSphereBase
+class LArSpherePrimaryGeneratorTest : public LArSphereBase
 {
   public:
     void SetUp() override
     {
-        using IMC = celeritas::optical::ImportModelClass;
-
-        auto const& core = *this->core();
-
-        // Build optical core params
-        auto optical_params = std::make_shared<optical::CoreParams>([&] {
-            optical::CoreParams::Input inp;
-            inp.geometry = core.geometry();
-            inp.material = this->optical_material();
-            inp.rng = core.rng();
-            inp.surface = core.surface();
-            inp.action_reg = std::make_shared<ActionRegistry>();
-            inp.gen_reg = std::make_shared<GeneratorRegistry>();
-            inp.max_streams = core.max_streams();
-            {
-                optical::PhysicsParams::Input pp_inp;
-                optical::ModelImporter importer{
-                    this->imported_data(), inp.material, this->material()};
-                std::vector<IMC> imcs{IMC::absorption, IMC::rayleigh};
-                for (auto imc : imcs)
-                {
-                    if (auto builder = importer(imc))
-                    {
-                        pp_inp.model_builders.push_back(*builder);
-                    }
-                }
-                pp_inp.materials = inp.material;
-                pp_inp.action_registry = inp.action_reg.get();
-                inp.physics = std::make_shared<optical::PhysicsParams>(
-                    std::move(pp_inp));
-            }
-            CELER_ENSURE(inp);
-            return inp;
-        }());
-
         {
             // Create primary generator action
             inp::OpticalPrimaryGenerator inp;
@@ -83,22 +87,31 @@ class LArSphereLaunchTest : public LArSphereBase
             inp.energy.energy = units::MevEnergy{1e-5};
             inp.shape = inp::PointShape{0, 0, 0};
             generate_ = optical::PrimaryGeneratorAction::make_and_insert(
-                core, *optical_params, std::move(inp));
+                *this->core(), *this->optical_params(), std::move(inp));
         }
         {
-            // Create launch action
-            detail::OpticalLaunchAction::Input inp;
-            inp.num_track_slots = 4096;
-            inp.auto_flush = 4096;
-            inp.optical_params = std::move(optical_params);
-            launch_ = detail::OpticalLaunchAction::make_and_insert(
-                core, std::move(inp));
+            // Create optical transporter
+            optical::Transporter::Input inp;
+            inp.params = this->optical_params();
+            transport_ = std::make_shared<optical::Transporter>(std::move(inp));
         }
         {
-            // Create core state and aux data
-            size_type core_track_slots = 1;
-            core_state_ = std::make_shared<CoreState<MemSpace::host>>(
-                core, StreamId{0}, core_track_slots);
+            // Construct and register optical auxiliary params
+            auto& aux_reg = *this->core()->aux_reg();
+            optical_ = std::make_shared<OpticalAux>(this->optical_params(),
+                                                    aux_reg.next_id());
+            aux_reg.insert(optical_);
+
+            // Allocate auxiliary state data, including optical core state
+            size_type num_track_slots = 4096;
+            aux_ = std::make_shared<AuxStateVec>(
+                aux_reg, MemSpace::host, StreamId{0}, num_track_slots);
+            CELER_ASSERT(aux_);
+
+            // Store a pointer to the aux state vector in the optical state
+            auto& state = get<optical::CoreState<MemSpace::host>>(
+                *aux_, optical_->aux_id());
+            state.aux() = aux_;
         }
     }
 
@@ -111,23 +124,21 @@ class LArSphereLaunchTest : public LArSphereBase
 
   protected:
     std::shared_ptr<optical::PrimaryGeneratorAction> generate_;
-    std::shared_ptr<detail::OpticalLaunchAction> launch_;
-    std::shared_ptr<CoreState<MemSpace::host>> core_state_;
+    std::shared_ptr<optical::Transporter> transport_;
+    std::shared_ptr<OpticalAux> optical_;
+    std::shared_ptr<AuxStateVec> aux_;
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Get optical counters.
  */
-OpticalAccumStats LArSphereLaunchTest::counters() const
+OpticalAccumStats LArSpherePrimaryGeneratorTest::counters() const
 {
-    CELER_EXPECT(core_state_->aux_ptr());
-
-    auto& aux = core_state_->aux();
     auto& state
-        = dynamic_cast<optical::CoreStateBase&>(aux.at(launch_->aux_id()));
+        = get<optical::CoreState<MemSpace::host>>(*aux_, optical_->aux_id());
     OpticalAccumStats accum = state.accum();
-    accum.generators.push_back(generate_->counters(aux).accum);
+    accum.generators.push_back(generate_->counters(*aux_).accum);
     return accum;
 }
 
@@ -135,20 +146,17 @@ OpticalAccumStats LArSphereLaunchTest::counters() const
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(LArSphereLaunchTest, primary_generator)
+TEST_F(LArSpherePrimaryGeneratorTest, primary_generator)
 {
-    // Set actions and pointer to aux data during \c begin_run
-    launch_->begin_run(*this->core(), *core_state_);
-
     // Get the optical state
-    auto& state = get<optical::CoreState<MemSpace::host>>(core_state_->aux(),
-                                                          launch_->aux_id());
+    auto& state
+        = get<optical::CoreState<MemSpace::host>>(*aux_, optical_->aux_id());
 
     // Queue primaries for one event
     generate_->queue_primaries(state);
 
     // Launch the optical loop
-    launch_->step(*this->core(), *core_state_);
+    (*transport_)(state);
 
     // Get the accumulated counters
     auto result = this->counters();

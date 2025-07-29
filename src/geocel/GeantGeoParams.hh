@@ -93,7 +93,7 @@ class GeantGeoParams final : public GeoParamsInterface,
     BBox const& bbox() const final { return bbox_; }
 
     // Maximum nested scene/volume depth
-    LevelId::size_type max_depth() const final { return max_depth_; }
+    LevelId::size_type max_depth() const { return max_depth_; }
 
     // Create model parameters corresponding to our internal representation
     inp::Model make_model_input() const final;

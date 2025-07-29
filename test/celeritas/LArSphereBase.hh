@@ -7,6 +7,7 @@
 #pragma once
 
 #include "celeritas/ext/GeantImporter.hh"
+#include "celeritas/optical/CoreParams.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
 
 #include "GeantTestBase.hh"
@@ -44,6 +45,11 @@ class LArSphereBase : public GeantTestBase
         auto result = GeantTestBase::build_import_data_selection();
         result.processes |= GeantImportDataSelection::optical;
         return result;
+    }
+
+    std::vector<IMC> select_optical_models() const override
+    {
+        return {IMC::absorption, IMC::rayleigh};
     }
 };
 

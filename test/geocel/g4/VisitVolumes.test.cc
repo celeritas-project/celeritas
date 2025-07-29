@@ -26,19 +26,20 @@ namespace
 struct LogicalVisitor
 {
     std::vector<std::string> names;
-    void operator()(G4LogicalVolume const& lv)
+    void operator()(G4LogicalVolume const* lv)
     {
-        names.push_back(lv.GetName());
+        CELER_EXPECT(lv);
+        names.push_back(lv->GetName());
     }
 };
 
 struct PhysicalVisitor
 {
     std::vector<std::string> names;
-    bool operator()(G4VPhysicalVolume const& pv, int depth)
+    bool operator()(G4VPhysicalVolume const* pv, int depth)
     {
         std::ostringstream os;
-        os << depth << ':' << pv.GetName();
+        os << depth << ':' << pv->GetName();
         names.push_back(std::move(os).str());
         return true;
     }
@@ -48,9 +49,9 @@ struct MaxPhysicalVisitor : PhysicalVisitor
 {
     std::unordered_map<G4VPhysicalVolume const*, int> max_depth;
 
-    bool operator()(G4VPhysicalVolume const& pv, int depth)
+    bool operator()(G4VPhysicalVolume const* pv, int depth)
     {
-        auto&& [iter, inserted] = max_depth.insert({&pv, depth});
+        auto&& [iter, inserted] = max_depth.insert({pv, depth});
         if (!inserted)
         {
             if (iter->second >= depth)
@@ -82,7 +83,7 @@ class FourLevelsTest : public VisitGeantVolumesTest
 TEST_F(FourLevelsTest, logical)
 {
     LogicalVisitor visit;
-    visit_volumes(visit, *this->geometry()->world());
+    visit_volumes(visit, this->geometry()->world());
 
     static char const* const expected_names[]
         = {"World", "Envelope", "Shape1", "Shape2"};
@@ -94,7 +95,7 @@ TEST_F(FourLevelsTest, logical)
 TEST_F(FourLevelsTest, physical)
 {
     PhysicalVisitor visit;
-    visit_volume_instances(visit, *this->geometry()->world());
+    visit_volume_instances(visit, this->geometry()->world());
 
     static char const* const expected_names[] = {
         "0:World_PV", "1:env1",   "2:Shape1", "3:Shape2", "1:env2",
@@ -117,7 +118,7 @@ class MultiLevelTest : public VisitGeantVolumesTest
 TEST_F(MultiLevelTest, logical)
 {
     LogicalVisitor visit;
-    visit_volumes(visit, *this->geometry()->world());
+    visit_volumes(visit, this->geometry()->world());
 
     static char const* const expected_names[] = {
         "world",
@@ -136,7 +137,7 @@ TEST_F(MultiLevelTest, logical)
 TEST_F(MultiLevelTest, physical)
 {
     PhysicalVisitor visit;
-    visit_volume_instances(visit, *this->geometry()->world());
+    visit_volume_instances(visit, this->geometry()->world());
 
     static char const* const expected_names[] = {
         "0:world_PV",
@@ -161,7 +162,7 @@ TEST_F(MultiLevelTest, physical)
     EXPECT_VEC_EQ(expected_names, visit.names);
 
     MaxPhysicalVisitor visit_max;
-    visit_volume_instances(visit_max, *this->geometry()->world());
+    visit_volume_instances(visit_max, this->geometry()->world());
     static std::string const expected_max_names[] = {
         "0:world_PV",
         "1:topbox1",

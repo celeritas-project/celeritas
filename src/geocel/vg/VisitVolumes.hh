@@ -17,19 +17,26 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-template<>
-struct VolumeVisitorTraits<vecgeom::VPlacedVolume>
+class VecgeomVolumeAccessor final
+    : public VolumeAccessorInterface<vecgeom::LogicalVolume const*,
+                                     vecgeom::VPlacedVolume const*>
 {
-    using PV = vecgeom::VPlacedVolume;
-    using LV = vecgeom::LogicalVolume;
-
-    static void get_children(PV const& parent, std::vector<PV const*>& dst)
+  public:
+    //! Outgoing volume node from an instance
+    VolumeRef volume(VolumeInstanceRef parent) final
     {
-        auto const& daughters = parent.GetDaughters();
-        dst.assign(daughters.begin(), daughters.end());
+        CELER_EXPECT(parent);
+        auto result = parent->GetLogicalVolume();
+        CELER_ENSURE(result);
+        return result;
     }
 
-    static LV const& get_lv(PV const& pv) { return *pv.GetLogicalVolume(); }
+    //! Outgoing instance nodes from a volume
+    ContainerVolInstRef children(VolumeRef parent) final
+    {
+        auto&& daughters = parent->GetDaughters();
+        return ContainerVolInstRef(daughters.begin(), daughters.end());
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -37,7 +44,7 @@ struct VolumeVisitorTraits<vecgeom::VPlacedVolume>
  * Perform a depth-first traversal of physical volumes.
  *
  * The function must have the signature
- * <code>bool(*)(G4VPhysicalVolume const&, int)</code>
+ * <code>bool(*)(vecgeom::VPlacedVolume const*, int)</code>
  * where the return value indicates whether the volume's children should be
  * visited, and the integer is the depth of the volume being visited.
  *
@@ -45,11 +52,12 @@ struct VolumeVisitorTraits<vecgeom::VPlacedVolume>
  * very expensive! If it's desired to only visit single physical volumes, mark
  * them as visited using a set.
  */
-template<class F>
-void visit_volume_instances(F&& visit, vecgeom::VPlacedVolume const& world)
+template<class Visitor>
+void visit_volume_instances(Visitor&& v, vecgeom::VPlacedVolume const* world)
 {
     ScopedProfiling profile_this{"visit-vecgeom-volume-instance"};
-    VolumeVisitor{world}(std::forward<F>(visit));
+    VolumeVisitor visit_vol{VecgeomVolumeAccessor{}};
+    visit_vol(std::forward<Visitor>(v), world);
 }
 
 //---------------------------------------------------------------------------//
@@ -57,15 +65,19 @@ void visit_volume_instances(F&& visit, vecgeom::VPlacedVolume const& world)
  * Perform a depth-first listing of Geant4 logical volumes.
  *
  * This will visit each volume exactly once based on when it's encountered in
- * the hierarchy. The visitor function F should have the signature
- * \code void(*)(G4LogicalVolume const&) \endcode .
+ * the hierarchy. The visitor function Visitor should have the signature
+ * \code void(*)(vecgeom::LogicalVolume const&) \endcode .
  */
-template<class F>
-void visit_volumes(F&& vis, vecgeom::VPlacedVolume const& parent_vol)
+template<class Visitor>
+void visit_volumes(Visitor&& v, vecgeom::VPlacedVolume const* world)
 {
+    CELER_EXPECT(world);
     ScopedProfiling profile_this{"visit-vecgeom-volume"};
 
-    visit_logical_volumes(std::forward<F>(vis), parent_vol);
+    VolumeVisitor visit_vol{VecgeomVolumeAccessor{}};
+    visit_vol(make_visit_volume_once<vecgeom::LogicalVolume const*>(
+                  std::forward<Visitor>(v)),
+              world->GetLogicalVolume());
 }
 
 //---------------------------------------------------------------------------//

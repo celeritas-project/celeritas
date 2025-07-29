@@ -49,6 +49,7 @@ struct Primary;
 
 namespace optical
 {
+class CoreParams;
 class MaterialParams;
 class PhysicsParams;
 }  // namespace optical
@@ -94,6 +95,7 @@ class GlobalTestBase : public Test
 
     using SPConstCherenkov = SP<CherenkovParams const>;
     using SPConstOpticalMaterial = SP<optical::MaterialParams const>;
+    using SPOpticalParams = SP<optical::CoreParams>;
     using SPConstOpticalPhysics = SP<optical::PhysicsParams const>;
     using SPConstScintillation = SP<ScintillationParams const>;
 
@@ -127,7 +129,9 @@ class GlobalTestBase : public Test
     inline SPConstVolume const& volume();
     inline SPConstCore const& core();
     inline SPConstCherenkov const& cherenkov();
+    inline SPActionRegistry const& optical_action_reg();
     inline SPConstOpticalMaterial const& optical_material();
+    inline SPOpticalParams const& optical_params();
     inline SPConstOpticalPhysics const& optical_physics();
     inline SPConstScintillation const& scintillation();
 
@@ -147,7 +151,9 @@ class GlobalTestBase : public Test
     inline SPConstVolume const& volume() const;
     inline SPConstCore const& core() const;
     inline SPConstCherenkov const& cherenkov() const;
+    inline SPActionRegistry const& optical_action_reg() const;
     inline SPConstOpticalMaterial const& optical_material() const;
+    inline SPOpticalParams const& optical_params() const;
     inline SPConstOpticalPhysics const& optical_physics() const;
     inline SPConstScintillation const& scintillation() const;
     //!@}
@@ -188,6 +194,8 @@ class GlobalTestBase : public Test
     SPActionRegistry build_action_reg() const;
     SPUserRegistry build_aux_reg() const;
     SPConstCore build_core();
+    SPActionRegistry build_optical_action_reg() const;
+    SPOpticalParams build_optical_params();
 
   private:
     SPConstCoreGeo geometry_;
@@ -207,7 +215,9 @@ class GlobalTestBase : public Test
     SPConstCore core_;
     SPOutputRegistry output_reg_;
     SPConstCherenkov cherenkov_;
+    SPActionRegistry optical_action_reg_;
     SPConstOpticalMaterial optical_material_;
+    SPOpticalParams optical_params_;
     SPConstOpticalPhysics optical_physics_;
     SPConstScintillation scintillation_;
 
@@ -250,7 +260,9 @@ DEF_GTB_ACCESSORS(SPUserRegistry, aux_reg)
 DEF_GTB_ACCESSORS(SPConstVolume, volume)
 DEF_GTB_ACCESSORS(SPConstCore, core)
 DEF_GTB_ACCESSORS(SPConstCherenkov, cherenkov)
+DEF_GTB_ACCESSORS(SPActionRegistry, optical_action_reg)
 DEF_GTB_ACCESSORS(SPConstOpticalMaterial, optical_material)
+DEF_GTB_ACCESSORS(SPOpticalParams, optical_params)
 DEF_GTB_ACCESSORS(SPConstOpticalPhysics, optical_physics)
 DEF_GTB_ACCESSORS(SPConstScintillation, scintillation)
 auto GlobalTestBase::wentzel() -> SPConstWentzelOKVI const&
