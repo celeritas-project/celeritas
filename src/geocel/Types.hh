@@ -63,9 +63,6 @@ using ImplSurfaceId = OpaqueId<struct Surface_>;
 //! Implementation detail "global" volume index
 using ImplVolumeId = VolumeId;
 
-//! Identifier for a unique volume in global space (aka touchable)
-using ImplVolumeUniqueInstanceId = VolumeUniqueInstanceId;
-
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//

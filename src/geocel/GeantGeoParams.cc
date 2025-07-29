@@ -72,7 +72,7 @@ LevelId::size_type get_max_depth(G4VPhysicalVolume const& world)
  * Get a reproducible vector of LV instance ID -> label from the given world.
  */
 std::vector<Label> make_logical_vol_labels(G4VPhysicalVolume const& world,
-                                           VolumeId::size_type offset)
+                                           ImplVolumeId::size_type offset)
 {
     std::unordered_map<std::string, std::vector<G4LogicalVolume const*>> names;
 
@@ -144,7 +144,7 @@ void append_skin_surfaces(GeantGeoParams const& geo,
 {
     // Translate "skin" (boundary) surfaces
     using G4Surface = G4LogicalSkinSurface;
-    std::map<VolumeId, G4Surface const*> temp;
+    std::map<ImplVolumeId, G4Surface const*> temp;
     auto const* table = G4Surface::GetSurfaceTable();
     CELER_ASSERT(table);
     size_type num_null_surfaces{0};
@@ -305,11 +305,11 @@ std::vector<inp::Volume> make_inp_volumes(GeantGeoParams const& geo)
 {
     std::vector<inp::Volume> result;
 
-    auto const& vol_labels = geo.volumes();
+    auto const& vol_labels = geo.impl_volumes();
     result.resize(vol_labels.size());
 
     // Process each logical volume
-    for (auto vol_id : range(VolumeId{vol_labels.size()}))
+    for (auto vol_id : range(ImplVolumeId{vol_labels.size()}))
     {
         auto const& label = vol_labels.at(vol_id);
         if (label.empty())
@@ -612,11 +612,11 @@ inp::Model GeantGeoParams::make_model_input() const
 /*!
  * Locate the volume ID corresponding to a Geant4 logical volume.
  */
-VolumeId GeantGeoParams::find_volume(G4LogicalVolume const* volume) const
+ImplVolumeId GeantGeoParams::find_volume(G4LogicalVolume const* volume) const
 {
     CELER_EXPECT(volume);
     auto result
-        = id_cast<VolumeId>(volume->GetInstanceID() - this->lv_offset());
+        = id_cast<ImplVolumeId>(volume->GetInstanceID() - this->lv_offset());
     if (!(result < volumes_.size()))
     {
         // Volume is out of range: possibly an LV defined after this geometry
@@ -665,7 +665,7 @@ GeantPhysicalInstance GeantGeoParams::id_to_geant(VolumeInstanceId id) const
  *
  * If the input volume ID is unassigned, a null pointer will be returned.
  */
-G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId id) const
+G4LogicalVolume const* GeantGeoParams::id_to_geant(ImplVolumeId id) const
 {
     CELER_EXPECT(!id || id < volumes_.size());
     if (!id)
@@ -803,7 +803,7 @@ void GeantGeoParams::build_metadata()
     }
 
     // Construct volume labels for physically reachable volumes
-    volumes_ = VolumeMap{
+    volumes_ = ImplVolumeMap{
         "volume", make_logical_vol_labels(*this->world(), this->lv_offset())};
     vol_instances_ = VolInstanceMap{
         "volume instance",

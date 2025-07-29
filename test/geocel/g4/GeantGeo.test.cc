@@ -347,7 +347,7 @@ TEST_F(MultiLevelTest, level_strings)
     using R2 = Array<double, 2>;
 
     auto const& vol_inst = this->geometry()->volume_instances();
-    auto const& vol = this->geometry()->volumes();
+    auto const& vol = this->geometry()->impl_volumes();
 
     // Include outer world and center sphere
     std::vector<R2> points{R2{-5, 0}, R2{0, 0}};
@@ -383,7 +383,7 @@ TEST_F(MultiLevelTest, level_strings)
             names[i] = to_string(vol_inst.at(inst_ids[i]));
         }
         all_vol_inst.push_back(to_string(repr(names)));
-        all_vol.push_back(to_string(vol.at(geo.volume_id())));
+        all_vol.push_back(to_string(vol.at(geo.impl_volume_id())));
     }
 
     static char const* const expected_all_vol_inst[] = {
@@ -626,8 +626,9 @@ TEST_F(SolidsTest, trace)
 TEST_F(SolidsTest, reflected_vol)
 {
     auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
-    EXPECT_EQ(25, geo.volume_id().unchecked_get());
-    auto const& label = this->geometry()->volumes().at(geo.volume_id());
+    EXPECT_EQ(25, geo.impl_volume_id().unchecked_get());
+    auto const& label
+        = this->geometry()->impl_volumes().at(geo.impl_volume_id());
     EXPECT_EQ("trd3_refl", label.name);
     EXPECT_FALSE(ends_with(label.ext, "_refl"));
 }

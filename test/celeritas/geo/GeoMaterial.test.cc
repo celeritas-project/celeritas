@@ -58,8 +58,8 @@ auto GeoMaterialTestBase::trace_materials(Real3 const& pos_cm, Real3 dir)
     geo = {from_cm(pos_cm), make_unit_vector(dir)};
     while (!geo.is_outside())
     {
-        result.push_back(
-            this->material_name(geo_mat_view.material_id(geo.volume_id())));
+        result.push_back(this->material_name(
+            geo_mat_view.material_id(geo.impl_volume_id())));
 
         geo.find_next_step();
         geo.move_to_boundary();

@@ -89,9 +89,9 @@ class MaterialFinder
     {
     }
 
-    PhysMatId operator()(VolumeId const& volume_id)
+    PhysMatId operator()(ImplVolumeId const& volume_id)
     {
-        Label const& vol_label = geo_.volumes().at(volume_id);
+        Label const& vol_label = geo_.impl_volumes().at(volume_id);
 
         // Hopefully user-provided and geo-provided volume labels match exactly
         if (auto iter = materials_.find(vol_label); iter != materials_.end())
@@ -173,16 +173,16 @@ bool ignore_volume_name(std::string const& name)
 std::vector<PhysMatId>
 build_vol_to_mat(CoreGeoParams const& geo, MapLabelMatId const& materials)
 {
-    auto const& vols = geo.volumes();
+    auto const& vols = geo.impl_volumes();
     std::vector<Label> missing_volumes;
     std::vector<PhysMatId> result(vols.size(), PhysMatId{});
 
     // Make sure at least one volume maps correctly
-    VolumeId::size_type num_missing{0};
+    ImplVolumeId::size_type num_missing{0};
 
     // Map volume names to material names
     MaterialFinder find_matid{geo, materials};
-    for (auto volume_id : range(VolumeId{vols.size()}))
+    for (auto volume_id : range(ImplVolumeId{vols.size()}))
     {
         if (auto matid = find_matid(volume_id))
         {
@@ -228,10 +228,10 @@ build_vol_to_mat(CoreGeoParams const& geo, MapLabelMatId const& materials)
         << join_stream(materials.begin(), materials.end(), ", ", mat_to_stream)
         << "\n"
            "volumes: "
-        << join(RangeIter<VolumeId>(VolumeId{0}),
-                RangeIter<VolumeId>(VolumeId{vols.size()}),
+        << join(RangeIter<ImplVolumeId>(ImplVolumeId{0}),
+                RangeIter<ImplVolumeId>(ImplVolumeId{vols.size()}),
                 ", ",
-                [&vols](VolumeId vid) { return vols.at(vid); }));
+                [&vols](ImplVolumeId vid) { return vols.at(vid); }));
 
     // At least one material ID was assigned...
     return result;
@@ -255,7 +255,7 @@ GeoMaterialParams::from_import(ImportData const& data,
 
     input.volume_to_mat.resize(data.volumes.size());
     for (auto volume_idx :
-         range<VolumeId::size_type>(input.volume_to_mat.size()))
+         range<ImplVolumeId::size_type>(input.volume_to_mat.size()))
     {
         if (!data.volumes[volume_idx])
             continue;
@@ -293,10 +293,10 @@ GeoMaterialParams::GeoMaterialParams(Input input)
 {
     CELER_EXPECT(input.geometry);
     CELER_EXPECT(input.materials);
-    CELER_EXPECT(
-        (input.volume_labels.empty()
-         && input.volume_to_mat.size() == input.geometry->volumes().size())
-        || input.volume_to_mat.size() == input.volume_labels.size());
+    CELER_EXPECT((input.volume_labels.empty()
+                  && input.volume_to_mat.size()
+                         == input.geometry->impl_volumes().size())
+                 || input.volume_to_mat.size() == input.volume_labels.size());
 
     ScopedMem record_mem("GeoMaterialParams.construct");
 
@@ -313,7 +313,7 @@ GeoMaterialParams::GeoMaterialParams(Input input)
             = build_vol_to_mat(*input.geometry, std::move(lab_to_id));
     }
     CELER_ASSERT(input.volume_to_mat.size()
-                 == input.geometry->volumes().size());
+                 == input.geometry->impl_volumes().size());
 
     HostValue host_data;
     auto materials = make_builder(&host_data.materials);

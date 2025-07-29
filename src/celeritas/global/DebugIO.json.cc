@@ -95,10 +95,10 @@ struct FromId
     }
 
     //! Transform to a volume label
-    nlohmann::json convert_impl(VolumeId id) const
+    nlohmann::json convert_impl(ImplVolumeId id) const
     {
         auto const& params = *this->params->geometry();
-        return params.volumes().at(id);
+        return params.impl_volumes().at(id);
     }
 
     //! Transform to a material label
@@ -143,7 +143,7 @@ void to_json_impl(nlohmann::json& j,
 {
     if (!geo.is_outside())
     {
-        j = from_id(view.material_id(geo.volume_id()));
+        j = from_id(view.material_id(geo.impl_volume_id()));
     }
     else
     {

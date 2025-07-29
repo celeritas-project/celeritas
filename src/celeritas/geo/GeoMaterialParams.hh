@@ -77,10 +77,10 @@ class GeoMaterialParams final
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
     // Get the total number of volumes
-    inline VolumeId::size_type num_volumes() const;
+    inline ImplVolumeId::size_type num_volumes() const;
 
     // Get the material ID corresponding to a volume ID
-    inline PhysMatId material_id(VolumeId v) const;
+    inline PhysMatId material_id(ImplVolumeId v) const;
 
   private:
     CollectionMirror<GeoMaterialParamsData> data_;
@@ -94,7 +94,7 @@ class GeoMaterialParams final
 /*!
  * Get the total number of volumes.
  */
-VolumeId::size_type GeoMaterialParams::num_volumes() const
+ImplVolumeId::size_type GeoMaterialParams::num_volumes() const
 {
     return this->host_ref().materials.size();
 }
@@ -105,7 +105,7 @@ VolumeId::size_type GeoMaterialParams::num_volumes() const
  *
  * Some "virtual" volumes may have a null ID.
  */
-PhysMatId GeoMaterialParams::material_id(VolumeId v) const
+PhysMatId GeoMaterialParams::material_id(ImplVolumeId v) const
 {
     CELER_EXPECT(v < this->num_volumes());
 

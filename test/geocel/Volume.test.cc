@@ -58,7 +58,7 @@ TEST_F(VolumeTest, single_volume)
     EXPECT_EQ(0, params.volume_instance_labels().size());
 
     // Check that volume 0 is correctly mapped
-    VolumeId vol_id{0};
+    ImplVolumeId vol_id{0};
     EXPECT_TRUE(params.volume_labels().find_unique("A") == vol_id);
 
     // Verify material assignment
@@ -71,9 +71,9 @@ TEST_F(VolumeTest, single_volume)
     // Test out-of-bounds access should assert
     if (CELERITAS_DEBUG)
     {
-        EXPECT_THROW(params.material(VolumeId{1}), DebugError);
-        EXPECT_THROW(params.parents(VolumeId{1}), DebugError);
-        EXPECT_THROW(params.children(VolumeId{1}), DebugError);
+        EXPECT_THROW(params.material(ImplVolumeId{1}), DebugError);
+        EXPECT_THROW(params.parents(ImplVolumeId{1}), DebugError);
+        EXPECT_THROW(params.children(ImplVolumeId{1}), DebugError);
         EXPECT_THROW(params.volume(VolumeInstanceId{0}), DebugError);
     }
 }
@@ -104,7 +104,7 @@ TEST_F(VolumeTest, complex_hierarchy)
             v.children = std::move(children);
             in.volumes.push_back(v);
         };
-        auto add_instance = [&in](VolumeId vol_id) {
+        auto add_instance = [&in](ImplVolumeId vol_id) {
             VolumeInstance vi;
             vi.label = std::to_string(in.volume_instances.size());
             vi.volume = vol_id;
@@ -119,14 +119,14 @@ TEST_F(VolumeTest, complex_hierarchy)
         add_volume("E", {});
 
         // Create volume instances
-        add_instance(VolumeId{1});  // 0 -> B
-        add_instance(VolumeId{2});  // 1 -> C
-        add_instance(VolumeId{2});  // 2 -> C
-        add_instance(VolumeId{2});  // 3 -> C
-        add_instance(VolumeId{3});  // 4 -> D
+        add_instance(ImplVolumeId{1});  // 0 -> B
+        add_instance(ImplVolumeId{2});  // 1 -> C
+        add_instance(ImplVolumeId{2});  // 2 -> C
+        add_instance(ImplVolumeId{2});  // 3 -> C
+        add_instance(ImplVolumeId{3});  // 4 -> D
         // Add 'null' instance
         in.volume_instances.push_back(VolumeInstance{});
-        add_instance(VolumeId{4});  // 6 -> E
+        add_instance(ImplVolumeId{4});  // 6 -> E
 
         return in;
     }());
@@ -147,7 +147,7 @@ TEST_F(VolumeTest, complex_hierarchy)
     std::vector<int> geo_mat;
 
     // Loop over all volumes to collect children and parents
-    for (auto vol_id : range(VolumeId(params.num_volumes())))
+    for (auto vol_id : range(ImplVolumeId(params.num_volumes())))
     {
         children.push_back(id_to_int(params.children(vol_id)));
         parents.push_back(id_to_int(params.parents(vol_id)));

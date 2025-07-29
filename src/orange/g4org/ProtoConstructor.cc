@@ -96,7 +96,7 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
 Label const& ProtoConstructor::get_label(LogicalVolume const& lv)
 {
     CELER_EXPECT(lv.id);
-    return geo_.volumes().at(lv.id);
+    return geo_.impl_volumes().at(lv.id);
 }
 
 //---------------------------------------------------------------------------//

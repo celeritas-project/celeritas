@@ -83,7 +83,7 @@ class SurfaceInputInserter
     // Get the next surface ID to be added
     SurfaceId next_surface_id() const;
     // Get the label for a volume ID
-    Label const& label(VolumeId vol_id) const;
+    Label const& label(ImplVolumeId vol_id) const;
     // Get the label for a volume instance ID
     Label const& label(VolumeInstanceId vol_inst_id) const;
     // Get the label for a surface ID
@@ -107,7 +107,7 @@ class VolumeSurfaceRecordBuilder
     using Items = Collection<T, Ownership::value, MemSpace::host>;
     template<class T>
     using VolumeItems
-        = Collection<T, Ownership::value, MemSpace::host, VolumeId>;
+        = Collection<T, Ownership::value, MemSpace::host, ImplVolumeId>;
     //!@}
 
     // Construct with pointers to target collections
@@ -116,10 +116,10 @@ class VolumeSurfaceRecordBuilder
                                Items<SurfaceId>* surface_ids);
 
     // Convert VolumeSurfaceData to VolumeSurfaceRecord
-    VolumeId operator()(VolumeSurfaceData const& data);
+    ImplVolumeId operator()(VolumeSurfaceData const& data);
 
   private:
-    CollectionBuilder<VolumeSurfaceRecord, MemSpace::host, VolumeId>
+    CollectionBuilder<VolumeSurfaceRecord, MemSpace::host, ImplVolumeId>
         volume_surfaces_;
     DedupeCollectionBuilder<VolumeInstanceId> volume_instance_ids_;
     DedupeCollectionBuilder<SurfaceId> surface_ids_;

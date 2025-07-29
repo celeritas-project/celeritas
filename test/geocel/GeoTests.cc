@@ -2266,7 +2266,7 @@ void TwoBoxesGeoTest::test_accessors() const
     }
     else
     {
-        EXPECT_EQ(3, geo.volumes().size());
+        EXPECT_EQ(3, geo.impl_volumes().size());
     }
 
     auto expected_bbox = calc_expected_bbox(

@@ -27,7 +27,7 @@ struct UniformFieldParamsData
 {
     using Real3 = Array<real_type, 3>;
     template<class T>
-    using VolumeItems = celeritas::Collection<T, W, M, VolumeId>;
+    using VolumeItems = celeritas::Collection<T, W, M, ImplVolumeId>;
 
     Real3 field{0, 0, 0};  //!< Field strength (native units)
     FieldDriverOptions options;

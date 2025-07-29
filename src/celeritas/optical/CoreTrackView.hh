@@ -168,7 +168,7 @@ CELER_FUNCTION auto
 CoreTrackView::material_record(GeoTrackView const& geo) const -> MaterialView
 {
     CELER_EXPECT(!geo.is_outside());
-    return MaterialView{params_.material, geo.volume_id()};
+    return MaterialView{params_.material, geo.impl_volume_id()};
 }
 
 //---------------------------------------------------------------------------//

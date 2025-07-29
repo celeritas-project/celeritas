@@ -206,7 +206,7 @@ void GeantSimpleCalo::output(JsonPimpl* j) const
             if (id)
             {
                 ids[idx] = id.unchecked_get();
-                labels[idx] = ggp->volumes().at(id);
+                labels[idx] = ggp->impl_volumes().at(id);
             }
         }
         obj["volume_ids"] = std::move(ids);

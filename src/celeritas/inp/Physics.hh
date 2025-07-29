@@ -62,8 +62,8 @@ struct OpticalPhysics
     //!@{
     //! \name Optical photon generation
 
-    /*! \todo Replace with a mapping of \c VolumeId to \c ScintillationPhysics
-     * or \c CherenkovPhysics
+    /*! \todo Replace with a mapping of \c ImplVolumeId to \c
+     * ScintillationPhysics or \c CherenkovPhysics
      */
 
     //! Generate Cherenkov photons

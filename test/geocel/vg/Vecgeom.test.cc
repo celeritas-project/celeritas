@@ -304,7 +304,7 @@ TEST_F(SimpleCmsVgdmlTest, accessors)
 {
     auto const& geom = *this->geometry();
     EXPECT_EQ(2, geom.max_depth());
-    EXPECT_EQ(7, geom.volumes().size());
+    EXPECT_EQ(7, geom.impl_volumes().size());
 }
 
 TEST_F(SimpleCmsVgdmlTest, trace)
@@ -459,7 +459,8 @@ TEST_F(SolidsVgdmlTest, output)
 TEST_F(SolidsVgdmlTest, reflected_vol)
 {
     auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
-    auto const& label = this->geometry()->volumes().at(geo.volume_id());
+    auto const& label
+        = this->geometry()->impl_volumes().at(geo.impl_volume_id());
     // Note: through GDML there is only one trd3_refl
     EXPECT_EQ("trd3_refl", label.name);
     EXPECT_FALSE(ends_with(label.ext, "_refl"));
@@ -703,7 +704,8 @@ TEST_F(SolidsTest, geant_volumes)
 TEST_F(SolidsTest, reflected_vol)
 {
     auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
-    auto const& label = this->geometry()->volumes().at(geo.volume_id());
+    auto const& label
+        = this->geometry()->impl_volumes().at(geo.impl_volume_id());
     EXPECT_EQ("trd3_refl@0", to_string(label));
 }
 

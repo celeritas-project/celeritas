@@ -32,10 +32,10 @@ GeantVolumeMapper::GeantVolumeMapper(GeoParamsInterface const& geo) : geo_{geo}
  * This will warn if the name's extension had to be changed to match the
  * volume; and it will return an empty ID if no match was found.
  */
-VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const& lv)
+ImplVolumeId GeantVolumeMapper::operator()(G4LogicalVolume const& lv)
 {
     // TODO: move pointer->id mapping to GeantGeoParams
-    VolumeId id = geo_.find_volume(&lv);
+    ImplVolumeId id = geo_.find_volume(&lv);
     if (id)
     {
         // Volume is mapped from an externally loaded Geant4 geometry
@@ -50,10 +50,10 @@ VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const& lv)
                    << "logical volume '" << lv.GetName()
                    << "' is not in the tracking volume");
     // TODO: volume ID should correspond one-to-one?
-    auto const& label = geant_geo->volumes().at(id);
+    auto const& label = geant_geo->impl_volumes().at(id);
 
     // Compare Geant4 label to main geometry label
-    auto const& volumes = geo_.volumes();
+    auto const& volumes = geo_.impl_volumes();
     if (auto id = volumes.find_exact(label))
     {
         // Exact match
@@ -77,7 +77,7 @@ VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const& lv)
             << join(all_ids.begin(),
                     all_ids.end(),
                     "', '",
-                    [&volumes](VolumeId v) { return volumes.at(v); })
+                    [&volumes](ImplVolumeId v) { return volumes.at(v); })
             << "' match the Geant4 volume '" << label
             << "' without extension: returning the last one";
         return all_ids.back();

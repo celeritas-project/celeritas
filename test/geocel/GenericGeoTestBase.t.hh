@@ -101,7 +101,7 @@ std::string GenericGeoTestBase<HP>::volume_name(GeoTrackView const& geo) const
     {
         return "[OUTSIDE]";
     }
-    return this->geometry()->volumes().at(geo.volume_id()).name;
+    return this->geometry()->impl_volumes().at(geo.impl_volume_id()).name;
 }
 
 //---------------------------------------------------------------------------//
@@ -270,7 +270,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
             {
                 // Check reinitialization if not tangent to a surface
                 GeoTrackInitializer const init{geo.pos(), geo.dir()};
-                auto prev_id = geo.volume_id();
+                auto prev_id = geo.impl_volume_id();
                 geo = init;
                 if (geo.is_outside())
                 {
@@ -279,7 +279,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
                                   << init.pos;
                     break;
                 }
-                if (geo.volume_id() != prev_id)
+                if (geo.impl_volume_id() != prev_id)
                 {
                     ADD_FAILURE()
                         << "reinitialization changed the volume at "

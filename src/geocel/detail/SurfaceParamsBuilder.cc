@@ -30,7 +30,7 @@ SurfaceId SurfaceInputInserter::next_surface_id() const
 /*!
  * Get the label for a volume ID.
  */
-Label const& SurfaceInputInserter::label(VolumeId vol_id) const
+Label const& SurfaceInputInserter::label(ImplVolumeId vol_id) const
 {
     CELER_EXPECT(vol_id < volumes_.num_volumes());
     return volumes_.volume_labels().at(vol_id);
@@ -125,7 +125,7 @@ SurfaceInputInserter::operator()(inp::Surface::Interface const& interface)
     CELER_EXPECT(interface.second < volumes_.num_volume_instances());
 
     // Get the volume associated with the pre-step volume instance
-    VolumeId pre_vol_id = volumes_.volume(interface.first);
+    ImplVolumeId pre_vol_id = volumes_.volume(interface.first);
     CELER_ASSERT(pre_vol_id < volume_surfaces_.size());
     auto& vol_data = volume_surfaces_[pre_vol_id.get()];
 
@@ -161,7 +161,8 @@ VolumeSurfaceRecordBuilder::VolumeSurfaceRecordBuilder(
 /*!
  * Convert VolumeSurfaceData to VolumeSurfaceRecord.
  */
-VolumeId VolumeSurfaceRecordBuilder::operator()(VolumeSurfaceData const& data)
+ImplVolumeId
+VolumeSurfaceRecordBuilder::operator()(VolumeSurfaceData const& data)
 {
     VolumeSurfaceRecord record;
 

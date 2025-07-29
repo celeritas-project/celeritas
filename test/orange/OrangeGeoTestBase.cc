@@ -236,7 +236,7 @@ void OrangeGeoTestBase::describe(std::ostream& os) const
 ImplVolumeId::size_type OrangeGeoTestBase::num_volumes() const
 {
     CELER_EXPECT(params_);
-    return params_->volumes().size();
+    return params_->impl_volumes().size();
 }
 
 //---------------------------------------------------------------------------//
@@ -259,7 +259,7 @@ ImplSurfaceId OrangeGeoTestBase::find_surface(std::string const& label) const
 ImplVolumeId OrangeGeoTestBase::find_volume(std::string const& label) const
 {
     CELER_EXPECT(params_);
-    ImplVolumeId volume_id = params_->volumes().find_unique(label);
+    ImplVolumeId volume_id = params_->impl_volumes().find_unique(label);
     CELER_VALIDATE(volume_id, << "nonexistent volume label '" << label << '\'');
     return volume_id;
 }
@@ -298,7 +298,7 @@ OrangeGeoTestBase::id_to_label(UniverseId uid, LocalVolumeId vol_id) const
         return "[none]";
 
     detail::UniverseIndexer ui(this->params().host_ref().universe_indexer_data);
-    return params_->volumes().at(ui.global_volume(uid, vol_id)).name;
+    return params_->impl_volumes().at(ui.global_volume(uid, vol_id)).name;
 }
 
 //---------------------------------------------------------------------------//

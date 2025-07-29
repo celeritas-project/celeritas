@@ -26,7 +26,7 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
         }
         return labels;
     };
-    v_labels_ = VolumeMap("volume", extract_labels(in.volumes));
+    v_labels_ = ImplVolumeMap("volume", extract_labels(in.volumes));
     vi_labels_
         = VolInstMap("volume_instance", extract_labels(in.volume_instances));
 

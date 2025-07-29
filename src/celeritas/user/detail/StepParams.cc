@@ -38,7 +38,7 @@ StepParams::StepParams(AuxId aux_id,
         all
     };
 
-    auto const& volumes = geo.volumes();
+    auto const& volumes = geo.impl_volumes();
     StepSelection selection;
     CELER_ASSERT(!selection);
     StepInterface::MapVolumeDetector detector_map;
@@ -96,7 +96,7 @@ StepParams::StepParams(AuxId aux_id,
         if (!detector_map.empty())
         {
             // Assign detector IDs for each ("logical" in Geant4) volume
-            std::vector<DetectorId> temp_det(geo.volumes().size(),
+            std::vector<DetectorId> temp_det(geo.impl_volumes().size(),
                                              DetectorId{});
             for (auto const& kv : detector_map)
             {

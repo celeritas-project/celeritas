@@ -36,7 +36,7 @@ class SensDetInserter
     //! \name Type aliases
     using SetLV = std::unordered_set<G4LogicalVolume const*>;
     using VecLV = std::vector<G4LogicalVolume const*>;
-    using MapIdLv = std::map<VolumeId, G4LogicalVolume const*>;
+    using MapIdLv = std::map<ImplVolumeId, G4LogicalVolume const*>;
     //!@}
 
   public:
@@ -59,7 +59,7 @@ class SensDetInserter
     MapIdLv* found_;
     VecLV* missing_;
 
-    VolumeId insert_impl(G4LogicalVolume const* lv);
+    ImplVolumeId insert_impl(G4LogicalVolume const* lv);
 };
 
 //---------------------------------------------------------------------------//

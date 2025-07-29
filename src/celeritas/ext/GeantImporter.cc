@@ -1205,11 +1205,11 @@ std::vector<ImportVolume> import_volumes()
     auto geo = celeritas::geant_geo().lock();
     CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
 
-    auto const& volumes = geo->volumes();
+    auto const& volumes = geo->impl_volumes();
     std::vector<ImportVolume> result(volumes.size());
     size_type count{0};
 
-    for (auto vol_id : range(VolumeId{volumes.size()}))
+    for (auto vol_id : range(ImplVolumeId{volumes.size()}))
     {
         auto const& label = volumes.at(vol_id);
         if (label.empty())

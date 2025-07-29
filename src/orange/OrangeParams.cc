@@ -158,7 +158,7 @@ OrangeParams::OrangeParams(OrangeInput&& input)
 
         surf_labels_ = SurfaceMap{"surface", std::move(surface_labels)};
         univ_labels_ = UniverseMap{"universe", std::move(universe_labels)};
-        vol_labels_ = VolumeMap{"volume", std::move(volume_labels)};
+        vol_labels_ = ImplVolumeMap{"volume", std::move(volume_labels)};
     }
 
     // Simple safety if all SimpleUnits have simple safety and no RectArrays

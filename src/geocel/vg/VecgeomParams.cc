@@ -200,7 +200,7 @@ std::vector<Label> make_physical_vol_labels(vecgeom::VPlacedVolume const& world)
  */
 auto make_lv_map(std::vector<G4LogicalVolume const*> const& all_lv)
 {
-    std::unordered_map<G4LogicalVolume const*, VolumeId> result;
+    std::unordered_map<G4LogicalVolume const*, ImplVolumeId> result;
     result.reserve(all_lv.size());
     for (auto vol_idx : range(all_lv.size()))
     {
@@ -212,7 +212,7 @@ auto make_lv_map(std::vector<G4LogicalVolume const*> const& all_lv)
         }
 
         auto&& [iter, inserted]
-            = result.insert({lv, id_cast<VolumeId>(vol_idx)});
+            = result.insert({lv, id_cast<ImplVolumeId>(vol_idx)});
         if (CELER_UNLIKELY(!inserted))
         {
             // This shouldn't happen...
@@ -427,7 +427,7 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
         auto const& world = *host_ref_.world_volume;
 
         // Construct volume labels
-        volumes_ = VolumeMap{"volume", make_logical_vol_labels(world)};
+        volumes_ = ImplVolumeMap{"volume", make_logical_vol_labels(world)};
         vol_instances_ = VolInstanceMap{"volume instance",
                                         make_physical_vol_labels(world)};
 
@@ -547,9 +547,9 @@ GeantPhysicalInstance VecgeomParams::id_to_geant(VolumeInstanceId id) const
 /*!
  * Locate the volume ID corresponding to a Geant4 logical volume.
  */
-VolumeId VecgeomParams::find_volume(G4LogicalVolume const* volume) const
+ImplVolumeId VecgeomParams::find_volume(G4LogicalVolume const* volume) const
 {
-    VolumeId result{};
+    ImplVolumeId result{};
     if (volume)
     {
         auto iter = g4log_volid_map_.find(volume);

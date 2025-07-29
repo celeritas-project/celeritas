@@ -71,7 +71,7 @@ struct SurfaceParamsData
     //// TYPES ////
 
     template<class T>
-    using VolumeItems = Collection<T, W, M, VolumeId>;
+    using VolumeItems = Collection<T, W, M, ImplVolumeId>;
     template<class T>
     using Items = Collection<T, W, M>;
 
