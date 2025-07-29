@@ -50,17 +50,6 @@ bool is_contiguous_increasing(inp::UniformGrid const& lower,
 }  // namespace
 
 //---------------------------------------------------------------------------//
-IPAContextException::IPAContextException(ParticleId id,
-                                         ImportProcessClass ipc,
-                                         PhysMatId mid)
-{
-    std::stringstream os;
-    os << "Particle ID=" << id.unchecked_get() << ", process '" << ipc
-       << ", material ID=" << mid.unchecked_get();
-    what_ = os.str();
-}
-
-//---------------------------------------------------------------------------//
 /*!
  * Construct with imported data.
  */
