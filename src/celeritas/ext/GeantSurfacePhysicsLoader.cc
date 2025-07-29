@@ -6,14 +6,18 @@
 //---------------------------------------------------------------------------//
 #include "GeantSurfacePhysicsLoader.hh"
 
+#include <unordered_map>
 #include <G4LogicalSurface.hh>
 #include <G4OpticalSurface.hh>
 #include <G4Version.hh>
 
 #include "corecel/io/Logger.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "geocel/SurfaceParams.hh"
 
 namespace celeritas
+{
+namespace
 {
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
@@ -25,19 +29,26 @@ namespace celeritas
  */
 char const* to_cstring(G4SurfaceType value)
 {
-    static std::map<G4SurfaceType, std::string> const to_cstring_impl = {
-        {G4SurfaceType::dielectric_metal, "dielectric_metal"},
-        {G4SurfaceType::dielectric_dielectric, "dielectric_dielectric"},
-        {G4SurfaceType::dielectric_LUT, "dielectric_LUT"},
-        {G4SurfaceType::dielectric_LUTDAVIS, "dielectric_LUTDAVIS"},
-        {G4SurfaceType::dielectric_dichroic, "dielectric_dichroic"},
-        {G4SurfaceType::firsov, "firsov"},
-        {G4SurfaceType::x_ray, "x_ray"},
+#define GSPL_ST_PAIR(ENUMVALUE)              \
+    {                                        \
+        G4SurfaceType::ENUMVALUE, #ENUMVALUE \
+    }
+
+    static std::unordered_map<G4SurfaceType, std::string> const to_cstring_impl
+        = {GSPL_ST_PAIR(dielectric_metal),
+           GSPL_ST_PAIR(dielectric_dielectric),
+           GSPL_ST_PAIR(dielectric_LUT),
+           GSPL_ST_PAIR(dielectric_LUTDAVIS),
+           GSPL_ST_PAIR(dielectric_dichroic),
+           GSPL_ST_PAIR(firsov),
+           GSPL_ST_PAIR(x_ray),
 #if G4VERSION_NUMBER >= 1110
-        {G4SurfaceType::coated, "coated"}
+           GSPL_ST_PAIR(coated)
 #endif
-    };
+        };
     return to_cstring_impl.find(value)->second.c_str();
+
+#undef GSPL_ST_PAIR
 }
 //---------------------------------------------------------------------------//
 /*!
@@ -45,13 +56,20 @@ char const* to_cstring(G4SurfaceType value)
  */
 char const* to_cstring(G4OpticalSurfaceModel value)
 {
-    static std::map<G4OpticalSurfaceModel, std::string> const to_cstring_impl
-        = {{G4OpticalSurfaceModel::glisur, "glisur"},
-           {G4OpticalSurfaceModel::unified, "unified"},
-           {G4OpticalSurfaceModel::LUT, "LUT"},
-           {G4OpticalSurfaceModel::DAVIS, "DAVIS"},
-           {G4OpticalSurfaceModel::dichroic, "dichroic"}};
+#define GSPL_OSM_PAIR(ENUMVALUE)                     \
+    {                                                \
+        G4OpticalSurfaceModel::ENUMVALUE, #ENUMVALUE \
+    }
+
+    static std::unordered_map<G4OpticalSurfaceModel, std::string> const to_cstring_impl
+        = {GSPL_OSM_PAIR(glisur),
+           GSPL_OSM_PAIR(unified),
+           GSPL_OSM_PAIR(LUT),
+           GSPL_OSM_PAIR(DAVIS),
+           GSPL_OSM_PAIR(dichroic)};
     return to_cstring_impl.find(value)->second.c_str();
+
+#undef GSPL_OSM_PAIR
 }
 
 //---------------------------------------------------------------------------//
@@ -60,57 +78,67 @@ char const* to_cstring(G4OpticalSurfaceModel value)
  */
 char const* to_cstring(G4OpticalSurfaceFinish value)
 {
-    static std::map<G4OpticalSurfaceFinish, std::string> const to_cstring_impl = {
-        {G4OpticalSurfaceFinish::polished, "polished"},
-        {G4OpticalSurfaceFinish::polishedfrontpainted, "polishedfrontpainted"},
-        {G4OpticalSurfaceFinish::polishedbackpainted, "polishedbackpainted"},
+#define GSPL_OSF_PAIR(ENUMVALUE)                      \
+    {                                                 \
+        G4OpticalSurfaceFinish::ENUMVALUE, #ENUMVALUE \
+    }
 
-        {G4OpticalSurfaceFinish::ground, "ground"},
-        {G4OpticalSurfaceFinish::groundfrontpainted, "groundfrontpainted"},
-        {G4OpticalSurfaceFinish::groundbackpainted, "groundbackpainted"},
+    static std::unordered_map<G4OpticalSurfaceFinish, std::string> const
+        to_cstring_impl
+        = {
+            GSPL_OSF_PAIR(polished),
+            GSPL_OSF_PAIR(polishedfrontpainted),
+            GSPL_OSF_PAIR(polishedbackpainted),
 
-        {G4OpticalSurfaceFinish::polishedlumirrorair, "polishedlumirrorair"},
-        {G4OpticalSurfaceFinish::polishedlumirrorglue, "polishedlumirrorglue"},
-        {G4OpticalSurfaceFinish::polishedair, "polishedair"},
-        {G4OpticalSurfaceFinish::polishedteflonair, "polishedteflonair"},
-        {G4OpticalSurfaceFinish::polishedtioair, "polishedtioair"},
-        {G4OpticalSurfaceFinish::polishedtyvekair, "polishedtyvekair"},
-        {G4OpticalSurfaceFinish::polishedvm2000air, "polishedvm2000air"},
-        {G4OpticalSurfaceFinish::polishedvm2000glue, "polishedvm2000glue"},
+            GSPL_OSF_PAIR(ground),
+            GSPL_OSF_PAIR(groundfrontpainted),
+            GSPL_OSF_PAIR(groundbackpainted),
 
-        {G4OpticalSurfaceFinish::etchedlumirrorair, "etchedlumirrorair"},
-        {G4OpticalSurfaceFinish::etchedlumirrorglue, "etchedlumirrorglue"},
-        {G4OpticalSurfaceFinish::etchedair, "etchedair"},
-        {G4OpticalSurfaceFinish::etchedteflonair, "etchedteflonair"},
-        {G4OpticalSurfaceFinish::etchedtioair, "etchedtioair"},
-        {G4OpticalSurfaceFinish::etchedtyvekair, "etchedtyvekair"},
-        {G4OpticalSurfaceFinish::etchedvm2000air, "etchedvm2000air"},
-        {G4OpticalSurfaceFinish::etchedvm2000glue, "etchedvm2000glue"},
+            GSPL_OSF_PAIR(polishedlumirrorair),
+            GSPL_OSF_PAIR(polishedlumirrorglue),
+            GSPL_OSF_PAIR(polishedair),
+            GSPL_OSF_PAIR(polishedteflonair),
+            GSPL_OSF_PAIR(polishedtioair),
+            GSPL_OSF_PAIR(polishedtyvekair),
+            GSPL_OSF_PAIR(polishedvm2000air),
+            GSPL_OSF_PAIR(polishedvm2000glue),
 
-        {G4OpticalSurfaceFinish::groundlumirrorair, "groundlumirrorair"},
-        {G4OpticalSurfaceFinish::groundlumirrorglue, "groundlumirrorglue"},
-        {G4OpticalSurfaceFinish::groundair, "groundair"},
-        {G4OpticalSurfaceFinish::groundteflonair, "groundteflonair"},
-        {G4OpticalSurfaceFinish::groundtioair, "groundtioair"},
-        {G4OpticalSurfaceFinish::groundtyvekair, "groundtyvekair"},
-        {G4OpticalSurfaceFinish::groundvm2000air, "groundvm2000air"},
-        {G4OpticalSurfaceFinish::groundvm2000glue, "groundvm2000glue"},
+            GSPL_OSF_PAIR(etchedlumirrorair),
+            GSPL_OSF_PAIR(etchedlumirrorglue),
+            GSPL_OSF_PAIR(etchedair),
+            GSPL_OSF_PAIR(etchedteflonair),
+            GSPL_OSF_PAIR(etchedtioair),
+            GSPL_OSF_PAIR(etchedtyvekair),
+            GSPL_OSF_PAIR(etchedvm2000air),
+            GSPL_OSF_PAIR(etchedvm2000glue),
 
-        {G4OpticalSurfaceFinish::Rough_LUT, "Rough_LUT"},
-        {G4OpticalSurfaceFinish::RoughTeflon_LUT, "RoughTeflon_LUT"},
-        {G4OpticalSurfaceFinish::RoughESR_LUT, "RoughESR_LUT"},
-        {G4OpticalSurfaceFinish::RoughESRGrease_LUT, "RoughESRGrease_LUT"},
+            GSPL_OSF_PAIR(groundlumirrorair),
+            GSPL_OSF_PAIR(groundlumirrorglue),
+            GSPL_OSF_PAIR(groundair),
+            GSPL_OSF_PAIR(groundteflonair),
+            GSPL_OSF_PAIR(groundtioair),
+            GSPL_OSF_PAIR(groundtyvekair),
+            GSPL_OSF_PAIR(groundvm2000air),
+            GSPL_OSF_PAIR(groundvm2000glue),
 
-        {G4OpticalSurfaceFinish::Polished_LUT, "Polished_LUT"},
-        {G4OpticalSurfaceFinish::PolishedTeflon_LUT, "PolishedTeflon_LUT"},
-        {G4OpticalSurfaceFinish::PolishedESR_LUT, "PolishedESR_LUT"},
-        {G4OpticalSurfaceFinish::PolishedESRGrease_LUT,
-         "PolishedESRGrease_LUT"},
+            GSPL_OSF_PAIR(Rough_LUT),
+            GSPL_OSF_PAIR(RoughTeflon_LUT),
+            GSPL_OSF_PAIR(RoughESR_LUT),
+            GSPL_OSF_PAIR(RoughESRGrease_LUT),
 
-        {G4OpticalSurfaceFinish::Detector_LUT, "Detector_LUT"},
-    };
+            GSPL_OSF_PAIR(Polished_LUT),
+            GSPL_OSF_PAIR(PolishedTeflon_LUT),
+            GSPL_OSF_PAIR(PolishedESR_LUT),
+            GSPL_OSF_PAIR(PolishedESRGrease_LUT),
+
+            GSPL_OSF_PAIR(Detector_LUT),
+        };
     return to_cstring_impl.find(value)->second.c_str();
+
+#undef GSPL_OSF_PAIR
 }
+//---------------------------------------------------------------------------//
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -137,17 +165,16 @@ inp::SurfacePhysics GeantSurfacePhysicsLoader::operator()()
         auto* g4surf_prop = g4log_surf->GetSurfaceProperty();
         CELER_ASSERT(g4surf_prop);
         auto* g4opt_surf = dynamic_cast<G4OpticalSurface*>(g4surf_prop);
+        CELER_ASSERT(g4opt_surf);
         auto const* g4mpt = g4opt_surf->GetMaterialPropertiesTable();
         CELER_ASSERT(g4mpt);
         detail::GeantMaterialPropertyGetter get_property{*g4mpt};
 
         try
         {
-            result.names.insert({sid, g4opt_surf->GetName()});
             this->insert_reflectivity(sid, *g4opt_surf, get_property, result);
             this->insert_roughness(sid, *g4opt_surf, result);
             this->insert_interaction(sid, get_property, *g4opt_surf, result);
-            this->insert_efficiency(sid, get_property, result);
 
             // Ensure that data is not incompatible with selected model
             this->validate_model(sid, *g4opt_surf, result);
@@ -168,8 +195,6 @@ inp::SurfacePhysics GeantSurfacePhysicsLoader::operator()()
 
 //---------------------------------------------------------------------------//
 // PRIVATE MEMBER FUNCTIONS
-//---------------------------------------------------------------------------//
-
 //---------------------------------------------------------------------------//
 /*!
  * Collect reflectivity information from a given optical surface.
@@ -204,41 +229,43 @@ void GeantSurfacePhysicsLoader::insert_roughness(SurfaceId sid,
                                                  inp::SurfacePhysics& result)
 {
     using G4OSM = G4OpticalSurfaceModel;
+
     auto const g4model = surf.GetModel();
-
-    if (g4model == G4OSM::glisur)
+    switch (g4model)
     {
-        // Get GLISUR surface polish
-        real_type polishness = surf.GetPolish();
-        if (polishness == 1)
-        {
-            // Perfectly polished surface
-            result.roughness.polished.insert({sid, inp::Polished{}});
+        case G4OSM::glisur: {
+            // Get GLISUR surface polish
+            real_type roughness = real_type{1} - surf.GetPolish();
+            if (roughness == soft_equal(real_type{0}, roughness))
+            {
+                // Perfectly polished surface
+                result.roughness.polished.insert({sid, inp::Polished{}});
+            }
+            else
+            {
+                // Smearing is available
+                inp::SmearRoughness smear{roughness};
+                CELER_ASSERT(smear);
+                result.roughness.smear.insert({sid, std::move(smear)});
+            }
+            break;
         }
-        else
-        {
-            // Smearing is available
-            inp::SmearRoughness smear{polishness};
-            CELER_ASSERT(smear);
-            result.roughness.smear.insert({sid, std::move(smear)});
-        }
-    }
 
-    else if (g4model == G4OSM::unified)
-    {
-        // Insert Gaussian if available
-        inp::GaussianRoughness gauss;
-        gauss.sigma_alpha = surf.GetSigmaAlpha();
-        if (gauss)
-        {
-            result.roughness.gaussian.insert({sid, std::move(gauss)});
+        case G4OSM::unified: {
+            // Insert Gaussian if available
+            inp::GaussianRoughness gauss;
+            gauss.sigma_alpha = surf.GetSigmaAlpha();
+            if (gauss)
+            {
+                result.roughness.gaussian.insert({sid, std::move(gauss)});
+            }
+            break;
         }
-    }
 
-    else
-    {
-        CELER_LOG(error) << "G4OpticalSurfaceModel '" << to_cstring(g4model)
-                         << "' not available";
+        default:
+            CELER_LOG(error) << "G4OpticalSurfaceModel '"
+                             << to_cstring(g4model) << "' not available";
+            break;
     }
     CELER_ENSURE(result.roughness);
 }
@@ -262,7 +289,7 @@ void GeantSurfacePhysicsLoader::insert_interaction(
     get_property(&refl_form.specular_spike,
                  "SPECULARSPIKECONSTANT",
                  {ImportUnits::mev, ImportUnits::unitless});
-    get_property(&refl_form.back_scatter,
+    get_property(&refl_form.backscatter,
                  "BACKSCATTERCONSTANT",
                  {ImportUnits::mev, ImportUnits::unitless});
     refl_form.diffuse_lobe = this->calc_diffuse_lobe(refl_form);
@@ -296,20 +323,6 @@ void GeantSurfacePhysicsLoader::insert_interaction(
                             "point in the grid) are equal to 1";
     }
     CELER_ENSURE(result.interaction);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Collect detection efficiency from a given optical surface.
- */
-void GeantSurfacePhysicsLoader::insert_efficiency(
-    SurfaceId sid,
-    detail::GeantMaterialPropertyGetter& get_property,
-    inp::SurfacePhysics& result)
-{
-    inp::Grid eff;
-    get_property(&eff, "EFFICIENCY", {ImportUnits::mev, ImportUnits::unitless});
-    result.efficiency.insert({sid, eff});
 }
 
 //---------------------------------------------------------------------------//
@@ -351,7 +364,7 @@ inp::Grid GeantSurfacePhysicsLoader::calc_diffuse_lobe(
 {
     auto const& sl = refl_form.specular_lobe;
     auto const& ss = refl_form.specular_spike;
-    auto const& bc = refl_form.back_scatter;
+    auto const& bc = refl_form.backscatter;
     auto const size = sl.x.size();
     CELER_ASSERT(ss.x.size() == size && bc.x.size() == size);
 
@@ -360,7 +373,7 @@ inp::Grid GeantSurfacePhysicsLoader::calc_diffuse_lobe(
     result.y.resize(size);
     for (auto i : range(size))
     {
-        // diffuse_lobe = 1 - specular_lobe - specular_spike - back_scatter
+        // diffuse_lobe = 1 - specular_lobe - specular_spike - backscatter
         result.y[i] = real_type{1} - sl.y[i] - ss.y[i] - bc.y[i];
     }
     CELER_ENSURE(result);
@@ -377,7 +390,7 @@ inp::Grid GeantSurfacePhysicsLoader::calc_diffuse_lobe(
  *   - Roughness: uses polished or smear; Gaussian is never used.
  * - Unified
  *   - Roughness: uses Gaussian or polished; smear is never used.
- *   - ReflectiomForm: \c specular_spike , \c specular_lobe , \c back_scatter .
+ *   - ReflectiomForm: \c specular_spike , \c specular_lobe , \c backscatter .
  */
 void GeantSurfacePhysicsLoader::validate_model(SurfaceId sid,
                                                G4OpticalSurface const& surf,
@@ -414,12 +427,13 @@ void GeantSurfacePhysicsLoader::validate_model(SurfaceId sid,
             CELER_VALIDATE((GSPL_IS_MAPPED(interaction.dielectric_dielectric)
                             || GSPL_IS_MAPPED(interaction.dielectric_metal)),
                            << "Missing ReflectionForm data for surface '"
-                           << result.names.find(sid)->second << "'");
+                           << surf.GetName() << "'");
 
             // Expected empty maps
             CELER_VALIDATE(!GSPL_IS_MAPPED(roughness.smear),
                            << "Smear roughness is not used by the Unified "
-                              "model and therefore should not be assigned");
+                              "model and therefore should not be "
+                              "assigned");
             break;
 
         default:

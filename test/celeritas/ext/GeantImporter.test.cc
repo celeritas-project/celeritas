@@ -1854,12 +1854,10 @@ TEST_F(LarSphere, optical)
         // GDML surface definition: unified model; dielectric-dielectric
         // interface; Gaussian surface roughness; and detector efficiency.
         // Therefore, SurfaceId{0} should be inserted in the following maps:
-        EXPECT_EQ("opt_surface", osp.names.find(sid)->second);
         EXPECT_EQ(1, osp.reflectivity.analytic.size());
         EXPECT_EQ(1, osp.reflectivity.grid.size());
         EXPECT_EQ(1, osp.roughness.gaussian.size());
         EXPECT_EQ(1, osp.interaction.dielectric_dielectric.size());
-        EXPECT_EQ(1, osp.efficiency.size());
         // All other maps must be empty:
         EXPECT_EQ(0, osp.roughness.polished.size());
         EXPECT_EQ(0, osp.roughness.smear.size());
@@ -1874,13 +1872,13 @@ TEST_F(LarSphere, optical)
             = osp.interaction.dielectric_dielectric.find(sid)->second;
         EXPECT_EQ(2, rf.specular_lobe.x.size());
         EXPECT_EQ(2, rf.specular_spike.x.size());
-        EXPECT_EQ(2, rf.back_scatter.x.size());
+        EXPECT_EQ(2, rf.backscatter.x.size());
         EXPECT_EQ(2, rf.diffuse_lobe.x.size());
 
         static double const expected_energy[] = {2e-06, 8e-06};
         EXPECT_VEC_SOFT_EQ(expected_energy, rf.specular_lobe.x);
         EXPECT_VEC_SOFT_EQ(expected_energy, rf.specular_spike.x);
-        EXPECT_VEC_SOFT_EQ(expected_energy, rf.back_scatter.x);
+        EXPECT_VEC_SOFT_EQ(expected_energy, rf.backscatter.x);
         EXPECT_VEC_SOFT_EQ(expected_energy, rf.diffuse_lobe.x);
 
         static double const expected_specular_lobe_y[] = {0.1, 0.1};
@@ -1889,7 +1887,7 @@ TEST_F(LarSphere, optical)
         static double const expected_diffuse_lobe_y[] = {0.7, 0.7};
         EXPECT_VEC_SOFT_EQ(expected_specular_lobe_y, rf.specular_lobe.y);
         EXPECT_VEC_SOFT_EQ(expected_specular_spike_y, rf.specular_spike.y);
-        EXPECT_VEC_SOFT_EQ(expected_back_scatter_y, rf.back_scatter.y);
+        EXPECT_VEC_SOFT_EQ(expected_back_scatter_y, rf.backscatter.y);
         EXPECT_VEC_SOFT_EQ(expected_diffuse_lobe_y, rf.diffuse_lobe.y);
     }
 }

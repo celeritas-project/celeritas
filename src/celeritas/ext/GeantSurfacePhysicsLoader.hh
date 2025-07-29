@@ -12,7 +12,7 @@
 
 #include "geocel/GeantGeoParams.hh"
 #include "celeritas/ext/detail/GeantMaterialPropertyGetter.hh"
-#include "celeritas/inp/Surfaces.hh"
+#include "celeritas/inp/SurfacePhysics.hh"
 
 // Geant4 forward declaration
 class G4OpticalSurface;  // IWYU pragma: keep
@@ -54,11 +54,6 @@ class GeantSurfacePhysicsLoader
                             detail::GeantMaterialPropertyGetter& get_property,
                             G4OpticalSurface const& surf,
                             inp::SurfacePhysics& result);
-
-    // Insert a given surface to inp::SurfacePhysics::DetectionEfficiency
-    void insert_efficiency(SurfaceId sid,
-                           detail::GeantMaterialPropertyGetter& get_property,
-                           inp::SurfacePhysics& result);
 
     // Return true if the surface has *ONLY* analytic reflection
     bool analytic_reflection_only(G4OpticalSurface const& surf) const;

@@ -17,7 +17,7 @@
 
 #include "PhysicsProcess.hh"
 #include "ProcessBuilder.hh"
-#include "Surfaces.hh"
+#include "SurfacePhysics.hh"
 
 namespace celeritas
 {

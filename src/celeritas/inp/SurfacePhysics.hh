@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/inp/Surfaces.hh
+//! \file celeritas/inp/SurfacePhysics.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -21,8 +21,6 @@ namespace inp
 {
 //---------------------------------------------------------------------------//
 // SURFACE DESCRIPTION: Reflectivity and models for surface normals.
-//---------------------------------------------------------------------------//
-
 //---------------------------------------------------------------------------//
 /*!
  * Surface reflectivity index, which can be a user-defined Grid, which is a
@@ -56,9 +54,9 @@ struct Polished
 /*!
  * Global surface normal with smearing.
  *
- * Polishness range is [0, 1], where 1 is maximum polishness.
+ * Roughness range is [0, 1], where 1 is maximum roughness.
  *
- * \note Used by the GLISUR model in Geant4.
+ * \note Used by the GLISUR model in Geant4 and is .
  */
 struct SmearRoughness
 {
@@ -97,8 +95,6 @@ using SurfaceLayer = SurfaceId;
 //---------------------------------------------------------------------------//
 // SURFACE PHYSICS: interaction mechanisms / reflection models.
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 /*!
  * Paramaters used by different reflection mechanisms.
  *
@@ -107,11 +103,11 @@ using SurfaceLayer = SurfaceId;
  *   Lambertian reflection.
  * - \c specular_lobe : Reflection probability at the micro facet normal.
  * - \c specular_spike : Reflection probability at the average surface normal.
- * - \c back_scatter : Probability of back scattering after reflecting within a
+ * - \c backscatter : Probability of back scattering after reflecting within a
  *   deep groove.
  * - \c diffuse_lobe : Probability of internal Lambertian reflection.
  *
- * \note The sum of \c specular_lobe + \c specular_spike + \c back_scatter +
+ * \note The sum of \c specular_lobe + \c specular_spike + \c backscatter +
  * \c diffuse_lobe probabilities must be equal to one. Diffuse lobe is not
  * user-defined in Geant4 and is calculated from the other three.
  */
@@ -120,7 +116,7 @@ struct ReflectionForm
     // The sum of these properties must be equal to 1
     Grid specular_lobe;  //!< [0, 1] probability
     Grid specular_spike;  //!< [0, 1] probability
-    Grid back_scatter;  //!< [0, 1] probability
+    Grid backscatter;  //!< [0, 1] probability
     Grid diffuse_lobe;  //!< [0, 1] probability
 
     bool unity(Grid const& grid) const
@@ -136,7 +132,7 @@ struct ReflectionForm
     {
         auto const& sl = this->specular_lobe;
         auto const& ss = this->specular_spike;
-        auto const& bc = this->back_scatter;
+        auto const& bc = this->backscatter;
         auto const& dl = this->diffuse_lobe;
         auto const size = sl.x.size();
         CELER_ASSERT(ss.x.size() == size && bc.x.size() == size
@@ -160,7 +156,7 @@ struct ReflectionForm
     explicit operator bool() const
     {
         return unity(specular_lobe) && unity(specular_spike)
-               && unity(back_scatter) && unity(diffuse_lobe)
+               && unity(backscatter) && unity(diffuse_lobe)
                && total_prob_is_unity();
     }
 };
@@ -229,20 +225,17 @@ struct SurfacePhysics
 {
     //!@{
     //! \name type aliases
-    using SurfaceNames = std::map<SurfaceLayer, std::string>;
     using DetectionEfficiency = std::map<SurfaceLayer, Grid>;
     //!@}
 
-    SurfaceNames names;
     ReflectivityModels reflectivity;
     RoughnessModels roughness;
     InteractionModels interaction;
-    DetectionEfficiency efficiency;  //!< \todo: Keep as optional?
 
     //! Whether the data are assigned
     explicit operator bool() const
     {
-        return !names.empty() && reflectivity && roughness && interaction;
+        return reflectivity && roughness && interaction;
     }
 };
 
