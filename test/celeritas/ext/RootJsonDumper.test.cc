@@ -530,7 +530,6 @@ TEST_F(RootJsonDumperTest, all)
     "scintillation" : true,
     "surfaces" : {
       "_typename" : "celeritas::inp::SurfacePhysics",
-      "names" : [],
       "reflectivity" : {
         "_typename" : "celeritas::inp::ReflectivityModels",
         "grid" : [],
@@ -546,8 +545,7 @@ TEST_F(RootJsonDumperTest, all)
         "_typename" : "celeritas::inp::InteractionModels",
         "dielectric_dielectric" : [],
         "dielectric_metal" : []
-      },
-      "efficiency" : []
+      }
     }
   }
 })json",

@@ -14,6 +14,8 @@
 #include "celeritas/ext/detail/GeantMaterialPropertyGetter.hh"
 #include "celeritas/inp/SurfacePhysics.hh"
 
+#include "detail/GeantSurfacePhysicsHelper.hh"
+
 // Geant4 forward declaration
 class G4OpticalSurface;  // IWYU pragma: keep
 
@@ -26,45 +28,33 @@ namespace celeritas
 class GeantSurfacePhysicsLoader
 {
   public:
-    //! Construct expecting \c GeantGeoParams available in memory
+    //! Construct empty
     GeantSurfacePhysicsLoader();
 
-    // Create surface physics input data
-    inp::SurfacePhysics operator()();
+    //! Populate surface physics input data
+    void operator()(SurfaceId sid, inp::SurfacePhysics& result);
 
   private:
-    //// DATA ////
-    std::shared_ptr<GeantGeoParams const> geo_;
-
     //// HELPER FUNCTIONS ////
 
     // Insert a given surface to inp::SurfacePhysics::ReflectivityModels
-    void insert_reflectivity(SurfaceId sid,
-                             G4OpticalSurface const& surf,
-                             detail::GeantMaterialPropertyGetter& get_property,
+    void insert_reflectivity(detail::GeantSurfacePhysicsHelper& helper,
                              inp::SurfacePhysics& result);
 
     // Insert a given surface to inp::SurfacePhysics::RoughnessModels
-    void insert_roughness(SurfaceId sid,
-                          G4OpticalSurface const& surf,
+    void insert_roughness(detail::GeantSurfacePhysicsHelper& helper,
                           inp::SurfacePhysics& result);
 
     // Insert a given surface to inp::SurfacePhysics::InteractionModels
-    void insert_interaction(SurfaceId sid,
-                            detail::GeantMaterialPropertyGetter& get_property,
-                            G4OpticalSurface const& surf,
+    void insert_interaction(detail::GeantSurfacePhysicsHelper& helper,
                             inp::SurfacePhysics& result);
 
     // Return true if the surface has *ONLY* analytic reflection
     bool analytic_reflection_only(G4OpticalSurface const& surf) const;
 
-    // Calculate the diffuse lobe from the other ReflectionForm properties
-    inp::Grid calc_diffuse_lobe(inp::ReflectionForm const& refl_form);
-
     // Validate model insertion
-    void validate_model(SurfaceId sid,
-                        G4OpticalSurface const& surf,
-                        inp::SurfacePhysics const& result);
+    void validate_model(detail::GeantSurfacePhysicsHelper& helper,
+                        inp::SurfacePhysics& result) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -74,7 +64,7 @@ inline GeantSurfacePhysicsLoader::GeantSurfacePhysicsLoader()
     CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline inp::SurfacePhysics operator()()
+inline inp::SurfacePhysics operator()(SurfaceId, inp::SurfacePhysics&)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }

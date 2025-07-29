@@ -616,8 +616,17 @@ import_optical_materials(detail::GeoOpticalIdMap const& geo_to_opt)
 inp::OpticalPhysics import_optical_physics()
 {
     inp::OpticalPhysics result;
-    result.surfaces = GeantSurfacePhysicsLoader()();
-    //! \todo: CELER_ENSURE(result); when optical options are correctly set
+    auto geo = celeritas::geant_geo().lock();
+
+    GeantSurfacePhysicsLoader load_surface;
+    for (auto sid : range(SurfaceId(geo->num_surfaces())))
+    {
+        load_surface(sid, result.surfaces);
+    }
+
+    CELER_LOG(debug) << "Loaded " << geo->num_surfaces()
+                     << " optical physics surfaces";
+    //! \todo CELER_ENSURE(result); when DataSelection is working correctly
     return result;
 }
 

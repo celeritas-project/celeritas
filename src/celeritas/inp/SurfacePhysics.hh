@@ -54,19 +54,17 @@ struct Polished
 /*!
  * Global surface normal with smearing.
  *
- * Roughness range is [0, 1], where 1 is maximum roughness.
+ * Roughness range is [0, 1], where 1 is maximum roughness. In Geant4 parlance,
+ * \code roughness = 1 - GetPolish(); \endcode.
  *
- * \note Used by the GLISUR model in Geant4 and is .
+ * \note Used by the GLISUR model in Geant4.
  */
 struct SmearRoughness
 {
-    real_type polishness{-1};  //!< [0, 1] where 1 means maximum polishness
+    real_type roughness{-1};  //!< [0, 1] where 1 means maximum roughness
 
     //! Whether the data are assigned
-    explicit operator bool() const
-    {
-        return polishness >= 0 && polishness <= 1;
-    }
+    explicit operator bool() const { return roughness >= 0 && roughness <= 1; }
 };
 
 //---------------------------------------------------------------------------//
@@ -109,7 +107,9 @@ using SurfaceLayer = SurfaceId;
  *
  * \note The sum of \c specular_lobe + \c specular_spike + \c backscatter +
  * \c diffuse_lobe probabilities must be equal to one. Diffuse lobe is not
- * user-defined in Geant4 and is calculated from the other three.
+ * user-defined in Geant4 and is calculated from the other three. This
+ * verification must be done during import (filling \c inp:: data) and/or
+ * construction of Celeritas' params data.
  */
 struct ReflectionForm
 {
@@ -117,47 +117,12 @@ struct ReflectionForm
     Grid specular_lobe;  //!< [0, 1] probability
     Grid specular_spike;  //!< [0, 1] probability
     Grid backscatter;  //!< [0, 1] probability
-    Grid diffuse_lobe;  //!< [0, 1] probability
-
-    bool unity(Grid const& grid) const
-    {
-        return std::any_of(
-            grid.y.begin(), grid.y.end(), [](real_type const& val) {
-                return val >= 0 && val <= 1;
-            });
-    }
-
-    // Total probability for all 4 properties must be equal to 1
-    bool total_prob_is_unity() const
-    {
-        auto const& sl = this->specular_lobe;
-        auto const& ss = this->specular_spike;
-        auto const& bc = this->backscatter;
-        auto const& dl = this->diffuse_lobe;
-        auto const size = sl.x.size();
-        CELER_ASSERT(ss.x.size() == size && bc.x.size() == size
-                     && dl.x.size() == size);
-
-        auto prob_sum = [&](size_type index) -> real_type {
-            return sl.y[index] + ss.y[index] + bc.y[index] + dl.y[index];
-        };
-
-        for (auto i : range(sl.x.size()))
-        {
-            if (!soft_equal(real_type{1}, prob_sum(i)))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
+    Grid diffuse_lobe;  //!< [0, 1] probability (optional)
 
     //! Whether the data are assigned
     explicit operator bool() const
     {
-        return unity(specular_lobe) && unity(specular_spike)
-               && unity(backscatter) && unity(diffuse_lobe)
-               && total_prob_is_unity();
+        return specular_lobe && specular_spike && backscatter;
     }
 };
 
@@ -198,11 +163,16 @@ struct RoughnessModels
     //! Whether the data are assigned
     explicit operator bool() const
     {
-        return !polished.empty() || !polished.empty() || !gaussian.empty();
+        return !polished.empty() || !smear.empty() || !gaussian.empty();
     }
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Reflectivity mechanism.
+ *
+ * Can be user-defined (grid) and/or analytic (Fresnel equations).
+ */
 struct ReflectivityModels
 {
     std::map<SurfaceLayer, ReflectionGrid> grid;

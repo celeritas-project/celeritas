@@ -204,6 +204,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantModelImporter.cc
     ext/detail/GeantOpticalModelImporter.cc
     ext/detail/GeantProcessImporter.cc
+    ext/detail/GeantSurfacePhysicsHelper.cc
     ext/detail/GeoOpticalIdMap.cc
     ext/detail/HitProcessor.cc
     ext/detail/LevelTouchableUpdater.cc
