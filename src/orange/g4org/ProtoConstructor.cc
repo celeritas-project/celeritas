@@ -31,6 +31,17 @@ bool is_union(ProtoConstructor::SPConstObject const& obj)
 }
 
 //---------------------------------------------------------------------------//
+// It's possible to have Geant4 geometry with no materials defined:
+// in this case, the background/material will be 'false' unless we use a
+// bogus material ID
+GeoMatId background_fill(GeoMatId mat)
+{
+    if (mat)
+        return mat;
+    return GeoMatId{0};
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -73,7 +84,7 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
         background.interior
             = this->make_explicit_background(lv, NoTransformation{});
         background.label = {};
-        background.fill = lv.material_id;
+        background.fill = background_fill(lv.material_id);
         input.boundary.zorder = ZOrder::media;
         input.materials.push_back(std::move(background));
     }
@@ -84,7 +95,8 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
             std::clog << std::string(depth_, ' ') << " - implicit background"
                       << std::endl;
         }
-        input.background.fill = lv.material_id;
+        input.background.fill = background_fill(lv.material_id);
+        CELER_ASSERT(input.background);
     }
 
     CELER_ENSURE(input);
