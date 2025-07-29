@@ -45,7 +45,7 @@ using GeoMatId = OpaqueId<struct GeoMaterial_>;
 //! Combined boundary/interface surface identifier
 using SurfaceId = OpaqueId<struct Surface_, unsigned int>;
 
-//! Identifier for a geometry volume that may be repeated
+//! Identifier for a canonical geometry volume that may be repeated
 using VolumeId = OpaqueId<struct Volume_, unsigned int>;
 
 //! Identifier for an instance of a geometry volume (aka physical/placed)
