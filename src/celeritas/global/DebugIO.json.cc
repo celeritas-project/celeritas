@@ -120,7 +120,7 @@ struct FromId
     }
 
 //---------------------------------------------------------------------------//
-// Create JSON from geoetry view, using host metadata if possible
+// Create JSON from geometry view, using host metadata if possible
 void to_json_impl(nlohmann::json& j, GeoTrackView const& view, FromId from_id)
 {
     ASSIGN_TRANSFORMED(pos, Labeled{NativeTraits::Length::label()});
@@ -130,7 +130,7 @@ void to_json_impl(nlohmann::json& j, GeoTrackView const& view, FromId from_id)
 
     if (!view.is_outside())
     {
-        ASSIGN_TRANSFORMED(impl_volume_id, from_id);
+        j["volume_id"] = from_id(view.impl_volume_id());
     }
 }
 
