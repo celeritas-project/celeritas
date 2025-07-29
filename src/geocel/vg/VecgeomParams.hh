@@ -108,7 +108,7 @@ class VecgeomParams final : public GeoParamsInterface,
 
     //! Maximum nested geometry depth
     //! \todo move to VolumeParams
-    LevelId::size_type max_depth() const final { return host_ref_.max_depth; }
+    LevelId::size_type max_depth() const { return host_ref_.max_depth; }
 
     // Create model parameters corresponding to our internal representation
     inp::Model make_model_input() const final;

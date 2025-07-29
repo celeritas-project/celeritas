@@ -46,6 +46,13 @@ class VolumeParams
     //! \name Type aliases
     using VolumeMap = LabelIdMultiMap<VolumeId>;
     using VolInstMap = LabelIdMultiMap<VolumeInstanceId>;
+    using SpanVolInst = Span<VolumeInstanceId const>;
+    //!@}
+
+    //!@{
+    //! \name VolumeVisitor template interface
+    using VolumeRef = VolumeId;
+    using VolumeInstanceRef = VolumeInstanceId;
     //!@}
 
   public:
@@ -57,6 +64,12 @@ class VolumeParams
 
     //! Empty if no volumes are present (e.g., ORANGE debugging)
     bool empty() const { return v_labels_.empty(); }
+
+    //! World volume
+    VolumeId world() const { return world_; }
+
+    //! Depth of the volume DAG (a world without children is depth zero)
+    LevelId::size_type depth() const { return depth_; }
 
     //! Number of volumes
     VolumeId::size_type num_volumes() const { return v_labels_.size(); }
@@ -74,10 +87,10 @@ class VolumeParams
     VolInstMap const& volume_instance_labels() const { return vi_labels_; }
 
     // Find all instances of a volume (incoming edges)
-    inline Span<VolumeInstanceId const> parents(VolumeId v_id) const;
+    inline SpanVolInst parents(VolumeId v_id) const;
 
     // Get the list of daughter volumes (outgoing edges)
-    inline Span<VolumeInstanceId const> children(VolumeId v_id) const;
+    inline SpanVolInst children(VolumeId v_id) const;
 
     // Get the geometry material of a volume
     inline GeoMatId material(VolumeId v_id) const;
@@ -88,6 +101,9 @@ class VolumeParams
   private:
     VolumeMap v_labels_;
     VolInstMap vi_labels_;
+
+    VolumeId world_;
+    size_type depth_{};
 
     std::vector<std::vector<VolumeInstanceId>> parents_;
     std::vector<std::vector<VolumeInstanceId>> children_;
@@ -101,7 +117,7 @@ class VolumeParams
 /*!
  * Find all instances of a volume (incoming edges).
  */
-Span<VolumeInstanceId const> VolumeParams::parents(VolumeId v_id) const
+auto VolumeParams::parents(VolumeId v_id) const -> SpanVolInst
 {
     CELER_EXPECT(v_id < parents_.size());
     return make_span(parents_[v_id.unchecked_get()]);
@@ -111,7 +127,7 @@ Span<VolumeInstanceId const> VolumeParams::parents(VolumeId v_id) const
 /*!
  * Get the list of daughter volumes (outgoing edges).
  */
-Span<VolumeInstanceId const> VolumeParams::children(VolumeId v_id) const
+auto VolumeParams::children(VolumeId v_id) const -> SpanVolInst
 {
     CELER_EXPECT(v_id < children_.size());
     return make_span(children_[v_id.unchecked_get()]);

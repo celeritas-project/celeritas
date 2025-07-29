@@ -17,22 +17,30 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-template<>
-struct VolumeVisitorTraits<G4VPhysicalVolume>
+class GeantVolumeAccessor final
+    : public VolumeAccessorInterface<G4LogicalVolume const*,
+                                     G4VPhysicalVolume const*>
 {
-    using PV = G4VPhysicalVolume;
-    using LV = G4LogicalVolume;
-
-    static LV const& get_lv(PV const& pv) { return *pv.GetLogicalVolume(); }
-
-    static void get_children(PV const& parent, std::vector<PV const*>& dst)
+  public:
+    //! Outgoing volume node from an instance
+    VolumeRef volume(VolumeInstanceRef parent) final
     {
-        LV const& lv = get_lv(parent);
-        auto num_children = lv.GetNoDaughters();
-        for (auto i : range(num_children))
+        CELER_EXPECT(parent);
+        auto result = parent->GetLogicalVolume();
+        CELER_ENSURE(result);
+        return result;
+    }
+
+    //! Outgoing instance edges from a volume
+    ContainerVolInstRef children(VolumeRef parent) final
+    {
+        CELER_EXPECT(parent);
+        ContainerVolInstRef result;
+        for (auto i : range(parent->GetNoDaughters()))
         {
-            dst.push_back(lv.GetDaughter(i));
+            result.push_back(parent->GetDaughter(i));
         }
+        return result;
     }
 };
 
@@ -41,7 +49,7 @@ struct VolumeVisitorTraits<G4VPhysicalVolume>
  * Perform a depth-first traversal of physical volumes.
  *
  * The function must have the signature
- * <code>bool(*)(G4VPhysicalVolume const&, int)</code>
+ * <code>bool(*)(G4VPhysicalVolume const*, int)</code>
  * where the return value indicates whether the volume's children should be
  * visited, and the integer is the depth of the volume being visited.
  *
@@ -49,27 +57,33 @@ struct VolumeVisitorTraits<G4VPhysicalVolume>
  * very expensive! If it's desired to only visit single physical volumes, mark
  * them as visited using a set.
  */
-template<class F>
-void visit_volume_instances(F&& visit, G4VPhysicalVolume const& world)
+template<class Visitor>
+void visit_volume_instances(Visitor&& vis, G4VPhysicalVolume const* world)
 {
+    CELER_EXPECT(world);
     ScopedProfiling profile_this{"visit-geant-volume-instance"};
-    VolumeVisitor{world}(std::forward<F>(visit));
+    VolumeVisitor visit_vol{GeantVolumeAccessor{}};
+    visit_vol(std::forward<Visitor>(vis), world);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Perform a depth-first listing of Geant4 logical volumes.
+ * Perform a depth-first traversal of Geant4 logical volumes.
  *
  * This will visit each volume exactly once based on when it's encountered in
- * the hierarchy. The visitor function F should have the signature
- * \code void(*)(G4LogicalVolume const&) \endcode .
+ * the hierarchy. The visitor function Visitor should have the signature
+ * \code void(*)(G4LogicalVolume const*) \endcode .
  */
-template<class F>
-void visit_volumes(F&& vis, G4VPhysicalVolume const& parent_vol)
+template<class Visitor>
+void visit_volumes(Visitor&& vis, G4VPhysicalVolume const* world)
 {
+    CELER_EXPECT(world);
     ScopedProfiling profile_this{"visit-geant-volume"};
 
-    visit_logical_volumes(std::forward<F>(vis), parent_vol);
+    VolumeVisitor visit_vol{GeantVolumeAccessor{}};
+    visit_vol(make_visit_volume_once<G4LogicalVolume const*>(
+                  std::forward<Visitor>(vis)),
+              world->GetLogicalVolume());
 }
 
 //---------------------------------------------------------------------------//

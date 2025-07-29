@@ -113,6 +113,8 @@ StepParams::StepParams(AuxId aux_id,
         if (selection.points[StepPoint::pre].volume_instance_ids
             || selection.points[StepPoint::post].volume_instance_ids)
         {
+            // TODO: replace with volume params, so we can use touchable
+            // representation
             host_data.volume_instance_depth = geo.max_depth();
             CELER_VALIDATE(host_data.volume_instance_depth > 0,
                            << "geometry type does not support volume "

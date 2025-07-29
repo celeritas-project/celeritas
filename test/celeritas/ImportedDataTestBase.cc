@@ -35,6 +35,12 @@ auto ImportedDataTestBase::build_physics_options() const -> PhysicsOptions
 }
 
 //---------------------------------------------------------------------------//
+auto ImportedDataTestBase::select_optical_models() const -> std::vector<IMC>
+{
+    return {IMC::absorption, IMC::rayleigh, IMC::wls};
+}
+
+//---------------------------------------------------------------------------//
 auto ImportedDataTestBase::build_material() -> SPConstMaterial
 {
     return MaterialParams::from_import(this->imported_data());
@@ -152,13 +158,12 @@ auto ImportedDataTestBase::build_optical_physics() -> SPConstOpticalPhysics
 
     optical::PhysicsParams::Input input;
     input.materials = this->optical_material();
-    input.action_registry = this->action_reg().get();
+    input.action_registry = this->optical_action_reg().get();
 
-    std::vector<IMC> imcs{IMC::absorption, IMC::rayleigh, IMC::wls};
     optical::ModelImporter importer(
         this->imported_data(), this->optical_material(), this->material());
 
-    for (IMC imc : imcs)
+    for (IMC imc : this->select_optical_models())
     {
         if (auto builder = importer(imc))
         {

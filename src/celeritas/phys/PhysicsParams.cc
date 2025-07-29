@@ -69,10 +69,13 @@ class ImplicitPhysicsAction final : public StaticConcreteAction
 };
 
 //---------------------------------------------------------------------------//
-//! PDG recommends 81-100 for internal MC pseudoparticles
-bool is_fake_particle(PDGNumber pdg)
+bool ignore_particle(PDGNumber pdg)
 {
-    return pdg.get() >= 81 && pdg.get() <= 100;
+    // PDG recommends 81-100 for internal MC pseudoparticles. The optical
+    // physics is constructed separately from the rest of the physics: Geant4
+    // uses 0 for the optical photon PDG before version 10.7 and -22 after.
+    return (pdg.get() >= 81 && pdg.get() <= 100) || pdg.get() == 0
+           || pdg.get() == -22;
 }
 
 //---------------------------------------------------------------------------//
@@ -360,7 +363,7 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
     {
         auto& process_to_models = particle_models[par_id.get()];
         if (process_to_models.empty()
-            && !is_fake_particle(particles.id_to_pdg(par_id)))
+            && !ignore_particle(particles.id_to_pdg(par_id)))
         {
             CELER_LOG(warning) << "No processes are defined for particle '"
                                << particles.id_to_label(par_id) << '\'';
