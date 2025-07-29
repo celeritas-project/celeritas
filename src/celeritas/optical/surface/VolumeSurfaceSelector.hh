@@ -44,7 +44,7 @@ class VolumeSurfaceSelector
     // Construct with pre-volume IDs
     inline CELER_FUNCTION
     VolumeSurfaceSelector(NativeCRef<SurfaceParamsData> const& params,
-                          ImplVolumeId pre_volume,
+                          VolumeId pre_volume,
                           VolumeInstanceId pre_volume_inst);
 
     // Convenience constructor to use IDs from geometry
@@ -53,15 +53,15 @@ class VolumeSurfaceSelector
                           GeoTrackView const& geo);
 
     // Select surface based on post-volume IDs
-    inline CELER_FUNCTION SurfaceId operator()(
-        ImplVolumeId post_volume, VolumeInstanceId post_volume_inst) const;
+    inline CELER_FUNCTION SurfaceId
+    operator()(VolumeId post_volume, VolumeInstanceId post_volume_inst) const;
 
     // Convenience function to use IDs from geometry
     inline CELER_FUNCTION SurfaceId operator()(GeoTrackView const&) const;
 
   private:
     NativeCRef<SurfaceParamsData> const& params_;
-    ImplVolumeId pre_volume_;
+    VolumeId pre_volume_;
     VolumeInstanceId pre_volume_inst_;
 };
 
@@ -73,7 +73,7 @@ class VolumeSurfaceSelector
  */
 CELER_FUNCTION VolumeSurfaceSelector::VolumeSurfaceSelector(
     NativeCRef<SurfaceParamsData> const& params,
-    ImplVolumeId pre_volume,
+    VolumeId pre_volume,
     VolumeInstanceId pre_volume_inst)
     : params_(params)
     , pre_volume_(pre_volume)
@@ -102,7 +102,7 @@ CELER_FUNCTION VolumeSurfaceSelector::VolumeSurfaceSelector(
  * Returns an invalid \c SurfaceId if no surface data exists for the volumes.
  */
 CELER_FUNCTION SurfaceId VolumeSurfaceSelector::operator()(
-    ImplVolumeId post_volume, VolumeInstanceId post_volume_inst) const
+    VolumeId post_volume, VolumeInstanceId post_volume_inst) const
 {
     VolumeSurfaceView pre_surface{params_, pre_volume_};
 
