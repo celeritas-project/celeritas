@@ -143,11 +143,14 @@ UniverseId UniverseInserter::operator()(UniverseType type,
             if (auto vi_id = get_or_default<VolumeInstanceId>(var_label))
             {
                 CELER_ASSERT(vi_id < volume_params_.num_volume_instances());
-                volume_ids_.push_back(volume_params_.volume(vi_id));
+                auto vol_id = volume_params_.volume(vi_id);
+                volume_ids_.push_back(vol_id);
                 volume_instance_ids_.push_back(vi_id);
 
-                // Replace with volume instance label corresponding to it
-                var_label = volume_params_.volume_instance_labels().at(vi_id);
+                // Replace with volume label corresponding to it
+                // TODO: should be volume instance label or also something else
+                // specific to this implementation
+                var_label = volume_params_.volume_labels().at(vol_id);
             }
             else
             {

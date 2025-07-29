@@ -166,13 +166,13 @@ OrangeParams::OrangeParams(OrangeInput&& input, VolumeParams const& volumes)
     // Insert all universes
     {
         std::vector<Label> universe_labels;
-        std::vector<Label> surface_labels;
-        std::vector<Label> volume_labels;
+        std::vector<Label> impl_surface_labels;
+        std::vector<Label> impl_volume_labels;
 
         detail::UniverseInserter insert_universe_base{volumes,
                                                       &universe_labels,
-                                                      &surface_labels,
-                                                      &volume_labels,
+                                                      &impl_surface_labels,
+                                                      &impl_volume_labels,
                                                       &host_data};
         Overload insert_universe{
             detail::UnitInserter{&insert_universe_base, &host_data},
@@ -183,9 +183,9 @@ OrangeParams::OrangeParams(OrangeInput&& input, VolumeParams const& volumes)
             std::visit(insert_universe, std::move(u));
         }
 
-        surf_labels_ = SurfaceMap{"surface", std::move(surface_labels)};
+        surf_labels_ = SurfaceMap{"surface", std::move(impl_surface_labels)};
         univ_labels_ = UniverseMap{"universe", std::move(universe_labels)};
-        vol_labels_ = ImplVolumeMap{"volume", std::move(volume_labels)};
+        vol_labels_ = ImplVolumeMap{"volume", std::move(impl_volume_labels)};
     }
     std::move(input) = {};
 
