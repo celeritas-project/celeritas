@@ -130,7 +130,7 @@ void to_json_impl(nlohmann::json& j, GeoTrackView const& view, FromId from_id)
 
     if (!view.is_outside())
     {
-        ASSIGN_TRANSFORMED(volume_id, from_id);
+        ASSIGN_TRANSFORMED(impl_volume_id, from_id);
     }
 }
 
