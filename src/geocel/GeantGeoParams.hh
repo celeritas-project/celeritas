@@ -21,8 +21,9 @@
 #    include "inp/Model.hh"
 #endif
 
-class G4VPhysicalVolume;
 class G4LogicalSurface;
+class G4Material;
+class G4VPhysicalVolume;
 
 namespace celeritas
 {
@@ -137,6 +138,9 @@ class GeantGeoParams final : public GeoParamsInterface,
 
     //// G4 ACCESSORS ////
 
+    // Get the geometry material ID for a logical volume (may be null)
+    GeoMatId geant_to_id(G4Material const& mat) const;
+
     //! Get the volume ID corresponding to a Geant4 logical volume
     ImplVolumeId geant_to_id(G4LogicalVolume const& volume) const
     {
@@ -145,9 +149,6 @@ class GeantGeoParams final : public GeoParamsInterface,
 
     // Get the volume ID corresponding to a Geant4 physical volume
     VolumeInstanceId geant_to_id(G4VPhysicalVolume const& volume) const;
-
-    // Get the geometry material ID for a logical volume (may be null)
-    GeoMatId geant_to_mat_id(G4LogicalVolume const& mat) const;
 
     // Get the replica ID corresponding to a Geant4 physical volume
     ReplicaId replica_id(G4VPhysicalVolume const& volume) const;
@@ -302,6 +303,10 @@ inline G4LogicalVolume const* GeantGeoParams::id_to_geant(ImplVolumeId) const
 {
     CELER_ASSERT_UNREACHABLE();
 }
+inline GeoMatId GeantGeoParams::geant_to_id(G4Material const&) const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
 inline VolumeInstanceId
 GeantGeoParams::geant_to_id(G4VPhysicalVolume const&) const
 {
@@ -309,10 +314,6 @@ GeantGeoParams::geant_to_id(G4VPhysicalVolume const&) const
 }
 inline GeantGeoParams::ReplicaId
 GeantGeoParams::replica_id(G4VPhysicalVolume const&) const
-{
-    CELER_ASSERT_UNREACHABLE();
-}
-inline GeoMatId GeantGeoParams::geant_to_mat_id(G4LogicalVolume const&) const
 {
     CELER_ASSERT_UNREACHABLE();
 }

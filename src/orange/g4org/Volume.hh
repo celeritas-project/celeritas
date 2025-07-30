@@ -54,6 +54,9 @@ struct PhysicalVolume
  *
  * This holds equivalent information to a Geant4 \c G4LogicalVolume, but with
  * \em only ORANGE data structures.
+ *
+ * \todo Remove the material ID; volume-to-material mapping should be done by
+ * VolumeParams.
  */
 struct LogicalVolume
 {

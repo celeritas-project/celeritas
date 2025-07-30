@@ -67,7 +67,11 @@ auto LogicalVolumeConverter::construct_impl(arg_type g4lv) -> SPLV
 
     // Save Geant4 volume ID
     result->id = geo_.geant_to_id(g4lv);
-    result->material_id = geo_.geant_to_mat_id(g4lv);
+    result->material_id = [this, mat = g4lv.GetMaterial()]() -> GeoMatId {
+        if (!mat)
+            return {};
+        return geo_.geant_to_id(*mat);
+    }();
 
     // Convert solid
     try
