@@ -87,10 +87,6 @@ class GeoParamsInterface
 
     //// TO BE DELETED SOON ////
 
-    //! Maximum nested volume instance depth
-    //! \todo move to VolumeParams
-    virtual LevelId::size_type max_depth() const = 0;
-
     //! Get volume instance metadata
     virtual VolInstanceMap const& volume_instances() const = 0;
 
