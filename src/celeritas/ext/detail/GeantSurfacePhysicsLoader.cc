@@ -14,7 +14,6 @@
 #include <G4Version.hh>
 
 #include "corecel/io/Logger.hh"
-#include "corecel/math/SoftEqual.hh"
 #include "geocel/SurfaceParams.hh"
 
 namespace celeritas
@@ -237,6 +236,7 @@ void GeantSurfacePhysicsLoader::insert_roughness(
     detail::GeantSurfacePhysicsHelper& helper)
 {
     using G4OSM = G4OpticalSurfaceModel;
+    using G4OSF = G4OpticalSurfaceFinish;
 
     auto sid = helper.surface_id();
     auto const& surf = helper.surface();
@@ -244,17 +244,16 @@ void GeantSurfacePhysicsLoader::insert_roughness(
     switch (g4model)
     {
         case G4OSM::glisur: {
-            // Get GLISUR surface polish
-            real_type roughness = real_type{1} - surf.GetPolish();
-            if (roughness == soft_equal(real_type{0}, roughness))
+            if (surf.GetFinish() == G4OSF::polished)
             {
                 // Perfectly polished surface
                 result_.roughness.polished.insert({sid, inp::Polished{}});
             }
             else
             {
-                // Smearing is available
-                inp::SmearRoughness smear{roughness};
+                // Smearing is available (surf.GetFinish() == G4OSF::ground)
+                // Celeritas' roughness is the complement of Geant4 polish
+                inp::SmearRoughness smear{real_type{1} - surf.GetPolish()};
                 CELER_VALIDATE(
                     smear, << "Smear roughness must be within [0, 1] range");
                 result_.roughness.smear.insert({sid, std::move(smear)});
