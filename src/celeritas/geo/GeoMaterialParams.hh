@@ -40,6 +40,10 @@ struct ImportData;
  * the corresponding volume name is empty (corresponding perhaps to a "parallel
  * world" or otherwise unused volume) or is enclosed with braces (used for
  * virtual volumes such as `[EXTERIOR]` or temporary boolean/reflected volumes.
+ *
+ * \todo This class's functionality should be split between VolumeParams (for
+ * mapping volume IDs to GeoMatId) and the physics (for determining the
+ * PhysMatId from the geometry/material/region state).
  */
 class GeoMaterialParams final
     : public ParamsDataInterface<GeoMaterialParamsData>
