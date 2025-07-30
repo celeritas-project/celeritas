@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/GeantSurfacePhysicsLoader.cc
+//! \file celeritas/ext/detail/GeantSurfacePhysicsLoader.cc
 //---------------------------------------------------------------------------//
 #include "GeantSurfacePhysicsLoader.hh"
 
@@ -18,6 +18,8 @@
 #include "geocel/SurfaceParams.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 namespace
 {
@@ -299,12 +301,12 @@ void GeantSurfacePhysicsLoader::insert_interaction(
     helper.get_property(&refl_form.backscatter, "BACKSCATTERCONSTANT");
     CELER_ASSERT(refl_form);
 
-    // Verify unity and total probability of reflection form parameters
+    // Verify unity of reflection form parameters
     GSPL_VALIDATE_UNITY(refl_form.specular_spike);
     GSPL_VALIDATE_UNITY(refl_form.specular_lobe);
     GSPL_VALIDATE_UNITY(refl_form.backscatter);
 
-    // ReflectionForm terms are correctly assigned; Add to interface type
+    // ReflectionForm terms are correctly assigned; add to interface type
     auto sid = helper.surface_id();
     auto const interface_type = helper.surface().GetType();
     switch (interface_type)
@@ -421,4 +423,5 @@ void GeantSurfacePhysicsLoader::validate_model(
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

@@ -196,7 +196,6 @@ if(CELERITAS_USE_Geant4)
     ext/GeantSd.cc
     ext/GeantSdOutput.cc
     ext/GeantSetup.cc
-    ext/GeantSurfacePhysicsLoader.cc
     ext/GeantVolumeMapper.cc
     ext/detail/EmStandardPhysics.cc
     ext/detail/GeantBremsstrahlungProcess.cc
@@ -205,6 +204,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantOpticalModelImporter.cc
     ext/detail/GeantProcessImporter.cc
     ext/detail/GeantSurfacePhysicsHelper.cc
+    ext/detail/GeantSurfacePhysicsLoader.cc
     ext/detail/GeoOpticalIdMap.cc
     ext/detail/HitProcessor.cc
     ext/detail/LevelTouchableUpdater.cc

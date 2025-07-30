@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/GeantSurfacePhysicsLoader.hh
+//! \file celeritas/ext/detail/GeantSurfacePhysicsLoader.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,15 +11,17 @@
 #include "corecel/Config.hh"
 
 #include "geocel/GeantGeoParams.hh"
-#include "celeritas/ext/detail/GeantMaterialPropertyGetter.hh"
 #include "celeritas/inp/SurfacePhysics.hh"
 
-#include "detail/GeantSurfacePhysicsHelper.hh"
+#include "GeantMaterialPropertyGetter.hh"
+#include "GeantSurfacePhysicsHelper.hh"
 
 // Geant4 forward declaration
 class G4OpticalSurface;  // IWYU pragma: keep
 
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -32,12 +34,12 @@ class GeantSurfacePhysicsLoader
     //! Construct with input to be filled by operator()
     GeantSurfacePhysicsLoader(inp::SurfacePhysics& result);
 
-    //! Populate surface physics input data
+    //! Populate surface physics data
     void operator()(SurfaceId sid);
 
   private:
     //// DATA ////
-    inp::SurfacePhysics& result_;
+    inp::SurfacePhysics& result_;  // Input populated by operator()
 
     //// HELPER FUNCTIONS ////
 
@@ -59,16 +61,17 @@ class GeantSurfacePhysicsLoader
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4
-inline GeantSurfacePhysicsLoader::GeantSurfacePhysicsLoader()
+inline GeantSurfacePhysicsLoader::GeantSurfacePhysicsLoader(inp::SurfacePhysics&)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline inp::SurfacePhysics operator()(SurfaceId, inp::SurfacePhysics&)
+inline inp::SurfacePhysics operator()(SurfaceId)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
 #endif
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

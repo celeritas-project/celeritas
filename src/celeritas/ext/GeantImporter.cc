@@ -92,12 +92,12 @@
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "GeantSetup.hh"
-#include "GeantSurfacePhysicsLoader.hh"
 
 #include "detail/AllElementReader.hh"
 #include "detail/GeantMaterialPropertyGetter.hh"
 #include "detail/GeantOpticalModelImporter.hh"
 #include "detail/GeantProcessImporter.hh"
+#include "detail/GeantSurfacePhysicsLoader.hh"
 
 inline constexpr double mev_scale = 1 / CLHEP::MeV;
 inline constexpr celeritas::PDGNumber g4_photon_pdg{-22};
@@ -623,7 +623,7 @@ inp::OpticalPhysics import_optical_physics()
     auto geo = celeritas::geant_geo().lock();
 
     MultiExceptionHandler handle;
-    GeantSurfacePhysicsLoader load_surface(result.surfaces);
+    detail::GeantSurfacePhysicsLoader load_surface(result.surfaces);
     for (auto sid : range(SurfaceId(geo->num_surfaces())))
     {
         CELER_TRY_HANDLE(load_surface(sid), handle);
