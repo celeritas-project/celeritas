@@ -36,6 +36,10 @@ struct Model;
  * If the pointed-to physical volume is *not* a replica/parameterised volume,
  * \c replica is false. Otherwise, it corresponds to the PV's copy number,
  * which can be used to reconstruct the placed volume instance.
+ *
+ * \todo This will be replaced by a VolumeInstanceId when GeantGeoParams stores
+ * a mapping between the canonical geometry definition and its internal
+ * parametrised representation.
  */
 struct GeantPhysicalInstance
 {

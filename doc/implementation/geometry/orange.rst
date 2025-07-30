@@ -41,6 +41,8 @@ helps construct these objects.
 .. doxygenclass:: celeritas::orangeinp::Prism
 .. doxygenclass:: celeritas::orangeinp::Sphere
 
+.. _api_orange_objects:
+
 Objects
 ^^^^^^^
 

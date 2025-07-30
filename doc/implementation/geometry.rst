@@ -19,9 +19,9 @@ their enclosing parent volume.
 .. table:: Celeritas nomenclature tends toward computer science terminology.
 
    +------------------+-------------------------+----------------+--------------------+
-   | Celeritas        | Geant4                  | VecGeom        | KENO [#sc]_        |
+   | Celeritas/ORANGE | Geant4                  | VecGeom        | KENO/SCALE [#sc]_  |
    +==================+=========================+================+====================+
-   | (not used)       | Solid                   | Unplaced       | Shape              |
+   | Object [#ob]_    | Solid                   | Unplaced       | Shape              |
    +------------------+-------------------------+----------------+--------------------+
    | Volume           | Logical volume          | Logical volume | Unit/array/media   |
    +------------------+-------------------------+----------------+--------------------+
@@ -37,10 +37,15 @@ their enclosing parent volume.
    +------------------+-------------------------+----------------+--------------------+
    | Surface          | Surface property [#sp]_ | ---            | ---                |
    +------------------+-------------------------+----------------+--------------------+
+   | ImplVolume       | ---                     | ---            | Cell               |
+   +------------------+-------------------------+----------------+--------------------+
 
 .. [#sc] The KENO geometry package in SCALE :cite:`scale-632` differs
    substantially from Geant4 geometry definitions. In KENO-VI :cite:`kenovi`
    geometry, parent units mask (rather than strictly contain) child units.
+
+.. [#ob] :ref:`api_orange_objects` are used strictly for construction in ORANGE and are not
+   identifiable during runtime.
 
 .. [#sp] Surface properties in Geant4 can be referenced by multiple surfaces.
    Celeritas will duplicate these (although lower-level data deduplication may
@@ -54,6 +59,8 @@ fields as "cells") and "surfaces" defined by the relationships between volumes.
 .. [#ga] In the future the use of these abstract concepts will enable detector
    descriptions, and geometry models for other applications, that are *not*
    Geant4 hierarchies.
+
+
 
 Volume
    A *volume* corresponds to a homogeneous physical object that can have multiple
