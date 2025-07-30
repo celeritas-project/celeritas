@@ -307,7 +307,7 @@ TEST_F(SimpleComptonTest, kill_active)
         R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":true,"is_outside":false,"pos":[[-5.0,0.0,0.0],"cm"],"volume_id":"inner"},"mat":"Al","particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":1,"parent_id":-1,"post_step_action":"tracking-cut","status":"errored","step_length":[17.0,"cm"],"time":[0.25,"s"],"track_id":0},"thread_id":6,"track_slot_id":6}: lost 100 MeV)",
         R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":true,"is_outside":false,"pos":[[-5.0,0.0,0.0],"cm"],"volume_id":"inner"},"mat":"Al","particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":1,"parent_id":-1,"post_step_action":"tracking-cut","status":"errored","step_length":[17.0,"cm"],"time":[0.25,"s"],"track_id":1},"thread_id":7,"track_slot_id":7}: lost 100 MeV)",
     };
-    if (CELERITAS_USE_GEANT4)
+    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS && CELERITAS_USE_GEANT4)
     {
         // Messages match only when importing Geant4 volumes
         EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages())
