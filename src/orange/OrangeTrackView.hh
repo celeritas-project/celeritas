@@ -94,7 +94,9 @@ class OrangeTrackView
     // The current direction
     inline CELER_FUNCTION Real3 const& dir() const;
 
-    // Get the physical volume ID in the current cell
+    // Get the canonical volume ID in the current volume
+    inline CELER_FUNCTION VolumeId volume_id() const;
+    // Get the canonical volume instance ID in the current volume
     inline CELER_FUNCTION VolumeInstanceId volume_instance_id() const;
     // The current level
     inline CELER_FUNCTION LevelId const& level() const;
@@ -451,6 +453,18 @@ CELER_FUNCTION Real3 const& OrangeTrackView::dir() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * The current volume ID.
+ */
+CELER_FUNCTION VolumeId OrangeTrackView::volume_id() const
+{
+    ImplVolumeId impl_id = this->impl_volume_id();
+    // Return structural volume mapping
+    CELER_ASSERT(impl_id);
+    return params_.volume_ids[impl_id];
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * The current volume instance.
  *
  * \todo not implemented; ImplVolumeId is already halfway between a
@@ -458,6 +472,14 @@ CELER_FUNCTION Real3 const& OrangeTrackView::dir() const
  */
 CELER_FUNCTION VolumeInstanceId OrangeTrackView::volume_instance_id() const
 {
+    if (!params_.volume_instance_ids.empty())
+    {
+        // Return structural volume mapping
+        ImplVolumeId impl_id = this->impl_volume_id();
+        CELER_ASSERT(impl_id);
+        return params_.volume_instance_ids[impl_id];
+    }
+    // No volume mapping specified (unit test or SCALE embedding)
     return {};
 }
 
