@@ -42,23 +42,5 @@ class GeantSurfacePhysicsHelper
 };
 
 //---------------------------------------------------------------------------//
-#if !CELERITAS_USE_GEANT4
-inline GeantSurfacePhysicsHelper::GeantSurfacePhysicsHelper(SurfaceId)
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-
-inline G4OpticalSurface const& surface()
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-
-inline bool get_property(inp::Grid*, std::string const&)
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-#endif
-
-//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

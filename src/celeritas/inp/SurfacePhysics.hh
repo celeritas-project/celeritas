@@ -103,13 +103,6 @@ using SurfaceLayer = SurfaceId;
  * - \c specular_spike : Reflection probability at the average surface normal.
  * - \c backscatter : Probability of back scattering after reflecting within a
  *   deep groove.
- * - \c diffuse_lobe : Probability of internal Lambertian reflection.
- *
- * \note The sum of \c specular_lobe + \c specular_spike + \c backscatter +
- * \c diffuse_lobe probabilities must be equal to one. Diffuse lobe is not
- * user-defined in Geant4 and is calculated from the other three. This
- * verification must be done during import (filling \c inp:: data) and/or
- * construction of Celeritas' params data.
  */
 struct ReflectionForm
 {
@@ -117,7 +110,6 @@ struct ReflectionForm
     Grid specular_lobe;  //!< [0, 1] probability
     Grid specular_spike;  //!< [0, 1] probability
     Grid backscatter;  //!< [0, 1] probability
-    Grid diffuse_lobe;  //!< [0, 1] probability (optional)
 
     //! Whether the data are assigned
     explicit operator bool() const

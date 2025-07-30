@@ -66,12 +66,14 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/PdfUtils.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TypeDemangler.hh"
@@ -611,18 +613,20 @@ import_optical_materials(detail::GeoOpticalIdMap const& geo_to_opt)
 
 //---------------------------------------------------------------------------//
 /*!
- * Import surface optical physics information.
+ * Import optical surface physics information.
  */
 inp::OpticalPhysics import_optical_physics()
 {
     inp::OpticalPhysics result;
     auto geo = celeritas::geant_geo().lock();
 
-    GeantSurfacePhysicsLoader load_surface;
+    MultiExceptionHandler handle;
+    GeantSurfacePhysicsLoader load_surface(result.surfaces);
     for (auto sid : range(SurfaceId(geo->num_surfaces())))
     {
-        load_surface(sid, result.surfaces);
+        CELER_TRY_HANDLE(load_surface(sid), handle);
     }
+    log_and_rethrow(std::move(handle));
 
     CELER_LOG(debug) << "Loaded " << geo->num_surfaces()
                      << " optical physics surfaces";
