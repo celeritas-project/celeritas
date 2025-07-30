@@ -547,28 +547,27 @@ TEST_F(FourLevelsTest, trace)
 TEST_F(FourLevelsTest, levels)
 {
     auto geo = this->make_geo_track_view({10.0, 10.0, 10.0}, {1, 0, 0});
-    EXPECT_EQ("World_PV/env1/Shape1/Shape2",
-              this->all_volume_instance_names(geo));
+    EXPECT_EQ("World_PV/env1/Shape1/Shape2", this->(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-    EXPECT_EQ("World_PV/env1/Shape1", this->all_volume_instance_names(geo));
+    EXPECT_EQ("World_PV/env1/Shape1", this->(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-    EXPECT_EQ("World_PV/env1", this->all_volume_instance_names(geo));
+    EXPECT_EQ("World_PV/env1", this->(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-    EXPECT_EQ("World_PV", this->all_volume_instance_names(geo));
+    EXPECT_EQ("World_PV", this->(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-    EXPECT_EQ("[OUTSIDE]", this->all_volume_instance_names(geo));
+    EXPECT_EQ("[OUTSIDE]", this->(geo));
 }
 
 //---------------------------------------------------------------------------//

@@ -115,7 +115,7 @@ std::string GenericGeoTestBase<HP>::surface_name(GeoTrackView const&) const
 //---------------------------------------------------------------------------//
 template<class HP>
 std::string
-GenericGeoTestBase<HP>::all_volume_instance_names(GeoTrackView const& geo) const
+GenericGeoTestBase<HP>::unique_volume_name(GeoTrackView const& geo) const
 {
     if (geo.is_outside())
     {
