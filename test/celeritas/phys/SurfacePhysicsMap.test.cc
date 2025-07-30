@@ -39,24 +39,16 @@ class MockSurfaceModel final : public SurfaceModel, public ConcreteAction
 
 //---------------------------------------------------------------------------//
 // See geocel/SurfaceTestBase.hh for a description of surfaces: there are 9
-class SurfacePhysicsMapTest : public SurfaceTestBase
+class SurfacePhysicsMapTest : public ManySurfacesTestBase
 {
   protected:
-    void SetUp() override
-    {
-        SurfaceTestBase::SetUp();
-
-        surfaces_ = SurfaceParams{this->make_many_surfaces_inp(), volumes_};
-    }
-
-    SurfaceParams surfaces_;
     HostVal<SurfacePhysicsMapData> host_;
 };
 
 TEST_F(SurfacePhysicsMapTest, typical)
 {
     // Construct builder
-    SurfacePhysicsMapBuilder add_surface_model(surfaces_, host_);
+    SurfacePhysicsMapBuilder add_surface_model(this->surfaces(), host_);
 
     // Add a model with some surfaces, which don't have to be ordered
     add_surface_model(MockSurfaceModel{A{0}, {S{3}, S{1}, S{4}, S{5}, S{7}}});
@@ -95,7 +87,7 @@ TEST_F(SurfacePhysicsMapTest, typical)
 TEST_F(SurfacePhysicsMapTest, errors)
 {
     // Construct builder
-    SurfacePhysicsMapBuilder add_surface_model(surfaces_, host_);
+    SurfacePhysicsMapBuilder add_surface_model(this->surfaces(), host_);
 
     // Empty model not allowed
     EXPECT_THROW(add_surface_model(MockSurfaceModel{A{0}, {}}), RuntimeError);
