@@ -117,8 +117,8 @@ TEST(PolygonUtilsTest, convex)
     static Real2 const ccw_points[] = {{1, 1}, {2, 1}, {2, 2}, {1, 2}};
     EXPECT_TRUE(is_convex(ccw_points));
 
-    VecReal2 oct{8};
-    for (size_type i = 0; i < 8; ++i)
+    VecReal2 oct(8);
+    for (auto i : range(oct.size()))
     {
         oct[i] = {std::cos(static_cast<real_type>(2 * constants::pi * i / 8)),
                   std::sin(static_cast<real_type>(2 * constants::pi * i / 8))};
