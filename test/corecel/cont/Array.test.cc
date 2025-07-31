@@ -6,8 +6,11 @@
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Array.hh"
 
+#include <type_traits>
+
 #include "corecel/cont/EnumArray.hh"
 
+#include "TestMacros.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -28,7 +31,7 @@ enum class Color : unsigned int
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST(ArrayTest, all)
+TEST(ArrayTest, single_level)
 {
     // Note: C++14 required to write without double brackets
     Array<int, 3> x = {1, 3, 2};
@@ -63,6 +66,24 @@ TEST(ArrayTest, all)
     {
         v = 3;
     }
+}
+
+TEST(ArrayTest, deduction)
+{
+    Array<double, 3> y = {1, 3.0, 2.0f};
+    EXPECT_TRUE((std::is_same_v<decltype(y), Array<double, 3>>));
+
+    static double const expected_y[] = {1.0, 3.0, 2.0};
+    EXPECT_VEC_EQ(expected_y, y);
+}
+
+TEST(ArrayTest, two_level)
+{
+    using Int3 = Array<int, 3>;
+    Array<Int3, 3> x = {{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}};
+    EXPECT_VEC_EQ((Int3{1, 2, 3}), x[0]);
+    EXPECT_VEC_EQ((Int3{4, 5, 6}), x[1]);
+    EXPECT_VEC_EQ((Int3{7, 8, 9}), x[2]);
 }
 
 TEST(EnumArrayTest, all)
