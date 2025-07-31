@@ -70,7 +70,7 @@ TEST(ArrayTest, single_level)
 
 TEST(ArrayTest, deduction)
 {
-    Array<double, 3> y = {1, 3.0, 2.0f};
+    Array y = {1, 3.0, 2.0f};
     EXPECT_TRUE((std::is_same_v<decltype(y), Array<double, 3>>));
 
     static double const expected_y[] = {1.0, 3.0, 2.0};

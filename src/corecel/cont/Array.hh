@@ -33,8 +33,11 @@ namespace celeritas
  * - \c ArrayIO.json.hh for JSON input and output
  */
 template<class T, ::celeritas::size_type N>
-struct Array
+class Array
 {
+    static_assert(N > 0);
+
+  public:
     //!@{
     //! \name Type aliases
     using value_type = T;
@@ -45,11 +48,35 @@ struct Array
     using const_reference = value_type const&;
     using iterator = pointer;
     using const_iterator = const_pointer;
+
+    using CArrayConstRef = T const (&)[N];
     //!@}
 
-    //// DATA ////
+  public:
+    //! Default construct
+    Array() = default;
 
-    T data_[N];  //!< Storage
+    //! Construct from an array for aggregate initialization of daughtres
+    CELER_CEF Array(CArrayConstRef values)
+    {
+        for (size_type i = 0; i < N; ++i)
+        {
+            data_[i] = values[i];
+        }
+    }
+
+    //! Construct with C-style aggregate initialization
+    explicit Array(T first) : data_{first} {}
+
+    //! Construct with the array's data
+    template<class... Us>
+    CELER_CEF Array(T first, Us... rest)
+        : data_{first, static_cast<T>(rest)...}
+    {
+        // Protect against leaving off an entry, e.g. Array<int, 2>(1)
+        static_assert(sizeof...(rest) + 1 == N,
+                      "All array entries must be explicitly specified");
+    }
 
     //// ACCESSORS ////
 
@@ -110,7 +137,17 @@ struct Array
             data_[i] = value;
     }
     //!@}
+
+  private:
+    T data_[N];  //!< Storage
 };
+
+//---------------------------------------------------------------------------//
+// DEDUCTION GUIDES
+//---------------------------------------------------------------------------//
+
+template<class T, class... Us>
+CELER_FUNCTION Array(T, Us...) -> Array<T, 1 + sizeof...(Us)>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
