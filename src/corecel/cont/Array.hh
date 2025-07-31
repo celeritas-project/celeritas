@@ -55,27 +55,21 @@ struct Array
 
     //!@{
     //! \name Element access
-    CELER_CONSTEXPR_FUNCTION const_reference operator[](size_type i) const
+    CELER_CEF const_reference operator[](size_type i) const
     {
         return data_[i];
     }
-    CELER_CONSTEXPR_FUNCTION reference operator[](size_type i)
-    {
-        return data_[i];
-    }
-    CELER_CONSTEXPR_FUNCTION const_reference front() const { return data_[0]; }
-    CELER_CONSTEXPR_FUNCTION reference front() { return data_[0]; }
-    CELER_CONSTEXPR_FUNCTION const_reference back() const
-    {
-        return data_[N - 1];
-    }
-    CELER_CONSTEXPR_FUNCTION reference back() { return data_[N - 1]; }
-    CELER_CONSTEXPR_FUNCTION const_pointer data() const { return data_; }
-    CELER_CONSTEXPR_FUNCTION pointer data() { return data_; }
+    CELER_CEF reference operator[](size_type i) { return data_[i]; }
+    CELER_CEF const_reference front() const { return data_[0]; }
+    CELER_CEF reference front() { return data_[0]; }
+    CELER_CEF const_reference back() const { return data_[N - 1]; }
+    CELER_CEF reference back() { return data_[N - 1]; }
+    CELER_CEF const_pointer data() const { return data_; }
+    CELER_CEF pointer data() { return data_; }
 
     //! Access for structured unpacking
     template<std::size_t I>
-    CELER_CONSTEXPR_FUNCTION T& get()
+    CELER_CEF T& get()
     {
         static_assert(I < static_cast<std::size_t>(N));
         return data_[I];
@@ -83,7 +77,7 @@ struct Array
 
     //! Access for structured unpacking
     template<std::size_t I>
-    CELER_CONSTEXPR_FUNCTION T const& get() const
+    CELER_CEF T const& get() const
     {
         static_assert(I < static_cast<std::size_t>(N));
         return data_[I];
@@ -92,25 +86,25 @@ struct Array
 
     //!@{
     //! \name Iterators
-    CELER_CONSTEXPR_FUNCTION iterator begin() { return data_; }
-    CELER_CONSTEXPR_FUNCTION iterator end() { return data_ + N; }
-    CELER_CONSTEXPR_FUNCTION const_iterator begin() const { return data_; }
-    CELER_CONSTEXPR_FUNCTION const_iterator end() const { return data_ + N; }
-    CELER_CONSTEXPR_FUNCTION const_iterator cbegin() const { return data_; }
-    CELER_CONSTEXPR_FUNCTION const_iterator cend() const { return data_ + N; }
+    CELER_CEF iterator begin() { return data_; }
+    CELER_CEF iterator end() { return data_ + N; }
+    CELER_CEF const_iterator begin() const { return data_; }
+    CELER_CEF const_iterator end() const { return data_ + N; }
+    CELER_CEF const_iterator cbegin() const { return data_; }
+    CELER_CEF const_iterator cend() const { return data_ + N; }
     //!@}
 
     //!@{
     //! \name Capacity
-    CELER_CONSTEXPR_FUNCTION bool empty() const { return N == 0; }
-    static CELER_CONSTEXPR_FUNCTION size_type size() { return N; }
+    CELER_CEF bool empty() const { return N == 0; }
+    static CELER_CEF size_type size() { return N; }
     //!@}
 
     //!@{
     //! \name  Operations
 
     //! Fill the array with a constant value
-    CELER_CONSTEXPR_FUNCTION void fill(const_reference value)
+    CELER_CEF void fill(const_reference value)
     {
         for (size_type i = 0; i != N; ++i)
             data_[i] = value;
@@ -125,8 +119,7 @@ struct Array
  * Test equality of two arrays.
  */
 template<class T, size_type N>
-CELER_CONSTEXPR_FUNCTION bool
-operator==(Array<T, N> const& lhs, Array<T, N> const& rhs)
+CELER_CEF bool operator==(Array<T, N> const& lhs, Array<T, N> const& rhs)
 {
     for (size_type i = 0; i != N; ++i)
     {
@@ -141,8 +134,7 @@ operator==(Array<T, N> const& lhs, Array<T, N> const& rhs)
  * Test inequality of two arrays.
  */
 template<class T, size_type N>
-CELER_CONSTEXPR_FUNCTION bool
-operator!=(Array<T, N> const& lhs, Array<T, N> const& rhs)
+CELER_CEF bool operator!=(Array<T, N> const& lhs, Array<T, N> const& rhs)
 {
     return !(lhs == rhs);
 }
