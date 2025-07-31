@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cstddef>
+#include <type_traits>
 #include <utility>
 
 #include "corecel/Macros.hh"
@@ -23,8 +24,8 @@ namespace celeritas
  *
  * This isn't fully standards-compliant with std::array: there's no support for
  * N=0 for example. Additionally it uses the native celeritas \c size_type,
- * even though this has *no* effect on generated code for values of N inside
- * the range of \c size_type.
+ * even though this has \em no effect on generated code for values of N inside
+ * the range of \c size_type. Arrays are also zero-initialized by default.
  *
  * \note For supplementary functionality, include:
  * - \c corecel/math/ArrayUtils.hh for real-number vector/matrix applications
@@ -53,8 +54,8 @@ class Array
     //!@}
 
   public:
-    //! Default construct
-    Array() = default;
+    //! Default construction initializes to zero
+    CELER_CEF Array() : data_{T{}} {}
 
     //! Construct from an array for aggregate initialization of daughtres
     CELER_CEF Array(CArrayConstRef values)
@@ -66,7 +67,7 @@ class Array
     }
 
     //! Construct with C-style aggregate initialization
-    explicit Array(T first) : data_{first} {}
+    Array(T first) : data_{{first}} {}
 
     //! Construct with the array's data
     template<class... Us>
@@ -93,7 +94,9 @@ class Array
     CELER_CEF reference back() { return data_[N - 1]; }
     CELER_CEF const_pointer data() const { return data_; }
     CELER_CEF pointer data() { return data_; }
+    //!@}
 
+    //!@{
     //! Access for structured unpacking
     template<std::size_t I>
     CELER_CEF T& get()
@@ -101,8 +104,6 @@ class Array
         static_assert(I < static_cast<std::size_t>(N));
         return data_[I];
     }
-
-    //! Access for structured unpacking
     template<std::size_t I>
     CELER_CEF T const& get() const
     {
@@ -134,7 +135,9 @@ class Array
     CELER_CEF void fill(const_reference value)
     {
         for (size_type i = 0; i != N; ++i)
+        {
             data_[i] = value;
+        }
     }
     //!@}
 
@@ -146,8 +149,11 @@ class Array
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 
+// Note: this differs from std::array, which deduces from T rather than the
+// common type
 template<class T, class... Us>
-CELER_FUNCTION Array(T, Us...) -> Array<T, 1 + sizeof...(Us)>;
+CELER_FUNCTION Array(T, Us...)
+    -> Array<std::common_type_t<T, Us...>, 1 + sizeof...(Us)>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
