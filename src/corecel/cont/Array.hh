@@ -55,24 +55,23 @@ class Array
 
   public:
     //! Default construction initializes to zero
-    CELER_CEF Array() : data_{T{}} {}
+    CELER_CEF Array() : d_{T{}} {}
 
     //! Construct from an array for aggregate initialization of daughtres
     CELER_CEF Array(CArrayConstRef values)
     {
         for (size_type i = 0; i < N; ++i)
         {
-            data_[i] = values[i];
+            d_[i] = values[i];
         }
     }
 
     //! Construct with C-style aggregate initialization
-    Array(T first) : data_{{first}} {}
+    Array(T first) : d_{{first}} {}
 
     //! Construct with the array's data
     template<class... Us>
-    CELER_CEF Array(T first, Us... rest)
-        : data_{first, static_cast<T>(rest)...}
+    CELER_CEF Array(T first, Us... rest) : d_{first, static_cast<T>(rest)...}
     {
         // Protect against leaving off an entry, e.g. Array<int, 2>(1)
         static_assert(sizeof...(rest) + 1 == N,
@@ -83,17 +82,14 @@ class Array
 
     //!@{
     //! \name Element access
-    CELER_CEF const_reference operator[](size_type i) const
-    {
-        return data_[i];
-    }
-    CELER_CEF reference operator[](size_type i) { return data_[i]; }
-    CELER_CEF const_reference front() const { return data_[0]; }
-    CELER_CEF reference front() { return data_[0]; }
-    CELER_CEF const_reference back() const { return data_[N - 1]; }
-    CELER_CEF reference back() { return data_[N - 1]; }
-    CELER_CEF const_pointer data() const { return data_; }
-    CELER_CEF pointer data() { return data_; }
+    CELER_CEF const_reference operator[](size_type i) const { return d_[i]; }
+    CELER_CEF reference operator[](size_type i) { return d_[i]; }
+    CELER_CEF const_reference front() const { return d_[0]; }
+    CELER_CEF reference front() { return d_[0]; }
+    CELER_CEF const_reference back() const { return d_[N - 1]; }
+    CELER_CEF reference back() { return d_[N - 1]; }
+    CELER_CEF const_pointer data() const { return d_; }
+    CELER_CEF pointer data() { return d_; }
     //!@}
 
     //!@{
@@ -102,24 +98,24 @@ class Array
     CELER_CEF T& get()
     {
         static_assert(I < static_cast<std::size_t>(N));
-        return data_[I];
+        return d_[I];
     }
     template<std::size_t I>
     CELER_CEF T const& get() const
     {
         static_assert(I < static_cast<std::size_t>(N));
-        return data_[I];
+        return d_[I];
     }
     //!@}
 
     //!@{
     //! \name Iterators
-    CELER_CEF iterator begin() { return data_; }
-    CELER_CEF iterator end() { return data_ + N; }
-    CELER_CEF const_iterator begin() const { return data_; }
-    CELER_CEF const_iterator end() const { return data_ + N; }
-    CELER_CEF const_iterator cbegin() const { return data_; }
-    CELER_CEF const_iterator cend() const { return data_ + N; }
+    CELER_CEF iterator begin() { return d_; }
+    CELER_CEF iterator end() { return d_ + N; }
+    CELER_CEF const_iterator begin() const { return d_; }
+    CELER_CEF const_iterator end() const { return d_ + N; }
+    CELER_CEF const_iterator cbegin() const { return d_; }
+    CELER_CEF const_iterator cend() const { return d_ + N; }
     //!@}
 
     //!@{
@@ -136,13 +132,13 @@ class Array
     {
         for (size_type i = 0; i != N; ++i)
         {
-            data_[i] = value;
+            d_[i] = value;
         }
     }
     //!@}
 
   private:
-    T data_[N];  //!< Storage
+    T d_[N];  //!< Storage
 };
 
 //---------------------------------------------------------------------------//
