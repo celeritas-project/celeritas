@@ -67,7 +67,7 @@ class Array
     }
 
     //! Construct with C-style aggregate initialization
-    Array(T first) : d_{{first}} {}
+    Array(T first) : d_{first} {}
 
     //! Construct with the array's data
     template<class... Us>
