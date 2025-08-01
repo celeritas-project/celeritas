@@ -82,7 +82,13 @@ Storage
 Containers
 ----------
 
-.. doxygenstruct:: celeritas::Array
+These are containers and container-like objects used throughout Celeritas.
+
+.. doxygenclass:: celeritas::Array
+
+.. doxygenclass:: celeritas::EnumArray
+
+.. doxygenclass:: celeritas::Range
 
 .. doxygenclass:: celeritas::Span
 
