@@ -678,7 +678,7 @@ GeantPhysicalInstance GeantGeoParams::id_to_geant(VolumeInstanceId id) const
  *
  * If the input volume ID is unassigned, a null pointer will be returned.
  */
-G4LogicalVolume const* GeantGeoParams::id_to_geant(ImplVolumeId id) const
+G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId id) const
 {
     CELER_EXPECT(!id || id < volumes_.size());
     if (!id)

@@ -89,6 +89,9 @@ class GeoParamsInterface
     //! Get volume metadata
     virtual ImplVolumeMap const& impl_volumes() const = 0;
 
+    //! Get the canonical volume IDs corresponding to an implementation volume
+    virtual VolumeId volume_id(ImplVolumeId) const = 0;
+
     //// TO BE DELETED SOON ////
 
     //! Get volume instance metadata
