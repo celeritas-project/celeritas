@@ -71,7 +71,6 @@ auto GlobalGeoTestBase::build_fresh_geometry(std::string_view basename)
 
         pgg.clear();
         auto new_geo = GeantGeoParams::from_gdml(filename);
-        celeritas::geant_geo(new_geo);
         pgg.set(std::string{basename}, std::move(new_geo));
 
         // Geant4 loading is supported
