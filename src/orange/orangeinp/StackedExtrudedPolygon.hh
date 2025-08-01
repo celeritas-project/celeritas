@@ -153,14 +153,14 @@ class StackedExtrudedPolygon final : public ObjectInterface
                       SubRegionIndex si) const;
 
     // Make a label for a level
-    std::string make_level_label(SubRegionIndex si) const;
+    std::string make_level_ext(SubRegionIndex si) const;
 
     // Make a label for a stack within a level
-    std::string make_stack_label(SubRegionIndex si) const;
+    std::string make_stack_ext(SubRegionIndex si) const;
 
     // Make a label for a segment within a stack
     std::string
-    make_segment_label(SubRegionIndex si, size_type segment_idx) const;
+    make_segment_ext(SubRegionIndex si, size_type segment_idx) const;
 
     //// DATA ////
 
