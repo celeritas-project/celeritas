@@ -146,7 +146,7 @@ void append_skin_surfaces(GeantGeoParams const& geo,
 {
     // Translate "skin" (boundary) surfaces
     using G4Surface = G4LogicalSkinSurface;
-    std::map<ImplVolumeId, G4Surface const*> temp;
+    std::map<VolumeId, G4Surface const*> temp;
     auto const* table = G4Surface::GetSurfaceTable();
     CELER_ASSERT(table);
     size_type num_null_surfaces{0};

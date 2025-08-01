@@ -55,14 +55,17 @@ using VolumeInstanceId = OpaqueId<struct VolumeInstance_, unsigned int>;
 using VolumeUniqueInstanceId = OpaqueId<struct VolumeInstance_, ull_int>;
 
 //---------------------------------------------------------------------------//
-//!{ Geometry-specific implementation details used by
+//!@{
+//! \name Geometry-specific implementation details
 
 //! Implementation detail surface (for surface-based geometries)
 using ImplSurfaceId = OpaqueId<struct Surface_>;
 
 //! Implementation detail "global" volume index
+//! \todo This will become an independent type soon
 using ImplVolumeId = VolumeId;
 
+//!@}
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//
