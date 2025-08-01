@@ -262,33 +262,35 @@ TEST(SpanTest, make_span)
         using VecInt = std::vector<int>;
         VecInt values = {1, 2, 3};
         auto span = make_span(values);
-        ASSERT_TRUE((std::is_same_v<Span<int>, decltype(span)>));
+        EXPECT_TRUE((std::is_same_v<Span<int>, decltype(span)>));
         EXPECT_VEC_EQ(values, span);
 
         auto cspan = make_span(const_cast<VecInt const&>(values));
-        ASSERT_TRUE((std::is_same_v<Span<int const>, decltype(cspan)>));
+        EXPECT_TRUE((std::is_same_v<Span<int const>, decltype(cspan)>));
     }
     {
         using ArrInt3 = Array<int, 3>;
         ArrInt3 values = {1, 2, 3};
         auto span = make_span(values);
-        ASSERT_TRUE((std::is_same_v<Span<int, 3>, decltype(span)>));
+        EXPECT_TRUE((std::is_same_v<Span<int, 3>, decltype(span)>))
+            << demangled_type(span);
         EXPECT_VEC_EQ(values, span);
 
         auto cspan = make_span(const_cast<ArrInt3 const&>(values));
-        ASSERT_TRUE((std::is_same_v<Span<int const, 3>, decltype(cspan)>));
+        EXPECT_TRUE((std::is_same_v<Span<int const, 3>, decltype(cspan)>))
+            << demangled_type(span);
     }
     {
         using ArrInt3 = Array<int, 3>;
         using VecArrInt3 = std::vector<ArrInt3>;
         VecArrInt3 values = {{1, 2, 3}, {4, 5, 6}};
         auto span = make_span(values);
-        ASSERT_TRUE((std::is_same_v<Span<ArrInt3>, decltype(span)>))
+        EXPECT_TRUE((std::is_same_v<Span<ArrInt3>, decltype(span)>))
             << demangled_type(span);
         EXPECT_VEC_EQ(values, span);
 
         auto cspan = make_span(const_cast<VecArrInt3 const&>(values));
-        ASSERT_TRUE((std::is_same_v<Span<ArrInt3 const>, decltype(cspan)>))
+        EXPECT_TRUE((std::is_same_v<Span<ArrInt3 const>, decltype(cspan)>))
             << demangled_type(span);
     }
 }
