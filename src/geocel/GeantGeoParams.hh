@@ -113,7 +113,10 @@ class GeantGeoParams final : public GeoParamsInterface,
     GeantPhysicalInstance id_to_geant(VolumeInstanceId vol_id) const final;
 
     // Get the Geant4 logical volume corresponding to a volume ID
-    G4LogicalVolume const* id_to_geant(ImplVolumeId vol_id) const;
+    G4LogicalVolume const* id_to_geant(VolumeId vol_id) const;
+
+    // Get the canonical volume IDs corresponding to an implementation volume
+    inline VolumeId volume_id(ImplVolumeId) const final;
 
     //// SURFACES ////
 
@@ -137,10 +140,10 @@ class GeantGeoParams final : public GeoParamsInterface,
 
     //// G4 ACCESSORS ////
 
-    //! Get the volume ID corresponding to a Geant4 logical volume
-    ImplVolumeId geant_to_id(G4LogicalVolume const& volume) const
+    //! Get the canonical volume ID corresponding to a Geant4 logical volume
+    VolumeId geant_to_id(G4LogicalVolume const& volume) const
     {
-        return this->find_volume(&volume);
+        return this->volume_id(this->find_volume(&volume));
     }
 
     // Get the volume ID corresponding to a Geant4 physical volume
@@ -243,12 +246,28 @@ auto GeantGeoParams::volume_instances() const -> VolInstanceMap const&
 G4LogicalSurface const* GeantGeoParams::id_to_geant(SurfaceId id) const
 {
     CELER_EXPECT(!id || id < surfaces_.size());
-    if (!id)
+    if (CELER_UNLIKELY(!id))
     {
         return {};
     }
 
     return surfaces_[id.unchecked_get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the canonical volume IDs corresponding to an implementation volume.
+ *
+ * \note See make_inp_volumes : for now, volume IDs and impl IDs are identical
+ */
+VolumeId GeantGeoParams::volume_id(ImplVolumeId iv_id) const
+{
+    if (CELER_UNLIKELY(!iv_id))
+    {
+        return {};
+    }
+
+    return id_cast<VolumeId>(iv_id.get());
 }
 
 //---------------------------------------------------------------------------//
@@ -287,7 +306,7 @@ inline inp::Model GeantGeoParams::make_model_input() const
 {
     CELER_ASSERT_UNREACHABLE();
 }
-inline ImplVolumeId GeantGeoParams::find_volume(G4LogicalVolume const*) const
+inline VolumeId GeantGeoParams::find_volume(G4LogicalVolume const*) const
 {
     CELER_ASSERT_UNREACHABLE();
 }
@@ -295,7 +314,7 @@ inline GeantPhysicalInstance GeantGeoParams::id_to_geant(VolumeInstanceId) const
 {
     CELER_ASSERT_UNREACHABLE();
 }
-inline G4LogicalVolume const* GeantGeoParams::id_to_geant(ImplVolumeId) const
+inline G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId) const
 {
     CELER_ASSERT_UNREACHABLE();
 }

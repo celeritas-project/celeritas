@@ -48,7 +48,8 @@ Runner::Runner(ModelSetup const& input) : input_{input}
     {
         // Retain the Geant4 world for possible reuse across geometries
         CELER_EXPECT(celeritas::geant_geo().expired());
-        celeritas::geant_geo(this->load_geometry<Geometry::geant4>());
+        this->load_geometry<Geometry::geant4>();
+        CELER_EXPECT(!celeritas::geant_geo().expired());
     }
 }
 

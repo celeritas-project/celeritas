@@ -80,7 +80,9 @@
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
+#include "geocel/VolumeParams.hh"
 #include "geocel/g4/VisitVolumes.hh"
+#include "geocel/inp/Model.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/inp/Grid.hh"
 #include "celeritas/io/AtomicRelaxationReader.hh"
@@ -1213,18 +1215,18 @@ std::vector<ImportVolume> import_volumes()
     auto geo = celeritas::geant_geo().lock();
     CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
 
-    auto const& volumes = geo->impl_volumes();
+    VolumeParams volume_params{geo->make_model_input().volumes};
+
+    auto const& volumes = volume_params.volume_labels();
     std::vector<ImportVolume> result(volumes.size());
     size_type count{0};
 
-    for (auto vol_id : range(ImplVolumeId{volumes.size()}))
+    for (auto vol_id : range(VolumeId{volumes.size()}))
     {
-        auto const& label = volumes.at(vol_id);
-        if (label.empty())
+        auto* g4lv = geo->id_to_geant(vol_id);
+        if (!g4lv)
             continue;
 
-        auto* g4lv = geo->id_to_geant(vol_id);
-        CELER_ASSERT(g4lv);
         ImportVolume& volume = result[vol_id.get()];
         if (auto* mat = g4lv->GetMaterial())
         {
@@ -1238,9 +1240,7 @@ std::vector<ImportVolume> import_volumes()
         {
             volume.phys_material_id = cuts->GetIndex();
         }
-        // TODO: when changing to celeritas::inp, just make this a label
-        // instead of converting to and from a std::string
-        volume.name = to_string(label);
+        volume.name = to_string(volume_params.volume_labels().at(vol_id));
         volume.solid_name = g4lv->GetSolid()->GetName();
 
         ++count;

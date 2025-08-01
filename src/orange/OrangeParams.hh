@@ -106,6 +106,9 @@ class OrangeParams final : public GeoParamsInterface,
     inline GeantPhysicalInstance
     id_to_geant(VolumeInstanceId vol_id) const final;
 
+    // Get the canonical volume IDs corresponding to an implementation volume
+    inline VolumeId volume_id(ImplVolumeId) const final;
+
     //// DATA ACCESS ////
 
     //! Reference to CPU geometry data
@@ -183,7 +186,7 @@ auto OrangeParams::volume_instances() const -> VolInstanceMap const&
 /*!
  * Locate the volume ID corresponding to a Geant4 volume.
  *
- * \todo Implement using \c g4org::Converter
+ * \todo Replace with GeantGeoParams + VolumeId
  */
 ImplVolumeId OrangeParams::find_volume(G4LogicalVolume const*) const
 {
@@ -197,6 +200,15 @@ ImplVolumeId OrangeParams::find_volume(G4LogicalVolume const*) const
  * \todo Implement using \c g4org::Converter
  */
 GeantPhysicalInstance OrangeParams::id_to_geant(VolumeInstanceId) const
+{
+    return {};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the canonical volume IDs corresponding to an implementation volume.
+ */
+VolumeId OrangeParams::volume_id(ImplVolumeId) const
 {
     return {};
 }

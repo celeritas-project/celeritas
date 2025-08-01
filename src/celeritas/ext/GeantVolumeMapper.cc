@@ -34,7 +34,7 @@ GeantVolumeMapper::GeantVolumeMapper(GeoParamsInterface const& geo) : geo_{geo}
  */
 ImplVolumeId GeantVolumeMapper::operator()(G4LogicalVolume const& lv)
 {
-    // TODO: move pointer->id mapping to GeantGeoParams
+    // TODO: use pointer->id mapping from GeantGeoParams
     ImplVolumeId id = geo_.find_volume(&lv);
     if (id)
     {
