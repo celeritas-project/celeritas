@@ -56,11 +56,6 @@ auto GenericGeoTestBase<HP>::build_geometry_from_basename() -> SPConstGeo
     std::string test_file
         = test_data_path("geocel", this->geometry_basename() + ".gdml");
     auto result = HP::from_gdml(test_file);
-    if constexpr (std::is_same_v<HP, GeantGeoParams>)
-    {
-        // Save global geant geometry
-        ::celeritas::geant_geo(result);
-    }
     return result;
 }
 

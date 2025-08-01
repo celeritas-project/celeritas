@@ -23,26 +23,29 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 
-class ActionRegistry;
 class AtomicRelaxationParams;
 class CherenkovParams;
 class CutoffParams;
+class ExtendFromPrimariesAction;
 class GeoMaterialParams;
 class MaterialParams;
 class ParticleParams;
 class PhysicsParams;
 class ScintillationParams;
 class SimParams;
+class SurfaceParams;
 class TrackInitParams;
-class AuxParamsRegistry;
+class VolumeParams;
 class WentzelOKVIParams;
-class ExtendFromPrimariesAction;
+
+class ActionRegistry;
+class AuxParamsRegistry;
+class OutputRegistry;
 
 class CoreParams;
 template<MemSpace M>
 class CoreState;
 class CoreStateInterface;
-class OutputRegistry;
 
 struct Primary;
 
@@ -74,22 +77,25 @@ class GlobalTestBase : public Test
     template<class T>
     using SP = std::shared_ptr<T>;
 
-    using SPConstCoreGeo = SP<CoreGeoParams const>;
-    using SPConstMaterial = SP<MaterialParams const>;
-    using SPConstGeoMaterial = SP<GeoMaterialParams const>;
-    using SPConstParticle = SP<ParticleParams const>;
-    using SPConstCutoff = SP<CutoffParams const>;
-    using SPConstPhysics = SP<PhysicsParams const>;
     using SPConstAction = SP<CoreStepActionInterface const>;
+    using SPConstCoreGeo = SP<CoreGeoParams const>;
+    using SPConstCutoff = SP<CutoffParams const>;
+    using SPConstGeoMaterial = SP<GeoMaterialParams const>;
+    using SPConstMaterial = SP<MaterialParams const>;
+    using SPConstParticle = SP<ParticleParams const>;
+    using SPConstPhysics = SP<PhysicsParams const>;
     using SPConstRng = SP<RngParams const>;
     using SPConstSim = SP<SimParams const>;
     using SPConstTrackInit = SP<TrackInitParams const>;
+    using SPConstSurface = SP<SurfaceParams const>;
+    using SPConstVolume = SP<VolumeParams const>;
     using SPConstWentzelOKVI = SP<WentzelOKVIParams const>;
-    using SPConstCore = SP<CoreParams const>;
 
     using SPActionRegistry = SP<ActionRegistry>;
     using SPOutputRegistry = SP<OutputRegistry>;
     using SPUserRegistry = SP<AuxParamsRegistry>;
+
+    using SPConstCore = SP<CoreParams const>;
 
     using SPConstCherenkov = SP<CherenkovParams const>;
     using SPConstOpticalMaterial = SP<optical::MaterialParams const>;
@@ -184,6 +190,11 @@ class GlobalTestBase : public Test
     // Do not insert StatusChecker
     void disable_status_checker();
 
+    // Build surface and volume; called during build_core
+    void setup_model();
+    SPConstSurface const& surface() const { return surface_; }
+    SPConstVolume const& volume() const { return volume_; }
+
   private:
     SPConstRng build_rng() const;
     SPActionRegistry build_action_reg() const;
@@ -208,6 +219,11 @@ class GlobalTestBase : public Test
     SPConstWentzelOKVI wentzel_;
     SPConstCore core_;
     SPOutputRegistry output_reg_;
+
+    // NOTE: these may not be built
+    SPConstSurface surface_;
+    SPConstVolume volume_;
+
     SPConstCherenkov cherenkov_;
     SPActionRegistry optical_action_reg_;
     SPConstOpticalMaterial optical_material_;

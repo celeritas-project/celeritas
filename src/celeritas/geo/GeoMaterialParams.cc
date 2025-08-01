@@ -7,6 +7,7 @@
 #include "GeoMaterialParams.hh"
 
 #include <algorithm>
+#include <functional>
 #include <set>
 #include <string>
 #include <type_traits>
@@ -14,13 +15,16 @@
 #include <utility>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/detail/Joined.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "geocel/Types.hh"
+#include "geocel/VolumeParams.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/mat/MaterialParams.hh"
 
 #include "CoreGeoParams.hh"  // IWYU pragma: keep
 #include "GeoMaterialData.hh"  // IWYU pragma: associated
@@ -29,53 +33,8 @@ namespace celeritas
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-using MapLabelMatId = std::unordered_map<Label, PhysMatId>;
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct a label -> material map from the input.
- *
- * The input is effectively an "unzipped" unordered list of (volume label,
- * material id) pairs.
- */
-MapLabelMatId build_label_map(MaterialParams const& mat_params,
-                              std::vector<Label>&& labels,
-                              std::vector<PhysMatId> const& materials)
-{
-    CELER_EXPECT(materials.size() == labels.size());
-    CELER_EXPECT(std::all_of(
-        materials.begin(), materials.end(), [&mat_params](PhysMatId m) {
-            return !m || m < mat_params.num_materials();
-        }));
-
-    std::unordered_map<Label, PhysMatId> lab_to_id;
-    std::set<Label> duplicates;
-
-    // Remap materials to volume IDs using given volume names:
-    // build a map of volume name -> matid
-    for (auto idx : range(materials.size()))
-    {
-        if (!materials[idx])
-        {
-            // Skip volumes without matids
-            continue;
-        }
-
-        auto [prev, inserted]
-            = lab_to_id.insert({std::move(labels[idx]), materials[idx]});
-        if (!inserted)
-        {
-            duplicates.insert(prev->first);
-        }
-    }
-    CELER_VALIDATE(duplicates.empty(),
-                   << "geo/material coupling specified duplicate "
-                      "volume names: \""
-                   << join(duplicates.begin(), duplicates.end(), "\", \"")
-                   << '"');
-    return lab_to_id;
-}
+using VecMat = std::vector<PhysMatId>;
+using ImplVolumeMap = GeoParamsInterface::ImplVolumeMap;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -84,14 +43,17 @@ MapLabelMatId build_label_map(MaterialParams const& mat_params,
 class MaterialFinder
 {
   public:
-    MaterialFinder(CoreGeoParams const& geo, MapLabelMatId const& materials)
-        : geo_{geo}, materials_{materials}
+    using MapLabelMat = GeoMaterialParams::Input::MapLabelMat;
+
+    MaterialFinder(ImplVolumeMap const& labels, MapLabelMat const& materials)
+        : iv_labels_{labels}, materials_{materials}
     {
     }
 
-    PhysMatId operator()(ImplVolumeId const& volume_id)
+    PhysMatId operator()(ImplVolumeId impl_id)
     {
-        Label const& vol_label = geo_.impl_volumes().at(volume_id);
+        CELER_EXPECT(impl_id < iv_labels_.size());
+        Label const& vol_label = iv_labels_.at(impl_id);
 
         // Hopefully user-provided and geo-provided volume labels match exactly
         if (auto iter = materials_.find(vol_label); iter != materials_.end())
@@ -138,8 +100,8 @@ class MaterialFinder
     }
 
   private:
-    CoreGeoParams const& geo_;
-    MapLabelMatId const& materials_;
+    ImplVolumeMap const& iv_labels_;
+    MapLabelMat const& materials_;
 
     using PairExtMatid = std::pair<std::string, PhysMatId>;
     std::multimap<std::string, PairExtMatid> mat_labels_;
@@ -168,43 +130,82 @@ bool ignore_volume_name(std::string const& name)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct physics materials for each ImplVolume from VolumeParams volumes.
+ */
+struct BuildFromCanonicalVolumes
+{
+    CoreGeoParams const& geo;
+
+    VecMat operator()(VecMat const& materials) const;
+};
+
+VecMat BuildFromCanonicalVolumes::operator()(VecMat const& materials) const
+{
+    CELER_LOG(debug) << "Filling geometry->physics map using canonical "
+                        "volumes";
+
+    // Loop over implementation volumes, querying for the corresponding
+    // canonical volume
+    VecMat result(geo.impl_volumes().size());
+    for (auto impl_id : range(id_cast<ImplVolumeId>(result.size())))
+    {
+        if (auto vol_id = geo.volume_id(impl_id))
+        {
+            CELER_ASSERT(vol_id < materials.size());
+            result[impl_id.get()] = materials[vol_id.get()];
+        }
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct a label -> material map from the input.
  */
-std::vector<PhysMatId>
-build_vol_to_mat(CoreGeoParams const& geo, MapLabelMatId const& materials)
+struct BuildFromLabels
 {
-    auto const& vols = geo.impl_volumes();
-    std::vector<Label> missing_volumes;
-    std::vector<PhysMatId> result(vols.size(), PhysMatId{});
+    using MapLabelMat = GeoMaterialParams::Input::MapLabelMat;
+
+    ImplVolumeMap const& iv_labels;
+
+    VecMat operator()(MapLabelMat const& materials) const;
+};
+
+VecMat BuildFromLabels::operator()(MapLabelMat const& materials) const
+{
+    CELER_LOG(debug) << "Filling geometry->physics map using label map";
+
+    std::vector<std::reference_wrapper<Label const>> missing;
+    std::vector<PhysMatId> result(iv_labels.size(), PhysMatId{});
 
     // Make sure at least one volume maps correctly
     ImplVolumeId::size_type num_missing{0};
 
     // Map volume names to material names
-    MaterialFinder find_matid{geo, materials};
-    for (auto volume_id : range(ImplVolumeId{vols.size()}))
+    MaterialFinder find_matid{iv_labels, materials};
+    for (auto impl_id : range(ImplVolumeId{iv_labels.size()}))
     {
-        if (auto matid = find_matid(volume_id))
+        if (auto matid = find_matid(impl_id))
         {
-            result[volume_id.unchecked_get()] = matid;
+            result[impl_id.unchecked_get()] = matid;
             continue;
         }
 
         ++num_missing;
-        Label const& label = vols.at(volume_id);
+        Label const& label = iv_labels.at(impl_id);
         if (!ignore_volume_name(label.name))
         {
             // Skip "[unused]" that we set for vecgeom empty labels,
             // "[EXTERIOR]" from ORANGE
-            missing_volumes.push_back(label);
+            missing.emplace_back(label);
         }
     }
 
-    if (!missing_volumes.empty())
+    if (!missing.empty())
     {
         CELER_LOG(warning)
             << "Some geometry volumes do not have known material IDs: "
-            << join(missing_volumes.begin(), missing_volumes.end(), ", ");
+            << join(missing.begin(), missing.end(), ", ");
     }
 
     auto mat_to_stream = [](std::ostream& os, auto& lab_mat) {
@@ -222,18 +223,71 @@ build_vol_to_mat(CoreGeoParams const& geo, MapLabelMatId const& materials)
 
     // *ALL* volumes were absent
     CELER_VALIDATE(
-        num_missing != vols.size(),
+        num_missing != iv_labels.size(),
         << "no geometry volumes matched the available materials:\n"
            " materials: "
         << join_stream(materials.begin(), materials.end(), ", ", mat_to_stream)
         << "\n"
            "volumes: "
         << join(RangeIter<ImplVolumeId>(ImplVolumeId{0}),
-                RangeIter<ImplVolumeId>(ImplVolumeId{vols.size()}),
+                RangeIter<ImplVolumeId>(ImplVolumeId{iv_labels.size()}),
                 ", ",
-                [&vols](ImplVolumeId vid) { return vols.at(vid); }));
+                [this](ImplVolumeId vid) { return iv_labels.at(vid); }));
 
     // At least one material ID was assigned...
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a sparse map of implementation volume IDs.
+ */
+struct BuildFromImplVolumes
+{
+    using MapImplMat = GeoMaterialParams::Input::MapImplMat;
+
+    ImplVolumeMap const& iv_labels;
+
+    VecMat operator()(MapImplMat const& materials) const;
+};
+
+VecMat BuildFromImplVolumes::operator()(MapImplMat const& materials) const
+{
+    CELER_LOG(debug) << "Filling geometry->physics map using ImplVolumeId map";
+
+    // Loop over implementation volumes, querying for the corresponding
+    // canonical volume
+    VecMat result(iv_labels.size());
+
+    std::vector<std::reference_wrapper<Label const>> missing;
+
+    for (auto impl_id : range(id_cast<ImplVolumeId>(result.size())))
+    {
+        auto iter = materials.find(impl_id);
+        if (iter != materials.end())
+        {
+            auto matid = iter->second;
+            CELER_EXPECT(matid);
+            result[impl_id.get()] = matid;
+        }
+        else
+        {
+            Label const& label = iv_labels.at(impl_id);
+
+            if (!ignore_volume_name(label.name))
+            {
+                missing.emplace_back(label);
+            }
+        }
+    }
+
+    if (!missing.empty())
+    {
+        CELER_LOG(warning)
+            << "Some geometry volumes do not have known material IDs: "
+            << join(missing.begin(), missing.end(), ", ");
+    }
+
     return result;
 }
 
@@ -243,42 +297,65 @@ build_vol_to_mat(CoreGeoParams const& geo, MapLabelMatId const& materials)
 //---------------------------------------------------------------------------//
 /*!
  * Construct with imported data.
+ *
+ * Note that the import volume index (see GeantImporter.cc) corresponds to the
+ * canonical \c VolumeId .
  */
 std::shared_ptr<GeoMaterialParams>
 GeoMaterialParams::from_import(ImportData const& data,
                                SPConstCoreGeo geo_params,
+                               SPConstVolume vol_params,
                                SPConstMaterial material_params)
 {
     GeoMaterialParams::Input input;
+
+    if (vol_params && !vol_params->empty())
+    {
+        // Construct vector of material IDs for each canonical volume
+        CELER_LOG(debug)
+            << "Building geometry->physics map using VolumeParams ("
+            << vol_params->num_volumes() << " volumes)";
+        Input::VecMat vol_to_mat(data.volumes.size());
+        for (auto vol_idx : range(data.volumes.size()))
+        {
+            auto const& inp_vol = data.volumes[vol_idx];
+            if (!inp_vol)
+                continue;
+
+            vol_to_mat[vol_idx] = PhysMatId(inp_vol.phys_material_id);
+        }
+        input.volume_to_mat = std::move(vol_to_mat);
+    }
+    else
+    {
+        // No volume information available: remap based on labels (which should
+        // include uniquifying suffix if needed).
+        CELER_ASSERT(geo_params);
+        CELER_LOG(debug) << "Building geometry->physics map using labels ("
+                         << geo_params->impl_volumes().size()
+                         << " impl volumes)";
+
+        Input::MapLabelMat label_to_mat;
+        for (auto vol_idx : range(data.volumes.size()))
+        {
+            auto const& inp_vol = data.volumes[vol_idx];
+            if (!inp_vol)
+                continue;
+
+            CELER_EXPECT(!inp_vol.name.empty());
+            auto&& [iter, inserted] = label_to_mat.emplace(
+                Label::from_separator(inp_vol.name), inp_vol.phys_material_id);
+            if (!inserted)
+            {
+                CELER_LOG(error)
+                    << "Duplicate volume input label '" << inp_vol.name << "'";
+            }
+        }
+        input.volume_to_mat = std::move(label_to_mat);
+    }
+
     input.geometry = std::move(geo_params);
     input.materials = std::move(material_params);
-
-    input.volume_to_mat.resize(data.volumes.size());
-    for (auto volume_idx :
-         range<ImplVolumeId::size_type>(input.volume_to_mat.size()))
-    {
-        if (!data.volumes[volume_idx])
-            continue;
-
-        input.volume_to_mat[volume_idx]
-            = PhysMatId(data.volumes[volume_idx].phys_material_id);
-    }
-
-    // Assume that since Geant4 is using internal geometry and
-    // we're using ORANGE or VecGeom that volume IDs will not be
-    // the same. We'll just remap them based on their labels (which should
-    // include uniquifying suffix if needed).
-    input.volume_labels.resize(data.volumes.size());
-    for (auto volume_idx : range(data.volumes.size()))
-    {
-        if (!data.volumes[volume_idx])
-            continue;
-
-        CELER_EXPECT(!data.volumes[volume_idx].name.empty());
-        input.volume_labels[volume_idx]
-            = Label::from_separator(data.volumes[volume_idx].name);
-    }
-
     return std::make_shared<GeoMaterialParams>(std::move(input));
 }
 
@@ -289,36 +366,30 @@ GeoMaterialParams::from_import(ImportData const& data,
  * Missing material IDs may be allowed if they correspond to unreachable volume
  * IDs.
  */
-GeoMaterialParams::GeoMaterialParams(Input input)
+GeoMaterialParams::GeoMaterialParams(Input const& input)
 {
     CELER_EXPECT(input.geometry);
     CELER_EXPECT(input.materials);
-    CELER_EXPECT((input.volume_labels.empty()
-                  && input.volume_to_mat.size()
-                         == input.geometry->impl_volumes().size())
-                 || input.volume_to_mat.size() == input.volume_labels.size());
 
     ScopedMem record_mem("GeoMaterialParams.construct");
 
-    if (!input.volume_labels.empty())
-    {
-        // User didn't provide an exact map of volume -> matid (typical case?)
-        // Remap based on labels
-        auto lab_to_id = build_label_map(*input.materials,
-                                         std::move(input.volume_labels),
-                                         input.volume_to_mat);
-
-        // Reconstruct volume-to-material mapping from label map and geometry
-        input.volume_to_mat
-            = build_vol_to_mat(*input.geometry, std::move(lab_to_id));
-    }
-    CELER_ASSERT(input.volume_to_mat.size()
-                 == input.geometry->impl_volumes().size());
+    auto const& impl_volumes = input.geometry->impl_volumes();
+    VecMat volume_to_mat = std::visit(
+        Overload{
+            // Canonical ID input
+            BuildFromCanonicalVolumes{*input.geometry},
+            // Build from labels
+            BuildFromLabels{impl_volumes},
+            // Build from a vector of implementation volumes
+            BuildFromImplVolumes{impl_volumes},
+        },
+        input.volume_to_mat);
+    CELER_ASSERT(volume_to_mat.size() == impl_volumes.size());
 
     HostValue host_data;
-    auto materials = make_builder(&host_data.materials);
-    materials.insert_back(input.volume_to_mat.begin(),
-                          input.volume_to_mat.end());
+    CollectionBuilder(&host_data.materials)
+        .insert_back(volume_to_mat.begin(), volume_to_mat.end());
+    CELER_ASSERT(host_data);
 
     // Move to mirrored data, copying to device
     data_ = CollectionMirror<GeoMaterialParamsData>{std::move(host_data)};

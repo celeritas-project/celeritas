@@ -73,7 +73,6 @@ class GeantVolumeMapperTestBase : public ::celeritas::test::Test
         {
             this->build_g4();
             CELER_ASSERT(geant_geo_params_);
-            celeritas::geant_geo(geant_geo_params_);
         }
         CELER_ASSERT(!logical_.empty());
 

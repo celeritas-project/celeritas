@@ -49,8 +49,18 @@ auto ImportedDataTestBase::build_material() -> SPConstMaterial
 //---------------------------------------------------------------------------//
 auto ImportedDataTestBase::build_geomaterial() -> SPConstGeoMaterial
 {
-    return GeoMaterialParams::from_import(
-        this->imported_data(), this->geometry(), this->material());
+    SPConstVolume volume_params;
+    if constexpr (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
+    {
+        // FIXME: ORANGE doesn't support volume/material conversion
+        this->setup_model();
+        volume_params = this->volume();
+    }
+
+    return GeoMaterialParams::from_import(this->imported_data(),
+                                          this->geometry(),
+                                          volume_params,
+                                          this->material());
 }
 
 //---------------------------------------------------------------------------//

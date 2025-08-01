@@ -112,7 +112,6 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
         {
             pgg.clear();
             auto new_geo = GeantGeoParams::from_gdml(filename);
-            celeritas::geant_geo(new_geo);
             pgg.set(std::string{filename}, std::move(new_geo));
         }
         CELER_ASSERT(pgg.value());

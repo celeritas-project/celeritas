@@ -146,7 +146,7 @@ void append_skin_surfaces(GeantGeoParams const& geo,
 {
     // Translate "skin" (boundary) surfaces
     using G4Surface = G4LogicalSkinSurface;
-    std::map<ImplVolumeId, G4Surface const*> temp;
+    std::map<VolumeId, G4Surface const*> temp;
     auto const* table = G4Surface::GetSurfaceTable();
     CELER_ASSERT(table);
     size_type num_null_surfaces{0};
@@ -440,6 +440,8 @@ std::weak_ptr<GeantGeoParams const> g_geant_geo_;
  */
 void geant_geo(std::shared_ptr<GeantGeoParams const> const& gp)
 {
+    CELER_LOG(debug) << (gp ? "Setting" : "Clearing")
+                     << " celeritas::geant_geo";
     CELER_VALIDATE(
         g_geant_geo_.expired() ||
             [&] {
@@ -467,6 +469,9 @@ std::weak_ptr<GeantGeoParams const> const& geant_geo()
 //---------------------------------------------------------------------------//
 /*!
  * Create from a running Geant4 application.
+ *
+ * It saves the result to the global Celeritas Geant4 geometry weak pointer \c
+ * geant_geo.
  */
 std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
 {
@@ -474,7 +479,9 @@ std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
     CELER_VALIDATE(world,
                    << "cannot create Geant geometry wrapper: Geant4 tracking "
                       "manager is not active");
-    return std::make_shared<GeantGeoParams>(world, Ownership::reference);
+    auto result = std::make_shared<GeantGeoParams>(world, Ownership::reference);
+    celeritas::geant_geo(result);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -482,7 +489,8 @@ std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
  * Construct from a GDML input.
  *
  * This assumes that Celeritas is driving and will manage Geant4 logging
- * and exceptions.
+ * and exceptions. It saves the result to the global Celeritas Geant4 geometry
+ * weak pointer \c geant_geo.
  */
 std::shared_ptr<GeantGeoParams>
 GeantGeoParams::from_gdml(std::string const& filename)
@@ -499,8 +507,10 @@ GeantGeoParams::from_gdml(std::string const& filename)
         CELER_LOG(warning) << "Expected '.gdml' extension for GDML input";
     }
 
-    return std::make_shared<GeantGeoParams>(load_gdml(filename),
-                                            Ownership::value);
+    auto result = std::make_shared<GeantGeoParams>(load_gdml(filename),
+                                                   Ownership::value);
+    celeritas::geant_geo(result);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -667,7 +677,7 @@ GeantPhysicalInstance GeantGeoParams::id_to_geant(VolumeInstanceId id) const
  *
  * If the input volume ID is unassigned, a null pointer will be returned.
  */
-G4LogicalVolume const* GeantGeoParams::id_to_geant(ImplVolumeId id) const
+G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId id) const
 {
     CELER_EXPECT(!id || id < volumes_.size());
     if (!id)
