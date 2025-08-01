@@ -48,8 +48,8 @@ class ProtoConstructor
     {
     }
 
-    // Construct a proto from a logical volume
-    SPUnitProto operator()(LogicalVolume const& lv);
+    // Construct a proto from the world volume
+    SPUnitProto operator()(PhysicalVolume const& pv);
 
   private:
     GeantGeoParams const& geo_;

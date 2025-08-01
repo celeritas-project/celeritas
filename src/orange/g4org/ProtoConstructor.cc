@@ -46,10 +46,16 @@ GeoMatId background_fill(GeoMatId mat)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a proto-universe from a logical volume.
+ * Construct a proto-universe from a physical volume.
+ *
+ * We can use logical volume for the structure, but we need to associate the
+ * world physical volume ID.
  */
-auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
+auto ProtoConstructor::operator()(PhysicalVolume const& pv) -> SPUnitProto
 {
+    LogicalVolume const& lv = *pv.lv;
+
+    // XXX replace with VolumeParams
     auto const& label = geo_.impl_volumes().at(lv.id);
 
     ProtoInput input;
@@ -63,10 +69,10 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
     }
 
     // Add children first
-    for (PhysicalVolume const& pv : lv.children)
+    for (PhysicalVolume const& child_pv : lv.children)
     {
         ++depth_;
-        this->place_pv(NoTransformation{}, pv, &input);
+        this->place_pv(NoTransformation{}, child_pv, &input);
         --depth_;
     }
 
@@ -83,7 +89,7 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
         orangeinp::UnitProto::MaterialInput background;
         background.interior
             = this->make_explicit_background(lv, NoTransformation{});
-        background.label = {};
+        background.label = pv.id;
         background.fill = background_fill(lv.material_id);
         input.boundary.zorder = ZOrder::media;
         input.materials.push_back(std::move(background));
@@ -96,6 +102,7 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
                       << std::endl;
         }
         input.background.fill = background_fill(lv.material_id);
+        input.background.label = pv.id;
         CELER_ASSERT(input.background);
     }
 
@@ -202,7 +209,7 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
         {
             ++depth_;
             // Construct pv proto
-            iter->second = (*this)(*pv.lv);
+            iter->second = (*this)(pv);
             --depth_;
         }
         CELER_ASSERT(iter->second);

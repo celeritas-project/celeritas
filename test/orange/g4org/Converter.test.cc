@@ -80,9 +80,31 @@ struct VolumeInstanceAccessor
             return "<null>";
         }
         CELER_ASSUME(std::holds_alternative<Label>(var_label));
-        return std::get<Label>(var_label).name;
+        return to_string(std::get<Label>(var_label));
     }
 };
+
+//---------------------------------------------------------------------------//
+TEST_F(ConverterTest, simple_cms)
+{
+    verbose_ = true;
+    std::string const basename = "simple-cms";
+    this->load_test_gdml(basename);
+    auto convert = this->make_converter(basename);
+    auto result = convert(this->geo()).input;
+    write_org_json(result, basename);
+
+    ASSERT_EQ(1, result.universes.size());
+    {
+        auto const& unit = std::get<UnitInput>(result.universes[0]);
+        EXPECT_EQ(8, unit.volumes.size());
+        VolumeInstanceAccessor get_vi_id{unit.volumes};
+        EXPECT_EQ("[EXTERIOR]@world", get_vi_id(0));
+        EXPECT_EQ("0", get_vi_id(1));  // vacuum_tube_pv
+        EXPECT_EQ("1", get_vi_id(2));  // si_tracker_pv
+        EXPECT_EQ("6", get_vi_id(7));  // world_PV
+    }
+}
 
 //---------------------------------------------------------------------------//
 TEST_F(ConverterTest, testem3)
@@ -140,7 +162,7 @@ TEST_F(ConverterTest, tilecal_plug)
         // See GeoTests
         EXPECT_EQ("1", get_vi_id(1));  // Tile_Plug1Module
         EXPECT_EQ("0", get_vi_id(2));  // Tile_Absorber
-        EXPECT_EQ("Tile_ITCModule", get_vi_id(3));
+        EXPECT_EQ("2", get_vi_id(3));  // Tile_ITCModule (world volume)
     }
 }
 

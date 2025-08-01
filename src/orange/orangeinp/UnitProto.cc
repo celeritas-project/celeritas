@@ -300,10 +300,15 @@ void UnitProto::build(ProtoBuilder& input) const
         ++vol_iter;
     }
 
-    if (input_.background)
+    if (auto const& b = input_.background)
     {
         CELER_ASSERT(vol_iter != result.volumes.end());
-        vol_iter->label = Label{input_.label, "bg"};
+        vol_iter->label = b.label;
+        if (vol_iter->label == decltype(b.label){})
+        {
+            // Default: empty label
+            vol_iter->label = Label{input_.label, "bg"};
+        }
         ++vol_iter;
     }
     CELER_EXPECT(vol_iter == result.volumes.end());
@@ -489,6 +494,7 @@ void UnitProto::output(JsonPimpl* j) const
     {
         obj["background"] = {
             {"fill", bg.fill.unchecked_get()},
+            {"label", std::visit(to_string, bg.label)},
         };
     }
 

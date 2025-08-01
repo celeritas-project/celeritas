@@ -83,6 +83,7 @@ class UnitProto : public ProtoInterface
     struct BackgroundInput
     {
         GeoMatId fill{};
+        VariantLabel label;
 
         // True if fill or label is specified
         explicit inline operator bool() const;
