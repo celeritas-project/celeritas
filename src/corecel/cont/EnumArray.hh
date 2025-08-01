@@ -51,24 +51,24 @@ class EnumArray
 
   public:
     //! Default construction initializes to zero
-    CELER_CEF EnumArray() : d_{T{}} {}
+    CELER_CEF EnumArray() : data_{T{}} {}
 
     //! Construct from an array for aggregate initialization of daughters
     CELER_CEF EnumArray(CArrayConstRef values)
     {
         for (size_type i = 0; i < N; ++i)
         {
-            d_[i] = values[i];
+            data_[i] = values[i];
         }
     }
 
     //! Construct with C-style aggregate initialization
-    EnumArray(T first) : d_{{first}} {}
+    EnumArray(T first) : data_{{first}} {}
 
     //! Construct with the array's data
     template<class... Us>
     CELER_CEF EnumArray(T first, Us... rest)
-        : d_{first, static_cast<T>(rest)...}
+        : data_{first, static_cast<T>(rest)...}
     {
         // Protect against leaving off an entry, e.g. EnumArray<Foo, int>(1)
         static_assert(sizeof...(rest) + 1 == N,
@@ -78,33 +78,33 @@ class EnumArray
     //! Get an element
     CELER_CEF reference operator[](key_type const& k)
     {
-        return d_[static_cast<size_type>(k)];
+        return data_[static_cast<size_type>(k)];
     }
 
     //! Get an element (const)
     CELER_CEF const_reference operator[](key_type const& k) const
     {
-        return d_[static_cast<size_type>(k)];
+        return data_[static_cast<size_type>(k)];
     }
 
     //!@{
     //! Element access
-    CELER_CEF const_reference front() const { return d_[0]; }
-    CELER_CEF reference front() { return d_[0]; }
-    CELER_CEF const_reference back() const { return d_[N - 1]; }
-    CELER_CEF reference back() { return d_[N - 1]; }
-    CELER_CEF const_pointer data() const { return d_; }
-    CELER_CEF pointer data() { return d_; }
+    CELER_CEF const_reference front() const { return data_[0]; }
+    CELER_CEF reference front() { return data_[0]; }
+    CELER_CEF const_reference back() const { return data_[N - 1]; }
+    CELER_CEF reference back() { return data_[N - 1]; }
+    CELER_CEF const_pointer data() const { return data_; }
+    CELER_CEF pointer data() { return data_; }
     //!@}
 
     //!@{
     //! Iterator access
-    CELER_CEF iterator begin() { return d_; }
-    CELER_CEF iterator end() { return d_ + N; }
-    CELER_CEF const_iterator begin() const { return d_; }
-    CELER_CEF const_iterator end() const { return d_ + N; }
-    CELER_CEF const_iterator cbegin() const { return d_; }
-    CELER_CEF const_iterator cend() const { return d_ + N; }
+    CELER_CEF iterator begin() { return data_; }
+    CELER_CEF iterator end() { return data_ + N; }
+    CELER_CEF const_iterator begin() const { return data_; }
+    CELER_CEF const_iterator end() const { return data_ + N; }
+    CELER_CEF const_iterator cbegin() const { return data_; }
+    CELER_CEF const_iterator cend() const { return data_ + N; }
     //!@}
 
     //!@{
@@ -114,7 +114,7 @@ class EnumArray
     //!@}
 
   private:
-    T d_[N];  //!< Storage
+    T data_[N];  //!< Storage
 };
 
 //---------------------------------------------------------------------------//
