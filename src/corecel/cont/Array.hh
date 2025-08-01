@@ -57,7 +57,7 @@ class Array
     //! Default construction initializes to zero
     CELER_CEF Array() : d_{T{}} {}
 
-    //! Construct from an array for aggregate initialization of daughtres
+    //! Construct from an array for aggregate initialization of daughters
     CELER_CEF Array(CArrayConstRef values)
     {
         for (size_type i = 0; i < N; ++i)
