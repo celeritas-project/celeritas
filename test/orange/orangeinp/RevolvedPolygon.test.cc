@@ -31,20 +31,19 @@ class RevolvedPolygonTest : public ObjectTestBase
 };
 
 //---------------------------------------------------------------------------//
-/*
-    \verbatim
-       3 _
-          |
-       2 _|______________
-    z     |              |
-       1 _|              |
-          |              |
-       0 _|______________|__________
-          |    |    |    |    |    |
-          0    1    2    3    4    5
-                      r
-    \endverbatim
- *
+/* Test the simplest case: a single subregion.
+ \verbatim
+    3 _
+       |
+    2 _|______________
+ z     |              |
+    1 _|              |
+       |              |
+    0 _|______________|__________
+       |    |    |    |    |    |
+       0    1    2    3    4    5
+                   r
+ \endverbatim
  */
 TEST_F(RevolvedPolygonTest, one_subregion)
 {
@@ -73,19 +72,19 @@ TEST_F(RevolvedPolygonTest, one_subregion)
 }
 
 //---------------------------------------------------------------------------//
-/*
-    \verbatim
-       3 _
-          |
-       2 _|    __________
-    z     |   /          |
-       1 _|  /           |
-          | /            |
-       0 _|/_____________|__________
-          |    |    |    |    |    |
-          0    1    2    3    4    5
-                      r
-    \endverbatim
+/* Test two-subregion case consisting of a cone subtracted from a cylinder.
+ \verbatim
+    3 _
+       |
+    2 _|    __________
+ z     |   /          |
+    1 _|  /           |
+       | /            |
+    0 _|/_____________|__________
+       |    |    |    |    |    |
+       0    1    2    3    4    5
+                   r
+ \endverbatim
  */
 TEST_F(RevolvedPolygonTest, two_subregion)
 {
@@ -121,19 +120,19 @@ TEST_F(RevolvedPolygonTest, two_subregion)
 }
 
 //---------------------------------------------------------------------------//
-/*
-    \verbatim
-       3 _
-          |
-       2 _|    __________
-    z     |    \         |
-       1 _|    /         |
-          |  /           |
-       0 _|/_____________|__________
-          |    |    |    |    |    |
-          0    1    2    3    4    5
-                      r
-    \endverbatim
+/* Test case with a single concave region.
+ \verbatim
+    3 _
+       |
+    2 _|    __________
+ z     |    \         |
+    1 _|    /         |
+       |  /           |
+    0 _|/_____________|__________
+       |    |    |    |    |    |
+       0    1    2    3    4    5
+                   r
+ \endverbatim
  */
 TEST_F(RevolvedPolygonTest, two_levels)
 {
@@ -188,19 +187,19 @@ TEST_F(RevolvedPolygonTest, two_levels)
 }
 
 //---------------------------------------------------------------------------//
-/*
-    \verbatim
-    3 __  __ . . . . . . .  ____
-       | |  |              |    |
-    2 _| |  |     ____     |    |
-  z    | |  |    |    |    |    |
-    1 _| |  |____|. . |____|    |
-       | |______________________|
-    0 _|________________________
-       |    |    |    |    |    |
-       0    1    2    3    4    5
-                   r
-    \endverbatim
+/* These cases with nested concavity.
+ \verbatim
+   3 __  __ . . . . . . .  ____
+      | |  |              |    |
+   2 _| |  |     ____     |    |
+ z    | |  |    |    |    |    |
+   1 _| |  |____|. . |____|    |
+      | |______________________|
+   0 _|________________________
+      |    |    |    |    |    |
+      0    1    2    3    4    5
+                  r
+  \endverbatim
  */
 TEST_F(RevolvedPolygonTest, three_levels)
 {

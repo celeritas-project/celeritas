@@ -13,7 +13,6 @@
 
 #include "ObjectIO.json.hh"
 #include "Shape.hh"
-#include "Transformed.hh"
 
 #include "detail/BuildIntersectRegion.hh"
 #include "detail/ConvexHullFinder.hh"
@@ -64,7 +63,7 @@ NodeId RevolvedPolygon::build(VolumeBuilder& vb) const
                    << "polygon must consist of at least 3 points");
 
     // Start the recursion process
-    SubregionIndex ri;
+    SubIndex ri;
     return this->make_levels(vb, filtered_polygon, ri);
 }
 
@@ -77,14 +76,14 @@ void RevolvedPolygon::output(JsonPimpl* j) const
     to_json_pimpl(j, *this);
 }
 //-------------------------------------------------------------------------//
-// HPER FUNCTION DEFINITIONS
+// HELPER FUNCTION DEFINITIONS
 //-------------------------------------------------------------------------//
 /*!
- * Recursively construct convex revolved polygons, subtracting out concavities.
+ * Recursively construct convex regions, subtracting out concavities.
  */
 NodeId RevolvedPolygon::make_levels(detail::VolumeBuilder& vb,
                                     VecReal2 const& polygon,
-                                    RevolvedPolygon::SubregionIndex si) const
+                                    RevolvedPolygon::SubIndex si) const
 {
     // Find the convex hull
     detail::ConvexHullFinder<real_type> hull_finder(polygon, vb.tol());
@@ -107,7 +106,7 @@ NodeId RevolvedPolygon::make_levels(detail::VolumeBuilder& vb,
     for (auto i : range(static_cast<size_type>(concave_nodes.size())))
     {
         concave_nodes[i] = this->make_levels(
-            vb, concave_regions[i], SubregionIndex{si.level + 1, i});
+            vb, concave_regions[i], SubIndex{si.level + 1, i});
     }
 
     auto level_ext = this->make_level_ext(si);
@@ -128,14 +127,18 @@ NodeId RevolvedPolygon::make_levels(detail::VolumeBuilder& vb,
 
 //---------------------------------------------------------------------------//
 /*!
- * Revolved a *convex* polygon around the \em z axis.
+ * Revolved a convex polygon around the \em z axis.
+ *
+ * The polygon be strictly counterclockwise, i.e., it must not contain any
+ * collinear points. Construction is done by creating a set of outer subregions
+ * that define the outer edge of the polygon and subtracting out a set of inner
+ * subregions.
  */
 NodeId RevolvedPolygon::make_region(detail::VolumeBuilder& vb,
                                     VecReal2 const& polygon,
-                                    SubregionIndex si) const
+                                    SubIndex si) const
 {
-    // The polygon should have a *strictly* clockwise orientation, which also
-    // guarantees it is convex.
+    // The polygon should have a strictly clockwise orientation
     CELER_VALIDATE(has_orientation(make_span(polygon),
                                    detail::Orientation::counterclockwise),
                    << "polygon must be specified in strictly counterclockwise "
@@ -150,6 +153,8 @@ NodeId RevolvedPolygon::make_region(detail::VolumeBuilder& vb,
 
     auto next_idx = [n](size_type i) { return (i + 1 < n) ? i + 1 : 0; };
 
+    // Create subregions for each pair of adjacent points that do not form
+    // a horizontal line or a line that coincides with the z axis
     for (auto i : range(n))
     {
         auto const& p0 = polygon[i];
@@ -161,7 +166,7 @@ NodeId RevolvedPolygon::make_region(detail::VolumeBuilder& vb,
             continue;
         }
 
-        // Make a cylinder or  cone, and add it to the inner/outer nodes vector
+        // Make a cylinder or cone, and add it to the inner/outer nodes vector
         NodeId shape_id = soft_equal(p0[R], p1[R])
                               ? this->make_cylinder(vb, p0, p1, si)
                               : this->make_cone(vb, p0, p1, si);
@@ -202,7 +207,7 @@ NodeId RevolvedPolygon::make_region(detail::VolumeBuilder& vb,
 NodeId RevolvedPolygon::make_cylinder(detail::VolumeBuilder& vb,
                                       Real2 const& p0,
                                       Real2 const& p1,
-                                      SubregionIndex const& si) const
+                                      SubIndex const& si) const
 {
     real_type hh = std::abs(p1[Z] - p0[Z]) / 2;
     auto z_bot = std::min(p0[Z], p1[Z]);
@@ -215,12 +220,12 @@ NodeId RevolvedPolygon::make_cylinder(detail::VolumeBuilder& vb,
 
 //---------------------------------------------------------------------------//
 /*!
- * Make a translated cone node
+ * Make a translated cone node.
  */
 NodeId RevolvedPolygon::make_cone(detail::VolumeBuilder& vb,
                                   Real2 const& p0,
                                   Real2 const& p1,
-                                  SubregionIndex const& si) const
+                                  SubIndex const& si) const
 {
     auto [r_bot, r_top] = (p0[Z] < p1[Z]) ? std::pair{p0[R], p1[R]}
                                           : std::pair{p1[R], p0[R]};
@@ -237,30 +242,28 @@ NodeId RevolvedPolygon::make_cone(detail::VolumeBuilder& vb,
 
 //---------------------------------------------------------------------------//
 /*!
- * Make a label for a level.
+ * Make a label extension for a level.
  */
-std::string
-RevolvedPolygon::make_level_ext(RevolvedPolygon::SubregionIndex si) const
+std::string RevolvedPolygon::make_level_ext(RevolvedPolygon::SubIndex si) const
 {
     return std::to_string(si.level);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Make a label for a region within a level.
+ * Make a label extension for a region within a level.
  */
-std::string
-RevolvedPolygon::make_region_ext(RevolvedPolygon::SubregionIndex si) const
+std::string RevolvedPolygon::make_region_ext(RevolvedPolygon::SubIndex si) const
 {
     return this->make_level_ext(si) + "." + std::to_string(si.region);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Make a label for a subregion within a region.
+ * Make a label extension for a subregion within a region.
  */
 std::string
-RevolvedPolygon::make_subregion_ext(RevolvedPolygon::SubregionIndex si) const
+RevolvedPolygon::make_subregion_ext(RevolvedPolygon::SubIndex si) const
 {
     return this->make_region_ext(si) + "." + std::to_string(si.subregion);
 }
