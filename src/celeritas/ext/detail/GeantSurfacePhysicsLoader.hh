@@ -6,18 +6,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <memory>
-
 #include "corecel/Config.hh"
 
-#include "geocel/GeantGeoParams.hh"
 #include "celeritas/inp/SurfacePhysics.hh"
 
-#include "GeantMaterialPropertyGetter.hh"
-#include "GeantSurfacePhysicsHelper.hh"
-
-// Geant4 forward declaration
-class G4OpticalSurface;  // IWYU pragma: keep
+// Forward declaration
+class GeantSurfacePhysicsHelper;
 
 namespace celeritas
 {
@@ -25,13 +19,12 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Populate \c inp::SurfacePhysics data from Geant4 by looping over
- * \c SurfaceIds .
+ * Brief class description.
  */
 class GeantSurfacePhysicsLoader
 {
   public:
-    //! Construct with input to be filled by operator()
+    // Construct with defaults
     GeantSurfacePhysicsLoader(inp::SurfacePhysics& result);
 
     //! Populate surface physics data
@@ -39,37 +32,22 @@ class GeantSurfacePhysicsLoader
 
   private:
     //// DATA ////
-    inp::SurfacePhysics& result_;  // Input populated by operator()
+    inp::SurfacePhysics& result_;  // Populated by operator()
 
     //// HELPER FUNCTIONS ////
 
-    // Insert a given surface to inp::SurfacePhysics::ReflectivityModels
-    void insert_reflectivity(detail::GeantSurfacePhysicsHelper& helper);
+    // Insert GLISUR model surface
+    void insert_glisur(GeantSurfacePhysicsHelper& helper);
 
-    // Insert a given surface to inp::SurfacePhysics::RoughnessModels
-    void insert_roughness(detail::GeantSurfacePhysicsHelper& helper);
-
-    // Insert a given surface to inp::SurfacePhysics::InteractionModels
-    void insert_interaction(detail::GeantSurfacePhysicsHelper& helper);
-
-    // Return true if the surface has *ONLY* analytic reflection
-    bool analytic_reflection_only(G4OpticalSurface const& surf) const;
-
-    // Validate model insertion
-    void validate_model(detail::GeantSurfacePhysicsHelper& helper) const;
+    // Insert Unified model surface
+    void insert_unified(GeantSurfacePhysicsHelper& helper);
 };
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4
-inline GeantSurfacePhysicsLoader::GeantSurfacePhysicsLoader(inp::SurfacePhysics&)
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
+GeantSurfacePhysicsLoader::GeantSurfacePhysicsLoader(inp::SurfacePhysics&) {}
 
-inline inp::SurfacePhysics operator()(SurfaceId)
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
+inline void GeantSurfacePhysicsLoader::operator()(SurfaceId) {}
 #endif
 
 //---------------------------------------------------------------------------//

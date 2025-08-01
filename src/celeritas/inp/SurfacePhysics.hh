@@ -44,9 +44,10 @@ struct ReflectionAnalytic
 
 //---------------------------------------------------------------------------//
 /*!
- * Simplest surface normal treatment.
+ * A polished (perfectly smooth) surface, where the facet normal is the
+ * macroscopic normal.
  */
-struct Polished
+struct NoRoughness
 {
 };
 
@@ -54,14 +55,15 @@ struct Polished
 /*!
  * Global surface normal with smearing.
  *
- * Roughness range is [0, 1], where 1 is maximum roughness. In Geant4 parlance,
+ * Roughness range is [0, 1], where 0 is specular, and 1 is diffuse. This
+ * parameter is also the complement of the one defined in Geant4:
  * \code roughness = 1 - GetPolish(); \endcode.
  *
  * \note Used by the GLISUR model in Geant4.
  */
 struct SmearRoughness
 {
-    real_type roughness{-1};  //!< [0, 1] where 1 means maximum roughness
+    real_type roughness{-1};  //!< Scale from 0 = specular to 1 = diffuse
 
     //! Whether the data are assigned
     explicit operator bool() const { return roughness >= 0 && roughness <= 1; }
@@ -99,22 +101,51 @@ using SurfaceLayer = SurfaceId;
  * Parameters:
  * - \todo: Add \c lambertian_roughness : Roughness parameter used by
  *   Lambertian reflection.
- * - \c specular_lobe : Reflection probability at the micro facet normal.
  * - \c specular_spike : Reflection probability at the average surface normal.
+ * - \c specular_lobe : Reflection probability at the micro facet normal.
  * - \c backscatter : Probability of back scattering after reflecting within a
  *   deep groove.
  */
 struct ReflectionForm
 {
-    // The sum of these properties must be equal to 1
-    Grid specular_lobe;  //!< [0, 1] probability
     Grid specular_spike;  //!< [0, 1] probability
+    Grid specular_lobe;  //!< [0, 1] probability
     Grid backscatter;  //!< [0, 1] probability
 
     //! Whether the data are assigned
     explicit operator bool() const
     {
         return specular_lobe && specular_spike && backscatter;
+    }
+
+    //! Return a specular spike only reflection form
+    static ReflectionForm from_spike()
+    {
+        ReflectionForm result;
+        result.specular_spike = Grid::from_constant(1.0);
+        result.specular_lobe = Grid::from_constant(0);
+        result.backscatter = Grid::from_constant(0);
+        return result;
+    }
+
+    //! Return a specular lobe only reflection form
+    static ReflectionForm from_lobe()
+    {
+        ReflectionForm result;
+        result.specular_spike = Grid::from_constant(0);
+        result.specular_lobe = Grid::from_constant(1.0);
+        result.backscatter = Grid::from_constant(0);
+        return result;
+    }
+
+    //! Return a Lambertian reflection
+    static ReflectionForm from_lambertian()
+    {
+        ReflectionForm result;
+        result.specular_spike = Grid::from_constant(0);
+        result.specular_lobe = Grid::from_constant(0);
+        result.backscatter = Grid::from_constant(0);
+        return result;
     }
 };
 
@@ -124,7 +155,7 @@ struct ReflectionForm
  *
  * Existing interface types are dielectrict-dielectric and dielectric-metal.
  *
- * \todo Future work may allow for custom interfaces.
+ * This will be extended to allow user-provided interaction kernels.
  */
 struct InteractionModels
 {
@@ -142,13 +173,14 @@ struct InteractionModels
 /*!
  * Surface roughness description.
  *
- * \todo Future work will allow the of use multiple surface paints/wrappings
- * managed by different models. \c SurfaceLayer will pair a \c SurfaceId with a
- * \c SurfaceLayerId that defiens paint/wrapping combinations.
+ * \todo Future work will allow the of use multiple surface
+ * paints/wrappings managed by different models. \c SurfaceLayer will pair
+ * a \c SurfaceId with a \c SurfaceLayerId that defines paint/wrapping
+ * combinations.
  */
 struct RoughnessModels
 {
-    std::map<SurfaceLayer, Polished> polished;
+    std::map<SurfaceLayer, NoRoughness> polished;
     std::map<SurfaceLayer, SmearRoughness> smear;
     std::map<SurfaceLayer, GaussianRoughness> gaussian;
 
@@ -181,7 +213,8 @@ struct ReflectivityModels
 /*!
  * Surface physics definition.
  *
- * Maps all optical surfaces with interaction models and surface parameters.
+ * Maps all optical surfaces with interaction models and surface
+ * parameters.
  */
 struct SurfacePhysics
 {
@@ -190,8 +223,8 @@ struct SurfacePhysics
     using DetectionEfficiency = std::map<SurfaceLayer, Grid>;
     //!@}
 
-    ReflectivityModels reflectivity;
     RoughnessModels roughness;
+    ReflectivityModels reflectivity;
     InteractionModels interaction;
 
     //! Whether the data are assigned

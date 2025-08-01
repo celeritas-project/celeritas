@@ -6,15 +6,15 @@
 //---------------------------------------------------------------------------//
 #include "GeantSurfacePhysicsLoader.hh"
 
-#include <algorithm>
-#include <string>
-#include <unordered_map>
 #include <G4LogicalSurface.hh>
 #include <G4OpticalSurface.hh>
 #include <G4Version.hh>
 
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
-#include "geocel/SurfaceParams.hh"
+
+#include "GeantSurfacePhysicsHelper.hh"
 
 namespace celeritas
 {
@@ -25,6 +25,31 @@ namespace
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
+/*!
+ * Get a string corresponding to the \c G4OpticalSurfaceModel selection.
+ */
+char const* to_cstring(G4OpticalSurfaceModel value)
+{
+#define GSPL_OSM_PAIR(ENUMVALUE)                     \
+    {                                                \
+        G4OpticalSurfaceModel::ENUMVALUE, #ENUMVALUE \
+    }
+
+    static std::unordered_map<G4OpticalSurfaceModel, const char*> const names
+        = {GSPL_OSM_PAIR(glisur),
+           GSPL_OSM_PAIR(unified),
+           GSPL_OSM_PAIR(LUT),
+           GSPL_OSM_PAIR(DAVIS),
+           GSPL_OSM_PAIR(dichroic)};
+
+    if (auto iter = names.find(value); iter != names.end())
+    {
+        return names.find(value)->second;
+    }
+    return "UNKNOWN";
+
+#undef GSPL_OSM_PAIR
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -56,32 +81,6 @@ char const* to_cstring(G4SurfaceType value)
     return "UNKNOWN";
 
 #undef GSPL_ST_PAIR
-}
-//---------------------------------------------------------------------------//
-/*!
- * Get a string corresponding to the \c G4OpticalSurfaceModel selection.
- */
-char const* to_cstring(G4OpticalSurfaceModel value)
-{
-#define GSPL_OSM_PAIR(ENUMVALUE)                     \
-    {                                                \
-        G4OpticalSurfaceModel::ENUMVALUE, #ENUMVALUE \
-    }
-
-    static std::unordered_map<G4OpticalSurfaceModel, const char*> const names
-        = {GSPL_OSM_PAIR(glisur),
-           GSPL_OSM_PAIR(unified),
-           GSPL_OSM_PAIR(LUT),
-           GSPL_OSM_PAIR(DAVIS),
-           GSPL_OSM_PAIR(dichroic)};
-
-    if (auto iter = names.find(value); iter != names.end())
-    {
-        return names.find(value)->second;
-    }
-    return "UNKNOWN";
-
-#undef GSPL_OSM_PAIR
 }
 
 //---------------------------------------------------------------------------//
@@ -162,9 +161,70 @@ char const* to_cstring(G4OpticalSurfaceFinish value)
  */
 bool unity(inp::Grid const& grid)
 {
-    return std::any_of(grid.y.begin(), grid.y.end(), [](real_type const& val) {
+    return std::all_of(grid.y.begin(), grid.y.end(), [](real_type const& val) {
         return val >= 0 && val <= 1;
     });
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Populate all \c ReflectionForm parameters for the Unified model.
+ */
+inp::ReflectionForm load_unified_refl_form(GeantSurfacePhysicsHelper& helper)
+{
+    inp::ReflectionForm refl_form;
+    helper.get_property(&refl_form.specular_lobe, "SPECULARLOBECONSTANT");
+    helper.get_property(&refl_form.specular_spike, "SPECULARSPIKECONSTANT");
+    helper.get_property(&refl_form.backscatter, "BACKSCATTERCONSTANT");
+    CELER_ASSERT(refl_form);
+
+// Verify unity of reflection form parameters
+#define GSPL_VALIDATE_UNITY(PARAM)                           \
+    CELER_VALIDATE(unity(PARAM),                             \
+                   << "ReflectionForm parameter '" << #PARAM \
+                   << "' is not within [0, 1] range")
+    GSPL_VALIDATE_UNITY(refl_form.specular_spike);
+    GSPL_VALIDATE_UNITY(refl_form.specular_lobe);
+    GSPL_VALIDATE_UNITY(refl_form.backscatter);
+#undef GSPL_VALIDATE_UNITY
+
+    return refl_form;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Populate a \c inp::ReflectionGrid object for a given surface
+ */
+inp::ReflectionGrid load_refl_grid(GeantSurfacePhysicsHelper& helper)
+{
+    inp::ReflectionGrid result;
+    helper.get_property(&result.grid, "REFLECTIVITY");
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Insert grid and analytic reflectivity modes into a \c inp::SurfacePhysics
+ * object.
+ */
+void insert_grid_analytic_reflectivities(inp::SurfacePhysics& inp,
+                                         GeantSurfacePhysicsHelper& helper)
+{
+    auto const sid = helper.surface_id();
+    inp.reflectivity.analytic.insert({sid, inp::ReflectionAnalytic{}});
+    inp.reflectivity.grid.insert({sid, load_refl_grid(helper)});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Throw error message based on optical surface physics selection.
+ */
+std::string throw_error_msg(G4OpticalSurface const& surf)
+{
+    return "Surface " + surf.GetName() + " with surface finish '"
+           + to_cstring(surf.GetFinish()) + "' is not compatible with '"
+           + to_cstring(surf.GetType()) + "' surface type on the "
+           + to_cstring(surf.GetModel()) + " model";
 }
 
 //---------------------------------------------------------------------------//
@@ -186,239 +246,177 @@ GeantSurfacePhysicsLoader::GeantSurfacePhysicsLoader(inp::SurfacePhysics& result
 void GeantSurfacePhysicsLoader::operator()(SurfaceId sid)
 {
     CELER_EXPECT(sid);
-    detail::GeantSurfacePhysicsHelper helper(sid);
-    try
-    {
-        this->insert_reflectivity(helper);
-        this->insert_roughness(helper);
-        this->insert_interaction(helper);
-        this->validate_model(helper);  // Verify model requirements
-    }
-    catch (RuntimeError const& e)
-    {
-        throw;
-    }
+    using G4OSM = G4OpticalSurfaceModel;
 
-    CELER_LOG(debug) << "Inserted surface id " << sid.unchecked_get()
-                     << " with " << to_cstring(helper.surface().GetModel())
-                     << " model and "
-                     << to_cstring(helper.surface().GetFinish()) << " finish";
+    GeantSurfacePhysicsHelper helper(sid);
+    auto const& surf = helper.surface();
+    auto const model = surf.GetModel();
+    switch (model)
+    {
+        case G4OSM::glisur:
+            this->insert_glisur(helper);
+            break;
+        case G4OSM::unified:
+            this->insert_unified(helper);
+            break;
+        default:
+            CELER_NOT_IMPLEMENTED("Model " + std::string(to_cstring(model)));
+    }
 }
 
 //---------------------------------------------------------------------------//
 // PRIVATE MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Collect reflectivity information from a given optical surface.
+ * Insert GLISUR model surface.
  */
-void GeantSurfacePhysicsLoader::insert_reflectivity(
-    detail::GeantSurfacePhysicsHelper& helper)
-{
-    auto sid = helper.surface_id();
-    inp::ReflectivityModels refl_mods;
-    if (!this->analytic_reflection_only(helper.surface()))
-    {
-        // Insert any model that includes user-defined grid reflectivity
-        inp::ReflectionGrid refl_grid;
-        helper.get_property(&refl_grid.grid, "REFLECTIVITY");
-        refl_mods.grid.insert({sid, std::move(refl_grid)});
-    }
-    refl_mods.analytic.insert({sid, inp::ReflectionAnalytic{}});
-    result_.reflectivity = std::move(refl_mods);
-    CELER_ENSURE(result_.reflectivity);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Collect roughness information from a given optical surface.
- */
-void GeantSurfacePhysicsLoader::insert_roughness(
-    detail::GeantSurfacePhysicsHelper& helper)
-{
-    using G4OSM = G4OpticalSurfaceModel;
-    using G4OSF = G4OpticalSurfaceFinish;
-
-    auto sid = helper.surface_id();
-    auto const& surf = helper.surface();
-    auto const g4model = surf.GetModel();
-    switch (g4model)
-    {
-        case G4OSM::glisur: {
-            if (surf.GetFinish() == G4OSF::polished)
-            {
-                // Perfectly polished surface
-                result_.roughness.polished.insert({sid, inp::Polished{}});
-            }
-            else
-            {
-                // Smearing is available (surf.GetFinish() == G4OSF::ground)
-                // Celeritas' roughness is the complement of Geant4 polish
-                inp::SmearRoughness smear{real_type{1} - surf.GetPolish()};
-                CELER_VALIDATE(
-                    smear, << "Smear roughness must be within [0, 1] range");
-                result_.roughness.smear.insert({sid, std::move(smear)});
-            }
-            break;
-        }
-
-        case G4OSM::unified: {
-            // Insert Gaussian if available
-            inp::GaussianRoughness gauss;
-            gauss.sigma_alpha = surf.GetSigmaAlpha();
-            if (gauss)
-            {
-                result_.roughness.gaussian.insert({sid, std::move(gauss)});
-            }
-            break;
-        }
-
-        default:
-            CELER_LOG(error) << "G4OpticalSurfaceModel '"
-                             << to_cstring(g4model) << "' not available";
-            break;
-    }
-    CELER_ENSURE(result_.roughness);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Collect interaction information from a given optical surface.
- */
-void GeantSurfacePhysicsLoader::insert_interaction(
-    detail::GeantSurfacePhysicsHelper& helper)
+void GeantSurfacePhysicsLoader::insert_glisur(GeantSurfacePhysicsHelper& helper)
 {
     using G4ST = G4SurfaceType;
-
-#define GSPL_VALIDATE_UNITY(PARAM)                           \
-    CELER_VALIDATE(unity(PARAM),                             \
-                   << "ReflectionForm parameter '" << #PARAM \
-                   << "' is not within [0, 1] range")
-
-    inp::ReflectionForm refl_form;
-    helper.get_property(&refl_form.specular_lobe, "SPECULARLOBECONSTANT");
-    helper.get_property(&refl_form.specular_spike, "SPECULARSPIKECONSTANT");
-    helper.get_property(&refl_form.backscatter, "BACKSCATTERCONSTANT");
-    CELER_ASSERT(refl_form);
-
-    // Verify unity of reflection form parameters
-    GSPL_VALIDATE_UNITY(refl_form.specular_spike);
-    GSPL_VALIDATE_UNITY(refl_form.specular_lobe);
-    GSPL_VALIDATE_UNITY(refl_form.backscatter);
-
-    // ReflectionForm terms are correctly assigned; add to interface type
-    auto sid = helper.surface_id();
-    auto const interface_type = helper.surface().GetType();
-    switch (interface_type)
-    {
-        case G4ST::dielectric_dielectric:
-            result_.interaction.dielectric_dielectric.insert(
-                {sid, std::move(refl_form)});
-            break;
-        case G4ST::dielectric_metal:
-            result_.interaction.dielectric_metal.insert(
-                {sid, std::move(refl_form)});
-            break;
-        default:
-            CELER_LOG(error) << "G4SurfaceType '" << to_cstring(interface_type)
-                             << "' not available";
-            break;
-    }
-
-#undef GSPL_VALIDATE_UNITY
-
-    CELER_ENSURE(result_.interaction);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return true for Geant4 models/finishes that *ONLY* use analytical
- * reflection.
- *
- * Currently, only the Unified model with [polished/ground]backpainted undergo
- * uniquely through analytical reflection (i.e. Fresnel equations).
- */
-bool GeantSurfacePhysicsLoader::analytic_reflection_only(
-    G4OpticalSurface const& surf) const
-{
-    using G4OSM = G4OpticalSurfaceModel;
     using G4OSF = G4OpticalSurfaceFinish;
 
-    if (surf.GetModel() == G4OSM::unified)
+    auto const& surf = helper.surface();
+    auto sid = helper.surface_id();
+    auto const type = surf.GetType();
+    auto const finish = surf.GetFinish();
+    switch (finish)
     {
-        if (surf.GetFinish() == G4OSF::polishedbackpainted
-            || surf.GetFinish() == G4OSF::groundbackpainted)
-        {
-            // Unified [polished/ground]backpainted are *only* analytic
-            return true;
-        }
-    }
+        case G4OSF::polished: {
+            // Insert polished surface with specular spike reflection mode
+            result_.roughness.polished.insert({sid, inp::NoRoughness{}});
 
-    return false;
+            std::pair<SurfaceId, inp::ReflectionForm> pair{
+                sid, inp::ReflectionForm::from_spike()};
+
+            (type == G4ST::dielectric_dielectric)
+                ? result_.interaction.dielectric_dielectric.insert(pair)
+                : result_.interaction.dielectric_metal.insert(pair);
+            break;
+        }
+
+        case G4OSF::ground: {
+            // Insert smear surface with specular lobe reflection mode
+            inp::ReflectionForm refl_form;
+            real_type roughness = real_type{1} - surf.GetPolish();
+            result_.roughness.smear.insert(
+                {sid, inp::SmearRoughness{roughness}});
+
+            std::pair<SurfaceId, inp::ReflectionForm> pair{
+                sid, inp::ReflectionForm::from_lobe()};
+
+            (type == G4ST::dielectric_dielectric)
+                ? result_.interaction.dielectric_dielectric.insert(pair)
+                : result_.interaction.dielectric_metal.insert(pair);
+            break;
+        }
+
+        default:
+            CELER_VALIDATE(false, << throw_error_msg(surf));
+    }
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Ensure that a mapped optical surface does not have inconsistent model data
- * assigned to it.
+ * Insert unified model surface.
  *
- * Minimum requirements for each implemented model:
- * - GLISUR
- *   - Roughness: uses polished or smear; Gaussian is never used.
- * - Unified
- *   - Roughness: uses Gaussian or polished; smear is never used.
- *   - ReflectiomForm: \c specular_spike , \c specular_lobe , \c backscatter .
+ * Data is populated according to the table from Celeritas issue #1512:
+ * https://github.com/celeritas-project/celeritas/issues/1512#issuecomment-3019564068
  */
-void GeantSurfacePhysicsLoader::validate_model(
-    detail::GeantSurfacePhysicsHelper& helper) const
+void GeantSurfacePhysicsLoader::insert_unified(GeantSurfacePhysicsHelper& helper)
 {
-    using G4OSM = G4OpticalSurfaceModel;
+    using G4ST = G4SurfaceType;
+    using G4OSF = G4OpticalSurfaceFinish;
 
-#define GSPL_IS_MAPPED(MEMBER) \
-    (result_.MEMBER.find(sid) != result_.MEMBER.end())
-
-    auto sid = helper.surface_id();
     auto const& surf = helper.surface();
-    auto const model = surf.GetModel();
-    switch (model)
+    auto sid = helper.surface_id();
+    auto const type = surf.GetType();
+    auto const finish = surf.GetFinish();
+    switch (finish)
     {
-        case G4OSM::glisur:
-            // Minimum required data
-            CELER_VALIDATE((GSPL_IS_MAPPED(roughness.polished)
-                            || GSPL_IS_MAPPED(roughness.smear)),
-                           << "Missing polished or smear surface for the "
-                              "GLISUR model");
+        //// Used by dielectric-dielectric and dielectric-metal interfaces ////
+        case G4OSF::polished: {
+            result_.roughness.polished.insert({sid, inp::NoRoughness{}});
+            insert_grid_analytic_reflectivities(result_, helper);
 
-            // Expected empty maps
-            CELER_VALIDATE(!GSPL_IS_MAPPED(roughness.gaussian),
-                           << "Gaussian surface cannot be added to GLISUR "
-                              "model");
+            // Insert interaction based on surface type
+            (type == G4ST::dielectric_dielectric)
+                ? result_.interaction.dielectric_dielectric.insert(
+                      {sid, inp::ReflectionForm::from_spike()})
+                : result_.interaction.dielectric_metal.insert(
+                      {sid, load_unified_refl_form(helper)});
+
             break;
+        }
 
-        case G4OSM::unified:
-            // Minimum required data
-            CELER_VALIDATE((GSPL_IS_MAPPED(roughness.gaussian)
-                            || GSPL_IS_MAPPED(roughness.polished)),
-                           << "Missing Gaussian roughness or polished surface "
-                              "for the Unified model");
-            CELER_VALIDATE((GSPL_IS_MAPPED(interaction.dielectric_dielectric)
-                            || GSPL_IS_MAPPED(interaction.dielectric_metal)),
-                           << "Missing ReflectionForm data for surface '"
-                           << surf.GetName() << "'");
+        case G4OSF::ground: {
+            result_.roughness.gaussian.insert(
+                {sid, inp::GaussianRoughness{surf.GetSigmaAlpha()}});
+            insert_grid_analytic_reflectivities(result_, helper);
 
-            // Expected empty maps
-            CELER_VALIDATE(!GSPL_IS_MAPPED(roughness.smear),
-                           << "Smear roughness is not used by the Unified "
-                              "model and therefore should not be "
-                              "assigned");
+            // Insert interaction based on surface type
+            (type == G4ST::dielectric_dielectric)
+                ? result_.interaction.dielectric_dielectric.insert(
+                      {sid, inp::ReflectionForm::from_spike()})
+                : result_.interaction.dielectric_metal.insert(
+                      {sid, load_unified_refl_form(helper)});
+
             break;
+        }
 
+        //// Only available to dielectric-dielectric interfaces ////
+        case G4OSF::polishedfrontpainted: {
+            result_.roughness.polished.insert({sid, inp::NoRoughness{}});
+            insert_grid_analytic_reflectivities(result_, helper);
+
+            // Insert specular spike reflection form
+            result_.interaction.dielectric_dielectric.insert(
+                {sid, inp::ReflectionForm::from_spike()});
+            break;
+        }
+
+        case G4OSF::groundfrontpainted: {
+            result_.roughness.gaussian.insert(
+                {sid, inp::GaussianRoughness{surf.GetSigmaAlpha()}});
+            insert_grid_analytic_reflectivities(result_, helper);
+
+            // Insert Lambertian reflection form
+            result_.interaction.dielectric_dielectric.insert(
+                {sid, inp::ReflectionForm::from_lambertian()});
+            break;
+        }
+
+        case G4OSF::polishedbackpainted: {
+            // Equivalent to layer 0
+            result_.roughness.gaussian.insert(
+                {sid, inp::GaussianRoughness{surf.GetSigmaAlpha()}});
+            // Equivalent to layer 1
+            result_.roughness.polished.insert({sid, inp::NoRoughness{}});
+            // Analytic for layer 0; grid for layer 1
+            insert_grid_analytic_reflectivities(result_, helper);
+            // Insert interface
+            // Layer 0 uses any reflection form; Layer 1 uses specular spike
+            result_.interaction.dielectric_dielectric.insert(
+                {sid, load_unified_refl_form(helper)});
+            break;
+        }
+
+        case G4OSF::groundbackpainted: {
+            // Equivalent to layer 0: Gaussian, analytic reflection
+            result_.roughness.gaussian.insert(
+                {sid, inp::GaussianRoughness{surf.GetSigmaAlpha()}});
+            // Equivalent to layer 1: Polished, grid, Lambertian reflection
+            result_.roughness.polished.insert({sid, inp::NoRoughness{}});
+            // Analytic for layer 0; grid for layer 1
+            insert_grid_analytic_reflectivities(result_, helper);
+            // Insert interface
+            // Layer 0 uses all reflections; Layer 1 uses Lambertian
+            result_.interaction.dielectric_dielectric.insert(
+                {sid, load_unified_refl_form(helper)});
+            break;
+        }
         default:
-            CELER_LOG(error) << "G4OpticalSurfaceModel '" << to_cstring(model)
-                             << "' not available";
-            break;
+            CELER_VALIDATE(false, << throw_error_msg(surf));
     }
-
-#undef GSPL_IS_MAPPED
 }
 
 //---------------------------------------------------------------------------//

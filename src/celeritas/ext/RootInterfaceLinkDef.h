@@ -54,7 +54,7 @@
 #pragma link C++ class celeritas::inp::InteractionModels+;
 #pragma link C++ class celeritas::inp::Interpolation+;
 #pragma link C++ class celeritas::inp::OpticalPhysics+;
-#pragma link C++ class celeritas::inp::Polished+;
+#pragma link C++ class celeritas::inp::NoRoughness+;
 #pragma link C++ class celeritas::inp::ReflectionAnalytic+;
 #pragma link C++ class celeritas::inp::ReflectionForm+;
 #pragma link C++ class celeritas::inp::ReflectionGrid+;
