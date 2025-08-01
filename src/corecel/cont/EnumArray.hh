@@ -28,11 +28,6 @@ class EnumArray
 {
     static_assert(std::is_enum<E>::value, "Template parameter must be an enum");
 
-    enum
-    {
-        N = static_cast<size_type>(E::size_)
-    };
-
   public:
     //!@{
     //! \name Type aliases
@@ -45,9 +40,14 @@ class EnumArray
     using const_reference = value_type const&;
     using iterator = pointer;
     using const_iterator = const_pointer;
+    //!@}
+
+    enum
+    {
+        N = static_cast<size_type>(E::size_)
+    };
 
     using CArrayConstRef = T const (&)[N];
-    //!@}
 
   public:
     //! Default construction initializes to zero
