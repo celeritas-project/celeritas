@@ -1,6 +1,7 @@
-//------------------------------- -*- C++ -*- -------------------------------//
-// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
-// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+// b------------------------------- -*- C++ -*-
+// -------------------------------//
+//  Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+//  SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/orangeinp/RevolvedPolygon.cc
 //---------------------------------------------------------------------------//
@@ -39,6 +40,13 @@ RevolvedPolygon::RevolvedPolygon(std::string&& label, VecReal2&& polygon)
 {
     CELER_VALIDATE(polygon_.size() >= 3,
                    << "polygon must have at least 3 vertices");
+
+    // All points must be positive
+    CELER_VALIDATE(
+        std::all_of(polygon_.begin(),
+                    polygon_.end(),
+                    [](Real2 const& p) { return p[R] >= 0 && p[Z] >= 0; }),
+        << "polygon must consist of only positive r and z values");
 }
 
 //---------------------------------------------------------------------------//
@@ -47,31 +55,17 @@ RevolvedPolygon::RevolvedPolygon(std::string&& label, VecReal2&& polygon)
  */
 NodeId RevolvedPolygon::build(VolumeBuilder& vb) const
 {
-    //// Use the volume builder's tolerance to remove any colinear points
-    // polygon_ = detail::filter_collinear_points(polygon_, vb.tol());
+    // Use the volume builder's tolerance to remove any colinear points
+    auto filtered_polygon
+        = detail::filter_collinear_points(polygon_, vb.tol().abs);
 
-    //// After removing collinear points, at least 3 points must remain
-    // CELER_VALIDATE(polygon_.size() >= 3,
-    //                << "polygon must consist of at least 3 points");
-
-    //// After removing collinear points, the polygon should have a *strictly*
-    //// clockwise orientation, which also guarantees it is convex.
-    // CELER_VALIDATE(
-    //     has_orientation(make_span(polygon_),
-    //     detail::Orientation::clockwise),
-    //     << "polygon must be specified in strictly clockwise order");
-
-    //// All points must be positive
-    // CELER_VALIDATE(
-    //     std::all_of(polygon_.begin(),
-    //                 polygon_.end(),
-    //                 [](Real2 const& p) { return p[R] >= 0 && p[Z] >= 0; }),
-    //     << "polygon must consist of only positive r and z values");
+    // After removing collinear points, at least 3 points must remain
+    CELER_VALIDATE(filtered_polygon.size() >= 3,
+                   << "polygon must consist of at least 3 points");
 
     // Start the recursion process
-
     SubregionIndex ri;
-    return this->make_levels(vb, polygon_, ri);
+    return this->make_levels(vb, filtered_polygon, ri);
 }
 
 //---------------------------------------------------------------------------//
@@ -82,9 +76,9 @@ void RevolvedPolygon::output(JsonPimpl* j) const
 {
     // to_json_pimpl(j, *this);
 }
-//---------------------------------------------------------------------------//
-// HELPER FUNCTION DEFINITIONS
-//---------------------------------------------------------------------------//
+//-------------------------------------------------------------------------//
+// HPER FUNCTION DEFINITIONS
+//-------------------------------------------------------------------------//
 /*!
  * Recursively construct convex revolved polygons, subtracting out concavities.
  */
@@ -98,7 +92,9 @@ NodeId RevolvedPolygon::make_levels(detail::VolumeBuilder& vb,
     auto concave_regions = hull_finder.calc_concave_regions();
 
     // Build the convex region
-    NodeId result = this->make_region(vb, convex_hull, si);
+    auto filtered_convex_hull
+        = detail::filter_collinear_points(convex_hull, vb.tol().abs);
+    NodeId result = this->make_region(vb, filtered_convex_hull, si);
 
     // Return early if there are no concave regions to process
     if (concave_regions.empty())
@@ -114,19 +110,19 @@ NodeId RevolvedPolygon::make_levels(detail::VolumeBuilder& vb,
             vb, concave_regions[i], SubregionIndex{si.level + 1, i});
     }
 
-    auto level_label = this->make_level_label(si);
+    auto level_ext = this->make_level_ext(si);
 
     // Create a union of all concave regions
     NodeId concave_union
-        = vb.insert_region(Label{label_, level_label + ".cu"},
+        = vb.insert_region(Label{label_, level_ext + ".cu"},
                            Joined{op_or, std::move(concave_nodes)});
 
     // Create a negation of this union
-    auto sub_node = vb.insert_region(Label{label_, level_label + ".ncu"},
+    auto sub_node = vb.insert_region(Label{label_, level_ext + ".ncu"},
                                      Negated{concave_union});
 
     // Subtract concave regions from the convex hull
-    return vb.insert_region(Label{label_, level_label + ".d"},
+    return vb.insert_region(Label{label_, level_ext + ".d"},
                             Joined{op_and, {result, sub_node}});
 }
 
@@ -138,6 +134,13 @@ NodeId RevolvedPolygon::make_region(detail::VolumeBuilder& vb,
                                     VecReal2 const& polygon,
                                     SubregionIndex si) const
 {
+    // The polygon should have a *strictly* clockwise orientation, which also
+    // guarantees it is convex.
+    CELER_VALIDATE(has_orientation(make_span(polygon),
+                                   detail::Orientation::counterclockwise),
+                   << "polygon must be specified in strictly counterclockwise "
+                      "order");
+
     SoftEqual<real_type> soft_equal(vb.tol().rel, vb.tol().abs);
     SoftZero<real_type> soft_zero(vb.tol().abs);
 
@@ -167,25 +170,25 @@ NodeId RevolvedPolygon::make_region(detail::VolumeBuilder& vb,
         si.subregion++;
     }
 
-    auto region_label = this->make_region_label(si);
+    auto region_ext = this->make_region_ext(si);
 
     // Create a union of all outer nodes
-    NodeId result = vb.insert_region(Label{label_, region_label + ".ou"},
+    NodeId result = vb.insert_region(Label{label_, region_ext + ".so"},
                                      Joined{op_or, std::move(outer_nodes)});
 
     if (!inner_nodes.empty())
     {
         // Create a union of all inner nodes
         NodeId inner_union
-            = vb.insert_region(Label{label_, region_label + ".iu"},
+            = vb.insert_region(Label{label_, region_ext + ".si"},
                                Joined{op_or, std::move(inner_nodes)});
 
         // Create a negation of this union
-        auto negation = vb.insert_region(Label{label_, region_label + ".niu"},
+        auto negation = vb.insert_region(Label{label_, region_ext + ".sni"},
                                          Negated{inner_union});
 
         // Subtract concave regions from the convex hull
-        result = vb.insert_region(Label{label_, region_label + ".d"},
+        result = vb.insert_region(Label{label_, region_ext + ".sd"},
                                   Joined{op_and, {result, negation}});
     }
 
@@ -201,15 +204,13 @@ NodeId RevolvedPolygon::make_cylinder(detail::VolumeBuilder& vb,
                                       Real2 const& p1,
                                       SubregionIndex const& si) const
 {
-    auto subregion_label = this->make_subregion_label(si);
-
     real_type hh = std::abs(p1[Z] - p0[Z]) / 2;
-    auto cyl = std::make_shared<CylinderShape>(
-        std::move(subregion_label), p0[R], hh);
-
-    auto bot_z = std::min(p0[Z], p1[Z]);
-    Transformed trans(cyl, Translation({0, 0, bot_z + hh}));
-    return trans.build(vb);
+    auto z_bot = std::min(p0[Z], p1[Z]);
+    auto scoped_transform
+        = vb.make_scoped_transform(Translation({0, 0, hh + z_bot}));
+    Cylinder local_cyl{p0[R], hh};
+    return build_intersect_region(
+        vb, std::string{label_}, this->make_subregion_ext(si), local_cyl);
 }
 
 //---------------------------------------------------------------------------//
@@ -224,15 +225,14 @@ NodeId RevolvedPolygon::make_cone(detail::VolumeBuilder& vb,
     auto [r_bot, r_top] = (p0[Z] < p1[Z]) ? std::pair{p0[R], p1[R]}
                                           : std::pair{p1[R], p0[R]};
     auto [z_bot, z_top] = std::minmax(p0[Z], p1[Z]);
-
     real_type hh = 0.5 * (z_top - z_bot);
-
     Real2 radii{r_bot, r_top};
-    auto subregion_label = this->make_subregion_label(si);
-    auto cone
-        = std::make_shared<ConeShape>(std::move(subregion_label), radii, hh);
 
-    return Transformed(cone, Translation({0, 0, hh + z_bot})).build(vb);
+    auto scoped_transform
+        = vb.make_scoped_transform(Translation({0, 0, hh + z_bot}));
+    Cone local_cone{radii, hh};
+    return build_intersect_region(
+        vb, std::string{label_}, this->make_subregion_ext(si), local_cone);
 }
 
 //---------------------------------------------------------------------------//
@@ -240,9 +240,9 @@ NodeId RevolvedPolygon::make_cone(detail::VolumeBuilder& vb,
  * Make a label for a level.
  */
 std::string
-RevolvedPolygon::make_level_label(RevolvedPolygon::SubregionIndex ri) const
+RevolvedPolygon::make_level_ext(RevolvedPolygon::SubregionIndex si) const
 {
-    return std::to_string(ri.level);
+    return std::to_string(si.level);
 }
 
 //---------------------------------------------------------------------------//
@@ -250,9 +250,9 @@ RevolvedPolygon::make_level_label(RevolvedPolygon::SubregionIndex ri) const
  * Make a label for a region within a level.
  */
 std::string
-RevolvedPolygon::make_region_label(RevolvedPolygon::SubregionIndex ri) const
+RevolvedPolygon::make_region_ext(RevolvedPolygon::SubregionIndex si) const
 {
-    return this->make_level_label(ri) + "." + std::to_string(ri.region);
+    return this->make_level_ext(si) + "." + std::to_string(si.region);
 }
 
 //---------------------------------------------------------------------------//
@@ -260,10 +260,9 @@ RevolvedPolygon::make_region_label(RevolvedPolygon::SubregionIndex ri) const
  * Make a label for a subregion within a region.
  */
 std::string
-RevolvedPolygon::make_subregion_label(RevolvedPolygon::SubregionIndex ri) const
+RevolvedPolygon::make_subregion_ext(RevolvedPolygon::SubregionIndex si) const
 {
-    return this->make_level_label(ri) + "." + std::to_string(ri.region) + "."
-           + std::to_string(ri.subregion);
+    return this->make_region_ext(si) + "." + std::to_string(si.subregion);
 }
 
 //---------------------------------------------------------------------------//

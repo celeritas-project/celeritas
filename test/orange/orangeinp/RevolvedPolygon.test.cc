@@ -50,21 +50,21 @@ TEST_F(RevolvedPolygonTest, one_subregion)
 {
     VecReal2 polygon{{0, 0}, {3, 0}, {3, 2}, {0, 2}};
 
-    this->build_volume(RevolvedPolygon{"pc", std::move(polygon)});
+    this->build_volume(RevolvedPolygon{"rp", std::move(polygon)});
 
     static char const* const expected_surface_strings[]
         = {"Plane: z=0", "Plane: z=2", "Cyl z: r=3"};
 
     static char const* const expected_volume_strings[] = {"all(+0, -1, -2)"};
 
-    // static char const* const expected_md_strings[] = {
-    //     "",
-    // };
+    static char const* const expected_md_strings[] = {
+        "",
+    };
 
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
-    // EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
 }
 
 //---------------------------------------------------------------------------//
@@ -86,7 +86,7 @@ TEST_F(RevolvedPolygonTest, two_subregion)
 {
     VecReal2 polygon{{1, 2}, {0, 0}, {3, 0}, {3, 2}};
 
-    this->build_volume(RevolvedPolygon{"pc", std::move(polygon)});
+    this->build_volume(RevolvedPolygon{"rp", std::move(polygon)});
 
     static char const* const expected_surface_strings[] = {
         "Plane: z=0", "Plane: z=2", "Cone z: t=0.5 at {0,0,0}", "Cyl z: r=3"};
@@ -122,7 +122,7 @@ TEST_F(RevolvedPolygonTest, two_levels)
 {
     VecReal2 polygon{{1, 2}, {1.2, 1.5}, {0, 0}, {3, 0}, {3, 2}};
 
-    this->build_volume(RevolvedPolygon{"pc", std::move(polygon)});
+    this->build_volume(RevolvedPolygon{"rp", std::move(polygon)});
 
     static char const* const expected_surface_strings[]
         = {"Plane: z=0",
@@ -176,7 +176,7 @@ TEST_F(RevolvedPolygonTest, three_levels)
                      {0.33, 3},
                      {0.33, 0.5}};
 
-    this->build_volume(RevolvedPolygon{"pc", std::move(polygon)});
+    this->build_volume(RevolvedPolygon{"rp", std::move(polygon)});
 
     static char const* const expected_surface_strings[] = {
         "Plane: z=0.5",
@@ -194,9 +194,9 @@ TEST_F(RevolvedPolygonTest, three_levels)
         = {"all(+0, -1, -2, !all(+0, -1, -3), !all(-1, +4, -6, !all(-1, +4, "
            "-5), !all(+4, -7, -8, !all(+4, -7, -9))))"};
 
-    // static char const* const expected_md_strings[] = {
-    //     "",
-    // };
+    static char const* const expected_md_strings[] = {
+        "",
+    };
 
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));

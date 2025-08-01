@@ -15,7 +15,7 @@ namespace celeritas
 namespace orangeinp
 {
 //---------------------------------------------------------------------------//
-/*! A convex/concave polygon revolved around the \em z axis.
+/*! An arbitrary (possibly concave) polygon revolved around the \em z axis.
  *
  * The polygon must be specified in counterclockwise order. Construction is
  * performed using a convex decomposition approach
@@ -24,9 +24,15 @@ namespace orangeinp
  * axis. Regions that constitute the difference between the polygon and its
  * convex hull are then subtracted. Each of these regions is created
  * recursively in the same fashion. Because this method creates many regions,
- * these are kept track of using two indices for debugging purposes: the level
- * index denotes the current recursion depth, and the region index denotes the
- * region within a given level. An example of these indices is shown below.
+ * these are kept track of using three indices for debugging purposes: the
+level
+ * index denotes the current recursion depth,
+
+
+and the region index denotes the region within a given level.
+
+
+An example of these indices is shown below.
  * Consider the following polygon:
  * \verbatim
      |            __________
@@ -140,13 +146,13 @@ class RevolvedPolygon final : public ObjectInterface
                      SubregionIndex const& si) const;
 
     // Make a label for a level
-    std::string make_level_label(SubregionIndex si) const;
+    std::string make_level_ext(SubregionIndex si) const;
 
     // Make a label for a region within a level
-    std::string make_region_label(SubregionIndex si) const;
+    std::string make_region_ext(SubregionIndex si) const;
 
     // Make a label for a subregion within a region
-    std::string make_subregion_label(SubregionIndex si) const;
+    std::string make_subregion_ext(SubregionIndex si) const;
 
     //// DATA ////
 
