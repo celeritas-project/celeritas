@@ -17,69 +17,64 @@ namespace orangeinp
 //---------------------------------------------------------------------------//
 /*! An arbitrary (possibly concave) polygon revolved around the \em z axis.
  *
- * The polygon must be specified in counterclockwise order. Construction is
- * performed using a convex decomposition approach
+ * The polygon must be specified in counterclockwise order and may not be
+ * self intersecting.
+ *
+ * Construction is performed using a convex decomposition approach
  * \citep{tor-convexdecomp-1984, https://doi.org/10.1145/357346.357348}. The
  * convex hull of the polygon is first found and revolved around the \em z
  * axis. Regions that constitute the difference between the polygon and its
  * convex hull are then subtracted. Each of these regions is created
- * recursively in the same fashion. Because this method creates many regions,
- * these are kept track of using three indices for debugging purposes: the
-level
- * index denotes the current recursion depth,
-
-
-and the region index denotes the region within a given level.
-
-
-An example of these indices is shown below.
- * Consider the following polygon:
+ * recursively in the same fashion. The recursion depth is referred to as the
+ * "level" and each contiguous region within a level is a "region", as shown
+ * below:
  * \verbatim
-     |            __________
-   ^ |           |          |
-   | |        ___|          |
-   z |       |              |
-     |       |              |
-   a |       |              |
-   x |       |            __|
-   i |       |           |
-   s |       |___________|
+     |___     ____         |____________       |   ______
+   ^ |   \    |  |         |           |       |   \    |  level 1
+   | |     \  |  |         |           |       |     \  |  region 0
+   z |       \|  |         | level 0   |       |       \|
+     |           |    =    | region 0  |   -   |
+   a |           |         |           |       |
+   x |    /\     |         |           |       |     /\     level 1
+   i |___/  \____|         |___________|       |    /__\    region 1
+   s |_____________        |_____________      |_____________
+      r axis ->
    \endverbatim
- * The convex hull of this polygon is used to create the first region:
+ * Convex "regions" from "subregions", as shown below:
  * \verbatim
-     |            __________
-   ^ |          /           |
-   | |        /             |
-   z |       |   level 0    |
-     |       |   region  0  |
-   a |       |              |
-   x |       |              |
-   i |       |             /
-   s |       |___________/
+     |   ______             |________                     |___
+   ^ |   \    |  level 1    |        | level 1            |   \     level 1
+   | |     \  |  region 0   |        | region 0           |     \   region 0
+   z |       \|             |________| subregion 0        |_______\ subregion 1
+     |                 =    |          (a cylinder)  -    |         (a cone)
+   a |                      |                             |
+   x |                      |                             |
+   i |                      |                             |
+   s |_____________         |_____________                |_____________
+        r axis ->
    \endverbatim
- * Recursing one level deeper, we create two additional regions:
- * \verbatim
-     |            ...........
-   ^ |          /|  level 1, region 0
-   | |        /__|          .
-   z |       .              .
-     |       .              .
-   a |       .              .
-   x |       .           ___.
-   i |       .          |  /  level 1, region 1
-   s |       ...........|/
-   \endverbatim
- * and subtract their union from the first region.
+ * In this example, level 1 region 0 is formed from only two subregions, but
+ * the general case is handed via:
+ *
+ * region = union(outer subregions) - union(inner subregions).
  *
  * \internal When labeing nodes in the CSG output, the following shorthand
- *   format is used: `label@level.region`. For example, the final region
- *   in the example above might be named `my_shape@1.1`. For each level,
- *   additional nodes are created in the form: `label@level.suffix` where
- *   suffixes have the following meanings:
- *   1) .cu : the union of all convex regions on this level,
- *   2) .ncu : the negation of the union of all convex regions on this level,
- *   3) .d : the difference between this level's convex hull and the convex
- *      regions on this level.
+ * format is used: `label@level.region.subregion`. For example, the final
+ * region in the example above might be named `my_shape@1.0.1`. For each level,
+ * additional nodes are created in the form: `label@level.suffix` where
+ * suffixes have the following meanings:
+ *
+ *  1) .cu : the union of all concave regions on this level,
+ *  2) .ncu : the negation of .cu
+ *  3) .d : the difference between this level's convex hull and .cu
+ *
+ * For each region, additional nodes are created in the form
+ * label@level.region.suffix where suffixes have the following meanings:
+ *
+ * 1) .ou : the union of the nodes that comprise the outer side of the region
+ * 2) .iu : the union of the nodes that comprise the inner side of the region
+ * 3) .nui : the negation of .ui
+ * 4) .d : the difference between .ou and .iu
  */
 class RevolvedPolygon final : public ObjectInterface
 {
@@ -145,13 +140,13 @@ class RevolvedPolygon final : public ObjectInterface
                      Real2 const& p1,
                      SubregionIndex const& si) const;
 
-    // Make a label for a level
+    // Make a label extension for a level
     std::string make_level_ext(SubregionIndex si) const;
 
-    // Make a label for a region within a level
+    // Make a label extension for a region within a level
     std::string make_region_ext(SubregionIndex si) const;
 
-    // Make a label for a subregion within a region
+    // Make a extension label for a subregion within a region
     std::string make_subregion_ext(SubregionIndex si) const;
 
     //// DATA ////

@@ -33,7 +33,7 @@ enum
 }  // namespace
 //---------------------------------------------------------------------------//
 /*!
- * Construct from a polygon, polyline, and scaling factors.
+ * Construct from a polygon.
  */
 RevolvedPolygon::RevolvedPolygon(std::string&& label, VecReal2&& polygon)
     : label_{std::move(label)}, polygon_{std::move(polygon)}
@@ -173,22 +173,22 @@ NodeId RevolvedPolygon::make_region(detail::VolumeBuilder& vb,
     auto region_ext = this->make_region_ext(si);
 
     // Create a union of all outer nodes
-    NodeId result = vb.insert_region(Label{label_, region_ext + ".so"},
+    NodeId result = vb.insert_region(Label{label_, region_ext + ".ou"},
                                      Joined{op_or, std::move(outer_nodes)});
 
     if (!inner_nodes.empty())
     {
         // Create a union of all inner nodes
         NodeId inner_union
-            = vb.insert_region(Label{label_, region_ext + ".si"},
+            = vb.insert_region(Label{label_, region_ext + ".iu"},
                                Joined{op_or, std::move(inner_nodes)});
 
         // Create a negation of this union
-        auto negation = vb.insert_region(Label{label_, region_ext + ".sni"},
+        auto negation = vb.insert_region(Label{label_, region_ext + ".nui"},
                                          Negated{inner_union});
 
-        // Subtract concave regions from the convex hull
-        result = vb.insert_region(Label{label_, region_ext + ".sd"},
+        // Subtract the inner union from the outer union
+        result = vb.insert_region(Label{label_, region_ext + ".d"},
                                   Joined{op_and, {result, negation}});
     }
 

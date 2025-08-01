@@ -57,9 +57,14 @@ TEST_F(RevolvedPolygonTest, one_subregion)
 
     static char const* const expected_volume_strings[] = {"all(+0, -1, -2)"};
 
-    static char const* const expected_md_strings[] = {
-        "",
-    };
+    static char const* const expected_md_strings[] = {"",
+                                                      "",
+                                                      "rp@0.0.0.mz",
+                                                      "rp@0.0.0.pz",
+                                                      "",
+                                                      "rp@0.0.0.cz",
+                                                      "",
+                                                      "rp@0.0.0,rp@0.0.ou"};
 
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
@@ -93,14 +98,26 @@ TEST_F(RevolvedPolygonTest, two_subregion)
     static char const* const expected_volume_strings[]
         = {"all(+0, -1, -3, !all(+0, -1, -2))"};
 
-    // static char const* const expected_md_strings[] = {
-    //     "",
-    // };
+    static char const* const expected_md_strings[] = {
+        "",
+        "",
+        "rp@0.0.0.mz,rp@0.0.1.mz",
+        "rp@0.0.0.pz,rp@0.0.1.pz",
+        "",
+        "rp@0.0.0.kz",
+        "",
+        "rp@0.0.0,rp@0.0.iu",
+        "rp@0.0.1.cz",
+        "",
+        "rp@0.0.1,rp@0.0.ou",
+        "rp@0.0.nui",
+        "rp@0.0.d",
+    };
 
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
-    // EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
 }
 
 //---------------------------------------------------------------------------//
@@ -136,14 +153,38 @@ TEST_F(RevolvedPolygonTest, two_levels)
         = {"all(+0, -1, -3, !all(+0, -1, -2), !all(!all(+0, -1, -2), "
            "any(all(+0, -4, -5), all(-1, +4, -6))))"};
 
-    // static char const* const expected_md_strings[] = {
-    //     "",
-    // };
+    static char const* const expected_md_strings[] = {
+        "",
+        "",
+        "rp@0.0.0.mz,rp@0.0.1.mz,rp@1.0.0.mz,rp@1.0.2.mz",
+        "rp@0.0.0.pz,rp@0.0.1.pz,rp@1.0.1.pz,rp@1.0.2.pz",
+        "",
+        "rp@0.0.0.kz,rp@1.0.2.kz",
+        "",
+        "rp@0.0.0,rp@0.0.iu,rp@1.0.2,rp@1.0.iu",
+        "rp@0.0.1.cz",
+        "",
+        "rp@0.0.1,rp@0.0.ou",
+        "rp@0.0.nui,rp@1.0.nui",
+        "rp@0.0.d",
+        "rp@1.0.0.pz,rp@1.0.1.mz",
+        "",
+        "rp@1.0.0.kz",
+        "",
+        "rp@1.0.0",
+        "rp@1.0.1.kz",
+        "",
+        "rp@1.0.1",
+        "rp@1.0.ou",
+        "rp@0.cu,rp@1.0.d",
+        "rp@0.ncu",
+        "rp@0.d",
+    };
 
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
-    // EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
 }
 
 //---------------------------------------------------------------------------//
@@ -196,12 +237,47 @@ TEST_F(RevolvedPolygonTest, three_levels)
 
     static char const* const expected_md_strings[] = {
         "",
+        "",
+        "rp@0.0.0.mz,rp@0.0.1.mz",
+        "rp@0.0.0.pz,rp@0.0.1.pz,rp@1.0.0.pz,rp@1.0.1.pz",
+        "",
+        "rp@0.0.0.cz",
+        "",
+        "rp@0.0.0,rp@0.0.ou",
+        "rp@0.0.1.cz",
+        "",
+        "rp@0.0.1,rp@0.0.iu",
+        "rp@0.0.nui",
+        "rp@0.0.d",
+        "rp@1.0.0.mz,rp@1.0.1.mz,rp@2.0.0.mz,rp@2.0.1.mz",
+        "rp@1.0.0.cz",
+        "",
+        "rp@1.0.0,rp@1.0.iu",
+        "rp@1.0.1.cz",
+        "",
+        "rp@1.0.1,rp@1.0.ou",
+        "rp@1.0.nui",
+        "rp@1.0.d",
+        "rp@2.0.0.pz,rp@2.0.1.pz",
+        "",
+        "rp@2.0.0.cz",
+        "",
+        "rp@2.0.0,rp@2.0.ou",
+        "rp@2.0.1.cz",
+        "",
+        "rp@2.0.1,rp@2.0.iu",
+        "rp@2.0.nui",
+        "rp@1.cu,rp@2.0.d",
+        "rp@1.ncu",
+        "rp@0.cu,rp@1.d",
+        "rp@0.ncu",
+        "rp@0.d",
     };
 
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
-    // EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
 }
 
 //---------------------------------------------------------------------------//
