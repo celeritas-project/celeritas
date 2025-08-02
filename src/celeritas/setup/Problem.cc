@@ -434,17 +434,8 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
     params.material = MaterialParams::from_import(imported);
 
     // Create geometry/material coupling
-    params.geomaterial = [&] {
-        GeoMaterialParams::SPConstVolume volume_params;
-        if constexpr (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
-        {
-            // FIXME: ORANGE doesn't support volume/material conversion
-            volume_params = params.volume;
-        }
-
-        return GeoMaterialParams::from_import(
-            imported, params.geometry, volume_params, params.material);
-    }();
+    params.geomaterial = GeoMaterialParams::from_import(
+        imported, params.geometry, params.volume, params.material);
 
     // Construct particle params
     params.particle = ParticleParams::from_import(imported);

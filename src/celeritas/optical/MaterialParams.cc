@@ -55,10 +55,10 @@ MaterialParams::from_import(ImportData const& data,
     // Construct volume-to-optical mapping
     inp.volume_to_mat.reserve(geo_mat.num_volumes());
     bool has_opt_mat{false};
-    for (auto vid : range(ImplVolumeId{geo_mat.num_volumes()}))
+    for (auto impl_id : range(ImplVolumeId{geo_mat.num_volumes()}))
     {
         OptMatId optmat;
-        if (auto matid = geo_mat.material_id(vid))
+        if (PhysMatId matid = geo_mat.material_id(impl_id))
         {
             auto mat_view = mat.get(matid);
             optmat = mat_view.optical_material_id();

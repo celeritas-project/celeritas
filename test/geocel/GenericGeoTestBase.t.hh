@@ -96,7 +96,12 @@ std::string GenericGeoTestBase<HP>::volume_name(GeoTrackView const& geo) const
     {
         return "[OUTSIDE]";
     }
-    return this->geometry()->impl_volumes().at(geo.impl_volume_id()).name;
+    auto id = geo.impl_volume_id();
+    if (!id)
+    {
+        return "[INVALID]";
+    }
+    return this->geometry()->impl_volumes().at(id).name;
 }
 
 //---------------------------------------------------------------------------//
@@ -128,7 +133,15 @@ GenericGeoTestBase<HP>::unique_volume_name(GeoTrackView const& geo) const
     os << vol_inst.at(ids[0]);
     for (auto i : range(std::size_t{1}, ids.size()))
     {
-        os << '/' << vol_inst.at(ids[i]);
+        os << '/';
+        if (ids[i])
+        {
+            os << vol_inst.at(ids[i]);
+        }
+        else
+        {
+            os << "[INVALID]";
+        }
     }
     return std::move(os).str();
 }

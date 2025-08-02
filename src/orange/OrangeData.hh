@@ -267,6 +267,10 @@ struct RectArrayRecord
  *
  * Each collection should be of length num_universes + 1. The first entry is
  * zero and the last item should be the total number of surfaces or volumes.
+ *
+ * \todo These should be indexed into by UniverseId, not the default
+ * OpaqueId<size_type>.
+ * \todo move to detail/UniverseIndexerData
  */
 template<Ownership W, MemSpace M>
 struct UniverseIndexerData
@@ -296,7 +300,7 @@ struct UniverseIndexerData
 /*!
  * Persistent data used by all BIH trees.
  *
- * \todo move to orange/BihTreeData
+ * \todo move to detail/BihTreeData
  */
 template<Ownership W, MemSpace M>
 struct BIHTreeData
@@ -368,6 +372,12 @@ struct OrangeParamsData
     Items<RectArrayRecord> rect_arrays;
     Items<TransformRecord> transforms;
 
+    // Optional map of ORANGE internal volume ID -> Celeritas volume ID
+    ImplVolumeItems<VolumeId> volume_ids;
+    ImplVolumeItems<VolumeInstanceId> volume_instance_ids;
+    // TODO: for reconstructing hierarchy:
+    // ImplVolumeItems<ImplVolumeId> parent_impl_volumes;
+
     // BIH tree storage
     BIHTreeData<W, M> bih_tree_data;
 
@@ -393,6 +403,7 @@ struct OrangeParamsData
     {
         return scalars && !universe_types.empty()
                && universe_indices.size() == universe_types.size()
+               && volume_ids.size() == volume_instance_ids.size()
                && (bih_tree_data || !simple_units.empty())
                && ((!local_volume_ids.empty() && !logic_ints.empty()
                     && !reals.empty())
@@ -411,6 +422,9 @@ struct OrangeParamsData
         simple_units = other.simple_units;
         rect_arrays = other.rect_arrays;
         transforms = other.transforms;
+
+        volume_ids = other.volume_ids;
+        volume_instance_ids = other.volume_instance_ids;
 
         bih_tree_data = other.bih_tree_data;
 

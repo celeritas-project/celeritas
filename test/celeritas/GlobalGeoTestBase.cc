@@ -55,10 +55,7 @@ auto GlobalGeoTestBase::build_fresh_geometry(std::string_view basename)
     using namespace std::literals;
 
     constexpr bool use_orange = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE;
-    constexpr bool use_g4
-        = CELERITAS_USE_GEANT4
-          && (!use_orange
-              || (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE));
+    constexpr bool use_g4 = CELERITAS_USE_GEANT4;
 
     // Construct filename:
     // ${SOURCE}/test/celeritas/data/${basename}${fileext}
@@ -78,8 +75,7 @@ auto GlobalGeoTestBase::build_fresh_geometry(std::string_view basename)
     }
     else if (use_orange)
     {
-        // Using ORANGE, either without Geant4 or without double-precision
-        // arithmetic
+        // Using ORANGE without Geant4 (ultralite CI test harness)
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
         return CoreGeoParams::from_json(filename);
 #endif

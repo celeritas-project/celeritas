@@ -29,6 +29,7 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/GeantGeoParams.hh"
+#include "geocel/VolumeParams.hh"
 
 #include "OrangeData.hh"  // IWYU pragma: associated
 #include "OrangeInput.hh"
@@ -82,10 +83,27 @@ OrangeParams::from_gdml(std::string const& filename)
  * Build from a Geant4 world.
  */
 std::shared_ptr<OrangeParams>
+OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo,
+                         VolumeParams const& volumes)
+{
+    CELER_EXPECT(geo);
+    auto result = g4org::Converter{}(*geo).input;
+    return std::make_shared<OrangeParams>(std::move(result), volumes);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build from a Geant4 world (no volumes available?).
+ *
+ * \todo Reconstructing the volume params here is going to be redundant; change
+ * interfaces later.
+ */
+std::shared_ptr<OrangeParams>
 OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
 {
-    auto result = g4org::Converter{}(*geo).input;
-    return std::make_shared<OrangeParams>(std::move(result));
+    CELER_EXPECT(geo);
+    VolumeParams volumes{geo->make_model_input().volumes};
+    return OrangeParams::from_geant(geo, volumes);
 }
 
 //---------------------------------------------------------------------------//
@@ -112,11 +130,17 @@ OrangeParams::from_json(std::string const& filename)
 //---------------------------------------------------------------------------//
 /*!
  * Advanced usage: construct from explicit host data.
- *
- * Volume and surface labels must be unique for the time being.
  */
-// NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
 OrangeParams::OrangeParams(OrangeInput&& input)
+    : OrangeParams{std::move(input), VolumeParams{}}
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Advanced usage: construct from explicit host data and volumes.
+ */
+OrangeParams::OrangeParams(OrangeInput&& input, VolumeParams const& volumes)
 {
     CELER_VALIDATE(input, << "input geometry is incomplete");
 
@@ -142,11 +166,14 @@ OrangeParams::OrangeParams(OrangeInput&& input)
     // Insert all universes
     {
         std::vector<Label> universe_labels;
-        std::vector<Label> surface_labels;
-        std::vector<Label> volume_labels;
+        std::vector<Label> impl_surface_labels;
+        std::vector<Label> impl_volume_labels;
 
-        detail::UniverseInserter insert_universe_base{
-            &universe_labels, &surface_labels, &volume_labels, &host_data};
+        detail::UniverseInserter insert_universe_base{volumes,
+                                                      &universe_labels,
+                                                      &impl_surface_labels,
+                                                      &impl_volume_labels,
+                                                      &host_data};
         Overload insert_universe{
             detail::UnitInserter{&insert_universe_base, &host_data},
             detail::RectArrayInserter{&insert_universe_base, &host_data}};
@@ -156,10 +183,11 @@ OrangeParams::OrangeParams(OrangeInput&& input)
             std::visit(insert_universe, std::move(u));
         }
 
-        surf_labels_ = SurfaceMap{"surface", std::move(surface_labels)};
+        surf_labels_ = SurfaceMap{"surface", std::move(impl_surface_labels)};
         univ_labels_ = UniverseMap{"universe", std::move(universe_labels)};
-        vol_labels_ = ImplVolumeMap{"volume", std::move(volume_labels)};
+        vol_labels_ = ImplVolumeMap{"volume", std::move(impl_volume_labels)};
     }
+    std::move(input) = {};
 
     // Simple safety if all SimpleUnits have simple safety and no RectArrays
     // are present
@@ -179,6 +207,11 @@ OrangeParams::OrangeParams(OrangeInput&& input)
                    << " (a volume's CSG tree is too deep); but the logic "
                       "stack is limited to a depth of "
                    << detail::LogicStack::max_stack_depth());
+
+    CELER_ASSERT(host_data.volume_ids.empty()
+                 || host_data.volume_ids.size() == vol_labels_.size());
+    CELER_ASSERT(host_data.volume_instance_ids.empty()
+                 || host_data.volume_ids.size() == vol_labels_.size());
 
     // Construct device values and device/host references
     CELER_ASSERT(host_data);
