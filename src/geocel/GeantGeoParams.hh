@@ -150,11 +150,8 @@ class GeantGeoParams final : public GeoParamsInterface,
         return this->volume_id(this->find_volume(&volume));
     }
 
-    // Get the volume ID corresponding to a Geant4 physical volume
+    // Get the volume instance ID corresponding to a Geant4 physical volume
     VolumeInstanceId geant_to_id(G4VPhysicalVolume const& volume) const;
-
-    // Get the replica ID corresponding to a Geant4 physical volume
-    ReplicaId replica_id(G4VPhysicalVolume const& volume) const;
 
     //!@{
     //! Access the world volume
@@ -331,8 +328,8 @@ GeantGeoParams::geant_to_id(G4VPhysicalVolume const&) const
 {
     CELER_ASSERT_UNREACHABLE();
 }
-inline GeantGeoParams::ReplicaId
-GeantGeoParams::replica_id(G4VPhysicalVolume const&) const
+inline VolumeInstanceId
+GeantGeoParams::geant_to_id(G4VPhysicalVolume const&, ReplicaId) const
 {
     CELER_ASSERT_UNREACHABLE();
 }

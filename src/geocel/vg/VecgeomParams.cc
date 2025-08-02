@@ -38,6 +38,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
@@ -370,11 +371,11 @@ bool VecgeomParams::use_vgdml()
  */
 VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
                              Ownership owns,
-                             VecLv const& lv,
-                             VecPv&& pv)
-    : ownership_{owns}
-    , g4log_volid_map_{make_lv_map(lv)}
-    , g4_pv_map_{std::move(pv)}
+                             VecLv const& all_lv,
+                             VecPv&& all_pv)
+    : host_ownership_{owns}
+    , g4log_volid_map_{make_lv_map(all_lv)}
+    , g4_pv_map_{std::move(all_pv)}
 {
     CELER_VALIDATE(geo.IsClosed(),
                    << "VecGeom geometry was not closed before initialization");
@@ -388,81 +389,89 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
     {
         CELER_LOG(status) << "Initializing tracking information";
 
+        if (!VecgeomParams::use_surface_tracking() || CELERITAS_USE_CUDA)
+        {
+            /*!
+             * \todo we still need to make volume tracking information when
+             * using CUDA and surface geometry, because we need a GPU world
+             * device pointer. We could probably just make a single world
+             * physical/logical volume that have the correct IDs.
+             */
+
+            this->build_volume_tracking();
+        }
+
         if (VecgeomParams::use_surface_tracking())
         {
             this->build_surface_tracking();
         }
-        else
-        {
-            this->build_volume_tracking();
-        }
-
-        /*!
-         * \todo we still need to make volume tracking information when using
-         * CUDA, because we need a GPU world device pointer. We could probably
-         * just make a single world physical/logical volume that have the
-         * correct IDs.
-         */
-        if (CELERITAS_USE_CUDA && VecgeomParams::use_surface_tracking())
-        {
-            this->build_volume_tracking();
-        }
     }
     {
         // Save host data
-        host_ref_.world_volume = geo.GetWorld();
-        host_ref_.max_depth = geo.getMaxDepth();
+        HostVal<VecgeomParamsData> host_data;
+        host_data.scalars.host_world = geo.GetWorld();
+        host_data.scalars.max_depth = geo.getMaxDepth();
 
         if (celeritas::device())
         {
 #ifdef VECGEOM_ENABLE_CUDA
             auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
-            device_ref_.world_volume = cuda_manager.world_gpu();
+            host_data.scalars.device_world = cuda_manager.world_gpu();
 #endif
-            device_ref_.max_depth = host_ref_.max_depth;
-            CELER_ENSURE(device_ref_.world_volume);
+            CELER_ENSURE(host_data.scalars.device_world);
         }
-        CELER_ENSURE(host_ref_);
-        CELER_ENSURE(!celeritas::device() || device_ref_);
-    }
-    {
-        using namespace vecgeom;
-        CELER_ASSERT(host_ref_.world_volume);
-        auto const& world = *host_ref_.world_volume;
+
+        auto const& world = *geo.GetWorld();
 
         // Construct volume labels
         volumes_ = ImplVolumeMap{"volume", make_logical_vol_labels(world)};
         vol_instances_ = VolInstanceMap{"volume instance",
                                         make_physical_vol_labels(world)};
 
-        // Construct ImplVolume -> Volume map
         if (auto geant_geo = celeritas::geant_geo().lock())
         {
-            CELER_ASSERT(lv.size() <= this->impl_volumes().size());
-
-            volume_id_map_.resize(this->impl_volumes().size());
-            for (auto iv_id : range(id_cast<ImplVolumeId>(lv.size())))
+            // Construct ImplVolume -> Volume map
+            CELER_ASSERT(all_lv.size() <= this->impl_volumes().size());
+            resize(&host_data.volumes, this->impl_volumes().size());
+            for (auto iv_id : range(id_cast<ImplVolumeId>(all_lv.size())))
             {
-                if (auto* g4lv = lv[iv_id.get()])
+                if (auto* g4lv = all_lv[iv_id.get()])
                 {
                     auto vol_id = geant_geo->geant_to_id(*g4lv);
-                    volume_id_map_[iv_id.get()] = vol_id;
+                    host_data.volumes[iv_id] = vol_id;
+                }
+            }
+
+            // Construct ImplVolume -> VolumeInstance map
+            CELER_ASSERT(g4_pv_map_.size() <= this->volume_instances().size());
+            resize(&host_data.volume_instances,
+                   this->volume_instances().size());
+            for (auto impl_vi_idx : range(this->volume_instances().size()))
+            {
+                if (auto* g4pv = g4_pv_map_[impl_vi_idx])
+                {
+                    // TODO incorporate replica ID
+                    ImplVolumeInstanceId ivi_id{impl_vi_idx};
+                    auto vol_inst_id = geant_geo->geant_to_id(*g4pv);
+                    host_data.volume_instances[ivi_id] = vol_inst_id;
                 }
             }
         }
+        CELER_ASSERT(host_data);
+        data_ = CollectionMirror{std::move(host_data)};
 
         // Save world bbox
         bbox_ = [&world] {
             // Calculate bounding box
             auto bbox_mgr = detail::ABBoxManager_t::Instance();
-            Vector3D<real_type> lower, upper;
+            vecgeom::Vector3D<real_type> lower, upper;
             bbox_mgr.ComputeABBox(&world, &lower, &upper);
             return BBox{detail::to_array(lower), detail::to_array(upper)};
         }();
     }
 
     CELER_ENSURE(volumes_);
-    CELER_ENSURE(host_ref_);
+    CELER_ENSURE(data_);
 }
 
 //---------------------------------------------------------------------------//
@@ -471,7 +480,7 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
  */
 VecgeomParams::~VecgeomParams()
 {
-    if (device_ref_)
+    if (device_ownership_ == Ownership::value)
     {
         CELER_LOG(debug)
             << "Clearing VecGeom "
@@ -495,22 +504,21 @@ VecgeomParams::~VecgeomParams()
         }
     }
 
-    if (VecgeomParams::use_surface_tracking())
+    if (host_ownership_ == Ownership::value)
     {
-        CELER_LOG(debug) << "Clearing SurfModel CPU data";
-    }
-    try
-    {
-        VG_SURF_CALL(vgbrep::BrepHelper<real_type>::Instance().ClearData());
-    }
-    catch (std::exception const& e)
-    {
-        CELER_LOG(critical)
-            << "Failed during VecGeom surface model cleanup: " << e.what();
-    }
-
-    if (ownership_ == Ownership::value)
-    {
+        if (VecgeomParams::use_surface_tracking())
+        {
+            CELER_LOG(debug) << "Clearing SurfModel CPU data";
+        }
+        try
+        {
+            VG_SURF_CALL(vgbrep::BrepHelper<real_type>::Instance().ClearData());
+        }
+        catch (std::exception const& e)
+        {
+            CELER_LOG(critical)
+                << "Failed during VecGeom surface model cleanup: " << e.what();
+        }
         CELER_LOG(debug) << "Clearing VecGeom CPU data";
         vecgeom::GeoManager::Instance().Clear();
     }
@@ -533,6 +541,9 @@ inp::Model VecgeomParams::make_model_input() const
 //---------------------------------------------------------------------------//
 /*!
  * Get the Geant4 physical volume corresponding to a volume instance ID.
+ *
+ * \todo This actually uses the "implementation" volume instance ID. It'll be
+ * removed when we start using the volume params.
  */
 GeantPhysicalInstance VecgeomParams::id_to_geant(VolumeInstanceId id) const
 {
@@ -748,8 +759,17 @@ void VecgeomParams::build_volume_tracking()
 #endif
             msg << " from VecGeom runtime symbol)";
         }
+
+        device_ownership_ = Ownership::value;
     }
 }
+
+//---------------------------------------------------------------------------//
+// EXPLICIT TEMPLATE INSTANTIATION
+//---------------------------------------------------------------------------//
+
+template class CollectionMirror<VecgeomParamsData>;
+template class ParamsDataInterface<VecgeomParamsData>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

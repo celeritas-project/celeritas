@@ -67,6 +67,8 @@ namespace celeritas
  *
  * \todo \c move_internal with a position \em should depend on the safety
  * distance, but that check is not yet implemented.
+ *
+ * \todo \c LevelId should be \c ImplLevelId .
  */
 class OrangeTrackView
 {

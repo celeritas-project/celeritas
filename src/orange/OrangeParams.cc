@@ -215,7 +215,7 @@ OrangeParams::OrangeParams(OrangeInput&& input, VolumeParams const& volumes)
 
     // Construct device values and device/host references
     CELER_ASSERT(host_data);
-    data_ = CollectionMirror<OrangeParamsData>{std::move(host_data)};
+    data_ = CollectionMirror{std::move(host_data)};
 
     CELER_ENSURE(surf_labels_ && univ_labels_ && vol_labels_);
     CELER_ENSURE(data_);

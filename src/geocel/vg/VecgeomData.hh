@@ -20,36 +20,75 @@
 
 namespace celeritas
 {
+//! VecGeom::VPlacedVolume::id is unsigned int
+using ImplVolumeInstanceId = OpaqueId<struct ImplVolumeInstance_, unsigned int>;
+
 //---------------------------------------------------------------------------//
 // PARAMS
 //---------------------------------------------------------------------------//
+struct VecgeomScalars
+{
+    template<MemSpace M>
+    using PlacedVolumeT = typename detail::VecgeomTraits<M>::PlacedVolume;
+
+    PlacedVolumeT<MemSpace::host> const* host_world{nullptr};
+    PlacedVolumeT<MemSpace::device> const* device_world{nullptr};
+    LevelId::size_type max_depth = 0;
+
+    template<MemSpace M>
+    CELER_FUNCTION PlacedVolumeT<M> const* world() const
+    {
+        if constexpr (M == MemSpace::host)
+        {
+            return host_world;
+        }
+        else if constexpr (M == MemSpace::device)
+        {
+            return device_world;
+        }
+        CELER_ASSERT_UNREACHABLE();
+    }
+
+    //! Whether the scalars are valid (device may be null)
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return host_world != nullptr && max_depth > 0;
+    }
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Persistent data used by VecGeom implementation.
+ *
+ * The volumes and volume instances are only available if generating the
+ * geometry directly from Geant4.
  */
 template<Ownership W, MemSpace M>
 struct VecgeomParamsData
 {
-    using PlacedVolumeT = typename detail::VecgeomTraits<M>::PlacedVolume;
+    //! Values that don't require host/device copying
+    VecgeomScalars scalars;
 
-    PlacedVolumeT const* world_volume = nullptr;
-    LevelId::size_type max_depth = 0;
+    //! Map logical volume ID to G4
+    Collection<VolumeId, W, M, ImplVolumeId> volumes;
+    //! Map physical volume ID to G4
+    Collection<VolumeInstanceId, W, M, ImplVolumeInstanceId> volume_instances;
 
-    //! Whether the interface is initialized
+    //! Whether the data is initialized
     explicit CELER_FUNCTION operator bool() const
     {
-        return world_volume != nullptr && max_depth > 0;
+        // Volumes/instances can be absent if built from GDML
+        return scalars && (volumes.empty() == volume_instances.empty());
     }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     VecgeomParamsData& operator=(VecgeomParamsData<W2, M2>& other)
     {
-        static_assert(M2 == M && W2 == Ownership::value
-                          && W == Ownership::reference,
-                      "Only supported assignment is from value to reference");
         CELER_EXPECT(other);
-        world_volume = other.world_volume;
-        max_depth = other.max_depth;
+        scalars = other.scalars;
+        volumes = other.volumes;
+        volume_instances = other.volume_instances;
         return *this;
     }
 };
@@ -126,15 +165,15 @@ void resize(VecgeomStateData<Ownership::value, M>* data,
 {
     CELER_EXPECT(data);
     CELER_EXPECT(size > 0);
-    CELER_EXPECT(params.max_depth > 0);
+    CELER_EXPECT(params);
 
     resize(&data->pos, size);
     resize(&data->dir, size);
 #ifdef VECGEOM_USE_SURF
     resize(&data->next_surface, size);
 #endif
-    data->vgstate.resize(params.max_depth, size);
-    data->vgnext.resize(params.max_depth, size);
+    data->vgstate.resize(params.scalars.max_depth, size);
+    data->vgnext.resize(params.scalars.max_depth, size);
 
     CELER_ENSURE(data);
 }

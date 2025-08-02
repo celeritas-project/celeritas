@@ -14,6 +14,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
+#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/GeoParamsInterface.hh"
@@ -106,9 +107,8 @@ class VecgeomParams final : public GeoParamsInterface,
     //! Outer bounding box of geometry
     BBox const& bbox() const final { return bbox_; }
 
-    //! Maximum nested geometry depth
-    //! \todo move to VolumeParams
-    LevelId::size_type max_depth() const { return host_ref_.max_depth; }
+    // Maximum nested geometry depth
+    inline LevelId::size_type max_depth() const;
 
     // Create model parameters corresponding to our internal representation
     inp::Model make_model_input() const final;
@@ -136,16 +136,17 @@ class VecgeomParams final : public GeoParamsInterface,
     //// DATA ACCESS ////
 
     //! Access geometry data on host
-    HostRef const& host_ref() const final { return host_ref_; }
+    HostRef const& host_ref() const final { return data_.host_ref(); }
 
     //! Access geometry data on device
-    DeviceRef const& device_ref() const final { return device_ref_; }
+    DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
     //// DATA ////
 
     // Flag for resetting VecGeom on destruction
-    Ownership ownership_{Ownership::reference};
+    Ownership host_ownership_{Ownership::reference};
+    Ownership device_ownership_{Ownership::reference};
 
     // Host metadata/access (DEPRECATED)
     LabelIdMultiMap<ImplVolumeId> volumes_;
@@ -153,14 +154,10 @@ class VecgeomParams final : public GeoParamsInterface,
     std::unordered_map<G4LogicalVolume const*, ImplVolumeId> g4log_volid_map_;
     std::vector<G4VPhysicalVolume const*> g4_pv_map_;
 
-    // VolumeImplId -> VolumeId (to be moved to data)
-    std::vector<VolumeId> volume_id_map_;
-
     BBox bbox_;
 
     // Host/device storage and reference
-    HostRef host_ref_;
-    DeviceRef device_ref_;
+    CollectionMirror<VecgeomParamsData> data_;
 
     //// HELPER FUNCTIONS ////
 
@@ -169,6 +166,24 @@ class VecgeomParams final : public GeoParamsInterface,
     void build_volume_tracking();
 };
 
+//---------------------------------------------------------------------------//
+
+extern template class CollectionMirror<VecgeomParamsData>;
+extern template class ParamsDataInterface<VecgeomParamsData>;
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Maximum nested geometry depth.
+ *
+ * \todo Only use in VolumeParams
+ */
+LevelId::size_type VecgeomParams::max_depth() const
+{
+    return this->host_ref().scalars.max_depth;
+}
+//
 //---------------------------------------------------------------------------//
 /*!
  * Get volume metadata.
@@ -197,16 +212,17 @@ auto VecgeomParams::volume_instances() const -> VolInstanceMap const&
  */
 inline VolumeId VecgeomParams::volume_id(ImplVolumeId iv_id) const
 {
-    CELER_EXPECT(volume_id_map_.empty() || iv_id < volume_id_map_.size());
+    auto const& vol_ids = this->host_ref().volumes;
+    CELER_EXPECT(vol_ids.empty() || iv_id < vol_ids.size());
 
-    if (CELER_UNLIKELY(volume_id_map_.empty()))
+    if (CELER_UNLIKELY(vol_ids.empty()))
     {
         // VGDML probably loaded geometry
         CELER_ASSERT(iv_id);
         return id_cast<VolumeId>(iv_id.unchecked_get());
     }
 
-    return volume_id_map_[iv_id.unchecked_get()];
+    return vol_ids[iv_id];
 }
 
 //---------------------------------------------------------------------------//

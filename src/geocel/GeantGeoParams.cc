@@ -667,7 +667,17 @@ GeantPhysicalInstance GeantGeoParams::id_to_geant(VolumeInstanceId id) const
     GeantPhysicalInstance result;
     result.pv = (*pv_store)[id.unchecked_get()];
     CELER_ASSERT(result.pv);
-    result.replica = this->replica_id(*result.pv);
+    result.replica = [pv = result.pv] {
+        if (pv->VolumeType() == EVolume::kNormal)
+            return ReplicaId{};
+
+        auto copy_no = pv->GetCopyNo();
+        // NOTE: if this line fails, you probably need to call \c
+        // reset_replica_data from the local thread.
+        CELER_ASSERT(copy_no >= 0 && copy_no < pv->GetMultiplicity());
+        return id_cast<ReplicaId>(copy_no);
+    }();
+
     return result;
 }
 
@@ -702,7 +712,7 @@ GeoMatId GeantGeoParams::geant_to_id(G4Material const& g4mat) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the volume ID corresponding to a Geant4 physical volume.
+ * Get the volume instance ID corresponding to a Geant4 physical volume.
  *
  * \note See id_to_geant: the volume instance ID may be non-unique.
  */
@@ -718,25 +728,6 @@ GeantGeoParams::geant_to_id(G4VPhysicalVolume const& volume) const
         result = {};
     }
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the replica ID corresponding to a Geant4 physical volume.
- *
- * If the volume is not parameterized or replicated, the result is false.
- */
-auto GeantGeoParams::replica_id(G4VPhysicalVolume const& volume) const
-    -> ReplicaId
-{
-    if (volume.VolumeType() == EVolume::kNormal)
-        return {};
-
-    auto copy_no = volume.GetCopyNo();
-    // NOTE: if this line fails, you probably need to call \c
-    // reset_replica_data from the local thread.
-    CELER_ASSERT(copy_no >= 0 && copy_no < volume.GetMultiplicity());
-    return id_cast<ReplicaId>(copy_no);
 }
 
 //---------------------------------------------------------------------------//
