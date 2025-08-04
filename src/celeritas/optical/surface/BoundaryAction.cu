@@ -12,6 +12,8 @@
 #include "celeritas/optical/action/ActionLauncher.device.hh"
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
+#include "detail/BoundaryActionTraits.hh"
+
 namespace celeritas
 {
 namespace optical
@@ -38,8 +40,8 @@ void BoundaryAction<E>::step(CoreParams const& params,
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
-template class BoundaryAction<struct InitBoundaryExecutor>;
-template class BoundaryAction<struct PostBoundaryExecutor>;
+template class BoundaryAction<detail::InitBoundaryExecutor>;
+template class BoundaryAction<detail::PostBoundaryExecutor>;
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

@@ -12,48 +12,12 @@
 #include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
-#include "InitBoundaryExecutor.hh"
-#include "PostBoundaryExecutor.hh"
+#include "detail/BoundaryActionTraits.hh"
 
 namespace celeritas
 {
 namespace optical
 {
-//---------------------------------------------------------------------------//
-// TRAITS
-//---------------------------------------------------------------------------//
-
-template<>
-struct BoundaryActionTraits<struct InitBoundaryExecutor>
-{
-    constexpr static char const* action_name = "optical-boundary-init";
-    constexpr static char const* action_desc
-        = "Initialize optical boundary crossing action";
-
-    template<MemSpace M>
-    static InitBoundaryExecutor
-    construct(CoreParams const& params, CoreState<M>&)
-    {
-        return InitBoundaryExecutor{params.surface()->ref<M>()};
-    }
-};
-
-template<>
-struct BoundaryActionTraits<struct PostBoundaryExecutor>
-{
-    constexpr static char const* action_name = "optical-boundary-post";
-    constexpr static char const* action_desc
-        = "Finalize optical boundary crossing action";
-
-    template<MemSpace M>
-    static PostBoundaryExecutor construct(CoreParams const&, CoreState<M>&)
-    {
-        return PostBoundaryExecutor{};
-    }
-};
-
-//---------------------------------------------------------------------------//
-// BOUNDARY ACTION
 //---------------------------------------------------------------------------//
 /*!
  * Construct the boundary action from an action ID.
@@ -96,8 +60,8 @@ void BoundaryAction<E>::step(CoreParams const&, CoreStateDevice&) const
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
-template class BoundaryAction<InitBoundaryExecutor>;
-template class BoundaryAction<PostBoundaryExecutor>;
+template class BoundaryAction<detail::InitBoundaryExecutor>;
+template class BoundaryAction<detail::PostBoundaryExecutor>;
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

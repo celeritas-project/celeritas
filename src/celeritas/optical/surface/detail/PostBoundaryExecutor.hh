@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/surface/PostBoundaryExecutor.hh
+//! \file celeritas/optical/surface/detail/PostBoundaryExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,6 +13,8 @@
 namespace celeritas
 {
 namespace optical
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -41,5 +43,6 @@ CELER_FUNCTION void PostBoundaryExecutor::operator()(CoreTrackView& track) const
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace optical
 }  // namespace celeritas

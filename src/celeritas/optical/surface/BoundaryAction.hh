@@ -12,8 +12,19 @@ namespace celeritas
 {
 namespace optical
 {
+//---------------------------------------------------------------------------//
+// FORWARD DECLARATIONS
+//---------------------------------------------------------------------------//
+namespace detail
+{
+
 template<class E>
 struct BoundaryActionTraits;
+
+struct InitBoundaryExecutor;
+struct PostBoundaryExecutor;
+
+}  // namespace detail
 
 //---------------------------------------------------------------------------//
 /*!
@@ -32,7 +43,7 @@ class BoundaryAction : public OpticalStepActionInterface, public ConcreteAction
   public:
     //!@{
     //! \name Type aliases
-    using TraitsT = BoundaryActionTraits<E>;
+    using TraitsT = detail::BoundaryActionTraits<E>;
     //!@}
 
   public:
@@ -52,15 +63,15 @@ class BoundaryAction : public OpticalStepActionInterface, public ConcreteAction
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
-extern template class BoundaryAction<struct InitBoundaryExecutor>;
-extern template class BoundaryAction<struct PostBoundaryExecutor>;
+extern template class BoundaryAction<detail::InitBoundaryExecutor>;
+extern template class BoundaryAction<detail::PostBoundaryExecutor>;
 
 //---------------------------------------------------------------------------//
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
 
-using InitBoundaryAction = BoundaryAction<struct InitBoundaryExecutor>;
-using PostBoundaryAction = BoundaryAction<struct PostBoundaryExecutor>;
+using InitBoundaryAction = BoundaryAction<detail::InitBoundaryExecutor>;
+using PostBoundaryAction = BoundaryAction<detail::PostBoundaryExecutor>;
 
 //---------------------------------------------------------------------------//
 }  // namespace optical
