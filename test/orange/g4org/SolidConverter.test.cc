@@ -297,7 +297,6 @@ TEST_F(SolidConverterTest, ellipticalcone)
  * Test xtru with 4 levels of concavity. Points are supplied in clockwise
  order,
  * as preferred by Geant4.
- *
  \verbatim
                    7
  1                 |\
@@ -317,20 +316,18 @@ TEST_F(SolidConverterTest, extrudedsolid_concave)
     using ZSection = G4ExtrudedSolid::ZSection;
 
     // Setup G4Extruded solid construction commands
-    std::vector<G4TwoVector> polygon = {
-        {0, 0},
-        {-0.3, 1},
-        {0.15, 0.5},
-        {0.4, 0.7},
-        {0.45, 0.6},
-        {0.5, 0.7},
-        {0.8, 0.4},
-        {0.9, 1.2},
-        {1.2, 0.5},
-        {1, 0},
-        {0.1, 0},
-        {0.05, 0.01},
-    };
+    std::vector<G4TwoVector> polygon = {{0, 0},
+                                        {-0.3, 1},
+                                        {0.15, 0.5},
+                                        {0.4, 0.7},
+                                        {0.45, 0.6},
+                                        {0.5, 0.7},
+                                        {0.8, 0.4},
+                                        {0.9, 1.2},
+                                        {1.2, 0.5},
+                                        {1, 0},
+                                        {0.1, 0},
+                                        {0.05, 0.01}};
 
     ZSection bot(0, {0, 0}, 1);
     ZSection mid(1, {10, 5}, 0.5);
@@ -392,33 +389,9 @@ TEST_F(SolidConverterTest, generic_polycone)
     G4double phi_start = 0 * deg;
     G4double phi_end = 90 * deg;
     std::vector<G4double> r{
-        0.3,
-        0.0,
-        0.45,
-        0.7,
-        0.75,
-        0.8,
-        1.1,
-        1.2,
-        1.5,
-        1.3,
-        0.4,
-        0.35,
-    };
+        0.3, 0.0, 0.45, 0.7, 0.75, 0.8, 1.1, 1.2, 1.5, 1.3, 0.4, 0.35};
     std::vector<G4double> z{
-        -0.5,
-        0.5,
-        0.0,
-        0.2,
-        0.1,
-        0.2,
-        -0.1,
-        0.7,
-        0.0,
-        -0.5,
-        -0.5,
-        -0.49,
-    };
+        -0.5, 0.5, 0.0, 0.2, 0.1, 0.2, -0.1, 0.7, 0.0, -0.5, -0.5, -0.49};
 
     // Test 5 points near tricky corners and 2 outside of the azimuthal range
     this->build_and_test(

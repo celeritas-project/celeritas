@@ -553,11 +553,10 @@ auto SolidConverter::genericpolycone(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4GenericPolycone const&>(solid_base);
 
-    size_type num_points = solid.GetNumRZCorner();
-
-    // Get the polygon. Although Geant4 prefers clockwise order upone input,
+    // Get the polygon. Although Geant4 prefers clockwise order upon input,
     // GetCorner actually returns points in counterclockwise order, as used
     // by ORANGE.
+    size_type num_points = solid.GetNumRZCorner();
     std::vector<Real2> polygon;
     polygon.reserve(num_points);
     for (auto i : range(num_points))
