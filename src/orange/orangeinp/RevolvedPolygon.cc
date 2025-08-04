@@ -40,11 +40,10 @@ RevolvedPolygon::RevolvedPolygon(std::string&& label, VecReal2&& polygon)
                    << "polygon must have at least 3 vertices");
 
     // All points must be positive
-    CELER_VALIDATE(
-        std::all_of(polygon_.begin(),
-                    polygon_.end(),
-                    [](Real2 const& p) { return p[R] >= 0 && p[Z] >= 0; }),
-        << "polygon must consist of only positive r and z values");
+    CELER_VALIDATE(std::all_of(polygon_.begin(),
+                               polygon_.end(),
+                               [](Real2 const& p) { return p[R] >= 0; }),
+                   << "polygon must consist of only positive r values");
 }
 
 //---------------------------------------------------------------------------//
