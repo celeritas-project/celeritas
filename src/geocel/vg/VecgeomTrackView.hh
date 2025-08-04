@@ -92,7 +92,7 @@ class VecgeomTrackView
     //!@}
 
     // Get the current volume's ID
-    inline CELER_FUNCTION VolumeId volume_id() const;
+    inline CELER_FUNCTION ImplVolumeId impl_volume_id() const;
     // Get the ID of the current volume instance
     inline CELER_FUNCTION VolumeInstanceId volume_instance_id() const;
     // Get the depth in the geometry hierarchy
@@ -305,10 +305,10 @@ CELER_FUNCTION ImplSurfaceId VecgeomTrackView::next_impl_surface_id() const
 /*!
  * Get the volume ID in the current cell.
  */
-CELER_FORCEINLINE_FUNCTION VolumeId VecgeomTrackView::volume_id() const
+CELER_FORCEINLINE_FUNCTION ImplVolumeId VecgeomTrackView::impl_volume_id() const
 {
     CELER_EXPECT(!this->is_outside());
-    return id_cast<VolumeId>(this->volume().id());
+    return id_cast<ImplVolumeId>(this->volume().id());
 }
 
 //---------------------------------------------------------------------------//

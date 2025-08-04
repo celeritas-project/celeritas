@@ -20,17 +20,6 @@ using ScintParticleId = OpaqueId<struct ScintParticle_>;
 //! Opaque index to a scintillation spectrum
 using ParScintSpectrumId = OpaqueId<struct ParScintSpectrum>;
 
-namespace optical
-{
-
-enum class SubsurfaceDirection : int
-{
-    forward = 1,
-    reverse = -1
-};
-
-}  // namespace optical
-
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//
@@ -40,6 +29,22 @@ enum class GeneratorType
     cherenkov,
     scintillation,
 };
+
+namespace optical
+{
+
+enum class SubsurfaceDirection : bool
+{
+    reverse = false,
+    forward = true
+};
+
+CELER_FORCEINLINE_FUNCTION int to_signed_offset(SubsurfaceDirection d)
+{
+    return 2 * static_cast<int>(d) - 1;
+}
+
+}  // namespace optical
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

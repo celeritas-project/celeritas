@@ -42,7 +42,9 @@ struct CoreScalars
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return init_boundary_action && post_boundary_action && max_streams > 0;
+        return post_boundary_action
+               && init_boundary_action < post_boundary_action
+               && max_streams > 0;
     }
 };
 

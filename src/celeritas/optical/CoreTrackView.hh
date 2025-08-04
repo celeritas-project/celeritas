@@ -65,9 +65,6 @@ class CoreTrackView
     // Return a physics view
     inline CELER_FUNCTION PhysicsTrackView physics() const;
 
-    // Return a surface selector for the current volume
-    inline CELER_FUNCTION VolumeSurfaceSelector surface_selector() const;
-
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
 
@@ -171,7 +168,7 @@ CELER_FUNCTION auto
 CoreTrackView::material_record(GeoTrackView const& geo) const -> MaterialView
 {
     CELER_EXPECT(!geo.is_outside());
-    return MaterialView{params_.material, geo.volume_id()};
+    return MaterialView{params_.material, geo.impl_volume_id()};
 }
 
 //---------------------------------------------------------------------------//
@@ -193,16 +190,6 @@ CELER_FUNCTION auto CoreTrackView::physics() const -> PhysicsTrackView
     CELER_ASSERT(mat_id);
     return PhysicsTrackView{
         params_.physics, states_.physics, mat_id, this->track_slot_id()};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return a surface selector for the current volume.
- */
-CELER_FUNCTION auto CoreTrackView::surface_selector() const
-    -> VolumeSurfaceSelector
-{
-    return VolumeSurfaceSelector{params_.surface, this->geometry()};
 }
 
 //---------------------------------------------------------------------------//

@@ -30,8 +30,6 @@ constexpr real_type sqrt_two{constants::sqrt_two};
 class OrangeTest : public OrangeGeoTestBase
 {
   protected:
-    // Volumes are not quite the same as structural volumes
-    using VolumeId = ImplVolumeId;
     // Surfaces are not the same as user-defined/optical surfaces
     using SurfaceId = ImplSurfaceId;
 
@@ -53,15 +51,15 @@ TEST_F(OneVolumeTest, params)
     OrangeParams const& geo = this->params();
 
     EXPECT_EQ(1, geo.universes().size());
-    EXPECT_EQ(1, geo.volumes().size());
+    EXPECT_EQ(1, geo.impl_volumes().size());
     EXPECT_EQ(0, geo.surfaces().size());
     EXPECT_TRUE(geo.supports_safety());
 
     EXPECT_EQ("one volume", geo.universes().at(UniverseId{0}).name);
     EXPECT_EQ(UniverseId{0}, geo.universes().find_unique("one volume"));
 
-    EXPECT_EQ("infinite", geo.volumes().at(VolumeId{0}).name);
-    EXPECT_EQ(VolumeId{0}, geo.volumes().find_unique("infinite"));
+    EXPECT_EQ("infinite", geo.impl_volumes().at(ImplVolumeId{0}).name);
+    EXPECT_EQ(ImplVolumeId{0}, geo.impl_volumes().find_unique("infinite"));
 }
 
 TEST_F(OneVolumeTest, track_view)
@@ -72,7 +70,7 @@ TEST_F(OneVolumeTest, track_view)
     geo = Initializer_t{{3, 4, 5}, {0, 1, 0}};
     EXPECT_VEC_SOFT_EQ(Real3({3, 4, 5}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({0, 1, 0}), geo.dir());
-    EXPECT_EQ(VolumeId{0}, geo.volume_id());
+    EXPECT_EQ(ImplVolumeId{0}, geo.impl_volume_id());
     EXPECT_EQ(SurfaceId{}, geo.impl_surface_id());
     EXPECT_TRUE(geo.is_outside());
     EXPECT_FALSE(geo.is_on_boundary());
@@ -81,7 +79,7 @@ TEST_F(OneVolumeTest, track_view)
     geo = Initializer_t{geo.pos(), Real3{1, 0, 0}, TrackSlotId{0}};
     EXPECT_VEC_SOFT_EQ(Real3({3, 4, 5}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
-    EXPECT_EQ(VolumeId{0}, geo.volume_id());
+    EXPECT_EQ(ImplVolumeId{0}, geo.impl_volume_id());
     EXPECT_EQ(SurfaceId{}, geo.impl_surface_id());
     EXPECT_TRUE(geo.is_outside());
     EXPECT_FALSE(geo.is_on_boundary());
@@ -149,7 +147,7 @@ TEST_F(TwoVolumeTest, params)
 {
     OrangeParams const& geo = this->params();
 
-    EXPECT_EQ(2, geo.volumes().size());
+    EXPECT_EQ(2, geo.impl_volumes().size());
     EXPECT_EQ(1, geo.surfaces().size());
     EXPECT_TRUE(geo.supports_safety());
 
@@ -169,7 +167,7 @@ TEST_F(TwoVolumeTest, simple_track)
     geo = Initializer_t{{0.5, 0, 0}, {0, 0, 1}};
     EXPECT_VEC_SOFT_EQ(Real3({0.5, 0, 0}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.dir());
-    EXPECT_EQ(VolumeId{1}, geo.volume_id());
+    EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
     EXPECT_EQ(SurfaceId{}, geo.impl_surface_id());
     EXPECT_FALSE(geo.is_outside());
     EXPECT_FALSE(geo.is_on_boundary());
@@ -194,7 +192,7 @@ TEST_F(TwoVolumeTest, simple_track)
     // Move to boundary
     geo.move_to_boundary();
     EXPECT_VEC_SOFT_EQ(Real3({0.5, 0, sqrt_two}), geo.pos());
-    EXPECT_EQ(VolumeId{1}, geo.volume_id());
+    EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
     EXPECT_EQ(SurfaceId{0}, geo.impl_surface_id());
     EXPECT_FALSE(geo.is_outside());
     EXPECT_TRUE(geo.is_on_boundary());
@@ -205,7 +203,7 @@ TEST_F(TwoVolumeTest, simple_track)
 
     // Logically flip the surface into the new volume
     geo.cross_boundary();
-    EXPECT_EQ(VolumeId{0}, geo.volume_id());
+    EXPECT_EQ(ImplVolumeId{0}, geo.impl_volume_id());
     EXPECT_EQ(SurfaceId{0}, geo.impl_surface_id());
     EXPECT_TRUE(geo.is_outside());
     EXPECT_TRUE(geo.is_on_boundary());
@@ -225,7 +223,7 @@ TEST_F(TwoVolumeTest, simple_track)
     EXPECT_TRUE(next.boundary);
     geo.move_to_boundary();
     geo.cross_boundary();
-    EXPECT_EQ(VolumeId{1}, geo.volume_id());
+    EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
     EXPECT_EQ(SurfaceId{0}, geo.impl_surface_id());
 }
 
@@ -235,7 +233,7 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir)
 {
     auto geo = this->make_geo_track_view();
     geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
-    EXPECT_EQ(VolumeId{1}, geo.volume_id());
+    EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
     EXPECT_EQ(SurfaceId{}, geo.impl_surface_id());
 
     {
@@ -248,19 +246,19 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir)
         // Move to boundary
         geo.move_to_boundary();
         EXPECT_VEC_SOFT_EQ(Real3({1.49, 0.172916164657906, 0}), geo.pos());
-        EXPECT_EQ(VolumeId{1}, geo.volume_id());
+        EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.impl_surface_id());
     }
     {
         // Scatter on boundary so we're heading back into volume 1
         geo.set_dir({-1, 0, 0});
-        EXPECT_EQ(VolumeId{1}, geo.volume_id());
+        EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.impl_surface_id());
     }
     {
         // Cross back into volume
         geo.cross_boundary();
-        EXPECT_EQ(VolumeId{1}, geo.volume_id());
+        EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.impl_surface_id());
     }
     {
@@ -275,7 +273,7 @@ TEST_F(TwoVolumeTest, nonreentrant_boundary_setdir)
 {
     auto geo = this->make_geo_track_view();
     geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
-    EXPECT_EQ(VolumeId{1}, geo.volume_id());
+    EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
     EXPECT_EQ(SurfaceId{}, geo.impl_surface_id());
 
     {
@@ -288,19 +286,19 @@ TEST_F(TwoVolumeTest, nonreentrant_boundary_setdir)
         // Move to boundary
         geo.move_to_boundary();
         EXPECT_VEC_SOFT_EQ(Real3({1.49, 0.172916164657906, 0}), geo.pos());
-        EXPECT_EQ(VolumeId{1}, geo.volume_id());
+        EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.impl_surface_id());
     }
     {
         // Scatter on boundary so we're still leaving volume 1
         geo.set_dir({1, 0, 0});
-        EXPECT_EQ(VolumeId{1}, geo.volume_id());
+        EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.impl_surface_id());
     }
     {
         // Cross into new volume
         geo.cross_boundary();
-        EXPECT_EQ(VolumeId{0}, geo.volume_id());
+        EXPECT_EQ(ImplVolumeId{0}, geo.impl_volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.impl_surface_id());
     }
 }
@@ -312,7 +310,7 @@ TEST_F(TwoVolumeTest, doubly_reentrant_boundary_setdir)
 {
     auto geo = this->make_geo_track_view();
     geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
-    EXPECT_EQ(VolumeId{1}, geo.volume_id());
+    EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
     EXPECT_EQ(SurfaceId{}, geo.impl_surface_id());
 
     {
@@ -325,25 +323,25 @@ TEST_F(TwoVolumeTest, doubly_reentrant_boundary_setdir)
         // Move to boundary
         geo.move_to_boundary();
         EXPECT_VEC_SOFT_EQ(Real3({1.49, 0.172916164657906, 0}), geo.pos());
-        EXPECT_EQ(VolumeId{1}, geo.volume_id());
+        EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.impl_surface_id());
     }
     {
         // Scatter on boundary so we're heading back into volume 1
         geo.set_dir({-1, 0, 0});
-        EXPECT_EQ(VolumeId{1}, geo.volume_id());
+        EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.impl_surface_id());
     }
     {
         // Scatter again so we're headed out
         geo.set_dir({1, 0, 0});
-        EXPECT_EQ(VolumeId{1}, geo.volume_id());
+        EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.impl_surface_id());
     }
     {
         // Cross into new volume
         geo.cross_boundary();
-        EXPECT_EQ(VolumeId{0}, geo.volume_id());
+        EXPECT_EQ(ImplVolumeId{0}, geo.impl_volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.impl_surface_id());
     }
 }
@@ -354,7 +352,7 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir_post)
 {
     auto geo = this->make_geo_track_view();
     geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
-    EXPECT_EQ(VolumeId{1}, geo.volume_id());
+    EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
     EXPECT_EQ(SurfaceId{}, geo.impl_surface_id());
 
     {
@@ -367,12 +365,12 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir_post)
         // Move to boundary
         geo.move_to_boundary();
         EXPECT_VEC_SOFT_EQ(Real3({1.49, 0.172916164657906, 0}), geo.pos());
-        EXPECT_EQ(VolumeId{1}, geo.volume_id());
+        EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.impl_surface_id());
 
         // Cross into new volume
         geo.cross_boundary();
-        EXPECT_EQ(VolumeId{0}, geo.volume_id());
+        EXPECT_EQ(ImplVolumeId{0}, geo.impl_volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.impl_surface_id());
     }
     {
@@ -411,7 +409,7 @@ TEST_F(TwoVolumeTest, persistence)
     }
     {
         auto geo = this->make_geo_track_view();
-        EXPECT_EQ(VolumeId{0}, geo.volume_id());
+        EXPECT_EQ(ImplVolumeId{0}, geo.impl_volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.impl_surface_id());
         EXPECT_VEC_SOFT_EQ(Real3({1.5, 0, 0}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({-1, 0, 0}), geo.dir());
@@ -419,7 +417,7 @@ TEST_F(TwoVolumeTest, persistence)
     }
     {
         auto geo = this->make_geo_track_view();
-        EXPECT_EQ(VolumeId{1}, geo.volume_id());
+        EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.impl_surface_id());
         EXPECT_VEC_SOFT_EQ(Real3({1.5, 0, 0}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({-1, 0, 0}), geo.dir());
@@ -428,13 +426,13 @@ TEST_F(TwoVolumeTest, persistence)
         EXPECT_TRUE(next.boundary);
         geo.move_to_boundary();
         geo.cross_boundary();
-        EXPECT_EQ(VolumeId{0}, geo.volume_id());
+        EXPECT_EQ(ImplVolumeId{0}, geo.impl_volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.impl_surface_id());
         EXPECT_VEC_SOFT_EQ(Real3({-1.5, 0, 0}), geo.pos());
     }
     {
         auto geo = this->make_geo_track_view();
-        EXPECT_EQ(VolumeId{0}, geo.volume_id());
+        EXPECT_EQ(ImplVolumeId{0}, geo.impl_volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.impl_surface_id());
         EXPECT_VEC_SOFT_EQ(Real3({-1.5, 0, 0}), geo.pos());
         geo.move_internal({-1.5, .5, .5});
@@ -496,11 +494,11 @@ TEST_F(TwoVolumeTest, intersect_limited)
     EXPECT_TRUE(next.boundary);
     geo.move_to_boundary();
     EXPECT_VEC_SOFT_EQ(Real3({1.5, 0, 0}), geo.pos());
-    EXPECT_EQ(VolumeId{1}, geo.volume_id());
+    EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
     EXPECT_EQ(SurfaceId{0}, geo.impl_surface_id());
 
     geo.cross_boundary();
-    EXPECT_EQ(VolumeId{0}, geo.volume_id());
+    EXPECT_EQ(ImplVolumeId{0}, geo.impl_volume_id());
     for (real_type d : {10, 5, 20})
     {
         next = geo.find_next_step(d);

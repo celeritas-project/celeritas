@@ -44,7 +44,7 @@ class PhysicalVolumeConverterTest : public GeantLoadTestBase
     Label const& get_label(LogicalVolume const& lv)
     {
         CELER_EXPECT(lv.id);
-        return this->geo().volumes().at(lv.id);
+        return this->geo().impl_volumes().at(lv.id);
     }
 
     Label const& get_label(PhysicalVolume const& pv)

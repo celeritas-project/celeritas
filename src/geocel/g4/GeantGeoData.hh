@@ -33,7 +33,7 @@ struct GeantGeoParamsData
     G4VPhysicalVolume* world{nullptr};
 
     //! Instance ID of the first logical volume in the store
-    VolumeId::size_type lv_offset{0};
+    ImplVolumeId::size_type lv_offset{0};
     //! Instance ID of the first physical volume in the store
     VolumeInstanceId::size_type pv_offset{0};
     //! Instance ID of the first material in the store

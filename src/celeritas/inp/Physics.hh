@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "corecel/Types.hh"
+#include "corecel/io/Label.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 
@@ -60,10 +61,10 @@ struct EmPhysics
 struct OpticalPhysics
 {
     //!@{
-    //! \name Optical photon generation
-
-    /*! \todo Replace with a mapping of \c VolumeId to \c ScintillationPhysics
-     * or \c CherenkovPhysics
+    /*! \name Optical photon generation
+     *
+     *  \todo Replace with a mapping of volume to \c ScintillationPhysics or \c
+     *  CherenkovPhysics
      */
 
     //! Generate Cherenkov photons

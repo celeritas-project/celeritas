@@ -29,8 +29,7 @@ namespace optical
  */
 struct InitBoundaryExecutor
 {
-    //! TODO: remove when surface params fully implemented
-    bool surface_physics_enabled;
+    NativeCRef<SurfaceParamsData> const& surface_data;
 
     // Initialize track for boundary crossing
     inline CELER_FUNCTION void operator()(CoreTrackView& track) const;
@@ -53,23 +52,9 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
     auto geo = track.geometry();
     CELER_EXPECT(geo.is_on_boundary());
 
-    // SurfaceParams not built for all cases, use this to temporarily
-    // disable surface physics and kill tracks immediately
-    if (!surface_physics_enabled)
-    {
-        geo.cross_boundary();
-        if (CELER_UNLIKELY(geo.failed()))
-        {
-            track.apply_errored();
-        }
-        else
-        {
-            track.sim().status(TrackStatus::killed);
-        }
-        return;
-    }
-
-    auto select_surface = track.surface_selector();
+    // Surface selector must be created before crossing boundary to store
+    // pre-volume information
+    VolumeSurfaceSelector select_surface{surface_data, geo};
 
     // Move the particle across the boundary
     geo.cross_boundary();
@@ -78,20 +63,18 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
         track.apply_errored();
         return;
     }
+
+    // Find oriented surface after crossing boundary using post-volume
+    // information
+    if (auto oriented_surface = select_surface(geo))
+    {
+        // initialize surface state
+        track.sim().post_step_action(track.post_boundary_action());
+    }
     else
     {
-        auto oriented_surface = select_surface(geo);
-
-        if (!oriented_surface.surface)
-        {
-            // If there's no surface, mark photon as killed
-            track.sim().status(TrackStatus::killed);
-        }
-        else
-        {
-            // initialize surface state
-            track.sim().post_step_action(track.post_boundary_action());
-        }
+        // If there's no surface, mark photon as killed
+        track.sim().status(TrackStatus::killed);
     }
 }
 

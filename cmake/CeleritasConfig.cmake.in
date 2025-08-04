@@ -183,10 +183,12 @@ if(NOT TARGET celeritas)
   include("${CELERITAS_CMAKE_DIR}/CeleritasTargets.cmake")
 
   # Add simple alias for user apps
-  if(CELERITAS_USE_Geant4)
-    add_library(Celeritas::G4 ALIAS Celeritas::accel)
-  else()
-    add_library(Celeritas::G4 ALIAS Celeritas::BuildFlags)
+  if(NOT TARGET Celeritas::G4)
+    if(CELERITAS_USE_Geant4)
+      add_library(Celeritas::G4 ALIAS Celeritas::accel)
+    else()
+      add_library(Celeritas::G4 ALIAS Celeritas::BuildFlags)
+    endif()
   endif()
 endif()
 

@@ -17,6 +17,7 @@
 #include <utility>
 #include <vector>
 #include <CLHEP/Units/SystemOfUnits.h>
+#include <G4Cerenkov.hh>
 #include <G4Element.hh>
 #include <G4ElementTable.hh>
 #include <G4ElementVector.hh>
@@ -48,6 +49,7 @@
 #include <G4RToEConvForProton.hh>
 #include <G4Region.hh>
 #include <G4RegionStore.hh>
+#include <G4Scintillation.hh>
 #include <G4String.hh>
 #include <G4Transportation.hh>
 #include <G4TransportationManager.hh>
@@ -78,7 +80,9 @@
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
+#include "geocel/VolumeParams.hh"
 #include "geocel/g4/VisitVolumes.hh"
+#include "geocel/inp/Model.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/inp/Grid.hh"
 #include "celeritas/io/AtomicRelaxationReader.hh"
@@ -921,6 +925,12 @@ auto import_processes(GeantImporter::DataSelection selected,
                 import_optical_model(optical::ImportModelClass::wls2));
         }
 #endif
+        else if (dynamic_cast<G4Cerenkov const*>(&process)
+                 || dynamic_cast<G4Scintillation const*>(&process))
+        {
+            // The data needed for Cherenkov and scintillation is imported from
+            // the optical material property table
+        }
         else
         {
             CELER_LOG(error)
@@ -1205,18 +1215,18 @@ std::vector<ImportVolume> import_volumes()
     auto geo = celeritas::geant_geo().lock();
     CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
 
-    auto const& volumes = geo->volumes();
+    VolumeParams volume_params{geo->make_model_input().volumes};
+
+    auto const& volumes = volume_params.volume_labels();
     std::vector<ImportVolume> result(volumes.size());
     size_type count{0};
 
     for (auto vol_id : range(VolumeId{volumes.size()}))
     {
-        auto const& label = volumes.at(vol_id);
-        if (label.empty())
+        auto* g4lv = geo->id_to_geant(vol_id);
+        if (!g4lv)
             continue;
 
-        auto* g4lv = geo->id_to_geant(vol_id);
-        CELER_ASSERT(g4lv);
         ImportVolume& volume = result[vol_id.get()];
         if (auto* mat = g4lv->GetMaterial())
         {
@@ -1230,9 +1240,7 @@ std::vector<ImportVolume> import_volumes()
         {
             volume.phys_material_id = cuts->GetIndex();
         }
-        // TODO: when changing to celeritas::inp, just make this a label
-        // instead of converting to and from a std::string
-        volume.name = to_string(label);
+        volume.name = to_string(volume_params.volume_labels().at(vol_id));
         volume.solid_name = g4lv->GetSolid()->GetName();
 
         ++count;

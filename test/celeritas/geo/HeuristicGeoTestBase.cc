@@ -128,7 +128,7 @@ auto HeuristicGeoTestBase::build_test_params()
 
     HeuristicGeoParamsData<Ownership::const_reference, M> result;
     result.s = this->build_scalars();
-    result.s.num_volumes = geo.volumes().size();
+    result.s.num_volumes = geo.impl_volumes().size();
     result.s.ignore_zero_safety = geo.supports_safety();
     CELER_ASSERT(result.s);
 
@@ -143,7 +143,7 @@ auto HeuristicGeoTestBase::get_avg_path_impl(VecReal const& path,
                                              size_type num_states) const
     -> VecReal
 {
-    CELER_EXPECT(path.size() == this->geometry()->volumes().size());
+    CELER_EXPECT(path.size() == this->geometry()->impl_volumes().size());
 
     auto const& geo = *this->geometry();
 
@@ -151,10 +151,10 @@ auto HeuristicGeoTestBase::get_avg_path_impl(VecReal const& path,
     SpanConstStr ref_vol_labels = this->reference_volumes();
     if (ref_vol_labels.empty())
     {
-        temp_labels.reserve(geo.volumes().size());
-        for (auto vid : range(VolumeId{geo.volumes().size()}))
+        temp_labels.reserve(geo.impl_volumes().size());
+        for (auto vid : range(ImplVolumeId{geo.impl_volumes().size()}))
         {
-            std::string const& vol_name = geo.volumes().at(vid).name;
+            std::string const& vol_name = geo.impl_volumes().at(vid).name;
             if (vol_name != "[EXTERIOR]")
             {
                 temp_labels.push_back(vol_name);
@@ -176,7 +176,7 @@ auto HeuristicGeoTestBase::get_avg_path_impl(VecReal const& path,
     real_type const norm = 1 / real_type(num_states);
     for (auto i : range(ref_vol_labels.size()))
     {
-        auto vol_id = geo.volumes().find_unique(ref_vol_labels[i]);
+        auto vol_id = geo.impl_volumes().find_unique(ref_vol_labels[i]);
         if (vol_id)
         {
             result[i] = path[vol_id.unchecked_get()] * norm;

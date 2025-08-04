@@ -60,14 +60,14 @@ class SimpleCmsTest : public SDTestBase, public SimpleCmsTestBase
     }
 
     std::vector<std::string>
-    volume_names(std::vector<VolumeId> const& vols) const
+    volume_names(std::vector<ImplVolumeId> const& vols) const
     {
         auto const& geo = *this->geometry();
 
         std::vector<std::string> result;
-        for (VolumeId vid : vols)
+        for (ImplVolumeId vid : vols)
         {
-            result.push_back(geo.volumes().at(vid).name);
+            result.push_back(geo.impl_volumes().at(vid).name);
         }
         return result;
     }

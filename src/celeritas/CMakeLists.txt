@@ -110,6 +110,7 @@ list(APPEND SOURCES
   optical/MaterialParams.cc
   optical/ModelImporter.cc
   optical/PhysicsParams.cc
+  optical/Transporter.cc
   optical/action/ActionGroups.cc
   optical/action/LocateVacanciesAction.cc
   optical/detail/OpticalLaunchAction.cc
@@ -355,8 +356,7 @@ celeritas_polysource(optical/gen/OffloadGatherAction)
 celeritas_polysource(optical/gen/PrimaryGeneratorAction)
 celeritas_polysource(optical/gen/detail/GeneratorAlgorithms)
 celeritas_polysource(optical/gen/detail/OffloadAlgorithms)
-celeritas_polysource(optical/surface/InitBoundaryAction)
-celeritas_polysource(optical/surface/PostBoundaryAction)
+celeritas_polysource(optical/surface/BoundaryAction)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)
 celeritas_polysource(phys/detail/TrackingCutAction)

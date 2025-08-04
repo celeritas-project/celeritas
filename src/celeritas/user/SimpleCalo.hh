@@ -105,7 +105,7 @@ class SimpleCalo final : public StepInterface, public OutputInterface
 
     std::string output_label_;
     VecLabel volume_labels_;
-    std::vector<VolumeId> volume_ids_;
+    std::vector<ImplVolumeId> volume_ids_;
     StoreT store_;
 };
 

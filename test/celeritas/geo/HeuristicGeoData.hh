@@ -38,9 +38,9 @@ struct HeuristicGeoScalars
     real_type geom_limit = 5e-8 * units::millimeter;
 
     // Set from geometry
-    VolumeId::size_type num_volumes{};
+    ImplVolumeId::size_type num_volumes{};
     bool ignore_zero_safety{};
-    VolumeId world_volume;
+    ImplVolumeId world_volume;
 
     explicit CELER_FUNCTION operator bool() const
     {
@@ -93,7 +93,7 @@ struct HeuristicGeoStateData
     StateItems<LifeStatus> status;
     size_type step{0};
 
-    Collection<real_type, W, M, VolumeId> accum_path;
+    Collection<real_type, W, M, ImplVolumeId> accum_path;
 
     //! Number of state elements
     CELER_FUNCTION size_type size() const { return geometry.size(); }

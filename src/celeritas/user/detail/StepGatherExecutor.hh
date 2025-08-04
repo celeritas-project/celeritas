@@ -78,7 +78,7 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
         {
             auto const geo = track.geometry();
             CELER_ASSERT(!geo.is_outside());
-            VolumeId vol = geo.volume_id();
+            ImplVolumeId vol = geo.impl_volume_id();
             CELER_ASSERT(vol);
 
             // Map volume ID to detector ID
@@ -148,7 +148,8 @@ StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
         SGL_SET_IF_SELECTED(points[P].pos, geo.pos());
         SGL_SET_IF_SELECTED(points[P].dir, geo.dir());
         SGL_SET_IF_SELECTED(points[P].volume_id,
-                            geo.is_outside() ? VolumeId{} : geo.volume_id());
+                            geo.is_outside() ? ImplVolumeId{}
+                                             : geo.impl_volume_id());
 
         if (this->params.selection.points[P].volume_instance_ids)
         {

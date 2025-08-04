@@ -20,7 +20,7 @@ struct SDParamsData
     //// DATA ////
 
     //! Mapping for volume -> sensitive detector
-    Collection<DetectorId, W, M, VolumeId> detector;
+    Collection<DetectorId, W, M, ImplVolumeId> detector;
 
     //! Whether the data is assigned
     explicit CELER_FUNCTION operator bool() const { return !detector.empty(); }

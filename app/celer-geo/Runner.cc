@@ -48,7 +48,8 @@ Runner::Runner(ModelSetup const& input) : input_{input}
     {
         // Retain the Geant4 world for possible reuse across geometries
         CELER_EXPECT(celeritas::geant_geo().expired());
-        celeritas::geant_geo(this->load_geometry<Geometry::geant4>());
+        this->load_geometry<Geometry::geant4>();
+        CELER_EXPECT(!celeritas::geant_geo().expired());
     }
 }
 
@@ -92,10 +93,10 @@ std::vector<std::string> Runner::get_volumes(Geometry g) const&
     CELER_EXPECT(geo_cache_[g]);
 
     auto const& geo = *geo_cache_[g];
-    std::vector<std::string> result(geo.volumes().size());
-    for (auto i : range<VolumeId::size_type>(result.size()))
+    std::vector<std::string> result(geo.impl_volumes().size());
+    for (auto i : range<ImplVolumeId::size_type>(result.size()))
     {
-        result[i] = geo.volumes().at(VolumeId{i}).name;
+        result[i] = geo.impl_volumes().at(ImplVolumeId{i}).name;
     }
     return result;
 }

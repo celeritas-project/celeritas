@@ -23,8 +23,7 @@
 #include "action/LocateVacanciesAction.hh"
 #include "action/PreStepAction.hh"
 #include "action/TrackingCutAction.hh"
-#include "surface/InitBoundaryAction.hh"
-#include "surface/PostBoundaryAction.hh"
+#include "surface/BoundaryAction.hh"
 
 namespace celeritas
 {

@@ -66,7 +66,8 @@ class TestEm3Test : public HeuristicGeoTestBase
         HeuristicGeoScalars result;
         result.lower = {-19.77, -20, -20};
         result.upper = {19.43, 20, 20};
-        result.world_volume = this->geometry()->volumes().find_unique("world");
+        result.world_volume
+            = this->geometry()->impl_volumes().find_unique("world");
         return result;
     }
 
@@ -144,7 +145,8 @@ class SimpleCmsTest : public HeuristicGeoTestBase
         result.upper = {30, 30, 700};
         result.log_min_step = std::log(1e-4);
         result.log_max_step = std::log(1e2);
-        result.world_volume = this->geometry()->volumes().find_unique("world");
+        result.world_volume
+            = this->geometry()->impl_volumes().find_unique("world");
         return result;
     }
 
@@ -316,7 +318,7 @@ TEST_F(SimpleCmsTest, output)
     if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE && CELERITAS_USE_GEANT4)
     {
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-1000.0,-1000.0,-2000.0],[1000.0,1000.0,2000.0]],"max_depth":2,"supports_safety":true,"volumes":{"label":["vacuum_tube","si_tracker","em_calorimeter","had_calorimeter","sc_solenoid","fe_muon_chambers","world"]}})json",
+            R"json({"_category":"internal","_label":"geometry","bbox":[[-1e3,-1e3,-2e3],[1e3,1e3,2e3]],"supports_safety":true,"volumes":{"label":["vacuum_tube","si_tracker","em_calorimeter","had_calorimeter","sc_solenoid","fe_muon_chambers","world"]}})json",
             s);
     }
 }
