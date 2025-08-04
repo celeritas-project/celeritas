@@ -148,9 +148,10 @@ TEST_F(RevolvedPolygonTest, two_levels)
            "Plane: z=1.5",
            "Cone z: t=0.8 at {0,0,0}",
            "Cone z: t=0.4 at {0,0,4.5}"};
-    static char const* const expected_volume_strings[]
-        = {"all(+0, -1, -3, !all(+0, -1, -2), !all(!all(+0, -1, -2), "
-           "any(all(+0, -4, -5), all(-1, +4, -6))))"};
+    static char const* const expected_volume_strings[] = {
+        "all(+0, -1, -3, !all(+0, -1, -2), !all(!all(+0, -1, -2), any(all(+0, "
+        "-4, -5), all(-1, +4, -6))))",
+    };
 
     static char const* const expected_md_strings[] = {
         "",
@@ -230,9 +231,10 @@ TEST_F(RevolvedPolygonTest, three_levels)
         "Cyl z: r=3",
         "Cyl z: r=2",
     };
-    static char const* const expected_volume_strings[]
-        = {"all(+0, -1, -2, !all(+0, -1, -3), !all(-1, +4, -6, !all(-1, +4, "
-           "-5), !all(+4, -7, -8, !all(+4, -7, -9))))"};
+    static char const* const expected_volume_strings[] = {
+        "all(+0, -1, -2, !all(+0, -1, -3), !all(-1, +4, -6, !all(-1, +4, -5), "
+        "!all(+4, -7, -8, !all(+4, -7, -9))))",
+    };
 
     static char const* const expected_md_strings[] = {
         "",
