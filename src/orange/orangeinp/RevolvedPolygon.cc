@@ -149,14 +149,12 @@ NodeId RevolvedPolygon::make_region(detail::VolumeBuilder& vb,
     std::vector<NodeId> outer_nodes;
     std::vector<NodeId> inner_nodes;
 
-    auto next_idx = [n](size_type i) { return (i + 1) % n; };
-
     // Create subregions for each pair of adjacent points that do not form
     // a horizontal line or a line that coincides with the z axis
     for (auto i : range(n))
     {
         auto const& p0 = polygon[i];
-        auto const& p1 = polygon[next_idx(i)];
+        auto const& p1 = polygon[(i + 1) % n];
 
         if (soft_equal(p0[Z], p1[Z]) || (soft_zero(p0[R]) && soft_zero(p1[R])))
         {
