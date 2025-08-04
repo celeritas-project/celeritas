@@ -9,6 +9,8 @@
 #include "orange/orangeinp/Shape.hh"
 #include "orange/orangeinp/Solid.hh"
 #include "orange/orangeinp/Transformed.hh"
+#include "orange/orangeinp/detail/CsgUnitBuilder.hh"
+#include "orange/orangeinp/detail/SenseEvaluator.hh"
 
 #include "CsgTestUtils.hh"
 #include "ObjectTestBase.hh"
@@ -28,8 +30,20 @@ class RevolvedPolygonTest : public ObjectTestBase
     using VecReal2 = RevolvedPolygon::VecReal2;
 
     Tol tolerance() const override { return Tol::from_default(); }
-};
 
+    SignedSense eval_sense(Real3 const& pos)
+    {
+        CELER_ASSERT(vol_id_);
+        auto const& u = this->unit();
+        CELER_ASSERT(vol_id_ < u.tree.volumes().size());
+        auto n = u.tree.volumes()[vol_id_.get()];
+        detail::SenseEvaluator eval_sense(u.tree, u.surfaces, pos);
+        return eval_sense(n);
+    };
+
+    /// DATA  ///
+    LocalVolumeId vol_id_;
+};
 //---------------------------------------------------------------------------//
 /* Test the simplest case: a single subregion.
  \verbatim
@@ -49,7 +63,7 @@ TEST_F(RevolvedPolygonTest, one_subregion)
 {
     VecReal2 polygon{{0, 0}, {3, 0}, {3, 2}, {0, 2}};
 
-    this->build_volume(RevolvedPolygon{"rp", std::move(polygon)});
+    vol_id_ = this->build_volume(RevolvedPolygon{"rp", std::move(polygon)});
 
     static char const* const expected_surface_strings[]
         = {"Plane: z=0", "Plane: z=2", "Cyl z: r=3"};
@@ -70,11 +84,25 @@ TEST_F(RevolvedPolygonTest, one_subregion)
         "7: {{{-2.12,-2.12,0}, {2.12,2.12,2}}, {{-3,-3,0}, {3,3,2}}}",
     };
 
+    // Test construction
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
     EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
+
+    // Test senses
+    EXPECT_EQ(SignedSense::inside, this->eval_sense({0, 0, 1}));
+    EXPECT_EQ(SignedSense::inside, this->eval_sense({2, 2, 1}));
+    EXPECT_EQ(SignedSense::inside, this->eval_sense({-2, -2, 1}));
+
+    EXPECT_EQ(SignedSense::on, this->eval_sense({0, 0, 0}));
+    EXPECT_EQ(SignedSense::on, this->eval_sense({3, 0, 1}));
+    EXPECT_EQ(SignedSense::on, this->eval_sense({0, 3, 1}));
+    EXPECT_EQ(SignedSense::on, this->eval_sense({0, -3, 1}));
+
+    EXPECT_EQ(SignedSense::outside, this->eval_sense({0, 0, -1}));
+    EXPECT_EQ(SignedSense::outside, this->eval_sense({3.1, 0, 1}));
 }
 
 //---------------------------------------------------------------------------//
@@ -96,7 +124,7 @@ TEST_F(RevolvedPolygonTest, two_subregion)
 {
     VecReal2 polygon{{1, 2}, {0, 0}, {3, 0}, {3, 2}};
 
-    this->build_volume(RevolvedPolygon{"rp", std::move(polygon)});
+    vol_id_ = this->build_volume(RevolvedPolygon{"rp", std::move(polygon)});
 
     static char const* const expected_surface_strings[] = {
         "Plane: z=0", "Plane: z=2", "Cone z: t=0.5 at {0,0,0}", "Cyl z: r=3"};
@@ -126,15 +154,33 @@ TEST_F(RevolvedPolygonTest, two_subregion)
         "12: {{{-1,-1,0}, {1,1,2}}, {{-3,-3,0}, {3,3,2}}}",
     };
 
+    // Test construction
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
     EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
+
+    // Test senses
+    EXPECT_EQ(SignedSense::inside, this->eval_sense({0.1, 0.1, 0.1}));
+    EXPECT_EQ(SignedSense::inside, this->eval_sense({2, 2, 1}));
+    EXPECT_EQ(SignedSense::inside, this->eval_sense({-2, -2, 1}));
+
+    EXPECT_EQ(SignedSense::on, this->eval_sense({0.5, 0, 1}));
+    EXPECT_EQ(SignedSense::on, this->eval_sense({0, 0, 0}));
+    EXPECT_EQ(SignedSense::on, this->eval_sense({3, 0, 1}));
+    EXPECT_EQ(SignedSense::on, this->eval_sense({0, 3, 1}));
+    EXPECT_EQ(SignedSense::on, this->eval_sense({0, -3, 1}));
+
+    EXPECT_EQ(SignedSense::outside, this->eval_sense({0.45, 0, 1}));
+    EXPECT_EQ(SignedSense::outside, this->eval_sense({-0.45, 0, 1}));
+    EXPECT_EQ(SignedSense::outside, this->eval_sense({0, 0, -1}));
+    EXPECT_EQ(SignedSense::outside, this->eval_sense({0, 0, 1}));
+    EXPECT_EQ(SignedSense::outside, this->eval_sense({3.1, 0, 1}));
 }
 
 //---------------------------------------------------------------------------//
-/* Test case with a single concave region.
+/* test case with a single concave region.
  \verbatim
     3 _
        |
@@ -152,7 +198,7 @@ TEST_F(RevolvedPolygonTest, two_levels)
 {
     VecReal2 polygon{{1, 2}, {1.2, 1.5}, {0, 0}, {3, 0}, {3, 2}};
 
-    this->build_volume(RevolvedPolygon{"rp", std::move(polygon)});
+    vol_id_ = this->build_volume(RevolvedPolygon{"rp", std::move(polygon)});
 
     static char const* const expected_surface_strings[]
         = {"Plane: z=0",
@@ -208,11 +254,30 @@ TEST_F(RevolvedPolygonTest, two_levels)
         "24: {null, {{-3,-3,0}, {3,3,2}}}",
     };
 
+    // Test construction
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
     EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
+
+    // Test senses
+    EXPECT_EQ(SignedSense::inside, this->eval_sense({0.1, 0.1, 0.01}));
+    EXPECT_EQ(SignedSense::inside, this->eval_sense({2, 2, 1}));
+    EXPECT_EQ(SignedSense::inside, this->eval_sense({-2, -2, 1}));
+
+    EXPECT_EQ(SignedSense::inside, this->eval_sense({0.61, 0, 0.75}));
+    EXPECT_EQ(SignedSense::on, this->eval_sense({0, 0, 0}));
+    EXPECT_EQ(SignedSense::on, this->eval_sense({3, 0, 1}));
+    EXPECT_EQ(SignedSense::on, this->eval_sense({0, 3, 1}));
+    EXPECT_EQ(SignedSense::on, this->eval_sense({0, -3, 1}));
+
+    EXPECT_EQ(SignedSense::outside, this->eval_sense({0.59, 0, 0.75}));
+    EXPECT_EQ(SignedSense::outside, this->eval_sense({0.45, 0, 1}));
+    EXPECT_EQ(SignedSense::outside, this->eval_sense({-0.45, 0, 1}));
+    EXPECT_EQ(SignedSense::outside, this->eval_sense({0, 0, -1}));
+    EXPECT_EQ(SignedSense::outside, this->eval_sense({0, 0, 1}));
+    EXPECT_EQ(SignedSense::outside, this->eval_sense({3.1, 0, 1}));
 }
 
 //---------------------------------------------------------------------------//
@@ -245,7 +310,7 @@ TEST_F(RevolvedPolygonTest, three_levels)
                      {0.33, 3},
                      {0.33, 0.5}};
 
-    this->build_volume(RevolvedPolygon{"rp", std::move(polygon)});
+    vol_id_ = this->build_volume(RevolvedPolygon{"rp", std::move(polygon)});
 
     static char const* const expected_surface_strings[] = {
         "Plane: z=0.5",
@@ -322,11 +387,45 @@ TEST_F(RevolvedPolygonTest, three_levels)
         "35: {null, {{-5,-5,0.5}, {5,5,3}}}",
     };
 
+    // Test construction
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
     EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
+
+    //---------------------------------------------------------------------------//
+    /* These cases with nested concavity.
+     \verbatim
+       3 __  __ . . . . . . .  ____
+          | |  |              |    |
+       2 _| |  |     ____     |    |
+     z    | |  |    |    |    |    |
+       1 _| |  |____|. . |____|    |
+          | |______________________|
+       0 _|________________________
+          |    |    |    |    |    |
+          0    1    2    3    4    5
+                      r
+      \endverbatim
+     */
+
+    // Test senses
+    EXPECT_EQ(SignedSense::inside, this->eval_sense({0.6, 0, 2}));
+    EXPECT_EQ(SignedSense::inside, this->eval_sense({0, 2.5, 1.5}));
+    EXPECT_EQ(SignedSense::inside, this->eval_sense({0, -2.5, 1.5}));
+    EXPECT_EQ(SignedSense::inside, this->eval_sense({3.2, -3.2, 2.9}));
+
+    EXPECT_EQ(SignedSense::on, this->eval_sense({4, 0, 0.5}));
+    EXPECT_EQ(SignedSense::on, this->eval_sense({-2, -2, 0.5}));
+    EXPECT_EQ(SignedSense::on, this->eval_sense({0.7, 0, 3}));
+    EXPECT_EQ(SignedSense::on, this->eval_sense({0, 2.5, 2}));
+
+    EXPECT_EQ(SignedSense::outside, this->eval_sense({3, -3, 0.3}));
+    EXPECT_EQ(SignedSense::outside, this->eval_sense({0.3, 0, 2}));
+    EXPECT_EQ(SignedSense::outside, this->eval_sense({1.5, 0, 2.1}));
+    EXPECT_EQ(SignedSense::outside, this->eval_sense({-3.5, 0, 1.5}));
+    EXPECT_EQ(SignedSense::outside, this->eval_sense({0, 2.5, 2.5}));
 }
 
 //---------------------------------------------------------------------------//
