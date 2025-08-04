@@ -7,6 +7,7 @@
 #pragma once
 
 #include "ObjectInterface.hh"
+#include "Solid.hh"
 
 #include "detail/VolumeBuilder.hh"
 
@@ -88,7 +89,9 @@ class RevolvedPolygon final : public ObjectInterface
     //!@}
 
     // Construct from a polygon
-    RevolvedPolygon(std::string&& label, VecReal2&& polygon);
+    RevolvedPolygon(std::string&& label,
+                    VecReal2&& polygon,
+                    EnclosedAzi&& enclosed);
 
     //// INTERFACE ////
 
@@ -105,6 +108,9 @@ class RevolvedPolygon final : public ObjectInterface
 
     //! Get the polygon
     VecReal2 const& polygon() const { return polygon_; };
+
+    //! Get the azimuthal angular restriction
+    EnclosedAzi const& enclosed_azi() const { return enclosed_; }
 
   private:
     /// TYPES ///
@@ -154,6 +160,7 @@ class RevolvedPolygon final : public ObjectInterface
 
     std::string label_;
     VecReal2 polygon_;
+    EnclosedAzi enclosed_;
 };
 
 //---------------------------------------------------------------------------//
