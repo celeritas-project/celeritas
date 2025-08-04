@@ -20,6 +20,7 @@
 #include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/LabelIO.json.hh"
@@ -343,7 +344,16 @@ void to_json(nlohmann::json& j, UnitInput const& value)
         auto volume_labels = nlohmann::json::array();
         for (auto const& v : value.volumes)
         {
-            volume_labels.push_back(v.label);
+            // TODO: add JSON IO for OpaqueID
+            volume_labels.push_back(
+                std::visit(return_as<nlohmann::json>(Overload{
+                               [](Label const& label) { return label; },
+                               [](VolumeInstanceId id) -> nlohmann::json {
+                                   if (!id)
+                                       return nullptr;
+                                   return id.unchecked_get();
+                               }}),
+                           v.label));
         }
         return volume_labels;
     }();

@@ -17,6 +17,7 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/Types.hh"
+#include "geocel/VolumeParams.hh"
 #include "orange/OrangeInput.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/detail/UniverseIndexer.hh"
@@ -172,7 +173,8 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
 void OrangeGeoTestBase::build_geometry(UnitInput input)
 {
     CELER_EXPECT(input);
-    params_ = std::make_unique<Params>(to_input(std::move(input)));
+    params_
+        = std::make_unique<Params>(to_input(std::move(input)), VolumeParams{});
     // Base class will construct geometry from this call via build_geometry
     ASSERT_TRUE(this->geometry());
 }

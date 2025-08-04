@@ -21,8 +21,9 @@
 #    include "inp/Model.hh"
 #endif
 
-class G4VPhysicalVolume;
 class G4LogicalSurface;
+class G4Material;
+class G4VPhysicalVolume;
 
 namespace celeritas
 {
@@ -139,6 +140,9 @@ class GeantGeoParams final : public GeoParamsInterface,
     GeoMatId::size_type mat_offset() const { return data_.mat_offset; }
 
     //// G4 ACCESSORS ////
+
+    // Get the geometry material ID for a logical volume (may be null)
+    GeoMatId geant_to_id(G4Material const& mat) const;
 
     //! Get the canonical volume ID corresponding to a Geant4 logical volume
     VolumeId geant_to_id(G4LogicalVolume const& volume) const
@@ -315,6 +319,10 @@ inline GeantPhysicalInstance GeantGeoParams::id_to_geant(VolumeInstanceId) const
     CELER_ASSERT_UNREACHABLE();
 }
 inline G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId) const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+inline GeoMatId GeantGeoParams::geant_to_id(G4Material const&) const
 {
     CELER_ASSERT_UNREACHABLE();
 }

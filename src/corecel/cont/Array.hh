@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cstddef>
+#include <type_traits>
 #include <utility>
 
 #include "corecel/Macros.hh"
@@ -23,8 +24,8 @@ namespace celeritas
  *
  * This isn't fully standards-compliant with std::array: there's no support for
  * N=0 for example. Additionally it uses the native celeritas \c size_type,
- * even though this has *no* effect on generated code for values of N inside
- * the range of \c size_type.
+ * even though this has \em no effect on generated code for values of N inside
+ * the range of \c size_type. Arrays are also zero-initialized by default.
  *
  * \note For supplementary functionality, include:
  * - \c corecel/math/ArrayUtils.hh for real-number vector/matrix applications
@@ -33,8 +34,11 @@ namespace celeritas
  * - \c ArrayIO.json.hh for JSON input and output
  */
 template<class T, ::celeritas::size_type N>
-struct Array
+class Array
 {
+    static_assert(N > 0);
+
+  public:
     //!@{
     //! \name Type aliases
     using value_type = T;
@@ -45,78 +49,107 @@ struct Array
     using const_reference = value_type const&;
     using iterator = pointer;
     using const_iterator = const_pointer;
+
+    using CArrayConstRef = T const (&)[N];
     //!@}
 
-    //// DATA ////
+  public:
+    //! Default construction initializes to zero
+    CELER_CEF Array() : d_{T{}} {}
 
-    T data_[N];  //!< Storage
+    //! Construct from an array for aggregate initialization of daughters
+    CELER_CEF Array(CArrayConstRef values)
+    {
+        for (size_type i = 0; i < N; ++i)
+        {
+            d_[i] = values[i];
+        }
+    }
+
+    //! Construct with C-style aggregate initialization
+    CELER_CEF Array(T first) : d_{first} {}
+
+    //! Construct with the array's data
+    template<class... Us>
+    CELER_CEF Array(T first, Us... rest) : d_{first, static_cast<T>(rest)...}
+    {
+        // Protect against leaving off an entry, e.g. Array<int, 2>(1)
+        static_assert(sizeof...(rest) + 1 == N,
+                      "All array entries must be explicitly specified");
+    }
 
     //// ACCESSORS ////
 
     //!@{
     //! \name Element access
-    CELER_CONSTEXPR_FUNCTION const_reference operator[](size_type i) const
-    {
-        return data_[i];
-    }
-    CELER_CONSTEXPR_FUNCTION reference operator[](size_type i)
-    {
-        return data_[i];
-    }
-    CELER_CONSTEXPR_FUNCTION const_reference front() const { return data_[0]; }
-    CELER_CONSTEXPR_FUNCTION reference front() { return data_[0]; }
-    CELER_CONSTEXPR_FUNCTION const_reference back() const
-    {
-        return data_[N - 1];
-    }
-    CELER_CONSTEXPR_FUNCTION reference back() { return data_[N - 1]; }
-    CELER_CONSTEXPR_FUNCTION const_pointer data() const { return data_; }
-    CELER_CONSTEXPR_FUNCTION pointer data() { return data_; }
+    CELER_CEF const_reference operator[](size_type i) const { return d_[i]; }
+    CELER_CEF reference operator[](size_type i) { return d_[i]; }
+    CELER_CEF const_reference front() const { return d_[0]; }
+    CELER_CEF reference front() { return d_[0]; }
+    CELER_CEF const_reference back() const { return d_[N - 1]; }
+    CELER_CEF reference back() { return d_[N - 1]; }
+    CELER_CEF const_pointer data() const { return d_; }
+    CELER_CEF pointer data() { return d_; }
+    //!@}
 
+    //!@{
     //! Access for structured unpacking
     template<std::size_t I>
-    CELER_CONSTEXPR_FUNCTION T& get()
+    CELER_CEF T& get()
     {
         static_assert(I < static_cast<std::size_t>(N));
-        return data_[I];
+        return d_[I];
     }
-
-    //! Access for structured unpacking
     template<std::size_t I>
-    CELER_CONSTEXPR_FUNCTION T const& get() const
+    CELER_CEF T const& get() const
     {
         static_assert(I < static_cast<std::size_t>(N));
-        return data_[I];
+        return d_[I];
     }
     //!@}
 
     //!@{
     //! \name Iterators
-    CELER_CONSTEXPR_FUNCTION iterator begin() { return data_; }
-    CELER_CONSTEXPR_FUNCTION iterator end() { return data_ + N; }
-    CELER_CONSTEXPR_FUNCTION const_iterator begin() const { return data_; }
-    CELER_CONSTEXPR_FUNCTION const_iterator end() const { return data_ + N; }
-    CELER_CONSTEXPR_FUNCTION const_iterator cbegin() const { return data_; }
-    CELER_CONSTEXPR_FUNCTION const_iterator cend() const { return data_ + N; }
+    CELER_CEF iterator begin() { return d_; }
+    CELER_CEF iterator end() { return d_ + N; }
+    CELER_CEF const_iterator begin() const { return d_; }
+    CELER_CEF const_iterator end() const { return d_ + N; }
+    CELER_CEF const_iterator cbegin() const { return d_; }
+    CELER_CEF const_iterator cend() const { return d_ + N; }
     //!@}
 
     //!@{
     //! \name Capacity
-    CELER_CONSTEXPR_FUNCTION bool empty() const { return N == 0; }
-    static CELER_CONSTEXPR_FUNCTION size_type size() { return N; }
+    CELER_CEF bool empty() const { return N == 0; }
+    static CELER_CEF size_type size() { return N; }
     //!@}
 
     //!@{
     //! \name  Operations
 
     //! Fill the array with a constant value
-    CELER_CONSTEXPR_FUNCTION void fill(const_reference value)
+    CELER_CEF void fill(const_reference value)
     {
         for (size_type i = 0; i != N; ++i)
-            data_[i] = value;
+        {
+            d_[i] = value;
+        }
     }
     //!@}
+
+  private:
+    T d_[N];  //!< Storage
 };
+
+//---------------------------------------------------------------------------//
+// DEDUCTION GUIDES
+//---------------------------------------------------------------------------//
+
+// Note: this differs from std::array, which deduces from T rather than the
+// common type
+template<class T, class... Us>
+CELER_FUNCTION Array(T, Us...)
+    -> Array<std::common_type_t<T, Us...>, 1 + sizeof...(Us)>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -125,8 +158,7 @@ struct Array
  * Test equality of two arrays.
  */
 template<class T, size_type N>
-CELER_CONSTEXPR_FUNCTION bool
-operator==(Array<T, N> const& lhs, Array<T, N> const& rhs)
+CELER_CEF bool operator==(Array<T, N> const& lhs, Array<T, N> const& rhs)
 {
     for (size_type i = 0; i != N; ++i)
     {
@@ -141,8 +173,7 @@ operator==(Array<T, N> const& lhs, Array<T, N> const& rhs)
  * Test inequality of two arrays.
  */
 template<class T, size_type N>
-CELER_CONSTEXPR_FUNCTION bool
-operator!=(Array<T, N> const& lhs, Array<T, N> const& rhs)
+CELER_CEF bool operator!=(Array<T, N> const& lhs, Array<T, N> const& rhs)
 {
     return !(lhs == rhs);
 }

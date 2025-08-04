@@ -37,8 +37,8 @@ namespace g4org
 /*!
  * Create an ORANGE geometry model from an in-memory Geant4 model.
  *
- * Return the new world volume and a mapping of Geant4 logical volumes to
- * VecGeom-based volume IDs.
+ * Return a complete geometry input, including a mapping of internal
+ * ORANGE volume IDs to structural volume IDs.
  *
  * The default Geant4 "tolerance" (often used as surface "thickness") is 1e-9
  * mm, and the relative tolerance when specifying a length scale is 1e-11 (so
@@ -53,7 +53,6 @@ class Converter
     //!@{
     //! \name Type aliases
     using arg_type = GeantGeoParams const&;
-    using MapLvVolId = std::unordered_map<G4LogicalVolume const*, ImplVolumeId>;
     //!@}
 
     //! Input options for the conversion
@@ -72,7 +71,6 @@ class Converter
     struct result_type
     {
         OrangeInput input;
-        MapLvVolId volumes;  //! TODO
     };
 
   public:
@@ -83,7 +81,7 @@ class Converter
     Converter() : Converter{Options{}} {}
 
     // Convert the world
-    result_type operator()(arg_type);
+    result_type operator()(GeantGeoParams const&);
 
   private:
     Options opts_;
