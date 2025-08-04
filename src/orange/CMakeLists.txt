@@ -40,6 +40,7 @@ list(APPEND SOURCES
   orangeinp/ObjectIO.json.cc
   orangeinp/PolySolid.cc
   orangeinp/ProtoInterface.cc
+  orangeinp/RevolvedPolygon.cc
   orangeinp/Shape.cc
   orangeinp/Solid.cc
   orangeinp/StackedExtrudedPolygon.cc
