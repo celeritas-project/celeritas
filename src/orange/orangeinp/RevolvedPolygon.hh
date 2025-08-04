@@ -83,13 +83,14 @@ namespace orangeinp
  * 3) .nui : the negation of .ui,
  * 4) .d : the difference between .ou and .iu.
  *
- * If the supplied EnclosedAzi object is not [0, 2pi] the following additional
- * nodes are added:
+ * If the supplied EnclosedAzi object is not [0, 2pi], additional nodes with
+ the
+ * following extensions are added:
  *
- * 1) label@angle : the enclosed azimuthal angle,
- * 2) label@negated_angle : the negation of "angle", when less than a half turn
- *    is enclosed,
- * 3) label@restricted : the intersection of the revolved polygon and
+ * 1) angle : the enclosed azimuthal angle,
+ * 2) negated_angle : the negation of "angle", when less than a half turn is
+ * enclosed,
+ * 3) restricted : the intersection of the revolved polygon and
  *    angle/negated_angle.
  */
 class RevolvedPolygon final : public ObjectInterface
