@@ -649,33 +649,17 @@ TEST_F(SolidsTest, DISABLED_imager)
 }
 
 //---------------------------------------------------------------------------//
-class TilecalPlugTest : public GeantGeoTest
+using TilecalPlugTest
+    = GenericGeoParameterizedTest<GeantGeoTest, TilecalPlugGeoTest>;
+
+TEST_F(TilecalPlugTest, model)
 {
-    std::string geometry_basename() const final { return "tilecal-plug"; }
-};
+    this->impl().test_model();
+}
 
 TEST_F(TilecalPlugTest, trace)
 {
-    {
-        SCOPED_TRACE("+z");
-        auto result = this->track({5.75, 0.01, -40}, {0, 0, 1});
-        static char const* const expected_volumes[] = {"Tile_ITCModule",
-                                                       "Tile_Plug1Module",
-                                                       "Tile_Absorber",
-                                                       "Tile_Plug1Module"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {22.9425, 0.115, 42, 37};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-    }
-    {
-        SCOPED_TRACE("+z");
-        auto result = this->track({6.25, 0.01, -40}, {0, 0, 1});
-        static char const* const expected_volumes[]
-            = {"Tile_ITCModule", "Tile_Absorber", "Tile_Plug1Module"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {23.0575, 42, 37};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-    }
+    this->impl().test_trace();
 }
 
 //---------------------------------------------------------------------------//

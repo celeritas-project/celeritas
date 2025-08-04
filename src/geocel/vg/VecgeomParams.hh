@@ -130,6 +130,9 @@ class VecgeomParams final : public GeoParamsInterface,
     // DEPRECATED
     using GeoParamsInterface::find_volume;
 
+    // Get the canonical volume IDs corresponding to an implementation volume
+    inline VolumeId volume_id(ImplVolumeId) const final;
+
     //// DATA ACCESS ////
 
     //! Access geometry data on host
@@ -144,11 +147,14 @@ class VecgeomParams final : public GeoParamsInterface,
     // Flag for resetting VecGeom on destruction
     Ownership ownership_{Ownership::reference};
 
-    // Host metadata/access
+    // Host metadata/access (DEPRECATED)
     LabelIdMultiMap<ImplVolumeId> volumes_;
     VolInstanceMap vol_instances_;
     std::unordered_map<G4LogicalVolume const*, ImplVolumeId> g4log_volid_map_;
     std::vector<G4VPhysicalVolume const*> g4_pv_map_;
+
+    // VolumeImplId -> VolumeId (to be moved to data)
+    std::vector<VolumeId> volume_id_map_;
 
     BBox bbox_;
 
@@ -181,6 +187,26 @@ auto VecgeomParams::impl_volumes() const -> ImplVolumeMap const&
 auto VecgeomParams::volume_instances() const -> VolInstanceMap const&
 {
     return vol_instances_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the canonical volume IDs corresponding to an implementation volume.
+ *
+ * \note See make_inp_volumes : for now, volume IDs and impl IDs are identical
+ */
+inline VolumeId VecgeomParams::volume_id(ImplVolumeId iv_id) const
+{
+    CELER_EXPECT(volume_id_map_.empty() || iv_id < volume_id_map_.size());
+
+    if (CELER_UNLIKELY(volume_id_map_.empty()))
+    {
+        // VGDML probably loaded geometry
+        CELER_ASSERT(iv_id);
+        return id_cast<VolumeId>(iv_id.unchecked_get());
+    }
+
+    return volume_id_map_[iv_id.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//

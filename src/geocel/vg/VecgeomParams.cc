@@ -364,6 +364,9 @@ bool VecgeomParams::use_vgdml()
 //---------------------------------------------------------------------------//
 /*!
  * Set up vecgeom given existing an already set up VecGeom CPU world.
+ *
+ * \todo Instead of VecLv and VecPv, once we we remove `find_volume(G4LV*)`,
+ * just pass a vector of volume IDs.
  */
 VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
                              Ownership owns,
@@ -431,6 +434,22 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
         volumes_ = ImplVolumeMap{"volume", make_logical_vol_labels(world)};
         vol_instances_ = VolInstanceMap{"volume instance",
                                         make_physical_vol_labels(world)};
+
+        // Construct ImplVolume -> Volume map
+        if (auto geant_geo = celeritas::geant_geo().lock())
+        {
+            CELER_ASSERT(lv.size() <= this->impl_volumes().size());
+
+            volume_id_map_.resize(this->impl_volumes().size());
+            for (auto iv_id : range(id_cast<ImplVolumeId>(lv.size())))
+            {
+                if (auto* g4lv = lv[iv_id.get()])
+                {
+                    auto vol_id = geant_geo->geant_to_id(*g4lv);
+                    volume_id_map_[iv_id.get()] = vol_id;
+                }
+            }
+        }
 
         // Save world bbox
         bbox_ = [&world] {

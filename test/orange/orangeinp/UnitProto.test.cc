@@ -102,6 +102,29 @@ SPConstProto make_daughter(std::string label)
     return std::make_shared<UnitProto>(std::move(inp));
 }
 
+void append_daughter(UnitProto::Input& inp,
+                     SPConstProto&& fill,
+                     VariantTransform&& transform,
+                     UnitProto::VariantLabel&& label = {})
+{
+    UnitProto::DaughterInput di;
+    di.fill = std::move(fill);
+    di.transform = std::move(transform);
+    di.label = std::move(label);
+    inp.daughters.emplace_back(std::move(di));
+}
+
+void append_material(UnitProto::Input& inp,
+                     SPConstObject&& obj,
+                     GeoMatId::size_type m)
+{
+    CELER_EXPECT(obj);
+    UnitProto::MaterialInput mi;
+    mi.interior = std::move(obj);
+    mi.fill = GeoMatId{m};
+    inp.materials.emplace_back(std::move(mi));
+}
+
 std::string proto_labels(ProtoInterface::VecProto const& vp)
 {
     auto stream_proto_ptr = [](std::ostream& os, ProtoInterface const* p) {
@@ -115,16 +138,6 @@ std::string proto_labels(ProtoInterface::VecProto const& vp)
         }
     };
     return to_string(join_stream(vp.begin(), vp.end(), ",", stream_proto_ptr));
-}
-
-UnitProto::MaterialInput
-make_material(SPConstObject&& obj, GeoMatId::size_type m)
-{
-    CELER_EXPECT(obj);
-    UnitProto::MaterialInput result;
-    result.interior = std::move(obj);
-    result.fill = GeoMatId{m};
-    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -151,8 +164,7 @@ TEST_F(LeafTest, errors)
         inp.boundary.interior = std::make_shared<NegatedObject>(
             "bad-interior", make_cyl("bound", 1.0, 1.0));
         inp.boundary.zorder = ZOrder::media;
-        inp.materials.push_back(
-            make_material(SPConstObject(inp.boundary.interior), 1));
+        append_material(inp, SPConstObject(inp.boundary.interior), 1);
         UnitProto const proto{std::move(inp)};
 
         EXPECT_THROW(proto.build(tol_, BBox{}), RuntimeError);
@@ -166,10 +178,10 @@ TEST_F(LeafTest, explicit_exterior)
     inp.boundary.interior = make_cyl("bound", 1.0, 1.0);
     inp.boundary.zorder = ZOrder::media;
     inp.label = "leaf";
-    inp.materials.push_back(make_material(
-        make_translated(make_cyl("bottom", 1, 0.5), {0, 0, -0.5}), 1));
-    inp.materials.push_back(make_material(
-        make_translated(make_cyl("top", 1, 0.5), {0, 0, 0.5}), 2));
+    append_material(
+        inp, make_translated(make_cyl("bottom", 1, 0.5), {0, 0, -0.5}), 1);
+    append_material(
+        inp, make_translated(make_cyl("top", 1, 0.5), {0, 0, 0.5}), 2);
     UnitProto const proto{std::move(inp)};
 
     EXPECT_EQ("", proto_labels(proto.daughters()));
@@ -221,7 +233,7 @@ TEST_F(LeafTest, implicit_exterior)
     inp.boundary.zorder = ZOrder::exterior;
     inp.background.fill = GeoMatId{0};
     inp.label = "leaf";
-    inp.materials.push_back(make_material(make_cyl("middle", 1, 0.5), 1));
+    append_material(inp, make_cyl("middle", 1, 0.5), 1);
     UnitProto const proto{std::move(inp)};
 
     {
@@ -263,14 +275,14 @@ TEST_F(MotherTest, explicit_exterior)
     inp.boundary.interior = make_sph("bound", 10.0);
     inp.boundary.zorder = ZOrder::media;
     inp.label = "mother";
-    inp.materials.push_back(
-        make_material(make_translated(make_sph("leaf", 1), {0, 0, -5}), 1));
-    inp.materials.push_back(
-        make_material(make_translated(make_sph("leaf2", 1), {0, 0, 5}), 2));
-    inp.daughters.push_back({make_daughter("d1"), Translation{{0, 5, 0}}});
-    inp.daughters.push_back(
-        {make_daughter("d2"),
-         Transformation{make_rotation(Axis::x, Turn{0.25}), {0, -5, 0}}});
+    append_material(inp, make_translated(make_sph("leaf", 1), {0, 0, -5}), 1);
+    append_material(inp, make_translated(make_sph("leaf2", 1), {0, 0, 5}), 2);
+    append_daughter(inp, make_daughter("d1"), Translation{{0, 5, 0}}, "d");
+    append_daughter(
+        inp,
+        make_daughter("d2"),
+        Transformation{make_rotation(Axis::x, Turn{0.25}), {0, -5, 0}},
+        "e");
 
     // Construct "inside" cell
     std::vector<std::pair<Sense, SPConstObject>> interior
@@ -283,8 +295,7 @@ TEST_F(MotherTest, explicit_exterior)
     {
         interior.push_back({Sense::outside, d.make_interior()});
     }
-    inp.materials.push_back(
-        make_material(make_rdv("interior", std::move(interior)), 3));
+    append_material(inp, make_rdv("interior", std::move(interior)), 3);
 
     UnitProto const proto{std::move(inp)};
 
@@ -366,14 +377,14 @@ TEST_F(MotherTest, implicit_exterior)
     inp.boundary.interior = make_sph("bound", 10.0);
     inp.boundary.zorder = ZOrder::media;
     inp.label = "mother";
-    inp.materials.push_back(
-        make_material(make_translated(make_sph("leaf", 1), {0, 0, -5}), 1));
-    inp.materials.push_back(
-        make_material(make_translated(make_sph("leaf2", 1), {0, 0, 5}), 2));
-    inp.daughters.push_back({make_daughter("d1"), Translation{{0, 5, 0}}});
-    inp.daughters.push_back(
-        {make_daughter("d2"),
-         Transformation{make_rotation(Axis::x, Turn{0.25}), {0, -5, 0}}});
+    append_material(inp, make_translated(make_sph("leaf", 1), {0, 0, -5}), 1);
+    append_material(inp, make_translated(make_sph("leaf2", 1), {0, 0, 5}), 2);
+    append_daughter(inp, make_daughter("d1"), Translation{{0, 5, 0}}, "d");
+    append_daughter(
+        inp,
+        make_daughter("d2"),
+        Transformation{make_rotation(Axis::x, Turn{0.25}), {0, -5, 0}},
+        "e");
     inp.background.fill = GeoMatId{3};
 
     UnitProto const proto{std::move(inp)};
@@ -404,12 +415,12 @@ TEST_F(MotherTest, fuzziness)
     inp.boundary.interior = make_sph("bound", 10.0);
     inp.boundary.zorder = ZOrder::media;
     inp.label = "fuzzy";
-    inp.daughters.push_back({make_daughter("d1"), {}});
-    inp.materials.push_back(make_material(
-        make_rdv("interior",
-                 {{Sense::inside, inp.boundary.interior},
-                  {Sense::outside, make_sph("similar", 1.0001)}}),
-        1));
+    append_daughter(inp, make_daughter("d1"), {}, "d");
+    append_material(inp,
+                    make_rdv("interior",
+                             {{Sense::inside, inp.boundary.interior},
+                              {Sense::outside, make_sph("similar", 1.0001)}}),
+                    1);
 
     UnitProto const proto{std::move(inp)};
 
@@ -506,12 +517,12 @@ TEST_F(InputBuilderTest, globalspheres)
         auto inner = make_sph("inner", 5.0);
 
         // Construct "inside" cell
-        inp.materials.push_back(
-            make_material(make_rdv("shell",
-                                   {{Sense::inside, inp.boundary.interior},
-                                    {Sense::outside, inner}}),
-                          1));
-        inp.materials.push_back(make_material(std::move(inner), 2));
+        append_material(inp,
+                        make_rdv("shell",
+                                 {{Sense::inside, inp.boundary.interior},
+                                  {Sense::outside, inner}}),
+                        1);
+        append_material(inp, std::move(inner), 2);
         return inp;
     }()};
 
@@ -525,10 +536,10 @@ TEST_F(InputBuilderTest, bgspheres)
         inp.boundary.interior = make_sph("bound", 10.0);
         inp.label = "global";
 
-        inp.materials.push_back(make_material(
-            make_translated(make_sph("top", 2.0), {0, 0, 3}), 1));
-        inp.materials.push_back(make_material(
-            make_translated(make_sph("bottom", 3.0), {0, 0, -3}), 2));
+        append_material(
+            inp, make_translated(make_sph("top", 2.0), {0, 0, 3}), 1);
+        append_material(
+            inp, make_translated(make_sph("bottom", 3.0), {0, 0, -3}), 2);
         inp.background.fill = GeoMatId{3};
         return inp;
     }()};
@@ -546,8 +557,7 @@ TEST_F(InputBuilderTest, universes)
         inp.label = "most_inner";
         inp.boundary.interior = patricia;
         inp.boundary.zorder = ZOrder::media;
-        inp.materials.push_back(
-            make_material(make_rdv("patty", {{Sense::inside, patricia}}), 2));
+        append_material(inp, make_rdv("patty", {{Sense::inside, patricia}}), 2);
         return inp;
     }());
 
@@ -560,18 +570,17 @@ TEST_F(InputBuilderTest, universes)
         inp.label = "inner";
         inp.boundary.interior = gamma;
         inp.boundary.zorder = ZOrder::media;
-        inp.daughters.push_back({most_inner, Translation{{-2, -2, 0}}});
-        inp.materials.push_back(
-            make_material(make_rdv("a", {{Sense::inside, alpha}}), 0));
-        inp.materials.push_back(
-            make_material(make_rdv("b", {{Sense::inside, beta}}), 1));
-        inp.materials.push_back(make_material(
+        append_daughter(inp, most_inner, Translation{{-2, -2, 0}}, "p");
+        append_material(inp, make_rdv("a", {{Sense::inside, alpha}}), 0);
+        append_material(inp, make_rdv("b", {{Sense::inside, beta}}), 1);
+        append_material(
+            inp,
             make_rdv("c",
                      {{Sense::outside, alpha},
                       {Sense::outside, beta},
                       {Sense::inside, gamma},
                       {Sense::outside, inp.daughters[0].make_interior()}}),
-            2));
+            2);
         return inp;
     }());
 
@@ -583,19 +592,17 @@ TEST_F(InputBuilderTest, universes)
         inp.label = "outer";
         inp.boundary.interior = john;
         inp.boundary.zorder = ZOrder::media;
-        inp.daughters.push_back(
-            {inner, Translation{{2, -2, -0.5}}, ZOrder::media});
-        inp.daughters.push_back(
-            {inner, Translation{{2, -2, 0.5}}, ZOrder::media});
-        inp.materials.push_back(
-            make_material(make_rdv("bobby", {{Sense::inside, bob}}), 3));
-        inp.materials.push_back(make_material(
+        append_daughter(inp, inner, Translation{{2, -2, -0.5}}, "i0");
+        append_daughter(inp, inner, Translation{{2, -2, 0.5}}, "i1");
+        append_material(inp, make_rdv("bobby", {{Sense::inside, bob}}), 3);
+        append_material(
+            inp,
             make_rdv("johnny",
                      {{Sense::outside, bob},
                       {Sense::inside, john},
                       {Sense::outside, inp.daughters[0].make_interior()},
                       {Sense::outside, inp.daughters[1].make_interior()}}),
-            4));
+            4);
         return inp;
     }());
 
@@ -609,10 +616,10 @@ TEST_F(InputBuilderTest, hierarchy)
         inp.boundary.interior = make_cyl("bound", 1.0, 1.0);
         inp.boundary.zorder = ZOrder::media;
         inp.label = "leafy";
-        inp.materials.push_back(make_material(
-            make_translated(make_cyl("bottom", 1, 0.5), {0, 0, -0.5}), 1));
-        inp.materials.push_back(make_material(
-            make_translated(make_cyl("top", 1, 0.5), {0, 0, 0.5}), 2));
+        append_material(
+            inp, make_translated(make_cyl("bottom", 1, 0.5), {0, 0, -0.5}), 1);
+        append_material(
+            inp, make_translated(make_cyl("top", 1, 0.5), {0, 0, 0.5}), 2);
         return inp;
     }());
 
@@ -621,14 +628,16 @@ TEST_F(InputBuilderTest, hierarchy)
         inp.boundary.interior = make_sph("bound", 10.0);
         inp.boundary.zorder = ZOrder::exterior;
         inp.label = "filled_daughter";
-        inp.materials.push_back(make_material(
-            make_translated(make_sph("leaf1", 1), {0, 0, -5}), 1));
-        inp.materials.push_back(make_material(
-            make_translated(make_sph("leaf2", 1), {0, 0, 5}), 2));
-        inp.daughters.push_back({make_daughter("d1"), Translation{{0, 5, 0}}});
-        inp.daughters.push_back(
-            {make_daughter("d2"),
-             Transformation{make_rotation(Axis::x, Turn{0.25}), {0, -5, 0}}});
+        append_material(
+            inp, make_translated(make_sph("leaf1", 1), {0, 0, -5}), 1);
+        append_material(
+            inp, make_translated(make_sph("leaf2", 1), {0, 0, 5}), 2);
+        append_daughter(inp, make_daughter("d1"), Translation{{0, 5, 0}}, "d");
+        append_daughter(
+            inp,
+            make_daughter("d2"),
+            Transformation{make_rotation(Axis::x, Turn{0.25}), {0, -5, 0}},
+            "e");
         inp.background.fill = GeoMatId{3};
         return inp;
     }());
@@ -638,18 +647,21 @@ TEST_F(InputBuilderTest, hierarchy)
         inp.boundary.interior = make_sph("bound", 100.0);
         inp.boundary.zorder = ZOrder::media;
         inp.label = "global";
-        inp.daughters.push_back({make_daughter("d1"), Translation{{0, 5, 0}}});
-        inp.daughters.push_back(
-            {make_daughter("d2"),
-             Transformation{make_rotation(Axis::x, Turn{0.25}), {0, -5, 0}}});
-        inp.daughters.push_back({filled_daughter, Translation{{0, 0, -20}}});
-        inp.daughters.push_back({leaf, Translation{{0, 0, 20}}});
+        append_daughter(inp, make_daughter("d1"), Translation{{0, 5, 0}}, "d");
+        append_daughter(
+            inp,
+            make_daughter("d2"),
+            Transformation{make_rotation(Axis::x, Turn{0.25}), {0, -5, 0}},
+            "e");
+        append_daughter(inp, filled_daughter, Translation{{0, 0, -20}}, "fd");
+        append_daughter(inp, leaf, Translation{{0, 0, 20}}, "l");
 
-        inp.materials.push_back(make_material(
-            make_translated(make_sph("leaf1", 1), {0, 0, -5}), 1));
+        append_material(
+            inp, make_translated(make_sph("leaf1", 1), {0, 0, -5}), 1);
 
         // Construct "inside" cell
-        inp.materials.push_back(make_material(
+        append_material(
+            inp,
             make_rdv("interior",
                      [&] {
                          VecSenseObj interior
@@ -665,7 +677,7 @@ TEST_F(InputBuilderTest, hierarchy)
                          }
                          return interior;
                      }()),
-            3));
+            3);
 
         return inp;
     }());
@@ -687,12 +699,12 @@ TEST_F(InputBuilderTest, incomplete_bb)
                                    real_type{3},
                                    VR2{{-1, -1}, {1, -1}, {1, 1}, {-1, 1}},
                                    VR2{{-2, -2}, {2, -2}, {2, 2}, {-2, 2}});
-        inp.materials.push_back(
-            make_material(make_rdv("fill",
-                                   {{Sense::inside, inp.boundary.interior},
-                                    {Sense::outside, trd}}),
-                          1));
-        inp.materials.push_back(make_material(std::move(trd), 2));
+        append_material(inp,
+                        make_rdv("fill",
+                                 {{Sense::inside, inp.boundary.interior},
+                                  {Sense::outside, trd}}),
+                        1);
+        append_material(inp, std::move(trd), 2);
         return inp;
     }());
 
@@ -702,13 +714,14 @@ TEST_F(InputBuilderTest, incomplete_bb)
         inp.boundary.zorder = ZOrder::media;
         inp.label = "global";
 
-        inp.daughters.push_back({inner, Translation{{2, 0, 0}}});
+        append_daughter(inp, inner, Translation{{2, 0, 0}});
 
-        inp.materials.push_back(make_material(
+        append_material(
+            inp,
             make_rdv("shell",
                      {{Sense::inside, inp.boundary.interior},
                       {Sense::outside, inp.daughters.front().make_interior()}}),
-            1));
+            1);
         return inp;
     }());
 
@@ -731,9 +744,8 @@ TEST_F(InputBuilderTest, universe_union_boundary)
         inp.boundary.zorder = ZOrder::media;
         inp.label = "inner";
 
-        inp.materials.push_back(make_material(SPConstObject{bottom}, 1));
-        inp.materials.push_back(
-            make_material(make_subtraction("bite", top, bottom), 1));
+        append_material(inp, SPConstObject{bottom}, 1);
+        append_material(inp, make_subtraction("bite", top, bottom), 1);
         return inp;
     }());
 
@@ -743,13 +755,14 @@ TEST_F(InputBuilderTest, universe_union_boundary)
         inp.boundary.zorder = ZOrder::media;
         inp.label = "global";
 
-        inp.daughters.push_back({inner, Translation{{0, 0, 1.234}}});
+        append_daughter(inp, inner, Translation{{0, 0, 1.234}});
 
-        inp.materials.push_back(make_material(
+        append_material(
+            inp,
             make_rdv("shell",
                      {{Sense::inside, inp.boundary.interior},
                       {Sense::outside, inp.daughters.front().make_interior()}}),
-            1));
+            1);
         return inp;
     }());
 
@@ -778,21 +791,21 @@ TEST_F(InputBuilderTest, involute)
         inp.boundary.zorder = ZOrder::media;
         inp.label = "involute";
 
-        inp.materials.push_back(make_material(SPConstObject{inner}, 1));
-        inp.materials.push_back(make_material(SPConstObject{invo1}, 2));
-        inp.materials.push_back(make_material(SPConstObject{invo2}, 3));
-        inp.materials.push_back(
-            make_material(make_rdv("rest",
-                                   {{Sense::inside, system},
-                                    {Sense::outside, inner},
-                                    {Sense::outside, invo1},
-                                    {Sense::outside, invo2}}),
-                          5));
-        inp.materials.push_back(
-            make_material(make_rdv("shell",
-                                   {{Sense::inside, inp.boundary.interior},
-                                    {Sense::outside, system}}),
-                          5));
+        append_material(inp, SPConstObject{inner}, 1);
+        append_material(inp, SPConstObject{invo1}, 2);
+        append_material(inp, SPConstObject{invo2}, 3);
+        append_material(inp,
+                        make_rdv("rest",
+                                 {{Sense::inside, system},
+                                  {Sense::outside, inner},
+                                  {Sense::outside, invo1},
+                                  {Sense::outside, invo2}}),
+                        5);
+        append_material(inp,
+                        make_rdv("shell",
+                                 {{Sense::inside, inp.boundary.interior},
+                                  {Sense::outside, system}}),
+                        5);
 
         return inp;
     }());
@@ -816,19 +829,19 @@ TEST_F(InputBuilderTest, involute_cw)
         inp.boundary.zorder = ZOrder::media;
         inp.label = "involute";
 
-        inp.materials.push_back(make_material(SPConstObject{inner}, 1));
-        inp.materials.push_back(make_material(SPConstObject{invo1}, 2));
-        inp.materials.push_back(
-            make_material(make_rdv("rest",
-                                   {{Sense::inside, system},
-                                    {Sense::outside, inner},
-                                    {Sense::outside, invo1}}),
-                          4));
-        inp.materials.push_back(
-            make_material(make_rdv("shell",
-                                   {{Sense::inside, inp.boundary.interior},
-                                    {Sense::outside, system}}),
-                          5));
+        append_material(inp, SPConstObject{inner}, 1);
+        append_material(inp, SPConstObject{invo1}, 2);
+        append_material(inp,
+                        make_rdv("rest",
+                                 {{Sense::inside, system},
+                                  {Sense::outside, inner},
+                                  {Sense::outside, invo1}}),
+                        4);
+        append_material(inp,
+                        make_rdv("shell",
+                                 {{Sense::inside, inp.boundary.interior},
+                                  {Sense::outside, system}}),
+                        5);
 
         return inp;
     }());
@@ -870,36 +883,39 @@ TEST_F(InputBuilderTest, involute_fuel)
         inp.boundary.zorder = ZOrder::media;
         inp.label = "involute";
 
-        inp.materials.push_back(make_material(SPConstObject{inner1}, 1));
-        inp.materials.push_back(make_material(SPConstObject{invo2}, 2));
-        inp.materials.push_back(make_material(
+        append_material(inp, SPConstObject{inner1}, 1);
+        append_material(inp, SPConstObject{invo2}, 2);
+        append_material(
+            inp,
             make_rdv("clad1", {{Sense::inside, invo1}, {Sense::outside, invo2}}),
-            3));
-        inp.materials.push_back(
-            make_material(make_rdv("rest1",
-                                   {{Sense::inside, outer1},
-                                    {Sense::outside, invo1},
-                                    {Sense::outside, inner1}}),
-                          4));
-        inp.materials.push_back(make_material(
+            3);
+        append_material(inp,
+                        make_rdv("rest1",
+                                 {{Sense::inside, outer1},
+                                  {Sense::outside, invo1},
+                                  {Sense::outside, inner1}}),
+                        4);
+        append_material(
+            inp,
             make_rdv("middle",
                      {{Sense::inside, inner2}, {Sense::outside, outer1}}),
-            5));
-        inp.materials.push_back(make_material(SPConstObject{invo4}, 6));
-        inp.materials.push_back(make_material(
+            5);
+        append_material(inp, SPConstObject{invo4}, 6);
+        append_material(
+            inp,
             make_rdv("clad2", {{Sense::inside, invo3}, {Sense::outside, invo4}}),
-            7));
-        inp.materials.push_back(
-            make_material(make_rdv("rest2",
-                                   {{Sense::inside, outer2},
-                                    {Sense::outside, invo3},
-                                    {Sense::outside, inner2}}),
-                          8));
-        inp.materials.push_back(
-            make_material(make_rdv("shell",
-                                   {{Sense::inside, inp.boundary.interior},
-                                    {Sense::outside, outer2}}),
-                          9));
+            7);
+        append_material(inp,
+                        make_rdv("rest2",
+                                 {{Sense::inside, outer2},
+                                  {Sense::outside, invo3},
+                                  {Sense::outside, inner2}}),
+                        8);
+        append_material(inp,
+                        make_rdv("shell",
+                                 {{Sense::inside, inp.boundary.interior},
+                                  {Sense::outside, outer2}}),
+                        9);
 
         return inp;
     }());

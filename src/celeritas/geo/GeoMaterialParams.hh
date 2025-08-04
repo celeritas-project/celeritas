@@ -7,6 +7,8 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
+#include <variant>
 #include <vector>
 
 #include "corecel/Types.hh"
@@ -14,7 +16,6 @@
 #include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/io/Label.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/mat/MaterialParams.hh"
 
 #include "GeoFwd.hh"
 #include "GeoMaterialData.hh"
@@ -22,6 +23,8 @@
 namespace celeritas
 {
 struct ImportData;
+class MaterialParams;
+class VolumeParams;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -40,6 +43,10 @@ struct ImportData;
  * the corresponding volume name is empty (corresponding perhaps to a "parallel
  * world" or otherwise unused volume) or is enclosed with braces (used for
  * virtual volumes such as `[EXTERIOR]` or temporary boolean/reflected volumes.
+ *
+ * \todo This class's functionality should be split between VolumeParams (for
+ * mapping volume IDs to GeoMatId) and the physics (for determining the
+ * PhysMatId from the geometry/material/region state).
  */
 class GeoMaterialParams final
     : public ParamsDataInterface<GeoMaterialParamsData>
@@ -49,15 +56,23 @@ class GeoMaterialParams final
     //! \name Type aliases
     using SPConstCoreGeo = std::shared_ptr<CoreGeoParams const>;
     using SPConstMaterial = std::shared_ptr<MaterialParams const>;
+    using SPConstVolume = std::shared_ptr<VolumeParams const>;
     //!@}
 
     //! Input parameters
     struct Input
     {
+        //! Vector for each canonical VolumeId
+        using VecMat = std::vector<PhysMatId>;
+        //! Map using labels
+        using MapLabelMat = std::unordered_map<Label, PhysMatId>;
+        //! Map using implementation volume IDs
+        using MapImplMat = std::unordered_map<ImplVolumeId, PhysMatId>;
+
         SPConstCoreGeo geometry;
         SPConstMaterial materials;
-        std::vector<PhysMatId> volume_to_mat;
-        std::vector<Label> volume_labels;  // Optional
+
+        std::variant<VecMat, MapLabelMat, MapImplMat> volume_to_mat;
     };
 
   public:
@@ -65,10 +80,11 @@ class GeoMaterialParams final
     static std::shared_ptr<GeoMaterialParams>
     from_import(ImportData const& data,
                 SPConstCoreGeo geo_params,
+                SPConstVolume vol_params,
                 SPConstMaterial material_params);
 
     // Construct from geometry and material params
-    explicit GeoMaterialParams(Input);
+    explicit GeoMaterialParams(Input const&);
 
     //! Access material properties on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }

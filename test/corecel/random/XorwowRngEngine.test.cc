@@ -213,7 +213,7 @@ TEST_F(XorwowRngEngineTest, jump)
     XorwowRngEngine skip_rng(params_->host_ref(), states.ref(), TrackSlotId{1});
 
     XorwowRngInitializer init;
-    init.seed = {12345};
+    init.seed = XorwowSeed{12345};
     init.subsequence = 0;
     init.offset = 0;
     rng = init;

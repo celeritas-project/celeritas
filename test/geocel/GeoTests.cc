@@ -2069,6 +2069,62 @@ void TestEm3FlatGeoTest::test_trace() const
 }
 
 //---------------------------------------------------------------------------//
+// TILECAL PLUG
+//---------------------------------------------------------------------------//
+void TilecalPlugGeoTest::test_model() const
+{
+    auto result = test_->model_inp();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {"Tile_Absorber", "Tile_Plug1Module", "Tile_ITCModule"};
+    ref.volume.materials = {0, 1, 1};
+    ref.volume.daughters = {{}, {0}, {1}};
+    ref.volume_instance.labels
+        = {"Tile_Absorber", "Tile_Plug1Module", "Tile_ITCModule_PV"};
+    ref.volume_instance.volumes = {0, 1, 2};
+    ref.world = "Tile_ITCModule_PV";
+    EXPECT_REF_EQ(ref, result);
+}
+
+void TilecalPlugGeoTest::test_trace() const
+{
+    {
+        SCOPED_TRACE("+z lo");
+        auto result = test_->track({5.75, 0.01, -40}, {0, 0, 1});
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
+            "Tile_ITCModule",
+            "Tile_Plug1Module",
+            "Tile_Absorber",
+            "Tile_Plug1Module",
+        };
+        ref.volume_instances = {
+            "Tile_ITCModule_PV",
+            "Tile_Plug1Module",
+            "Tile_Absorber",
+            "Tile_Plug1Module",
+        };
+        ref.distances = {22.9425, 0.115, 42, 37};
+        ref.halfway_safeties = {9.7, 0.057499999999999, 9.7, 9.7};
+        ref.bumps = {};
+        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        EXPECT_REF_NEAR(ref, result, tol);
+    }
+    {
+        SCOPED_TRACE("+z hi");
+        auto result = test_->track({6.25, 0.01, -40}, {0, 0, 1});
+        GenericGeoTrackingResult ref;
+        ref.volumes = {"Tile_ITCModule", "Tile_Absorber", "Tile_Plug1Module"};
+        ref.volume_instances
+            = {"Tile_ITCModule_PV", "Tile_Absorber", "Tile_Plug1Module"};
+        ref.distances = {23.0575, 42, 37};
+        ref.halfway_safeties = {9.2, 9.2, 9.2};
+        ref.bumps = {};
+        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        EXPECT_REF_NEAR(ref, result, tol);
+    }
+}
+
+//---------------------------------------------------------------------------//
 // TRANSFORMED BOX
 //---------------------------------------------------------------------------//
 void TransformedBoxGeoTest::test_model() const

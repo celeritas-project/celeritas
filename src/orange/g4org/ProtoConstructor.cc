@@ -31,15 +31,32 @@ bool is_union(ProtoConstructor::SPConstObject const& obj)
 }
 
 //---------------------------------------------------------------------------//
+// It's possible to have Geant4 geometry with no materials defined:
+// in this case, the background/material will be 'false' unless we use a
+// bogus material ID
+GeoMatId background_fill(GeoMatId mat)
+{
+    if (mat)
+        return mat;
+    return GeoMatId{0};
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a proto-universe from a logical volume.
+ * Construct a proto-universe from a physical volume.
+ *
+ * We can use logical volume for the structure, but we need to associate the
+ * world physical volume ID.
  */
-auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
+auto ProtoConstructor::operator()(PhysicalVolume const& pv) -> SPUnitProto
 {
-    auto const& label = this->get_label(lv);
+    LogicalVolume const& lv = *pv.lv;
+
+    // XXX replace with VolumeParams
+    auto const& label = geo_.impl_volumes().at(lv.id);
 
     ProtoInput input;
     input.boundary.interior = lv.solid;
@@ -52,10 +69,10 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
     }
 
     // Add children first
-    for (PhysicalVolume const& pv : lv.children)
+    for (PhysicalVolume const& child_pv : lv.children)
     {
         ++depth_;
-        this->place_pv(NoTransformation{}, pv, &input);
+        this->place_pv(NoTransformation{}, child_pv, &input);
         --depth_;
     }
 
@@ -72,8 +89,8 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
         orangeinp::UnitProto::MaterialInput background;
         background.interior
             = this->make_explicit_background(lv, NoTransformation{});
-        background.label = label;
-        background.fill = lv.material_id;
+        background.label = pv.id;
+        background.fill = background_fill(lv.material_id);
         input.boundary.zorder = ZOrder::media;
         input.materials.push_back(std::move(background));
     }
@@ -84,26 +101,13 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
             std::clog << std::string(depth_, ' ') << " - implicit background"
                       << std::endl;
         }
-        input.background.fill = lv.material_id;
-        input.background.label = label;
+        input.background.fill = background_fill(lv.material_id);
+        input.background.label = pv.id;
+        CELER_ASSERT(input.background);
     }
 
     CELER_ENSURE(input);
     return std::make_shared<orangeinp::UnitProto>(std::move(input));
-}
-
-//---------------------------------------------------------------------------//
-Label const& ProtoConstructor::get_label(LogicalVolume const& lv)
-{
-    CELER_EXPECT(lv.id);
-    return geo_.impl_volumes().at(lv.id);
-}
-
-//---------------------------------------------------------------------------//
-Label const& ProtoConstructor::get_label(PhysicalVolume const& pv)
-{
-    CELER_EXPECT(pv.id);
-    return geo_.volume_instances().at(pv.id);
 }
 
 //---------------------------------------------------------------------------//
@@ -122,23 +126,22 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
     // that's subtracted from an inlined LV
     auto transform = apply_transform(parent_transform, pv.transform);
 
-    auto const& label = this->get_label(pv);
-
     if (CELER_UNLIKELY(verbose_))
     {
-        std::clog << std::string(depth_, ' ') << "- Add pv " << label
+        std::clog << std::string(depth_, ' ') << "- Add pv "
+                  << geo_.volume_instances().at(pv.id)
                   << " use_count=" << pv.lv.use_count()
                   << ", num_children=" << pv.lv->children.size() << ", at "
                   << StreamableVariant{transform} << " to " << proto->label
                   << std::endl;
     }
 
-    auto add_material = [this, proto, &lv = *pv.lv](SPConstObject&& obj) {
+    auto add_material = [&](SPConstObject&& obj) {
         CELER_EXPECT(obj);
         UnitProto::MaterialInput mat;
         mat.interior = std::move(obj);
-        mat.fill = lv.material_id;
-        mat.label = this->get_label(lv);
+        mat.fill = pv.lv->material_id;
+        mat.label = pv.id;
         proto->materials.push_back(std::move(mat));
     };
 
@@ -206,11 +209,12 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
         {
             ++depth_;
             // Construct pv proto
-            iter->second = (*this)(*pv.lv);
+            iter->second = (*this)(pv);
             --depth_;
         }
         CELER_ASSERT(iter->second);
-        proto->daughters.push_back({iter->second, transform, ZOrder::media});
+        proto->daughters.push_back(
+            {iter->second, transform, ZOrder::media, pv.id});
 
         if (CELER_UNLIKELY(verbose_))
         {
@@ -254,13 +258,14 @@ auto ProtoConstructor::make_explicit_background(
     }
     else
     {
-        interior = std::make_shared<AnyObjects>(
-            this->get_label(lv).name + ".children", std::move(children));
+        auto const& name = geo_.impl_volumes().at(lv.id).name;
+        interior = std::make_shared<AnyObjects>(name + ".children",
+                                                std::move(children));
     }
 
+    auto const& name = geo_.impl_volumes().at(lv.id).name;
     return Transformed::or_object(
-        orangeinp::make_subtraction(
-            std::string{this->get_label(lv).name}, lv.solid, interior),
+        orangeinp::make_subtraction(std::string{name}, lv.solid, interior),
         transform);
 }
 

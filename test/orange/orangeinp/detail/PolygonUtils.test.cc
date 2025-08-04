@@ -32,16 +32,6 @@ constexpr auto ccw = Orientation::counterclockwise;
 constexpr auto cw = Orientation::clockwise;
 constexpr auto col = Orientation::collinear;
 
-// Function for comparing filtered polygon results
-auto expect_polygon_equal = [](VecReal2 const& a, VecReal2 const& b) {
-    EXPECT_EQ(a.size(), b.size());
-    for (auto i : range(a.size()))
-    {
-        EXPECT_EQ(a[i][0], b[i][0]);
-        EXPECT_EQ(a[i][1], b[i][1]);
-    }
-};
-
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
@@ -117,8 +107,8 @@ TEST(PolygonUtilsTest, convex)
     static Real2 const ccw_points[] = {{1, 1}, {2, 1}, {2, 2}, {1, 2}};
     EXPECT_TRUE(is_convex(ccw_points));
 
-    VecReal2 oct{8};
-    for (size_type i = 0; i < 8; ++i)
+    VecReal2 oct(8);
+    for (auto i : range(oct.size()))
     {
         oct[i] = {std::cos(static_cast<real_type>(2 * constants::pi * i / 8)),
                   std::sin(static_cast<real_type>(2 * constants::pi * i / 8))};
@@ -194,57 +184,57 @@ TEST(PolygonUtilsTest, filter_collinear_points)
     // No collinear points (b through f)
     VecReal2 points{b, c, d, e, f};
     VecReal2 exp = points;
-    expect_polygon_equal(exp, filter_collinear_points(points, tol));
+    EXPECT_EQ(exp, filter_collinear_points(points, tol));
 
     // Point a is collinear, using a through f, and a comes first
     points = {a, b, c, d, e, f};
     exp = {b, c, d, e, f};
-    expect_polygon_equal(exp, filter_collinear_points(points, tol));
+    EXPECT_EQ(exp, filter_collinear_points(points, tol));
 
     // Same, but a comes second
     points = {f, a, b, c, d, e};
     exp = {f, b, c, d, e};
-    expect_polygon_equal(exp, filter_collinear_points(points, tol));
+    EXPECT_EQ(exp, filter_collinear_points(points, tol));
 
     // Same, but a comes third
     points = {e, f, a, b, c, d};
     exp = {e, f, b, c, d};
-    expect_polygon_equal(exp, filter_collinear_points(points, tol));
+    EXPECT_EQ(exp, filter_collinear_points(points, tol));
 
     // Same, but a comes last
     points = {b, c, d, e, f, a};
     exp = {b, c, d, e, f};
-    expect_polygon_equal(exp, filter_collinear_points(points, tol));
+    EXPECT_EQ(exp, filter_collinear_points(points, tol));
 
     // Same, but a comes second
     points = {f, a, b, c, d, e};
     exp = {f, b, c, d, e};
-    expect_polygon_equal(exp, filter_collinear_points(points, tol));
+    EXPECT_EQ(exp, filter_collinear_points(points, tol));
 
     // Points a and g are collinear, using a through g, and a comes first
     points = {a, b, c, d, e, f, g};
     exp = {b, c, d, e, f};
-    expect_polygon_equal(exp, filter_collinear_points(points, tol));
+    EXPECT_EQ(exp, filter_collinear_points(points, tol));
 
     // Same, but a comes second
     points = {g, a, b, c, d, e, f};
     exp = {b, c, d, e, f};
-    expect_polygon_equal(exp, filter_collinear_points(points, tol));
+    EXPECT_EQ(exp, filter_collinear_points(points, tol));
 
     // Same, but a comes third
     points = {f, g, a, b, c, d, e};
     exp = {f, b, c, d, e};
-    expect_polygon_equal(exp, filter_collinear_points(points, tol));
+    EXPECT_EQ(exp, filter_collinear_points(points, tol));
 
     // Same, but a comes second to last
     points = {c, d, e, f, g, a, b};
     exp = {c, d, e, f, b};
-    expect_polygon_equal(exp, filter_collinear_points(points, tol));
+    EXPECT_EQ(exp, filter_collinear_points(points, tol));
 
     // Same, but a comes last
     points = {b, c, d, e, f, g, a};
     exp = {b, c, d, e, f};
-    expect_polygon_equal(exp, filter_collinear_points(points, tol));
+    EXPECT_EQ(exp, filter_collinear_points(points, tol));
 }
 
 /* Test pathological case consisting of a many-sided regular polygon with every

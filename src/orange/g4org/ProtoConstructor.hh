@@ -48,17 +48,14 @@ class ProtoConstructor
     {
     }
 
-    // Construct a proto from a logical volume
-    SPUnitProto operator()(LogicalVolume const& lv);
+    // Construct a proto from the world volume
+    SPUnitProto operator()(PhysicalVolume const& pv);
 
   private:
     GeantGeoParams const& geo_;
     std::unordered_map<LogicalVolume const*, SPUnitProto> protos_;
     int depth_{0};
     bool verbose_{false};
-
-    Label const& get_label(LogicalVolume const& lv);
-    Label const& get_label(PhysicalVolume const& lv);
 
     // Place a physical volume into the given unconstructed proto
     void place_pv(VariantTransform const& parent_transform,
