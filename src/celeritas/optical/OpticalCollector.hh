@@ -9,7 +9,6 @@
 #include <memory>
 #include <optional>
 
-#include "corecel/io/Label.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/phys/GeneratorCounters.hh"
@@ -77,15 +76,12 @@ class OpticalCollector
 
     struct Input
     {
-        //! Optical physics models
-        std::vector<optical::Model::ModelBuilder> model_builders;
+        //! Optical params
+        std::shared_ptr<optical::CoreParams> optical_params;
 
-        //! Optical physics material for materials
-        SPConstMaterial material;
+        //! Optical photon generating processes
         SPConstCherenkov cherenkov;
         SPConstScintillation scintillation;
-
-        std::optional<std::vector<Label>> detector_labels;
 
         //! Number track slots in the optical loop
         size_type num_track_slots{};
@@ -102,9 +98,9 @@ class OpticalCollector
         //! True if all input is assigned and valid
         explicit operator bool() const
         {
-            return material && (scintillation || cherenkov)
+            return optical_params && (scintillation || cherenkov)
                    && num_track_slots > 0 && buffer_capacity > 0
-                   && auto_flush > 0 && !model_builders.empty();
+                   && auto_flush > 0;
         }
     };
 

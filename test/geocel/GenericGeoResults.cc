@@ -202,6 +202,15 @@ GenericGeoModelInp GenericGeoModelInp::from_model_input(inp::Model const& in)
         result.volume_instance.volumes.push_back(id_to_int(vol_inst.volume));
     }
 
+    if (in.volumes.world < result.volume_instance.labels.size())
+    {
+        result.world = result.volume_instance.labels[in.volumes.world.get()];
+    }
+    else
+    {
+        result.world = "<invalid>";
+    }
+
     // Extract surface data
     result.surface.labels.reserve(in.surfaces.surfaces.size());
     result.surface.volumes.reserve(in.surfaces.surfaces.size());
@@ -232,7 +241,7 @@ void GenericGeoModelInp::print_expected() const
          << CELER_REF_ATTR(volume.labels) << CELER_REF_ATTR(volume.materials)
          << CELER_REF_ATTR(volume.daughters)
          << CELER_REF_ATTR(volume_instance.labels)
-         << CELER_REF_ATTR(volume_instance.volumes);
+         << CELER_REF_ATTR(volume_instance.volumes) << CELER_REF_ATTR(world);
 
     if (!surface.labels.empty())
     {
@@ -264,6 +273,7 @@ void GenericGeoModelInp::print_expected() const
     IRE_COMPARE(volume.daughters);
     IRE_COMPARE(volume_instance.labels);
     IRE_COMPARE(volume_instance.volumes);
+    IRE_COMPARE(world);
     IRE_COMPARE(surface.labels);
     IRE_COMPARE(surface.volumes);
 

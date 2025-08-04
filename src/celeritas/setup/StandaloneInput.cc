@@ -65,7 +65,6 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
         // Keep the geant4 geometry and set it as global
         ggp = geant_setup->geo_params();
         CELER_ASSERT(ggp);
-        celeritas::geant_geo(ggp);
 
         // Load geometry, surfaces, regions from Geant4 world pointer
         problem->model = ggp->make_model_input();

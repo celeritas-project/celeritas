@@ -25,6 +25,10 @@ namespace detail
  *
  * As a reminder, \em geometry materials correspond to \c G4Material and
  * \em physics materials correspond to \c G4MaterialCutsCouple .
+ *
+ * \todo Use GeantGeoParams (or an upcoming GeantModel) to translate geometry
+ * IDs: the G4Material's "index" can be offset from the GeantGeoParams material
+ * if the geometry has been reloaded.
  */
 class GeoOpticalIdMap
 {

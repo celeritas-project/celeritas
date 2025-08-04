@@ -114,7 +114,7 @@ class DetectorStepsTest : public ::celeritas::test::Test
                 if (!state_point.dir.empty())
                     state_point.dir[tid] = Real3{real_type(i++), 10, 20};
                 if (!state_point.volume_id.empty())
-                    state_point.volume_id[tid] = VolumeId(i++ % 4);
+                    state_point.volume_id[tid] = ImplVolumeId(i++ % 4);
                 if (!state_point.energy.empty())
                     state_point.energy[tid] = units::MevEnergy(i++);
 

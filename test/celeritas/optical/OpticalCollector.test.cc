@@ -25,7 +25,6 @@
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/optical/CoreState.hh"
-#include "celeritas/optical/ModelImporter.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -37,9 +36,6 @@ namespace celeritas
 {
 namespace test
 {
-// TODO: replace this with explicit namespace importing
-using namespace celeritas::optical;
-
 //---------------------------------------------------------------------------//
 // TEST FIXTURES
 //---------------------------------------------------------------------------//
@@ -65,7 +61,16 @@ class LArSphereOffloadTest : public LArSphereBase
     };
 
   public:
-    void SetUp() override {}
+    void SetUp() override
+    {
+        // Set default values
+        input_.optical_params = this->optical_params();
+        input_.cherenkov = this->cherenkov();
+        input_.scintillation = this->scintillation();
+        input_.num_track_slots = 4096;
+        input_.buffer_capacity = 256;
+        input_.auto_flush = 4096;
+    }
 
     SPConstAction build_along_step() override;
 
@@ -80,20 +85,13 @@ class LArSphereOffloadTest : public LArSphereBase
 
   protected:
     using SizeId = ItemId<size_type>;
-    using DistId = ItemId<GeneratorDistributionData>;
-    using DistRange = ItemRange<GeneratorDistributionData>;
+    using DistId = ItemId<optical::GeneratorDistributionData>;
+    using DistRange = ItemRange<optical::GeneratorDistributionData>;
 
-    // Optical collector options
-    bool use_scintillation_{true};
-    bool use_cherenkov_{true};
-    size_type num_track_slots_{4096};
-    size_type buffer_capacity_{256};
-    size_type auto_flush_{4096};
-    size_type max_step_iters_{static_cast<size_type>(-1)};
     units::MevEnergy primary_energy_{10.0};
 
+    OpticalCollector::Input input_;
     std::shared_ptr<OpticalCollector> collector_;
-    StreamId stream_{0};
 };
 
 //---------------------------------------------------------------------------//
@@ -122,41 +120,15 @@ auto LArSphereOffloadTest::build_along_step() -> SPConstAction
  */
 void LArSphereOffloadTest::build_optical_collector()
 {
-    OpticalCollector::Input inp;
-    inp.material = this->optical_material();
-    if (use_cherenkov_)
-    {
-        inp.cherenkov = this->cherenkov();
-    }
-    if (use_scintillation_)
-    {
-        inp.scintillation = this->scintillation();
-    }
-    inp.num_track_slots = num_track_slots_;
-    inp.buffer_capacity = buffer_capacity_;
-    inp.auto_flush = auto_flush_;
-    inp.max_step_iters = max_step_iters_;
-
-    using IMC = celeritas::optical::ImportModelClass;
-
-    ModelImporter importer{
-        this->imported_data(), this->optical_material(), this->material()};
-    std::vector<IMC> imcs{IMC::absorption, IMC::rayleigh};
-    for (auto imc : imcs)
-    {
-        if (auto builder = importer(imc))
-        {
-            inp.model_builders.push_back(*builder);
-        }
-    }
-
+    OpticalCollector::Input inp = input_;
     collector_
         = std::make_shared<OpticalCollector>(*this->core(), std::move(inp));
 
     // Check accessors
     EXPECT_TRUE(collector_->optical_params());
-    EXPECT_EQ(use_cherenkov_, static_cast<bool>(collector_->cherenkov()));
-    EXPECT_EQ(use_scintillation_,
+    EXPECT_EQ(static_cast<bool>(input_.cherenkov),
+              static_cast<bool>(collector_->cherenkov()));
+    EXPECT_EQ(static_cast<bool>(input_.scintillation),
               static_cast<bool>(collector_->scintillation()));
 }
 
@@ -236,8 +208,8 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
         auto const* aux = dynamic_cast<AuxParamsInterface const*>(
             gen_reg.at(gen_id).get());
         CELER_ASSERT(aux);
-        auto const& state
-            = get<GeneratorState<M>>(step.state().aux(), aux->aux_id());
+        auto const& state = get<optical::GeneratorState<M>>(step.state().aux(),
+                                                            aux->aux_id());
         auto buffer = copy_to_host(state.store.ref().distributions);
 
         std::set<real_type> charge;
@@ -282,11 +254,14 @@ template LArSphereOffloadTest::RunResult
 
 TEST_F(LArSphereOffloadTest, host_distributions)
 {
-    max_step_iters_ = 0;
-    num_track_slots_ = 4;
+    input_.max_step_iters = 0;
+    input_.num_track_slots = 4;
     this->build_optical_collector();
 
-    auto result = this->run<MemSpace::host>(4, num_track_slots_, 64);
+    size_type primaries = 4;
+    size_type core_track_slots = 4;
+    size_type steps = 64;
+    auto result = this->run<MemSpace::host>(primaries, core_track_slots, steps);
 
     EXPECT_EQ(2, result.accum.generators.size());
 
@@ -353,11 +328,15 @@ TEST_F(LArSphereOffloadTest, host_distributions)
 
 TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
 {
-    max_step_iters_ = 0;
-    num_track_slots_ = 8;
+    input_.max_step_iters = 0;
+    input_.num_track_slots = 8;
     this->build_optical_collector();
 
-    auto result = this->run<MemSpace::device>(8, num_track_slots_, 32);
+    size_type primaries = 8;
+    size_type core_track_slots = 8;
+    size_type steps = 32;
+    auto result
+        = this->run<MemSpace::device>(primaries, core_track_slots, steps);
 
     EXPECT_EQ(2, result.accum.generators.size());
 
@@ -433,12 +412,15 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
 
 TEST_F(LArSphereOffloadTest, cherenkov_distributiona)
 {
-    use_scintillation_ = false;
-    max_step_iters_ = 0;
-    num_track_slots_ = 4;
+    input_.scintillation = nullptr;
+    input_.max_step_iters = 0;
+    input_.num_track_slots = 4;
     this->build_optical_collector();
 
-    auto result = this->run<MemSpace::host>(4, num_track_slots_, 16);
+    size_type primaries = 4;
+    size_type core_track_slots = 4;
+    size_type steps = 16;
+    auto result = this->run<MemSpace::host>(primaries, core_track_slots, steps);
 
     EXPECT_EQ(0, result.scintillation.total_num_photons);
     EXPECT_EQ(0, result.scintillation.num_photons.size());
@@ -457,12 +439,15 @@ TEST_F(LArSphereOffloadTest, cherenkov_distributiona)
 
 TEST_F(LArSphereOffloadTest, scintillation_distributions)
 {
-    use_cherenkov_ = false;
-    max_step_iters_ = 0;
-    num_track_slots_ = 4;
+    input_.cherenkov = nullptr;
+    input_.max_step_iters = 0;
+    input_.num_track_slots = 4;
     this->build_optical_collector();
 
-    auto result = this->run<MemSpace::host>(4, num_track_slots_, 16);
+    size_type primaries = 4;
+    size_type core_track_slots = 4;
+    size_type steps = 16;
+    auto result = this->run<MemSpace::host>(primaries, core_track_slots, steps);
 
     EXPECT_EQ(0, result.cherenkov.total_num_photons);
     EXPECT_EQ(0, result.cherenkov.num_photons.size());
@@ -494,11 +479,12 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
 
 TEST_F(LArSphereOffloadTest, host_generate_small)
 {
-    primary_energy_ = units::MevEnergy{0.01};
-    num_track_slots_ = 32;
-    buffer_capacity_ = 4096;
-    auto_flush_ = 1;
+    input_.num_track_slots = 32;
+    input_.buffer_capacity = 4096;
+    input_.auto_flush = 1;
     this->build_optical_collector();
+
+    primary_energy_ = units::MevEnergy{0.01};
 
     size_type primaries = 4;
     size_type core_track_slots = 2;
@@ -526,9 +512,9 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
 
 TEST_F(LArSphereOffloadTest, host_generate)
 {
-    num_track_slots_ = 262144;
-    buffer_capacity_ = 1024;
-    auto_flush_ = 16384;
+    input_.num_track_slots = 262144;
+    input_.buffer_capacity = 1024;
+    input_.auto_flush = 16384;
     this->build_optical_collector();
 
     size_type primaries = 1;
@@ -559,9 +545,9 @@ TEST_F(LArSphereOffloadTest, host_generate)
 
 TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
 {
-    num_track_slots_ = 1024;
-    buffer_capacity_ = 2048;
-    auto_flush_ = 262144;
+    input_.num_track_slots = 1024;
+    input_.buffer_capacity = 2048;
+    input_.auto_flush = 262144;
     this->build_optical_collector();
 
     size_type primaries = 1;

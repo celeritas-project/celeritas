@@ -117,8 +117,9 @@ std::vector<Label> make_logical_vol_labels(vecgeom::VPlacedVolume const& world)
     using VolT = vecgeom::LogicalVolume;
     std::unordered_map<std::string, std::vector<VolT const*>> names;
     visit_volumes(
-        [&](VolT const& lv) {
-            std::string name{lv.GetLabel()};
+        [&](VolT const* lv) {
+            CELER_EXPECT(lv);
+            std::string name{lv->GetLabel()};
             if (starts_with(name, "[TEMP]"))
             {
                 // Temporary volume not directly used in transport, generated
@@ -134,9 +135,9 @@ std::vector<Label> make_logical_vol_labels(vecgeom::VPlacedVolume const& world)
             }
 
             // Add to name map
-            names[name].push_back(&lv);
+            names[name].push_back(lv);
         },
-        world);
+        &world);
 
     return detail::make_label_vector<VolT const*>(
         std::move(names), [](VolT const* vol) { return vol->id(); });
@@ -155,8 +156,8 @@ std::vector<Label> make_physical_vol_labels(vecgeom::VPlacedVolume const& world)
     // Visit PVs, mapping names to instances, skipping those that have already
     // been visited at a deeper level
     visit_volume_instances(
-        [&](VolT const& pv, int depth) {
-            auto&& [iter, inserted] = max_depth.insert({&pv, depth});
+        [&](VolT const* pv, int depth) {
+            auto&& [iter, inserted] = max_depth.insert({pv, depth});
             if (!inserted)
             {
                 if (iter->second >= depth)
@@ -168,7 +169,7 @@ std::vector<Label> make_physical_vol_labels(vecgeom::VPlacedVolume const& world)
                 iter->second = depth;
             }
 
-            std::string name = pv.GetLabel();
+            std::string name = pv->GetLabel();
             if (starts_with(name, "[TEMP]"))
             {
                 // Temporary volume not directly used in tracking
@@ -177,18 +178,18 @@ std::vector<Label> make_physical_vol_labels(vecgeom::VPlacedVolume const& world)
 
             if (ends_with(name, "_refl")
                 && vecgeom::ReflFactory::Instance().IsReflected(
-                    pv.GetLogicalVolume()))
+                    pv->GetLogicalVolume()))
             {
                 // Strip suffix for consistency with Geant4
                 name.erase(name.end() - 5, name.end());
             }
 
             // Add to name map
-            names[std::move(name)].push_back(&pv);
+            names[std::move(name)].push_back(pv);
             // Visit daughters
             return true;
         },
-        world);
+        &world);
 
     return detail::make_label_vector<VolT const*>(
         std::move(names), [](VolT const* vol) { return vol->id(); });
@@ -200,7 +201,7 @@ std::vector<Label> make_physical_vol_labels(vecgeom::VPlacedVolume const& world)
  */
 auto make_lv_map(std::vector<G4LogicalVolume const*> const& all_lv)
 {
-    std::unordered_map<G4LogicalVolume const*, VolumeId> result;
+    std::unordered_map<G4LogicalVolume const*, ImplVolumeId> result;
     result.reserve(all_lv.size());
     for (auto vol_idx : range(all_lv.size()))
     {
@@ -212,13 +213,13 @@ auto make_lv_map(std::vector<G4LogicalVolume const*> const& all_lv)
         }
 
         auto&& [iter, inserted]
-            = result.insert({lv, id_cast<VolumeId>(vol_idx)});
+            = result.insert({lv, id_cast<ImplVolumeId>(vol_idx)});
         if (CELER_UNLIKELY(!inserted))
         {
             // This shouldn't happen...
             CELER_LOG(warning)
                 << "Geant4 logical volume " << PrintableLV{iter->first}
-                << " maps to multiple volume IDs";
+                << " maps to multiple VecGeom volume IDs";
         }
     }
     return result;
@@ -363,6 +364,9 @@ bool VecgeomParams::use_vgdml()
 //---------------------------------------------------------------------------//
 /*!
  * Set up vecgeom given existing an already set up VecGeom CPU world.
+ *
+ * \todo Instead of VecLv and VecPv, once we we remove `find_volume(G4LV*)`,
+ * just pass a vector of volume IDs.
  */
 VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
                              Ownership owns,
@@ -427,9 +431,25 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
         auto const& world = *host_ref_.world_volume;
 
         // Construct volume labels
-        volumes_ = VolumeMap{"volume", make_logical_vol_labels(world)};
+        volumes_ = ImplVolumeMap{"volume", make_logical_vol_labels(world)};
         vol_instances_ = VolInstanceMap{"volume instance",
                                         make_physical_vol_labels(world)};
+
+        // Construct ImplVolume -> Volume map
+        if (auto geant_geo = celeritas::geant_geo().lock())
+        {
+            CELER_ASSERT(lv.size() <= this->impl_volumes().size());
+
+            volume_id_map_.resize(this->impl_volumes().size());
+            for (auto iv_id : range(id_cast<ImplVolumeId>(lv.size())))
+            {
+                if (auto* g4lv = lv[iv_id.get()])
+                {
+                    auto vol_id = geant_geo->geant_to_id(*g4lv);
+                    volume_id_map_[iv_id.get()] = vol_id;
+                }
+            }
+        }
 
         // Save world bbox
         bbox_ = [&world] {
@@ -547,9 +567,9 @@ GeantPhysicalInstance VecgeomParams::id_to_geant(VolumeInstanceId id) const
 /*!
  * Locate the volume ID corresponding to a Geant4 logical volume.
  */
-VolumeId VecgeomParams::find_volume(G4LogicalVolume const* volume) const
+ImplVolumeId VecgeomParams::find_volume(G4LogicalVolume const* volume) const
 {
-    VolumeId result{};
+    ImplVolumeId result{};
     if (volume)
     {
         auto iter = g4log_volid_map_.find(volume);

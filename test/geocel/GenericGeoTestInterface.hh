@@ -95,7 +95,7 @@ class GenericGeoTestInterface
     std::vector<std::string> get_g4pv_labels() const;
 
     // Get the volume name, adjusting for offsets from loading multiple geo
-    std::string_view get_volume_name(VolumeId i) const;
+    std::string_view get_volume_name(ImplVolumeId i) const;
 
   protected:
     // Virtual interface only

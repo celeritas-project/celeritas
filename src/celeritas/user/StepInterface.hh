@@ -48,7 +48,7 @@ class StepInterface
     //! \name Type aliases
     using HostStepState = StepState<MemSpace::host>;
     using DeviceStepState = StepState<MemSpace::device>;
-    using MapVolumeDetector = std::map<VolumeId, DetectorId>;
+    using MapVolumeDetector = std::map<ImplVolumeId, DetectorId>;
     //@}
 
     //! Filtering to apply to the gathered data for this step.

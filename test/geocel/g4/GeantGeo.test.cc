@@ -304,28 +304,27 @@ TEST_F(FourLevelsTest, safety)
 TEST_F(FourLevelsTest, levels)
 {
     auto geo = this->make_geo_track_view({10.0, 10.0, 10.0}, {1, 0, 0});
-    EXPECT_EQ("World_PV/env1/Shape1/Shape2",
-              this->all_volume_instance_names(geo));
+    EXPECT_EQ("World_PV/env1/Shape1/Shape2", this->unique_volume_name(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-    EXPECT_EQ("World_PV/env1/Shape1", this->all_volume_instance_names(geo));
+    EXPECT_EQ("World_PV/env1/Shape1", this->unique_volume_name(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-    EXPECT_EQ("World_PV/env1", this->all_volume_instance_names(geo));
+    EXPECT_EQ("World_PV/env1", this->unique_volume_name(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-    EXPECT_EQ("World_PV", this->all_volume_instance_names(geo));
+    EXPECT_EQ("World_PV", this->unique_volume_name(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-    EXPECT_EQ("[OUTSIDE]", this->all_volume_instance_names(geo));
+    EXPECT_EQ("[OUTSIDE]", this->unique_volume_name(geo));
 }
 
 //---------------------------------------------------------------------------//
@@ -347,7 +346,7 @@ TEST_F(MultiLevelTest, level_strings)
     using R2 = Array<double, 2>;
 
     auto const& vol_inst = this->geometry()->volume_instances();
-    auto const& vol = this->geometry()->volumes();
+    auto const& vol = this->geometry()->impl_volumes();
 
     // Include outer world and center sphere
     std::vector<R2> points{R2{-5, 0}, R2{0, 0}};
@@ -383,7 +382,7 @@ TEST_F(MultiLevelTest, level_strings)
             names[i] = to_string(vol_inst.at(inst_ids[i]));
         }
         all_vol_inst.push_back(to_string(repr(names)));
-        all_vol.push_back(to_string(vol.at(geo.volume_id())));
+        all_vol.push_back(to_string(vol.at(geo.impl_volume_id())));
     }
 
     static char const* const expected_all_vol_inst[] = {
@@ -603,7 +602,7 @@ TEST_F(SolidsTest, output)
         std::regex pattern(R"("",)");
         actual = std::regex_replace(actual, pattern, "");
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.0,-300.0,-75.0],[600.0,300.0,75.0]],"max_depth":2,"supports_safety":true,"volumes":{"label":["box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","trd3_refl@1","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","trd3_refl@0"]}})json",
+            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.0,-300.0,-75.0],[600.0,300.0,75.0]],"supports_safety":true,"volumes":{"label":["box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","trd3_refl@1","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","trd3_refl@0"]}})json",
             actual);
     }
 }
@@ -626,8 +625,9 @@ TEST_F(SolidsTest, trace)
 TEST_F(SolidsTest, reflected_vol)
 {
     auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
-    EXPECT_EQ(25, geo.volume_id().unchecked_get());
-    auto const& label = this->geometry()->volumes().at(geo.volume_id());
+    EXPECT_EQ(25, geo.impl_volume_id().unchecked_get());
+    auto const& label
+        = this->geometry()->impl_volumes().at(geo.impl_volume_id());
     EXPECT_EQ("trd3_refl", label.name);
     EXPECT_FALSE(ends_with(label.ext, "_refl"));
 }
@@ -649,33 +649,17 @@ TEST_F(SolidsTest, DISABLED_imager)
 }
 
 //---------------------------------------------------------------------------//
-class TilecalPlugTest : public GeantGeoTest
+using TilecalPlugTest
+    = GenericGeoParameterizedTest<GeantGeoTest, TilecalPlugGeoTest>;
+
+TEST_F(TilecalPlugTest, model)
 {
-    std::string geometry_basename() const final { return "tilecal-plug"; }
-};
+    this->impl().test_model();
+}
 
 TEST_F(TilecalPlugTest, trace)
 {
-    {
-        SCOPED_TRACE("+z");
-        auto result = this->track({5.75, 0.01, -40}, {0, 0, 1});
-        static char const* const expected_volumes[] = {"Tile_ITCModule",
-                                                       "Tile_Plug1Module",
-                                                       "Tile_Absorber",
-                                                       "Tile_Plug1Module"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {22.9425, 0.115, 42, 37};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-    }
-    {
-        SCOPED_TRACE("+z");
-        auto result = this->track({6.25, 0.01, -40}, {0, 0, 1});
-        static char const* const expected_volumes[]
-            = {"Tile_ITCModule", "Tile_Absorber", "Tile_Plug1Module"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {23.0575, 42, 37};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-    }
+    this->impl().test_trace();
 }
 
 //---------------------------------------------------------------------------//

@@ -38,7 +38,7 @@ StepParams::StepParams(AuxId aux_id,
         all
     };
 
-    auto const& volumes = geo.volumes();
+    auto const& volumes = geo.impl_volumes();
     StepSelection selection;
     CELER_ASSERT(!selection);
     StepInterface::MapVolumeDetector detector_map;
@@ -96,7 +96,7 @@ StepParams::StepParams(AuxId aux_id,
         if (!detector_map.empty())
         {
             // Assign detector IDs for each ("logical" in Geant4) volume
-            std::vector<DetectorId> temp_det(geo.volumes().size(),
+            std::vector<DetectorId> temp_det(geo.impl_volumes().size(),
                                              DetectorId{});
             for (auto const& kv : detector_map)
             {
@@ -113,6 +113,8 @@ StepParams::StepParams(AuxId aux_id,
         if (selection.points[StepPoint::pre].volume_instance_ids
             || selection.points[StepPoint::post].volume_instance_ids)
         {
+            // TODO: replace with volume params, so we can use touchable
+            // representation
             host_data.volume_instance_depth = geo.max_depth();
             CELER_VALIDATE(host_data.volume_instance_depth > 0,
                            << "geometry type does not support volume "

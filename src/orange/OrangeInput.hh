@@ -46,9 +46,10 @@ struct OrientedBoundingZoneInput
 struct VolumeInput
 {
     using Flags = VolumeRecord::Flags;
+    using VariantLabel = std::variant<Label, VolumeInstanceId>;
 
-    //! Volume label
-    Label label{};
+    //! Volume label or instance ID
+    VariantLabel label{};
 
     //! Sorted list of surface IDs in this volume
     std::vector<LocalSurfaceId> faces{};

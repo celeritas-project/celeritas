@@ -141,7 +141,7 @@ struct StepParamsData
     StepSelection selection;
 
     //! Optional mapping for volume -> sensitive detector
-    Collection<DetectorId, W, M, VolumeId> detector;
+    Collection<DetectorId, W, M, ImplVolumeId> detector;
 
     //! Filter out steps that have not deposited energy (for sensitive det)
     bool nonzero_energy_deposition{false};
@@ -178,7 +178,7 @@ struct StepParamsData
  * - If the flag is disabled (no step interfaces require the data), then the
  *   corresponding member data will be empty.
  * - If a track is outside the volume (which can only happen at the end-of-step
- *   evaluation) the VolumeId will be "false".
+ *   evaluation) the ImplVolumeId will be "false".
  */
 template<Ownership W, MemSpace M>
 struct StepPointStateData
@@ -197,7 +197,7 @@ struct StepPointStateData
     // Geo
     StateItems<Real3> pos;
     StateItems<Real3> dir;
-    StateItems<VolumeId> volume_id;
+    StateItems<ImplVolumeId> volume_id;
     Items<VolumeInstanceId> volume_instance_ids;
 
     // Physics

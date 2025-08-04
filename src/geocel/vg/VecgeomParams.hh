@@ -108,7 +108,7 @@ class VecgeomParams final : public GeoParamsInterface,
 
     //! Maximum nested geometry depth
     //! \todo move to VolumeParams
-    LevelId::size_type max_depth() const final { return host_ref_.max_depth; }
+    LevelId::size_type max_depth() const { return host_ref_.max_depth; }
 
     // Create model parameters corresponding to our internal representation
     inp::Model make_model_input() const final;
@@ -116,19 +116,22 @@ class VecgeomParams final : public GeoParamsInterface,
     //// VOLUMES ////
 
     // Get volume metadata
-    inline VolumeMap const& volumes() const final;
+    inline ImplVolumeMap const& impl_volumes() const final;
 
     // Get (physical) volume instance metadata
     inline VolInstanceMap const& volume_instances() const final;
 
     // Get the volume ID corresponding to a Geant4 logical volume
-    VolumeId find_volume(G4LogicalVolume const* volume) const final;
+    ImplVolumeId find_volume(G4LogicalVolume const* volume) const final;
 
     // Get the Geant4 physical volume corresponding to a volume instance ID
     GeantPhysicalInstance id_to_geant(VolumeInstanceId vol_id) const final;
 
     // DEPRECATED
     using GeoParamsInterface::find_volume;
+
+    // Get the canonical volume IDs corresponding to an implementation volume
+    inline VolumeId volume_id(ImplVolumeId) const final;
 
     //// DATA ACCESS ////
 
@@ -144,11 +147,14 @@ class VecgeomParams final : public GeoParamsInterface,
     // Flag for resetting VecGeom on destruction
     Ownership ownership_{Ownership::reference};
 
-    // Host metadata/access
-    LabelIdMultiMap<VolumeId> volumes_;
+    // Host metadata/access (DEPRECATED)
+    LabelIdMultiMap<ImplVolumeId> volumes_;
     VolInstanceMap vol_instances_;
-    std::unordered_map<G4LogicalVolume const*, VolumeId> g4log_volid_map_;
+    std::unordered_map<G4LogicalVolume const*, ImplVolumeId> g4log_volid_map_;
     std::vector<G4VPhysicalVolume const*> g4_pv_map_;
+
+    // VolumeImplId -> VolumeId (to be moved to data)
+    std::vector<VolumeId> volume_id_map_;
 
     BBox bbox_;
 
@@ -167,7 +173,7 @@ class VecgeomParams final : public GeoParamsInterface,
 /*!
  * Get volume metadata.
  */
-auto VecgeomParams::volumes() const -> VolumeMap const&
+auto VecgeomParams::impl_volumes() const -> ImplVolumeMap const&
 {
     return volumes_;
 }
@@ -181,6 +187,26 @@ auto VecgeomParams::volumes() const -> VolumeMap const&
 auto VecgeomParams::volume_instances() const -> VolInstanceMap const&
 {
     return vol_instances_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the canonical volume IDs corresponding to an implementation volume.
+ *
+ * \note See make_inp_volumes : for now, volume IDs and impl IDs are identical
+ */
+inline VolumeId VecgeomParams::volume_id(ImplVolumeId iv_id) const
+{
+    CELER_EXPECT(volume_id_map_.empty() || iv_id < volume_id_map_.size());
+
+    if (CELER_UNLIKELY(volume_id_map_.empty()))
+    {
+        // VGDML probably loaded geometry
+        CELER_ASSERT(iv_id);
+        return id_cast<VolumeId>(iv_id.unchecked_get());
+    }
+
+    return volume_id_map_[iv_id.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//

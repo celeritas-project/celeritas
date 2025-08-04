@@ -26,7 +26,7 @@ struct TrackInitializer
     Real3 direction{0, 0, 0};
     Real3 polarization{0, 0, 0};
     real_type time{};
-    VolumeId volume{};
+    ImplVolumeId volume{};
 };
 
 //---------------------------------------------------------------------------//

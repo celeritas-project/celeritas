@@ -142,7 +142,7 @@ void KernelContextException::initialize(CoreTrackView const& core)
             dir_ = geo.dir();
             if (!geo.is_outside())
             {
-                volume_ = geo.volume_id();
+                volume_ = geo.impl_volume_id();
             }
             surface_ = impl_surface_id<CoreGeoTraits>(geo);
         }
