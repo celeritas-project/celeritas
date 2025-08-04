@@ -41,6 +41,9 @@ class GeantSurfacePhysicsLoader
 
     // Insert Unified model surface
     void insert_unified(GeantSurfacePhysicsHelper& helper);
+
+    // Insert both grid and analytic reflectivities into result_
+    void insert_grid_analytic_reflectivities(GeantSurfacePhysicsHelper& helper);
 };
 
 //---------------------------------------------------------------------------//

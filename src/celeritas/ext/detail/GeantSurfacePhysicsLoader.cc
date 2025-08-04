@@ -176,14 +176,15 @@ inp::ReflectionForm load_unified_refl_form(GeantSurfacePhysicsHelper& helper)
     helper.get_property(&refl_form.backscatter, "BACKSCATTERCONSTANT");
     CELER_ASSERT(refl_form);
 
-// Verify unity of reflection form parameters
 #define GSPL_VALIDATE_PROB(PARAM)                            \
     CELER_VALIDATE(is_probability(PARAM),                    \
                    << "ReflectionForm parameter '" << #PARAM \
                    << "' is not within [0, 1] range")
+
     GSPL_VALIDATE_PROB(refl_form.specular_spike);
     GSPL_VALIDATE_PROB(refl_form.specular_lobe);
     GSPL_VALIDATE_PROB(refl_form.backscatter);
+
 #undef GSPL_VALIDATE_PROB
 
     return refl_form;
@@ -198,19 +199,6 @@ inp::ReflectionGrid load_refl_grid(GeantSurfacePhysicsHelper& helper)
     inp::ReflectionGrid result;
     helper.get_property(&result.grid, "REFLECTIVITY");
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Insert grid and analytic reflectivity modes into a \c inp::SurfacePhysics
- * object.
- */
-void insert_grid_analytic_reflectivities(inp::SurfacePhysics& inp,
-                                         GeantSurfacePhysicsHelper& helper)
-{
-    auto const sid = helper.surface_id();
-    inp.reflectivity.analytic.insert({sid, inp::ReflectionAnalytic{}});
-    inp.reflectivity.grid.insert({sid, load_refl_grid(helper)});
 }
 
 //---------------------------------------------------------------------------//
@@ -289,18 +277,17 @@ void GeantSurfacePhysicsLoader::insert_glisur(GeantSurfacePhysicsHelper& helper)
             : result_.interaction.dielectric_metal.insert(pair);
     };
 
+    this->insert_grid_analytic_reflectivities(helper);
+
     switch (finish)
     {
         case G4OSF::polished: {
-            // Insert polished surface with specular spike reflection mode
             result_.roughness.polished.insert({sid, inp::NoRoughness{}});
             insert_interaction({sid, inp::ReflectionForm::from_spike()});
             break;
         }
 
         case G4OSF::ground: {
-            // Insert smear surface with specular lobe reflection mode
-            inp::ReflectionForm refl_form;
             real_type roughness = real_type{1} - surf.GetPolish();
             result_.roughness.smear.insert(
                 {sid, inp::SmearRoughness{roughness}});
@@ -343,7 +330,7 @@ void GeantSurfacePhysicsLoader::insert_unified(GeantSurfacePhysicsHelper& helper
     // [polished/ground]backpainted use analytic for layer 0 and grid for layer
     // 1, but still require both.
     //! \todo: Revisit/update this once surface layers are implemented.
-    insert_grid_analytic_reflectivities(result_, helper);
+    this->insert_grid_analytic_reflectivities(helper);
 
     switch (finish)
     {
@@ -407,6 +394,18 @@ void GeantSurfacePhysicsLoader::insert_unified(GeantSurfacePhysicsHelper& helper
         default:
             CELER_VALIDATE(false, << throw_error_msg(surf));
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Insert both grid and analytic reflectivity modes into \c result_ .
+ */
+void GeantSurfacePhysicsLoader::insert_grid_analytic_reflectivities(
+    GeantSurfacePhysicsHelper& helper)
+{
+    auto const sid = helper.surface_id();
+    result_.reflectivity.analytic.insert({sid, inp::ReflectionAnalytic{}});
+    result_.reflectivity.grid.insert({sid, load_refl_grid(helper)});
 }
 
 //---------------------------------------------------------------------------//
