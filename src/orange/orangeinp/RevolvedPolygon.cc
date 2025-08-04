@@ -149,7 +149,7 @@ NodeId RevolvedPolygon::make_region(detail::VolumeBuilder& vb,
     std::vector<NodeId> outer_nodes;
     std::vector<NodeId> inner_nodes;
 
-    auto next_idx = [n](size_type i) { return (i + 1 < n) ? i + 1 : 0; };
+    auto next_idx = [n](size_type i) { return (i + 1) % n; };
 
     // Create subregions for each pair of adjacent points that do not form
     // a horizontal line or a line that coincides with the z axis
@@ -225,14 +225,19 @@ NodeId RevolvedPolygon::make_cone(detail::VolumeBuilder& vb,
                                   Real2 const& p1,
                                   SubIndex const& si) const
 {
-    auto [r_bot, r_top] = (p0[Z] < p1[Z]) ? std::pair{p0[R], p1[R]}
-                                          : std::pair{p1[R], p0[R]};
-    auto [z_bot, z_top] = std::minmax(p0[Z], p1[Z]);
-    real_type hh = 0.5 * (z_top - z_bot);
-    Real2 radii{r_bot, r_top};
+    Real2 p_bot = p0;
+    Real2 p_top = p1;
+
+    if (p_bot[Z] > p_top[Z])
+    {
+        std::swap(p_bot, p_top);
+    }
+
+    real_type hh = 0.5 * (p_top[Z] - p_bot[Z]);
+    Real2 radii{p_bot[R], p_top[R]};
 
     auto scoped_transform
-        = vb.make_scoped_transform(Translation({0, 0, hh + z_bot}));
+        = vb.make_scoped_transform(Translation({0, 0, hh + p_bot[Z]}));
     Cone local_cone{radii, hh};
     return build_intersect_region(
         vb, std::string{label_}, this->make_subregion_ext(si), local_cone);
