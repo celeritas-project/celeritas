@@ -213,8 +213,13 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
             --depth_;
         }
         CELER_ASSERT(iter->second);
-        proto->daughters.push_back(
-            {iter->second, transform, ZOrder::media, pv.id});
+
+        UnitProto::DaughterInput daughter;
+        daughter.fill = iter->second;
+        daughter.transform = transform;
+        daughter.zorder = ZOrder::media;
+        daughter.label = pv.id;
+        proto->daughters.push_back(std::move(daughter));
 
         if (CELER_UNLIKELY(verbose_))
         {
