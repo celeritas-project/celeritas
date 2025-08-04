@@ -207,7 +207,7 @@ NodeId RevolvedPolygon::make_cylinder(detail::VolumeBuilder& vb,
                                       Real2 const& p1,
                                       SubIndex const& si) const
 {
-    real_type hh = std::abs(p1[Z] - p0[Z]) / 2;
+    real_type hh = std::fabs(p1[Z] - p0[Z]) / 2;
     auto z_bot = std::min(p0[Z], p1[Z]);
     auto scoped_transform
         = vb.make_scoped_transform(Translation({0, 0, hh + z_bot}));
