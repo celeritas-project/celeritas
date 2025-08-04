@@ -81,7 +81,7 @@ class LArSphereLaunchTest : public LArSphereBase
             inp.num_events = 1;
             inp.primaries_per_event = 65536;
             inp.energy.energy = units::MevEnergy{1e-5};
-            inp.shape = inp::PointShape{0, 0, 0};
+            inp.shape = inp::PointShape{{0, 0, 0}};
             generate_ = detail::PrimaryGeneratorAction::make_and_insert(
                 core, *optical_params, std::move(inp));
         }
