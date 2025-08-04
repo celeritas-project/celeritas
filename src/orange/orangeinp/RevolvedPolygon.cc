@@ -127,7 +127,7 @@ NodeId RevolvedPolygon::make_levels(detail::VolumeBuilder& vb,
 /*!
  * Revolved a convex polygon around the \em z axis.
  *
- * The polygon be strictly counterclockwise, i.e., it must not contain any
+ * The polygon must be strictly counterclockwise, i.e., it must not contain any
  * collinear points. Construction is done by creating a set of outer subregions
  * that define the outer edge of the polygon and subtracting out a set of inner
  * subregions.
