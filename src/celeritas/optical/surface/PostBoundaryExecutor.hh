@@ -34,14 +34,14 @@ CELER_FUNCTION void PostBoundaryExecutor::operator()(CoreTrackView& track) const
 
     auto surface_physics = track.surface_physics();
 
-    if (surface_physics.in_pre_volume())
-    {
-        // re-entrant in pre-volume
-    }
-    else
-    {
-        // entrant in post-volume
-    }
+    // if (surface_physics.in_pre_volume())
+    // {
+    //     // re-entrant in pre-volume
+    // }
+    // else
+    // {
+    //     // entrant in post-volume
+    // }
 
     surface_physics.reset();
 

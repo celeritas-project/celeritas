@@ -129,6 +129,11 @@ VolumeSurfaceSelector::operator()(VolumeId post_volume,
         return OrientedSurface{surface_id, SubsurfaceDirection::forward};
     }
 
+    if (!(post_volume < params_.volume_surfaces.size()))
+    {
+        return OrientedSurface{SurfaceId{}, SubsurfaceDirection::forward};
+    }
+
     VolumeSurfaceView post_surface{params_, post_volume};
 
     if (auto surface_id
