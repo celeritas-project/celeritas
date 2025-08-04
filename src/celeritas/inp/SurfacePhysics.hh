@@ -99,12 +99,13 @@ using SurfaceLayer = SurfaceId;
  * Paramaters used by different reflection mechanisms.
  *
  * Parameters:
- * - \todo: Add \c lambertian_roughness : Roughness parameter used by
- *   Lambertian reflection.
  * - \c specular_spike : Reflection probability at the average surface normal.
  * - \c specular_lobe : Reflection probability at the micro facet normal.
  * - \c backscatter : Probability of back scattering after reflecting within a
  *   deep groove.
+ *
+ * The sum of all three parameters must be < 1 at every grid point, with the
+ * remainder being the probability of diffuse scattering.
  */
 struct ReflectionForm
 {
@@ -118,7 +119,7 @@ struct ReflectionForm
         return specular_lobe && specular_spike && backscatter;
     }
 
-    //! Return a specular spike only reflection form
+    //! Return a specular spike reflection form
     static ReflectionForm from_spike()
     {
         ReflectionForm result;
@@ -128,7 +129,7 @@ struct ReflectionForm
         return result;
     }
 
-    //! Return a specular lobe only reflection form
+    //! Return a specular lobe reflection form
     static ReflectionForm from_lobe()
     {
         ReflectionForm result;
@@ -138,7 +139,7 @@ struct ReflectionForm
         return result;
     }
 
-    //! Return a Lambertian reflection
+    //! Return a Lambertian reflection form
     static ReflectionForm from_lambertian()
     {
         ReflectionForm result;
@@ -146,26 +147,6 @@ struct ReflectionForm
         result.specular_lobe = Grid::from_constant(0);
         result.backscatter = Grid::from_constant(0);
         return result;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Interaction models for different interface types.
- *
- * Existing interface types are dielectrict-dielectric and dielectric-metal.
- *
- * This will be extended to allow user-provided interaction kernels.
- */
-struct InteractionModels
-{
-    std::map<SurfaceLayer, ReflectionForm> dielectric_dielectric;
-    std::map<SurfaceLayer, ReflectionForm> dielectric_metal;
-
-    //! Whether the data are assigned
-    explicit operator bool() const
-    {
-        return !dielectric_dielectric.empty() || !dielectric_metal.empty();
     }
 };
 
@@ -206,6 +187,26 @@ struct ReflectivityModels
     explicit operator bool() const
     {
         return !grid.empty() || !analytic.empty();
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Interaction models for different interface types.
+ *
+ * Existing interface types are dielectrict-dielectric and dielectric-metal.
+ *
+ * This will be extended to allow user-provided interaction kernels.
+ */
+struct InteractionModels
+{
+    std::map<SurfaceLayer, ReflectionForm> dielectric_dielectric;
+    std::map<SurfaceLayer, ReflectionForm> dielectric_metal;
+
+    //! Whether the data are assigned
+    explicit operator bool() const
+    {
+        return !dielectric_dielectric.empty() || !dielectric_metal.empty();
     }
 };
 

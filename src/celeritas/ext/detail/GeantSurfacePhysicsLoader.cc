@@ -339,12 +339,17 @@ void GeantSurfacePhysicsLoader::insert_unified(GeantSurfacePhysicsHelper& helper
                   {sid, load_unified_refl_form(helper)});
     };
 
+    // Currently all enums use both grid and analytic reflectivies. Enums
+    // [polished/ground]backpainted use analytic for layer 0 and grid for layer
+    // 1, but still require both.
+    //! \todo: Revisit/update this once surface layers are implemented.
+    insert_grid_analytic_reflectivities(result_, helper);
+
     switch (finish)
     {
-        //// Used by dielectric-dielectric and dielectric-metal interfaces ////
+        // ENUMS USED BY DIELECTRIC-DIELECTRIC AND DIELECTRIC-METAL INTERFACES
         case G4OSF::polished: {
             result_.roughness.polished.insert({sid, inp::NoRoughness{}});
-            insert_grid_analytic_reflectivities(result_, helper);
             insert_interaction();
             break;
         }
@@ -352,17 +357,13 @@ void GeantSurfacePhysicsLoader::insert_unified(GeantSurfacePhysicsHelper& helper
         case G4OSF::ground: {
             result_.roughness.gaussian.insert(
                 {sid, inp::GaussianRoughness{surf.GetSigmaAlpha()}});
-            insert_grid_analytic_reflectivities(result_, helper);
             insert_interaction();
             break;
         }
 
-        //// Only available to dielectric-dielectric interfaces ////
+        // ENUMS ONLY AVAILABLE TO DIELECTRIC-DIELECTRIC INTERFACES
         case G4OSF::polishedfrontpainted: {
             result_.roughness.polished.insert({sid, inp::NoRoughness{}});
-            insert_grid_analytic_reflectivities(result_, helper);
-
-            // Insert specular spike reflection form
             result_.interaction.dielectric_dielectric.insert(
                 {sid, inp::ReflectionForm::from_spike()});
             break;
@@ -371,9 +372,6 @@ void GeantSurfacePhysicsLoader::insert_unified(GeantSurfacePhysicsHelper& helper
         case G4OSF::groundfrontpainted: {
             result_.roughness.gaussian.insert(
                 {sid, inp::GaussianRoughness{surf.GetSigmaAlpha()}});
-            insert_grid_analytic_reflectivities(result_, helper);
-
-            // Insert Lambertian reflection form
             result_.interaction.dielectric_dielectric.insert(
                 {sid, inp::ReflectionForm::from_lambertian()});
             break;
@@ -385,9 +383,6 @@ void GeantSurfacePhysicsLoader::insert_unified(GeantSurfacePhysicsHelper& helper
                 {sid, inp::GaussianRoughness{surf.GetSigmaAlpha()}});
             // Equivalent to layer 1
             result_.roughness.polished.insert({sid, inp::NoRoughness{}});
-
-            // Analytic for layer 0; grid for layer 1
-            insert_grid_analytic_reflectivities(result_, helper);
 
             // Insert interface
             // Layer 0 uses any reflection form; Layer 1 uses specular spike
@@ -402,9 +397,6 @@ void GeantSurfacePhysicsLoader::insert_unified(GeantSurfacePhysicsHelper& helper
                 {sid, inp::GaussianRoughness{surf.GetSigmaAlpha()}});
             // Equivalent to layer 1: Polished, grid, Lambertian reflection
             result_.roughness.polished.insert({sid, inp::NoRoughness{}});
-
-            // Analytic for layer 0; grid for layer 1
-            insert_grid_analytic_reflectivities(result_, helper);
 
             // Insert interface
             // Layer 0 uses all reflections; Layer 1 uses Lambertian
