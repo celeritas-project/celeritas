@@ -149,67 +149,6 @@ inline constexpr bool is_boolean_node(Node const& n)
 }
 
 //---------------------------------------------------------------------------//
-// INTERFACE TYPES
-//---------------------------------------------------------------------------//
-/*!
- * Polygon bound by top/bottom z segments, one of which may be a single point.
- *
- * Thus, valid polygons are:
- *
- * 1) quadrilaterals with two segments parallel to the z axis,
- * 2) triangles with one segment parallel to the z axis.
- */
-class SpecialTrapezoid
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using VecReal2 = std::vector<Real2>;
-
-    struct ZSegment
-    {
-        EnumArray<Bound, real_type> r;
-        real_type z;
-    };
-
-    enum class Variety
-    {
-        quad,
-        pointy_top,
-        pointy_bot
-    };
-    //!@}
-
-  public:
-    // Construct from bottom/top z segments
-    SpecialTrapezoid(ZSegment&& bot, ZSegment&& top);
-
-    /// ACCESSORS ///
-
-    //! Get the bottom z segment
-    ZSegment const& bot() const { return bot_; }
-
-    //! Get the top z segment
-    ZSegment const& top() const { return top_; }
-
-    //! Get the variety
-    Variety variety() const { return variety_; }
-
-    //! Get the absolute tolerance for soft equality
-    real_type abs_tol() const { return abs_tol_; }
-
-    // Get the unique points in counterclockwise order, from the upper right
-    VecReal2 unique_points() const;
-
-  private:
-    //// DATA ////
-    ZSegment bot_;
-    ZSegment top_;
-    Variety variety_;
-    real_type abs_tol_;
-};
-
-//---------------------------------------------------------------------------//
 }  // namespace orangeinp
 }  // namespace celeritas
 

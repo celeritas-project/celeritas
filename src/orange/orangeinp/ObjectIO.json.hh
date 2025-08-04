@@ -50,7 +50,6 @@ class InfPolarWedge;
 class Involute;
 class Parallelepiped;
 class Prism;
-class RevolvedSpecialTrapezoid;
 class Sphere;
 
 //---------------------------------------------------------------------------//
@@ -91,7 +90,6 @@ void to_json(nlohmann::json& j, InfPolarWedge const& cr);
 void to_json(nlohmann::json& j, Involute const& cr);
 void to_json(nlohmann::json& j, Parallelepiped const& cr);
 void to_json(nlohmann::json& j, Prism const& cr);
-void to_json(nlohmann::json& j, RevolvedSpecialTrapezoid const& cr);
 void to_json(nlohmann::json& j, Sphere const& cr);
 
 //---------------------------------------------------------------------------//
