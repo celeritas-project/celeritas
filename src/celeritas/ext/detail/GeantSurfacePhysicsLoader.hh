@@ -10,8 +10,7 @@
 
 #include "celeritas/inp/SurfacePhysics.hh"
 
-// Forward declaration
-class GeantSurfacePhysicsHelper;
+#include "GeantSurfacePhysicsHelper.hh"
 
 namespace celeritas
 {
@@ -19,12 +18,13 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
+ * Populate \c inp::SurfacePhysics data from Geant4 by looping over
+ * \c SurfaceIds .
  */
 class GeantSurfacePhysicsLoader
 {
   public:
-    // Construct with defaults
+    //! Construct with \c SurfacePhysics input
     GeantSurfacePhysicsLoader(inp::SurfacePhysics& result);
 
     //! Populate surface physics data

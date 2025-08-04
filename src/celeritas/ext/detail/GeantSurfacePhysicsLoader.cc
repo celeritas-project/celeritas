@@ -14,8 +14,6 @@
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
 
-#include "GeantSurfacePhysicsHelper.hh"
-
 namespace celeritas
 {
 namespace detail
@@ -159,7 +157,7 @@ char const* to_cstring(G4OpticalSurfaceFinish value)
  *
  * Used to verify that \c ReflectionForm Grids are within the expected range.
  */
-bool unity(inp::Grid const& grid)
+bool is_probability(inp::Grid const& grid)
 {
     return std::all_of(grid.y.begin(), grid.y.end(), [](real_type const& val) {
         return val >= 0 && val <= 1;
@@ -179,21 +177,21 @@ inp::ReflectionForm load_unified_refl_form(GeantSurfacePhysicsHelper& helper)
     CELER_ASSERT(refl_form);
 
 // Verify unity of reflection form parameters
-#define GSPL_VALIDATE_UNITY(PARAM)                           \
-    CELER_VALIDATE(unity(PARAM),                             \
+#define GSPL_VALIDATE_PROB(PARAM)                            \
+    CELER_VALIDATE(is_probability(PARAM),                    \
                    << "ReflectionForm parameter '" << #PARAM \
                    << "' is not within [0, 1] range")
-    GSPL_VALIDATE_UNITY(refl_form.specular_spike);
-    GSPL_VALIDATE_UNITY(refl_form.specular_lobe);
-    GSPL_VALIDATE_UNITY(refl_form.backscatter);
-#undef GSPL_VALIDATE_UNITY
+    GSPL_VALIDATE_PROB(refl_form.specular_spike);
+    GSPL_VALIDATE_PROB(refl_form.specular_lobe);
+    GSPL_VALIDATE_PROB(refl_form.backscatter);
+#undef GSPL_VALIDATE_PROB
 
     return refl_form;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Populate a \c inp::ReflectionGrid object for a given surface
+ * Populate a \c inp::ReflectionGrid object for a given surface.
  */
 inp::ReflectionGrid load_refl_grid(GeantSurfacePhysicsHelper& helper)
 {
@@ -223,7 +221,7 @@ std::string throw_error_msg(G4OpticalSurface const& surf)
 {
     return "Surface " + surf.GetName() + " with surface finish '"
            + to_cstring(surf.GetFinish()) + "' is not compatible with '"
-           + to_cstring(surf.GetType()) + "' surface type on the "
+           + to_cstring(surf.GetType()) + "' surface type and "
            + to_cstring(surf.GetModel()) + " model";
 }
 
@@ -262,6 +260,9 @@ void GeantSurfacePhysicsLoader::operator()(SurfaceId sid)
         default:
             CELER_NOT_IMPLEMENTED("Model " + std::string(to_cstring(model)));
     }
+
+    CELER_LOG(debug) << "Inserted SurfaceId " << sid.unchecked_get()
+                     << " with model " << to_cstring(model);
 }
 
 //---------------------------------------------------------------------------//
@@ -279,18 +280,21 @@ void GeantSurfacePhysicsLoader::insert_glisur(GeantSurfacePhysicsHelper& helper)
     auto sid = helper.surface_id();
     auto const type = surf.GetType();
     auto const finish = surf.GetFinish();
+
+    // Interaction insertion helper
+    auto insert_interaction
+        = [&](std::pair<SurfaceId, inp::ReflectionForm> pair) -> void {
+        (type == G4ST::dielectric_dielectric)
+            ? result_.interaction.dielectric_dielectric.insert(pair)
+            : result_.interaction.dielectric_metal.insert(pair);
+    };
+
     switch (finish)
     {
         case G4OSF::polished: {
             // Insert polished surface with specular spike reflection mode
             result_.roughness.polished.insert({sid, inp::NoRoughness{}});
-
-            std::pair<SurfaceId, inp::ReflectionForm> pair{
-                sid, inp::ReflectionForm::from_spike()};
-
-            (type == G4ST::dielectric_dielectric)
-                ? result_.interaction.dielectric_dielectric.insert(pair)
-                : result_.interaction.dielectric_metal.insert(pair);
+            insert_interaction({sid, inp::ReflectionForm::from_spike()});
             break;
         }
 
@@ -300,13 +304,7 @@ void GeantSurfacePhysicsLoader::insert_glisur(GeantSurfacePhysicsHelper& helper)
             real_type roughness = real_type{1} - surf.GetPolish();
             result_.roughness.smear.insert(
                 {sid, inp::SmearRoughness{roughness}});
-
-            std::pair<SurfaceId, inp::ReflectionForm> pair{
-                sid, inp::ReflectionForm::from_lobe()};
-
-            (type == G4ST::dielectric_dielectric)
-                ? result_.interaction.dielectric_dielectric.insert(pair)
-                : result_.interaction.dielectric_metal.insert(pair);
+            insert_interaction({sid, inp::ReflectionForm::from_lobe()});
             break;
         }
 
@@ -331,20 +329,23 @@ void GeantSurfacePhysicsLoader::insert_unified(GeantSurfacePhysicsHelper& helper
     auto sid = helper.surface_id();
     auto const type = surf.GetType();
     auto const finish = surf.GetFinish();
+
+    // Interaction model insertion helper for polished and ground finishes
+    auto insert_interaction = [&]() -> void {
+        (type == G4ST::dielectric_dielectric)
+            ? result_.interaction.dielectric_dielectric.insert(
+                  {sid, inp::ReflectionForm::from_spike()})
+            : result_.interaction.dielectric_metal.insert(
+                  {sid, load_unified_refl_form(helper)});
+    };
+
     switch (finish)
     {
         //// Used by dielectric-dielectric and dielectric-metal interfaces ////
         case G4OSF::polished: {
             result_.roughness.polished.insert({sid, inp::NoRoughness{}});
             insert_grid_analytic_reflectivities(result_, helper);
-
-            // Insert interaction based on surface type
-            (type == G4ST::dielectric_dielectric)
-                ? result_.interaction.dielectric_dielectric.insert(
-                      {sid, inp::ReflectionForm::from_spike()})
-                : result_.interaction.dielectric_metal.insert(
-                      {sid, load_unified_refl_form(helper)});
-
+            insert_interaction();
             break;
         }
 
@@ -352,14 +353,7 @@ void GeantSurfacePhysicsLoader::insert_unified(GeantSurfacePhysicsHelper& helper
             result_.roughness.gaussian.insert(
                 {sid, inp::GaussianRoughness{surf.GetSigmaAlpha()}});
             insert_grid_analytic_reflectivities(result_, helper);
-
-            // Insert interaction based on surface type
-            (type == G4ST::dielectric_dielectric)
-                ? result_.interaction.dielectric_dielectric.insert(
-                      {sid, inp::ReflectionForm::from_spike()})
-                : result_.interaction.dielectric_metal.insert(
-                      {sid, load_unified_refl_form(helper)});
-
+            insert_interaction();
             break;
         }
 
@@ -391,8 +385,10 @@ void GeantSurfacePhysicsLoader::insert_unified(GeantSurfacePhysicsHelper& helper
                 {sid, inp::GaussianRoughness{surf.GetSigmaAlpha()}});
             // Equivalent to layer 1
             result_.roughness.polished.insert({sid, inp::NoRoughness{}});
+
             // Analytic for layer 0; grid for layer 1
             insert_grid_analytic_reflectivities(result_, helper);
+
             // Insert interface
             // Layer 0 uses any reflection form; Layer 1 uses specular spike
             result_.interaction.dielectric_dielectric.insert(
@@ -406,8 +402,10 @@ void GeantSurfacePhysicsLoader::insert_unified(GeantSurfacePhysicsHelper& helper
                 {sid, inp::GaussianRoughness{surf.GetSigmaAlpha()}});
             // Equivalent to layer 1: Polished, grid, Lambertian reflection
             result_.roughness.polished.insert({sid, inp::NoRoughness{}});
+
             // Analytic for layer 0; grid for layer 1
             insert_grid_analytic_reflectivities(result_, helper);
+
             // Insert interface
             // Layer 0 uses all reflections; Layer 1 uses Lambertian
             result_.interaction.dielectric_dielectric.insert(
