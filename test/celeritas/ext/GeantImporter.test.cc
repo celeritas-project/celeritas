@@ -2005,7 +2005,7 @@ TEST_F(OpticalSurfaces, surfaces)
         EXPECT_FALSE(OS_IS_MAPPED(roughness.gaussian, sid));
 
         EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
-        EXPECT_TRUE(OS_IS_MAPPED(reflectivity.analytic, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
 
         EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
         EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
@@ -2024,7 +2024,7 @@ TEST_F(OpticalSurfaces, surfaces)
         EXPECT_FALSE(OS_IS_MAPPED(roughness.gaussian, sid));
 
         EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
-        EXPECT_TRUE(OS_IS_MAPPED(reflectivity.analytic, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
 
         EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
         EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
@@ -2047,7 +2047,7 @@ TEST_F(OpticalSurfaces, surfaces)
         EXPECT_TRUE(OS_IS_MAPPED(roughness.gaussian, sid));
 
         EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
-        EXPECT_TRUE(OS_IS_MAPPED(reflectivity.analytic, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
 
         EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
         EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
@@ -2074,7 +2074,7 @@ TEST_F(OpticalSurfaces, surfaces)
         EXPECT_FALSE(OS_IS_MAPPED(roughness.gaussian, sid));
 
         EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
-        EXPECT_TRUE(OS_IS_MAPPED(reflectivity.analytic, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
 
         EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
         EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
@@ -2093,7 +2093,7 @@ TEST_F(OpticalSurfaces, surfaces)
         EXPECT_FALSE(OS_IS_MAPPED(roughness.gaussian, sid));
 
         EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
-        EXPECT_TRUE(OS_IS_MAPPED(reflectivity.analytic, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
 
         EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
         EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_metal, sid));

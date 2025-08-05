@@ -329,14 +329,14 @@ void GeantSurfacePhysicsLoader::insert_reflectivity(
     GeantSurfacePhysicsHelper const& helper)
 {
     auto& reflectivity = models_.reflectivity;
-    inp::ReflectionGrid refl_grid;
-    if (helper.get_property(&refl_grid.grid, "REFLECTIVITY"))
+    inp::GridReflection refl_grid;
+    if (helper.get_property(&refl_grid.reflectivity, "REFLECTIVITY"))
     {
         helper.emplace(reflectivity.grid, std::move(refl_grid));
     }
     else
     {
-        helper.emplace(reflectivity.analytic, inp::ReflectionAnalytic{});
+        helper.emplace(reflectivity.fresnel, inp::FresnelReflection{});
     }
 }
 

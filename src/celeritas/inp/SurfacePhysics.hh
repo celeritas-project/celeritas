@@ -26,19 +26,19 @@ namespace inp
  * Surface reflectivity index, which can be a user-defined Grid, which is a
  * function of energy (wavelength), or constant.
  */
-struct ReflectionGrid
+struct GridReflection
 {
-    Grid grid;
+    Grid reflectivity;
 
     //! Whether the data are assigned
-    explicit operator bool() const { return static_cast<bool>(grid); }
+    explicit operator bool() const { return static_cast<bool>(reflectivity); }
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Analytic reflectivity: use Fresnel equations.
+ * Analytic reflectivity using Fresnel equations.
  */
-struct ReflectionAnalytic
+struct FresnelReflection
 {
 };
 
@@ -180,13 +180,13 @@ struct RoughnessModels
  */
 struct ReflectivityModels
 {
-    std::map<SurfaceLayer, ReflectionGrid> grid;
-    std::map<SurfaceLayer, ReflectionAnalytic> analytic;
+    std::map<SurfaceLayer, GridReflection> grid;
+    std::map<SurfaceLayer, FresnelReflection> fresnel;
 
     //! Whether the data are assigned
     explicit operator bool() const
     {
-        return !grid.empty() || !analytic.empty();
+        return !grid.empty() || !fresnel.empty();
     }
 };
 

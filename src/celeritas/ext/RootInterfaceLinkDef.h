@@ -50,14 +50,14 @@
 
 // Input data
 #pragma link C++ class celeritas::inp::GaussianRoughness+;
+#pragma link C++ class celeritas::inp::FresnelReflection+;
 #pragma link C++ class celeritas::inp::Grid+;
+#pragma link C++ class celeritas::inp::GridReflection+;
 #pragma link C++ class celeritas::inp::InteractionModels+;
 #pragma link C++ class celeritas::inp::Interpolation+;
-#pragma link C++ class celeritas::inp::OpticalPhysics+;
 #pragma link C++ class celeritas::inp::NoRoughness+;
-#pragma link C++ class celeritas::inp::ReflectionAnalytic+;
+#pragma link C++ class celeritas::inp::OpticalPhysics+;
 #pragma link C++ class celeritas::inp::ReflectionForm+;
-#pragma link C++ class celeritas::inp::ReflectionGrid+;
 #pragma link C++ class celeritas::inp::ReflectivityModels+;
 #pragma link C++ class celeritas::inp::RoughnessModels+;
 #pragma link C++ class celeritas::inp::SmearRoughness+;

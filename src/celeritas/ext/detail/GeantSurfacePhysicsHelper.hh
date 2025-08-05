@@ -56,7 +56,7 @@ inline void
 GeantSurfacePhysicsHelper::emplace(std::map<SurfaceId, T>& m, T&& value) const
 {
     auto result = m.emplace(sid_, std::forward<T>(value));
-    // Duplicate surfaces are prpohibited
+    // Duplicate surfaces are prohibited
     CELER_ASSERT(result.second);
 }
 
