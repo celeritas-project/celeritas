@@ -245,7 +245,7 @@ SurfacePhysicsView::cross_subsurface_interface(SubsurfaceDirection d)
         (d == SubsurfaceDirection::forward && !this->in_post_volume())
         || (d == SubsurfaceDirection::reverse && !this->in_pre_volume()));
     states_.subsurface_material[track_id_] = this->subsurface_material()
-                                             + static_cast<int>(d);
+                                             + to_signed_offset(d);
 }
 
 //---------------------------------------------------------------------------//
