@@ -58,7 +58,9 @@ TEST_F(VolumeSurfaceSelectorTest, select_surface)
         std::vector<OSurface> results;
 
         VolumeSurfaceSelector select{
-            surfaces.host_ref(), volumes_.volume(pre_vol_inst), pre_vol_inst};
+            VolumeSurfaceView{surfaces.host_ref(),
+                              volumes_.volume(pre_vol_inst)},
+            pre_vol_inst};
         for (auto post_vol_inst :
              range(VolumeInstanceId{volumes_.num_volume_instances()}))
         {
@@ -70,7 +72,9 @@ TEST_F(VolumeSurfaceSelectorTest, select_surface)
                 continue;
             }
 
-            results.push_back(select(post_vol, post_vol_inst));
+            results.push_back(
+                select(VolumeSurfaceView{surfaces.host_ref(), post_vol},
+                       post_vol_inst));
         }
 
         return results;
@@ -161,7 +165,8 @@ TEST_F(VolumeSurfaceSelectorTest, mother_daughter)
     // Mother volume B
     VolumeInstanceId mother{0};
     VolumeSurfaceSelector select{
-        surfaces.host_ref(), volumes_.volume(mother), mother};
+        VolumeSurfaceView{surfaces.host_ref(), volumes_.volume(mother)},
+        mother};
 
     // Daughter volume C3
     VolumeInstanceId daughter{3};
@@ -170,7 +175,10 @@ TEST_F(VolumeSurfaceSelectorTest, mother_daughter)
     // relations Geant4: select daughter's boundary if present (SurfaceId{8})
     // Celeritas: select pre-volume first (SurfaceId{2})
     OSurface result{SurfaceId{2}, forward};
-    EXPECT_EQ(result, select(volumes_.volume(daughter), daughter));
+    EXPECT_EQ(result,
+              select(VolumeSurfaceView{surfaces.host_ref(),
+                                       volumes_.volume(daughter)},
+                     daughter));
 }
 
 //---------------------------------------------------------------------------//

@@ -94,8 +94,8 @@ template<class T>
         // The enclosed angle is "true" (specified by the user to truncate the
         // shape azimuthally): construct a wedge to be added or deleted
         auto&& [sense, wedge] = azi.make_sense_region();
-        NodeId wedge_id
-            = build_intersect_region(vb, base.label(), "angle", wedge);
+        char const* ext = (sense == Sense::outside ? "~azi" : "azi");
+        NodeId wedge_id = build_intersect_region(vb, base.label(), ext, wedge);
         if (sense == Sense::outside)
         {
             wedge_id = vb.insert_region({}, Negated{wedge_id});

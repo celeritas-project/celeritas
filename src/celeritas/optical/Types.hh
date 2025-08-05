@@ -30,12 +30,6 @@ using ModelId = OpaqueId<class Model>;
 using SubsurfaceMaterialId = OpaqueId<struct SubsurfaceMaterial>;
 using SubsurfaceInterfaceId = OpaqueId<struct SubsurfaceInterface>;
 
-enum class SubsurfaceDirection : int
-{
-    forward = 1,
-    reverse = -1
-};
-
 }  // namespace optical
 
 //---------------------------------------------------------------------------//
@@ -47,6 +41,22 @@ enum class GeneratorType
     cherenkov,
     scintillation,
 };
+
+namespace optical
+{
+
+enum class SubsurfaceDirection : bool
+{
+    reverse = false,
+    forward = true
+};
+
+CELER_FORCEINLINE_FUNCTION int to_signed_offset(SubsurfaceDirection d)
+{
+    return 2 * static_cast<int>(d) - 1;
+}
+
+}  // namespace optical
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

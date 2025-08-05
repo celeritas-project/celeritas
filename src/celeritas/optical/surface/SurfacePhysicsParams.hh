@@ -11,8 +11,7 @@
 #include "celeritas/optical/Types.hh"
 #include "celeritas/optical/action/ActionInterface.hh"
 
-#include "InitBoundaryAction.hh"
-#include "PostBoundaryAction.hh"
+#include "BoundaryAction.hh"
 #include "SurfacePhysicsData.hh"
 
 namespace celeritas

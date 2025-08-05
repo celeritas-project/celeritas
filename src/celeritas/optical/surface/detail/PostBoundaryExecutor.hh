@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/surface/PostBoundaryExecutor.hh
+//! \file celeritas/optical/surface/detail/PostBoundaryExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,12 +14,20 @@ namespace celeritas
 {
 namespace optical
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
+ * Finalize the track's boundary crossing.
+ *
+ * Updates the track's state base on whether it is re-entrant in the
+ * pre-volume or entrant on the post-volume. The track's surface physics
+ * state will be reset.
  */
 struct PostBoundaryExecutor
 {
-    CELER_FUNCTION void operator()(CoreTrackView&) const;
+    // Finalize track's boundary crossing
+    inline CELER_FUNCTION void operator()(CoreTrackView&) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -30,25 +38,11 @@ struct PostBoundaryExecutor
  */
 CELER_FUNCTION void PostBoundaryExecutor::operator()(CoreTrackView& track) const
 {
-    CELER_EXPECT(track.is_crossing_boundary());
-
-    auto surface_physics = track.surface_physics();
-
-    // if (surface_physics.in_pre_volume())
-    // {
-    //     // re-entrant in pre-volume
-    // }
-    // else
-    // {
-    //     // entrant in post-volume
-    // }
-
-    surface_physics.reset();
-
     // Force-kill tracks for now
     track.sim().status(TrackStatus::killed);
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace optical
 }  // namespace celeritas

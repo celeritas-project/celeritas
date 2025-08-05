@@ -7,6 +7,7 @@
 #pragma once
 
 #include "corecel/random/engine/RngEngine.hh"
+#include "geocel/VolumeSurfaceView.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 
 #include "CoreTrackData.hh"
@@ -16,7 +17,6 @@
 #include "SimTrackView.hh"
 #include "TrackInitializer.hh"
 #include "surface/SurfacePhysicsView.hh"
-#include "surface/VolumeSurfaceSelector.hh"
 
 #if !CELER_DEVICE_COMPILE
 #    include "corecel/io/Logger.hh"
@@ -54,7 +54,7 @@ class CoreTrackView
     // Return a material view
     inline CELER_FUNCTION MaterialView material_record() const;
 
-    // Return a material view (using an existing geo view
+    // Return a material view (using an existing geo view)
     inline CELER_FUNCTION MaterialView material_record(GeoTrackView const&) const;
 
     // Return a simulation management view
@@ -66,11 +66,14 @@ class CoreTrackView
     // Return a physics view
     inline CELER_FUNCTION PhysicsTrackView physics() const;
 
+    // Return a volume surface view
+    inline CELER_FUNCTION VolumeSurfaceView surface() const;
+
+    // Return a volume surface view from volume ID
+    inline CELER_FUNCTION VolumeSurfaceView surface(VolumeId) const;
+
     // Return a view to the current surface physics
     inline CELER_FUNCTION SurfacePhysicsView surface_physics() const;
-
-    // Return a surface selector for the current volume
-    inline CELER_FUNCTION VolumeSurfaceSelector surface_selector() const;
 
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
@@ -205,24 +208,24 @@ CELER_FUNCTION auto CoreTrackView::physics() const -> PhysicsTrackView
         params_.physics, states_.physics, mat_id, this->track_slot_id()};
 }
 
-// //---------------------------------------------------------------------------//
-// /*!
-//  * Return a view to surface properties attached to a volume.
-//  */
-// CELER_FUNCTION auto CoreTrackView::volume_surface(VolumeId vid) const
-//     -> VolumeSurfaceView
-// {
-//     return VolumeSurfaceView{params_.surface, vid};
-// }
+//---------------------------------------------------------------------------//
+/*!
+ * Return a volume surface view into the track's current volume.
+ */
+CELER_FUNCTION auto CoreTrackView::surface() const -> VolumeSurfaceView
+{
+    return this->surface(this->geometry().volume_id());
+}
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a surface selector for the current volume.
+ * Return a volume surface view from volume ID.
  */
-CELER_FUNCTION auto CoreTrackView::surface_selector() const
-    -> VolumeSurfaceSelector
+CELER_FUNCTION auto CoreTrackView::surface(VolumeId vol) const
+    -> VolumeSurfaceView
 {
-    return VolumeSurfaceSelector{params_.surface, this->geometry()};
+    CELER_EXPECT(vol);
+    return VolumeSurfaceView{params_.surface, vol};
 }
 
 //---------------------------------------------------------------------------//
