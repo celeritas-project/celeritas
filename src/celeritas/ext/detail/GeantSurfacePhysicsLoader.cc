@@ -201,8 +201,8 @@ load_unified_refl_form(GeantSurfacePhysicsHelper const& helper)
 /*!
  * Construct with \c SurfacePhysics input to be filled by \c operator() .
  */
-GeantSurfacePhysicsLoader::GeantSurfacePhysicsLoader(inp::SurfacePhysics& result)
-    : models_(result)
+GeantSurfacePhysicsLoader::GeantSurfacePhysicsLoader(inp::SurfacePhysics& models)
+    : models_(models)
 {
 }
 

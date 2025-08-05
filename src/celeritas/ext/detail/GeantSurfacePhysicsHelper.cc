@@ -9,6 +9,7 @@
 #include <G4LogicalSurface.hh>
 #include <G4OpticalSurface.hh>
 
+#include "corecel/io/Logger.hh"
 #include "geocel/GeantGeoParams.hh"
 
 #include "GeantMaterialPropertyGetter.hh"
@@ -62,7 +63,14 @@ bool GeantSurfacePhysicsHelper::get_property(inp::Grid* dst,
                                              std::string const& name) const
 {
     GeantMaterialPropertyGetter get_property{*mpt_};
-    return get_property(dst, name, {ImportUnits::mev, ImportUnits::unitless});
+    auto loaded
+        = get_property(dst, name, {ImportUnits::mev, ImportUnits::unitless});
+    if (loaded)
+    {
+        CELER_LOG(debug) << "Loaded " << name << " from "
+                         << this->surface().GetName();
+    }
+    return loaded;
 }
 
 //---------------------------------------------------------------------------//

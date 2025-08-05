@@ -29,7 +29,7 @@ class GeantSurfacePhysicsHelper
     GeantSurfacePhysicsHelper(SurfaceId sid);
 
     // Get optical surface id
-    SurfaceId const surface_id() const { return sid_; }
+    SurfaceId surface_id() const { return sid_; }
 
     // Get Geant4 optical surface
     G4OpticalSurface const& surface() const;
