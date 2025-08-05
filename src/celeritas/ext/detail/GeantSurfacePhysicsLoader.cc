@@ -171,7 +171,8 @@ bool is_probability(inp::Grid const& grid)
 /*!
  * Populate all \c ReflectionForm parameters for the Unified model.
  */
-inp::ReflectionForm load_unified_refl_form(GeantSurfacePhysicsHelper& helper)
+inp::ReflectionForm
+load_unified_refl_form(GeantSurfacePhysicsHelper const& helper)
 {
     inp::ReflectionForm refl_form;
     helper.get_property(&refl_form.specular_lobe, "SPECULARLOBECONSTANT");
@@ -253,7 +254,8 @@ void GeantSurfacePhysicsLoader::operator()(SurfaceId sid)
 /*!
  * Insert GLISUR model surface.
  */
-void GeantSurfacePhysicsLoader::insert_glisur(GeantSurfacePhysicsHelper& helper)
+void GeantSurfacePhysicsLoader::insert_glisur(
+    GeantSurfacePhysicsHelper const& helper)
 {
     this->insert_reflectivity(helper);
 
@@ -285,7 +287,8 @@ void GeantSurfacePhysicsLoader::insert_glisur(GeantSurfacePhysicsHelper& helper)
  * Data is populated according to the table from Celeritas issue #1512:
  * https://github.com/celeritas-project/celeritas/issues/1512#issuecomment-3019564068
  */
-void GeantSurfacePhysicsLoader::insert_unified(GeantSurfacePhysicsHelper& helper)
+void GeantSurfacePhysicsLoader::insert_unified(
+    GeantSurfacePhysicsHelper const& helper)
 {
     this->insert_reflectivity(helper);
 
@@ -325,7 +328,7 @@ void GeantSurfacePhysicsLoader::insert_unified(GeantSurfacePhysicsHelper& helper
  * Insert both grid and analytic reflectivity modes into \c models_ .
  */
 void GeantSurfacePhysicsLoader::insert_reflectivity(
-    GeantSurfacePhysicsHelper& helper)
+    GeantSurfacePhysicsHelper const& helper)
 {
     auto& reflectivity = models_.reflectivity;
     inp::ReflectionGrid refl_grid;
@@ -344,7 +347,7 @@ void GeantSurfacePhysicsLoader::insert_reflectivity(
  * Insert an interaction based on the surface's type .
  */
 void GeantSurfacePhysicsLoader::insert_interaction(
-    GeantSurfacePhysicsHelper& helper, inp::ReflectionForm&& rf)
+    GeantSurfacePhysicsHelper const& helper, inp::ReflectionForm&& rf)
 {
     auto& interaction = models_.interaction;
     switch (helper.surface().GetType())

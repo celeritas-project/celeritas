@@ -42,7 +42,7 @@ class GeantSurfacePhysicsHelper
     inline void emplace(std::map<SurfaceId, T>& m, T&& value) const;
 
   private:
-    SurfaceId const sid_;
+    SurfaceId sid_;
     G4OpticalSurface const* surface_;
     G4MaterialPropertiesTable const* mpt_;
 };

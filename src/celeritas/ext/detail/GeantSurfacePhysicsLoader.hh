@@ -37,16 +37,16 @@ class GeantSurfacePhysicsLoader
     //// HELPER FUNCTIONS ////
 
     // Insert GLISUR model surface
-    void insert_glisur(GeantSurfacePhysicsHelper& helper);
+    void insert_glisur(GeantSurfacePhysicsHelper const& helper);
 
     // Insert Unified model surface
-    void insert_unified(GeantSurfacePhysicsHelper& helper);
+    void insert_unified(GeantSurfacePhysicsHelper const& helper);
 
     // Insert grid or analytic reflectivity into models_
-    void insert_reflectivity(GeantSurfacePhysicsHelper& helper);
+    void insert_reflectivity(GeantSurfacePhysicsHelper const& helper);
 
     // Insert reflection form for di/di or di/met
-    void insert_interaction(GeantSurfacePhysicsHelper& helper,
+    void insert_interaction(GeantSurfacePhysicsHelper const& helper,
                             inp::ReflectionForm&& rf);
 };
 
