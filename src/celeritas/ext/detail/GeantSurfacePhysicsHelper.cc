@@ -48,6 +48,14 @@ G4OpticalSurface const& GeantSurfacePhysicsHelper::surface() const
 //---------------------------------------------------------------------------//
 /*!
  * Get property from material properties table.
+ *
+ * \note Currently all imported parameters are in [energy] vs. [unitless], and
+ * therefore units are abstracted from the function call. The grids currently
+ * pulled by this helper are:
+ * - Reflectivity
+ * - Specular spike
+ * - Specular lobe
+ * - Backscatter
  */
 bool GeantSurfacePhysicsHelper::get_property(inp::Grid* dst,
                                              std::string const& name)

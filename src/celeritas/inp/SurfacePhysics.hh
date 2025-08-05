@@ -96,7 +96,7 @@ using SurfaceLayer = SurfaceId;
 // SURFACE PHYSICS: interaction mechanisms / reflection models.
 //---------------------------------------------------------------------------//
 /*!
- * Paramaters used by different reflection mechanisms.
+ * Parameters used by different reflection mechanisms.
  *
  * Parameters:
  * - \c specular_spike : Reflection probability at the average surface normal.
@@ -194,7 +194,7 @@ struct ReflectivityModels
 /*!
  * Interaction models for different interface types.
  *
- * Existing interface types are dielectrict-dielectric and dielectric-metal.
+ * Existing interface types are dielectric-dielectric and dielectric-metal.
  *
  * This will be extended to allow user-provided interaction kernels.
  */
