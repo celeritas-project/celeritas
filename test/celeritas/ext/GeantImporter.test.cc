@@ -355,6 +355,10 @@ class LarSphereExtramat : public GeantImporterTest
     GeantPhysicsOptions build_geant_options() const override
     {
         auto opts = GeantImporterTest::build_geant_options();
+        opts.optical.absorption = true;
+        opts.optical.rayleigh_scattering = true;
+        opts.optical.wavelength_shifting.enable = true;
+        opts.optical.wavelength_shifting2.enable = true;
         return opts;
     }
 };

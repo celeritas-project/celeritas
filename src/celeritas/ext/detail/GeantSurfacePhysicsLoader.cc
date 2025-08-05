@@ -324,6 +324,22 @@ void GeantSurfacePhysicsLoader::insert_unified(GeantSurfacePhysicsHelper& helper
                   {sid, load_unified_refl_form(helper)});
     };
 
+    // Insert [polished/ground]backpainted data, as they are equivalent
+    //! \todo: Revisit this when surface layers are implemented
+    auto insert_backpainted = [&]() -> void {
+        // Equivalent to layer 0
+        result_.roughness.gaussian.insert(
+            {sid, inp::GaussianRoughness{surf.GetSigmaAlpha()}});
+        // Equivalent to layer 1
+        result_.roughness.polished.insert({sid, inp::NoRoughness{}});
+
+        // Insert interface
+        // Polished: Layer 0 uses any reflection form; Layer 1 uses spike
+        // Ground  : Layer 0 uses any reflection form; Layer 1 uses Lambertian
+        result_.interaction.dielectric_dielectric.insert(
+            {sid, load_unified_refl_form(helper)});
+    };
+
     // Currently all enums use both grid and analytic reflectivies. Enums
     // [polished/ground]backpainted use analytic for layer 0 and grid for layer
     // 1, but still require both.
@@ -360,29 +376,11 @@ void GeantSurfacePhysicsLoader::insert_unified(GeantSurfacePhysicsHelper& helper
             break;
         }
         case G4OSF::polishedbackpainted: {
-            // Equivalent to layer 0
-            result_.roughness.gaussian.insert(
-                {sid, inp::GaussianRoughness{surf.GetSigmaAlpha()}});
-            // Equivalent to layer 1
-            result_.roughness.polished.insert({sid, inp::NoRoughness{}});
-
-            // Insert interface
-            // Layer 0 uses any reflection form; Layer 1 uses specular spike
-            result_.interaction.dielectric_dielectric.insert(
-                {sid, load_unified_refl_form(helper)});
+            insert_backpainted();
             break;
         }
         case G4OSF::groundbackpainted: {
-            // Equivalent to layer 0: Gaussian, analytic reflection
-            result_.roughness.gaussian.insert(
-                {sid, inp::GaussianRoughness{surf.GetSigmaAlpha()}});
-            // Equivalent to layer 1: Polished, grid, Lambertian reflection
-            result_.roughness.polished.insert({sid, inp::NoRoughness{}});
-
-            // Insert interface
-            // Layer 0 uses all reflections; Layer 1 uses Lambertian
-            result_.interaction.dielectric_dielectric.insert(
-                {sid, load_unified_refl_form(helper)});
+            insert_backpainted();
             break;
         }
 
