@@ -16,6 +16,7 @@
 #include "IntersectRegion.hh"
 #include "ObjectInterface.hh"
 #include "PolySolid.hh"
+#include "RevolvedPolygon.hh"
 #include "Shape.hh"
 #include "Solid.hh"
 #include "StackedExtrudedPolygon.hh"
@@ -92,6 +93,19 @@ void to_json(nlohmann::json& j, PolyPrism const& obj)
         SIO_ATTR_PAIR(obj, segments),
         SIO_ATTR_PAIR(obj, num_sides),
         SIO_ATTR_PAIR(obj, orientation),
+    };
+    if (auto azi = obj.enclosed_azi())
+    {
+        j["enclosed_azi"] = azi;
+    }
+}
+
+void to_json(nlohmann::json& j, RevolvedPolygon const& obj)
+{
+    j = {
+        {"_type", "revolvedpolygon"},
+        SIO_ATTR_PAIR(obj, label),
+        SIO_ATTR_PAIR(obj, polygon),
     };
     if (auto azi = obj.enclosed_azi())
     {

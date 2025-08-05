@@ -294,37 +294,40 @@ TEST_F(SolidConverterTest, ellipticalcone)
 
 //---------------------------------------------------------------------------//
 /*
- * Test xtru with 4 levels of concavity.
- *
- *                     7
- *   1                 |\
- *   \\                | \
- *    \ \      3  5    |  \
- *     \  \    /\/\    |   \
- *      \   \/   4  \  |    \ 8
- *       \   2        \|    /
- *        \            6   /
- *         \ 11           /
- *          \/\__________/
- *          0  10        9
+ * Test xtru with 4 levels of concavity. Points are supplied in clockwise
+ order,
+ * as preferred by Geant4.
+ \verbatim
+                   7
+ 1                 |\
+ \\                | \
+  \ \      3  5    |  \
+   \  \    /\/\    |   \
+    \   \/   4  \  |    \ 8
+     \   2        \|    /
+      \            6   /
+       \ 11           /
+        \/\__________/
+        0  10        9
+ \endverbatim
  */
 TEST_F(SolidConverterTest, extrudedsolid_concave)
 {
     using ZSection = G4ExtrudedSolid::ZSection;
 
     // Setup G4Extruded solid construction commands
-    std::vector<G4TwoVector> polygon = {{0.05, 0.01},
-                                        {0.1, 0},
-                                        {1, 0},
-                                        {1.2, 0.5},
-                                        {0.9, 1.2},
-                                        {0.8, 0.4},
-                                        {0.5, 0.7},
-                                        {0.45, 0.6},
-                                        {0.4, 0.7},
-                                        {0.15, 0.5},
+    std::vector<G4TwoVector> polygon = {{0, 0},
                                         {-0.3, 1},
-                                        {0, 0}};
+                                        {0.15, 0.5},
+                                        {0.4, 0.7},
+                                        {0.45, 0.6},
+                                        {0.5, 0.7},
+                                        {0.8, 0.4},
+                                        {0.9, 1.2},
+                                        {1.2, 0.5},
+                                        {1, 0},
+                                        {0.1, 0},
+                                        {0.05, 0.01}};
 
     ZSection bot(0, {0, 0}, 1);
     ZSection mid(1, {10, 5}, 0.5);
@@ -361,6 +364,53 @@ TEST_F(SolidConverterTest, extrudedsolid_simple)
         G4ExtrudedSolid("testExtrudedSolid", polygon, z_sections),
         R"json({"_type":"shape","interior":{"_type":"extrudedpolygon","bot_line_segment_point":[0.0,0.0,0.0],"bot_scaling_factor":1.0,"polygon":[[0.1,0.0],[0.1,0.1],[0.0,0.1],[0.0,0.0]],"top_line_segment_point":[0.1,0.2,0.1],"top_scaling_factor":1.5},"label":"testExtrudedSolid"})json",
         {{0.5, 0.5, 0.5}, {-1, 0.5, 0.5}});
+}
+
+//---------------------------------------------------------------------------//
+/*
+ * Test GenericPolygon with 4 levels of concavity. Points are supplied in
+ * clockwise order, as preferred by Geant4.
+ \verbatim
+                   7
+ 1                 |\
+ \\                | \
+  \ \      3  5    |  \
+   \  \    /\/\    |   \
+    \   \/   4  \  |    \ 8
+     \   2        \|    /
+      \            6   /
+       \ 11           /
+        \/\__________/
+        0  10        9
+ \endverbatim
+ */
+TEST_F(SolidConverterTest, generic_polycone)
+{
+    G4double phi_start = 0 * deg;
+    G4double phi_end = 90 * deg;
+    std::vector<G4double> r{
+        0.3, 0.0, 0.45, 0.7, 0.75, 0.8, 1.1, 1.2, 1.5, 1.3, 0.4, 0.35};
+    std::vector<G4double> z{
+        -0.5, 0.5, 0.0, 0.2, 0.1, 0.2, -0.1, 0.7, 0.0, -0.5, -0.5, -0.49};
+
+    // Test 5 points near tricky corners and 2 outside of the azimuthal range
+    this->build_and_test(
+        G4GenericPolycone("testGenericPolycone",
+                          phi_start,
+                          phi_end,
+                          r.size(),
+                          r.data(),
+                          z.data()),
+        R"json({"_type":"revolvedpolygon","enclosed_azi":{"start":0.0,"stop":0.25},"label":"testGenericPolycone","polygon":[[0.034999999999999996,-0.049],[0.04000000000000001,-0.05],[0.13,-0.05],[0.15000000000000002,0.0],[0.12,0.06999999999999999],[0.11000000000000001,-0.010000000000000002],[0.08000000000000002,0.020000000000000004],[0.07500000000000001,0.010000000000000002],[0.06999999999999999,0.020000000000000004],[0.045000000000000005,0.0],[0.0,0.05],[0.03,-0.05]]})json",
+        {
+            {0.01, 0.011, -0.2},
+            {0.39, 0.79, 1.0},
+            {0.79, 0.39, 0.6},
+            {0.81, 0.4, -0.2},
+            {0.89, 1.18, 0.0},
+            {-0.81, 0.4, -0.2},
+            {-0.81, -0.4, -0.2},
+        });
 }
 
 TEST_F(SolidConverterTest, generictrap)
