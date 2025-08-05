@@ -23,8 +23,9 @@ namespace inp
 // SURFACE DESCRIPTION: Reflectivity and models for surface normals.
 //---------------------------------------------------------------------------//
 /*!
- * Surface reflectivity index, which can be a user-defined Grid, which is a
- * function of energy (wavelength), or constant.
+ * Energy-dependent surface reflectivity.
+ *
+ * The grid can also be used to represent a constant reflectivity.
  */
 struct GridReflection
 {
@@ -36,7 +37,7 @@ struct GridReflection
 
 //---------------------------------------------------------------------------//
 /*!
- * Analytic reflectivity using Fresnel equations.
+ * Analytic reflectivity using the Fresnel equations.
  */
 struct FresnelReflection
 {
@@ -44,8 +45,9 @@ struct FresnelReflection
 
 //---------------------------------------------------------------------------//
 /*!
- * A polished (perfectly smooth) surface, where the facet normal is the
- * macroscopic normal.
+ * A polished (perfectly smooth) surface.
+ *
+ * For smooth surfaces, the facet normal is the macroscopic normal.
  */
 struct NoRoughness
 {
@@ -55,7 +57,7 @@ struct NoRoughness
 /*!
  * Global surface normal with smearing.
  *
- * Roughness range is [0, 1], where 0 is specular, and 1 is diffuse. This
+ * Roughness range is [0, 1], where 0 is specular and 1 is diffuse. This
  * parameter is also the complement of the one defined in Geant4:
  * \code roughness = 1 - GetPolish(); \endcode.
  *
@@ -71,10 +73,12 @@ struct SmearRoughness
 
 //---------------------------------------------------------------------------//
 /*!
- * Assumes a Gaussian distribution of the facet normal with a \f$ \sigma_\alpha
- * \f$ standard deviation.
+ * Approximate the microfacet normal distributions as Gaussian.
  *
- * \note Used by the Unified model in Geant4.
+ * This is used by the UNIFIED model in Geant4 \citep{levin-morephysical-1996,
+ * http://ieeexplore.ieee.org/document/591410/}: the mean of the distribution
+ * is zero (as a modification to the macroscopic normal) and the standard
+ * deviation is \c sigma_alpha .
  */
 struct GaussianRoughness
 {
@@ -87,8 +91,7 @@ struct GaussianRoughness
 //---------------------------------------------------------------------------//
 //!@{
 //! \name Convenience typedef for current simplified layer implementation.
-//! \todo: Expand \c SurfaceLayer to a `map<SurfaceId, SurfaceLayerId>`, where
-//! the \c SurfaceLayerId describes a set of layers.
+//! \todo: Support multiple layers (for painted/coated surfaces)
 using SurfaceLayer = SurfaceId;
 //!@}
 
@@ -96,7 +99,7 @@ using SurfaceLayer = SurfaceId;
 // SURFACE PHYSICS: interaction mechanisms / reflection models.
 //---------------------------------------------------------------------------//
 /*!
- * Parameters used by different reflection mechanisms.
+ * Parameterization of the UNIFIED reflection model.
  *
  * Parameters:
  * - \c specular_spike : Reflection probability at the average surface normal.

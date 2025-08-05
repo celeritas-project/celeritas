@@ -623,6 +623,7 @@ inp::OpticalPhysics import_optical_physics()
 {
     inp::OpticalPhysics result;
     auto geo = celeritas::geant_geo().lock();
+    CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
 
     MultiExceptionHandler handle;
     detail::GeantSurfacePhysicsLoader load_surface(result.surfaces);
@@ -634,7 +635,7 @@ inp::OpticalPhysics import_optical_physics()
 
     CELER_LOG(debug) << "Loaded " << geo->num_surfaces()
                      << " optical physics surfaces";
-    //! \todo CELER_ENSURE(result); when DataSelection is working correctly
+    CELER_ENSURE(result || (geo->num_surfaces() == 0));
     return result;
 }
 
@@ -1308,8 +1309,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
     CELER_VALIDATE(
         (selected.materials && selected.particles != DataSelection::none)
             || selected.processes == DataSelection::none,
-        << "materials and particles must be enabled if requesting "
-           "processes");
+        << "materials and particles must be enabled if requesting processes");
     ScopedMem record_mem("GeantImporter.load");
     ScopedProfiling profile_this{"import-geant"};
     ImportData imported;
@@ -1425,7 +1425,6 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
     }
 
     imported.units = units::NativeTraits::label();
-
     return imported;
 }
 
