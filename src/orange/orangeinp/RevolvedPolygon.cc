@@ -72,11 +72,11 @@ NodeId RevolvedPolygon::build(VolumeBuilder& vb) const
     {
         // Handle azimuthal truncation
         auto&& [sense, wedge] = enclosed_.make_sense_region();
-        NodeId wedge_id = build_intersect_region(vb, label_, "angle", wedge);
+        char const* ext = (sense == Sense::outside ? "~azi" : "azi");
+        NodeId wedge_id = build_intersect_region(vb, label_, ext, wedge);
         if (sense == Sense::outside)
         {
-            wedge_id = vb.insert_region(Label{label_, "negated_angle"},
-                                        Negated{wedge_id});
+            wedge_id = vb.insert_region({}, Negated{wedge_id});
         }
         result = vb.insert_region(Label{label_, "restricted"},
                                   Joined{op_and, {result, wedge_id}});

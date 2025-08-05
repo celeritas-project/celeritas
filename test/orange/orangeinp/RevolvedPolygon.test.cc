@@ -145,7 +145,7 @@ TEST_F(RevolvedPolygonTest, one_subregion_with_enclosed)
         "rp@0.0.0.cz",
         "",
         "rp@0.0.0,rp@0.0.ou",
-        "rp@angle,rp@awm,rp@awp",
+        "rp@awm,rp@awp,rp@azi",
         "rp@restricted",
     };
 

@@ -62,8 +62,7 @@ namespace orangeinp
  * region = union(outer subregions) - union(inner subregions).
  *
  * The final step in construction is azimuthal truncation, which is done
- through
- * a union operation with a negated or non-negated EnclosedAzi.
+ * through a union operation with a negated or non-negated EnclosedAzi.
  *
  * \internal When labeling nodes in the CSG output, the following shorthand
  * format is used: `label@level.region.subregion`. For example, the final
@@ -84,14 +83,10 @@ namespace orangeinp
  * 4) .d : the difference between .ou and .iu.
  *
  * If the supplied EnclosedAzi object is not [0, 2pi], additional nodes with
- the
- * following extensions are added:
+ * the following extensions are added:
  *
- * 1) angle : the enclosed azimuthal angle,
- * 2) negated_angle : the negation of "angle", when less than a half turn is
- * enclosed,
- * 3) restricted : the intersection of the revolved polygon and
- *    angle/negated_angle.
+ * 1) azi/~azi : the enclosed, possibly negated, azimuthal angle,
+ * 2) restricted : the intersection of the revolved polygon and azi/~azi.
  */
 class RevolvedPolygon final : public ObjectInterface
 {
