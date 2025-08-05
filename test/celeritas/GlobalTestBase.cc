@@ -92,6 +92,28 @@ void GlobalTestBase::insert_primaries(CoreStateInterface& state,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Build a new geometry via LazyGeantGeoManager.
+ */
+auto GlobalTestBase::build_from_geant(SPConstGeantGeo const& geant_geo)
+    -> SPConstGeoI
+{
+    CELER_EXPECT(geant_geo);
+    return CoreGeoParams::from_geant(geant_geo);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build a new geometry via LazyGeantGeoManager (fallback when no Geant4).
+ */
+auto GlobalTestBase::build_from_gdml(std::string const& filename) -> SPConstGeoI
+{
+    CELER_EXPECT(!CELERITAS_USE_GEANT4);
+    // ORANGE should be able to handle this, VecGeom can use VGDML
+    return CoreGeoParams::from_gdml(filename);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Do not insert StatusChecker.
  */
 void GlobalTestBase::disable_status_checker()
@@ -104,20 +126,20 @@ void GlobalTestBase::disable_status_checker()
 
 //---------------------------------------------------------------------------//
 //! Construct geometry, volumes, surfaces
-void GlobalTestBase::setup_model()
+SPConstCoreGeo GlobalTestBase::build_geometry()
 {
-    auto model_geo = [this]() -> std::shared_ptr<GeoParamsInterface const> {
-        auto core_geo = this->geometry();
+    // Construct core geo
+    auto core_geo = this->lazy_geo();
+    CELER_ASSERT(core_geo);
 
-        if (auto ggeo = celeritas::geant_geo().lock())
-        {
-            // Load geometry, surfaces, regions from Geant4 world pointer
-            return ggeo;
-        }
-        // Load from the native geometry (e.g. ORANGE internal testing)
-        return core_geo;
-    }();
-    CELER_ASSERT(model_geo);
+    // Get model for constructing volumes/surfaces
+    std::shared_ptr<GeoParamsInterface const> model_geo{core_geo};
+    if (auto ggeo = this->geant_geo())
+    {
+        // Load geometry, surfaces, regions from Geant4 world pointer
+        model_geo = std::move(ggeo);
+    }
+
     auto mi = model_geo->make_model_input();
     volume_ = std::make_shared<VolumeParams>(mi.volumes);
     surface_ = std::make_shared<SurfaceParams>(mi.surfaces, *volume_);
@@ -169,8 +191,6 @@ auto GlobalTestBase::build_core() -> SPConstCore
 {
     CoreParams::Input inp;
     inp.geometry = this->geometry();
-    this->setup_model();
-
     inp.cutoff = this->cutoff();
     inp.geomaterial = this->geomaterial();
     inp.init = this->init();

@@ -34,7 +34,7 @@ class GeantOrangeTest : public OrangeGeoTestBase
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::error};
 
-        auto filename = this->geometry_basename() + std::string{".gdml"};
+        auto filename = this->gdml_basename() + std::string{".gdml"};
         auto result = Params::from_gdml(test_data_path("geocel", filename));
 
         EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
@@ -62,7 +62,7 @@ TEST_F(MultiLevelTest, trace)
 
 class PincellTest : public GeantOrangeTest
 {
-    std::string geometry_basename() const final { return "pincell"; }
+    std::string_view gdml_basename() const final { return "pincell"; }
 };
 
 TEST_F(PincellTest, imager)
@@ -138,7 +138,7 @@ TEST_F(TestEm3FlatTest, trace)
 //---------------------------------------------------------------------------//
 class TilecalPlugTest : public GeantOrangeTest
 {
-    std::string geometry_basename() const final { return "tilecal-plug"; }
+    std::string_view gdml_basename() const final { return "tilecal-plug"; }
 };
 
 TEST_F(TilecalPlugTest, trace)

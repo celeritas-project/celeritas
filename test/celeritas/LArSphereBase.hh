@@ -25,10 +25,7 @@ namespace test
 class LArSphereBase : public GeantTestBase
 {
   protected:
-    std::string_view geometry_basename() const override
-    {
-        return "lar-sphere";
-    }
+    std::string_view gdml_basename() const override { return "lar-sphere"; }
 
     GeantPhysicsOptions build_geant_options() const override
     {

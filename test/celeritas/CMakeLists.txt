@@ -62,7 +62,6 @@ endif()
 
 celeritas_add_test_library(testcel_celeritas
   GeantTestBase.cc
-  GlobalGeoTestBase.cc
   GlobalTestBase.cc
   ImportedDataTestBase.cc
   InvalidOrangeTestBase.cc

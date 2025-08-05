@@ -8,7 +8,7 @@
 
 #include <memory>
 
-#include "geocel/LazyGeoManager.hh"
+#include "geocel/LazyGeantGeoManager.hh"
 
 #include "Test.hh"
 
@@ -26,7 +26,7 @@ namespace test
  * Load a Geant4 geometry and clean up as needed.
  */
 class GeantLoadTestBase : public ::celeritas::test::Test,
-                          public ::celeritas::test::LazyGeoManager
+                          public ::celeritas::test::LazyGeantGeoManager
 {
   public:
     using SPConstGeo = std::shared_ptr<GeantGeoParams const>;
@@ -45,7 +45,7 @@ class GeantLoadTestBase : public ::celeritas::test::Test,
 
   protected:
     // Construct a fresh geometry from a filename
-    SPConstGeoI build_fresh_geometry(std::string_view key) final;
+    SPConstGeoI build_lazy_geo(std::string_view key) final;
 
     SPConstGeo geo_;
 };

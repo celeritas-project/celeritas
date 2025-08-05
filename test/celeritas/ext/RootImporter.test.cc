@@ -42,7 +42,7 @@ namespace test
 class RootImporterTest : public Test
 {
   protected:
-    std::string_view geometry_basename() const { return "four-steel-slabs"sv; }
+    std::string_view gdml_basename() const { return "four-steel-slabs"sv; }
 
     ImportData const& imported_data() const;
 };
@@ -52,17 +52,17 @@ auto RootImporterTest::imported_data() const -> ImportData const&
 {
     static struct
     {
-        std::string geometry_basename;
+        std::string_view gdml_basename;
         ImportData imported;
     } i;
-    auto geo_basename = this->geometry_basename();
-    if (i.geometry_basename != geo_basename)
+    auto geo_basename = this->gdml_basename();
+    if (i.gdml_basename != geo_basename)
     {
         ScopedRootErrorHandler scoped_root_error;
 
-        i.geometry_basename = geo_basename;
+        i.gdml_basename = geo_basename;
         std::string root_inp
-            = this->test_data_path("celeritas", i.geometry_basename + ".root");
+            = this->test_data_path("celeritas", i.gdml_basename + ".root");
 
         RootImporter import(root_inp.c_str());
         i.imported = import();

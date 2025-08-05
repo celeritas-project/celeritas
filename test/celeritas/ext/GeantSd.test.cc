@@ -39,9 +39,9 @@ class SimpleCmsTest : public SDTestBase, public SimpleCmsTestBase
         sd_setup_.track = false;
     }
 
-    SPConstGeoI build_fresh_geometry(std::string_view basename) override
+    SPConstGeoI build_lazy_geo(std::string_view basename) override
     {
-        auto result = SDTestBase::build_fresh_geometry(basename);
+        auto result = SDTestBase::build_lazy_geo(basename);
         scoped_log_.clear();
 
         // Create unused volume when building geometry

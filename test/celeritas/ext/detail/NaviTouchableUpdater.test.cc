@@ -87,7 +87,7 @@ class NaviTouchableUpdaterBase : public ::celeritas::test::GeantGeoTestBase
 class SimpleCmsNaviTest : public NaviTouchableUpdaterBase
 {
   public:
-    std::string geometry_basename() const final { return "simple-cms"; }
+    std::string_view gdml_basename() const final { return "simple-cms"; }
 };
 
 TEST_F(SimpleCmsNaviTest, correct)
@@ -303,7 +303,7 @@ TEST_F(SimpleCmsNaviTest, regression)
 class MultiLevelNaviTest : public NaviTouchableUpdaterBase
 {
   public:
-    std::string geometry_basename() const final { return "multi-level"; }
+    std::string_view gdml_basename() const final { return "multi-level"; }
 };
 
 TEST_F(MultiLevelNaviTest, all_points)

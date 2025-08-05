@@ -85,7 +85,7 @@ class VecgeomVgdmlTestBase : public VecgeomTestBaseImpl
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::warning};
         auto result = VecgeomParams::from_gdml_vg(this->test_data_path(
-            "geocel", this->geometry_basename() + std::string{".gdml"}));
+            "geocel", this->gdml_basename() + std::string{".gdml"}));
         EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
             << scoped_log_;
         return result;
@@ -107,7 +107,7 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
                                     LogLevel::warning};
 
         auto filename = this->test_data_path(
-            "geocel", this->geometry_basename() + std::string{".gdml"});
+            "geocel", this->gdml_basename() + std::string{".gdml"});
         if (filename != pgg.key())
         {
             pgg.clear();

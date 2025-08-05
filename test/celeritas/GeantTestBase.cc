@@ -123,8 +123,7 @@ auto GeantTestBase::build_along_step() -> SPConstAction
 }
 
 //---------------------------------------------------------------------------//
-auto GeantTestBase::build_fresh_geometry(std::string_view basename)
-    -> SPConstGeoI
+auto GeantTestBase::build_lazy_geo(std::string_view basename) -> SPConstGeoI
 {
     CELER_LOG(info) << "Importing geometry from Geant4";
 
@@ -154,7 +153,7 @@ auto GeantTestBase::load() const -> ImportSetup const&
     if (!ps)
     {
         i = std::make_shared<ImportSetup>();
-        i->basename = this->geometry_basename();
+        i->basename = this->gdml_basename();
         i->options = opts;
         i->import = std::make_unique<GeantImporter>(GeantSetup{
             this->test_data_path("geocel", i->basename + ".gdml"), opts});
@@ -174,10 +173,10 @@ auto GeantTestBase::load() const -> ImportSetup const&
 
         static char const explanation[]
             = R"( (Geant4 cannot be set up twice in one execution: see issue #462))";
-        CELER_VALIDATE(this->geometry_basename() == ps.key(),
-                       << "cannot load new geometry '"
-                       << this->geometry_basename() << "' when another '"
-                       << ps.key() << "' was already set up" << explanation);
+        CELER_VALIDATE(this->gdml_basename() == ps.key(),
+                       << "cannot load new geometry '" << this->gdml_basename()
+                       << "' when another '" << ps.key()
+                       << "' was already set up" << explanation);
         i = ps.value();
         CELER_ASSERT(i);
         CELER_VALIDATE(opts == i->options,

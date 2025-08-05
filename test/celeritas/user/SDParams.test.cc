@@ -31,7 +31,7 @@ class SDParamsTest : public GlobalGeoTestBase,
 {
   public:
     using VecLabel = std::vector<Label>;
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "testem3-flat"sv;
     }

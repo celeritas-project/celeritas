@@ -39,7 +39,7 @@ class LinearPropagatorTest : public AllGeoTypedTestBase<HP>
         }
     }
 
-    std::string geometry_basename() const final { return "simple-cms"; }
+    std::string_view gdml_basename() const final { return "simple-cms"; }
 };
 
 TYPED_TEST_SUITE(LinearPropagatorTest,

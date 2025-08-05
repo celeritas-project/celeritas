@@ -23,7 +23,7 @@ namespace test
  */
 void GeantLoadTestBase::load_gdml(std::string const& filename)
 {
-    auto geo = this->get_geometry(filename);
+    auto geo = this->lazy_geo(filename);
     geo_ = std::dynamic_pointer_cast<GeantGeoParams const>(geo);
     CELER_ENSURE(geo_);
 }
@@ -60,8 +60,7 @@ G4VPhysicalVolume const& GeantLoadTestBase::world() const
 /*!
  * Construct a fresh geometry from a filename
  */
-auto GeantLoadTestBase::build_fresh_geometry(std::string_view key)
-    -> SPConstGeoI
+auto GeantLoadTestBase::build_lazy_geo(std::string_view key) -> SPConstGeoI
 {
     std::string filename{key};
     if (starts_with(filename, "test:"))

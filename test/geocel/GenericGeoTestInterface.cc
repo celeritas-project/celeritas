@@ -25,19 +25,6 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Get the basename or unique geometry key (defaults to suite name).
- */
-auto GenericGeoTestInterface::geometry_basename() const -> std::string
-{
-    // Get filename based on unit test name
-    ::testing::TestInfo const* const test_info
-        = ::testing::UnitTest::GetInstance()->current_test_info();
-    CELER_ASSERT(test_info);
-    return test_info->test_case_name();
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get the safety tolerance (defaults to SoftEq tol).
  */
 real_type GenericGeoTestInterface::safety_tol() const

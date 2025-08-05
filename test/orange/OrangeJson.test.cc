@@ -36,13 +36,13 @@ class JsonOrangeTest : public OrangeGeoTestBase
 
     void SetUp() final
     {
-        this->build_geometry(this->geometry_basename() + ".org.json");
+        this->build_geometry(this->gdml_basename() + ".org.json");
     }
 };
 
 class InputBuilderTest : public JsonOrangeTest
 {
-    std::string geometry_basename() const final
+    std::string_view gdml_basename() const final
     {
         return const_cast<InputBuilderTest*>(this)->make_unique_filename();
     }
@@ -51,7 +51,7 @@ class InputBuilderTest : public JsonOrangeTest
 //---------------------------------------------------------------------------//
 class FiveVolumesTest : public JsonOrangeTest
 {
-    std::string geometry_basename() const final { return "five-volumes"; }
+    std::string_view gdml_basename() const final { return "five-volumes"; }
 };
 
 TEST_F(FiveVolumesTest, params)
@@ -66,7 +66,7 @@ TEST_F(FiveVolumesTest, params)
 //---------------------------------------------------------------------------//
 class UniversesTest : public JsonOrangeTest
 {
-    std::string geometry_basename() const final { return "universes"; }
+    std::string_view gdml_basename() const final { return "universes"; }
 };
 
 TEST_F(UniversesTest, params)
@@ -509,7 +509,7 @@ TEST_F(UniversesTest, reentrant)
 //---------------------------------------------------------------------------//
 class RectArrayTest : public JsonOrangeTest
 {
-    std::string geometry_basename() const final { return "rect-array"; }
+    std::string_view gdml_basename() const final { return "rect-array"; }
 };
 
 TEST_F(RectArrayTest, params)
@@ -538,7 +538,7 @@ TEST_F(RectArrayTest, tracking)
 
 class NestedRectArraysTest : public JsonOrangeTest
 {
-    std::string geometry_basename() const final
+    std::string_view gdml_basename() const final
     {
         return "nested-rect-arrays";
     }
@@ -609,7 +609,7 @@ TEST_F(NestedRectArraysTest, leaving)
 //---------------------------------------------------------------------------//
 class Geant4Testem15Test : public JsonOrangeTest
 {
-    std::string geometry_basename() const final { return "geant4-testem15"; }
+    std::string_view gdml_basename() const final { return "geant4-testem15"; }
 };
 
 TEST_F(Geant4Testem15Test, safety)
@@ -648,7 +648,7 @@ TEST_F(Geant4Testem15Test, safety)
 
 class HexArrayTest : public JsonOrangeTest
 {
-    std::string geometry_basename() const final { return "hex-array"; }
+    std::string_view gdml_basename() const final { return "hex-array"; }
 };
 
 TEST_F(HexArrayTest, TEST_IF_CELERITAS_DOUBLE(output))
@@ -683,7 +683,7 @@ TEST_F(HexArrayTest, track_out)
 
 class TestEM3Test : public JsonOrangeTest
 {
-    std::string geometry_basename() const final { return "testem3"; }
+    std::string_view gdml_basename() const final { return "testem3"; }
 };
 
 // Test safety distance within a geometry that supports simple safety

@@ -41,7 +41,7 @@ namespace test
   template<class HP>
   class MyFooTest : public AllGeoTypedTestBase<HP>
   {
-    std::string geometry_basename() const final { return "simple-cms"; }
+    std::string_view gdml_basename() const final { return "simple-cms"; }
   };
 
   TYPED_TEST_SUITE(MyFooTest, AllGeoTestingTypes, AllGeoTestingTypeNames);

@@ -21,12 +21,12 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 //! Attach SDs when building geometry
-auto SDTestBase::build_fresh_geometry(std::string_view basename) -> SPConstGeoI
+auto SDTestBase::build_lazy_geo(std::string_view basename) -> SPConstGeoI
 {
     CELER_EXPECT(detectors_.empty());
 
     // Construct geo
-    auto result = Base::build_fresh_geometry(basename);
+    auto result = Base::build_lazy_geo(basename);
 
     G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
     CELER_ASSERT(lv_store);

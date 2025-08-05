@@ -42,9 +42,9 @@ class GenericGeoParameterizedTest : public TestBase
   protected:
     using TestImpl = GeoTestImpl;
 
-    std::string geometry_basename() const final
+    std::string_view gdml_basename() const final
     {
-        return std::string{TestImpl::geometry_basename()};
+        return TestImpl::gdml_basename();
     }
 
     TestImpl impl() { return TestImpl(this); }
