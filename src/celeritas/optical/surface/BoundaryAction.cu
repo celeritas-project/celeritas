@@ -12,7 +12,8 @@
 #include "celeritas/optical/action/ActionLauncher.device.hh"
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
-#include "detail/BoundaryActionTraits.hh"
+#include "detail/InitBoundaryExecutor.hh"
+#include "detail/PostBoundaryExecutor.hh"
 
 namespace celeritas
 {
