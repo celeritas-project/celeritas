@@ -99,11 +99,6 @@ VolumeSurfaceSelector::operator()(VolumeSurfaceView const& post_surface,
     {
         return {surface_id, SubsurfaceDirection::forward};
     }
-    else if (auto surface_id
-             = post_surface.find_interface(post_volume_inst, pre_volume_inst_))
-    {
-        return {surface_id, SubsurfaceDirection::reverse};
-    }
     else if (auto surface_id = pre_surface_.boundary_id())
     {
         return {surface_id, SubsurfaceDirection::forward};
