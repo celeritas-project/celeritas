@@ -9,6 +9,7 @@
 #include <G4LogicalSurface.hh>
 #include <G4OpticalSurface.hh>
 
+#include "corecel/io/Logger.hh"
 #include "geocel/GeantGeoParams.hh"
 
 namespace celeritas

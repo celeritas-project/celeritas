@@ -203,9 +203,9 @@ inp::ReflectionGrid load_refl_grid(GeantSurfacePhysicsHelper& helper)
 
 //---------------------------------------------------------------------------//
 /*!
- * Throw error message based on optical surface physics selection.
+ * Return string error message based on optical surface physics selection.
  */
-std::string throw_error_msg(G4OpticalSurface const& surf)
+std::string str_error_msg(G4OpticalSurface const& surf)
 {
     return "Surface " + surf.GetName() + " with surface finish '"
            + to_cstring(surf.GetFinish()) + "' is not compatible with '"
@@ -249,8 +249,9 @@ void GeantSurfacePhysicsLoader::operator()(SurfaceId sid)
             CELER_NOT_IMPLEMENTED("Model " + std::string(to_cstring(model)));
     }
 
-    CELER_LOG(debug) << "Inserted SurfaceId " << sid.unchecked_get()
-                     << " with model " << to_cstring(model);
+    CELER_LOG(debug) << "Inserted surface '" << surf.GetName()
+                     << "' with SurfaceId " << sid.unchecked_get()
+                     << " and using " << to_cstring(model) << " model";
 }
 
 //---------------------------------------------------------------------------//
@@ -286,7 +287,6 @@ void GeantSurfacePhysicsLoader::insert_glisur(GeantSurfacePhysicsHelper& helper)
             insert_interaction({sid, inp::ReflectionForm::from_spike()});
             break;
         }
-
         case G4OSF::ground: {
             real_type roughness = real_type{1} - surf.GetPolish();
             result_.roughness.smear.insert(
@@ -294,9 +294,8 @@ void GeantSurfacePhysicsLoader::insert_glisur(GeantSurfacePhysicsHelper& helper)
             insert_interaction({sid, inp::ReflectionForm::from_lobe()});
             break;
         }
-
         default:
-            CELER_VALIDATE(false, << throw_error_msg(surf));
+            CELER_VALIDATE(false, << str_error_msg(surf));
     }
 }
 
@@ -318,10 +317,9 @@ void GeantSurfacePhysicsLoader::insert_unified(GeantSurfacePhysicsHelper& helper
     auto const finish = surf.GetFinish();
 
     // Interaction model insertion helper for polished and ground finishes
-    auto insert_interaction = [&]() -> void {
+    auto insert_interaction = [&](inp::ReflectionForm rf) -> void {
         (type == G4ST::dielectric_dielectric)
-            ? result_.interaction.dielectric_dielectric.insert(
-                  {sid, inp::ReflectionForm::from_spike()})
+            ? result_.interaction.dielectric_dielectric.insert({sid, rf})
             : result_.interaction.dielectric_metal.insert(
                   {sid, load_unified_refl_form(helper)});
     };
@@ -337,14 +335,13 @@ void GeantSurfacePhysicsLoader::insert_unified(GeantSurfacePhysicsHelper& helper
         // ENUMS USED BY DIELECTRIC-DIELECTRIC AND DIELECTRIC-METAL INTERFACES
         case G4OSF::polished: {
             result_.roughness.polished.insert({sid, inp::NoRoughness{}});
-            insert_interaction();
+            insert_interaction(inp::ReflectionForm::from_spike());
             break;
         }
-
         case G4OSF::ground: {
             result_.roughness.gaussian.insert(
                 {sid, inp::GaussianRoughness{surf.GetSigmaAlpha()}});
-            insert_interaction();
+            insert_interaction(load_unified_refl_form(helper));
             break;
         }
 
@@ -355,7 +352,6 @@ void GeantSurfacePhysicsLoader::insert_unified(GeantSurfacePhysicsHelper& helper
                 {sid, inp::ReflectionForm::from_spike()});
             break;
         }
-
         case G4OSF::groundfrontpainted: {
             result_.roughness.gaussian.insert(
                 {sid, inp::GaussianRoughness{surf.GetSigmaAlpha()}});
@@ -363,7 +359,6 @@ void GeantSurfacePhysicsLoader::insert_unified(GeantSurfacePhysicsHelper& helper
                 {sid, inp::ReflectionForm::from_lambertian()});
             break;
         }
-
         case G4OSF::polishedbackpainted: {
             // Equivalent to layer 0
             result_.roughness.gaussian.insert(
@@ -377,7 +372,6 @@ void GeantSurfacePhysicsLoader::insert_unified(GeantSurfacePhysicsHelper& helper
                 {sid, load_unified_refl_form(helper)});
             break;
         }
-
         case G4OSF::groundbackpainted: {
             // Equivalent to layer 0: Gaussian, analytic reflection
             result_.roughness.gaussian.insert(
@@ -391,8 +385,9 @@ void GeantSurfacePhysicsLoader::insert_unified(GeantSurfacePhysicsHelper& helper
                 {sid, load_unified_refl_form(helper)});
             break;
         }
+
         default:
-            CELER_VALIDATE(false, << throw_error_msg(surf));
+            CELER_VALIDATE(false, << str_error_msg(surf));
     }
 }
 
