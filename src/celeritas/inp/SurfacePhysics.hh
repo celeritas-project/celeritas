@@ -59,7 +59,7 @@ struct NoRoughness
  *
  * Roughness range is [0, 1], where 0 is specular and 1 is diffuse. This
  * parameter is also the complement of the one defined in Geant4:
- * \code roughness = 1 - GetPolish(); \endcode.
+ * \code roughness = 1 - GetPolish(); \endcode .
  *
  * \note Used by the GLISUR model in Geant4.
  */
@@ -76,7 +76,7 @@ struct SmearRoughness
  * Approximate the microfacet normal distributions as Gaussian.
  *
  * This is used by the UNIFIED model in Geant4 \citep{levin-morephysical-1996,
- * http://ieeexplore.ieee.org/document/591410/}: the mean of the distribution
+ * http://ieeexplore.ieee.org/document/591410/} : the mean of the distribution
  * is zero (as a modification to the macroscopic normal) and the standard
  * deviation is \c sigma_alpha .
  */
