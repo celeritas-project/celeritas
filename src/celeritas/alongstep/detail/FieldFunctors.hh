@@ -33,7 +33,7 @@ struct IsInUniformField
             // Field is present in all volumes
             return true;
         }
-        auto vol = track.geometry().volume_id();
+        auto vol = track.geometry().impl_volume_id();
         CELER_ASSERT(vol < field.has_field.size());
         return field.has_field[vol];
     }

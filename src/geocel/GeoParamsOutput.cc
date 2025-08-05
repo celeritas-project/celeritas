@@ -48,8 +48,8 @@ void GeoParamsOutput::output(JsonPimpl* j) const
     {
         auto label = json::array();
 
-        auto const& volumes = geo_->volumes();
-        for (auto id : range(VolumeId{volumes.size()}))
+        auto const& volumes = geo_->impl_volumes();
+        for (auto id : range(ImplVolumeId{volumes.size()}))
         {
             label.push_back(volumes.at(id));
         }

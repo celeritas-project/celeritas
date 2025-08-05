@@ -30,7 +30,7 @@ class GeantVolumeMapper
     explicit GeantVolumeMapper(GeoParamsInterface const& tgt);
 
     // Convert a volume; null if not found; warn if inexact match
-    VolumeId operator()(G4LogicalVolume const&);
+    ImplVolumeId operator()(G4LogicalVolume const&);
 
   private:
     GeoParamsInterface const& geo_;
@@ -46,7 +46,7 @@ inline GeantVolumeMapper::GeantVolumeMapper(GeoParamsInterface const& geo)
     CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline VolumeId GeantVolumeMapper::operator()(G4LogicalVolume const&)
+inline ImplVolumeId GeantVolumeMapper::operator()(G4LogicalVolume const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

@@ -66,7 +66,8 @@ class TestEm3Test : public HeuristicGeoTestBase
         HeuristicGeoScalars result;
         result.lower = {-19.77, -20, -20};
         result.upper = {19.43, 20, 20};
-        result.world_volume = this->geometry()->volumes().find_unique("world");
+        result.world_volume
+            = this->geometry()->impl_volumes().find_unique("world");
         return result;
     }
 
@@ -144,7 +145,8 @@ class SimpleCmsTest : public HeuristicGeoTestBase
         result.upper = {30, 30, 700};
         result.log_min_step = std::log(1e-4);
         result.log_max_step = std::log(1e2);
-        result.world_volume = this->geometry()->volumes().find_unique("world");
+        result.world_volume
+            = this->geometry()->impl_volumes().find_unique("world");
         return result;
     }
 

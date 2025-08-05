@@ -27,12 +27,12 @@ void SensDetInserter::operator()(G4LogicalVolume const* lv,
     CELER_EXPECT(lv);
     CELER_EXPECT(sd);
 
-    if (VolumeId id = insert_impl(lv))
+    if (ImplVolumeId id = insert_impl(lv))
     {
         CELER_LOG(debug) << "Mapped sensitive detector \"" << sd->GetName()
                          << "\" on logical volume " << PrintableLV{lv}
                          << " to " << cmake::core_geo << " volume \""
-                         << geo_.volumes().at(id)
+                         << geo_.impl_volumes().at(id)
                          << "\" (ID=" << id.unchecked_get() << ')';
     }
 }
@@ -45,17 +45,17 @@ void SensDetInserter::operator()(G4LogicalVolume const* lv)
 {
     CELER_EXPECT(lv);
 
-    if (VolumeId id = insert_impl(lv))
+    if (ImplVolumeId id = insert_impl(lv))
     {
         CELER_LOG(debug) << "Mapped unspecified detector on logical volume "
                          << PrintableLV{lv} << " to " << cmake::core_geo
-                         << " volume \"" << geo_.volumes().at(id)
+                         << " volume \"" << geo_.impl_volumes().at(id)
                          << "\" (ID=" << id.unchecked_get() << ')';
     }
 }
 
 //---------------------------------------------------------------------------//
-VolumeId SensDetInserter::insert_impl(G4LogicalVolume const* lv)
+ImplVolumeId SensDetInserter::insert_impl(G4LogicalVolume const* lv)
 {
     if (skip_volumes_.count(lv))
     {
@@ -65,7 +65,7 @@ VolumeId SensDetInserter::insert_impl(G4LogicalVolume const* lv)
         return {};
     }
 
-    auto id = lv ? g4_to_celer_(*lv) : VolumeId{};
+    auto id = lv ? g4_to_celer_(*lv) : ImplVolumeId{};
     if (!id)
     {
         CELER_LOG(error) << "Failed to find " << cmake::core_geo
@@ -83,7 +83,7 @@ VolumeId SensDetInserter::insert_impl(G4LogicalVolume const* lv)
         if (iter->second != lv)
         {
             CELER_LOG(warning)
-                << "Celeritas volume \"" << geo_.volumes().at(id)
+                << "Celeritas volume \"" << geo_.impl_volumes().at(id)
                 << "\" is mapped to two different volumes with "
                    "sensitive detectors: "
                 << PrintableLV{lv} << " and " << PrintableLV{iter->second};
@@ -95,7 +95,7 @@ VolumeId SensDetInserter::insert_impl(G4LogicalVolume const* lv)
         }
     }
 
-    return inserted ? id : VolumeId{};
+    return inserted ? id : ImplVolumeId{};
 }
 
 //---------------------------------------------------------------------------//

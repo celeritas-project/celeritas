@@ -77,7 +77,7 @@ class GeantGeoTrackView
     //!@}
 
     // Get the volume ID in the lowest level volume.
-    inline VolumeId volume_id() const;
+    inline ImplVolumeId impl_volume_id() const;
     // Get the physical volume ID in the current cell
     inline VolumeInstanceId volume_instance_id() const;
     // Get the depth in the geometry hierarchy
@@ -270,11 +270,11 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(DetailedInitializer const& init)
 /*!
  * Get the volume ID in the current cell.
  */
-VolumeId GeantGeoTrackView::volume_id() const
+ImplVolumeId GeantGeoTrackView::impl_volume_id() const
 {
     CELER_EXPECT(!this->is_outside());
-    return id_cast<VolumeId>(this->volume()->GetInstanceID()
-                             - params_.lv_offset);
+    return id_cast<ImplVolumeId>(this->volume()->GetInstanceID()
+                                 - params_.lv_offset);
 }
 
 //---------------------------------------------------------------------------//

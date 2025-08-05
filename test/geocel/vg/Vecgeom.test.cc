@@ -112,7 +112,6 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
         {
             pgg.clear();
             auto new_geo = GeantGeoParams::from_gdml(filename);
-            celeritas::geant_geo(new_geo);
             pgg.set(std::string{filename}, std::move(new_geo));
         }
         CELER_ASSERT(pgg.value());
@@ -304,7 +303,7 @@ TEST_F(SimpleCmsVgdmlTest, accessors)
 {
     auto const& geom = *this->geometry();
     EXPECT_EQ(2, geom.max_depth());
-    EXPECT_EQ(7, geom.volumes().size());
+    EXPECT_EQ(7, geom.impl_volumes().size());
 }
 
 TEST_F(SimpleCmsVgdmlTest, trace)
@@ -459,7 +458,8 @@ TEST_F(SolidsVgdmlTest, output)
 TEST_F(SolidsVgdmlTest, reflected_vol)
 {
     auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
-    auto const& label = this->geometry()->volumes().at(geo.volume_id());
+    auto const& label
+        = this->geometry()->impl_volumes().at(geo.impl_volume_id());
     // Note: through GDML there is only one trd3_refl
     EXPECT_EQ("trd3_refl", label.name);
     EXPECT_FALSE(ends_with(label.ext, "_refl"));
@@ -546,28 +546,27 @@ TEST_F(FourLevelsTest, trace)
 TEST_F(FourLevelsTest, levels)
 {
     auto geo = this->make_geo_track_view({10.0, 10.0, 10.0}, {1, 0, 0});
-    EXPECT_EQ("World_PV/env1/Shape1/Shape2",
-              this->all_volume_instance_names(geo));
+    EXPECT_EQ("World_PV/env1/Shape1/Shape2", this->unique_volume_name(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-    EXPECT_EQ("World_PV/env1/Shape1", this->all_volume_instance_names(geo));
+    EXPECT_EQ("World_PV/env1/Shape1", this->unique_volume_name(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-    EXPECT_EQ("World_PV/env1", this->all_volume_instance_names(geo));
+    EXPECT_EQ("World_PV/env1", this->unique_volume_name(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-    EXPECT_EQ("World_PV", this->all_volume_instance_names(geo));
+    EXPECT_EQ("World_PV", this->unique_volume_name(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-    EXPECT_EQ("[OUTSIDE]", this->all_volume_instance_names(geo));
+    EXPECT_EQ("[OUTSIDE]", this->unique_volume_name(geo));
 }
 
 //---------------------------------------------------------------------------//
@@ -703,7 +702,8 @@ TEST_F(SolidsTest, geant_volumes)
 TEST_F(SolidsTest, reflected_vol)
 {
     auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
-    auto const& label = this->geometry()->volumes().at(geo.volume_id());
+    auto const& label
+        = this->geometry()->impl_volumes().at(geo.impl_volume_id());
     EXPECT_EQ("trd3_refl@0", to_string(label));
 }
 

@@ -58,7 +58,7 @@ TEST_F(FiveVolumesTest, params)
 {
     OrangeParams const& geo = this->params();
 
-    EXPECT_EQ(6, geo.volumes().size());
+    EXPECT_EQ(6, geo.impl_volumes().size());
     EXPECT_EQ(12, geo.surfaces().size());
     EXPECT_FALSE(geo.supports_safety());
 }
@@ -72,7 +72,7 @@ class UniversesTest : public JsonOrangeTest
 TEST_F(UniversesTest, params)
 {
     OrangeParams const& geo = this->params();
-    EXPECT_EQ(12, geo.volumes().size());
+    EXPECT_EQ(12, geo.impl_volumes().size());
     EXPECT_EQ(25, geo.surfaces().size());
     EXPECT_EQ(3, geo.max_depth());
     EXPECT_FALSE(geo.supports_safety());
@@ -93,9 +93,9 @@ TEST_F(UniversesTest, params)
                                          "[EXTERIOR]",
                                          "patty"};
     std::vector<std::string> actual;
-    for (auto const id : range(ImplVolumeId{geo.volumes().size()}))
+    for (auto const id : range(ImplVolumeId{geo.impl_volumes().size()}))
     {
-        actual.push_back(geo.volumes().at(id).name);
+        actual.push_back(geo.impl_volumes().at(id).name);
     }
 
     EXPECT_VEC_EQ(expected, actual);
@@ -195,7 +195,8 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
         other = Initializer_t{geo.pos(), {1, 0, 0}, TrackSlotId{0}};
         EXPECT_VEC_SOFT_EQ(Real3({0.625, -2, 1}), other.pos());
         EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), other.dir());
-        EXPECT_EQ("c", this->params().volumes().at(other.volume_id()).name);
+        EXPECT_EQ(
+            "c", this->params().impl_volumes().at(other.impl_volume_id()).name);
         EXPECT_FALSE(other.is_outside());
         EXPECT_FALSE(other.is_on_boundary());
     }
@@ -514,7 +515,7 @@ class RectArrayTest : public JsonOrangeTest
 TEST_F(RectArrayTest, params)
 {
     OrangeParams const& geo = this->params();
-    EXPECT_EQ(35, geo.volumes().size());
+    EXPECT_EQ(35, geo.impl_volumes().size());
     EXPECT_EQ(22, geo.surfaces().size());
     EXPECT_EQ(4, geo.max_depth());
     EXPECT_FALSE(geo.supports_safety());
@@ -618,7 +619,7 @@ TEST_F(Geant4Testem15Test, safety)
     geo = Initializer_t{{0, 0, 0}, {1, 0, 0}};
     EXPECT_VEC_SOFT_EQ(Real3({0, 0, 0}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
-    EXPECT_EQ(ImplVolumeId{1}, geo.volume_id());
+    EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
     EXPECT_EQ(ImplSurfaceId{}, geo.impl_surface_id());
     EXPECT_FALSE(geo.is_outside());
 

@@ -128,7 +128,7 @@ void SimpleCalo::output(JsonPimpl* j) const
     {
         std::vector<int> ids;
         ids.reserve(volume_ids_.size());
-        for (VolumeId vid : volume_ids_)
+        for (ImplVolumeId vid : volume_ids_)
         {
             ids.push_back(static_cast<int>(vid.get()));
         }

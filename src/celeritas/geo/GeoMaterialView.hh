@@ -27,7 +27,7 @@ class GeoMaterialView
     inline CELER_FUNCTION GeoMaterialView(GeoMaterialData const& params);
 
     // Return material for the given volume
-    inline CELER_FUNCTION PhysMatId material_id(VolumeId volume) const;
+    inline CELER_FUNCTION PhysMatId material_id(ImplVolumeId volume) const;
 
   private:
     GeoMaterialData const& params_;
@@ -52,7 +52,7 @@ GeoMaterialView::GeoMaterialView(GeoMaterialData const& params)
  * Note that this will *fail* if the particle is outside -- the volume ID will
  * be false.
  */
-CELER_FUNCTION PhysMatId GeoMaterialView::material_id(VolumeId volume) const
+CELER_FUNCTION PhysMatId GeoMaterialView::material_id(ImplVolumeId volume) const
 {
     CELER_EXPECT(volume < params_.materials.size());
     return params_.materials[volume];

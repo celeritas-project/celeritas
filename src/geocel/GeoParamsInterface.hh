@@ -36,6 +36,10 @@ struct Model;
  * If the pointed-to physical volume is *not* a replica/parameterised volume,
  * \c replica is false. Otherwise, it corresponds to the PV's copy number,
  * which can be used to reconstruct the placed volume instance.
+ *
+ * \todo This will be replaced by a VolumeInstanceId when GeantGeoParams stores
+ * a mapping between the canonical geometry definition and its internal
+ * parametrised representation.
  */
 struct GeantPhysicalInstance
 {
@@ -63,8 +67,8 @@ class GeoParamsInterface
   public:
     //!@{
     //! \name Type aliases
-    using SpanConstVolumeId = Span<VolumeId const>;
-    using VolumeMap = LabelIdMultiMap<VolumeId>;
+    using SpanConstVolumeId = Span<ImplVolumeId const>;
+    using ImplVolumeMap = LabelIdMultiMap<ImplVolumeId>;
     using VolInstanceMap = LabelIdMultiMap<VolumeInstanceId>;
     //!@}
 
@@ -79,18 +83,22 @@ class GeoParamsInterface
     virtual BBox const& bbox() const = 0;
 
     // Create model parameters corresponding to our internal representation
+    // TODO: probably will be moved to a separate 'model' class
     virtual inp::Model make_model_input() const = 0;
 
-    //// VOLUMES ////
-
     //! Get volume metadata
-    virtual VolumeMap const& volumes() const = 0;
+    virtual ImplVolumeMap const& impl_volumes() const = 0;
+
+    //! Get the canonical volume IDs corresponding to an implementation volume
+    virtual VolumeId volume_id(ImplVolumeId) const = 0;
+
+    //// TO BE DELETED SOON ////
 
     //! Get volume instance metadata
     virtual VolInstanceMap const& volume_instances() const = 0;
 
     //! Get the volume ID corresponding to a Geant4 logical volume
-    virtual VolumeId find_volume(G4LogicalVolume const* volume) const = 0;
+    virtual ImplVolumeId find_volume(G4LogicalVolume const* volume) const = 0;
 
     //! Get the Geant4 PV corresponding to a volume instance
     virtual GeantPhysicalInstance id_to_geant(VolumeInstanceId id) const = 0;

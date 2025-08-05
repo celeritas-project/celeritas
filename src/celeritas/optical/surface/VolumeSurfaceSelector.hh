@@ -86,10 +86,13 @@ CELER_FUNCTION VolumeSurfaceSelector::VolumeSurfaceSelector(
 //---------------------------------------------------------------------------//
 /*!
  * Convenience constructor to use IDs from geometry.
+ *
+ * FIXME: use canonical volume + instance
  */
 CELER_FUNCTION VolumeSurfaceSelector::VolumeSurfaceSelector(
     NativeCRef<SurfaceParamsData> const& params, GeoTrackView const& geo)
-    : VolumeSurfaceSelector(params, geo.volume_id(), geo.volume_instance_id())
+    : VolumeSurfaceSelector(
+          params, geo.impl_volume_id(), geo.volume_instance_id())
 {
     CELER_EXPECT(!geo.is_outside());
 }
@@ -129,7 +132,8 @@ VolumeSurfaceSelector::operator()(GeoTrackView const& geo) const
     if (geo.is_outside())
         return SurfaceId{};
 
-    return (*this)(geo.volume_id(), geo.volume_instance_id());
+    // FIXME: use canonical volume + instance
+    return (*this)(geo.impl_volume_id(), geo.volume_instance_id());
 }
 
 //---------------------------------------------------------------------------//

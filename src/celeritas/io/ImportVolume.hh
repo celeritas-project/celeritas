@@ -27,10 +27,12 @@ struct ImportRegion
  * Store logical volume properties.
  *
  * \note The "phys material ID" is the index of the MaterialCutsCouple, and the
- * "geo material ID" is the index of the Material (physical properties).
+ * "geo material ID" is the index of the G4Material (physical properties).
+ * (TODO: these should be indexed using a future GeantModel class, not using
+ * the internal GetIndex method).
  *
- * \note The index of this volume in the \c volumes vector is the "instance ID"
- * which is not necessarily reproducible.
+ * \note The index of this volume in the \c volumes vector is the canonical
+ * \c VolumeId created by the Geant4 geometry model.
  */
 struct ImportVolume
 {

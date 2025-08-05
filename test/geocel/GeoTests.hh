@@ -241,6 +241,25 @@ class TestEm3FlatGeoTest
 
 //---------------------------------------------------------------------------//
 /*!
+ * Test tilecal plug.
+ */
+class TilecalPlugGeoTest
+{
+  public:
+    static std::string_view geometry_basename() { return "tilecal-plug"; }
+
+    //! Construct with a reference to the GoogleTest
+    TilecalPlugGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
+
+    void test_model() const;
+    void test_trace() const;
+
+  private:
+    GenericGeoTestInterface* test_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Test the transformed box geometry.
  */
 class TransformedBoxGeoTest

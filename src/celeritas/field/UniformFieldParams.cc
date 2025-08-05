@@ -29,10 +29,10 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-std::unordered_set<VolumeId>
+std::unordered_set<ImplVolumeId>
 make_volume_ids(CoreGeoParams const& geo, inp::UniformField const& inp)
 {
-    using SetVolume = std::unordered_set<VolumeId>;
+    using SetVolume = std::unordered_set<ImplVolumeId>;
 
     return std::visit(
         Overload{[&](inp::UniformField::SetVolume const& s) {
@@ -42,7 +42,7 @@ make_volume_ids(CoreGeoParams const& geo, inp::UniformField const& inp)
                      {
                          CELER_ASSERT(lv);
                          auto vol = find_volume(*lv);
-                         CELER_VALIDATE(vol < geo.volumes().size(),
+                         CELER_VALIDATE(vol < geo.impl_volumes().size(),
                                         << "failed to find volume while "
                                            "constructing a uniform field");
                          result.insert(vol);
@@ -53,7 +53,7 @@ make_volume_ids(CoreGeoParams const& geo, inp::UniformField const& inp)
                      SetVolume result;
                      for (auto const& name : s)
                      {
-                         auto vols = geo.volumes().find_all(name);
+                         auto vols = geo.impl_volumes().find_all(name);
                          CELER_VALIDATE(!vols.empty(),
                                         << "failed to find volume '" << name
                                         << "' while constructing a uniform "
@@ -101,10 +101,10 @@ UniformFieldParams::UniformFieldParams(CoreGeoParams const& geo,
     auto volumes = make_volume_ids(geo, inp);
     if (!volumes.empty())
     {
-        std::vector<char> has_field(geo.volumes().size(), 0);
+        std::vector<char> has_field(geo.impl_volumes().size(), 0);
         for (auto vol : volumes)
         {
-            CELER_VALIDATE(vol < geo.volumes().size(),
+            CELER_VALIDATE(vol < geo.impl_volumes().size(),
                            << "invalid volume ID "
                            << (vol ? vol.unchecked_get() : -1)
                            << " encountered while setting up uniform field");

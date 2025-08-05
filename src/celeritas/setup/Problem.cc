@@ -435,7 +435,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 
     // Create geometry/material coupling
     params.geomaterial = GeoMaterialParams::from_import(
-        imported, params.geometry, params.material);
+        imported, params.geometry, params.volume, params.material);
 
     // Construct particle params
     params.particle = ParticleParams::from_import(imported);

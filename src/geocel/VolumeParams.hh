@@ -24,7 +24,8 @@ struct Volumes;
  *
  * See the introduction to \rstref{the Geometry API section,api_geometry} for
  * a detailed description of volumes in the detector geometry description. This
- * class abstracts the graph of volumes, relating \em nodes (VolumeId, aka
+ * class abstracts the graph of user-defined volumes,
+ * relating \em nodes (VolumeId, aka
  * logical volume) to \em edges (VolumeInstanceId, aka physical volume) and
  * providing the means to determine the \em path (VolumeUniqueInstanceId, aka
  * touchable history) of a track state. In conjunction with \c GeantGeoParams

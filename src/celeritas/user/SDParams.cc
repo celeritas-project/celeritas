@@ -40,7 +40,7 @@ SDParams::SDParams(VecLabel const& volume_labels, GeoParamsInterface const& geo)
                    << join(missing.begin(), missing.end(), "', '"));
     CELER_ENSURE(volume_ids_.size() == volume_labels.size());
 
-    std::map<VolumeId, DetectorId> detector_map;
+    std::map<ImplVolumeId, DetectorId> detector_map;
     for (auto didx : range<DetectorId::size_type>(volume_ids_.size()))
     {
         detector_map[volume_ids_[didx]] = DetectorId{didx};
@@ -48,7 +48,8 @@ SDParams::SDParams(VecLabel const& volume_labels, GeoParamsInterface const& geo)
 
     mirror_ = CollectionMirror{[&] {
         HostVal<SDParamsData> host_data;
-        std::vector<DetectorId> temp_det(geo.volumes().size(), DetectorId{});
+        std::vector<DetectorId> temp_det(geo.impl_volumes().size(),
+                                         DetectorId{});
         for (auto const& det_pair : detector_map)
         {
             CELER_ASSERT(det_pair.first < temp_det.size());

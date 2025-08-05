@@ -161,7 +161,7 @@ NodeId StackedExtrudedPolygon::make_levels(
             vb, concave_regions[i], SubRegionIndex{si.level + 1, i});
     }
 
-    auto level_label = this->make_level_label(si);
+    auto level_label = this->make_level_ext(si);
 
     // Create a union of all concave regions
     NodeId concave_union
@@ -198,19 +198,19 @@ StackedExtrudedPolygon::make_stack(detail::VolumeBuilder& vb,
 
         // Build this segment with unique label
         nodes[i] = build_intersect_region(
-            vb, label_, this->make_segment_label(si, i), shape);
+            vb, label_, this->make_segment_ext(si, i), shape);
     }
 
     // Create a union of all segments
-    return vb.insert_region(Label{label_, this->make_stack_label(si)},
+    return vb.insert_region(Label{label_, this->make_stack_ext(si)},
                             Joined{op_or, std::move(nodes)});
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Make a label for a level.
+ * Make a label extension for a level.
  */
-std::string StackedExtrudedPolygon::make_level_label(
+std::string StackedExtrudedPolygon::make_level_ext(
     StackedExtrudedPolygon::SubRegionIndex si) const
 {
     return std::to_string(si.level);
@@ -218,22 +218,22 @@ std::string StackedExtrudedPolygon::make_level_label(
 
 //---------------------------------------------------------------------------//
 /*!
- * Make a label for a stack within a level.
+ * Make a label extension for a stack within a level.
  */
-std::string StackedExtrudedPolygon::make_stack_label(
+std::string StackedExtrudedPolygon::make_stack_ext(
     StackedExtrudedPolygon::SubRegionIndex si) const
 {
-    return this->make_level_label(si) + "." + std::to_string(si.stack);
+    return this->make_level_ext(si) + "." + std::to_string(si.stack);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Make a label for a segment within a stack.
+ * Make a label extension for a segment within a stack.
  */
-std::string StackedExtrudedPolygon::make_segment_label(
+std::string StackedExtrudedPolygon::make_segment_ext(
     StackedExtrudedPolygon::SubRegionIndex si, size_type segment_idx) const
 {
-    return this->make_stack_label(si) + "." + std::to_string(segment_idx);
+    return this->make_stack_ext(si) + "." + std::to_string(segment_idx);
 }
 
 //---------------------------------------------------------------------------//
