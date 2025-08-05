@@ -265,9 +265,9 @@ void GeantSurfacePhysicsLoader::insert_glisur(
             this->insert_interaction(helper, inp::ReflectionForm::from_spike());
             break;
         case G4OSF::ground:
-            helper.emplace(
-                models_.roughness.smear,
-                inp::SmearRoughness{real_type{1} - surf.GetPolish()});
+            helper.emplace(models_.roughness.smear,
+                           inp::SmearRoughness{real_type{1}
+                                               - real_type{surf.GetPolish()}});
             this->insert_interaction(helper, inp::ReflectionForm::from_lobe());
             break;
         default:
@@ -300,8 +300,9 @@ void GeantSurfacePhysicsLoader::insert_unified(
             this->insert_interaction(helper, inp::ReflectionForm::from_spike());
             break;
         case G4OSF::ground:
-            helper.emplace(models_.roughness.gaussian,
-                           inp::GaussianRoughness{surf.GetSigmaAlpha()});
+            helper.emplace(
+                models_.roughness.gaussian,
+                inp::GaussianRoughness{real_type{surf.GetSigmaAlpha()}});
             this->insert_interaction(helper, load_unified_refl_form(helper));
             break;
 
