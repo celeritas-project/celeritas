@@ -11,8 +11,11 @@
 #include <G4Version.hh>
 
 #include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
+
+using G4ST = G4SurfaceType;
+using G4OSF = G4OpticalSurfaceFinish;
+using G4OSM = G4OpticalSurfaceModel;
 
 namespace celeritas
 {
@@ -28,17 +31,18 @@ namespace
  */
 char const* to_cstring(G4OpticalSurfaceModel value)
 {
-#define GSPL_OSM_PAIR(ENUMVALUE)                     \
-    {                                                \
-        G4OpticalSurfaceModel::ENUMVALUE, #ENUMVALUE \
+#define GSPL_OSM_PAIR(ENUMVALUE)     \
+    {                                \
+        G4OSM::ENUMVALUE, #ENUMVALUE \
     }
 
-    static std::unordered_map<G4OpticalSurfaceModel, const char*> const names
-        = {GSPL_OSM_PAIR(glisur),
-           GSPL_OSM_PAIR(unified),
-           GSPL_OSM_PAIR(LUT),
-           GSPL_OSM_PAIR(DAVIS),
-           GSPL_OSM_PAIR(dichroic)};
+    static std::unordered_map<G4OSM, const char*> const names = {
+        GSPL_OSM_PAIR(glisur),
+        GSPL_OSM_PAIR(unified),
+        GSPL_OSM_PAIR(LUT),
+        GSPL_OSM_PAIR(DAVIS),
+        GSPL_OSM_PAIR(dichroic),
+    };
 
     if (auto iter = names.find(value); iter != names.end())
     {
@@ -55,12 +59,12 @@ char const* to_cstring(G4OpticalSurfaceModel value)
  */
 char const* to_cstring(G4SurfaceType value)
 {
-#define GSPL_ST_PAIR(ENUMVALUE)              \
-    {                                        \
-        G4SurfaceType::ENUMVALUE, #ENUMVALUE \
+#define GSPL_ST_PAIR(ENUMVALUE)     \
+    {                               \
+        G4ST::ENUMVALUE, #ENUMVALUE \
     }
 
-    static std::unordered_map<G4SurfaceType, const char*> const names = {
+    static std::unordered_map<G4ST, const char*> const names = {
         GSPL_ST_PAIR(dielectric_metal),
         GSPL_ST_PAIR(dielectric_dielectric),
         GSPL_ST_PAIR(dielectric_LUT),
@@ -69,7 +73,7 @@ char const* to_cstring(G4SurfaceType value)
         GSPL_ST_PAIR(firsov),
         GSPL_ST_PAIR(x_ray),
 #if G4VERSION_NUMBER >= 1110
-        GSPL_ST_PAIR(coated)
+        GSPL_ST_PAIR(coated),
 #endif
     };
     if (auto iter = names.find(value); iter != names.end())
@@ -87,60 +91,59 @@ char const* to_cstring(G4SurfaceType value)
  */
 char const* to_cstring(G4OpticalSurfaceFinish value)
 {
-#define GSPL_OSF_PAIR(ENUMVALUE)                      \
-    {                                                 \
-        G4OpticalSurfaceFinish::ENUMVALUE, #ENUMVALUE \
+#define GSPL_OSF_PAIR(ENUMVALUE)     \
+    {                                \
+        G4OSF::ENUMVALUE, #ENUMVALUE \
     }
 
-    static std::unordered_map<G4OpticalSurfaceFinish, const char*> const names
-        = {
-            GSPL_OSF_PAIR(polished),
-            GSPL_OSF_PAIR(polishedfrontpainted),
-            GSPL_OSF_PAIR(polishedbackpainted),
+    static std::unordered_map<G4OSF, const char*> const names = {
+        GSPL_OSF_PAIR(polished),
+        GSPL_OSF_PAIR(polishedfrontpainted),
+        GSPL_OSF_PAIR(polishedbackpainted),
 
-            GSPL_OSF_PAIR(ground),
-            GSPL_OSF_PAIR(groundfrontpainted),
-            GSPL_OSF_PAIR(groundbackpainted),
+        GSPL_OSF_PAIR(ground),
+        GSPL_OSF_PAIR(groundfrontpainted),
+        GSPL_OSF_PAIR(groundbackpainted),
 
-            GSPL_OSF_PAIR(polishedlumirrorair),
-            GSPL_OSF_PAIR(polishedlumirrorglue),
-            GSPL_OSF_PAIR(polishedair),
-            GSPL_OSF_PAIR(polishedteflonair),
-            GSPL_OSF_PAIR(polishedtioair),
-            GSPL_OSF_PAIR(polishedtyvekair),
-            GSPL_OSF_PAIR(polishedvm2000air),
-            GSPL_OSF_PAIR(polishedvm2000glue),
+        GSPL_OSF_PAIR(polishedlumirrorair),
+        GSPL_OSF_PAIR(polishedlumirrorglue),
+        GSPL_OSF_PAIR(polishedair),
+        GSPL_OSF_PAIR(polishedteflonair),
+        GSPL_OSF_PAIR(polishedtioair),
+        GSPL_OSF_PAIR(polishedtyvekair),
+        GSPL_OSF_PAIR(polishedvm2000air),
+        GSPL_OSF_PAIR(polishedvm2000glue),
 
-            GSPL_OSF_PAIR(etchedlumirrorair),
-            GSPL_OSF_PAIR(etchedlumirrorglue),
-            GSPL_OSF_PAIR(etchedair),
-            GSPL_OSF_PAIR(etchedteflonair),
-            GSPL_OSF_PAIR(etchedtioair),
-            GSPL_OSF_PAIR(etchedtyvekair),
-            GSPL_OSF_PAIR(etchedvm2000air),
-            GSPL_OSF_PAIR(etchedvm2000glue),
+        GSPL_OSF_PAIR(etchedlumirrorair),
+        GSPL_OSF_PAIR(etchedlumirrorglue),
+        GSPL_OSF_PAIR(etchedair),
+        GSPL_OSF_PAIR(etchedteflonair),
+        GSPL_OSF_PAIR(etchedtioair),
+        GSPL_OSF_PAIR(etchedtyvekair),
+        GSPL_OSF_PAIR(etchedvm2000air),
+        GSPL_OSF_PAIR(etchedvm2000glue),
 
-            GSPL_OSF_PAIR(groundlumirrorair),
-            GSPL_OSF_PAIR(groundlumirrorglue),
-            GSPL_OSF_PAIR(groundair),
-            GSPL_OSF_PAIR(groundteflonair),
-            GSPL_OSF_PAIR(groundtioair),
-            GSPL_OSF_PAIR(groundtyvekair),
-            GSPL_OSF_PAIR(groundvm2000air),
-            GSPL_OSF_PAIR(groundvm2000glue),
+        GSPL_OSF_PAIR(groundlumirrorair),
+        GSPL_OSF_PAIR(groundlumirrorglue),
+        GSPL_OSF_PAIR(groundair),
+        GSPL_OSF_PAIR(groundteflonair),
+        GSPL_OSF_PAIR(groundtioair),
+        GSPL_OSF_PAIR(groundtyvekair),
+        GSPL_OSF_PAIR(groundvm2000air),
+        GSPL_OSF_PAIR(groundvm2000glue),
 
-            GSPL_OSF_PAIR(Rough_LUT),
-            GSPL_OSF_PAIR(RoughTeflon_LUT),
-            GSPL_OSF_PAIR(RoughESR_LUT),
-            GSPL_OSF_PAIR(RoughESRGrease_LUT),
+        GSPL_OSF_PAIR(Rough_LUT),
+        GSPL_OSF_PAIR(RoughTeflon_LUT),
+        GSPL_OSF_PAIR(RoughESR_LUT),
+        GSPL_OSF_PAIR(RoughESRGrease_LUT),
 
-            GSPL_OSF_PAIR(Polished_LUT),
-            GSPL_OSF_PAIR(PolishedTeflon_LUT),
-            GSPL_OSF_PAIR(PolishedESR_LUT),
-            GSPL_OSF_PAIR(PolishedESRGrease_LUT),
+        GSPL_OSF_PAIR(Polished_LUT),
+        GSPL_OSF_PAIR(PolishedTeflon_LUT),
+        GSPL_OSF_PAIR(PolishedESR_LUT),
+        GSPL_OSF_PAIR(PolishedESRGrease_LUT),
 
-            GSPL_OSF_PAIR(Detector_LUT),
-        };
+        GSPL_OSF_PAIR(Detector_LUT),
+    };
 
     if (auto iter = names.find(value); iter != names.end())
     {
@@ -174,11 +177,11 @@ inp::ReflectionForm load_unified_refl_form(GeantSurfacePhysicsHelper& helper)
     helper.get_property(&refl_form.specular_lobe, "SPECULARLOBECONSTANT");
     helper.get_property(&refl_form.specular_spike, "SPECULARSPIKECONSTANT");
     helper.get_property(&refl_form.backscatter, "BACKSCATTERCONSTANT");
-    CELER_ASSERT(refl_form);
+    CELER_VALIDATE(refl_form, << "missing UNIFIED model reflection form grids");
 
-#define GSPL_VALIDATE_PROB(PARAM)                            \
-    CELER_VALIDATE(is_probability(PARAM),                    \
-                   << "ReflectionForm parameter '" << #PARAM \
+#define GSPL_VALIDATE_PROB(PARAM)             \
+    CELER_VALIDATE(is_probability(PARAM),     \
+                   << "parameter '" << #PARAM \
                    << "' is not within [0, 1] range")
 
     GSPL_VALIDATE_PROB(refl_form.specular_spike);
@@ -191,29 +194,6 @@ inp::ReflectionForm load_unified_refl_form(GeantSurfacePhysicsHelper& helper)
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Populate a \c inp::ReflectionGrid object for a given surface.
- */
-inp::ReflectionGrid load_refl_grid(GeantSurfacePhysicsHelper& helper)
-{
-    inp::ReflectionGrid result;
-    helper.get_property(&result.grid, "REFLECTIVITY");
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return string error message based on optical surface physics selection.
- */
-std::string str_error_msg(G4OpticalSurface const& surf)
-{
-    return "Surface " + surf.GetName() + " with surface finish '"
-           + to_cstring(surf.GetFinish()) + "' is not compatible with '"
-           + to_cstring(surf.GetType()) + "' surface type and "
-           + to_cstring(surf.GetModel()) + " model";
-}
-
-//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -221,7 +201,7 @@ std::string str_error_msg(G4OpticalSurface const& surf)
  * Construct with \c SurfacePhysics input to be filled by \c operator() .
  */
 GeantSurfacePhysicsLoader::GeantSurfacePhysicsLoader(inp::SurfacePhysics& result)
-    : result_(result)
+    : models_(result)
 {
 }
 
@@ -232,26 +212,39 @@ GeantSurfacePhysicsLoader::GeantSurfacePhysicsLoader(inp::SurfacePhysics& result
 void GeantSurfacePhysicsLoader::operator()(SurfaceId sid)
 {
     CELER_EXPECT(sid);
-    using G4OSM = G4OpticalSurfaceModel;
 
     GeantSurfacePhysicsHelper helper(sid);
     auto const& surf = helper.surface();
     auto const model = surf.GetModel();
-    switch (model)
+    try
     {
-        case G4OSM::glisur:
-            this->insert_glisur(helper);
-            break;
-        case G4OSM::unified:
-            this->insert_unified(helper);
-            break;
-        default:
-            CELER_NOT_IMPLEMENTED("Model " + std::string(to_cstring(model)));
+        switch (model)
+        {
+            case G4OSM::glisur:
+                this->insert_glisur(helper);
+                break;
+            case G4OSM::unified:
+                this->insert_unified(helper);
+                break;
+            default:
+                CELER_NOT_IMPLEMENTED(std::string{"Model "}
+                                      + to_cstring(model));
+        }
+    }
+    catch (std::exception const& e)
+    {
+        CELER_LOG(error)
+            << "Failed to load surface " << surf.GetName()
+            << " with surface finish '" << to_cstring(surf.GetFinish())
+            << "' is not compatible with '" << to_cstring(surf.GetType())
+            << "' surface type and " << to_cstring(surf.GetModel())
+            << " model";
+        throw;
     }
 
-    CELER_LOG(debug) << "Inserted surface '" << surf.GetName()
-                     << "' with SurfaceId " << sid.unchecked_get()
-                     << " and using " << to_cstring(model) << " model";
+    CELER_LOG(debug) << "Inserted " << to_cstring(model) << " surface '"
+                     << surf.GetName() << "' (id=" << sid.unchecked_get()
+                     << ")";
 }
 
 //---------------------------------------------------------------------------//
@@ -262,40 +255,26 @@ void GeantSurfacePhysicsLoader::operator()(SurfaceId sid)
  */
 void GeantSurfacePhysicsLoader::insert_glisur(GeantSurfacePhysicsHelper& helper)
 {
-    using G4ST = G4SurfaceType;
-    using G4OSF = G4OpticalSurfaceFinish;
+    this->insert_reflectivity(helper);
 
     auto const& surf = helper.surface();
-    auto sid = helper.surface_id();
-    auto const type = surf.GetType();
-    auto const finish = surf.GetFinish();
-
-    // Interaction insertion helper
-    auto insert_interaction
-        = [&](std::pair<SurfaceId, inp::ReflectionForm> pair) -> void {
-        (type == G4ST::dielectric_dielectric)
-            ? result_.interaction.dielectric_dielectric.insert(pair)
-            : result_.interaction.dielectric_metal.insert(pair);
-    };
-
-    this->insert_grid_analytic_reflectivities(helper);
-
-    switch (finish)
+    switch (surf.GetFinish())
     {
-        case G4OSF::polished: {
-            result_.roughness.polished.insert({sid, inp::NoRoughness{}});
-            insert_interaction({sid, inp::ReflectionForm::from_spike()});
+        case G4OSF::polished:
+            helper.emplace(models_.roughness.polished, inp::NoRoughness{});
+            this->insert_interaction(helper, inp::ReflectionForm::from_spike());
             break;
-        }
-        case G4OSF::ground: {
-            real_type roughness = real_type{1} - surf.GetPolish();
-            result_.roughness.smear.insert(
-                {sid, inp::SmearRoughness{roughness}});
-            insert_interaction({sid, inp::ReflectionForm::from_lobe()});
+        case G4OSF::ground:
+            helper.emplace(
+                models_.roughness.smear,
+                inp::SmearRoughness{real_type{1} - surf.GetPolish()});
+            this->insert_interaction(helper, inp::ReflectionForm::from_lobe());
             break;
-        }
         default:
-            CELER_VALIDATE(false, << str_error_msg(surf));
+            CELER_VALIDATE(false,
+                           << "invalid surface finish "
+                           << to_cstring(surf.GetFinish())
+                           << " for GLISUR model");
     }
 }
 
@@ -308,97 +287,80 @@ void GeantSurfacePhysicsLoader::insert_glisur(GeantSurfacePhysicsHelper& helper)
  */
 void GeantSurfacePhysicsLoader::insert_unified(GeantSurfacePhysicsHelper& helper)
 {
-    using G4ST = G4SurfaceType;
-    using G4OSF = G4OpticalSurfaceFinish;
+    this->insert_reflectivity(helper);
 
     auto const& surf = helper.surface();
-    auto sid = helper.surface_id();
-    auto const type = surf.GetType();
-    auto const finish = surf.GetFinish();
-
-    // Interaction model insertion helper for polished and ground finishes
-    auto insert_interaction = [&](inp::ReflectionForm rf) -> void {
-        (type == G4ST::dielectric_dielectric)
-            ? result_.interaction.dielectric_dielectric.insert({sid, rf})
-            : result_.interaction.dielectric_metal.insert(
-                  {sid, load_unified_refl_form(helper)});
-    };
-
-    // Insert [polished/ground]backpainted data, as they are equivalent
-    //! \todo: Revisit this when surface layers are implemented
-    auto insert_backpainted = [&]() -> void {
-        // Equivalent to layer 0
-        result_.roughness.gaussian.insert(
-            {sid, inp::GaussianRoughness{surf.GetSigmaAlpha()}});
-        // Equivalent to layer 1
-        result_.roughness.polished.insert({sid, inp::NoRoughness{}});
-
-        // Insert interface
-        // Polished: Layer 0 uses any reflection form; Layer 1 uses spike
-        // Ground  : Layer 0 uses any reflection form; Layer 1 uses Lambertian
-        result_.interaction.dielectric_dielectric.insert(
-            {sid, load_unified_refl_form(helper)});
-    };
-
-    // Currently all enums use both grid and analytic reflectivies. Enums
-    // [polished/ground]backpainted use analytic for layer 0 and grid for layer
-    // 1, but still require both.
-    //! \todo: Revisit/update this once surface layers are implemented.
-    this->insert_grid_analytic_reflectivities(helper);
-
+    auto finish = surf.GetFinish();
     switch (finish)
     {
         // ENUMS USED BY DIELECTRIC-DIELECTRIC AND DIELECTRIC-METAL INTERFACES
-        case G4OSF::polished: {
-            result_.roughness.polished.insert({sid, inp::NoRoughness{}});
-            insert_interaction(inp::ReflectionForm::from_spike());
+        case G4OSF::polished:
+            helper.emplace(models_.roughness.polished, inp::NoRoughness{});
+            this->insert_interaction(helper, inp::ReflectionForm::from_spike());
             break;
-        }
-        case G4OSF::ground: {
-            result_.roughness.gaussian.insert(
-                {sid, inp::GaussianRoughness{surf.GetSigmaAlpha()}});
-            insert_interaction(load_unified_refl_form(helper));
+        case G4OSF::ground:
+            helper.emplace(models_.roughness.gaussian,
+                           inp::GaussianRoughness{surf.GetSigmaAlpha()});
+            this->insert_interaction(helper, load_unified_refl_form(helper));
             break;
-        }
 
         // ENUMS ONLY AVAILABLE TO DIELECTRIC-DIELECTRIC INTERFACES
-        case G4OSF::polishedfrontpainted: {
-            result_.roughness.polished.insert({sid, inp::NoRoughness{}});
-            result_.interaction.dielectric_dielectric.insert(
-                {sid, inp::ReflectionForm::from_spike()});
-            break;
-        }
-        case G4OSF::groundfrontpainted: {
-            result_.roughness.gaussian.insert(
-                {sid, inp::GaussianRoughness{surf.GetSigmaAlpha()}});
-            result_.interaction.dielectric_dielectric.insert(
-                {sid, inp::ReflectionForm::from_lambertian()});
-            break;
-        }
-        case G4OSF::polishedbackpainted: {
-            insert_backpainted();
-            break;
-        }
-        case G4OSF::groundbackpainted: {
-            insert_backpainted();
-            break;
-        }
-
+        case G4OSF::polishedfrontpainted:
+            [[fallthrough]];
+        case G4OSF::groundfrontpainted:
+            [[fallthrough]];
+        case G4OSF::polishedbackpainted:
+            [[fallthrough]];
+        case G4OSF::groundbackpainted:
+            CELER_NOT_IMPLEMENTED(std::string{"Finish "} + to_cstring(finish));
         default:
-            CELER_VALIDATE(false, << str_error_msg(surf));
+            CELER_VALIDATE(false,
+                           << "invalid surface finish " << to_cstring(finish)
+                           << " for UNIFIED model");
     }
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Insert both grid and analytic reflectivity modes into \c result_ .
+ * Insert both grid and analytic reflectivity modes into \c models_ .
  */
-void GeantSurfacePhysicsLoader::insert_grid_analytic_reflectivities(
+void GeantSurfacePhysicsLoader::insert_reflectivity(
     GeantSurfacePhysicsHelper& helper)
 {
-    auto const sid = helper.surface_id();
-    result_.reflectivity.analytic.insert({sid, inp::ReflectionAnalytic{}});
-    result_.reflectivity.grid.insert({sid, load_refl_grid(helper)});
+    auto& reflectivity = models_.reflectivity;
+    inp::ReflectionGrid refl_grid;
+    if (helper.get_property(&refl_grid.grid, "REFLECTIVITY"))
+    {
+        helper.emplace(reflectivity.grid, std::move(refl_grid));
+    }
+    else
+    {
+        helper.emplace(reflectivity.analytic, inp::ReflectionAnalytic{});
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Insert an interaction based on the surface's type .
+ */
+void GeantSurfacePhysicsLoader::insert_interaction(
+    GeantSurfacePhysicsHelper& helper, inp::ReflectionForm&& rf)
+{
+    auto& interaction = models_.interaction;
+    switch (helper.surface().GetType())
+    {
+        case G4ST::dielectric_dielectric:
+            helper.emplace(interaction.dielectric_dielectric, std::move(rf));
+            break;
+        case G4ST::dielectric_metal:
+            helper.emplace(interaction.dielectric_metal, std::move(rf));
+            break;
+        default:
+            CELER_VALIDATE(false,
+                           << "invalid surface type "
+                           << to_cstring(helper.surface().GetType())
+                           << " for surface model");
+    }
 }
 
 //---------------------------------------------------------------------------//

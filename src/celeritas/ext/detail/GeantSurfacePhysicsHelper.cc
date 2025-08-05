@@ -9,8 +9,9 @@
 #include <G4LogicalSurface.hh>
 #include <G4OpticalSurface.hh>
 
-#include "corecel/io/Logger.hh"
 #include "geocel/GeantGeoParams.hh"
+
+#include "GeantMaterialPropertyGetter.hh"
 
 namespace celeritas
 {
@@ -58,7 +59,7 @@ G4OpticalSurface const& GeantSurfacePhysicsHelper::surface() const
  * - Backscatter
  */
 bool GeantSurfacePhysicsHelper::get_property(inp::Grid* dst,
-                                             std::string const& name)
+                                             std::string const& name) const
 {
     GeantMaterialPropertyGetter get_property{*mpt_};
     return get_property(dst, name, {ImportUnits::mev, ImportUnits::unitless});

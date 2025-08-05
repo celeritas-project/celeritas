@@ -25,14 +25,14 @@ class GeantSurfacePhysicsLoader
 {
   public:
     //! Construct with \c SurfacePhysics input
-    GeantSurfacePhysicsLoader(inp::SurfacePhysics& result);
+    GeantSurfacePhysicsLoader(inp::SurfacePhysics& surface_phys);
 
     //! Populate surface physics data
     void operator()(SurfaceId sid);
 
   private:
     //// DATA ////
-    inp::SurfacePhysics& result_;  // Populated by operator()
+    inp::SurfacePhysics& models_;  // Populated by operator()
 
     //// HELPER FUNCTIONS ////
 
@@ -42,8 +42,12 @@ class GeantSurfacePhysicsLoader
     // Insert Unified model surface
     void insert_unified(GeantSurfacePhysicsHelper& helper);
 
-    // Insert both grid and analytic reflectivities into result_
-    void insert_grid_analytic_reflectivities(GeantSurfacePhysicsHelper& helper);
+    // Insert grid or analytic reflectivity into models_
+    void insert_reflectivity(GeantSurfacePhysicsHelper& helper);
+
+    // Insert reflection form for di/di or di/met
+    void insert_interaction(GeantSurfacePhysicsHelper& helper,
+                            inp::ReflectionForm&& rf);
 };
 
 //---------------------------------------------------------------------------//
