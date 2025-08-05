@@ -234,12 +234,10 @@ void GeantSurfacePhysicsLoader::operator()(SurfaceId sid)
     }
     catch (std::exception const& e)
     {
-        CELER_LOG(error)
-            << "Failed to load surface " << surf.GetName()
-            << " with surface finish '" << to_cstring(surf.GetFinish())
-            << "' is not compatible with '" << to_cstring(surf.GetType())
-            << "' surface type and " << to_cstring(surf.GetModel())
-            << " model";
+        CELER_LOG(error) << "Failed to load " << to_cstring(surf.GetFinish())
+                         << " " << to_cstring(surf.GetType()) << " surface "
+                         << surf.GetName() << " with model '"
+                         << to_cstring(surf.GetModel()) << "'";
         throw;
     }
 
