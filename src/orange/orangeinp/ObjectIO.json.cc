@@ -107,6 +107,10 @@ void to_json(nlohmann::json& j, RevolvedPolygon const& obj)
         SIO_ATTR_PAIR(obj, label),
         SIO_ATTR_PAIR(obj, polygon),
     };
+    if (auto azi = obj.enclosed_azi())
+    {
+        j["enclosed_azi"] = azi;
+    }
 }
 
 void to_json(nlohmann::json& j, ShapeBase const& obj)

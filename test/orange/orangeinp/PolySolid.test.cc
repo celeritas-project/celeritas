@@ -213,7 +213,7 @@ TEST_F(PolyconeTest, sliced)
         "pc@segments",
         "pc@awm",
         "pc@awp",
-        "pc@angle",
+        "pc@~azi",
         "",
         "pc@restricted",
     };
