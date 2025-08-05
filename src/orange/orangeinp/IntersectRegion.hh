@@ -270,7 +270,7 @@ class EllipticalCylinder final : public IntersectRegionInterface
  * \verbatim
    (1/r_x)^2 x^2  + (1/r_y)^2 y^2 + (-1) z^2 + (2v) z + (-v^2) = 0.
       |                |              |         |          |
-      a                b              c         d          e
+      a                b              c         f          g
  * \endverbatim
  *
  * where v is the location of the vertex. The r_x, r_y, and v can be calculated
@@ -654,6 +654,61 @@ class Involute final : public IntersectRegionInterface
     Real2 a_;
     Real2 t_bounds_;
     Chirality sign_;
+    real_type hh_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * A finite *z*-aligned parabolid.
+ *
+ * The paraboloid is defined in an analogous fashion to the cone. A half-height
+ * (hh) defines the z-extents, such that the centroid of the outer bounding box
+ * is the origin. The lower and upper radii correspond to the radii at
+ * z = +/-hh. Either the lower or upper radii may be 0, i.e., the solid may
+ * include the vertex. Degenerate cases with lower_radius == upper_radius are
+ * not permitted: a cylinder should be used instead.
+ *
+ * A paraboloid with these properties is expressed in SimpleQuadric form as:
+ * \f[
+    x^2  + y^2 + \frac{(r_0^2 - r_1^2)}{h} z + \frac{-r_0^2 - r_1^2}{2} = 0,
+ * \f]
+ * where \f$r_0\f$ and \f$r_1\f$ correspond to the lower and upper radii,
+ * respectively, and \f$h\$f is the full height.
+ * \endverbatim
+ */
+class Paraboloid final : public IntersectRegionInterface
+{
+  public:
+    // Construct with lower/upper radii and the half-height
+    Paraboloid(real_type lower_radius,
+               real_type upper_radius,
+               real_type halfheight);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// TEMPLATE INTERFACE ////
+
+    // Whether this encloses another paraboloid
+    bool encloses(Paraboloid const& other) const;
+
+    //// ACCESSORS ////
+
+    //! Radius at z=-hh
+    real_type lower_radius() const { return r0_; }
+
+    //! Radius at z=hh
+    real_type upper_radius() const { return r1_; }
+
+    //! Half-height along Z
+    real_type halfheight() const { return hh_; }
+
+  private:
+    real_type r0_;
+    real_type r1_;
     real_type hh_;
 };
 
