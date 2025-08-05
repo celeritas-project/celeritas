@@ -18,9 +18,6 @@ namespace optical
 namespace detail
 {
 
-template<class E>
-struct BoundaryActionTraits;
-
 struct InitBoundaryExecutor;
 struct PostBoundaryExecutor;
 
@@ -40,12 +37,6 @@ struct PostBoundaryExecutor;
 template<class E>
 class BoundaryAction : public OpticalStepActionInterface, public ConcreteAction
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    using TraitsT = detail::BoundaryActionTraits<E>;
-    //!@}
-
   public:
     // Construct from action ID
     explicit BoundaryAction(ActionId);

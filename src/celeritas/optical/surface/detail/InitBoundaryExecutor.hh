@@ -12,6 +12,7 @@
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/optical/SimTrackView.hh"
 #include "celeritas/optical/Types.hh"
+#include "celeritas/optical/surface/VolumeSurfaceSelector.hh"
 
 namespace celeritas
 {
@@ -31,8 +32,6 @@ namespace detail
  */
 struct InitBoundaryExecutor
 {
-    NativeCRef<SurfaceParamsData> const& surface_data;
-
     // Initialize track for boundary crossing
     inline CELER_FUNCTION void operator()(CoreTrackView& track) const;
 };
@@ -56,7 +55,8 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
 
     // Surface selector must be created before crossing boundary to store
     // pre-volume information
-    VolumeSurfaceSelector select_surface{surface_data, geo};
+    VolumeSurfaceSelector select_surface{track.surface(),
+                                         geo.volume_instance_id()};
 
     // Move the particle across the boundary
     geo.cross_boundary();
@@ -68,7 +68,8 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
 
     // Find oriented surface after crossing boundary using post-volume
     // information
-    if (auto oriented_surface = select_surface(geo))
+    if (auto oriented_surface
+        = select_surface(track.surface(), geo.volume_instance_id()))
     {
         // initialize surface state
         track.sim().post_step_action(track.post_boundary_action());
@@ -76,6 +77,7 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
     else
     {
         // If there's no surface, mark photon as killed
+        // TODO: Add default behavior
         track.sim().status(TrackStatus::killed);
     }
 }

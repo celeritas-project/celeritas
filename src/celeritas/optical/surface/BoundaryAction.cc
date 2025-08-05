@@ -12,19 +12,48 @@
 #include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
-#include "detail/BoundaryActionTraits.hh"
+#include "detail/InitBoundaryExecutor.hh"
+#include "detail/PostBoundaryExecutor.hh"
 
 namespace celeritas
 {
 namespace optical
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+
+template<class E>
+struct BoundaryActionTraits;
+
+template<>
+struct BoundaryActionTraits<detail::InitBoundaryExecutor>
+{
+    constexpr static char const* action_name = "optical-boundary-init";
+    constexpr static char const* action_desc
+        = "Initialize optical boundary crossing action";
+};
+
+template<>
+struct BoundaryActionTraits<detail::PostBoundaryExecutor>
+{
+    constexpr static char const* action_name = "optical-boundary-post";
+    constexpr static char const* action_desc
+        = "Finalize optical boundary crossing action";
+};
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct the boundary action from an action ID.
  */
 template<class E>
 BoundaryAction<E>::BoundaryAction(ActionId aid)
-    : ConcreteAction(aid, TraitsT::action_name, TraitsT::action_desc)
+    : ConcreteAction(aid,
+                     BoundaryActionTraits<E>::action_name,
+                     BoundaryActionTraits<E>::action_desc)
 {
 }
 
@@ -36,12 +65,11 @@ template<class E>
 void BoundaryAction<E>::step(CoreParams const& params,
                              CoreStateHost& state) const
 {
-    launch_action(
-        state,
-        make_action_thread_executor(params.ptr<MemSpace::native>(),
-                                    state.ptr(),
-                                    this->action_id(),
-                                    TraitsT::construct(params, state)));
+    launch_action(state,
+                  make_action_thread_executor(params.ptr<MemSpace::native>(),
+                                              state.ptr(),
+                                              this->action_id(),
+                                              E{}));
 }
 
 //---------------------------------------------------------------------------//

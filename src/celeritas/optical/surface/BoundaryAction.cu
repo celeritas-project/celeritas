@@ -26,11 +26,8 @@ template<class E>
 void BoundaryAction<E>::step(CoreParams const& params,
                              CoreStateDevice& state) const
 {
-    auto execute
-        = make_action_thread_executor(params.ptr<MemSpace::native>(),
-                                      state.ptr(),
-                                      this->action_id(),
-                                      TraitsT::construct(params, state));
+    auto execute = make_action_thread_executor(
+        params.ptr<MemSpace::native>(), state.ptr(), this->action_id(), E{});
 
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);

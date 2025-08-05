@@ -7,6 +7,7 @@
 #pragma once
 
 #include "corecel/random/engine/RngEngine.hh"
+#include "geocel/VolumeSurfaceView.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 
 #include "CoreTrackData.hh"
@@ -15,7 +16,6 @@
 #include "PhysicsTrackView.hh"
 #include "SimTrackView.hh"
 #include "TrackInitializer.hh"
-#include "surface/VolumeSurfaceSelector.hh"
 
 #if !CELER_DEVICE_COMPILE
 #    include "corecel/io/Logger.hh"
@@ -53,7 +53,7 @@ class CoreTrackView
     // Return a material view
     inline CELER_FUNCTION MaterialView material_record() const;
 
-    // Return a material view (using an existing geo view
+    // Return a material view (using an existing geo view)
     inline CELER_FUNCTION MaterialView material_record(GeoTrackView const&) const;
 
     // Return a simulation management view
@@ -64,6 +64,12 @@ class CoreTrackView
 
     // Return a physics view
     inline CELER_FUNCTION PhysicsTrackView physics() const;
+
+    // Return a volume surface view
+    inline CELER_FUNCTION VolumeSurfaceView surface() const;
+
+    // Return a volume surface view from volume ID
+    inline CELER_FUNCTION VolumeSurfaceView surface(VolumeId) const;
 
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
@@ -190,6 +196,26 @@ CELER_FUNCTION auto CoreTrackView::physics() const -> PhysicsTrackView
     CELER_ASSERT(mat_id);
     return PhysicsTrackView{
         params_.physics, states_.physics, mat_id, this->track_slot_id()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a volume surface view into the track's current volume.
+ */
+CELER_FUNCTION auto CoreTrackView::surface() const -> VolumeSurfaceView
+{
+    return this->surface(this->geometry().volume_id());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a volume surface view from volume ID.
+ */
+CELER_FUNCTION auto CoreTrackView::surface(VolumeId vol) const
+    -> VolumeSurfaceView
+{
+    CELER_EXPECT(vol);
+    return VolumeSurfaceView{params_.surface, vol};
 }
 
 //---------------------------------------------------------------------------//
