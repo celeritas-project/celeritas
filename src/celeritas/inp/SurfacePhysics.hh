@@ -63,7 +63,7 @@ struct NoRoughness
  */
 struct SmearRoughness
 {
-    real_type roughness{-1};  //!< Scale from 0 = specular to 1 = diffuse
+    double roughness{-1};  //!< Scale from 0 = specular to 1 = diffuse
 
     //! Whether the data are assigned
     explicit operator bool() const { return roughness >= 0 && roughness <= 1; }
@@ -78,7 +78,7 @@ struct SmearRoughness
  */
 struct GaussianRoughness
 {
-    real_type sigma_alpha{-1};  //!< Gaussian std. dev.
+    double sigma_alpha{-1};  //!< Gaussian std. dev.
 
     //! Whether the surface data are assigned
     explicit operator bool() const { return sigma_alpha > 0; }
