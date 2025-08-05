@@ -562,7 +562,7 @@ auto SolidConverter::genericpolycone(arg_type solid_base) -> result_type
     for (auto i : range(num_points))
     {
         auto point = solid.GetCorner(i);
-        polygon.push_back(Real2{scale_(point.r), scale_(point.z)});
+        polygon.push_back(scale_.to<Real2>(point.r, point.z));
     }
 
     return std::make_shared<RevolvedPolygon>(std::string{solid.GetName()},
