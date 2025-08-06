@@ -670,10 +670,11 @@ class Involute final : public IntersectRegionInterface
  *
  * A paraboloid with these properties is expressed in SimpleQuadric form as:
  * \f[
-    x^2  + y^2 + \frac{(r_0^2 - r_1^2)}{h} z + \frac{-r_0^2 - r_1^2}{2} = 0,
+    x^2  + y^2 + \frac{(r_{\mathrm{lo}}^2 - r_{\mathrm{hi}}^2)}{h} z
+    + \frac{-r_{\mathrm{lo}}^2 - r_{\mathrm{hi}}^2}{2} = 0,
  * \f]
- * where \f$r_0\f$ and \f$r_1\f$ correspond to the lower and upper radii,
- * respectively, and \f$h\f$ is the full height.
+ * where \f$r_{\mathrm{lo}}\f$ and \f$r_\mathrm{hi}\f$ correspond to the lower
+ * and upper radii, respectively, and \f$h\f$ is the full height.
  * \endverbatim
  */
 class Paraboloid final : public IntersectRegionInterface
@@ -698,17 +699,17 @@ class Paraboloid final : public IntersectRegionInterface
     //// ACCESSORS ////
 
     //! Radius at z=-hh
-    real_type lower_radius() const { return r0_; }
+    real_type lower_radius() const { return r_lo_; }
 
     //! Radius at z=hh
-    real_type upper_radius() const { return r1_; }
+    real_type upper_radius() const { return r_hi_; }
 
     //! Half-height along Z
     real_type halfheight() const { return hh_; }
 
   private:
-    real_type r0_;
-    real_type r1_;
+    real_type r_lo_;
+    real_type r_hi_;
     real_type hh_;
 };
 
