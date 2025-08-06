@@ -44,6 +44,7 @@ class RevolvedPolygonTest : public ObjectTestBase
     /// DATA  ///
     LocalVolumeId vol_id_;
 };
+
 //---------------------------------------------------------------------------//
 /* Test the simplest case: a single subregion.
  \verbatim
@@ -63,7 +64,8 @@ TEST_F(RevolvedPolygonTest, one_subregion)
 {
     VecReal2 polygon{{0, 0}, {3, 0}, {3, 2}, {0, 2}};
 
-    vol_id_ = this->build_volume(RevolvedPolygon{"rp", std::move(polygon)});
+    vol_id_ = this->build_volume(
+        RevolvedPolygon{"rp", std::move(polygon), EnclosedAzi{}});
 
     static char const* const expected_surface_strings[]
         = {"Plane: z=0", "Plane: z=2", "Cyl z: r=3"};
@@ -106,6 +108,76 @@ TEST_F(RevolvedPolygonTest, one_subregion)
 }
 
 //---------------------------------------------------------------------------//
+/* Test a single subregion with a restricted angle
+ \verbatim
+    3 _
+       |
+    2 _|______________
+ z     |              |
+    1 _|              |   With cos(theta) >= 0
+       |              |
+    0 _|______________|__________
+       |    |    |    |    |    |
+       0    1    2    3    4    5
+                   r
+ \endverbatim
+ */
+TEST_F(RevolvedPolygonTest, one_subregion_with_enclosed)
+{
+    VecReal2 polygon{{0, 0}, {3, 0}, {3, 2}, {0, 2}};
+
+    vol_id_ = this->build_volume(RevolvedPolygon{
+        "rp", std::move(polygon), EnclosedAzi{Turn{-0.25}, Turn{0.25}}});
+
+    static char const* const expected_surface_strings[]
+        = {"Plane: z=0", "Plane: z=2", "Cyl z: r=3", "Plane: x=0"};
+
+    static char const* const expected_volume_strings[] = {
+        "all(+0, -1, -2, +3)",
+    };
+
+    static char const* const expected_md_strings[] = {
+        "",
+        "",
+        "rp@0.0.0.mz",
+        "rp@0.0.0.pz",
+        "",
+        "rp@0.0.0.cz",
+        "",
+        "rp@0.0.0,rp@0.0.ou",
+        "rp@awm,rp@awp,rp@azi",
+        "rp@restricted",
+    };
+
+    static char const* const expected_bound_strings[] = {
+        "7: {{{-2.12,-2.12,0}, {2.12,2.12,2}}, {{-3,-3,0}, {3,3,2}}}",
+        "8: {{{0,-inf,-inf}, {inf,inf,inf}}, {{0,-inf,-inf}, {inf,inf,inf}}}",
+        "9: {{{0,-2.12,0}, {2.12,2.12,2}}, {{0,-3,0}, {3,3,2}}}"};
+
+    // Test construction
+    auto const& u = this->unit();
+    EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+    EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+    EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
+
+    // Test senses
+    EXPECT_EQ(SignedSense::inside, this->eval_sense({0.1, 0.1, 1}));
+    EXPECT_EQ(SignedSense::inside, this->eval_sense({2, 2, 1}));
+
+    EXPECT_EQ(SignedSense::on, this->eval_sense({0, 0, 1}));
+    EXPECT_EQ(SignedSense::on, this->eval_sense({0, 0, 0}));
+    EXPECT_EQ(SignedSense::on, this->eval_sense({3, 0, 1}));
+    EXPECT_EQ(SignedSense::on, this->eval_sense({0, 3, 1}));
+
+    EXPECT_EQ(SignedSense::outside, this->eval_sense({-0.1, -0.1, 1}));
+    EXPECT_EQ(SignedSense::outside, this->eval_sense({-2, -2, 1}));
+    EXPECT_EQ(SignedSense::outside, this->eval_sense({0, 0, -1}));
+    EXPECT_EQ(SignedSense::outside, this->eval_sense({3.1, 0, 1}));
+    EXPECT_EQ(SignedSense::outside, this->eval_sense({0, -3.1, 1}));
+}
+
+//---------------------------------------------------------------------------//
 /* Test two-subregion case consisting of a cone subtracted from a cylinder.
  \verbatim
     3 _
@@ -124,7 +196,8 @@ TEST_F(RevolvedPolygonTest, two_subregion)
 {
     VecReal2 polygon{{1, 2}, {0, 0}, {3, 0}, {3, 2}};
 
-    vol_id_ = this->build_volume(RevolvedPolygon{"rp", std::move(polygon)});
+    vol_id_ = this->build_volume(
+        RevolvedPolygon{"rp", std::move(polygon), EnclosedAzi{}});
 
     static char const* const expected_surface_strings[] = {
         "Plane: z=0", "Plane: z=2", "Cone z: t=0.5 at {0,0,0}", "Cyl z: r=3"};
@@ -198,7 +271,8 @@ TEST_F(RevolvedPolygonTest, two_levels)
 {
     VecReal2 polygon{{1, 2}, {1.2, 1.5}, {0, 0}, {3, 0}, {3, 2}};
 
-    vol_id_ = this->build_volume(RevolvedPolygon{"rp", std::move(polygon)});
+    vol_id_ = this->build_volume(
+        RevolvedPolygon{"rp", std::move(polygon), EnclosedAzi{}});
 
     static char const* const expected_surface_strings[]
         = {"Plane: z=0",
@@ -310,7 +384,8 @@ TEST_F(RevolvedPolygonTest, three_levels)
                      {0.33, 3},
                      {0.33, 0.5}};
 
-    vol_id_ = this->build_volume(RevolvedPolygon{"rp", std::move(polygon)});
+    vol_id_ = this->build_volume(
+        RevolvedPolygon{"rp", std::move(polygon), EnclosedAzi{}});
 
     static char const* const expected_surface_strings[] = {
         "Plane: z=0.5",
@@ -393,22 +468,6 @@ TEST_F(RevolvedPolygonTest, three_levels)
     EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
     EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
-
-    //---------------------------------------------------------------------------//
-    /* These cases with nested concavity.
-     \verbatim
-       3 __  __ . . . . . . .  ____
-          | |  |              |    |
-       2 _| |  |     ____     |    |
-     z    | |  |    |    |    |    |
-       1 _| |  |____|. . |____|    |
-          | |______________________|
-       0 _|________________________
-          |    |    |    |    |    |
-          0    1    2    3    4    5
-                      r
-      \endverbatim
-     */
 
     // Test senses
     EXPECT_EQ(SignedSense::inside, this->eval_sense({0.6, 0, 2}));

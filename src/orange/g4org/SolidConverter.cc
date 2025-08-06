@@ -57,6 +57,7 @@
 #include "orange/orangeinp/CsgObject.hh"
 #include "orange/orangeinp/IntersectRegion.hh"
 #include "orange/orangeinp/PolySolid.hh"
+#include "orange/orangeinp/RevolvedPolygon.hh"
 #include "orange/orangeinp/Shape.hh"
 #include "orange/orangeinp/Solid.hh"
 #include "orange/orangeinp/StackedExtrudedPolygon.hh"
@@ -551,8 +552,22 @@ auto SolidConverter::extrudedsolid(arg_type solid_base) -> result_type
 auto SolidConverter::genericpolycone(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4GenericPolycone const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("genericpolycone");
+
+    // Get the polygon. Although Geant4 prefers clockwise order upon input,
+    // GetCorner actually returns points in counterclockwise order, as used
+    // by ORANGE.
+    size_type num_points = solid.GetNumRZCorner();
+    std::vector<Real2> polygon;
+    polygon.reserve(num_points);
+    for (auto i : range(num_points))
+    {
+        auto point = solid.GetCorner(i);
+        polygon.push_back(scale_.to<Real2>(point.r, point.z));
+    }
+
+    return std::make_shared<RevolvedPolygon>(std::string{solid.GetName()},
+                                             std::move(polygon),
+                                             enclosed_azi_from_poly(solid));
 }
 
 //---------------------------------------------------------------------------//

@@ -33,8 +33,12 @@ enum
 /*!
  * Construct from a polygon.
  */
-RevolvedPolygon::RevolvedPolygon(std::string&& label, VecReal2&& polygon)
-    : label_{std::move(label)}, polygon_{std::move(polygon)}
+RevolvedPolygon::RevolvedPolygon(std::string&& label,
+                                 VecReal2&& polygon,
+                                 EnclosedAzi&& enclosed)
+    : label_{std::move(label)}
+    , polygon_{std::move(polygon)}
+    , enclosed_{std::move(enclosed)}
 {
     CELER_VALIDATE(polygon_.size() >= 3,
                    << "polygon must have at least 3 vertices");
@@ -62,7 +66,23 @@ NodeId RevolvedPolygon::build(VolumeBuilder& vb) const
 
     // Start the recursion process
     SubIndex ri;
-    return this->make_levels(vb, filtered_polygon, ri);
+    auto result = this->make_levels(vb, filtered_polygon, ri);
+
+    if (enclosed_)
+    {
+        // Handle azimuthal truncation
+        auto&& [sense, wedge] = enclosed_.make_sense_region();
+        char const* ext = (sense == Sense::outside ? "~azi" : "azi");
+        NodeId wedge_id = build_intersect_region(vb, label_, ext, wedge);
+        if (sense == Sense::outside)
+        {
+            wedge_id = vb.insert_region({}, Negated{wedge_id});
+        }
+        result = vb.insert_region(Label{label_, "restricted"},
+                                  Joined{op_and, {result, wedge_id}});
+    }
+
+    return result;
 }
 
 //---------------------------------------------------------------------------//

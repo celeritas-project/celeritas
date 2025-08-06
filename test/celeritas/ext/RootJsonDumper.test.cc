@@ -113,7 +113,7 @@ TEST_F(RootJsonDumperTest, all)
     "name" : "G4_STAINLESS-STEEL",
     "state" : 1,
     "temperature" : 293.15,
-    "number_density" : 86993489258991530803200,
+    "number_density" : 86993489258991547580416,
     "elements" : [{
       "_typename" : "celeritas::ImportMatElemComponent",
       "element_id" : 0,
@@ -402,7 +402,7 @@ TEST_F(RootJsonDumperTest, all)
           "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
           "data_" : [-9.21034037197618, 4.60517018598809]
         },
-        "y" : [0.0919755519795958, 128.588033594672],
+        "y" : [0.0919755519795959, 128.588033594672],
         "interpolation" : {
           "_typename" : "celeritas::inp::Interpolation",
           "type" : 0,
@@ -523,7 +523,31 @@ TEST_F(RootJsonDumperTest, all)
   },
   "optical_models" : [],
   "optical_materials" : [],
-  "units" : "cgs"
+  "units" : "cgs",
+  "optical_physics" : {
+    "_typename" : "celeritas::inp::OpticalPhysics",
+    "cherenkov" : true,
+    "scintillation" : true,
+    "surfaces" : {
+      "_typename" : "celeritas::inp::SurfacePhysics",
+      "roughness" : {
+        "_typename" : "celeritas::inp::RoughnessModels",
+        "polished" : [],
+        "smear" : [],
+        "gaussian" : []
+      },
+      "reflectivity" : {
+        "_typename" : "celeritas::inp::ReflectivityModels",
+        "grid" : [],
+        "fresnel" : []
+      },
+      "interaction" : {
+        "_typename" : "celeritas::inp::InteractionModels",
+        "dielectric_dielectric" : [],
+        "dielectric_metal" : []
+      }
+    }
+  }
 })json",
             str);
     }

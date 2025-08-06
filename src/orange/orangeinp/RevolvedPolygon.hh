@@ -7,6 +7,7 @@
 #pragma once
 
 #include "ObjectInterface.hh"
+#include "Solid.hh"
 
 #include "detail/VolumeBuilder.hh"
 
@@ -15,7 +16,7 @@ namespace celeritas
 namespace orangeinp
 {
 //---------------------------------------------------------------------------//
-/*! An arbitrary (possibly concave) polygon revolved around the \em z axis.
+/*! An azimuthally sliced arbitrary polygon revolved around the \em z axis.
  *
  * The polygon must be specified in counterclockwise order and may not be self
  * intersecting. The polygon cannot cross the \em z axis, i.e., all vertices
@@ -56,11 +57,14 @@ namespace orangeinp
         r axis ->
    \endverbatim
  * In this example, level 1 region 0 is formed from only two subregions, but
- * the general case is handed via:
+ * the general case is handled via:
  *
  * region = union(outer subregions) - union(inner subregions).
  *
- * \internal When labeing nodes in the CSG output, the following shorthand
+ * The final step in construction is azimuthal truncation, which is done
+ * through a union operation with a negated or non-negated EnclosedAzi.
+ *
+ * \internal When labeling nodes in the CSG output, the following shorthand
  * format is used: `label@level.region.subregion`. For example, the final
  * subregion in the example above might be named `my_shape@1.0.1`. For each
  * level, additional nodes are created in the form: `label@level.suffix` where
@@ -77,6 +81,12 @@ namespace orangeinp
  * 2) .iu : the union of nodes that comprise the inner boundary of the region,
  * 3) .nui : the negation of .ui,
  * 4) .d : the difference between .ou and .iu.
+ *
+ * If the supplied EnclosedAzi object is not [0, 2pi], additional nodes with
+ * the following extensions are added:
+ *
+ * 1) azi/~azi : the enclosed, possibly negated, azimuthal angle,
+ * 2) restricted : the intersection of the revolved polygon and azi/~azi.
  */
 class RevolvedPolygon final : public ObjectInterface
 {
@@ -88,7 +98,9 @@ class RevolvedPolygon final : public ObjectInterface
     //!@}
 
     // Construct from a polygon
-    RevolvedPolygon(std::string&& label, VecReal2&& polygon);
+    RevolvedPolygon(std::string&& label,
+                    VecReal2&& polygon,
+                    EnclosedAzi&& enclosed);
 
     //// INTERFACE ////
 
@@ -105,6 +117,9 @@ class RevolvedPolygon final : public ObjectInterface
 
     //! Get the polygon
     VecReal2 const& polygon() const { return polygon_; };
+
+    //! Get the azimuthal angular restriction
+    EnclosedAzi const& enclosed_azi() const { return enclosed_; }
 
   private:
     /// TYPES ///
@@ -147,13 +162,14 @@ class RevolvedPolygon final : public ObjectInterface
     // Make a label extension for a region within a level
     std::string make_region_ext(SubIndex si) const;
 
-    // Make a extension label for a subregion within a region
+    // Make a label extension for a subregion within a region
     std::string make_subregion_ext(SubIndex si) const;
 
     //// DATA ////
 
     std::string label_;
     VecReal2 polygon_;
+    EnclosedAzi enclosed_;
 };
 
 //---------------------------------------------------------------------------//

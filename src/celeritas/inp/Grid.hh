@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <limits>
 #include <vector>
 
 #include "corecel/Types.hh"
@@ -53,6 +54,15 @@ struct Grid
     explicit operator bool() const
     {
         return !y.empty() && x.size() == y.size();
+    }
+
+    // Construct a constant grid with a single value
+    static Grid from_constant(double y)
+    {
+        Grid result;
+        result.x = {0, std::numeric_limits<double>::infinity()};
+        result.y = {y, y};
+        return result;
     }
 };
 
