@@ -47,7 +47,7 @@ class GeantGeoTest : public GeantGeoTestBase
 
     SPConstGeantGeo build_geant_geo(std::string const& filename) const final
     {
-        ScopedLogStorer scoped_log_{&celeritas::self_logger(),
+        ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::warning};
         auto result = GeantGeoParams::from_gdml(filename);
         EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
