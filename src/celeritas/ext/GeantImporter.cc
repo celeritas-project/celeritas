@@ -68,12 +68,14 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/PdfUtils.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TypeDemangler.hh"
@@ -97,6 +99,7 @@
 #include "detail/GeantMaterialPropertyGetter.hh"
 #include "detail/GeantOpticalModelImporter.hh"
 #include "detail/GeantProcessImporter.hh"
+#include "detail/GeantSurfacePhysicsLoader.hh"
 
 inline constexpr double mev_scale = 1 / CLHEP::MeV;
 inline constexpr celeritas::PDGNumber g4_photon_pdg{-22};
@@ -505,7 +508,7 @@ std::vector<ImportElement> import_elements()
  * material ID".
  */
 std::vector<ImportOpticalMaterial>
-import_optical(detail::GeoOpticalIdMap const& geo_to_opt)
+import_optical_materials(detail::GeoOpticalIdMap const& geo_to_opt)
 {
     if (geo_to_opt.empty())
     {
@@ -609,6 +612,30 @@ import_optical(detail::GeoOpticalIdMap const& geo_to_opt)
     }
 
     CELER_LOG(debug) << "Loaded " << result.size() << " optical materials";
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Import optical surface physics information.
+ */
+inp::OpticalPhysics import_optical_physics()
+{
+    inp::OpticalPhysics result;
+    auto geo = celeritas::geant_geo().lock();
+    CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
+
+    MultiExceptionHandler handle;
+    detail::GeantSurfacePhysicsLoader load_surface(result.surfaces);
+    for (auto sid : range(SurfaceId(geo->num_surfaces())))
+    {
+        CELER_TRY_HANDLE(load_surface(sid), handle);
+    }
+    log_and_rethrow(std::move(handle));
+
+    CELER_LOG(debug) << "Loaded " << geo->num_surfaces()
+                     << " optical physics surfaces";
+    CELER_ENSURE(result || (geo->num_surfaces() == 0));
     return result;
 }
 
@@ -1312,7 +1339,8 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
             {
                 geo_to_opt
                     = detail::GeoOpticalIdMap(*G4Material::GetMaterialTable());
-                imported.optical_materials = import_optical(geo_to_opt);
+                imported.optical_materials
+                    = import_optical_materials(geo_to_opt);
             }
 
             imported.isotopes = import_isotopes();
@@ -1363,6 +1391,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         if (selected.processes & DataSelection::optical)
         {
             imported.optical_params = import_optical_parameters();
+            imported.optical_physics = import_optical_physics();
         }
     }
 

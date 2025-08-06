@@ -270,8 +270,8 @@ class EllipticalCylinder final : public IntersectRegionInterface
  * \verbatim
    (1/r_x)^2 x^2  + (1/r_y)^2 y^2 + (-1) z^2 + (2v) z + (-v^2) = 0.
       |                |              |         |          |
-      a                b              c         d          e
- * \endverbatim
+      a                b              c         f          g
+   \endverbatim
  *
  * where v is the location of the vertex. The r_x, r_y, and v can be calculated
  * from the lower and upper radii as given by \c G4EllipticalCone:
@@ -280,7 +280,7 @@ class EllipticalCylinder final : public IntersectRegionInterface
    r_y = (lower_radii[Y] - upper_radii[Y])/(2 hh),
      v = hh (lower_radii[X] + upper_radii[X])/(lower_radii[X] -
  upper_radii[X]).
- * \endverbatim
+   \endverbatim
  */
 class EllipticalCone final : public IntersectRegionInterface
 {
@@ -654,6 +654,61 @@ class Involute final : public IntersectRegionInterface
     Real2 a_;
     Real2 t_bounds_;
     Chirality sign_;
+    real_type hh_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * A finite *z*-aligned parabolid.
+ *
+ * The paraboloid is defined in an analogous fashion to the cone. A half-height
+ * (hh) defines the z-extents, such that the centroid of the outer bounding box
+ * is the origin. The lower and upper radii correspond to the radii at
+ * \f$ z = \pm \mathrm{hh} \f$. Either the lower or upper radii may be 0, i.e.,
+ * the solid may include the vertex. Degenerate cases where the lower and upper
+ * radii are equal are not permitted: a cylinder should be used instead.
+ *
+ * A paraboloid with these properties is expressed in SimpleQuadric form as:
+ * \f[
+    x^2  + y^2 + \frac{(r_{\mathrm{lo}}^2 - r_{\mathrm{hi}}^2)}{h} z
+    + \frac{-r_{\mathrm{lo}}^2 - r_{\mathrm{hi}}^2}{2} = 0,
+ * \f]
+ * where \f$r_{\mathrm{lo}}\f$ and \f$r_\mathrm{hi}\f$ correspond to the lower
+ * and upper radii, respectively, and \f$h\f$ is the full height.
+ */
+class Paraboloid final : public IntersectRegionInterface
+{
+  public:
+    // Construct with lower/upper radii and the half-height
+    Paraboloid(real_type lower_radius,
+               real_type upper_radius,
+               real_type halfheight);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// TEMPLATE INTERFACE ////
+
+    // Whether this encloses another paraboloid
+    bool encloses(Paraboloid const& other) const;
+
+    //// ACCESSORS ////
+
+    //! Radius at z=-hh
+    real_type lower_radius() const { return r_lo_; }
+
+    //! Radius at z=hh
+    real_type upper_radius() const { return r_hi_; }
+
+    //! Half-height along Z
+    real_type halfheight() const { return hh_; }
+
+  private:
+    real_type r_lo_;
+    real_type r_hi_;
     real_type hh_;
 };
 
