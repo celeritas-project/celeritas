@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
-#include "celeritas/GlobalGeoTestBase.hh"
+#include "celeritas/GlobalTestBase.hh"
 #include "celeritas/OnlyCoreTestBase.hh"
 #include "celeritas/OnlyGeoTestBase.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
@@ -25,7 +25,7 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-class SDParamsTest : public GlobalGeoTestBase,
+class SDParamsTest : public GlobalTestBase,
                      public OnlyGeoTestBase,
                      public OnlyCoreTestBase
 {

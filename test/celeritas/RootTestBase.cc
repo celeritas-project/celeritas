@@ -9,6 +9,8 @@
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 
+#include "PersistentSP.hh"
+
 namespace celeritas
 {
 namespace test
@@ -19,30 +21,27 @@ namespace test
  */
 auto RootTestBase::imported_data() const -> ImportData const&
 {
-    static struct
-    {
-        std::string_view gdml_basename;
-        ImportData imported;
-    } i;
-    auto geo_basename = this->gdml_basename();
-    if (i.gdml_basename != geo_basename)
+    static PersistentSP<ImportData const> pid{"import data"};
+
+    auto basename = this->gdml_basename();
+    if (pid.key() != basename)
     {
         ScopedRootErrorHandler scoped_root_error;
 
-        i.gdml_basename = geo_basename;
-        std::string root_inp
-            = this->test_data_path("celeritas", i.gdml_basename + ".root");
+        std::string root_inp = this->test_data_path(
+            "celeritas", std::string{basename} + ".root");
 
-        RootImporter import(root_inp.c_str());
-        i.imported = import();
+        RootImporter import_root(root_inp.c_str());
+        pid.set(std::string{basename},
+                std::make_shared<ImportData>(import_root()));
 
         // Raise an exception if non-fatal errors were encountered
         scoped_root_error.throw_if_errors();
     }
-    CELER_ENSURE(!i.imported.phys_materials.empty()
-                 && !i.imported.geo_materials.empty()
-                 && !i.imported.particles.empty());
-    return i.imported;
+    auto const& result = *pid.value();
+    CELER_ENSURE(!result.phys_materials.empty()
+                 && !result.geo_materials.empty() && !result.particles.empty());
+    return result;
 }
 
 //---------------------------------------------------------------------------//

@@ -176,6 +176,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     using LazyGeantGeoManager::gdml_basename;
 
     [[nodiscard]] virtual SPConstMaterial build_material() = 0;
+    [[nodiscard]] virtual SPConstCoreGeo build_geometry();
     [[nodiscard]] virtual SPConstGeoMaterial build_geomaterial() = 0;
     [[nodiscard]] virtual SPConstParticle build_particle() = 0;
     [[nodiscard]] virtual SPConstCutoff build_cutoff() = 0;
@@ -197,17 +198,16 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     SPConstVolume const& volume() const { return volume_; }
 
     // Implement LazyGeantGeoManager
-    SPConstGeoI build_from_geant(SPConstGeantGeo const&) final;
+    SPConstGeoI build_geo_from_geant(SPConstGeantGeo const&) const final;
 
     // Implement LazyGeantGeoManager, allowed when ORANGE without Geant4
-    SPConstGeoI build_from_gdml(std::string const& filename) final;
+    SPConstGeoI build_geo_from_gdml(std::string const& filename) const final;
 
   private:
     SPConstRng build_rng() const;
     SPActionRegistry build_action_reg() const;
     SPUserRegistry build_aux_reg() const;
     SPConstCore build_core();
-    SPConstCoreGeo build_geometry();
     SPActionRegistry build_optical_action_reg() const;
     SPOpticalParams build_optical_params();
 

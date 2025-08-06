@@ -13,7 +13,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
-#include "celeritas/GlobalGeoTestBase.hh"
+#include "celeritas/GlobalTestBase.hh"
 #include "celeritas/OnlyCoreTestBase.hh"
 #include "celeritas/OnlyGeoTestBase.hh"
 
@@ -30,7 +30,7 @@ namespace test
 /*!
  * Manage a "heuristic" stepper-like test that accumulates path length.
  */
-class HeuristicGeoTestBase : public GlobalGeoTestBase,
+class HeuristicGeoTestBase : public GlobalTestBase,
                              public OnlyGeoTestBase,
                              public OnlyCoreTestBase
 {

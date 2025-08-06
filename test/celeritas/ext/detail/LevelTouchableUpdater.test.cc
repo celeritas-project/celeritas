@@ -12,7 +12,7 @@
 #include "corecel/cont/Span.hh"
 #include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantGeoUtils.hh"
-#include "celeritas/GlobalGeoTestBase.hh"
+#include "celeritas/GlobalTestBase.hh"
 #include "celeritas/OnlyCoreTestBase.hh"
 #include "celeritas/OnlyGeoTestBase.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
@@ -53,7 +53,7 @@ void TestResult::print_expected() const
 /*!
  * Test with multi-level geometry using "core" implementation.
  */
-class LevelTouchableUpdaterTest : public ::celeritas::test::GlobalGeoTestBase,
+class LevelTouchableUpdaterTest : public ::celeritas::test::GlobalTestBase,
                                   public ::celeritas::test::OnlyGeoTestBase,
                                   public ::celeritas::test::OnlyCoreTestBase
 {
