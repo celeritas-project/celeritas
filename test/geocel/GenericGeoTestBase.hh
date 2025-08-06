@@ -54,7 +54,8 @@ class GenericGeoTestBase : virtual public Test,
 
     //// Interface ////
 
-    using LazyGeantGeoManager::gdml_basename;
+    // Default to using test suite name
+    std::string_view gdml_basename() const override;
 
     // Build the geometry for a new test (default to lazy geo)
     virtual SPConstGeo build_geometry() const;

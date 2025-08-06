@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "LazyGeantGeoManager.hh"
 
+#include "corecel/io/StringUtils.hh"
 #include "geocel/GeantGeoParams.hh"
 
 #include "PersistentSP.hh"
@@ -60,8 +61,14 @@ auto LazyGeantGeoManager::lazy_geo() const -> SPConstGeoI
         pgeo.clear();
 
         // ${SOURCE}/test/celeritas/data/${basename}.gdml
-        std::string filename
-            = Test::test_data_path("geocel", basename + ".gdml");
+        std::string filename = [&basename] {
+            if (starts_with(basename, "/"))
+            {
+                // Absolute path: use this filename
+                return basename;
+            }
+            return Test::test_data_path("geocel", basename + ".gdml");
+        }();
 
         if constexpr (CELERITAS_USE_GEANT4)
         {

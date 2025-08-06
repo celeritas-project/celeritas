@@ -38,6 +38,18 @@ void GenericGeoTestBase<HP>::SetUp()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Return test suite name by default.
+ */
+template<class HP>
+std::string_view GenericGeoTestBase<HP>::gdml_basename() const
+{
+    return ::testing::UnitTest::GetInstance()
+        ->current_test_info()
+        ->test_suite_name();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Build the geometry, defaulting to using the lazy Geant4 construction.
  */
 template<class HP>
@@ -60,10 +72,8 @@ auto GenericGeoTestBase<HP>::geometry() -> SPConstGeo const&
     {
         static PersistentSP<HP const> pg{"GenericGeoTestBase geometry"};
 
-        auto suite_name = ::testing::UnitTest::GetInstance()
-                              ->current_test_info()
-                              ->test_suite_name();
-        if (suite_name == pg.key())
+        auto basename = this->gdml_basename();
+        if (basename == pg.key())
         {
             // Same test suite: reuse cached geo
             geo_ = pg.value();
@@ -73,7 +83,7 @@ auto GenericGeoTestBase<HP>::geometry() -> SPConstGeo const&
             // Build new geometry
             pg.clear();
             geo_ = this->build_geometry();
-            pg.set(suite_name, geo_);
+            pg.set(std::string{basename}, geo_);
         }
     }
     CELER_ENSURE(geo_);

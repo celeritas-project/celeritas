@@ -52,6 +52,8 @@ class PhysicalVolumeConverterTest : public GeantLoadTestBase
         CELER_EXPECT(pv.id);
         return this->geo().volume_instances().at(pv.id);
     }
+
+    G4VPhysicalVolume const& world() const { return *this->geo().world(); }
 };
 
 //---------------------------------------------------------------------------//

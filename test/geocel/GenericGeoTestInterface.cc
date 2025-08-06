@@ -23,6 +23,7 @@ namespace celeritas
 {
 namespace test
 {
+
 //---------------------------------------------------------------------------//
 /*!
  * Get the safety tolerance (defaults to SoftEq tol).
