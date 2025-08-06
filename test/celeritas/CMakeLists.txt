@@ -95,9 +95,9 @@ celeritas_add_test_library(testcel_celeritas
 
 celeritas_target_link_libraries(testcel_celeritas
   PUBLIC
-    testcel_harness Celeritas::celeritas
+    testcel_harness Celeritas::celeritas testcel_geocel
   PRIVATE
-    testcel_core testcel_orange testcel_geocel
+    testcel_core testcel_orange
     nlohmann_json::nlohmann_json Celeritas::ExtGeant4Geo
 )
 
@@ -110,7 +110,7 @@ if(CELERITAS_USE_Geant4)
   )
   celeritas_target_link_libraries(testcel_celeritas_g4
     PUBLIC
-      testcel_celeritas testcel_geocel testcel_harness Celeritas::celeritas
+      testcel_celeritas testcel_harness Celeritas::celeritas
       ${_g4_mat_libs} Celeritas::ExtGeant4Geo
   )
 endif()
@@ -120,7 +120,7 @@ endif()
 #-----------------------------------------------------------------------------#
 
 celeritas_setup_tests(SERIAL
-  LINK_LIBRARIES testcel_celeritas testcel_geocel testcel_core
+  LINK_LIBRARIES testcel_celeritas testcel_core
 )
 
 #-----------------------------------------------------------------------------#
