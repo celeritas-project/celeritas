@@ -36,7 +36,9 @@ helps construct these objects.
 .. doxygenclass:: celeritas::orangeinp::GenPrism
 .. doxygenclass:: celeritas::orangeinp::InfPlane
 .. doxygenclass:: celeritas::orangeinp::InfAziWedge
+.. doxygenclass:: celeritas::orangeinp::InfPolarWedge
 .. doxygenclass:: celeritas::orangeinp::Involute
+.. doxygenclass:: celeritas::orangeinp::Paraboloid
 .. doxygenclass:: celeritas::orangeinp::Parallelepiped
 .. doxygenclass:: celeritas::orangeinp::Prism
 .. doxygenclass:: celeritas::orangeinp::Sphere
@@ -81,6 +83,7 @@ be reused in multiple locations.
 
 .. doxygenclass:: celeritas::orangeinp::PolyCone
 .. doxygenclass:: celeritas::orangeinp::PolyPrism
+.. doxygenclass:: celeritas::orangeinp::RevolvedPolygon
 .. doxygenclass:: celeritas::orangeinp::StackedExtrudedPolygon
 
 .. doxygenclass:: celeritas::orangeinp::Transformed
