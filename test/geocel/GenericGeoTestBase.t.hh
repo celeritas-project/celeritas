@@ -74,18 +74,11 @@ auto GenericGeoTestBase<HP>::geometry() -> SPConstGeo const&
         static PersistentSP<HP const> pg{"GenericGeoTestBase geometry"};
 
         auto basename = this->gdml_basename();
-        if (basename == pg.key())
-        {
-            // Same test suite: reuse cached geo
-            geo_ = pg.value();
-        }
-        else
-        {
+        pg.lazy_update(std::string{basename}, [this]() {
             // Build new geometry
-            pg.clear();
-            geo_ = this->build_geometry();
-            pg.set(std::string{basename}, geo_);
-        }
+            return this->build_geometry();
+        });
+        geo_ = pg.value();
     }
     CELER_ENSURE(geo_);
     return geo_;

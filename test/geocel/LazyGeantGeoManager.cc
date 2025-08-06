@@ -51,49 +51,44 @@ std::string const& LazyGeantGeoManager::cached_gdml_basename() const
  */
 auto LazyGeantGeoManager::lazy_geo() const -> SPConstGeoI
 {
-    std::string basename{this->gdml_basename()};
+    std::string const basename{this->gdml_basename()};
     CELER_VALIDATE(!basename.empty(), << "invalid basename");
 
     auto& pgeo = persistent_geo();
-    if (basename != pgeo.key())
-    {
-        // Reset secondary geometry, then Geant4 geometry
-        pgeo.clear();
-
-        // ${SOURCE}/test/celeritas/data/${basename}.gdml
+    pgeo.lazy_update(basename, [this, &basename]() {
+        // Get GDML filename
         std::string filename = [&basename] {
             if (starts_with(basename, "/"))
             {
                 // Absolute path: use this filename
                 return basename;
             }
+            // ${SOURCE}/test/celeritas/data/${basename}.gdml
             return Test::test_data_path("geocel", basename + ".gdml");
         }();
 
+        SPConstGeoI new_geo;
         if constexpr (CELERITAS_USE_GEANT4)
         {
             auto& pgeant_geo = persistent_geant_geo();
-            if (basename != pgeant_geo.key())
-            {
-                // This is called *unless* the user has manually cleared the
-                // secondary geometry and reloads from the same Geant4 geo
-                pgeant_geo.clear();
-                pgeant_geo.set(basename, this->build_geant_geo(filename));
-            }
+            // This is called *unless* the user has manually cleared the
+            // secondary geometry and reloads from the same Geant4 geo
+            pgeant_geo.lazy_update(basename, [this, &filename]() {
+                return this->build_geant_geo(filename);
+            });
 
             // Build specific geometry
-            auto new_geo = this->build_geo_from_geant(pgeant_geo.value());
-            CELER_ASSERT(new_geo);
-            pgeo.set(basename, std::move(new_geo));
+            new_geo = this->build_geo_from_geant(pgeant_geo.value());
         }
         else
         {
             // Fallback: geometry may be able to build without Geant4
-            auto new_geo = this->build_geo_from_gdml(filename);
-            CELER_ASSERT(new_geo);
-            pgeo.set(basename, std::move(new_geo));
+            new_geo = this->build_geo_from_gdml(filename);
         }
-    }
+
+        CELER_ASSERT(new_geo);
+        return new_geo;
+    });
 
     CELER_ENSURE(pgeo.value());
     return pgeo.value();

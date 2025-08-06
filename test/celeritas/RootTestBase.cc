@@ -23,21 +23,20 @@ auto RootTestBase::imported_data() const -> ImportData const&
 {
     static PersistentSP<ImportData const> pid{"import data"};
 
-    auto basename = this->gdml_basename();
-    if (pid.key() != basename)
-    {
+    std::string const basename{this->gdml_basename()};
+    pid.lazy_update(basename, [&] {
         ScopedRootErrorHandler scoped_root_error;
 
         std::string root_inp = this->test_data_path(
             "celeritas", std::string{basename} + ".root");
 
         RootImporter import_root(root_inp.c_str());
-        pid.set(std::string{basename},
-                std::make_shared<ImportData>(import_root()));
+        auto result = import_root();
 
         // Raise an exception if non-fatal errors were encountered
         scoped_root_error.throw_if_errors();
-    }
+        return std::make_shared<ImportData>(std::move(result));
+    });
     auto const& result = *pid.value();
     CELER_ENSURE(!result.phys_materials.empty()
                  && !result.geo_materials.empty() && !result.particles.empty());

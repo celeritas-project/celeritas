@@ -47,6 +47,10 @@ class PersistentSP
     //! Whether a value is stored
     explicit operator bool() const { return static_cast<bool>(env_->ptr); }
 
+    //! Set or build a shared pointer only if the key changes
+    template<typename Func>
+    inline void lazy_update(std::string key, Func&& build_fn);
+
     // Replace the pointer
     inline void set(std::string key, SP ptr);
 
@@ -93,6 +97,29 @@ PersistentSP<T>::PersistentSP(std::string&& desc)
     CELER_LOG(debug) << "Registering persistent " << desc << " cleanup";
     env_->desc = std::move(desc);
     ::testing::AddGlobalTestEnvironment(env.release());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set or build a shared pointer only if the key changes.
+ */
+template<class T>
+template<typename Func>
+void PersistentSP<T>::lazy_update(std::string key, Func&& build_fn)
+{
+    CELER_EXPECT(!key.empty());
+    if (key != env_->key)
+    {
+        CELER_LOG(debug) << "Building persistent " << env_->desc
+                         << " for key '" << key << "'";
+        if (env_->ptr)
+        {
+            this->clear();
+        }
+        env_->key = std::move(key);
+        env_->ptr = build_fn();
+        CELER_EXPECT(env_->ptr);
+    }
 }
 
 //---------------------------------------------------------------------------//
