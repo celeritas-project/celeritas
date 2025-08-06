@@ -664,16 +664,16 @@ class Involute final : public IntersectRegionInterface
  * The paraboloid is defined in an analogous fashion to the cone. A half-height
  * (hh) defines the z-extents, such that the centroid of the outer bounding box
  * is the origin. The lower and upper radii correspond to the radii at
- * z = +/-hh. Either the lower or upper radii may be 0, i.e., the solid may
- * include the vertex. Degenerate cases with lower_radius == upper_radius are
- * not permitted: a cylinder should be used instead.
+ * \f$ z = \pm \mathrm{hh} \f$. Either the lower or upper radii may be 0, i.e.,
+ * the solid may include the vertex. Degenerate cases where the lower and upper
+ * radii are equal are not permitted: a cylinder should be used instead.
  *
  * A paraboloid with these properties is expressed in SimpleQuadric form as:
  * \f[
     x^2  + y^2 + \frac{(r_0^2 - r_1^2)}{h} z + \frac{-r_0^2 - r_1^2}{2} = 0,
  * \f]
  * where \f$r_0\f$ and \f$r_1\f$ correspond to the lower and upper radii,
- * respectively, and \f$h\$f is the full height.
+ * respectively, and \f$h\f$ is the full height.
  * \endverbatim
  */
 class Paraboloid final : public IntersectRegionInterface
