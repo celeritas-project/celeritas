@@ -58,9 +58,7 @@ template<class HP>
 class AllGeoTypedTestBase : public GenericGeoTestBase<HP>
 {
   public:
-    using SPConstGeo = typename GenericGeoTestBase<HP>::SPConstGeo;
-
-    static std::string geo_name() { return GeoTraits<HP>::name; }
+    static void SetUpTestCase() { LazyGeantGeoManager::clear_lazy_geo(); }
 };
 
 //---------------------------------------------------------------------------//

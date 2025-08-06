@@ -59,6 +59,9 @@ class LazyGeantGeoManager
 
     // Access Geant4 geometry if already built (null if invalid)
     SPConstGeantGeo geant_geo() const;
+
+    // Reset geometry (not G4) manually; needed by AllGeoTypedTestBase
+    static void clear_lazy_geo();
 };
 
 //---------------------------------------------------------------------------//

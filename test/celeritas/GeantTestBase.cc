@@ -136,6 +136,7 @@ auto GeantTestBase::build_geant_geo(std::string const& filename) const
 // Lazily set up and load geant4
 auto GeantTestBase::imported_data() const -> ImportData const&
 {
+    this->lazy_geo();
     return this->load({}).imported;
 }
 

@@ -27,13 +27,10 @@ template<class HP>
 class LinearPropagatorTest : public AllGeoTypedTestBase<HP>
 {
   protected:
-    using SPConstGeo = typename GenericGeoTestBase<HP>::SPConstGeo;
-    using GeoTrackView = typename GenericGeoTestBase<HP>::GeoTrackView;
-
     void SetUp() override
     {
         if (CELERITAS_UNITS != CELERITAS_UNITS_CGS
-            && this->geo_name() == "ORANGE")
+            && GeoTraits<HP>::name == "ORANGE")
         {
             GTEST_SKIP() << "ORANGE currently requires CGS [cm]";
         }

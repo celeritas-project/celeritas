@@ -73,14 +73,16 @@ auto LazyGeantGeoManager::lazy_geo() const -> SPConstGeoI
         if constexpr (CELERITAS_USE_GEANT4)
         {
             auto& pgeant_geo = persistent_geant_geo();
-            pgeant_geo.clear();
-
-            // Load geant4 geometry
-            auto new_geant_geo = this->build_geant_geo(filename);
-            pgeant_geo.set(basename, new_geant_geo);
+            if (basename != pgeant_geo.key())
+            {
+                // This is called *unless* the user has manually cleared the
+                // secondary geometry and reloads from the same Geant4 geo
+                pgeant_geo.clear();
+                pgeant_geo.set(basename, this->build_geant_geo(filename));
+            }
 
             // Build specific geometry
-            auto new_geo = this->build_geo_from_geant(new_geant_geo);
+            auto new_geo = this->build_geo_from_geant(pgeant_geo.value());
             CELER_ASSERT(new_geo);
             pgeo.set(basename, std::move(new_geo));
         }
@@ -121,6 +123,7 @@ auto LazyGeantGeoManager::build_geo_from_gdml(std::string const&) const
 
     CELER_NOT_IMPLEMENTED("constructing geometry without Geant4 enabled");
 }
+
 //---------------------------------------------------------------------------//
 /*!
  * Access persistent geant geometry after construction.
@@ -133,6 +136,18 @@ auto LazyGeantGeoManager::geant_geo() const -> SPConstGeantGeo
         return pgg.value();
     }
     return nullptr;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reset the secondary geometry manually.
+ *
+ * This is needed by AllGeoTypedTestBase, where multiple versions of the same
+ * Geant4 geometry are loaded in a single test.
+ */
+void LazyGeantGeoManager::clear_lazy_geo()
+{
+    persistent_geo().clear();
 }
 
 //---------------------------------------------------------------------------//
