@@ -1220,8 +1220,8 @@ bool Paraboloid::encloses(Paraboloid const& other) const
 
     // Calculate the radius^2 of this object at a given z value
     auto r_sq = [this](real_type z) {
-        return (r1_ * r1_ - r0_ * r0_) * z / (2 * hh_)
-               + (r0_ * r0_ + r1_ * r1_) / 2;
+        return (ipow<2>(r1_) - ipow<2>(r0_)) * z / (2 * hh_)
+               + (ipow<2>(r0_) + ipow<2>(r1_)) / 2;
     };
 
     // Return true if this paraboloid is wider at the +/-hh of other
@@ -1244,8 +1244,8 @@ void Paraboloid::build(IntersectSurfaceBuilder& insert_surface) const
     insert_surface(Sense::inside, PlaneZ{hh_});
 
     // Insert quadric surface
-    real_type f = (r0_ * r0_ - r1_ * r1_) / (2 * hh_);
-    real_type g = (-r0_ * r0_ - r1_ * r1_) / 2;
+    real_type f = (ipow<2>(r0_) - ipow<2>(r1_)) / (2 * hh_);
+    real_type g = (-ipow<2>(r0_) - ipow<2>(r1_)) / 2;
     insert_surface(SimpleQuadric{Real3{1, 1, 0}, Real3{0, 0, f}, g});
 
     // Set an exterior bbox
