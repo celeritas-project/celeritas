@@ -56,7 +56,7 @@ class GenericGeoTestBase : virtual public Test,
 
     using LazyGeantGeoManager::gdml_basename;
 
-    // Build the geometry (default to lazy geo)
+    // Build the geometry for a new test (default to lazy geo)
     virtual SPConstGeo build_geometry() const;
 
     //! Maximum number of local track slots

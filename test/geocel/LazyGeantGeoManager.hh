@@ -51,6 +51,9 @@ class LazyGeantGeoManager
 
     //// ACCESSORS ////
 
+    // Access the basename of the geometry that's currently cached
+    std::string const& cached_gdml_basename() const;
+
     // Construct or access a geometry
     SPConstGeoI lazy_geo() const;
 

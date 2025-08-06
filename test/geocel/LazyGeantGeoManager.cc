@@ -37,6 +37,15 @@ PersistentGeantGeo& persistent_geant_geo()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Access the basename of the geometry that's currently cached.
+ */
+std::string const& LazyGeantGeoManager::cached_gdml_basename() const
+{
+    return persistent_geo().key();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct a geometry for the first time.
  */
 auto LazyGeantGeoManager::lazy_geo() const -> SPConstGeoI

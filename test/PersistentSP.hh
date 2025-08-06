@@ -9,6 +9,7 @@
 #include <memory>
 #include <gtest/gtest.h>
 
+#include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 
 namespace celeritas
@@ -128,9 +129,9 @@ void PersistentSP<T>::Env::TearDown()
     }
     else
     {
-        CELER_LOG(warning) << "Resetting but not destroying persistent "
-                           << this->desc << " '" << this->key
-                           << "': use_count=" << use_count;
+        CELER_LOG(debug) << "Resetting but not destroying persistent "
+                         << this->desc << " '" << this->key
+                         << "': use_count=" << use_count;
     }
     this->ptr.reset();
     this->key.clear();

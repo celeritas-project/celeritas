@@ -18,6 +18,7 @@
 
 #include "CheckedGeoTrackView.hh"
 #include "GenericGeoResults.hh"
+#include "PersistentSP.hh"
 #include "TestMacros.hh"
 #include "UnitUtils.hh"
 
@@ -57,7 +58,23 @@ auto GenericGeoTestBase<HP>::geometry() -> SPConstGeo const&
 {
     if (!geo_)
     {
-        geo_ = this->build_geometry();
+        static PersistentSP<HP const> pg{"GenericGeoTestBase geometry"};
+
+        auto suite_name = ::testing::UnitTest::GetInstance()
+                              ->current_test_info()
+                              ->test_suite_name();
+        if (suite_name == pg.key())
+        {
+            // Same test suite: reuse cached geo
+            geo_ = pg.value();
+        }
+        else
+        {
+            // Build new geometry
+            pg.clear();
+            geo_ = this->build_geometry();
+            pg.set(suite_name, geo_);
+        }
     }
     CELER_ENSURE(geo_);
     return geo_;
