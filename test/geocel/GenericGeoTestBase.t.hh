@@ -56,11 +56,12 @@ template<class HP>
 auto GenericGeoTestBase<HP>::build_geometry() const -> SPConstGeo
 {
     auto geo_interface = this->lazy_geo();
-    EXPECT_TRUE(geo_interface);
+    CELER_ASSERT(geo_interface);
     auto geo = std::dynamic_pointer_cast<HP const>(geo_interface);
     CELER_VALIDATE(geo,
-                   << "failed to cast geometry from " << demangled_type(*geo)
-                   << " to " << TypeDemangler<HP const>()());
+                   << "failed to cast geometry from "
+                   << demangled_type(*geo_interface) << " to "
+                   << TypeDemangler<HP const>()());
     return geo;
 }
 
