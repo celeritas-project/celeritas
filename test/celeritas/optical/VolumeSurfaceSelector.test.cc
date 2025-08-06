@@ -16,8 +16,32 @@ namespace celeritas
 {
 namespace optical
 {
+
+using OSurface = VolumeSurfaceSelector::OrientedSurface;
+constexpr auto forward = SubsurfaceDirection::forward;
+constexpr auto reverse = SubsurfaceDirection::reverse;
+
+bool operator==(OSurface const& a, OSurface const& b)
+{
+    if (!a.surface && !b.surface)
+    {
+        return true;
+    }
+
+    return a.surface == b.surface && a.orientation == b.orientation;
+}
+
+std::ostream& operator<<(std::ostream& out, OSurface const& s)
+{
+    return out << "{" << s.surface.unchecked_get() << ", "
+               << static_cast<int>(s.orientation) << "}";
+}
+
 namespace test
 {
+
+using namespace ::celeritas::test;
+
 //---------------------------------------------------------------------------//
 // MANY-SURFACES
 //---------------------------------------------------------------------------//
@@ -27,15 +51,16 @@ using VolumeSurfaceSelectorTest = ::celeritas::test::ManySurfacesTestBase;
 // Test surface selection for various pre and post volume instances
 TEST_F(VolumeSurfaceSelectorTest, select_surface)
 {
-    // TODO: fix after Hayden's merge
     auto const& surfaces = this->surfaces();
     auto const& volumes_ = this->volumes();
 
     auto select_surfaces = [&](VolumeInstanceId pre_vol_inst) {
-        std::vector<SurfaceId> results;
+        std::vector<OSurface> results;
 
         VolumeSurfaceSelector select{
-            surfaces.host_ref(), volumes_.volume(pre_vol_inst), pre_vol_inst};
+            VolumeSurfaceView{surfaces.host_ref(),
+                              volumes_.volume(pre_vol_inst)},
+            pre_vol_inst};
         for (auto post_vol_inst :
              range(VolumeInstanceId{volumes_.num_volume_instances()}))
         {
@@ -47,80 +72,82 @@ TEST_F(VolumeSurfaceSelectorTest, select_surface)
                 continue;
             }
 
-            results.push_back(select(post_vol, post_vol_inst));
+            results.push_back(
+                select(VolumeSurfaceView{surfaces.host_ref(), post_vol},
+                       post_vol_inst));
         }
 
         return results;
     };
 
     {
-        static SurfaceId const expected_surfaces[] = {
-            SurfaceId{2},
-            SurfaceId{5},
-            SurfaceId{6},
-            SurfaceId{2},
-            SurfaceId{2},
-            SurfaceId{2},
+        static OSurface const expected_surfaces[] = {
+            {SurfaceId{2}, forward},
+            {SurfaceId{5}, forward},
+            {SurfaceId{6}, forward},
+            {SurfaceId{2}, forward},
+            {SurfaceId{2}, forward},
+            {SurfaceId{2}, forward},
         };
 
         EXPECT_VEC_EQ(expected_surfaces, select_surfaces(VolumeInstanceId{0}));
     }
     {
-        static SurfaceId const expected_surfaces[] = {
-            SurfaceId{2},
-            SurfaceId{},
-            SurfaceId{3},
-            SurfaceId{},
-            SurfaceId{},
-            SurfaceId{},
+        static OSurface const expected_surfaces[] = {
+            {SurfaceId{2}, reverse},
+            {SurfaceId{}, forward},
+            {SurfaceId{3}, forward},
+            {SurfaceId{}, reverse},
+            {SurfaceId{}, reverse},
+            {SurfaceId{}, reverse},
         };
 
         EXPECT_VEC_EQ(expected_surfaces, select_surfaces(VolumeInstanceId{1}));
     }
     {
-        static SurfaceId const expected_surfaces[] = {
-            SurfaceId{0},
-            SurfaceId{},
-            SurfaceId{1},
-            SurfaceId{},
-            SurfaceId{},
-            SurfaceId{},
+        static OSurface const expected_surfaces[] = {
+            {SurfaceId{0}, forward},
+            {SurfaceId{}, reverse},
+            {SurfaceId{1}, forward},
+            {SurfaceId{}, forward},
+            {SurfaceId{}, forward},
+            {SurfaceId{}, forward},
         };
 
         EXPECT_VEC_EQ(expected_surfaces, select_surfaces(VolumeInstanceId{2}));
     }
     {
-        static SurfaceId const expected_surfaces[] = {
-            SurfaceId{2},
-            SurfaceId{4},
-            SurfaceId{},
-            SurfaceId{},
-            SurfaceId{},
-            SurfaceId{},
+        static OSurface const expected_surfaces[] = {
+            {SurfaceId{2}, reverse},
+            {SurfaceId{4}, forward},
+            {SurfaceId{}, forward},
+            {SurfaceId{}, forward},
+            {SurfaceId{}, forward},
+            {SurfaceId{}, forward},
         };
 
         EXPECT_VEC_EQ(expected_surfaces, select_surfaces(VolumeInstanceId{3}));
     }
     {
-        static SurfaceId const expected_surfaces[] = {
-            SurfaceId{2},
-            SurfaceId{8},
-            SurfaceId{},
-            SurfaceId{},
-            SurfaceId{},
-            SurfaceId{},
+        static OSurface const expected_surfaces[] = {
+            {SurfaceId{2}, reverse},
+            {SurfaceId{8}, forward},
+            {SurfaceId{}, forward},
+            {SurfaceId{}, forward},
+            {SurfaceId{}, forward},
+            {SurfaceId{}, forward},
         };
 
         EXPECT_VEC_EQ(expected_surfaces, select_surfaces(VolumeInstanceId{4}));
     }
     {
-        static SurfaceId const expected_surfaces[] = {
-            SurfaceId{2},
-            SurfaceId{7},
-            SurfaceId{},
-            SurfaceId{},
-            SurfaceId{},
-            SurfaceId{},
+        static OSurface const expected_surfaces[] = {
+            {SurfaceId{2}, reverse},
+            {SurfaceId{7}, forward},
+            {SurfaceId{}, forward},
+            {SurfaceId{}, forward},
+            {SurfaceId{}, forward},
+            {SurfaceId{}, forward},
         };
 
         EXPECT_VEC_EQ(expected_surfaces, select_surfaces(VolumeInstanceId{6}));
@@ -138,7 +165,8 @@ TEST_F(VolumeSurfaceSelectorTest, mother_daughter)
     // Mother volume B
     VolumeInstanceId mother{0};
     VolumeSurfaceSelector select{
-        surfaces.host_ref(), volumes_.volume(mother), mother};
+        VolumeSurfaceView{surfaces.host_ref(), volumes_.volume(mother)},
+        mother};
 
     // Daughter volume C3
     VolumeInstanceId daughter{3};
@@ -146,7 +174,11 @@ TEST_F(VolumeSurfaceSelectorTest, mother_daughter)
     // Check precedence of selecting boundary surfaces for mother-daughter
     // relations Geant4: select daughter's boundary if present (SurfaceId{8})
     // Celeritas: select pre-volume first (SurfaceId{2})
-    EXPECT_EQ(SurfaceId{2}, select(volumes_.volume(daughter), daughter));
+    OSurface result{SurfaceId{2}, forward};
+    EXPECT_EQ(result,
+              select(VolumeSurfaceView{surfaces.host_ref(),
+                                       volumes_.volume(daughter)},
+                     daughter));
 }
 
 //---------------------------------------------------------------------------//
