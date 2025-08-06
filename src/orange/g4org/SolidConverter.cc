@@ -639,8 +639,12 @@ auto SolidConverter::para(arg_type solid_base) -> result_type
 auto SolidConverter::paraboloid(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Paraboloid const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("paraboloid");
+
+    auto lower_radius = scale_(solid.GetRadiusMinusZ());
+    auto upper_radius = scale_(solid.GetRadiusPlusZ());
+    auto hh = scale_(solid.GetZHalfLength());
+
+    return make_shape<Paraboloid>(solid, lower_radius, upper_radius, hh);
 }
 
 //---------------------------------------------------------------------------//

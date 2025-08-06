@@ -1183,6 +1183,85 @@ void Involute::output(JsonPimpl* j) const
 }
 
 //---------------------------------------------------------------------------//
+// PARABOLOID
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with lower/upper radii and the half-height.
+ */
+Paraboloid::Paraboloid(real_type lower_radius,
+                       real_type upper_radius,
+                       real_type halfheight)
+    : r_lo_{lower_radius}, r_hi_{upper_radius}, hh_{halfheight}
+{
+    // Check for negative radii
+    CELER_VALIDATE(r_lo_ >= 0, << "negative lower radius: " << r_lo_);
+    CELER_VALIDATE(r_hi_ >= 0, << "negative upper radius: " << r_hi_);
+
+    // Check for cylinders (this throws when both radii are zero)
+    CELER_VALIDATE(!soft_equal(r_lo_, r_hi_),
+                   << "equal and lower and upper radii (use cylinder "
+                      "instead)");
+
+    // Check positivity of half-height
+    CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether this encloses another paraboloid.
+ */
+bool Paraboloid::encloses(Paraboloid const& other) const
+{
+    if (this->hh_ < other.halfheight())
+    {
+        // Other paraboloid is taller
+        return false;
+    }
+
+    // Calculate the radius^2 of this object at a given z value
+    auto r_sq = [this](real_type z) {
+        return (ipow<2>(r_hi_) - ipow<2>(r_lo_)) * z / (2 * hh_)
+               + (ipow<2>(r_lo_) + ipow<2>(r_hi_)) / 2;
+    };
+
+    // Return true if this paraboloid is wider at the +/-hh of other
+    return r_sq(-other.halfheight()) >= ipow<2>(other.lower_radius())
+           && r_sq(other.halfheight()) >= ipow<2>(other.upper_radius());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void Paraboloid::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    // Insert z surfaces first
+    insert_surface(Sense::outside, PlaneZ{-hh_});
+    insert_surface(Sense::inside, PlaneZ{hh_});
+
+    // Insert quadric surface
+    real_type f = (ipow<2>(r_lo_) - ipow<2>(r_hi_)) / (2 * hh_);
+    real_type g = (-ipow<2>(r_lo_) - ipow<2>(r_hi_)) / 2;
+    insert_surface(SimpleQuadric{Real3{1, 1, 0}, Real3{0, 0, f}, g});
+
+    // Set an exterior bbox
+    real_type r_max = std::fmax(r_lo_, r_hi_);
+    Real3 ex_halves{r_max, r_max, hh_};
+    insert_surface(Sense::inside, BBox{-ex_halves, ex_halves});
+
+    // TODO: interior bbox
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Paraboloid::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
 // PARALLELEPIPED
 //---------------------------------------------------------------------------//
 /*!
