@@ -675,7 +675,6 @@ class Involute final : public IntersectRegionInterface
  * \f]
  * where \f$r_{\mathrm{lo}}\f$ and \f$r_\mathrm{hi}\f$ correspond to the lower
  * and upper radii, respectively, and \f$h\f$ is the full height.
- * \endverbatim
  */
 class Paraboloid final : public IntersectRegionInterface
 {
