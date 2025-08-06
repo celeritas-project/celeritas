@@ -30,9 +30,7 @@ namespace test
 /*!
  * Manage a "heuristic" stepper-like test that accumulates path length.
  */
-class HeuristicGeoTestBase : public GlobalTestBase,
-                             public OnlyGeoTestBase,
-                             public OnlyCoreTestBase
+class HeuristicGeoTestBase : public OnlyGeoTestBase
 {
   public:
     //!@{

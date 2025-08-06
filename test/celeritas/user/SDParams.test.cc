@@ -25,9 +25,7 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-class SDParamsTest : public GlobalTestBase,
-                     public OnlyGeoTestBase,
-                     public OnlyCoreTestBase
+class SDParamsTest : public OnlyGeoTestBase
 {
   public:
     using VecLabel = std::vector<Label>;

@@ -53,9 +53,7 @@ void TestResult::print_expected() const
 /*!
  * Test with multi-level geometry using "core" implementation.
  */
-class LevelTouchableUpdaterTest : public ::celeritas::test::GlobalTestBase,
-                                  public ::celeritas::test::OnlyGeoTestBase,
-                                  public ::celeritas::test::OnlyCoreTestBase
+class LevelTouchableUpdaterTest : public ::celeritas::test::OnlyGeoTestBase
 {
   protected:
     using TouchableUpdater = LevelTouchableUpdater;

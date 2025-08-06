@@ -67,11 +67,6 @@ class FieldPropagatorTestBase : public CoreGeoTestBase, public FieldTestBase
     //!@}
 
   protected:
-    SPConstCoreGeo build_geometry() final
-    {
-        return this->build_geometry_from_basename();
-    }
-
     //! Get a single-thread host track view
     CGeoTrackView make_geo_track_view()
     {

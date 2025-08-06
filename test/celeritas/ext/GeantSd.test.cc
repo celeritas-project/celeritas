@@ -39,12 +39,12 @@ class SimpleCmsTest : public SDTestBase, public SimpleCmsTestBase
         sd_setup_.track = false;
     }
 
-    SPConstGeoI build_lazy_geo(std::string_view basename) override
+    SPConstGeantGeo build_geant_geo(std::string const& filename) const override
     {
-        auto result = SDTestBase::build_lazy_geo(basename);
-        scoped_log_.clear();
+        auto result = SDTestBase::build_geant_geo(filename);
+        const_cast<SimpleCmsTest*>(this)->scoped_log_.clear();
 
-        // Create unused volume when building geometry
+        // Create unused volume after building geometry
         G4Material* mat
             = G4NistManager::Instance()->FindOrBuildMaterial("G4_AIR");
         SimpleCmsTest::detached_lv = new G4LogicalVolume(

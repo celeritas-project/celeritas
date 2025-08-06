@@ -61,11 +61,6 @@ class AllGeoTypedTestBase : public GenericGeoTestBase<HP>
     using SPConstGeo = typename GenericGeoTestBase<HP>::SPConstGeo;
 
     static std::string geo_name() { return GeoTraits<HP>::name; }
-
-    SPConstGeo build_geometry() override
-    {
-        return this->build_geometry_from_basename();
-    }
 };
 
 //---------------------------------------------------------------------------//

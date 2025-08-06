@@ -42,11 +42,6 @@ class NaviTouchableUpdaterBase : public ::celeritas::test::GeantGeoTestBase
 
     void SetUp() override { touch_handle_ = new G4TouchableHistory; }
 
-    SPConstGeo build_geometry() final
-    {
-        return this->build_geometry_from_basename();
-    }
-
     G4LogicalVolume const* find_lv(std::string const& name) const
     {
         auto const& geo = *this->geometry();

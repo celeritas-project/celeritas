@@ -364,7 +364,7 @@ class LarSphereExtramat : public GeantImporterTest
 class OpticalSurfaces : public GeantImporterTest
 {
   protected:
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "optical-surfaces"sv;
     }
