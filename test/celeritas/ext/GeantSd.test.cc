@@ -37,12 +37,14 @@ class SimpleCmsTest : public SDTestBase, public SimpleCmsTestBase
     {
         sd_setup_.ignore_zero_deposition = false;
         sd_setup_.track = false;
+
+        this->geometry();
+        scoped_log_.clear();
     }
 
     SPConstGeantGeo build_geant_geo(std::string const& filename) const override
     {
         auto result = SDTestBase::build_geant_geo(filename);
-        const_cast<SimpleCmsTest*>(this)->scoped_log_.clear();
 
         // Create unused volume after building geometry
         G4Material* mat
