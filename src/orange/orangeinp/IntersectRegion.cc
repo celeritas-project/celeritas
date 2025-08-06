@@ -1225,12 +1225,8 @@ bool Paraboloid::encloses(Paraboloid const& other) const
     };
 
     // Return true if this paraboloid is wider at the +/-hh of other
-    real_type const o_bot = -other.halfheight();
-    real_type const o_top = other.halfheight();
-    real_type const o_r0_sq = other.lower_radius() * other.lower_radius();
-    real_type const o_r1_sq = other.upper_radius() * other.upper_radius();
-
-    return r_sq(o_bot) >= o_r0_sq && r_sq(o_top) >= o_r1_sq;
+    return r_sq(-other.halfheight()) >= ipow<2>(other.lower_radius())
+           && r_sq(other.halfheight()) >= ipow<2>(other.upper_radius());
 }
 
 //---------------------------------------------------------------------------//
