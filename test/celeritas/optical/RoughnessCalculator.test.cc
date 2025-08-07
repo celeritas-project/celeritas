@@ -10,8 +10,8 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
 #include "celeritas/ext/RootFileManager.hh"
-#include "celeritas/optical/surface/GaussianRoughnessCalculator.hh"
-#include "celeritas/optical/surface/SmearRoughnessCalculator.hh"
+#include "celeritas/optical/surface/calc/GaussianRoughnessCalculator.hh"
+#include "celeritas/optical/surface/calc/SmearRoughnessCalculator.hh"
 
 #include "celeritas_test.hh"
 
