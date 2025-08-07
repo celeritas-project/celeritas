@@ -28,5 +28,33 @@ is_entering_surface(Real3 const& normal, Real3 const& dir)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Sample facet normal until the track direction is entering the surface.
+ *
+ * Some facet normal calculators might not produce surface normals valid for
+ * optical physics surface crossings (see \c is_entering_surface ). This
+ * functor will repeatedly sample the distribution until a valid facet normal
+ * is sampled.
+ */
+template<class Calculator>
+struct EnteringSurfaceNormalSampler
+{
+    Real3 const& dir;
+    Calculator sample_normal;
+
+    // Repeatedly sample facet normal until satisfies entering surface
+    template<class Engine>
+    CELER_FUNCTION Real3 operator()(Engine& rng)
+    {
+        Real3 local_normal;
+        do
+        {
+            local_normal = sample_normal(rng);
+        } while (!is_entering_surface(local_normal, dir));
+        return local_normal;
+    }
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace optical
 }  // namespace celeritas

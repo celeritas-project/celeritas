@@ -10,6 +10,7 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
 #include "celeritas/ext/RootFileManager.hh"
+#include "celeritas/optical/surface/SurfacePhysicsUtils.hh"
 #include "celeritas/optical/surface/calc/GaussianRoughnessCalculator.hh"
 #include "celeritas/optical/surface/calc/SmearRoughnessCalculator.hh"
 
@@ -37,9 +38,8 @@ class RoughnessCalculatorTest : public ::celeritas::test::Test
 
     // Sample a roughness calculator and collect distribution moments
     template<class C>
-    Array<real_type, 4> sample_moments(C const& sample_normal,
-                                       Real3 const& normal,
-                                       Real3 const& momentum)
+    Array<real_type, 4>
+    sample_moments(C& sample_normal, Real3 const& normal, Real3 const& momentum)
     {
         EXPECT_TRUE(dot_product(normal, momentum) < 0);
 
@@ -86,7 +86,8 @@ TEST_F(RoughnessCalculatorTest, smear)
     Real3 normal = make_unit_vector(Real3{0, 0, 1});
     Real3 momentum = make_unit_vector(Real3{0, 1, -1});
 
-    SmearRoughnessCalculator sample_normal(roughness, normal, momentum);
+    EnteringSurfaceNormalSampler sample_normal{
+        momentum, SmearRoughnessCalculator{roughness, normal}};
 
     auto moments = this->sample_moments(sample_normal, normal, momentum);
 
@@ -108,7 +109,8 @@ TEST_F(RoughnessCalculatorTest, gaussian)
     Real3 normal = make_unit_vector(Real3{0, 0, 1});
     Real3 momentum = make_unit_vector(Real3{0, 1, -1});
 
-    GaussianRoughnessCalculator sample_normal(sigma_alpha, normal, momentum);
+    EnteringSurfaceNormalSampler sample_normal{
+        momentum, GaussianRoughnessCalculator{sigma_alpha, normal}};
 
     auto moments = this->sample_moments(sample_normal, normal, momentum);
 

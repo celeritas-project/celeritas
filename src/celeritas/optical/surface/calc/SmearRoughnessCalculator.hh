@@ -7,9 +7,9 @@
 #pragma once
 
 #include "corecel/math/ArrayUtils.hh"
-#include "corecel/random/distribution/UniformRealDistribution.hh"
+#include "corecel/random/distribution/PowerDistribution.hh"
+#include "geocel/random/IsotropicDistribution.hh"
 #include "celeritas/Constants.hh"
-#include "celeritas/optical/surface/SurfacePhysicsUtils.hh"
 
 namespace celeritas
 {
@@ -26,17 +26,14 @@ namespace optical
  * - 1 roughness is rough (diffuse reflection)
  *
  * A smear direction is uniformly sampled within a sphere of radius 1, which is
- * then scaled by the roughness parameter and added to the global normal. The
- * resulting unit vector is the facet normal provided it points opposite the
- * incident track direction, otherwise the facet normal is resampled.
+ * then scaled by the roughness parameter and added to the global normal.
  */
 class SmearRoughnessCalculator
 {
   public:
-    // Construct from roughness, global normal, and incident direction
-    inline CELER_FUNCTION SmearRoughnessCalculator(real_type roughness,
-                                                   Real3 const& normal,
-                                                   Real3 const& dir);
+    // Construct from roughness and global normal
+    inline CELER_FUNCTION
+    SmearRoughnessCalculator(real_type roughness, Real3 const& normal);
 
     // Sample facet normal
     template<class Engine>
@@ -45,25 +42,21 @@ class SmearRoughnessCalculator
   private:
     real_type roughness_;
     Real3 const& normal_;
-    Real3 const& dir_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct from roughness, global normal, and incident track direction.
+ * Construct from roughness and global normal.
  */
 CELER_FUNCTION
 SmearRoughnessCalculator::SmearRoughnessCalculator(real_type roughness,
-                                                   Real3 const& normal,
-                                                   Real3 const& dir)
-    : roughness_(roughness), normal_(normal), dir_(dir)
+                                                   Real3 const& normal)
+    : roughness_(roughness), normal_(normal)
 {
     CELER_EXPECT(0 <= roughness_ && roughness_ <= 1);
     CELER_EXPECT(is_soft_unit_vector(normal_));
-    CELER_EXPECT(is_soft_unit_vector(dir_));
-    CELER_EXPECT(is_entering_surface(normal_, dir_));
 }
 
 //---------------------------------------------------------------------------//
@@ -73,19 +66,10 @@ SmearRoughnessCalculator::SmearRoughnessCalculator(real_type roughness,
 template<class Engine>
 CELER_FUNCTION Real3 SmearRoughnessCalculator::operator()(Engine& rng) const
 {
-    UniformRealDistribution<real_type> sample_phi(
-        0, real_type(2 * constants::pi));
-    UniformRealDistribution<real_type> sample_cos_theta(-1, 1);
-    UniformRealDistribution<real_type> sample_r(0, 1);
+    Real3 local_normal = normal_;
 
-    Real3 local_normal;
-    do
-    {
-        local_normal = normal_;
-        axpy(cbrt(sample_r(rng)) * roughness_,
-             from_spherical(sample_cos_theta(rng), sample_phi(rng)),
-             &local_normal);
-    } while (!is_entering_surface(local_normal, dir_));
+    real_type r = PowerDistribution<real_type>{2}(rng);
+    axpy(r * roughness_, IsotropicDistribution{}(rng), &local_normal);
 
     return make_unit_vector(local_normal);
 }
