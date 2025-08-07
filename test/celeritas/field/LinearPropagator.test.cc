@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/field/LinearPropagator.hh"
 
+#include <string_view>
+
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/io/Logger.hh"
@@ -29,8 +31,10 @@ class LinearPropagatorTest : public AllGeoTypedTestBase<HP>
   protected:
     void SetUp() override
     {
+        using namespace std::literals;
+
         if (CELERITAS_UNITS != CELERITAS_UNITS_CGS
-            && GeoTraits<HP>::name == "ORANGE")
+            && GeoTraits<HP>::name == "ORANGE"sv)
         {
             GTEST_SKIP() << "ORANGE currently requires CGS [cm]";
         }
