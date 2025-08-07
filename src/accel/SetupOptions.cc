@@ -255,8 +255,10 @@ inp::FrameworkInput to_inp(SetupOptions const& so)
     inp::FrameworkInput result;
     result.system = load_system(so);
     result.geant.ignore_processes = so.ignore_processes;
-    result.geant.data_selection.particles = GeantImportDataSelection::em_basic;
-    result.geant.data_selection.processes = GeantImportDataSelection::em_basic;
+    result.geant.data_selection.particles = GeantImportDataSelection::em_basic
+                                            | GeantImportDataSelection::optical;
+    result.geant.data_selection.processes = GeantImportDataSelection::em_basic
+                                            | GeantImportDataSelection::optical;
     result.geant.data_selection.interpolation = so.interpolation;
 
     result.adjust = ProblemSetup{so};
