@@ -21,10 +21,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Construct with coefficients.
- *
- * The quadric is ill-defined if all non-constants are zero.
- *
- * TODO: normalize so that largest eigenvalue is unity?
  */
 SimpleQuadric::SimpleQuadric(Real3 const& abc, Real3 const& def, real_type g)
     : a_(abc[0])
