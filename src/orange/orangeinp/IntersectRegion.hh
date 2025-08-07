@@ -174,9 +174,20 @@ class Cylinder final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * An axis-alligned ellipsoid centered at the origin.
+ * An axis-aligned ellipsoid centered at the origin.
  *
- * The ellipsoid is constructed with the three radial lengths.
+ * The ellipsoid is constructed with the three radial lengths. For a length
+ * scale \em L , the quadric it creates has second-order terms that are \f$
+ * O(1) \f$ and a zeroth order term that's \f$ O(L^2) \f$. Translations on that
+ * length scale will preserve the accuracy of the quadratic solution.
+ *
+ * There are many scalings of the quadric equation that produce unitary
+ * second-order terms if the ellipsoid's radii are identical: \f[
+  \frac{k}{r_x^2} x^2 +  \frac{k}{r_y^2} y^2 +  \frac{k}{r_z^2} z^2 = k
+ * \f]
+ * but we make the ad hoc decision to choose \f$ k = \min r_i \max r_i \f$
+ * to avoid irrational normalization constants, which makes unit tests and
+ * output easier to read.
  */
 class Ellipsoid final : public IntersectRegionInterface
 {
@@ -200,6 +211,9 @@ class Ellipsoid final : public IntersectRegionInterface
     //! Radius along each axis
     Real3 const& radii() const { return radii_; }
 
+    //! Get the radius along a single axis
+    real_type radius(Axis ax) const { return radii_[to_int(ax)]; }
+
   private:
     Real3 radii_;
 };
@@ -209,7 +223,12 @@ class Ellipsoid final : public IntersectRegionInterface
  * A *z*-aligned cylinder with an elliptical cross section.
  *
  * The elliptical cylinder is defined with a two radii and a half-height,
- * such that the centroid of the bounding box is origin.
+ * such that the centroid of the bounding box is origin. The quadric
+ * coefficient of the cylindrical component, \f[
+  x^2 / r_x^2 + y^2 / r_y^2 = 1 \,
+  \f]
+ * are scaled based on the radii of the cylinder, reducing to
+ * \f$ x^2 + y^2 = R^2 \f$ when the radii are equal.
  */
 class EllipticalCylinder final : public IntersectRegionInterface
 {
@@ -235,6 +254,9 @@ class EllipticalCylinder final : public IntersectRegionInterface
 
     //! Half-height along Z
     real_type halfheight() const { return hh_; }
+
+    // Get the radius along the x/y axis
+    real_type radius(Axis ax) const;
 
   private:
     Real2 radii_;
@@ -265,13 +287,6 @@ class EllipticalCylinder final : public IntersectRegionInterface
  * \f[
    (x/r_x)^2 + (y/r_y)^2 = (v-z)^2,
  * \f]
- *
- * which can be converted to SimpleQuadric form:
- * \verbatim
-   (1/r_x)^2 x^2  + (1/r_y)^2 y^2 + (-1) z^2 + (2v) z + (-v^2) = 0.
-      |                |              |         |          |
-      a                b              c         f          g
-   \endverbatim
  *
  * where v is the location of the vertex. The r_x, r_y, and v can be calculated
  * from the lower and upper radii as given by \c G4EllipticalCone:
@@ -311,6 +326,9 @@ class EllipticalCone final : public IntersectRegionInterface
 
     //! Half-height along Z
     real_type halfheight() const { return hh_; }
+
+    // Get the bottom/top radius along the x/y axis
+    real_type radius(Bound b, Axis ax) const;
 
   private:
     Real2 lower_radii_;

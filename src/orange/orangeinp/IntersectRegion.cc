@@ -275,9 +275,9 @@ Ellipsoid::Ellipsoid(Real3 const& radii) : radii_{radii}
 {
     for (auto ax : range(Axis::size_))
     {
-        CELER_VALIDATE(radii_[to_int(ax)] > 0,
+        CELER_VALIDATE(this->radius(ax) > 0,
                        << "nonpositive radius " << to_char(ax)
-                       << " axis: " << radii_[to_int(ax)]);
+                       << " axis: " << this->radius(ax));
     }
 }
 
@@ -289,7 +289,7 @@ bool Ellipsoid::encloses(Ellipsoid const& other) const
 {
     for (auto ax : range(Axis::size_))
     {
-        if (this->radii_[to_int(ax)] < other.radii_[to_int(ax)])
+        if (this->radius(ax) < other.radius(ax))
         {
             return false;
         }
@@ -303,25 +303,22 @@ bool Ellipsoid::encloses(Ellipsoid const& other) const
  */
 void Ellipsoid::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    // Second-order coefficients are product of the other two squared radii;
-    // Zeroth-order coefficient is the product of all three squared radii
-    Real3 rsq;
-    for (auto ax : range(to_int(Axis::size_)))
-    {
-        rsq[ax] = ipow<2>(radii_[ax]);
-    }
+    // Sort the radii by increasing magnitude: mag[0] is shortest axis
+    Array<Axis, 3> mag{Axis::x, Axis::y, Axis::z};
+    std::sort(mag.begin(), mag.end(), [this](Axis i, Axis j) {
+        return this->radius(i) < this->radius(j);
+    });
 
-    Real3 abc{1, 1, 1};
+    Real3 abc;
     real_type g = -1;
-    for (auto ax : range(to_int(Axis::size_)))
+    for (auto ax : range(Axis::size_))
     {
-        g *= rsq[ax];
-        for (auto nax : range(to_int(Axis::size_)))
+        abc[to_int(ax)] = this->radius(mag[0]) * this->radius(mag[2])
+                          / ipow<2>(this->radius(ax));
+
+        if (ax != mag[1])
         {
-            if (ax != nax)
-            {
-                abc[ax] *= rsq[nax];
-            }
+            g *= this->radius(ax);
         }
     }
 
@@ -383,6 +380,9 @@ bool EllipticalCylinder::encloses(EllipticalCylinder const& other) const
 //---------------------------------------------------------------------------//
 /*!
  * Build surfaces.
+ *
+ * This should reproduce a circular cylinder in the limit of rx = ry, and keep
+ * the second-order terms close to unity to preserve solver accuracy.
  */
 void EllipticalCylinder::build(IntersectSurfaceBuilder& insert_surface) const
 {
@@ -391,23 +391,18 @@ void EllipticalCylinder::build(IntersectSurfaceBuilder& insert_surface) const
 
     // Insert elliptical cylinder surface last, as a simple quadric with
     // equation:
-    // r_y^2 x^2 + r_x^2 y^2 - r_x^2 r_y^2 = 0
-    real_type rx_sq = ipow<2>(radii_[to_int(Axis::x)]);
-    real_type ry_sq = ipow<2>(radii_[to_int(Axis::y)]);
-    real_type g = -rx_sq * ry_sq;
-
-    Real3 abc{ry_sq, rx_sq, 0};
-    insert_surface(SimpleQuadric{abc, Real3{0, 0, 0}, g});
+    // x^2 / r_x^2 + y^2 / r_y^2  = 1
+    auto const rx = this->radius(Axis::x);
+    auto const ry = this->radius(Axis::y);
+    insert_surface(SimpleQuadric{{ry / rx, rx / ry, 0}, {0, 0, 0}, -rx * ry});
 
     // Set exterior bbox
-    Real3 ex_halves{radii_[to_int(Axis::x)], radii_[to_int(Axis::y)], hh_};
+    Real3 ex_halves{rx, ry, hh_};
     insert_surface(Sense::inside, BBox{-ex_halves, ex_halves});
 
     // Set an interior bbox (inscribed cuboid)
     auto inv_sqrt_two = 1 / constants::sqrt_two;
-    Real3 in_halves{radii_[to_int(Axis::x)] * inv_sqrt_two,
-                    radii_[to_int(Axis::y)] * inv_sqrt_two,
-                    hh_};
+    Real3 in_halves{rx * inv_sqrt_two, ry * inv_sqrt_two, hh_};
     insert_surface(Sense::outside, BBox{-in_halves, in_halves});
 }
 
@@ -418,6 +413,16 @@ void EllipticalCylinder::build(IntersectSurfaceBuilder& insert_surface) const
 void EllipticalCylinder::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the radius along a single axis.
+ */
+real_type EllipticalCylinder::radius(Axis ax) const
+{
+    CELER_EXPECT(ax < Axis::z);
+    return radii_[to_int(ax)];
 }
 
 //---------------------------------------------------------------------------//
@@ -505,22 +510,22 @@ void EllipticalCone::build(IntersectSurfaceBuilder& insert_surface) const
     insert_surface(Sense::outside, PlaneZ{-hh_});
     insert_surface(Sense::inside, PlaneZ{hh_});
 
-    constexpr auto X = to_int(Axis::x);
-    constexpr auto Y = to_int(Axis::y);
+    auto const lox = this->radius(Bound::lo, Axis::x);
+    auto const loy = this->radius(Bound::lo, Axis::y);
+    auto const hix = this->radius(Bound::hi, Axis::x);
+    auto const hiy = this->radius(Bound::hi, Axis::y);
 
-    real_type a = ipow<2>((2 * hh_) / (lower_radii_[X] - upper_radii_[X]));
+    real_type a = ipow<2>((2 * hh_) / (lox - hix));
+    real_type b = ipow<2>((2 * hh_) / (loy - hiy));
 
-    real_type b = ipow<2>((2 * hh_) / (lower_radii_[Y] - upper_radii_[Y]));
-
-    real_type v = hh_ * (lower_radii_[X] + upper_radii_[X])
-                  / (lower_radii_[X] - upper_radii_[X]);
+    real_type v = hh_ * (lox + hix) / (lox - hix);
 
     insert_surface(
         SimpleQuadric{Real3{a, b, -1}, Real3{0, 0, 2 * v}, -ipow<2>(v)});
 
     // Set an exterior bbox
-    real_type x_max = std::fmax(lower_radii_[X], upper_radii_[X]);
-    real_type y_max = std::fmax(lower_radii_[Y], upper_radii_[Y]);
+    real_type x_max = std::fmax(lox, hix);
+    real_type y_max = std::fmax(loy, hiy);
     Real3 ex_halves{x_max, y_max, hh_};
     insert_surface(Sense::inside, BBox{-ex_halves, ex_halves});
 
@@ -534,6 +539,17 @@ void EllipticalCone::build(IntersectSurfaceBuilder& insert_surface) const
 void EllipticalCone::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the radius along a single axis.
+ */
+real_type EllipticalCone::radius(Bound b, Axis ax) const
+{
+    CELER_EXPECT(b < Bound::size_);
+    CELER_EXPECT(ax < Axis::z);
+    return (b == Bound::lo ? lower_radii_ : upper_radii_)[to_int(ax)];
 }
 
 //---------------------------------------------------------------------------//

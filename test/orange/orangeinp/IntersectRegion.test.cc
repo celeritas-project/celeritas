@@ -404,7 +404,7 @@ TEST_F(EllipsoidTest, standard)
 
     static char const expected_node[] = "-0";
     static char const* const expected_surfaces[]
-        = {"SQuadric: {4,9,36} {0,0,0} -36"};
+        = {"SQuadric: {0.33333,0.75,3} {0,0,0} -3"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -416,6 +416,18 @@ TEST_F(EllipsoidTest, standard)
         result.interior.upper());
     EXPECT_VEC_SOFT_EQ((Real3{-3, -2, -1}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{3, 2, 1}), result.exterior.upper());
+}
+
+TEST_F(EllipsoidTest, tiny)
+{
+    auto result = this->test(Ellipsoid({0.008, 0.004, 0.005}));
+
+    static char const expected_node[] = "-0";
+    static char const* const expected_surfaces[]
+        = {"SQuadric: {0.5,2,1.28} {0,0,0} -3.2e-05"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
 }
 
 //---------------------------------------------------------------------------//
@@ -444,8 +456,11 @@ TEST_F(EllipticalCylinderTest, standard)
     auto result = this->test(EllipticalCylinder({3, 2}, 0.5));
 
     static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-0.5", "Plane: z=0.5", "SQuadric: {4,9,0} {0,0,0} -36"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-0.5",
+        "Plane: z=0.5",
+        "SQuadric: {0.66667,1.5,0} {0,0,0} -6",
+    };
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
