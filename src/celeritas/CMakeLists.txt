@@ -203,6 +203,8 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantModelImporter.cc
     ext/detail/GeantOpticalModelImporter.cc
     ext/detail/GeantProcessImporter.cc
+    ext/detail/GeantSurfacePhysicsHelper.cc
+    ext/detail/GeantSurfacePhysicsLoader.cc
     ext/detail/GeoOpticalIdMap.cc
     ext/detail/HitProcessor.cc
     ext/detail/LevelTouchableUpdater.cc
@@ -346,7 +348,6 @@ celeritas_polysource(optical/model/AbsorptionModel)
 celeritas_polysource(optical/model/RayleighModel)
 celeritas_polysource(optical/model/WavelengthShiftModel)
 celeritas_polysource(optical/action/AlongStepAction)
-celeritas_polysource(optical/action/BoundaryAction)
 celeritas_polysource(optical/action/DiscreteSelectAction)
 celeritas_polysource(optical/action/PreStepAction)
 celeritas_polysource(optical/action/TrackingCutAction)
@@ -357,6 +358,7 @@ celeritas_polysource(optical/gen/OffloadGatherAction)
 celeritas_polysource(optical/gen/PrimaryGeneratorAction)
 celeritas_polysource(optical/gen/detail/GeneratorAlgorithms)
 celeritas_polysource(optical/gen/detail/OffloadAlgorithms)
+celeritas_polysource(optical/surface/BoundaryAction)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)
 celeritas_polysource(phys/detail/TrackingCutAction)

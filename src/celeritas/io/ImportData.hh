@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "celeritas/inp/Grid.hh"
+#include "celeritas/inp/Physics.hh"
 // IWYU pragma: begin_exports
 #include "ImportAtomicRelaxation.hh"
 #include "ImportElement.hh"
@@ -50,6 +51,9 @@ namespace celeritas
  * convert_to_native function will convert a data structure in place and update
  * the units label. Refer to \c base/Units.hh for further information on unit
  * systems.
+ *
+ * \note  \c ImportData will eventually become \c inp::Problem once the import
+ * system populates all its \c inp:: objects.
  */
 struct ImportData
 {
@@ -104,6 +108,11 @@ struct ImportData
 
     //! Unit system of the stored data: "cgs", "clhep", or "si"
     std::string units;
+
+    //!@{
+    //! \name Current \c inp::Problem data that has been ported
+    inp::OpticalPhysics optical_physics;  //!< \todo: replace by inp::Physics
+    //!@}
 };
 
 //---------------------------------------------------------------------------//

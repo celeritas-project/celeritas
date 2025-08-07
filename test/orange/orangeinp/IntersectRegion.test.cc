@@ -1837,6 +1837,66 @@ TEST_F(InvoluteTest, two_cw)
     };
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
 }
+//---------------------------------------------------------------------------//
+// PARABOLOID
+//---------------------------------------------------------------------------//
+using ParaboloidTest = IntersectRegionTest;
+
+TEST_F(ParaboloidTest, errors)
+{
+    // Negatives
+    EXPECT_THROW(Paraboloid(-1, 3, 2), RuntimeError);
+    EXPECT_THROW(Paraboloid(1, -3, 2), RuntimeError);
+    EXPECT_THROW(Paraboloid(-1, -3, 2), RuntimeError);
+    EXPECT_THROW(Paraboloid(1, 3, -2), RuntimeError);
+
+    // Both zeros
+    EXPECT_THROW(Paraboloid(0, 0, 2), RuntimeError);
+
+    // Cylinder
+    EXPECT_THROW(Paraboloid(5, 5, 2), RuntimeError);
+}
+
+TEST_F(ParaboloidTest, encloses)
+{
+    Paraboloid ec(2, 3, 5);
+
+    EXPECT_TRUE(ec.encloses(Paraboloid(1, 1.5, 4.9)));
+    EXPECT_FALSE(ec.encloses(Paraboloid(1, 1.5, 5.9)));
+    EXPECT_FALSE(ec.encloses(Paraboloid(2, 3, 4.9)));
+    EXPECT_TRUE(ec.encloses(Paraboloid(1.5, 2.5, 4.9)));
+}
+
+TEST_F(ParaboloidTest, standard)
+{
+    auto result = this->test(Paraboloid(1, 2, 3));
+
+    static char const expected_node[] = "all(+0, -1, -2)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-3", "Plane: z=3", "SQuadric: {1,1,0} {0,0,-0.5} -2.5"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+
+    EXPECT_VEC_SOFT_EQ((Real3{-2, -2, -3}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 2, 3}), result.exterior.upper());
+}
+
+TEST_F(ParaboloidTest, vertex)
+{
+    // Vertex on upper boundary
+    auto result = this->test(Paraboloid(5, 0, 5));
+
+    static char const expected_node[] = "all(+0, -1, -2)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-5", "Plane: z=5", "SQuadric: {1,1,0} {0,0,2.5} -12.5"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+
+    EXPECT_VEC_SOFT_EQ((Real3{-5, -5, -5}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{5, 5, 5}), result.exterior.upper());
+}
 
 //---------------------------------------------------------------------------//
 // PARALLELEPIPED

@@ -76,6 +76,8 @@ class GeantGeoTrackView
     CELER_FORCEINLINE Real3 const& dir() const { return dir_; }
     //!@}
 
+    // Get the canonical volume ID in the current impl volume
+    inline VolumeId volume_id() const;
     // Get the volume ID in the lowest level volume.
     inline ImplVolumeId impl_volume_id() const;
     // Get the physical volume ID in the current cell
@@ -264,6 +266,15 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(DetailedInitializer const& init)
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the canonical volume ID in the current implementation volume.
+ */
+VolumeId GeantGeoTrackView::volume_id() const
+{
+    return id_cast<VolumeId>(this->impl_volume_id().unchecked_get());
 }
 
 //---------------------------------------------------------------------------//
