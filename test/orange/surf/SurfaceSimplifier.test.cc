@@ -349,6 +349,9 @@ TEST_F(SimpleQuadricTest, ellipsoid)
     // Unchanged
     this->check_unchanged(
         SimpleQuadric{{0.5625, 0.09, 6.25}, {0, 0, 0}, -0.5625});
+
+    // Small (from Ellipsoid({0.008, 0.004, 0.005}))
+    this->check_unchanged(SimpleQuadric{{0.5, 2, 1.28}, {0, 0, 0}, -3.2e-05});
 }
 
 TEST_F(SimpleQuadricTest, hyperboloid)
