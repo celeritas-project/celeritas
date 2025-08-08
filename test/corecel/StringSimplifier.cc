@@ -207,9 +207,10 @@ std::string StringSimplifier::simplify_float(std::string s) const
     int dec_precision = std::distance(dec_iter, s.cend());
     int precision = std::min(lead_precision + dec_precision, precision_);
 
-    if (precision < lead_precision)
+    if (precision < lead_precision || lead_zeros > precision)
     {
-        // Leading digits are too precise: write as scientific
+        // Leading digits are too precise, or there are too many leading zeros:
+        // write as scientific
         s = to_sci(std::stod(s), precision);
         CELER_ASSERT(!s.empty());
     }
