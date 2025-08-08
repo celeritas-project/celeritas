@@ -893,19 +893,20 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
         }
         else
         {
+            constexpr real_type half{0.5};
             // Insert a "twisted" face
             // x,y-'slopes' of i,j vertical edges in terms of z
-            auto aux = real_type{0.5} / hh_;
+            auto aux = half / hh_;
             auto txi = aux * (ihi[X] - ilo[X]);
             auto tyi = aux * (ihi[Y] - ilo[Y]);
             auto txj = aux * (jhi[X] - jlo[X]);
             auto tyj = aux * (jhi[Y] - jlo[Y]);
 
             // half-way coordinates of i,j vertical edges
-            auto mxi = 0.5 * (ilo[X] + ihi[X]);
-            auto myi = 0.5 * (ilo[Y] + ihi[Y]);
-            auto mxj = 0.5 * (jlo[X] + jhi[X]);
-            auto myj = 0.5 * (jlo[Y] + jhi[Y]);
+            auto mxi = half * (ilo[X] + ihi[X]);
+            auto myi = half * (ilo[Y] + ihi[Y]);
+            auto mxj = half * (jlo[X] + jhi[X]);
+            auto myj = half * (jlo[Y] + jhi[Y]);
 
             // coefficients for the quadric
             real_type czz = txj * tyi - txi * tyj;
