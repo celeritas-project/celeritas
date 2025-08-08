@@ -151,13 +151,27 @@ void compare_1D_histos(TString config1_rootfile,
     double hist_bin_max = bin_max;
     TString hist_x_axis = x_axis_title;
     TString hist_plot_title = hist_title;
+    TString config1_rootfile_label = config1_rootfile;
+    config1_rootfile_label.ReplaceAll(".root", "");
+    TString config2_rootfile_label = config2_rootfile;
+    config2_rootfile_label.ReplaceAll(".root", "");
+
+    // Variables for custom binning
+    TH1D* h_config1;
+    TH1D* h_config2;
+    TH1D* h_config1_rel_err;
+    TH1D* h_config1_rel_err_3s;
 
     if (plot_type == "eta")
     {
         hist_bin_min = 0;
-        hist_bin_max = 5;
+        hist_bin_max = 9;
         hist_x_axis = "#eta";
         hist_plot_title = "MC Particle #eta Distribution (DD4hep Simulation)";
+
+        // Regular binning for eta
+        h_config1 = new TH1D("Config1", "", n_bins, hist_bin_min, hist_bin_max);
+        h_config2 = new TH1D("Config2", "", n_bins, hist_bin_min, hist_bin_max);
     }
     else if (plot_type == "phi")
     {
@@ -165,29 +179,53 @@ void compare_1D_histos(TString config1_rootfile,
         hist_bin_max = TMath::Pi();
         hist_x_axis = "#phi";
         hist_plot_title = "MC Particle #phi Distribution (DD4hep Simulation)";
+
+        // Regular binning for phi
+        h_config1 = new TH1D("Config1", "", n_bins, hist_bin_min, hist_bin_max);
+        h_config2 = new TH1D("Config2", "", n_bins, hist_bin_min, hist_bin_max);
     }
     else if (plot_type == "calo_energy")
     {
-        hist_bin_min = 0;
-        hist_bin_max = 10;
+        hist_bin_min = 0.000001;  // Start from 0.01 GeV to avoid log(0)
+        hist_bin_max = 0.001;
         hist_x_axis = "Energy [GeV]";
         hist_plot_title
             = "Calorimeter Hit Energy Distribution (DD4hep Simulation)";
-    }
 
-    auto h_config1
-        = new TH1D("Config1", "", n_bins, hist_bin_min, hist_bin_max);
-    auto h_config2
-        = new TH1D("Config2", "", n_bins, hist_bin_min, hist_bin_max);
+        // Create logarithmic bins
+        int const n_log_bins = n_bins;  // Use the same number of bins
+        double log_min = TMath::Log10(hist_bin_min);
+        double log_max = TMath::Log10(hist_bin_max);
+        double log_bin_width = (log_max - log_min) / n_log_bins;
+
+        // Create array of bin edges
+        double* bin_edges = new double[n_log_bins + 1];
+        for (int i = 0; i <= n_log_bins; i++)
+        {
+            bin_edges[i] = TMath::Power(10, log_min + i * log_bin_width);
+        }
+
+        // Create histograms with variable bin widths
+        h_config1 = new TH1D("Config1", "", n_log_bins, bin_edges);
+        h_config2 = new TH1D("Config2", "", n_log_bins, bin_edges);
+
+        delete[] bin_edges;  // Clean up the array
+    }
+    else
+    {
+        // Default case - regular binning
+        h_config1 = new TH1D("Config1", "", n_bins, hist_bin_min, hist_bin_max);
+        h_config2 = new TH1D("Config2", "", n_bins, hist_bin_min, hist_bin_max);
+    }
 
     // Process data
     loop(config1_rootfile, h_config1, plot_type);
     loop(config2_rootfile, h_config2, plot_type);
 
     // Create relative error histograms
-    auto h_config1_rel_err = new TH1D(
+    h_config1_rel_err = new TH1D(
         "Config1 rel. err.", "", n_bins, hist_bin_min, hist_bin_max);
-    auto h_config1_rel_err_3s = new TH1D(
+    h_config1_rel_err_3s = new TH1D(
         "Config1 rel. err. 3sigma", "", n_bins, hist_bin_min, hist_bin_max);
 
     for (int i = 0; i < n_bins; i++)
@@ -235,8 +273,9 @@ void compare_1D_histos(TString config1_rootfile,
     h_config2->Draw("hist sames");
 
     auto legend_top = new TLegend(0.57, 0.46, 0.86, 0.86);
-    legend_top->AddEntry(h_config1, config1_legend, "p");
-    legend_top->AddEntry(h_config2, config2_legend, "l");
+    legend_top->SetHeader("Stats");
+    legend_top->AddEntry(h_config1, config1_rootfile_label, "p");
+    legend_top->AddEntry(h_config2, config2_rootfile_label, "l");
     legend_top->AddEntry(new TH1D(), "Statistical errors:", "f");
     legend_top->AddEntry(h_config1_rel_err, "1#sigma", "f");
     legend_top->AddEntry(h_config1_rel_err_3s, "3#sigma", "f");
@@ -302,8 +341,8 @@ void compare_1D_histos(TString config1_rootfile,
 
     pad_bottom->RedrawAxis();
     canvas->SetLogy();
-    canvas->Print(config1_legend + "_" + config2_legend + "_" + plot_type
-                  + ".png");
+    canvas->Print(config1_rootfile_label + "_" + config2_rootfile_label + "_"
+                  + plot_type + ".png");
 
     // Clean up
     delete canvas;
@@ -549,15 +588,15 @@ void compare_benchmarks(TString config1_rootfile, TString config2_rootfile)
     // Example 2D comparisons
     compare_2D_histos(config1_rootfile,
                       config2_rootfile,
-                      "Configuration 1",
-                      "Configuration 2",
+                      config1_rootfile.ReplaceAll(".root", ""),
+                      config2_rootfile.ReplaceAll(".root", ""),
                       "calo_xy",
                       "DD4hep Calorimeter Analysis");
 
     compare_2D_histos(config1_rootfile,
                       config2_rootfile,
-                      "Configuration 1",
-                      "Configuration 2",
+                      config1_rootfile.ReplaceAll(".root", ""),
+                      config2_rootfile.ReplaceAll(".root", ""),
                       "tracker_rz",
                       "DD4hep Tracker Analysis");
 }
