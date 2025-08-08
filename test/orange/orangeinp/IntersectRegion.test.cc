@@ -47,6 +47,14 @@ class IntersectRegionTest : public ::celeritas::test::Test
     using TestResult = IntersectTestResult;
 
   protected:
+    // Build with an explicit name and transform
+    State build(std::string name,
+                IntersectRegionInterface const& r,
+                VariantTransform const& vt);
+
+    // Insert a built state as a new "volume"
+    NodeId insert(State&& css);
+
     // Test with an explicit name and transform
     TestResult test(std::string&& name,
                     IntersectRegionInterface const& r,
@@ -79,6 +87,7 @@ class IntersectRegionTest : public ::celeritas::test::Test
     }
 
     Unit const& unit() const { return unit_; }
+    Tol const& tol() const { return unit_builder_.tol(); }
 
   private:
     Unit unit_;
@@ -87,41 +96,49 @@ class IntersectRegionTest : public ::celeritas::test::Test
 };
 
 //---------------------------------------------------------------------------//
-auto IntersectRegionTest::test(std::string&& name,
-                               IntersectRegionInterface const& r,
-                               VariantTransform const& trans) -> TestResult
+auto IntersectRegionTest::build(std::string name,
+                                IntersectRegionInterface const& r,
+                                VariantTransform const& trans) -> State
 {
-    detail::IntersectSurfaceState css;
+    State css;
     css.transform = &trans;
     css.make_face_name = {};
     css.object_name = std::move(name);
 
     IntersectSurfaceBuilder insert_surface{&unit_builder_, &css};
     r.build(insert_surface);
-    if (css.local_bzone.exterior || css.local_bzone.interior)
-    {
-        EXPECT_TRUE(
-            encloses(css.local_bzone.exterior, css.local_bzone.interior));
-    }
-    if (css.global_bzone.exterior || css.global_bzone.interior)
-    {
-        EXPECT_TRUE(
-            encloses(css.global_bzone.exterior, css.global_bzone.interior));
-    }
+    return css;
+}
 
-    // Intersect the given surfaces
-    NodeId node_id
+//---------------------------------------------------------------------------//
+NodeId IntersectRegionTest::insert(State&& css)
+{
+    auto node_id
         = unit_builder_.insert_csg(Joined{op_and, std::move(css.nodes)}).first;
+    unit_builder_.insert_md(node_id, std::move(css.object_name));
+    unit_.tree.insert_volume(node_id);
+    std::move(css) = {};
+    return node_id;
+}
+
+//---------------------------------------------------------------------------//
+auto IntersectRegionTest::test(std::string&& name,
+                               IntersectRegionInterface const& r,
+                               VariantTransform const& trans) -> TestResult
+{
+    // Intersect the given surfaces
+    auto css = this->build(std::move(name), r, trans);
+    // Save bounding zone
+    auto merged_bzone = calc_merged_bzone(css);
+    // Build CSG node+md
+    auto node_id = this->insert(std::move(css));
 
     TestResult result;
     result.node = build_infix_string(unit_.tree, node_id);
     result.surfaces = surface_strings(unit_);
-    result.node_id = node_id;
-
-    // Combine the bounding zones
-    auto merged_bzone = calc_merged_bzone(css);
     result.interior = merged_bzone.interior;
     result.exterior = merged_bzone.exterior;
+    result.node_id = node_id;
 
     return result;
 }
@@ -1393,19 +1410,173 @@ TEST_F(GenPrismTest, adjacent_twisted)
         "left@p2,right@p2",
         "",
         "left@p3",
-        "",
+        "left",
         "right@p1",
         "",
-        "",
+        "right",
         "scaled@p0",
         "scaled@p1",
         "",
         "scaled@p2",
         "",
         "scaled@t3",
-        "",
+        "scaled",
     };
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
+}
+
+TEST_F(GenPrismTest, variable_twisted)
+{
+    using SS = SignedSense;
+    char label = 'A';
+    auto build_prism = [&](real_type eps) {
+        std::string const label_str(1, label++);
+        SCOPED_TRACE(label_str);
+        // Build and insert a node
+        auto n = this->insert(
+            this->build(label_str,
+                        GenPrism(real_type{1},
+                                 {{10 - eps, -1}, {10 + eps, 1}, {0, 0}},
+                                 {{10 + eps, -1}, {10 - eps, 1}, {0, 0}}),
+                        NoTransformation{}));
+
+        // Test corners
+        auto tol_eps = this->tol().rel;
+        {
+            SCOPED_TRACE("z = -1");
+            // [lo][0]
+            EXPECT_EQ(
+                SS::inside,
+                this->calc_sense(n, {10 - eps, -1 + tol_eps, -1 + tol_eps}));
+            EXPECT_EQ(SS::outside,
+                      this->calc_sense(n, {10 + eps, -1, -1 + tol_eps}));
+            // [lo][0.5]
+            EXPECT_EQ(SS::inside,
+                      this->calc_sense(n, {10 - tol_eps, 0, -1 + tol_eps}));
+            EXPECT_EQ(SS::outside,
+                      this->calc_sense(n, {10 + tol_eps, 0, -1 + tol_eps}));
+        }
+        {
+            SCOPED_TRACE("z = 0");
+            // [mid][0.5]
+            EXPECT_EQ(SS::inside, this->calc_sense(n, {10 - tol_eps, 0, 0}));
+            EXPECT_EQ(SS::outside, this->calc_sense(n, {10 + tol_eps, 0, 0}));
+        }
+        {
+            SCOPED_TRACE("z = 1");
+            // [hi][1]
+            EXPECT_EQ(
+                SS::inside,
+                this->calc_sense(n, {10 - eps, 1 - tol_eps, 1 - tol_eps}));
+            EXPECT_EQ(
+                SS::outside,
+                this->calc_sense(n, {10 + eps, 1 - tol_eps, 1 - tol_eps}));
+            // [hi][0.5]
+            EXPECT_EQ(SS::inside,
+                      this->calc_sense(n, {10 - tol_eps, 0, 1 - tol_eps}));
+            EXPECT_EQ(SS::outside,
+                      this->calc_sense(n, {10 + tol_eps, 0, 1 - tol_eps}));
+        }
+
+        return n;
+    };
+    // NOTE: with tolerance of 1e-4 these all appear planar!!
+    for (auto logeps : range(-6, -1))
+    {
+        build_prism(std::pow(real_type{10}, static_cast<real_type>(logeps)));
+    }
+    for (auto fraceps : range(0, 5))
+    {
+        build_prism(0.1 + real_type{0.025} * fraceps);
+    }
+
+    auto const& u = this->unit();
+    print_expected(u);
+
+    static char const* const expected_surface_strings[] = {
+        "Plane: z=-1",
+        "Plane: z=1",
+        "Plane: x=10",
+        "Plane: n={0.099504,-0.99504,0}, d=0",
+        "Plane: n={0.099504,0.99504,0}, d=0",
+        "Plane: n={-1,0.001,0.001}, d=-10.001",
+        "GQuadric: {0,0,-0} {0,0.02,0} {2,0,0} -20",
+        "Plane: n={0.099405,-0.99505,0.00099405}, d=-0.00099405",
+        "GQuadric: {0,0,-0} {0,0.2,0} {2,0,0} -20",
+        "Plane: n={0.098523,-0.99509,0.0098523}, d=-0.0098523",
+        "Plane: n={0.1005,0.99494,0}, d=0",
+        "GQuadric: {0,0,-0} {0,0.25,0} {2,0,0} -20",
+        "Plane: n={0.09828,-0.99508,0.012285}, d=-0.012285",
+        "Plane: n={0.10075,0.99491,0}, d=0",
+        "GQuadric: {0,0,-0} {0,0.3,0} {2,0,0} -20",
+        "GQuadric: {0,0,0} {0,0.15,0} {1,-10,0} 0",
+        "GQuadric: {0,0,0} {0,0.15,0} {1,10,0} 0",
+        "GQuadric: {0,0,-0} {0,0.35,0} {2,0,0} -20",
+        "GQuadric: {0,0,0} {0,0.175,0} {1,-10,0} 0",
+        "GQuadric: {0,0,0} {0,0.175,0} {1,10,0} 0",
+        "GQuadric: {0,0,-0} {0,0.4,0} {2,0,0} -20",
+        "GQuadric: {0,0,0} {0,0.2,0} {1,-10,0} 0",
+        "GQuadric: {0,0,0} {0,0.2,0} {1,10,0} 0",
+    };
+    static char const* const expected_volume_strings[] = {
+        "all(+0, -1, -2, +3, +4)",
+        "all(+0, -1, -2, +3, +4)",
+        "all(+0, -1, -2, +3, +4)",
+        "all(+0, -1, +3, +4, +11)",
+        "all(+0, -1, +4, -14, +15)",
+        "all(+0, -1, -17, +18, +19)",
+        "all(+0, -1, -20, +21, +22)",
+        "all(+0, -1, -23, +24, +25)",
+        "all(+0, -1, -26, +27, +28)",
+        "all(+0, -1, -29, +30, +31)",
+    };
+    static char const* const expected_md_strings[] = {
+        "",
+        "",
+        "A@mz,B@mz,C@mz,D@mz,E@mz,F@mz,G@mz,H@mz,I@mz,J@mz",
+        "A@pz,B@pz,C@pz,D@pz,E@pz,F@pz,G@pz,H@pz,I@pz,J@pz",
+        "",
+        "A@p0,B@p0,C@p0",
+        "",
+        "A@p1,B@p1,C@p1,D@p1",
+        "A@p2,B@p2,C@p2,D@p2,E@p2",
+        "A,B,C",
+        "D@p0",
+        "D",
+        "E@t0",
+        "",
+        "E@p1",
+        "E",
+        "F@t0",
+        "",
+        "F@p1",
+        "F@p2",
+        "F",
+        "G@t0",
+        "",
+        "G@p1",
+        "G@p2",
+        "G",
+        "H@t0",
+        "",
+        "H@t1",
+        "H@t2",
+        "H",
+        "I@t0",
+        "",
+        "I@t1",
+        "I@t2",
+        "I",
+        "J@t0",
+        "",
+        "J@t1",
+        "J@t2",
+        "J",
+    };
+
+    EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+    EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
 }
 
 //---------------------------------------------------------------------------//
@@ -1707,7 +1878,7 @@ TEST_F(InvoluteTest, single)
         "invo@invl",
         "invo@invr",
         "",
-        "",
+        "invo",
     };
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
 }
@@ -1767,10 +1938,10 @@ TEST_F(InvoluteTest, two_ccw)
         "top@invl",
         "",
         "bottom@invl,top@invr",
-        "",
+        "top",
         "",
         "bottom@invr",
-        "",
+        "bottom",
     };
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
 }
@@ -1830,10 +2001,10 @@ TEST_F(InvoluteTest, two_cw)
         "top@invl",
         "bottom@invl,top@invr",
         "",
-        "",
+        "top",
         "bottom@invr",
         "",
-        "",
+        "bottom",
     };
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
 }
