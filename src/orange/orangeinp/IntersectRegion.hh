@@ -473,7 +473,7 @@ class GenPrism final : public IntersectRegionInterface
     //// ACCESSORS ////
 
     //! Half-height along Z
-    real_type halfheight() const { return hz_; }
+    real_type halfheight() const { return hh_; }
 
     //! Polygon on -z face
     VecReal2 const& lower() const { return lo_; }
@@ -495,9 +495,9 @@ class GenPrism final : public IntersectRegionInterface
         hi
     };
 
-    real_type hz_;  //!< half-height
-    VecReal2 lo_;  //!< corners of the -z face
-    VecReal2 hi_;  //!< corners of the +z face
+    real_type hh_;  //!< half-height
+    VecReal2 lo_;  //!< corners of the -z face (CCW)
+    VecReal2 hi_;  //!< corners of the +z face (CCW)
     Degenerate degen_{Degenerate::none};  //!< no plane on this z axis
 };
 

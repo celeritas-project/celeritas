@@ -752,9 +752,9 @@ GenPrism GenPrism::from_trap(
  * Construct from half Z height and 1-4 vertices for top and bottom planes.
  */
 GenPrism::GenPrism(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
-    : hz_{halfz}, lo_{lo}, hi_{hi}
+    : hh_{halfz}, lo_{lo}, hi_{hi}
 {
-    CELER_VALIDATE(hz_ > 0, << "nonpositive halfheight: " << hz_);
+    CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
     CELER_VALIDATE(lo_.size() >= 3,
                    << "insufficient number of vertices (" << lo_.size()
                    << ") for -z polygon");
@@ -849,11 +849,11 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
     // Build the bottom and top planes
     if (degen_ != Degenerate::lo)
     {
-        insert_surface(Sense::outside, PlaneZ{-hz_});
+        insert_surface(Sense::outside, PlaneZ{-hh_});
     }
     if (degen_ != Degenerate::hi)
     {
-        insert_surface(Sense::inside, PlaneZ{hz_});
+        insert_surface(Sense::inside, PlaneZ{hh_});
     }
 
     /*! \todo Use plane normal equality from SoftSurfaceEqual, or maybe soft
@@ -864,12 +864,15 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
     // Build the side planes
     for (auto i : range(lo_.size()))
     {
-        auto j = (i + 1) % lo_.size();
+        auto const j = (i + 1) % lo_.size();
 
-        Real3 const ilo{lo_[i][X], lo_[i][Y], -hz_};
-        Real3 const jlo{lo_[j][X], lo_[j][Y], -hz_};
-        Real3 const jhi{hi_[j][X], hi_[j][Y], hz_};
-        Real3 const ihi{hi_[i][X], hi_[i][Y], hz_};
+        // Viewed from outside the shape (+z pointing up, -r into the page),
+        // the points on the following polygon are from the lower left
+        // counterclockwise to the upper right
+        Real3 const ilo{lo_[i][X], lo_[i][Y], -hh_};
+        Real3 const jlo{lo_[j][X], lo_[j][Y], -hh_};
+        Real3 const jhi{hi_[j][X], hi_[j][Y], hh_};
+        Real3 const ihi{hi_[i][X], hi_[i][Y], hh_};
 
         // Calculate outward normal by taking the cross product of the edges
         auto lo_normal = detail::normal_from_triangle(ilo, jlo, ihi);
@@ -892,7 +895,7 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
         {
             // Insert a "twisted" face
             // x,y-'slopes' of i,j vertical edges in terms of z
-            auto aux = 0.5 / hz_;
+            auto aux = real_type{0.5} / hh_;
             auto txi = aux * (ihi[X] - ilo[X]);
             auto tyi = aux * (ihi[Y] - ilo[Y]);
             auto txj = aux * (jhi[X] - jlo[X]);
@@ -932,8 +935,8 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
             }
         }
     }
-    exterior_bbox.grow(Bound::lo, Axis::z, -hz_);
-    exterior_bbox.grow(Bound::hi, Axis::z, hz_);
+    exterior_bbox.grow(Bound::lo, Axis::z, -hh_);
+    exterior_bbox.grow(Bound::hi, Axis::z, hh_);
     insert_surface(Sense::inside, exterior_bbox);
 }
 
