@@ -614,7 +614,8 @@ void ExtrudedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
         auto p2 = scaling_factors_[top] * Real3{p_a[X], p_a[Y], 0}
                   + line_segment_[top];
 
-        insert_surface(Sense::inside, Plane{p0, p1, p2});
+        insert_surface(Sense::inside,
+                       Plane{detail::normal_from_triangle(p0, p1, p2), p0});
     }
 
     // Establish bbox
@@ -871,8 +872,8 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
         Real3 const ihi{hi_[i][X], hi_[i][Y], hz_};
 
         // Calculate outward normal by taking the cross product of the edges
-        auto lo_normal = make_unit_vector(cross_product(jlo - ilo, ihi - ilo));
-        auto hi_normal = make_unit_vector(cross_product(ihi - jhi, jlo - jhi));
+        auto lo_normal = detail::normal_from_triangle(ilo, jlo, ihi);
+        auto hi_normal = detail::normal_from_triangle(jhi, ihi, jlo);
 
         if (soft_equal(dot_product(lo_normal, hi_normal), real_type{1})
             || ihi == jhi)

@@ -276,6 +276,22 @@ TEST(PolygonUtilsTest, calc_extrema)
     EXPECT_SOFT_EQ(-3.8, y_min);
     EXPECT_SOFT_EQ(9.1, y_max);
 }
+
+TEST(PolygonUtilsTest, normal_from_triangle)
+{
+    constexpr auto dir = real_type{1} / constants::sqrt_three;
+
+    // Construct from three points, in this case a plane passing through the
+    // point (1, 2, 3) with slope (1, 1, 1). Specifying the points in clockwise
+    // order gives a negative normal.
+    EXPECT_VEC_SOFT_EQ((Real3{-dir, -dir, -dir}),
+                       normal_from_triangle({2, 1, 3}, {-3, 5, 4}, {4, 7, -5}));
+
+    // Specifying the points in counterclockwise order flips the and normal
+    EXPECT_VEC_SOFT_EQ((Real3{dir, dir, dir}),
+                       normal_from_triangle({4, 7, -5}, {-3, 5, 4}, {2, 1, 3}));
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace detail

@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "Plane.hh"
 
+#include "corecel/math/ArrayOperators.hh"
+
 #include "PlaneAligned.hh"
 
 namespace celeritas
