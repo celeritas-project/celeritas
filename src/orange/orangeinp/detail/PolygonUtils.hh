@@ -260,16 +260,24 @@ filter_collinear_points(std::vector<Real2> const& corners, double abs_tol)
  * Calculate the min/max values of a polygon for a given dimension.
  */
 inline std::pair<real_type, real_type>
-find_extrema(std::vector<Real2> const& polygon, size_type dim)
+find_extrema(Span<Real2 const> polygon, size_type dim)
 {
-    CELER_VALIDATE(polygon.size() >= 3,
-                   << "polygon must consist of at least 3 points");
+    CELER_EXPECT(polygon.size() >= 3);
+    CELER_EXPECT(dim < 2);
 
     auto [poly_min_it, poly_max_it] = std::minmax_element(
         polygon.begin(), polygon.end(), [dim](auto const& a, auto const& b) {
             return a[dim] < b[dim];
         });
     return {(*poly_min_it)[dim], (*poly_max_it)[dim]};
+}
+
+//! Calculate the min/max values of a polygon for an x/y dimension
+inline std::pair<real_type, real_type>
+find_extrema(Span<Real2 const> polygon, Axis ax)
+{
+    CELER_EXPECT(ax < Axis::z);
+    return find_extrema(polygon, to_int(ax));
 }
 
 //---------------------------------------------------------------------------//
@@ -294,6 +302,8 @@ find_extrema(std::vector<Real2> const& polygon, size_type dim)
           /
          p2
    \endverbatim
+ *
+ * Passing in collinear or coincident points will result in an invalid normal.
  */
 inline Real3
 normal_from_triangle(Real3 const& p0, Real3 const& p1, Real3 const& p2)

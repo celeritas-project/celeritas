@@ -642,25 +642,25 @@ void ExtrudedPolygon::output(JsonPimpl* j) const
  * account the translation and scaling of the polygon as it is extruded along
  * the line segment.
  */
-auto ExtrudedPolygon::calc_range(VecReal2 const& polygon, size_type dir)
+auto ExtrudedPolygon::calc_range(VecReal2 const& polygon, size_type dim)
     -> Range
 {
-    CELER_EXPECT(dir == X || dir == Y);
+    CELER_EXPECT(dim == X || dim == Y);
 
     constexpr auto bot = Bound::lo;
     constexpr auto top = Bound::hi;
 
     // Find extrema of unextruded polygon
-    auto [poly_min, poly_max] = detail::find_extrema(polygon, dir);
+    auto [poly_min, poly_max] = detail::find_extrema(make_span(polygon), dim);
 
     // Find the extrema taking into account the extrusion process
     Range range;
     range[0]
-        = std::min(poly_min * scaling_factors_[bot] + line_segment_[bot][dir],
-                   poly_min * scaling_factors_[top] + line_segment_[top][dir]);
+        = std::min(poly_min * scaling_factors_[bot] + line_segment_[bot][dim],
+                   poly_min * scaling_factors_[top] + line_segment_[top][dim]);
     range[1]
-        = std::max(poly_max * scaling_factors_[bot] + line_segment_[bot][dir],
-                   poly_max * scaling_factors_[top] + line_segment_[top][dir]);
+        = std::max(poly_max * scaling_factors_[bot] + line_segment_[bot][dim],
+                   poly_max * scaling_factors_[top] + line_segment_[top][dim]);
 
     return range;
 }
