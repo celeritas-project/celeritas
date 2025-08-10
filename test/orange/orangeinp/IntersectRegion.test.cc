@@ -39,7 +39,7 @@ namespace test
 //---------------------------------------------------------------------------//
 class IntersectRegionTest : public ::celeritas::test::Test
 {
-  private:
+  public:
     using Unit = orangeinp::detail::CsgUnit;
     using UnitBuilder = orangeinp::detail::CsgUnitBuilder;
     using State = orangeinp::detail::IntersectSurfaceState;
@@ -88,6 +88,13 @@ class IntersectRegionTest : public ::celeritas::test::Test
 
     Unit const& unit() const { return unit_; }
     Tol const& tol() const { return unit_builder_.tol(); }
+
+    void reset_with_tol(Tol const& t)
+    {
+        CELER_EXPECT(t);
+        unit_ = {};
+        unit_builder_ = UnitBuilder{&unit_, t, BBox::from_infinite()};
+    }
 
   private:
     Unit unit_;
@@ -1426,6 +1433,53 @@ TEST_F(GenPrismTest, adjacent_twisted)
         "scaled",
     };
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
+}
+
+TEST_F(GenPrismTest, emec_blade)
+{
+    // Reset to using "default" tolerance, 1mm length scale
+    this->reset_with_tol(Tol::from_default(1.0));
+
+    auto result = this->test(GenPrism(10.625,
+                                      {{1.55857990922689, 302.468976599716},
+                                       {-1.73031296208306, 302.468976599716},
+                                       {-2.53451906396442, 609.918546236458},
+                                       {2.18738922312177, 609.918546236458}},
+                                      {{-11.9586196560814, 304.204253530802},
+                                       {-15.2556006134987, 304.204253530802},
+                                       {-31.2774318502685, 613.426120316623},
+                                       {-26.5391748405779, 613.426120316623}}));
+
+    static char const* const expected_surface_strings[] = {
+        "Plane: z=-10.625",
+        "Plane: z=10.625",
+        "Plane: n={0,0.98665,-0.16286}, d=603.51",
+        R"(GQuadric: {0,0,0.0053945} {0,-0.71612,-0.083402} {-308.34,-8.4130,20.954} -66.705)",
+        "Plane: n={0,0.99668,-0.081389}, d=302.33",
+        R"(GQuadric: {0,0,0.0053945} {0,-0.71574,-0.083402} {-308.34,-6.9759,21.111} 512.69)",
+    };
+    static char const* const expected_volume_strings[] = {
+        "all(+0, -1, -2, -3, +4, +5)",
+    };
+    static char const* const expected_md_strings[] = {
+        "",
+        "",
+        "cr@mz",
+        "cr@pz",
+        "",
+        "cr@p0",
+        "",
+        "cr@t1",
+        "",
+        "cr@p2",
+        "cr@t3",
+        "cr",
+    };
+
+    auto& u = this->unit();
+    EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+    EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
 }
 
 TEST_F(GenPrismTest, variable_twisted)
