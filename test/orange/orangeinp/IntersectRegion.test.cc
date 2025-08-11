@@ -967,9 +967,9 @@ TEST_F(GenPrismTest, full)
     static char const* const expected_surfaces[] = {
         "Plane: z=-4",
         "Plane: z=4",
-        "GQuadric: {0,0,0} {0,0.125,-0.125} {3.5,0.5,0.5} -6",
+        R"(GQuadric: {0,0,0} {0,0.035007,-0.035007} {0.98020,0.14003,0.14003} -1.6803)",
         "Plane: n={0,0.99228,0.12404}, d=1.4884",
-        "GQuadric: {0,0,-0} {0,0.125,0.125} {-3.5,0.5,0.5} -6",
+        R"(GQuadric: {0,0,-0} {0,0.035007,0.035007} {-0.98020,0.14003,0.14003} -1.6803)",
         "Plane: y=-2",
     };
 
@@ -1231,9 +1231,9 @@ TEST_F(GenPrismTest, trap_full2)
     static char const* const expected_surfaces[] = {
         "Plane: z=-40",
         "Plane: z=40",
-        "GQuadric: {0,0,0} {0,0.0875,0} {40,-0.5,-41.25} -450",
+        R"(GQuadric: {0,0,0} {0,0.0015228,0} {0.69612,-0.0087015,-0.71787} -7.8313)",
         "Plane: y=20",
-        "GQuadric: {0,0,0} {0,0.2125,0} {40,4.5,-38.75} 450",
+        "GQuadric: {0,0,0} {0,0.0038033,0} {0.71591,0.080539,-0.69354} 8.0540",
         "Plane: y=-20",
     };
 
@@ -1264,9 +1264,9 @@ TEST_F(GenPrismTest, trap_quarter_twist)
     static char const* const expected_surfaces[] = {
         "Plane: z=-1",
         "Plane: z=1",
-        "GQuadric: {0,0,0} {0,2,0} {-2,0,0} 4",
+        "GQuadric: {0,0,0} {0,1,0} {-1,0,0} 2",
         "Plane: y=1",
-        "GQuadric: {0,0,-0} {0,2,0} {-2,0,0} -4",
+        "GQuadric: {0,0,-0} {0,1,0} {-1,0,0} -2",
         "Plane: y=-1",
     };
 
@@ -1299,11 +1299,10 @@ TEST_F(GenPrismTest, trap_uneven_twist)
     static char const* const expected_surfaces[] = {
         "Plane: z=-1",
         "Plane: z=1",
-        "GQuadric: {0,0,0.25} {0,0.5,0.5} {-1.5,0.5,-1.5} 2.25",
+        R"(GQuadric: {0,0,0.11471} {0,0.22942,0.22942} {-0.68825,0.22942,-0.68825} 1.0324)",
         "Plane: n={0,0.97014,0.24254}, d=0.72761",
-        "GQuadric: {0,0,0.25} {0,-0.5,-0.5} {1.5,-0.5,-1.5} 2.25",
-        "Plane: n={0,0.97014,-0.24254}, d=-0.72761",
-    };
+        R"(GQuadric: {0,0,0.11471} {0,-0.22942,-0.22942} {0.68825,-0.22942,-0.68825} 1.0324)",
+        "Plane: n={0,0.97014,-0.24254}, d=-0.72761"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -1334,9 +1333,9 @@ TEST_F(GenPrismTest, trap_even_twist)
     static char const* const expected_surfaces[] = {
         "Plane: z=-1",
         "Plane: z=1",
-        "GQuadric: {0,0,0.25} {0,0.5,0.5} {-1.5,0.5,-1.5} 2.25",
+        R"(GQuadric: {0,0,0.11471} {0,0.22942,0.22942} {-0.68825,0.22942,-0.68825} 1.0324)",
         "Plane: n={0,0.97014,0.24254}, d=0.72761",
-        "GQuadric: {0,0,0.25} {0,-0.5,-0.5} {1.5,-0.5,-1.5} 2.25",
+        R"(GQuadric: {0,0,0.11471} {0,-0.22942,-0.22942} {0.68825,-0.22942,-0.68825} 1.0324)",
         "Plane: n={0,0.97014,-0.24254}, d=-0.72761",
     };
     EXPECT_EQ(expected_node, result.node);
@@ -1394,12 +1393,11 @@ TEST_F(GenPrismTest, adjacent_twisted)
     {
         // Scaled (broadened) right side with the same hyperboloid but
         // different size
-        // TODO: the scaled GQ should be normalized
         auto result = this->test("scaled",
                                  GenPrism(1,
                                           {{0, -2}, {2, -2}, {2, 2}, {0, 2}},
                                           {{1, -2}, {2, -2}, {2, 2}, {-1, 2}}));
-        static char const expected_node[] = "all(+0, -1, +7, -8, -9, +10)";
+        static char const expected_node[] = "all(+0, -1, +3, +7, -8, -9)";
 
         EXPECT_EQ(expected_node, result.node);
         EXPECT_VEC_SOFT_EQ((Real3{-1, -2, -1}), result.exterior.lower());
@@ -1410,14 +1408,13 @@ TEST_F(GenPrismTest, adjacent_twisted)
         "Plane: z=-1",
         "Plane: z=1",
         "Plane: y=-1",
-        "GQuadric: {0,0,-0} {0,0.5,0} {2,0.5,0} 0",
+        "GQuadric: {0,0,-0} {0,0.24254,0} {0.97014,0.24254,0} 0",
         "Plane: y=1",
         "Plane: x=-1",
         "Plane: x=1",
         "Plane: y=-2",
         "Plane: x=2",
         "Plane: y=2",
-        "GQuadric: {0,0,0} {0,1,0} {4,1,0} 0",
     };
     EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
 
@@ -1429,7 +1426,7 @@ TEST_F(GenPrismTest, adjacent_twisted)
         "left@pz,right@pz,scaled@pz",
         "",
         "left@p0,right@p0",
-        "left@t1,right@t3",
+        "left@t1,right@t3,scaled@t3",
         "",
         "left@p2,right@p2",
         "",
@@ -1443,7 +1440,6 @@ TEST_F(GenPrismTest, adjacent_twisted)
         "",
         "scaled@p2",
         "",
-        "scaled@t3",
         "scaled",
     };
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
@@ -1468,9 +1464,9 @@ TEST_F(GenPrismTest, emec_blade)
         "Plane: z=-10.625",
         "Plane: z=10.625",
         "Plane: n={0,0.98665,-0.16286}, d=603.51",
-        R"(GQuadric: {0,0,0.0053945} {0,-0.71612,-0.083402} {-308.34,-8.4130,20.954} -66.705)",
+        R"(GQuadric: {0,0,1.7449e-5} {0,-0.0023163,-0.00026977} {-0.99733,-0.027212,0.067778} -0.21576)",
         "Plane: n={0,0.99668,-0.081389}, d=302.33",
-        R"(GQuadric: {0,0,0.0053945} {0,-0.71574,-0.083402} {-308.34,-6.9759,21.111} 512.69)",
+        R"(GQuadric: {0,0,1.7450e-5} {0,-0.0023153,-0.00026979} {-0.99741,-0.022566,0.068291} 1.6584)",
     };
     static char const* const expected_volume_strings[] = {
         "all(+0, -1, -2, -3, +4, +5)",
@@ -1500,15 +1496,17 @@ TEST_F(GenPrismTest, variable_twisted)
 {
     using SS = SignedSense;
     char label = 'A';
+    constexpr real_type x = 10;
+    constexpr real_type hh = 1;
     auto build_prism = [&](real_type eps) {
         std::string const label_str(1, label++);
         SCOPED_TRACE(label_str);
         // Build and insert a node
         auto n = this->insert(
             this->build(label_str,
-                        GenPrism(real_type{1},
-                                 {{10 - eps, -1}, {10 + eps, 1}, {0, 0}},
-                                 {{10 + eps, -1}, {10 - eps, 1}, {0, 0}}),
+                        GenPrism(hh,
+                                 {{x - eps, -1}, {x + eps, 1}, {0, 0}},
+                                 {{x + eps, -1}, {x - eps, 1}, {0, 0}}),
                         NoTransformation{}));
 
         // Test corners
@@ -1518,35 +1516,35 @@ TEST_F(GenPrismTest, variable_twisted)
             // [lo][0]
             EXPECT_EQ(
                 SS::inside,
-                this->calc_sense(n, {10 - eps, -1 + tol_eps, -1 + tol_eps}));
+                this->calc_sense(n, {x - eps, -1 + tol_eps, -hh + tol_eps}));
             EXPECT_EQ(SS::outside,
-                      this->calc_sense(n, {10 + eps, -1, -1 + tol_eps}));
+                      this->calc_sense(n, {x + eps, -1, -1 + tol_eps}));
             // [lo][0.5]
             EXPECT_EQ(SS::inside,
-                      this->calc_sense(n, {10 - tol_eps, 0, -1 + tol_eps}));
+                      this->calc_sense(n, {x - tol_eps, 0, -hh + tol_eps}));
             EXPECT_EQ(SS::outside,
-                      this->calc_sense(n, {10 + tol_eps, 0, -1 + tol_eps}));
+                      this->calc_sense(n, {x + tol_eps, 0, -hh + tol_eps}));
         }
         {
             SCOPED_TRACE("z = 0");
             // [mid][0.5]
-            EXPECT_EQ(SS::inside, this->calc_sense(n, {10 - tol_eps, 0, 0}));
-            EXPECT_EQ(SS::outside, this->calc_sense(n, {10 + tol_eps, 0, 0}));
+            EXPECT_EQ(SS::inside, this->calc_sense(n, {x - tol_eps, 0, 0}));
+            EXPECT_EQ(SS::outside, this->calc_sense(n, {x + tol_eps, 0, 0}));
         }
         {
             SCOPED_TRACE("z = 1");
             // [hi][1]
             EXPECT_EQ(
                 SS::inside,
-                this->calc_sense(n, {10 - eps, 1 - tol_eps, 1 - tol_eps}));
+                this->calc_sense(n, {x - eps, 1 - tol_eps, hh - tol_eps}));
             EXPECT_EQ(
                 SS::outside,
-                this->calc_sense(n, {10 + eps, 1 - tol_eps, 1 - tol_eps}));
+                this->calc_sense(n, {x + eps, 1 - tol_eps, hh - tol_eps}));
             // [hi][0.5]
             EXPECT_EQ(SS::inside,
-                      this->calc_sense(n, {10 - tol_eps, 0, 1 - tol_eps}));
+                      this->calc_sense(n, {x - tol_eps, 0, hh - tol_eps}));
             EXPECT_EQ(SS::outside,
-                      this->calc_sense(n, {10 + tol_eps, 0, 1 - tol_eps}));
+                      this->calc_sense(n, {x + tol_eps, 0, hh - tol_eps}));
         }
 
         return n;
@@ -1568,25 +1566,25 @@ TEST_F(GenPrismTest, variable_twisted)
         "Plane: x=10",
         "Plane: n={0.099504,-0.99504,0}, d=0",
         "Plane: n={0.099504,0.99504,0}, d=0",
-        "GQuadric: {0,0,-0} {0,2e-3,0} {2,0,0} -20",
-        "GQuadric: {0,0,-0} {0,0.02,0} {2,0,0} -20",
-        "GQuadric: {0,0,0} {0,0.01,0} {1,-10,0} 0",
-        "GQuadric: {0,0,0} {0,0.01,0} {1,10,0} 0",
-        "GQuadric: {0,0,-0} {0,0.2,0} {2,0,0} -20",
-        "GQuadric: {0,0,0} {0,0.1,0} {1,-10,0} 0",
-        "GQuadric: {0,0,0} {0,0.1,0} {1,10,0} 0",
-        "GQuadric: {0,0,-0} {0,0.25,0} {2,0,0} -20",
-        "GQuadric: {0,0,0} {0,0.125,0} {1,-10,0} 0",
-        "GQuadric: {0,0,0} {0,0.125,0} {1,10,0} 0",
-        "GQuadric: {0,0,-0} {0,0.3,0} {2,0,0} -20",
-        "GQuadric: {0,0,0} {0,0.15,0} {1,-10,0} 0",
-        "GQuadric: {0,0,0} {0,0.15,0} {1,10,0} 0",
-        "GQuadric: {0,0,-0} {0,0.35,0} {2,0,0} -20",
-        "GQuadric: {0,0,0} {0,0.175,0} {1,-10,0} 0",
-        "GQuadric: {0,0,0} {0,0.175,0} {1,10,0} 0",
-        "GQuadric: {0,0,-0} {0,0.4,0} {2,0,0} -20",
-        "GQuadric: {0,0,0} {0,0.2,0} {1,-10,0} 0",
-        "GQuadric: {0,0,0} {0,0.2,0} {1,10,0} 0",
+        "GQuadric: {0,0,-0} {0,1e-3,0} {1,0,0} -10",
+        "GQuadric: {0,0,-0} {0,0.01,0} {1,0,0} -10",
+        "GQuadric: {0,0,0} {0,0.00099504,0} {0.099504,-0.99504,0} 0",
+        "GQuadric: {0,0,0} {0,0.00099504,0} {0.099504,0.99504,0} 0",
+        "GQuadric: {0,0,-0} {0,0.1,0} {1,0,0} -10",
+        "GQuadric: {0,0,0} {0,0.0099504,0} {0.099504,-0.99504,0} 0",
+        "GQuadric: {0,0,0} {0,0.0099504,0} {0.099504,0.99504,0} 0",
+        "GQuadric: {0,0,-0} {0,0.125,0} {1,0,0} -10",
+        "GQuadric: {0,0,0} {0,0.012438,0} {0.099504,-0.99504,0} 0",
+        "GQuadric: {0,0,0} {0,0.012438,0} {0.099504,0.99504,0} 0",
+        "GQuadric: {0,0,-0} {0,0.15,0} {1,0,0} -10",
+        "GQuadric: {0,0,0} {0,0.014926,0} {0.099504,-0.99504,0} 0",
+        "GQuadric: {0,0,0} {0,0.014926,0} {0.099504,0.99504,0} 0",
+        "GQuadric: {0,0,-0} {0,0.175,0} {1,0,0} -10",
+        "GQuadric: {0,0,0} {0,0.017413,0} {0.099504,-0.99504,0} 0",
+        "GQuadric: {0,0,0} {0,0.017413,0} {0.099504,0.99504,0} 0",
+        "GQuadric: {0,0,-0} {0,0.2,0} {1,0,0} -10",
+        "GQuadric: {0,0,0} {0,0.019901,0} {0.099504,-0.99504,0} 0",
+        "GQuadric: {0,0,0} {0,0.019901,0} {0.099504,0.99504,0} 0",
     };
     static char const* const expected_volume_strings[] = {
         "all(+0, -1, -2, +3, +4)",

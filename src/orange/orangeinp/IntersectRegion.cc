@@ -930,32 +930,39 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
         }
         else
         {
-            constexpr real_type half{0.5};
-            // Insert a "twisted" face
-            // x,y-'slopes' of l/r vertical edges in terms of z
-            auto txl = half * (ul[X] - ll[X]) / hh_;
-            auto tyl = half * (ul[Y] - ll[Y]) / hh_;
-            auto txr = half * (ur[X] - lr[X]) / hh_;
-            auto tyr = half * (ur[Y] - lr[Y]) / hh_;
+            // Insert a twisted (hyperbolic paraboloid) face
+            // Horizontal slopes of l/r vertical edges
+            auto txl = (ul[X] - ll[X]) / (2 * hh_);
+            auto tyl = (ul[Y] - ll[Y]) / (2 * hh_);
+            auto txr = (ur[X] - lr[X]) / (2 * hh_);
+            auto tyr = (ur[Y] - lr[Y]) / (2 * hh_);
 
-            // Halfway coordinates of ll,rl vertical edges
-            auto mxl = half * (ll[X] + ul[X]);
-            auto myl = half * (ll[Y] + ul[Y]);
-            auto mxr = half * (lr[X] + ur[X]);
-            auto myr = half * (lr[Y] + ur[Y]);
+            // Midpoints of ll,rl vertical edges
+            auto mxl = (ll[X] + ul[X]) / 2;
+            auto myl = (ll[Y] + ul[Y]) / 2;
+            auto mxr = (lr[X] + ur[X]) / 2;
+            auto myr = (lr[Y] + ur[Y]) / 2;
 
-            // Coefficients for the quadric
-            real_type czz = (txr * tyl - txl * tyr);
-            real_type eyz = (txl - txr);
-            real_type fzx = (tyr - tyl);
-            real_type gx = myr - myl;
-            real_type hy = mxl - mxr;
-            real_type iz = (txr * myl - txl * myr + tyl * mxr - tyr * mxl);
-            real_type js = (mxr * myl - mxl * myr);
+            // 2D cross product of twist vectors
+            real_type czz = txr * tyl - txl * tyr;
+            // Differences in slope between left and right edges
+            real_type eyz = txl - txr;
+            real_type fzx = tyr - tyl;
+            // Tilt of the edges (linear component)
+            Real3 ghi = {myr - myl,
+                         mxl - mxr,
+                         txr * myl - txl * myr + tyl * mxr - tyr * mxl};
+            // Cross product of midpoint
+            real_type js = mxr * myl - mxl * myr;
+
+            // Normalize based on linear components to represent as a plane
+            // with a perturbation
+            auto const k = 1 / norm(ghi);
 
             insert_surface(
                 Sense::inside,
-                GeneralQuadric{{0, 0, czz}, {0, eyz, fzx}, {gx, hy, iz}, js},
+                GeneralQuadric{
+                    {0, 0, k * czz}, {0, k * eyz, k * fzx}, k * ghi, k * js},
                 "t" + std::to_string(li));
         }
     }
