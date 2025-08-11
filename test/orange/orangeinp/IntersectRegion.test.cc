@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "orange/orangeinp/IntersectRegion.hh"
 
+#include "corecel/io/Join.hh"
+#include "corecel/io/Logger.hh"
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/MatrixUtils.hh"
 #include "orange/OrangeTypes.hh"
@@ -82,8 +84,20 @@ class IntersectRegionTest : public ::celeritas::test::Test
     SignedSense calc_sense(NodeId n, Real3 const& pos) const
     {
         CELER_EXPECT(n < unit_.tree.size());
-        detail::SenseEvaluator eval_sense(unit_.tree, unit_.surfaces, pos);
-        return eval_sense(n);
+        LocalSurfaceId on_surface;
+        detail::SenseEvaluator eval_sense(
+            unit_.tree, unit_.surfaces, pos, &on_surface);
+        auto result = eval_sense(n);
+        if (on_surface)
+        {
+            CELER_EXPECT(n < unit_.metadata.size());
+            auto const& md_set = unit_.metadata[n.get()];
+            CELER_LOG(debug)
+                << "Point " << repr(pos) << " is on surface "
+                << on_surface.get() << " of node " << n.get() << " = "
+                << join(md_set.begin(), md_set.end(), ',');
+        }
+        return result;
     }
 
     Unit const& unit() const { return unit_; }
