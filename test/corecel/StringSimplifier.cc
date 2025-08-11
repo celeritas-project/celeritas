@@ -153,6 +153,7 @@ std::string StringSimplifier::simplify_sci(std::string s) const
     return s;
 }
 
+// 123.45
 std::string StringSimplifier::simplify_float(std::string s) const
 {
     CELER_EXPECT(!s.empty());
@@ -175,6 +176,7 @@ std::string StringSimplifier::simplify_float(std::string s) const
     begin = std::find_if(begin, s.cend(), [](char c) { return c != '0'; });
     auto dec_iter = std::find(begin, s.cend(), '.');
     int lead_precision = std::distance(begin, dec_iter);
+    int lead_zeros = 0;
     if (dec_iter == s.cend())
     {
         // No decimal found: either a float (1f) or a single-digit scientific
@@ -189,6 +191,7 @@ std::string StringSimplifier::simplify_float(std::string s) const
         if (iter != s.cend())
         {
             // Strip leading zeros
+            lead_zeros = std::distance(dec_iter + 1, iter);
             dec_iter = iter;
         }
         else
@@ -212,7 +215,8 @@ std::string StringSimplifier::simplify_float(std::string s) const
     }
     else
     {
-        dec_precision = std::min(dec_precision, precision_ - lead_precision);
+        dec_precision = std::min(dec_precision, precision_ - lead_precision)
+                        + lead_zeros;
         s = to_float(std::stod(s), dec_precision);
         if (dec_precision == 0)
         {
