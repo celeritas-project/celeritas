@@ -82,6 +82,7 @@ void IntersectTestResult::print_expected() const
     IRE_COMPARE(surfaces);
 
     // Special handling for BBox objects
+    // FIXME: don't use exact comparison here, use soft equality
     if (val1.interior != val2.interior)
     {
         result.fail() << "Expected interior: " << repr(val1.interior)

@@ -287,7 +287,9 @@ auto SurfaceSimplifier::operator()(Sphere const& s) const
  * The sign can also be reversed as part of regularization.
  *
  * \note Differently scaled SQs are *not* simplified at the moment due to small
- * changes in the intercept distances that haven't yet been investigated.
+ * changes in the intercept distances. Normalization of the values should be
+ * performed during the IntersectRegion construction: see, e.g., Ellipsoid,
+ * Paraboloid, etc.
  */
 auto SurfaceSimplifier::operator()(SimpleQuadric const& sq) const
     -> Optional<Plane,
