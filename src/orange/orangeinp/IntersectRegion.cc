@@ -35,6 +35,15 @@ namespace orangeinp
 {
 namespace
 {
+
+//! Convenience enumeration for implementations in this file
+enum
+{
+    X = 0,
+    Y = 1,
+    Z = 2
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Create a SoftEqual instance using the surface builder tolerance.
@@ -56,13 +65,15 @@ BBox make_xyradial_bbox(real_type r)
     return BBox::from_unchecked({-r, -r, -inf}, {r, r, inf});
 }
 
-//! Convenience enumeration for implementations in this file
-enum
+//---------------------------------------------------------------------------//
+/*!
+ * Replace signed zeros with positive zero.
+ */
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION real_type
+canonicalize_zero(real_type value)
 {
-    X = 0,
-    Y = 1,
-    Z = 2
-};
+    return value == 0 ? 0 : value;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -944,16 +955,17 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
             auto myr = (lr[Y] + ur[Y]) / 2;
 
             // 2D cross product of twist vectors
-            real_type czz = txr * tyl - txl * tyr;
+            real_type czz = canonicalize_zero(txr * tyl - txl * tyr);
             // Differences in slope between left and right edges
             real_type eyz = txl - txr;
             real_type fzx = tyr - tyl;
             // Tilt of the edges (linear component)
             Real3 ghi = {myr - myl,
                          mxl - mxr,
-                         txr * myl - txl * myr + tyl * mxr - tyr * mxl};
+                         canonicalize_zero(txr * myl - txl * myr + tyl * mxr
+                                           - tyr * mxl)};
             // Cross product of midpoint
-            real_type js = mxr * myl - mxl * myr;
+            real_type js = canonicalize_zero(mxr * myl - mxl * myr);
 
             // Normalize based on linear components to represent as a plane
             // with a perturbation
@@ -1287,9 +1299,11 @@ void Paraboloid::build(IntersectSurfaceBuilder& insert_surface) const
     insert_surface(Sense::outside, PlaneZ{-hh_});
     insert_surface(Sense::inside, PlaneZ{hh_});
 
-    // Insert quadric surface
+    // Insert quadric surface. Note that the scaling is such that as
+    // hh -> infinity and rlo == rhi,
+    // this becomes the cylinder x^2 + y^2 == R^2.
     real_type f = (ipow<2>(r_lo_) - ipow<2>(r_hi_)) / (2 * hh_);
-    real_type g = (-ipow<2>(r_lo_) - ipow<2>(r_hi_)) / 2;
+    real_type g = -(ipow<2>(r_lo_) + ipow<2>(r_hi_)) / 2;
     insert_surface(SimpleQuadric{Real3{1, 1, 0}, Real3{0, 0, f}, g});
 
     // Set an exterior bbox
