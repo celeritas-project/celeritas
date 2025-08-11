@@ -52,6 +52,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 - *[lockwood-1979]*: G. Lockwood, L. Ruggles, G. Miller, J. Halbleib. "Calorimetric measurement of electron energy deposition in extended media. Theory vs experiment". Jan 1980. [www.osti.gov](http://www.osti.gov/servlets/purl/5516784-bHr2NK/)
 - *[tsai-1974]*: Y. Tsai. "Pair production and bremsstrahlung of charged leptons". *Reviews of Modern Physics*, Oct 1974. [10.1103/RevModPhys.46.815](https://doi.org/10.1103/RevModPhys.46.815)
 - M. Inokuti. "Inelastic collisions of fast charged particles with atoms and molecules—the Bethe theory revisited". *Reviews of modern physics*, 1971.
+- K. E. Torrance, E. M. Sparrow. "Theory for Off-Specular Reflection From Roughened Surfaces*". *Journal of the Optical Society of America*, Sep 1967. [10.1364/JOSA.57.001105](https://doi.org/10.1364/JOSA.57.001105)
 - *[bertini-1963]*: H. W. Bertini. "Low-Energy Intranuclear Cascade Calculation". *Physical Review*, Aug 1963. [10.1103/PhysRev.131.1801](https://doi.org/10.1103/PhysRev.131.1801)
 - *[butcher-electron-1960]*: J. Butcher, H. Messel. "Electron number distribution in electron-photon showers in air and aluminium absorbers". *Nuclear Physics*, Oct 1960. [10.1016/0029-5582(60)90162-0](https://doi.org/10.1016/0029-5582(60)90162-0)
 - *[hess-1958]*: W. N. Hess. "Summary of High-Energy Nucleon-Nucleon Cross-Section Data". *Reviews of Modern Physics*, Apr 1958. [10.1103/RevModPhys.30.368](https://doi.org/10.1103/RevModPhys.30.368)
@@ -110,9 +111,9 @@ These publications are extracted from the Celeritas team's Zotero database.
 - J. Apostolakis, M. Bandieramonte, S. Banerjee, N. Bartosik, G. Corti, *et al*. "Detector simulation challenges for future accelerator experiments". *Frontiers in Physics*, Jun 2022. [10.3389/fphy.2022.913510](https://doi.org/10.3389/fphy.2022.913510)
 - "GDML user's guide". Jun 2022.
 - T. M. Evans, A. Siegel, E. W. Draeger, J. Deslippe, M. M. Francois, *et al*. "A survey of software implementations used by application codes in the Exascale Computing Project". *The International Journal of High Performance Computing Applications*, Jan 2022. [10.1177/10943420211028940](https://doi.org/10.1177/10943420211028940)
-- X. Ai, G. Mania, H. M. Gray, M. Kuhn, N. Styles, *et al*. "A GPU-based Kalman Filter for Track Fitting". *Computing and Software for Big Science*, Dec 2021. [10.1007/s41781-021-00065-z](https://doi.org/10.1007/s41781-021-00065-z)
 - M. McManus, F. Romano, G. Royle, H. Palmans, A. Subiel, *et al*. "A Geant4 Fano test for novel very high energy electron beams". *Physics in Medicine & Biology*, Dec 2021. [10.1088/1361-6560/ac3e0f](https://doi.org/10.1088/1361-6560/ac3e0f)
 - M. Asai, M. A. Cortés-Giraldo, V. Giménez-Alventosa, V. Giménez Gómez, F. Salvat, *et al*. "The PENELOPE Physics Models and Transport Mechanics. Implementation into Geant4". *Frontiers in Physics*, Dec 2021. [10.3389/fphy.2021.738735](https://doi.org/10.3389/fphy.2021.738735)
+- X. Ai, G. Mania, H. M. Gray, M. Kuhn, N. Styles, *et al*. "A GPU-based Kalman Filter for Track Fitting". *Computing and Software for Big Science*, Dec 2021. [10.1007/s41781-021-00065-z](https://doi.org/10.1007/s41781-021-00065-z)
 - Andrei Gheata, AdePT Team. "AdePT Status". Sep 2021. [indico.cern.ch](https://indico.cern.ch/event/1052654/contributions/4525306/attachments/2310908/3932523/AdePT%2026th%20Geant4%20Collaboration%20Meeting.pdf)
 - S. Blyth, C. Biscarat, S. Campana, B. Hegner, S. Roiser, *et al*. "Integration of JUNO simulation framework with Opticks: GPU accelerated optical propagation via NVIDIA® OptiX™". *EPJ Web of Conferences*, 2021. [10.1051/epjconf/202125103009](https://doi.org/10.1051/epjconf/202125103009)
 - *[fair4s-2021]*: N. P. Chue Hong, D. S. Katz, M. Barker, A. Lamprecht, C. Martinez, *et al*. "FAIR Principles for Research Software (FAIR4RS Principles)". 2021. [10.15497/RDA00068](https://doi.org/10.15497/RDA00068)
@@ -136,8 +137,8 @@ These publications are extracted from the Celeritas team's Zotero database.
 - F. Sanglard. "A history of NVidia Stream Multiprocessor". May 2020. [fabiensanglard.net](https://fabiensanglard.net/cuda/)
 - *[hep-roadmap-2019]*: The HEP Software Foundation, J. Albrecht, A. A. Alves, G. Amadio, G. Andronico, *et al*. "A Roadmap for HEP Software and Computing R&D for the 2020s". *Computing and Software for Big Science*, Dec 2019. [10.1007/s41781-018-0018-8](https://doi.org/10.1007/s41781-018-0018-8)
 - P. Mato, P. Canal. "GeantV Conclusions and Follow-up". Oct 2019. [indico.cern.ch](https://indico.cern.ch/event/818702/)
-- *[cope-authorship-2014]*: COPE Council. "COPE Discussion Document: Authorship". Sep 2019. [publicationethics.org](https://publicationethics.org/guidance/discussion-document/authorship)
 - *[geantx-2019]*: P. Canal. "Geant Exascale Pilot Project". Sep 2019. [indico.cern.ch](https://indico.cern.ch/event/825306/contributions/3568404/)
+- *[cope-authorship-2014]*: COPE Council. "COPE Discussion Document: Authorship". Sep 2019. [publicationethics.org](https://publicationethics.org/guidance/discussion-document/authorship)
 - *[blyth-opticks-2019]*: S. Blyth. "Opticks: GPU Optical Photon Simulation for Particle Physics using NVIDIA OptiX". *EPJ Web of Conferences*, 2019. [10.1051/epjconf/201921402027](https://doi.org/10.1051/epjconf/201921402027)
 - *[geant-em-2019]*: V. Ivanchenko, A. Bagulya, S. Bakr, M. Bandieramonte, D. Bernard, *et al*. "Progress of Geant4 electromagnetic physics developments and applications". *EPJ Web of Conferences*, 2019. [10.1051/epjconf/201921402046](https://doi.org/10.1051/epjconf/201921402046)
 - S. P. Hamilton, T. M. Evans. "Continuous-energy Monte Carlo neutron transport on GPUs in the Shift code". *Annals of Nuclear Energy*, Jun 2019. [10.1016/j.anucene.2019.01.012](https://doi.org/10.1016/j.anucene.2019.01.012)
@@ -168,9 +169,9 @@ These publications are extracted from the Celeritas team's Zotero database.
 - D. Rebuzzi, K. A. Assamagan. "Geant4 Muon Digitization in the ATHENA Framework". 2007.
 - *[gdml-2006]*: R. Chytracek, J. Mccormick, W. Pokorski, G. Santin. "Geometry Description Markup Language for Physics Simulation and Analysis Applications". *IEEE Transactions on Nuclear Science*, Oct 2006. [10.1109/TNS.2006.881062](https://doi.org/10.1109/TNS.2006.881062)
 - *[geant4_2006]*: J. Allison, K. Amako, J. Apostolakis, H. Araujo, P. Arce Dubois, *et al*. "Geant4 developments and applications". *IEEE Transactions on Nuclear Science*, Feb 2006. [10.1109/TNS.2006.869826](https://doi.org/10.1109/TNS.2006.869826)
-- *[geant4_2003]*: S. Agostinelli, J. Allison, K. Amako, J. Apostolakis, H. Araujo, *et al*. "Geant4—a simulation toolkit". *Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment*, Jul 2003. [10.1016/S0168-9002(03)01368-8](https://doi.org/10.1016/S0168-9002(03)01368-8)
 - M. Dressel. "Geometrical importance sampling in Geant4: from design to veriﬁcation". 2003.
 - M. G. Pia, G. Collaboration. "The Geant4 Toolkit: simulation capabilities and application results". *Nuclear Physics B-Proceedings Supplements*, 2003.
+- *[geant4_2003]*: S. Agostinelli, J. Allison, K. Amako, J. Apostolakis, H. Araujo, *et al*. "Geant4—a simulation toolkit". *Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment*, Jul 2003. [10.1016/S0168-9002(03)01368-8](https://doi.org/10.1016/S0168-9002(03)01368-8)
 - *[clhep]*: L. Lönnblad. "CLHEP—a project for designing a C++ class library for high energy physics". *Computer Physics Communications*, Nov 1994. [10.1016/0010-4655(94)90217-8](https://doi.org/10.1016/0010-4655(94)90217-8)
 - *[kenovi]*: Hollenbach, DF, Petrie, LM, Landers, NF. "KENO-VI: A Monte Carlo Criticality Program with generalized quadratic geometry". Nashville, TN, Sep 1993.
 - *[geant3-1993]*: R. Brun, F. Bruyant, F. Carminati, S. Giani, M. Maire, *et al*. "GEANT: Detector Description and Simulation Tool; Oct 1994". 1993. [cds.cern.ch](https://cds.cern.ch/record/1082634)
@@ -201,7 +202,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 - *[press-nr-1992]*: W. H. Press. "Numerical recipes in C: the art of scientific computing". Cambridge University Press, Cambridge ; New York, 1992. [dl.acm.org](https://dl.acm.org/doi/10.5555/1403886)
 - *[allen-loop-1984]*: J. Allen, K. Kennedy. "Automatic Loop Interchange". in *SIGPLAN Notlce8*, Jun 1984.
 - *[dormand-rungekutta-1980]*: J. Dormand, P. Prince. "A family of embedded Runge-Kutta formulae". *Journal of Computational and Applied Mathematics*, Mar 1980. [10.1016/0771-050X(80)90013-3](https://doi.org/10.1016/0771-050X(80)90013-3)
-- *[everett-montecarlo-1972]*: C. J. Everett, E. D. Cashwell. "A Monte Carlo Sampler". 1972. [doi.org](https://doi.org/10.2172/4589395)
+- C. J. Everett, E. D. Cashwell. "A Monte Carlo Sampler". 1972. [doi.org](https://doi.org/10.2172/4589395)
 - D. E. Knuth. "The art of computer programming". Addison-Wesley, Reading, Mass. Munich, 1968.
 - G. M. Amdahl. "Validity of the single processor approach to achieving large scale computing capabilities". in *Proceedings of the April 18-20, 1967, spring joint computer conference on - AFIPS '67 (Spring)*, Atlantic City, New Jersey, 1967. [10.1145/1465482.1465560](https://doi.org/10.1145/1465482.1465560)
 
@@ -228,4 +229,6 @@ These publications are extracted from the Celeritas team's Zotero database.
 - P. S. Heckbert. "Graphics gems IV". AP Professional, Boston, 1994.
 - R. T. Farouki, C. Neff, M. A. O'Conner. "Automatic parsing of degenerate quadric-surface intersections". *ACM Transactions on Graphics*, Jul 1989. [10.1145/77055.77058](https://doi.org/10.1145/77055.77058)
 - *[tor-convexdecomp-1984]*: S. B. Tor, A. E. Middleditch. "Convex decomposition of simple polygons". *ACM Transactions on Graphic*, Oct 1984. [https://doi.org/10.1145/357346.357348](https://doi.org/https://doi.org/10.1145/357346.357348)
+- *[levin-parametricalgorithm-1976]*: J. Levin. "A parametric algorithm for drawing pictures of solid objects composed of quadric surfaces". *Communications of the ACM*, Oct 1976. [10.1145/360349.360355](https://doi.org/10.1145/360349.360355)
+- *[levin-parametricalgorithm-1976-report]*: J. Z. Levin. "A parametric algorithm for drawing pictures of solid objects". Mar 1976.
 - *[graham-convexhull-1972]*: R. Graham. "An efficient algorithm for determining the convex hull of a finite planar set". *Information Processing Letters*, Jun 1972. [https://doi.org/10.1016/0020-0190(72)90045-2](https://doi.org/https://doi.org/10.1016/0020-0190(72)90045-2)

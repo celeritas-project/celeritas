@@ -8,7 +8,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 ## Conference papers
 
-- A. L. Lund, J. Esseiva, S. R. Johnson, E. Biondo, P. Canal, *et al*. "Accelerating detector simulations with Celeritas: profiling and performance optimizations". Mar 2025. [10.48550/arXiv.2503.17608](https://doi.org/10.48550/arXiv.2503.17608)
+- *[celer-chep-2025]*: A. L. Lund, J. Esseiva, S. R. Johnson, E. Biondo, P. Canal, *et al*. "Accelerating detector simulations with Celeritas: profiling and performance optimizations". Mar 2025. [10.48550/arXiv.2503.17608](https://doi.org/10.48550/arXiv.2503.17608)
 - *[gnu-parallel-2024]*: K. Maheshwari, W. Arndt, A. M. Karimi, J. Yin, F. Suter, *et al*. "GNU parallel: enabling low-overhead HT-HPC workflows at extreme scale". Atlanta, GA, Nov 2024. [10.1109/SCW63240.2024.00257](https://doi.org/10.1109/SCW63240.2024.00257)
 - *[celer-chep-2024]*: S. R. Johnson, A. Lund, P. Canal, S. C. Tognini, J. Esseiva, *et al*. "Celeritas: accelerating Geant4 with GPUs". *EPJ Web of Conferences*, 2024. [10.1051/epjconf/202429511005](https://doi.org/10.1051/epjconf/202429511005)
 - *[celer-snowmass-2022]*: S. C. Tognini, P. Canal, T. M. Evans, G. Lima, A. L. Lund, *et al*. "Celeritas: GPU-accelerated particle transport for detector simulation in High Energy Physics experiments". in *Snowmass white papers*, Mar 2022. [10.48550/arXiv.2203.09467](https://doi.org/10.48550/arXiv.2203.09467)
@@ -48,8 +48,8 @@ These publications are extracted from the Celeritas team's Zotero database.
 - A. Lund, T. M. Evans, M. Demarteau, *et al*. "Celeritas: HEP detector simulation on GPUs". *SciDAC-5 PI Meeting*, 13 Sep 2023.
 - S. Tognini. "Celeritas: Focused talk: initial results". *SciDAC-5 PI Meeting*, 13 Sep 2023.
 - T. Evans. "Celeritas: overview". *SciDAC-5 PI Meeting*, 13 Sep 2023.
-- S. R. Johnson. "Celeritas: EM physics on GPUs". *CalVision general meeting*, 08 Jun 2023. [presentation](https://indico.fnal.gov/event/59490/)
-- S. R. Johnson. "Celeritas: EM physics on GPUs  and a path to full-featured accelerated detector simulation". *CHEP 2023*, 08 May 2023. [presentation](https://indico.jlab.org/event/459/contributions/11818/attachments/9324/13745/srj-chep.pdf)
+- *[johnson-celeritasem-2023-calvision]*: S. R. Johnson. "Celeritas: EM physics on GPUs". *CalVision general meeting*, 08 Jun 2023. [presentation](https://indico.fnal.gov/event/59490/)
+- *[johnson-celeritasem-2023]*: S. R. Johnson. "Celeritas: EM physics on GPUs  and a path to full-featured accelerated detector simulation". *CHEP 2023*, 08 May 2023. [presentation](https://indico.jlab.org/event/459/contributions/11818/attachments/9324/13745/srj-chep.pdf)
 - S. Tognini. "Celeritas: A GPU Monte Carlo Detector simulation code for HEP". *Amherst Center for Fundamental Interactions Seminar*, 11 Apr 2023.
 - S. Tognini. "Celeritas: Using GPUs to accelerate HEP detector simulation". *APS*, 03 Apr 2023. [presentation](https://meetings.aps.org/Meeting/APR24/Session/D14.6)
 - B. Morgan, S. R. Johnson. "Update on AdePT/Celeritas". *SWIFT-HEP Collaboration Meeting*, 30 Mar 2023. [presentation](https://indico.cern.ch/event/1215829/contributions/5306565/)
