@@ -40,7 +40,7 @@ class Sphere;
  * cylinders, etc.  The quadric is ill-defined if all non-constants are zero.
  *
  * Even though this equation can be scaled arbitrarily, the quadratic solver
- * is sensitive to the scale of the coefficients to avoid numerical precisoin
+ * is sensitive to the scale of the coefficients to avoid numerical precision
  * loss. If present, the first-order coefficients should be on the length scale
  * of the problem (i.e., translations avoid catastrophic precision loss).
  * In most non-pathological cases, the scale of the second-order components
