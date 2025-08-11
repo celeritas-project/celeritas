@@ -277,7 +277,7 @@ TEST_F(ConeTest, almost_cyl)
 
     static char const expected_node[] = "all(+0, -1, -2)";
     static char const* const expected_surfaces[]
-        = {"Plane: z=-10", "Plane: z=10", "Cone z: t=0.005 at {0,0,100}"};
+        = {"Plane: z=-10", "Plane: z=10", "Cone z: t=5e-3 at {0,0,100}"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -652,15 +652,16 @@ TEST_F(ExtrudedPolygonTest, skewed)
     auto result = this->test(ExtrudedPolygon(polygon, bot, top));
 
     static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5, +6, +7)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=10",
-           "Plane: z=15",
-           "Plane: n={-0.85138,0.42569,0.3065}, d=0.34055",
-           "Plane: n={0.45718,0.22859,-0.8595}, d=-5.1204",
-           "Plane: n={0.35448,-0.70895,0.6097}, d=3.6511",
-           "Plane: n={-0.8165,0.40825,0.40825}, d=3.4701",
-           "Plane: n={0.3152,0.3152,-0.89516}, d=-6.9658",
-           "Plane: n={0,0.53,-0.848}, d=-6.89"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=10",
+        "Plane: z=15",
+        "Plane: n={-0.85138,0.42569,0.30650}, d=0.34055",
+        "Plane: n={0.45718,0.22859,-0.85950}, d=-5.1204",
+        "Plane: n={0.35448,-0.70895,0.60970}, d=3.6511",
+        "Plane: n={-0.81650,0.40825,0.40825}, d=3.4701",
+        "Plane: n={0.31520,0.31520,-0.89516}, d=-6.9658",
+        "Plane: n={0,0.53000,-0.84800}, d=-6.8900",
+    };
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -946,7 +947,7 @@ TEST_F(GenPrismTest, full)
         "Plane: z=-4",
         "Plane: z=4",
         "GQuadric: {0,0,0} {0,0.125,-0.125} {3.5,0.5,0.5} -6",
-        "Plane: n={0,0.99228,0.12403}, d=1.4884",
+        "Plane: n={0,0.99228,0.12404}, d=1.4884",
         "GQuadric: {0,0,-0} {0,0.125,0.125} {-3.5,0.5,0.5} -6",
         "Plane: y=-2",
     };
@@ -998,7 +999,7 @@ TEST_F(GenPrismTest, tetrahedron)
         = {"Plane: z=-3",
            "Plane: n={0.31449,-0.94346,0.10483}, d=0.31449",
            "Plane: n={0.31449,0.94346,0.10483}, d=0.31449",
-           "Plane: n={0.98639,0,-0.1644}, d=-0.4932"};
+           "Plane: n={0.98639,0,-0.16440}, d=-0.49320"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -1045,12 +1046,13 @@ TEST_F(GenPrismTest, envelope)
 
     auto result = this->test(pri);
     static char const expected_node[] = "all(+0, +1, -2, -3, +4)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-2",
-           "Plane: n={0,0.89443,-0.44721}, d=-0.89443",
-           "Plane: n={0.99228,-0,0.12403}, d=0.74421",
-           "Plane: n={0,0.89443,0.44721}, d=0.89443",
-           "Plane: n={0.99228,0,-0.12403}, d=-0.74421"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-2",
+        "Plane: n={0,0.89443,-0.44721}, d=-0.89443",
+        "Plane: n={0.99228,-0,0.12404}, d=0.74421",
+        "Plane: n={0,0.89443,0.44721}, d=0.89443",
+        "Plane: n={0.99228,0,-0.12404}, d=-0.74421",
+    };
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -1072,13 +1074,14 @@ TEST_F(GenPrismTest, trd)
 
     auto result = this->test(pri);
     static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-3",
-           "Plane: z=3",
-           "Plane: n={0.98639,0,-0.1644}, d=1.4796",
-           "Plane: n={0,0.98639,-0.1644}, d=1.4796",
-           "Plane: n={0.98639,0,0.1644}, d=-1.4796",
-           "Plane: n={0,0.98639,0.1644}, d=-1.4796"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-3",
+        "Plane: z=3",
+        "Plane: n={0.98639,0,-0.16440}, d=1.4796",
+        "Plane: n={0,0.98639,-0.16440}, d=1.4796",
+        "Plane: n={0.98639,0,0.16440}, d=-1.4796",
+        "Plane: n={0,0.98639,0.16440}, d=-1.4796",
+    };
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -1491,7 +1494,7 @@ TEST_F(GenPrismTest, variable_twisted)
     }
 
     auto const& u = this->unit();
-    print_expected(u);
+    // print_expected(u);
 
     static char const* const expected_surface_strings[] = {
         "Plane: z=-1",
@@ -1499,14 +1502,14 @@ TEST_F(GenPrismTest, variable_twisted)
         "Plane: x=10",
         "Plane: n={0.099504,-0.99504,0}, d=0",
         "Plane: n={0.099504,0.99504,0}, d=0",
-        "Plane: n={-1,0.001,0.001}, d=-10.001",
+        "Plane: n={-1.00000,0.00100000,0.00100000}, d=-10.001",
         "GQuadric: {0,0,-0} {0,0.02,0} {2,0,0} -20",
         "Plane: n={0.099405,-0.99505,0.00099405}, d=-0.00099405",
         "GQuadric: {0,0,-0} {0,0.2,0} {2,0,0} -20",
         "Plane: n={0.098523,-0.99509,0.0098523}, d=-0.0098523",
-        "Plane: n={0.1005,0.99494,0}, d=0",
+        "Plane: n={0.10050,0.99494,0}, d=0",
         "GQuadric: {0,0,-0} {0,0.25,0} {2,0,0} -20",
-        "Plane: n={0.09828,-0.99508,0.012285}, d=-0.012285",
+        "Plane: n={0.098280,-0.99508,0.012285}, d=-0.012285",
         "Plane: n={0.10075,0.99491,0}, d=0",
         "GQuadric: {0,0,-0} {0,0.3,0} {2,0,0} -20",
         "GQuadric: {0,0,0} {0,0.15,0} {1,-10,0} 0",
@@ -2126,8 +2129,8 @@ TEST_F(ParallelepipedTest, alpha)
     static char const* const expected_surfaces[] = {
         "Plane: z=-3",
         "Plane: z=3",
-        "Plane: y=-1.618",
-        "Plane: y=1.618",
+        "Plane: y=-1.6180",
+        "Plane: y=1.6180",
         "Plane: n={0.80902,-0.58779,0}, d=-0.80902",
         "Plane: n={0.80902,-0.58779,0}, d=0.80902",
     };
