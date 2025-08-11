@@ -153,7 +153,6 @@ std::string StringSimplifier::simplify_sci(std::string s) const
     return s;
 }
 
-// 123.45
 std::string StringSimplifier::simplify_float(std::string s) const
 {
     CELER_EXPECT(!s.empty());
