@@ -812,6 +812,21 @@ GenPrism::GenPrism(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
             << native_value_to<Turn>(std::acos(twist_angle_cosine)).value()
             << " turns)");
     }
+
+    // Save length scale
+    length_scale_ = hh_;
+    for (auto const* v : {&lo_, &hi_})
+    {
+        for (auto const& pt : *v)
+        {
+            for (auto dim : {X, Y})
+            {
+                length_scale_ = std::fmax(length_scale_, std::fabs(pt[dim]));
+            }
+        }
+    }
+
+    CELER_ENSURE(length_scale_ > 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -827,15 +842,15 @@ real_type GenPrism::calc_twist_cosine(size_type i) const
 {
     CELER_EXPECT(i < lo_.size());
 
-    auto j = (i + 1) % lo_.size();
-    if (lo_[i] == lo_[j] || hi_[i] == hi_[j])
+    auto ri = (i + 1) % lo_.size();
+    if (lo_[i] == lo_[ri] || hi_[i] == hi_[ri])
     {
         // Degenerate face: top or bottom is a single point
         return 1;
     }
 
-    auto lo = make_unit_vector(lo_[j] - lo_[i]);
-    auto hi = make_unit_vector(hi_[j] - hi_[i]);
+    auto lo = make_unit_vector(lo_[ri] - lo_[i]);
+    auto hi = make_unit_vector(hi_[ri] - hi_[i]);
 
     return dot_product(lo, hi);
 }
@@ -856,71 +871,92 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
         insert_surface(Sense::inside, PlaneZ{hh_});
     }
 
-    /*! \todo Use plane normal equality from SoftSurfaceEqual, or maybe soft
-     * equivalence on twist angle cosine?
-     */
-    SoftEqual soft_equal{insert_surface.tol().rel};
+    SoftZero soft_zero([this, &tol = insert_surface.tol()] {
+        return std::fmax(tol.abs, length_scale_ * tol.rel);
+    }());
 
-    // Build the side planes
-    for (auto i : range(lo_.size()))
+    // Build the side planes, iterating over the "left" index looking inward to
+    // the plane
+    for (auto li : range(lo_.size()))
     {
-        auto const j = (i + 1) % lo_.size();
+        // Next CCW point along the faces
+        auto const ri = (li + 1) % lo_.size();
 
         // Viewed from outside the shape (+z pointing up, -r into the page),
         // the points on the following polygon are from the lower left
-        // counterclockwise to the upper right
-        Real3 const ilo{lo_[i][X], lo_[i][Y], -hh_};
-        Real3 const jlo{lo_[j][X], lo_[j][Y], -hh_};
-        Real3 const jhi{hi_[j][X], hi_[j][Y], hh_};
-        Real3 const ihi{hi_[i][X], hi_[i][Y], hh_};
+        // counterclockwise to the upper left
+        Real3 const ll{lo_[li][X], lo_[li][Y], -hh_};
+        Real3 const lr{lo_[ri][X], lo_[ri][Y], -hh_};
+        Real3 const ur{hi_[ri][X], hi_[ri][Y], hh_};
+        Real3 const ul{hi_[li][X], hi_[li][Y], hh_};
 
-        // Calculate outward normal by taking the cross product of the edges
-        auto lo_normal = detail::normal_from_triangle(ilo, jlo, ihi);
-        auto hi_normal = detail::normal_from_triangle(jhi, ihi, jlo);
+        // Calculate outward normals at lower left and upper right
+        auto ll_normal = detail::normal_from_triangle(ll, lr, ul);
+        auto ur_normal = detail::normal_from_triangle(ur, ul, lr);
 
-        if (soft_equal(dot_product(lo_normal, hi_normal), real_type{1})
-            || ihi == jhi)
+        if (hi_[li] == hi_[ri])
         {
-            // Insert a planar face
-            insert_surface(
-                Sense::inside, Plane{lo_normal, ilo}, "p" + std::to_string(i));
+            // Triangle (top degenerate): use low normal
+            insert_surface(Sense::inside,
+                           Plane{ll_normal, ll},
+                           "p" + std::to_string(li) + "-");
         }
-        else if (ilo == jlo)
+        else if (lo_[li] == lo_[ri])
         {
-            // Insert a degenerate planar face
-            insert_surface(
-                Sense::inside, Plane{hi_normal, ihi}, "p" + std::to_string(i));
+            // Triangle (bottom degenerate): use high normal
+            insert_surface(Sense::inside,
+                           Plane{ur_normal, ur},
+                           "p" + std::to_string(li) + "+");
+        }
+        else if (soft_zero([&] {
+                     // Nonplanarity is the distance between the upper right
+                     // point and the ll plane
+                     auto diag = ur - ll;
+                     return std::fmax(std::fabs(dot_product(ll_normal, diag)),
+                                      std::fabs(dot_product(ur_normal, diag)));
+                 }()))
+        {
+            // Insert a planar face using the average normal and centroid
+            Real3 centroid = ll;
+            for (auto* p : {&lr, &ur, &ul})
+            {
+                centroid += *p;
+            }
+            centroid /= 4;
+            Real3 normal = make_unit_vector((ll_normal + ur_normal) / 2);
+            insert_surface(Sense::inside,
+                           Plane{normal, centroid},
+                           "p" + std::to_string(li));
         }
         else
         {
             constexpr real_type half{0.5};
             // Insert a "twisted" face
-            // x,y-'slopes' of i,j vertical edges in terms of z
-            auto aux = half / hh_;
-            auto txi = aux * (ihi[X] - ilo[X]);
-            auto tyi = aux * (ihi[Y] - ilo[Y]);
-            auto txj = aux * (jhi[X] - jlo[X]);
-            auto tyj = aux * (jhi[Y] - jlo[Y]);
+            // x,y-'slopes' of l/r vertical edges in terms of z
+            auto txl = half * (ul[X] - ll[X]) / hh_;
+            auto tyl = half * (ul[Y] - ll[Y]) / hh_;
+            auto txr = half * (ur[X] - lr[X]) / hh_;
+            auto tyr = half * (ur[Y] - lr[Y]) / hh_;
 
-            // half-way coordinates of i,j vertical edges
-            auto mxi = half * (ilo[X] + ihi[X]);
-            auto myi = half * (ilo[Y] + ihi[Y]);
-            auto mxj = half * (jlo[X] + jhi[X]);
-            auto myj = half * (jlo[Y] + jhi[Y]);
+            // Halfway coordinates of ll,rl vertical edges
+            auto mxl = half * (ll[X] + ul[X]);
+            auto myl = half * (ll[Y] + ul[Y]);
+            auto mxr = half * (lr[X] + ur[X]);
+            auto myr = half * (lr[Y] + ur[Y]);
 
-            // coefficients for the quadric
-            real_type czz = txj * tyi - txi * tyj;
-            real_type eyz = txi - txj;
-            real_type fzx = tyj - tyi;
-            real_type gx = myj - myi;
-            real_type hy = mxi - mxj;
-            real_type iz = txj * myi - txi * myj + tyi * mxj - tyj * mxi;
-            real_type js = mxj * myi - mxi * myj;
+            // Coefficients for the quadric
+            real_type czz = (txr * tyl - txl * tyr);
+            real_type eyz = (txl - txr);
+            real_type fzx = (tyr - tyl);
+            real_type gx = myr - myl;
+            real_type hy = mxl - mxr;
+            real_type iz = (txr * myl - txl * myr + tyl * mxr - tyr * mxl);
+            real_type js = (mxr * myl - mxl * myr);
 
             insert_surface(
                 Sense::inside,
                 GeneralQuadric{{0, 0, czz}, {0, eyz, fzx}, {gx, hy, iz}, js},
-                "t" + std::to_string(i));
+                "t" + std::to_string(li));
         }
     }
 

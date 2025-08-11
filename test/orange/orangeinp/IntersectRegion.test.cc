@@ -887,7 +887,7 @@ TEST_F(GenPrismTest, trap_corners)
     static char const* const expected_surfaces[] = {
         "Plane: z=-40",
         "Plane: z=40",
-        "Plane: n={0.99969,-0,0.024992}, d=19.994",
+        "Plane: n={0.99969,0,0.024992}, d=19.994",
         "Plane: y=30",
         "Plane: n={0.99969,0,0.024992}, d=-19.994",
         "Plane: y=-30",
@@ -914,7 +914,7 @@ TEST_F(GenPrismTest, trapezoid_trans)
     static char const* const expected_surfaces[] = {
         "Plane: z=-40",
         "Plane: z=40",
-        "Plane: n={0.99969,-0,0.024992}, d=-9.9969",
+        "Plane: n={0.99969,0,0.024992}, d=-9.9969",
         "Plane: y=0",
         "Plane: n={0.99969,0,0.024992}, d=-49.984",
         "Plane: y=-60",
@@ -939,7 +939,7 @@ TEST_F(GenPrismTest, trapezoid_ccw)
         = {"Plane: z=-40",
            "Plane: z=40",
            "Plane: y=-30",
-           "Plane: n={0.99969,-0,0.024992}, d=19.994",
+           "Plane: n={0.99969,0,0.024992}, d=19.994",
            "Plane: y=30",
            "Plane: n={0.99969,0,0.024992}, d=-19.994"};
 
@@ -992,7 +992,7 @@ TEST_F(GenPrismTest, triang_prism)
     static char const* const expected_surfaces[] = {
         "Plane: z=-3",
         "Plane: z=3",
-        "Plane: n={0.31623,0.94868,-0}, d=0.63246",
+        "Plane: n={0.31623,0.94868,0}, d=0.63246",
         "Plane: x=-1",
         "Plane: n={0.31623,-0.94868,0}, d=0.63246",
     };
@@ -1551,7 +1551,6 @@ TEST_F(GenPrismTest, variable_twisted)
 
         return n;
     };
-    // NOTE: with tolerance of 1e-4 these all appear planar!!
     for (auto logeps : range(-6, -1))
     {
         build_prism(std::pow(real_type{10}, static_cast<real_type>(logeps)));
@@ -1562,7 +1561,6 @@ TEST_F(GenPrismTest, variable_twisted)
     }
 
     auto const& u = this->unit();
-    // print_expected(u);
 
     static char const* const expected_surface_strings[] = {
         "Plane: z=-1",
@@ -1570,15 +1568,16 @@ TEST_F(GenPrismTest, variable_twisted)
         "Plane: x=10",
         "Plane: n={0.099504,-0.99504,0}, d=0",
         "Plane: n={0.099504,0.99504,0}, d=0",
-        "Plane: n={-1.00000,0.00100000,0.00100000}, d=-10.001",
+        "GQuadric: {0,0,-0} {0,2e-3,0} {2,0,0} -20",
         "GQuadric: {0,0,-0} {0,0.02,0} {2,0,0} -20",
-        "Plane: n={0.099405,-0.99505,0.00099405}, d=-0.00099405",
+        "GQuadric: {0,0,0} {0,0.01,0} {1,-10,0} 0",
+        "GQuadric: {0,0,0} {0,0.01,0} {1,10,0} 0",
         "GQuadric: {0,0,-0} {0,0.2,0} {2,0,0} -20",
-        "Plane: n={0.098523,-0.99509,0.0098523}, d=-0.0098523",
-        "Plane: n={0.10050,0.99494,0}, d=0",
+        "GQuadric: {0,0,0} {0,0.1,0} {1,-10,0} 0",
+        "GQuadric: {0,0,0} {0,0.1,0} {1,10,0} 0",
         "GQuadric: {0,0,-0} {0,0.25,0} {2,0,0} -20",
-        "Plane: n={0.098280,-0.99508,0.012285}, d=-0.012285",
-        "Plane: n={0.10075,0.99491,0}, d=0",
+        "GQuadric: {0,0,0} {0,0.125,0} {1,-10,0} 0",
+        "GQuadric: {0,0,0} {0,0.125,0} {1,10,0} 0",
         "GQuadric: {0,0,-0} {0,0.3,0} {2,0,0} -20",
         "GQuadric: {0,0,0} {0,0.15,0} {1,-10,0} 0",
         "GQuadric: {0,0,0} {0,0.15,0} {1,10,0} 0",
@@ -1593,13 +1592,13 @@ TEST_F(GenPrismTest, variable_twisted)
         "all(+0, -1, -2, +3, +4)",
         "all(+0, -1, -2, +3, +4)",
         "all(+0, -1, -2, +3, +4)",
-        "all(+0, -1, +3, +4, +11)",
-        "all(+0, -1, +4, -14, +15)",
-        "all(+0, -1, -17, +18, +19)",
-        "all(+0, -1, -20, +21, +22)",
-        "all(+0, -1, -23, +24, +25)",
-        "all(+0, -1, -26, +27, +28)",
-        "all(+0, -1, -29, +30, +31)",
+        "all(+0, -1, +3, +4, -9)",
+        "all(+0, -1, -12, +13, +14)",
+        "all(+0, -1, -15, +16, +17)",
+        "all(+0, -1, -18, +19, +20)",
+        "all(+0, -1, -21, +22, +23)",
+        "all(+0, -1, -24, +25, +26)",
+        "all(+0, -1, -27, +28, +29)",
     };
     static char const* const expected_md_strings[] = {
         "",
@@ -1610,23 +1609,25 @@ TEST_F(GenPrismTest, variable_twisted)
         "A@p0,B@p0,C@p0",
         "",
         "A@p1,B@p1,C@p1,D@p1",
-        "A@p2,B@p2,C@p2,D@p2,E@p2",
+        "A@p2,B@p2,C@p2,D@p2",
         "A,B,C",
-        "D@p0",
+        "D@t0",
+        "",
         "D",
         "E@t0",
         "",
-        "E@p1",
+        "E@t1",
+        "E@t2",
         "E",
         "F@t0",
         "",
-        "F@p1",
-        "F@p2",
+        "F@t1",
+        "F@t2",
         "F",
         "G@t0",
         "",
-        "G@p1",
-        "G@p2",
+        "G@t1",
+        "G@t2",
         "G",
         "H@t0",
         "",
@@ -1644,7 +1645,6 @@ TEST_F(GenPrismTest, variable_twisted)
         "J@t2",
         "J",
     };
-
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));

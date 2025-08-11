@@ -499,6 +499,7 @@ class GenPrism final : public IntersectRegionInterface
     VecReal2 lo_;  //!< corners of the -z face (CCW)
     VecReal2 hi_;  //!< corners of the +z face (CCW)
     Degenerate degen_{Degenerate::none};  //!< no plane on this z axis
+    real_type length_scale_{};
 };
 
 //---------------------------------------------------------------------------//
