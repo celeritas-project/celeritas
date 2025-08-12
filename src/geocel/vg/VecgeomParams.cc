@@ -372,10 +372,8 @@ bool VecgeomParams::use_vgdml()
 VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
                              Ownership owns,
                              VecLv const& all_lv,
-                             VecPv&& all_pv)
-    : host_ownership_{owns}
-    , g4log_volid_map_{make_lv_map(all_lv)}
-    , g4_pv_map_{std::move(all_pv)}
+                             VecPv const& all_pv)
+    : host_ownership_{owns}, g4log_volid_map_{make_lv_map(all_lv)}
 {
     CELER_VALIDATE(geo.IsClosed(),
                    << "VecGeom geometry was not closed before initialization");
@@ -428,7 +426,9 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
         vol_instances_ = VolInstanceMap{"volume instance",
                                         make_physical_vol_labels(world)};
 
-        if (auto geant_geo = celeritas::geant_geo().lock())
+        geant_geo_ = celeritas::geant_geo().lock();
+
+        if (geant_geo_)
         {
             // Construct ImplVolume -> Volume map
             CELER_ASSERT(all_lv.size() <= this->impl_volumes().size());
@@ -438,22 +438,22 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
                 VolumeId vol_id;
                 if (auto* g4lv = all_lv[iv_id.get()])
                 {
-                    vol_id = geant_geo->geant_to_id(*g4lv);
+                    vol_id = geant_geo_->geant_to_id(*g4lv);
                 }
                 host_data.volumes[iv_id] = vol_id;
             }
 
             // Construct ImplVolume -> VolumeInstance map
-            CELER_ASSERT(g4_pv_map_.size() <= this->volume_instances().size());
+            CELER_ASSERT(all_pv.size() <= this->volume_instances().size());
             resize(&host_data.volume_instances,
                    this->volume_instances().size());
             for (auto impl_vi_idx : range(this->volume_instances().size()))
             {
                 VolumeInstanceId vol_inst_id;
-                if (auto* g4pv = g4_pv_map_[impl_vi_idx])
+                if (auto* g4pv = all_pv[impl_vi_idx])
                 {
                     // TODO incorporate replica ID
-                    vol_inst_id = geant_geo->geant_to_id(*g4pv);
+                    vol_inst_id = geant_geo_->geant_to_id(*g4pv);
                 }
                 ImplVolumeInstanceId ivi_id{impl_vi_idx};
                 host_data.volume_instances[ivi_id] = vol_inst_id;
@@ -544,36 +544,19 @@ inp::Model VecgeomParams::make_model_input() const
 /*!
  * Get the Geant4 physical volume corresponding to a volume instance ID.
  *
- * \todo This actually uses the "implementation" volume instance ID. It'll be
- * removed when we start using the volume params.
+ * \warning This will not correctly yield replica/copy numbers.
+ * \todo This will be removed soon! Also fix missing use of CopyNo in
+ * VecgeomParams::VecgeomParams .
  */
 GeantPhysicalInstance VecgeomParams::id_to_geant(VolumeInstanceId id) const
 {
-    CELER_EXPECT(id < g4_pv_map_.size() || g4_pv_map_.empty());
-    if (g4_pv_map_.empty())
+    if (!geant_geo_)
     {
         // Model was loaded with VGDML
         return {};
     }
 
-    GeantPhysicalInstance result;
-    result.pv = g4_pv_map_[id.unchecked_get()];
-    if (result.pv && is_replica(*result.pv))
-    {
-        // VecGeom volume is a specific instance of a G4PV: get the replica
-        // number it corresponds to
-        auto& geo_manager = vecgeom::GeoManager::Instance();
-#if VECGEOM_VERSION >= 0x020000
-        // Constant-time access
-        auto* vgpv = geo_manager.GetPlacedVolume(id.get());
-#else
-        auto* vgpv = geo_manager.FindPlacedVolume(id.get());
-#endif
-        CELER_ASSERT(vgpv);
-        result.replica
-            = id_cast<GeantPhysicalInstance::ReplicaId>(vgpv->GetCopyNo());
-    }
-    return result;
+    return geant_geo_->id_to_geant(id);
 }
 
 //---------------------------------------------------------------------------//

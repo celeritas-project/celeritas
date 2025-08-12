@@ -96,7 +96,10 @@ class VecgeomParams final : public GeoParamsInterface,
     //!@}
 
     // Build from existing geometry, with ownership and mappings
-    VecgeomParams(vecgeom::GeoManager const&, Ownership, VecLv const&, VecPv&&);
+    VecgeomParams(vecgeom::GeoManager const&,
+                  Ownership,
+                  VecLv const&,
+                  VecPv const&);
 
     // Clean up VecGeom on destruction
     ~VecgeomParams() final;
@@ -148,11 +151,13 @@ class VecgeomParams final : public GeoParamsInterface,
     Ownership host_ownership_{Ownership::reference};
     Ownership device_ownership_{Ownership::reference};
 
+    // Geant4 model used to construct
+    std::shared_ptr<GeantGeoParams const> geant_geo_;
+
     // Host metadata/access (DEPRECATED)
     LabelIdMultiMap<ImplVolumeId> volumes_;
     VolInstanceMap vol_instances_;
     std::unordered_map<G4LogicalVolume const*, ImplVolumeId> g4log_volid_map_;
-    std::vector<G4VPhysicalVolume const*> g4_pv_map_;
 
     BBox bbox_;
 

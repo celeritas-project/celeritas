@@ -315,16 +315,21 @@ CELER_FUNCTION LevelId VecgeomTrackView::level() const
 //---------------------------------------------------------------------------//
 /*!
  * Get the volume instance ID for all levels.
+ *
+ * This is only useful for Geant4 geometry, so shouldn't be used if the mapping
+ * isn't available.
  */
 CELER_FUNCTION void
 VecgeomTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 {
     CELER_EXPECT(levels.size() == this->level().get() + 1);
+    CELER_EXPECT(!params_.volume_instances.empty());
     for (auto lev : range(levels.size()))
     {
         vecgeom::VPlacedVolume const* pv = vgstate_.At(lev);
         CELER_ASSERT(pv);
-        levels[lev] = id_cast<VolumeInstanceId>(vgstate_.At(lev)->id());
+        levels[lev]
+            = params_.volume_instances[id_cast<ImplVolumeInstanceId>(pv->id())];
     }
 }
 
