@@ -316,7 +316,7 @@ TEST(SolveSurface, two_roots)
         else
         {
             // Float loses precision
-            EXPECT_LT(0.005, dist[0]);
+            EXPECT_LT(dist[0], 0.005);
         }
         EXPECT_SOFT_EQ(6.0284475639586041, dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
