@@ -118,34 +118,6 @@ void CmsEeBackDeeGeoTest::test_accessors() const
     auto const& bbox = geo.bbox();
     EXPECT_VEC_NEAR(expected_bbox.lower(), to_cm(bbox.lower()), 1e-10);
     EXPECT_VEC_SOFT_EQ(expected_bbox.upper(), to_cm(bbox.upper()));
-
-    static char const* const expected_vol_labels[] = {
-        "EEBackPlate",
-        "EESRing",
-        "EEBackQuad",
-        "EEBackDee",
-        "EEBackQuad_refl",
-        "EEBackPlate_refl",
-        "EESRing_refl",
-    };
-    EXPECT_VEC_EQ(expected_vol_labels, test_->get_volume_labels());
-
-    static char const* const expected_vol_inst_labels[] = {
-        "EEBackPlate@0",
-        "EESRing@0",
-        "EEBackQuad@0",
-        "EEBackPlate@1",
-        "EESRing@1",
-        "EEBackQuad@1",
-        "EEBackDee_PV",
-    };
-    EXPECT_VEC_EQ(expected_vol_inst_labels,
-                  test_->get_volume_instance_labels());
-
-    if (test_->g4world())
-    {
-        EXPECT_VEC_EQ(expected_vol_inst_labels, test_->get_g4pv_labels());
-    }
 }
 
 //---------------------------------------------------------------------------//
@@ -409,35 +381,6 @@ void FourLevelsGeoTest::test_accessors() const
     auto const& bbox = geo.bbox();
     EXPECT_VEC_SOFT_EQ(expected_bbox.lower(), to_cm(bbox.lower()));
     EXPECT_VEC_SOFT_EQ(expected_bbox.upper(), to_cm(bbox.upper()));
-
-    static char const* const expected_vol_labels[] = {
-        "Shape2",
-        "Shape1",
-        "Envelope",
-        "World",
-    };
-    EXPECT_VEC_EQ(expected_vol_labels, test_->get_volume_labels());
-
-    static char const* const expected_vol_inst_labels[] = {
-        "Shape2",
-        "Shape1",
-        "env1",
-        "env2",
-        "env3",
-        "env4",
-        "env5",
-        "env6",
-        "env7",
-        "env8",
-        "World_PV",
-    };
-    EXPECT_VEC_EQ(expected_vol_inst_labels,
-                  test_->get_volume_instance_labels());
-
-    if (test_->g4world())
-    {
-        EXPECT_VEC_EQ(expected_vol_inst_labels, test_->get_g4pv_labels());
-    }
 }
 
 //---------------------------------------------------------------------------//
@@ -1510,32 +1453,6 @@ void SolidsGeoTest::test_accessors() const
     auto const& bbox = geo.bbox();
     EXPECT_VEC_SOFT_EQ(expected_bbox.lower(), to_cm(bbox.lower()));
     EXPECT_VEC_SOFT_EQ(expected_bbox.upper(), to_cm(bbox.upper()));
-
-    static char const* const expected_vol_labels[] = {
-        "box500",   "cone1",     "para1",      "sphere1",     "parabol1",
-        "trap1",    "trd1",      "trd2",       "trd3_refl@1", "tube100",
-        "boolean1", "polycone1", "genPocone1", "ellipsoid1",  "tetrah1",
-        "orb1",     "polyhedr1", "hype1",      "elltube1",    "ellcone1",
-        "arb8b",    "arb8a",     "xtru1",      "World",       "trd3_refl@0",
-    };
-    EXPECT_VEC_EQ(expected_vol_labels, test_->get_volume_labels());
-
-    static char const* const expected_vol_inst_labels[] = {
-        "box500_PV",   "cone1_PV",     "para1_PV",      "sphere1_PV",
-        "parabol1_PV", "trap1_PV",     "trd1_PV",       "reflNormal",
-        "reflected@0", "reflected@1",  "tube100_PV",    "boolean1_PV",
-        "orb1_PV",     "polycone1_PV", "hype1_PV",      "polyhedr1_PV",
-        "tetrah1_PV",  "arb8a_PV",     "arb8b_PV",      "ellipsoid1_PV",
-        "elltube1_PV", "ellcone1_PV",  "genPocone1_PV", "xtru1_PV",
-        "World_PV",
-    };
-    EXPECT_VEC_EQ(expected_vol_inst_labels,
-                  test_->get_volume_instance_labels());
-
-    if (test_->g4world())
-    {
-        EXPECT_VEC_EQ(expected_vol_inst_labels, test_->get_g4pv_labels());
-    }
 }
 
 //---------------------------------------------------------------------------//

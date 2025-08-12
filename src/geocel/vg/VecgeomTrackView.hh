@@ -295,6 +295,11 @@ CELER_FUNCTION VolumeInstanceId VecgeomTrackView::volume_instance_id() const
 {
     CELER_EXPECT(!this->is_outside());
     ImplVolumeInstanceId ipv_id{this->physical_volume().id()};
+    if (CELER_UNLIKELY(params_.volume_instances.empty()))
+    {
+        // Using VGDML: return implementation volume instance
+        return VolumeInstanceId{ipv_id.get()};
+    }
     return params_.volume_instances[ipv_id];
 }
 

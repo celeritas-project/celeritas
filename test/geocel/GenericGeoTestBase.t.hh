@@ -14,6 +14,7 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/TypeDemangler.hh"
+#include "geocel/VolumeParams.hh"
 #include "geocel/inp/Model.hh"
 
 #include "CheckedGeoTrackView.hh"
@@ -79,6 +80,7 @@ auto GenericGeoTestBase<HP>::geometry() -> SPConstGeo const&
             return this->build_geometry();
         });
         geo_ = pg.value();
+        volumes_ = this->volumes();
     }
     CELER_ENSURE(geo_);
     return geo_;
@@ -90,6 +92,19 @@ auto GenericGeoTestBase<HP>::geometry() const -> SPConstGeo const&
 {
     CELER_ENSURE(geo_);
     return geo_;
+}
+
+//---------------------------------------------------------------------------//
+template<class HP>
+auto GenericGeoTestBase<HP>::vol_inst_labels() const -> VolInstanceMap const&
+{
+    if (auto const& volumes = this->volumes())
+    {
+        // Actual volume instances are available
+        return volumes->volume_instance_labels();
+    }
+    // Implementation volume instances
+    return this->geometry()->volume_instances();
 }
 
 //---------------------------------------------------------------------------//
@@ -132,7 +147,7 @@ GenericGeoTestBase<HP>::unique_volume_name(GeoTrackView const& geo) const
     std::vector<VolumeInstanceId> ids(level.get() + 1);
     geo.volume_instance_id(make_span(ids));
 
-    auto const& vol_inst = this->geometry()->volume_instances();
+    auto const& vol_inst = this->vol_inst_labels();
     std::ostringstream os;
     os << vol_inst.at(ids[0]);
     for (auto i : range(std::size_t{1}, ids.size()))
@@ -196,7 +211,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
 
     GeoTrackView geo = CheckedGeoTrackView{this->make_geo_track_view(pos, dir)};
     auto const& geo_params = *this->geometry();
-    auto const& vol_inst = geo_params.volume_instances();
+    auto const& vol_inst = this->vol_inst_labels();
     real_type const inv_length = real_type{1} / this->unit_length();
     real_type const bump_tol = this->bump_tol() * this->unit_length();
 
