@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "orange/orangeinp/IntersectRegion.hh"
 
+#include "corecel/io/Join.hh"
+#include "corecel/io/Logger.hh"
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/MatrixUtils.hh"
 #include "orange/OrangeTypes.hh"
@@ -39,7 +41,7 @@ namespace test
 //---------------------------------------------------------------------------//
 class IntersectRegionTest : public ::celeritas::test::Test
 {
-  private:
+  public:
     using Unit = orangeinp::detail::CsgUnit;
     using UnitBuilder = orangeinp::detail::CsgUnitBuilder;
     using State = orangeinp::detail::IntersectSurfaceState;
@@ -47,6 +49,14 @@ class IntersectRegionTest : public ::celeritas::test::Test
     using TestResult = IntersectTestResult;
 
   protected:
+    // Build with an explicit name and transform
+    State build(std::string name,
+                IntersectRegionInterface const& r,
+                VariantTransform const& vt);
+
+    // Insert a built state as a new "volume"
+    NodeId insert(State&& css);
+
     // Test with an explicit name and transform
     TestResult test(std::string&& name,
                     IntersectRegionInterface const& r,
@@ -74,11 +84,31 @@ class IntersectRegionTest : public ::celeritas::test::Test
     SignedSense calc_sense(NodeId n, Real3 const& pos) const
     {
         CELER_EXPECT(n < unit_.tree.size());
-        detail::SenseEvaluator eval_sense(unit_.tree, unit_.surfaces, pos);
-        return eval_sense(n);
+        LocalSurfaceId on_surface;
+        detail::SenseEvaluator eval_sense(
+            unit_.tree, unit_.surfaces, pos, &on_surface);
+        auto result = eval_sense(n);
+        if (on_surface)
+        {
+            CELER_EXPECT(n < unit_.metadata.size());
+            auto const& md_set = unit_.metadata[n.get()];
+            CELER_LOG(debug)
+                << "Point " << repr(pos) << " is on surface "
+                << on_surface.get() << " of node " << n.get() << " = "
+                << join(md_set.begin(), md_set.end(), ',');
+        }
+        return result;
     }
 
     Unit const& unit() const { return unit_; }
+    Tol const& tol() const { return unit_builder_.tol(); }
+
+    void reset_with_tol(Tol const& t)
+    {
+        CELER_EXPECT(t);
+        unit_ = {};
+        unit_builder_ = UnitBuilder{&unit_, t, BBox::from_infinite()};
+    }
 
   private:
     Unit unit_;
@@ -87,41 +117,49 @@ class IntersectRegionTest : public ::celeritas::test::Test
 };
 
 //---------------------------------------------------------------------------//
-auto IntersectRegionTest::test(std::string&& name,
-                               IntersectRegionInterface const& r,
-                               VariantTransform const& trans) -> TestResult
+auto IntersectRegionTest::build(std::string name,
+                                IntersectRegionInterface const& r,
+                                VariantTransform const& trans) -> State
 {
-    detail::IntersectSurfaceState css;
+    State css;
     css.transform = &trans;
     css.make_face_name = {};
     css.object_name = std::move(name);
 
     IntersectSurfaceBuilder insert_surface{&unit_builder_, &css};
     r.build(insert_surface);
-    if (css.local_bzone.exterior || css.local_bzone.interior)
-    {
-        EXPECT_TRUE(
-            encloses(css.local_bzone.exterior, css.local_bzone.interior));
-    }
-    if (css.global_bzone.exterior || css.global_bzone.interior)
-    {
-        EXPECT_TRUE(
-            encloses(css.global_bzone.exterior, css.global_bzone.interior));
-    }
+    return css;
+}
 
-    // Intersect the given surfaces
-    NodeId node_id
+//---------------------------------------------------------------------------//
+NodeId IntersectRegionTest::insert(State&& css)
+{
+    auto node_id
         = unit_builder_.insert_csg(Joined{op_and, std::move(css.nodes)}).first;
+    unit_builder_.insert_md(node_id, std::move(css.object_name));
+    unit_.tree.insert_volume(node_id);
+    std::move(css) = {};
+    return node_id;
+}
+
+//---------------------------------------------------------------------------//
+auto IntersectRegionTest::test(std::string&& name,
+                               IntersectRegionInterface const& r,
+                               VariantTransform const& trans) -> TestResult
+{
+    // Intersect the given surfaces
+    auto css = this->build(std::move(name), r, trans);
+    // Save bounding zone
+    auto merged_bzone = calc_merged_bzone(css);
+    // Build CSG node+md
+    auto node_id = this->insert(std::move(css));
 
     TestResult result;
     result.node = build_infix_string(unit_.tree, node_id);
     result.surfaces = surface_strings(unit_);
-    result.node_id = node_id;
-
-    // Combine the bounding zones
-    auto merged_bzone = calc_merged_bzone(css);
     result.interior = merged_bzone.interior;
     result.exterior = merged_bzone.exterior;
+    result.node_id = node_id;
 
     return result;
 }
@@ -260,7 +298,7 @@ TEST_F(ConeTest, almost_cyl)
 
     static char const expected_node[] = "all(+0, -1, -2)";
     static char const* const expected_surfaces[]
-        = {"Plane: z=-10", "Plane: z=10", "Cone z: t=0.005 at {0,0,100}"};
+        = {"Plane: z=-10", "Plane: z=10", "Cone z: t=5e-3 at {0,0,100}"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -424,7 +462,7 @@ TEST_F(EllipsoidTest, tiny)
 
     static char const expected_node[] = "-0";
     static char const* const expected_surfaces[]
-        = {"SQuadric: {0.5,2,1.28} {0,0,0} -3.2e-05"};
+        = {"SQuadric: {0.5,2,1.28} {0,0,0} -3.2e-5"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -650,15 +688,16 @@ TEST_F(ExtrudedPolygonTest, skewed)
     auto result = this->test(ExtrudedPolygon(polygon, bot, top));
 
     static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5, +6, +7)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=10",
-           "Plane: z=15",
-           "Plane: n={-0.85138,0.42569,0.3065}, d=0.34055",
-           "Plane: n={0.45718,0.22859,-0.8595}, d=-5.1204",
-           "Plane: n={0.35448,-0.70895,0.6097}, d=3.6511",
-           "Plane: n={-0.8165,0.40825,0.40825}, d=3.4701",
-           "Plane: n={0.3152,0.3152,-0.89516}, d=-6.9658",
-           "Plane: n={0,0.53,-0.848}, d=-6.89"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=10",
+        "Plane: z=15",
+        "Plane: n={-0.85138,0.42569,0.30650}, d=0.34055",
+        "Plane: n={0.45718,0.22859,-0.85950}, d=-5.1204",
+        "Plane: n={0.35448,-0.70895,0.60970}, d=3.6511",
+        "Plane: n={-0.81650,0.40825,0.40825}, d=3.4701",
+        "Plane: n={0.31520,0.31520,-0.89516}, d=-6.9658",
+        "Plane: n={0,0.53000,-0.84800}, d=-6.8900",
+    };
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -863,7 +902,7 @@ TEST_F(GenPrismTest, trap_corners)
     static char const* const expected_surfaces[] = {
         "Plane: z=-40",
         "Plane: z=40",
-        "Plane: n={0.99969,-0,0.024992}, d=19.994",
+        "Plane: n={0.99969,0,0.024992}, d=19.994",
         "Plane: y=30",
         "Plane: n={0.99969,0,0.024992}, d=-19.994",
         "Plane: y=-30",
@@ -890,7 +929,7 @@ TEST_F(GenPrismTest, trapezoid_trans)
     static char const* const expected_surfaces[] = {
         "Plane: z=-40",
         "Plane: z=40",
-        "Plane: n={0.99969,-0,0.024992}, d=-9.9969",
+        "Plane: n={0.99969,0,0.024992}, d=-9.9969",
         "Plane: y=0",
         "Plane: n={0.99969,0,0.024992}, d=-49.984",
         "Plane: y=-60",
@@ -915,7 +954,7 @@ TEST_F(GenPrismTest, trapezoid_ccw)
         = {"Plane: z=-40",
            "Plane: z=40",
            "Plane: y=-30",
-           "Plane: n={0.99969,-0,0.024992}, d=19.994",
+           "Plane: n={0.99969,0,0.024992}, d=19.994",
            "Plane: y=30",
            "Plane: n={0.99969,0,0.024992}, d=-19.994"};
 
@@ -943,9 +982,9 @@ TEST_F(GenPrismTest, full)
     static char const* const expected_surfaces[] = {
         "Plane: z=-4",
         "Plane: z=4",
-        "GQuadric: {0,0,0} {0,0.125,-0.125} {3.5,0.5,0.5} -6",
-        "Plane: n={0,0.99228,0.12403}, d=1.4884",
-        "GQuadric: {0,0,-0} {0,0.125,0.125} {-3.5,0.5,0.5} -6",
+        R"(GQuadric: {0,0,0} {0,0.035007,-0.035007} {0.98020,0.14003,0.14003} -1.6803)",
+        "Plane: n={0,0.99228,0.12404}, d=1.4884",
+        R"(GQuadric: {0,0,0} {0,0.035007,0.035007} {-0.98020,0.14003,0.14003} -1.6803)",
         "Plane: y=-2",
     };
 
@@ -968,7 +1007,7 @@ TEST_F(GenPrismTest, triang_prism)
     static char const* const expected_surfaces[] = {
         "Plane: z=-3",
         "Plane: z=3",
-        "Plane: n={0.31623,0.94868,-0}, d=0.63246",
+        "Plane: n={0.31623,0.94868,0}, d=0.63246",
         "Plane: x=-1",
         "Plane: n={0.31623,-0.94868,0}, d=0.63246",
     };
@@ -996,7 +1035,7 @@ TEST_F(GenPrismTest, tetrahedron)
         = {"Plane: z=-3",
            "Plane: n={0.31449,-0.94346,0.10483}, d=0.31449",
            "Plane: n={0.31449,0.94346,0.10483}, d=0.31449",
-           "Plane: n={0.98639,0,-0.1644}, d=-0.4932"};
+           "Plane: n={0.98639,0,-0.16440}, d=-0.49320"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -1043,12 +1082,13 @@ TEST_F(GenPrismTest, envelope)
 
     auto result = this->test(pri);
     static char const expected_node[] = "all(+0, +1, -2, -3, +4)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-2",
-           "Plane: n={0,0.89443,-0.44721}, d=-0.89443",
-           "Plane: n={0.99228,-0,0.12403}, d=0.74421",
-           "Plane: n={0,0.89443,0.44721}, d=0.89443",
-           "Plane: n={0.99228,0,-0.12403}, d=-0.74421"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-2",
+        "Plane: n={0,0.89443,-0.44721}, d=-0.89443",
+        "Plane: n={0.99228,-0,0.12404}, d=0.74421",
+        "Plane: n={0,0.89443,0.44721}, d=0.89443",
+        "Plane: n={0.99228,0,-0.12404}, d=-0.74421",
+    };
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -1070,13 +1110,14 @@ TEST_F(GenPrismTest, trd)
 
     auto result = this->test(pri);
     static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-3",
-           "Plane: z=3",
-           "Plane: n={0.98639,0,-0.1644}, d=1.4796",
-           "Plane: n={0,0.98639,-0.1644}, d=1.4796",
-           "Plane: n={0.98639,0,0.1644}, d=-1.4796",
-           "Plane: n={0,0.98639,0.1644}, d=-1.4796"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-3",
+        "Plane: z=3",
+        "Plane: n={0.98639,0,-0.16440}, d=1.4796",
+        "Plane: n={0,0.98639,-0.16440}, d=1.4796",
+        "Plane: n={0.98639,0,0.16440}, d=-1.4796",
+        "Plane: n={0,0.98639,0.16440}, d=-1.4796",
+    };
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -1205,9 +1246,9 @@ TEST_F(GenPrismTest, trap_full2)
     static char const* const expected_surfaces[] = {
         "Plane: z=-40",
         "Plane: z=40",
-        "GQuadric: {0,0,0} {0,0.0875,0} {40,-0.5,-41.25} -450",
+        R"(GQuadric: {0,0,0} {0,0.0015228,0} {0.69612,-0.0087015,-0.71787} -7.8313)",
         "Plane: y=20",
-        "GQuadric: {0,0,0} {0,0.2125,0} {40,4.5,-38.75} 450",
+        "GQuadric: {0,0,0} {0,0.0038033,0} {0.71591,0.080539,-0.69354} 8.0540",
         "Plane: y=-20",
     };
 
@@ -1238,9 +1279,9 @@ TEST_F(GenPrismTest, trap_quarter_twist)
     static char const* const expected_surfaces[] = {
         "Plane: z=-1",
         "Plane: z=1",
-        "GQuadric: {0,0,0} {0,2,0} {-2,0,0} 4",
+        "GQuadric: {0,0,0} {0,1,0} {-1,0,0} 2",
         "Plane: y=1",
-        "GQuadric: {0,0,-0} {0,2,0} {-2,0,0} -4",
+        "GQuadric: {0,0,0} {0,1,0} {-1,0,0} -2",
         "Plane: y=-1",
     };
 
@@ -1273,9 +1314,9 @@ TEST_F(GenPrismTest, trap_uneven_twist)
     static char const* const expected_surfaces[] = {
         "Plane: z=-1",
         "Plane: z=1",
-        "GQuadric: {0,0,0.25} {0,0.5,0.5} {-1.5,0.5,-1.5} 2.25",
+        R"(GQuadric: {0,0,0.11471} {0,0.22942,0.22942} {-0.68825,0.22942,-0.68825} 1.0324)",
         "Plane: n={0,0.97014,0.24254}, d=0.72761",
-        "GQuadric: {0,0,0.25} {0,-0.5,-0.5} {1.5,-0.5,-1.5} 2.25",
+        R"(GQuadric: {0,0,0.11471} {0,-0.22942,-0.22942} {0.68825,-0.22942,-0.68825} 1.0324)",
         "Plane: n={0,0.97014,-0.24254}, d=-0.72761",
     };
 
@@ -1308,9 +1349,9 @@ TEST_F(GenPrismTest, trap_even_twist)
     static char const* const expected_surfaces[] = {
         "Plane: z=-1",
         "Plane: z=1",
-        "GQuadric: {0,0,0.25} {0,0.5,0.5} {-1.5,0.5,-1.5} 2.25",
+        R"(GQuadric: {0,0,0.11471} {0,0.22942,0.22942} {-0.68825,0.22942,-0.68825} 1.0324)",
         "Plane: n={0,0.97014,0.24254}, d=0.72761",
-        "GQuadric: {0,0,0.25} {0,-0.5,-0.5} {1.5,-0.5,-1.5} 2.25",
+        R"(GQuadric: {0,0,0.11471} {0,-0.22942,-0.22942} {0.68825,-0.22942,-0.68825} 1.0324)",
         "Plane: n={0,0.97014,-0.24254}, d=-0.72761",
     };
     EXPECT_EQ(expected_node, result.node);
@@ -1368,12 +1409,11 @@ TEST_F(GenPrismTest, adjacent_twisted)
     {
         // Scaled (broadened) right side with the same hyperboloid but
         // different size
-        // TODO: the scaled GQ should be normalized
         auto result = this->test("scaled",
                                  GenPrism(1,
                                           {{0, -2}, {2, -2}, {2, 2}, {0, 2}},
                                           {{1, -2}, {2, -2}, {2, 2}, {-1, 2}}));
-        static char const expected_node[] = "all(+0, -1, +7, -8, -9, +10)";
+        static char const expected_node[] = "all(+0, -1, +3, +7, -8, -9)";
 
         EXPECT_EQ(expected_node, result.node);
         EXPECT_VEC_SOFT_EQ((Real3{-1, -2, -1}), result.exterior.lower());
@@ -1384,14 +1424,13 @@ TEST_F(GenPrismTest, adjacent_twisted)
         "Plane: z=-1",
         "Plane: z=1",
         "Plane: y=-1",
-        "GQuadric: {0,0,-0} {0,0.5,0} {2,0.5,0} 0",
+        "GQuadric: {0,0,0} {0,0.24254,0} {0.97014,0.24254,0} 0",
         "Plane: y=1",
         "Plane: x=-1",
         "Plane: x=1",
         "Plane: y=-2",
         "Plane: x=2",
         "Plane: y=2",
-        "GQuadric: {0,0,0} {0,1,0} {4,1,0} 0",
     };
     EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
 
@@ -1403,24 +1442,250 @@ TEST_F(GenPrismTest, adjacent_twisted)
         "left@pz,right@pz,scaled@pz",
         "",
         "left@p0,right@p0",
-        "left@t1,right@t3",
+        "left@t1,right@t3,scaled@t3",
         "",
         "left@p2,right@p2",
         "",
         "left@p3",
-        "",
+        "left",
         "right@p1",
         "",
-        "",
+        "right",
         "scaled@p0",
         "scaled@p1",
         "",
         "scaled@p2",
         "",
-        "scaled@t3",
-        "",
+        "scaled",
     };
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
+}
+
+TEST_F(GenPrismTest, emec_blade)
+{
+    // Reset to using "default" tolerance, 1mm length scale
+    this->reset_with_tol(Tol::from_default(1.0));
+
+    auto result = this->test(GenPrism(10.625,
+                                      {{1.55857990922689, 302.468976599716},
+                                       {-1.73031296208306, 302.468976599716},
+                                       {-2.53451906396442, 609.918546236458},
+                                       {2.18738922312177, 609.918546236458}},
+                                      {{-11.9586196560814, 304.204253530802},
+                                       {-15.2556006134987, 304.204253530802},
+                                       {-31.2774318502685, 613.426120316623},
+                                       {-26.5391748405779, 613.426120316623}}));
+
+    if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+    {
+        GTEST_SKIP()
+            << "Tolerance changes with floating point type, "
+               "so the GQ sign is flipped because it's ignored as zero since "
+               "it's below tolerance";
+    }
+
+    static char const* const expected_surface_strings[] = {
+        "Plane: z=-10.625",
+        "Plane: z=10.625",
+        "Plane: n={0,0.98665,-0.16286}, d=603.51",
+        R"(GQuadric: {0,0,1.7449e-5} {0,-0.0023163,-0.00026977} {-0.99733,-0.027212,0.067778} -0.21576)",
+        "Plane: n={0,0.99668,-0.081389}, d=302.33",
+        R"(GQuadric: {0,0,1.7450e-5} {0,-0.0023153,-0.00026979} {-0.99741,-0.022566,0.068291} 1.6584)",
+    };
+    static char const* const expected_volume_strings[] = {
+        "all(+0, -1, -2, -3, +4, +5)",
+    };
+    static char const* const expected_md_strings[] = {
+        "",
+        "",
+        "cr@mz",
+        "cr@pz",
+        "",
+        "cr@p0",
+        "",
+        "cr@t1",
+        "",
+        "cr@p2",
+        "cr@t3",
+        "cr",
+    };
+
+    auto& u = this->unit();
+    EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+    EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+}
+
+TEST_F(GenPrismTest, variable_twisted)
+{
+    using SS = SignedSense;
+    char label = 'A';
+    constexpr real_type x = 10;
+    constexpr real_type hh = 1;
+    auto build_prism = [&](real_type eps) {
+        std::string const label_str(1, label++);
+        SCOPED_TRACE(label_str);
+        // Build and insert a node
+        auto n = this->insert(
+            this->build(label_str,
+                        GenPrism(hh,
+                                 {{x - eps, -1}, {x + eps, 1}, {0, 0}},
+                                 {{x + eps, -1}, {x - eps, 1}, {0, 0}}),
+                        NoTransformation{}));
+
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT
+            && label_str == "D")
+        {
+            // First twisted surface has small enough coefficients that the
+            // corners aren't quite accurate
+            return n;
+        }
+
+        // Test corners
+        auto tol_eps = this->tol().rel;
+        {
+            SCOPED_TRACE("z = -1");
+            // [lo][0]
+            EXPECT_EQ(
+                SS::inside,
+                this->calc_sense(n, {x - eps, -1 + tol_eps, -hh + tol_eps}));
+            EXPECT_EQ(SS::outside,
+                      this->calc_sense(n, {x + eps, -1, -1 + tol_eps}));
+            // [lo][0.5]
+            EXPECT_EQ(SS::inside,
+                      this->calc_sense(n, {x - tol_eps, 0, -hh + tol_eps}));
+            EXPECT_EQ(SS::outside,
+                      this->calc_sense(n, {x + tol_eps, 0, -hh + tol_eps}));
+        }
+        {
+            SCOPED_TRACE("z = 0");
+            // [mid][0.5]
+            EXPECT_EQ(SS::inside, this->calc_sense(n, {x - tol_eps, 0, 0}));
+            EXPECT_EQ(SS::outside, this->calc_sense(n, {x + tol_eps, 0, 0}));
+        }
+        {
+            SCOPED_TRACE("z = 1");
+            // [hi][1]
+            EXPECT_EQ(
+                SS::inside,
+                this->calc_sense(n, {x - eps, 1 - tol_eps, hh - tol_eps}));
+            EXPECT_EQ(
+                SS::outside,
+                this->calc_sense(n, {x + eps, 1 - tol_eps, hh - tol_eps}));
+            // [hi][0.5]
+            EXPECT_EQ(SS::inside,
+                      this->calc_sense(n, {x - tol_eps, 0, hh - tol_eps}));
+            EXPECT_EQ(SS::outside,
+                      this->calc_sense(n, {x + tol_eps, 0, hh - tol_eps}));
+        }
+
+        return n;
+    };
+    for (auto logeps : range(-6, -1))
+    {
+        build_prism(std::pow(real_type{10}, static_cast<real_type>(logeps)));
+    }
+    for (auto fraceps : range(0, 5))
+    {
+        build_prism(0.1 + real_type{0.025} * fraceps);
+    }
+
+    auto const& u = this->unit();
+
+    static char const* const expected_surface_strings[] = {
+        "Plane: z=-1",
+        "Plane: z=1",
+        "Plane: x=10",
+        "Plane: n={0.099504,-0.99504,0}, d=0",
+        "Plane: n={0.099504,0.99504,0}, d=0",
+        "GQuadric: {0,0,0} {0,1e-3,0} {1,0,0} -10",
+        "GQuadric: {0,0,0} {0,0.01,0} {1,0,0} -10",
+        "GQuadric: {0,0,0} {0,0.00099504,0} {0.099504,-0.99504,0} 0",
+        "GQuadric: {0,0,0} {0,0.00099504,0} {0.099504,0.99504,0} 0",
+        "GQuadric: {0,0,0} {0,0.1,0} {1,0,0} -10",
+        "GQuadric: {0,0,0} {0,0.0099504,0} {0.099504,-0.99504,0} 0",
+        "GQuadric: {0,0,0} {0,0.0099504,0} {0.099504,0.99504,0} 0",
+        "GQuadric: {0,0,0} {0,0.125,0} {1,0,0} -10",
+        "GQuadric: {0,0,0} {0,0.012438,0} {0.099504,-0.99504,0} 0",
+        "GQuadric: {0,0,0} {0,0.012438,0} {0.099504,0.99504,0} 0",
+        "GQuadric: {0,0,0} {0,0.15,0} {1,0,0} -10",
+        "GQuadric: {0,0,0} {0,0.014926,0} {0.099504,-0.99504,0} 0",
+        "GQuadric: {0,0,0} {0,0.014926,0} {0.099504,0.99504,0} 0",
+        "GQuadric: {0,0,0} {0,0.175,0} {1,0,0} -10",
+        "GQuadric: {0,0,0} {0,0.017413,0} {0.099504,-0.99504,0} 0",
+        "GQuadric: {0,0,0} {0,0.017413,0} {0.099504,0.99504,0} 0",
+        "GQuadric: {0,0,0} {0,0.2,0} {1,0,0} -10",
+        "GQuadric: {0,0,0} {0,0.019901,0} {0.099504,-0.99504,0} 0",
+        "GQuadric: {0,0,0} {0,0.019901,0} {0.099504,0.99504,0} 0",
+    };
+    static char const* const expected_volume_strings[] = {
+        "all(+0, -1, -2, +3, +4)",
+        "all(+0, -1, -2, +3, +4)",
+        "all(+0, -1, -2, +3, +4)",
+        "all(+0, -1, +3, +4, -9)",
+        "all(+0, -1, -12, +13, +14)",
+        "all(+0, -1, -15, +16, +17)",
+        "all(+0, -1, -18, +19, +20)",
+        "all(+0, -1, -21, +22, +23)",
+        "all(+0, -1, -24, +25, +26)",
+        "all(+0, -1, -27, +28, +29)",
+    };
+    static char const* const expected_md_strings[] = {
+        "",
+        "",
+        "A@mz,B@mz,C@mz,D@mz,E@mz,F@mz,G@mz,H@mz,I@mz,J@mz",
+        "A@pz,B@pz,C@pz,D@pz,E@pz,F@pz,G@pz,H@pz,I@pz,J@pz",
+        "",
+        "A@p0,B@p0,C@p0",
+        "",
+        "A@p1,B@p1,C@p1,D@p1",
+        "A@p2,B@p2,C@p2,D@p2",
+        "A,B,C",
+        "D@t0",
+        "",
+        "D",
+        "E@t0",
+        "",
+        "E@t1",
+        "E@t2",
+        "E",
+        "F@t0",
+        "",
+        "F@t1",
+        "F@t2",
+        "F",
+        "G@t0",
+        "",
+        "G@t1",
+        "G@t2",
+        "G",
+        "H@t0",
+        "",
+        "H@t1",
+        "H@t2",
+        "H",
+        "I@t0",
+        "",
+        "I@t1",
+        "I@t2",
+        "I",
+        "J@t0",
+        "",
+        "J@t1",
+        "J@t2",
+        "J",
+    };
+
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        // Floating point precision is slightly off in the printout but
+        // otherwise correct; the volume strings are different because some of
+        // the planes show up as "exactly equal" (deleted) versus "nearly
+        // equal" (chained and replaced)
+        EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+    }
+    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
 }
 
 //---------------------------------------------------------------------------//
@@ -1722,7 +1987,7 @@ TEST_F(InvoluteTest, single)
         "invo@invl",
         "invo@invr",
         "",
-        "",
+        "invo",
     };
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
 }
@@ -1782,10 +2047,10 @@ TEST_F(InvoluteTest, two_ccw)
         "top@invl",
         "",
         "bottom@invl,top@invr",
-        "",
+        "top",
         "",
         "bottom@invr",
-        "",
+        "bottom",
     };
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
 }
@@ -1845,10 +2110,10 @@ TEST_F(InvoluteTest, two_cw)
         "top@invl",
         "bottom@invl,top@invr",
         "",
-        "",
+        "top",
         "bottom@invr",
         "",
-        "",
+        "bottom",
     };
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
 }
@@ -1970,8 +2235,8 @@ TEST_F(ParallelepipedTest, alpha)
     static char const* const expected_surfaces[] = {
         "Plane: z=-3",
         "Plane: z=3",
-        "Plane: y=-1.618",
-        "Plane: y=1.618",
+        "Plane: y=-1.6180",
+        "Plane: y=1.6180",
         "Plane: n={0.80902,-0.58779,0}, d=-0.80902",
         "Plane: n={0.80902,-0.58779,0}, d=0.80902",
     };

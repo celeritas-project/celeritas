@@ -259,17 +259,63 @@ filter_collinear_points(std::vector<Real2> const& corners, double abs_tol)
 /*!
  * Calculate the min/max values of a polygon for a given dimension.
  */
-inline std::pair<real_type, real_type>
-find_extrema(std::vector<Real2> const& polygon, size_type dim)
+template<class T>
+inline std::pair<T, T>
+find_extrema(Span<Array<T, 2> const> polygon, size_type dim)
 {
-    CELER_VALIDATE(polygon.size() >= 3,
-                   << "polygon must consist of at least 3 points");
+    CELER_EXPECT(polygon.size() >= 3);
+    CELER_EXPECT(dim < 2);
 
     auto [poly_min_it, poly_max_it] = std::minmax_element(
         polygon.begin(), polygon.end(), [dim](auto const& a, auto const& b) {
             return a[dim] < b[dim];
         });
     return {(*poly_min_it)[dim], (*poly_max_it)[dim]};
+}
+
+template<class T>
+inline auto find_extrema(T const& polygon, size_type dim)
+{
+    return find_extrema(make_span(polygon), dim);
+}
+
+//! Calculate the min/max values of a polygon for an x/y dimension
+template<class T>
+inline auto find_extrema(T const& polygon, Axis ax)
+{
+    CELER_EXPECT(ax < Axis::z);
+    return find_extrema(polygon, to_int(ax));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a normal from three counterclockwise points.
+ *
+ * The direction of the normal is dictated by the right-hand rule, assuming
+ * the normal vector, C, is given by:
+ * \f[
+ * \vec{A} = \vec{p_1} - \vec{p_0},
+ * \vec{B} = \vec{p_2} - \vec{p_0},
+ * \vec{C} = \vec{A} \times  \vec{B}.
+ * \f]
+ * \verbatim
+             ^
+             | C
+             |
+             |
+   p1 _______| p0
+        A   /
+           / B
+          /
+         p2
+   \endverbatim
+ *
+ * Passing in collinear or coincident points will result in an invalid normal.
+ */
+inline Real3
+normal_from_triangle(Real3 const& p0, Real3 const& p1, Real3 const& p2)
+{
+    return make_unit_vector(cross_product(p1 - p0, p2 - p0));
 }
 
 //---------------------------------------------------------------------------//

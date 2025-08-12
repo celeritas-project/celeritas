@@ -426,7 +426,7 @@ class ExtrudedPolygon final : public IntersectRegionInterface
     //// HELPER FUNCTIONS ////
 
     // Calculate the min/max x or y values of the extruded region
-    Range calc_range(VecReal2 const& polygon, size_type dir);
+    Range calc_range(VecReal2 const& polygon, size_type dim);
 };
 
 //---------------------------------------------------------------------------//
@@ -493,7 +493,7 @@ class GenPrism final : public IntersectRegionInterface
     //// ACCESSORS ////
 
     //! Half-height along Z
-    real_type halfheight() const { return hz_; }
+    real_type halfheight() const { return hh_; }
 
     //! Polygon on -z face
     VecReal2 const& lower() const { return lo_; }
@@ -515,10 +515,11 @@ class GenPrism final : public IntersectRegionInterface
         hi
     };
 
-    real_type hz_;  //!< half-height
-    VecReal2 lo_;  //!< corners of the -z face
-    VecReal2 hi_;  //!< corners of the +z face
+    real_type hh_;  //!< half-height
+    VecReal2 lo_;  //!< corners of the -z face (CCW)
+    VecReal2 hi_;  //!< corners of the +z face (CCW)
     Degenerate degen_{Degenerate::none};  //!< no plane on this z axis
+    real_type length_scale_{};
 };
 
 //---------------------------------------------------------------------------//
@@ -684,17 +685,20 @@ class Involute final : public IntersectRegionInterface
  * The paraboloid is defined in an analogous fashion to the cone. A half-height
  * (hh) defines the z-extents, such that the centroid of the outer bounding box
  * is the origin. The lower and upper radii correspond to the radii at
- * \f$ z = \pm \mathrm{hh} \f$. Either the lower or upper radii may be 0, i.e.,
+ * \f$ z = \pm h \f$. Either the lower or upper radii may be 0, i.e.,
  * the solid may include the vertex. Degenerate cases where the lower and upper
  * radii are equal are not permitted: a cylinder should be used instead.
  *
  * A paraboloid with these properties is expressed in SimpleQuadric form as:
  * \f[
-    x^2  + y^2 + \frac{(r_{\mathrm{lo}}^2 - r_{\mathrm{hi}}^2)}{h} z
-    + \frac{-r_{\mathrm{lo}}^2 - r_{\mathrm{hi}}^2}{2} = 0,
+    x^2 + y^2 + \frac{(R_{\mathrm{lo}}^2 - R_{\mathrm{hi}}^2)}{h} z
+    - \frac{R_{\mathrm{lo}}^2 + R_{\mathrm{hi}}^2}{2} = 0,
  * \f]
- * where \f$r_{\mathrm{lo}}\f$ and \f$r_\mathrm{hi}\f$ correspond to the lower
- * and upper radii, respectively, and \f$h\f$ is the full height.
+ * where \f$R_{\mathrm{lo}}\f$ and \f$R_\mathrm{hi}\f$ correspond to the lower
+ * and upper radii, respectively, and \f$h\f$ is the full height. Note that the
+ * scaling is such that as \f$ R_{\mathrm{lo}} \to R_{\mathrm{hi}} \f$ this
+ * approaches the cylindrical equation \f$ x^2 + y^2 = R^2 \f$.
+ *
  */
 class Paraboloid final : public IntersectRegionInterface
 {

@@ -74,12 +74,18 @@ struct SignCount
     }
 };
 
-SignCount count_signs(Span<real_type const, 3> arr, real_type tol)
+struct SignCounter
+{
+    real_type tol_;
+    SignCount operator()(Span<real_type const, 3> arr) const;
+};
+
+SignCount SignCounter::operator()(Span<real_type const, 3> arr) const
 {
     SignCount result;
     for (auto v : arr)
     {
-        if (std::fabs(v) < tol)
+        if (std::fabs(v) < tol_)
         {
             // Effectively zero
             continue;
@@ -210,7 +216,7 @@ ORANGE_INSTANTIATE_OP(ConeAligned, ConeAligned);
 auto SurfaceSimplifier::operator()(Plane const& p) const
     -> Optional<PlaneX, PlaneY, PlaneZ, Plane>
 {
-    auto signs = count_signs(make_span(p.normal()), tol_);
+    auto signs = SignCounter{tol_}(make_span(p.normal()));
     CELER_ASSERT(signs);
 
     if (signs.should_flip())
@@ -303,7 +309,7 @@ auto SurfaceSimplifier::operator()(SimpleQuadric const& sq) const
                 SimpleQuadric>
 {
     // Determine possible simplifications by calculating number of zeros
-    auto signs = count_signs(sq.second(), tol_);
+    auto signs = SignCounter{tol_}(sq.second());
 
     if (!signs)
     {
@@ -358,17 +364,19 @@ auto SurfaceSimplifier::operator()(SimpleQuadric const& sq) const
  * - When no cross terms are present, it's "simple".
  * - When the higher-order terms are negative, the signs will be flipped.
  *
- * \note Differently scaled GQs are *not* simplified at the moment due to small
- * changes in the intercept distances that haven't yet been investigated.
- * Normalization should be done inside the GQ at construction time.
- * Geant4's GenericTrap twisted surfaces are normalized by the magnitude of
- * their linear component.
+ * \note Differently scaled GQs are *not* simplified, as changes to the scaling
+ * affect the distance to intercept and can result in terms being discarded as
+ * "nearly zero".  Normalization should be done in the shape creation
+ * (IntersectRegion) so that the quadric equations directly simplify to simpler
+ * quadrics by dropping terms.
  */
 auto SurfaceSimplifier::operator()(GeneralQuadric const& gq) const
     -> Optional<SimpleQuadric, GeneralQuadric>
 {
+    SignCounter count_signs{tol_};
+
     // Cross term signs
-    auto csigns = count_signs(gq.cross(), tol_);
+    auto csigns = count_signs(gq.cross());
     if (!csigns)
     {
         // No cross terms
@@ -377,7 +385,7 @@ auto SurfaceSimplifier::operator()(GeneralQuadric const& gq) const
     }
 
     // Second-order term signs
-    auto ssigns = count_signs(gq.second(), tol_);
+    auto ssigns = count_signs(gq.second());
     if (ssigns.should_flip() || (!ssigns && csigns.should_flip()))
     {
         // More negative signs than positive:
