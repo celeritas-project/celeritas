@@ -48,9 +48,6 @@ void fixup_orange(GenericGeoTestInterface const& interface,
     if (interface.geometry_type() != "ORANGE")
         return;
 
-    // Delete PV (not implemented)
-    ref.volume_instances.clear();
-
     // Delete within-world safeties
     for (auto i : range(std::max(ref.volumes.size(), result.volumes.size())))
     {
