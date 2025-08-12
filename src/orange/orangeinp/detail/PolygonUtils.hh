@@ -259,8 +259,9 @@ filter_collinear_points(std::vector<Real2> const& corners, double abs_tol)
 /*!
  * Calculate the min/max values of a polygon for a given dimension.
  */
-inline std::pair<real_type, real_type>
-find_extrema(Span<Real2 const> polygon, size_type dim)
+template<class T>
+inline std::pair<T, T>
+find_extrema(Span<Array<T, 2> const> polygon, size_type dim)
 {
     CELER_EXPECT(polygon.size() >= 3);
     CELER_EXPECT(dim < 2);
@@ -272,9 +273,15 @@ find_extrema(Span<Real2 const> polygon, size_type dim)
     return {(*poly_min_it)[dim], (*poly_max_it)[dim]};
 }
 
+template<class T>
+inline auto find_extrema(T const& polygon, size_type dim)
+{
+    return find_extrema(make_span(polygon), dim);
+}
+
 //! Calculate the min/max values of a polygon for an x/y dimension
-inline std::pair<real_type, real_type>
-find_extrema(Span<Real2 const> polygon, Axis ax)
+template<class T>
+inline auto find_extrema(T const& polygon, Axis ax)
 {
     CELER_EXPECT(ax < Axis::z);
     return find_extrema(polygon, to_int(ax));
