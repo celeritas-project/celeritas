@@ -328,11 +328,6 @@ GeantGeoParams::geant_to_id(G4VPhysicalVolume const&) const
 {
     CELER_ASSERT_UNREACHABLE();
 }
-inline VolumeInstanceId
-GeantGeoParams::geant_to_id(G4VPhysicalVolume const&, ReplicaId) const
-{
-    CELER_ASSERT_UNREACHABLE();
-}
 inline BoundingBox<double> GeantGeoParams::get_clhep_bbox() const
 {
     CELER_ASSERT_UNREACHABLE();
