@@ -210,7 +210,6 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
     TrackingResult result;
 
     GeoTrackView geo = CheckedGeoTrackView{this->make_geo_track_view(pos, dir)};
-    auto const& geo_params = *this->geometry();
     auto const& vol_inst = this->vol_inst_labels();
     real_type const inv_length = real_type{1} / this->unit_length();
     real_type const bump_tol = this->bump_tol() * this->unit_length();
@@ -232,25 +231,16 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
 
     while (!geo.is_outside() && max_step > 0)
     {
-        result.volumes.push_back(this->volume_name(geo));
+        result.volumes.emplace_back(this->volume_name(geo));
         if (vol_inst)
         {
-            result.volume_instances.push_back([&] {
+            result.volume_instances.emplace_back([&] {
                 auto vi_id = geo.volume_instance_id();
                 if (!vi_id)
                 {
                     return std::string{"---"};
                 }
-                std::string s = vol_inst.at(vi_id).name;
-                if (auto phys_inst = geo_params.id_to_geant(vi_id))
-                {
-                    if (phys_inst.replica)
-                    {
-                        s += '@';
-                        s += std::to_string(phys_inst.replica.get());
-                    }
-                }
-                return s;
+                return to_string(vol_inst.at(vi_id));
             }());
         }
         auto next = geo.find_next_step();
@@ -362,7 +352,8 @@ auto GenericGeoTestBase<HP>::volume_stack(Real3 const& pos)
     std::vector<VolumeInstanceId> inst_ids(level.get() + 1);
     geo.volume_instance_id(make_span(inst_ids));
 
-    return VolumeStackResult::from_span(*this->geometry(), make_span(inst_ids));
+    return VolumeStackResult::from_span(this->vol_inst_labels(),
+                                        make_span(inst_ids));
 }
 
 //---------------------------------------------------------------------------//
