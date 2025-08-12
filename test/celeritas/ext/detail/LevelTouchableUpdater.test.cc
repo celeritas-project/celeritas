@@ -280,6 +280,10 @@ class ReplicaTest : public LevelTouchableUpdaterTest
 
 TEST_F(ReplicaTest, all_points)
 {
+    // FIXME when replicas are implemented
+    // see https://github.com/celeritas-project/celeritas/issues/1748
+    GTEST_SKIP() << "Replicas are temporarily disabled";
+
     static IListSView const all_level_names[] = {
         {"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@14"},
         {"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@6"},
