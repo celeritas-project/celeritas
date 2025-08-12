@@ -435,11 +435,12 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
             resize(&host_data.volumes, this->impl_volumes().size());
             for (auto iv_id : range(id_cast<ImplVolumeId>(all_lv.size())))
             {
+                VolumeId vol_id;
                 if (auto* g4lv = all_lv[iv_id.get()])
                 {
-                    auto vol_id = geant_geo->geant_to_id(*g4lv);
-                    host_data.volumes[iv_id] = vol_id;
+                    vol_id = geant_geo->geant_to_id(*g4lv);
                 }
+                host_data.volumes[iv_id] = vol_id;
             }
 
             // Construct ImplVolume -> VolumeInstance map
@@ -448,13 +449,14 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
                    this->volume_instances().size());
             for (auto impl_vi_idx : range(this->volume_instances().size()))
             {
+                VolumeInstanceId vol_inst_id;
                 if (auto* g4pv = g4_pv_map_[impl_vi_idx])
                 {
                     // TODO incorporate replica ID
-                    ImplVolumeInstanceId ivi_id{impl_vi_idx};
-                    auto vol_inst_id = geant_geo->geant_to_id(*g4pv);
-                    host_data.volume_instances[ivi_id] = vol_inst_id;
+                    vol_inst_id = geant_geo->geant_to_id(*g4pv);
                 }
+                ImplVolumeInstanceId ivi_id{impl_vi_idx};
+                host_data.volume_instances[ivi_id] = vol_inst_id;
             }
         }
         CELER_ASSERT(host_data);
