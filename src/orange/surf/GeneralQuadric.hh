@@ -35,7 +35,8 @@ class SimpleQuadric;
    \f]
  *
  * Note that some formulations of a general quadric include a factor of 2 for
- * the g/h/i terms.
+ * the g/h/i terms, or use \f$ \dots + iz = j \f$ (reversing the sign of \em
+ j).
  */
 class GeneralQuadric
 {
@@ -96,12 +97,18 @@ class GeneralQuadric
     // Determine the sense of the position relative to this surface
     inline CELER_FUNCTION SignedSense calc_sense(Real3 const& pos) const;
 
+    // Calculate the quadric expression at a point
+    inline CELER_FUNCTION real_type calc_value(Real3 const& pos) const;
+
     // Calculate all possible straight-line intersections with this surface
     inline CELER_FUNCTION Intersections calc_intersections(
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     // Calculate outward normal at a position
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
+
+    // Evaluate the gradient at a point
+    inline CELER_FUNCTION Real3 calc_gradient(Real3 const& pos) const;
 
   private:
     // Second-order terms (a, b, c)
@@ -141,6 +148,15 @@ CELER_FUNCTION GeneralQuadric::GeneralQuadric(Span<R, StorageSpan::extent> data)
  */
 CELER_FUNCTION SignedSense GeneralQuadric::calc_sense(Real3 const& pos) const
 {
+    return real_to_sense(this->calc_value(pos));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Evaluate the quadric expression at a point.
+ */
+CELER_FUNCTION real_type GeneralQuadric::calc_value(Real3 const& pos) const
+{
     real_type const x = pos[0];
     real_type const y = pos[1];
     real_type const z = pos[2];
@@ -148,7 +164,7 @@ CELER_FUNCTION SignedSense GeneralQuadric::calc_sense(Real3 const& pos) const
     real_type result = (a_ * x + d_ * y + f_ * z + g_) * x
                        + (b_ * y + e_ * z + h_) * y + (c_ * z + i_) * z + j_;
 
-    return real_to_sense(result);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -184,16 +200,22 @@ CELER_FUNCTION auto GeneralQuadric::calc_intersections(
  */
 CELER_FUNCTION Real3 GeneralQuadric::calc_normal(Real3 const& pos) const
 {
-    real_type const x = pos[0];
-    real_type const y = pos[1];
-    real_type const z = pos[2];
+    return make_unit_vector(this->calc_gradient(pos));
+}
 
-    Real3 norm;
-    norm[0] = 2 * a_ * x + d_ * y + f_ * z + g_;
-    norm[1] = 2 * b_ * y + d_ * x + e_ * z + h_;
-    norm[2] = 2 * c_ * z + e_ * y + f_ * x + i_;
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the gradient at a point.
+ */
+CELER_FUNCTION Real3 GeneralQuadric::calc_gradient(Real3 const& pos) const
+{
+    real_type const x = pos[to_int(Axis::x)];
+    real_type const y = pos[to_int(Axis::y)];
+    real_type const z = pos[to_int(Axis::z)];
 
-    return make_unit_vector(norm);
+    return {2 * a_ * x + d_ * y + f_ * z + g_,
+            2 * b_ * y + d_ * x + e_ * z + h_,
+            2 * c_ * z + e_ * y + f_ * x + i_};
 }
 
 //---------------------------------------------------------------------------//
