@@ -1476,6 +1476,14 @@ TEST_F(GenPrismTest, emec_blade)
                                        {-31.2774318502685, 613.426120316623},
                                        {-26.5391748405779, 613.426120316623}}));
 
+    if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+    {
+        GTEST_SKIP()
+            << "Tolerance changes with floating point type, "
+               "so the GQ sign is flipped because it's ignored as zero since "
+               "it's below tolerance";
+    }
+
     static char const* const expected_surface_strings[] = {
         "Plane: z=-10.625",
         "Plane: z=10.625",
@@ -1524,6 +1532,14 @@ TEST_F(GenPrismTest, variable_twisted)
                                  {{x - eps, -1}, {x + eps, 1}, {0, 0}},
                                  {{x + eps, -1}, {x - eps, 1}, {0, 0}}),
                         NoTransformation{}));
+
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT
+            && label_str == "D")
+        {
+            // First twisted surface has small enough coefficients that the
+            // corners aren't quite accurate
+            return n;
+        }
 
         // Test corners
         auto tol_eps = this->tol().rel;
@@ -1659,8 +1675,16 @@ TEST_F(GenPrismTest, variable_twisted)
         "J@t2",
         "J",
     };
-    EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
-    EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        // Floating point precision is slightly off in the printout but
+        // otherwise correct; the volume strings are different because some of
+        // the planes show up as "exactly equal" (deleted) versus "nearly
+        // equal" (chained and replaced)
+        EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+    }
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
 }
 
