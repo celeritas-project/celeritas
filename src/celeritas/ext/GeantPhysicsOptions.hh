@@ -53,21 +53,33 @@ enum class RelaxationSelection
 struct GeantMuonPhysicsOptions
 {
     //! Enable muon pair production
-    bool pair_production{false};
+    bool pair_production{true};
     //! Enable muon ionization
-    bool ionization{false};
+    bool ionization{true};
     //! Enable muon bremsstrahlung
-    bool bremsstrahlung{false};
+    bool bremsstrahlung{true};
     //! Enable muon single Coulomb scattering
     bool coulomb{false};
     //! Enable multiple coulomb scattering and select a model
-    MscModelSelection msc{MscModelSelection::none};
+    MscModelSelection msc{MscModelSelection::urban};
 
     //! True if any process is activated
     explicit operator bool() const
     {
         return pair_production || ionization || bremsstrahlung || coulomb
                || msc != MscModelSelection::none;
+    }
+
+    //! Initialize with no physics
+    static GeantMuonPhysicsOptions deactivated()
+    {
+        GeantMuonPhysicsOptions opt;
+        opt.pair_production = false;
+        opt.ionization = false;
+        opt.bremsstrahlung = false;
+        opt.coulomb = false;
+        opt.msc = MscModelSelection::none;
+        return opt;
     }
 };
 
@@ -132,7 +144,7 @@ struct GeantPhysicsOptions
     //!@}
 
     //! Muon EM physics
-    GeantMuonPhysicsOptions muon;
+    GeantMuonPhysicsOptions muon{GeantMuonPhysicsOptions::deactivated()};
 
     //!@{
     //! \name Physics options
@@ -200,6 +212,30 @@ struct GeantPhysicsOptions
     //! Optical physics options
     GeantOpticalPhysicsOptions optical{
         GeantOpticalPhysicsOptions::deactivated()};
+
+    //! Initialize with no physics
+    static GeantPhysicsOptions deactivated()
+    {
+        GeantPhysicsOptions opt;
+        // Gamma
+        opt.compton_scattering = false;
+        opt.photoelectric = false;
+        opt.rayleigh_scattering = false;
+        opt.gamma_conversion = false;
+        opt.gamma_general = false;
+        // Electron/positron
+        opt.coulomb_scattering = false;
+        opt.ionization = false;
+        opt.annihilation = false;
+        opt.brems = BremsModelSelection::none;
+        opt.msc = MscModelSelection::none;
+        opt.relaxation = RelaxationSelection::none;
+        // Muon
+        opt.muon = GeantMuonPhysicsOptions::deactivated();
+        // Optical
+        opt.optical = GeantOpticalPhysicsOptions::deactivated();
+        return opt;
+    }
 };
 
 //! Equality operator, mainly for test harness
