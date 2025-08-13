@@ -62,8 +62,11 @@ struct VecgeomScalars
 /*!
  * Persistent data used by VecGeom implementation.
  *
- * The volumes and volume instances are only available if generating the
- * geometry directly from Geant4.
+ * The volumes and volume instance mappings are set when constructing from an
+ * external model, using VolumeParams to map to Geant4 geometry. If using VGDML
+ * (Geant4 disabled) these are empty, and only the impl volumes should be
+ * accessed. (The "volume instance" accessor will also work, but it will return
+ * "implementation" volume instances rather than canonical ones.)
  */
 template<Ownership W, MemSpace M>
 struct VecgeomParamsData

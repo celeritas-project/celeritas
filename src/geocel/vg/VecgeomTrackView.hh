@@ -280,9 +280,10 @@ VecgeomTrackView::operator=(Initializer_t const& init)
 /*!
  * Get the volume ID in the current cell.
  */
-CELER_FORCEINLINE_FUNCTION ImplVolumeId VecgeomTrackView::volume_id() const
+CELER_FORCEINLINE_FUNCTION VolumeId VecgeomTrackView::volume_id() const
 {
     CELER_EXPECT(!this->is_outside());
+    CELER_EXPECT(!params_.volumes.empty());
 
     return params_.volumes[this->impl_volume_id()];
 }
