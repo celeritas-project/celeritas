@@ -46,7 +46,9 @@ struct VecgeomScalars
         {
             return device_world;
         }
+#if CELER_CUDACC_BUGGY_IF_CONSTEXPR
         CELER_ASSERT_UNREACHABLE();
+#endif
     }
 
     //! Whether the scalars are valid (device may be null)
