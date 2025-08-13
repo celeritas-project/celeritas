@@ -79,30 +79,21 @@ auto GeoMaterialTestBase::trace_materials(Real3 const& pos_cm, Real3 dir)
 class SimpleCmsTest : public CMS_TEST_BASE, public GeoMaterialTestBase
 {
   public:
-    std::string_view geometry_basename() const override
-    {
-        return "simple-cms"sv;
-    }
+    std::string_view gdml_basename() const override { return "simple-cms"sv; }
 };
 
 //---------------------------------------------------------------------------//
 
 class Em3Test : public GeantTestBase, public GeoMaterialTestBase
 {
-    std::string_view geometry_basename() const override
-    {
-        return "testem3-flat";
-    }
+    std::string_view gdml_basename() const override { return "testem3-flat"; }
 };
 
 //---------------------------------------------------------------------------//
 
 class MultiLevelTest : public GeantTestBase, public GeoMaterialTestBase
 {
-    std::string_view geometry_basename() const final
-    {
-        return "multi-level"sv;
-    }
+    std::string_view gdml_basename() const final { return "multi-level"sv; }
 };
 
 //---------------------------------------------------------------------------//

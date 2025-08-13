@@ -12,7 +12,7 @@
 #include "corecel/cont/Span.hh"
 #include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantGeoUtils.hh"
-#include "celeritas/GlobalGeoTestBase.hh"
+#include "celeritas/GlobalTestBase.hh"
 #include "celeritas/OnlyCoreTestBase.hh"
 #include "celeritas/OnlyGeoTestBase.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
@@ -53,9 +53,7 @@ void TestResult::print_expected() const
 /*!
  * Test with multi-level geometry using "core" implementation.
  */
-class LevelTouchableUpdaterTest : public ::celeritas::test::GlobalGeoTestBase,
-                                  public ::celeritas::test::OnlyGeoTestBase,
-                                  public ::celeritas::test::OnlyCoreTestBase
+class LevelTouchableUpdaterTest : public ::celeritas::test::OnlyGeoTestBase
 {
   protected:
     using TouchableUpdater = LevelTouchableUpdater;
@@ -168,10 +166,7 @@ TestResult LevelTouchableUpdaterTest::run(Span<IListSView const> names)
  */
 class MultiLevelTest : public LevelTouchableUpdaterTest
 {
-    std::string_view geometry_basename() const override
-    {
-        return "multi-level";
-    }
+    std::string_view gdml_basename() const override { return "multi-level"; }
 };
 
 // See GeantGeoUtils.test.cc : MultiLevelTest.set_history
@@ -276,7 +271,7 @@ TEST_F(MultiLevelTest, all_points)
  */
 class ReplicaTest : public LevelTouchableUpdaterTest
 {
-    std::string_view geometry_basename() const override { return "replica"; }
+    std::string_view gdml_basename() const override { return "replica"; }
 };
 
 TEST_F(ReplicaTest, all_points)

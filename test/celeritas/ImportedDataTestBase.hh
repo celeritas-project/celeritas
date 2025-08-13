@@ -8,7 +8,7 @@
 
 #include "celeritas/io/ImportOpticalModel.hh"
 
-#include "GlobalGeoTestBase.hh"
+#include "GlobalTestBase.hh"
 
 namespace celeritas
 {
@@ -24,7 +24,7 @@ namespace test
  *
  * This is an implementation detail of GeantTestBase and RootTestBase.
  */
-class ImportedDataTestBase : virtual public GlobalGeoTestBase
+class ImportedDataTestBase : virtual public GlobalTestBase
 {
   public:
     using IMC = celeritas::optical::ImportModelClass;

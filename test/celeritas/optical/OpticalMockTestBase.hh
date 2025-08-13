@@ -43,6 +43,11 @@ class OpticalMockTestBase : public GlobalTestBase
         return this->imported_data().optical_materials.size();
     }
 
+    std::string_view gdml_basename() const override
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
+
     //!@{
     //! \name Unsupported params builders
     SPConstCoreGeo build_geometry() override { CELER_ASSERT_UNREACHABLE(); }

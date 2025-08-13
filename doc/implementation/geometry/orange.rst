@@ -1,6 +1,8 @@
 .. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 .. SPDX-License-Identifier: CC-BY-4.0
 
+.. highlight:: none
+
 .. _api_orange:
 
 ORANGE
@@ -36,7 +38,9 @@ helps construct these objects.
 .. doxygenclass:: celeritas::orangeinp::GenPrism
 .. doxygenclass:: celeritas::orangeinp::InfPlane
 .. doxygenclass:: celeritas::orangeinp::InfAziWedge
+.. doxygenclass:: celeritas::orangeinp::InfPolarWedge
 .. doxygenclass:: celeritas::orangeinp::Involute
+.. doxygenclass:: celeritas::orangeinp::Paraboloid
 .. doxygenclass:: celeritas::orangeinp::Parallelepiped
 .. doxygenclass:: celeritas::orangeinp::Prism
 .. doxygenclass:: celeritas::orangeinp::Sphere
@@ -75,13 +79,20 @@ AnyObjects, AllObjects, and NegatedObject
 Objects are typically constructed and used as shared pointers so that they can
 be reused in multiple locations.
 
+.. highlight:: cpp
+
 .. doxygenclass:: celeritas::orangeinp::Shape
 .. doxygenclass:: celeritas::orangeinp::Solid
 .. doxygenclass:: celeritas::orangeinp::Truncated
 
+.. highlight:: none
+
 .. doxygenclass:: celeritas::orangeinp::PolyCone
 .. doxygenclass:: celeritas::orangeinp::PolyPrism
+.. doxygenclass:: celeritas::orangeinp::RevolvedPolygon
 .. doxygenclass:: celeritas::orangeinp::StackedExtrudedPolygon
+
+.. highlight:: cpp
 
 .. doxygenclass:: celeritas::orangeinp::Transformed
 

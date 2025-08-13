@@ -55,11 +55,6 @@ class GeantGeoUtilsTest : public GeantGeoTestBase
     using VecPhysInst = std::vector<GeantPhysicalInstance>;
     using ReplicaId = GeantPhysicalInstance::ReplicaId;
 
-    SPConstGeo build_geometry() final
-    {
-        return this->build_geometry_from_basename();
-    }
-
     void SetUp() override
     {
         // Build geometry during setup
@@ -119,7 +114,7 @@ class GeantGeoUtilsTest : public GeantGeoTestBase
 //---------------------------------------------------------------------------//
 class SolidsTest : public GeantGeoUtilsTest
 {
-    std::string geometry_basename() const override { return "solids"; }
+    std::string_view gdml_basename() const override { return "solids"; }
 };
 
 TEST_F(SolidsTest, find_geant_volumes)
@@ -146,7 +141,7 @@ TEST_F(SolidsTest, find_geant_volumes_duplicate)
 //---------------------------------------------------------------------------//
 class MultiLevelTest : public GeantGeoUtilsTest
 {
-    std::string geometry_basename() const override { return "multi-level"; }
+    std::string_view gdml_basename() const override { return "multi-level"; }
 };
 
 TEST_F(MultiLevelTest, printable_nav)
@@ -258,7 +253,7 @@ TEST_F(MultiLevelTest, set_history)
 //---------------------------------------------------------------------------//
 class ReplicaTest : public GeantGeoUtilsTest
 {
-    std::string geometry_basename() const override { return "replica"; }
+    std::string_view gdml_basename() const override { return "replica"; }
 };
 
 TEST_F(ReplicaTest, is_replica)

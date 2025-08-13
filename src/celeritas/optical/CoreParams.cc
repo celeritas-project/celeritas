@@ -23,6 +23,7 @@
 #include "action/LocateVacanciesAction.hh"
 #include "action/PreStepAction.hh"
 #include "action/TrackingCutAction.hh"
+#include "surface/BoundaryAction.hh"
 #include "surface/SurfacePhysicsParams.hh"
 
 namespace celeritas

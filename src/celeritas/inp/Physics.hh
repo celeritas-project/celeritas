@@ -17,6 +17,7 @@
 
 #include "PhysicsProcess.hh"
 #include "ProcessBuilder.hh"
+#include "SurfacePhysics.hh"
 
 namespace celeritas
 {
@@ -56,7 +57,7 @@ struct EmPhysics
 
 //---------------------------------------------------------------------------//
 /*!
- * Optical physics processes and options.
+ * Optical physics processes, options, and surface definitions.
  */
 struct OpticalPhysics
 {
@@ -73,6 +74,14 @@ struct OpticalPhysics
     //! Generate scintillation photons
     bool scintillation{true};
     //!@}
+
+    //!@{
+    //! \name Optical surface physics and properties
+    SurfacePhysics surfaces;
+    //!@}
+
+    //! Whether the data are assigned
+    explicit operator bool() const { return static_cast<bool>(surfaces); }
 };
 
 //---------------------------------------------------------------------------//

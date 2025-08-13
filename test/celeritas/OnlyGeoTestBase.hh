@@ -8,7 +8,7 @@
 
 #include "corecel/Assert.hh"
 
-#include "GlobalTestBase.hh"
+#include "OnlyCoreTestBase.hh"
 
 namespace celeritas
 {
@@ -18,7 +18,7 @@ namespace test
 /*!
  * Mixin class providing "unreachable" implementations for param construction.
  */
-class OnlyGeoTestBase : virtual public GlobalTestBase
+class OnlyGeoTestBase : virtual public OnlyCoreTestBase
 {
   public:
     SPConstParticle build_particle() override { CELER_ASSERT_UNREACHABLE(); }

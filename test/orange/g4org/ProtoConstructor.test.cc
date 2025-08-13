@@ -185,8 +185,8 @@ TEST_F(ProtoConstructorTest, intersection_boxes)
             "Plane: y=1.5",
             "Plane: z=-2",
             "Plane: z=2",
-            "Plane: n={0.86603,0,-0.5}, d=-2.634",
-            "Plane: n={0.86603,0,-0.5}, d=0.36603",
+            "Plane: n={0.86603,0,-0.5}, d=-2.6340",
+            "Plane: n={0.86603,0,-0.5}, d=0.36602",
             "Plane: y=0",
             "Plane: y=4",
             "Plane: n={0.5,0,0.86603}, d=1.4641",
@@ -408,18 +408,18 @@ TEST_F(ProtoConstructorTest, TEST_IF_CELERITAS_DOUBLE(tilecal_plug))
         auto u = this->build_unit(protos, UniverseId{0});
 
         static char const* const expected_surface_strings[] = {
-            "Plane: z=-62.058",
-            "Plane: z=62.058",
+            "Plane: z=-62.057",
+            "Plane: z=62.057",
             "Plane: x=15.45",
-            "Plane: n={0,0.9988,-0.049068}, d=17.711",
+            "Plane: n={0,0.99879,-0.049068}, d=17.711",
             "Plane: x=-15.45",
-            "Plane: n={0,0.9988,0.049068}, d=-17.711",
+            "Plane: n={0,0.99879,0.049068}, d=-17.711",
             "Plane: z=-16.942",
             "Plane: z=-17.058",
             "Plane: x=5.965",
             "Plane: z=25.058",
-            "Plane: n={0,0.9988,-0.049068}, d=17.636",
-            "Plane: n={0,0.9988,0.049068}, d=-17.636",
+            "Plane: n={0,0.99879,-0.049068}, d=17.636",
+            "Plane: n={0,0.99879,0.049068}, d=-17.636",
         };
         static char const* const expected_fill_strings[]
             = {"<UNASSIGNED>", "m1", "m0", "m1"};

@@ -160,11 +160,11 @@ auto OpticalMockTestBase::build_material() -> SPConstMaterial
  */
 ImportData const& OpticalMockTestBase::imported_data() const
 {
-    static ImportData data;
-    if (data.optical_materials.empty())
-    {
-        this->build_import_data(data);
-    }
+    static ImportData const data = [this] {
+        ImportData d;
+        this->build_import_data(d);
+        return d;
+    }();
     return data;
 }
 

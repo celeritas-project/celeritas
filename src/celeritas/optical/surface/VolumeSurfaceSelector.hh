@@ -94,25 +94,22 @@ VolumeSurfaceSelector::operator()(VolumeSurfaceView const& post_surface,
                                   VolumeInstanceId post_volume_inst) const
     -> OrientedSurface
 {
+    // P0 -> P1 interface surface in forward direction
     if (auto surface_id
         = pre_surface_.find_interface(pre_volume_inst_, post_volume_inst))
     {
         return {surface_id, SubsurfaceDirection::forward};
     }
-    else if (auto surface_id
-             = post_surface.find_interface(post_volume_inst, pre_volume_inst_))
-    {
-        return {surface_id, SubsurfaceDirection::reverse};
-    }
-    else if (auto surface_id = pre_surface_.boundary_id())
+
+    // L0 boundary surface in forward direction
+    if (auto surface_id = pre_surface_.boundary_id())
     {
         return {surface_id, SubsurfaceDirection::forward};
     }
-    else
-    {
-        // If no boundary in post-volume then return invalid SurfaceId
-        return {post_surface.boundary_id(), SubsurfaceDirection::reverse};
-    }
+
+    // Return the L1 boundary surface from the opposite direction.
+    // If no boundary surface exists, an invalid OrientedSurface is returned.
+    return {post_surface.boundary_id(), SubsurfaceDirection::reverse};
 }
 
 //---------------------------------------------------------------------------//

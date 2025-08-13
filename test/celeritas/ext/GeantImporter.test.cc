@@ -239,7 +239,7 @@ void GeantImporterTest::ImportXsSummary::print_expected() const
 //---------------------------------------------------------------------------//
 class FourSteelSlabsEmStandard : public GeantImporterTest
 {
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "four-steel-slabs"sv;
     }
@@ -268,7 +268,7 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
 class TestEm3 : public GeantImporterTest
 {
   protected:
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "testem3-flat"sv;
     }
@@ -287,7 +287,7 @@ class TestEm3 : public GeantImporterTest
 class OneSteelSphere : public GeantImporterTest
 {
   protected:
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "one-steel-sphere"sv;
     }
@@ -327,10 +327,7 @@ class OneSteelSphereGG : public OneSteelSphere
 class LarSphere : public GeantImporterTest
 {
   protected:
-    std::string_view geometry_basename() const override
-    {
-        return "lar-sphere"sv;
-    }
+    std::string_view gdml_basename() const override { return "lar-sphere"sv; }
 
     GeantPhysicsOptions build_geant_options() const override
     {
@@ -347,7 +344,7 @@ class LarSphere : public GeantImporterTest
 class LarSphereExtramat : public GeantImporterTest
 {
   protected:
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "lar-sphere-extramat"sv;
     }
@@ -364,10 +361,26 @@ class LarSphereExtramat : public GeantImporterTest
 };
 
 //---------------------------------------------------------------------------//
+class OpticalSurfaces : public GeantImporterTest
+{
+  protected:
+    std::string_view gdml_basename() const override
+    {
+        return "optical-surfaces"sv;
+    }
+
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        auto opts = GeantImporterTest::build_geant_options();
+        return opts;
+    }
+};
+
+//---------------------------------------------------------------------------//
 class Solids : public GeantImporterTest
 {
   protected:
-    std::string_view geometry_basename() const override { return "solids"sv; }
+    std::string_view gdml_basename() const override { return "solids"sv; }
 
     GeantPhysicsOptions build_geant_options() const override
     {
@@ -1972,6 +1985,128 @@ TEST_F(Solids, physics)
     EXPECT_VEC_EQ(expected_models, summary.models);
 }
 
+//---------------------------------------------------------------------------//
+
+TEST_F(OpticalSurfaces, surfaces)
+{
+    auto&& osp = this->imported_data().optical_physics.surfaces;
+    EXPECT_TRUE(osp);
+
+#define OS_IS_MAPPED(MEMBER, ID) (osp.MEMBER.find(ID) != osp.MEMBER.end())
+
+    // sphere_surf: glisur, polished, dielectric-dielectric, specular spike
+    {
+        SurfaceId sid{0};
+        EXPECT_TRUE(OS_IS_MAPPED(roughness.polished, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(roughness.smear, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(roughness.gaussian, sid));
+
+        EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
+
+        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+
+        auto& rf = osp.interaction.dielectric_dielectric.find(sid)->second;
+        EXPECT_SOFT_EQ(1, rf.specular_spike.y[0]);
+        EXPECT_SOFT_EQ(0, rf.specular_lobe.y[0]);
+        EXPECT_SOFT_EQ(0, rf.backscatter.y[0]);
+    }
+
+    // tube2_surf: glisur, ground, dielectric-dielectric, specular lobe
+    {
+        SurfaceId sid{1};
+        EXPECT_FALSE(OS_IS_MAPPED(roughness.polished, sid));
+        EXPECT_TRUE(OS_IS_MAPPED(roughness.smear, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(roughness.gaussian, sid));
+
+        EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
+
+        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+
+        static double const polish
+            = 1 - osp.roughness.smear.find(sid)->second.roughness;
+        EXPECT_SOFT_EQ(0.9, polish);
+
+        auto& rf = osp.interaction.dielectric_dielectric.find(sid)->second;
+        EXPECT_SOFT_EQ(0, rf.specular_spike.y[0]);
+        EXPECT_SOFT_EQ(1, rf.specular_lobe.y[0]);
+        EXPECT_SOFT_EQ(0, rf.backscatter.y[0]);
+    }
+
+    // lomid_surf: unified, polished, dielectric-dielectric
+    {
+        SurfaceId sid{2};
+        EXPECT_FALSE(OS_IS_MAPPED(roughness.polished, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(roughness.smear, sid));
+        EXPECT_TRUE(OS_IS_MAPPED(roughness.gaussian, sid));
+
+        EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
+
+        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+
+        auto& rf = osp.interaction.dielectric_dielectric.find(sid)->second;
+        static double const expected_energy[] = {2e-06, 8e-06};
+        static double const expected_specular_spike[] = {0.1, 0.3};
+        static double const expected_specular_lobe[] = {0.2, 0.2};
+        static double const expected_backscatter[] = {0.3, 0.1};
+
+        EXPECT_VEC_SOFT_EQ(expected_energy, rf.specular_lobe.x);
+        EXPECT_VEC_SOFT_EQ(expected_energy, rf.specular_spike.x);
+        EXPECT_VEC_SOFT_EQ(expected_energy, rf.backscatter.x);
+        EXPECT_VEC_SOFT_EQ(expected_specular_lobe, rf.specular_lobe.y);
+        EXPECT_VEC_SOFT_EQ(expected_specular_spike, rf.specular_spike.y);
+        EXPECT_VEC_SOFT_EQ(expected_backscatter, rf.backscatter.y);
+    }
+
+    // midlo_surf: glisur, polished, dielectric-metal, specular spike
+    {
+        SurfaceId sid{3};
+        EXPECT_TRUE(OS_IS_MAPPED(roughness.polished, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(roughness.smear, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(roughness.gaussian, sid));
+
+        EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
+
+        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
+        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+
+        auto& rf = osp.interaction.dielectric_metal.find(sid)->second;
+        EXPECT_SOFT_EQ(1, rf.specular_spike.y[0]);
+        EXPECT_SOFT_EQ(0, rf.specular_lobe.y[0]);
+        EXPECT_SOFT_EQ(0, rf.backscatter.y[0]);
+    }
+
+    // midhi_surf: glisur, ground, dielectric-metal, specular lobe
+    {
+        SurfaceId sid{4};
+        EXPECT_FALSE(OS_IS_MAPPED(roughness.polished, sid));
+        EXPECT_TRUE(OS_IS_MAPPED(roughness.smear, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(roughness.gaussian, sid));
+
+        EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
+
+        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
+        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+
+        static double const polish
+            = 1 - osp.roughness.smear.find(sid)->second.roughness;
+        EXPECT_SOFT_EQ(0.7, polish);
+
+        auto& rf = osp.interaction.dielectric_metal.find(sid)->second;
+        EXPECT_SOFT_EQ(0, rf.specular_spike.y[0]);
+        EXPECT_SOFT_EQ(1, rf.specular_lobe.y[0]);
+        EXPECT_SOFT_EQ(0, rf.backscatter.y[0]);
+    }
+
+#undef OS_IS_MAPPED
+}
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

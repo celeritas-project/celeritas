@@ -19,7 +19,7 @@ namespace test
 class OneSteelSphereBase : virtual public GeantTestBase
 {
   protected:
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "one-steel-sphere";
     }

@@ -15,7 +15,7 @@
 #include "geocel/detail/LengthUnits.hh"
 #include "geocel/rasterize/SafetyImager.hh"
 
-#include "OrangeGeoTestBase.hh"
+#include "OrangeTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -24,19 +24,17 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-class GeantOrangeTest : public OrangeGeoTestBase
+class GeantOrangeTest : public OrangeTestBase
 {
   protected:
     void SetUp() final { this->geometry(); }
 
-    SPConstGeo build_geometry() final
+    //! Check log messages
+    SPConstGeo build_geometry() const final
     {
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::error};
-
-        auto filename = this->geometry_basename() + std::string{".gdml"};
-        auto result = Params::from_gdml(test_data_path("geocel", filename));
-
+        auto result = OrangeTestBase::build_geometry();
         EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
         return result;
     }
@@ -48,11 +46,6 @@ class GeantOrangeTest : public OrangeGeoTestBase
 using MultiLevelTest
     = GenericGeoParameterizedTest<GeantOrangeTest, MultiLevelGeoTest>;
 
-TEST_F(MultiLevelTest, DISABLED_model)
-{
-    this->impl().test_model();
-}
-
 TEST_F(MultiLevelTest, trace)
 {
     this->impl().test_trace();
@@ -62,7 +55,7 @@ TEST_F(MultiLevelTest, trace)
 
 class PincellTest : public GeantOrangeTest
 {
-    std::string geometry_basename() const final { return "pincell"; }
+    std::string_view gdml_basename() const final { return "pincell"; }
 };
 
 TEST_F(PincellTest, imager)
@@ -138,7 +131,7 @@ TEST_F(TestEm3FlatTest, trace)
 //---------------------------------------------------------------------------//
 class TilecalPlugTest : public GeantOrangeTest
 {
-    std::string geometry_basename() const final { return "tilecal-plug"; }
+    std::string_view gdml_basename() const final { return "tilecal-plug"; }
 };
 
 TEST_F(TilecalPlugTest, trace)

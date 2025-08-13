@@ -94,12 +94,12 @@ TEST_F(VolumeSurfaceSelectorTest, select_surface)
     }
     {
         static OSurface const expected_surfaces[] = {
-            {SurfaceId{5}, reverse},
+            {SurfaceId{2}, reverse},
             {SurfaceId{}, forward},
             {SurfaceId{3}, forward},
-            {SurfaceId{4}, reverse},
-            {SurfaceId{8}, reverse},
-            {SurfaceId{7}, reverse},
+            {SurfaceId{}, reverse},
+            {SurfaceId{}, reverse},
+            {SurfaceId{}, reverse},
         };
 
         EXPECT_VEC_EQ(expected_surfaces, select_surfaces(VolumeInstanceId{1}));
@@ -107,7 +107,7 @@ TEST_F(VolumeSurfaceSelectorTest, select_surface)
     {
         static OSurface const expected_surfaces[] = {
             {SurfaceId{0}, forward},
-            {SurfaceId{3}, reverse},
+            {SurfaceId{}, reverse},
             {SurfaceId{1}, forward},
             {SurfaceId{}, forward},
             {SurfaceId{}, forward},

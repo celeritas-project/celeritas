@@ -442,9 +442,8 @@ TEST_F(BadGeometryTest, no_new_volume_host)
     auto scoped_log = this->run_one_failure<MemSpace::host>({-6.001, 0, 0});
 
     static char const* const expected_log_messages[] = {
-        "track failed to cross local surface 2 in universe 0 at local "
-        "position {-6, 0, 0} along local direction {1, 0, 0}",
-        R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":true,"is_outside":true,"pos":[[-6.0,0.0,0.0],"cm"]},"mat":null,"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":1,"parent_id":-1,"post_step_action":"tracking-cut","status":"errored","step_length":[0.0010,"cm"],"time":[3.336e-14,"s"],"track_id":0},"thread_id":0,"track_slot_id":0}: depositing 100 MeV)",
+        R"(track failed to cross local surface 2 in universe 0 at local position {-6, 0, 0} along local direction {1, 0, 0})",
+        R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":true,"is_outside":true,"pos":[[-6.0,0.0,0.0],"cm"]},"mat":null,"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":1,"parent_id":-1,"post_step_action":"tracking-cut","status":"errored","step_length":[0.001000,"cm"],"time":[3.336e-14,"s"],"track_id":0},"thread_id":0,"track_slot_id":0}: depositing 100 MeV)",
     };
 
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS

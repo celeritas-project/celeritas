@@ -37,7 +37,6 @@ namespace test
 //! Keep Geant4 setup persistently across tests
 struct GeantTestBase::ImportSetup
 {
-    std::string basename;
     std::unique_ptr<GeantImporter> import;
     std::shared_ptr<GeantGeoParams> geo;
     GeantPhysicsOptions options{};
@@ -123,26 +122,26 @@ auto GeantTestBase::build_along_step() -> SPConstAction
 }
 
 //---------------------------------------------------------------------------//
-auto GeantTestBase::build_fresh_geometry(std::string_view basename)
-    -> SPConstGeoI
+auto GeantTestBase::build_geant_geo(std::string const& filename) const
+    -> SPConstGeantGeo
 {
-    CELER_LOG(info) << "Importing geometry from Geant4";
+    CELER_LOG(debug) << "Accessing Geant4 geometry by setting up problem";
 
-    this->imported_data();
-    ImportSetup const& i = this->load();
-    CELER_ASSERT(i.geo);
-    CELER_ASSERT(i.basename == basename);
-    return CoreGeoParams::from_geant(i.geo);
+    ImportSetup const& i = this->load(filename);
+    CELER_ENSURE(i.geo);
+    return i.geo;
 }
 
 //---------------------------------------------------------------------------//
 // Lazily set up and load geant4
 auto GeantTestBase::imported_data() const -> ImportData const&
 {
-    return this->load().imported;
+    this->lazy_geo();
+    return this->load({}).imported;
 }
 
-auto GeantTestBase::load() const -> ImportSetup const&
+auto GeantTestBase::load(std::string const& filename) const
+    -> ImportSetup const&
 {
     GeantPhysicsOptions opts = this->build_geant_options();
     GeantImportDataSelection sel = this->build_import_data_selection();
@@ -153,11 +152,11 @@ auto GeantTestBase::load() const -> ImportSetup const&
     std::shared_ptr<ImportSetup> i;
     if (!ps)
     {
+        CELER_VALIDATE(!filename.empty(),
+                       << "load was called before build_geant_geo");
         i = std::make_shared<ImportSetup>();
-        i->basename = this->geometry_basename();
         i->options = opts;
-        i->import = std::make_unique<GeantImporter>(GeantSetup{
-            this->test_data_path("geocel", i->basename + ".gdml"), opts});
+        i->import = std::make_unique<GeantImporter>(GeantSetup{filename, opts});
         i->geo = i->import->geo_params();
         CELER_ASSERT(i->geo);
         CELER_ASSERT(!celeritas::geant_geo().expired());
@@ -165,7 +164,7 @@ auto GeantTestBase::load() const -> ImportSetup const&
         i->imported = (*i->import)(sel);
         i->selection = sel;
         i->options.verbose = false;
-        ps.set(i->basename, i);
+        ps.set(filename, i);
     }
     else
     {
@@ -174,10 +173,10 @@ auto GeantTestBase::load() const -> ImportSetup const&
 
         static char const explanation[]
             = R"( (Geant4 cannot be set up twice in one execution: see issue #462))";
-        CELER_VALIDATE(this->geometry_basename() == ps.key(),
-                       << "cannot load new geometry '"
-                       << this->geometry_basename() << "' when another '"
-                       << ps.key() << "' was already set up" << explanation);
+        CELER_VALIDATE(filename.empty() || filename == ps.key(),
+                       << "cannot load new problem '" << filename
+                       << "' when another '" << ps.key()
+                       << "' was already set up" << explanation);
         i = ps.value();
         CELER_ASSERT(i);
         CELER_VALIDATE(opts == i->options,

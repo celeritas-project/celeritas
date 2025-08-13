@@ -2,14 +2,21 @@
 <gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
 
   <define>
-    <matrix name="RINDEX_Air"     coldim="2" values="1.65e-06 1.59 1e-05 1.59"/>
-    <matrix name="RINDEX_LAr"     coldim="2" values="1.88e-06 1.22 1e-05 1.22"/>
-    <matrix name="RINDEX_Acrylic" coldim="2" values="4.13e-09 1.50 8.45e-09 1.50"/>
-    <matrix name="REFLECTIVITY_lo"    coldim="2" values="1.65e-06 0.6 1e-05 0.6"/>
-    <matrix name="REFLECTIVITY_lomid" coldim="2" values="1.65e-06 0.7 1e-05 0.7"/>
-    <matrix name="REFLECTIVITY_mid"   coldim="2" values="1.65e-06 0.8 1e-05 0.8"/>
-    <matrix name="REFLECTIVITY_hi"    coldim="2" values="1.65e-06 0.9 1e-05 0.9"/>
-    <matrix name="ABSLENGTH_Acrylic" coldim="2" values="1.13e-09 263.1 1.24e-09 263 1.55e-09 263 1.77e-09 250 2.07e-09 227 2.48e-09 200 3.10e-09 131 4.13e-09  161 4.96e-09 74 5.51e-09 13 5.90e-09 1 6.20e-09 0"/>
+    <matrix name="RINDEX_Air"          coldim="2" values="1.65e-06 1.59 1e-05 1.59"/>
+    <matrix name="RINDEX_LAr"          coldim="2" values="1.88e-06 1.22 1e-05 1.22"/>
+    <matrix name="RINDEX_Acrylic"      coldim="2" values="4.13e-09 1.50 8.45e-09 1.50"/>
+    <matrix name="REFLECTIVITY_sphere" coldim="2" values="1.65e-06 0.5 1e-05 0.5"/>
+    <matrix name="REFLECTIVITY_lo"     coldim="2" values="1.65e-06 0.6 1e-05 0.6"/>
+    <matrix name="REFLECTIVITY_lomid"  coldim="2" values="1.65e-06 0.7 1e-05 0.7"/>
+    <matrix name="REFLECTIVITY_mid"    coldim="2" values="1.65e-06 0.8 1e-05 0.8"/>
+    <matrix name="REFLECTIVITY_hi"     coldim="2" values="1.65e-06 0.9 1e-05 0.9"/>
+    <matrix name="ABSLENGTH_Acrylic"   coldim="2" values="1.13e-09 263.1 1.24e-09 263 1.55e-09 263 1.77e-09 250 2.07e-09 227 2.48e-09 200 3.10e-09 131 4.13e-09  161 4.96e-09 74 5.51e-09 13 5.90e-09 1 6.20e-09 0"/>
+    <!-- Surface mock data -->
+    <matrix name="REF" coldim="2" values="2e-06 0.8 8e-06 0.8"/>
+    <matrix name="SSC" coldim="2" values="2e-06 0.1 8e-06 0.3"/>
+    <matrix name="SLC" coldim="2" values="2e-06 0.2 8e-06 0.2"/>
+    <matrix name="BSC" coldim="2" values="2e-06 0.3 8e-06 0.1"/>
+    <!-- End of surface mock data -->
   </define>
   <materials>
     <element name="C" formula="C" Z="6" N="12">
@@ -64,17 +71,22 @@
     <tube aunit="deg" deltaphi="360" lunit="cm" name="tube1" rmax="10" startphi="0" z="20"/>
     <tube aunit="deg" deltaphi="360" lunit="cm" name="tube2" rmax="5" startphi="0" z="10"/>
     <sphere lunit="cm" name="world_sphere" rmin="0.0" rmax="100.0" deltaphi="360" deltatheta="180" aunit="deg"/>
-    <opticalsurface name="sphere_surf" model="glisur" finish="polished" type="dielectric_dielectric" value="1.0"/>
-    <opticalsurface name="tube2_surf" model="glisur" finish="polished" type="dielectric_dielectric" value="1.0">
+    <opticalsurface name="sphere_surf" model="glisur" finish="polished" type="dielectric_dielectric" value="1.0">
+      <property name="REFLECTIVITY" ref="REFLECTIVITY_sphere"/>
+    </opticalsurface>
+    <opticalsurface name="tube2_surf" model="glisur" finish="ground" type="dielectric_dielectric" value="0.9">
       <property name="REFLECTIVITY" ref="REFLECTIVITY_lo"/>
     </opticalsurface>
-    <opticalsurface name="lomid_surf" model="unified" finish="polished" type="dielectric_metal" value="1.0">
+    <opticalsurface name="lomid_surf" model="unified" finish="ground" type="dielectric_dielectric" value="1.0">
       <property name="REFLECTIVITY" ref="REFLECTIVITY_lomid"/>
+      <property name="SPECULARSPIKECONSTANT" ref="SSC"/>
+      <property name="SPECULARLOBECONSTANT" ref="SLC"/>
+      <property name="BACKSCATTERCONSTANT" ref="BSC"/>
     </opticalsurface>
     <opticalsurface name="midlo_surf" model="glisur" finish="polished" type="dielectric_metal" value="1.0">
       <property name="REFLECTIVITY" ref="REFLECTIVITY_mid"/>
     </opticalsurface>
-    <opticalsurface name="midhi_surf" model="glisur" finish="polished" type="dielectric_metal" value="1.0">
+    <opticalsurface name="midhi_surf" model="glisur" finish="ground" type="dielectric_metal" value="0.7">
       <property name="REFLECTIVITY" ref="REFLECTIVITY_hi"/>
     </opticalsurface>
   </solids>

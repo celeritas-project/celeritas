@@ -316,7 +316,7 @@ std::string OrangeGeoTestBase::id_to_label(LocalVolumeId vol_id) const
 /*!
  * Return the geometry that was created.
  */
-auto OrangeGeoTestBase::build_geometry() -> SPConstGeo
+auto OrangeGeoTestBase::build_geometry() const -> SPConstGeo
 {
     CELER_EXPECT(params_);
     return params_;

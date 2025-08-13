@@ -45,11 +45,11 @@ class GeantGeoTest : public GeantGeoTestBase
   public:
     using SpanStringView = Span<std::string_view const>;
 
-    SPConstGeo build_geometry() final
+    SPConstGeantGeo build_geant_geo(std::string const& filename) const final
     {
-        ScopedLogStorer scoped_log_{&celeritas::self_logger(),
+        ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::warning};
-        auto result = this->build_geometry_from_basename();
+        auto result = GeantGeoParams::from_gdml(filename);
         EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
             << scoped_log_;
         return result;
@@ -447,7 +447,7 @@ TEST_F(OpticalSurfacesTest, trace)
 //---------------------------------------------------------------------------//
 class PincellTest : public GeantGeoTest
 {
-    std::string geometry_basename() const override { return "pincell"; }
+    std::string_view gdml_basename() const override { return "pincell"; }
 };
 
 TEST_F(PincellTest, imager)
