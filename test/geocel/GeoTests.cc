@@ -101,7 +101,7 @@ void CmsEeBackDeeGeoTest::test_model() const
         "EEBackDee_PV",
     };
     ref.volume_instance.volumes = {0, 1, 2, 5, 6, 4, 3};
-    ref.world = "EEBackPlate@1";
+    ref.world = "EEBackDee";
     EXPECT_REF_EQ(ref, result);
 }
 
@@ -236,7 +236,7 @@ void CmseGeoTest::test_model() const
         0,  0,  1,  1,  2,  3,  4,  5,  5,  6,  6,  7,  7,  8,  8,  9,  9,
         10, 10, 11, 11, 12, 12, 13, 14, 15, 15, 16, 16, 17, 17, 18, 19,
     };
-    ref.world = "TotemT1@0";
+    ref.world = "OCMS";
     EXPECT_REF_EQ(ref, result);
 }
 
@@ -364,7 +364,7 @@ void FourLevelsGeoTest::test_model() const
         2,
         3,
     };
-    ref.world = "env2";
+    ref.world = "World";
     EXPECT_REF_EQ(ref, result);
 }
 
@@ -507,7 +507,7 @@ void MultiLevelGeoTest::test_model() const
         4,
         3,
     };
-    ref.world = "topbox1";
+    ref.world = "world";
     EXPECT_REF_EQ(ref, result);
 }
 
@@ -689,7 +689,7 @@ void OpticalSurfacesGeoTest::test_model() const
         "mid_to_above",
     };
     ref.surface.volumes = {"0", "2", "1->2", "2->1", "2->3"};
-    ref.world = "tube2_above_pv";
+    ref.world = "world";
     EXPECT_REF_EQ(ref, result);
 }
 
@@ -840,7 +840,7 @@ void PolyhedraGeoTest::test_model() const
         15,
         16,
     };
-    ref.world = "world_PV";
+    ref.world = "world";
     EXPECT_REF_EQ(ref, result);
 }
 
@@ -1074,7 +1074,7 @@ void ReplicaGeoTest::test_model() const
     ref.volume.daughters = {{}, {}, {}, {0}, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,}, {}, {}, {21}, {}, {22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22,}, {}, {23}, {24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,}, {25, 25}, {26, 26, 26, 26, 26, 26, 26, 26, 26, 26,}, {27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58,}, {59, 60, 61},};
     ref.volume_instance.labels = {"wirePlane1", "hodoscope1@0", "hodoscope1@1", "hodoscope1@2", "hodoscope1@3", "hodoscope1@4", "hodoscope1@5", "hodoscope1@6", "hodoscope1@7", "hodoscope1@8", "hodoscope1@9", "hodoscope1@10", "hodoscope1@11", "hodoscope1@12", "hodoscope1@13", "hodoscope1@14", "chamber1@0", "chamber1@1", "chamber1@2", "chamber1@3", "chamber1@4", "wirePlane2", "cell_param", "HadCalScinti", "HadCalLayer_PV", "HadCalCell_PV", "HadCalColumn_PV", "hodoscope2@0", "hodoscope2@1", "hodoscope2@2", "hodoscope2@3", "hodoscope2@4", "hodoscope2@5", "hodoscope2@6", "hodoscope2@7", "hodoscope2@8", "hodoscope2@9", "hodoscope2@10", "hodoscope2@11", "hodoscope2@12", "hodoscope2@13", "hodoscope2@14", "hodoscope2@15", "hodoscope2@16", "hodoscope2@17", "hodoscope2@18", "hodoscope2@19", "hodoscope2@20", "hodoscope2@21", "hodoscope2@22", "hodoscope2@23", "hodoscope2@24", "chamber2@0", "chamber2@1", "chamber2@2", "chamber2@3", "chamber2@4", "EMcalorimeter", "HadCalorimeter", "magnetic", "firstArm", "fSecondArmPhys", "world_PV",};
     ref.volume_instance.volumes = {2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 6, 8, 10, 11, 12, 13, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 7, 7, 7, 7, 9, 14, 0, 4, 15, 16,};
-    ref.world = "chamber1@0";
+    ref.world = "world";
     // clang-format on
     EXPECT_REF_EQ(ref, result);
 }
@@ -1788,7 +1788,7 @@ void SimpleCmsGeoTest::test_model() const
         "world_PV",
     };
     ref.volume_instance.volumes = {0, 1, 2, 3, 4, 5, 6};
-    ref.world = "world_PV";
+    ref.world = "world";
     EXPECT_REF_EQ(ref, result);
 }
 
@@ -1998,7 +1998,7 @@ void TilecalPlugGeoTest::test_model() const
     ref.volume_instance.labels
         = {"Tile_Absorber", "Tile_Plug1Module", "Tile_ITCModule_PV"};
     ref.volume_instance.volumes = {0, 1, 2};
-    ref.world = "Tile_ITCModule_PV";
+    ref.world = "Tile_ITCModule";
     EXPECT_REF_EQ(ref, result);
 }
 
@@ -2054,7 +2054,7 @@ void TransformedBoxGeoTest::test_model() const
     ref.volume_instance.labels
         = {"rot", "transrot", "default", "trans", "world_PV"};
     ref.volume_instance.volumes = {1, 0, 2, 0, 3};
-    ref.world = "trans";
+    ref.world = "world";
     EXPECT_REF_EQ(ref, result);
 }
 
@@ -2236,7 +2236,7 @@ void TwoBoxesGeoTest::test_model() const
     ref.volume.daughters = {{}, {0}};
     ref.volume_instance.labels = {"inner_PV", "world_PV"};
     ref.volume_instance.volumes = {0, 1};
-    ref.world = "world_PV";
+    ref.world = "world";
     EXPECT_REF_EQ(ref, result);
 }
 
@@ -2337,7 +2337,7 @@ void ZnenvGeoTest::test_model() const
     };
     ref.volume_instance.volumes
         = {0, 2, 4, 6, 1, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14};
-    ref.world = "World_PV";
+    ref.world = "World";
     EXPECT_REF_EQ(ref, result);
 }
 

@@ -186,9 +186,9 @@ GenericGeoModelInp GenericGeoModelInp::from_model_input(inp::Model const& in)
         result.volume_instance.volumes.push_back(id_to_int(vol_inst.volume));
     }
 
-    if (in.volumes.world < result.volume_instance.labels.size())
+    if (in.volumes.world < result.volume.labels.size())
     {
-        result.world = result.volume_instance.labels[in.volumes.world.get()];
+        result.world = result.volume.labels[in.volumes.world.get()];
     }
     else
     {
