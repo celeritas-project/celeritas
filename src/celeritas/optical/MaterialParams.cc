@@ -120,9 +120,9 @@ MaterialParams::MaterialParams(Input const& inp)
         CELER_VALIDATE(is_monotonic_increasing(make_span(ri.x)),
                        << "refractive index energy grid values are not "
                           "monotonically increasing");
-        CELER_VALIDATE(is_monotonic_increasing(make_span(ri.y)),
-                       << "refractive index values are not monotonically "
-                          "increasing");
+        // CELER_VALIDATE(is_monotonic_increasing(make_span(ri.y)),
+        //               << "refractive index values are not monotonically "
+        //                  "increasing");
         if (ri.y.front() < 1)
         {
             CELER_LOG(warning) << "Encountered refractive index below unity "

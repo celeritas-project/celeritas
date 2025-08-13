@@ -98,7 +98,17 @@ void ProblemSetup::operator()(inp::Problem& p) const
             = static_cast<size_type>(so.secondary_stack_factor * c.tracks);
         return c;
     }();
+    p.control.optical_capacity = so.optical_capacity;
+    if (so.optical_capacity)
+    {
+        inp::OpticalPhysics optical_physics;
+        optical_physics.cherenkov = true;
+        optical_physics.scintillation = true;
 
+        p.physics.optical = optical_physics;
+
+        CELER_LOG(debug) << "Optical physics enabled";
+    }
     if (so.max_num_events)
     {
         CELER_LOG(warning) << "Ignoring removed option 'max_num_events': will "

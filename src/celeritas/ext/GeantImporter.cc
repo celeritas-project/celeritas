@@ -513,7 +513,6 @@ import_optical(detail::GeoOpticalIdMap const& geo_to_opt)
 
     auto const& mt = *G4Material::GetMaterialTable();
     CELER_ASSERT(mt.size() == geo_to_opt.num_geo());
-
     std::vector<ImportOpticalMaterial> result(geo_to_opt.num_optical());
 
     // Loop over optical materials
