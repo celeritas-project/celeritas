@@ -111,10 +111,10 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
                                    ", ",
                                    printable_pd);
     }
-    CELER_VALIDATE(missing.empty(),
-                   << "not all particles from TrackingManagerConstructor are "
-                      "active in Celeritas: missing"
-                   << join(missing.begin(), missing.end(), ", ", printable_pd));
+    CELER_LOG(warning)
+        << "not all particles from TrackingManagerConstructor are active in "
+           "Celeritas: missing "
+        << join(missing.begin(), missing.end(), ", ", printable_pd);
     CELER_VALIDATE(all_attached_correctly,
                    << "tracking manager(s) are not attached correctly "
                       "(maybe add TrackingManagerConstructor to your physics "

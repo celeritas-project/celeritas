@@ -9,6 +9,8 @@
 #include <G4BuilderType.hh>
 #include <G4Electron.hh>
 #include <G4Gamma.hh>
+#include <G4MuonMinus.hh>
+#include <G4MuonPlus.hh>
 #include <G4Positron.hh>
 
 #include "corecel/io/Logger.hh"
@@ -31,6 +33,8 @@ Span<G4ParticleDefinition* const> TrackingManagerConstructor::OffloadParticles()
         G4Electron::Definition(),
         G4Positron::Definition(),
         G4Gamma::Definition(),
+        G4MuonMinus::Definition(),
+        G4MuonPlus::Definition(),
     };
 
     return make_span(supported_particles);
@@ -107,6 +111,42 @@ void TrackingManagerConstructor::ConstructProcess()
         // (Note that it is leaked in Geant4 11.0 and 11.1 for MT mode.)
         p->SetTrackingManager(manager ? manager.release() : manager_ptr);
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Override default list of particles defined by \c ::OffloadParticles() .
+ */
+void TrackingManagerConstructor::SetOffloadParticles(
+    Span<G4ParticleDefinition* const> subset)
+{
+    CELER_EXPECT(!subset.empty());
+    auto const full_set = OffloadParticles();
+    CELER_EXPECT(subset.size() <= full_set.size());
+
+    auto is_valid = [&](G4ParticleDefinition const* particle) -> bool {
+        for (auto valid_part : full_set)
+        {
+            CELER_EXPECT(valid_part);
+            if (particle->GetPDGEncoding() == valid_part->GetPDGEncoding())
+            {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    // Ensure that every particle in the subset is available in Celeritas
+    for (auto const* p : subset)
+    {
+        CELER_EXPECT(p);
+        CELER_VALIDATE(is_valid(p),
+                       << "Particle " << p->GetParticleName()
+                       << " is not available in Celeritas");
+    }
+
+    // Override list
+    offload_particles_ = subset;
 }
 
 //---------------------------------------------------------------------------//
