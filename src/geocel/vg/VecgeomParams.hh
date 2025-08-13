@@ -218,14 +218,7 @@ auto VecgeomParams::volume_instances() const -> VolInstanceMap const&
 inline VolumeId VecgeomParams::volume_id(ImplVolumeId iv_id) const
 {
     auto const& vol_ids = this->host_ref().volumes;
-    CELER_EXPECT(vol_ids.empty() || iv_id < vol_ids.size());
-
-    if (CELER_UNLIKELY(vol_ids.empty()))
-    {
-        // VGDML probably loaded geometry
-        CELER_ASSERT(iv_id);
-        return id_cast<VolumeId>(iv_id.unchecked_get());
-    }
+    CELER_EXPECT(!vol_ids.empty());
 
     return vol_ids[iv_id];
 }

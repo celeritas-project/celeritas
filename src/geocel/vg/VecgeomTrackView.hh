@@ -291,6 +291,9 @@ CELER_FORCEINLINE_FUNCTION VolumeId VecgeomTrackView::volume_id() const
 //---------------------------------------------------------------------------//
 /*!
  * Get the physical volume ID in the current cell.
+ *
+ * If built with Geant4, this is the canonical volume instance ID. If built
+ * with VGDML, this is an "implementation" instance ID.
  */
 CELER_FUNCTION VolumeInstanceId VecgeomTrackView::volume_instance_id() const
 {
@@ -298,7 +301,7 @@ CELER_FUNCTION VolumeInstanceId VecgeomTrackView::volume_instance_id() const
     ImplVolumeInstanceId ipv_id{this->physical_volume().id()};
     if (CELER_UNLIKELY(params_.volume_instances.empty()))
     {
-        // Using VGDML: return implementation volume instance
+        // Using VGDML: return "implementation" volume instance
         return VolumeInstanceId{ipv_id.get()};
     }
     return params_.volume_instances[ipv_id];
