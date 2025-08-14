@@ -11,6 +11,7 @@
 #include <G4Gamma.hh>
 #include <G4MuonMinus.hh>
 #include <G4MuonPlus.hh>
+#include <G4ParticleTable.hh>
 #include <G4Positron.hh>
 
 #include "corecel/io/Logger.hh"
@@ -23,6 +24,58 @@
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Return a subset of particles to be offload based on user-input.
+ */
+std::vector<G4ParticleDefinition*>
+OffloadParticleSubset(SetupOptions::VecPDG const& input_list)
+{
+    CELER_EXPECT(!input_list.empty());
+    CELER_LOG(status) << "Loading user-defined set of particles to offload";
+
+    auto const full_set = TrackingManagerConstructor::OffloadParticles();
+    CELER_VALIDATE(input_list.size() <= full_set.size(),
+                   << "List of particles to be offloaded defined in "
+                      "SetupOptions is larger than the number of available "
+                      "particles in Celeritas");
+
+    auto is_valid = [&](G4ParticleDefinition const* particle) -> bool {
+        for (auto valid_part : full_set)
+        {
+            CELER_EXPECT(valid_part);
+            if (particle->GetPDGEncoding() == valid_part->GetPDGEncoding())
+            {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    auto* ptable = G4ParticleTable::GetParticleTable();
+    CELER_ASSERT(ptable);
+
+    // Create vector of particles from the PDG strings provided in the input
+    std::vector<G4ParticleDefinition*> result;
+    for (auto const pdg : input_list)
+    {
+        CELER_ASSERT(pdg != 0);
+        auto* p = ptable->FindParticle(pdg);
+        CELER_VALIDATE(
+            p, << "could not find PDG '" << pdg << "' in G4ParticleTable");
+        CELER_VALIDATE(is_valid(p),
+                       << "Particle " << p->GetParticleName()
+                       << " is not available in Celeritas");
+        CELER_LOG(info) << "Loaded particle " << p->GetParticleName();
+        result.push_back(p);
+    }
+    return result;
+}
+//---------------------------------------------------------------------------//
+};  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Get a list of supported particles that will be offloaded.
@@ -102,7 +155,17 @@ void TrackingManagerConstructor::ConstructProcess()
     auto manager = std::make_unique<TrackingManager>(shared_, transporter);
     auto* manager_ptr = manager.get();
 
-    for (auto* p : OffloadParticles())
+    // Load list of particles to offload based on user-options
+    auto& singleton = detail::IntegrationSingleton::instance();
+    auto const& user_offload = singleton.setup_options().offload_particles;
+    auto offload_particles
+        = user_offload.empty()
+              ? OffloadParticles()
+              : make_span(OffloadParticleSubset(user_offload));
+
+    CELER_LOG(status) << "size " << offload_particles.size();
+
+    for (auto* p : offload_particles)
     {
         CELER_EXPECT(p);
         // Memory for the tracking manager should be freed in
@@ -110,43 +173,8 @@ void TrackingManagerConstructor::ConstructProcess()
         // by constructing a 'set' of all tracking managers.
         // (Note that it is leaked in Geant4 11.0 and 11.1 for MT mode.)
         p->SetTrackingManager(manager ? manager.release() : manager_ptr);
+        CELER_LOG(info) << "Adding offloaded particle " << p->GetParticleName();
     }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Override default list of particles defined by \c ::OffloadParticles() .
- */
-void TrackingManagerConstructor::SetOffloadParticles(
-    Span<G4ParticleDefinition* const> subset)
-{
-    CELER_EXPECT(!subset.empty());
-    auto const full_set = OffloadParticles();
-    CELER_EXPECT(subset.size() <= full_set.size());
-
-    auto is_valid = [&](G4ParticleDefinition const* particle) -> bool {
-        for (auto valid_part : full_set)
-        {
-            CELER_EXPECT(valid_part);
-            if (particle->GetPDGEncoding() == valid_part->GetPDGEncoding())
-            {
-                return true;
-            }
-        }
-        return false;
-    };
-
-    // Ensure that every particle in the subset is available in Celeritas
-    for (auto const* p : subset)
-    {
-        CELER_EXPECT(p);
-        CELER_VALIDATE(is_valid(p),
-                       << "Particle " << p->GetParticleName()
-                       << " is not available in Celeritas");
-    }
-
-    // Override list
-    offload_particles_ = subset;
 }
 
 //---------------------------------------------------------------------------//

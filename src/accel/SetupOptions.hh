@@ -135,6 +135,7 @@ struct SetupOptions
         = std::function<SPConstAction(AlongStepFactoryInput const&)>;
     using IntAccessor = std::function<int()>;
     using VecString = std::vector<std::string>;
+    using VecPDG = std::vector<int>;
     //!@}
 
     //! Don't limit the number of steps
@@ -205,6 +206,8 @@ struct SetupOptions
 
     //! Do not use Celeritas physics for the given Geant4 process names
     VecString ignore_processes;
+    //! Only offload a subset of particles by specifying their PDG encoding
+    VecPDG offload_particles;
     //! Physics grid interpolation options
     inp::Interpolation interpolation{};
     //!@}
@@ -230,7 +233,6 @@ struct SetupOptions
 
     //! Add additional diagnostic user actions [EXPERIMENTAL]
     std::function<void(CoreParams const&)> add_user_actions;
-
     //!@}
 
     explicit inline operator bool() const

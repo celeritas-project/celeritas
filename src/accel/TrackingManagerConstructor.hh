@@ -69,9 +69,6 @@ class TrackingManagerConstructor final : public G4VPhysicsConstructor
     // Build and attach tracking manager
     void ConstructProcess() override;
 
-    // Override list of supported particles to enable only a subset
-    void SetOffloadParticles(Span<G4ParticleDefinition* const> subset);
-
     //// ACCESSORS ////
 
     //! Get the shared params associated with this TM
@@ -83,7 +80,6 @@ class TrackingManagerConstructor final : public G4VPhysicsConstructor
   private:
     SharedParams const* shared_{nullptr};
     LocalTransporterFromThread get_local_{};
-    Span<G4ParticleDefinition* const> offload_particles_;
 };
 
 //---------------------------------------------------------------------------//
