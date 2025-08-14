@@ -203,10 +203,22 @@ class GeantGeoParams final : public GeoParamsInterface,
 
 //---------------------------------------------------------------------------//
 // Set non-owning reference to global tracking geometry instance
-void geant_geo(std::shared_ptr<GeantGeoParams const> const&);
+void global_geant_geo(std::shared_ptr<GeantGeoParams const> const&);
+
+// DEPRECATED alias
+inline void geant_geo(std::shared_ptr<GeantGeoParams const> const& g)
+{
+    global_geant_geo(g);
+}
 
 // Global tracking geometry instance: may be nullptr
-std::weak_ptr<GeantGeoParams const> const& geant_geo();
+std::weak_ptr<GeantGeoParams const> const& global_geant_geo();
+
+// DEPRECATED alias
+inline std::weak_ptr<GeantGeoParams const> const& geant_geo()
+{
+    return global_geant_geo();
+}
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
