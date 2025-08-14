@@ -2,34 +2,42 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/GeantImportVolumeResult.hh
+//! \file geocel/InstancePathFinder.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <string>
+#include <initializer_list>
+#include <string_view>
 #include <vector>
 
-#include "geocel/GeoParamsInterface.hh"
+#include "geocel/Types.hh"
 
 namespace celeritas
 {
+class VolumeParams;
 namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Test importing volume names for consistency.
+ * Construct a volume instance stack from a list of names.
  */
-struct GeantImportVolumeResult
+class InstancePathFinder
 {
-    static constexpr int empty = -1;
-    static constexpr int missing = -2;
+  public:
+    using IListSView = std::initializer_list<std::string_view>;
+    using VecVolInst = std::vector<VolumeInstanceId>;
 
-    static GeantImportVolumeResult from_import(GeoParamsInterface const& geom);
+    //! Constructor with reference to volume parameters
+    explicit InstancePathFinder(VolumeParams const& volumes)
+        : volumes_(volumes)
+    {
+    }
 
-    std::vector<int> volumes;  //!< Volume ID for each Geant4 instance ID
-    std::vector<std::string> missing_labels;  //!< G4LV names without a match
+    // Find volume instance IDs from a list of names
+    VecVolInst operator()(IListSView names) const;
 
-    void print_expected() const;
+  private:
+    VolumeParams const& volumes_;
 };
 
 //---------------------------------------------------------------------------//

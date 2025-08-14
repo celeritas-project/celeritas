@@ -17,6 +17,7 @@
 template<class>
 class G4ReferenceCountedHandle;
 class G4Navigator;
+class G4ReplicaNavigation;
 
 namespace celeritas
 {
@@ -51,24 +52,35 @@ struct G4ExternDeleter
     void operator()(T* ptr) noexcept;
 };
 
+template<class T>
+using GeantUniquePtr = std::unique_ptr<T, G4ExternDeleter<T>>;
+
 //---------------------------------------------------------------------------//
 
 using GeantTouchableHandle = G4ReferenceCountedHandle<GeantTouchableBase>;
-using UPTouchHandle = std::unique_ptr<GeantTouchableHandle,
-                                      G4ExternDeleter<GeantTouchableHandle>>;
-using UPNavigator = std::unique_ptr<G4Navigator, G4ExternDeleter<G4Navigator>>;
+using UPTouchHandle = GeantUniquePtr<GeantTouchableHandle>;
+using UPNavigator = GeantUniquePtr<G4Navigator>;
+using UPReplicaNav = GeantUniquePtr<G4ReplicaNavigation>;
 
 //---------------------------------------------------------------------------//
 // HOST MEMSPACE
 //---------------------------------------------------------------------------//
 /*!
  * Manage navigation states in host memory.
+ *
+ * Each NavCollection should be used on a single CPU thread.
+ * Geant4 typically is built in multithreaded mode, in which case lots of data
+ * under the hood is "thread local", preventing the use of Geant4
+ * geometry states in an OpenMP context.
+ *
+ * \todo I think we can use collections for the handles+navigators.
  */
 template<>
 struct GeantGeoNavCollection<Ownership::value, MemSpace::host>
 {
     std::vector<UPTouchHandle> touch_handles;
     std::vector<UPNavigator> navigators;
+    UPReplicaNav replica_nav;
 
     // Resize with a number of states on the given Geant4 thread ID
     void resize(size_type size, G4VPhysicalVolume* world, StreamId sid);
@@ -83,7 +95,7 @@ struct GeantGeoNavCollection<Ownership::value, MemSpace::host>
     explicit operator bool() const
     {
         return !touch_handles.empty()
-               && navigators.size() == touch_handles.size();
+               && navigators.size() == touch_handles.size() && replica_nav;
     }
 
     // Clean up on the original thread, necessary for thread-local G4 alloc
@@ -99,6 +111,7 @@ struct GeantGeoNavCollection<Ownership::reference, MemSpace::host>
 {
     Span<UPTouchHandle> touch_handles;
     Span<UPNavigator> navigators;
+    UPReplicaNav* replica_nav{nullptr};
 
     // Default constructors
     GeantGeoNavCollection() = default;
@@ -126,7 +139,7 @@ struct GeantGeoNavCollection<Ownership::reference, MemSpace::host>
     {
         return !touch_handles.empty()
                && navigators.size() == touch_handles.size()
-               && touch_handles.front() && navigators.front();
+               && touch_handles.front() && navigators.front() && replica_nav;
     }
 
     // Clean up on the original thread, necessary for thread-local G4 alloc

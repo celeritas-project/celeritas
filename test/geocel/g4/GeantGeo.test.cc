@@ -347,7 +347,7 @@ TEST_F(MultiLevelTest, level_strings)
     using R2 = Array<double, 2>;
 
     auto const& vol_inst = this->volumes()->volume_instance_labels();
-    auto const& vol = this->geometry()->impl_volumes();
+    auto const& vol = this->volumes()->volume_labels();
 
     // Include outer world and center sphere
     std::vector<R2> points{R2{-5, 0}, R2{0, 0}};
@@ -383,7 +383,7 @@ TEST_F(MultiLevelTest, level_strings)
             names[i] = to_string(vol_inst.at(inst_ids[i]));
         }
         all_vol_inst.push_back(to_string(repr(names)));
-        all_vol.push_back(to_string(vol.at(geo.impl_volume_id())));
+        all_vol.push_back(to_string(vol.at(geo.volume_id())));
     }
 
     static char const* const expected_all_vol_inst[] = {
@@ -508,7 +508,6 @@ TEST_F(ReplicaTest, level_strings)
 {
     using R2 = Array<double, 2>;
 
-    auto const& geo_params = *this->geometry();
     auto const& vol_inst = this->volumes()->volume_instance_labels();
 
     static R2 const points[] = {
@@ -532,25 +531,17 @@ TEST_F(ReplicaTest, level_strings)
         for (auto i : range(inst_ids.size()))
         {
             Label lab = vol_inst.at(inst_ids[i]);
-            if (auto phys_inst = geo_params.id_to_geant(inst_ids[i]))
-            {
-                if (phys_inst.replica)
-                {
-                    lab.ext += '+';
-                    lab.ext += std::to_string(phys_inst.replica.get());
-                }
-            }
             names[i] = to_string(lab);
         }
         all_vol_inst.push_back(to_string(repr(names)));
     }
 
     static char const* const expected_all_vol_inst[] = {
-        R"({"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@+14"})",
-        R"({"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@+6"})",
-        R"({"world_PV", "fSecondArmPhys", "HadCalorimeter", "HadCalColumn_PV@+4", "HadCalCell_PV@+1", "HadCalLayer_PV@+2"})",
-        R"({"world_PV", "fSecondArmPhys", "HadCalorimeter", "HadCalColumn_PV@+2", "HadCalCell_PV@+1", "HadCalLayer_PV@+7"})",
-        R"({"world_PV", "fSecondArmPhys", "HadCalorimeter", "HadCalColumn_PV@+3", "HadCalCell_PV@+1", "HadCalLayer_PV@+16"})",
+        R"({"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@14"})",
+        R"({"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@6"})",
+        R"({"world_PV", "fSecondArmPhys", "HadCalorimeter", "HadCalColumn_PV@4", "HadCalCell_PV@1", "HadCalLayer_PV@2"})",
+        R"({"world_PV", "fSecondArmPhys", "HadCalorimeter", "HadCalColumn_PV@2", "HadCalCell_PV@1", "HadCalLayer_PV@7"})",
+        R"({"world_PV", "fSecondArmPhys", "HadCalorimeter", "HadCalColumn_PV@3", "HadCalCell_PV@1", "HadCalLayer_PV@16"})",
     };
 
     EXPECT_VEC_EQ(expected_all_vol_inst, all_vol_inst);

@@ -17,6 +17,8 @@
 #include "Types.hh"
 #include "g4/GeantGeoData.hh"
 
+#include "detail/GeantVolumeInstanceMapper.hh"
+
 #if !CELERITAS_USE_GEANT4
 #    include "inp/Model.hh"
 #endif
@@ -37,14 +39,16 @@ namespace celeritas
  *
  * The \c ImplVolumeId used by Celeritas is equal to the index of a \c
  * G4LogicalVolume in the \c G4LogicalVolumeStore. Due to potential resetting
- * of the geometry, the "volume instance ID" for the logical volume may be
- * offset from this index.
+ * of the geometry, the internal Geant4 ID for the volume may be
+ * offset from this index. Currently the \c ImplVolumeId maps exactly to the \c
+ * VolumeId value: some volumes may be unreachable by the world hierarchy.
  *
- * Analogously, the \c G4VPhysicalVolume is equivalent to the index in its
- * store. Due to the way Geant4 represents "parameterised" and "replicated"
- * placements, a single PV may correspond to multiple spatial placements and is
- * disambiguated with \c ReplicaId , which corresponds to the PV's "copy
- * number".
+ * In general, the \c G4VPhysicalVolume is equivalent to the index in its
+ * store. However, due to the way Geant4 represents "parameterised" and
+ * "replicated" placements, a single PV may correspond to multiple spatial
+ * placements, which Celeritas disambiguates and maps each to a distinct \c
+ * VolumeInstanceId (see \c detail::GeantVolumeInstanceMapper). This is
+ * done using the G4PV's current state (based on the copy number).
  *
  * Each \c SurfaceId maps to a \c G4LogicalSurface instance, which is ether a
  * \c G4LogicalBorderSurface (an "interface" surface between two volume
@@ -58,12 +62,6 @@ namespace celeritas
 class GeantGeoParams final : public GeoParamsInterface,
                              public ParamsDataInterface<GeantGeoParamsData>
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    using ReplicaId = GeantPhysicalInstance::ReplicaId;
-    //!@}
-
   public:
     // Create from a running Geant4 application
     static std::shared_ptr<GeantGeoParams> from_tracking_manager();
@@ -93,9 +91,6 @@ class GeantGeoParams final : public GeoParamsInterface,
     //! Outer bounding box of geometry
     BBox const& bbox() const final { return bbox_; }
 
-    // Maximum nested scene/volume depth
-    LevelId::size_type max_depth() const { return max_depth_; }
-
     // Create model parameters corresponding to our internal representation
     inp::Model make_model_input() const final;
 
@@ -104,11 +99,8 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Get (logical) volume metadata
     inline ImplVolumeMap const& impl_volumes() const final;
 
-    // Get the volume ID corresponding to a Geant4 logical volume
-    ImplVolumeId find_volume(G4LogicalVolume const* volume) const final;
-
     // Get the Geant4 physical volume corresponding to a volume instance ID
-    GeantPhysicalInstance id_to_geant(VolumeInstanceId vol_id) const final;
+    inline G4VPhysicalVolume const* id_to_geant(VolumeInstanceId vol_id) const;
 
     // Get the Geant4 logical volume corresponding to a volume ID
     G4LogicalVolume const* id_to_geant(VolumeId vol_id) const;
@@ -125,13 +117,9 @@ class GeantGeoParams final : public GeoParamsInterface,
     inline G4LogicalSurface const* id_to_geant(SurfaceId surf_id) const;
 
     // DEPRECATED
-    using GeoParamsInterface::find_volume;
 
     //! Offset of logical volume ID after reloading geometry
     ImplVolumeId::size_type lv_offset() const { return data_.lv_offset; }
-
-    //! Offset of physical volume ID after reloading geometry
-    VolumeInstanceId::size_type pv_offset() const { return data_.pv_offset; }
 
     //! Offset of material index after reloading geometry
     GeoMatId::size_type mat_offset() const { return data_.mat_offset; }
@@ -141,14 +129,11 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Get the geometry material ID for a logical volume (may be null)
     GeoMatId geant_to_id(G4Material const& mat) const;
 
-    //! Get the canonical volume ID corresponding to a Geant4 logical volume
-    VolumeId geant_to_id(G4LogicalVolume const& volume) const
-    {
-        return this->volume_id(this->find_volume(&volume));
-    }
+    // Get the canonical volume ID corresponding to a Geant4 logical volume
+    VolumeId geant_to_id(G4LogicalVolume const& volume) const;
 
     // Get the volume instance ID corresponding to a Geant4 physical volume
-    VolumeInstanceId geant_to_id(G4VPhysicalVolume const& volume) const;
+    inline VolumeInstanceId geant_to_id(G4VPhysicalVolume const& volume) const;
 
     //!@{
     //! Access the world volume
@@ -158,9 +143,6 @@ class GeantGeoParams final : public GeoParamsInterface,
 
     // Get the world extents in Geant4 units
     BoundingBox<double> get_clhep_bbox() const;
-
-    // Initialize thread-local mutable copy numbers for "replica" volumes
-    void reset_replica_data() const;
 
     //// DATA ACCESS ////
 
@@ -181,9 +163,9 @@ class GeantGeoParams final : public GeoParamsInterface,
 
     // Host metadata/access
     ImplVolumeMap impl_volumes_;
+    detail::GeantVolumeInstanceMapper vi_mapper_;
     std::vector<G4LogicalSurface const*> surfaces_;
     BBox bbox_;
-    LevelId::size_type max_depth_{0};
 
     // Storage
     HostRef data_;
@@ -227,6 +209,16 @@ auto GeantGeoParams::impl_volumes() const -> ImplVolumeMap const&
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the Geant4 physical volume corresponding to a volume instance ID.
+ */
+CELER_FORCEINLINE G4VPhysicalVolume const*
+GeantGeoParams::id_to_geant(VolumeInstanceId id) const
+{
+    return &vi_mapper_.id_to_geant(id);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the Geant4 logical surface corresponding to a surface ID.
  */
 G4LogicalSurface const* GeantGeoParams::id_to_geant(SurfaceId id) const
@@ -234,10 +226,24 @@ G4LogicalSurface const* GeantGeoParams::id_to_geant(SurfaceId id) const
     CELER_EXPECT(!id || id < surfaces_.size());
     if (CELER_UNLIKELY(!id))
     {
-        return {};
+        return nullptr;
     }
 
     return surfaces_[id.unchecked_get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the volume instance ID corresponding to a Geant4 physical volume.
+ *
+ * \warning For Geant4 parameterised/replicated volumes, external state (e.g.
+ * the local navigation) \em must be used in concert with this method: i.e.,
+ * navigation on the current thread needs to have just "visited" the instance.
+ */
+CELER_FORCEINLINE VolumeInstanceId
+GeantGeoParams::geant_to_id(G4VPhysicalVolume const& volume) const
+{
+    return vi_mapper_.geant_to_id(volume);
 }
 
 //---------------------------------------------------------------------------//
@@ -292,14 +298,6 @@ inline inp::Model GeantGeoParams::make_model_input() const
 {
     CELER_ASSERT_UNREACHABLE();
 }
-inline VolumeId GeantGeoParams::find_volume(G4LogicalVolume const*) const
-{
-    CELER_ASSERT_UNREACHABLE();
-}
-inline GeantPhysicalInstance GeantGeoParams::id_to_geant(VolumeInstanceId) const
-{
-    CELER_ASSERT_UNREACHABLE();
-}
 inline G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId) const
 {
     CELER_ASSERT_UNREACHABLE();
@@ -308,8 +306,7 @@ inline GeoMatId GeantGeoParams::geant_to_id(G4Material const&) const
 {
     CELER_ASSERT_UNREACHABLE();
 }
-inline VolumeInstanceId
-GeantGeoParams::geant_to_id(G4VPhysicalVolume const&) const
+inline VolumeId GeantGeoParams::geant_to_id(G4LogicalVolume const&) const
 {
     CELER_ASSERT_UNREACHABLE();
 }
