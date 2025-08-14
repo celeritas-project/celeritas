@@ -22,6 +22,7 @@
 #include "celeritas/field/UniformFieldParams.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/Stepper.hh"
+#include "celeritas/inp/Field.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"

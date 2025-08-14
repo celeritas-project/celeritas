@@ -7,7 +7,6 @@
 #include "Problem.hh"
 
 #include <optional>
-#include <set>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -15,7 +14,6 @@
 #include "corecel/Config.hh"
 
 #include "corecel/cont/VariantUtils.hh"
-#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/math/Algorithms.hh"
@@ -42,6 +40,7 @@
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/UniformFieldData.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -55,6 +54,7 @@
 #include "celeritas/inp/Scoring.hh"
 #include "celeritas/inp/Tracking.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/io/ImportProcess.hh"
 #include "celeritas/io/RootCoreParamsOutput.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/CoreParams.hh"
@@ -107,7 +107,7 @@ auto build_physics_processes(inp::EmPhysics const& em,
         if (!result.back())
         {
             // Deliberately ignored process
-            CELER_LOG(debug) << "Ignored process class " << pc;
+            CELER_LOG(debug) << "Ignored process class " << to_cstring(pc);
             result.pop_back();
         }
     }
@@ -213,7 +213,8 @@ auto build_track_init(inp::Control const& c, size_type num_streams)
         {
             input.track_order = TrackOrder::none;
         }
-        CELER_LOG(debug) << "Set default track order " << input.track_order;
+        CELER_LOG(debug) << "Set default track order "
+                         << to_cstring(input.track_order);
     }
 
     return std::make_shared<TrackInitParams>(std::move(input));
@@ -598,8 +599,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 
     if (p.scoring.sd)
     {
-        result.geant_sd = std::make_shared<GeantSd>(core_params->geometry(),
-                                                    *core_params->particle(),
+        result.geant_sd = std::make_shared<GeantSd>(*core_params->particle(),
                                                     *p.scoring.sd,
                                                     core_params->max_streams());
         step_interfaces.push_back(result.geant_sd);
@@ -607,10 +607,8 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 
     if (p.scoring.simple_calo)
     {
-        auto simple_calo
-            = std::make_shared<SimpleCalo>(p.scoring.simple_calo->volumes,
-                                           *core_params->geometry(),
-                                           num_streams);
+        auto simple_calo = std::make_shared<SimpleCalo>(
+            p.scoring.simple_calo->volumes, num_streams);
 
         // Add to step interfaces
         step_interfaces.push_back(simple_calo);

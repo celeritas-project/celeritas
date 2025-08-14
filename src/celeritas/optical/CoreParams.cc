@@ -119,14 +119,9 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
 
     CELER_EXPECT(input_);
 
-    // Build detector params based on input detector labels vector. If label
-    // returns false, create an empty label vector.
-    if (input_.detector_labels)
-    {
-        detectors_ = std::make_shared<SDParams>(*(input_.detector_labels),
-                                                *(input_.geometry));
-    }
-    else
+    // TODO: provide detectors in input, passing from core params
+    detectors_ = input_.detectors;
+    if (!detectors_)
     {
         detectors_ = std::make_shared<SDParams>();
     }

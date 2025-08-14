@@ -191,9 +191,6 @@ celeritas_add_test(ext/GeantImporter.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json
   FILTER ${_import_filter}
 )
-celeritas_add_test(ext/GeantVolumeMapper.test.cc ${_needs_geant4}
-  LINK_LIBRARIES ${Geant4_LIBRARIES} Celeritas::orange)
-
 
 celeritas_add_test(ext/RootImporter.test.cc ${_needs_root})
 celeritas_add_test(ext/RootJsonDumper.test.cc ${_needs_root})

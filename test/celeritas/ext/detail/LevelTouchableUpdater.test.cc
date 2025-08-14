@@ -65,20 +65,24 @@ class LevelTouchableUpdaterTest : public ::celeritas::test::OnlyGeoTestBase
 
     TouchableUpdater make_touchable_updater()
     {
-        return TouchableUpdater{this->geometry()};
+        this->geometry();
+
+        auto ggeo = this->geant_geo();
+        CELER_ASSERT(ggeo);
+        return TouchableUpdater{std::move(ggeo)};
     }
 
     VecVI find_vi_stack(IListSView names) const
     {
-        auto const& geo = *this->geometry();
         auto const& volumes = this->volumes();
         CELER_VALIDATE(volumes && !volumes->empty(),
                        << "model wasn't built with Geant4");
         auto const& vol_inst = volumes->volume_instance_labels();
 
-        CELER_VALIDATE(names.size() < geo.max_depth() + 1,
+        // volumes depth is zero for world-only problem
+        CELER_VALIDATE(names.size() <= volumes->depth() + 1,
                        << "input stack is too deep: " << names.size()
-                       << " exceeds " << geo.max_depth());
+                       << " exceeds " << volumes->depth() + 1);
 
         VecVI result;
         std::vector<std::string_view> missing;
@@ -97,7 +101,7 @@ class LevelTouchableUpdaterTest : public ::celeritas::test::OnlyGeoTestBase
                        << join(missing.begin(), missing.end(), ','));
 
         // Fill extra entries with empty volumes
-        result.resize(geo.max_depth() + 1);
+        result.resize(volumes->depth() + 1);
         return result;
     }
 
@@ -109,7 +113,6 @@ class LevelTouchableUpdaterTest : public ::celeritas::test::OnlyGeoTestBase
     G4TouchableHandle touch_handle_;
 };
 
-// NOTE: see GeantGeoUtils
 TestResult LevelTouchableUpdaterTest::run(Span<IListSView const> names)
 {
     TestResult result;

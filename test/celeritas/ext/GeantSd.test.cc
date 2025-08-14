@@ -17,6 +17,7 @@
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/GeantGeoUtils.hh"
+#include "geocel/VolumeParams.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
 #include "celeritas/ext/GeantSdOutput.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
@@ -62,14 +63,14 @@ class SimpleCmsTest : public SDTestBase, public SimpleCmsTestBase
     }
 
     std::vector<std::string>
-    volume_names(std::vector<ImplVolumeId> const& vols) const
+    volume_names(std::vector<VolumeId> const& vols) const
     {
-        auto const& geo = *this->geometry();
+        auto const& labels = this->volumes()->volume_labels();
 
         std::vector<std::string> result;
-        for (ImplVolumeId vid : vols)
+        for (VolumeId vid : vols)
         {
-            result.push_back(geo.impl_volumes().at(vid).name);
+            result.push_back(labels.at(vid).name);
         }
         return result;
     }
@@ -89,7 +90,7 @@ class SimpleCmsTest : public SDTestBase, public SimpleCmsTestBase
     GeantSd make_hit_manager(bool make_hit_proc = true)
     {
         CELER_EXPECT(!processor_);
-        GeantSd result(this->geometry(), *this->particle(), sd_setup_, 1);
+        GeantSd result(*this->particle(), sd_setup_, 1);
 
         if (make_hit_proc)
         {
@@ -131,12 +132,9 @@ TEST_F(SimpleCmsTest, no_change)
         EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
     }
 
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-    {
-        EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":[true,true],"lv_name":["em_calorimeter","had_calorimeter"],"sd_name":["em_calorimeter","had_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[3,4]})json",
-            this->get_diagnostics(man));
-    }
+    EXPECT_JSON_EQ(
+        R"json({"_category":"internal","_label":"hit-manager","locate_touchable":[true,true],"lv_name":["em_calorimeter","had_calorimeter"],"sd_name":["em_calorimeter","had_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[2,3]})json",
+        this->get_diagnostics(man));
 }
 
 TEST_F(SimpleCmsTest, delete_one)
@@ -164,12 +162,9 @@ TEST_F(SimpleCmsTest, delete_one)
         EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
     }
 
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-    {
-        EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":[true,true],"lv_name":["em_calorimeter"],"sd_name":["em_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector"],"vol_id":[3]})json",
-            this->get_diagnostics(man));
-    }
+    EXPECT_JSON_EQ(
+        R"json({"_category":"internal","_label":"hit-manager","locate_touchable":[true,true],"lv_name":["em_calorimeter"],"sd_name":["em_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector"],"vol_id":[2]})json",
+        this->get_diagnostics(man));
 }
 
 TEST_F(SimpleCmsTest, add_duplicate)
@@ -188,9 +183,9 @@ TEST_F(SimpleCmsTest, add_duplicate)
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
     {
         static char const* const expected_log_messages[] = {
-            R"(Mapped sensitive detector "em_calorimeter" on logical volume "em_calorimeter"@0x0 (ID=2) to VecGeom volume "em_calorimeter" (ID=2))",
-            R"(Mapped sensitive detector "had_calorimeter" on logical volume "had_calorimeter"@0x0 (ID=3) to VecGeom volume "had_calorimeter" (ID=3))",
-            "Ignored duplicate logical volume \"em_calorimeter\"@0x0 (ID=2)",
+            R"(Mapped sensitive detector "em_calorimeter" on logical volume "em_calorimeter"@0x0 (ID=2) to volume ID 2)",
+            R"(Mapped sensitive detector "had_calorimeter" on logical volume "had_calorimeter"@0x0 (ID=3) to volume ID 3)",
+            R"(Ignored duplicate logical volume "em_calorimeter"@0x0 (ID=2))",
             "Setting up thread-local hit processor for 2 sensitive detectors",
         };
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
@@ -199,12 +194,9 @@ TEST_F(SimpleCmsTest, add_duplicate)
         EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
     }
 
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-    {
-        EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":[true,true],"lv_name":["em_calorimeter","had_calorimeter"],"sd_name":["em_calorimeter","had_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[3,4]})json",
-            this->get_diagnostics(man));
-    }
+    EXPECT_JSON_EQ(
+        R"json({"_category":"internal","_label":"hit-manager","locate_touchable":[true,true],"lv_name":["em_calorimeter","had_calorimeter"],"sd_name":["em_calorimeter","had_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[2,3]})json",
+        this->get_diagnostics(man));
 }
 
 TEST_F(SimpleCmsTest, add_one)
@@ -224,12 +216,9 @@ TEST_F(SimpleCmsTest, add_one)
     {
         EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
     }
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-    {
-        EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"hit-manager","locate_touchable":[true,true],"lv_name":["si_tracker","em_calorimeter","had_calorimeter"],"sd_name":[null,"em_calorimeter","had_calorimeter"],"sd_type":[null,"celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[2,3,4]})json",
-            this->get_diagnostics(man));
-    }
+    EXPECT_JSON_EQ(
+        R"json({"_category":"internal","_label":"hit-manager","locate_touchable":[true,true],"lv_name":["si_tracker","em_calorimeter","had_calorimeter"],"sd_name":[null,"em_calorimeter","had_calorimeter"],"sd_type":[null,"celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[1,2,3]})json",
+        this->get_diagnostics(man));
 }
 
 TEST_F(SimpleCmsTest, no_detector)
@@ -254,7 +243,7 @@ TEST_F(SimpleCmsTest, detached_detector)
             this->make_hit_manager();
         } catch (celeritas::RuntimeError const& e) {
             EXPECT_EQ(
-                R"(logical volume 'unused' is not in the tracking volume)",
+                R"(failed to find Geant4 volume(s) "unused" while mapping sensitive detectors)",
                 e.details().what);
             throw;
         },

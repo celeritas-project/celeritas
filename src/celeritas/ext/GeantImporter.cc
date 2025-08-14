@@ -83,7 +83,6 @@
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/VolumeParams.hh"
-#include "geocel/g4/VisitVolumes.hh"
 #include "geocel/inp/Model.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/inp/Grid.hh"

@@ -9,7 +9,6 @@
 #include <vector>
 
 #include "corecel/Types.hh"
-#include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/StreamStore.hh"
 #include "corecel/io/Label.hh"
@@ -21,9 +20,6 @@
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-class GeoParamsInterface;
-
 //---------------------------------------------------------------------------//
 /*!
  * Accumulate energy deposition in volumes.
@@ -46,16 +42,11 @@ class SimpleCalo final : public StepInterface, public OutputInterface
 
   public:
     // Construct with all requirements
-    SimpleCalo(std::string output_label,
-               VecLabel labels,
-               GeoParamsInterface const& geo,
-               size_type max_streams);
+    SimpleCalo(std::string output_label, VecLabel labels, size_type max_streams);
 
     //! Construct with default label
-    SimpleCalo(VecLabel labels,
-               GeoParamsInterface const& geo,
-               size_type max_streams)
-        : SimpleCalo{"simple_calo", std::move(labels), geo, max_streams}
+    SimpleCalo(VecLabel labels, size_type max_streams)
+        : SimpleCalo{"simple_calo", std::move(labels), max_streams}
     {
     }
 
@@ -105,7 +96,7 @@ class SimpleCalo final : public StepInterface, public OutputInterface
 
     std::string output_label_;
     VecLabel volume_labels_;
-    std::vector<ImplVolumeId> volume_ids_;
+    std::vector<VolumeId> volume_ids_;
     StoreT store_;
 };
 
