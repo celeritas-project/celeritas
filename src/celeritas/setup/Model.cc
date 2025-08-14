@@ -108,6 +108,7 @@ ModelLoaded model(inp::Model const& m)
         CELER_LOG(debug) << "Volume structure data is unavailable";
     }
     result.volume = std::make_shared<VolumeParams>(m.volumes);
+    celeritas::global_volumes(result.volume);
 
     // Construct surfaces
     if (!m.surfaces)

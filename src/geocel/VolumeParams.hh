@@ -113,6 +113,15 @@ class VolumeParams
 };
 
 //---------------------------------------------------------------------------//
+// HACKY GLOBAL VARIABLES DURING REFACTORING
+//---------------------------------------------------------------------------//
+// Set non-owning reference to global canonical volumes
+void global_volumes(std::shared_ptr<VolumeParams const> const&);
+
+// Global canonical volumes: may be nullptr
+std::weak_ptr<VolumeParams const> const& global_volumes();
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
