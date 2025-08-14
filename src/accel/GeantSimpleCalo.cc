@@ -17,6 +17,7 @@
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeantUtils.hh"
+#include "geocel/VolumeParams.hh"
 
 #include "SharedParams.hh"
 
@@ -189,6 +190,7 @@ void GeantSimpleCalo::output(JsonPimpl* j) const
     // Save detector volumes
     {
         auto ggp = celeritas::global_geant_geo().lock();
+        auto vols = celeritas::global_volumes().lock();
         if (!ggp)
         {
             // This can happen if using this class without Celeritas offloading
@@ -202,11 +204,15 @@ void GeantSimpleCalo::output(JsonPimpl* j) const
 
         for (auto idx : range(volumes_.size()))
         {
-            auto id = ggp->find_volume(volumes_[idx]);
+            CELER_ASSERT(volumes_[idx]);
+            auto id = ggp->geant_to_id(*volumes_[idx]);
             if (id)
             {
                 ids[idx] = id.unchecked_get();
-                labels[idx] = ggp->impl_volumes().at(id);
+                if (vols)
+                {
+                    labels[idx] = vols->volume_labels().at(id);
+                }
             }
         }
         obj["volume_ids"] = std::move(ids);
