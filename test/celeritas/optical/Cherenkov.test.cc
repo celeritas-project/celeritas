@@ -84,9 +84,9 @@ Span<real_type const> get_wavelength()
 Span<real_type const> get_refractive_index()
 {
     static real_type const refractive_index[]
-        = {1.3235601610672, 1.3236962786529, 1.3238469492274, 1.3239820826015,
-           1.3241317601229, 1.3242660923031, 1.3244149850321, 1.3245487081924,
-           1.3246970353146, 1.3248303521764, 1.3249783454392, 1.3251114708334,
+        = {1.3235601610672, 1.3235601610672, 1.3235601610672, 1.3235601610672,
+           1.3235601610672, 1.3235601610672, 1.3235601610672, 1.3235601610672,
+           1.3235601610672, 1.3235601610672, 1.3235601610672, 1.3235601610672,
            1.3252593763883, 1.3253925390161, 1.3255346928953, 1.3256740639273,
            1.3258151661284, 1.3259565897464, 1.326098409446,  1.3262392023332,
            1.32638204417,   1.3265255240887, 1.3266682080154, 1.3268132228682,
@@ -175,7 +175,7 @@ TEST_F(CherenkovTest, angle_integral)
 
     auto const& angle_integral = params->host_ref().reals[grid.value];
     EXPECT_EQ(0, angle_integral.front());
-    EXPECT_SOFT_EQ(3.0617629000727e-6, angle_integral.back());
+    EXPECT_SOFT_EQ(3.0618479984310672e-6, angle_integral.back());
 }
 
 //---------------------------------------------------------------------------//
@@ -210,10 +210,10 @@ TEST_F(CherenkovTest, dndx)
                                                12.39231212654,
                                                41.749688597206,
                                                111.83329546162,
-                                               132.04572253875,
-                                               343.97410323066,
-                                               715.28213549221,
-                                               978.60864329219};
+                                               131.990659972206,
+                                               343.924930982164,
+                                               715.243283345252,
+                                               978.577110018138};
         EXPECT_VEC_SOFT_EQ(expected_dndx, dndx);
     }
 }
@@ -420,13 +420,11 @@ TEST_F(CherenkovTest, generator)
 
         // clang-format off
         static double const expected_costheta_dist[]
-            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 52451, 10508, 0};
+            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 52163, 10442, 0};
         static double const expected_energy_dist[]
-            = {3690, 3774, 3698, 3752, 3684, 3658, 3768, 3831,
-               3921, 4029, 4025, 3941, 4134, 4286, 4307, 4461};
+            = {3662,3743,3689,3732,3670,3632,3745,3809,3900,4007,4004,3915,4120,4249,4294,4434};
         static double const expected_displacement_dist[]
-            = {3909, 4064, 3802, 3920, 4001, 3904, 3891, 3955,
-               3999, 3924, 3903, 3900, 3959, 3932, 4023, 3873};
+            = {3885,4053,3780,3890,3970,3892,3872,3941,3968,3894,3886,3883,3931,3909,3998,3853};
         // clang-format on
 
         sample(pre_step, particle, sim, pos, num_samples);
@@ -436,11 +434,11 @@ TEST_F(CherenkovTest, generator)
             EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
             EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
             EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
-            EXPECT_SOFT_EQ(0.73055857883146702, avg_costheta);
-            EXPECT_SOFT_EQ(4.0497726102182314e-06, avg_energy);
-            EXPECT_SOFT_EQ(0.50020101984474064, avg_displacement);
-            EXPECT_SOFT_EQ(983.734375, total_num_photons / num_samples);
-            EXPECT_SOFT_EQ(10.609603075017075, avg_engine_samples);
+            EXPECT_SOFT_EQ(0.73056713847811827, avg_costheta);
+            EXPECT_SOFT_EQ(4.049987185887664e-06, avg_energy);
+            EXPECT_SOFT_EQ(0.50015421411706662, avg_displacement);
+            EXPECT_SOFT_EQ(978.203125, total_num_photons / num_samples);
+            EXPECT_SOFT_EQ(10.608449804328728, avg_engine_samples);
         }
     }
 
@@ -462,11 +460,11 @@ TEST_F(CherenkovTest, generator)
         Real3 pos = {sim.step_length(), 0, 0};
 
         static double const expected_costheta_dist[]
-            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 991};
+            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 972};
         static double const expected_energy_dist[]
-            = {0, 0, 0, 0, 4, 14, 29, 26, 48, 51, 77, 103, 129, 132, 174, 204};
+            = {0, 0, 0, 0, 5, 14, 28, 28, 51, 56, 74, 92, 128, 137, 164, 195};
         static double const expected_displacement_dist[] = {
-            123, 114, 103, 102, 83, 81, 80, 57, 60, 59, 31, 29, 36, 14, 16, 3};
+            117, 121, 95, 98, 76, 87, 77, 57, 59, 55, 31, 31, 37, 17, 12, 2};
 
         sample(pre_step, particle, sim, pos, num_samples);
 
@@ -475,11 +473,11 @@ TEST_F(CherenkovTest, generator)
             EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
             EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
             EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
-            EXPECT_SOFT_EQ(0.95045221539598979, avg_costheta);
-            EXPECT_SOFT_EQ(5.5902203966702514e-06, avg_energy);
-            EXPECT_SOFT_EQ(0.049715603846029896, avg_displacement);
-            EXPECT_SOFT_EQ(15.484375, total_num_photons / num_samples);
-            EXPECT_SOFT_EQ(25.077699293642784, avg_engine_samples);
+            EXPECT_SOFT_EQ(0.95088554130721281, avg_costheta);
+            EXPECT_SOFT_EQ(5.5697339805739023e-06, avg_energy);
+            EXPECT_SOFT_EQ(0.049889275986239975, avg_displacement);
+            EXPECT_SOFT_EQ(15.1875, total_num_photons / num_samples);
+            EXPECT_SOFT_EQ(25.18724279835391, avg_engine_samples);
         }
     }
 }
