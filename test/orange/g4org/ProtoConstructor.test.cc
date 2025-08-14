@@ -82,7 +82,7 @@ TEST_F(ProtoConstructorTest, one_box)
 {
     PhysicalVolume world = this->load("one-box");
     auto global_proto
-        = ProtoConstructor(this->geo(), /* verbose = */ true)(world);
+        = ProtoConstructor(*this->volumes(), /* verbose = */ true)(world);
     ProtoMap protos{*global_proto};
     ASSERT_EQ(1, protos.size());
     {
@@ -129,7 +129,7 @@ TEST_F(ProtoConstructorTest, two_boxes)
 {
     PhysicalVolume world = this->load("two-boxes");
     auto global_proto
-        = ProtoConstructor(this->geo(), /* verbose = */ false)(world);
+        = ProtoConstructor(*this->volumes(), /* verbose = */ false)(world);
     ProtoMap protos{*global_proto};
     ASSERT_EQ(1, protos.size());
     {
@@ -165,7 +165,7 @@ TEST_F(ProtoConstructorTest, intersection_boxes)
 {
     PhysicalVolume world = this->load("intersection-boxes");
     auto global_proto
-        = ProtoConstructor(this->geo(), /* verbose = */ false)(world);
+        = ProtoConstructor(*this->volumes(), /* verbose = */ false)(world);
     ProtoMap protos{*global_proto};
     ASSERT_EQ(1, protos.size());
     {
@@ -258,7 +258,7 @@ TEST_F(ProtoConstructorTest, simple_cms)
     PhysicalVolume world = this->load("simple-cms");
 
     auto global_proto
-        = ProtoConstructor(this->geo(), /* verbose = */ false)(world);
+        = ProtoConstructor(*this->volumes(), /* verbose = */ false)(world);
     ProtoMap protos{*global_proto};
 
     static std::string const expected_proto_names[] = {"world"};
@@ -312,7 +312,7 @@ TEST_F(ProtoConstructorTest, testem3)
     PhysicalVolume world = this->load("testem3");
 
     auto global_proto
-        = ProtoConstructor(this->geo(), /* verbose = */ false)(world);
+        = ProtoConstructor(*this->volumes(), /* verbose = */ false)(world);
     ProtoMap protos{*global_proto};
 
     static std::string const expected_proto_names[] = {"world", "layer"};
@@ -395,7 +395,7 @@ TEST_F(ProtoConstructorTest, TEST_IF_CELERITAS_DOUBLE(tilecal_plug))
     PhysicalVolume world = this->load("tilecal-plug");
 
     auto global_proto
-        = ProtoConstructor(this->geo(), /* verbose = */ false)(world);
+        = ProtoConstructor(*this->volumes(), /* verbose = */ false)(world);
     ProtoMap protos{*global_proto};
 
     static std::string const expected_proto_names[] = {
@@ -441,7 +441,7 @@ TEST_F(ProtoConstructorTest, znenv)
     PhysicalVolume world = this->load("znenv");
 
     auto global_proto
-        = ProtoConstructor(this->geo(), /* verbose = */ false)(world);
+        = ProtoConstructor(*this->volumes(), /* verbose = */ false)(world);
     ProtoMap protos{*global_proto};
 
     static std::string const expected_proto_names[] = {

@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "corecel/io/Label.hh"
-#include "geocel/GeoParamsInterface.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/transform/VariantTransform.hh"
 
@@ -37,12 +36,8 @@ struct LogicalVolume;
  */
 struct PhysicalVolume
 {
-    using ReplicaId = GeantPhysicalInstance::ReplicaId;
-
     //! Corresponding Geant4 physical volume
     VolumeInstanceId id;
-    //! Replica/parameterization (see GeantGeoParams::id_to_geant TODO)
-    ReplicaId replica_id;
 
     VariantTransform transform;
     std::shared_ptr<LogicalVolume const> lv;
