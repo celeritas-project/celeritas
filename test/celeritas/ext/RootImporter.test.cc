@@ -11,6 +11,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
+#include "celeritas/RootTestBase.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
@@ -39,38 +40,11 @@ namespace test
  * This test only checks if the loaded ROOT file is minimally correct. Detailed
  * verification of the imported data is done by \c GeantImporter.test .
  */
-class RootImporterTest : public Test
+class RootImporterTest : public RootTestBase
 {
   protected:
-    std::string_view geometry_basename() const { return "four-steel-slabs"sv; }
-
-    ImportData const& imported_data() const;
+    std::string_view gdml_basename() const { return "four-steel-slabs"sv; }
 };
-
-//---------------------------------------------------------------------------//
-auto RootImporterTest::imported_data() const -> ImportData const&
-{
-    static struct
-    {
-        std::string geometry_basename;
-        ImportData imported;
-    } i;
-    auto geo_basename = this->geometry_basename();
-    if (i.geometry_basename != geo_basename)
-    {
-        ScopedRootErrorHandler scoped_root_error;
-
-        i.geometry_basename = geo_basename;
-        std::string root_inp
-            = this->test_data_path("celeritas", i.geometry_basename + ".root");
-
-        RootImporter import(root_inp.c_str());
-        i.imported = import();
-        scoped_root_error.throw_if_errors();
-    }
-    CELER_ENSURE(!i.imported.particles.empty());
-    return i.imported;
-}
 
 //---------------------------------------------------------------------------//
 // TESTS

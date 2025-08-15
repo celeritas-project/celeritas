@@ -76,8 +76,10 @@ class GeantGeoTrackView
     CELER_FORCEINLINE Real3 const& dir() const { return dir_; }
     //!@}
 
-    // Get the volume ID in the lowest level volume.
+    // Get the canonical volume ID in the current impl volume
     inline VolumeId volume_id() const;
+    // Get the volume ID in the lowest level volume.
+    inline ImplVolumeId impl_volume_id() const;
     // Get the physical volume ID in the current cell
     inline VolumeInstanceId volume_instance_id() const;
     // Get the depth in the geometry hierarchy
@@ -268,13 +270,22 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(DetailedInitializer const& init)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the volume ID in the current cell.
+ * Get the canonical volume ID in the current implementation volume.
  */
 VolumeId GeantGeoTrackView::volume_id() const
 {
+    return id_cast<VolumeId>(this->impl_volume_id().unchecked_get());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the volume ID in the current cell.
+ */
+ImplVolumeId GeantGeoTrackView::impl_volume_id() const
+{
     CELER_EXPECT(!this->is_outside());
-    return id_cast<VolumeId>(this->volume()->GetInstanceID()
-                             - params_.lv_offset);
+    return id_cast<ImplVolumeId>(this->volume()->GetInstanceID()
+                                 - params_.lv_offset);
 }
 
 //---------------------------------------------------------------------------//

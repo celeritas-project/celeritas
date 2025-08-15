@@ -114,6 +114,8 @@ struct GenericGeoModelInp
         std::vector<std::string> labels;
         std::vector<int> volumes;
     } volume_instance;
+    std::string world;
+
     struct
     {
         std::vector<std::string> labels;

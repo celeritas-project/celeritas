@@ -10,18 +10,14 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/Assert.hh"
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/StringSimplifier.hh"
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
-#include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/Version.hh"
-#include "geocel/GeantGdmlLoader.hh"
-#include "geocel/GeantGeoParams.hh"
-#include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeantImportVolumeResult.hh"
 #include "geocel/GenericGeoParameterizedTest.hh"
 #include "geocel/GeoParamsOutput.hh"
@@ -32,7 +28,6 @@
 #include "geocel/vg/VecgeomParams.hh"
 #include "geocel/vg/VecgeomTrackView.hh"
 
-#include "PersistentSP.hh"
 #include "VecgeomTestBase.hh"
 #include "celeritas_test.hh"
 
@@ -80,12 +75,14 @@ class VecgeomTestBaseImpl : public VecgeomTestBase
 class VecgeomVgdmlTestBase : public VecgeomTestBaseImpl
 {
   public:
-    SPConstGeo build_geometry() final
+    SPConstGeo build_geometry() const final
     {
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::warning};
-        auto result = VecgeomParams::from_gdml_vg(this->test_data_path(
-            "geocel", this->geometry_basename() + std::string{".gdml"}));
+        std::string filename{this->gdml_basename()};
+        filename += ".gdml";
+        auto result = VecgeomParams::from_gdml_vg(
+            this->test_data_path("geocel", filename));
         EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
             << scoped_log_;
         return result;
@@ -98,25 +95,12 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
   public:
     using GeantVolResult = GeantImportVolumeResult;
 
-    //! Helper function: build via Geant4 GDML reader
-    SPConstGeo build_geometry() final
+    //! Construct via persistent geant_geo; see LazyGeantGeoManager
+    SPConstGeo build_geometry() const final
     {
-        static PersistentSP<GeantGeoParams> pgg{"geant4 geometry"};
-
-        ScopedLogStorer scoped_log_{&celeritas::self_logger(),
+        ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::warning};
-
-        auto filename = this->test_data_path(
-            "geocel", this->geometry_basename() + std::string{".gdml"});
-        if (filename != pgg.key())
-        {
-            pgg.clear();
-            auto new_geo = GeantGeoParams::from_gdml(filename);
-            celeritas::geant_geo(new_geo);
-            pgg.set(std::string{filename}, std::move(new_geo));
-        }
-        CELER_ASSERT(pgg.value());
-        auto result = VecgeomParams::from_geant(pgg.value());
+        auto result = VecgeomTestBaseImpl::build_geometry();
         EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
             << scoped_log_;
         return result;
@@ -304,7 +288,7 @@ TEST_F(SimpleCmsVgdmlTest, accessors)
 {
     auto const& geom = *this->geometry();
     EXPECT_EQ(2, geom.max_depth());
-    EXPECT_EQ(7, geom.volumes().size());
+    EXPECT_EQ(7, geom.impl_volumes().size());
 }
 
 TEST_F(SimpleCmsVgdmlTest, trace)
@@ -451,7 +435,7 @@ TEST_F(SolidsVgdmlTest, output)
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"max_depth":2,"supports_safety":true,"volumes":{"label":["","","","","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","","trd3_refl@1","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","","trd3_refl@0"]}})json",
+            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"supports_safety":true,"volumes":{"label":["","","","","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","","trd3_refl@1","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","","trd3_refl@0"]}})json",
             to_string(out));
     }
 }
@@ -459,7 +443,8 @@ TEST_F(SolidsVgdmlTest, output)
 TEST_F(SolidsVgdmlTest, reflected_vol)
 {
     auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
-    auto const& label = this->geometry()->volumes().at(geo.volume_id());
+    auto const& label
+        = this->geometry()->impl_volumes().at(geo.impl_volume_id());
     // Note: through GDML there is only one trd3_refl
     EXPECT_EQ("trd3_refl", label.name);
     EXPECT_FALSE(ends_with(label.ext, "_refl"));
@@ -546,28 +531,27 @@ TEST_F(FourLevelsTest, trace)
 TEST_F(FourLevelsTest, levels)
 {
     auto geo = this->make_geo_track_view({10.0, 10.0, 10.0}, {1, 0, 0});
-    EXPECT_EQ("World_PV/env1/Shape1/Shape2",
-              this->all_volume_instance_names(geo));
+    EXPECT_EQ("World_PV/env1/Shape1/Shape2", this->unique_volume_name(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-    EXPECT_EQ("World_PV/env1/Shape1", this->all_volume_instance_names(geo));
+    EXPECT_EQ("World_PV/env1/Shape1", this->unique_volume_name(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-    EXPECT_EQ("World_PV/env1", this->all_volume_instance_names(geo));
+    EXPECT_EQ("World_PV/env1", this->unique_volume_name(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-    EXPECT_EQ("World_PV", this->all_volume_instance_names(geo));
+    EXPECT_EQ("World_PV", this->unique_volume_name(geo));
     geo.find_next_step();
     geo.move_to_boundary();
     geo.cross_boundary();
 
-    EXPECT_EQ("[OUTSIDE]", this->all_volume_instance_names(geo));
+    EXPECT_EQ("[OUTSIDE]", this->unique_volume_name(geo));
 }
 
 //---------------------------------------------------------------------------//
@@ -670,7 +654,7 @@ TEST_F(SolidsTest, output)
         auto out_str = StringSimplifier{1}(to_string(out));
 
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-6e2,-3e2,-8e1],[6e2,3e2,8e1]],"max_depth":2,"supports_safety":true,"volumes":{"label":["box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","trd3_refl@1","tube100","","","","","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","","trd3_refl@0"]}})json",
+            R"json({"_category":"internal","_label":"geometry","bbox":[[-6e2,-3e2,-8e1],[6e2,3e2,8e1]],"supports_safety":true,"volumes":{"label":["box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","trd3_refl@1","tube100","","","","","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","","trd3_refl@0"]}})json",
             out_str);
     }
 }
@@ -703,7 +687,8 @@ TEST_F(SolidsTest, geant_volumes)
 TEST_F(SolidsTest, reflected_vol)
 {
     auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
-    auto const& label = this->geometry()->volumes().at(geo.volume_id());
+    auto const& label
+        = this->geometry()->impl_volumes().at(geo.impl_volume_id());
     EXPECT_EQ("trd3_refl@0", to_string(label));
 }
 
@@ -756,21 +741,46 @@ TEST_F(ZnenvTest, trace)
 // UTILITIES
 //---------------------------------------------------------------------------//
 
-#define ArbitraryVgdmlTest DISABLED_ArbitraryVgdmlTest
-class ArbitraryVgdmlTest : public VecgeomTestBase
+class ArbitraryVecgeomTest : public VecgeomTestBase
 {
   public:
-    SPConstGeo build_geometry() final
+    void SetUp() override
     {
-        auto filename = celeritas::getenv("GDML");
+        filename_ = celeritas::getenv("GDML");
         CELER_VALIDATE(
-            !filename.empty(),
-            << R"(Set the "GDML" environment variable and run this test with '--gtest_filter=*ArbitraryVgdmlTest*' --gtest_also_run_disabled_tests)");
-        return VecgeomParams::from_gdml_vg(filename);
+            !filename_.empty(),
+            << R"(Set the "GDML" environment variable and run this test with '--gtest_filter=*)"
+            << ::testing::UnitTest::GetInstance()
+                       ->current_test_info()
+                       ->test_suite_name()
+            << "*' --gtest_also_run_disabled_tests)");
+    }
+
+    // Basename used as key for cached geo
+    std::string_view gdml_basename() const final
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
+
+    // Filename loaded from user
+    std::string filename() const { return filename_; }
+
+  private:
+    std::string filename_;
+};
+
+//---------------------------------------------------------------------------//
+
+class ArbitraryVgdmlTest : public ArbitraryVecgeomTest
+{
+  public:
+    SPConstGeo build_geometry() const final
+    {
+        return VecgeomParams::from_gdml_vg(this->filename());
     }
 };
 
-TEST_F(ArbitraryVgdmlTest, dump)
+TEST_F(ArbitraryVgdmlTest, DISABLED_dump)
 {
     this->geometry();
     auto const* world = vecgeom::GeoManager::Instance().GetWorld();
@@ -779,31 +789,23 @@ TEST_F(ArbitraryVgdmlTest, dump)
 
 //---------------------------------------------------------------------------//
 
-#define ArbitraryTest DISABLED_ArbitraryGeantTest
-class ArbitraryGeantTest : public VecgeomTestBase
+class ArbitraryGeantTest : public ArbitraryVecgeomTest
 {
   public:
-    SPConstGeo build_geometry() final
+    SPConstGeo build_geometry() const final
     {
-        auto filename = celeritas::getenv("GDML");
-        CELER_VALIDATE(
-            !filename.empty(),
-            << R"(Set the "GDML" environment variable and run this test with '--gtest_filter=*ArbitraryGeantTest*' --gtest_also_run_disabled_tests)");
-        return VecgeomParams::from_gdml_g4(filename);
+        return VecgeomParams::from_gdml_g4(this->filename());
     }
-    static G4VPhysicalVolume* world_volume_;
 };
 
-G4VPhysicalVolume* ArbitraryGeantTest::world_volume_{nullptr};
-
-TEST_F(ArbitraryGeantTest, conversion)
+TEST_F(ArbitraryGeantTest, DISABLED_convert)
 {
     auto result = GeantImportVolumeResult::from_import(*this->geometry());
     result.print_expected();
     EXPECT_EQ(0, result.missing_labels.size());
 }
 
-TEST_F(ArbitraryGeantTest, dump)
+TEST_F(ArbitraryGeantTest, DISABLED_dump)
 {
     this->geometry();
     auto const* world = vecgeom::GeoManager::Instance().GetWorld();

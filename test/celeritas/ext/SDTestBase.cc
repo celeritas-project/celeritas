@@ -21,21 +21,16 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 //! Attach SDs when building geometry
-auto SDTestBase::build_fresh_geometry(std::string_view basename) -> SPConstGeoI
+auto SDTestBase::build_geant_geo(std::string const& filename) const
+    -> SPConstGeantGeo
 {
     CELER_EXPECT(detectors_.empty());
 
     // Construct geo
-    auto result = Base::build_fresh_geometry(basename);
+    auto result = Base::build_geant_geo(filename);
 
     G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
-    CELER_ASSERT(lv_store);
-    if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-    {
-        // Load Geant4 geometry
-        this->imported_data();
-    }
-    CELER_ASSERT(!lv_store->empty());
+    CELER_ASSERT(lv_store && !lv_store->empty());
 
     // Attach SDs
     auto sd_vol_names = this->detector_volumes();

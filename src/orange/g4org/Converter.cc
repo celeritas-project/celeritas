@@ -45,7 +45,7 @@ Converter::Converter(Options&& opts) : opts_{std::move(opts)}
 /*!
  * Convert the world.
  */
-auto Converter::operator()(arg_type geo) -> result_type
+auto Converter::operator()(GeantGeoParams const& geo) -> result_type
 {
     using orangeinp::InputBuilder;
 
@@ -58,7 +58,7 @@ auto Converter::operator()(arg_type geo) -> result_type
                    << "world volume should not have a transformation");
 
     // Convert logical volumes into protos
-    auto global_proto = ProtoConstructor{geo, opts_.verbose}(*world.lv);
+    auto global_proto = ProtoConstructor{geo, opts_.verbose}(world);
 
     // Build universes from protos
     result_type result;

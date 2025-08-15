@@ -19,9 +19,6 @@
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-template<class P, template<MemSpace M> class S>
-class ActionGroups;
 class CoreParams;
 
 namespace optical
@@ -29,6 +26,7 @@ namespace optical
 class CoreParams;
 template<MemSpace M>
 class CoreState;
+class Transporter;
 }  // namespace optical
 
 namespace detail
@@ -127,15 +125,14 @@ class OpticalLaunchAction : public AuxParamsInterface,
     //!@}
 
   private:
-    using ActionGroupsT = ActionGroups<optical::CoreParams, optical::CoreState>;
-    using SPActionGroups = std::shared_ptr<ActionGroupsT>;
+    using SPTransporter = std::shared_ptr<optical::Transporter>;
 
     //// DATA ////
 
     ActionId action_id_;
     AuxId aux_id_;
     Input data_;
-    SPActionGroups optical_actions_;
+    SPTransporter transport_;
 
     //// HELPERS ////
 

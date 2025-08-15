@@ -21,7 +21,6 @@ namespace test
 class UniverseIndexerTest : public Test
 {
   public:
-    using VolumeId = ImplVolumeId;
     using CollectionHostRef
         = UniverseIndexerData<Ownership::const_reference, MemSpace::host>;
     using VecSize = std::vector<size_type>;
@@ -61,9 +60,9 @@ TEST_F(UniverseIndexerTest, single)
     EXPECT_EQ(ImplSurfaceId(3),
               indexer.global_surface(UniverseId{0}, LocalSurfaceId{3}));
 
-    EXPECT_EQ(VolumeId(0),
+    EXPECT_EQ(ImplVolumeId(0),
               indexer.global_volume(UniverseId{0}, LocalVolumeId{0}));
-    EXPECT_EQ(VolumeId(9),
+    EXPECT_EQ(ImplVolumeId(9),
               indexer.global_volume(UniverseId{0}, LocalVolumeId{9}));
 
     auto local_s = indexer.local_surface(ImplSurfaceId{0});
@@ -73,10 +72,10 @@ TEST_F(UniverseIndexerTest, single)
     EXPECT_EQ(UniverseId(0), local_s.universe);
     EXPECT_EQ(LocalSurfaceId(3), local_s.surface);
 
-    auto local_v = indexer.local_volume(VolumeId{0});
+    auto local_v = indexer.local_volume(ImplVolumeId{0});
     EXPECT_EQ(UniverseId(0), local_v.universe);
     EXPECT_EQ(LocalVolumeId(0), local_v.volume);
-    local_v = indexer.local_volume(VolumeId{3});
+    local_v = indexer.local_volume(ImplVolumeId{3});
     EXPECT_EQ(UniverseId(0), local_v.universe);
     EXPECT_EQ(LocalVolumeId(3), local_v.volume);
 }
@@ -96,7 +95,7 @@ TEST_F(UniverseIndexerTest, TEST_IF_CELERITAS_DEBUG(errors))
                  DebugError);
 
     EXPECT_THROW(indexer.local_surface(ImplSurfaceId(4)), DebugError);
-    EXPECT_THROW(indexer.local_volume(VolumeId(10)), DebugError);
+    EXPECT_THROW(indexer.local_volume(ImplVolumeId(10)), DebugError);
 }
 
 TEST_F(UniverseIndexerTest, multi)
@@ -134,7 +133,7 @@ TEST_F(UniverseIndexerTest, multi)
     {
         for (auto c : range(cells_per_uni[u]))
         {
-            auto local = indexer.local_volume(VolumeId{global_volume});
+            auto local = indexer.local_volume(ImplVolumeId{global_volume});
             EXPECT_EQ(u, local.universe.unchecked_get());
             EXPECT_EQ(c, local.volume.unchecked_get());
             EXPECT_EQ(global_volume,

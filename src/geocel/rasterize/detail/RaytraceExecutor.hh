@@ -25,7 +25,7 @@ struct VolumeIdCalculator
     {
         if (geo.is_outside())
             return -1;
-        return static_cast<int>(geo.volume_id().get());
+        return static_cast<int>(geo.impl_volume_id().get());
     }
 };
 

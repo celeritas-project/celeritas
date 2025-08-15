@@ -26,10 +26,7 @@ using namespace ::celeritas::test;
 class OpticalRootImportTest : public RootTestBase
 {
   protected:
-    std::string_view geometry_basename() const override
-    {
-        return "lar-sphere"sv;
-    }
+    std::string_view gdml_basename() const override { return "lar-sphere"sv; }
 
     SPConstTrackInit build_init() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstAction build_along_step() override { CELER_ASSERT_UNREACHABLE(); }

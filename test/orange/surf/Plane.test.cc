@@ -50,20 +50,6 @@ TEST_F(PlaneTest, construction)
 
     Plane py{PlaneY{2.25}};
     EXPECT_VEC_SOFT_EQ((Real3{0, 1, 0}), py.normal());
-
-    // Construct from three points, in this case a plane passing through the
-    // point (1, 2, 3) with slope (1, 1, 1). Specifying the points in clockwise
-    // order gives a negative normal.
-    Plane p2{Real3{2, 1, 3}, Real3{-3, 5, 4}, Real3{4, 7, -5}};
-    EXPECT_SOFT_EQ(-2 * sqrt(3), p2.displacement());
-    real_type dir = sqrt(3) / 3;
-    EXPECT_VEC_SOFT_EQ(Real3({-dir, -dir, -dir}), p2.normal());
-
-    // Specifying the points in counterclockwise order flips the displacement
-    // and normal
-    Plane p3{Real3{2, 1, 3}, Real3{4, 7, -5}, Real3{-3, 5, 4}};
-    EXPECT_SOFT_EQ(2 * sqrt(3), p3.displacement());
-    EXPECT_VEC_SOFT_EQ(Real3({dir, dir, dir}), p3.normal());
 }
 
 TEST_F(PlaneTest, tracking)

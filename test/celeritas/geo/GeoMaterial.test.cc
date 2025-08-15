@@ -58,8 +58,8 @@ auto GeoMaterialTestBase::trace_materials(Real3 const& pos_cm, Real3 dir)
     geo = {from_cm(pos_cm), make_unit_vector(dir)};
     while (!geo.is_outside())
     {
-        result.push_back(
-            this->material_name(geo_mat_view.material_id(geo.volume_id())));
+        result.push_back(this->material_name(
+            geo_mat_view.material_id(geo.impl_volume_id())));
 
         geo.find_next_step();
         geo.move_to_boundary();
@@ -79,30 +79,21 @@ auto GeoMaterialTestBase::trace_materials(Real3 const& pos_cm, Real3 dir)
 class SimpleCmsTest : public CMS_TEST_BASE, public GeoMaterialTestBase
 {
   public:
-    std::string_view geometry_basename() const override
-    {
-        return "simple-cms"sv;
-    }
+    std::string_view gdml_basename() const override { return "simple-cms"sv; }
 };
 
 //---------------------------------------------------------------------------//
 
 class Em3Test : public GeantTestBase, public GeoMaterialTestBase
 {
-    std::string_view geometry_basename() const override
-    {
-        return "testem3-flat";
-    }
+    std::string_view gdml_basename() const override { return "testem3-flat"; }
 };
 
 //---------------------------------------------------------------------------//
 
 class MultiLevelTest : public GeantTestBase, public GeoMaterialTestBase
 {
-    std::string_view geometry_basename() const final
-    {
-        return "multi-level"sv;
-    }
+    std::string_view gdml_basename() const final { return "multi-level"sv; }
 };
 
 //---------------------------------------------------------------------------//

@@ -70,8 +70,8 @@ class GenericGeoTestInterface
     //! Access the geometry interface, building if needed
     virtual SPConstGeoInterface geometry_interface() const = 0;
 
-    // Get the basename or unique geometry key (defaults to suite name)
-    virtual std::string geometry_basename() const;
+    // Get the basename or unique geometry key
+    virtual std::string_view gdml_basename() const = 0;
 
     // Get the safety tolerance (defaults to SoftEq tol)
     virtual real_type safety_tol() const;
@@ -95,7 +95,7 @@ class GenericGeoTestInterface
     std::vector<std::string> get_g4pv_labels() const;
 
     // Get the volume name, adjusting for offsets from loading multiple geo
-    std::string_view get_volume_name(VolumeId i) const;
+    std::string_view get_volume_name(ImplVolumeId i) const;
 
   protected:
     // Virtual interface only

@@ -6,53 +6,40 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "geocel/VolumeParams.hh"
-#include "geocel/inp/Model.hh"
+#include <memory>
 
-#include "Test.hh"
+#include "VolumeTestBase.hh"
 
 namespace celeritas
 {
+class SurfaceParams;
 namespace test
 {
 //---------------------------------------------------------------------------//
-//! Helper to create a boundary surface
-inline inp::Surface make_surface(std::string&& label, VolumeId vol)
+/*!
+ * Base class for surface tests.
+ *
+ * This provides common functionality for all surface-based tests.
+ */
+class SurfaceTestBase : public virtual VolumeTestBase
 {
-    inp::Surface surface;
-    surface.label = std::move(label);
-    surface.surface = vol;
-    return surface;
-}
+  public:
+    void SetUp() override;
 
-//! Helper to create an interface surface
-inline inp::Surface
-make_surface(std::string&& label, VolumeInstanceId pre, VolumeInstanceId post)
-{
-    inp::Surface surface;
-    surface.label = std::move(label);
-    surface.surface = inp::Surface::Interface{pre, post};
-    return surface;
-}
+    //! Get the surface parameters
+    SurfaceParams const& surfaces() const;
+
+  protected:
+    //! Create surface parameters
+    virtual std::shared_ptr<SurfaceParams> build_surfaces() const = 0;
+
+  private:
+    std::shared_ptr<SurfaceParams> surfaces_;
+};
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct volume params at setup time.
- *
- * It constructs volumes A through E with three instances of C (one inside A,
- * two inside B), placing them in the hierarchy with the following volume
- * instances:
- * \verbatim
-   {parent} -> {daughter} "{volume instance label}"
-     A -> B "0"
-     A -> C "1"
-     B -> C "2"
-     B -> C "3"
-     C -> D "4"
-     C -> E "5"
- * \endverbatim
- *
- * The "many surface" constructor builds the following surfaces:
+ * Base for tests with many surfaces:
  * \verbatim
     c2b : interface 2 -> 0
     c2c2: interface 2 -> 2
@@ -64,19 +51,30 @@ make_surface(std::string&& label, VolumeInstanceId pre, VolumeInstanceId post)
     ec  : interface 5 -> 1
     db  : interface 4 -> 1
  * \endverbatim
- *
  */
-class SurfaceTestBase : public ::celeritas::test::Test
+class ManySurfacesTestBase : public virtual ComplexVolumeTestBase,
+                             public SurfaceTestBase
 {
-  public:
-    // Construct volumes
-    void SetUp() override;
-
-    // Create many-connected surfaces input
-    inp::Surfaces make_many_surfaces_inp() const;
-
   protected:
-    VolumeParams volumes_;
+    std::shared_ptr<SurfaceParams> build_surfaces() const override;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Base for tests with optical surfaces:
+ * \verbatim
+    sphere_skin   : boundary for 0 (lar_sphere)
+    tube2_skin    : boundary for 1 (tube2)
+    below_to_1    : interface 1 -> 2 (tube2_below_pv -> tube1_mid_pv)
+    mid_to_below  : interface 2 -> 1 (tube1_mid_pv -> tube2_below_pv)
+    mid_to_above  : interface 2 -> 3 (tube1_mid_pv -> tube2_above_pv)
+ * \endverbatim
+ */
+class OpticalSurfacesTestBase : public virtual OpticalVolumeTestBase,
+                                public SurfaceTestBase
+{
+  protected:
+    std::shared_ptr<SurfaceParams> build_surfaces() const override;
 };
 
 //---------------------------------------------------------------------------//

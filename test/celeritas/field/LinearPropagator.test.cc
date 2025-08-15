@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/field/LinearPropagator.hh"
 
+#include <string_view>
+
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/io/Logger.hh"
@@ -27,19 +29,18 @@ template<class HP>
 class LinearPropagatorTest : public AllGeoTypedTestBase<HP>
 {
   protected:
-    using SPConstGeo = typename GenericGeoTestBase<HP>::SPConstGeo;
-    using GeoTrackView = typename GenericGeoTestBase<HP>::GeoTrackView;
-
     void SetUp() override
     {
+        using namespace std::literals;
+
         if (CELERITAS_UNITS != CELERITAS_UNITS_CGS
-            && this->geo_name() == "ORANGE")
+            && GeoTraits<HP>::name == "ORANGE"sv)
         {
             GTEST_SKIP() << "ORANGE currently requires CGS [cm]";
         }
     }
 
-    std::string geometry_basename() const final { return "simple-cms"; }
+    std::string_view gdml_basename() const final { return "simple-cms"; }
 };
 
 TYPED_TEST_SUITE(LinearPropagatorTest,

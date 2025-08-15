@@ -9,7 +9,7 @@ Geometry
 
 Detector geometry descriptions for HEP are almost universally defined using a
 hierarchy of fully nested volumes, often saved as a GDML file
-:cite:`gdml-2006`. These volumes can be represented as a directed
+:cite:`gdml-2006`. These user-defined volumes can be represented as a directed
 acyclic graph (DAG): the nodes are the geometric elements, and the edges
 are an instantiation of the volume *below* inside the volume *above*. This
 instantiation is associated with a transformation and
@@ -19,9 +19,9 @@ their enclosing parent volume.
 .. table:: Celeritas nomenclature tends toward computer science terminology.
 
    +------------------+-------------------------+----------------+--------------------+
-   | Celeritas        | Geant4                  | VecGeom        | KENO [#sc]_        |
+   | Celeritas/ORANGE | Geant4                  | VecGeom        | KENO/SCALE [#sc]_  |
    +==================+=========================+================+====================+
-   | (not used)       | Solid                   | Unplaced       | Shape              |
+   | Object [#ob]_    | Solid                   | Unplaced       | Shape              |
    +------------------+-------------------------+----------------+--------------------+
    | Volume           | Logical volume          | Logical volume | Unit/array/media   |
    +------------------+-------------------------+----------------+--------------------+
@@ -37,10 +37,15 @@ their enclosing parent volume.
    +------------------+-------------------------+----------------+--------------------+
    | Surface          | Surface property [#sp]_ | ---            | ---                |
    +------------------+-------------------------+----------------+--------------------+
+   | ImplVolume       | ---                     | ---            | Cell               |
+   +------------------+-------------------------+----------------+--------------------+
 
 .. [#sc] The KENO geometry package in SCALE :cite:`scale-632` differs
    substantially from Geant4 geometry definitions. In KENO-VI :cite:`kenovi`
    geometry, parent units mask (rather than strictly contain) child units.
+
+.. [#ob] :ref:`api_orange_objects` are used strictly for construction in ORANGE and are not
+   identifiable during runtime.
 
 .. [#sp] Surface properties in Geant4 can be referenced by multiple surfaces.
    Celeritas will duplicate these (although lower-level data deduplication may
@@ -55,6 +60,8 @@ fields as "cells") and "surfaces" defined by the relationships between volumes.
    descriptions, and geometry models for other applications, that are *not*
    Geant4 hierarchies.
 
+
+
 Volume
    A *volume* corresponds to a homogeneous physical object that can have multiple
    instances but is treated identically. It has a specific shape, material,
@@ -62,7 +69,9 @@ Volume
    simply a *node* in the detector geometry graph. This definition differs
    slightly from Geant4 and VecGeom, where the ``G4LogicalVolume`` and
    ``UnplacedVolume`` classes directly reference the child geometry nodes and
-   thus implicitly include the objects embedded in a volume.
+   thus implicitly include the objects embedded in a volume. Celeritas refers
+   to user-defined volumes as *canonical* to differentiate them from
+   *implementation* volumes.
 
 Volume instance
    An *instance* of a volume is defined in conjunction with a transform and an
@@ -93,6 +102,17 @@ Surface
    interface from one volume instance to another. *Boundary* surfaces ("skin"
    surfaces in Geant4) surround an entire volume, and their properties apply
    symmetrically to tracks entering or exiting.
+
+ImplVolume
+   An *implementation volume* is a low-level detail used by each separate
+   geometry representation/navigation implementation. They may correspond
+   more or less to volumes, volume instances, unique volume instances, or
+   anywhere in between. Use of these outside an individual geometry is
+   deprecated; legacy parts of the code use these to map between Geant4
+   pointers and the geometry state. Use the volume/instance/unique volume
+   instead, relying on the cpp:class:`celeritas::VolumeParams` and global
+   :cpp:class:`celeritas::GeantGeoParams` to convert between the local geometry
+   state and the Geant4 navigation.
 
 
 .. [#cn] A *volume instance* has a one-to-one mapping for ``G4PVPlacement``,

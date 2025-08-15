@@ -13,7 +13,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
-#include "celeritas/GlobalGeoTestBase.hh"
+#include "celeritas/GlobalTestBase.hh"
 #include "celeritas/OnlyCoreTestBase.hh"
 #include "celeritas/OnlyGeoTestBase.hh"
 
@@ -30,9 +30,7 @@ namespace test
 /*!
  * Manage a "heuristic" stepper-like test that accumulates path length.
  */
-class HeuristicGeoTestBase : public GlobalGeoTestBase,
-                             public OnlyGeoTestBase,
-                             public OnlyCoreTestBase
+class HeuristicGeoTestBase : public OnlyGeoTestBase
 {
   public:
     //!@{
@@ -41,7 +39,7 @@ class HeuristicGeoTestBase : public GlobalGeoTestBase,
     using StateStore = CollectionStateStore<HeuristicGeoStateData, M>;
     template<MemSpace M>
     using PathLengthRef
-        = Collection<real_type, Ownership::reference, M, VolumeId>;
+        = Collection<real_type, Ownership::reference, M, ImplVolumeId>;
     using SpanConstReal = Span<real_type const>;
     using SpanConstStr = Span<std::string const>;
     //!@}

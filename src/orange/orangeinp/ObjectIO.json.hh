@@ -25,6 +25,7 @@ class JoinObjects;
 class NegatedObject;
 class PolyCone;
 class PolyPrism;
+class RevolvedPolygon;
 class ShapeBase;
 class SolidBase;
 class StackedExtrudedPolygon;
@@ -48,9 +49,9 @@ class InfPlane;
 class InfAziWedge;
 class InfPolarWedge;
 class Involute;
+class Paraboloid;
 class Parallelepiped;
 class Prism;
-class RevolvedSpecialTrapezoid;
 class Sphere;
 
 //---------------------------------------------------------------------------//
@@ -64,6 +65,7 @@ void to_json(nlohmann::json& j, JoinObjects<Op> const&);
 void to_json(nlohmann::json& j, NegatedObject const&);
 void to_json(nlohmann::json& j, PolyCone const&);
 void to_json(nlohmann::json& j, PolyPrism const&);
+void to_json(nlohmann::json& j, RevolvedPolygon const&);
 void to_json(nlohmann::json& j, ShapeBase const&);
 void to_json(nlohmann::json& j, SolidBase const&);
 void to_json(nlohmann::json& j, StackedExtrudedPolygon const&);
@@ -89,9 +91,9 @@ void to_json(nlohmann::json& j, InfPlane const& pa);
 void to_json(nlohmann::json& j, InfAziWedge const& cr);
 void to_json(nlohmann::json& j, InfPolarWedge const& cr);
 void to_json(nlohmann::json& j, Involute const& cr);
+void to_json(nlohmann::json& j, Paraboloid const& cr);
 void to_json(nlohmann::json& j, Parallelepiped const& cr);
 void to_json(nlohmann::json& j, Prism const& cr);
-void to_json(nlohmann::json& j, RevolvedSpecialTrapezoid const& cr);
 void to_json(nlohmann::json& j, Sphere const& cr);
 
 //---------------------------------------------------------------------------//

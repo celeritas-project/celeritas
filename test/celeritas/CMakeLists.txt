@@ -62,7 +62,6 @@ endif()
 
 celeritas_add_test_library(testcel_celeritas
   GeantTestBase.cc
-  GlobalGeoTestBase.cc
   GlobalTestBase.cc
   ImportedDataTestBase.cc
   InvalidOrangeTestBase.cc
@@ -96,9 +95,9 @@ celeritas_add_test_library(testcel_celeritas
 
 celeritas_target_link_libraries(testcel_celeritas
   PUBLIC
-    testcel_harness Celeritas::celeritas
+    testcel_harness Celeritas::celeritas testcel_geocel
   PRIVATE
-    testcel_core testcel_orange testcel_geocel
+    testcel_core testcel_orange
     nlohmann_json::nlohmann_json Celeritas::ExtGeant4Geo
 )
 
@@ -406,8 +405,8 @@ celeritas_add_test(optical/ImportedMaterials.test.cc)
 celeritas_add_test(optical/ModelImporter.test.cc)
 celeritas_add_test(optical/MfpBuilder.test.cc)
 celeritas_add_test(optical/OpticalCollector.test.cc GPU ${_needs_geant4})
-celeritas_add_test(optical/OpticalLaunchAction.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/OpticalUtils.test.cc GPU)
+celeritas_add_test(optical/PrimaryGenerator.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/Rayleigh.test.cc)
 celeritas_add_test(optical/RayleighMfpCalculator.test.cc)
 celeritas_add_test(optical/OpticalRootImport.test.cc ${_needs_root})

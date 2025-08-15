@@ -56,7 +56,7 @@ class GeometryTest : public HeuristicGeoTestBase
 class TestEm3Test : public HeuristicGeoTestBase
 {
   protected:
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "testem3-flat"sv;
     }
@@ -66,7 +66,8 @@ class TestEm3Test : public HeuristicGeoTestBase
         HeuristicGeoScalars result;
         result.lower = {-19.77, -20, -20};
         result.upper = {19.43, 20, 20};
-        result.world_volume = this->geometry()->volumes().find_unique("world");
+        result.world_volume
+            = this->geometry()->impl_volumes().find_unique("world");
         return result;
     }
 
@@ -132,10 +133,7 @@ auto TestEm3Test::reference_avg_path() const -> SpanConstReal
 class SimpleCmsTest : public HeuristicGeoTestBase
 {
   protected:
-    std::string_view geometry_basename() const override
-    {
-        return "simple-cms"sv;
-    }
+    std::string_view gdml_basename() const override { return "simple-cms"sv; }
 
     HeuristicGeoScalars build_scalars() const final
     {
@@ -144,7 +142,8 @@ class SimpleCmsTest : public HeuristicGeoTestBase
         result.upper = {30, 30, 700};
         result.log_min_step = std::log(1e-4);
         result.log_max_step = std::log(1e2);
-        result.world_volume = this->geometry()->volumes().find_unique("world");
+        result.world_volume
+            = this->geometry()->impl_volumes().find_unique("world");
         return result;
     }
 
@@ -176,7 +175,7 @@ auto SimpleCmsTest::reference_avg_path() const -> SpanConstReal
 class ThreeSpheresTest : public HeuristicGeoTestBase
 {
   protected:
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "three-spheres"sv;
     }
@@ -213,7 +212,7 @@ auto ThreeSpheresTest::reference_avg_path() const -> SpanConstReal
 class CmseTest : public HeuristicGeoTestBase
 {
   protected:
-    std::string_view geometry_basename() const override { return "cmse"sv; }
+    std::string_view gdml_basename() const override { return "cmse"sv; }
 
     HeuristicGeoScalars build_scalars() const final
     {
@@ -316,7 +315,7 @@ TEST_F(SimpleCmsTest, output)
     if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE && CELERITAS_USE_GEANT4)
     {
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-1000.0,-1000.0,-2000.0],[1000.0,1000.0,2000.0]],"max_depth":2,"supports_safety":true,"volumes":{"label":["vacuum_tube","si_tracker","em_calorimeter","had_calorimeter","sc_solenoid","fe_muon_chambers","world"]}})json",
+            R"json({"_category":"internal","_label":"geometry","bbox":[[-1e3,-1e3,-2e3],[1e3,1e3,2e3]],"supports_safety":true,"volumes":{"label":["vacuum_tube","si_tracker","em_calorimeter","had_calorimeter","sc_solenoid","fe_muon_chambers","world"]}})json",
             s);
     }
 }

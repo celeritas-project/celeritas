@@ -27,6 +27,8 @@
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/optical/CoreParams.hh"
+#include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/StatusChecker.hh"
 
@@ -90,6 +92,29 @@ void GlobalTestBase::insert_primaries(CoreStateInterface& state,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Build a new geometry via LazyGeantGeoManager.
+ */
+auto GlobalTestBase::build_geo_from_geant(SPConstGeantGeo const& geant_geo) const
+    -> SPConstGeoI
+{
+    CELER_EXPECT(geant_geo);
+    return CoreGeoParams::from_geant(geant_geo);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build a new geometry via LazyGeantGeoManager (fallback when no Geant4).
+ */
+auto GlobalTestBase::build_geo_from_gdml(std::string const& filename) const
+    -> SPConstGeoI
+{
+    CELER_EXPECT(!CELERITAS_USE_GEANT4);
+    // ORANGE should be able to handle this, VecGeom can use VGDML
+    return CoreGeoParams::from_gdml(filename);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Do not insert StatusChecker.
  */
 void GlobalTestBase::disable_status_checker()
@@ -98,6 +123,30 @@ void GlobalTestBase::disable_status_checker()
                    << "disable_status_checker cannot be called after core "
                       "params have been created");
     insert_status_checker_ = false;
+}
+
+//---------------------------------------------------------------------------//
+//! Construct geometry, volumes, surfaces
+auto GlobalTestBase::build_geometry() -> SPConstCoreGeo
+{
+    // Construct core geo
+    auto core_geo
+        = std::dynamic_pointer_cast<CoreGeoParams const>(this->lazy_geo());
+    CELER_ASSERT(core_geo);
+
+    // Get model for constructing volumes/surfaces
+    std::shared_ptr<GeoParamsInterface const> model_geo{core_geo};
+    if (auto ggeo = this->geant_geo())
+    {
+        // Load geometry, surfaces, regions from Geant4 world pointer
+        model_geo = std::move(ggeo);
+    }
+
+    auto mi = model_geo->make_model_input();
+    volume_ = std::make_shared<VolumeParams>(mi.volumes);
+    surface_ = std::make_shared<SurfaceParams>(mi.surfaces, *volume_);
+
+    return core_geo;
 }
 
 //---------------------------------------------------------------------------//
@@ -119,40 +168,57 @@ auto GlobalTestBase::build_aux_reg() const -> SPUserRegistry
 }
 
 //---------------------------------------------------------------------------//
+auto GlobalTestBase::build_optical_action_reg() const -> SPActionRegistry
+{
+    return std::make_shared<ActionRegistry>();
+}
+
+//---------------------------------------------------------------------------//
+auto GlobalTestBase::build_optical_params() -> SPOpticalParams
+{
+    optical::CoreParams::Input inp;
+    inp.geometry = this->geometry();
+    inp.material = this->optical_material();
+    inp.rng = this->rng();
+    inp.surface = this->core()->surface();
+    inp.action_reg = this->optical_action_reg();
+    inp.gen_reg = std::make_shared<GeneratorRegistry>();
+    inp.physics = this->optical_physics();
+
+    CELER_ENSURE(inp);
+
+    return std::make_shared<optical::CoreParams>(std::move(inp));
+}
+
+//---------------------------------------------------------------------------//
 auto GlobalTestBase::build_core() -> SPConstCore
 {
     CoreParams::Input inp;
     inp.geometry = this->geometry();
-    inp.material = this->material();
-    inp.geomaterial = this->geomaterial();
-    inp.particle = this->particle();
+    if (!surface_)
+    {
+        surface_ = std::make_shared<SurfaceParams>();
+    }
+    if (!volume_)
+    {
+        volume_ = std::make_shared<VolumeParams>();
+    }
+
     inp.cutoff = this->cutoff();
+    inp.geomaterial = this->geomaterial();
+    inp.init = this->init();
+    inp.material = this->material();
+    inp.particle = this->particle();
     inp.physics = this->physics();
     inp.rng = this->rng();
     inp.sim = this->sim();
-    inp.init = this->init();
+    inp.surface = surface_;
+    inp.volume = volume_;
     inp.wentzel = this->wentzel();
+
     inp.action_reg = this->action_reg();
     inp.output_reg = this->output_reg();
     inp.aux_reg = this->aux_reg();
-
-    {
-        // Build "under the hood" parameters
-        auto model_geo = [&inp]() -> std::shared_ptr<GeoParamsInterface const> {
-            if (auto ggeo = celeritas::geant_geo().lock())
-            {
-                // Load geometry, surfaces, regions from Geant4 world pointer
-                return ggeo;
-            }
-            // Load from the native geometry (e.g. ORANGE internal testing)
-            return inp.geometry;
-        }();
-        CELER_ASSERT(model_geo);
-        auto mi = model_geo->make_model_input();
-        inp.volume = std::make_shared<VolumeParams>(mi.volumes);
-        inp.surface = std::make_shared<SurfaceParams>(mi.surfaces, *inp.volume);
-    }
-
     CELER_ASSERT(inp);
 
     // Build along-step action to add to the stepping loop

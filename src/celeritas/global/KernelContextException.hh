@@ -86,7 +86,7 @@ class KernelContextException : public RichContextException
     //! Direction
     Real3 const& dir() const { return dir_; }
     //! Volume ID
-    VolumeId volume() const { return volume_; }
+    ImplVolumeId volume() const { return volume_; }
     //! Surface
     ImplSurfaceId surface() const { return surface_; }
     //!@}
@@ -105,7 +105,7 @@ class KernelContextException : public RichContextException
     Energy energy_;
     Real3 pos_;
     Real3 dir_;
-    VolumeId volume_;
+    ImplVolumeId volume_;
     ImplSurfaceId surface_;
 
     std::string label_;

@@ -35,7 +35,7 @@ class ProtoConstructorTest : public GeantLoadTestBase
     using Unit = orangeinp::detail::CsgUnit;
     using Tol = Tolerance<>;
 
-    LogicalVolume load(std::string const& basename)
+    PhysicalVolume load(std::string const& basename)
     {
         this->load_test_gdml(basename);
         PhysicalVolumeConverter::Options opts;
@@ -47,7 +47,7 @@ class ProtoConstructorTest : public GeantLoadTestBase
 
         EXPECT_TRUE(std::holds_alternative<NoTransformation>(world.transform));
         EXPECT_EQ(1, world.lv.use_count());
-        return *world.lv;
+        return world;
     }
 
     auto get_proto_names(ProtoMap const& protos) const
@@ -80,7 +80,7 @@ class ProtoConstructorTest : public GeantLoadTestBase
 //---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, one_box)
 {
-    LogicalVolume world = this->load("one-box");
+    PhysicalVolume world = this->load("one-box");
     auto global_proto
         = ProtoConstructor(this->geo(), /* verbose = */ true)(world);
     ProtoMap protos{*global_proto};
@@ -127,7 +127,7 @@ TEST_F(ProtoConstructorTest, one_box)
 //---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, two_boxes)
 {
-    LogicalVolume world = this->load("two-boxes");
+    PhysicalVolume world = this->load("two-boxes");
     auto global_proto
         = ProtoConstructor(this->geo(), /* verbose = */ false)(world);
     ProtoMap protos{*global_proto};
@@ -163,7 +163,7 @@ TEST_F(ProtoConstructorTest, two_boxes)
 //---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, intersection_boxes)
 {
-    LogicalVolume world = this->load("intersection-boxes");
+    PhysicalVolume world = this->load("intersection-boxes");
     auto global_proto
         = ProtoConstructor(this->geo(), /* verbose = */ false)(world);
     ProtoMap protos{*global_proto};
@@ -185,8 +185,8 @@ TEST_F(ProtoConstructorTest, intersection_boxes)
             "Plane: y=1.5",
             "Plane: z=-2",
             "Plane: z=2",
-            "Plane: n={0.86603,0,-0.5}, d=-2.634",
-            "Plane: n={0.86603,0,-0.5}, d=0.36603",
+            "Plane: n={0.86603,0,-0.5}, d=-2.6340",
+            "Plane: n={0.86603,0,-0.5}, d=0.36602",
             "Plane: y=0",
             "Plane: y=4",
             "Plane: n={0.5,0,0.86603}, d=1.4641",
@@ -255,7 +255,7 @@ TEST_F(ProtoConstructorTest, intersection_boxes)
 TEST_F(ProtoConstructorTest, simple_cms)
 {
     // NOTE: GDML stores widths for box and cylinder Z; Geant4 uses halfwidths
-    LogicalVolume world = this->load("simple-cms");
+    PhysicalVolume world = this->load("simple-cms");
 
     auto global_proto
         = ProtoConstructor(this->geo(), /* verbose = */ false)(world);
@@ -309,7 +309,7 @@ TEST_F(ProtoConstructorTest, simple_cms)
 //---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, testem3)
 {
-    LogicalVolume world = this->load("testem3");
+    PhysicalVolume world = this->load("testem3");
 
     auto global_proto
         = ProtoConstructor(this->geo(), /* verbose = */ false)(world);
@@ -392,7 +392,7 @@ TEST_F(ProtoConstructorTest, testem3)
 // Deduplication slightly changes plane position and CSG node IDs
 TEST_F(ProtoConstructorTest, TEST_IF_CELERITAS_DOUBLE(tilecal_plug))
 {
-    LogicalVolume world = this->load("tilecal-plug");
+    PhysicalVolume world = this->load("tilecal-plug");
 
     auto global_proto
         = ProtoConstructor(this->geo(), /* verbose = */ false)(world);
@@ -408,18 +408,18 @@ TEST_F(ProtoConstructorTest, TEST_IF_CELERITAS_DOUBLE(tilecal_plug))
         auto u = this->build_unit(protos, UniverseId{0});
 
         static char const* const expected_surface_strings[] = {
-            "Plane: z=-62.058",
-            "Plane: z=62.058",
+            "Plane: z=-62.057",
+            "Plane: z=62.057",
             "Plane: x=15.45",
-            "Plane: n={0,0.9988,-0.049068}, d=17.711",
+            "Plane: n={0,0.99879,-0.049068}, d=17.711",
             "Plane: x=-15.45",
-            "Plane: n={0,0.9988,0.049068}, d=-17.711",
+            "Plane: n={0,0.99879,0.049068}, d=-17.711",
             "Plane: z=-16.942",
             "Plane: z=-17.058",
             "Plane: x=5.965",
             "Plane: z=25.058",
-            "Plane: n={0,0.9988,-0.049068}, d=17.636",
-            "Plane: n={0,0.9988,0.049068}, d=-17.636",
+            "Plane: n={0,0.99879,-0.049068}, d=17.636",
+            "Plane: n={0,0.99879,0.049068}, d=-17.636",
         };
         static char const* const expected_fill_strings[]
             = {"<UNASSIGNED>", "m1", "m0", "m1"};
@@ -438,7 +438,7 @@ TEST_F(ProtoConstructorTest, TEST_IF_CELERITAS_DOUBLE(tilecal_plug))
 //---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, znenv)
 {
-    LogicalVolume world = this->load("znenv");
+    PhysicalVolume world = this->load("znenv");
 
     auto global_proto
         = ProtoConstructor(this->geo(), /* verbose = */ false)(world);

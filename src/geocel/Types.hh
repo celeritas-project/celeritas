@@ -45,7 +45,7 @@ using GeoMatId = OpaqueId<struct GeoMaterial_>;
 //! Combined boundary/interface surface identifier
 using SurfaceId = OpaqueId<struct Surface_, unsigned int>;
 
-//! Identifier for a geometry volume that may be repeated
+//! Identifier for a canonical geometry volume that may be repeated
 using VolumeId = OpaqueId<struct Volume_, unsigned int>;
 
 //! Identifier for an instance of a geometry volume (aka physical/placed)
@@ -55,17 +55,17 @@ using VolumeInstanceId = OpaqueId<struct VolumeInstance_, unsigned int>;
 using VolumeUniqueInstanceId = OpaqueId<struct VolumeInstance_, ull_int>;
 
 //---------------------------------------------------------------------------//
-//!{ Geometry-specific implementation details used by
+//!@{
+//! \name Geometry-specific implementation details
 
 //! Implementation detail surface (for surface-based geometries)
 using ImplSurfaceId = OpaqueId<struct Surface_>;
 
 //! Implementation detail "global" volume index
+//! \todo This will become an independent type soon
 using ImplVolumeId = VolumeId;
 
-//! Identifier for a unique volume in global space (aka touchable)
-using ImplVolumeUniqueInstanceId = VolumeUniqueInstanceId;
-
+//!@}
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//

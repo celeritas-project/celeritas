@@ -50,7 +50,7 @@ class OpticalPhysicsTest : public OpticalMockTestBase
         }
 
         input.materials = this->optical_material();
-        input.action_registry = this->action_reg().get();
+        input.action_registry = this->optical_action_reg().get();
 
         return std::make_shared<PhysicsParams const>(std::move(input));
     }

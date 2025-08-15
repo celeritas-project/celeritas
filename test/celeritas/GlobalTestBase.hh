@@ -14,6 +14,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/random/params/RngParamsFwd.hh"
+#include "geocel/LazyGeantGeoManager.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
 
@@ -23,31 +24,35 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 
-class ActionRegistry;
 class AtomicRelaxationParams;
 class CherenkovParams;
 class CutoffParams;
+class ExtendFromPrimariesAction;
 class GeoMaterialParams;
 class MaterialParams;
 class ParticleParams;
 class PhysicsParams;
 class ScintillationParams;
 class SimParams;
+class SurfaceParams;
 class TrackInitParams;
-class AuxParamsRegistry;
+class VolumeParams;
 class WentzelOKVIParams;
-class ExtendFromPrimariesAction;
+
+class ActionRegistry;
+class AuxParamsRegistry;
+class OutputRegistry;
 
 class CoreParams;
 template<MemSpace M>
 class CoreState;
 class CoreStateInterface;
-class OutputRegistry;
 
 struct Primary;
 
 namespace optical
 {
+class CoreParams;
 class MaterialParams;
 class PhysicsParams;
 }  // namespace optical
@@ -58,14 +63,13 @@ namespace test
 /*!
  * Lazily construct core parameters, individually or together.
  *
- * \note Inherit from this class (or \c GlobalGeoTestBase) using \c
- * virtual \c public so that tests can create mixins (see e.g. \c
- * SimpleStepperTest).
+ * \note Inherit from this class using \c virtual \c public so that tests can
+ * create mixins (see e.g. \c SimpleStepperTest).
  *
  * \todo Replace the construction with modifiers to \c celeritas::inp data
  * structures, and build the core geometry with \c celeritas::setup.
  */
-class GlobalTestBase : public Test
+class GlobalTestBase : public Test, public LazyGeantGeoManager
 {
   public:
     //!@{
@@ -73,25 +77,29 @@ class GlobalTestBase : public Test
     template<class T>
     using SP = std::shared_ptr<T>;
 
-    using SPConstCoreGeo = SP<CoreGeoParams const>;
-    using SPConstMaterial = SP<MaterialParams const>;
-    using SPConstGeoMaterial = SP<GeoMaterialParams const>;
-    using SPConstParticle = SP<ParticleParams const>;
-    using SPConstCutoff = SP<CutoffParams const>;
-    using SPConstPhysics = SP<PhysicsParams const>;
     using SPConstAction = SP<CoreStepActionInterface const>;
+    using SPConstCoreGeo = SP<CoreGeoParams const>;
+    using SPConstCutoff = SP<CutoffParams const>;
+    using SPConstGeoMaterial = SP<GeoMaterialParams const>;
+    using SPConstMaterial = SP<MaterialParams const>;
+    using SPConstParticle = SP<ParticleParams const>;
+    using SPConstPhysics = SP<PhysicsParams const>;
     using SPConstRng = SP<RngParams const>;
     using SPConstSim = SP<SimParams const>;
     using SPConstTrackInit = SP<TrackInitParams const>;
+    using SPConstSurface = SP<SurfaceParams const>;
+    using SPConstVolume = SP<VolumeParams const>;
     using SPConstWentzelOKVI = SP<WentzelOKVIParams const>;
-    using SPConstCore = SP<CoreParams const>;
 
     using SPActionRegistry = SP<ActionRegistry>;
     using SPOutputRegistry = SP<OutputRegistry>;
     using SPUserRegistry = SP<AuxParamsRegistry>;
 
+    using SPConstCore = SP<CoreParams const>;
+
     using SPConstCherenkov = SP<CherenkovParams const>;
     using SPConstOpticalMaterial = SP<optical::MaterialParams const>;
+    using SPOpticalParams = SP<optical::CoreParams>;
     using SPConstOpticalPhysics = SP<optical::PhysicsParams const>;
     using SPConstScintillation = SP<ScintillationParams const>;
 
@@ -124,7 +132,9 @@ class GlobalTestBase : public Test
     inline SPUserRegistry const& aux_reg();
     inline SPConstCore const& core();
     inline SPConstCherenkov const& cherenkov();
+    inline SPActionRegistry const& optical_action_reg();
     inline SPConstOpticalMaterial const& optical_material();
+    inline SPOpticalParams const& optical_params();
     inline SPConstOpticalPhysics const& optical_physics();
     inline SPConstScintillation const& scintillation();
 
@@ -143,7 +153,9 @@ class GlobalTestBase : public Test
     inline SPUserRegistry const& aux_reg() const;
     inline SPConstCore const& core() const;
     inline SPConstCherenkov const& cherenkov() const;
+    inline SPActionRegistry const& optical_action_reg() const;
     inline SPConstOpticalMaterial const& optical_material() const;
+    inline SPOpticalParams const& optical_params() const;
     inline SPConstOpticalPhysics const& optical_physics() const;
     inline SPConstScintillation const& scintillation() const;
     //!@}
@@ -160,8 +172,11 @@ class GlobalTestBase : public Test
     void write_output();
 
   protected:
-    [[nodiscard]] virtual SPConstCoreGeo build_geometry() = 0;
+    // GDML basename must be supplied
+    using LazyGeantGeoManager::gdml_basename;
+
     [[nodiscard]] virtual SPConstMaterial build_material() = 0;
+    [[nodiscard]] virtual SPConstCoreGeo build_geometry();
     [[nodiscard]] virtual SPConstGeoMaterial build_geomaterial() = 0;
     [[nodiscard]] virtual SPConstParticle build_particle() = 0;
     [[nodiscard]] virtual SPConstCutoff build_cutoff() = 0;
@@ -178,11 +193,23 @@ class GlobalTestBase : public Test
     // Do not insert StatusChecker
     void disable_status_checker();
 
+    // Access surface and volume; called during build_core
+    SPConstSurface const& surface() const { return surface_; }
+    SPConstVolume const& volume() const { return volume_; }
+
+    // Implement LazyGeantGeoManager
+    SPConstGeoI build_geo_from_geant(SPConstGeantGeo const&) const final;
+
+    // Implement LazyGeantGeoManager, allowed when ORANGE without Geant4
+    SPConstGeoI build_geo_from_gdml(std::string const& filename) const final;
+
   private:
     SPConstRng build_rng() const;
     SPActionRegistry build_action_reg() const;
     SPUserRegistry build_aux_reg() const;
     SPConstCore build_core();
+    SPActionRegistry build_optical_action_reg() const;
+    SPOpticalParams build_optical_params();
 
   private:
     SPConstCoreGeo geometry_;
@@ -200,8 +227,15 @@ class GlobalTestBase : public Test
     SPConstWentzelOKVI wentzel_;
     SPConstCore core_;
     SPOutputRegistry output_reg_;
+
+    // NOTE: these may not be built
+    SPConstSurface surface_;
+    SPConstVolume volume_;
+
     SPConstCherenkov cherenkov_;
+    SPActionRegistry optical_action_reg_;
     SPConstOpticalMaterial optical_material_;
+    SPOpticalParams optical_params_;
     SPConstOpticalPhysics optical_physics_;
     SPConstScintillation scintillation_;
 
@@ -243,7 +277,9 @@ DEF_GTB_ACCESSORS(SPActionRegistry, action_reg)
 DEF_GTB_ACCESSORS(SPUserRegistry, aux_reg)
 DEF_GTB_ACCESSORS(SPConstCore, core)
 DEF_GTB_ACCESSORS(SPConstCherenkov, cherenkov)
+DEF_GTB_ACCESSORS(SPActionRegistry, optical_action_reg)
 DEF_GTB_ACCESSORS(SPConstOpticalMaterial, optical_material)
+DEF_GTB_ACCESSORS(SPOpticalParams, optical_params)
 DEF_GTB_ACCESSORS(SPConstOpticalPhysics, optical_physics)
 DEF_GTB_ACCESSORS(SPConstScintillation, scintillation)
 auto GlobalTestBase::wentzel() -> SPConstWentzelOKVI const&

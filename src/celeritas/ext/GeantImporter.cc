@@ -17,6 +17,7 @@
 #include <utility>
 #include <vector>
 #include <CLHEP/Units/SystemOfUnits.h>
+#include <G4Cerenkov.hh>
 #include <G4Element.hh>
 #include <G4ElementTable.hh>
 #include <G4ElementVector.hh>
@@ -48,6 +49,7 @@
 #include <G4RToEConvForProton.hh>
 #include <G4Region.hh>
 #include <G4RegionStore.hh>
+#include <G4Scintillation.hh>
 #include <G4String.hh>
 #include <G4Transportation.hh>
 #include <G4TransportationManager.hh>
@@ -66,19 +68,23 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/PdfUtils.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
+#include "geocel/VolumeParams.hh"
 #include "geocel/g4/VisitVolumes.hh"
+#include "geocel/inp/Model.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/inp/Grid.hh"
 #include "celeritas/io/AtomicRelaxationReader.hh"
@@ -93,6 +99,7 @@
 #include "detail/GeantMaterialPropertyGetter.hh"
 #include "detail/GeantOpticalModelImporter.hh"
 #include "detail/GeantProcessImporter.hh"
+#include "detail/GeantSurfacePhysicsLoader.hh"
 
 inline constexpr double mev_scale = 1 / CLHEP::MeV;
 inline constexpr celeritas::PDGNumber g4_photon_pdg{-22};
@@ -501,7 +508,7 @@ std::vector<ImportElement> import_elements()
  * material ID".
  */
 std::vector<ImportOpticalMaterial>
-import_optical(detail::GeoOpticalIdMap const& geo_to_opt)
+import_optical_materials(detail::GeoOpticalIdMap const& geo_to_opt)
 {
     if (geo_to_opt.empty())
     {
@@ -605,6 +612,30 @@ import_optical(detail::GeoOpticalIdMap const& geo_to_opt)
     }
 
     CELER_LOG(debug) << "Loaded " << result.size() << " optical materials";
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Import optical surface physics information.
+ */
+inp::OpticalPhysics import_optical_physics()
+{
+    inp::OpticalPhysics result;
+    auto geo = celeritas::geant_geo().lock();
+    CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
+
+    MultiExceptionHandler handle;
+    detail::GeantSurfacePhysicsLoader load_surface(result.surfaces);
+    for (auto sid : range(SurfaceId(geo->num_surfaces())))
+    {
+        CELER_TRY_HANDLE(load_surface(sid), handle);
+    }
+    log_and_rethrow(std::move(handle));
+
+    CELER_LOG(debug) << "Loaded " << geo->num_surfaces()
+                     << " optical physics surfaces";
+    CELER_ENSURE(result || (geo->num_surfaces() == 0));
     return result;
 }
 
@@ -921,6 +952,12 @@ auto import_processes(GeantImporter::DataSelection selected,
                 import_optical_model(optical::ImportModelClass::wls2));
         }
 #endif
+        else if (dynamic_cast<G4Cerenkov const*>(&process)
+                 || dynamic_cast<G4Scintillation const*>(&process))
+        {
+            // The data needed for Cherenkov and scintillation is imported from
+            // the optical material property table
+        }
         else
         {
             CELER_LOG(error)
@@ -1205,18 +1242,18 @@ std::vector<ImportVolume> import_volumes()
     auto geo = celeritas::geant_geo().lock();
     CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
 
-    auto const& volumes = geo->volumes();
+    VolumeParams volume_params{geo->make_model_input().volumes};
+
+    auto const& volumes = volume_params.volume_labels();
     std::vector<ImportVolume> result(volumes.size());
     size_type count{0};
 
     for (auto vol_id : range(VolumeId{volumes.size()}))
     {
-        auto const& label = volumes.at(vol_id);
-        if (label.empty())
+        auto* g4lv = geo->id_to_geant(vol_id);
+        if (!g4lv)
             continue;
 
-        auto* g4lv = geo->id_to_geant(vol_id);
-        CELER_ASSERT(g4lv);
         ImportVolume& volume = result[vol_id.get()];
         if (auto* mat = g4lv->GetMaterial())
         {
@@ -1230,9 +1267,7 @@ std::vector<ImportVolume> import_volumes()
         {
             volume.phys_material_id = cuts->GetIndex();
         }
-        // TODO: when changing to celeritas::inp, just make this a label
-        // instead of converting to and from a std::string
-        volume.name = to_string(label);
+        volume.name = to_string(volume_params.volume_labels().at(vol_id));
         volume.solid_name = g4lv->GetSolid()->GetName();
 
         ++count;
@@ -1304,7 +1339,8 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
             {
                 geo_to_opt
                     = detail::GeoOpticalIdMap(*G4Material::GetMaterialTable());
-                imported.optical_materials = import_optical(geo_to_opt);
+                imported.optical_materials
+                    = import_optical_materials(geo_to_opt);
             }
 
             imported.isotopes = import_isotopes();
@@ -1355,6 +1391,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         if (selected.processes & DataSelection::optical)
         {
             imported.optical_params = import_optical_parameters();
+            imported.optical_physics = import_optical_physics();
         }
     }
 

@@ -23,18 +23,6 @@ namespace celeritas
 {
 namespace test
 {
-//---------------------------------------------------------------------------//
-/*!
- * Get the basename or unique geometry key (defaults to suite name).
- */
-auto GenericGeoTestInterface::geometry_basename() const -> std::string
-{
-    // Get filename based on unit test name
-    ::testing::TestInfo const* const test_info
-        = ::testing::UnitTest::GetInstance()->current_test_info();
-    CELER_ASSERT(test_info);
-    return test_info->test_case_name();
-}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -65,10 +53,10 @@ std::vector<std::string> GenericGeoTestInterface::get_volume_labels() const
 {
     std::vector<std::string> result;
 
-    auto const& volumes = this->geometry_interface()->volumes();
+    auto const& volumes = this->geometry_interface()->impl_volumes();
     for (auto vidx : range(volumes.size()))
     {
-        Label const& lab = volumes.at(VolumeId{vidx});
+        Label const& lab = volumes.at(ImplVolumeId{vidx});
         if (!lab.empty())
         {
             result.emplace_back(to_string(lab));
@@ -163,13 +151,13 @@ std::vector<std::string> GenericGeoTestInterface::get_g4pv_labels() const
 /*!
  * Get the volume name.
  */
-std::string_view GenericGeoTestInterface::get_volume_name(VolumeId i) const
+std::string_view GenericGeoTestInterface::get_volume_name(ImplVolumeId i) const
 {
     CELER_EXPECT(i);
-    auto const& volumes = this->geometry_interface()->volumes();
+    auto const& volumes = this->geometry_interface()->impl_volumes();
     if (i < volumes.size())
     {
-        return volumes.at(VolumeId{i.get()}).name;
+        return volumes.at(ImplVolumeId{i.get()}).name;
     }
     return "<out of range>";
 }

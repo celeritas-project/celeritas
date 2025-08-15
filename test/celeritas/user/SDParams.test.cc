@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
-#include "celeritas/GlobalGeoTestBase.hh"
+#include "celeritas/GlobalTestBase.hh"
 #include "celeritas/OnlyCoreTestBase.hh"
 #include "celeritas/OnlyGeoTestBase.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
@@ -25,13 +25,11 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-class SDParamsTest : public GlobalGeoTestBase,
-                     public OnlyGeoTestBase,
-                     public OnlyCoreTestBase
+class SDParamsTest : public OnlyGeoTestBase
 {
   public:
     using VecLabel = std::vector<Label>;
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "testem3-flat"sv;
     }
@@ -44,7 +42,7 @@ TEST_F(SDParamsTest, empty_constructor_test)
     if (CELERITAS_DEBUG)
     {
         auto det_id = DetectorId{0};
-        auto vol_id = VolumeId{0};
+        auto vol_id = ImplVolumeId{0};
         EXPECT_THROW(params->volume_to_detector_id(vol_id),
                      celeritas::DebugError);
         EXPECT_THROW(params->detector_to_volume_id(det_id),
@@ -71,8 +69,8 @@ TEST_F(SDParamsTest, detector_test)
     {
         auto v_id = params->detector_to_volume_id(d_id);
         EXPECT_EQ(detector_labels[d_id.get()],
-                  this->geometry()->volumes().at(v_id).name);
-        EXPECT_EQ(d_id, params->volume_to_detector_id(VolumeId{v_id}));
+                  this->geometry()->impl_volumes().at(v_id).name);
+        EXPECT_EQ(d_id, params->volume_to_detector_id(ImplVolumeId{v_id}));
     }
 }
 }  // namespace test

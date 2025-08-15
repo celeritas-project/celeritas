@@ -95,10 +95,10 @@ struct FromId
     }
 
     //! Transform to a volume label
-    nlohmann::json convert_impl(VolumeId id) const
+    nlohmann::json convert_impl(ImplVolumeId id) const
     {
         auto const& params = *this->params->geometry();
-        return params.volumes().at(id);
+        return params.impl_volumes().at(id);
     }
 
     //! Transform to a material label
@@ -120,7 +120,7 @@ struct FromId
     }
 
 //---------------------------------------------------------------------------//
-// Create JSON from geoetry view, using host metadata if possible
+// Create JSON from geometry view, using host metadata if possible
 void to_json_impl(nlohmann::json& j, GeoTrackView const& view, FromId from_id)
 {
     ASSIGN_TRANSFORMED(pos, Labeled{NativeTraits::Length::label()});
@@ -130,7 +130,7 @@ void to_json_impl(nlohmann::json& j, GeoTrackView const& view, FromId from_id)
 
     if (!view.is_outside())
     {
-        ASSIGN_TRANSFORMED(volume_id, from_id);
+        j["volume_id"] = from_id(view.impl_volume_id());
     }
 }
 
@@ -143,7 +143,7 @@ void to_json_impl(nlohmann::json& j,
 {
     if (!geo.is_outside())
     {
-        j = from_id(view.material_id(geo.volume_id()));
+        j = from_id(view.material_id(geo.impl_volume_id()));
     }
     else
     {

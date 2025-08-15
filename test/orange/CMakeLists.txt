@@ -6,7 +6,6 @@
 celeritas_add_test_library(testcel_orange
   OrangeGeoTestBase.cc
   OrangeTestBase.cc
-  g4org/GeantLoadTestBase.cc
   orangeinp/CsgTestUtils.cc
   orangeinp/IntersectTestResult.cc
   orangeinp/ObjectTestBase.cc
@@ -74,6 +73,7 @@ celeritas_add_test(orangeinp/CsgTreeUtils.test.cc)
 celeritas_add_test(orangeinp/IntersectRegion.test.cc)
 celeritas_add_test(orangeinp/IntersectSurfaceBuilder.test.cc)
 celeritas_add_test(orangeinp/PolySolid.test.cc)
+celeritas_add_test(orangeinp/RevolvedPolygon.test.cc)
 celeritas_add_test(orangeinp/Shape.test.cc)
 celeritas_add_test(orangeinp/Solid.test.cc)
 celeritas_add_test(orangeinp/StackedExtrudedPolygon.test.cc)
