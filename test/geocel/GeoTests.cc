@@ -664,6 +664,61 @@ void MultiLevelGeoTest::test_trace() const
 }
 
 //---------------------------------------------------------------------------//
+void MultiLevelGeoTest::test_volume_stack() const
+{
+    using R2 = Array<double, 2>;
+
+    // Include outer world and center sphere
+    std::vector<R2> points{R2{-5, 0}, R2{0, 0}};
+
+    // Loop over outer and inner x and y signs
+    for (auto signs : range(1 << 4))
+    {
+        auto get_sign = [signs](int i) {
+            CELER_ASSERT(i < 4);
+            return signs & (1 << i) ? -1 : 1;
+        };
+        R2 point{0, 0};
+        point[0] += 2.75 * get_sign(0);
+        point[1] += 2.75 * get_sign(1);
+        point[0] += 10.0 * get_sign(2);
+        point[1] += 10.0 * get_sign(3);
+        points.push_back(point);
+    }
+
+    std::vector<std::string> all_stacks;
+    for (R2 xy : points)
+    {
+        auto result = test_->volume_stack({xy[0], xy[1], 0});
+        all_stacks.emplace_back(to_string(join(result.volume_instances.begin(),
+                                               result.volume_instances.end(),
+                                               ",")));
+    }
+
+    static char const* const expected_all_stacks[] = {
+        "world_PV",
+        "world_PV,topsph1",
+        "world_PV,topbox1,boxsph1@0",
+        "world_PV,topbox1",
+        "world_PV,topbox1,boxtri@0",
+        "world_PV,topbox1,boxsph2@0",
+        "world_PV,topbox2,boxsph1@0",
+        "world_PV,topbox2",
+        "world_PV,topbox2,boxtri@0",
+        "world_PV,topbox2,boxsph2@0",
+        "world_PV,topbox4,boxtri@1",
+        "world_PV,topbox4,boxsph2@1",
+        "world_PV,topbox4,boxsph1@1",
+        "world_PV,topbox4",
+        "world_PV,topbox3",
+        "world_PV,topbox3,boxsph2@0",
+        "world_PV,topbox3,boxsph1@0",
+        "world_PV,topbox3,boxtri@0",
+    };
+    EXPECT_VEC_EQ(expected_all_stacks, all_stacks);
+}
+
+//---------------------------------------------------------------------------//
 // OPTICAL SURFACES
 //---------------------------------------------------------------------------//
 void OpticalSurfacesGeoTest::test_model() const
