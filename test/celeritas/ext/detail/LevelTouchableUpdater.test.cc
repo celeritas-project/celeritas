@@ -153,7 +153,7 @@ class ReplicaTest : public LevelTouchableUpdaterTest
 TEST_F(ReplicaTest, all_points)
 {
     static IListSView const all_level_names[] = {
-        //{"world_PV", "fSecondArmPhys"},
+        {"world_PV", "fSecondArmPhys"},
         {"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@14"},
         {"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@6"},
         {"world_PV",
@@ -180,12 +180,15 @@ TEST_F(ReplicaTest, all_points)
          "HadCalColumn_PV@3",
          "HadCalCell_PV@1",
          "HadCalLayer_PV@16"},
-        //{"world_PV"},
+        {"world_PV"},
     };
 
     auto result = run(all_level_names);
 
     static double const expected_coords[] = {
+        -2500,
+        0,
+        4330.1270189222,
         -4344.3747686898,
         75,
         5574.6778264911,
@@ -204,14 +207,21 @@ TEST_F(ReplicaTest, all_points)
         -4552.211431703,
         150,
         6984.6614865054,
+        -0,
+        -0,
+        -0,
     };
     EXPECT_VEC_SOFT_EQ(expected_coords, result.coords);
-    static char const* const expected_replicas[] = {"14,0,0,0",
-                                                    "6,0,0,0",
-                                                    "2,1,4,0,0,0",
-                                                    "7,1,2,0,0,0",
-                                                    "7,0,2,0,0,0",
-                                                    "16,1,3,0,0,0"};
+    static char const* const expected_replicas[] = {
+        "0,0",
+        "14,0,0,0",
+        "6,0,0,0",
+        "2,1,4,0,0,0",
+        "7,1,2,0,0,0",
+        "7,0,2,0,0,0",
+        "16,1,3,0,0,0",
+        "0",
+    };
     EXPECT_VEC_EQ(expected_replicas, result.replicas);
 }
 
