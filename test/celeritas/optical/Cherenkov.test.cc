@@ -500,6 +500,52 @@ TEST_F(CherenkovWaterTest, generator)
         }
     }
 }
+class CherenkovAirTest : public CherenkovTest
+{
+  public:
+    ImportOpticalProperty build_import_property() const final
+    {
+        ImportOpticalProperty prop;
+        for (double wl : {1.29, 0.82})
+        {
+            prop.refractive_index.x.push_back(um_to_mev(wl));
+        }
+        prop.refractive_index.y = {1.3, 1.3};
+        return prop;
+    }
+};
+
+TEST_F(CherenkovAirTest, dndx)
+{
+    EXPECT_SOFT_NEAR(369.81e6,
+                     constants::alpha_fine_structure * units::Mev::value()
+                         * units::centimeter
+                         / (constants::hbar_planck * constants::c_light),
+                     1e-6);
+
+    optical::MaterialView mat_view{material->host_ref(), material_id};
+    CherenkovDndxCalculator calc_dndx(
+        mat_view,
+        params->host_ref(),
+        this->particle_params()->get(ParticleId{0}).charge());
+
+    std::vector<real_type> betas{
+        real_type{1.0 / 1.2}, real_type{1.0 / 1.3}, real_type{1.0 / 1.4}};
+
+    std::vector<real_type> dndx;
+    for (real_type beta : betas)
+    {
+        dndx.push_back(
+            native_value_to<InvCmLength>(calc_dndx(units::LightSpeed(beta)))
+                .value());
+    }
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        static double const expected_dndx[]
+            = {30.1364989257394, 4.52092962277053e-15, 0.0};
+        EXPECT_VEC_SOFT_EQ(expected_dndx, dndx);
+    }
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace test
