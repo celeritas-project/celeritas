@@ -23,6 +23,7 @@
 #include "geocel/VolumeParams.hh"
 #include "geocel/g4/GeantGeoData.hh"
 #include "geocel/g4/GeantGeoTrackView.hh"
+#include "geocel/inp/Model.hh"
 #include "geocel/rasterize/SafetyImager.hh"
 
 #include "GeantGeoTestBase.hh"
@@ -56,6 +57,12 @@ class GeantGeoTest : public GeantGeoTestBase
         return result;
     }
 
+    ModelInpResult summarize_model()
+    {
+        return ModelInpResult::from_model_input(
+            this->geometry()->make_model_input());
+    }
+
     virtual SpanStringView expected_log_levels() const { return {}; }
 };
 
@@ -64,7 +71,83 @@ using CmseTest = GenericGeoParameterizedTest<GeantGeoTest, CmseGeoTest>;
 
 TEST_F(CmseTest, model)
 {
-    this->impl().test_model();
+    auto result = this->summarize_model();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {
+        "CMStoZDC", "ZDCtoFP420", "Tracker", "CALO",    "MUON",
+        "BEAM",     "BEAM1",      "BEAM2",   "BEAM3",   "TrackerPixelNose",
+        "VCAL",     "TotemT1",    "TotemT2", "CastorF", "CastorB",
+        "OQUA",     "BSC2",       "ZDC",     "CMSE",    "OCMS",
+    };
+    ref.volume.materials = {
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    };
+    ref.volume.daughters = {
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {
+            2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16, 17,
+            18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
+        },
+        {1},
+    };
+    ref.volume_instance.labels = {
+        "OCMS_PV",
+        "CMSE",
+        "CMStoZDC@0",
+        "CMStoZDC@1",
+        "ZDCtoFP420@0",
+        "ZDCtoFP420@1",
+        "Tracker",
+        "CALO",
+        "MUON",
+        "BEAM@0",
+        "BEAM@1",
+        "BEAM1@0",
+        "BEAM1@1",
+        "BEAM2@0",
+        "BEAM2@1",
+        "BEAM3@0",
+        "BEAM3@1",
+        "TrackerPixelNose@0",
+        "TrackerPixelNose@1",
+        "VCAL@0",
+        "VCAL@1",
+        "TotemT1@0",
+        "TotemT1@1",
+        "TotemT2@0",
+        "TotemT2@1",
+        "CastorF",
+        "CastorB",
+        "OQUA@0",
+        "OQUA@1",
+        "BSC2@0",
+        "BSC2@1",
+        "ZDC@0",
+        "ZDC@1",
+    };
+    ref.volume_instance.volumes = {
+        19, 18, 0,  0,  1,  1,  2,  3,  4,  5,  5,  6,  6,  7,  7,  8,  8,
+        9,  9,  10, 10, 11, 11, 12, 12, 13, 14, 15, 15, 16, 16, 17, 17,
+    };
+    ref.world = "OCMS";
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(CmseTest, trace)
@@ -98,7 +181,31 @@ TEST_F(CmsEeBackDeeTest, accessors)
 
 TEST_F(CmsEeBackDeeTest, model)
 {
-    this->impl().test_model();
+    auto result = this->summarize_model();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {
+        "EEBackPlate",
+        "EESRing",
+        "EEBackQuad",
+        "EEBackDee",
+        "EEBackQuad_refl",
+        "EEBackPlate_refl",
+        "EESRing_refl",
+    };
+    ref.volume.materials = {0, 0, 1, 1, 1, 0, 0};
+    ref.volume.daughters = {{}, {}, {2, 3}, {1, 4}, {5, 6}, {}, {}};
+    ref.volume_instance.labels = {
+        "EEBackDee_PV",
+        "EEBackQuad@0",
+        "EEBackPlate@0",
+        "EESRing@0",
+        "EEBackQuad@1",
+        "EEBackPlate@1",
+        "EESRing@1",
+    };
+    ref.volume_instance.volumes = {3, 2, 0, 1, 4, 5, 6};
+    ref.world = "EEBackDee";
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(CmsEeBackDeeTest, trace)
@@ -117,7 +224,39 @@ TEST_F(FourLevelsTest, accessors)
 
 TEST_F(FourLevelsTest, model)
 {
-    this->impl().test_model();
+    auto result = this->summarize_model();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {"Shape2", "Shape1", "Envelope", "World"};
+    ref.volume.materials = {0, 1, 2, 3};
+    ref.volume.daughters = {{}, {3}, {2}, {1, 4, 5, 6, 7, 8, 9, 10}};
+    ref.volume_instance.labels = {
+        "World_PV",
+        "env1",
+        "Shape1",
+        "Shape2",
+        "env2",
+        "env3",
+        "env4",
+        "env5",
+        "env6",
+        "env7",
+        "env8",
+    };
+    ref.volume_instance.volumes = {
+        3,
+        2,
+        1,
+        0,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+    };
+    ref.world = "World";
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(FourLevelsTest, trace)
@@ -334,7 +473,43 @@ using MultiLevelTest
 
 TEST_F(MultiLevelTest, model)
 {
-    this->impl().test_model();
+    auto result = this->summarize_model();
+    GenericGeoModelInp ref;
+    ref.volume.labels
+        = {"sph", "tri", "box", "world", "box_refl", "sph_refl", "tri_refl"};
+    ref.volume.materials = {0, 0, 1, 0, 1, 0, 0};
+    ref.volume.daughters
+        = {{}, {}, {2, 3, 4}, {1, 5, 6, 7, 8}, {9, 10, 11}, {}, {}};
+    ref.volume_instance.labels = {
+        "world_PV",
+        "topbox1",
+        "boxsph1@0",
+        "boxsph2@0",
+        "boxtri@0",
+        "topsph1",
+        "topbox2",
+        "topbox3",
+        "topbox4",
+        "boxsph1@1",
+        "boxsph2@1",
+        "boxtri@1",
+    };
+    ref.volume_instance.volumes = {
+        3,
+        2,
+        0,
+        0,
+        1,
+        0,
+        2,
+        2,
+        4,
+        5,
+        5,
+        6,
+    };
+    ref.world = "world";
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(MultiLevelTest, trace)
@@ -342,93 +517,9 @@ TEST_F(MultiLevelTest, trace)
     this->impl().test_trace();
 }
 
-TEST_F(MultiLevelTest, level_strings)
+TEST_F(MultiLevelTest, volume_stack)
 {
-    using R2 = Array<double, 2>;
-
-    auto const& vol_inst = this->volumes()->volume_instance_labels();
-    auto const& vol = this->volumes()->volume_labels();
-
-    // Include outer world and center sphere
-    std::vector<R2> points{R2{-5, 0}, R2{0, 0}};
-
-    // Loop over outer and inner x and y signs
-    for (auto signs : range(1 << 4))
-    {
-        auto get_sign = [signs](int i) {
-            CELER_ASSERT(i < 4);
-            return signs & (1 << i) ? -1 : 1;
-        };
-        R2 point{0, 0};
-        point[0] += 2.75 * get_sign(0);
-        point[1] += 2.75 * get_sign(1);
-        point[0] += 10.0 * get_sign(2);
-        point[1] += 10.0 * get_sign(3);
-        points.push_back(point);
-    }
-
-    std::vector<std::string> all_vol;
-    std::vector<std::string> all_vol_inst;
-    for (R2 xy : points)
-    {
-        auto geo = this->make_geo_track_view({xy[0], xy[1], 0.0}, {1, 0, 0});
-
-        auto level = geo.level();
-        CELER_ASSERT(level && level >= LevelId{0});
-        std::vector<VolumeInstanceId> inst_ids(level.get() + 1);
-        geo.volume_instance_id(make_span(inst_ids));
-        std::vector<std::string> names(inst_ids.size());
-        for (auto i : range(inst_ids.size()))
-        {
-            names[i] = to_string(vol_inst.at(inst_ids[i]));
-        }
-        all_vol_inst.push_back(to_string(repr(names)));
-        all_vol.push_back(to_string(vol.at(geo.volume_id())));
-    }
-
-    static char const* const expected_all_vol_inst[] = {
-        "{\"world_PV\"}",
-        R"({"world_PV", "topsph1"})",
-        R"({"world_PV", "topbox1", "boxsph1@0"})",
-        R"({"world_PV", "topbox1"})",
-        R"({"world_PV", "topbox1", "boxtri@0"})",
-        R"({"world_PV", "topbox1", "boxsph2@0"})",
-        R"({"world_PV", "topbox2", "boxsph1@0"})",
-        R"({"world_PV", "topbox2"})",
-        R"({"world_PV", "topbox2", "boxtri@0"})",
-        R"({"world_PV", "topbox2", "boxsph2@0"})",
-        R"({"world_PV", "topbox4", "boxtri@1"})",
-        R"({"world_PV", "topbox4", "boxsph2@1"})",
-        R"({"world_PV", "topbox4", "boxsph1@1"})",
-        R"({"world_PV", "topbox4"})",
-        R"({"world_PV", "topbox3"})",
-        R"({"world_PV", "topbox3", "boxsph2@0"})",
-        R"({"world_PV", "topbox3", "boxsph1@0"})",
-        R"({"world_PV", "topbox3", "boxtri@0"})",
-    };
-    static char const* const expected_all_vol[] = {
-        "world",
-        "sph",
-        "sph",
-        "box",
-        "tri",
-        "sph",
-        "sph",
-        "box",
-        "tri",
-        "sph",
-        "tri_refl",
-        "sph_refl",
-        "sph_refl",
-        "box_refl",
-        "box",
-        "sph",
-        "sph",
-        "tri",
-    };
-
-    EXPECT_VEC_EQ(expected_all_vol_inst, all_vol_inst);
-    EXPECT_VEC_EQ(expected_all_vol, all_vol);
+    this->impl().test_volume_stack();
 }
 
 //---------------------------------------------------------------------------//
@@ -437,7 +528,33 @@ using OpticalSurfacesTest
 
 TEST_F(OpticalSurfacesTest, model)
 {
-    this->impl().test_model();
+    auto result = this->summarize_model();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {"lar_sphere", "death", "tube1_mid", "tube2", "world"};
+    ref.volume.materials = {1, 2, 2, 2, 3};
+    ref.volume.daughters = {{}, {}, {}, {}, {0, 1, 2, 3, 4}};
+    ref.volume.labels = {"lar_sphere", "death", "tube1_mid", "tube2", "world"};
+    ref.volume.materials = {1, 2, 2, 2, 3};
+    ref.volume.daughters = {{}, {}, {}, {}, {1, 2, 3, 4, 5}};
+    ref.volume_instance.labels = {
+        "world_PV",
+        "lar_pv",
+        "death_pv",
+        "tube2_below_pv",
+        "tube1_mid_pv",
+        "tube2_above_pv",
+    };
+    ref.volume_instance.volumes = {4, 0, 1, 3, 2, 3};
+    ref.world = "world";
+    ref.surface.labels = {
+        "sphere_skin",
+        "tube2_skin",
+        "below_to_1",
+        "mid_to_below",
+        "mid_to_above",
+    };
+    ref.surface.volumes = {"0", "3", "3->4", "4->3", "4->5"};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(OpticalSurfacesTest, trace)
@@ -478,7 +595,122 @@ using PolyhedraTest
 
 TEST_F(PolyhedraTest, model)
 {
-    this->impl().test_model();
+    auto result = this->summarize_model();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {
+        "tri",
+        "tri_third",
+        "tri_half",
+        "tri_full",
+        "quad",
+        "quad_third",
+        "quad_half",
+        "quad_full",
+        "penta",
+        "penta_third",
+        "penta_half",
+        "penta_full",
+        "hex",
+        "hex_third",
+        "hex_half",
+        "hex_full",
+        "world",
+    };
+    ref.volume.materials = {
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+    };
+    ref.volume.daughters = {
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+        },
+    };
+    ref.volume_instance.labels = {
+        "world_PV",
+        "tri0_pv",
+        "tri30_pv",
+        "tri60_pv",
+        "tri90_pv",
+        "quad0_pv",
+        "quad30_pv",
+        "quad60_pv",
+        "quad90_pv",
+        "penta0_pv",
+        "penta30_pv",
+        "penta60_pv",
+        "penta90_pv",
+        "hex0_pv",
+        "hex30_pv",
+        "hex60_pv",
+        "hex90_pv",
+    };
+    ref.volume_instance.volumes = {
+        16,
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+    };
+    ref.world = "world";
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(PolyhedraTest, trace)
@@ -491,7 +723,18 @@ using ReplicaTest = GenericGeoParameterizedTest<GeantGeoTest, ReplicaGeoTest>;
 
 TEST_F(ReplicaTest, model)
 {
-    this->impl().test_model();
+    auto result = this->summarize_model();
+    // clang-format off
+    GenericGeoModelInp ref;
+    ref.volume.labels = {"magnetic", "hodoscope1", "wirePlane1", "chamber1", "firstArm", "hodoscope2", "wirePlane2", "chamber2", "cell", "EMcalorimeter", "HadCalScinti", "HadCalLayer", "HadCalCell", "HadCalColumn", "HadCalorimeter", "secondArm", "world",};
+    ref.volume.materials = {0, 1, 2, 2, 0, 1, 2, 2, 3, 3, 1, 4, 4, 4, 4, 0, 0,};
+    ref.volume.daughters = {{}, {}, {}, {19}, {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23,}, {}, {}, {51}, {}, {57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136,}, {}, {170}, {150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169,}, {148, 149}, {138, 139, 140, 141, 142, 143, 144, 145, 146, 147,}, {25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 52, 53, 54, 55, 56, 137,}, {1, 2, 24},};
+    ref.volume_instance.labels = {"world_PV", "magnetic", "firstArm", "hodoscope1@0", "hodoscope1@1", "hodoscope1@2", "hodoscope1@3", "hodoscope1@4", "hodoscope1@5", "hodoscope1@6", "hodoscope1@7", "hodoscope1@8", "hodoscope1@9", "hodoscope1@10", "hodoscope1@11", "hodoscope1@12", "hodoscope1@13", "hodoscope1@14", "chamber1@0", "wirePlane1", "chamber1@1", "chamber1@2", "chamber1@3", "chamber1@4", "fSecondArmPhys", "hodoscope2@0", "hodoscope2@1", "hodoscope2@2", "hodoscope2@3", "hodoscope2@4", "hodoscope2@5", "hodoscope2@6", "hodoscope2@7", "hodoscope2@8", "hodoscope2@9", "hodoscope2@10", "hodoscope2@11", "hodoscope2@12", "hodoscope2@13", "hodoscope2@14", "hodoscope2@15", "hodoscope2@16", "hodoscope2@17", "hodoscope2@18", "hodoscope2@19", "hodoscope2@20", "hodoscope2@21", "hodoscope2@22", "hodoscope2@23", "hodoscope2@24", "chamber2@0", "wirePlane2", "chamber2@1", "chamber2@2", "chamber2@3", "chamber2@4", "EMcalorimeter", "cell_param@0", "cell_param@1", "cell_param@2", "cell_param@3", "cell_param@4", "cell_param@5", "cell_param@6", "cell_param@7", "cell_param@8", "cell_param@9", "cell_param@10", "cell_param@11", "cell_param@12", "cell_param@13", "cell_param@14", "cell_param@15", "cell_param@16", "cell_param@17", "cell_param@18", "cell_param@19", "cell_param@20", "cell_param@21", "cell_param@22", "cell_param@23", "cell_param@24", "cell_param@25", "cell_param@26", "cell_param@27", "cell_param@28", "cell_param@29", "cell_param@30", "cell_param@31", "cell_param@32", "cell_param@33", "cell_param@34", "cell_param@35", "cell_param@36", "cell_param@37", "cell_param@38", "cell_param@39", "cell_param@40", "cell_param@41", "cell_param@42", "cell_param@43", "cell_param@44", "cell_param@45", "cell_param@46", "cell_param@47", "cell_param@48", "cell_param@49", "cell_param@50", "cell_param@51", "cell_param@52", "cell_param@53", "cell_param@54", "cell_param@55", "cell_param@56", "cell_param@57", "cell_param@58", "cell_param@59", "cell_param@60", "cell_param@61", "cell_param@62", "cell_param@63", "cell_param@64", "cell_param@65", "cell_param@66", "cell_param@67", "cell_param@68", "cell_param@69", "cell_param@70", "cell_param@71", "cell_param@72", "cell_param@73", "cell_param@74", "cell_param@75", "cell_param@76", "cell_param@77", "cell_param@78", "cell_param@79", "HadCalorimeter", "HadCalColumn_PV@0", "HadCalColumn_PV@1", "HadCalColumn_PV@2", "HadCalColumn_PV@3", "HadCalColumn_PV@4", "HadCalColumn_PV@5", "HadCalColumn_PV@6", "HadCalColumn_PV@7", "HadCalColumn_PV@8", "HadCalColumn_PV@9", "HadCalCell_PV@0", "HadCalCell_PV@1", "HadCalLayer_PV@0", "HadCalLayer_PV@1", "HadCalLayer_PV@2", "HadCalLayer_PV@3", "HadCalLayer_PV@4", "HadCalLayer_PV@5", "HadCalLayer_PV@6", "HadCalLayer_PV@7", "HadCalLayer_PV@8", "HadCalLayer_PV@9", "HadCalLayer_PV@10", "HadCalLayer_PV@11", "HadCalLayer_PV@12", "HadCalLayer_PV@13", "HadCalLayer_PV@14", "HadCalLayer_PV@15", "HadCalLayer_PV@16", "HadCalLayer_PV@17", "HadCalLayer_PV@18", "HadCalLayer_PV@19", "HadCalScinti",};
+    ref.volume_instance.volumes = {16, 0, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 2, 3, 3, 3, 3, 15, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 6, 7, 7, 7, 7, 9, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 14, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 12, 12, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 10,};
+    ref.world = "world";
+    EXPECT_REF_EQ(ref, result);
+    // clang-format on
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(ReplicaTest, trace)
@@ -554,7 +797,27 @@ using SimpleCmsTest
 
 TEST_F(SimpleCmsTest, model)
 {
-    this->impl().test_model();
+    auto result = this->summarize_model();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {"vacuum_tube",
+                         "si_tracker",
+                         "em_calorimeter",
+                         "had_calorimeter",
+                         "sc_solenoid",
+                         "fe_muon_chambers",
+                         "world"};
+    ref.volume.materials = {0, 1, 2, 3, 4, 5, 0};
+    ref.volume.daughters = {{}, {}, {}, {}, {}, {}, {1, 2, 3, 4, 5, 6}};
+    ref.volume_instance.labels = {"world_PV",
+                                  "vacuum_tube_pv",
+                                  "si_tracker_pv",
+                                  "em_calorimeter_pv",
+                                  "had_calorimeter_pv",
+                                  "sc_solenoid_pv",
+                                  "iron_muon_chambers_pv"};
+    ref.volume_instance.volumes = {6, 0, 1, 2, 3, 4, 5};
+    ref.world = "world";
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(SimpleCmsTest, trace)
@@ -646,7 +909,16 @@ using TilecalPlugTest
 
 TEST_F(TilecalPlugTest, model)
 {
-    this->impl().test_model();
+    auto result = this->summarize_model();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {"Tile_Absorber", "Tile_Plug1Module", "Tile_ITCModule"};
+    ref.volume.materials = {0, 1, 1};
+    ref.volume.daughters = {{}, {2}, {1}};
+    ref.volume_instance.labels
+        = {"Tile_ITCModule_PV", "Tile_Plug1Module", "Tile_Absorber"};
+    ref.volume_instance.volumes = {2, 1, 0};
+    ref.world = "Tile_ITCModule";
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(TilecalPlugTest, trace)
@@ -665,7 +937,16 @@ TEST_F(TransformedBoxTest, accessors)
 
 TEST_F(TransformedBoxTest, model)
 {
-    this->impl().test_model();
+    auto result = this->summarize_model();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {"simple", "tiny", "enclosing", "world"};
+    ref.volume.materials = {0, 0, 0, 0};
+    ref.volume.daughters = {{}, {}, {3}, {1, 2, 4}};
+    ref.volume_instance.labels
+        = {"world_PV", "transrot", "default", "rot", "trans"};
+    ref.volume_instance.volumes = {3, 0, 2, 1, 0};
+    ref.world = "world";
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(TransformedBoxTest, trace)
@@ -687,7 +968,15 @@ TEST_F(TwoBoxesTest, accessors)
 
 TEST_F(TwoBoxesTest, model)
 {
-    this->impl().test_model();
+    auto result = this->summarize_model();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {"inner", "world"};
+    ref.volume.materials = {-1, -1};
+    ref.volume.daughters = {{}, {1}};
+    ref.volume_instance.labels = {"world_PV", "inner_PV"};
+    ref.volume_instance.volumes = {1, 0};
+    ref.world = "world";
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(TwoBoxesTest, track)
@@ -701,7 +990,59 @@ using ZnenvTest = GenericGeoParameterizedTest<GeantGeoTest, ZnenvGeoTest>;
 
 TEST_F(ZnenvTest, model)
 {
-    this->impl().test_model();
+    auto result = this->summarize_model();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {
+        "ZNF1",
+        "ZNG1",
+        "ZNF2",
+        "ZNG2",
+        "ZNF3",
+        "ZNG3",
+        "ZNF4",
+        "ZNG4",
+        "ZNST",
+        "ZNSL",
+        "ZN1",
+        "ZNTX",
+        "ZNEU",
+        "ZNENV",
+        "World",
+    };
+    ref.volume.materials = {0, 1, 0, 1, 0, 1, 0, 1, 2, 2, 2, 2, 2, 3, 3};
+    ref.volume.daughters = {
+        {},
+        {30},
+        {},
+        {32},
+        {},
+        {34},
+        {},
+        {36},
+        {29, 31, 33, 35},
+        {18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28},
+        {7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
+        {5, 6},
+        {3, 4},
+        {2},
+        {1},
+    };
+    ref.volume_instance.labels = {
+        "World_PV",  "WorldBoxPV", "ZNEU_1",     "ZNTX_PV@0",  "ZNTX_PV@1",
+        "ZN1_PV@0",  "ZN1_PV@1",   "ZNSL_PV@0",  "ZNSL_PV@1",  "ZNSL_PV@2",
+        "ZNSL_PV@3", "ZNSL_PV@4",  "ZNSL_PV@5",  "ZNSL_PV@6",  "ZNSL_PV@7",
+        "ZNSL_PV@8", "ZNSL_PV@9",  "ZNSL_PV@10", "ZNST_PV@0",  "ZNST_PV@1",
+        "ZNST_PV@2", "ZNST_PV@3",  "ZNST_PV@4",  "ZNST_PV@5",  "ZNST_PV@6",
+        "ZNST_PV@7", "ZNST_PV@8",  "ZNST_PV@9",  "ZNST_PV@10", "ZNG1_1",
+        "ZNF1_1",    "ZNG2_1",     "ZNF2_1",     "ZNG3_1",     "ZNF3_1",
+        "ZNG4_1",    "ZNF4_1",
+    };
+    ref.volume_instance.volumes = {
+        14, 13, 12, 11, 11, 10, 10, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 8,
+        8,  8,  8,  8,  8,  8,  8,  8, 8, 8, 1, 0, 3, 2, 5, 4, 7, 6,
+    };
+    ref.world = "World";
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(ZnenvTest, trace)
