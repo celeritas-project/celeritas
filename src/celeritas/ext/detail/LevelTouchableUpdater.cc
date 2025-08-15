@@ -67,11 +67,11 @@ bool LevelTouchableUpdater::operator()(SpanVolInst ids,
         if (!vi_id)
             break;
         auto phys_inst = geo_->id_to_geant(vi_id);
-        CELER_VALIDATE(
-            phys_inst,
-            << "no Geant4 physical volume is attached to volume instance "
-            << vi_id.get() << "='" << geo_->volume_instances().at(vi_id)
-            << "' (geometry type: " << GeoTraits<CoreGeoParams>::name << ')');
+        CELER_VALIDATE(phys_inst,
+                       << "no Geant4 physical volume is attached to volume "
+                          "instance "
+                       << vi_id.get() << "' (geometry type: "
+                       << GeoTraits<CoreGeoParams>::name << ')');
         phys_inst_.push_back(phys_inst);
     }
     set_history(make_span(phys_inst_), nav_hist_.get());

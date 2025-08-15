@@ -229,6 +229,23 @@ auto make_lv_map(std::vector<G4LogicalVolume const*> const& all_lv)
 }
 
 //---------------------------------------------------------------------------//
+vecgeom::VPlacedVolume const&
+get_placed_volume(vecgeom::GeoManager const& geo, VecgeomPlacedVolumeId ivi_id)
+{
+    CELER_EXPECT(ivi_id);
+
+#if VECGEOM_VERSION >= 0x020000
+#    define VG_GETPLACEDVOLUME GetPlacedVolume
+#else
+#    define VG_GETPLACEDVOLUME FindPlacedVolume
+#endif
+    auto* vgpv = const_cast<vecgeom::GeoManager&>(geo).VG_GETPLACEDVOLUME(
+        ivi_id.unchecked_get());
+    CELER_ENSURE(vgpv);
+    return *vgpv;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -558,9 +575,47 @@ VecgeomParams::~VecgeomParams()
  */
 inp::Model VecgeomParams::make_model_input() const
 {
-    CELER_LOG(warning) << "VecGeom cannot yet construct model input";
-    inp::Model result;
+    CELER_LOG(warning)
+        << R"(VecGeom standalone model input is not fully implemented)";
 
+    inp::Model result;
+    inp::Volumes& v = result.volumes;
+    v.volumes.resize(impl_volumes_.size());
+    v.volume_instances.resize(impl_vol_instances_.size());
+
+    // Create one-to-one map for logical volumes
+    for (auto iv_id : range(ImplVolumeId{impl_volumes_.size()}))
+    {
+        auto const& label = impl_volumes_.at(iv_id);
+        if (label.name.empty())
+        {
+            continue;
+        }
+
+        v.volumes[iv_id.get()].label = label;
+        v.volumes[iv_id.get()].material = GeoMatId{0};
+    }
+
+    // Create one-to-one map for placed volumes
+    auto const& geo = vecgeom::GeoManager::Instance();
+    for (auto ivi_id : range(ImplVolInstanceId{impl_vol_instances_.size()}))
+    {
+        auto const& label = impl_vol_instances_.at(ivi_id);
+        if (label.name.empty())
+        {
+            continue;
+        }
+
+        auto const& placed_vol = get_placed_volume(geo, ivi_id);
+
+        v.volume_instances[ivi_id.get()].label = label;
+        // Map the corresponding logical volume ID
+        v.volume_instances[ivi_id.get()].volume
+            = id_cast<VolumeId>(placed_vol.GetLogicalVolume()->id());
+    }
+
+    result.volumes.world
+        = id_cast<VolumeId>(geo.GetWorld()->GetLogicalVolume()->id());
     return result;
 }
 

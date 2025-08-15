@@ -81,8 +81,15 @@ auto GenericGeoTestBase<HP>::geometry() -> SPConstGeo const&
         });
         geo_ = pg.value();
         volumes_ = this->volumes();
+        if (!volumes_)
+        {
+            // Possibly built with non-GDML
+            volumes_ = std::make_shared<VolumeParams const>(
+                geo_->make_model_input().volumes);
+        }
     }
     CELER_ENSURE(geo_);
+    CELER_ENSURE(volumes_);
     return geo_;
 }
 
@@ -102,12 +109,22 @@ std::string GenericGeoTestBase<HP>::volume_name(GeoTrackView const& geo) const
     {
         return "[OUTSIDE]";
     }
-    auto id = geo.impl_volume_id();
-    if (!id)
+
+    if (VolumeId id = geo.volume_id())
     {
-        return "[INVALID]";
+        // Use volumes
+        CELER_ASSERT(volumes_);
+        return volumes_->volume_labels().at(id).name;
     }
-    return this->geometry()->impl_volumes().at(id).name;
+#if 0
+    // MAYBE?
+    if (ImplVolumeId impl_id = geo.impl_volume_id())
+    {
+        // Use implementation volume
+        return this->geometry()->impl_volumes().at(id).name;
+    }
+#endif
+    return "[INVALID]";
 }
 
 //---------------------------------------------------------------------------//
@@ -134,7 +151,8 @@ GenericGeoTestBase<HP>::unique_volume_name(GeoTrackView const& geo) const
     std::vector<VolumeInstanceId> ids(level.get() + 1);
     geo.volume_instance_id(make_span(ids));
 
-    auto const& vol_inst = this->volumes()->volume_instance_labels();
+    CELER_ASSERT(volumes_);
+    auto const& vol_inst = volumes_->volume_instance_labels();
     std::ostringstream os;
     os << vol_inst.at(ids[0]);
     for (auto i : range(std::size_t{1}, ids.size()))
@@ -197,7 +215,8 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
     TrackingResult result;
 
     GeoTrackView geo = CheckedGeoTrackView{this->make_geo_track_view(pos, dir)};
-    auto const& vol_inst = this->volumes()->volume_instance_labels();
+    CELER_ASSERT(volumes_);
+    auto const& vol_inst = volumes_->volume_instance_labels();
     real_type const inv_length = real_type{1} / this->unit_length();
     real_type const bump_tol = this->bump_tol() * this->unit_length();
 
@@ -339,8 +358,9 @@ auto GenericGeoTestBase<HP>::volume_stack(Real3 const& pos)
     std::vector<VolumeInstanceId> inst_ids(level.get() + 1);
     geo.volume_instance_id(make_span(inst_ids));
 
-    return VolumeStackResult::from_span(
-        this->volumes()->volume_instance_labels(), make_span(inst_ids));
+    CELER_ASSERT(volumes_);
+    return VolumeStackResult::from_span(volumes_->volume_instance_labels(),
+                                        make_span(inst_ids));
 }
 
 //---------------------------------------------------------------------------//
