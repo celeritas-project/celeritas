@@ -204,16 +204,18 @@ TEST_F(CherenkovTest, dndx)
     }
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        static double const expected_dndx[] = {0,
-                                               0,
-                                               0.57854090574963,
-                                               12.39231212654,
-                                               41.749688597206,
-                                               111.83329546162,
-                                               131.990659972206,
-                                               343.924930982164,
-                                               715.243283345252,
-                                               978.577110018138};
+        static double const expected_dndx[] = {
+            0,
+            0,
+            0.57854090574963,
+            12.39231212654,
+            41.749688597206,
+            111.83329546162,
+            131.990659972206,
+            343.924930982164,
+            715.243283345252,
+            978.577110018138,
+        };
         EXPECT_VEC_SOFT_EQ(expected_dndx, dndx);
     }
 }
@@ -422,9 +424,11 @@ TEST_F(CherenkovTest, generator)
         static double const expected_costheta_dist[]
             = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 52163, 10442, 0};
         static double const expected_energy_dist[]
-            = {3662,3743,3689,3732,3670,3632,3745,3809,3900,4007,4004,3915,4120,4249,4294,4434};
+            = {3662, 3743, 3689, 3732, 3670, 3632, 3745, 3809,
+               3900, 4007, 4004, 3915, 4120, 4249, 4294, 4434};
         static double const expected_displacement_dist[]
-            = {3885,4053,3780,3890,3970,3892,3872,3941,3968,3894,3886,3883,3931,3909,3998,3853};
+            = {3885, 4053, 3780, 3890, 3970, 3892, 3872, 3941,
+               3968, 3894, 3886, 3883, 3931, 3909, 3998, 3853};
         // clang-format on
 
         sample(pre_step, particle, sim, pos, num_samples);
