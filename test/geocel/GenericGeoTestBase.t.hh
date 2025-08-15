@@ -14,11 +14,11 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/TypeDemangler.hh"
-#include "geocel/GeantGeoParams.hh"
 #include "geocel/inp/Model.hh"
 
 #include "CheckedGeoTrackView.hh"
 #include "GenericGeoResults.hh"
+#include "PersistentSP.hh"
 #include "TestMacros.hh"
 #include "UnitUtils.hh"
 
@@ -38,25 +38,31 @@ void GenericGeoTestBase<HP>::SetUp()
 
 //---------------------------------------------------------------------------//
 /*!
- * ! Build the geometry (default to from_basename).
+ * Return test suite name by default.
  */
 template<class HP>
-auto GenericGeoTestBase<HP>::build_geometry() -> SPConstGeo
+std::string_view GenericGeoTestBase<HP>::gdml_basename() const
 {
-    return this->build_geometry_from_basename();
+    return ::testing::UnitTest::GetInstance()
+        ->current_test_info()
+        ->test_suite_name();
 }
 
 //---------------------------------------------------------------------------//
-//
+/*!
+ * Build the geometry, defaulting to using the lazy Geant4 construction.
+ */
 template<class HP>
-auto GenericGeoTestBase<HP>::build_geometry_from_basename() -> SPConstGeo
+auto GenericGeoTestBase<HP>::build_geometry() const -> SPConstGeo
 {
-    // Construct filename:
-    // ${SOURCE}/test/geocel/data/${basename}.gdml
-    std::string test_file
-        = test_data_path("geocel", this->geometry_basename() + ".gdml");
-    auto result = HP::from_gdml(test_file);
-    return result;
+    auto geo_interface = this->lazy_geo();
+    CELER_ASSERT(geo_interface);
+    auto geo = std::dynamic_pointer_cast<HP const>(geo_interface);
+    CELER_VALIDATE(geo,
+                   << "failed to cast geometry from "
+                   << demangled_type(*geo_interface) << " to "
+                   << TypeDemangler<HP const>()());
+    return geo;
 }
 
 //---------------------------------------------------------------------------//
@@ -65,16 +71,14 @@ auto GenericGeoTestBase<HP>::geometry() -> SPConstGeo const&
 {
     if (!geo_)
     {
-        std::string key = this->geometry_basename() + "/"
-                          + std::string{this->geometry_type()};
-        // Construct via LazyGeoManager
-        auto geo = this->get_geometry(key);
-        EXPECT_TRUE(geo);
-        geo_ = std::dynamic_pointer_cast<HP const>(geo);
-        CELER_VALIDATE(geo_,
-                       << "failed to cast geometry from "
-                       << demangled_type(*geo) << " to "
-                       << TypeDemangler<HP const>()());
+        static PersistentSP<HP const> pg{"GenericGeoTestBase geometry"};
+
+        auto basename = this->gdml_basename();
+        pg.lazy_update(std::string{basename}, [this]() {
+            // Build new geometry
+            return this->build_geometry();
+        });
+        geo_ = pg.value();
     }
     CELER_ENSURE(geo_);
     return geo_;
@@ -378,11 +382,27 @@ auto GenericGeoTestBase<HP>::geometry_interface() const -> SPConstGeoInterface
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Build a new geometry via LazyGeantGeoManager.
+ */
 template<class HP>
-auto GenericGeoTestBase<HP>::build_fresh_geometry(std::string_view)
+auto GenericGeoTestBase<HP>::build_geo_from_geant(
+    SPConstGeantGeo const& geant_geo) const -> SPConstGeoI
+{
+    CELER_EXPECT(geant_geo);
+    return HP::from_geant(geant_geo);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build a new geometry via LazyGeantGeoManager (fallback when no Geant4).
+ */
+template<class HP>
+auto GenericGeoTestBase<HP>::build_geo_from_gdml(std::string const& filename) const
     -> SPConstGeoI
 {
-    return this->build_geometry();
+    CELER_EXPECT(!CELERITAS_USE_GEANT4);
+    return HP::from_gdml(filename);
 }
 
 //---------------------------------------------------------------------------//

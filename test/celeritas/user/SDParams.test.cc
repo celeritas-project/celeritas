@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
-#include "celeritas/GlobalGeoTestBase.hh"
+#include "celeritas/GlobalTestBase.hh"
 #include "celeritas/OnlyCoreTestBase.hh"
 #include "celeritas/OnlyGeoTestBase.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
@@ -25,13 +25,11 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-class SDParamsTest : public GlobalGeoTestBase,
-                     public OnlyGeoTestBase,
-                     public OnlyCoreTestBase
+class SDParamsTest : public OnlyGeoTestBase
 {
   public:
     using VecLabel = std::vector<Label>;
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "testem3-flat"sv;
     }

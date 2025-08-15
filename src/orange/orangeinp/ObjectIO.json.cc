@@ -285,6 +285,14 @@ void to_json(nlohmann::json& j, Involute const& cr)
          SIO_ATTR_PAIR(cr, halfheight)};
 }
 
+void to_json(nlohmann::json& j, Paraboloid const& cr)
+{
+    j = {{"_type", "paraboloid"},
+         SIO_ATTR_PAIR(cr, lower_radius),
+         SIO_ATTR_PAIR(cr, upper_radius),
+         SIO_ATTR_PAIR(cr, halfheight)};
+}
+
 void to_json(nlohmann::json& j, Parallelepiped const& cr)
 {
     j = {{"_type", "parallelepiped"},

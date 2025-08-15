@@ -56,7 +56,7 @@ class GeometryTest : public HeuristicGeoTestBase
 class TestEm3Test : public HeuristicGeoTestBase
 {
   protected:
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "testem3-flat"sv;
     }
@@ -133,10 +133,7 @@ auto TestEm3Test::reference_avg_path() const -> SpanConstReal
 class SimpleCmsTest : public HeuristicGeoTestBase
 {
   protected:
-    std::string_view geometry_basename() const override
-    {
-        return "simple-cms"sv;
-    }
+    std::string_view gdml_basename() const override { return "simple-cms"sv; }
 
     HeuristicGeoScalars build_scalars() const final
     {
@@ -178,7 +175,7 @@ auto SimpleCmsTest::reference_avg_path() const -> SpanConstReal
 class ThreeSpheresTest : public HeuristicGeoTestBase
 {
   protected:
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "three-spheres"sv;
     }
@@ -215,7 +212,7 @@ auto ThreeSpheresTest::reference_avg_path() const -> SpanConstReal
 class CmseTest : public HeuristicGeoTestBase
 {
   protected:
-    std::string_view geometry_basename() const override { return "cmse"sv; }
+    std::string_view gdml_basename() const override { return "cmse"sv; }
 
     HeuristicGeoScalars build_scalars() const final
     {

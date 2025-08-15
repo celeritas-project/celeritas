@@ -547,6 +547,18 @@ TEST_F(SolidConverterTest, orb)
         {{0, 0, 0}, {0, 5.0, 0}, {10.0, 0, 0}});
 }
 
+TEST_F(SolidConverterTest, paraboloid)
+{
+    this->build_and_test(
+        G4Paraboloid("testParaboloid", 5, 1, 2),
+        R"json({"_type":"shape","interior":{"_type":"paraboloid","halfheight":0.5,"lower_radius":0.1,"upper_radius":0.2},"label":"testParaboloid"})json",
+        {{0, 0, 0},
+         {0, 1.99, 5},
+         {0., 2.01, 5},
+         {0.99, -0.99, -4.9},
+         {0.99, -0.99, -5.01}});
+}
+
 TEST_F(SolidConverterTest, para)
 {
     this->build_and_test(

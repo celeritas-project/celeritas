@@ -11,6 +11,7 @@
 #include "geocel/SurfaceData.hh"
 #include "geocel/VolumeSurfaceView.hh"
 #include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/optical/Types.hh"
 
 namespace celeritas
 {
@@ -41,27 +42,30 @@ namespace optical
 class VolumeSurfaceSelector
 {
   public:
+    struct OrientedSurface
+    {
+        SurfaceId surface{};
+        SubsurfaceDirection orientation;
+
+        explicit CELER_FUNCTION operator bool() const
+        {
+            return static_cast<bool>(surface);
+        }
+    };
+
+  public:
     // Construct with pre-volume IDs
     inline CELER_FUNCTION
-    VolumeSurfaceSelector(NativeCRef<SurfaceParamsData> const& params,
-                          VolumeId pre_volume,
+    VolumeSurfaceSelector(VolumeSurfaceView pre_surface,
                           VolumeInstanceId pre_volume_inst);
 
-    // Convenience constructor to use IDs from geometry
-    inline CELER_FUNCTION
-    VolumeSurfaceSelector(NativeCRef<SurfaceParamsData> const& params,
-                          GeoTrackView const& geo);
-
     // Select surface based on post-volume IDs
-    inline CELER_FUNCTION SurfaceId
-    operator()(VolumeId post_volume, VolumeInstanceId post_volume_inst) const;
-
-    // Convenience function to use IDs from geometry
-    inline CELER_FUNCTION SurfaceId operator()(GeoTrackView const&) const;
+    inline CELER_FUNCTION OrientedSurface
+    operator()(VolumeSurfaceView const& post_volume,
+               VolumeInstanceId post_volume_inst) const;
 
   private:
-    NativeCRef<SurfaceParamsData> const& params_;
-    VolumeId pre_volume_;
+    VolumeSurfaceView pre_surface_;
     VolumeInstanceId pre_volume_inst_;
 };
 
@@ -71,30 +75,12 @@ class VolumeSurfaceSelector
 /*!
  * Construct with pre-volume IDs.
  */
-CELER_FUNCTION VolumeSurfaceSelector::VolumeSurfaceSelector(
-    NativeCRef<SurfaceParamsData> const& params,
-    VolumeId pre_volume,
-    VolumeInstanceId pre_volume_inst)
-    : params_(params)
-    , pre_volume_(pre_volume)
-    , pre_volume_inst_(pre_volume_inst)
+CELER_FUNCTION
+VolumeSurfaceSelector::VolumeSurfaceSelector(VolumeSurfaceView pre_surface,
+                                             VolumeInstanceId pre_volume_inst)
+    : pre_surface_(std::move(pre_surface)), pre_volume_inst_(pre_volume_inst)
 {
-    CELER_EXPECT(pre_volume_ < params_.volume_surfaces.size());
     CELER_EXPECT(pre_volume_inst_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Convenience constructor to use IDs from geometry.
- *
- * FIXME: use canonical volume + instance
- */
-CELER_FUNCTION VolumeSurfaceSelector::VolumeSurfaceSelector(
-    NativeCRef<SurfaceParamsData> const& params, GeoTrackView const& geo)
-    : VolumeSurfaceSelector(
-          params, geo.impl_volume_id(), geo.volume_instance_id())
-{
-    CELER_EXPECT(!geo.is_outside());
 }
 
 //---------------------------------------------------------------------------//
@@ -103,37 +89,27 @@ CELER_FUNCTION VolumeSurfaceSelector::VolumeSurfaceSelector(
  *
  * Returns an invalid \c SurfaceId if no surface data exists for the volumes.
  */
-CELER_FUNCTION SurfaceId VolumeSurfaceSelector::operator()(
-    VolumeId post_volume, VolumeInstanceId post_volume_inst) const
+CELER_FUNCTION auto
+VolumeSurfaceSelector::operator()(VolumeSurfaceView const& post_surface,
+                                  VolumeInstanceId post_volume_inst) const
+    -> OrientedSurface
 {
-    VolumeSurfaceView pre_surface{params_, pre_volume_};
-
+    // P0 -> P1 interface surface in forward direction
     if (auto surface_id
-        = pre_surface.find_interface(pre_volume_inst_, post_volume_inst))
+        = pre_surface_.find_interface(pre_volume_inst_, post_volume_inst))
     {
-        return surface_id;
+        return {surface_id, SubsurfaceDirection::forward};
     }
 
-    if (auto surface_id = pre_surface.boundary_id())
+    // L0 boundary surface in forward direction
+    if (auto surface_id = pre_surface_.boundary_id())
     {
-        return surface_id;
+        return {surface_id, SubsurfaceDirection::forward};
     }
 
-    return VolumeSurfaceView{params_, post_volume}.boundary_id();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Convenience function to use IDs from geometry.
- */
-CELER_FUNCTION SurfaceId
-VolumeSurfaceSelector::operator()(GeoTrackView const& geo) const
-{
-    if (geo.is_outside())
-        return SurfaceId{};
-
-    // FIXME: use canonical volume + instance
-    return (*this)(geo.impl_volume_id(), geo.volume_instance_id());
+    // Return the L1 boundary surface from the opposite direction.
+    // If no boundary surface exists, an invalid OrientedSurface is returned.
+    return {post_surface.boundary_id(), SubsurfaceDirection::reverse};
 }
 
 //---------------------------------------------------------------------------//

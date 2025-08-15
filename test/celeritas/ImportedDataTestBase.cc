@@ -49,12 +49,10 @@ auto ImportedDataTestBase::build_material() -> SPConstMaterial
 //---------------------------------------------------------------------------//
 auto ImportedDataTestBase::build_geomaterial() -> SPConstGeoMaterial
 {
-    this->setup_model();
-
-    return GeoMaterialParams::from_import(this->imported_data(),
-                                          this->geometry(),
-                                          this->volume(),
-                                          this->material());
+    // Access geometry first to build volume data
+    auto geo = this->geometry();
+    return GeoMaterialParams::from_import(
+        this->imported_data(), geo, this->volume(), this->material());
 }
 
 //---------------------------------------------------------------------------//

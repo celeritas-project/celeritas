@@ -31,7 +31,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Test base for loading geometry.
+ * Test base for loading geometry with manual ORANGE input.
  */
 class OrangeGeoTestBase : public OrangeTestBase
 {
@@ -122,7 +122,7 @@ class OrangeGeoTestBase : public OrangeTestBase
     //// GenericGeoTestBase ////
 
     // Return the geometry that was created (via gdml or input)
-    SPConstGeo build_geometry() override;
+    SPConstGeo build_geometry() const override;
 
   private:
     //// TYPES ////

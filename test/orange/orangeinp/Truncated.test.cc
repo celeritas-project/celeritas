@@ -55,7 +55,7 @@ TEST_F(TruncatedTest, ellipsoid)
                                   Plane{Sense::outside, Axis::z, -0.5}}));
 
     static char const* const expected_surface_strings[]
-        = {"SQuadric: {1,9,0.5625} {0,0,0} -2.25",
+        = {"SQuadric: {0.44444,4,0.25} {0,0,0} -1",
            "Plane: z=1.25",
            "Plane: z=-0.5"};
     static char const* const expected_md_strings[] = {
