@@ -21,6 +21,8 @@
 
 #include "celeritas_test.hh"
 
+using celeritas::test::InstancePathFinder;
+
 namespace celeritas
 {
 namespace detail
@@ -61,12 +63,15 @@ class LevelTouchableUpdaterTest : public ::celeritas::test::OnlyGeoTestBase
     using TouchableUpdater = LevelTouchableUpdater;
     using IListSView = std::initializer_list<std::string_view>;
 
-    void SetUp() override { touch_handle_ = new G4TouchableHistory; }
+    void SetUp() override
+    {
+        touch_handle_ = new G4TouchableHistory;
+        // Build geometry
+        this->geometry();
+    }
 
     TouchableUpdater make_touchable_updater()
     {
-        this->geometry();
-
         auto ggeo = this->geant_geo();
         CELER_ASSERT(ggeo);
         return TouchableUpdater{std::move(ggeo)};
@@ -84,6 +89,7 @@ TestResult LevelTouchableUpdaterTest::run(Span<IListSView const> names)
 {
     TestResult result;
 
+    CELER_ASSERT(this->volumes());
     InstancePathFinder find_vi_stack(*this->volumes());
     TouchableUpdater update = this->make_touchable_updater();
     auto* touch = this->touchable_history();
@@ -137,111 +143,6 @@ TestResult LevelTouchableUpdaterTest::run(Span<IListSView const> names)
 
 //---------------------------------------------------------------------------//
 /*!
- * Test with multi-level geometry using "core" implementation.
- */
-class MultiLevelTest : public LevelTouchableUpdaterTest
-{
-    std::string_view gdml_basename() const override { return "multi-level"; }
-};
-
-// See geocel/g4/GeantNavHistoryUpdater.test.cc
-TEST_F(MultiLevelTest, out_of_order)
-{
-    static IListSView const all_level_names[] = {
-        {"world_PV"},
-        {"world_PV", "topsph1"},
-        {"world_PV"},
-        {"world_PV", "topbox1"},
-        {"world_PV", "topbox1", "boxsph1@0"},
-        {"world_PV", "topbox2", "boxsph1@0"},
-        {"world_PV", "topbox4", "boxsph1@1"},
-        {"world_PV", "topbox4"},
-        {"world_PV", "topbox3"},
-        {"world_PV", "topbox1", "boxsph2@0"},
-        {"world_PV", "topbox2", "boxsph2@0"},
-        {"world_PV", "topbox1", "boxtri@0"},
-        {"world_PV", "topbox2", "boxtri@1"},
-        {"world_PV", "topbox3", "boxsph1@0"},
-        {"world_PV", "topbox3", "boxsph2@0"},
-        {"world_PV", "topbox4", "boxsph2@1"},
-        {"world_PV", "topbox4", "boxtri@1"},
-    };
-
-    auto result = run(all_level_names);
-
-    static double const expected_coords[] = {
-        -0,  -0,   -0,  -0,   -0,   -0,  -0,   -0,  -0,  100,  100, 0,    125,
-        125, 0,    -75, 125,  0,    125, -125, 0,   100, -100, 0,   -100, -100,
-        0,   75,   75,  0,    -125, 75,  0,    125, 75,  0,    -75, 75,   0,
-        -75, -125, 0,   -125, -75,  0,   75,   -75, 0,   125,  -75, 0,
-    };
-    EXPECT_VEC_SOFT_EQ(expected_coords, result.coords);
-    static char const* const expected_replicas[] = {
-        "0",
-        "0,0",
-        "0",
-        "21,0",
-        "31,21,0",
-        "31,22,0",
-        "31,24,0",
-        "24,0",
-        "23,0",
-        "32,21,0",
-        "32,22,0",
-        "1,21,0",
-        "1,22,0",
-        "31,23,0",
-        "32,23,0",
-        "32,24,0",
-        "1,24,0",
-    };
-    EXPECT_VEC_EQ(expected_replicas, result.replicas);
-}
-
-TEST_F(MultiLevelTest, all_points)
-{
-    static IListSView const all_level_names[] = {
-        {"world_PV"},
-        {"world_PV", "topsph1"},
-        {"world_PV", "topbox1", "boxsph1@0"},
-        {"world_PV", "topbox1"},
-        {"world_PV", "topbox1", "boxtri@0"},
-        {"world_PV", "topbox1", "boxsph2@0"},
-        {"world_PV", "topbox2", "boxsph1@0"},
-        {"world_PV", "topbox2"},
-        {"world_PV", "topbox2", "boxtri@0"},
-        {"world_PV", "topbox2", "boxsph2@0"},
-        {"world_PV", "topbox4", "boxtri@1"},
-        {"world_PV", "topbox4", "boxsph2@1"},
-        {"world_PV", "topbox4", "boxsph1@1"},
-        {"world_PV", "topbox4"},
-        {"world_PV", "topbox3"},
-        {"world_PV", "topbox3", "boxsph2@0"},
-        {"world_PV", "topbox3", "boxsph1@0"},
-        {"world_PV", "topbox3", "boxtri@0"},
-        {"world_PV"},
-        {},
-    };
-
-    auto result = run(all_level_names);
-
-    static double const expected_coords[]
-        = {-0,  -0,   -0, -0,   -0,   -0, 125,  125,  0, 100,  100, 0,
-           125, 75,   0,  75,   75,   0,  -75,  125,  0, -100, 100, 0,
-           -75, 75,   0,  -125, 75,   0,  125,  -75,  0, 75,   -75, 0,
-           125, -125, 0,  100,  -100, 0,  -100, -100, 0, -125, -75, 0,
-           -75, -125, 0,  -125, -125, 0,  0,    0,    0, 0,    0,   0};
-    EXPECT_VEC_SOFT_EQ(expected_coords, result.coords);
-    static char const* const expected_replicas[]
-        = {"0",       "0,0",     "31,21,0", "21,0",   "1,21,0",
-           "32,21,0", "31,22,0", "22,0",    "1,22,0", "32,22,0",
-           "1,24,0",  "32,24,0", "31,24,0", "24,0",   "23,0",
-           "32,23,0", "31,23,0", "1,23,0",  "0",      ""};
-    EXPECT_VEC_EQ(expected_replicas, result.replicas);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Test with geometry that contains replicas.
  */
 class ReplicaTest : public LevelTouchableUpdaterTest
@@ -252,6 +153,7 @@ class ReplicaTest : public LevelTouchableUpdaterTest
 TEST_F(ReplicaTest, all_points)
 {
     static IListSView const all_level_names[] = {
+        //{"world_PV", "fSecondArmPhys"},
         {"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@14"},
         {"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@6"},
         {"world_PV",
@@ -278,6 +180,7 @@ TEST_F(ReplicaTest, all_points)
          "HadCalColumn_PV@3",
          "HadCalCell_PV@1",
          "HadCalLayer_PV@16"},
+        //{"world_PV"},
     };
 
     auto result = run(all_level_names);

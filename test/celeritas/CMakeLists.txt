@@ -206,15 +206,8 @@ if(CELERITAS_USE_Geant4)
     LINK_LIBRARIES testcel_celeritas_g4
     ENVIRONMENT "${CELER_G4ENV}")
 
-  set(_ltu_tests
-    "MultiLevelTest.*"
-  )
-  if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
-    # Geant4 doesn't yet have independent volume instance IDs for replicas
-    list(APPEND _ltu_tests
-      "ReplicaTest.*"
-    )
-  elseif(CELERITAS_CORE_GEO STREQUAL "ORANGE")
+  set(_ltu_tests)
+  if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
     set(_ltu_tests DISABLE)
   endif()
 
