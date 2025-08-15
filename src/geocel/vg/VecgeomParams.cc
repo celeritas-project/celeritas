@@ -112,6 +112,8 @@ int vecgeom_verbosity()
 //---------------------------------------------------------------------------//
 /*!
  * Get a reproducible vector of LV instance ID -> label from the given world.
+ *
+ * This create the "implementation" volume map.
  */
 std::vector<Label> make_logical_vol_labels(vecgeom::VPlacedVolume const& world)
 {
@@ -422,9 +424,9 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
         auto const& world = *geo.GetWorld();
 
         // Construct volume labels
-        volumes_ = ImplVolumeMap{"volume", make_logical_vol_labels(world)};
-        vol_instances_ = VolInstanceMap{"volume instance",
-                                        make_physical_vol_labels(world)};
+        volumes_ = ImplVolumeMap{"impl volume", make_logical_vol_labels(world)};
+        impl_vol_instances_ = VolInstanceMap{"impl volume instance",
+                                             make_physical_vol_labels(world)};
 
         geant_geo_ = celeritas::geant_geo().lock();
 

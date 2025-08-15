@@ -21,7 +21,8 @@
 namespace celeritas
 {
 //! VecGeom::VPlacedVolume::id is unsigned int
-using ImplVolumeInstanceId = OpaqueId<struct ImplVolumeInstance_, unsigned int>;
+using VecgeomPlacedVolumeId
+    = OpaqueId<struct ImplVolumeInstance_, unsigned int>;
 
 //---------------------------------------------------------------------------//
 // PARAMS
@@ -74,10 +75,10 @@ struct VecgeomParamsData
     //! Values that don't require host/device copying
     VecgeomScalars scalars;
 
-    //! Map logical volume ID to G4
+    //! Map logical volume ID to canonical
     Collection<VolumeId, W, M, ImplVolumeId> volumes;
-    //! Map physical volume ID to G4
-    Collection<VolumeInstanceId, W, M, ImplVolumeInstanceId> volume_instances;
+    //! Map placed volume ID to canonical
+    Collection<VolumeInstanceId, W, M, VecgeomPlacedVolumeId> volume_instances;
 
     //! Whether the data is initialized
     explicit CELER_FUNCTION operator bool() const
