@@ -6,6 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+#include <vector>
+
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/cont/Span.hh"
 

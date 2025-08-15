@@ -94,6 +94,8 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
     vi_labels_
         = VolInstMap("volume_instance", extract_labels(in.volume_instances));
 
+    // TODO: warn about duplicate labels (see LabelIdMultiMap::duplicates)
+
     // Unzip volume properties
     materials_.resize(this->num_volumes());
     children_.resize(this->num_volumes());
