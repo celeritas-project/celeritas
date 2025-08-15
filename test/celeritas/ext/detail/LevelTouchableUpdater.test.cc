@@ -12,6 +12,7 @@
 #include "corecel/cont/Span.hh"
 #include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantGeoUtils.hh"
+#include "geocel/InstancePathFinder.hh"
 #include "geocel/VolumeParams.hh"
 #include "celeritas/GlobalTestBase.hh"
 #include "celeritas/OnlyCoreTestBase.hh"
@@ -59,7 +60,6 @@ class LevelTouchableUpdaterTest : public ::celeritas::test::OnlyGeoTestBase
   protected:
     using TouchableUpdater = LevelTouchableUpdater;
     using IListSView = std::initializer_list<std::string_view>;
-    using VecVI = std::vector<VolumeInstanceId>;
 
     void SetUp() override { touch_handle_ = new G4TouchableHistory; }
 
@@ -70,39 +70,6 @@ class LevelTouchableUpdaterTest : public ::celeritas::test::OnlyGeoTestBase
         auto ggeo = this->geant_geo();
         CELER_ASSERT(ggeo);
         return TouchableUpdater{std::move(ggeo)};
-    }
-
-    VecVI find_vi_stack(IListSView names) const
-    {
-        auto const& volumes = this->volumes();
-        CELER_VALIDATE(volumes && !volumes->empty(),
-                       << "model wasn't built with Geant4");
-        auto const& vol_inst = volumes->volume_instance_labels();
-
-        // volumes depth is zero for world-only problem
-        CELER_VALIDATE(names.size() <= volumes->depth() + 1,
-                       << "input stack is too deep: " << names.size()
-                       << " exceeds " << volumes->depth() + 1);
-
-        VecVI result;
-        std::vector<std::string_view> missing;
-        for (std::string_view sv : names)
-        {
-            auto vi = vol_inst.find_exact(Label::from_separator(sv));
-            if (!vi)
-            {
-                missing.push_back(sv);
-                continue;
-            }
-            result.push_back(vi);
-        }
-        CELER_VALIDATE(missing.empty(),
-                       << "missing PVs from stack: "
-                       << join(missing.begin(), missing.end(), ','));
-
-        // Fill extra entries with empty volumes
-        result.resize(volumes->depth() + 1);
-        return result;
     }
 
     G4VTouchable* touchable_history() { return touch_handle_(); }
@@ -117,13 +84,14 @@ TestResult LevelTouchableUpdaterTest::run(Span<IListSView const> names)
 {
     TestResult result;
 
+    InstancePathFinder find_vi_stack(*this->volumes());
     TouchableUpdater update = this->make_touchable_updater();
     auto* touch = this->touchable_history();
 
     for (IListSView level_names : names)
     {
         // Update the touchable
-        auto vi_stack = this->find_vi_stack(level_names);
+        auto vi_stack = find_vi_stack(level_names);
         try
         {
             EXPECT_TRUE(update(make_span(vi_stack), this->touchable_history()));
@@ -176,7 +144,7 @@ class MultiLevelTest : public LevelTouchableUpdaterTest
     std::string_view gdml_basename() const override { return "multi-level"; }
 };
 
-// See GeantGeoUtils.test.cc : MultiLevelTest.set_history
+// See geocel/g4/GeantNavHistoryUpdater.test.cc
 TEST_F(MultiLevelTest, out_of_order)
 {
     static IListSView const all_level_names[] = {
