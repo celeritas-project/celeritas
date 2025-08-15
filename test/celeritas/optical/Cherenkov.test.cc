@@ -63,7 +63,7 @@ using celeritas::test::from_cm;
  *
  * See G4OpticalMaterialProperties.hh.
  */
-Span<real_type const> get_wavelength()
+Span<real_type const> get_water_wavelength()
 {
     static real_type const wavelength[] = {
         1.129,  1.12,   1.11,   1.101,  1.091,  1.082,  1.072,  1.063,  1.053,
@@ -81,7 +81,7 @@ Span<real_type const> get_wavelength()
     return make_span(wavelength);
 }
 
-Span<real_type const> get_refractive_index()
+Span<real_type const> get_water_refractive_index()
 {
     static real_type const refractive_index[]
         = {1.3235601610672, 1.3235601610672, 1.3235601610672, 1.3235601610672,
@@ -130,19 +130,14 @@ class CherenkovTest : public ::celeritas::test::OpticalTestBase
     using Energy = units::MevEnergy;
     using Rng = ::celeritas::test::DiagnosticRngEngine<std::mt19937>;
 
+    //! Return the optical properties for the material being tested
+    virtual ImportOpticalProperty build_import_property() const = 0;
+
     void SetUp() override
     {
-        // Build optical material: only one material (water)
-        ImportOpticalProperty water;
-        for (double wl : get_wavelength())
-        {
-            water.refractive_index.x.push_back(um_to_mev(wl));
-        }
-        water.refractive_index.y
-            = {get_refractive_index().begin(), get_refractive_index().end()};
-
+        // Build optical material
         optical::MaterialParams::Input input;
-        input.properties.push_back(std::move(water));
+        input.properties.push_back(this->build_import_property());
         input.volume_to_mat = {OptMatId{0}};
         input.optical_to_core = {PhysMatId{0}};
         material = std::make_shared<optical::MaterialParams>(std::move(input));
@@ -153,14 +148,32 @@ class CherenkovTest : public ::celeritas::test::OpticalTestBase
 
     std::shared_ptr<optical::MaterialParams const> material;
     std::shared_ptr<CherenkovParams const> params;
-    OptMatId material_id{0};
+    // Only one material is present
+    OptMatId const material_id{0};
+};
+
+class CherenkovWaterTest : public CherenkovTest
+{
+  public:
+    ImportOpticalProperty build_import_property() const final
+    {
+        // Build optical material: only one material (water)
+        ImportOpticalProperty water;
+        for (double wl : get_water_wavelength())
+        {
+            water.refractive_index.x.push_back(um_to_mev(wl));
+        }
+        auto rindex_view = get_water_refractive_index();
+        water.refractive_index.y = {rindex_view.begin(), rindex_view.end()};
+        return water;
+    }
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(CherenkovTest, angle_integral)
+TEST_F(CherenkovWaterTest, angle_integral)
 {
     // Check conversion: 1 μm wavelength is approximately 1.2398 eV
     EXPECT_SOFT_EQ(1.2398419843320026e-6, um_to_mev(1));
@@ -180,7 +193,7 @@ TEST_F(CherenkovTest, angle_integral)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(CherenkovTest, dndx)
+TEST_F(CherenkovWaterTest, dndx)
 {
     EXPECT_SOFT_NEAR(369.81e6,
                      constants::alpha_fine_structure * units::Mev::value()
@@ -222,7 +235,7 @@ TEST_F(CherenkovTest, dndx)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(CherenkovTest, pre_generator)
+TEST_F(CherenkovWaterTest, pre_generator)
 {
     Rng rng;
     optical::MaterialView const mat_view{material->host_ref(), material_id};
@@ -301,7 +314,7 @@ TEST_F(CherenkovTest, pre_generator)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(CherenkovTest, generator)
+TEST_F(CherenkovWaterTest, generator)
 {
     Rng rng;
     optical::MaterialView mat_view{material->host_ref(), material_id};
@@ -320,8 +333,10 @@ TEST_F(CherenkovTest, generator)
     std::vector<real_type> displacement_dist(num_bins);
 
     // Energy distribution binning
-    real_type emin = um_to_mev(get_wavelength().front());
-    real_type emax = um_to_mev(get_wavelength().back());
+    auto rindex_grid
+        = material->get(material_id).make_refractive_index_calculator().grid();
+    real_type emin = rindex_grid.front();
+    real_type emax = rindex_grid.back();
     real_type edel = (emax - emin) / num_bins;
 
     auto sample = [&](OffloadPreStepData& pre_step,
