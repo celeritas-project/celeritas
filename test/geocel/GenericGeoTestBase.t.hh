@@ -96,19 +96,6 @@ auto GenericGeoTestBase<HP>::geometry() const -> SPConstGeo const&
 
 //---------------------------------------------------------------------------//
 template<class HP>
-auto GenericGeoTestBase<HP>::vol_inst_labels() const -> VolInstanceMap const&
-{
-    if (auto const& volumes = this->volumes())
-    {
-        // Actual volume instances are available
-        return volumes->volume_instance_labels();
-    }
-    // Implementation volume instances
-    return this->geometry()->volume_instances();
-}
-
-//---------------------------------------------------------------------------//
-template<class HP>
 std::string GenericGeoTestBase<HP>::volume_name(GeoTrackView const& geo) const
 {
     if (geo.is_outside())
@@ -147,7 +134,7 @@ GenericGeoTestBase<HP>::unique_volume_name(GeoTrackView const& geo) const
     std::vector<VolumeInstanceId> ids(level.get() + 1);
     geo.volume_instance_id(make_span(ids));
 
-    auto const& vol_inst = this->vol_inst_labels();
+    auto const& vol_inst = this->volumes()->volume_instance_labels();
     std::ostringstream os;
     os << vol_inst.at(ids[0]);
     for (auto i : range(std::size_t{1}, ids.size()))
@@ -210,7 +197,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
     TrackingResult result;
 
     GeoTrackView geo = CheckedGeoTrackView{this->make_geo_track_view(pos, dir)};
-    auto const& vol_inst = this->vol_inst_labels();
+    auto const& vol_inst = this->volumes()->volume_instance_labels();
     real_type const inv_length = real_type{1} / this->unit_length();
     real_type const bump_tol = this->bump_tol() * this->unit_length();
 
@@ -232,7 +219,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
     while (!geo.is_outside() && max_step > 0)
     {
         result.volumes.emplace_back(this->volume_name(geo));
-        if (vol_inst)
+        if (!vol_inst.empty())
         {
             result.volume_instances.emplace_back([&] {
                 auto vi_id = geo.volume_instance_id();
@@ -257,7 +244,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
             // Don't add epsilon distances
             result.distances.pop_back();
             result.volumes.pop_back();
-            if (vol_inst)
+            if (!vol_inst.empty())
             {
                 result.volume_instances.pop_back();
             }
@@ -352,8 +339,8 @@ auto GenericGeoTestBase<HP>::volume_stack(Real3 const& pos)
     std::vector<VolumeInstanceId> inst_ids(level.get() + 1);
     geo.volume_instance_id(make_span(inst_ids));
 
-    return VolumeStackResult::from_span(this->vol_inst_labels(),
-                                        make_span(inst_ids));
+    return VolumeStackResult::from_span(
+        this->volumes()->volume_instance_labels(), make_span(inst_ids));
 }
 
 //---------------------------------------------------------------------------//

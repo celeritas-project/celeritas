@@ -20,9 +20,13 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+// TYPES
+//---------------------------------------------------------------------------//
+
 //! VecGeom::VPlacedVolume::id is unsigned int
 using VecgeomPlacedVolumeId
-    = OpaqueId<struct ImplVolumeInstance_, unsigned int>;
+    = OpaqueId<struct VecgeomPlacedVolume_, unsigned int>;
 
 //---------------------------------------------------------------------------//
 // PARAMS
@@ -64,27 +68,28 @@ struct VecgeomScalars
  * Persistent data used by VecGeom implementation.
  *
  * The volumes and volume instance mappings are set when constructing from an
- * external model, using VolumeParams to map to Geant4 geometry. If using VGDML
- * (Geant4 disabled) these are empty, and only the impl volumes should be
- * accessed. (The "volume instance" accessor will also work, but it will return
- * "implementation" volume instances rather than canonical ones.)
+ * external model, using VolumeParams to map to Geant4 geometry. For models
+ * loaded through VGDML, the mapping is currently one-to-one for implementation
+ * and placed volumes.
  */
 template<Ownership W, MemSpace M>
 struct VecgeomParamsData
 {
+    using ImplVolInstanceId = VecgeomPlacedVolumeId;
+
     //! Values that don't require host/device copying
     VecgeomScalars scalars;
 
     //! Map logical volume ID to canonical
     Collection<VolumeId, W, M, ImplVolumeId> volumes;
     //! Map placed volume ID to canonical
-    Collection<VolumeInstanceId, W, M, VecgeomPlacedVolumeId> volume_instances;
+    Collection<VolumeInstanceId, W, M, ImplVolInstanceId> volume_instances;
 
     //! Whether the data is initialized
     explicit CELER_FUNCTION operator bool() const
     {
         // Volumes/instances can be absent if built from GDML
-        return scalars && (volumes.empty() == volume_instances.empty());
+        return scalars && !volumes.empty() && !volume_instances.empty();
     }
 
     //! Assign from another set of data

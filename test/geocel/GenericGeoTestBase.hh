@@ -46,7 +46,6 @@ class GenericGeoTestBase : virtual public Test,
     //! \name Type aliases
     using SPConstGeo = std::shared_ptr<G const>;
     using GeoTrackView = typename TraitsT::TrackView;
-    using VolInstanceMap = GeoParamsInterface::VolInstanceMap;
     //!@}
 
   public:
@@ -69,9 +68,6 @@ class GenericGeoTestBase : virtual public Test,
     // Build and/or access geometry
     SPConstGeo const& geometry();
     SPConstGeo const& geometry() const;
-
-    // Get volume instance labels (TODO: delete once no longer using "impl")
-    VolInstanceMap const& vol_inst_labels() const;
 
     //! Get the name of the current volume
     std::string volume_name(GeoTrackView const& geo) const;

@@ -200,7 +200,6 @@ void append_skin_surfaces(GeantGeoParams const& geo,
 void append_border_surfaces(GeantGeoParams const& geo,
                             std::vector<G4LogicalSurface const*>& result)
 {
-    CELER_EXPECT(geo.volume_instances());
     // Translate "border" (interface) surfaces
     using G4Surface = G4LogicalBorderSurface;
     std::map<std::pair<VolumeInstanceId, VolumeInstanceId>, G4Surface const*> temp;
@@ -350,7 +349,9 @@ std::vector<inp::VolumeInstance>
 make_inp_volume_instances(GeantGeoParams const& geo)
 {
     // Process volume instances
-    auto const& vol_inst_labels = geo.volume_instances();
+    LabelIdMultiMap<VolumeInstanceId> vol_inst_labels{
+        "volume instance",
+        make_physical_vol_labels(*geo.world(), geo.pv_offset())};
     std::vector<inp::VolumeInstance> result(vol_inst_labels.size());
 
     // Fix copy numbers to avoid invalid read/out-of-bounds
@@ -560,7 +561,7 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns)
 
     this->build_metadata();
 
-    CELER_ENSURE(volumes_);
+    CELER_ENSURE(impl_volumes_);
     CELER_ENSURE(data_);
 }
 
@@ -629,7 +630,7 @@ ImplVolumeId GeantGeoParams::find_volume(G4LogicalVolume const* volume) const
     CELER_EXPECT(volume);
     auto result
         = id_cast<ImplVolumeId>(volume->GetInstanceID() - this->lv_offset());
-    if (!(result < volumes_.size()))
+    if (!(result < impl_volumes_.size()))
     {
         // Volume is out of range: possibly an LV defined after this geometry
         // class was created
@@ -655,7 +656,6 @@ ImplVolumeId GeantGeoParams::find_volume(G4LogicalVolume const* volume) const
  */
 GeantPhysicalInstance GeantGeoParams::id_to_geant(VolumeInstanceId id) const
 {
-    CELER_EXPECT(!id || id < vol_instances_.size());
     if (!id)
     {
         return {};
@@ -689,7 +689,7 @@ GeantPhysicalInstance GeantGeoParams::id_to_geant(VolumeInstanceId id) const
  */
 G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId id) const
 {
-    CELER_EXPECT(!id || id < volumes_.size());
+    CELER_EXPECT(!id || id < impl_volumes_.size());
     if (!id)
     {
         return nullptr;
@@ -721,12 +721,6 @@ GeantGeoParams::geant_to_id(G4VPhysicalVolume const& volume) const
 {
     auto result = id_cast<VolumeInstanceId>(volume.GetInstanceID()
                                             - this->pv_offset());
-    if (!(result < vol_instances_.size()))
-    {
-        // Volume is out of range: possibly a PV defined after this geometry
-        // class was created??
-        result = {};
-    }
     return result;
 }
 
@@ -815,11 +809,9 @@ void GeantGeoParams::build_metadata()
     }
 
     // Construct volume labels for physically reachable volumes
-    volumes_ = ImplVolumeMap{
-        "volume", make_logical_vol_labels(*this->world(), this->lv_offset())};
-    vol_instances_ = VolInstanceMap{
-        "volume instance",
-        make_physical_vol_labels(*this->world(), this->pv_offset())};
+    impl_volumes_ = ImplVolumeMap{
+        "impl volume",
+        make_logical_vol_labels(*this->world(), this->lv_offset())};
     surfaces_ = make_surface_vec(*this);
     max_depth_ = get_max_depth(*this->world());
 

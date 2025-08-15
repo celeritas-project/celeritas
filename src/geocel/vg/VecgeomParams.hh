@@ -63,7 +63,8 @@ class VecgeomParams final : public GeoParamsInterface,
     //! \name Type aliases
     using VecLv = std::vector<G4LogicalVolume const*>;
     using VecPv = std::vector<G4VPhysicalVolume const*>;
-    using ImplVolInstanceMap = VolInstanceMap;
+    using ImplVolInstanceId = VecgeomPlacedVolumeId;
+    using ImplVolInstanceMap = LabelIdMultiMap<ImplVolInstanceId>;
     //!@}
 
   public:
@@ -123,7 +124,9 @@ class VecgeomParams final : public GeoParamsInterface,
     inline ImplVolumeMap const& impl_volumes() const final;
 
     // Get volume metadata for VG placed volumes
-    inline ImplVolInstanceMap const& volume_instances() const final;
+    inline ImplVolInstanceMap const& impl_volume_instances() const;
+
+    // DEPRECATED
 
     // Get the volume ID corresponding to a Geant4 logical volume
     ImplVolumeId find_volume(G4LogicalVolume const* volume) const final;
@@ -131,7 +134,6 @@ class VecgeomParams final : public GeoParamsInterface,
     // Get the Geant4 physical volume corresponding to a volume instance ID
     GeantPhysicalInstance id_to_geant(VolumeInstanceId vol_id) const final;
 
-    // DEPRECATED
     using GeoParamsInterface::find_volume;
 
     // Get the canonical volume IDs corresponding to an implementation volume
@@ -156,7 +158,7 @@ class VecgeomParams final : public GeoParamsInterface,
     std::shared_ptr<GeantGeoParams const> geant_geo_;
 
     // Host metadata/access (DEPRECATED)
-    LabelIdMultiMap<ImplVolumeId> volumes_;
+    LabelIdMultiMap<ImplVolumeId> impl_volumes_;
     ImplVolInstanceMap impl_vol_instances_;
     std::unordered_map<G4LogicalVolume const*, ImplVolumeId> g4log_volid_map_;
 
@@ -196,7 +198,7 @@ LevelId::size_type VecgeomParams::max_depth() const
  */
 auto VecgeomParams::impl_volumes() const -> ImplVolumeMap const&
 {
-    return volumes_;
+    return impl_volumes_;
 }
 
 //---------------------------------------------------------------------------//

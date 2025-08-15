@@ -424,41 +424,62 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
         auto const& world = *geo.GetWorld();
 
         // Construct volume labels
-        volumes_ = ImplVolumeMap{"impl volume", make_logical_vol_labels(world)};
-        impl_vol_instances_ = VolInstanceMap{"impl volume instance",
-                                             make_physical_vol_labels(world)};
+        impl_volumes_
+            = ImplVolumeMap{"impl volume", make_logical_vol_labels(world)};
+        impl_vol_instances_ = ImplVolInstanceMap{
+            "impl volume instance", make_physical_vol_labels(world)};
+
+        // Resize maps of impl -> canonical IDs
+        resize(&host_data.volumes, impl_volumes_.size());
+        resize(&host_data.volume_instances, impl_vol_instances_.size());
 
         geant_geo_ = celeritas::geant_geo().lock();
 
+        // Construct Impl vol/inst maps
         if (geant_geo_)
         {
-            // Construct ImplVolume -> Volume map
-            CELER_ASSERT(all_lv.size() <= this->impl_volumes().size());
-            resize(&host_data.volumes, this->impl_volumes().size());
-            for (auto iv_id : range(id_cast<ImplVolumeId>(all_lv.size())))
+            // Built with Geant4: use G4VG-provided mapping
+            for (auto iv_id : range(ImplVolumeId{host_data.volumes.size()}))
             {
                 VolumeId vol_id;
-                if (auto* g4lv = all_lv[iv_id.get()])
+                if (iv_id < all_lv.size())
                 {
-                    vol_id = geant_geo_->geant_to_id(*g4lv);
+                    if (auto* g4lv = all_lv[iv_id.get()])
+                    {
+                        vol_id = geant_geo_->geant_to_id(*g4lv);
+                    }
                 }
                 host_data.volumes[iv_id] = vol_id;
             }
 
-            // Construct ImplVolume -> VolumeInstance map
-            CELER_ASSERT(all_pv.size() <= this->volume_instances().size());
-            resize(&host_data.volume_instances,
-                   this->volume_instances().size());
-            for (auto impl_vi_idx : range(this->volume_instances().size()))
+            for (auto ivi_id :
+                 range(ImplVolInstanceId{host_data.volume_instances.size()}))
             {
                 VolumeInstanceId vol_inst_id;
-                if (auto* g4pv = all_pv[impl_vi_idx])
+                if (ivi_id < all_pv.size())
                 {
-                    // TODO incorporate replica ID
-                    vol_inst_id = geant_geo_->geant_to_id(*g4pv);
+                    if (auto* g4pv = all_pv[ivi_id.get()])
+                    {
+                        // FIXME: VecGeom copy number is *ignored*, leading to
+                        // multiple volume instances mapping to the same G4PV
+                        vol_inst_id = geant_geo_->geant_to_id(*g4pv);
+                    }
                 }
-                ImplVolumeInstanceId ivi_id{impl_vi_idx};
                 host_data.volume_instances[ivi_id] = vol_inst_id;
+            }
+        }
+        else
+        {
+            // Built with VGDML: create one-to-one mapping
+            for (auto iv_id : range(ImplVolumeId{host_data.volumes.size()}))
+            {
+                host_data.volumes[iv_id] = id_cast<VolumeId>(iv_id.get());
+            }
+            for (auto ivi_id :
+                 range(ImplVolInstanceId{host_data.volume_instances.size()}))
+            {
+                host_data.volume_instances[ivi_id]
+                    = id_cast<VolumeInstanceId>(ivi_id.get());
             }
         }
         CELER_ASSERT(host_data);
@@ -474,7 +495,7 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
         }();
     }
 
-    CELER_ENSURE(volumes_);
+    CELER_ENSURE(impl_volumes_);
     CELER_ENSURE(data_);
 }
 
@@ -532,6 +553,7 @@ VecgeomParams::~VecgeomParams()
 /*!
  * Create model parameters corresponding to our internal representation.
  *
+ * Currently this creates a one-to-one mapping
  * This could be used to eliminate the "gaps" from the `[TEMP]` volumes.
  */
 inp::Model VecgeomParams::make_model_input() const

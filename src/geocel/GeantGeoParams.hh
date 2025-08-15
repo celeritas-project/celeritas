@@ -104,9 +104,6 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Get (logical) volume metadata
     inline ImplVolumeMap const& impl_volumes() const final;
 
-    // Get (physical) volume instance metadata
-    inline VolInstanceMap const& volume_instances() const final;
-
     // Get the volume ID corresponding to a Geant4 logical volume
     ImplVolumeId find_volume(G4LogicalVolume const* volume) const final;
 
@@ -183,8 +180,7 @@ class GeantGeoParams final : public GeoParamsInterface,
     bool closed_geometry_{false};
 
     // Host metadata/access
-    ImplVolumeMap volumes_;
-    VolInstanceMap vol_instances_;
+    ImplVolumeMap impl_volumes_;
     std::vector<G4LogicalSurface const*> surfaces_;
     BBox bbox_;
     LevelId::size_type max_depth_{0};
@@ -226,18 +222,7 @@ GeantGeoParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
  */
 auto GeantGeoParams::impl_volumes() const -> ImplVolumeMap const&
 {
-    return volumes_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get volume instance metadata.
- *
- * Volume instances correspond directly to Geant4 physical volumes.
- */
-auto GeantGeoParams::volume_instances() const -> VolInstanceMap const&
-{
-    return vol_instances_;
+    return impl_volumes_;
 }
 
 //---------------------------------------------------------------------------//

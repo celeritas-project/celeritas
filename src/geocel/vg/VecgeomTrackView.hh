@@ -66,6 +66,7 @@ class VecgeomTrackView
 #else
     using Navigator = celeritas::detail::BVHNavigator;
 #endif
+    using ImplVolInstanceId = VecgeomPlacedVolumeId;
     //!@}
 
   public:
@@ -298,12 +299,7 @@ CELER_FORCEINLINE_FUNCTION VolumeId VecgeomTrackView::volume_id() const
 CELER_FUNCTION VolumeInstanceId VecgeomTrackView::volume_instance_id() const
 {
     CELER_EXPECT(!this->is_outside());
-    ImplVolumeInstanceId ipv_id{this->physical_volume().id()};
-    if (CELER_UNLIKELY(params_.volume_instances.empty()))
-    {
-        // Using VGDML: return "implementation" volume instance
-        return VolumeInstanceId{ipv_id.get()};
-    }
+    auto ipv_id = id_cast<ImplVolInstanceId>(this->physical_volume().id());
     return params_.volume_instances[ipv_id];
 }
 
@@ -319,21 +315,17 @@ CELER_FUNCTION LevelId VecgeomTrackView::level() const
 //---------------------------------------------------------------------------//
 /*!
  * Get the volume instance ID for all levels.
- *
- * This is only useful for Geant4 geometry, so shouldn't be used if the mapping
- * isn't available.
  */
 CELER_FUNCTION void
 VecgeomTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 {
     CELER_EXPECT(levels.size() == this->level().get() + 1);
-    CELER_EXPECT(!params_.volume_instances.empty());
     for (auto lev : range(levels.size()))
     {
         vecgeom::VPlacedVolume const* pv = vgstate_.At(lev);
         CELER_ASSERT(pv);
-        levels[lev]
-            = params_.volume_instances[id_cast<ImplVolumeInstanceId>(pv->id())];
+        auto ipv_id = id_cast<ImplVolInstanceId>(pv->id());
+        levels[lev] = params_.volume_instances[ipv_id];
     }
 }
 
