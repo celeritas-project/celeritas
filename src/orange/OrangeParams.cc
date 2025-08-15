@@ -218,9 +218,9 @@ OrangeParams::OrangeParams(OrangeInput&& input, VolumeParams const& volumes)
         resize(&host_data.volume_instance_ids, impl_vol_labels_.size());
         for (auto ivi_id : range(ImplVolumeId{impl_vol_labels_.size()}))
         {
-            host_data.volume_ids[ivi_id] = VolumeId{ivi_id.get()};
+            host_data.volume_ids[ivi_id] = id_cast<VolumeId>(ivi_id.get());
             host_data.volume_instance_ids[ivi_id]
-                = VolumeInstanceId{ivi_id.get()};
+                = id_cast<VolumeInstanceId>(ivi_id.get());
         }
     }
 
@@ -269,7 +269,7 @@ inp::Model OrangeParams::make_model_input() const
         v.volumes[idx].label = label;
         v.volumes[idx].material = GeoMatId{0};
         v.volume_instances[idx].label = label;
-        v.volume_instances[idx].volume = VolumeId{idx};
+        v.volume_instances[idx].volume = id_cast<VolumeId>(idx);
     }
 
     v.world = VolumeId{0};
