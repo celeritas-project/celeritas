@@ -97,8 +97,9 @@ auto LazyGeantGeoManager::lazy_geo() const -> SPConstGeoI
         {
             // Fallback: geometry may be able to build without Geant4
             new_geo = this->build_geo_from_gdml(filename);
-            // TODO: once other models support it, add VolumeParams creation
-            // here
+            auto volumes = std::make_shared<VolumeParams const>(
+                new_geo->make_model_input().volumes);
+            persistent_volumes().set(basename, std::move(volumes));
         }
 
         CELER_ASSERT(new_geo);
