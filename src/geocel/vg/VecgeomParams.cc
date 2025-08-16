@@ -279,7 +279,7 @@ VecgeomParams::from_gdml(std::string const& filename)
 std::shared_ptr<VecgeomParams>
 VecgeomParams::from_gdml_g4(std::string const& filename)
 {
-    CELER_VALIDATE(celeritas::geant_geo().expired(),
+    CELER_VALIDATE(celeritas::global_geant_geo().expired(),
                    << "cannot load Geant4 geometry into VecGeom from a "
                       "file name: a global Geant4 geometry already exists");
 
@@ -450,7 +450,7 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
         resize(&host_data.volumes, impl_volumes_.size());
         resize(&host_data.volume_instances, impl_vol_instances_.size());
 
-        geant_geo_ = celeritas::geant_geo().lock();
+        geant_geo_ = celeritas::global_geant_geo().lock();
 
         // Construct Impl vol/inst maps
         if (geant_geo_)
