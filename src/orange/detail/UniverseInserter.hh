@@ -35,6 +35,8 @@ class UniverseInserter
     using VecVolInst = std::vector<VolumeInstanceId>;
     using VecLabel = std::vector<Label>;
     using SPConstVolumes = std::shared_ptr<VolumeParams const>;
+    using VolId = ImplVolumeId;
+    using SurfId = ImplSurfaceId;
     //!@}
 
   public:
@@ -57,6 +59,20 @@ class UniverseInserter
                           VecLabel surface_labels,
                           VecVolLabel volume_labels);
 
+    //!@{
+    //! \name Local-to-global mappings for the next universe being built
+
+    //! Next universe
+    UniverseId next_univ_id() const { return types_.size_id(); }
+
+    //! Get the global ID for the next LocalSurfaceId{0}
+    SurfId next_surface_id() const { return SurfId{accum_surface_}; }
+
+    //! Get the global ID for the next LocalVolumeId{0}
+    VolId next_volume_id() const { return VolId{accum_volume_}; }
+
+    //!@}
+
   private:
     // Reference data
     SPConstVolumes volume_params_;
@@ -78,8 +94,8 @@ class UniverseInserter
         volume_instance_ids_;
 
     EnumArray<UniverseType, size_type> num_universe_types_{};
-    size_type accum_surface_{0};
-    size_type accum_volume_{0};
+    SurfId::size_type accum_surface_{0};
+    VolId::size_type accum_volume_{0};
 
     UniverseId update_counters(UniverseType type,
                                size_type num_surfaces,

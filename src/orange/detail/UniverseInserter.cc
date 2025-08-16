@@ -171,7 +171,7 @@ UniverseId UniverseInserter::update_counters(UniverseType type,
                                              size_type num_surfaces,
                                              size_type num_volumes)
 {
-    UniverseId result = types_.size_id();
+    UniverseId result = this->next_univ_id();
 
     // Add universe type and index
     types_.push_back(type);
