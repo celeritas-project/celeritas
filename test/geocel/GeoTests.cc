@@ -666,7 +666,7 @@ void MultiLevelGeoTest::test_trace() const
 //---------------------------------------------------------------------------//
 void MultiLevelGeoTest::test_volume_stack() const
 {
-    using R2 = Array<double, 2>;
+    using R2 = Array<real_type, 2>;
 
     // Include outer world and center sphere
     std::vector<R2> points{R2{-5, 0}, R2{0, 0}};
