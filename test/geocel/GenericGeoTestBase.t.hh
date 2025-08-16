@@ -116,14 +116,6 @@ std::string GenericGeoTestBase<HP>::volume_name(GeoTrackView const& geo) const
         CELER_ASSERT(volumes_);
         return volumes_->volume_labels().at(id).name;
     }
-#if 0
-    // MAYBE?
-    if (ImplVolumeId impl_id = geo.impl_volume_id())
-    {
-        // Use implementation volume
-        return this->geometry()->impl_volumes().at(id).name;
-    }
-#endif
     return "[INVALID]";
 }
 

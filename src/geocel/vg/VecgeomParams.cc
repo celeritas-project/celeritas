@@ -384,9 +384,6 @@ bool VecgeomParams::use_vgdml()
 //---------------------------------------------------------------------------//
 /*!
  * Set up vecgeom given existing an already set up VecGeom CPU world.
- *
- * \todo Instead of VecLv and VecPv, once we we remove `find_volume(G4LV*)`,
- * just pass a vector of volume IDs.
  */
 VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
                              Ownership owns,
@@ -408,16 +405,8 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
 
         if (!VecgeomParams::use_surface_tracking() || CELERITAS_USE_CUDA)
         {
-            /*!
-             * \todo we still need to make volume tracking information when
-             * using CUDA and surface geometry, because we need a GPU world
-             * device pointer. We could probably just make a single world
-             * physical/logical volume that have the correct IDs.
-             */
-
             this->build_volume_tracking();
         }
-
         if (VecgeomParams::use_surface_tracking())
         {
             this->build_surface_tracking();
@@ -570,8 +559,8 @@ VecgeomParams::~VecgeomParams()
 /*!
  * Create model parameters corresponding to our internal representation.
  *
- * Currently this creates a one-to-one mapping
- * This could be used to eliminate the "gaps" from the `[TEMP]` volumes.
+ * Currently this creates a one-to-one mapping for use when constructed from
+ * VGDML rather than Geant4.
  */
 inp::Model VecgeomParams::make_model_input() const
 {
