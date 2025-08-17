@@ -23,6 +23,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Construct a nonuniform grid and add it to the specified grid collection.
+ *
+ * \todo Validate input doesn't contain more than two coincident x grid points?
  */
 template<class Index>
 class NonuniformGridInserter

@@ -68,8 +68,8 @@ TEST(FindInterpTest, nonuniform)
     }
     {
         auto interp = find_interp(grid, 2.0);
-        EXPECT_EQ(3, interp.index);
-        EXPECT_TRUE(std::isnan(interp.fraction)) << repr(interp.fraction);
+        EXPECT_EQ(4, interp.index);
+        EXPECT_DOUBLE_EQ(0, interp.fraction);
     }
     if (CELERITAS_DEBUG)
     {
