@@ -58,9 +58,9 @@ TEST_F(NonuniformGridTest, find)
     }
     EXPECT_EQ(0, grid.find(-1));
     EXPECT_EQ(0, grid.find(0));
-    EXPECT_EQ(1, grid.find(1));
+    EXPECT_EQ(2, grid.find(1));
     EXPECT_EQ(2, grid.find(2));
-    EXPECT_EQ(3, grid.find(3));
+    EXPECT_EQ(5, grid.find(3));
     EXPECT_EQ(5, grid.find(4));
     if (CELERITAS_DEBUG)
     {
@@ -114,7 +114,7 @@ TEST_F(NonuniformGridTest, degenerate)
         SCOPED_TRACE("front coincident");
         this->build({1, 1, 3});
         GridT grid(irange, ref);
-        EXPECT_EQ(0, grid.find(1));
+        EXPECT_EQ(1, grid.find(1));
         EXPECT_EQ(1, grid.find(2));
     }
     {

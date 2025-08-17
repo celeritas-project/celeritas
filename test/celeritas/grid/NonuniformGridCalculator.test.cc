@@ -98,17 +98,9 @@ TEST_F(NonuniformGridCalculatorTest, discontinuous)
     EXPECT_EQ(2.0, calc[3]);
 
     // Test on grid points
-    EXPECT_SOFT_EQ(1.0, calc(1));
-    if (CELERITAS_DEBUG)
-    {
-        EXPECT_THROW(calc(2), DebugError);
-    }
-    else
-    {
-        // NaN?
-        EXPECT_NE(calc(2), calc(2));
-    }
-    EXPECT_SOFT_EQ(2.0, calc(3));
+    EXPECT_SOFT_EQ(1.0, calc(1.0));
+    EXPECT_SOFT_EQ(2.0, calc(2.0));
+    EXPECT_SOFT_EQ(2.0, calc(3.0));
 
     // Test out-of-bounds
     EXPECT_SOFT_EQ(1.0, calc(0.0));

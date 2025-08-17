@@ -19,7 +19,9 @@ namespace celeritas
  * Interact with a nonuniform grid of increasing values.
  *
  * This should have the same interface (aside from constructor) as
- * UniformGrid.
+ * UniformGrid. The grid is closed on the lower bound and open on the upper,
+ * and the same treatment is used for coincident grid points: the higher of
+ * the points will be chosen.
  */
 template<class T>
 class NonuniformGrid
@@ -104,7 +106,7 @@ CELER_FUNCTION auto NonuniformGrid<T>::operator[](size_type i) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the value bin such that storage[result] <= value < data[result + 1].
+ * Find the value bin such that data[result] <= value < data[result + 1].
  *
  * The given value *must* be in range, because out-of-bounds values usually
  * require different treatment (e.g. clipping to the boundary values rather
@@ -116,15 +118,13 @@ CELER_FUNCTION size_type NonuniformGrid<T>::find(value_type value) const
 {
     CELER_EXPECT(value >= this->front() && value < this->back());
 
-    using ItemIdT = ItemId<T>;
-    auto iter = celeritas::lower_bound(
+    auto iter = celeritas::upper_bound(
         offset_.begin(),
         offset_.end(),
         value,
-        [&v = storage_](ItemIdT i, T value) { return v[i] < value; });
-    CELER_ASSERT(iter != offset_.end());
+        [&v = storage_](T value, ItemId<T> i) { return value < v[i]; });
 
-    if (value != storage_[*iter])
+    if (iter == offset_.end() || value != storage_[*iter])
     {
         // Exactly on end grid point, or not on a grid point at all: move to
         // previous bin
