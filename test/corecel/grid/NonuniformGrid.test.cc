@@ -56,6 +56,10 @@ TEST_F(NonuniformGridTest, find)
     {
         EXPECT_THROW(grid.find(-2), DebugError);
     }
+    else
+    {
+        EXPECT_EQ(0, grid.find(-2));
+    }
     EXPECT_EQ(0, grid.find(-1));
     EXPECT_EQ(0, grid.find(0));
     EXPECT_EQ(2, grid.find(1));
@@ -66,6 +70,11 @@ TEST_F(NonuniformGridTest, find)
     {
         EXPECT_THROW(grid.find(8), DebugError);
         EXPECT_THROW(grid.find(10), DebugError);
+    }
+    else
+    {
+        EXPECT_EQ(6, grid.find(10));
+        EXPECT_EQ(6, grid.find(10));
     }
 }
 
@@ -100,6 +109,10 @@ TEST_F(NonuniformGridTest, degenerate)
         {
             EXPECT_THROW(grid.find(1), DebugError);
         }
+        else
+        {
+            EXPECT_EQ(1, grid.find(1));
+        }
     }
     {
         SCOPED_TRACE("three coincident");
@@ -108,6 +121,10 @@ TEST_F(NonuniformGridTest, degenerate)
         if (CELERITAS_DEBUG)
         {
             EXPECT_THROW(grid.find(1), DebugError);
+        }
+        else
+        {
+            EXPECT_EQ(2, grid.find(1));
         }
     }
     {
@@ -126,6 +143,11 @@ TEST_F(NonuniformGridTest, degenerate)
         {
             EXPECT_THROW(grid.find(1), DebugError);
             EXPECT_THROW(grid.find(2), DebugError);
+        }
+        else
+        {
+            EXPECT_EQ(2, grid.find(1));
+            EXPECT_EQ(2, grid.find(2));
         }
     }
 }

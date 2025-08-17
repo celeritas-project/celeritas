@@ -119,15 +119,14 @@ CELER_FUNCTION size_type NonuniformGrid<T>::find(value_type value) const
     CELER_EXPECT(value >= this->front() && value < this->back());
 
     auto iter = celeritas::upper_bound(
-        offset_.begin(),
-        offset_.end(),
+        offset_.begin() + 1,
+        offset_.end() - 1,
         value,
         [&v = storage_](T value, ItemId<T> i) { return value < v[i]; });
 
-    if (iter == offset_.end() || value != storage_[*iter])
+    if (value < storage_[*iter])
     {
-        // Exactly on end grid point, or not on a grid point at all: move to
-        // previous bin
+        // The start point belongs to the previous bin
         --iter;
     }
 
