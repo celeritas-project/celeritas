@@ -139,7 +139,7 @@ TEST_F(NonuniformGridCalculatorTest, discontinuous_all)
 
     // Test on and around the single coincident point
     EXPECT_SOFT_EQ(-1.0, calc(1.9));
-    EXPECT_SOFT_EQ(-1.0, calc(2.0));
+    EXPECT_SOFT_EQ(1.0, calc(2.0));
     EXPECT_SOFT_EQ(1.0, calc(2.1));
 }
 

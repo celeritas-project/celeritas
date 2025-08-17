@@ -113,14 +113,15 @@ NonuniformGridCalculator::NonuniformGridCalculator(
  */
 CELER_FUNCTION real_type NonuniformGridCalculator::operator()(real_type x) const
 {
-    // Snap out-of-bounds values to closest grid points
-    if (x <= x_grid_.front())
-    {
-        return (*this)[0];
-    }
+    // Snap out-of-bounds values to closest grid points, preferring back if the
+    // front and back are coincident (constant)
     if (x >= x_grid_.back())
     {
         return (*this)[x_grid_.size() - 1];
+    }
+    if (x <= x_grid_.front())
+    {
+        return (*this)[0];
     }
 
     // Locate the x bin
