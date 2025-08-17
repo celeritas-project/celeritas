@@ -58,6 +58,9 @@ class NonuniformGridCalculator
     // Make a calculator with x and y flipped
     inline CELER_FUNCTION NonuniformGridCalculator make_inverse() const;
 
+    //! Whether spline interpolation is used
+    CELER_FUNCTION bool use_spline() const { return !deriv_offset_.empty(); }
+
   private:
     //// TYPES ////
 
@@ -125,7 +128,7 @@ CELER_FUNCTION real_type NonuniformGridCalculator::operator()(real_type x) const
     CELER_ASSERT(lower_idx + 1 < x_grid_.size());
 
     real_type result;
-    if (deriv_offset_.empty())
+    if (!this->use_spline())
     {
         // Interpolate *linearly* on x using the bin data.
         result = LinearInterpolator<real_type>(
@@ -169,14 +172,14 @@ NonuniformGridCalculator::grid() const
 /*!
  * Make a calculator with x and y flipped.
  *
- * \pre The y values must be monotonic increasing.
+ * \pre The y values must be monotonic nondecreasing.
  *
- * \note Spline interpolation will not be used on an inverse grid.
+ * \note This method cannot be called for a grid with spline interpolation.
  */
 CELER_FUNCTION NonuniformGridCalculator
 NonuniformGridCalculator::make_inverse() const
 {
-    CELER_EXPECT(deriv_offset_.empty());
+    CELER_EXPECT(!this->use_spline());
     return NonuniformGridCalculator{reals_, y_offset_, x_grid_.offset(), {}};
 }
 
