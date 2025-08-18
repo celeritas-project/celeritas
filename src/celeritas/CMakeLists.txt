@@ -114,6 +114,7 @@ list(APPEND SOURCES
   optical/action/ActionGroups.cc
   optical/action/LocateVacanciesAction.cc
   optical/detail/OpticalLaunchAction.cc
+  optical/surface/SurfacePhysicsParams.cc
   phys/CutoffParams.cc
   phys/detail/EnergyMaxXsCalculator.cc
   phys/GeneratorInterface.cc

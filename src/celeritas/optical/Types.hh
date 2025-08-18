@@ -33,6 +33,14 @@ enum class GeneratorType
 namespace optical
 {
 
+enum class SurfacePhysicsStep
+{
+    roughness,
+    reflectivity,
+    interaction,
+    size_
+};
+
 enum class SubsurfaceDirection : bool
 {
     reverse = false,
