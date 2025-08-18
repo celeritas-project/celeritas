@@ -144,6 +144,24 @@ std::string mpi_error_to_string(int errorcode)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Throw a debug error.
+ */
+[[noreturn]] void throw_debug_error(DebugErrorDetails&& d)
+{
+    throw DebugError{std::move(d)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Throw a runtime error.
+ */
+[[noreturn]] void throw_runtime_error(RuntimeErrorDetails&& d)
+{
+    throw RuntimeError{std::move(d)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct a debug exception from detailed attributes.
  */
 DebugError::DebugError(DebugErrorDetails&& d)
