@@ -36,7 +36,7 @@ ImportedModels::from_import(ImportData const& io)
 ImportedModels::ImportedModels(std::vector<ImportOpticalModel> models)
     : models_(std::move(models))
 {
-    // Initialize built-in IMC map to invalid IDs
+    // Initialize built-in IMC map to null IDs
     std::fill(
         builtin_id_map_.begin(), builtin_id_map_.end(), ImportedModelId{});
 
@@ -47,7 +47,7 @@ ImportedModels::ImportedModels(std::vector<ImportOpticalModel> models)
 
         // Check imported data is consistent
         CELER_VALIDATE(model.model_class != IMC::size_,
-                       << "Invalid imported model class for optical model id '"
+                       << "invalid imported model class for optical model id '"
                        << model_id << "'");
 
         // Model MFP vectors may be empty, indicating the model should attempt
@@ -55,7 +55,7 @@ ImportedModels::ImportedModels(std::vector<ImportOpticalModel> models)
 
         CELER_VALIDATE(
             model.mfp_table.size() == models_.front().mfp_table.size(),
-            << "Imported optical model id '" << model_id << "' ("
+            << "imported optical model id '" << model_id << "' ("
             << model.model_class
             << ") MFP table has differing number of optical "
                "materials than other imported models");
@@ -63,7 +63,7 @@ ImportedModels::ImportedModels(std::vector<ImportOpticalModel> models)
         // Expect a 1-1 mapping for IMC to imported models
         auto& mapped_id = builtin_id_map_[model.model_class];
         CELER_VALIDATE(!mapped_id,
-                       << "Duplicate imported data for built-in optical model "
+                       << "duplicate imported data for built-in optical model "
                           "'"
                        << model.model_class
                        << "' (at most one built-in optical model of a given "
@@ -96,7 +96,7 @@ auto ImportedModels::num_models() const -> ImportedModelId::size_type
 /*!
  * Get imported model ID for the given built-in model class.
  *
- * Returns an invalid ID if the imported model data is not present.
+ * Returns a null ID if the imported model data is not present.
  */
 auto ImportedModels::builtin_model_id(IMC imc) const -> ImportedModelId
 {
