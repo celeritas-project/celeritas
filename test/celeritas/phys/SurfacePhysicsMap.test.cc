@@ -20,14 +20,16 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 using S = SurfaceId;
-using A = ActionId;
+using M = SurfaceModel::SurfaceModelId;
 
 //---------------------------------------------------------------------------//
-class MockSurfaceModel final : public SurfaceModel, public ConcreteAction
+class MockSurfaceModel final : public SurfaceModel
 {
   public:
-    MockSurfaceModel(ActionId id, VecSurfaceLayer surfaces)
-        : ConcreteAction{id, std::to_string(id.get())}, surfaces_{surfaces}
+    MockSurfaceModel(SurfaceModelId id,
+                     std::string_view label,
+                     VecSurfaceLayer surfaces)
+        : SurfaceModel{id, label}, surfaces_{surfaces}
     {
     }
 
@@ -42,18 +44,20 @@ class MockSurfaceModel final : public SurfaceModel, public ConcreteAction
 class SurfacePhysicsMapTest : public ManySurfacesTestBase
 {
   protected:
+    using MSM = MockSurfaceModel;
+
     HostVal<SurfacePhysicsMapData> host_;
 };
 
 TEST_F(SurfacePhysicsMapTest, typical)
 {
     // Construct builder
-    SurfacePhysicsMapBuilder add_surface_model(this->surfaces(), host_);
+    SurfacePhysicsMapBuilder add_model(this->surfaces(), host_);
 
     // Add a model with some surfaces, which don't have to be ordered
-    add_surface_model(MockSurfaceModel{A{0}, {S{3}, S{1}, S{4}, S{5}, S{7}}});
-    add_surface_model(MockSurfaceModel{A{3}, {S{0}, S{2}}});
-    add_surface_model(MockSurfaceModel{A{1}, {S{8}}});
+    add_model(MSM{M{0}, "A", {S{3}, S{1}, S{4}, S{5}, S{7}}});
+    add_model(MSM{M{3}, "B", {S{0}, S{2}}});
+    add_model(MSM{M{1}, "C", {S{8}}});
 
     // Save reference to data
     NativeCRef<SurfacePhysicsMapData> ref;
@@ -65,15 +69,16 @@ TEST_F(SurfacePhysicsMapTest, typical)
     for (auto sid : range(S{9}))
     {
         SurfacePhysicsMapView physics{ref, sid};
-        auto action_id = physics.action_id();
-        actions.push_back(id_to_int(action_id));
-        if (action_id)
+        auto surface_model_id = physics.surface_model_id();
+        actions.push_back(id_to_int(surface_model_id));
+        if (surface_model_id)
         {
-            model_surfaces.push_back(id_to_int(physics.model_surface_id()));
+            model_surfaces.push_back(id_to_int(physics.internal_surface_id()));
         }
         else
         {
-            // model_surface_id shouldn't be called if action wasn't assigned
+            // internal_surface_id shouldn't be called if action wasn't
+            // assigned
             model_surfaces.push_back(-2);
         }
     }
@@ -87,19 +92,17 @@ TEST_F(SurfacePhysicsMapTest, typical)
 TEST_F(SurfacePhysicsMapTest, errors)
 {
     // Construct builder
-    SurfacePhysicsMapBuilder add_surface_model(this->surfaces(), host_);
+    SurfacePhysicsMapBuilder add_model(this->surfaces(), host_);
 
     // Empty model not allowed
-    EXPECT_THROW(add_surface_model(MockSurfaceModel{A{0}, {}}), RuntimeError);
+    EXPECT_THROW(add_model(MSM{M{0}, "A", {}}), RuntimeError);
     // Duplicate action ID not allowed
-    EXPECT_THROW(add_surface_model(MockSurfaceModel{A{0}, {S{1}}}),
-                 RuntimeError);
+    EXPECT_THROW(add_model(MSM{M{0}, "B", {S{1}}}), RuntimeError);
 
     // Add a model
-    add_surface_model(MockSurfaceModel{A{1}, {S{1}, S{3}}});
+    add_model(MSM{M{1}, "C", {S{1}, S{3}}});
     // Multiple surfaces cannot have the same model
-    EXPECT_THROW(add_surface_model(MockSurfaceModel{A{1}, {S{2}, S{3}}}),
-                 RuntimeError);
+    EXPECT_THROW(add_model(MSM{M{1}, "D", {S{2}, S{3}}}), RuntimeError);
 }
 
 //---------------------------------------------------------------------------//

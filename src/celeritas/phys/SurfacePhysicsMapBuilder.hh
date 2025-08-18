@@ -10,6 +10,7 @@
 
 #include "corecel/Types.hh"
 
+#include "SurfaceModel.hh"
 #include "SurfacePhysicsMapData.hh"
 
 namespace celeritas
@@ -25,6 +26,7 @@ class SurfacePhysicsMapBuilder
     //!@{
     //! \name Type aliases
     using HostData = HostVal<SurfacePhysicsMapData>;
+    using SurfaceModelId = SurfaceModel::SurfaceModelId;
     //!@}
 
   public:
@@ -37,7 +39,7 @@ class SurfacePhysicsMapBuilder
   private:
     SurfaceParams const& surfaces_;
     HostData& data_;
-    std::set<ActionId> actions_;
+    std::set<SurfaceModelId> actions_;
 };
 
 //---------------------------------------------------------------------------//

@@ -21,8 +21,6 @@ namespace celeritas
  * one map for roughness, one for reflectivity, and one for interaction.
  *
  * \todo support for layers
- * \todo generalize to other ID types/subtypes and use for volumetric physics
- * to eliminate some of the complexity?
  */
 template<Ownership W, MemSpace M>
 struct SurfacePhysicsMapData
@@ -30,22 +28,23 @@ struct SurfacePhysicsMapData
     //// TYPES ////
 
     using SurfaceLayer = SurfaceModel::SurfaceLayer;
-    using ModelSurfaceId = SurfaceModel::ModelSurfaceId;
+    using SurfaceModelId = SurfaceModel::SurfaceModelId;
+    using InternalSurfaceId = SurfaceModel::InternalSurfaceId;
     template<class T>
     using SurfaceItems = Collection<T, W, M, SurfaceId>;
 
     //// DATA ////
 
-    SurfaceItems<ActionId> action_ids;
-    SurfaceItems<ModelSurfaceId> model_surface_ids;
+    SurfaceItems<SurfaceModelId> surface_models;
+    SurfaceItems<InternalSurfaceId> internal_surface_ids;
 
     //// METHODS ////
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !action_ids.empty()
-               && action_ids.size() == model_surface_ids.size();
+        return !surface_models.empty()
+               && surface_models.size() == internal_surface_ids.size();
     }
 
     //! Assign from another set of data
@@ -54,8 +53,8 @@ struct SurfacePhysicsMapData
     {
         CELER_EXPECT(other);
 
-        action_ids = other.action_ids;
-        model_surface_ids = other.model_surface_ids;
+        surface_models = other.surface_models;
+        internal_surface_ids = other.internal_surface_ids;
         return *this;
     }
 };

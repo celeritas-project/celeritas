@@ -8,6 +8,7 @@
 
 #include "corecel/Types.hh"
 
+#include "SurfaceModel.hh"
 #include "SurfacePhysicsMapData.hh"
 
 namespace celeritas
@@ -24,7 +25,8 @@ class SurfacePhysicsMapView
     //!@{
     //! \name Type aliases
     using SurfaceParamsRef = NativeCRef<SurfacePhysicsMapData>;
-    using ModelSurfaceId = SurfaceModel::ModelSurfaceId;
+    using SurfaceModelId = SurfaceModel::SurfaceModelId;
+    using InternalSurfaceId = SurfaceModel::InternalSurfaceId;
     //!@}
 
   public:
@@ -33,10 +35,10 @@ class SurfacePhysicsMapView
     SurfacePhysicsMapView(SurfaceParamsRef const& params, SurfaceId surface);
 
     // Get the action ID for the current surface, if any
-    CELER_FUNCTION ActionId action_id() const;
+    CELER_FUNCTION SurfaceModelId surface_model_id() const;
 
     // Get the subindex inside that model
-    CELER_FUNCTION ModelSurfaceId model_surface_id() const;
+    CELER_FUNCTION InternalSurfaceId internal_surface_id() const;
 
   private:
     SurfaceParamsRef const& params_;
@@ -55,26 +57,27 @@ SurfacePhysicsMapView::SurfacePhysicsMapView(SurfaceParamsRef const& params,
     : params_{params}, surface_{surface}
 {
     CELER_EXPECT(params_);
-    CELER_EXPECT(surface_ < params.action_ids.size());
+    CELER_EXPECT(surface_ < params.surface_models.size());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the action ID for the current surface, if any.
  */
-CELER_FUNCTION ActionId SurfacePhysicsMapView::action_id() const
+CELER_FUNCTION auto SurfacePhysicsMapView::surface_model_id() const
+    -> SurfaceModelId
 {
-    return params_.action_ids[surface_];
+    return params_.surface_models[surface_];
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the subindex inside that model.
+ * Get the subindex for data inside that model.
  */
-CELER_FUNCTION auto SurfacePhysicsMapView::model_surface_id() const
-    -> ModelSurfaceId
+CELER_FUNCTION auto SurfacePhysicsMapView::internal_surface_id() const
+    -> InternalSurfaceId
 {
-    return params_.model_surface_ids[surface_];
+    return params_.internal_surface_ids[surface_];
 }
 
 //---------------------------------------------------------------------------//
