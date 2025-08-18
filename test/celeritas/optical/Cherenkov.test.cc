@@ -510,7 +510,7 @@ class CherenkovAirTest : public CherenkovTest
         {
             prop.refractive_index.x.push_back(um_to_mev(w));
         }
-        prop.refractive_index.y = {1.30, 1.305, 1.31, 1.31, 1.320, 1.330};
+        prop.refractive_index.y = {1.1, 1.2, 1.31, 1.31, 1.320, 1.330};
         return prop;
     };
 };
@@ -529,8 +529,10 @@ TEST_F(CherenkovAirTest, dndx)
         params->host_ref(),
         this->particle_params()->get(ParticleId{0}).charge());
 
-    std::vector<real_type> betas{
-        real_type{1.0 / 1.2}, real_type{1.0 / 1.3}, real_type{1.0 / 1.4}};
+    std::vector<real_type> betas{real_type{1.0 / 1.2},
+                                 real_type{1.0 / 1.3},
+                                 1 / 1.31,
+                                 real_type{1.0 / 1.4}};
 
     std::vector<real_type> dndx;
     for (real_type beta : betas)
