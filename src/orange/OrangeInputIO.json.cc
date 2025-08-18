@@ -314,16 +314,8 @@ void to_json(nlohmann::json& j, UnitInput const& value)
         auto volume_labels = nlohmann::json::array();
         for (auto const& v : value.volumes)
         {
-            // TODO: add JSON IO for OpaqueID
-            volume_labels.push_back(
-                std::visit(return_as<nlohmann::json>(Overload{
-                               [](Label const& label) { return label; },
-                               [](VolumeInstanceId id) -> nlohmann::json {
-                                   if (!id)
-                                       return nullptr;
-                                   return id.unchecked_get();
-                               }}),
-                           v.label));
+            volume_labels.push_back(std::visit(
+                [](auto&& obj) -> nlohmann::json { return obj; }, v.label));
         }
         return volume_labels;
     }();
