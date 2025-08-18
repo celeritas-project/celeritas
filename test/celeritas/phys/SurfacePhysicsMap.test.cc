@@ -56,19 +56,16 @@ TEST_F(SurfacePhysicsMapTest, typical)
 
     // Add a model with some surfaces, which don't have to be ordered
     add_model(MSM{M{0}, "A", {S{3}, S{1}, S{4}, S{5}, S{7}}});
-    add_model(MSM{M{3}, "B", {S{0}, S{2}}});
+    add_model(MSM{M{3}, "B", {S{0}, S{2}, S{}}});
     add_model(MSM{M{1}, "C", {S{8}}});
 
     // Save reference to data
     NativeCRef<SurfacePhysicsMapData> ref;
     ref = host_;
 
-    // Test surfaces
     std::vector<int> actions;
     std::vector<int> model_surfaces;
-    for (auto sid : range(S{9}))
-    {
-        SurfacePhysicsMapView physics{ref, sid};
+    auto test_impl = [&](SurfacePhysicsMapView const& physics) {
         auto surface_model_id = physics.surface_model_id();
         actions.push_back(id_to_int(surface_model_id));
         if (surface_model_id)
@@ -81,11 +78,21 @@ TEST_F(SurfacePhysicsMapTest, typical)
             // assigned
             model_surfaces.push_back(-2);
         }
-    }
+    };
 
-    static int const expected_actions[] = {3, 0, 3, 0, 0, 0, -1, 0, 1};
+    // Test surfaces
+    for (auto sid : range(S{9}))
+    {
+        SurfacePhysicsMapView physics{ref, sid};
+        test_impl(physics);
+    }
+    // Test default
+    test_impl(SurfacePhysicsMapView{ref});
+
+    static int const expected_actions[] = {3, 0, 3, 0, 0, 0, -1, 0, 1, 3};
     EXPECT_VEC_EQ(expected_actions, actions);
-    static int const expected_model_surfaces[] = {0, 1, 1, 0, 2, 3, -2, 4, 0};
+    static int const expected_model_surfaces[]
+        = {0, 1, 1, 0, 2, 3, -2, 4, 0, 2};
     EXPECT_VEC_EQ(expected_model_surfaces, model_surfaces);
 }
 

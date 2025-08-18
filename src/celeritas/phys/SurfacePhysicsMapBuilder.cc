@@ -21,15 +21,20 @@ namespace celeritas
  */
 SurfacePhysicsMapBuilder::SurfacePhysicsMapBuilder(SurfaceParams const& surfaces,
                                                    HostData& data)
-    : surfaces_{surfaces}, data_{data}
+    : surfaces_{surfaces}
+    , data_{data}
+    , default_surface_{surfaces_.num_surfaces()}
 {
     CELER_EXPECT(data_.surface_models.empty()
                  && data_.internal_surface_ids.empty());
 
-    resize(&data_.surface_models, surfaces_.num_surfaces());
+    resize(&data_.surface_models, this->size());
+    resize(&data_.internal_surface_ids, this->size());
+
     fill(SurfaceModelId{}, &data_.surface_models);
-    resize(&data_.internal_surface_ids, surfaces_.num_surfaces());
-    fill(SurfaceModel::InternalSurfaceId{}, &data_.internal_surface_ids);
+    fill(InternalSurfaceId{}, &data_.internal_surface_ids);
+
+    CELER_ENSURE(data_);
 }
 
 //---------------------------------------------------------------------------//
@@ -38,12 +43,10 @@ SurfacePhysicsMapBuilder::SurfacePhysicsMapBuilder(SurfaceParams const& surfaces
  */
 void SurfacePhysicsMapBuilder::operator()(SurfaceModel const& model)
 {
-    using InternalSurfaceId = SurfaceModel::InternalSurfaceId;
-
     auto surface_model_id = model.surface_model_id();
     {
         // Validate that the model's passed only once
-        auto&& [iter, inserted] = actions_.insert(surface_model_id);
+        auto&& [iter, inserted] = surface_models_.insert(surface_model_id);
         CELER_VALIDATE(inserted,
                        << "duplicate model " << model.label()
                        << " given to surface physics map builder");
@@ -54,11 +57,16 @@ void SurfacePhysicsMapBuilder::operator()(SurfaceModel const& model)
     InternalSurfaceId::size_type ms_index{0};
     for (SurfaceId surface_id : model.get_surfaces())
     {
-        CELER_VALIDATE(surface_id < surfaces_.num_surfaces(),
+        if (!surface_id)
+        {
+            // Use "default" surface
+            surface_id = default_surface_;
+        }
+        CELER_VALIDATE(surface_id < this->size(),
                        << "surface physics model " << model.label()
                        << " contained invalid surface indices");
 
-        // Assign and check the action ID
+        // Assign and check the model ID
         SurfaceModelId prev_id = std::exchange(
             data_.surface_models[surface_id], model.surface_model_id());
         CELER_VALIDATE(!prev_id,

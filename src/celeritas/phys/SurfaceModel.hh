@@ -21,19 +21,11 @@ namespace celeritas
  *
  * Each surface model is constructed independently given some \c inp data. It
  * internally maps a sequence of "global" \c SurfaceId to a "local"
- * \c InternalSurfaceId. If a \c SurfaceModel with ID 10 returns a list of
- * surfaces {3, 1, 5} and another with ID 11 returns {0, 4}, then the \c
- * SurfacePhysicsMap class will store
- * \code
- * [{11, 0}, {10, 1}, <null>, {10, 0}, {11, 1}, {10, 2}]
- * \endcode
- * Since neither model specified surface 2, it is null.
+ * \c InternalSurfaceId. It additionally allows an empty surface returned by \c
+ * get_surfaces to indicate a default model to be applied when the user does
+ * not specify surface properties.
  *
- * With this setup, \c Collection data can be accessed locally by indexing on
- * \c ModelSurfaceId .
- *
- * This is currently only used by optical physics classes. Daughters will also
- * inherit from \c OpticalStepActionInterface, \c  ConcreteAction .
+ * This is currently only used by optical physics classes.
  */
 class SurfaceModel
 {

@@ -17,7 +17,8 @@ namespace celeritas
 /*!
  * Access surface physics mappings for a particular surface.
  *
- * This simply encapsulates the \c SurfaceParamsData class.
+ * This simply encapsulates the \c SurfaceParamsData class. The "default"
+ * surface
  */
 class SurfacePhysicsMapView
 {
@@ -34,8 +35,15 @@ class SurfacePhysicsMapView
     CELER_FUNCTION
     SurfacePhysicsMapView(SurfaceParamsRef const& params, SurfaceId surface);
 
+    // Construct from data and "default" surface
+    explicit CELER_FUNCTION
+    SurfacePhysicsMapView(SurfaceParamsRef const& params);
+
     // Get the action ID for the current surface, if any
     CELER_FUNCTION SurfaceModelId surface_model_id() const;
+
+    //! Current surface ID (may be one past the end of geometry IDs)
+    CELER_FUNCTION SurfaceId surface_id() const { return surface_; }
 
     // Get the subindex inside that model
     CELER_FUNCTION InternalSurfaceId internal_surface_id() const;
@@ -58,6 +66,20 @@ SurfacePhysicsMapView::SurfacePhysicsMapView(SurfaceParamsRef const& params,
 {
     CELER_EXPECT(params_);
     CELER_EXPECT(surface_ < params.surface_models.size());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from data and "no surface".
+ *
+ * This provides default surface models for boundaries without user-specified
+ * surfaces.
+ */
+CELER_FUNCTION
+SurfacePhysicsMapView::SurfacePhysicsMapView(SurfaceParamsRef const& params)
+    : SurfacePhysicsMapView{
+          params, id_cast<SurfaceId>(params.surface_models.size() - 1)}
+{
 }
 
 //---------------------------------------------------------------------------//
