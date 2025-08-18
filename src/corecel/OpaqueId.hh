@@ -21,7 +21,7 @@ namespace detail
 //---------------------------------------------------------------------------//
 //! Sentinel value for an unassigned opaque ID
 template<class T>
-inline constexpr T invalid_opaqueid_value{static_cast<T>(-1)};
+inline constexpr T null_opaqueid_value{static_cast<T>(-1)};
 
 //---------------------------------------------------------------------------//
 //! Safely cast from one integer T to another U, avoiding the sentinel value
@@ -42,12 +42,12 @@ inline CELER_FUNCTION U id_cast_impl(T value) noexcept(!CELERITAS_DEBUG)
             CELER_EXPECT(static_cast<C>(value) >= 0);
         }
         CELER_EXPECT(static_cast<C>(value)
-                     < static_cast<C>(invalid_opaqueid_value<U>));
+                     < static_cast<C>(null_opaqueid_value<U>));
     }
     else
     {
-        // Check that value is *not* the invalid value
-        CELER_EXPECT(static_cast<U>(value) != invalid_opaqueid_value<U>);
+        // Check that value is *not* the null value
+        CELER_EXPECT(static_cast<U>(value) != null_opaqueid_value<U>);
     }
 
     return static_cast<U>(value);
@@ -72,7 +72,8 @@ inline CELER_FUNCTION U id_cast_impl(T value) noexcept(!CELERITAS_DEBUG)
  * <code>Foo operator[](OpaqueId<Foo>)</code>
  *
  * An \c OpaqueId object evaluates to \c true if it has a value, or \c false if
- * it does not (i.e., it has an "invalid" value).
+ * it does not (a "null" ID, analogous to a null pointer: it does not
+ * correspond to a valid value).
  *
  * See also \c id_cast below for checked construction of OpaqueIds from generic
  * integer values (avoid compile-time warnings or errors from signed/truncated
@@ -92,8 +93,8 @@ class OpaqueId
     //!@}
 
   public:
-    //! Default to invalid state
-    CELER_CONSTEXPR_FUNCTION OpaqueId() : value_(invalid_value_) {}
+    //! Default to null state
+    CELER_CONSTEXPR_FUNCTION OpaqueId() : value_(null_value_) {}
 
     //! Construct explicitly with stored value
     explicit CELER_CONSTEXPR_FUNCTION OpaqueId(size_type index) : value_(index)
@@ -103,7 +104,7 @@ class OpaqueId
     //! Whether this ID is in a valid (assigned) state
     explicit CELER_CONSTEXPR_FUNCTION operator bool() const
     {
-        return value_ != invalid_value_;
+        return value_ != null_value_;
     }
 
     //! Pre-increment of the ID
@@ -155,8 +156,8 @@ class OpaqueId
     size_type value_;
 
     //! Value indicating the ID is not assigned
-    static constexpr size_type invalid_value_
-        = detail::invalid_opaqueid_value<size_type>;
+    static constexpr size_type null_value_
+        = detail::null_opaqueid_value<size_type>;
 };
 
 //---------------------------------------------------------------------------//
@@ -168,7 +169,7 @@ class OpaqueId
  * This asserts that the integer is in the \em valid range of the target ID
  * type, and casts to it.
  *
- * \note The value cannot be the underlying "invalid" value, i.e.
+ * \note The value cannot be the underlying "null" value; i.e.
  * <code> static_cast<FooId>(FooId{}.unchecked_get()) </code> will not work.
  */
 template<class IdT, class T>
