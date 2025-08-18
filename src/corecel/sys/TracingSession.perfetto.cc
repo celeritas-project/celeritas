@@ -25,7 +25,7 @@ namespace
 //! Supported tracing mode
 enum class TracingMode : uint32_t
 {
-    in_process,  //!< Record in-process, writting to a file
+    in_process,  //!< Record in-process, writing to a file
     system  //!< Record in a system daemon
 };
 

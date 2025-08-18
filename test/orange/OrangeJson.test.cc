@@ -34,31 +34,48 @@ class JsonOrangeTest : public OrangeGeoTestBase
     size_type num_track_slots() const override { return 2; }
     Constant unit_length() const override { return Constant{1}; }
 
+    virtual std::string_view geometry_basename() const = 0;
+
     void SetUp() final
     {
-        this->build_geometry(this->geometry_basename() + ".org.json");
+        this->build_geometry(std::string{this->geometry_basename()}
+                             + ".org.json");
     }
 };
 
 class InputBuilderTest : public JsonOrangeTest
 {
-    std::string geometry_basename() const final
+  public:
+    std::string_view geometry_basename() const final
     {
-        return const_cast<InputBuilderTest*>(this)->make_unique_filename();
+        if (basename_.empty())
+        {
+            const_cast<InputBuilderTest*>(this)->set_basename();
+        }
+        return basename_;
     }
+
+    std::string_view gdml_basename() const { return geometry_basename(); }
+
+  private:
+    void set_basename()
+    {
+        basename_ = const_cast<InputBuilderTest*>(this)->make_unique_filename();
+    }
+    std::string basename_;
 };
 
 //---------------------------------------------------------------------------//
 class FiveVolumesTest : public JsonOrangeTest
 {
-    std::string geometry_basename() const final { return "five-volumes"; }
+    std::string_view geometry_basename() const final { return "five-volumes"; }
 };
 
 TEST_F(FiveVolumesTest, params)
 {
     OrangeParams const& geo = this->params();
 
-    EXPECT_EQ(6, geo.volumes().size());
+    EXPECT_EQ(6, geo.impl_volumes().size());
     EXPECT_EQ(12, geo.surfaces().size());
     EXPECT_FALSE(geo.supports_safety());
 }
@@ -66,13 +83,13 @@ TEST_F(FiveVolumesTest, params)
 //---------------------------------------------------------------------------//
 class UniversesTest : public JsonOrangeTest
 {
-    std::string geometry_basename() const final { return "universes"; }
+    std::string_view geometry_basename() const final { return "universes"; }
 };
 
 TEST_F(UniversesTest, params)
 {
     OrangeParams const& geo = this->params();
-    EXPECT_EQ(12, geo.volumes().size());
+    EXPECT_EQ(12, geo.impl_volumes().size());
     EXPECT_EQ(25, geo.surfaces().size());
     EXPECT_EQ(3, geo.max_depth());
     EXPECT_FALSE(geo.supports_safety());
@@ -80,22 +97,24 @@ TEST_F(UniversesTest, params)
     EXPECT_VEC_SOFT_EQ(Real3({-2, -6, -1}), geo.bbox().lower());
     EXPECT_VEC_SOFT_EQ(Real3({8, 4, 2}), geo.bbox().upper());
 
-    std::vector<std::string> expected = {"[EXTERIOR]",
-                                         "inner_a",
-                                         "inner_b",
-                                         "bobby",
-                                         "johnny",
-                                         "[EXTERIOR]",
-                                         "inner_c",
-                                         "a",
-                                         "b",
-                                         "c",
-                                         "[EXTERIOR]",
-                                         "patty"};
+    std::vector<std::string> expected = {
+        "[EXTERIOR]",
+        "inner_a",
+        "inner_b",
+        "bobby",
+        "johnny",
+        "[EXTERIOR]",
+        "inner_c",
+        "a",
+        "b",
+        "c",
+        "[EXTERIOR]",
+        "patty",
+    };
     std::vector<std::string> actual;
-    for (auto const id : range(ImplVolumeId{geo.volumes().size()}))
+    for (auto const id : range(ImplVolumeId{geo.impl_volumes().size()}))
     {
-        actual.push_back(geo.volumes().at(id).name);
+        actual.push_back(geo.impl_volumes().at(id).name);
     }
 
     EXPECT_VEC_EQ(expected, actual);
@@ -195,7 +214,8 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
         other = Initializer_t{geo.pos(), {1, 0, 0}, TrackSlotId{0}};
         EXPECT_VEC_SOFT_EQ(Real3({0.625, -2, 1}), other.pos());
         EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), other.dir());
-        EXPECT_EQ("c", this->params().volumes().at(other.volume_id()).name);
+        EXPECT_EQ(
+            "c", this->params().impl_volumes().at(other.impl_volume_id()).name);
         EXPECT_FALSE(other.is_outside());
         EXPECT_FALSE(other.is_on_boundary());
     }
@@ -508,13 +528,13 @@ TEST_F(UniversesTest, reentrant)
 //---------------------------------------------------------------------------//
 class RectArrayTest : public JsonOrangeTest
 {
-    std::string geometry_basename() const final { return "rect-array"; }
+    std::string_view geometry_basename() const final { return "rect-array"; }
 };
 
 TEST_F(RectArrayTest, params)
 {
     OrangeParams const& geo = this->params();
-    EXPECT_EQ(35, geo.volumes().size());
+    EXPECT_EQ(35, geo.impl_volumes().size());
     EXPECT_EQ(22, geo.surfaces().size());
     EXPECT_EQ(4, geo.max_depth());
     EXPECT_FALSE(geo.supports_safety());
@@ -537,7 +557,7 @@ TEST_F(RectArrayTest, tracking)
 
 class NestedRectArraysTest : public JsonOrangeTest
 {
-    std::string geometry_basename() const final
+    std::string_view geometry_basename() const final
     {
         return "nested-rect-arrays";
     }
@@ -608,7 +628,10 @@ TEST_F(NestedRectArraysTest, leaving)
 //---------------------------------------------------------------------------//
 class Geant4Testem15Test : public JsonOrangeTest
 {
-    std::string geometry_basename() const final { return "geant4-testem15"; }
+    std::string_view geometry_basename() const final
+    {
+        return "geant4-testem15";
+    }
 };
 
 TEST_F(Geant4Testem15Test, safety)
@@ -618,7 +641,7 @@ TEST_F(Geant4Testem15Test, safety)
     geo = Initializer_t{{0, 0, 0}, {1, 0, 0}};
     EXPECT_VEC_SOFT_EQ(Real3({0, 0, 0}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
-    EXPECT_EQ(ImplVolumeId{1}, geo.volume_id());
+    EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
     EXPECT_EQ(ImplSurfaceId{}, geo.impl_surface_id());
     EXPECT_FALSE(geo.is_outside());
 
@@ -647,7 +670,7 @@ TEST_F(Geant4Testem15Test, safety)
 
 class HexArrayTest : public JsonOrangeTest
 {
-    std::string geometry_basename() const final { return "hex-array"; }
+    std::string_view geometry_basename() const final { return "hex-array"; }
 };
 
 TEST_F(HexArrayTest, TEST_IF_CELERITAS_DOUBLE(output))
@@ -682,7 +705,7 @@ TEST_F(HexArrayTest, track_out)
 
 class TestEM3Test : public JsonOrangeTest
 {
-    std::string geometry_basename() const final { return "testem3"; }
+    std::string_view geometry_basename() const final { return "testem3"; }
 };
 
 // Test safety distance within a geometry that supports simple safety

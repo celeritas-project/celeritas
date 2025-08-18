@@ -14,8 +14,6 @@
 
 #include "BoundingBox.hh"
 #include "GeoParamsInterface.hh"
-#include "ScopedGeantExceptionHandler.hh"
-#include "ScopedGeantLogger.hh"
 #include "Types.hh"
 #include "g4/GeantGeoData.hh"
 
@@ -23,8 +21,9 @@
 #    include "inp/Model.hh"
 #endif
 
-class G4VPhysicalVolume;
 class G4LogicalSurface;
+class G4Material;
+class G4VPhysicalVolume;
 
 namespace celeritas
 {
@@ -36,7 +35,7 @@ namespace celeritas
  * an existing physical volume. The \c make_model_input function returns the
  * geometry hierarchy including surface definitions for optical physics.
  *
- * The \c VolumeId used by Celeritas is equal to the index of a \c
+ * The \c ImplVolumeId used by Celeritas is equal to the index of a \c
  * G4LogicalVolume in the \c G4LogicalVolumeStore. Due to potential resetting
  * of the geometry, the "volume instance ID" for the logical volume may be
  * offset from this index.
@@ -69,12 +68,17 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Create from a running Geant4 application
     static std::shared_ptr<GeantGeoParams> from_tracking_manager();
 
-    // Construct from a GDML filename
-    explicit GeantGeoParams(std::string const& gdml_filename);
+    // Create from a GDML file
+    static std::shared_ptr<GeantGeoParams>
+    from_gdml(std::string const& filename);
+
+    // Return the input geometry for a consistent interface
+    inline static std::shared_ptr<GeantGeoParams>
+    from_geant(std::shared_ptr<GeantGeoParams const> const& geo);
 
     // Create a VecGeom model from an already-loaded Geant4 geometry
     // TODO: also take model input? see #1815
-    explicit GeantGeoParams(G4VPhysicalVolume const* world);
+    GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns);
 
     CELER_DEFAULT_MOVE_DELETE_COPY(GeantGeoParams);
 
@@ -90,7 +94,7 @@ class GeantGeoParams final : public GeoParamsInterface,
     BBox const& bbox() const final { return bbox_; }
 
     // Maximum nested scene/volume depth
-    LevelId::size_type max_depth() const final { return max_depth_; }
+    LevelId::size_type max_depth() const { return max_depth_; }
 
     // Create model parameters corresponding to our internal representation
     inp::Model make_model_input() const final;
@@ -98,19 +102,22 @@ class GeantGeoParams final : public GeoParamsInterface,
     //// VOLUMES ////
 
     // Get (logical) volume metadata
-    inline VolumeMap const& volumes() const final;
+    inline ImplVolumeMap const& impl_volumes() const final;
 
     // Get (physical) volume instance metadata
     inline VolInstanceMap const& volume_instances() const final;
 
     // Get the volume ID corresponding to a Geant4 logical volume
-    VolumeId find_volume(G4LogicalVolume const* volume) const final;
+    ImplVolumeId find_volume(G4LogicalVolume const* volume) const final;
 
     // Get the Geant4 physical volume corresponding to a volume instance ID
     GeantPhysicalInstance id_to_geant(VolumeInstanceId vol_id) const final;
 
     // Get the Geant4 logical volume corresponding to a volume ID
     G4LogicalVolume const* id_to_geant(VolumeId vol_id) const;
+
+    // Get the canonical volume IDs corresponding to an implementation volume
+    inline VolumeId volume_id(ImplVolumeId) const final;
 
     //// SURFACES ////
 
@@ -124,7 +131,7 @@ class GeantGeoParams final : public GeoParamsInterface,
     using GeoParamsInterface::find_volume;
 
     //! Offset of logical volume ID after reloading geometry
-    VolumeId::size_type lv_offset() const { return data_.lv_offset; }
+    ImplVolumeId::size_type lv_offset() const { return data_.lv_offset; }
 
     //! Offset of physical volume ID after reloading geometry
     VolumeInstanceId::size_type pv_offset() const { return data_.pv_offset; }
@@ -134,10 +141,13 @@ class GeantGeoParams final : public GeoParamsInterface,
 
     //// G4 ACCESSORS ////
 
-    //! Get the volume ID corresponding to a Geant4 logical volume
+    // Get the geometry material ID for a logical volume (may be null)
+    GeoMatId geant_to_id(G4Material const& mat) const;
+
+    //! Get the canonical volume ID corresponding to a Geant4 logical volume
     VolumeId geant_to_id(G4LogicalVolume const& volume) const
     {
-        return this->find_volume(&volume);
+        return this->volume_id(this->find_volume(&volume));
     }
 
     // Get the volume ID corresponding to a Geant4 physical volume
@@ -172,13 +182,11 @@ class GeantGeoParams final : public GeoParamsInterface,
   private:
     //// DATA ////
 
-    bool loaded_gdml_{false};
+    Ownership ownership_{Ownership::reference};
     bool closed_geometry_{false};
-    std::unique_ptr<ScopedGeantLogger> scoped_logger_;
-    std::unique_ptr<ScopedGeantExceptionHandler> scoped_exceptions_;
 
     // Host metadata/access
-    VolumeMap volumes_;
+    ImplVolumeMap volumes_;
     VolInstanceMap vol_instances_;
     std::vector<G4LogicalSurface const*> surfaces_;
     BBox bbox_;
@@ -189,29 +197,37 @@ class GeantGeoParams final : public GeoParamsInterface,
 
     //// HELPER FUNCTIONS ////
 
-    // Complete geometry construction
-    void build_tracking();
-
     // Construct labels and other host-only metadata
     void build_metadata();
 };
 
 //---------------------------------------------------------------------------//
 // Set non-owning reference to global tracking geometry instance
-void geant_geo(GeantGeoParams const&);
+void global_geant_geo(std::shared_ptr<GeantGeoParams const> const&);
 
 // Global tracking geometry instance: may be nullptr
-GeantGeoParams const* geant_geo();
+std::weak_ptr<GeantGeoParams const> const& global_geant_geo();
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Return the input geometry for a consistent interface.
+ */
+std::shared_ptr<GeantGeoParams>
+GeantGeoParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
+{
+    CELER_EXPECT(geo);
+    return std::const_pointer_cast<GeantGeoParams>(geo);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Get volume metadata.
  *
  * Volumes correspond directly to Geant4 logical volumes.
  */
-auto GeantGeoParams::volumes() const -> VolumeMap const&
+auto GeantGeoParams::impl_volumes() const -> ImplVolumeMap const&
 {
     return volumes_;
 }
@@ -234,7 +250,7 @@ auto GeantGeoParams::volume_instances() const -> VolInstanceMap const&
 G4LogicalSurface const* GeantGeoParams::id_to_geant(SurfaceId id) const
 {
     CELER_EXPECT(!id || id < surfaces_.size());
-    if (!id)
+    if (CELER_UNLIKELY(!id))
     {
         return {};
     }
@@ -243,33 +259,51 @@ G4LogicalSurface const* GeantGeoParams::id_to_geant(SurfaceId id) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get the canonical volume IDs corresponding to an implementation volume.
+ *
+ * \note See make_inp_volumes : for now, volume IDs and impl IDs are identical
+ */
+VolumeId GeantGeoParams::volume_id(ImplVolumeId iv_id) const
+{
+    if (CELER_UNLIKELY(!iv_id))
+    {
+        return {};
+    }
+
+    return id_cast<VolumeId>(iv_id.get());
+}
+
+//---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4 && !defined(__DOXYGEN__)
-inline void geant_geo(GeantGeoParams const&)
+inline void global_geant_geo(std::shared_ptr<GeantGeoParams const> const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
-inline GeantGeoParams const* geant_geo()
+inline std::weak_ptr<GeantGeoParams const> const& global_geant_geo()
 {
-    CELER_ASSERT_UNREACHABLE();
+    static std::weak_ptr<GeantGeoParams const> const temp_;
+    return temp_;
 }
 //-----------------------------------//
+inline std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
+{
+    return std::make_shared<GeantGeoParams>(nullptr, Ownership::reference);
+}
 
-inline GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const*)
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-inline GeantGeoParams::GeantGeoParams(std::string const&)
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
 inline std::shared_ptr<GeantGeoParams>
-GeantGeoParams::GeantGeoParams::from_tracking_manager()
+GeantGeoParams::from_gdml(std::string const&)
+{
+    return std::make_shared<GeantGeoParams>(nullptr, Ownership::reference);
+}
+
+inline GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const*, Ownership)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
 
 //-----------------------------------//
-inline GeantGeoParams::~GeantGeoParams() {}
+inline GeantGeoParams::~GeantGeoParams() = default;
 
 //-----------------------------------//
 inline inp::Model GeantGeoParams::make_model_input() const
@@ -285,6 +319,10 @@ inline GeantPhysicalInstance GeantGeoParams::id_to_geant(VolumeInstanceId) const
     CELER_ASSERT_UNREACHABLE();
 }
 inline G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId) const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+inline GeoMatId GeantGeoParams::geant_to_id(G4Material const&) const
 {
     CELER_ASSERT_UNREACHABLE();
 }

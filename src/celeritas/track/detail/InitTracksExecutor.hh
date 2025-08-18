@@ -19,9 +19,9 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 
-#include "Utils.hh"
 #include "../CoreStateCounters.hh"
 #include "../SimTrackView.hh"
+#include "../Utils.hh"
 
 namespace celeritas
 {
@@ -87,11 +87,13 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
     // View to the new track to be initialized
     CoreTrackView vacancy{
         *params, *state, [&] {
-            if (params->init.track_order == TrackOrder::init_charge)
+            if (params->init.track_order == TrackOrder::init_charge
+                && IsNeutral{params}(init))
             {
-                return data.vacancies[TrackSlotId(index_partitioned(
-                    num_init, counters.num_vacancies, IsNeutral{params}(init), tid))];
+                // Get the vacancy from the front of the track state
+                return data.vacancies[TrackSlotId(index_before(num_init, tid))];
             }
+            // Get the vacancy from the back of the track state
             return data.vacancies[TrackSlotId(
                 index_before(counters.num_vacancies, tid))];
         }()};

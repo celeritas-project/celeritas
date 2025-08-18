@@ -27,7 +27,7 @@ namespace celeritas
  *
  * The cross section units are immaterial since the cross section merely acts
  * as a shape function for rejection: the sampled energy's cross section is
- * always divided by the maximium cross section.
+ * always divided by the maximum cross section.
  */
 class SBEnergyDistHelper
 {
@@ -131,7 +131,7 @@ CELER_FUNCTION auto SBEnergyDistHelper::sample_exit_energy(Engine& rng) const
 CELER_FUNCTION auto SBEnergyDistHelper::calc_xs(Energy e) const -> Xs
 {
     CELER_EXPECT(e > zero_quantity());
-    // Interpolate the differential cross setion at the given exit energy
+    // Interpolate the differential cross section at the given exit energy
     return Xs{calc_xs_(e.value() * inv_inc_energy_)};
 }
 

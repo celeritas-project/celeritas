@@ -155,6 +155,11 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
         TrackId{2},
         TrackId{4},
     };
+    dso.weight = {
+        real_type{1.0},  // si_tracker
+        real_type{0.5},  // em_calorimeter
+        real_type{0.8},  // had_calorimeter
+    };
     if (selection_.energy_deposition)
     {
         dso.energy_deposition = {
@@ -240,11 +245,13 @@ TEST_F(SimpleCmsTest, no_touchable)
         from_cm(2.1),
         from_cm(3.1),
     };
+
     process_hits(dso_hits);
 
     {
         auto& result = this->get_hits("si_tracker");
-        static real_type const expected_energy_deposition[] = {0.1, 0.4};
+        static real_type const expected_energy_deposition[]
+            = {1.0 * 0.1, 1.0 * 0.4};
         EXPECT_VEC_SOFT_EQ(expected_energy_deposition,
                            result.energy_deposition);
         static real_type const expected_step_length[] = {0.1, 1.0};
@@ -258,7 +265,8 @@ TEST_F(SimpleCmsTest, no_touchable)
     }
     {
         auto& result = this->get_hits("em_calorimeter");
-        static real_type const expected_energy_deposition[] = {0.2, 0.5};
+        static real_type const expected_energy_deposition[]
+            = {0.5 * 0.2, 0.5 * 0.5};
         EXPECT_VEC_SOFT_EQ(expected_energy_deposition,
                            result.energy_deposition);
         static char const* const expected_particle[] = {"e-", "e-"};
@@ -272,7 +280,8 @@ TEST_F(SimpleCmsTest, no_touchable)
     }
     {
         auto& result = this->get_hits("had_calorimeter");
-        static real_type const expected_energy_deposition[] = {0.3, 0.6};
+        static real_type const expected_energy_deposition[]
+            = {0.8 * 0.3, 0.8 * 0.6};
         EXPECT_VEC_SOFT_EQ(expected_energy_deposition,
                            result.energy_deposition);
         static char const* const expected_particle[] = {"gamma", "gamma"};

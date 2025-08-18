@@ -19,14 +19,13 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-
+/*!
+ * Construct from surface input and volume structure information.
+ */
 SurfaceParams::SurfaceParams(inp::Surfaces const& input,
                              VolumeParams const& volumes)
 {
-    if (!input)
-    {
-        CELER_LOG(warning) << "No optical surfaces are defined";
-    }
+    CELER_EXPECT(!volumes.empty() || !input);
 
     // Set up temporary storage
     std::vector<detail::VolumeSurfaceData> temp_volume_surfaces;
@@ -42,6 +41,7 @@ SurfaceParams::SurfaceParams(inp::Surfaces const& input,
         // Convert the temporary data to device-compatible format
         HostVal<SurfaceParamsData> host_data;
         host_data.num_surfaces = labels_.size();
+        // Always resize surface array, even if no surfaces are defined
         detail::VolumeSurfaceRecordBuilder build_record(
             &host_data.volume_surfaces,
             &host_data.volume_instance_ids,
@@ -49,6 +49,7 @@ SurfaceParams::SurfaceParams(inp::Surfaces const& input,
         std::for_each(temp_volume_surfaces.begin(),
                       temp_volume_surfaces.end(),
                       build_record);
+        CELER_ENSURE(host_data);
         return host_data;
     }()};
 
@@ -56,10 +57,19 @@ SurfaceParams::SurfaceParams(inp::Surfaces const& input,
     CELER_ENSURE(labels_.size() == this->host_ref().num_surfaces);
 }
 
-SurfaceParams::SurfaceParams()
+//---------------------------------------------------------------------------//
+/*!
+ * Construct no surface data for when optical physics is disabled.
+ */
+SurfaceParams::SurfaceParams() : labels_{{"surfaces"}, {}}
 {
-    labels_ = {"surfaces", {}};
+    CELER_ENSURE(data_);
+    CELER_ENSURE(labels_.size() == this->host_ref().num_surfaces);
 }
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
 
 template class CollectionMirror<SurfaceParamsData>;
 template class ParamsDataInterface<SurfaceParamsData>;

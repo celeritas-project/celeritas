@@ -41,9 +41,6 @@ struct GeoTraits<OrangeParams>
 
     //! Descriptive name for the geometry
     static constexpr char const name[] = "ORANGE";
-
-    //! TO BE REMOVED: "native" file extension for this geometry
-    static constexpr char const ext[] = ".org.json";
 };
 
 //---------------------------------------------------------------------------//

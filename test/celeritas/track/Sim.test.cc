@@ -31,7 +31,7 @@ class SimTest : public GeantTestBase
     using MevEnergy = units::MevEnergy;
 
   protected:
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "four-steel-slabs"sv;
     }
@@ -83,7 +83,8 @@ TEST_F(SimTest, looping)
 
     // Check looping threshold parameters for each particle
     SimTrackView sim(this->sim()->host_ref(), sim_state_.ref(), TrackSlotId{0});
-    sim = SimTrackInitializer{TrackId{0}, TrackId{}, EventId{0}, 0};
+    sim = SimTrackInitializer{
+        TrackId{0}, TrackId{}, PrimaryId{}, EventId{0}, 0};
     for (auto pid : range(ParticleId{this->particle()->size()}))
     {
         auto const& looping = sim.looping_threshold(pid);

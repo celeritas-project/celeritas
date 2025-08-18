@@ -17,10 +17,10 @@ namespace orangeinp
 //---------------------------------------------------------------------------//
 /*! A convex/concave polygon extruded along a polyline, with scaling.
  *
- * The polygon must be specified in clockwise order. The polyline must be
- * strictly monotonically increasing in z. Scaling factors can be any positive
- * value. Scaling is assumed to occur with respect to the polygon's original
- * coordinate system.
+ * The polygon must be specified in counterclockwise order. The polyline must
+ * be strictly monotonically increasing in z. Scaling factors can be any
+ * positive value. Scaling is assumed to occur with respect to the polygon's
+ * original coordinate system.
  *
  * Construction is performed using a convex decomposition approach
  * \citep{tor-convexdecomp-1984, https://doi.org/10.1145/357346.357348}. The
@@ -80,9 +80,9 @@ namespace orangeinp
  *   in the example above might be named `my_shape@1.1.0`. For each level,
  *   additional nodes are created in the form: `label@level.suffix` where
  *   suffixes have the following meanings:
- *   1) .cu : the union of all convex regions on this level,
- *   2) .ncu : the negation of the union of all convex regions on this level,
- *   3) .d : the difference between this level's convex hull and the convex
+ *   1) .cu : the union of all concave regions on this level,
+ *   2) .ncu : the negation of the union of all concave regions on this level,
+ *   3) .d : the difference between this level's convex hull and the concave
  *      regions on this level.
  */
 class StackedExtrudedPolygon final : public ObjectInterface
@@ -153,14 +153,14 @@ class StackedExtrudedPolygon final : public ObjectInterface
                       SubRegionIndex si) const;
 
     // Make a label for a level
-    std::string make_level_label(SubRegionIndex si) const;
+    std::string make_level_ext(SubRegionIndex si) const;
 
     // Make a label for a stack within a level
-    std::string make_stack_label(SubRegionIndex si) const;
+    std::string make_stack_ext(SubRegionIndex si) const;
 
     // Make a label for a segment within a stack
     std::string
-    make_segment_label(SubRegionIndex si, size_type segment_idx) const;
+    make_segment_ext(SubRegionIndex si, size_type segment_idx) const;
 
     //// DATA ////
 

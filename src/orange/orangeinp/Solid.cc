@@ -26,9 +26,9 @@ namespace orangeinp
 namespace
 {
 // Overload eumod to work with turn
-constexpr auto eumod(RealTurn numer, RealTurn denom)
+constexpr auto eumod(RealTurn num, RealTurn denom)
 {
-    return RealTurn{celeritas::eumod(numer.value(), denom.value())};
+    return RealTurn{celeritas::eumod(num.value(), denom.value())};
 }
 
 }  // namespace

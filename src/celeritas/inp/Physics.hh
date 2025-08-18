@@ -11,11 +11,13 @@
 #include <vector>
 
 #include "corecel/Types.hh"
+#include "corecel/io/Label.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 
 #include "PhysicsProcess.hh"
 #include "ProcessBuilder.hh"
+#include "SurfacePhysics.hh"
 
 namespace celeritas
 {
@@ -55,15 +57,15 @@ struct EmPhysics
 
 //---------------------------------------------------------------------------//
 /*!
- * Optical physics processes and options.
+ * Optical physics processes, options, and surface definitions.
  */
 struct OpticalPhysics
 {
     //!@{
-    //! \name Optical photon generation
-
-    /*! \todo Replace with a mapping of \c VolumeId to \c ScintillationPhysics
-     * or \c CherenkovPhysics
+    /*! \name Optical photon generation
+     *
+     *  \todo Replace with a mapping of volume to \c ScintillationPhysics or \c
+     *  CherenkovPhysics
      */
 
     //! Generate Cherenkov photons
@@ -72,6 +74,14 @@ struct OpticalPhysics
     //! Generate scintillation photons
     bool scintillation{true};
     //!@}
+
+    //!@{
+    //! \name Optical surface physics and properties
+    SurfacePhysics surfaces;
+    //!@}
+
+    //! Whether the data are assigned
+    explicit operator bool() const { return static_cast<bool>(surfaces); }
 };
 
 //---------------------------------------------------------------------------//

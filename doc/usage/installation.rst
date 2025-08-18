@@ -59,6 +59,7 @@ internet if required but not available on the user's system.
    Sphinx_, Docs, "User documentation"
    sphinxbib_, Docs, "Reference generation for user documentation"
    clang-format_, Development, "C++ code formatting"
+   codespell_, Development, "Spell checking"
    CMake_, Development, "Build system"
    Git_, Development, "Repository management"
    pre-commit_, Development, "Formatting enforcement"
@@ -67,6 +68,7 @@ internet if required but not available on the user's system.
 
 .. _breathe: https://github.com/michaeljones/breathe#readme
 .. _clang-format: https://clang.llvm.org/docs/ClangFormat.html
+.. _codespell: https://github.com/codespell-project/codespell
 .. _CLI11: https://cliutils.github.io/CLI11/book/
 .. _CMake: https://cmake.org
 .. _CUDA: https://developer.nvidia.com/cuda-toolkit

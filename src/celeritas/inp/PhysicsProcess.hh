@@ -39,7 +39,7 @@ struct PairProductionProcess
 //---------------------------------------------------------------------------//
 //!@{
 //! \name Process aliases
-//! \todo rename `em/model` to match, merge muon and electron proceses
+//! \todo rename `em/model` to match, merge muon and electron processes
 
 using BremsstrahlungProcess = BremsProcess;
 using GammaConversionProcess = PairProductionProcess;

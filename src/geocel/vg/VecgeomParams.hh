@@ -10,6 +10,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "corecel/Config.hh"
+
 #include "corecel/Types.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/data/ParamsDataInterface.hh"
@@ -22,8 +24,30 @@
 
 class G4VPhysicalVolume;
 
+// clang-format off
+#if CELERITAS_VECGEOM_VERSION < 0x020000
+#  if defined(__CUDACC__) || defined(__NVCC__)
+#    define CELERITAS_VECGEOM_GM_CXX_NS_BEGIN namespace cxx {
+#  else
+#    define CELERITAS_VECGEOM_GM_CXX_NS_BEGIN inline namespace cxx {
+#  endif
+#  define CELERITAS_VECGEOM_GM_CXX_NS_END } // end namespace cxx
+#else
+#  define CELERITAS_VECGEOM_GM_CXX_NS_BEGIN
+#  define CELERITAS_VECGEOM_GM_CXX_NS_END
+#endif
+// clang-format on
+
+namespace vecgeom
+{
+CELERITAS_VECGEOM_GM_CXX_NS_BEGIN
+class GeoManager;
+CELERITAS_VECGEOM_GM_CXX_NS_END
+}  // namespace vecgeom
+
 namespace celeritas
 {
+class GeantGeoParams;
 //---------------------------------------------------------------------------//
 /*!
  * Shared model parameters for a VecGeom geometry.
@@ -34,17 +58,44 @@ class VecgeomParams final : public GeoParamsInterface,
                             public ParamsDataInterface<VecgeomParamsData>
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using VecLv = std::vector<G4LogicalVolume const*>;
+    using VecPv = std::vector<G4VPhysicalVolume const*>;
+    //!@}
+
+  public:
     // Whether surface tracking is being used
     static bool use_surface_tracking();
 
     // Whether VecGeom GDML is being used to load the geometry
     static bool use_vgdml();
 
-    // Construct from a GDML filename
-    explicit VecgeomParams(std::string const& gdml_filename);
+    //!@{
+    //! \name Static constructor helpers
+    //! \todo: move these to a "model" abstraction that loads/emits geometry,
+    //! materials, volumes?
 
-    // Create a VecGeom model from a pre-existing Geant4 geometry
-    explicit VecgeomParams(G4VPhysicalVolume const* world);
+    // Build by loading a GDML file (best available method)
+    static std::shared_ptr<VecgeomParams>
+    from_gdml(std::string const& filename);
+
+    // Build by loading a GDML file through Geant4
+    static std::shared_ptr<VecgeomParams>
+    from_gdml_g4(std::string const& filename);
+
+    // Build by loading a GDML file through VecGeom VGDML
+    static std::shared_ptr<VecgeomParams>
+    from_gdml_vg(std::string const& filename);
+
+    // Build from a Geant4 geometry
+    static std::shared_ptr<VecgeomParams>
+    from_geant(std::shared_ptr<GeantGeoParams const> const& geo);
+
+    //!@}
+
+    // Build from existing geometry, with ownership and mappings
+    VecgeomParams(vecgeom::GeoManager const&, Ownership, VecLv const&, VecPv&&);
 
     // Clean up VecGeom on destruction
     ~VecgeomParams() final;
@@ -57,7 +108,7 @@ class VecgeomParams final : public GeoParamsInterface,
 
     //! Maximum nested geometry depth
     //! \todo move to VolumeParams
-    LevelId::size_type max_depth() const final { return host_ref_.max_depth; }
+    LevelId::size_type max_depth() const { return host_ref_.max_depth; }
 
     // Create model parameters corresponding to our internal representation
     inp::Model make_model_input() const final;
@@ -65,19 +116,22 @@ class VecgeomParams final : public GeoParamsInterface,
     //// VOLUMES ////
 
     // Get volume metadata
-    inline VolumeMap const& volumes() const final;
+    inline ImplVolumeMap const& impl_volumes() const final;
 
     // Get (physical) volume instance metadata
     inline VolInstanceMap const& volume_instances() const final;
 
     // Get the volume ID corresponding to a Geant4 logical volume
-    VolumeId find_volume(G4LogicalVolume const* volume) const final;
+    ImplVolumeId find_volume(G4LogicalVolume const* volume) const final;
 
     // Get the Geant4 physical volume corresponding to a volume instance ID
     GeantPhysicalInstance id_to_geant(VolumeInstanceId vol_id) const final;
 
     // DEPRECATED
     using GeoParamsInterface::find_volume;
+
+    // Get the canonical volume IDs corresponding to an implementation volume
+    inline VolumeId volume_id(ImplVolumeId) const final;
 
     //// DATA ACCESS ////
 
@@ -90,11 +144,17 @@ class VecgeomParams final : public GeoParamsInterface,
   private:
     //// DATA ////
 
-    // Host metadata/access
-    LabelIdMultiMap<VolumeId> volumes_;
+    // Flag for resetting VecGeom on destruction
+    Ownership ownership_{Ownership::reference};
+
+    // Host metadata/access (DEPRECATED)
+    LabelIdMultiMap<ImplVolumeId> volumes_;
     VolInstanceMap vol_instances_;
-    std::unordered_map<G4LogicalVolume const*, VolumeId> g4log_volid_map_;
+    std::unordered_map<G4LogicalVolume const*, ImplVolumeId> g4log_volid_map_;
     std::vector<G4VPhysicalVolume const*> g4_pv_map_;
+
+    // VolumeImplId -> VolumeId (to be moved to data)
+    std::vector<VolumeId> volume_id_map_;
 
     BBox bbox_;
 
@@ -102,29 +162,18 @@ class VecgeomParams final : public GeoParamsInterface,
     HostRef host_ref_;
     DeviceRef device_ref_;
 
-    // If VGDML is unavailable and Geant4 is, we load and
-    bool loaded_geant4_gdml_{false};
-
     //// HELPER FUNCTIONS ////
 
     // Construct VecGeom tracking data and copy to GPU
-    void build_volumes_vgdml(std::string const& filename);
-    void build_volumes_geant4(G4VPhysicalVolume const* world);
-    void build_tracking();
     void build_surface_tracking();
     void build_volume_tracking();
-
-    // Construct host/device Celeritas data
-    void build_data();
-    // Construct labels and other host-only metadata
-    void build_metadata();
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Get volume metadata.
  */
-auto VecgeomParams::volumes() const -> VolumeMap const&
+auto VecgeomParams::impl_volumes() const -> ImplVolumeMap const&
 {
     return volumes_;
 }
@@ -138,6 +187,26 @@ auto VecgeomParams::volumes() const -> VolumeMap const&
 auto VecgeomParams::volume_instances() const -> VolInstanceMap const&
 {
     return vol_instances_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the canonical volume IDs corresponding to an implementation volume.
+ *
+ * \note See make_inp_volumes : for now, volume IDs and impl IDs are identical
+ */
+inline VolumeId VecgeomParams::volume_id(ImplVolumeId iv_id) const
+{
+    CELER_EXPECT(volume_id_map_.empty() || iv_id < volume_id_map_.size());
+
+    if (CELER_UNLIKELY(volume_id_map_.empty()))
+    {
+        // VGDML probably loaded geometry
+        CELER_ASSERT(iv_id);
+        return id_cast<VolumeId>(iv_id.unchecked_get());
+    }
+
+    return volume_id_map_[iv_id.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//

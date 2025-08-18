@@ -12,6 +12,7 @@
 #include "corecel/io/Repr.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 
 #include "TestMacros.hh"
 
@@ -129,13 +130,15 @@ void EventIOTestBase::write_test_event(Writer& write_event) const
                       from_cm(Real3{2, 4, 5}),
                       Real3{1, 0, 0},
                       5.67e-9 * units::second,
-                      EventId{0}};
+                      EventId{0},
+                      PrimaryId{}};
         Primary proton{proton_id,
                        MevEnergy{2.34},
                        from_cm(Real3{3, 5, 8}),
                        Real3{0, 1, 0},
                        5.78e-9 * units::second,
-                       EventId{0}};
+                       EventId{0},
+                       PrimaryId{}};
         std::vector<Primary> primaries{gamma, proton, gamma, proton};
         primaries[1].position = from_cm(Real3{-3, -4, 5});
         primaries[3].position = primaries[2].position;

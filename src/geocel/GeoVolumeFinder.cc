@@ -17,7 +17,7 @@ namespace celeritas
 /*!
  * Perform the search.
  */
-VolumeId GeoVolumeFinder::operator()(Label const& label) const
+ImplVolumeId GeoVolumeFinder::operator()(Label const& label) const
     noexcept(!CELERITAS_DEBUG)
 {
     if (auto id = vols_.find_exact(label))
@@ -41,13 +41,14 @@ VolumeId GeoVolumeFinder::operator()(Label const& label) const
     }
     if (all_ids.size() > 1)
     {
-        CELER_LOG(warning) << "Multiple volumes '"
-                           << join(all_ids.begin(),
-                                   all_ids.end(),
-                                   "', '",
-                                   [this](VolumeId v) { return vols_.at(v); })
-                           << "' match the name '" << label.name
-                           << "': returning the last one";
+        CELER_LOG(warning)
+            << "Multiple volumes '"
+            << join(all_ids.begin(),
+                    all_ids.end(),
+                    "', '",
+                    [this](ImplVolumeId v) { return vols_.at(v); })
+            << "' match the name '" << label.name
+            << "': returning the last one";
         return all_ids.back();
     }
     return {};

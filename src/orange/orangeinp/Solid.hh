@@ -73,7 +73,7 @@ class EnclosedAzi
 
 //---------------------------------------------------------------------------//
 /*!
- * Define the polar trunction of a solid.
+ * Define the polar truncation of a solid.
  *
  * This subtracts up to two infinite cones centered along the z axis from the
  * origin.
@@ -165,7 +165,7 @@ class SolidBase : public ObjectInterface
  * A shape that has undergone an intersection or combination of intersections.
  *
  * This shape may be:
- * A) hollow (exluded interior),
+ * A) hollow (excluded interior),
  * B) truncated azimuthally (enclosed angle),
  * C) truncated in z (intersected with z-slab),
  * D) both A and B.

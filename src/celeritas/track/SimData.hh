@@ -103,6 +103,7 @@ struct SimTrackInitializer
 {
     TrackId track_id;  //!< Unique ID for this track
     TrackId parent_id;  //!< ID of parent that created it
+    PrimaryId primary_id;  //!< ID of originating primary
     EventId event_id;  //!< ID of originating event
     real_type time{0};  //!< Time elapsed in lab frame since start of event
     real_type weight{1.0};
@@ -134,6 +135,7 @@ struct SimStateData
     //// DATA ////
 
     Items<TrackId> track_ids;  //!< Unique ID for this track
+    Items<PrimaryId> primary_ids;  //!< ID of originating primary
     Items<TrackId> parent_ids;  //!< ID of parent that created it
     Items<EventId> event_ids;  //!< ID of originating event
     Items<size_type> num_steps;  //!< Total number of steps taken
@@ -152,7 +154,8 @@ struct SimStateData
     //! Check whether the interface is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !track_ids.empty() && !parent_ids.empty() && !event_ids.empty()
+        return !track_ids.empty() && !primary_ids.empty()
+               && !parent_ids.empty() && !event_ids.empty()
                && !num_steps.empty() && !time.empty() && !status.empty()
                && !step_length.empty() && !post_step_action.empty()
                && !along_step_action.empty();
@@ -170,6 +173,7 @@ struct SimStateData
     {
         CELER_EXPECT(other);
         track_ids = other.track_ids;
+        primary_ids = other.primary_ids;
         parent_ids = other.parent_ids;
         event_ids = other.event_ids;
         num_steps = other.num_steps;
@@ -196,6 +200,7 @@ void resize(SimStateData<Ownership::value, M>* data,
     CELER_EXPECT(size > 0);
 
     resize(&data->track_ids, size);
+    resize(&data->primary_ids, size);
     resize(&data->parent_ids, size);
     resize(&data->event_ids, size);
     resize(&data->num_steps, size);

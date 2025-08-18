@@ -7,6 +7,7 @@
 #include "LocalTransporter.hh"
 
 #include <csignal>
+#include <memory>
 #include <string>
 #include <type_traits>
 #include <CLHEP/Units/SystemOfUnits.h>
@@ -23,6 +24,7 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/Types.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
@@ -35,6 +37,7 @@
 #include "geocel/GeantUtils.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/ext/GeantSd.hh"
 #include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/ext/detail/HitProcessor.hh"
@@ -234,7 +237,7 @@ void LocalTransporter::InitializeEvent(int id)
 /*!
  * Convert a Geant4 track to a Celeritas primary and add to buffer.
  */
-void LocalTransporter::Push(G4Track const& g4track)
+void LocalTransporter::Push(G4Track& g4track)
 {
     CELER_EXPECT(*this);
 
@@ -259,6 +262,14 @@ void LocalTransporter::Push(G4Track const& g4track)
 
     PDGNumber const pdg{g4track.GetDefinition()->GetPDGEncoding()};
     track.particle_id = particles_->find(pdg);
+
+    // Generate Celeritas-specific PrimaryID
+    if (hit_processor_)
+    {
+        track.primary_id
+            = hit_processor_->track_processor().register_primary(g4track);
+    }
+
     track.energy = units::MevEnergy(
         convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV));
 
@@ -398,6 +409,7 @@ void LocalTransporter::Flush()
                                    << " hits for event " << event_id_.get();
             run_accum_.hits += num_hits;
         }
+        hit_processor_->track_processor().end_event();
     }
 }
 

@@ -7,7 +7,6 @@
 #include "SimpleTestBase.hh"
 
 #include "corecel/sys/ActionRegistry.hh"
-#include "geocel/SurfaceParams.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/alongstep/AlongStepNeutralAction.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
@@ -47,11 +46,15 @@ auto SimpleTestBase::build_material() -> SPConstMaterial
 //---------------------------------------------------------------------------//
 auto SimpleTestBase::build_geomaterial() -> SPConstGeoMaterial
 {
-    GeoMaterialParams::Input input;
+    using Input = GeoMaterialParams::Input;
+    Input input;
+
     input.geometry = this->geometry();
     input.materials = this->material();
-    input.volume_to_mat = {PhysMatId{0}, PhysMatId{1}, PhysMatId{}};
-    input.volume_labels = {Label{"inner"}, Label{"world"}, Label{"[EXTERIOR]"}};
+    input.volume_to_mat = Input::MapLabelMat{
+        {"inner", PhysMatId{0}},
+        {"world", PhysMatId{1}},
+    };
     return std::make_shared<GeoMaterialParams>(std::move(input));
 }
 
@@ -168,12 +171,6 @@ auto SimpleTestBase::build_sim() -> SPConstSim
     SimParams::Input input;
     input.particles = this->particle();
     return std::make_shared<SimParams>(input);
-}
-
-//---------------------------------------------------------------------------//
-auto SimpleTestBase::build_surface() -> SPConstSurface
-{
-    return std::make_shared<SurfaceParams>();
 }
 
 //---------------------------------------------------------------------------//

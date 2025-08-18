@@ -42,15 +42,10 @@ class NaviTouchableUpdaterBase : public ::celeritas::test::GeantGeoTestBase
 
     void SetUp() override { touch_handle_ = new G4TouchableHistory; }
 
-    SPConstGeo build_geometry() final
-    {
-        return this->build_geometry_from_basename();
-    }
-
     G4LogicalVolume const* find_lv(std::string const& name) const
     {
         auto const& geo = *this->geometry();
-        auto const* lv = geo.id_to_geant(geo.volumes().find_unique(name));
+        auto const* lv = geo.id_to_geant(geo.impl_volumes().find_unique(name));
         CELER_ENSURE(lv);
         return lv;
     }
@@ -87,7 +82,7 @@ class NaviTouchableUpdaterBase : public ::celeritas::test::GeantGeoTestBase
 class SimpleCmsNaviTest : public NaviTouchableUpdaterBase
 {
   public:
-    std::string geometry_basename() const final { return "simple-cms"; }
+    std::string_view gdml_basename() const final { return "simple-cms"; }
 };
 
 TEST_F(SimpleCmsNaviTest, correct)
@@ -303,7 +298,7 @@ TEST_F(SimpleCmsNaviTest, regression)
 class MultiLevelNaviTest : public NaviTouchableUpdaterBase
 {
   public:
-    std::string geometry_basename() const final { return "multi-level"; }
+    std::string_view gdml_basename() const final { return "multi-level"; }
 };
 
 TEST_F(MultiLevelNaviTest, all_points)

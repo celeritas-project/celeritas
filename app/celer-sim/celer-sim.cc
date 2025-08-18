@@ -131,7 +131,7 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
     else
     {
         CELER_LOG(status) << "Transporting " << run_stream.num_events()
-                          << " on " << num_streams << " threads";
+                          << " events on " << num_streams << " threads";
         MultiExceptionHandler capture_exception;
         size_type const num_events = run_stream.num_events();
 #if CELERITAS_OPENMP == CELERITAS_OPENMP_EVENT

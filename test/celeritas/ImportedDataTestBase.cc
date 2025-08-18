@@ -6,10 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "ImportedDataTestBase.hh"
 
-#include "geocel/GeantGeoParams.hh"
-#include "geocel/SurfaceParams.hh"
-#include "geocel/VolumeParams.hh"
-#include "geocel/inp/Model.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/io/ImportData.hh"
@@ -39,6 +35,12 @@ auto ImportedDataTestBase::build_physics_options() const -> PhysicsOptions
 }
 
 //---------------------------------------------------------------------------//
+auto ImportedDataTestBase::select_optical_models() const -> std::vector<IMC>
+{
+    return {IMC::absorption, IMC::rayleigh, IMC::wls};
+}
+
+//---------------------------------------------------------------------------//
 auto ImportedDataTestBase::build_material() -> SPConstMaterial
 {
     return MaterialParams::from_import(this->imported_data());
@@ -47,8 +49,10 @@ auto ImportedDataTestBase::build_material() -> SPConstMaterial
 //---------------------------------------------------------------------------//
 auto ImportedDataTestBase::build_geomaterial() -> SPConstGeoMaterial
 {
+    // Access geometry first to build volume data
+    auto geo = this->geometry();
     return GeoMaterialParams::from_import(
-        this->imported_data(), this->geometry(), this->material());
+        this->imported_data(), geo, this->volume(), this->material());
 }
 
 //---------------------------------------------------------------------------//
@@ -74,21 +78,6 @@ auto ImportedDataTestBase::build_sim() -> SPConstSim
 }
 
 //---------------------------------------------------------------------------//
-auto ImportedDataTestBase::build_surface() -> SPConstSurface
-{
-    if (auto const* geo = geant_geo())
-    {
-        auto model = geo->make_model_input();
-        if (!this->imported_data().optical_materials.empty())
-        {
-            auto volume = std::make_shared<VolumeParams>(model.volumes);
-            return std::make_shared<SurfaceParams>(model.surfaces, *volume);
-        }
-    }
-    return std::make_shared<SurfaceParams>();
-}
-
-//---------------------------------------------------------------------------//
 auto ImportedDataTestBase::build_wentzel() -> SPConstWentzelOKVI
 {
     return WentzelOKVIParams::from_import(
@@ -106,7 +95,7 @@ auto ImportedDataTestBase::build_physics() -> SPConstPhysics
     input.options = this->build_physics_options();
     input.action_registry = this->action_reg().get();
 
-    // Build proceses
+    // Build processes
     auto const& imported = this->imported_data();
     ProcessBuilder build_process(imported, input.particles, input.materials);
 
@@ -171,13 +160,12 @@ auto ImportedDataTestBase::build_optical_physics() -> SPConstOpticalPhysics
 
     optical::PhysicsParams::Input input;
     input.materials = this->optical_material();
-    input.action_registry = this->action_reg().get();
+    input.action_registry = this->optical_action_reg().get();
 
-    std::vector<IMC> imcs{IMC::absorption, IMC::rayleigh, IMC::wls};
     optical::ModelImporter importer(
         this->imported_data(), this->optical_material(), this->material());
 
-    for (IMC imc : imcs)
+    for (IMC imc : this->select_optical_models())
     {
         if (auto builder = importer(imc))
         {

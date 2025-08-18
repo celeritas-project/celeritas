@@ -35,11 +35,11 @@ namespace detail
  * bounding boxes are infinite, the tree will consist of a single empty leaf
  * node with all volumes in the stored inf_vols. This final case is useful in
  * the event that an ORANGE geometry is created via a method where volume
- * bounding boxes are not availible.
+ * bounding boxes are not available.
  *
  * Bounding boxes supplied to this builder should "bumped," i.e. expanded
  * outward by at least floating-point epsilson from the volumes they bound.
- * This eliminates the possiblity of accidently missing a volume during
+ * This eliminates the possibility of accidentally missing a volume during
  * tracking.
  */
 class BIHBuilder
@@ -92,7 +92,7 @@ class BIHBuilder
                         BIHNodeId parent,
                         FastBBox const& bbox);
 
-    // Seperate nodes into inner and leaf vectors and renumber accordingly
+    // Separate nodes into inner and leaf vectors and renumber accordingly
     ArrangedNodes arrange_nodes(VecNodes const& nodes) const;
 };
 

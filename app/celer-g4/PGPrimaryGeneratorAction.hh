@@ -34,7 +34,7 @@ class PGPrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
   public:
     //!@{
     //! \name Type aliases
-    using Input = inp::PrimaryGenerator;
+    using Input = inp::CorePrimaryGenerator;
     //!@}
 
   public:

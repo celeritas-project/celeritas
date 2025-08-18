@@ -71,12 +71,17 @@ G4bool GeantExceptionHandler::Notify(char const* origin_of_exception,
             // Severe or initialization error
             throw err;
         case JustWarning: {
-            // Display a message: log destination depends on whether this
-            // thread is a manager or worker
-            auto& log = (G4Threading::IsMultithreadedApplication()
-                         && G4Threading::IsMasterThread())
-                            ? celeritas::world_logger()
-                            : celeritas::self_logger();
+            // Display a message: log destination depends on whether we're
+            // actually running particles and if the thread is a worker (or if
+            // it's not multithreaded). Setup errors get sent to world; runtime
+            // errors are sent to self.
+            bool const is_runtime_error
+                = (G4StateManager::GetStateManager()->GetCurrentState()
+                   == G4State_EventProc)
+                  && (G4Threading::IsWorkerThread()
+                      || !G4Threading::IsMultithreadedApplication());
+            auto& log = (is_runtime_error ? celeritas::self_logger()
+                                          : celeritas::world_logger());
             log(CELER_CODE_PROVENANCE, ::celeritas::LogLevel::error)
                 << err.what();
             break;

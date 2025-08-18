@@ -28,13 +28,14 @@ class OffloadWriter;
 
 class CoreParams;
 class CoreStateInterface;
+class GeantGeoParams;
+class GeantSd;
+class OpticalCollector;
+class OutputRegistry;
+class StepCollector;
+class TimeOutput;
 struct Primary;
 struct SetupOptions;
-class StepCollector;
-class GeantGeoParams;
-class OutputRegistry;
-class TimeOutput;
-class GeantSd;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -128,11 +129,15 @@ class SharedParams
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
     using SPTimeOutput = std::shared_ptr<TimeOutput>;
     using SPState = std::shared_ptr<CoreStateInterface>;
+    using SPOptical = std::shared_ptr<OpticalCollector>;
     using SPConstGeantGeoParams = std::shared_ptr<GeantGeoParams const>;
     using BBox = BoundingBox<double>;
 
     //! Initialization status and integration mode
     Mode mode() const { return mode_; }
+
+    // Optical properties (only if using optical physics)
+    inline SPOptical const& optical() const;
 
     // Hit manager, to be used only by LocalTransporter
     inline SPGeantSd const& hit_manager() const;
@@ -163,6 +168,7 @@ class SharedParams
     Mode mode_{Mode::uninitialized};
     SPConstGeantGeoParams geant_geo_;
     std::shared_ptr<CoreParams> params_;
+    std::shared_ptr<OpticalCollector> optical_;
     std::shared_ptr<GeantSd> geant_sd_;
     std::shared_ptr<StepCollector> step_collector_;
     VecG4ParticleDef particles_;
@@ -222,6 +228,16 @@ auto SharedParams::OffloadParticles() const -> VecG4ParticleDef const&
 {
     CELER_EXPECT(*this);
     return particles_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Optical data: null if Celeritas optical physics is disabled.
+ */
+auto SharedParams::optical() const -> SPOptical const&
+{
+    CELER_EXPECT(*this);
+    return optical_;
 }
 
 //---------------------------------------------------------------------------//

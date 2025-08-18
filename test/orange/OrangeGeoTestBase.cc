@@ -17,6 +17,7 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/Types.hh"
+#include "geocel/VolumeParams.hh"
 #include "orange/OrangeInput.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/detail/UniverseIndexer.hh"
@@ -79,15 +80,14 @@ void OrangeGeoTestBase::SetUp() {}
 
 //---------------------------------------------------------------------------//
 /*!
- * Load a geometry from the given JSON filename.
+ * Load a geometry from a JSON filename.
  */
 void OrangeGeoTestBase::build_geometry(std::string const& filename)
 {
     CELER_EXPECT(!params_);
 
     ScopedLogStorer scoped_log_{&celeritas::world_logger()};
-    params_
-        = std::make_unique<Params>(this->test_data_path("orange", filename));
+    params_ = OrangeParams::from_json(this->test_data_path("orange", filename));
 
     static std::string const expected_log_levels[] = {"info"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels()) << scoped_log_;
@@ -173,7 +173,8 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
 void OrangeGeoTestBase::build_geometry(UnitInput input)
 {
     CELER_EXPECT(input);
-    params_ = std::make_unique<Params>(to_input(std::move(input)));
+    params_
+        = std::make_unique<Params>(to_input(std::move(input)), VolumeParams{});
     // Base class will construct geometry from this call via build_geometry
     ASSERT_TRUE(this->geometry());
 }
@@ -237,7 +238,7 @@ void OrangeGeoTestBase::describe(std::ostream& os) const
 ImplVolumeId::size_type OrangeGeoTestBase::num_volumes() const
 {
     CELER_EXPECT(params_);
-    return params_->volumes().size();
+    return params_->impl_volumes().size();
 }
 
 //---------------------------------------------------------------------------//
@@ -260,7 +261,7 @@ ImplSurfaceId OrangeGeoTestBase::find_surface(std::string const& label) const
 ImplVolumeId OrangeGeoTestBase::find_volume(std::string const& label) const
 {
     CELER_EXPECT(params_);
-    ImplVolumeId volume_id = params_->volumes().find_unique(label);
+    ImplVolumeId volume_id = params_->impl_volumes().find_unique(label);
     CELER_VALIDATE(volume_id, << "nonexistent volume label '" << label << '\'');
     return volume_id;
 }
@@ -299,7 +300,7 @@ OrangeGeoTestBase::id_to_label(UniverseId uid, LocalVolumeId vol_id) const
         return "[none]";
 
     detail::UniverseIndexer ui(this->params().host_ref().universe_indexer_data);
-    return params_->volumes().at(ui.global_volume(uid, vol_id)).name;
+    return params_->impl_volumes().at(ui.global_volume(uid, vol_id)).name;
 }
 
 //---------------------------------------------------------------------------//
@@ -315,7 +316,7 @@ std::string OrangeGeoTestBase::id_to_label(LocalVolumeId vol_id) const
 /*!
  * Return the geometry that was created.
  */
-auto OrangeGeoTestBase::build_geometry() -> SPConstGeo
+auto OrangeGeoTestBase::build_geometry() const -> SPConstGeo
 {
     CELER_EXPECT(params_);
     return params_;

@@ -169,7 +169,7 @@ void sort_tracks(DeviceRef<CoreStateData> const& states, TrackOrder order)
 //---------------------------------------------------------------------------//
 /*!
  * Count tracks associated to each action that was used to sort them, specified
- * by order. Result is written in the output parameter offsets which sould be
+ * by order. Result is written in the output parameter offsets which should be
  * of size num_actions + 1.
  */
 void count_tracks_per_action(

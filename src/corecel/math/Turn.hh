@@ -132,7 +132,7 @@ CELER_CONSTEXPR_FUNCTION void sincos(IntQuarterTurn r, int* sinv, int* cosv)
 template<class T>
 CELER_FORCEINLINE_FUNCTION Turn_t<T> atan2turn(T y, T x)
 {
-    // TODO: some hardware/libraries have this natively; use that instad
+    // TODO: some hardware/libraries have this natively; use that instead
     return native_value_to<Turn_t<T>>(std::atan2(y, x));
 }
 

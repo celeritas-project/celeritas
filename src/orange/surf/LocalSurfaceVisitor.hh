@@ -80,7 +80,7 @@ class LocalSurfaceVisitor
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct from ORANGE data ans local surfaces.
+ * Construct from ORANGE data and local surfaces.
  *
  * This is meant to be called from inside a simple unit tracker.
  */

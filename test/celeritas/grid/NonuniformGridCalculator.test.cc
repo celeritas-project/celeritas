@@ -84,6 +84,65 @@ TEST_F(NonuniformGridCalculatorTest, nonmonotonic)
     EXPECT_SOFT_EQ(2.0, calc(1e7));
 }
 
+TEST_F(NonuniformGridCalculatorTest, discontinuous)
+{
+    inp::Grid grid;
+    grid.x = {1.0, 2.0, 2.0, 3.0};
+    grid.y = {1.0, 1.0, 2.0, 2.0};
+    this->build(grid);
+
+    NonuniformGridCalculator calc(grid_, reals_ref_);
+
+    // Test accessing tabulated data
+    EXPECT_EQ(1.0, calc[0]);
+    EXPECT_EQ(2.0, calc[3]);
+
+    // Test on grid points
+    EXPECT_SOFT_EQ(1.0, calc(1.0));
+    EXPECT_SOFT_EQ(2.0, calc(2.0));
+    EXPECT_SOFT_EQ(2.0, calc(3.0));
+
+    // Test out-of-bounds
+    EXPECT_SOFT_EQ(1.0, calc(0.0));
+    EXPECT_SOFT_EQ(2.0, calc(4.0));
+}
+
+TEST_F(NonuniformGridCalculatorTest, discontinuous_end)
+{
+    inp::Grid grid;
+    grid.x = {1.0, 2.0, 2.0};
+    grid.y = {1.0, 1.0, 2.0};
+    this->build(grid);
+
+    NonuniformGridCalculator calc(grid_, reals_ref_);
+
+    // Test accessing tabulated data
+    EXPECT_EQ(1.0, calc[0]);
+    EXPECT_EQ(2.0, calc[2]);
+
+    // Test on grid points
+    EXPECT_SOFT_EQ(1.0, calc(1));
+    EXPECT_SOFT_EQ(2.0, calc(2));
+
+    // Test out-of-bounds
+    EXPECT_SOFT_EQ(1.0, calc(0.0));
+    EXPECT_SOFT_EQ(2.0, calc(3.0));
+}
+TEST_F(NonuniformGridCalculatorTest, discontinuous_all)
+{
+    inp::Grid grid;
+    grid.x = {2.0, 2.0};
+    grid.y = {-1.0, 1.0};
+    this->build(grid);
+
+    NonuniformGridCalculator calc(grid_, reals_ref_);
+
+    // Test on and around the single coincident point
+    EXPECT_SOFT_EQ(-1.0, calc(1.9));
+    EXPECT_SOFT_EQ(1.0, calc(2.0));
+    EXPECT_SOFT_EQ(1.0, calc(2.1));
+}
+
 TEST_F(NonuniformGridCalculatorTest, inverse)
 {
     inp::Grid grid;

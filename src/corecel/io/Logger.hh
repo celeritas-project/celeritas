@@ -74,7 +74,7 @@ class MpiCommunicator;
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a log message to be printed based on output/verbosity sttings.
+ * Create a log message to be printed based on output/verbosity settings.
  *
  * This should generally be called by the \c world_logger and \c
  * self_logger functions below. The call \c operator() returns an object that

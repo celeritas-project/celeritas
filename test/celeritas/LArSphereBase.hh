@@ -7,6 +7,7 @@
 #pragma once
 
 #include "celeritas/ext/GeantImporter.hh"
+#include "celeritas/optical/CoreParams.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
 
 #include "GeantTestBase.hh"
@@ -24,10 +25,7 @@ namespace test
 class LArSphereBase : public GeantTestBase
 {
   protected:
-    std::string_view geometry_basename() const override
-    {
-        return "lar-sphere";
-    }
+    std::string_view gdml_basename() const override { return "lar-sphere"; }
 
     GeantPhysicsOptions build_geant_options() const override
     {
@@ -44,6 +42,11 @@ class LArSphereBase : public GeantTestBase
         auto result = GeantTestBase::build_import_data_selection();
         result.processes |= GeantImportDataSelection::optical;
         return result;
+    }
+
+    std::vector<IMC> select_optical_models() const override
+    {
+        return {IMC::absorption, IMC::rayleigh};
     }
 };
 

@@ -60,7 +60,7 @@ BoundaryExecutor::operator()(celeritas::CoreTrackView& track)
     {
         // Update the material in the new region
         auto geo_mat = track.geo_material();
-        auto matid = geo_mat.material_id(geo.volume_id());
+        auto matid = geo_mat.material_id(geo.impl_volume_id());
         if (CELER_UNLIKELY(!matid))
         {
 #if !CELER_DEVICE_COMPILE

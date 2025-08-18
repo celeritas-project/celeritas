@@ -21,7 +21,7 @@ using namespace celeritas::test;
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialze the test base with simple values for the incident photon.
+ * Initialize the test base with simple values for the incident photon.
  */
 InteractorHostBase::InteractorHostBase() : inc_direction_({0, 0, 1})
 {

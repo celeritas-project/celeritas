@@ -95,6 +95,22 @@ TEST_F(SurfaceTranslatorTest, simple_quadric)
     distances = sq.calc_intersections({2, 3, 4}, {0, 0, 1}, SurfaceState::off);
     EXPECT_SOFT_EQ(0.3, distances[1]);
     EXPECT_SOFT_EQ(no_intersection(), distances[0]);
+
+    // Tiny ellipsoid translated in macro length scale: {0.008, 0.004, 0.005}))
+    sq = translate(SimpleQuadric{{0.5, 2, 1.28}, {0, 0, 0}, -3.2e-05});
+    constexpr auto coarse_eps
+        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e-11 : 1e-3);
+
+    distances = sq.calc_intersections({1, 3, 4}, {1, 0, 0}, SurfaceState::off);
+    EXPECT_SOFT_NEAR(1 - 0.008, distances[0], coarse_eps);
+    EXPECT_SOFT_NEAR(1 + 0.008, distances[1], coarse_eps);
+    distances
+        = sq.calc_intersections({2, 3.004, 4}, {0, -1, 0}, SurfaceState::on);
+    EXPECT_SOFT_NEAR(0.008, distances[0], coarse_eps);
+    EXPECT_SOFT_EQ(no_intersection(), distances[1]);
+    distances = sq.calc_intersections({2, 3, 4}, {0, 0, 1}, SurfaceState::off);
+    EXPECT_SOFT_NEAR(0.005, distances[1], 10 * coarse_eps);
+    EXPECT_SOFT_EQ(no_intersection(), distances[0]);
 }
 
 TEST_F(SurfaceTranslatorTest, general_quadric)

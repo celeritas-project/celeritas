@@ -26,6 +26,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
  * Sample scintillation photons from optical property data and step data.
@@ -56,7 +58,7 @@ class ScintillationGenerator
   public:
     // Construct from scintillation data and distribution parameters
     inline CELER_FUNCTION
-    ScintillationGenerator(optical::MaterialView const&,
+    ScintillationGenerator(MaterialView const&,
                            NativeCRef<ScintillationData> const& shared,
                            GeneratorDistributionData const& dist);
 
@@ -67,7 +69,7 @@ class ScintillationGenerator
 
     // Sample a single photon from the distribution
     template<class Generator>
-    inline CELER_FUNCTION optical::TrackInitializer operator()(Generator& rng);
+    inline CELER_FUNCTION TrackInitializer operator()(Generator& rng);
 
   private:
     //// TYPES ////
@@ -129,7 +131,7 @@ ScintillationGenerator::ScintillationGenerator(
  */
 CELER_FUNCTION
 ScintillationGenerator::ScintillationGenerator(
-    optical::MaterialView const&,
+    MaterialView const&,
     NativeCRef<ScintillationData> const& shared,
     GeneratorDistributionData const& dist)
     : ScintillationGenerator(shared, dist)
@@ -141,8 +143,7 @@ ScintillationGenerator::ScintillationGenerator(
  * Sample a single scintillation photon.
  */
 template<class Generator>
-CELER_FUNCTION optical::TrackInitializer
-ScintillationGenerator::operator()(Generator& rng)
+CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rng)
 {
     // Sample a component
     ScintRecord const& component = [&] {
@@ -162,8 +163,8 @@ ScintillationGenerator::operator()(Generator& rng)
         = NormalDistribution{component.lambda_mean, component.lambda_sigma};
     ExponentialDist sample_time(real_type{1} / component.fall_time);
 
-    optical::TrackInitializer photon;
-    photon.energy = optical::detail::wavelength_to_energy(sample_lambda_(rng));
+    TrackInitializer photon;
+    photon.energy = detail::wavelength_to_energy(sample_lambda_(rng));
 
     // Sample direction
     real_type cost = sample_cost_(rng);
@@ -220,4 +221,5 @@ ScintillationGenerator::operator()(Generator& rng)
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

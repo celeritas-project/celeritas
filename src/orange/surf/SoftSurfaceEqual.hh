@@ -32,6 +32,9 @@ struct ExactSurfaceEqual
 //---------------------------------------------------------------------------//
 /*!
  * Compare two surfaces for soft equality.
+ *
+ * Ideally, this would evaluate whether the Hausdorff distance between two
+ * surfaces, within some bounding box, is less than the tolerance.
  */
 class SoftSurfaceEqual
 {

@@ -41,7 +41,7 @@ namespace test
   template<class HP>
   class MyFooTest : public AllGeoTypedTestBase<HP>
   {
-    std::string geometry_basename() const final { return "simple-cms"; }
+    std::string_view gdml_basename() const final { return "simple-cms"; }
   };
 
   TYPED_TEST_SUITE(MyFooTest, AllGeoTestingTypes, AllGeoTestingTypeNames);
@@ -58,14 +58,7 @@ template<class HP>
 class AllGeoTypedTestBase : public GenericGeoTestBase<HP>
 {
   public:
-    using SPConstGeo = typename GenericGeoTestBase<HP>::SPConstGeo;
-
-    static std::string geo_name() { return GeoTraits<HP>::name; }
-
-    SPConstGeo build_geometry() override
-    {
-        return this->build_geometry_from_basename();
-    }
+    static void SetUpTestCase() { LazyGeantGeoManager::clear_lazy_geo(); }
 };
 
 //---------------------------------------------------------------------------//

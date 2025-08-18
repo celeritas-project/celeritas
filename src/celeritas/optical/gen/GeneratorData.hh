@@ -20,6 +20,28 @@
 
 namespace celeritas
 {
+namespace optical
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Data for sampling optical photons from user-configurable distributions.
+ *
+ * \todo For now this is hardcoded to generate a point source of monoenergetic,
+ * isotropic photons. Make this configurable.
+ */
+struct PrimaryDistributionData
+{
+    size_type num_photons{};
+    units::MevEnergy energy;
+    Real3 position{};
+
+    //! Check whether the data are assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return num_photons > 0 && energy > zero_quantity();
+    }
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Pre- and post-step data for sampling optical photons.
@@ -105,6 +127,22 @@ struct GeneratorStateData
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the number of photons from a distribution.
+ *
+ * This is a functor rather than a function because it's used for the thrust
+ * reduction and scan.
+ */
+struct GetNumPhotons
+{
+    // Return the number of photons to generate
+    CELER_FUNCTION size_type operator()(GeneratorDistributionData const& data) const
+    {
+        return data.num_photons;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Store optical generation states in aux data.
  */
 template<MemSpace M>
@@ -133,4 +171,5 @@ void resize(GeneratorStateData<Ownership::value, M>* state,
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

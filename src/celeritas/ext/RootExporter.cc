@@ -42,13 +42,18 @@ RootExporter::RootExporter(char const* filename)
 //---------------------------------------------------------------------------//
 /*!
  * Write data to the ROOT file.
+ *
+ * Splitting is prevented in order to reduce the file size. The default buffer
+ * size (32 KB) is used.
  */
 void RootExporter::operator()(ImportData const& import_data)
 {
     ScopedMem record_mem("RootExporter.write");
     TTree tree_data(tree_name(), tree_name());
     TBranch* branch = tree_data.Branch(branch_name(),
-                                       const_cast<ImportData*>(&import_data));
+                                       const_cast<ImportData*>(&import_data),
+                                       /* bufsize = */ 32000,
+                                       /* splitlevel = */ 0);
     CELER_VALIDATE(branch, << "failed to initialize ROOT ImportData");
 
     // Write data to disk

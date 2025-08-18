@@ -37,14 +37,16 @@ class SimpleCmsTest : public SDTestBase, public SimpleCmsTestBase
     {
         sd_setup_.ignore_zero_deposition = false;
         sd_setup_.track = false;
+
+        this->geometry();
+        scoped_log_.clear();
     }
 
-    SPConstGeoI build_fresh_geometry(std::string_view basename) override
+    SPConstGeantGeo build_geant_geo(std::string const& filename) const override
     {
-        auto result = SDTestBase::build_fresh_geometry(basename);
-        scoped_log_.clear();
+        auto result = SDTestBase::build_geant_geo(filename);
 
-        // Create unused volume when building geometry
+        // Create unused volume after building geometry
         G4Material* mat
             = G4NistManager::Instance()->FindOrBuildMaterial("G4_AIR");
         SimpleCmsTest::detached_lv = new G4LogicalVolume(
@@ -60,14 +62,14 @@ class SimpleCmsTest : public SDTestBase, public SimpleCmsTestBase
     }
 
     std::vector<std::string>
-    volume_names(std::vector<VolumeId> const& vols) const
+    volume_names(std::vector<ImplVolumeId> const& vols) const
     {
         auto const& geo = *this->geometry();
 
         std::vector<std::string> result;
-        for (VolumeId vid : vols)
+        for (ImplVolumeId vid : vols)
         {
-            result.push_back(geo.volumes().at(vid).name);
+            result.push_back(geo.impl_volumes().at(vid).name);
         }
         return result;
     }
@@ -208,7 +210,7 @@ TEST_F(SimpleCmsTest, add_duplicate)
 TEST_F(SimpleCmsTest, add_one)
 {
     sd_setup_.force_volumes = find_geant_volumes({"si_tracker"});
-    // Since we're asking for a volume that doesn't curently have an
+    // Since we're asking for a volume that doesn't currently have an
     // SD attached, we can't make the hit processor
     GeantSd man = this->make_hit_manager(/* make_hit_proc = */ false);
 

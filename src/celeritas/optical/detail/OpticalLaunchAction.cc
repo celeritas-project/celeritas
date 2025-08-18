@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "OpticalLaunchAction.hh"
 
+#include <mutex>
+
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/io/Logger.hh"
@@ -16,6 +18,7 @@
 
 #include "../CoreParams.hh"
 #include "../CoreState.hh"
+#include "../Transporter.hh"
 #include "../action/ActionGroups.hh"
 #include "../gen/GeneratorData.hh"
 
@@ -51,11 +54,24 @@ OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
     : action_id_{action_id}, aux_id_{aux_id}, data_(std::move(input))
 {
     CELER_EXPECT(data_);
+}
 
-    // TODO: should we initialize this at begin-run so that we can add
-    // additional optical actions?
-    optical_actions_
-        = std::make_shared<ActionGroupsT>(*data_.optical_params->action_reg());
+//---------------------------------------------------------------------------//
+/*!
+ * Create the action groups and get a pointer to the aux data.
+ */
+void OpticalLaunchAction::begin_run(CoreParams const&, CoreStateHost& state)
+{
+    this->begin_run_impl(state);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create the action groups and get a pointer to the aux data.
+ */
+void OpticalLaunchAction::begin_run(CoreParams const&, CoreStateDevice& state)
+{
+    this->begin_run_impl(state);
 }
 
 //---------------------------------------------------------------------------//
@@ -118,15 +134,6 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
     auto& state = get<optical::CoreState<M>>(core_state.aux(), this->aux_id());
     CELER_ASSERT(state.size() > 0);
 
-    size_type num_step_iters{0};
-    size_type num_steps{0};
-
-    if (!state.aux())
-    {
-        // Get a pointer to the auxiliary state vector
-        state.aux() = core_state.aux_ptr();
-    }
-
     auto const& core_counters = core_state.counters();
     auto& counters = state.counters();
 
@@ -139,38 +146,41 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
         return;
     }
 
-    // Loop while photons are yet to be tracked
-    auto const& step_actions = optical_actions_->step();
-    while (counters.num_pending > 0 || counters.num_alive > 0)
+    // Transport pending optical tracks
+    (*transport_)(state);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create the transporter and cache a pointer to the auxiliary data.
+ *
+ * This allows additional optical actions to be added after the launch action
+ * has been constructed.
+ */
+template<MemSpace M>
+void OpticalLaunchAction::begin_run_impl(CoreState<M>& core_state)
+{
+    if (!transport_)
     {
-        // Loop through actions
-        for (auto const& action : step_actions)
-        {
-            action->step(this->optical_params(), state);
-        }
+        static std::mutex launch_mutex;
+        std::lock_guard<std::mutex> scoped_lock{launch_mutex};
 
-        num_steps += counters.num_active;
-        if (CELER_UNLIKELY(++num_step_iters == data_.max_step_iters))
+        if (!transport_)
         {
-            CELER_LOG_LOCAL(error)
-                << "Exceeded step count of " << data_.max_step_iters
-                << ": aborting optical transport loop with "
-                << counters.num_generated << " generated tracks, "
-                << counters.num_active << " active tracks, "
-                << counters.num_alive << " alive tracks, "
-                << counters.num_vacancies << " vacancies, and "
-                << counters.num_pending << " queued";
-
-            this->optical_params().gen_reg()->reset(core_state.aux());
-            state.reset();
-            break;
+            // Create the transporter
+            optical::Transporter::Input inp;
+            inp.params = data_.optical_params;
+            inp.max_step_iters = data_.max_step_iters;
+            transport_ = std::make_shared<optical::Transporter>(std::move(inp));
         }
     }
 
-    // Update statistics
-    state.accum().steps += num_steps;
-    state.accum().step_iters += num_step_iters;
-    ++state.accum().flushes;
+    // Store a pointer to the auxiliary state vector
+    auto& state = get<optical::CoreState<M>>(core_state.aux(), this->aux_id());
+    state.aux() = core_state.aux_ptr();
+
+    CELER_ENSURE(transport_);
+    CELER_ENSURE(state.aux());
 }
 
 //---------------------------------------------------------------------------//

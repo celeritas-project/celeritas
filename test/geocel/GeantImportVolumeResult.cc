@@ -28,20 +28,20 @@ GeantImportVolumeResult::from_import(GeoParamsInterface const& geom)
 #if CELERITAS_USE_GEANT4
     using Result = GeantImportVolumeResult;
 
-    auto* geant_geo = celeritas::geant_geo();
+    auto geant_geo = celeritas::global_geant_geo().lock();
     CELER_VALIDATE(geant_geo, << "global Geant4 geometry is not loaded");
     Result result;
-    result.volumes.resize(geant_geo->volumes().size());
+    result.volumes.resize(geant_geo->impl_volumes().size());
 
-    for (auto i : range<VolumeId::size_type>(result.volumes.size()))
+    for (auto i : range<ImplVolumeId::size_type>(result.volumes.size()))
     {
-        auto const& label = geant_geo->volumes().at(VolumeId{i});
+        auto const& label = geant_geo->impl_volumes().at(ImplVolumeId{i});
         result.volumes[i] = [&] {
             if (label.empty())
             {
                 return Result::empty;
             }
-            else if (VolumeId id = geom.volumes().find_exact(label))
+            else if (ImplVolumeId id = geom.impl_volumes().find_exact(label))
             {
                 return static_cast<int>(id.get());
             }

@@ -49,13 +49,14 @@ class ScintillationOffload
 
     // Gather the input data needed to sample scintillation photons
     template<class Generator>
-    inline CELER_FUNCTION GeneratorDistributionData operator()(Generator& rng);
+    inline CELER_FUNCTION optical::GeneratorDistributionData
+    operator()(Generator& rng);
 
   private:
     units::ElementaryCharge charge_;
     real_type step_length_;
     OffloadPreStepData const& pre_step_;
-    GeneratorStepData post_step_;
+    optical::GeneratorStepData post_step_;
     NativeCRef<ScintillationData> const& shared_;
     real_type mean_num_photons_{0};
 
@@ -115,11 +116,11 @@ CELER_FUNCTION ScintillationOffload::ScintillationOffload(
  * If no photons are sampled an empty object is returned.
  */
 template<class Generator>
-CELER_FUNCTION GeneratorDistributionData
+CELER_FUNCTION optical::GeneratorDistributionData
 ScintillationOffload::operator()(Generator& rng)
 {
     // Material-only sampling
-    GeneratorDistributionData result;
+    optical::GeneratorDistributionData result;
     if (mean_num_photons_ > poisson_threshold())
     {
         real_type sigma = shared_.resolution_scale[pre_step_.material]

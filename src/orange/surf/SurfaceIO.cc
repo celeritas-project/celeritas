@@ -62,6 +62,7 @@ std::ostream& operator<<(std::ostream& os, CylCentered<T> const& s)
 }
 
 ORANGE_INSTANTIATE_SHAPE_STREAM(CylCentered);
+
 //---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, GeneralQuadric const& s)
 {
@@ -107,7 +108,6 @@ ORANGE_INSTANTIATE_SHAPE_STREAM(PlaneAligned);
 std::ostream& operator<<(std::ostream& os, SimpleQuadric const& s)
 {
     os << "SQuadric: " << s.second() << ' ' << s.first() << ' ' << s.zeroth();
-
     return os;
 }
 

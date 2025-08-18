@@ -67,7 +67,7 @@ class ExampleInstanceCalo final : public StepInterface
   private:
     SPConstCoreGeo geo_;
     VecLabel det_labels_;
-    std::vector<VolumeId> volume_ids_;
+    std::vector<ImplVolumeId> volume_ids_;
 
     std::map<std::string, real_type> edep_;
 

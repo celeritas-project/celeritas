@@ -199,7 +199,7 @@ void assign_table(G4PhysicsTable const* g4table,
 template<class T>
 bool all_are_assigned(std::vector<T> const& arr)
 {
-    return std::all_of(arr.begin(), arr.end(), LogicalTrue<T>{});
+    return std::all_of(arr.begin(), arr.end(), Identity{});
 }
 
 //---------------------------------------------------------------------------//

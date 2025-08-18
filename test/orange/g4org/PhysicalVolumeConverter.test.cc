@@ -24,7 +24,10 @@ namespace g4org
 namespace test
 {
 //---------------------------------------------------------------------------//
-constexpr Turn degree{1 / real_type{360}};
+constexpr RealTurn degrees_to_turn(double v)
+{
+    return RealTurn{static_cast<real_type>(v / 360)};
+}
 
 auto make_options()
 {
@@ -41,7 +44,7 @@ class PhysicalVolumeConverterTest : public GeantLoadTestBase
     Label const& get_label(LogicalVolume const& lv)
     {
         CELER_EXPECT(lv.id);
-        return this->geo().volumes().at(lv.id);
+        return this->geo().impl_volumes().at(lv.id);
     }
 
     Label const& get_label(PhysicalVolume const& pv)
@@ -49,6 +52,8 @@ class PhysicalVolumeConverterTest : public GeantLoadTestBase
         CELER_EXPECT(pv.id);
         return this->geo().volume_instances().at(pv.id);
     }
+
+    G4VPhysicalVolume const& world() const { return *this->geo().world(); }
 };
 
 //---------------------------------------------------------------------------//
@@ -204,7 +209,7 @@ TEST_F(PhysicalVolumeConverterTest, transformed_box)
         if (auto* trans = std::get_if<Transformation>(&pv.transform))
         {
             EXPECT_VEC_SOFT_EQ((Real3{0, 0, -10}), trans->translation());
-            auto mat = make_rotation(Axis::y, 30 * degree);
+            auto mat = make_rotation(Axis::y, degrees_to_turn(30));
             mat = make_transpose(mat);
             EXPECT_VEC_SOFT_EQ(mat[0], trans->rotation()[0]);
             EXPECT_VEC_SOFT_EQ(mat[1], trans->rotation()[1]);
@@ -247,9 +252,9 @@ TEST_F(PhysicalVolumeConverterTest, transformed_box)
         if (auto* trans = std::get_if<Transformation>(&pv.transform))
         {
             EXPECT_VEC_SOFT_EQ((Real3{0, 0, 0}), trans->translation());
-            auto mat = make_rotation(Axis::x, 90 * degree);
-            mat = make_rotation(Axis::y, -87.1875 * degree, mat);
-            mat = make_rotation(Axis::z, 90 * degree, mat);
+            auto mat = make_rotation(Axis::x, degrees_to_turn(90));
+            mat = make_rotation(Axis::y, degrees_to_turn(-87.1875), mat);
+            mat = make_rotation(Axis::z, degrees_to_turn(90), mat);
             mat = make_transpose(mat);
             EXPECT_VEC_SOFT_EQ(mat[0], trans->rotation()[0]);
             EXPECT_VEC_SOFT_EQ(mat[1], trans->rotation()[1]);

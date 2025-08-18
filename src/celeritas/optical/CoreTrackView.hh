@@ -53,7 +53,7 @@ class CoreTrackView
     // Return a material view
     inline CELER_FUNCTION MaterialView material_record() const;
 
-    // Return a material view (using an existing geo view
+    // Return a material view (using an existing geo view)
     inline CELER_FUNCTION MaterialView material_record(GeoTrackView const&) const;
 
     // Return a simulation management view
@@ -65,8 +65,11 @@ class CoreTrackView
     // Return a physics view
     inline CELER_FUNCTION PhysicsTrackView physics() const;
 
-    // Return a view to surface properties attached to a volume
-    inline CELER_FUNCTION VolumeSurfaceView volume_surface(VolumeId vid) const;
+    // Return a volume surface view
+    inline CELER_FUNCTION VolumeSurfaceView surface() const;
+
+    // Return a volume surface view from volume ID
+    inline CELER_FUNCTION VolumeSurfaceView surface(VolumeId) const;
 
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
@@ -75,7 +78,10 @@ class CoreTrackView
     inline CELER_FUNCTION TrackSlotId track_slot_id() const;
 
     // Action ID for encountering a geometry boundary
-    inline CELER_FUNCTION ActionId boundary_action() const;
+    inline CELER_FUNCTION ActionId init_boundary_action() const;
+
+    // Action ID for leaving a geometry boundary
+    inline CELER_FUNCTION ActionId post_boundary_action() const;
 
     // Flag a track for deletion
     inline CELER_FUNCTION void apply_errored();
@@ -168,7 +174,7 @@ CELER_FUNCTION auto
 CoreTrackView::material_record(GeoTrackView const& geo) const -> MaterialView
 {
     CELER_EXPECT(!geo.is_outside());
-    return MaterialView{params_.material, geo.volume_id()};
+    return MaterialView{params_.material, geo.impl_volume_id()};
 }
 
 //---------------------------------------------------------------------------//
@@ -194,12 +200,22 @@ CELER_FUNCTION auto CoreTrackView::physics() const -> PhysicsTrackView
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a view to surface properties attached to a volume.
+ * Return a volume surface view into the track's current volume.
  */
-CELER_FUNCTION auto CoreTrackView::volume_surface(VolumeId vid) const
+CELER_FUNCTION auto CoreTrackView::surface() const -> VolumeSurfaceView
+{
+    return this->surface(this->geometry().volume_id());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a volume surface view from volume ID.
+ */
+CELER_FUNCTION auto CoreTrackView::surface(VolumeId vol) const
     -> VolumeSurfaceView
 {
-    return VolumeSurfaceView{params_.surface, vid};
+    CELER_EXPECT(vol);
+    return VolumeSurfaceView{params_.surface, vol};
 }
 
 //---------------------------------------------------------------------------//
@@ -233,9 +249,18 @@ CELER_FORCEINLINE_FUNCTION TrackSlotId CoreTrackView::track_slot_id() const
 /*!
  * Get the action ID for encountering a geometry boundary.
  */
-CELER_FUNCTION ActionId CoreTrackView::boundary_action() const
+CELER_FUNCTION ActionId CoreTrackView::init_boundary_action() const
 {
-    return params_.scalars.boundary_action;
+    return params_.scalars.init_boundary_action;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the action ID for leaving a geometry boundary.
+ */
+CELER_FUNCTION ActionId CoreTrackView::post_boundary_action() const
+{
+    return params_.scalars.post_boundary_action;
 }
 
 //---------------------------------------------------------------------------//

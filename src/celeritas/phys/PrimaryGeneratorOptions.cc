@@ -126,16 +126,16 @@ char const* to_cstring(DistributionSelection value)
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert PrimaryGeneratorOptions to inp::PrimaryGenerator.
+ * Convert PrimaryGeneratorOptions to inp::CorePrimaryGenerator.
  */
-inp::PrimaryGenerator to_input(PrimaryGeneratorOptions const& pgo)
+inp::CorePrimaryGenerator to_input(PrimaryGeneratorOptions const& pgo)
 {
     CELER_VALIDATE(pgo,
                    << "Invalid PrimaryGeneratorOptions: "
                    << "ensure all distributions and parameters are correctly "
                       "set.");
 
-    inp::PrimaryGenerator result;
+    inp::CorePrimaryGenerator result;
 
     // RNG seed
     result.seed = pgo.seed;

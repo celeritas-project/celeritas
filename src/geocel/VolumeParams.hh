@@ -6,6 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+#include <vector>
+
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/cont/Span.hh"
 
@@ -24,14 +27,17 @@ struct Volumes;
  *
  * See the introduction to \rstref{the Geometry API section,api_geometry} for
  * a detailed description of volumes in the detector geometry description. This
- * class abstracts the graph of volumes, relating \em nodes (VolumeId, aka
+ * class abstracts the graph of user-defined volumes,
+ * relating \em nodes (VolumeId, aka
  * logical volume) to \em edges (VolumeInstanceId, aka physical volume) and
  * providing the means to determine the \em path (VolumeUniqueInstanceId, aka
  * touchable history) of a track state. In conjunction with \c GeantGeoParams
  * this allows conversion between the Celeritas geometry implementation and the
  * Geant4 geometry navigation.
  *
- * Input material IDs are allowed to be null for testing purposes.
+ * \internal Construction requirements:
+ * - At least one volume must be defined.
+ * - Material IDs are allowed to be null for testing purposes.
  *
  * \todo We should be able to easily move the ID-related methods to a
  * GPU-friendly view rather than just this metadata class. It's not needed at
@@ -44,11 +50,30 @@ class VolumeParams
     //! \name Type aliases
     using VolumeMap = LabelIdMultiMap<VolumeId>;
     using VolInstMap = LabelIdMultiMap<VolumeInstanceId>;
+    using SpanVolInst = Span<VolumeInstanceId const>;
+    //!@}
+
+    //!@{
+    //! \name VolumeVisitor template interface
+    using VolumeRef = VolumeId;
+    using VolumeInstanceRef = VolumeInstanceId;
     //!@}
 
   public:
     // Construct from input
     explicit VolumeParams(inp::Volumes const&);
+
+    // Construct empty volume params for unit testing: no volumes
+    VolumeParams();
+
+    //! Empty if no volumes are present (e.g., ORANGE debugging)
+    bool empty() const { return v_labels_.empty(); }
+
+    //! World volume
+    VolumeId world() const { return world_; }
+
+    //! Depth of the volume DAG (a world without children is depth zero)
+    LevelId::size_type depth() const { return depth_; }
 
     //! Number of volumes
     VolumeId::size_type num_volumes() const { return v_labels_.size(); }
@@ -66,20 +91,23 @@ class VolumeParams
     VolInstMap const& volume_instance_labels() const { return vi_labels_; }
 
     // Find all instances of a volume (incoming edges)
-    inline Span<VolumeInstanceId const> parents(VolumeId vid) const;
+    inline SpanVolInst parents(VolumeId v_id) const;
 
     // Get the list of daughter volumes (outgoing edges)
-    inline Span<VolumeInstanceId const> children(VolumeId vid) const;
+    inline SpanVolInst children(VolumeId v_id) const;
 
     // Get the geometry material of a volume
-    inline GeoMatId material(VolumeId vid) const;
+    inline GeoMatId material(VolumeId v_id) const;
 
     // Get the volume being instantiated (outgoing node)
-    inline VolumeId volume(VolumeInstanceId vid) const;
+    inline VolumeId volume(VolumeInstanceId vi_id) const;
 
   private:
     VolumeMap v_labels_;
     VolInstMap vi_labels_;
+
+    VolumeId world_;
+    size_type depth_{};
 
     std::vector<std::vector<VolumeInstanceId>> parents_;
     std::vector<std::vector<VolumeInstanceId>> children_;
@@ -88,45 +116,54 @@ class VolumeParams
 };
 
 //---------------------------------------------------------------------------//
+// HACKY GLOBAL VARIABLES DURING REFACTORING
+//---------------------------------------------------------------------------//
+// Set non-owning reference to global canonical volumes
+void global_volumes(std::shared_ptr<VolumeParams const> const&);
+
+// Global canonical volumes: may be nullptr
+std::weak_ptr<VolumeParams const> const& global_volumes();
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Find all instances of a volume (incoming edges).
  */
-Span<VolumeInstanceId const> VolumeParams::parents(VolumeId vid) const
+auto VolumeParams::parents(VolumeId v_id) const -> SpanVolInst
 {
-    CELER_EXPECT(vid < parents_.size());
-    return make_span(parents_[vid.unchecked_get()]);
+    CELER_EXPECT(v_id < parents_.size());
+    return make_span(parents_[v_id.unchecked_get()]);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the list of daughter volumes (outgoing edges).
  */
-Span<VolumeInstanceId const> VolumeParams::children(VolumeId vid) const
+auto VolumeParams::children(VolumeId v_id) const -> SpanVolInst
 {
-    CELER_EXPECT(vid < children_.size());
-    return make_span(children_[vid.unchecked_get()]);
+    CELER_EXPECT(v_id < children_.size());
+    return make_span(children_[v_id.unchecked_get()]);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the geometry material of a volume.
  */
-GeoMatId VolumeParams::material(VolumeId vid) const
+GeoMatId VolumeParams::material(VolumeId v_id) const
 {
-    CELER_EXPECT(vid < materials_.size());
-    return materials_[vid.unchecked_get()];
+    CELER_EXPECT(v_id < materials_.size());
+    return materials_[v_id.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the volume being instantiated (outgoing node).
  */
-VolumeId VolumeParams::volume(VolumeInstanceId vid) const
+VolumeId VolumeParams::volume(VolumeInstanceId vi_id) const
 {
-    CELER_EXPECT(vid < volumes_.size());
-    return volumes_[vid.unchecked_get()];
+    CELER_EXPECT(vi_id < volumes_.size());
+    return volumes_[vi_id.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//

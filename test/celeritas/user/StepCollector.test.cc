@@ -143,7 +143,7 @@ class TestMultiEm3InstanceCaloTest : public TestEm3CollectorTestBase
         return TestEm3Base::build_along_step();
     }
 
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         // NOTE that this is not the flat one, it's the multi-level one.
         return "testem3";

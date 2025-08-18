@@ -73,7 +73,6 @@ class GeantVolumeMapperTestBase : public ::celeritas::test::Test
         {
             this->build_g4();
             CELER_ASSERT(geant_geo_params_);
-            celeritas::geant_geo(*geant_geo_params_);
         }
         CELER_ASSERT(!logical_.empty());
 
@@ -167,7 +166,8 @@ void NestedTest::build_vecgeom()
 {
     CELER_EXPECT(!physical_.empty());
 #if CELERITAS_USE_VECGEOM
-    auto geo = std::make_shared<VecgeomParams>(physical_.front());
+    CELER_ASSERT(geant_geo_params_);
+    auto geo = VecgeomParams::from_geant(geant_geo_params_);
 #else
     int geo;
     CELER_DISCARD(geo);
@@ -240,10 +240,10 @@ TEST_F(NestedTest, unique)
     GeantVolumeMapper find_vol{*geo_params_};
     for (auto i : range(names_.size()))
     {
-        VolumeId vol_id = find_vol(*logical_[i]);
-        ASSERT_NE(VolumeId{}, vol_id)
+        ImplVolumeId vol_id = find_vol(*logical_[i]);
+        ASSERT_NE(ImplVolumeId{}, vol_id)
             << "searching for " << PrintableLV{logical_[i]};
-        EXPECT_EQ(names_[i], geo_params_->volumes().at(vol_id).name);
+        EXPECT_EQ(names_[i], geo_params_->impl_volumes().at(vol_id).name);
     }
 
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
@@ -275,9 +275,9 @@ TEST_F(NestedTest, SKIP_UNLESS_VECGEOM(duplicated))
     GeantVolumeMapper find_vol{*geo_params_};
     for (auto i : range(names_.size()))
     {
-        VolumeId vol_id = find_vol(*logical_[i]);
-        ASSERT_NE(VolumeId{}, vol_id);
-        EXPECT_EQ(names_[i], geo_params_->volumes().at(vol_id).name);
+        ImplVolumeId vol_id = find_vol(*logical_[i]);
+        ASSERT_NE(ImplVolumeId{}, vol_id);
+        EXPECT_EQ(names_[i], geo_params_->impl_volumes().at(vol_id).name);
     }
 
     // IDs for the unique LVs should be different

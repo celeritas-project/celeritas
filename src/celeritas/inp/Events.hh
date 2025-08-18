@@ -64,16 +64,10 @@ using EnergyDistribution = Monoenergetic;
 /*!
  * Generate from a hardcoded distribution of primary particles.
  *
- * \todo Allow programmatic setting from particle ID as well
  * \todo Units?
- * \code using Particle = std::variant<PDGNumber, ParticleId>; \endcode
  */
 struct PrimaryGenerator
 {
-    //! Random number seed
-    unsigned int seed{};
-    //! Sample evenly from this vector of particle types
-    std::vector<PDGNumber> pdg;
     //! Number of events to generate
     size_type num_events{};
     //! Number of primaries per event
@@ -86,6 +80,30 @@ struct PrimaryGenerator
     //! Distribution for sampling source energy
     EnergyDistribution energy;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Generate particles in the core stepping loop.
+ *
+ * \todo Allow programmatic setting from particle ID as well
+ * \code using Particle = std::variant<PDGNumber, ParticleId>; \endcode
+ */
+struct CorePrimaryGenerator : PrimaryGenerator
+{
+    //! Random number seed
+    unsigned int seed{};
+    //! Sample evenly from this vector of particle types
+    std::vector<PDGNumber> pdg;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Generate optical photon primary particles.
+ *
+ * \todo Optionally sample within a set of volumes for shape distribution?
+ * \todo Time? Polarization?
+ */
+using OpticalPrimaryGenerator = PrimaryGenerator;
 
 //---------------------------------------------------------------------------//
 //! Sample random events from an input file
@@ -112,7 +130,8 @@ struct ReadFileEvents
 
 //---------------------------------------------------------------------------//
 //! Mechanism for generating events for tracking
-using Events = std::variant<PrimaryGenerator, SampleFileEvents, ReadFileEvents>;
+using Events
+    = std::variant<CorePrimaryGenerator, SampleFileEvents, ReadFileEvents>;
 
 //---------------------------------------------------------------------------//
 }  // namespace inp

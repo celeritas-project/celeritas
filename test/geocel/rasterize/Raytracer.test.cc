@@ -30,22 +30,22 @@ TEST(MockGeo, tracking)
 {
     MockGeoTrackView geo;
     geo = GeoTrackInitializer{{0, 0, 5.25}, {0, 0, 1}};
-    EXPECT_EQ(5, geo.volume_id().get());
+    EXPECT_EQ(5, geo.impl_volume_id().get());
     auto next_step = geo.find_next_step(2.0);
     EXPECT_TRUE(next_step.boundary);
     EXPECT_SOFT_EQ(0.75, next_step.distance);
     geo.move_to_boundary();
-    EXPECT_EQ(5, geo.volume_id().get());
+    EXPECT_EQ(5, geo.impl_volume_id().get());
     EXPECT_REAL_EQ(6.0, geo.pos()[2]);
     geo.cross_boundary();
-    EXPECT_EQ(6, geo.volume_id().get());
+    EXPECT_EQ(6, geo.impl_volume_id().get());
     next_step = geo.find_next_step(1.5);
     EXPECT_TRUE(next_step.boundary);
     EXPECT_SOFT_EQ(1.0, next_step.distance);
     geo.move_to_boundary();
-    EXPECT_EQ(6, geo.volume_id().get());
+    EXPECT_EQ(6, geo.impl_volume_id().get());
     geo.cross_boundary();
-    EXPECT_EQ(7, geo.volume_id().get());
+    EXPECT_EQ(7, geo.impl_volume_id().get());
     next_step = geo.find_next_step(0.5);
     EXPECT_FALSE(next_step.boundary);
     EXPECT_SOFT_EQ(0.5, next_step.distance);
@@ -55,13 +55,13 @@ TEST(MockGeo, tracking)
     EXPECT_SOFT_EQ(0.75, next_step.distance);
 
     geo = GeoTrackInitializer{{0, 0, 4.75}, make_unit_vector(Real3{0, 0, -1})};
-    EXPECT_EQ(4, geo.volume_id().get());
+    EXPECT_EQ(4, geo.impl_volume_id().get());
     next_step = geo.find_next_step(100.0);
     EXPECT_TRUE(next_step.boundary);
     EXPECT_SOFT_EQ(0.75, next_step.distance);
 
     geo = GeoTrackInitializer{{0, 0, 9.75}, make_unit_vector(Real3{0, 4, -3})};
-    EXPECT_EQ(9, geo.volume_id().get());
+    EXPECT_EQ(9, geo.impl_volume_id().get());
     next_step = geo.find_next_step(100.0);
     EXPECT_TRUE(next_step.boundary);
     EXPECT_SOFT_EQ(0.75 * 5.0 / 3.0, next_step.distance);

@@ -18,15 +18,15 @@ namespace celeritas
  *
  * This generally should be a fallback for looking directly from a Geant4
  * pointer. It will first do an exact match for the label, then do a fuzzier
- * search. It emits warnings for inexact matches and returns a null \c VolumeId
- * if not found.
+ * search. It emits warnings for inexact matches and returns a null \c
+ * ImplVolumeId if not found.
  */
 class GeoVolumeFinder
 {
   public:
     //!@{
     //! \name Type aliases
-    using VolumeMap = GeoParamsInterface::VolumeMap;
+    using ImplVolumeMap = GeoParamsInterface::ImplVolumeMap;
     //!@}
 
   public:
@@ -34,10 +34,11 @@ class GeoVolumeFinder
     explicit inline GeoVolumeFinder(GeoParamsInterface const& geo);
 
     // Perform search
-    VolumeId operator()(Label const& label) const noexcept(!CELERITAS_DEBUG);
+    ImplVolumeId operator()(Label const& label) const
+        noexcept(!CELERITAS_DEBUG);
 
   private:
-    VolumeMap const& vols_;
+    ImplVolumeMap const& vols_;
 };
 
 //---------------------------------------------------------------------------//
@@ -47,7 +48,7 @@ class GeoVolumeFinder
  * Construct from geometry volume names.
  */
 GeoVolumeFinder::GeoVolumeFinder(GeoParamsInterface const& geo)
-    : vols_{geo.volumes()}
+    : vols_{geo.impl_volumes()}
 {
 }
 

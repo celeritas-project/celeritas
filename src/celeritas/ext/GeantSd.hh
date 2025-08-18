@@ -60,7 +60,7 @@ class GeantSd final : public StepInterface
     using HitProcessor = detail::HitProcessor;
     using SPProcessor = std::shared_ptr<HitProcessor>;
     using SPConstCoreGeo = std::shared_ptr<CoreGeoParams const>;
-    using VecVolId = std::vector<VolumeId>;
+    using VecVolId = std::vector<ImplVolumeId>;
     using VecParticle = std::vector<G4ParticleDefinition const*>;
     using StepPointBool = EnumArray<StepPoint, bool>;
     using Input = inp::GeantSd;

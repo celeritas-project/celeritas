@@ -40,6 +40,8 @@
 #include "GeantGdmlLoader.hh"
 #include "GeantGeoUtils.hh"
 #include "GeantUtils.hh"
+#include "ScopedGeantExceptionHandler.hh"
+#include "ScopedGeantLogger.hh"
 #include "g4/Convert.hh"  // IWYU pragma: associated
 #include "g4/GeantGeoData.hh"  // IWYU pragma: associated
 #include "g4/VisitVolumes.hh"
@@ -56,11 +58,11 @@ LevelId::size_type get_max_depth(G4VPhysicalVolume const& world)
 {
     LevelId::size_type result{0};
     visit_volume_instances(
-        [&result](G4VPhysicalVolume const&, int level) {
+        [&result](G4VPhysicalVolume const*, int level) {
             result = max(level, static_cast<int>(result));
             return true;
         },
-        world);
+        &world);
     // Maximum "depth" is one greater than "highest level"
     return result + 1;
 }
@@ -70,23 +72,24 @@ LevelId::size_type get_max_depth(G4VPhysicalVolume const& world)
  * Get a reproducible vector of LV instance ID -> label from the given world.
  */
 std::vector<Label> make_logical_vol_labels(G4VPhysicalVolume const& world,
-                                           VolumeId::size_type offset)
+                                           ImplVolumeId::size_type offset)
 {
     std::unordered_map<std::string, std::vector<G4LogicalVolume const*>> names;
 
     visit_volumes(
-        [&](G4LogicalVolume const& lv) {
-            std::string name = lv.GetName();
+        [&](G4LogicalVolume const* lv) {
+            CELER_EXPECT(lv);
+            std::string name = lv->GetName();
             if (name.empty())
             {
-                CELER_LOG(debug)
-                    << "Empty name for reachable LV id=" << lv.GetInstanceID();
+                CELER_LOG(debug) << "Empty name for reachable LV id="
+                                 << lv->GetInstanceID();
                 name = "[UNTITLED]";
             }
             // Add to name map
-            names[std::move(name)].push_back(&lv);
+            names[std::move(name)].push_back(lv);
         },
-        world);
+        &world);
 
     return detail::make_label_vector<G4LogicalVolume const*>(
         std::move(names), [offset](G4LogicalVolume const* lv) {
@@ -107,8 +110,9 @@ std::vector<Label> make_physical_vol_labels(G4VPhysicalVolume const& world,
     // Visit PVs, mapping names to instances, skipping those that have already
     // been visited at a deeper level
     visit_volume_instances(
-        [&](G4VPhysicalVolume const& pv, int depth) {
-            auto&& [iter, inserted] = max_depth.insert({&pv, depth});
+        [&](G4VPhysicalVolume const* pv, int depth) {
+            CELER_EXPECT(pv);
+            auto&& [iter, inserted] = max_depth.insert({pv, depth});
             if (!inserted)
             {
                 if (iter->second >= depth)
@@ -121,11 +125,11 @@ std::vector<Label> make_physical_vol_labels(G4VPhysicalVolume const& world,
             }
 
             // Add to name map
-            names[pv.GetName()].push_back(&pv);
+            names[pv->GetName()].push_back(pv);
             // Visit daughters
             return true;
         },
-        world);
+        &world);
 
     return detail::make_label_vector<G4VPhysicalVolume const*>(
         std::move(names), [offset](G4VPhysicalVolume const* pv) {
@@ -271,12 +275,11 @@ inp::Volume inp_from_geant(GeantGeoParams const& geo,
 {
     inp::Volume result;
     result.label = label;
-
-    // Set material ID if available
-    if (auto* mat = g4lv.GetMaterial())
-    {
-        result.material = id_cast<GeoMatId>(mat->GetIndex() - geo.mat_offset());
-    }
+    result.material = [&geo, mat = g4lv.GetMaterial()]() -> GeoMatId {
+        if (!mat)
+            return {};
+        return geo.geant_to_id(*mat);
+    }();
     // Populate volume.children with child volume instances
     auto num_children = g4lv.GetNoDaughters();
     result.children.reserve(num_children);
@@ -303,11 +306,11 @@ std::vector<inp::Volume> make_inp_volumes(GeantGeoParams const& geo)
 {
     std::vector<inp::Volume> result;
 
-    auto const& vol_labels = geo.volumes();
+    auto const& vol_labels = geo.impl_volumes();
     result.resize(vol_labels.size());
 
     // Process each logical volume
-    for (auto vol_id : range(VolumeId{vol_labels.size()}))
+    for (auto vol_id : range(ImplVolumeId{vol_labels.size()}))
     {
         auto const& label = vol_labels.at(vol_id);
         if (label.empty())
@@ -415,18 +418,10 @@ std::vector<inp::Surface> make_inp_surfaces(GeantGeoParams const& geo)
 }
 
 //---------------------------------------------------------------------------//
-// Global tracking geometry instance: may be nullptr
-GeantGeoParams const* g_geant_geo_ = nullptr;
-
-//---------------------------------------------------------------------------//
-// Clear the global geometry if it's being destroyed
-void destroying_geo(GeantGeoParams const* ggp)
-{
-    if (ggp == g_geant_geo_)
-    {
-        g_geant_geo_ = nullptr;
-    }
-}
+//! Global tracking geometry instance: may be nullptr
+// Note that this is safe to declare statically: see
+// https://en.cppreference.com/w/cpp/memory/weak_ptr/weak_ptr
+std::weak_ptr<GeantGeoParams const> g_geant_geo_;
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -441,28 +436,32 @@ void destroying_geo(GeantGeoParams const* ggp)
  * of global initialization order issues (the low-level Geant4 objects may be
  * cleared before a static celeritas::GeantGeoParams is destroyed).
  *
- * \note This is not thread safe; it should be done only during setup on the
- * main thread.
+ * \note This should be done only during setup on the main thread.
  */
-void geant_geo(GeantGeoParams const& gp)
+void global_geant_geo(std::shared_ptr<GeantGeoParams const> const& gp)
 {
-    CELER_VALIDATE(!g_geant_geo_ || &gp == g_geant_geo_,
-                   << "global tracking Geant4 geometry wrapper has already "
-                      "been set");
-    g_geant_geo_ = &gp;
+    CELER_LOG(debug) << (gp ? "Setting" : "Clearing")
+                     << " celeritas::global_geant_geo";
+    CELER_VALIDATE(
+        g_geant_geo_.expired() ||
+            [&] {
+                auto old_p = g_geant_geo_.lock();
+                return !old_p || old_p == gp;
+            }(),
+        << "global tracking Geant4 geometry wrapper has already been set");
+    g_geant_geo_ = gp;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Access the global geometry instance.
  *
- * This should be used by Geant4 geometry-related helper functions throughout
- * the code base. Make sure to check the result is not null! Do not save a
- * pointer to it either.
+ * This can be used by Geant4 geometry-related helper functions throughout
+ * the code base.
  *
- * \return Reference to the global Geant4 wrapper, or nullptr if not set.
+ * \return Weak pointer to the global Geant4 wrapper, which may be null.
  */
-GeantGeoParams const* geant_geo()
+std::weak_ptr<GeantGeoParams const> const& global_geant_geo()
 {
     return g_geant_geo_;
 }
@@ -470,6 +469,9 @@ GeantGeoParams const* geant_geo()
 //---------------------------------------------------------------------------//
 /*!
  * Create from a running Geant4 application.
+ *
+ * It saves the result to the global Celeritas Geant4 geometry weak pointer \c
+ * global_geant_geo.
  */
 std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
 {
@@ -477,7 +479,9 @@ std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
     CELER_VALIDATE(world,
                    << "cannot create Geant geometry wrapper: Geant4 tracking "
                       "manager is not active");
-    return std::make_shared<GeantGeoParams>(world);
+    auto result = std::make_shared<GeantGeoParams>(world, Ownership::reference);
+    celeritas::global_geant_geo(result);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -485,15 +489,16 @@ std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
  * Construct from a GDML input.
  *
  * This assumes that Celeritas is driving and will manage Geant4 logging
- * and exceptions.
+ * and exceptions. It saves the result to the global Celeritas Geant4 geometry
+ * weak pointer \c global_geant_geo.
  */
-GeantGeoParams::GeantGeoParams(std::string const& filename)
+std::shared_ptr<GeantGeoParams>
+GeantGeoParams::from_gdml(std::string const& filename)
 {
     ScopedMem record_mem("GeantGeoParams.construct");
 
-    scoped_logger_
-        = std::make_unique<ScopedGeantLogger>(celeritas::world_logger());
-    scoped_exceptions_ = std::make_unique<ScopedGeantExceptionHandler>();
+    ScopedGeantLogger logger(celeritas::world_logger());
+    ScopedGeantExceptionHandler exception_handler;
 
     disable_geant_signal_handler();
 
@@ -502,21 +507,18 @@ GeantGeoParams::GeantGeoParams(std::string const& filename)
         CELER_LOG(warning) << "Expected '.gdml' extension for GDML input";
     }
 
-    data_.world = load_gdml(filename);
-    loaded_gdml_ = true;
-
-    this->build_tracking();
-    this->build_metadata();
-
-    CELER_ENSURE(volumes_);
-    CELER_ENSURE(data_);
+    auto result = std::make_shared<GeantGeoParams>(load_gdml(filename),
+                                                   Ownership::value);
+    celeritas::global_geant_geo(result);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Use an existing loaded Geant4 geometry.
  */
-GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world)
+GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns)
+    : ownership_{owns}
 {
     CELER_EXPECT(world);
     data_.world = const_cast<G4VPhysicalVolume*>(world);
@@ -543,7 +545,19 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world)
         }
     }
 
-    this->build_tracking();
+    {
+        // Close the geometry if needed
+        auto* geo_man = G4GeometryManager::GetInstance();
+        CELER_ASSERT(geo_man);
+        if (!geo_man->IsGeometryClosed())
+        {
+            CELER_LOG(debug) << "Building geometry manager tracking";
+            geo_man->CloseGeometry(
+                /* optimize = */ true, /* verbose = */ false, this->world());
+            closed_geometry_ = true;
+        }
+    }
+
     this->build_metadata();
 
     CELER_ENSURE(volumes_);
@@ -569,13 +583,10 @@ GeantGeoParams::~GeantGeoParams()
                                 "geo had a chance to clean up";
         }
     }
-    if (loaded_gdml_)
+    if (ownership_ == Ownership::value)
     {
         reset_geant_geometry();
     }
-
-    // If some part of the code set us up as the global geometry, clear it
-    destroying_geo(this);
 }
 
 //---------------------------------------------------------------------------//
@@ -596,6 +607,7 @@ inp::Model GeantGeoParams::make_model_input() const
         // Get volumes from Geant4 geometry
         result.volumes = make_inp_volumes(*this);
         result.volume_instances = make_inp_volume_instances(*this);
+        result.world = this->geant_to_id(*(this->world()->GetLogicalVolume()));
 
         return result;
     }();
@@ -612,11 +624,11 @@ inp::Model GeantGeoParams::make_model_input() const
 /*!
  * Locate the volume ID corresponding to a Geant4 logical volume.
  */
-VolumeId GeantGeoParams::find_volume(G4LogicalVolume const* volume) const
+ImplVolumeId GeantGeoParams::find_volume(G4LogicalVolume const* volume) const
 {
     CELER_EXPECT(volume);
     auto result
-        = id_cast<VolumeId>(volume->GetInstanceID() - this->lv_offset());
+        = id_cast<ImplVolumeId>(volume->GetInstanceID() - this->lv_offset());
     if (!(result < volumes_.size()))
     {
         // Volume is out of range: possibly an LV defined after this geometry
@@ -677,6 +689,15 @@ G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId id) const
     auto index = id.unchecked_get();
     CELER_ASSERT(index < lv_store->size());
     return (*lv_store)[index];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the geometry material ID for a logical volume (may be null).
+ */
+GeoMatId GeantGeoParams::geant_to_id(G4Material const& g4mat) const
+{
+    return id_cast<GeoMatId>(g4mat.GetIndex() - this->mat_offset());
 }
 
 //---------------------------------------------------------------------------//
@@ -765,24 +786,6 @@ void GeantGeoParams::reset_replica_data() const
 // PRIVATE FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Complete geometry construction.
- */
-void GeantGeoParams::build_tracking()
-{
-    // Close the geometry if needed
-    auto* geo_man = G4GeometryManager::GetInstance();
-    CELER_ASSERT(geo_man);
-    if (!geo_man->IsGeometryClosed())
-    {
-        CELER_LOG(debug) << "Building geometry manager tracking";
-        geo_man->CloseGeometry(
-            /* optimize = */ true, /* verbose = */ false, this->world());
-        closed_geometry_ = true;
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct Celeritas host-only metadata.
  */
 void GeantGeoParams::build_metadata()
@@ -821,7 +824,7 @@ void GeantGeoParams::build_metadata()
     }
 
     // Construct volume labels for physically reachable volumes
-    volumes_ = VolumeMap{
+    volumes_ = ImplVolumeMap{
         "volume", make_logical_vol_labels(*this->world(), this->lv_offset())};
     vol_instances_ = VolInstanceMap{
         "volume instance",

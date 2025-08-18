@@ -37,8 +37,8 @@ namespace g4org
 /*!
  * Create an ORANGE geometry model from an in-memory Geant4 model.
  *
- * Return the new world volume and a mapping of Geant4 logical volumes to
- * VecGeom-based volume IDs.
+ * Return a complete geometry input, including a mapping of internal
+ * ORANGE volume IDs to structural volume IDs.
  *
  * The default Geant4 "tolerance" (often used as surface "thickness") is 1e-9
  * mm, and the relative tolerance when specifying a length scale is 1e-11 (so
@@ -53,7 +53,6 @@ class Converter
     //!@{
     //! \name Type aliases
     using arg_type = GeantGeoParams const&;
-    using MapLvVolId = std::unordered_map<G4LogicalVolume const*, VolumeId>;
     //!@}
 
     //! Input options for the conversion
@@ -65,14 +64,13 @@ class Converter
         Tolerance<> tol;
         //! Write interpreted geometry to a JSON file
         std::string proto_output_file;
-        //! Write intermediate debug ouput (CSG construction) to a JSON file
+        //! Write intermediate debug output (CSG construction) to a JSON file
         std::string debug_output_file;
     };
 
     struct result_type
     {
         OrangeInput input;
-        MapLvVolId volumes;  //! TODO
     };
 
   public:
@@ -83,7 +81,7 @@ class Converter
     Converter() : Converter{Options{}} {}
 
     // Convert the world
-    result_type operator()(arg_type);
+    result_type operator()(GeantGeoParams const&);
 
   private:
     Options opts_;
@@ -91,8 +89,7 @@ class Converter
 
 //---------------------------------------------------------------------------//
 
-#if !(CELERITAS_USE_GEANT4 \
-      && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+#if !CELERITAS_USE_GEANT4
 inline Converter::Converter(Options&&)
 {
     CELER_DISCARD(opts_);
@@ -100,7 +97,7 @@ inline Converter::Converter(Options&&)
 
 inline auto Converter::operator()(arg_type) -> result_type
 {
-    CELER_NOT_CONFIGURED("Geant4 with double-precision real_type");
+    CELER_NOT_CONFIGURED("Geant4");
 }
 #endif
 

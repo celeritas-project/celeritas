@@ -145,7 +145,7 @@ function(_cgv_store_version vstring vsuffix vhash tsfile)
 endfunction()
 
 #-----------------------------------------------------------------------------#
-# Get the path to the git head used to describe the current repostiory
+# Get the path to the git head used to describe the current repository
 function(_cgv_git_path resultvar)
   if(GIT_EXECUTABLE)
     _cgv_git_call_output(_TSFILE "rev-parse" "--git-path" "HEAD")

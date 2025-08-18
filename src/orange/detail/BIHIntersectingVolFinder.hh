@@ -27,13 +27,13 @@ namespace detail
  * box. The edge bounding box is the bounding box created by clipping an
  * infinite bounding box with all bounding planes between the root node and the
  * current edge (inclusive). If a ray's intersection with the edge bbox is
- * found to be nearer than the current minimum intersection, traversal procedes
+ * found to be nearer than the current minimum intersection, traversal proceeds
  * down that edge. Likewise, when a root node is reacted, intersections with
  * volume bboxes are first tested against the minimum intersection prior to
  * testing the the volume itself. The minimum intersection is only modified
  * when a nearer minimumium intersection with a actual volume if found, NOT a
  * nearer intersection with an edge bbox or volume bbox. This is because is is
- * possible to have a ray that interects with a volume's bbox, but not the
+ * possible to have a ray that intersects with a volume's bbox, but not the
  * volume itself.
  *
  * \todo move to top-level orange directory out of detail namespace

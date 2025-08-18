@@ -13,6 +13,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -63,4 +65,5 @@ CELER_FUNCTION void UpdateSumExecutor::operator()(TrackSlotId tid) const
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

@@ -105,8 +105,9 @@ void FastSimulationModel::DoIt(G4FastTrack const& track, G4FastStep& step)
     if (*transport_)
     {
         // Offload this track to Celeritas for transport
-        CELER_TRY_HANDLE(transport_->Push(*(track.GetPrimaryTrack())),
-                         ExceptionConverter("celer.track.push", params_));
+        CELER_TRY_HANDLE(
+            transport_->Push(const_cast<G4Track&>(*(track.GetPrimaryTrack()))),
+            ExceptionConverter("celer.track.push", params_));
     }
 
     // Kill particle on Geant4 side. Celeritas will take

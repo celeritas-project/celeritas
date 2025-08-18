@@ -735,7 +735,7 @@ function(cuda_rdc_use_middle_lib_in_property target property)
   set(_new_values)
   foreach(_lib IN LISTS _target_libs)
     set(_newlib ${_lib})
-    # Simplistic treatement of `$<LINK_ONLY:...>`
+    # Simplistic treatment of `$<LINK_ONLY:...>`
     string(REGEX REPLACE "\\\$<LINK_ONLY:(.*)>" "\\1" _stripped_lib ${_lib})
     if(_stripped_lib STREQUAL _lib)
       set(_stripped_lib)
@@ -844,7 +844,7 @@ function(cuda_rdc_check_cuda_runtime OUTVAR library)
     #   You have used file(GET_RUNTIME_DEPENDENCIES) in project mode.  This is
     #     probably not what you intended to do.
     # On the other hand, if the library is using (relocatable) CUDA code and
-    # the shared run-time library and we don't have the scafolding libraries
+    # the shared run-time library and we don't have the scaffolding libraries
     # (shared/static/final) then this won't work well. i.e. if we were to detect this
     # case we probably need to 'error out'.
     get_target_property(_cuda_middle_library ${library} CUDA_RDC_MIDDLE_LIBRARY)

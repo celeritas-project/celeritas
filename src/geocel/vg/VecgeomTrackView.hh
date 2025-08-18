@@ -91,7 +91,7 @@ class VecgeomTrackView
     CELER_FORCEINLINE_FUNCTION Real3 const& dir() const { return dir_; }
     //!@}
 
-    // Get the current volume's ID
+    // Get the canonical volume ID in the current impl volume
     inline CELER_FUNCTION VolumeId volume_id() const;
     // Get the ID of the current volume instance
     inline CELER_FUNCTION VolumeInstanceId volume_instance_id() const;
@@ -101,6 +101,8 @@ class VecgeomTrackView
     inline CELER_FUNCTION void
     volume_instance_id(Span<VolumeInstanceId> levels) const;
 
+    // Get the current volume's ID
+    inline CELER_FUNCTION ImplVolumeId impl_volume_id() const;
     // The current surface ID
     inline CELER_FUNCTION ImplSurfaceId impl_surface_id() const;
     // After 'find_next_step', the next straight-line surface
@@ -305,10 +307,19 @@ CELER_FUNCTION ImplSurfaceId VecgeomTrackView::next_impl_surface_id() const
 /*!
  * Get the volume ID in the current cell.
  */
-CELER_FORCEINLINE_FUNCTION VolumeId VecgeomTrackView::volume_id() const
+CELER_FORCEINLINE_FUNCTION ImplVolumeId VecgeomTrackView::impl_volume_id() const
 {
     CELER_EXPECT(!this->is_outside());
-    return id_cast<VolumeId>(this->volume().id());
+    return id_cast<ImplVolumeId>(this->volume().id());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the canonical volume ID in the current implementation volume.
+ */
+CELER_FORCEINLINE_FUNCTION VolumeId VecgeomTrackView::volume_id() const
+{
+    return id_cast<VolumeId>(this->impl_volume_id().unchecked_get());
 }
 
 //---------------------------------------------------------------------------//

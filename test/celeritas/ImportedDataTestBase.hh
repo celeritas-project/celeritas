@@ -6,7 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "GlobalGeoTestBase.hh"
+#include "celeritas/io/ImportOpticalModel.hh"
+
+#include "GlobalTestBase.hh"
 
 namespace celeritas
 {
@@ -22,8 +24,11 @@ namespace test
  *
  * This is an implementation detail of GeantTestBase and RootTestBase.
  */
-class ImportedDataTestBase : virtual public GlobalGeoTestBase
+class ImportedDataTestBase : virtual public GlobalTestBase
 {
+  public:
+    using IMC = celeritas::optical::ImportModelClass;
+
   public:
     //! Access lazily loaded problem-dependent data
     virtual ImportData const& imported_data() const = 0;
@@ -32,6 +37,9 @@ class ImportedDataTestBase : virtual public GlobalGeoTestBase
     // Set up options for physics
     virtual PhysicsOptions build_physics_options() const;
 
+    // Determine which optical models to build
+    virtual std::vector<IMC> select_optical_models() const;
+
     // Implemented overrides that load from import data
     SPConstMaterial build_material() override;
     SPConstGeoMaterial build_geomaterial() override;
@@ -39,7 +47,6 @@ class ImportedDataTestBase : virtual public GlobalGeoTestBase
     SPConstCutoff build_cutoff() override;
     SPConstPhysics build_physics() override;
     SPConstSim build_sim() override;
-    SPConstSurface build_surface() override;
     SPConstWentzelOKVI build_wentzel() override;
     SPConstCherenkov build_cherenkov() override;
     SPConstOpticalMaterial build_optical_material() override;

@@ -20,7 +20,7 @@ namespace detail
  * Evaluate an explicit infix logical expression applied to a vector of senses.
  *
  * Explicit infix notation explicitly spells out the intersection operator,
- * i.e., \c logic::land wehereas implicit infix notation omits it.
+ * i.e., \c logic::land whereas implicit infix notation omits it.
  *
  * These two expressions are equivalent:
  * Implicit notation: A(BC | DE)

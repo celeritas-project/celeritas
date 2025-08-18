@@ -49,6 +49,9 @@ using OptMatId = OpaqueId<struct OpticalMaterial_>;
 //! Opaque index to ParticleRecord in a vector: represents a particle type
 using ParticleId = OpaqueId<struct Particle_>;
 
+//! Unique ID (for an event) of a track among all primaries
+using PrimaryId = OpaqueId<struct Primary_>;
+
 //! Opaque index of physics process
 using ProcessId = OpaqueId<struct Process_>;
 

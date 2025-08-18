@@ -109,7 +109,7 @@ void log_state(Logger::Message& msg,
     if (core_params && kce.volume())
     {
         auto const& geo_params = *core_params->geometry();
-        msg << "\n- Volume: " << geo_params.volumes().at(kce.volume())
+        msg << "\n- Volume: " << geo_params.impl_volumes().at(kce.volume())
             << " (ID=" << kce.volume() << ')';
     }
     else

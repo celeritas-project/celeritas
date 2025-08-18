@@ -40,7 +40,7 @@ MaterialParams::from_import(ImportData const& data,
 
     CELER_VALIDATE(std::all_of(data.optical_materials.begin(),
                                data.optical_materials.end(),
-                               LogicalTrue{}),
+                               Identity{}),
                    << "one or more optical materials lack required data");
 
     Input inp;
@@ -55,10 +55,10 @@ MaterialParams::from_import(ImportData const& data,
     // Construct volume-to-optical mapping
     inp.volume_to_mat.reserve(geo_mat.num_volumes());
     bool has_opt_mat{false};
-    for (auto vid : range(VolumeId{geo_mat.num_volumes()}))
+    for (auto impl_id : range(ImplVolumeId{geo_mat.num_volumes()}))
     {
         OptMatId optmat;
-        if (auto matid = geo_mat.material_id(vid))
+        if (PhysMatId matid = geo_mat.material_id(impl_id))
         {
             auto mat_view = mat.get(matid);
             optmat = mat_view.optical_material_id();
@@ -88,7 +88,7 @@ MaterialParams::from_import(ImportData const& data,
     }
 
     CELER_ENSURE(std::all_of(
-        inp.optical_to_core.begin(), inp.optical_to_core.end(), LogicalTrue{}));
+        inp.optical_to_core.begin(), inp.optical_to_core.end(), Identity{}));
 
     return std::make_shared<MaterialParams>(std::move(inp));
 }
@@ -120,9 +120,9 @@ MaterialParams::MaterialParams(Input const& inp)
         CELER_VALIDATE(is_monotonic_increasing(make_span(ri.x)),
                        << "refractive index energy grid values are not "
                           "monotonically increasing");
-        // CELER_VALIDATE(is_monotonic_increasing(make_span(ri.y)),
-        //               << "refractive index values are not monotonically "
-        //                  "increasing");
+        CELER_VALIDATE(is_monotonic_nondecreasing(make_span(ri.y)),
+                       << "refractive index values are not constant or "
+                          "increasing");
         if (ri.y.front() < 1)
         {
             CELER_LOG(warning) << "Encountered refractive index below unity "
