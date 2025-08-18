@@ -28,6 +28,9 @@ SurfacePhysicsParams::SurfacePhysicsParams(Input input)
 {
     CELER_EXPECT(input.action_registry);
 
+    // Construct data
+    HostVal<SurfacePhysicsParamsData> data;
+
     auto& action_reg = *input.action_registry;
 
     // Init boundary action
@@ -38,9 +41,17 @@ SurfacePhysicsParams::SurfacePhysicsParams(Input input)
         action_reg.insert(init_boundary_action_);
     }
 
-    // Register roughness actions
-    // Register reflectivity actions
-    // Register interaction actions
+    // Register sub-step actions
+    roughness_models_ = this->build_surface_map(
+        *input.surfaces, data.roughness, input.roughness_models, action_reg);
+
+    reflectivity_models_ = this->build_surface_map(*input.surfaces,
+                                                   data.reflectivity,
+                                                   input.reflectivity_models,
+                                                   action_reg);
+
+    interaction_models_ = this->build_surface_map(
+        *input.surfaces, data.interaction, input.interaction_models, action_reg);
 
     // Post boundary action
     {
@@ -49,9 +60,6 @@ SurfacePhysicsParams::SurfacePhysicsParams(Input input)
         CELER_ASSERT(post_boundary_action_);
         action_reg.insert(post_boundary_action_);
     }
-
-    // Construct data
-    HostVal<SurfacePhysicsParamsData> data;
 
     // Construct scalars
 
@@ -74,6 +82,33 @@ SurfacePhysicsParams::SurfacePhysicsParams(Input input)
     CELER_ENSURE(data);
 
     data_ = CollectionMirror<SurfacePhysicsParamsData>{std::move(data)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ */
+VecModels SurfacePhysicsParams::build_surface_map(
+    SurfaceParams const& surfaces,
+    HostVal<SurfacePhysicsMapData>& physics_map,
+    VecSurfaceModelBuilder const& models,
+    ActionRegistry& action_reg) const
+{
+    SurfacePhysicsMapBuilder build_map{surfaces, physics_map};
+    std::vector<SPModel> results;
+
+    for (auto const& build_model : models)
+    {
+        auto model = build_model(action_reg.next_id());
+
+        CELER_ASSERT(model);
+
+        build_map(*model);
+        action_reg.insert(model);
+        results.push_back(std::move(model));
+    }
+
+    CELER_ENSURE(results.size() == models.size());
+    return results;
 }
 
 //---------------------------------------------------------------------------//

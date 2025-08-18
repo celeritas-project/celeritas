@@ -12,6 +12,7 @@
 #include "celeritas/optical/action/ActionInterface.hh"
 
 #include "BoundaryAction.hh"
+#include "SurfaceModel.hh"
 #include "SurfacePhysicsData.hh"
 
 namespace celeritas
@@ -30,11 +31,21 @@ class SurfacePhysicsParams final
     //!@{
     //! \name Type aliases
     using ActionIdRange = Range<ActionId>;
+    using VecSurfaceModelBuilder
+        = std::vector<typename SurfaceModel::SurfaceModelBuilder>;
+    using SPModel = std::shared_ptr<SurfaceModel>;
+    using VecModels = std::vector<SPModel>;
+    using SPConstSurfaces = std::shared_ptr<SurfaceParams const>;
     //!@}
 
     struct Input
     {
         ActionRegistry* action_registry = nullptr;
+        SPConstSurfaces surfaces;
+
+        VecSurfaceModelBuilder roughness_models;
+        VecSurfaceModelBuilder reflectivity_models;
+        VecSurfaceModelBuilder interface_models;
 
         //!@{
         //! \name Temporary mock data to test building surface records
@@ -69,8 +80,17 @@ class SurfacePhysicsParams final
     std::shared_ptr<InitBoundaryAction> init_boundary_action_;
     std::shared_ptr<PostBoundaryAction> post_boundary_action_;
 
+    VecModels roughness_models_;
+    VecModels reflectivity_models_;
+    VecModels interaction_models_;
+
     // Host/device storage
     CollectionMirror<SurfacePhysicsParamsData> data_;
+
+    VecModels build_surface_map(SurfaceParams const& surfaces,
+                                HostVal<SurfacePhysicsMapData>& physics_map,
+                                VecSurfaceModelBuilder const& models,
+                                ActionRegistry& action_reg) const;
 };
 
 //---------------------------------------------------------------------------//

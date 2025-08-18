@@ -16,24 +16,17 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 
-using SubsurfaceMaterialRecordId = OpaqueId<struct SubsurfaceMaterialRecord>;
-using SubsurfaceInterfaceRecordId = OpaqueId<struct SubsurfaceInterfaceRecord>;
+using SubsurfaceMaterialRecord = OpticalMaterialId;
+using SubsurfaceInterfaceRecord = SurfacePhysicsId;
 
-struct SubsurfaceMaterialRecord
-{
-    // TODO: Add subsurface material property data
-};
-
-struct SubsurfaceInterfaceRecord
-{
-    // TODO: Add subsurface interface property data
-};
+using SubsurfaceMaterialRecordId = OpaqueId<SubsurfaceMaterialRecord>;
+using SubsurfaceInterfaceRecordId = OpaqueId<SubsurfaceInterfaceRecord>;
 
 //---------------------------------------------------------------------------//
 /*!
- * Storage for surface physics data.
+ * Storage for sub-surface materials and interfaces of a geometric surface.
  *
- * A surface between volumes A and B is an ordered list of N \c
+ * A geometric surface between volumes A and B is an ordered list of N \c
  * SubsurfaceInterface that separate N+1 \c SubsurfaceMaterial . The data is
  * organized as:
  *  - \c SubsurfaceMaterial 0 corresponds to material properties of A
@@ -42,7 +35,7 @@ struct SubsurfaceInterfaceRecord
  * SubsurfaceMaterial i and i+1.
  *  - There is always at least one \c SubsurfaceInterface i.e. N >= 1
  */
-struct SurfacePhysicsRecord
+struct SurfaceCompositionRecord
 {
     ItemMap<SubsurfaceMaterialId, SubsurfaceMaterialRecordId> subsurface_materials;
     ItemMap<SubsurfaceInterfaceId, SubsurfaceInterfaceRecordId>
@@ -65,17 +58,32 @@ struct SurfacePhysicsParamsData
 {
     //!@{
     //! \name Type aliases
+
+    using SurfacePhysicsMap = SurfacePhysicsMapData<W, M>;
+
+    template<class T>
+    using GeometricSurfaceItems = Collection<T, W, M, GeometricSurfaceId>;
+
     template<class T>
     using Items = Collection<T, W, M>;
 
-    template<class T>
-    using SurfaceItems = Collection<T, W, M, SurfaceId>;
     //!@}
 
-    SurfaceItems<SurfacePhysicsRecord> surfaces;
+    GeometricSurfaceItems<SurfaceCompositionRecord> surfaces;
+    Items<SubsurfaceMaterialRecord> subsurface_materials;
+    Items<SubsurfaceInterfaceRecord> subsurface_interfaces;
+
+    SurfacePhysicsMap roughness;
+    SurfacePhysicsMap reflectivity;
+    SurfacePhysicsMap interaction;
 
     //! Whether data is assigned and valid
-    explicit CELER_FUNCTION operator bool() const { return !surfaces.empty(); }
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !surfaces.empty() && !subsurface_materials.empty()
+               && !subsurface_interfaces.empty() && roughness && reflectivity
+               && interaction;
+    }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
@@ -83,7 +91,15 @@ struct SurfacePhysicsParamsData
     operator=(SurfacePhysicsParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
+
         surfaces = other.surfaces;
+        subsurface_materials = other.subsurface_materials;
+        subsurface_interfaces = other.subsurface_interfaces;
+
+        roughness = other.roughness;
+        reflectivity = other.reflectivity;
+        interaction = other.interaction;
+
         return *this;
     }
 };
