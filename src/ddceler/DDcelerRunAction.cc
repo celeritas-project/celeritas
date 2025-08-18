@@ -2,13 +2,12 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ddceler/DDcelerTMI.cc
+//! \file ddceler/DDcelerRunAction.cc
 //---------------------------------------------------------------------------//
 #include "DDcelerRunAction.hh"
 
 #include <CeleritasG4.hh>
 #include <DDG4/Factories.h>
-#include <QGSP_BERT.hh>
 
 using TMI = celeritas::TrackingManagerIntegration;
 
