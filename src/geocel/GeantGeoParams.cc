@@ -438,10 +438,10 @@ std::weak_ptr<GeantGeoParams const> g_geant_geo_;
  *
  * \note This should be done only during setup on the main thread.
  */
-void geant_geo(std::shared_ptr<GeantGeoParams const> const& gp)
+void global_geant_geo(std::shared_ptr<GeantGeoParams const> const& gp)
 {
     CELER_LOG(debug) << (gp ? "Setting" : "Clearing")
-                     << " celeritas::geant_geo";
+                     << " celeritas::global_geant_geo";
     CELER_VALIDATE(
         g_geant_geo_.expired() ||
             [&] {
@@ -461,7 +461,7 @@ void geant_geo(std::shared_ptr<GeantGeoParams const> const& gp)
  *
  * \return Weak pointer to the global Geant4 wrapper, which may be null.
  */
-std::weak_ptr<GeantGeoParams const> const& geant_geo()
+std::weak_ptr<GeantGeoParams const> const& global_geant_geo()
 {
     return g_geant_geo_;
 }
@@ -471,7 +471,7 @@ std::weak_ptr<GeantGeoParams const> const& geant_geo()
  * Create from a running Geant4 application.
  *
  * It saves the result to the global Celeritas Geant4 geometry weak pointer \c
- * geant_geo.
+ * global_geant_geo.
  */
 std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
 {
@@ -480,7 +480,7 @@ std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
                    << "cannot create Geant geometry wrapper: Geant4 tracking "
                       "manager is not active");
     auto result = std::make_shared<GeantGeoParams>(world, Ownership::reference);
-    celeritas::geant_geo(result);
+    celeritas::global_geant_geo(result);
     return result;
 }
 
@@ -490,7 +490,7 @@ std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
  *
  * This assumes that Celeritas is driving and will manage Geant4 logging
  * and exceptions. It saves the result to the global Celeritas Geant4 geometry
- * weak pointer \c geant_geo.
+ * weak pointer \c global_geant_geo.
  */
 std::shared_ptr<GeantGeoParams>
 GeantGeoParams::from_gdml(std::string const& filename)
@@ -509,7 +509,7 @@ GeantGeoParams::from_gdml(std::string const& filename)
 
     auto result = std::make_shared<GeantGeoParams>(load_gdml(filename),
                                                    Ownership::value);
-    celeritas::geant_geo(result);
+    celeritas::global_geant_geo(result);
     return result;
 }
 

@@ -64,7 +64,10 @@ GlobalTestBase::~GlobalTestBase()
             std::cerr << "Failed to write diagnostics: " << e.what();
         }
     }
+    // Reset global volumes that we set
+    celeritas::global_volumes(nullptr);
 }
+
 //---------------------------------------------------------------------------//
 /*!
  * Add primaries to be generated.
@@ -144,6 +147,7 @@ auto GlobalTestBase::build_geometry() -> SPConstCoreGeo
 
     auto mi = model_geo->make_model_input();
     volume_ = std::make_shared<VolumeParams>(mi.volumes);
+    celeritas::global_volumes(volume_);
     surface_ = std::make_shared<SurfaceParams>(mi.surfaces, *volume_);
 
     return core_geo;

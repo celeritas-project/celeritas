@@ -75,7 +75,7 @@ struct GeoBuilder
          */
         CELER_VALIDATE(world,
                        << "null world pointer in problem.model.geometry");
-        auto ggp = celeritas::geant_geo().lock();
+        auto ggp = celeritas::global_geant_geo().lock();
         CELER_VALIDATE(ggp && ggp->world() == world,
                        << "inconsistent Geant4 world pointer given to model "
                           "setup");
@@ -108,6 +108,7 @@ ModelLoaded model(inp::Model const& m)
         CELER_LOG(debug) << "Volume structure data is unavailable";
     }
     result.volume = std::make_shared<VolumeParams>(m.volumes);
+    celeritas::global_volumes(result.volume);
 
     // Construct surfaces
     if (!m.surfaces)
