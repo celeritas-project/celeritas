@@ -20,6 +20,12 @@ using ScintParticleId = OpaqueId<struct ScintParticle_>;
 //! Opaque index to a scintillation spectrum
 using ParScintSpectrumId = OpaqueId<struct ParScintSpectrum>;
 
+namespace optical
+{
+//! Opaque index to a surface physics model
+using SurfaceModelId = OpaqueId<class SurfaceModel>;
+}  // namespace optical
+
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//

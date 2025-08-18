@@ -36,7 +36,13 @@ struct SurfaceRecord
     ItemMap<SubsurfaceInterfaceId, SubsurfaceInterfaceRecordId>
         subsurface_interfaces;
 
-    explicit CELER_FUNCTION operator bool() const { return false; }
+    //! Whether data is assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !subsurface_interfaces.empty()
+               && subsurface_materials.size()
+                      == subsurface_interfaces.size() + 1;
+    }
 };
 
 //---------------------------------------------------------------------------//

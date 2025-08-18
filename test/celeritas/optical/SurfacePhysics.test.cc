@@ -98,6 +98,27 @@ TraceResult trace_directions(SurfacePhysicsView& s_physics,
     return result;
 }
 
+class MockSurfaceModel : public SurfaceModel
+{
+  public:
+    static SurfaceModel::ModelBuilder make_mock_builder(SurfacePhysicsStep step)
+    {
+        return [&](ActionId aid) {
+            return std::make_shared<MockSurfaceModel>(step, aid);
+        };
+    }
+
+    MockSurfaceModel(SurfacePhysicsStep, ActionId aid)
+        : SurfaceModel(aid, "bad", "bad")
+    {
+    }
+
+    void step(CoreParams const&, CoreStateHost&) const final {}
+    void step(CoreParams const&, CoreStateDevice&) const final {}
+
+    VecSurfaceLayer get_surfaces() const final { return {}; }
+};
+
 class SurfacePhysicsTest : public OpticalMockTestBase
 {
   protected:
@@ -107,7 +128,40 @@ class SurfacePhysicsTest : public OpticalMockTestBase
 
     SPConstSurfacePhysics surface_physics() const
     {
-        return std::make_shared<SurfacePhysicsParams>();
+        SurfacePhysicsParams::Input input;
+        input.action_reg = this->optical_action_reg().get();
+        input.surfaces = {
+            {as_id_vec<OptMatId>(0, 3, 1, 2, 1),
+             {
+                 {SurfaceModelId{1}, SurfaceModelId{0}, SurfaceModelId{3}},
+                 {SurfaceModelId{1}, SurfaceModelId{0}, SurfaceModelId{0}},
+                 {SurfaceModelId{0}, SurfaceModelId{0}, SurfaceModelId{2}},
+                 {SurfaceModelId{1}, SurfaceModelId{0}, SurfaceModelId{1}},
+             }},
+            {as_id_vec<OptMatId>(0, 2, 1),
+             {
+                 {SurfaceModelId{0}, SurfaceModelId{0}, SurfaceModelId{1}},
+                 {SurfaceModelId{1}, SurfaceModelId{0}, SurfaceModelId{3}},
+             }
+
+            },
+            {as_id_vec<OptMatId>(0, 1),
+             {
+                 {SurfaceModelId{1}, SurfaceModelId{0}, SurfaceModelId{2}},
+             }},
+        };
+
+        SurfaceStepArray<size_type> num_models{2, 1, 4};
+        for (auto step : range(SurfacePhysicsStep::size_))
+        {
+            for ([[maybe_unused]] size_type n : range(num_models[step]))
+            {
+                input.model_builders[step].push_back(
+                    MockSurfaceModel::make_mock_builder(step));
+            }
+        }
+
+        return std::make_shared<SurfacePhysicsParams>(std::move(input));
     }
 
     void initialize_states(TrackSlotId::size_type num_tracks)

@@ -9,21 +9,19 @@
 #include <memory>
 #include <vector>
 
+#include "corecel/cont/EnumArray.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
-#include "celeritas/phys/SurfaceModel.hh"
 
+#include "SurfaceModel.hh"
 #include "SurfacePhysicsData.hh"
 
 namespace celeritas
 {
+class ActionRegistry;
+
 namespace optical
 {
-
-// class SurfaceModel : public ::celeritas::SurfaceModel, public ConcreteAction
-// {
-// };
-
 //---------------------------------------------------------------------------//
 /*!
  * Brief class description.
@@ -39,10 +37,28 @@ class SurfacePhysicsParams final
   public:
     //!@{
     //! \name Type aliases
+    template<class T>
+    using SurfaceStepArray = EnumArray<SurfacePhysicsStep, T>;
+
+    using VecModelBuilders = std::vector<SurfaceModel::ModelBuilder>;
     //!@}
 
+    struct SurfaceInput
+    {
+        std::vector<OptMatId> materials;
+        std::vector<SurfaceStepArray<SurfaceModelId>> interface_models;
+    };
+
+    struct Input
+    {
+        ActionRegistry* action_reg = nullptr;
+
+        std::vector<SurfaceInput> surfaces;  //!< indexed by GeometricSurfaceId
+        SurfaceStepArray<VecModelBuilders> model_builders;
+    };
+
   public:
-    explicit SurfacePhysicsParams() {}
+    explicit SurfacePhysicsParams(Input) {}
 
     //! Access surface physics data on host
     HostRef const& host_ref() const final { return data_.host_ref(); }
