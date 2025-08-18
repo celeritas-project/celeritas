@@ -544,7 +544,7 @@ TEST_F(CherenkovAirTest, dndx)
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         static double const expected_dndx[]
-            = {33.6659008061195, 4.14214526239061, 0.0};
+            = {26.95328666191, 3.3931341666038, 1.5013818039724, 0.0};
         EXPECT_VEC_SOFT_EQ(expected_dndx, dndx);
     }
 }
