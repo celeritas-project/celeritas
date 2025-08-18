@@ -16,6 +16,46 @@
 
 namespace celeritas
 {
+namespace detail
+{
+//---------------------------------------------------------------------------//
+//! Sentinel value for an unassigned opaque ID
+template<class T>
+inline constexpr T invalid_opaqueid_value{static_cast<T>(-1)};
+
+//---------------------------------------------------------------------------//
+//! Safely cast from one integer T to another U, avoiding the sentinel value
+template<class U, class T>
+inline CELER_FUNCTION U id_cast_impl(T value) noexcept(!CELERITAS_DEBUG)
+{
+    if constexpr (!std::is_unsigned_v<T>)
+    {
+        CELER_EXPECT(value >= 0);
+    }
+
+    if constexpr (!std::is_same_v<T, U>)
+    {
+        // Check that the cast value is within the integer range [0, N-1)
+        using C = std::common_type_t<U, std::make_unsigned_t<T>>;
+        if constexpr (!std::is_unsigned_v<C>)
+        {
+            CELER_EXPECT(static_cast<C>(value) >= 0);
+        }
+        CELER_EXPECT(static_cast<C>(value)
+                     < static_cast<C>(invalid_opaqueid_value<U>));
+    }
+    else
+    {
+        // Check that value is *not* the invalid value
+        CELER_EXPECT(static_cast<U>(value) != invalid_opaqueid_value<U>);
+    }
+
+    return static_cast<U>(value);
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace detail
+
 //---------------------------------------------------------------------------//
 /*!
  * Type-safe index for accessing an array or collection of data.
@@ -53,7 +93,7 @@ class OpaqueId
 
   public:
     //! Default to invalid state
-    CELER_CONSTEXPR_FUNCTION OpaqueId() : value_(OpaqueId::invalid_value()) {}
+    CELER_CONSTEXPR_FUNCTION OpaqueId() : value_(invalid_value_) {}
 
     //! Construct explicitly with stored value
     explicit CELER_CONSTEXPR_FUNCTION OpaqueId(size_type index) : value_(index)
@@ -63,7 +103,7 @@ class OpaqueId
     //! Whether this ID is in a valid (assigned) state
     explicit CELER_CONSTEXPR_FUNCTION operator bool() const
     {
-        return value_ != invalid_value();
+        return value_ != invalid_value_;
     }
 
     //! Pre-increment of the ID
@@ -114,13 +154,9 @@ class OpaqueId
   private:
     size_type value_;
 
-    //// IMPLEMENTATION FUNCTIONS ////
-
     //! Value indicating the ID is not assigned
-    static CELER_CONSTEXPR_FUNCTION size_type invalid_value()
-    {
-        return static_cast<size_type>(-1);
-    }
+    static constexpr size_type invalid_value_
+        = detail::invalid_opaqueid_value<size_type>;
 };
 
 //---------------------------------------------------------------------------//
@@ -139,26 +175,9 @@ template<class IdT, class T>
 inline CELER_FUNCTION IdT id_cast(T value) noexcept(!CELERITAS_DEBUG)
 {
     static_assert(std::is_integral_v<T>);
-    if constexpr (!std::is_unsigned_v<T>)
-    {
-        CELER_EXPECT(value >= 0);
-    }
+    static_assert(std::is_integral_v<typename IdT::size_type>);
 
-    using IdSize = typename IdT::size_type;
-    if constexpr (!std::is_same_v<T, IdSize>)
-    {
-        // Check that value is within the integer range [0, N-1)
-        using U = std::common_type_t<IdSize, std::make_unsigned_t<T>>;
-        CELER_EXPECT(static_cast<U>(value)
-                     < static_cast<U>(IdT{}.unchecked_get()));
-    }
-    else
-    {
-        // Check that value is *not* the invalid value
-        CELER_EXPECT(value != IdT{}.unchecked_get());
-    }
-
-    return IdT{static_cast<IdSize>(value)};
+    return IdT{detail::id_cast_impl<typename IdT::size_type, T>(value)};
 }
 
 //---------------------------------------------------------------------------//
