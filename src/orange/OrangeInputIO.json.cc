@@ -88,14 +88,7 @@ BBox get_bbox(nlohmann::json const& j)
 void from_json(nlohmann::json const& j, VolumeInput& value)
 {
     // Convert faces to OpaqueId
-    std::vector<LocalSurfaceId::size_type> temp_faces;
-    j.at("faces").get_to(temp_faces);
-    value.faces.reserve(temp_faces.size());
-    for (auto surf_id : temp_faces)
-    {
-        CELER_ASSERT(surf_id != LocalSurfaceId{}.unchecked_get());
-        value.faces.emplace_back(surf_id);
-    }
+    j.at("faces").get_to(value.faces);
 
     // Read scalars, including optional flags
     if (auto iter = j.find("flags"); iter != j.end())
@@ -162,14 +155,8 @@ void to_json(nlohmann::json& j, VolumeInput const& value)
 {
     CELER_EXPECT(value);
 
-    // Convert faces from OpaqueId
-    std::vector<LocalSurfaceId::size_type> temp_faces;
-    temp_faces.reserve(value.faces.size());
-    for (auto surf_id : value.faces)
-    {
-        temp_faces.emplace_back(surf_id.unchecked_get());
-    }
-    j["faces"] = std::move(temp_faces);
+    // Convert faces from OpaqueId (using JsonUtils)
+    j["faces"] = value.faces;
 
     // Convert logic string to vector
     if (!value.logic.empty())
