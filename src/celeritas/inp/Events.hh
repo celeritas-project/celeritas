@@ -8,6 +8,7 @@
 
 #include <string>
 #include <variant>
+#include <vector>
 
 #include "corecel/Types.hh"
 #include "geocel/Types.hh"
