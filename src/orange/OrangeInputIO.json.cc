@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
+#include "corecel/OpaqueIdIO.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/ArrayIO.json.hh"
@@ -62,24 +63,6 @@ VariantTransform make_transform(Real3 const& translation)
         return NoTransformation{};
     }
     return Translation{translation};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Convert a vector of variants to a json array.
- */
-template<class T>
-nlohmann::json variants_to_json(std::vector<T> const& values)
-{
-    auto result = nlohmann::json::array();
-    for (auto const& var : values)
-    {
-        auto j = nlohmann::json::object();
-        std::visit([&j](auto&& u) { to_json(j, u); }, var);
-        result.push_back(std::move(j));
-    }
-
-    return result;
 }
 
 //---------------------------------------------------------------------------//

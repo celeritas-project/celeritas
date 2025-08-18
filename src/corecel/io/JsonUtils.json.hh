@@ -118,4 +118,22 @@ void check_format(nlohmann::json const& j, std::string_view format);
 void check_units(nlohmann::json const& j, std::string_view format);
 
 //---------------------------------------------------------------------------//
+/*!
+ * Convert a vector of variants to a json array.
+ */
+template<class T>
+nlohmann::json variants_to_json(std::vector<T> const& values)
+{
+    auto result = nlohmann::json::array();
+    for (auto const& var : values)
+    {
+        auto j = nlohmann::json::object();
+        std::visit([&j](auto&& u) { to_json(j, u); }, var);
+        result.push_back(std::move(j));
+    }
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas
