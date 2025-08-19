@@ -224,15 +224,7 @@ GeantPhysicalInstance OrangeParams::id_to_geant(VolumeInstanceId) const
 VolumeId OrangeParams::volume_id(ImplVolumeId iv_id) const
 {
     auto const& volume_id_map = this->host_ref().volume_ids;
-    CELER_EXPECT(volume_id_map.empty() || iv_id < volume_id_map.size());
-
-    if (CELER_UNLIKELY(volume_id_map.empty()))
-    {
-        // Probably standalone geometry
-        CELER_ASSERT(iv_id);
-        return id_cast<VolumeId>(iv_id.unchecked_get());
-    }
-
+    CELER_EXPECT(iv_id < volume_id_map.size());
     return volume_id_map[iv_id];
 }
 
