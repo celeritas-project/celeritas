@@ -61,7 +61,7 @@ struct GeantMuonPhysicsOptions
     //! Enable muon single Coulomb scattering
     bool coulomb{false};
     //! Enable multiple coulomb scattering and select a model
-    MscModelSelection msc{MscModelSelection::urban};
+    MscModelSelection msc{MscModelSelection::none};
 
     //! True if any process is activated
     explicit operator bool() const

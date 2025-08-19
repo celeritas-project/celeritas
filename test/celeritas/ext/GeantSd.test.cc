@@ -155,7 +155,8 @@ TEST_F(SimpleCmsTest, delete_one)
 
     // Check particles
     auto pnames = this->particle_names(man.geant_particles());
-    static std::string const expected_pnames[] = {"gamma", "e-", "e+"};
+    static std::string const expected_pnames[]
+        = {"gamma", "e-", "e+", "mu-", "mu+"};
     EXPECT_VEC_EQ(expected_pnames, pnames);
 
     // Check log

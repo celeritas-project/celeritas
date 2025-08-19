@@ -1591,7 +1591,8 @@ TEST_F(OneSteelSphereGG, physics)
     auto&& imported = this->imported_data();
     auto summary = this->summarize(imported);
 
-    static char const* expected_particles[] = {"e+", "e-", "gamma"};
+    static char const* expected_particles[]
+        = {"e+", "e-", "gamma", "mu+", "mu-"};
     EXPECT_VEC_EQ(expected_particles, summary.particles);
     static char const* expected_processes[] = {"e_ioni",
                                                "e_brems",
@@ -1599,9 +1600,15 @@ TEST_F(OneSteelSphereGG, physics)
                                                "compton",
                                                "conversion",
                                                "rayleigh",
-                                               "annihilation"};
+                                               "annihilation",
+                                               "mu_ioni",
+                                               "mu_brems",
+                                               "mu_pair_prod"};
+    ;
     EXPECT_VEC_EQ(expected_processes, summary.processes);
     static char const* expected_models[] = {"urban_msc",
+                                            "icru_73_qo",
+                                            "bragg",
                                             "moller_bhabha",
                                             "e_brems_sb",
                                             "e_brems_lpm",
@@ -1609,7 +1616,10 @@ TEST_F(OneSteelSphereGG, physics)
                                             "livermore_photoelectric",
                                             "klein_nishina",
                                             "bethe_heitler_lpm",
-                                            "livermore_rayleigh"};
+                                            "livermore_rayleigh",
+                                            "mu_bethe_bloch",
+                                            "mu_brems",
+                                            "mu_pair_prod"};
     EXPECT_VEC_EQ(expected_models, summary.models);
 
     {
@@ -1977,11 +1987,18 @@ TEST_F(Solids, physics)
     auto&& imported = this->imported_data();
     auto summary = this->summarize(imported);
 
-    static char const* expected_particles[] = {"e+", "e-", "gamma"};
+    static char const* expected_particles[]
+        = {"e+", "e-", "gamma", "mu+", "mu-"};
     EXPECT_VEC_EQ(expected_particles, summary.particles);
-    static char const* expected_processes[] = {"e_brems"};
+    static char const* expected_processes[]
+        = {"e_brems", "mu_ioni", "mu_brems", "mu_pair_prod"};
     EXPECT_VEC_EQ(expected_processes, summary.processes);
-    static char const* expected_models[] = {"e_brems_sb"};
+    static char const* expected_models[] = {"icru_73_qo",
+                                            "bragg",
+                                            "e_brems_sb",
+                                            "mu_bethe_bloch",
+                                            "mu_brems",
+                                            "mu_pair_prod"};
     EXPECT_VEC_EQ(expected_models, summary.models);
 }
 
