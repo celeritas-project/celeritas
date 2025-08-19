@@ -7,6 +7,7 @@
 #pragma once
 
 #include <iosfwd>
+#include <string>
 
 namespace celeritas
 {
