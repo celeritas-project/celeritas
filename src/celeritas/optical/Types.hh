@@ -24,6 +24,7 @@ namespace optical
 {
 //! Opaque index to a surface physics model
 using SurfaceModelId = OpaqueId<class SurfaceModel>;
+
 }  // namespace optical
 
 //---------------------------------------------------------------------------//
@@ -46,6 +47,8 @@ enum class SurfacePhysicsStep
     interaction,
     size_
 };
+
+char const* to_cstring(SurfacePhysicsStep);
 
 enum class SubsurfaceDirection : bool
 {

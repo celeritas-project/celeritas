@@ -77,7 +77,11 @@ struct SurfacePhysicsParamsData
     Items<SubsurfaceInterfaceRecord> subsurface_interfaces;
 
     //! Whether data is assigned
-    explicit CELER_FUNCTION operator bool() const { return false; }
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !surfaces.empty() && !subsurface_materials.empty()
+               && !subsurface_interfaces.empty();
+    }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
@@ -85,6 +89,13 @@ struct SurfacePhysicsParamsData
     operator=(SurfacePhysicsParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
+        surfaces = other.surfaces;
+        subsurface_materials = other.subsurface_materials;
+        subsurface_interfaces = other.subsurface_interfaces;
+        for (auto step : range(SurfacePhysicsStep::size_))
+        {
+            model_maps[step] = other.model_maps[step];
+        }
         return *this;
     }
 };

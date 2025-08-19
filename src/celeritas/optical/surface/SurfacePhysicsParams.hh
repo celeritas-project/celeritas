@@ -13,6 +13,7 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 
+#include "BoundaryAction.hh"
 #include "SurfaceModel.hh"
 #include "SurfacePhysicsData.hh"
 
@@ -40,6 +41,7 @@ class SurfacePhysicsParams final
     template<class T>
     using SurfaceStepArray = EnumArray<SurfacePhysicsStep, T>;
 
+    using SPModel = std::shared_ptr<SurfaceModel>;
     using VecModelBuilders = std::vector<SurfaceModel::ModelBuilder>;
     //!@}
 
@@ -58,7 +60,7 @@ class SurfacePhysicsParams final
     };
 
   public:
-    explicit SurfacePhysicsParams(Input) {}
+    explicit SurfacePhysicsParams(Input);
 
     //! Access surface physics data on host
     HostRef const& host_ref() const final { return data_.host_ref(); }
@@ -67,19 +69,40 @@ class SurfacePhysicsParams final
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
     //! Action ID for initializing boundary interactions
-    ActionId init_boundary_action() const { return ActionId{}; }
+    ActionId init_boundary_action() const
+    {
+        return init_boundary_action_->action_id();
+    }
 
     //! Action ID for finishing boundary interactions
-    ActionId post_boundary_action() const { return ActionId{}; }
-
-    std::vector<std::shared_ptr<SurfaceModel>> models(SurfacePhysicsStep) const
+    ActionId post_boundary_action() const
     {
-        return {};
+        return post_boundary_action_->action_id();
+    }
+
+    //! Get models for a given sub-step
+    std::vector<SPModel> const& models(SurfacePhysicsStep step) const
+    {
+        return models_[step];
     }
 
   private:
+    // Boundary actions
+    std::shared_ptr<InitBoundaryAction> init_boundary_action_;
+    std::shared_ptr<PostBoundaryAction> post_boundary_action_;
+
+    SurfaceStepArray<std::vector<SPModel>> models_;
+
     // Host/device storage
     CollectionMirror<SurfacePhysicsParamsData> data_;
+
+    // Build sub-step models
+    SurfaceStepArray<std::vector<SPModel>>
+    build_models(SurfaceStepArray<VecModelBuilders> const&) const;
+
+    // Build surface data
+    void build_surfaces(std::vector<SurfaceInput> const&,
+                        HostVal<SurfacePhysicsParamsData>&) const;
 };
 
 //---------------------------------------------------------------------------//

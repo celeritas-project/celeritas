@@ -51,6 +51,10 @@ class ImportedDataTestBase : virtual public GlobalTestBase
     SPConstCherenkov build_cherenkov() override;
     SPConstOpticalMaterial build_optical_material() override;
     SPConstOpticalPhysics build_optical_physics() override;
+    SPConstOpticalSurfacePhysics build_optical_surface_physics() override
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
     SPConstScintillation build_scintillation() override;
 };
 

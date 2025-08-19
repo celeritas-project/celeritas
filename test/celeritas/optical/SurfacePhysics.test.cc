@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include <memory>
 #include <set>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -101,15 +102,18 @@ TraceResult trace_directions(SurfacePhysicsView& s_physics,
 class MockSurfaceModel : public SurfaceModel
 {
   public:
-    static SurfaceModel::ModelBuilder make_mock_builder(SurfacePhysicsStep step)
+    static SurfaceModel::ModelBuilder
+    make_mock_builder(SurfacePhysicsStep step, size_type n)
     {
-        return [&](ActionId aid) {
-            return std::make_shared<MockSurfaceModel>(step, aid);
+        return [step, n](ActionId aid) {
+            std::stringstream title_string;
+            title_string << to_cstring(step) << "-" << n;
+            return std::make_shared<MockSurfaceModel>(title_string.str(), aid);
         };
     }
 
-    MockSurfaceModel(SurfacePhysicsStep, ActionId aid)
-        : SurfaceModel(aid, "bad", "bad")
+    MockSurfaceModel(std::string const& title, ActionId aid)
+        : SurfaceModel(aid, title, "desc-" + title)
     {
     }
 
@@ -126,7 +130,7 @@ class SurfacePhysicsTest : public OpticalMockTestBase
 
     void SetUp() override {}
 
-    SPConstSurfacePhysics surface_physics() const
+    SPConstOpticalSurfacePhysics build_optical_surface_physics() override
     {
         SurfacePhysicsParams::Input input;
         input.action_reg = this->optical_action_reg().get();
@@ -154,14 +158,14 @@ class SurfacePhysicsTest : public OpticalMockTestBase
         SurfaceStepArray<size_type> num_models{2, 1, 4};
         for (auto step : range(SurfacePhysicsStep::size_))
         {
-            for ([[maybe_unused]] size_type n : range(num_models[step]))
+            for (size_type n : range(num_models[step]))
             {
                 input.model_builders[step].push_back(
-                    MockSurfaceModel::make_mock_builder(step));
+                    MockSurfaceModel::make_mock_builder(step, n));
             }
         }
 
-        return std::make_shared<SurfacePhysicsParams>(std::move(input));
+        return std::make_shared<SurfacePhysicsParams const>(std::move(input));
     }
 
     void initialize_states(TrackSlotId::size_type num_tracks)
@@ -174,7 +178,7 @@ class SurfacePhysicsTest : public OpticalMockTestBase
 
     SurfacePhysicsView surface_physics_view(TrackSlotId track)
     {
-        return SurfacePhysicsView(this->surface_physics()->host_ref(),
+        return SurfacePhysicsView(this->optical_surface_physics()->host_ref(),
                                   surface_physics_state_.ref(),
                                   track);
     }
@@ -188,7 +192,7 @@ class SurfacePhysicsTest : public OpticalMockTestBase
 // Test initialization
 TEST_F(SurfacePhysicsTest, init_params)
 {
-    auto params = this->surface_physics();
+    auto params = this->optical_surface_physics();
 
     ASSERT_TRUE(params);
 
@@ -370,7 +374,7 @@ TEST_F(SurfacePhysicsTest, init_surface_physics_view)
     };
     std::vector<size_type> expected_num_positions{5, 3, 2, 2, 5, 3, 5};
 
-    auto params = this->surface_physics();
+    auto params = this->optical_surface_physics();
     this->initialize_states(expected_surfaces.size());
 
     // Initialize tracks
@@ -456,7 +460,7 @@ TEST_F(SurfacePhysicsTest, init_surface_physics_view)
 // Check surface view traversing subsurface materials and interfaces
 TEST_F(SurfacePhysicsTest, traverse_subsurface)
 {
-    auto params = this->surface_physics();
+    auto params = this->optical_surface_physics();
     this->initialize_states(10);
 
     {
