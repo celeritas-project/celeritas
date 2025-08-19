@@ -76,8 +76,7 @@ class SurfacePhysicsView
         PhysicsSurfaceId subsurface_interface(SubsurfaceDirection) const;
 
     // Cross subsurface interface in the given direction (track-local)
-    inline CELER_FUNCTION void
-        cross_subsurface_interface(SubsurfaceDirection) const;
+    inline CELER_FUNCTION void cross_subsurface_interface(SubsurfaceDirection);
 
   private:
     SurfaceParamsRef const& params_;
@@ -86,6 +85,9 @@ class SurfacePhysicsView
 
     // Get surface record of current geometric surface
     inline CELER_FUNCTION SurfaceRecord const& surface_record() const;
+
+    template<class T>
+    inline CELER_FUNCTION T to_record_index(SurfaceTrackPosition pos) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -224,7 +226,20 @@ CELER_FUNCTION void SurfacePhysicsView::reset() const
  */
 CELER_FUNCTION OptMatId SurfacePhysicsView::subsurface_material() const
 {
-    return {};
+    auto const& surface = this->surface_record();
+
+    SubsurfaceMaterialId subsurface_mat_id{this->subsurface_position().get()};
+    if (this->orientation() == SubsurfaceDirection::reverse)
+    {
+        subsurface_mat_id = SubsurfaceMaterialId{
+            surface.subsurface_materials.size() - 1 - subsurface_mat_id.get()};
+    }
+    CELER_ASSERT(subsurface_mat_id < surface.subsurface_materials.size());
+
+    auto material_record_id = surface.subsurface_materials[subsurface_mat_id];
+    CELER_ASSERT(material_record_id < params_.subsurface_materials.size());
+
+    return params_.subsurface_materials[material_record_id];
 }
 
 //---------------------------------------------------------------------------//
@@ -232,9 +247,26 @@ CELER_FUNCTION OptMatId SurfacePhysicsView::subsurface_material() const
  * Get the physics surface ID of the subsurface in the given direction.
  */
 CELER_FUNCTION PhysicsSurfaceId
-SurfacePhysicsView::subsurface_interface(SubsurfaceDirection) const
+SurfacePhysicsView::subsurface_interface(SubsurfaceDirection d) const
 {
-    return {};
+    auto const& surface = this->surface_record();
+
+    SubsurfaceInterfaceId subsurface_int_id{this->subsurface_position().get()};
+    if (d == SubsurfaceDirection::reverse)
+    {
+        subsurface_int_id--;
+    }
+    if (this->orientation() == SubsurfaceDirection::reverse)
+    {
+        subsurface_int_id = SubsurfaceInterfaceId{
+            surface.subsurface_interfaces.size() - 1 - subsurface_int_id.get()};
+    }
+    CELER_ASSERT(subsurface_int_id < surface.subsurface_interfaces.size());
+
+    auto interface_record_id = surface.subsurface_interfaces[subsurface_int_id];
+    CELER_ASSERT(interface_record_id < params_.subsurface_interfaces.size());
+
+    return params_.subsurface_interfaces[interface_record_id];
 }
 
 //---------------------------------------------------------------------------//
@@ -242,8 +274,13 @@ SurfacePhysicsView::subsurface_interface(SubsurfaceDirection) const
  * Cross the subsurface interface in the given direction.
  */
 CELER_FUNCTION void
-SurfacePhysicsView::cross_subsurface_interface(SubsurfaceDirection) const
+SurfacePhysicsView::cross_subsurface_interface(SubsurfaceDirection d)
 {
+    CELER_EXPECT(
+        (d == SubsurfaceDirection::forward && !this->in_post_volume())
+        || (d == SubsurfaceDirection::reverse && !this->in_pre_volume()));
+    this->subsurface_position() = this->subsurface_position()
+                                  + to_signed_offset(d);
 }
 
 //---------------------------------------------------------------------------//

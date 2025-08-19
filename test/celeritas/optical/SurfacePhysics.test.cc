@@ -534,6 +534,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
             reverse,
             reverse,
             reverse,
+            reverse,
         };
 
         auto s_physics = this->surface_physics_view(TrackSlotId{2});
