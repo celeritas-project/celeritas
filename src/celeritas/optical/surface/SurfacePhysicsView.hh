@@ -53,6 +53,9 @@ class SurfacePhysicsView
     // Whether track is undergoing boundary crossing
     inline CELER_FUNCTION bool is_crossing_boundary() const;
 
+    // Whether direction is exiting the boundary
+    inline CELER_FUNCTION bool is_exiting(SubsurfaceDirection) const;
+
     // Whether the track is in the pre-volume
     inline CELER_FUNCTION bool in_pre_volume() const;
 
@@ -86,8 +89,10 @@ class SurfacePhysicsView
     // Get surface record of current geometric surface
     inline CELER_FUNCTION SurfaceRecord const& surface_record() const;
 
-    template<class T>
-    inline CELER_FUNCTION T to_record_index(SurfaceTrackPosition pos) const;
+    // Get the record index from a track-local position
+    template<class T, class U>
+    CELER_FUNCTION U to_record_index(SurfaceTrackPosition,
+                                     ItemMap<T, U> const&) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -226,17 +231,9 @@ CELER_FUNCTION void SurfacePhysicsView::reset() const
  */
 CELER_FUNCTION OptMatId SurfacePhysicsView::subsurface_material() const
 {
-    auto const& surface = this->surface_record();
-
-    SubsurfaceMaterialId subsurface_mat_id{this->subsurface_position().get()};
-    if (this->orientation() == SubsurfaceDirection::reverse)
-    {
-        subsurface_mat_id = SubsurfaceMaterialId{
-            surface.subsurface_materials.size() - 1 - subsurface_mat_id.get()};
-    }
-    CELER_ASSERT(subsurface_mat_id < surface.subsurface_materials.size());
-
-    auto material_record_id = surface.subsurface_materials[subsurface_mat_id];
+    auto material_record_id
+        = this->to_record_index(this->subsurface_position(),
+                                this->surface_record().subsurface_materials);
     CELER_ASSERT(material_record_id < params_.subsurface_materials.size());
 
     return params_.subsurface_materials[material_record_id];
@@ -249,21 +246,15 @@ CELER_FUNCTION OptMatId SurfacePhysicsView::subsurface_material() const
 CELER_FUNCTION PhysicsSurfaceId
 SurfacePhysicsView::subsurface_interface(SubsurfaceDirection d) const
 {
-    auto const& surface = this->surface_record();
+    CELER_EXPECT(!this->is_exiting(d));
 
-    SubsurfaceInterfaceId subsurface_int_id{this->subsurface_position().get()};
+    auto track_pos = this->subsurface_position();
     if (d == SubsurfaceDirection::reverse)
     {
-        subsurface_int_id--;
+        --track_pos;
     }
-    if (this->orientation() == SubsurfaceDirection::reverse)
-    {
-        subsurface_int_id = SubsurfaceInterfaceId{
-            surface.subsurface_interfaces.size() - 1 - subsurface_int_id.get()};
-    }
-    CELER_ASSERT(subsurface_int_id < surface.subsurface_interfaces.size());
-
-    auto interface_record_id = surface.subsurface_interfaces[subsurface_int_id];
+    auto interface_record_id = this->to_record_index(
+        track_pos, this->surface_record().subsurface_interfaces);
     CELER_ASSERT(interface_record_id < params_.subsurface_interfaces.size());
 
     return params_.subsurface_interfaces[interface_record_id];
@@ -276,9 +267,7 @@ SurfacePhysicsView::subsurface_interface(SubsurfaceDirection d) const
 CELER_FUNCTION void
 SurfacePhysicsView::cross_subsurface_interface(SubsurfaceDirection d)
 {
-    CELER_EXPECT(
-        (d == SubsurfaceDirection::forward && !this->in_post_volume())
-        || (d == SubsurfaceDirection::reverse && !this->in_pre_volume()));
+    CELER_EXPECT(!this->is_exiting(d));
     this->subsurface_position() = this->subsurface_position()
                                   + to_signed_offset(d);
 }
@@ -289,7 +278,36 @@ SurfacePhysicsView::cross_subsurface_interface(SubsurfaceDirection d)
  */
 CELER_FUNCTION SurfaceRecord const& SurfacePhysicsView::surface_record() const
 {
+    CELER_EXPECT(this->surface() < params_.surfaces.size());
     return params_.surfaces[this->surface()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the direction is exiting the surface.
+ */
+CELER_FUNCTION bool SurfacePhysicsView::is_exiting(SubsurfaceDirection d) const
+{
+    return (this->subsurface_position().get() + to_signed_offset(d))
+           >= this->num_positions();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert track-local position to index in a surface record.
+ */
+template<class T, class U>
+CELER_FUNCTION U SurfacePhysicsView::to_record_index(
+    SurfaceTrackPosition pos, ItemMap<T, U> const& map) const
+{
+    T index{pos.get()};
+    if (this->orientation() == SubsurfaceDirection::reverse)
+    {
+        index = T{map.size() - 1 - index.get()};
+    }
+    CELER_ASSERT(index < map.size());
+
+    return map[index];
 }
 
 //---------------------------------------------------------------------------//
