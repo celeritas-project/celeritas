@@ -100,9 +100,15 @@ TrackingManagerConstructor::UserOffloadParticles()
         CELER_VALIDATE(p,
                        << "Particle with PDG = " << pdg
                        << " is not available in Celeritas");
-        CELER_LOG(info) << "Loaded particle " << p->GetParticleName();
         result.push_back(p);
     }
+    CELER_LOG(info) << "Loaded particles "
+                    << join(result.begin(),
+                            result.end(),
+                            ", ",
+                            [](G4ParticleDefinition const* pd) {
+                                return pd->GetParticleName();
+                            });
     return result;
 }
 
