@@ -22,6 +22,7 @@ using ParScintSpectrumId = OpaqueId<struct ParScintSpectrum>;
 
 namespace optical
 {
+
 //! Opaque index to a surface physics model
 using SurfaceModelId = OpaqueId<class SurfaceModel>;
 
@@ -30,6 +31,7 @@ using SurfaceModelId = OpaqueId<class SurfaceModel>;
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//
+
 //! Process used to generate optical photons
 enum class GeneratorType
 {
@@ -48,20 +50,23 @@ enum class SurfacePhysicsStep
     size_
 };
 
-char const* to_cstring(SurfacePhysicsStep);
-
 enum class SubsurfaceDirection : bool
 {
     reverse = false,
     forward = true
 };
 
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+char const* to_cstring(SurfacePhysicsStep);
+
 CELER_FORCEINLINE_FUNCTION int to_signed_offset(SubsurfaceDirection d)
 {
     return 2 * static_cast<int>(d) - 1;
 }
 
-}  // namespace optical
-
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

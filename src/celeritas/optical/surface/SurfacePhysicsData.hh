@@ -47,12 +47,7 @@ struct SurfaceRecord
 
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- * Optional detailed class description, and possibly example usage:
- * \code
-    SurfacePhysicsData ...;
-   \endcode
+ * Persistent shared optical surface data
  */
 template<Ownership W, MemSpace M>
 struct SurfacePhysicsParamsData
@@ -100,33 +95,63 @@ struct SurfacePhysicsParamsData
     }
 };
 
+//---------------------------------------------------------------------------//
+/*!
+ * Dynamic optical surface physics state data.
+ */
 template<Ownership W, MemSpace M>
 struct SurfacePhysicsStateData
 {
     //!@{
     //! \name Type aliases
+    template<class T>
+    using StateItems = StateCollection<T, W, M>;
     //!@}
 
+    StateItems<GeometricSurfaceId> surface;
+    StateItems<SubsurfaceDirection> surface_orientation;
+    StateItems<SurfaceTrackPosition> surface_position;
+
     //! Whether data is assigned
-    explicit CELER_FUNCTION operator bool() const { return false; }
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !surface.empty() && surface.size() == surface_orientation.size()
+               && surface.size() == surface_position.size();
+    }
 
     //! State size
-    CELER_FUNCTION size_type size() const { return 0; }
+    CELER_FUNCTION size_type size() const { return surface.size(); }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     SurfacePhysicsStateData<W, M>&
-    operator=(SurfacePhysicsStateData<W2, M2> const& other)
+    operator=(SurfacePhysicsStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
+        surface = other.surface;
+        surface_orientation = other.surface_orientation;
+        surface_position = other.surface_position;
         return *this;
     }
 };
 
+//---------------------------------------------------------------------------//
+/*!
+ * Resize the state in host code.
+ */
 template<MemSpace M>
-inline void resize(SurfacePhysicsStateData<Ownership::value, M>* /* state */,
-                   size_type /* size */)
+inline void
+resize(SurfacePhysicsStateData<Ownership::value, M>* state, size_type size)
 {
+    CELER_EXPECT(state);
+    CELER_EXPECT(size > 0);
+
+    resize(&state->surface, size);
+    resize(&state->surface_orientation, size);
+    resize(&state->surface_position, size);
+
+    CELER_ENSURE(*state);
+    CELER_ENSURE(state->size() == size);
 }
 
 //---------------------------------------------------------------------------//
