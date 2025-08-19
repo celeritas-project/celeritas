@@ -54,8 +54,14 @@ class TrackingManagerConstructor final : public G4VPhysicsConstructor
     //!@}
 
   public:
-    // Get a list of supported particles
-    static VecG4PD OffloadParticles();
+    // Get list of all supported particles in Celeritas
+    static VecG4PD SupportedOffloadParticles();
+
+    // Get list of enabled particles for offloading by default
+    static VecG4PD DefaultOffloadParticles();
+
+    // Get user-defined list of particles to be offloaded
+    static VecG4PD UserOffloadParticles();
 
     // Construct name and mode
     TrackingManagerConstructor(SharedParams const* shared,

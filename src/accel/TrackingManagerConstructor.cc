@@ -13,6 +13,7 @@
 #include <G4MuonPlus.hh>
 #include <G4Positron.hh>
 
+#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 
 #include "SharedParams.hh"
@@ -23,20 +24,61 @@
 
 namespace celeritas
 {
-namespace
-{
 //---------------------------------------------------------------------------//
 /*!
- * Return a subset of particles to be offload based on user-input.
+ * Get a list of supported particles that will be offloaded.
  */
 TrackingManagerConstructor::VecG4PD
-OffloadParticleSubset(SetupOptions::VecPDG const& input_list)
+TrackingManagerConstructor::SupportedOffloadParticles()
 {
-    CELER_EXPECT(!input_list.empty());
+    static G4ParticleDefinition* const supported_particles[] = {
+        G4Electron::Definition(),
+        G4Positron::Definition(),
+        G4Gamma::Definition(),
+        G4MuonMinus::Definition(),
+        G4MuonPlus::Definition(),
+    };
+
+    return {std::begin(supported_particles), std::end(supported_particles)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the list of default particles that will be offloaded.
+ *
+ * If no user-defined list is provided, this is the default, which focuses on
+ * simplifying the interface with LHC experiments.
+ */
+TrackingManagerConstructor::VecG4PD
+TrackingManagerConstructor::DefaultOffloadParticles()
+{
+    static G4ParticleDefinition* const default_particles[] = {
+        G4Electron::Definition(),
+        G4Positron::Definition(),
+        G4Gamma::Definition(),
+    };
+
+    return {std::begin(default_particles), std::end(default_particles)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the list of user-defined particles that will be offloaded.
+ *
+ * \warning This assumes that the \c TrackingManagerIntegration::SetOptions has
+ * been called.
+ */
+TrackingManagerConstructor::VecG4PD
+TrackingManagerConstructor::UserOffloadParticles()
+{
+    auto& singleton = detail::IntegrationSingleton::instance();
+    auto const& user_offload = singleton.setup_options().offload_particles;
+    CELER_EXPECT(!user_offload.empty());
     CELER_LOG(status) << "Loading user-defined set of particles to offload";
 
-    auto const full_set = TrackingManagerConstructor::OffloadParticles();
-    CELER_VALIDATE(input_list.size() <= full_set.size(),
+    auto const full_set
+        = TrackingManagerConstructor::SupportedOffloadParticles();
+    CELER_VALIDATE(user_offload.size() <= full_set.size(),
                    << "List of particles to be offloaded defined in "
                       "SetupOptions is larger than the number of available "
                       "particles in Celeritas");
@@ -51,7 +93,7 @@ OffloadParticleSubset(SetupOptions::VecPDG const& input_list)
 
     // Create vector of particles from user-defined list of PDGs
     std::vector<G4ParticleDefinition*> result;
-    for (auto const pdg : input_list)
+    for (auto const pdg : user_offload)
     {
         CELER_VALIDATE(pdg != 0, << "PDG must not be zero");
         auto* p = find(pdg);
@@ -62,26 +104,6 @@ OffloadParticleSubset(SetupOptions::VecPDG const& input_list)
         result.push_back(p);
     }
     return result;
-}
-//---------------------------------------------------------------------------//
-};  // namespace
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a list of supported particles that will be offloaded.
- */
-TrackingManagerConstructor::VecG4PD
-TrackingManagerConstructor::OffloadParticles()
-{
-    static G4ParticleDefinition* const supported_particles[] = {
-        G4Electron::Definition(),
-        G4Positron::Definition(),
-        G4Gamma::Definition(),
-        G4MuonMinus::Definition(),
-        G4MuonPlus::Definition(),
-    };
-
-    return {std::begin(supported_particles), std::end(supported_particles)};
 }
 
 //---------------------------------------------------------------------------//
@@ -126,12 +148,13 @@ TrackingManagerConstructor::TrackingManagerConstructor(
  */
 void TrackingManagerConstructor::ConstructParticle()
 {
-    auto& singleton = detail::IntegrationSingleton::instance();
-    auto const& user_offload = singleton.setup_options().offload_particles;
-    // Construction of particles happens at offload_particles_ assignment
-    offload_particles_ = user_offload.empty()
-                             ? OffloadParticles()
-                             : OffloadParticleSubset(user_offload);
+    auto const& opts = detail::IntegrationSingleton::instance().setup_options();
+
+    // Construction of particles happens at offload_particles_ assignment,
+    // since it will instantiate the G4Particle::Definition() singletons
+    offload_particles_ = opts.offload_particles.empty()
+                             ? DefaultOffloadParticles()
+                             : UserOffloadParticles();
 }
 
 //---------------------------------------------------------------------------//
@@ -170,9 +193,14 @@ void TrackingManagerConstructor::ConstructProcess()
         // by constructing a 'set' of all tracking managers.
         // (Note that it is leaked in Geant4 11.0 and 11.1 for MT mode.)
         p->SetTrackingManager(manager ? manager.release() : manager_ptr);
-        CELER_LOG(info) << "Added particle \"" << p->GetParticleName()
-                        << "\" to Tracking Manager ";
     }
+    CELER_LOG(info) << "Built Celeritas tracking managers for "
+                    << join(offload_particles_.begin(),
+                            offload_particles_.end(),
+                            ", ",
+                            [](G4ParticleDefinition const* pd) {
+                                return pd->GetParticleName();
+                            });
 }
 
 //---------------------------------------------------------------------------//
