@@ -107,7 +107,8 @@ auto Converter::operator()(GeantGeoParams const& geo,
     }());
     result.input = build_input(*global_proto);
 
-    // Replace the "background" (implicit *or* explicit) with the world PV
+    // Replace the "background" (implicit *or* explicit) with the world volume
+    // instance
     auto univ_iter = result.input.universes.begin();
     {
         // The first unit created is always the "world"; see detail::ProtoMap
@@ -119,17 +120,24 @@ auto Converter::operator()(GeantGeoParams const& geo,
         LocalVolumeId bg_vol_id = find_bg_volume(unit.volumes);
         // Replace it with the world physical volume ID
         unit.volumes[bg_vol_id.get()].label = world.id;
+        // Do *not* set the 'background' field for it, since it truly
+        // represents a volume instance
     }
-    // Replace other backgrounds with the LV name
+    // Replace other backgrounds, annotating with the corresponding volume
+    // (note it's not a volume instance!)
     for (; univ_iter != result.input.universes.end(); ++univ_iter)
     {
         if (auto* unit = std::get_if<UnitInput>(&(*univ_iter)))
         {
             // Find the only volume that has a null volume instance label
             LocalVolumeId bg_vol_id = find_bg_volume(unit->volumes);
-            // Replace it with the unit name
+            // Save the "implementation volume" name, and annotate the
+            // corresponding volume ID
             unit->volumes[bg_vol_id.get()].label.emplace<Label>(
-                unit->label.name, "bg");
+                "[BG]", unit->label.name);
+            unit->background.label
+                = volumes.volume_labels().find_exact(unit->label);
+            unit->background.volume = bg_vol_id;
         }
     }
 

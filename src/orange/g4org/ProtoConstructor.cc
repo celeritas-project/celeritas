@@ -58,7 +58,7 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
 
     UnitProto::Input input;
     input.boundary.interior = lv.solid;
-    input.label = label.name;
+    input.label = label;
 
     if (CELER_UNLIKELY(verbose_))
     {

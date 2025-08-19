@@ -234,7 +234,7 @@ TEST_F(LeafTest, implicit_exterior)
     inp.boundary.interior = make_cyl("bound", 1.0, 1.0);
     inp.boundary.zorder = ZOrder::exterior;
     inp.background.fill = GeoMatId{0};
-    inp.background.label = Label{inp.label, "bg"};
+    inp.background.label = Label{inp.label.name, "bg"};
     append_material(inp, make_cyl("middle", 1, 0.5), 1);
     UnitProto const proto{std::move(inp)};
 
@@ -388,7 +388,7 @@ TEST_F(MotherTest, implicit_exterior)
         Transformation{make_rotation(Axis::x, Turn{0.25}), {0, -5, 0}},
         "e");
     inp.background.fill = GeoMatId{3};
-    inp.background.label = Label{inp.label, "bg"};
+    inp.background.label = Label{inp.label.name, "bg"};
 
     UnitProto const proto{std::move(inp)};
 
@@ -544,7 +544,7 @@ TEST_F(InputBuilderTest, bgspheres)
         append_material(
             inp, make_translated(make_sph("bottom", 3.0), {0, 0, -3}), 2);
         inp.background.fill = GeoMatId{3};
-        inp.background.label = Label{inp.label, "bg"};
+        inp.background.label = Label{inp.label.name, "bg"};
         return inp;
     }()};
 
@@ -643,7 +643,7 @@ TEST_F(InputBuilderTest, hierarchy)
             Transformation{make_rotation(Axis::x, Turn{0.25}), {0, -5, 0}},
             "e");
         inp.background.fill = GeoMatId{3};
-        inp.background.label = Label{inp.label, "bg"};
+        inp.background.label = Label{inp.label.name, "bg"};
         return inp;
     }());
 

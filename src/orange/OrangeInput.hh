@@ -85,6 +85,22 @@ struct DaughterInput
 
 //---------------------------------------------------------------------------//
 /*!
+ * Extra metadata for the "background" volume.
+ *
+ * Unlike a regular volume, the "background" represents a \em volume rather
+ * than a volume \em instance.
+ */
+struct BackgroundInput
+{
+    VolumeId label;
+    LocalVolumeId volume;
+
+    //! Whether the background metadata is used
+    explicit operator bool() const { return static_cast<bool>(volume); }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Input definition for a unit.
  *
  * \todo Add a CsgTree object and \c vector<NodeId> volumes;
@@ -97,6 +113,8 @@ struct UnitInput
     std::vector<VolumeInput> volumes;
     BBox bbox;  //!< Outer bounding box
     MapVolumeDaughter daughter_map;
+
+    BackgroundInput background;
 
     // Unit metadata
     std::vector<Label> surface_labels;

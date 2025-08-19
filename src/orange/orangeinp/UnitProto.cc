@@ -67,7 +67,7 @@ UnitProto::UnitProto(Input&& inp) : input_{std::move(inp)}
  */
 std::string_view UnitProto::label() const
 {
-    return input_.label;
+    return input_.label.name;
 }
 
 //---------------------------------------------------------------------------//
@@ -243,7 +243,7 @@ void UnitProto::build(ProtoBuilder& input) const
     {
         vol_iter->zorder = input_.boundary.zorder;
     }
-    vol_iter->label = Label{"[EXTERIOR]", input_.label};
+    vol_iter->label = Label{"[EXTERIOR]", input_.label.name};
     ++vol_iter;
 
     BoundingBoxBumper<real_type> bump_bbox{input.tol()};
