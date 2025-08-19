@@ -84,26 +84,33 @@ OrangeParams::from_gdml(std::string const& filename)
  */
 std::shared_ptr<OrangeParams>
 OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo,
-                         VolumeParams const& volumes)
+                         SPConstVolumes volumes)
 {
     CELER_EXPECT(geo);
+    CELER_EXPECT(volumes);
+    CELER_EXPECT(!volumes->empty());
     auto result = g4org::Converter{}(*geo).input;
-    return std::make_shared<OrangeParams>(std::move(result), volumes);
+    return std::make_shared<OrangeParams>(std::move(result),
+                                          std::move(volumes));
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Build from a Geant4 world (no volumes available?).
- *
- * \todo Reconstructing the volume params here is going to be redundant; change
- * interfaces later.
  */
 std::shared_ptr<OrangeParams>
 OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
 {
     CELER_EXPECT(geo);
-    VolumeParams volumes{geo->make_model_input().volumes};
-    return OrangeParams::from_geant(geo, volumes);
+    SPConstVolumes volumes = celeritas::global_volumes().lock();
+    if (!volumes)
+    {
+        CELER_LOG(debug) << "Constructing global volumes from GeantGeoParams";
+        volumes
+            = std::make_shared<VolumeParams>(geo->make_model_input().volumes);
+        celeritas::global_volumes(volumes);
+    }
+    return OrangeParams::from_geant(geo, std::move(volumes));
 }
 
 //---------------------------------------------------------------------------//
@@ -132,7 +139,7 @@ OrangeParams::from_json(std::string const& filename)
  * Advanced usage: construct from explicit host data.
  */
 OrangeParams::OrangeParams(OrangeInput&& input)
-    : OrangeParams{std::move(input), VolumeParams{}}
+    : OrangeParams{std::move(input), nullptr}
 {
 }
 
@@ -140,7 +147,8 @@ OrangeParams::OrangeParams(OrangeInput&& input)
 /*!
  * Advanced usage: construct from explicit host data and volumes.
  */
-OrangeParams::OrangeParams(OrangeInput&& input, VolumeParams const& volumes)
+OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
+    : volumes_{std::move(volumes)}
 {
     CELER_VALIDATE(input, << "input geometry is incomplete");
 
@@ -169,7 +177,7 @@ OrangeParams::OrangeParams(OrangeInput&& input, VolumeParams const& volumes)
         std::vector<Label> impl_surface_labels;
         std::vector<Label> impl_volume_labels;
 
-        detail::UniverseInserter insert_universe_base{volumes,
+        detail::UniverseInserter insert_universe_base{volumes_,
                                                       &universe_labels,
                                                       &impl_surface_labels,
                                                       &impl_volume_labels,
@@ -207,6 +215,10 @@ OrangeParams::OrangeParams(OrangeInput&& input, VolumeParams const& volumes)
                    << " (a volume's CSG tree is too deep); but the logic "
                       "stack is limited to a depth of "
                    << detail::LogicStack::max_stack_depth());
+
+    // Save pointers for debug output
+    host_data.scalars.host_geo_params = this;
+    host_data.scalars.host_volume_params = volumes_.get();
 
     CELER_ASSERT(host_data.volume_ids.empty()
                  || host_data.volume_ids.size() == vol_labels_.size());

@@ -45,6 +45,7 @@ class OrangeParams final : public GeoParamsInterface,
     //! \name Type aliases
     using SurfaceMap = LabelIdMultiMap<ImplSurfaceId>;
     using UniverseMap = LabelIdMultiMap<UniverseId>;
+    using SPConstVolumes = std::shared_ptr<VolumeParams const>;
     //!@}
 
   public:
@@ -59,7 +60,7 @@ class OrangeParams final : public GeoParamsInterface,
     // Build from a Geant4 geometry
     static std::shared_ptr<OrangeParams>
     from_geant(std::shared_ptr<GeantGeoParams const> const& geo,
-               VolumeParams const& volumes);
+               SPConstVolumes volumes);
 
     // Build from a Geant4 geometry (no volumes available?)
     static std::shared_ptr<OrangeParams>
@@ -74,7 +75,7 @@ class OrangeParams final : public GeoParamsInterface,
     OrangeParams(OrangeInput&& input);
 
     // ADVANCED usage: construct from explicit host data with volumes
-    OrangeParams(OrangeInput&& input, VolumeParams const& volumes);
+    OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes);
 
     // Default destructor to anchor vtable
     ~OrangeParams() final;
@@ -134,6 +135,9 @@ class OrangeParams final : public GeoParamsInterface,
     VolInstanceMap vol_instances_;
     BBox bbox_;
     bool supports_safety_{};
+
+    // Retain volumes since we save a pointer for debugging
+    SPConstVolumes volumes_;
 
     // Host/device storage and reference
     CollectionMirror<OrangeParamsData> data_;
