@@ -482,11 +482,38 @@ CELER_FUNCTION VolumeId OrangeTrackView::volume_id() const
  */
 CELER_FUNCTION VolumeInstanceId OrangeTrackView::volume_instance_id() const
 {
+    CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(!params_.volume_instance_ids.empty());
-    // Return canonical volume mapping
-    ImplVolumeId impl_id = this->impl_volume_id();
-    CELER_ASSERT(impl_id);
-    return params_.volume_instance_ids[impl_id];
+
+    // If we're in a 'background' volume, we don't know the PV until reaching
+    // the parent placement (i.e., the volume instance in the parent universe)
+    auto ui = this->make_universe_indexer();
+    LevelId lev{this->level()};
+    auto get_vol_inst = [&]() {
+        auto lsa = this->make_lsa(lev);
+        CELER_ASSERT(lsa.universe());
+        ImplVolumeId impl_id = ui.global_volume(lsa.universe(), lsa.vol());
+        return params_.volume_instance_ids[impl_id];
+    };
+
+    if (auto vi_id = get_vol_inst())
+    {
+        // Canonical mapping found at this level: we're locally in a volume
+        // placement
+        return vi_id;
+    }
+
+    // Otherwise we're in a background volume, and the volume instance in the
+    // parent level *must* be a volume instance if this is a correctly
+    // constructed geometry. But to guard against errors (and enable unit
+    // tests) we first make sure we're not going off the end. (If we are in the
+    // global level without correct instance information, then this will just
+    // return a null ID.)
+    if (lev != LevelId{0})
+    {
+        --lev;
+    }
+    return get_vol_inst();
 }
 
 //---------------------------------------------------------------------------//
@@ -1257,7 +1284,6 @@ CELER_FUNCTION void OrangeTrackView::clear_surface()
     states_.surface_level[track_slot_] = {};
     CELER_ENSURE(!this->is_on_boundary());
 }
-
 //---------------------------------------------------------------------------//
 /*!
  * Get the daughter ID for the given volume in the given universe.
