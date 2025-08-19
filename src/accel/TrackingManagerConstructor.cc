@@ -30,7 +30,7 @@ namespace
 /*!
  * Return a subset of particles to be offload based on user-input.
  */
-std::vector<G4ParticleDefinition*>
+TrackingManagerConstructor::VecG4PD
 OffloadParticleSubset(SetupOptions::VecPDG const& input_list)
 {
     CELER_EXPECT(!input_list.empty());
@@ -42,31 +42,22 @@ OffloadParticleSubset(SetupOptions::VecPDG const& input_list)
                       "SetupOptions is larger than the number of available "
                       "particles in Celeritas");
 
-    auto is_valid = [&](G4ParticleDefinition const* particle) -> bool {
-        for (auto valid_part : full_set)
-        {
-            CELER_EXPECT(valid_part);
-            if (particle->GetPDGEncoding() == valid_part->GetPDGEncoding())
-            {
-                return true;
-            }
-        }
-        return false;
+    auto find = [&full_set](int pdg) -> G4ParticleDefinition* {
+        auto it = std::find_if(
+            full_set.begin(), full_set.end(), [&pdg](G4ParticleDefinition* p) {
+                return (p->GetPDGEncoding() == pdg);
+            });
+        return *it;
     };
 
-    auto* ptable = G4ParticleTable::GetParticleTable();
-    CELER_ASSERT(ptable);
-
-    // Create vector of particles from the PDG strings provided in the input
+    // Create vector of particles from user-defined list of PDGs
     std::vector<G4ParticleDefinition*> result;
     for (auto const pdg : input_list)
     {
-        CELER_ASSERT(pdg != 0);
-        auto* p = ptable->FindParticle(pdg);
-        CELER_VALIDATE(
-            p, << "could not find PDG '" << pdg << "' in G4ParticleTable");
-        CELER_VALIDATE(is_valid(p),
-                       << "Particle " << p->GetParticleName()
+        CELER_VALIDATE(pdg != 0, << "PDG must not be zero");
+        auto* p = find(pdg);
+        CELER_VALIDATE(p,
+                       << "Particle with PDG = " << pdg
                        << " is not available in Celeritas");
         CELER_LOG(info) << "Loaded particle " << p->GetParticleName();
         result.push_back(p);
@@ -80,7 +71,8 @@ OffloadParticleSubset(SetupOptions::VecPDG const& input_list)
 /*!
  * Get a list of supported particles that will be offloaded.
  */
-Span<G4ParticleDefinition* const> TrackingManagerConstructor::OffloadParticles()
+TrackingManagerConstructor::VecG4PD
+TrackingManagerConstructor::OffloadParticles()
 {
     static G4ParticleDefinition* const supported_particles[] = {
         G4Electron::Definition(),
@@ -90,7 +82,7 @@ Span<G4ParticleDefinition* const> TrackingManagerConstructor::OffloadParticles()
         G4MuonPlus::Definition(),
     };
 
-    return make_span(supported_particles);
+    return {std::begin(supported_particles), std::end(supported_particles)};
 }
 
 //---------------------------------------------------------------------------//
@@ -129,6 +121,22 @@ TrackingManagerConstructor::TrackingManagerConstructor(
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct particles before \c ::ConstructProcess since any
+ * \c G4ParticleDefinition other than ions and shortlived must be created
+ * during Geant4's \c Pre_Init state.
+ */
+void TrackingManagerConstructor::ConstructParticle()
+{
+    auto& singleton = detail::IntegrationSingleton::instance();
+    auto const& user_offload = singleton.setup_options().offload_particles;
+    // Construction of particles happens at offload_particles_ assignment
+    offload_particles_ = user_offload.empty()
+                             ? OffloadParticles()
+                             : OffloadParticleSubset(user_offload);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Build and attach tracking manager.
  */
 void TrackingManagerConstructor::ConstructProcess()
@@ -156,16 +164,7 @@ void TrackingManagerConstructor::ConstructProcess()
     auto* manager_ptr = manager.get();
 
     // Load list of particles to offload based on user-options
-    auto& singleton = detail::IntegrationSingleton::instance();
-    auto const& user_offload = singleton.setup_options().offload_particles;
-    auto offload_particles
-        = user_offload.empty()
-              ? OffloadParticles()
-              : make_span(OffloadParticleSubset(user_offload));
-
-    CELER_LOG(status) << "size " << offload_particles.size();
-
-    for (auto* p : offload_particles)
+    for (auto* p : offload_particles_)
     {
         CELER_EXPECT(p);
         // Memory for the tracking manager should be freed in
@@ -173,7 +172,8 @@ void TrackingManagerConstructor::ConstructProcess()
         // by constructing a 'set' of all tracking managers.
         // (Note that it is leaked in Geant4 11.0 and 11.1 for MT mode.)
         p->SetTrackingManager(manager ? manager.release() : manager_ptr);
-        CELER_LOG(info) << "Adding offloaded particle " << p->GetParticleName();
+        CELER_LOG(info) << "Added particle \"" << p->GetParticleName()
+                        << "\" to Tracking Manager ";
     }
 }
 
