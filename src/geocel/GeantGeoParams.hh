@@ -203,10 +203,10 @@ class GeantGeoParams final : public GeoParamsInterface,
 
 //---------------------------------------------------------------------------//
 // Set non-owning reference to global tracking geometry instance
-void geant_geo(std::shared_ptr<GeantGeoParams const> const&);
+void global_geant_geo(std::shared_ptr<GeantGeoParams const> const&);
 
 // Global tracking geometry instance: may be nullptr
-std::weak_ptr<GeantGeoParams const> const& geant_geo();
+std::weak_ptr<GeantGeoParams const> const& global_geant_geo();
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -276,11 +276,11 @@ VolumeId GeantGeoParams::volume_id(ImplVolumeId iv_id) const
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4 && !defined(__DOXYGEN__)
-inline void geant_geo(std::shared_ptr<GeantGeoParams const> const&)
+inline void global_geant_geo(std::shared_ptr<GeantGeoParams const> const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
-inline std::weak_ptr<GeantGeoParams const> const& geant_geo()
+inline std::weak_ptr<GeantGeoParams const> const& global_geant_geo()
 {
     static std::weak_ptr<GeantGeoParams const> const temp_;
     return temp_;

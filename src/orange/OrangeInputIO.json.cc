@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
+#include "corecel/OpaqueIdIO.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/ArrayIO.json.hh"
@@ -66,24 +67,6 @@ VariantTransform make_transform(Real3 const& translation)
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert a vector of variants to a json array.
- */
-template<class T>
-nlohmann::json variants_to_json(std::vector<T> const& values)
-{
-    auto result = nlohmann::json::array();
-    for (auto const& var : values)
-    {
-        auto j = nlohmann::json::object();
-        std::visit([&j](auto&& u) { to_json(j, u); }, var);
-        result.push_back(std::move(j));
-    }
-
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get the bounding box or infinite if not there.
  */
 BBox get_bbox(nlohmann::json const& j)
@@ -105,14 +88,7 @@ BBox get_bbox(nlohmann::json const& j)
 void from_json(nlohmann::json const& j, VolumeInput& value)
 {
     // Convert faces to OpaqueId
-    std::vector<LocalSurfaceId::size_type> temp_faces;
-    j.at("faces").get_to(temp_faces);
-    value.faces.reserve(temp_faces.size());
-    for (auto surf_id : temp_faces)
-    {
-        CELER_ASSERT(surf_id != LocalSurfaceId{}.unchecked_get());
-        value.faces.emplace_back(surf_id);
-    }
+    j.at("faces").get_to(value.faces);
 
     // Read scalars, including optional flags
     if (auto iter = j.find("flags"); iter != j.end())
@@ -179,14 +155,8 @@ void to_json(nlohmann::json& j, VolumeInput const& value)
 {
     CELER_EXPECT(value);
 
-    // Convert faces from OpaqueId
-    std::vector<LocalSurfaceId::size_type> temp_faces;
-    temp_faces.reserve(value.faces.size());
-    for (auto surf_id : value.faces)
-    {
-        temp_faces.emplace_back(surf_id.unchecked_get());
-    }
-    j["faces"] = std::move(temp_faces);
+    // Convert faces from OpaqueId (using JsonUtils)
+    j["faces"] = value.faces;
 
     // Convert logic string to vector
     if (!value.logic.empty())
@@ -344,16 +314,8 @@ void to_json(nlohmann::json& j, UnitInput const& value)
         auto volume_labels = nlohmann::json::array();
         for (auto const& v : value.volumes)
         {
-            // TODO: add JSON IO for OpaqueID
-            volume_labels.push_back(
-                std::visit(return_as<nlohmann::json>(Overload{
-                               [](Label const& label) { return label; },
-                               [](VolumeInstanceId id) -> nlohmann::json {
-                                   if (!id)
-                                       return nullptr;
-                                   return id.unchecked_get();
-                               }}),
-                           v.label));
+            volume_labels.push_back(std::visit(
+                [](auto&& obj) -> nlohmann::json { return obj; }, v.label));
         }
         return volume_labels;
     }();

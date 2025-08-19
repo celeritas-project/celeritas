@@ -309,19 +309,17 @@ TEST(SolveSurface, two_roots)
         auto dist
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
-        // Float and double produce different results
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
             EXPECT_SOFT_EQ(0.0036177579725445259, dist[0]);
-            EXPECT_SOFT_EQ(6.0284475639586041, dist[1]);
-            EXPECT_SOFT_EQ(no_intersection(), dist[2]);
         }
         else
         {
-            EXPECT_SOFT_EQ(0.0036177579725445259, dist[0]);
-            EXPECT_SOFT_EQ(6.0284475639586041, dist[1]);
-            EXPECT_SOFT_EQ(no_intersection(), dist[2]);
+            // Float loses precision
+            EXPECT_LT(dist[0], 0.005);
         }
+        EXPECT_SOFT_EQ(6.0284475639586041, dist[1]);
+        EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
 }
 TEST(SolveSurface, three_roots)

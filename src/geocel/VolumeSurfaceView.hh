@@ -117,7 +117,7 @@ CELER_FUNCTION bool VolumeSurfaceView::has_interface() const
  * for searching these sorted arrays, or (better) use a hash lookup for {pre,
  * post} -> surface.
  *
- * \return The surface ID if found, or an invalid ID if not found.
+ * \return The surface ID if found, or a null ID if not found.
  */
 CELER_FUNCTION SurfaceId VolumeSurfaceView::find_interface(
     VolumeInstanceId pre_id, VolumeInstanceId post_id) const

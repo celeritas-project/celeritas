@@ -100,10 +100,7 @@ class MuPairProductionTest : public InteractorHostBase, public RootTestBase
     }
 
     //! \note These tests use a trimmed element table
-    std::string_view geometry_basename() const final
-    {
-        return "four-steel-slabs";
-    }
+    std::string_view gdml_basename() const final { return "four-steel-slabs"; }
 
     SPConstTrackInit build_init() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstAction build_along_step() override { CELER_ASSERT_UNREACHABLE(); }

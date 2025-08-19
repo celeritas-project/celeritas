@@ -16,11 +16,50 @@
 
 namespace celeritas
 {
+namespace detail
+{
+//---------------------------------------------------------------------------//
+//! Sentinel value for an unassigned opaque ID
+template<class T>
+inline constexpr T nullid_value{static_cast<T>(-1)};
+
+//---------------------------------------------------------------------------//
+//! Safely cast from one integer T to another U, avoiding the sentinel value
+template<class T, class U>
+inline CELER_FUNCTION T id_cast_impl(U value) noexcept(!CELERITAS_DEBUG)
+{
+    if constexpr (std::is_signed_v<U>)
+    {
+        CELER_EXPECT(value >= 0);
+    }
+
+    if constexpr (!std::is_same_v<T, U>)
+    {
+        // Check that the cast value is within the integer range [0, N-1)
+        using C = std::common_type_t<T, std::make_unsigned_t<U>>;
+        if constexpr (std::is_signed_v<C>)
+        {
+            CELER_EXPECT(static_cast<C>(value) >= 0);
+        }
+        CELER_EXPECT(static_cast<C>(value) < static_cast<C>(nullid_value<T>));
+    }
+    else
+    {
+        // Check that value is *not* the null value
+        CELER_EXPECT(static_cast<T>(value) != nullid_value<T>);
+    }
+
+    return static_cast<T>(value);
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace detail
+
 //---------------------------------------------------------------------------//
 /*!
  * Type-safe index for accessing an array or collection of data.
  *
- * \tparam ValueT Type of each item in an array
+ * \tparam ItemT Type of an item at the index corresponding to this ID
  * \tparam SizeT Unsigned integer index
  *
  * It's common for classes and functions to take multiple indices, especially
@@ -32,13 +71,18 @@ namespace celeritas
  * <code>Foo operator[](OpaqueId<Foo>)</code>
  *
  * An \c OpaqueId object evaluates to \c true if it has a value, or \c false if
- * it does not (i.e., it has an "invalid" value).
+ * it does not (a "null" ID, analogous to a null pointer: it does not
+ * correspond to a valid value).
  *
  * See also \c id_cast below for checked construction of OpaqueIds from generic
  * integer values (avoid compile-time warnings or errors from signed/truncated
  * integers).
+ *
+ * \todo This interface will be changed to be more like \c std::optional : \c
+ * size_type will become \c value_type (the value of a 'dereferenced' ID) and
+ * \c operator* or \c value will be used to access the integer.
  */
-template<class ValueT, class SizeT = ::celeritas::size_type>
+template<class ItemT, class SizeT = ::celeritas::size_type>
 class OpaqueId
 {
     static_assert(std::is_unsigned_v<SizeT> && !std::is_same_v<SizeT, bool>,
@@ -47,13 +91,13 @@ class OpaqueId
   public:
     //!@{
     //! \name Type aliases
-    using value_type = ValueT;
+    using value_type [[deprecated]] = ItemT;
     using size_type = SizeT;
     //!@}
 
   public:
-    //! Default to invalid state
-    CELER_CONSTEXPR_FUNCTION OpaqueId() : value_(OpaqueId::invalid_value()) {}
+    //! Default to null state
+    CELER_CONSTEXPR_FUNCTION OpaqueId() : value_(nullid_val_) {}
 
     //! Construct explicitly with stored value
     explicit CELER_CONSTEXPR_FUNCTION OpaqueId(size_type index) : value_(index)
@@ -63,7 +107,7 @@ class OpaqueId
     //! Whether this ID is in a valid (assigned) state
     explicit CELER_CONSTEXPR_FUNCTION operator bool() const
     {
-        return value_ != invalid_value();
+        return value_ != nullid_val_;
     }
 
     //! Pre-increment of the ID
@@ -114,13 +158,8 @@ class OpaqueId
   private:
     size_type value_;
 
-    //// IMPLEMENTATION FUNCTIONS ////
-
     //! Value indicating the ID is not assigned
-    static CELER_CONSTEXPR_FUNCTION size_type invalid_value()
-    {
-        return static_cast<size_type>(-1);
-    }
+    static constexpr size_type nullid_val_ = detail::nullid_value<size_type>;
 };
 
 //---------------------------------------------------------------------------//
@@ -132,40 +171,23 @@ class OpaqueId
  * This asserts that the integer is in the \em valid range of the target ID
  * type, and casts to it.
  *
- * \note The value cannot be the underlying "invalid" value, i.e.
+ * \note The value cannot be the underlying "null" value; i.e.
  * <code> static_cast<FooId>(FooId{}.unchecked_get()) </code> will not work.
  */
-template<class IdT, class T>
-inline CELER_FUNCTION IdT id_cast(T value) noexcept(!CELERITAS_DEBUG)
+template<class IdT, class U>
+inline CELER_FUNCTION IdT id_cast(U value) noexcept(!CELERITAS_DEBUG)
 {
-    static_assert(std::is_integral_v<T>);
-    if constexpr (!std::is_unsigned_v<T>)
-    {
-        CELER_EXPECT(value >= 0);
-    }
+    static_assert(std::is_integral_v<U>);
+    static_assert(std::is_integral_v<typename IdT::size_type>);
 
-    using IdSize = typename IdT::size_type;
-    if constexpr (!std::is_same_v<T, IdSize>)
-    {
-        // Check that value is within the integer range [0, N-1)
-        using U = std::common_type_t<IdSize, std::make_unsigned_t<T>>;
-        CELER_EXPECT(static_cast<U>(value)
-                     < static_cast<U>(IdT{}.unchecked_get()));
-    }
-    else
-    {
-        // Check that value is *not* the invalid value
-        CELER_EXPECT(value != IdT{}.unchecked_get());
-    }
-
-    return IdT{static_cast<IdSize>(value)};
+    return IdT{detail::id_cast_impl<typename IdT::size_type, U>(value)};
 }
 
 //---------------------------------------------------------------------------//
 #define CELER_DEFINE_OPAQUEID_CMP(TOKEN)                             \
-    template<class V, class S>                                       \
-    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(OpaqueId<V, S> lhs, \
-                                                 OpaqueId<V, S> rhs) \
+    template<class I, class T>                                       \
+    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(OpaqueId<I, T> lhs, \
+                                                 OpaqueId<I, T> rhs) \
     {                                                                \
         return lhs.unchecked_get() TOKEN rhs.unchecked_get();        \
     }
@@ -184,8 +206,8 @@ CELER_DEFINE_OPAQUEID_CMP(>=)
 
 //---------------------------------------------------------------------------//
 //! Allow less-than comparison with *integer* for container comparison
-template<class V, class S, class U>
-CELER_CONSTEXPR_FUNCTION bool operator<(OpaqueId<V, S> lhs, U rhs)
+template<class I, class T, class U>
+CELER_CONSTEXPR_FUNCTION bool operator<(OpaqueId<I, T> lhs, U rhs)
 {
     // Cast to RHS
     return lhs && (U(lhs.unchecked_get()) < rhs);
@@ -193,8 +215,8 @@ CELER_CONSTEXPR_FUNCTION bool operator<(OpaqueId<V, S> lhs, U rhs)
 
 //---------------------------------------------------------------------------//
 //! Allow less-than-equal comparison with *integer* for container comparison
-template<class V, class S, class U>
-CELER_CONSTEXPR_FUNCTION bool operator<=(OpaqueId<V, S> lhs, U rhs)
+template<class I, class T, class U>
+CELER_CONSTEXPR_FUNCTION bool operator<=(OpaqueId<I, T> lhs, U rhs)
 {
     // Cast to RHS
     return lhs && (U(lhs.unchecked_get()) <= rhs);
@@ -202,8 +224,8 @@ CELER_CONSTEXPR_FUNCTION bool operator<=(OpaqueId<V, S> lhs, U rhs)
 
 //---------------------------------------------------------------------------//
 //! Get the distance between two opaque IDs
-template<class V, class S>
-inline CELER_FUNCTION S operator-(OpaqueId<V, S> self, OpaqueId<V, S> other)
+template<class I, class T>
+inline CELER_FUNCTION T operator-(OpaqueId<I, T> self, OpaqueId<I, T> other)
 {
     CELER_EXPECT(self);
     CELER_EXPECT(other);
@@ -212,24 +234,24 @@ inline CELER_FUNCTION S operator-(OpaqueId<V, S> self, OpaqueId<V, S> other)
 
 //---------------------------------------------------------------------------//
 //! Increment an opaque ID by an offset
-template<class V, class S>
-inline CELER_FUNCTION OpaqueId<V, S>
-operator+(OpaqueId<V, S> id, std::make_signed_t<S> offset)
+template<class I, class T>
+inline CELER_FUNCTION OpaqueId<I, T>
+operator+(OpaqueId<I, T> id, std::make_signed_t<T> offset)
 {
     CELER_EXPECT(id);
-    CELER_EXPECT(offset >= 0 || static_cast<S>(-offset) <= id.unchecked_get());
-    return OpaqueId<V, S>{id.unchecked_get() + static_cast<S>(offset)};
+    CELER_EXPECT(offset >= 0 || static_cast<T>(-offset) <= id.unchecked_get());
+    return OpaqueId<I, T>{id.unchecked_get() + static_cast<T>(offset)};
 }
 
 //---------------------------------------------------------------------------//
 //! Decrement an opaque ID by an offset
-template<class V, class S>
-inline CELER_FUNCTION OpaqueId<V, S>
-operator-(OpaqueId<V, S> id, std::make_signed_t<S> offset)
+template<class I, class T>
+inline CELER_FUNCTION OpaqueId<I, T>
+operator-(OpaqueId<I, T> id, std::make_signed_t<T> offset)
 {
     CELER_EXPECT(id);
-    CELER_EXPECT(offset <= 0 || static_cast<S>(offset) <= id.unchecked_get());
-    return OpaqueId<V, S>{id.unchecked_get() - static_cast<S>(offset)};
+    CELER_EXPECT(offset <= 0 || static_cast<T>(offset) <= id.unchecked_get());
+    return OpaqueId<I, T>{id.unchecked_get() - static_cast<T>(offset)};
 }
 
 //---------------------------------------------------------------------------//
@@ -240,12 +262,12 @@ operator-(OpaqueId<V, S> id, std::make_signed_t<S> offset)
 namespace std
 {
 //! Specialization for std::hash for unordered storage.
-template<class V, class S>
-struct hash<celeritas::OpaqueId<V, S>>
+template<class I, class T>
+struct hash<celeritas::OpaqueId<I, T>>
 {
-    std::size_t operator()(celeritas::OpaqueId<V, S> const& id) const noexcept
+    std::size_t operator()(celeritas::OpaqueId<I, T> const& id) const noexcept
     {
-        return std::hash<S>()(id.unchecked_get());
+        return std::hash<T>()(id.unchecked_get());
     }
 };
 }  // namespace std

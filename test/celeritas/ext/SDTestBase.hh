@@ -44,7 +44,7 @@ class SDTestBase : virtual public GeantTestBase
 
   protected:
     // Attach SDs when building geometry
-    SPConstGeoI build_fresh_geometry(std::string_view) override;
+    SPConstGeantGeo build_geant_geo(std::string const&) const override;
 
     // Restore SD map and reset SDs when rebuilding geometry
     SPConstCoreGeo build_geometry() override;

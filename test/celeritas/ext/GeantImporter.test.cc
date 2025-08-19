@@ -239,7 +239,7 @@ void GeantImporterTest::ImportXsSummary::print_expected() const
 //---------------------------------------------------------------------------//
 class FourSteelSlabsEmStandard : public GeantImporterTest
 {
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "four-steel-slabs"sv;
     }
@@ -268,7 +268,7 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
 class TestEm3 : public GeantImporterTest
 {
   protected:
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "testem3-flat"sv;
     }
@@ -287,7 +287,7 @@ class TestEm3 : public GeantImporterTest
 class OneSteelSphere : public GeantImporterTest
 {
   protected:
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "one-steel-sphere"sv;
     }
@@ -327,10 +327,7 @@ class OneSteelSphereGG : public OneSteelSphere
 class LarSphere : public GeantImporterTest
 {
   protected:
-    std::string_view geometry_basename() const override
-    {
-        return "lar-sphere"sv;
-    }
+    std::string_view gdml_basename() const override { return "lar-sphere"sv; }
 
     GeantPhysicsOptions build_geant_options() const override
     {
@@ -347,7 +344,7 @@ class LarSphere : public GeantImporterTest
 class LarSphereExtramat : public GeantImporterTest
 {
   protected:
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "lar-sphere-extramat"sv;
     }
@@ -367,7 +364,7 @@ class LarSphereExtramat : public GeantImporterTest
 class OpticalSurfaces : public GeantImporterTest
 {
   protected:
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "optical-surfaces"sv;
     }
@@ -383,7 +380,7 @@ class OpticalSurfaces : public GeantImporterTest
 class Solids : public GeantImporterTest
 {
   protected:
-    std::string_view geometry_basename() const override { return "solids"sv; }
+    std::string_view gdml_basename() const override { return "solids"sv; }
 
     GeantPhysicsOptions build_geant_options() const override
     {

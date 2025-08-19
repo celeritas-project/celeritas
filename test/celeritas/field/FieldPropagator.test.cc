@@ -67,11 +67,6 @@ class FieldPropagatorTestBase : public CoreGeoTestBase, public FieldTestBase
     //!@}
 
   protected:
-    SPConstCoreGeo build_geometry() final
-    {
-        return this->build_geometry_from_basename();
-    }
-
     //! Get a single-thread host track view
     CGeoTrackView make_geo_track_view()
     {
@@ -130,17 +125,17 @@ auto FieldPropagatorTestBase::build_particle() const -> SPConstParticle
 
 class TwoBoxesTest : public FieldPropagatorTestBase
 {
-    std::string geometry_basename() const override { return "two-boxes"; }
+    std::string_view gdml_basename() const override { return "two-boxes"; }
 };
 
 class LayersTest : public FieldPropagatorTestBase
 {
-    std::string geometry_basename() const override { return "field-layers"; }
+    std::string_view gdml_basename() const override { return "field-layers"; }
 };
 
 class SimpleCmsTest : public FieldPropagatorTestBase
 {
-    std::string geometry_basename() const override { return "simple-cms"; }
+    std::string_view gdml_basename() const override { return "simple-cms"; }
 };
 
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
@@ -148,7 +143,7 @@ class SimpleCmsTest : public FieldPropagatorTestBase
 #endif
 class CmseTest : public FieldPropagatorTestBase
 {
-    std::string geometry_basename() const override { return "cmse"; }
+    std::string_view gdml_basename() const override { return "cmse"; }
 };
 
 //---------------------------------------------------------------------------//

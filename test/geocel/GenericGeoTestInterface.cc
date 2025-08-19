@@ -23,18 +23,6 @@ namespace celeritas
 {
 namespace test
 {
-//---------------------------------------------------------------------------//
-/*!
- * Get the basename or unique geometry key (defaults to suite name).
- */
-auto GenericGeoTestInterface::geometry_basename() const -> std::string
-{
-    // Get filename based on unit test name
-    ::testing::TestInfo const* const test_info
-        = ::testing::UnitTest::GetInstance()->current_test_info();
-    CELER_ASSERT(test_info);
-    return test_info->test_case_name();
-}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -108,7 +96,7 @@ GenericGeoTestInterface::get_volume_instance_labels() const
 std::vector<std::string> GenericGeoTestInterface::get_g4pv_labels() const
 {
 #if CELERITAS_USE_GEANT4
-    auto geant_geo = celeritas::geant_geo().lock();
+    auto geant_geo = celeritas::global_geant_geo().lock();
     CELER_VALIDATE(geant_geo, << "global Geant4 geometry is not loaded");
 
     auto& geo = *this->geometry_interface();

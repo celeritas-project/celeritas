@@ -14,6 +14,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/random/params/RngParamsFwd.hh"
+#include "geocel/LazyGeantGeoManager.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
 
@@ -62,14 +63,13 @@ namespace test
 /*!
  * Lazily construct core parameters, individually or together.
  *
- * \note Inherit from this class (or \c GlobalGeoTestBase) using \c
- * virtual \c public so that tests can create mixins (see e.g. \c
- * SimpleStepperTest).
+ * \note Inherit from this class using \c virtual \c public so that tests can
+ * create mixins (see e.g. \c SimpleStepperTest).
  *
  * \todo Replace the construction with modifiers to \c celeritas::inp data
  * structures, and build the core geometry with \c celeritas::setup.
  */
-class GlobalTestBase : public Test
+class GlobalTestBase : public Test, public LazyGeantGeoManager
 {
   public:
     //!@{
@@ -172,8 +172,11 @@ class GlobalTestBase : public Test
     void write_output();
 
   protected:
-    [[nodiscard]] virtual SPConstCoreGeo build_geometry() = 0;
+    // GDML basename must be supplied
+    using LazyGeantGeoManager::gdml_basename;
+
     [[nodiscard]] virtual SPConstMaterial build_material() = 0;
+    [[nodiscard]] virtual SPConstCoreGeo build_geometry();
     [[nodiscard]] virtual SPConstGeoMaterial build_geomaterial() = 0;
     [[nodiscard]] virtual SPConstParticle build_particle() = 0;
     [[nodiscard]] virtual SPConstCutoff build_cutoff() = 0;
@@ -190,10 +193,15 @@ class GlobalTestBase : public Test
     // Do not insert StatusChecker
     void disable_status_checker();
 
-    // Build surface and volume; called during build_core
-    void setup_model();
+    // Access surface and volume; called during build_core
     SPConstSurface const& surface() const { return surface_; }
     SPConstVolume const& volume() const { return volume_; }
+
+    // Implement LazyGeantGeoManager
+    SPConstGeoI build_geo_from_geant(SPConstGeantGeo const&) const final;
+
+    // Implement LazyGeantGeoManager, allowed when ORANGE without Geant4
+    SPConstGeoI build_geo_from_gdml(std::string const& filename) const final;
 
   private:
     SPConstRng build_rng() const;

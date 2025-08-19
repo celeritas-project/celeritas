@@ -25,7 +25,7 @@ std::ostream& operator<<(std::ostream& os, OpaqueId<V, S> const& v)
     }
     else
     {
-        os << "<invalid>";
+        os << "<null>";
     }
     return os;
 }

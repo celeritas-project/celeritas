@@ -201,7 +201,7 @@ auto LabelIdMultiMap<I>::find_all(std::string const& name) const
 /*!
  * Find the ID corresponding to a label if exactly one exists.
  *
- * This will return an invalid ID if no labels match the given name, and it
+ * This will return an null ID if no labels match the given name, and it
  * will raise an exception if multiple labels do.
  */
 template<class I>

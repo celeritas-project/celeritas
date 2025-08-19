@@ -18,6 +18,11 @@ namespace detail
  */
 SignedSense SenseEvaluator::operator()(NodeId const& n) const
 {
+    if (on_surface_)
+    {
+        // Clear on-surface value
+        *on_surface_ = {};
+    }
     return visit_node_(*this, n);
 }
 
@@ -32,6 +37,12 @@ SignedSense SenseEvaluator::operator()(Surface const& s) const
     auto result = std::visit(
         [&pos = this->pos_](auto const& surf) { return surf.calc_sense(pos); },
         surfaces_[s.id.get()]);
+
+    if (result == SignedSense::on && on_surface_)
+    {
+        *on_surface_ = s.id;
+        return result;
+    }
 
     /*!
      * \todo "inside" wrt a surface (i.e. negative quadric) is "false", so we

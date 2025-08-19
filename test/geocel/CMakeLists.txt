@@ -24,7 +24,7 @@ endif()
 # LIBRARY
 #-----------------------------------------------------------------------------#
 set(SOURCES
-  LazyGeoManager.cc
+  LazyGeantGeoManager.cc
   GeantImportVolumeResult.cc
   GenericGeoResults.cc
   GenericGeoTestInterface.cc

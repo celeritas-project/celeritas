@@ -16,9 +16,9 @@ namespace celeritas
 /*!
  * Construct with all coefficients.
  *
- * TODO: normalize so that largest eigenvalue is unity? Or what? (It would be
- * nice to have "slightly twisted planes" have order-epsilon cross terms as
- * opposed to order 1/eps linear terms.)
+ * Note that no normalization takes place: the user-provided scaling is
+ * preserved to prevent false elimination of second-order terms in surface
+ * deduplication.
  */
 GeneralQuadric::GeneralQuadric(Real3 const& abc,
                                Real3 const& def,
