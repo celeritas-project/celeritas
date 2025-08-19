@@ -233,7 +233,19 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
         if (!vol_inst.empty())
         {
             result.volume_instances.emplace_back([&] {
-                auto vi_id = geo.volume_instance_id();
+                VolumeInstanceId vi_id;
+                try
+                {
+                    vi_id = geo.volume_instance_id();
+                }
+                catch (celeritas::DebugError const& e)
+                {
+                    std::ostringstream os;
+                    os << "<exception at " << e.details().file << ':'
+                       << e.details().line << ": " << e.details().condition
+                       << '>';
+                    return std::move(os).str();
+                }
                 if (!vi_id)
                 {
                     return std::string{"---"};
