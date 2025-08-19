@@ -16,6 +16,7 @@
 #include "PhysicsTrackView.hh"
 #include "SimTrackView.hh"
 #include "TrackInitializer.hh"
+#include "surface/SurfacePhysicsView.hh"
 
 #if !CELER_DEVICE_COMPILE
 #    include "corecel/io/Logger.hh"
@@ -70,6 +71,9 @@ class CoreTrackView
 
     // Return a volume surface view from volume ID
     inline CELER_FUNCTION VolumeSurfaceView surface(VolumeId) const;
+
+    // Return a surface physics view
+    inline CELER_FUNCTION SurfacePhysicsView surface_physics() const;
 
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
@@ -216,6 +220,17 @@ CELER_FUNCTION auto CoreTrackView::surface(VolumeId vol) const
 {
     CELER_EXPECT(vol);
     return VolumeSurfaceView{params_.surface, vol};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a surface physics view.
+ */
+CELER_FUNCTION auto CoreTrackView::surface_physics() const -> SurfacePhysicsView
+{
+    return SurfacePhysicsView{params_.surface_physics,
+                              states_.surface_physics,
+                              this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//

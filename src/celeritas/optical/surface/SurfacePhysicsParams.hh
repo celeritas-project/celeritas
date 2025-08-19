@@ -60,6 +60,7 @@ class SurfacePhysicsParams final
     };
 
   public:
+    // Construct surface physics from input
     explicit SurfacePhysicsParams(Input);
 
     //! Access surface physics data on host

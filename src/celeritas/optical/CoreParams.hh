@@ -30,6 +30,7 @@ namespace optical
 //---------------------------------------------------------------------------//
 class MaterialParams;
 class PhysicsParams;
+class SurfacePhysicsParams;
 //---------------------------------------------------------------------------//
 /*!
  * Shared parameters for the optical photon loop.
@@ -44,6 +45,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstPhysics = std::shared_ptr<PhysicsParams const>;
     using SPConstRng = std::shared_ptr<RngParams const>;
     using SPConstSurface = std::shared_ptr<SurfaceParams const>;
+    using SPConstSurfacePhysics = std::shared_ptr<SurfacePhysicsParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
     using SPGeneratorRegistry = std::shared_ptr<GeneratorRegistry>;
     using SPConstDetectors = std::shared_ptr<SDParams const>;
@@ -62,6 +64,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstPhysics physics;
         SPConstRng rng;
         SPConstSurface surface;
+        SPConstSurfacePhysics surface_physics;
 
         std::optional<VecLabel> detector_labels;
 
@@ -74,8 +77,8 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         //! True if all params are assigned and valid
         explicit operator bool() const
         {
-            return geometry && material && rng && surface && action_reg
-                   && gen_reg && max_streams;
+            return geometry && material && rng && surface && surface_physics
+                   && action_reg && gen_reg && max_streams;
         }
     };
 
@@ -99,6 +102,10 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPConstPhysics const& physics() const { return input_.physics; }
     SPConstRng const& rng() const { return input_.rng; }
     SPConstSurface const& surface() const { return input_.surface; }
+    SPConstSurfacePhysics const& surface_physics() const
+    {
+        return input_.surface_physics;
+    }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
     SPGeneratorRegistry const& gen_reg() const { return input_.gen_reg; }
     SPConstDetectors const& detectors() const { return detectors_; }
