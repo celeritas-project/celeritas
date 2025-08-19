@@ -144,7 +144,7 @@ struct GeantPhysicsOptions
     //!@}
 
     //! Muon EM physics
-    GeantMuonPhysicsOptions muon{GeantMuonPhysicsOptions::deactivated()};
+    GeantMuonPhysicsOptions muon;
 
     //!@{
     //! \name Physics options
