@@ -11,7 +11,6 @@
 #include <G4Gamma.hh>
 #include <G4MuonMinus.hh>
 #include <G4MuonPlus.hh>
-#include <G4ParticleTable.hh>
 #include <G4Positron.hh>
 
 #include "corecel/io/Logger.hh"
@@ -163,7 +162,6 @@ void TrackingManagerConstructor::ConstructProcess()
     auto manager = std::make_unique<TrackingManager>(shared_, transporter);
     auto* manager_ptr = manager.get();
 
-    // Load list of particles to offload based on user-options
     for (auto* p : offload_particles_)
     {
         CELER_EXPECT(p);
