@@ -206,7 +206,7 @@ TEST_F(ZnenvTest, debug)
 {
     auto geo = this->make_geo_track_view();
     geo = GeoTrackInitializer{{0.1, 0.0001, 0}, {1, 0, 0}};
-    if (CELERITAS_UNITS == CELERITAS_UNITS_SI)
+    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
         EXPECT_JSON_EQ(
             R"json({"levels":[
@@ -217,6 +217,10 @@ TEST_F(ZnenvTest, debug)
 {"dir":[1.0,0.0,0.0],"pos":[-0.0600,-0.160,0.0],"universe":"ZNST","volume":{"impl":"ZNST","instance":"ZNST_PV","local":5}}
 ],"surface":null})json",
             StringSimplifier{3}(to_json_string(geo)));
+    }
+    else
+    {
+        GTEST_SKIP() << "no gold results for this unit system";
     }
 }
 
