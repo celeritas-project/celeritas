@@ -255,8 +255,10 @@ inp::FrameworkInput to_inp(SetupOptions const& so)
     inp::FrameworkInput result;
     result.system = load_system(so);
     result.geant.ignore_processes = so.ignore_processes;
-    result.geant.data_selection.particles = GeantImportDataSelection::em_basic;
-    result.geant.data_selection.processes = GeantImportDataSelection::em_basic;
+    //! \todo: Expose DataSelection to SetupOptions or default to all
+    // This avoids missing a process/particle import from GeantPhysicsOptions
+    result.geant.data_selection.particles = GeantImportDataSelection::em;
+    result.geant.data_selection.processes = GeantImportDataSelection::em;
     result.geant.data_selection.interpolation = so.interpolation;
 
     result.adjust = ProblemSetup{so};

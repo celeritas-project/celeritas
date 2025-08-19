@@ -51,7 +51,7 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
     bool all_attached_correctly{true};
     auto log_tm_failure = [&all_attached_correctly](G4PD const* p) {
         all_attached_correctly = false;
-        auto msg = CELER_LOG(error);
+        auto msg = CELER_LOG(warning);
         msg << "Particle " << PrintablePD{p} << ": tracking manager";
         return msg;
     };
@@ -115,10 +115,6 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
         << "not all particles from TrackingManagerConstructor are active in "
            "Celeritas: missing "
         << join(missing.begin(), missing.end(), ", ", printable_pd);
-    CELER_VALIDATE(all_attached_correctly,
-                   << "tracking manager(s) are not attached correctly "
-                      "(maybe add TrackingManagerConstructor to your physics "
-                      "list?)");
 }
 
 //---------------------------------------------------------------------------//
