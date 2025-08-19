@@ -119,6 +119,9 @@ class OrangeParams final : public GeoParamsInterface,
     // Get the canonical volume IDs corresponding to an implementation volume
     inline VolumeId volume_id(ImplVolumeId) const final;
 
+    // Get the volume instance ID corresponding to an implementation volume
+    inline VolumeInstanceId volume_instance_id(ImplVolumeId) const;
+
     //// DATA ACCESS ////
 
     //! Reference to CPU geometry data
@@ -226,6 +229,20 @@ VolumeId OrangeParams::volume_id(ImplVolumeId iv_id) const
     auto const& volume_id_map = this->host_ref().volume_ids;
     CELER_EXPECT(iv_id < volume_id_map.size());
     return volume_id_map[iv_id];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the canonical volume instance corresponding to an implementation volume.
+ *
+ * This may be null if the local volume corresponds to a "background" volume or
+ * "outside".
+ */
+VolumeInstanceId OrangeParams::volume_instance_id(ImplVolumeId iv_id) const
+{
+    auto const& volume_inst_id_map = this->host_ref().volume_instance_ids;
+    CELER_EXPECT(iv_id < volume_inst_id_map.size());
+    return volume_inst_id_map[iv_id];
 }
 
 //---------------------------------------------------------------------------//

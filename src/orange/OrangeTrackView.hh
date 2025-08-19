@@ -77,6 +77,7 @@ class OrangeTrackView
     using StateRef = NativeRef<OrangeStateData>;
     using Initializer_t = GeoTrackInitializer;
     using LSA = LevelStateAccessor;
+    using UniverseIndexer = detail::UniverseIndexer;
     //!@}
 
   public:
@@ -87,11 +88,6 @@ class OrangeTrackView
 
     // Initialize the state
     inline CELER_FUNCTION OrangeTrackView& operator=(Initializer_t const& init);
-
-    //// PARAMS ACCESSORS ////
-
-    // Geometry constant parameters
-    inline CELER_FUNCTION OrangeParamsScalars const& scalars() const;
 
     //// STATE ACCESSORS ////
 
@@ -147,6 +143,9 @@ class OrangeTrackView
 
     //// IMPLEMENTATION ACCESS ////
 
+    // Geometry constant parameters
+    inline CELER_FUNCTION OrangeParamsScalars const& scalars() const;
+
     // The current level
     inline CELER_FUNCTION LevelId const& level() const;
     // The current implementation volume ID
@@ -156,6 +155,8 @@ class OrangeTrackView
     // After 'find_next_step', the next straight-line surface
     inline CELER_FUNCTION ImplSurfaceId next_impl_surface_id() const;
 
+    // Make a universe indexer
+    inline CELER_FUNCTION UniverseIndexer make_universe_indexer() const;
     // Make a LevelStateAccessor for the current thread and level
     inline CELER_FUNCTION LSA make_lsa() const;
     // Make a LevelStateAccessor for the current thread and a given level
@@ -436,15 +437,6 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Geometry constant parameters.
- */
-CELER_FUNCTION OrangeParamsScalars const& OrangeTrackView::scalars() const
-{
-    return params_.scalars;
 }
 
 //---------------------------------------------------------------------------//
@@ -861,6 +853,17 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
 }
 
 //---------------------------------------------------------------------------//
+// PUBLIC IMPLEMENTATION ACCESS
+//---------------------------------------------------------------------------//
+/*!
+ * Geometry constant parameters.
+ */
+CELER_FUNCTION OrangeParamsScalars const& OrangeTrackView::scalars() const
+{
+    return params_.scalars;
+}
+
+//---------------------------------------------------------------------------//
 /*!
  * The current universe hierarchy depth.
  *
@@ -881,8 +884,8 @@ CELER_FORCEINLINE_FUNCTION LevelId const& OrangeTrackView::level() const
 CELER_FUNCTION ImplVolumeId OrangeTrackView::impl_volume_id() const
 {
     auto lsa = this->make_lsa();
-    detail::UniverseIndexer ui(params_.universe_indexer_data);
-    return ui.global_volume(lsa.universe(), lsa.vol());
+    return this->make_universe_indexer().global_volume(lsa.universe(),
+                                                       lsa.vol());
 }
 
 //---------------------------------------------------------------------------//
@@ -891,16 +894,14 @@ CELER_FUNCTION ImplVolumeId OrangeTrackView::impl_volume_id() const
  */
 CELER_FUNCTION ImplSurfaceId OrangeTrackView::impl_surface_id() const
 {
-    if (this->is_on_boundary())
+    if (!this->is_on_boundary())
     {
-        auto lsa = this->make_lsa(this->surface_level());
-        detail::UniverseIndexer ui{params_.universe_indexer_data};
-        return ui.global_surface(lsa.universe(), this->surf());
+        return {};
     }
-    else
-    {
-        return ImplSurfaceId{};
-    }
+
+    auto lsa = this->make_lsa(this->surface_level());
+    return this->make_universe_indexer().global_surface(lsa.universe(),
+                                                        this->surf());
 }
 
 //---------------------------------------------------------------------------//
@@ -909,15 +910,31 @@ CELER_FUNCTION ImplSurfaceId OrangeTrackView::impl_surface_id() const
  */
 CELER_FUNCTION ImplSurfaceId OrangeTrackView::next_impl_surface_id() const
 {
-    CELER_EXPECT(this->has_next_surface());
+    if (!this->has_next_surface())
+    {
+        return {};
+    }
+
     auto lsa = this->make_lsa(this->next_surface_level());
-    detail::UniverseIndexer ui{params_.universe_indexer_data};
-    return ui.global_surface(lsa.universe(), this->next_surf().id());
+    return this->make_universe_indexer().global_surface(
+        lsa.universe(), this->next_surf().id());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Make a UniverseIndexer to convert local to global IDs.
+ */
+CELER_FORCEINLINE_FUNCTION auto OrangeTrackView::make_universe_indexer() const
+    -> UniverseIndexer
+{
+    return UniverseIndexer{params_.universe_indexer_data};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Make a LevelStateAccessor for the current thread and level.
+ *
+ * Please treat as read-only outside this class!
  */
 CELER_FORCEINLINE_FUNCTION auto OrangeTrackView::make_lsa() const -> LSA
 {
