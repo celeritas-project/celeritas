@@ -1606,7 +1606,8 @@ TEST_F(OneSteelSphereGG, physics)
                                                "mu_pair_prod"};
     ;
     EXPECT_VEC_EQ(expected_processes, summary.processes);
-    static char const* expected_models[] = {"urban_msc",
+    static char const* expected_models[] = {"bethe_bloch",
+                                            "urban_msc",
                                             "icru_73_qo",
                                             "bragg",
                                             "moller_bhabha",
