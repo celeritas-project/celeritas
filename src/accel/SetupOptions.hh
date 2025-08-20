@@ -19,6 +19,7 @@
 #include "celeritas/inp/Physics.hh"
 
 class G4LogicalVolume;
+class G4ParticleDefinition;
 
 namespace celeritas
 {
@@ -135,7 +136,7 @@ struct SetupOptions
         = std::function<SPConstAction(AlongStepFactoryInput const&)>;
     using IntAccessor = std::function<int()>;
     using VecString = std::vector<std::string>;
-    using VecPDG = std::vector<int>;
+    using VecG4PD = std::vector<G4ParticleDefinition*>;
     //!@}
 
     //! Don't limit the number of steps
@@ -206,8 +207,8 @@ struct SetupOptions
 
     //! Do not use Celeritas physics for the given Geant4 process names
     VecString ignore_processes;
-    //! Only offload a subset of particles by specifying their PDG encoding
-    VecPDG offload_particles;
+    //! Only offload a subset of particles
+    VecG4PD offload_particles;
     //! Physics grid interpolation options
     inp::Interpolation interpolation{};
     //!@}

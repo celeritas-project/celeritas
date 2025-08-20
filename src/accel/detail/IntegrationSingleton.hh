@@ -38,6 +38,11 @@ namespace detail
 class IntegrationSingleton
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using VecG4PD = SetupOptions::VecG4PD;
+    //!@}
+
     enum class Mode
     {
         disabled,
@@ -52,6 +57,16 @@ class IntegrationSingleton
     // Static THREAD-LOCAL Celeritas state data
     static LocalTransporter& local_transporter();
 
+    //!@{
+    //! Static GLOBAL particle lists
+
+    // Get list of all supported particles in Celeritas
+    static VecG4PD supported_offload_particles();
+
+    // Get list of enabled particles for offloading by default
+    static VecG4PD default_offload_particles();
+    //!@}
+
     //// ACCESSORS ////
 
     // Assign setup options before constructing params
@@ -59,6 +74,9 @@ class IntegrationSingleton
 
     //! Static global setup options before or after constructing params
     SetupOptions const& setup_options() const { return options_; }
+
+    //! Return list of particles to be offloaded during run
+    VecG4PD const& offloaded_particles() { return options_.offload_particles; }
 
     //! Whether Celeritas is enabled
     Mode mode() const { return mode_; }

@@ -41,13 +41,13 @@ FtfpBertPhysicsList::FtfpBertPhysicsList(Options const& options)
     // Celeritas-supported EM physics
     detail::emplace_physics<detail::EmStandardPhysics>(*this, options);
 
-    // Celeritas-supported Optical Physics
     if (options.optical)
     {
+        // Celeritas-supported Optical Physics
         detail::emplace_physics<detail::OpticalPhysics>(*this, options.optical);
     }
 
-    // Muon and hadrom EM standard physics not supported in Celeritas
+    // Hadron EM standard physics not supported in Celeritas
     detail::emplace_physics<detail::MuHadEmStandardPhysics>(*this, verbosity);
 
     // TODO: Add a physics constructor equivalent to G4EmExtraPhysics

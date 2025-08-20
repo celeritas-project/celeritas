@@ -155,16 +155,14 @@ void TrackingManagerIntegration::BeginOfRunAction(G4Run const*)
 
     if (enable_offload)
     {
+        // Set particle offloading based on user options
+        auto const user_offload = singleton.setup_options().offload_particles;
+        auto const offload_particles
+            = user_offload.empty() ? singleton.default_offload_particles()
+                                   : user_offload;
+
         // Set tracking manager on workers when Celeritas is not fully disabled
         CELER_LOG(debug) << "Verifying tracking manager";
-
-        auto const& opts
-            = detail::IntegrationSingleton::instance().setup_options();
-        auto const offload_particles
-            = opts.offload_particles.empty()
-                  ? TrackingManagerConstructor::DefaultOffloadParticles()
-                  : TrackingManagerConstructor::UserOffloadParticles();
-
         CELER_TRY_HANDLE(
             verify_tracking_managers(
                 make_span(offload_particles),

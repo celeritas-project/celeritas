@@ -76,6 +76,7 @@
 #include "SetupOptions.hh"
 #include "TimeOutput.hh"
 
+#include "detail/IntegrationSingleton.hh"
 #include "detail/OffloadWriter.hh"
 
 namespace celeritas
@@ -208,6 +209,7 @@ bool SharedParams::KillOffloadTracks()
 SharedParams::SharedParams(SetupOptions const& options)
 {
     CELER_EXPECT(!*this);
+    using IS = detail::IntegrationSingleton;
 
     ScopedProfiling profile_this{"construct-params"};
     ScopedMem record_mem("SharedParams.construct");
@@ -216,16 +218,16 @@ SharedParams::SharedParams(SetupOptions const& options)
     mode_ = GetMode();
     if (mode_ == Mode::kill_offload)
     {
-        // In a Geant4-only simulation, use a hardcoded list
-        particles_ = {
-            G4Gamma::Gamma(),
-            G4Electron::Electron(),
-            G4Positron::Positron(),
-        };
+        //! \todo: default or supported?
+        particles_ = IS::default_offload_particles();
     }
 
     if (mode_ != Mode::enabled)
     {
+        auto const& user_offload = options.offload_particles;
+        particles_ = user_offload.empty() ? IS::default_offload_particles()
+                                          : user_offload;
+
         // Stop initializing but create output registry for diagnostics
         output_reg_ = std::make_shared<OutputRegistry>();
         output_filename_ = options.output_file;

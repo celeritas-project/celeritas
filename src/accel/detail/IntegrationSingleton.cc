@@ -6,6 +6,12 @@
 //---------------------------------------------------------------------------//
 #include "IntegrationSingleton.hh"
 
+#include <G4Electron.hh>
+#include <G4Gamma.hh>
+#include <G4MuonMinus.hh>
+#include <G4MuonPlus.hh>
+#include <G4ParticleDefinition.hh>
+#include <G4Positron.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 
@@ -23,6 +29,43 @@ namespace celeritas
 {
 namespace detail
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Validate \c SetupOptions::offload_particles user-defined list of particles
+ * to be offloaded.
+ */
+void validate_offloaded_particles(SetupOptions::VecG4PD const& user)
+{
+    if (user.empty())
+    {
+        // Celeritas will use default hardcoded list; nothing to do
+        return;
+    }
+
+    auto const supported = IntegrationSingleton::supported_offload_particles();
+    auto find = [&supported](G4ParticleDefinition* user) -> bool {
+        return std::any_of(
+            supported.begin(),
+            supported.end(),
+            [&user](G4ParticleDefinition* p) {
+                return (p->GetPDGEncoding() == user->GetPDGEncoding());
+            });
+    };
+
+    // Validade user-defined G4ParticleDefinition input list
+    for (auto const pd : user)
+    {
+        CELER_ASSERT(pd);
+        CELER_VALIDATE(pd,
+                       << "Particle with PDG = " << pd->GetPDGEncoding()
+                       << " is not available in Celeritas");
+    }
+}
+//---------------------------------------------------------------------------//
+};  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Static GLOBAL shared data.
@@ -45,6 +88,42 @@ LocalTransporter& IntegrationSingleton::local_transporter()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get a list of supported particles that will be offloaded.
+ */
+IntegrationSingleton::VecG4PD
+IntegrationSingleton::supported_offload_particles()
+{
+    static G4ParticleDefinition* const supported_particles[] = {
+        G4Electron::Definition(),
+        G4Positron::Definition(),
+        G4Gamma::Definition(),
+        G4MuonMinus::Definition(),
+        G4MuonPlus::Definition(),
+    };
+
+    return {std::begin(supported_particles), std::end(supported_particles)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the list of default particles that will be offloaded.
+ *
+ * If no user-defined list is provided, this is the default, which focuses on
+ * simplifying the interface with LHC experiments.
+ */
+IntegrationSingleton::VecG4PD IntegrationSingleton::default_offload_particles()
+{
+    static G4ParticleDefinition* const default_particles[] = {
+        G4Electron::Definition(),
+        G4Positron::Definition(),
+        G4Gamma::Definition(),
+    };
+
+    return {std::begin(default_particles), std::end(default_particles)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Assign global setup options before constructing params.
  */
 void IntegrationSingleton::setup_options(SetupOptions&& opts)
@@ -54,6 +133,7 @@ void IntegrationSingleton::setup_options(SetupOptions&& opts)
             CELER_VALIDATE(
                 !params_,
                 << R"(options cannot be set after Celeritas is constructed)");
+            validate_offloaded_particles(opts.offload_particles);
             options_ = std::move(opts);
         },
         ExceptionConverter{"celer.setup"});
