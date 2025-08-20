@@ -208,6 +208,7 @@ if(CELERITAS_USE_Geant4)
 
   set(_ltu_tests)
   if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
+    # ORANGE does not yet support touchable-based mapping
     set(_ltu_tests DISABLE)
   endif()
 
