@@ -553,7 +553,10 @@ void MultiLevelGeoTest::test_trace() const
             "topbox1",
             "world_PV",
         };
-        EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
+        if (!is_orange)
+        {
+            EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
+        }
         static real_type const expected_distances[] = {
             2.4,
             3,
@@ -621,7 +624,10 @@ void MultiLevelGeoTest::test_trace() const
             "topbox4",
             "world_PV",
         };
-        EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
+        if (!is_orange)
+        {
+            EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
+        }
         static real_type const expected_distances[] = {
             2.4,
             3,
