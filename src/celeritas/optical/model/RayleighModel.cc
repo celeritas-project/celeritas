@@ -61,11 +61,17 @@ RayleighModel::RayleighModel(ActionId id, SPConstImported imported, Input input)
     {
         if (input_)
         {
-            CELER_VALIDATE(
-                imported_.mfp(mat) || input_.imported_materials->rayleigh(mat),
-                << "Rayleigh model requires either imported MFP or "
-                   "material parameters to build MFPs for each optical "
-                   "material");
+            if (imported_.mfp(mat) && input_.imported_materials->rayleigh(mat))
+            {
+                CELER_LOG(debug) << "Rayleigh: will compute MFP from Rayleigh "
+                                    "params for mat "
+                                 << mat.get();
+            }
+            else
+            {
+                CELER_LOG(debug) << "Rayleigh: no MFP data for mat "
+                                 << " (will use empty grid => infinite MFP)";
+            }
         }
         else
         {
@@ -75,7 +81,6 @@ RayleighModel::RayleighModel(ActionId id, SPConstImported imported, Input input)
         }
     }
 }
-
 //---------------------------------------------------------------------------//
 /*!
  * Build the mean free paths for the model.
@@ -88,7 +93,7 @@ void RayleighModel::build_mfps(OptMatId mat, MfpBuilder& build) const
     {
         build(mfp);
     }
-    else
+    else if (input_ && input_.imported_materials->rayleigh(mat))
     {
         auto mat_view = input_.materials->get(mat);
         auto core_mat_view
@@ -110,6 +115,12 @@ void RayleighModel::build_mfps(OptMatId mat, MfpBuilder& build) const
             grid.y.push_back(calc_mfp(units::MevEnergy{e}));
         }
         build(grid);
+    }
+    else
+    {
+        CELER_LOG(debug) << "No MFP data available for material " << mat.get()
+                         << ", creating empty grid (infinite MFP)";
+        build();
     }
 }
 
