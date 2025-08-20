@@ -24,12 +24,14 @@ class GeoParamsInterface;
  * This builds collections for runtime execution using a GeoTrackView's \c
  * impl_volume_id() call, which requires less indirection than \c volume_id() .
  *
- * Given a geometry (which can also be the interface class), a function
- * \code T(*)(VolumeId) \endcode
+ * Given a geometry (which is allowed to be \c GeoParamsInterface ), a function
+ * \code T(*)(VolumeId) \endcode will be called for every \c ImplVolumeId in
+ * the geometry that corresponds to a canonical volume. The resulting value
+ * will be assigned to the collection.
  */
 template<class T, class G, class F>
 inline Collection<T, Ownership::value, MemSpace::host, ImplVolumeId>
-build_volume_collection(G const& geo, F&& fill_value, T default_value = {})
+build_volume_collection(G const& geo, F&& fill_value)
 {
     static_assert(std::is_base_of_v<GeoParamsInterface, G>,
                   "G must be a geometry class");
@@ -41,7 +43,7 @@ build_volume_collection(G const& geo, F&& fill_value, T default_value = {})
     resize(&result, num_impl_volumes);
     for (auto iv_id : range(ImplVolumeId{num_impl_volumes}))
     {
-        T value{default_value};
+        T value{};
         if (auto vol_id = geo.volume_id(iv_id))
         {
             value = fill_value(vol_id);
@@ -85,7 +87,7 @@ class VolumeMapFiller
     }
 
   private:
-    T from_vol_;
+    T const& from_vol_;
 };
 
 //---------------------------------------------------------------------------//

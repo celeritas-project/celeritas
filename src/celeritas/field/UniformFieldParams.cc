@@ -89,12 +89,10 @@ UniformFieldParams::UniformFieldParams(CoreGeoParams const& geo,
     if (!volumes.empty())
     {
         // Convert from canonical to implementation volumes
-        host_data.has_field = build_volume_collection<char>(
-            geo,
-            [&volumes](VolumeId vid) {
-                return static_cast<bool>(volumes.count(vid));
-            },
-            false);
+        host_data.has_field
+            = build_volume_collection<char>(geo, [&volumes](VolumeId vid) {
+                  return static_cast<bool>(volumes.count(vid));
+              });
     }
 
     // Move to mirrored data, copying to device

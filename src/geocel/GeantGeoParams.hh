@@ -31,11 +31,13 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Shared Geant4 geometry model wrapper.
+ * Manage and provide access to a Geant4 geometry model.
  *
  * This can be constructed directly by loading a GDML file, or in-memory using
  * an existing physical volume. The \c make_model_input function returns the
- * geometry hierarchy including surface definitions for optical physics.
+ * geometry hierarchy including surface definitions for optical physics. The \c
+ * geant_to_id and \c id_to_geant functions provide mappings between Geant4
+ * pointers and Celeritas IDs.
  *
  * The \c ImplVolumeId used by Celeritas is equal to the index of a \c
  * G4LogicalVolume in the \c G4LogicalVolumeStore. Due to potential resetting
@@ -45,10 +47,13 @@ namespace celeritas
  *
  * In general, the \c G4VPhysicalVolume is equivalent to the index in its
  * store. However, due to the way Geant4 represents "parameterised" and
- * "replicated" placements, a single PV may correspond to multiple spatial
- * placements, which Celeritas disambiguates and maps each to a distinct \c
- * VolumeInstanceId (see \c detail::GeantVolumeInstanceMapper). This is
- * done using the G4PV's current state (based on the copy number).
+ * "replicated" placements, a single G4PV may correspond to multiple spatial
+ * placements. Celeritas disambiguates and maps each replicated instance to a
+ * distinct \c VolumeInstanceId (see \c detail::GeantVolumeInstanceMapper).
+ * When querying this ID from an in-memory physical volume, the returned value
+ * uses the G4PV's \em current state (i.e., the copy number). Similarly,
+ * calling \c id_to_geant on a volume instance ID for a replica volume will \em
+ * change the thread-local state of the \c G4VPhysicalVolume.
  *
  * Each \c SurfaceId maps to a \c G4LogicalSurface instance, which is ether a
  * \c G4LogicalBorderSurface (an "interface" surface between two volume
