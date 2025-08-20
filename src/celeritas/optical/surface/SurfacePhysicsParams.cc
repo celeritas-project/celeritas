@@ -8,11 +8,91 @@
 
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "celeritas/inp/SurfacePhysics.hh"
 
 namespace celeritas
 {
 namespace optical
 {
+
+template<class T>
+struct FakeModelBuilder
+{
+    FakeModelBuilder(std::vector<T> const&) {}
+
+    std::shared_ptr<SurfaceModel> operator()(ActionId) const
+    {
+        return nullptr;
+    }
+};
+
+template<class T>
+void from_import_model(SurfacePhysicsParams::Input& input,
+                       SurfacePhysicsStep step,
+                       std::map<inp::SurfaceLayer, T> const& model_map)
+{
+    if (!model_map.empty())
+    {
+        SurfaceModelId model_id(input.model_builders[step].size());
+        std::vector<T> parameters;
+        for (auto const& [layer, model] : model_map)
+        {
+            parameters.push_back(model);
+
+            CELER_EXPECT(layer < input.surfaces.size());
+            auto& interface_model
+                = input.surfaces[layer.get()].interface_models.front()[step];
+            CELER_VALIDATE(!interface_model,
+                           << " only one surface " << to_cstring(step)
+                           << " model valid per surface");
+            interface_model = model_id;
+        }
+        input.model_builders[step].push_back(FakeModelBuilder<T>(parameters));
+    }
+}
+
+auto SurfacePhysicsParams::Input::from_import(inp::SurfacePhysics const& sp)
+    -> Input
+{
+    CELER_EXPECT(sp);
+
+    Input input;
+
+    input.surfaces.resize(sp.roughness.polished.size()
+                              + sp.roughness.smear.size()
+                              + sp.roughness.gaussian.size(),
+                          SurfaceInput{{},
+                                       {
+                                           {
+                                               SurfaceModelId{},
+                                               SurfaceModelId{},
+                                               SurfaceModelId{},
+                                           },
+                                       }});
+
+    {
+        // Load roughness models
+        auto step = SurfacePhysicsStep::roughness;
+        from_import_model(input, step, sp.roughness.polished);
+        from_import_model(input, step, sp.roughness.smear);
+        from_import_model(input, step, sp.roughness.gaussian);
+    }
+    {
+        // Load reflectivity models
+        auto step = SurfacePhysicsStep::reflectivity;
+        from_import_model(input, step, sp.reflectivity.grid);
+        from_import_model(input, step, sp.reflectivity.fresnel);
+    }
+    {
+        // Load interaction models
+        auto step = SurfacePhysicsStep::interaction;
+        from_import_model(input, step, sp.interaction.dielectric_dielectric);
+        from_import_model(input, step, sp.interaction.dielectric_metal);
+    }
+
+    return input;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  */

@@ -21,6 +21,11 @@ namespace celeritas
 {
 class ActionRegistry;
 
+namespace inp
+{
+struct SurfacePhysics;
+}  // namespace inp
+
 namespace optical
 {
 //---------------------------------------------------------------------------//
@@ -57,6 +62,8 @@ class SurfacePhysicsParams final
 
         std::vector<SurfaceInput> surfaces;  //!< indexed by GeometricSurfaceId
         SurfaceStepArray<VecModelBuilders> model_builders;
+
+        static Input from_import(inp::SurfacePhysics const&);
     };
 
   public:
