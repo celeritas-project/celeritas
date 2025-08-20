@@ -86,7 +86,7 @@ class UniverseIndexer
     using SpanIter = typename DataRef::SpanConstT::const_iterator;
 
     //// DATA ////
-    UniverseIndexerDataRef data_;
+    UniverseIndexerDataRef const& data_;
 
     //// IMPLEMENTATION METHODS ////
     static inline CELER_FUNCTION SpanIter find_local(DataRef offsets,

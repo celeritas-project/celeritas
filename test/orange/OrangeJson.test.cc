@@ -8,11 +8,13 @@
 #include <string>
 #include <vector>
 
+#include "corecel/StringSimplifier.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/OutputInterface.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/Types.hh"
+#include "orange/Debug.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/OrangeParamsOutput.hh"
 #include "orange/OrangeTrackView.hh"
@@ -218,6 +220,13 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
             "c", this->params().impl_volumes().at(other.impl_volume_id()).name);
         EXPECT_FALSE(other.is_outside());
         EXPECT_FALSE(other.is_on_boundary());
+
+        EXPECT_JSON_EQ(
+            R"json({"levels":[{"dir":[0.0,1.0,0.0],"pos":[0.625,-2.0,1.0],"universe":"outer","volume":{"impl":"inner_b@outer","local":2}},{"dir":[0.0,1.0,0.0],"pos":[-1.375,0.0,0.5],"universe":"inner","volume":{"impl":"c@inner","local":4}}],"surface":null})json",
+            to_json_string(geo));
+        EXPECT_JSON_EQ(
+            R"json({"levels":[{"dir":[1.0,0.0,0.0],"pos":[0.625,-2.0,1.0],"universe":"outer","volume":{"impl":"inner_b@outer","local":2}},{"dir":[1.0,0.0,0.0],"pos":[-1.375,0.0,0.5],"universe":"inner","volume":{"impl":"c@inner","local":4}}],"surface":null})json",
+            to_json_string(other));
     }
 }
 
@@ -598,6 +607,10 @@ TEST_F(NestedRectArraysTest, leaving)
 {
     auto geo = this->make_geo_track_view();
     geo = Initializer_t{{3.5, 1.5, 0.5}, {1, 0, 0}};
+
+    EXPECT_JSON_EQ(
+        R"json({"levels":[{"dir":[1.0,0.0,0.0],"pos":[3.5,1.5,0.5],"universe":"global","volume":{"impl":"arrfill@global","local":1}},{"dir":[1.0,0.0,0.0],"pos":[3.5,1.5,0.5],"universe":"parent","volume":{"impl":"parent+@parent","local":1}},{"dir":[1.0,0.0,0.0],"pos":[3.5,1.5,0.5],"universe":"parent+","volume":{"impl":"{1,0,0}@parent+","local":2}},{"dir":[1.0,0.0,0.0],"pos":[1.5,1.5,0.5],"universe":"arr","volume":{"impl":"arr+@arr","local":1}},{"dir":[1.0,0.0,0.0],"pos":[1.5,1.5,0.5],"universe":"arr+","volume":{"impl":"{1,1,0}@arr+","local":3}},{"dir":[1.0,0.0,0.0],"pos":[0.5,0.5,0.5],"universe":"B","volume":{"impl":"Bfill@B","local":1}}],"surface":null})json",
+        StringSimplifier{3}(to_json_string(geo)));
 
     EXPECT_VEC_SOFT_EQ(Real3({3.5, 1.5, 0.5}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());

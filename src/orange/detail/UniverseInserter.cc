@@ -61,12 +61,12 @@ void move_back(std::vector<Label>& dst,
  *
  * Push back initial zeros on construction.
  */
-UniverseInserter::UniverseInserter(VolumeParams const& volume_params,
+UniverseInserter::UniverseInserter(SPConstVolumes volume_params,
                                    VecLabel* universe_labels,
                                    VecLabel* surface_labels,
                                    VecLabel* volume_labels,
                                    Data* data)
-    : volume_params_{volume_params}
+    : volume_params_{std::move(volume_params)}
     , universe_labels_{universe_labels}
     , surface_labels_{surface_labels}
     , volume_labels_{volume_labels}
@@ -123,7 +123,7 @@ UniverseId UniverseInserter::operator()(UniverseType type,
     CELER_EXPECT(type != UniverseType::size_);
     CELER_EXPECT(!volume_labels.empty());
     CELER_EXPECT(
-        !volume_params_.empty()
+        volume_params_
         || std::all_of(
             volume_labels.begin(), volume_labels.end(), [](auto& varlabel) {
                 return std::holds_alternative<Label>(varlabel);
@@ -132,7 +132,7 @@ UniverseId UniverseInserter::operator()(UniverseType type,
     UniverseId result = this->update_counters(
         type, surface_labels.size(), volume_labels.size());
 
-    if (!volume_params_.empty())
+    if (volume_params_)
     {
         volume_ids_.reserve(volume_ids_.size() + volume_labels.size());
         volume_instance_ids_.reserve(volume_ids_.size());
@@ -142,15 +142,13 @@ UniverseId UniverseInserter::operator()(UniverseType type,
         {
             if (auto vi_id = get_or_default<VolumeInstanceId>(var_label))
             {
-                CELER_ASSERT(vi_id < volume_params_.num_volume_instances());
-                auto vol_id = volume_params_.volume(vi_id);
+                CELER_ASSERT(vi_id < volume_params_->num_volume_instances());
+                auto vol_id = volume_params_->volume(vi_id);
                 volume_ids_.push_back(vol_id);
                 volume_instance_ids_.push_back(vi_id);
 
                 // Replace with volume label corresponding to it
-                // TODO: should be volume instance label or also something else
-                // specific to this implementation
-                var_label = volume_params_.volume_labels().at(vol_id);
+                var_label = volume_params_->volume_labels().at(vol_id);
             }
             else
             {

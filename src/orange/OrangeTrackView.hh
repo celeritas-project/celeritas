@@ -78,6 +78,8 @@ class OrangeTrackView
     using ParamsRef = NativeCRef<OrangeParamsData>;
     using StateRef = NativeRef<OrangeStateData>;
     using Initializer_t = GeoTrackInitializer;
+    using LSA = LevelStateAccessor;
+    using UniverseIndexer = detail::UniverseIndexer;
     //!@}
 
   public:
@@ -89,7 +91,7 @@ class OrangeTrackView
     // Initialize the state
     inline CELER_FUNCTION OrangeTrackView& operator=(Initializer_t const& init);
 
-    //// ACCESSORS ////
+    //// STATE ACCESSORS ////
 
     // The current position
     inline CELER_FUNCTION Real3 const& pos() const;
@@ -100,17 +102,8 @@ class OrangeTrackView
     inline CELER_FUNCTION VolumeId volume_id() const;
     // Get the canonical volume instance ID in the current impl volume
     inline CELER_FUNCTION VolumeInstanceId volume_instance_id() const;
-    // The current level
-    inline CELER_FUNCTION LevelId const& level() const;
     // Get the volume instance ID for all levels
     inline CELER_FUNCTION void volume_instance_id(Span<VolumeInstanceId>) const;
-
-    // The current implementation volume ID
-    inline CELER_FUNCTION ImplVolumeId impl_volume_id() const;
-    // The current surface ID
-    inline CELER_FUNCTION ImplSurfaceId impl_surface_id() const;
-    // After 'find_next_step', the next straight-line surface
-    inline CELER_FUNCTION ImplSurfaceId next_impl_surface_id() const;
 
     // Whether the track is outside the valid geometry region
     inline CELER_FUNCTION bool is_outside() const;
@@ -150,10 +143,29 @@ class OrangeTrackView
     // Change direction
     inline CELER_FUNCTION void set_dir(Real3 const& newdir);
 
+    //// IMPLEMENTATION ACCESS ////
+
+    // Geometry constant parameters
+    inline CELER_FUNCTION OrangeParamsScalars const& scalars() const;
+
+    // The current level
+    inline CELER_FUNCTION LevelId const& level() const;
+    // The current implementation volume ID
+    inline CELER_FUNCTION ImplVolumeId impl_volume_id() const;
+    // The current surface ID
+    inline CELER_FUNCTION ImplSurfaceId impl_surface_id() const;
+    // After 'find_next_step', the next straight-line surface
+    inline CELER_FUNCTION ImplSurfaceId next_impl_surface_id() const;
+
+    // Make a universe indexer
+    inline CELER_FUNCTION UniverseIndexer make_universe_indexer() const;
+    // Make a LevelStateAccessor for the current thread and level
+    inline CELER_FUNCTION LSA make_lsa() const;
+    // Make a LevelStateAccessor for the current thread and a given level
+    inline CELER_FUNCTION LSA make_lsa(LevelId level) const;
+
   private:
     //// TYPES ////
-
-    using LSA = LevelStateAccessor;
 
     //! Helper struct for initializing from an existing geometry state
     struct DetailedInitializer
@@ -243,12 +255,6 @@ class OrangeTrackView
 
     // Clear the surface on the current level
     inline CELER_FUNCTION void clear_surface();
-
-    // Make a LevelStateAccessor for the current thread and level
-    inline CELER_FUNCTION LSA make_lsa() const;
-
-    // Make a LevelStateAccessor for the current thread and a given level
-    inline CELER_FUNCTION LSA make_lsa(LevelId level) const;
 
     // Get the daughter ID for the volume in the universe (or null)
     inline CELER_FUNCTION DaughterId get_daughter(LSA const& lsa) const;
@@ -485,15 +491,6 @@ CELER_FUNCTION VolumeInstanceId OrangeTrackView::volume_instance_id() const
 
 //---------------------------------------------------------------------------//
 /*!
- * The current level.
- */
-CELER_FORCEINLINE_FUNCTION LevelId const& OrangeTrackView::level() const
-{
-    return states_.level[track_slot_];
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get the volume instance ID at every level.
  *
  * The input span size must be equal to the value of "level" plus one. The
@@ -510,50 +507,6 @@ OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
     {
         levels[lev] = {};
     }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * The current "global" volume ID.
- *
- * \note It is allowable to call this function when "outside", because the
- * outside in ORANGE is just a special volume.
- */
-CELER_FUNCTION ImplVolumeId OrangeTrackView::impl_volume_id() const
-{
-    auto lsa = this->make_lsa();
-    detail::UniverseIndexer ui(params_.universe_indexer_data);
-    return ui.global_volume(lsa.universe(), lsa.vol());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * The current surface ID.
- */
-CELER_FUNCTION ImplSurfaceId OrangeTrackView::impl_surface_id() const
-{
-    if (this->is_on_boundary())
-    {
-        auto lsa = this->make_lsa(this->surface_level());
-        detail::UniverseIndexer ui{params_.universe_indexer_data};
-        return ui.global_surface(lsa.universe(), this->surf());
-    }
-    else
-    {
-        return ImplSurfaceId{};
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * After 'find_next_step', the next straight-line surface.
- */
-CELER_FUNCTION ImplSurfaceId OrangeTrackView::next_impl_surface_id() const
-{
-    CELER_EXPECT(this->has_next_surface());
-    auto lsa = this->make_lsa(this->next_surface_level());
-    detail::UniverseIndexer ui{params_.universe_indexer_data};
-    return ui.global_surface(lsa.universe(), this->next_surf().id());
 }
 
 //---------------------------------------------------------------------------//
@@ -901,7 +854,109 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
 }
 
 //---------------------------------------------------------------------------//
-// STATE ACCESSORS
+// PUBLIC IMPLEMENTATION ACCESS
+//---------------------------------------------------------------------------//
+/*!
+ * Geometry constant parameters.
+ */
+CELER_FUNCTION OrangeParamsScalars const& OrangeTrackView::scalars() const
+{
+    return params_.scalars;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * The current universe hierarchy depth.
+ *
+ * Zero corresponds to being in the global universe.
+ */
+CELER_FORCEINLINE_FUNCTION LevelId const& OrangeTrackView::level() const
+{
+    return states_.level[track_slot_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * The current "global" volume ID.
+ *
+ * \note It is allowable to call this function when "outside", because the
+ * outside in ORANGE is just a special volume.
+ */
+CELER_FUNCTION ImplVolumeId OrangeTrackView::impl_volume_id() const
+{
+    auto lsa = this->make_lsa();
+    return this->make_universe_indexer().global_volume(lsa.universe(),
+                                                       lsa.vol());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * The current surface ID.
+ */
+CELER_FUNCTION ImplSurfaceId OrangeTrackView::impl_surface_id() const
+{
+    if (!this->is_on_boundary())
+    {
+        return {};
+    }
+
+    auto lsa = this->make_lsa(this->surface_level());
+    return this->make_universe_indexer().global_surface(lsa.universe(),
+                                                        this->surf());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * After 'find_next_step', the next straight-line surface.
+ */
+CELER_FUNCTION ImplSurfaceId OrangeTrackView::next_impl_surface_id() const
+{
+    if (!this->has_next_surface())
+    {
+        return {};
+    }
+
+    auto lsa = this->make_lsa(this->next_surface_level());
+    return this->make_universe_indexer().global_surface(
+        lsa.universe(), this->next_surf().id());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Make a UniverseIndexer to convert local to global IDs.
+ */
+CELER_FORCEINLINE_FUNCTION auto OrangeTrackView::make_universe_indexer() const
+    -> UniverseIndexer
+{
+    return UniverseIndexer{params_.universe_indexer_data};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Make a LevelStateAccessor for the current thread and level.
+ *
+ * Please treat as read-only outside this class!
+ */
+CELER_FORCEINLINE_FUNCTION auto OrangeTrackView::make_lsa() const -> LSA
+{
+    return this->make_lsa(this->level());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Make a LevelStateAccessor for the current thread and a given level.
+ *
+ * Note that access beyond the current level is allowable: cross_boundary
+ * locally updates the level before committing the change.
+ */
+CELER_FORCEINLINE_FUNCTION auto OrangeTrackView::make_lsa(LevelId level) const
+    -> LSA
+{
+    return LSA(&states_, track_slot_, level);
+}
+
+//---------------------------------------------------------------------------//
+// PRIVATE MUTABLE STATE ACCESSORS
 //---------------------------------------------------------------------------//
 /*!
  * The current level.
@@ -946,7 +1001,7 @@ CELER_FORCEINLINE_FUNCTION void OrangeTrackView::next_surface_level(LevelId lev)
 }
 
 //---------------------------------------------------------------------------//
-// CONST STATE ACCESSORS
+// PRIVATE CONST STATE ACCESSORS
 /*!
  * The current surface level.
  */
@@ -1007,7 +1062,7 @@ OrangeTrackView::next_surface_level() const
 }
 
 //---------------------------------------------------------------------------//
-// HELPER FUNCTIONS
+// PRIVATE HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
  * Iterate over levels 1 to N to find the next step.
@@ -1201,25 +1256,6 @@ CELER_FUNCTION void OrangeTrackView::clear_surface()
 {
     states_.surface_level[track_slot_] = {};
     CELER_ENSURE(!this->is_on_boundary());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Make a LevelStateAccessor for the current thread and level.
- */
-CELER_FORCEINLINE_FUNCTION auto OrangeTrackView::make_lsa() const -> LSA
-{
-    return this->make_lsa(this->level());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Make a LevelStateAccessor for the current thread and a given level.
- */
-CELER_FORCEINLINE_FUNCTION auto OrangeTrackView::make_lsa(LevelId level) const
-    -> LSA
-{
-    return LSA(&states_, track_slot_, level);
 }
 
 //---------------------------------------------------------------------------//

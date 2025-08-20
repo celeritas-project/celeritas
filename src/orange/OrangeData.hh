@@ -22,6 +22,8 @@
 
 namespace celeritas
 {
+class OrangeParams;
+class VolumeParams;
 //---------------------------------------------------------------------------//
 // PARAMS
 //---------------------------------------------------------------------------//
@@ -48,6 +50,10 @@ struct OrangeParamsScalars
 
     // Soft comparison and dynamic "bumping" values
     Tolerance<> tol;
+
+    // Raw pointers to externally owned memory for debug output
+    OrangeParams const* host_geo_params{nullptr};
+    VolumeParams const* host_volume_params{nullptr};
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
