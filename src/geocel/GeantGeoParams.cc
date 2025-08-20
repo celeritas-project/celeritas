@@ -8,6 +8,7 @@
 
 #include <map>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <G4GeometryManager.hh>
 #include <G4LogicalBorderSurface.hh>
@@ -60,7 +61,7 @@ std::vector<Label>
 make_logical_vol_labels(detail::GeantVolumeInstanceMapper const& vi_mapper,
                         ImplVolumeId::size_type lv_offset)
 {
-    std::set<G4LogicalVolume const*> visited_lv;
+    std::unordered_set<G4LogicalVolume const*> visited_lv;
     std::unordered_map<std::string, std::vector<G4LogicalVolume const*>> names;
 
     for (auto vi_id : range(VolumeInstanceId{vi_mapper.size()}))
@@ -687,7 +688,7 @@ void GeantGeoParams::build_metadata()
 
     // Construct volume labels for physically reachable volumes
     impl_volumes_ = ImplVolumeMap{
-        "volume", make_logical_vol_labels(vi_mapper_, this->lv_offset())};
+        "impl volume", make_logical_vol_labels(vi_mapper_, this->lv_offset())};
     surfaces_ = make_surface_vec(*this);
 
     auto clhep_bbox = this->get_clhep_bbox();
