@@ -26,7 +26,7 @@ namespace detail
 GeantSurfacePhysicsHelper::GeantSurfacePhysicsHelper(SurfaceId sid) : sid_(sid)
 {
     CELER_EXPECT(sid_);
-    auto geo = celeritas::geant_geo().lock();
+    auto geo = celeritas::global_geant_geo().lock();
     CELER_ASSERT(geo);
     auto const* g4log_surf = geo->id_to_geant(sid);
     CELER_ASSERT(g4log_surf);

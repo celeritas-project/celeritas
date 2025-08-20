@@ -18,6 +18,7 @@
 #include "CoreParams.hh"
 #include "CoreState.hh"
 #include "MaterialParams.hh"
+#include "PhysicsParams.hh"
 #include "gen/CherenkovParams.hh"
 #include "gen/GeneratorAction.hh"
 #include "gen/OffloadAction.hh"

@@ -8,30 +8,101 @@
 
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "celeritas/inp/SurfacePhysics.hh"
 
 namespace celeritas
 {
 namespace optical
 {
+
+template<class T>
+struct FakeModelBuilder
+{
+    FakeModelBuilder(std::vector<T> const&) {}
+
+    std::shared_ptr<SurfaceModel> operator()(ActionId) const
+    {
+        return nullptr;
+    }
+};
+
+template<class T>
+void from_import_model(SurfacePhysicsParams::Input& input,
+                       SurfacePhysicsStep step,
+                       std::map<inp::SurfaceLayer, T> const& model_map)
+{
+    if (!model_map.empty())
+    {
+        SurfaceModelId model_id(input.model_builders[step].size());
+        std::vector<T> parameters;
+        for (auto const& [layer, model] : model_map)
+        {
+            parameters.push_back(model);
+
+            CELER_EXPECT(layer < input.surfaces.size());
+            auto& interface_model
+                = input.surfaces[layer.get()].interface_models.front()[step];
+            CELER_VALIDATE(!interface_model,
+                           << " only one surface " << to_cstring(step)
+                           << " model valid per surface");
+            interface_model = model_id;
+        }
+        input.model_builders[step].push_back(FakeModelBuilder<T>(parameters));
+    }
+}
+
+auto SurfacePhysicsParams::Input::from_import(inp::SurfacePhysics const& sp)
+    -> Input
+{
+    CELER_EXPECT(sp);
+
+    Input input;
+
+    input.surfaces.resize(sp.roughness.polished.size()
+                              + sp.roughness.smear.size()
+                              + sp.roughness.gaussian.size(),
+                          SurfaceInput{{},
+                                       {
+                                           {
+                                               SurfaceModelId{},
+                                               SurfaceModelId{},
+                                               SurfaceModelId{},
+                                           },
+                                       }});
+
+    {
+        // Load roughness models
+        auto step = SurfacePhysicsStep::roughness;
+        from_import_model(input, step, sp.roughness.polished);
+        from_import_model(input, step, sp.roughness.smear);
+        from_import_model(input, step, sp.roughness.gaussian);
+    }
+    {
+        // Load reflectivity models
+        auto step = SurfacePhysicsStep::reflectivity;
+        from_import_model(input, step, sp.reflectivity.grid);
+        from_import_model(input, step, sp.reflectivity.fresnel);
+    }
+    {
+        // Load interaction models
+        auto step = SurfacePhysicsStep::interaction;
+        from_import_model(input, step, sp.interaction.dielectric_dielectric);
+        from_import_model(input, step, sp.interaction.dielectric_metal);
+    }
+
+    return input;
+}
+
 //---------------------------------------------------------------------------//
 /*!
- * Construct the surface physics parameters from surface inputs.
- *
- * Creates actions in the following order:
- * - InitBoundaryAction
- * - Roughness models
- * - Reflectivity models
- * - Interaction models
- * - PostBoundaryAction
  */
 SurfacePhysicsParams::SurfacePhysicsParams(Input input)
 {
-    CELER_EXPECT(input.action_registry);
+    CELER_EXPECT(input.action_reg);
 
-    // Construct data
-    HostVal<SurfacePhysicsParamsData> data;
+    // Build actions
 
-    auto& action_reg = *input.action_registry;
+    auto& action_reg = *input.action_reg;
 
     // Init boundary action
     {
@@ -41,17 +112,7 @@ SurfacePhysicsParams::SurfacePhysicsParams(Input input)
         action_reg.insert(init_boundary_action_);
     }
 
-    // Register sub-step actions
-    roughness_models_ = this->build_surface_map(
-        *input.surfaces, data.roughness, input.roughness_models, action_reg);
-
-    reflectivity_models_ = this->build_surface_map(*input.surfaces,
-                                                   data.reflectivity,
-                                                   input.reflectivity_models,
-                                                   action_reg);
-
-    interaction_models_ = this->build_surface_map(
-        *input.surfaces, data.interaction, input.interaction_models, action_reg);
+    models_ = this->build_models(input.model_builders);
 
     // Post boundary action
     {
@@ -61,24 +122,13 @@ SurfacePhysicsParams::SurfacePhysicsParams(Input input)
         action_reg.insert(post_boundary_action_);
     }
 
-    // Construct scalars
+    // Construct data
+    HostVal<SurfacePhysicsParamsData> data;
 
-    // Construct surfaces
-    auto surface_builder = make_builder(&data.surfaces);
-    for (auto n : input.num_subsurface_interfaces)
-    {
-        SurfacePhysicsRecord r;
-        r.subsurface_materials
-            = ItemMap<SubsurfaceMaterialId, SubsurfaceMaterialRecordId>(
-                range(SubsurfaceMaterialRecordId{n + 1}));
-        r.subsurface_interfaces
-            = ItemMap<SubsurfaceInterfaceId, SubsurfaceInterfaceRecordId>(
-                range(SubsurfaceInterfaceRecordId{n}));
-        surface_builder.push_back(r);
-    }
+    // Build surfaces
+    this->build_surfaces(input.surfaces, data);
 
     // Finalize data
-
     CELER_ENSURE(data);
 
     data_ = CollectionMirror<SurfacePhysicsParamsData>{std::move(data)};
@@ -86,29 +136,81 @@ SurfacePhysicsParams::SurfacePhysicsParams(Input input)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Build sub-step surface physics models.
  */
-VecModels SurfacePhysicsParams::build_surface_map(
-    SurfaceParams const& surfaces,
-    HostVal<SurfacePhysicsMapData>& physics_map,
-    VecSurfaceModelBuilder const& models,
-    ActionRegistry& action_reg) const
+auto SurfacePhysicsParams::build_models(
+    SurfaceStepArray<VecModelBuilders> const& builders) const
+    -> SurfaceStepArray<std::vector<SPModel>>
 {
-    SurfacePhysicsMapBuilder build_map{surfaces, physics_map};
-    std::vector<SPModel> results;
-
-    for (auto const& build_model : models)
+    SurfaceStepArray<std::vector<SPModel>> step_models;
+    for (auto step : range(SurfacePhysicsStep::size_))
     {
-        auto model = build_model(action_reg.next_id());
+        auto& models = step_models[step];
+        models.reserve(builders[step].size());
 
-        CELER_ASSERT(model);
-
-        build_map(*model);
-        action_reg.insert(model);
-        results.push_back(std::move(model));
+        ActionId model_action_id{0};
+        for (auto const& builder : builders[step])
+        {
+            models.push_back(builder(model_action_id++));
+            CELER_ASSERT(models.back());
+        }
     }
 
-    CELER_ENSURE(results.size() == models.size());
-    return results;
+    return step_models;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surface data form inputs.
+ */
+void SurfacePhysicsParams::build_surfaces(
+    std::vector<SurfaceInput> const& surfaces,
+    HostVal<SurfacePhysicsParamsData>& data) const
+{
+    auto build_surface = make_builder(&data.surfaces);
+    auto build_material = make_builder(&data.subsurface_materials);
+    auto build_interface = make_builder(&data.subsurface_interfaces);
+
+    PhysicsSurfaceId next_phys_surface{0};
+    for (auto const& surface : surfaces)
+    {
+        std::vector<PhysicsSurfaceId> phys_ids;
+        for ([[maybe_unused]] auto const& interface : surface.interface_models)
+        {
+            phys_ids.push_back(next_phys_surface++);
+        }
+
+        SurfaceRecord record;
+        record.subsurface_materials
+            = ItemMap<SubsurfaceMaterialId, SubsurfaceMaterialRecordId>(
+                build_material.insert_back(surface.materials.begin(),
+                                           surface.materials.end()));
+        record.subsurface_interfaces
+            = ItemMap<SubsurfaceInterfaceId, SubsurfaceInterfaceRecordId>(
+                build_interface.insert_back(phys_ids.begin(), phys_ids.end()));
+        build_surface.push_back(record);
+    }
+
+    for (auto step : range(SurfacePhysicsStep::size_))
+    {
+        auto build_actions = make_builder(&data.model_maps[step].action_ids);
+        auto build_model_surfaces
+            = make_builder(&data.model_maps[step].model_surface_ids);
+
+        std::vector<size_type> num_model_surfaces(models_[step].size(), 0);
+
+        for (auto const& surface : surfaces)
+        {
+            for (auto const& interface : surface.interface_models)
+            {
+                auto model = interface[step];
+                CELER_EXPECT(model < num_model_surfaces.size());
+                build_actions.push_back(ActionId{model.get()});
+                build_model_surfaces.push_back(SurfaceModel::ModelSurfaceId(
+                    num_model_surfaces[model.get()]++));
+            }
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//

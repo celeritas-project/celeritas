@@ -23,7 +23,6 @@
 #include "action/LocateVacanciesAction.hh"
 #include "action/PreStepAction.hh"
 #include "action/TrackingCutAction.hh"
-#include "surface/BoundaryAction.hh"
 #include "surface/SurfacePhysicsParams.hh"
 
 namespace celeritas
@@ -49,8 +48,8 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.material = get_ref<M>(*p.material);
     ref.physics = get_ref<M>(*p.physics);
     ref.surface = get_ref<M>(*p.surface);
-    ref.rng = get_ref<M>(*p.rng);
     ref.surface_physics = get_ref<M>(*p.surface_physics);
+    ref.rng = get_ref<M>(*p.rng);
 
     CELER_ENSURE(ref);
     return ref;
@@ -75,6 +74,8 @@ CoreScalars build_actions(ActionRegistry* reg)
     reg->insert(make_shared<AlongStepAction>(reg->next_id()));
 
     //// POST-STEP ACTIONS ////
+
+    // TODO: process selection action (or constructed by physics?)
 
     scalars.tracking_cut_action = reg->next_id();
     reg->insert(make_shared<TrackingCutAction>(scalars.tracking_cut_action));

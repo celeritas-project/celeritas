@@ -19,6 +19,7 @@
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/ModelImporter.hh"
+#include "celeritas/optical/PhysicsParams.hh"
 #include "celeritas/optical/Transporter.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
 #include "celeritas/optical/gen/OffloadData.hh"

@@ -68,8 +68,8 @@ struct CoreParamsData
     //! True if all params are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && material && physics && surface_physics && rng
-               && scalars;
+        return geometry && material && physics && surface && surface_physics
+               && rng && scalars;
     }
 
     //! Assign from another set of data

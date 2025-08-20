@@ -31,7 +31,6 @@ namespace optical
 class MaterialParams;
 class PhysicsParams;
 class SurfacePhysicsParams;
-
 //---------------------------------------------------------------------------//
 /*!
  * Shared parameters for the optical photon loop.

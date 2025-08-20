@@ -64,7 +64,6 @@
 #include "celeritas/optical/PhysicsParams.hh"
 #include "celeritas/optical/gen/CherenkovParams.hh"
 #include "celeritas/optical/gen/ScintillationParams.hh"
-#include "celeritas/optical/surface/SurfacePhysicsParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
@@ -318,15 +317,6 @@ auto build_optical_params(CoreParams const& core, ImportData const& imported)
         }
         params.physics
             = std::make_shared<optical::PhysicsParams>(std::move(pp_inp));
-    }
-    {
-        optical::SurfacePhysicsParams::Input spp_inp;
-        spp_inp.action_registry = params.action_reg.get();
-        // TODO: remove when surface physics input updated
-        spp_inp.num_subsurface_interfaces = {1};
-        params.surface_physics
-            = std::make_shared<optical::SurfacePhysicsParams>(
-                std::move(spp_inp));
     }
     //! \todo Get sensitive detectors
 

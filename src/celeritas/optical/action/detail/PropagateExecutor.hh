@@ -32,12 +32,6 @@ struct PropagateExecutor
 //---------------------------------------------------------------------------//
 CELER_FUNCTION void PropagateExecutor::operator()(CoreTrackView& track)
 {
-    if (track.is_crossing_boundary())
-    {
-        // If the track is crossing a boundary, don't propagate
-        return;
-    }
-
     auto&& sim = track.sim();
     CELER_ASSERT(sim.status() == TrackStatus::alive);
 

@@ -6,10 +6,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+#include <vector>
+
+#include "corecel/cont/EnumArray.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
-#include "celeritas/optical/Types.hh"
-#include "celeritas/optical/action/ActionInterface.hh"
 
 #include "BoundaryAction.hh"
 #include "SurfaceModel.hh"
@@ -19,10 +21,21 @@ namespace celeritas
 {
 class ActionRegistry;
 
+namespace inp
+{
+struct SurfacePhysics;
+}  // namespace inp
+
 namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Brief class description.
+ *
+ * Optional detailed class description, and possibly example usage:
+ * \code
+    SurfacePhysicsParams ...;
+   \endcode
  */
 class SurfacePhysicsParams final
     : public ParamsDataInterface<SurfacePhysicsParamsData>
@@ -30,67 +43,74 @@ class SurfacePhysicsParams final
   public:
     //!@{
     //! \name Type aliases
-    using ActionIdRange = Range<ActionId>;
-    using VecSurfaceModelBuilder
-        = std::vector<typename SurfaceModel::SurfaceModelBuilder>;
+    template<class T>
+    using SurfaceStepArray = EnumArray<SurfacePhysicsStep, T>;
+
     using SPModel = std::shared_ptr<SurfaceModel>;
-    using VecModels = std::vector<SPModel>;
-    using SPConstSurfaces = std::shared_ptr<SurfaceParams const>;
+    using VecModelBuilders = std::vector<SurfaceModel::ModelBuilder>;
     //!@}
+
+    struct SurfaceInput
+    {
+        std::vector<OptMatId> materials;
+        std::vector<SurfaceStepArray<SurfaceModelId>> interface_models;
+    };
 
     struct Input
     {
-        ActionRegistry* action_registry = nullptr;
-        SPConstSurfaces surfaces;
+        ActionRegistry* action_reg = nullptr;
 
-        VecSurfaceModelBuilder roughness_models;
-        VecSurfaceModelBuilder reflectivity_models;
-        VecSurfaceModelBuilder interface_models;
+        std::vector<SurfaceInput> surfaces;  //!< indexed by GeometricSurfaceId
+        SurfaceStepArray<VecModelBuilders> model_builders;
 
-        //!@{
-        //! \name Temporary mock data to test building surface records
-        std::vector<SubsurfaceInterfaceId::size_type> num_subsurface_interfaces;
-        //!@}
+        static Input from_import(inp::SurfacePhysics const&);
     };
 
   public:
-    // Construct from models
-    explicit SurfacePhysicsParams(Input input);
+    // Construct surface physics from input
+    explicit SurfacePhysicsParams(Input);
 
-    //! Access surface physics data on the host
+    //! Access surface physics data on host
     HostRef const& host_ref() const final { return data_.host_ref(); }
 
-    //! Access surface physics data on the device
+    //! Access surface physics data on device
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
     //! Action ID for initializing boundary interactions
     ActionId init_boundary_action() const
     {
-        return this->init_boundary_action_->action_id();
+        return init_boundary_action_->action_id();
     }
 
     //! Action ID for finishing boundary interactions
     ActionId post_boundary_action() const
     {
-        return this->post_boundary_action_->action_id();
+        return post_boundary_action_->action_id();
+    }
+
+    //! Get models for a given sub-step
+    std::vector<SPModel> const& models(SurfacePhysicsStep step) const
+    {
+        return models_[step];
     }
 
   private:
-    // Actions
+    // Boundary actions
     std::shared_ptr<InitBoundaryAction> init_boundary_action_;
     std::shared_ptr<PostBoundaryAction> post_boundary_action_;
 
-    VecModels roughness_models_;
-    VecModels reflectivity_models_;
-    VecModels interaction_models_;
+    SurfaceStepArray<std::vector<SPModel>> models_;
 
     // Host/device storage
     CollectionMirror<SurfacePhysicsParamsData> data_;
 
-    VecModels build_surface_map(SurfaceParams const& surfaces,
-                                HostVal<SurfacePhysicsMapData>& physics_map,
-                                VecSurfaceModelBuilder const& models,
-                                ActionRegistry& action_reg) const;
+    // Build sub-step models
+    SurfaceStepArray<std::vector<SPModel>>
+    build_models(SurfaceStepArray<VecModelBuilders> const&) const;
+
+    // Build surface data
+    void build_surfaces(std::vector<SurfaceInput> const&,
+                        HostVal<SurfacePhysicsParamsData>&) const;
 };
 
 //---------------------------------------------------------------------------//

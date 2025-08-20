@@ -413,9 +413,9 @@ celeritas_add_test(optical/OpticalRootImport.test.cc ${_needs_root})
 celeritas_add_test(optical/Scintillation.test.cc)
 celeritas_add_test(optical/WavelengthShift.test.cc ${_needs_double})
 celeritas_add_test(optical/Physics.test.cc)
-celeritas_add_test(optical/Surface.test.cc)
 celeritas_add_test(optical/VolumeSurfaceSelector.test.cc
     LINK_LIBRARIES testcel_geocel)
+celeritas_add_test(optical/SurfacePhysics.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Mat

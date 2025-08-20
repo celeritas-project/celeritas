@@ -42,7 +42,6 @@ CELER_FUNCTION void PreStepExecutor::operator()(CoreTrackView const& track)
     {
         // Clear step limit and actions for an empty track slot
         sim.reset_step_limit();
-        track.surface_physics().reset();
         return;
     }
 
@@ -55,12 +54,6 @@ CELER_FUNCTION void PreStepExecutor::operator()(CoreTrackView const& track)
     CELER_ASSERT(sim.status() == TrackStatus::initializing
                  || sim.status() == TrackStatus::alive);
     sim.status(TrackStatus::alive);
-
-    if (track.is_crossing_boundary())
-    {
-        // If the track is crossing a boundary, don't calculate step limits
-        return;
-    }
 
     auto phys = track.physics();
     if (!phys.has_interaction_mfp())

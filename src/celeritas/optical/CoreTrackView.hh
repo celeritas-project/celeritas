@@ -72,7 +72,7 @@ class CoreTrackView
     // Return a volume surface view from volume ID
     inline CELER_FUNCTION VolumeSurfaceView surface(VolumeId) const;
 
-    // Return a view to the current surface physics
+    // Return a surface physics view
     inline CELER_FUNCTION SurfacePhysicsView surface_physics() const;
 
     // Return an RNG engine
@@ -86,9 +86,6 @@ class CoreTrackView
 
     // Action ID for leaving a geometry boundary
     inline CELER_FUNCTION ActionId post_boundary_action() const;
-
-    // Whether the track is currently undergoing boundary crossing physics
-    inline CELER_FUNCTION bool is_crossing_boundary() const;
 
     // Flag a track for deletion
     inline CELER_FUNCTION void apply_errored();
@@ -149,9 +146,6 @@ CoreTrackView::operator=(TrackInitializer const& init)
 
     // Initialize the physics state
     this->physics() = PhysicsTrackView::Initializer{};
-
-    // Clear the surface physics state
-    this->surface_physics().reset();
 
     return *this;
 }
@@ -230,7 +224,7 @@ CELER_FUNCTION auto CoreTrackView::surface(VolumeId vol) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a view to the current surface physics properties.
+ * Return a surface physics view.
  */
 CELER_FUNCTION auto CoreTrackView::surface_physics() const -> SurfacePhysicsView
 {
@@ -282,15 +276,6 @@ CELER_FUNCTION ActionId CoreTrackView::init_boundary_action() const
 CELER_FUNCTION ActionId CoreTrackView::post_boundary_action() const
 {
     return params_.scalars.post_boundary_action;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether the track is currently undergoing boundary crossing physics.
- */
-CELER_FUNCTION bool CoreTrackView::is_crossing_boundary() const
-{
-    return static_cast<bool>(this->surface_physics().surface_id());
 }
 
 //---------------------------------------------------------------------------//

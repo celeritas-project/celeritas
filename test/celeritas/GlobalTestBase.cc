@@ -64,7 +64,10 @@ GlobalTestBase::~GlobalTestBase()
             std::cerr << "Failed to write diagnostics: " << e.what();
         }
     }
+    // Reset global volumes that we set
+    celeritas::global_volumes(nullptr);
 }
+
 //---------------------------------------------------------------------------//
 /*!
  * Add primaries to be generated.
@@ -144,6 +147,7 @@ auto GlobalTestBase::build_geometry() -> SPConstCoreGeo
 
     auto mi = model_geo->make_model_input();
     volume_ = std::make_shared<VolumeParams>(mi.volumes);
+    celeritas::global_volumes(volume_);
     surface_ = std::make_shared<SurfaceParams>(mi.surfaces, *volume_);
 
     return core_geo;
@@ -184,7 +188,6 @@ auto GlobalTestBase::build_optical_params() -> SPOpticalParams
     inp.action_reg = this->optical_action_reg();
     inp.gen_reg = std::make_shared<GeneratorRegistry>();
     inp.physics = this->optical_physics();
-    inp.surface_physics = this->surface_physics();
 
     CELER_ENSURE(inp);
 
