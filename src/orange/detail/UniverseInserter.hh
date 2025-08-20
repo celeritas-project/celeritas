@@ -31,8 +31,8 @@ class UniverseInserter
     //!@{
     //! \name Type aliases
     using Data = HostVal<OrangeParamsData>;
-    using VecVolLabel = std::vector<VolumeInput::VariantLabel>;
-    using VecVolInst = std::vector<VolumeInstanceId>;
+    using VariantLabel = std::variant<Label, VolumeInstanceId, VolumeId>;
+    using VecVarLabel = std::vector<VariantLabel>;
     using VecLabel = std::vector<Label>;
     using SPConstVolumes = std::shared_ptr<VolumeParams const>;
     using VolId = ImplVolumeId;
@@ -57,7 +57,7 @@ class UniverseInserter
     UniverseId operator()(UniverseType type,
                           Label univ_label,
                           VecLabel surface_labels,
-                          VecVolLabel volume_labels);
+                          VecVarLabel volume_labels);
 
     //!@{
     //! \name Local-to-global mappings for the next universe being built

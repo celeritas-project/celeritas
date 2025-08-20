@@ -88,7 +88,8 @@ struct DaughterInput
  * Extra metadata for the "background" volume.
  *
  * Unlike a regular volume, the "background" represents a \em volume rather
- * than a volume \em instance.
+ * than a volume \em instance. Note that this can be an \em explicit volume
+ * (i.e., made of booleans) or \em implicit (i.e., have the lowest "Z order").
  */
 struct BackgroundInput
 {
