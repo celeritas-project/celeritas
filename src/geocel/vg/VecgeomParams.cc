@@ -39,7 +39,6 @@
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/io/ScopedTimeLog.hh"
@@ -113,7 +112,7 @@ int vecgeom_verbosity()
 /*!
  * Get a reproducible vector of LV instance ID -> label from the given world.
  *
- * This create the "implementation" volume map.
+ * This creates the "implementation" volume map.
  */
 std::vector<Label> make_logical_vol_labels(vecgeom::VPlacedVolume const& world)
 {
@@ -598,7 +597,7 @@ inp::Model VecgeomParams::make_model_input() const
         auto const& placed_vol = get_placed_volume(geo, ivi_id);
 
         v.volume_instances[ivi_id.get()].label = label;
-        // Map the corresponding logical volume ID
+        // Save the underlying volume for this instance
         v.volume_instances[ivi_id.get()].volume
             = id_cast<VolumeId>(placed_vol.GetLogicalVolume()->id());
     }
