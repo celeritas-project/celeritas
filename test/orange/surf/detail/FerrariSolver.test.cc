@@ -3,11 +3,14 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surf/detail/QuadraticSolver.test.cc
+//! \file orange/surf/detail/FerrariSolver.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/surf/detail/QuadraticSolver.hh"
+#include "orange/surf/detail/FerrariSolver.hh"
 
 #include "celeritas_test.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/cont/Array.hh"
 
 namespace celeritas
 {
@@ -16,6 +19,43 @@ namespace detail
 namespace test
 {
 //---------------------------------------------------------------------------//
+/*
+ * Test Harness for FerrariSolver
+ */
+class FerrariSolverTest : public ::celeritas::test::Test
+{
+    public:
+        using FS = FerrariSolver;
+        using Intersections = Array<real_type, 4>;
+        using Coeffs4 = Array<real_type, 4>;
+        using Coeffs5 = Array<real_type, 5>;
+
+        FerrariSolverTest(){}
+
+        void expect_softeq_list(Intersections const& expected, Intersections const& actual)
+        {
+            ASSERT_EQ(expected.size(), actual.size());
+            for (auto i : range(expected.size()))
+            {
+                EXPECT_SOFT_EQ(expected[i], actual[i])
+            }
+        }
+
+        void expect_surface_roots(Intersections const& expected, Coeffs4 const& abcd)
+        {
+            FerrariSolver solve_quartic(abcd[0], abcd[1], abcd[2], abcd[3]);
+            auto x = solve_quartic();
+            expect_softeq_list(expected, x);
+        }
+
+        void expect_nonsurface_roots(Intersections const& expected, Coeffs5 const& abcde)
+        {
+            FerrariSolver solve_quartic(abcde[0], abcde[1], abcde[2], abcde[3]);
+            auto x = solve_quartic(abcde[4]);
+            expect_softeq_list(expected, x);
+        }
+}
+
 TEST(SolveNonsurface, no_roots)
 {
     // x**4 + 2*x**3 - 2.999998*x**2 - 3.999998*x + 4.000005000001
