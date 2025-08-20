@@ -7,7 +7,6 @@
 #include "GeantGeoNavCollection.hh"
 
 #include <G4Navigator.hh>
-#include <G4ReplicaNavigation.hh>
 #include <G4TouchableHandle.hh>
 #include <G4TouchableHistory.hh>
 
@@ -28,7 +27,6 @@ void G4ExternDeleter<T>::operator()(T* ptr) noexcept
 
 template struct G4ExternDeleter<GeantTouchableHandle>;
 template struct G4ExternDeleter<G4Navigator>;
-template struct G4ExternDeleter<G4ReplicaNavigation>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -53,7 +51,6 @@ void GeantGeoNavCollection<Ownership::value, MemSpace::host>::resize(
         this->navigators[i].reset(new G4Navigator);
         this->navigators[i]->SetWorldVolume(world);
     }
-    replica_nav.reset(new G4ReplicaNavigation);
 }
 
 //---------------------------------------------------------------------------//
@@ -67,7 +64,6 @@ auto GeantGeoNavCollection<Ownership::reference, MemSpace::host>::operator=(
     CELER_EXPECT(other);
     this->touch_handles = make_span(other.touch_handles);
     this->navigators = make_span(other.navigators);
-    this->replica_nav = &other.replica_nav;
     CELER_ENSURE(*this);
     return *this;
 }
@@ -114,7 +110,6 @@ void GeantGeoNavCollection<Ownership::reference, MemSpace::host>::reset()
     {
         n.reset();
     }
-    this->replica_nav->reset();
 }
 
 //---------------------------------------------------------------------------//

@@ -17,7 +17,6 @@
 template<class>
 class G4ReferenceCountedHandle;
 class G4Navigator;
-class G4ReplicaNavigation;
 
 namespace celeritas
 {
@@ -60,7 +59,6 @@ using GeantUniquePtr = std::unique_ptr<T, G4ExternDeleter<T>>;
 using GeantTouchableHandle = G4ReferenceCountedHandle<GeantTouchableBase>;
 using UPTouchHandle = GeantUniquePtr<GeantTouchableHandle>;
 using UPNavigator = GeantUniquePtr<G4Navigator>;
-using UPReplicaNav = GeantUniquePtr<G4ReplicaNavigation>;
 
 //---------------------------------------------------------------------------//
 // HOST MEMSPACE
@@ -80,7 +78,6 @@ struct GeantGeoNavCollection<Ownership::value, MemSpace::host>
 {
     std::vector<UPTouchHandle> touch_handles;
     std::vector<UPNavigator> navigators;
-    UPReplicaNav replica_nav;
 
     // Resize with a number of states on the given Geant4 thread ID
     void resize(size_type size, G4VPhysicalVolume* world, StreamId sid);
@@ -95,7 +92,7 @@ struct GeantGeoNavCollection<Ownership::value, MemSpace::host>
     explicit operator bool() const
     {
         return !touch_handles.empty()
-               && navigators.size() == touch_handles.size() && replica_nav;
+               && navigators.size() == touch_handles.size();
     }
 
     // Clean up on the original thread, necessary for thread-local G4 alloc
@@ -111,7 +108,6 @@ struct GeantGeoNavCollection<Ownership::reference, MemSpace::host>
 {
     Span<UPTouchHandle> touch_handles;
     Span<UPNavigator> navigators;
-    UPReplicaNav* replica_nav{nullptr};
 
     // Default constructors
     GeantGeoNavCollection() = default;
@@ -139,7 +135,7 @@ struct GeantGeoNavCollection<Ownership::reference, MemSpace::host>
     {
         return !touch_handles.empty()
                && navigators.size() == touch_handles.size()
-               && touch_handles.front() && navigators.front() && replica_nav;
+               && touch_handles.front() && navigators.front();
     }
 
     // Clean up on the original thread, necessary for thread-local G4 alloc

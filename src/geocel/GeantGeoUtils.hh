@@ -21,7 +21,6 @@
 class G4Field;
 class G4LogicalVolume;
 class G4NavigationHistory;
-class G4ReplicaNavigation;
 class G4VPhysicalVolume;
 
 #if CELERITAS_GEANT4_VERSION >= 0x0b0200
@@ -78,6 +77,7 @@ G4Field const* geant_field();
 
 //---------------------------------------------------------------------------//
 // Find Geant4 logical volumes corresponding to a list of names
+// TODO: remove in favor of VolumeIdBuilder
 std::unordered_set<G4LogicalVolume const*>
     find_geant_volumes(std::unordered_set<std::string>);
 
