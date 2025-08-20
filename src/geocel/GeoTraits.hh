@@ -52,6 +52,7 @@ struct NotConfiguredGeoTraits
     using StateData = void;
     using TrackView = void;
     static constexpr bool has_impl_surface = false;
+    static constexpr bool has_impl_volume_instance = false;
     static constexpr char const name[] = "";
 };
 

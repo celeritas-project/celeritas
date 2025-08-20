@@ -78,14 +78,15 @@ class GeantGeoTrackView
 
     // Get the canonical volume ID in the current impl volume
     inline VolumeId volume_id() const;
-    // Get the volume ID in the lowest level volume.
-    inline ImplVolumeId impl_volume_id() const;
     // Get the physical volume ID in the current cell
     inline VolumeInstanceId volume_instance_id() const;
     // Get the depth in the geometry hierarchy
     inline LevelId level() const;
     // Get the volume instance ID for all levels
     inline void volume_instance_id(Span<VolumeInstanceId> levels) const;
+
+    // Get the implementation volume ID
+    inline ImplVolumeId impl_volume_id() const;
 
     // Whether the track is outside the valid geometry region
     inline bool is_outside() const;
@@ -271,21 +272,13 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(DetailedInitializer const& init)
 //---------------------------------------------------------------------------//
 /*!
  * Get the canonical volume ID in the current implementation volume.
+ *
+ * \note See GeantGeoParams::volume_id : for now, identical to ImplVolumeId
  */
 VolumeId GeantGeoTrackView::volume_id() const
 {
-    return id_cast<VolumeId>(this->impl_volume_id().unchecked_get());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the volume ID in the current cell.
- */
-ImplVolumeId GeantGeoTrackView::impl_volume_id() const
-{
     CELER_EXPECT(!this->is_outside());
-    return id_cast<ImplVolumeId>(this->volume()->GetInstanceID()
-                                 - params_.lv_offset);
+    return id_cast<VolumeId>(this->impl_volume_id().get());
 }
 
 //---------------------------------------------------------------------------//
@@ -296,8 +289,7 @@ VolumeInstanceId GeantGeoTrackView::volume_instance_id() const
 {
     CELER_EXPECT(!this->is_outside());
     G4VPhysicalVolume* pv = touch_handle_()->GetVolume(0);
-    if (!pv)
-        return {};
+    CELER_ASSERT(pv);
     return id_cast<VolumeInstanceId>(pv->GetInstanceID() - params_.pv_offset);
 }
 
@@ -335,6 +327,17 @@ void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
         }
         levels[lev] = vi_id;
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the volume ID in the current cell.
+ */
+ImplVolumeId GeantGeoTrackView::impl_volume_id() const
+{
+    CELER_EXPECT(!this->is_outside());
+    return id_cast<ImplVolumeId>(this->volume()->GetInstanceID()
+                                 - params_.lv_offset);
 }
 
 //---------------------------------------------------------------------------//

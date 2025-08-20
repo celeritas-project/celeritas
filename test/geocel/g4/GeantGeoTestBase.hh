@@ -17,15 +17,7 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-class GeantGeoTestBase : public GenericGeoTestBase<GeantGeoParams>
-{
-  public:
-    //! Get the world volume
-    G4VPhysicalVolume const* g4world() const final
-    {
-        return this->geometry()->world();
-    }
-};
+using GeantGeoTestBase = GenericGeoTestBase<GeantGeoParams>;
 
 //---------------------------------------------------------------------------//
 }  // namespace test

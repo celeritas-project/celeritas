@@ -41,6 +41,8 @@ struct GeoTraits<VecgeomParams>
 
     //! Surfaces are available when using frame implementation
     static constexpr bool has_impl_surface{CELERITAS_VECGEOM_SURFACE};
+    //! VecGeom has "placed volumes"
+    static constexpr bool has_impl_volume_instance = true;
 
     //! Descriptive name for the geometry
     static constexpr char const name[] = "VecGeom";
