@@ -100,7 +100,6 @@ class TestEm3Compton : public TestEm3StepperTestBase
         opts.relaxation = RelaxationSelection::none;
         opts.lpm = false;
         opts.eloss_fluctuation = false;
-        opts.muon = GeantMuonPhysicsOptions::deactivated();
         return opts;
     }
 

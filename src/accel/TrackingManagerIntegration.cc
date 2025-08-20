@@ -109,11 +109,13 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
                            << join(not_offloaded.begin(),
                                    not_offloaded.end(),
                                    ", ",
-                                   printable_pd);
+                                   printable_pd)
+                           << ". Perhaps SetupOptions::offload_particles has "
+                              "not been updated accordingly?";
     }
     CELER_VALIDATE(missing.empty(),
                    << "not all particles from TrackingManagerConstructor are "
-                      "active in Celeritas: missing"
+                      "active in Celeritas: missing "
                    << join(missing.begin(), missing.end(), ", ", printable_pd));
     CELER_VALIDATE(all_attached_correctly,
                    << "tracking manager(s) are not attached correctly "
