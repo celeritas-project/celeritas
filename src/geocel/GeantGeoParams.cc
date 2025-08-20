@@ -233,7 +233,9 @@ std::vector<G4LogicalSurface const*> make_surface_vec(GeantGeoParams const& geo)
  *
  * \todo This will change slightly if we remap logical volumes to be ordered
  * and filtered. For now there's a direct correspondence between implementation
- * volume and canonical volume.
+ * volume and canonical volume. We probably also want to add uniquifying
+ * extensions and to map `_refl` to the same name (but different extension) to
+ * correctly associate detectors.
  */
 std::vector<inp::Volume> make_inp_volumes(GeantGeoParams const& geo)
 {
@@ -255,6 +257,7 @@ std::vector<inp::Volume> make_inp_volumes(GeantGeoParams const& geo)
         auto vol_id = geo.volume_id(iv_id);
         auto& g4lv = *geo.id_to_geant(vol_id);
 
+        // TODO: do we want to strip pointers?
         auto& vol_inp = result[vol_id.get()];
         vol_inp.label = label;
         vol_inp.material = [&geo, mat = g4lv.GetMaterial()]() -> GeoMatId {
