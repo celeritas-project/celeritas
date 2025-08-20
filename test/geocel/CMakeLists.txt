@@ -29,7 +29,6 @@ set(SOURCES
   GenericGeoResults.cc
   GenericGeoTestInterface.cc
   GeoTests.cc
-  InstancePathFinder.cc
   SurfaceTestBase.cc
   VolumeTestBase.cc
 )
