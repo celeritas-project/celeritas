@@ -67,6 +67,8 @@ namespace celeritas
  *
  * \todo \c move_internal with a position \em should depend on the safety
  * distance, but that check is not yet implemented.
+ *
+ * \todo \c LevelId should be \c ImplLevelId .
  */
 class OrangeTrackView
 {
@@ -471,9 +473,6 @@ CELER_FUNCTION VolumeId OrangeTrackView::volume_id() const
 //---------------------------------------------------------------------------//
 /*!
  * The current volume instance.
- *
- * \todo not implemented; ImplVolumeId is already halfway between a
- * "reusable volume" and a "volume instance" anyway...
  */
 CELER_FUNCTION VolumeInstanceId OrangeTrackView::volume_instance_id() const
 {
@@ -500,6 +499,8 @@ CELER_FORCEINLINE_FUNCTION LevelId const& OrangeTrackView::level() const
  * The input span size must be equal to the value of "level" plus one. The
  * top-most level ("world" or level zero) starts at index zero and moves
  * downward. Note that Geant4 uses the \em reverse nomenclature.
+ *
+ * \todo Implement \c parent_impl_volumes in OrangeData.
  */
 CELER_FUNCTION void
 OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const

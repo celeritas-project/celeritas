@@ -42,6 +42,9 @@ struct GeoTraits<GeantGeoParams>
     //! Geant4 does not have 'surfaces'
     static constexpr bool has_impl_surface = false;
 
+    //! Geant4 uses real volume instances
+    static constexpr bool has_impl_volume_instance = false;
+
     //! Descriptive name for the geometry
     static constexpr char const name[] = "Geant4";
 };

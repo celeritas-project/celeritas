@@ -69,7 +69,6 @@ class GeoParamsInterface
     //! \name Type aliases
     using SpanConstVolumeId = Span<ImplVolumeId const>;
     using ImplVolumeMap = LabelIdMultiMap<ImplVolumeId>;
-    using VolInstanceMap = LabelIdMultiMap<VolumeInstanceId>;
     //!@}
 
   public:
@@ -93,9 +92,6 @@ class GeoParamsInterface
     virtual VolumeId volume_id(ImplVolumeId) const = 0;
 
     //// TO BE DELETED SOON ////
-
-    //! Get volume instance metadata
-    virtual VolInstanceMap const& volume_instances() const = 0;
 
     //! Get the volume ID corresponding to a Geant4 logical volume
     virtual ImplVolumeId find_volume(G4LogicalVolume const* volume) const = 0;

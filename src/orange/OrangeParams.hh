@@ -105,9 +105,6 @@ class OrangeParams final : public GeoParamsInterface,
     // Get volume metadata
     inline ImplVolumeMap const& impl_volumes() const final;
 
-    // Get (physical) volume instance metadata
-    inline VolInstanceMap const& volume_instances() const final;
-
     // Get the volume ID corresponding to a Geant4 logical volume
     inline ImplVolumeId find_volume(G4LogicalVolume const* volume) const final;
 
@@ -128,10 +125,9 @@ class OrangeParams final : public GeoParamsInterface,
 
   private:
     // Host metadata/access
-    SurfaceMap surf_labels_;
+    SurfaceMap impl_surf_labels_;
     UniverseMap univ_labels_;
-    ImplVolumeMap vol_labels_;
-    VolInstanceMap vol_instances_;
+    ImplVolumeMap impl_vol_labels_;
     BBox bbox_;
     bool supports_safety_{};
 
@@ -161,7 +157,7 @@ size_type OrangeParams::max_depth() const
  */
 auto OrangeParams::surfaces() const -> SurfaceMap const&
 {
-    return surf_labels_;
+    return impl_surf_labels_;
 }
 
 //---------------------------------------------------------------------------//
@@ -179,16 +175,7 @@ auto OrangeParams::universes() const -> UniverseMap const&
  */
 auto OrangeParams::impl_volumes() const -> ImplVolumeMap const&
 {
-    return vol_labels_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get volume instance metadata.
- */
-auto OrangeParams::volume_instances() const -> VolInstanceMap const&
-{
-    return vol_instances_;
+    return impl_vol_labels_;
 }
 
 //---------------------------------------------------------------------------//

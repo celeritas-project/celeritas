@@ -17,6 +17,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
 #include "geocel/GeoVolumeFinder.cc"
+#include "geocel/VolumeParams.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 
 namespace celeritas
@@ -141,7 +142,9 @@ void ExampleInstanceCalo::process_steps(DetectorStepOutput const& out)
 
     CELER_LOG_LOCAL(debug) << "Processing " << out.size() << " hits";
 
-    auto const& vi_labels = geo_->volume_instances();
+    auto volumes = celeritas::global_volumes().lock();
+    CELER_ASSERT(volumes);
+    auto const& vi_labels = volumes->volume_instance_labels();
 
     for (auto hit : range(out.size()))
     {

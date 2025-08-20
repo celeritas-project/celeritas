@@ -183,9 +183,11 @@ OrangeParams::OrangeParams(OrangeInput&& input, VolumeParams const& volumes)
             std::visit(insert_universe, std::move(u));
         }
 
-        surf_labels_ = SurfaceMap{"surface", std::move(impl_surface_labels)};
+        impl_surf_labels_
+            = SurfaceMap{"impl surface", std::move(impl_surface_labels)};
         univ_labels_ = UniverseMap{"universe", std::move(universe_labels)};
-        vol_labels_ = ImplVolumeMap{"volume", std::move(impl_volume_labels)};
+        impl_vol_labels_
+            = ImplVolumeMap{"impl volume", std::move(impl_volume_labels)};
     }
     std::move(input) = {};
 
@@ -208,29 +210,69 @@ OrangeParams::OrangeParams(OrangeInput&& input, VolumeParams const& volumes)
                       "stack is limited to a depth of "
                    << detail::LogicStack::max_stack_depth());
 
-    CELER_ASSERT(host_data.volume_ids.empty()
-                 || host_data.volume_ids.size() == vol_labels_.size());
-    CELER_ASSERT(host_data.volume_instance_ids.empty()
-                 || host_data.volume_ids.size() == vol_labels_.size());
+    // Define one-to-one mappings if IDs are empty (i.e., JSON-loaded geometry)
+    // see make_model_input
+    if (host_data.volume_ids.empty())
+    {
+        resize(&host_data.volume_ids, impl_vol_labels_.size());
+        resize(&host_data.volume_instance_ids, impl_vol_labels_.size());
+        for (auto ivi_id : range(ImplVolumeId{impl_vol_labels_.size()}))
+        {
+            host_data.volume_ids[ivi_id] = id_cast<VolumeId>(ivi_id.get());
+            host_data.volume_instance_ids[ivi_id]
+                = id_cast<VolumeInstanceId>(ivi_id.get());
+        }
+    }
+
+    CELER_ASSERT(host_data.volume_ids.size() == impl_vol_labels_.size());
+    CELER_ASSERT(host_data.volume_instance_ids.size()
+                 == impl_vol_labels_.size());
 
     // Construct device values and device/host references
     CELER_ASSERT(host_data);
-    data_ = CollectionMirror<OrangeParamsData>{std::move(host_data)};
+    data_ = CollectionMirror{std::move(host_data)};
 
-    CELER_ENSURE(surf_labels_ && univ_labels_ && vol_labels_);
+    CELER_ENSURE(impl_surf_labels_ && univ_labels_ && impl_vol_labels_);
     CELER_ENSURE(data_);
-    CELER_ENSURE(vol_labels_.size() > 0);
+    CELER_ENSURE(impl_vol_labels_.size() > 0);
     CELER_ENSURE(bbox_);
 }
+
 //---------------------------------------------------------------------------//
 /*!
  * Create model parameters corresponding to our internal representation.
+ *
+ * This currently just maps volumes to volume instances to allow tests to pass
+ * when Geant4 is disabled and the real volume hierarchy is unavailable.
  */
 inp::Model OrangeParams::make_model_input() const
 {
-    CELER_LOG(warning) << "ORANGE cannot yet construct model input";
-    inp::Model result;
+    CELER_LOG(warning)
+        << R"(ORANGE standalone model input is not fully implemented)";
 
+    inp::Model result;
+    inp::Volumes& v = result.volumes;
+    v.volumes.resize(impl_vol_labels_.size());
+    v.volume_instances.resize(v.volumes.size());
+
+    // Process each volume: same for impl, vol, vol inst
+    for (auto idx : range(impl_vol_labels_.size()))
+    {
+        auto const& label = impl_vol_labels_.at(ImplVolumeId{idx});
+        if (label.name.empty()
+            || (label.name.front() == '[' && label.name.back() == ']'))
+        {
+            // Skip pretend volumes
+            continue;
+        }
+
+        v.volumes[idx].label = label;
+        v.volumes[idx].material = GeoMatId{0};
+        v.volume_instances[idx].label = label;
+        v.volume_instances[idx].volume = id_cast<VolumeId>(idx);
+    }
+
+    v.world = VolumeId{0};
     return result;
 }
 
