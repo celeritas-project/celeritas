@@ -133,31 +133,6 @@ LocalVolumeId CsgUnitBuilder::insert_volume(NodeId n)
 
 //---------------------------------------------------------------------------//
 /*!
- * Fill LocalVolumeId{0} with "exterior" to adjust the interior region.
- *
- * This should be called to process the exterior volume *immediately* after its
- * creation.
- */
-void CsgUnitBuilder::fill_exterior()
-{
-    CELER_EXPECT(unit_->tree.volumes().size() == 1);
-    static_assert(orange_exterior_volume == LocalVolumeId{0});
-
-    NodeId n = unit_->tree.volumes()[orange_exterior_volume.get()];
-    auto iter = unit_->regions.find(n);
-    CELER_ASSERT(iter != unit_->regions.end());
-    CELER_VALIDATE(!iter->second.bounds.negated,
-                   << "exterior volume is inside out");
-
-    /*!
-     * \todo Handle edge case where exterior is the composite of two volumes
-     * and we need to adjust those volumes' bboxes?
-     */
-    bbox_ = calc_intersection(bbox_, iter->second.bounds.exterior);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Fill a volume node with a material.
  */
 void CsgUnitBuilder::fill_volume(LocalVolumeId v, GeoMatId m)
