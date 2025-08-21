@@ -52,7 +52,7 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
     auto log_tm_failure = [&all_attached_correctly](G4PD const* p) {
         all_attached_correctly = false;
         auto msg = CELER_LOG(error);
-        msg << "Particle " << PrintablePD{p} << ": tracking manager";
+        msg << "Particle " << PrintablePD{p} << ": tracking manager ";
         return msg;
     };
 

@@ -76,7 +76,7 @@ class IntegrationSingleton
     SetupOptions const& setup_options() const { return options_; }
 
     //! Return list of particles to be offloaded during run
-    VecG4PD const& offloaded_particles() { return options_.offload_particles; }
+    VecG4PD const& offloaded_particles() { return offloaded_; }
 
     //! Whether Celeritas is enabled
     Mode mode() const { return mode_; }
@@ -117,6 +117,7 @@ class IntegrationSingleton
     //// DATA ////
     Mode mode_{Mode::size_};
     SetupOptions options_;
+    VecG4PD offloaded_;
     SharedParams params_;
     std::unique_ptr<ScopedMpiInit> scoped_mpi_;
     std::unique_ptr<SetupOptionsMessenger> messenger_;

@@ -219,6 +219,7 @@ int main()
     run_manager->SetUserInitialization(new DetectorConstruction{});
 
     auto& tmi = TMI::Instance();
+    tmi.SetOptions(MakeOptions());
 
     // Use FTFP_BERT, but use Celeritas tracking for e-/e+/g
     auto* physics_list = new FTFP_BERT{/* verbosity = */ 0};
@@ -226,8 +227,6 @@ int main()
         new celeritas::TrackingManagerConstructor(&tmi));
     run_manager->SetUserInitialization(physics_list);
     run_manager->SetUserInitialization(new ActionInitialization());
-
-    tmi.SetOptions(MakeOptions());
 
     run_manager->Initialize();
 

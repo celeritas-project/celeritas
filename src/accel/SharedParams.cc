@@ -216,18 +216,8 @@ SharedParams::SharedParams(SetupOptions const& options)
     ScopedTimeLog scoped_time;
 
     mode_ = GetMode();
-    if (mode_ == Mode::kill_offload)
-    {
-        //! \todo: default or supported?
-        particles_ = IS::default_offload_particles();
-    }
-
     if (mode_ != Mode::enabled)
     {
-        auto const& user_offload = options.offload_particles;
-        particles_ = user_offload.empty() ? IS::default_offload_particles()
-                                          : user_offload;
-
         // Stop initializing but create output registry for diagnostics
         output_reg_ = std::make_shared<OutputRegistry>();
         output_filename_ = options.output_file;
@@ -258,6 +248,20 @@ SharedParams::SharedParams(SetupOptions const& options)
         }
 
         return;
+    }
+
+    if (mode_ == Mode::kill_offload)
+    {
+        //! \todo: Set up default or all supported particles?
+        particles_ = IS::default_offload_particles();
+    }
+
+    if (mode_ == Mode::enabled)
+    {
+        // Set up offloaded particles based on user input
+        auto const& user_offload = options.offload_particles;
+        particles_ = user_offload.empty() ? IS::default_offload_particles()
+                                          : user_offload;
     }
 
     // Construct input and then build the problem setup

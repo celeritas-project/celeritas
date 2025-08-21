@@ -34,14 +34,16 @@ namespace
 //---------------------------------------------------------------------------//
 /*!
  * Verify that all particles in \c SetupOptions::offload_particles user-defined
- * list are supported by Celeritas.
+ * list are valid and supported by Celeritas when non-empty. Return user or
+ * default list accordingly.
  */
-void validate_offloaded_particles(SetupOptions::VecG4PD const& user)
+SetupOptions::VecG4PD
+validate_and_return_offloaded(SetupOptions::VecG4PD const& user)
 {
     if (user.empty())
     {
         // Celeritas will use default hardcoded list; nothing to do
-        return;
+        return IntegrationSingleton::default_offload_particles();
     }
 
     auto const supported = IntegrationSingleton::supported_offload_particles();
@@ -62,6 +64,7 @@ void validate_offloaded_particles(SetupOptions::VecG4PD const& user)
                        << "\" (PDG = " << pd->GetPDGEncoding()
                        << ") is not available in Celeritas");
     }
+    return user;
 }
 //---------------------------------------------------------------------------//
 };  // namespace
@@ -132,7 +135,7 @@ void IntegrationSingleton::setup_options(SetupOptions&& opts)
             CELER_VALIDATE(
                 !params_,
                 << R"(options cannot be set after Celeritas is constructed)");
-            validate_offloaded_particles(opts.offload_particles);
+            offloaded_ = validate_and_return_offloaded(opts.offload_particles);
             options_ = std::move(opts);
         },
         ExceptionConverter{"celer.setup"});
