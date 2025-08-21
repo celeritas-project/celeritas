@@ -98,14 +98,11 @@ GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
  * Construct a stack result from raw geometry output.
  */
 GenericGeoVolumeStackResult
-GenericGeoVolumeStackResult::from_span(GeoParamsInterface const& geo,
+GenericGeoVolumeStackResult::from_span(LabelMap const& vol_inst,
                                        Span<VolumeInstanceId const> inst_ids)
 {
-    auto const& vol_inst = geo.volume_instances();
-
     GenericGeoVolumeStackResult result;
     result.volume_instances.resize(inst_ids.size());
-    result.replicas.assign(inst_ids.size(), -1);
     for (auto i : range(inst_ids.size()))
     {
         auto vi_id = inst_ids[i];
@@ -114,18 +111,7 @@ GenericGeoVolumeStackResult::from_span(GeoParamsInterface const& geo,
             result.volume_instances[i] = "<null>";
             continue;
         }
-        auto const& label = vol_inst.at(vi_id);
-        if (auto phys_inst = geo.id_to_geant(vi_id))
-        {
-            if (phys_inst.replica)
-            {
-                result.replicas[i] = id_to_int(phys_inst.replica);
-            }
-        }
-        // Only write extension if not a replica, because Geant4
-        // effectively gives multiple volume instances the same name+ext
-        result.volume_instances[i] = !result.replicas[i] ? to_string(label)
-                                                         : label.name;
+        result.volume_instances[i] = to_string(vol_inst.at(vi_id));
     }
 
     return result;
@@ -137,7 +123,6 @@ void GenericGeoVolumeStackResult::print_expected() const
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "GenericGeoVolumeStackResult ref;\n"
             << CELER_REF_ATTR(volume_instances)
-            << CELER_REF_ATTR(replicas)
             "EXPECT_REF_EQ(ref, result);\n"
             "/*** END CODE ***/\n";
 }
@@ -156,7 +141,6 @@ void GenericGeoVolumeStackResult::print_expected() const
                       << " but got " << repr(val2.ATTR);           \
     }
     IRE_COMPARE(volume_instances);
-    IRE_COMPARE(replicas);
 #undef IRE_COMPARE
     return result;
 }
@@ -202,9 +186,9 @@ GenericGeoModelInp GenericGeoModelInp::from_model_input(inp::Model const& in)
         result.volume_instance.volumes.push_back(id_to_int(vol_inst.volume));
     }
 
-    if (in.volumes.world < result.volume_instance.labels.size())
+    if (in.volumes.world < result.volume.labels.size())
     {
-        result.world = result.volume_instance.labels[in.volumes.world.get()];
+        result.world = result.volume.labels[in.volumes.world.get()];
     }
     else
     {

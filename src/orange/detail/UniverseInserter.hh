@@ -34,11 +34,12 @@ class UniverseInserter
     using VecVolLabel = std::vector<VolumeInput::VariantLabel>;
     using VecVolInst = std::vector<VolumeInstanceId>;
     using VecLabel = std::vector<Label>;
+    using SPConstVolumes = std::shared_ptr<VolumeParams const>;
     //!@}
 
   public:
     // Construct from full parameter data
-    UniverseInserter(VolumeParams const& volume_params,
+    UniverseInserter(SPConstVolumes volume_params,
                      VecLabel* universe_labels,
                      VecLabel* surface_labels,
                      VecLabel* volume_labels,
@@ -58,7 +59,7 @@ class UniverseInserter
 
   private:
     // Reference data
-    VolumeParams const& volume_params_;
+    SPConstVolumes volume_params_;
 
     // Metadata being constructed
     VecLabel* universe_labels_;

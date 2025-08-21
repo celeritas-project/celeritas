@@ -9,8 +9,10 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Constants.hh"
+#include "corecel/StringSimplifier.hh"
 #include "corecel/io/Label.hh"
 #include "geocel/Types.hh"
+#include "orange/Debug.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/OrangeTrackView.hh"
 #include "orange/OrangeTypes.hh"
@@ -74,6 +76,10 @@ TEST_F(OneVolumeTest, track_view)
     EXPECT_EQ(SurfaceId{}, geo.impl_surface_id());
     EXPECT_TRUE(geo.is_outside());
     EXPECT_FALSE(geo.is_on_boundary());
+
+    EXPECT_JSON_EQ(
+        R"json({"levels":[{"dir":[0.0,1.0,0.0],"pos":[3.0,4.0,5.0],"universe":"one volume","volume":{"impl":"infinite@one volume","local":0}}],"surface":null})json",
+        to_json_string(geo));
 
     // Initialize from a pre-existing OrangeTrackView object
     geo = Initializer_t{geo.pos(), Real3{1, 0, 0}, TrackSlotId{0}};
@@ -200,6 +206,10 @@ TEST_F(TwoVolumeTest, simple_track)
     {
         EXPECT_THROW(geo.find_safety(), celeritas::DebugError);
     }
+
+    EXPECT_JSON_EQ(
+        R"json({"levels":[{"dir":[0.0,0.0,1.0],"pos":[0.5,0.0,1.41],"universe":"two volumes","volume":{"impl":"inside@two volumes","local":1}}],"surface":"sphere@two volumes"})json",
+        StringSimplifier{3}(to_json_string(geo)));
 
     // Logically flip the surface into the new volume
     geo.cross_boundary();

@@ -20,8 +20,8 @@
 
 namespace celeritas
 {
-class GeoParamsInterface;
-
+template<class T>
+class LabelIdMultiMap;
 namespace inp
 {
 struct Model;
@@ -83,11 +83,12 @@ IsRefEq(char const* expected_expr,
 //! Get the volume instances and replica IDs from a point
 struct GenericGeoVolumeStackResult
 {
+    using LabelMap = LabelIdMultiMap<VolumeInstanceId>;
+
     std::vector<std::string> volume_instances;
-    std::vector<int> replicas;
 
     static GenericGeoVolumeStackResult
-    from_span(GeoParamsInterface const&, Span<VolumeInstanceId const>);
+    from_span(LabelMap const&, Span<VolumeInstanceId const>);
     void print_expected() const;
 };
 
