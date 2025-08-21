@@ -14,7 +14,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Device-compatible map between surface+layer IDs and actions/indices.
+ * Device-compatible map between physics surface IDs and models/indices.
  *
  * One or more instances of these should be stored as member data inside a
  * downstream ParamsData class. For instance, optical surface physics will have
@@ -31,23 +31,22 @@ namespace celeritas
  * Note that the "default" surface (the empty item returned by the second
  * surface model) becomes an additional pseudo-surface at the end of the array.
  * <b>The surface physics will always have one more surface entry than the
- * actual geometry</b>
+ * actual geometry.</b> \todo This will change when we map geometric surfaces
+ * to vectors of physics surface interfaces.
  *
  * With this setup, \c Collection data can be accessed locally by indexing on
  * \c ModelSurfaceId .
- *
- * \todo support for layers
  */
 template<Ownership W, MemSpace M>
 struct SurfacePhysicsMapData
 {
     //// TYPES ////
 
-    using SurfaceLayer = SurfaceModel::SurfaceLayer;
+    using PhysSurfaceId = SurfaceModel::PhysSurfaceId;
     using SurfaceModelId = SurfaceModel::SurfaceModelId;
     using InternalSurfaceId = SurfaceModel::InternalSurfaceId;
     template<class T>
-    using SurfaceItems = Collection<T, W, M, SurfaceId>;
+    using SurfaceItems = Collection<T, W, M, PhysSurfaceId>;
 
     //// DATA ////
 

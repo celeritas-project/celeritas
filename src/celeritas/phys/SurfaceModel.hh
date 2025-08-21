@@ -34,9 +34,9 @@ class SurfaceModel
     //! \name Type aliases
 
     //! Eventually to be a pair of surface+layer
-    using SurfaceLayer = SurfaceId;
+    using PhysSurfaceId = SurfaceId;
     //! Vector of surfaces
-    using VecSurfaceLayer = std::vector<SurfaceLayer>;
+    using VecSurfaceLayer = std::vector<PhysSurfaceId>;
     //! Opaque ID of this surface model
     using SurfaceModelId = OpaqueId<SurfaceModel>;
     //! Opaque index of surface data in the list for a particular surface model

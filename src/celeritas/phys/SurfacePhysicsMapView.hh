@@ -40,7 +40,7 @@ class SurfacePhysicsMapView
     explicit CELER_FUNCTION
     SurfacePhysicsMapView(SurfaceParamsRef const& params);
 
-    // Get the action ID for the current surface, if any
+    // Get the model ID for the current surface, if any
     CELER_FUNCTION SurfaceModelId surface_model_id() const;
 
     //! Current surface ID (may be one past the end of geometry IDs)
@@ -85,7 +85,7 @@ SurfacePhysicsMapView::SurfacePhysicsMapView(SurfaceParamsRef const& params)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the action ID for the current surface, if any.
+ * Get the model ID for the current surface, if any.
  */
 CELER_FUNCTION auto SurfacePhysicsMapView::surface_model_id() const
     -> SurfaceModelId
