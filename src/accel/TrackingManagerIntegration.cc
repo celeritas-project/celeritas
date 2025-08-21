@@ -156,8 +156,8 @@ void TrackingManagerIntegration::BeginOfRunAction(G4Run const*)
     if (enable_offload)
     {
         // Set particle offloading based on user options
-        auto const user_offload = singleton.setup_options().offload_particles;
-        auto const offload_particles
+        auto const& user_offload = singleton.setup_options().offload_particles;
+        auto const& offload_particles
             = user_offload.empty() ? singleton.default_offload_particles()
                                    : user_offload;
 

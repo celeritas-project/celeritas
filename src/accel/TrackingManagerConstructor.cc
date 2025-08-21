@@ -97,7 +97,6 @@ void TrackingManagerConstructor::ConstructProcess()
 
     for (auto* p : offload_particles_)
     {
-        CELER_ASSERT(p);
         // Memory for the tracking manager should be freed in
         // G4VUserPhysicsList::TerminateWorker from G4WorkerRunManager
         // by constructing a 'set' of all tracking managers.

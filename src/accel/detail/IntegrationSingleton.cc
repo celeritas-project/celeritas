@@ -33,8 +33,8 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Validate \c SetupOptions::offload_particles user-defined list of particles
- * to be offloaded.
+ * Verify that all particles in \c SetupOptions::offload_particles user-defined
+ * list are supported by Celeritas.
  */
 void validate_offloaded_particles(SetupOptions::VecG4PD const& user)
 {
@@ -54,13 +54,13 @@ void validate_offloaded_particles(SetupOptions::VecG4PD const& user)
             });
     };
 
-    // Validade user-defined G4ParticleDefinition input list
-    for (auto const pd : user)
+    for (auto const& pd : user)
     {
         CELER_ASSERT(pd);
-        CELER_VALIDATE(pd,
-                       << "Particle with PDG = " << pd->GetPDGEncoding()
-                       << " is not available in Celeritas");
+        CELER_VALIDATE(find(pd),
+                       << "Particle \"" << pd->GetParticleName()
+                       << "\" (PDG = " << pd->GetPDGEncoding()
+                       << ") is not available in Celeritas");
     }
 }
 //---------------------------------------------------------------------------//
@@ -88,7 +88,7 @@ LocalTransporter& IntegrationSingleton::local_transporter()
 
 //---------------------------------------------------------------------------//
 /*!
- * Get a list of supported particles that will be offloaded.
+ * Get a list of all supported particles.
  */
 IntegrationSingleton::VecG4PD
 IntegrationSingleton::supported_offload_particles()
@@ -106,10 +106,9 @@ IntegrationSingleton::supported_offload_particles()
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the list of default particles that will be offloaded.
+ * Get the list of default particles offloaded in Geant4 applications.
  *
- * If no user-defined list is provided, this is the default, which focuses on
- * simplifying the interface with LHC experiments.
+ * If no user-defined list is provided, this defaults to simulating EM showers.
  */
 IntegrationSingleton::VecG4PD IntegrationSingleton::default_offload_particles()
 {
