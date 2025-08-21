@@ -27,6 +27,7 @@ class FerrariSolverTest : public ::celeritas::test::Test
     public:
         using FS = FerrariSolver;
         using Intersections = Array<real_type, 4>;
+        using Coeffs3 = Array<real_type, 3>;
         using Coeffs4 = Array<real_type, 4>;
         using Coeffs5 = Array<real_type, 5>;
 
@@ -54,62 +55,81 @@ class FerrariSolverTest : public ::celeritas::test::Test
             auto x = solve_quartic(abcde[4]);
             expect_softeq_list(expected, x);
         }
+
+        void expect_dominant_cubic_root(real_type const& expected, Coeffs3 const& bcd)
+        {
+            FerrariSolver solve_quartic(1,1,1,1);
+            real_type bigroot = solve_quartic.dominant_root_of_cubic(bcd[0], bcd[1], bcd[2]);
+            EXPECT_SOFT_EQ(expected, bigroot)
+        }
 }
 
-TEST(SolveNonsurface, no_roots)
+TEST_F(FerrariSolverTest, no_roots)
 {
     // x**4 + 2*x**3 - 2.999998*x**2 - 3.999998*x + 4.000005000001
     // Four complex roots 1+-0.001i, -2+-0.001i
     {
-        double b = 2;
-        double c = -2.999998;
-        double d = -3.999998;
-        double e = 4.000005000001;
-
-        FerrariSolver solve_quartic(1, b, c, d);
-        auto x = solve_quartic(e);
-
-        EXPECT_SOFT_EQ(no_intersection(), x[0]);
-        EXPECT_SOFT_EQ(no_intersection(), x[1]);
-        EXPECT_SOFT_EQ(no_intersection(), x[2]);
-        EXPECT_SOFT_EQ(no_intersection(), x[3]);
+        expect_nonsurface_roots(
+            Intersections(no_intersection(), no_intersection(), no_intersection(), no_intersection()),
+            Coeffs5(1, 2, -2.999998, -3.999998, 4.000005000001)
+        )
     }
+    // x**4 + x**3 - 2.999999*x**2 - 0.999997*x + 2.000002
     // Two negative real roots 2, 1, and two imaginary roots 1+-0.001i
-
+    {
+        expect_nonsurface_roots(
+            Intersections(no_intersection(), no_intersection(), no_intersection(), no_intersection()),
+            Coeffs5(1, 1, -2.999999, -0.999997, 2.000002)
+        )
+    }
+    // x**4 + 10*x**3 + 35*x**2 + 50*x + 24 
     // Four negative roots -1, -2, -3, -4
+    {
+        expect_nonsurface_roots(
+            Intersections(no_intersection(), no_intersection(), no_intersection(), no_intersection()),
+            Coeffs5(1, 10, 35, 50, 24)
+        )
+    }
 }
 
-TEST(SolveNonsurface, one_root) 
+TEST_F(FerrariSolverTest, one_root)
 {
     // x**4 - 16
     // One quadruple root at 2 (Critically degenerate torus)
-
+    {
+        expect_nonsurface_roots(
+            Intersections(2.0, no_intersection(), no_intersection(), no_intersection()),
+            Coeffs5(1, 0, 0, 0, -16)
+        )
+    }
     // x**4 - 2*x**3 - 2*x**2 + 8
     // One double root at 2, two imag rooots
     {
-        double b = -2;
-        double c = -2;
-        double d = 0;
-        double e = 8;
-
-        FerrariSolver solve_quartic(1, b, c, d);
-        auto x = solve_quartic(e);
-
-        EXPECT_SOFT_EQ(2.0, x[0]);
-        EXPECT_SOFT_EQ(no_intersection(), x[1]);
-        EXPECT_SOFT_EQ(no_intersection(), x[2]);
-        EXPECT_SOFT_EQ(no_intersection(), x[3]);
+        expect_nonsurface_roots(
+            Intersections(2.0, no_intersection(), no_intersection(), no_intersection()),
+            Coeffs5(1, -2, -2, 0, 8)
+        )
     }
-
+    // x**4 - 3*x**3 + 1.000001*x**2 + 2.999999*x - 2.000002
     // One root at 2, one negative root at -1, two imag roots
+    {
+        expect_nonsurface_roots(
+            Intersections(2.0, no_intersection(), no_intersection(), no_intersection()),
+            Coeffs5(1, -3, 1.000001, 2.999999, -2.000002)
+        )
+    }
 }
 
-TEST(SolveNonsurface, two_roots)
+TEST_F(FerrariSolverTest, two_roots)
 {
-    // Two roots at 2, 1, two negative roots at -3, -4
-
+    // x**4 - 5*x**3 + 9.000001*x**2 - 7.000003*x + 2.000002
     // Two roots at 2, 1, two imaginary roots
-
+    {
+        expect_nonsurface_roots(
+            Intersections(1.0, 2.0, no_intersection(), no_intersection()),
+            Coeffs5(1, -5, 9.000001, -7.000003, 2.000002)
+        )
+    }
     // Double root at 1, double root at 2
 }
 
