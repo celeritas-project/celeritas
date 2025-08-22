@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <limits>
-
 #include "corecel/Macros.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -244,13 +242,6 @@ CELER_FUNCTION ValueGridId PhysicsTrackView::mfp_grid(ModelId model) const
 CELER_FUNCTION real_type PhysicsTrackView::calc_mfp(ModelId model,
                                                     Energy energy) const
 {
-    auto const grid_id = this->mfp_grid(model);
-    auto const& rec = params_.grids[grid_id];
-    if (!rec)
-    {
-        CELER_LOG(debug) << "MFP grid is empty and setting it to infinity";
-        return std::numeric_limits<real_type>::infinity();
-    }
     NonuniformGridCalculator calc{params_.grids[this->mfp_grid(model)],
                                   params_.reals};
     real_type result = calc(value_as<Energy>(energy));
