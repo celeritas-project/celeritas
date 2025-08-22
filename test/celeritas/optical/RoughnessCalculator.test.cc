@@ -27,7 +27,7 @@ class RoughnessCalculatorTest : public ::celeritas::test::Test
 };
 
 //---------------------------------------------------------------------------//
-// Test whether the surface vs  normal rejection sampler
+// Test the surface vs normal rejection sampler
 TEST_F(RoughnessCalculatorTest, entering_surface)
 {
     constexpr size_type num_samples = 4000;
@@ -48,11 +48,11 @@ TEST_F(RoughnessCalculatorTest, entering_surface)
         EnteringSurfaceNormalSampler sample_normal{incident_dir,
                                                    IsotropicDistribution{}};
 
-        auto transform = [&incident_dir](Real3 const& sampled_normal) {
+        auto to_cos_normal = [&incident_dir](Real3 const& sampled_normal) {
             return dot_product(incident_dir, sampled_normal);
         };
 
-        actual.push_back(calc_histogram(transform, sample_normal));
+        actual.push_back(calc_histogram(to_cos_normal, sample_normal));
     }
 
     // All sampled normals should satisfy entering surface condition
@@ -82,11 +82,11 @@ TEST_F(RoughnessCalculatorTest, smear)
     {
         SmearRoughnessCalculator sample_normal{roughness, normal};
 
-        auto transform = [&normal](Real3 const& sampled_normal) {
+        auto to_cos_normal = [&normal](Real3 const& sampled_normal) {
             return dot_product(normal, sampled_normal);
         };
 
-        actual.push_back(calc_histogram(transform, sample_normal));
+        actual.push_back(calc_histogram(to_cos_normal, sample_normal));
     }
 
     static SampledHistogram const expected[] = {
@@ -116,11 +116,11 @@ TEST_F(RoughnessCalculatorTest, gaussian)
     {
         GaussianRoughnessCalculator sample_normal{sigma_alpha, normal};
 
-        auto transform = [&normal](Real3 const& sampled_normal) {
+        auto to_cos_normal = [&normal](Real3 const& sampled_normal) {
             return dot_product(normal, sampled_normal);
         };
 
-        actual.push_back(calc_histogram(transform, sample_normal));
+        actual.push_back(calc_histogram(to_cos_normal, sample_normal));
     }
 
     static SampledHistogram const expected[] = {
