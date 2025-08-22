@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Types.hh"
 
@@ -37,10 +38,14 @@ is_entering_surface(Real3 const& normal, Real3 const& dir)
  * is sampled.
  */
 template<class Calculator>
-struct EnteringSurfaceNormalSampler
+class EnteringSurfaceNormalSampler
 {
-    Real3 const& dir;
-    Calculator sample_normal;
+  public:
+    CELER_FUNCTION
+    EnteringSurfaceNormalSampler(Real3 const& dir, Calculator&& sample_normal)
+        : dir_{dir}, sample_normal_{forward<Calculator>(sample_normal)}
+    {
+    }
 
     // Repeatedly sample facet normal until satisfies entering surface
     template<class Engine>
@@ -49,11 +54,20 @@ struct EnteringSurfaceNormalSampler
         Real3 local_normal;
         do
         {
-            local_normal = sample_normal(rng);
-        } while (!is_entering_surface(local_normal, dir));
+            local_normal = sample_normal_(rng);
+        } while (!is_entering_surface(local_normal, dir_));
         return local_normal;
     }
+
+  private:
+    Real3 const& dir_;
+    Calculator sample_normal_;
 };
+
+// Deduction guide
+template<class Calculator>
+EnteringSurfaceNormalSampler(Real3 const&, Calculator&&)
+    -> EnteringSurfaceNormalSampler<Calculator>;
 
 //---------------------------------------------------------------------------//
 }  // namespace optical
