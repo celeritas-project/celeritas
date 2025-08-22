@@ -229,7 +229,6 @@ int main()
     run_manager->SetUserInitialization(new ActionInitialization());
 
     run_manager->Initialize();
-
     run_manager->BeamOn(2);
 
     if (actual_nonzero_energy != expected_nonzero_energy)
