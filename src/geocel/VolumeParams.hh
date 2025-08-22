@@ -6,6 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+#include <vector>
+
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/cont/Span.hh"
 
@@ -111,6 +114,15 @@ class VolumeParams
     std::vector<GeoMatId> materials_;
     std::vector<VolumeId> volumes_;
 };
+
+//---------------------------------------------------------------------------//
+// HACKY GLOBAL VARIABLES DURING REFACTORING
+//---------------------------------------------------------------------------//
+// Set non-owning reference to global canonical volumes
+void global_volumes(std::shared_ptr<VolumeParams const> const&);
+
+// Global canonical volumes: may be nullptr
+std::weak_ptr<VolumeParams const> const& global_volumes();
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

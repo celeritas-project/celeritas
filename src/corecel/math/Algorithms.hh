@@ -304,7 +304,7 @@ CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound_linear(ForwardIt first,
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the first element which is greater than <value>
+ * Find the first element which is greater than <value>.
  */
 template<class ForwardIt, class T, class Compare>
 CELER_FORCEINLINE_FUNCTION ForwardIt
@@ -318,7 +318,7 @@ upper_bound(ForwardIt first, ForwardIt last, T const& value, Compare comp)
 //! \cond (CELERITAS_DOC_DEV)
 //---------------------------------------------------------------------------//
 /*!
- * Find the first element which is greater than <value>
+ * Find the first element which is greater than <value>.
  */
 template<class ForwardIt, class T>
 CELER_FORCEINLINE_FUNCTION ForwardIt upper_bound(ForwardIt first,

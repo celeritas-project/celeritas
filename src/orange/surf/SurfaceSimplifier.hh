@@ -30,8 +30,9 @@ namespace celeritas
  * possible simplified class forms, or a \c std::monostate if no simplification
  * was applied.
  *
- * \todo Use a \c Tolerance object instead of a single tolerance, and compare
- * implementations with \c SoftSurfaceEqual for consistency.
+ * \internal \todo Use a \c Tolerance object instead of a single tolerance? (Or
+ * use local length scale with \c SoftClose.) Also, compare implementations
+ * with \c SoftSurfaceEqual for consistency.
  */
 class SurfaceSimplifier
 {

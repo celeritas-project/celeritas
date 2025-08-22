@@ -200,7 +200,6 @@ void append_skin_surfaces(GeantGeoParams const& geo,
 void append_border_surfaces(GeantGeoParams const& geo,
                             std::vector<G4LogicalSurface const*>& result)
 {
-    CELER_EXPECT(geo.volume_instances());
     // Translate "border" (interface) surfaces
     using G4Surface = G4LogicalBorderSurface;
     std::map<std::pair<VolumeInstanceId, VolumeInstanceId>, G4Surface const*> temp;
@@ -350,7 +349,9 @@ std::vector<inp::VolumeInstance>
 make_inp_volume_instances(GeantGeoParams const& geo)
 {
     // Process volume instances
-    auto const& vol_inst_labels = geo.volume_instances();
+    LabelIdMultiMap<VolumeInstanceId> vol_inst_labels{
+        "volume instance",
+        make_physical_vol_labels(*geo.world(), geo.pv_offset())};
     std::vector<inp::VolumeInstance> result(vol_inst_labels.size());
 
     // Fix copy numbers to avoid invalid read/out-of-bounds
@@ -438,10 +439,10 @@ std::weak_ptr<GeantGeoParams const> g_geant_geo_;
  *
  * \note This should be done only during setup on the main thread.
  */
-void geant_geo(std::shared_ptr<GeantGeoParams const> const& gp)
+void global_geant_geo(std::shared_ptr<GeantGeoParams const> const& gp)
 {
     CELER_LOG(debug) << (gp ? "Setting" : "Clearing")
-                     << " celeritas::geant_geo";
+                     << " celeritas::global_geant_geo";
     CELER_VALIDATE(
         g_geant_geo_.expired() ||
             [&] {
@@ -461,7 +462,7 @@ void geant_geo(std::shared_ptr<GeantGeoParams const> const& gp)
  *
  * \return Weak pointer to the global Geant4 wrapper, which may be null.
  */
-std::weak_ptr<GeantGeoParams const> const& geant_geo()
+std::weak_ptr<GeantGeoParams const> const& global_geant_geo()
 {
     return g_geant_geo_;
 }
@@ -471,7 +472,7 @@ std::weak_ptr<GeantGeoParams const> const& geant_geo()
  * Create from a running Geant4 application.
  *
  * It saves the result to the global Celeritas Geant4 geometry weak pointer \c
- * geant_geo.
+ * global_geant_geo.
  */
 std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
 {
@@ -480,7 +481,7 @@ std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
                    << "cannot create Geant geometry wrapper: Geant4 tracking "
                       "manager is not active");
     auto result = std::make_shared<GeantGeoParams>(world, Ownership::reference);
-    celeritas::geant_geo(result);
+    celeritas::global_geant_geo(result);
     return result;
 }
 
@@ -490,7 +491,7 @@ std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
  *
  * This assumes that Celeritas is driving and will manage Geant4 logging
  * and exceptions. It saves the result to the global Celeritas Geant4 geometry
- * weak pointer \c geant_geo.
+ * weak pointer \c global_geant_geo.
  */
 std::shared_ptr<GeantGeoParams>
 GeantGeoParams::from_gdml(std::string const& filename)
@@ -509,7 +510,7 @@ GeantGeoParams::from_gdml(std::string const& filename)
 
     auto result = std::make_shared<GeantGeoParams>(load_gdml(filename),
                                                    Ownership::value);
-    celeritas::geant_geo(result);
+    celeritas::global_geant_geo(result);
     return result;
 }
 
@@ -560,7 +561,7 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns)
 
     this->build_metadata();
 
-    CELER_ENSURE(volumes_);
+    CELER_ENSURE(impl_volumes_);
     CELER_ENSURE(data_);
 }
 
@@ -629,7 +630,7 @@ ImplVolumeId GeantGeoParams::find_volume(G4LogicalVolume const* volume) const
     CELER_EXPECT(volume);
     auto result
         = id_cast<ImplVolumeId>(volume->GetInstanceID() - this->lv_offset());
-    if (!(result < volumes_.size()))
+    if (!(result < impl_volumes_.size()))
     {
         // Volume is out of range: possibly an LV defined after this geometry
         // class was created
@@ -655,7 +656,6 @@ ImplVolumeId GeantGeoParams::find_volume(G4LogicalVolume const* volume) const
  */
 GeantPhysicalInstance GeantGeoParams::id_to_geant(VolumeInstanceId id) const
 {
-    CELER_EXPECT(!id || id < vol_instances_.size());
     if (!id)
     {
         return {};
@@ -667,7 +667,17 @@ GeantPhysicalInstance GeantGeoParams::id_to_geant(VolumeInstanceId id) const
     GeantPhysicalInstance result;
     result.pv = (*pv_store)[id.unchecked_get()];
     CELER_ASSERT(result.pv);
-    result.replica = this->replica_id(*result.pv);
+    result.replica = [pv = result.pv] {
+        if (pv->VolumeType() == EVolume::kNormal)
+            return ReplicaId{};
+
+        auto copy_no = pv->GetCopyNo();
+        // NOTE: if this line fails, you probably need to call \c
+        // reset_replica_data from the local thread.
+        CELER_ASSERT(copy_no >= 0 && copy_no < pv->GetMultiplicity());
+        return id_cast<ReplicaId>(copy_no);
+    }();
+
     return result;
 }
 
@@ -679,7 +689,7 @@ GeantPhysicalInstance GeantGeoParams::id_to_geant(VolumeInstanceId id) const
  */
 G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId id) const
 {
-    CELER_EXPECT(!id || id < volumes_.size());
+    CELER_EXPECT(!id || id < impl_volumes_.size());
     if (!id)
     {
         return nullptr;
@@ -702,7 +712,7 @@ GeoMatId GeantGeoParams::geant_to_id(G4Material const& g4mat) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the volume ID corresponding to a Geant4 physical volume.
+ * Get the volume instance ID corresponding to a Geant4 physical volume.
  *
  * \note See id_to_geant: the volume instance ID may be non-unique.
  */
@@ -711,32 +721,7 @@ GeantGeoParams::geant_to_id(G4VPhysicalVolume const& volume) const
 {
     auto result = id_cast<VolumeInstanceId>(volume.GetInstanceID()
                                             - this->pv_offset());
-    if (!(result < vol_instances_.size()))
-    {
-        // Volume is out of range: possibly a PV defined after this geometry
-        // class was created??
-        result = {};
-    }
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the replica ID corresponding to a Geant4 physical volume.
- *
- * If the volume is not parameterized or replicated, the result is false.
- */
-auto GeantGeoParams::replica_id(G4VPhysicalVolume const& volume) const
-    -> ReplicaId
-{
-    if (volume.VolumeType() == EVolume::kNormal)
-        return {};
-
-    auto copy_no = volume.GetCopyNo();
-    // NOTE: if this line fails, you probably need to call \c
-    // reset_replica_data from the local thread.
-    CELER_ASSERT(copy_no >= 0 && copy_no < volume.GetMultiplicity());
-    return id_cast<ReplicaId>(copy_no);
 }
 
 //---------------------------------------------------------------------------//
@@ -824,11 +809,9 @@ void GeantGeoParams::build_metadata()
     }
 
     // Construct volume labels for physically reachable volumes
-    volumes_ = ImplVolumeMap{
-        "volume", make_logical_vol_labels(*this->world(), this->lv_offset())};
-    vol_instances_ = VolInstanceMap{
-        "volume instance",
-        make_physical_vol_labels(*this->world(), this->pv_offset())};
+    impl_volumes_ = ImplVolumeMap{
+        "impl volume",
+        make_logical_vol_labels(*this->world(), this->lv_offset())};
     surfaces_ = make_surface_vec(*this);
     max_depth_ = get_max_depth(*this->world());
 

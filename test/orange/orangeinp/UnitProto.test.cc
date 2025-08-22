@@ -461,7 +461,7 @@ class InputBuilderTest : public UnitProtoTest
   public:
     void run_test(UnitProto const& global)
     {
-        std::string const output_base = this->make_unique_filename("");
+        std::string const output_base = this->make_unique_filename();
 
         InputBuilder build_input([&] {
             InputBuilder::Options opts;

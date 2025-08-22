@@ -36,7 +36,7 @@ FrameworkLoaded framework_input(inp::FrameworkInput& fi)
     setup::system(fi.system);
 
     // Load Geant4 geometry wrapper, which saves it as global
-    CELER_ASSERT(celeritas::geant_geo().expired());
+    CELER_ASSERT(celeritas::global_geant_geo().expired());
     auto geo = GeantGeoParams::from_tracking_manager();
     CELER_ASSERT(geo);
 

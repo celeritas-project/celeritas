@@ -121,20 +121,13 @@ ConvexHullFinder<T>::ConvexHullFinder(ConvexHullFinder::VecReal2 const& points,
 template<class T>
 auto ConvexHullFinder<T>::make_soft_ori() const -> SoftOrientation<real_type>
 {
-    auto const x_cmp
-        = [](Real2 const& a, Real2 const& b) { return a[0] < b[0]; };
-    auto const y_cmp
-        = [](Real2 const& a, Real2 const& b) { return a[1] < b[1]; };
-
-    auto const [x_min, x_max]
-        = std::minmax_element(points_.begin(), points_.end(), x_cmp);
-    auto const [y_min, y_max]
-        = std::minmax_element(points_.begin(), points_.end(), y_cmp);
+    auto const [x_min, x_max] = find_extrema(make_span(points_), Axis::x);
+    auto const [y_min, y_max] = find_extrema(make_span(points_), Axis::y);
 
     // Convert min/max x and y values to extents
     using extent_type = Real3::value_type;
-    Real3 const extents{static_cast<extent_type>((*x_max)[0] - (*x_min)[0]),
-                        static_cast<extent_type>((*y_max)[1] - (*y_min)[1]),
+    Real3 const extents{static_cast<extent_type>(x_max - x_min),
+                        static_cast<extent_type>(y_max - y_min),
                         0};
 
     return SoftOrientation<real_type>(

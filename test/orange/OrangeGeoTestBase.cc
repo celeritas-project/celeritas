@@ -173,8 +173,7 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
 void OrangeGeoTestBase::build_geometry(UnitInput input)
 {
     CELER_EXPECT(input);
-    params_
-        = std::make_unique<Params>(to_input(std::move(input)), VolumeParams{});
+    params_ = std::make_unique<Params>(to_input(std::move(input)), nullptr);
     // Base class will construct geometry from this call via build_geometry
     ASSERT_TRUE(this->geometry());
 }
@@ -316,7 +315,7 @@ std::string OrangeGeoTestBase::id_to_label(LocalVolumeId vol_id) const
 /*!
  * Return the geometry that was created.
  */
-auto OrangeGeoTestBase::build_geometry() -> SPConstGeo
+auto OrangeGeoTestBase::build_geometry() const -> SPConstGeo
 {
     CELER_EXPECT(params_);
     return params_;

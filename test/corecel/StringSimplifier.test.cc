@@ -17,6 +17,20 @@ namespace test
 TEST(StringSimplifierTest, all)
 {
     StringSimplifier simplify(4);
+    EXPECT_EQ("1e-3", simplify("0.001"));
+    EXPECT_EQ("1e-3", simplify("0.001"));
+    EXPECT_EQ("1e-3", simplify("0.001f"));
+    EXPECT_EQ("-1e-3", simplify("-0.001"));
+    EXPECT_EQ("-1e-3", simplify("-0.001f"));
+    EXPECT_EQ("1.234", simplify("1.234"));
+    EXPECT_EQ("12.34", simplify("12.34"));
+    EXPECT_EQ("123.4", simplify("123.4"));
+    EXPECT_EQ("1234.", simplify("1234."));
+    EXPECT_EQ("1234.", simplify("1234.0"));
+    EXPECT_EQ("1.234e4", simplify("12340."));
+    EXPECT_EQ("0.1235", simplify("0.12345"));
+    EXPECT_EQ("0.01235", simplify("0.012345"));
+
     EXPECT_EQ("This is a pointer 0x0 yep",
               simplify("This is a pointer 0x12345 yep"));
 
@@ -45,6 +59,22 @@ TEST(StringSimplifierTest, all)
               simplify("{-6., 0., 0.} along local direction {1., 0., 0.}"));
     EXPECT_EQ("{-6, 0, 0} along local direction {1, 0, 0}",
               simplify("{-6, 0, 0} along local direction {1, 0, 0}"));
+    EXPECT_EQ("Cone z: t=5e-3 at {0,0,100}",
+              simplify("Cone z: t=0.005 at {0,0,100}"));
+
+    EXPECT_EQ("0.0", simplify("0.0"));
+    EXPECT_EQ("0.1", simplify("0.1"));
+    EXPECT_EQ("0.01", simplify("0.01"));
+    EXPECT_EQ("1e-3", simplify("0.001"));
+    EXPECT_EQ("1e-4", simplify("0.0001"));
+    EXPECT_EQ("1e-5", simplify("0.00001"));
+
+    EXPECT_EQ("0.0", simplify("0.0f"));
+    EXPECT_EQ("0.1", simplify("0.1f"));
+    EXPECT_EQ("0.01", simplify("0.01f"));
+    EXPECT_EQ("1e-3", simplify("0.001f"));
+    EXPECT_EQ("1e-4", simplify("0.0001f"));
+    EXPECT_EQ("1e-5", simplify("0.00001f"));
 
     EXPECT_EQ("123456", simplify("123456"));
     EXPECT_EQ("1234.", simplify("1234."));

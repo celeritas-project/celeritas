@@ -14,11 +14,12 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/TypeDemangler.hh"
-#include "geocel/GeantGeoParams.hh"
+#include "geocel/VolumeParams.hh"
 #include "geocel/inp/Model.hh"
 
 #include "CheckedGeoTrackView.hh"
 #include "GenericGeoResults.hh"
+#include "PersistentSP.hh"
 #include "TestMacros.hh"
 #include "UnitUtils.hh"
 
@@ -38,25 +39,31 @@ void GenericGeoTestBase<HP>::SetUp()
 
 //---------------------------------------------------------------------------//
 /*!
- * ! Build the geometry (default to from_basename).
+ * Return test suite name by default.
  */
 template<class HP>
-auto GenericGeoTestBase<HP>::build_geometry() -> SPConstGeo
+std::string_view GenericGeoTestBase<HP>::gdml_basename() const
 {
-    return this->build_geometry_from_basename();
+    return ::testing::UnitTest::GetInstance()
+        ->current_test_info()
+        ->test_suite_name();
 }
 
 //---------------------------------------------------------------------------//
-//
+/*!
+ * Build the geometry, defaulting to using the lazy Geant4 construction.
+ */
 template<class HP>
-auto GenericGeoTestBase<HP>::build_geometry_from_basename() -> SPConstGeo
+auto GenericGeoTestBase<HP>::build_geometry() const -> SPConstGeo
 {
-    // Construct filename:
-    // ${SOURCE}/test/geocel/data/${basename}.gdml
-    std::string test_file
-        = test_data_path("geocel", this->geometry_basename() + ".gdml");
-    auto result = HP::from_gdml(test_file);
-    return result;
+    auto geo_interface = this->lazy_geo();
+    CELER_ASSERT(geo_interface);
+    auto geo = std::dynamic_pointer_cast<HP const>(geo_interface);
+    CELER_VALIDATE(geo,
+                   << "failed to cast geometry from "
+                   << demangled_type(*geo_interface) << " to "
+                   << TypeDemangler<HP const>()());
+    return geo;
 }
 
 //---------------------------------------------------------------------------//
@@ -65,18 +72,24 @@ auto GenericGeoTestBase<HP>::geometry() -> SPConstGeo const&
 {
     if (!geo_)
     {
-        std::string key = this->geometry_basename() + "/"
-                          + std::string{this->geometry_type()};
-        // Construct via LazyGeoManager
-        auto geo = this->get_geometry(key);
-        EXPECT_TRUE(geo);
-        geo_ = std::dynamic_pointer_cast<HP const>(geo);
-        CELER_VALIDATE(geo_,
-                       << "failed to cast geometry from "
-                       << demangled_type(*geo) << " to "
-                       << TypeDemangler<HP const>()());
+        static PersistentSP<HP const> pg{"GenericGeoTestBase geometry"};
+
+        auto basename = this->gdml_basename();
+        pg.lazy_update(std::string{basename}, [this]() {
+            // Build new geometry
+            return this->build_geometry();
+        });
+        geo_ = pg.value();
+        volumes_ = this->volumes();
+        if (!volumes_)
+        {
+            // Possibly built with non-GDML
+            volumes_ = std::make_shared<VolumeParams const>(
+                geo_->make_model_input().volumes);
+        }
     }
     CELER_ENSURE(geo_);
+    CELER_ENSURE(volumes_);
     return geo_;
 }
 
@@ -96,12 +109,14 @@ std::string GenericGeoTestBase<HP>::volume_name(GeoTrackView const& geo) const
     {
         return "[OUTSIDE]";
     }
-    auto id = geo.impl_volume_id();
-    if (!id)
+
+    if (VolumeId id = geo.volume_id())
     {
-        return "[INVALID]";
+        // Use volumes
+        CELER_ASSERT(volumes_);
+        return volumes_->volume_labels().at(id).name;
     }
-    return this->geometry()->impl_volumes().at(id).name;
+    return "[INVALID]";
 }
 
 //---------------------------------------------------------------------------//
@@ -128,7 +143,8 @@ GenericGeoTestBase<HP>::unique_volume_name(GeoTrackView const& geo) const
     std::vector<VolumeInstanceId> ids(level.get() + 1);
     geo.volume_instance_id(make_span(ids));
 
-    auto const& vol_inst = this->geometry()->volume_instances();
+    CELER_ASSERT(volumes_);
+    auto const& vol_inst = volumes_->volume_instance_labels();
     std::ostringstream os;
     os << vol_inst.at(ids[0]);
     for (auto i : range(std::size_t{1}, ids.size()))
@@ -191,8 +207,8 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
     TrackingResult result;
 
     GeoTrackView geo = CheckedGeoTrackView{this->make_geo_track_view(pos, dir)};
-    auto const& geo_params = *this->geometry();
-    auto const& vol_inst = geo_params.volume_instances();
+    CELER_ASSERT(volumes_);
+    auto const& vol_inst = volumes_->volume_instance_labels();
     real_type const inv_length = real_type{1} / this->unit_length();
     real_type const bump_tol = this->bump_tol() * this->unit_length();
 
@@ -213,25 +229,16 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
 
     while (!geo.is_outside() && max_step > 0)
     {
-        result.volumes.push_back(this->volume_name(geo));
-        if (vol_inst)
+        result.volumes.emplace_back(this->volume_name(geo));
+        if (!vol_inst.empty())
         {
-            result.volume_instances.push_back([&] {
+            result.volume_instances.emplace_back([&] {
                 auto vi_id = geo.volume_instance_id();
                 if (!vi_id)
                 {
                     return std::string{"---"};
                 }
-                std::string s = vol_inst.at(vi_id).name;
-                if (auto phys_inst = geo_params.id_to_geant(vi_id))
-                {
-                    if (phys_inst.replica)
-                    {
-                        s += '@';
-                        s += std::to_string(phys_inst.replica.get());
-                    }
-                }
-                return s;
+                return to_string(vol_inst.at(vi_id));
             }());
         }
         auto next = geo.find_next_step();
@@ -248,7 +255,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
             // Don't add epsilon distances
             result.distances.pop_back();
             result.volumes.pop_back();
-            if (vol_inst)
+            if (!vol_inst.empty())
             {
                 result.volume_instances.pop_back();
             }
@@ -343,7 +350,9 @@ auto GenericGeoTestBase<HP>::volume_stack(Real3 const& pos)
     std::vector<VolumeInstanceId> inst_ids(level.get() + 1);
     geo.volume_instance_id(make_span(inst_ids));
 
-    return VolumeStackResult::from_span(*this->geometry(), make_span(inst_ids));
+    CELER_ASSERT(volumes_);
+    return VolumeStackResult::from_span(volumes_->volume_instance_labels(),
+                                        make_span(inst_ids));
 }
 
 //---------------------------------------------------------------------------//
@@ -378,11 +387,27 @@ auto GenericGeoTestBase<HP>::geometry_interface() const -> SPConstGeoInterface
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Build a new geometry via LazyGeantGeoManager.
+ */
 template<class HP>
-auto GenericGeoTestBase<HP>::build_fresh_geometry(std::string_view)
+auto GenericGeoTestBase<HP>::build_geo_from_geant(
+    SPConstGeantGeo const& geant_geo) const -> SPConstGeoI
+{
+    CELER_EXPECT(geant_geo);
+    return HP::from_geant(geant_geo);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build a new geometry via LazyGeantGeoManager (fallback when no Geant4).
+ */
+template<class HP>
+auto GenericGeoTestBase<HP>::build_geo_from_gdml(std::string const& filename) const
     -> SPConstGeoI
 {
-    return this->build_geometry();
+    CELER_EXPECT(!CELERITAS_USE_GEANT4);
+    return HP::from_gdml(filename);
 }
 
 //---------------------------------------------------------------------------//
