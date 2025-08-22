@@ -6,6 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/random/distribution/NormalDistribution.hh"
 #include "corecel/random/distribution/RejectionSampler.hh"
@@ -70,6 +73,8 @@ GaussianRoughnessSampler::GaussianRoughnessSampler(Real3 const& normal,
 template<class Engine>
 CELER_FUNCTION Real3 GaussianRoughnessSampler::operator()(Engine& rng)
 {
+    using std::fabs;
+
     real_type cos_alpha = 0;
     real_type sin_alpha = 0;
     do
