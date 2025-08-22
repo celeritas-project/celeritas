@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/surface/calc/SmearRoughnessCalculator.hh
+//! \file celeritas/optical/surface/calc/SmearRoughnessSampler.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -28,20 +28,20 @@ namespace optical
  * A smear direction is uniformly sampled within a sphere of radius 1, which is
  * then scaled by the roughness parameter and added to the global normal.
  */
-class SmearRoughnessCalculator
+class SmearRoughnessSampler
 {
   public:
     // Construct from roughness and global normal
     inline CELER_FUNCTION
-    SmearRoughnessCalculator(real_type roughness, Real3 const& normal);
+    SmearRoughnessSampler(Real3 const& normal, real_type roughness);
 
     // Sample facet normal
     template<class Engine>
     inline CELER_FUNCTION Real3 operator()(Engine& rng) const;
 
   private:
-    real_type roughness_;
     Real3 const& normal_;
+    real_type roughness_;
     PowerDistribution<> sample_r_{2};
 };
 
@@ -52,9 +52,9 @@ class SmearRoughnessCalculator
  * Construct from roughness and global normal.
  */
 CELER_FUNCTION
-SmearRoughnessCalculator::SmearRoughnessCalculator(real_type roughness,
-                                                   Real3 const& normal)
-    : roughness_(roughness), normal_(normal)
+SmearRoughnessSampler::SmearRoughnessSampler(Real3 const& normal,
+                                             real_type roughness)
+    : normal_(normal), roughness_(roughness)
 {
     CELER_EXPECT(0 <= roughness_ && roughness_ <= 1);
     CELER_EXPECT(is_soft_unit_vector(normal_));
@@ -65,7 +65,7 @@ SmearRoughnessCalculator::SmearRoughnessCalculator(real_type roughness,
  * Sample a facet normal via the smear roughness model.
  */
 template<class Engine>
-CELER_FUNCTION Real3 SmearRoughnessCalculator::operator()(Engine& rng) const
+CELER_FUNCTION Real3 SmearRoughnessSampler::operator()(Engine& rng) const
 {
     real_type r = sample_r_(rng);
     Real3 local_normal = normal_;

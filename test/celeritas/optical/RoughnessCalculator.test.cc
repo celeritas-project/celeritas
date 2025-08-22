@@ -2,13 +2,13 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/RoughnessCalculator.test.cc
+//! \file celeritas/optical/RoughnessSampler.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/random/HistogramSampler.hh"
 #include "geocel/random/IsotropicDistribution.hh"
+#include "celeritas/optical/surface/GaussianRoughnessSampler.hh"
+#include "celeritas/optical/surface/SmearRoughnessSampler.hh"
 #include "celeritas/optical/surface/SurfacePhysicsUtils.hh"
-#include "celeritas/optical/surface/calc/GaussianRoughnessCalculator.hh"
-#include "celeritas/optical/surface/calc/SmearRoughnessCalculator.hh"
 
 #include "celeritas_test.hh"
 
@@ -21,14 +21,33 @@ namespace test
 using namespace ::celeritas::test;
 //---------------------------------------------------------------------------//
 
-class RoughnessCalculatorTest : public ::celeritas::test::Test
+//! Mock sampler that chooses a random
+class IsotropicSampler
+{
+  public:
+    // Take but ignore a normal
+    explicit IsotropicSampler(Real3 const&) {}
+
+    template<class Engine>
+    Real3 operator()(Engine& rng)
+    {
+        return sample_iso_(rng);
+    }
+
+  private:
+    IsotropicDistribution<> sample_iso_;
+};
+
+//---------------------------------------------------------------------------//
+// Test harness
+class RoughnessSamplerTest : public ::celeritas::test::Test
 {
   public:
 };
 
 //---------------------------------------------------------------------------//
 // Test the surface vs normal rejection sampler
-TEST_F(RoughnessCalculatorTest, entering_surface)
+TEST_F(RoughnessSamplerTest, entering_surface)
 {
     constexpr size_type num_samples = 4000;
     HistogramSampler calc_histogram(4, {-1, 1}, num_samples);
@@ -36,17 +55,15 @@ TEST_F(RoughnessCalculatorTest, entering_surface)
     std::vector<SampledHistogram> actual;
 
     // Test over range of incident directions
-    std::vector<Real3> incident_directions
-        = {make_unit_vector(Real3{0, 0, -1}),
-           make_unit_vector(Real3{1, 0, -1}),
-           make_unit_vector(Real3{0, 1, -1}),
-           make_unit_vector(Real3{1, 1, 1}),
-           make_unit_vector(Real3{-1, 0, -1})};
+    static Real3 incident_directions[]
+        = {{0, 0, -1}, {1, 0, -1}, {0, 1, -1}, {-1, 0, -1}};
 
-    for (Real3 const& incident_dir : incident_directions)
+    constexpr Real3 global_normal = {0, 0, 1};
+    for (Real3 incident_dir : incident_directions)
     {
-        EnteringSurfaceNormalSampler sample_normal{incident_dir,
-                                                   IsotropicDistribution{}};
+        incident_dir = make_unit_vector(incident_dir);
+        EnteringSurfaceNormalSampler<IsotropicSampler> sample_normal{
+            incident_dir, global_normal};
 
         auto to_cos_normal = [&incident_dir](Real3 const& sampled_normal) {
             return dot_product(incident_dir, sampled_normal);
@@ -61,15 +78,14 @@ TEST_F(RoughnessCalculatorTest, entering_surface)
         {{0.9595, 1.0405, 0, 0}, 7.987},
         {{0.998, 1.002, 0, 0}, 8.09},
         {{0.982, 1.018, 0, 0}, 8.026},
-        {{1.0155, 0.9845, 0, 0}, 7.91},
-        {{0.9925, 1.0075, 0, 0}, 8.016},
+        {{1.019, 0.981, 0, 0}, 8.041},
     };
     EXPECT_REF_EQ(expected, actual);
 }
 
 //---------------------------------------------------------------------------//
 // Test smear roughness model distribution
-TEST_F(RoughnessCalculatorTest, smear)
+TEST_F(RoughnessSamplerTest, smear)
 {
     constexpr size_type num_samples = 10000;
     HistogramSampler calc_histogram(5, {0, 1}, num_samples);
@@ -80,7 +96,7 @@ TEST_F(RoughnessCalculatorTest, smear)
     // Test over range of roughness values
     for (real_type roughness : {0.0, 0.1, 0.5, 0.7, 0.9, 1.0})
     {
-        SmearRoughnessCalculator sample_normal{roughness, normal};
+        SmearRoughnessSampler sample_normal{normal, roughness};
 
         auto to_cos_normal = [&normal](Real3 const& sampled_normal) {
             return dot_product(normal, sampled_normal);
@@ -103,7 +119,7 @@ TEST_F(RoughnessCalculatorTest, smear)
 
 //---------------------------------------------------------------------------//
 // Test Gaussian roughness model distribution
-TEST_F(RoughnessCalculatorTest, gaussian)
+TEST_F(RoughnessSamplerTest, gaussian)
 {
     constexpr size_type num_samples = 5000;
     HistogramSampler calc_histogram(5, {0, 1}, num_samples);
@@ -111,10 +127,10 @@ TEST_F(RoughnessCalculatorTest, gaussian)
     Real3 normal = make_unit_vector(Real3{1, 0, -1});
     std::vector<SampledHistogram> actual;
 
-    // Test over range of sigma_alpha values
-    for (real_type sigma_alpha : {0.1, 0.7, 1.5, 3.0})
+    // Test over range of sigma_alpha (stdev in radians) values
+    for (real_type sigma_alpha : {0.1, 0.20594885, 0.79})
     {
-        GaussianRoughnessCalculator sample_normal{sigma_alpha, normal};
+        GaussianRoughnessSampler sample_normal{normal, sigma_alpha};
 
         auto to_cos_normal = [&normal](Real3 const& sampled_normal) {
             return dot_product(normal, sampled_normal);
@@ -125,9 +141,8 @@ TEST_F(RoughnessCalculatorTest, gaussian)
 
     static SampledHistogram const expected[] = {
         {{0, 0, 0, 0, 5}, 22.0336},
-        {{0.303, 0.495, 0.792, 1.34, 2.07}, 10.5816},
-        {{0.788, 0.9, 1.021, 1.125, 1.166}, 10.1508},
-        {{0.993, 1.012, 0.997, 1.013, 0.985}, 11.2816},
+        {{0, 0, 0, 0.034, 4.966}, 21.7968},
+        {{0.423, 0.586, 0.891, 1.281, 1.819}, 10.206},
     };
     EXPECT_REF_EQ(expected, actual);
 }

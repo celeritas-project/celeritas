@@ -23,28 +23,32 @@ namespace optical
  * function makes checks for this condition explicit in the code.
  */
 inline CELER_FUNCTION bool
-is_entering_surface(Real3 const& normal, Real3 const& dir)
+is_entering_surface(Real3 const& dir, Real3 const& normal)
 {
-    return dot_product(normal, dir) < 0;
+    return dot_product(dir, normal) < 0;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample facet normal until the track direction is entering the surface.
+ * Sample a valid facet normal by wrapping a roughness calculator.
  *
  * Some facet normal calculators might not produce surface normals valid for
  * optical physics surface crossings (see \c is_entering_surface ). This
- * functor will repeatedly sample the distribution until a valid facet normal
- * is sampled.
+ * functor will construct and repeatedly sample the distribution until a valid
+ * facet normal is sampled.
+ *
  */
 template<class Calculator>
 class EnteringSurfaceNormalSampler
 {
   public:
-    CELER_FUNCTION
-    EnteringSurfaceNormalSampler(Real3 const& dir, Calculator&& sample_normal)
-        : dir_{dir}, sample_normal_{forward<Calculator>(sample_normal)}
+    template<class... Args>
+    CELER_FUNCTION EnteringSurfaceNormalSampler(Real3 const& dir,
+                                                Real3 const& normal,
+                                                Args&&... args)
+        : dir_{dir}, sample_normal_{normal, celeritas::forward<Args>(args)...}
     {
+        CELER_EXPECT(is_entering_surface(normal, dir));
     }
 
     // Repeatedly sample facet normal until satisfies entering surface
@@ -63,11 +67,6 @@ class EnteringSurfaceNormalSampler
     Real3 const& dir_;
     Calculator sample_normal_;
 };
-
-// Deduction guide
-template<class Calculator>
-EnteringSurfaceNormalSampler(Real3 const&, Calculator&&)
-    -> EnteringSurfaceNormalSampler<Calculator>;
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

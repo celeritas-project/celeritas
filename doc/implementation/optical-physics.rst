@@ -135,8 +135,8 @@ decreasing precedence by:
    precedence above into SurfacePhysics documentation.
 
 Surface normals are defined by the track position in the geometry. Corrections
-may be applied to the geometric surface normal to account for the roughness of
-the surface.
+may be applied to the geometric surface normal by sampling from a "microfacet
+distribution" to account for the roughness of the surface.
 
-.. doxygenclass:: celeritas::optical::SmearRoughnessModel
-.. doxygenclass:: celeritas::optical::GaussianRoughnessModel
+.. doxygenclass:: celeritas::optical::SmearRoughnessSampler
+.. doxygenclass:: celeritas::optical::GaussianRoughnessSampler
