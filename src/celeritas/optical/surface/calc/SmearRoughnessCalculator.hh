@@ -42,6 +42,7 @@ class SmearRoughnessCalculator
   private:
     real_type roughness_;
     Real3 const& normal_;
+    PowerDistribution<> sample_r_{2};
 };
 
 //---------------------------------------------------------------------------//
@@ -66,9 +67,8 @@ SmearRoughnessCalculator::SmearRoughnessCalculator(real_type roughness,
 template<class Engine>
 CELER_FUNCTION Real3 SmearRoughnessCalculator::operator()(Engine& rng) const
 {
+    real_type r = sample_r_(rng);
     Real3 local_normal = normal_;
-
-    real_type r = PowerDistribution<real_type>{2}(rng);
     axpy(r * roughness_, IsotropicDistribution{}(rng), &local_normal);
 
     return make_unit_vector(local_normal);
