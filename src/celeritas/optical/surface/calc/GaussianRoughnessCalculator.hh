@@ -55,7 +55,7 @@ CELER_FUNCTION
 GaussianRoughnessCalculator::GaussianRoughnessCalculator(real_type sigma_alpha,
                                                          Real3 const& normal)
     : sample_alpha_(0, sigma_alpha)
-    , f_max_(min(real_type{1}, 4 * sigma_alpha))
+    , f_max_(fmin(real_type{1}, 4 * sigma_alpha))
     , normal_(normal)
 {
     CELER_EXPECT(sigma_alpha > 0);
@@ -73,9 +73,9 @@ CELER_FUNCTION Real3 GaussianRoughnessCalculator::operator()(Engine& rng)
     real_type sin_alpha = 0;
     do
     {
-        cos_alpha = cos(sample_alpha_(rng));
-        sin_alpha = sqrt(1 - ipow<2>(cos_alpha));
-    } while (cos_alpha <= 0 || RejectionSampler{sin_alpha, f_max_}(rng));
+        real_type alpha = sample_alpha_(rng);
+        sincos(alpha, &sin_alpha, &cos_alpha);
+    } while (cos_alpha <= 0 || RejectionSampler{fabs(sin_alpha), f_max_}(rng));
 
     // Rotate normal by alpha and then sample azimuth rotation uniformly
     return ExitingDirectionSampler{cos_alpha, normal_}(rng);

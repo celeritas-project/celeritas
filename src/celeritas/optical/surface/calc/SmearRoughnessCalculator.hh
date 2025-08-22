@@ -8,8 +8,8 @@
 
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/random/distribution/PowerDistribution.hh"
+#include "geocel/Types.hh"
 #include "geocel/random/IsotropicDistribution.hh"
-#include "celeritas/Constants.hh"
 
 namespace celeritas
 {
