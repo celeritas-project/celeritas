@@ -61,13 +61,8 @@ RayleighModel::RayleighModel(ActionId id, SPConstImported imported, Input input)
     {
         if (input_)
         {
-            if (imported_.mfp(mat) && input_.imported_materials->rayleigh(mat))
-            {
-                CELER_LOG(debug) << "Rayleigh: will compute MFP from Rayleigh "
-                                    "params for mat "
-                                 << mat.get();
-            }
-            else
+            if (!(imported_.mfp(mat)
+                  && input_.imported_materials->rayleigh(mat)))
             {
                 CELER_LOG(debug) << "Rayleigh model: no MFP data for material "
                                  << mat.get();
