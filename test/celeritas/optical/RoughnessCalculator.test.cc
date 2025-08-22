@@ -80,7 +80,10 @@ TEST_F(RoughnessSamplerTest, entering_surface)
         {{0.982, 1.018, 0, 0}, 8.026},
         {{1.019, 0.981, 0, 0}, 8.041},
     };
-    EXPECT_REF_EQ(expected, actual);
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_REF_EQ(expected, actual);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -114,7 +117,10 @@ TEST_F(RoughnessSamplerTest, smear)
         {{0.0065, 0.131, 0.498, 1.411, 2.9535}, 6},
     };
 
-    EXPECT_REF_EQ(expected, actual);
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_REF_EQ(expected, actual);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -144,7 +150,10 @@ TEST_F(RoughnessSamplerTest, gaussian)
         {{0, 0, 0, 0.034, 4.966}, 21.7968},
         {{0.423, 0.586, 0.891, 1.281, 1.819}, 10.206},
     };
-    EXPECT_REF_EQ(expected, actual);
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_REF_EQ(expected, actual);
+    }
 }
 
 //---------------------------------------------------------------------------//
