@@ -7,7 +7,7 @@
 #pragma once
 
 #include "celeritas/grid/NonuniformGridInserter.hh"
-
+#include "celeritas/inp/Grid.hh"
 namespace celeritas
 {
 namespace optical
@@ -71,7 +71,13 @@ MfpBuilder::MfpBuilder(Values* real_data, GridValues* grid_data)
 template<typename... Args>
 void MfpBuilder::operator()(Args const&... args)
 {
-    insert_grid_(args...);
+    inp::Grid const& g = std::get<0>(std::tie(args...));
+    if (g.x.empty())
+    {
+        insert_grid_();
+    }
+    else
+        insert_grid_(args...);
 }
 
 //---------------------------------------------------------------------------//

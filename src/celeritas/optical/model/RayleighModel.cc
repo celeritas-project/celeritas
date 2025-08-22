@@ -69,8 +69,8 @@ RayleighModel::RayleighModel(ActionId id, SPConstImported imported, Input input)
             }
             else
             {
-                CELER_LOG(debug) << "Rayleigh: no MFP data for mat "
-                                 << " (will use empty grid => infinite MFP)";
+                CELER_LOG(debug) << "Rayleigh model: no MFP data for material "
+                                 << mat.get();
             }
         }
         else
@@ -118,9 +118,16 @@ void RayleighModel::build_mfps(OptMatId mat, MfpBuilder& build) const
     }
     else
     {
-        CELER_LOG(debug) << "No MFP data available for material " << mat.get()
-                         << ", creating empty grid (infinite MFP)";
-        build();
+        auto mat_view = input_.materials->get(mat);
+        auto rindex_calc = mat_view.make_refractive_index_calculator();
+        auto energies = rindex_calc.grid().values();
+        if (!energies.empty())
+        {
+            inp::Grid g;
+            g.x.assign(energies.begin(), energies.end());
+            g.y.assign(g.x.size(), std::numeric_limits<real_type>::infinity());
+            build(g);
+        }
     }
 }
 
