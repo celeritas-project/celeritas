@@ -228,11 +228,11 @@ void AtlasHgtdGeoTest::test_volume_stack() const
     Real3 const dir{
         0.5784236876658104, 0.8157365000698582, -9.290358099212079e-7};
 
-    for (real_type dx : {1.0, 1e-3, 1e-6})
+    for (real_type dx : {-1.0, -1e-3, -1e-6, 1e-3})
     {
-        // Near z=344.45 inside HGTDSupportPlate
+        // Near z=344.45 is inside HGTDSupportPlate
         Real3 pos{24.097769534015998, 17.956803215217408, 344.45};
-        axpy(-dx, dir, &pos);
+        axpy(dx, dir, &pos);
 
         auto result = test_->volume_stack(pos);
         all_stacks.emplace_back(to_string(join(result.volume_instances.begin(),
@@ -240,10 +240,12 @@ void AtlasHgtdGeoTest::test_volume_stack() const
                                                ",")));
     }
 
+    // NOTE: Geant4 returns SPlate for dx=1e-6, whereas VecGeom returns HGTD
     static char const* const expected_all_stacks[] = {
         "Atlas_PV,ITK,HGTD,SPlate_4@0",
         "Atlas_PV,ITK,HGTD,SPlate_4@0",
         "Atlas_PV,ITK,HGTD,SPlate_4@0",
+        "Atlas_PV,ITK,HGTD",
     };
     EXPECT_VEC_EQ(expected_all_stacks, all_stacks);
 }
