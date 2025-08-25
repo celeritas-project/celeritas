@@ -608,7 +608,7 @@ PhysicsTrackView::make_element_selector(UniformTableId table_id,
  * ID of the particle's at-rest process.
  *
  * If the particle can have a discrete interaction at rest, this returns the \c
- * ParticleProcessId of that process. Otherwise, it returns an invalid ID.
+ * ParticleProcessId of that process. Otherwise, it returns a null ID.
  */
 CELER_FUNCTION ParticleProcessId PhysicsTrackView::at_rest_process() const
 {

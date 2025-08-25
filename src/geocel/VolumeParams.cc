@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "VolumeParams.hh"
 
+#include "corecel/io/Logger.hh"
+
 #include "VolumeVisitor.hh"
 #include "inp/Model.hh"
 
@@ -30,7 +32,47 @@ LevelId::size_type calc_depth(VolumeParams const& params)
     return result;
 }
 
+//---------------------------------------------------------------------------//
+//! Volumes corresponding to global tracking model
+std::weak_ptr<VolumeParams const> g_volumes_;
+
+//---------------------------------------------------------------------------//
 }  // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set global geometry instance.
+ *
+ * This allows many parts of the codebase to independently access Geant4
+ * metadata. It should be called during initialization of any Celeritas front
+ * end that integrates with Geant4. We can't use shared pointers here because
+ * of global initialization order issues (the low-level Geant4 objects may be
+ * cleared before a static celeritas::VolumeParams is destroyed).
+ *
+ * \note This should be done only during setup on the main thread.
+ */
+void global_volumes(std::shared_ptr<VolumeParams const> const& gv)
+{
+    CELER_LOG(debug) << (!gv                    ? "Clearing"
+                         : g_volumes_.expired() ? "Setting"
+                                                : "Updating")
+                     << " celeritas::volumes";
+    g_volumes_ = gv;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access the global canonical volume metadata.
+ *
+ * This can be used by geometry-related helper functions throughout
+ * the code base.
+ *
+ * \return Weak pointer to the global VolumeParams wrapper, which may be null.
+ */
+std::weak_ptr<VolumeParams const> const& global_volumes()
+{
+    return g_volumes_;
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -51,6 +93,8 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
     v_labels_ = VolumeMap("volume", extract_labels(in.volumes));
     vi_labels_
         = VolInstMap("volume_instance", extract_labels(in.volume_instances));
+
+    // TODO: warn about duplicate labels (see LabelIdMultiMap::duplicates)
 
     // Unzip volume properties
     materials_.resize(this->num_volumes());

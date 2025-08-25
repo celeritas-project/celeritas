@@ -16,7 +16,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Map an input grid to an ID type, returning invalid ID if outside bounds.
+ * Map an input grid to an ID type, returning null ID if outside bounds.
  *
  * The input grid should be a monotonic increasing series, and the
  * corresponding ID values should be one fewer (cell-centered data). Values

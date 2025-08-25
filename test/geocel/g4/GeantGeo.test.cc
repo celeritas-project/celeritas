@@ -20,6 +20,7 @@
 #include "geocel/GeoParamsOutput.hh"
 #include "geocel/GeoTests.hh"
 #include "geocel/UnitUtils.hh"
+#include "geocel/VolumeParams.hh"
 #include "geocel/g4/GeantGeoData.hh"
 #include "geocel/g4/GeantGeoTrackView.hh"
 #include "geocel/rasterize/SafetyImager.hh"
@@ -345,7 +346,7 @@ TEST_F(MultiLevelTest, level_strings)
 {
     using R2 = Array<double, 2>;
 
-    auto const& vol_inst = this->geometry()->volume_instances();
+    auto const& vol_inst = this->volumes()->volume_instance_labels();
     auto const& vol = this->geometry()->impl_volumes();
 
     // Include outer world and center sphere
@@ -508,7 +509,7 @@ TEST_F(ReplicaTest, level_strings)
     using R2 = Array<double, 2>;
 
     auto const& geo_params = *this->geometry();
-    auto const& vol_inst = geo_params.volume_instances();
+    auto const& vol_inst = this->volumes()->volume_instance_labels();
 
     static R2 const points[] = {
         {-435, 550},

@@ -188,7 +188,7 @@ void GeantSimpleCalo::output(JsonPimpl* j) const
 
     // Save detector volumes
     {
-        auto ggp = celeritas::geant_geo().lock();
+        auto ggp = celeritas::global_geant_geo().lock();
         if (!ggp)
         {
             // This can happen if using this class without Celeritas offloading

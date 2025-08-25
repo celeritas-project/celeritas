@@ -128,8 +128,7 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
 
     if (CELER_UNLIKELY(verbose_))
     {
-        std::clog << std::string(depth_, ' ') << "- Add pv "
-                  << geo_.volume_instances().at(pv.id)
+        std::clog << std::string(depth_, ' ') << "- Add pv ID " << pv.id.get()
                   << " use_count=" << pv.lv.use_count()
                   << ", num_children=" << pv.lv->children.size() << ", at "
                   << StreamableVariant{transform} << " to " << proto->label
