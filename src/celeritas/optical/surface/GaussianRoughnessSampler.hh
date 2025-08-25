@@ -23,14 +23,12 @@ namespace optical
 /*!
  * Sample a facet normal from a Gaussian roughness model.
  *
- * The Gaussian roughness model, introduced in \citet{levin-morephysical-1996,
- * https://doi.org/10.1109/NSSMIC.1996.591410} , is parameterized by a positive
- * real number \c sigma_alpha. The "facet slope", an angle \c alpha between the
- * facet normal and the global normal, is sampled from the distribution
- * \f[
- * p(\alpha) = N(\alpha; 0, \sigma_\alpha) * \sin(\alpha)
- * \f]
- * where  \f$ alpha \f$ is in the range [0, pi/2).
+ * The Gaussian roughness model was introduced in
+ * \citet{levin-morephysical-1996, https://doi.org/10.1109/NSSMIC.1996.591410}
+ * . The "facet slope", an angle \c alpha between the facet normal and the
+ * global normal, is sampled from a normal distribution with standard deviation
+ * \c sigma_alpha . The paper justifies this distribution based on surface
+ * roughness measurements with a bismuth germanate (BGO) crystal.
  */
 class GaussianRoughnessSampler
 {
@@ -73,7 +71,8 @@ CELER_FUNCTION Real3 GaussianRoughnessSampler::operator()(Engine& rng)
     real_type cos_alpha{};
     do
     {
-        // Sample angle according to gaussian
+        // Sample angle according to gaussian (chances of having a nonpositive
+        // slope are vanishingly small)
         cos_alpha = std::cos(sample_alpha_(rng));
     } while (cos_alpha <= 0);
 
