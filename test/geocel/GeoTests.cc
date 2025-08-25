@@ -10,6 +10,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/math/ArrayOperators.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/Turn.hh"
 #include "corecel/sys/Version.hh"
 
@@ -72,6 +73,175 @@ void delete_orange_safety(GenericGeoTestInterface const& interface,
 
 //---------------------------------------------------------------------------//
 }  // namespace
+
+//---------------------------------------------------------------------------//
+// ATLAS HGTD
+//---------------------------------------------------------------------------//
+void AtlasHgtdGeoTest::test_trace() const
+{
+    {
+        SCOPED_TRACE("+z");
+        auto result = test_->track({12.5, 0, -2600}, {0, 0, 1});
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
+            "Atlas",  "HGTD",   "SPlate", "HGTD", "SPlate", "HGTD",   "SPlate",
+            "HGTD",   "SPlate", "HGTD",   "ITK",  "HGTD",   "SPlate", "HGTD",
+            "SPlate", "HGTD",   "SPlate", "HGTD", "SPlate", "HGTD",   "Atlas",
+        };
+        ref.volume_instances = {
+            "Atlas_PV",   "HGTD", "SPlate_7@1", "HGTD", "SPlate_6@1", "HGTD",
+            "SPlate_5@1", "HGTD", "SPlate_4@1", "HGTD", "ITK",        "HGTD",
+            "SPlate_4@0", "HGTD", "SPlate_5@0", "HGTD", "SPlate_6@0", "HGTD",
+            "SPlate_7@0", "HGTD", "Atlas_PV",
+        };
+        ref.distances = {
+            2245.5, 6.75, 0.1, 0.6, 0.1, 1.7, 0.1, 0.6, 0.1,  2.45,   684,
+            2.45,   0.1,  0.6, 0.1, 1.7, 0.1, 0.6, 0.1, 6.75, 2250.1,
+        };
+        ref.halfway_safeties = {
+            771.8918204645,
+            1.5,
+            0.05,
+            0.3,
+            0.05,
+            0.85,
+            0.05,
+            0.3,
+            0.05,
+            1.225,
+            9.62,
+            1.225,
+            0.05,
+            0.3,
+            0.05,
+            0.85,
+            0.05,
+            0.3,
+            0.05,
+            1.5,
+            769.72940862358,
+        };
+        ref.bumps = {};
+        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        delete_orange_safety(*test_, ref, result);
+        EXPECT_REF_NEAR(ref, result, tol);
+    }
+    {
+        SCOPED_TRACE("+z near trouble");
+        auto result = test_->track({24, 18, 300}, {0, 0, 1});
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
+            "ITK",
+            "HGTD",
+            "SPlate",
+            "HGTD",
+            "SPlate",
+            "HGTD",
+            "SPlate",
+            "HGTD",
+            "SPlate",
+            "HGTD",
+            "Atlas",
+        };
+        ref.volume_instances = {
+            "ITK",
+            "HGTD",
+            "SPlate_4@0",
+            "HGTD",
+            "SPlate_5@0",
+            "HGTD",
+            "SPlate_6@0",
+            "HGTD",
+            "SPlate_7@0",
+            "HGTD",
+            "Atlas_PV",
+        };
+        ref.distances = {
+            42,  // enter HGTD at z=342
+            2.45,  // enter HGTDSupportPlate at z=344.45
+            0.1,  // leave into HGTD at z=344.55
+            0.6,
+            0.1,
+            1.7,
+            0.1,
+            0.6,
+            0.1,
+            6.75,
+            2250.1,
+        };
+        ref.halfway_safeties = {
+            21,
+            1.225,
+            0.05,
+            0.3,
+            0.05,
+            0.85,
+            0.05,
+            0.3,
+            0.05,
+            3.375,
+            763.93626206641,
+        };
+        ref.bumps = {};
+        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        delete_orange_safety(*test_, ref, result);
+        EXPECT_REF_NEAR(ref, result, tol);
+    }
+
+    {
+        // See https://github.com/celeritas-project/celeritas/issues/1902
+        // in HGTD::HGTDSupportPlate, on boundary, taking small step
+        SCOPED_TRACE("tangent at far away point");
+        Real3 pos{24.097769534015998, 17.956803215217408, 344.45};
+        Real3 dir{
+            0.5784236876658104, 0.8157365000698582, -9.290358099212079e-7};
+        axpy(real_type{-1}, dir, &pos);
+        auto result = test_->track(pos, dir, /* max steps = */ 10);
+
+        GenericGeoTrackingResult ref;
+        ref.volumes = {"SPlate", "HGTD", "ITK", "Atlas"};
+        ref.volume_instances = {"SPlate_4@0", "HGTD", "ITK", "Atlas_PV"};
+        ref.distances = {
+            1.0000000238587, 81.021892625066, 4.8164185705351, 1305.6446868933};
+        ref.halfway_safeties = {4.6451791604341e-07,
+                                2.4499623638801,
+                                2.3998244128449,
+                                652.50340341824};
+        ref.bumps = {};
+        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        tol.distance = 1e-7;
+        delete_orange_safety(*test_, ref, result);
+        EXPECT_REF_NEAR(ref, result, tol);
+    }
+}
+
+//---------------------------------------------------------------------------//
+void AtlasHgtdGeoTest::test_volume_stack() const
+{
+    std::vector<std::string> all_stacks;
+
+    Real3 const dir{
+        0.5784236876658104, 0.8157365000698582, -9.290358099212079e-7};
+
+    for (real_type dx : {1.0, 1e-3, 1e-6})
+    {
+        // Near z=344.45 inside HGTDSupportPlate
+        Real3 pos{24.097769534015998, 17.956803215217408, 344.45};
+        axpy(-dx, dir, &pos);
+
+        auto result = test_->volume_stack(pos);
+        all_stacks.emplace_back(to_string(join(result.volume_instances.begin(),
+                                               result.volume_instances.end(),
+                                               ",")));
+    }
+
+    static char const* const expected_all_stacks[] = {
+        "Atlas_PV,ITK,HGTD,SPlate_4@0",
+        "Atlas_PV,ITK,HGTD,SPlate_4@0",
+        "Atlas_PV,ITK,HGTD,SPlate_4@0",
+    };
+    EXPECT_VEC_EQ(expected_all_stacks, all_stacks);
+}
 
 //---------------------------------------------------------------------------//
 // CMS EE

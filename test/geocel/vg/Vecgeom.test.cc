@@ -445,6 +445,26 @@ TEST_F(TwoBoxesVgdmlTest, track)
 //---------------------------------------------------------------------------//
 // G4VG TESTS
 //---------------------------------------------------------------------------//
+using AtlasHgtdTest
+    = GenericGeoParameterizedTest<VecgeomGeantTestBase, AtlasHgtdGeoTest>;
+
+TEST_F(AtlasHgtdTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(AtlasHgtdTest, volume_stack)
+{
+    this->impl().test_volume_stack();
+}
+
+TEST_F(AtlasHgtdTest, detailed_track)
+{
+    // Templated test
+    AtlasHgtdGeoTest::test_detailed_tracking(this);
+}
+
+//---------------------------------------------------------------------------//
 
 using CmsEeBackDeeTest
     = GenericGeoParameterizedTest<VecgeomGeantTestBase, CmsEeBackDeeGeoTest>;

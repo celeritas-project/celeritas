@@ -94,6 +94,7 @@ if(CELERITAS_USE_VecGeom)
   endif()
   if(CELERITAS_USE_Geant4)
     list(APPEND _vecgeom_tests
+      "AtlasHgtdTest.*"
       "CmseTest.*"
       "CmsEeBackDeeTest.*"
       "FourLevelsTest.*"

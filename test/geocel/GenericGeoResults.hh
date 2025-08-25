@@ -43,7 +43,7 @@ struct GenericGeoTrackingResult
     std::vector<real_type> distances;  //!< [cm]
     std::vector<real_type> halfway_safeties;  //!< [cm]
     // Locations the particle had a very tiny distance in a volume
-    std::vector<real_type> bumps;  //!< [cm * 3]
+    std::vector<Real3> bumps;  //!< [cm]
 
     void print_expected() const;
 };

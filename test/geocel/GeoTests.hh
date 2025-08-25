@@ -21,6 +21,28 @@ class GenericGeoTestInterface;
 
 //---------------------------------------------------------------------------//
 /*!
+ * Test the ATLAS HGTD (translated distant pancakes).
+ */
+class AtlasHgtdGeoTest
+{
+  public:
+    static std::string_view gdml_basename() { return "atlas-hgtd"; }
+
+    //! Construct with a reference to the GoogleTest
+    AtlasHgtdGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
+
+    void test_trace() const;
+    void test_volume_stack() const;
+
+    template<class GeoTest>
+    inline static void test_detailed_tracking(GeoTest* geo_test);
+
+  private:
+    GenericGeoTestInterface* test_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Test the CMS EE (reflecting) geometry.
  */
 class CmsEeBackDeeGeoTest
@@ -325,6 +347,49 @@ class ZnenvGeoTest
 
 //---------------------------------------------------------------------------//
 // INLINE TEMPLATE TESTS
+//---------------------------------------------------------------------------//
+
+template<class GeoTest>
+void AtlasHgtdGeoTest::test_detailed_tracking(GeoTest* test)
+{
+    {
+        // See https://github.com/celeritas-project/celeritas/issues/1902
+        SCOPED_TRACE("almost tangent at large Z");
+        auto geo = test->make_geo_track_view(
+            {23.51934584635, 17.141066715148, 344.45000092904},
+            {0.5784236876658104, 0.8157365000698582, -9.290358099212079e-7});
+        ASSERT_FALSE(geo.is_outside());
+        EXPECT_EQ("SPlate", test->volume_name(geo));
+        EXPECT_FALSE(geo.is_on_boundary());
+
+        // Find next boundary
+        auto next = geo.find_next_step(from_cm(2.0));
+        EXPECT_SOFT_NEAR(1.0, to_cm(next.distance), 1e-5);
+        EXPECT_TRUE(next.boundary);
+        geo.move_to_boundary();
+        EXPECT_SOFT_EQ(344.45, to_cm(geo.pos()[2]));
+        EXPECT_EQ("SPlate", test->volume_name(geo));
+        EXPECT_TRUE(geo.is_on_boundary());
+        geo.cross_boundary();
+        EXPECT_EQ("HGTD", test->volume_name(geo));
+        EXPECT_TRUE(geo.is_on_boundary());
+
+        // Suppose safety distance results in small step limit
+        next = geo.find_next_step(from_cm(5e-9));
+        EXPECT_SOFT_EQ(5e-9, to_cm(next.distance));
+        geo.move_internal(from_cm(5e-9));
+        EXPECT_FALSE(geo.is_on_boundary());
+        EXPECT_EQ("HGTD", test->volume_name(geo));
+
+        // Should be able to continue stepping as normal
+        next = geo.find_next_step(from_cm(1e-6));
+        EXPECT_SOFT_EQ(1e-6, to_cm(next.distance));
+        EXPECT_FALSE(next.boundary);
+        EXPECT_FALSE(geo.is_on_boundary());
+        EXPECT_EQ("HGTD", test->volume_name(geo));
+    }
+}
+
 //---------------------------------------------------------------------------//
 
 template<class GeoTest>

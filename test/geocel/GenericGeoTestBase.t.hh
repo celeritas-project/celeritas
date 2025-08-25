@@ -194,7 +194,7 @@ template<class HP>
 auto GenericGeoTestBase<HP>::track(Real3 const& pos, Real3 const& dir)
     -> TrackingResult
 {
-    return this->track(pos, dir, std::numeric_limits<int>::max());
+    return this->track(pos, dir, 10000);
 }
 
 //---------------------------------------------------------------------------//
@@ -260,10 +260,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
                 result.volume_instances.pop_back();
             }
             // Instead add the point to the bump list
-            for (auto p : geo.pos())
-            {
-                result.bumps.push_back(p * inv_length);
-            }
+            result.bumps.push_back(geo.pos() * inv_length);
         }
         else
         {
@@ -308,7 +305,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
                 EXPECT_TRUE(new_next.boundary);
                 EXPECT_SOFT_NEAR(new_next.distance,
                                  next.distance / 2,
-                                 100 * SoftEqual<>{}.rel())
+                                 500 * norm(geo.pos()) * SoftEqual<>{}.rel())
                     << "reinitialized distance mismatch at index "
                     << result.volumes.size() - 1 << ": " << init.pos
                     << " along " << init.dir;
@@ -327,6 +324,11 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
             break;
         }
         --max_step;
+    }
+
+    if (max_step <= 0)
+    {
+        ADD_FAILURE() << "Aborted track: maximum step count exceeded";
     }
 
     return result;

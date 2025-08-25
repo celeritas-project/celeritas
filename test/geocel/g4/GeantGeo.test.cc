@@ -60,6 +60,63 @@ class GeantGeoTest : public GeantGeoTestBase
 };
 
 //---------------------------------------------------------------------------//
+using AtlasHgtdTest
+    = GenericGeoParameterizedTest<GeantGeoTest, AtlasHgtdGeoTest>;
+
+TEST_F(AtlasHgtdTest, model)
+{
+    auto result = this->model_inp();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {"SPlate", "HGTD", "ITK", "Atlas"};
+    ref.volume.materials = {0, 1, 1, 1};
+    ref.volume.daughters = {{}, {0, 1, 2, 3, 4, 5, 6, 7}, {8}, {9}};
+    ref.volume_instance.labels = {
+        "SPlate_4@0",
+        "SPlate_5@0",
+        "SPlate_6@0",
+        "SPlate_7@0",
+        "SPlate_4@1",
+        "SPlate_5@1",
+        "SPlate_6@1",
+        "SPlate_7@1",
+        "HGTD",
+        "ITK",
+        "Atlas_PV",
+    };
+    ref.volume_instance.volumes = {
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2,
+        3,
+    };
+    ref.world = "Atlas";
+    EXPECT_REF_EQ(ref, result);
+}
+
+TEST_F(AtlasHgtdTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(AtlasHgtdTest, volume_stack)
+{
+    this->impl().test_volume_stack();
+}
+
+TEST_F(AtlasHgtdTest, detailed_track)
+{
+    // Templated test
+    AtlasHgtdGeoTest::test_detailed_tracking(this);
+}
+
+//---------------------------------------------------------------------------//
 using CmseTest = GenericGeoParameterizedTest<GeantGeoTest, CmseGeoTest>;
 
 TEST_F(CmseTest, model)
