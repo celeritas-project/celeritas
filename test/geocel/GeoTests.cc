@@ -188,6 +188,11 @@ void AtlasHgtdGeoTest::test_trace() const
         EXPECT_REF_NEAR(ref, result, tol);
     }
 
+    if (test_->geometry_type() == "VecGeom" && !CELERITAS_VECGEOM_SURFACE)
+    {
+        GTEST_SKIP() << "VecGeom fails the tangent trace";
+    }
+    else
     {
         // See https://github.com/celeritas-project/celeritas/issues/1902
         // in HGTD::HGTDSupportPlate, on boundary, taking small step
