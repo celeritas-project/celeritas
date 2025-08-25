@@ -124,6 +124,13 @@ void AtlasHgtdGeoTest::test_trace() const
         ref.bumps = {};
         auto tol = GenericGeoTrackingTolerance::from_test(*test_);
         delete_orange_safety(*test_, ref, result);
+        if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
+        {
+            // World safety differs
+            ref.halfway_safeties[0] = 725.849243164062;
+            ref.halfway_safeties[20] = 723.549255371094;
+        }
+
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
@@ -185,6 +192,11 @@ void AtlasHgtdGeoTest::test_trace() const
         ref.bumps = {};
         auto tol = GenericGeoTrackingTolerance::from_test(*test_);
         delete_orange_safety(*test_, ref, result);
+        if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
+        {
+            // World safety differs
+            ref.halfway_safeties[10] = 723.549255371094;
+        }
         EXPECT_REF_NEAR(ref, result, tol);
     }
 
@@ -228,7 +240,7 @@ void AtlasHgtdGeoTest::test_volume_stack() const
     Real3 const dir{
         0.5784236876658104, 0.8157365000698582, -9.290358099212079e-7};
 
-    for (real_type dx : {-1.0, -1e-3, -1e-6, 1e-3})
+    for (real_type dx : {-1.0, -1e-3, -1e-5, 1e-5, 1e-3, 1.0})
     {
         // Near z=344.45 is inside HGTDSupportPlate
         Real3 pos{24.097769534015998, 17.956803215217408, 344.45};
@@ -241,12 +253,27 @@ void AtlasHgtdGeoTest::test_volume_stack() const
     }
 
     // NOTE: Geant4 returns SPlate for dx=1e-6, whereas VecGeom returns HGTD
-    static char const* const expected_all_stacks[] = {
+    std::vector<std::string> expected_all_stacks = {
         "Atlas_PV,ITK,HGTD,SPlate_4@0",
         "Atlas_PV,ITK,HGTD,SPlate_4@0",
         "Atlas_PV,ITK,HGTD,SPlate_4@0",
         "Atlas_PV,ITK,HGTD",
+        "Atlas_PV,ITK,HGTD",
+        "Atlas_PV,ITK,HGTD",
     };
+    if (test_->geometry_type() == "Geant4")
+    {
+        // Geant4 navigation (probably "skin" checks) overpredicts the
+        // volume extents
+        expected_all_stacks[3] = expected_all_stacks.front();
+    }
+    if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
+    {
+        // VecGeom surface overpredicts even more
+        expected_all_stacks[3] = expected_all_stacks.front();
+        expected_all_stacks[4] = expected_all_stacks.front();
+    }
+
     EXPECT_VEC_EQ(expected_all_stacks, all_stacks);
 }
 

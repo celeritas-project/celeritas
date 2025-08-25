@@ -371,7 +371,7 @@ void AtlasHgtdGeoTest::test_detailed_tracking(GeoTest* test)
         EXPECT_EQ("SPlate", test->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
         geo.cross_boundary();
-        if (test->geometry_type() == "VecGeom")
+        if (test->geometry_type() == "VecGeom" && !CELERITAS_VECGEOM_SURFACE)
         {
             // VecGeom fails to cross the boundary! the internal bump along the
             // path of travel doesn't change the Z coordinate, so it assumes
