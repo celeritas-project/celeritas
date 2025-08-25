@@ -17,8 +17,13 @@ def setupPhysics(kernel):
   from DDG4 import PhysicsList,Geant4
   phys = Geant4(kernel).setupPhysics('QGSP_BERT')
   celer_phys = PhysicsList(kernel, str('DDcelerTMI'))
+  celer_phys.MaxNumTracks = 2048
+  celer_phys.InitCapacity = 245760
+  celer_phys.UniformFieldStrength = 4.0
   phys.adopt(celer_phys)
   phys.dump()
   return None
 
 RUNNER.physics.setupUserPhysics(setupPhysics)
+
+RUNNER.part.userParticleHandler=''

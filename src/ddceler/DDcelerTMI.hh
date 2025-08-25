@@ -29,6 +29,10 @@ class DDcelerTMI : public Geant4PhysicsList
     // Define standard assignments and constructors
     DDG4_DEFINE_ACTION_CONSTRUCTORS(DDcelerTMI);
 
+    int m_maxNumTracks;
+    int m_initCapacity;
+    float m_uniformFieldStrength;
+
   public:
     // Standard constructor
     inline DDcelerTMI(Geant4Context* ctxt, std::string const& nam);
@@ -52,6 +56,9 @@ class DDcelerTMI : public Geant4PhysicsList
 DDcelerTMI::DDcelerTMI(Geant4Context* ctxt, std::string const& nam)
     : Geant4PhysicsList(ctxt, nam)
 {
+    declareProperty("MaxNumTracks", m_maxNumTracks);
+    declareProperty("InitCapacity", m_initCapacity);
+    declareProperty("UniformFieldStrength", m_uniformFieldStrength);
 }
 
 //---------------------------------------------------------------------------//

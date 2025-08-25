@@ -24,16 +24,16 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
 
     // NOTE: these numbers are appropriate for CPU execution and can be set
     // through the UI using `/celer/`
-    opts.max_num_tracks = 2024;
-    opts.initializer_capacity = 2024 * 128;
+    opts.max_num_tracks = m_maxNumTracks;
+    opts.initializer_capacity = m_initCapacity;
     // Celeritas does not support EmStandard MSC physics above 200 MeV
     opts.ignore_processes = {"CoulombScat"};
 
     // Use a placeholder non-zero uniform magnetic field
-    auto make_field_input = []() {
+    auto make_field_input = [this] {
         celeritas::inp::UniformField input;
 
-        input.strength = {0, 0, 3};
+        input.strength = {0, 0, m_uniformFieldStrength};
         constexpr auto celer_mm = celeritas::units::millimeter;
         input.driver_options.minimum_step = 1e-6 * celer_mm;
         input.driver_options.delta_chord = 0.025 * celer_mm;
