@@ -7,8 +7,10 @@
 #pragma once
 
 #include <string_view>
+#include <variant>
 #include <nlohmann/json.hpp>
 
+#include "corecel/OpaqueId.hh"
 #include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 
@@ -116,6 +118,58 @@ void check_format(nlohmann::json const& j, std::string_view format);
 
 // Check units for consistency
 void check_units(nlohmann::json const& j, std::string_view format);
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a vector of variants to a json array.
+ */
+template<class T>
+nlohmann::json variants_to_json(std::vector<T> const& values)
+{
+    auto result = nlohmann::json::array();
+    for (auto const& var : values)
+    {
+        auto j = nlohmann::json::object();
+        std::visit([&j](auto&& u) { to_json(j, u); }, var);
+        result.push_back(std::move(j));
+    }
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Read an Opaque ID from JSON.
+ */
+template<class I, class T>
+void from_json(nlohmann::json const& j, OpaqueId<I, T>& value)
+{
+    if (j.is_null())
+    {
+        value = {};
+    }
+    else
+    {
+        value = id_cast<OpaqueId<I, T>>(j.get<T>());
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write an Opaque ID to JSON.
+ */
+template<class I, class T>
+void to_json(nlohmann::json& j, OpaqueId<I, T> value)
+{
+    if (!value)
+    {
+        j = nullptr;
+    }
+    else
+    {
+        j = value.unchecked_get();
+    }
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -26,22 +26,23 @@ namespace optical
     SurfaceModel ...;
    \endcode
  */
-class SurfaceModel : public ::celeritas::SurfaceModel,
-                     public OpticalStepActionInterface,
-                     public ConcreteAction
+class SurfaceModel : public ::celeritas::SurfaceModel
 {
   public:
     //!@{
     //! \name Type aliases
     using SPModel = std::shared_ptr<SurfaceModel>;
-    using ModelBuilder = std::function<SPModel(ActionId)>;
+    using ModelBuilder = std::function<SPModel(SurfaceModelId)>;
+
+    using CoreStateHost = CoreState<MemSpace::host>;
+    using CoreStateDevice = CoreState<MemSpace::device>;
     //!@}
 
   public:
-    using ConcreteAction::ConcreteAction;
+    using ::celeritas::SurfaceModel::SurfaceModel;
 
-    //! Action order for optical surface models is always post-step
-    StepActionOrder order() const override { return StepActionOrder::post; }
+    virtual void step(CoreParams const&, CoreStateHost&) const = 0;
+    virtual void step(CoreParams const&, CoreStateDevice&) const = 0;
 };
 
 //---------------------------------------------------------------------------//

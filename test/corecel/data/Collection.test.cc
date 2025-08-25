@@ -68,8 +68,8 @@ TEST(ItemMap, basic)
     using ItemMap = ItemMap<T1, T2>;
 
     Collection<double, Ownership::value, MemSpace::host, T2> host_val;
-    std::vector<T2::value_type> data_a = {5, 6, 7, 8};
-    std::vector<T2::value_type> data_b = {9, 10, 11};
+    std::vector<int> data_a = {5, 6, 7, 8};
+    std::vector<int> data_b = {9, 10, 11};
 
     // Add both vectors to the Collection, creating a Range for each
     auto range_a

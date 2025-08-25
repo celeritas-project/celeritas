@@ -9,6 +9,7 @@
 #include <G4ParticleTable.hh>
 
 #include "geocel/UnitUtils.hh"
+#include "geocel/VolumeParams.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -216,7 +217,8 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
         // Note: the volumes correspond to simple-cms and the detector IDs
         // above
         dso.volume_instance_depth = 2;
-        auto const& vi_names = this->geometry()->volume_instances();
+        CELER_ASSERT(this->volumes());
+        auto const& vi_names = this->volumes()->volume_instance_labels();
         auto wovi = vi_names.find_unique("world_PV");
         auto emvi = vi_names.find_unique("em_calorimeter_pv");
         auto havi = vi_names.find_unique("had_calorimeter_pv");
@@ -400,7 +402,8 @@ TEST_F(SimpleCmsTest, touchable_exiting)
         = {Real3{0, 0, 1}, Real3{0, 0, 1}};
 
     dso.volume_instance_depth = 2;
-    auto const& vol_inst = this->geometry()->volume_instances();
+    CELER_ASSERT(this->volumes());
+    auto const& vol_inst = this->volumes()->volume_instance_labels();
     auto wovi = vol_inst.find_unique("world_PV");
     auto sivi = vol_inst.find_unique("si_tracker_pv");
     dso.points[StepPoint::pre].volume_instance_ids = {wovi, {}, wovi, sivi};

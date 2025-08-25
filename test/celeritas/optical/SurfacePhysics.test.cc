@@ -8,9 +8,6 @@
 
 #include <memory>
 #include <set>
-#include <sstream>
-#include <string>
-#include <string_view>
 #include <vector>
 
 #include "corecel/cont/Array.hh"
@@ -51,7 +48,8 @@ using namespace ::celeritas::test;
 template<class T>
 using SurfaceStepArray = EnumArray<SurfacePhysicsStep, T>;
 
-using ModelSurfaceId = SurfaceModel::ModelSurfaceId;
+using SurfaceModelId = ::celeritas::SurfaceModel::SurfaceModelId;
+using InternalSurfaceId = ::celeritas::SurfaceModel::InternalSurfaceId;
 
 auto constexpr forward = SubsurfaceDirection::forward;
 auto constexpr reverse = SubsurfaceDirection::reverse;
@@ -70,8 +68,8 @@ struct SurfaceResult
 {
     std::vector<OptMatId> materials{};
     std::vector<PhysicsSurfaceId> interfaces{};
-    SurfaceStepArray<std::vector<ActionId>> actions;
-    SurfaceStepArray<std::vector<ModelSurfaceId>> per_model_ids;
+    SurfaceStepArray<std::vector<SurfaceModelId>> actions;
+    SurfaceStepArray<std::vector<InternalSurfaceId>> per_model_ids;
 };
 
 struct TraceResult
@@ -108,15 +106,29 @@ class MockSurfaceModel : public SurfaceModel
     static SurfaceModel::ModelBuilder
     make_mock_builder(SurfacePhysicsStep step, size_type n)
     {
-        return [step, n](ActionId aid) {
-            std::stringstream title_string;
-            title_string << to_cstring(step) << "-" << n;
-            return std::make_shared<MockSurfaceModel>(title_string.str(), aid);
+        static SurfaceStepArray<std::vector<std::string_view>> labels{
+            std::vector<std::string_view>{
+                "roughness-0",
+                "roughness-1",
+            },
+            std::vector<std::string_view>{
+                "reflectivity-0",
+            },
+            std::vector<std::string_view>{
+                "interaction-0",
+                "interaction-1",
+                "interaction-2",
+                "interaction-3",
+            },
+        };
+
+        return [step, n](SurfaceModelId model) {
+            return std::make_shared<MockSurfaceModel>(labels[step][n], model);
         };
     }
 
-    MockSurfaceModel(std::string const& title, ActionId aid)
-        : SurfaceModel(aid, title, "desc-" + title)
+    MockSurfaceModel(std::string_view title, SurfaceModelId model_id)
+        : SurfaceModel(model_id, title)
     {
     }
 
@@ -345,9 +357,9 @@ TEST_F(SurfacePhysicsTest, init_params)
                 SurfaceId temp_id(s.unchecked_get());
 
                 surface.actions[step].push_back(
-                    data.model_maps[step].action_ids[temp_id]);
+                    data.model_maps[step].surface_models[temp_id]);
                 surface.per_model_ids[step].push_back(
-                    data.model_maps[step].model_surface_ids[temp_id]);
+                    data.model_maps[step].internal_surface_ids[temp_id]);
             }
         }
     }
@@ -362,14 +374,14 @@ TEST_F(SurfacePhysicsTest, init_params)
             as_id_vec<OptMatId>(0, 3, 1, 2, 1),
             as_id_vec<PhysicsSurfaceId>(0, 1, 2, 3),
             {
-                as_id_vec<ActionId>(1, 1, 0, 1),
-                as_id_vec<ActionId>(0, 0, 0, 0),
-                as_id_vec<ActionId>(3, 0, 2, 1),
+                as_id_vec<SurfaceModelId>(1, 1, 0, 1),
+                as_id_vec<SurfaceModelId>(0, 0, 0, 0),
+                as_id_vec<SurfaceModelId>(3, 0, 2, 1),
             },
             {
-                as_id_vec<ModelSurfaceId>(0, 1, 0, 2),
-                as_id_vec<ModelSurfaceId>(0, 1, 2, 3),
-                as_id_vec<ModelSurfaceId>(0, 0, 0, 0),
+                as_id_vec<InternalSurfaceId>(0, 1, 0, 2),
+                as_id_vec<InternalSurfaceId>(0, 1, 2, 3),
+                as_id_vec<InternalSurfaceId>(0, 0, 0, 0),
             },
         },
         // Geometric Surface 1
@@ -379,14 +391,14 @@ TEST_F(SurfacePhysicsTest, init_params)
             as_id_vec<OptMatId>(0, 2, 1),
             as_id_vec<PhysicsSurfaceId>(4, 5),
             {
-                as_id_vec<ActionId>(0, 1),
-                as_id_vec<ActionId>(0, 0),
-                as_id_vec<ActionId>(1, 3),
+                as_id_vec<SurfaceModelId>(0, 1),
+                as_id_vec<SurfaceModelId>(0, 0),
+                as_id_vec<SurfaceModelId>(1, 3),
             },
             {
-                as_id_vec<ModelSurfaceId>(1, 3),
-                as_id_vec<ModelSurfaceId>(4, 5),
-                as_id_vec<ModelSurfaceId>(1, 1),
+                as_id_vec<InternalSurfaceId>(1, 3),
+                as_id_vec<InternalSurfaceId>(4, 5),
+                as_id_vec<InternalSurfaceId>(1, 1),
             },
         },
         // Geometric Surface 2
@@ -396,14 +408,14 @@ TEST_F(SurfacePhysicsTest, init_params)
             as_id_vec<OptMatId>(0, 1),
             as_id_vec<PhysicsSurfaceId>(6),
             {
-                as_id_vec<ActionId>(1),
-                as_id_vec<ActionId>(0),
-                as_id_vec<ActionId>(2),
+                as_id_vec<SurfaceModelId>(1),
+                as_id_vec<SurfaceModelId>(0),
+                as_id_vec<SurfaceModelId>(2),
             },
             {
-                as_id_vec<ModelSurfaceId>(4),
-                as_id_vec<ModelSurfaceId>(6),
-                as_id_vec<ModelSurfaceId>(1),
+                as_id_vec<InternalSurfaceId>(4),
+                as_id_vec<InternalSurfaceId>(6),
+                as_id_vec<InternalSurfaceId>(1),
             },
         },
     };
@@ -442,33 +454,14 @@ TEST_F(SurfacePhysicsTest, init_params)
         "interaction-3",
     };
 
-    SurfaceStepArray<std::vector<std::string_view>> expected_model_descs;
-    expected_model_descs[SurfacePhysicsStep::roughness] = {
-        "desc-roughness-0",
-        "desc-roughness-1",
-    };
-    expected_model_descs[SurfacePhysicsStep::reflectivity] = {
-        "desc-reflectivity-0",
-    };
-    expected_model_descs[SurfacePhysicsStep::interaction] = {
-        "desc-interaction-0",
-        "desc-interaction-1",
-        "desc-interaction-2",
-        "desc-interaction-3",
-    };
-
     for (auto step : range(SurfacePhysicsStep::size_))
     {
         std::vector<std::string_view> model_names;
-        std::vector<std::string_view> model_descs;
         for (auto const& model : params->models(step))
         {
             model_names.push_back(model->label());
-            model_descs.push_back(model->description());
         }
-
         EXPECT_VEC_EQ(expected_model_names[step], model_names);
-        EXPECT_VEC_EQ(expected_model_descs[step], model_descs);
     }
 }
 

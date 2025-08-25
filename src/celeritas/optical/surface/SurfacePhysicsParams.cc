@@ -20,7 +20,8 @@ struct FakeModelBuilder
 {
     FakeModelBuilder(std::vector<T> const&) {}
 
-    std::shared_ptr<SurfaceModel> operator()(ActionId) const
+    std::shared_ptr<SurfaceModel>
+    operator()(::celeritas::SurfaceModel::SurfaceModelId) const
     {
         return nullptr;
     }
@@ -33,7 +34,8 @@ void from_import_model(SurfacePhysicsParams::Input& input,
 {
     if (!model_map.empty())
     {
-        SurfaceModelId model_id(input.model_builders[step].size());
+        SurfacePhysicsParams::SurfaceModelId model_id(
+            input.model_builders[step].size());
         std::vector<T> parameters;
         for (auto const& [layer, model] : model_map)
         {
@@ -148,10 +150,10 @@ auto SurfacePhysicsParams::build_models(
         auto& models = step_models[step];
         models.reserve(builders[step].size());
 
-        ActionId model_action_id{0};
+        SurfaceModelId model_id{0};
         for (auto const& builder : builders[step])
         {
-            models.push_back(builder(model_action_id++));
+            models.push_back(builder(model_id++));
             CELER_ASSERT(models.back());
         }
     }
@@ -193,9 +195,9 @@ void SurfacePhysicsParams::build_surfaces(
 
     for (auto step : range(SurfacePhysicsStep::size_))
     {
-        auto build_actions = make_builder(&data.model_maps[step].action_ids);
+        auto build_models = make_builder(&data.model_maps[step].surface_models);
         auto build_model_surfaces
-            = make_builder(&data.model_maps[step].model_surface_ids);
+            = make_builder(&data.model_maps[step].internal_surface_ids);
 
         std::vector<size_type> num_model_surfaces(models_[step].size(), 0);
 
@@ -205,8 +207,8 @@ void SurfacePhysicsParams::build_surfaces(
             {
                 auto model = interface[step];
                 CELER_EXPECT(model < num_model_surfaces.size());
-                build_actions.push_back(ActionId{model.get()});
-                build_model_surfaces.push_back(SurfaceModel::ModelSurfaceId(
+                build_models.push_back(model);
+                build_model_surfaces.push_back(SurfaceModel::InternalSurfaceId(
                     num_model_surfaces[model.get()]++));
             }
         }

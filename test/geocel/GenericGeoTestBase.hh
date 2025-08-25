@@ -103,6 +103,7 @@ class GenericGeoTestBase : virtual public Test,
     using HostStateStore = CollectionStateStore<StateData, MemSpace::host>;
 
     SPConstGeo geo_;
+    SPConstVolumes volumes_;
     HostStateStore host_state_;
 
     //// LAZY GEO INTERFACE ////

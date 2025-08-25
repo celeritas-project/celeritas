@@ -69,8 +69,8 @@ class ProtoBuilder
     // Find a universe ID
     inline UniverseId find_universe_id(ProtoInterface const*) const;
 
-    //! Get the next universe ID
-    UniverseId next_id() const { return UniverseId(inp_->universes.size()); }
+    // Get the next universe ID
+    inline UniverseId next_id() const;
 
     // Get the bounding box of a universe
     inline BBox const& bbox(UniverseId) const;
@@ -100,6 +100,15 @@ class ProtoBuilder
 UniverseId ProtoBuilder::find_universe_id(ProtoInterface const* p) const
 {
     return protos_.find(p);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the next universe ID.
+ */
+UniverseId ProtoBuilder::next_id() const
+{
+    return id_cast<UniverseId>(inp_->universes.size());
 }
 
 //---------------------------------------------------------------------------//

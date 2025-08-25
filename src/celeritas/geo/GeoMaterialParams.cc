@@ -141,8 +141,8 @@ struct BuildFromCanonicalVolumes
 
 VecMat BuildFromCanonicalVolumes::operator()(VecMat const& materials) const
 {
-    CELER_LOG(debug) << "Filling geometry->physics map using canonical "
-                        "volumes";
+    CELER_LOG(debug)
+        << R"(Filling geometry->physics map using canonical volumes )";
 
     // Loop over implementation volumes, querying for the corresponding
     // canonical volume
@@ -314,7 +314,8 @@ GeoMaterialParams::from_import(ImportData const& data,
         // Construct vector of material IDs for each canonical volume
         CELER_LOG(debug)
             << "Building geometry->physics map using VolumeParams ("
-            << vol_params->num_volumes() << " volumes)";
+            << vol_params->num_volumes() << " volumes) and import data ("
+            << data.volumes.size() << " volumes)";
         Input::VecMat vol_to_mat(data.volumes.size());
         for (auto vol_idx : range(data.volumes.size()))
         {

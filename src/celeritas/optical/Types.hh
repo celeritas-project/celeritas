@@ -24,7 +24,7 @@ namespace optical
 {
 
 //! Opaque index to a surface physics model
-using SurfaceModelId = OpaqueId<class SurfaceModel>;
+// using SurfaceModelId = OpaqueId<class SurfaceModel>;
 
 }  // namespace optical
 

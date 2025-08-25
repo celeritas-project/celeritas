@@ -12,6 +12,7 @@
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "celeritas/optical/Types.hh"
 
 #include "BoundaryAction.hh"
 #include "SurfaceModel.hh"
@@ -45,6 +46,8 @@ class SurfacePhysicsParams final
     //! \name Type aliases
     template<class T>
     using SurfaceStepArray = EnumArray<SurfacePhysicsStep, T>;
+
+    using SurfaceModelId = ::celeritas::SurfaceModel::SurfaceModelId;
 
     using SPModel = std::shared_ptr<SurfaceModel>;
     using VecModelBuilders = std::vector<SurfaceModel::ModelBuilder>;

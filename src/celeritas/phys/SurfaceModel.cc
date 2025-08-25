@@ -2,23 +2,30 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/g4/GeantGeoTestBase.hh
+//! \file celeritas/phys/SurfaceModel.cc
 //---------------------------------------------------------------------------//
-#pragma once
-
-#include "geocel/GeantGeoParams.hh"
-#include "geocel/GenericGeoTestBase.hh"
-#include "geocel/g4/GeantGeoData.hh"
-#include "geocel/g4/GeantGeoTrackView.hh"
-#include "geocel/g4/GeantGeoTraits.hh"
+#include "SurfaceModel.hh"
 
 namespace celeritas
 {
-namespace test
-{
-//---------------------------------------------------------------------------//
-using GeantGeoTestBase = GenericGeoTestBase<GeantGeoParams>;
 
 //---------------------------------------------------------------------------//
-}  // namespace test
+/*!
+ * Construct with label and model ID.
+ *
+ * Note that the label, being a string view, must (for now) point to constant
+ * memory.
+ */
+SurfaceModel::SurfaceModel(SurfaceModelId id, std::string_view label)
+    : id_{id}, label_{label}
+{
+    CELER_EXPECT(id_);
+    CELER_EXPECT(!label_.empty());
+}
+
+//---------------------------------------------------------------------------//
+//! Anchored default destructor
+SurfaceModel::~SurfaceModel() = default;
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

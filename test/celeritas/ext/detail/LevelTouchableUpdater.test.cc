@@ -12,6 +12,7 @@
 #include "corecel/cont/Span.hh"
 #include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantGeoUtils.hh"
+#include "geocel/VolumeParams.hh"
 #include "celeritas/GlobalTestBase.hh"
 #include "celeritas/OnlyCoreTestBase.hh"
 #include "celeritas/OnlyGeoTestBase.hh"
@@ -70,7 +71,10 @@ class LevelTouchableUpdaterTest : public ::celeritas::test::OnlyGeoTestBase
     VecVI find_vi_stack(IListSView names) const
     {
         auto const& geo = *this->geometry();
-        auto const& vol_inst = geo.volume_instances();
+        auto const& volumes = this->volumes();
+        CELER_VALIDATE(volumes && !volumes->empty(),
+                       << "model wasn't built with Geant4");
+        auto const& vol_inst = volumes->volume_instance_labels();
 
         CELER_VALIDATE(names.size() < geo.max_depth() + 1,
                        << "input stack is too deep: " << names.size()
@@ -276,6 +280,10 @@ class ReplicaTest : public LevelTouchableUpdaterTest
 
 TEST_F(ReplicaTest, all_points)
 {
+    // FIXME when replicas are implemented
+    // see https://github.com/celeritas-project/celeritas/issues/1748
+    GTEST_SKIP() << "Replicas are temporarily disabled";
+
     static IListSView const all_level_names[] = {
         {"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@14"},
         {"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@6"},

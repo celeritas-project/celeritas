@@ -8,6 +8,8 @@
 
 #include "corecel/io/StringUtils.hh"
 #include "geocel/GeantGeoParams.hh"
+#include "geocel/VolumeParams.hh"
+#include "geocel/inp/Model.hh"
 
 #include "PersistentSP.hh"
 #include "Test.hh"
@@ -21,6 +23,7 @@ namespace
 //---------------------------------------------------------------------------//
 using PersistentGeoI = PersistentSP<GeoParamsInterface const>;
 using PersistentGeantGeo = PersistentSP<GeantGeoParams const>;
+using PersistentVolumes = PersistentSP<VolumeParams const>;
 
 PersistentGeoI& persistent_geo()
 {
@@ -32,6 +35,12 @@ PersistentGeantGeo& persistent_geant_geo()
 {
     static PersistentGeantGeo pgg{"geant4 geometry"};
     return pgg;
+}
+
+PersistentVolumes& persistent_volumes()
+{
+    static PersistentVolumes pv{"volumes"};
+    return pv;
 }
 
 }  // namespace
@@ -73,8 +82,12 @@ auto LazyGeantGeoManager::lazy_geo() const -> SPConstGeoI
             auto& pgeant_geo = persistent_geant_geo();
             // This is called *unless* the user has manually cleared the
             // secondary geometry and reloads from the same Geant4 geo
-            pgeant_geo.lazy_update(basename, [this, &filename]() {
-                return this->build_geant_geo(filename);
+            pgeant_geo.lazy_update(basename, [&]() {
+                auto result = this->build_geant_geo(filename);
+                auto volumes = std::make_shared<VolumeParams const>(
+                    result->make_model_input().volumes);
+                persistent_volumes().set(basename, std::move(volumes));
+                return result;
             });
 
             // Build specific geometry
@@ -84,6 +97,9 @@ auto LazyGeantGeoManager::lazy_geo() const -> SPConstGeoI
         {
             // Fallback: geometry may be able to build without Geant4
             new_geo = this->build_geo_from_gdml(filename);
+            auto volumes = std::make_shared<VolumeParams const>(
+                new_geo->make_model_input().volumes);
+            persistent_volumes().set(basename, std::move(volumes));
         }
 
         CELER_ASSERT(new_geo);
@@ -126,6 +142,20 @@ auto LazyGeantGeoManager::build_geo_from_gdml(std::string const&) const
 auto LazyGeantGeoManager::geant_geo() const -> SPConstGeantGeo
 {
     auto& pgg = persistent_geant_geo();
+    if (pgg.key() == this->gdml_basename())
+    {
+        return pgg.value();
+    }
+    return nullptr;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access volumes from built geometry or geant4 model.
+ */
+auto LazyGeantGeoManager::volumes() const -> SPConstVolumes
+{
+    auto& pgg = persistent_volumes();
     if (pgg.key() == this->gdml_basename())
     {
         return pgg.value();
