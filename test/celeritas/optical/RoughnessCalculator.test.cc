@@ -146,9 +146,9 @@ TEST_F(RoughnessSamplerTest, gaussian)
     }
 
     static SampledHistogram const expected[] = {
-        {{0, 0, 0, 0, 5}, 22.0336},
-        {{0, 0, 0, 0.034, 4.966}, 21.7968},
-        {{0.423, 0.586, 0.891, 1.281, 1.819}, 10.206},
+        {{0, 0, 0, 0, 5}, 4},
+        {{0, 0, 0, 0.009, 4.991}, 4},
+        {{0.163, 0.344, 0.506, 0.925, 3.062}, 4.1016},
     };
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {

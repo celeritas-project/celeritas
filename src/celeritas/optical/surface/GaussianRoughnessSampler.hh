@@ -46,7 +46,6 @@ class GaussianRoughnessSampler
   private:
     Real3 const& normal_;
     NormalDistribution<real_type> sample_alpha_;
-    real_type f_max_;
 };
 
 //---------------------------------------------------------------------------//
@@ -58,9 +57,7 @@ class GaussianRoughnessSampler
 CELER_FUNCTION
 GaussianRoughnessSampler::GaussianRoughnessSampler(Real3 const& normal,
                                                    real_type sigma_alpha)
-    : normal_(normal)
-    , sample_alpha_(0, sigma_alpha)
-    , f_max_(fmin(real_type{1}, 4 * sigma_alpha))
+    : normal_(normal), sample_alpha_(0, sigma_alpha)
 {
     CELER_EXPECT(sigma_alpha > 0);
     CELER_EXPECT(is_soft_unit_vector(normal_));
@@ -73,15 +70,12 @@ GaussianRoughnessSampler::GaussianRoughnessSampler(Real3 const& normal,
 template<class Engine>
 CELER_FUNCTION Real3 GaussianRoughnessSampler::operator()(Engine& rng)
 {
-    using std::fabs;
-
-    real_type cos_alpha = 0;
-    real_type sin_alpha = 0;
+    real_type cos_alpha{};
     do
     {
-        real_type alpha = sample_alpha_(rng);
-        sincos(alpha, &sin_alpha, &cos_alpha);
-    } while (cos_alpha <= 0 || RejectionSampler{fabs(sin_alpha), f_max_}(rng));
+        // Sample angle according to gaussian
+        cos_alpha = std::cos(sample_alpha_(rng));
+    } while (cos_alpha <= 0);
 
     // Rotate normal by alpha and then sample azimuth rotation uniformly
     return ExitingDirectionSampler{cos_alpha, normal_}(rng);
