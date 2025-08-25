@@ -76,13 +76,6 @@ class SharedParams
     // Whether celeritas is disabled, set to kill, or to be enabled
     static Mode GetMode();
 
-    // Get list of all supported particles in Celeritas
-    static VecG4PD supported_offload_particles();
-
-    // Get list of enabled particles for offloading by default
-    static VecG4PD default_offload_particles();
-    //!@}
-
     // True if Celeritas is globally disabled using the CELER_DISABLE env
     // Remove in 0.7
     [[deprecated]]
@@ -92,7 +85,15 @@ class SharedParams
     // Remove in 0.7
     [[deprecated]]
     static bool KillOffloadTracks();
+    //!@}
+    //!@{
+    //! \name Particle offload
 
+    // Get list of all supported particles in Celeritas
+    static VecG4PD supported_offload_particles();
+
+    // Get list of enabled particles for offloading by default
+    static VecG4PD default_offload_particles();
     //!@}
     //!@{
     //! \name Construction
