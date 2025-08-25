@@ -15,6 +15,8 @@
 #include <CLHEP/Random/Random.h>
 #include <G4Electron.hh>
 #include <G4Gamma.hh>
+#include <G4MuonMinus.hh>
+#include <G4MuonPlus.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
 #include <G4Positron.hh>
@@ -185,6 +187,40 @@ auto SharedParams::GetMode() -> Mode
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get a list of all supported particles.
+ */
+SetupOptions::VecG4PD SharedParams::supported_offload_particles()
+{
+    static G4ParticleDefinition* const supported_particles[] = {
+        G4Electron::Definition(),
+        G4Positron::Definition(),
+        G4Gamma::Definition(),
+        G4MuonMinus::Definition(),
+        G4MuonPlus::Definition(),
+    };
+
+    return {std::begin(supported_particles), std::end(supported_particles)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the list of default particles offloaded in Geant4 applications.
+ *
+ * If no user-defined list is provided, this defaults to simulating EM showers.
+ */
+SetupOptions::VecG4PD SharedParams::default_offload_particles()
+{
+    static G4ParticleDefinition* const default_particles[] = {
+        G4Electron::Definition(),
+        G4Positron::Definition(),
+        G4Gamma::Definition(),
+    };
+
+    return {std::begin(default_particles), std::end(default_particles)};
+}
+
+//---------------------------------------------------------------------------//
 bool SharedParams::CeleritasDisabled()
 {
     return GetMode() == Mode::disabled;
@@ -209,7 +245,6 @@ bool SharedParams::KillOffloadTracks()
 SharedParams::SharedParams(SetupOptions const& options)
 {
     CELER_EXPECT(!*this);
-    using IS = detail::IntegrationSingleton;
 
     ScopedProfiling profile_this{"construct-params"};
     ScopedMem record_mem("SharedParams.construct");
@@ -250,17 +285,11 @@ SharedParams::SharedParams(SetupOptions const& options)
         return;
     }
 
-    if (mode_ == Mode::kill_offload)
-    {
-        //! \todo: Set up default or all supported particles?
-        particles_ = IS::default_offload_particles();
-    }
-
-    if (mode_ == Mode::enabled)
+    if (mode_ == Mode::enabled || mode_ == Mode::kill_offload)
     {
         // Set up offloaded particles based on user input
         auto const& user_offload = options.offload_particles;
-        particles_ = user_offload.empty() ? IS::default_offload_particles()
+        particles_ = user_offload.empty() ? default_offload_particles()
                                           : user_offload;
     }
 

@@ -13,6 +13,7 @@
 #include "corecel/Assert.hh"
 #include "geocel/BoundingBox.hh"
 
+#include "SetupOptions.hh"
 #include "Types.hh"
 
 class G4ParticleDefinition;
@@ -35,7 +36,6 @@ class OutputRegistry;
 class StepCollector;
 class TimeOutput;
 struct Primary;
-struct SetupOptions;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -66,6 +66,7 @@ class SharedParams
     using SPConstParams = std::shared_ptr<CoreParams const>;
     using VecG4ParticleDef = std::vector<G4ParticleDefinition*>;
     using Mode = OffloadMode;
+    using VecG4PD = SetupOptions::VecG4PD;
     //!@}
 
   public:
@@ -74,6 +75,13 @@ class SharedParams
 
     // Whether celeritas is disabled, set to kill, or to be enabled
     static Mode GetMode();
+
+    // Get list of all supported particles in Celeritas
+    static VecG4PD supported_offload_particles();
+
+    // Get list of enabled particles for offloading by default
+    static VecG4PD default_offload_particles();
+    //!@}
 
     // True if Celeritas is globally disabled using the CELER_DISABLE env
     // Remove in 0.7

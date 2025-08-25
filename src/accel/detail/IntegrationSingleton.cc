@@ -6,12 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "IntegrationSingleton.hh"
 
-#include <G4Electron.hh>
-#include <G4Gamma.hh>
-#include <G4MuonMinus.hh>
-#include <G4MuonPlus.hh>
-#include <G4ParticleDefinition.hh>
-#include <G4Positron.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 
@@ -19,6 +13,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
+#include "geocel/GeantUtils.hh"
 
 #include "../ExceptionConverter.hh"
 #include "../Logger.hh"
@@ -43,10 +38,10 @@ validate_and_return_offloaded(SetupOptions::VecG4PD const& user)
     if (user.empty())
     {
         // Celeritas will use default hardcoded list; nothing to do
-        return IntegrationSingleton::default_offload_particles();
+        return SharedParams::default_offload_particles();
     }
 
-    auto const supported = IntegrationSingleton::supported_offload_particles();
+    auto const supported = SharedParams::supported_offload_particles();
     auto find = [&supported](G4ParticleDefinition* user) -> bool {
         return std::any_of(
             supported.begin(),
@@ -60,9 +55,8 @@ validate_and_return_offloaded(SetupOptions::VecG4PD const& user)
     {
         CELER_ASSERT(pd);
         CELER_VALIDATE(find(pd),
-                       << "Particle \"" << pd->GetParticleName()
-                       << "\" (PDG = " << pd->GetPDGEncoding()
-                       << ") is not available in Celeritas");
+                       << "Particle " << PrintablePD{pd}
+                       << " is not available in Celeritas");
     }
     return user;
 }
@@ -87,41 +81,6 @@ LocalTransporter& IntegrationSingleton::local_transporter()
 {
     static G4ThreadLocal LocalTransporter lt;
     return lt;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a list of all supported particles.
- */
-IntegrationSingleton::VecG4PD
-IntegrationSingleton::supported_offload_particles()
-{
-    static G4ParticleDefinition* const supported_particles[] = {
-        G4Electron::Definition(),
-        G4Positron::Definition(),
-        G4Gamma::Definition(),
-        G4MuonMinus::Definition(),
-        G4MuonPlus::Definition(),
-    };
-
-    return {std::begin(supported_particles), std::end(supported_particles)};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the list of default particles offloaded in Geant4 applications.
- *
- * If no user-defined list is provided, this defaults to simulating EM showers.
- */
-IntegrationSingleton::VecG4PD IntegrationSingleton::default_offload_particles()
-{
-    static G4ParticleDefinition* const default_particles[] = {
-        G4Electron::Definition(),
-        G4Positron::Definition(),
-        G4Gamma::Definition(),
-    };
-
-    return {std::begin(default_particles), std::end(default_particles)};
 }
 
 //---------------------------------------------------------------------------//
