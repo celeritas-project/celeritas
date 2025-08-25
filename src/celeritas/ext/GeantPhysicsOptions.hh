@@ -60,7 +60,8 @@ struct GeantMuonPhysicsOptions
     bool bremsstrahlung{true};
     //! Enable muon single Coulomb scattering
     bool coulomb{false};
-    //! Enable multiple coulomb scattering and select a model
+    //! Enable multiple coulomb scattering and select a model.
+    //! Muon MSC currently requires MSC enabled for electrons and positrons
     MscModelSelection msc{MscModelSelection::urban};
 
     //! True if any process is activated
@@ -137,7 +138,8 @@ struct GeantPhysicsOptions
     BremsModelSelection brems{BremsModelSelection::all};
     //! Upper limit for the Seltzer-Berger bremsstrahlung model
     MevEnergy seltzer_berger_limit{1e3};  // 1 GeV
-    //! Enable multiple coulomb scattering and select a model
+    //! Enable multiple coulomb scattering and select a model.
+    //! Electron/positron MSC requires ionization
     MscModelSelection msc{MscModelSelection::urban};
     //! Enable atomic relaxation and select a model
     RelaxationSelection relaxation{RelaxationSelection::none};

@@ -20,22 +20,15 @@ This integration interface is based on two main mechanisms:
   **Geant4 v11 and newer**, as it requires Geant4's
   :cpp:class:`G4VTrackingManager` interface for particles.
 
-For the :cpp:class:`celeritas::TrackingManagerIntegration` method,
-:cpp:class:`celeritas::SetupOptions` must be set before constructing and
-registering :cpp:class:`celeritas::TrackingManagerConstructor` to the physics
-list.
-
-For the :cpp:class:`celeritas::UserActionIntegration`,
-:cpp:class:`celeritas::SetupOptions` **may** be initialized later, as this
-interface allows for more flexibility. At the latest,
-:cpp:class:`celeritas::SetupOptions` must be valid during
-``G4UserRunAction::BeginOfRunAction()`` to initialize
-:cpp:class:`celeritas::SharedParams` and
+On either case, :cpp:class:`celeritas::SetupOptions` must be valid at the latest
+during the ``G4UserRunAction::BeginOfRunAction()`` call in the **master**
+thread, to initialize :cpp:class:`celeritas::SharedParams` and
 :cpp:class:`celeritas::LocalTransporter`. Nevertheless, since the user might
-access and store these options during other ``UserAction`` constructors (e.g.
+need access to these options during other ``UserAction`` constructors (e.g.
 initializing sensitive detector options in
-:cpp:class:`G4VUserDetectorConstruction`), it is recommended to set them before
-``G4RunManager::SetUserInitialization`` calls.
+:cpp:class:`G4VUserDetectorConstruction`), assigning them via
+``celeritas::TrackingManagerIntegration::SetOptions`` before
+``G4RunManager::SetUserInitialization`` calls is recommended.
 
 .. toctree::
    :maxdepth: 2

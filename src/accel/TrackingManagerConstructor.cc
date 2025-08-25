@@ -63,8 +63,11 @@ void TrackingManagerConstructor::ConstructParticle()
 {
     // Construction of particles happens at offload_particles_ assignment,
     // since it will instantiate the G4Particle::Definition() singletons
-    offload_particles_
-        = detail::IntegrationSingleton::instance().offloaded_particles();
+    auto& is = detail::IntegrationSingleton::instance();
+    auto& opts = is.setup_options();
+    offload_particles_ = opts.offload_particles.empty()
+                             ? SharedParams::default_offload_particles()
+                             : is.offloaded_particles();
 }
 
 //---------------------------------------------------------------------------//
