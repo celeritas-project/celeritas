@@ -299,6 +299,9 @@ auto SolidConverter::operator()(arg_type solid_base) -> result_type
         cache_iter->second = this->convert_impl(solid_base);
     }
 
+    // TODO: we can't cache parameterized volumes. Maybe we shouldn't cache at
+    // all?
+
     CELER_ENSURE(cache_iter->second);
     return cache_iter->second;
 }

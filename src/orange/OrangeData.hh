@@ -22,6 +22,8 @@
 
 namespace celeritas
 {
+class OrangeParams;
+class VolumeParams;
 //---------------------------------------------------------------------------//
 // PARAMS
 //---------------------------------------------------------------------------//
@@ -48,6 +50,10 @@ struct OrangeParamsScalars
 
     // Soft comparison and dynamic "bumping" values
     Tolerance<> tol;
+
+    // Raw pointers to externally owned memory for debug output
+    OrangeParams const* host_geo_params{nullptr};
+    VolumeParams const* host_volume_params{nullptr};
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
@@ -403,6 +409,7 @@ struct OrangeParamsData
     {
         return scalars && !universe_types.empty()
                && universe_indices.size() == universe_types.size()
+               && !volume_ids.empty()
                && volume_ids.size() == volume_instance_ids.size()
                && (bih_tree_data || !simple_units.empty())
                && ((!local_volume_ids.empty() && !logic_ints.empty()

@@ -14,6 +14,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
+#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/GeoParamsInterface.hh"
@@ -62,6 +63,8 @@ class VecgeomParams final : public GeoParamsInterface,
     //! \name Type aliases
     using VecLv = std::vector<G4LogicalVolume const*>;
     using VecPv = std::vector<G4VPhysicalVolume const*>;
+    using ImplVolInstanceId = VecgeomPlacedVolumeId;
+    using ImplVolInstanceMap = LabelIdMultiMap<ImplVolInstanceId>;
     //!@}
 
   public:
@@ -95,7 +98,10 @@ class VecgeomParams final : public GeoParamsInterface,
     //!@}
 
     // Build from existing geometry, with ownership and mappings
-    VecgeomParams(vecgeom::GeoManager const&, Ownership, VecLv const&, VecPv&&);
+    VecgeomParams(vecgeom::GeoManager const&,
+                  Ownership,
+                  VecLv const&,
+                  VecPv const&);
 
     // Clean up VecGeom on destruction
     ~VecgeomParams() final;
@@ -106,20 +112,21 @@ class VecgeomParams final : public GeoParamsInterface,
     //! Outer bounding box of geometry
     BBox const& bbox() const final { return bbox_; }
 
-    //! Maximum nested geometry depth
-    //! \todo move to VolumeParams
-    LevelId::size_type max_depth() const { return host_ref_.max_depth; }
+    // Maximum nested geometry depth
+    inline LevelId::size_type max_depth() const;
 
     // Create model parameters corresponding to our internal representation
     inp::Model make_model_input() const final;
 
     //// VOLUMES ////
 
-    // Get volume metadata
+    // Get volume metadata for VG logical volumes
     inline ImplVolumeMap const& impl_volumes() const final;
 
-    // Get (physical) volume instance metadata
-    inline VolInstanceMap const& volume_instances() const final;
+    // Get volume metadata for VG placed volumes
+    inline ImplVolInstanceMap const& impl_volume_instances() const;
+
+    // DEPRECATED
 
     // Get the volume ID corresponding to a Geant4 logical volume
     ImplVolumeId find_volume(G4LogicalVolume const* volume) const final;
@@ -127,7 +134,6 @@ class VecgeomParams final : public GeoParamsInterface,
     // Get the Geant4 physical volume corresponding to a volume instance ID
     GeantPhysicalInstance id_to_geant(VolumeInstanceId vol_id) const final;
 
-    // DEPRECATED
     using GeoParamsInterface::find_volume;
 
     // Get the canonical volume IDs corresponding to an implementation volume
@@ -136,31 +142,30 @@ class VecgeomParams final : public GeoParamsInterface,
     //// DATA ACCESS ////
 
     //! Access geometry data on host
-    HostRef const& host_ref() const final { return host_ref_; }
+    HostRef const& host_ref() const final { return data_.host_ref(); }
 
     //! Access geometry data on device
-    DeviceRef const& device_ref() const final { return device_ref_; }
+    DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
     //// DATA ////
 
     // Flag for resetting VecGeom on destruction
-    Ownership ownership_{Ownership::reference};
+    Ownership host_ownership_{Ownership::reference};
+    Ownership device_ownership_{Ownership::reference};
+
+    // Geant4 model used to construct
+    std::shared_ptr<GeantGeoParams const> geant_geo_;
 
     // Host metadata/access (DEPRECATED)
-    LabelIdMultiMap<ImplVolumeId> volumes_;
-    VolInstanceMap vol_instances_;
+    LabelIdMultiMap<ImplVolumeId> impl_volumes_;
+    ImplVolInstanceMap impl_vol_instances_;
     std::unordered_map<G4LogicalVolume const*, ImplVolumeId> g4log_volid_map_;
-    std::vector<G4VPhysicalVolume const*> g4_pv_map_;
-
-    // VolumeImplId -> VolumeId (to be moved to data)
-    std::vector<VolumeId> volume_id_map_;
 
     BBox bbox_;
 
     // Host/device storage and reference
-    HostRef host_ref_;
-    DeviceRef device_ref_;
+    CollectionMirror<VecgeomParamsData> data_;
 
     //// HELPER FUNCTIONS ////
 
@@ -170,12 +175,30 @@ class VecgeomParams final : public GeoParamsInterface,
 };
 
 //---------------------------------------------------------------------------//
+
+extern template class CollectionMirror<VecgeomParamsData>;
+extern template class ParamsDataInterface<VecgeomParamsData>;
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Maximum nested geometry depth.
+ *
+ * \todo Only use in VolumeParams
+ */
+LevelId::size_type VecgeomParams::max_depth() const
+{
+    return this->host_ref().scalars.max_depth;
+}
+//
+//---------------------------------------------------------------------------//
 /*!
  * Get volume metadata.
  */
 auto VecgeomParams::impl_volumes() const -> ImplVolumeMap const&
 {
-    return volumes_;
+    return impl_volumes_;
 }
 
 //---------------------------------------------------------------------------//
@@ -184,9 +207,9 @@ auto VecgeomParams::impl_volumes() const -> ImplVolumeMap const&
  *
  * Volume instances correspond directly to Geant4 physical volumes.
  */
-auto VecgeomParams::volume_instances() const -> VolInstanceMap const&
+auto VecgeomParams::impl_volume_instances() const -> ImplVolInstanceMap const&
 {
-    return vol_instances_;
+    return impl_vol_instances_;
 }
 
 //---------------------------------------------------------------------------//
@@ -197,16 +220,10 @@ auto VecgeomParams::volume_instances() const -> VolInstanceMap const&
  */
 inline VolumeId VecgeomParams::volume_id(ImplVolumeId iv_id) const
 {
-    CELER_EXPECT(volume_id_map_.empty() || iv_id < volume_id_map_.size());
+    auto const& vol_ids = this->host_ref().volumes;
+    CELER_EXPECT(!vol_ids.empty());
 
-    if (CELER_UNLIKELY(volume_id_map_.empty()))
-    {
-        // VGDML probably loaded geometry
-        CELER_ASSERT(iv_id);
-        return id_cast<VolumeId>(iv_id.unchecked_get());
-    }
-
-    return volume_id_map_[iv_id.unchecked_get()];
+    return vol_ids[iv_id];
 }
 
 //---------------------------------------------------------------------------//

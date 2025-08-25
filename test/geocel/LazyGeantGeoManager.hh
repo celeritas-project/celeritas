@@ -14,6 +14,7 @@
 namespace celeritas
 {
 class GeantGeoParams;
+class VolumeParams;
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -30,6 +31,7 @@ class LazyGeantGeoManager
     //! \name Type aliases
     using SPConstGeoI = std::shared_ptr<GeoParamsInterface const>;
     using SPConstGeantGeo = std::shared_ptr<GeantGeoParams const>;
+    using SPConstVolumes = std::shared_ptr<VolumeParams const>;
     //!@}
 
   public:
@@ -59,6 +61,9 @@ class LazyGeantGeoManager
 
     // Access Geant4 geometry if already built (null if invalid)
     SPConstGeantGeo geant_geo() const;
+
+    // Access volumes from built geometry or geant4 model
+    SPConstVolumes volumes() const;
 
     // Reset geometry (not G4) manually; needed by AllGeoTypedTestBase
     static void clear_lazy_geo();

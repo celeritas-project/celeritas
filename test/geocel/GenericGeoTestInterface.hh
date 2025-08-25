@@ -82,21 +82,6 @@ class GenericGeoTestInterface
     //! Unit length for "track" testing and other results
     virtual Constant unit_length() const { return lengthunits::centimeter; }
 
-    //! Access the loaded geant4 world (if one exists)
-    virtual G4VPhysicalVolume const* g4world() const { return nullptr; }
-
-    // Get all logical volume names
-    std::vector<std::string> get_volume_labels() const;
-
-    // Get all physical volume names
-    std::vector<std::string> get_volume_instance_labels() const;
-
-    // Get mapped Geant4 physical volume names
-    std::vector<std::string> get_g4pv_labels() const;
-
-    // Get the volume name, adjusting for offsets from loading multiple geo
-    std::string_view get_volume_name(ImplVolumeId i) const;
-
   protected:
     // Virtual interface only
     ~GenericGeoTestInterface() = default;

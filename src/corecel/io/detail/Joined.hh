@@ -89,7 +89,7 @@ std::string to_string(Joined<I, C, S> const& j)
 {
     std::ostringstream os;
     os << j;
-    return os.str();
+    return std::move(os).str();
 }
 
 //---------------------------------------------------------------------------//
