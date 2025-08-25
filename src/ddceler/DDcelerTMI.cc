@@ -7,7 +7,6 @@
 #include "DDcelerTMI.hh"
 
 #include <DDG4/Factories.h>
-#include <QGSP_BERT.hh>
 
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/inp/Field.hh"
@@ -53,7 +52,7 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
 void DDcelerTMI::constructPhysics(G4VModularPhysicsList* physics)
 {
     this->info(
-        "Using FTFP_BERT physics list with Celeritas tracking for "
+        "Using Celeritas tracking for "
         "e-/e+/gamma.");
 
     // Register Celeritas tracking manager

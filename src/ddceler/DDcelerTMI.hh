@@ -9,6 +9,7 @@
 #include <CeleritasG4.hh>
 #include <DDG4/Geant4Action.h>
 #include <DDG4/Geant4PhysicsList.h>
+#include <G4VModularPhysicsList.hh>
 
 using Geant4Context = dd4hep::sim::Geant4Context;
 using Geant4Action = dd4hep::sim::Geant4Action;
