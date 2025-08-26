@@ -64,7 +64,6 @@ class SharedParams
     //! \name Type aliases
     using SPParams = std::shared_ptr<CoreParams>;
     using SPConstParams = std::shared_ptr<CoreParams const>;
-    using VecG4ParticleDef = std::vector<G4ParticleDefinition*>;
     using Mode = OffloadMode;
     using VecG4PD = SetupOptions::VecG4PD;
     //!@}
@@ -124,7 +123,7 @@ class SharedParams
     inline SPConstParams Params() const;
 
     // Get a vector of particles supported by Celeritas offloading
-    inline VecG4ParticleDef const& OffloadParticles() const;
+    inline VecG4PD const& OffloadParticles() const;
 
     //! Whether the class has been constructed
     explicit operator bool() const { return mode_ != Mode::uninitialized; }
@@ -180,7 +179,7 @@ class SharedParams
     std::shared_ptr<OpticalCollector> optical_;
     std::shared_ptr<GeantSd> geant_sd_;
     std::shared_ptr<StepCollector> step_collector_;
-    VecG4ParticleDef particles_;
+    VecG4PD particles_;
     std::string output_filename_;
     SPOffloadWriter offload_writer_;
     std::vector<std::shared_ptr<CoreStateInterface>> states_;
@@ -233,7 +232,7 @@ auto SharedParams::Params() const -> SPConstParams
 /*!
  * Get a vector of particles supported by Celeritas offloading.
  */
-auto SharedParams::OffloadParticles() const -> VecG4ParticleDef const&
+auto SharedParams::OffloadParticles() const -> VecG4PD const&
 {
     CELER_EXPECT(*this);
     return particles_;

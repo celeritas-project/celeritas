@@ -165,8 +165,8 @@ void TrackingManagerIntegration::BeginOfRunAction(G4Run const*)
         CELER_LOG(debug) << "Verifying tracking manager";
         CELER_TRY_HANDLE(
             verify_tracking_managers(
-                make_span(offload_particles),
                 make_span(singleton.shared_params().OffloadParticles()),
+                make_span(offload_particles),
                 singleton.shared_params(),
                 singleton.local_transporter()),
             ExceptionConverter{"celer.init.verify"});
