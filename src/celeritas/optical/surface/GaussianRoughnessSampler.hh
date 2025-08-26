@@ -39,11 +39,13 @@ namespace optical
  *
  * The polar angle \f$ \theta \f$ is sampled using rejection:
  * - Draw \f$ \alpha \f$ from the positive half of a normal distribution
- * - Reject angles greater than 90 degrees
- * - Use an acceptance function \f$ \sin \theta \f$, improving
- *   sampling efficiency by calculating a maximum rejection value assuming no
- *   angles greater than six sigma are sampled, with sigma assumed to be small
- *   to allow this maximum the expression \f$ \min(1, 6 \sigma_\alpha) \f$.
+ * - Reject angles greater than 90 degrees (for physicality) or 4 sigma (for
+ *   sampling efficiency)
+ * - Use an acceptance function \f$ \sin \theta \f$ bounded by the maximum
+ *   theta
+ *
+ * The extra limitation of the angle being less than 4 sigma reduces the
+ * rejection fraction by a factor of ~25 for smooth crystals (sigma = 0.01).
  */
 class GaussianRoughnessSampler
 {
@@ -59,6 +61,7 @@ class GaussianRoughnessSampler
   private:
     Real3 const& normal_;
     NormalDistribution<real_type> sample_alpha_;
+    real_type alpha_max_;
     real_type f_max_;
 };
 
@@ -73,7 +76,8 @@ GaussianRoughnessSampler::GaussianRoughnessSampler(Real3 const& normal,
                                                    real_type sigma_alpha)
     : normal_(normal)
     , sample_alpha_(0, sigma_alpha)
-    , f_max_(fmin(real_type{1}, 6 * sigma_alpha))
+    , alpha_max_(fmin(real_type(constants::pi / 2), 4 * sigma_alpha))
+    , f_max_(std::sin(alpha_max_))
 {
     CELER_EXPECT(sigma_alpha > 0);
     CELER_EXPECT(is_soft_unit_vector(normal_));
@@ -98,7 +102,7 @@ CELER_FUNCTION Real3 GaussianRoughnessSampler::operator()(Engine& rng)
             // Sample positive angle according to gaussian (chances of having a
             // nonpositive slope are generally vanishingly small)
             alpha = std::fabs(sample_alpha_(rng));
-        } while (alpha >= constants::pi / 2);
+        } while (alpha >= alpha_max_);
         sincos(alpha, &sin_alpha, &cos_alpha);
 
         // Transform to polar angle using rejection

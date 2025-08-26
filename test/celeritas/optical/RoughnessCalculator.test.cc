@@ -147,14 +147,13 @@ TEST_F(RoughnessSamplerTest, gaussian)
 
         actual.push_back(calc_histogram(to_cos_normal, sample_normal));
     }
-    PRINT_EXPECTED(actual);
 
     static SampledHistogram const expected[] = {
-        {{0, 0, 0, 0, 5}, 32.0176},
-        {{0, 0, 0, 0, 5}, 32.0208},
-        {{0, 0, 0, 0, 5}, 32.1808},
-        {{0, 0, 0, 0.0405, 4.9595}, 27.043},
-        {{0.0085, 0.0405, 0.226, 0.9905, 3.7345}, 15.2494},
+        {{0, 0, 0, 0, 5}, 21.7884},
+        {{0, 0, 0, 0, 5}, 21.9014},
+        {{0, 0, 0, 0, 5}, 21.9502},
+        {{0, 0, 0, 0.034, 4.966}, 20.192},
+        {{0.0105, 0.051, 0.235, 0.971, 3.7325}, 15.1376},
     };
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
