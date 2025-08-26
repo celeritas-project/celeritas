@@ -65,7 +65,7 @@ GaussianRoughnessSampler::GaussianRoughnessSampler(Real3 const& normal,
                                                    real_type sigma_alpha)
     : normal_(normal)
     , sample_alpha_(0, sigma_alpha)
-    , f_max_(fmin(real_type{1}, 4 * sigma_alpha))
+    , f_max_(fmin(real_type{1}, 6 * sigma_alpha))
 {
     CELER_EXPECT(sigma_alpha > 0);
     CELER_EXPECT(is_soft_unit_vector(normal_));

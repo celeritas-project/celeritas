@@ -127,7 +127,7 @@ TEST_F(RoughnessSamplerTest, smear)
 // Test Gaussian roughness model distribution
 TEST_F(RoughnessSamplerTest, gaussian)
 {
-    constexpr size_type num_samples = 1000;
+    constexpr size_type num_samples = 10000;
     HistogramSampler calc_histogram(5, {0.0, 1.0}, num_samples);
 
     Real3 normal = make_unit_vector(Real3{1, 0, -1});
@@ -150,11 +150,11 @@ TEST_F(RoughnessSamplerTest, gaussian)
     PRINT_EXPECTED(actual);
 
     static SampledHistogram const expected[] = {
-        {{0, 0, 0, 0, 5}, 22.256},
-        {{0, 0, 0, 0, 5}, 21.438},
-        {{0, 0, 0, 0, 5}, 22.302},
-        {{0, 0, 0, 0.035, 4.965}, 22.152},
-        {{0.01, 0.05, 0.25, 1.01, 3.68}, 15.38},
+        {{0, 0, 0, 0, 5}, 32.0176},
+        {{0, 0, 0, 0, 5}, 32.0208},
+        {{0, 0, 0, 0, 5}, 32.1808},
+        {{0, 0, 0, 0.0405, 4.9595}, 27.043},
+        {{0.0085, 0.0405, 0.226, 0.9905, 3.7345}, 15.2494},
     };
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
