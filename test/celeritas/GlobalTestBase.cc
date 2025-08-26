@@ -188,6 +188,7 @@ auto GlobalTestBase::build_optical_params() -> SPOpticalParams
     inp.action_reg = this->optical_action_reg();
     inp.gen_reg = std::make_shared<GeneratorRegistry>();
     inp.physics = this->optical_physics();
+    inp.surface_physics = this->optical_surface_physics();
 
     CELER_ENSURE(inp);
 

@@ -287,6 +287,21 @@ TEST_F(SurfacePhysicsTest, init_params)
                 as_id_vec<InternalSurfaceId>(3),
             },
         },
+        // Geometric Surface 3 - default surface
+        {
+            std::vector<OptMatId>{{}, {}},
+            as_id_vec<PhysSurfaceId>(7),
+            {
+                std::vector<SurfaceModelId>{{}},
+                std::vector<SurfaceModelId>{{}},
+                std::vector<SurfaceModelId>{{}},
+            },
+            {
+                std::vector<InternalSurfaceId>{{}},
+                std::vector<InternalSurfaceId>{{}},
+                std::vector<InternalSurfaceId>{{}},
+            },
+        },
     };
 
     ASSERT_EQ(expected.size(), surfaces.size());

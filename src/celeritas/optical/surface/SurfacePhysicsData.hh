@@ -81,7 +81,7 @@ struct SurfacePhysicsParamsData
     //! Whether data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return scalars && !surfaces.empty() && !subsurface_materials.empty();
+        return scalars && !surfaces.empty();
     }
 
     //! Assign from another set of data

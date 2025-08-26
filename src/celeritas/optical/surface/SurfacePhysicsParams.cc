@@ -77,6 +77,12 @@ SurfacePhysicsParams::SurfacePhysicsParams(ActionRegistry* action_reg,
     models_ = this->build_models(input, data);
 
     // Finalize data
+    CELER_ENSURE(data.scalars);
+    CELER_ENSURE(!data.surfaces.empty());
+    for (auto const& model_map : data.model_maps)
+    {
+        CELER_ENSURE(model_map);
+    }
     CELER_ENSURE(data);
 
     data_ = CollectionMirror<SurfacePhysicsParamsData>{std::move(data)};
@@ -209,7 +215,17 @@ void SurfacePhysicsParams::build_surfaces(
         build_surface.push_back(record);
     }
 
+    // Construct default surface
     data.scalars.default_surface = next_phys_surface;
+
+    std::vector<OptMatId> default_materials{{}, {}};
+
+    build_surface.push_back(
+        SurfaceRecord{ItemMap<SubsurfaceMaterialId, OpaqueId<OptMatId>>{
+                          build_material.insert_back(default_materials.begin(),
+                                                     default_materials.end())},
+                      ItemMap<SubsurfaceInterfaceId, PhysSurfaceId>{
+                          range(next_phys_surface, next_phys_surface + 1)}});
 }
 
 //---------------------------------------------------------------------------//
