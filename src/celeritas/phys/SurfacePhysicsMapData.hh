@@ -40,13 +40,15 @@ namespace celeritas
 template<Ownership W, MemSpace M>
 struct SurfacePhysicsMapData
 {
-    //// TYPES ////
+    //!@{
+    //! \name Type aliases
 
-    using PhysSurfaceId = SurfaceModel::PhysSurfaceId;
-    using SurfaceModelId = SurfaceModel::SurfaceModelId;
     using InternalSurfaceId = SurfaceModel::InternalSurfaceId;
+
     template<class T>
     using SurfaceItems = Collection<T, W, M, PhysSurfaceId>;
+
+    //!@}
 
     //// DATA ////
 

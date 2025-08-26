@@ -48,7 +48,6 @@ using namespace ::celeritas::test;
 template<class T>
 using SurfaceStepArray = EnumArray<SurfacePhysicsStep, T>;
 
-using SurfaceModelId = ::celeritas::SurfaceModel::SurfaceModelId;
 using InternalSurfaceId = ::celeritas::SurfaceModel::InternalSurfaceId;
 
 auto constexpr forward = SubsurfaceDirection::forward;
@@ -67,7 +66,7 @@ std::vector<IdType> as_id_vec(Args... args)
 struct SurfaceResult
 {
     std::vector<OptMatId> materials{};
-    std::vector<PhysicsSurfaceId> interfaces{};
+    std::vector<PhysSurfaceId> interfaces{};
     SurfaceStepArray<std::vector<SurfaceModelId>> actions;
     SurfaceStepArray<std::vector<InternalSurfaceId>> per_model_ids;
 };
@@ -76,7 +75,7 @@ struct TraceResult
 {
     std::vector<SurfaceTrackPosition> position{};
     std::vector<OptMatId> material{};
-    std::vector<PhysicsSurfaceId> interface{};
+    std::vector<PhysSurfaceId> interface{};
 };
 
 TraceResult trace_directions(SurfacePhysicsView& s_physics,
@@ -157,45 +156,45 @@ class SurfacePhysicsTest : public OpticalMockTestBase
             as_id_vec<OptMatId>(0, 1),
         };
 
-        input.roughness.polished.emplace(SurfaceLayer{0}, NoRoughness{});
-        input.roughness.polished.emplace(SurfaceLayer{1}, NoRoughness{});
-        input.roughness.polished.emplace(SurfaceLayer{6}, NoRoughness{});
-        input.roughness.smear.emplace(SurfaceLayer{2}, SmearRoughness{0.3});
-        input.roughness.smear.emplace(SurfaceLayer{5}, SmearRoughness{0.7});
-        input.roughness.gaussian.emplace(SurfaceLayer{3},
+        input.roughness.polished.emplace(PhysSurfaceId{0}, NoRoughness{});
+        input.roughness.polished.emplace(PhysSurfaceId{1}, NoRoughness{});
+        input.roughness.polished.emplace(PhysSurfaceId{6}, NoRoughness{});
+        input.roughness.smear.emplace(PhysSurfaceId{2}, SmearRoughness{0.3});
+        input.roughness.smear.emplace(PhysSurfaceId{5}, SmearRoughness{0.7});
+        input.roughness.gaussian.emplace(PhysSurfaceId{3},
                                          GaussianRoughness{0.07});
-        input.roughness.gaussian.emplace(SurfaceLayer{4},
+        input.roughness.gaussian.emplace(PhysSurfaceId{4},
                                          GaussianRoughness{0.13});
 
         input.reflectivity.grid.emplace(
-            SurfaceLayer{0}, GridReflection{Grid{{0.0, 1.0}, {0.1, 0.3}}});
+            PhysSurfaceId{0}, GridReflection{Grid{{0.0, 1.0}, {0.1, 0.3}}});
         input.reflectivity.grid.emplace(
-            SurfaceLayer{2}, GridReflection{Grid{{0.0, 1.0}, {0.4, 0.5}}});
+            PhysSurfaceId{2}, GridReflection{Grid{{0.0, 1.0}, {0.4, 0.5}}});
         input.reflectivity.grid.emplace(
-            SurfaceLayer{5}, GridReflection{Grid{{0.0, 1.0}, {0.2, 0.9}}});
-        input.reflectivity.fresnel.emplace(SurfaceLayer{1},
+            PhysSurfaceId{5}, GridReflection{Grid{{0.0, 1.0}, {0.2, 0.9}}});
+        input.reflectivity.fresnel.emplace(PhysSurfaceId{1},
                                            FresnelReflection{});
-        input.reflectivity.fresnel.emplace(SurfaceLayer{3},
+        input.reflectivity.fresnel.emplace(PhysSurfaceId{3},
                                            FresnelReflection{});
-        input.reflectivity.fresnel.emplace(SurfaceLayer{4},
+        input.reflectivity.fresnel.emplace(PhysSurfaceId{4},
                                            FresnelReflection{});
-        input.reflectivity.fresnel.emplace(SurfaceLayer{6},
+        input.reflectivity.fresnel.emplace(PhysSurfaceId{6},
                                            FresnelReflection{});
 
         input.interaction.dielectric_dielectric.emplace(
-            SurfaceLayer{0}, ReflectionForm::from_spike());
+            PhysSurfaceId{0}, ReflectionForm::from_spike());
         input.interaction.dielectric_dielectric.emplace(
-            SurfaceLayer{3}, ReflectionForm::from_lobe());
+            PhysSurfaceId{3}, ReflectionForm::from_lobe());
         input.interaction.dielectric_dielectric.emplace(
-            SurfaceLayer{4}, ReflectionForm::from_lambertian());
+            PhysSurfaceId{4}, ReflectionForm::from_lambertian());
         input.interaction.dielectric_dielectric.emplace(
-            SurfaceLayer{6}, ReflectionForm::from_spike());
+            PhysSurfaceId{6}, ReflectionForm::from_spike());
         input.interaction.dielectric_metal.emplace(
-            SurfaceLayer{1}, ReflectionForm::from_lambertian());
+            PhysSurfaceId{1}, ReflectionForm::from_lambertian());
         input.interaction.dielectric_metal.emplace(
-            SurfaceLayer{2}, ReflectionForm::from_spike());
+            PhysSurfaceId{2}, ReflectionForm::from_spike());
         input.interaction.dielectric_metal.emplace(
-            SurfaceLayer{5}, ReflectionForm::from_lobe());
+            PhysSurfaceId{5}, ReflectionForm::from_lobe());
 
         return std::make_shared<SurfacePhysicsParams const>(
             this->optical_action_reg().get(), input);
@@ -276,7 +275,7 @@ TEST_F(SurfacePhysicsTest, init_params)
         //   0   1   2   3
         {
             as_id_vec<OptMatId>(0, 3, 1, 2, 1),
-            as_id_vec<PhysicsSurfaceId>(0, 1, 2, 3),
+            as_id_vec<PhysSurfaceId>(0, 1, 2, 3),
             {
                 as_id_vec<SurfaceModelId>(0, 0, 1, 2),
                 as_id_vec<SurfaceModelId>(0, 1, 0, 1),
@@ -293,7 +292,7 @@ TEST_F(SurfacePhysicsTest, init_params)
         //   4   5
         {
             as_id_vec<OptMatId>(0, 2, 1),
-            as_id_vec<PhysicsSurfaceId>(4, 5),
+            as_id_vec<PhysSurfaceId>(4, 5),
             {
                 as_id_vec<SurfaceModelId>(2, 1),
                 as_id_vec<SurfaceModelId>(1, 0),
@@ -310,7 +309,7 @@ TEST_F(SurfacePhysicsTest, init_params)
         //   6
         {
             as_id_vec<OptMatId>(0, 1),
-            as_id_vec<PhysicsSurfaceId>(6),
+            as_id_vec<PhysSurfaceId>(6),
             {
                 as_id_vec<SurfaceModelId>(0),
                 as_id_vec<SurfaceModelId>(1),
@@ -497,7 +496,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
 
         TraceResult expected{as_id_vec<SurfaceTrackPosition>(0, 1),
                              as_id_vec<OptMatId>(0, 1),
-                             as_id_vec<PhysicsSurfaceId>(6)};
+                             as_id_vec<PhysSurfaceId>(6)};
 
         EXPECT_VEC_EQ(expected.position, result.position);
         EXPECT_VEC_EQ(expected.material, result.material);
@@ -526,7 +525,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
 
         TraceResult expected{as_id_vec<SurfaceTrackPosition>(0, 1),
                              as_id_vec<OptMatId>(1, 0),
-                             as_id_vec<PhysicsSurfaceId>(6)};
+                             as_id_vec<PhysSurfaceId>(6)};
 
         EXPECT_VEC_EQ(expected.position, result.position);
         EXPECT_VEC_EQ(expected.material, result.material);
@@ -565,7 +564,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
         TraceResult expected{
             as_id_vec<SurfaceTrackPosition>(0, 1, 2, 1, 2, 3, 4, 3, 2, 1, 0),
             as_id_vec<OptMatId>(0, 3, 1, 3, 1, 2, 1, 2, 1, 3, 0),
-            as_id_vec<PhysicsSurfaceId>(0, 1, 1, 1, 2, 3, 3, 2, 1, 0)};
+            as_id_vec<PhysSurfaceId>(0, 1, 1, 1, 2, 3, 3, 2, 1, 0)};
 
         EXPECT_VEC_EQ(expected.position, result.position);
         EXPECT_VEC_EQ(expected.material, result.material);
@@ -600,7 +599,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
         TraceResult expected{
             as_id_vec<SurfaceTrackPosition>(0, 1, 2, 1, 0, 1, 2),
             as_id_vec<OptMatId>(1, 2, 0, 2, 1, 2, 0),
-            as_id_vec<PhysicsSurfaceId>(5, 4, 4, 5, 5, 4)};
+            as_id_vec<PhysSurfaceId>(5, 4, 4, 5, 5, 4)};
 
         EXPECT_VEC_EQ(expected.position, result.position);
         EXPECT_VEC_EQ(expected.material, result.material);

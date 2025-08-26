@@ -9,10 +9,10 @@
 #include <algorithm>
 #include <map>
 
-#include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/Types.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/inp/Grid.hh"
 
 namespace celeritas
@@ -94,7 +94,7 @@ struct GaussianRoughness
 //!@{
 //! \name Convenience typedef for current simplified layer implementation.
 //! \todo: Support multiple layers (for painted/coated surfaces)
-using SurfaceLayer = SurfaceId;
+using SurfaceLayer = PhysSurfaceId;
 //!@}
 
 //---------------------------------------------------------------------------//

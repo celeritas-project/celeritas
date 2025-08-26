@@ -55,6 +55,9 @@ using PrimaryId = OpaqueId<struct Primary_>;
 //! Opaque index of physics process
 using ProcessId = OpaqueId<struct Process_>;
 
+//! Opaque index of surface physics models
+using SurfaceModelId = OpaqueId<struct SurfaceModel_>;
+
 //! Unique ID (for an event) of a track among all primaries and secondaries
 using TrackId = OpaqueId<struct Track_>;
 
@@ -79,6 +82,9 @@ using ParticleProcessId = OpaqueId<ProcessId>;
 
 //! Opaque index of a model applicable to a single particle type
 using ParticleModelId = OpaqueId<ModelId>;
+
+//! Opaque index of subsurface interface with physics models
+using PhysSurfaceId = OpaqueId<struct PhysSurface_>;
 
 //! Opaque index of electron subshell
 using SubshellId = OpaqueId<struct Subshell_>;

@@ -47,8 +47,6 @@ class SurfacePhysicsParams final
     template<class T>
     using SurfaceStepArray = EnumArray<SurfacePhysicsStep, T>;
 
-    using SurfaceModelId = ::celeritas::SurfaceModel::SurfaceModelId;
-
     using SPModel = std::shared_ptr<SurfaceModel>;
     using VecModelBuilders = std::vector<SurfaceModel::ModelBuilder>;
     //!@}

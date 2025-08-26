@@ -25,8 +25,6 @@ class SurfacePhysicsMapBuilder
     //!@{
     //! \name Type aliases
     using HostData = HostVal<SurfacePhysicsMapData>;
-    using PhysSurfaceId = SurfaceModel::PhysSurfaceId;
-    using SurfaceModelId = SurfaceModel::SurfaceModelId;
     //!@}
 
   public:

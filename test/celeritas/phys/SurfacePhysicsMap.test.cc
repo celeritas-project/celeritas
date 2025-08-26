@@ -19,9 +19,8 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-using S = SurfaceId;
-using M = SurfaceModel::SurfaceModelId;
-using PhysSurfaceId = SurfaceModel::PhysSurfaceId;
+using S = PhysSurfaceId;
+using M = SurfaceModelId;
 
 //---------------------------------------------------------------------------//
 class MockSurfaceModel final : public SurfaceModel

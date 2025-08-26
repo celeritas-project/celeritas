@@ -12,6 +12,7 @@
 
 #include "corecel/OpaqueId.hh"
 #include "geocel/Types.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {
@@ -33,12 +34,8 @@ class SurfaceModel
     //!@{
     //! \name Type aliases
 
-    //! Eventually to be a pair of surface+layer
-    using PhysSurfaceId = SurfaceId;
     //! Vector of surfaces
     using VecSurfaceLayer = std::vector<PhysSurfaceId>;
-    //! Opaque ID of this surface model
-    using SurfaceModelId = OpaqueId<SurfaceModel>;
     //! Opaque index of surface data in the list for a particular surface model
     using InternalSurfaceId = OpaqueId<struct InternalModelSurface_>;
     //!@}

@@ -76,7 +76,7 @@ class SurfacePhysicsView
 
     // Next subsurface interface in the given direction (track-local)
     inline CELER_FUNCTION
-        PhysicsSurfaceId subsurface_interface(SubsurfaceDirection) const;
+        PhysSurfaceId subsurface_interface(SubsurfaceDirection) const;
 
     // Cross subsurface interface in the given direction (track-local)
     inline CELER_FUNCTION void cross_subsurface_interface(SubsurfaceDirection);
@@ -243,7 +243,7 @@ CELER_FUNCTION OptMatId SurfacePhysicsView::subsurface_material() const
 /*!
  * Get the physics surface ID of the subsurface in the given direction.
  */
-CELER_FUNCTION PhysicsSurfaceId
+CELER_FUNCTION PhysSurfaceId
 SurfacePhysicsView::subsurface_interface(SubsurfaceDirection d) const
 {
     CELER_EXPECT(!this->is_exiting(d));

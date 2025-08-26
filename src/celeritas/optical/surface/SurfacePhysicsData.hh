@@ -19,7 +19,6 @@ namespace optical
 //---------------------------------------------------------------------------//
 
 using GeometricSurfaceId = OpaqueId<struct GeometricSurface_>;
-using PhysicsSurfaceId = SurfaceId;
 using SurfaceTrackPosition = OpaqueId<struct SurfaceTrackPosition_>;
 using SubsurfaceMaterialId = OpaqueId<struct SubsurfaceMaterial_>;
 using SubsurfaceInterfaceId = OpaqueId<struct SubsurfaceInterface_>;
@@ -27,7 +26,7 @@ using SubsurfaceInterfaceId = OpaqueId<struct SubsurfaceInterface_>;
 struct SurfaceRecord
 {
     ItemMap<SubsurfaceMaterialId, OpaqueId<OptMatId>> subsurface_materials;
-    ItemMap<SubsurfaceInterfaceId, PhysicsSurfaceId> subsurface_interfaces;
+    ItemMap<SubsurfaceInterfaceId, PhysSurfaceId> subsurface_interfaces;
 
     //! Whether data is assigned
     explicit CELER_FUNCTION operator bool() const
@@ -43,7 +42,7 @@ struct SurfaceRecord
  */
 struct SurfacePhysicsParamsScalars
 {
-    PhysicsSurfaceId default_surface{};
+    PhysSurfaceId default_surface{};
 
     //! Whether data is assigned and valid
     explicit CELER_FUNCTION operator bool() const
