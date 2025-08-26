@@ -26,8 +26,7 @@ ImportedMaterials::from_import(ImportData const& data)
     if (!std::any_of(data.optical_materials.begin(),
                      data.optical_materials.end(),
                      [](auto const& mat) {
-                         return mat.rayleigh || mat.wls || mat.wls2
-                                || mat.properties.rindex;
+                         return mat.rayleigh || mat.wls || mat.wls2;
                      }))
     {
         return nullptr;
