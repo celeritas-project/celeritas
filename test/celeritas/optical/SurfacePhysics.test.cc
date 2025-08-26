@@ -99,45 +99,6 @@ TraceResult trace_directions(SurfacePhysicsView& s_physics,
     return result;
 }
 
-// class MockSurfaceModel : public SurfaceModel
-// {
-//   public:
-//     static SurfaceModel::ModelBuilder
-//     make_mock_builder(SurfacePhysicsStep step, size_type n)
-//     {
-//         static SurfaceStepArray<std::vector<std::string_view>> labels{
-//             std::vector<std::string_view>{
-//                 "roughness-0",
-//                 "roughness-1",
-//             },
-//             std::vector<std::string_view>{
-//                 "reflectivity-0",
-//             },
-//             std::vector<std::string_view>{
-//                 "interaction-0",
-//                 "interaction-1",
-//                 "interaction-2",
-//                 "interaction-3",
-//             },
-//         };
-//
-//         return [step, n](SurfaceModelId model) {
-//             return std::make_shared<MockSurfaceModel>(labels[step][n],
-//             model);
-//         };
-//     }
-//
-//     MockSurfaceModel(std::string_view title, SurfaceModelId model_id)
-//         : SurfaceModel(model_id, title)
-//     {
-//     }
-//
-//     void step(CoreParams const&, CoreStateHost&) const final {}
-//     void step(CoreParams const&, CoreStateDevice&) const final {}
-//
-//     VecSurfaceLayer get_surfaces() const final { return {}; }
-// };
-
 class SurfacePhysicsTest : public OpticalMockTestBase
 {
   protected:
@@ -148,6 +109,7 @@ class SurfacePhysicsTest : public OpticalMockTestBase
     SPConstOpticalSurfacePhysics build_optical_surface_physics() override
     {
         using namespace celeritas::inp;
+        using PSI = PhysSurfaceId;
 
         SurfacePhysics input;
         input.materials = {
@@ -156,45 +118,49 @@ class SurfacePhysicsTest : public OpticalMockTestBase
             as_id_vec<OptMatId>(0, 1),
         };
 
-        input.roughness.polished.emplace(PhysSurfaceId{0}, NoRoughness{});
-        input.roughness.polished.emplace(PhysSurfaceId{1}, NoRoughness{});
-        input.roughness.polished.emplace(PhysSurfaceId{6}, NoRoughness{});
-        input.roughness.smear.emplace(PhysSurfaceId{2}, SmearRoughness{0.3});
-        input.roughness.smear.emplace(PhysSurfaceId{5}, SmearRoughness{0.7});
-        input.roughness.gaussian.emplace(PhysSurfaceId{3},
-                                         GaussianRoughness{0.07});
-        input.roughness.gaussian.emplace(PhysSurfaceId{4},
-                                         GaussianRoughness{0.13});
+        input.roughness = RoughnessModels{
+            {
+                {PSI{0}, NoRoughness{}},
+                {PSI{1}, NoRoughness{}},
+                {PSI{6}, NoRoughness{}},
+            },
+            {
+                {PSI{2}, SmearRoughness{0.3}},
+                {PSI{5}, SmearRoughness{0.7}},
+            },
+            {
+                {PSI{3}, GaussianRoughness{0.07}},
+                {PSI{4}, GaussianRoughness{0.13}},
+            },
+        };
 
-        input.reflectivity.grid.emplace(
-            PhysSurfaceId{0}, GridReflection{Grid{{0.0, 1.0}, {0.1, 0.3}}});
-        input.reflectivity.grid.emplace(
-            PhysSurfaceId{2}, GridReflection{Grid{{0.0, 1.0}, {0.4, 0.5}}});
-        input.reflectivity.grid.emplace(
-            PhysSurfaceId{5}, GridReflection{Grid{{0.0, 1.0}, {0.2, 0.9}}});
-        input.reflectivity.fresnel.emplace(PhysSurfaceId{1},
-                                           FresnelReflection{});
-        input.reflectivity.fresnel.emplace(PhysSurfaceId{3},
-                                           FresnelReflection{});
-        input.reflectivity.fresnel.emplace(PhysSurfaceId{4},
-                                           FresnelReflection{});
-        input.reflectivity.fresnel.emplace(PhysSurfaceId{6},
-                                           FresnelReflection{});
+        input.reflectivity = ReflectivityModels{
+            {
+                {PSI{0}, GridReflection{Grid{{0.0, 1.0}, {0.1, 0.3}}}},
+                {PSI{2}, GridReflection{Grid{{0.0, 1.0}, {0.4, 0.5}}}},
+                {PSI{5}, GridReflection{Grid{{0.0, 1.0}, {0.2, 0.9}}}},
+            },
+            {
+                {PSI{1}, FresnelReflection{}},
+                {PSI{3}, FresnelReflection{}},
+                {PSI{4}, FresnelReflection{}},
+                {PSI{6}, FresnelReflection{}},
+            },
+        };
 
-        input.interaction.dielectric_dielectric.emplace(
-            PhysSurfaceId{0}, ReflectionForm::from_spike());
-        input.interaction.dielectric_dielectric.emplace(
-            PhysSurfaceId{3}, ReflectionForm::from_lobe());
-        input.interaction.dielectric_dielectric.emplace(
-            PhysSurfaceId{4}, ReflectionForm::from_lambertian());
-        input.interaction.dielectric_dielectric.emplace(
-            PhysSurfaceId{6}, ReflectionForm::from_spike());
-        input.interaction.dielectric_metal.emplace(
-            PhysSurfaceId{1}, ReflectionForm::from_lambertian());
-        input.interaction.dielectric_metal.emplace(
-            PhysSurfaceId{2}, ReflectionForm::from_spike());
-        input.interaction.dielectric_metal.emplace(
-            PhysSurfaceId{5}, ReflectionForm::from_lobe());
+        input.interaction = InteractionModels{
+            {
+                {PSI{0}, ReflectionForm::from_spike()},
+                {PSI{3}, ReflectionForm::from_lobe()},
+                {PSI{4}, ReflectionForm::from_lambertian()},
+                {PSI{6}, ReflectionForm::from_spike()},
+            },
+            {
+                {PSI{1}, ReflectionForm::from_lambertian()},
+                {PSI{2}, ReflectionForm::from_spike()},
+                {PSI{5}, ReflectionForm::from_lobe()},
+            },
+        };
 
         return std::make_shared<SurfacePhysicsParams const>(
             this->optical_action_reg().get(), input);
