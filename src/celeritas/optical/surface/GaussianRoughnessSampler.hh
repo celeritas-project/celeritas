@@ -36,6 +36,14 @@ namespace optical
    p(\sigma_\alpha; \theta,\phi) = \frac{1}{2\pi}\,\frac{1}{\mathcal N}\,
    \exp\!\left(-\frac{\theta^{2}}{2\sigma_\alpha^{2}}\right)\sin\theta \,.
  * \f]
+ *
+ * The polar angle \f$ \theta \f$ is sampled using rejection:
+ * - Draw \f$ \alpha \f$ from the positive half of a normal distribution
+ * - Reject angles greater than 90 degrees
+ * - Use an acceptance function \f$ \sin \theta \f$, improving
+ *   sampling efficiency by calculating a maximum rejection value assuming no
+ *   angles greater than six sigma are sampled, with sigma assumed to be small
+ *   to allow this maximum the expression \f$ \min(1, 6 \sigma_\alpha) \f$.
  */
 class GaussianRoughnessSampler
 {
@@ -84,13 +92,17 @@ CELER_FUNCTION Real3 GaussianRoughnessSampler::operator()(Engine& rng)
     real_type sin_alpha{};
     do
     {
-        // Sample linear angle according to gaussian (chances of having a
-        // nonpositive slope are generally vanishingly small)
-        real_type alpha = sample_alpha_(rng);
+        real_type alpha{};
+        do
+        {
+            // Sample positive angle according to gaussian (chances of having a
+            // nonpositive slope are generally vanishingly small)
+            alpha = std::fabs(sample_alpha_(rng));
+        } while (alpha >= constants::pi / 2);
         sincos(alpha, &sin_alpha, &cos_alpha);
 
         // Transform to polar angle using rejection
-    } while (cos_alpha <= 0 || RejectionSampler{fabs(sin_alpha), f_max_}(rng));
+    } while (RejectionSampler{sin_alpha, f_max_}(rng));
 
     // Rotate normal by alpha and then sample azimuth rotation uniformly
     return ExitingDirectionSampler{cos_alpha, normal_}(rng);
