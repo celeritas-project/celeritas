@@ -100,43 +100,44 @@ TraceResult trace_directions(SurfacePhysicsView& s_physics,
     return result;
 }
 
-class MockSurfaceModel : public SurfaceModel
-{
-  public:
-    static SurfaceModel::ModelBuilder
-    make_mock_builder(SurfacePhysicsStep step, size_type n)
-    {
-        static SurfaceStepArray<std::vector<std::string_view>> labels{
-            std::vector<std::string_view>{
-                "roughness-0",
-                "roughness-1",
-            },
-            std::vector<std::string_view>{
-                "reflectivity-0",
-            },
-            std::vector<std::string_view>{
-                "interaction-0",
-                "interaction-1",
-                "interaction-2",
-                "interaction-3",
-            },
-        };
-
-        return [step, n](SurfaceModelId model) {
-            return std::make_shared<MockSurfaceModel>(labels[step][n], model);
-        };
-    }
-
-    MockSurfaceModel(std::string_view title, SurfaceModelId model_id)
-        : SurfaceModel(model_id, title)
-    {
-    }
-
-    void step(CoreParams const&, CoreStateHost&) const final {}
-    void step(CoreParams const&, CoreStateDevice&) const final {}
-
-    VecSurfaceLayer get_surfaces() const final { return {}; }
-};
+// class MockSurfaceModel : public SurfaceModel
+// {
+//   public:
+//     static SurfaceModel::ModelBuilder
+//     make_mock_builder(SurfacePhysicsStep step, size_type n)
+//     {
+//         static SurfaceStepArray<std::vector<std::string_view>> labels{
+//             std::vector<std::string_view>{
+//                 "roughness-0",
+//                 "roughness-1",
+//             },
+//             std::vector<std::string_view>{
+//                 "reflectivity-0",
+//             },
+//             std::vector<std::string_view>{
+//                 "interaction-0",
+//                 "interaction-1",
+//                 "interaction-2",
+//                 "interaction-3",
+//             },
+//         };
+//
+//         return [step, n](SurfaceModelId model) {
+//             return std::make_shared<MockSurfaceModel>(labels[step][n],
+//             model);
+//         };
+//     }
+//
+//     MockSurfaceModel(std::string_view title, SurfaceModelId model_id)
+//         : SurfaceModel(model_id, title)
+//     {
+//     }
+//
+//     void step(CoreParams const&, CoreStateHost&) const final {}
+//     void step(CoreParams const&, CoreStateDevice&) const final {}
+//
+//     VecSurfaceLayer get_surfaces() const final { return {}; }
+// };
 
 class SurfacePhysicsTest : public OpticalMockTestBase
 {
@@ -147,40 +148,57 @@ class SurfacePhysicsTest : public OpticalMockTestBase
 
     SPConstOpticalSurfacePhysics build_optical_surface_physics() override
     {
-        SurfacePhysicsParams::Input input;
-        input.action_reg = this->optical_action_reg().get();
-        input.surfaces = {
-            {as_id_vec<OptMatId>(0, 3, 1, 2, 1),
-             {
-                 {SurfaceModelId{1}, SurfaceModelId{0}, SurfaceModelId{3}},
-                 {SurfaceModelId{1}, SurfaceModelId{0}, SurfaceModelId{0}},
-                 {SurfaceModelId{0}, SurfaceModelId{0}, SurfaceModelId{2}},
-                 {SurfaceModelId{1}, SurfaceModelId{0}, SurfaceModelId{1}},
-             }},
-            {as_id_vec<OptMatId>(0, 2, 1),
-             {
-                 {SurfaceModelId{0}, SurfaceModelId{0}, SurfaceModelId{1}},
-                 {SurfaceModelId{1}, SurfaceModelId{0}, SurfaceModelId{3}},
-             }
+        using namespace celeritas::inp;
 
-            },
-            {as_id_vec<OptMatId>(0, 1),
-             {
-                 {SurfaceModelId{1}, SurfaceModelId{0}, SurfaceModelId{2}},
-             }},
+        SurfacePhysics input;
+        input.materials = {
+            as_id_vec<OptMatId>(0, 3, 1, 2, 1),
+            as_id_vec<OptMatId>(0, 2, 1),
+            as_id_vec<OptMatId>(0, 1),
         };
 
-        SurfaceStepArray<size_type> num_models{2, 1, 4};
-        for (auto step : range(SurfacePhysicsStep::size_))
-        {
-            for (size_type n : range(num_models[step]))
-            {
-                input.model_builders[step].push_back(
-                    MockSurfaceModel::make_mock_builder(step, n));
-            }
-        }
+        input.roughness.polished.emplace(SurfaceLayer{0}, NoRoughness{});
+        input.roughness.polished.emplace(SurfaceLayer{1}, NoRoughness{});
+        input.roughness.polished.emplace(SurfaceLayer{6}, NoRoughness{});
+        input.roughness.smear.emplace(SurfaceLayer{2}, SmearRoughness{0.3});
+        input.roughness.smear.emplace(SurfaceLayer{5}, SmearRoughness{0.7});
+        input.roughness.gaussian.emplace(SurfaceLayer{3},
+                                         GaussianRoughness{0.07});
+        input.roughness.gaussian.emplace(SurfaceLayer{4},
+                                         GaussianRoughness{0.13});
 
-        return std::make_shared<SurfacePhysicsParams const>(std::move(input));
+        input.reflectivity.grid.emplace(
+            SurfaceLayer{0}, GridReflection{Grid{{0.0, 1.0}, {0.1, 0.3}}});
+        input.reflectivity.grid.emplace(
+            SurfaceLayer{2}, GridReflection{Grid{{0.0, 1.0}, {0.4, 0.5}}});
+        input.reflectivity.grid.emplace(
+            SurfaceLayer{5}, GridReflection{Grid{{0.0, 1.0}, {0.2, 0.9}}});
+        input.reflectivity.fresnel.emplace(SurfaceLayer{1},
+                                           FresnelReflection{});
+        input.reflectivity.fresnel.emplace(SurfaceLayer{3},
+                                           FresnelReflection{});
+        input.reflectivity.fresnel.emplace(SurfaceLayer{4},
+                                           FresnelReflection{});
+        input.reflectivity.fresnel.emplace(SurfaceLayer{6},
+                                           FresnelReflection{});
+
+        input.interaction.dielectric_dielectric.emplace(
+            SurfaceLayer{0}, ReflectionForm::from_spike());
+        input.interaction.dielectric_dielectric.emplace(
+            SurfaceLayer{3}, ReflectionForm::from_lobe());
+        input.interaction.dielectric_dielectric.emplace(
+            SurfaceLayer{4}, ReflectionForm::from_lambertian());
+        input.interaction.dielectric_dielectric.emplace(
+            SurfaceLayer{6}, ReflectionForm::from_spike());
+        input.interaction.dielectric_metal.emplace(
+            SurfaceLayer{1}, ReflectionForm::from_lambertian());
+        input.interaction.dielectric_metal.emplace(
+            SurfaceLayer{2}, ReflectionForm::from_spike());
+        input.interaction.dielectric_metal.emplace(
+            SurfaceLayer{5}, ReflectionForm::from_lobe());
+
+        return std::make_shared<SurfacePhysicsParams const>(
+            this->optical_action_reg().get(), input);
     }
 
     void initialize_states(TrackSlotId::size_type num_tracks)
@@ -202,117 +220,6 @@ class SurfacePhysicsTest : public OpticalMockTestBase
     CollectionStateStore<SurfacePhysicsStateData, MemSpace::host>
         surface_physics_state_;
 };
-
-//---------------------------------------------------------------------------//
-// Test import from inp::SurfacePhysics
-TEST_F(SurfacePhysicsTest, from_import)
-{
-    using namespace ::celeritas::inp;
-
-    // Mock data for inp::SurfacePhysics
-
-    using RoughnessParam
-        = std::variant<NoRoughness, SmearRoughness, GaussianRoughness>;
-    using ReflectionParam = std::variant<GridReflection, FresnelReflection>;
-    using InteractionParam = std::pair<size_type, ReflectionForm>;
-    using ParamTuple
-        = std::tuple<RoughnessParam, ReflectionParam, InteractionParam>;
-
-    std::vector<ParamTuple> models{
-        {NoRoughness{}, FresnelReflection{}, {0, ReflectionForm{}}},
-        {SmearRoughness{}, GridReflection{}, {0, ReflectionForm{}}},
-        {GaussianRoughness{}, FresnelReflection{}, {1, ReflectionForm{}}},
-        {SmearRoughness{}, GridReflection{}, {1, ReflectionForm{}}},
-        {NoRoughness{}, FresnelReflection{}, {0, ReflectionForm{}}},
-        {SmearRoughness{}, GridReflection{}, {1, ReflectionForm{}}},
-        {GaussianRoughness{}, FresnelReflection{}, {1, ReflectionForm{}}},
-        {GaussianRoughness{}, FresnelReflection{}, {0, ReflectionForm{}}},
-    };
-
-    // Populate surface physics
-
-    SurfacePhysics sp;
-    for (auto surface : range(SurfaceLayer(models.size())))
-    {
-        std::visit(Overload{[&](NoRoughness const& r) {
-                                sp.roughness.polished.emplace(surface, r);
-                            },
-                            [&](SmearRoughness const& r) {
-                                sp.roughness.smear.emplace(surface, r);
-                            },
-                            [&](GaussianRoughness const& r) {
-                                sp.roughness.gaussian.emplace(surface, r);
-                            }},
-                   std::get<0>(models[surface.get()]));
-
-        std::visit(Overload{[&](GridReflection const& r) {
-                                sp.reflectivity.grid.emplace(surface, r);
-                            },
-                            [&](FresnelReflection const& r) {
-                                sp.reflectivity.fresnel.emplace(surface, r);
-                            }},
-                   std::get<1>(models[surface.get()]));
-
-        auto interaction = std::get<2>(models[surface.get()]);
-        if (interaction.first == 0)
-        {
-            sp.interaction.dielectric_dielectric.emplace(surface,
-                                                         interaction.second);
-        }
-        else if (interaction.first == 1)
-        {
-            sp.interaction.dielectric_metal.emplace(surface,
-                                                    interaction.second);
-        }
-    }
-
-    // Sanity check that SurfacePhysics populated correctly
-
-    EXPECT_EQ(2, sp.roughness.polished.size());
-    EXPECT_EQ(3, sp.roughness.smear.size());
-    EXPECT_EQ(3, sp.roughness.gaussian.size());
-
-    EXPECT_EQ(3, sp.reflectivity.grid.size());
-    EXPECT_EQ(5, sp.reflectivity.fresnel.size());
-
-    EXPECT_EQ(4, sp.interaction.dielectric_dielectric.size());
-    EXPECT_EQ(4, sp.interaction.dielectric_metal.size());
-
-    // Build input
-
-    auto input = SurfacePhysicsParams::Input::from_import(sp);
-
-    // Check input built correctly
-
-    SurfaceStepArray<std::vector<SurfaceModelId>> model_ids;
-    for (auto surface : input.surfaces)
-    {
-        EXPECT_TRUE(surface.materials.empty());
-
-        ASSERT_EQ(1, surface.interface_models.size());
-        auto const& models = surface.interface_models.front();
-
-        for (auto step : range(SurfacePhysicsStep::size_))
-        {
-            model_ids[step].push_back(models[step]);
-        }
-    }
-
-    SurfaceStepArray<std::vector<SurfaceModelId>> expected_model_ids{
-        as_id_vec<SurfaceModelId>(0, 1, 2, 1, 0, 1, 2, 2),
-        as_id_vec<SurfaceModelId>(1, 0, 1, 0, 1, 0, 1, 1),
-        as_id_vec<SurfaceModelId>(0, 0, 1, 1, 0, 1, 1, 0),
-    };
-
-    for (auto step : range(SurfacePhysicsStep::size_))
-    {
-        EXPECT_VEC_EQ(expected_model_ids[step], model_ids[step]);
-    }
-
-    EXPECT_EQ(3, input.model_builders[SurfacePhysicsStep::roughness].size());
-    EXPECT_EQ(2, input.model_builders[SurfacePhysicsStep::reflectivity].size());
-    EXPECT_EQ(2, input.model_builders[SurfacePhysicsStep::interaction].size());
-}
 
 //---------------------------------------------------------------------------//
 // Test initialization
@@ -348,18 +255,15 @@ TEST_F(SurfacePhysicsTest, init_params)
         for (auto i : range(SubsurfaceInterfaceId{
                  surface_record.subsurface_interfaces.size()}))
         {
-            auto s = data.subsurface_interfaces[surface_record
-                                                    .subsurface_interfaces[i]];
-            surface.interfaces.push_back(s);
+            auto phys_surface = surface_record.subsurface_interfaces[i];
+            surface.interfaces.push_back(phys_surface);
 
             for (auto step : range(SurfacePhysicsStep::size_))
             {
-                SurfaceId temp_id(s.unchecked_get());
-
                 surface.actions[step].push_back(
-                    data.model_maps[step].surface_models[temp_id]);
+                    data.model_maps[step].surface_models[phys_surface]);
                 surface.per_model_ids[step].push_back(
-                    data.model_maps[step].internal_surface_ids[temp_id]);
+                    data.model_maps[step].internal_surface_ids[phys_surface]);
             }
         }
     }
@@ -374,14 +278,14 @@ TEST_F(SurfacePhysicsTest, init_params)
             as_id_vec<OptMatId>(0, 3, 1, 2, 1),
             as_id_vec<PhysicsSurfaceId>(0, 1, 2, 3),
             {
-                as_id_vec<SurfaceModelId>(1, 1, 0, 1),
-                as_id_vec<SurfaceModelId>(0, 0, 0, 0),
-                as_id_vec<SurfaceModelId>(3, 0, 2, 1),
+                as_id_vec<SurfaceModelId>(0, 0, 1, 2),
+                as_id_vec<SurfaceModelId>(0, 1, 0, 1),
+                as_id_vec<SurfaceModelId>(0, 1, 1, 0),
             },
             {
-                as_id_vec<InternalSurfaceId>(0, 1, 0, 2),
-                as_id_vec<InternalSurfaceId>(0, 1, 2, 3),
-                as_id_vec<InternalSurfaceId>(0, 0, 0, 0),
+                as_id_vec<InternalSurfaceId>(0, 1, 0, 0),
+                as_id_vec<InternalSurfaceId>(0, 0, 1, 1),
+                as_id_vec<InternalSurfaceId>(0, 0, 1, 1),
             },
         },
         // Geometric Surface 1
@@ -391,14 +295,14 @@ TEST_F(SurfacePhysicsTest, init_params)
             as_id_vec<OptMatId>(0, 2, 1),
             as_id_vec<PhysicsSurfaceId>(4, 5),
             {
+                as_id_vec<SurfaceModelId>(2, 1),
+                as_id_vec<SurfaceModelId>(1, 0),
                 as_id_vec<SurfaceModelId>(0, 1),
-                as_id_vec<SurfaceModelId>(0, 0),
-                as_id_vec<SurfaceModelId>(1, 3),
             },
             {
-                as_id_vec<InternalSurfaceId>(1, 3),
-                as_id_vec<InternalSurfaceId>(4, 5),
                 as_id_vec<InternalSurfaceId>(1, 1),
+                as_id_vec<InternalSurfaceId>(2, 2),
+                as_id_vec<InternalSurfaceId>(2, 2),
             },
         },
         // Geometric Surface 2
@@ -408,14 +312,14 @@ TEST_F(SurfacePhysicsTest, init_params)
             as_id_vec<OptMatId>(0, 1),
             as_id_vec<PhysicsSurfaceId>(6),
             {
+                as_id_vec<SurfaceModelId>(0),
                 as_id_vec<SurfaceModelId>(1),
                 as_id_vec<SurfaceModelId>(0),
-                as_id_vec<SurfaceModelId>(2),
             },
             {
-                as_id_vec<InternalSurfaceId>(4),
-                as_id_vec<InternalSurfaceId>(6),
-                as_id_vec<InternalSurfaceId>(1),
+                as_id_vec<InternalSurfaceId>(2),
+                as_id_vec<InternalSurfaceId>(3),
+                as_id_vec<InternalSurfaceId>(3),
             },
         },
     };
@@ -441,17 +345,17 @@ TEST_F(SurfacePhysicsTest, init_params)
 
     SurfaceStepArray<std::vector<std::string_view>> expected_model_names;
     expected_model_names[SurfacePhysicsStep::roughness] = {
-        "roughness-0",
-        "roughness-1",
+        "polished",
+        "smear",
+        "gaussian",
     };
     expected_model_names[SurfacePhysicsStep::reflectivity] = {
-        "reflectivity-0",
+        "grid",
+        "fresnel",
     };
     expected_model_names[SurfacePhysicsStep::interaction] = {
-        "interaction-0",
-        "interaction-1",
-        "interaction-2",
-        "interaction-3",
+        "dielectric-dielectric",
+        "dielectric-metal",
     };
 
     for (auto step : range(SurfacePhysicsStep::size_))

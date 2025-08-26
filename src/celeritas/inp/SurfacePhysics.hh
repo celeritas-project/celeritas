@@ -17,6 +17,8 @@
 
 namespace celeritas
 {
+class SurfaceModel;
+
 namespace inp
 {
 //---------------------------------------------------------------------------//
@@ -225,7 +227,10 @@ struct SurfacePhysics
     //!@{
     //! \name type aliases
     using DetectionEfficiency = std::map<SurfaceLayer, Grid>;
+    using InterstitialMaterials = std::vector<OptMatId>;
     //!@}
+
+    std::vector<InterstitialMaterials> materials;
 
     RoughnessModels roughness;
     ReflectivityModels reflectivity;
@@ -234,7 +239,7 @@ struct SurfacePhysics
     //! Whether the data are assigned
     explicit operator bool() const
     {
-        return reflectivity && roughness && interaction;
+        return reflectivity && roughness && interaction && !materials.empty();
     }
 };
 

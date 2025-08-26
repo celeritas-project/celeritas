@@ -21,6 +21,7 @@ namespace test
 //---------------------------------------------------------------------------//
 using S = SurfaceId;
 using M = SurfaceModel::SurfaceModelId;
+using PhysSurfaceId = SurfaceModel::PhysSurfaceId;
 
 //---------------------------------------------------------------------------//
 class MockSurfaceModel final : public SurfaceModel
@@ -52,7 +53,8 @@ class SurfacePhysicsMapTest : public ManySurfacesTestBase
 TEST_F(SurfacePhysicsMapTest, typical)
 {
     // Construct builder
-    SurfacePhysicsMapBuilder add_model(this->surfaces(), host_);
+    SurfacePhysicsMapBuilder add_model(
+        PhysSurfaceId{this->surfaces().num_surfaces()}, host_);
 
     // Add a model with some surfaces, which don't have to be ordered
     add_model(MSM{M{0}, "A", {S{3}, S{1}, S{4}, S{5}, S{7}}});
@@ -99,7 +101,8 @@ TEST_F(SurfacePhysicsMapTest, typical)
 TEST_F(SurfacePhysicsMapTest, errors)
 {
     // Construct builder
-    SurfacePhysicsMapBuilder add_model(this->surfaces(), host_);
+    SurfacePhysicsMapBuilder add_model(
+        PhysSurfaceId{this->surfaces().num_surfaces()}, host_);
 
     // Empty model not allowed
     EXPECT_THROW(add_model(MSM{M{0}, "A", {}}), RuntimeError);

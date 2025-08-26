@@ -53,25 +53,10 @@ class SurfacePhysicsParams final
     using VecModelBuilders = std::vector<SurfaceModel::ModelBuilder>;
     //!@}
 
-    struct SurfaceInput
-    {
-        std::vector<OptMatId> materials;
-        std::vector<SurfaceStepArray<SurfaceModelId>> interface_models;
-    };
-
-    struct Input
-    {
-        ActionRegistry* action_reg = nullptr;
-
-        std::vector<SurfaceInput> surfaces;  //!< indexed by GeometricSurfaceId
-        SurfaceStepArray<VecModelBuilders> model_builders;
-
-        static Input from_import(inp::SurfacePhysics const&);
-    };
-
   public:
     // Construct surface physics from input
-    explicit SurfacePhysicsParams(Input);
+    explicit SurfacePhysicsParams(ActionRegistry* action_reg,
+                                  inp::SurfacePhysics const& input);
 
     //! Access surface physics data on host
     HostRef const& host_ref() const final { return data_.host_ref(); }
@@ -109,10 +94,11 @@ class SurfacePhysicsParams final
 
     // Build sub-step models
     SurfaceStepArray<std::vector<SPModel>>
-    build_models(SurfaceStepArray<VecModelBuilders> const&) const;
+    build_models(inp::SurfacePhysics const&,
+                 HostVal<SurfacePhysicsParamsData>&) const;
 
     // Build surface data
-    void build_surfaces(std::vector<SurfaceInput> const&,
+    void build_surfaces(std::vector<std::vector<OptMatId>> const&,
                         HostVal<SurfacePhysicsParamsData>&) const;
 };
 

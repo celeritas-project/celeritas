@@ -253,11 +253,8 @@ SurfacePhysicsView::subsurface_interface(SubsurfaceDirection d) const
     {
         --track_pos;
     }
-    auto interface_record_id = this->to_record_index(
-        track_pos, this->surface_record().subsurface_interfaces);
-    CELER_ASSERT(interface_record_id < params_.subsurface_interfaces.size());
-
-    return params_.subsurface_interfaces[interface_record_id];
+    return this->to_record_index(track_pos,
+                                 this->surface_record().subsurface_interfaces);
 }
 
 //---------------------------------------------------------------------------//

@@ -19,22 +19,15 @@ namespace optical
 //---------------------------------------------------------------------------//
 
 using GeometricSurfaceId = OpaqueId<struct GeometricSurface_>;
-using PhysicsSurfaceId = OpaqueId<struct PhysicsSurface_>;
+using PhysicsSurfaceId = SurfaceId;
+using SurfaceTrackPosition = OpaqueId<struct SurfaceTrackPosition_>;
 using SubsurfaceMaterialId = OpaqueId<struct SubsurfaceMaterial_>;
 using SubsurfaceInterfaceId = OpaqueId<struct SubsurfaceInterface_>;
-using SubsurfaceMaterialRecord = OptMatId;  // OpaqueId<struct
-                                            // SubsurfaceMaterialRecord>;
-using SubsurfaceMaterialRecordId = OpaqueId<SubsurfaceMaterialRecord>;
-using SubsurfaceInterfaceRecord
-    = PhysicsSurfaceId;  // OpaqueId<struct SubsurfaceInterfaceRecord>;
-using SubsurfaceInterfaceRecordId = OpaqueId<SubsurfaceInterfaceRecord>;
-using SurfaceTrackPosition = OpaqueId<struct SurfaceTrackPosition_>;
 
 struct SurfaceRecord
 {
-    ItemMap<SubsurfaceMaterialId, SubsurfaceMaterialRecordId> subsurface_materials;
-    ItemMap<SubsurfaceInterfaceId, SubsurfaceInterfaceRecordId>
-        subsurface_interfaces;
+    ItemMap<SubsurfaceMaterialId, OpaqueId<OptMatId>> subsurface_materials;
+    ItemMap<SubsurfaceInterfaceId, PhysicsSurfaceId> subsurface_interfaces;
 
     //! Whether data is assigned
     explicit CELER_FUNCTION operator bool() const
@@ -42,6 +35,20 @@ struct SurfaceRecord
         return !subsurface_interfaces.empty()
                && subsurface_materials.size()
                       == subsurface_interfaces.size() + 1;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ */
+struct SurfacePhysicsParamsScalars
+{
+    PhysicsSurfaceId default_surface{};
+
+    //! Whether data is assigned and valid
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return static_cast<bool>(default_surface);
     }
 };
 
@@ -66,16 +73,16 @@ struct SurfacePhysicsParamsData
     using Items = Collection<T, W, M>;
     //!@}
 
+    SurfacePhysicsParamsScalars scalars;
+
     GeoSurfaceItems<SurfaceRecord> surfaces;
     SurfaceStepArray<ModelMap> model_maps;
-    Items<SubsurfaceMaterialRecord> subsurface_materials;
-    Items<SubsurfaceInterfaceRecord> subsurface_interfaces;
+    Items<OptMatId> subsurface_materials;
 
     //! Whether data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !surfaces.empty() && !subsurface_materials.empty()
-               && !subsurface_interfaces.empty();
+        return scalars && !surfaces.empty() && !subsurface_materials.empty();
     }
 
     //! Assign from another set of data
@@ -84,9 +91,9 @@ struct SurfacePhysicsParamsData
     operator=(SurfacePhysicsParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
+        scalars = other.scalars;
         surfaces = other.surfaces;
         subsurface_materials = other.subsurface_materials;
-        subsurface_interfaces = other.subsurface_interfaces;
         for (auto step : range(SurfacePhysicsStep::size_))
         {
             model_maps[step] = other.model_maps[step];

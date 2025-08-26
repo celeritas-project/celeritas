@@ -11,7 +11,6 @@
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Filler.hh"
-#include "geocel/SurfaceParams.hh"
 
 namespace celeritas
 {
@@ -19,11 +18,9 @@ namespace celeritas
 /*!
  * Construct with surface data and result to modify.
  */
-SurfacePhysicsMapBuilder::SurfacePhysicsMapBuilder(SurfaceParams const& surfaces,
-                                                   HostData& data)
-    : surfaces_{surfaces}
-    , data_{data}
-    , default_surface_{surfaces_.num_surfaces()}
+SurfacePhysicsMapBuilder::SurfacePhysicsMapBuilder(
+    PhysSurfaceId default_surface_id, HostData& data)
+    : data_{data}, default_surface_{default_surface_id}
 {
     CELER_EXPECT(data_.surface_models.empty()
                  && data_.internal_surface_ids.empty());
@@ -55,7 +52,7 @@ void SurfacePhysicsMapBuilder::operator()(SurfaceModel const& model)
 
     // TODO: this will need updating to support multiple layers
     InternalSurfaceId::size_type ms_index{0};
-    for (SurfaceId surface_id : model.get_surfaces())
+    for (PhysSurfaceId surface_id : model.get_surfaces())
     {
         if (!surface_id)
         {
