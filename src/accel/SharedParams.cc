@@ -127,10 +127,14 @@ void verify_offload(std::vector<G4ParticleDefinition*> const& offload,
                       "active in Celeritas: missing "
                    << join(missing.begin(), missing.end(), ", ", printable_pd));
 
-    CELER_VALIDATE(found_particle == std::vector<bool>(particles.size(), true),
-                   << "particles selected for offload are not in "
-                      "user-provided/default list (perhaps SetupOptions are "
-                      "set out of order?)");
+    if (found_particle != std::vector<bool>(particles.size(), true))
+    {
+        //! \todo Overhaul DataSelection Flags and GeantImporter
+        CELER_LOG(warning)
+            << "Mismatch between ParticlesParams (size " << particles.size()
+            << ") and user-defined offload list (size " << offload.size()
+            << "). Geant4 data import is not properly defined.";
+    }
 }
 
 //---------------------------------------------------------------------------//
