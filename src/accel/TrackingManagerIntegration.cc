@@ -110,8 +110,8 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
                                    not_offloaded.end(),
                                    ", ",
                                    printable_pd)
-                           << ". Perhaps SetupOptions::offload_particles has "
-                              "not been updated accordingly?";
+                           << " (perhaps SetupOptions::offload_particles has "
+                              "not been updated?)";
     }
     CELER_VALIDATE(missing.empty(),
                    << "not all particles from TrackingManagerConstructor are "
