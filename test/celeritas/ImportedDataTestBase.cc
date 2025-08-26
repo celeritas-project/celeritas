@@ -184,7 +184,7 @@ auto ImportedDataTestBase::build_optical_surface_physics()
 {
     inp::SurfacePhysics input;
 
-    for (auto s : range(PhysSurfaceId{this->surface()->num_surfaces()}))
+    for (auto s : range(PhysSurfaceId{this->surface()->num_surfaces() + 1}))
     {
         input.materials.push_back(
             std::vector<OptMatId>{OptMatId{}, OptMatId{}});

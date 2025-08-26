@@ -57,6 +57,7 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
     // pre-volume information
     VolumeSurfaceSelector select_surface{track.surface(),
                                          geo.volume_instance_id()};
+    OptMatId pre_volume_material = track.material_record().material_id();
 
     // Move the particle across the boundary
     geo.cross_boundary();
@@ -65,21 +66,25 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
         track.apply_errored();
         return;
     }
+    OptMatId post_volume_material = track.material_record().material_id();
 
     // Find oriented surface after crossing boundary using post-volume
     // information
-    if (auto oriented_surface
-        = select_surface(track.surface(), geo.volume_instance_id()))
+    auto oriented_surface
+        = select_surface(track.surface(), geo.volume_instance_id());
+    if (!oriented_surface)
     {
-        // initialize surface state
-        track.sim().post_step_action(track.post_boundary_action());
+        // Use default surface data
+        oriented_surface.surface = track.surface_physics().default_surface();
+        oriented_surface.orientation = SubsurfaceDirection::forward;
     }
-    else
-    {
-        // If there's no surface, mark photon as killed
-        // TODO: Add default behavior
-        track.sim().status(TrackStatus::killed);
-    }
+
+    track.surface_physics()
+        = SurfacePhysicsView::Initializer{oriented_surface.surface,
+                                          oriented_surface.orientation,
+                                          pre_volume_material,
+                                          post_volume_material};
+    track.sim().post_step_action(track.post_boundary_action());
 }
 
 //---------------------------------------------------------------------------//

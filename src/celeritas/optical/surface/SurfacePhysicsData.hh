@@ -18,7 +18,6 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 
-using GeometricSurfaceId = OpaqueId<struct GeometricSurface_>;
 using SurfaceTrackPosition = OpaqueId<struct SurfaceTrackPosition_>;
 using SubsurfaceMaterialId = OpaqueId<struct SubsurfaceMaterial_>;
 using SubsurfaceInterfaceId = OpaqueId<struct SubsurfaceInterface_>;
@@ -32,8 +31,8 @@ struct SurfaceRecord
     explicit CELER_FUNCTION operator bool() const
     {
         return !subsurface_interfaces.empty()
-               && subsurface_materials.size()
-                      == subsurface_interfaces.size() + 1;
+               && subsurface_materials.size() + 1
+                      == subsurface_interfaces.size();
     }
 };
 
@@ -42,7 +41,7 @@ struct SurfaceRecord
  */
 struct SurfacePhysicsParamsScalars
 {
-    PhysSurfaceId default_surface{};
+    SurfaceId default_surface{};
 
     //! Whether data is assigned and valid
     explicit CELER_FUNCTION operator bool() const
@@ -63,7 +62,7 @@ struct SurfacePhysicsParamsData
     using ModelMap = SurfacePhysicsMapData<W, M>;
 
     template<class T>
-    using GeoSurfaceItems = Collection<T, W, M, GeometricSurfaceId>;
+    using GeoSurfaceItems = Collection<T, W, M, SurfaceId>;
 
     template<class T>
     using SurfaceStepArray = EnumArray<SurfacePhysicsStep, T>;
@@ -114,15 +113,19 @@ struct SurfacePhysicsStateData
     using StateItems = StateCollection<T, W, M>;
     //!@}
 
-    StateItems<GeometricSurfaceId> surface;
+    StateItems<SurfaceId> surface;
     StateItems<SubsurfaceDirection> surface_orientation;
     StateItems<SurfaceTrackPosition> surface_position;
+    StateItems<OptMatId> pre_volume_material;
+    StateItems<OptMatId> post_volume_material;
 
     //! Whether data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
         return !surface.empty() && surface.size() == surface_orientation.size()
-               && surface.size() == surface_position.size();
+               && surface.size() == surface_position.size()
+               && surface.size() == pre_volume_material.size()
+               && surface.size() == post_volume_material.size();
     }
 
     //! State size
@@ -137,6 +140,8 @@ struct SurfacePhysicsStateData
         surface = other.surface;
         surface_orientation = other.surface_orientation;
         surface_position = other.surface_position;
+        pre_volume_material = other.pre_volume_material;
+        post_volume_material = other.post_volume_material;
         return *this;
     }
 };
@@ -155,6 +160,8 @@ resize(SurfacePhysicsStateData<Ownership::value, M>* state, size_type size)
     resize(&state->surface, size);
     resize(&state->surface_orientation, size);
     resize(&state->surface_position, size);
+    resize(&state->pre_volume_material, size);
+    resize(&state->post_volume_material, size);
 
     CELER_ENSURE(*state);
     CELER_ENSURE(state->size() == size);

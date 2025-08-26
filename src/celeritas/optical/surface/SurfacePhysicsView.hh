@@ -28,8 +28,10 @@ class SurfacePhysicsView
 
     struct Initializer
     {
-        GeometricSurfaceId surface;
+        SurfaceId surface{};
         SubsurfaceDirection orientation;
+        OptMatId pre_volume_material{};
+        OptMatId post_volume_material{};
     };
 
   public:
@@ -45,7 +47,7 @@ class SurfacePhysicsView
     inline CELER_FUNCTION void reset() const;
 
     // Get current geometric surface
-    inline CELER_FUNCTION GeometricSurfaceId surface() const;
+    inline CELER_FUNCTION SurfaceId surface() const;
 
     // Get surface orientation
     inline CELER_FUNCTION SubsurfaceDirection orientation() const;
@@ -80,6 +82,9 @@ class SurfacePhysicsView
 
     // Cross subsurface interface in the given direction (track-local)
     inline CELER_FUNCTION void cross_subsurface_interface(SubsurfaceDirection);
+
+    // Default surface physics
+    inline CELER_FUNCTION SurfaceId default_surface() const;
 
   private:
     SurfaceParamsRef const& params_;
@@ -120,6 +125,8 @@ SurfacePhysicsView::operator=(Initializer const& init)
     states_.surface[track_id_] = init.surface;
     states_.surface_orientation[track_id_] = init.orientation;
     states_.surface_position[track_id_] = SurfaceTrackPosition{0};
+    states_.pre_volume_material[track_id_] = init.pre_volume_material;
+    states_.post_volume_material[track_id_] = init.post_volume_material;
     return *this;
 }
 
@@ -129,7 +136,7 @@ SurfacePhysicsView::operator=(Initializer const& init)
  *
  * The ID is invalid if the track is not undergoing a boundary crossing.
  */
-CELER_FUNCTION GeometricSurfaceId SurfacePhysicsView::surface() const
+CELER_FUNCTION SurfaceId SurfacePhysicsView::surface() const
 {
     return states_.surface[track_id_];
 }
@@ -199,7 +206,7 @@ CELER_FUNCTION SurfaceTrackPosition& SurfacePhysicsView::subsurface_position()
 CELER_FUNCTION SurfaceTrackPosition::size_type
 SurfacePhysicsView::num_positions() const
 {
-    return this->surface_record().subsurface_materials.size();
+    return this->surface_record().subsurface_materials.size() + 2;
 }
 
 //---------------------------------------------------------------------------//
@@ -231,9 +238,18 @@ CELER_FUNCTION void SurfacePhysicsView::reset() const
  */
 CELER_FUNCTION OptMatId SurfacePhysicsView::subsurface_material() const
 {
-    auto material_record_id
-        = this->to_record_index(this->subsurface_position(),
-                                this->surface_record().subsurface_materials);
+    if (this->in_pre_volume())
+    {
+        return states_.pre_volume_material[track_id_];
+    }
+    if (this->in_post_volume())
+    {
+        return states_.post_volume_material[track_id_];
+    }
+
+    auto material_record_id = this->to_record_index(
+        SurfaceTrackPosition(this->subsurface_position().get() - 1),
+        this->surface_record().subsurface_materials);
     CELER_ASSERT(material_record_id < params_.subsurface_materials.size());
 
     return params_.subsurface_materials[material_record_id];
@@ -287,6 +303,15 @@ CELER_FUNCTION bool SurfacePhysicsView::is_exiting(SubsurfaceDirection d) const
 {
     return (this->subsurface_position().get() + to_signed_offset(d))
            >= this->num_positions();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the default surface.
+ */
+CELER_FUNCTION SurfaceId SurfacePhysicsView::default_surface() const
+{
+    return params_.scalars.default_surface;
 }
 
 //---------------------------------------------------------------------------//

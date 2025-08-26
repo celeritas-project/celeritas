@@ -29,7 +29,8 @@ class SurfacePhysicsMapBuilder
 
   public:
     // Construct with default surface ID and result to modify
-    SurfacePhysicsMapBuilder(PhysSurfaceId default_surface_id, HostData& data);
+    SurfacePhysicsMapBuilder(PhysSurfaceId::size_type num_surfaces,
+                             HostData& data);
 
     // Add and index from a surface model
     void operator()(SurfaceModel const& model);
@@ -45,18 +46,10 @@ class SurfacePhysicsMapBuilder
     HostData& data_;
 
     //! "Physics surface" for default when user doesn't specify
-    PhysSurfaceId default_surface_;
+    PhysSurfaceId::size_type num_surfaces_;
 
     //! Guard against duplicate IDs
     std::set<SurfaceModelId> surface_models_;
-
-    //// METHODS ////
-
-    //! Reserve an extra "surface" for the default physis
-    PhysSurfaceId::size_type size() const
-    {
-        return default_surface_.get() + 1;
-    }
 };
 
 //---------------------------------------------------------------------------//

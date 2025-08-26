@@ -530,6 +530,7 @@ TEST_F(RootJsonDumperTest, all)
     "scintillation" : true,
     "surfaces" : {
       "_typename" : "celeritas::inp::SurfacePhysics",
+      "materials" : [],
       "roughness" : {
         "_typename" : "celeritas::inp::RoughnessModels",
         "polished" : [],

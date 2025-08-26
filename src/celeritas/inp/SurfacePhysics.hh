@@ -241,6 +241,17 @@ struct SurfacePhysics
     {
         return reflectivity && roughness && interaction && !materials.empty();
     }
+
+    //! Number of physics surfaces
+    PhysSurfaceId::size_type num_phys_surfaces() const
+    {
+        PhysSurfaceId::size_type num = 0;
+        for (auto const& mats : materials)
+        {
+            num += mats.size() + 1;
+        }
+        return num;
+    }
 };
 
 //---------------------------------------------------------------------------//
