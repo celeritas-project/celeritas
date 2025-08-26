@@ -745,7 +745,7 @@ void OpticalSurfacesGeoTest::test_model() const
         "mid_to_above",
     };
     ref.surface.volumes = {"0", "3", "2->3", "3->2", "3->4"};
-    ref.world = "tube2_above_pv";
+    ref.world = "world";
     EXPECT_REF_EQ(ref, result);
 }
 
