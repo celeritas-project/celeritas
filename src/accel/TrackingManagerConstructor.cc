@@ -7,10 +7,8 @@
 #include "TrackingManagerConstructor.hh"
 
 #include <G4BuilderType.hh>
-#include <G4Electron.hh>
-#include <G4Gamma.hh>
-#include <G4Positron.hh>
 
+#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 
 #include "SharedParams.hh"
@@ -21,21 +19,6 @@
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Get a list of supported particles that will be offloaded.
- */
-Span<G4ParticleDefinition* const> TrackingManagerConstructor::OffloadParticles()
-{
-    static G4ParticleDefinition* const supported_particles[] = {
-        G4Electron::Definition(),
-        G4Positron::Definition(),
-        G4Gamma::Definition(),
-    };
-
-    return make_span(supported_particles);
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct name and mode.
@@ -72,6 +55,23 @@ TrackingManagerConstructor::TrackingManagerConstructor(
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct particles before \c ::ConstructProcess since any
+ * \c G4ParticleDefinition other than ions and shortlived must be created
+ * during Geant4's \c Pre_Init state.
+ */
+void TrackingManagerConstructor::ConstructParticle()
+{
+    // Construction of particles happens at offload_particles_ assignment,
+    // since it will instantiate the G4Particle::Definition() singletons
+    auto& is = detail::IntegrationSingleton::instance();
+    auto& opts = is.setup_options();
+    offload_particles_ = opts.offload_particles.empty()
+                             ? SharedParams::default_offload_particles()
+                             : is.offloaded_particles();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Build and attach tracking manager.
  */
 void TrackingManagerConstructor::ConstructProcess()
@@ -98,15 +98,21 @@ void TrackingManagerConstructor::ConstructProcess()
     auto manager = std::make_unique<TrackingManager>(shared_, transporter);
     auto* manager_ptr = manager.get();
 
-    for (auto* p : OffloadParticles())
+    for (auto* p : offload_particles_)
     {
-        CELER_EXPECT(p);
         // Memory for the tracking manager should be freed in
         // G4VUserPhysicsList::TerminateWorker from G4WorkerRunManager
         // by constructing a 'set' of all tracking managers.
         // (Note that it is leaked in Geant4 11.0 and 11.1 for MT mode.)
         p->SetTrackingManager(manager ? manager.release() : manager_ptr);
     }
+    CELER_LOG(info) << "Built Celeritas tracking managers for "
+                    << join(offload_particles_.begin(),
+                            offload_particles_.end(),
+                            ", ",
+                            [](G4ParticleDefinition const* pd) {
+                                return pd->GetParticleName();
+                            });
 }
 
 //---------------------------------------------------------------------------//
