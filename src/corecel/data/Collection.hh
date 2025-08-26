@@ -195,8 +195,11 @@ class ItemMap
 
     ItemMap() = default;
 
-    //! Construct from an existing Range<T2>
-    explicit CELER_FUNCTION ItemMap(Range<T2> range) : range_(range) {}
+    //! Construct implicitly from an existing Range<T2>
+    CELER_FUNCTION ItemMap(Range<T2> range) : range_(range) {}
+
+    //! Construct like a range
+    CELER_FUNCTION ItemMap(T2 start, T2 stop) : range_{start, stop} {}
 
     //// ACCESS ////
 
