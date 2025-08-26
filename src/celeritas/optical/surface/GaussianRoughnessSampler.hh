@@ -23,12 +23,14 @@ namespace optical
 /*!
  * Sample a facet normal from a Gaussian roughness model.
  *
- * The Gaussian roughness model was introduced in
- * \citet{levin-morephysical-1996, https://doi.org/10.1109/NSSMIC.1996.591410}
- * . The "facet slope", an angle \c alpha between the facet normal and the
- * global normal, is sampled from a normal distribution with standard deviation
- * \c sigma_alpha . The paper justifies this distribution based on surface
- * roughness measurements with a bismuth germanate (BGO) crystal.
+ * The Gaussian roughness model, introduced in \citet{levin-morephysical-1996,
+ * https://doi.org/10.1109/NSSMIC.1996.591410} , is parameterized by a positive
+ * real number \c sigma_alpha. The "facet slope", an angle \c alpha between the
+ * facet normal and the global normal, is sampled from the distribution
+ * \f[
+ * p(\alpha) = N(\alpha; 0, \sigma_\alpha) * \sin(\alpha)
+ * \f]
+ * where  \f$ alpha \f$ is in the range [0, pi/2).
  */
 class GaussianRoughnessSampler
 {
@@ -44,6 +46,7 @@ class GaussianRoughnessSampler
   private:
     Real3 const& normal_;
     NormalDistribution<real_type> sample_alpha_;
+    real_type f_max_;
 };
 
 //---------------------------------------------------------------------------//
@@ -55,7 +58,9 @@ class GaussianRoughnessSampler
 CELER_FUNCTION
 GaussianRoughnessSampler::GaussianRoughnessSampler(Real3 const& normal,
                                                    real_type sigma_alpha)
-    : normal_(normal), sample_alpha_(0, sigma_alpha)
+    : normal_(normal)
+    , sample_alpha_(0, sigma_alpha)
+    , f_max_(fmin(real_type{1}, 4 * sigma_alpha))
 {
     CELER_EXPECT(sigma_alpha > 0);
     CELER_EXPECT(is_soft_unit_vector(normal_));
@@ -68,13 +73,15 @@ GaussianRoughnessSampler::GaussianRoughnessSampler(Real3 const& normal,
 template<class Engine>
 CELER_FUNCTION Real3 GaussianRoughnessSampler::operator()(Engine& rng)
 {
-    real_type cos_alpha{};
+    using std::fabs;
+
+    real_type cos_alpha = 0;
+    real_type sin_alpha = 0;
     do
     {
-        // Sample angle according to gaussian (chances of having a nonpositive
-        // slope are vanishingly small)
-        cos_alpha = std::cos(sample_alpha_(rng));
-    } while (cos_alpha <= 0);
+        real_type alpha = sample_alpha_(rng);
+        sincos(alpha, &sin_alpha, &cos_alpha);
+    } while (cos_alpha <= 0 || RejectionSampler{fabs(sin_alpha), f_max_}(rng));
 
     // Rotate normal by alpha and then sample azimuth rotation uniformly
     return ExitingDirectionSampler{cos_alpha, normal_}(rng);

@@ -127,17 +127,14 @@ TEST_F(RoughnessSamplerTest, smear)
 // Test Gaussian roughness model distribution
 TEST_F(RoughnessSamplerTest, gaussian)
 {
-    constexpr size_type num_samples = 10000;
-    HistogramSampler calc_histogram(8, {0.6, 1}, num_samples);
+    constexpr size_type num_samples = 5000;
+    HistogramSampler calc_histogram(5, {0, 1}, num_samples);
 
     Real3 normal = make_unit_vector(Real3{1, 0, -1});
     std::vector<SampledHistogram> actual;
 
     // Test over range of sigma_alpha (stdev in radians) values
-    // A "very rough" crystal in the UNIFIED paper has sigma_alpha of 0.2053
-    // (note that the paper gives the value in degrees), having at most a
-    // deflection angle cosine of ~0.76 (40 degrees)
-    for (real_type sigma_alpha : {0.05, 0.1, 0.2053})
+    for (real_type sigma_alpha : {0.1, 0.20594885, 0.79})
     {
         GaussianRoughnessSampler sample_normal{normal, sigma_alpha};
 
@@ -149,9 +146,9 @@ TEST_F(RoughnessSamplerTest, gaussian)
     }
 
     static SampledHistogram const expected[] = {
-        {{0, 0, 0, 0, 0, 0, 0, 20}, 4},
-        {{0, 0, 0, 0, 0, 0, 0.03, 19.97}, 4},
-        {{0, 0.006, 0.004, 0.02, 0.108, 0.468, 1.814, 17.58}, 4},
+        {{0, 0, 0, 0, 5}, 22.0336},
+        {{0, 0, 0, 0.034, 4.966}, 21.7968},
+        {{0.423, 0.586, 0.891, 1.281, 1.819}, 10.206},
     };
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
