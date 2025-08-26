@@ -41,6 +41,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 - J. Fernández-Varea, R. Mayol, F. Salvat. "Cross sections for elastic scattering of fast electrons and positrons by atoms". *Nuclear Instruments and Methods in Physics Research Section B: Beam Interactions with Materials and Atoms*, Jul 1993. [10.1016/0168-583X(93)95079-K](https://doi.org/10.1016/0168-583X(93)95079-K)
 - E. W. Larsen. "A theoretical derivation of the Condensed History Algorithm". *Annals of Nuclear Energy*, Oct 1992. [10.1016/0306-4549(92)90013-2](https://doi.org/10.1016/0306-4549(92)90013-2)
 - S. Nayar, K. Ikeuchi, T. Kanade. "Surface reflection: physical and geometrical perspectives". *IEEE Transactions on Pattern Analysis and Machine Intelligence*, Jul 1991. [10.1109/34.85654](https://doi.org/10.1109/34.85654)
+- E. Marx, T. V. Vorburger. "Direct and inverse problems for light scattered by rough surfaces". *Applied Optics*, Sep 1990. [10.1364/AO.29.003613](https://doi.org/10.1364/AO.29.003613)
 - S. Nayar, K. Ikeuchi, T. Kanade. "Surface reflection: physical and geometrical perspectives". The Robotics Institute, Mar 1989.
 - G. Knoll, T. Knoll, T. Henderson. "Light collection in scintillation detector composites for neutron detection". *IEEE Transactions on Nuclear Science*, Feb 1988. [10.1109/23.12850](https://doi.org/10.1109/23.12850)
 - *[sb-brems-1986]*: S. M. Seltzer, M. J. Berger. "Bremsstrahlung energy spectra from electrons with kinetic energy 1 keV–10 GeV incident on screened nuclei and orbital electrons of neutral atoms with Z = 1–100". *Atomic Data and Nuclear Data Tables*, Nov 1986. [10.1016/0092-640X(86)90014-8](https://doi.org/10.1016/0092-640X(86)90014-8)
@@ -111,8 +112,8 @@ These publications are extracted from the Celeritas team's Zotero database.
 - J. Apostolakis, M. Bandieramonte, S. Banerjee, N. Bartosik, G. Corti, *et al*. "Detector simulation challenges for future accelerator experiments". *Frontiers in Physics*, Jun 2022. [10.3389/fphy.2022.913510](https://doi.org/10.3389/fphy.2022.913510)
 - "GDML user's guide". Jun 2022.
 - T. M. Evans, A. Siegel, E. W. Draeger, J. Deslippe, M. M. Francois, *et al*. "A survey of software implementations used by application codes in the Exascale Computing Project". *The International Journal of High Performance Computing Applications*, Jan 2022. [10.1177/10943420211028940](https://doi.org/10.1177/10943420211028940)
-- M. McManus, F. Romano, G. Royle, H. Palmans, A. Subiel, *et al*. "A Geant4 Fano test for novel very high energy electron beams". *Physics in Medicine & Biology*, Dec 2021. [10.1088/1361-6560/ac3e0f](https://doi.org/10.1088/1361-6560/ac3e0f)
 - X. Ai, G. Mania, H. M. Gray, M. Kuhn, N. Styles, *et al*. "A GPU-based Kalman Filter for Track Fitting". *Computing and Software for Big Science*, Dec 2021. [10.1007/s41781-021-00065-z](https://doi.org/10.1007/s41781-021-00065-z)
+- M. McManus, F. Romano, G. Royle, H. Palmans, A. Subiel, *et al*. "A Geant4 Fano test for novel very high energy electron beams". *Physics in Medicine & Biology*, Dec 2021. [10.1088/1361-6560/ac3e0f](https://doi.org/10.1088/1361-6560/ac3e0f)
 - M. Asai, M. A. Cortés-Giraldo, V. Giménez-Alventosa, V. Giménez Gómez, F. Salvat, *et al*. "The PENELOPE Physics Models and Transport Mechanics. Implementation into Geant4". *Frontiers in Physics*, Dec 2021. [10.3389/fphy.2021.738735](https://doi.org/10.3389/fphy.2021.738735)
 - Andrei Gheata, AdePT Team. "AdePT Status". Sep 2021. [indico.cern.ch](https://indico.cern.ch/event/1052654/contributions/4525306/attachments/2310908/3932523/AdePT%2026th%20Geant4%20Collaboration%20Meeting.pdf)
 - S. Blyth, C. Biscarat, S. Campana, B. Hegner, S. Roiser, *et al*. "Integration of JUNO simulation framework with Opticks: GPU accelerated optical propagation via NVIDIA® OptiX™". *EPJ Web of Conferences*, 2021. [10.1051/epjconf/202125103009](https://doi.org/10.1051/epjconf/202125103009)
@@ -175,6 +176,8 @@ These publications are extracted from the Celeritas team's Zotero database.
 - *[clhep]*: L. Lönnblad. "CLHEP—a project for designing a C++ class library for high energy physics". *Computer Physics Communications*, Nov 1994. [10.1016/0010-4655(94)90217-8](https://doi.org/10.1016/0010-4655(94)90217-8)
 - *[kenovi]*: Hollenbach, DF, Petrie, LM, Landers, NF. "KENO-VI: A Monte Carlo Criticality Program with generalized quadratic geometry". Nashville, TN, Sep 1993.
 - *[geant3-1993]*: R. Brun, F. Bruyant, F. Carminati, S. Giani, M. Maire, *et al*. "GEANT: Detector Description and Simulation Tool; Oct 1994". 1993. [cds.cern.ch](https://cds.cern.ch/record/1082634)
+- C. J. Everett, E. D. Cashwell. "A Second Monte Carlo SAMPLER". Aug 1974.
+- C. J. Everett, E. D. Cashwell. "A Monte Carlo Sampler". 1972. [doi.org](https://doi.org/10.2172/4589395)
 
 ## Computer science and mathematics
 
