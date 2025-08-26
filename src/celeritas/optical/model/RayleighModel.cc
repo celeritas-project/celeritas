@@ -59,20 +59,11 @@ RayleighModel::RayleighModel(ActionId id, SPConstImported imported, Input input)
 
     for (auto mat : range(OptMatId(imported_.num_materials())))
     {
-        if (input_)
+        if (!(imported_.mfp(mat)
+              || (input_ && input_.imported_materials->rayleigh(mat))))
         {
-            if (!(imported_.mfp(mat)
-                  && input_.imported_materials->rayleigh(mat)))
-            {
-                CELER_LOG(debug) << "Rayleigh model: no MFP data for material "
-                                 << mat.get();
-            }
-        }
-        else
-        {
-            CELER_VALIDATE(imported_.mfp(mat),
-                           << "Rayleigh model requires imported MFP for each "
-                              "optical material");
+            CELER_LOG(debug)
+                << "Rayleigh model has no MFP data for material " << mat.get();
         }
     }
 }
@@ -84,10 +75,13 @@ void RayleighModel::build_mfps(OptMatId mat, MfpBuilder& build) const
 {
     CELER_EXPECT(mat < imported_.num_materials());
 
+    // User explicitly provided Rayleigh MFP
     if (auto const& mfp = imported_.mfp(mat))
     {
         build(mfp);
     }
+
+    // MFPs can be calculated from user given properties
     else if (input_ && input_.imported_materials->rayleigh(mat))
     {
         auto mat_view = input_.materials->get(mat);
@@ -111,16 +105,24 @@ void RayleighModel::build_mfps(OptMatId mat, MfpBuilder& build) const
         }
         build(grid);
     }
+    // Build a grid with infinite MFP to prevent selection of the model
     else
     {
         auto mat_view = input_.materials->get(mat);
         auto rindex_calc = mat_view.make_refractive_index_calculator();
         auto energies = rindex_calc.grid().values();
+
         if (!energies.empty())
         {
             inp::Grid g;
-            g.x.assign(energies.begin(), energies.end());
-            g.y.assign(g.x.size(), std::numeric_limits<real_type>::infinity());
+
+            // Using min and max energy values from the refractive index grid
+            // and setting MFP to infinity
+            g.x = {energies.front(), energies.back()};
+            g.y = {std::numeric_limits<real_type>::infinity(),
+                   std::numeric_limits<real_type>::infinity()};
+            CELER_LOG(debug) << "Material " << mat.get()
+                             << " has no MFP data - setting mfp to infinity";
             build(g);
         }
     }
