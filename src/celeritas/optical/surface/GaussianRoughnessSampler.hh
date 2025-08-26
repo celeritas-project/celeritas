@@ -23,14 +23,19 @@ namespace optical
 /*!
  * Sample a facet normal from a Gaussian roughness model.
  *
- * The Gaussian roughness model, introduced in \citet{levin-morephysical-1996,
- * https://doi.org/10.1109/NSSMIC.1996.591410} , is parameterized by a positive
- * real number \c sigma_alpha. The "facet slope", an angle \c alpha between the
- * facet normal and the global normal, is sampled from the distribution
- * \f[
- * p(\alpha) = N(\alpha; 0, \sigma_\alpha) * \sin(\alpha)
+ * The Gaussian roughness model was introduced in
+ * \citet{levin-morephysical-1996, https://doi.org/10.1109/NSSMIC.1996.591410}
+ * . The "facet slope", an angle \f$ \alpha \f$ along a linear slice of a
+ * crystal surface, is approximated as a normal distribution standard deviation
+ * \f$ \sigma_\alpha \f$ .  (The paper justifies this distribution based on
+ * surface roughness measurements with a bismuth germanate [BGO] crystal.)
+ * Assuming an azimuthally isotropic surface, the polar distribution must be
+ * expressed in terms of the tilt \f$ \theta \f$. The Jacobian factor for
+ * spherical coordinates contributes a \f$ \sin \theta \f$ term, leading to the
+ * spherical PDF \f[
+   p(\sigma_\alpha; \theta,\phi) = \frac{1}{2\pi}\,\frac{1}{\mathcal N}\,
+   \exp\!\left(-\frac{\theta^{2}}{2\sigma_\alpha^{2}}\right)\sin\theta \,.
  * \f]
- * where  \f$ alpha \f$ is in the range [0, pi/2).
  */
 class GaussianRoughnessSampler
 {
@@ -75,12 +80,16 @@ CELER_FUNCTION Real3 GaussianRoughnessSampler::operator()(Engine& rng)
 {
     using std::fabs;
 
-    real_type cos_alpha = 0;
-    real_type sin_alpha = 0;
+    real_type cos_alpha{};
+    real_type sin_alpha{};
     do
     {
+        // Sample linear angle according to gaussian (chances of having a
+        // nonpositive slope are generally vanishingly small)
         real_type alpha = sample_alpha_(rng);
         sincos(alpha, &sin_alpha, &cos_alpha);
+
+        // Transform to polar angle using rejection
     } while (cos_alpha <= 0 || RejectionSampler{fabs(sin_alpha), f_max_}(rng));
 
     // Rotate normal by alpha and then sample azimuth rotation uniformly
