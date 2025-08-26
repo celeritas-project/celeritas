@@ -45,9 +45,6 @@ class SurfacePhysicsMapBuilder
     //! Data being modified
     HostData& data_;
 
-    //! "Physics surface" for default when user doesn't specify
-    PhysSurfaceId::size_type num_surfaces_;
-
     //! Guard against duplicate IDs
     std::set<SurfaceModelId> surface_models_;
 };
