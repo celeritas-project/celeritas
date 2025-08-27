@@ -61,6 +61,8 @@ class ImportDataTrimmer
 
     //!@{
     //! Trim objects
+    void operator()(inp::ReflectionForm& data);
+    void operator()(inp::GridReflection& data);
     void operator()(inp::Grid& data);
     void operator()(inp::UniformGrid& data);
     void operator()(ImportPhysicsTable& data);
