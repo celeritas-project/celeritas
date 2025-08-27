@@ -2,23 +2,19 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/g4/GeantGeoTestBase.hh
+//! \file orange/DebugIO.json.hh
+//! \brief Write *on-host* track views to JSON for debugging.
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "geocel/GeantGeoParams.hh"
-#include "geocel/GenericGeoTestBase.hh"
-#include "geocel/g4/GeantGeoData.hh"
-#include "geocel/g4/GeantGeoTrackView.hh"
-#include "geocel/g4/GeantGeoTraits.hh"
+#include <nlohmann/json.hpp>
 
 namespace celeritas
 {
-namespace test
-{
-//---------------------------------------------------------------------------//
-using GeantGeoTestBase = GenericGeoTestBase<GeantGeoParams>;
+class OrangeTrackView;
 
 //---------------------------------------------------------------------------//
-}  // namespace test
+void to_json(nlohmann::json&, OrangeTrackView const&);
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

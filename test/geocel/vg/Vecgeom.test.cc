@@ -130,33 +130,7 @@ using FourLevelsVgdmlTest
 
 TEST_F(FourLevelsVgdmlTest, accessors)
 {
-    // TODO: VGDML leaves pointer in the world PV name before appending _PV
-    // suffix
-
-    // this->impl().test_accessors();
-
-    static char const* const expected_vol_labels[] = {
-        "Shape2",
-        "Shape1",
-        "Envelope",
-        "World",
-    };
-    EXPECT_VEC_EQ(expected_vol_labels, this->get_volume_labels());
-
-    static char const* const expected_vol_inst_labels[] = {
-        "Shape2",
-        "Shape1",
-        "env1",
-        "env2",
-        "env3",
-        "env4",
-        "env5",
-        "env6",
-        "env7",
-        "env8",
-        "World0xdeadbeef_PV",
-    };
-    EXPECT_VEC_EQ(expected_vol_inst_labels, this->get_volume_instance_labels());
+    this->impl().test_accessors();
 }
 
 TEST_F(FourLevelsVgdmlTest, consecutive_compute)
@@ -269,9 +243,9 @@ TEST_F(FourLevelsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
 using MultiLevelVgdmlTest
     = GenericGeoParameterizedTest<VecgeomVgdmlTestBase, MultiLevelGeoTest>;
 
-TEST_F(MultiLevelVgdmlTest, DISABLED_model)
+TEST_F(MultiLevelVgdmlTest, volume_stack)
 {
-    TestImpl(this).test_model();
+    this->impl().test_volume_stack();
 }
 
 TEST_F(MultiLevelVgdmlTest, trace)
@@ -559,9 +533,9 @@ TEST_F(FourLevelsTest, levels)
 using MultiLevelTest
     = GenericGeoParameterizedTest<VecgeomGeantTestBase, MultiLevelGeoTest>;
 
-TEST_F(MultiLevelTest, DISABLED_model)
+TEST_F(MultiLevelTest, volume_stack)
 {
-    this->impl().test_model();
+    this->impl().test_volume_stack();
 }
 
 TEST_F(MultiLevelTest, trace)

@@ -95,6 +95,7 @@ class MultiLevelGeoTest
 
     void test_model() const;
     void test_trace() const;
+    void test_volume_stack() const;
 
   private:
     GenericGeoTestInterface* test_;

@@ -49,7 +49,7 @@ bool AssertionHelper::equal_size(std::size_t expected, std::size_t actual)
 {
     if (expected != actual)
     {
-        this->fail() << "  size: " << expected << " != " << actual;
+        this->fail() << " size differs: " << expected << " != " << actual;
         return false;
     }
     return true;

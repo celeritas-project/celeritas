@@ -49,9 +49,9 @@ namespace celeritas
  * has non-templated scalars (since the default assignment operator is less
  * work than manually copying scalars in a templated assignment operator.
  *
- * A collection group has the following requirements to be compatible with the
-\c
- * CollectionMirror, \c CollectionStateStore, and other such helper classes:
+ * A collection group has the following requirements to be compatible with
+ * the \c CollectionMirror, \c CollectionStateStore, and other such helper
+ * classes:
  * - Be a struct templated with \c template<Ownership W, MemSpace M>
  * - Contain only Collection objects and trivially copyable structs
  * - Define an operator bool that is true if and only if the class data is
@@ -81,20 +81,26 @@ namespace celeritas
  * \endcode
  *
  * By convention, related groups of collections are stored in a header file
- * named \c Data.hh .
+ * named \c *Data.hh .
  *
- * See ParticleParamsData and ParticleStateData for minimal examples of using
- * collections. The MaterialParamsData demonstrates additional complexity
- * by having a multi-level data hierarchy, and MaterialStateData has a resize
- * function that uses params data. PhysicsParamsData is a very complex example,
- * and GeoParamsData demonstrates how to use template specialization to adapt
- * Collections to another codebase with a different convention for host-device
- * portability.
+ * See \c ParticleParamsData and \c ParticleStateData for minimal examples of
+ * using collections. The \c MaterialParamsData demonstrates additional
+ * complexity by having a multi-level data hierarchy, and \c MaterialStateData
+ * has a resize function that uses params data. \c PhysicsParamsData is a very
+ * complex example, and \c VecgeomParamsData demonstrates how to use template
+ * specialization to adapt Collections to another codebase with a different
+ * convention for host-device portability.
+ *
+ * A common paradigm for managing host-device data is to have a small
+ * fixed-size POD struct called a \em record that contains attributes about an
+ * item. These often need to reference a variable-sized range of data and do so
+ * by storing an \c ItemRange or \c ItemMap . These two types are offsets into
+ * "backend" data stored by a collection group.
  */
 
 //! Opaque ID representing a single element of a container.
-template<class T>
-using ItemId = OpaqueId<T, size_type>;
+template<class T, class U = size_type>
+using ItemId = OpaqueId<T, U>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -135,6 +141,41 @@ using ItemRange = Range<OpaqueId<T, Size>>;
  *
  * Here, T1 and T2 are expected to be OpaqueId types. This is simply a
  * type-safe "offset" with range checking.
+ *
+ * Example: \code
+   using ElComponentId = OpaqueId<struct ElComp_>;
+   using MatId = OpaqueId<struct MaterialRecord>;
+
+   // POD struct (record) describing a material
+   struct MaterialRecord
+   {
+     using DoubleId = ItemId<double>; // same as OpaqueId
+     ItemMap<ElComponentId, DoubleId> components;
+   };
+
+   template<Ownership W, MemSpace M>
+   struct MatParamsData
+   {
+     Collection<MaterialRecord, W, M> materials;
+     Collection<double, W, M> doubles; // Backend storage
+     // ...
+   };
+
+  \endcode
+ *
+ * Here, \c components semantically refers to a contiguous range of real values
+ * in the \c doubles collection, where \c ElComponentId{0} is the first value
+ * in that range. Dereferencing the value requires using the map alongside
+ * the backend storage: \code
+   double get_value(MatParamsData const& params, MatId m, ElComponentId ec)
+   {
+     MaterialRecord const& mat = params.materials[m];
+     ItemId<double> dbl_id = mat.components[ec];
+     return params.doubles[dbl_id];
+   }
+ * \endcode
+ * Note that this access requires only two indirections, as \c ItemMap is
+ * merely performing integer arithmetic.
  */
 template<class T1, class T2>
 class ItemMap
@@ -154,8 +195,11 @@ class ItemMap
 
     ItemMap() = default;
 
-    //! Construct from an existing Range<T2>
-    explicit CELER_FUNCTION ItemMap(Range<T2> range) : range_(range) {}
+    //! Construct implicitly from an existing Range<T2>
+    CELER_FUNCTION ItemMap(Range<T2> range) : range_(range) {}
+
+    //! Construct like a range
+    CELER_FUNCTION ItemMap(T2 start, T2 stop) : range_{start, stop} {}
 
     //// ACCESS ////
 

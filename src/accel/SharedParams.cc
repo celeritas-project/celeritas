@@ -15,6 +15,8 @@
 #include <CLHEP/Random/Random.h>
 #include <G4Electron.hh>
 #include <G4Gamma.hh>
+#include <G4MuonMinus.hh>
+#include <G4MuonPlus.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
 #include <G4Positron.hh>
@@ -28,6 +30,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/BuildOutput.hh"
+#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
@@ -76,6 +79,7 @@
 #include "SetupOptions.hh"
 #include "TimeOutput.hh"
 
+#include "detail/IntegrationSingleton.hh"
 #include "detail/OffloadWriter.hh"
 
 namespace celeritas
@@ -83,39 +87,54 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-std::vector<G4ParticleDefinition*>
-build_g4_particles(std::shared_ptr<ParticleParams const> const& particles,
-                   std::shared_ptr<PhysicsParams const> const& phys)
+void verify_offload(std::vector<G4ParticleDefinition*> const& offload,
+                    ParticleParams const& particles,
+                    PhysicsParams const& phys)
 {
-    CELER_EXPECT(particles);
-    CELER_EXPECT(phys);
+    std::vector<bool> found_particle(particles.size(), false);
+    std::vector<G4ParticleDefinition const*> missing;
 
-    G4ParticleTable* g4particles = G4ParticleTable::GetParticleTable();
-    CELER_ASSERT(g4particles);
-
-    std::vector<G4ParticleDefinition*> result;
-
-    for (auto par_id : range(ParticleId{particles->size()}))
+    for (auto const* pd : offload)
     {
-        if (phys->processes(par_id).empty())
+        ParticleId pid;
+        if (pd)
         {
-            CELER_LOG(warning)
-                << "Not offloading particle '"
-                << particles->id_to_label(par_id)
-                << "' because it has no physics processes defined";
-            continue;
+            PDGNumber pdg{pd->GetPDGEncoding()};
+            CELER_VALIDATE(
+                pdg, << "unsupported particle type: " << PrintablePD{pd});
+            pid = particles.find(pdg);
         }
-
-        PDGNumber pdg = particles->id_to_pdg(par_id);
-        G4ParticleDefinition* g4pd = g4particles->FindParticle(pdg.get());
-        CELER_VALIDATE(g4pd,
-                       << "could not find PDG '" << pdg.get()
-                       << "' in G4ParticleTable");
-        result.push_back(g4pd);
+        if (pid)
+        {
+            found_particle[pid.get()] = true;
+            if (phys.processes(pid).empty())
+            {
+                CELER_LOG(warning) << "User-selected offload particle '"
+                                   << particles.id_to_label(pid)
+                                   << "' has no physics processes defined";
+            }
+        }
+        else
+        {
+            missing.push_back(pd);
+        }
     }
 
-    CELER_ENSURE(!result.empty());
-    return result;
+    auto printable_pd
+        = [](G4ParticleDefinition const* p) { return PrintablePD{p}; };
+    CELER_VALIDATE(missing.empty(),
+                   << "not all particles from TrackingManagerConstructor are "
+                      "active in Celeritas: missing "
+                   << join(missing.begin(), missing.end(), ", ", printable_pd));
+
+    if (found_particle != std::vector<bool>(particles.size(), true))
+    {
+        //! \todo Overhaul DataSelection Flags and GeantImporter
+        CELER_LOG(warning)
+            << "Mismatch between ParticlesParams (size " << particles.size()
+            << ") and user-defined offload list (size " << offload.size()
+            << "). Geant4 data import is not properly defined.";
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -184,6 +203,40 @@ auto SharedParams::GetMode() -> Mode
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get a list of all supported particles.
+ */
+auto SharedParams::supported_offload_particles() -> VecG4PD const&
+{
+    static VecG4PD const supported_particles = {
+        G4Electron::Definition(),
+        G4Positron::Definition(),
+        G4Gamma::Definition(),
+        G4MuonMinus::Definition(),
+        G4MuonPlus::Definition(),
+    };
+
+    return supported_particles;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the list of default particles offloaded in Geant4 applications.
+ *
+ * If no user-defined list is provided, this defaults to simulating EM showers.
+ */
+auto SharedParams::default_offload_particles() -> VecG4PD const&
+{
+    static VecG4PD const default_particles = {
+        G4Electron::Definition(),
+        G4Positron::Definition(),
+        G4Gamma::Definition(),
+    };
+
+    return default_particles;
+}
+
+//---------------------------------------------------------------------------//
 bool SharedParams::CeleritasDisabled()
 {
     return GetMode() == Mode::disabled;
@@ -214,14 +267,13 @@ SharedParams::SharedParams(SetupOptions const& options)
     ScopedTimeLog scoped_time;
 
     mode_ = GetMode();
-    if (mode_ == Mode::kill_offload)
+
+    if (mode_ == Mode::enabled || mode_ == Mode::kill_offload)
     {
-        // In a Geant4-only simulation, use a hardcoded list
-        particles_ = {
-            G4Gamma::Gamma(),
-            G4Electron::Electron(),
-            G4Positron::Positron(),
-        };
+        // Set up offloaded particles based on user input
+        auto const& user_offload = options.offload_particles;
+        offload_particles_ = user_offload.empty() ? default_offload_particles()
+                                                  : user_offload;
     }
 
     if (mode_ != Mode::enabled)
@@ -277,7 +329,8 @@ SharedParams::SharedParams(SetupOptions const& options)
     step_collector_ = std::move(loaded.problem.step_collector);
 
     // Translate supported particles
-    particles_ = build_g4_particles(params_->particle(), params_->physics());
+    verify_offload(
+        offload_particles_, *params_->particle(), *params_->physics());
 
     // Create bounding box from navigator geometry
     bbox_ = geant_geo_->get_clhep_bbox();

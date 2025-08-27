@@ -10,6 +10,7 @@
 #include "corecel/io/StreamableVariant.hh"
 #include "corecel/sys/Environment.hh"
 #include "geocel/GeantGeoParams.hh"
+#include "geocel/VolumeParams.hh"
 #include "orange/MatrixUtils.hh"
 #include "orange/orangeinp/ObjectInterface.hh"
 #include "orange/transform/TransformIO.hh"
@@ -50,7 +51,8 @@ class PhysicalVolumeConverterTest : public GeantLoadTestBase
     Label const& get_label(PhysicalVolume const& pv)
     {
         CELER_EXPECT(pv.id);
-        return this->geo().volume_instances().at(pv.id);
+        CELER_EXPECT(this->volumes());
+        return this->volumes()->volume_instance_labels().at(pv.id);
     }
 
     G4VPhysicalVolume const& world() const { return *this->geo().world(); }

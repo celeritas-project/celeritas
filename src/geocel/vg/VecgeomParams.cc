@@ -38,7 +38,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/io/Join.hh"
+#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/io/ScopedTimeLog.hh"
@@ -111,6 +111,8 @@ int vecgeom_verbosity()
 //---------------------------------------------------------------------------//
 /*!
  * Get a reproducible vector of LV instance ID -> label from the given world.
+ *
+ * This creates the "implementation" volume map.
  */
 std::vector<Label> make_logical_vol_labels(vecgeom::VPlacedVolume const& world)
 {
@@ -223,6 +225,23 @@ auto make_lv_map(std::vector<G4LogicalVolume const*> const& all_lv)
         }
     }
     return result;
+}
+
+//---------------------------------------------------------------------------//
+vecgeom::VPlacedVolume const&
+get_placed_volume(vecgeom::GeoManager const& geo, VecgeomPlacedVolumeId ivi_id)
+{
+    CELER_EXPECT(ivi_id);
+
+#if VECGEOM_VERSION >= 0x020000
+#    define VG_GETPLACEDVOLUME GetPlacedVolume
+#else
+#    define VG_GETPLACEDVOLUME FindPlacedVolume
+#endif
+    auto* vgpv = const_cast<vecgeom::GeoManager&>(geo).VG_GETPLACEDVOLUME(
+        ivi_id.unchecked_get());
+    CELER_ENSURE(vgpv);
+    return *vgpv;
 }
 
 //---------------------------------------------------------------------------//
@@ -364,17 +383,12 @@ bool VecgeomParams::use_vgdml()
 //---------------------------------------------------------------------------//
 /*!
  * Set up vecgeom given existing an already set up VecGeom CPU world.
- *
- * \todo Instead of VecLv and VecPv, once we we remove `find_volume(G4LV*)`,
- * just pass a vector of volume IDs.
  */
 VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
                              Ownership owns,
-                             VecLv const& lv,
-                             VecPv&& pv)
-    : ownership_{owns}
-    , g4log_volid_map_{make_lv_map(lv)}
-    , g4_pv_map_{std::move(pv)}
+                             VecLv const& all_lv,
+                             VecPv const& all_pv)
+    : host_ownership_{owns}, g4log_volid_map_{make_lv_map(all_lv)}
 {
     CELER_VALIDATE(geo.IsClosed(),
                    << "VecGeom geometry was not closed before initialization");
@@ -388,81 +402,106 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
     {
         CELER_LOG(status) << "Initializing tracking information";
 
+        if (!VecgeomParams::use_surface_tracking() || CELERITAS_USE_CUDA)
+        {
+            this->build_volume_tracking();
+        }
         if (VecgeomParams::use_surface_tracking())
         {
             this->build_surface_tracking();
         }
-        else
-        {
-            this->build_volume_tracking();
-        }
-
-        /*!
-         * \todo we still need to make volume tracking information when using
-         * CUDA, because we need a GPU world device pointer. We could probably
-         * just make a single world physical/logical volume that have the
-         * correct IDs.
-         */
-        if (CELERITAS_USE_CUDA && VecgeomParams::use_surface_tracking())
-        {
-            this->build_volume_tracking();
-        }
     }
     {
         // Save host data
-        host_ref_.world_volume = geo.GetWorld();
-        host_ref_.max_depth = geo.getMaxDepth();
+        HostVal<VecgeomParamsData> host_data;
+        host_data.scalars.host_world = geo.GetWorld();
+        host_data.scalars.max_depth = geo.getMaxDepth();
 
         if (celeritas::device())
         {
 #ifdef VECGEOM_ENABLE_CUDA
             auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
-            device_ref_.world_volume = cuda_manager.world_gpu();
+            host_data.scalars.device_world = cuda_manager.world_gpu();
 #endif
-            device_ref_.max_depth = host_ref_.max_depth;
-            CELER_ENSURE(device_ref_.world_volume);
+            CELER_ENSURE(host_data.scalars.device_world);
         }
-        CELER_ENSURE(host_ref_);
-        CELER_ENSURE(!celeritas::device() || device_ref_);
-    }
-    {
-        using namespace vecgeom;
-        CELER_ASSERT(host_ref_.world_volume);
-        auto const& world = *host_ref_.world_volume;
+
+        auto const& world = *geo.GetWorld();
 
         // Construct volume labels
-        volumes_ = ImplVolumeMap{"volume", make_logical_vol_labels(world)};
-        vol_instances_ = VolInstanceMap{"volume instance",
-                                        make_physical_vol_labels(world)};
+        impl_volumes_
+            = ImplVolumeMap{"impl volume", make_logical_vol_labels(world)};
+        impl_vol_instances_ = ImplVolInstanceMap{
+            "impl volume instance", make_physical_vol_labels(world)};
 
-        // Construct ImplVolume -> Volume map
-        if (auto geant_geo = celeritas::global_geant_geo().lock())
+        // Resize maps of impl -> canonical IDs
+        resize(&host_data.volumes, impl_volumes_.size());
+        resize(&host_data.volume_instances, impl_vol_instances_.size());
+
+        geant_geo_ = celeritas::global_geant_geo().lock();
+
+        // Construct Impl vol/inst maps
+        if (geant_geo_)
         {
-            CELER_ASSERT(lv.size() <= this->impl_volumes().size());
-
-            volume_id_map_.resize(this->impl_volumes().size());
-            for (auto iv_id : range(id_cast<ImplVolumeId>(lv.size())))
+            // Built with Geant4: use G4VG-provided mapping
+            for (auto iv_id : range(ImplVolumeId{host_data.volumes.size()}))
             {
-                if (auto* g4lv = lv[iv_id.get()])
+                VolumeId vol_id;
+                if (iv_id < all_lv.size())
                 {
-                    auto vol_id = geant_geo->geant_to_id(*g4lv);
-                    volume_id_map_[iv_id.get()] = vol_id;
+                    if (auto* g4lv = all_lv[iv_id.get()])
+                    {
+                        vol_id = geant_geo_->geant_to_id(*g4lv);
+                    }
                 }
+                host_data.volumes[iv_id] = vol_id;
+            }
+
+            for (auto ivi_id :
+                 range(ImplVolInstanceId{host_data.volume_instances.size()}))
+            {
+                VolumeInstanceId vol_inst_id;
+                if (ivi_id < all_pv.size())
+                {
+                    if (auto* g4pv = all_pv[ivi_id.get()])
+                    {
+                        // FIXME: VecGeom copy number is *ignored*, leading to
+                        // multiple volume instances mapping to the same G4PV
+                        vol_inst_id = geant_geo_->geant_to_id(*g4pv);
+                    }
+                }
+                host_data.volume_instances[ivi_id] = vol_inst_id;
             }
         }
+        else
+        {
+            // Built with VGDML: create one-to-one mapping
+            for (auto iv_id : range(ImplVolumeId{host_data.volumes.size()}))
+            {
+                host_data.volumes[iv_id] = id_cast<VolumeId>(iv_id.get());
+            }
+            for (auto ivi_id :
+                 range(ImplVolInstanceId{host_data.volume_instances.size()}))
+            {
+                host_data.volume_instances[ivi_id]
+                    = id_cast<VolumeInstanceId>(ivi_id.get());
+            }
+        }
+        CELER_ASSERT(host_data);
+        data_ = CollectionMirror{std::move(host_data)};
 
         // Save world bbox
         bbox_ = [&world] {
             // Calculate bounding box
             auto bbox_mgr = detail::ABBoxManager_t::Instance();
-            Vector3D<real_type> lower, upper;
+            vecgeom::Vector3D<real_type> lower, upper;
             bbox_mgr.ComputeABBox(&world, &lower, &upper);
             return BBox{detail::to_array(lower), detail::to_array(upper)};
         }();
     }
 
-    CELER_ENSURE(volumes_);
-    CELER_ENSURE(host_ref_);
+    CELER_ENSURE(impl_volumes_);
+    CELER_ENSURE(data_);
 }
 
 //---------------------------------------------------------------------------//
@@ -471,7 +510,7 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
  */
 VecgeomParams::~VecgeomParams()
 {
-    if (device_ref_)
+    if (device_ownership_ == Ownership::value)
     {
         CELER_LOG(debug)
             << "Clearing VecGeom "
@@ -495,22 +534,21 @@ VecgeomParams::~VecgeomParams()
         }
     }
 
-    if (VecgeomParams::use_surface_tracking())
+    if (host_ownership_ == Ownership::value)
     {
-        CELER_LOG(debug) << "Clearing SurfModel CPU data";
-    }
-    try
-    {
-        VG_SURF_CALL(vgbrep::BrepHelper<real_type>::Instance().ClearData());
-    }
-    catch (std::exception const& e)
-    {
-        CELER_LOG(critical)
-            << "Failed during VecGeom surface model cleanup: " << e.what();
-    }
-
-    if (ownership_ == Ownership::value)
-    {
+        if (VecgeomParams::use_surface_tracking())
+        {
+            CELER_LOG(debug) << "Clearing SurfModel CPU data";
+        }
+        try
+        {
+            VG_SURF_CALL(vgbrep::BrepHelper<real_type>::Instance().ClearData());
+        }
+        catch (std::exception const& e)
+        {
+            CELER_LOG(critical)
+                << "Failed during VecGeom surface model cleanup: " << e.what();
+        }
         CELER_LOG(debug) << "Clearing VecGeom CPU data";
         vecgeom::GeoManager::Instance().Clear();
     }
@@ -520,47 +558,72 @@ VecgeomParams::~VecgeomParams()
 /*!
  * Create model parameters corresponding to our internal representation.
  *
- * This could be used to eliminate the "gaps" from the `[TEMP]` volumes.
+ * Currently this creates a one-to-one mapping for use when constructed from
+ * VGDML rather than Geant4.
  */
 inp::Model VecgeomParams::make_model_input() const
 {
-    CELER_LOG(warning) << "VecGeom cannot yet construct model input";
-    inp::Model result;
+    CELER_LOG(warning)
+        << R"(VecGeom standalone model input is not fully implemented)";
 
+    inp::Model result;
+    inp::Volumes& v = result.volumes;
+    v.volumes.resize(impl_volumes_.size());
+    v.volume_instances.resize(impl_vol_instances_.size());
+
+    // Create one-to-one map for logical volumes
+    for (auto iv_id : range(ImplVolumeId{impl_volumes_.size()}))
+    {
+        auto const& label = impl_volumes_.at(iv_id);
+        if (label.name.empty())
+        {
+            continue;
+        }
+
+        v.volumes[iv_id.get()].label = label;
+        v.volumes[iv_id.get()].material = GeoMatId{0};
+    }
+
+    // Create one-to-one map for placed volumes
+    auto const& geo = vecgeom::GeoManager::Instance();
+    for (auto ivi_id : range(ImplVolInstanceId{impl_vol_instances_.size()}))
+    {
+        auto const& label = impl_vol_instances_.at(ivi_id);
+        if (label.name.empty())
+        {
+            continue;
+        }
+
+        auto const& placed_vol = get_placed_volume(geo, ivi_id);
+
+        v.volume_instances[ivi_id.get()].label = label;
+        // Save the underlying volume for this instance
+        v.volume_instances[ivi_id.get()].volume
+            = id_cast<VolumeId>(placed_vol.GetLogicalVolume()->id());
+    }
+
+    result.volumes.world
+        = id_cast<VolumeId>(geo.GetWorld()->GetLogicalVolume()->id());
     return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the Geant4 physical volume corresponding to a volume instance ID.
+ *
+ * \warning This will not correctly yield replica/copy numbers.
+ * \todo This will be removed soon! Also fix missing use of CopyNo in
+ * VecgeomParams::VecgeomParams .
  */
 GeantPhysicalInstance VecgeomParams::id_to_geant(VolumeInstanceId id) const
 {
-    CELER_EXPECT(id < g4_pv_map_.size() || g4_pv_map_.empty());
-    if (g4_pv_map_.empty())
+    if (!geant_geo_)
     {
         // Model was loaded with VGDML
         return {};
     }
 
-    GeantPhysicalInstance result;
-    result.pv = g4_pv_map_[id.unchecked_get()];
-    if (result.pv && is_replica(*result.pv))
-    {
-        // VecGeom volume is a specific instance of a G4PV: get the replica
-        // number it corresponds to
-        auto& geo_manager = vecgeom::GeoManager::Instance();
-#if VECGEOM_VERSION >= 0x020000
-        // Constant-time access
-        auto* vgpv = geo_manager.GetPlacedVolume(id.get());
-#else
-        auto* vgpv = geo_manager.FindPlacedVolume(id.get());
-#endif
-        CELER_ASSERT(vgpv);
-        result.replica
-            = id_cast<GeantPhysicalInstance::ReplicaId>(vgpv->GetCopyNo());
-    }
-    return result;
+    return geant_geo_->id_to_geant(id);
 }
 
 //---------------------------------------------------------------------------//
@@ -748,8 +811,17 @@ void VecgeomParams::build_volume_tracking()
 #endif
             msg << " from VecGeom runtime symbol)";
         }
+
+        device_ownership_ = Ownership::value;
     }
 }
+
+//---------------------------------------------------------------------------//
+// EXPLICIT TEMPLATE INSTANTIATION
+//---------------------------------------------------------------------------//
+
+template class CollectionMirror<VecgeomParamsData>;
+template class ParamsDataInterface<VecgeomParamsData>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

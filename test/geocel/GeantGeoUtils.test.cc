@@ -18,6 +18,7 @@
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/GeoParamsInterface.hh"
+#include "geocel/VolumeParams.hh"
 #include "geocel/g4/Convert.hh"
 
 #include "UnitUtils.hh"
@@ -73,7 +74,7 @@ class GeantGeoUtilsTest : public GeantGeoTestBase
     VecPhysInst find_pv_stack(IListSView names) const
     {
         auto const& geo = *this->geometry();
-        auto const& vol_inst = geo.volume_instances();
+        auto const& vol_inst = this->volumes()->volume_instance_labels();
 
         VecPhysInst result;
         std::vector<std::string_view> missing;

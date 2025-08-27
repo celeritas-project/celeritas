@@ -142,7 +142,7 @@
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
 // Throw in host code
 #    define CELER_DEBUG_THROW_(MSG, WHICH) \
-        throw ::celeritas::DebugError(     \
+        ::celeritas::throw_debug_error(    \
             {::celeritas::DebugErrorType::WHICH, MSG, __FILE__, __LINE__})
 #elif defined(__CUDA_ARCH__) && !defined(NDEBUG)
 // Use the assert macro for CUDA when supported
@@ -189,7 +189,7 @@
 
 #if !CELER_DEVICE_COMPILE
 #    define CELER_RUNTIME_THROW(WHICH, WHAT, COND) \
-        throw ::celeritas::RuntimeError({          \
+        ::celeritas::throw_runtime_error({         \
             WHICH,                                 \
             WHAT,                                  \
             COND,                                  \
@@ -377,6 +377,12 @@ char const* to_cstring(DebugErrorType which);
 // Get an MPI error string
 std::string mpi_error_to_string(int);
 
+// Throw a debug error
+[[noreturn]] void throw_debug_error(DebugErrorDetails&&);
+
+// Throw a runtime error
+[[noreturn]] void throw_runtime_error(RuntimeErrorDetails&&);
+
 //---------------------------------------------------------------------------//
 // TYPES
 //---------------------------------------------------------------------------//
@@ -473,7 +479,7 @@ inline __host__ void device_debug_error(DebugErrorType which,
                                         char const* file,
                                         int line)
 {
-    throw DebugError({which, condition, file, line});
+    return ::celeritas::throw_debug_error({which, condition, file, line});
 }
 
 //! Device-only call for HIP (must always be declared; only used if

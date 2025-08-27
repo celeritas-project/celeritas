@@ -129,6 +129,7 @@ list(APPEND SOURCES
   phys/PrimaryGeneratorOptionsIO.json.cc
   phys/Process.cc
   phys/ProcessBuilder.cc
+  phys/SurfaceModel.cc
   phys/SurfacePhysicsMapBuilder.cc
   setup/Events.cc
   setup/FrameworkInput.cc
