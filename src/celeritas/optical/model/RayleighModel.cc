@@ -56,17 +56,8 @@ RayleighModel::RayleighModel(ActionId id, SPConstImported imported, Input input)
     CELER_EXPECT(!input_
                  || input_.materials->num_materials()
                         == imported_.num_materials());
-
-    for (auto mat : range(OptMatId(imported_.num_materials())))
-    {
-        if (!(imported_.mfp(mat)
-              || (input_ && input_.imported_materials->rayleigh(mat))))
-        {
-            CELER_LOG(debug)
-                << "Rayleigh model has no MFP data for material " << mat.get();
-        }
-    }
 }
+
 //---------------------------------------------------------------------------//
 /*!
  * Build the mean free paths for the model.
@@ -75,15 +66,15 @@ void RayleighModel::build_mfps(OptMatId mat, MfpBuilder& build) const
 {
     CELER_EXPECT(mat < imported_.num_materials());
 
-    // User explicitly provided Rayleigh MFP
     if (auto const& mfp = imported_.mfp(mat))
     {
+        // User explicitly provided Rayleigh MFP
         build(mfp);
     }
 
-    // MFPs can be calculated from user given properties
     else if (input_ && input_.imported_materials->rayleigh(mat))
     {
+        // MFPs can be calculated from user given propcerties
         auto mat_view = input_.materials->get(mat);
         auto core_mat_view
             = input_.core_materials->get(mat_view.core_material_id());
@@ -105,9 +96,9 @@ void RayleighModel::build_mfps(OptMatId mat, MfpBuilder& build) const
         }
         build(grid);
     }
-    // Build a grid with infinite MFP to prevent selection of the model
     else
     {
+        // Build a grid with infinite MFP to prevent selection of the model
         auto mat_view = input_.materials->get(mat);
         auto rindex_calc = mat_view.make_refractive_index_calculator();
         auto energies = rindex_calc.grid().values();
@@ -122,7 +113,8 @@ void RayleighModel::build_mfps(OptMatId mat, MfpBuilder& build) const
             g.y = {std::numeric_limits<real_type>::infinity(),
                    std::numeric_limits<real_type>::infinity()};
             CELER_LOG(debug) << "Material " << mat.get()
-                             << " has no MFP data - setting mfp to infinity";
+                             << " has no MFP data: setting mfp to infinity";
+
             build(g);
         }
     }

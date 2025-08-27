@@ -76,7 +76,6 @@ void MfpBuilder::operator()(inp::Grid const& grid)
         return;
     }
 
-    CELER_EXPECT(grid);
     insert_grid_(grid);
 }
 
