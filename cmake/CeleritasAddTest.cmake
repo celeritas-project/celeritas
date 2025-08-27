@@ -448,6 +448,7 @@ function(celeritas_add_test SOURCE_FILE)
     # Set common properties
     set_tests_properties(${_ADDED_TESTS}
       PROPERTIES ${_COMMON_PROPS}
+      TIMEOUT 12
       "LABELS" "${_LABELS}")
   endif()
   if(PARSE_ADDED_TESTS)
