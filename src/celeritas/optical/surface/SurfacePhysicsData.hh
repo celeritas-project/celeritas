@@ -43,19 +43,10 @@ struct SurfaceRecord
     ItemMap<SubsurfaceMaterialId, OpaqueId<OptMatId>> subsurface_materials;
     ItemMap<SubsurfaceInterfaceId, PhysSurfaceId> subsurface_interfaces;
 
-    //! Construct record directly from ranges
-    SurfaceRecord(Range<OpaqueId<OptMatId>> materials,
-                  Range<PhysSurfaceId> interfaces)
-        : subsurface_materials(materials), subsurface_interfaces(interfaces)
-    {
-    }
-
     //! Whether data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !subsurface_interfaces.empty()
-               && subsurface_materials.size() + 1
-                      == subsurface_interfaces.size();
+        return subsurface_materials.size() + 1 == subsurface_interfaces.size();
     }
 };
 
@@ -95,13 +86,11 @@ struct SurfacePhysicsParamsData
 {
     //!@{
     //! \name Type aliases
-    using ModelMap = SurfacePhysicsMapData<W, M>;
-
     template<class T>
     using GeoSurfaceItems = Collection<T, W, M, SurfaceId>;
 
-    template<class T>
-    using SurfaceStepArray = EnumArray<SurfacePhysicsStep, T>;
+    using SurfaceStepModelMaps
+        = EnumArray<SurfacePhysicsStep, SurfacePhysicsMapData<W, M>>;
 
     template<class T>
     using Items = Collection<T, W, M>;
@@ -113,7 +102,7 @@ struct SurfacePhysicsParamsData
     //! Optical surface model data
 
     GeoSurfaceItems<SurfaceRecord> surfaces;
-    SurfaceStepArray<ModelMap> model_maps;
+    SurfaceStepModelMaps model_maps;
     Items<OptMatId> subsurface_materials;
 
     //! Whether data is assigned

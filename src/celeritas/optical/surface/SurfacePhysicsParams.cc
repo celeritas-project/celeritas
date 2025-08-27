@@ -169,10 +169,9 @@ void SurfacePhysicsParams::build_surfaces(
  */
 auto SurfacePhysicsParams::build_models(
     inp::SurfacePhysics const& input,
-    HostVal<SurfacePhysicsParamsData>& data) const
-    -> SurfaceStepArray<std::vector<SPModel>>
+    HostVal<SurfacePhysicsParamsData>& data) const -> SurfaceStepModels
 {
-    SurfaceStepArray<std::vector<SPModel>> step_models;
+    SurfaceStepModels step_models;
 
     for (auto step : range(SurfacePhysicsStep::size_))
     {

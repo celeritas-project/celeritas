@@ -52,7 +52,7 @@ class SurfacePhysicsView
     inline CELER_FUNCTION SurfacePhysicsView& operator=(Initializer const&);
 
     // Reset surface physics state of the track
-    inline CELER_FUNCTION void reset() const;
+    inline CELER_FUNCTION void reset();
 
     //// STATE INVARIANTS ////
 
@@ -81,8 +81,8 @@ class SurfacePhysicsView
     // Position of the track in the surface crossing
     inline CELER_FUNCTION SurfaceTrackPosition subsurface_position() const;
 
-    // Position of the track in the surface crossing
-    inline CELER_FUNCTION SurfaceTrackPosition& subsurface_position();
+    // Set position of the track in the surface crossing
+    inline CELER_FUNCTION void subsurface_position(SurfaceTrackPosition);
 
     // Number of valid positions of the track in the surface crossing
     inline CELER_FUNCTION SurfaceTrackPosition::size_type num_positions() const;
@@ -149,6 +149,7 @@ SurfacePhysicsView::SurfacePhysicsView(SurfaceParamsRef const& params,
 CELER_FUNCTION SurfacePhysicsView&
 SurfacePhysicsView::operator=(Initializer const& init)
 {
+    CELER_EXPECT(init.surface);
     states_.surface[track_id_] = init.surface;
     states_.surface_orientation[track_id_] = init.orientation;
     states_.surface_position[track_id_] = SurfaceTrackPosition{0};
@@ -164,7 +165,7 @@ SurfacePhysicsView::operator=(Initializer const& init)
  * Invalidates the surface ID, indicating the track is no longer undergoing
  * boundary crossing.
  */
-CELER_FUNCTION void SurfacePhysicsView::reset() const
+CELER_FUNCTION void SurfacePhysicsView::reset()
 {
     states_.surface[track_id_] = {};
 }
@@ -210,7 +211,10 @@ CELER_FUNCTION bool SurfacePhysicsView::is_crossing_boundary() const
  */
 CELER_FUNCTION bool SurfacePhysicsView::is_exiting(SubsurfaceDirection d) const
 {
-    return (this->subsurface_position().get() + to_signed_offset(d))
+    // Use unsigned underflow when moving reverse (-1) on the pre-surface
+    // (position 0) to wrap to an invalid position value
+    return static_cast<size_type>(this->subsurface_position().get()
+                                  + to_signed_offset(d))
            >= this->num_positions();
 }
 
@@ -248,12 +252,14 @@ CELER_FUNCTION SurfaceTrackPosition SurfacePhysicsView::subsurface_position() co
 
 //---------------------------------------------------------------------------//
 /*!
- * Current position of the track in the sub-surfaces, in track-local
+ * Set current position of the track in the sub-surfaces, in track-local
  * coordinates.
  */
-CELER_FUNCTION SurfaceTrackPosition& SurfacePhysicsView::subsurface_position()
+CELER_FUNCTION void
+SurfacePhysicsView::subsurface_position(SurfaceTrackPosition pos)
 {
-    return states_.surface_position[track_id_];
+    CELER_EXPECT(pos < this->num_positions());
+    states_.surface_position[track_id_] = pos;
 }
 
 //---------------------------------------------------------------------------//
@@ -284,9 +290,11 @@ CELER_FUNCTION OptMatId SurfacePhysicsView::subsurface_material() const
         return states_.post_volume_material[track_id_];
     }
 
-    auto material_record_id = this->to_record_index(
-        SurfaceTrackPosition(this->subsurface_position().get() - 1),
-        this->surface_record().subsurface_materials);
+    CELER_ASSERT(this->subsurface_position().get() > 0);
+
+    auto material_record_id
+        = this->to_record_index(this->subsurface_position() - 1,
+                                this->surface_record().subsurface_materials);
     CELER_ASSERT(material_record_id < params_.subsurface_materials.size());
 
     return params_.subsurface_materials[material_record_id];
@@ -318,8 +326,8 @@ CELER_FUNCTION void
 SurfacePhysicsView::cross_subsurface_interface(SubsurfaceDirection d)
 {
     CELER_EXPECT(!this->is_exiting(d));
-    this->subsurface_position() = this->subsurface_position()
-                                  + to_signed_offset(d);
+    this->subsurface_position(this->subsurface_position()
+                              + to_signed_offset(d));
 }
 
 //---------------------------------------------------------------------------//

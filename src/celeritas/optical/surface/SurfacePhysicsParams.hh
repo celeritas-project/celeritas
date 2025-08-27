@@ -53,10 +53,9 @@ class SurfacePhysicsParams final
   public:
     //!@{
     //! \name Type aliases
-    template<class T>
-    using SurfaceStepArray = EnumArray<SurfacePhysicsStep, T>;
-
     using SPModel = std::shared_ptr<SurfaceModel>;
+    using SurfaceStepModels
+        = EnumArray<SurfacePhysicsStep, std::vector<SPModel>>;
     //!@}
 
   public:
@@ -100,7 +99,7 @@ class SurfacePhysicsParams final
     std::shared_ptr<PostBoundaryAction> post_boundary_action_;
     std::shared_ptr<SurfaceSteppingAction> surface_stepping_action_;
 
-    SurfaceStepArray<std::vector<SPModel>> models_;
+    SurfaceStepModels models_;
 
     // Host/device storage
     CollectionMirror<SurfacePhysicsParamsData> data_;
@@ -110,9 +109,8 @@ class SurfacePhysicsParams final
                         HostVal<SurfacePhysicsParamsData>&) const;
 
     // Build sub-step models
-    SurfaceStepArray<std::vector<SPModel>>
-    build_models(inp::SurfacePhysics const&,
-                 HostVal<SurfacePhysicsParamsData>&) const;
+    SurfaceStepModels build_models(inp::SurfacePhysics const&,
+                                   HostVal<SurfacePhysicsParamsData>&) const;
 };
 
 //---------------------------------------------------------------------------//

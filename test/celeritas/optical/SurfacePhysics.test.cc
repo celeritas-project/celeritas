@@ -378,7 +378,9 @@ TEST_F(SurfacePhysicsTest, init_surface_physics_view)
     {
         this->surface_physics_view(TrackSlotId(track))
             = SurfacePhysicsView::Initializer{expected_surfaces[track],
-                                              expected_orientations[track]};
+                                              expected_orientations[track],
+                                              OptMatId{0},
+                                              OptMatId{1}};
     }
 
     // Check initialization
@@ -407,8 +409,8 @@ TEST_F(SurfacePhysicsTest, init_surface_physics_view)
     for (auto track : range(TrackSlotId(expected_surfaces.size())))
     {
         auto s_physics = this->surface_physics_view(track);
-        s_physics.subsurface_position()
-            = SurfaceTrackPosition(s_physics.num_positions() - 1);
+        s_physics.subsurface_position(
+            SurfaceTrackPosition(s_physics.num_positions() - 1));
 
         EXPECT_TRUE(s_physics.is_crossing_boundary());
         EXPECT_FALSE(s_physics.in_pre_volume());
@@ -433,7 +435,7 @@ TEST_F(SurfacePhysicsTest, init_surface_physics_view)
         if (auto pos = expected_intermediate_positions[track.get()])
         {
             auto s_physics = this->surface_physics_view(track);
-            s_physics.subsurface_position() = pos;
+            s_physics.subsurface_position(pos);
 
             EXPECT_TRUE(s_physics.is_crossing_boundary());
             EXPECT_FALSE(s_physics.in_pre_volume());
