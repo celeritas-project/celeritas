@@ -286,9 +286,7 @@ auto build_along_step(inp::Field const& var_field,
 /*!
  * Construct optical parameters.
  */
-auto build_optical_params(CoreParams const& core,
-                          ImportData const& imported,
-                          inp::SurfacePhysics const& surface_phys)
+auto build_optical_params(CoreParams const& core, ImportData const& imported)
 {
     CELER_VALIDATE(!imported.optical_materials.empty(),
                    << "an optical tracking loop was requested but no optical "
@@ -324,7 +322,7 @@ auto build_optical_params(CoreParams const& core,
 
     // Construct optical surface physics models
     params.surface_physics = std::make_shared<optical::SurfacePhysicsParams>(
-        params.action_reg.get(), surface_phys);
+        params.action_reg.get(), imported.optical_physics.surfaces);
 
     //! \todo Get sensitive detectors
 
@@ -341,12 +339,11 @@ auto build_optical_offload(inp::Problem const& p,
                            CoreParams const& params,
                            ImportData const& imported)
 {
+    OpticalCollector::Input oc_inp;
+    oc_inp.optical_params = build_optical_params(params, imported);
+
     CELER_ASSERT(p.physics.optical);
     inp::OpticalPhysics const& opt = *p.physics.optical;
-
-    OpticalCollector::Input oc_inp;
-    oc_inp.optical_params
-        = build_optical_params(params, imported, opt.surfaces);
 
     // Add photon generating processes
     if (opt.cherenkov)
