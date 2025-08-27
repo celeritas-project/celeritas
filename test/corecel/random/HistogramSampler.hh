@@ -35,6 +35,28 @@ struct SampledHistogram
 //---------------------------------------------------------------------------//
 /*!
  * Sample one or more distributions, returning a histogram.
+ *
+ * \code
+    constexpr size_type num_samples = 1000;
+    HistogramSampler calc_histogram(8, {-1, 1}, num_samples);
+    std::vector<SampledHistogram> actual;
+
+
+    for (real_type inc_e : {0.1, 1.0, 1e2, 1e3, 1e6})
+    {
+        for (real_type eps : {0.001, 0.01, 0.1})
+        {
+            MuAngularDistribution sample_mu{
+                Energy{inc_e}, muon_mass, Energy{eps * inc_e}};
+            actual.push_back(calc_histogram(sample_mu));
+        }
+    }
+    SampledHistogram const expected[] = {
+        {{0, 0, 0, 0, 0.484, 0.604, 0.96, 1.952}, 2},
+        // ...
+    };
+    EXPECT_REF_EQ(expected, actual);
+ * \endcode
  */
 class HistogramSampler
 {

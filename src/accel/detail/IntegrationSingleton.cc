@@ -13,6 +13,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
+#include "geocel/GeantUtils.hh"
 
 #include "../ExceptionConverter.hh"
 #include "../Logger.hh"
@@ -23,6 +24,45 @@ namespace celeritas
 {
 namespace detail
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Verify that all particles in \c SetupOptions::offload_particles user-defined
+ * list are valid and supported by Celeritas when non-empty. Return user or
+ * default list accordingly.
+ */
+SetupOptions::VecG4PD
+validate_and_return_offloaded(SetupOptions::VecG4PD const& user)
+{
+    if (user.empty())
+    {
+        // Celeritas will use default hardcoded list; nothing to do
+        return SharedParams::default_offload_particles();
+    }
+
+    auto const supported = SharedParams::supported_offload_particles();
+    auto find = [&supported](G4ParticleDefinition* user) -> bool {
+        return std::any_of(
+            supported.begin(),
+            supported.end(),
+            [&user](G4ParticleDefinition* p) {
+                return (p->GetPDGEncoding() == user->GetPDGEncoding());
+            });
+    };
+
+    for (auto const& pd : user)
+    {
+        CELER_ASSERT(pd);
+        CELER_VALIDATE(find(pd),
+                       << "Particle " << PrintablePD{pd}
+                       << " is not available in Celeritas");
+    }
+    return user;
+}
+//---------------------------------------------------------------------------//
+};  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Static GLOBAL shared data.
@@ -54,6 +94,7 @@ void IntegrationSingleton::setup_options(SetupOptions&& opts)
             CELER_VALIDATE(
                 !params_,
                 << R"(options cannot be set after Celeritas is constructed)");
+            offloaded_ = validate_and_return_offloaded(opts.offload_particles);
             options_ = std::move(opts);
         },
         ExceptionConverter{"celer.setup"});
