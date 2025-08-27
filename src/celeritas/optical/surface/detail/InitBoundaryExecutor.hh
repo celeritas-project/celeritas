@@ -67,8 +67,8 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
         track.apply_errored();
         return;
     }
-    OptMatId post_volume_material = track.material_record().material_id();
 
+    OptMatId post_volume_material = track.material_record().material_id();
     auto surface_physics = track.surface_physics();
 
     // Find oriented surface after crossing boundary using post-volume
@@ -87,6 +87,7 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
                                           oriented_surface.orientation,
                                           pre_volume_material,
                                           post_volume_material};
+    // TODO: replace with surface stepping action when implemented
     track.sim().post_step_action(surface_physics.post_boundary_action());
 }
 

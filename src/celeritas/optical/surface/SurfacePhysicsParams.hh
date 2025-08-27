@@ -17,6 +17,7 @@
 #include "BoundaryAction.hh"
 #include "SurfaceModel.hh"
 #include "SurfacePhysicsData.hh"
+#include "SurfaceSteppingAction.hh"
 
 namespace celeritas
 {
@@ -75,6 +76,12 @@ class SurfacePhysicsParams final
         return init_boundary_action_->action_id();
     }
 
+    //! Action ID for surface stepping loop action
+    ActionId surface_stepping_action() const
+    {
+        return surface_stepping_action_->action_id();
+    }
+
     //! Action ID for finishing boundary interactions
     ActionId post_boundary_action() const
     {
@@ -91,6 +98,7 @@ class SurfacePhysicsParams final
     // Boundary actions
     std::shared_ptr<InitBoundaryAction> init_boundary_action_;
     std::shared_ptr<PostBoundaryAction> post_boundary_action_;
+    std::shared_ptr<SurfaceSteppingAction> surface_stepping_action_;
 
     SurfaceStepArray<std::vector<SPModel>> models_;
 

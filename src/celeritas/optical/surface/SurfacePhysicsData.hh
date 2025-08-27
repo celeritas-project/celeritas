@@ -71,6 +71,9 @@ struct SurfacePhysicsParamsScalars
     //! Action ID of the init-boundary action
     ActionId init_boundary_action{};
 
+    //! Action ID of the surface stepping loop action
+    ActionId surface_stepping_action{};
+
     //! Action ID of the post-boundary action
     ActionId post_boundary_action{};
 
@@ -78,7 +81,8 @@ struct SurfacePhysicsParamsScalars
     explicit CELER_FUNCTION operator bool() const
     {
         return default_surface && post_boundary_action
-               && init_boundary_action < post_boundary_action;
+               && surface_stepping_action < post_boundary_action
+               && init_boundary_action < surface_stepping_action;
     }
 };
 

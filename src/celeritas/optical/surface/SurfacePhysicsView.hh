@@ -107,6 +107,9 @@ class SurfacePhysicsView
     // Get init-boundary action
     inline CELER_FUNCTION ActionId init_boundary_action() const;
 
+    // Get surface stepping loop action
+    inline CELER_FUNCTION ActionId surface_stepping_action() const;
+
     // Get post-boundary action
     inline CELER_FUNCTION ActionId post_boundary_action() const;
 
@@ -335,6 +338,15 @@ CELER_FUNCTION SurfaceId SurfacePhysicsView::default_surface() const
 CELER_FUNCTION ActionId SurfacePhysicsView::init_boundary_action() const
 {
     return params_.scalars.init_boundary_action;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get surface stepping loop action.
+ */
+CELER_FUNCTION ActionId SurfacePhysicsView::surface_stepping_action() const
+{
+    return params_.scalars.surface_stepping_action;
 }
 
 //---------------------------------------------------------------------------//

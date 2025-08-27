@@ -200,7 +200,8 @@ TEST_F(SurfacePhysicsTest, init_params)
 
     // Check boundary actions
     EXPECT_EQ(ActionId{0}, params->init_boundary_action());
-    EXPECT_EQ(ActionId{1}, params->post_boundary_action());
+    EXPECT_EQ(ActionId{1}, params->surface_stepping_action());
+    EXPECT_EQ(ActionId{2}, params->post_boundary_action());
 
     auto const& data = params->host_ref();
     EXPECT_TRUE(data);

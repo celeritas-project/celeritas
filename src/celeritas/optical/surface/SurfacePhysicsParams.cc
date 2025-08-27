@@ -107,6 +107,13 @@ SurfacePhysicsParams::SurfacePhysicsParams(ActionRegistry* action_reg,
         CELER_ASSERT(init_boundary_action_);
         action_reg->insert(init_boundary_action_);
     }
+    // Surface stepping action
+    {
+        surface_stepping_action_
+            = std::make_shared<SurfaceSteppingAction>(action_reg->next_id());
+        CELER_ASSERT(surface_stepping_action_);
+        action_reg->insert(surface_stepping_action_);
+    }
     // Post boundary action
     {
         post_boundary_action_
