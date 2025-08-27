@@ -246,6 +246,37 @@ TEST_F(ParticleTestHost, neutron)
     EXPECT_TRUE(particle.is_heavy());
 }
 
+TEST_F(ParticleTestHost, speed)
+{
+    // Low energy neutron
+    {
+        ParticleTrackView particle(
+            particle_params->host_ref(), state_ref, TrackSlotId(0));
+        particle = Initializer_t{ParticleId{2}, MevEnergy{1e-3}};
+
+        EXPECT_SOFT_EQ(0.001458986053668544,
+                       value_as<units::LightSpeed>(particle.speed()));
+
+        particle.energy(MevEnergy(1e-5));
+
+        EXPECT_SOFT_EQ(0.00014589872077707921,
+                       value_as<units::LightSpeed>(particle.speed()));
+    }
+    // Low energy electron
+    {
+        ParticleTrackView particle(
+            particle_params->host_ref(), state_ref, TrackSlotId(0));
+        particle = Initializer_t{ParticleId{0}, MevEnergy{1e-5}};
+
+        EXPECT_SOFT_EQ(0.0062560271021109186,
+                       value_as<units::LightSpeed>(particle.speed()));
+
+        particle.energy(MevEnergy(1e-18));
+
+        EXPECT_EQ(value_as<units::LightSpeed>(particle.speed()), 0);
+    }
+}
+
 //---------------------------------------------------------------------------//
 // DEVICE TESTS
 //---------------------------------------------------------------------------//
