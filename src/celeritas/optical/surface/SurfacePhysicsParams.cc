@@ -42,15 +42,8 @@ class FakeModel : public SurfaceModel
         return result;
     }
 
-    void step(CoreParams const&, CoreStateHost&) const final
-    {
-        CELER_NOT_IMPLEMENTED("Fake surface model");
-    }
-
-    void step(CoreParams const&, CoreStateDevice&) const final
-    {
-        CELER_NOT_IMPLEMENTED("Fake surface model");
-    }
+    void step(CoreParams const&, CoreStateHost&) const final {}
+    void step(CoreParams const&, CoreStateDevice&) const final {}
 
   private:
     std::map<inp::SurfaceLayer, T> layers_;
@@ -127,6 +120,8 @@ SurfacePhysicsParams::SurfacePhysicsParams(ActionRegistry* action_reg,
 
     data.scalars.init_boundary_action = init_boundary_action_->action_id();
     data.scalars.post_boundary_action = post_boundary_action_->action_id();
+    data.scalars.surface_stepping_action
+        = surface_stepping_action_->action_id();
 
     this->build_surfaces(input.materials, data);
     models_ = this->build_models(input, data);
