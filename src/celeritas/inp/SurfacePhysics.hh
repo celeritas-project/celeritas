@@ -221,6 +221,9 @@ struct InteractionModels
  *
  * Maps all optical surfaces with interaction models and surface
  * parameters.
+ *
+ * Interstitial materials are the interstitial materials per geometric surface.
+ * The last entry is used as the default surface.
  */
 struct SurfacePhysics
 {

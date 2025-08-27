@@ -19,21 +19,16 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
+ * Optical surface physics model.
  *
- * Optional detailed class description, and possibly example usage:
- * \code
-    SurfaceModel ...;
-   \endcode
+ * Base class for implementing an optical surface physics model for a given
+ * physics sub-step. Adds \c step functions to the core \c phys::SurfaceModel.
  */
 class SurfaceModel : public ::celeritas::SurfaceModel
 {
   public:
     //!@{
     //! \name Type aliases
-    using SPModel = std::shared_ptr<SurfaceModel>;
-    using ModelBuilder = std::function<SPModel(SurfaceModelId)>;
-
     using CoreStateHost = CoreState<MemSpace::host>;
     using CoreStateDevice = CoreState<MemSpace::device>;
     //!@}
@@ -41,7 +36,10 @@ class SurfaceModel : public ::celeritas::SurfaceModel
   public:
     using ::celeritas::SurfaceModel::SurfaceModel;
 
+    //! Execute the model with host data
     virtual void step(CoreParams const&, CoreStateHost&) const = 0;
+
+    //! Execute the model with device data
     virtual void step(CoreParams const&, CoreStateDevice&) const = 0;
 };
 

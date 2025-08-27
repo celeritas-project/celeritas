@@ -15,7 +15,12 @@ namespace celeritas
 {
 namespace optical
 {
-
+//---------------------------------------------------------------------------//
+/*!
+ * A fake model used to mock actual surface physics models.
+ *
+ * TODO: Remove and replace with actual built-in surface models.
+ */
 template<class T>
 class FakeModel : public SurfaceModel
 {
@@ -37,11 +42,51 @@ class FakeModel : public SurfaceModel
         return result;
     }
 
-    void step(CoreParams const&, CoreStateHost&) const final {}
-    void step(CoreParams const&, CoreStateDevice&) const final {}
+    void step(CoreParams const&, CoreStateHost&) const final
+    {
+        CELER_NOT_IMPLEMENTED("Fake surface model");
+    }
+
+    void step(CoreParams const&, CoreStateDevice&) const final
+    {
+        CELER_NOT_IMPLEMENTED("Fake surface model");
+    }
 
   private:
     std::map<inp::SurfaceLayer, T> layers_;
+};
+
+/*!
+ * Helper to build fake models.
+ *
+ * Doesn't insert empty models and keeps track of number of physics surfaces
+ * for validation purposes.
+ */
+class FakeModelBuilder
+{
+  public:
+    FakeModelBuilder(std::vector<std::shared_ptr<SurfaceModel>>& models)
+        : models_(models), num_surf_(0)
+    {
+    }
+
+    template<class T>
+    void operator()(std::string_view label,
+                    std::map<inp::SurfaceLayer, T> const& layer_map)
+    {
+        if (!layer_map.empty())
+        {
+            models_.push_back(std::make_shared<FakeModel<T>>(
+                SurfaceModelId(models_.size()), label, layer_map));
+            num_surf_ += layer_map.size();
+        }
+    }
+
+    size_type num_surfaces() const { return num_surf_; }
+
+  private:
+    std::vector<std::shared_ptr<SurfaceModel>>& models_;
+    size_type num_surf_;
 };
 
 //---------------------------------------------------------------------------//
@@ -80,143 +125,9 @@ SurfacePhysicsParams::SurfacePhysicsParams(ActionRegistry* action_reg,
     models_ = this->build_models(input, data);
 
     // Finalize data
-    CELER_ENSURE(data.scalars);
-    CELER_ENSURE(!data.surfaces.empty());
-    for (auto const& model_map : data.model_maps)
-    {
-        CELER_ENSURE(model_map);
-    }
     CELER_ENSURE(data);
 
     data_ = CollectionMirror<SurfacePhysicsParamsData>{std::move(data)};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Build sub-step surface physics models.
- */
-auto SurfacePhysicsParams::build_models(
-    inp::SurfacePhysics const& input,
-    HostVal<SurfacePhysicsParamsData>& data) const
-    -> SurfaceStepArray<std::vector<SPModel>>
-{
-    SurfaceStepArray<std::vector<SPModel>> step_models;
-
-    SurfaceStepArray<size_type> num_surfaces{0, 0, 0};
-    {
-        auto& roughness = step_models[SurfacePhysicsStep::roughness];
-        auto& num_rough_surf = num_surfaces[SurfacePhysicsStep::roughness];
-
-        if (!input.roughness.polished.empty())
-        {
-            roughness.push_back(std::make_shared<FakeModel<inp::NoRoughness>>(
-                SurfaceModelId(roughness.size()),
-                "polished",
-                input.roughness.polished));
-
-            num_rough_surf += input.roughness.polished.size();
-        }
-
-        if (!input.roughness.smear.empty())
-        {
-            roughness.push_back(
-                std::make_shared<FakeModel<inp::SmearRoughness>>(
-                    SurfaceModelId(roughness.size()),
-                    "smear",
-                    input.roughness.smear));
-
-            num_rough_surf += input.roughness.smear.size();
-        }
-
-        if (!input.roughness.gaussian.empty())
-        {
-            roughness.push_back(
-                std::make_shared<FakeModel<inp::GaussianRoughness>>(
-                    SurfaceModelId(roughness.size()),
-                    "gaussian",
-                    input.roughness.gaussian));
-
-            num_rough_surf += input.roughness.gaussian.size();
-        }
-    }
-    {
-        auto& reflectivity = step_models[SurfacePhysicsStep::reflectivity];
-        auto& num_refl_surf = num_surfaces[SurfacePhysicsStep::reflectivity];
-
-        if (!input.reflectivity.grid.empty())
-        {
-            reflectivity.push_back(
-                std::make_shared<FakeModel<inp::GridReflection>>(
-                    SurfaceModelId(reflectivity.size()),
-                    "grid",
-                    input.reflectivity.grid));
-
-            num_refl_surf += input.reflectivity.grid.size();
-        }
-
-        if (!input.reflectivity.fresnel.empty())
-        {
-            reflectivity.push_back(
-                std::make_shared<FakeModel<inp::FresnelReflection>>(
-                    SurfaceModelId(reflectivity.size()),
-                    "fresnel",
-                    input.reflectivity.fresnel));
-
-            num_refl_surf += input.reflectivity.fresnel.size();
-        }
-    }
-    {
-        auto& interaction = step_models[SurfacePhysicsStep::interaction];
-        auto& num_int_surf = num_surfaces[SurfacePhysicsStep::interaction];
-
-        if (!input.interaction.dielectric_dielectric.empty())
-        {
-            interaction.push_back(
-                std::make_shared<FakeModel<inp::ReflectionForm>>(
-                    SurfaceModelId(interaction.size()),
-                    "dielectric-dielectric",
-                    input.interaction.dielectric_dielectric));
-
-            num_int_surf += input.interaction.dielectric_dielectric.size();
-        }
-
-        if (!input.interaction.dielectric_metal.empty())
-        {
-            interaction.push_back(
-                std::make_shared<FakeModel<inp::ReflectionForm>>(
-                    SurfaceModelId(interaction.size()),
-                    "dielectric-metal",
-                    input.interaction.dielectric_metal));
-
-            num_int_surf += input.interaction.dielectric_metal.size();
-        }
-    }
-
-    CELER_VALIDATE(
-        num_surfaces[SurfacePhysicsStep::roughness]
-                == num_surfaces[SurfacePhysicsStep::reflectivity]
-            && num_surfaces[SurfacePhysicsStep::roughness]
-                   == num_surfaces[SurfacePhysicsStep::interaction],
-        << " same number of surfaces required for each surface physics step ("
-        << num_surfaces[SurfacePhysicsStep::roughness] << " roughness, "
-        << num_surfaces[SurfacePhysicsStep::reflectivity] << " reflectivity, "
-        << num_surfaces[SurfacePhysicsStep::interaction] << " interaction)");
-
-    // Build surface physics maps
-    for (auto step : range(SurfacePhysicsStep::size_))
-    {
-        SurfacePhysicsMapBuilder build_step(num_surfaces[step],
-                                            data.model_maps[step]);
-
-        for (auto const& model : step_models[step])
-        {
-            build_step(*model);
-        }
-
-        CELER_ENSURE(data.model_maps[step]);
-    }
-
-    return step_models;
 }
 
 //---------------------------------------------------------------------------//
@@ -233,33 +144,78 @@ void SurfacePhysicsParams::build_surfaces(
     auto build_material = make_builder(&data.subsurface_materials);
 
     PhysSurfaceId next_phys_surface{0};
-    for (auto surface_id : range(interstitial_materials.size() - 1))
+    for (auto const& materials : interstitial_materials)
     {
-        auto const& materials = interstitial_materials[surface_id];
+        // Number of physics surfaces is equal to number of interstitial
+        // materials plus one
         PhysSurfaceId phys_surface_start = next_phys_surface;
         next_phys_surface
             = PhysSurfaceId(phys_surface_start.get() + materials.size() + 1);
 
-        SurfaceRecord record{
-            ItemMap<SubsurfaceMaterialId, OpaqueId<OptMatId>>{
-                build_material.insert_back(materials.begin(), materials.end())},
-            ItemMap<SubsurfaceInterfaceId, PhysSurfaceId>{
-                range(phys_surface_start, next_phys_surface)}};
-
-        build_surface.push_back(record);
+        build_surface.push_back(SurfaceRecord{
+            build_material.insert_back(materials.begin(), materials.end()),
+            range(phys_surface_start, next_phys_surface)});
     }
 
-    // Construct default surface
+    // Default surface is last geometric surface ID
     data.scalars.default_surface = SurfaceId(interstitial_materials.size() - 1);
-    auto const& default_materials = interstitial_materials.back();
+}
 
-    build_surface.push_back(
-        SurfaceRecord{ItemMap<SubsurfaceMaterialId, OpaqueId<OptMatId>>{
-                          build_material.insert_back(default_materials.begin(),
-                                                     default_materials.end())},
-                      ItemMap<SubsurfaceInterfaceId, PhysSurfaceId>{range(
-                          next_phys_surface,
-                          next_phys_surface + default_materials.size() + 1)}});
+//---------------------------------------------------------------------------//
+/*!
+ * Build sub-step surface physics models.
+ */
+auto SurfacePhysicsParams::build_models(
+    inp::SurfacePhysics const& input,
+    HostVal<SurfacePhysicsParamsData>& data) const
+    -> SurfaceStepArray<std::vector<SPModel>>
+{
+    SurfaceStepArray<std::vector<SPModel>> step_models;
+
+    for (auto step : range(SurfacePhysicsStep::size_))
+    {
+        // Build fake models
+        FakeModelBuilder build_model{step_models[step]};
+        switch (step)
+        {
+            case SurfacePhysicsStep::roughness:
+                build_model("polished", input.roughness.polished);
+                build_model("smear", input.roughness.smear);
+                build_model("gaussian", input.roughness.gaussian);
+                break;
+
+            case SurfacePhysicsStep::reflectivity:
+                build_model("grid", input.reflectivity.grid);
+                build_model("fresnel", input.reflectivity.fresnel);
+                break;
+            case SurfacePhysicsStep::interaction:
+                build_model("dielectric-dielectric",
+                            input.interaction.dielectric_dielectric);
+                build_model("dielectric-metal",
+                            input.interaction.dielectric_metal);
+                break;
+            default:
+                CELER_ASSERT_UNREACHABLE();
+        }
+
+        CELER_VALIDATE(build_model.num_surfaces() == input.num_phys_surfaces(),
+                       << " same number of physics surfaces required for each "
+                          "surface physics step ("
+                       << input.num_phys_surfaces() << " expected surfaces, "
+                       << build_model.num_surfaces() << " surfaces from "
+                       << to_cstring(step) << " step)");
+
+        // Build surface physics maps
+        SurfacePhysicsMapBuilder build_step(input.num_phys_surfaces(),
+                                            data.model_maps[step]);
+        for (auto const& model : step_models[step])
+        {
+            build_step(*model);
+        }
+        CELER_ENSURE(data.model_maps[step]);
+    }
+
+    return step_models;
 }
 
 //---------------------------------------------------------------------------//

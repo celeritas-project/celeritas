@@ -17,15 +17,38 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
+// TYPE ALIASES
+//---------------------------------------------------------------------------//
 
 using SurfaceTrackPosition = OpaqueId<struct SurfaceTrackPosition_>;
 using SubsurfaceMaterialId = OpaqueId<struct SubsurfaceMaterial_>;
 using SubsurfaceInterfaceId = OpaqueId<struct SubsurfaceInterface_>;
 
+//---------------------------------------------------------------------------//
+/*!
+ * Storage for physics data of a geometric surface.
+ *
+ * The \c subsurface_materials indexes into the \c
+ * SurfacePhysicsParamsData::subsurface_materials and represents a list of
+ * interstitial optical materials that make up a geometric surface. The \c
+ * subsurface_interfaces represents the physics surfaces that separate the
+ * optical materials that make up a geometric surface.
+ *
+ * By convention, \c subsurface_interfaces[0] separates the pre-volume and the
+ * first subsurface material, while the last interface separates the last
+ * subsurface material and the post-volume.
+ */
 struct SurfaceRecord
 {
     ItemMap<SubsurfaceMaterialId, OpaqueId<OptMatId>> subsurface_materials;
     ItemMap<SubsurfaceInterfaceId, PhysSurfaceId> subsurface_interfaces;
+
+    //! Construct record directly from ranges
+    SurfaceRecord(Range<OpaqueId<OptMatId>> materials,
+                  Range<PhysSurfaceId> interfaces)
+        : subsurface_materials(materials), subsurface_interfaces(interfaces)
+    {
+    }
 
     //! Whether data is assigned
     explicit CELER_FUNCTION operator bool() const
@@ -38,11 +61,17 @@ struct SurfaceRecord
 
 //---------------------------------------------------------------------------//
 /*!
+ * Scalar quantities used by optical surface physics.
  */
 struct SurfacePhysicsParamsScalars
 {
+    //! ID of the default surface
     SurfaceId default_surface{};
+
+    //! Action ID of the init-boundary action
     ActionId init_boundary_action{};
+
+    //! Action ID of the post-boundary action
     ActionId post_boundary_action{};
 
     //! Whether data is assigned and valid
@@ -74,7 +103,10 @@ struct SurfacePhysicsParamsData
     using Items = Collection<T, W, M>;
     //!@}
 
+    //! Non-templated data
     SurfacePhysicsParamsScalars scalars;
+
+    //! Optical surface model data
 
     GeoSurfaceItems<SurfaceRecord> surfaces;
     SurfaceStepArray<ModelMap> model_maps;

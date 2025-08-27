@@ -31,12 +31,20 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
+ * Manage properties for optical surface physics.
  *
- * Optional detailed class description, and possibly example usage:
- * \code
-    SurfacePhysicsParams ...;
-   \endcode
+ * Surface physics during boundary crossing is split into three phases:
+ *
+ *  1. Initialize boundary crossing
+ *  2. Surface physics stepping
+ *  3. Post boundary crossing
+ *
+ * When a surface is crossed in the geometry traversal, the \c
+ * InitBoundaryAction is called which initializes the surface physics state for
+ * the track. The standard stepping loop is replaced with the surface physics
+ * stepping action which calls each surface physics model in appropriate order.
+ * When the track is leaving the surface, the \c PostBoundaryAction is called
+ * to clean up the state and update the geometry.
  */
 class SurfacePhysicsParams final
     : public ParamsDataInterface<SurfacePhysicsParamsData>
@@ -48,7 +56,6 @@ class SurfacePhysicsParams final
     using SurfaceStepArray = EnumArray<SurfacePhysicsStep, T>;
 
     using SPModel = std::shared_ptr<SurfaceModel>;
-    using VecModelBuilders = std::vector<SurfaceModel::ModelBuilder>;
     //!@}
 
   public:
@@ -90,14 +97,14 @@ class SurfacePhysicsParams final
     // Host/device storage
     CollectionMirror<SurfacePhysicsParamsData> data_;
 
+    // Build surface data
+    void build_surfaces(std::vector<std::vector<OptMatId>> const&,
+                        HostVal<SurfacePhysicsParamsData>&) const;
+
     // Build sub-step models
     SurfaceStepArray<std::vector<SPModel>>
     build_models(inp::SurfacePhysics const&,
                  HostVal<SurfacePhysicsParamsData>&) const;
-
-    // Build surface data
-    void build_surfaces(std::vector<std::vector<OptMatId>> const&,
-                        HostVal<SurfacePhysicsParamsData>&) const;
 };
 
 //---------------------------------------------------------------------------//

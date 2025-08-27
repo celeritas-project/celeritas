@@ -184,10 +184,10 @@ auto ImportedDataTestBase::build_optical_surface_physics()
 {
     inp::SurfacePhysics input;
 
+    // TODO: better input construction when we have actual data to import
     for (auto s : range(PhysSurfaceId{this->surface()->num_surfaces() + 1}))
     {
-        input.materials.push_back(
-            std::vector<OptMatId>{OptMatId{}, OptMatId{}});
+        input.materials.push_back(std::vector<OptMatId>{});
         input.roughness.polished.emplace(s, inp::NoRoughness{});
         input.reflectivity.fresnel.emplace(s, inp::FresnelReflection{});
         input.interaction.dielectric_dielectric.emplace(

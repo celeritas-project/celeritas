@@ -20,14 +20,6 @@ using ScintParticleId = OpaqueId<struct ScintParticle_>;
 //! Opaque index to a scintillation spectrum
 using ParScintSpectrumId = OpaqueId<struct ParScintSpectrum>;
 
-namespace optical
-{
-
-//! Opaque index to a surface physics model
-// using SurfaceModelId = OpaqueId<class SurfaceModel>;
-
-}  // namespace optical
-
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//
@@ -42,6 +34,7 @@ enum class GeneratorType
 namespace optical
 {
 
+//! Sub-steps of surface physics boundary crossing
 enum class SurfacePhysicsStep
 {
     roughness,
@@ -50,6 +43,7 @@ enum class SurfacePhysicsStep
     size_
 };
 
+//! Traversal direction of a sub-subsurface
 enum class SubsurfaceDirection : bool
 {
     reverse = false,
@@ -62,6 +56,7 @@ enum class SubsurfaceDirection : bool
 
 char const* to_cstring(SurfacePhysicsStep);
 
+//! Convert sub-surface direction to a sign (+1/-1 for forward/reverse resp.)
 CELER_FORCEINLINE_FUNCTION int to_signed_offset(SubsurfaceDirection d)
 {
     return 2 * static_cast<int>(d) - 1;
