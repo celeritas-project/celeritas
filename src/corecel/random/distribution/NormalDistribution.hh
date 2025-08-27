@@ -23,9 +23,15 @@ namespace celeritas
 /*!
  * Sample from a normal distribution.
  *
- * This uses the Box-Muller transform to generate pairs of independent,
- * normally distributed random numbers, returning them one at a time. Two
- * random numbers uniformly distributed on [0, 1] are mapped to two
+ * The normal (Gaussian) distribution is \f[
+  * \f[
+  p(x) = \exp\!\left( -\frac{(x - \mu)^{2}}{2\sigma^{2}} \right)
+ * \f]
+ * with mean \f$\mu\f$ and standard deviation \f$\sigma\f$.
+ *
+ * This implementation uses the Box-Muller transform to generate pairs of
+ * independent, normally distributed random numbers, and returns them one at a
+ * time. Two random numbers uniformly distributed on [0, 1] are mapped to two
  * independent, standard, normally distributed samples using the relations:
  * \f[
   x_1 = \sqrt{-2 \ln \xi_1} \cos(2 \pi \xi_2)
