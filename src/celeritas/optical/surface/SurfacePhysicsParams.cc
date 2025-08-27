@@ -73,6 +73,9 @@ SurfacePhysicsParams::SurfacePhysicsParams(ActionRegistry* action_reg,
     // Construct data
     HostVal<SurfacePhysicsParamsData> data;
 
+    data.scalars.init_boundary_action = init_boundary_action_->action_id();
+    data.scalars.post_boundary_action = post_boundary_action_->action_id();
+
     this->build_surfaces(input.materials, data);
     models_ = this->build_models(input, data);
 

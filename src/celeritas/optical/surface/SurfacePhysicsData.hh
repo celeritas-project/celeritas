@@ -42,11 +42,14 @@ struct SurfaceRecord
 struct SurfacePhysicsParamsScalars
 {
     SurfaceId default_surface{};
+    ActionId init_boundary_action{};
+    ActionId post_boundary_action{};
 
     //! Whether data is assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return static_cast<bool>(default_surface);
+        return default_surface && post_boundary_action
+               && init_boundary_action < post_boundary_action;
     }
 };
 

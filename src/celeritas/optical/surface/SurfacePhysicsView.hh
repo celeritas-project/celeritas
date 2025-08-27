@@ -86,6 +86,12 @@ class SurfacePhysicsView
     // Default surface physics
     inline CELER_FUNCTION SurfaceId default_surface() const;
 
+    // Get init-boundary action
+    inline CELER_FUNCTION ActionId init_boundary_action() const;
+
+    // Get post-boundary action
+    inline CELER_FUNCTION ActionId post_boundary_action() const;
+
   private:
     SurfaceParamsRef const& params_;
     SurfaceStateRef const& states_;
@@ -330,6 +336,24 @@ CELER_FUNCTION U SurfacePhysicsView::to_record_index(
     CELER_ASSERT(index < map.size());
 
     return map[index];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get init-boundary action.
+ */
+CELER_FUNCTION ActionId SurfacePhysicsView::init_boundary_action() const
+{
+    return params_.scalars.init_boundary_action;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get post-boundary action.
+ */
+CELER_FUNCTION ActionId SurfacePhysicsView::post_boundary_action() const
+{
+    return params_.scalars.post_boundary_action;
 }
 
 //---------------------------------------------------------------------------//
