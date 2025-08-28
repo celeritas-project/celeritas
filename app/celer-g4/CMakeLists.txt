@@ -14,7 +14,6 @@ if(CELERITAS_USE_Geant4)
     GlobalSetup.cc
     HepMC3PrimaryGeneratorAction.cc
     LogHandlers.cc
-    PGPrimaryGeneratorAction.cc
     RunAction.cc
     RunInput.cc
     RunInputIO.json.cc

@@ -36,12 +36,23 @@ Classes usable by Geant4
 These utilities are based on Celeritas data structures and capabilities but are
 written to be usable both by the ``celer-g4`` app and potential other users.
 
-.. doxygenclass:: celeritas::GeantSimpleCalo
-
-.. doxygenclass:: celeritas::HepMC3PrimaryGenerator
+Fields
+^^^^^^
 
 .. doxygenclass:: celeritas::RZMapMagneticField
 
 .. doxygenclass:: celeritas::CylMapMagneticField
 
 .. doxygenfunction:: celeritas::MakeCylMapFieldInput
+
+Primary generators
+^^^^^^^^^^^^^^^^^^
+
+.. doxygenclass:: celeritas::HepMC3PrimaryGenerator
+
+.. doxygenclass:: celeritas::PGPrimaryGeneratorAction
+
+Sensitive detectors
+^^^^^^^^^^^^^^^^^^^
+
+.. doxygenclass:: celeritas::GeantSimpleCalo
