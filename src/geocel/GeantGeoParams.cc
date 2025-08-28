@@ -187,8 +187,6 @@ void append_border_surfaces(GeantGeoParams const& geo,
                                 "will be ignored!";
             continue;
         }
-        // TODO: if these are replica volumes, warn the user? or loop over all
-        // replica combinations???
         auto before = geo.geant_to_id(*key.first);
         CELER_ASSERT(before);
         auto after = geo.geant_to_id(*key.second);
@@ -258,7 +256,7 @@ std::vector<inp::Volume> make_inp_volumes(GeantGeoParams const& geo)
         auto vol_id = geo.volume_id(iv_id);
         auto& g4lv = *geo.id_to_geant(vol_id);
 
-        // TODO: do we want to strip pointers?
+        // Set the label and material
         auto& vol_inp = result[vol_id.get()];
         vol_inp.label = label;
         vol_inp.material = [&geo, mat = g4lv.GetMaterial()]() -> GeoMatId {
@@ -280,6 +278,9 @@ std::vector<inp::Volume> make_inp_volumes(GeantGeoParams const& geo)
             {
                 if (g4pv->IsReplicated())
                 {
+                    // Note that the copy number is thread-local and
+                    // "ephemeral": there should be no side effects.
+                    // See also GeantVolumeInstanceMapper::update_replica .
                     g4pv->SetCopyNo(j);
                 }
                 auto vol_inst_id = geo.geant_to_id(*g4pv);
@@ -353,7 +354,7 @@ std::vector<inp::Surface> make_inp_surfaces(GeantGeoParams const& geo)
         G4LogicalSurface const* surf_base = geo.id_to_geant(surf_id);
         CELER_ASSERT(surf_base);
 
-        // TODO: deduplicate labels if needed
+        // TODO: deduplicate labels
         result[surf_id.get()].label = surf_base->GetName();
 
         // Construct surface
@@ -621,7 +622,7 @@ G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId id) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the geometry material ID for a logical volume (may be null).
+ * Get the geometry material ID for a logical volume.
  */
 GeoMatId GeantGeoParams::geant_to_id(G4Material const& g4mat) const
 {

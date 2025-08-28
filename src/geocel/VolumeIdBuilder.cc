@@ -21,8 +21,8 @@ namespace celeritas
  * Construct from global geometry.
  */
 VolumeIdBuilder::VolumeIdBuilder()
-    : volumes_{global_volumes().lock().get()}
-    , geant_geo_{global_geant_geo().lock().get()}
+    : VolumeIdBuilder{global_volumes().lock().get(),
+                      global_geant_geo().lock().get()}
 {
 }
 

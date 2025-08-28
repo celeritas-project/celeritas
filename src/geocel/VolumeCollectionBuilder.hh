@@ -38,17 +38,24 @@ build_volume_collection(G const& geo, F&& fill_value)
     static_assert(std::is_convertible_v<std::invoke_result_t<F, VolumeId>, T>,
                   "Incorrect return type for F");
 
+    // Helper lambda to get the appropriate value
+    auto fill_or_default = [&](ImplVolumeId iv_id) -> T {
+        if (auto vol_id = geo.volume_id(iv_id))
+        {
+            return fill_value(vol_id);
+        }
+        return {};
+    };
+
+    // Create a collection sized for each implementation volume
     Collection<T, Ownership::value, MemSpace::host, ImplVolumeId> result;
     auto num_impl_volumes = geo.impl_volumes().size();
     resize(&result, num_impl_volumes);
+
+    // Fill values
     for (auto iv_id : range(ImplVolumeId{num_impl_volumes}))
     {
-        T value{};
-        if (auto vol_id = geo.volume_id(iv_id))
-        {
-            value = fill_value(vol_id);
-        }
-        result[iv_id] = value;
+        result[iv_id] = fill_or_default(iv_id);
     }
     return result;
 }

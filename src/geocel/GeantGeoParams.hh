@@ -131,7 +131,7 @@ class GeantGeoParams final : public GeoParamsInterface,
 
     //// G4 ACCESSORS ////
 
-    // Get the geometry material ID for a logical volume (may be null)
+    // Get the geometry material ID for a logical volume
     GeoMatId geant_to_id(G4Material const& mat) const;
 
     // Get the canonical volume ID corresponding to a Geant4 logical volume

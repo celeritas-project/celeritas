@@ -104,9 +104,10 @@ class VecgeomVolumeAccessor final
         return result;
     }
 
-    //! Outgoing instance nodes from a volume
+    //! Outgoing edges (placements) from a volume
     ContainerVolInstRef children(VolumeRef parent) final
     {
+        CELER_EXPECT(parent);
         auto&& daughters = parent->GetDaughters();
         return ContainerVolInstRef(daughters.begin(), daughters.end());
     }
@@ -144,7 +145,7 @@ std::vector<Label> make_logical_vol_labels(vecgeom::VPlacedVolume const& world)
 
     VolumeVisitor visit_vol{VecgeomVolumeAccessor{}};
     visit_vol(make_visit_volume_once<vecgeom::LogicalVolume const*>(
-                  [&](VolT const* lv) {
+                  [&names](VolT const* lv) {
                       CELER_EXPECT(lv);
                       std::string name{lv->GetLabel()};
                       if (starts_with(name, "[TEMP]"))

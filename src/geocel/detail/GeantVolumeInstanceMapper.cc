@@ -67,7 +67,7 @@ GeantVolumeInstanceMapper::GeantVolumeInstanceMapper(G4PV const& world)
     // Visit (depth-first) volume instances inside the world
     VolumeVisitor visit_vol{GeantVolumeAccessor{}};
     visit_vol(
-        [&](G4VPhysicalVolume const* pv, int) {
+        [this, &invalid_volumes](G4VPhysicalVolume const* pv, int) {
             CELER_EXPECT(pv);
             auto [iter, inserted] = base_vi_.insert({pv, {}});
             if (!inserted)
