@@ -16,7 +16,6 @@
 #include <G4Gamma.hh>
 #include <G4GammaConversion.hh>
 #include <G4GammaGeneralProcess.hh>
-#include <G4GoudsmitSaundersonMscModel.hh>
 #include <G4LivermorePhotoElectricModel.hh>
 #include <G4LossTableManager.hh>
 #include <G4MollerBhabhaModel.hh>

@@ -52,19 +52,33 @@ Primary generators
 
 .. doxygenclass:: celeritas::PGPrimaryGeneratorAction
 
-Physics lists
-^^^^^^^^^^^^^
+.. _api_geant4_physics_options:
 
-Two physics lists (one using Geant4 hadronics, the other using pure Celeritas)
-allow setup of
+Physics constructors
+^^^^^^^^^^^^^^^^^^^^
+
+A Geant4 physics constructor :cpp:class:`celeritas::EmStandardPhysics` allows
+very fine-grained selection of the EM physics processes supported by Celeritas.
+The input options incorporate process and model selection as well as default EM
+parameters to send to Geant4.
 
 .. doxygenstruct:: celeritas::GeantPhysicsOptions
    :members:
    :no-link:
 
+.. doxygenclass:: celeritas::EmStandardPhysics
+
+Physics lists
+^^^^^^^^^^^^^
+
+Two physics lists (one using Geant4 hadronics, the other using pure Celeritas)
+allow setup of EM physics using only processes supported by Celeritas.
+
 .. doxygenclass:: celeritas::EmPhysicsList
 
 .. doxygenclass:: celeritas::FtfpBertPhysicsList
+
+
 
 Sensitive detectors
 ^^^^^^^^^^^^^^^^^^^

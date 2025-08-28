@@ -36,7 +36,6 @@ namespace celeritas
  * | Bremsstrahlung (high E)      | G4eBremsstrahlungRelModel    |
  * | Coulomb scattering           | G4eCoulombScatteringModel    |
  * | Multiple scattering (low E)  | G4UrbanMscModel              |
- * | Multiple scattering (low E)  | G4GoudsmitSaundersonMscModel |
  * | Multiple scattering (high E) | G4WentzelVIModel             |
  *
  * Gamma processes:
