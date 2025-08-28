@@ -154,7 +154,7 @@ SurfacePhysicsParams::SurfacePhysicsParams(ActionRegistry* action_reg,
 
 //---------------------------------------------------------------------------//
 /*!
- * Build surface data form inputs.
+ * Build surface data from inputs.
  */
 void SurfacePhysicsParams::build_surfaces(
     std::vector<std::vector<OptMatId>> const& interstitial_materials,
