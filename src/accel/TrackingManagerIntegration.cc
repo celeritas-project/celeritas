@@ -52,7 +52,7 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
     auto log_tm_failure = [&all_attached_correctly](G4PD const* p) {
         all_attached_correctly = false;
         auto msg = CELER_LOG(error);
-        msg << "Particle " << PrintablePD{p} << ": tracking manager";
+        msg << "Particle " << PrintablePD{p} << ": tracking manager ";
         return msg;
     };
 
@@ -109,11 +109,13 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
                            << join(not_offloaded.begin(),
                                    not_offloaded.end(),
                                    ", ",
-                                   printable_pd);
+                                   printable_pd)
+                           << " (perhaps SetupOptions::offload_particles has "
+                              "not been updated?)";
     }
     CELER_VALIDATE(missing.empty(),
                    << "not all particles from TrackingManagerConstructor are "
-                      "active in Celeritas: missing"
+                      "active in Celeritas: missing "
                    << join(missing.begin(), missing.end(), ", ", printable_pd));
     CELER_VALIDATE(all_attached_correctly,
                    << "tracking manager(s) are not attached correctly "
@@ -153,13 +155,18 @@ void TrackingManagerIntegration::BeginOfRunAction(G4Run const*)
 
     if (enable_offload)
     {
+        // Set particle offloading based on user options
+        auto const& user_offload = singleton.setup_options().offload_particles;
+        auto const& offload_particles
+            = user_offload.empty() ? SharedParams::default_offload_particles()
+                                   : user_offload;
+
         // Set tracking manager on workers when Celeritas is not fully disabled
         CELER_LOG(debug) << "Verifying tracking manager";
-
         CELER_TRY_HANDLE(
             verify_tracking_managers(
-                make_span(TrackingManagerConstructor::OffloadParticles()),
                 make_span(singleton.shared_params().OffloadParticles()),
+                make_span(offload_particles),
                 singleton.shared_params(),
                 singleton.local_transporter()),
             ExceptionConverter{"celer.init.verify"});

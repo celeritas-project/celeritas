@@ -133,3 +133,10 @@ decreasing precedence by:
 
 .. todo:: Once surface models are implemented, move the
    precedence above into SurfacePhysics documentation.
+
+Surface normals are defined by the track position in the geometry. Corrections
+may be applied to the geometric surface normal by sampling from a "microfacet
+distribution" to account for the roughness of the surface.
+
+.. doxygenclass:: celeritas::optical::SmearRoughnessSampler
+.. doxygenclass:: celeritas::optical::GaussianRoughnessSampler

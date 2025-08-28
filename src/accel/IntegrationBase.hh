@@ -37,7 +37,7 @@ class CoreParams;
 class IntegrationBase
 {
   public:
-    // Access whether celeritas is set up, enabled, or uninitialized
+    // Access Celeritas offload mode type
     OffloadMode GetMode() const;
 
     // Set options before starting the run

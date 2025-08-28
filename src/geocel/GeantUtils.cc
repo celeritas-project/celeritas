@@ -102,7 +102,7 @@ std::ostream& operator<<(std::ostream& os, PrintablePD const& ppd)
     {
         os << '"' << ppd.pd->GetParticleName() << "\"@"
            << static_cast<void const*>(ppd.pd)
-           << " (PDG=" << ppd.pd->GetParticleDefinitionID() << ')';
+           << " (PDG = " << ppd.pd->GetPDGEncoding() << ')';
     }
     else
     {
