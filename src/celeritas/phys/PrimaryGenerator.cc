@@ -61,10 +61,10 @@ auto make_direction_sampler(inp::AngleDistribution const& i)
 {
     CELER_ASSUME(!i.valueless_by_exception());
     return std::visit(return_as<PrimaryGenerator::DirectionSampler>(Overload{
-                          [](inp::IsotropicAngle const&) {
+                          [](inp::Isotropic const&) {
                               return IsotropicDistribution<real_type>{};
                           },
-                          [](inp::MonodirectionalAngle const& ma) {
+                          [](inp::Monodirectional const& ma) {
                               CELER_VALIDATE(is_soft_unit_vector(ma.dir),
                                              << "primary generator angle is "
                                                 "not a unit vector");

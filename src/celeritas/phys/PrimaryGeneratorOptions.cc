@@ -96,9 +96,9 @@ inp::AngleDistribution inp_from_direction(DistributionOptions const& options)
     switch (options.distribution)
     {
         case DistributionSelection::delta:
-            return inp::MonodirectionalAngle{Real3{p[0], p[1], p[2]}};
+            return inp::Monodirectional{Real3{p[0], p[1], p[2]}};
         case DistributionSelection::isotropic:
-            return inp::IsotropicAngle{};
+            return inp::Isotropic{};
         default:
             CELER_VALIDATE(false,
                            << "invalid distribution type '"

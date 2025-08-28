@@ -22,33 +22,36 @@ namespace inp
 //! Generate at a single point
 struct PointShape
 {
-    Real3 pos{0, 0, 0};
+    Real3 pos{0, 0, 0};  // [length]
 };
 
 //! Sample uniformly in a box
 struct UniformBoxShape
 {
-    Real3 lower{0, 0, 0};
-    Real3 upper{0, 0, 0};
+    Real3 lower{0, 0, 0};  // [length]
+    Real3 upper{0, 0, 0};  // [length]
 };
+
+// TODO: cylinder shape
+// TODO: shape with volume rejection
 
 //! Choose a spatial distribution for the primary generator
 using ShapeDistribution = std::variant<PointShape, UniformBoxShape>;
 
 //---------------------------------------------------------------------------//
 //! Generate angles isotropically
-struct IsotropicAngle
+struct Isotropic
 {
 };
 
 //! Generate angles in a single direction
-struct MonodirectionalAngle
+struct Monodirectional
 {
     Real3 dir{0, 0, 1};
 };
 
 //! Choose an angular distribution for the primary generator
-using AngleDistribution = std::variant<IsotropicAngle, MonodirectionalAngle>;
+using AngleDistribution = std::variant<Isotropic, Monodirectional>;
 
 //---------------------------------------------------------------------------//
 //! Generate primaries at a single energy value
@@ -64,7 +67,7 @@ using EnergyDistribution = Monoenergetic;
 /*!
  * Generate from a hardcoded distribution of primary particles.
  *
- * \todo Units?
+ * \todo move num_events to StandaloneInput
  */
 struct PrimaryGenerator
 {
@@ -85,7 +88,7 @@ struct PrimaryGenerator
 /*!
  * Generate particles in the core stepping loop.
  *
- * \todo Allow programmatic setting from particle ID as well
+ * \todo Allow programmatic setting from particle ID as well:
  * \code using Particle = std::variant<PDGNumber, ParticleId>; \endcode
  */
 struct CorePrimaryGenerator : PrimaryGenerator
@@ -100,13 +103,16 @@ struct CorePrimaryGenerator : PrimaryGenerator
 /*!
  * Generate optical photon primary particles.
  *
- * \todo Optionally sample within a set of volumes for shape distribution?
  * \todo Time? Polarization?
  */
 using OpticalPrimaryGenerator = PrimaryGenerator;
 
 //---------------------------------------------------------------------------//
-//! Sample random events from an input file
+/*!
+ * Sample random events from an input file.
+ *
+ * \todo move num_events to StandaloneInput
+ */
 struct SampleFileEvents
 {
     //! Total number of events to sample

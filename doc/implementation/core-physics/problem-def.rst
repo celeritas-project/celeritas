@@ -59,8 +59,8 @@ configuration options:
 
 .. doxygenstruct:: celeritas::inp::PointShape
 .. doxygenstruct:: celeritas::inp::UniformBoxShape
-.. doxygenstruct:: celeritas::inp::IsotropicAngle
-.. doxygenstruct:: celeritas::inp::MonodirectionalAngle
+.. doxygenstruct:: celeritas::inp::Isotropic
+.. doxygenstruct:: celeritas::inp::Monodirectional
 .. doxygenstruct:: celeritas::inp::Monoenergetic
 
 .. _api_problem_setup_framework:

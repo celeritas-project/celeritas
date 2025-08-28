@@ -74,7 +74,7 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(ActionId id,
     CELER_VALIDATE(std::holds_alternative<inp::PointShape>(inp.shape),
                    << "unsupported distribution type for optical primary "
                       "generator position");
-    CELER_VALIDATE(std::holds_alternative<inp::IsotropicAngle>(inp.angle),
+    CELER_VALIDATE(std::holds_alternative<inp::Isotropic>(inp.angle),
                    << "unsupported distribution type for optical primary "
                       "generator direction");
 
