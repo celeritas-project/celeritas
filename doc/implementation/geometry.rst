@@ -32,9 +32,9 @@ their enclosing parent volume.
    +------------------+-------------------------+----------------+--------------------+
    | Parent           | Mother                  | Mother         | ---                |
    +------------------+-------------------------+----------------+--------------------+
-   | Interface        | Border surface          | ---            | Hole/array element |
+   | Interface        | Border surface          | ---            | ---                |
    +------------------+-------------------------+----------------+--------------------+
-   | Boundary         | Skin surface            | ---            | Hole/placement     |
+   | Boundary         | Skin surface            | ---            | ---                |
    +------------------+-------------------------+----------------+--------------------+
    | Surface          | Logical surface         | ---            | ---                |
    +------------------+-------------------------+----------------+--------------------+
@@ -47,7 +47,8 @@ their enclosing parent volume.
    ORANGE and are not identifiable during runtime.
 
 .. [#lv] The ``G4LogicalVolume`` class is equivalent to a volume except that
-   points inside the children are not considered to be part of the volume.
+   points inside the children are not considered to be part of the volume. The
+   same is true for ``VecGeom::LogicalVolume``.
 
 .. [#cn] One ``G4PVReplica`` volume is expanded into *several* volume
    instances, one per "multiplicity".
