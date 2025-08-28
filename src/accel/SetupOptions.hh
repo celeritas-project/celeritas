@@ -161,6 +161,13 @@ struct SetupOptions
     //!@}
 
     //!@{
+    //! \name Optical photon options
+
+    //! Capacity for storing optical photon state
+    std::optional<inp::OpticalStateCapacity> optical_capacity;
+    //!@}
+
+    //!@{
     //! \name Celeritas stepper options
 
     //! Number of track "slots" to be transported simultaneously

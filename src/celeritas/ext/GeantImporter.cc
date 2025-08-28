@@ -60,6 +60,8 @@
 #include <G4VProcess.hh>
 #include <G4VRangeToEnergyConverter.hh>
 #include <G4Version.hh>
+
+#include "celeritas/io/ImportUnits.hh"
 #if G4VERSION_NUMBER >= 1070
 #    include <G4OpWLS2.hh>
 #    include <G4OpticalParameters.hh>
@@ -587,6 +589,30 @@ import_optical_materials(detail::GeoOpticalIdMap const& geo_to_opt)
         get_property(&optical.rayleigh.compressibility,
                      "ISOTHERMAL_COMPRESSIBILITY",
                      ImportUnits::len_time_sq_per_mass);
+        if (optical.rayleigh.compressibility == 0
+            && material->GetName() == "Water")
+        {
+            // Use special default hardcoded value for water
+            // in G4OpRayleigh::CalculateRayleighMeanFreePaths
+            using CLHEP::m3;
+            using CLHEP::MeV;
+            double const betat = 7.658e-23 * m3 / MeV;
+            optical.rayleigh.compressibility
+                = betat
+                  * native_value_from_clhep(ImportUnits::len_time_sq_per_mass);
+            CELER_LOG(info) << "Setting compressibility of water to "
+                            << optical.rayleigh.compressibility << " m^2/N";
+
+            if (!soft_equal(material->GetTemperature(), 283.15 * CLHEP::kelvin))
+            {
+                CELER_LOG(warning)
+                    << "Geant4 Rayleigh optical scattering ignores material "
+                       "temperature for Water (overriding "
+                    << material->GetTemperature()
+                    << " K with 283.15 K) if no `RAYLEIGH` mean free paths "
+                       "are provided";
+            }
+        }
 
         // Save WLS properties
         get_property(&optical.wls.mean_num_photons,

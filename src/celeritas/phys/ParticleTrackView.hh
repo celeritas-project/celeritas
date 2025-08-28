@@ -292,8 +292,17 @@ CELER_FUNCTION auto ParticleTrackView::total_energy() const -> Energy
 //---------------------------------------------------------------------------//
 /*!
  * Square of \f$ \beta \f$, which is the fraction of lightspeed [unitless].
+ */
+CELER_FUNCTION real_type ParticleTrackView::beta_sq() const
+{
+    return ipow<2>(value_as<Speed>(this->speed()));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Speed [1/c].
  *
- * Beta is calculated using the equality
+ * \f$ \beta = v/c \f$ is calculated using the equality
  * \f[
  * pc/E = \beta ; \quad \beta^2 = \frac{p^2 c^2}{E^2}
  * \f].
@@ -306,41 +315,23 @@ CELER_FUNCTION auto ParticleTrackView::total_energy() const -> Energy
  * E = K + mc^2
  * \f]
  *
- * the square of the fraction of lightspeed speed is
+ * the fraction of lightspeed speed is
  * \f[
- * \beta^2 = 1 - \left( \frac{mc^2}{K + mc^2} \right)^2
- *         = 1 - \gamma^{-2}
- * \f]
+ * \beta = \sqrt{1 - \left( \frac{mc^2}{K + mc^2} \right)^2}
+ *       = \frac{\sqrt{K(K + 2mc^2)}}{K + mc^2}
+ * \f].
  *
- * where \f$ \gamma \f$ is the Lorentz factor (see below).
- *
- * By choosing not to divide out the mass, this expression will work for
- * massless particles.
- *
- * \todo For nonrelativistic particles (low kinetic energy) this expression
- * may be inaccurate due to rounding error. It is however guaranteed to be in
- * the exact range [0, 1].
- */
-CELER_FUNCTION real_type ParticleTrackView::beta_sq() const
-{
-    // Rest mass as energy
-    real_type const mcsq = this->mass().value();
-    // Inverse of lorentz factor (safe for m=0)
-    real_type inv_gamma = mcsq / (this->energy().value() + mcsq);
-
-    return 1 - ipow<2>(inv_gamma);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Speed [1/c].
- *
- * Speed is calculated using beta so that the expression works for massless
- * particles.
+ * This expression works for massless particles and is robust against round-off
+ * error at low energies.
  */
 CELER_FUNCTION auto ParticleTrackView::speed() const -> Speed
 {
-    return units::LightSpeed{std::sqrt(this->beta_sq())};
+    // Rest mass as energy
+    real_type const mcsq = value_as<Mass>(this->mass());
+    // Kinetic energy
+    real_type const energy = value_as<Energy>(this->energy());
+
+    return Speed{std::sqrt(energy * (energy + 2 * mcsq)) / (energy + mcsq)};
 }
 
 //---------------------------------------------------------------------------//

@@ -6,8 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/io/Logger.hh"
 #include "celeritas/grid/NonuniformGridInserter.hh"
-
+#include "celeritas/inp/Grid.hh"
 namespace celeritas
 {
 namespace optical
@@ -37,9 +38,7 @@ class MfpBuilder
     inline MfpBuilder(Values* real_data, GridValues* grid_data);
 
     // Build the grid
-    template<typename... Args>
-    inline void operator()(Args const&... args);
-
+    inline void operator()(inp::Grid const& grid);
     // Get the range of grid IDs that have been built
     inline GridIdRange grid_ids() const;
 
@@ -68,10 +67,16 @@ MfpBuilder::MfpBuilder(Values* real_data, GridValues* grid_data)
  *
  * Passes its arguments directly to a \c NonuniformGridInserter.
  */
-template<typename... Args>
-void MfpBuilder::operator()(Args const&... args)
+void MfpBuilder::operator()(inp::Grid const& grid)
 {
-    insert_grid_(args...);
+    if (!grid)
+    {
+        // insert empty grid
+        insert_grid_();
+        return;
+    }
+
+    insert_grid_(grid);
 }
 
 //---------------------------------------------------------------------------//

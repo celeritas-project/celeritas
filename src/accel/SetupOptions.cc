@@ -100,7 +100,17 @@ void ProblemSetup::operator()(inp::Problem& p) const
             = static_cast<size_type>(so.secondary_stack_factor * c.tracks);
         return c;
     }();
+    p.control.optical_capacity = so.optical_capacity;
+    if (so.optical_capacity)
+    {
+        inp::OpticalPhysics optical_physics;
+        optical_physics.cherenkov = true;
+        optical_physics.scintillation = true;
 
+        p.physics.optical = optical_physics;
+
+        CELER_LOG(debug) << "Optical physics enabled";
+    }
     if (so.max_num_events)
     {
         CELER_LOG(warning) << "Ignoring removed option 'max_num_events': will "
@@ -268,6 +278,10 @@ inp::FrameworkInput to_inp(SetupOptions const& so)
     inp::FrameworkInput result;
     result.system = load_system(so);
     result.geant.ignore_processes = so.ignore_processes;
+    result.geant.data_selection.particles = GeantImportDataSelection::em_basic
+                                            | GeantImportDataSelection::optical;
+    result.geant.data_selection.processes = GeantImportDataSelection::em_basic
+                                            | GeantImportDataSelection::optical;
     result.geant.data_selection.interpolation = so.interpolation;
 
     // Correctly assign DataSelection import flags when muons are present
