@@ -6,9 +6,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/math/ArrayUtils.hh"
 #include "celeritas/optical/Types.hh"
+#include "celeritas/phys/SurfacePhysicsMapView.hh"
 
 #include "SurfacePhysicsData.hh"
+#include "SurfacePhysicsUtils.hh"
 
 namespace celeritas
 {
@@ -36,6 +39,7 @@ class SurfacePhysicsView
     {
         SurfaceId surface{};
         SubsurfaceDirection orientation;
+        Real3 global_normal{0, 0, 0};
         OptMatId pre_volume_material{};
         OptMatId post_volume_material{};
     };
@@ -61,6 +65,9 @@ class SurfacePhysicsView
 
     // Get surface orientation
     inline CELER_FUNCTION SubsurfaceDirection orientation() const;
+
+    // Get global surface normal
+    inline CELER_FUNCTION Real3 const& global_normal() const;
 
     //// QUERY CROSSING STATE ////
 
@@ -93,6 +100,21 @@ class SurfacePhysicsView
     // Next subsurface interface in the given direction (track-local)
     inline CELER_FUNCTION
         PhysSurfaceId subsurface_interface(SubsurfaceDirection) const;
+
+    // Calculate traversal direction from track momentum
+    inline CELER_FUNCTION SubsurfaceDirection
+    traversal_direction(Real3 const&) const;
+
+    // Get surface model map for the given step and physics surface
+    inline CELER_FUNCTION
+        SurfacePhysicsMapView surface_physics_map(SurfacePhysicsOrder,
+                                                  PhysSurfaceId) const;
+
+    // Get local facet normal
+    inline CELER_FUNCTION Real3 const& facet_normal() const;
+
+    // Assign local facet normal
+    inline CELER_FUNCTION void facet_normal(Real3 const&);
 
     //// MUTATORS ////
 
@@ -150,8 +172,11 @@ CELER_FUNCTION SurfacePhysicsView&
 SurfacePhysicsView::operator=(Initializer const& init)
 {
     CELER_EXPECT(init.surface);
+    CELER_EXPECT(is_soft_unit_vector(init.global_normal));
     states_.surface[track_id_] = init.surface;
     states_.surface_orientation[track_id_] = init.orientation;
+    states_.global_normal[track_id_] = init.global_normal;
+    states_.facet_normal[track_id_] = init.global_normal;
     states_.surface_position[track_id_] = SurfaceTrackPosition{0};
     states_.pre_volume_material[track_id_] = init.pre_volume_material;
     states_.post_volume_material[track_id_] = init.post_volume_material;
@@ -192,6 +217,19 @@ CELER_FUNCTION SurfaceId SurfacePhysicsView::surface() const
 CELER_FUNCTION SubsurfaceDirection SurfacePhysicsView::orientation() const
 {
     return states_.surface_orientation[track_id_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get global surface normal.
+ *
+ * The global surface normal is the normal defined by the geometry and does not
+ * include any roughness effects. By convention it points from the post-volume
+ * into the pre-volume.
+ */
+CELER_FUNCTION Real3 const& SurfacePhysicsView::global_normal() const
+{
+    return states_.global_normal[track_id_];
 }
 
 //---------------------------------------------------------------------------//
@@ -316,6 +354,47 @@ SurfacePhysicsView::subsurface_interface(SubsurfaceDirection d) const
     }
     return this->to_record_index(track_pos,
                                  this->surface_record().subsurface_interfaces);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate traversal direction from track momentum.
+ */
+CELER_FUNCTION SubsurfaceDirection
+SurfacePhysicsView::traversal_direction(Real3 const& dir) const
+{
+    CELER_EXPECT(is_soft_unit_vector(dir));
+    return static_cast<SubsurfaceDirection>(
+        is_entering_surface(dir, this->global_normal()));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get surface model map for the given step and physics surface
+ */
+CELER_FUNCTION SurfacePhysicsMapView SurfacePhysicsView::surface_physics_map(
+    SurfacePhysicsOrder step, PhysSurfaceId surface) const
+{
+    return SurfacePhysicsMapView{params_.model_maps[step], surface};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get local facet normal after roughness sampling.
+ */
+CELER_FUNCTION Real3 const& SurfacePhysicsView::facet_normal() const
+{
+    return states_.facet_normal[track_id_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Assign local facet normal from roughness sampling.
+ */
+CELER_FUNCTION void SurfacePhysicsView::facet_normal(Real3 const& normal)
+{
+    CELER_EXPECT(is_soft_unit_vector(normal));
+    states_.facet_normal[track_id_] = normal;
 }
 
 //---------------------------------------------------------------------------//
