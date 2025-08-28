@@ -39,7 +39,7 @@ ModelMatGrid build_expected_grids(FX const& get_x, FY const& get_y)
     {
         MatGrid mat_grids;
         mat_grids.reserve(num_materials);
-        for (auto mat : range(OptMatId{num_materials}))
+        for (auto mat : range(OptMatId(num_materials)))
         {
             size_type n = (model.get() + 1) * 10 + mat.get();
             inp::Grid grid;

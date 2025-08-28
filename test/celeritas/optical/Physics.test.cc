@@ -91,8 +91,8 @@ class OpticalPhysicsTest : public OpticalMockTestBase
     template<class T>
     OptMatId cycle_material_id(T other_id)
     {
-        return OptMatId{(2 * other_id.get() + 3)
-                        % this->num_optical_materials()};
+        return OptMatId((2 * other_id.get() + 3)
+                        % this->num_optical_materials());
     }
 
   private:
@@ -333,7 +333,7 @@ TEST_F(OpticalPhysicsTest, track_view_grids)
 
     for (auto track_id : range(TrackSlotId{num_tracks}))
     {
-        for (auto mat_id : range(OptMatId{this->num_optical_materials()}))
+        for (auto mat_id : range(OptMatId(this->num_optical_materials())))
         {
             auto const physics = this->make_track_view(mat_id, track_id);
 
