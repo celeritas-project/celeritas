@@ -44,7 +44,7 @@ using PhysMatId = OpaqueId<struct PhysicsMaterial_>;
 using ModelId = OpaqueId<struct Model_>;
 
 //! Opaque index to a material with optical properties
-using OptMatId = OpaqueId<struct OpticalMaterial_>;
+using OptMatId = OpaqueId<struct OpticalMaterial_, unsigned int>;
 
 //! Opaque index to ParticleRecord in a vector: represents a particle type
 using ParticleId = OpaqueId<struct Particle_>;
