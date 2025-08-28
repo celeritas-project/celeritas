@@ -191,6 +191,9 @@ endif()
 
 if(CELERITAS_USE_Geant4)
   set(_cg4_sources
+    g4/EmStandardPhysics.cc
+    g4/OpticalPhysics.cc
+    g4/detail/GeantBremsstrahlungProcess.cc
     ext/EmPhysicsList.cc
     ext/FtfpBertPhysicsList.cc
     ext/GeantImporter.cc
@@ -198,8 +201,6 @@ if(CELERITAS_USE_Geant4)
     ext/GeantSdOutput.cc
     ext/GeantSetup.cc
     ext/GeantVolumeMapper.cc
-    ext/detail/EmStandardPhysics.cc
-    ext/detail/GeantBremsstrahlungProcess.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
     ext/detail/GeantOpticalModelImporter.cc
@@ -211,7 +212,6 @@ if(CELERITAS_USE_Geant4)
     ext/detail/LevelTouchableUpdater.cc
     ext/detail/MuHadEmStandardPhysics.cc
     ext/detail/NaviTouchableUpdater.cc
-    ext/detail/OpticalPhysics.cc
     ext/detail/SensDetInserter.cc
     ext/detail/TouchableUpdaterInterface.cc
     ext/detail/TrackProcessor.cc

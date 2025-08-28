@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/OpticalPhysics.cc
+//! \file celeritas/g4/OpticalPhysics.cc
 //---------------------------------------------------------------------------//
 #include "OpticalPhysics.hh"
 
@@ -20,18 +20,16 @@
 #include <G4Scintillation.hh>
 #include <G4Version.hh>
 
-#include "corecel/Macros.hh"
 #if G4VERSION_NUMBER >= 1070
 #    include <G4OpWLS2.hh>
 #    include <G4OpticalParameters.hh>
 #endif
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
 
 namespace celeritas
-{
-namespace detail
 {
 namespace
 {
@@ -116,7 +114,7 @@ G4String optical_process_type_to_geant_name(OpticalProcessType value)
 
 //---------------------------------------------------------------------------//
 /*!
- * Return true if a given process is active
+ * Return whether a given process is active.
  *
  * Use `G4OpticalParameters` when available, otherwise use hardcoded
  * checks.
@@ -360,5 +358,5 @@ void OpticalPhysics::ConstructProcess()
     }
 }
 
-}  // namespace detail
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

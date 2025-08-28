@@ -105,6 +105,9 @@ operator==(GeantMuonPhysicsOptions const& a, GeantMuonPhysicsOptions const& b)
  * G4StandardEmPhysics. They are passed to the \c EmPhysicsList
  * and \c FtfpBert physics lists to provide an easy way to set up
  * physics options.
+ *
+ * \todo This will be moved to celeritas::inp
+ * \todo Rename default_cutoff to be consistent (it's a production cut)
  */
 struct GeantPhysicsOptions
 {
@@ -174,7 +177,7 @@ struct GeantPhysicsOptions
     MevEnergy lowest_electron_energy{0.001};  // 1 keV
     //! Tracking cutoff kinetic energy for muons/hadrons
     MevEnergy lowest_muhad_energy{0.001};  // 1 keV
-    //! Kill secondaries below the production cut
+    //! Kill secondaries from gamma processes below the production cut
     bool apply_cuts{false};
     //! Set the default production cut for all particle types [len]
     double default_cutoff{0.1 * units::centimeter};

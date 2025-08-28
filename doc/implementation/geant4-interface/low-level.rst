@@ -24,10 +24,3 @@ Geant4 physics interfaces
 .. doxygenclass:: celeritas::GeantSetup
 
 .. _api_geant4_physics_options:
-
-Geant4 physics options
-^^^^^^^^^^^^^^^^^^^^^^
-
-.. doxygenstruct:: celeritas::GeantPhysicsOptions
-   :members:
-   :no-link:

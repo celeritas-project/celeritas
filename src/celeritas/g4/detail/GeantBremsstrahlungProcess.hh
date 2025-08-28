@@ -2,15 +2,16 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/GeantBremsstrahlungProcess.hh
+//! \file celeritas/g4/detail/GeantBremsstrahlungProcess.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <iosfwd>
-#include <G4ParticleDefinition.hh>
 #include <G4VEnergyLossProcess.hh>
 
-#include "../GeantPhysicsOptions.hh"
+#include "celeritas/ext/GeantPhysicsOptions.hh"
+
+class G4ParticleDefinition;
 
 namespace celeritas
 {

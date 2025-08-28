@@ -58,19 +58,11 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with verbosity.
- */
-MuHadEmStandardPhysics::MuHadEmStandardPhysics(int verbosity)
-{
-    G4EmParameters::Instance()->SetVerbose(verbosity);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Build list of particles.
  */
 void MuHadEmStandardPhysics::ConstructParticle()
 {
+    EmStandardPhysics::ConstructParticle();
     this->construct_particle();
 }
 
@@ -80,6 +72,7 @@ void MuHadEmStandardPhysics::ConstructParticle()
  */
 void MuHadEmStandardPhysics::ConstructProcess()
 {
+    EmStandardPhysics::ConstructProcess();
     this->construct_process();
 }
 

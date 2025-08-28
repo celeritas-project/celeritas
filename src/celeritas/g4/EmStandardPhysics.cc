@@ -2,12 +2,13 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/EmStandardPhysics.cc
+//! \file celeritas/g4/EmStandardPhysics.cc
 //---------------------------------------------------------------------------//
 #include "EmStandardPhysics.hh"
 
 #include <memory>
 #include <CLHEP/Units/SystemOfUnits.h>
+#include <G4BuilderType.hh>
 #include <G4ComptonScattering.hh>
 #include <G4CoulombScattering.hh>
 #include <G4Electron.hh>
@@ -26,6 +27,7 @@
 #include <G4MuonMinus.hh>
 #include <G4MuonPlus.hh>
 #include <G4PairProductionRelModel.hh>
+#include <G4ParticleDefinition.hh>
 #include <G4PhotoElectricEffect.hh>
 #include <G4PhysicsListHelper.hh>
 #include <G4Positron.hh>
@@ -45,13 +47,11 @@
 #include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/ext/GeantPhysicsOptions.hh"
 
-#include "GeantBremsstrahlungProcess.hh"
-#include "../GeantPhysicsOptions.hh"
+#include "detail/GeantBremsstrahlungProcess.hh"
 
 namespace celeritas
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -102,7 +102,8 @@ from_form_factor_type(NuclearFormFactorType const& form_factor)
  * Construct with physics options.
  */
 EmStandardPhysics::EmStandardPhysics(Options const& options)
-    : options_(options)
+    : G4VPhysicsConstructor("CelerEmStandard", bElectromagnetic)
+    , options_(options)
 {
     // Set EM options using limits from G4EmParameters
     auto& em_parameters = *G4EmParameters::Instance();
@@ -159,9 +160,6 @@ EmStandardPhysics::EmStandardPhysics(Options const& options)
  * and includes gamma, e+, e-, mu+, mu-, pi+, pi-, K+, K-, p, pbar, deuteron,
  * triton, He3, alpha, and generic ion, along with Geant4's pseudo-particles
  * geantino and charged geantino.
- *
- * Currently only instantiating e+, e-, gamma, mu-, mu+, and proton (the latter
- * is needed for msc)
  */
 void EmStandardPhysics::ConstructParticle()
 {
@@ -201,18 +199,6 @@ void EmStandardPhysics::ConstructProcess()
 //---------------------------------------------------------------------------//
 /*!
  * Add EM processes for photons.
- *
- * | Processes            | Model classes                 |
- * | -------------------- | ----------------------------- |
- * | Compton scattering   | G4KleinNishinaCompton         |
- * | Photoelectric effect | G4LivermorePhotoElectricModel |
- * | Rayleigh scattering  | G4LivermoreRayleighModel      |
- * | Gamma conversion     | G4PairProductionRelModel      |
- *
- * If the \c gamma_general option is enabled, we create a single unified
- * \c G4GammaGeneralProcess process, which embeds these other processes and
- * calculates a combined total cross section. It's faster in Geant4 but
- * shouldn't result in different answers.
  */
 void EmStandardPhysics::add_gamma_processes()
 {
@@ -286,21 +272,6 @@ void EmStandardPhysics::add_gamma_processes()
 //---------------------------------------------------------------------------//
 /*!
  * Add EM processes for electrons and positrons.
- *
- * | Processes                    | Model classes                |
- * | ---------------------------- | ---------------------------- |
- * | Pair annihilation            | G4eeToTwoGammaModel          |
- * | Ionization                   | G4MollerBhabhaModel          |
- * | Bremsstrahlung (low E)       | G4SeltzerBergerModel         |
- * | Bremsstrahlung (high E)      | G4eBremsstrahlungRelModel    |
- * | Coulomb scattering           | G4eCoulombScatteringModel    |
- * | Multiple scattering (low E)  | G4UrbanMscModel              |
- * | Multiple scattering (low E)  | G4GoudsmitSaundersonMscModel |
- * | Multiple scattering (high E) | G4WentzelVIModel             |
- *
- * \note
- * - Coulomb scattering and multiple scattering (high E) are currently
- *   disabled.
  */
 void EmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
 {
@@ -328,7 +299,7 @@ void EmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
     if (options_.brems != BremsModelSelection::none)
     {
         physics_list->RegisterProcess(
-            new GeantBremsstrahlungProcess(
+            new detail::GeantBremsstrahlungProcess(
                 options_.brems,
                 value_as<Options::MevEnergy>(options_.seltzer_berger_limit)),
             p);
@@ -343,8 +314,9 @@ void EmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
             // the default process ordering.
             auto* process_manager = p->GetProcessManager();
             CELER_ASSERT(process_manager);
-            auto* bremsstrahlung = dynamic_cast<GeantBremsstrahlungProcess*>(
-                process_manager->GetProcess("eBrem"));
+            auto* bremsstrahlung
+                = dynamic_cast<detail::GeantBremsstrahlungProcess*>(
+                    process_manager->GetProcess("eBrem"));
             CELER_ASSERT(bremsstrahlung);
             auto order = process_manager->GetProcessOrdering(
                 bremsstrahlung, G4ProcessVectorDoItIndex::idxPostStep);
@@ -459,24 +431,8 @@ void EmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
 /*!
  * Add EM processes for muons.
  *
- * | Processes                    | Model classes                |
- * | ---------------------------- | ---------------------------- |
- * | Pair production              | G4MuPairProductionModel      |
- * | Ionization (low E, mu-)      | G4ICRU73QOModel              |
- * | Ionization (low E, mu+)      | G4BraggModel                 |
- * | Ionization (high E)          | G4MuBetheBlochModel          |
- * | Bremsstrahlung               | G4MuBremsstrahlungModel      |
- * | Coulomb scattering           | G4eCoulombScatteringModel    |
- * | Multiple scattering          | G4WentzelVIModel             |
- *
- * \note Currently all muon processes are disabled by default
- *
- * \note Prior to version 11.1.0, Geant4 used the \c G4BetheBlochModel for muon
- * ionization between 200 keV and 1 GeV and the \c G4MuBetheBlochModel above 1
- * GeV. Since version 11.1.0, the \c G4MuBetheBlochModel is used for all
- * energies above 200 keV.
- *
- * \todo Implement energy loss fluctuation models for muon ionization.
+ * \note Remove processes from celeritas::detail::MuHadEmStandardPhysics when
+ * added here.
  */
 void EmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
 {
@@ -537,5 +493,4 @@ void EmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

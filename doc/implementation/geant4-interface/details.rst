@@ -52,6 +52,20 @@ Primary generators
 
 .. doxygenclass:: celeritas::PGPrimaryGeneratorAction
 
+Physics lists
+^^^^^^^^^^^^^
+
+Two physics lists (one using Geant4 hadronics, the other using pure Celeritas)
+allow setup of
+
+.. doxygenstruct:: celeritas::GeantPhysicsOptions
+   :members:
+   :no-link:
+
+.. doxygenclass:: celeritas::EmPhysicsList
+
+.. doxygenclass:: celeritas::FtfpBertPhysicsList
+
 Sensitive detectors
 ^^^^^^^^^^^^^^^^^^^
 

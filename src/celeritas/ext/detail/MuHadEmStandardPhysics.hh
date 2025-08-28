@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <G4VPhysicsConstructor.hh>
+#include "celeritas/g4/EmStandardPhysics.hh"
 
 namespace celeritas
 {
@@ -14,16 +14,12 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct EM standard physics not implemented in Celeritas.
- *
- * \todo Remove muon physics from this constructor once it is fully supported
- * in Celeritas.
+ * Construct EM standard physics, including those not implemented in Celeritas.
  */
-class MuHadEmStandardPhysics : public G4VPhysicsConstructor
+class MuHadEmStandardPhysics : public EmStandardPhysics
 {
   public:
-    // Set up during construction
-    explicit MuHadEmStandardPhysics(int verbosity);
+    using EmStandardPhysics::EmStandardPhysics;
 
     // Set up minimal EM particle list
     void ConstructParticle() override;
