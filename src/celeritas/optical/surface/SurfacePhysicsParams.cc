@@ -79,7 +79,7 @@ class FakeModelBuilder
 
   private:
     std::vector<std::shared_ptr<SurfaceModel>>& models_;
-    size_type num_surf_;
+    size_type num_surf_{0};
 };
 
 //---------------------------------------------------------------------------//
