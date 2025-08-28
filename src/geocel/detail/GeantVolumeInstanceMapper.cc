@@ -121,10 +121,14 @@ GeantVolumeInstanceMapper::GeantVolumeInstanceMapper(G4PV const& world)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the volume instance using the pv and its copy number if applicable.
+ * Get the volume instance using the pv and its current state.
  *
- * If the pv is not included in the geometry for some reason, the result is a
- * null \c VolumeInstanceId .
+ * For replica volumes, this uses its thread-local copy number. On older
+ * versions of Geant4 this is uninitialized until a navigator or user
+ * queries/updates it.
+ *
+ * If the given pv is not included in the geometry for some reason (e.g. it's
+ * from a "parallel world"), the result is a null \c VolumeInstanceId .
  */
 VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(G4PV const& pv) const
 {
@@ -138,10 +142,8 @@ VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(G4PV const& pv) const
     if (pv.IsReplicated())
     {
         int copy_no = pv.GetCopyNo();
-        // NOTE: if this line fails, you probably need to call \c
-        // reset_replica_data from the local thread.
+        // NOTE: if this line fails, the thread data isn't initialized.
         CELER_ASSERT(copy_no >= 0 && copy_no < pv.GetMultiplicity());
-
         result = VolumeInstanceId{result.unchecked_get() + copy_no};
     }
     return result;
@@ -149,7 +151,10 @@ VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(G4PV const& pv) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the volume instance using the pv and another copy number if applicable.
+ * Get the volume instance using the pv and a replica number.
+ *
+ * If the given PV is not a replica, the copy number will be \em ignored.
+ * In either case, the volume's state will not be touched.
  *
  * If the pv is not included in the geometry for some reason, the result is a
  * null \c VolumeInstanceId .

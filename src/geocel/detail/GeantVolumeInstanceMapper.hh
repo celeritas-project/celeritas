@@ -56,10 +56,10 @@ class GeantVolumeInstanceMapper
     //! Number of volume instances
     size_type size() const { return g4pv_.size(); }
 
-    // Get the volume instance using the pv and its copy number if applicable
+    // Get the volume instance using the pv and its current state
     VolumeInstanceId geant_to_id(G4PV const&) const;
 
-    // Get the volume instance without altering state
+    // Get the volume instance *without* checking replica state
     VolumeInstanceId geant_to_id(G4PV const&, int copy_no) const;
 
     // Return and (if replica) update the volume from an instance ID.
