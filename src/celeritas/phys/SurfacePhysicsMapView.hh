@@ -15,11 +15,9 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Access surface physics mappings for a particular surface.
+ * Access surface physics mappings for a particular physics surface.
  *
- * This simply encapsulates the \c SurfaceParamsData class. A "default"
- * physics surface ID is encoded as one ID past the number of geometric
- * surfaces.
+ * This simply encapsulates the \c SurfaceParamsData class.
  */
 class SurfacePhysicsMapView
 {

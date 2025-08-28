@@ -63,7 +63,7 @@ void SurfaceSteppingAction::step_impl(CoreParams const& params,
 
     for ([[maybe_unused]] auto iteration : range(num_iterations))
     {
-        for (auto substep : range(SurfacePhysicsStep::size_))
+        for (auto substep : range(SurfacePhysicsOrder::size_))
         {
             for (auto const& model : params.surface_physics()->models(substep))
             {

@@ -16,9 +16,9 @@ namespace optical
 /*!
  * Get a string corresponding to an optical surface physics step.
  */
-char const* to_cstring(SurfacePhysicsStep step)
+char const* to_cstring(SurfacePhysicsOrder step)
 {
-    static EnumStringMapper<SurfacePhysicsStep> const to_cstring_impl{
+    static EnumStringMapper<SurfacePhysicsOrder> const to_cstring_impl{
         "roughness",
         "reflectivity",
         "interaction",

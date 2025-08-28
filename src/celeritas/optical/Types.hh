@@ -34,8 +34,8 @@ enum class GeneratorType
 namespace optical
 {
 
-//! Sub-steps of surface physics boundary crossing
-enum class SurfacePhysicsStep
+//! Ordering of surface physics boundary crossing models
+enum class SurfacePhysicsOrder
 {
     roughness,
     reflectivity,
@@ -54,7 +54,7 @@ enum class SubsurfaceDirection : bool
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
-char const* to_cstring(SurfacePhysicsStep);
+char const* to_cstring(SurfacePhysicsOrder);
 
 //! Convert sub-surface direction to a sign (+1/-1 for forward/reverse resp.)
 CELER_FORCEINLINE_FUNCTION int to_signed_offset(SubsurfaceDirection d)

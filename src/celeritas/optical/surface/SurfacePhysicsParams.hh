@@ -55,7 +55,7 @@ class SurfacePhysicsParams final
     //! \name Type aliases
     using SPModel = std::shared_ptr<SurfaceModel>;
     using SurfaceStepModels
-        = EnumArray<SurfacePhysicsStep, std::vector<SPModel>>;
+        = EnumArray<SurfacePhysicsOrder, std::vector<SPModel>>;
     //!@}
 
   public:
@@ -88,7 +88,7 @@ class SurfacePhysicsParams final
     }
 
     //! Get models for a given sub-step
-    std::vector<SPModel> const& models(SurfacePhysicsStep step) const
+    std::vector<SPModel> const& models(SurfacePhysicsOrder step) const
     {
         return models_[step];
     }

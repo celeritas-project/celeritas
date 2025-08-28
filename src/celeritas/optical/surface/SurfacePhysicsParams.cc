@@ -15,6 +15,8 @@ namespace celeritas
 {
 namespace optical
 {
+namespace
+{
 //---------------------------------------------------------------------------//
 /*!
  * A fake model used to mock actual surface physics models.
@@ -27,7 +29,7 @@ class FakeModel : public SurfaceModel
   public:
     FakeModel(SurfaceModelId model_id,
               std::string_view label,
-              std::map<inp::SurfaceLayer, T> const& layer_map)
+              std::map<PhysSurfaceId, T> const& layer_map)
         : SurfaceModel(model_id, label), layers_(layer_map)
     {
     }
@@ -46,9 +48,10 @@ class FakeModel : public SurfaceModel
     void step(CoreParams const&, CoreStateDevice&) const final {}
 
   private:
-    std::map<inp::SurfaceLayer, T> layers_;
+    std::map<PhysSurfaceId, T> layers_;
 };
 
+//---------------------------------------------------------------------------//
 /*!
  * Helper to build fake models.
  *
@@ -65,7 +68,7 @@ class FakeModelBuilder
 
     template<class T>
     void operator()(std::string_view label,
-                    std::map<inp::SurfaceLayer, T> const& layer_map)
+                    std::map<PhysSurfaceId, T> const& layer_map)
     {
         if (!layer_map.empty())
         {
@@ -81,6 +84,23 @@ class FakeModelBuilder
     std::vector<std::shared_ptr<SurfaceModel>>& models_;
     size_type num_surf_{0};
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate number of physics surfaces as defined by interstitial materials.
+ */
+PhysSurfaceId::size_type
+num_phys_surfaces(std::vector<std::vector<OptMatId>> const& materials)
+{
+    PhysSurfaceId::size_type num = 0;
+    for (auto const& mats : materials)
+    {
+        num += mats.size() + 1;
+    }
+    return num;
+}
+
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -173,23 +193,23 @@ auto SurfacePhysicsParams::build_models(
 {
     SurfaceStepModels step_models;
 
-    for (auto step : range(SurfacePhysicsStep::size_))
+    for (auto step : range(SurfacePhysicsOrder::size_))
     {
         // Build fake models
         FakeModelBuilder build_model{step_models[step]};
         switch (step)
         {
-            case SurfacePhysicsStep::roughness:
+            case SurfacePhysicsOrder::roughness:
                 build_model("polished", input.roughness.polished);
                 build_model("smear", input.roughness.smear);
                 build_model("gaussian", input.roughness.gaussian);
                 break;
 
-            case SurfacePhysicsStep::reflectivity:
+            case SurfacePhysicsOrder::reflectivity:
                 build_model("grid", input.reflectivity.grid);
                 build_model("fresnel", input.reflectivity.fresnel);
                 break;
-            case SurfacePhysicsStep::interaction:
+            case SurfacePhysicsOrder::interaction:
                 build_model("dielectric-dielectric",
                             input.interaction.dielectric_dielectric);
                 build_model("dielectric-metal",
@@ -199,15 +219,16 @@ auto SurfacePhysicsParams::build_models(
                 CELER_ASSERT_UNREACHABLE();
         }
 
-        CELER_VALIDATE(build_model.num_surfaces() == input.num_phys_surfaces(),
-                       << " same number of physics surfaces required for each "
-                          "surface physics step ("
-                       << input.num_phys_surfaces() << " expected surfaces, "
-                       << build_model.num_surfaces() << " surfaces from "
-                       << to_cstring(step) << " step)");
+        CELER_VALIDATE(
+            build_model.num_surfaces() == num_phys_surfaces(input.materials),
+            << " same number of physics surfaces required for each "
+               "surface physics step ("
+            << num_phys_surfaces(input.materials) << " expected surfaces, "
+            << build_model.num_surfaces() << " surfaces from "
+            << to_cstring(step) << " step)");
 
         // Build surface physics maps
-        SurfacePhysicsMapBuilder build_step(input.num_phys_surfaces(),
+        SurfacePhysicsMapBuilder build_step(build_model.num_surfaces(),
                                             data.model_maps[step]);
         for (auto const& model : step_models[step])
         {

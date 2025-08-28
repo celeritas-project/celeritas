@@ -90,7 +90,7 @@ struct SurfacePhysicsParamsData
     using GeoSurfaceItems = Collection<T, W, M, SurfaceId>;
 
     using SurfaceStepModelMaps
-        = EnumArray<SurfacePhysicsStep, SurfacePhysicsMapData<W, M>>;
+        = EnumArray<SurfacePhysicsOrder, SurfacePhysicsMapData<W, M>>;
 
     template<class T>
     using Items = Collection<T, W, M>;
@@ -120,7 +120,7 @@ struct SurfacePhysicsParamsData
         scalars = other.scalars;
         surfaces = other.surfaces;
         subsurface_materials = other.subsurface_materials;
-        for (auto step : range(SurfacePhysicsStep::size_))
+        for (auto step : range(SurfacePhysicsOrder::size_))
         {
             model_maps[step] = other.model_maps[step];
         }

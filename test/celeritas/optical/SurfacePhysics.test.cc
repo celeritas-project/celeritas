@@ -46,7 +46,7 @@ namespace test
 using namespace ::celeritas::test;
 
 template<class T>
-using SurfaceStepArray = EnumArray<SurfacePhysicsStep, T>;
+using SurfaceOrderArray = EnumArray<SurfacePhysicsOrder, T>;
 
 using InternalSurfaceId = ::celeritas::SurfaceModel::InternalSurfaceId;
 
@@ -67,8 +67,8 @@ struct SurfaceResult
 {
     std::vector<OptMatId> materials{};
     std::vector<PhysSurfaceId> interfaces{};
-    SurfaceStepArray<std::vector<SurfaceModelId>> actions;
-    SurfaceStepArray<std::vector<InternalSurfaceId>> per_model_ids;
+    SurfaceOrderArray<std::vector<SurfaceModelId>> actions;
+    SurfaceOrderArray<std::vector<InternalSurfaceId>> per_model_ids;
 };
 
 struct TraceResult
@@ -228,7 +228,7 @@ TEST_F(SurfacePhysicsTest, init_params)
             auto phys_surface = surface_record.subsurface_interfaces[i];
             surface.interfaces.push_back(phys_surface);
 
-            for (auto step : range(SurfacePhysicsStep::size_))
+            for (auto step : range(SurfacePhysicsOrder::size_))
             {
                 surface.actions[step].push_back(
                     data.model_maps[step].surface_models[phys_surface]);
@@ -317,7 +317,7 @@ TEST_F(SurfacePhysicsTest, init_params)
 
         EXPECT_VEC_EQ(expected_record.materials, actual_record.materials);
         EXPECT_VEC_EQ(expected_record.interfaces, actual_record.interfaces);
-        for (auto step : range(SurfacePhysicsStep::size_))
+        for (auto step : range(SurfacePhysicsOrder::size_))
         {
             EXPECT_VEC_EQ(expected_record.actions[step],
                           actual_record.actions[step]);
@@ -328,22 +328,22 @@ TEST_F(SurfacePhysicsTest, init_params)
 
     // Check surface model data
 
-    SurfaceStepArray<std::vector<std::string_view>> expected_model_names;
-    expected_model_names[SurfacePhysicsStep::roughness] = {
+    SurfaceOrderArray<std::vector<std::string_view>> expected_model_names;
+    expected_model_names[SurfacePhysicsOrder::roughness] = {
         "polished",
         "smear",
         "gaussian",
     };
-    expected_model_names[SurfacePhysicsStep::reflectivity] = {
+    expected_model_names[SurfacePhysicsOrder::reflectivity] = {
         "grid",
         "fresnel",
     };
-    expected_model_names[SurfacePhysicsStep::interaction] = {
+    expected_model_names[SurfacePhysicsOrder::interaction] = {
         "dielectric-dielectric",
         "dielectric-metal",
     };
 
-    for (auto step : range(SurfacePhysicsStep::size_))
+    for (auto step : range(SurfacePhysicsOrder::size_))
     {
         std::vector<std::string_view> model_names;
         for (auto const& model : params->models(step))
