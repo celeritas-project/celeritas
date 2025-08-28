@@ -69,10 +69,7 @@ inline ScopedGeantExceptionHandler::ScopedGeantExceptionHandler(
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
-inline ScopedGeantExceptionHandler::~ScopedGeantExceptionHandler()
-{
-    CELER_ASSERT_UNREACHABLE();
-}
+inline ScopedGeantExceptionHandler::~ScopedGeantExceptionHandler() {}
 //!@}
 #endif
 
