@@ -290,7 +290,7 @@ TEST_F(MockAlongStepTest, basic)
         auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_EQ(1.0540925533894607e-10, result.displacement);
         EXPECT_SOFT_EQ(1, result.angle);
-        EXPECT_SOFT_EQ(0, result.time);
+        EXPECT_SOFT_EQ(2.4862399723875997e-12, result.time);
         EXPECT_SOFT_EQ(1.0540925533894607e-10, result.step);
         EXPECT_EQ("eloss-range", result.action);
     }
