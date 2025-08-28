@@ -44,13 +44,15 @@ make_energy_sampler(inp::EnergyDistribution const& i)
 auto make_position_sampler(inp::ShapeDistribution const& i)
 {
     CELER_ASSUME(!i.valueless_by_exception());
-    return std::visit(
-        return_as<PrimaryGenerator::PositionSampler>(Overload{
-            [](inp::PointShape const& ps) { return DeltaDistribution{ps.pos}; },
-            [](inp::UniformBoxShape const& ubs) {
-                return UniformBoxDistribution{ubs.lower, ubs.upper};
-            }}),
-        i);
+    return std::visit(return_as<PrimaryGenerator::PositionSampler>(
+                          Overload{[](inp::PointDistribution const& ps) {
+                                       return DeltaDistribution{ps.pos};
+                                   },
+                                   [](inp::UniformBoxDistribution const& ubs) {
+                                       return UniformBoxDistribution{
+                                           ubs.lower, ubs.upper};
+                                   }}),
+                      i);
 }
 
 //---------------------------------------------------------------------------//
@@ -61,10 +63,10 @@ auto make_direction_sampler(inp::AngleDistribution const& i)
 {
     CELER_ASSUME(!i.valueless_by_exception());
     return std::visit(return_as<PrimaryGenerator::DirectionSampler>(Overload{
-                          [](inp::Isotropic const&) {
+                          [](inp::IsotropicDistribution const&) {
                               return IsotropicDistribution<real_type>{};
                           },
-                          [](inp::Monodirectional const& ma) {
+                          [](inp::MonodirectionalDistribution const& ma) {
                               CELER_VALIDATE(is_soft_unit_vector(ma.dir),
                                              << "primary generator angle is "
                                                 "not a unit vector");

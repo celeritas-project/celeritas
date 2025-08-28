@@ -20,13 +20,13 @@ namespace inp
 {
 //---------------------------------------------------------------------------//
 //! Generate at a single point
-struct PointShape
+struct PointDistribution
 {
     Real3 pos{0, 0, 0};  // [length]
 };
 
 //! Sample uniformly in a box
-struct UniformBoxShape
+struct UniformBoxDistribution
 {
     Real3 lower{0, 0, 0};  // [length]
     Real3 upper{0, 0, 0};  // [length]
@@ -36,32 +36,34 @@ struct UniformBoxShape
 // TODO: shape with volume rejection
 
 //! Choose a spatial distribution for the primary generator
-using ShapeDistribution = std::variant<PointShape, UniformBoxShape>;
+using ShapeDistribution
+    = std::variant<PointDistribution, UniformBoxDistribution>;
 
 //---------------------------------------------------------------------------//
 //! Generate angles isotropically
-struct Isotropic
+struct IsotropicDistribution
 {
 };
 
 //! Generate angles in a single direction
-struct Monodirectional
+struct MonodirectionalDistribution
 {
     Real3 dir{0, 0, 1};
 };
 
 //! Choose an angular distribution for the primary generator
-using AngleDistribution = std::variant<Isotropic, Monodirectional>;
+using AngleDistribution
+    = std::variant<IsotropicDistribution, MonodirectionalDistribution>;
 
 //---------------------------------------------------------------------------//
 //! Generate primaries at a single energy value
-struct Monoenergetic
+struct MonoenergeticDistribution
 {
     units::MevEnergy energy;
 };
 
-//! Choose an angular distribution for the primary generator
-using EnergyDistribution = Monoenergetic;
+//! Choose an energy distribution for the primary generator
+using EnergyDistribution = MonoenergeticDistribution;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -76,9 +78,9 @@ struct PrimaryGenerator
     //! Number of primaries per event
     size_type primaries_per_event{};
 
-    //! Distribution for sampling source position
+    //! Distribution for sampling spatial component (position)
     ShapeDistribution shape;
-    //! Distribution for sampling source direction
+    //! Distribution for sampling angular component (direction)
     AngleDistribution angle;
     //! Distribution for sampling source energy
     EnergyDistribution energy;
