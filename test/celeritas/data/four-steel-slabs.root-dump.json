@@ -473,8 +473,8 @@
       "materials" : [[]],
       "roughness" : {
         "_typename" : "celeritas::inp::RoughnessModels",
-        "polished" : [{"$pair" : "pair<celeritas::OpaqueId<celeritas::PhysSurface_,unsigned long>,celeritas::inp::NoRoughness>", "first" : {
-          "_typename" : "celeritas::OpaqueId<celeritas::PhysSurface_,unsigned long>",
+        "polished" : [{"$pair" : "pair<celeritas::OpaqueId<celeritas::PhysSurface_,unsigned int>,celeritas::inp::NoRoughness>", "first" : {
+          "_typename" : "celeritas::OpaqueId<celeritas::PhysSurface_,unsigned int>",
           "value_" : 0
         }, "second" : {
           "_typename" : "celeritas::inp::NoRoughness"
@@ -485,8 +485,8 @@
       "reflectivity" : {
         "_typename" : "celeritas::inp::ReflectivityModels",
         "grid" : [],
-        "fresnel" : [{"$pair" : "pair<celeritas::OpaqueId<celeritas::PhysSurface_,unsigned long>,celeritas::inp::FresnelReflection>", "first" : {
-          "_typename" : "celeritas::OpaqueId<celeritas::PhysSurface_,unsigned long>",
+        "fresnel" : [{"$pair" : "pair<celeritas::OpaqueId<celeritas::PhysSurface_,unsigned int>,celeritas::inp::FresnelReflection>", "first" : {
+          "_typename" : "celeritas::OpaqueId<celeritas::PhysSurface_,unsigned int>",
           "value_" : 0
         }, "second" : {
           "_typename" : "celeritas::inp::FresnelReflection"
@@ -494,8 +494,8 @@
       },
       "interaction" : {
         "_typename" : "celeritas::inp::InteractionModels",
-        "dielectric_dielectric" : [{"$pair" : "pair<celeritas::OpaqueId<celeritas::PhysSurface_,unsigned long>,celeritas::inp::ReflectionForm>", "first" : {
-          "_typename" : "celeritas::OpaqueId<celeritas::PhysSurface_,unsigned long>",
+        "dielectric_dielectric" : [{"$pair" : "pair<celeritas::OpaqueId<celeritas::PhysSurface_,unsigned int>,celeritas::inp::ReflectionForm>", "first" : {
+          "_typename" : "celeritas::OpaqueId<celeritas::PhysSurface_,unsigned int>",
           "value_" : 0
         }, "second" : {
           "_typename" : "celeritas::inp::ReflectionForm",

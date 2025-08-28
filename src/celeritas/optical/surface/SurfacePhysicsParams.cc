@@ -62,7 +62,7 @@ class FakeModelBuilder
 {
   public:
     FakeModelBuilder(std::vector<std::shared_ptr<SurfaceModel>>& models)
-        : models_(models), num_surf_(0)
+        : models_(models)
     {
     }
 

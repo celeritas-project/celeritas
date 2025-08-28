@@ -84,7 +84,7 @@ using ParticleProcessId = OpaqueId<ProcessId>;
 using ParticleModelId = OpaqueId<ModelId>;
 
 //! Opaque index of subsurface interface with physics models
-using PhysSurfaceId = OpaqueId<struct PhysSurface_>;
+using PhysSurfaceId = OpaqueId<struct PhysSurface_, unsigned int>;
 
 //! Opaque index of electron subshell
 using SubshellId = OpaqueId<struct Subshell_>;

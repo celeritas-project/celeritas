@@ -639,7 +639,7 @@ inp::OpticalPhysics import_optical_physics()
     {
         num_phys_surfaces += mats.size() + 1;
     }
-    PhysSurfaceId default_surface{num_phys_surfaces};
+    PhysSurfaceId default_surface(num_phys_surfaces);
     result.surfaces.materials.push_back({});
     result.surfaces.roughness.polished.emplace(default_surface,
                                                inp::NoRoughness{});
