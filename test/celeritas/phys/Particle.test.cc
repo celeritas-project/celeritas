@@ -198,6 +198,13 @@ TEST_F(ParticleTestHost, electron)
     particle.energy(zero_quantity());
     EXPECT_TRUE(particle.is_stopped());
     EXPECT_REAL_EQ(0.0, particle.energy().value());
+
+    {
+        SCOPED_TRACE("High energy electron");
+        particle = Initializer_t{ParticleId{0}, MevEnergy{1e12}};
+        EXPECT_LE(particle.speed().value(), 1);
+        EXPECT_LE(particle.beta_sq(), 1);
+    }
 }
 
 TEST_F(ParticleTestHost, positron)
