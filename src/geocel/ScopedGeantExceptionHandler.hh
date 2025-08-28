@@ -12,6 +12,7 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 
 class G4VExceptionHandler;
@@ -63,8 +64,15 @@ class ScopedGeantExceptionHandler
 #if !CELERITAS_USE_GEANT4
 //!@{
 //! Do nothing if Geant4 is disabled (source file will not be compiled)
-inline ScopedGeantExceptionHandler::ScopedGeantExceptionHandler() {}
-inline ScopedGeantExceptionHandler::~ScopedGeantExceptionHandler() {}
+inline ScopedGeantExceptionHandler::ScopedGeantExceptionHandler(
+    StdExceptionHandler)
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+inline ScopedGeantExceptionHandler::~ScopedGeantExceptionHandler()
+{
+    CELER_ASSERT_UNREACHABLE();
+}
 //!@}
 #endif
 
