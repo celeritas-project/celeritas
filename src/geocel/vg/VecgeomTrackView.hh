@@ -401,7 +401,7 @@ CELER_FUNCTION Real3 VecgeomTrackView::normal() const
     vecgeom::Vector3D<vecgeom::Precision> normal;
     auto pos = detail::to_vector(this->pos());
     auto ok = this->is_on_boundary() ? vgstate_.Top()->Normal(pos, normal)
-                                : vgnext_.Top()->Normal(pos, normal);
+                                     : vgnext_.Top()->Normal(pos, normal);
     CELER_ENSURE(ok);
     return Real3(normal);
 }
