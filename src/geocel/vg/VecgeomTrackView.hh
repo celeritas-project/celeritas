@@ -397,7 +397,13 @@ CELER_FUNCTION bool VecgeomTrackView::is_on_boundary() const
  */
 CELER_FUNCTION Real3 VecgeomTrackView::normal() const
 {
-    CELER_NOT_IMPLEMENTED("VecgeomTrackView::normal");
+    CELER_EXPECT(this->is_on_boundary() || this->is_next_boundary());
+    vecgeom::Vector3D<vecgeom::Precision> normal;
+    auto pos = detail::to_vector(this->pos());
+    auto ok = this->is_on_boundary() ? vgstate_.Top()->Normal(pos, normal)
+                                : vgnext_.Top()->Normal(pos, normal);
+    CELER_ENSURE(ok);
+    return Real3(normal);
 }
 
 //---------------------------------------------------------------------------//
