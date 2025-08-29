@@ -66,5 +66,5 @@ celeritas_g4_add_tests(fastsim-offload ${_needs_g411})
 
 if(Geant4_VERSION VERSION_GREATER_EQUAL 11.0)
   # Requires 11.0 to build
-  add_example(trackingmanager-offload)
+  celeritas_g4_add_tests(trackingmanager-offload)
 endif()
