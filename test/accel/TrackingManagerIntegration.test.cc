@@ -76,8 +76,12 @@ TEST_F(LarSphere, run)
     cout << "initializing" << endl;
     rm.Initialize();
     cout << "beam on" << endl;
-    rm.BeamOn(4);
-    cout << "done" << endl;
+
+    rm.BeamOn(3);
+    cout << "initial run done" << endl;
+
+    rm.BeamOn(1);
+    cout << "second run done" << endl;
 }
 
 //---------------------------------------------------------------------------//

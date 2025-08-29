@@ -20,7 +20,7 @@ celeritas_add_test_library(testcel_accel
 )
 celeritas_target_link_libraries(testcel_accel
   PUBLIC
-    testcel_celeritas testcel_harness Celeritas::accel
+    testcel_celeritas_g4 testcel_harness Celeritas::accel
   PRIVATE
     ${_g4_libs}
 )

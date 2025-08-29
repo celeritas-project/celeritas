@@ -34,7 +34,7 @@ namespace test
  * Calling setup_run_manager will:
  * - Create G4RunManager using the factory
  * - Create and set the detector construction, calling \c gdml_basename on the
- * main thread to load the detector
+ *   main thread to load the detector
  * - Create and set the physics list by calling \c make_physics_list
  * - Create and set the internal action initialization
  *

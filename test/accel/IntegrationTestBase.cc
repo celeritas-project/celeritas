@@ -19,6 +19,13 @@
 #include <G4VUserPrimaryGeneratorAction.hh>
 #include <G4Version.hh>
 
+#if G4VERSION_NUMBER >= 1100
+#    include <G4RunManagerFactory.hh>
+#else
+#    include <G4MTRunManager.hh>
+#endif
+
+#include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/TypeDemangler.hh"
@@ -29,16 +36,10 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/ext/EmPhysicsList.hh"
+#include "celeritas/ext/SimpleSensitiveDetector.hh"
+#include "celeritas/g4/DetectorConstruction.hh"
 #include "celeritas/inp/Events.hh"
 #include "celeritas/phys/PDGNumber.hh"
-#if G4VERSION_NUMBER >= 1100
-#    include <G4RunManagerFactory.hh>
-#else
-#    include <G4MTRunManager.hh>
-#endif
-
-#include "corecel/io/Logger.hh"
-#include "celeritas/g4/DetectorConstruction.hh"
 #include "accel/AlongStepFactory.hh"
 #include "accel/PGPrimaryGeneratorAction.hh"
 #include "accel/SetupOptions.hh"
@@ -165,7 +166,7 @@ class ActionInitialization final : public G4VUserActionInitialization
 
         // Primary generator
         auto pg_inp = test_->make_primary_input();
-        pg_inp.num_events = 100;
+        CELER_VALIDATE(pg_inp, << "incomplete primary input");
         this->SetUserAction(new PGPrimaryGeneratorAction{std::move(pg_inp)});
 
         // User actions
@@ -304,9 +305,6 @@ SetupOptions IntegrationTestBase::make_setup_options()
     // Use a uniform (zero) magnetic field
     opts.make_along_step = celeritas::UniformAlongStepFactory();
 
-    // TODO: add SD to integration test base
-    opts.sd.enabled = false;
-
     // Save diagnostic file to a unique name
     opts.output_file = this->make_unique_filename(".out.json");
     return opts;
@@ -341,8 +339,10 @@ auto LarSphereIntegrationMixin::make_primary_input() const -> PrimaryInput
     PrimaryInput result;
     result.pdg = {pdg::electron()};
     result.energy = inp::MonoenergeticDistribution{units::MevEnergy{10}};
-    result.shape = inp::PointDistribution{from_cm({1, 2, 3})};
+    result.shape = inp::PointDistribution{from_cm({99, 0.1, 0})};
     result.angle = inp::IsotropicDistribution{};
+    result.num_events = 4;
+    result.primaries_per_event = 10;
     return result;
 }
 
@@ -355,7 +355,7 @@ auto LarSphereIntegrationMixin::make_sens_det(std::string const& sd_name)
 {
     EXPECT_EQ("detector", sd_name);
 
-    return nullptr;
+    return std::make_unique<SimpleSensitiveDetector>(sd_name);
 }
 
 //---------------------------------------------------------------------------//
@@ -383,6 +383,8 @@ auto TestEm3IntegrationMixin::make_primary_input() const -> PrimaryInput
     result.energy = inp::MonoenergeticDistribution{units::MevEnergy{100}};
     result.shape = inp::PointDistribution{from_cm({-22, 0, 0})};
     result.angle = inp::MonodirectionalDistribution{Real3{1, 0, 0}};
+    result.num_events = 2;
+    result.primaries_per_event = 1;
     return result;
 }
 
@@ -395,7 +397,7 @@ auto TestEm3IntegrationMixin::make_sens_det(std::string const& sd_name)
 {
     EXPECT_EQ("lAr", sd_name);
 
-    return nullptr;
+    return std::make_unique<SimpleSensitiveDetector>(sd_name);
 }
 
 //---------------------------------------------------------------------------//
