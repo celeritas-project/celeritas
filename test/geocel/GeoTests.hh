@@ -395,11 +395,25 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         // Check for surfaces: we should hit the outside of the sphere Shape2
         auto next = geo.find_next_step(from_cm(1.0));
         EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
-        // Move to the boundary but scatter perpendicularly, away from the
-        // sphere
+
+        // Move to the boundary without changing volume
         geo.move_to_boundary();
         EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_EQ("Shape1", test->volume_name(geo));
+
+        // then scatter perpendicularly, away from the sphere
         geo.set_dir({0, 1, 0});
+        next = geo.find_next_step(from_cm(1.0)); // fix vgnext_ after set_dir()
+        EXPECT_EQ("Shape1", test->volume_name(geo));
+#ifdef VECGEOM_USE_SURF
+        EXPECT_SOFT_EQ(1, to_cm(next.distance));
+#else
+        geo.move_to_boundary(); // re-synch solids-model with surface-model
+        next = geo.find_next_step(from_cm(1.0)); // fix vgnext_ after set_dir()
+        EXPECT_SOFT_EQ(1, to_cm(next.distance));
+#endif
+        next = geo.find_next_step(from_cm(10.0));
+        EXPECT_SOFT_EQ(6, to_cm(next.distance));
         EXPECT_TRUE(geo.is_on_boundary());
         EXPECT_EQ("Shape1", test->volume_name(geo));
 
@@ -407,17 +421,27 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         next = geo.find_next_step(from_cm(10.0));
         EXPECT_SOFT_EQ(6, to_cm(next.distance));
         geo.set_dir({-1, 0, 0});
+        next = geo.find_next_step(from_cm(10.0)); // fix vgnext_ after set_dir()
         EXPECT_EQ("Shape1", test->volume_name(geo));
 
         // Move to the sphere boundary then scatter still into the sphere
-        next = geo.find_next_step(from_cm(10.0));
-        // TODO: investigate near-zero movement
-        auto expected_distance = to_cm(is_surface_vg ? 1e-13 : 1e-8);
+        auto expected_distance = to_cm(1e-13);
         EXPECT_SOFT_EQ(expected_distance, next.distance);
         EXPECT_TRUE(next.boundary);
         geo.move_to_boundary();
         EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_EQ("Shape1", test->volume_name(geo));
+
         geo.set_dir({0, -1, 0});
+        next = geo.find_next_step(from_cm(10.0)); // fix vgnext_ after set_dir()
+        //EXPECT_EQ(geo.next_volume().GetName(),
+        //          test->volume_name(geo.next_volume_id()));
+#ifndef VECGEOM_USE_SURF
+        EXPECT_SOFT_EQ(1.e-13, to_cm(next.distance));
+        geo.move_to_boundary(); // re-synch solids-model with surface-model
+        next = geo.find_next_step(from_cm(10.0));
+#endif
+        EXPECT_SOFT_EQ(6, to_cm(next.distance));
         EXPECT_TRUE(geo.is_on_boundary());
         geo.cross_boundary();
         EXPECT_EQ("Shape2", test->volume_name(geo));
