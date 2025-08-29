@@ -21,7 +21,7 @@ namespace celeritas
  * Limitations:
  * - No support for generic ions
  * - No hadronic EM interactions
- * - Coulomb scattering is disabled by default
+ * - Wentzel VI MSC is not supported
  * - No muon energy loss fluctuation model is implemented
  *
  * Electron/positron processes:

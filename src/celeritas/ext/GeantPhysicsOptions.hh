@@ -177,7 +177,7 @@ struct GeantPhysicsOptions
     MevEnergy lowest_electron_energy{0.001};  // 1 keV
     //! Tracking cutoff kinetic energy for muons/hadrons
     MevEnergy lowest_muhad_energy{0.001};  // 1 keV
-    //! Kill secondaries from gamma processes below the production cut
+    //! Kill secondaries below the production cut
     bool apply_cuts{false};
     //! Set the default production cut for all particle types [len]
     double default_cutoff{0.1 * units::centimeter};
