@@ -9,6 +9,7 @@
 #include <G4RunManager.hh>
 #include <G4VModularPhysicsList.hh>
 
+#include "accel/SetupOptions.hh"
 #include "accel/TrackingManagerConstructor.hh"
 #include "accel/detail/IntegrationSingleton.hh"
 

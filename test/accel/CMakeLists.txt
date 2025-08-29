@@ -44,7 +44,7 @@ celeritas_add_test(RZMapMagneticField.test.cc)
 # INTEGRATION TESTS
 #-----------------------------------------------------------------------------#
 set(_integration_tests
-  #UserActionIntegration
+  UserActionIntegration
   TrackingManagerIntegration
 )
 foreach(_basename IN LISTS _integration_tests)
@@ -65,6 +65,7 @@ foreach(_basename IN LISTS _integration_tests)
       celeritas_g4_add_tests(${_target}
         NAME "${_name}:${_suite}.${_test}"
         ARGS "--gtest_filter=${_suite}.${_test}"
+        LABELS unit
       )
     endforeach()
   endforeach()

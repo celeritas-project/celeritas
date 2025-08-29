@@ -9,6 +9,9 @@
 #include <memory>
 #include <G4RunManager.hh>
 
+#include "accel/SetupOptions.hh"
+#include "accel/detail/IntegrationSingleton.hh"
+
 #include "IntegrationTestBase.hh"
 #include "celeritas_test.hh"
 
@@ -48,6 +51,10 @@ class UAITestBase : virtual public IntegrationTestBase
     void EndOfEventAction(G4Event const* event) override
     {
         UAI::Instance().EndOfEventAction(event);
+
+        auto const& local_transport
+            = detail::IntegrationSingleton::local_transporter();
+        EXPECT_EQ(0, local_transport.GetBufferSize());
     }
     UPTrackAction make_tracking_action() override
     {
@@ -84,7 +91,7 @@ class TestEm3 : public TestEm3IntegrationMixin, public UAITestBase
 TEST_F(TestEm3, run)
 {
     auto& rm = this->run_manager();
-    UAI::Instance().SetOptions(this->MakeOptions());
+    UAI::Instance().SetOptions(this->make_setup_options());
 
     rm.Initialize();
     rm.BeamOn(2);
