@@ -6,37 +6,28 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas/optical/CoreParams.hh"
+#include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/surface/SurfaceModel.hh"
+#include "celeritas/optical/surface/TrackSlotExecutor.hh"
 
-#include "GaussianRoughnessModel.hh"
-#include "PolishedRoughnessModel.hh"
 #include "RoughnessApplier.hh"
-#include "SmearRoughnessModel.hh"
 
 namespace celeritas
 {
 namespace optical
 {
 //---------------------------------------------------------------------------//
-/*!
- * Brief class description.
- *
- * Optional detailed class description, and possibly example usage:
- * \code
-    RoughnessModel ...;
-   \endcode
- */
-template<class Controller>
 class RoughnessModel : public SurfaceModel
 {
   public:
     template<class T>
-    static std::shared_ptr<RoughnessModel<Controller>>
-    build_model(SurfaceModelId model_id,
-                std::map<PhysSurfaceId, T> const& layer_map)
+    static std::shared_ptr<T>
+    from_input(SurfaceModelId model_id,
+               std::map<PhysSurfaceId, typename T::InputT> const& layer_map)
     {
         std::vector<PhysSurfaceId> surfaces;
-        std::vector<T> inputs;
+        std::vector<typename T::InputT> inputs;
 
         for (auto const& [surface, input] : layer_map)
         {
@@ -48,40 +39,33 @@ class RoughnessModel : public SurfaceModel
         CELER_ENSURE(surfaces.size() == layer_map.size());
         CELER_ENSURE(inputs.size() == layer_map.size());
 
-        return std::make_shared<RoughnessModel>(model_id,
-                                                Controller::label,
-                                                std::move(surfaces),
-                                                Controller{inputs});
+        return std::make_shared<T>(model_id, std::move(surfaces), inputs);
     }
 
     std::vector<PhysSurfaceId> get_surfaces() const final { return surfaces_; }
 
-    void step(CoreParams const& params, CoreStateHost& state) const final;
-
-    void step(CoreParams const&, CoreStateDevice&) const final;
-
+  protected:
     RoughnessModel(SurfaceModelId model_id,
                    std::string_view label,
-                   std::vector<PhysSurfaceId> surfaces,
-                   Controller controller)
-        : SurfaceModel(model_id, label)
-        , controller_(std::move(controller))
-        , surfaces_(std::move(surfaces))
+                   std::vector<PhysSurfaceId> surfaces)
+        : SurfaceModel(model_id, label), surfaces_(std::move(surfaces))
     {
     }
 
-  protected:
-    Controller controller_;
+    template<MemSpace M, class E>
+    auto
+    make_executor(CoreParams const& params, CoreState<M>& state, E&& exec) const
+    {
+        return make_surface_physics_executor(
+            params.ptr<M>(),
+            state.ptr(),
+            SurfacePhysicsOrder::roughness,
+            this->surface_model_id(),
+            RoughnessApplier{std::forward<E>(exec)});
+    }
+
     std::vector<PhysSurfaceId> surfaces_;
 };
-
-extern template class RoughnessModel<SmearRoughnessModelController>;
-extern template class RoughnessModel<PolishedRoughnessModelController>;
-extern template class RoughnessModel<GaussianRoughnessModelController>;
-
-using SmearRoughnessModel = RoughnessModel<SmearRoughnessModelController>;
-using PolishedRoughnessModel = RoughnessModel<PolishedRoughnessModelController>;
-using GaussianRoughnessModel = RoughnessModel<GaussianRoughnessModelController>;
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

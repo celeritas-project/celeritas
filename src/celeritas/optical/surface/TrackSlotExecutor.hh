@@ -9,10 +9,6 @@
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
-#if !CELER_DEVICE_COMPILE
-#    include "corecel/io/Logger.hh"
-#endif
-
 namespace celeritas
 {
 namespace optical
@@ -26,23 +22,8 @@ struct IsSurfaceModelEqual
 
     inline CELER_FUNCTION bool operator()(CoreTrackView const& track) const
     {
-        if (!track.surface_physics().is_crossing_boundary())
-        {
-            return false;
-        }
-        // #if !CELER_DEVICE_COMPILE
-        //         if (!is_soft_unit_vector(track.geometry().dir()))
-        //         {
-        //             CELER_LOG_LOCAL(error)
-        //                 << " track surface: "
-        //                 << track.surface_physics().surface().unchecked_get()
-        //                 << " (invalid: " << SurfaceId{}.unchecked_get()
-        //                 << ", is_crossing_boundary: "
-        //                 << track.surface_physics().is_crossing_boundary() <<
-        //                 ")";
-        //         }
-        // #endif
-        return track.surface_model(step).surface_model() == model;
+        return track.surface_physics().is_crossing_boundary()
+               && track.surface_model(step).surface_model() == model;
     }
 };
 

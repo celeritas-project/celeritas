@@ -6,10 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <string_view>
-#include <vector>
-
-#include "PolishedRoughnessExecutor.hh"
+#include "RoughnessModel.hh"
 
 namespace celeritas
 {
@@ -21,25 +18,18 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- * Optional detailed class description, and possibly example usage:
- * \code
-    PolishedRoughnessModel ...;
-   \endcode
  */
-class PolishedRoughnessModelController
+class PolishedRoughnessModel : public RoughnessModel
 {
   public:
-    constexpr static std::string_view label = "polished";
+    using InputT = inp::NoRoughness;
 
-    PolishedRoughnessModelController(std::vector<inp::NoRoughness> const&) {}
+    PolishedRoughnessModel(SurfaceModelId model,
+                           std::vector<PhysSurfaceId> surfaces,
+                           std::vector<inp::NoRoughness> const&);
 
-    template<MemSpace M>
-    PolishedRoughnessExecutorBuilder make_builder() const
-    {
-        return PolishedRoughnessExecutorBuilder{};
-    }
+    void step(CoreParams const& params, CoreStateHost& state) const final;
+    void step(CoreParams const&, CoreStateDevice&) const final;
 };
 
 //---------------------------------------------------------------------------//

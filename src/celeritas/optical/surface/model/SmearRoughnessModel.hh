@@ -6,38 +6,33 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionMirror.hh"
-#include "celeritas/inp/SurfacePhysics.hh"
 
+#include "RoughnessModel.hh"
 #include "SmearRoughnessData.hh"
-#include "SmearRoughnessExecutor.hh"
 
 namespace celeritas
 {
+namespace inp
+{
+struct SmearRoughness;
+}
 namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- * Optional detailed class description, and possibly example usage:
- * \code
-    SmearRoughnessModel ...;
-   \endcode
  */
-class SmearRoughnessModelController
+class SmearRoughnessModel : public RoughnessModel
 {
   public:
-    constexpr static std::string_view label = "smear";
+    using InputT = inp::SmearRoughness;
 
-    SmearRoughnessModelController(std::vector<inp::SmearRoughness> const& input);
+    SmearRoughnessModel(SurfaceModelId model,
+                        std::vector<PhysSurfaceId> surfaces,
+                        std::vector<InputT> const& inputs);
 
-    template<MemSpace M>
-    SmearRoughnessExecutorBuilder make_builder() const
-    {
-        return SmearRoughnessExecutorBuilder{data_.ref<M>()};
-    }
+    void step(CoreParams const& params, CoreStateHost& state) const final;
+    void step(CoreParams const&, CoreStateDevice&) const final;
 
   private:
     CollectionMirror<SmearRoughnessData> data_;

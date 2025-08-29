@@ -6,33 +6,33 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionMirror.hh"
-#include "celeritas/inp/SurfacePhysics.hh"
 
 #include "GaussianRoughnessData.hh"
-#include "GaussianRoughnessExecutor.hh"
+#include "RoughnessModel.hh"
 
 namespace celeritas
 {
+namespace inp
+{
+struct GaussianRoughness;
+}
 namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
  */
-class GaussianRoughnessModelController
+class GaussianRoughnessModel : public RoughnessModel
 {
   public:
-    constexpr static std::string_view label = "gaussian";
+    using InputT = inp::GaussianRoughness;
 
-    GaussianRoughnessModelController(
-        std::vector<inp::GaussianRoughness> const& input);
+    GaussianRoughnessModel(SurfaceModelId model,
+                           std::vector<PhysSurfaceId> surfaces,
+                           std::vector<InputT> const& inputs);
 
-    template<MemSpace M>
-    GaussianRoughnessExecutorBuilder make_builder() const
-    {
-        return GaussianRoughnessExecutorBuilder{data_.ref<M>()};
-    }
+    void step(CoreParams const& params, CoreStateHost& state) const final;
+    void step(CoreParams const&, CoreStateDevice&) const final;
 
   private:
     CollectionMirror<GaussianRoughnessData> data_;

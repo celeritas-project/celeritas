@@ -11,7 +11,9 @@
 #include "celeritas/inp/SurfacePhysics.hh"
 #include "celeritas/phys/SurfacePhysicsMapBuilder.hh"
 
-#include "model/RoughnessModel.hh"
+#include "model/GaussianRoughnessModel.hh"
+#include "model/PolishedRoughnessModel.hh"
+#include "model/SmearRoughnessModel.hh"
 
 namespace celeritas
 {
@@ -79,13 +81,13 @@ class FakeModelBuilder
         }
     }
 
-    template<class M, class T>
-    void build(std::map<PhysSurfaceId, T> const& layer_map)
+    template<class M>
+    void build(std::map<PhysSurfaceId, typename M::InputT> const& layer_map)
     {
         if (!layer_map.empty())
         {
-            models_.push_back(
-                M::build_model(SurfaceModelId(models_.size()), layer_map));
+            models_.push_back(RoughnessModel::from_input<M>(
+                SurfaceModelId(models_.size()), layer_map));
             num_surf_ += layer_map.size();
         }
     }
@@ -212,11 +214,10 @@ auto SurfacePhysicsParams::build_models(
         switch (step)
         {
             case SurfacePhysicsOrder::roughness:
-                build_model.build<PolishedRoughnessModel, inp::NoRoughness>(
+                build_model.build<PolishedRoughnessModel>(
                     input.roughness.polished);
-                build_model.build<SmearRoughnessModel, inp::SmearRoughness>(
-                    input.roughness.smear);
-                build_model.build<GaussianRoughnessModel, inp::GaussianRoughness>(
+                build_model.build<SmearRoughnessModel>(input.roughness.smear);
+                build_model.build<GaussianRoughnessModel>(
                     input.roughness.gaussian);
                 break;
             case SurfacePhysicsOrder::reflectivity:
