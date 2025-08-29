@@ -27,7 +27,8 @@ enum class ImportModelClass
     rayleigh,
     wls,
     wls2,
-    size_
+    size_,
+    mie
 };
 
 //---------------------------------------------------------------------------//

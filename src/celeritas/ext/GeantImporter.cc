@@ -33,6 +33,7 @@
 #include <G4NuclearFormfactorType.hh>
 #include <G4NucleiProperties.hh>
 #include <G4OpAbsorption.hh>
+#include <G4OpMieHG.hh>
 #include <G4OpRayleigh.hh>
 #include <G4OpWLS.hh>
 #include <G4ParticleDefinition.hh>
@@ -985,6 +986,14 @@ auto import_processes(GeantImporter::DataSelection selected,
             optical_models.push_back(
                 import_optical_model(optical::ImportModelClass::wls));
         }
+        //  CELER_LOG(debug)<<"Adding mie";
+        else if (import_optical_model
+                 && dynamic_cast<G4OpMieHG const*>(&process))
+        {
+            optical_models.push_back(
+                import_optical_model(optical::ImportModelClass::mie));
+        }
+
 #if G4VERSION_NUMBER >= 1070
         else if (import_optical_model
                  && dynamic_cast<G4OpWLS2 const*>(&process))
