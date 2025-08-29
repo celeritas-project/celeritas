@@ -136,7 +136,7 @@ if use_celeritas:
             json.dump(j, f, indent=1)
 
 if result.returncode:
-    print("fatal: run failed with error", result.returncode)
+    print("fatal: celer-g4 returned error code", result.returncode)
     if use_celeritas:
         try:
             j = json.loads(result.stdout.decode())
