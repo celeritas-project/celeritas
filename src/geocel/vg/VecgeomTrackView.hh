@@ -29,10 +29,8 @@
 
 #ifdef VECGEOM_USE_SURF
 #    include "detail/SurfNavigator.hh"
-#elif VECGEOM_VERSION >= 0x020000
-#    include <VecGeom/navigation/BVHNavigator.h>
 #else
-#    include "detail/BVHNavigator.hh"
+#    include "detail/SolidsNavigator.hh"
 #endif
 
 namespace celeritas
@@ -61,10 +59,8 @@ class VecgeomTrackView
     using StateRef = NativeRef<VecgeomStateData>;
 #ifdef VECGEOM_USE_SURF
     using Navigator = celeritas::detail::SurfNavigator;
-#elif VECGEOM_VERSION >= 0x020000
-    using Navigator = vecgeom::BVHNavigator;
 #else
-    using Navigator = celeritas::detail::BVHNavigator;
+    using Navigator = celeritas::detail::SolidsNavigator;
 #endif
     //!@}
 
