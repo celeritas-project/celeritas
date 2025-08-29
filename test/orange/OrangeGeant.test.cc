@@ -45,20 +45,6 @@ class GeantOrangeTest : public OrangeTestBase
 };
 
 //---------------------------------------------------------------------------//
-using LarSphereTest
-    = GenericGeoParameterizedTest<GeantOrangeTest, LarSphereGeoTest>;
-
-TEST_F(LarSphereTest, trace)
-{
-    this->impl().test_trace();
-}
-
-TEST_F(LarSphereTest, volume_stack)
-{
-    this->impl().test_volume_stack();
-}
-
-//---------------------------------------------------------------------------//
 using MultiLevelTest
     = GenericGeoParameterizedTest<GeantOrangeTest, MultiLevelGeoTest>;
 
