@@ -21,18 +21,12 @@ namespace celeritas
  * one map for roughness, one for reflectivity, and one for interaction.
  *
  * If a \c SurfaceModel with ID 10 returns a list of surfaces `{3, 1, 5}` and
- * another with ID 11 returns `{{}, 0, 4}`, then this class will have a
+ * another with ID 11 returns `{6, 0, 4}`, then this class will have a
  * key-value mapping stored as two arrays:
  * \code
  * surface_models = {11, 10, <null>, 10, 11, 10, 11};
  * internal_surface_ids = {1, 1, <null>, 0, 2, 2, 0};
  * \endcode
- *
- * Note that the "default" surface (the empty item returned by the second
- * surface model) becomes an additional pseudo-surface at the end of the array.
- * <b>The surface physics will always have one more surface entry than the
- * actual geometry.</b> \todo This will change when we map geometric surfaces
- * to vectors of physics surface interfaces.
  *
  * With this setup, \c Collection data can be accessed locally by indexing on
  * \c ModelSurfaceId .
@@ -40,13 +34,15 @@ namespace celeritas
 template<Ownership W, MemSpace M>
 struct SurfacePhysicsMapData
 {
-    //// TYPES ////
+    //!@{
+    //! \name Type aliases
 
-    using PhysSurfaceId = SurfaceModel::PhysSurfaceId;
-    using SurfaceModelId = SurfaceModel::SurfaceModelId;
     using InternalSurfaceId = SurfaceModel::InternalSurfaceId;
+
     template<class T>
     using SurfaceItems = Collection<T, W, M, PhysSurfaceId>;
+
+    //!@}
 
     //// DATA ////
 

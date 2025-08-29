@@ -9,7 +9,7 @@
 #include <iostream>
 
 #include "corecel/io/StreamableVariant.hh"
-#include "geocel/GeantGeoParams.hh"
+#include "geocel/VolumeParams.hh"
 #include "orange/orangeinp/CsgObject.hh"
 #include "orange/orangeinp/PolySolid.hh"
 #include "orange/orangeinp/Transformed.hh"
@@ -55,8 +55,7 @@ auto ProtoConstructor::operator()(PhysicalVolume const& pv) -> SPUnitProto
 {
     LogicalVolume const& lv = *pv.lv;
 
-    // XXX replace with VolumeParams
-    auto const& label = geo_.impl_volumes().at(lv.id);
+    auto const& label = volumes_.volume_labels().at(lv.id);
 
     ProtoInput input;
     input.boundary.interior = lv.solid;
@@ -128,7 +127,8 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
 
     if (CELER_UNLIKELY(verbose_))
     {
-        std::clog << std::string(depth_, ' ') << "- Add pv ID " << pv.id.get()
+        std::clog << std::string(depth_, ' ') << "- Add pv "
+                  << volumes_.volume_instance_labels().at(pv.id)
                   << " use_count=" << pv.lv.use_count()
                   << ", num_children=" << pv.lv->children.size() << ", at "
                   << StreamableVariant{transform} << " to " << proto->label
@@ -262,12 +262,12 @@ auto ProtoConstructor::make_explicit_background(
     }
     else
     {
-        auto const& name = geo_.impl_volumes().at(lv.id).name;
+        auto const& name = volumes_.volume_labels().at(lv.id).name;
         interior = std::make_shared<AnyObjects>(name + ".children",
                                                 std::move(children));
     }
 
-    auto const& name = geo_.impl_volumes().at(lv.id).name;
+    auto const& name = volumes_.volume_labels().at(lv.id).name;
     return Transformed::or_object(
         orangeinp::make_subtraction(std::string{name}, lv.solid, interior),
         transform);

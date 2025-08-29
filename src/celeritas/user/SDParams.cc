@@ -6,9 +6,11 @@
 //---------------------------------------------------------------------------//
 #include "SDParams.hh"
 
+#include <unordered_map>
+
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/io/Join.hh"
-#include "geocel/GeoVolumeFinder.hh"
+#include "geocel/GeoParamsInterface.hh"
+#include "geocel/VolumeCollectionBuilder.hh"
 
 namespace celeritas
 {
@@ -16,31 +18,22 @@ namespace celeritas
 /*!
  * Construct from list of volume labels.
  */
-SDParams::SDParams(VecLabel const& volume_labels, GeoParamsInterface const& geo)
+SDParams::SDParams(GeoParamsInterface const& geo, VecVolId&& volume_ids)
+    : volume_ids_{std::move(volume_ids)}
 {
-    CELER_EXPECT(!volume_labels.empty());
+    CELER_EXPECT(!volume_ids_.empty());
 
     // Map labels to volume IDs
-    volume_ids_.resize(volume_labels.size());
+    auto const num_impl_volumes = geo.impl_volumes().size();
 
-    std::vector<std::reference_wrapper<Label const>> missing;
-    GeoVolumeFinder find_volume(geo);
-    for (auto i : range(volume_labels.size()))
-    {
-        volume_ids_[i] = find_volume(volume_labels[i]);
-        if (!volume_ids_[i])
-        {
-            missing.emplace_back(volume_labels[i]);
-        }
-    }
+    CELER_VALIDATE(std::all_of(volume_ids_.begin(),
+                               volume_ids_.end(),
+                               [num_impl_volumes](VolumeId id) {
+                                   return id < num_impl_volumes;
+                               }),
+                   << "invalid volume IDs given to SDParams");
 
-    CELER_VALIDATE(missing.empty(),
-                   << "failed to find " << cmake::core_geo
-                   << " volume(s) for labels '"
-                   << join(missing.begin(), missing.end(), "', '"));
-    CELER_ENSURE(volume_ids_.size() == volume_labels.size());
-
-    std::map<ImplVolumeId, DetectorId> detector_map;
+    std::unordered_map<VolumeId, DetectorId> detector_map;
     for (auto didx : range<DetectorId::size_type>(volume_ids_.size()))
     {
         detector_map[volume_ids_[didx]] = DetectorId{didx};
@@ -48,16 +41,9 @@ SDParams::SDParams(VecLabel const& volume_labels, GeoParamsInterface const& geo)
 
     mirror_ = CollectionMirror{[&] {
         HostVal<SDParamsData> host_data;
-        std::vector<DetectorId> temp_det(geo.impl_volumes().size(),
-                                         DetectorId{});
-        for (auto const& det_pair : detector_map)
-        {
-            CELER_ASSERT(det_pair.first < temp_det.size());
-            temp_det[det_pair.first.unchecked_get()] = det_pair.second;
-        }
-        CollectionBuilder{&host_data.detector}.insert_back(temp_det.begin(),
-                                                           temp_det.end());
-
+        host_data.detector = build_volume_collection<DetectorId>(
+            geo, VolumeMapFiller{detector_map});
+        CELER_ENSURE(host_data);
         return host_data;
     }()};
 }

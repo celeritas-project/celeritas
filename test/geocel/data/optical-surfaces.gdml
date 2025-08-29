@@ -96,6 +96,10 @@
       <solidref ref="sphere"/>
       <materialref ref="lAr"/>
     </volume>
+    <volume name="death">
+      <solidref ref="sphere"/>
+      <materialref ref="Acrylic"/>
+    </volume>
     <volume name="tube1_mid">
       <solidref ref="tube1"/>
       <materialref ref="Acrylic"/>
@@ -110,6 +114,10 @@
       <physvol name="lar_pv">
         <volumeref ref="lar_sphere"/>
         <position name="lar_pos" unit="cm" x="20" y="0" z="0"/>
+      </physvol>
+      <physvol name="death_pv">
+        <volumeref ref="death"/>
+        <position name="death_pos" unit="cm" x="-20" y="0" z="0"/>
       </physvol>
       <physvol name="tube2_below_pv">
         <volumeref ref="tube2"/>

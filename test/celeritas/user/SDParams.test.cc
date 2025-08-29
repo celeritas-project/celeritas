@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
+#include "geocel/VolumeParams.hh"
 #include "celeritas/GlobalTestBase.hh"
 #include "celeritas/OnlyCoreTestBase.hh"
 #include "celeritas/OnlyGeoTestBase.hh"
@@ -28,50 +29,74 @@ namespace test
 class SDParamsTest : public OnlyGeoTestBase
 {
   public:
-    using VecLabel = std::vector<Label>;
+    using VecStr = std::vector<std::string>;
+    using VecVolId = std::vector<VolumeId>;
+
     std::string_view gdml_basename() const override
     {
         return "testem3-flat"sv;
+    }
+
+    VecVolId find_volumes(VecStr const& labels)
+    {
+        auto const& vols = this->volumes();
+        CELER_VALIDATE(vols, << "volumes were not set up");
+
+        VecVolId result;
+        auto const& all_vol_labels = vols->volume_labels();
+        for (auto const& name : labels)
+        {
+            result.push_back(all_vol_labels.find_unique(name));
+            CELER_VALIDATE(result.back(),
+                           << "invalid detector volume " << name);
+        }
+        return result;
     }
 };
 
 TEST_F(SDParamsTest, empty_constructor_test)
 {
-    auto params = std::make_shared<SDParams>();
+    SDParams params;
+    EXPECT_TRUE(params.empty());
 
     if (CELERITAS_DEBUG)
     {
         auto det_id = DetectorId{0};
         auto vol_id = ImplVolumeId{0};
-        EXPECT_THROW(params->volume_to_detector_id(vol_id),
+        EXPECT_THROW(params.volume_to_detector_id(vol_id),
                      celeritas::DebugError);
-        EXPECT_THROW(params->detector_to_volume_id(det_id),
+        EXPECT_THROW(params.detector_to_volume_id(det_id),
                      celeritas::DebugError);
     }
 }
 
 TEST_F(SDParamsTest, TEST_IF_CELERITAS_DEBUG(invalid_label_test))
 {
-    VecLabel detector_labels = {"invalid_label"};
-
-    EXPECT_THROW(auto params = std::make_shared<SDParams>(
-                     detector_labels, *(this->build_geometry())),
-                 celeritas::RuntimeError);
+    auto const& geo = *this->geometry();
+    EXPECT_THROW(SDParams(geo, {VolumeId{}}), celeritas::RuntimeError);
 }
 
 TEST_F(SDParamsTest, detector_test)
 {
-    VecLabel detector_labels = {"gap_10", "absorber_40", "absorber_31"};
+    VecStr detector_labels = {"gap_10", "absorber_40", "absorber_31"};
 
-    auto params = std::make_shared<SDParams>(detector_labels,
-                                             *(this->build_geometry()));
-    for (auto d_id : range(DetectorId{params->size()}))
+    auto const& geo = *this->geometry();
+    auto const& impl_volumes = this->geometry()->impl_volumes();
+
+    SDParams params(geo, this->find_volumes(detector_labels));
+    EXPECT_FALSE(params.empty());
+    EXPECT_EQ(3, params.size());
+
+    for (auto iv_id : range(ImplVolumeId{impl_volumes.size()}))
     {
-        auto v_id = params->detector_to_volume_id(d_id);
-        EXPECT_EQ(detector_labels[d_id.get()],
-                  this->geometry()->impl_volumes().at(v_id).name);
-        EXPECT_EQ(d_id, params->volume_to_detector_id(ImplVolumeId{v_id}));
+        auto det_id = params.volume_to_detector_id(iv_id);
+        if (det_id)
+        {
+            EXPECT_EQ(detector_labels[det_id.get()],
+                      this->geometry()->impl_volumes().at(iv_id).name);
+        }
     }
 }
+
 }  // namespace test
 }  // namespace celeritas

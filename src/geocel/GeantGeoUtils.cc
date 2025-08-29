@@ -22,12 +22,10 @@
 #include <G4PhysicalVolumeStore.hh>
 #include <G4ReflectionFactory.hh>
 #include <G4RegionStore.hh>
-#include <G4ReplicaNavigation.hh>
 #include <G4SolidStore.hh>
 #include <G4Threading.hh>
 #include <G4TouchableHistory.hh>
 #include <G4TransportationManager.hh>
-#include <G4VPVParameterisation.hh>
 #include <G4VPhysicalVolume.hh>
 #include <G4Version.hh>
 #include <G4ios.hh>
@@ -37,11 +35,7 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedStreamRedirect.hh"
-#include "corecel/math/Algorithms.hh"
 #include "orange/g4org/Converter.hh"
-
-#include "GeoParamsInterface.hh"
-#include "g4/VisitVolumes.hh"
 
 // Check Geant4-reported and CMake-configured versions, mapping from
 // Geant4's base-10 XXYZ -> to Celeritas base-16 0xXXYYZZ
@@ -51,8 +45,6 @@ static_assert(G4VERSION_NUMBER
                          + (CELERITAS_GEANT4_VERSION % 0x100),
               "CMake-reported Geant4 version does not match installed "
               "<G4Version.hh>: compare to 'corecel/Config.hh'");
-
-using ReplicaId = celeritas::GeantPhysicalInstance::ReplicaId;
 
 namespace celeritas
 {
@@ -75,25 +67,6 @@ void free_and_clear(std::vector<T*>* table)
     CELER_ASSERT(std::all_of(
         table->begin(), table->end(), [](T* ptr) { return ptr == nullptr; }));
     table->clear();
-}
-
-void update_replica(G4VPhysicalVolume* pv, ReplicaId replica)
-{
-    CELER_EXPECT(pv);
-    CELER_EXPECT(replica);
-    static G4ThreadLocal G4ReplicaNavigation nav_;
-    nav_.ComputeTransformation(replica.get(), pv);
-    pv->SetCopyNo(replica.get());
-}
-
-void update_parameterised(G4VPhysicalVolume* pv, ReplicaId replica)
-{
-    CELER_EXPECT(pv);
-    CELER_EXPECT(replica);
-    auto* param = pv->GetParameterisation();
-    CELER_ASSERT(param);
-    param->ComputeTransformation(replica.get(), pv);
-    pv->SetCopyNo(replica.get());
 }
 
 //---------------------------------------------------------------------------//
@@ -239,16 +212,6 @@ G4Field const* geant_field()
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether a physical volume is parameterized or replicated.
- */
-bool is_replica(G4VPhysicalVolume const& pv)
-{
-    auto vt = pv.VolumeType();
-    return (vt == EVolume::kReplica || vt == EVolume::kParameterised);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Find Geant4 logical volumes corresponding to a list of names.
  *
  * If logical volumes with duplicate names are present, they will all show up
@@ -297,93 +260,6 @@ find_geant_volumes(std::unordered_set<std::string> names)
                    << join(names.begin(), names.end(), ", "));
 
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Update a nav history to match the given pv stack.
- *
- * The resulting nav history always has at least one level (i.e. GetDepth is
- * zero). An empty input stack, corresponding to "outside" the world, results
- * in a nav history with one level but a \c nullptr physical volume as the top.
- *
- * \note The stack should have the same semantics as \c LevelId, i.e. the
- * initial entry is the "most global" level.
- */
-void set_history(Span<GeantPhysicalInstance const> stack,
-                 G4NavigationHistory* nav)
-{
-    CELER_EXPECT(std::all_of(stack.begin(), stack.end(), Identity{}));
-    CELER_EXPECT(nav);
-
-    size_type level = 0;
-    auto nav_stack_size
-        = [nav] { return static_cast<size_type>(nav->GetDepth()) + 1; };
-
-    // Loop deeper until stack and nav disagree
-    for (auto end_level = std::min<size_type>(stack.size(), nav_stack_size());
-         level != end_level;
-         ++level)
-    {
-        auto* nav_pv = nav->GetVolume(level);
-        if (nav_pv != stack[level].pv || stack[level].replica)
-        {
-            break;
-        }
-    }
-
-    if (CELER_UNLIKELY(level == 0))
-    {
-        // Top level disagrees: this should likely only happen when we're
-        // outside (i.e. stack is empty)
-        nav->Reset();
-        if (!stack.empty())
-        {
-            nav->SetFirstEntry(const_cast<G4VPhysicalVolume*>(stack[0].pv));
-            ++level;
-        }
-        else
-        {
-            nav->SetFirstEntry(nullptr);
-        }
-    }
-    else if (level < nav_stack_size())
-    {
-        // Decrease nav stack to the parent's level
-        nav->BackLevel(nav_stack_size() - level);
-        CELER_ASSERT(nav_stack_size() == level);
-    }
-
-    // Add all remaining levels: see G4Navigator::LocateGLobalPoint
-    for (auto end_level = stack.size(); level != end_level; ++level)
-    {
-        auto* pv = const_cast<G4VPhysicalVolume*>(stack[level].pv);
-        auto vol_type = pv->VolumeType();
-        auto replica = stack[level].replica;
-        switch (vol_type)
-        {
-            case EVolume::kNormal:
-                CELER_ASSERT(!replica);
-                replica = id_cast<ReplicaId>(pv->GetCopyNo());
-                break;
-            case EVolume::kReplica:
-                update_replica(pv, replica);
-                break;
-            case EVolume::kParameterised:
-                update_parameterised(pv, replica);
-                break;
-            default:
-                CELER_LOG_LOCAL(error)
-                    << R"(Encountered abnormal Geant4 volume inside navigation history: )"
-                    << pv->GetName() << "' inside "
-                    << PrintableNavHistory{nav};
-                break;
-        }
-        nav->NewLevel(pv, vol_type, replica.get());
-    }
-
-    CELER_ENSURE(nav_stack_size() == stack.size()
-                 || (stack.empty() && nav->GetDepth() == 0));
 }
 
 //---------------------------------------------------------------------------//
