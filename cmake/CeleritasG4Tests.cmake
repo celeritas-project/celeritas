@@ -64,9 +64,11 @@ function(celeritas_g4_add_one_test test_name target args labels offload rmtype)
     ${_celer_g4_test_env}
     "G4RUN_MANAGER_TYPE=${_rm_${rmtype}}"
   )
-  # TODO: gpu gets resource lock
   if(offload STREQUAL "cpu" AND (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP))
     list(APPEND _env "CELER_DISABLE_DEVICE=1")
+  elseif(offload STREQUAL "gpu")
+    list(APPEND _extra_props RESOURCE_LOCK gpu)
+    list(APPEND labels gpu)
   elseif(offload STREQUAL "g4")
     list(APPEND _env "CELER_DISABLE=1")
   elseif(offload STREQUAL "ko")

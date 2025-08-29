@@ -41,7 +41,7 @@ Miscellaneous utility functions.
 
     celeritas_get_g4env(<var>)
 
-.. celeritas_get_disable_device
+.. command:: celeritas_get_disable_device
 
   Set a variable based on the CELER_DISABLE_DEVICE environment, which
   can be used to disable GPU tests::
