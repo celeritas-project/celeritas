@@ -20,6 +20,7 @@
 #include "SimData.hh"
 #include "TrackInitData.hh"
 #include "Types.hh"
+#include "surface/SurfacePhysicsData.hh"
 
 namespace celeritas
 {
@@ -31,21 +32,12 @@ namespace optical
  */
 struct CoreScalars
 {
-    // TODO: maybe replace with a surface crossing manager to handle boundary
-    // conditions (see CoreParams.cc)
-    ActionId init_boundary_action{};
-    ActionId post_boundary_action{};
     ActionId tracking_cut_action;
 
     StreamId::size_type max_streams{0};
 
     //! True if assigned and valid
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return post_boundary_action
-               && init_boundary_action < post_boundary_action
-               && max_streams > 0;
-    }
+    explicit CELER_FUNCTION operator bool() const { return max_streams > 0; }
 };
 
 //---------------------------------------------------------------------------//
@@ -60,13 +52,15 @@ struct CoreParamsData
     PhysicsParamsData<W, M> physics;
     RngParamsData<W, M> rng;
     SurfaceParamsData<W, M> surface;
+    SurfacePhysicsParamsData<W, M> surface_physics;
 
     CoreScalars scalars;
 
     //! True if all params are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && material && physics && rng && scalars;
+        return geometry && material && physics && surface && surface_physics
+               && rng && scalars;
     }
 
     //! Assign from another set of data
@@ -79,6 +73,7 @@ struct CoreParamsData
         physics = other.physics;
         rng = other.rng;
         surface = other.surface;
+        surface_physics = other.surface_physics;
         scalars = other.scalars;
         return *this;
     }
@@ -100,6 +95,7 @@ struct CoreStateData
     PhysicsStateData<W, M> physics;
     RngStateData<W, M> rng;
     SimStateData<W, M> sim;
+    SurfacePhysicsStateData<W, M> surface_physics;
     TrackInitStateData<W, M> init;
 
     //! Unique identifier for "thread-local" data.
@@ -111,8 +107,8 @@ struct CoreStateData
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && particle && physics && rng && sim && init
-               && stream_id;
+        return geometry && particle && physics && rng && sim && surface_physics
+               && init && stream_id;
     }
 
     //! Assign from another set of data
@@ -125,6 +121,7 @@ struct CoreStateData
         physics = other.physics;
         rng = other.rng;
         sim = other.sim;
+        surface_physics = other.surface_physics;
         init = other.init;
         stream_id = other.stream_id;
         return *this;

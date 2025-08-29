@@ -725,22 +725,30 @@ void OpticalSurfacesGeoTest::test_model() const
 {
     auto result = test_->model_inp();
     GenericGeoModelInp ref;
-    ref.volume.labels = {"lar_sphere", "tube1_mid", "tube2", "world"};
-    ref.volume.materials = {1, 2, 2, 3};
-    ref.volume.daughters = {{}, {}, {}, {1, 2, 3, 4}};
-    ref.volume_instance.labels = {"world_PV",
-                                  "lar_pv",
-                                  "tube2_below_pv",
-                                  "tube1_mid_pv",
-                                  "tube2_above_pv"};
-    ref.volume_instance.volumes = {3, 0, 2, 1, 2};
+    ref.volume.labels = {"lar_sphere", "death", "tube1_mid", "tube2", "world"};
+    ref.volume.materials = {1, 2, 2, 2, 3};
+    ref.volume.daughters = {{}, {}, {}, {}, {0, 1, 2, 3, 4}};
+    ref.volume.labels = {"lar_sphere", "death", "tube1_mid", "tube2", "world"};
+    ref.volume.materials = {1, 2, 2, 2, 3};
+    ref.volume.daughters = {{}, {}, {}, {}, {1, 2, 3, 4, 5}};
+    ref.volume_instance.labels = {
+        "world_PV",
+        "lar_pv",
+        "death_pv",
+        "tube2_below_pv",
+        "tube1_mid_pv",
+        "tube2_above_pv",
+    };
+    ref.volume_instance.volumes = {4, 0, 1, 3, 2, 3};
     ref.world = "world";
-    ref.surface.labels = {"sphere_skin",
-                          "tube2_skin",
-                          "below_to_1",
-                          "mid_to_below",
-                          "mid_to_above"};
-    ref.surface.volumes = {"0", "2", "2->3", "3->2", "3->4"};
+    ref.surface.labels = {
+        "sphere_skin",
+        "tube2_skin",
+        "below_to_1",
+        "mid_to_below",
+        "mid_to_above",
+    };
+    ref.surface.volumes = {"0", "3", "3->4", "4->3", "4->5"};
     EXPECT_REF_EQ(ref, result);
 }
 

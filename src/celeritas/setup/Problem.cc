@@ -64,6 +64,7 @@
 #include "celeritas/optical/PhysicsParams.hh"
 #include "celeritas/optical/gen/CherenkovParams.hh"
 #include "celeritas/optical/gen/ScintillationParams.hh"
+#include "celeritas/optical/surface/SurfacePhysicsParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
@@ -319,6 +320,11 @@ auto build_optical_params(CoreParams const& core, ImportData const& imported)
         params.physics
             = std::make_shared<optical::PhysicsParams>(std::move(pp_inp));
     }
+
+    // Construct optical surface physics models
+    params.surface_physics = std::make_shared<optical::SurfacePhysicsParams>(
+        params.action_reg.get(), imported.optical_physics.surfaces);
+
     //! \todo Get sensitive detectors
 
     CELER_ENSURE(params);
@@ -337,9 +343,10 @@ auto build_optical_offload(inp::Problem const& p,
     OpticalCollector::Input oc_inp;
     oc_inp.optical_params = build_optical_params(params, imported);
 
-    // Add photon generating processes
     CELER_ASSERT(p.physics.optical);
     inp::OpticalPhysics const& opt = *p.physics.optical;
+
+    // Add photon generating processes
     if (opt.cherenkov)
     {
         oc_inp.cherenkov = std::make_shared<CherenkovParams>(

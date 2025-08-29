@@ -23,7 +23,7 @@
 #include "action/LocateVacanciesAction.hh"
 #include "action/PreStepAction.hh"
 #include "action/TrackingCutAction.hh"
-#include "surface/BoundaryAction.hh"
+#include "surface/SurfacePhysicsParams.hh"
 
 namespace celeritas
 {
@@ -48,6 +48,7 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.material = get_ref<M>(*p.material);
     ref.physics = get_ref<M>(*p.physics);
     ref.surface = get_ref<M>(*p.surface);
+    ref.surface_physics = get_ref<M>(*p.surface_physics);
     ref.rng = get_ref<M>(*p.rng);
 
     CELER_ENSURE(ref);
@@ -76,15 +77,6 @@ CoreScalars build_actions(ActionRegistry* reg)
 
     // TODO: process selection action (or constructed by physics?)
 
-    // TODO: it might make more sense to build the surface crossing action
-    // right before making the action group: re-examine once we add a surface
-    // physics manager
-    scalars.init_boundary_action = reg->next_id();
-    reg->insert(make_shared<InitBoundaryAction>(scalars.init_boundary_action));
-
-    scalars.post_boundary_action = reg->next_id();
-    reg->insert(make_shared<PostBoundaryAction>(scalars.post_boundary_action));
-
     scalars.tracking_cut_action = reg->next_id();
     reg->insert(make_shared<TrackingCutAction>(scalars.tracking_cut_action));
 
@@ -112,6 +104,7 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CP_VALIDATE_INPUT(physics);
     CP_VALIDATE_INPUT(rng);
     CP_VALIDATE_INPUT(surface);
+    CP_VALIDATE_INPUT(surface_physics);
     CP_VALIDATE_INPUT(action_reg);
     CP_VALIDATE_INPUT(gen_reg);
     CP_VALIDATE_INPUT(max_streams);
