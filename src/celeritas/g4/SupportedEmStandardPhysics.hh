@@ -18,11 +18,14 @@ namespace celeritas
 /*!
  * Construct G4EmStandardPhysics processes that are implemented in Celeritas.
  *
+ * This physics list is targeted at HEP experiments and reproduces most of the
+ * Geant4 G4EmStandardPhysics.
+ *
  * Limitations:
  * - No support for generic ions
  * - No hadronic EM interactions
  * - Wentzel VI MSC is not supported
- * - No muon energy loss fluctuation model is implemented
+ * - No polarized gamma processes
  *
  * Electron/positron processes:
  *
