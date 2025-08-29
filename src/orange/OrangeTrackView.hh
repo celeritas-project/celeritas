@@ -505,14 +505,9 @@ CELER_FUNCTION VolumeInstanceId OrangeTrackView::volume_instance_id() const
 
     // Otherwise we're in a background volume, and the volume instance in the
     // parent level *must* be a volume instance if this is a correctly
-    // constructed geometry. But to guard against errors (and enable unit
-    // tests) we first make sure we're not going off the end. (If we are in the
-    // global level without correct instance information, then this will just
-    // return a null ID.)
-    if (lev != LevelId{0})
-    {
-        --lev;
-    }
+    // constructed geometry
+    CELER_ASSERT(lev != LevelId{0});
+    --lev;
     return get_vol_inst();
 }
 
@@ -1284,6 +1279,7 @@ CELER_FUNCTION void OrangeTrackView::clear_surface()
     states_.surface_level[track_slot_] = {};
     CELER_ENSURE(!this->is_on_boundary());
 }
+
 //---------------------------------------------------------------------------//
 /*!
  * Get the daughter ID for the given volume in the given universe.

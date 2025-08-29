@@ -144,19 +144,17 @@ UniverseId UniverseInserter::operator()(UniverseType type,
             VolumeId vol_id;
             if (vi_id)
             {
+                // Implementation volume represents a canonical volume instance
                 CELER_ASSERT(vi_id < volume_params_->num_volume_instances());
                 vol_id = volume_params_->volume(vi_id);
 
-                // TODO: Replace with volume instance label corresponding to it
-                // var_label =
-                // volume_params_->volume_instance_labels().at(vi_id); For
-                // backward compatibility, replace with the volume label
+                // For backward compatibility, use the *volume* rather than
+                // *instance* label for this ImplVolume
                 var_label = volume_params_->volume_labels().at(vol_id);
             }
             else if (auto* var_vol_id = std::get_if<VolumeId>(&var_label))
             {
-                // Not a volume "placement" but *IS* a volume (i.e., it's the
-                // background [BG])
+                // Not an instance but *IS* a volume (i.e., the background)
                 vol_id = *var_vol_id;
                 CELER_ASSERT(vol_id);
 
@@ -165,8 +163,7 @@ UniverseId UniverseInserter::operator()(UniverseType type,
             }
             else
             {
-                // No special metadata: just an implementation volume e.g.
-                // [EXTERIOR]
+                // No special metadata: just an impl volume e.g.  [EXTERIOR]
             }
             volume_ids_.push_back(vol_id);
             volume_instance_ids_.push_back(vi_id);

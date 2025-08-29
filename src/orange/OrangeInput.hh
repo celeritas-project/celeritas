@@ -90,6 +90,14 @@ struct DaughterInput
  * Unlike a regular volume, the "background" represents a \em volume rather
  * than a volume \em instance. Note that this can be an \em explicit volume
  * (i.e., made of booleans) or \em implicit (i.e., have the lowest "Z order").
+ *
+ * This is something of a hack: the background volume in a \c
+ * orangeinp::UnitProto is annotated by setting the label to \c
+ * VolumeInstanceId{} in \c g4org::ProtoConstructor; then converted from a
+ * proto to a \c UnitInput by the \c InputBuilder, and finally in \c
+ * g4org::Converter the empty volume instance IDs are replaced by (1) the
+ * world \c VolumeInstanceId for the top-level background volume, or (2) the
+ * \c VolumeId corresponding to the unit's label.
  */
 struct BackgroundInput
 {

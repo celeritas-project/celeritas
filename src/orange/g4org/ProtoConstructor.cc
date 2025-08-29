@@ -78,7 +78,10 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
     // explicit background cell
     if (lv.children.size() <= fill_daughter_threshold())
     {
-        // Create explicit "fill" for this logical volume
+        // Create explicit "fill" impl volume for this logical volume. The
+        // special "empty volume instance" label indicates to the
+        // find_bg_volume function in Converter.cc that this needs to be set
+        // as an LV rather than a PV.
         orangeinp::UnitProto::MaterialInput background;
         background.interior
             = this->make_explicit_background(lv, NoTransformation{});
@@ -97,7 +100,7 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
     {
         // Children are *implicitly* subtracted from the parent. Since this
         // universal fill corresponds to a *volume* rather than an *instance*,
-        // we indicate this fill with null.
+        // we indicate this fill with a null volume instance ID.
         input.background.fill = background_fill(lv.material_id);
         input.background.label = VolumeInstanceId{};
         CELER_ASSERT(input.background);
