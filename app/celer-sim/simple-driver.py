@@ -72,6 +72,9 @@ if core_geo == "orange-json":
 simple_calo = []
 if not rootout_filename and "cms" in geometry_filename:
     simple_calo = ["si_tracker", "em_calorimeter"]
+    # Volumes (needed for the simple calo) are currently only loaded if Geant4
+    # import is enabled
+    physics_filename = None
 
 num_tracks = 128 * 32 if use_device else 32
 num_primaries = 3 * 15 # assuming test hepmc input
