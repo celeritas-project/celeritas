@@ -318,6 +318,8 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
         try
         {
             geo.cross_boundary();
+            auto normal = geo.normal();
+            CELER_ASSERT(is_soft_unit_vector(normal));
         }
         catch (std::exception const& e)
         {
