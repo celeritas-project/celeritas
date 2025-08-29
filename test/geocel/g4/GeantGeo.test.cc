@@ -532,9 +532,6 @@ TEST_F(OpticalSurfacesTest, model)
     GenericGeoModelInp ref;
     ref.volume.labels = {"lar_sphere", "death", "tube1_mid", "tube2", "world"};
     ref.volume.materials = {1, 2, 2, 2, 3};
-    ref.volume.daughters = {{}, {}, {}, {}, {0, 1, 2, 3, 4}};
-    ref.volume.labels = {"lar_sphere", "death", "tube1_mid", "tube2", "world"};
-    ref.volume.materials = {1, 2, 2, 2, 3};
     ref.volume.daughters = {{}, {}, {}, {}, {1, 2, 3, 4, 5}};
     ref.volume_instance.labels = {
         "world_PV",
@@ -734,7 +731,6 @@ TEST_F(ReplicaTest, model)
     ref.world = "world";
     EXPECT_REF_EQ(ref, result);
     // clang-format on
-    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(ReplicaTest, trace)
