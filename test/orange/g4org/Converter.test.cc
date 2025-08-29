@@ -92,6 +92,23 @@ struct VolumeInstanceAccessor
 };
 
 //---------------------------------------------------------------------------//
+TEST_F(ConverterTest, lar_sphere)
+{
+    verbose_ = true;
+    std::string const basename = "lar-sphere";
+    this->load_test_gdml(basename);
+    auto convert = this->make_converter(basename);
+    auto result = convert(this->geo(), *this->volumes()).input;
+    write_org_json(result, basename);
+
+    ASSERT_EQ(1, result.universes.size());
+    {
+        auto const& unit = std::get<UnitInput>(result.universes[0]);
+        EXPECT_EQ(6, unit.volumes.size());
+    }
+}
+
+//---------------------------------------------------------------------------//
 TEST_F(ConverterTest, simple_cms)
 {
     verbose_ = true;

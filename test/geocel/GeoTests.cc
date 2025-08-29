@@ -324,6 +324,55 @@ void FourLevelsGeoTest::test_trace() const
 }
 
 //---------------------------------------------------------------------------//
+// LAR SPHERE
+//---------------------------------------------------------------------------//
+void LarSphereGeoTest::test_trace() const
+{
+    {
+        SCOPED_TRACE("+y");
+        auto result = test_->track({0, -120, 0}, {0, 1, 0});
+
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
+            "world",
+            "detshell_bot",
+            "sphere",
+            "detshell_top",
+            "world",
+        };
+        ref.volume_instances = {
+            "world_PV",
+            "detshell_bot_PV",
+            "sphere_PV",
+            "detshell_top_PV",
+            "world_PV",
+        };
+        ref.distances = {10, 10, 200, 10, 890};
+        ref.halfway_safeties = {5, 5, 100, 5, 445};
+        ref.bumps = {};
+        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        EXPECT_REF_NEAR(ref, result, tol);
+    }
+}
+
+//---------------------------------------------------------------------------//
+void LarSphereGeoTest::test_volume_stack() const
+{
+    {
+        auto result = test_->volume_stack({0, 0, 0});
+        GenericGeoVolumeStackResult ref;
+        ref.volume_instances = {"world_PV", "sphere_PV"};
+        EXPECT_REF_EQ(ref, result);
+    }
+    {
+        auto result = test_->volume_stack({0, -105, 0});
+        GenericGeoVolumeStackResult ref;
+        ref.volume_instances = {"world_PV", "detshell_PV", "detshell_bot_PV"};
+        EXPECT_REF_EQ(ref, result);
+    }
+}
+
+//---------------------------------------------------------------------------//
 // MULTI-LEVEL
 //---------------------------------------------------------------------------//
 void MultiLevelGeoTest::test_trace() const
