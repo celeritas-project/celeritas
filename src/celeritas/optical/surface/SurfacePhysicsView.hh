@@ -10,6 +10,7 @@
 #include "celeritas/optical/Types.hh"
 #include "celeritas/phys/SurfacePhysicsMapView.hh"
 
+#include "SurfaceModelView.hh"
 #include "SurfacePhysicsData.hh"
 #include "SurfacePhysicsUtils.hh"
 
@@ -110,6 +111,11 @@ class SurfacePhysicsView
         SurfacePhysicsMapView surface_physics_map(SurfacePhysicsOrder,
                                                   PhysSurfaceId) const;
 
+    // Get surface model for the given step
+    inline CELER_FUNCTION
+        SurfaceModelView surface_model(SubsurfaceDirection,
+                                       SurfacePhysicsOrder) const;
+
     // Get local facet normal
     inline CELER_FUNCTION Real3 const& facet_normal() const;
 
@@ -171,7 +177,7 @@ SurfacePhysicsView::SurfacePhysicsView(SurfaceParamsRef const& params,
 CELER_FUNCTION SurfacePhysicsView&
 SurfacePhysicsView::operator=(Initializer const& init)
 {
-    CELER_EXPECT(init.surface);
+    CELER_EXPECT(init.surface < params_.surfaces.size());
     CELER_EXPECT(is_soft_unit_vector(init.global_normal));
     states_.surface[track_id_] = init.surface;
     states_.surface_orientation[track_id_] = init.orientation;
@@ -193,6 +199,7 @@ SurfacePhysicsView::operator=(Initializer const& init)
 CELER_FUNCTION void SurfacePhysicsView::reset()
 {
     states_.surface[track_id_] = {};
+    CELER_ENSURE(!states_.surface[track_id_]);
 }
 
 //---------------------------------------------------------------------------//
@@ -216,6 +223,7 @@ CELER_FUNCTION SurfaceId SurfacePhysicsView::surface() const
  */
 CELER_FUNCTION SubsurfaceDirection SurfacePhysicsView::orientation() const
 {
+    CELER_EXPECT(this->is_crossing_boundary());
     return states_.surface_orientation[track_id_];
 }
 
@@ -229,6 +237,7 @@ CELER_FUNCTION SubsurfaceDirection SurfacePhysicsView::orientation() const
  */
 CELER_FUNCTION Real3 const& SurfacePhysicsView::global_normal() const
 {
+    CELER_EXPECT(this->is_crossing_boundary());
     return states_.global_normal[track_id_];
 }
 
@@ -240,7 +249,7 @@ CELER_FUNCTION Real3 const& SurfacePhysicsView::global_normal() const
  */
 CELER_FUNCTION bool SurfacePhysicsView::is_crossing_boundary() const
 {
-    return static_cast<bool>(this->surface());
+    return this->surface() < params_.surfaces.size();
 }
 
 //---------------------------------------------------------------------------//
@@ -249,6 +258,7 @@ CELER_FUNCTION bool SurfacePhysicsView::is_crossing_boundary() const
  */
 CELER_FUNCTION bool SurfacePhysicsView::is_exiting(SubsurfaceDirection d) const
 {
+    CELER_EXPECT(this->is_crossing_boundary());
     // Use unsigned underflow when moving reverse (-1) on the pre-surface
     // (position 0) to wrap to an invalid position value
     return static_cast<size_type>(this->subsurface_position().get()
@@ -262,6 +272,7 @@ CELER_FUNCTION bool SurfacePhysicsView::is_exiting(SubsurfaceDirection d) const
  */
 CELER_FUNCTION bool SurfacePhysicsView::in_pre_volume() const
 {
+    CELER_EXPECT(this->is_crossing_boundary());
     return this->subsurface_position().get() == 0;
 }
 
@@ -271,6 +282,7 @@ CELER_FUNCTION bool SurfacePhysicsView::in_pre_volume() const
  */
 CELER_FUNCTION bool SurfacePhysicsView::in_post_volume() const
 {
+    CELER_EXPECT(this->is_crossing_boundary());
     return this->subsurface_position().get() + 1 == this->num_positions();
 }
 
@@ -285,6 +297,7 @@ CELER_FUNCTION bool SurfacePhysicsView::in_post_volume() const
  */
 CELER_FUNCTION SurfaceTrackPosition SurfacePhysicsView::subsurface_position() const
 {
+    CELER_EXPECT(this->is_crossing_boundary());
     return states_.surface_position[track_id_];
 }
 
@@ -310,6 +323,7 @@ SurfacePhysicsView::subsurface_position(SurfaceTrackPosition pos)
 CELER_FUNCTION SurfaceTrackPosition::size_type
 SurfacePhysicsView::num_positions() const
 {
+    CELER_EXPECT(this->is_crossing_boundary());
     return this->surface_record().subsurface_materials.size() + 2;
 }
 
@@ -319,6 +333,8 @@ SurfacePhysicsView::num_positions() const
  */
 CELER_FUNCTION OptMatId SurfacePhysicsView::subsurface_material() const
 {
+    CELER_EXPECT(this->is_crossing_boundary());
+
     if (this->in_pre_volume())
     {
         return states_.pre_volume_material[track_id_];
@@ -345,6 +361,7 @@ CELER_FUNCTION OptMatId SurfacePhysicsView::subsurface_material() const
 CELER_FUNCTION PhysSurfaceId
 SurfacePhysicsView::subsurface_interface(SubsurfaceDirection d) const
 {
+    CELER_EXPECT(this->is_crossing_boundary());
     CELER_EXPECT(!this->is_exiting(d));
 
     auto track_pos = this->subsurface_position();
@@ -363,6 +380,7 @@ SurfacePhysicsView::subsurface_interface(SubsurfaceDirection d) const
 CELER_FUNCTION SubsurfaceDirection
 SurfacePhysicsView::traversal_direction(Real3 const& dir) const
 {
+    CELER_EXPECT(this->is_crossing_boundary());
     CELER_EXPECT(is_soft_unit_vector(dir));
     return static_cast<SubsurfaceDirection>(
         is_entering_surface(dir, this->global_normal()));
@@ -375,7 +393,26 @@ SurfacePhysicsView::traversal_direction(Real3 const& dir) const
 CELER_FUNCTION SurfacePhysicsMapView SurfacePhysicsView::surface_physics_map(
     SurfacePhysicsOrder step, PhysSurfaceId surface) const
 {
+    CELER_EXPECT(this->is_crossing_boundary());
+    CELER_EXPECT(surface);
+    CELER_EXPECT(step != SurfacePhysicsOrder::size_);
+
     return SurfacePhysicsMapView{params_.model_maps[step], surface};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get surface model view of the given step in the given direction.
+ */
+CELER_FUNCTION SurfaceModelView SurfacePhysicsView::surface_model(
+    SubsurfaceDirection dir, SurfacePhysicsOrder step) const
+{
+    CELER_EXPECT(this->is_crossing_boundary());
+    CELER_EXPECT(!this->is_exiting(dir));
+    CELER_EXPECT(step != SurfacePhysicsOrder::size_);
+
+    return SurfaceModelView{
+        dir, this->surface_physics_map(step, this->subsurface_interface(dir))};
 }
 
 //---------------------------------------------------------------------------//
@@ -384,6 +421,7 @@ CELER_FUNCTION SurfacePhysicsMapView SurfacePhysicsView::surface_physics_map(
  */
 CELER_FUNCTION Real3 const& SurfacePhysicsView::facet_normal() const
 {
+    CELER_EXPECT(this->is_crossing_boundary());
     return states_.facet_normal[track_id_];
 }
 
@@ -393,6 +431,7 @@ CELER_FUNCTION Real3 const& SurfacePhysicsView::facet_normal() const
  */
 CELER_FUNCTION void SurfacePhysicsView::facet_normal(Real3 const& normal)
 {
+    CELER_EXPECT(this->is_crossing_boundary());
     CELER_EXPECT(is_soft_unit_vector(normal));
     states_.facet_normal[track_id_] = normal;
 }
@@ -404,6 +443,7 @@ CELER_FUNCTION void SurfacePhysicsView::facet_normal(Real3 const& normal)
 CELER_FUNCTION void
 SurfacePhysicsView::cross_subsurface_interface(SubsurfaceDirection d)
 {
+    CELER_EXPECT(this->is_crossing_boundary());
     CELER_EXPECT(!this->is_exiting(d));
     this->subsurface_position(this->subsurface_position()
                               + to_signed_offset(d));

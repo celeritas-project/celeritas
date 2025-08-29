@@ -75,6 +75,10 @@ class CoreTrackView
     // Return a surface physics view
     inline CELER_FUNCTION SurfacePhysicsView surface_physics() const;
 
+    // Return a surface model view for the given step
+    inline CELER_FUNCTION
+        SurfaceModelView surface_model(SurfacePhysicsOrder) const;
+
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
 
@@ -140,6 +144,9 @@ CoreTrackView::operator=(TrackInitializer const& init)
 
     // Initialize the physics state
     this->physics() = PhysicsTrackView::Initializer{};
+
+    // Initialize the surface state
+    this->surface_physics().reset();
 
     return *this;
 }
@@ -225,6 +232,21 @@ CELER_FUNCTION auto CoreTrackView::surface_physics() const -> SurfacePhysicsView
     return SurfacePhysicsView{params_.surface_physics,
                               states_.surface_physics,
                               this->track_slot_id()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a surface model view for the given step.
+ */
+CELER_FUNCTION auto CoreTrackView::surface_model(SurfacePhysicsOrder step) const
+    -> SurfaceModelView
+{
+    auto s_physics = this->surface_physics();
+    CELER_EXPECT(s_physics.is_crossing_boundary());
+    CELER_EXPECT(is_soft_unit_vector(this->geometry().dir()));
+
+    return s_physics.surface_model(
+        s_physics.traversal_direction(this->geometry().dir()), step);
 }
 
 //---------------------------------------------------------------------------//

@@ -112,6 +112,16 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
 
     CELER_EXPECT(input_);
 
+    CELER_LOG_LOCAL(info) << " number of geometric surfaces: "
+                          << input_.surface->num_surfaces();
+    CELER_LOG_LOCAL(info) << " number of surfaces + default: "
+                          << input_.surface_physics->num_surfaces();
+    CELER_LOG_LOCAL(info) << " default surface: "
+                          << input_.surface_physics->default_surface().get();
+
+    CELER_EXPECT(input_.surface->num_surfaces() + 1
+                 == input_.surface_physics->num_surfaces());
+
     // TODO: provide detectors in input, passing from core params
     detectors_ = input_.detectors;
     if (!detectors_)

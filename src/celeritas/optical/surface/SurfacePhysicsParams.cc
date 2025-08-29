@@ -11,6 +11,8 @@
 #include "celeritas/inp/SurfacePhysics.hh"
 #include "celeritas/phys/SurfacePhysicsMapBuilder.hh"
 
+#include "model/RoughnessModel.hh"
+
 namespace celeritas
 {
 namespace optical
@@ -30,25 +32,24 @@ class FakeModel : public SurfaceModel
     FakeModel(SurfaceModelId model_id,
               std::string_view label,
               std::map<PhysSurfaceId, T> const& layer_map)
-        : SurfaceModel(model_id, label), layers_(layer_map)
+        : SurfaceModel(model_id, label)
     {
+        for (auto const& [layer, data] : layer_map)
+        {
+            CELER_ENSURE(layer);
+            surfaces_.push_back(layer);
+        }
+
+        CELER_ENSURE(layer_map.size() == surfaces_.size());
     }
 
-    VecSurfaceLayer get_surfaces() const final
-    {
-        VecSurfaceLayer result;
-        for ([[maybe_unused]] auto const& [layer, data] : layers_)
-        {
-            result.push_back(PhysSurfaceId(layer.get()));
-        }
-        return result;
-    }
+    VecSurfaceLayer get_surfaces() const final { return surfaces_; }
 
     void step(CoreParams const&, CoreStateHost&) const final {}
     void step(CoreParams const&, CoreStateDevice&) const final {}
 
   private:
-    std::map<PhysSurfaceId, T> layers_;
+    std::vector<PhysSurfaceId> surfaces_;
 };
 
 //---------------------------------------------------------------------------//
@@ -74,6 +75,17 @@ class FakeModelBuilder
         {
             models_.push_back(std::make_shared<FakeModel<T>>(
                 SurfaceModelId(models_.size()), label, layer_map));
+            num_surf_ += layer_map.size();
+        }
+    }
+
+    template<class M, class T>
+    void build(std::map<PhysSurfaceId, T> const& layer_map)
+    {
+        if (!layer_map.empty())
+        {
+            models_.push_back(
+                M::build_model(SurfaceModelId(models_.size()), layer_map));
             num_surf_ += layer_map.size();
         }
     }
@@ -200,11 +212,13 @@ auto SurfacePhysicsParams::build_models(
         switch (step)
         {
             case SurfacePhysicsOrder::roughness:
-                build_model("polished", input.roughness.polished);
-                build_model("smear", input.roughness.smear);
-                build_model("gaussian", input.roughness.gaussian);
+                build_model.build<PolishedRoughnessModel, inp::NoRoughness>(
+                    input.roughness.polished);
+                build_model.build<SmearRoughnessModel, inp::SmearRoughness>(
+                    input.roughness.smear);
+                build_model.build<GaussianRoughnessModel, inp::GaussianRoughness>(
+                    input.roughness.gaussian);
                 break;
-
             case SurfacePhysicsOrder::reflectivity:
                 build_model("grid", input.reflectivity.grid);
                 build_model("fresnel", input.reflectivity.fresnel);

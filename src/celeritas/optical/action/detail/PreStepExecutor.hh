@@ -55,6 +55,11 @@ CELER_FUNCTION void PreStepExecutor::operator()(CoreTrackView const& track)
                  || sim.status() == TrackStatus::alive);
     sim.status(TrackStatus::alive);
 
+    if (track.surface_physics().is_crossing_boundary())
+    {
+        return;
+    }
+
     auto phys = track.physics();
     if (!phys.has_interaction_mfp())
     {

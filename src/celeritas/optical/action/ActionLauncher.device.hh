@@ -44,7 +44,7 @@ namespace optical
  }
  * \endcode
  */
-template<class F>
+template<class F, class StepActionT = OpticalStepActionInterface>
 class ActionLauncher : public KernelLauncher<F>
 {
     static_assert(
@@ -52,7 +52,7 @@ class ActionLauncher : public KernelLauncher<F>
          || CELER_COMPILER == CELER_COMPILER_CLANG)
             && !std::is_pointer_v<F> && !std::is_reference_v<F>,
         R"(Launched action must be a trivially copyable function object)");
-    using StepActionT = OpticalStepActionInterface;
+    // using StepActionT = OpticalStepActionInterface;
 
   public:
     // Create a launcher from a string
@@ -76,8 +76,8 @@ class ActionLauncher : public KernelLauncher<F>
 /*!
  * Create a launcher from an action.
  */
-template<class F>
-ActionLauncher<F>::ActionLauncher(StepActionT const& action)
+template<class F, class StepActionT>
+ActionLauncher<F, StepActionT>::ActionLauncher(StepActionT const& action)
     : ActionLauncher{action.label()}
 {
 }
@@ -86,9 +86,9 @@ ActionLauncher<F>::ActionLauncher(StepActionT const& action)
 /*!
  * Create a launcher with a string extension.
  */
-template<class F>
-ActionLauncher<F>::ActionLauncher(StepActionT const& action,
-                                  std::string_view ext)
+template<class F, class StepActionT>
+ActionLauncher<F, StepActionT>::ActionLauncher(StepActionT const& action,
+                                               std::string_view ext)
     : ActionLauncher{std::string(action.label()) + "-" + std::string(ext)}
 {
 }
@@ -97,9 +97,9 @@ ActionLauncher<F>::ActionLauncher(StepActionT const& action,
 /*!
  * Launch a kernel for the wrapped executor.
  */
-template<class F>
-void ActionLauncher<F>::operator()(CoreState<MemSpace::device> const& state,
-                                   F const& call_thread) const
+template<class F, class StepActionT>
+void ActionLauncher<F, StepActionT>::operator()(
+    CoreState<MemSpace::device> const& state, F const& call_thread) const
 {
     return (*this)(
         range(ThreadId{state.size()}), state.stream_id(), call_thread);

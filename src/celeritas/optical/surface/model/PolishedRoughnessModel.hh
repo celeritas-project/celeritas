@@ -6,12 +6,17 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/data/CollectionMirror.hh"
-#include "celeritas/inp/SurfacePhysics.hh"
-#include "celeritas/optical/surface/SurfaceModel.hh"
+#include <string_view>
+#include <vector>
+
+#include "PolishedRoughnessExecutor.hh"
 
 namespace celeritas
 {
+namespace inp
+{
+struct NoRoughness;
+}
 namespace optical
 {
 //---------------------------------------------------------------------------//
@@ -23,22 +28,18 @@ namespace optical
     PolishedRoughnessModel ...;
    \endcode
  */
-class PolishedRoughnessModel : public SurfaceModel
+class PolishedRoughnessModelController
 {
   public:
-    //!@{
-    //! \name Type aliases
-    //!@}
+    constexpr static std::string_view label = "polished";
 
-  public:
-    PolishedRoughnessModel(SurfaceModelId,
-                           std::map<PhysSurfaceId, inp::NoRoughness> const&);
-    std::vector<PhysSurfaceId> get_surfaces() const final;
-    void step(CoreParams const&, CoreStateHost&) const final;
-    void step(CoreParams const&, CoreStateDevice&) const final;
+    PolishedRoughnessModelController(std::vector<inp::NoRoughness> const&) {}
 
-  private:
-    std::vector<PhysSurfaceId> surfaces_;
+    template<MemSpace M>
+    PolishedRoughnessExecutorBuilder make_builder() const
+    {
+        return PolishedRoughnessExecutorBuilder{};
+    }
 };
 
 //---------------------------------------------------------------------------//

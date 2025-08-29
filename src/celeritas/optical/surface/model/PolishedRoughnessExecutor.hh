@@ -6,9 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/math/ArrayOperators.hh"
-#include "celeritas/optical/CoreTrackView.hh"
-#include "celeritas/optical/surface/SurfacePhysicsUtils.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {
@@ -16,39 +14,26 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- * Optional detailed class description, and possibly example usage:
- * \code
-    PolishedRoughnessExecutor ...;
-   \endcode
  */
 struct PolishedRoughnessExecutor
 {
-    inline CELER_FUNCTION void operator()(CoreTrackView& track) const;
+    Real3 const& normal;
+
+    template<class Engine>
+    CELER_FUNCTION Real3 operator()(Engine&) const
+    {
+        return normal;
+    }
 };
 
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- */
-CELER_FUNCTION void
-PolishedRoughnessExecutor::operator()(CoreTrackView& track) const
+struct PolishedRoughnessExecutorBuilder
 {
-    auto s_physics = track.surface_physics();
-
-    auto dir = s_physics.traversal_direction(track.geometry().dir());
-    CELER_ASSERT(!s_physics.is_exiting(dir));
-
-    Real3 normal = s_physics.global_normal();
-    if (dir == SubsurfaceDirection::reverse)
+    CELER_FUNCTION PolishedRoughnessExecutor operator()(
+        SurfaceModelView const&, Real3 const&, Real3 const& normal) const
     {
-        normal = -normal;
+        return PolishedRoughnessExecutor{normal};
     }
-
-    s_physics.facet_normal(normal);
-}
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

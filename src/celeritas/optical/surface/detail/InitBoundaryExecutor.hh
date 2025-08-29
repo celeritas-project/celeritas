@@ -90,6 +90,18 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
         oriented_surface.orientation = SubsurfaceDirection::forward;
     }
 
+#if !CELER_DEVICE_COMPILE
+    if (!is_soft_unit_vector(track.geometry().dir()))
+    {
+        CELER_LOG_LOCAL(error)
+            << " track surface: "
+            << track.surface_physics().surface().unchecked_get()
+            << " (invalid: " << SurfaceId{}.unchecked_get()
+            << ", is_crossing_boundary: "
+            << track.surface_physics().is_crossing_boundary() << ")";
+    }
+#endif
+
     surface_physics
         = SurfacePhysicsView::Initializer{oriented_surface.surface,
                                           oriented_surface.orientation,

@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/surface/model/SmearRoughnessModel.hh
+//! \file celeritas/optical/surface/model/GaussianRoughnessModel.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -10,8 +10,8 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/inp/SurfacePhysics.hh"
 
-#include "SmearRoughnessData.hh"
-#include "SmearRoughnessExecutor.hh"
+#include "GaussianRoughnessData.hh"
+#include "GaussianRoughnessExecutor.hh"
 
 namespace celeritas
 {
@@ -19,28 +19,23 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- * Optional detailed class description, and possibly example usage:
- * \code
-    SmearRoughnessModel ...;
-   \endcode
  */
-class SmearRoughnessModelController
+class GaussianRoughnessModelController
 {
   public:
-    constexpr static std::string_view label = "smear";
+    constexpr static std::string_view label = "gaussian";
 
-    SmearRoughnessModelController(std::vector<inp::SmearRoughness> const& input);
+    GaussianRoughnessModelController(
+        std::vector<inp::GaussianRoughness> const& input);
 
     template<MemSpace M>
-    SmearRoughnessExecutorBuilder make_builder() const
+    GaussianRoughnessExecutorBuilder make_builder() const
     {
-        return SmearRoughnessExecutorBuilder{data_.ref<M>()};
+        return GaussianRoughnessExecutorBuilder{data_.ref<M>()};
     }
 
   private:
-    CollectionMirror<SmearRoughnessData> data_;
+    CollectionMirror<GaussianRoughnessData> data_;
 };
 
 //---------------------------------------------------------------------------//

@@ -107,7 +107,13 @@ VolumeSurfaceSelector::operator()(VolumeSurfaceView const& post_surface,
 
     // Return the L1 boundary surface from the opposite direction.
     // If no boundary surface exists, an invalid OrientedSurface is returned.
-    return {post_surface.boundary_id(), SubsurfaceDirection::reverse};
+
+    if (auto surface_id = post_surface.boundary_id())
+    {
+        return {surface_id, SubsurfaceDirection::reverse};
+    }
+
+    return OrientedSurface{};
 }
 
 //---------------------------------------------------------------------------//
