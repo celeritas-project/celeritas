@@ -19,6 +19,7 @@
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/global/Stepper.hh"
+#include "celeritas/inp/Field.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
@@ -151,9 +152,10 @@ class TestMultiEm3InstanceCaloTest : public TestEm3CollectorTestBase
 
     void SetUp() override
     {
+        // Construct geometry before instantiating calo
+        this->geometry();
         ExampleInstanceCalo::VecLabel labels = {"lar", "calorimeter", "world"};
-        calo_ = std::make_shared<ExampleInstanceCalo>(this->geometry(),
-                                                      std::move(labels));
+        calo_ = std::make_shared<ExampleInstanceCalo>(std::move(labels));
         collector_ = StepCollector::make_and_insert(*this->core(), {calo_});
     }
 
@@ -177,8 +179,8 @@ class TestMultiEm3InstanceCaloTest : public TestEm3CollectorTestBase
 
 TEST_F(KnSimpleLoopTestBase, mixing_types)
 {
-    auto calo = std::make_shared<SimpleCalo>(
-        std::vector<Label>{"inner"}, *this->geometry(), 1);
+    this->geometry();
+    auto calo = std::make_shared<SimpleCalo>(std::vector<Label>{"inner"}, 1);
     auto mctruth = std::make_shared<ExampleMctruth>();
 
     StepCollector::VecInterface interfaces = {calo, mctruth};
@@ -463,7 +465,7 @@ TEST_F(TestMultiEm3InstanceCaloTest, step_host)
 
     auto iter = std::find(result.instance.begin(),
                           result.instance.end(),
-                          "lar:world_PV/Calorimeter/Layer@0.01/lar_pv");
+                          "lar:world_PV/Calorimeter/Layer@1/lar_pv");
     EXPECT_TRUE(iter != result.instance.end()) << repr(result.instance);
 }
 
@@ -478,7 +480,7 @@ TEST_F(TestMultiEm3InstanceCaloTest, TEST_IF_CELER_DEVICE(step_device))
 
     auto iter = std::find(result.instance.begin(),
                           result.instance.end(),
-                          "lar:world_PV/Calorimeter/Layer@0.01/lar_pv");
+                          "lar:world_PV/Calorimeter/Layer@1/lar_pv");
     EXPECT_TRUE(iter != result.instance.end()) << repr(result.instance);
 }
 

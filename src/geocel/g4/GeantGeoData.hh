@@ -20,6 +20,10 @@ class G4VPhysicalVolume;
 
 namespace celeritas
 {
+namespace detail
+{
+class GeantVolumeInstanceMapper;
+}
 //---------------------------------------------------------------------------//
 // PARAMS
 //---------------------------------------------------------------------------//
@@ -34,20 +38,23 @@ struct GeantGeoParamsData
 
     //! Instance ID of the first logical volume in the store
     ImplVolumeId::size_type lv_offset{0};
-    //! Instance ID of the first physical volume in the store
-    VolumeInstanceId::size_type pv_offset{0};
     //! Instance ID of the first material in the store
     GeoMatId::size_type mat_offset{0};
+    //! Instance mapper owned by GeantGeoParams
+    detail::GeantVolumeInstanceMapper const* vi_mapper{nullptr};
 
     //! Whether the interface is initialized
-    explicit CELER_FUNCTION operator bool() const { return world != nullptr; }
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return world != nullptr && vi_mapper != nullptr;
+    }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    GeantGeoParamsData& operator=(GeantGeoParamsData<W2, M2>& other)
+    GeantGeoParamsData& operator=(GeantGeoParamsData<W2, M2>&)
     {
-        world = other.world;
-        return *this;
+        // We always build "host refs" in GeantGeoParams
+        CELER_ASSERT_UNREACHABLE();
     }
 };
 

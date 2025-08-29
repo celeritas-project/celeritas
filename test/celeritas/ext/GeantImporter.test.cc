@@ -1996,7 +1996,7 @@ TEST_F(OpticalSurfaces, surfaces)
 
     // sphere_surf: glisur, polished, dielectric-dielectric, specular spike
     {
-        SurfaceId sid{0};
+        PhysSurfaceId sid{0};
         EXPECT_TRUE(OS_IS_MAPPED(roughness.polished, sid));
         EXPECT_FALSE(OS_IS_MAPPED(roughness.smear, sid));
         EXPECT_FALSE(OS_IS_MAPPED(roughness.gaussian, sid));
@@ -2015,7 +2015,7 @@ TEST_F(OpticalSurfaces, surfaces)
 
     // tube2_surf: glisur, ground, dielectric-dielectric, specular lobe
     {
-        SurfaceId sid{1};
+        PhysSurfaceId sid{1};
         EXPECT_FALSE(OS_IS_MAPPED(roughness.polished, sid));
         EXPECT_TRUE(OS_IS_MAPPED(roughness.smear, sid));
         EXPECT_FALSE(OS_IS_MAPPED(roughness.gaussian, sid));
@@ -2038,7 +2038,7 @@ TEST_F(OpticalSurfaces, surfaces)
 
     // lomid_surf: unified, polished, dielectric-dielectric
     {
-        SurfaceId sid{2};
+        PhysSurfaceId sid{2};
         EXPECT_FALSE(OS_IS_MAPPED(roughness.polished, sid));
         EXPECT_FALSE(OS_IS_MAPPED(roughness.smear, sid));
         EXPECT_TRUE(OS_IS_MAPPED(roughness.gaussian, sid));
@@ -2065,7 +2065,7 @@ TEST_F(OpticalSurfaces, surfaces)
 
     // midlo_surf: glisur, polished, dielectric-metal, specular spike
     {
-        SurfaceId sid{3};
+        PhysSurfaceId sid{3};
         EXPECT_TRUE(OS_IS_MAPPED(roughness.polished, sid));
         EXPECT_FALSE(OS_IS_MAPPED(roughness.smear, sid));
         EXPECT_FALSE(OS_IS_MAPPED(roughness.gaussian, sid));
@@ -2084,7 +2084,7 @@ TEST_F(OpticalSurfaces, surfaces)
 
     // midhi_surf: glisur, ground, dielectric-metal, specular lobe
     {
-        SurfaceId sid{4};
+        PhysSurfaceId sid{4};
         EXPECT_FALSE(OS_IS_MAPPED(roughness.polished, sid));
         EXPECT_TRUE(OS_IS_MAPPED(roughness.smear, sid));
         EXPECT_FALSE(OS_IS_MAPPED(roughness.gaussian, sid));

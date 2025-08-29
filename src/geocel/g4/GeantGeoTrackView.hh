@@ -7,7 +7,6 @@
 #pragma once
 
 #include <algorithm>
-#include <type_traits>
 #include <G4LogicalVolume.hh>
 #include <G4Navigator.hh>
 #include <G4TouchableHandle.hh>
@@ -17,8 +16,8 @@
 #include "corecel/Macros.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "corecel/math/SoftEqual.hh"
 #include "geocel/Types.hh"
+#include "geocel/detail/GeantVolumeInstanceMapper.hh"
 
 #include "Convert.hh"
 #include "GeantGeoData.hh"
@@ -290,7 +289,7 @@ VolumeInstanceId GeantGeoTrackView::volume_instance_id() const
     CELER_EXPECT(!this->is_outside());
     G4VPhysicalVolume* pv = touch_handle_()->GetVolume(0);
     CELER_ASSERT(pv);
-    return id_cast<VolumeInstanceId>(pv->GetInstanceID() - params_.pv_offset);
+    return params_.vi_mapper->geant_to_id(*pv);
 }
 
 //---------------------------------------------------------------------------//
@@ -322,8 +321,7 @@ void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
         VolumeInstanceId vi_id;
         if (G4VPhysicalVolume* pv = touch->GetVolume(max_depth - lev))
         {
-            vi_id = id_cast<VolumeInstanceId>(pv->GetInstanceID()
-                                              - params_.pv_offset);
+            vi_id = params_.vi_mapper->geant_to_id(*pv);
         }
         levels[lev] = vi_id;
     }

@@ -69,36 +69,6 @@ GeantImportVolumeResult::from_import(GeoParamsInterface const& geom)
 }
 
 //---------------------------------------------------------------------------//
-GeantImportVolumeResult
-GeantImportVolumeResult::from_pointers(GeoParamsInterface const& geom)
-{
-#if CELERITAS_USE_GEANT4
-    using Result = GeantImportVolumeResult;
-
-    Result result;
-    for (G4LogicalVolume* lv : celeritas::geant_logical_volumes())
-    {
-        if (!lv)
-        {
-            result.volumes.push_back(Result::empty);
-            continue;
-        }
-        auto id = geom.find_volume(lv);
-        result.volumes.push_back(id ? static_cast<int>(id.unchecked_get())
-                                    : Result::missing);
-        if (!id)
-        {
-            result.missing_labels.push_back(lv->GetName());
-        }
-    }
-    return result;
-#else
-    CELER_DISCARD(geom);
-    CELER_NOT_CONFIGURED("Geant4");
-#endif
-}
-
-//---------------------------------------------------------------------------//
 void GeantImportVolumeResult::print_expected() const
 {
     using std::cout;

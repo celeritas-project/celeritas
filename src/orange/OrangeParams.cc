@@ -7,9 +7,6 @@
 #include "OrangeParams.hh"
 
 #include <fstream>
-#include <initializer_list>
-#include <limits>
-#include <numeric>
 #include <utility>
 #include <vector>
 #include <nlohmann/json.hpp>
@@ -17,11 +14,8 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
-#include "corecel/OpaqueId.hh"
-#include "corecel/cont/Range.hh"
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
@@ -33,7 +27,7 @@
 
 #include "OrangeData.hh"  // IWYU pragma: associated
 #include "OrangeInput.hh"
-#include "OrangeInputIO.json.hh"
+#include "OrangeInputIO.json.hh"  // IWYU pragma: keep
 #include "OrangeTypes.hh"
 #include "g4org/Converter.hh"
 #include "univ/detail/LogicStack.hh"
@@ -89,7 +83,7 @@ OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo,
     CELER_EXPECT(geo);
     CELER_EXPECT(volumes);
     CELER_EXPECT(!volumes->empty());
-    auto result = g4org::Converter{}(*geo).input;
+    auto result = g4org::Converter{}(*geo, *volumes).input;
     return std::make_shared<OrangeParams>(std::move(result),
                                           std::move(volumes));
 }

@@ -72,6 +72,8 @@
 
 // List of OpaqueIds
 #pragma link C++ class celeritas::SurfaceId+;
+#pragma link C++ class celeritas::PhysSurfaceId+;
+#pragma link C++ class celeritas::OptMatId+;
 // clang-format on
 
 #endif

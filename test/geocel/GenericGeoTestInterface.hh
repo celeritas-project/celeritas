@@ -11,7 +11,6 @@
 #include <vector>
 #include <gtest/gtest.h>
 
-#include "geocel/GeoParamsInterface.hh"
 #include "geocel/Types.hh"
 #include "geocel/detail/LengthUnits.hh"
 
@@ -19,6 +18,9 @@ class G4VPhysicalVolume;
 
 namespace celeritas
 {
+class GeoParamsInterface;
+class VolumeParams;
+
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -44,7 +46,6 @@ class GenericGeoTestInterface
     using TrackingResult = GenericGeoTrackingResult;
     using VolumeStackResult = GenericGeoVolumeStackResult;
     using ModelInpResult = GenericGeoModelInp;
-    using SPConstGeoInterface = std::shared_ptr<GeoParamsInterface const>;
     //!@}
 
   public:
@@ -61,14 +62,11 @@ class GenericGeoTestInterface
     virtual VolumeStackResult volume_stack(Real3 const& pos_cm) = 0;
     //!@}
 
-    //! Get the model input from the geometry
-    virtual ModelInpResult model_inp() const = 0;
-
     //! Get the label for this geometry: Geant4, VecGeom, ORANGE
     virtual std::string_view geometry_type() const = 0;
 
-    //! Access the geometry interface, building if needed
-    virtual SPConstGeoInterface geometry_interface() const = 0;
+    //! Access the geometry interface
+    virtual GeoParamsInterface const& geometry_interface() const = 0;
 
     // Get the basename or unique geometry key
     virtual std::string_view gdml_basename() const = 0;

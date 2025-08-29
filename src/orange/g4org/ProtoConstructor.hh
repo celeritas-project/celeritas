@@ -17,6 +17,8 @@
 namespace celeritas
 {
 class GeantGeoParams;
+class VolumeParams;
+
 namespace g4org
 {
 //---------------------------------------------------------------------------//
@@ -43,8 +45,8 @@ class ProtoConstructor
 
   public:
     //! Construct with verbosity setting
-    ProtoConstructor(GeantGeoParams const& geo, bool verbose)
-        : geo_{geo}, verbose_{verbose}
+    ProtoConstructor(VolumeParams const& vols, bool verbose)
+        : volumes_{vols}, verbose_{verbose}
     {
     }
 
@@ -52,7 +54,7 @@ class ProtoConstructor
     SPUnitProto operator()(PhysicalVolume const& pv);
 
   private:
-    GeantGeoParams const& geo_;
+    VolumeParams const& volumes_;
     std::unordered_map<LogicalVolume const*, SPUnitProto> protos_;
     int depth_{0};
     bool verbose_{false};

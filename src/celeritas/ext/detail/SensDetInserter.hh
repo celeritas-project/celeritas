@@ -7,25 +7,25 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <unordered_set>
 #include <vector>
 
-#include "corecel/Assert.hh"
-#include "geocel/GeantGeoUtils.hh"
-#include "geocel/GeoParamsInterface.hh"
-
-#include "../GeantVolumeMapper.hh"
+#include "geocel/Types.hh"
+#include "geocel/VolumeIdBuilder.hh"
 
 class G4LogicalVolume;
 class G4VSensitiveDetector;
 
 namespace celeritas
 {
+class GeantGeoParams;
+
 namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Map logical volumes to native geometry and log potential issues.
+ * Map logical volumes to canonical volumes, logging potential issues.
  *
  * This is an implementation detail of \c GeantSd .
  */
@@ -36,15 +36,12 @@ class SensDetInserter
     //! \name Type aliases
     using SetLV = std::unordered_set<G4LogicalVolume const*>;
     using VecLV = std::vector<G4LogicalVolume const*>;
-    using MapIdLv = std::map<ImplVolumeId, G4LogicalVolume const*>;
+    using MapIdLv = std::map<VolumeId, G4LogicalVolume const*>;
     //!@}
 
   public:
-    // Construct with defaults
-    inline SensDetInserter(GeoParamsInterface const& geo,
-                           SetLV const& skip_volumes,
-                           MapIdLv* found,
-                           VecLV* missing);
+    // Construct from interfaces, loading geant geo
+    SensDetInserter(SetLV const& skip_volumes, MapIdLv* found, VecLV* missing);
 
     // Save a sensitive detector
     void operator()(G4LogicalVolume const* lv, G4VSensitiveDetector const* sd);
@@ -53,34 +50,13 @@ class SensDetInserter
     void operator()(G4LogicalVolume const* lv);
 
   private:
-    GeoParamsInterface const& geo_;
-    GeantVolumeMapper g4_to_celer_;
+    VolumeIdBuilder to_vol_id_;
     SetLV const& skip_volumes_;
     MapIdLv* found_;
     VecLV* missing_;
 
-    ImplVolumeId insert_impl(G4LogicalVolume const* lv);
+    VolumeId insert_impl(G4LogicalVolume const* lv);
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Construct with references to the inserted data.
- */
-SensDetInserter::SensDetInserter(GeoParamsInterface const& geo,
-                                 SetLV const& skip_volumes,
-                                 MapIdLv* found,
-                                 VecLV* missing)
-    : geo_(geo)
-    , g4_to_celer_(geo)
-    , skip_volumes_{skip_volumes}
-    , found_{found}
-    , missing_{missing}
-{
-    CELER_EXPECT(found_);
-    CELER_EXPECT(missing_);
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

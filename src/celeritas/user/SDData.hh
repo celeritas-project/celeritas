@@ -8,12 +8,11 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/data/CollectionBuilder.hh"
-#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 template<Ownership W, MemSpace M>
 struct SDParamsData
 {
