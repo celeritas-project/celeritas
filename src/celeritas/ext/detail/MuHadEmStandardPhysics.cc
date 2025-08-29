@@ -134,7 +134,7 @@ void MuHadEmStandardPhysics::construct_particle()
  */
 void MuHadEmStandardPhysics::construct_process()
 {
-    auto* ph = G4PhysicsListHelper::GetPhysicsListHelper();
+    auto& ph = *G4PhysicsListHelper::GetPhysicsListHelper();
 #if G4VERSION_NUMBER >= 1070
     G4ParticleDefinition* particle = G4GenericIon::GenericIon();
 
@@ -149,11 +149,11 @@ void MuHadEmStandardPhysics::construct_process()
     G4hMultipleScattering* ion_msc = new G4hMultipleScattering("ionmsc");
     G4ionIonisation* ion_ionization = new G4ionIonisation();
 
-    ph->RegisterProcess(ion_msc, particle);
-    ph->RegisterProcess(ion_ionization, particle);
+    ph.RegisterProcess(ion_msc, particle);
+    ph.RegisterProcess(ion_ionization, particle);
     if (nuclear_stopping)
     {
-        ph->RegisterProcess(nuclear_stopping, particle);
+        ph.RegisterProcess(nuclear_stopping, particle);
     }
 
     G4EmBuilder::ConstructCharged(ion_msc, nuclear_stopping);
@@ -195,48 +195,48 @@ void MuHadEmStandardPhysics::construct_process()
         }
         else if (name == "mu+" || name == "mu-")
         {
-            ph->RegisterProcess(mu_msc, particle);
-            ph->RegisterProcess(new G4MuIonisation(), particle);
-            ph->RegisterProcess(mu_brems, particle);
-            ph->RegisterProcess(mu_pair, particle);
-            ph->RegisterProcess(mu_coulomb, particle);
+            ph.RegisterProcess(mu_msc, particle);
+            ph.RegisterProcess(new G4MuIonisation(), particle);
+            ph.RegisterProcess(mu_brems, particle);
+            ph.RegisterProcess(mu_pair, particle);
+            ph.RegisterProcess(mu_coulomb, particle);
         }
         else if (name == "alpha" || name == "He3")
         {
-            ph->RegisterProcess(new G4hMultipleScattering(), particle);
-            ph->RegisterProcess(new G4ionIonisation(), particle);
+            ph.RegisterProcess(new G4hMultipleScattering(), particle);
+            ph.RegisterProcess(new G4ionIonisation(), particle);
         }
         else if (name == "GenericIon")
         {
-            ph->RegisterProcess(ion_msc, particle);
-            ph->RegisterProcess(new G4ionIonisation(), particle);
+            ph.RegisterProcess(ion_msc, particle);
+            ph.RegisterProcess(new G4ionIonisation(), particle);
         }
         else if (name == "pi+" || name == "pi-")
         {
-            ph->RegisterProcess(pi_msc, particle);
-            ph->RegisterProcess(new G4hIonisation(), particle);
-            ph->RegisterProcess(pi_brems, particle);
-            ph->RegisterProcess(pi_pair, particle);
-            ph->RegisterProcess(pi_coulomb, particle);
+            ph.RegisterProcess(pi_msc, particle);
+            ph.RegisterProcess(new G4hIonisation(), particle);
+            ph.RegisterProcess(pi_brems, particle);
+            ph.RegisterProcess(pi_pair, particle);
+            ph.RegisterProcess(pi_coulomb, particle);
         }
         else if (name == "kaon+" || name == "kaon-")
         {
-            ph->RegisterProcess(ka_msc, particle);
-            ph->RegisterProcess(new G4hIonisation(), particle);
-            ph->RegisterProcess(ka_brems, particle);
-            ph->RegisterProcess(ka_pair, particle);
-            ph->RegisterProcess(ka_coulomb, particle);
+            ph.RegisterProcess(ka_msc, particle);
+            ph.RegisterProcess(new G4hIonisation(), particle);
+            ph.RegisterProcess(ka_brems, particle);
+            ph.RegisterProcess(ka_pair, particle);
+            ph.RegisterProcess(ka_coulomb, particle);
         }
         else if (name == "proton" || name == "anti_proton")
         {
             G4hMultipleScattering* prot_msc = new G4hMultipleScattering();
             prot_msc->SetEmModel(new G4WentzelVIModel());
 
-            ph->RegisterProcess(prot_msc, particle);
-            ph->RegisterProcess(new G4hIonisation(), particle);
-            ph->RegisterProcess(prot_brems, particle);
-            ph->RegisterProcess(prot_pair, particle);
-            ph->RegisterProcess(new G4CoulombScattering(), particle);
+            ph.RegisterProcess(prot_msc, particle);
+            ph.RegisterProcess(new G4hIonisation(), particle);
+            ph.RegisterProcess(prot_brems, particle);
+            ph.RegisterProcess(prot_pair, particle);
+            ph.RegisterProcess(new G4CoulombScattering(), particle);
         }
         else if (name == "B+" || name == "B-" || name == "D+" || name == "D-"
                  || name == "Ds+" || name == "Ds-" || name == "anti_He3"
@@ -252,8 +252,8 @@ void MuHadEmStandardPhysics::construct_process()
                  || name == "tau-" || name == "triton" || name == "xi_c+"
                  || name == "xi-")
         {
-            ph->RegisterProcess(ion_msc, particle);
-            ph->RegisterProcess(new G4hIonisation(), particle);
+            ph.RegisterProcess(ion_msc, particle);
+            ph.RegisterProcess(new G4hIonisation(), particle);
         }
     }
 #endif

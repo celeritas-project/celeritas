@@ -105,49 +105,49 @@ EmStandardPhysics::EmStandardPhysics(Options const& options)
     , options_(options)
 {
     // Set EM options using limits from G4EmParameters
-    auto& em_parameters = *G4EmParameters::Instance();
+    auto& em_params = *G4EmParameters::Instance();
     CELER_VALIDATE(options_.em_bins_per_decade >= 5,
                    << "number of EM bins per decade="
                    << options.em_bins_per_decade << " (must be at least 5)");
 
-    em_parameters.SetNumberOfBinsPerDecade(options.em_bins_per_decade);
-    em_parameters.SetLossFluctuations(options.eloss_fluctuation);
-    em_parameters.SetMinEnergy(value_as<Options::MevEnergy>(options.min_energy)
-                               * CLHEP::MeV);
-    em_parameters.SetMaxEnergy(value_as<Options::MevEnergy>(options.max_energy)
-                               * CLHEP::MeV);
-    em_parameters.SetLPM(options.lpm);
-    em_parameters.SetFluo(options.relaxation != RelaxationSelection::none);
-    em_parameters.SetAuger(options.relaxation == RelaxationSelection::all);
-    em_parameters.SetIntegral(options.integral_approach);
-    em_parameters.SetLinearLossLimit(options.linear_loss_limit);
-    em_parameters.SetNuclearFormfactorType(
+    em_params.SetNumberOfBinsPerDecade(options.em_bins_per_decade);
+    em_params.SetLossFluctuations(options.eloss_fluctuation);
+    em_params.SetMinEnergy(value_as<Options::MevEnergy>(options.min_energy)
+                           * CLHEP::MeV);
+    em_params.SetMaxEnergy(value_as<Options::MevEnergy>(options.max_energy)
+                           * CLHEP::MeV);
+    em_params.SetLPM(options.lpm);
+    em_params.SetFluo(options.relaxation != RelaxationSelection::none);
+    em_params.SetAuger(options.relaxation == RelaxationSelection::all);
+    em_params.SetIntegral(options.integral_approach);
+    em_params.SetLinearLossLimit(options.linear_loss_limit);
+    em_params.SetNuclearFormfactorType(
         from_form_factor_type(options.form_factor));
-    em_parameters.SetMscStepLimitType(
+    em_params.SetMscStepLimitType(
         from_msc_step_algorithm(options.msc_step_algorithm));
-    em_parameters.SetMscMuHadStepLimitType(
+    em_params.SetMscMuHadStepLimitType(
         from_msc_step_algorithm(options.msc_muhad_step_algorithm));
-    em_parameters.SetLateralDisplacement(options.msc_displaced);
-    em_parameters.SetMuHadLateralDisplacement(options.msc_muhad_displaced);
-    em_parameters.SetMscRangeFactor(options.msc_range_factor);
-    em_parameters.SetMscMuHadRangeFactor(options.msc_muhad_range_factor);
+    em_params.SetLateralDisplacement(options.msc_displaced);
+    em_params.SetMuHadLateralDisplacement(options.msc_muhad_displaced);
+    em_params.SetMscRangeFactor(options.msc_range_factor);
+    em_params.SetMscMuHadRangeFactor(options.msc_muhad_range_factor);
 #if G4VERSION_NUMBER >= 1060
     using ClhepLen = Quantity<units::ClhepTraits::Length, double>;
 
     // Customizable MSC safety factor/lambda limit were added in
     // emutils-V10-05-18
-    em_parameters.SetMscSafetyFactor(options.msc_safety_factor);
-    em_parameters.SetMscLambdaLimit(
+    em_params.SetMscSafetyFactor(options.msc_safety_factor);
+    em_params.SetMscLambdaLimit(
         native_value_to<ClhepLen>(options.msc_lambda_limit).value());
 #endif
-    em_parameters.SetMscThetaLimit(options.msc_theta_limit);
-    em_parameters.SetLowestElectronEnergy(
+    em_params.SetMscThetaLimit(options.msc_theta_limit);
+    em_params.SetLowestElectronEnergy(
         value_as<Options::MevEnergy>(options.lowest_electron_energy)
         * CLHEP::MeV);
-    em_parameters.SetLowestMuHadEnergy(
+    em_params.SetLowestMuHadEnergy(
         value_as<Options::MevEnergy>(options.lowest_muhad_energy) * CLHEP::MeV);
-    em_parameters.SetApplyCuts(options.apply_cuts);
-    em_parameters.SetVerbose(options.verbose);
+    em_params.SetApplyCuts(options.apply_cuts);
+    em_params.SetVerbose(options.verbose);
 }
 
 //---------------------------------------------------------------------------//
@@ -201,9 +201,9 @@ void EmStandardPhysics::ConstructProcess()
  */
 void EmStandardPhysics::add_gamma_processes()
 {
-    auto* physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
-    auto* gamma = G4Gamma::Gamma();
+    auto& ph = *G4PhysicsListHelper::GetPhysicsListHelper();
 
+    auto* gamma = G4Gamma::Gamma();
     // Option to create GammaGeneral for performance/robustness
     std::unique_ptr<G4GammaGeneralProcess> ggproc;
     if (options_.gamma_general)
@@ -211,14 +211,14 @@ void EmStandardPhysics::add_gamma_processes()
         ggproc = std::make_unique<G4GammaGeneralProcess>();
     }
 
-    auto add_process = [&ggproc, physics_list, gamma](G4VEmProcess* p) {
+    auto add_process = [&ggproc, &ph, gamma](G4VEmProcess* p) {
         if (ggproc)
         {
             ggproc->AddEmProcess(p);
         }
         else
         {
-            physics_list->RegisterProcess(p, gamma);
+            ph.RegisterProcess(p, gamma);
         }
     };
 
@@ -264,7 +264,7 @@ void EmStandardPhysics::add_gamma_processes()
     {
         CELER_LOG(debug) << "Registered G4GammaGeneralProcess";
         G4LossTableManager::Instance()->SetGammaGeneralProcess(ggproc.get());
-        physics_list->RegisterProcess(ggproc.release(), gamma);
+        ph.RegisterProcess(ggproc.release(), gamma);
     }
 }
 
@@ -274,12 +274,12 @@ void EmStandardPhysics::add_gamma_processes()
  */
 void EmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
 {
-    auto* physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
+    auto& ph = *G4PhysicsListHelper::GetPhysicsListHelper();
 
     if (options_.annihilation && p == G4Positron::Positron())
     {
         // e+e- annihilation: G4eeToTwoGammaModel
-        physics_list->RegisterProcess(new G4eplusAnnihilation(), p);
+        ph.RegisterProcess(new G4eplusAnnihilation(), p);
 
         CELER_LOG(debug) << "Using pair annihilation with "
                             "G4eplusAnnihilation";
@@ -290,14 +290,14 @@ void EmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
         // e-e+ ionization: G4MollerBhabhaModel
         auto ionization = std::make_unique<G4eIonisation>();
         ionization->SetEmModel(new G4MollerBhabhaModel());
-        physics_list->RegisterProcess(ionization.release(), p);
+        ph.RegisterProcess(ionization.release(), p);
 
         CELER_LOG(debug) << "Using ionization with G4MollerBhabhaModel";
     }
 
     if (options_.brems != BremsModelSelection::none)
     {
-        physics_list->RegisterProcess(
+        ph.RegisterProcess(
             new detail::GeantBremsstrahlungProcess(
                 options_.brems,
                 value_as<Options::MevEnergy>(options_.seltzer_berger_limit)),
@@ -380,7 +380,7 @@ void EmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
                              << model->HighEnergyLimit() << " MeV";
 
             process->SetEmModel(model.release());
-            physics_list->RegisterProcess(process.release(), p);
+            ph.RegisterProcess(process.release(), p);
         }
     }
 
@@ -422,7 +422,7 @@ void EmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
             process->SetEmModel(model.release());
         }
 
-        physics_list->RegisterProcess(process.release(), p);
+        ph.RegisterProcess(process.release(), p);
     }
 }
 
@@ -435,32 +435,32 @@ void EmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
  */
 void EmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
 {
-    auto* physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
+    auto& ph = *G4PhysicsListHelper::GetPhysicsListHelper();
 
     if (options_.muon.pair_production)
     {
-        physics_list->RegisterProcess(new G4MuPairProduction(), p);
+        ph.RegisterProcess(new G4MuPairProduction(), p);
         CELER_LOG(debug) << "Using muon pair production with "
                             "G4MuPairProductionModel";
     }
 
     if (options_.muon.ionization)
     {
-        physics_list->RegisterProcess(new G4MuIonisation(), p);
+        ph.RegisterProcess(new G4MuIonisation(), p);
         CELER_LOG(debug) << "Using muon ionization with G4ICRU73QOModel, "
                             "G4BraggModel, and G4MuBetheBlochModel";
     }
 
     if (options_.muon.bremsstrahlung)
     {
-        physics_list->RegisterProcess(new G4MuBremsstrahlung(), p);
+        ph.RegisterProcess(new G4MuBremsstrahlung(), p);
         CELER_LOG(debug) << "Using muon bremsstrahlung with "
                             "G4MuBremsstrahlungModel";
     }
 
     if (options_.muon.coulomb)
     {
-        physics_list->RegisterProcess(new G4CoulombScattering(), p);
+        ph.RegisterProcess(new G4CoulombScattering(), p);
         CELER_LOG(debug) << "Using muon Coulomb scattering with "
                             "G4eCoulombScatteringModel";
     }
@@ -487,7 +487,7 @@ void EmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
                               "selection '"
                            << options_.muon.msc << "'");
         }
-        physics_list->RegisterProcess(process.release(), p);
+        ph.RegisterProcess(process.release(), p);
     }
 }
 
