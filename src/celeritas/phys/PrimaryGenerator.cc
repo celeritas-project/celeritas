@@ -10,6 +10,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/VariantUtils.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/random/distribution/DeltaDistribution.hh"
 #include "geocel/random/IsotropicDistribution.hh"
 #include "geocel/random/UniformBoxDistribution.hh"
@@ -125,8 +126,13 @@ PrimaryGenerator::PrimaryGenerator(Input const& i,
     , sample_dir_{make_direction_sampler(i.angle)}
     , particle_id_(std::move(particle_id))
 {
+    CELER_VALIDATE(i, << "primary generator input is incomplete");
     // TODO: seed based on event
     this->seed(UniqueEventId{0});
+
+    CELER_LOG(debug) << "Created primary generator with " << num_events_
+                     << " events and " << primaries_per_event_
+                     << " primaries per event";
 
     CELER_VALIDATE(
         std::all_of(particle_id_.begin(), particle_id_.end(), Identity{}),

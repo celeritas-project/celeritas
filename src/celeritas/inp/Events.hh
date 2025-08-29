@@ -84,6 +84,12 @@ struct PrimaryGenerator
     AngleDistribution angle;
     //! Distribution for sampling source energy
     EnergyDistribution energy;
+
+    //! True if there's at least one primary
+    explicit operator bool() const
+    {
+        return num_events > 0 && primaries_per_event > 0;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -99,6 +105,12 @@ struct CorePrimaryGenerator : PrimaryGenerator
     unsigned int seed{};
     //! Sample evenly from this vector of particle types
     std::vector<PDGNumber> pdg;
+
+    //! True if there's at least one primary
+    explicit operator bool() const
+    {
+        return PrimaryGenerator::operator bool() && !pdg.empty();
+    }
 };
 
 //---------------------------------------------------------------------------//

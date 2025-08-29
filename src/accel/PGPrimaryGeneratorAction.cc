@@ -11,6 +11,7 @@
 #include <G4ParticleTable.hh>
 
 #include "corecel/Macros.hh"
+#include "corecel/io/Logger.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/ext/GeantImporter.hh"
@@ -76,6 +77,9 @@ void PGPrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
     generate_primaries_.seed(id_cast<UniqueEventId>(event->GetEventID()));
 
     auto primaries = generate_primaries_();
+
+    CELER_LOG_LOCAL(debug) << "Generated " << primaries.size()
+                           << " primaries for event " << event->GetEventID();
 
     for (auto const& p : primaries)
     {
