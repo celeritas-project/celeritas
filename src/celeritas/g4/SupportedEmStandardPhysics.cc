@@ -204,10 +204,12 @@ void SupportedEmStandardPhysics::add_gamma_processes()
     auto& ph = *G4PhysicsListHelper::GetPhysicsListHelper();
     auto& em_params = *G4EmParameters::Instance();
 
+#if G4VERSION_NUMBER >= 1060
     if (em_params.EnablePolarisation())
     {
         CELER_NOT_IMPLEMENTED("polarized gamma processes");
     }
+#endif
 
     auto* gamma = G4Gamma::Gamma();
     // Option to create GammaGeneral for performance/robustness
@@ -285,10 +287,12 @@ void SupportedEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
 
     if (options_.annihilation && p == G4Positron::Positron())
     {
+#if G4VERSION_NUMBER >= 1130
         if (em_params.Use3GammaAnnihilationOnFly())
         {
             CELER_NOT_IMPLEMENTED("3-gamma annihilation model");
         }
+#endif
         // e+e- annihilation: G4eeToTwoGammaModel
         ph.RegisterProcess(new G4eplusAnnihilation(), p);
 
