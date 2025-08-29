@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/MuHadEmStandardPhysics.hh
+//! \file celeritas/ext/detail/EmStandardPhysics.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,9 +14,12 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct EM standard physics, including those not implemented in Celeritas.
+ * Construct full EmStandardPhysics.
+ *
+ * These are both Celeritas supported physics and additional muon/hadronic
+ * EM processes.
  */
-class MuHadEmStandardPhysics : public SupportedEmStandardPhysics
+class EmStandardPhysics : public SupportedEmStandardPhysics
 {
   public:
     using SupportedEmStandardPhysics::SupportedEmStandardPhysics;

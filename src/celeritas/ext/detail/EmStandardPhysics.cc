@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/MuHadEmStandardPhysics.cc
+//! \file celeritas/ext/detail/EmStandardPhysics.cc
 //---------------------------------------------------------------------------//
-#include "MuHadEmStandardPhysics.hh"
+#include "EmStandardPhysics.hh"
 
 #include <G4EmParameters.hh>
 #include <G4NuclearStopping.hh>
@@ -60,7 +60,7 @@ namespace detail
 /*!
  * Build list of particles.
  */
-void MuHadEmStandardPhysics::ConstructParticle()
+void EmStandardPhysics::ConstructParticle()
 {
     SupportedEmStandardPhysics::ConstructParticle();
     this->construct_particle();
@@ -70,7 +70,7 @@ void MuHadEmStandardPhysics::ConstructParticle()
 /*!
  * Build processes and models.
  */
-void MuHadEmStandardPhysics::ConstructProcess()
+void EmStandardPhysics::ConstructProcess()
 {
     SupportedEmStandardPhysics::ConstructProcess();
     this->construct_process();
@@ -83,7 +83,7 @@ void MuHadEmStandardPhysics::ConstructProcess()
  * This is required to support Geant4 versions less than 10.7.0 which do not
  * have the G4EmBuilder.
  */
-void MuHadEmStandardPhysics::construct_particle()
+void EmStandardPhysics::construct_particle()
 {
 #if G4VERSION_NUMBER >= 1070
     G4EmBuilder::ConstructMinimalEmSet();
@@ -132,7 +132,7 @@ void MuHadEmStandardPhysics::construct_particle()
  * have the G4EmBuilder. This constructs the muon and hadron physics as in the
  * \c G4EmStandardPhysics::ConstructProcess() method of Geant4 version 10.6.0.
  */
-void MuHadEmStandardPhysics::construct_process()
+void EmStandardPhysics::construct_process()
 {
     auto& ph = *G4PhysicsListHelper::GetPhysicsListHelper();
 #if G4VERSION_NUMBER >= 1070

@@ -20,7 +20,7 @@
 #include "celeritas/g4/SupportedEmStandardPhysics.hh"
 #include "celeritas/g4/SupportedOpticalPhysics.hh"
 
-#include "detail/MuHadEmStandardPhysics.hh"
+#include "detail/EmStandardPhysics.hh"
 #include "detail/PhysicsListUtils.hh"
 
 namespace celeritas
@@ -39,7 +39,7 @@ FtfpBertPhysicsList::FtfpBertPhysicsList(Options const& options)
         native_value_to<ClhepLen>(options.default_cutoff).value());
 
     // Add celeritas EM physics plus additional mu/hadron
-    detail::emplace_physics<detail::MuHadEmStandardPhysics>(*this, options);
+    detail::emplace_physics<detail::EmStandardPhysics>(*this, options);
 
     if (options.optical)
     {

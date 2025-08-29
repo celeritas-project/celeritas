@@ -441,7 +441,7 @@ void SupportedEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
 /*!
  * Add EM processes for muons.
  *
- * \note Remove processes from celeritas::detail::MuHadEmStandardPhysics when
+ * \note Remove processes from celeritas::detail::EmStandardPhysics when
  * added here.
  */
 void SupportedEmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
