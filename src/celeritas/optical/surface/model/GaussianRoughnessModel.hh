@@ -8,8 +8,8 @@
 
 #include "corecel/data/CollectionMirror.hh"
 
+#include "BuiltinSurfaceModel.hh"
 #include "GaussianRoughnessData.hh"
-#include "RoughnessModel.hh"
 
 namespace celeritas
 {
@@ -22,7 +22,8 @@ namespace optical
 //---------------------------------------------------------------------------//
 /*!
  */
-class GaussianRoughnessModel : public RoughnessModel
+class GaussianRoughnessModel
+    : public BuiltinSurfaceModel<SurfacePhysicsOrder::roughness>
 {
   public:
     using InputT = inp::GaussianRoughness;

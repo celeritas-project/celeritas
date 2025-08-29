@@ -86,7 +86,7 @@ class FakeModelBuilder
     {
         if (!layer_map.empty())
         {
-            models_.push_back(RoughnessModel::from_input<M>(
+            models_.push_back(builtin_model_from_input<M>(
                 SurfaceModelId(models_.size()), layer_map));
             num_surf_ += layer_map.size();
         }

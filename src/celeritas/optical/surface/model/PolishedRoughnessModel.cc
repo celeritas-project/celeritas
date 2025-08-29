@@ -24,7 +24,8 @@ PolishedRoughnessModel::PolishedRoughnessModel(
     SurfaceModelId model,
     std::vector<PhysSurfaceId> surfaces,
     std::vector<InputT> const&)
-    : RoughnessModel(model, "polished", std::move(surfaces))
+    : BuiltinSurfaceModel<SurfacePhysicsOrder::roughness>(
+          model, "polished", std::move(surfaces))
 {
 }
 

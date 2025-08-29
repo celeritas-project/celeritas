@@ -8,7 +8,7 @@
 
 #include "corecel/data/CollectionMirror.hh"
 
-#include "RoughnessModel.hh"
+#include "BuiltinSurfaceModel.hh"
 #include "SmearRoughnessData.hh"
 
 namespace celeritas
@@ -22,7 +22,8 @@ namespace optical
 //---------------------------------------------------------------------------//
 /*!
  */
-class SmearRoughnessModel : public RoughnessModel
+class SmearRoughnessModel
+    : public BuiltinSurfaceModel<SurfacePhysicsOrder::roughness>
 {
   public:
     using InputT = inp::SmearRoughness;

@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "RoughnessModel.hh"
+#include "BuiltinSurfaceModel.hh"
 
 namespace celeritas
 {
@@ -19,7 +19,8 @@ namespace optical
 //---------------------------------------------------------------------------//
 /*!
  */
-class PolishedRoughnessModel : public RoughnessModel
+class PolishedRoughnessModel
+    : public BuiltinSurfaceModel<SurfacePhysicsOrder::roughness>
 {
   public:
     using InputT = inp::NoRoughness;
