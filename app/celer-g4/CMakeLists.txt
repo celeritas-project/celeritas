@@ -121,6 +121,7 @@ function(celer_app_test ext)
   set_tests_properties("app/celer-g4:${ext}" PROPERTIES
     ENVIRONMENT "${_env};${_extra_env}"
     REQUIRED_FILES "${_required_files}"
+    TIMEOUT 12
     LABELS "${_labels}"
     ${_props} ${_extra_props}
   )
