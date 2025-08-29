@@ -38,6 +38,8 @@ list(APPEND SOURCES
   SharedParams.cc
   SimpleOffload.cc
   TimeOutput.cc
+  TrackingManagerConstructor.cc
+  TrackingManagerIntegration.cc
   UserActionIntegration.cc
   detail/GeantSimpleCaloSD.cc
   detail/IntegrationSingleton.cc
@@ -47,9 +49,7 @@ celeritas_polysource(ExceptionConverter)
 
 if(Geant4_VERSION VERSION_GREATER_EQUAL 11.0)
   list(APPEND SOURCES
-    TrackingManagerIntegration.cc
     TrackingManager.cc
-    TrackingManagerConstructor.cc
   )
 endif()
 

@@ -10,6 +10,10 @@
 #include <set>
 #include <G4ParticleDefinition.hh>
 #include <G4Threading.hh>
+#include <G4Version.hh>
+#if G4VERSION_NUMBER >= 1100
+#    include "TrackingManager.hh"
+#endif
 
 #include "corecel/io/Join.hh"
 #include "corecel/sys/Stopwatch.hh"
@@ -18,7 +22,6 @@
 
 #include "ExceptionConverter.hh"
 #include "TimeOutput.hh"
-#include "TrackingManager.hh"
 #include "TrackingManagerConstructor.hh"
 
 #include "detail/IntegrationSingleton.hh"
@@ -70,6 +73,7 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
             not_offloaded.erase(iter);
         }
 
+#if G4VERSION_NUMBER >= 1100
         // Check tracking manager setup: note that this is *thread-local*
         // whereas the offloaded track list is *global*
         if (auto* tm = p->GetTrackingManager())
@@ -98,6 +102,9 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
         {
             log_tm_failure(p) << "is not attached";
         }
+#else
+        CELER_ASSERT_UNREACHABLE();
+#endif
     }
 
     auto printable_pd = [](G4PD const* p) { return PrintablePD{p}; };
@@ -142,6 +149,11 @@ TrackingManagerIntegration& TrackingManagerIntegration::Instance()
  */
 void TrackingManagerIntegration::BeginOfRunAction(G4Run const*)
 {
+    CELER_VALIDATE(G4VERSION_NUMBER >= 1100,
+                   << "the current version of Geant4 (" << G4VERSION_NUMBER
+                   << ") is too old to support the tracking manager offload "
+                      "interface");
+
     Stopwatch get_setup_time;
 
     auto& singleton = detail::IntegrationSingleton::instance();
