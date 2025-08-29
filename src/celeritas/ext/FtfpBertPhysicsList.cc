@@ -17,8 +17,8 @@
 #include <G4ios.hh>
 
 #include "celeritas/Quantities.hh"
-#include "celeritas/g4/EmStandardPhysics.hh"
-#include "celeritas/g4/OpticalPhysics.hh"
+#include "celeritas/g4/SupportedEmStandardPhysics.hh"
+#include "celeritas/g4/SupportedOpticalPhysics.hh"
 
 #include "detail/MuHadEmStandardPhysics.hh"
 #include "detail/PhysicsListUtils.hh"
@@ -44,7 +44,8 @@ FtfpBertPhysicsList::FtfpBertPhysicsList(Options const& options)
     if (options.optical)
     {
         // Celeritas-supported Optical Physics
-        detail::emplace_physics<OpticalPhysics>(*this, options.optical);
+        detail::emplace_physics<SupportedOpticalPhysics>(*this,
+                                                         options.optical);
     }
 
     // TODO: Add a physics constructor equivalent to G4EmExtraPhysics

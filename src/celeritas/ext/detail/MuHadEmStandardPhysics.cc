@@ -62,7 +62,7 @@ namespace detail
  */
 void MuHadEmStandardPhysics::ConstructParticle()
 {
-    EmStandardPhysics::ConstructParticle();
+    SupportedEmStandardPhysics::ConstructParticle();
     this->construct_particle();
 }
 
@@ -72,7 +72,7 @@ void MuHadEmStandardPhysics::ConstructParticle()
  */
 void MuHadEmStandardPhysics::ConstructProcess()
 {
-    EmStandardPhysics::ConstructProcess();
+    SupportedEmStandardPhysics::ConstructProcess();
     this->construct_process();
 }
 

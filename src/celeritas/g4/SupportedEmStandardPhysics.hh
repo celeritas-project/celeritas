@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/g4/EmStandardPhysics.hh
+//! \file celeritas/g4/SupportedEmStandardPhysics.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,15 +16,13 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct Celeritas-supported Geant4 EM physics processes.
+ * Construct G4EmStandardPhysics processes that are implemented in Celeritas.
  *
- * This is a configurable plug-in replacement for \c G4EmStandardPhysics.
  * Limitations:
  * - No support for generic ions
  * - No hadronic EM interactions
- * - Limited support for muons (currently disabled by default)
- * - Coulomb scattering and multiple scattering (high E) are currently
- *   disabled.
+ * - Coulomb scattering is disabled by default
+ * - No muon energy loss fluctuation model is implemented
  *
  * Electron/positron processes:
  *
@@ -50,9 +48,9 @@ namespace celeritas
  * If the \c gamma_general option is enabled, we create a single unified
  * \c G4GammaGeneralProcess process, which embeds these other processes and
  * calculates a combined total cross section. It's faster in Geant4 but
- * shouldn't result in different answers.
+ * shouldn't result in statistically different answers.
  *
- * Muon processes:
+ * Muon processes are disabled by default:
  *
  * | Processes                    | Model classes                |
  * | ---------------------------- | ---------------------------- |
@@ -69,7 +67,7 @@ namespace celeritas
  * GeV. Since version 11.1.0, the \c G4MuBetheBlochModel is used for all
  * energies above 200 keV.
  */
-class EmStandardPhysics : public G4VPhysicsConstructor
+class SupportedEmStandardPhysics : public G4VPhysicsConstructor
 {
   public:
     //!@{
@@ -79,7 +77,7 @@ class EmStandardPhysics : public G4VPhysicsConstructor
 
   public:
     // Set up during construction
-    explicit EmStandardPhysics(Options const& options);
+    explicit SupportedEmStandardPhysics(Options const& options);
 
     // Set up minimal EM particle list
     void ConstructParticle() override;

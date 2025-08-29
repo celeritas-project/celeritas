@@ -9,8 +9,8 @@
 #include <memory>
 
 #include "celeritas/Quantities.hh"
-#include "celeritas/g4/EmStandardPhysics.hh"
-#include "celeritas/g4/OpticalPhysics.hh"
+#include "celeritas/g4/SupportedEmStandardPhysics.hh"
+#include "celeritas/g4/SupportedOpticalPhysics.hh"
 
 #include "detail/PhysicsListUtils.hh"
 
@@ -29,12 +29,13 @@ EmPhysicsList::EmPhysicsList(Options const& options)
         native_value_to<ClhepLen>(options.default_cutoff).value());
 
     // Celeritas-supported EM Physics
-    detail::emplace_physics<EmStandardPhysics>(*this, options);
+    detail::emplace_physics<SupportedEmStandardPhysics>(*this, options);
 
     if (options.optical)
     {
         // Celeritas-supported Optical Physics
-        detail::emplace_physics<OpticalPhysics>(*this, options.optical);
+        detail::emplace_physics<SupportedOpticalPhysics>(*this,
+                                                         options.optical);
     }
 }
 

@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/g4/EmStandardPhysics.cc
+//! \file celeritas/g4/SupportedEmStandardPhysics.cc
 //---------------------------------------------------------------------------//
-#include "EmStandardPhysics.hh"
+#include "SupportedEmStandardPhysics.hh"
 
 #include <memory>
 #include <CLHEP/Units/SystemOfUnits.h>
@@ -100,7 +100,7 @@ from_form_factor_type(NuclearFormFactorType const& form_factor)
 /*!
  * Construct with physics options.
  */
-EmStandardPhysics::EmStandardPhysics(Options const& options)
+SupportedEmStandardPhysics::SupportedEmStandardPhysics(Options const& options)
     : G4VPhysicsConstructor("CelerEmStandard", bElectromagnetic)
     , options_(options)
 {
@@ -160,7 +160,7 @@ EmStandardPhysics::EmStandardPhysics(Options const& options)
  * triton, He3, alpha, and generic ion, along with Geant4's pseudo-particles
  * geantino and charged geantino.
  */
-void EmStandardPhysics::ConstructParticle()
+void SupportedEmStandardPhysics::ConstructParticle()
 {
     G4Gamma::GammaDefinition();
     G4Electron::ElectronDefinition();
@@ -180,7 +180,7 @@ void EmStandardPhysics::ConstructParticle()
 /*!
  * Build list of available processes and models.
  */
-void EmStandardPhysics::ConstructProcess()
+void SupportedEmStandardPhysics::ConstructProcess()
 {
     // Add E.M. processes for photons, electrons, and positrons
     this->add_gamma_processes();
@@ -199,7 +199,7 @@ void EmStandardPhysics::ConstructProcess()
 /*!
  * Add EM processes for photons.
  */
-void EmStandardPhysics::add_gamma_processes()
+void SupportedEmStandardPhysics::add_gamma_processes()
 {
     auto& ph = *G4PhysicsListHelper::GetPhysicsListHelper();
     auto& em_params = *G4EmParameters::Instance();
@@ -278,7 +278,7 @@ void EmStandardPhysics::add_gamma_processes()
 /*!
  * Add EM processes for electrons and positrons.
  */
-void EmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
+void SupportedEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
 {
     auto& ph = *G4PhysicsListHelper::GetPhysicsListHelper();
     auto& em_params = *G4EmParameters::Instance();
@@ -444,7 +444,7 @@ void EmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
  * \note Remove processes from celeritas::detail::MuHadEmStandardPhysics when
  * added here.
  */
-void EmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
+void SupportedEmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
 {
     auto& ph = *G4PhysicsListHelper::GetPhysicsListHelper();
 

@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/g4/EmStandardPhysics.hh"
+#include "celeritas/g4/SupportedEmStandardPhysics.hh"
 
 namespace celeritas
 {
@@ -16,10 +16,10 @@ namespace detail
 /*!
  * Construct EM standard physics, including those not implemented in Celeritas.
  */
-class MuHadEmStandardPhysics : public EmStandardPhysics
+class MuHadEmStandardPhysics : public SupportedEmStandardPhysics
 {
   public:
-    using EmStandardPhysics::EmStandardPhysics;
+    using SupportedEmStandardPhysics::SupportedEmStandardPhysics;
 
     // Set up minimal EM particle list
     void ConstructParticle() override;

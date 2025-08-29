@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/g4/OpticalPhysics.cc
+//! \file celeritas/g4/SupportedOpticalPhysics.cc
 //---------------------------------------------------------------------------//
-#include "OpticalPhysics.hh"
+#include "SupportedOpticalPhysics.hh"
 
 #include <memory>
 #include <G4Cerenkov.hh>
@@ -119,8 +119,9 @@ G4String optical_process_type_to_geant_name(OpticalProcessType value)
  * Use `G4OpticalParameters` when available, otherwise use hardcoded
  * checks.
  */
-bool process_is_active(OpticalProcessType process,
-                       [[maybe_unused]] OpticalPhysics::Options const& options)
+bool process_is_active(
+    OpticalProcessType process,
+    [[maybe_unused]] SupportedOpticalPhysics::Options const& options)
 {
 #if G4VERSION_NUMBER >= 1070
     auto* params = G4OpticalParameters::Instance();
@@ -158,7 +159,8 @@ bool process_is_active(OpticalProcessType process,
 /*!
  * Construct with physics options.
  */
-OpticalPhysics::OpticalPhysics(Options const& options) : options_(options)
+SupportedOpticalPhysics::SupportedOpticalPhysics(Options const& options)
+    : options_(options)
 {
 #if G4VERSION_NUMBER >= 1070
     // Use of G4OpticalParameters only from Geant4 10.7
@@ -213,7 +215,7 @@ OpticalPhysics::OpticalPhysics(Options const& options) : options_(options)
 /*!
  * Build list of available particles.
  */
-void OpticalPhysics::ConstructParticle()
+void SupportedOpticalPhysics::ConstructParticle()
 {
     // Eventually nothing to do here as Celeritas OpPhys won't generate
     // G4OpticalPhotons
@@ -224,7 +226,7 @@ void OpticalPhysics::ConstructParticle()
 /*!
  * Build list of available processes and models.
  */
-void OpticalPhysics::ConstructProcess()
+void SupportedOpticalPhysics::ConstructProcess()
 {
     auto* process_manager
         = G4OpticalPhoton::OpticalPhoton()->GetProcessManager();

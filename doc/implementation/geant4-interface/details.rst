@@ -57,7 +57,7 @@ Primary generators
 Physics constructors
 ^^^^^^^^^^^^^^^^^^^^
 
-A Geant4 physics constructor :cpp:class:`celeritas::EmStandardPhysics` allows
+A Geant4 physics constructor :cpp:class:`celeritas::SupportedEmStandardPhysics` allows
 very fine-grained selection of the EM physics processes supported by Celeritas.
 The input options incorporate process and model selection as well as default EM
 parameters to send to Geant4.
@@ -66,7 +66,7 @@ parameters to send to Geant4.
    :members:
    :no-link:
 
-.. doxygenclass:: celeritas::EmStandardPhysics
+.. doxygenclass:: celeritas::SupportedEmStandardPhysics
 
 Physics lists
 ^^^^^^^^^^^^^

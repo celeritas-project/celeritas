@@ -194,8 +194,8 @@ endif()
 
 if(CELERITAS_USE_Geant4)
   set(_cg4_sources
-    g4/EmStandardPhysics.cc
-    g4/OpticalPhysics.cc
+    g4/SupportedEmStandardPhysics.cc
+    g4/SupportedOpticalPhysics.cc
     g4/detail/GeantBremsstrahlungProcess.cc
     ext/EmPhysicsList.cc
     ext/FtfpBertPhysicsList.cc
