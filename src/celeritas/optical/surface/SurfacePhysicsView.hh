@@ -95,13 +95,6 @@ class SurfacePhysicsView
     // Number of valid positions of the track in the surface crossing
     inline CELER_FUNCTION SurfaceTrackPosition::size_type num_positions() const;
 
-    // Subsurface material of the current track position
-    inline CELER_FUNCTION OptMatId subsurface_material() const;
-
-    // Next subsurface interface in the given direction (track-local)
-    inline CELER_FUNCTION
-        PhysSurfaceId subsurface_interface(SubsurfaceDirection) const;
-
     // Calculate traversal direction from track momentum
     inline CELER_FUNCTION SubsurfaceDirection
     traversal_direction(Real3 const&) const;
@@ -153,6 +146,17 @@ class SurfacePhysicsView
     template<class T, class U>
     CELER_FUNCTION U to_record_index(SurfaceTrackPosition,
                                      ItemMap<T, U> const&) const;
+
+    // Subsurface material of the current track position
+    inline CELER_FUNCTION OptMatId subsurface_material() const;
+    inline CELER_FUNCTION
+        OptMatId subsurface_material(SubsurfaceDirection) const;
+    inline CELER_FUNCTION
+        OptMatId subsurface_material(SurfaceTrackPosition) const;
+
+    // Next subsurface interface in the given direction (track-local)
+    inline CELER_FUNCTION
+        PhysSurfaceId subsurface_interface(SubsurfaceDirection) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -333,25 +337,7 @@ SurfacePhysicsView::num_positions() const
  */
 CELER_FUNCTION OptMatId SurfacePhysicsView::subsurface_material() const
 {
-    CELER_EXPECT(this->is_crossing_boundary());
-
-    if (this->in_pre_volume())
-    {
-        return states_.pre_volume_material[track_id_];
-    }
-    if (this->in_post_volume())
-    {
-        return states_.post_volume_material[track_id_];
-    }
-
-    CELER_ASSERT(this->subsurface_position().get() > 0);
-
-    auto material_record_id
-        = this->to_record_index(this->subsurface_position() - 1,
-                                this->surface_record().subsurface_materials);
-    CELER_ASSERT(material_record_id < params_.subsurface_materials.size());
-
-    return params_.subsurface_materials[material_record_id];
+    return this->subsurface_material(this->subsurface_position());
 }
 
 //---------------------------------------------------------------------------//
@@ -412,7 +398,10 @@ CELER_FUNCTION SurfaceModelView SurfacePhysicsView::surface_model(
     CELER_EXPECT(step != SurfacePhysicsOrder::size_);
 
     return SurfaceModelView{
-        dir, this->surface_physics_map(step, this->subsurface_interface(dir))};
+        dir,
+        this->surface_physics_map(step, this->subsurface_interface(dir)),
+        this->subsurface_material(),
+        this->subsurface_material(dir)};
 }
 
 //---------------------------------------------------------------------------//
@@ -511,6 +500,40 @@ CELER_FUNCTION U SurfacePhysicsView::to_record_index(
     CELER_ASSERT(index < map.size());
 
     return map[index];
+}
+
+//---------------------------------------------------------------------------//
+CELER_FUNCTION OptMatId
+SurfacePhysicsView::subsurface_material(SubsurfaceDirection dir) const
+{
+    return this->subsurface_material(this->subsurface_position()
+                                     + to_signed_offset(dir));
+}
+
+CELER_FUNCTION OptMatId
+SurfacePhysicsView::subsurface_material(SurfaceTrackPosition pos) const
+{
+    CELER_EXPECT(this->is_crossing_boundary());
+
+    // In pre-volume
+    if (pos.get() == 0)
+    {
+        return states_.pre_volume_material[track_id_];
+    }
+    // In post-volume
+    if (pos.get() + 1 == this->num_positions())
+    {
+        return states_.post_volume_material[track_id_];
+    }
+
+    CELER_ASSERT(pos.get() > 0);
+    CELER_ASSERT(pos < this->num_positions() - 1);
+
+    auto material_record_id = this->to_record_index(
+        pos - 1, this->surface_record().subsurface_materials);
+    CELER_ASSERT(material_record_id < params_.subsurface_materials.size());
+
+    return params_.subsurface_materials[material_record_id];
 }
 
 //---------------------------------------------------------------------------//

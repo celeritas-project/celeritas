@@ -29,9 +29,11 @@ class SurfaceModelView
     //!@}
 
   public:
-    // Construct from a direction and map view
-    inline CELER_FUNCTION
-    SurfaceModelView(SubsurfaceDirection, SurfacePhysicsMapView const&);
+    // Construct from a direction, map view, and materials
+    inline CELER_FUNCTION SurfaceModelView(SubsurfaceDirection,
+                                           SurfacePhysicsMapView,
+                                           OptMatId pre_mat,
+                                           OptMatId post_mat);
 
     // Get subsurface track direction
     inline CELER_FUNCTION SubsurfaceDirection direction() const;
@@ -51,20 +53,25 @@ class SurfaceModelView
   private:
     SubsurfaceDirection dir_;
     SurfacePhysicsMapView physics_map_;
-    // OptMatId pre_material_;
-    // OptMatId post_material_;
+    OptMatId pre_material_;
+    OptMatId post_material_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct from track direction and physics map view.
+ * Construct from track direction, physics map view, and materials.
  */
 CELER_FUNCTION
 SurfaceModelView::SurfaceModelView(SubsurfaceDirection dir,
-                                   SurfacePhysicsMapView const& physics_map)
-    : dir_(dir), physics_map_(physics_map)
+                                   SurfacePhysicsMapView physics_map,
+                                   OptMatId pre_material,
+                                   OptMatId post_material)
+    : dir_(dir)
+    , physics_map_(physics_map)
+    , pre_material_(pre_material)
+    , post_material_(post_material)
 {
 }
 
@@ -74,7 +81,7 @@ SurfaceModelView::SurfaceModelView(SubsurfaceDirection dir,
  */
 CELER_FUNCTION SubsurfaceDirection SurfaceModelView::direction() const
 {
-    return SubsurfaceDirection::forward;
+    return dir_;
 }
 
 //---------------------------------------------------------------------------//
@@ -83,7 +90,7 @@ CELER_FUNCTION SubsurfaceDirection SurfaceModelView::direction() const
  */
 CELER_FUNCTION SurfaceModelId SurfaceModelView::surface_model() const
 {
-    return {};
+    return physics_map_.surface_model_id();
 }
 
 //---------------------------------------------------------------------------//
@@ -93,7 +100,7 @@ CELER_FUNCTION SurfaceModelId SurfaceModelView::surface_model() const
 CELER_FUNCTION auto SurfaceModelView::internal_surface_id() const
     -> InternalSurfaceId
 {
-    return {};
+    return physics_map_.internal_surface_id();
 }
 
 //---------------------------------------------------------------------------//
@@ -102,7 +109,7 @@ CELER_FUNCTION auto SurfaceModelView::internal_surface_id() const
  */
 CELER_FUNCTION OptMatId SurfaceModelView::pre_material() const
 {
-    return {};
+    return pre_material_;
 }
 
 //---------------------------------------------------------------------------//
@@ -111,7 +118,7 @@ CELER_FUNCTION OptMatId SurfaceModelView::pre_material() const
  */
 CELER_FUNCTION OptMatId SurfaceModelView::post_material() const
 {
-    return {};
+    return post_material_;
 }
 
 //---------------------------------------------------------------------------//

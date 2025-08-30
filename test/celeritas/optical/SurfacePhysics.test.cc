@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/inp/SurfacePhysics.hh"
 
+#include <iostream>
 #include <memory>
 #include <set>
 #include <vector>
@@ -48,7 +49,7 @@ using namespace ::celeritas::test;
 template<class T>
 using SurfaceOrderArray = EnumArray<SurfacePhysicsOrder, T>;
 
-using InternalSurfaceId = ::celeritas::SurfaceModel::InternalSurfaceId;
+using InternalSurfaceId = SurfaceModel::InternalSurfaceId;
 
 auto constexpr forward = SubsurfaceDirection::forward;
 auto constexpr reverse = SubsurfaceDirection::reverse;
@@ -74,8 +75,11 @@ struct SurfaceResult
 struct TraceResult
 {
     std::vector<SurfaceTrackPosition> position{};
-    std::vector<OptMatId> material{};
-    std::vector<PhysSurfaceId> interface{};
+
+    SurfaceOrderArray<std::vector<SurfaceModelId>> models;
+    SurfaceOrderArray<std::vector<InternalSurfaceId>> per_model_ids;
+    SurfaceOrderArray<std::vector<OptMatId>> pre_material;
+    SurfaceOrderArray<std::vector<OptMatId>> post_material;
 };
 
 TraceResult trace_directions(SurfacePhysicsView& s_physics,
@@ -84,16 +88,25 @@ TraceResult trace_directions(SurfacePhysicsView& s_physics,
     TraceResult result;
 
     result.position.push_back(s_physics.subsurface_position());
-    result.material.push_back(s_physics.subsurface_material());
 
     for (auto direction : directions)
     {
-        result.interface.push_back(s_physics.subsurface_interface(direction));
+        for (auto step : range(SurfacePhysicsOrder::size_))
+        {
+            auto surface_model = s_physics.surface_model(direction, step);
+
+            EXPECT_EQ(direction, surface_model.direction());
+
+            result.models[step].push_back(surface_model.surface_model());
+            result.per_model_ids[step].push_back(
+                surface_model.internal_surface_id());
+            result.pre_material[step].push_back(surface_model.pre_material());
+            result.post_material[step].push_back(surface_model.post_material());
+        }
 
         s_physics.cross_subsurface_interface(direction);
 
         result.position.push_back(s_physics.subsurface_position());
-        result.material.push_back(s_physics.subsurface_material());
     }
 
     return result;
@@ -484,12 +497,38 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
         EXPECT_TRUE(s_physics.in_post_volume());
 
         TraceResult expected{as_id_vec<SurfaceTrackPosition>(0, 1),
-                             as_id_vec<OptMatId>(0, 1),
-                             as_id_vec<PhysSurfaceId>(6)};
+                             {
+                                 as_id_vec<SurfaceModelId>(0),
+                                 as_id_vec<SurfaceModelId>(1),
+                                 as_id_vec<SurfaceModelId>(0),
+                             },
+                             {
+                                 as_id_vec<InternalSurfaceId>(2),
+                                 as_id_vec<InternalSurfaceId>(3),
+                                 as_id_vec<InternalSurfaceId>(3),
+                             },
+                             {
+                                 as_id_vec<OptMatId>(0),
+                                 as_id_vec<OptMatId>(0),
+                                 as_id_vec<OptMatId>(0),
+                             },
+                             {
+                                 as_id_vec<OptMatId>(1),
+                                 as_id_vec<OptMatId>(1),
+                                 as_id_vec<OptMatId>(1),
+                             }};
 
         EXPECT_VEC_EQ(expected.position, result.position);
-        EXPECT_VEC_EQ(expected.material, result.material);
-        EXPECT_VEC_EQ(expected.interface, result.interface);
+        for (auto step : range(SurfacePhysicsOrder::size_))
+        {
+            EXPECT_VEC_EQ(expected.models[step], result.models[step]);
+            EXPECT_VEC_EQ(expected.per_model_ids[step],
+                          result.per_model_ids[step]);
+            EXPECT_VEC_EQ(expected.pre_material[step],
+                          result.pre_material[step]);
+            EXPECT_VEC_EQ(expected.post_material[step],
+                          result.post_material[step]);
+        }
     }
     {
         // Geometric surface 2 (reverse): B | A
@@ -513,12 +552,38 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
         EXPECT_TRUE(s_physics.in_post_volume());
 
         TraceResult expected{as_id_vec<SurfaceTrackPosition>(0, 1),
-                             as_id_vec<OptMatId>(1, 0),
-                             as_id_vec<PhysSurfaceId>(6)};
+                             {
+                                 as_id_vec<SurfaceModelId>(0),
+                                 as_id_vec<SurfaceModelId>(1),
+                                 as_id_vec<SurfaceModelId>(0),
+                             },
+                             {
+                                 as_id_vec<InternalSurfaceId>(2),
+                                 as_id_vec<InternalSurfaceId>(3),
+                                 as_id_vec<InternalSurfaceId>(3),
+                             },
+                             {
+                                 as_id_vec<OptMatId>(1),
+                                 as_id_vec<OptMatId>(1),
+                                 as_id_vec<OptMatId>(1),
+                             },
+                             {
+                                 as_id_vec<OptMatId>(0),
+                                 as_id_vec<OptMatId>(0),
+                                 as_id_vec<OptMatId>(0),
+                             }};
 
         EXPECT_VEC_EQ(expected.position, result.position);
-        EXPECT_VEC_EQ(expected.material, result.material);
-        EXPECT_VEC_EQ(expected.interface, result.interface);
+        for (auto step : range(SurfacePhysicsOrder::size_))
+        {
+            EXPECT_VEC_EQ(expected.models[step], result.models[step]);
+            EXPECT_VEC_EQ(expected.per_model_ids[step],
+                          result.per_model_ids[step]);
+            EXPECT_VEC_EQ(expected.pre_material[step],
+                          result.pre_material[step]);
+            EXPECT_VEC_EQ(expected.post_material[step],
+                          result.post_material[step]);
+        }
     }
     {
         // Geometric surface 0 (forward): A | D | B' | C | B
@@ -552,12 +617,38 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
 
         TraceResult expected{
             as_id_vec<SurfaceTrackPosition>(0, 1, 2, 1, 2, 3, 4, 3, 2, 1, 0),
-            as_id_vec<OptMatId>(0, 3, 1, 3, 1, 2, 1, 2, 1, 3, 0),
-            as_id_vec<PhysSurfaceId>(0, 1, 1, 1, 2, 3, 3, 2, 1, 0)};
+            {
+                as_id_vec<SurfaceModelId>(0, 0, 0, 0, 1, 2, 2, 1, 0, 0),
+                as_id_vec<SurfaceModelId>(0, 1, 1, 1, 0, 1, 1, 0, 1, 0),
+                as_id_vec<SurfaceModelId>(0, 1, 1, 1, 1, 0, 0, 1, 1, 0),
+            },
+            {
+                as_id_vec<InternalSurfaceId>(0, 1, 1, 1, 0, 0, 0, 0, 1, 0),
+                as_id_vec<InternalSurfaceId>(0, 0, 0, 0, 1, 1, 1, 1, 0, 0),
+                as_id_vec<InternalSurfaceId>(0, 0, 0, 0, 1, 1, 1, 1, 0, 0),
+            },
+            {
+                as_id_vec<OptMatId>(0, 3, 1, 3, 1, 2, 1, 2, 1, 3),
+                as_id_vec<OptMatId>(0, 3, 1, 3, 1, 2, 1, 2, 1, 3),
+                as_id_vec<OptMatId>(0, 3, 1, 3, 1, 2, 1, 2, 1, 3),
+            },
+            {
+                as_id_vec<OptMatId>(3, 1, 3, 1, 2, 1, 2, 1, 3, 0),
+                as_id_vec<OptMatId>(3, 1, 3, 1, 2, 1, 2, 1, 3, 0),
+                as_id_vec<OptMatId>(3, 1, 3, 1, 2, 1, 2, 1, 3, 0),
+            }};
 
         EXPECT_VEC_EQ(expected.position, result.position);
-        EXPECT_VEC_EQ(expected.material, result.material);
-        EXPECT_VEC_EQ(expected.interface, result.interface);
+        for (auto step : range(SurfacePhysicsOrder::size_))
+        {
+            EXPECT_VEC_EQ(expected.models[step], result.models[step]);
+            EXPECT_VEC_EQ(expected.per_model_ids[step],
+                          result.per_model_ids[step]);
+            EXPECT_VEC_EQ(expected.pre_material[step],
+                          result.pre_material[step]);
+            EXPECT_VEC_EQ(expected.post_material[step],
+                          result.post_material[step]);
+        }
     }
     {
         // Geometric surface 1 (reverse): B | C | A
@@ -587,12 +678,38 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
 
         TraceResult expected{
             as_id_vec<SurfaceTrackPosition>(0, 1, 2, 1, 0, 1, 2),
-            as_id_vec<OptMatId>(1, 2, 0, 2, 1, 2, 0),
-            as_id_vec<PhysSurfaceId>(5, 4, 4, 5, 5, 4)};
+            {
+                as_id_vec<SurfaceModelId>(1, 2, 2, 1, 1, 2),
+                as_id_vec<SurfaceModelId>(0, 1, 1, 0, 0, 1),
+                as_id_vec<SurfaceModelId>(1, 0, 0, 1, 1, 0),
+            },
+            {
+                as_id_vec<InternalSurfaceId>(1, 1, 1, 1, 1, 1),
+                as_id_vec<InternalSurfaceId>(2, 2, 2, 2, 2, 2),
+                as_id_vec<InternalSurfaceId>(2, 2, 2, 2, 2, 2),
+            },
+            {
+                as_id_vec<OptMatId>(1, 2, 0, 2, 1, 2),
+                as_id_vec<OptMatId>(1, 2, 0, 2, 1, 2),
+                as_id_vec<OptMatId>(1, 2, 0, 2, 1, 2),
+            },
+            {
+                as_id_vec<OptMatId>(2, 0, 2, 1, 2, 0),
+                as_id_vec<OptMatId>(2, 0, 2, 1, 2, 0),
+                as_id_vec<OptMatId>(2, 0, 2, 1, 2, 0),
+            }};
 
         EXPECT_VEC_EQ(expected.position, result.position);
-        EXPECT_VEC_EQ(expected.material, result.material);
-        EXPECT_VEC_EQ(expected.interface, result.interface);
+        for (auto step : range(SurfacePhysicsOrder::size_))
+        {
+            EXPECT_VEC_EQ(expected.models[step], result.models[step]);
+            EXPECT_VEC_EQ(expected.per_model_ids[step],
+                          result.per_model_ids[step]);
+            EXPECT_VEC_EQ(expected.pre_material[step],
+                          result.pre_material[step]);
+            EXPECT_VEC_EQ(expected.post_material[step],
+                          result.post_material[step]);
+        }
     }
 }
 
