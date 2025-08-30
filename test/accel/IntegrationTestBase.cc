@@ -336,9 +336,11 @@ auto LarSphereIntegrationMixin::make_physics_input() const -> PhysicsInput
  */
 auto LarSphereIntegrationMixin::make_primary_input() const -> PrimaryInput
 {
+    using MevEnergy = Quantity<units::Mev, double>;
+
     PrimaryInput result;
     result.pdg = {pdg::electron()};
-    result.energy = inp::MonoenergeticDistribution{units::MevEnergy{10}};
+    result.energy = inp::MonoenergeticDistribution{MevEnergy{10}};
     result.shape = inp::PointDistribution{from_cm({99, 0.1, 0})};
     result.angle = inp::IsotropicDistribution{};
     result.num_events = 4;
@@ -364,10 +366,12 @@ auto LarSphereIntegrationMixin::make_sens_det(std::string const& sd_name)
  */
 auto TestEm3IntegrationMixin::make_physics_input() const -> PhysicsInput
 {
+    using MevEnergy = Quantity<units::Mev, double>;
+
     PhysicsInput result = Base::make_physics_input();
     result.em_bins_per_decade = 14;
-    result.min_energy = units::MevEnergy{0.1};
-    result.lowest_electron_energy = units::MevEnergy{1};
+    result.min_energy = MevEnergy{0.1};
+    result.lowest_electron_energy = MevEnergy{1};
     result.default_cutoff = 0.1 * units::centimeter;
     return result;
 }
@@ -378,9 +382,11 @@ auto TestEm3IntegrationMixin::make_physics_input() const -> PhysicsInput
  */
 auto TestEm3IntegrationMixin::make_primary_input() const -> PrimaryInput
 {
+    using MevEnergy = Quantity<units::Mev, double>;
+
     PrimaryInput result;
     result.pdg = {pdg::electron()};
-    result.energy = inp::MonoenergeticDistribution{units::MevEnergy{100}};
+    result.energy = inp::MonoenergeticDistribution{MevEnergy{100}};
     result.shape = inp::PointDistribution{from_cm({-22, 0, 0})};
     result.angle = inp::MonodirectionalDistribution{Real3{1, 0, 0}};
     result.num_events = 2;
