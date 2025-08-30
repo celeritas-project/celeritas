@@ -209,6 +209,8 @@ void SupportedEmStandardPhysics::add_gamma_processes()
     {
         CELER_NOT_IMPLEMENTED("polarized gamma processes");
     }
+#else
+    CELER_DISCARD(em_params);
 #endif
 
     auto* gamma = G4Gamma::Gamma();
@@ -292,6 +294,8 @@ void SupportedEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
         {
             CELER_NOT_IMPLEMENTED("3-gamma annihilation model");
         }
+#else
+        CELER_DISCARD(em_params);
 #endif
         // e+e- annihilation: G4eeToTwoGammaModel
         ph.RegisterProcess(new G4eplusAnnihilation(), p);
