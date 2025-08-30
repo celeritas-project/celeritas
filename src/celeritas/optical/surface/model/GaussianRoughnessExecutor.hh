@@ -17,7 +17,10 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
-struct GaussianRoughnessExecutorBuilder
+/*!
+ * Construct a sampling executor for a Gaussian roughness model.
+ */
+struct GaussianRoughnessExecutor
 {
     //!@{
     //! \name Type aliases
@@ -26,14 +29,24 @@ struct GaussianRoughnessExecutorBuilder
 
     NativeCRef<GaussianRoughnessData> data;
 
-    CELER_FUNCTION Sampler operator()(SurfaceModelView const& model,
-                                      Real3 const& dir,
-                                      Real3 const& normal) const
-    {
-        return Sampler(
-            dir, normal, data.sigma_alpha[model.internal_surface_id()]);
-    }
+    inline CELER_FUNCTION Sampler operator()(SurfaceModelView const& model,
+                                             Real3 const& dir,
+                                             Real3 const& normal) const;
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct sampler for the given model.
+ */
+CELER_FUNCTION auto
+GaussianRoughnessExecutor::operator()(SurfaceModelView const& model,
+                                      Real3 const& dir,
+                                      Real3 const& normal) const -> Sampler
+{
+    return Sampler(dir, normal, data.sigma_alpha[model.internal_surface_id()]);
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

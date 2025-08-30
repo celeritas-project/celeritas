@@ -20,6 +20,9 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Construct model from surfaces and inputs.
+ */
 SmearRoughnessModel::SmearRoughnessModel(SurfaceModelId model,
                                          std::vector<PhysSurfaceId> surfaces,
                                          std::vector<InputT> const& inputs)
@@ -40,15 +43,22 @@ SmearRoughnessModel::SmearRoughnessModel(SurfaceModelId model,
     data_ = CollectionMirror<SmearRoughnessData>{std::move(data)};
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Launch kernel on host.
+ */
 void SmearRoughnessModel::step(CoreParams const& params,
                                CoreStateHost& state) const
 {
-    launch_action(
-        state,
-        this->make_executor(
-            params, state, SmearRoughnessExecutorBuilder{data_.host_ref()}));
+    launch_action(state,
+                  this->make_executor(
+                      params, state, SmearRoughnessExecutor{data_.host_ref()}));
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Launch kernel on device.
+ */
 #if !CELER_USE_DEVICE
 void SmearRoughnessModel::step(CoreParams const&, CoreStateDevice&) const
 {

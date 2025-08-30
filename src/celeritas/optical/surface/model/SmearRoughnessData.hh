@@ -17,12 +17,7 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- * Optional detailed class description, and possibly example usage:
- * \code
-    SmearRoughnessData ...;
-   \endcode
+ * Storage for uniform smear roughness model data.
  */
 template<Ownership W, MemSpace M>
 struct SmearRoughnessData

@@ -18,11 +18,14 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Launch kernel on device.
+ */
 void SmearRoughnessModel::step(CoreParams const& params,
                                CoreStateDevice& state) const
 {
     auto execute = this->make_executor(
-        params, state, SmearRoughnessExecutorBuilder{data_.device_ref()});
+        params, state, SmearRoughnessExecutor{data_.device_ref()});
 
     static ActionLauncher<decltype(execute), SurfaceModel> const launch_kernel(
         *this);

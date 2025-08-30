@@ -14,19 +14,32 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
-
+/*!
+ * Whether the track is undergoing a surface crossing and it matches the given
+ * step and model.
+ */
 struct IsSurfaceModelEqual
 {
     SurfacePhysicsOrder step;
     SurfaceModelId model;
 
-    inline CELER_FUNCTION bool operator()(CoreTrackView const& track) const
+    //! Whether the surface model should be executed for the track
+    CELER_FUNCTION bool operator()(CoreTrackView const& track) const
     {
         return track.surface_physics().is_crossing_boundary()
                && track.surface_model(step).surface_model() == model;
     }
 };
 
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a track slot executor that for a given surface step and model.
+ *
+ * The executor will launch kernels only on tracks which are undergoing a
+ * boundary crossing.
+ */
 template<class T>
 inline CELER_FUNCTION decltype(auto)
 make_surface_physics_executor(CoreParamsPtr<MemSpace::native> params,

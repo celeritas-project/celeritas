@@ -19,7 +19,9 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
-
+/*!
+ * Construct model from surfaces and inputs.
+ */
 PolishedRoughnessModel::PolishedRoughnessModel(
     SurfaceModelId model,
     std::vector<PhysSurfaceId> surfaces,
@@ -28,14 +30,21 @@ PolishedRoughnessModel::PolishedRoughnessModel(
 {
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Launch kernel on host.
+ */
 void PolishedRoughnessModel::step(CoreParams const& params,
                                   CoreStateHost& state) const
 {
-    launch_action(state,
-                  this->make_executor(
-                      params, state, PolishedRoughnessExecutorBuilder{}));
+    launch_action(
+        state, this->make_executor(params, state, PolishedRoughnessExecutor{}));
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Launch kernel on device.
+ */
 #if !CELER_USE_DEVICE
 void PolishedRoughnessModel::step(CoreParams const&, CoreStateDevice&) const
 {

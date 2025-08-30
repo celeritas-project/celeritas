@@ -45,7 +45,7 @@ class FakeModel : public SurfaceModel
         CELER_ENSURE(layer_map.size() == surfaces_.size());
     }
 
-    VecSurfaceLayer get_surfaces() const final { return surfaces_; }
+    VecSurfaceLayer const& get_surfaces() const final { return surfaces_; }
 
     void step(CoreParams const&, CoreStateHost&) const final {}
     void step(CoreParams const&, CoreStateDevice&) const final {}

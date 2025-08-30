@@ -12,10 +12,15 @@ namespace celeritas
 {
 namespace optical
 {
+class SurfaceModelView;
 //---------------------------------------------------------------------------//
 /*!
+ * Trivially sample a perfectly polished surface.
+ *
+ * A perfectly polished surface has the same local facet normal as the global
+ * normal.
  */
-struct PolishedRoughnessExecutor
+struct PolishedRoughnessSampler
 {
     Real3 const& normal;
 
@@ -26,14 +31,35 @@ struct PolishedRoughnessExecutor
     }
 };
 
-struct PolishedRoughnessExecutorBuilder
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a sampling executor for a polished roughness model.
+ */
+struct PolishedRoughnessExecutor
 {
-    CELER_FUNCTION PolishedRoughnessExecutor operator()(
-        SurfaceModelView const&, Real3 const&, Real3 const& normal) const
-    {
-        return PolishedRoughnessExecutor{normal};
-    }
+    //!@{
+    //! name Type aliases
+    using Sampler = PolishedRoughnessSampler;
+    //!@}
+
+    inline CELER_FUNCTION Sampler operator()(SurfaceModelView const&,
+                                             Real3 const&,
+                                             Real3 const& normal) const;
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct polished roughness sampler.
+ */
+CELER_FUNCTION auto
+PolishedRoughnessExecutor::operator()(SurfaceModelView const&,
+                                      Real3 const&,
+                                      Real3 const& normal) const -> Sampler
+{
+    return Sampler{normal};
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

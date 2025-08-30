@@ -18,11 +18,14 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Launch kernel on device.
+ */
 void PolishedRoughnessModel::step(CoreParams const& params,
                                   CoreStateDevice& state) const
 {
-    auto execute = this->make_executor(
-        params, state, PolishedRoughnessExecutorBuilder{});
+    auto execute
+        = this->make_executor(params, state, PolishedRoughnessExecutor{});
 
     static ActionLauncher<decltype(execute), SurfaceModel> const launch_kernel(
         *this);

@@ -20,6 +20,9 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Construct model from surfaces and inputs.
+ */
 GaussianRoughnessModel::GaussianRoughnessModel(
     SurfaceModelId model,
     std::vector<PhysSurfaceId> surfaces,
@@ -41,15 +44,23 @@ GaussianRoughnessModel::GaussianRoughnessModel(
     data_ = CollectionMirror<GaussianRoughnessData>{std::move(data)};
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Launch kernel on host.
+ */
 void GaussianRoughnessModel::step(CoreParams const& params,
                                   CoreStateHost& state) const
 {
     launch_action(
         state,
         this->make_executor(
-            params, state, GaussianRoughnessExecutorBuilder{data_.host_ref()}));
+            params, state, GaussianRoughnessExecutor{data_.host_ref()}));
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Launch kernel on device.
+ */
 #if !CELER_USE_DEVICE
 void GaussianRoughnessModel::step(CoreParams const&, CoreStateDevice&) const
 {

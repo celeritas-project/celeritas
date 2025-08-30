@@ -17,12 +17,7 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- * Optional detailed class description, and possibly example usage:
- * \code
-    GaussianRoughnessData ...;
-   \endcode
+ * Storage for Gaussian roughness model data.
  */
 template<Ownership W, MemSpace M>
 struct GaussianRoughnessData

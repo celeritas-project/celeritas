@@ -18,11 +18,14 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Launch kernel on device.
+ */
 void GaussianRoughnessModel::step(CoreParams const& params,
                                   CoreStateDevice& state) const
 {
     auto execute = this->make_executor(
-        params, state, GaussianRoughnessExecutorBuilder{data_.device_ref()});
+        params, state, GaussianRoughnessExecutor{data_.device_ref()});
 
     static ActionLauncher<decltype(execute), SurfaceModel> const launch_kernel(
         *this);

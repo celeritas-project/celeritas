@@ -17,21 +17,34 @@ namespace inp
 {
 struct GaussianRoughness;
 }
+
 namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Gaussian roughness surface model.
+ *
+ * Approximates the surface roughness of an optical surface with the UNIFIED
+ * Gaussian roughness model.
  */
 class GaussianRoughnessModel : public BuiltinRoughnessModel
 {
   public:
+    //!@{
+    //! \name Type aliases
     using InputT = inp::GaussianRoughness;
+    //!@}
 
+  public:
+    // Construct model from surfaces and inputs
     GaussianRoughnessModel(SurfaceModelId model,
                            std::vector<PhysSurfaceId> surfaces,
                            std::vector<InputT> const& inputs);
 
+    // Launch kernel on host
     void step(CoreParams const& params, CoreStateHost& state) const final;
+
+    // Launch kernel on device
     void step(CoreParams const&, CoreStateDevice&) const final;
 
   private:

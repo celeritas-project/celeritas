@@ -15,11 +15,18 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Wrapper for surface roughness models.
+ *
+ * This wrapper determines the relevant roughness model and surface data for
+ * the track, and ensures that the normal being sampled from satisfies the
+ * entering surface convention. The roughness executor should return a functor
+ * that samples the facet normal given an RNG engine.
  */
 template<class T>
 struct RoughnessApplier
 {
-    T const& executor_builder;
+    T const& make_sampler;
+
     inline CELER_FUNCTION void operator()(CoreTrackView& track) const;
 };
 
@@ -27,6 +34,10 @@ struct RoughnessApplier
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
+ * Sample and assign facet normal for the track.
+ *
+ * Ensures that the track's facet normal state field is updated with a facet
+ * normal following the entering surface convention.
  */
 template<class T>
 CELER_FUNCTION void RoughnessApplier<T>::operator()(CoreTrackView& track) const
@@ -35,15 +46,22 @@ CELER_FUNCTION void RoughnessApplier<T>::operator()(CoreTrackView& track) const
     auto model_view = track.surface_model(SurfacePhysicsOrder::roughness);
     auto rng = track.rng();
 
+    // Ensure the local normal follows the entering surface convention
     auto normal = s_physics.global_normal();
     if (model_view.direction() == SubsurfaceDirection::reverse)
     {
         normal = -normal;
     }
 
-    auto sample = executor_builder(model_view, track.geometry().dir(), normal);
+    CELER_ASSERT(is_entering_surface(track.geometry().dir(), normal));
+
+    // Construct normal sampler from executor
+    auto sample = make_sampler(model_view, track.geometry().dir(), normal);
 
     s_physics.facet_normal(sample(rng));
+
+    CELER_ENSURE(
+        is_entering_surface(track.geometry().dir(), s_physics.facet_normal()));
 }
 
 //---------------------------------------------------------------------------//
