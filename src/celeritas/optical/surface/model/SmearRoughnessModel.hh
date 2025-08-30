@@ -22,8 +22,7 @@ namespace optical
 //---------------------------------------------------------------------------//
 /*!
  */
-class SmearRoughnessModel
-    : public BuiltinSurfaceModel<SurfacePhysicsOrder::roughness>
+class SmearRoughnessModel : public BuiltinRoughnessModel
 {
   public:
     using InputT = inp::SmearRoughness;

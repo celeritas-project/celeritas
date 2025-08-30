@@ -19,8 +19,7 @@ namespace optical
 //---------------------------------------------------------------------------//
 /*!
  */
-class PolishedRoughnessModel
-    : public BuiltinSurfaceModel<SurfacePhysicsOrder::roughness>
+class PolishedRoughnessModel : public BuiltinRoughnessModel
 {
   public:
     using InputT = inp::NoRoughness;

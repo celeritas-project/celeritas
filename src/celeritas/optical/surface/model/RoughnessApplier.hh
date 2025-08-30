@@ -17,21 +17,11 @@ namespace optical
 /*!
  */
 template<class T>
-class RoughnessApplier
+struct RoughnessApplier
 {
-  public:
-    CELER_FUNCTION RoughnessApplier(T&& executor_builder)
-        : executor_builder_{celeritas::forward<T>(executor_builder)}
-    {
-    }
-
+    T const& executor_builder;
     inline CELER_FUNCTION void operator()(CoreTrackView& track) const;
-
-  private:
-    T executor_builder_;
 };
-
-// template<class T> CELER_FUNCTION RoughnessApplier(
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -51,7 +41,7 @@ CELER_FUNCTION void RoughnessApplier<T>::operator()(CoreTrackView& track) const
         normal = -normal;
     }
 
-    auto sample = executor_builder_(model_view, track.geometry().dir(), normal);
+    auto sample = executor_builder(model_view, track.geometry().dir(), normal);
 
     s_physics.facet_normal(sample(rng));
 }

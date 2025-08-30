@@ -24,8 +24,7 @@ GaussianRoughnessModel::GaussianRoughnessModel(
     SurfaceModelId model,
     std::vector<PhysSurfaceId> surfaces,
     std::vector<InputT> const& inputs)
-    : BuiltinSurfaceModel<SurfacePhysicsOrder::roughness>(
-          model, "gaussian", std::move(surfaces))
+    : BuiltinRoughnessModel(model, "gaussian", std::move(surfaces))
 {
     HostVal<GaussianRoughnessData> data;
     auto build_sigma_alpha = ::celeritas::make_builder(&data.sigma_alpha);

@@ -23,8 +23,7 @@ namespace optical
 SmearRoughnessModel::SmearRoughnessModel(SurfaceModelId model,
                                          std::vector<PhysSurfaceId> surfaces,
                                          std::vector<InputT> const& inputs)
-    : BuiltinSurfaceModel<SurfacePhysicsOrder::roughness>(
-          model, "smear", std::move(surfaces))
+    : BuiltinRoughnessModel(model, "smear", std::move(surfaces))
 {
     HostVal<SmearRoughnessData> data;
     auto build_roughness = ::celeritas::make_builder(&data.roughness);

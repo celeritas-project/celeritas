@@ -22,8 +22,7 @@ namespace optical
 //---------------------------------------------------------------------------//
 /*!
  */
-class GaussianRoughnessModel
-    : public BuiltinSurfaceModel<SurfacePhysicsOrder::roughness>
+class GaussianRoughnessModel : public BuiltinRoughnessModel
 {
   public:
     using InputT = inp::GaussianRoughness;

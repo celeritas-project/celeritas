@@ -19,8 +19,24 @@ namespace optical
 {
 namespace
 {
+
+template<class T>
+struct TrivialApplier
+{
+    T const& executor;
+
+    inline CELER_FUNCTION void operator()(CoreTrackView& track) const
+    {
+        executor(track);
+    }
+};
+
 template<SurfacePhysicsOrder>
-struct BuiltinApplier;
+struct BuiltinApplier
+{
+    template<class T>
+    using Applier = TrivialApplier<T>;
+};
 
 template<>
 struct BuiltinApplier<SurfacePhysicsOrder::roughness>
@@ -91,6 +107,13 @@ std::shared_ptr<T> builtin_model_from_input(
 
     return std::make_shared<T>(model_id, std::move(surfaces), inputs);
 }
+
+using BuiltinRoughnessModel
+    = BuiltinSurfaceModel<SurfacePhysicsOrder::roughness>;
+using BuiltinReflectivityModel
+    = BuiltinSurfaceModel<SurfacePhysicsOrder::reflectivity>;
+using BuiltinInteractionModel
+    = BuiltinSurfaceModel<SurfacePhysicsOrder::interaction>;
 
 //---------------------------------------------------------------------------//
 }  // namespace optical
