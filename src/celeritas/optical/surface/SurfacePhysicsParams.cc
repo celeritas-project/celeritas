@@ -11,6 +11,7 @@
 #include "celeritas/inp/SurfacePhysics.hh"
 #include "celeritas/phys/SurfacePhysicsMapBuilder.hh"
 
+#include "BuiltinSurfaceModelBuilder.hh"
 #include "model/GaussianRoughnessModel.hh"
 #include "model/PolishedRoughnessModel.hh"
 #include "model/SmearRoughnessModel.hh"
@@ -21,84 +22,6 @@ namespace optical
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-/*!
- * A fake model used to mock actual surface physics models.
- *
- * TODO: Remove and replace with actual built-in surface models.
- */
-template<class T>
-class FakeModel : public SurfaceModel
-{
-  public:
-    FakeModel(SurfaceModelId model_id,
-              std::string_view label,
-              std::map<PhysSurfaceId, T> const& layer_map)
-        : SurfaceModel(model_id, label)
-    {
-        for (auto const& [layer, data] : layer_map)
-        {
-            CELER_ENSURE(layer);
-            surfaces_.push_back(layer);
-        }
-
-        CELER_ENSURE(layer_map.size() == surfaces_.size());
-    }
-
-    VecSurfaceLayer const& get_surfaces() const final { return surfaces_; }
-
-    void step(CoreParams const&, CoreStateHost&) const final {}
-    void step(CoreParams const&, CoreStateDevice&) const final {}
-
-  private:
-    std::vector<PhysSurfaceId> surfaces_;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Helper to build fake models.
- *
- * Doesn't insert empty models and keeps track of number of physics surfaces
- * for validation purposes.
- */
-class FakeModelBuilder
-{
-  public:
-    FakeModelBuilder(std::vector<std::shared_ptr<SurfaceModel>>& models)
-        : models_(models)
-    {
-    }
-
-    template<class T>
-    void operator()(std::string_view label,
-                    std::map<PhysSurfaceId, T> const& layer_map)
-    {
-        if (!layer_map.empty())
-        {
-            models_.push_back(std::make_shared<FakeModel<T>>(
-                SurfaceModelId(models_.size()), label, layer_map));
-            num_surf_ += layer_map.size();
-        }
-    }
-
-    template<class M>
-    void build(std::map<PhysSurfaceId, typename M::InputT> const& layer_map)
-    {
-        if (!layer_map.empty())
-        {
-            models_.push_back(builtin_model_from_input<M>(
-                SurfaceModelId(models_.size()), layer_map));
-            num_surf_ += layer_map.size();
-        }
-    }
-
-    size_type num_surfaces() const { return num_surf_; }
-
-  private:
-    std::vector<std::shared_ptr<SurfaceModel>>& models_;
-    size_type num_surf_{0};
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Calculate number of physics surfaces as defined by interstitial materials.
@@ -210,7 +133,7 @@ auto SurfacePhysicsParams::build_models(
     for (auto step : range(SurfacePhysicsOrder::size_))
     {
         // Build fake models
-        FakeModelBuilder build_model{step_models[step]};
+        BuiltinSurfaceModelBuilder build_model{step_models[step]};
         switch (step)
         {
             case SurfacePhysicsOrder::roughness:
@@ -221,14 +144,14 @@ auto SurfacePhysicsParams::build_models(
                     input.roughness.gaussian);
                 break;
             case SurfacePhysicsOrder::reflectivity:
-                build_model("grid", input.reflectivity.grid);
-                build_model("fresnel", input.reflectivity.fresnel);
+                build_model.build_fake("grid", input.reflectivity.grid);
+                build_model.build_fake("fresnel", input.reflectivity.fresnel);
                 break;
             case SurfacePhysicsOrder::interaction:
-                build_model("dielectric-dielectric",
-                            input.interaction.dielectric_dielectric);
-                build_model("dielectric-metal",
-                            input.interaction.dielectric_metal);
+                build_model.build_fake("dielectric-dielectric",
+                                       input.interaction.dielectric_dielectric);
+                build_model.build_fake("dielectric-metal",
+                                       input.interaction.dielectric_metal);
                 break;
             default:
                 CELER_ASSERT_UNREACHABLE();

@@ -135,37 +135,6 @@ auto BuiltinSurfaceModel<S>::make_executor(CoreParams const& params,
 }
 
 //---------------------------------------------------------------------------//
-// FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-/*!
- * Construct built-in model of type \c M from \c inp::SurfacePhysics surface
- * layer map.
- *
- * The model \c M should have a type alias \c M::InputT which corresponds to
- * the input type associated with each surface.
- */
-template<class M>
-std::shared_ptr<M> builtin_model_from_input(
-    SurfaceModelId model_id,
-    std::map<PhysSurfaceId, typename M::InputT> const& layer_map)
-{
-    std::vector<PhysSurfaceId> surfaces;
-    std::vector<typename M::InputT> inputs;
-
-    for (auto const& [surface, input] : layer_map)
-    {
-        CELER_ENSURE(surface);
-        surfaces.push_back(surface);
-        inputs.push_back(input);
-    }
-
-    CELER_ENSURE(surfaces.size() == layer_map.size());
-    CELER_ENSURE(inputs.size() == layer_map.size());
-
-    return std::make_shared<M>(model_id, std::move(surfaces), inputs);
-}
-
-//---------------------------------------------------------------------------//
 // TEMPLATE ALIASES
 //---------------------------------------------------------------------------//
 
