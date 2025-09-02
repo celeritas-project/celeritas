@@ -8,14 +8,17 @@
 
 #include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/optical/model/MieModel.hh"
 
 #include "ImportedMaterials.hh"
 #include "ImportedModelAdapter.hh"
 #include "MaterialParams.hh"
 #include "model/AbsorptionModel.hh"
+#include "model/MieModel.hh"
 #include "model/RayleighModel.hh"
 #include "model/WavelengthShiftModel.hh"
 
@@ -79,7 +82,7 @@ auto ModelImporter::operator()(IMC imc) const -> std::optional<ModelBuilder>
         {IMC::rayleigh, &ModelImporter::build_rayleigh},
         {IMC::wls, &ModelImporter::build_wls},
         {IMC::wls2, &ModelImporter::build_wls2},
-    };
+        {IMC::mie, &ModelImporter::build_mie}};
 
     // Next, try built-in models
     auto iter = builtin_build.find(imc);
@@ -149,6 +152,22 @@ auto ModelImporter::build_wls2() const -> ModelBuilder
     }
     return WavelengthShiftModel::make_builder(this->imported(),
                                               std::move(input));
+}
+//---------------------------------------------------------------------------//
+/*!
+ * Create MIE model builder.
+ */
+auto ModelImporter::build_mie() const -> ModelBuilder
+{
+    // CELER_EXPECT(this->imported());
+    CELER_LOG(debug) << "Building Mie model";
+    return MieModel::make_builder(
+        this->imported(),  // shared_ptr<const ImportedModels>
+        MieModel::Input{
+            this->material(),
+            this->core_material(),
+            this->import_material()  // ✅ not "import_models"
+        });
 }
 
 //---------------------------------------------------------------------------//
