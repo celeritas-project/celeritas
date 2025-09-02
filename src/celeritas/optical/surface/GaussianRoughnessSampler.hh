@@ -103,9 +103,7 @@ CELER_FUNCTION Real3 GaussianRoughnessSampler::operator()(Engine& rng)
             // nonpositive slope are generally vanishingly small)
             alpha = std::fabs(sample_alpha_(rng));
         } while (alpha >= alpha_max_);
-        sin_alpha = std::sin(alpha);
-        cos_alpha = std::cos(alpha);
-        // sincos(alpha, &sin_alpha, &cos_alpha);
+        sincos(alpha, &sin_alpha, &cos_alpha);
 
         // Transform to polar angle using rejection
     } while (RejectionSampler{sin_alpha, f_max_}(rng));
