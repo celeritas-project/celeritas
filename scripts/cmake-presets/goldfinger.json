@@ -104,6 +104,20 @@
       }
     },
     {
+      "name": "vglocal",
+      "displayName": "With local vecgeom",
+      "inherits": [".base", ".debug", "default"],
+      "cacheVariables": {
+        "CELERITAS_BUILTIN_G4VG": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "ON"}
+      },
+      "environment": {
+        "CMAKE_PREFIX_PATH": "/Users/seth/Code/vecgeom/install:/opt/spack/opt/spack/sequoia/geant4/11.3.1/b7lttaq:/opt/spack/opt/spack/sequoia/googletest/1.15.2/kqcyiil:/opt/spack/opt/spack/sequoia/cli11/2.5.0/nsqiz3t:/opt/spack/opt/spack/sequoia/nlohmann-json/3.11.3/fpe7aef:/opt/spack/opt/spack/sequoia/covfie/0.13.0/tabnbjs:/opt/spack/opt/spack/sequoia/zlib-ng/2.2.1/6s4rdcx"
+      }
+    },
+    {
       "name": "vgsurf",
       "displayName": "With vecgeom surface",
       "inherits": ["vecgeom"],
@@ -111,7 +125,6 @@
         "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "ON"}
       },
       "environment": {
-        "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-vgsurf/.spack-env/view/bin:$penv{PATH}",
         "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-vgsurf/.spack-env/view"
       }
     },
