@@ -37,7 +37,8 @@ class ImportedMaterials
     // Construct directly from imported materials
     ImportedMaterials(std::vector<ImportOpticalRayleigh> rayleigh,
                       std::vector<ImportWavelengthShift> wls,
-                      std::vector<ImportWavelengthShift> wls2);
+                      std::vector<ImportWavelengthShift> wls2,
+                      std::vector<ImportMie> mie);
 
     // Get number of imported optical materials
     OptMatId::size_type num_materials() const;
