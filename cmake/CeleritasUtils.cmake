@@ -32,11 +32,21 @@ Miscellaneous utility functions.
 
   If Geant4 is unavailable, the result will be empty.
 
-.. command:: celeritas_set_celer_g4env
+.. command:: celeritas_get_g4env
 
-  Set the ``CELER_G4ENV`` cache variable from the Geant4 library CMake's
+  Set a persistent cache variable from the Geant4 library CMake's
   configured data location, overriding from environment variables if present.
-  This variable is persistent across configurations.
+  This variable is persistent across configurations and is fetched into the
+  provided variable <var>::
+
+    celeritas_get_g4env(<var>)
+
+.. command:: celeritas_get_disable_device
+
+  Set a variable based on the CELER_DISABLE_DEVICE environment, which
+  can be used to disable GPU tests::
+
+    celeritas_get_disable_device(<var>)
 
 #]=======================================================================]
 include_guard(GLOBAL)
@@ -131,20 +141,45 @@ endfunction()
 
 #-----------------------------------------------------------------------------#
 
-function(celeritas_set_celer_g4env)
-  set(_CELER_G4ENV)
-  foreach(_ds IN LISTS Geant4_DATASETS)
-    set(_key ${Geant4_DATASET_${_ds}_ENVVAR})
-    set(_val ${Geant4_DATASET_${_ds}_PATH})
-    set(_env "$ENV{${_key}}")
-    if(_env AND NOT _env STREQUAL _val)
-      message(VERBOSE "CELER_G4ENV: using ${_key}=${_env} from user environment")
-      list(APPEND _CELER_G4ENV "${_key}=${_env}")
+function(celeritas_get_g4env var)
+  if(NOT DEFINED CELERITAS_G4ENV)
+    set(_result)
+    foreach(_ds IN LISTS Geant4_DATASETS)
+      set(_key ${Geant4_DATASET_${_ds}_ENVVAR})
+      set(_val ${Geant4_DATASET_${_ds}_PATH})
+      set(_env "$ENV{${_key}}")
+      if(_env AND NOT _env STREQUAL _val)
+        message(VERBOSE "CELERITAS_G4ENV: using ${_key}=${_env} from user environment")
+        list(APPEND _result "${_key}=${_env}")
+      else()
+        list(APPEND _result "${_key}=${_val}")
+      endif()
+    endforeach()
+    set(CELERITAS_G4ENV "${_result}" CACHE INTERNAL "Environment variables used for CTest")
+  endif()
+  set(${var} "${CELERITAS_G4ENV}" PARENT_SCOPE)
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_get_disable_device var)
+  if(NOT DEFINED CELERITAS_DISABLE_DEVICE)
+    if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+      if("$ENV{CELER_DISABLE_DEVICE}")
+        message(WARNING
+          "Disabling GPU testing because CELER_DISABLE_DEVICE is set"
+        )
+        set(_DISABLE TRUE)
+      else()
+        set(_DISABLE FALSE)
+      endif()
     else()
-      list(APPEND _CELER_G4ENV "${_key}=${_val}")
+      # No device support
+      set(_DISABLE TRUE)
     endif()
-  endforeach()
-  set(CELER_G4ENV "${_CELER_G4ENV}" CACHE INTERNAL "Environment variables used for CTest")
+    set(CELERITAS_DISABLE_DEVICE "${_DISABLE}" CACHE INTERNAL "Whether to disable GPU when testing")
+  endif()
+  set(${var} "${CELERITAS_DISABLE_DEVICE}" PARENT_SCOPE)
 endfunction()
 
 #-----------------------------------------------------------------------------#

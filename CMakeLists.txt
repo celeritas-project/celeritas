@@ -346,11 +346,6 @@ if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
     )
   endif()
 endif()
-if(CELERITAS_USE_Geant4 AND BUILD_TESTING AND NOT DEFINED CELER_G4ENV)
-  # Set environment variables from Geant4-exported configuration or environment
-  # currently used only for CTest setup
-  celeritas_set_celer_g4env()
-endif()
 
 if(CELERITAS_USE_HepMC3)
   if(NOT HepMC3_FOUND)
@@ -614,6 +609,8 @@ set(CELERITAS_INSTALL_CMAKECONFIGDIR
 # Build list of CMake files to install
 set(_cmake_files
   "${PROJECT_SOURCE_DIR}/cmake/CeleritasLibrary.cmake"
+  "${PROJECT_SOURCE_DIR}/cmake/CeleritasUtils.cmake"
+  "${PROJECT_SOURCE_DIR}/cmake/CeleritasG4Tests.cmake"
   # TODO: in the future, don't include or distribute RdcUtils.
   # For now, include in case downstream projects do `include(CudaRdcUtils)`.
   "${_LOCAL_RDCUTILS_FILENAME}"

@@ -21,20 +21,11 @@ if(BUILD_TESTING)
   endif()
   set(CELER_APP_DATA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data")
 
-  # Disable device tests if no CUDA/HIP or if environment is set
-  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-    if("$ENV{CELER_DISABLE_DEVICE}")
-      message(WARNING
-        "Disabling GPU testing because CELER_DISABLE_DEVICE is set"
-      )
-      set(CELER_DISABLE_DEVICE TRUE)
-    else()
-      set(CELER_DISABLE_DEVICE FALSE)
-    endif()
-  else()
-    # No device support
-    set(CELER_DISABLE_DEVICE TRUE)
-  endif()
+  # Set environment variables from Geant4-exported configuration or
+  # environment currently used only for CTest setup
+  celeritas_get_g4env(CELER_G4ENV)
+  # Set option to disable GPU environment
+  celeritas_get_disable_device(CELER_DISABLE_DEVICE)
 endif()
 
 #-----------------------------------------------------------------------------#
