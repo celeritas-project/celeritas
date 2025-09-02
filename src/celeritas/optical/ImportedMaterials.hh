@@ -10,12 +10,14 @@
 #include <vector>
 
 #include "celeritas/Types.hh"
+#include "celeritas/io/ImportOpticalMaterial.hh"
 
 namespace celeritas
 {
 struct ImportData;
 struct ImportOpticalRayleigh;
 struct ImportWavelengthShift;
+struct ImportMie;
 
 namespace optical
 {
@@ -49,10 +51,14 @@ class ImportedMaterials
     // Get imported wavelength shifting material parameters
     ImportWavelengthShift const& wls2(OptMatId mat) const;
 
+    // Get mie material parameters
+    ImportMie const& mie(OptMatId mat) const;
+
   private:
     std::vector<ImportOpticalRayleigh> rayleigh_;
     std::vector<ImportWavelengthShift> wls_;
     std::vector<ImportWavelengthShift> wls2_;
+    std::vector<ImportMie> mie_;
 };
 
 //---------------------------------------------------------------------------//
