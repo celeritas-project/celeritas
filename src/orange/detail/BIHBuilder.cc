@@ -17,15 +17,17 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from a Storage object.
+ * Construct from a Storage object and a minimum split size.
  */
-BIHBuilder::BIHBuilder(Storage* storage)
+BIHBuilder::BIHBuilder(Storage* storage, size_type min_split_size)
     : bboxes_{&storage->bboxes}
     , local_volume_ids_{&storage->local_volume_ids}
     , inner_nodes_{&storage->inner_nodes}
     , leaf_nodes_{&storage->leaf_nodes}
+    , min_split_size_{min_split_size}
 {
     CELER_EXPECT(storage);
+    CELER_EXPECT(min_split_size_ > 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -125,10 +127,28 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
     auto current_index = nodes->size();
     nodes->resize(nodes->size() + 1);
 
+    // Create a single leaf containing all bboxes
+    auto make_leaf = [&]() {
+        BIHLeafNode node;
+        node.parent = parent;
+        node.vol_ids
+            = local_volume_ids_.insert_back(indices.begin(), indices.end());
+        CELER_EXPECT(node);
+        (*nodes)[current_index] = node;
+    };
+
+    if (indices.size() < min_split_size_)
+    {
+        // All bboxess fit on a single leaf; make it and exit early
+        make_leaf();
+        return;
+    }
+
     BIHPartitioner partition(&temp_.bboxes, &temp_.centers);
 
     if (auto p = partition(indices))
     {
+        // Create inner node
         BIHInnerNode node;
         node.parent = parent;
         node.axis = p.axis;
@@ -165,13 +185,8 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
     }
     else
     {
-        BIHLeafNode node;
-        node.parent = parent;
-        node.vol_ids
-            = local_volume_ids_.insert_back(indices.begin(), indices.end());
-
-        CELER_EXPECT(node);
-        (*nodes)[current_index] = node;
+        // Bboxes cannot be partitioned; put them all on a single leaf
+        make_leaf();
     }
 }
 

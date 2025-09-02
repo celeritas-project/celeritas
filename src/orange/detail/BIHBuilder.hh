@@ -25,17 +25,20 @@ namespace detail
 /*!
  * Create a bounding interval hierarchy from supplied bounding boxes.
  *
- * This implementation matches the structure proposed in the original
- * paper \citep{wachter-bih-2006, https://doi.org/10.2312/EGWR/EGSR06/139-149}.
+ * This implementation matches the structure proposed in the original paper
+ * \citep{wachter-bih-2006, https://doi.org/10.2312/EGWR/EGSR06/139-149}.
+ * Construction is done recursively. At a given recursion depth, if at least
+ * \param max_split_size boumding boxes are present, partitioning is attempted.
  * Partitioning is done on the basis of bounding box centers using the "longest
- * dimension" heuristic. All leaf nodes contain either a single volume id, or
- * multiple volume ids if the volumes have bounding boxes that share the same
- * center. A tree may consist of a single leaf node if the tree contains only 1
- * volume, or multiple non-partitionable volumes. In the event that all
- * bounding boxes are infinite, the tree will consist of a single empty leaf
- * node with all volumes in the stored inf_vols. This final case is useful in
- * the event that an ORANGE geometry is created via a method where volume
- * bounding boxes are not available.
+ * dimension" heuristic.  If more than \param max_split_size boumding boxes are
+ * present, or if the bounding boxes are are non-partitionable (i.e., they all
+ * have the same center), a leaf node is created.
+ *
+ * Any bounding boxes that have at least one infinite dimension are stored in
+ * inf_vols. In the event that all bounding boxes are infinite, the tree will
+ * consist of a single empty leaf node with all volumes in the stored inf_vols.
+ * This final case is useful in the event that an ORANGE geometry is created
+ * via a method where volume bounding boxes are not available.
  *
  * Bounding boxes supplied to this builder should "bumped," i.e. expanded
  * outward by at least floating-point epsilson from the volumes they bound.
@@ -53,11 +56,11 @@ class BIHBuilder
     //!@}
 
   public:
-    // Construct from a Storage object
-    explicit BIHBuilder(Storage* storage);
+    // Construct from a Storage object and a minimum split size.
+    explicit BIHBuilder(Storage* storage, size_type min_split_size = 2);
 
     // Create BIH Nodes
-    BIHTree operator()(VecBBox&& bboxes, SetLocalVolId const& implicit_vol_ids);
+    BIHTree operator()(VecBBox&& bboxes, SetLocalVolId const& implicit_vol_id);
 
   private:
     /// TYPES ///
@@ -76,13 +79,14 @@ class BIHBuilder
     };
 
     //// DATA ////
-
     Temporaries temp_;
 
     CollectionBuilder<FastBBox> bboxes_;
     CollectionBuilder<LocalVolumeId> local_volume_ids_;
     CollectionBuilder<BIHInnerNode> inner_nodes_;
     CollectionBuilder<BIHLeafNode> leaf_nodes_;
+
+    size_type min_split_size_;
 
     //// HELPER FUNCTIONS ////
 
