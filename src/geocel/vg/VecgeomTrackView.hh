@@ -35,6 +35,11 @@
 #    include "detail/BVHNavigator.hh"
 #endif
 
+#if !CELER_DEVICE_COMPILE
+#    include "corecel/io/Logger.hh"
+#    include "corecel/io/Repr.hh"
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -394,16 +399,41 @@ CELER_FUNCTION bool VecgeomTrackView::is_on_boundary() const
 //---------------------------------------------------------------------------//
 /*!
  * Get the surface normal of the boundary the track is currently on.
+ *
+ * This implementation is derived from VPlacedVolume::Normal and provides
+ * additional error checking.
  */
 CELER_FUNCTION Real3 VecgeomTrackView::normal() const
 {
-    CELER_EXPECT(this->is_on_boundary() || this->is_next_boundary());
-    vecgeom::Vector3D<vecgeom::Precision> normal;
-    auto pos = detail::to_vector(this->pos());
-    auto ok = this->is_on_boundary() ? vgstate_.Top()->Normal(pos, normal)
-                                     : vgnext_.Top()->Normal(pos, normal);
-    CELER_ENSURE(ok);
-    return Real3(normal);
+    CELER_EXPECT(!this->is_outside());
+    CELER_EXPECT(this->is_on_boundary());
+
+    // Get global-to-local transform
+    auto const& pv = this->physical_volume();
+    auto* tr = pv.GetTransformation();
+    CELER_ASSERT(tr);
+
+    // Get local position
+    auto local_pos = tr->Transform(detail::to_vector(pos_));
+
+    // Calculate normal
+    vecgeom::Vector3D<real_type> local_normal{0, 0, 0};
+    CELER_ASSERT(pv.GetUnplacedVolume());
+    auto success = pv.GetUnplacedVolume()->Normal(local_pos, local_normal);
+    if (CELER_UNLIKELY(!success))
+    {
+#if !CELER_DEVICE_COMPILE
+        CELER_LOG_LOCAL(error)
+            << "Calculated local normal " << repr(local_normal)
+            << " on surface of " << pv.GetLabel() << " at local position "
+            << repr(detail::to_array(local_pos)) << " is invalid";
+#endif
+        return {0, 0, 0};
+    }
+    vecgeom::Vector3D<real_type> global_normal;
+    tr->InverseTransformDirection(local_normal, global_normal);
+
+    return detail::to_array(global_normal);
 }
 
 //---------------------------------------------------------------------------//
