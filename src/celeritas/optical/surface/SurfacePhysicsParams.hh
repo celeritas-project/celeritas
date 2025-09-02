@@ -93,18 +93,6 @@ class SurfacePhysicsParams final
         return models_[step];
     }
 
-    //! Number of geometric surfaces (including default surface)
-    SurfaceId::size_type num_surfaces() const
-    {
-        return data_.host_ref().surfaces.size();
-    }
-
-    //! Default surface ID
-    SurfaceId default_surface() const
-    {
-        return data_.host_ref().scalars.default_surface;
-    }
-
   private:
     // Boundary actions
     std::shared_ptr<InitBoundaryAction> init_boundary_action_;

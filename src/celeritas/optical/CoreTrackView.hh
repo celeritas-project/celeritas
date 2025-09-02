@@ -243,7 +243,6 @@ CELER_FUNCTION auto CoreTrackView::surface_model(SurfacePhysicsOrder step) const
 {
     auto s_physics = this->surface_physics();
     CELER_EXPECT(s_physics.is_crossing_boundary());
-    CELER_EXPECT(is_soft_unit_vector(this->geometry().dir()));
 
     return s_physics.surface_model(
         s_physics.traversal_direction(this->geometry().dir()), step);
