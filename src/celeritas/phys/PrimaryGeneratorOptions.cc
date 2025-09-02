@@ -55,7 +55,7 @@ inp::EnergyDistribution inp_from_energy(DistributionOptions const& options)
     switch (options.distribution)
     {
         case DistributionSelection::delta:
-            return inp::Monoenergetic{units::MevEnergy{p[0]}};
+            return inp::MonoenergeticDistribution{units::MevEnergy{p[0]}};
         default:
             CELER_VALIDATE(false,
                            << "invalid distribution type '"
@@ -74,10 +74,10 @@ inp::ShapeDistribution inp_from_position(DistributionOptions const& options)
     switch (options.distribution)
     {
         case DistributionSelection::delta:
-            return inp::PointShape{Real3{p[0], p[1], p[2]}};
+            return inp::PointDistribution{Real3{p[0], p[1], p[2]}};
         case DistributionSelection::box:
-            return inp::UniformBoxShape{Real3{p[0], p[1], p[2]},
-                                        Real3{p[3], p[4], p[5]}};
+            return inp::UniformBoxDistribution{Real3{p[0], p[1], p[2]},
+                                               Real3{p[3], p[4], p[5]}};
         default:
             CELER_VALIDATE(false,
                            << "invalid distribution type '"
@@ -96,9 +96,9 @@ inp::AngleDistribution inp_from_direction(DistributionOptions const& options)
     switch (options.distribution)
     {
         case DistributionSelection::delta:
-            return inp::MonodirectionalAngle{Real3{p[0], p[1], p[2]}};
+            return inp::MonodirectionalDistribution{Real3{p[0], p[1], p[2]}};
         case DistributionSelection::isotropic:
-            return inp::IsotropicAngle{};
+            return inp::IsotropicDistribution{};
         default:
             CELER_VALIDATE(false,
                            << "invalid distribution type '"
