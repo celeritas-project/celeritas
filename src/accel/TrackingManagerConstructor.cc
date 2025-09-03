@@ -40,7 +40,7 @@ TrackingManagerConstructor::TrackingManagerConstructor(
     CELER_VALIDATE(G4VERSION_NUMBER >= 1100,
                    << "the current version of Geant4 (" << G4VERSION_NUMBER
                    << ") is too old to support the tracking manager offload "
-                      "interface");
+                      "interface (11.0 or higher is required)");
 }
 
 //---------------------------------------------------------------------------//
