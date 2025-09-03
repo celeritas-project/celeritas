@@ -28,6 +28,16 @@ namespace test
 //---------------------------------------------------------------------------//
 // TRACKING RESULT
 //---------------------------------------------------------------------------//
+void GenericGeoTrackingResult::clear_boring_normals()
+{
+    auto& dn = this->dot_normal;
+    if (std::all_of(dn.begin(), dn.end(), [](real_type n) {
+            return soft_equal(n, real_type{1});
+        }))
+    {
+        dn.clear();
+    }
+}
 
 void GenericGeoTrackingResult::print_expected() const
 {
@@ -35,9 +45,24 @@ void GenericGeoTrackingResult::print_expected() const
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "GenericGeoTrackingResult ref;\n"
          << CELER_REF_ATTR(volumes) << CELER_REF_ATTR(volume_instances)
-         << CELER_REF_ATTR(distances) << CELER_REF_ATTR(halfway_safeties)
-         << CELER_REF_ATTR(bumps)
-         << "auto tol = GenericGeoTrackingTolerance::from_test(*test_);\n"
+         << CELER_REF_ATTR(distances);
+    if (this->dot_normal.empty())
+    {
+        // See clear_boring_normals
+        cout << R"cpp(// All surface normals are along track dir: ref.dot_normal = {}
+)cpp";
+    }
+    else
+    {
+        cout << CELER_REF_ATTR(dot_normal);
+    }
+    cout << CELER_REF_ATTR(halfway_safeties);
+    if (!bumps.empty())
+    {
+        cout << CELER_REF_ATTR(bumps);
+    }
+
+    cout << "auto tol = GenericGeoTrackingTolerance::from_test(*test_);\n"
             "EXPECT_REF_NEAR(ref, result, tol);\n"
             "/*** END CODE ***/\n";
 }
@@ -46,8 +71,9 @@ GenericGeoTrackingTolerance
 GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
 {
     GenericGeoTrackingTolerance tol;
-    tol.safety = test.safety_tol();
     tol.distance = SoftEqual{}.rel();
+    tol.normal = celeritas::sqrt_tol();
+    tol.safety = test.safety_tol();
     return tol;
 }
 
@@ -84,6 +110,7 @@ GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
     IRE_VEC_EQ(volumes);
     IRE_VEC_EQ(volume_instances);
     IRE_VEC_SOFT_EQ(distances, tol.distance);
+    IRE_VEC_SOFT_EQ(dot_normal, tol.normal);
     IRE_VEC_SOFT_EQ(halfway_safeties, SoftEqual(tol.safety, tol.safety));
     IRE_VEC_SOFT_EQ(bumps, SoftEqual(tol.safety, tol.safety));
 

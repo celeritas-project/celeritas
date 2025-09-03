@@ -212,23 +212,73 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
     real_type const inv_length = real_type{1} / this->unit_length();
     real_type const bump_tol = this->bump_tol() * this->unit_length();
 
+    // Cross boundary, checking and recording data
+    auto cross_boundary = [&] {
+        CELER_EXPECT(geo.is_on_boundary());
+
+        std::optional<Real3> pre_norm;
+        if (!geo.is_outside())
+        {
+            pre_norm = geo.normal();
+        }
+
+        geo.cross_boundary();
+        EXPECT_TRUE(geo.is_on_boundary());
+
+        if (!geo.is_outside())
+        {
+            auto post_norm = geo.normal();
+            if (pre_norm)
+            {
+                CELER_ASSERT(!result.volumes.empty());
+
+                auto post_vol = [&] {
+                    auto vi_id = geo.volume_instance_id();
+                    if (!vi_id)
+                    {
+                        return this->volume_name(geo);
+                    }
+                    return to_string(vol_inst.at(vi_id));
+                }();
+
+                // Not entering or exiting global; check direction similarity
+                EXPECT_SOFT_NEAR(1.0,
+                                 std::fabs(dot_product(*pre_norm, post_norm)),
+                                 celeritas::sqrt_tol())
+                    << "Normal is not consistent at boundary from "
+                    << result.volume_instances.back() << " into " << post_vol
+                    << ": previously " << repr(*pre_norm) << ", now "
+                    << repr(post_norm);
+            }
+
+            // Add post-crossing (interior surface) dot product
+            result.dot_normal.push_back([&] {
+                if (!geo.is_on_boundary())
+                {
+                    return TrackingResult::no_surface_normal;
+                }
+                return std::fabs(dot_product(geo.dir(), post_norm));
+            }());
+        }
+    };
+
     if (geo.is_outside())
     {
         // Initial step is outside but may approach inside
-        result.volumes.push_back("[OUTSIDE]");
+        result.volumes.emplace_back(this->volume_name(geo));
         auto next = geo.find_next_step();
         result.distances.push_back(next.distance * inv_length);
         if (next.boundary)
         {
             geo.move_to_boundary();
-            geo.cross_boundary();
-            EXPECT_TRUE(geo.is_on_boundary());
+            cross_boundary();
             --max_step;
         }
     }
 
     while (!geo.is_outside() && max_step > 0)
     {
+        // Add volume names
         result.volumes.emplace_back(this->volume_name(geo));
         if (!vol_inst.empty())
         {
@@ -253,6 +303,8 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
                 return to_string(vol_inst.at(vi_id));
             }());
         }
+
+        // Add next distance
         auto next = geo.find_next_step();
         result.distances.push_back(next.distance * inv_length);
         if (!next.boundary)
@@ -329,7 +381,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
         geo.move_to_boundary();
         try
         {
-            geo.cross_boundary();
+            cross_boundary();
         }
         catch (std::exception const& e)
         {
@@ -340,6 +392,9 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
         }
         --max_step;
     }
+
+    // Delete dot_normals that are all 1
+    result.clear_boring_normals();
 
     return result;
 }

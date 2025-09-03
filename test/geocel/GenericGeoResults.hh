@@ -41,10 +41,19 @@ struct GenericGeoTrackingResult
     std::vector<std::string> volumes;
     std::vector<std::string> volume_instances;
     std::vector<real_type> distances;  //!< [cm]
+    std::vector<real_type> dot_normal;  //!< [cos theta]
     std::vector<real_type> halfway_safeties;  //!< [cm]
     // Locations the particle had a very tiny distance in a volume
     std::vector<real_type> bumps;  //!< [cm * 3]
 
+    //! Sentinel value for dot_normal when not on surface
+    static constexpr real_type no_surface_normal
+        = std::numeric_limits<real_type>::infinity();
+
+    // Delete dot_normals that are all 1
+    void clear_boring_normals();
+
+    // Print expected expression to cout
     void print_expected() const;
 };
 
@@ -52,6 +61,7 @@ struct GenericGeoTrackingResult
 struct GenericGeoTrackingTolerance
 {
     real_type distance{0};
+    real_type normal{0};
     real_type safety{0};
 
     static GenericGeoTrackingTolerance
