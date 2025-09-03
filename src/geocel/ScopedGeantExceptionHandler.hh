@@ -32,6 +32,15 @@ namespace celeritas
  * worker thread terminates the program, an error handler \em must be specified
  * if used in a worker thread: you should probably use a \c
  * celeritas::MultiExceptionHandler .
+ *
+ * A severity level of \c JustWarning to a \c G4Exception call will result in a
+ * warning message being logged; otherwise, the given exception handler will be
+ * called. (If not provided, the default behavior is to throw.) If the
+ * exception handler returns without throwing, then the \em global \c
+ * suppressed_fatal flag is set, and if a simulation is in progress, \c
+ * G4RunManager::AbortRun() will be called. Note that if an error is thrown
+ * during \c BeginRun, the first event \em will be started (in MT mode, on each
+ * worker thread).
  */
 class ScopedGeantExceptionHandler
 {
@@ -42,6 +51,9 @@ class ScopedGeantExceptionHandler
     //!@}
 
   public:
+    // Whether a fatal exception call did not produce a thrown exception
+    static bool suppressed_fatal();
+
     // Construct with an exception handling function
     explicit ScopedGeantExceptionHandler(StdExceptionHandler handle);
 
@@ -58,12 +70,17 @@ class ScopedGeantExceptionHandler
 #if CELERITAS_USE_GEANT4
     G4VExceptionHandler* previous_{nullptr};
     std::unique_ptr<G4VExceptionHandler> current_;
+    bool suppressed_fatal_{false};
 #endif
 };
 
 #if !CELERITAS_USE_GEANT4
 //!@{
 //! Do nothing if Geant4 is disabled (source file will not be compiled)
+inline bool ScopedGeantExceptionHandler::suppressed_fatal()
+{
+    return false;
+}
 inline ScopedGeantExceptionHandler::ScopedGeantExceptionHandler(
     StdExceptionHandler)
 {

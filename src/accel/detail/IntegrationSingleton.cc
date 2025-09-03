@@ -14,6 +14,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "geocel/GeantUtils.hh"
+#include "geocel/ScopedGeantExceptionHandler.hh"
 
 #include "../ExceptionConverter.hh"
 #include "../Logger.hh"
@@ -170,7 +171,8 @@ void IntegrationSingleton::initialize_shared_params()
             call_g4exception);
     }
 
-    CELER_ENSURE(params_);
+    // Params will be produced *unless* an error occurred
+    CELER_ENSURE(params_ || ScopedGeantExceptionHandler::suppressed_fatal());
 }
 
 //---------------------------------------------------------------------------//
@@ -184,7 +186,12 @@ void IntegrationSingleton::initialize_shared_params()
  */
 bool IntegrationSingleton::initialize_local_transporter()
 {
-    CELER_EXPECT(params_);
+    if (ScopedGeantExceptionHandler::suppressed_fatal())
+    {
+        CELER_LOG(debug)
+            << R"(Skipping state construction since the run is aborting)";
+        return false;
+    }
 
     if (params_.mode() == celeritas::SharedParams::Mode::disabled)
     {
@@ -211,6 +218,8 @@ bool IntegrationSingleton::initialize_local_transporter()
         return true;
     }
 
+    CELER_ASSERT(params_.mode() == OffloadMode::enabled);
+
     CELER_LOG(debug) << "Constructing local state";
 
     CELER_TRY_HANDLE(
@@ -232,8 +241,6 @@ bool IntegrationSingleton::initialize_local_transporter()
  */
 void IntegrationSingleton::finalize_local_transporter()
 {
-    CELER_EXPECT(params_);
-
     if (params_.mode() != celeritas::SharedParams::Mode::enabled)
     {
         return;
