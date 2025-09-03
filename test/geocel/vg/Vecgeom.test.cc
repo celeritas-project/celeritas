@@ -14,6 +14,7 @@
 #include "corecel/StringSimplifier.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
@@ -81,6 +82,10 @@ class VecgeomVgdmlTestBase : public VecgeomTestBaseImpl
   public:
     SPConstGeo build_geometry() final
     {
+        using namespace celeritas::cmake;
+        cout << color_code('x') << "VecGeom v" << vecgeom_version << " ("
+             << vecgeom_options << ") using VGDML" << color_code(' ') << endl;
+
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::warning};
         auto result = std::make_shared<VecgeomParams>(this->test_data_path(
@@ -100,6 +105,11 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
     //! Helper function: build via Geant4 GDML reader
     SPConstGeo build_geometry() final
     {
+        using namespace celeritas::cmake;
+        cout << color_code('x') << "VecGeom v" << vecgeom_version << " ("
+             << vecgeom_options << ") using G4VG v" << g4vg_version
+             << " and Geant4 v" << geant4_version << color_code(' ') << endl;
+
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::warning};
 
