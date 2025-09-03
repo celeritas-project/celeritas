@@ -53,22 +53,21 @@ namespace test
 namespace
 {
 //---------------------------------------------------------------------------//
+using namespace std::string_literals;
+
 std::string thread_label()
 {
-    if (int thread = G4Threading::G4GetThreadId(); thread >= 0)
-    {
-        return std::to_string(thread);
-    }
-    return "M";
+    return G4Threading::IsMasterThread()
+               ? "M"s
+               : std::to_string(G4Threading::G4GetThreadId());
 }
 
 std::string thread_description()
 {
-    if (int thread = G4Threading::G4GetThreadId(); thread >= 0)
-    {
-        return "worker thread " + std::to_string(thread);
-    }
-    return "main thread";
+    return G4Threading::IsMasterThread()
+               ? "main thread"s
+               : "worker thread "s
+                     + std::to_string(G4Threading::G4GetThreadId());
 }
 
 //---------------------------------------------------------------------------//
