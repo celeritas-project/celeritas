@@ -10,6 +10,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/VariantUtils.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/random/distribution/DeltaDistribution.hh"
 #include "geocel/random/IsotropicDistribution.hh"
 #include "geocel/random/UniformBoxDistribution.hh"
@@ -44,13 +45,15 @@ make_energy_sampler(inp::EnergyDistribution const& i)
 auto make_position_sampler(inp::ShapeDistribution const& i)
 {
     CELER_ASSUME(!i.valueless_by_exception());
-    return std::visit(
-        return_as<PrimaryGenerator::PositionSampler>(Overload{
-            [](inp::PointShape const& ps) { return DeltaDistribution{ps.pos}; },
-            [](inp::UniformBoxShape const& ubs) {
-                return UniformBoxDistribution{ubs.lower, ubs.upper};
-            }}),
-        i);
+    return std::visit(return_as<PrimaryGenerator::PositionSampler>(
+                          Overload{[](inp::PointDistribution const& ps) {
+                                       return DeltaDistribution{ps.pos};
+                                   },
+                                   [](inp::UniformBoxDistribution const& ubs) {
+                                       return UniformBoxDistribution{
+                                           ubs.lower, ubs.upper};
+                                   }}),
+                      i);
 }
 
 //---------------------------------------------------------------------------//
@@ -61,10 +64,10 @@ auto make_direction_sampler(inp::AngleDistribution const& i)
 {
     CELER_ASSUME(!i.valueless_by_exception());
     return std::visit(return_as<PrimaryGenerator::DirectionSampler>(Overload{
-                          [](inp::IsotropicAngle const&) {
+                          [](inp::IsotropicDistribution const&) {
                               return IsotropicDistribution<real_type>{};
                           },
-                          [](inp::MonodirectionalAngle const& ma) {
+                          [](inp::MonodirectionalDistribution const& ma) {
                               CELER_VALIDATE(is_soft_unit_vector(ma.dir),
                                              << "primary generator angle is "
                                                 "not a unit vector");
@@ -123,8 +126,13 @@ PrimaryGenerator::PrimaryGenerator(Input const& i,
     , sample_dir_{make_direction_sampler(i.angle)}
     , particle_id_(std::move(particle_id))
 {
+    CELER_VALIDATE(i, << "primary generator input is incomplete");
     // TODO: seed based on event
     this->seed(UniqueEventId{0});
+
+    CELER_LOG(debug) << "Created primary generator with " << num_events_
+                     << " events and " << primaries_per_event_
+                     << " primaries per event";
 
     CELER_VALIDATE(
         std::all_of(particle_id_.begin(), particle_id_.end(), Identity{}),

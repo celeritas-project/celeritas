@@ -23,15 +23,16 @@ set(PUBLIC_DEPS
 
 list(APPEND SOURCES
   AlongStepFactory.cc
+  CartMapMagneticField.cc
+  CylMapMagneticField.cc
   FastSimulationIntegration.cc
   FastSimulationModel.cc
   GeantSimpleCalo.cc
   GeantStepDiagnostic.cc
   IntegrationBase.cc
-  Logger.cc
   LocalTransporter.cc
-  CartMapMagneticField.cc
-  CylMapMagneticField.cc
+  Logger.cc
+  PGPrimaryGeneratorAction.cc
   SetupOptions.cc
   SetupOptionsMessenger.cc
   SharedParams.cc
