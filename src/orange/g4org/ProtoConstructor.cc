@@ -120,7 +120,7 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
 /*!
  * Place this physical volume into a proto being constructed.
  *
- * It will return a "local child ID" if it generates a material input, but no t
+ * It will return a "local child ID" if it generates a material input, but not
  * if it spawns a daughter proto.
  */
 void ProtoConstructor::place_pv(VariantTransform const& parent_transform,

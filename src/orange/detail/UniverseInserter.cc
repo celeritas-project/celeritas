@@ -163,7 +163,7 @@ UniverseId UniverseInserter::operator()(UniverseType type,
             }
             else
             {
-                // No special metadata: just an impl volume e.g.  [EXTERIOR]
+                // No special metadata: just an impl volume e.g., [EXTERIOR]
             }
             volume_ids_.push_back(vol_id);
             volume_instance_ids_.push_back(vi_id);
