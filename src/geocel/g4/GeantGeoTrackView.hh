@@ -161,6 +161,7 @@ class GeantGeoTrackView
     G4ThreeVector g4pos_;
     G4ThreeVector g4dir_;  // [mm]
     real_type g4safety_;  // [mm]
+    bool just_crossed_boundary_{false};
 
     //// HELPER FUNCTIONS ////
 
@@ -493,6 +494,7 @@ void GeantGeoTrackView::move_to_boundary()
     safety_radius_ = 0;
     g4safety_ = 0;
     navi_.SetGeometricallyLimitedStep();
+    just_crossed_boundary_ = false;
 
     CELER_ENSURE(this->is_on_boundary());
 }
@@ -501,17 +503,20 @@ void GeantGeoTrackView::move_to_boundary()
 /*!
  * Cross from one side of the current surface to the other.
  *
- * The position *must* be on the boundary following a move-to-boundary.
+ * The position \em must be on the boundary following a move-to-boundary. Two
+ * consecutive "cross boundary" calls are NOT ALLOWED!
  */
 void GeantGeoTrackView::cross_boundary()
 {
     CELER_EXPECT(this->is_on_boundary());
+    CELER_EXPECT(!just_crossed_boundary_);
 
     navi_.LocateGlobalPointAndUpdateTouchableHandle(
         g4pos_,
         g4dir_,
         touch_handle_,
         /* relative_search = */ true);
+    just_crossed_boundary_ = true;
 
     CELER_ENSURE(this->is_on_boundary());
 }
