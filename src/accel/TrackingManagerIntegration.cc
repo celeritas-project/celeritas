@@ -11,7 +11,10 @@
 #include <G4ParticleDefinition.hh>
 #include <G4Threading.hh>
 #include <G4Version.hh>
+
 #if G4VERSION_NUMBER >= 1100
+#    include <G4VTrackingManager.hh>
+
 #    include "TrackingManager.hh"
 #endif
 
@@ -49,8 +52,6 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
     std::set<G4PD const*> not_offloaded{actual.begin(), actual.end()};
     std::vector<G4PD const*> missing;
 
-    TypeDemangler<G4VTrackingManager> demangle_tm;
-
     bool all_attached_correctly{true};
     auto log_tm_failure = [&all_attached_correctly](G4PD const* p) {
         all_attached_correctly = false;
@@ -74,6 +75,8 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
         }
 
 #if G4VERSION_NUMBER >= 1100
+        static TypeDemangler<G4VTrackingManager> demangle_tm;
+
         // Check tracking manager setup: note that this is *thread-local*
         // whereas the offloaded track list is *global*
         if (auto* tm = p->GetTrackingManager())
@@ -103,6 +106,8 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
             log_tm_failure(p) << "is not attached";
         }
 #else
+        CELER_DISCARD(expected_shared);
+        CELER_DISCARD(expected_local);
         CELER_ASSERT_UNREACHABLE();
 #endif
     }
