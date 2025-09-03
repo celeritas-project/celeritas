@@ -37,8 +37,8 @@ namespace detail
  * Any bounding boxes that have at least one infinite dimension are stored in
  * inf_vols. In the event that all bounding boxes are infinite, the tree will
  * consist of a single empty leaf node with all volumes in the stored inf_vols.
- * This final case is useful in the event that an ORANGE geometry is created
- * via a method where volume bounding boxes are not available.
+ * This final case should not occur unless an ORANGE geometry is created via
+ * a method where volume bounding boxes are not available.
  *
  * Bounding boxes supplied to this builder should "bumped," i.e. expanded
  * outward by at least floating-point epsilson from the volumes they bound.
