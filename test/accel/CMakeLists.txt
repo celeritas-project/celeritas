@@ -11,7 +11,7 @@ include(CeleritasG4Tests)
 
 #-----------------------------------------------------------------------------#
 celeritas_get_g4libs(_g4_libs
-  global track tracking run event intercoms digits_hits geometry
+  global track tracking run event intercoms digits_hits geometry tasking
 )
 list(APPEND PUBLIC_DEPS ${_g4_libs})
 
