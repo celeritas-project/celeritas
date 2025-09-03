@@ -108,6 +108,7 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
 #else
         CELER_DISCARD(expected_shared);
         CELER_DISCARD(expected_local);
+        CELER_DISCARD(log_tm_failure);
         CELER_ASSERT_UNREACHABLE();
 #endif
     }
