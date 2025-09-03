@@ -1,0 +1,27 @@
+name: Check dd4hep integration
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+concurrency:
+  group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  cancel-in-progress: true
+
+jobs:
+  check-dd4hep-integration:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v5
+    - uses: actions/download-artifact@v5
+      with:
+        name: build-gcc-fast-eic-shell
+        path: install/
+    - uses: cvmfs-contrib/github-action-cvmfs@v5
+    - uses: eic/run-cvmfs-osg-eic-shell@main
+      with:
+        platform-release: "eic_xl:nightly"
+        network_types: "none"
+        run: |
+          eic-info
+          
