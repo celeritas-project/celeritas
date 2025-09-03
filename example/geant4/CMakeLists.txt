@@ -56,9 +56,10 @@ celeritas_get_disable_device(CELER_DISABLE_DEVICE)
 
 #-----------------------------------------------------------------------------#
 
-set(_needs_g4_11_0)
+# Some features require *at least* major version 11 or minor version 11.1
+set(_needs_g4_11)
 if(Geant4_VERSION VERSION_LESS 11.0)
-  set(_needs_g4_11_0 DISABLE)
+  set(_needs_g4_11 DISABLE)
 endif()
 set(_needs_g4_11_1)
 if(Geant4_VERSION VERSION_LESS 11.1)
