@@ -127,7 +127,8 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
     auto current_index = nodes->size();
     nodes->resize(nodes->size() + 1);
 
-    // Create a single leaf containing all bboxes
+    // Create a single leaf containing all bboxes. This lambda is used only
+    // once per call to construct_tree.
     auto make_leaf = [&]() {
         BIHLeafNode node;
         node.parent = parent;
