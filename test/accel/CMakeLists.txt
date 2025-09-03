@@ -53,7 +53,10 @@ foreach(_basename IN LISTS _integration_tests)
   set(_name "${CELERITASTEST_DIR}/${_basename}")
 
   add_executable(${_target} "${_basename}.test.cc")
-  target_link_libraries(${_target}
+  set_property(TARGET ${_target}
+    PROPERTY OUTPUT_NAME "${_basename}"
+  )
+  celeritas_target_link_libraries(${_target}
     ${CELERITASTEST_LINK_LIBRARIES}
     ${_g4_libs}
     testcel_harness
