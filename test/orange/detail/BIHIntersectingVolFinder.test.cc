@@ -49,16 +49,18 @@ class BIHIntersectingVolFinderTest : public Test
   protected:
     void setup(size_type min_split_size)
     {
-        bboxes_.push_back(FastBBox::from_infinite());
-        bboxes_.push_back({{0, 0, 0}, {1.6f, 1, 100}});
-        bboxes_.push_back({{1.2f, 0, 0}, {2.8f, 1, 100}});
-        bboxes_.push_back({{2.8f, 0, 0}, {5, 1, 100}});
-        bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
-        bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
+        BIHBuilder::VecBBox bboxes = {
+            FastBBox::from_infinite(),
+            {{0, 0, 0}, {1.6f, 1, 100}},
+            {{1.2f, 0, 0}, {2.8f, 1, 100}},
+            {{2.8f, 0, 0}, {5, 1, 100}},
+            {{0, -1, 0}, {5, 0, 100}},
+            {{0, -1, 0}, {5, 0, 100}},
+        };
 
         BIHBuilder build(&storage_, min_split_size);
         BIHBuilder::SetLocalVolId implicit_vol_ids_;
-        bih_tree_ = build(std::move(bboxes_), implicit_vol_ids_);
+        bih_tree_ = build(std::move(bboxes), implicit_vol_ids_);
         ref_storage_ = storage_;
     }
 
