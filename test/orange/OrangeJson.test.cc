@@ -843,6 +843,19 @@ TEST_F(InputBuilderTest, universes)
 //---------------------------------------------------------------------------//
 TEST_F(InputBuilderTest, hierarchy)
 {
+    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    {
+        auto geo = this->make_geo_track_view();
+        geo = Initializer_t{{0, -5, -20}, {0, 1, 0}};
+
+        EXPECT_JSON_EQ(
+            R"json({"levels":[
+{"dir":[0.0,1.0,0.0],"pos":[0.0,-5.0,-20.0],"universe":"global","volume":{"impl":"fd@global","local":3}},
+{"dir":[0.0,1.0,0.0],"pos":[0.0,-5.0,0.0],"universe":"filled_daughter","volume":{"impl":"e@filled_daughter","local":2}},
+{"dir":[0.0,0.0,-1.0],"pos":[0.0,0.0,0.0],"universe":"d2","volume":{"impl":"d2@bg","local":1}}
+],"surface":null})json",
+            StringSimplifier{3}(to_json_string(geo)));
+    }
     {
         SCOPED_TRACE("py");
         auto result = this->track({0, -20, 0}, {0, 1, 0});

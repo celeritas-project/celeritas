@@ -46,7 +46,8 @@ BoundingBox<> calc_expected_bbox(std::string_view geo_type, Real3 lo, Real3 hi)
 
 void fixup_orange(GenericGeoTestInterface const& interface,
                   GenericGeoTrackingResult& ref,
-                  GenericGeoTrackingResult& result)
+                  GenericGeoTrackingResult& result,
+                  std::string_view world_name = "world")
 {
     if (interface.geometry_type() != "ORANGE")
         return;
@@ -54,7 +55,7 @@ void fixup_orange(GenericGeoTestInterface const& interface,
     // Delete within-world safeties
     for (auto i : range(std::max(ref.volumes.size(), result.volumes.size())))
     {
-        if (ref.volumes[i] == "world")
+        if (ref.volumes[i] == world_name)
         {
             result.halfway_safeties[i] = 0;
             ref.halfway_safeties[i] = 0;
@@ -366,10 +367,7 @@ void MultiLevelGeoTest::test_trace() const
             "topbox1",
             "world_PV",
         };
-        if (!is_orange)
-        {
-            EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
-        }
+        EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
         static real_type const expected_distances[] = {
             2.4,
             3,
@@ -437,10 +435,7 @@ void MultiLevelGeoTest::test_trace() const
             "topbox4",
             "world_PV",
         };
-        if (!is_orange)
-        {
-            EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
-        }
+        EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
         static real_type const expected_distances[] = {
             2.4,
             3,
@@ -1879,7 +1874,14 @@ void TwoBoxesGeoTest::test_trace() const
 {
     {
         auto result = test_->track({0, 0.25, -25}, {0, 0., 1});
-        result.print_expected();
+        GenericGeoTrackingResult ref;
+        ref.volumes = {"world", "inner", "world"};
+        ref.volume_instances = {"world_PV", "inner_PV", "world_PV"};
+        ref.distances = {20, 10, 495};
+        ref.halfway_safeties = {10, 4.75, 247.5};
+        ref.bumps = {};
+        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        EXPECT_REF_NEAR(ref, result, tol);
     }
 }
 
@@ -1903,13 +1905,54 @@ void ZnenvGeoTest::test_trace() const
     };
     {
         auto result = test_->track({-10, 0.0001, 0}, {1, 0, 0});
-        EXPECT_VEC_EQ(expected_mid_volumes, result.volumes);
-        EXPECT_VEC_SOFT_EQ(expected_mid_distances, result.distances);
+        GenericGeoTrackingResult ref;
+        ref.volumes.assign(std::begin(expected_mid_volumes),
+                           std::end(expected_mid_volumes));
+        ref.distances.assign(std::begin(expected_mid_distances),
+                             std::end(expected_mid_distances));
+        ref.volume_instances = {
+            "World_PV",   "WorldBoxPV", "ZNST_PV@0", "ZNST_PV@1",
+            "ZNST_PV@2",  "ZNST_PV@3",  "ZNST_PV@4", "ZNST_PV@5",
+            "ZNST_PV@6",  "ZNST_PV@7",  "ZNST_PV@8", "ZNST_PV@9",
+            "ZNST_PV@10", "ZNST_PV@0",  "ZNST_PV@1", "ZNST_PV@2",
+            "ZNST_PV@3",  "ZNST_PV@4",  "ZNST_PV@5", "ZNST_PV@6",
+            "ZNST_PV@7",  "ZNST_PV@8",  "ZNST_PV@9", "ZNST_PV@10",
+            "WorldBoxPV", "World_PV",
+        };
+        ref.halfway_safeties = {
+            3.19, 0.05, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,  1e-4,
+            1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,  1e-4,
+            1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 0.05, 23.19,
+        };
+        ref.bumps = {};
+        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        fixup_orange(*test_, ref, result, "World");
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         auto result = test_->track({0.0001, -10, 0}, {0, 1, 0});
-        EXPECT_VEC_EQ(expected_mid_volumes, result.volumes);
-        EXPECT_VEC_SOFT_EQ(expected_mid_distances, result.distances);
+        GenericGeoTrackingResult ref;
+        ref.volumes.assign(std::begin(expected_mid_volumes),
+                           std::end(expected_mid_volumes));
+        ref.distances.assign(std::begin(expected_mid_distances),
+                             std::end(expected_mid_distances));
+        ref.volume_instances = {
+            "World_PV",  "WorldBoxPV", "ZNST_PV@0", "ZNST_PV@0", "ZNST_PV@0",
+            "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0", "ZNST_PV@0",
+            "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0", "ZNST_PV@0",
+            "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0", "ZNST_PV@0",
+            "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0", "WorldBoxPV",
+            "World_PV",
+        };
+        ref.halfway_safeties = {
+            3.19, 0.05, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,  1e-4,
+            1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,  1e-4,
+            1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 0.05, 23.19,
+        };
+        ref.bumps = {};
+        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        fixup_orange(*test_, ref, result, "World");
+        EXPECT_REF_NEAR(ref, result, tol);
     }
 }
 

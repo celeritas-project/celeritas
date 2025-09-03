@@ -981,6 +981,11 @@ TEST_F(TwoBoxesTest, track)
     TwoBoxesGeoTest::test_detailed_tracking(this);
 }
 
+TEST_F(TwoBoxesTest, trace)
+{
+    this->impl().test_trace();
+}
+
 //---------------------------------------------------------------------------//
 using ZnenvTest = GenericGeoParameterizedTest<GeantGeoTest, ZnenvGeoTest>;
 

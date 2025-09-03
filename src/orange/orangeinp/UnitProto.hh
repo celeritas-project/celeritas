@@ -132,7 +132,7 @@ class UnitProto : public ProtoInterface
         std::vector<MaterialInput> materials;
         std::vector<DaughterInput> daughters;
         BoundaryInput boundary;
-        std::string label;
+        Label label;
         UnitSimplification simplification{UnitSimplification::none};
 
         // True if fully defined

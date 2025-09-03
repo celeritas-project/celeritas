@@ -64,6 +64,13 @@ struct VolumeInstanceAccessor
 {
     std::vector<VolumeInput> const& volumes;
 
+    std::string operator()(LocalVolumeId lv_id) const
+    {
+        if (!lv_id)
+            return "<null lv>";
+        return (*this)(lv_id.get());
+    }
+
     std::string operator()(size_type i) const
     {
         if (i >= volumes.size())
@@ -163,6 +170,37 @@ TEST_F(ConverterTest, tilecal_plug)
         EXPECT_EQ("1", get_vi_id(1));  // Tile_Plug1Module
         EXPECT_EQ("2", get_vi_id(2));  // Tile_Absorber
         EXPECT_EQ("0", get_vi_id(3));  // Tile_ITCModule (world volume)
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(ConverterTest, znenv)
+{
+    verbose_ = true;
+    std::string const basename = "znenv";
+    this->load_test_gdml(basename);
+    auto convert = this->make_converter(basename);
+    auto result = convert(this->geo(), *this->volumes()).input;
+    write_org_json(result, basename);
+
+    EXPECT_EQ(9, result.universes.size());
+    {
+        auto const& unit = std::get<UnitInput>(result.universes[0]);
+        EXPECT_EQ(6, unit.volumes.size());
+        VolumeInstanceAccessor get_vi_id{unit.volumes};
+        // World PV label doesn't get repliaced
+        EXPECT_EQ(VolumeId{}, unit.background.label);
+        // World PV
+        EXPECT_EQ("0", get_vi_id(5));
+    }
+    {
+        auto const& unit = std::get<UnitInput>(result.universes[4]);
+        VolumeInstanceAccessor get_vi_id{unit.volumes};
+        EXPECT_EQ("ZNST", unit.label);
+        EXPECT_EQ(VolumeId{8}, unit.background.label);  // ZNST
+        ASSERT_LT(unit.background.volume, unit.volumes.size());
+        // Implementation volume name
+        EXPECT_EQ("[BG]@ZNST", get_vi_id(unit.background.volume));
     }
 }
 

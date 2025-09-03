@@ -35,19 +35,27 @@ class ProtoConstructorTest : public GeantLoadTestBase
     using Unit = orangeinp::detail::CsgUnit;
     using Tol = Tolerance<>;
 
-    PhysicalVolume load(std::string const& basename)
+    std::shared_ptr<UnitProto> load(std::string const& basename)
     {
+        // Load GDML into Geant4
         this->load_test_gdml(basename);
-        PhysicalVolumeConverter::Options opts;
-        opts.verbose = false;
-        opts.scale = 0.1;
+
+        // Convert volumes into ORANGE representation
         auto const& geant_geo = this->geo();
-        PhysicalVolumeConverter convert{geant_geo, std::move(opts)};
-        PhysicalVolume world = convert(*geant_geo.world());
+        PhysicalVolumeConverter make_pv(geant_geo, [] {
+            PhysicalVolumeConverter::Options opts;
+            opts.verbose = false;
+            opts.scale = 0.1;
+            return opts;
+        }());
+        PhysicalVolume world = make_pv(*geant_geo.world());
 
         EXPECT_TRUE(std::holds_alternative<NoTransformation>(world.transform));
         EXPECT_EQ(1, world.lv.use_count());
-        return world;
+
+        // Construct proto
+        ProtoConstructor make_proto(*this->volumes(), false);
+        return make_proto(*world.lv);
     }
 
     auto get_proto_names(ProtoMap const& protos) const
@@ -63,7 +71,7 @@ class ProtoConstructorTest : public GeantLoadTestBase
         return result;
     }
 
-    auto build_unit(ProtoMap const& protos, UniverseId id) const
+    Unit build_unit(ProtoMap const& protos, UniverseId id) const
     {
         CELER_EXPECT(id < protos.size());
         auto const* proto = dynamic_cast<UnitProto const*>(protos.at(id));
@@ -80,9 +88,7 @@ class ProtoConstructorTest : public GeantLoadTestBase
 //---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, one_box)
 {
-    PhysicalVolume world = this->load("one-box");
-    auto global_proto
-        = ProtoConstructor(*this->volumes(), /* verbose = */ true)(world);
+    auto global_proto = this->load("one-box");
     ProtoMap protos{*global_proto};
     ASSERT_EQ(1, protos.size());
     {
@@ -127,9 +133,7 @@ TEST_F(ProtoConstructorTest, one_box)
 //---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, two_boxes)
 {
-    PhysicalVolume world = this->load("two-boxes");
-    auto global_proto
-        = ProtoConstructor(*this->volumes(), /* verbose = */ false)(world);
+    auto global_proto = this->load("two-boxes");
     ProtoMap protos{*global_proto};
     ASSERT_EQ(1, protos.size());
     {
@@ -163,9 +167,7 @@ TEST_F(ProtoConstructorTest, two_boxes)
 //---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, intersection_boxes)
 {
-    PhysicalVolume world = this->load("intersection-boxes");
-    auto global_proto
-        = ProtoConstructor(*this->volumes(), /* verbose = */ false)(world);
+    auto global_proto = this->load("intersection-boxes");
     ProtoMap protos{*global_proto};
     ASSERT_EQ(1, protos.size());
     {
@@ -255,10 +257,7 @@ TEST_F(ProtoConstructorTest, intersection_boxes)
 TEST_F(ProtoConstructorTest, simple_cms)
 {
     // NOTE: GDML stores widths for box and cylinder Z; Geant4 uses halfwidths
-    PhysicalVolume world = this->load("simple-cms");
-
-    auto global_proto
-        = ProtoConstructor(*this->volumes(), /* verbose = */ false)(world);
+    auto global_proto = this->load("simple-cms");
     ProtoMap protos{*global_proto};
 
     static std::string const expected_proto_names[] = {"world"};
@@ -309,10 +308,7 @@ TEST_F(ProtoConstructorTest, simple_cms)
 //---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, testem3)
 {
-    PhysicalVolume world = this->load("testem3");
-
-    auto global_proto
-        = ProtoConstructor(*this->volumes(), /* verbose = */ false)(world);
+    auto global_proto = this->load("testem3");
     ProtoMap protos{*global_proto};
 
     static std::string const expected_proto_names[] = {"world", "layer"};
@@ -392,10 +388,7 @@ TEST_F(ProtoConstructorTest, testem3)
 // Deduplication slightly changes plane position and CSG node IDs
 TEST_F(ProtoConstructorTest, TEST_IF_CELERITAS_DOUBLE(tilecal_plug))
 {
-    PhysicalVolume world = this->load("tilecal-plug");
-
-    auto global_proto
-        = ProtoConstructor(*this->volumes(), /* verbose = */ false)(world);
+    auto global_proto = this->load("tilecal-plug");
     ProtoMap protos{*global_proto};
 
     static std::string const expected_proto_names[] = {
@@ -438,10 +431,7 @@ TEST_F(ProtoConstructorTest, TEST_IF_CELERITAS_DOUBLE(tilecal_plug))
 //---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, znenv)
 {
-    PhysicalVolume world = this->load("znenv");
-
-    auto global_proto
-        = ProtoConstructor(*this->volumes(), /* verbose = */ false)(world);
+    auto global_proto = this->load("znenv");
     ProtoMap protos{*global_proto};
 
     static std::string const expected_proto_names[] = {

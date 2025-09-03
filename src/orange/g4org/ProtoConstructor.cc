@@ -8,6 +8,7 @@
 
 #include <iostream>
 
+#include "corecel/OpaqueIdIO.hh"
 #include "corecel/io/StreamableVariant.hh"
 #include "geocel/VolumeParams.hh"
 #include "orange/orangeinp/CsgObject.hh"
@@ -51,23 +52,21 @@ GeoMatId background_fill(GeoMatId mat)
  * We can use logical volume for the structure, but we need to associate the
  * world physical volume ID.
  */
-auto ProtoConstructor::operator()(PhysicalVolume const& pv) -> SPUnitProto
+auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
 {
-    LogicalVolume const& lv = *pv.lv;
-
     auto const& label = volumes_.volume_labels().at(lv.id);
 
-    ProtoInput input;
+    UnitProto::Input input;
     input.boundary.interior = lv.solid;
-    input.label = label.name;
+    input.label = label;
 
     if (CELER_UNLIKELY(verbose_))
     {
-        std::clog << std::string(depth_, ' ') << "* New proto: " << label
-                  << " with shape " << to_string(*lv.solid) << std::endl;
+        std::clog << std::string(depth_, ' ') << "* New proto: '" << label
+                  << "' with shape " << to_string(*lv.solid) << std::endl;
     }
 
-    // Add children first
+    // Add children
     for (PhysicalVolume const& child_pv : lv.children)
     {
         ++depth_;
@@ -79,30 +78,38 @@ auto ProtoConstructor::operator()(PhysicalVolume const& pv) -> SPUnitProto
     // explicit background cell
     if (lv.children.size() <= fill_daughter_threshold())
     {
-        if (CELER_UNLIKELY(verbose_))
-        {
-            std::clog << std::string(depth_, ' ') << " - explicit background"
-                      << std::endl;
-        }
-        // Create explicit "fill" for this logical volume
+        // Create explicit "fill" impl volume for this logical volume. The
+        // special "empty volume instance" label indicates to the
+        // find_bg_volume function in Converter.cc that this needs to be set
+        // as an LV rather than a PV.
         orangeinp::UnitProto::MaterialInput background;
         background.interior
             = this->make_explicit_background(lv, NoTransformation{});
-        background.label = pv.id;
+        background.label = VolumeInstanceId{};
         background.fill = background_fill(lv.material_id);
         input.boundary.zorder = ZOrder::media;
         input.materials.push_back(std::move(background));
+
+        if (CELER_UNLIKELY(verbose_))
+        {
+            std::clog << std::string(depth_, ' ') << " - explicit background "
+                      << " for proto '" << label << "'" << std::endl;
+        }
     }
     else
     {
+        // Children are *implicitly* subtracted from the parent. Since this
+        // universal fill corresponds to a *volume* rather than an *instance*,
+        // we indicate this fill with a null volume instance ID.
+        input.background.fill = background_fill(lv.material_id);
+        input.background.label = VolumeInstanceId{};
+        CELER_ASSERT(input.background);
+
         if (CELER_UNLIKELY(verbose_))
         {
             std::clog << std::string(depth_, ' ') << " - implicit background"
-                      << std::endl;
+                      << " for proto '" << label << "'" << std::endl;
         }
-        input.background.fill = background_fill(lv.material_id);
-        input.background.label = pv.id;
-        CELER_ASSERT(input.background);
     }
 
     CELER_ENSURE(input);
@@ -111,11 +118,14 @@ auto ProtoConstructor::operator()(PhysicalVolume const& pv) -> SPUnitProto
 
 //---------------------------------------------------------------------------//
 /*!
- * Place this physical volume into the proto.
+ * Place this physical volume into a proto being constructed.
+ *
+ * It will return a "local child ID" if it generates a material input, but not
+ * if it spawns a daughter proto.
  */
 void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
                                 PhysicalVolume const& pv,
-                                ProtoInput* proto)
+                                UnitProto::Input* proto)
 {
     CELER_EXPECT(proto);
 
@@ -127,14 +137,15 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
 
     if (CELER_UNLIKELY(verbose_))
     {
-        std::clog << std::string(depth_, ' ') << "- Add pv "
+        std::clog << std::string(depth_, ' ') << "- Add pv '"
                   << volumes_.volume_instance_labels().at(pv.id)
-                  << " use_count=" << pv.lv.use_count()
+                  << "' use_count=" << pv.lv.use_count()
                   << ", num_children=" << pv.lv->children.size() << ", at "
-                  << StreamableVariant{transform} << " to " << proto->label
-                  << std::endl;
+                  << StreamableVariant{transform} << " to '" << proto->label
+                  << "'" << std::endl;
     }
 
+    // Track relationship between this volume instance and embedded children
     auto add_material = [&](SPConstObject&& obj) {
         CELER_EXPECT(obj);
         UnitProto::MaterialInput mat;
@@ -147,17 +158,15 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
     if (pv.lv->children.empty())
     {
         // No children! This LV is just a material.
+        add_material(
+            Transformed::or_object(pv.lv->solid, std::move(transform)));
+
         if (CELER_UNLIKELY(verbose_))
         {
             std::clog << std::string(depth_, ' ') << " -> "
                       << "material at " << StreamableVariant{pv.transform}
                       << std::endl;
-            std::clog << std::string(depth_, ' ') << "    "
-                      << to_string(*pv.lv->solid) << std::endl;
         }
-
-        add_material(
-            Transformed::or_object(pv.lv->solid, std::move(transform)));
     }
     else if ((pv.lv.use_count() == 1
               && std::holds_alternative<NoTransformation>(pv.transform))
@@ -165,25 +174,18 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
     {
         // Child can be inlined into the parent because it's used only once
         // *and* it doesn't have a rotation relative to the parent
-        // OR: it must be inlined if it's a union (see  #1260)
+        // OR: it must be inlined if it's a union (see #1260)
+        add_material(this->make_explicit_background(*pv.lv, transform));
+
         if (CELER_UNLIKELY(verbose_))
         {
             std::clog << std::string(depth_, ' ') << " -> "
-                      << "inline the child at "
-                      << StreamableVariant{pv.transform} << std::endl;
+                      << "inlined child to material at "
+                      << StreamableVariant{pv.transform} << "; subtracting "
+                      << pv.lv->children.size() << " children" << std::endl;
         }
 
-        // Subtract *its* children from this shape
-        if (CELER_UNLIKELY(verbose_))
-        {
-            std::clog << std::string(depth_, ' ') << " :  subtracted "
-                      << pv.lv->children.size() << " children from "
-                      << to_string(*pv.lv->solid) << std::endl;
-        }
-
-        add_material(this->make_explicit_background(*pv.lv, transform));
-
-        // Now build its daghters
+        // Now build its children
         ++depth_;
         for (auto const& child_pv : pv.lv->children)
         {
@@ -196,19 +198,22 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
     {
         // LV is referenced more than once *AND* has children *AND* has a
         // transform *BUT* is not a union
+        auto [iter, inserted] = protos_.emplace(pv.lv.get(), nullptr);
+
         if (CELER_UNLIKELY(verbose_))
         {
             std::clog << std::string(depth_, ' ') << " -> "
-                      << "new universe at " << StreamableVariant{pv.transform}
-                      << std::endl;
+                      << "placing " << (inserted ? "new" : "existing")
+                      << " universe '"
+                      << volumes_.volume_labels().at(pv.lv->id) << "' at "
+                      << StreamableVariant{pv.transform} << std::endl;
         }
 
-        auto [iter, inserted] = protos_.insert({pv.lv.get(), nullptr});
         if (inserted)
         {
             ++depth_;
-            // Construct pv proto
-            iter->second = (*this)(pv);
+            // Construct volume as a proto
+            iter->second = (*this)(*pv.lv);
             --depth_;
         }
         CELER_ASSERT(iter->second);
