@@ -102,14 +102,16 @@ class RunAction final : public G4UserRunAction
         catch (RuntimeError const& e)
         {
             auto const& d = e.details();
-            if (!cstring_equal(d.which, "Geant4"))
+            if (cstring_equal(d.which, "Geant4"))
             {
-                FAIL() << "From " << thread_description() << ": " << e.what();
+                // GeantExceptionHandler wrapped this error
+                FAIL() << '(' << thread_label() << ',' << d.condition
+                       << "): from " << d.file << ": " << d.what;
             }
             else
             {
-                FAIL() << '(' << thread_label() << ',' << d.condition
-                       << "): " << d.what;
+                // Some other error
+                FAIL() << "From " << thread_description() << ": " << e.what();
             }
         }
         catch (std::exception const& e)
