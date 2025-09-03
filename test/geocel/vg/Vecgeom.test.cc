@@ -80,7 +80,7 @@ class VecgeomVgdmlTestBase : public VecgeomTestBaseImpl
     {
         using namespace celeritas::cmake;
         cout << color_code('x') << "VecGeom v" << vecgeom_version << " ("
-             << vecgeom_options << ") VGDML" << color_code(' ') << endl;
+             << vecgeom_options << ") using VGDML" << color_code(' ') << endl;
 
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::warning};
