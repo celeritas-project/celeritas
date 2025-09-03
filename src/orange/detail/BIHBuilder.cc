@@ -139,7 +139,7 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
 
     if (indices.size() < min_split_size_)
     {
-        // All bboxess fit on a single leaf; make it and exit early
+        // All bboxes fit on a single leaf; make it and exit early
         make_leaf();
         return;
     }
