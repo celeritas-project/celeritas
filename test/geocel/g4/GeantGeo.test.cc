@@ -286,59 +286,8 @@ TEST_F(FourLevelsTest, consecutive_compute)
 
 TEST_F(FourLevelsTest, detailed_track)
 {
-    {
-        SCOPED_TRACE("rightward along corner");
-        auto geo = this->make_geo_track_view({-10, -10, -10}, {1, 0, 0});
-        ASSERT_FALSE(geo.is_outside());
-        EXPECT_EQ("Shape2", this->volume_name(geo));
-        EXPECT_FALSE(geo.is_on_boundary());
-
-        // Check for surfaces up to a distance of 4 units away
-        auto next = geo.find_next_step(from_cm(4.0));
-        EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
-        EXPECT_FALSE(next.boundary);
-        next = geo.find_next_step(from_cm(4.0));
-        EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
-        EXPECT_FALSE(next.boundary);
-        geo.move_internal(from_cm(3.5));
-        EXPECT_FALSE(geo.is_on_boundary());
-
-        // Find one a bit further, then cross it
-        next = geo.find_next_step(from_cm(4.0));
-        EXPECT_SOFT_EQ(1.5, to_cm(next.distance));
-        EXPECT_TRUE(next.boundary);
-        geo.move_to_boundary();
-        EXPECT_EQ("Shape2", this->volume_name(geo));
-
-        geo.cross_boundary();
-        EXPECT_EQ("Shape1", this->volume_name(geo));
-        EXPECT_TRUE(geo.is_on_boundary());
-
-        // Find the next boundary and make sure that nearer distances aren't
-        // accepted
-        next = geo.find_next_step();
-        EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
-        EXPECT_TRUE(next.boundary);
-        EXPECT_TRUE(geo.is_on_boundary());
-        next = geo.find_next_step(from_cm(0.5));
-        EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
-        EXPECT_FALSE(next.boundary);
-    }
-    {
-        SCOPED_TRACE("inside out");
-        auto geo = this->make_geo_track_view({-23.5, 6.5, 6.5}, {-1, 0, 0});
-        EXPECT_FALSE(geo.is_outside());
-        EXPECT_EQ("World", this->volume_name(geo));
-
-        auto next = geo.find_next_step(from_cm(2));
-        EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
-        EXPECT_TRUE(next.boundary);
-
-        geo.move_to_boundary();
-        EXPECT_FALSE(geo.is_outside());
-        geo.cross_boundary();
-        EXPECT_TRUE(geo.is_outside());
-    }
+    // Templated test
+    FourLevelsGeoTest::test_detailed_tracking(this);
 }
 
 TEST_F(FourLevelsTest, reentrant_boundary)

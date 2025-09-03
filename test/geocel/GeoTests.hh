@@ -8,6 +8,8 @@
 
 #include <string_view>
 
+#include "corecel/cont/ArrayIO.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "geocel/Types.hh"
 
 #include "TestMacros.hh"
@@ -339,10 +341,10 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         EXPECT_TRUE(next.boundary);
         geo.move_to_boundary();
         EXPECT_TRUE(geo.is_on_boundary());
-        EXPECT_VEC_SOFT_EQ((Real3{0, 0, 0}), geo.normal());
+        EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
         EXPECT_EQ("Shape2", test->volume_name(geo));
         geo.cross_boundary();
-        EXPECT_VEC_SOFT_EQ((Real3{0, 0, 0}), geo.normal());
+        EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
         EXPECT_EQ("Shape1", test->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
 
@@ -361,15 +363,19 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         auto geo = test->make_geo_track_view({-25, 6.5, 6.5}, {1, 0, 0});
         EXPECT_TRUE(geo.is_outside());
 
-        auto next = geo.find_next_step();
-        EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
-        EXPECT_TRUE(next.boundary);
+        if (test->geometry_type() != "Geant4")
+        {
+            // Geant4 can't trace from outside to inside
+            auto next = geo.find_next_step();
+            EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
+            EXPECT_TRUE(next.boundary);
 
-        geo.move_to_boundary();
-        EXPECT_TRUE(geo.is_outside());
-        geo.cross_boundary();
-        EXPECT_FALSE(geo.is_outside());
-        EXPECT_EQ("World", test->volume_name(geo));
+            geo.move_to_boundary();
+            EXPECT_TRUE(geo.is_outside());
+            geo.cross_boundary();
+            EXPECT_FALSE(geo.is_outside());
+            EXPECT_EQ("World", test->volume_name(geo));
+        }
     }
     {
         SCOPED_TRACE("inside out");
@@ -383,19 +389,22 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
 
         geo.move_to_boundary();
         EXPECT_FALSE(geo.is_outside());
-        EXPECT_VEC_SOFT_EQ((Real3{0, 0, 0}), geo.normal());
+        EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
         geo.cross_boundary();
         EXPECT_TRUE(geo.is_outside());
 
-        next = geo.find_next_step();
-        EXPECT_GT(next.distance, 1e10);
-        EXPECT_FALSE(next.boundary);
+        if (test->geometry_type() != "Geant4")
+        {
+            next = geo.find_next_step();
+            EXPECT_GT(next.distance, 1e10);
+            EXPECT_FALSE(next.boundary);
+        }
     }
     {
         SCOPED_TRACE("reentrant boundary");
 
-        bool const is_surface_vg = (CELERITAS_VECGEOM_SURFACE
-                                    && test->geometry_type() == "VecGeom");
+        bool const is_volume_vg = (!CELERITAS_VECGEOM_SURFACE
+                                   && test->geometry_type() == "VecGeom");
 
         auto geo = test->make_geo_track_view({15.5, 10, 10}, {-1, 0, 0});
         ASSERT_FALSE(geo.is_outside());
@@ -420,10 +429,9 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         EXPECT_EQ("Shape1", test->volume_name(geo));
 
         // Move to the sphere boundary then scatter still into the sphere
+        // (this is a "bump": 1e-13 for surface VG, Geant4; 1e-8 for volume VG
         next = geo.find_next_step(from_cm(10.0));
-        // TODO: investigate near-zero movement
-        auto expected_distance = to_cm(is_surface_vg ? 1e-13 : 1e-8);
-        EXPECT_SOFT_EQ(expected_distance, next.distance);
+        EXPECT_LE(next.distance, to_cm(1e-8));
         EXPECT_TRUE(next.boundary);
         geo.move_to_boundary();
         EXPECT_TRUE(geo.is_on_boundary());
@@ -438,16 +446,24 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         // to still outside
         // TODO: understand difference in distance for surface implementation
         next = geo.find_next_step(from_cm(1.0));
-        EXPECT_SOFT_EQ(is_surface_vg ? 9.9737647358664937e-07
-                                     : 0.00031622777925735285,
-                       to_cm(next.distance));
+
+        if (is_volume_vg)
+        {
+            EXPECT_SOFT_EQ(0.00031622777925735285, to_cm(next.distance));
+        }
+        else
+        {
+            EXPECT_LT(next.distance, 1e-6);
+        }
         geo.move_to_boundary();
         EXPECT_TRUE(geo.is_on_boundary());
-        EXPECT_VEC_SOFT_EQ((Real3{0, 0, 0}), geo.normal());
+        auto pre_normal = geo.normal();
+        EXPECT_SOFT_NEAR(1.0, pre_normal[0], sqrt_tol()) << pre_normal;
         geo.set_dir({1, 0, 0});
         EXPECT_TRUE(geo.is_on_boundary());
         geo.cross_boundary();
-        EXPECT_VEC_SOFT_EQ((Real3{0, 0, 0}), geo.normal());
+        EXPECT_SOFT_EQ(1.0, dot_product(pre_normal, geo.normal()))
+            << "Expected " << pre_normal << ", got " << geo.normal();
         EXPECT_EQ("Shape1", test->volume_name(geo));
 
         EXPECT_TRUE(geo.is_on_boundary());
