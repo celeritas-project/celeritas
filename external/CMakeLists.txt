@@ -7,12 +7,17 @@
 # silent otherwise
 set(CMAKE_MESSAGE_LOG_LEVEL VERBOSE)
 
-# Download the package and add to a list
+# Download the package, save version, add to a list
 set(_celer_builtin_packages)
-macro(celer_fetch_external name url sha)
+macro(celer_fetch_external name version url sha)
+  # Save version and annotated string for corecel/Config.cc include
+  set(${name}_VERSION ${version} PARENT_SCOPE)
+  set(${name}_VERSION_STRING "${version}+builtin" PARENT_SCOPE)
+
+  string(REGEX REPLACE "@VERSION@" "${version}" _url "${url}")
   FetchContent_Declare(
     "${name}"
-    URL "${url}"
+    URL "${_url}"
     URL_HASH SHA256=${sha}
     DOWNLOAD_NO_PROGRESS TRUE
   )
@@ -25,8 +30,8 @@ endmacro()
 
 if(CELERITAS_BUILTIN_CLI11)
   celer_fetch_external(
-    CLI11
-    "https://github.com/CLIUtils/CLI11/archive/refs/tags/v2.5.0.tar.gz"
+    CLI11 2.5.0
+    "https://github.com/CLIUtils/CLI11/archive/refs/tags/v@VERSION@.tar.gz"
     17e02b4cddc2fa348e5dbdbb582c59a3486fa2b2433e70a0c3bacb871334fd55
   )
 
@@ -42,8 +47,8 @@ endif()
 
 if(CELERITAS_BUILTIN_covfie)
   celer_fetch_external(
-    covfie
-    "https://github.com/acts-project/covfie/archive/refs/tags/v0.14.0.tar.gz"
+    covfie 0.14.0
+    "https://github.com/acts-project/covfie/archive/refs/tags/v@VERSION@.tar.gz"
     b4d8afa712c6fc0e2bc6474367d65fad652864b18d0255c5f2c18fd4c6943993
   )
   set(COVFIE_PLATFORM_CPU ON)
@@ -57,8 +62,8 @@ endif()
 
 if(CELERITAS_BUILTIN_GTest)
   celer_fetch_external(
-    GTest
-    "https://github.com/google/googletest/archive/refs/tags/v1.15.2.tar.gz"
+    GTest 1.15.2
+    "https://github.com/google/googletest/archive/refs/tags/v@VERSION@.tar.gz"
     7b42b4d6ed48810c5362c265a17faebe90dc2373c885e5216439d37927f02926
   )
 
@@ -74,8 +79,8 @@ endif()
 
 if(CELERITAS_BUILTIN_nlohmann_json)
   celer_fetch_external(
-    nlohmann_json
-    "https://github.com/nlohmann/json/archive/v3.11.3.tar.gz"
+    nlohmann_json 3.11.3
+    "https://github.com/nlohmann/json/archive/v@VERSION@.tar.gz"
     0d8ef5af7f9794e3263480193c491549b2ba6cc74bb018906202ada498a79406
   )
 
@@ -91,8 +96,8 @@ if(CELERITAS_BUILTIN_Perfetto)
     set(FETCHCONTENT_SOURCE_DIR_PERFETTO "${PERFETTO_ROOT}")
   endif()
   celer_fetch_external(
-    Perfetto
-    "https://github.com/google/perfetto/archive/refs/tags/v49.0.tar.gz"
+    Perfetto 49.0
+    "https://github.com/google/perfetto/archive/refs/tags/v@VERSION@.tar.gz"
     0871a92a162ac5655b7d724f9359b15a75c4e92472716edbc4227a64a4680be4
   )
 endif()
@@ -103,8 +108,8 @@ endif()
 
 if(CELERITAS_BUILTIN_G4VG)
   celer_fetch_external(
-    G4VG
-    "https://github.com/celeritas-project/g4vg/releases/download/v1.0.4/g4vg-1.0.4.tar.gz"
+    G4VG 1.0.4
+    "https://github.com/celeritas-project/g4vg/releases/download/v@VERSION@/g4vg-@VERSION@.tar.gz"
     ac38878aedaf9fe628f498290cf4fa6cdd21980b7b83663ce8ef3c8f3ff31cb2
   )
   foreach(_var BUILD_TESTS DEBUG)
