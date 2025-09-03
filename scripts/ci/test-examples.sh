@@ -63,6 +63,9 @@ if [ -z "${CELER_DISABLE_G4_EXAMPLES}" ]; then
     # Run offload-template only on Geant4 v11
     G4FORCENUMBEROFTHREADS=4 G4RUN_MANAGER_TYPE=MT \
       ./run-offload
+  if [ "${G4VERSION_NUMBER}" -lt 1070 ]; then
+    # RunManagerFactory isn't available
+    echo "Skipping offload template: Geant4 version is too old"
   else
     # Test that it fails
     echo "*** THE FOLLOWING EXECUTION SHOULD FAIL ***"

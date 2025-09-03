@@ -28,6 +28,11 @@
 #include <G4VUserDetectorConstruction.hh>
 #include <G4VUserPrimaryGeneratorAction.hh>
 #include <G4Version.hh>
+#if G4VERSION_NUMBER >= 1100
+#    include <G4RunManagerFactory.hh>
+#else
+#    include <G4MTRunManager.hh>
+#endif
 
 // Celeritas
 #include <CeleritasG4.hh>
@@ -213,8 +218,14 @@ celeritas::SetupOptions MakeOptions()
 
 int main()
 {
-    auto run_manager = std::unique_ptr<G4RunManager>{
-        G4RunManagerFactory::CreateRunManager()};
+    auto run_manager = [] {
+#if G4VERSION_NUMBER >= 1100
+        return std::unique_ptr<G4RunManager>{
+            G4RunManagerFactory::CreateRunManager()};
+#else
+        return std::make_unique<G4RunManager>();
+#endif
+    }();
 
     run_manager->SetUserInitialization(new DetectorConstruction{});
 
