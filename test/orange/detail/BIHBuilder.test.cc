@@ -267,25 +267,16 @@ TEST_F(BIHBuilderTest, grid)
     using Side = BIHInnerNode::Side;
     constexpr auto inff = std::numeric_limits<fast_real_type>::infinity();
 
-    VecFastBbox bboxes = {
-
-        FastBBox::from_infinite(),
-
-        {{0, 0, 0}, {1, 1, 100}},
-        {{0, 1, 0}, {1, 2, 100}},
-        {{0, 2, 0}, {1, 3, 100}},
-        {{0, 3, 0}, {1, 4, 100}},
-
-        {{1, 0, 0}, {2, 1, 100}},
-        {{1, 1, 0}, {2, 2, 100}},
-        {{1, 2, 0}, {2, 3, 100}},
-        {{1, 3, 0}, {2, 4, 100}},
-
-        {{2, 0, 0}, {3, 1, 100}},
-        {{2, 1, 0}, {3, 2, 100}},
-        {{2, 2, 0}, {3, 3, 100}},
-        {{2, 3, 0}, {3, 4, 100}},
-    };
+    VecFastBbox bboxes = {FastBBox::from_infinite()};
+    for (auto i : range(3))
+    {
+        for (auto j : range(4))
+        {
+            auto x = static_cast<fast_real_type>(i);
+            auto y = static_cast<fast_real_type>(j);
+            bboxes.push_back({{x, y, 0}, {x + 1, y + 1, 100}});
+        }
+    }
 
     BIHBuilder build(&storage_);
     auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
@@ -532,23 +523,16 @@ TEST_F(BIHBuilderTest, grid_less_split)
     using Side = BIHInnerNode::Side;
     constexpr auto inff = std::numeric_limits<fast_real_type>::infinity();
 
-    VecFastBbox bboxes = {
-        FastBBox::from_infinite(),
-        {{0, 0, 0}, {1, 1, 100}},
-        {{0, 1, 0}, {1, 2, 100}},
-        {{0, 2, 0}, {1, 3, 100}},
-        {{0, 3, 0}, {1, 4, 100}},
-
-        {{1, 0, 0}, {2, 1, 100}},
-        {{1, 1, 0}, {2, 2, 100}},
-        {{1, 2, 0}, {2, 3, 100}},
-        {{1, 3, 0}, {2, 4, 100}},
-
-        {{2, 0, 0}, {3, 1, 100}},
-        {{2, 1, 0}, {3, 2, 100}},
-        {{2, 2, 0}, {3, 3, 100}},
-        {{2, 3, 0}, {3, 4, 100}},
-    };
+    VecFastBbox bboxes = {FastBBox::from_infinite()};
+    for (auto i : range(3))
+    {
+        for (auto j : range(4))
+        {
+            auto x = static_cast<fast_real_type>(i);
+            auto y = static_cast<fast_real_type>(j);
+            bboxes.push_back({{x, y, 0}, {x + 1, y + 1, 100}});
+        }
+    }
 
     BIHBuilder build(&storage_, 5);
     auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
