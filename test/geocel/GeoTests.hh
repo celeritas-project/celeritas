@@ -338,8 +338,11 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         EXPECT_SOFT_EQ(1.5, to_cm(next.distance));
         EXPECT_TRUE(next.boundary);
         geo.move_to_boundary();
+        EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_VEC_SOFT_EQ((Real3{0, 0, 0}), geo.normal());
         EXPECT_EQ("Shape2", test->volume_name(geo));
         geo.cross_boundary();
+        EXPECT_VEC_SOFT_EQ((Real3{0, 0, 0}), geo.normal());
         EXPECT_EQ("Shape1", test->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
 
@@ -380,6 +383,7 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
 
         geo.move_to_boundary();
         EXPECT_FALSE(geo.is_outside());
+        EXPECT_VEC_SOFT_EQ((Real3{0, 0, 0}), geo.normal());
         geo.cross_boundary();
         EXPECT_TRUE(geo.is_outside());
 
@@ -425,6 +429,7 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         EXPECT_TRUE(geo.is_on_boundary());
         geo.set_dir({0, -1, 0});
         EXPECT_TRUE(geo.is_on_boundary());
+
         geo.cross_boundary();
         EXPECT_EQ("Shape2", test->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
@@ -438,9 +443,11 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
                        to_cm(next.distance));
         geo.move_to_boundary();
         EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_VEC_SOFT_EQ((Real3{0, 0, 0}), geo.normal());
         geo.set_dir({1, 0, 0});
         EXPECT_TRUE(geo.is_on_boundary());
         geo.cross_boundary();
+        EXPECT_VEC_SOFT_EQ((Real3{0, 0, 0}), geo.normal());
         EXPECT_EQ("Shape1", test->volume_name(geo));
 
         EXPECT_TRUE(geo.is_on_boundary());
@@ -469,8 +476,12 @@ void SimpleCmsGeoTest::test_detailed_tracking(GeoTest* test)
     EXPECT_TRUE(next.boundary);
 
     geo.move_to_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_FALSE(geo.is_outside());
+    EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
+
     geo.cross_boundary();
+    EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
     EXPECT_EQ("si_tracker", test->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({30, 0, 20}), to_cm(geo.pos()));
 
@@ -520,6 +531,7 @@ void TwoBoxesGeoTest::test_detailed_tracking(GeoTest* test)
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_FALSE(geo.is_outside());
+    EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
     geo.cross_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_EQ("world", test->volume_name(geo));
@@ -547,7 +559,25 @@ void TwoBoxesGeoTest::test_detailed_tracking(GeoTest* test)
     EXPECT_SOFT_NEAR(2 * dx, to_cm(next.distance), 1e-4);
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
+    if (test->geometry_type() != "VecGeom")
+    {
+        EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
+    }
+    else
+    {
+        EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
+    }
+
     geo.cross_boundary();
+    if (test->geometry_type() == "Geant4")
+    {
+        EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
+    }
+    else
+    {
+        EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
+    }
+
     EXPECT_FALSE(geo.is_outside());
     EXPECT_EQ("inner", test->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({5, 2, 1.25}), to_cm(geo.pos()));

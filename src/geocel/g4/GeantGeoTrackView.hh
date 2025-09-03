@@ -358,11 +358,21 @@ CELER_FORCEINLINE bool GeantGeoTrackView::is_on_boundary() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the surface normal of the boundary the track is currently on.
+ * Get the exit surface normal of the boundary the track has just crossed.
+ *
+ * This vector is in the global coordinate system.
  */
 CELER_FUNCTION auto GeantGeoTrackView::normal() const -> Real3
 {
-    CELER_NOT_IMPLEMENTED("GeantGeoTrackView::normal");
+    CELER_EXPECT(this->is_on_boundary());
+
+    bool valid{false};
+    G4ThreeVector norm = navi_.GetGlobalExitNormal(g4pos_, &valid);
+    CELER_ASSERT(valid);
+
+    Real3 result = convert_from_geant(norm, 1);
+    CELER_ENSURE(is_soft_unit_vector(result));
+    return result;
 }
 
 //---------------------------------------------------------------------------//
