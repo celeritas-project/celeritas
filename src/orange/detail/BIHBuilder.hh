@@ -30,7 +30,7 @@ namespace detail
  * Construction is done recursively. At a given recursion depth, if at least
  * \param max_split_size bounding boxes are present, partitioning is attempted.
  * Partitioning is done on the basis of bounding box centers using the "longest
- * dimension" heuristic.  If more than \param max_split_size boumding boxes are
+ * dimension" heuristic.  If more than \param max_split_size bounding boxes are
  * present, or if the bounding boxes are are non-partitionable (i.e., they all
  * have the same center), a leaf node is created.
  *
