@@ -28,7 +28,7 @@ namespace detail
  * This implementation matches the structure proposed in the original paper
  * \citep{wachter-bih-2006, https://doi.org/10.2312/EGWR/EGSR06/139-149}.
  * Construction is done recursively. At a given recursion depth, if at least
- * \param max_split_size boumding boxes are present, partitioning is attempted.
+ * \param max_split_size bounding boxes are present, partitioning is attempted.
  * Partitioning is done on the basis of bounding box centers using the "longest
  * dimension" heuristic.  If more than \param max_split_size boumding boxes are
  * present, or if the bounding boxes are are non-partitionable (i.e., they all
