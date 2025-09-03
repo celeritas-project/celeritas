@@ -53,21 +53,34 @@ enum class RelaxationSelection
 struct GeantMuonPhysicsOptions
 {
     //! Enable muon pair production
-    bool pair_production{false};
+    bool pair_production{true};
     //! Enable muon ionization
-    bool ionization{false};
+    bool ionization{true};
     //! Enable muon bremsstrahlung
-    bool bremsstrahlung{false};
+    bool bremsstrahlung{true};
     //! Enable muon single Coulomb scattering
     bool coulomb{false};
-    //! Enable multiple coulomb scattering and select a model
-    MscModelSelection msc{MscModelSelection::none};
+    //! Enable multiple coulomb scattering and select a model.
+    //! Muon MSC currently requires MSC enabled for electrons and positrons
+    MscModelSelection msc{MscModelSelection::urban};
 
     //! True if any process is activated
     explicit operator bool() const
     {
         return pair_production || ionization || bremsstrahlung || coulomb
                || msc != MscModelSelection::none;
+    }
+
+    //! Initialize with no physics
+    static GeantMuonPhysicsOptions deactivated()
+    {
+        GeantMuonPhysicsOptions opt;
+        opt.pair_production = false;
+        opt.ionization = false;
+        opt.bremsstrahlung = false;
+        opt.coulomb = false;
+        opt.msc = MscModelSelection::none;
+        return opt;
     }
 };
 
@@ -92,6 +105,9 @@ operator==(GeantMuonPhysicsOptions const& a, GeantMuonPhysicsOptions const& b)
  * G4StandardEmPhysics. They are passed to the \c EmPhysicsList
  * and \c FtfpBert physics lists to provide an easy way to set up
  * physics options.
+ *
+ * \todo This will be moved to celeritas::inp
+ * \todo Rename default_cutoff to be consistent (it's a production cut)
  */
 struct GeantPhysicsOptions
 {
@@ -125,14 +141,15 @@ struct GeantPhysicsOptions
     BremsModelSelection brems{BremsModelSelection::all};
     //! Upper limit for the Seltzer-Berger bremsstrahlung model
     MevEnergy seltzer_berger_limit{1e3};  // 1 GeV
-    //! Enable multiple coulomb scattering and select a model
+    //! Enable multiple coulomb scattering and select a model.
+    //! Electron/positron MSC requires ionization
     MscModelSelection msc{MscModelSelection::urban};
     //! Enable atomic relaxation and select a model
     RelaxationSelection relaxation{RelaxationSelection::none};
     //!@}
 
     //! Muon EM physics
-    GeantMuonPhysicsOptions muon;
+    GeantMuonPhysicsOptions muon{GeantMuonPhysicsOptions::deactivated()};
 
     //!@{
     //! \name Physics options
@@ -200,6 +217,30 @@ struct GeantPhysicsOptions
     //! Optical physics options
     GeantOpticalPhysicsOptions optical{
         GeantOpticalPhysicsOptions::deactivated()};
+
+    //! Initialize with no physics
+    static GeantPhysicsOptions deactivated()
+    {
+        GeantPhysicsOptions opt;
+        // Gamma
+        opt.compton_scattering = false;
+        opt.photoelectric = false;
+        opt.rayleigh_scattering = false;
+        opt.gamma_conversion = false;
+        opt.gamma_general = false;
+        // Electron/positron
+        opt.coulomb_scattering = false;
+        opt.ionization = false;
+        opt.annihilation = false;
+        opt.brems = BremsModelSelection::none;
+        opt.msc = MscModelSelection::none;
+        opt.relaxation = RelaxationSelection::none;
+        // Muon
+        opt.muon = GeantMuonPhysicsOptions::deactivated();
+        // Optical
+        opt.optical = GeantOpticalPhysicsOptions::deactivated();
+        return opt;
+    }
 };
 
 //! Equality operator, mainly for test harness

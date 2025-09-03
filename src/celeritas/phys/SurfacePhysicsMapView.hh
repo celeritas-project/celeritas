@@ -15,11 +15,9 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Access surface physics mappings for a particular surface.
+ * Access surface physics mappings for a particular physics surface.
  *
- * This simply encapsulates the \c SurfaceParamsData class. A "default"
- * physics surface ID is encoded as one ID past the number of geometric
- * surfaces.
+ * This simply encapsulates the \c SurfaceParamsData class.
  */
 class SurfacePhysicsMapView
 {
@@ -27,14 +25,14 @@ class SurfacePhysicsMapView
     //!@{
     //! \name Type aliases
     using SurfaceParamsRef = NativeCRef<SurfacePhysicsMapData>;
-    using SurfaceModelId = SurfaceModel::SurfaceModelId;
     using InternalSurfaceId = SurfaceModel::InternalSurfaceId;
     //!@}
 
   public:
     // Construct from data and current surface
     CELER_FUNCTION
-    SurfacePhysicsMapView(SurfaceParamsRef const& params, SurfaceId surface);
+    SurfacePhysicsMapView(SurfaceParamsRef const& params,
+                          PhysSurfaceId surface);
 
     // Construct from data and "default" surface
     explicit CELER_FUNCTION
@@ -43,15 +41,15 @@ class SurfacePhysicsMapView
     // Get the model ID for the current surface, if any
     CELER_FUNCTION SurfaceModelId surface_model_id() const;
 
-    //! Current surface ID (may be one past the end of geometry IDs)
-    CELER_FUNCTION SurfaceId surface_id() const { return surface_; }
+    //! Current physics surface ID
+    CELER_FUNCTION PhysSurfaceId surface_id() const { return surface_; }
 
     // Get the subindex inside that model
     CELER_FUNCTION InternalSurfaceId internal_surface_id() const;
 
   private:
     SurfaceParamsRef const& params_;
-    SurfaceId surface_;
+    PhysSurfaceId surface_;
 };
 
 //---------------------------------------------------------------------------//
@@ -62,7 +60,7 @@ class SurfacePhysicsMapView
  */
 CELER_FUNCTION
 SurfacePhysicsMapView::SurfacePhysicsMapView(SurfaceParamsRef const& params,
-                                             SurfaceId surface)
+                                             PhysSurfaceId surface)
     : params_{params}, surface_{surface}
 {
     CELER_EXPECT(params_);
@@ -79,7 +77,7 @@ SurfacePhysicsMapView::SurfacePhysicsMapView(SurfaceParamsRef const& params,
 CELER_FUNCTION
 SurfacePhysicsMapView::SurfacePhysicsMapView(SurfaceParamsRef const& params)
     : SurfacePhysicsMapView{
-          params, id_cast<SurfaceId>(params.surface_models.size() - 1)}
+          params, id_cast<PhysSurfaceId>(params.surface_models.size() - 1)}
 {
 }
 

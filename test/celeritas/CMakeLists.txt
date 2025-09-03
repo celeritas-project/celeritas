@@ -191,9 +191,6 @@ celeritas_add_test(ext/GeantImporter.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json
   FILTER ${_import_filter}
 )
-celeritas_add_test(ext/GeantVolumeMapper.test.cc ${_needs_geant4}
-  LINK_LIBRARIES ${Geant4_LIBRARIES} Celeritas::orange)
-
 
 celeritas_add_test(ext/RootImporter.test.cc ${_needs_root})
 celeritas_add_test(ext/RootJsonDumper.test.cc ${_needs_root})
@@ -209,15 +206,9 @@ if(CELERITAS_USE_Geant4)
     LINK_LIBRARIES testcel_celeritas_g4
     ENVIRONMENT "${CELER_G4ENV}")
 
-  set(_ltu_tests
-    "MultiLevelTest.*"
-  )
-  if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
-    # Geant4 doesn't yet have independent volume instance IDs for replicas
-    list(APPEND _ltu_tests
-      "ReplicaTest.*"
-    )
-  elseif(CELERITAS_CORE_GEO STREQUAL "ORANGE")
+  set(_ltu_tests)
+  if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
+    # ORANGE does not yet support touchable-based mapping
     set(_ltu_tests DISABLE)
   endif()
 
@@ -409,12 +400,14 @@ celeritas_add_test(optical/OpticalUtils.test.cc GPU)
 celeritas_add_test(optical/PrimaryGenerator.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/Rayleigh.test.cc)
 celeritas_add_test(optical/RayleighMfpCalculator.test.cc)
+celeritas_add_test(optical/RoughnessCalculator.test.cc)
 celeritas_add_test(optical/OpticalRootImport.test.cc ${_needs_root})
 celeritas_add_test(optical/Scintillation.test.cc)
 celeritas_add_test(optical/WavelengthShift.test.cc ${_needs_double})
 celeritas_add_test(optical/Physics.test.cc)
 celeritas_add_test(optical/VolumeSurfaceSelector.test.cc
     LINK_LIBRARIES testcel_geocel)
+celeritas_add_test(optical/SurfacePhysics.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Mat
@@ -514,6 +507,10 @@ add_custom_target(update-root-test-data
   COMMENT "Regenerate ROOT test data"
 )
 
+add_custom_target(debug-root-test-data
+  COMMENT "Debug ROOT test data"
+)
+
 if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
   foreach(_filename "four-steel-slabs" "simple-cms" "lar-sphere")
     set(_gdml "${PROJECT_SOURCE_DIR}/test/geocel/data/${_filename}.gdml")
@@ -528,6 +525,18 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
         "${_gdml}"
         "${_basename}.geant.json"
         "${_output}"
+        "--gen-test"
+      VERBATIM
+    )
+    add_custom_command(
+      TARGET debug-root-test-data
+      POST_BUILD
+      COMMAND
+        "${CMAKE_COMMAND}" "-E" "env" ${CELER_G4ENV}
+        "$<TARGET_FILE:celer-export-geant>"
+        "${_gdml}"
+        "${_basename}.geant.json"
+        "${_basename}.json"
         "--gen-test"
       VERBATIM
     )

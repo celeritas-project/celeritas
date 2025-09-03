@@ -233,7 +233,19 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
         if (!vol_inst.empty())
         {
             result.volume_instances.emplace_back([&] {
-                auto vi_id = geo.volume_instance_id();
+                VolumeInstanceId vi_id;
+                try
+                {
+                    vi_id = geo.volume_instance_id();
+                }
+                catch (celeritas::DebugError const& e)
+                {
+                    std::ostringstream os;
+                    os << "<exception at " << e.details().file << ':'
+                       << e.details().line << ": " << e.details().condition
+                       << '>';
+                    return std::move(os).str();
+                }
                 if (!vi_id)
                 {
                     return std::string{"---"};
@@ -357,17 +369,6 @@ auto GenericGeoTestBase<HP>::volume_stack(Real3 const& pos)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the model input from the geometry.
- */
-template<class HP>
-auto GenericGeoTestBase<HP>::model_inp() const -> ModelInpResult
-{
-    return ModelInpResult::from_model_input(
-        this->geometry()->make_model_input());
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get the label for this geometry: Geant4, VecGeom, ORANGE.
  */
 template<class HP>
@@ -381,9 +382,12 @@ std::string_view GenericGeoTestBase<HP>::geometry_type() const
  * Access the geometry interface, building if needed.
  */
 template<class HP>
-auto GenericGeoTestBase<HP>::geometry_interface() const -> SPConstGeoInterface
+auto GenericGeoTestBase<HP>::geometry_interface() const
+    -> GeoParamsInterface const&
 {
-    return this->geometry();
+    auto result = this->geometry();
+    CELER_ENSURE(result);
+    return *result;
 }
 
 //---------------------------------------------------------------------------//

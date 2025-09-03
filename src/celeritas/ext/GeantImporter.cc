@@ -60,6 +60,8 @@
 #include <G4VProcess.hh>
 #include <G4VRangeToEnergyConverter.hh>
 #include <G4Version.hh>
+
+#include "celeritas/io/ImportUnits.hh"
 #if G4VERSION_NUMBER >= 1070
 #    include <G4OpWLS2.hh>
 #    include <G4OpticalParameters.hh>
@@ -83,7 +85,6 @@
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/VolumeParams.hh"
-#include "geocel/g4/VisitVolumes.hh"
 #include "geocel/inp/Model.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/inp/Grid.hh"
@@ -587,6 +588,30 @@ import_optical_materials(detail::GeoOpticalIdMap const& geo_to_opt)
         get_property(&optical.rayleigh.compressibility,
                      "ISOTHERMAL_COMPRESSIBILITY",
                      ImportUnits::len_time_sq_per_mass);
+        if (optical.rayleigh.compressibility == 0
+            && material->GetName() == "Water")
+        {
+            // Use special default hardcoded value for water
+            // in G4OpRayleigh::CalculateRayleighMeanFreePaths
+            using CLHEP::m3;
+            using CLHEP::MeV;
+            double const betat = 7.658e-23 * m3 / MeV;
+            optical.rayleigh.compressibility
+                = betat
+                  * native_value_from_clhep(ImportUnits::len_time_sq_per_mass);
+            CELER_LOG(info) << "Setting compressibility of water to "
+                            << optical.rayleigh.compressibility << " m^2/N";
+
+            if (!soft_equal(material->GetTemperature(), 283.15 * CLHEP::kelvin))
+            {
+                CELER_LOG(warning)
+                    << "Geant4 Rayleigh optical scattering ignores material "
+                       "temperature for Water (overriding "
+                    << material->GetTemperature()
+                    << " K with 283.15 K) if no `RAYLEIGH` mean free paths "
+                       "are provided";
+            }
+        }
 
         // Save WLS properties
         get_property(&optical.wls.mean_num_photons,
@@ -633,8 +658,24 @@ inp::OpticalPhysics import_optical_physics()
     }
     log_and_rethrow(std::move(handle));
 
-    CELER_LOG(debug) << "Loaded " << geo->num_surfaces()
-                     << " optical physics surfaces";
+    // Default Geant4 surface
+    size_type num_phys_surfaces{0};
+    for (auto const& mats : result.surfaces.materials)
+    {
+        num_phys_surfaces += mats.size() + 1;
+    }
+    PhysSurfaceId default_surface(num_phys_surfaces);
+    result.surfaces.materials.push_back({});
+    result.surfaces.roughness.polished.emplace(default_surface,
+                                               inp::NoRoughness{});
+    result.surfaces.reflectivity.fresnel.emplace(default_surface,
+                                                 inp::FresnelReflection{});
+    result.surfaces.interaction.dielectric_dielectric.emplace(
+        default_surface, inp::ReflectionForm::from_spike());
+
+    CELER_LOG(debug) << "Loaded " << result.surfaces.materials.size()
+                     << " optical surfaces (" << num_phys_surfaces
+                     << " physics surfaces)";
     CELER_ENSURE(result || (geo->num_surfaces() == 0));
     return result;
 }

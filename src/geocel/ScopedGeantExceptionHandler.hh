@@ -6,10 +6,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <exception>
+#include <functional>
 #include <memory>
 
 #include "corecel/Config.hh"
 
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 
 class G4VExceptionHandler;
@@ -18,28 +21,38 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Install and clear a Geant exception handler during this class lifetime.
+ * Convert Geant4 exceptions to RuntimeError during this class lifetime.
  *
  * Note that creating a \c G4RunManagerKernel resets the exception
- * handler, so errors thrown during setup *CANNOT* be caught by Celeritas, and
- * this class can only be used after creating the \c G4RunManager.
+ * handler, so errors thrown during setup \em cannot be caught by Celeritas,
+ * and this class can only be used after creating the \c G4RunManager.
  *
- * \note This error is suitable only for single-threaded runs and multithreaded
- * manager thread. The exceptions it throws will terminate a Geant4 worker
- * thread.
+ * Because the underlying Geant4 error handler is thread-local, this class must
+ * be scoped to inside each worker thread. Additionally, since throwing from a
+ * worker thread terminates the program, an error handler \em must be specified
+ * if used in a worker thread: you should probably use a \c
+ * celeritas::MultiExceptionHandler .
  */
 class ScopedGeantExceptionHandler
 {
   public:
-    // Construct exception handler
-    ScopedGeantExceptionHandler();
+    //!@{
+    //! \name Type aliases
+    using StdExceptionHandler = std::function<void(std::exception_ptr)>;
+    //!@}
+
+  public:
+    // Construct with an exception handling function
+    explicit ScopedGeantExceptionHandler(StdExceptionHandler handle);
+
+    //! Construct, throwing on G4Exception calls
+    ScopedGeantExceptionHandler() : ScopedGeantExceptionHandler{nullptr} {}
 
     // Clear on destruction
     ~ScopedGeantExceptionHandler();
-    //!@{
+
     //! Prevent copying and moving for RAII class
     CELER_DELETE_COPY_MOVE(ScopedGeantExceptionHandler);
-    //!@}
 
   private:
 #if CELERITAS_USE_GEANT4
@@ -51,7 +64,11 @@ class ScopedGeantExceptionHandler
 #if !CELERITAS_USE_GEANT4
 //!@{
 //! Do nothing if Geant4 is disabled (source file will not be compiled)
-inline ScopedGeantExceptionHandler::ScopedGeantExceptionHandler() {}
+inline ScopedGeantExceptionHandler::ScopedGeantExceptionHandler(
+    StdExceptionHandler)
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
 inline ScopedGeantExceptionHandler::~ScopedGeantExceptionHandler() {}
 //!@}
 #endif

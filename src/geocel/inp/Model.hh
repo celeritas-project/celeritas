@@ -29,6 +29,9 @@ namespace inp
  * IDs and instance IDs, we should just have a vector of volume instances here.
  *
  * \todo Add region definitions.
+ *
+ * \note Currently, to support internal geometry mappings a volume \em is
+ * allowed to be null.
  */
 struct Volume
 {
@@ -55,8 +58,6 @@ struct VolumeInstance
     Label label;
     //! Logical volume referenced by this instance
     VolumeId volume;
-
-    // TODO: replica numbers
 
     //! True if it has a label and ID
     explicit operator bool() const { return volume && !label.empty(); }

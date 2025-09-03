@@ -67,7 +67,7 @@ UnitProto::UnitProto(Input&& inp) : input_{std::move(inp)}
  */
 std::string_view UnitProto::label() const
 {
-    return input_.label;
+    return input_.label.name;
 }
 
 //---------------------------------------------------------------------------//
@@ -243,7 +243,7 @@ void UnitProto::build(ProtoBuilder& input) const
     {
         vol_iter->zorder = input_.boundary.zorder;
     }
-    vol_iter->label = Label{"[EXTERIOR]", input_.label};
+    vol_iter->label = Label{"[EXTERIOR]", input_.label.name};
     ++vol_iter;
 
     BoundingBoxBumper<real_type> bump_bbox{input.tol()};
@@ -304,11 +304,6 @@ void UnitProto::build(ProtoBuilder& input) const
     {
         CELER_ASSERT(vol_iter != result.volumes.end());
         vol_iter->label = b.label;
-        if (vol_iter->label == decltype(b.label){})
-        {
-            // Default: empty label
-            vol_iter->label = Label{input_.label, "bg"};
-        }
         ++vol_iter;
     }
     CELER_EXPECT(vol_iter == result.volumes.end());
@@ -473,10 +468,6 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
         {
             unit_builder.simplifiy_joins();
         }
-
-        /*! \todo We can sometimes eliminate CSG surfaces and nodes that aren't
-         * used by the actual volumes>
-         */
     }
 
     return result;

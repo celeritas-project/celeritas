@@ -8,13 +8,11 @@
 
 #include <memory>
 #include <string>
-#include <vector>
 
 #include "corecel/Types.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
-#include "corecel/io/Label.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/inp/Model.hh"
@@ -106,13 +104,6 @@ class OrangeParams final : public GeoParamsInterface,
     // Get volume metadata
     inline ImplVolumeMap const& impl_volumes() const final;
 
-    // Get the volume ID corresponding to a Geant4 logical volume
-    inline ImplVolumeId find_volume(G4LogicalVolume const* volume) const final;
-
-    // Get the Geant4 physical volume corresponding to a volume instance ID
-    inline GeantPhysicalInstance
-    id_to_geant(VolumeInstanceId vol_id) const final;
-
     // Get the canonical volume IDs corresponding to an implementation volume
     inline VolumeId volume_id(ImplVolumeId) const final;
 
@@ -183,28 +174,6 @@ auto OrangeParams::universes() const -> UniverseMap const&
 auto OrangeParams::impl_volumes() const -> ImplVolumeMap const&
 {
     return impl_vol_labels_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Locate the volume ID corresponding to a Geant4 volume.
- *
- * \todo Replace with GeantGeoParams + VolumeId
- */
-ImplVolumeId OrangeParams::find_volume(G4LogicalVolume const*) const
-{
-    return ImplVolumeId{};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the Geant4 physical volume corresponding to a volume instance ID.
- *
- * \todo Implement using \c g4org::Converter
- */
-GeantPhysicalInstance OrangeParams::id_to_geant(VolumeInstanceId) const
-{
-    return {};
 }
 
 //---------------------------------------------------------------------------//

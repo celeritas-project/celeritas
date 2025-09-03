@@ -106,7 +106,7 @@ auto GeantDiagnostics::multi_exception_handler() const
     -> SPMultiExceptionHandler const&
 {
     CELER_EXPECT(*this);
-    CELER_EXPECT(meh_);
+    CELER_ENSURE(meh_);
     return meh_;
 }
 

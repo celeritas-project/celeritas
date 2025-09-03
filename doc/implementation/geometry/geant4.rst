@@ -5,9 +5,10 @@ Geant4 geometry
 ===============
 
 Celeritas defines mappings to the underlying Geant4 geometry objects for
-integration in the rest of the code base. There is limited support for
-executing the main simulation engine using Geant4 navigation states, but this
-class is to be used as an interface between the Celeritas indexing and an
-in-memory Geant4 geometry.
+integration in the rest of the code base. The
+:cpp:class:`celeritas::GeantGeoParams` class manages these mappings.
+Additionally, like the VecGeom and ORANGE geometry engines, it supports
+navigation for individual track states (though only on CPU, and without full
+support for field navigation).
 
 .. doxygenclass:: celeritas::GeantGeoParams

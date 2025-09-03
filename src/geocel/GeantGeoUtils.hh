@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/GeantGeoUtils.hh
+//! \todo Move to g4/ subdir
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -31,7 +32,6 @@ class G4VTouchable;
 
 namespace celeritas
 {
-struct GeantPhysicalInstance;
 //---------------------------------------------------------------------------//
 #if CELERITAS_GEANT4_VERSION >= 0x0b0200
 //! Version-independent typedef to Geant4 touchable history
@@ -62,13 +62,10 @@ std::ostream& operator<<(std::ostream&, PrintableLV const&);
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
+// TODO: move all these to GeantGeoParams
 //---------------------------------------------------------------------------//
 // Reset all Geant4 geometry stores if *not* using RunManager
 void reset_geant_geometry();
-
-//---------------------------------------------------------------------------//
-// Get a view to the Geant4 LV store
-Span<G4LogicalVolume*> geant_logical_volumes();
 
 //---------------------------------------------------------------------------//
 // Get the world volume if the geometry has been set up
@@ -79,18 +76,10 @@ G4VPhysicalVolume const* geant_world_volume();
 G4Field const* geant_field();
 
 //---------------------------------------------------------------------------//
-// Whether the volume is a replica/parameterization
-bool is_replica(G4VPhysicalVolume const&);
-
-//---------------------------------------------------------------------------//
 // Find Geant4 logical volumes corresponding to a list of names
+// TODO: remove in favor of VolumeIdBuilder
 std::unordered_set<G4LogicalVolume const*>
     find_geant_volumes(std::unordered_set<std::string>);
-
-//---------------------------------------------------------------------------//
-// Update a nav history to match the given volume instance stack
-void set_history(Span<GeantPhysicalInstance const> stack,
-                 G4NavigationHistory* nav);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -118,11 +107,6 @@ inline std::ostream& operator<<(std::ostream&, PrintableNavHistory const&)
 }
 
 inline std::ostream& operator<<(std::ostream&, PrintableLV const&)
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-
-inline bool is_replica(G4VPhysicalVolume const&)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }

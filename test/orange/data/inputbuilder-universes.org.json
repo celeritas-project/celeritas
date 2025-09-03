@@ -8,6 +8,7 @@
 "universes": [
 {
 "_type": "unit",
+"background": null,
 "bbox": [
 [
 -2.0,
@@ -234,6 +235,7 @@
 },
 {
 "_type": "unit",
+"background": null,
 "bbox": [
 [
 -2.0,
@@ -404,6 +406,7 @@
 },
 {
 "_type": "unit",
+"background": null,
 "bbox": [
 [
 0.0,

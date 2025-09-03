@@ -5,6 +5,8 @@ Interfaces
 ==========
 
 These classes manage access to geometric information throughout the codebase.
+They work in tandem with :cpp:class:`celeritas::GeantGeoParams` to associate
+volume identifiers with Geant4 runtime data structures.
 
 .. doxygenclass:: celeritas::VolumeParams
 
@@ -12,4 +14,10 @@ These classes manage access to geometric information throughout the codebase.
 
 .. doxygenclass:: celeritas::GeoParamsInterface
 
-.. doxygenstruct:: celeritas::GeantPhysicalInstance
+A few helper functions can be used to build collections (see
+:ref:`api_data_model`) of ``ImplVolumeId`` for runtime tracking (used
+internally by fields, physics, etc.).
+
+.. doxygenfunction:: celeritas::build_volume_collection
+
+.. doxygenclass:: celeritas::VolumeMapFiller

@@ -46,6 +46,15 @@ struct IdToJson
         return id;
     }
 
+    nlohmann::json operator()(VolumeId const& id) const
+    {
+        if (id && volumes)
+        {
+            return volumes->volume_labels().at(id);
+        }
+        return id;
+    }
+
     nlohmann::json operator()(VolumeInstanceId const& id) const
     {
         if (id && orange)
@@ -89,6 +98,7 @@ struct IdToJson
                  };
                  if (impl_vol && orange && volumes)
                  {
+                     result["canonical"] = (*this)(orange->volume_id(impl_vol));
                      result["instance"]
                          = (*this)(orange->volume_instance_id(impl_vol));
                  }

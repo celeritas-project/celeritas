@@ -19,8 +19,8 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-using S = SurfaceId;
-using M = SurfaceModel::SurfaceModelId;
+using S = PhysSurfaceId;
+using M = SurfaceModelId;
 
 //---------------------------------------------------------------------------//
 class MockSurfaceModel final : public SurfaceModel
@@ -52,11 +52,12 @@ class SurfacePhysicsMapTest : public ManySurfacesTestBase
 TEST_F(SurfacePhysicsMapTest, typical)
 {
     // Construct builder
-    SurfacePhysicsMapBuilder add_model(this->surfaces(), host_);
+    SurfacePhysicsMapBuilder add_model(this->surfaces().num_surfaces() + 1,
+                                       host_);
 
     // Add a model with some surfaces, which don't have to be ordered
     add_model(MSM{M{0}, "A", {S{3}, S{1}, S{4}, S{5}, S{7}}});
-    add_model(MSM{M{3}, "B", {S{0}, S{2}, S{}}});
+    add_model(MSM{M{3}, "B", {S{0}, S{2}, S{9}}});
     add_model(MSM{M{1}, "C", {S{8}}});
 
     // Save reference to data
@@ -99,7 +100,7 @@ TEST_F(SurfacePhysicsMapTest, typical)
 TEST_F(SurfacePhysicsMapTest, errors)
 {
     // Construct builder
-    SurfacePhysicsMapBuilder add_model(this->surfaces(), host_);
+    SurfacePhysicsMapBuilder add_model(this->surfaces().num_surfaces(), host_);
 
     // Empty model not allowed
     EXPECT_THROW(add_model(MSM{M{0}, "A", {}}), RuntimeError);

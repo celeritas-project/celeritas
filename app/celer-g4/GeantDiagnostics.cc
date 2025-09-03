@@ -114,11 +114,14 @@ void GeantDiagnostics::Finalize()
     }
 
     // Reset all data
-    CELER_LOG(debug) << "Resetting diagnostics";
-    if (meh_)
+    if (meh_ && !meh_->empty())
     {
-        log_and_rethrow(std::move(*meh_));
+        auto expiring = std::exchange(*this, GeantDiagnostics{});
+        CELER_LOG(debug) << "Finalizing diagnostics: rethrowing saved "
+                            "exception";
+        log_and_rethrow(std::move(*expiring.meh_));
     }
+    CELER_LOG(debug) << "Resetting diagnostics";
     *this = {};
 
     CELER_ENSURE(!*this);

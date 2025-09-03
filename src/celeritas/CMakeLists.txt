@@ -111,9 +111,12 @@ list(APPEND SOURCES
   optical/ModelImporter.cc
   optical/PhysicsParams.cc
   optical/Transporter.cc
+  optical/Types.cc
   optical/action/ActionGroups.cc
   optical/action/LocateVacanciesAction.cc
   optical/detail/OpticalLaunchAction.cc
+  optical/surface/SurfacePhysicsParams.cc
+  optical/surface/SurfaceSteppingAction.cc
   phys/CutoffParams.cc
   phys/detail/EnergyMaxXsCalculator.cc
   phys/GeneratorInterface.cc
@@ -191,15 +194,16 @@ endif()
 
 if(CELERITAS_USE_Geant4)
   set(_cg4_sources
+    g4/SupportedEmStandardPhysics.cc
+    g4/SupportedOpticalPhysics.cc
+    g4/detail/GeantBremsstrahlungProcess.cc
     ext/EmPhysicsList.cc
     ext/FtfpBertPhysicsList.cc
     ext/GeantImporter.cc
     ext/GeantSd.cc
     ext/GeantSdOutput.cc
     ext/GeantSetup.cc
-    ext/GeantVolumeMapper.cc
     ext/detail/EmStandardPhysics.cc
-    ext/detail/GeantBremsstrahlungProcess.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
     ext/detail/GeantOpticalModelImporter.cc
@@ -209,9 +213,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeoOpticalIdMap.cc
     ext/detail/HitProcessor.cc
     ext/detail/LevelTouchableUpdater.cc
-    ext/detail/MuHadEmStandardPhysics.cc
     ext/detail/NaviTouchableUpdater.cc
-    ext/detail/OpticalPhysics.cc
     ext/detail/SensDetInserter.cc
     ext/detail/TouchableUpdaterInterface.cc
     ext/detail/TrackProcessor.cc
