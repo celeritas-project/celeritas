@@ -12,8 +12,6 @@
 #include <G4Threading.hh>
 #include <G4Version.hh>
 
-#include "geocel/ScopedGeantExceptionHandler.hh"
-
 #if G4VERSION_NUMBER >= 1100
 #    include <G4VTrackingManager.hh>
 
@@ -169,13 +167,6 @@ void TrackingManagerIntegration::BeginOfRunAction(G4Run const*)
     if (G4Threading::IsMasterThread())
     {
         singleton.initialize_shared_params();
-    }
-
-    if (CELER_UNLIKELY(ScopedGeantExceptionHandler::suppressed_fatal()))
-    {
-        CELER_LOG(debug)
-            << R"(Canceling BeginOfRunAction: initialization failed)";
-        return;
     }
 
     bool enable_offload = singleton.initialize_local_transporter();

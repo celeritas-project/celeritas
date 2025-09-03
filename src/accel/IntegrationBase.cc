@@ -9,7 +9,6 @@
 #include <G4Threading.hh>
 
 #include "corecel/Assert.hh"
-#include "geocel/ScopedGeantExceptionHandler.hh"
 
 #include "ExceptionConverter.hh"
 #include "TimeOutput.hh"
@@ -59,13 +58,8 @@ void IntegrationBase::EndOfRunAction(G4Run const*)
 
     if (G4Threading::IsMasterThread())
     {
-        auto& params = singleton.shared_params();
-        CELER_ASSERT(params || ScopedGeantExceptionHandler::suppressed_fatal());
-        if (params)
-        {
-            singleton.shared_params().timer()->RecordTotalTime(time);
-            singleton.finalize_shared_params();
-        }
+        singleton.shared_params().timer()->RecordTotalTime(time);
+        singleton.finalize_shared_params();
     }
 }
 

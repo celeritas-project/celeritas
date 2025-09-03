@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "ScopedGeantExceptionHandler.hh"
 
-#include <atomic>
 #include <regex>
 #include <G4ExceptionSeverity.hh>
 #include <G4RunManager.hh>
@@ -28,9 +27,6 @@ int& local_eh_depth()
     static G4ThreadLocal int depth{0};
     return depth;
 }
-
-//---------------------------------------------------------------------------//
-std::atomic<bool> g_suppressed_fatal{false};
 
 //---------------------------------------------------------------------------//
 // NOTE: this is modified from test/corecel/StringSimplifier and could be
@@ -84,10 +80,7 @@ class GeantExceptionHandler final : public G4VExceptionHandler
   public:
     using Handler = ScopedGeantExceptionHandler::StdExceptionHandler;
 
-    GeantExceptionHandler(Handler&& handle, bool* suppressed)
-        : handle_{std::move(handle)}, suppressed_fatal_{suppressed}
-    {
-    }
+    GeantExceptionHandler(Handler&& handle) : handle_{std::move(handle)} {}
 
     // Accept error codes from geant4
     G4bool Notify(char const* originOfException,
@@ -97,7 +90,6 @@ class GeantExceptionHandler final : public G4VExceptionHandler
 
   private:
     Handler handle_;
-    bool* suppressed_fatal_;
 };
 
 //---------------------------------------------------------------------------//
@@ -134,16 +126,9 @@ G4bool GeantExceptionHandler::Notify(char const* origin_of_exception,
             CELER_TRY_HANDLE(throw err, handle_);
             if (auto* run_man = G4RunManager::GetRunManager())
             {
-                CELER_LOG_LOCAL(critical)
-                    << "Cancelling run due to exception (" << exception_code
-                    << ")";
+                CELER_LOG_LOCAL(critical) << "Aborting run due to exception ("
+                                          << exception_code << ")";
                 run_man->AbortRun();
-            }
-            // Mark the 'suppressed fatal' flag as true
-            if (!g_suppressed_fatal.exchange(true))
-            {
-                // This was the first object to suppress
-                *suppressed_fatal_ = true;
             }
             break;
         case JustWarning: {
@@ -176,18 +161,6 @@ G4bool GeantExceptionHandler::Notify(char const* origin_of_exception,
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether a fatal exception call did not produce a thrown exception.
- *
- * This is a \c global result that can be used to manage logic between an
- * exception during setup and the end of the run being torn down.
- */
-bool ScopedGeantExceptionHandler::suppressed_fatal()
-{
-    return g_suppressed_fatal.load();
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Install the Celeritas Geant4 exception handler.
  *
  * The base class of the exception handler calls SetExceptionHandler...
@@ -205,8 +178,7 @@ ScopedGeantExceptionHandler::ScopedGeantExceptionHandler(
     {
         handle = std::rethrow_exception;
     }
-    current_ = std::make_unique<GeantExceptionHandler>(std::move(handle),
-                                                       &suppressed_fatal_);
+    current_ = std::make_unique<GeantExceptionHandler>(std::move(handle));
     CELER_ENSURE(state_mgr->GetExceptionHandler() == current_.get());
 }
 
@@ -216,15 +188,8 @@ ScopedGeantExceptionHandler::ScopedGeantExceptionHandler(
  */
 ScopedGeantExceptionHandler::~ScopedGeantExceptionHandler()
 {
-    auto msg = CELER_LOG_LOCAL(debug);
-    msg << "Destroying scoped G4 exception handler (depth "
-        << --local_eh_depth() << ")";
-    if (suppressed_fatal_)
-    {
-        msg << " which cancelled a fatal exception";
-        // Reset global atomic
-        g_suppressed_fatal.store(false);
-    }
+    CELER_LOG_LOCAL(debug) << "Destroying scoped G4 exception handler (depth "
+                           << --local_eh_depth() << ")";
     auto* state_mgr = G4StateManager::GetStateManager();
     if (state_mgr->GetExceptionHandler() == current_.get())
     {
