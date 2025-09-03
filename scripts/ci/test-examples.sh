@@ -56,12 +56,19 @@ if [ -z "${CELER_DISABLE_G4_EXAMPLES}" ]; then
   build_local
   ctest -V --no-tests=error
 
+  cd "${CELER_SOURCE_DIR}/example/offload-template"
+  build_local
   if [ "${G4VERSION_NUMBER}" -ge 1100 ]; then
     # Run offload-template only on Geant4 v11
-    cd "${CELER_SOURCE_DIR}/example/offload-template"
-    build_local
     G4FORCENUMBEROFTHREADS=4 G4RUN_MANAGER_TYPE=MT \
       ./run-offload
+  else
+    # Test that it fails
+    echo "*** THE FOLLOWING EXECUTION SHOULD FAIL ***"
+    ./run-offload && (
+      echo "Expected run-offload to fail but it PASSED"
+      exit 1
+    )
   fi
 else
   printf "\e[31mSkipping Geant4 tests due to insufficient requirements\e[m\n"
