@@ -139,22 +139,8 @@ TEST_F(FourLevelsVgdmlTest, accessors)
 
 TEST_F(FourLevelsVgdmlTest, consecutive_compute)
 {
-    auto geo = this->make_geo_track_view({-9, -10, -10}, {1, 0, 0});
-    ASSERT_FALSE(geo.is_outside());
-    EXPECT_EQ("Shape2", this->volume_name(geo));
-    EXPECT_FALSE(geo.is_on_boundary());
-
-    auto next = geo.find_next_step(from_cm(10.0));
-    EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
-    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), safety_tol());
-
-    next = geo.find_next_step(from_cm(10.0));
-    EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
-    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), safety_tol());
-
-    // Find safety from a freshly initialized state
-    geo = {from_cm({-9, -10, -10}), {1, 0, 0}};
-    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), safety_tol());
+    // Templated test
+    FourLevelsGeoTest::test_consecutive_compute(this);
 }
 
 TEST_F(FourLevelsVgdmlTest, detailed_track)

@@ -45,6 +45,32 @@ class GeantOrangeTest : public OrangeTestBase
 };
 
 //---------------------------------------------------------------------------//
+using FourLevelsTest
+    = GenericGeoParameterizedTest<GeantOrangeTest, FourLevelsGeoTest>;
+
+TEST_F(FourLevelsTest, accessors)
+{
+    this->impl().test_accessors();
+}
+
+TEST_F(FourLevelsTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(FourLevelsTest, consecutive_compute)
+{
+    // Templated test
+    FourLevelsGeoTest::test_consecutive_compute(this);
+}
+
+TEST_F(FourLevelsTest, detailed_track)
+{
+    // Templated test
+    FourLevelsGeoTest::test_detailed_tracking(this);
+}
+
+//---------------------------------------------------------------------------//
 using MultiLevelTest
     = GenericGeoParameterizedTest<GeantOrangeTest, MultiLevelGeoTest>;
 

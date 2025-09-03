@@ -266,79 +266,14 @@ TEST_F(FourLevelsTest, trace)
 
 TEST_F(FourLevelsTest, consecutive_compute)
 {
-    auto geo = this->make_geo_track_view({-9, -10, -10}, {1, 0, 0});
-    ASSERT_FALSE(geo.is_outside());
-    EXPECT_EQ("Shape2", this->volume_name(geo));
-    EXPECT_FALSE(geo.is_on_boundary());
-
-    auto next = geo.find_next_step(from_cm(10.0));
-    EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
-    EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
-
-    next = geo.find_next_step(from_cm(10.0));
-    EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
-    EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
-
-    // Find safety from a freshly initialized state
-    geo = {from_cm({-9, -10, -10}), {1, 0, 0}};
-    EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
+    // Templated test
+    FourLevelsGeoTest::test_consecutive_compute(this);
 }
 
 TEST_F(FourLevelsTest, detailed_track)
 {
     // Templated test
     FourLevelsGeoTest::test_detailed_tracking(this);
-}
-
-TEST_F(FourLevelsTest, reentrant_boundary)
-{
-    auto geo = this->make_geo_track_view({15.5, 10, 10}, {-1, 0, 0});
-    ASSERT_FALSE(geo.is_outside());
-    EXPECT_EQ("Shape1", this->volume_name(geo));
-    EXPECT_FALSE(geo.is_on_boundary());
-
-    // Check for surfaces: we should hit the outside of the sphere Shape2
-    auto next = geo.find_next_step(from_cm(1.0));
-    EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
-    // Move to the boundary but scatter perpendicularly, away from the sphere
-    geo.move_to_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
-    geo.set_dir({0, 1, 0});
-    EXPECT_TRUE(geo.is_on_boundary());
-    EXPECT_EQ("Shape1", this->volume_name(geo));
-
-    // Move a bit internally, then scatter back toward the sphere
-    next = geo.find_next_step(from_cm(10.0));
-    EXPECT_SOFT_EQ(6, to_cm(next.distance));
-    geo.set_dir({-1, 0, 0});
-    EXPECT_EQ("Shape1", this->volume_name(geo));
-
-    // Move to the sphere boundary then scatter still into the sphere
-    next = geo.find_next_step(from_cm(10.0));
-    EXPECT_SOFT_EQ(1e-13, to_cm(next.distance));
-    EXPECT_TRUE(next.boundary);
-    geo.move_to_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
-    geo.set_dir({0, -1, 0});
-    EXPECT_TRUE(geo.is_on_boundary());
-    geo.cross_boundary();
-    EXPECT_EQ("Shape2", this->volume_name(geo));
-
-    EXPECT_TRUE(geo.is_on_boundary());
-
-    // Travel nearly tangent to the right edge of the sphere, then scatter to
-    // still outside
-    next = geo.find_next_step(from_cm(1.0));
-    EXPECT_SOFT_EQ(9.9794624025613538e-07, to_cm(next.distance));
-    geo.move_to_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
-    geo.set_dir({1, 0, 0});
-    EXPECT_TRUE(geo.is_on_boundary());
-    geo.cross_boundary();
-    EXPECT_EQ("Shape1", this->volume_name(geo));
-
-    EXPECT_TRUE(geo.is_on_boundary());
-    next = geo.find_next_step(from_cm(10.0));
 }
 
 TEST_F(FourLevelsTest, safety)

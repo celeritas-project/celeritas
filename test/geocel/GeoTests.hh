@@ -74,6 +74,9 @@ class FourLevelsGeoTest
     void test_trace() const;
 
     template<class GeoTest>
+    inline static void test_consecutive_compute(GeoTest* geo_test);
+
+    template<class GeoTest>
     inline static void test_detailed_tracking(GeoTest* geo_test);
 
   private:
@@ -316,6 +319,27 @@ class ZnenvGeoTest
 //---------------------------------------------------------------------------//
 
 template<class GeoTest>
+void FourLevelsGeoTest::test_consecutive_compute(GeoTest* test)
+{
+    auto geo = test->make_geo_track_view({-9, -10, -10}, {1, 0, 0});
+    ASSERT_FALSE(geo.is_outside());
+    EXPECT_EQ("Shape2", test->volume_name(geo));
+    EXPECT_FALSE(geo.is_on_boundary());
+
+    auto next = geo.find_next_step(from_cm(10.0));
+    EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
+    EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
+
+    next = geo.find_next_step(from_cm(10.0));
+    EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
+    EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
+
+    // Find safety from a freshly initialized state
+    geo = {from_cm({-9, -10, -10}), {1, 0, 0}};
+    EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
+}
+
+template<class GeoTest>
 void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
 {
     {
@@ -344,7 +368,14 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
         EXPECT_EQ("Shape2", test->volume_name(geo));
         geo.cross_boundary();
-        EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
+        if (test->geometry_type() != "ORANGE")
+        {
+            EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
+        }
+        else
+        {
+            EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
+        }
         EXPECT_EQ("Shape1", test->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
 
@@ -403,9 +434,7 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
     {
         SCOPED_TRACE("reentrant boundary");
 
-        bool const is_volume_vg = (!CELERITAS_VECGEOM_SURFACE
-                                   && test->geometry_type() == "VecGeom");
-
+        // Start inside box "Shape1" in the gap outside sphere "Shape2"
         auto geo = test->make_geo_track_view({15.5, 10, 10}, {-1, 0, 0});
         ASSERT_FALSE(geo.is_outside());
         EXPECT_EQ("Shape1", test->volume_name(geo));
@@ -414,60 +443,87 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         // Check for surfaces: we should hit the outside of the sphere Shape2
         auto next = geo.find_next_step(from_cm(1.0));
         EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
-        // Move to the boundary but scatter perpendicularly, away from the
-        // sphere
+        // Move left to the boundary but scatter perpendicularly, tangent
+        // upward to the sphere
         geo.move_to_boundary();
         EXPECT_TRUE(geo.is_on_boundary());
         geo.set_dir({0, 1, 0});
         EXPECT_TRUE(geo.is_on_boundary());
         EXPECT_EQ("Shape1", test->volume_name(geo));
 
-        // Move a bit internally, then scatter back toward the sphere
+        // Find the next step (to top edge of Shape1) but then scatter back
+        // toward the sphere
         next = geo.find_next_step(from_cm(10.0));
         EXPECT_SOFT_EQ(6, to_cm(next.distance));
         geo.set_dir({-1, 0, 0});
+        EXPECT_VEC_SOFT_EQ((Real3{15, 10, 10}), geo.pos());
         EXPECT_EQ("Shape1", test->volume_name(geo));
+        EXPECT_TRUE(geo.is_on_boundary());
 
-        // Move to the sphere boundary then scatter still into the sphere
-        // (this is a "bump": 1e-13 for surface VG, Geant4; 1e-8 for volume VG
-        next = geo.find_next_step(from_cm(10.0));
+        // Check the distance to the sphere boundary again, then scatter
+        // into the sphere (this may be a "bump": 1e-13 for surface VG, Geant4;
+        // 1e-8 for volume VG; BUT exactly zero for ORANGE thanks to
+        // "reentrant" logic)
+        next = geo.find_next_step(from_cm(20.0));
         EXPECT_LE(next.distance, to_cm(1e-8));
-        EXPECT_TRUE(next.boundary);
-        geo.move_to_boundary();
-        EXPECT_TRUE(geo.is_on_boundary());
-        geo.set_dir({0, -1, 0});
+        ASSERT_TRUE(next.boundary);
+        if (next.distance > 0)
+        {
+            // ORANGE will not accept a zero-distance move-to-boundary call
+            geo.move_to_boundary();
+        }
+        else if (CELERITAS_DEBUG)
+        {
+            EXPECT_THROW(geo.move_to_boundary(), DebugError);
+        }
         EXPECT_TRUE(geo.is_on_boundary());
 
+        // Enter the spehre
         geo.cross_boundary();
         EXPECT_EQ("Shape2", test->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
 
-        // Travel nearly tangent to the right edge of the sphere, then scatter
-        // to still outside
-        // TODO: understand difference in distance for surface implementation
-        next = geo.find_next_step(from_cm(1.0));
-
-        if (is_volume_vg)
+        if (test->geometry_type() == "Geant4")
         {
-            EXPECT_SOFT_EQ(0.00031622777925735285, to_cm(next.distance));
+            // TODO: Geant4 does not allow crossing to new volume and returning
+            // to old
+            EXPECT_THROW(geo.cross_boundary(), DebugError);
+        }
+        else if (test->geometry_type() == "ORANGE")
+        {
+            // Should be able to relocate back and forth
+            geo.cross_boundary();
+            EXPECT_EQ("Shape1", test->volume_name(geo));
+            geo.cross_boundary();
+            EXPECT_EQ("Shape2", test->volume_name(geo));
         }
         else
         {
-            EXPECT_LT(next.distance, 1e-6);
+            // Vecgeom doesn't correctly cross back and forth, but it doesn't
+            // throw...
         }
+
+        // Now move just barely inside the sphere
+        next = geo.find_next_step(from_cm(1e-6));
+        EXPECT_FALSE(next.boundary);
+        geo.move_internal(next.distance);
+        EXPECT_FALSE(geo.is_on_boundary());
+
+        // Exit the sphere
+        geo.set_dir({1, 0, 0});
+        next = geo.find_next_step(from_cm(1));
+        EXPECT_LE(next.distance, from_cm(1e-5));
         geo.move_to_boundary();
         EXPECT_TRUE(geo.is_on_boundary());
         auto pre_normal = geo.normal();
         EXPECT_SOFT_NEAR(1.0, pre_normal[0], sqrt_tol()) << pre_normal;
-        geo.set_dir({1, 0, 0});
-        EXPECT_TRUE(geo.is_on_boundary());
+
         geo.cross_boundary();
+        EXPECT_EQ("Shape1", test->volume_name(geo));
+        EXPECT_TRUE(geo.is_on_boundary());
         EXPECT_SOFT_EQ(1.0, dot_product(pre_normal, geo.normal()))
             << "Expected " << pre_normal << ", got " << geo.normal();
         EXPECT_EQ("Shape1", test->volume_name(geo));
-
-        EXPECT_TRUE(geo.is_on_boundary());
-        next = geo.find_next_step(from_cm(10.0));
     }
 }
 

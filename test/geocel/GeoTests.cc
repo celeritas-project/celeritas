@@ -291,6 +291,7 @@ void FourLevelsGeoTest::test_trace() const
         };
 
         auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        delete_orange_safety(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
@@ -312,6 +313,7 @@ void FourLevelsGeoTest::test_trace() const
         // clang-format on
 
         auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        delete_orange_safety(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
