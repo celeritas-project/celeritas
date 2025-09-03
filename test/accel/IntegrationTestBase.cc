@@ -25,6 +25,8 @@
 #    include <G4MTRunManager.hh>
 #endif
 
+#include "corecel/Config.hh"
+
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/io/StringUtils.hh"
@@ -303,8 +305,20 @@ SetupOptions IntegrationTestBase::make_setup_options()
     opts.max_num_tracks = 1024;
     opts.initializer_capacity = 1024 * 128;
 
+    if (G4VERSION_NUMBER >= 1100 && G4VERSION_NUMBER < 1110)
+    {
+        // FIXME: Rayleigh scattering cross sections for low and high energy
+        // grids overlap
+        CELER_LOG(warning) << "Disabling EM Rayleigh scattering for Geant4 v"
+                           << cmake::geant4_version;
+        opts.ignore_processes = {"Rayl"};
+    }
+
     // Use a uniform (zero) magnetic field
     opts.make_along_step = celeritas::UniformAlongStepFactory();
+
+    // FIXME: weight flag isn't being set in GeantSd
+    opts.sd.track = false;
 
     // Save diagnostic file to a unique name
     opts.output_file = this->make_unique_filename(".out.json");

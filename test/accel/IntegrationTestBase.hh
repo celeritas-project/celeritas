@@ -105,7 +105,7 @@ class IntegrationTestBase : public ::celeritas::test::Test
 };
 
 //---------------------------------------------------------------------------//
-//! Generate TestEM3 geometry with 100 MeV electrons
+//! Generate LAr sphere geometry with 10 MeV electrons
 class LarSphereIntegrationMixin : virtual public IntegrationTestBase
 {
     using Base = IntegrationTestBase;
