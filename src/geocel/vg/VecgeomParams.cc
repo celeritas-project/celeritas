@@ -328,7 +328,7 @@ VecgeomParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
     ScopedMem record_mem("Converter.convert");
     ScopedTimeLog scoped_time;
     g4vg::Options opts;
-    opts.compare_volumes = !celeritas::getenv("G4VG_COMPARE_VOLUMES").empty();
+    opts.compare_volumes = getenv_flag("G4VG_COMPARE_VOLUMES", false).value;
     opts.scale = static_cast<double>(lengthunits::millimeter);
     opts.append_pointers = false;
     opts.verbose = static_cast<bool>(vecgeom_verbosity());
