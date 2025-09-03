@@ -56,15 +56,15 @@ celeritas_get_disable_device(CELER_DISABLE_DEVICE)
 
 #-----------------------------------------------------------------------------#
 
-set(_needs_g410)
+set(_needs_g4_11_0)
 if(Geant4_VERSION VERSION_LESS 11.0)
-  set(_needs_g410 DISABLE)
+  set(_needs_g4_11_0 DISABLE)
 endif()
-set(_needs_g411)
+set(_needs_g4_11_1)
 if(Geant4_VERSION VERSION_LESS 11.1)
-  set(_needs_g411 DISABLE)
+  set(_needs_g4_11_1 DISABLE)
 endif()
 
 celeritas_g4_add_tests(simple-offload)
-celeritas_g4_add_tests(trackingmanager-offload ${_needs_g410})
-celeritas_g4_add_tests(fastsim-offload ${_needs_g411})
+celeritas_g4_add_tests(trackingmanager-offload ${_needs_g4_11})
+celeritas_g4_add_tests(fastsim-offload ${_needs_g4_11_1})
