@@ -50,14 +50,22 @@ class BIHBuilder
   public:
     //!@{
     //! \name Type aliases
+
+    //! Input parameters
+    struct Input
+    {
+        //! Minimum number of bboxes needed to trigger a partitioning attempt
+        size_type min_split_size;
+    };
+
     using VecBBox = std::vector<FastBBox>;
     using Storage = BIHTreeData<Ownership::value, MemSpace::host>;
     using SetLocalVolId = std::set<LocalVolumeId>;
     //!@}
 
   public:
-    // Construct from a Storage object and a minimum split size.
-    explicit BIHBuilder(Storage* storage, size_type min_split_size = 2);
+    // Construct from Storage and Input objects
+    BIHBuilder(Storage* storage, Input inp);
 
     // Create BIH Nodes
     BIHTree operator()(VecBBox&& bboxes, SetLocalVolId const& implicit_vol_id);
@@ -86,7 +94,7 @@ class BIHBuilder
     CollectionBuilder<BIHInnerNode> inner_nodes_;
     CollectionBuilder<BIHLeafNode> leaf_nodes_;
 
-    size_type min_split_size_;
+    Input inp_;
 
     //// HELPER FUNCTIONS ////
 
