@@ -41,12 +41,13 @@ build_local
 
 # Run Geant4 app examples
 if [ -z "${CELER_DISABLE_G4_EXAMPLES}" ]; then
+  G4VERSION_STRING="unknown"
   if [ -z "${G4VERSION_NUMBER}" ]; then
     # Get the geant4 version 11.2.3, failing if config isn't found
-    _vers=$(geant4-config --version)
+    G4VERSION_STRING=$(geant4-config --version)
     # Replace . with ' ' and convert to MMmp (major/minor/patch)
-    G4VERSION_NUMBER=$(echo "${_vers}" | tr '.' ' ' | xargs printf '%d%01d%01d')
-    echo "Set G4VERSION_NUMBER=\"${G4VERSION_NUMBER}\""
+    G4VERSION_NUMBER=$(echo "${G4VERSION_STRING}" | tr '.' ' ' | xargs printf '%d%01d%01d')
+    echo "Set G4VERSION_NUMBER=\"${G4VERSION_NUMBER}\" (version ${G4VERSION_STRING})"
   fi
 
   # Run small Geant4 examples, ensuring the documentation diff is still valid
@@ -65,10 +66,13 @@ if [ -z "${CELER_DISABLE_G4_EXAMPLES}" ]; then
   else
     # Test that it fails
     echo "*** THE FOLLOWING EXECUTION SHOULD FAIL ***"
+    echo "*** (Requires Geant4 11.0 but we have ${G4VERSION_STRING}) ***"
     ./run-offload && (
       echo "Expected run-offload to fail but it PASSED"
       exit 1
     )
+    echo "***      EXPECTED FAILURE ABOVE         ***"
+    echo "*** *********************************** ***"
   fi
 else
   printf "\e[31mSkipping Geant4 tests due to insufficient requirements\e[m\n"
