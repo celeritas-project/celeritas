@@ -23,4 +23,8 @@ jobs:
         network_types: "none"
         run: |
           eic-info
+          cmake -DCMAKE_BUILD_TYPE=Debug -DCELERITAS_USE_DD4hep=ON -DCMAKE_INSTALL_PREFIX=install -S . -B build
+          cmake --build build -j 8
+          cmake --install build
+          export LD_LIBRARY_PATH=$PWD/install/lib:${LD_LIBRARY_PATH}
           
