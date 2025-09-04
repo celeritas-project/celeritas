@@ -58,13 +58,12 @@ if(Geant4_VERSION VERSION_LESS 11.0)
   set(_rm_avail_task FALSE)
 endif()
 
-function(celeritas_g4_add_one_test test_name target offload rmtype)
-  add_test(NAME "${test_name}" COMMAND "$<TARGET_FILE:${target}>")
+function(celeritas_g4_add_one_test test_name target args labels offload rmtype)
+  add_test(NAME "${test_name}" COMMAND "$<TARGET_FILE:${target}>" ${args})
   set(_env
     ${_celer_g4_test_env}
     "G4RUN_MANAGER_TYPE=${_rm_${rmtype}}"
   )
-  set(labels)
   if(offload STREQUAL "cpu" AND (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP))
     list(APPEND _env "CELER_DISABLE_DEVICE=1")
   elseif(offload STREQUAL "gpu")
@@ -89,12 +88,15 @@ function(celeritas_g4_add_one_test test_name target offload rmtype)
 endfunction()
 
 function(celeritas_g4_add_tests target)
-  cmake_parse_arguments(PARSE "DISABLE" "" "" ${ARGN})
+  cmake_parse_arguments(PARSE "DISABLE" "NAME" "ARGS;LABELS" ${ARGN})
   if(PARSE_UNPARSED_ARGUMENTS)
     message(SEND_ERROR "Unknown keywords given to celeritas_g4_add_tests(): "
             "\"${PARSE_UNPARSED_ARGUMENTS}\"")
   endif()
 
+  if(NOT PARSE_NAME)
+    set(PARSE_NAME ${target})
+  endif()
   foreach(_offload gpu cpu g4 ko)
     foreach(_rmtype serial mt task)
       set(_disable ${PARSE_DISABLE})
@@ -110,9 +112,9 @@ function(celeritas_g4_add_tests target)
         set(_args)
       endif()
 
-      set(_test_name "${target}:${_offload}:${_rmtype}")
+      set(_test_name "${PARSE_NAME}:${_offload}:${_rmtype}")
       celeritas_g4_add_one_test(
-        ${_test_name} ${target}
+        ${_test_name} ${target} "${PARSE_ARGS}" "${PARSE_LABELS}"
         ${_offload} ${_rmtype} ${_args}
       )
     endforeach()

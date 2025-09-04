@@ -83,10 +83,14 @@ class GeantGdmlLoader
 
 //---------------------------------------------------------------------------//
 // Load a Geant4 geometry, excising pointers
-G4VPhysicalVolume* load_gdml(std::string const& filename);
+inline G4VPhysicalVolume* load_gdml(std::string const& filename);
 
 // Save a Geant4 geometry to a file
 void save_gdml(G4VPhysicalVolume const* world, std::string const& out_filename);
+
+// Apply a function to each sensitive detector name with a range of volumes
+template<class F>
+inline void foreach_detector(GeantGdmlLoader::MapDetectors const& dets, F&&);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -98,9 +102,52 @@ void save_gdml(G4VPhysicalVolume const* world, std::string const& out_filename);
  *
  * \return Geant4-owned world volume
  */
-inline G4VPhysicalVolume* load_gdml(std::string const& filename)
+G4VPhysicalVolume* load_gdml(std::string const& filename)
 {
     return GeantGdmlLoader()(filename).world;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Apply a function to each sensitive detector name with a range of volumes.
+ *
+ * The input function should have a signature
+ * \code void(*)(MDCIter start, MDCIter stop) \endcode
+ * where \code using MDCIter = MapDetectors::const_iterator \endcode.
+ *
+ * In C++23 this is equivalent to:
+ * \code
+ #include <ranges>
+ namespace rv = std::views;
+
+ template<class F>
+ void foreach_detector(MapDetectors const& dets, F&& f)
+ {
+     for (auto chunk : dets | rv::chunk_by(
+              [](auto const& a, auto const& b){ return a.first == b.first; }))
+     {
+         f(chunk.begin(), chunk.end());
+     }
+ }
+ * \endcode
+ */
+template<class F>
+void foreach_detector(GeantGdmlLoader::MapDetectors const& dets,
+                      F&& apply_to_range)
+{
+    auto start = dets.begin();
+    while (start != dets.end())
+    {
+        // Find the end of the current range of keys
+        auto stop = start;
+        do
+        {
+            ++stop;
+        } while (stop != dets.end() && start->first == stop->first);
+
+        apply_to_range(start, stop);
+        start = stop;
+    }
 }
 
 //---------------------------------------------------------------------------//
