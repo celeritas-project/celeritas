@@ -47,11 +47,6 @@ set(_integration_tests
   UserActionIntegration
   TrackingManagerIntegration
 )
-
-# FIXME: test harness activate_device clashes with accel
-# (use a private CeleritasG4Tests variable to disable till the next PR)
-set(_disable_device TRUE)
-
 foreach(_basename IN LISTS _integration_tests)
   # Create the executable
   set(_target "${CELERITASTEST_DIR}_${_basename}")
