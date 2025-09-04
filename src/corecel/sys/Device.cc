@@ -134,11 +134,7 @@ int Device::num_devices()
 bool Device::debug()
 {
     static bool const result = [] {
-        if constexpr (CELERITAS_DEBUG)
-        {
-            return true;
-        }
-        return !celeritas::getenv("CELER_DEBUG_DEVICE").empty();
+        return getenv_flag("CELER_DEBUG_DEVICE", CELERITAS_DEBUG).value;
     }();
     return result;
 }
