@@ -105,6 +105,17 @@ class Quantity
     {
     }
 
+    //! Construct with quantity of same unit but different value type
+    template<class ValueT2,
+             std::enable_if_t<!std::is_same_v<ValueT, ValueT2>
+                                  && std::is_convertible_v<ValueT2, ValueT>,
+                              int>
+             = 0>
+    CELER_CONSTEXPR_FUNCTION Quantity(Quantity<UnitT, ValueT2> other) noexcept
+        : value_(static_cast<ValueT>(other.value()))
+    {
+    }
+
     //!@{
     //! Access the underlying numeric value, discarding units
     CELER_CONSTEXPR_FUNCTION value_type& value() & noexcept { return value_; }
