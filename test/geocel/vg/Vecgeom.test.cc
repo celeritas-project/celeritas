@@ -558,6 +558,9 @@ class ReplicaTest
     {
         auto result = VecgeomTestBase::tracking_tol();
 
+        // ~1e-12 discrepancy for some traces (when avx2 is enabled?)
+        result.distance *= 10;
+
         if (CELERITAS_VECGEOM_SURFACE)
         {
             result.safety = 5e-5;
