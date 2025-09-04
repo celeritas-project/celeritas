@@ -21,6 +21,16 @@ celeritas_target_link_libraries(simple-offload
   ${Geant4_LIBRARIES}
 )
 
+if(Geant4_VERSION VERSION_LESS 11.0)
+  message(WARNING "Tracking manager offload requires Geant4 11.0 or higher")
+endif()
+
+add_executable(trackingmanager-offload trackingmanager-offload.cc)
+celeritas_target_link_libraries(trackingmanager-offload
+  Celeritas::G4
+  ${Geant4_LIBRARIES}
+)
+
 if(Geant4_VERSION VERSION_LESS 11.1)
   message(WARNING "Fast simulation offload requires Geant4 11.1 or higher")
 endif()
@@ -30,16 +40,6 @@ celeritas_target_link_libraries(fastsim-offload
   Celeritas::G4
   ${Geant4_LIBRARIES}
 )
-
-if(Geant4_VERSION VERSION_LESS 11.0)
-  message(WARNING "G4VTrackingManager offload requires Geant4 11.0 or higher")
-else()
-  add_executable(trackingmanager-offload trackingmanager-offload.cc)
-  celeritas_target_link_libraries(trackingmanager-offload
-    Celeritas::G4
-    ${Geant4_LIBRARIES}
-  )
-endif()
 
 # END EXAMPLE CODE
 
@@ -56,15 +56,16 @@ celeritas_get_disable_device(CELER_DISABLE_DEVICE)
 
 #-----------------------------------------------------------------------------#
 
-set(_needs_g411)
+# Some features require *at least* major version 11 or minor version 11.1
+set(_needs_g4_11)
+if(Geant4_VERSION VERSION_LESS 11.0)
+  set(_needs_g4_11 DISABLE)
+endif()
+set(_needs_g4_11_1)
 if(Geant4_VERSION VERSION_LESS 11.1)
-  set(_needs_g411 DISABLE)
+  set(_needs_g4_11_1 DISABLE)
 endif()
 
 celeritas_g4_add_tests(simple-offload)
-celeritas_g4_add_tests(fastsim-offload ${_needs_g411})
-
-if(Geant4_VERSION VERSION_GREATER_EQUAL 11.0)
-  # Requires 11.0 to build
-  celeritas_g4_add_tests(trackingmanager-offload)
-endif()
+celeritas_g4_add_tests(trackingmanager-offload ${_needs_g4_11})
+celeritas_g4_add_tests(fastsim-offload ${_needs_g4_11_1})

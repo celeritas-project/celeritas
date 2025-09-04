@@ -10,11 +10,14 @@
 #include <G4Electron.hh>
 #include <G4Gamma.hh>
 #include <G4Positron.hh>
+#include <G4Version.hh>
+#if G4VERSION_NUMBER >= 1100
+#    include "TrackingManager.hh"
+#endif
 
 #include "corecel/io/Logger.hh"
 
 #include "SharedParams.hh"
-#include "TrackingManager.hh"
 #include "TrackingManagerIntegration.hh"
 
 #include "detail/IntegrationSingleton.hh"
@@ -50,6 +53,11 @@ TrackingManagerConstructor::TrackingManagerConstructor(
 {
     // The special "unknown" type will not conflict with any other physics
     this->SetPhysicsType(G4BuilderType::bUnknown);
+
+    CELER_VALIDATE(G4VERSION_NUMBER >= 1100,
+                   << "the current version of Geant4 (" << G4VERSION_NUMBER
+                   << ") is too old to support the tracking manager offload "
+                      "interface (11.0 or higher is required)");
 }
 
 //---------------------------------------------------------------------------//
@@ -93,6 +101,7 @@ void TrackingManagerConstructor::ConstructProcess()
     auto* transporter = this->get_local_transporter();
     CELER_VALIDATE(transporter, << "invalid null local transporter");
 
+#if G4VERSION_NUMBER >= 1100
     // Create *thread-local* tracking manager with pointers to *global*
     // shared params and *thread-local* transporter.
     auto manager = std::make_unique<TrackingManager>(shared_, transporter);
@@ -107,6 +116,7 @@ void TrackingManagerConstructor::ConstructProcess()
         // (Note that it is leaked in Geant4 11.0 and 11.1 for MT mode.)
         p->SetTrackingManager(manager ? manager.release() : manager_ptr);
     }
+#endif
 }
 
 //---------------------------------------------------------------------------//
