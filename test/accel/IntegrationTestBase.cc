@@ -353,7 +353,7 @@ auto LarSphereIntegrationMixin::make_physics_input() const -> PhysicsInput
  */
 auto LarSphereIntegrationMixin::make_primary_input() const -> PrimaryInput
 {
-    using units::MevEnergy;
+    using MevEnergy = Quantity<units::Mev, double>;
 
     PrimaryInput result;
     result.pdg = {pdg::electron()};
@@ -395,7 +395,7 @@ auto TestEm3IntegrationMixin::make_physics_input() const -> PhysicsInput
  */
 auto TestEm3IntegrationMixin::make_primary_input() const -> PrimaryInput
 {
-    using units::MevEnergy;
+    using MevEnergy = Quantity<units::Mev, double>;
 
     PrimaryInput result;
     result.pdg = {pdg::electron()};

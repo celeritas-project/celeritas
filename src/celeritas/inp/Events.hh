@@ -60,7 +60,9 @@ using AngleDistribution
 //! Generate primaries at a single energy value
 struct MonoenergeticDistribution
 {
-    units::MevEnergy energy;
+    using MevEnergy = Quantity<units::Mev, double>;
+
+    MevEnergy energy;
 };
 
 //! Choose an energy distribution for the primary generator
