@@ -474,7 +474,7 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         }
         EXPECT_SOFT_EQ(6, to_cm(next.distance));
         geo.set_dir({-1, 0, 0});
-        EXPECT_VEC_SOFT_EQ((Real3{15, 10, 10}), geo.pos());
+        EXPECT_VEC_SOFT_EQ((Real3{15, 10, 10}), to_cm(geo.pos()));
         EXPECT_EQ("Shape1", test->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
 
