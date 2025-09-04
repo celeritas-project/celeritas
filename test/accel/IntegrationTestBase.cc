@@ -217,11 +217,12 @@ G4RunManager& IntegrationTestBase::run_manager()
     {
         CELER_VALIDATE(basename == rm.key(),
                        << "cannot create a run manager for two problems in "
-                          "one execution: use '--gtest-filter'");
+                          "one execution: use '--gtest_filter'");
         return *rm.value();
     }
 
     rm.set(basename, [&] {
+        CELER_LOG(status) << "Creating run manager";
         // Run manager writes output that cannot be redirected with
         // GeantLoggerAdapter: capture all output from this section
         ScopedTimeAndRedirect scoped_time{"G4RunManager"};

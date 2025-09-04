@@ -9,6 +9,7 @@
 #include <G4RunManager.hh>
 #include <G4VModularPhysicsList.hh>
 
+#include "corecel/io/Logger.hh"
 #include "accel/SetupOptions.hh"
 #include "accel/TrackingManagerConstructor.hh"
 #include "accel/detail/IntegrationSingleton.hh"
@@ -74,15 +75,14 @@ TEST_F(LarSphere, run)
     auto& rm = this->run_manager();
     TMI::Instance().SetOptions(this->make_setup_options());
 
-    cout << "initializing" << endl;
+    CELER_LOG(status) << "Run initialization";
     rm.Initialize();
-    cout << "beam on" << endl;
 
+    CELER_LOG(status) << "Beam on (first run)";
     rm.BeamOn(3);
-    cout << "initial run done" << endl;
 
+    CELER_LOG(status) << "Beam on (second run)";
     rm.BeamOn(1);
-    cout << "second run done" << endl;
 }
 
 //---------------------------------------------------------------------------//
@@ -95,7 +95,10 @@ TEST_F(TestEm3, run)
     auto& rm = this->run_manager();
     TMI::Instance().SetOptions(this->make_setup_options());
 
+    CELER_LOG(status) << "Run initialization";
     rm.Initialize();
+
+    CELER_LOG(status) << "Beam on (first run)";
     rm.BeamOn(2);
 }
 
