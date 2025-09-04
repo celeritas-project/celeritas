@@ -93,9 +93,14 @@ auto GenericGeoTestBase<HP>::geometry() -> SPConstGeo const&
         volumes_ = this->volumes();
         if (!volumes_)
         {
-            // Possibly built with non-GDML
-            volumes_ = std::make_shared<VolumeParams const>(
-                geo_->make_model_input().volumes);
+            // Built without using Geant4 model
+            static PersistentSP<VolumeParams const> pv{
+                "GenericGeoTestBase volumes"};
+            pv.lazy_update(std::string{basename}, [&g = *geo_]() {
+                return std::make_shared<VolumeParams const>(
+                    g.make_model_input().volumes);
+            });
+            volumes_ = pv.value();
         }
     }
     CELER_ENSURE(geo_);
