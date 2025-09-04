@@ -345,8 +345,7 @@ void activate_device(Device&& device)
     std::lock_guard<std::mutex> scoped_lock{m};
     Device& d = global_device();
     CELER_VALIDATE(
-        !d || d.device_id() == device.device_id(),
-        << R"(an active device is not allowed to change or deactivate during the run)");
+        !d, << R"(activate_device may be called only once per application)");
 
     if (!device)
         return;
