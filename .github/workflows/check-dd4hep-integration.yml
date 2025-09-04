@@ -16,10 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v5
-    - uses: actions/download-artifact@v5
-      with:
-        name: build-gcc-fast-eic-shell
-        path: install/
     - uses: cvmfs-contrib/github-action-cvmfs@v5
     - uses: eic/run-cvmfs-osg-eic-shell@main
       with:
