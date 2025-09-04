@@ -316,15 +316,6 @@ SetupOptions IntegrationTestBase::make_setup_options()
     opts.max_num_tracks = 1024;
     opts.initializer_capacity = 1024 * 128;
 
-    if (G4VERSION_NUMBER >= 1100 && G4VERSION_NUMBER < 1110)
-    {
-        // FIXME: Rayleigh scattering cross sections for low and high energy
-        // grids overlap
-        CELER_LOG(warning) << "Disabling EM Rayleigh scattering for Geant4 v"
-                           << cmake::geant4_version;
-        opts.ignore_processes = {"Rayl"};
-    }
-
     // Use a uniform (zero) magnetic field
     opts.make_along_step = celeritas::UniformAlongStepFactory();
 
@@ -396,8 +387,6 @@ auto TestEm3IntegrationMixin::make_physics_input() const -> PhysicsInput
 
     PhysicsInput result = Base::make_physics_input();
     result.em_bins_per_decade = 14;
-    result.min_energy = MevEnergy{0.1};
-    result.lowest_electron_energy = MevEnergy{1};
     result.default_cutoff = 0.1 * units::centimeter;
     return result;
 }
