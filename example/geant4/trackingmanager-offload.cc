@@ -17,7 +17,6 @@
 #include <G4PVPlacement.hh>
 #include <G4ParticleGun.hh>
 #include <G4ParticleTable.hh>
-#include <G4RunManagerFactory.hh>
 #include <G4SDManager.hh>
 #include <G4SystemOfUnits.hh>
 #include <G4ThreeVector.hh>
