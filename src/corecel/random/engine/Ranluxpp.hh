@@ -6,16 +6,22 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <cassert>
 #include <cstdint>
+#include <string>
 
-#include "detail/RanluxppLCG.hh"
-#include "detail/RanluxppMulMod.hh"
+#include "corecel/Assert.hh"
+#include "corecel/random/data/detail/RanluxppLCG.hh"
+#include "corecel/random/data/detail/RanluxppMulMod.hh"
+
+// ******** Temporary
+#include <iostream>
+
+#include "corecel/cont/ArrayIO.hh"
 
 namespace
 {
 
-__device__ const uint64_t kA_2048[] = {
+uint64_t const kA_2048[] = {
     0xed7faa90747aaad9,
     0x4cec2c78af55c101,
     0xe64dcb31c48228ec,
@@ -32,6 +38,9 @@ __device__ const uint64_t kA_2048[] = {
 
 namespace celeritas
 {
+using RanluxppUInt = std::uint64_t;
+using RanluxppStateArray = Array<RanluxppUInt, 9>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Implementation of the RanluxPP RNG Engine
@@ -41,26 +50,39 @@ namespace celeritas
 template<int w>
 class RanluxppEngineImpl
 {
+  public:
+    using State = RanluxppUInt*;
+
   private:
-    uint64_t fState_[9];  ///< RANLUX state of the generator
-    unsigned fCarry_;  ///< Carry bit of the RANLUX state
+    RanluxppStateArray fState_;  ///< RANLUX state of the generator
+    RanluxppUInt fCarry_;  ///< Carry bit of the RANLUX state
     int fPosition_ = 0;  ///< Current position in bits
 
-    static constexpr uint64_t const* kA_ = kA_2048;
+    static constexpr RanluxppStateArray kA_ = {
+        0xed7faa90747aaad9,
+        0x4cec2c78af55c101,
+        0xe64dcb31c48228ec,
+        0x6d8a15a13bee7cb0,
+        0x20b2ca60cb78c509,
+        0x256c3d3c662ea36c,
+        0xff74e54107684ed2,
+        0x492edfcc0cc8e753,
+        0xb48c187cf5b22097,
+    };
     static constexpr int kMaxPos_ = 9 * 64;
 
   protected:
-    CELER_FUNCTION void saveState(uint64_t* state) const
+    CELER_FUNCTION void saveState(RanluxppStateArray state) const
     {
-        for (int i = 0; i < 9; ++i)
+        for (int i : celeritas::range(9))
         {
             state[i] = fState_[i];
         }
     }
 
-    CELER_FUNCTION void xorState(uint64_t const* state)
+    CELER_FUNCTION void xorState(RanluxppStateArray const& state)
     {
-        for (int i = 0; i < 9; ++i)
+        for (int i : celeritas::range(9))
         {
             fState_[i] ^= state[i];
         }
@@ -72,15 +94,15 @@ class RanluxppEngineImpl
     //! Produce next block of random bits
     CELER_FUNCTION void __attribute__((noinline)) advance()
     {
-        uint64_t lcg[9];
-        to_lcg(fState_, fCarry_, lcg);
-        mulmod(kA_, lcg);
-        to_ranlux(lcg, fState_, fCarry_);
+        RanluxppStateArray lcg;
+        celeritas::detail::toLCG(fState_, fCarry_, lcg);
+        celeritas::detail::mulmod(kA_, lcg);
+        celeritas::detail::toRanlux(lcg, fState_, fCarry_);
         fPosition_ = 0;
     }
 
     //! Return the next random bits, generate a new block if necessary
-    CELER_FUNCTION uint64_t nextRandomBits()
+    CELER_FUNCTION RanluxppUInt nextRandomBits()
     {
         if (fPosition_ + w > kMaxPos_)
         {
@@ -91,15 +113,15 @@ class RanluxppEngineImpl
         int offset = fPosition_ % 64;
         int numBits = 64 - offset;
 
-        uint64_t bits = fState_[idx] >> offset;
+        RanluxppUInt bits = fState_[idx] >> offset;
         if (numBits < w)
         {
             bits |= fState_[idx + 1] << numBits;
         }
-        bits &= ((uint64_t(1) << w) - 1);
+        bits &= ((RanluxppUInt(1) << w) - 1);
 
         fPosition_ += w;
-        CELER_ASSERT(fPosition_ <= kMaxPos_, "position out of range!");
+        CELER_ASSERT(fPosition_ <= kMaxPos_);
 
         return bits;
     }
@@ -107,43 +129,44 @@ class RanluxppEngineImpl
     //! Return a floating point number, converted from the next random bits.
     CELER_FUNCTION double nextRandomFloat()
     {
-        static constexpr double div = 1.0 / (uint64_t(1) << w);
-        uint64_t bits = this->nextRandomBits();
+        static constexpr double div = 1.0 / (RanluxppUInt(1) << w);
+
+        RanluxppUInt bits = this->nextRandomBits();
         return bits * div;
     }
 
     //! Initialize and seed the state of the generator
-    CELER_FUNCTION void setSeed(uint64_t s)
+    CELER_FUNCTION void setSeed(RanluxppUInt s)
     {
-        uint64_t lcg[9];
+        RanluxppStateArray lcg;
         lcg[0] = 1;
-        for (int i = 1; i < 9; ++i)
+        for (int i : celeritas::range(1, 9))
         {
             lcg[i] = 0;
         }
 
-        uint64_t a_seed[9];
+        RanluxppStateArray a_seed;
         // Skip 2 ** 96 states.
-        powermod(kA_, a_seed, uint64_t(1) << 48);
-        powermod(a_seed, a_seed, uint64_t(1) << 48);
+        celeritas::detail::powermod(kA_, a_seed, RanluxppUInt(1) << 48);
+        celeritas::detail::powermod(a_seed, a_seed, RanluxppUInt(1) << 48);
         // Skip another s states.
-        powermod(a_seed, a_seed, s);
-        mulmod(a_seed, lcg);
+        celeritas::detail::powermod(a_seed, a_seed, s);
+        celeritas::detail::mulmod(a_seed, lcg);
 
-        to_ranlux(lcg, fState_, fCarry_);
+        celeritas::detail::toRanlux(lcg, fState_, fCarry_);
         fPosition_ = 0;
     }
 
     //! Skip `n` random numbers without generating them
-    CELER_FUNCTION void skip(uint64_t n)
+    CELER_FUNCTION void skip(RanluxppUInt n)
     {
         int left = (kMaxPos_ - fPosition_) / w;
-        CELER_ASSERT(left >= 0, "position was out of range!");
-        if (n < (uint64_t)left)
+        CELER_ASSERT(left >= 0);
+        if (n < (RanluxppUInt)left)
         {
             // Just skip the next few entries in the currently available bits.
             fPosition_ += n * w;
-            assert(fPosition_ <= kMaxPos_, "position out of range!");
+            CELER_ASSERT(fPosition_ <= kMaxPos_);
             return;
         }
 
@@ -152,20 +175,19 @@ class RanluxppEngineImpl
         int nPerState = kMaxPos_ / w;
         int skip = (n / nPerState);
 
-        uint64_t a_skip[9];
-        powermod(kA_, a_skip, skip + 1);
+        RanluxppStateArray a_skip;
+        celeritas::detail::powermod(kA_, a_skip, skip + 1);
 
-        uint64_t lcg[9];
-        to_lcg(fState_, fCarry_, lcg);
-        mulmod(a_skip, lcg);
-        to_ranlux(lcg, fState_, fCarry_);
+        RanluxppStateArray lcg;
+        celeritas::detail::toLCG(fState_, fCarry_, lcg);
+        celeritas::detail::mulmod(a_skip, lcg);
+        celeritas::detail::toRanlux(lcg, fState_, fCarry_);
 
         // Potentially skip numbers in the freshly generated block.
         int remaining = n - skip * nPerState;
-        CELER_ASSERT(remaining >= 0,
-                     "should not end up at a negative position!");
+        CELER_ASSERT(remaining >= 0);
         fPosition_ = remaining * w;
-        CELER_ASSERT(fPosition <= kMaxPos && "position out of range!");
+        CELER_ASSERT(fPosition_ <= kMaxPos_ && "position out of range!");
     }
 };
 
@@ -173,29 +195,43 @@ class RanluxppEngineImpl
 
 class RanluxppDouble final : public RanluxppEngineImpl<48>
 {
+    using Base = RanluxppEngineImpl<48>;
+
   public:
+    using result_type = RanluxppUInt;
+
     //! Instantiate with optional default seed
-    CELER_FUNCTION RanluxppDouble(uint64_t seed = 314159265)
+    CELER_FUNCTION RanluxppDouble(RanluxppUInt seed = 314159265)
     {
-        this->SetSeed(seed);
+        Base::setSeed(seed);
+    }
+
+    //! Lowest value potentially generated (check this)
+    static CELER_CONSTEXPR_FUNCTION result_type min() { return 0u; }
+    //! Highest value potentially generated (check this)
+    static CELER_CONSTEXPR_FUNCTION result_type max()
+    {
+        // todo: use celeritas limits
+        return std::numeric_limits<RanluxppUInt>::max();
     }
 
     //! Generate a double-precision random number with 48 bits of randomness
-    CELER_FUNCTION double rndm() { return (*this)(); }
+    // CELER_FUNCTION double rndm() { return (*this)(); }
 
     //! Generate a double-precision random number (non-virtual method)
-    CELER_FUNCTION double operator()() { return this->NextRandomFloat(); }
+    CELER_FUNCTION RanluxppUInt operator()() { return this->intRndm64(); }
 
     //! Generate a random integer value with 48 bits
-    CELER_FUNCTION uint64_t intRndm() { return this->NextRandomBits(); }
+    // CELER_FUNCTION RanluxppUInt intRndm() { return this->nextRandomBits(); }
 
     //! Generate a uniformly random 64-bit integer by concatenating two 32-bit
     //! words
-    CELER_FUNCTION uint64_t intRndm64()
+    CELER_FUNCTION RanluxppUInt intRndm64()
     {
         // draw two 48-bit words, but take only their low 32 bits each
-        uint64_t lo = this->NextRandomBits() & 0xFFFFFFFFu;
-        uint64_t hi = this->NextRandomBits() & 0xFFFFFFFFu;
+        RanluxppUInt lo = this->nextRandomBits() & 0xFFFFFFFFu;
+        RanluxppUInt hi = this->nextRandomBits() & 0xFFFFFFFFu;
+        // std::cout << "Lo/Hi: " << lo << "/" << hi << std::endl;
         return (lo << 32) | hi;
     }
 
@@ -205,7 +241,7 @@ class RanluxppDouble final : public RanluxppEngineImpl<48>
     CELER_FUNCTION RanluxppDouble branchNoAdvance()
     {
         // Save the current state, will be used to branch a new RNG.
-        uint64_t oldState[9];
+        RanluxppStateArray oldState;
         this->saveState(oldState);
         this->advance();
 

@@ -10,12 +10,14 @@
 
 #include "corecel/Macros.hh"
 
-#include "RanluxppMulMod.hh"
+#include "RanluxppHelpers.hh"
 
 namespace celeritas
 {
 namespace detail
 {
+using RanluxppStateArray = Array<RanluxppUInt, 9>;
+using StateArray18 = Array<RanluxppUInt, 18>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -25,11 +27,12 @@ namespace detail
  * \param[in] in2  second factor as 9 numbers of 64 bits each
  * \param[out] out result with 18 numbers of 64 bits each
  */
-CELER_FUNCTION static void
-multiply9x9(uint64_t const* in1, uint64_t const* in2, uint64_t* out)
+CELER_FUNCTION void multiply9x9(RanluxppStateArray const& in1,
+                                RanluxppStateArray const& in2,
+                                StateArray18& out)
 {
-    uint64_t next = 0;
-    unsigned nextCarry = 0;
+    RanluxppUInt next = 0;
+    RanluxppUInt nextCarry = 0;
 
 #if defined(__clang__) || defined(__INTEL_COMPILER) || defined(__CUDA_ARCH__)
 #    pragma unroll
@@ -37,10 +40,10 @@ multiply9x9(uint64_t const* in1, uint64_t const* in2, uint64_t* out)
 // This pragma was introduced in GCC version 8.
 #    pragma GCC unroll 18
 #endif
-    for (int i = 0; i < 18; ++i)
+    for (int i : celeritas::range(18))
     {
-        uint64_t current = next;
-        unsigned carry = nextCarry;
+        RanluxppUInt current = next;
+        RanluxppUInt carry = nextCarry;
 
         next = 0;
         nextCarry = 0;
@@ -51,45 +54,45 @@ multiply9x9(uint64_t const* in1, uint64_t const* in2, uint64_t* out)
 // This pragma was introduced in GCC version 8.
 #    pragma GCC unroll 9
 #endif
-        for (int j = 0; j < 9; ++j)
+        for (int j : celeritas::range(9))
         {
             int k = i - j;
             if (k < 0 || k >= 9)
             {
                 continue;
             }
-            uint64_t fac1 = in1[j];
-            uint64_t fac2 = in2[k];
+            RanluxppUInt fac1 = in1[j];
+            RanluxppUInt fac2 = in2[k];
 #if defined(__CUDA_ARCH__)
             // In principle, we could use the "portable" code path with
             // __int128 starting from CUDA 11.5, but the math intrinsic is
             // equally easy to write and should work in older versions of CUDA.
-            uint64_t lower = fac1 * fac2;
-            uint64_t upper = __umul64hi(fac1, fac2);
+            RanluxppUInt lower = fac1 * fac2;
+            RanluxppUInt upper = __umul64hi(fac1, fac2);
 #elif defined(__SIZEOF_INT128__)
             unsigned __int128 prod = fac1;
             prod = prod * fac2;
 
-            uint64_t upper = prod >> 64;
-            uint64_t lower = static_cast<uint64_t>(prod);
+            RanluxppUInt upper = prod >> 64;
+            RanluxppUInt lower = static_cast<RanluxppUInt>(prod);
 #else
-            uint64_t upper1 = fac1 >> 32;
-            uint64_t lower1 = static_cast<uint32_t>(fac1);
+            RanluxppUInt upper1 = fac1 >> 32;
+            RanluxppUInt lower1 = static_cast<uint32_t>(fac1);
 
-            uint64_t upper2 = fac2 >> 32;
-            uint64_t lower2 = static_cast<uint32_t>(fac2);
+            RanluxppUInt upper2 = fac2 >> 32;
+            RanluxppUInt lower2 = static_cast<uint32_t>(fac2);
 
             // Multiply 32-bit parts, each product has a maximum value of
             // (2 ** 32 - 1) ** 2 = 2 ** 64 - 2 * 2 ** 32 + 1.
-            uint64_t upper = upper1 * upper2;
-            uint64_t middle1 = upper1 * lower2;
-            uint64_t middle2 = lower1 * upper2;
-            uint64_t lower = lower1 * lower2;
+            RanluxppUInt upper = upper1 * upper2;
+            RanluxppUInt middle1 = upper1 * lower2;
+            RanluxppUInt middle2 = lower1 * upper2;
+            RanluxppUInt lower = lower1 * lower2;
 
             // When adding the two products, the maximum value for middle is
             // 2 * 2 ** 64 - 4 * 2 ** 32 + 2, which exceeds a uint64_t.
-            unsigned overflow;
-            uint64_t middle = add_overflow(middle1, middle2, overflow);
+            RanluxppUInt overflow;
+            RanluxppUInt middle = addOverflow(middle1, middle2, overflow);
             // Handling the overflow by a multiplication with 0 or 1 is cheaper
             // than branching with an if statement, which the compiler does not
             // optimize to this equivalent code. Note that we could do entirely
@@ -101,7 +104,7 @@ multiply9x9(uint64_t const* in1, uint64_t const* in2, uint64_t* out)
             // overflowing due to the mixture of 32 bit arithmetic. Moreover,
             // my tests show that the scheme implemented here is actually
             // slightly more performant.
-            uint64_t overflow_add = overflow * (uint64_t(1) << 32);
+            RanluxppUInt overflow_add = overflow * (RanluxppUInt(1) << 32);
             // This addition can never overflow because the maximum value of
             // upper is 2 ** 64 - 2 * 2 ** 32 + 1 (see above). When now adding
             // another 2 ** 32, the result is 2 ** 64 - 2 ** 32 + 1 and still
@@ -109,10 +112,10 @@ multiply9x9(uint64_t const* in1, uint64_t const* in2, uint64_t* out)
             // uint64_t.
             upper += overflow_add;
 
-            uint64_t middle_upper = middle >> 32;
-            uint64_t middle_lower = middle << 32;
+            RanluxppUInt middle_upper = middle >> 32;
+            RanluxppUInt middle_lower = middle << 32;
 
-            lower = add_overflow(lower, middle_lower, overflow);
+            lower = addOverflow(lower, middle_lower, overflow);
             upper += overflow;
 
             // This still can't overflow since the maximum of middle_upper is
@@ -134,14 +137,13 @@ multiply9x9(uint64_t const* in1, uint64_t const* in2, uint64_t* out)
 #endif
 
             // Add to current, remember carry.
-            current = add_carry(current, lower, carry);
+            current = addCarry(current, lower, carry);
 
             // Add to next, remember nextCarry.
-            next = add_carry(next, upper, nextCarry);
+            next = addCarry(next, upper, nextCarry);
         }
 
-        next = add_carry(next, carry, nextCarry);
-
+        next = addCarry(next, carry, nextCarry);
         out[i] = current;
     }
 }
@@ -156,16 +158,18 @@ multiply9x9(uint64_t const* in1, uint64_t const* in2, uint64_t* out)
  * \param[in] mul product from multiply9x9 with 18 numbers of 64 bits each
  * \param[out] out result with 9 numbers of 64 bits each
  */
-CELER_FUNCTION static void mod_m(uint64_t const* mul, uint64_t* out)
+CELER_FUNCTION void modM(StateArray18 const& mul, RanluxppStateArray& out)
 {
-    uint64_t r[9];
+    RanluxppStateArray r;
     // Assign r = t0
-    for (int i = 0; i < 9; ++i)
+    for (int i : celeritas::range(9))
     {
         r[i] = mul[i];
     }
 
-    int64_t c = compute_r(mul + 9, r);
+    auto mul_span = celeritas::make_span(mul);
+    auto subspan = mul_span.subspan<9, 9>();
+    RanluxppUInt c = computeR(subspan, celeritas::make_span(r));
 
     // To update r = r - c * m, it suffices to know c * (-2 ** 240 + 1)
     // because the 2 ** 576 will cancel out. Also note that c may be zero, but
@@ -186,43 +190,43 @@ CELER_FUNCTION static void mod_m(uint64_t const* mul, uint64_t* out)
     // c = 0 -> t0 = 0; c = 1 -> t0 = 0; c = -1 -> all bits set (sign
     // extension) (The assembly implementation shifts by 63, which gives the
     // same result.)
-    int64_t t0 = c >> 1;
+    RanluxppUInt t0 = c >> 1;
 
     // c = 0 -> t2 = 0; c = 1 -> upper 16 bits set; c = -1 -> lower 48 bits set
-    int64_t t2 = t0 - (c << 48);
+    RanluxppUInt t2 = t0 - (c << 48);
 
     // c = 0 -> t1 = 0; c = 1 -> all bits set; c = -1 -> t1 = 0
     // (The assembly implementation shifts by 63, which gives the same result.)
-    int64_t t1 = t2 >> 48;
+    RanluxppUInt t1 = t2 >> 48;
 
-    unsigned carry = 0;
+    RanluxppUInt carry = 0;
     {
-        uint64_t r_0 = r[0];
+        RanluxppUInt r_0 = r[0];
 
-        uint64_t out_0 = sub_carry(r_0, c, carry);
+        RanluxppUInt out_0 = subCarry(r_0, c, carry);
         out[0] = out_0;
     }
-    for (int i = 1; i < 3; +i)
+    for (int i : celeritas::range(1, 3))
     {
-        uint64_t r_i = r[i];
-        r_i = sub_overflow(r_i, carry, carry);
+        RanluxppUInt r_i = r[i];
+        r_i = subOverflow(r_i, carry, carry);
 
-        uint64_t out_i = sub_carry(r_i, t0, carry);
+        RanluxppUInt out_i = subCarry(r_i, t0, carry);
         out[i] = out_i;
     }
     {
-        uint64_t r_3 = r[3];
-        r_3 = sub_overflow(r_3, carry, carry);
+        RanluxppUInt r_3 = r[3];
+        r_3 = subOverflow(r_3, carry, carry);
 
-        uint64_t out_3 = sub_carry(r_3, t2, carry);
+        RanluxppUInt out_3 = subCarry(r_3, t2, carry);
         out[3] = out_3;
     }
-    for (int i = 4; i < 9; ++i)
+    for (int i : celeritas::range(4, 9))
     {
-        uint64_t r_i = r[i];
-        r_i = sub_overflow(r_i, carry, carry);
+        RanluxppUInt r_i = r[i];
+        r_i = subOverflow(r_i, carry, carry);
 
-        uint64_t out_i = sub_carry(r_i, t1, carry);
+        RanluxppUInt out_i = subCarry(r_i, t1, carry);
         out[i] = out_i;
     }
 }
@@ -236,11 +240,14 @@ CELER_FUNCTION static void mod_m(uint64_t const* mul, uint64_t* out)
  * \param[in]    in1   first factor with 9 numbers of 64 bits each
  * \param[inout] inout second factor and also the output of the same size
  */
-CELER_FUNCTION static void mulmod(uint64_t const* in1, uint64_t* inout)
+CELER_FUNCTION void
+mulmod(RanluxppStateArray const& in1, RanluxppStateArray& inout)
 {
-    uint64_t mul[2 * 9] = {0};
+    StateArray18 mul;
+    mul.fill(0);
+
     multiply9x9(in1, inout, mul);
-    mod_m(mul, inout);
+    modM(mul, inout);
 }
 
 //---------------------------------------------------------------------------//
@@ -249,29 +256,32 @@ CELER_FUNCTION static void mulmod(uint64_t const* in1, uint64_t* inout)
  *
  * The arguments base and res may point to the same location.
  *
- * \param[in] base  with 9 numbers of 64 bits each
- * \param[out] res  output with 9 numbers of 64 bits each
- * \param[in] n     exponent
+ * \param[in]  base  with 9 numbers of 64 bits each
+ * \param[out] res   output with 9 numbers of 64 bits each
+ * \param[in]  n     exponent
  */
-CELER_FUNCTION static void
-powermod(uint64_t const* base, uint64_t* res, uint64_t n)
+CELER_FUNCTION void powermod(RanluxppStateArray const& base,
+                             RanluxppStateArray& res,
+                             RanluxppUInt n)
 {
-    uint64_t fac[9] = {0};
+    RanluxppStateArray fac;
+    fac.fill(0);
     fac[0] = base[0];
     res[0] = 1;
-    for (int i = 1; i < 9; ++i)
+    for (int i : celeritas::range(1, 9))
     {
         fac[i] = base[i];
         res[i] = 0;
     }
 
-    uint64_t mul[18] = {0};
+    StateArray18 mul;
+    mul.fill(0);
     while (n)
     {
         if (n & 1)
         {
             multiply9x9(res, fac, mul);
-            mod_m(mul, res);
+            modM(mul, res);
         }
         n >>= 1;
         if (!n)
@@ -279,7 +289,7 @@ powermod(uint64_t const* base, uint64_t* res, uint64_t n)
             break;
         }
         multiply9x9(fac, fac, mul);
-        mod_m(mul, fac);
+        modM(mul, fac);
     }
 }
 
