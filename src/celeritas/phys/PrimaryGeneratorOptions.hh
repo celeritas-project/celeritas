@@ -7,6 +7,7 @@
 #pragma once
 
 #include <algorithm>
+#include <vector>
 
 #include "corecel/io/StringEnumMapper.hh"
 #include "corecel/math/Algorithms.hh"

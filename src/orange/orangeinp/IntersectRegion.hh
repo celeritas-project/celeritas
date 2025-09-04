@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <vector>
+
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/EnumArray.hh"
