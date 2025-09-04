@@ -371,7 +371,8 @@ CELER_FUNCTION auto GeantGeoTrackView::normal() const -> Real3
     G4ThreeVector norm = navi_.GetGlobalExitNormal(g4pos_, &valid);
     CELER_ASSERT(valid);
 
-    Real3 result = convert_from_geant(norm, 1);
+    // TODO: convert_from_geant uses celeritas::real_type, not double
+    Real3 result{norm[0], norm[1], norm[2]};
     CELER_ENSURE(is_soft_unit_vector(result));
     return result;
 }
