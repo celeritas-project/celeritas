@@ -385,6 +385,8 @@ auto TestEm3IntegrationMixin::make_physics_input() const -> PhysicsInput
 {
     PhysicsInput result = Base::make_physics_input();
     result.em_bins_per_decade = 14;
+    // Increase the lower energy limit of the physics tables
+    result.min_energy = units::MevEnergy{0.1};
     result.default_cutoff = 0.1 * units::centimeter;
     return result;
 }
