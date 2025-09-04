@@ -265,6 +265,14 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos, Real3 const& dir)
                     << result.volume_instances.back() << " into " << post_vol
                     << ": previously " << repr(*pre_norm) << ", now "
                     << repr(post_norm);
+                if (soft_zero(dot_product(geo.dir(), post_norm)))
+                {
+                    CELER_LOG(warning)
+                        << "Crossed from " << result.volume_instances.back()
+                        << " into " << post_vol
+                        << " at a tangent; traveling along " << repr(geo.dir())
+                        << ", normal is " << repr(post_norm);
+                }
             }
 
             // Add post-crossing (interior surface) dot product
