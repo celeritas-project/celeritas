@@ -27,4 +27,6 @@ jobs:
           cmake --build build -j 8
           cmake --install build
           export LD_LIBRARY_PATH=$PWD/install/lib:${LD_LIBRARY_PATH}
+
+          CELER_LOG=debug CELER_LOG_LOCAL=debug ddsim --action.run DDcelerRunAction --compactFile=$DD4hepINSTALL/DDDetectors/compact/SiD.xml --steering steeringFile.py -N 20 -G --gun.particle e- --gun.etaMax 4 --gun.etaMin 1 --gun.energy 5*GeV --gun.distribution uniform --outputFile output.root --outputConfig.forceDD4HEP  --action.tracker "Geant4TrackerAction" --action.trackerSDTypes "tracker" --action.calorimeter "Geant4CalorimeterAction" --action.calorimeterSDTypes "calorimeter"
           
