@@ -212,10 +212,25 @@ G4RunManager& IntegrationTestBase::run_manager()
     static PersistentSP<G4RunManager> rm{"run manager"};
 
     std::string basename{this->gdml_basename()};
-    rm.lazy_update(basename, [&] {
+
+    if (rm)
+    {
+        CELER_VALIDATE(basename == rm.key(),
+                       << "cannot create a run manager for two problems in "
+                          "one execution: use '--gtest-filter'");
+        return *rm.value();
+    }
+
+    rm.set(basename, [&] {
         // Run manager writes output that cannot be redirected with
         // GeantLoggerAdapter: capture all output from this section
         ScopedTimeAndRedirect scoped_time{"G4RunManager"};
+        ScopedGeantExceptionHandler scoped_exceptions;
+
+        // Access the particle table before creating the run manager, so that
+        // missing environment variables like G4ENSDFSTATEDATA get caught
+        // cleanly rather than segfaulting
+        G4ParticleTable::GetParticleTable();
 
         std::shared_ptr<G4RunManager> rm{
 #if G4VERSION_NUMBER >= 1100
@@ -225,11 +240,6 @@ G4RunManager& IntegrationTestBase::run_manager()
 #endif
         };
         CELER_ASSERT(rm);
-
-        // Access the particle table before creating the run manager, so that
-        // missing environment variables like G4ENSDFSTATEDATA get caught
-        // cleanly rather than segfaulting
-        G4ParticleTable::GetParticleTable();
 
         // Disable signal handling
         disable_geant_signal_handler();
@@ -249,7 +259,7 @@ G4RunManager& IntegrationTestBase::run_manager()
         // Set up runtime initialization
         rm->SetUserInitialization(new ActionInitialization{this});
         return rm;
-    });
+    }());
 
     return *rm.value();
 }
