@@ -14,6 +14,7 @@
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/StringSimplifier.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Environment.hh"
@@ -77,6 +78,10 @@ class VecgeomVgdmlTestBase : public VecgeomTestBaseImpl
   public:
     SPConstGeo build_geometry() const final
     {
+        using namespace celeritas::cmake;
+        cout << color_code('x') << "VecGeom v" << vecgeom_version << " ("
+             << vecgeom_options << ") using VGDML" << color_code(' ') << endl;
+
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::warning};
         std::string filename{this->gdml_basename()};
@@ -98,6 +103,11 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
     //! Construct via persistent geant_geo; see LazyGeantGeoManager
     SPConstGeo build_geometry() const final
     {
+        using namespace celeritas::cmake;
+        cout << color_code('x') << "VecGeom v" << vecgeom_version << " ("
+             << vecgeom_options << ") using G4VG v" << g4vg_version
+             << " and Geant4 v" << geant4_version << color_code(' ') << endl;
+
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::warning};
         auto result = VecgeomTestBaseImpl::build_geometry();
@@ -110,12 +120,6 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
     GeantVolResult get_import_geant_volumes()
     {
         return GeantVolResult::from_import(*this->geometry());
-    }
-
-    //! Test conversion for Geant4 geometry
-    GeantVolResult get_direct_geant_volumes()
-    {
-        return GeantVolResult::from_pointers(*this->geometry());
     }
 
     SpanStringView expected_log_levels() const override { return {}; }
@@ -644,17 +648,6 @@ TEST_F(SolidsTest, geant_volumes)
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         EXPECT_EQ(0, result.missing_labels.size())
             << repr(result.missing_labels);
-    }
-    {
-        auto result = this->get_direct_geant_volumes();
-        static int const expected_volumes[] = {
-            0,  1,  2,  3,  4,  5,  6,  7,  -2, 8,  9,  14, 15,
-            16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 29,
-        };
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-
-        static char const* const expected_missing[] = {"trd3"};
-        EXPECT_VEC_EQ(expected_missing, result.missing_labels);
     }
 }
 

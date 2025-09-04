@@ -16,6 +16,7 @@
 #include "PhysicsTrackView.hh"
 #include "SimTrackView.hh"
 #include "TrackInitializer.hh"
+#include "surface/SurfacePhysicsView.hh"
 
 #if !CELER_DEVICE_COMPILE
 #    include "corecel/io/Logger.hh"
@@ -71,17 +72,14 @@ class CoreTrackView
     // Return a volume surface view from volume ID
     inline CELER_FUNCTION VolumeSurfaceView surface(VolumeId) const;
 
+    // Return a surface physics view
+    inline CELER_FUNCTION SurfacePhysicsView surface_physics() const;
+
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
 
     // Get the track's index among the states
     inline CELER_FUNCTION TrackSlotId track_slot_id() const;
-
-    // Action ID for encountering a geometry boundary
-    inline CELER_FUNCTION ActionId init_boundary_action() const;
-
-    // Action ID for leaving a geometry boundary
-    inline CELER_FUNCTION ActionId post_boundary_action() const;
 
     // Flag a track for deletion
     inline CELER_FUNCTION void apply_errored();
@@ -220,6 +218,17 @@ CELER_FUNCTION auto CoreTrackView::surface(VolumeId vol) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Return a surface physics view.
+ */
+CELER_FUNCTION auto CoreTrackView::surface_physics() const -> SurfacePhysicsView
+{
+    return SurfacePhysicsView{params_.surface_physics,
+                              states_.surface_physics,
+                              this->track_slot_id()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return the RNG engine.
  */
 CELER_FUNCTION auto CoreTrackView::rng() const -> RngEngine
@@ -243,24 +252,6 @@ CELER_FUNCTION SimTrackView CoreTrackView::sim() const
 CELER_FORCEINLINE_FUNCTION TrackSlotId CoreTrackView::track_slot_id() const
 {
     return track_slot_id_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the action ID for encountering a geometry boundary.
- */
-CELER_FUNCTION ActionId CoreTrackView::init_boundary_action() const
-{
-    return params_.scalars.init_boundary_action;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the action ID for leaving a geometry boundary.
- */
-CELER_FUNCTION ActionId CoreTrackView::post_boundary_action() const
-{
-    return params_.scalars.post_boundary_action;
 }
 
 //---------------------------------------------------------------------------//

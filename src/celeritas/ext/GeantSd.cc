@@ -23,7 +23,6 @@
 #include "corecel/io/Logger.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/inp/Scoring.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -84,12 +83,10 @@ auto make_set_lv(inp::GeantSd::VariantSetVolume const& sv)
 /*!
  * Map detector IDs on construction.
  */
-GeantSd::GeantSd(SPConstCoreGeo geo,
-                 ParticleParams const& par,
+GeantSd::GeantSd(ParticleParams const& par,
                  Input const& setup,
                  StreamId::size_type num_streams)
     : nonzero_energy_deposition_(setup.ignore_zero_deposition)
-    , geo_{std::move(geo)}
 {
     CELER_EXPECT(num_streams > 0);
 
@@ -113,7 +110,7 @@ GeantSd::GeantSd(SPConstCoreGeo geo,
     processors_.resize(num_streams);
 
     // Map detector volumes
-    this->setup_volumes(*geo_, setup);
+    this->setup_volumes(setup);
 
     if (setup.track)
     {
@@ -138,7 +135,7 @@ auto GeantSd::make_local_processor(StreamId sid) -> SPProcessor
     CELER_EXPECT(!processors_[sid.get()]);
 
     auto result = std::make_shared<HitProcessor>(
-        geant_vols_, geo_, particles_, selection_, locate_touchable_);
+        geant_vols_, particles_, selection_, locate_touchable_);
     processor_weakptrs_[sid.get()] = result;
     processors_[sid.get()] = result.get();
     return result;
@@ -189,16 +186,17 @@ void GeantSd::process_steps(DeviceStepState state)
 //---------------------------------------------------------------------------//
 // PRIVATE MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
-void GeantSd::setup_volumes(CoreGeoParams const& geo, inp::GeantSd const& setup)
+void GeantSd::setup_volumes(inp::GeantSd const& setup)
 {
     // Convert labels or other set types
     auto skip_volumes = make_set_lv(setup.skip_volumes);
     auto force_volumes = make_set_lv(setup.force_volumes);
 
     // Helper for inserting volumes
+    // FIXME: geant geo and volume params are implicitly used by this
     SensDetInserter::MapIdLv found_id_lv;
     SensDetInserter::VecLV missing_lv;
-    SensDetInserter insert_volume(geo, skip_volumes, &found_id_lv, &missing_lv);
+    SensDetInserter insert_volume(skip_volumes, &found_id_lv, &missing_lv);
 
     // Loop over all logical volumes and map detectors to Volume IDs
     for (G4LogicalVolume const* lv : *G4LogicalVolumeStore::GetInstance())
@@ -221,8 +219,7 @@ void GeantSd::setup_volumes(CoreGeoParams const& geo, inp::GeantSd const& setup)
 
     CELER_VALIDATE(
         missing_lv.empty(),
-        << "failed to find unique " << cmake::core_geo
-        << " volume(s) corresponding to Geant4 volume(s) "
+        << "failed to find Geant4 volume(s) "
         << join_stream(missing_lv.begin(),
                        missing_lv.end(),
                        ", ",
@@ -234,7 +231,7 @@ void GeantSd::setup_volumes(CoreGeoParams const& geo, inp::GeantSd const& setup)
         !found_id_lv.empty(),
         << R"(no G4 sensitive detectors are defined: set `SetupOptions.sd.enabled` to `false` if this is expected)");
 
-    // Unfold map into LV/ID vectors
+    // Unfold LV->VolId map into ImplVolume vectors
     VecLV geant_vols;
     geant_vols.reserve(found_id_lv.size());
     celer_vols_.reserve(found_id_lv.size());

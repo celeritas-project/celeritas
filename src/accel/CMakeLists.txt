@@ -23,20 +23,23 @@ set(PUBLIC_DEPS
 
 list(APPEND SOURCES
   AlongStepFactory.cc
+  CartMapMagneticField.cc
+  CylMapMagneticField.cc
   FastSimulationIntegration.cc
   FastSimulationModel.cc
   GeantSimpleCalo.cc
   GeantStepDiagnostic.cc
   IntegrationBase.cc
-  Logger.cc
   LocalTransporter.cc
-  CartMapMagneticField.cc
-  CylMapMagneticField.cc
+  Logger.cc
+  PGPrimaryGeneratorAction.cc
   SetupOptions.cc
   SetupOptionsMessenger.cc
   SharedParams.cc
   SimpleOffload.cc
   TimeOutput.cc
+  TrackingManagerConstructor.cc
+  TrackingManagerIntegration.cc
   UserActionIntegration.cc
   detail/GeantSimpleCaloSD.cc
   detail/IntegrationSingleton.cc
@@ -46,9 +49,7 @@ celeritas_polysource(ExceptionConverter)
 
 if(Geant4_VERSION VERSION_GREATER_EQUAL 11.0)
   list(APPEND SOURCES
-    TrackingManagerIntegration.cc
     TrackingManager.cc
-    TrackingManagerConstructor.cc
   )
 endif()
 

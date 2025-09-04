@@ -38,16 +38,13 @@ namespace g4org
 namespace
 {
 //---------------------------------------------------------------------------//
-using ReplicaId = GeantGeoParams::ReplicaId;
-
-//---------------------------------------------------------------------------//
 // See G4Navigator::LocateGlobalPointAndSetup for implementation of these
 struct ReplicaUpdater
 {
-    void operator()(ReplicaId r_id, G4VPhysicalVolume& g4pv)
+    void operator()(int copy_no, G4VPhysicalVolume& g4pv)
     {
-        nav_.ComputeTransformation(r_id.get(), &g4pv);
-        g4pv.SetCopyNo(r_id.get());
+        nav_.ComputeTransformation(copy_no, &g4pv);
+        g4pv.SetCopyNo(copy_no);
     }
 
     G4ReplicaNavigation nav_;
@@ -55,12 +52,12 @@ struct ReplicaUpdater
 
 struct ParamUpdater
 {
-    void operator()(ReplicaId r_id, G4VPhysicalVolume& g4pv)
+    void operator()(int copy_no, G4VPhysicalVolume& g4pv)
     {
         // TODO: this only works with parameterized transformations, not
         // changes to the solid or material.
-        param_.ComputeTransformation(r_id.get(), &g4pv);
-        g4pv.SetCopyNo(r_id.get());
+        param_.ComputeTransformation(copy_no, &g4pv);
+        g4pv.SetCopyNo(copy_no);
     }
 
     G4VPVParameterisation& param_;
@@ -100,8 +97,7 @@ struct PhysicalVolumeConverter::Builder
     std::deque<QueuedDaughter> child_queue;
 
     // Convert a physical volume, queuing children if needed
-    PhysicalVolume
-    make_pv(int depth, G4VPhysicalVolume const& pv, ReplicaId replica = {});
+    PhysicalVolume make_pv(int depth, G4VPhysicalVolume const& pv);
 
     // Build a child
     void
@@ -152,14 +148,12 @@ auto PhysicalVolumeConverter::operator()(arg_type g4world) -> result_type
  */
 PhysicalVolume
 PhysicalVolumeConverter::Builder::make_pv(int depth,
-                                          G4VPhysicalVolume const& g4pv,
-                                          ReplicaId replica_id)
+                                          G4VPhysicalVolume const& g4pv)
 {
     PhysicalVolume result;
 
-    // Get PV ID and replica ID if applicable
+    // Get PV ID, using embedded copy number
     result.id = this->data->geo.geant_to_id(g4pv);
-    result.replica_id = replica_id;
 
     // Get transform
     result.transform = [&]() -> VariantTransform {
@@ -221,12 +215,12 @@ void PhysicalVolumeConverter::Builder::place_child(
         lv->children.push_back(this->make_pv(depth, g4pv));
     };
     auto place_multiple = [&](auto&& update_pv) {
-        for (auto r_id : range(id_cast<ReplicaId>(g4pv.GetMultiplicity())))
+        for (auto copy_no : range(g4pv.GetMultiplicity()))
         {
             // Modify the volume's position/size/orientation in-place
-            update_pv(r_id, const_cast<G4VPhysicalVolume&>(g4pv));
-            // Place the copy
-            lv->children.push_back(this->make_pv(depth, g4pv, r_id));
+            update_pv(copy_no, const_cast<G4VPhysicalVolume&>(g4pv));
+            // Place the copy: note that this uses the "updated" PV's state
+            lv->children.push_back(this->make_pv(depth, g4pv));
         }
     };
 

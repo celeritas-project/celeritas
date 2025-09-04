@@ -2,23 +2,21 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/OpticalPhysics.hh
+//! \file celeritas/g4/SupportedOpticalPhysics.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <G4VPhysicsConstructor.hh>
 
-#include "../GeantOpticalPhysicsOptions.hh"
+#include "celeritas/ext/GeantOpticalPhysicsOptions.hh"
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
- * Construct Celeritas-supported Optical physics.
+ * Construct Celeritas-supported optical physics.
  */
-class OpticalPhysics : public G4VPhysicsConstructor
+class SupportedOpticalPhysics : public G4VPhysicsConstructor
 {
   public:
     //!@{
@@ -28,7 +26,7 @@ class OpticalPhysics : public G4VPhysicsConstructor
 
   public:
     // Set up during construction
-    explicit OpticalPhysics(Options const& options);
+    explicit SupportedOpticalPhysics(Options const& options);
 
     // Set up minimal EM particle list
     void ConstructParticle() override;
@@ -40,5 +38,4 @@ class OpticalPhysics : public G4VPhysicsConstructor
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

@@ -24,6 +24,7 @@
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/global/Stepper.hh"
+#include "celeritas/inp/Field.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"

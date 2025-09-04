@@ -7,12 +7,15 @@
 #include "TrackingManagerConstructor.hh"
 
 #include <G4BuilderType.hh>
+#include <G4Version.hh>
+#if G4VERSION_NUMBER >= 1100
+#    include "TrackingManager.hh"
+#endif
 
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 
 #include "SharedParams.hh"
-#include "TrackingManager.hh"
 #include "TrackingManagerIntegration.hh"
 
 #include "detail/IntegrationSingleton.hh"
@@ -33,6 +36,11 @@ TrackingManagerConstructor::TrackingManagerConstructor(
 {
     // The special "unknown" type will not conflict with any other physics
     this->SetPhysicsType(G4BuilderType::bUnknown);
+
+    CELER_VALIDATE(G4VERSION_NUMBER >= 1100,
+                   << "the current version of Geant4 (" << G4VERSION_NUMBER
+                   << ") is too old to support the tracking manager offload "
+                      "interface (11.0 or higher is required)");
 }
 
 //---------------------------------------------------------------------------//
@@ -93,6 +101,7 @@ void TrackingManagerConstructor::ConstructProcess()
     auto* transporter = this->get_local_transporter();
     CELER_VALIDATE(transporter, << "invalid null local transporter");
 
+#if G4VERSION_NUMBER >= 1100
     // Create *thread-local* tracking manager with pointers to *global*
     // shared params and *thread-local* transporter.
     auto manager = std::make_unique<TrackingManager>(shared_, transporter);
@@ -113,6 +122,7 @@ void TrackingManagerConstructor::ConstructProcess()
                             [](G4ParticleDefinition const* pd) {
                                 return pd->GetParticleName();
                             });
+#endif
 }
 
 //---------------------------------------------------------------------------//

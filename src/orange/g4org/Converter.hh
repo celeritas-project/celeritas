@@ -6,10 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <functional>
-#include <memory>
-#include <unordered_map>
-
 #include "corecel/Config.hh"
 
 #include "orange/OrangeInput.hh"
@@ -24,6 +20,7 @@ class G4LogicalVolume;
 namespace celeritas
 {
 class GeantGeoParams;
+class VolumeParams;
 
 struct OrangeInput;
 namespace orangeinp
@@ -81,7 +78,7 @@ class Converter
     Converter() : Converter{Options{}} {}
 
     // Convert the world
-    result_type operator()(GeantGeoParams const&);
+    result_type operator()(GeantGeoParams const&, VolumeParams const&);
 
   private:
     Options opts_;
@@ -95,7 +92,8 @@ inline Converter::Converter(Options&&)
     CELER_DISCARD(opts_);
 }
 
-inline auto Converter::operator()(arg_type) -> result_type
+inline auto Converter::operator()(GeantGeoParams const&, VolumeParams const&)
+    -> result_type
 {
     CELER_NOT_CONFIGURED("Geant4");
 }

@@ -241,6 +241,9 @@ void GeantSurfacePhysicsLoader::operator()(SurfaceId sid)
         throw;
     }
 
+    // TODO: Update for interstitial materials
+    models_.materials.push_back({});
+
     CELER_LOG(debug) << "Inserted " << to_cstring(model) << " surface '"
                      << surf.GetName() << "' (id=" << sid.unchecked_get()
                      << ")";

@@ -12,6 +12,8 @@
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Label.hh"
+#include "geocel/VolumeCollectionBuilder.hh"
+#include "geocel/VolumeParams.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 
 #include "../StepInterface.hh"
@@ -38,7 +40,11 @@ StepParams::StepParams(AuxId aux_id,
         all
     };
 
-    auto const& volumes = geo.impl_volumes();
+    // FIXME: pass these into the constructor rather than using globals
+    auto const& volume_params = celeritas::global_volumes().lock();
+    CELER_ASSERT(volume_params);
+
+    auto const& volumes = volume_params->volume_labels();
     StepSelection selection;
     CELER_ASSERT(!selection);
     StepInterface::MapVolumeDetector detector_map;
@@ -60,13 +66,12 @@ StepParams::StepParams(AuxId aux_id,
             // Map detector volumes, asserting uniqueness
             CELER_ASSERT(kv.first);
             auto [prev, inserted] = detector_map.insert(kv);
-            CELER_VALIDATE(inserted,
-                           << "multiple step interfaces map single volume "
-                              "to a detector ('"
-                           << volumes.at(prev->first) << "' -> "
-                           << prev->second.get() << " and '"
-                           << volumes.at(kv.first) << "' -> "
-                           << kv.second.get() << ')');
+            CELER_VALIDATE(
+                inserted,
+                << "a single volume is assigned to multiple detectors ('"
+                << volumes.at(prev->first) << "' -> " << prev->second.get()
+                << " and '" << volumes.at(kv.first) << "' -> "
+                << kv.second.get() << ')');
         }
 
         // Filter out zero-energy steps/tracks only if all detectors agree
@@ -88,6 +93,15 @@ StepParams::StepParams(AuxId aux_id,
     CELER_ASSERT(selection);
     CELER_ASSERT((has_det == HasDetectors::none) == detector_map.empty());
 
+    auto vol_to_det = [&detector_map](VolumeId vol_id) {
+        if (auto iter = detector_map.find(vol_id); iter != detector_map.end())
+        {
+            // The real volume maps to a detector
+            return iter->second;
+        }
+        return DetectorId{};
+    };
+
     // Save data
     mirror_ = CollectionMirror{[&] {
         HostVal<StepParamsData> host_data;
@@ -95,19 +109,10 @@ StepParams::StepParams(AuxId aux_id,
 
         if (!detector_map.empty())
         {
-            // Assign detector IDs for each ("logical" in Geant4) volume
-            std::vector<DetectorId> temp_det(geo.impl_volumes().size(),
-                                             DetectorId{});
-            for (auto const& kv : detector_map)
-            {
-                CELER_ASSERT(kv.first < temp_det.size());
-                temp_det[kv.first.unchecked_get()] = kv.second;
-            }
-
-            CollectionBuilder{&host_data.detector}.insert_back(
-                temp_det.begin(), temp_det.end());
-
+            host_data.detector
+                = build_volume_collection<DetectorId>(geo, vol_to_det);
             host_data.nonzero_energy_deposition = nonzero_energy_deposition;
+            CELER_ASSERT(!host_data.detector.empty());
         }
 
         if (selection.points[StepPoint::pre].volume_instance_ids
@@ -115,7 +120,7 @@ StepParams::StepParams(AuxId aux_id,
         {
             // TODO: replace with volume params, so we can use touchable
             // representation
-            host_data.volume_instance_depth = geo.max_depth();
+            host_data.volume_instance_depth = volume_params->depth() + 1;
             CELER_VALIDATE(host_data.volume_instance_depth > 0,
                            << "geometry type does not support volume "
                               "instance IDs: max depth is "

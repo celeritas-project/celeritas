@@ -16,7 +16,6 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
 
@@ -70,7 +69,6 @@ class HitProcessor
     //! \name Type aliases
     using StepStateHostRef = HostRef<StepStateData>;
     using StepStateDeviceRef = DeviceRef<StepStateData>;
-    using SPConstCoreGeo = std::shared_ptr<CoreGeoParams const>;
     using SPConstVecLV
         = std::shared_ptr<std::vector<G4LogicalVolume const*> const>;
     using VecParticle = std::vector<G4ParticleDefinition const*>;
@@ -80,7 +78,6 @@ class HitProcessor
   public:
     // Construct from volumes that have SDs and step selection
     HitProcessor(SPConstVecLV detector_volumes,
-                 SPConstCoreGeo const& geo,
                  VecParticle const& particles,
                  StepSelection const& selection,
                  StepPointBool const& locate_touchable);

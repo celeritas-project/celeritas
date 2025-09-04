@@ -51,18 +51,27 @@ struct G4ExternDeleter
     void operator()(T* ptr) noexcept;
 };
 
+template<class T>
+using GeantUniquePtr = std::unique_ptr<T, G4ExternDeleter<T>>;
+
 //---------------------------------------------------------------------------//
 
 using GeantTouchableHandle = G4ReferenceCountedHandle<GeantTouchableBase>;
-using UPTouchHandle = std::unique_ptr<GeantTouchableHandle,
-                                      G4ExternDeleter<GeantTouchableHandle>>;
-using UPNavigator = std::unique_ptr<G4Navigator, G4ExternDeleter<G4Navigator>>;
+using UPTouchHandle = GeantUniquePtr<GeantTouchableHandle>;
+using UPNavigator = GeantUniquePtr<G4Navigator>;
 
 //---------------------------------------------------------------------------//
 // HOST MEMSPACE
 //---------------------------------------------------------------------------//
 /*!
  * Manage navigation states in host memory.
+ *
+ * Each NavCollection should be used on a single CPU thread.
+ * Geant4 typically is built in multithreaded mode, in which case lots of data
+ * under the hood is "thread local", preventing the use of Geant4
+ * geometry states in an OpenMP context.
+ *
+ * \todo I think we can use collections for the handles+navigators.
  */
 template<>
 struct GeantGeoNavCollection<Ownership::value, MemSpace::host>

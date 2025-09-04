@@ -10,10 +10,7 @@
 #include <G4VPhysicalVolume.hh>
 #include <G4VTouchable.hh>
 
-#include "geocel/GeantGeoUtils.hh"
-#include "geocel/GeoParamsInterface.hh"
-#include "geocel/GeoTraits.hh"
-#include "celeritas/geo/CoreGeoParams.hh"  // IWYU pragma: keep
+#include "geocel/GeantGeoParams.hh"
 #include "celeritas/user/DetectorSteps.hh"
 
 namespace celeritas
@@ -24,8 +21,10 @@ namespace detail
 /*!
  * Construct with the geometry.
  */
-LevelTouchableUpdater::LevelTouchableUpdater(SPConstCoreGeo geo)
-    : geo_{std::move(geo)}, nav_hist_{std::make_unique<G4NavigationHistory>()}
+LevelTouchableUpdater::LevelTouchableUpdater(SPConstGeantGeo geo)
+    : geo_{std::move(geo)}
+    , nav_hist_{std::make_unique<G4NavigationHistory>()}
+    , update_history_{*geo_}
 {
     CELER_EXPECT(geo_);
 }
@@ -60,21 +59,16 @@ bool LevelTouchableUpdater::operator()(SpanVolInst ids,
 {
     CELER_EXPECT(touchable);
 
-    // Update phys_inst_ from geometry and volume instance id
-    phys_inst_.clear();
-    for (auto vi_id : ids)
+    // Trim off trailing null volume instance IDs
+    while (!ids.empty() && !ids.back())
     {
-        if (!vi_id)
-            break;
-        auto phys_inst = geo_->id_to_geant(vi_id);
-        CELER_VALIDATE(
-            phys_inst,
-            << R"(no Geant4 physical volume is attached to volume instance )"
-            << vi_id.get()
-            << "' (geometry type: " << GeoTraits<CoreGeoParams>::name << ')');
-        phys_inst_.push_back(phys_inst);
+        ids = ids.subspan(0, ids.size() - 1);
     }
-    set_history(make_span(phys_inst_), nav_hist_.get());
+
+    // Use the volume instances to reconstruct a nav history
+    update_history_(ids, nav_hist_.get());
+
+    // Copy to the given touchable
     touchable->UpdateYourself(nav_hist_->GetTopVolume(), nav_hist_.get());
     return true;
 }

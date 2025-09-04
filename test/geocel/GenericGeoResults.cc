@@ -7,6 +7,7 @@
 #include "GenericGeoResults.hh"
 
 #include "corecel/OpaqueIdUtils.hh"
+#include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/math/SoftEqual.hh"

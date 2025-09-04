@@ -15,9 +15,9 @@ list(APPEND SOURCES
   BoundingBoxIO.json.cc
   GeoParamsInterface.cc
   GeoParamsOutput.cc
-  GeoVolumeFinder.cc
   SurfaceParams.cc
   VolumeParams.cc
+  VolumeIdBuilder.cc
   VolumeToString.cc
   detail/SurfaceParamsBuilder.cc
   rasterize/Color.cc
@@ -52,6 +52,8 @@ if(CELERITAS_USE_Geant4)
     ScopedGeantExceptionHandler.cc
     ScopedGeantLogger.cc
     GeantGeoParams.cc
+    detail/GeantVolumeInstanceMapper.cc
+    g4/GeantNavHistoryUpdater.cc
     g4/RaytraceImager.cc
     g4/SafetyImager.cc
     g4/detail/GeantGeoNavCollection.cc

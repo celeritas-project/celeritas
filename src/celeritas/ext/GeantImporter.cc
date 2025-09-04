@@ -85,7 +85,6 @@
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/VolumeParams.hh"
-#include "geocel/g4/VisitVolumes.hh"
 #include "geocel/inp/Model.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/inp/Grid.hh"
@@ -659,8 +658,24 @@ inp::OpticalPhysics import_optical_physics()
     }
     log_and_rethrow(std::move(handle));
 
-    CELER_LOG(debug) << "Loaded " << geo->num_surfaces()
-                     << " optical physics surfaces";
+    // Default Geant4 surface
+    size_type num_phys_surfaces{0};
+    for (auto const& mats : result.surfaces.materials)
+    {
+        num_phys_surfaces += mats.size() + 1;
+    }
+    PhysSurfaceId default_surface(num_phys_surfaces);
+    result.surfaces.materials.push_back({});
+    result.surfaces.roughness.polished.emplace(default_surface,
+                                               inp::NoRoughness{});
+    result.surfaces.reflectivity.fresnel.emplace(default_surface,
+                                                 inp::FresnelReflection{});
+    result.surfaces.interaction.dielectric_dielectric.emplace(
+        default_surface, inp::ReflectionForm::from_spike());
+
+    CELER_LOG(debug) << "Loaded " << result.surfaces.materials.size()
+                     << " optical surfaces (" << num_phys_surfaces
+                     << " physics surfaces)";
     CELER_ENSURE(result || (geo->num_surfaces() == 0));
     return result;
 }

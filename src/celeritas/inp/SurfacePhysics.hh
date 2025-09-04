@@ -9,14 +9,16 @@
 #include <algorithm>
 #include <map>
 
-#include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/Types.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/inp/Grid.hh"
 
 namespace celeritas
 {
+class SurfaceModel;
+
 namespace inp
 {
 //---------------------------------------------------------------------------//
@@ -89,13 +91,6 @@ struct GaussianRoughness
 };
 
 //---------------------------------------------------------------------------//
-//!@{
-//! \name Convenience typedef for current simplified layer implementation.
-//! \todo: Support multiple layers (for painted/coated surfaces)
-using SurfaceLayer = SurfaceId;
-//!@}
-
-//---------------------------------------------------------------------------//
 // SURFACE PHYSICS: interaction mechanisms / reflection models.
 //---------------------------------------------------------------------------//
 /*!
@@ -158,15 +153,15 @@ struct ReflectionForm
  * Surface roughness description.
  *
  * \todo Future work will allow the of use multiple surface
- * paints/wrappings managed by different models. \c SurfaceLayer will pair
- * a \c SurfaceId with a \c SurfaceLayerId that defines paint/wrapping
+ * paints/wrappings managed by different models. \c PhysSurfaceId will pair
+ * a \c SurfaceId with a \c PhysSurfaceId that defines paint/wrapping
  * combinations.
  */
 struct RoughnessModels
 {
-    std::map<SurfaceLayer, NoRoughness> polished;
-    std::map<SurfaceLayer, SmearRoughness> smear;
-    std::map<SurfaceLayer, GaussianRoughness> gaussian;
+    std::map<PhysSurfaceId, NoRoughness> polished;
+    std::map<PhysSurfaceId, SmearRoughness> smear;
+    std::map<PhysSurfaceId, GaussianRoughness> gaussian;
 
     //! Whether the data are assigned
     explicit operator bool() const
@@ -183,8 +178,8 @@ struct RoughnessModels
  */
 struct ReflectivityModels
 {
-    std::map<SurfaceLayer, GridReflection> grid;
-    std::map<SurfaceLayer, FresnelReflection> fresnel;
+    std::map<PhysSurfaceId, GridReflection> grid;
+    std::map<PhysSurfaceId, FresnelReflection> fresnel;
 
     //! Whether the data are assigned
     explicit operator bool() const
@@ -203,8 +198,8 @@ struct ReflectivityModels
  */
 struct InteractionModels
 {
-    std::map<SurfaceLayer, ReflectionForm> dielectric_dielectric;
-    std::map<SurfaceLayer, ReflectionForm> dielectric_metal;
+    std::map<PhysSurfaceId, ReflectionForm> dielectric_dielectric;
+    std::map<PhysSurfaceId, ReflectionForm> dielectric_metal;
 
     //! Whether the data are assigned
     explicit operator bool() const
@@ -219,13 +214,19 @@ struct InteractionModels
  *
  * Maps all optical surfaces with interaction models and surface
  * parameters.
+ *
+ * Interstitial materials are the interstitial materials per geometric surface.
+ * The last entry is used as the default surface.
  */
 struct SurfacePhysics
 {
     //!@{
     //! \name type aliases
-    using DetectionEfficiency = std::map<SurfaceLayer, Grid>;
+    using DetectionEfficiency = std::map<PhysSurfaceId, Grid>;
+    using VecInterstitialMaterials = std::vector<OptMatId>;
     //!@}
+
+    std::vector<VecInterstitialMaterials> materials;
 
     RoughnessModels roughness;
     ReflectivityModels reflectivity;
@@ -234,7 +235,7 @@ struct SurfacePhysics
     //! Whether the data are assigned
     explicit operator bool() const
     {
-        return reflectivity && roughness && interaction;
+        return reflectivity && roughness && interaction && !materials.empty();
     }
 };
 
