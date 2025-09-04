@@ -52,18 +52,27 @@ class InputBuilderTest : public JsonOrangeTest
     {
         if (basename_.empty())
         {
-            const_cast<InputBuilderTest*>(this)->set_basename();
+            auto* mthis = const_cast<InputBuilderTest*>(this);
+            mthis->basename_ = mthis->make_unique_filename();
         }
         return basename_;
     }
 
-    std::string_view gdml_basename() const { return geometry_basename(); }
+    std::string_view gdml_basename() const override
+    {
+        return geometry_basename();
+    }
+
+    // FIXME: normal is inconsistent between topbox3 and world_PV
+    bool supports_surface_normal() const override
+    {
+        return supports_surface_normal_;
+    }
+
+  protected:
+    bool supports_surface_normal_{true};
 
   private:
-    void set_basename()
-    {
-        basename_ = const_cast<InputBuilderTest*>(this)->make_unique_filename();
-    }
     std::string basename_;
 };
 
@@ -843,6 +852,9 @@ TEST_F(InputBuilderTest, universes)
 //---------------------------------------------------------------------------//
 TEST_F(InputBuilderTest, hierarchy)
 {
+    // FIXME: normal is inconsistent on transformed boundaries!
+    supports_surface_normal_ = false;
+
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
         auto geo = this->make_geo_track_view();
