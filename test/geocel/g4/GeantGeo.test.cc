@@ -12,6 +12,7 @@
 
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Version.hh"
@@ -47,6 +48,18 @@ class GeantGeoTest : public GeantGeoTestBase
 {
   public:
     using SpanStringView = Span<std::string_view const>;
+
+    static void SetUpTestSuite()
+    {
+        // Print version number for verification on CI systems etc.
+        static bool const have_printed_ = [] {
+            using namespace celeritas::cmake;
+            cout << color_code('x') << "Using Geant4 v" << geant4_version
+                 << color_code(' ') << endl;
+            return true;
+        }();
+        EXPECT_TRUE(have_printed_);
+    }
 
     SPConstGeantGeo build_geant_geo(std::string const& filename) const final
     {
