@@ -25,33 +25,13 @@ MieModel::MieModel(ActionId id, SPConstImported imported, Input input)
     , imported_(ImportModelClass::mie, std::move(imported))
     , input_(std::move(input))
 {
-    // CELER_EXPECT(!input_ || input_.materials->num_materials()
-    //                        == imported_.num_materials());
-
-    for (auto mat : range(OptMatId(imported_.num_materials())))
-    {
-        if (imported_.mfp(mat))
-            CELER_LOG(debug)
-                << "Mie: found imported MFP table for mat " << mat.get();
-        else
-            CELER_LOG(debug) << "Mie: no MFP table for mat " << mat.get()
-                             << " (default = infinite MFP)";
-    }
 }
 
 //---------------------------------------------------------------------------//
 void MieModel::build_mfps(OptMatId mat, MfpBuilder& build) const
 {
-    // CELER_EXPECT(mat < imported_.num_materials());
-    CELER_LOG(debug) << "MieModel::build_mfps called for mat " << mat.get();
-    if (auto const& mfp = imported_.mfp(mat))
-    {
-        build(mfp);
-    }
-    // else
-    // {
-    //     build();  // empty grid → infinite mean free path
-    // }
+    CELER_EXPECT(mat < imported_.num_materials());
+    build(imported_.mfp(mat));
 }
 
 //---------------------------------------------------------------------------//
