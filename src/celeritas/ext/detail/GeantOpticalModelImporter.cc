@@ -76,7 +76,7 @@ ImportOpticalModel GeantOpticalModelImporter::operator()(IMC imc) const
         case IMC::wls2:
             return ImportOpticalModel{imc, this->import_mfps("WLSABSLENGTH2")};
         case IMC::mie:
-            return ImportOpticalModel{imc, this->import_mfps("MIE")};
+            return ImportOpticalModel{imc, this->import_mfps("MIEHG")};
 
         default:
             CELER_ASSERT_UNREACHABLE();
