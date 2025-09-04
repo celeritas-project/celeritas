@@ -34,6 +34,8 @@ tell what variables are in use or may be useful.
  CELER_PROFILE_DEVICE    corecel   Flag: record kernel launch counts
  CUDA_HEAP_SIZE          geocel    Set ``cudaLimitMallocHeapSize`` (VG)
  CUDA_STACK_SIZE         geocel    Set ``cudaLimitStackSize`` for VecGeom
+ G4ORG_EXPORT            orange    Filename base to save converted G4 geo
+ G4ORG_VERBOSE           orange    Flag: verbose Geant4-to-ORANGE conversion
  G4VG_COMPARE_VOLUMES    geocel    Check G4VG volume capacity when converting
  HEPMC3_VERBOSE          celeritas HepMC3 debug level integer
  VECGEOM_VERBOSE         celeritas VecGeom CUDA verbosity integer
