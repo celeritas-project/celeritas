@@ -156,7 +156,7 @@ std::mutex& updating_mutex()
  *
  * This gets the value from environment variables and
  *
- * \todo This will be refactored for 0.6 to take a \c celeritas::inp object and
+ * \todo This will be refactored for 0.7 to take a \c celeritas::inp object and
  * determine values rather than from the environment .
  */
 auto SharedParams::GetMode() -> Mode
@@ -164,16 +164,18 @@ auto SharedParams::GetMode() -> Mode
     using Mode = SharedParams::Mode;
 
     static bool const kill_offload = [] {
-        if (celeritas::getenv("CELER_KILL_OFFLOAD").empty())
-            return false;
+        auto result = getenv_flag("CELER_KILL_OFFLOAD", false);
 
-        CELER_LOG(info) << "Killing Geant4 tracks supported by Celeritas "
-                           "offloading since the 'CELER_KILL_OFFLOAD' "
-                        << "environment variable is present and non-empty";
-        return true;
+        if (result.value)
+        {
+            CELER_LOG(info) << "Killing Geant4 tracks supported by Celeritas "
+                               "offloading";
+        }
+        return result.value;
     }();
     static bool const disabled = [] {
-        if (celeritas::getenv("CELER_DISABLE").empty())
+        auto result = getenv_flag("CELER_DISABLE", false);
+        if (!result.value)
             return false;
 
         if (kill_offload)

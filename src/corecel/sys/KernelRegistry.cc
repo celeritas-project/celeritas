@@ -26,11 +26,7 @@ namespace celeritas
 bool KernelRegistry::profiling()
 {
     static bool const result = [] {
-        if constexpr (CELERITAS_DEBUG)
-        {
-            return true;
-        }
-        return !celeritas::getenv("CELER_PROFILE_DEVICE").empty();
+        return getenv_flag("CELER_PROFILE_DEVICE", CELERITAS_DEBUG).value;
     }();
     return result;
 }
