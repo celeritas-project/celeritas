@@ -20,33 +20,38 @@ tell what variables are in use or may be useful.
  ======================= ========= ==========================================
  Variable                Component Brief description
  ======================= ========= ==========================================
- CELER_COLOR             corecel   Enable/disable ANSI color logging
- CELER_DEBUG_DEVICE      corecel   Increase device error checking and output
- CELER_DISABLE_DEVICE    corecel   Disable CUDA/HIP support
- CELER_DISABLE_PARALLEL  corecel   Disable MPI support
- CELER_DISABLE_ROOT      corecel   Disable ROOT I/O calls
- CELER_DEVICE_ASYNC      corecel   Flag for asynchronous memory allocation
- CELER_ENABLE_PROFILING  corecel   Set up NVTX/ROCTX profiling ranges [#pr]_
- CELER_LOG               corecel   Set the "global" logger verbosity
- CELER_LOG_LOCAL         corecel   Set the "local" logger verbosity
- CELER_MEMPOOL... [#mp]_ corecel   Change ``cudaMemPoolAttrReleaseThreshold``
- CELER_PERFETT... [#bs]_ corecel   Set the in-process tracing buffer size
- CELER_PROFILE_DEVICE    corecel   Record extra kernel launch information
- CUDA_HEAP_SIZE          geocel    Change ``cudaLimitMallocHeapSize`` (VG)
- CUDA_STACK_SIZE         geocel    Change ``cudaLimitStackSize`` for VecGeom
+ CELER_COLOR             corecel   Flag: log with ANSI colors
+ CELER_DEBUG_DEVICE      corecel   Flag: check device ID consistency
+ CELER_DISABLE_DEVICE    corecel   Flag: disable CUDA/HIP support
+ CELER_DISABLE_PARALLEL  corecel   Flag: disable MPI support
+ CELER_DISABLE_ROOT      corecel   Flag: disable ROOT I/O calls
+ CELER_DEVICE_ASYNC      corecel   Flag: allocate memory asynchronously
+ CELER_ENABLE_PROFILING  corecel   Flag: use NVTX/ROCTX profiling [#pr]_
+ CELER_LOG               corecel   Set "global" logger verbosity [#lg]_
+ CELER_LOG_LOCAL         corecel   Set "local" logger verbosity [#lg]_
+ CELER_MEMPOOL... [#mp]_ corecel   Set ``cudaMemPoolAttrReleaseThreshold``
+ CELER_PERFETT... [#bs]_ corecel   Set in-process tracing buffer size
+ CELER_PROFILE_DEVICE    corecel   Flag: record kernel launch counts
+ CUDA_HEAP_SIZE          geocel    Set ``cudaLimitMallocHeapSize`` (VG)
+ CUDA_STACK_SIZE         geocel    Set ``cudaLimitStackSize`` for VecGeom
  G4VG_COMPARE_VOLUMES    geocel    Check G4VG volume capacity when converting
- HEPMC3_VERBOSE          celeritas HepMC3 debug verbosity
- VECGEOM_VERBOSE         celeritas VecGeom CUDA verbosity
- CELER_DISABLE           accel     Disable Celeritas offloading entirely
- CELER_LOG_ALL_LOCAL     accel     Print log messages from all threads
- CELER_KILL_OFFLOAD      accel     Kill Celeritas-supported tracks in Geant4
- CELER_NONFATAL_FLUSH    accel     Instead of crashing, kill tracks [#nf]_
- CELER_STRIP_SOURCEDIR   accel     Strip directories from exception output
+ HEPMC3_VERBOSE          celeritas HepMC3 debug level integer
+ VECGEOM_VERBOSE         celeritas VecGeom CUDA verbosity integer
+ CELER_DISABLE           accel     Flag: disable Celeritas offloading entirely
+ CELER_LOG_ALL_LOCAL     accel     Flag: log more messages from all threads
+ CELER_KILL_OFFLOAD      accel     Flag: kill offloaded tracks [#ko]_
+ CELER_NONFATAL_FLUSH    accel     Flag: print and continue on failure [#nf]_
+ CELER_STRIP_SOURCEDIR   accel     Flag: clean exception output
  ======================= ========= ==========================================
 
-.. [#bs] CELER_PERFETTO_BUFFER_SIZE_MB
-.. [#mp] CELER_MEMPOOL_RELEASE_THRESHOLD
 .. [#pr] See :ref:`profiling`
+.. [#lg] See :ref:`logging`
+.. [#mp] CELER_MEMPOOL_RELEASE_THRESHOLD changes the amount of memory used for
+   the device asynchronous memory pool.
+.. [#bs] CELER_PERFETTO_BUFFER_SIZE_MB
+.. [#ko] This flag, used by ``accel``, omits Celeritas setup and instead kills
+   tracks that would have otherwise been offloaded. This capability can be used
+   to estimate a maximum speedup by using Celeritas.
 .. [#nf] Normally, exceeding the "maximum steps" or interrupting the stepping
    loop will call G4Exception, which normally kills the code. (In external
    frameworks this usually causes a stack trace and core dump.) Instead of

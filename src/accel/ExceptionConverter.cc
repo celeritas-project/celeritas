@@ -35,23 +35,16 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-bool determine_strip()
-{
-    if (!celeritas::getenv("CELER_STRIP_SOURCEDIR").empty())
-    {
-        return true;
-    }
-    return static_cast<bool>(CELERITAS_DEBUG);
-}
-
-//---------------------------------------------------------------------------//
 //! Try removing up to and including the filename from the reported path.
 std::string strip_source_dir(std::string const& filename)
 {
-    static bool const do_strip = determine_strip();
+    static bool const do_strip = [] {
+        auto result = getenv_flag("CELER_STRIP_SOURCEDIR", !CELERITAS_DEBUG);
+        return result.value;
+    }();
     if (!do_strip)
     {
-        // Don't strip in debug mode
+        // Don't strip in debug builds
         return filename;
     }
 
