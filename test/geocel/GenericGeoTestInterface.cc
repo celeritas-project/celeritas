@@ -18,6 +18,7 @@
 
 #    include "geocel/GeantGeoParams.hh"
 #endif
+#include "GenericGeoResults.hh"
 
 namespace celeritas
 {
@@ -28,10 +29,25 @@ namespace test
 /*!
  * Get the safety tolerance (defaults to SoftEq tol).
  */
-real_type GenericGeoTestInterface::safety_tol() const
+GenericGeoTrackingTolerance GenericGeoTestInterface::tracking_tol() const
 {
-    constexpr SoftEqual<> default_seq{};
-    return default_seq.rel();
+    GenericGeoTrackingTolerance result;
+    result.distance = SoftEqual{}.rel();
+    result.normal = celeritas::sqrt_tol();
+    result.safety = result.distance;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether surface normals work for the current geometry/test.
+ *
+ * This defaults to true and should be disabled per geometry
+ * implementation/geometry class.
+ */
+bool GenericGeoTestInterface::supports_surface_normal() const
+{
+    return true;
 }
 
 //---------------------------------------------------------------------------//

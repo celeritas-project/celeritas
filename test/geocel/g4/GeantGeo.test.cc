@@ -17,6 +17,7 @@
 #include "corecel/sys/Version.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/GenericGeoParameterizedTest.hh"
+#include "geocel/GenericGeoResults.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "geocel/GeoTests.hh"
 #include "geocel/UnitUtils.hh"
@@ -57,9 +58,9 @@ class GeantGeoTest : public GeantGeoTestBase
         return result;
     }
 
-    ModelInpResult summarize_model()
+    GenericGeoModelInp summarize_model()
     {
-        return ModelInpResult::from_model_input(
+        return GenericGeoModelInp::from_model_input(
             this->geometry()->make_model_input());
     }
 

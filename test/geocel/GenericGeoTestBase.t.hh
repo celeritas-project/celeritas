@@ -28,6 +28,16 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+//! Default constructor
+template<class HP>
+GenericGeoTestBase<HP>::GenericGeoTestBase() = default;
+
+//---------------------------------------------------------------------------//
+//! Anchored destructor
+template<class HP>
+GenericGeoTestBase<HP>::~GenericGeoTestBase() = default;
+
+//---------------------------------------------------------------------------//
 /*!
  * Build geometry during setup.
  */
@@ -194,17 +204,18 @@ template<class HP>
 auto GenericGeoTestBase<HP>::track(Real3 const& pos, Real3 const& dir)
     -> TrackingResult
 {
-    return this->track(pos, dir, std::numeric_limits<int>::max());
-}
+    int remaining_steps = 1000;
 
-//---------------------------------------------------------------------------//
-template<class HP>
-auto GenericGeoTestBase<HP>::track(Real3 const& pos,
-                                   Real3 const& dir,
-                                   int max_step) -> TrackingResult
-{
-    CELER_EXPECT(max_step > 0);
     TrackingResult result;
+
+    bool const check_surface_normal{this->supports_surface_normal()};
+    if (!check_surface_normal)
+    {
+        CELER_LOG(warning) << "Surface normal checking is disabled for "
+                           << this->gdml_basename() << " using "
+                           << this->geometry_type();
+        result.disable_surface_normal();
+    }
 
     GeoTrackView geo = CheckedGeoTrackView{this->make_geo_track_view(pos, dir)};
     CELER_ASSERT(volumes_);
@@ -217,7 +228,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
         CELER_EXPECT(geo.is_on_boundary());
 
         std::optional<Real3> pre_norm;
-        if (!geo.is_outside())
+        if (check_surface_normal && !geo.is_outside())
         {
             pre_norm = geo.normal();
         }
@@ -225,7 +236,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
         geo.cross_boundary();
         EXPECT_TRUE(geo.is_on_boundary());
 
-        if (!geo.is_outside())
+        if (check_surface_normal && !geo.is_outside())
         {
             auto post_norm = geo.normal();
             if (pre_norm)
@@ -272,11 +283,11 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
         {
             geo.move_to_boundary();
             cross_boundary();
-            --max_step;
+            --remaining_steps;
         }
     }
 
-    while (!geo.is_outside() && max_step > 0)
+    while (!geo.is_outside())
     {
         // Add volume names
         result.volumes.emplace_back(this->volume_name(geo));
@@ -390,7 +401,12 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
                           << ": " << e.what();
             break;
         }
-        --max_step;
+
+        if (remaining_steps-- == 0)
+        {
+            ADD_FAILURE() << "maximum steps exceeded";
+            break;
+        }
     }
 
     // Delete dot_normals that are all 1

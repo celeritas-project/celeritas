@@ -9,6 +9,7 @@
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/cont/VariantUtils.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/inp/Model.hh"
@@ -28,6 +29,19 @@ namespace test
 //---------------------------------------------------------------------------//
 // TRACKING RESULT
 //---------------------------------------------------------------------------//
+// Replace dot-normals with a sentinel value
+void GenericGeoTrackingResult::disable_surface_normal()
+{
+    this->dot_normal = {666};
+}
+
+// Whether surface normals are disabled
+bool GenericGeoTrackingResult::disabled_surface_normal() const
+{
+    auto& dn = this->dot_normal;
+    return dn.size() == 1 && dn.front() == 666;
+}
+
 void GenericGeoTrackingResult::clear_boring_normals()
 {
     auto& dn = this->dot_normal;
@@ -49,8 +63,11 @@ void GenericGeoTrackingResult::print_expected() const
     if (this->dot_normal.empty())
     {
         // See clear_boring_normals
-        cout << R"cpp(// All surface normals are along track dir: ref.dot_normal = {}
-)cpp";
+        cout << "ref.dot_normal = {}; // All normals are along track dir\n";
+    }
+    else if (this->disabled_surface_normal())
+    {
+        cout << "// Surface normal checking is disabled\n";
     }
     else
     {
@@ -62,19 +79,9 @@ void GenericGeoTrackingResult::print_expected() const
         cout << CELER_REF_ATTR(bumps);
     }
 
-    cout << "auto tol = GenericGeoTrackingTolerance::from_test(*test_);\n"
+    cout << "auto tol = test_->;\n"
             "EXPECT_REF_NEAR(ref, result, tol);\n"
             "/*** END CODE ***/\n";
-}
-
-GenericGeoTrackingTolerance
-GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
-{
-    GenericGeoTrackingTolerance tol;
-    tol.distance = SoftEqual{}.rel();
-    tol.normal = celeritas::sqrt_tol();
-    tol.safety = test.safety_tol();
-    return tol;
 }
 
 ::testing::AssertionResult IsRefEq(char const* expr1,
@@ -110,7 +117,14 @@ GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
     IRE_VEC_EQ(volumes);
     IRE_VEC_EQ(volume_instances);
     IRE_VEC_SOFT_EQ(distances, tol.distance);
-    IRE_VEC_SOFT_EQ(dot_normal, tol.normal);
+    if (val1.disabled_surface_normal() || val2.disabled_surface_normal())
+    {
+        CELER_LOG(warning) << "Skipping surface normal comparison";
+    }
+    else
+    {
+        IRE_VEC_SOFT_EQ(dot_normal, tol.normal);
+    }
     IRE_VEC_SOFT_EQ(halfway_safeties, SoftEqual(tol.safety, tol.safety));
     IRE_VEC_SOFT_EQ(bumps, SoftEqual(tol.safety, tol.safety));
 

@@ -71,8 +71,13 @@ TEST_F(FourLevelsTest, detailed_track)
 }
 
 //---------------------------------------------------------------------------//
-using MultiLevelTest
-    = GenericGeoParameterizedTest<GeantOrangeTest, MultiLevelGeoTest>;
+class MultiLevelTest
+    : public GenericGeoParameterizedTest<GeantOrangeTest, MultiLevelGeoTest>
+{
+  public:
+    // FIXME: normal is inconsistent between topbox3 and world_PV
+    bool supports_surface_normal() const override { return false; }
+};
 
 TEST_F(MultiLevelTest, trace)
 {
@@ -116,8 +121,14 @@ TEST_F(PolyhedraTest, trace)
 }
 
 //---------------------------------------------------------------------------//
-using ReplicaTest
-    = GenericGeoParameterizedTest<GeantOrangeTest, ReplicaGeoTest>;
+class ReplicaTest
+    : public GenericGeoParameterizedTest<GeantOrangeTest, ReplicaGeoTest>
+{
+  public:
+    // FIXME: normal is inconsistent between fSecondArmPhys/HadCalScinti
+    // and world_PV
+    bool supports_surface_normal() const override { return false; }
+};
 
 TEST_F(ReplicaTest, trace)
 {

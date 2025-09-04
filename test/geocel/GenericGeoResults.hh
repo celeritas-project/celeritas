@@ -46,12 +46,22 @@ struct GenericGeoTrackingResult
     // Locations the particle had a very tiny distance in a volume
     std::vector<real_type> bumps;  //!< [cm * 3]
 
+    //// STATIC HELPER FUNCTIONS ////
+
     //! Sentinel value for dot_normal when not on surface
     static constexpr real_type no_surface_normal
         = std::numeric_limits<real_type>::infinity();
 
+    //// HELPER FUNCTIONS ////
+
     // Delete dot_normals that are all 1
     void clear_boring_normals();
+
+    // Replace dot-normals with a sentinel value
+    void disable_surface_normal();
+
+    // Whether surface normals are disabled
+    bool disabled_surface_normal() const;
 
     // Print expected expression to cout
     void print_expected() const;
@@ -63,9 +73,6 @@ struct GenericGeoTrackingTolerance
     real_type distance{0};
     real_type normal{0};
     real_type safety{0};
-
-    static GenericGeoTrackingTolerance
-    from_test(GenericGeoTestInterface const&);
 };
 
 // Compare tracking results

@@ -107,7 +107,7 @@ void CmsEeBackDeeGeoTest::test_trace() const
         // All surface normals are along track dir: ref.dot_normal = {}
         ref.halfway_safeties = {0.1, 0.1};
 
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
@@ -121,7 +121,7 @@ void CmsEeBackDeeGeoTest::test_trace() const
         // All surface normals are along track dir: ref.dot_normal = {}
         ref.halfway_safeties = {0.099999999999956, 0.099999999999953};
 
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
 }
@@ -132,7 +132,7 @@ void CmsEeBackDeeGeoTest::test_trace() const
 void CmseGeoTest::test_trace() const
 {
     // Surface VecGeom needs lower safety tolerance
-    real_type const safety_tol = test_->safety_tol();
+    real_type const safety_tol = test_->tracking_tol().safety;
 
     // clang-format off
     {
@@ -235,9 +235,25 @@ void FourLevelsGeoTest::test_accessors() const
 //---------------------------------------------------------------------------//
 void FourLevelsGeoTest::test_trace() const
 {
+    // VGDML doesn't trim pointers
+    bool const is_vecgeom = (test_->geometry_type() == "VecGeom");
+    auto fix_vgdml_names = [is_vecgeom](GenericGeoTrackingResult& result) {
+        if (is_vecgeom)
+        {
+            for (std::string& s : result.volume_instances)
+            {
+                if (s == "World0xdeadbeef_PV")
+                {
+                    s = "World_PV";
+                }
+            }
+        }
+    };
+
     {
         SCOPED_TRACE("Rightward");
         auto result = test_->track({-10, -10, -10}, {1, 0, 0});
+        fix_vgdml_names(result);
 
         GenericGeoTrackingResult ref;
         ref.volumes = {
@@ -290,13 +306,14 @@ void FourLevelsGeoTest::test_trace() const
             3.5,
         };
 
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         delete_orange_safety(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("From just inside outside edge");
         auto result = test_->track({-24 + 0.001, 10., 10.}, {1, 0, 0});
+        fix_vgdml_names(result);
 
         // clang-format off
         GenericGeoTrackingResult ref;
@@ -312,13 +329,14 @@ void FourLevelsGeoTest::test_trace() const
             0.5, 0.5, 3.5, };
         // clang-format on
 
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         delete_orange_safety(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("Leaving world");
         auto result = test_->track({-10, 10, 10}, {0, 1, 0});
+        fix_vgdml_names(result);
 
         GenericGeoTrackingResult ref;
         ref.volumes = {"Shape2", "Shape1", "Envelope", "World"};
@@ -327,12 +345,13 @@ void FourLevelsGeoTest::test_trace() const
         // All surface normals are along track dir: ref.dot_normal = {}
         ref.halfway_safeties = {2.5, 0.5, 1, 3};
 
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("Upward");
         auto result = test_->track({-10, 10, 10}, {0, 0, 1});
+        fix_vgdml_names(result);
 
         GenericGeoTrackingResult ref;
         ref.volumes = {"Shape2", "Shape1", "Envelope", "World"};
@@ -341,7 +360,7 @@ void FourLevelsGeoTest::test_trace() const
         // All surface normals are along track dir: ref.dot_normal = {}
         ref.halfway_safeties = {2.5, 0.5, 1.5, 2.5};
 
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
 }
@@ -372,7 +391,7 @@ void MultiLevelGeoTest::test_trace() const
             3.25, };
         // clang-format on
 
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         delete_orange_safety(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -395,7 +414,7 @@ void MultiLevelGeoTest::test_trace() const
             0.79903810567666, 1, 1.6650635094611, 3.25, };
         // clang-format on
 
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         delete_orange_safety(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -464,6 +483,7 @@ void OpticalSurfacesGeoTest::test_trace() const
     {
         SCOPED_TRACE("Through tubes");
         auto result = test_->track({0, 0, -21}, {0, 0, 1});
+
         GenericGeoTrackingResult ref;
         ref.volumes = {"world", "tube2", "tube1_mid", "tube2", "world"};
         ref.volume_instances = {
@@ -476,12 +496,14 @@ void OpticalSurfacesGeoTest::test_trace() const
         ref.distances = {1, 10, 20, 10, 80};
         // All surface normals are along track dir: ref.dot_normal = {}
         ref.halfway_safeties = {0.5, 5, 10, 5, 40};
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+
+        auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("Across tube through lAr");
         auto result = test_->track({-11, 0, 0}, {1, 0, 0});
+
         GenericGeoTrackingResult ref;
         ref.volumes = {"world", "tube1_mid", "world", "lar_sphere", "world"};
         ref.volume_instances
@@ -489,7 +511,8 @@ void OpticalSurfacesGeoTest::test_trace() const
         ref.distances = {1, 20, 5, 10, 75};
         // All surface normals are along track dir: ref.dot_normal = {}
         ref.halfway_safeties = {0.5, 10, 2.5, 5, 37.5};
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+
+        auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
 }
@@ -559,7 +582,7 @@ void PolyhedraGeoTest::test_trace() const
             4.5,
         };
 
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -623,7 +646,7 @@ void PolyhedraGeoTest::test_trace() const
             4.5,
         };
 
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -687,7 +710,7 @@ void PolyhedraGeoTest::test_trace() const
             4.5,
         };
 
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -751,7 +774,7 @@ void PolyhedraGeoTest::test_trace() const
             4.5,
         };
 
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -763,7 +786,7 @@ void PolyhedraGeoTest::test_trace() const
 
 void ReplicaGeoTest::test_trace() const
 {
-    auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+    auto tol = test_->tracking_tol();
     if (test_->geometry_type() == "Geant4")
     {
         // Replica volumes track less accurately with geant4
@@ -961,12 +984,6 @@ void SolidsGeoTest::test_trace() const
     {
         SCOPED_TRACE("Upper +x");
         auto result = test_->track({-575, 125, 0.5}, {1, 0, 0});
-        if (test_->geometry_type() == "VecGeom")
-        {
-            // v1.2.10: unknown differences outside hyperboloid
-            result.halfway_safeties[1] = 1.99361986757606;
-            result.halfway_safeties[3] = 1.99361986757606;
-        }
 
         GenericGeoTrackingResult ref;
         ref.volumes = {
@@ -1045,20 +1062,19 @@ void SolidsGeoTest::test_trace() const
             74.5,
         };
 
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        if (test_->geometry_type() == "VecGeom")
+        {
+            // v1.2.10: unknown differences outside hyperboloid
+            ref.halfway_safeties[1] = 1.99361986757606;
+            ref.halfway_safeties[3] = 1.99361986757606;
+        }
+
+        auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("Center -x");
         auto result = test_->track({575, 0, 0.50}, {-1, 0, 0});
-        if (test_->geometry_type() == "VecGeom")
-        {
-            // v1.2.10: unknown differences
-            result.halfway_safeties[4] = 7.82052980478031;
-            result.halfway_safeties[14] = 42.8397753718277;
-            result.halfway_safeties[15] = 18.8833925371992;
-            result.halfway_safeties[16] = 42.8430141842906;
-        }
 
         GenericGeoTrackingResult ref;
         ref.volumes = {
@@ -1143,46 +1159,21 @@ void SolidsGeoTest::test_trace() const
             6.5489918373272,
             33.481506089183,
         };
-
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        if (test_->geometry_type() == "VecGeom")
+        {
+            // VecGeom v1.2.11 (path,Scalar) using G4VG v1.0.4+builtin and
+            // Geant4 v11.3.1
+            ref.halfway_safeties[4] = 7.82052980478031;
+            ref.halfway_safeties[14] = 42.8397753718277;
+            ref.halfway_safeties[15] = 18.8833925371992;
+            ref.halfway_safeties[16] = 42.8430141842906;
+        }
+        auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("Lower +x");
         auto result = test_->track({-575, -125, 0.5}, {1, 0, 0});
-        if (test_->geometry_type() == "Geant4"
-            && geant4_version < Version{11, 3})
-        {
-            // Older versions of Geant4 have a bug in Arb8 that overestimates
-            // safety distance to twisted surfaces
-            result.halfway_safeties[4] = 38.205672682313;
-            result.halfway_safeties[6] = 38.803595749271;
-        }
-        else if (test_->geometry_type() == "VecGeom")
-        {
-            result.halfway_safeties = {
-                17.391607656793,
-                14.968644196913,
-                12.394878533861,
-                29.99665061979,
-                27.765772866092,
-                17.5,
-                21.886464159888,
-                29.111537609107,
-                15.672519698479,
-                26.80540527207,
-                2.9387549751221,
-                4.4610799311799,
-                39.5,
-                19.038294080807,
-                0.5,
-                29.515478338297,
-                0,
-                28.615060270982,
-                20,
-                74.5,
-            };
-        }
 
         GenericGeoTrackingResult ref;
         ref.volumes = {
@@ -1263,8 +1254,29 @@ void SolidsGeoTest::test_trace() const
             20,
             74.5,
         };
+        if (test_->geometry_type() == "Geant4"
+            && geant4_version < Version{11, 3})
+        {
+            // Older versions of Geant4 have a bug in Arb8 that overestimates
+            // safety distance to twisted surfaces
+            ref.halfway_safeties[4] = 38.205672682313;
+            ref.halfway_safeties[6] = 38.803595749271;
+        }
+        else if (test_->geometry_type() == "VecGeom")
+        {
+            // VecGeom v1.2.11 (path,Scalar) using G4VG v1.0.4+builtin and
+            // Geant4 v11.3.1
+            ref.halfway_safeties[3] = 29.9966506197896;
+            ref.halfway_safeties[4] = 27.7657728660916;
+            ref.halfway_safeties[5] = 17.5;
+            ref.halfway_safeties[6] = 21.8864641598878;
+            ref.halfway_safeties[7] = 29.1115376091067;
+            ref.halfway_safeties[13] = 19.0382940808067;
+            ref.halfway_safeties[14] = 0.5;
+            ref.halfway_safeties[17] = 28.6150602709819;
+        }
 
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
@@ -1327,7 +1339,7 @@ void SolidsGeoTest::test_trace() const
             74.5,
         };
 
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
 }
@@ -1370,9 +1382,9 @@ void SimpleCmsGeoTest::test_trace() const
         if (is_orange)
         {
             // TODO: at this exact point it ignores the cylindrical distance
-            result.halfway_safeties[1] = ref.halfway_safeties[1];
+            ref.halfway_safeties[1] = result.halfway_safeties[1];
         }
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
@@ -1388,9 +1400,9 @@ void SimpleCmsGeoTest::test_trace() const
 
         if (is_orange)
         {
-            result.halfway_safeties[2] = ref.halfway_safeties[2];
+            ref.halfway_safeties[2] = result.halfway_safeties[2];
         }
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
 }
@@ -1447,7 +1459,7 @@ void TestEm3GeoTest::test_trace() const
             0.115, 0.285, 2,
         };
 
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
         {
             tol.distance = 1e-5f;
@@ -1520,7 +1532,7 @@ void TestEm3FlatGeoTest::test_trace() const
             0.285,  0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
             0.115,  0.285, 2,
         };
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
         {
             tol.distance = 1e-5f;
@@ -1554,7 +1566,7 @@ void TilecalPlugGeoTest::test_trace() const
         ref.distances = {22.9425, 0.115, 42, 37};
         // All surface normals are along track dir: ref.dot_normal = {}
         ref.halfway_safeties = {9.7, 0.0575, 9.7, 9.7};
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
@@ -1567,7 +1579,7 @@ void TilecalPlugGeoTest::test_trace() const
         ref.distances = {23.0575, 42, 37};
         // All surface normals are along track dir: ref.dot_normal = {}
         ref.halfway_safeties = {9.2, 9.2, 9.2};
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
 }
@@ -1648,7 +1660,7 @@ void TransformedBoxGeoTest::test_trace() const
             19,
         };
 
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         delete_orange_safety(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -1710,7 +1722,7 @@ void TransformedBoxGeoTest::test_trace() const
             19,
         };
 
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         delete_orange_safety(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -1773,7 +1785,7 @@ void TransformedBoxGeoTest::test_trace() const
             19,
         };
 
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         delete_orange_safety(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -1790,7 +1802,7 @@ void TransformedBoxGeoTest::test_trace() const
         ref.halfway_safeties
             = {9.25, 0.56184193052552, 0.05, 0.56135125378224, 24.25};
 
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         delete_orange_safety(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -1821,7 +1833,7 @@ void TwoBoxesGeoTest::test_trace() const
         ref.distances = {20, 10, 495};
         ref.halfway_safeties = {10, 4.75, 247.5};
         ref.bumps = {};
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
 }
@@ -1868,7 +1880,7 @@ void ZnenvGeoTest::test_trace() const
         };
         ref.bumps = {};
 
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result, "World");
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -1895,7 +1907,7 @@ void ZnenvGeoTest::test_trace() const
         };
         ref.bumps = {};
 
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result, "World");
         EXPECT_REF_NEAR(ref, result, tol);
     }
