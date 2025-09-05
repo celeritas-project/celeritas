@@ -501,7 +501,7 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         EXPECT_EQ("Shape2", test->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
 
-        if (test->geometry_type() == "Geant4")
+        if (CELERITAS_DEBUG && test->geometry_type() == "Geant4")
         {
             // TODO: Geant4 does not allow crossing to new volume and returning
             // to old
@@ -518,7 +518,7 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         else
         {
             // Vecgeom doesn't correctly cross back and forth, but it doesn't
-            // throw...
+            // throw on debug...
         }
 
         // Now move just barely inside the sphere

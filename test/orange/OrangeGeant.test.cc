@@ -128,6 +128,19 @@ class ReplicaTest
     // FIXME: normal is inconsistent between fSecondArmPhys/HadCalScinti
     // and world_PV
     bool supports_surface_normal() const override { return false; }
+
+    //! Distance is slightly off for single precision
+    GenericGeoTrackingTolerance tracking_tol() const override
+    {
+        auto result = GeantOrangeTest::tracking_tol();
+
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+        {
+            result.distance *= 10;
+        }
+
+        return result;
+    }
 };
 
 TEST_F(ReplicaTest, trace)
