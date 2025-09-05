@@ -12,8 +12,6 @@
 
 #include "corecel/Macros.hh"
 
-class G4coutDestination;
-
 namespace celeritas
 {
 class Logger;
@@ -45,9 +43,9 @@ class ScopedGeantLogger
     CELER_DELETE_COPY_MOVE(ScopedGeantLogger);
 
   private:
-#if CELERITAS_USE_GEANT4
-    std::unique_ptr<G4coutDestination> logger_;
-#endif
+    class StreamDestination;
+
+    std::unique_ptr<StreamDestination> logger_;
 };
 
 #if !CELERITAS_USE_GEANT4
@@ -59,6 +57,9 @@ inline bool ScopedGeantLogger::enabled()
 inline ScopedGeantLogger::ScopedGeantLogger(Logger&) {}
 inline ScopedGeantLogger::ScopedGeantLogger() {}
 inline ScopedGeantLogger::~ScopedGeantLogger() {}
+class ScopedGeantLogger::StreamDestination
+{
+};
 #endif
 
 //---------------------------------------------------------------------------//
