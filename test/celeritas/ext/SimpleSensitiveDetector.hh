@@ -37,7 +37,11 @@ struct SimpleHitsResult
 class SimpleSensitiveDetector final : public G4VSensitiveDetector
 {
   public:
+    // Construct with LV pointer for internal testing
     explicit SimpleSensitiveDetector(G4LogicalVolume const* lv);
+
+    // Construct with string name when attaching to multiple LVs
+    explicit SimpleSensitiveDetector(std::string const& name);
 
     //! Access hit data
     SimpleHitsResult const& hits() const { return hits_; }

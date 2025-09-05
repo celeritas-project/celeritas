@@ -112,6 +112,10 @@ TEST(QuantityTest, mixed_precision)
     {
         auto two_dozen_flt = native_value_to<DozenFlt>(24);
         EXPECT_SOFT_EQ(2, two_dozen_flt.value());
+
+        DozenFlt demoted{4};
+        demoted = DozenDbl{6.5};
+        EXPECT_FLOAT_EQ(6.5f, demoted.value());
     }
 }
 

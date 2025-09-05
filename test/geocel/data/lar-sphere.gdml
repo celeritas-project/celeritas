@@ -131,6 +131,7 @@
     <volume name="sphere">
       <solidref ref="sphere"/>
       <materialref ref="lAr"/>
+      <auxiliary auxtype="SensDet" auxvalue="detector"/>
     </volume>
     <volume name="world">
       <solidref ref="world_sphere"/>
