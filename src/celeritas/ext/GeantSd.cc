@@ -95,6 +95,7 @@ GeantSd::GeantSd(SPConstCoreGeo geo,
 
     // Convert setup options to step data
     selection_.particle = setup.track;
+    selection_.weight = setup.track;
     selection_.energy_deposition = setup.energy_deposition;
     selection_.step_length = setup.step_length;
     for (auto p : range(StepPoint::size_))
