@@ -465,7 +465,7 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
         }
     }
 
-    if (input_.simplification == UnitSimplification::infix_logic)
+    if (input_.simplification == Simplify::infix)
     {
         unit_builder.simplifiy_joins();
     }
