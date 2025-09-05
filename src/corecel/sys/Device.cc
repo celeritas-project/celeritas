@@ -134,11 +134,7 @@ int Device::num_devices()
 bool Device::debug()
 {
     static bool const result = [] {
-        if constexpr (CELERITAS_DEBUG)
-        {
-            return true;
-        }
-        return !celeritas::getenv("CELER_DEBUG_DEVICE").empty();
+        return getenv_flag("CELER_DEBUG_DEVICE", CELERITAS_DEBUG).value;
     }();
     return result;
 }
@@ -345,7 +341,8 @@ void activate_device(Device&& device)
     std::lock_guard<std::mutex> scoped_lock{m};
     Device& d = global_device();
     CELER_VALIDATE(
-        !d, << R"(activate_device may be called only once per application)");
+        !d || d.device_id() == device.device_id(),
+        << R"(an active device is not allowed to change or deactivate during the run)");
 
     if (!device)
         return;

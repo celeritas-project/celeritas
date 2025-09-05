@@ -18,21 +18,23 @@ namespace test
 //---------------------------------------------------------------------------//
 /* The BIHIntersectingVolFinder class is tested with the following geometry,
  * consisting of partial and fully overlapping bounding boxes.
- *
- *         0    V1    1.6
- *         |--------------|
- *
- *                    1.2   V2    2.8
- *                    |---------------|
- *    y=1 ____________________________________________________
- *        |           |   |           |                      |
- *        |           |   |           |         V3           |
- *    y=0 |___________|___|___________|______________________|
- *        |                                                  |
- *        |             V4, V5 (total overlap)               |
- *   y=-1 |__________________________________________________|
- *
- *        x=0                                                x=5
+ * \verbatim
+
+           0    V1    1.6
+           |--------------|
+
+                      1.2   V2    2.8
+                      |---------------|
+      y=1 ____________________________________________________
+          |           |   |           |                      |
+          |           |   |           |         V3           |
+      y=0 |___________|___|___________|______________________|
+          |                                                  |
+          |             V4, V5 (total overlap)               |
+     y=-1 |__________________________________________________|
+
+          x=0                                                x=5
+   \endverbatim
  */
 class BIHIntersectingVolFinderTest : public Test
 {
@@ -44,22 +46,24 @@ class BIHIntersectingVolFinderTest : public Test
     using Ray = celeritas::detail::BIHIntersectingVolFinder::Ray;
     using DistMap = std::map<LocalVolumeId, real_type>;
 
-    void SetUp()
+  protected:
+    void setup(size_type min_split_size)
     {
-        bboxes_.push_back(FastBBox::from_infinite());
-        bboxes_.push_back({{0, 0, 0}, {1.6f, 1, 100}});
-        bboxes_.push_back({{1.2f, 0, 0}, {2.8f, 1, 100}});
-        bboxes_.push_back({{2.8f, 0, 0}, {5, 1, 100}});
-        bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
-        bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
+        BIHBuilder::VecBBox bboxes = {
+            FastBBox::from_infinite(),
+            {{0, 0, 0}, {1.6f, 1, 100}},
+            {{1.2f, 0, 0}, {2.8f, 1, 100}},
+            {{2.8f, 0, 0}, {5, 1, 100}},
+            {{0, -1, 0}, {5, 0, 100}},
+            {{0, -1, 0}, {5, 0, 100}},
+        };
 
-        BIHBuilder build(&storage_);
+        BIHBuilder build(&storage_, BIHBuilder::Input{min_split_size});
         BIHBuilder::SetLocalVolId implicit_vol_ids_;
-        bih_tree_ = build(std::move(bboxes_), implicit_vol_ids_);
+        bih_tree_ = build(std::move(bboxes), implicit_vol_ids_);
         ref_storage_ = storage_;
     }
 
-  protected:
     // Mock class with operator() to serve as a visit_vol functor
     struct MockVisitVol
     {
@@ -122,244 +126,270 @@ class BIHIntersectingVolFinderTest : public Test
 // intersection yields the first volume intersection.
 TEST_F(BIHIntersectingVolFinderTest, outside_first)
 {
-    Real3 pos, dir;
-    DistMap dist_map;
+    auto run_test = [&](size_type min_split_size) {
+        this->setup(min_split_size);
+        Real3 pos, dir;
+        DistMap dist_map;
 
-    // Ray intersects V1 from the left
-    pos = {-1., 0.5, 50.};
-    dir = {1., 0., 0.};
-    dist_map = {{LocalVolumeId{0}, 10},
-                {LocalVolumeId{1}, 1},
-                {LocalVolumeId{2}, 1.2},
-                {LocalVolumeId{3}, 2.8},
-                {LocalVolumeId{4}, inff_},
-                {LocalVolumeId{5}, inff_}};
-    this->check_result({pos, dir}, dist_map, LocalVolumeId{1}, 1.0);
+        // Ray intersects V1 from the left
+        pos = {-1., 0.5, 50.};
+        dir = {1., 0., 0.};
+        dist_map = {{LocalVolumeId{0}, 10},
+                    {LocalVolumeId{1}, 1},
+                    {LocalVolumeId{2}, 1.2},
+                    {LocalVolumeId{3}, 2.8},
+                    {LocalVolumeId{4}, inff_},
+                    {LocalVolumeId{5}, inff_}};
+        this->check_result({pos, dir}, dist_map, LocalVolumeId{1}, 1.0);
 
-    // Ray intersects V2 from above
-    pos = {2., 2., 50.};
-    dir = {0., -1., 0.};
-    dist_map = {{LocalVolumeId{0}, inff_},
-                {LocalVolumeId{1}, inff_},
-                {LocalVolumeId{2}, 1.},
-                {LocalVolumeId{3}, inff_},
-                {LocalVolumeId{4}, 2.},
-                {LocalVolumeId{5}, 2.}};
-    this->check_result({pos, dir}, dist_map, LocalVolumeId{2}, 1);
+        // Ray intersects V2 from above
+        pos = {2., 2., 50.};
+        dir = {0., -1., 0.};
+        dist_map = {{LocalVolumeId{0}, inff_},
+                    {LocalVolumeId{1}, inff_},
+                    {LocalVolumeId{2}, 1.},
+                    {LocalVolumeId{3}, inff_},
+                    {LocalVolumeId{4}, 2.},
+                    {LocalVolumeId{5}, 2.}};
+        this->check_result({pos, dir}, dist_map, LocalVolumeId{2}, 1);
 
-    // Ray intersects V3 from the right
-    pos = {6, 0.5, 50.};
-    dir = {-1., 0., 0.};
-    dist_map = {{LocalVolumeId{0}, inff_},
-                {LocalVolumeId{1}, 4.4},
-                {LocalVolumeId{2}, 3.2},
-                {LocalVolumeId{3}, 1.},
-                {LocalVolumeId{4}, inff_},
-                {LocalVolumeId{5}, inff_}};
-    this->check_result({pos, dir}, dist_map, LocalVolumeId{3}, 1.0);
+        // Ray intersects V3 from the right
+        pos = {6, 0.5, 50.};
+        dir = {-1., 0., 0.};
+        dist_map = {{LocalVolumeId{0}, inff_},
+                    {LocalVolumeId{1}, 4.4},
+                    {LocalVolumeId{2}, 3.2},
+                    {LocalVolumeId{3}, 1.},
+                    {LocalVolumeId{4}, inff_},
+                    {LocalVolumeId{5}, inff_}};
+        this->check_result({pos, dir}, dist_map, LocalVolumeId{3}, 1.0);
 
-    // Ray intersects V4 from the left
-    pos = {-0.5, -0.5, 50.};
-    dir = {1., 0., 0.};
-    dist_map = {{LocalVolumeId{0}, inff_},
-                {LocalVolumeId{1}, inff_},
-                {LocalVolumeId{2}, inff_},
-                {LocalVolumeId{3}, inff_},
-                {LocalVolumeId{4}, 1.2},
-                {LocalVolumeId{5}, 1.3}};
-    this->check_result({pos, dir}, dist_map, LocalVolumeId{4}, 1.2);
+        // Ray intersects V4 from the left
+        pos = {-0.5, -0.5, 50.};
+        dir = {1., 0., 0.};
+        dist_map = {{LocalVolumeId{0}, inff_},
+                    {LocalVolumeId{1}, inff_},
+                    {LocalVolumeId{2}, inff_},
+                    {LocalVolumeId{3}, inff_},
+                    {LocalVolumeId{4}, 1.2},
+                    {LocalVolumeId{5}, 1.3}};
+        this->check_result({pos, dir}, dist_map, LocalVolumeId{4}, 1.2);
 
-    // Ray intersects V5 from the left
-    pos = {-0.5, -0.5, 50.};
-    dir = {1., 0., 0.};
-    dist_map = {{LocalVolumeId{0}, inff_},
-                {LocalVolumeId{1}, inff_},
-                {LocalVolumeId{2}, inff_},
-                {LocalVolumeId{3}, inff_},
-                {LocalVolumeId{4}, 1.3},
-                {LocalVolumeId{5}, 1.2}};
-    this->check_result({pos, dir}, dist_map, LocalVolumeId{5}, 1.2);
+        // Ray intersects V5 from the left
+        pos = {-0.5, -0.5, 50.};
+        dir = {1., 0., 0.};
+        dist_map = {{LocalVolumeId{0}, inff_},
+                    {LocalVolumeId{1}, inff_},
+                    {LocalVolumeId{2}, inff_},
+                    {LocalVolumeId{3}, inff_},
+                    {LocalVolumeId{4}, 1.3},
+                    {LocalVolumeId{5}, 1.2}};
+        this->check_result({pos, dir}, dist_map, LocalVolumeId{5}, 1.2);
 
-    // Ray intersects V5 from the left, max search distance is closer
-    pos = {-0.5, -0.5, 50.};
-    dir = {1., 0., 0.};
-    dist_map = {{LocalVolumeId{0}, inff_},
-                {LocalVolumeId{1}, inff_},
-                {LocalVolumeId{2}, inff_},
-                {LocalVolumeId{3}, inff_},
-                {LocalVolumeId{4}, 1.3},
-                {LocalVolumeId{5}, 1.2}};
-    this->check_result({pos, dir}, dist_map, LocalVolumeId{}, 1.1, 1.1);
+        // Ray intersects V5 from the left, max search distance is closer
+        pos = {-0.5, -0.5, 50.};
+        dir = {1., 0., 0.};
+        dist_map = {{LocalVolumeId{0}, inff_},
+                    {LocalVolumeId{1}, inff_},
+                    {LocalVolumeId{2}, inff_},
+                    {LocalVolumeId{3}, inff_},
+                    {LocalVolumeId{4}, 1.3},
+                    {LocalVolumeId{5}, 1.2}};
+        this->check_result({pos, dir}, dist_map, LocalVolumeId{}, 1.1, 1.1);
 
-    // Ray intersects V5 from the left, max search distance is further
-    pos = {-0.5, -0.5, 50.};
-    dir = {1., 0., 0.};
-    dist_map = {{LocalVolumeId{0}, inff_},
-                {LocalVolumeId{1}, inff_},
-                {LocalVolumeId{2}, inff_},
-                {LocalVolumeId{3}, inff_},
-                {LocalVolumeId{4}, 1.3},
-                {LocalVolumeId{5}, 1.2}};
-    this->check_result({pos, dir}, dist_map, LocalVolumeId{5}, 1.3, 1.2);
+        // Ray intersects V5 from the left, max search distance is further
+        pos = {-0.5, -0.5, 50.};
+        dir = {1., 0., 0.};
+        dist_map = {{LocalVolumeId{0}, inff_},
+                    {LocalVolumeId{1}, inff_},
+                    {LocalVolumeId{2}, inff_},
+                    {LocalVolumeId{3}, inff_},
+                    {LocalVolumeId{4}, 1.3},
+                    {LocalVolumeId{5}, 1.2}};
+        this->check_result({pos, dir}, dist_map, LocalVolumeId{5}, 1.3, 1.2);
+    };
+
+    for (auto min_split_size : range(2, 5))
+    {
+        run_test(min_split_size);
+    }
 }
 
 // Test the case where the ray starts somewhere inside a bbox and this bbox
 // contains first intersecting volume.
 TEST_F(BIHIntersectingVolFinderTest, inside_first)
 {
-    Real3 pos, dir;
-    DistMap dist_map;
+    auto run_test = [&](size_type min_split_size) {
+        this->setup(min_split_size);
+        Real3 pos, dir;
+        DistMap dist_map;
 
-    // Ray starts in VO and intersects V0
-    pos = {-1., 0.5, 50.};
-    dir = {1., 0., 0.};
-    dist_map = {{LocalVolumeId{0}, 0.5},
-                {LocalVolumeId{1}, 1},
-                {LocalVolumeId{2}, 1.2},
-                {LocalVolumeId{3}, 2.8},
-                {LocalVolumeId{4}, inff_},
-                {LocalVolumeId{5}, inff_}};
-    this->check_result({pos, dir}, dist_map, LocalVolumeId{0}, 0.5);
+        // Ray starts in VO and intersects V0
+        pos = {-1., 0.5, 50.};
+        dir = {1., 0., 0.};
+        dist_map = {{LocalVolumeId{0}, 0.5},
+                    {LocalVolumeId{1}, 1},
+                    {LocalVolumeId{2}, 1.2},
+                    {LocalVolumeId{3}, 2.8},
+                    {LocalVolumeId{4}, inff_},
+                    {LocalVolumeId{5}, inff_}};
+        this->check_result({pos, dir}, dist_map, LocalVolumeId{0}, 0.5);
 
-    // Ray starts in V1 and intersects V1
-    pos = {1., 0.5, 50.};
-    dir = {1., 0., 0.};
-    dist_map = {{LocalVolumeId{0}, 10},
-                {LocalVolumeId{1}, 0.1},
-                {LocalVolumeId{2}, 0.7},
-                {LocalVolumeId{3}, 2.3},
-                {LocalVolumeId{4}, inff_},
-                {LocalVolumeId{5}, inff_}};
-    this->check_result({pos, dir}, dist_map, LocalVolumeId{1}, 0.1);
+        // Ray starts in V1 and intersects V1
+        pos = {1., 0.5, 50.};
+        dir = {1., 0., 0.};
+        dist_map = {{LocalVolumeId{0}, 10},
+                    {LocalVolumeId{1}, 0.1},
+                    {LocalVolumeId{2}, 0.7},
+                    {LocalVolumeId{3}, 2.3},
+                    {LocalVolumeId{4}, inff_},
+                    {LocalVolumeId{5}, inff_}};
+        this->check_result({pos, dir}, dist_map, LocalVolumeId{1}, 0.1);
 
-    // Ray starts in V2 and intersects V2
-    pos = {2., 2., 50.};
-    dir = {0., -1., 0.};
-    dist_map = {{LocalVolumeId{0}, inff_},
-                {LocalVolumeId{1}, inff_},
-                {LocalVolumeId{2}, 1.},
-                {LocalVolumeId{3}, inff_},
-                {LocalVolumeId{4}, 2.},
-                {LocalVolumeId{5}, 2.}};
-    this->check_result({pos, dir}, dist_map, LocalVolumeId{2}, 1);
+        // Ray starts in V2 and intersects V2
+        pos = {2., 2., 50.};
+        dir = {0., -1., 0.};
+        dist_map = {{LocalVolumeId{0}, inff_},
+                    {LocalVolumeId{1}, inff_},
+                    {LocalVolumeId{2}, 1.},
+                    {LocalVolumeId{3}, inff_},
+                    {LocalVolumeId{4}, 2.},
+                    {LocalVolumeId{5}, 2.}};
+        this->check_result({pos, dir}, dist_map, LocalVolumeId{2}, 1);
 
-    // Ray starts in V3 and intersects V3
-    pos = {4, 0.5, 50.};
-    dir = {-1., 0., 0.};
-    dist_map = {{LocalVolumeId{0}, inff_},
-                {LocalVolumeId{1}, 2.4},
-                {LocalVolumeId{2}, 1.2},
-                {LocalVolumeId{3}, 1.},
-                {LocalVolumeId{4}, inff_},
-                {LocalVolumeId{5}, inff_}};
-    this->check_result({pos, dir}, dist_map, LocalVolumeId{3}, 1.0);
+        // Ray starts in V3 and intersects V3
+        pos = {4, 0.5, 50.};
+        dir = {-1., 0., 0.};
+        dist_map = {{LocalVolumeId{0}, inff_},
+                    {LocalVolumeId{1}, 2.4},
+                    {LocalVolumeId{2}, 1.2},
+                    {LocalVolumeId{3}, 1.},
+                    {LocalVolumeId{4}, inff_},
+                    {LocalVolumeId{5}, inff_}};
+        this->check_result({pos, dir}, dist_map, LocalVolumeId{3}, 1.0);
 
-    // Ray intersects V4 from the left
-    pos = {0.5, -0.5, 50.};
-    dir = {1., 0., 0.};
-    dist_map = {{LocalVolumeId{0}, inff_},
-                {LocalVolumeId{1}, inff_},
-                {LocalVolumeId{2}, inff_},
-                {LocalVolumeId{3}, inff_},
-                {LocalVolumeId{4}, 1.2},
-                {LocalVolumeId{5}, 1.3}};
-    this->check_result({pos, dir}, dist_map, LocalVolumeId{4}, 1.2);
+        // Ray intersects V4 from the left
+        pos = {0.5, -0.5, 50.};
+        dir = {1., 0., 0.};
+        dist_map = {{LocalVolumeId{0}, inff_},
+                    {LocalVolumeId{1}, inff_},
+                    {LocalVolumeId{2}, inff_},
+                    {LocalVolumeId{3}, inff_},
+                    {LocalVolumeId{4}, 1.2},
+                    {LocalVolumeId{5}, 1.3}};
+        this->check_result({pos, dir}, dist_map, LocalVolumeId{4}, 1.2);
 
-    // Ray intersects V5 from the left
-    pos = {0.5, -0.5, 50.};
-    dir = {1., 0., 0.};
-    dist_map = {{LocalVolumeId{0}, inff_},
-                {LocalVolumeId{1}, inff_},
-                {LocalVolumeId{2}, inff_},
-                {LocalVolumeId{3}, inff_},
-                {LocalVolumeId{4}, 1.3},
-                {LocalVolumeId{5}, 1.2}};
-    this->check_result({pos, dir}, dist_map, LocalVolumeId{5}, 1.2);
+        // Ray intersects V5 from the left
+        pos = {0.5, -0.5, 50.};
+        dir = {1., 0., 0.};
+        dist_map = {{LocalVolumeId{0}, inff_},
+                    {LocalVolumeId{1}, inff_},
+                    {LocalVolumeId{2}, inff_},
+                    {LocalVolumeId{3}, inff_},
+                    {LocalVolumeId{4}, 1.3},
+                    {LocalVolumeId{5}, 1.2}};
+        this->check_result({pos, dir}, dist_map, LocalVolumeId{5}, 1.2);
 
-    // Ray intersects V5 from the left, max search distance is closer
-    pos = {0.5, -0.5, 50.};
-    dir = {1., 0., 0.};
-    dist_map = {{LocalVolumeId{0}, inff_},
-                {LocalVolumeId{1}, inff_},
-                {LocalVolumeId{2}, inff_},
-                {LocalVolumeId{3}, inff_},
-                {LocalVolumeId{4}, 1.3},
-                {LocalVolumeId{5}, 1.2}};
-    this->check_result({pos, dir}, dist_map, LocalVolumeId{}, 0.1, 0.1);
+        // Ray intersects V5 from the left, max search distance is closer
+        pos = {0.5, -0.5, 50.};
+        dir = {1., 0., 0.};
+        dist_map = {{LocalVolumeId{0}, inff_},
+                    {LocalVolumeId{1}, inff_},
+                    {LocalVolumeId{2}, inff_},
+                    {LocalVolumeId{3}, inff_},
+                    {LocalVolumeId{4}, 1.3},
+                    {LocalVolumeId{5}, 1.2}};
+        this->check_result({pos, dir}, dist_map, LocalVolumeId{}, 0.1, 0.1);
 
-    // Ray intersects V5 from the left, max search distance is further
-    pos = {0.5, -0.5, 50.};
-    dir = {1., 0., 0.};
-    dist_map = {{LocalVolumeId{0}, inff_},
-                {LocalVolumeId{1}, inff_},
-                {LocalVolumeId{2}, inff_},
-                {LocalVolumeId{3}, inff_},
-                {LocalVolumeId{4}, 1.3},
-                {LocalVolumeId{5}, 1.2}};
-    this->check_result({pos, dir}, dist_map, LocalVolumeId{5}, 1.6, 1.2);
+        // Ray intersects V5 from the left, max search distance is further
+        pos = {0.5, -0.5, 50.};
+        dir = {1., 0., 0.};
+        dist_map = {{LocalVolumeId{0}, inff_},
+                    {LocalVolumeId{1}, inff_},
+                    {LocalVolumeId{2}, inff_},
+                    {LocalVolumeId{3}, inff_},
+                    {LocalVolumeId{4}, 1.3},
+                    {LocalVolumeId{5}, 1.2}};
+        this->check_result({pos, dir}, dist_map, LocalVolumeId{5}, 1.6, 1.2);
+    };
+
+    for (auto min_split_size : range(2, 5))
+    {
+        run_test(min_split_size);
+    }
 }
 
 // Test the case where the first intersection does not yields the first volume
 // collision
 TEST_F(BIHIntersectingVolFinderTest, not_first)
 {
-    Real3 pos, dir;
-    DistMap dist_map;
+    auto run_test = [&](size_type min_split_size) {
+        this->setup(min_split_size);
+        Real3 pos, dir;
+        DistMap dist_map;
 
-    // Ray goes through V1 but intersects with V2 first
-    pos = {-0.5, 0.5, 50.};
-    dir = {1., 0., 0.};
-    dist_map = {{LocalVolumeId{0}, inff_},
-                {LocalVolumeId{1}, 2.0},
-                {LocalVolumeId{2}, 1.7},
-                {LocalVolumeId{3}, 3.3},
-                {LocalVolumeId{4}, inff_},
-                {LocalVolumeId{5}, inff_}};
-    this->check_result({pos, dir}, dist_map, LocalVolumeId{2}, 1.7);
+        // Ray goes through V1 but intersects with V2 first
+        pos = {-0.5, 0.5, 50.};
+        dir = {1., 0., 0.};
+        dist_map = {{LocalVolumeId{0}, inff_},
+                    {LocalVolumeId{1}, 2.0},
+                    {LocalVolumeId{2}, 1.7},
+                    {LocalVolumeId{3}, 3.3},
+                    {LocalVolumeId{4}, inff_},
+                    {LocalVolumeId{5}, inff_}};
+        this->check_result({pos, dir}, dist_map, LocalVolumeId{2}, 1.7);
 
-    // Ray goes all the way through V1, V2 and V3, intersects V0
-    pos = {-0.5, 0.5, 50.};
-    dir = {1., 0., 0.};
-    dist_map = {{LocalVolumeId{0}, 11.},
-                {LocalVolumeId{1}, inff_},
-                {LocalVolumeId{2}, inff_},
-                {LocalVolumeId{3}, inff_},
-                {LocalVolumeId{4}, inff_},
-                {LocalVolumeId{5}, inff_}};
-    this->check_result({pos, dir}, dist_map, LocalVolumeId{0}, 11.);
+        // Ray goes all the way through V1, V2 and V3, intersects V0
+        pos = {-0.5, 0.5, 50.};
+        dir = {1., 0., 0.};
+        dist_map = {{LocalVolumeId{0}, 11.},
+                    {LocalVolumeId{1}, inff_},
+                    {LocalVolumeId{2}, inff_},
+                    {LocalVolumeId{3}, inff_},
+                    {LocalVolumeId{4}, inff_},
+                    {LocalVolumeId{5}, inff_}};
+        this->check_result({pos, dir}, dist_map, LocalVolumeId{0}, 11.);
 
-    // Ray goes through V4 and V5 and intersects with V2
-    pos = {1.5, -2, 50.};
-    dir = {0., 1., 0.};
-    dist_map = {{LocalVolumeId{0}, inff_},
-                {LocalVolumeId{1}, inff_},
-                {LocalVolumeId{2}, 1.5},
-                {LocalVolumeId{3}, inff_},
-                {LocalVolumeId{4}, inff_},
-                {LocalVolumeId{5}, inff_}};
-    this->check_result({pos, dir}, dist_map, LocalVolumeId{2}, 1.5);
+        // Ray goes through V4 and V5 and intersects with V2
+        pos = {1.5, -2, 50.};
+        dir = {0., 1., 0.};
+        dist_map = {{LocalVolumeId{0}, inff_},
+                    {LocalVolumeId{1}, inff_},
+                    {LocalVolumeId{2}, 1.5},
+                    {LocalVolumeId{3}, inff_},
+                    {LocalVolumeId{4}, inff_},
+                    {LocalVolumeId{5}, inff_}};
+        this->check_result({pos, dir}, dist_map, LocalVolumeId{2}, 1.5);
 
-    // Ray goes through V4 and V5 and intersects with V2, max search is closer
-    pos = {1.5, -2, 50.};
-    dir = {0., 1., 0.};
-    dist_map = {{LocalVolumeId{0}, inff_},
-                {LocalVolumeId{1}, inff_},
-                {LocalVolumeId{2}, 1.5},
-                {LocalVolumeId{3}, inff_},
-                {LocalVolumeId{4}, inff_},
-                {LocalVolumeId{5}, inff_}};
-    this->check_result({pos, dir}, dist_map, LocalVolumeId{}, 0.8, 0.8);
+        // Ray goes through V4 and V5 and intersects with V2, max search is
+        // closer
+        pos = {1.5, -2, 50.};
+        dir = {0., 1., 0.};
+        dist_map = {{LocalVolumeId{0}, inff_},
+                    {LocalVolumeId{1}, inff_},
+                    {LocalVolumeId{2}, 1.5},
+                    {LocalVolumeId{3}, inff_},
+                    {LocalVolumeId{4}, inff_},
+                    {LocalVolumeId{5}, inff_}};
+        this->check_result({pos, dir}, dist_map, LocalVolumeId{}, 0.8, 0.8);
 
-    // Ray goes through V4 and V5 and intersects with V2, max search is further
-    pos = {1.5, -2, 50.};
-    dir = {0., 1., 0.};
-    dist_map = {{LocalVolumeId{0}, inff_},
-                {LocalVolumeId{1}, inff_},
-                {LocalVolumeId{2}, 1.5},
-                {LocalVolumeId{3}, inff_},
-                {LocalVolumeId{4}, inff_},
-                {LocalVolumeId{5}, inff_}};
-    this->check_result({pos, dir}, dist_map, LocalVolumeId{2}, 2.1, 1.5);
+        // Ray goes through V4 and V5 and intersects with V2, max search is
+        // further
+        pos = {1.5, -2, 50.};
+        dir = {0., 1., 0.};
+        dist_map = {{LocalVolumeId{0}, inff_},
+                    {LocalVolumeId{1}, inff_},
+                    {LocalVolumeId{2}, 1.5},
+                    {LocalVolumeId{3}, inff_},
+                    {LocalVolumeId{4}, inff_},
+                    {LocalVolumeId{5}, inff_}};
+        this->check_result({pos, dir}, dist_map, LocalVolumeId{2}, 2.1, 1.5);
+    };
+
+    for (auto min_split_size : range(2, 5))
+    {
+        run_test(min_split_size);
+    }
 }
 
 //---------------------------------------------------------------------------//
