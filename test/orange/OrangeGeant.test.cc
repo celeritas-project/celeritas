@@ -74,9 +74,6 @@ TEST_F(FourLevelsTest, detailed_track)
 class MultiLevelTest
     : public GenericGeoParameterizedTest<GeantOrangeTest, MultiLevelGeoTest>
 {
-  public:
-    // FIXME: normal is inconsistent between topbox3 and world_PV
-    bool supports_surface_normal() const override { return false; }
 };
 
 TEST_F(MultiLevelTest, trace)
@@ -125,10 +122,6 @@ class ReplicaTest
     : public GenericGeoParameterizedTest<GeantOrangeTest, ReplicaGeoTest>
 {
   public:
-    // FIXME: normal is inconsistent between fSecondArmPhys/HadCalScinti
-    // and world_PV
-    bool supports_surface_normal() const override { return false; }
-
     //! Distance is slightly off for single precision
     GenericGeoTrackingTolerance tracking_tol() const override
     {
