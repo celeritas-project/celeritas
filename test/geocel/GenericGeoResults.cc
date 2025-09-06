@@ -32,14 +32,14 @@ namespace test
 // Replace dot-normals with a sentinel value
 void GenericGeoTrackingResult::disable_surface_normal()
 {
-    this->dot_normal = {666};
+    this->dot_normal = {-2};
 }
 
 // Whether surface normals are disabled
 bool GenericGeoTrackingResult::disabled_surface_normal() const
 {
     auto& dn = this->dot_normal;
-    return dn.size() == 1 && dn.front() == 666;
+    return dn.size() == 1 && dn.front() == -2;
 }
 
 void GenericGeoTrackingResult::clear_boring_normals()
