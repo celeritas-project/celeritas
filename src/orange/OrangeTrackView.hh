@@ -1334,7 +1334,8 @@ CELER_FUNCTION Real3 OrangeTrackView::geo_normal() const
     // Rotate normal up to global coordinates
     auto apply_transform = TransformVisitor{params_};
     auto rotate_up = [&normal](auto&& t) { normal = t.rotate_up(normal); };
-    for (auto level : range<int>(this->level().unchecked_get()).step(-1))
+    for (auto level :
+         range<int>(this->surface_level().unchecked_get()).step(-1))
     {
         apply_transform(rotate_up, this->get_transform(LevelId(level)));
     }
