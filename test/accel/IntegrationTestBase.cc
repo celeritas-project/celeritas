@@ -319,9 +319,6 @@ SetupOptions IntegrationTestBase::make_setup_options()
     // Use a uniform (zero) magnetic field
     opts.make_along_step = celeritas::UniformAlongStepFactory();
 
-    // FIXME: weight flag isn't being set in GeantSd
-    opts.sd.track = false;
-
     // Save diagnostic file to a unique name
     opts.output_file = this->make_unique_filename(".out.json");
     return opts;
