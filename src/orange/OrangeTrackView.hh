@@ -1325,11 +1325,11 @@ CELER_FUNCTION Real3 OrangeTrackView::geo_normal() const
 
     auto normal = [this] {
         auto lsa = this->make_lsa(this->surface_level());
+        auto const& pos = lsa.pos();
+        auto surf = this->surf();
         TrackerVisitor visit_tracker{params_};
         return visit_tracker(
-            [pos = lsa.pos(), local_surface = this->surf()](auto&& t) {
-                return t.normal(pos, local_surface);
-            },
+            [&](auto&& t) { return t.normal(pos, local_surface); },
             lsa.universe());
     }();
 
