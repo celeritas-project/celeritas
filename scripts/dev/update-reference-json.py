@@ -16,7 +16,8 @@ import os
 
 
 def parse_gtest_output(output_text):
-    """Parse googletest output to extract file paths, line numbers, and actual JSON values."""
+    """Parse googletest output to extract file paths, line numbers, and actual
+    JSON values."""
     failures = []
 
     # Pattern to match file path and line number
@@ -36,27 +37,21 @@ def parse_gtest_output(output_text):
         line_number = int(file_match.group(2))
 
         # Skip lines until we find the actual JSON section
-        line = next(
-            itertools.dropwhile(
-                lambda l: not re.match(r"/\**\s*ACTUAL\s*\*+/", l), lines_iter
-            ),
-            None,
-        )
-
-        if line is None:  # Handle case where we don't find ACTUAL marker
-            continue
+        for line in lines_iter:
+            if re.match(r"/\*+\s*ACTUAL\s*\*+/", line):
+                break
 
         # Collect actual JSON until the end marker
-        actual_section = list(
-            itertools.takewhile(lambda l: "/******/" not in l, lines_iter)
+        actual_section = "".join(
+            itertools.takewhile(lambda l: not re.match(r"/\*+/", l), lines_iter)
         )
 
         # Add the collected failure
         failures.append(
             {
                 "file_path": file_path,
-                "line_number": int(line_number),
-                "actual_json": "".join(actual_section),
+                "line_number": line_number,
+                "actual_json": actual_section,
             }
         )
 
@@ -71,7 +66,8 @@ def group_failures_by_file(failures):
     for failure in failures:
         grouped[failure["file_path"]].append(failure)
 
-    # Sort failures within each file by line number (descending so we update from bottom up)
+    # Sort failures within each file by line number (descending so we update
+    # from bottom up)
     for file_path in grouped:
         grouped[file_path].sort(key=lambda x: x["line_number"])
 
@@ -91,7 +87,9 @@ def update_test_file_batch(file_path, failures):
 
     # Process failures in reverse line order to avoid line number shifts
     for failure in reversed(failures):
-        line_number = failure["line_number"] - 1  # Convert to 0-based index
+        assert failure["file_path"] == file_path
+        line_number = failure["line_number"] - 1 # Convert to 0-based index
+        line_slc = slice(line_number - 2, line_number + 2)
         actual_json = failure["actual_json"]
 
         if line_number > len(lines):
@@ -100,9 +98,9 @@ def update_test_file_batch(file_path, failures):
             )
             continue
 
-        # Find the line with EXPECT_JSON_EQ (may be on the exact line or nearby)
-        # Find the target line near the reported line number
-        orig = "".join(lines[line_number : line_number + 2])
+        # Find the line with EXPECT_JSON_EQ (may be at beginning or end of
+        # macro
+        orig = "".join(lines[line_slc])
 
         # Match the EXPECT_JSON_EQ pattern with capture groups
         match = re.search(
@@ -118,7 +116,7 @@ def update_test_file_batch(file_path, failures):
         new = orig[: match.start(1)] + actual_json.strip() + orig[match.end(1) :]
 
         if new != orig:
-            lines[line_number : line_number + 2] = new
+            lines[line_slc] = new
             print(f"  Updated line {line_number}")
             updated_count += 1
         else:
