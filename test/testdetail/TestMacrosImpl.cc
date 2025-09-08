@@ -77,8 +77,14 @@ trunc_string(unsigned int digits, char const* str, char const* trunc)
     auto result = compare(expected, actual);
     if (!result)
     {
+        // Delete newlines from replacement
+        std::string new_actual{actual};
+        new_actual.erase(
+            std::remove(new_actual.begin(), new_actual.end(), '\n'),
+            new_actual.end());
+
         // Print actual result for copy-pasting into "expected" expression
-        result << "\n/*** ACTUAL ***/\nR\"json(" << actual
+        result << "\n/*** ACTUAL ***/\nR\"json(" << new_actual
                << ")json\"\n/******/";
     }
     return result;
