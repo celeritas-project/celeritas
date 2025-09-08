@@ -918,6 +918,11 @@ void ReplicaGeoTest::test_trace() const
             0.13950317547305, 0.13950317547305, 0.13950317547305,
             0.13950317547309, 0.13950317547309, 131.90432759775, };
         // clang-format on
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+        {
+            // All along the track to soft precision
+            ref.clear_boring_normals();
+        }
 
         delete_orange_safety(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
