@@ -219,6 +219,8 @@ TEST_F(CmsEeBackDeeTest, model)
     };
     ref.volume_instance.volumes = {3, 2, 0, 1, 4, 5, 6};
     ref.world = "EEBackDee";
+    ref.detector.labels = {"EEBackPlate@0", "EESRing@0"};
+    ref.detector.volumes = {{3}, {2}};
     EXPECT_REF_EQ(ref, result);
 }
 
@@ -711,6 +713,8 @@ TEST_F(SimpleCmsTest, model)
                                   "iron_muon_chambers_pv"};
     ref.volume_instance.volumes = {6, 0, 1, 2, 3, 4, 5};
     ref.world = "world";
+    ref.detector.labels = {"si_tracker_sd", "em_calorimeter_sd"};
+    ref.detector.volumes = {{1}, {2}};
     EXPECT_REF_EQ(ref, result);
 }
 

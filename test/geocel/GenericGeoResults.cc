@@ -256,6 +256,21 @@ GenericGeoModelInp GenericGeoModelInp::from_model_input(inp::Model const& in)
             surf.surface));
     }
 
+    // Extract detector data
+    result.detector.labels.reserve(in.detectors.detectors.size());
+    result.detector.volumes.reserve(in.detectors.detectors.size());
+    for (auto const& det : in.detectors.detectors)
+    {
+        result.detector.labels.push_back(to_string(det.label));
+        std::vector<int> volumes;
+        volumes.reserve(det.volumes.size());
+        for (auto vol_id : det.volumes)
+        {
+            volumes.push_back(id_to_int(vol_id));
+        }
+        result.detector.volumes.push_back(std::move(volumes));
+    }
+
     return result;
 }
 

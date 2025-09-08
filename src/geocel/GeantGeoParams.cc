@@ -20,6 +20,7 @@
 #include <G4Transportation.hh>
 #include <G4TransportationManager.hh>
 #include <G4VPhysicalVolume.hh>
+#include <G4VSensitiveDetector.hh>
 #include <G4VSolid.hh>
 #include <G4Version.hh>
 #include <G4VisExtent.hh>
@@ -383,6 +384,67 @@ std::vector<inp::Surface> make_inp_surfaces(GeantGeoParams const& geo)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Create sensitive detectors input from Geant4 sensitive detectors.
+ */
+std::vector<inp::Detector> make_inp_detectors(GeantGeoParams const& geo)
+{
+    // Process detectors
+    std::vector<inp::Detector> result;
+
+    auto const& vol_labels = geo.impl_volumes();
+
+    std::cout << "making inp detectors" << std::endl;
+
+    // Process each logical volume
+    for (auto iv_id : range(ImplVolumeId{vol_labels.size()}))
+    {
+        auto const& label = vol_labels.at(iv_id);
+        if (label.empty())
+        {
+            // This volume isn't part of the world hierarchy
+            continue;
+        }
+
+        auto vol_id = geo.volume_id(iv_id);
+        auto& g4lv = *geo.id_to_geant(vol_id);
+
+        G4VSensitiveDetector* sd = g4lv.GetSensitiveDetector();
+        // check if volume is part of a sensitive detector
+        if (sd)
+        {
+            Label sd_label = sd->GetName();
+            bool existing_sd = false;
+
+            // Loop over existing input detectors in the result vector and
+            // append volume id to input detector volume id list if labels
+            // match.
+            for (auto detector : result)
+            {
+                if (detector.label == sd_label)
+                {
+                    existing_sd = true;
+                    detector.volumes.push_back(vol_id);
+                    break;
+                }
+            }
+
+            // If no existing input detector matchs volume SD label, create new
+            // input detector struct and add label and volume ID to it.
+            if (!existing_sd)
+            {
+                inp::Detector detector;
+                detector.label = sd_label;
+                detector.volumes.push_back(vol_id);
+                result.push_back(detector);
+            }
+        }
+    }
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 //! Global tracking geometry instance: may be nullptr
 // Note that this is safe to declare statically: see
 // https://en.cppreference.com/w/cpp/memory/weak_ptr/weak_ptr
@@ -577,6 +639,12 @@ inp::Model GeantGeoParams::make_model_input() const
     result.surfaces = [this] {
         inp::Surfaces result;
         result.surfaces = make_inp_surfaces(*this);
+        return result;
+    }();
+
+    result.detectors = [this] {
+        inp::Detectors result;
+        result.detectors = make_inp_detectors(*this);
         return result;
     }();
 
