@@ -11,6 +11,8 @@
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
+#include "corecel/math/ArrayOperators.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/inp/Model.hh"
 
@@ -26,6 +28,29 @@ namespace celeritas
 {
 namespace test
 {
+//---------------------------------------------------------------------------//
+::testing::AssertionResult IsNormalEquiv(char const* expected_expr,
+                                         char const* actual_expr,
+                                         Real3 const& expected,
+                                         Real3 const& actual)
+{
+    // Test that the normals are either in the same or opposite directions
+    constexpr auto eps = SoftEqual<>{}.rel();
+    if (norm(expected - actual) < eps || norm(expected + actual) < eps)
+    {
+        return ::testing::AssertionSuccess();
+    }
+
+    // Failed: print nice error message
+    ::testing::AssertionResult result = ::testing::AssertionFailure();
+
+    result << "Value of: " << actual_expr << "\n  Actual: " << repr(actual)
+           << "\nExpected: " << expected_expr
+           << "\nWhich is: " << repr(expected) << '\n';
+
+    return result;
+}
+
 //---------------------------------------------------------------------------//
 // TRACKING RESULT
 //---------------------------------------------------------------------------//

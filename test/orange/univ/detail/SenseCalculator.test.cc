@@ -7,6 +7,7 @@
 #include "orange/univ/detail/SenseCalculator.hh"
 
 #include <type_traits>
+#include <gtest/gtest.h>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Span.hh"
@@ -20,7 +21,6 @@
 #include "orange/univ/detail/Types.hh"
 
 #include "celeritas_test.hh"
-#include "gtest/gtest.h"
 
 namespace celeritas
 {
