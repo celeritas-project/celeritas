@@ -102,6 +102,11 @@ TEST_F(CsgTreeTest, true_false)
     EXPECT_EQ(I(false_id, false), this->insert(False{}));
     EXPECT_EQ(I(false_id, false), this->insert(Negated{true_id}));
 
+    EXPECT_EQ(true_id, tree_.find(True{}));
+    EXPECT_EQ(true_id, tree_.find(Negated{false_id}));
+    EXPECT_EQ(false_id, tree_.find(False{}));
+    EXPECT_EQ(false_id, tree_.find(Negated{true_id}));
+
     EXPECT_EQ(Node{True{}}, tree_[true_id]);
     EXPECT_EQ(Node{Negated{true_id}}, tree_[false_id]);
 }
@@ -122,6 +127,9 @@ TEST_F(CsgTreeTest, surfaces)
     EXPECT_EQ(Node{Surface{S{1}}}, tree_[N{2}]);
     EXPECT_EQ(I(N{3}, true), this->insert(S{3}));
     EXPECT_EQ(I(N{2}, false), this->insert(S{1}));
+
+    EXPECT_EQ(N{2}, tree_.find(Surface{S{1}}));
+    EXPECT_EQ(N{}, tree_.find(Surface{S{4}}));
 }
 
 TEST_F(CsgTreeTest, negation)
