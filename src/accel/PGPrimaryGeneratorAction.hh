@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celer-g4/PGPrimaryGeneratorAction.hh
+//! \file accel/PGPrimaryGeneratorAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,8 +16,6 @@
 #include "celeritas/phys/PrimaryGenerator.hh"
 
 namespace celeritas
-{
-namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -53,5 +51,4 @@ class PGPrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace app
 }  // namespace celeritas

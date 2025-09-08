@@ -34,9 +34,8 @@ int main(int argc, char* argv[])
 
     using namespace celeritas::example;
 
-    std::unique_ptr<G4RunManager> run_manager;
-    run_manager.reset(
-        G4RunManagerFactory::CreateRunManager(G4RunManagerType::Default));
+    std::unique_ptr<G4RunManager> run_manager{
+        G4RunManagerFactory::CreateRunManager(G4RunManagerType::Default)};
 
     // Initialize Celeritas
     auto& tmi = celeritas::TrackingManagerIntegration::Instance();

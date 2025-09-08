@@ -25,8 +25,8 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 struct GenericGeoTrackingResult;
+struct GenericGeoTrackingTolerance;
 struct GenericGeoVolumeStackResult;
-struct GenericGeoModelInp;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -45,17 +45,14 @@ class GenericGeoTestInterface
     //! \name Type aliases
     using TrackingResult = GenericGeoTrackingResult;
     using VolumeStackResult = GenericGeoVolumeStackResult;
-    using ModelInpResult = GenericGeoModelInp;
     //!@}
 
   public:
-    //!@{
-    // Generate a track
+    //! Generate a track
     virtual TrackingResult track(Real3 const& pos_cm, Real3 const& dir) = 0;
-    virtual TrackingResult
-    track(Real3 const& pos_cm, Real3 const& dir, int max_step)
-        = 0;
-    //!@}
+
+    //! Get the safety tolerance (defaults to SoftEq tol) for tracking result
+    virtual GenericGeoTrackingTolerance tracking_tol() const;
 
     //!@{
     //! Obtain the "touchable history" at a point
@@ -71,8 +68,8 @@ class GenericGeoTestInterface
     // Get the basename or unique geometry key
     virtual std::string_view gdml_basename() const = 0;
 
-    // Get the safety tolerance (defaults to SoftEq tol)
-    virtual real_type safety_tol() const;
+    // Whether surface normals work for the current geometry/test
+    virtual bool supports_surface_normal() const;
 
     // Get the threshold in "unit lengths" for a movement being a "bump"
     virtual real_type bump_tol() const;

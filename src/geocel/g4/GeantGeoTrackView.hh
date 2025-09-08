@@ -161,6 +161,7 @@ class GeantGeoTrackView
     G4ThreeVector g4pos_;
     G4ThreeVector g4dir_;  // [mm]
     real_type g4safety_;  // [mm]
+    bool just_crossed_boundary_{false};
 
     //// HELPER FUNCTIONS ////
 
@@ -358,11 +359,22 @@ CELER_FORCEINLINE bool GeantGeoTrackView::is_on_boundary() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the surface normal of the boundary the track is currently on.
+ * Get the exit surface normal of the boundary the track has just crossed.
+ *
+ * This vector is in the global coordinate system.
  */
 CELER_FUNCTION auto GeantGeoTrackView::normal() const -> Real3
 {
-    CELER_NOT_IMPLEMENTED("GeantGeoTrackView::normal");
+    CELER_EXPECT(this->is_on_boundary());
+
+    bool valid{false};
+    G4ThreeVector norm = navi_.GetGlobalExitNormal(g4pos_, &valid);
+    CELER_ASSERT(valid);
+
+    // TODO: convert_from_geant uses celeritas::real_type, not double
+    Real3 result{norm[0], norm[1], norm[2]};
+    CELER_ENSURE(is_soft_unit_vector(result));
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -483,6 +495,7 @@ void GeantGeoTrackView::move_to_boundary()
     safety_radius_ = 0;
     g4safety_ = 0;
     navi_.SetGeometricallyLimitedStep();
+    just_crossed_boundary_ = false;
 
     CELER_ENSURE(this->is_on_boundary());
 }
@@ -491,17 +504,20 @@ void GeantGeoTrackView::move_to_boundary()
 /*!
  * Cross from one side of the current surface to the other.
  *
- * The position *must* be on the boundary following a move-to-boundary.
+ * The position \em must be on the boundary following a move-to-boundary. Two
+ * consecutive "cross boundary" calls are NOT ALLOWED!
  */
 void GeantGeoTrackView::cross_boundary()
 {
     CELER_EXPECT(this->is_on_boundary());
+    CELER_EXPECT(!just_crossed_boundary_);
 
     navi_.LocateGlobalPointAndUpdateTouchableHandle(
         g4pos_,
         g4dir_,
         touch_handle_,
         /* relative_search = */ true);
+    just_crossed_boundary_ = true;
 
     CELER_ENSURE(this->is_on_boundary());
 }

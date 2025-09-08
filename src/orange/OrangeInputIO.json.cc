@@ -181,6 +181,26 @@ void to_json(nlohmann::json& j, VolumeInput const& value)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Read background metadata from an ORANGE JSON file.
+ */
+void from_json(nlohmann::json const& j, BackgroundInput& value)
+{
+    CELER_JSON_LOAD_REQUIRED(j, value, label);
+    CELER_JSON_LOAD_REQUIRED(j, value, volume);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write background metadata to an ORANGE JSON file.
+ */
+void to_json(nlohmann::json& j, BackgroundInput const& value)
+{
+    CELER_JSON_SAVE(j, value, label);
+    CELER_JSON_SAVE(j, value, volume);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Read a unit definition from an ORANGE input file.
  *
  * NOTE: 'cell' nomenclature is from SCALE export (version 0)
@@ -289,6 +309,8 @@ void from_json(nlohmann::json const& j, UnitInput& value)
                                        std::move(daughter));
         }
     }
+
+    CELER_JSON_LOAD_OPTION(j, value, background);
 }
 
 //---------------------------------------------------------------------------//
@@ -345,6 +367,8 @@ void to_json(nlohmann::json& j, UnitInput const& value)
         j["daughters"] = std::move(daughters);
         j["transforms"] = std::move(transforms);
     }
+
+    CELER_JSON_SAVE_WHEN(j, value, background, value.background);
 }
 
 //---------------------------------------------------------------------------//

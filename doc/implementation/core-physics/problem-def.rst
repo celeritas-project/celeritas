@@ -57,11 +57,11 @@ configuration options:
 .. doxygentypedef:: celeritas::inp::AngleDistribution
 .. doxygentypedef:: celeritas::inp::EnergyDistribution
 
-.. doxygenstruct:: celeritas::inp::PointShape
-.. doxygenstruct:: celeritas::inp::UniformBoxShape
-.. doxygenstruct:: celeritas::inp::IsotropicAngle
-.. doxygenstruct:: celeritas::inp::MonodirectionalAngle
-.. doxygenstruct:: celeritas::inp::Monoenergetic
+.. doxygenstruct:: celeritas::inp::PointDistribution
+.. doxygenstruct:: celeritas::inp::UniformBoxDistribution
+.. doxygenstruct:: celeritas::inp::IsotropicDistribution
+.. doxygenstruct:: celeritas::inp::MonodirectionalDistribution
+.. doxygenstruct:: celeritas::inp::MonoenergeticDistribution
 
 .. _api_problem_setup_framework:
 

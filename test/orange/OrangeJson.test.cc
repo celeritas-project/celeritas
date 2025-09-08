@@ -52,18 +52,27 @@ class InputBuilderTest : public JsonOrangeTest
     {
         if (basename_.empty())
         {
-            const_cast<InputBuilderTest*>(this)->set_basename();
+            auto* mthis = const_cast<InputBuilderTest*>(this);
+            mthis->basename_ = mthis->make_unique_filename();
         }
         return basename_;
     }
 
-    std::string_view gdml_basename() const { return geometry_basename(); }
+    std::string_view gdml_basename() const override
+    {
+        return geometry_basename();
+    }
+
+    // FIXME: normal is inconsistent between topbox3 and world_PV
+    bool supports_surface_normal() const override
+    {
+        return supports_surface_normal_;
+    }
+
+  protected:
+    bool supports_surface_normal_{true};
 
   private:
-    void set_basename()
-    {
-        basename_ = const_cast<InputBuilderTest*>(this)->make_unique_filename();
-    }
     std::string basename_;
 };
 
@@ -843,6 +852,22 @@ TEST_F(InputBuilderTest, universes)
 //---------------------------------------------------------------------------//
 TEST_F(InputBuilderTest, hierarchy)
 {
+    // FIXME: normal is inconsistent on transformed boundaries!
+    supports_surface_normal_ = false;
+
+    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    {
+        auto geo = this->make_geo_track_view();
+        geo = Initializer_t{{0, -5, -20}, {0, 1, 0}};
+
+        EXPECT_JSON_EQ(
+            R"json({"levels":[
+{"dir":[0.0,1.0,0.0],"pos":[0.0,-5.0,-20.0],"universe":"global","volume":{"impl":"fd@global","local":3}},
+{"dir":[0.0,1.0,0.0],"pos":[0.0,-5.0,0.0],"universe":"filled_daughter","volume":{"impl":"e@filled_daughter","local":2}},
+{"dir":[0.0,0.0,-1.0],"pos":[0.0,0.0,0.0],"universe":"d2","volume":{"impl":"d2@bg","local":1}}
+],"surface":null})json",
+            StringSimplifier{3}(to_json_string(geo)));
+    }
     {
         SCOPED_TRACE("py");
         auto result = this->track({0, -20, 0}, {0, 1, 0});

@@ -12,12 +12,12 @@
 #include "accel/ExceptionConverter.hh"
 #include "accel/HepMC3PrimaryGenerator.hh"
 #include "accel/LocalTransporter.hh"
+#include "accel/PGPrimaryGeneratorAction.hh"
 
 #include "EventAction.hh"
 #include "GeantDiagnostics.hh"
 #include "GlobalSetup.hh"
 #include "HepMC3PrimaryGeneratorAction.hh"
-#include "PGPrimaryGeneratorAction.hh"
 #include "RunAction.hh"
 #include "TrackingAction.hh"
 
