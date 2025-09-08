@@ -143,10 +143,11 @@ TEST_F(CsgTreeTest, join)
 {
     EXPECT_EQ(N{2}, this->insert(S{1}).first);
     EXPECT_EQ(N{3}, this->insert(S{3}).first);
+    EXPECT_EQ(I(N{4}, true), this->insert(Negated{N{2}}));
 
     // Sort and deduplicate
-    EXPECT_EQ(I(N{4}, true), this->insert(Joined{op_and, {N{3}, N{2}, N{3}}}));
-    auto actual = tree_[N{4}];
+    EXPECT_EQ(I(N{5}, true), this->insert(Joined{op_and, {N{3}, N{2}, N{3}}}));
+    auto actual = tree_[N{5}];
     ASSERT_TRUE(std::holds_alternative<Joined>(actual));
     auto const& j = std::get<Joined>(actual);
     EXPECT_EQ(op_and, j.op);
@@ -166,6 +167,12 @@ TEST_F(CsgTreeTest, join)
     EXPECT_EQ(I(true_id, false), this->insert(Joined{op_or, {N{2}, true_id}}));
     EXPECT_EQ(I(false_id, false),
               this->insert(Joined{op_and, {N{3}, false_id, N{2}}}));
+
+    // True/false from negated subexpressions
+    EXPECT_EQ(I(false_id, false),
+              this->insert(Joined{op_and, {N{2}, N{4}, N{3}}}));
+    EXPECT_EQ(I(true_id, false),
+              this->insert(Joined{op_or, {N{4}, N{4}, N{2}}}));
 }
 
 TEST_F(CsgTreeTest, manual_simplify)

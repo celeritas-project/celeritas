@@ -7,6 +7,7 @@
 #include "NodeSimplifier.hh"
 
 #include <algorithm>
+#include <unordered_set>
 #include <utility>
 
 #include "../CsgTypes.hh"
@@ -94,7 +95,10 @@ struct IsJoinedLike
 /*!
  * Construct with the tree to visit.
  */
-NodeSimplifier::NodeSimplifier(CsgTree const& tree) : visit_node_{tree} {}
+NodeSimplifier::NodeSimplifier(CsgTree const& tree)
+    : tree_{tree}, visit_node_{tree}
+{
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -131,6 +135,7 @@ auto NodeSimplifier::operator()(Joined& j) const -> Node
                                              : CsgTree::false_node_id());
 
     std::vector<NodeId> to_merge;
+    std::unordered_set<NodeId> negated;
 
     // Replace any aliases in each daughter
     for (NodeId& d : j.nodes)
@@ -159,10 +164,19 @@ auto NodeSimplifier::operator()(Joined& j) const -> Node
             to_merge.insert(to_merge.end(), dj->nodes.begin(), dj->nodes.end());
             d = NodeId{};
         }
+        else if (negated.count(d))
+        {
+            // This negation of this node exists in the join expression
+            // A & ~A -> F
+            // A | ~A -> T
+            return Aliased{constant_node};
+        }
+        else if (auto negated_id = tree_.find(Negated{d}))
+        {
+            // The negated node exists somewhere in the tree
+            negated.insert(negated_id);
+        }
     }
-
-    // TODO: we can look for combinations of A + ~A, returning "false" for
-    // op_and or "true" for op_or
 
     // Add any merged nodes
     j.nodes.insert(j.nodes.end(), to_merge.begin(), to_merge.end());
