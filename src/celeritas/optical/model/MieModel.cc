@@ -2,9 +2,12 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/InteractionApplier.hh"
 #include "celeritas/optical/MfpBuilder.hh"
 #include "celeritas/optical/action/ActionLauncher.hh"
+#include "celeritas/optical/action/TrackSlotExecutor.hh"
+#include "celeritas/optical/model/MieExecutor.hh"
 
 namespace celeritas
 {
@@ -53,12 +56,12 @@ void MieModel::build_mfps(OptMatId mat, MfpBuilder& build) const
 void MieModel::step(CoreParams const& params, CoreStateHost& state) const
 {
     CELER_LOG(debug) << "MieModel::step called (not yet implemented)";
-    launch_action(state,
-                  make_action_thread_executor(
-                      params.ptr<MemSpace::native>(),
-                      state.ptr(),
-                      this->action_id(),
-                      InteractionApplier{MieExecutor{this->host_ref()}}));
+    launch_action(
+        state,
+        make_action_thread_executor(params.ptr<MemSpace::native>(),
+                                    state.ptr(),
+                                    this->action_id(),
+                                    InteractionApplier{MieExecutor{}}));
 }
 
 #if !CELER_USE_DEVICE
