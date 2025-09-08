@@ -159,15 +159,12 @@ auto ModelImporter::build_wls2() const -> ModelBuilder
  */
 auto ModelImporter::build_mie() const -> ModelBuilder
 {
-    // CELER_EXPECT(this->imported());
-    CELER_LOG(debug) << "Building Mie model";
+    CELER_EXPECT(this->imported());
+    CELER_LOG(debug) << "Building Mie model for material ";
     return MieModel::make_builder(
         this->imported(),  // shared_ptr<const ImportedModels>
         MieModel::Input{
-            this->material(),
-            this->core_material(),
-            this->import_material()  // ✅ not "import_models"
-        });
+            this->material(), this->core_material(), this->import_material()});
 }
 
 //---------------------------------------------------------------------------//
