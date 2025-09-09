@@ -77,6 +77,14 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
         = select_surface(track.surface(), geo.volume_instance_id());
     if (!oriented_surface)
     {
+        // Kill the track if the post-volume doesn't have a valid optical
+        // material and there's no surface
+        if (!post_volume_material)
+        {
+            track.sim().status(TrackStatus::killed);
+            return;
+        }
+
         // Use default surface data
         oriented_surface.surface = surface_physics.default_surface();
         oriented_surface.orientation = SubsurfaceDirection::forward;
