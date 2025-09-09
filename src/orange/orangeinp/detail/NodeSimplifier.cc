@@ -134,13 +134,13 @@ auto NodeSimplifier::operator()(Joined& j) const -> Node
     auto const ignore_node = (j.op == op_and ? CsgTree::true_node_id()
                                              : CsgTree::false_node_id());
 
+    // Maintain a separate list of nodes to add to avoid invalidating iterators
     std::vector<NodeId> to_merge;
-    std::unordered_set<NodeId> negated;
 
     // Replace any aliases in each daughter
     for (NodeId& d : j.nodes)
     {
-        // Replace first
+        // Replace aliases first
         if (auto repl = visit_node_(AliasSimplifier{}, d))
         {
             d = repl;
@@ -163,18 +163,6 @@ auto NodeSimplifier::operator()(Joined& j) const -> Node
             // iterators
             to_merge.insert(to_merge.end(), dj->nodes.begin(), dj->nodes.end());
             d = NodeId{};
-        }
-        else if (negated.count(d))
-        {
-            // This negation of this node exists in the join expression
-            // A & ~A -> F
-            // A | ~A -> T
-            return Aliased{constant_node};
-        }
-        else if (auto negated_id = tree_.find(Negated{d}))
-        {
-            // The negated node exists somewhere in the tree
-            negated.insert(negated_id);
         }
     }
 
@@ -203,14 +191,26 @@ auto NodeSimplifier::operator()(Joined& j) const -> Node
         return Aliased{j.nodes.front()};
     }
 
-    /*!
-     * \todo implement De Morgan's laws to reduce the number of negations
-     * - if all daughters are 'not', replace with nand/nor, and add support
-     *   to logic stack
-     * - OR add simplification strategy to csg tree, which may be tricky
-     *   because that operation could modify the tree in place as
-     *   well as increase the node depth
-     */
+    // After merging daughter nodes and uniquifying, track the "negated" IDs of
+    // encountered nodes to eliminate join(A, ~A, ...)
+    std::unordered_set<NodeId> negated;
+    for (NodeId& d : j.nodes)
+    {
+        if (negated.count(d))
+        {
+            // This negation of this node exists in the join expression
+            // A & ~A -> F
+            // A | ~A -> T
+            return Aliased{constant_node};
+        }
+
+        if (auto negated_id = tree_.find(Negated{d}))
+        {
+            // The negated node exists somewhere in the tree; keep track to
+            // compare it against other daughters
+            negated.insert(negated_id);
+        }
+    }
 
     return std::move(j);
 }
