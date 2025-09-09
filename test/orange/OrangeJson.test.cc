@@ -63,12 +63,6 @@ class InputBuilderTest : public JsonOrangeTest
         return geometry_basename();
     }
 
-    // FIXME: normal is inconsistent between topbox3 and world_PV
-    bool supports_surface_normal() const override
-    {
-        return supports_surface_normal_;
-    }
-
   protected:
     bool supports_surface_normal_{true};
 
