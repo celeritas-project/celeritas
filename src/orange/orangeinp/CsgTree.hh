@@ -69,7 +69,7 @@ class CsgTree
     NodeId::size_type size() const { return nodes_.size(); }
 
     // Find the node ID of the CSG expression if it exists
-    inline NodeId find(Node&& n) const;
+    NodeId find(Node&& n) const;
 
     // Get a node
     inline Node const& operator[](NodeId node_id) const;
@@ -127,27 +127,6 @@ std::ostream& operator<<(std::ostream& os, CsgTree const&);
 auto CsgTree::insert(LocalSurfaceId s) -> Insertion
 {
     return this->insert(orangeinp::Surface{s});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Find the node ID of the CSG expression if it exists.
- *
- * This consumes the input expression in order to simplify it.
- */
-NodeId CsgTree::find(Node&& n) const
-{
-    this->simplify(n);
-    if (auto* a = std::get_if<Aliased>(&n))
-    {
-        // Node was simplified to an existing ID
-        return a->node;
-    }
-    // Try the node as is
-    auto iter = ids_.find(n);
-    if (iter == ids_.end())
-        return {};
-    return iter->second;
 }
 
 //---------------------------------------------------------------------------//

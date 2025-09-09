@@ -85,7 +85,7 @@ auto CsgTree::insert(Node&& n) -> Insertion
         }
     }
 
-    auto [iter, inserted] = ids_.insert({std::move(n), {}});
+    auto [iter, inserted] = ids_.emplace(std::move(n), {});
     if (inserted)
     {
         // Save new node ID
@@ -94,6 +94,28 @@ auto CsgTree::insert(Node&& n) -> Insertion
         nodes_.push_back(iter->first);
     }
     return {iter->second, inserted};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the node ID of the CSG expression if it exists.
+ *
+ * This consumes the input expression in order to simplify it.
+ */
+NodeId CsgTree::find(Node&& n) const
+{
+    Node temp{std::move(n)};
+    this->simplify(temp);
+    if (auto* a = std::get_if<Aliased>(&temp))
+    {
+        // Node was simplified to an existing ID
+        return a->node;
+    }
+    // Try the node as is
+    auto iter = ids_.find(temp);
+    if (iter == ids_.end())
+        return {};
+    return iter->second;
 }
 
 //---------------------------------------------------------------------------//
