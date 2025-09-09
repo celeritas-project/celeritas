@@ -8,6 +8,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/optical/SimTrackView.hh"
@@ -90,10 +91,18 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
         oriented_surface.orientation = SubsurfaceDirection::forward;
     }
 
+    // Enforce surface normal convention, swapping normal if geometry returns
+    // one not entering the surface
+    Real3 global_normal = geo.normal();
+    if (!is_entering_surface(geo.dir(), global_normal))
+    {
+        global_normal = -global_normal;
+    }
+
     surface_physics
         = SurfacePhysicsView::Initializer{oriented_surface.surface,
                                           oriented_surface.orientation,
-                                          geo.normal(),
+                                          global_normal,
                                           pre_volume_material,
                                           post_volume_material};
 
