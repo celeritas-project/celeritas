@@ -10,6 +10,7 @@
 #include <memory>
 #include <string_view>
 #include <vector>
+#include <gtest/gtest.h>
 
 #include "corecel/Assert.hh"
 #include "geocel/VolumeParams.hh"
@@ -19,7 +20,6 @@
 #include "celeritas/geo/CoreGeoParams.hh"
 
 #include "celeritas_test.hh"
-#include "gtest/gtest.h"
 
 namespace celeritas
 {

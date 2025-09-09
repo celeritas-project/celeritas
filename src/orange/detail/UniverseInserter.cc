@@ -39,8 +39,7 @@ void move_back(std::vector<Label>& dst, std::vector<Label>&& src)
 }
 
 //---------------------------------------------------------------------------//
-void move_back(std::vector<Label>& dst,
-               std::vector<VolumeInput::VariantLabel>&& src)
+void move_back(std::vector<Label>& dst, UniverseInserter::VecVarLabel&& src)
 {
     dst.reserve(dst.size() + src.size());
     for (auto& label : src)
@@ -118,7 +117,7 @@ UniverseId UniverseInserter::operator()(UniverseType type,
 UniverseId UniverseInserter::operator()(UniverseType type,
                                         Label univ_label,
                                         VecLabel surface_labels,
-                                        VecVolLabel volume_labels)
+                                        VecVarLabel volume_labels)
 {
     CELER_EXPECT(type != UniverseType::size_);
     CELER_EXPECT(!volume_labels.empty());
@@ -140,22 +139,34 @@ UniverseId UniverseInserter::operator()(UniverseType type,
         // Add volume IDs and instance IDs
         for (auto& var_label : volume_labels)
         {
-            if (auto vi_id = get_or_default<VolumeInstanceId>(var_label))
+            VolumeInstanceId vi_id
+                = get_or_default<VolumeInstanceId>(var_label);
+            VolumeId vol_id;
+            if (vi_id)
             {
+                // Implementation volume represents a canonical volume instance
                 CELER_ASSERT(vi_id < volume_params_->num_volume_instances());
-                auto vol_id = volume_params_->volume(vi_id);
-                volume_ids_.push_back(vol_id);
-                volume_instance_ids_.push_back(vi_id);
+                vol_id = volume_params_->volume(vi_id);
+
+                // For backward compatibility, use the *volume* rather than
+                // *instance* label for this ImplVolume
+                var_label = volume_params_->volume_labels().at(vol_id);
+            }
+            else if (auto* var_vol_id = std::get_if<VolumeId>(&var_label))
+            {
+                // Not an instance but *IS* a volume (i.e., the background)
+                vol_id = *var_vol_id;
+                CELER_ASSERT(vol_id);
 
                 // Replace with volume label corresponding to it
                 var_label = volume_params_->volume_labels().at(vol_id);
             }
             else
             {
-                // No physical volume corresponds to it
-                volume_ids_.push_back(VolumeId{});
-                volume_instance_ids_.push_back(VolumeInstanceId{});
+                // No special metadata: just an impl volume e.g., [EXTERIOR]
             }
+            volume_ids_.push_back(vol_id);
+            volume_instance_ids_.push_back(vi_id);
         }
     }
 
@@ -171,7 +182,7 @@ UniverseId UniverseInserter::update_counters(UniverseType type,
                                              size_type num_surfaces,
                                              size_type num_volumes)
 {
-    UniverseId result = types_.size_id();
+    UniverseId result = this->next_univ_id();
 
     // Add universe type and index
     types_.push_back(type);

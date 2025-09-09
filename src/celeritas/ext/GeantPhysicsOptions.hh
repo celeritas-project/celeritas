@@ -105,6 +105,9 @@ operator==(GeantMuonPhysicsOptions const& a, GeantMuonPhysicsOptions const& b)
  * G4StandardEmPhysics. They are passed to the \c EmPhysicsList
  * and \c FtfpBert physics lists to provide an easy way to set up
  * physics options.
+ *
+ * \todo This will be moved to celeritas::inp
+ * \todo Rename default_cutoff to be consistent (it's a production cut)
  */
 struct GeantPhysicsOptions
 {

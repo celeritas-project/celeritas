@@ -4,6 +4,8 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/geo/Geometry.test.cc
 //---------------------------------------------------------------------------//
+#include <gtest/gtest.h>
+
 #include "corecel/Config.hh"
 
 #include "corecel/StringSimplifier.hh"
@@ -13,7 +15,6 @@
 #include "HeuristicGeoTestBase.hh"
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
-#include "gtest/gtest.h"
 
 namespace celeritas
 {

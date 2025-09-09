@@ -148,20 +148,33 @@ std::vector<Label> make_surface_labels(UnitInput& inp)
 //! Construct volume labels from the input volumes
 auto make_volume_labels(UnitInput const& inp)
 {
-    std::vector<VolumeInput::VariantLabel> result;
+    UniverseInserter::VecVarLabel result;
     for (auto const& v : inp.volumes)
     {
-        auto var_label = v.label;
-        if (auto* label = std::get_if<Label>(&var_label))
-        {
-            // Add the unit's name as an extension if blank
-            if (label->ext.empty())
-            {
-                label->ext = inp.label.name;
-            }
-        }
-        result.push_back(std::move(var_label));
+        // Convert a <Label, VolInstId> -> <Label, VolInstId, VolId>
+        // using a default extension
+        result.emplace_back(
+            std::visit(return_as<UniverseInserter::VariantLabel>(Overload{
+                           [](auto&& obj) { return obj; },
+                           [&inp](Label const& label) {
+                               Label result = label;
+                               // Add the unit's name as an extension if blank
+                               if (result.ext.empty())
+                               {
+                                   result.ext = inp.label.name;
+                               }
+                               return result;
+                           },
+                       }),
+                       v.label));
     }
+
+    if (auto const& bg = inp.background)
+    {
+        CELER_ASSERT(bg.volume < result.size());
+        result[bg.volume.get()] = bg.label;
+    }
+
     return result;
 }
 
@@ -255,7 +268,7 @@ std::string to_string(VolumeInput::VariantLabel const& vlabel)
  */
 UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
     : orange_data_(orange_data)
-    , build_bih_tree_{&orange_data_->bih_tree_data}
+    , build_bih_tree_{&orange_data_->bih_tree_data, BIHBuilder::Input{2}}
     , insert_transform_{&orange_data_->transforms, &orange_data_->reals}
     , build_surfaces_{&orange_data_->surface_types,
                       &orange_data_->real_ids,

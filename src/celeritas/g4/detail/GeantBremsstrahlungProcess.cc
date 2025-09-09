@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/GeantBremsstrahlungProcess.cc
+//! \file celeritas/g4/detail/GeantBremsstrahlungProcess.cc
 //---------------------------------------------------------------------------//
 #include "GeantBremsstrahlungProcess.hh"
 
@@ -26,8 +26,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
-
-#include "../GeantPhysicsOptions.hh"
 
 using CLHEP::GeV;
 

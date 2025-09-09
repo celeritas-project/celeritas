@@ -15,6 +15,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/Types.hh"
@@ -44,6 +45,13 @@ bool is_contiguous_increasing(inp::UniformGrid const& lower,
            && lower.x[Bound::hi] > lower.x[Bound::lo]
            && upper.x[Bound::hi] > upper.x[Bound::lo]
            && soft_equal(lower.x[Bound::hi], upper.x[Bound::lo]);
+}
+
+bool is_contained_in(inp::UniformGrid const& lower,
+                     inp::UniformGrid const& upper)
+{
+    return lower.x[Bound::lo] >= upper.x[Bound::lo]
+           && lower.x[Bound::hi] <= upper.x[Bound::hi];
 }
 
 //---------------------------------------------------------------------------//
@@ -198,6 +206,19 @@ auto ImportedProcessAdapter::macro_xs(Applicability const& applic) const
     }
     if (result.lower && result.upper)
     {
+        if (is_contained_in(result.lower, result.upper))
+        {
+            // If the lower grid bound of the lambda table is equal to the
+            // lower grid bound of the lambda prime table in Geant4, both
+            // tables will be constructed but the range of the low-energy table
+            // will be extended upward so that it overlaps with the high-energy
+            // table. In this case the lower table can be ignored.
+            CELER_LOG(warning) << "Ignoring low-energy lambda table because "
+                                  "its range is redundant with high-energy "
+                                  "table";
+            result.lower = {};
+            return result;
+        }
         CELER_ASSERT(is_contiguous_increasing(result.lower, result.upper));
         CELER_ASSERT(
             soft_equal(result.lower.x[Bound::hi], result.upper.x[Bound::lo]));

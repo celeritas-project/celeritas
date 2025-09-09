@@ -9,7 +9,10 @@
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/cont/VariantUtils.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
+#include "corecel/math/ArrayOperators.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/inp/Model.hh"
 
@@ -26,8 +29,54 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+::testing::AssertionResult IsNormalEquiv(char const* expected_expr,
+                                         char const* actual_expr,
+                                         Real3 const& expected,
+                                         Real3 const& actual)
+{
+    // Test that the normals are either in the same or opposite directions
+    constexpr auto eps = SoftEqual<>{}.rel();
+    if (norm(expected - actual) < eps || norm(expected + actual) < eps)
+    {
+        return ::testing::AssertionSuccess();
+    }
+
+    // Failed: print nice error message
+    ::testing::AssertionResult result = ::testing::AssertionFailure();
+
+    result << "Value of: " << actual_expr << "\n  Actual: " << repr(actual)
+           << "\nExpected: " << expected_expr
+           << "\nWhich is: " << repr(expected) << '\n';
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 // TRACKING RESULT
 //---------------------------------------------------------------------------//
+// Replace dot-normals with a sentinel value
+void GenericGeoTrackingResult::disable_surface_normal()
+{
+    this->dot_normal = {-2};
+}
+
+// Whether surface normals are disabled
+bool GenericGeoTrackingResult::disabled_surface_normal() const
+{
+    auto& dn = this->dot_normal;
+    return dn.size() == 1 && dn.front() == -2;
+}
+
+void GenericGeoTrackingResult::clear_boring_normals()
+{
+    auto& dn = this->dot_normal;
+    if (std::all_of(dn.begin(), dn.end(), [](real_type n) {
+            return soft_equal(n, real_type{1});
+        }))
+    {
+        dn.clear();
+    }
+}
 
 void GenericGeoTrackingResult::print_expected() const
 {
@@ -35,20 +84,29 @@ void GenericGeoTrackingResult::print_expected() const
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "GenericGeoTrackingResult ref;\n"
          << CELER_REF_ATTR(volumes) << CELER_REF_ATTR(volume_instances)
-         << CELER_REF_ATTR(distances) << CELER_REF_ATTR(halfway_safeties)
-         << CELER_REF_ATTR(bumps)
-         << "auto tol = GenericGeoTrackingTolerance::from_test(*test_);\n"
+         << CELER_REF_ATTR(distances);
+    if (this->dot_normal.empty())
+    {
+        // See clear_boring_normals
+        cout << "ref.dot_normal = {}; // All normals are along track dir\n";
+    }
+    else if (this->disabled_surface_normal())
+    {
+        cout << "// Surface normal checking is disabled\n";
+    }
+    else
+    {
+        cout << CELER_REF_ATTR(dot_normal);
+    }
+    cout << CELER_REF_ATTR(halfway_safeties);
+    if (!bumps.empty())
+    {
+        cout << CELER_REF_ATTR(bumps);
+    }
+
+    cout << "auto tol = test_->;\n"
             "EXPECT_REF_NEAR(ref, result, tol);\n"
             "/*** END CODE ***/\n";
-}
-
-GenericGeoTrackingTolerance
-GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
-{
-    GenericGeoTrackingTolerance tol;
-    tol.safety = test.safety_tol();
-    tol.distance = SoftEqual{}.rel();
-    return tol;
 }
 
 ::testing::AssertionResult IsRefEq(char const* expr1,
@@ -84,6 +142,14 @@ GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
     IRE_VEC_EQ(volumes);
     IRE_VEC_EQ(volume_instances);
     IRE_VEC_SOFT_EQ(distances, tol.distance);
+    if (val1.disabled_surface_normal() || val2.disabled_surface_normal())
+    {
+        CELER_LOG(warning) << "Skipping surface normal comparison";
+    }
+    else
+    {
+        IRE_VEC_SOFT_EQ(dot_normal, tol.normal);
+    }
     IRE_VEC_SOFT_EQ(halfway_safeties, SoftEqual(tol.safety, tol.safety));
     IRE_VEC_SOFT_EQ(bumps, SoftEqual(tol.safety, tol.safety));
 

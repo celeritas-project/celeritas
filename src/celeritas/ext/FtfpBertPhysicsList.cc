@@ -17,10 +17,10 @@
 #include <G4ios.hh>
 
 #include "celeritas/Quantities.hh"
+#include "celeritas/g4/SupportedEmStandardPhysics.hh"
+#include "celeritas/g4/SupportedOpticalPhysics.hh"
 
 #include "detail/EmStandardPhysics.hh"
-#include "detail/MuHadEmStandardPhysics.hh"
-#include "detail/OpticalPhysics.hh"
 #include "detail/PhysicsListUtils.hh"
 
 namespace celeritas
@@ -38,17 +38,15 @@ FtfpBertPhysicsList::FtfpBertPhysicsList(Options const& options)
     this->SetDefaultCutValue(
         native_value_to<ClhepLen>(options.default_cutoff).value());
 
-    // Celeritas-supported EM physics
+    // Add celeritas EM physics plus additional mu/hadron
     detail::emplace_physics<detail::EmStandardPhysics>(*this, options);
 
     if (options.optical)
     {
         // Celeritas-supported Optical Physics
-        detail::emplace_physics<detail::OpticalPhysics>(*this, options.optical);
+        detail::emplace_physics<SupportedOpticalPhysics>(*this,
+                                                         options.optical);
     }
-
-    // Hadron EM standard physics not supported in Celeritas
-    detail::emplace_physics<detail::MuHadEmStandardPhysics>(*this, verbosity);
 
     // TODO: Add a physics constructor equivalent to G4EmExtraPhysics
 

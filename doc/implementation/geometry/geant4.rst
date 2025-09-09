@@ -12,3 +12,8 @@ navigation for individual track states (though only on CPU, and without full
 support for field navigation).
 
 .. doxygenclass:: celeritas::GeantGeoParams
+
+Runtime interface
+-----------------
+
+.. doxygenclass:: celeritas::GeantGeoTrackView

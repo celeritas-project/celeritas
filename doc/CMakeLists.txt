@@ -231,8 +231,6 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/corecel/random/engine/*.hh"
   "${PROJECT_SOURCE_DIR}/src/corecel/random/distribution/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/decay/interactor/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/em/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/em/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/data/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/interactor/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/interactor/detail/*.hh"

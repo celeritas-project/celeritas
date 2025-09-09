@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celer-g4/PGPrimaryGeneratorAction.cc
+//! \file accel/PGPrimaryGeneratorAction.cc
 //---------------------------------------------------------------------------//
 #include "PGPrimaryGeneratorAction.hh"
 
@@ -11,6 +11,7 @@
 #include <G4ParticleTable.hh>
 
 #include "corecel/Macros.hh"
+#include "corecel/io/Logger.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/ext/GeantImporter.hh"
@@ -19,8 +20,6 @@
 #include "celeritas/phys/Primary.hh"
 
 namespace celeritas
-{
-namespace app
 {
 namespace
 {
@@ -79,6 +78,9 @@ void PGPrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 
     auto primaries = generate_primaries_();
 
+    CELER_LOG_LOCAL(debug) << "Generated " << primaries.size()
+                           << " primaries for event " << event->GetEventID();
+
     for (auto const& p : primaries)
     {
         CELER_ASSERT(p.particle_id < pdg_.size());
@@ -102,5 +104,4 @@ void PGPrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace app
 }  // namespace celeritas
