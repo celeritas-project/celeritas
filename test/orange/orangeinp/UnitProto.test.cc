@@ -564,7 +564,7 @@ TEST_F(InputBuilderTest, lar_split_detector)
             "full_shell",
             {{Sense::inside, middle_sphere}, {Sense::outside, inner_sphere}});
 
-        // Construct exterior, shell, shell halvs, interior
+        // Construct exterior, shell, shell halves, interior
         append_material(inp,
                         make_rdv("outer_region",
                                  {{Sense::inside, inp.boundary.interior},
