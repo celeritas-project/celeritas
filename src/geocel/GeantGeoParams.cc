@@ -471,7 +471,18 @@ std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
  * and exceptions. It saves the result to the global Celeritas Geant4 geometry
  * weak pointer \c global_geant_geo.
  *
- * It also loads sensitive detectors and assigns dummy
+ * Due to limitations in the Geant4 GDML code, this task \c must be performed
+ * from the main thread.
+ *
+ * It also loads sensitive detectors and assigns dummy sensitive detectors to
+ * volumes annotated with <code>auxiliary auxtype="SensDet"</code> tags. It
+ * creates one detector per unique \c auxvalue name and shares that one among
+ * the volumes that use the same detector name. The resulting \c GeantGeoParams
+ * class retains ownership of the created detectors. Since this function is
+ * only called on the main thread, and the \c SensitiveDetector getter/setter
+ * on \c G4LogicalVolume uses a thread-local "split" class, <em>worker threads
+ * will not see the sensitive detectors this loader creates</em>. Use \c
+ * celeritas::DetectorConstruction if thread-local detectors are needed.
  */
 std::shared_ptr<GeantGeoParams>
 GeantGeoParams::from_gdml(std::string const& filename)
