@@ -219,8 +219,8 @@ TEST_F(CmsEeBackDeeTest, model)
     };
     ref.volume_instance.volumes = {3, 2, 0, 1, 4, 5, 6};
     ref.world = "EEBackDee";
-    ref.detector.labels = {"EEBackPlate@0", "EESRing@0"};
-    ref.detector.volumes = {{3}, {2}};
+    ref.detector.labels = {"ee_back_plate", "ee_s_ring"};
+    ref.detector.volumes = {{0}, {1}};
     EXPECT_REF_EQ(ref, result);
 }
 

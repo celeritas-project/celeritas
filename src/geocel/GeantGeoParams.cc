@@ -394,8 +394,6 @@ std::vector<inp::Detector> make_inp_detectors(GeantGeoParams const& geo)
 
     auto const& vol_labels = geo.impl_volumes();
 
-    std::cout << "making inp detectors" << std::endl;
-
     // Process each logical volume
     for (auto iv_id : range(ImplVolumeId{vol_labels.size()}))
     {
