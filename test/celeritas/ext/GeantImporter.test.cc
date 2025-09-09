@@ -1631,7 +1631,7 @@ TEST_F(LarSphere, optical)
     auto&& imported = this->imported_data();
     ASSERT_EQ(4, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
-    ASSERT_EQ(2, imported.geo_materials.size());
+    ASSERT_EQ(3, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
 
     // First material is vacuum, no optical properties

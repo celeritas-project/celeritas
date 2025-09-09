@@ -120,22 +120,71 @@
       <property name="WLSABSLENGTH2" ref="ABS"/> <!-- Reused for simplicity -->
       <property name="WLSTIMECONSTANT2" ref="TC1"/> <!-- Reused for simplicity -->
     </material>
+    <isotope N="204" Z="82" name="Pb204">
+      <atom unit="g/mole" value="203.973"/>
+    </isotope>
+    <isotope N="206" Z="82" name="Pb206">
+      <atom unit="g/mole" value="205.974"/>
+    </isotope>
+    <isotope N="207" Z="82" name="Pb207">
+      <atom unit="g/mole" value="206.976"/>
+    </isotope>
+    <isotope N="208" Z="82" name="Pb208">
+      <atom unit="g/mole" value="207.977"/>
+    </isotope>
+    <element name="Pb">
+      <fraction n="0.014" ref="Pb204"/>
+      <fraction n="0.241" ref="Pb206"/>
+      <fraction n="0.221" ref="Pb207"/>
+      <fraction n="0.524" ref="Pb208"/>
+    </element>
+    <material name="Lead" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="823"/>
+      <D unit="g/cm3" value="11.35"/>
+      <fraction n="1" ref="Pb"/>
+    </material>
   </materials>
 
   <solids>
-    <sphere lunit="cm" name="sphere" rmax="100.0" deltaphi="360" deltatheta="180" aunit="deg"/>
+    <sphere lunit="cm" name="lar_sphere" rmax="100.0" deltaphi="360" deltatheta="180" aunit="deg"/>
     <sphere lunit="cm" name="world_sphere" rmin="0.0" rmax="1000.0" deltaphi="360" deltatheta="180" aunit="deg"/>
+    <sphere lunit="cm" name="det_shell" rmin="100.0" rmax="110.0" startphi="0" deltaphi="360" deltatheta="180" aunit="deg"/>
+    <sphere lunit="cm" name="det_shell_top" rmin="100.0" rmax="110.0" startphi="0" deltaphi="180" deltatheta="180" aunit="deg"/>
+    <sphere lunit="cm" name="det_shell_bot" rmin="100.0" rmax="110.0" startphi="180" deltaphi="180" deltatheta="180" aunit="deg"/>
   </solids>
 
   <structure>
     <volume name="sphere">
-      <solidref ref="sphere"/>
+      <solidref ref="lar_sphere"/>
       <materialref ref="lAr"/>
-      <auxiliary auxtype="SensDet" auxvalue="detector"/>
+    </volume>
+    <volume name="detshell_top">
+      <solidref ref="det_shell_top"/>
+      <materialref ref="lAr"/>
+      <auxiliary auxtype="SensDet" auxvalue="detshell"/>
+    </volume>
+    <volume name="detshell_bot">
+      <solidref ref="det_shell_bot"/>
+      <materialref ref="lAr"/>
+      <auxiliary auxtype="SensDet" auxvalue="detshell"/>
+    </volume>
+    <volume name="detshell">
+      <solidref ref="det_shell"/>
+      <materialref ref="vacuum"/>
+      <physvol>
+        <volumeref ref="detshell_top"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="detshell_bot"/>
+      </physvol>
     </volume>
     <volume name="world">
       <solidref ref="world_sphere"/>
       <materialref ref="vacuum"/>
+      <physvol>
+        <volumeref ref="detshell"/>
+      </physvol>
       <physvol>
         <volumeref ref="sphere"/>
       </physvol>

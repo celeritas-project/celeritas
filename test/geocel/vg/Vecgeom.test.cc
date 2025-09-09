@@ -525,6 +525,20 @@ TEST_F(FourLevelsTest, levels)
 }
 
 //---------------------------------------------------------------------------//
+using LarSphereTest
+    = GenericGeoParameterizedTest<VecgeomGeantTestBase, LarSphereGeoTest>;
+
+TEST_F(LarSphereTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(LarSphereTest, volume_stack)
+{
+    this->impl().test_volume_stack();
+}
+
+//---------------------------------------------------------------------------//
 
 using MultiLevelTest
     = GenericGeoParameterizedTest<VecgeomGeantTestBase, MultiLevelGeoTest>;
