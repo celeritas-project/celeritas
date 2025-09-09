@@ -258,13 +258,9 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos, Real3 const& dir)
                 }();
 
                 // Not entering or exiting global; check direction similarity
-                EXPECT_SOFT_NEAR(1.0,
-                                 std::fabs(dot_product(*pre_norm, post_norm)),
-                                 celeritas::sqrt_tol())
+                EXPECT_NORMAL_EQUIV(*pre_norm, post_norm)
                     << "Normal is not consistent at boundary from "
-                    << result.volume_instances.back() << " into " << post_vol
-                    << ": previously " << repr(*pre_norm) << ", now "
-                    << repr(post_norm);
+                    << result.volume_instances.back() << " into " << post_vol;
                 if (soft_zero(dot_product(geo.dir(), post_norm)))
                 {
                     CELER_LOG(warning)
