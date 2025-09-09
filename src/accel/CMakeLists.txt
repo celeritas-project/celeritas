@@ -4,8 +4,18 @@
 #-----------------------------------------------------------------------------#
 
 set(SOURCES)
-set(PRIVATE_DEPS nlohmann_json::nlohmann_json)
-set(PUBLIC_DEPS Celeritas::celeritas Celeritas::corecel)
+set(PRIVATE_DEPS
+  nlohmann_json::nlohmann_json
+  Celeritas::Extcovfie
+  Celeritas::ExtThrust # TODO: add thrust exception conversion to corecel?
+  Celeritas::ExtOpenMP # TODO: provide thread utils in corecel
+)
+set(PUBLIC_DEPS
+  Celeritas::BuildFlags
+  Celeritas::corecel
+  Celeritas::geocel
+  Celeritas::celeritas
+)
 
 #-----------------------------------------------------------------------------#
 # Main code
@@ -13,23 +23,26 @@ set(PUBLIC_DEPS Celeritas::celeritas Celeritas::corecel)
 
 list(APPEND SOURCES
   AlongStepFactory.cc
-  FastSimulationOffload.cc
+  CartMapMagneticField.cc
+  CylMapMagneticField.cc
+  FastSimulationIntegration.cc
+  FastSimulationModel.cc
   GeantSimpleCalo.cc
   GeantStepDiagnostic.cc
-  Logger.cc
+  IntegrationBase.cc
   LocalTransporter.cc
+  Logger.cc
+  PGPrimaryGeneratorAction.cc
   SetupOptions.cc
   SetupOptionsMessenger.cc
   SharedParams.cc
   SimpleOffload.cc
+  TimeOutput.cc
+  TrackingManagerConstructor.cc
+  TrackingManagerIntegration.cc
+  UserActionIntegration.cc
   detail/GeantSimpleCaloSD.cc
-  detail/HitManager.cc
-  detail/HitManagerOutput.cc
-  detail/HitProcessor.cc
-  detail/LevelTouchableUpdater.cc
-  detail/NaviTouchableUpdater.cc
-  detail/SensDetInserter.cc
-  detail/TouchableUpdaterInterface.cc
+  detail/IntegrationSingleton.cc
 )
 
 celeritas_polysource(ExceptionConverter)
@@ -43,10 +56,6 @@ endif()
 if(CELERITAS_USE_HepMC3)
   list(APPEND PRIVATE_DEPS HepMC3::HepMC3)
   list(APPEND SOURCES HepMC3PrimaryGenerator.cc)
-endif()
-
-if(CELERITAS_USE_OpenMP)
-  list(APPEND PRIVATE_DEPS OpenMP::OpenMP_CXX)
 endif()
 
 celeritas_get_g4libs(_g4_private digits_hits run)

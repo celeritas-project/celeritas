@@ -50,9 +50,6 @@ TEST(EnvironmentTest, local)
 
 TEST(EnvironmentTest, global)
 {
-    EXPECT_EQ("1", environment()["ENVTEST_ONE"]);
-    EXPECT_EQ("0", getenv("ENVTEST_ZERO"));
-    EXPECT_EQ("1", getenv("ENVTEST_ONE"));
     EXPECT_EQ("", getenv("ENVTEST_EMPTY"));
 
     EXPECT_EQ((GetenvFlagResult{false, false}),
@@ -67,6 +64,11 @@ TEST(EnvironmentTest, global)
               getenv_flag("ENVTEST_NEW_T", true));
     EXPECT_EQ((GetenvFlagResult{false, true}),
               getenv_flag("ENVTEST_NEW_F", false));
+
+    EXPECT_EQ("1", environment()["ENVTEST_ONE"]);
+    EXPECT_EQ("0", getenv("ENVTEST_ZERO"));
+    EXPECT_EQ("1", getenv("ENVTEST_ONE"));
+    EXPECT_EQ("", getenv("ENVTEST_EMPTY"));
 
     environment().insert({"ENVTEST_FALSE", "false"});
     environment().insert({"ENVTEST_TRUE", "true"});

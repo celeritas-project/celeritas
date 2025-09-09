@@ -21,6 +21,8 @@ class ProtoInterface;
 //---------------------------------------------------------------------------//
 /*!
  * Construct an ORANGE input from a top-level proto.
+ *
+ * Universe zero is *always* the global universe; see \c detail::ProtoMap .
  */
 class InputBuilder
 {

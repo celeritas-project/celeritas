@@ -12,9 +12,8 @@
 #include "corecel/math/UnitUtils.hh"
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/Units.hh"
+#include "celeritas/inp/Grid.hh"
 #include "celeritas/phys/AtomicNumber.hh"
-
-#include "ImportPhysicsVector.hh"
 
 namespace celeritas
 {
@@ -40,7 +39,7 @@ class NeutronXsReader
   public:
     //!@{
     //! \name Type aliases
-    using result_type = ImportPhysicsVector;
+    using result_type = inp::Grid;
     using MmSqMicroXs
         = Quantity<UnitProduct<units::Millimeter, units::Millimeter>, double>;
     //!@}

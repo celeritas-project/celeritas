@@ -14,12 +14,12 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/random/distribution/GenerateCanonical.hh"
+#include "corecel/random/distribution/UniformRealDistribution.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/InverseCdfFinder.hh"
 #include "celeritas/phys/FourVector.hh"
-#include "celeritas/random/distribution/GenerateCanonical.hh"
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 #include "CascadeParticle.hh"
 
@@ -158,7 +158,7 @@ CELER_FUNCTION auto CascadeCollider::operator()(Engine& rng) -> FinalState
     }
 
     // Sample the momentum of outgoing particles in the center of mass frame
-    // Rotate the momentum along the reference z-axis
+    // Rotate the momentum along the reference z axis
     auto fv = FourVector::from_mass_momentum(
         bullet_.mass,
         Momentum{cm_p_},

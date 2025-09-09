@@ -11,9 +11,9 @@
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
-#include "orange/univ/detail/Types.hh"
 
 #include "LazySenseCalculator.hh"
+#include "Types.hh"
 #include "../VolumeView.hh"
 
 namespace celeritas
@@ -92,8 +92,8 @@ CachedLazySenseCalculator::CachedLazySenseCalculator(
  * If the point is exactly on one of the volume's surfaces, the \c face
  * reference passed during instance construction will be set.
  */
-CELER_FUNCTION auto
-CachedLazySenseCalculator::operator()(FaceId face_id) -> Sense
+CELER_FUNCTION auto CachedLazySenseCalculator::operator()(FaceId face_id)
+    -> Sense
 {
     CELER_EXPECT(face_id < sense_cache_.size());
     auto& cached_sense = sense_cache_[face_id.get()];

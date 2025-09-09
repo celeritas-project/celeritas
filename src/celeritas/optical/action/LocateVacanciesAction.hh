@@ -16,9 +16,6 @@ namespace optical
 /*!
  * Find the vacant track slots at the end of the step.
  *
- * \todo Create initializers from secondaries here once optical secondaries are
- * produced.
- *
  * \todo Rename?
  */
 class LocateVacanciesAction final : public OpticalStepActionInterface,

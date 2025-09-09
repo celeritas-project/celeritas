@@ -11,11 +11,11 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/random/distribution/InverseSquareDistribution.hh"
+#include "corecel/random/distribution/RejectionSampler.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
-#include "celeritas/random/distribution/InverseSquareDistribution.hh"
-#include "celeritas/random/distribution/RejectionSampler.hh"
 
 #include "detail/Utils.hh"
 
@@ -57,7 +57,7 @@ class BraggICRU73QOEnergyDistribution
   private:
     //// DATA ////
 
-    // Incident partcle mass
+    // Incident particle mass
     real_type inc_mass_;
     // Square of fractional speed of light for incident particle
     real_type beta_sq_;
@@ -112,8 +112,8 @@ BraggICRU73QOEnergyDistribution::BraggICRU73QOEnergyDistribution(
  * Sample secondary electron energy.
  */
 template<class Engine>
-CELER_FUNCTION auto
-BraggICRU73QOEnergyDistribution::operator()(Engine& rng) -> Energy
+CELER_FUNCTION auto BraggICRU73QOEnergyDistribution::operator()(Engine& rng)
+    -> Energy
 {
     InverseSquareDistribution sample_energy(value_as<Energy>(min_energy_),
                                             value_as<Energy>(max_energy_));

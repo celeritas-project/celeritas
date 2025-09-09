@@ -144,7 +144,7 @@ void MaterialParamsOutput::output(JsonPimpl* j) const
         auto element_id = json::array();
         auto element_frac = json::array();
 
-        for (auto id : range(MaterialId{material_->num_materials()}))
+        for (auto id : range(PhysMatId{material_->num_materials()}))
         {
             MaterialView const mat_view = material_->get(id);
             label.push_back(material_->id_to_label(id));

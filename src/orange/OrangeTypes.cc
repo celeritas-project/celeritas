@@ -101,6 +101,19 @@ Tolerance<T> Tolerance<T>::from_relative(real_type rel, real_type length)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get a string corresponding to a surface sense.
+ */
+char const* to_cstring(Sense s)
+{
+    if (s == Sense::inside)
+        return "inside";
+    else if (s == Sense::outside)
+        return "outside";
+    CELER_ASSERT_UNREACHABLE();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get a string corresponding to a surface type.
  */
 char const* to_cstring(SurfaceType value)

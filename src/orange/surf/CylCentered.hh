@@ -188,7 +188,8 @@ template<Axis T>
 CELER_FUNCTION auto
 CylCentered<T>::calc_intersections(Real3 const& pos,
                                    Real3 const& dir,
-                                   SurfaceState on_surface) const -> Intersections
+                                   SurfaceState on_surface) const
+    -> Intersections
 {
     // 1 - (\omega \dot t)^2 where t is axis of cylinder
     real_type const a = 1 - ipow<2>(dir[to_int(T)]);

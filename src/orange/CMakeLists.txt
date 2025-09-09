@@ -13,11 +13,14 @@ set(PUBLIC_DEPS Celeritas::corecel)
 
 list(APPEND SOURCES
   BoundingBoxUtils.cc
+  Debug.cc
+  DebugIO.json.cc
   MatrixUtils.cc
   OrangeInputIO.json.cc
   OrangeParams.cc
   OrangeParamsOutput.cc
   OrangeTypes.cc
+  SafetyImager.cc
   detail/BIHBuilder.cc
   detail/BIHPartitioner.cc
   detail/DepthCalculator.cc
@@ -39,9 +42,13 @@ list(APPEND SOURCES
   orangeinp/ObjectIO.json.cc
   orangeinp/PolySolid.cc
   orangeinp/ProtoInterface.cc
+  orangeinp/RevolvedPolygon.cc
   orangeinp/Shape.cc
   orangeinp/Solid.cc
+  orangeinp/StackedExtrudedPolygon.cc
+  orangeinp/ScaleUtils.cc
   orangeinp/Transformed.cc
+  orangeinp/Truncated.cc
   orangeinp/UnitProto.cc
   orangeinp/detail/BoundingZone.cc
   orangeinp/detail/BuildIntersectRegion.cc
@@ -82,7 +89,7 @@ list(APPEND SOURCES
 )
 
 
-if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
+if(CELERITAS_USE_Geant4)
   set(_cg4org_sources
     g4org/Converter.cc
     g4org/LogicalVolumeConverter.cc

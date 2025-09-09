@@ -26,11 +26,7 @@ namespace celeritas
 bool KernelRegistry::profiling()
 {
     static bool const result = [] {
-        if constexpr (CELERITAS_DEBUG)
-        {
-            return true;
-        }
-        return !celeritas::getenv("CELER_PROFILE_DEVICE").empty();
+        return getenv_flag("CELER_PROFILE_DEVICE", CELERITAS_DEBUG).value;
     }();
     return result;
 }
@@ -39,8 +35,8 @@ bool KernelRegistry::profiling()
 /*!
  * Add a new kernel definition to the list
  */
-auto KernelRegistry::insert(std::string_view name,
-                            KernelAttributes&& attrs) -> KernelProfiling*
+auto KernelRegistry::insert(std::string_view name, KernelAttributes&& attrs)
+    -> KernelProfiling*
 {
     // Create metadata for this kernel
     auto kmd = std::make_unique<KernelMetadata>();

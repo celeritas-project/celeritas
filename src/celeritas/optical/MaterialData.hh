@@ -9,8 +9,8 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/grid/NonuniformGridData.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/GenericGridData.hh"
 
 #include "Types.hh"
 
@@ -28,15 +28,15 @@ struct MaterialParamsData
     template<class T>
     using Items = Collection<T, W, M>;
     template<class T>
-    using OpticalMaterialItems = Collection<T, W, M, OpticalMaterialId>;
+    using OpticalMaterialItems = Collection<T, W, M, OptMatId>;
     template<class T>
-    using VolumeItems = celeritas::Collection<T, W, M, VolumeId>;
+    using VolumeItems = celeritas::Collection<T, W, M, ImplVolumeId>;
 
     //// MEMBER DATA ////
 
-    OpticalMaterialItems<GenericGridRecord> refractive_index;
-    VolumeItems<OpticalMaterialId> optical_id;
-    OpticalMaterialItems<CoreMaterialId> core_material_id;
+    OpticalMaterialItems<NonuniformGridRecord> refractive_index;
+    VolumeItems<OptMatId> optical_id;
+    OpticalMaterialItems<PhysMatId> core_material_id;
 
     // Backend data
     Items<real_type> reals;

@@ -13,57 +13,57 @@
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 
-#include "FieldDriver.hh"
 #include "FieldDriverOptions.hh"
 #include "FieldPropagator.hh"
+#include "FieldSubstepper.hh"
 #include "MagFieldEquation.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Create a stepper for a charge in a magnetic field.
+ * Create an integrator for moving a charge in a magnetic field.
  *
  * Example:
  * \code
- * auto step = make_stepper<DormandPrinceStepper>(
+ * auto step = make_stepper<DormandPrinceIntegrator>(
  *    UniformField{{1, 2, 3}},
  *    particle.charge());
  * \endcode
  */
-template<template<class EquationT> class StepperT, class FieldT>
+template<template<class EquationT> class IntegratorT, class FieldT>
 CELER_FUNCTION decltype(auto)
-make_mag_field_stepper(FieldT&& field, units::ElementaryCharge charge)
+make_mag_field_integrator(FieldT&& field, units::ElementaryCharge charge)
 {
     using Equation_t = MagFieldEquation<FieldT>;
-    return StepperT<Equation_t>{
+    return IntegratorT<Equation_t>{
         Equation_t{::celeritas::forward<FieldT>(field), charge}};
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a field propagator from an existing stepper.
+ * Create a field propagator from an existing integrator.
  *
  * Example:
  * \code
  * FieldDriverOptions driver_options,
  * auto propagate = make_field_propagator(
- *    stepper,
+ *    integrate,
  *    driver_options,
  *    particle,
  *    &geo);
  * propagate(0.123);
  * \endcode
  */
-template<class StepperT, class GTV>
+template<class IntegratorT, class GTV>
 CELER_FUNCTION decltype(auto)
-make_field_propagator(StepperT&& stepper,
+make_field_propagator(IntegratorT&& integrate,
                       FieldDriverOptions const& options,
                       ParticleTrackView const& particle,
                       GTV&& geometry)
 {
     return FieldPropagator{
-        FieldDriver{options, ::celeritas::forward<StepperT>(stepper)},
+        FieldSubstepper{options, ::celeritas::forward<IntegratorT>(integrate)},
         particle,
         ::celeritas::forward<GTV>(geometry)};
 }
@@ -75,7 +75,7 @@ make_field_propagator(StepperT&& stepper,
  * Example:
  * \code
  * FieldDriverOptions driver_options,
- * auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+ * auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
  *    UniformField{{1, 2, 3}},
  *    driver_options,
  *    particle,
@@ -83,7 +83,7 @@ make_field_propagator(StepperT&& stepper,
  * propagate(0.123);
  * \endcode
  */
-template<template<class EquationT> class StepperT, class FieldT, class GTV>
+template<template<class EquationT> class IntegratorT, class FieldT, class GTV>
 CELER_FUNCTION decltype(auto)
 make_mag_field_propagator(FieldT&& field,
                           FieldDriverOptions const& options,
@@ -91,8 +91,8 @@ make_mag_field_propagator(FieldT&& field,
                           GTV&& geometry)
 {
     return make_field_propagator(
-        make_mag_field_stepper<StepperT>(::celeritas::forward<FieldT>(field),
-                                         particle.charge()),
+        make_mag_field_integrator<IntegratorT>(
+            ::celeritas::forward<FieldT>(field), particle.charge()),
         options,
         particle,
         ::celeritas::forward<GTV>(geometry));

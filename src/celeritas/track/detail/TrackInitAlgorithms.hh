@@ -12,15 +12,31 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/CoreParams.hh"
-#include "celeritas/track/CoreStateCounters.hh"
-#include "celeritas/track/TrackInitData.hh"
 
-#include "Utils.hh"
+#include "../CoreStateCounters.hh"
+#include "../TrackInitData.hh"
+#include "../Utils.hh"
 
 namespace celeritas
 {
 namespace detail
 {
+//---------------------------------------------------------------------------//
+//! Predicate for sorting charged from neutral tracks with a stencil
+struct IsNeutralStencil
+{
+    using ParamsPtr = CRefPtr<CoreParamsData, MemSpace::native>;
+
+    ParamsPtr params;
+    TrackInitializer const* initializers;
+
+    CELER_FUNCTION bool operator()(size_type i) const
+    {
+        CELER_EXPECT(initializers);
+        return IsNeutral{params}(initializers[i]);
+    }
+};
+
 //---------------------------------------------------------------------------//
 // Remove all elements in the vacancy vector that were flagged as alive
 size_type remove_if_alive(

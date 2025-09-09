@@ -23,9 +23,9 @@ def strtobool(text):
 #### LOAD OPTIONS ####
 
 # Load from environment
-use_device = not strtobool(environ.get("CELER_DISABLE_DEVICE", "false"))
+use_device = not environ.get("CELER_DISABLE_DEVICE")
 use_root = strtobool(environ["CELER_USE_ROOT"])
-use_celeritas = not strtobool(environ.get("CELER_DISABLE", "false"))
+use_celeritas = not environ.get("CELER_DISABLE")
 build = environ.get("CELER_BUILD_TYPE", "unknown").lower()
 ext = environ.get("CELER_TEST_EXT", "unknown")
 
@@ -102,7 +102,8 @@ if use_celeritas:
     # do it here as an example
     args = [exe, inp_file]
     inp["output_file"] = "-"
-    inp["slot_diagnostic_prefix"] = f"slot-diag-{ext}-"
+    if not use_device:
+        inp["slot_diagnostic_prefix"] = f"slot-diag-{ext}-"
 
     env = dict(environ)
     kwargs = dict(
@@ -114,7 +115,11 @@ if use_celeritas:
 with open(inp_file, "w") as f:
     json.dump(inp, f, indent=1)
 
-print("Running", exe, inp_file, "from", getcwd(), file=stderr)
+envstr = " ".join(f"{k}={v}"
+                  for (k, v) in environ.items()
+                  if k.startswith("CELER_"))
+print("Running", envstr, exe, inp_file, file=stderr)
+print("working directory:", getcwd(), file=stderr)
 result = subprocess.run(args, **kwargs)
 
 if use_celeritas:
@@ -131,7 +136,7 @@ if use_celeritas:
             json.dump(j, f, indent=1)
 
 if result.returncode:
-    print("fatal: run failed with error", result.returncode)
+    print("fatal: celer-g4 returned error code", result.returncode)
     if use_celeritas:
         try:
             j = json.loads(result.stdout.decode())
@@ -156,4 +161,3 @@ if not use_celeritas:
         json.dump(j, f, indent=1)
 
 pprint(j["result"])
-

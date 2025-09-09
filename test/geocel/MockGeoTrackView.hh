@@ -52,7 +52,7 @@ class MockGeoTrackView
     //!@}
 
     // Get the volume ID in the current cell.
-    CELER_FORCEINLINE_FUNCTION VolumeId volume_id() const;
+    CELER_FORCEINLINE_FUNCTION ImplVolumeId impl_volume_id() const;
 
     // Whether the track is outside the valid geometry region
     CELER_FORCEINLINE_FUNCTION bool is_outside() const;
@@ -107,10 +107,10 @@ MockGeoTrackView::operator=(Initializer_t const& init)
 /*!
  * Get the volume ID in the current cell.
  */
-CELER_FUNCTION VolumeId MockGeoTrackView::volume_id() const
+CELER_FUNCTION ImplVolumeId MockGeoTrackView::impl_volume_id() const
 {
     CELER_EXPECT(!this->is_outside());
-    return id_cast<VolumeId>(volume_id_);
+    return id_cast<ImplVolumeId>(volume_id_);
 }
 
 //---------------------------------------------------------------------------//

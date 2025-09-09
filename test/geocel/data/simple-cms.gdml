@@ -136,7 +136,7 @@
   </materials>
 
   <solids>
-    <tube aunit="deg" deltaphi="360" lunit="mm" name="lhc_vacuum_tube" rmax="300" rmin="0" startphi="0" z="14000"/>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="guide_tube" rmax="300" rmin="0" startphi="0" z="14000"/>
     <tube aunit="deg" deltaphi="360" lunit="mm" name="silicon_tracker" rmax="1250" rmin="300" startphi="0" z="14000"/>
     <tube aunit="deg" deltaphi="360" lunit="mm" name="crystal_em_calorimeter" rmax="1750" rmin="1250" startphi="0" z="14000"/>
     <tube aunit="deg" deltaphi="360" lunit="mm" name="hadron_calorimeter" rmax="2750" rmin="1750" startphi="0" z="14000"/>
@@ -148,7 +148,7 @@
   <structure>
     <volume name="vacuum_tube">
       <materialref ref="vacuum"/>
-      <solidref ref="lhc_vacuum_tube"/>
+      <solidref ref="guide_tube"/>
       <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00099"/>
       <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.00099"/>
       <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.00099"/>

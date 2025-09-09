@@ -13,6 +13,7 @@
 #include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "geocel/GeantUtils.hh"
 #include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "accel/SharedParams.hh"
@@ -49,21 +50,23 @@ inp::Problem load_problem(RunInput const& ri)
     // Model definition
     p.model.geometry = ri.geometry_file;
 
-    // Control
-    p.control.capacity = [&ri] {
-        inp::StateCapacity capacity;
-        capacity.tracks = ri.num_track_slots;
-        capacity.initializers = ri.initializer_capacity;
-        capacity.secondaries = static_cast<size_type>(ri.secondary_stack_factor
-                                                      * ri.num_track_slots);
-        capacity.primaries = ri.auto_flush;
-        return capacity;
+    p.control.num_streams = get_geant_num_threads();
+
+    // NOTE: old SetupOptions input *per stream*, but inp::Problem needs
+    // *integrated* over streams
+    p.control.capacity = [&ri, num_streams = p.control.num_streams] {
+        inp::CoreStateCapacity c;
+        c.tracks = ri.num_track_slots * num_streams;
+        c.initializers = ri.initializer_capacity * num_streams;
+        c.secondaries = static_cast<size_type>(
+            ri.secondary_stack_factor * ri.num_track_slots * num_streams);
+        c.primaries = ri.auto_flush;
+        return c;
     }();
 
     if (celeritas::Device::num_devices())
     {
         inp::DeviceDebug dd;
-        dd.default_stream = ri.default_stream;
         dd.sync_stream = ri.action_times;
         p.control.device_debug = std::move(dd);
     }
@@ -81,7 +84,7 @@ inp::Problem load_problem(RunInput const& ri)
     // Field setup
     if (ri.field_type == "rzmap")
     {
-        CELER_LOG_LOCAL(info) << "Loading RZMapField from " << ri.field_file;
+        CELER_LOG(info) << "Loading RZMapField from " << ri.field_file;
         std::ifstream inp(ri.field_file);
         CELER_VALIDATE(inp,
                        << "failed to open field map file at '" << ri.field_file
@@ -104,8 +107,7 @@ inp::Problem load_problem(RunInput const& ri)
         auto field_val = norm(field.strength);
         if (field_val > 0)
         {
-            CELER_LOG_LOCAL(info)
-                << "Using a uniform field " << field_val << " [T]";
+            CELER_LOG(info) << "Using a uniform field " << field_val << " [T]";
             field.driver_options = ri.field_options;
             p.field = std::move(field);
         }
@@ -129,6 +131,7 @@ inp::Problem load_problem(RunInput const& ri)
         d.export_files.physics = ri.physics_output_file;
         d.export_files.offload = ri.offload_output_file;
         d.timers.action = ri.action_times;
+        d.perfetto_file = ri.tracing_file;
 
         if (!ri.slot_diagnostic_prefix.empty())
         {
@@ -209,10 +212,9 @@ RunInput::operator bool() const
     return !geometry_file.empty() && (primary_options || !event_file.empty())
            && physics_list < PhysicsListSelection::size_
            && (field == no_field() || field_options)
-           && ((num_track_slots > 0 && max_steps > 0
-                && initializer_capacity > 0 && secondary_stack_factor > 0
-                && auto_flush > 0 && auto_flush <= initializer_capacity)
-               || SharedParams::CeleritasDisabled())
+           && (num_track_slots > 0 && max_steps > 0 && initializer_capacity > 0
+               && secondary_stack_factor > 0 && auto_flush > 0
+               && auto_flush <= initializer_capacity)
            && (step_diagnostic_bins > 0 || !step_diagnostic);
 }
 
@@ -244,13 +246,8 @@ inp::StandaloneInput to_input(RunInput const& ri)
 
     inp::GeantImport geant_import;
     geant_import.ignore_processes.push_back("CoulombScat");
-    if (CELERITAS_GEANT4_VERSION >= 0x0b0100)
-    {
-        CELER_LOG(warning) << "Default Rayleigh scattering 'MinKinEnergyPrim' "
-                              "is not compatible between Celeritas and "
-                              "Geant4@11.1: disabling Rayleigh scattering";
-        geant_import.ignore_processes.push_back("Rayl");
-    }
+    geant_import.data_selection.interpolation.type = ri.interpolation;
+    geant_import.data_selection.interpolation.order = ri.poly_spline_order;
     si.physics_import = std::move(geant_import);
 
     si.geant_data = inp::GeantDataImport{};

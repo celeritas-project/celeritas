@@ -38,11 +38,12 @@ __global__ void phys_test_kernel(PTestInput const inp)
     par = ParticleTrackView::Initializer_t{init.particle, init.energy};
     PhysicsTrackView phys(inp.params, inp.states, par, init.mat, tid);
     PhysicsStepView step(inp.params, inp.states, tid);
+    MaterialView mat(inp.mat_params, init.mat);
 
     phys = PhysicsTrackInitializer{};
-    inp.result[tid.get()]
-        = native_value_to<units::CmLength>(calc_step(phys, step, init.energy))
-              .value();
+    inp.result[tid.get()] = native_value_to<units::CmLength>(
+                                calc_step(phys, step, mat, init.energy))
+                                .value();
 }
 }  // namespace
 

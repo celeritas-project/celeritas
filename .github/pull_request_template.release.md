@@ -17,11 +17,11 @@ Target: upstream/develop (always, even if backporting!)
 ## Post-merge checklist
 
 - [ ] If releasing a backported version branch, cherry-pick this documentation commit into the backport branch.
-- [ ] Use the [GitHub interface](https://github.com/celeritas-project/celeritas/releases/new) to create a new release with the documentation update that was just added.
+- [ ] Use the [release scripts](https://github.com/celeritas-project/release-scripts) to create a new release with the documentation update that was just added.
 
 ## Post-release checklist
 
-- [ ] Save the ``tar.gz`` and attach to the release, because the hash changes if the git "describe" function returns a different result for the release tag's hash (e.g., if a collaborative branch on the main repository points to that commit).
-- [ ] Pull locally (make sure to use the ``--tags`` option) and build PDF user documentation for the release. Ensure breathe is activated (so the API is listed) and that the version is embedded correctly.
-- [ ] Update the Spack recipe for Celeritas with the new version and sha256 value (either manually or using ``spack checksum``) and submit a [pull request to the Spack project](https://github.com/spack/spack/pull).
+- [ ] Use the release script to update the archive.
+- [ ] Pull locally (make sure to use the ``--tags`` option) and build PDF user documentation for the release, and upload it. Ensure breathe is activated (so the API is listed) and that the version is embedded correctly.
+- [ ] Update the Spack recipe for Celeritas with the new version and the sha256 value returned by the release script. Submit a [pull request to the Spack project](https://github.com/spack/spack/pull).
 - [ ] Mark the GitHub [release milestone](https://github.com/celeritas-project/celeritas/milestones) as completed.

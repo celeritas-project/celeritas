@@ -1,4 +1,6 @@
 #!/bin/sh -e
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
 ###############################################################################
 # Examples:
 #   run-cloc.sh --by-file
@@ -6,6 +8,7 @@
 ###############################################################################
 SCRIPT_DIR="$(cd "$(dirname $0)" && pwd)"
 SOURCE_DIR="$(cd "${SCRIPT_DIR}" && git rev-parse --show-toplevel)"
+COMMIT=HEAD
 
 if ! hash cloc ; then
   echo "This script requires https://github.com/AlDanial/cloc"
@@ -13,10 +16,10 @@ if ! hash cloc ; then
 fi
 
 function comment() {
-printf "\e[2;37;40m%s:\e[0m\n" "$1" >&2
+  printf "\e[2;37;40m%s:\e[0m\n" "$1" >&2
 }
 function run_cloc() {
-  cloc --git HEAD --force-lang=CUDA,hip $@
+  cloc --git ${COMMIT} --force-lang=CUDA,hip $@
 }
 
 cd $SOURCE_DIR

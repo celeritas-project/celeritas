@@ -1,6 +1,5 @@
-//---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------ -*- cuda -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/alongstep/AlongStepUniformMscAction.cu
@@ -10,7 +9,7 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/em/params/FluctuationParams.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
-#include "celeritas/field/DormandPrinceStepper.hh"
+#include "celeritas/field/DormandPrinceIntegrator.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/UniformField.hh"
@@ -20,6 +19,8 @@
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/AlongStepKernels.hh"
+#include "detail/FieldFunctors.hh"
+#include "detail/LinearPropagatorFactory.hh"
 #include "detail/PropagationApplier.hh"
 #include "detail/UniformFieldPropagatorFactory.hh"
 
@@ -37,16 +38,30 @@ void AlongStepUniformMscAction::step(CoreParams const& params,
         detail::launch_limit_msc_step(
             *this, msc_->ref<MemSpace::native>(), params, state);
     }
+    auto field = field_->ref<MemSpace::native>();
     {
-        ScopedProfiling profile_this{"propagate"};
-        auto execute_thread = make_along_step_track_executor(
+        ScopedProfiling profile_this{"propagate-uniform"};
+        auto execute_thread = ConditionalTrackExecutor{
             params.ptr<MemSpace::native>(),
             state.ptr(),
-            this->action_id(),
+            detail::IsAlongStepUniformField{this->action_id(), field},
             detail::PropagationApplier{
-                detail::UniformFieldPropagatorFactory{field_params_}});
+                detail::UniformFieldPropagatorFactory{field}}};
         static ActionLauncher<decltype(execute_thread)> const launch_kernel(
             *this, "propagate");
+        launch_kernel(*this, params, state, execute_thread);
+    }
+    if (!field_->in_all_volumes())
+    {
+        // Launch linear propagation kernel for tracks in volumes without field
+        ScopedProfiling profile_this{"propagate-linear"};
+        auto execute_thread = ConditionalTrackExecutor{
+            params.ptr<MemSpace::native>(),
+            state.ptr(),
+            detail::IsAlongStepLinear{this->action_id(), field},
+            detail::PropagationApplier{detail::LinearPropagatorFactory{}}};
+        static ActionLauncher<decltype(execute_thread)> const launch_kernel(
+            *this, "propagate-linear");
         launch_kernel(*this, params, state, execute_thread);
     }
     if (this->has_msc())

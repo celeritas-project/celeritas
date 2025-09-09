@@ -76,6 +76,8 @@ class EventWriter : public EventWriterInterface
 
     // Number of events written
     EventId::size_type event_count_{0};
+
+    bool warned_mismatched_events_{false};
 };
 
 //---------------------------------------------------------------------------//
@@ -97,6 +99,7 @@ inline EventWriter::EventWriter(std::string const&, SPConstParticles, Format)
     CELER_DISCARD(fmt_);
     CELER_DISCARD(writer_);
     CELER_DISCARD(event_count_);
+    CELER_DISCARD(warned_mismatched_events_);
     CELER_NOT_CONFIGURED("HepMC3");
 }
 

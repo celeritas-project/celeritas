@@ -7,6 +7,7 @@ celeritas_add_test_library(testcel_orange
   OrangeGeoTestBase.cc
   OrangeTestBase.cc
   orangeinp/CsgTestUtils.cc
+  orangeinp/IntersectTestResult.cc
   orangeinp/ObjectTestBase.cc
 )
 celeritas_target_link_libraries(testcel_orange
@@ -21,14 +22,8 @@ celeritas_target_link_libraries(testcel_orange
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_USE_Geant4)
-  celeritas_get_g4libs(_g4_geo_libs geometry)
-endif()
-
-if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
-  set(_use_g4org TRUE)
   set(_needs_g4org)
 else()
-  set(_use_g4org FALSE)
   set(_needs_g4org DISABLE)
 endif()
 
@@ -51,7 +46,8 @@ celeritas_add_test(RaytraceImager.test.cc GPU)
 
 # High level
 celeritas_add_test(Orange.test.cc)
-celeritas_add_test(OrangeGeant.test.cc ${_needs_g4org})
+celeritas_add_test(OrangeGeant.test.cc ${_needs_g4org}
+  LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(OrangeJson.test.cc)
 celeritas_add_device_test(OrangeShift)
 
@@ -77,13 +73,17 @@ celeritas_add_test(orangeinp/CsgTreeUtils.test.cc)
 celeritas_add_test(orangeinp/IntersectRegion.test.cc)
 celeritas_add_test(orangeinp/IntersectSurfaceBuilder.test.cc)
 celeritas_add_test(orangeinp/PolySolid.test.cc)
+celeritas_add_test(orangeinp/RevolvedPolygon.test.cc)
 celeritas_add_test(orangeinp/Shape.test.cc)
 celeritas_add_test(orangeinp/Solid.test.cc)
+celeritas_add_test(orangeinp/StackedExtrudedPolygon.test.cc)
 celeritas_add_test(orangeinp/Transformed.test.cc)
+celeritas_add_test(orangeinp/Truncated.test.cc)
 celeritas_add_test(orangeinp/UnitProto.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json)
 
 celeritas_add_test(orangeinp/detail/BoundingZone.test.cc)
+celeritas_add_test(orangeinp/detail/ConvexHullFinder.test.cc)
 celeritas_add_test(orangeinp/detail/PolygonUtils.test.cc)
 celeritas_add_test(orangeinp/detail/ProtoMap.test.cc)
 celeritas_add_test(orangeinp/detail/LocalSurfaceInserter.test.cc)
@@ -143,14 +143,15 @@ celeritas_add_test(univ/detail/SenseCalculator.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Geant4 construction
-if(_use_g4org)
-  celeritas_add_test(g4org/Converter.test.cc)
-  celeritas_add_test(g4org/SolidConverter.test.cc
-    LINK_LIBRARIES ${_g4_geo_libs} Celeritas::celeritas)
+if(CELERITAS_USE_Geant4)
   celeritas_add_test(g4org/PhysicalVolumeConverter.test.cc)
   celeritas_add_test(g4org/ProtoConstructor.test.cc)
+  celeritas_add_test(g4org/SolidConverter.test.cc
+    LINK_LIBRARIES Celeritas::ExtGeant4Geo)
   celeritas_add_test(g4org/Transformer.test.cc
-    LINK_LIBRARIES ${_g4_geo_libs})
+    LINK_LIBRARIES Celeritas::ExtGeant4Geo)
 endif()
+
+celeritas_add_test(g4org/Converter.test.cc ${_needs_g4org})
 
 #-----------------------------------------------------------------------------#

@@ -9,8 +9,8 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/PolyEvaluator.hh"
 #include "celeritas/em/data/WentzelOKVIData.hh"
-#include "celeritas/grid/PolyEvaluator.hh"
 
 namespace celeritas
 {

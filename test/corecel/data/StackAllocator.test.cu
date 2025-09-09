@@ -99,12 +99,12 @@ SATestOutput sa_test(SATestInput const& input)
 
     CELER_LAUNCH_KERNEL(
         sa_test, input.num_threads, 0, input, raw_pointer_cast(out.data()));
-    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
+    CELER_DEVICE_API_CALL(DeviceSynchronize());
 
     // Access secondaries after the first kernel completed
     CELER_LAUNCH_KERNEL(
         sa_post_test, input.num_threads, 0, input, raw_pointer_cast(out.data()));
-    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
+    CELER_DEVICE_API_CALL(DeviceSynchronize());
 
     // Copy data back to host
     thrust::host_vector<SATestOutput> host_result = out;
@@ -116,7 +116,7 @@ SATestOutput sa_test(SATestInput const& input)
 void sa_clear(SATestInput const& input)
 {
     CELER_LAUNCH_KERNEL(sa_clear, 1, 0, input);
-    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
+    CELER_DEVICE_API_CALL(DeviceSynchronize());
 }
 
 //---------------------------------------------------------------------------//

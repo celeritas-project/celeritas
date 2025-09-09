@@ -12,11 +12,11 @@
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/Copier.hh"
 #include "corecel/sys/ActionRegistry.hh"
-#include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/track/TrackInitParams.hh"
+
+#include "TrackInitParams.hh"
 
 #include "detail/ProcessPrimariesExecutor.hh"  // IWYU pragma: associated
 
@@ -191,43 +191,25 @@ void ExtendFromPrimariesAction::step_impl(CoreParams const& params,
 
     // Mark that the primaries have been processed
     state.counters().num_generated += primaries.count;
+    state.counters().num_pending = 0;
     primaries.count = 0;
-
-    // Clear the track slot IDs of the track initializers' parent tracks. This
-    // is necessary when new primaries are inserted in the middle of a
-    // simulation and the parent IDs of secondaries produced in the previous
-    // step have been stored.
-    fill(TrackSlotId{}, &state.ref().init.parents);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Launch a (host) kernel to create track initializers from primary particles.
- *
- * This function loops over *primaries and initializers*, not *track slots*, so
- * we do not use \c launch_core or \c launch_action .
  */
 void ExtendFromPrimariesAction::process_primaries(
     CoreParams const& params,
     CoreStateHost& state,
     PrimaryStateData<MemSpace::host> const& pstate) const
 {
-    MultiExceptionHandler capture_exception;
     auto primaries = pstate.primaries();
-    detail::ProcessPrimariesExecutor execute_thread{
-        params.ptr<MemSpace::native>(),
-        state.ptr(),
-        state.counters(),
-        primaries};
-    size_type const size = primaries.size();
-#if defined(_OPENMP) && CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
-#    pragma omp parallel for
-#endif
-    for (size_type i = 0; i < size; ++i)
-    {
-        CELER_TRY_HANDLE(execute_thread(ThreadId{i}), capture_exception);
-    }
-    log_and_rethrow(std::move(capture_exception));
+    detail::ProcessPrimariesExecutor execute{params.ptr<MemSpace::native>(),
+                                             state.ptr(),
+                                             state.counters(),
+                                             primaries};
+    return launch_action(*this, primaries.size(), params, state, execute);
 }
 
 //---------------------------------------------------------------------------//

@@ -29,7 +29,8 @@
 #include "celeritas/phys/Secondary.hh"
 
 // Test helpers
-#include "DiagnosticRngEngine.hh"
+#include "corecel/random/DiagnosticRngEngine.hh"
+
 #include "Test.hh"
 
 namespace celeritas
@@ -72,7 +73,8 @@ class InteractorHostBase
     make_import_process(PDGNumber particle,
                         PDGNumber secondary,
                         ImportProcessClass ipc,
-                        std::vector<ImportModelClass> models) const;
+                        std::vector<ImportModelClass> models,
+                        std::vector<Array<double, 2>> model_limits) const;
 
     //!@{
     //! Set and get material properties

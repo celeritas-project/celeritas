@@ -30,7 +30,7 @@ struct MockInteractExecutor
  */
 CELER_FUNCTION void MockInteractExecutor::operator()(CoreTrackView const& track)
 {
-    auto sim = track.make_sim_view();
+    auto sim = track.sim();
     CELER_ASSERT(sim.status() == TrackStatus::alive);
     if (!data.alive[track.track_slot_id()])
     {
@@ -39,7 +39,7 @@ CELER_FUNCTION void MockInteractExecutor::operator()(CoreTrackView const& track)
     }
 
     // Create secondaries
-    auto phys_step = track.make_physics_step_view();
+    auto phys_step = track.physics_step();
     size_type num_secondaries = data.num_secondaries[track.track_slot_id()];
     if (num_secondaries > 0)
     {

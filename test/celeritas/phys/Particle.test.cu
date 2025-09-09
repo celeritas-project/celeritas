@@ -81,7 +81,7 @@ PTVTestOutput ptv_test(PTVTestInput input)
                         input.states,
                         raw_pointer_cast(init.data()),
                         raw_pointer_cast(result.data()));
-    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
+    CELER_DEVICE_API_CALL(DeviceSynchronize());
 
     PTVTestOutput output;
     output.props.resize(result.size());

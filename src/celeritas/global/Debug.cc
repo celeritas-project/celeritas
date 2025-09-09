@@ -11,10 +11,10 @@
 #include <nlohmann/json.hpp>
 
 #include "celeritas/geo/GeoTrackView.hh"
-#include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/track/SimTrackView.hh"
 
+#include "CoreTrackView.hh"
 #include "DebugIO.json.hh"
 
 namespace celeritas

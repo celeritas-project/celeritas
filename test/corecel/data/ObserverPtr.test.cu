@@ -46,7 +46,7 @@ void copy_test(ObserverPtr<int const, MemSpace::device> in_data,
 {
     CELER_LAUNCH_KERNEL(copy_test, size, 0, in_data, out_data, size);
 
-    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
+    CELER_DEVICE_API_CALL(DeviceSynchronize());
 }
 
 //---------------------------------------------------------------------------//
@@ -58,7 +58,7 @@ void copy_thrust_test(ObserverPtr<int const, MemSpace::device> in_data,
                  device_pointer_cast(in_data) + size,
                  device_pointer_cast(out_data));
 
-    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
+    CELER_DEVICE_API_CALL(DeviceSynchronize());
 }
 
 //---------------------------------------------------------------------------//

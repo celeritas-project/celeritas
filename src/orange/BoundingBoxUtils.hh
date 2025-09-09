@@ -10,9 +10,9 @@
 #include <cmath>
 #include <iosfwd>
 
+#include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/SoftEqual.hh"
 #include "geocel/BoundingBox.hh"
 
 #include "OrangeTypes.hh"
@@ -74,19 +74,40 @@ inline bool is_degenerate(BoundingBox<T> const& bbox)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether any axis has an infinity on one bound but not the other.
+ */
+template<class T>
+inline bool is_half_inf(BoundingBox<T> const& bbox)
+{
+    auto axes = range(to_int(Axis::size_));
+    return any_of(axes.begin(), axes.end(), [&bbox](int ax) {
+        return std::isinf(bbox.lower()[ax]) != std::isinf(bbox.upper()[ax]);
+    });
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Calculate the center of a bounding box.
  *
- * \pre The bounding box cannot be null
+ * \pre The bounding box cannot be null, or "semi-infinite" (i.e., it may not
+ * have a finite lower/upper value in a particular dimension, with a
+ * corresponding infinite upper/lower value).
  */
 template<class T>
 inline Array<T, 3> calc_center(BoundingBox<T> const& bbox)
 {
     CELER_EXPECT(bbox);
+    CELER_EXPECT(!is_half_inf(bbox));
 
     Array<T, 3> center;
     for (auto ax : range(to_int(Axis::size_)))
     {
         center[ax] = (bbox.lower()[ax] + bbox.upper()[ax]) / 2;
+        if (CELER_UNLIKELY(std::isnan(center[ax])))
+        {
+            // Infinite or half-infinite
+            center[ax] = 0;
+        }
     }
 
     return center;
@@ -264,7 +285,7 @@ inline CELER_FUNCTION T calc_dist_to_inside(BoundingBox<T> const& bbox,
         {
             if (dir[ax] == 0)
             {
-                // Short circut if there is not movement in this dir
+                // Short circuit if there is not movement in this dir
                 continue;
             }
 
@@ -272,7 +293,7 @@ inline CELER_FUNCTION T calc_dist_to_inside(BoundingBox<T> const& bbox,
                      / dir[ax];
             if (dist <= 0)
             {
-                // Short circut if the plane is behind us
+                // Short circuit if the plane is behind us
                 continue;
             }
 

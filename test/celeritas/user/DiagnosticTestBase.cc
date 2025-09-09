@@ -76,8 +76,8 @@ void DiagnosticTestBase::print_expected() const
  * Run a number of tracks.
  */
 template<MemSpace M>
-auto DiagnosticTestBase::run(size_type num_tracks,
-                             size_type num_steps) -> RunResult
+auto DiagnosticTestBase::run(size_type num_tracks, size_type num_steps)
+    -> RunResult
 {
     this->run_impl<M>(num_tracks, num_steps);
 

@@ -26,22 +26,18 @@ struct TimeUpdater
 //---------------------------------------------------------------------------//
 CELER_FUNCTION void TimeUpdater::operator()(CoreTrackView const& track)
 {
-    auto sim = track.make_sim_view();
+    auto sim = track.sim();
 
     // The track errored within the along-step kernel
     if (sim.status() == TrackStatus::errored)
         return;
 
-    auto particle = track.make_particle_view();
+    auto particle = track.particle();
     real_type speed = native_value_from(particle.speed());
-    CELER_ASSERT(speed >= 0);
-    if (speed > 0)
-    {
-        // For very small energies (< numeric_limits<real_type>::epsilon)
-        // the calculated speed can be zero.
-        real_type delta_time = sim.step_length() / speed;
-        sim.add_time(delta_time);
-    }
+    CELER_ASSERT(speed > 0);
+
+    real_type delta_time = sim.step_length() / speed;
+    sim.add_time(delta_time);
 }
 
 //---------------------------------------------------------------------------//

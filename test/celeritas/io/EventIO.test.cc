@@ -75,9 +75,10 @@ TEST_P(EventIOTest, variety_rwr)
     // clang-format off
     static int const expected_pdg[] = {22, 1, -2, 22, 1, -2, 22, 1, -2};
     EXPECT_VEC_EQ(expected_pdg, result.pdg);
-    static real_type const expected_energy[] = {4233, 29552, 56373, 4233, 29552,
-        56373, 4233, 29552, 56373};
-    EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
+    static double const expected_energy[] = {4151.3789853255, 29651.503768782,
+        56547.034479091, 4151.3789853255, 29651.503768782, 56547.034479091,
+        4151.3789853255, 29651.503768782, 56547.034479091,};
+    EXPECT_VEC_NEAR(expected_energy, result.energy, coarse_eps);
     static real_type const expected_pos[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
         0, 0, 1, 0, 0, 1, 1, 2, 3, 1, 2, 3, 1, 2, 3};
     EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
@@ -119,13 +120,15 @@ TEST_P(EventIOTest, no_vertex_rwr)
     EXPECT_EQ(3, read_event.num_events());
     auto result = this->read_all(read_event);
 
+    real_type energy_tol = ext == "hepevt" ? 1e-3 : coarse_eps;
+
     // clang-format off
     static int const expected_pdg[] = {22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
         22, 22, 22, 22, 22};
     EXPECT_VEC_EQ(expected_pdg, result.pdg);
     static real_type const expected_energy[] = {1000, 1000, 1000, 1000, 1000,
         1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000};
-    EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
+    EXPECT_VEC_NEAR(expected_energy, result.energy, energy_tol);
     static real_type const expected_pos[] = {0, 0, 50, 0, 0, 50, 0, 0, 50, 0, 0,
         50, 0, 0, 50, 0, 0, 50, 0, 0, 50, 0, 0, 50, 0, 0,
         50, 0, 0, 50, 0, 0, 50, 0, 0, 50, 0, 0, 50, 0, 0,
@@ -145,7 +148,10 @@ TEST_P(EventIOTest, no_vertex_rwr)
         0.51336099422575, 0.54197742781709, 0.66537279576514,
         -0.36655746358148, 0.80035990693978, 0.47440451647941,
         -0.78969793730749, -0.54961247282688, -0.27258631206541};
-    EXPECT_VEC_NEAR(expected_dir, result.dir, coarse_eps);
+    if (ext != "hepevt")
+    {
+        EXPECT_VEC_NEAR(expected_dir, result.dir, coarse_eps);
+    }
     static real_type const expected_time[] = {4.1028383709373e-09,
         4.1028383709373e-09, 4.1028383709373e-09, 4.1028383709373e-09,
         4.1028383709373e-09, 4.1028383709373e-09,

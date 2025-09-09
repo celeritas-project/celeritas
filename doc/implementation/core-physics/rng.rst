@@ -50,6 +50,7 @@ three-vectors (such as sampling an isotropic direction).
 .. doxygenclass:: celeritas::IsotropicDistribution
 .. doxygenclass:: celeritas::NormalDistribution
 .. doxygenclass:: celeritas::PoissonDistribution
+.. doxygenclass:: celeritas::PowerDistribution
 .. doxygenclass:: celeritas::RadialDistribution
 .. doxygenclass:: celeritas::ReciprocalDistribution
 .. doxygenclass:: celeritas::UniformBoxDistribution

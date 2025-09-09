@@ -41,27 +41,29 @@ void check_params_size(char const* sampler,
     CELER_VALIDATE(options.params.size() == required_params,
                    << sampler << " input parameters have "
                    << options.params.size() << " elements but the '"
-                   << to_cstring(options.distribution)
-                   << "' distribution needs exactly " << required_params);
+                   << options.distribution << "' distribution needs exactly "
+                   << required_params);
 }
 
 //---------------------------------------------------------------------------//
 // Helper: Convert energy distribution to inp::EnergyDistribution
 inp::EnergyDistribution inp_from_energy(DistributionOptions const& options)
 {
+    using MevEnergy = Quantity<units::Mev, double>;
+
     char const sampler_name[] = "energy";
     check_params_size(sampler_name, 1, options);
     auto const& p = options.params;
     switch (options.distribution)
     {
         case DistributionSelection::delta:
-            return inp::Monoenergetic{units::MevEnergy{p[0]}};
+            return inp::MonoenergeticDistribution{MevEnergy(p[0])};
         default:
             CELER_VALIDATE(false,
                            << "invalid distribution type '"
-                           << to_cstring(options.distribution) << "' for "
-                           << sampler_name);
+                           << options.distribution << "' for " << sampler_name);
     }
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
@@ -74,16 +76,16 @@ inp::ShapeDistribution inp_from_position(DistributionOptions const& options)
     switch (options.distribution)
     {
         case DistributionSelection::delta:
-            return inp::PointShape{Real3{p[0], p[1], p[2]}};
+            return inp::PointDistribution{Real3{p[0], p[1], p[2]}};
         case DistributionSelection::box:
-            return inp::UniformBoxShape{Real3{p[0], p[1], p[2]},
-                                        Real3{p[3], p[4], p[5]}};
+            return inp::UniformBoxDistribution{Real3{p[0], p[1], p[2]},
+                                               Real3{p[3], p[4], p[5]}};
         default:
             CELER_VALIDATE(false,
                            << "invalid distribution type '"
-                           << to_cstring(options.distribution) << "' for "
-                           << sampler_name);
+                           << options.distribution << "' for " << sampler_name);
     }
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
@@ -96,15 +98,15 @@ inp::AngleDistribution inp_from_direction(DistributionOptions const& options)
     switch (options.distribution)
     {
         case DistributionSelection::delta:
-            return inp::MonodirectionalAngle{Real3{p[0], p[1], p[2]}};
+            return inp::MonodirectionalDistribution{Real3{p[0], p[1], p[2]}};
         case DistributionSelection::isotropic:
-            return inp::IsotropicAngle{};
+            return inp::IsotropicDistribution{};
         default:
             CELER_VALIDATE(false,
                            << "invalid distribution type '"
-                           << to_cstring(options.distribution) << "' for "
-                           << sampler_name);
+                           << options.distribution << "' for " << sampler_name);
     }
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
@@ -126,16 +128,16 @@ char const* to_cstring(DistributionSelection value)
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert PrimaryGeneratorOptions to inp::PrimaryGenerator.
+ * Convert PrimaryGeneratorOptions to inp::CorePrimaryGenerator.
  */
-inp::PrimaryGenerator to_input(PrimaryGeneratorOptions const& pgo)
+inp::CorePrimaryGenerator to_input(PrimaryGeneratorOptions const& pgo)
 {
     CELER_VALIDATE(pgo,
                    << "Invalid PrimaryGeneratorOptions: "
                    << "ensure all distributions and parameters are correctly "
                       "set.");
 
-    inp::PrimaryGenerator result;
+    inp::CorePrimaryGenerator result;
 
     // RNG seed
     result.seed = pgo.seed;

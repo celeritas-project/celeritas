@@ -10,6 +10,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
@@ -35,7 +36,7 @@ ImportedModels::from_import(ImportData const& io)
 ImportedModels::ImportedModels(std::vector<ImportOpticalModel> models)
     : models_(std::move(models))
 {
-    // Initialize built-in IMC map to invalid IDs
+    // Initialize built-in IMC map to null IDs
     std::fill(
         builtin_id_map_.begin(), builtin_id_map_.end(), ImportedModelId{});
 
@@ -46,7 +47,7 @@ ImportedModels::ImportedModels(std::vector<ImportOpticalModel> models)
 
         // Check imported data is consistent
         CELER_VALIDATE(model.model_class != IMC::size_,
-                       << "Invalid imported model class for optical model id '"
+                       << "invalid imported model class for optical model id '"
                        << model_id << "'");
 
         // Model MFP vectors may be empty, indicating the model should attempt
@@ -54,17 +55,17 @@ ImportedModels::ImportedModels(std::vector<ImportOpticalModel> models)
 
         CELER_VALIDATE(
             model.mfp_table.size() == models_.front().mfp_table.size(),
-            << "Imported optical model id '" << model_id << "' ("
-            << to_cstring(model.model_class)
+            << "imported optical model id '" << model_id << "' ("
+            << model.model_class
             << ") MFP table has differing number of optical "
                "materials than other imported models");
 
         // Expect a 1-1 mapping for IMC to imported models
         auto& mapped_id = builtin_id_map_[model.model_class];
         CELER_VALIDATE(!mapped_id,
-                       << "Duplicate imported data for built-in optical model "
+                       << "duplicate imported data for built-in optical model "
                           "'"
-                       << to_cstring(model.model_class)
+                       << model.model_class
                        << "' (at most one built-in optical model of a given "
                           "type should be imported)");
 
@@ -95,7 +96,7 @@ auto ImportedModels::num_models() const -> ImportedModelId::size_type
 /*!
  * Get imported model ID for the given built-in model class.
  *
- * Returns an invalid ID if the imported model data is not present.
+ * Returns a null ID if the imported model data is not present.
  */
 auto ImportedModels::builtin_model_id(IMC imc) const -> ImportedModelId
 {
@@ -123,10 +124,11 @@ ImportedModelAdapter::ImportedModelAdapter(ImportModelClass imc,
                                            SPConstImported imported)
     : imported_(imported)
 {
+    CELER_EXPECT(imc != ImportModelClass::size_);
     CELER_EXPECT(imported_);
     model_id_ = imported_->builtin_model_id(imc);
     CELER_VALIDATE(model_id_,
-                   << "imported data for optical model '" << to_cstring(imc)
+                   << "imported data for optical model '" << imc
                    << "' is missing");
 }
 
@@ -134,7 +136,7 @@ ImportedModelAdapter::ImportedModelAdapter(ImportModelClass imc,
 /*!
  * Get MFP table for the given optical material.
  */
-ImportPhysicsVector const& ImportedModelAdapter::mfp(OpticalMaterialId id) const
+inp::Grid const& ImportedModelAdapter::mfp(OptMatId id) const
 {
     CELER_EXPECT(id < this->model().mfp_table.size());
     return this->model().mfp_table[id.get()];
@@ -144,7 +146,7 @@ ImportPhysicsVector const& ImportedModelAdapter::mfp(OpticalMaterialId id) const
 /*!
  * Get number of optical materials that have MFPs for this model.
  */
-OpticalMaterialId::size_type ImportedModelAdapter::num_materials() const
+OptMatId::size_type ImportedModelAdapter::num_materials() const
 {
     return this->model().mfp_table.size();
 }

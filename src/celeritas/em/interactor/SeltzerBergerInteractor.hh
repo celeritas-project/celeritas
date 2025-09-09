@@ -56,7 +56,7 @@ class SeltzerBergerInteractor
   public:
     //! Construct sampler from device/shared and state data
     inline CELER_FUNCTION
-    SeltzerBergerInteractor(SeltzerBergerRef const& shared,
+    SeltzerBergerInteractor(NativeCRef<SeltzerBergerData> const& shared,
                             ParticleTrackView const& particle,
                             Real3 const& inc_direction,
                             CutoffView const& cutoffs,
@@ -71,7 +71,7 @@ class SeltzerBergerInteractor
   private:
     //// DATA ////
     // Device (host CPU or GPU device) references
-    SeltzerBergerRef const& shared_;
+    NativeCRef<SeltzerBergerData> const& shared_;
     // Incident particle energy
     Energy const inc_energy_;
     // Incident particle direction
@@ -102,7 +102,7 @@ class SeltzerBergerInteractor
  * must be handled in code *before* the interactor is constructed.
  */
 CELER_FUNCTION SeltzerBergerInteractor::SeltzerBergerInteractor(
-    SeltzerBergerRef const& shared,
+    NativeCRef<SeltzerBergerData> const& shared,
     ParticleTrackView const& particle,
     Real3 const& inc_direction,
     CutoffView const& cutoffs,
@@ -127,8 +127,7 @@ CELER_FUNCTION SeltzerBergerInteractor::SeltzerBergerInteractor(
     CELER_EXPECT(particle.particle_id() == shared_.ids.electron
                  || particle.particle_id() == shared_.ids.positron);
     CELER_EXPECT(gamma_cutoff_ > zero_quantity());
-    CELER_EXPECT(inc_energy_ > gamma_cutoff_
-                 && inc_energy_ < detail::seltzer_berger_upper_limit());
+    CELER_EXPECT(inc_energy_ < shared_.high_energy_limit);
 }
 
 //---------------------------------------------------------------------------//
@@ -140,6 +139,15 @@ CELER_FUNCTION SeltzerBergerInteractor::SeltzerBergerInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
 {
+    if (inc_energy_ <= gamma_cutoff_)
+    {
+        /*!
+         * \todo Remove and replace with an assertion once material-dependent
+         * model bounds are supported
+         */
+        return Interaction::from_unchanged();
+    }
+
     // Allocate space for the brems photon
     Secondary* secondaries = allocate_(1);
     if (secondaries == nullptr)

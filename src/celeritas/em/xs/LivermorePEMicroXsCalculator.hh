@@ -9,25 +9,28 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/PolyEvaluator.hh"
 #include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
-#include "celeritas/grid/GenericCalculator.hh"
-#include "celeritas/grid/PolyEvaluator.hh"
+#include "celeritas/grid/NonuniformGridCalculator.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
  * Calculate photoelectric effect cross sections using the Livermore data.
+ *
+ * The Livermore photoelectric data is loaded from Geant4 low-energy EM data
+ * files.
  */
 class LivermorePEMicroXsCalculator
 {
   public:
     //!@{
     //! \name Type aliases
-    using ParamsRef = LivermorePERef;
+    using ParamsRef = NativeCRef<LivermorePEData>;
     using Energy = RealQuantity<LivermoreSubshell::EnergyUnits>;
     using BarnXs = units::BarnXs;
     //!@}
@@ -42,7 +45,7 @@ class LivermorePEMicroXsCalculator
 
   private:
     // Shared constant physics properties
-    LivermorePERef const& shared_;
+    ParamsRef const& shared_;
     // Incident gamma energy
     Energy const inc_energy_;
 };
@@ -91,14 +94,14 @@ auto LivermorePEMicroXsCalculator::operator()(ElementId el_id) const -> BarnXs
     {
         // Use tabulated cross sections above K-shell energy but below energy
         // limit for parameterization
-        GenericCalculator calc_xs(el.xs_hi, shared_.xs.reals);
+        NonuniformGridCalculator calc_xs(el.xs_hi, shared_.xs.reals);
         result = ipow<3>(inv_energy) * calc_xs(energy.value());
     }
     else
     {
         CELER_ASSERT(el.xs_lo);
         // Use tabulated cross sections below K-shell energy
-        GenericCalculator calc_xs(el.xs_lo, shared_.xs.reals);
+        NonuniformGridCalculator calc_xs(el.xs_lo, shared_.xs.reals);
         result = ipow<3>(inv_energy) * calc_xs(energy.value());
     }
     return BarnXs{result};

@@ -27,7 +27,22 @@ namespace celeritas
    \f]
 
  * where \em t is the tangent of the opening angle (\f$r/h\f$ for a finite cone
- * with radius \em r and height \em h).
+ * with radius \em r and height \em h). In the cone below, the tangent of the
+ * inner angle is \f$ t = \tan(\theta) = r/h \f$. Negative values of \em t are
+ * equivalent and valid, representing the four points on a slice of the
+ * double-sheet cone.
+ * \verbatim
+  \        |   r    /
+   o- - - -+- - - -o
+    '--_   :   _--'
+ h      --.:.--
+ ---       O
+       _--':'--_
+    .--    :    --.
+   o-------+-------o
+  /        |        \
+   \endverbatim
+ *
  */
 template<Axis T>
 class ConeAligned
@@ -66,7 +81,7 @@ class ConeAligned
     static ConeAligned from_tangent_sq(Real3 const& origin, real_type tsq);
 
     // Construct from origin and tangent of the angle of its opening
-    inline CELER_FUNCTION ConeAligned(Real3 const& origin, real_type tangent);
+    ConeAligned(Real3 const& origin, real_type tangent);
 
     // Construct from raw data
     template<class R>
@@ -131,31 +146,6 @@ CELER_CONSTEXPR_FUNCTION SurfaceType ConeAligned<T>::surface_type()
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct from origin and tangent of the angle of its opening.
- *
- * Given a finite cone, the tangent is the ratio of its base radius to its
- * height.
- *
- * In the cone, below, the tangent of the inner angle
- * \f$ \tan(\theta) = r/h \f$ is the second argument.
- * \verbatim
-     r
-   +-------*
-   |   _--^
- h |_--
-   O
-   \endverbatim
- */
-template<Axis T>
-CELER_FUNCTION
-ConeAligned<T>::ConeAligned(Real3 const& origin, real_type tangent)
-    : origin_{origin}, tsq_{ipow<2>(tangent)}
-{
-    CELER_EXPECT(tangent > 0);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct from raw data.
  */
 template<Axis T>
@@ -191,7 +181,8 @@ template<Axis T>
 CELER_FUNCTION auto
 ConeAligned<T>::calc_intersections(Real3 const& pos,
                                    Real3 const& dir,
-                                   SurfaceState on_surface) const -> Intersections
+                                   SurfaceState on_surface) const
+    -> Intersections
 {
     // Expand translated positions into 'xyz' coordinate system
     real_type const x = pos[to_int(T)] - origin_[to_int(T)];

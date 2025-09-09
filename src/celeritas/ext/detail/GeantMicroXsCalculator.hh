@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "celeritas/Quantities.hh"
+#include "celeritas/io/ImportModel.hh"
 
 class G4Element;
 class G4Material;
@@ -34,7 +35,7 @@ class GeantMicroXsCalculator
     using EnergyUnits = units::Mev;
     using XsUnits = units::Native;  // len^2
     using VecDouble = std::vector<double>;
-    using VecVecDouble = std::vector<std::vector<double>>;
+    using VecGrid = ImportModelMaterial::VecGrid;
     //!@}
 
   public:
@@ -44,7 +45,7 @@ class GeantMicroXsCalculator
                            double secondary_production_cut);
 
     // Calculate micro cross sections for all elements in the material
-    void operator()(VecDouble const& energy, VecVecDouble* xs) const;
+    void operator()(VecDouble const& energy, VecGrid* xs) const;
 
   private:
     G4VEmModel& model_;

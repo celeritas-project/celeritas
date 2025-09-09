@@ -27,27 +27,27 @@ axis z
 radius 30
 length 1400
 
-[UNIVERSE][SHAPE=cyl silicon_tracker_outer]
+[UNIVERSE][SHAPE=cyl silicon_tracker]
 axis z
 radius 125
 length 1400
 
-[UNIVERSE][SHAPE=cyl crystal_em_calorimeter_outer]
+[UNIVERSE][SHAPE=cyl crystal_em_calorimeter]
 axis z
 radius 175
 length 1400
 
-[UNIVERSE][SHAPE=cyl hadron_calorimeter_outer]
+[UNIVERSE][SHAPE=cyl hadron_calorimeter]
 axis z
 radius 275
 length 1400
 
-[UNIVERSE][SHAPE=cyl superconducting_solenoid_outer]
+[UNIVERSE][SHAPE=cyl superconducting_solenoid]
 axis z
 radius 375
 length 1400
 
-[UNIVERSE][SHAPE=cyl iron_muon_chambers_outer]
+[UNIVERSE][SHAPE=cyl iron_muon_chambers]
 axis z
 radius 700
 length 1400
@@ -65,24 +65,24 @@ shapes guide_tube
 
 [UNIVERSE][CELL si_tracker]
 comp si
-shapes silicon_tracker_outer ~guide_tube
+shapes silicon_tracker ~guide_tube
 
 [UNIVERSE][CELL em_calorimeter]
 comp pb
-shapes crystal_em_calorimeter_outer ~silicon_tracker_outer
+shapes crystal_em_calorimeter ~silicon_tracker
 
 [UNIVERSE][CELL had_calorimeter]
 comp c
-shapes hadron_calorimeter_outer ~crystal_em_calorimeter_outer
+shapes hadron_calorimeter ~crystal_em_calorimeter
 
 [UNIVERSE][CELL sc_solenoid]
 comp ti
-shapes superconducting_solenoid_outer ~hadron_calorimeter_outer
+shapes superconducting_solenoid ~hadron_calorimeter
 
 [UNIVERSE][CELL fe_muon_chambers]
 comp fe
-shapes iron_muon_chambers_outer ~superconducting_solenoid_outer
+shapes iron_muon_chambers ~superconducting_solenoid
 
 [UNIVERSE][CELL world]
 comp galactic
-shapes -world_box +iron_muon_chambers_outer
+shapes -world_box +iron_muon_chambers

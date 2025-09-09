@@ -7,6 +7,29 @@
 #include "RunnerInput.hh"
 
 #include <limits>
+#include <map>
+#include <optional>
+#include <variant>
+
+#include "corecel/Config.hh"
+
+#include "corecel/Types.hh"
+#include "corecel/cont/VariantUtils.hh"
+#include "corecel/io/StringUtils.hh"
+#include "celeritas/inp/Control.hh"
+#include "celeritas/inp/Diagnostics.hh"
+#include "celeritas/inp/Events.hh"
+#include "celeritas/inp/Field.hh"
+#include "celeritas/inp/Physics.hh"
+#include "celeritas/inp/PhysicsProcess.hh"
+#include "celeritas/inp/Scoring.hh"
+#include "celeritas/inp/System.hh"
+#include "celeritas/inp/Tracking.hh"
+#include "celeritas/io/EventReader.hh"
+#include "celeritas/io/RootEventReader.hh"
+#ifdef _OPENMP
+#    include <omp.h>
+#endif
 
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/inp/Import.hh"
@@ -37,6 +60,39 @@ inp::System load_system(RunnerInput const& ri)
         }();
     }
     return s;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the number of streams from the number of OpenMP threads.
+ *
+ * The OMP_NUM_THREADS environment variable can be used to control the number
+ * of threads/streams. The value of OMP_NUM_THREADS should be a list of
+ * positive integers, each of which sets the number of threads for the parallel
+ * region at the corresponding nested level. The number of streams is set to
+ * the first value in the list. If OMP_NUM_THREADS is not set, the value will
+ * be implementation defined.
+ */
+size_type get_num_streams(bool merge_events)
+{
+    size_type result = 1;
+#if CELERITAS_OPENMP == CELERITAS_OPENMP_EVENT
+    if (!merge_events)
+    {
+#    pragma omp parallel
+        {
+            if (omp_get_thread_num() == 0)
+            {
+                result = omp_get_num_threads();
+            }
+        }
+    }
+#else
+    CELER_DISCARD(merge_events);
+#endif
+
+    // TODO: Don't create more streams than events
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -90,33 +146,36 @@ inp::Problem load_problem(RunnerInput const& ri)
         }
         d.counters.step = ri.write_track_counts;
         d.counters.event = ri.transporter_result;
+        d.status_checker = ri.status_checker;
     }
 
     // Control
     {
-        inp::StateCapacity capacity;
-        capacity.tracks = ri.num_track_slots;
+        // NOTE: old celer-sim input is *integrated* over streams
+        inp::CoreStateCapacity capacity;
+        capacity.primaries = 0;  // Immediately generate initializers
         capacity.initializers = ri.initializer_capacity;
+        capacity.tracks = ri.num_track_slots;
         capacity.secondaries = static_cast<size_type>(ri.secondary_stack_factor
                                                       * ri.num_track_slots);
 
-        // TODO: replace "max" with # events during construction?
-        using LimitsT = std::numeric_limits<decltype(capacity.events)>;
-        capacity.events = ri.merge_events ? LimitsT::max() : 0;
+        // TODO: replace "max" with # events during construction
+        if (ri.merge_events)
+        {
+            using LimitsT = std::numeric_limits<decltype(capacity.events)>;
+            capacity.events = LimitsT::max();
+        }
 
         p.control.capacity = capacity;
 
         p.control.warm_up = ri.warm_up;
         p.control.seed = ri.seed;
-
-        // TODO: set number of streams
-        p.control.num_streams = 1;
+        p.control.num_streams = get_num_streams(ri.merge_events);
 
         if (ri.use_device)
         {
             p.control.device_debug = [&ri] {
                 inp::DeviceDebug dd;
-                dd.default_stream = ri.default_stream;
                 dd.sync_stream = ri.action_times;
                 return dd;
             }();
@@ -124,34 +183,31 @@ inp::Problem load_problem(RunnerInput const& ri)
         p.control.track_order = ri.track_order;
     }
 
-    // Physics
-    {
-        CELER_ASSERT(p.physics.em);
-        auto& em = *p.physics.em;
-
-        CELER_ASSERT(em.brems);
-        em.brems->combined_model = ri.brem_combined;
-
-        // Spline energy loss order
-        CELER_VALIDATE(ri.spline_eloss_order == 1 || ri.spline_eloss_order == 3,
-                       << "unsupported energy loss spline order "
-                       << ri.spline_eloss_order);
-        em.eloss_spline = (ri.spline_eloss_order == 3);
-    }
-
     // Tracking
-    p.tracking.limits.steps = ri.max_steps;
+    p.tracking.limits.step_iters = ri.max_steps;
     p.tracking.force_step_limit = ri.step_limiter;
+    if (!std::holds_alternative<inp::NoField>(p.field))
+    {
+        p.tracking.limits.field_substeps = ri.field_options.max_substeps;
+    }
 
     // Optical options
     if (ri.optical)
     {
         p.control.optical_capacity = [&ri] {
-            inp::StateCapacity sc;
-            sc.tracks = ri.optical.num_track_slots;
-            sc.initializers = ri.optical.initializer_capacity;
+            inp::OpticalStateCapacity sc;
             sc.primaries = ri.optical.auto_flush;
+            sc.tracks = ri.optical.num_track_slots;
+            sc.generators = ri.optical.buffer_capacity;
             return sc;
+        }();
+        p.tracking.limits.optical_step_iters = ri.optical.max_steps;
+
+        p.physics.optical = [&ri] {
+            inp::OpticalPhysics op;
+            op.cherenkov = ri.optical.cherenkov;
+            op.scintillation = ri.optical.scintillation;
+            return op;
         }();
     }
 
@@ -207,6 +263,9 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
     si.problem = load_problem(ri);
     if (!ri.physics_file.empty())
     {
+        CELER_VALIDATE(
+            ends_with(ri.physics_file, ".root"),
+            << R"(physics_file must be a ROOT input: use GDML for geometry_file and if forcing an ORANGE geometry, use the `ORANGE_FORCE_INPUT` environment variable)");
         // Read ROOT input
         si.physics_import = inp::FileImport{ri.physics_file};
     }
@@ -214,10 +273,42 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
     {
         // Set up Geant4
         si.geant_setup = ri.physics_options;
-        si.physics_import = inp::GeantImport{};
+
+        inp::GeantImport geant_import;
+        CELER_VALIDATE(
+            ri.poly_spline_order == 1
+                || ri.interpolation == InterpolationType::poly_spline,
+            << "piecewise polynomial spline order cannot be set if "
+               "linear or cubic spline interpolation is enabled");
+        geant_import.data_selection.interpolation.type = ri.interpolation;
+        geant_import.data_selection.interpolation.order = ri.poly_spline_order;
+        si.physics_import = std::move(geant_import);
     }
-    si.geant_data = inp::GeantDataImport{};
     si.events = load_events(ri);
+
+    // Load actual number of events, needed to construct core state before
+    // loading events
+    auto num_events = std::visit(
+        Overload{
+            [](inp::PrimaryGenerator const& pg) { return pg.num_events; },
+            [](inp::SampleFileEvents const& sfe) { return sfe.num_events; },
+            [](inp::ReadFileEvents const& rfe) {
+                if (ends_with(rfe.event_file, ".root"))
+                {
+                    return RootEventReader{rfe.event_file, nullptr}.num_events();
+                }
+
+                return EventReader{rfe.event_file, nullptr}.num_events();
+            },
+        },
+        si.events);
+    CELER_ASSERT(num_events > 0);
+
+    // Save number of events
+    auto& ctl = std::get<inp::Problem>(si.problem).control;
+    ctl.capacity.events = num_events;
+    // Limit number of streams
+    ctl.num_streams = std::min(ctl.num_streams, num_events);
 
     return si;
 }

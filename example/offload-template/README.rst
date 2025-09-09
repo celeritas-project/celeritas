@@ -25,34 +25,23 @@ Build and run
    $ ./run-offload
 
 
-Boilerplate offloading code
----------------------------
+Example classes
+---------------
 
-:file:`Celeritas.{hh,cc}`
-   Defines the needed components for a Celeritas offload execution:
+:cpp:class:`MakeCelerOptions`
+  Build Celeritas integration options before the beginning of the run.
 
-   - **Setup options**: memory allocation, physics, field, scoring, and so on
-   - **Shared parameters** used in the run: materials, physics processes
-     cross-section tables, and so on
-   - **Transporter**: execute/manage the particle transport
-   - **Simple Offload**: simplified user interface. Each ``SimpleOffload`` call
-     is briefly described below.
+:cpp:class:`RunAction`
+  :cpp:class:`BeginOfRunAction` initializes Celeritas global shared data on
+  master and worker threads, setting up a tracking manager under the hood.
+  :cpp:class:`EndOfRunAction` clears data and finalizes Celeritas data.
 
-:code:`G4VUserActionInitialization`
-  :code:`Build` and `BuildForMaster` construct Celeritas Simple Offload
-    interface with user-defined options (from ``Celeritas.cc``) and assign the
-    Celeritas tracking manager to the appropriate particles.
+:cpp:class:`SensitiveDetector`
+  :cpp:class:`ProcessHits`: is currently the *only* Celeritas callback
+  interface to Geant4; at each step, Celeritas sends data back as a
+  :cpp:class:`G4Step` to be processed by Geant4.
 
-:code:`G4UserRunAction`
-  :code:`BeginOfRunAction` initializes Celeritas global shared data on master
-  and worker threads. :code:`EndOfRunAction` clears data and finalizes
-  Celeritas data.
-
-:code:`G4UserEventAction`
-  :code:`BeginOfEventAction` initializes an event in Celeritas, and
-  :code:`EndOfEventAction` flushes remaining particles.
-
-:code:`G4VSensitiveDetector`
-  :code:`ProcessHits`: is currently the *only* Celeritas callback interface to
-  Geant4; at each step, Celeritas sends data back as a ``G4Step`` to be
-  processed by Geant4.
+:cpp:class:`StepDiagnostic`
+  This advanced and experimental class (expect it to break at major version
+  changes) demonstrates an efficient GPU-based stepping action that integrates
+  with the main Geant4 code.

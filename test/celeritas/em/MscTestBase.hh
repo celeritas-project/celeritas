@@ -9,6 +9,7 @@
 #include <random>
 
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/random/DiagnosticRngEngine.hh"
 #include "celeritas/RootTestBase.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoTrackView.hh"
@@ -20,7 +21,6 @@
 #include "celeritas/track/SimData.hh"
 #include "celeritas/track/SimTrackView.hh"
 
-#include "DiagnosticRngEngine.hh"
 #include "Test.hh"
 
 namespace celeritas
@@ -47,10 +47,7 @@ class MscTestBase : public RootTestBase
     virtual ~MscTestBase();
     //!@}
 
-    std::string_view geometry_basename() const final
-    {
-        return "four-steel-slabs";
-    }
+    std::string_view gdml_basename() const final { return "four-steel-slabs"; }
 
     SPConstTrackInit build_init() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstAction build_along_step() override { CELER_ASSERT_UNREACHABLE(); }

@@ -30,7 +30,6 @@ class CheckedGeoTrackView : public GTV
     //! \name Type aliases
     using GeoTrackViewT = GTV;
     using Initializer_t = typename GTV::Initializer_t;
-    using DetailedInitializer = typename GTV::DetailedInitializer;
     //!@}
 
   public:
@@ -42,9 +41,6 @@ class CheckedGeoTrackView : public GTV
 
     // Initialize the state
     CheckedGeoTrackView& operator=(GeoTrackInitializer const& init);
-
-    // Initialize the state from a parent state and new direction
-    CheckedGeoTrackView& operator=(DetailedInitializer const& init);
 
     //! Check volume consistency this far from the boundary
     static constexpr real_type safety_tol()
@@ -79,9 +75,9 @@ class CheckedGeoTrackView : public GTV
     // Cross from one side of the current surface to the other
     void cross_boundary();
 
-    //! Number of calls fo find_next_step
+    //! Number of calls of find_next_step
     size_type intersect_count() const { return num_intersect_; }
-    //! Number of calls fo find_safety
+    //! Number of calls of find_safety
     size_type safety_count() const { return num_safety_; }
     //! Reset the stepscounter
     void reset_count() { num_intersect_ = num_safety_ = 0; }

@@ -25,7 +25,17 @@ namespace celeritas
  * Construct from a shared action manager.
  */
 ActionRegistryOutput::ActionRegistryOutput(SPConstActionRegistry actions)
-    : actions_(std::move(actions))
+    : ActionRegistryOutput(actions, "actions")
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from a shared action manager and label.
+ */
+ActionRegistryOutput::ActionRegistryOutput(SPConstActionRegistry actions,
+                                           std::string label)
+    : actions_(std::move(actions)), label_(std::move(label))
 {
     CELER_EXPECT(actions_);
 }

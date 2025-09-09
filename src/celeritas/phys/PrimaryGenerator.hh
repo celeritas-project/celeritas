@@ -51,7 +51,7 @@ class PrimaryGenerator : public EventReaderInterface
     using DirectionSampler = std::function<Real3(PrimaryGeneratorEngine&)>;
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
     using result_type = std::vector<Primary>;
-    using Input = inp::PrimaryGenerator;
+    using Input = inp::CorePrimaryGenerator;
     //!@}
 
   public:
@@ -61,6 +61,9 @@ class PrimaryGenerator : public EventReaderInterface
 
     // Construct from shared particle data and new input
     PrimaryGenerator(Input const&, ParticleParams const& particles);
+
+    // Construct from particle IDs and new input
+    PrimaryGenerator(Input const&, std::vector<ParticleId> particle_ids);
 
     //! Prevent copying and moving
     CELER_DELETE_COPY_MOVE(PrimaryGenerator);

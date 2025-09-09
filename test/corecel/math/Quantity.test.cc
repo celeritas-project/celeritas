@@ -91,7 +91,7 @@ TEST(QuantityTest, zeros)
     zero_turn = zero_quantity();
     EXPECT_EQ(0, value_as<Revolution>(zero_turn));
 
-    // Check int/untyped commparisons
+    // Check int/untyped comparisons
     EXPECT_GT(Dozen{1}, zero_quantity());
     EXPECT_LT(Dozen{1}, max_quantity());
 }
@@ -112,6 +112,10 @@ TEST(QuantityTest, mixed_precision)
     {
         auto two_dozen_flt = native_value_to<DozenFlt>(24);
         EXPECT_SOFT_EQ(2, two_dozen_flt.value());
+
+        DozenFlt demoted{4};
+        demoted = DozenDbl{6.5};
+        EXPECT_FLOAT_EQ(6.5f, demoted.value());
     }
 }
 
@@ -185,6 +189,12 @@ TEST(QuantityTest, math)
         EXPECT_DOUBLE_EQ(3, divd.value());
     }
 
+    {
+        auto divd = RevDbl{12} / RevDbl{3};
+        EXPECT_TRUE((std::is_same<decltype(divd), double>::value));
+        EXPECT_DOUBLE_EQ(4, divd);
+    }
+
     // Test mixed integer/double
     {
         EXPECT_DOUBLE_EQ(static_cast<double>(4 * pi),
@@ -253,48 +263,81 @@ TEST(QuantityTest, io)
 
 TEST(TurnTest, basic)
 {
-    EXPECT_STREQ("tr", Turn::unit_type::label());
-    EXPECT_SOFT_EQ(0.5, Turn{0.5}.value());
-    EXPECT_REAL_EQ(static_cast<real_type>(2 * pi), native_value_from(Turn{1}));
+    EXPECT_STREQ("tr", RealTurn::unit_type::label());
+    EXPECT_SOFT_EQ(0.5, RealTurn{0.5}.value());
+    EXPECT_REAL_EQ(static_cast<real_type>(2 * pi),
+                   native_value_from(RealTurn{1}));
 }
 
 TEST(TurnTest, math)
 {
-    EXPECT_EQ(real_type(1), sin(Turn{0.25}));
-    EXPECT_EQ(real_type(-1), cos(Turn{0.5}));
-    EXPECT_EQ(real_type(0), sin(Turn{0}));
+    // Fractional powers of two should yield exact results
+    EXPECT_EQ(double(1), sin(make_turn(0.25)));
+    EXPECT_EQ(double(-1), cos(make_turn(0.5)));
+    {
+        auto result = sin(make_turn(0.0));
+        EXPECT_TRUE((std::is_same_v<decltype(result), double>));
+        EXPECT_EQ(double(0), result);
+    }
+    {
+        auto turn = make_turn(2.0f);
+        EXPECT_TRUE((std::is_same_v<decltype(turn), Turn_t<float>>));
+        auto result = sin(turn);
+        EXPECT_TRUE((std::is_same_v<decltype(result), float>));
+        EXPECT_EQ(float(0), result);
+    }
+    {
+        auto ta = atan2turn(0.0, 0.001);  // y, x
+        EXPECT_TRUE((std::is_same<decltype(ta), Turn_t<double>>::value));
+        EXPECT_DOUBLE_EQ(0.0, ta.value());
+        ta = atan2turn(1.0, 0.0);
+        EXPECT_DOUBLE_EQ(0.25, ta.value());
+        ta = atan2turn(0.0, -1.0);
+        EXPECT_DOUBLE_EQ(0.5, ta.value());
+        ta = atan2turn(-0.0, -1.0);
+        EXPECT_DOUBLE_EQ(-0.5, ta.value());
+        ta = atan2turn(-1.0, 0.0);
+        EXPECT_DOUBLE_EQ(-0.25, ta.value());
+    }
+    {
+        auto t = make_turn(1.0 / 6);
+
+        double s, c;
+        sincos(t, &s, &c);
+        EXPECT_DOUBLE_EQ(0.8660254037844386, s);
+        EXPECT_DOUBLE_EQ(0.5, c);
+        EXPECT_DOUBLE_EQ(1.7320508075688767, tan(t));
+    }
 }
 
 TEST(QuarterTurnTest, basic)
 {
-    EXPECT_STREQ("qtr", QuarterTurn::unit_type::label());
-    EXPECT_EQ(-1, QuarterTurn{-1}.value());
-    EXPECT_EQ(1, QuarterTurn{1}.value());
+    EXPECT_STREQ("qtr", IntQuarterTurn::unit_type::label());
+    EXPECT_EQ(-1, IntQuarterTurn{-1}.value());
+    EXPECT_EQ(1, IntQuarterTurn{1}.value());
     EXPECT_DOUBLE_EQ(static_cast<double>(2 * pi),
-                     static_cast<double>(native_value_from(QuarterTurn{4})));
+                     static_cast<double>(native_value_from(IntQuarterTurn{4})));
 }
 
 TEST(QuarterTurnTest, sincos)
 {
-    std::vector<int> result;
+    std::vector<int> actual;
+    std::vector<int> expected;
+    auto push_expected_int = [&expected](double v) {
+        expected.push_back(static_cast<int>(std::round(v)));
+    };
+
     for (auto i : range(-4, 5))
     {
-        result.push_back(sin(QuarterTurn{i}));
-        result.push_back(cos(QuarterTurn{i}));
+        IntQuarterTurn theta{i};
+        actual.push_back(sin(theta));
+        actual.push_back(cos(theta));
+
+        auto theta_dbl = static_cast<double>(native_value_from(theta));
+        push_expected_int(std::sin(theta_dbl));
+        push_expected_int(std::cos(theta_dbl));
     }
-    // clang-format off
-    static int const expected_result[]
-        = {  0,  1, // -1 turn
-             1,  0, // -3/4 turn
-             0, -1, // -1/2 turn
-            -1,  0, // -1/4 turn
-             0,  1, // 0 turn
-             1,  0, // 1/4
-             0, -1, // 1/2
-            -1,  0, // 3/4
-             0,  1}; // 1
-    // clang-format on
-    EXPECT_VEC_EQ(expected_result, result);
+    EXPECT_VEC_EQ(expected, actual);
 }
 
 //---------------------------------------------------------------------------//

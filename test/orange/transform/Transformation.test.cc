@@ -93,6 +93,10 @@ TEST_F(TransformationTest, transform)
         EXPECT_VEC_EQ((Real3{-3, 2, 1}), tr.transform_up({2, 3, 0}));
         // Parent to daughter: subtract, then rotate back
         EXPECT_VEC_EQ((Real3{2, 3, 0}), tr.transform_down({-3, 2, 1}));
+
+        auto props = tr.calc_properties();
+        EXPECT_FALSE(props.reflects);
+        EXPECT_FALSE(props.scales);
     }
     {
         Transformation tr{
@@ -113,13 +117,44 @@ TEST_F(TransformationTest, transform)
 
 TEST_F(TransformationTest, rotate)
 {
-    {
-        Transformation tr{make_rotation(Axis::z, Turn{0.25}), Real3{0, 0, 1}};
-        // Daughter to parent: rotate quarter turn around Z
-        EXPECT_VEC_EQ((Real3{0, 1, 0}), tr.rotate_up({1, 0, 0}));
-        // Parent to daughter: rotate back
-        EXPECT_VEC_EQ((Real3{1, 0, 0}), tr.rotate_down({0, 1, 0}));
-    }
+    Transformation tr{make_rotation(Axis::z, Turn{0.25}), Real3{0, 0, 1}};
+    // Daughter to parent: rotate quarter turn around Z
+    EXPECT_VEC_EQ((Real3{0, 1, 0}), tr.rotate_up({1, 0, 0}));
+    // Parent to daughter: rotate back
+    EXPECT_VEC_EQ((Real3{1, 0, 0}), tr.rotate_down({0, 1, 0}));
+
+    auto props = tr.calc_properties();
+    EXPECT_FALSE(props.reflects);
+    EXPECT_FALSE(props.scales);
+}
+
+TEST_F(TransformationTest, reflect)
+{
+    // D2P: reflect across yz plane, then translate
+    Transformation tr{make_reflection(Axis::x), Real3{1, 0, 2}};
+    EXPECT_VEC_EQ((Real3{-1, 0, 0}), tr.rotate_up({1, 0, 0}));
+    EXPECT_VEC_EQ((Real3{1, 0, 0}), tr.rotate_down({-1, 0, 0}));
+    EXPECT_VEC_EQ((Real3{0, 2, 5}), tr.transform_up({1, 2, 3}));
+    EXPECT_VEC_EQ((Real3{1, 2, 3}), tr.transform_down({0, 2, 5}));
+
+    auto props = tr.calc_properties();
+    EXPECT_TRUE(props.reflects);
+    EXPECT_FALSE(props.scales);
+}
+
+TEST_F(TransformationTest, DISABLED_scale)
+{
+    Transformation tr{make_scaling({0.5, 1, 2}), Real3{0, 0, 0}};
+    // TODO: scaling must *not* change magnitude
+    EXPECT_VEC_EQ((Real3{1, 0, 0}), tr.rotate_up({1, 0, 0}));
+    EXPECT_VEC_EQ((Real3{1, 0, 0}), tr.rotate_down({1, 0, 0}));
+    EXPECT_VEC_EQ((Real3{0.5, 2, 6}), tr.transform_up({1, 2, 3}));
+    // TODO: transformation is wrong
+    EXPECT_VEC_EQ((Real3{1, 2, 3}), tr.transform_down({0.5, 2, 6}));
+
+    auto props = tr.calc_properties();
+    EXPECT_FALSE(props.reflects);
+    EXPECT_TRUE(props.scales);
 }
 
 //---------------------------------------------------------------------------//

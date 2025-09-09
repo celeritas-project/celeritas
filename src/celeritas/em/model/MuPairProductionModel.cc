@@ -15,6 +15,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/HyperslabIndexer.hh"
+#include "corecel/math/PdfUtils.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/em/executor/MuPairProductionExecutor.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
@@ -39,7 +40,7 @@ MuPairProductionModel::MuPairProductionModel(
     SPConstImported data,
     ImportMuPairProductionTable const& imported)
     : StaticConcreteAction(
-        id, "pair-prod-muon", "interact by e-/e+ pair production by muons")
+          id, "pair-prod-muon", "interact by e-/e+ pair production by muons")
     , imported_(data,
                 particles,
                 ImportProcessClass::mu_pair_prod,
@@ -97,8 +98,7 @@ auto MuPairProductionModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto MuPairProductionModel::micro_xs(Applicability applic) const
-    -> MicroXsBuilders
+auto MuPairProductionModel::micro_xs(Applicability applic) const -> XsTable
 {
     return imported_.micro_xs(std::move(applic));
 }
@@ -139,28 +139,20 @@ void MuPairProductionModel::build_table(
     // Build 2D sampling table
     TwodGridBuilder build_grid{&table->reals};
     CollectionBuilder grids{&table->grids};
-    for (auto const& pvec : imported.physics_vectors)
+    for (auto grid : imported.grids)
     {
-        CELER_VALIDATE(pvec,
+        CELER_VALIDATE(grid,
                        << "invalid grid in sampling table for '"
                        << this->description() << "'");
 
-        Array<size_type, 2> dims{static_cast<size_type>(pvec.x.size()),
-                                 static_cast<size_type>(pvec.y.size())};
-        HyperslabIndexer index(dims);
-
         // Normalize the CDF
-        std::vector<double> cdf(pvec.value.size());
-        for (size_type i : range(dims[0]))
+        size_type cdf_size = grid.y.size();
+        for (size_type i : range(grid.x.size()))
         {
-            double norm = 1 / pvec.value[index(i, dims[1] - 1)];
-            for (size_type j : range(dims[1]))
-            {
-                cdf[index(i, j)] = pvec.value[index(i, j)] * norm;
-            }
+            normalize_cdf(
+                make_span(grid.value).subspan(i * cdf_size, cdf_size));
         }
-        grids.push_back(
-            build_grid(make_span(pvec.x), make_span(pvec.y), make_span(cdf)));
+        grids.push_back(build_grid(grid));
     }
 
     // Build log Z grid

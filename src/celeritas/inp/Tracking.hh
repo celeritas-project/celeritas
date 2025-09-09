@@ -27,6 +27,8 @@ struct TrackingLimits
     size_type steps{unlimited};
     //! Step iterations before aborting a run
     size_type step_iters{unlimited};
+    //! Step iterations before aborting the optical stepping loop
+    size_type optical_step_iters{unlimited};
     //! Integration substeps during field propagation before ending the step
     size_type field_substeps{100};
 

@@ -20,12 +20,21 @@ namespace celeritas
 {
 namespace detail
 {
+namespace
+{
+bool enable_pinned()
+{
+    static bool const result = [] { return Device::num_devices() > 0; }();
+    return result;
+}
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Allocate and construct space for \c n objects of size \c sizof_t.
  *
- * If any devices are available, use pinned memory. Otherwise, use standard
- * allocation.
+ * If any devices are available at the first call, use pinned memory.
+ * Otherwise, use standard allocation for the rest of the program lifetime.
  */
 void* malloc_pinned(std::size_t n, std::size_t sizeof_t)
 {
@@ -35,16 +44,17 @@ void* malloc_pinned(std::size_t n, std::size_t sizeof_t)
         throw std::bad_array_new_length();
 
     void* p{nullptr};
-    if (Device::num_devices() > 0)
+    if (enable_pinned())
     {
-        // CUDA and HIP currently have a different API to allocate pinned host
-        // memory
+        // NOTE: CUDA and HIP have a different API signature!
 #if CELERITAS_USE_CUDA
-        CELER_CUDA_CALL(cudaHostAlloc(
-            &p, n * sizeof_t, CELER_DEVICE_PREFIX(HostAllocDefault)));
+        CELER_DEVICE_API_CALL(HostAlloc(
+            &p, n * sizeof_t, CELER_DEVICE_API_SYMBOL(HostAllocDefault)));
 #elif CELERITAS_USE_HIP
-        CELER_HIP_CALL(hipHostMalloc(
-            &p, n * sizeof_t, CELER_DEVICE_PREFIX(HostMallocDefault)));
+        CELER_DEVICE_API_CALL(HostMalloc(
+            &p, n * sizeof_t, CELER_DEVICE_API_SYMBOL(HostMallocDefault)));
+#else
+        CELER_ASSERT_UNREACHABLE();
 #endif
     }
     else
@@ -63,24 +73,23 @@ void* malloc_pinned(std::size_t n, std::size_t sizeof_t)
 //---------------------------------------------------------------------------//
 /*!
  * Free allocated memory.
- *
- * Because \c Device::num_devices is static, this will always be symmetric
- * with the \c PinnedAllocator::allocate call.
  */
 void free_pinned(void* p) noexcept
 {
-    if (Device::num_devices() > 0)
+    if (enable_pinned())
     {
         try
         {
-            // NOTE that Free/Host switch places in the two languages
+            // NOTE: API calls differ between CUDA and HIP
 #if CELERITAS_USE_CUDA
-            CELER_CUDA_CALL(cudaFreeHost(p));
+            CELER_DEVICE_API_CALL(FreeHost(p));
 #elif CELERITAS_USE_HIP
-            CELER_HIP_CALL(hipHostFree(p));
+            CELER_DEVICE_API_CALL(HostFree(p));
+#else
+            CELER_ASSERT_UNREACHABLE();
 #endif
         }
-        catch (RuntimeError const& e)
+        catch (std::exception const& e)
         {
             CELER_LOG(debug)
                 << "While freeing pinned host memory: " << e.what();

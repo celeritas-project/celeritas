@@ -6,12 +6,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <functional>
+#include <vector>
 
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/grid/SplineDerivCalculator.hh"
 #include "celeritas/grid/XsGridData.hh"
+#include "celeritas/inp/Grid.hh"
 
 #include "Test.hh"
 
@@ -28,36 +30,33 @@ class CalculatorTestBase : public Test
   public:
     //!@{
     //! \name Type aliases
+    using BC = SplineDerivCalculator::BoundaryCondition;
     using Values = Collection<real_type, Ownership::value, MemSpace::host>;
     using Data
         = Collection<real_type, Ownership::const_reference, MemSpace::host>;
-    using SpanReal = Span<real_type>;
-    using XsFunc = std::function<real_type(real_type)>;
-    using Real2 = Array<real_type, 2>;
     //!@}
 
   public:
-    //!@{
-    //! Deprecated: use the "build" (with function) and "convert_to_prime"
-    // Construct linear cross sections
-    void build(real_type emin, real_type emax, size_type count);
-    void set_prime_index(size_type i);
-    SpanReal mutable_values();
-    //!@}
+    // Construct a cross section grid
+    void build(inp::XsGrid grid);
 
-    // Construct from an arbitrary function
-    void build(Real2 bounds, size_type count, XsFunc calc_xs);
+    // Construct a uniform grid
+    void build(inp::UniformGrid grid);
 
-    // Scale cross sections at or above this index by a factor of E
-    void convert_to_prime(size_type i);
+    // Construct an inverted uniform grid
+    void build_inverted(inp::UniformGrid grid);
 
-    XsGridData const& data() const { return data_; }
+    XsGridRecord const& xs_grid() const { return data_; }
+    UniformGridRecord const& uniform_grid() const { return data_.lower; }
     Data const& values() const { return value_ref_; }
 
   private:
-    XsGridData data_;
+    XsGridRecord data_;
     Values value_storage_;
     Data value_ref_;
+
+    void build_impl(inp::UniformGrid, inp::UniformGrid, bool invert);
+    void build_grid(UniformGridRecord&, inp::UniformGrid const&, bool invert);
 };
 
 //---------------------------------------------------------------------------//

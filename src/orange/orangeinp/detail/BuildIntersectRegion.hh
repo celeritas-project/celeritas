@@ -9,7 +9,7 @@
 #include <string>
 #include <string_view>
 
-#include "orange/orangeinp/CsgTypes.hh"
+#include "../CsgTypes.hh"
 
 namespace celeritas
 {

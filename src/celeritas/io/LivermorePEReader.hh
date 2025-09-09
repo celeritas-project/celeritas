@@ -8,6 +8,7 @@
 
 #include <string>
 
+#include "celeritas/inp/Grid.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 
 #include "ImportLivermorePE.hh"
@@ -28,10 +29,10 @@ class LivermorePEReader
 
   public:
     // Construct the reader and locate the data using the environment variable
-    LivermorePEReader();
+    explicit LivermorePEReader(inp::Interpolation);
 
     // Construct the reader from the path to the data directory
-    explicit LivermorePEReader(char const* path);
+    LivermorePEReader(char const* path, inp::Interpolation);
 
     // Read the data for the given element
     result_type operator()(AtomicNumber atomic_number) const;
@@ -39,6 +40,8 @@ class LivermorePEReader
   private:
     // Directory containing the Livermore photoelectric data
     std::string path_;
+    // Interpolation method
+    inp::Interpolation interpolation_;
 };
 
 //---------------------------------------------------------------------------//

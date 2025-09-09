@@ -11,9 +11,9 @@
 #include "corecel/grid/TwodGridCalculator.hh"
 #include "corecel/grid/TwodSubgridCalculator.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/random/distribution/ReciprocalDistribution.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/SeltzerBergerData.hh"
-#include "celeritas/random/distribution/ReciprocalDistribution.hh"
 
 namespace celeritas
 {
@@ -27,7 +27,7 @@ namespace celeritas
  *
  * The cross section units are immaterial since the cross section merely acts
  * as a shape function for rejection: the sampled energy's cross section is
- * always divided by the maximium cross section.
+ * always divided by the maximum cross section.
  */
 class SBEnergyDistHelper
 {
@@ -115,8 +115,8 @@ SBEnergyDistHelper::SBEnergyDistHelper(SBDXsec const& differential_xs,
  * Sample an exit energy on a scaled and adjusted reciprocal distribution.
  */
 template<class Engine>
-CELER_FUNCTION auto
-SBEnergyDistHelper::sample_exit_energy(Engine& rng) const -> Energy
+CELER_FUNCTION auto SBEnergyDistHelper::sample_exit_energy(Engine& rng) const
+    -> Energy
 {
     // Sample scaled energy and subtract correction factor
     real_type esq = sample_exit_esq_(rng) - dens_corr_;
@@ -131,7 +131,7 @@ SBEnergyDistHelper::sample_exit_energy(Engine& rng) const -> Energy
 CELER_FUNCTION auto SBEnergyDistHelper::calc_xs(Energy e) const -> Xs
 {
     CELER_EXPECT(e > zero_quantity());
-    // Interpolate the differential cross setion at the given exit energy
+    // Interpolate the differential cross section at the given exit energy
     return Xs{calc_xs_(e.value() * inv_inc_energy_)};
 }
 
@@ -171,9 +171,9 @@ CELER_FUNCTION TwodSubgridCalculator SBEnergyDistHelper::make_xs_calc(
  * \note This is called during construction, so \c calc_xs_ must be initialized
  * before whatever calls this.
  */
-CELER_FUNCTION auto
-SBEnergyDistHelper::calc_max_xs(SBTables const& xs_params,
-                                ElementId element) const -> Xs
+CELER_FUNCTION auto SBEnergyDistHelper::calc_max_xs(SBTables const& xs_params,
+                                                    ElementId element) const
+    -> Xs
 {
     CELER_EXPECT(element);
     SBElementTableData const& el = xs_params.elements[element];
@@ -200,8 +200,10 @@ SBEnergyDistHelper::calc_max_xs(SBTables const& xs_params,
 /*!
  * Construct a sampler for scaled exiting energy.
  */
-CELER_FUNCTION auto SBEnergyDistHelper::make_esq_sampler(
-    real_type inc_energy, real_type min_gamma_energy) const -> ReciprocalSampler
+CELER_FUNCTION auto
+SBEnergyDistHelper::make_esq_sampler(real_type inc_energy,
+                                     real_type min_gamma_energy) const
+    -> ReciprocalSampler
 {
     CELER_EXPECT(min_gamma_energy > 0);
     return ReciprocalSampler(ipow<2>(min_gamma_energy) + dens_corr_,

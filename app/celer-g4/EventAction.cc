@@ -11,6 +11,7 @@
 
 #include "corecel/Macros.hh"
 #include "accel/ExceptionConverter.hh"
+#include "accel/TimeOutput.hh"
 
 #include "GlobalSetup.hh"
 #include "RootIO.hh"
@@ -41,15 +42,13 @@ EventAction::EventAction(SPConstParams params,
  */
 void EventAction::BeginOfEventAction(G4Event const* event)
 {
-    CELER_LOG_LOCAL(debug) << "Starting event " << event->GetEventID();
-
     get_event_time_ = {};
 
-    if (SharedParams::CeleritasDisabled())
+    if (params_->mode() != SharedParams::Mode::enabled)
         return;
 
     // Set event ID in local transporter and reseed Celerits RNG
-    ExceptionConverter call_g4exception{"celer0002"};
+    ExceptionConverter call_g4exception{"celer.event.begin"};
     CELER_TRY_HANDLE(transport_->InitializeEvent(event->GetEventID()),
                      call_g4exception);
 }
@@ -62,10 +61,10 @@ void EventAction::EndOfEventAction(G4Event const* event)
 {
     CELER_EXPECT(event);
 
-    if (!SharedParams::CeleritasDisabled())
+    if (params_->mode() == SharedParams::Mode::enabled)
     {
         // Transport any tracks left in the buffer
-        ExceptionConverter call_g4exception{"celer0004", params_.get()};
+        ExceptionConverter call_g4exception{"celer.event.flush", params_.get()};
         CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
     }
 
@@ -76,9 +75,7 @@ void EventAction::EndOfEventAction(G4Event const* event)
     }
 
     // Record the time for this event
-    diagnostics_->timer()->RecordEventTime(get_event_time_());
-
-    CELER_LOG_LOCAL(debug) << "Finished event " << event->GetEventID();
+    params_->timer()->RecordEventTime(get_event_time_());
 }
 
 //---------------------------------------------------------------------------//

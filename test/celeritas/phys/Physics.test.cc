@@ -7,23 +7,26 @@
 #include "Physics.test.hh"
 
 #include <limits>
+#include <nlohmann/json.hpp>
 
+#include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/random/DiagnosticRngEngine.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/MockTestBase.hh"
 #include "celeritas/em/process/EPlusAnnihilationProcess.hh"
 #include "celeritas/grid/EnergyLossCalculator.hh"
 #include "celeritas/grid/RangeCalculator.hh"
-#include "celeritas/grid/SplineXsCalculator.hh"
+#include "celeritas/grid/SplineCalculator.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
+#include "celeritas/phys/detail/EnergyMaxXsCalculator.hh"
 
-#include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -106,7 +109,7 @@ TEST_F(PhysicsParamsTest, accessors)
            "MockModel(8, p=2, emin=1, emax=100)",
            "MockModel(9, p=1, emin=0.001, emax=10)",
            "MockModel(10, p=2, emin=0.001, emax=10)",
-           "MockModel(11, p=3, emin=1e-05, emax=10)"};
+           "MockModel(11, p=3, emin=1e-05, emax=1000)"};
     EXPECT_VEC_EQ(expected_model_desc, model_desc);
 
     // Test host-accessible process map
@@ -140,9 +143,59 @@ TEST_F(PhysicsParamsTest, output)
     {
         GTEST_SKIP() << "Test results are based on CGS units";
     }
+    // Small differences in the model CDF grids due to floating point precision
+    // lead to different numbers of reals depending on the build because of the
+    // \c DedupeCollectionBuilder
+    auto j = nlohmann::json::parse(to_string(out));
+    j["sizes"].erase("reals");
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"physics","models":{"label":["mock-model-1","mock-model-2","mock-model-3","mock-model-4","mock-model-5","mock-model-6","mock-model-7","mock-model-8","mock-model-9","mock-model-10","mock-model-11"],"process_id":[0,0,1,2,2,2,3,3,4,4,5]},"options":{"fixed_step_limiter":0.0,"heavy.lowest_energy":[0.001,"MeV"],"heavy.max_step_over_range":0.2,"heavy.min_range":0.010000000000000002,"light.lowest_energy":[0.001,"MeV"],"light.max_step_over_range":0.2,"light.min_range":0.1,"linear_loss_limit":0.01,"min_eprime_over_e":0.8,"spline_eloss_order":1},"processes":{"label":["scattering","absorption","purrs","hisses","meows","barks"]},"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":5,"process_ids":8,"reals":257,"value_grid_ids":89,"value_grids":89,"value_tables":29}})json",
-        to_string(out));
+        R"json({"_category":"internal","_label":"physics","models":{"label":["mock-model-1","mock-model-2","mock-model-3","mock-model-4","mock-model-5","mock-model-6","mock-model-7","mock-model-8","mock-model-9","mock-model-10","mock-model-11"],"process_id":[0,0,1,2,2,2,3,3,4,4,5]},"options":{"fixed_step_limiter":0.0,"heavy.lowest_energy":[0.001,"MeV"],"heavy.max_step_over_range":0.2,"heavy.min_range":0.010000000000000002,"light.lowest_energy":[0.001,"MeV"],"light.max_step_over_range":0.2,"light.min_range":0.1,"linear_loss_limit":0.01,"min_eprime_over_e":0.8},"processes":{"label":["scattering","absorption","purrs","hisses","meows","barks"]},"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":5,"process_ids":8,"uniform_grid_ids":57,"uniform_grids":57,"uniform_tables":44,"xs_grid_ids":32,"xs_grids":32,"xs_tables":8}})json",
+        j.dump());
+}
+
+TEST_F(PhysicsParamsTest, energy_max_xs)
+{
+    PhysicsOptions opts = this->build_physics_options();
+    PhysicsParams const& p = *this->physics();
+    auto const& data = p.host_ref();
+
+    Applicability applic;
+    std::vector<std::vector<real_type>> energy_max_xs;
+    for (auto par_id : Range(ParticleId(data.process_groups.size())))
+    {
+        applic.particle = par_id;
+        auto proc_group = data.process_groups[par_id];
+        auto proc_ids = data.process_ids[proc_group.processes];
+        for (auto pp_idx : range(proc_ids.size()))
+        {
+            auto model_group = data.model_groups[proc_group.models][pp_idx];
+            auto energy_grid = data.reals[model_group.energy];
+            applic.lower = MevEnergy{energy_grid.front()};
+            applic.upper = MevEnergy{energy_grid.back()};
+
+            auto const& proc = p.process(proc_ids[pp_idx]);
+            CELER_ASSERT(proc);
+            detail::EnergyMaxXsCalculator calc(opts, *proc);
+            std::vector<real_type> energy;
+            for (auto mat_id : range(PhysMatId(this->material()->size())))
+            {
+                applic.material = mat_id;
+                auto macro_xs = proc->macro_xs(applic);
+                energy.push_back(calc ? calc(macro_xs) : -1);
+            }
+            energy_max_xs.push_back(std::move(energy));
+        }
+    }
+    static std::vector<double> const expected_energy_max_xs[]
+        = {{-1, -1, -1, -1},
+           {-1, -1, -1, -1},
+           {-1, -1, -1, -1},
+           {0.001, 0.001, 0.001, 0.001},
+           {0.001, 0.001, 0.001, 0.001},
+           {0.001, 0.001, 0.001, 0.001},
+           {0.001, 0.001, 0.001, 0.001},
+           {0.1, 0.1, 0.1, 0.1}};
+    EXPECT_VEC_SOFT_EQ(expected_energy_max_xs, energy_max_xs);
 }
 
 //---------------------------------------------------------------------------//
@@ -197,7 +250,7 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
         }
     }
 
-    PhysicsTrackView make_track_view(char const* particle, MaterialId mid)
+    PhysicsTrackView make_track_view(char const* particle, PhysMatId mid)
     {
         CELER_EXPECT(particle && mid);
 
@@ -262,8 +315,8 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
 
 TEST_F(PhysicsTrackViewHostTest, track_view)
 {
-    PhysicsTrackView gamma = this->make_track_view("gamma", MaterialId{0});
-    PhysicsTrackView celer = this->make_track_view("celeriton", MaterialId{1});
+    PhysicsTrackView gamma = this->make_track_view("gamma", PhysMatId{0});
+    PhysicsTrackView celer = this->make_track_view("celeriton", PhysMatId{1});
     PhysicsTrackView const& gamma_cref = gamma;
 
     // Interaction MFP
@@ -369,7 +422,7 @@ TEST_F(PhysicsTrackViewHostTest, processes)
     // Gamma
     {
         PhysicsTrackView const phys
-            = this->make_track_view("gamma", MaterialId{0});
+            = this->make_track_view("gamma", PhysMatId{0});
 
         EXPECT_EQ(2, phys.num_particle_processes());
         ParticleProcessId const scat_ppid{0};
@@ -382,7 +435,7 @@ TEST_F(PhysicsTrackViewHostTest, processes)
     // Celeriton
     {
         PhysicsTrackView const phys
-            = this->make_track_view("celeriton", MaterialId{0});
+            = this->make_track_view("celeriton", PhysMatId{0});
 
         EXPECT_EQ(3, phys.num_particle_processes());
         ParticleProcessId const scat_ppid{0};
@@ -397,7 +450,7 @@ TEST_F(PhysicsTrackViewHostTest, processes)
     // Anti-celeriton
     {
         PhysicsTrackView const phys
-            = this->make_track_view("anti-celeriton", MaterialId{1});
+            = this->make_track_view("anti-celeriton", PhysMatId{1});
 
         EXPECT_EQ(2, phys.num_particle_processes());
         ParticleProcessId const hiss_ppid{0};
@@ -411,7 +464,7 @@ TEST_F(PhysicsTrackViewHostTest, processes)
     {
         // No at-rest interaction
         PhysicsTrackView const phys
-            = this->make_track_view("electron", MaterialId{1});
+            = this->make_track_view("electron", PhysMatId{1});
         EXPECT_EQ(ParticleProcessId{}, phys.at_rest_process());
     }
 }
@@ -420,13 +473,9 @@ TEST_F(PhysicsTrackViewHostTest, value_grids)
 {
     std::vector<int> grid_ids;
 
-    auto id_to_int = [](ValueGridId vgid) {
-        return vgid ? static_cast<int>(vgid.unchecked_get()) : -1;
-    };
-
     for (char const* particle : {"gamma", "celeriton", "anti-celeriton"})
     {
-        for (auto mat_id : range(MaterialId{this->material()->size()}))
+        for (auto mat_id : range(PhysMatId{this->material()->size()}))
         {
             PhysicsTrackView const phys
                 = this->make_track_view(particle, mat_id);
@@ -444,9 +493,9 @@ TEST_F(PhysicsTrackViewHostTest, value_grids)
     // Grid IDs should be unique if they exist. Gammas should have fewer
     // because there aren't any slowing down/range limiters.
     static int const expected_grid_ids[] = {
-        0,  4,  -1, -1, 1,  5,  -1, -1, 2,  6,  -1, -1, 3,  7,  -1, -1, 8,  12,
-        24, 13, 14, 9,  15, 25, 16, 17, 10, 18, 26, 19, 20, 11, 21, 27, 22, 23,
-        28, 40, 29, 30, 31, 41, 32, 33, 34, 42, 35, 36, 37, 43, 38, 39,
+        0,  4,  -1, -1, 1,  5,  -1, -1, 2,  6,  -1, -1, 3,  7,  -1, -1, 8, 12,
+        16, 0,  1,  9,  13, 17, 2,  3,  10, 14, 18, 4,  5,  11, 15, 19, 6, 7,
+        20, 24, 8,  9,  21, 25, 10, 11, 22, 26, 12, 13, 23, 27, 14, 15,
     };
     EXPECT_VEC_EQ(expected_grid_ids, grid_ids);
 }
@@ -458,15 +507,16 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
     std::vector<real_type> xs;
     for (char const* particle : {"gamma", "celeriton"})
     {
-        for (auto mat_id : range(MaterialId{this->material()->size()}))
+        for (auto mat_id : range(PhysMatId{this->material()->size()}))
         {
             PhysicsTrackView const phys
                 = this->make_track_view(particle, mat_id);
+            MaterialView mat = this->material()->get(mat_id);
             auto scat_ppid = this->find_ppid(phys, "scattering");
             auto id = phys.macro_xs_grid(scat_ppid);
             ASSERT_TRUE(id);
-            auto calc_xs = phys.make_calculator<XsCalculator>(id);
-            xs.push_back(to_inv_cm(calc_xs(MevEnergy{1.0})));
+            xs.push_back(
+                to_inv_cm(phys.calc_xs(scat_ppid, mat, MevEnergy{1.0})));
         }
     }
 
@@ -489,7 +539,7 @@ TEST_F(PhysicsTrackViewHostTest, calc_eloss_range)
     for (char const* particle : {"celeriton", "anti-celeriton"})
     {
         PhysicsTrackView const phys
-            = this->make_track_view(particle, MaterialId{0});
+            = this->make_track_view(particle, PhysMatId{0});
 
         auto eloss_id = phys.energy_loss_grid();
         ASSERT_TRUE(eloss_id);
@@ -510,50 +560,57 @@ TEST_F(PhysicsTrackViewHostTest, calc_eloss_range)
 
     static double const expected_eloss[]
         = {0.6, 0.6, 0.6, 0.6, 0.7, 0.7, 0.7, 0.7};
-    static double const expected_range[] = {5.2704627669473e-05,
-                                            0.016666666666667,
-                                            1.6666666666667,
-                                            166.66666666667,
-                                            4.5175395145263e-05,
-                                            0.014285714285714,
-                                            1.4285714285714,
-                                            142.85714285714};
-    static double const expected_step[] = {5.2704627669473e-05,
-                                           0.016666666666667,
-                                           0.48853333333333,
-                                           33.493285333333,
-                                           4.5175395145263e-05,
-                                           0.014285714285714,
-                                           0.44011428571429,
-                                           28.731372571429};
+    static double const expected_range[] = {
+        0.00010540925533895,
+        0.018333333333333,
+        1.6683333333333,
+        166.66833333333,
+        9.0350790290525e-05,
+        0.015714285714286,
+        1.43,
+        142.85857142857,
+    };
+    static double const expected_step[] = {
+        0.00010540925533895,
+        0.018333333333333,
+        0.48887146187146,
+        33.493618667147,
+        9.0350790290525e-05,
+        0.015714285714286,
+        0.44040559440559,
+        28.731658286274,
+    };
     EXPECT_VEC_SOFT_EQ(expected_eloss, eloss);
-    EXPECT_VEC_SOFT_EQ(expected_range, range);
-    EXPECT_VEC_SOFT_EQ(expected_step, step);
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_VEC_SOFT_EQ(expected_range, range);
+        EXPECT_VEC_SOFT_EQ(expected_step, step);
+    }
 }
 
 TEST_F(PhysicsTrackViewHostTest, use_integral)
 {
     {
         // No energy loss tables
-        auto const phys = this->make_track_view("celeriton", MaterialId{2});
+        auto const phys = this->make_track_view("celeriton", PhysMatId{2});
         auto ppid = this->find_ppid(phys, "scattering");
         ASSERT_TRUE(ppid);
         EXPECT_FALSE(phys.integral_xs_process(ppid));
 
-        MaterialView material = this->material()->get(MaterialId{2});
+        MaterialView material = this->material()->get(PhysMatId{2});
         EXPECT_SOFT_EQ(
             0.1, to_inv_cm(phys.calc_xs(ppid, material, MevEnergy{1.0})));
     }
     {
         // Energy loss tables and energy-dependent macro xs
         std::vector<real_type> xs, max_xs;
-        auto const phys = this->make_track_view("electron", MaterialId{2});
+        auto const phys = this->make_track_view("electron", PhysMatId{2});
         auto ppid = this->find_ppid(phys, "barks");
         ASSERT_TRUE(ppid);
         auto const& integral_proc = phys.integral_xs_process(ppid);
         EXPECT_TRUE(integral_proc);
 
-        MaterialView material = this->material()->get(MaterialId{2});
+        MaterialView material = this->material()->get(PhysMatId{2});
         for (real_type energy : {0.001, 0.01, 0.1, 0.11, 10.0})
         {
             xs.push_back(
@@ -571,7 +628,7 @@ TEST_F(PhysicsTrackViewHostTest, use_integral)
 TEST_F(PhysicsTrackViewHostTest, model_finder)
 {
     PhysicsTrackView const phys
-        = this->make_track_view("celeriton", MaterialId{0});
+        = this->make_track_view("celeriton", PhysMatId{0});
     auto purr_ppid = this->find_ppid(phys, "purrs");
     ASSERT_TRUE(purr_ppid);
     auto find_model = phys.make_model_finder(purr_ppid);
@@ -587,7 +644,7 @@ TEST_F(PhysicsTrackViewHostTest, model_finder)
 TEST_F(PhysicsTrackViewHostTest, element_selector)
 {
     MevEnergy energy{2};
-    MaterialId mid{2};
+    PhysMatId mid{2};
 
     // Get the sampled process (constant micro xs)
     PhysicsTrackView const phys = this->make_track_view("celeriton", mid);
@@ -601,7 +658,7 @@ TEST_F(PhysicsTrackViewHostTest, element_selector)
 
     // Sample from material composed of three elements (PMF = [0.1, 0.3, 0.6])
     {
-        auto table_id = phys.value_table(pmid);
+        auto table_id = phys.cdf_table(pmid);
         EXPECT_TRUE(table_id);
         auto select_element = phys.make_element_selector(table_id, energy);
         std::vector<int> counts(this->material()->get(mid).num_elements());
@@ -621,8 +678,8 @@ TEST_F(PhysicsTrackViewHostTest, element_selector)
     // Material composed of a single element
     {
         PhysicsTrackView phys
-            = this->make_track_view("celeriton", MaterialId{1});
-        auto table_id = phys.value_table(pmid);
+            = this->make_track_view("celeriton", PhysMatId{1});
+        auto table_id = phys.cdf_table(pmid);
         EXPECT_FALSE(table_id);
     }
 }
@@ -632,51 +689,30 @@ TEST_F(PhysicsTrackViewHostTest, cuda_surrogate)
     std::vector<real_type> step;
     for (char const* particle : {"gamma", "anti-celeriton"})
     {
-        PhysicsTrackView phys = this->make_track_view(particle, MaterialId{1});
+        PhysicsTrackView phys = this->make_track_view(particle, PhysMatId{1});
         PhysicsStepView pstep = this->make_step_view(particle);
+        MaterialView mat = this->material()->get(PhysMatId{1});
 
         for (real_type energy : {1e-5, 1e-3, 1., 100., 1e5})
         {
             step.push_back(
-                to_cm(test::calc_step(phys, pstep, MevEnergy{energy})));
+                to_cm(test::calc_step(phys, pstep, mat, MevEnergy{energy})));
         }
     }
 
-    double const expected_step[] = {166.6666666667,
-                                    166.6666666667,
-                                    166.6666666667,
-                                    166.6666666667,
-                                    inf,
-                                    1.428571428571e-05,
-                                    0.0001428571428571,
-                                    0.1325714285714,
-                                    3.016582857143,
-                                    3.016582857143};
+    static double const expected_step[] = {
+        166.66666666667,
+        166.66666666667,
+        166.66666666667,
+        166.66666666667,
+        inf,
+        2.8571428571429e-05,
+        0.00028571428571429,
+        0.13265594405594,
+        3.0166114341714,
+        3.0166114341714,
+    };
     EXPECT_VEC_SOFT_EQ(expected_step, step);
-}
-
-TEST_F(PhysicsTrackViewHostTest, calc_spline_xs)
-{
-    // Cross sections: same across particle types, constant in energy, scale
-    // according to material number density
-    std::vector<real_type> xs;
-    for (char const* particle : {"gamma", "celeriton"})
-    {
-        for (auto mat_id : range(MaterialId{this->material()->size()}))
-        {
-            PhysicsTrackView const phys
-                = this->make_track_view(particle, mat_id);
-            auto scat_ppid = this->find_ppid(phys, "scattering");
-            auto id = phys.macro_xs_grid(scat_ppid);
-            ASSERT_TRUE(id);
-            auto calc_xs = phys.make_calculator<SplineXsCalculator>(id, 2);
-            xs.push_back(to_inv_cm(calc_xs(MevEnergy{1.0})));
-        }
-    }
-
-    double const expected_xs[]
-        = {0.0001, 0.001, 0.1, 1e-24, 0.0001, 0.001, 0.1, 1e-24};
-    EXPECT_VEC_SOFT_EQ(expected_xs, xs);
 }
 
 //---------------------------------------------------------------------------//
@@ -717,7 +753,7 @@ TEST_F(PHYS_DEVICE_TEST, all)
         PhysTestInit thread_init;
         for (unsigned int matid : {0, 2})
         {
-            thread_init.mat = MaterialId{matid};
+            thread_init.mat = PhysMatId{matid};
             for (real_type energy : {1e-5, 1e-3, 1., 100., 1e5})
             {
                 thread_init.energy = MevEnergy{energy};
@@ -742,24 +778,49 @@ TEST_F(PHYS_DEVICE_TEST, all)
     inp.states = states.ref();
     inp.par_params = this->particles()->device_ref();
     inp.par_states = par_states.ref();
+    inp.mat_params = this->material()->device_ref();
     inp.inits = inits;
     inp.result = step.device_ref();
 
     phys_cuda_test(inp);
     std::vector<real_type> step_host(step.size());
     step.copy_to_host(make_span(step_host));
-    // clang-format off
-    const double expected_step_host[] = {
-        1666.666666667, 0.0001666666666667, 0.0001428571428571, 1666.666666667,
-        0.001666666666667, 0.001428571428571, 1666.666666667, 0.4885333333333,
-        0.4401142857143, 1666.666666667, 33.49328533333, 28.73137257143, inf,
-        33.49328533333, 28.73137257143, 1.666666666667, 1.666666666667e-07,
-        1.428571428571e-07, 1.666666666667, 1.666666666667e-06,
-        1.428571428571e-06, 1.666666666667, 0.001666666666667,
-        0.001428571428571, 1.666666666667, 0.1453333333333, 0.1325714285714,
-        inf, 0.1453333333333, 0.1325714285714};
-    // clang-format on
-    EXPECT_VEC_SOFT_EQ(expected_step_host, step_host);
+    static double const expected_step_host[] = {
+        1666.6666666667,
+        0.00033333333333333,
+        0.00028571428571429,
+        1666.6666666667,
+        0.0033333333333333,
+        0.0028571428571429,
+        1666.6666666667,
+        0.48887146187146,
+        0.44040559440559,
+        1666.6666666667,
+        33.493618667147,
+        28.731658286274,
+        inf,
+        33.493618667147,
+        28.731658286274,
+        1.6666666666667,
+        3.3333333333333e-07,
+        2.8571428571429e-07,
+        1.6666666666667,
+        3.3333333333333e-06,
+        2.8571428571429e-06,
+        1.6666666666667,
+        0.0016683333333333,
+        0.00143,
+        1.6666666666667,
+        0.14533414666187,
+        0.13257227428011,
+        inf,
+        0.14533414666187,
+        0.13257227428011,
+    };
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_VEC_SOFT_EQ(expected_step_host, step_host);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -838,11 +899,8 @@ auto EPlusAnnihilationTest::build_physics() -> SPConstPhysics
     physics_inp.options = this->build_physics_options();
     physics_inp.action_registry = this->action_reg().get();
 
-    EPlusAnnihilationProcess::Options epgg_options;
-    epgg_options.use_integral_xs = true;
-
     physics_inp.processes.push_back(std::make_shared<EPlusAnnihilationProcess>(
-        physics_inp.particles, this->build_imported(), epgg_options));
+        physics_inp.particles, this->build_imported()));
     return std::make_shared<PhysicsParams>(std::move(physics_inp));
 }
 
@@ -870,7 +928,7 @@ TEST_F(EPlusAnnihilationTest, host_track_view)
     par = ParticleTrackView::Initializer_t{pid, MevEnergy{1}};
 
     ParticleProcessId const ppid{0};
-    MaterialId const matid{0};
+    PhysMatId const matid{0};
 
     PhysicsTrackView phys(params_ref, state.ref(), par, matid, TrackSlotId{0});
     phys = PhysicsTrackInitializer{};
@@ -881,7 +939,7 @@ TEST_F(EPlusAnnihilationTest, host_track_view)
     EXPECT_EQ(ModelId{0}, phys.hardwired_model(ppid, MevEnergy{0}));
 
     // Check cross section
-    MaterialView material_view = this->material()->get(MaterialId{0});
+    MaterialView material_view = this->material()->get(PhysMatId{0});
     EXPECT_SOFT_EQ(
         5.1172452607412999e-05,
         to_inv_cm(phys.calc_xs(ppid, material_view, MevEnergy{0.1})));

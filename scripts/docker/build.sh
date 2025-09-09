@@ -25,7 +25,7 @@ if ! hash ${DOCKER} 2>/dev/null; then
   export TMPDIR=$(mktemp -d)
 fi
 
-case $CONFIG in 
+case $CONFIG in
   cuda )
     # When updating: change here, dev/{name}.yaml, dev/launch-local-test.sh
     CONFIG=rocky-cuda12
@@ -34,7 +34,7 @@ case $CONFIG in
     CONFIG=ubuntu-rocm6
     ;;
 esac
- 
+
 case $CONFIG in
   rocky-cuda12)
     # ***IMPORTANT***: update the following after modification

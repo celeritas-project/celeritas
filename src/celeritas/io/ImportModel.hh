@@ -9,6 +9,9 @@
 #include <string_view>
 #include <vector>
 
+#include "corecel/Types.hh"
+#include "corecel/cont/EnumArray.hh"
+
 #include "ImportPhysicsTable.hh"
 #include "ImportUnits.hh"
 
@@ -70,16 +73,15 @@ struct ImportModelMaterial
 {
     //!@{
     //! \name Type aliases
-    using MicroXs = std::vector<double>;
+    using VecGrid = std::vector<inp::UniformGrid>;
+    using EnergyBound = EnumArray<Bound, double>;
     //!@}
 
     static constexpr auto energy_units{ImportUnits::mev};
     static constexpr auto xs_units{ImportUnits::len_sq};
 
-    std::vector<double> energy;  //!< Energy grid for the material
-    std::vector<MicroXs> micro_xs;  //!< Cross sections for each element
-
-    explicit operator bool() const { return energy.size() >= 2; }
+    EnergyBound energy{};  //!< Energy bounds for the material
+    VecGrid micro_xs;  //!< Cross section for each element
 };
 
 //---------------------------------------------------------------------------//
@@ -96,10 +98,13 @@ struct ImportModel
 {
     ImportModelClass model_class{ImportModelClass::size_};
     std::vector<ImportModelMaterial> materials;
+    double low_energy_limit{0};
+    double high_energy_limit{0};
 
     explicit operator bool() const
     {
-        return model_class != ImportModelClass::size_ && !materials.empty();
+        return model_class != ImportModelClass::size_ && !materials.empty()
+               && low_energy_limit < high_energy_limit;
     }
 };
 

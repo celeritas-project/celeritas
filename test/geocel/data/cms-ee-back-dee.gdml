@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define/>
+
+  <materials>
+    <material Z="13" name="Aluminium" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="166"/>
+      <D unit="g/cm3" value="2.69999857937074"/>
+      <atom unit="g/mole" value="26.9815"/>
+    </material>
+    <isotope N="14" Z="7" name="N14">
+      <atom unit="g/mole" value="14.0031"/>
+    </isotope>
+    <isotope N="15" Z="7" name="N15">
+      <atom unit="g/mole" value="15.0001"/>
+    </isotope>
+    <element name="N">
+      <fraction n="0.99632" ref="N14"/>
+      <fraction n="0.00368" ref="N15"/>
+    </element>
+    <isotope N="16" Z="8" name="O16">
+      <atom unit="g/mole" value="15.9949"/>
+    </isotope>
+    <isotope N="17" Z="8" name="O17">
+      <atom unit="g/mole" value="16.9991"/>
+    </isotope>
+    <isotope N="18" Z="8" name="O18">
+      <atom unit="g/mole" value="17.9992"/>
+    </isotope>
+    <element name="O">
+      <fraction n="0.99757" ref="O16"/>
+      <fraction n="0.00038" ref="O17"/>
+      <fraction n="0.00205" ref="O18"/>
+    </element>
+    <isotope N="36" Z="18" name="Ar36">
+      <atom unit="g/mole" value="35.9675"/>
+    </isotope>
+    <isotope N="38" Z="18" name="Ar38">
+      <atom unit="g/mole" value="37.9627"/>
+    </isotope>
+    <isotope N="40" Z="18" name="Ar40">
+      <atom unit="g/mole" value="39.9624"/>
+    </isotope>
+    <element name="Ar">
+      <fraction n="0.003365" ref="Ar36"/>
+      <fraction n="0.000632" ref="Ar38"/>
+      <fraction n="0.996003" ref="Ar40"/>
+    </element>
+    <isotope N="1" Z="1" name="H1">
+      <atom unit="g/mole" value="1.00782503081372"/>
+    </isotope>
+    <isotope N="2" Z="1" name="H2">
+      <atom unit="g/mole" value="2.01410199966617"/>
+    </isotope>
+    <element name="H">
+      <fraction n="0.999885" ref="H1"/>
+      <fraction n="0.000115" ref="H2"/>
+    </element>
+    <material name="E_Air" state="gas">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="85.5379282211832"/>
+      <D unit="g/cm3" value="0.00120499936597842"/>
+      <fraction n="0.7494" ref="N"/>
+      <fraction n="0.2369" ref="O"/>
+      <fraction n="0.0129" ref="Ar"/>
+      <fraction n="0.0008" ref="H"/>
+    </material>
+  </materials>
+
+  <solids>
+    <tube aunit="deg" deltaphi="90" lunit="mm" name="EEBackPlate0x7f4a8f34a9c0" rmax="1715" rmin="353.8" startphi="0" z="60"/>
+    <polycone aunit="deg" deltaphi="90" lunit="mm" name="EESRing0x7f4a8f0c71e0" startphi="0">
+      <zplane rmax="1715" rmin="1655" z="3665"/>
+      <zplane rmax="1715" rmin="1655" z="3683"/>
+      <zplane rmax="1665" rmin="1655" z="3683"/>
+      <zplane rmax="1665" rmin="1655" z="3866.5"/>
+      <zplane rmax="1775" rmin="1655" z="3866.5"/>
+      <zplane rmax="1775" rmin="1655" z="3911.5"/>
+      <zplane rmax="1690" rmin="1655" z="3911.5"/>
+      <zplane rmax="1690" rmin="1655" z="3996"/>
+    </polycone>
+    <polycone aunit="deg" deltaphi="90" lunit="mm" name="EEBackQuad0x7f4a8f495f60" startphi="0">
+      <zplane rmax="1775" rmin="342.254216414619" z="3595"/>
+      <zplane rmax="1775" rmin="374.961309762814" z="3911.5"/>
+      <zplane rmax="1690" rmin="374.961309762814" z="3911.5"/>
+      <zplane rmax="1690" rmin="378.526537947688" z="3946"/>
+      <zplane rmax="1690" rmin="436.15" z="3946"/>
+      <zplane rmax="1690" rmin="436.15" z="3996"/>
+    </polycone>
+    <polycone aunit="deg" deltaphi="180" lunit="mm" name="EEBackDee0x7f4a8f0c7c80" startphi="-90">
+      <zplane rmax="1775" rmin="342.254216414619" z="3595"/>
+      <zplane rmax="1775" rmin="374.961309762814" z="3911.5"/>
+      <zplane rmax="1690" rmin="374.961309762814" z="3911.5"/>
+      <zplane rmax="1690" rmin="378.526537947688" z="3946"/>
+      <zplane rmax="1690" rmin="436.15" z="3946"/>
+      <zplane rmax="1690" rmin="436.15" z="3996"/>
+    </polycone>
+  </solids>
+
+  <structure>
+    <volume name="EEBackPlate0x7f4a8f07c980">
+      <materialref ref="Aluminium"/>
+      <solidref ref="EEBackPlate0x7f4a8f34a9c0"/>
+      <auxiliary auxtype="SensDet" auxvalue="ee_back_plate"/>
+    </volume>
+    <volume name="EESRing0x7f4a8f07cf00">
+      <materialref ref="Aluminium"/>
+      <solidref ref="EESRing0x7f4a8f0c71e0"/>
+      <auxiliary auxtype="SensDet" auxvalue="ee_s_ring"/>
+    </volume>
+    <volume name="EEBackQuad0x7f4a8f07c900">
+      <materialref ref="E_Air"/>
+      <solidref ref="EEBackQuad0x7f4a8f495f60"/>
+      <physvol copynumber="1" name="EEBackPlate0x7f4a8f1217c0">
+        <volumeref ref="EEBackPlate0x7f4a8f07c980"/>
+        <position name="EEBackPlate0x7f4a8f1217c0_pos" unit="mm" x="0" y="0" z="3625"/>
+      </physvol>
+      <physvol copynumber="1" name="EESRing0x7f4a8f124740">
+        <volumeref ref="EESRing0x7f4a8f07cf00"/>
+      </physvol>
+    </volume>
+    <volume name="EEBackDee0x7f4a8f005380">
+      <materialref ref="E_Air"/>
+      <solidref ref="EEBackDee0x7f4a8f0c7c80"/>
+      <physvol copynumber="1" name="EEBackQuad0x7f4a8f018d80">
+        <volumeref ref="EEBackQuad0x7f4a8f07c900"/>
+      </physvol>
+      <physvol copynumber="2" name="EEBackQuad0x7f4a8f027980">
+        <volumeref ref="EEBackQuad0x7f4a8f07c900"/>
+        <rotation name="EEBackQuad0x7f4a8f027980_rot" unit="deg" x="180" y="0" z="0"/>
+        <scale name="EEBackQuad0x7f4a8f027980_scl" x="1" y="1" z="-1"/>
+      </physvol>
+    </volume>
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="EEBackDee0x7f4a8f005380"/>
+  </setup>
+
+</gdml>

@@ -16,8 +16,8 @@
 
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
-#include "geocel/GeoVolumeFinder.cc"
-#include "celeritas/geo/GeoParams.hh"
+#include "geocel/VolumeIdBuilder.hh"
+#include "geocel/VolumeParams.hh"
 
 namespace celeritas
 {
@@ -46,27 +46,26 @@ void ExampleInstanceCalo::Result::print_expected() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with geometry.
+ * Construct with detector labels.
  */
-ExampleInstanceCalo::ExampleInstanceCalo(SPConstGeo geo, VecLabel vol_labels)
-    : geo_{std::move(geo)}, det_labels_{std::move(vol_labels)}
+ExampleInstanceCalo::ExampleInstanceCalo(VecLabel vol_labels)
+    : det_labels_{std::move(vol_labels)}
 {
+    CELER_VALIDATE(!celeritas::global_volumes().expired(),
+                   << "geometry volumes were not constructed before "
+                      "instantiating ExampleInstanceCalo");
+
     // Map labels to volume IDs
     volume_ids_.resize(det_labels_.size());
-    std::vector<std::reference_wrapper<Label const>> missing;
-    GeoVolumeFinder find_volume(*geo_);
+    VolumeIdBuilder label_to_vol_id;
     for (auto i : range(det_labels_.size()))
     {
-        volume_ids_[i] = find_volume(det_labels_[i]);
-        if (!volume_ids_[i])
-        {
-            missing.emplace_back(det_labels_[i]);
-        }
+        volume_ids_[i] = label_to_vol_id(det_labels_[i]);
     }
-    CELER_VALIDATE(missing.empty(),
-                   << "failed to find " << celeritas_core_geo
-                   << " volume(s) for labels '"
-                   << join(missing.begin(), missing.end(), "', '"));
+    CELER_VALIDATE(
+        std::all_of(volume_ids_.begin(), volume_ids_.end(), Identity{}),
+        << "failed to find one or more volumes while "
+           "constructing SimpleCalo");
 }
 
 //---------------------------------------------------------------------------//
@@ -135,12 +134,13 @@ void ExampleInstanceCalo::process_steps(DetectorStepOutput const& out)
     CELER_EXPECT(out.energy_deposition.size() == out.detector.size());
     auto const& vi_ids = out.points[StepPoint::pre].volume_instance_ids;
     auto const vi_depth = out.volume_instance_depth;
-    CELER_EXPECT(vi_depth == geo_->max_depth());
     CELER_EXPECT(vi_ids.size() == out.size() * vi_depth);
 
     CELER_LOG_LOCAL(debug) << "Processing " << out.size() << " hits";
 
-    auto const& vi_labels = geo_->volume_instances();
+    auto volumes = celeritas::global_volumes().lock();
+    CELER_ASSERT(volumes);
+    auto const& vi_labels = volumes->volume_instance_labels();
 
     for (auto hit : range(out.size()))
     {
@@ -154,16 +154,7 @@ void ExampleInstanceCalo::process_steps(DetectorStepOutput const& out)
             {
                 break;
             }
-            os << (id_index == 0 ? ':' : '/') << vi_labels.at(vi_id).name;
-#if CELERITAS_USE_GEANT4
-            if (G4VPhysicalVolume const* pv = geo_->id_to_pv(vi_id))
-            {
-                if (auto copy_num = pv->GetCopyNo())
-                {
-                    os << '@' << std::setw(2) << std::setfill('0') << copy_num;
-                }
-            }
-#endif
+            os << (id_index == 0 ? ':' : '/') << vi_labels.at(vi_id);
         }
         edep_[std::move(os).str()]
             += value_as<units::MevEnergy>(out.energy_deposition[hit]);

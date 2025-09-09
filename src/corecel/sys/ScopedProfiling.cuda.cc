@@ -7,65 +7,16 @@
 //---------------------------------------------------------------------------//
 #include "ScopedProfiling.hh"
 
-#include <mutex>
-#include <shared_mutex>
-#include <unordered_map>
 #include <nvtx3/nvToolsExt.h>
 
 #include "corecel/io/Logger.hh"
 
-#include "Environment.hh"
+#include "detail/NvtxUtils.hh"
 
 namespace celeritas
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-/*!
- * Library-wide handle to the domain name.
- */
-nvtxDomainHandle_t domain_handle()
-{
-    static nvtxDomainHandle_t const domain = nvtxDomainCreateA("celeritas");
-    return domain;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Retrieve the handle for a given message.
- *
- * Insert it if it doesn't already exist.
- */
-nvtxStringHandle_t message_handle_for(std::string_view message)
-{
-    static std::unordered_map<std::string, nvtxStringHandle_t> registry;
-    static std::shared_mutex mutex;
-
-    std::string temp_message{message};
-    {
-        std::shared_lock lock(mutex);
-
-        if (auto message_handle = registry.find(temp_message);
-            message_handle != registry.end())
-        {
-            return message_handle->second;
-        }
-    }
-
-    // We did not find the handle; try to insert it
-    auto [iter, inserted] = [&temp_message] {
-        std::unique_lock lock(mutex);
-        return registry.insert({std::move(temp_message), {}});
-    }();
-    if (inserted)
-    {
-        // Register the domain
-        iter->second
-            = nvtxDomainRegisterStringA(domain_handle(), iter->first.c_str());
-    }
-    return iter->second;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Create EventAttribute with a specific name.

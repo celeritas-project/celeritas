@@ -1,6 +1,9 @@
 .. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 .. SPDX-License-Identifier: CC-BY-4.0
 
+.. **NOTE**: this file is referenced by README.md:
+.. if changing the former, update the latter!!
+
 .. _code_guidelines:
 
 Code development guidelines
@@ -56,11 +59,13 @@ DOI.) The procedure to set up a citation correctly is:
 .. _Better BibTeX for Zotero: https://github.com/retorquere/zotero-better-bibtex
 .. _Celeritas group: https://www.zotero.org/groups/2380941/celeritas/library
 
+.. _coding_testing:
+
 Test thoroughly
 ---------------
 
 Functions should use programmatic assertions whenever assumptions are made.
-Celeritas provides three assertions
+Celeritas provides three internal assertion macros (see :ref:`debug_assertions`):
 
 - Use the :c:macro:`CELER_EXPECT` assertion macro to test preconditions about
   incoming data or initial internal states.
@@ -73,7 +78,7 @@ These assertions are enabled only when the ``CELERITAS_DEBUG`` CMake option is
 set.
 Additionally, user-provided data and potentially volatile runtime conditions
 (such as the presence of an environment variable) should be checked with
-the always-on assertion :c:macro`CELER_VALIDATE` macro.
+the always-on assertion :c:macro:`CELER_VALIDATE` macro.
 
 Each class must be thoroughly tested with an independent unit test in the
 `test` directory.  For complete coverage, each function of the class must have
@@ -145,9 +150,11 @@ specific order to put the class in a workable state. If a finalize function
 *is* used, implement assertions to detect and warn the developer if the
 required order is not respected.
 
-When a class has a single function (especially if you name that function
-``operator()``), its usage is obvious. The reader also doesn't have to know
-whether a class uses ``doIt`` or ``do_it`` or ``build``.
+Celeritas uses many function-like classes that are "set up" in the constructor
+and "used" in the call operator (which in C++ is written as ``operator()``).
+When a class has a single function, its usage is obvious, and the user does not
+have to remember whether its method name is ``doIt`` or ``do_it`` or ``build``
+or ``run``.
 
 When you have a class that needs a lot of data to start in a valid state, use a
 ``struct`` of intuitive objects to pass the data to the class's constructor.
@@ -170,4 +177,3 @@ in the context of a large project.
 .. _Google style guide: https://google.github.io/styleguide/cppguide.html
 .. _Software Engineering at Google: https://abseil.io/resources/swe-book
 .. _LLVM coding standards: https://llvm.org/docs/CodingStandards.html
-

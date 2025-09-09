@@ -119,39 +119,28 @@ TEST_F(AssertTest, runtime_error_variations)
         RuntimeError err{std::move(details)};
         messages.push_back(err.what());
     }
-    static std::string const expected_messages[] = {
-        "celeritas: \x1b[31;1munknown error: \x1b[0m\n\x1b[37;2munknown "
-        "source:\x1b[0m failure",
-        "celeritas: \x1b[31;1mruntime error: \x1b[0m\n\x1b[37;2munknown "
-        "source:\x1b[0m failure",
-        "celeritas: \x1b[31;1munknown error: \x1b[0mbad things "
-        "happened\n\x1b[37;2munknown source:\x1b[0m failure",
-        "celeritas: \x1b[31;1mruntime error: \x1b[0mbad things "
-        "happened\n\x1b[37;2munknown source:\x1b[0m failure",
-        "celeritas: \x1b[31;1munknown error: \x1b[0m\n\x1b[37;1munknown "
-        "source:\x1b[0m '2 + 2 == 5' failed",
-        "celeritas: \x1b[31;1mruntime error: \x1b[0m\n\x1b[37;1munknown "
-        "source:\x1b[0m '2 + 2 == 5' failed",
-        "celeritas: \x1b[31;1munknown error: \x1b[0mbad things "
-        "happened\n\x1b[37;1munknown source:\x1b[0m '2 + 2 == 5' failed",
-        "celeritas: \x1b[31;1mruntime error: \x1b[0mbad things "
-        "happened\n\x1b[37;1munknown source:\x1b[0m '2 + 2 == 5' failed",
-        "celeritas: \x1b[31;1munknown error: "
-        "\x1b[0m\n\x1b[37;2mAssert.test.cc:\x1b[0m failure",
-        "celeritas: \x1b[31;1mruntime error: "
-        "\x1b[0m\n\x1b[37;2mAssert.test.cc:123:\x1b[0m failure",
-        "celeritas: \x1b[31;1munknown error: \x1b[0mbad things "
-        "happened\n\x1b[37;2mAssert.test.cc:\x1b[0m failure",
-        "celeritas: \x1b[31;1mruntime error: \x1b[0mbad things "
-        "happened\n\x1b[37;2mAssert.test.cc:123:\x1b[0m failure",
-        "celeritas: \x1b[31;1munknown error: "
-        "\x1b[0m\n\x1b[37;1mAssert.test.cc:\x1b[0m '2 + 2 == 5' failed",
-        "celeritas: \x1b[31;1mruntime error: "
-        "\x1b[0m\n\x1b[37;1mAssert.test.cc:123:\x1b[0m '2 + 2 == 5' failed",
-        "celeritas: \x1b[31;1munknown error: \x1b[0mbad things "
-        "happened\n\x1b[37;1mAssert.test.cc:\x1b[0m '2 + 2 == 5' failed",
-        "celeritas: \x1b[31;1mruntime error: \x1b[0mbad things "
-        "happened\n\x1b[37;1mAssert.test.cc:123:\x1b[0m '2 + 2 == 5' failed"};
+
+    // clang-format off
+    static char const* const expected_messages[] = {
+        "\x1b[31;1munknown error: \x1b[0m\n\x1b[37;2munknown source:\x1b[0m failure",
+        "\x1b[31;1mruntime error: \x1b[0m\n\x1b[37;2munknown source:\x1b[0m failure",
+        "\x1b[31;1munknown error: \x1b[0mbad things happened\n\x1b[37;2munknown source:\x1b[0m failure",
+        "\x1b[31;1mruntime error: \x1b[0mbad things happened\n\x1b[37;2munknown source:\x1b[0m failure",
+        "\x1b[31;1munknown error: \x1b[0m\n\x1b[37;1munknown source:\x1b[0m '2 + 2 == 5' failed",
+        "\x1b[31;1mruntime error: \x1b[0m\n\x1b[37;1munknown source:\x1b[0m '2 + 2 == 5' failed",
+        "\x1b[31;1munknown error: \x1b[0mbad things happened\n\x1b[37;1munknown source:\x1b[0m '2 + 2 == 5' failed",
+        "\x1b[31;1mruntime error: \x1b[0mbad things happened\n\x1b[37;1munknown source:\x1b[0m '2 + 2 == 5' failed",
+        "\x1b[31;1munknown error: \x1b[0m\n\x1b[37;2mAssert.test.cc:\x1b[0m failure",
+        "\x1b[31;1mruntime error: \x1b[0m\n\x1b[37;2mAssert.test.cc:123:\x1b[0m failure",
+        "\x1b[31;1munknown error: \x1b[0mbad things happened\n\x1b[37;2mAssert.test.cc:\x1b[0m failure",
+        "\x1b[31;1mruntime error: \x1b[0mbad things happened\n\x1b[37;2mAssert.test.cc:123:\x1b[0m failure",
+        "\x1b[31;1munknown error: \x1b[0m\n\x1b[37;1mAssert.test.cc:\x1b[0m '2 + 2 == 5' failed",
+        "\x1b[31;1mruntime error: \x1b[0m\n\x1b[37;1mAssert.test.cc:123:\x1b[0m '2 + 2 == 5' failed",
+        "\x1b[31;1munknown error: \x1b[0mbad things happened\n\x1b[37;1mAssert.test.cc:\x1b[0m '2 + 2 == 5' failed",
+        "\x1b[31;1mruntime error: \x1b[0mbad things happened\n\x1b[37;1mAssert.test.cc:123:\x1b[0m '2 + 2 == 5' failed",
+    };
+    // clang-format on
+
     EXPECT_VEC_EQ(expected_messages, messages);
 }
 

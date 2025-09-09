@@ -157,7 +157,7 @@ class SenseValue
         return *this;
     }
 
-    //! Check wether there is a cached sense value
+    //! Check whether there is a cached sense value
     CELER_CONSTEXPR_FUNCTION bool is_assigned() const
     {
         return sense_[is_assigned_bit];

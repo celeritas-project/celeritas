@@ -7,13 +7,14 @@
 #pragma once
 
 #include <string>
+#include <variant>
 #include <vector>
 
 #include "geocel/Types.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/orangeinp/CsgTypes.hh"
 #include "orange/transform/VariantTransform.hh"
 
+#include "CsgTypes.hh"
 #include "ProtoInterface.hh"
 
 namespace celeritas
@@ -76,12 +77,13 @@ class UnitProto : public ProtoInterface
     //! \name Types
     using Unit = detail::CsgUnit;
     using Tol = Tolerance<>;
+    using VariantLabel = std::variant<Label, VolumeInstanceId>;
 
     //! Optional "background" inside of exterior, outside of all mat/daughter
     struct BackgroundInput
     {
-        GeoMaterialId fill{};
-        Label label;
+        GeoMatId fill{};
+        VariantLabel label;
 
         // True if fill or label is specified
         explicit inline operator bool() const;
@@ -91,8 +93,8 @@ class UnitProto : public ProtoInterface
     struct MaterialInput
     {
         SPConstObject interior;
-        GeoMaterialId fill;
-        Label label;
+        GeoMatId fill;
+        VariantLabel label;
 
         // True if fully defined
         explicit inline operator bool() const;
@@ -104,6 +106,7 @@ class UnitProto : public ProtoInterface
         SPConstProto fill;  //!< Daughter unit
         VariantTransform transform;  //!< Daughter-to-parent
         ZOrder zorder{ZOrder::media};  //!< Overlap control
+        VariantLabel label;  //!< Placement name
 
         // True if fully defined
         explicit inline operator bool() const;
@@ -129,7 +132,7 @@ class UnitProto : public ProtoInterface
         std::vector<MaterialInput> materials;
         std::vector<DaughterInput> daughters;
         BoundaryInput boundary;
-        std::string label;
+        Label label;
         UnitSimplification simplification{UnitSimplification::infix_logic};
 
         // True if fully defined
@@ -173,7 +176,7 @@ class UnitProto : public ProtoInterface
  */
 UnitProto::BackgroundInput::operator bool() const
 {
-    return this->fill || !this->label.empty();
+    return static_cast<bool>(this->fill);
 }
 
 //---------------------------------------------------------------------------//

@@ -6,12 +6,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <optional>
+
 #include "corecel/Assert.hh"
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ObserverPtr.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/random/params/RngParamsFwd.hh"
 #include "celeritas/geo/GeoFwd.hh"
-#include "celeritas/random/RngParamsFwd.hh"
+#include "celeritas/user/SDParams.hh"
 
 #include "CoreTrackData.hh"
 
@@ -19,14 +22,15 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ActionRegistry;
+class GeneratorRegistry;
+class SurfaceParams;
 
 namespace optical
 {
 //---------------------------------------------------------------------------//
 class MaterialParams;
-class TrackInitParams;
-// TODO: class PhysicsParams;
-
+class PhysicsParams;
+class SurfacePhysicsParams;
 //---------------------------------------------------------------------------//
 /*!
  * Shared parameters for the optical photon loop.
@@ -36,11 +40,15 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
   public:
     //!@{
     //! \name Type aliases
-    using SPConstGeo = std::shared_ptr<GeoParams const>;
+    using SPConstCoreGeo = std::shared_ptr<CoreGeoParams const>;
     using SPConstMaterial = std::shared_ptr<MaterialParams const>;
+    using SPConstPhysics = std::shared_ptr<PhysicsParams const>;
     using SPConstRng = std::shared_ptr<RngParams const>;
-    using SPConstTrackInit = std::shared_ptr<TrackInitParams const>;
+    using SPConstSurface = std::shared_ptr<SurfaceParams const>;
+    using SPConstSurfacePhysics = std::shared_ptr<SurfacePhysicsParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
+    using SPGeneratorRegistry = std::shared_ptr<GeneratorRegistry>;
+    using SPConstDetectors = std::shared_ptr<SDParams const>;
 
     template<MemSpace M>
     using ConstRef = CoreParamsData<Ownership::const_reference, M>;
@@ -50,13 +58,16 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
     struct Input
     {
-        SPConstGeo geometry;
+        SPConstCoreGeo geometry;
         SPConstMaterial material;
-        // TODO: physics
+        SPConstPhysics physics;
         SPConstRng rng;
-        SPConstTrackInit init;
+        SPConstSurface surface;
+        SPConstSurfacePhysics surface_physics;
+        SPConstDetectors detectors;
 
         SPActionRegistry action_reg;
+        SPGeneratorRegistry gen_reg;
 
         //! Maximum number of simultaneous threads/tasks per process
         StreamId::size_type max_streams{1};
@@ -64,8 +75,8 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         //! True if all params are assigned and valid
         explicit operator bool() const
         {
-            return geometry && material && rng && init && action_reg
-                   && max_streams;
+            return geometry && material && rng && surface && surface_physics
+                   && action_reg && gen_reg && max_streams;
         }
     };
 
@@ -84,11 +95,18 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
     //!@{
     //! Access shared problem parameter data.
-    SPConstGeo const& geometry() const { return input_.geometry; }
+    SPConstCoreGeo const& geometry() const { return input_.geometry; }
     SPConstMaterial const& material() const { return input_.material; }
+    SPConstPhysics const& physics() const { return input_.physics; }
     SPConstRng const& rng() const { return input_.rng; }
-    SPConstTrackInit const& init() const { return input_.init; }
+    SPConstSurface const& surface() const { return input_.surface; }
+    SPConstSurfacePhysics const& surface_physics() const
+    {
+        return input_.surface_physics;
+    }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
+    SPGeneratorRegistry const& gen_reg() const { return input_.gen_reg; }
+    SPConstDetectors const& detectors() const { return detectors_; }
     //!@}
 
     // Access host pointers to core data
@@ -108,6 +126,8 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
     // Copy of DeviceRef in device memory
     DeviceVector<DeviceRef> device_ref_vec_;
+
+    SPConstDetectors detectors_;
 };
 
 //---------------------------------------------------------------------------//
@@ -124,16 +144,14 @@ auto CoreParams::ptr() const -> ConstPtr<M>
     {
         return make_observer(&host_ref_);
     }
-#ifndef __NVCC__
-    // CUDA 11.4 complains about 'else if constexpr' ("missing return
-    // statement") and GCC 11.2 complains about leaving off the 'else'
-    // ("inconsistent deduction for auto return type")
     else
-#endif
     {
         CELER_ENSURE(!device_ref_vec_.empty());
         return make_observer(device_ref_vec_);
     }
+#if CELER_CUDACC_BUGGY_IF_CONSTEXPR
+    CELER_ASSERT_UNREACHABLE();
+#endif
 }
 
 //---------------------------------------------------------------------------//

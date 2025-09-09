@@ -17,12 +17,13 @@
 
 #include "OrangeTypes.hh"
 #include "SenseUtils.hh"
-#include "univ/detail/Types.hh"
 
 #include "detail/BIHData.hh"
 
 namespace celeritas
 {
+class OrangeParams;
+class VolumeParams;
 //---------------------------------------------------------------------------//
 // PARAMS
 //---------------------------------------------------------------------------//
@@ -39,9 +40,9 @@ inline constexpr UniverseId orange_global_universe{0};
  */
 struct OrangeParamsScalars
 {
-    // Maximum universe depth, i.e., depth of the universe tree DAG, equivalent
-    // to the VecGeom implementation. Has a value of 1 for a non-nested
-    // geometry.
+    // Maximum universe depth, i.e., depth of the universe tree DAG: its value
+    // is 1 for a non-nested geometry. It may not correspond to the depth of a
+    // Geant4 geometry since we may "inline" certain logical volumes.
     size_type max_depth{};
     size_type max_faces{};
     size_type max_intersections{};
@@ -49,6 +50,10 @@ struct OrangeParamsScalars
 
     // Soft comparison and dynamic "bumping" values
     Tolerance<> tol;
+
+    // Raw pointers to externally owned memory for debug output
+    OrangeParams const* host_geo_params{nullptr};
+    VolumeParams const* host_volume_params{nullptr};
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
@@ -83,7 +88,7 @@ struct VolumeRecord
         internal_surfaces = 0x1,  //!< "Complex" distance-to-boundary
         implicit_vol = 0x2,  //!< Background/exterior volume
         simple_safety = 0x4,  //!< Fast safety calculation
-        embedded_universe = 0x8  //!< Volume contains embeddded universe
+        embedded_universe = 0x8  //!< Volume contains embedded universe
     };
 };
 
@@ -102,16 +107,15 @@ struct VolumeRecord
  * beginning of the data used by the surface. Since the surface type tells us
  * the number of real values needed for that surface, we implicitly get a Span
  * of real values with a single indirection.
- *
- * \todo Change "types" and "data offsets" to be `ItemMap` taking local
- * surface
  */
 struct SurfacesRecord
 {
-    using RealId = OpaqueId<real_type>;
+    using SurfaceTypeId = ItemId<SurfaceType>;
+    using RealId = ItemId<real_type>;  // Pointer to a real
+    using RealIdId = ItemId<RealId>;  // Pointer to pointer to real
 
-    ItemRange<SurfaceType> types;
-    ItemRange<RealId> data_offsets;
+    ItemMap<LocalSurfaceId, SurfaceTypeId> types;
+    ItemMap<LocalSurfaceId, RealIdId> data_offsets;
 
     //! Number of surfaces stored
     CELER_FUNCTION size_type size() const { return types.size(); }
@@ -213,15 +217,16 @@ struct TransformRecord
 struct SimpleUnitRecord
 {
     using VolumeRecordId = OpaqueId<VolumeRecord>;
+    using ConnectivityRecordId = OpaqueId<ConnectivityRecord>;
 
     // Surface data
     SurfacesRecord surfaces;
-    ItemRange<ConnectivityRecord> connectivity;  // Index by LocalSurfaceId
+    ItemMap<LocalSurfaceId, ConnectivityRecordId> connectivity;
 
     // Volume data [index by LocalVolumeId]
     ItemMap<LocalVolumeId, VolumeRecordId> volumes;
 
-    // Bounding Interval Hierachy tree parameters
+    // Bounding Interval Hierarchy tree parameters
     detail::BIHTree bih_tree;
 
     LocalVolumeId background{};  //!< Default if not in any other volume
@@ -268,6 +273,10 @@ struct RectArrayRecord
  *
  * Each collection should be of length num_universes + 1. The first entry is
  * zero and the last item should be the total number of surfaces or volumes.
+ *
+ * \todo These should be indexed into by UniverseId, not the default
+ * OpaqueId<size_type>.
+ * \todo move to detail/UniverseIndexerData
  */
 template<Ownership W, MemSpace M>
 struct UniverseIndexerData
@@ -297,7 +306,7 @@ struct UniverseIndexerData
 /*!
  * Persistent data used by all BIH trees.
  *
- * \todo move to orange/BihTreeData
+ * \todo move to detail/BihTreeData
  */
 template<Ownership W, MemSpace M>
 struct BIHTreeData
@@ -351,8 +360,11 @@ struct OrangeParamsData
     template<class T>
     using Items = Collection<T, W, M>;
     template<class T>
+    using ImplVolumeItems = Collection<T, W, M, ImplVolumeId>;
+    template<class T>
     using UnivItems = Collection<T, W, M, UniverseId>;
-    using RealId = OpaqueId<real_type>;
+
+    using RealId = SurfacesRecord::RealId;
 
     //// DATA ////
 
@@ -365,6 +377,12 @@ struct OrangeParamsData
     Items<SimpleUnitRecord> simple_units;
     Items<RectArrayRecord> rect_arrays;
     Items<TransformRecord> transforms;
+
+    // Optional map of ORANGE internal volume ID -> Celeritas volume ID
+    ImplVolumeItems<VolumeId> volume_ids;
+    ImplVolumeItems<VolumeInstanceId> volume_instance_ids;
+    // TODO: for reconstructing hierarchy:
+    // ImplVolumeItems<ImplVolumeId> parent_impl_volumes;
 
     // BIH tree storage
     BIHTreeData<W, M> bih_tree_data;
@@ -391,6 +409,8 @@ struct OrangeParamsData
     {
         return scalars && !universe_types.empty()
                && universe_indices.size() == universe_types.size()
+               && !volume_ids.empty()
+               && volume_ids.size() == volume_instance_ids.size()
                && (bih_tree_data || !simple_units.empty())
                && ((!local_volume_ids.empty() && !logic_ints.empty()
                     && !reals.empty())
@@ -409,6 +429,9 @@ struct OrangeParamsData
         simple_units = other.simple_units;
         rect_arrays = other.rect_arrays;
         transforms = other.transforms;
+
+        volume_ids = other.volume_ids;
+        volume_instance_ids = other.volume_instance_ids;
 
         bih_tree_data = other.bih_tree_data;
 

@@ -31,7 +31,8 @@ class GammaConversionProcess : public Process
     // Options for pair production
     struct Options
     {
-        bool enable_lpm{true};  //!< Account for LPM effect at high energies
+        //! Account for LPM effect at high energies
+        bool enable_lpm{true};
     };
 
   public:
@@ -44,10 +45,13 @@ class GammaConversionProcess : public Process
     VecModel build_models(ActionIdIter start_id) const final;
 
     // Get the interaction cross sections for the given energy range
-    StepLimitBuilders step_limits(Applicability applic) const final;
+    XsGrid macro_xs(Applicability range) const final;
 
-    //! Whether to use the integral method to sample interaction length
-    bool use_integral_xs() const final { return false; }
+    // Get the energy loss for the given energy range
+    EnergyLossGrid energy_loss(Applicability range) const final;
+
+    //! Whether the integral method can be used to sample interaction length
+    bool supports_integral_xs() const final { return false; }
 
     //! Whether the process applies when the particle is stopped
     bool applies_at_rest() const final { return imported_.applies_at_rest(); }

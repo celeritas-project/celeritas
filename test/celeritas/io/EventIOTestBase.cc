@@ -12,6 +12,7 @@
 #include "corecel/io/Repr.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 
 #include "TestMacros.hh"
 
@@ -129,13 +130,15 @@ void EventIOTestBase::write_test_event(Writer& write_event) const
                       from_cm(Real3{2, 4, 5}),
                       Real3{1, 0, 0},
                       5.67e-9 * units::second,
-                      EventId{0}};
+                      EventId{0},
+                      PrimaryId{}};
         Primary proton{proton_id,
                        MevEnergy{2.34},
                        from_cm(Real3{3, 5, 8}),
                        Real3{0, 1, 0},
                        5.78e-9 * units::second,
-                       EventId{0}};
+                       EventId{0},
+                       PrimaryId{}};
         std::vector<Primary> primaries{gamma, proton, gamma, proton};
         primaries[1].position = from_cm(Real3{-3, -4, 5});
         primaries[3].position = primaries[2].position;
@@ -160,7 +163,7 @@ void EventIOTestBase::write_test_event(Writer& write_event) const
         ScopedLogStorer scoped_log_{&celeritas::self_logger()};
         write_event(primaries);
         static char const* const expected_log_messages[]
-            = {"Overwriting primary event IDs with 2: 1"};
+            = {"Event IDs will not match output: this is a known issue"};
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
         static char const* const expected_log_levels[] = {"warning"};
         EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
@@ -189,8 +192,10 @@ void EventIOTestBase::read_check_test_event(Reader& read_event) const
     static int const expected_event[] = {0, 0, 0, 0, 1, 1, 1, 1, 1, 2};
     // clang-format on
 
+    real_type energy_tol = real_type{0.1} * coarse_eps;
+
     EXPECT_VEC_EQ(expected_pdg, result.pdg);
-    EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
+    EXPECT_VEC_NEAR(expected_energy, result.energy, energy_tol);
     EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
     EXPECT_VEC_SOFT_EQ(expected_dir, result.dir);
     EXPECT_VEC_NEAR(expected_time, result.time, real_type(1e-6));

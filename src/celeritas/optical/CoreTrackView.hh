@@ -6,14 +6,17 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/random/engine/RngEngine.hh"
+#include "geocel/VolumeSurfaceView.hh"
 #include "celeritas/geo/GeoTrackView.hh"
-#include "celeritas/random/RngEngine.hh"
 
 #include "CoreTrackData.hh"
 #include "MaterialView.hh"
 #include "ParticleTrackView.hh"
+#include "PhysicsTrackView.hh"
 #include "SimTrackView.hh"
 #include "TrackInitializer.hh"
+#include "surface/SurfacePhysicsView.hh"
 
 #if !CELER_DEVICE_COMPILE
 #    include "corecel/io/Logger.hh"
@@ -49,10 +52,10 @@ class CoreTrackView
     inline CELER_FUNCTION GeoTrackView geometry() const;
 
     // Return a material view
-    inline CELER_FUNCTION MaterialView material() const;
+    inline CELER_FUNCTION MaterialView material_record() const;
 
-    // Return a material view (using an existing geo view
-    inline CELER_FUNCTION MaterialView material(GeoTrackView const&) const;
+    // Return a material view (using an existing geo view)
+    inline CELER_FUNCTION MaterialView material_record(GeoTrackView const&) const;
 
     // Return a simulation management view
     inline CELER_FUNCTION SimTrackView sim() const;
@@ -60,14 +63,23 @@ class CoreTrackView
     // Return a particle view
     inline CELER_FUNCTION ParticleTrackView particle() const;
 
+    // Return a physics view
+    inline CELER_FUNCTION PhysicsTrackView physics() const;
+
+    // Return a volume surface view
+    inline CELER_FUNCTION VolumeSurfaceView surface() const;
+
+    // Return a volume surface view from volume ID
+    inline CELER_FUNCTION VolumeSurfaceView surface(VolumeId) const;
+
+    // Return a surface physics view
+    inline CELER_FUNCTION SurfacePhysicsView surface_physics() const;
+
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
 
     // Get the track's index among the states
     inline CELER_FUNCTION TrackSlotId track_slot_id() const;
-
-    // Action ID for encountering a geometry boundary
-    inline CELER_FUNCTION ActionId boundary_action() const;
 
     // Flag a track for deletion
     inline CELER_FUNCTION void apply_errored();
@@ -107,7 +119,7 @@ CoreTrackView::operator=(TrackInitializer const& init)
 
     // Initialize the geometry state
     auto geo = this->geometry();
-    geo = GeoTrackInitializer{init.position, init.direction};
+    geo = GeoTrackInitializer{init.position, init.direction, {}};
     if (CELER_UNLIKELY(geo.failed() || geo.is_outside()))
     {
 #if !CELER_DEVICE_COMPILE
@@ -126,7 +138,8 @@ CoreTrackView::operator=(TrackInitializer const& init)
     this->particle()
         = ParticleTrackView::Initializer{init.energy, init.polarization};
 
-    //! \todo Add physics view and clear physics state
+    // Initialize the physics state
+    this->physics() = PhysicsTrackView::Initializer{};
 
     return *this;
 }
@@ -145,9 +158,10 @@ CELER_FUNCTION auto CoreTrackView::geometry() const -> GeoTrackView
 /*!
  * Return a material view.
  */
-CELER_FORCEINLINE_FUNCTION auto CoreTrackView::material() const -> MaterialView
+CELER_FORCEINLINE_FUNCTION auto CoreTrackView::material_record() const
+    -> MaterialView
 {
-    return this->material(this->geometry());
+    return this->material_record(this->geometry());
 }
 
 //---------------------------------------------------------------------------//
@@ -155,10 +169,10 @@ CELER_FORCEINLINE_FUNCTION auto CoreTrackView::material() const -> MaterialView
  * Return a material view using an existing geo track view.
  */
 CELER_FUNCTION auto
-CoreTrackView::material(GeoTrackView const& geo) const -> MaterialView
+CoreTrackView::material_record(GeoTrackView const& geo) const -> MaterialView
 {
     CELER_EXPECT(!geo.is_outside());
-    return MaterialView{params_.material, geo.volume_id()};
+    return MaterialView{params_.material, geo.impl_volume_id()};
 }
 
 //---------------------------------------------------------------------------//
@@ -168,6 +182,49 @@ CoreTrackView::material(GeoTrackView const& geo) const -> MaterialView
 CELER_FUNCTION auto CoreTrackView::particle() const -> ParticleTrackView
 {
     return ParticleTrackView{states_.particle, this->track_slot_id()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a physics view.
+ */
+CELER_FUNCTION auto CoreTrackView::physics() const -> PhysicsTrackView
+{
+    OptMatId mat_id = this->material_record().material_id();
+    CELER_ASSERT(mat_id);
+    return PhysicsTrackView{
+        params_.physics, states_.physics, mat_id, this->track_slot_id()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a volume surface view into the track's current volume.
+ */
+CELER_FUNCTION auto CoreTrackView::surface() const -> VolumeSurfaceView
+{
+    return this->surface(this->geometry().volume_id());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a volume surface view from volume ID.
+ */
+CELER_FUNCTION auto CoreTrackView::surface(VolumeId vol) const
+    -> VolumeSurfaceView
+{
+    CELER_EXPECT(vol);
+    return VolumeSurfaceView{params_.surface, vol};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a surface physics view.
+ */
+CELER_FUNCTION auto CoreTrackView::surface_physics() const -> SurfacePhysicsView
+{
+    return SurfacePhysicsView{params_.surface_physics,
+                              states_.surface_physics,
+                              this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//
@@ -195,15 +252,6 @@ CELER_FUNCTION SimTrackView CoreTrackView::sim() const
 CELER_FORCEINLINE_FUNCTION TrackSlotId CoreTrackView::track_slot_id() const
 {
     return track_slot_id_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the action ID for encountering a geometry boundary.
- */
-CELER_FUNCTION ActionId CoreTrackView::boundary_action() const
-{
-    return params_.scalars.boundary_action;
 }
 
 //---------------------------------------------------------------------------//

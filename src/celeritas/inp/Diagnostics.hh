@@ -14,6 +14,9 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+class CoreParams;
+
 namespace inp
 {
 //---------------------------------------------------------------------------//
@@ -142,6 +145,9 @@ struct Diagnostics
 
     //! Log the execution progress every N events
     size_type log_frequency{1};
+
+    //! Add additional diagnostic user actions
+    std::function<void(CoreParams const&)> add_user_actions;
 };
 
 //---------------------------------------------------------------------------//

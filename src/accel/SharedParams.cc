@@ -15,36 +15,51 @@
 #include <CLHEP/Random/Random.h>
 #include <G4Electron.hh>
 #include <G4Gamma.hh>
+#include <G4MuonMinus.hh>
+#include <G4MuonPlus.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
 #include <G4Positron.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
+#include <G4VisExtent.hh>
 
 #include "corecel/Config.hh"
 #include "corecel/Version.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/ArrayIO.hh"
+#include "corecel/io/BuildOutput.hh"
+#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
+#include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
+#include "corecel/sys/EnvironmentIO.json.hh"
 #include "corecel/sys/KernelRegistry.hh"
+#include "corecel/sys/MemRegistry.hh"
+#include "corecel/sys/MemRegistryIO.json.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "geocel/GeantGdmlLoader.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantUtils.hh"
-#include "geocel/g4/GeantGeoParams.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
-#include "celeritas/ext/GeantImporter.hh"
+#include "celeritas/ext/GeantSd.hh"
+#include "celeritas/ext/GeantSdOutput.hh"
 #include "celeritas/ext/RootExporter.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
-#include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/inp/FrameworkInput.hh"
+#include "celeritas/inp/Scoring.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/RootEventWriter.hh"
@@ -54,7 +69,7 @@
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/Process.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
-#include "celeritas/random/RngParams.hh"
+#include "celeritas/setup/FrameworkInput.hh"
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/user/SlotDiagnostic.hh"
@@ -62,9 +77,9 @@
 
 #include "AlongStepFactory.hh"
 #include "SetupOptions.hh"
+#include "TimeOutput.hh"
 
-#include "detail/HitManager.hh"
-#include "detail/HitManagerOutput.hh"
+#include "detail/IntegrationSingleton.hh"
 #include "detail/OffloadWriter.hh"
 
 namespace celeritas
@@ -72,84 +87,54 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-std::vector<std::shared_ptr<Process const>>
-build_processes(ImportData const& imported,
-                SetupOptions const& options,
-                std::shared_ptr<ParticleParams const> const& particle,
-                std::shared_ptr<MaterialParams const> const& material)
+void verify_offload(std::vector<G4ParticleDefinition*> const& offload,
+                    ParticleParams const& particles,
+                    PhysicsParams const& phys)
 {
-    // Build a list of processes to ignore
-    ProcessBuilder::UserBuildMap ignore;
-    for (std::string const& process_name : options.ignore_processes)
-    {
-        ImportProcessClass ipc;
-        try
-        {
-            ipc = geant_name_to_import_process_class(process_name);
-        }
-        catch (RuntimeError const&)
-        {
-            CELER_LOG(warning) << "User-ignored process '" << process_name
-                               << "' is unknown to Celeritas";
-            continue;
-        }
-        ignore.emplace(ipc, WarnAndIgnoreProcess{ipc});
-    }
-    ProcessBuilder::Options opts;
-    ProcessBuilder build_process(imported, particle, material, ignore, opts);
+    std::vector<bool> found_particle(particles.size(), false);
+    std::vector<G4ParticleDefinition const*> missing;
 
-    // Build proceses
-    std::vector<std::shared_ptr<Process const>> result;
-    for (auto p : ProcessBuilder::get_all_process_classes(imported.processes))
+    for (auto const* pd : offload)
     {
-        result.push_back(build_process(p));
-        if (!result.back())
+        ParticleId pid;
+        if (pd)
         {
-            // Deliberately ignored process
-            CELER_LOG(debug) << "Ignored process class " << to_cstring(p);
-            result.pop_back();
+            PDGNumber pdg{pd->GetPDGEncoding()};
+            CELER_VALIDATE(
+                pdg, << "unsupported particle type: " << PrintablePD{pd});
+            pid = particles.find(pdg);
+        }
+        if (pid)
+        {
+            found_particle[pid.get()] = true;
+            if (phys.processes(pid).empty())
+            {
+                CELER_LOG(warning) << "User-selected offload particle '"
+                                   << particles.id_to_label(pid)
+                                   << "' has no physics processes defined";
+            }
+        }
+        else
+        {
+            missing.push_back(pd);
         }
     }
 
-    CELER_VALIDATE(!result.empty(),
-                   << "no supported physics processes were found");
-    return result;
-}
+    auto printable_pd
+        = [](G4ParticleDefinition const* p) { return PrintablePD{p}; };
+    CELER_VALIDATE(missing.empty(),
+                   << "not all particles from TrackingManagerConstructor are "
+                      "active in Celeritas: missing "
+                   << join(missing.begin(), missing.end(), ", ", printable_pd));
 
-//---------------------------------------------------------------------------//
-std::vector<G4ParticleDefinition const*>
-build_g4_particles(std::shared_ptr<ParticleParams const> const& particles,
-                   std::shared_ptr<PhysicsParams const> const& phys)
-{
-    CELER_EXPECT(particles);
-    CELER_EXPECT(phys);
-
-    G4ParticleTable* g4particles = G4ParticleTable::GetParticleTable();
-    CELER_ASSERT(g4particles);
-
-    std::vector<G4ParticleDefinition const*> result;
-
-    for (auto par_id : range(ParticleId{particles->size()}))
+    if (found_particle != std::vector<bool>(particles.size(), true))
     {
-        if (phys->processes(par_id).empty())
-        {
-            CELER_LOG(warning)
-                << "Not offloading particle '"
-                << particles->id_to_label(par_id)
-                << "' because it has no physics processes defined";
-            continue;
-        }
-
-        PDGNumber pdg = particles->id_to_pdg(par_id);
-        G4ParticleDefinition* g4pd = g4particles->FindParticle(pdg.get());
-        CELER_VALIDATE(g4pd,
-                       << "could not find PDG '" << pdg.get()
-                       << "' in G4ParticleTable");
-        result.push_back(g4pd);
+        //! \todo Overhaul DataSelection Flags and GeantImporter
+        CELER_LOG(warning)
+            << "Mismatch between ParticlesParams (size " << particles.size()
+            << ") and user-defined offload list (size " << offload.size()
+            << "). Geant4 data import is not properly defined.";
     }
-
-    CELER_ENSURE(!result.empty());
-    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -165,35 +150,104 @@ std::mutex& updating_mutex()
 //---------------------------------------------------------------------------//
 }  // namespace
 
-bool SharedParams::CeleritasDisabled()
+//---------------------------------------------------------------------------//
+/*!
+ * Whether celeritas is disabled, set to kill, or to be enabled.
+ *
+ * This gets the value from environment variables and
+ *
+ * \todo This will be refactored for 0.7 to take a \c celeritas::inp object and
+ * determine values rather than from the environment .
+ */
+auto SharedParams::GetMode() -> Mode
 {
-    static bool const result = [] {
-        if (celeritas::getenv("CELER_DISABLE").empty())
+    using Mode = SharedParams::Mode;
+
+    static bool const kill_offload = [] {
+        auto result = getenv_flag("CELER_KILL_OFFLOAD", false);
+
+        if (result.value)
+        {
+            CELER_LOG(info) << "Killing Geant4 tracks supported by Celeritas "
+                               "offloading";
+        }
+        return result.value;
+    }();
+    static bool const disabled = [] {
+        auto result = getenv_flag("CELER_DISABLE", false);
+        if (!result.value)
             return false;
+
+        if (kill_offload)
+        {
+            CELER_LOG(warning)
+                << "DEPRECATED (remove in 0.7): both CELER_DISABLE "
+                   "and CELER_KILL_OFFLOAD environment variables "
+                   "were defined: choose one";
+            return false;
+        }
 
         CELER_LOG(info)
             << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
-               "environment variable is present and non-empty";
+            << "environment variable is present and non-empty";
         return true;
     }();
-    return result;
+
+    if (disabled)
+    {
+        return Mode::disabled;
+    }
+    else if (kill_offload)
+    {
+        return Mode::kill_offload;
+    }
+    return Mode::enabled;
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Get a list of all supported particles.
+ */
+auto SharedParams::supported_offload_particles() -> VecG4PD const&
+{
+    static VecG4PD const supported_particles = {
+        G4Electron::Definition(),
+        G4Positron::Definition(),
+        G4Gamma::Definition(),
+        G4MuonMinus::Definition(),
+        G4MuonPlus::Definition(),
+    };
+
+    return supported_particles;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the list of default particles offloaded in Geant4 applications.
+ *
+ * If no user-defined list is provided, this defaults to simulating EM showers.
+ */
+auto SharedParams::default_offload_particles() -> VecG4PD const&
+{
+    static VecG4PD const default_particles = {
+        G4Electron::Definition(),
+        G4Positron::Definition(),
+        G4Gamma::Definition(),
+    };
+
+    return default_particles;
+}
+
+//---------------------------------------------------------------------------//
+bool SharedParams::CeleritasDisabled()
+{
+    return GetMode() == Mode::disabled;
+}
+
+//---------------------------------------------------------------------------//
 bool SharedParams::KillOffloadTracks()
 {
-    static bool const result = [] {
-        if (celeritas::getenv("CELER_KILL_OFFLOAD").empty())
-            return false;
-
-        if (CeleritasDisabled())
-        {
-            CELER_LOG(info) << "Killing Geant4 tracks supported by Celeritas "
-                               "offloading since the 'CELER_KILL_OFFLOAD' "
-                               "environment variable is present and non-empty";
-        }
-        return true;
-    }();
-    return result;
+    return GetMode() == Mode::kill_offload;
 }
 
 //---------------------------------------------------------------------------//
@@ -210,40 +264,85 @@ SharedParams::SharedParams(SetupOptions const& options)
 {
     CELER_EXPECT(!*this);
 
-    CELER_VALIDATE(!CeleritasDisabled(),
-                   << "Celeritas shared params cannot be initialized when "
-                      "Celeritas offloading is disabled via "
-                      "\"CELER_DISABLE\"");
-
-    CELER_LOG_LOCAL(info) << "Activating Celeritas version "
-                          << celeritas_version << " on "
-                          << (Device::num_devices() > 0 ? "GPU" : "CPU");
-
     ScopedProfiling profile_this{"construct-params"};
     ScopedMem record_mem("SharedParams.construct");
     ScopedTimeLog scoped_time;
 
-    // Initialize CUDA (CUDA environment variables control the preferred
-    // device)
-    celeritas::activate_device();
+    mode_ = GetMode();
 
-    if (celeritas::device() && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
+    if (mode_ == Mode::enabled || mode_ == Mode::kill_offload)
     {
-        // Heap size must be set before creating VecGeom device instance; and
-        // let's just set the stack size as well
-        if (options.cuda_stack_size > 0)
-        {
-            celeritas::set_cuda_stack_size(options.cuda_stack_size);
-        }
-        if (options.cuda_heap_size > 0)
-        {
-            celeritas::set_cuda_heap_size(options.cuda_heap_size);
-        }
+        // Set up offloaded particles based on user input
+        auto const& user_offload = options.offload_particles;
+        offload_particles_ = user_offload.empty() ? default_offload_particles()
+                                                  : user_offload;
     }
 
-    // Construct core data
-    this->initialize_core(options);
-    CELER_ASSERT(output_reg_);
+    if (mode_ != Mode::enabled)
+    {
+        // Stop initializing but create output registry for diagnostics
+        output_reg_ = std::make_shared<OutputRegistry>();
+        output_filename_ = options.output_file;
+
+        // Create the timing output
+        timer_
+            = std::make_shared<TimeOutput>(celeritas::get_geant_num_threads());
+
+        if (!output_filename_.empty())
+        {
+            CELER_LOG(debug)
+                << R"(Constructing output registry for no-offload run)";
+
+            // Celeritas core params didn't add system metadata: do it
+            // ourselves to save system diagnostic information
+            output_reg_->insert(
+                OutputInterfaceAdapter<MemRegistry>::from_const_ref(
+                    OutputInterface::Category::system,
+                    "memory",
+                    celeritas::mem_registry()));
+            output_reg_->insert(
+                OutputInterfaceAdapter<Environment>::from_const_ref(
+                    OutputInterface::Category::system,
+                    "environ",
+                    celeritas::environment()));
+            output_reg_->insert(std::make_shared<BuildOutput>());
+            output_reg_->insert(timer_);
+        }
+
+        return;
+    }
+
+    // Construct input and then build the problem setup
+    auto framework_inp = to_inp(options);
+    auto loaded = setup::framework_input(framework_inp);
+    params_ = std::move(loaded.problem.core_params);
+    optical_ = std::move(loaded.problem.optical_collector);
+    output_filename_ = loaded.problem.output_file;
+    CELER_ASSERT(params_);
+
+    // Load geant4 geometry adapter and save as "global"
+    CELER_ASSERT(loaded.geo);
+    geant_geo_ = std::move(loaded.geo);
+    celeritas::global_geant_geo(geant_geo_);
+
+    // Save built attributes
+    output_reg_ = params_->output_reg();
+    geant_sd_ = std::move(loaded.problem.geant_sd);
+    step_collector_ = std::move(loaded.problem.step_collector);
+
+    // Translate supported particles
+    verify_offload(
+        offload_particles_, *params_->particle(), *params_->physics());
+
+    // Create bounding box from navigator geometry
+    bbox_ = geant_geo_->get_clhep_bbox();
+
+    // Create streams
+    this->set_num_streams(params_->max_streams());
+
+    // Add timing output
+    timer_ = std::make_shared<TimeOutput>(params_->max_streams());
+    output_reg_->insert(timer_);
 
     if (output_filename_ != "-")
     {
@@ -257,45 +356,25 @@ SharedParams::SharedParams(SetupOptions const& options)
             << R"(Skipping 'startup' JSON output since writing to stdout)";
     }
 
-    if (!options.offload_output_file.empty())
+    if (auto const& offload_file = loaded.problem.offload_file;
+        !offload_file.empty())
     {
         std::unique_ptr<EventWriterInterface> writer;
-        if (ends_with(options.offload_output_file, ".root"))
+        if (ends_with(offload_file, ".root"))
         {
-            writer.reset(
-                new RootEventWriter(std::make_shared<RootFileManager>(
-                                        options.offload_output_file.c_str()),
-                                    params_->particle()));
+            writer.reset(new RootEventWriter(
+                std::make_shared<RootFileManager>(offload_file.c_str()),
+                params_->particle()));
         }
         else
         {
-            writer.reset(new EventWriter(options.offload_output_file,
-                                         params_->particle()));
+            writer.reset(new EventWriter(offload_file, params_->particle()));
         }
         offload_writer_
             = std::make_shared<detail::OffloadWriter>(std::move(writer));
     }
 
     CELER_ENSURE(*this);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Set up Celeritas components for a Geant4-only run.
- *
- * This is for doing standalone Geant4 calculations without offloading from
- * Celeritas, but still using components such as the simple calorimeter.
- */
-SharedParams::SharedParams(std::string output_filename)
-    : output_filename_{std::move(output_filename)}
-{
-    CELER_EXPECT(!output_filename_.empty());
-
-    CELER_LOG_LOCAL(debug) << "Constructing output registry for no-offload "
-                              "run";
-    output_reg_ = std::make_shared<OutputRegistry>();
-
-    CELER_ENSURE(output_reg_);
 }
 
 //---------------------------------------------------------------------------//
@@ -308,10 +387,7 @@ SharedParams::SharedParams(std::string output_filename)
  */
 void SharedParams::InitializeWorker(SetupOptions const&)
 {
-    CELER_VALIDATE(!CeleritasDisabled(),
-                   << "Celeritas shared params cannot be initialized when "
-                      "Celeritas offloading is disabled via "
-                      "\"CELER_DISABLE\"");
+    CELER_EXPECT(*this);
 
     celeritas::activate_device_local();
 }
@@ -332,38 +408,13 @@ void SharedParams::Finalize()
     this->try_output();
 
     // Reset all data
-    CELER_LOG_LOCAL(debug) << "Resetting shared parameters";
+    CELER_LOG(debug) << "Resetting shared parameters";
     *this = {};
 
-    if (auto& d = celeritas::device())
-    {
-        // Reset streams before the static destructor does
-        d.create_streams(0);
-    }
+    // Reset streams before the static destructor does
+    celeritas::device().destroy_streams();
 
     CELER_ENSURE(!*this);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a vector of particles supported by Celeritas offloading.
- */
-auto SharedParams::OffloadParticles() const -> VecG4ParticleDef const&
-{
-    if (!CeleritasDisabled())
-    {
-        // Get the supported particles from Celeritas
-        CELER_ASSERT(*this);
-        return particles_;
-    }
-
-    // In a Geant4-only simulation, use a hardcoded list of supported particles
-    static VecG4ParticleDef const particles = {
-        G4Gamma::Gamma(),
-        G4Electron::Electron(),
-        G4Positron::Positron(),
-    };
-    return particles;
 }
 
 //---------------------------------------------------------------------------//
@@ -373,6 +424,8 @@ auto SharedParams::OffloadParticles() const -> VecG4ParticleDef const&
 void SharedParams::set_state(unsigned int stream_id, SPState&& state)
 {
     CELER_EXPECT(*this);
+    CELER_EXPECT(!states_.empty());
+
     CELER_EXPECT(stream_id < states_.size());
     CELER_EXPECT(state);
     CELER_EXPECT(!states_[stream_id]);
@@ -383,6 +436,11 @@ void SharedParams::set_state(unsigned int stream_id, SPState&& state)
 //---------------------------------------------------------------------------//
 /*!
  * Lazily obtained number of streams.
+ *
+ * \todo This is currently needed due to some wackiness with the
+ * celer-g4 GeantDiagnostics and initialization sequence. We should remove
+ * this: for user applications it should strictly be determined by the run
+ * manager/input, and celer-g4 should set it up accordingly.
  */
 unsigned int SharedParams::num_streams() const
 {
@@ -397,275 +455,6 @@ unsigned int SharedParams::num_streams() const
 
     CELER_ENSURE(!states_.empty());
     return states_.size();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Lazily created Geant geometry parameters.
- */
-auto SharedParams::geant_geo_params() const -> SPConstGeantGeoParams const&
-{
-    if (CELER_UNLIKELY(!geant_geo_))
-    {
-        // Initial lock-free check failed; now lock and create if needed
-        std::lock_guard scoped_lock{updating_mutex()};
-        if (!geant_geo_)
-        {
-            CELER_LOG_LOCAL(debug) << "Constructing GeantGeoParams wrapper";
-
-            auto geo_params = std::make_shared<GeantGeoParams>(
-                GeantImporter::get_world_volume());
-            const_cast<SharedParams*>(this)->geant_geo_ = std::move(geo_params);
-            CELER_ENSURE(geant_geo_);
-        }
-    }
-    return geant_geo_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct from setup options.
- *
- * This is not thread-safe and should only be called from a single CPU thread
- * that is guaranteed to complete the initialization before any other threads
- * try to access the shared data.
- */
-void SharedParams::initialize_core(SetupOptions const& options)
-{
-    CELER_VALIDATE(options.make_along_step,
-                   << "along-step action factory 'make_along_step' was not "
-                      "defined in the celeritas::SetupOptions");
-
-    auto const imported = [&options] {
-        celeritas::GeantImporter load_geant_data(
-            GeantImporter::get_world_volume());
-        // Convert ImportVolume names to GDML versions if we're exporting
-        // TODO: optical particle/process import
-        GeantImportDataSelection import_opts;
-        import_opts.particles = GeantImportDataSelection::em_basic;
-        import_opts.processes = import_opts.particles;
-        import_opts.unique_volumes = options.geometry_file.empty();
-        return std::make_shared<ImportData>(load_geant_data(import_opts));
-    }();
-    CELER_ASSERT(imported && !imported->particles.empty()
-                 && !imported->geo_materials.empty()
-                 && !imported->phys_materials.empty()
-                 && !imported->processes.empty() && !imported->volumes.empty());
-
-    if (!options.physics_output_file.empty())
-    {
-        RootExporter export_root(options.physics_output_file.c_str());
-        export_root(*imported);
-    }
-
-    if (!options.geometry_output_file.empty())
-    {
-        CELER_VALIDATE(options.geometry_file.empty(),
-                       << "the 'geometry_output_file' option cannot be used "
-                          "when manually loading a geometry (the "
-                          "'geometry_file' option is also set)");
-
-        write_geant_geometry(GeantImporter::get_world_volume(),
-                             options.geometry_output_file);
-    }
-
-    CoreParams::Input params;
-
-    // Create registries
-    params.action_reg = std::make_shared<ActionRegistry>();
-    params.output_reg = std::make_shared<OutputRegistry>();
-    output_reg_ = params.output_reg;
-
-    // Load geometry
-    params.geometry = [&options] {
-        if (!options.geometry_file.empty())
-        {
-            // Read directly from GDML input
-            return std::make_shared<GeoParams>(options.geometry_file);
-        }
-#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT
-        else if (geant_geo_)
-        {
-            // Lazily created geo was requested first
-            return geant_geo_;
-        }
-#endif
-        else
-        {
-            // Import from Geant4
-            return std::make_shared<GeoParams>(
-                GeantImporter::get_world_volume());
-        }
-    }();
-
-#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT
-    // Save the Geant4 geometry since we've already made it
-    geant_geo_ = params.geometry;
-#endif
-
-    // Load materials
-    params.material = MaterialParams::from_import(*imported);
-
-    // Create geometry/material coupling
-    params.geomaterial = GeoMaterialParams::from_import(
-        *imported, params.geometry, params.material);
-
-    // Construct particle params
-    params.particle = ParticleParams::from_import(*imported);
-
-    // Construct cutoffs
-    params.cutoff = CutoffParams::from_import(
-        *imported, params.particle, params.material);
-
-    // Construct shared data for Coulomb scattering
-    params.wentzel = WentzelOKVIParams::from_import(
-        *imported, params.material, params.particle);
-
-    // Load physics: create individual processes with make_shared
-    params.physics = [&params, &options, &imported] {
-        PhysicsParams::Input input;
-        input.particles = params.particle;
-        input.materials = params.material;
-        input.processes = build_processes(
-            *imported, options, params.particle, params.material);
-        input.relaxation = nullptr;  // TODO: add later?
-        input.action_registry = params.action_reg.get();
-
-        // Set physics options
-        input.options.linear_loss_limit = imported->em_params.linear_loss_limit;
-        input.options.light.lowest_energy = ParticleOptions::Energy(
-            imported->em_params.lowest_electron_energy);
-        input.options.heavy.lowest_energy
-            = ParticleOptions::Energy(imported->em_params.lowest_muhad_energy);
-        input.options.secondary_stack_factor = options.secondary_stack_factor;
-
-        // Set multiple scattering options
-        input.options.light.range_factor = imported->em_params.msc_range_factor;
-        input.options.heavy.range_factor
-            = imported->em_params.msc_muhad_range_factor;
-        input.options.safety_factor = imported->em_params.msc_safety_factor;
-        input.options.lambda_limit = imported->em_params.msc_lambda_limit;
-        input.options.light.displaced = imported->em_params.msc_displaced;
-        input.options.heavy.displaced = imported->em_params.msc_muhad_displaced;
-        input.options.light.step_limit_algorithm
-            = imported->em_params.msc_step_algorithm;
-        input.options.heavy.step_limit_algorithm
-            = imported->em_params.msc_muhad_step_algorithm;
-
-        return std::make_shared<PhysicsParams>(std::move(input));
-    }();
-
-    // Construct RNG params
-    params.rng = std::make_shared<RngParams>(CLHEP::HepRandom::getTheSeed());
-
-    // Construct simulation params
-    params.sim = std::make_shared<SimParams>([&] {
-        auto input = SimParams::Input::from_import(
-            *imported, params.particle, options.max_field_substeps);
-        if (options.max_steps != SetupOptions::no_max_steps())
-        {
-            input.max_steps = options.max_steps;
-        }
-        return input;
-    }());
-
-    if (options.max_num_events > 0)
-    {
-        CELER_LOG(warning) << "Deprecated option 'max_events': will be "
-                              "removed in v0.6";
-    }
-
-    // Construct track initialization params
-    params.init = [&options] {
-        TrackInitParams::Input input;
-        input.capacity = options.initializer_capacity;
-        input.max_events = 1;  // TODO: use special "max events" case
-        input.track_order = options.track_order;
-        if (input.track_order == TrackOrder::size_)
-        {
-            input.track_order = celeritas::device() ? TrackOrder::init_charge
-                                                    : TrackOrder::none;
-            CELER_LOG(info) << "Set track ordering to default: "
-                            << to_cstring(input.track_order);
-        }
-        return std::make_shared<TrackInitParams>(std::move(input));
-    }();
-
-    if (options.get_num_streams)
-    {
-        int num_streams = options.get_num_streams();
-        CELER_VALIDATE(num_streams > 0,
-                       << "nonpositive number of streams (" << num_streams
-                       << ") returned by SetupOptions.get_num_streams");
-        params.max_streams = static_cast<size_type>(num_streams);
-        this->set_num_streams(num_streams);
-        CELER_ASSERT(this->num_streams()
-                     == static_cast<unsigned int>(num_streams));
-    }
-    else
-    {
-        // Default to setting the maximum number of streams based on Geant4
-        // multithreading.
-        params.max_streams = this->num_streams();
-    }
-
-    // Set state size
-    params.tracks_per_stream = options.max_num_tracks;
-
-    // Allocate device streams, or use the default stream if there is only one.
-    if (celeritas::device() && !options.default_stream
-        && params.max_streams > 1)
-    {
-        celeritas::device().create_streams(params.max_streams);
-    }
-
-    // Construct along-step action
-    params.action_reg->insert([&params, &options, &imported] {
-        AlongStepFactoryInput asfi;
-        asfi.action_id = params.action_reg->next_id();
-        asfi.geometry = params.geometry;
-        asfi.material = params.material;
-        asfi.geomaterial = params.geomaterial;
-        asfi.particle = params.particle;
-        asfi.cutoff = params.cutoff;
-        asfi.physics = params.physics;
-        asfi.imported = imported;
-        auto along_step{options.make_along_step(asfi)};
-        CELER_VALIDATE(along_step,
-                       << "along-step factory returned a null pointer");
-        return along_step;
-    }());
-
-    // Create params
-    CELER_ASSERT(params);
-    params_ = std::make_shared<CoreParams>(std::move(params));
-
-    // Construct sensitive detector callback
-    if (options.sd)
-    {
-        hit_manager_
-            = std::make_shared<detail::HitManager>(params_->geometry(),
-                                                   *params_->particle(),
-                                                   options.sd,
-                                                   params_->max_streams());
-        step_collector_
-            = StepCollector::make_and_insert(*params_, {hit_manager_});
-        output_reg_->insert(
-            std::make_shared<detail::HitManagerOutput>(hit_manager_));
-    }
-
-    // Add diagnostics
-    if (!options.slot_diagnostic_prefix.empty())
-    {
-        SlotDiagnostic::make_and_insert(*params_,
-                                        options.slot_diagnostic_prefix);
-    }
-
-    // Translate supported particles
-    particles_ = build_g4_particles(params_->particle(), params_->physics());
-
-    // Save output filename (possibly empty if disabling output)
-    output_filename_ = options.output_file;
 }
 
 //---------------------------------------------------------------------------//
@@ -689,8 +478,7 @@ void SharedParams::set_num_streams(unsigned int num_streams)
     }
     else
     {
-        CELER_LOG_LOCAL(debug)
-            << "Setting number of streams to " << num_streams;
+        CELER_LOG(debug) << "Setting number of streams to " << num_streams;
     }
 
     states_.resize(num_streams);
@@ -705,22 +493,7 @@ void SharedParams::set_num_streams(unsigned int num_streams)
  */
 void SharedParams::try_output() const
 {
-    if (!output_reg_)
-    {
-        // No output registry exists (either independently of setting up
-        // Celeritas or when calling Initialize)
-        return;
-    }
-
     std::string filename = output_filename_;
-    if (!params_ && filename.empty())
-    {
-        // Setup was not called but we're outputting anyway (called by
-        // celer-g4?)
-        filename = "celeritas.out.json";
-        CELER_LOG(debug) << "Set default Celeritas output filename";
-    }
-
     if (filename.empty())
     {
         CELER_LOG(debug) << "Skipping output: SetupOptions::output_file is "

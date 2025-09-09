@@ -15,14 +15,14 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "geocel/random/IsotropicDistribution.hh"
+#include "geocel/random/UniformBoxDistribution.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeGeoTestBase.hh"
 #include "orange/OrangeInput.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/surf/SurfaceIO.hh"
 #include "orange/surf/VariantSurface.hh"
-#include "celeritas/random/distribution/IsotropicDistribution.hh"
-#include "celeritas/random/distribution/UniformBoxDistribution.hh"
 
 #include "LocalSurfaceVisitor.test.hh"
 #include "celeritas_test.hh"

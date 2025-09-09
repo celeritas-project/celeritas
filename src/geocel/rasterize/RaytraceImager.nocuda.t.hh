@@ -13,7 +13,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "geocel/rasterize/RaytraceImager.hh"
+#include "RaytraceImager.hh"
 
 #include "corecel/Config.hh"
 

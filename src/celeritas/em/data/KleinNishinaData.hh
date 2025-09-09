@@ -47,8 +47,5 @@ struct KleinNishinaData
     }
 };
 
-using KleinNishinaDeviceRef = KleinNishinaData;
-using KleinNishinaHostRef = KleinNishinaData;
-
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

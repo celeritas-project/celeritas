@@ -9,6 +9,7 @@
 #include <memory>
 #include <vector>
 
+#include "corecel/io/Label.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/transform/VariantTransform.hh"
 
@@ -32,33 +33,38 @@ struct LogicalVolume;
  *
  * This holds equivalent information to a Geant4 \c G4VPhysicalVolume, but with
  * \em only ORANGE data structures.
+ *
+ * \todo rename VolumeInstance
  */
 struct PhysicalVolume
 {
-    std::string name;
-    size_type copy_number{};
+    //! Corresponding Geant4 physical volume
+    VolumeInstanceId id;
+
     VariantTransform transform;
     std::shared_ptr<LogicalVolume const> lv;
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * A reusable Object that can be turned into a UnitProto or a Material.
+ * A reusable object that can be turned into a UnitProto or a Material.
  *
  * This holds equivalent information to a Geant4 \c G4LogicalVolume, but with
- * \em only ORANGE data structures plus a reference to the original G4LV.
+ * \em only ORANGE data structures.
+ *
+ * \todo Remove the material ID; volume-to-material mapping should be done by
+ * VolumeParams.
+ *
+ * \todo rename Volume
  */
 struct LogicalVolume
 {
     using SPConstObject = std::shared_ptr<orangeinp::ObjectInterface const>;
 
-    //! Associated Geant4 logical volume
-    G4LogicalVolume const* g4lv{nullptr};
-
-    //! Logical volume name
-    std::string name;
+    //! Corresponding Geant4 logical volume, primarily for debug output
+    VolumeId id;
     //! Filled material ID
-    GeoMaterialId material_id;
+    GeoMatId material_id;
 
     //! "Unplaced" parent shape
     SPConstObject solid;

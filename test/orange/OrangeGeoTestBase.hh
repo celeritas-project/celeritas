@@ -15,8 +15,8 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "geocel/Types.hh"
 #include "orange/OrangeData.hh"
-#include "celeritas/Types.hh"
 
 #include "OrangeTestBase.hh"
 #include "Test.hh"
@@ -31,7 +31,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Test base for loading geometry.
+ * Test base for loading geometry with manual ORANGE input.
  */
 class OrangeGeoTestBase : public OrangeTestBase
 {
@@ -65,8 +65,8 @@ class OrangeGeoTestBase : public OrangeTestBase
     // Convert a string to a sense vector
     static std::vector<Sense> string_to_senses(std::string const& s);
 
-    // Load `test/geocel/data/{filename}` GDML input using Geant4
-    void build_gdml_geometry(std::string const& filename);
+    // Override base class to *not* try geometry during SetUp
+    void SetUp() override;
 
     // Load `test/orange/data/{filename}` JSON input
     void build_geometry(std::string const& filename);
@@ -96,10 +96,10 @@ class OrangeGeoTestBase : public OrangeTestBase
     //// QUERYING ////
 
     // Find the volume from its label (nullptr allowed)
-    VolumeId find_volume(std::string const& label) const;
+    ImplVolumeId find_volume(std::string const& label) const;
 
     // Find the surface from its label (NULL pointer allowed)
-    SurfaceId find_surface(std::string const& label) const;
+    ImplSurfaceId find_surface(std::string const& label) const;
 
     // Surface name (or sentinel if no surface)
     std::string id_to_label(UniverseId uid, LocalSurfaceId surfid) const;
@@ -117,12 +117,12 @@ class OrangeGeoTestBase : public OrangeTestBase
     void describe(std::ostream& os) const;
 
     // Number of volumes
-    VolumeId::size_type num_volumes() const;
+    ImplVolumeId::size_type num_volumes() const;
 
     //// GenericGeoTestBase ////
 
-    // Return the geometry that was created
-    SPConstGeo build_geometry() final;
+    // Return the geometry that was created (via gdml or input)
+    SPConstGeo build_geometry() const override;
 
   private:
     //// TYPES ////

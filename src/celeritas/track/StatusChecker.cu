@@ -1,6 +1,5 @@
-//---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------ -*- cuda -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/track/StatusChecker.cu
@@ -36,7 +35,7 @@ void StatusChecker::launch_impl(
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(
         this->label());
     launch_kernel(state, execute_thread);
-    CELER_DEVICE_CALL_PREFIX(StreamSynchronize(
+    CELER_DEVICE_API_CALL(StreamSynchronize(
         celeritas::device().stream(state.stream_id()).get()));
 }
 

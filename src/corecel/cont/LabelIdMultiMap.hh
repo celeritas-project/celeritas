@@ -76,25 +76,14 @@ class LabelIdMultiMap
     // Access an ID by name/extension pair
     inline IdT find_exact(Label const& label) const;
 
-    // Access the Id using an *exact* label, dangerous because of string->Label
-    // cast
-    // DEPRECATED: remove in v0.6 (use 'find_exact')
-    [[deprecated]]
-    CELER_FORCEINLINE IdT find(Label const& label) const
-    {
-        return this->find_exact(label);
-    }
-
-    // Access the label+sublabel pair for an Id
-    // DEPRECATED: remove in v0.6 (use 'at')
-    [[deprecated]]
-    CELER_FORCEINLINE Label const& get(IdT id) const { return this->at(id); }
-
     // Access the label+sublabel pair for an Id
     inline Label const& at(IdT id) const;
 
     //! Get the number of elements
     CELER_FORCEINLINE size_type size() const { return keys_.size(); }
+
+    //! Whether no elements are present
+    CELER_FORCEINLINE bool empty() const { return keys_.empty(); }
 
     // Whether this map is initialized
     inline explicit operator bool() const;
@@ -193,7 +182,8 @@ LabelIdMultiMap<I>::LabelIdMultiMap(std::string&& label, VecLabel&& keys)
  * with uniquifying "extensions", such as pointer addresses from Geant4.
  */
 template<class I>
-auto LabelIdMultiMap<I>::find_all(std::string const& name) const -> SpanConstIdT
+auto LabelIdMultiMap<I>::find_all(std::string const& name) const
+    -> SpanConstIdT
 {
     auto iter = ids_.find(name);
     if (iter == ids_.end())
@@ -211,7 +201,7 @@ auto LabelIdMultiMap<I>::find_all(std::string const& name) const -> SpanConstIdT
 /*!
  * Find the ID corresponding to a label if exactly one exists.
  *
- * This will return an invalid ID if no labels match the given name, and it
+ * This will return an null ID if no labels match the given name, and it
  * will raise an exception if multiple labels do.
  */
 template<class I>

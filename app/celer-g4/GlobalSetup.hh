@@ -73,7 +73,7 @@ class GlobalSetup
     //! Set the field to this value (T) along the z axis
     void SetMagFieldZTesla(real_type f) { input_.field = Real3{0, 0, f}; }
 
-    // Read input from macro or JSON
+    // Read input from JSON
     void ReadInput(std::string const& filename);
 
     // Get the time for setup

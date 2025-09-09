@@ -14,17 +14,25 @@
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
 
+class G4LogicalVolume;
+
 namespace celeritas
 {
 struct ImportData;
 struct RZMapFieldInput;
-struct UniformFieldParams;
+struct CartMapFieldInput;
+struct CylMapFieldInput;
 class CutoffParams;
 class FluctuationParams;
 class GeoMaterialParams;
 class MaterialParams;
 class ParticleParams;
 class PhysicsParams;
+
+namespace inp
+{
+struct UniformField;
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -40,7 +48,7 @@ struct AlongStepFactoryInput
 {
     ActionId action_id;
 
-    std::shared_ptr<GeoParams const> geometry;
+    std::shared_ptr<CoreGeoParams const> geometry;
     std::shared_ptr<MaterialParams const> material;
     std::shared_ptr<GeoMaterialParams const> geomaterial;
     std::shared_ptr<ParticleParams const> particle;
@@ -60,11 +68,11 @@ struct AlongStepFactoryInput
 /*!
  * Helper class for emitting an AlongStep action.
  *
- * Currently Celeritas accepts a single along-step action (i.e., the same
- * stepper is used for both neutral and charged particles, across all energies
- * and regions of the problem). The along-step action is a single GPU
- * kernel that combines the field stepper selection, the magnetic field,
- * slowing-down calculation, multiple scattering, and energy loss fluctuations.
+ * Currently Celeritas accepts a single custom along-step action (i.e., the
+ * same stepper is used for charged particles across all energies and regions
+ * of the problem). The along-step action is a single GPU kernel that combines
+ * the field stepper selection, the magnetic field, slowing-down calculation,
+ * multiple scattering, and energy loss fluctuations.
  *
  * The factory will be called from the thread that initializes \c SharedParams.
  * Instead of a daughter class, you can provide any function-like object that
@@ -99,13 +107,19 @@ class AlongStepFactoryInterface
  *
  * The constructor is a lazily evaluated function that must return the field
  * definition and driver configuration. If unspecified, the field is zero.
+ *
+ * \todo Add a helper function to build from a Geant4 field manager or the new
+ * \c G4FieldSetup
  */
 class UniformAlongStepFactory final : public AlongStepFactoryInterface
 {
   public:
     //!@{
     //! \name Type aliases
-    using FieldFunction = std::function<UniformFieldParams()>;
+    using FieldInput = inp::UniformField;
+    using FieldFunction = std::function<FieldInput()>;
+    using VecVolume = std::vector<G4LogicalVolume const*>;
+    using VecVolumeFunction = std::function<VecVolume()>;
     //!@}
 
   public:
@@ -115,19 +129,26 @@ class UniformAlongStepFactory final : public AlongStepFactoryInterface
     // Construct with a function to return the field strength
     explicit UniformAlongStepFactory(FieldFunction f);
 
+    // Construct with field strength and volumes where field is present
+    UniformAlongStepFactory(FieldFunction f, VecVolumeFunction volumes);
+
     // Emit an along-step action
     result_type operator()(argument_type input) const final;
 
     // Get the field params (used for converting to celeritas::inp)
-    UniformFieldParams get_field() const;
+    FieldInput get_field() const;
+
+    // Get the volumes where field is present
+    VecVolume get_volumes() const;
 
   private:
     FieldFunction get_field_;
+    VecVolumeFunction get_volumes_;
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Create an along-step method for a two-dimensional (r-z in the cylindical
+ * Create an along-step method for a two-dimensional (r-z in the cylindrical
  * coordinate system) map field (RZMapField).
  */
 class RZMapFieldAlongStepFactory final : public AlongStepFactoryInterface
@@ -151,5 +172,60 @@ class RZMapFieldAlongStepFactory final : public AlongStepFactoryInterface
   private:
     RZMapFieldFunction get_fieldmap_;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create an along-step method for a three-dimensional (r-phi-z in the
+ * cylindrical coordinate system) map field (CylMapField).
+ */
+class CylMapFieldAlongStepFactory final : public AlongStepFactoryInterface
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using CylMapFieldFunction = std::function<CylMapFieldInput()>;
+    //!@}
+
+  public:
+    // Construct with a function to return CylMapFieldInput
+    explicit CylMapFieldAlongStepFactory(CylMapFieldFunction f);
+
+    // Emit an along-step action
+    result_type operator()(argument_type input) const final;
+
+    // Get the field params (used for converting to celeritas::inp)
+    CylMapFieldInput get_field() const;
+
+  private:
+    CylMapFieldFunction get_fieldmap_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create an along-step method for a three-dimensional (x-y-z in the
+ * cartesian coordinate system) map field (CartMapField).
+ */
+class CartMapFieldAlongStepFactory final : public AlongStepFactoryInterface
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using CartMapFieldFunction = std::function<CartMapFieldInput()>;
+    //!@}
+
+  public:
+    // Construct with a function to return CartMapFieldInput
+    explicit CartMapFieldAlongStepFactory(CartMapFieldFunction f);
+
+    // Emit an along-step action
+    result_type operator()(argument_type input) const final;
+
+    // Get the field params (used for converting to celeritas::inp)
+    CartMapFieldInput get_field() const;
+
+  private:
+    CartMapFieldFunction get_fieldmap_;
+};
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

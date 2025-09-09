@@ -23,11 +23,6 @@ struct BremsProcess
     std::optional<SeltzerBergerModel> sb{std::in_place};
     std::optional<RelBremsModel> rel{std::in_place};
     std::optional<MuBremsModel> mu;
-
-    //! Use a unified relativistic/SB interactor
-    bool combined_model{false};
-    //! Use integral method for sampling discrete interaction length
-    bool integral_xs{true};
 };
 //---------------------------------------------------------------------------//
 /*!
@@ -44,7 +39,7 @@ struct PairProductionProcess
 //---------------------------------------------------------------------------//
 //!@{
 //! \name Process aliases
-//! \todo rename `em/model` to match, merge muon and electron proceses
+//! \todo rename `em/model` to match, merge muon and electron processes
 
 using BremsstrahlungProcess = BremsProcess;
 using GammaConversionProcess = PairProductionProcess;

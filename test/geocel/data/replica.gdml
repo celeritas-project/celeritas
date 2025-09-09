@@ -1,0 +1,805 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define/>
+
+  <materials>
+    <isotope N="12" Z="6" name="C120x15716fe80">
+      <atom unit="g/mole" value="12"/>
+    </isotope>
+    <isotope N="13" Z="6" name="C130x15716fee0">
+      <atom unit="g/mole" value="13.0034"/>
+    </isotope>
+    <element name="C0x15716ff30">
+      <fraction n="0.9893" ref="C120x15716fe80"/>
+      <fraction n="0.0107" ref="C130x15716fee0"/>
+    </element>
+    <isotope N="14" Z="7" name="N140x157170130">
+      <atom unit="g/mole" value="14.0031"/>
+    </isotope>
+    <isotope N="15" Z="7" name="N150x157170190">
+      <atom unit="g/mole" value="15.0001"/>
+    </isotope>
+    <element name="N0x1571701e0">
+      <fraction n="0.99632" ref="N140x157170130"/>
+      <fraction n="0.00368" ref="N150x157170190"/>
+    </element>
+    <isotope N="16" Z="8" name="O160x157170390">
+      <atom unit="g/mole" value="15.9949"/>
+    </isotope>
+    <isotope N="17" Z="8" name="O170x157170410">
+      <atom unit="g/mole" value="16.9991"/>
+    </isotope>
+    <isotope N="18" Z="8" name="O180x157170450">
+      <atom unit="g/mole" value="17.9992"/>
+    </isotope>
+    <element name="O0x157170490">
+      <fraction n="0.99757" ref="O160x157170390"/>
+      <fraction n="0.00038" ref="O170x157170410"/>
+      <fraction n="0.00205" ref="O180x157170450"/>
+    </element>
+    <isotope N="36" Z="18" name="Ar360x157170690">
+      <atom unit="g/mole" value="35.9675"/>
+    </isotope>
+    <isotope N="38" Z="18" name="Ar380x1571706d0">
+      <atom unit="g/mole" value="37.9627"/>
+    </isotope>
+    <isotope N="40" Z="18" name="Ar400x1571703d0">
+      <atom unit="g/mole" value="39.9624"/>
+    </isotope>
+    <element name="Ar0x1571707b0">
+      <fraction n="0.003365" ref="Ar360x157170690"/>
+      <fraction n="0.000632" ref="Ar380x1571706d0"/>
+      <fraction n="0.996003" ref="Ar400x1571703d0"/>
+    </element>
+    <material name="G4_AIR0x15716fd60" state="gas">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="85.7"/>
+      <D unit="g/cm3" value="0.00120479"/>
+      <fraction n="0.000124000124000124" ref="C0x15716ff30"/>
+      <fraction n="0.755267755267755" ref="N0x1571701e0"/>
+      <fraction n="0.231781231781232" ref="O0x157170490"/>
+      <fraction n="0.0128270128270128" ref="Ar0x1571707b0"/>
+    </material>
+    <isotope N="1" Z="1" name="H10x157171be0">
+      <atom unit="g/mole" value="1.00782503081372"/>
+    </isotope>
+    <isotope N="2" Z="1" name="H20x157171c20">
+      <atom unit="g/mole" value="2.01410199966617"/>
+    </isotope>
+    <element name="H0x157171c60">
+      <fraction n="0.999885" ref="H10x157171be0"/>
+      <fraction n="0.000115" ref="H20x157171c20"/>
+    </element>
+    <material name="G4_PLASTIC_SC_VINYLTOLUENE0x157171a90" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="64.7"/>
+      <D unit="g/cm3" value="1.032"/>
+      <fraction n="0.914708531800025" ref="C0x15716ff30"/>
+      <fraction n="0.0852914681999746" ref="H0x157171c60"/>
+    </material>
+    <material name="G4_Ar0x157170e80" state="gas">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="188"/>
+      <D unit="g/cm3" value="0.00166201"/>
+      <fraction n="1" ref="Ar0x1571707b0"/>
+    </material>
+    <isotope N="133" Z="55" name="Cs1330x1571722c0">
+      <atom unit="g/mole" value="132.905"/>
+    </isotope>
+    <element name="Cs0x157172590">
+      <fraction n="1" ref="Cs1330x1571722c0"/>
+    </element>
+    <isotope N="127" Z="53" name="I1270x1571727b0">
+      <atom unit="g/mole" value="126.904"/>
+    </isotope>
+    <element name="I0x157172800">
+      <fraction n="1" ref="I1270x1571727b0"/>
+    </element>
+    <material name="G4_CESIUM_IODIDE0x157171f90" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="553.1"/>
+      <D unit="g/cm3" value="4.51"/>
+      <fraction n="0.511548868591927" ref="Cs0x157172590"/>
+      <fraction n="0.488451131408073" ref="I0x157172800"/>
+    </material>
+    <isotope N="204" Z="82" name="Pb2040x1571730d0">
+      <atom unit="g/mole" value="203.973"/>
+    </isotope>
+    <isotope N="206" Z="82" name="Pb2060x157172bc0">
+      <atom unit="g/mole" value="205.974"/>
+    </isotope>
+    <isotope N="207" Z="82" name="Pb2070x157172c00">
+      <atom unit="g/mole" value="206.976"/>
+    </isotope>
+    <isotope N="208" Z="82" name="Pb2080x157170710">
+      <atom unit="g/mole" value="207.977"/>
+    </isotope>
+    <element name="Pb0x1571736a0">
+      <fraction n="0.014" ref="Pb2040x1571730d0"/>
+      <fraction n="0.241" ref="Pb2060x157172bc0"/>
+      <fraction n="0.221" ref="Pb2070x157172c00"/>
+      <fraction n="0.524" ref="Pb2080x157170710"/>
+    </element>
+    <material name="G4_Pb0x157173590" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="823"/>
+      <D unit="g/cm3" value="11.35"/>
+      <fraction n="1" ref="Pb0x1571736a0"/>
+    </material>
+  </materials>
+
+  <solids>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="magneticTubs0x157174c10" rmax="1000" rmin="0" startphi="0" z="2000"/>
+    <box lunit="mm" name="hodoscope1Box0x1571755f0" x="100" y="400" z="10"/>
+    <box lunit="mm" name="wirePlane1Box0x157176540" x="2000" y="600" z="0.2"/>
+    <box lunit="mm" name="chamber1Box0x157176000" x="2000" y="600" z="20"/>
+    <box lunit="mm" name="firstArmBox0x157174fe0" x="3000" y="2000" z="6000"/>
+    <box lunit="mm" name="hodoscope2Box0x1571767e0" x="100" y="400" z="10"/>
+    <box lunit="mm" name="wirePlane2Box0x157177c20" x="3000" y="600" z="0.2"/>
+    <box lunit="mm" name="chamber2Box0x157177760" x="3000" y="600" z="20"/>
+    <box lunit="mm" name="cellBox0x1571781a0" x="150" y="150" z="300"/>
+    <box lunit="mm" name="EMcalorimeterBox0x157177ec0" x="3000" y="600" z="300"/>
+    <box lunit="mm" name="HadCalScintiBox0x157178fe0" x="300" y="300" z="10"/>
+    <box lunit="mm" name="HadCalLayerBox0x157178cf0" x="300" y="300" z="50"/>
+    <box lunit="mm" name="HadCalCellBox0x157178a00" x="300" y="300" z="1000"/>
+    <box lunit="mm" name="HadCalColumnBox0x157178770" x="300" y="600" z="1000"/>
+    <box lunit="mm" name="HadCalorimeterBox0x157178440" x="3000" y="600" z="1000"/>
+    <box lunit="mm" name="secondArmBox0x157175310" x="4000" y="4000" z="7000"/>
+    <box lunit="mm" name="worldBox0x157173ff0" x="20000" y="6000" z="20000"/>
+  </solids>
+
+  <structure>
+    <volume name="magnetic0x157174d60">
+      <materialref ref="G4_AIR0x15716fd60"/>
+      <solidref ref="magneticTubs0x157174c10"/>
+    </volume>
+    <volume name="hodoscope10x1571756b0">
+      <materialref ref="G4_PLASTIC_SC_VINYLTOLUENE0x157171a90"/>
+      <solidref ref="hodoscope1Box0x1571755f0"/>
+    </volume>
+    <volume name="wirePlane10x1571765b0">
+      <materialref ref="G4_Ar0x157170e80"/>
+      <solidref ref="wirePlane1Box0x157176540"/>
+    </volume>
+    <volume name="chamber10x157176070">
+      <materialref ref="G4_Ar0x157170e80"/>
+      <solidref ref="chamber1Box0x157176000"/>
+      <physvol name="wirePlane10x1571766d0">
+        <volumeref ref="wirePlane10x1571765b0"/>
+      </physvol>
+    </volume>
+    <volume name="firstArm0x1571750c0">
+      <materialref ref="G4_AIR0x15716fd60"/>
+      <solidref ref="firstArmBox0x157174fe0"/>
+      <physvol name="hodoscope10x1571757a0">
+        <volumeref ref="hodoscope10x1571756b0"/>
+        <position name="hodoscope10x1571757a0_pos" unit="mm" x="-700" y="0" z="-1500"/>
+      </physvol>
+      <physvol copynumber="1" name="hodoscope10x157175870">
+        <volumeref ref="hodoscope10x1571756b0"/>
+        <position name="hodoscope10x157175870_pos" unit="mm" x="-600" y="0" z="-1500"/>
+      </physvol>
+      <physvol copynumber="2" name="hodoscope10x1571758f0">
+        <volumeref ref="hodoscope10x1571756b0"/>
+        <position name="hodoscope10x1571758f0_pos" unit="mm" x="-500" y="0" z="-1500"/>
+      </physvol>
+      <physvol copynumber="3" name="hodoscope10x1571759a0">
+        <volumeref ref="hodoscope10x1571756b0"/>
+        <position name="hodoscope10x1571759a0_pos" unit="mm" x="-400" y="0" z="-1500"/>
+      </physvol>
+      <physvol copynumber="4" name="hodoscope10x157175a10">
+        <volumeref ref="hodoscope10x1571756b0"/>
+        <position name="hodoscope10x157175a10_pos" unit="mm" x="-300" y="0" z="-1500"/>
+      </physvol>
+      <physvol copynumber="5" name="hodoscope10x157175b00">
+        <volumeref ref="hodoscope10x1571756b0"/>
+        <position name="hodoscope10x157175b00_pos" unit="mm" x="-200" y="0" z="-1500"/>
+      </physvol>
+      <physvol copynumber="6" name="hodoscope10x157175b50">
+        <volumeref ref="hodoscope10x1571756b0"/>
+        <position name="hodoscope10x157175b50_pos" unit="mm" x="-100" y="0" z="-1500"/>
+      </physvol>
+      <physvol copynumber="7" name="hodoscope10x157175ba0">
+        <volumeref ref="hodoscope10x1571756b0"/>
+        <position name="hodoscope10x157175ba0_pos" unit="mm" x="0" y="0" z="-1500"/>
+      </physvol>
+      <physvol copynumber="8" name="hodoscope10x157175c10">
+        <volumeref ref="hodoscope10x1571756b0"/>
+        <position name="hodoscope10x157175c10_pos" unit="mm" x="100" y="0" z="-1500"/>
+      </physvol>
+      <physvol copynumber="9" name="hodoscope10x157175d80">
+        <volumeref ref="hodoscope10x1571756b0"/>
+        <position name="hodoscope10x157175d80_pos" unit="mm" x="200" y="0" z="-1500"/>
+      </physvol>
+      <physvol copynumber="10" name="hodoscope10x157175aa0">
+        <volumeref ref="hodoscope10x1571756b0"/>
+        <position name="hodoscope10x157175aa0_pos" unit="mm" x="300" y="0" z="-1500"/>
+      </physvol>
+      <physvol copynumber="11" name="hodoscope10x157175df0">
+        <volumeref ref="hodoscope10x1571756b0"/>
+        <position name="hodoscope10x157175df0_pos" unit="mm" x="400" y="0" z="-1500"/>
+      </physvol>
+      <physvol copynumber="12" name="hodoscope10x157175e60">
+        <volumeref ref="hodoscope10x1571756b0"/>
+        <position name="hodoscope10x157175e60_pos" unit="mm" x="500" y="0" z="-1500"/>
+      </physvol>
+      <physvol copynumber="13" name="hodoscope10x157175ed0">
+        <volumeref ref="hodoscope10x1571756b0"/>
+        <position name="hodoscope10x157175ed0_pos" unit="mm" x="600" y="0" z="-1500"/>
+      </physvol>
+      <physvol copynumber="14" name="hodoscope10x157175f40">
+        <volumeref ref="hodoscope10x1571756b0"/>
+        <position name="hodoscope10x157175f40_pos" unit="mm" x="700" y="0" z="-1500"/>
+      </physvol>
+      <physvol name="chamber10x157176190">
+        <volumeref ref="chamber10x157176070"/>
+        <position name="chamber10x157176190_pos" unit="mm" x="0" y="0" z="-1000"/>
+      </physvol>
+      <physvol copynumber="1" name="chamber10x157176250">
+        <volumeref ref="chamber10x157176070"/>
+        <position name="chamber10x157176250_pos" unit="mm" x="0" y="0" z="-500"/>
+      </physvol>
+      <physvol copynumber="2" name="chamber10x1571763c0">
+        <volumeref ref="chamber10x157176070"/>
+      </physvol>
+      <physvol copynumber="3" name="chamber10x157176410">
+        <volumeref ref="chamber10x157176070"/>
+        <position name="chamber10x157176410_pos" unit="mm" x="0" y="0" z="500"/>
+      </physvol>
+      <physvol copynumber="4" name="chamber10x157176460">
+        <volumeref ref="chamber10x157176070"/>
+        <position name="chamber10x157176460_pos" unit="mm" x="0" y="0" z="1000"/>
+      </physvol>
+    </volume>
+    <volume name="hodoscope20x157176870">
+      <materialref ref="G4_PLASTIC_SC_VINYLTOLUENE0x157171a90"/>
+      <solidref ref="hodoscope2Box0x1571767e0"/>
+    </volume>
+    <volume name="wirePlane20x157177c90">
+      <materialref ref="G4_Ar0x157170e80"/>
+      <solidref ref="wirePlane2Box0x157177c20"/>
+    </volume>
+    <volume name="chamber20x1571777d0">
+      <materialref ref="G4_Ar0x157170e80"/>
+      <solidref ref="chamber2Box0x157177760"/>
+      <physvol name="wirePlane20x157177db0">
+        <volumeref ref="wirePlane20x157177c90"/>
+      </physvol>
+    </volume>
+    <volume name="cell0x157178220">
+      <materialref ref="G4_CESIUM_IODIDE0x157171f90"/>
+      <solidref ref="cellBox0x1571781a0"/>
+    </volume>
+    <volume name="EMcalorimeter0x157177f50">
+      <materialref ref="G4_CESIUM_IODIDE0x157171f90"/>
+      <solidref ref="EMcalorimeterBox0x157177ec0"/>
+      <paramvol ncopies="80">
+        <volumeref ref="cell0x157178220"/>
+        <parameterised_position_size>
+          <parameters number="1">
+            <position name="cell0x1571783500_pos" unit="mm" x="-1425" y="-225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="2">
+            <position name="cell0x1571783501_pos" unit="mm" x="-1425" y="-75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="3">
+            <position name="cell0x1571783502_pos" unit="mm" x="-1425" y="75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="4">
+            <position name="cell0x1571783503_pos" unit="mm" x="-1425" y="225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="5">
+            <position name="cell0x1571783504_pos" unit="mm" x="-1275" y="-225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="6">
+            <position name="cell0x1571783505_pos" unit="mm" x="-1275" y="-75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="7">
+            <position name="cell0x1571783506_pos" unit="mm" x="-1275" y="75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="8">
+            <position name="cell0x1571783507_pos" unit="mm" x="-1275" y="225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="9">
+            <position name="cell0x1571783508_pos" unit="mm" x="-1125" y="-225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="10">
+            <position name="cell0x1571783509_pos" unit="mm" x="-1125" y="-75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="11">
+            <position name="cell0x15717835010_pos" unit="mm" x="-1125" y="75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="12">
+            <position name="cell0x15717835011_pos" unit="mm" x="-1125" y="225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="13">
+            <position name="cell0x15717835012_pos" unit="mm" x="-975" y="-225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="14">
+            <position name="cell0x15717835013_pos" unit="mm" x="-975" y="-75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="15">
+            <position name="cell0x15717835014_pos" unit="mm" x="-975" y="75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="16">
+            <position name="cell0x15717835015_pos" unit="mm" x="-975" y="225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="17">
+            <position name="cell0x15717835016_pos" unit="mm" x="-825" y="-225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="18">
+            <position name="cell0x15717835017_pos" unit="mm" x="-825" y="-75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="19">
+            <position name="cell0x15717835018_pos" unit="mm" x="-825" y="75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="20">
+            <position name="cell0x15717835019_pos" unit="mm" x="-825" y="225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="21">
+            <position name="cell0x15717835020_pos" unit="mm" x="-675" y="-225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="22">
+            <position name="cell0x15717835021_pos" unit="mm" x="-675" y="-75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="23">
+            <position name="cell0x15717835022_pos" unit="mm" x="-675" y="75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="24">
+            <position name="cell0x15717835023_pos" unit="mm" x="-675" y="225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="25">
+            <position name="cell0x15717835024_pos" unit="mm" x="-525" y="-225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="26">
+            <position name="cell0x15717835025_pos" unit="mm" x="-525" y="-75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="27">
+            <position name="cell0x15717835026_pos" unit="mm" x="-525" y="75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="28">
+            <position name="cell0x15717835027_pos" unit="mm" x="-525" y="225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="29">
+            <position name="cell0x15717835028_pos" unit="mm" x="-375" y="-225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="30">
+            <position name="cell0x15717835029_pos" unit="mm" x="-375" y="-75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="31">
+            <position name="cell0x15717835030_pos" unit="mm" x="-375" y="75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="32">
+            <position name="cell0x15717835031_pos" unit="mm" x="-375" y="225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="33">
+            <position name="cell0x15717835032_pos" unit="mm" x="-225" y="-225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="34">
+            <position name="cell0x15717835033_pos" unit="mm" x="-225" y="-75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="35">
+            <position name="cell0x15717835034_pos" unit="mm" x="-225" y="75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="36">
+            <position name="cell0x15717835035_pos" unit="mm" x="-225" y="225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="37">
+            <position name="cell0x15717835036_pos" unit="mm" x="-75" y="-225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="38">
+            <position name="cell0x15717835037_pos" unit="mm" x="-75" y="-75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="39">
+            <position name="cell0x15717835038_pos" unit="mm" x="-75" y="75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="40">
+            <position name="cell0x15717835039_pos" unit="mm" x="-75" y="225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="41">
+            <position name="cell0x15717835040_pos" unit="mm" x="75" y="-225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="42">
+            <position name="cell0x15717835041_pos" unit="mm" x="75" y="-75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="43">
+            <position name="cell0x15717835042_pos" unit="mm" x="75" y="75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="44">
+            <position name="cell0x15717835043_pos" unit="mm" x="75" y="225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="45">
+            <position name="cell0x15717835044_pos" unit="mm" x="225" y="-225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="46">
+            <position name="cell0x15717835045_pos" unit="mm" x="225" y="-75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="47">
+            <position name="cell0x15717835046_pos" unit="mm" x="225" y="75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="48">
+            <position name="cell0x15717835047_pos" unit="mm" x="225" y="225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="49">
+            <position name="cell0x15717835048_pos" unit="mm" x="375" y="-225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="50">
+            <position name="cell0x15717835049_pos" unit="mm" x="375" y="-75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="51">
+            <position name="cell0x15717835050_pos" unit="mm" x="375" y="75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="52">
+            <position name="cell0x15717835051_pos" unit="mm" x="375" y="225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="53">
+            <position name="cell0x15717835052_pos" unit="mm" x="525" y="-225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="54">
+            <position name="cell0x15717835053_pos" unit="mm" x="525" y="-75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="55">
+            <position name="cell0x15717835054_pos" unit="mm" x="525" y="75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="56">
+            <position name="cell0x15717835055_pos" unit="mm" x="525" y="225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="57">
+            <position name="cell0x15717835056_pos" unit="mm" x="675" y="-225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="58">
+            <position name="cell0x15717835057_pos" unit="mm" x="675" y="-75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="59">
+            <position name="cell0x15717835058_pos" unit="mm" x="675" y="75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="60">
+            <position name="cell0x15717835059_pos" unit="mm" x="675" y="225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="61">
+            <position name="cell0x15717835060_pos" unit="mm" x="825" y="-225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="62">
+            <position name="cell0x15717835061_pos" unit="mm" x="825" y="-75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="63">
+            <position name="cell0x15717835062_pos" unit="mm" x="825" y="75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="64">
+            <position name="cell0x15717835063_pos" unit="mm" x="825" y="225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="65">
+            <position name="cell0x15717835064_pos" unit="mm" x="975" y="-225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="66">
+            <position name="cell0x15717835065_pos" unit="mm" x="975" y="-75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="67">
+            <position name="cell0x15717835066_pos" unit="mm" x="975" y="75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="68">
+            <position name="cell0x15717835067_pos" unit="mm" x="975" y="225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="69">
+            <position name="cell0x15717835068_pos" unit="mm" x="1125" y="-225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="70">
+            <position name="cell0x15717835069_pos" unit="mm" x="1125" y="-75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="71">
+            <position name="cell0x15717835070_pos" unit="mm" x="1125" y="75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="72">
+            <position name="cell0x15717835071_pos" unit="mm" x="1125" y="225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="73">
+            <position name="cell0x15717835072_pos" unit="mm" x="1275" y="-225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="74">
+            <position name="cell0x15717835073_pos" unit="mm" x="1275" y="-75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="75">
+            <position name="cell0x15717835074_pos" unit="mm" x="1275" y="75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="76">
+            <position name="cell0x15717835075_pos" unit="mm" x="1275" y="225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="77">
+            <position name="cell0x15717835076_pos" unit="mm" x="1425" y="-225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="78">
+            <position name="cell0x15717835077_pos" unit="mm" x="1425" y="-75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="79">
+            <position name="cell0x15717835078_pos" unit="mm" x="1425" y="75" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+          <parameters number="80">
+            <position name="cell0x15717835079_pos" unit="mm" x="1425" y="225" z="0"/>
+            <box_dimensions lunit="mm" x="150" y="150" z="300"/>
+          </parameters>
+        </parameterised_position_size>
+      </paramvol>
+    </volume>
+    <volume name="HadCalScinti0x1571790c0">
+      <materialref ref="G4_PLASTIC_SC_VINYLTOLUENE0x157171a90"/>
+      <solidref ref="HadCalScintiBox0x157178fe0"/>
+    </volume>
+    <volume name="HadCalLayer0x157178dd0">
+      <materialref ref="G4_Pb0x157173590"/>
+      <solidref ref="HadCalLayerBox0x157178cf0"/>
+      <physvol name="HadCalScinti0x1571791f0">
+        <volumeref ref="HadCalScinti0x1571790c0"/>
+        <position name="HadCalScinti0x1571791f0_pos" unit="mm" x="0" y="0" z="20"/>
+      </physvol>
+    </volume>
+    <volume name="HadCalCell0x157178ae0">
+      <materialref ref="G4_Pb0x157173590"/>
+      <solidref ref="HadCalCellBox0x157178a00"/>
+      <replicavol number="20">
+        <volumeref ref="HadCalLayer0x157178dd0"/>
+        <replicate_along_axis>
+          <direction z="1"/>
+          <width unit="mm" value="50"/>
+          <offset unit="mm" value="0"/>
+        </replicate_along_axis>
+      </replicavol>
+    </volume>
+    <volume name="HadCalColumn0x1571787f0">
+      <materialref ref="G4_Pb0x157173590"/>
+      <solidref ref="HadCalColumnBox0x157178770"/>
+      <replicavol number="2">
+        <volumeref ref="HadCalCell0x157178ae0"/>
+        <replicate_along_axis>
+          <direction y="1"/>
+          <width unit="mm" value="300"/>
+          <offset unit="mm" value="0"/>
+        </replicate_along_axis>
+      </replicavol>
+    </volume>
+    <volume name="HadCalorimeter0x157178520">
+      <materialref ref="G4_Pb0x157173590"/>
+      <solidref ref="HadCalorimeterBox0x157178440"/>
+      <replicavol number="10">
+        <volumeref ref="HadCalColumn0x1571787f0"/>
+        <replicate_along_axis>
+          <direction x="1"/>
+          <width unit="mm" value="300"/>
+          <offset unit="mm" value="0"/>
+        </replicate_along_axis>
+      </replicavol>
+    </volume>
+    <volume name="secondArm0x157175390">
+      <materialref ref="G4_AIR0x15716fd60"/>
+      <solidref ref="secondArmBox0x157175310"/>
+      <physvol name="hodoscope20x1571769a0">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x1571769a0_pos" unit="mm" x="-1200" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="1" name="hodoscope20x157176a70">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x157176a70_pos" unit="mm" x="-1100" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="2" name="hodoscope20x157176af0">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x157176af0_pos" unit="mm" x="-1000" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="3" name="hodoscope20x157176ba0">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x157176ba0_pos" unit="mm" x="-900" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="4" name="hodoscope20x157176c10">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x157176c10_pos" unit="mm" x="-800" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="5" name="hodoscope20x157176d00">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x157176d00_pos" unit="mm" x="-700" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="6" name="hodoscope20x157176d50">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x157176d50_pos" unit="mm" x="-600" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="7" name="hodoscope20x157176da0">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x157176da0_pos" unit="mm" x="-500" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="8" name="hodoscope20x157176e10">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x157176e10_pos" unit="mm" x="-400" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="9" name="hodoscope20x157176f80">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x157176f80_pos" unit="mm" x="-300" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="10" name="hodoscope20x157176ca0">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x157176ca0_pos" unit="mm" x="-200" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="11" name="hodoscope20x157176ff0">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x157176ff0_pos" unit="mm" x="-100" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="12" name="hodoscope20x157177060">
+        <volumeref ref="hodoscope20x157176870"/>
+      </physvol>
+      <physvol copynumber="13" name="hodoscope20x1571770d0">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x1571770d0_pos" unit="mm" x="100" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="14" name="hodoscope20x157177140">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x157177140_pos" unit="mm" x="200" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="15" name="hodoscope20x1571771b0">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x1571771b0_pos" unit="mm" x="300" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="16" name="hodoscope20x157177220">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x157177220_pos" unit="mm" x="400" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="17" name="hodoscope20x157176e80">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x157176e80_pos" unit="mm" x="500" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="18" name="hodoscope20x157176ef0">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x157176ef0_pos" unit="mm" x="600" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="19" name="hodoscope20x157177490">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x157177490_pos" unit="mm" x="700" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="20" name="hodoscope20x1571774e0">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x1571774e0_pos" unit="mm" x="800" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="21" name="hodoscope20x157177550">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x157177550_pos" unit="mm" x="900" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="22" name="hodoscope20x1571775c0">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x1571775c0_pos" unit="mm" x="1000" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="23" name="hodoscope20x157177630">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x157177630_pos" unit="mm" x="1100" y="0" z="0"/>
+      </physvol>
+      <physvol copynumber="24" name="hodoscope20x1571776a0">
+        <volumeref ref="hodoscope20x157176870"/>
+        <position name="hodoscope20x1571776a0_pos" unit="mm" x="1200" y="0" z="0"/>
+      </physvol>
+      <physvol name="chamber20x1571778f0">
+        <volumeref ref="chamber20x1571777d0"/>
+        <position name="chamber20x1571778f0_pos" unit="mm" x="0" y="0" z="-2500"/>
+      </physvol>
+      <physvol copynumber="1" name="chamber20x1571779b0">
+        <volumeref ref="chamber20x1571777d0"/>
+        <position name="chamber20x1571779b0_pos" unit="mm" x="0" y="0" z="-2000"/>
+      </physvol>
+      <physvol copynumber="2" name="chamber20x157177a20">
+        <volumeref ref="chamber20x1571777d0"/>
+        <position name="chamber20x157177a20_pos" unit="mm" x="0" y="0" z="-1500"/>
+      </physvol>
+      <physvol copynumber="3" name="chamber20x157177ab0">
+        <volumeref ref="chamber20x1571777d0"/>
+        <position name="chamber20x157177ab0_pos" unit="mm" x="0" y="0" z="-1000"/>
+      </physvol>
+      <physvol copynumber="4" name="chamber20x157177b20">
+        <volumeref ref="chamber20x1571777d0"/>
+        <position name="chamber20x157177b20_pos" unit="mm" x="0" y="0" z="-500"/>
+      </physvol>
+      <physvol name="EMcalorimeter0x157178080">
+        <volumeref ref="EMcalorimeter0x157177f50"/>
+        <position name="EMcalorimeter0x157178080_pos" unit="mm" x="0" y="0" z="2000"/>
+      </physvol>
+      <physvol name="HadCalorimeter0x157178650">
+        <volumeref ref="HadCalorimeter0x157178520"/>
+        <position name="HadCalorimeter0x157178650_pos" unit="mm" x="0" y="0" z="3000"/>
+      </physvol>
+    </volume>
+    <volume name="world">
+      <materialref ref="G4_AIR0x15716fd60"/>
+      <solidref ref="worldBox0x157173ff0"/>
+      <physvol name="magnetic0x157174ea0">
+        <volumeref ref="magnetic0x157174d60"/>
+        <rotation name="magnetic0x157174ea0_rot" unit="deg" x="90" y="0" z="0"/>
+      </physvol>
+      <physvol name="firstArm0x1571751f0">
+        <volumeref ref="firstArm0x1571750c0"/>
+        <position name="firstArm0x1571751f0_pos" unit="mm" x="0" y="0" z="-5000"/>
+      </physvol>
+      <physvol name="fSecondArmPhys0x1571754c0">
+        <volumeref ref="secondArm0x157175390"/>
+        <position name="fSecondArmPhys0x1571754c0_pos" unit="mm" x="-2500" y="0" z="4330.12701892219"/>
+        <rotation name="fSecondArmPhys0x1571754c0_rot" unit="deg" x="0" y="30" z="0"/>
+      </physvol>
+    </volume>
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="world"/>
+  </setup>
+
+</gdml>

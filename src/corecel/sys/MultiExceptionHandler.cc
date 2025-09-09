@@ -6,7 +6,11 @@
 //---------------------------------------------------------------------------//
 #include "MultiExceptionHandler.hh"
 
+#include <cstring>
+
 #include "corecel/Assert.hh"
+#include "corecel/Types.hh"
+#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 
 namespace celeritas
@@ -14,25 +18,109 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-//! Recursively log a possibly nested exception message.
-void log_exception(std::exception const& e, Logger::Message* msg)
+/*!
+ * Helper class to unwrap nested exceptions into a vector of messages.
+ *
+ * Because \c rethrow_if_nested and \c rethrow_exception do not specify whether
+ * the original exception (or a copy) is being thrown, it may not be safe to
+ * keep a c-string reference to e.what().
+ */
+class ExceptionStackUnwinder
 {
-    try
+  public:
+    using VecStr = std::vector<std::string>;
+
+    // Default constructor
+    ExceptionStackUnwinder() { messages_.reserve(2); }
+
+    // Extract messages from an exception and all its nested exceptions
+    VecStr const& operator()(std::exception const& e)
     {
-        std::rethrow_if_nested(e);
+        messages_.clear();
+        unwind_exception(e);
+        CELER_ENSURE(!messages_.empty());
+        return messages_;
     }
-    catch (std::exception const& next)
+
+  private:
+    VecStr messages_;
+
+    // Recursively extract messages from nested exceptions
+    void unwind_exception(std::exception const& e)
     {
-        log_exception(next, msg);
-        *msg << "\n... from: ";
+        try
+        {
+            std::rethrow_if_nested(e);
+        }
+        catch (std::exception const& next)
+        {
+            // Process deeper exceptions first
+            unwind_exception(next);
+        }
+        // NOLINTNEXTLINE(bugprone-empty-catch)
+        catch (...)
+        {
+            // Ignore unknown exception
+            messages_.push_back("unknown exception type");
+        }
+
+        // Add current exception message after processing nested exceptions
+        messages_.push_back(e.what());
     }
-    // NOLINTNEXTLINE(bugprone-empty-catch)
-    catch (...)
+};
+
+//! Helper class to manage suppression of similar error messages
+class ExceptionLogger
+{
+  public:
+    using VecStr = std::vector<std::string>;
+
+    void operator()(VecStr const& msg_stack)
     {
-        // Ignore unknown exception
+        CELER_EXPECT(!msg_stack.empty());
+
+        if (msg_stack.front() == last_msg_)
+        {
+            ++ignored_counter_;
+        }
+        else
+        {
+            flush_suppressed();
+            last_msg_ = msg_stack.front();
+
+            auto log_msg = CELER_LOG_LOCAL(critical);
+            log_msg << "Suppressed exception from parallel thread: "
+                    << join(msg_stack.begin(), msg_stack.end(), "\n... from ");
+        }
     }
-    *msg << e.what();
-}
+
+    // Flush any suppressed messages before destruction
+    ~ExceptionLogger() noexcept
+    {
+        try
+        {
+            flush_suppressed();
+        }
+        // NOLINTNEXTLINE(bugprone-empty-catch)
+        catch (...)
+        {
+        }
+    }
+
+  private:
+    std::string last_msg_;
+    size_type ignored_counter_{0};
+
+    void flush_suppressed()
+    {
+        if (ignored_counter_ > 0)
+        {
+            CELER_LOG_LOCAL(warning)
+                << "Suppressed " << ignored_counter_ << " similar exceptions";
+            ignored_counter_ = 0;
+        }
+    }
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -48,22 +136,22 @@ namespace detail
     CELER_EXPECT(!exceptions.empty());
     auto exc_vec = std::move(exceptions).release();
 
+    ExceptionStackUnwinder unwind_stack;
+    ExceptionLogger log_exception;
+
     for (auto eptr_iter = exc_vec.begin() + 1; eptr_iter != exc_vec.end();
          ++eptr_iter)
     {
-        auto msg = CELER_LOG_LOCAL(critical);
-        msg << "ignoring exception: ";
         try
         {
             std::rethrow_exception(*eptr_iter);
         }
         catch (std::exception const& e)
         {
-            log_exception(e, &msg);
-        }
-        catch (...)
-        {
-            msg << "unknown type";
+            // Get error messages, deepest first
+            auto const& message_stack = unwind_stack(e);
+            // Log non-duplicate messages
+            log_exception(message_stack);
         }
     }
 

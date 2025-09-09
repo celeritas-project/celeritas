@@ -1,6 +1,5 @@
-//---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------ -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/field/MagFieldEquation.hh
@@ -66,7 +65,7 @@ class MagFieldEquation
     // Field evaluator
     Field_t calc_field_;
 
-    // The (Lorentz) coefficent in 1/OdeState::MomentumUnits
+    // The (Lorentz) coefficient in 1/OdeState::MomentumUnits
     real_type coeffi_;
 };
 
@@ -74,8 +73,8 @@ class MagFieldEquation
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class FieldT>
-CELER_FUNCTION
-MagFieldEquation(FieldT&&, units::ElementaryCharge) -> MagFieldEquation<FieldT>;
+CELER_FUNCTION MagFieldEquation(FieldT&&, units::ElementaryCharge)
+    -> MagFieldEquation<FieldT>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

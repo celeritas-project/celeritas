@@ -51,7 +51,7 @@ class StepCollector
     //!@{
     //! \name Type aliases
     using SPStepInterface = std::shared_ptr<StepInterface>;
-    using SPConstGeo = std::shared_ptr<GeoParams const>;
+    using SPConstCoreGeo = std::shared_ptr<CoreGeoParams const>;
     using VecInterface = std::vector<SPStepInterface>;
     //!@}
 
@@ -61,7 +61,7 @@ class StepCollector
     make_and_insert(CoreParams const& core, VecInterface callbacks);
 
     // Construct with options and register pre/post-step actions
-    StepCollector(SPConstGeo geo,
+    StepCollector(SPConstCoreGeo geo,
                   VecInterface&& callbacks,
                   AuxParamsRegistry* aux_registry,
                   ActionRegistry* action_registry);

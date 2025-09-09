@@ -1,6 +1,15 @@
 .. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 .. SPDX-License-Identifier: CC-BY-4.0
 
+.. only:: github
+
+   You may be viewing this document through GitHub's native viewer. if so, the
+   links below may not work; please visit this page on the documentation web
+   site:
+
+   https://celeritas-project.github.io/celeritas/user/development/contributing.html
+
+
 .. _contributing:
 
 Contributing to Celeritas
@@ -23,8 +32,25 @@ the new code should be the shared responsibility of the project rather than the
 exclusive property of a single contributor.
 Celeritas is a collaborative project with *collective* ownership.
 
-
 .. _GitHub terms of service: https://docs.github.com/en/github/site-policy/github-terms-of-service#6-contributions-under-repository-license
+
+
+Attribution
+-----------
+
+You will get public credit for your work: your username and pull requests will
+be listed in the release notes, *and* you will receive official co-authorship on
+the Zenodo code object for the next major (and minor, if your fix is
+backported) releases that incorporate your contribution. By contributing, you
+acknowledge the attribution and authorship policy laid out in :ref:`authorship`.
+
+.. note:: To uniquely link your contribution for the next release, you must add
+   your ORCID to :file:`scripts/release/users.json` to your first PR.
+   (Otherwise, only your GitHub-derived name will show on the record.) If you
+   want the release to be automatically propagated to your ORCID account, you
+   must sign up for and connect it to OpenAIRE_.
+
+.. _OpenAIRE: https://www.openaire.eu/openaire-explore-integration-with-the-orcid-search-and-link-wizard
 
 
 Collaborating
@@ -32,8 +58,7 @@ Collaborating
 
 Working with other Celeritas team members is a critical part of the development
 process. Please join the ``#code`` channel on the `Celeritas Slack workspace`_,
-open an issue with a bug report or feature request, or start a discussion on
-GitHub.
+or open an issue with a bug report or feature request.
 
 .. _Celeritas Slack workspace: https://celeritasproject.slack.com/
 
@@ -43,13 +68,11 @@ Development prerequisites
 
 Create a fork_ of the Celeritas repository. You should clone this fork locally
 to your development machine as the "origin", and it's a good idea to add the
-main ``celeritas-project`` repository as an "upstream" so that you can apply
+main ``celeritas-project`` repository as an "upstream" so that you can merge
 changes from the main codebase as you work.
 
 To meet the :ref:`formatting` requirements described in the development guide,
-make sure that `clang-format`_ is installed on your development machine.
-Run ``scripts/dev/install-commit-hooks.sh`` to install a git post-commit hook
-that will amend each commit with clang-format updates if necessary.
+you **must** install the `pre-commit`_ utility. You can run ``scripts/dev/install-commit-hooks.sh`` to do this.
 
 A mostly consistent set of decorations (separators, Doxygen comment structure,
 etc.) are used throughout the code, so try to make new files look like existing
@@ -58,7 +81,7 @@ generate skeletons for new files, and use existing source code as a guide for
 how to structure the decorations.
 
 .. _fork: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/about-forks
-.. _clang-format: https://clang.llvm.org/docs/ClangFormat.html
+.. _pre-commit: https://pre-commit.com
 
 
 Submitting code changes
@@ -78,6 +101,14 @@ Before opening the pull request, check that the :ref:`code <code_guidelines>`
 and :ref:`style <style_guidelines>` guidelines have been followed for all new
 code and code changes.  Ensure the use of the correct formatting as well as the
 addition of documentation and unit tests for new code and bug fixes.
+
+After opening the pull request, the `pre-commit.ci`_ bot will run automatically
+and check your formatting. If it fails, you probably did not install the
+utility mentioned in the previous section. You can ``git pull`` the suggested
+changes and then install ``pre-commit``; or, if you've made changes locally,
+then install pre-commit, you can execute ``pre-commit run --from-ref
+upstream/develop --to-ref HEAD`` and ``git push -f`` to update all files and
+force push.
 
 All tests must pass on the CI runner before a PR can be merged. It's best to
 test locally first before submitting your pull
@@ -123,3 +154,4 @@ Congratulations!
    conversation since that makes it hard to find your comment.
 
 .. _pull request: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests
+.. _pre-commit.ci: https://pre-commit.ci

@@ -14,7 +14,6 @@
 #include "corecel/cont/Range.hh"
 #include "geocel/Types.hh"
 #include "orange/OrangeTrackView.hh"
-#include "celeritas/Types.hh"
 
 #include "OrangeGeoTestBase.hh"
 #include "TestMacros.hh"
@@ -69,7 +68,7 @@ class ShiftTrackerTest : public OrangeGeoTestBase
         if (!track.is_outside())
         {
             boundary_state = BoundaryState::INSIDE;
-            cell = track.volume_id().get();
+            cell = track.impl_volume_id().get();
         }
         else
         {

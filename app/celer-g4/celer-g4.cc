@@ -16,7 +16,6 @@
 #include <FTFP_BERT.hh>
 #include <G4ParticleTable.hh>
 #include <G4RunManager.hh>
-#include <G4UIExecutive.hh>
 #include <G4Version.hh>
 
 #if G4VERSION_NUMBER >= 1100
@@ -45,6 +44,7 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "corecel/sys/TracingSession.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
@@ -58,7 +58,7 @@
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
 #include "GlobalSetup.hh"
-#include "LocalLogger.hh"
+#include "LogHandlers.hh"
 #include "RunInputIO.json.hh"
 
 using namespace std::literals::string_view_literals;
@@ -75,8 +75,6 @@ void print_usage(std::string_view exec_name)
     // clang-format off
     std::cerr << "usage: " << exec_name << " {input}.json\n"
                  "       " << exec_name << " -\n"
-                 "       " << exec_name << " {commands}.mac\n"
-                 "       " << exec_name << " --interactive\n"
                  "       " << exec_name << " [--help|-h]\n"
                  "       " << exec_name << " --version\n"
                  "       " << exec_name << " --dump-default\n"
@@ -94,8 +92,11 @@ void print_usage(std::string_view exec_name)
 }
 
 //---------------------------------------------------------------------------//
-void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
+void run(std::string_view filename, std::shared_ptr<SharedParams> params)
 {
+    CELER_VALIDATE(filename != "--interactive",
+                   << "Interactive celer-g4 was removed in v0.6");
+
     // Disable external error handlers
     ScopedRootErrorHandler scoped_root_errors;
     disable_geant_signal_handler();
@@ -106,6 +107,12 @@ void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
 
     // Construct global setup singleton and make options available to UI
     auto& setup = *GlobalSetup::Instance();
+    // Read user input
+    setup.ReadInput(std::string(filename));
+
+    // Start tracing session
+    celeritas::TracingSession tracing{setup.input().tracing_file};
+    tracing.start();
 
     auto run_manager = [] {
         // Run manager writes output that cannot be redirected with
@@ -134,39 +141,20 @@ void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
     }();
     CELER_ASSERT(run_manager);
 
+    // Set up loggers
+    world_logger() = Logger::from_handle_env(make_world_handler(), "CELER_LOG");
+    self_logger() = Logger::from_handle_env(
+        make_self_handler(get_geant_num_threads(*run_manager)),
+        "CELER_LOG_LOCAL");
+
+    // Redirect Geant4 output and exceptions through Celeritas objects
     ScopedGeantLogger scoped_logger;
     ScopedGeantExceptionHandler scoped_exceptions;
-
-    self_logger() = [&params] {
-        Logger log{LocalLogger{params->num_streams()}};
-        log.level(log_level_from_env("CELER_LOG_LOCAL"));
-        return log;
-    }();
 
     CELER_LOG(info) << "Run manager type: "
                     << TypeDemangler<G4RunManager>{}(*run_manager);
 
-    // Read user input
-    std::string_view filename{argv[1]};
-    if (filename == "--interactive")
-    {
-        G4UIExecutive exec(argc, argv);
-        exec.SessionStart();
-        return;
-    }
-    else
-    {
-        setup.ReadInput(std::string(filename));
-    }
-
     std::vector<std::string> ignore_processes = {"CoulombScat"};
-    if (G4VERSION_NUMBER >= 1110)
-    {
-        CELER_LOG(warning) << "Default Rayleigh scattering 'MinKinEnergyPrim' "
-                              "is not compatible between Celeritas and "
-                              "Geant4@11.1: disabling Rayleigh scattering";
-        ignore_processes.push_back("Rayl");
-    }
     setup.SetIgnoreProcesses(ignore_processes);
 
     // Construct geometry and SD factory
@@ -181,11 +169,6 @@ void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
     else
     {
         auto opts = setup.GetPhysicsOptions();
-        if (std::find(ignore_processes.begin(), ignore_processes.end(), "Rayl")
-            != ignore_processes.end())
-        {
-            opts.rayleigh_scattering = false;
-        }
         if (setup.input().physics_list == PhysicsListSelection::celer_ftfp_bert)
         {
             // FTFP BERT with Celeritas EM standard physics
@@ -259,7 +242,7 @@ int main(int argc, char* argv[])
     }
     if (filename == "--version"sv || filename == "-v"sv)
     {
-        std::cout << celeritas_version << std::endl;
+        std::cout << celeritas::version_string << std::endl;
         return EXIT_SUCCESS;
     }
     if (filename == "--dump-default"sv)
@@ -276,20 +259,40 @@ int main(int argc, char* argv[])
     }
 
     // Create params, which need to be shared with detectors as well as
-    // initialization, and can be written for output
+    // initialization, and can be written for output (default to stdout)
     auto params = std::make_shared<celeritas::SharedParams>();
 
     try
     {
-        celeritas::app::run(argc, argv, params);
+        celeritas::app::run(filename, params);
     }
     catch (std::exception const& e)
     {
         CELER_LOG(critical) << "While running " << argv[1] << ": " << e.what();
-        params->output_reg()->insert(
-            std::make_shared<celeritas::ExceptionOutput>(
-                std::current_exception()));
-        params->Finalize();
+        auto e_output = std::make_shared<celeritas::ExceptionOutput>(
+            std::current_exception());
+        if (*params)
+        {
+            try
+            {
+                params->output_reg()->insert(e_output);
+                params->Finalize();
+            }
+            catch (std::exception const& e)
+            {
+                CELER_LOG(critical)
+                    << "Another exception occurred while finalizing output: "
+                    << e.what();
+                // Write a null JSON oboject since we didn't output anything;
+                std::cout << "null\n";
+            }
+        }
+        else
+        {
+            celeritas::OutputRegistry reg;
+            reg.insert(e_output);
+            reg.output(&std::cout);
+        }
         return EXIT_FAILURE;
     }
 

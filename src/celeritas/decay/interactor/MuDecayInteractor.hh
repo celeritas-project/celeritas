@@ -11,14 +11,14 @@
 #include "corecel/Types.hh"
 #include "corecel/data/StackAllocator.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/random/distribution/RejectionSampler.hh"
+#include "geocel/random/IsotropicDistribution.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/decay/data/MuDecayData.hh"
 #include "celeritas/phys/FourVector.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/random/distribution/IsotropicDistribution.hh"
-#include "celeritas/random/distribution/RejectionSampler.hh"
 
 namespace celeritas
 {
@@ -214,8 +214,8 @@ CELER_FUNCTION FourVector MuDecayInteractor::to_lab_frame(Real3 const& dir,
  * fractional energy.
  */
 CELER_FUNCTION auto
-MuDecayInteractor::calc_momentum(real_type energy_frac,
-                                 Mass mass) const -> Momentum
+MuDecayInteractor::calc_momentum(real_type energy_frac, Mass mass) const
+    -> Momentum
 {
     return Momentum{std::sqrt(ipow<2>(energy_frac * max_energy_)
                               + 2 * energy_frac * max_energy_ * mass.value())};

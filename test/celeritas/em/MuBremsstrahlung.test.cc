@@ -101,9 +101,8 @@ class MuBremsstrahlungTest : public InteractorHostTestBase
 TEST_F(MuBremsstrahlungTest, dcs)
 {
     auto particle = this->particle_track();
-    auto element
-        = this->material_track().make_material_view().make_element_view(
-            ElementComponentId{0});
+    auto element = this->material_track().material_record().element_record(
+        ElementComponentId{0});
 
     MuBremsDiffXsCalculator calc_dcs(
         element, particle.energy(), particle.mass(), data_.electron_mass);
@@ -138,14 +137,14 @@ TEST_F(MuBremsstrahlungTest, basic)
     int num_samples = 4;
     this->resize_secondaries(num_samples);
 
-    auto material = this->material_track().make_material_view();
+    auto material = this->material_track().material_record();
 
     // Create the interactor
     MuBremsstrahlungInteractor interact(
         data_,
         this->particle_track(),
         this->direction(),
-        this->cutoff_params()->get(MaterialId{0}),
+        this->cutoff_params()->get(PhysMatId{0}),
         this->secondary_allocator(),
         material,
         ElementComponentId{0});
@@ -225,14 +224,14 @@ TEST_F(MuBremsstrahlungTest, stress_test)
                 this->set_inc_direction(inc_dir);
                 this->resize_secondaries(num_samples);
 
-                auto material = this->material_track().make_material_view();
+                auto material = this->material_track().material_record();
 
                 // Create interactor
                 MuBremsstrahlungInteractor interact(
                     data_,
                     this->particle_track(),
                     this->direction(),
-                    this->cutoff_params()->get(MaterialId{0}),
+                    this->cutoff_params()->get(PhysMatId{0}),
                     this->secondary_allocator(),
                     material,
                     ElementComponentId{0});

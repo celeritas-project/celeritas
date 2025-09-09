@@ -9,6 +9,7 @@
 #include <optional>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 #include "corecel/math/Turn.hh"
 
@@ -21,53 +22,104 @@ namespace orangeinp
 {
 //---------------------------------------------------------------------------//
 /*!
- * Define the angular region of a solid.
+ * Define the azimuthal truncation of a solid.
  *
  * This is a pie slice infinite along the z axis and outward from it. Its cross
  * section is in the \em x-y plane, and a start
  * angle of zero corresponding to the \em +x axis. An interior angle of one
- * results in no radial excluded in the resulting solid. A interior angle of
+ * results in no radial exclusion from the resulting solid. A interior angle of
  * more than 0.5 turns (180 degrees) results in a wedge being subtracted from
  * the solid, and an angle of less than or equal to 0.5 turns results in the
  * intersection of the solid with a wedge.
  *
  * \code
   // Truncates a solid to the east-facing quadrant:
-  SolidEnclosedAngle{Turn{-0.125}, Turn{0.25}};
+  EnclosedAzi{Turn{-0.125}, Turn{0.125}};
   // Removes the second quadrant (northwest) from a solid:
-  SolidEnclosedAngle{Turn{0.50}, Turn{0.75}};
+  EnclosedAzi{Turn{0.50}, Turn{1.25}};
   \endcode
  */
-class SolidEnclosedAngle
+class EnclosedAzi
 {
   public:
     //!@{
     //! \name Type aliases
-    using SenseWedge = std::pair<Sense, InfWedge>;
+    using SenseWedge = std::pair<Sense, InfAziWedge>;
     //!@}
 
   public:
     //! Default to "all angles"
-    SolidEnclosedAngle() = default;
+    EnclosedAzi() = default;
 
-    // Construct from a starting angle and interior angle
-    SolidEnclosedAngle(Turn start, Turn interior);
+    // Construct from a starting angle and stop angle
+    EnclosedAzi(Turn start, Turn stop);
 
     // Construct a wedge shape to intersect (inside) or subtract (outside)
-    SenseWedge make_wedge() const;
+    SenseWedge make_sense_region() const;
 
     // Whether the enclosed angle is not a full circle
-    explicit inline operator bool() const;
+    constexpr explicit inline operator bool() const;
 
     //! Starting angle
     Turn start() const { return start_; }
 
-    //! Interior angle
-    Turn interior() const { return interior_; }
+    //! stop angle
+    Turn stop() const { return stop_; }
 
   private:
     Turn start_{0};
-    Turn interior_{1};
+    Turn stop_{1};
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Define the polar truncation of a solid.
+ *
+ * This subtracts up to two infinite cones centered along the z axis from the
+ * origin.
+ *
+ * A start angle of zero corresponding to the \em +z axis. An interior angle of
+ * 0.5 results in no exclusion from the resulting solid.
+ * \code
+  // Truncates a solid to the top hemisphere (no cones, just equatorial plane)
+  EnclosedPolar{Turn{0}, Turn{0.25}};
+  // Truncates a solid to northern latitudes (intersect two cones and a plane)
+  EnclosedPolar{Turn{0.15}, Turn{0.2}};
+  // Truncates a solid to an equatorial region (18 degrees N to 36 S: the union
+  // of two polar wedge cones)
+  EnclosedPolar{Turn{0.2}, Turn{0.35}};
+  \endcode
+ */
+class EnclosedPolar
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using VecPolarWedge = std::vector<InfPolarWedge>;
+    //!@}
+
+  public:
+    //! Default to "all angles"
+    EnclosedPolar() = default;
+
+    // Construct from a starting angle and stop angle
+    EnclosedPolar(Turn start, Turn stop);
+
+    // Construct one or two wedges to union then intersect with the solid
+    VecPolarWedge make_regions() const;
+
+    // Whether the enclosed angle is not a full circle
+    constexpr explicit inline operator bool() const;
+
+    //! Starting angle
+    Turn start() const { return start_; }
+
+    //! stop angle
+    Turn stop() const { return stop_; }
+
+  private:
+    Turn start_{0};
+    Turn stop_{0.5};
 };
 
 //---------------------------------------------------------------------------//
@@ -93,7 +145,10 @@ class SolidBase : public ObjectInterface
     virtual IntersectRegionInterface const* excluded() const = 0;
 
     //! Optional azimuthal angular restriction
-    virtual SolidEnclosedAngle enclosed_angle() const = 0;
+    virtual EnclosedAzi const& enclosed_azi() const = 0;
+
+    //! Optional polar angular restriction
+    virtual EnclosedPolar const& enclosed_polar() const = 0;
 
     ~SolidBase() override = default;
 
@@ -107,7 +162,13 @@ class SolidBase : public ObjectInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * A shape that is hollow, is truncated azimuthally, or both.
+ * A shape that has undergone an intersection or combination of intersections.
+ *
+ * This shape may be:
+ * A) hollow (excluded interior),
+ * B) truncated azimuthally (enclosed angle),
+ * C) truncated in z (intersected with z-slab),
+ * D) both A and B.
  *
  * Examples: \code
    // A cone with a thickness of 0.1
@@ -134,20 +195,16 @@ class Solid final : public SolidBase
     // Return a solid *or* shape given an optional interior or enclosed angle
     static SPConstObject or_shape(std::string&& label,
                                   T&& interior,
-                                  OptionalRegion&& excluded,
-                                  SolidEnclosedAngle&& enclosed);
+                                  OptionalRegion&& excluded = {},
+                                  EnclosedAzi&& enclosed = {},
+                                  EnclosedPolar&& polar = {});
 
-    // Construct with an excluded interior *and/or* enclosed angle
+    // Construct with everything
     Solid(std::string&& label,
           T&& interior,
           OptionalRegion&& excluded,
-          SolidEnclosedAngle&& enclosed);
-
-    // Construct with only an enclosed angle
-    Solid(std::string&& label, T&& interior, SolidEnclosedAngle&& enclosed);
-
-    // Construct with only an excluded interior
-    Solid(std::string&& label, T&& interior, T&& excluded);
+          EnclosedAzi&& enclosed,
+          EnclosedPolar&& polar);
 
     //! Get the user-provided label
     std::string_view label() const final { return label_; }
@@ -161,14 +218,18 @@ class Solid final : public SolidBase
     // Optional excluded
     IntersectRegionInterface const* excluded() const final;
 
-    //! Optional angular restriction
-    SolidEnclosedAngle enclosed_angle() const final { return enclosed_; }
+    //! Optional azimuthal restriction
+    EnclosedAzi const& enclosed_azi() const final { return azi_; }
+
+    //! Optional polar restriction
+    EnclosedPolar const& enclosed_polar() const final { return polar_; }
 
   private:
     std::string label_;
     T interior_;
     OptionalRegion exclusion_;
-    SolidEnclosedAngle enclosed_;
+    EnclosedAzi azi_;
+    EnclosedPolar polar_;
 };
 
 //---------------------------------------------------------------------------//
@@ -186,6 +247,7 @@ using ConeSolid = Solid<Cone>;
 using CylinderSolid = Solid<Cylinder>;
 using PrismSolid = Solid<Prism>;
 using SphereSolid = Solid<Sphere>;
+using EllipsoidSolid = Solid<Ellipsoid>;
 
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION
@@ -193,6 +255,7 @@ using SphereSolid = Solid<Sphere>;
 
 extern template class Solid<Cone>;
 extern template class Solid<Cylinder>;
+// TODO: hyperboloid
 extern template class Solid<Prism>;
 extern template class Solid<Sphere>;
 
@@ -201,10 +264,22 @@ extern template class Solid<Sphere>;
 //---------------------------------------------------------------------------//
 /*!
  * Whether the enclosed angle is not a full circle.
+ *
+ * Note that the constructor does not allow a full circle, so only the default
+ * constructor can set values of zero and 1.
  */
-SolidEnclosedAngle::operator bool() const
+constexpr EnclosedAzi::operator bool() const
 {
-    return interior_ != Turn{1};
+    return !(start_ == Turn{0} && stop_ == Turn{1});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the enclosed angle is less than the whole polar range.
+ */
+constexpr EnclosedPolar::operator bool() const
+{
+    return !(start_ == Turn{0} && stop_ == Turn{0.5});
 }
 
 //---------------------------------------------------------------------------//

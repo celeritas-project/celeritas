@@ -42,9 +42,18 @@ auto ComptonProcess::build_models(ActionIdIter start_id) const -> VecModel
 /*!
  * Get the interaction cross sections for the given energy range.
  */
-auto ComptonProcess::step_limits(Applicability applic) const -> StepLimitBuilders
+auto ComptonProcess::macro_xs(Applicability applic) const -> XsGrid
 {
-    return imported_.step_limits(std::move(applic));
+    return imported_.macro_xs(std::move(applic));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the energy loss for the given energy range.
+ */
+auto ComptonProcess::energy_loss(Applicability applic) const -> EnergyLossGrid
+{
+    return imported_.energy_loss(std::move(applic));
 }
 
 //---------------------------------------------------------------------------//

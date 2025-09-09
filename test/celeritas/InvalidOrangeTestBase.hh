@@ -42,11 +42,8 @@ namespace test
 class InvalidOrangeTestBase : virtual public SimpleTestBase
 {
   protected:
-    std::string_view geometry_basename() const override
-    {
-        return "<in-memory>";
-    }
-    SPConstGeo build_geometry() override;
+    std::string_view gdml_basename() const override { return "<in-memory>"; }
+    SPConstCoreGeo build_geometry() override;
     SPConstGeoMaterial build_geomaterial() override;
 };
 

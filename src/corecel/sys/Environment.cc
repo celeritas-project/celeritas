@@ -72,18 +72,20 @@ std::string const& getenv(std::string const& key)
 GetenvFlagResult getenv_flag(std::string const& key, bool default_val)
 {
     std::scoped_lock lock_{getenv_mutex()};
-    bool inserted = environment().insert({key, default_val ? "1" : "0"});
-    if (inserted)
+
+    std::string value;
+    if (char const* sys_value = std::getenv(key.c_str()))
     {
-        return {default_val, true};
+        // Variable is set in the user environment
+        value = sys_value;
     }
-    std::string const& result = environment()[key];
-    if (result.empty())
+    if (value.empty() && environment().insert({key, default_val ? "1" : "0"}))
     {
-        // Variable was queried but is empty
+        // Variable is empty
         return {default_val, true};
     }
 
+    std::string const& result = environment()[key];
     static char const* const true_str[] = {"1", "t", "yes", "true", "True"};
     if (std::find(std::begin(true_str), std::end(true_str), result)
         != std::end(true_str))

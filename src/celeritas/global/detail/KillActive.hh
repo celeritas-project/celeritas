@@ -8,9 +8,10 @@
 
 #include "corecel/Macros.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/global/CoreState.hh"
-#include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/track/SimTrackView.hh"
+
+#include "../CoreState.hh"
+#include "../CoreTrackView.hh"
 
 namespace celeritas
 {
@@ -44,7 +45,7 @@ void kill_active(CoreParams const& params, CoreState<MemSpace::device>& state);
 CELER_FUNCTION void
 KillActiveExecutor::operator()(celeritas::CoreTrackView& track)
 {
-    if (track.make_sim_view().status() != TrackStatus::inactive)
+    if (track.sim().status() != TrackStatus::inactive)
     {
         track.apply_errored();
     }

@@ -10,11 +10,10 @@
 #include <string>
 
 #include "corecel/Types.hh"
+#include "celeritas/GlobalTestBase.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/phys/Interaction.hh"
-
-#include "../GlobalTestBase.hh"
 
 namespace celeritas
 {

@@ -91,4 +91,31 @@ char const* to_cstring(NuclearFormFactorType value)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get a string corresponding to the wavelength shifting time model selection.
+ */
+char const* to_cstring(WlsTimeProfile value)
+{
+    static EnumStringMapper<WlsTimeProfile> const to_cstring_impl{
+        "delta",
+        "exponential",
+    };
+    return to_cstring_impl(value);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a string corresponding to the interpolation method.
+ */
+char const* to_cstring(InterpolationType value)
+{
+    static EnumStringMapper<InterpolationType> const to_cstring_impl{
+        "linear",
+        "poly_spline",
+        "cubic_spline",
+    };
+    return to_cstring_impl(value);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

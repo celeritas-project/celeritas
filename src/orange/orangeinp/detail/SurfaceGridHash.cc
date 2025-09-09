@@ -35,8 +35,8 @@ SurfaceGridHash::SurfaceGridHash(real_type grid_scale, real_type tol)
 /*!
  * Insert a new surface and hash point.
  */
-auto SurfaceGridHash::operator()(SurfaceType type,
-                                 real_type hash_point) const -> result_type
+auto SurfaceGridHash::operator()(SurfaceType type, real_type hash_point) const
+    -> result_type
 {
     // Insert the actual surface
     result_type result;
@@ -72,8 +72,8 @@ auto SurfaceGridHash::operator()(SurfaceType type,
  * is necessary to ensure the same "value" has surfaces that have all the same
  * type.</em>
  */
-auto SurfaceGridHash::calc_bin(SurfaceType type,
-                               real_type hash_point) const -> key_type
+auto SurfaceGridHash::calc_bin(SurfaceType type, real_type hash_point) const
+    -> key_type
 {
     auto grid_bin = std::floor((hash_point + grid_offset_) * inv_grid_width_);
     auto hash = hash_combine(grid_bin);

@@ -190,6 +190,9 @@ void IntersectSurfaceBuilder::shrink_exterior(BBox const& bbox)
 //---------------------------------------------------------------------------//
 /*!
  * Grow the interior local bounding box.
+ *
+ * This will also grow the exterior boxes to avoid any numerical truncation
+ * issues.
  */
 void IntersectSurfaceBuilder::grow_interior(BBox const& bbox)
 {
@@ -199,12 +202,20 @@ void IntersectSurfaceBuilder::grow_interior(BBox const& bbox)
         // Local
         BBox& interior = state_->local_bzone.interior;
         interior = calc_union(interior, bbox);
+        if (BBox& exterior = state_->local_bzone.exterior)
+        {
+            exterior = calc_union(interior, exterior);
+        }
     }
     {
         // Global
         BBox& interior = state_->global_bzone.interior;
         interior
             = calc_union(interior, apply_transform(*state_->transform, bbox));
+        if (BBox& exterior = state_->global_bzone.exterior)
+        {
+            exterior = calc_union(interior, exterior);
+        }
     }
 }
 

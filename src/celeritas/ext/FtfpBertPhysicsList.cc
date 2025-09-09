@@ -8,7 +8,6 @@
 
 #include <memory>
 #include <G4DecayPhysics.hh>
-#include <G4EmExtraPhysics.hh>
 #include <G4EmStandardPhysics.hh>
 #include <G4HadronElasticPhysics.hh>
 #include <G4HadronPhysicsFTFP_BERT.hh>
@@ -18,10 +17,10 @@
 #include <G4ios.hh>
 
 #include "celeritas/Quantities.hh"
+#include "celeritas/g4/SupportedEmStandardPhysics.hh"
+#include "celeritas/g4/SupportedOpticalPhysics.hh"
 
 #include "detail/EmStandardPhysics.hh"
-#include "detail/MuHadEmStandardPhysics.hh"
-#include "detail/OpticalPhysics.hh"
 #include "detail/PhysicsListUtils.hh"
 
 namespace celeritas
@@ -39,20 +38,17 @@ FtfpBertPhysicsList::FtfpBertPhysicsList(Options const& options)
     this->SetDefaultCutValue(
         native_value_to<ClhepLen>(options.default_cutoff).value());
 
-    // Celeritas-supported EM physics
+    // Add celeritas EM physics plus additional mu/hadron
     detail::emplace_physics<detail::EmStandardPhysics>(*this, options);
 
-    // Celeritas-supported Optical Physics
     if (options.optical)
     {
-        detail::emplace_physics<detail::OpticalPhysics>(*this, options.optical);
+        // Celeritas-supported Optical Physics
+        detail::emplace_physics<SupportedOpticalPhysics>(*this,
+                                                         options.optical);
     }
 
-    // Muon and hadrom EM standard physics not supported in Celeritas
-    detail::emplace_physics<detail::MuHadEmStandardPhysics>(*this, verbosity);
-
-    // Synchroton radiation & GN physics
-    detail::emplace_physics<G4EmExtraPhysics>(*this, verbosity);
+    // TODO: Add a physics constructor equivalent to G4EmExtraPhysics
 
     // Decays
     detail::emplace_physics<G4DecayPhysics>(*this, verbosity);

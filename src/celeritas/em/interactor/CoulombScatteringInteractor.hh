@@ -32,14 +32,17 @@ namespace celeritas
  *
  * This models incident high-energy electrons and positrons elastically
  * scattering off of nuclei and atomic electrons. Scattering off of the nucleus
- * versus electrons is randomly sampled based on the relative cross-sections.
- * No secondaries are created in this process (in the future, with hadronic
- * transport support, secondary ions may be emitted), however production cuts
+ * versus electrons is randomly sampled based on the relative cross-sections
+ * (see \c celeritas::WentzelHelper).
+ * Production cuts
  * are used to determine the maximum scattering angle off of electrons.
  *
  * \note This performs the same sampling as in Geant4's
  *  G4eCoulombScatteringModel, as documented in section 8.2 of the Geant4
  *  Physics Reference Manual (release 11.1).
+ *
+ * \todo When hadronic EM processes are supported, this should be extended to
+ * emit secondary ions.
  */
 class CoulombScatteringInteractor
 {
@@ -147,7 +150,7 @@ CELER_FUNCTION Interaction CoulombScatteringInteractor::operator()(Engine& rng)
     real_type cos_theta = sample_angle_(rng);
     result.direction = ExitingDirectionSampler{cos_theta, inc_direction_}(rng);
 
-    // Recoil energy is kinetic energy transfered to the atom
+    // Recoil energy is kinetic energy transferred to the atom
     real_type inc_energy = value_as<Energy>(particle_.energy());
     real_type recoil_energy = this->calc_recoil_energy(cos_theta);
     CELER_ASSERT(0 <= recoil_energy && recoil_energy <= inc_energy);

@@ -36,15 +36,28 @@ CELER_FUNCTION void AlongStepExecutor::operator()(CoreTrackView& track)
 {
     auto sim = track.sim();
 
-    // Update time
-    sim.add_time(sim.step_length() / constants::c_light);
-
     CELER_ASSERT(sim.status() == TrackStatus::alive);
     CELER_ASSERT(sim.step_length() > 0);
     CELER_ASSERT(sim.post_step_action());
 
-    // TODO: update step count and check max step cut
-    // TODO: reduce MFP by step * xs
+    // Update time
+    sim.add_time(sim.step_length() / constants::c_light);
+
+    // Increment the step counter
+    //! \todo Add max step cut
+    sim.increment_num_steps();
+
+    // Update remaining MFPs to interaction
+    auto phys = track.physics();
+    if (sim.post_step_action() != phys.discrete_action())
+    {
+        // Reduce remaining mean free paths to travel. The 'discrete action'
+        // case is launched separately and resets the interaction MFP itself.
+        real_type mfp = phys.interaction_mfp()
+                        - sim.step_length() * phys.macro_xs();
+        CELER_ASSERT(mfp > 0);
+        phys.interaction_mfp(mfp);
+    }
 }
 
 //---------------------------------------------------------------------------//

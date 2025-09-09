@@ -10,10 +10,10 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/grid/NonuniformGridData.hh"
 #include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/GenericGridData.hh"
 
 namespace celeritas
 {
@@ -36,7 +36,7 @@ struct LivermoreSubshell
     Energy binding_energy;
 
     // Tabulated subshell photoionization cross section (used below 5 keV)
-    GenericGridRecord xs;
+    NonuniformGridRecord xs;
 
     // Fit parameters for the integrated subshell photoionization cross
     // sections in the two different energy ranges (used above 5 keV)
@@ -60,12 +60,12 @@ struct LivermoreElement
     // TOTAL CROSS SECTIONS
 
     // Total cross section below the K-shell energy. Uses linear interpolation.
-    GenericGridRecord xs_lo;
+    NonuniformGridRecord xs_lo;
 
     // Total cross section above the K-shell energy but below the energy
     // threshold for the parameterized cross sections. Uses spline
     // interpolation.
-    GenericGridRecord xs_hi;
+    NonuniformGridRecord xs_hi;
 
     // SUBSHELL CROSS SECTIONS
 
@@ -75,6 +75,12 @@ struct LivermoreElement
     // the lower and upper energy range
     Energy thresh_lo;  //!< Use tabulated XS below this energy
     Energy thresh_hi;  //!< Use lower parameterization below, upper above
+
+    //! Energy below which cross sections are calculated on the fly
+    static CELER_CONSTEXPR_FUNCTION Energy tabulated_threshold()
+    {
+        return Energy{0.2};
+    }
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
@@ -179,10 +185,6 @@ struct LivermorePEData
         return *this;
     }
 };
-
-using LivermorePEDeviceRef = DeviceCRef<LivermorePEData>;
-using LivermorePEHostRef = HostCRef<LivermorePEData>;
-using LivermorePERef = NativeCRef<LivermorePEData>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

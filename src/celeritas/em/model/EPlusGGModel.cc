@@ -58,7 +58,7 @@ auto EPlusGGModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto EPlusGGModel::micro_xs(Applicability) const -> MicroXsBuilders
+auto EPlusGGModel::micro_xs(Applicability) const -> XsTable
 {
     // Discrete interaction is material independent, so no element is sampled
     return {};

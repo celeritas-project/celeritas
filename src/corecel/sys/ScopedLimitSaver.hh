@@ -8,8 +8,6 @@
 
 #include <cstddef>
 
-#include "corecel/DeviceRuntimeApi.hh"
-
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
@@ -22,7 +20,8 @@ namespace celeritas
  * Save and restore CUDA limits inside the current scope.
  *
  * This is useful for calling poorly behaved external libraries that change
- * CUDA limits unexpectedly.
+ * CUDA limits unexpectedly. We don't use this with HIP because it's only
+ * needed at present for VecGeom.
  */
 class ScopedLimitSaver
 {
@@ -36,14 +35,6 @@ class ScopedLimitSaver
     //!@}
 
   private:
-#if CELER_USE_DEVICE
-    using Limit_t = CELER_DEVICE_PREFIX(Limit);
-#else
-    using Limit_t = int;
-#endif
-
-    static Array<Limit_t, 2> const cuda_attrs_;
-    static Array<char const*, 2> const cuda_attr_labels_;
     Array<std::size_t, 2> orig_limits_;
 };
 
@@ -55,9 +46,10 @@ class ScopedLimitSaver
 inline ScopedLimitSaver::ScopedLimitSaver()
 {
     CELER_DISCARD(orig_limits_);
-#    if CELERITAS_USE_HIP
-    CELER_NOT_IMPLEMENTED("HIP limit restoration");
-#    endif
+    if constexpr (CELERITAS_USE_HIP)
+    {
+        CELER_NOT_IMPLEMENTED("HIP limit restoration");
+    }
 }
 
 // Destruction is a null-op since we only save with CUDA

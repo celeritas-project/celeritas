@@ -52,7 +52,7 @@ __global__ void vgg_test_kernel(DeviceCRef<VecgeomParamsData> const params,
         ids[tid.get() * max_segments + seg]
             = (geo.is_outside()
                    ? -2
-                   : static_cast<int>(geo.volume_id().unchecked_get()));
+                   : static_cast<int>(geo.impl_volume_id().unchecked_get()));
         distances[tid.get() * max_segments + seg] = next.distance;
 
         if (geo.is_outside())
@@ -87,7 +87,7 @@ VGGTestOutput vgg_test(VGGTestInput const& input)
                         raw_pointer_cast(ids.data()),
                         raw_pointer_cast(distances.data()));
 
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_DEVICE_API_CALL(DeviceSynchronize());
 
     // Copy result back to CPU
     VGGTestOutput result;

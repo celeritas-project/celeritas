@@ -22,6 +22,13 @@ void convert(char const* label,
              json* result,
              ::testing::AssertionResult* failure)
 {
+    if (s.empty())
+    {
+        *failure = ::testing::AssertionFailure();
+        (*failure) << label << " is an empty string";
+        return;
+    }
+
     try
     {
         *result = json::parse(s.begin(), s.end());

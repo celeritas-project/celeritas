@@ -1,6 +1,5 @@
-//---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------ -*- cuda -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/user/DetectorSteps.cu
@@ -154,8 +153,10 @@ void copy_steps<MemSpace::device>(
 
     DS_ASSIGN(event_id);
     DS_ASSIGN(parent_id);
+    DS_ASSIGN(primary_id);
     DS_ASSIGN(track_step_count);
     DS_ASSIGN(step_length);
+    DS_ASSIGN(weight);
     DS_ASSIGN(particle);
     DS_ASSIGN(energy_deposition);
 
@@ -164,7 +165,7 @@ void copy_steps<MemSpace::device>(
 #undef DS_ASSIGN
 
     // Copies must be complete before returning
-    CELER_DEVICE_CALL_PREFIX(
+    CELER_DEVICE_API_CALL(
         StreamSynchronize(celeritas::device().stream(state.stream_id).get()));
 
     CELER_ENSURE(output->detector.size() == num_valid);

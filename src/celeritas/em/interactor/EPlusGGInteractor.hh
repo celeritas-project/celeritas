@@ -11,15 +11,15 @@
 #include "corecel/data/StackAllocator.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/random/distribution/BernoulliDistribution.hh"
+#include "corecel/random/distribution/ReciprocalDistribution.hh"
+#include "geocel/random/IsotropicDistribution.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/EPlusGGData.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/InteractionUtils.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
-#include "celeritas/random/distribution/IsotropicDistribution.hh"
-#include "celeritas/random/distribution/ReciprocalDistribution.hh"
 
 namespace celeritas
 {

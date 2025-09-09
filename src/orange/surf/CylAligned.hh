@@ -219,7 +219,8 @@ template<Axis T>
 CELER_FUNCTION auto
 CylAligned<T>::calc_intersections(Real3 const& pos,
                                   Real3 const& dir,
-                                  SurfaceState on_surface) const -> Intersections
+                                  SurfaceState on_surface) const
+    -> Intersections
 {
     // 1 - \omega \dot e
     real_type const a = 1 - ipow<2>(dir[to_int(T)]);

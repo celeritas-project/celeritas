@@ -9,9 +9,9 @@
 #include <map>
 
 #include "corecel/Config.hh"
+#include "corecel/DeviceRuntimeApi.hh"
 
 #include "Device.hh"
-#include "Stream.hh"
 
 namespace celeritas
 {
@@ -40,10 +40,8 @@ void to_json(nlohmann::json& j, Device const& d)
             CELER_DIO_PAIR(num_devices),
         };
 
-        j["platform"] = CELERITAS_USE_CUDA  ? "cuda"
-                        : CELERITAS_USE_HIP ? "hip"
-                                            : "none";
-        j["stream_async"] = Stream::async();
+        j["platform"] = CELER_DEVICE_PLATFORM_UPPER_STR;
+        j["async"] = Device::async();
 
         for (auto const& kv : d.extra())
         {

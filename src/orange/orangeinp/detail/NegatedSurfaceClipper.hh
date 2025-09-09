@@ -6,6 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "geocel/BoundingBox.hh"
+#include "orange/surf/PlaneAligned.hh"
+
 #include "BoundingZone.hh"
 
 namespace celeritas
@@ -34,6 +37,8 @@ class NegatedSurfaceClipper
   public:
     // Construct with the bounding zone to clip
     explicit inline NegatedSurfaceClipper(BoundingZone* bz);
+    // Construct with interior/exterior
+    inline NegatedSurfaceClipper(BBox* interior, BBox* exterior);
 
     //! Clip axis-aligned planes.
     template<Axis T>
@@ -50,7 +55,8 @@ class NegatedSurfaceClipper
     }
 
   private:
-    BoundingZone* bzone_;
+    BBox* interior_{nullptr};
+    BBox* exterior_{nullptr};
 
     // Clip based on the given orthogonal plane
     inline void clip_impl(Axis ax, real_type pos);
@@ -63,9 +69,20 @@ class NegatedSurfaceClipper
 /*!
  * Construct with the bounding zone to clip.
  */
-NegatedSurfaceClipper::NegatedSurfaceClipper(BoundingZone* bz) : bzone_{bz}
+NegatedSurfaceClipper::NegatedSurfaceClipper(BoundingZone* bz)
+    : interior_{&bz->interior}, exterior_{&bz->exterior}
 {
-    CELER_EXPECT(bzone_);
+    CELER_EXPECT(bz && interior_ && exterior_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with explicit but optional bounding boxes
+ */
+NegatedSurfaceClipper::NegatedSurfaceClipper(BBox* interior, BBox* exterior)
+    : interior_{interior}, exterior_{exterior}
+{
+    CELER_EXPECT(interior_ || exterior_);
 }
 
 //---------------------------------------------------------------------------//
@@ -74,8 +91,14 @@ NegatedSurfaceClipper::NegatedSurfaceClipper(BoundingZone* bz) : bzone_{bz}
  */
 void NegatedSurfaceClipper::clip_impl(Axis ax, real_type pos)
 {
-    bzone_->interior.shrink(Bound::lo, ax, pos);
-    bzone_->exterior.shrink(Bound::lo, ax, pos);
+    if (interior_)
+    {
+        interior_->shrink(Bound::lo, ax, pos);
+    }
+    if (exterior_)
+    {
+        exterior_->shrink(Bound::lo, ax, pos);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -84,7 +107,10 @@ void NegatedSurfaceClipper::clip_impl(Axis ax, real_type pos)
  */
 void NegatedSurfaceClipper::invalidate()
 {
-    bzone_->interior = {};
+    if (interior_)
+    {
+        *interior_ = {};
+    }
 }
 
 //---------------------------------------------------------------------------//

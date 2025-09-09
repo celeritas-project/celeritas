@@ -43,7 +43,7 @@ class Model : public OpticalStepActionInterface, public ConcreteAction
     StepActionOrder order() const override { return StepActionOrder::post; }
 
     //! Build mean free path grids for all optical materials
-    virtual void build_mfps(OpticalMaterialId mat, MfpBuilder& build) const = 0;
+    virtual void build_mfps(OptMatId mat, MfpBuilder& build) const = 0;
 };
 
 //---------------------------------------------------------------------------//

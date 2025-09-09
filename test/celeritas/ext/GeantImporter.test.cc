@@ -14,13 +14,13 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Version.hh"
 #include "geocel/UnitUtils.hh"
+#include "celeritas/GeantTestBase.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "celeritas_test.hh"
-#include "../GeantTestBase.hh"
 
 namespace celeritas
 {
@@ -54,7 +54,7 @@ real_type to_sec(real_type v)
     return native_value_to<RealQuantity<Second>>(v).value();
 }
 
-auto const geant4_version = Version::from_string(celeritas_geant4_version);
+auto const geant4_version = Version::from_string(cmake::geant4_version);
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -195,26 +195,27 @@ auto GeantImporterTest::summarize(VecModelMaterial const& materials) const
     ImportXsSummary result;
     for (auto const& mat : materials)
     {
-        result.size.push_back(mat.energy.size());
-        result.energy.push_back(mat.energy.front());
-        result.energy.push_back(mat.energy.back());
+        result.size.push_back(
+            mat.micro_xs.empty() ? 0 : mat.micro_xs.front().y.size());
+        result.energy.push_back(mat.energy[Bound::lo]);
+        result.energy.push_back(mat.energy[Bound::hi]);
     }
 
     // Skip export of first material, which is usually vacuum
-    auto mat_iter = materials.begin();
-    for (auto const& xs_vec : mat_iter->micro_xs)
+    std::size_t mat_idx = 0;
+    for (auto const& xs_vec : materials[mat_idx].micro_xs)
     {
-        EXPECT_EQ(mat_iter->energy.size(), xs_vec.size());
+        EXPECT_EQ(result.size[mat_idx], xs_vec.y.size());
     }
-    ++mat_iter;
+    ++mat_idx;
 
-    for (; mat_iter != materials.end(); ++mat_iter)
+    for (; mat_idx < materials.size(); ++mat_idx)
     {
-        for (auto const& xs_vec : mat_iter->micro_xs)
+        for (auto const& xs_vec : materials[mat_idx].micro_xs)
         {
-            EXPECT_EQ(mat_iter->energy.size(), xs_vec.size());
-            result.xs.push_back(xs_vec.front() / barn);
-            result.xs.push_back(xs_vec.back() / barn);
+            EXPECT_EQ(result.size[mat_idx], xs_vec.y.size());
+            result.xs.push_back(xs_vec.y.front() / barn);
+            result.xs.push_back(xs_vec.y.back() / barn);
         }
     }
     return result;
@@ -238,7 +239,7 @@ void GeantImporterTest::ImportXsSummary::print_expected() const
 //---------------------------------------------------------------------------//
 class FourSteelSlabsEmStandard : public GeantImporterTest
 {
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "four-steel-slabs"sv;
     }
@@ -256,7 +257,7 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
             nlohmann::json out = opts;
             out.erase("_version");
             EXPECT_JSON_EQ(
-                R"json({"_format":"geant-physics","_units":"cgs","angle_limit_factor":1.0,"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"form_factor":"exponential","gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lowest_muhad_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","msc_displaced":true,"msc_lambda_limit":0.1,"msc_muhad_displaced":false,"msc_muhad_range_factor":0.2,"msc_muhad_step_algorithm":"minimal","msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","msc_theta_limit":3.141592653589793,"muon":{"bremsstrahlung":true,"coulomb":false,"ionization":true,"msc":"none","pair_production":true},"optical":null,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","verbose":true})json",
+                R"json({"_format":"geant-physics","_units":"cgs","angle_limit_factor":1.0,"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"form_factor":"exponential","gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lowest_muhad_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","msc_displaced":true,"msc_lambda_limit":0.1,"msc_muhad_displaced":false,"msc_muhad_range_factor":0.2,"msc_muhad_step_algorithm":"minimal","msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","msc_theta_limit":3.141592653589793,"muon":{"bremsstrahlung":true,"coulomb":false,"ionization":true,"msc":"none","pair_production":true},"optical":null,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","seltzer_berger_limit":[1000.0,"MeV"],"verbose":true})json",
                 std::string(out.dump()));
         }
         return opts;
@@ -267,7 +268,7 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
 class TestEm3 : public GeantImporterTest
 {
   protected:
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "testem3-flat"sv;
     }
@@ -286,7 +287,7 @@ class TestEm3 : public GeantImporterTest
 class OneSteelSphere : public GeantImporterTest
 {
   protected:
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "one-steel-sphere"sv;
     }
@@ -326,17 +327,15 @@ class OneSteelSphereGG : public OneSteelSphere
 class LarSphere : public GeantImporterTest
 {
   protected:
-    std::string_view geometry_basename() const override
-    {
-        return "lar-sphere"sv;
-    }
+    std::string_view gdml_basename() const override { return "lar-sphere"sv; }
 
     GeantPhysicsOptions build_geant_options() const override
     {
         auto opts = GeantImporterTest::build_geant_options();
         opts.optical.absorption = true;
         opts.optical.rayleigh_scattering = true;
-        opts.optical.wavelength_shifting = WLSTimeProfileSelection::delta;
+        opts.optical.wavelength_shifting.enable = true;
+        opts.optical.wavelength_shifting2.enable = true;
         return opts;
     }
 };
@@ -345,7 +344,7 @@ class LarSphere : public GeantImporterTest
 class LarSphereExtramat : public GeantImporterTest
 {
   protected:
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "lar-sphere-extramat"sv;
     }
@@ -355,6 +354,24 @@ class LarSphereExtramat : public GeantImporterTest
         auto opts = GeantImporterTest::build_geant_options();
         opts.optical.absorption = true;
         opts.optical.rayleigh_scattering = true;
+        opts.optical.wavelength_shifting.enable = true;
+        opts.optical.wavelength_shifting2.enable = true;
+        return opts;
+    }
+};
+
+//---------------------------------------------------------------------------//
+class OpticalSurfaces : public GeantImporterTest
+{
+  protected:
+    std::string_view gdml_basename() const override
+    {
+        return "optical-surfaces"sv;
+    }
+
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        auto opts = GeantImporterTest::build_geant_options();
         return opts;
     }
 };
@@ -363,7 +380,7 @@ class LarSphereExtramat : public GeantImporterTest
 class Solids : public GeantImporterTest
 {
   protected:
-    std::string_view geometry_basename() const override { return "solids"sv; }
+    std::string_view gdml_basename() const override { return "solids"sv; }
 
     GeantPhysicsOptions build_geant_options() const override
     {
@@ -704,61 +721,38 @@ TEST_F(FourSteelSlabsEmStandard, eioni)
         EXPECT_EQ(ImportModelClass::moller_bhabha, model.model_class);
         for (auto const& m : model.materials)
         {
-            EXPECT_EQ(2, m.energy.size());
             EXPECT_EQ(0, m.micro_xs.size());
         }
     }
 
-    auto const& tables = proc.tables;
-    ASSERT_EQ(3, tables.size());
+    EXPECT_TRUE(proc.dedx);
+    EXPECT_TRUE(proc.lambda);
+    EXPECT_FALSE(proc.lambda_prim);
     {
         // Test energy loss table
-        ImportPhysicsTable const& dedx = tables[0];
-        ASSERT_EQ(ImportTableType::dedx, dedx.table_type);
+        ImportPhysicsTable const& dedx = proc.dedx;
         EXPECT_EQ(ImportUnits::mev, dedx.x_units);
         EXPECT_EQ(ImportUnits::mev_per_cm, dedx.y_units);
-        ASSERT_EQ(2, dedx.physics_vectors.size());
+        ASSERT_EQ(2, dedx.grids.size());
 
-        ImportPhysicsVector const& steel = dedx.physics_vectors.back();
-        EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
-        ASSERT_EQ(steel.x.size(), steel.y.size());
-        ASSERT_EQ(85, steel.x.size());
-        EXPECT_SOFT_EQ(1e-4, steel.x.front());
-        EXPECT_SOFT_EQ(1e8, steel.x.back());
+        auto const& steel = dedx.grids.back();
+        ASSERT_EQ(85, steel.y.size());
+        EXPECT_SOFT_EQ(1e-4, std::exp(steel.x[Bound::lo]));
+        EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
         EXPECT_SOFT_NEAR(839.66835335480653, to_inv_cm(steel.y.front()), tol);
         EXPECT_SOFT_NEAR(11.378226755591747, to_inv_cm(steel.y.back()), tol);
     }
     {
-        // Test range table
-        ImportPhysicsTable const& range = tables[1];
-        ASSERT_EQ(ImportTableType::range, range.table_type);
-        EXPECT_EQ(ImportUnits::mev, range.x_units);
-        EXPECT_EQ(ImportUnits::cm, range.y_units);
-        ASSERT_EQ(2, range.physics_vectors.size());
-
-        ImportPhysicsVector const& steel = range.physics_vectors.back();
-        EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
-        ASSERT_EQ(steel.x.size(), steel.y.size());
-        ASSERT_EQ(85, steel.x.size());
-        EXPECT_SOFT_EQ(1e-4, steel.x.front());
-        EXPECT_SOFT_EQ(1e8, steel.x.back());
-        EXPECT_SOFT_NEAR(2.3818927937550707e-07, to_cm(steel.y.front()), tol);
-        EXPECT_SOFT_NEAR(8788715.7877501156, to_cm(steel.y.back()), tol);
-    }
-    {
         // Test cross-section table
-        ImportPhysicsTable const& xs = tables[2];
-        ASSERT_EQ(ImportTableType::lambda, xs.table_type);
-        EXPECT_EQ(ImportUnits::mev, xs.x_units);
-        EXPECT_EQ(ImportUnits::cm_inv, xs.y_units);
-        ASSERT_EQ(2, xs.physics_vectors.size());
+        ImportPhysicsTable const& lambda = proc.lambda;
+        EXPECT_EQ(ImportUnits::mev, lambda.x_units);
+        EXPECT_EQ(ImportUnits::cm_inv, lambda.y_units);
+        ASSERT_EQ(2, lambda.grids.size());
 
-        ImportPhysicsVector const& steel = xs.physics_vectors.back();
-        EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
-        ASSERT_EQ(steel.x.size(), steel.y.size());
-        ASSERT_EQ(54, steel.x.size());
-        EXPECT_SOFT_NEAR(2.616556310615175, steel.x.front(), tol);
-        EXPECT_SOFT_EQ(1e8, steel.x.back());
+        auto const& steel = lambda.grids.back();
+        ASSERT_EQ(54, steel.y.size());
+        EXPECT_SOFT_NEAR(2.616556310615175, std::exp(steel.x[Bound::lo]), tol);
+        EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
         EXPECT_SOFT_EQ(0, steel.y.front());
         EXPECT_SOFT_NEAR(0.1905939505829807, to_inv_cm(steel.y[1]), tol);
         EXPECT_SOFT_NEAR(0.4373910150880348, to_inv_cm(steel.y.back()), tol);
@@ -868,9 +862,9 @@ TEST_F(FourSteelSlabsEmStandard, anni)
 
     EXPECT_EQ(2, model.materials.size());
     auto result = summarize(model.materials);
-    static unsigned int const expected_size[] = {2u, 2u};
     static double const expected_energy[]
         = {0.0001, 100000000, 0.0001, 100000000};
+    static unsigned int const expected_size[] = {0, 0};
     EXPECT_VEC_EQ(expected_size, result.size);
     EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
     EXPECT_TRUE(result.xs.empty());
@@ -896,7 +890,7 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
 
         auto result = summarize(model.materials);
         EXPECT_TRUE(result.xs.empty());
-        static unsigned int const expected_size[] = {2u, 2u};
+        static unsigned int const expected_size[] = {0, 0};
         EXPECT_VEC_EQ(expected_size, result.size);
         static double const expected_energy[] = {0.0001, 0.2, 0.0001, 0.2};
         EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
@@ -908,7 +902,7 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
 
         auto result = summarize(model.materials);
         EXPECT_TRUE(result.xs.empty());
-        static unsigned int const expected_size[] = {2u, 2u};
+        static unsigned int const expected_size[] = {0, 0};
         EXPECT_VEC_EQ(expected_size, result.size);
         static double const expected_energy[] = {0.2, 1000, 0.2, 1000};
         EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
@@ -919,7 +913,7 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
 
         auto result = summarize(model.materials);
         EXPECT_TRUE(result.xs.empty());
-        static unsigned int const expected_size[] = {2u, 2u};
+        static unsigned int const expected_size[] = {0, 0};
         EXPECT_VEC_EQ(expected_size, result.size);
         if (geant4_version < Version(11, 1, 0))
         {
@@ -935,56 +929,34 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
         }
     }
 
-    auto const& tables = mu_minus.tables;
-    ASSERT_EQ(3, tables.size());
+    EXPECT_TRUE(mu_minus.dedx);
+    EXPECT_TRUE(mu_minus.lambda);
+    EXPECT_FALSE(mu_minus.lambda_prim);
     {
         // Test energy loss table
-        ImportPhysicsTable const& dedx = tables[0];
-        ASSERT_EQ(ImportTableType::dedx, dedx.table_type);
+        ImportPhysicsTable const& dedx = mu_minus.dedx;
         EXPECT_EQ(ImportUnits::mev, dedx.x_units);
         EXPECT_EQ(ImportUnits::mev_per_cm, dedx.y_units);
-        ASSERT_EQ(2, dedx.physics_vectors.size());
+        ASSERT_EQ(2, dedx.grids.size());
 
-        ImportPhysicsVector const& steel = dedx.physics_vectors.back();
-        EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
-        ASSERT_EQ(steel.x.size(), steel.y.size());
-        ASSERT_EQ(85, steel.x.size());
-        EXPECT_SOFT_EQ(1e-4, steel.x.front());
-        EXPECT_SOFT_EQ(1e8, steel.x.back());
+        auto const& steel = dedx.grids.back();
+        ASSERT_EQ(85, steel.y.size());
+        EXPECT_SOFT_EQ(1e-4, std::exp(steel.x[Bound::lo]));
+        EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
         EXPECT_SOFT_NEAR(83.221648535690946, to_inv_cm(steel.y.front()), tol);
         EXPECT_SOFT_NEAR(11.40198961519433, to_inv_cm(steel.y.back()), tol);
     }
     {
-        // Test range table
-        ImportPhysicsTable const& range = tables[1];
-        ASSERT_EQ(ImportTableType::range, range.table_type);
-        EXPECT_EQ(ImportUnits::mev, range.x_units);
-        EXPECT_EQ(ImportUnits::cm, range.y_units);
-        ASSERT_EQ(2, range.physics_vectors.size());
-
-        ImportPhysicsVector const& steel = range.physics_vectors.back();
-        EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
-        ASSERT_EQ(steel.x.size(), steel.y.size());
-        ASSERT_EQ(85, steel.x.size());
-        EXPECT_SOFT_EQ(1e-4, steel.x.front());
-        EXPECT_SOFT_EQ(1e8, steel.x.back());
-        EXPECT_SOFT_NEAR(2.4032208387968519e-06, to_cm(steel.y.front()), tol);
-        EXPECT_SOFT_NEAR(8772935.4124113899, to_cm(steel.y.back()), tol);
-    }
-    {
         // Test cross-section table
-        ImportPhysicsTable const& xs = tables[2];
-        ASSERT_EQ(ImportTableType::lambda, xs.table_type);
+        ImportPhysicsTable const& xs = mu_minus.lambda;
         EXPECT_EQ(ImportUnits::mev, xs.x_units);
         EXPECT_EQ(ImportUnits::cm_inv, xs.y_units);
-        ASSERT_EQ(2, xs.physics_vectors.size());
+        ASSERT_EQ(2, xs.grids.size());
 
-        ImportPhysicsVector const& steel = xs.physics_vectors.back();
-        EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
-        ASSERT_EQ(steel.x.size(), steel.y.size());
-        ASSERT_EQ(45, steel.x.size());
-        EXPECT_SOFT_NEAR(54.542938808612199, steel.x.front(), tol);
-        EXPECT_SOFT_EQ(1e8, steel.x.back());
+        auto const& steel = xs.grids.back();
+        ASSERT_EQ(45, steel.y.size());
+        EXPECT_SOFT_NEAR(54.542938808612199, std::exp(steel.x[Bound::lo]), tol);
+        EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
         EXPECT_SOFT_EQ(0, steel.y.front());
         EXPECT_SOFT_NEAR(0.10167398809855273, to_inv_cm(steel.y[1]), tol);
         EXPECT_SOFT_NEAR(0.47315182268065914, to_inv_cm(steel.y.back()), tol);
@@ -1022,18 +994,20 @@ TEST_F(FourSteelSlabsEmStandard, volumes)
     }
 
     unsigned int const expected_material_ids[] = {1, 1, 1, 1, 0};
-
-    static char const* expected_names[] = {"box0x125555be0",
-                                           "box0x125556d20",
-                                           "box0x125557160",
-                                           "box0x1255575a0",
-                                           "World0x125555f10"};
-
-    static char const* expected_solids[] = {"box0x125555b70",
-                                            "box0x125556c70",
-                                            "box0x1255570a0",
-                                            "box0x125557500",
-                                            "World0x125555ea0"};
+    static char const* expected_names[] = {
+        "box@0",
+        "box@1",
+        "box@2",
+        "box@3",
+        "World",
+    };
+    static char const* expected_solids[] = {
+        "box",
+        "box",
+        "box",
+        "box",
+        "World",
+    };
 
     EXPECT_VEC_EQ(expected_material_ids, material_ids);
     EXPECT_VEC_EQ(expected_names, names);
@@ -1133,13 +1107,13 @@ TEST_F(FourSteelSlabsEmStandard, mu_pair_production_data)
     int const expected_atomic_number[] = {1, 4, 13, 29, 92};
     EXPECT_VEC_EQ(expected_atomic_number, data.atomic_number);
 
-    EXPECT_EQ(5, data.physics_vectors.size());
+    EXPECT_EQ(5, data.grids.size());
 
     std::vector<double> table_x;
     std::vector<double> table_y;
     std::vector<double> table_value;
 
-    for (auto const& pv : data.physics_vectors)
+    for (auto const& pv : data.grids)
     {
         table_x.push_back(pv.x.front());
         table_y.push_back(pv.y.front());
@@ -1229,15 +1203,15 @@ TEST_F(FourSteelSlabsEmStandard, livermore_pe_data)
         shell_binding_energy.push_back(shells_front.binding_energy);
         shell_binding_energy.push_back(shells_back.binding_energy);
 
-        shell_xs.push_back(shells_front.xs.front());
-        shell_xs.push_back(shells_front.xs.back());
-        shell_energy.push_back(shells_front.energy.front());
-        shell_energy.push_back(shells_front.energy.back());
+        shell_xs.push_back(shells_front.xs.y.front());
+        shell_xs.push_back(shells_front.xs.y.back());
+        shell_energy.push_back(shells_front.xs.x.front());
+        shell_energy.push_back(shells_front.xs.x.back());
 
-        shell_xs.push_back(shells_back.xs.front());
-        shell_xs.push_back(shells_back.xs.back());
-        shell_energy.push_back(shells_back.energy.front());
-        shell_energy.push_back(shells_back.energy.back());
+        shell_xs.push_back(shells_back.xs.y.front());
+        shell_xs.push_back(shells_back.xs.y.back());
+        shell_energy.push_back(shells_back.xs.x.front());
+        shell_energy.push_back(shells_back.xs.x.back());
     }
 
     int const expected_atomic_numbers[] = {1, 24, 26, 28};
@@ -1427,11 +1401,11 @@ TEST_F(TestEm3, volume_names)
     std::vector<std::string> names;
     for (auto const& volume : volumes)
     {
-        names.push_back(this->genericize_pointers(volume.name));
+        names.push_back(volume.name);
     }
 
     // clang-format off
-    static std::string const expected_names[] = {"gap_00x0", "absorber_00x0", "gap_10x0", "absorber_10x0", "gap_20x0", "absorber_20x0", "gap_30x0", "absorber_30x0", "gap_40x0", "absorber_40x0", "gap_50x0", "absorber_50x0", "gap_60x0", "absorber_60x0", "gap_70x0", "absorber_70x0", "gap_80x0", "absorber_80x0", "gap_90x0", "absorber_90x0", "gap_100x0", "absorber_100x0", "gap_110x0", "absorber_110x0", "gap_120x0", "absorber_120x0", "gap_130x0", "absorber_130x0", "gap_140x0", "absorber_140x0", "gap_150x0", "absorber_150x0", "gap_160x0", "absorber_160x0", "gap_170x0", "absorber_170x0", "gap_180x0", "absorber_180x0", "gap_190x0", "absorber_190x0", "gap_200x0", "absorber_200x0", "gap_210x0", "absorber_210x0", "gap_220x0", "absorber_220x0", "gap_230x0", "absorber_230x0", "gap_240x0", "absorber_240x0", "gap_250x0", "absorber_250x0", "gap_260x0", "absorber_260x0", "gap_270x0", "absorber_270x0", "gap_280x0", "absorber_280x0", "gap_290x0", "absorber_290x0", "gap_300x0", "absorber_300x0", "gap_310x0", "absorber_310x0", "gap_320x0", "absorber_320x0", "gap_330x0", "absorber_330x0", "gap_340x0", "absorber_340x0", "gap_350x0", "absorber_350x0", "gap_360x0", "absorber_360x0", "gap_370x0", "absorber_370x0", "gap_380x0", "absorber_380x0", "gap_390x0", "absorber_390x0", "gap_400x0", "absorber_400x0", "gap_410x0", "absorber_410x0", "gap_420x0", "absorber_420x0", "gap_430x0", "absorber_430x0", "gap_440x0", "absorber_440x0", "gap_450x0", "absorber_450x0", "gap_460x0", "absorber_460x0", "gap_470x0", "absorber_470x0", "gap_480x0", "absorber_480x0", "gap_490x0", "absorber_490x0", "world0x0"};
+    static std::string const expected_names[] = {"gap_0", "absorber_0", "gap_1", "absorber_1", "gap_2", "absorber_2", "gap_3", "absorber_3", "gap_4", "absorber_4", "gap_5", "absorber_5", "gap_6", "absorber_6", "gap_7", "absorber_7", "gap_8", "absorber_8", "gap_9", "absorber_9", "gap_10", "absorber_10", "gap_11", "absorber_11", "gap_12", "absorber_12", "gap_13", "absorber_13", "gap_14", "absorber_14", "gap_15", "absorber_15", "gap_16", "absorber_16", "gap_17", "absorber_17", "gap_18", "absorber_18", "gap_19", "absorber_19", "gap_20", "absorber_20", "gap_21", "absorber_21", "gap_22", "absorber_22", "gap_23", "absorber_23", "gap_24", "absorber_24", "gap_25", "absorber_25", "gap_26", "absorber_26", "gap_27", "absorber_27", "gap_28", "absorber_28", "gap_29", "absorber_29", "gap_30", "absorber_30", "gap_31", "absorber_31", "gap_32", "absorber_32", "gap_33", "absorber_33", "gap_34", "absorber_34", "gap_35", "absorber_35", "gap_36", "absorber_36", "gap_37", "absorber_37", "gap_38", "absorber_38", "gap_39", "absorber_39", "gap_40", "absorber_40", "gap_41", "absorber_41", "gap_42", "absorber_42", "gap_43", "absorber_43", "gap_44", "absorber_44", "gap_45", "absorber_45", "gap_46", "absorber_46", "gap_47", "absorber_47", "gap_48", "absorber_48", "gap_49", "absorber_49", "world"};
     // clang-format on
     EXPECT_VEC_EQ(expected_names, names);
 }
@@ -1446,9 +1420,7 @@ TEST_F(TestEm3, unique_volumes)
     auto const& volumes = this->imported_data().volumes;
 
     EXPECT_EQ(101, volumes.size());
-    EXPECT_EQ("gap_00x0x0",
-              this->genericize_pointers(
-                  this->genericize_pointers(volumes.front().name)))
+    EXPECT_EQ("gap_0", volumes.front().name)
         << "Front name: '" << volumes.front().name << "'";
 }
 
@@ -1496,7 +1468,10 @@ TEST_F(OneSteelSphere, physics)
     ImportProcess const& brems = this->find_process(
         celeritas::pdg::electron(), ImportProcessClass::e_brems);
     EXPECT_FALSE(brems.applies_at_rest);
-    ASSERT_EQ(1, brems.tables.size());
+
+    EXPECT_FALSE(brems.dedx);
+    EXPECT_TRUE(brems.lambda);
+    EXPECT_FALSE(brems.lambda_prim);
     ASSERT_EQ(2, brems.models.size());
     {
         // Check Seltzer-Berger electron micro xs
@@ -1505,7 +1480,7 @@ TEST_F(OneSteelSphere, physics)
         EXPECT_EQ(2, model.materials.size());
 
         auto result = summarize(model.materials);
-        static unsigned int const expected_size[] = {7u, 2u};
+        static unsigned int const expected_size[] = {7u, 0u};
         EXPECT_VEC_EQ(expected_size, result.size);
         static double const expected_energy[]
             = {0.001, 1000, 9549.6516356879, 1000};
@@ -1536,57 +1511,61 @@ TEST_F(OneSteelSphere, physics)
     }
     {
         // Check the bremsstrahlung macro xs
-        ImportPhysicsTable const& xs = brems.tables[0];
-        ASSERT_EQ(2, xs.physics_vectors.size());
-        ImportPhysicsVector const& steel = xs.physics_vectors.back();
-        ASSERT_EQ(29, steel.x.size());
-        EXPECT_SOFT_EQ(9549.651635687942, steel.x.front());
-        EXPECT_SOFT_EQ(1e8, steel.x.back());
+        ImportPhysicsTable const& xs = brems.lambda;
+        ASSERT_EQ(2, xs.grids.size());
+        auto const& steel = xs.grids.back();
+        ASSERT_EQ(29, steel.y.size());
+        EXPECT_SOFT_EQ(9549.651635687942, std::exp(steel.x[Bound::lo]));
+        EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
     }
     {
         // Check the ionization electron macro xs
         ImportProcess const& ioni = this->find_process(
             celeritas::pdg::electron(), ImportProcessClass::e_ioni);
-        ASSERT_EQ(3, ioni.tables.size());
+        EXPECT_TRUE(ioni.dedx);
+        EXPECT_TRUE(ioni.lambda);
+        EXPECT_FALSE(ioni.lambda_prim);
 
         // Lambda table for steel
-        ImportPhysicsTable const& xs = ioni.tables[2];
-        ASSERT_EQ(2, xs.physics_vectors.size());
-        ImportPhysicsVector const& steel = xs.physics_vectors.back();
-        ASSERT_EQ(27, steel.x.size());
+        ImportPhysicsTable const& xs = ioni.lambda;
+        ASSERT_EQ(2, xs.grids.size());
+        auto const& steel = xs.grids.back();
+        ASSERT_EQ(27, steel.y.size());
         // Starts at min primary energy = 2 * electron production cut for
         // primary electrons
-        EXPECT_SOFT_EQ(19099.303271375884, steel.x.front());
-        EXPECT_SOFT_EQ(1e8, steel.x.back());
+        EXPECT_SOFT_EQ(19099.303271375884, std::exp(steel.x[Bound::lo]));
+        EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
     }
     {
         // Check the ionization positron macro xs
         ImportProcess const& ioni = this->find_process(
             celeritas::pdg::positron(), ImportProcessClass::e_ioni);
-        ASSERT_EQ(3, ioni.tables.size());
+        EXPECT_TRUE(ioni.dedx);
+        EXPECT_TRUE(ioni.lambda);
+        EXPECT_FALSE(ioni.lambda_prim);
 
         // Lambda table for steel
-        ImportPhysicsTable const& xs = ioni.tables[2];
-        ASSERT_EQ(2, xs.physics_vectors.size());
-        ImportPhysicsVector const& steel = xs.physics_vectors.back();
-        ASSERT_EQ(29, steel.x.size());
+        ImportPhysicsTable const& xs = ioni.lambda;
+        ASSERT_EQ(2, xs.grids.size());
+        auto const& steel = xs.grids.back();
+        ASSERT_EQ(29, steel.y.size());
         // Start at min primary energy = electron production cut for primary
         // positrons
-        EXPECT_SOFT_EQ(9549.651635687942, steel.x.front());
-        EXPECT_SOFT_EQ(1e8, steel.x.back());
+        EXPECT_SOFT_EQ(9549.651635687942, std::exp(steel.x[Bound::lo]));
+        EXPECT_SOFT_EQ(1e8, std::exp(steel.x[Bound::hi]));
     }
     {
         // Check Urban MSC bounds
         ImportMscModel const& msc = this->find_msc_model(
             celeritas::pdg::electron(), ImportModelClass::urban_msc);
         EXPECT_TRUE(msc);
-        for (ImportPhysicsVector const& pv : msc.xs_table.physics_vectors)
+        for (auto const& pv : msc.xs_table.grids)
         {
             ASSERT_TRUE(pv);
-            EXPECT_SOFT_EQ(1e-4, pv.x.front());
-            EXPECT_SOFT_EQ(1e2, pv.x.back());
+            EXPECT_SOFT_EQ(1e-4, std::exp(pv.x[Bound::lo]));
+            EXPECT_SOFT_EQ(1e2, std::exp(pv.x[Bound::hi]));
         }
-        auto const& steel = msc.xs_table.physics_vectors.back();
+        auto const& steel = msc.xs_table.grids.back();
         EXPECT_SOFT_NEAR(0.23785296407525, to_inv_cm(steel.y.front()), tol);
         EXPECT_SOFT_NEAR(128.58803359467, to_inv_cm(steel.y.back()), tol);
     }
@@ -1595,13 +1574,13 @@ TEST_F(OneSteelSphere, physics)
         ImportMscModel const& msc = this->find_msc_model(
             celeritas::pdg::electron(), ImportModelClass::wentzel_vi_uni);
         EXPECT_TRUE(msc);
-        for (ImportPhysicsVector const& pv : msc.xs_table.physics_vectors)
+        for (auto const& pv : msc.xs_table.grids)
         {
             ASSERT_TRUE(pv);
-            EXPECT_SOFT_EQ(1e2, pv.x.front());
-            EXPECT_SOFT_EQ(1e8, pv.x.back());
+            EXPECT_SOFT_EQ(1e2, std::exp(pv.x[Bound::lo]));
+            EXPECT_SOFT_EQ(1e8, std::exp(pv.x[Bound::hi]));
         }
-        auto const& steel = msc.xs_table.physics_vectors.back();
+        auto const& steel = msc.xs_table.grids.back();
         EXPECT_SOFT_NEAR(114.93265072267, to_inv_cm(steel.y.front()), tol);
         EXPECT_SOFT_NEAR(116.59035766356, to_inv_cm(steel.y.back()), tol);
     }
@@ -1638,19 +1617,19 @@ TEST_F(OneSteelSphereGG, physics)
         ImportMscModel const& msc = this->find_msc_model(
             celeritas::pdg::electron(), ImportModelClass::urban_msc);
         EXPECT_TRUE(msc);
-        for (ImportPhysicsVector const& pv : msc.xs_table.physics_vectors)
+        for (auto const& pv : msc.xs_table.grids)
         {
-            ASSERT_FALSE(pv.x.empty());
-            EXPECT_SOFT_EQ(1e-4, pv.x.front());
-            EXPECT_SOFT_EQ(1e8, pv.x.back());
+            EXPECT_SOFT_EQ(1e-4, std::exp(pv.x[Bound::lo]));
+            EXPECT_SOFT_EQ(1e8, std::exp(pv.x[Bound::hi]));
         }
     }
 }
 
 TEST_F(LarSphere, optical)
 {
+    ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::info};
     auto&& imported = this->imported_data();
-    ASSERT_EQ(3, imported.optical_models.size());
+    ASSERT_EQ(4, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(2, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
@@ -1666,8 +1645,6 @@ TEST_F(LarSphere, optical)
     EXPECT_EQ("lAr", imported.geo_materials[1].name);
     ASSERT_EQ(0, imported.phys_materials[1].optical_material_id);
 
-    real_type const tol = this->comparison_tolerance();
-
     // Most optical properties in the geometry are pulled from the Geant4
     // example examples/advanced/CaTS/gdml/LArTPC.gdml
 
@@ -1675,7 +1652,9 @@ TEST_F(LarSphere, optical)
     auto const& optical = imported.optical_materials[0];
     auto const& scint = optical.scintillation;
     EXPECT_TRUE(scint);
+
     // Material scintillation
+    constexpr auto tol = SoftEqual<real_type>{}.rel();
     EXPECT_REAL_EQ(1, scint.resolution_scale);
     EXPECT_REAL_EQ(50000, scint.material.yield_per_energy);
     EXPECT_EQ(3, scint.material.components.size());
@@ -1688,13 +1667,31 @@ TEST_F(LarSphere, optical)
         components.push_back(to_sec(comp.rise_time));
         components.push_back(to_sec(comp.fall_time));
     }
-    // clang-format off
-    static double const expected_components[]
-        = {3, 1.28e-05, 1e-06, 1e-08, 6e-09,
-           1, 1.28e-05, 1e-06, 1e-08, 1.5e-06,
-           1, 2e-05,    2e-06, 1e-08, 3e-06};
-    // clang-format on
+    static double const expected_components[] = {
+        3,
+        1.28e-05,
+        1e-06,
+        1e-08,
+        6e-09,
+        1,
+        1.28e-05,
+        1e-06,
+        1e-08,
+        1.5e-06,
+        1,
+        2e-05,
+        2.0099589626834e-06,
+        1e-08,
+        3e-06,
+    };
     EXPECT_VEC_NEAR(expected_components, components, tol);
+    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    {
+        static std::string const expected_messages
+            = R"(Estimated custom properties SCINTILLATIONLAMBDAMEAN3=2e-5 and SCINTILLATIONLAMBDASIGMA3=2.010e-6 from Geant4-defined property SCINTILLATIONCOMPONENT3)";
+        EXPECT_VEC_EQ(expected_messages, scoped_log.messages()[1])
+            << scoped_log;
+    }
 
     // Particle scintillation
     EXPECT_EQ(6, scint.particles.size());
@@ -1783,36 +1780,69 @@ TEST_F(LarSphere, optical)
     EXPECT_REAL_EQ(86.4473, to_cm(absorption_mfp.y.front()));
     EXPECT_REAL_EQ(0.000296154, to_cm(absorption_mfp.y.back()));
 
-    // Check WLS optical properties
-    auto const& wls_model = imported.optical_models[2];
-    EXPECT_EQ(optical::ImportModelClass::wls, wls_model.model_class);
-    ASSERT_EQ(1, wls_model.mfp_table.size());
-
-    auto const& wls_mfp = wls_model.mfp_table.front();
-    EXPECT_EQ(2, wls_mfp.x.size());
-    EXPECT_EQ(wls_mfp.x.size(), wls_mfp.y.size());
-    EXPECT_EQ(ImportPhysicsVectorType::free, wls_mfp.vector_type);
-
-    auto const& wls_mat = optical.wls;
-    EXPECT_TRUE(wls_mat);
-    EXPECT_REAL_EQ(3, wls_mat.mean_num_photons);
-    EXPECT_REAL_EQ(6e-9, to_sec(wls_mat.time_constant));
-    EXPECT_EQ(wls_mat.component.vector_type, wls_mfp.vector_type);
-
-    std::vector<double> abslen_grid, comp_grid;
-    for (auto i : range(wls_mfp.x.size()))
     {
-        abslen_grid.push_back(wls_mfp.x[i]);
-        abslen_grid.push_back(to_cm(wls_mfp.y[i]));
-        comp_grid.push_back(wls_mat.component.x[i]);
-        comp_grid.push_back(wls_mat.component.y[i]);
-    }
+        // Check WLS optical properties
+        auto const& model = imported.optical_models[2];
+        EXPECT_EQ(optical::ImportModelClass::wls, model.model_class);
+        ASSERT_EQ(1, model.mfp_table.size());
 
-    static real_type const expected_abslen_grid[]
-        = {1.3778e-06, 86.4473, 1.55e-05, 0.000296154};
-    static double const expected_comp_grid[] = {1.3778e-06, 10, 1.55e-05, 20};
-    EXPECT_VEC_SOFT_EQ(expected_abslen_grid, abslen_grid);
-    EXPECT_VEC_SOFT_EQ(expected_comp_grid, comp_grid);
+        auto const& mfp = model.mfp_table.front();
+        EXPECT_EQ(2, mfp.x.size());
+        EXPECT_EQ(mfp.x.size(), mfp.y.size());
+
+        auto const& mat = optical.wls;
+        EXPECT_TRUE(mat);
+        EXPECT_REAL_EQ(3, mat.mean_num_photons);
+        EXPECT_REAL_EQ(6e-9, to_sec(mat.time_constant));
+
+        std::vector<double> abslen_grid, comp_grid;
+        for (auto i : range(mfp.x.size()))
+        {
+            abslen_grid.push_back(mfp.x[i]);
+            abslen_grid.push_back(to_cm(mfp.y[i]));
+            comp_grid.push_back(mat.component.x[i]);
+            comp_grid.push_back(mat.component.y[i]);
+        }
+
+        static real_type const expected_abslen_grid[]
+            = {1.3778e-06, 86.4473, 1.55e-05, 0.000296154};
+        static double const expected_comp_grid[]
+            = {1.3778e-06, 10, 1.55e-05, 20};
+        EXPECT_VEC_SOFT_EQ(expected_abslen_grid, abslen_grid);
+        EXPECT_VEC_SOFT_EQ(expected_comp_grid, comp_grid);
+    }
+    {
+        // Check WLS2 optical properties
+        auto const& model = imported.optical_models[3];
+        EXPECT_EQ(optical::ImportModelClass::wls2, model.model_class);
+        ASSERT_EQ(1, model.mfp_table.size());
+
+        auto const& mfp = model.mfp_table.front();
+        EXPECT_EQ(2, mfp.x.size());
+        EXPECT_EQ(mfp.x.size(), mfp.y.size());
+
+        auto const& mat = optical.wls2;
+        EXPECT_TRUE(mat);
+        EXPECT_REAL_EQ(2, mat.mean_num_photons);
+        EXPECT_REAL_EQ(6e-9, to_sec(mat.time_constant));
+
+        std::vector<double> abslen_grid, comp_grid;
+        for (auto i : range(mfp.x.size()))
+        {
+            abslen_grid.push_back(mfp.x[i]);
+            abslen_grid.push_back(to_cm(mfp.y[i]));
+            comp_grid.push_back(mat.component.x[i]);
+            comp_grid.push_back(mat.component.y[i]);
+        }
+
+        static double const expected_abslen_grid[]
+            = {1.3778e-06, 86.4473, 1.55e-05, 0.000296154};
+        static double const expected_comp_grid[]
+            = {1.771e-06, 0.3, 2.484e-06, 0.8};
+        EXPECT_VEC_NEAR(
+            expected_abslen_grid, abslen_grid, this->comparison_tolerance());
+        EXPECT_VEC_SOFT_EQ(expected_comp_grid, comp_grid);
+    }
 
     // Check common optical properties
     // Refractive index data in the geometry comes from the refractive index
@@ -1833,7 +1863,7 @@ TEST_F(LarSphere, optical)
 TEST_F(LarSphereExtramat, optical)
 {
     auto&& imported = this->imported_data();
-    ASSERT_EQ(2, imported.optical_models.size());
+    ASSERT_EQ(4, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(3, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
@@ -1849,9 +1879,11 @@ TEST_F(LarSphereExtramat, optical)
     EXPECT_EQ("lAr", imported.geo_materials[1].name);
     ASSERT_EQ(0, imported.phys_materials[1].optical_material_id);
 
-    // Check scintillation optical properties
+    // Check scintillation, WLS, and WLS2 optical properties
     auto const& optical = imported.optical_materials[0];
     EXPECT_FALSE(optical.scintillation);
+    EXPECT_FALSE(optical.wls);
+    EXPECT_FALSE(optical.wls2);
 
     // Check Rayleigh optical properties
     auto const& rayleigh_model = imported.optical_models[1];
@@ -1903,12 +1935,12 @@ TEST_F(Solids, volumes_only)
     }
 
     static char const* const expected_names[]
-        = {"box500",   "cone1",    "para1",     "sphere1",    "parabol1",
-           "trap1",    "trd1",     "trd2",      "",           "trd3_refl",
-           "tube100",  "boolean1", "polycone1", "genPocone1", "ellipsoid1",
-           "tetrah1",  "orb1",     "polyhedr1", "hype1",      "elltube1",
-           "ellcone1", "arb8b",    "arb8a",     "xtru1",      "World",
-           "trd3_refl"};
+        = {"box500",     "cone1",    "para1",     "sphere1",    "parabol1",
+           "trap1",      "trd1",     "trd2",      "",           "trd3_refl@1",
+           "tube100",    "boolean1", "polycone1", "genPocone1", "ellipsoid1",
+           "tetrah1",    "orb1",     "polyhedr1", "hype1",      "elltube1",
+           "ellcone1",   "arb8b",    "arb8a",     "xtru1",      "World",
+           "trd3_refl@0"};
     EXPECT_VEC_EQ(expected_names, names);
 }
 
@@ -1926,18 +1958,15 @@ TEST_F(Solids, volumes_unique)
     std::vector<std::string> names;
     for (auto const& volume : imported.volumes)
     {
-        names.push_back(this->genericize_pointers(volume.name));
+        names.push_back(volume.name);
     }
     static char const* const expected_names[]
-        = {"box5000x0",    "cone10x0",      "para10x0",
-           "sphere10x0",   "parabol10x0",   "trap10x0",
-           "trd10x0",      "trd20x0",       "",
-           "trd3_refl0x0", "tube1000x0",    "boolean10x0",
-           "polycone10x0", "genPocone10x0", "ellipsoid10x0",
-           "tetrah10x0",   "orb10x0",       "polyhedr10x0",
-           "hype10x0",     "elltube10x0",   "ellcone10x0",
-           "arb8b0x0",     "arb8a0x0",      "xtru10x0",
-           "World0x0",     "trd30x0_refl"};
+        = {"box500",     "cone1",    "para1",     "sphere1",    "parabol1",
+           "trap1",      "trd1",     "trd2",      "",           "trd3_refl@1",
+           "tube100",    "boolean1", "polycone1", "genPocone1", "ellipsoid1",
+           "tetrah1",    "orb1",     "polyhedr1", "hype1",      "elltube1",
+           "ellcone1",   "arb8b",    "arb8a",     "xtru1",      "World",
+           "trd3_refl@0"};
     EXPECT_VEC_EQ(expected_names, names);
 }
 
@@ -1956,6 +1985,128 @@ TEST_F(Solids, physics)
     EXPECT_VEC_EQ(expected_models, summary.models);
 }
 
+//---------------------------------------------------------------------------//
+
+TEST_F(OpticalSurfaces, surfaces)
+{
+    auto&& osp = this->imported_data().optical_physics.surfaces;
+    EXPECT_TRUE(osp);
+
+#define OS_IS_MAPPED(MEMBER, ID) (osp.MEMBER.find(ID) != osp.MEMBER.end())
+
+    // sphere_surf: glisur, polished, dielectric-dielectric, specular spike
+    {
+        PhysSurfaceId sid{0};
+        EXPECT_TRUE(OS_IS_MAPPED(roughness.polished, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(roughness.smear, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(roughness.gaussian, sid));
+
+        EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
+
+        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+
+        auto& rf = osp.interaction.dielectric_dielectric.find(sid)->second;
+        EXPECT_SOFT_EQ(1, rf.specular_spike.y[0]);
+        EXPECT_SOFT_EQ(0, rf.specular_lobe.y[0]);
+        EXPECT_SOFT_EQ(0, rf.backscatter.y[0]);
+    }
+
+    // tube2_surf: glisur, ground, dielectric-dielectric, specular lobe
+    {
+        PhysSurfaceId sid{1};
+        EXPECT_FALSE(OS_IS_MAPPED(roughness.polished, sid));
+        EXPECT_TRUE(OS_IS_MAPPED(roughness.smear, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(roughness.gaussian, sid));
+
+        EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
+
+        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+
+        static double const polish
+            = 1 - osp.roughness.smear.find(sid)->second.roughness;
+        EXPECT_SOFT_EQ(0.9, polish);
+
+        auto& rf = osp.interaction.dielectric_dielectric.find(sid)->second;
+        EXPECT_SOFT_EQ(0, rf.specular_spike.y[0]);
+        EXPECT_SOFT_EQ(1, rf.specular_lobe.y[0]);
+        EXPECT_SOFT_EQ(0, rf.backscatter.y[0]);
+    }
+
+    // lomid_surf: unified, polished, dielectric-dielectric
+    {
+        PhysSurfaceId sid{2};
+        EXPECT_FALSE(OS_IS_MAPPED(roughness.polished, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(roughness.smear, sid));
+        EXPECT_TRUE(OS_IS_MAPPED(roughness.gaussian, sid));
+
+        EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
+
+        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+
+        auto& rf = osp.interaction.dielectric_dielectric.find(sid)->second;
+        static double const expected_energy[] = {2e-06, 8e-06};
+        static double const expected_specular_spike[] = {0.1, 0.3};
+        static double const expected_specular_lobe[] = {0.2, 0.2};
+        static double const expected_backscatter[] = {0.3, 0.1};
+
+        EXPECT_VEC_SOFT_EQ(expected_energy, rf.specular_lobe.x);
+        EXPECT_VEC_SOFT_EQ(expected_energy, rf.specular_spike.x);
+        EXPECT_VEC_SOFT_EQ(expected_energy, rf.backscatter.x);
+        EXPECT_VEC_SOFT_EQ(expected_specular_lobe, rf.specular_lobe.y);
+        EXPECT_VEC_SOFT_EQ(expected_specular_spike, rf.specular_spike.y);
+        EXPECT_VEC_SOFT_EQ(expected_backscatter, rf.backscatter.y);
+    }
+
+    // midlo_surf: glisur, polished, dielectric-metal, specular spike
+    {
+        PhysSurfaceId sid{3};
+        EXPECT_TRUE(OS_IS_MAPPED(roughness.polished, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(roughness.smear, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(roughness.gaussian, sid));
+
+        EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
+
+        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
+        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+
+        auto& rf = osp.interaction.dielectric_metal.find(sid)->second;
+        EXPECT_SOFT_EQ(1, rf.specular_spike.y[0]);
+        EXPECT_SOFT_EQ(0, rf.specular_lobe.y[0]);
+        EXPECT_SOFT_EQ(0, rf.backscatter.y[0]);
+    }
+
+    // midhi_surf: glisur, ground, dielectric-metal, specular lobe
+    {
+        PhysSurfaceId sid{4};
+        EXPECT_FALSE(OS_IS_MAPPED(roughness.polished, sid));
+        EXPECT_TRUE(OS_IS_MAPPED(roughness.smear, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(roughness.gaussian, sid));
+
+        EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
+
+        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
+        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+
+        static double const polish
+            = 1 - osp.roughness.smear.find(sid)->second.roughness;
+        EXPECT_SOFT_EQ(0.7, polish);
+
+        auto& rf = osp.interaction.dielectric_metal.find(sid)->second;
+        EXPECT_SOFT_EQ(0, rf.specular_spike.y[0]);
+        EXPECT_SOFT_EQ(1, rf.specular_lobe.y[0]);
+        EXPECT_SOFT_EQ(0, rf.backscatter.y[0]);
+    }
+
+#undef OS_IS_MAPPED
+}
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

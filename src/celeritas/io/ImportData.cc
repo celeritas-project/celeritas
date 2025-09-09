@@ -9,6 +9,7 @@
 #include <algorithm>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/UnitTypes.hh"
 
@@ -41,8 +42,8 @@ void convert_to_native(ImportData* data)
         // No unit conversion needed
         return;
     }
-    CELER_LOG(info) << "Converting imported units from '" << to_cstring(usys)
-                    << "' to '" << to_cstring(UnitSystem::native) << "'";
+    CELER_LOG(info) << "Converting imported units from '" << usys << "' to '"
+                    << UnitSystem::native << "'";
 
     detail::ImportDataConverter convert{usys};
     convert(data);

@@ -30,7 +30,7 @@ class LoggerMessage
   public:
     //!@{
     //! \name Type aliases
-    using StreamManip = std::ostream& (*)(std::ostream&);
+    using StreamManip = std::ios_base& (*)(std::ios_base&);
     //!@}
 
   public:

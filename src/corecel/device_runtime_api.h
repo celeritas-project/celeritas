@@ -1,6 +1,5 @@
-/*-----------------------------------*-C-*-------------------------------------
- * Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
- * See the top-level COPYRIGHT file for details.
+/*-------------------------------- -*- C -*- ----------------------------------
+ * Copyright Celeritas contributors: see top-level COPYRIGHT file for details
  * SPDX-License-Identifier: (Apache-2.0 OR MIT)
  *---------------------------------------------------------------------------*/
 /*!
@@ -22,6 +21,6 @@
         "corecel/device_runtime_api.h is deprecated and should be replaced by \"corecel/DeviceRuntimeApi.hh\""
 #endif
 
-#include "corecel/DeviceRuntimeApi.hh"
+#include "DeviceRuntimeApi.hh"
 
 #endif /* CELERITAS_DEVICE_RUNTIME_API_H */

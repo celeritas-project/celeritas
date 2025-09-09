@@ -6,17 +6,12 @@
 //---------------------------------------------------------------------------//
 #include "geocel/GeantGeoUtils.hh"
 
-#include <algorithm>
-#include <initializer_list>
-#include <string_view>
-#include <G4LogicalVolume.hh>
-#include <G4Navigator.hh>
-#include <G4ThreeVector.hh>
-#include <G4TouchableHistory.hh>
+#include <sstream>
+#include <vector>
 
-#include "corecel/ScopedLogStorer.hh"
-#include "corecel/io/Logger.hh"
+#include "geocel/Types.hh"
 
+#include "UnitUtils.hh"
 #include "celeritas_test.hh"
 #include "g4/GeantGeoTestBase.hh"
 
@@ -47,57 +42,18 @@ decltype(auto) get_vol_names(InputIterator iter, InputIterator stop)
 class GeantGeoUtilsTest : public GeantGeoTestBase
 {
   public:
-    using IListSView = std::initializer_list<std::string_view>;
-    using VecPVConst = std::vector<G4VPhysicalVolume const*>;
-
-    SPConstGeo build_geometry() final
-    {
-        return this->build_geometry_from_basename();
-    }
-
     void SetUp() override
     {
         // Build geometry during setup
         ASSERT_TRUE(this->geometry());
-    }
-
-    VecPVConst find_pv_stack(IListSView names) const
-    {
-        auto const& geo = *this->geometry();
-        auto const& vol_inst = geo.volume_instances();
-
-        VecPVConst result;
-        for (std::string_view sv : names)
-        {
-            auto vi = vol_inst.find_unique(std::string(sv));
-            CELER_ASSERT(vi);
-            result.push_back(geo.id_to_pv(vi));
-            CELER_ASSERT(result.back());
-        }
-        return result;
     }
 };
 
 //---------------------------------------------------------------------------//
 class SolidsTest : public GeantGeoUtilsTest
 {
-    std::string geometry_basename() const override { return "solids"; }
+    std::string_view gdml_basename() const override { return "solids"; }
 };
-
-TEST_F(SolidsTest, write_geant_geometry)
-{
-    auto* world = this->geometry()->world();
-    ASSERT_TRUE(world);
-
-    ScopedLogStorer scoped_log_{&celeritas::world_logger(), LogLevel::warning};
-    write_geant_geometry(world, this->make_unique_filename(".gdml"));
-
-    static char const* const expected_log_messages[] = {
-        R"(Geant4 regions have not been set up: skipping export of energy cuts and regions)"};
-    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
-    static char const* const expected_log_levels[] = {"warning"};
-    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
-}
 
 TEST_F(SolidsTest, find_geant_volumes)
 {
@@ -123,91 +79,26 @@ TEST_F(SolidsTest, find_geant_volumes_duplicate)
 //---------------------------------------------------------------------------//
 class MultiLevelTest : public GeantGeoUtilsTest
 {
-    std::string geometry_basename() const override { return "multi-level"; }
+    std::string_view gdml_basename() const override { return "multi-level"; }
 };
 
 TEST_F(MultiLevelTest, printable_nav)
 {
-    G4Navigator navi;
-    G4TouchableHistory touchable;
-    navi.SetWorldVolume(
-        const_cast<G4VPhysicalVolume*>(this->geometry()->world()));
-    navi.LocateGlobalPointAndUpdateTouchable(
-        G4ThreeVector(75, -125, 0), G4ThreeVector(1, 0, 0), &touchable);
-
-    std::ostringstream os;
-    os << PrintableNavHistory{touchable.GetHistory()};
-    EXPECT_EQ(R"({{pv='boxsph2', lv=26='sph'} -> {pv='topsph2', lv=27='box'}})",
-              os.str());
-}
-
-//! Test set_history using some of the same properties that CMS HGcal needs
-TEST_F(MultiLevelTest, set_history)
-{
-    static IListSView const all_level_names[] = {
-        {"world_PV"},
-        {"world_PV", "topsph1"},
-        {"world_PV"},
-        {"world_PV", "topbox1", "boxsph2"},
-        {"world_PV", "topbox1"},
-        {"world_PV", "topbox1", "boxsph1"},
-        {"world_PV", "topbox2", "boxsph2"},
-        {"world_PV", "topbox2", "boxsph1"},
-        {"world_PV", "topsph2"},
-        {"world_PV", "topbox3", "boxsph1"},
-        {"world_PV", "topbox3", "boxsph2"},
+    auto geo = this->make_geo_track_view();
+    auto get_nav_str = [&geo](Real3 const& pos) {
+        geo = {from_cm(pos), Real3{1, 0, 0}};
+        std::ostringstream os;
+        os << PrintableNavHistory{geo.nav_history()};
+        return std::move(os).str();
     };
 
-    G4TouchableHistory touch;
-    G4NavigationHistory hist;
-    std::vector<double> coords;
-    std::vector<std::string> replicas;
-
-    for (IListSView level_names : all_level_names)
-    {
-        auto phys_vols = this->find_pv_stack(level_names);
-        CELER_ASSERT(phys_vols.size() == level_names.size());
-
-        // Set the navigation history
-        set_history(make_span(phys_vols), &hist);
-        touch.UpdateYourself(hist.GetTopVolume(), &hist);
-
-        // Get the local-to-global x/y translation coordinates
-        auto const& trans = touch.GetTranslation(0);
-        coords.insert(coords.end(), {trans.x(), trans.y()});
-
-        // Get the replica/copy numbers
-        replicas.push_back([&touch] {
-            std::ostringstream os;
-            os << touch.GetReplicaNumber(0);
-            for (auto i : range(1, touch.GetHistoryDepth() + 1))
-            {
-                os << ',' << touch.GetReplicaNumber(i);
-            }
-            return std::move(os).str();
-        }());
-    }
-
-    static double const expected_coords[] = {
-        -0,  -0,   -0, -0,  -0,  -0,  75,   75,  100, 100,  125,
-        125, -125, 75, -75, 125, 100, -100, -75, -75, -125, -125,
-    };
-    static char const* const expected_replicas[] = {
-        "0",
-        "11,0",
-        "0",
-        "32,21,0",
-        "21,0",
-        "31,21,0",
-        "32,22,0",
-        "31,22,0",
-        "12,0",
-        "31,23,0",
-        "32,23,0",
-    };
-
-    EXPECT_VEC_SOFT_EQ(expected_coords, coords);
-    EXPECT_VEC_EQ(expected_replicas, replicas);
+    EXPECT_EQ(R"({{pv='boxtri', lv=27='tri'} -> {pv='topbox1', lv=28='box'}})",
+              get_nav_str({12.5, 7.5, 0}));
+    EXPECT_EQ(
+        R"({{pv='boxtri', lv=32='tri_refl'} -> {pv='topbox4', lv=30='box_refl'}})",
+        get_nav_str({12.5, -7.5, 0}));
+    EXPECT_EQ(R"({{pv='boxtri', lv=27='tri'} -> {pv='topbox2', lv=28='box'}})",
+              get_nav_str({-7.5, 7.5, 0}));
 }
 
 //---------------------------------------------------------------------------//

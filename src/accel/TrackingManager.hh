@@ -56,7 +56,16 @@ class TrackingManager final : public G4VTrackingManager
     // Complete processing of any buffered tracks.
     void FlushEvent() final;
 
+    //// ACCESSORS ////
+
+    //! Get the shared params associated with this TM
+    SharedParams const* shared_params() const { return params_; }
+
+    //! Get the thread-local transporter
+    LocalTransporter* local_transporter() const { return transport_; }
+
   private:
+    bool validated_{false};
     SharedParams const* params_{nullptr};
     LocalTransporter* transport_{nullptr};
 };

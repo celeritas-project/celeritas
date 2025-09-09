@@ -61,8 +61,8 @@ An example quantity uses :math:`2\pi` as the unit type to allow integral values
 for turns. Using a Quantity also allows us to override the ``sincos`` function
 to use ``sincospi`` under the hood for improved precision.
 
-.. doxygentypedef:: celeritas::Turn
-.. doxygenfunction:: celeritas::sincos(Turn r, real_type* sinv, real_type* cosv)
+.. doxygentypedef:: celeritas::Turn_t
+.. doxygentypedef:: celeritas::RealTurn
 
 .. _api_units:
 

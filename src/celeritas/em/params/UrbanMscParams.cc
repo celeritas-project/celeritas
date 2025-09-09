@@ -18,10 +18,9 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/PolyEvaluator.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/em/params/detail/MscParamsHelper.hh"
-#include "celeritas/grid/PolyEvaluator.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -29,6 +28,8 @@
 #include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
+
+#include "detail/MscParamsHelper.hh"
 
 namespace celeritas
 {
@@ -118,7 +119,7 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
     mdata.reserve(materials.num_materials());
     pmdata.reserve(host_data.num_par_mat * materials.num_materials());
 
-    for (auto mat_id : range(MaterialId{materials.num_materials()}))
+    for (auto mat_id : range(PhysMatId{materials.num_materials()}))
     {
         auto&& mat = materials.get(mat_id);
 

@@ -76,7 +76,6 @@ class Runner
     GeoArray<SPConstGeometry> geo_cache_;
     SPImageParams last_image_;
     std::string imager_name_;
-    G4VPhysicalVolume const* geant_world_{nullptr};
     MapTimers timers_;
 
     //// HELPER FUNCTIONS ////

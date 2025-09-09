@@ -23,6 +23,24 @@ namespace
 
 constexpr auto sqrt_half = constants::sqrt_two / 2;
 constexpr auto sqrt_third = constants::sqrt_three / 2;
+
+CELER_FORCEINLINE void
+shrink_if_nonnull(BBox* bbox, Bound bnd, Axis axis, real_type position)
+{
+    if (bbox)
+    {
+        bbox->shrink(bnd, axis, position);
+    }
+}
+
+CELER_FORCEINLINE void clear_if_nonnull(BBox* bbox)
+{
+    if (bbox)
+    {
+        *bbox = {};
+    }
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -33,8 +51,8 @@ constexpr auto sqrt_third = constants::sqrt_three / 2;
 SurfaceClipper::SurfaceClipper(BBox* interior, BBox* exterior)
     : int_{interior}, ext_{exterior}
 {
-    CELER_EXPECT(int_ && ext_);
-    CELER_EXPECT(encloses(*ext_, *int_));
+    CELER_EXPECT(int_ || ext_);
+    CELER_EXPECT(!int_ || !ext_ || encloses(*ext_, *int_));
 }
 
 //---------------------------------------------------------------------------//
@@ -44,8 +62,8 @@ SurfaceClipper::SurfaceClipper(BBox* interior, BBox* exterior)
 template<Axis T>
 void SurfaceClipper::operator()(PlaneAligned<T> const& s) const
 {
-    int_->shrink(Bound::hi, T, s.position());
-    ext_->shrink(Bound::hi, T, s.position());
+    shrink_if_nonnull(int_, Bound::hi, T, s.position());
+    shrink_if_nonnull(ext_, Bound::hi, T, s.position());
 }
 
 //!\cond
@@ -88,12 +106,12 @@ void SurfaceClipper::operator()(CylAligned<T> const& s) const
     {
         if (T != ax)
         {
-            int_->shrink(
-                Bound::lo, ax, origin[to_int(ax)] - sqrt_half * radius);
-            int_->shrink(
-                Bound::hi, ax, origin[to_int(ax)] + sqrt_half * radius);
-            ext_->shrink(Bound::lo, ax, origin[to_int(ax)] - radius);
-            ext_->shrink(Bound::hi, ax, origin[to_int(ax)] + radius);
+            shrink_if_nonnull(
+                int_, Bound::lo, ax, origin[to_int(ax)] - sqrt_half * radius);
+            shrink_if_nonnull(
+                int_, Bound::hi, ax, origin[to_int(ax)] + sqrt_half * radius);
+            shrink_if_nonnull(ext_, Bound::lo, ax, origin[to_int(ax)] - radius);
+            shrink_if_nonnull(ext_, Bound::hi, ax, origin[to_int(ax)] + radius);
         }
     }
 }
@@ -112,7 +130,7 @@ ORANGE_INSTANTIATE_OP(CylAligned);
 void SurfaceClipper::operator()(Plane const&) const
 {
     // We no longer can guarantee any point being inside the shape; reset it
-    *int_ = BoundingBox{};
+    clear_if_nonnull(int_);
 }
 
 //---------------------------------------------------------------------------//
@@ -125,10 +143,12 @@ void SurfaceClipper::operator()(Sphere const& s) const
     auto const& origin = s.origin();
     for (auto ax : range(Axis::size_))
     {
-        int_->shrink(Bound::lo, ax, origin[to_int(ax)] - sqrt_third * radius);
-        int_->shrink(Bound::hi, ax, origin[to_int(ax)] + sqrt_third * radius);
-        ext_->shrink(Bound::lo, ax, origin[to_int(ax)] - radius);
-        ext_->shrink(Bound::hi, ax, origin[to_int(ax)] + radius);
+        shrink_if_nonnull(
+            int_, Bound::lo, ax, origin[to_int(ax)] - sqrt_third * radius);
+        shrink_if_nonnull(
+            int_, Bound::hi, ax, origin[to_int(ax)] + sqrt_third * radius);
+        shrink_if_nonnull(ext_, Bound::lo, ax, origin[to_int(ax)] - radius);
+        shrink_if_nonnull(ext_, Bound::hi, ax, origin[to_int(ax)] + radius);
     }
 }
 
@@ -140,7 +160,7 @@ template<Axis T>
 void SurfaceClipper::operator()(ConeAligned<T> const&) const
 {
     // We no longer can guarantee any point being inside the shape; reset it
-    *int_ = BoundingBox{};
+    clear_if_nonnull(int_);
 }
 
 //!\cond
@@ -154,7 +174,7 @@ ORANGE_INSTANTIATE_OP(ConeAligned);
 void SurfaceClipper::operator()(SimpleQuadric const&) const
 {
     // We no longer can guarantee any point being inside the shape; reset it
-    *int_ = BoundingBox{};
+    clear_if_nonnull(int_);
 }
 
 //---------------------------------------------------------------------------//
@@ -164,7 +184,7 @@ void SurfaceClipper::operator()(SimpleQuadric const&) const
 void SurfaceClipper::operator()(GeneralQuadric const&) const
 {
     // We no longer can guarantee any point being inside the shape; reset it
-    *int_ = BoundingBox{};
+    clear_if_nonnull(int_);
 }
 
 //---------------------------------------------------------------------------//
@@ -174,7 +194,7 @@ void SurfaceClipper::operator()(GeneralQuadric const&) const
 void SurfaceClipper::operator()(Involute const&) const
 {
     // We no longer can guarantee any point being inside the shape; reset it
-    *int_ = BoundingBox{};
+    clear_if_nonnull(int_);
 }
 
 //---------------------------------------------------------------------------//

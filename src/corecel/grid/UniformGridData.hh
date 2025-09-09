@@ -8,6 +8,10 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/EnumArray.hh"
+#include "corecel/data/Collection.hh"
+
+#include "GridTypes.hh"
 
 namespace celeritas
 {
@@ -38,7 +42,36 @@ struct UniformGridData
 
     // Construct on host from front/back
     inline static UniformGridData
-    from_bounds(value_type front, value_type back, size_type size);
+    from_bounds(EnumArray<Bound, double> bounds, size_type size);
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Parameterization of a discrete scalar field on a given 1D grid.
+ *
+ * \c derivative stores the second derivative of the interpolating cubic
+ * spline. If it is non-empty, cubic spline interpolation will be used.
+ *
+ * \c spline_order stores the order of the piecewise polynomials used for
+ * spline interpolation without continuous derivatives. The order must be
+ * smaller than the grid size for effective spline interpolation. If the order
+ * is set to 1, linear or cubic spline interpolation will be used.
+ */
+struct UniformGridRecord
+{
+    UniformGridData grid;
+    ItemRange<real_type> value;
+    ItemRange<real_type> derivative;
+    size_type spline_order{1};
+
+    //! Whether the record is initialized and valid
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return grid && grid.size == value.size()
+               && (derivative.empty() || grid.size == derivative.size())
+               && spline_order > 0 && spline_order < value.size()
+               && (derivative.empty() || spline_order == 1);
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -46,15 +79,15 @@ struct UniformGridData
  * Construct from min/max and number of grid points.
  */
 UniformGridData
-UniformGridData::from_bounds(value_type front, value_type back, size_type size)
+UniformGridData::from_bounds(EnumArray<Bound, double> bounds, size_type size)
 {
     CELER_EXPECT(size >= 2);
-    CELER_EXPECT(front < back);
+    CELER_EXPECT(bounds[Bound::lo] < bounds[Bound::hi]);
     UniformGridData result;
     result.size = size;
-    result.front = front;
-    result.back = back;
-    result.delta = (back - front) / (size - 1);
+    result.front = bounds[Bound::lo];
+    result.back = bounds[Bound::hi];
+    result.delta = (bounds[Bound::hi] - bounds[Bound::lo]) / (size - 1);
     CELER_ENSURE(result);
     return result;
 }

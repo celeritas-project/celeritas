@@ -15,17 +15,8 @@ from sphinx import __version__ as sphinx_version
 
 project = 'Celeritas'
 all_authors = [
- 'Seth R Johnson',
- # Remaining core team in alphabetical order
- 'Philippe Canal',
- 'Julien Esseiva',
- 'Soon Yung Jun',
- 'Guilherme Lima',
- 'Amanda Lund',
- 'Ben Morgan'
- 'Stefano C Tognini',
- # Core advisors
- 'Thomas M Evans',
+ 'Seth R Johnson, *editor*',
+ 'The Celeritas Team',
 ]
 author = " and ".join(all_authors)
 copyright = '{:%Y}, UT–Battelle/ORNL and Celeritas team'.format(
@@ -81,7 +72,8 @@ if celer_config['options']['breathe']:
     extensions.append('breathe')
     breathe_default_project = 'celeritas'
     breathe_projects = {
-        breathe_default_project: build_dir / 'xml'
+        # See CMakeLists.txt
+        breathe_default_project: build_dir / 'doxygen-xml'
     }
     breathe_default_members = ()
     breathe_show_include = False
@@ -148,8 +140,13 @@ mathjax3_config = {
     # See _static/macros.tex
     "tex": {
         "macros": {
+            "ee": r"\mathrm{e}",
             "dif": r"\;\mathrm{d}",
             "difd": [r"\frac{\mathrm{d}#1}{\mathrm{d}#2}", 2],
+            "vd": r"\mathbf{\cdot}",
+            "norm": [r"\|#1\|", 1],
+            "abs": [r"|#1|", 1],
+            "sgn": r"\mathop{\mathrm{sgn}}\nolimits",
         },
     },
     "loader": {"load": ["ui/lazy", "output/svg"]},
@@ -173,14 +170,17 @@ latex_elements = {
 
 # Additional stuff for the LaTeX preamble.
 'preamble': r"""
-% Reset styles changed by sphinx.sty
-\usepackage{ornltm-style}
-\usepackage{ornltm-extract}
 \usepackage{sphinxcustom}
 \usepackage{microtype}
 \usepackage{pdfpages}
 \usepackage{multirow}
+\usepackage{fancyhdr} % Headers and footers
 \usepackage{threeparttable}
+\usepackage{tocloft}
+\usepackage{etoolbox}
+% Reset styles changed by sphinx.sty
+\usepackage{ornltm-style}
+\usepackage{ornltm-extract}
 \input{./macros.tex}
 """,
 
@@ -189,20 +189,9 @@ latex_elements = {
 \frontmatter
 % Plain page
 \thispagestyle{plain}%
-\phantomsection\addcontentsline{toc}{section}{Contents}
+\cleardoublepage
 \tableofcontents
-% %
-% \cleardoublepage
-% \thispagestyle{plain}%
-% \phantomsection\addcontentsline{toc}{section}{List of Figures}
-% \listoffigures
-% %
-% \cleardoublepage
-% \thispagestyle{plain}%
-% \phantomsection\addcontentsline{toc}{section}{List of Tables}
-% \listoftables
-% \cleardoublepage
-% \pagestyle{normal}
+\listoftables
 """,
 # No chapter styles needed
 'fncychap': "",

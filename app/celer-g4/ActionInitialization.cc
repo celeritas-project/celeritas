@@ -12,12 +12,12 @@
 #include "accel/ExceptionConverter.hh"
 #include "accel/HepMC3PrimaryGenerator.hh"
 #include "accel/LocalTransporter.hh"
+#include "accel/PGPrimaryGeneratorAction.hh"
 
 #include "EventAction.hh"
 #include "GeantDiagnostics.hh"
 #include "GlobalSetup.hh"
 #include "HepMC3PrimaryGeneratorAction.hh"
-#include "PGPrimaryGeneratorAction.hh"
 #include "RunAction.hh"
 #include "TrackingAction.hh"
 
@@ -42,7 +42,7 @@ ActionInitialization::ActionInitialization(SPParams params)
     auto const& input = GlobalSetup::Instance()->input();
     if (!input.event_file.empty())
     {
-        ExceptionConverter call_g4exception{"celer0007"};
+        ExceptionConverter call_g4exception{"celer.init.hepmc3"};
         CELER_TRY_HANDLE(hepmc_gen_ = std::make_shared<HepMC3PrimaryGenerator>(
                              input.event_file),
                          call_g4exception);
@@ -65,7 +65,7 @@ ActionInitialization::ActionInitialization(SPParams params)
  */
 void ActionInitialization::BuildForMaster() const
 {
-    CELER_LOG_LOCAL(status) << "Constructing user action on master thread";
+    CELER_LOG(status) << "Constructing user action on master thread";
 
     // Run action for 'master' has no track states and is responsible for
     // setting up celeritas
@@ -86,13 +86,13 @@ void ActionInitialization::BuildForMaster() const
  */
 void ActionInitialization::Build() const
 {
-    CELER_LOG_LOCAL(status) << "Constructing user action";
+    CELER_LOG(status) << "Constructing user action";
 
     // Primary generator emits source particles
     std::unique_ptr<G4VUserPrimaryGeneratorAction> generator_action;
     if (hepmc_gen_)
     {
-        ExceptionConverter call_g4exception{"celer0007"};
+        ExceptionConverter call_g4exception{"celer.init.hepmc3"};
         CELER_TRY_HANDLE(
             generator_action
             = std::make_unique<HepMC3PrimaryGeneratorAction>(hepmc_gen_),
@@ -100,7 +100,7 @@ void ActionInitialization::Build() const
     }
     else
     {
-        ExceptionConverter call_g4exception{"celer0006"};
+        ExceptionConverter call_g4exception{"celer.init.pgp"};
         CELER_TRY_HANDLE(
             generator_action = std::make_unique<PGPrimaryGeneratorAction>(
                 to_input(GlobalSetup::Instance()->input().primary_options)),

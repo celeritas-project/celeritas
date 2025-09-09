@@ -11,15 +11,15 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/random/distribution/GenerateCanonical.hh"
+#include "corecel/random/distribution/Selector.hh"
+#include "geocel/random/IsotropicDistribution.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/RayleighData.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/InteractionUtils.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
-#include "celeritas/random/Selector.hh"
-#include "celeritas/random/distribution/GenerateCanonical.hh"
-#include "celeritas/random/distribution/IsotropicDistribution.hh"
 
 namespace celeritas
 {
@@ -35,10 +35,11 @@ class RayleighInteractor
 {
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION RayleighInteractor(RayleighRef const& shared,
-                                             ParticleTrackView const& particle,
-                                             Real3 const& inc_direction,
-                                             ElementId element_id);
+    inline CELER_FUNCTION
+    RayleighInteractor(NativeCRef<RayleighData> const& shared,
+                       ParticleTrackView const& particle,
+                       Real3 const& inc_direction,
+                       ElementId element_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -48,7 +49,7 @@ class RayleighInteractor
     //// DATA ////
 
     // Shared constant physics properties
-    RayleighRef const& shared_;
+    NativeCRef<RayleighData> const& shared_;
     // Incident gamma energy
     units::MevEnergy const inc_energy_;
     // Incident direction
@@ -84,7 +85,7 @@ class RayleighInteractor
  * Construct with shared and state data.
  */
 CELER_FUNCTION
-RayleighInteractor::RayleighInteractor(RayleighRef const& shared,
+RayleighInteractor::RayleighInteractor(NativeCRef<RayleighData> const& shared,
                                        ParticleTrackView const& particle,
                                        Real3 const& direction,
                                        ElementId el_id)

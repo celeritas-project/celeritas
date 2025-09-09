@@ -12,19 +12,19 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/PolyEvaluator.hh"
+#include "corecel/random/distribution/BernoulliDistribution.hh"
+#include "corecel/random/distribution/GenerateCanonical.hh"
+#include "corecel/random/distribution/UniformRealDistribution.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/BetheHeitlerData.hh"
 #include "celeritas/em/distribution/TsaiUrbanDistribution.hh"
 #include "celeritas/em/xs/LPMCalculator.hh"
-#include "celeritas/grid/PolyEvaluator.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
-#include "celeritas/random/distribution/GenerateCanonical.hh"
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
 {
@@ -40,13 +40,10 @@ namespace celeritas
  *
  * \note This performs the same sampling routine as in Geant4's
  * G4PairProductionRelModel, as documented in sections 6.5 (gamma conversion)
- * and 10.2.2 (LPM effect) of the Geant4 Physics Reference Manual (release
- * 10.7)
+ * and 10.2.2 (LPM effect) of \cite{g4prm} (release 10.7)
  *
- * For additional context on the derivation see:
- *     Butcher, J.C., and H. Messel. “Electron Number Distribution in
- *     Electron-Photon Showers in Air and Aluminium Absorbers.” Nuclear Physics
- *     20 (October 1960): 15–128. https://doi.org/10.1016/0029-5582(60)90162-0.
+ * For additional context on the derivation see \citet{butcher-electron-1960,
+ * https://doi.org/10.1016/0029-5582(60)90162-0} .
  */
 class BetheHeitlerInteractor
 {
@@ -86,7 +83,7 @@ class BetheHeitlerInteractor
     Real3 const& inc_direction_;
     // Allocate space for a secondary particle
     StackAllocator<Secondary>& allocate_;
-    // Whether LPM supression is applied
+    // Whether LPM suppression is applied
     bool const enable_lpm_;
     // Used to calculate the LPM suppression functions
     LPMCalculator calc_lpm_functions_;
@@ -353,8 +350,8 @@ BetheHeitlerInteractor::impact_parameter(real_type eps) const
  * on the bremsstrahlung cross sections, and the second is due to pair
  * production. The values are improved function fits by M Novak (Geant4).
  */
-CELER_FUNCTION auto
-BetheHeitlerInteractor::screening_phi(real_type delta) -> Real2
+CELER_FUNCTION auto BetheHeitlerInteractor::screening_phi(real_type delta)
+    -> Real2
 {
     using R = real_type;
 
@@ -388,8 +385,8 @@ BetheHeitlerInteractor::screening_phi(real_type delta) -> Real2
  * Note that there's a typo in the Geant4 manual in the formula for F2:
  * subtraction should be addition.
  */
-CELER_FUNCTION auto
-BetheHeitlerInteractor::screening_f(real_type delta) -> Real2
+CELER_FUNCTION auto BetheHeitlerInteractor::screening_f(real_type delta)
+    -> Real2
 {
     using R = real_type;
     auto temp = screening_phi(delta);

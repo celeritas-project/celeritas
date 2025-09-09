@@ -1,6 +1,5 @@
-//---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------ -*- cuda -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/track/detail/TrackInitAlgorithms.cu
@@ -15,12 +14,13 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/data/ObserverPtr.device.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stream.hh"
 #include "corecel/sys/Thrust.device.hh"
 
-#include "Utils.hh"
+#include "../Utils.hh"
 
 namespace celeritas
 {
@@ -41,8 +41,8 @@ size_type remove_if_alive(
     auto end = thrust::remove_if(thrust_execute_on(stream_id),
                                  start,
                                  start + vacancies.size(),
-                                 IsEqual{occupied()});
-    CELER_DEVICE_CHECK_ERROR();
+                                 LogicalNot{});
+    CELER_DEVICE_API_CALL(PeekAtLastError());
 
     // New size of the vacancy vector
     return end - start;
@@ -71,7 +71,7 @@ size_type exclusive_scan_counts(
                                        data + counts.size(),
                                        data,
                                        size_type(0));
-    CELER_DEVICE_CHECK_ERROR();
+    CELER_DEVICE_API_CALL(PeekAtLastError());
 
     // Copy the last element (accumulated total) back to host
     return ItemCopier<size_type>{stream_id}(stop.get() - 1);
@@ -103,7 +103,7 @@ void partition_initializers(
         start,
         end,
         IsNeutralStencil{params.ptr<MemSpace::native>(), stencil});
-    CELER_DEVICE_CHECK_ERROR();
+    CELER_DEVICE_API_CALL(PeekAtLastError());
 }
 
 //---------------------------------------------------------------------------//

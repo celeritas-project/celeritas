@@ -19,6 +19,17 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Whether all characters are printable (no escaping needed).
+ */
+bool all_printable(std::string_view s)
+{
+    return std::all_of(s.begin(), s.end(), [](unsigned char ch) {
+        return std::isprint(ch) || ch == '\n';
+    });
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Print a character as a hex representation.
  *
  * There are undoubtedly helper libraries that do better than this...

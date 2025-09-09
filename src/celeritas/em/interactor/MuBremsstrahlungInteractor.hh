@@ -10,6 +10,8 @@
 #include "corecel/Types.hh"
 #include "corecel/data/StackAllocator.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/random/distribution/ReciprocalDistribution.hh"
+#include "corecel/random/distribution/RejectionSampler.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/MuBremsstrahlungData.hh"
@@ -22,8 +24,6 @@
 #include "celeritas/phys/InteractionUtils.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/random/distribution/ReciprocalDistribution.hh"
-#include "celeritas/random/distribution/RejectionSampler.hh"
 
 #include "detail/BremFinalStateHelper.hh"
 
@@ -103,7 +103,7 @@ CELER_FUNCTION MuBremsstrahlungInteractor::MuBremsstrahlungInteractor(
     : shared_(shared)
     , inc_direction_(inc_direction)
     , allocate_(allocate)
-    , element_(material.make_element_view(elcomp_id))
+    , element_(material.element_record(elcomp_id))
     , particle_(particle)
     , calc_dcs_(
           element_, particle.energy(), particle.mass(), shared.electron_mass)

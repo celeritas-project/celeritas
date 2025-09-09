@@ -70,8 +70,8 @@ make_kernel_attributes(F* func, unsigned int threads_per_block = 0)
 #ifdef CELER_DEVICE_SOURCE
     // Get function attributes
     {
-        CELER_DEVICE_PREFIX(FuncAttributes) attr;
-        CELER_DEVICE_CALL_PREFIX(
+        CELER_DEVICE_API_SYMBOL(FuncAttributes) attr;
+        CELER_DEVICE_API_CALL(
             FuncGetAttributes(&attr, reinterpret_cast<void const*>(func)));
         result.num_regs = attr.numRegs;
         result.const_mem = attr.constSizeBytes;
@@ -88,7 +88,7 @@ make_kernel_attributes(F* func, unsigned int threads_per_block = 0)
     // Get maximum number of active blocks per SM
     std::size_t dynamic_smem_size = 0;
     int num_blocks = 0;
-    CELER_DEVICE_CALL_PREFIX(OccupancyMaxActiveBlocksPerMultiprocessor(
+    CELER_DEVICE_API_CALL(OccupancyMaxActiveBlocksPerMultiprocessor(
         &num_blocks, func, threads_per_block, dynamic_smem_size));
     result.max_blocks_per_cu = num_blocks;
 
@@ -105,14 +105,15 @@ make_kernel_attributes(F* func, unsigned int threads_per_block = 0)
     if constexpr (CELERITAS_USE_CUDA)
     {
         // Stack size limit is CUDA-only
-        CELER_CUDA_CALL(
-            cudaDeviceGetLimit(&result.stack_size, cudaLimitStackSize));
+        CELER_DEVICE_API_CALL(DeviceGetLimit(
+            &result.stack_size, CELER_DEVICE_API_SYMBOL(LimitStackSize)));
         // HIP throws 'limit is not supported on this architecture'
-        CELER_CUDA_CALL(cudaDeviceGetLimit(&result.print_buffer_size,
-                                           cudaLimitPrintfFifoSize));
+        CELER_DEVICE_API_CALL(
+            DeviceGetLimit(&result.print_buffer_size,
+                           CELER_DEVICE_API_SYMBOL(LimitPrintfFifoSize)));
     }
-    CELER_DEVICE_CALL_PREFIX(DeviceGetLimit(
-        &result.heap_size, CELER_DEVICE_PREFIX(LimitMallocHeapSize)));
+    CELER_DEVICE_API_CALL(DeviceGetLimit(
+        &result.heap_size, CELER_DEVICE_API_SYMBOL(LimitMallocHeapSize)));
 #else
     CELER_DISCARD(func);
     CELER_ASSERT_UNREACHABLE();

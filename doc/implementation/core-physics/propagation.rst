@@ -15,13 +15,15 @@ Equation of motion
 Integrator
   Numerically integrates a new position/momentum state given the start,
   path derivative, and step length.
-Driver
-  Integrate path segments that satisfy certain error conditions, solving for
-  the required segment length.
+Substepper
+  Integrate a path segment that satisfies certain truncation error conditions,
+  solving for the required segment length.
 Propagator
   Given a maximum physics step, advance the geometry state and momentum along
   the field lines, satisfying constraints (see :ref:`field driver
   options<api_field_data>`) for the maximum geometry error.
+
+.. _api_propagation:
 
 Propagation
 -----------
@@ -30,28 +32,52 @@ Propagation
 
 .. doxygenclass:: celeritas::FieldPropagator
 
-.. doxygenfunction:: celeritas::make_mag_field_propagator
+.. doxygenclass:: celeritas::FieldSubstepper
 
+Field integration
+-----------------
+
+.. doxygenclass:: celeritas::DormandPrinceIntegrator
+
+.. doxygenclass:: celeritas::RungeKuttaIntegrator
+
+.. doxygenclass:: celeritas::ZHelixIntegrator
+
+Magnetic field types
+--------------------
+
+.. doxygenclass:: celeritas::UniformField
+
+.. doxygenclass:: celeritas::RZMapField
+
+.. doxygenclass:: celeritas::CartMapField
+
+.. doxygenclass:: celeritas::CylMapField
 
 .. _api_field_data:
 
 Field data input and options
 ----------------------------
 
-These classes correspond to JSON input files to the field setup.
-
-.. doxygenstruct:: celeritas::UniformFieldParams
-   :members:
-   :no-link:
+JSON input for the field setup corresponds to the uniform field input
+:cpp:struct:`celeritas::inp::UniformField` and the rz-map field input:
 
 .. doxygenstruct:: celeritas::RZMapFieldInput
    :members:
    :no-link:
 
+as well as fully Cartesian or cylindrical input:
+
+.. doxygenstruct:: celeritas::CartMapFieldInput
+   :members:
+   :no-link:
+
+.. doxygenstruct:: celeritas::CylMapFieldInput
+   :members:
+   :no-link:
 
 The field driver options are not yet a stable part of the API:
 
 .. doxygenstruct:: celeritas::FieldDriverOptions
    :members:
    :no-link:
-

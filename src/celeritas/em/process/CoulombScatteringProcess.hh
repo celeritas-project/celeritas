@@ -32,27 +32,23 @@ class CoulombScatteringProcess : public Process
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 
-    struct Options
-    {
-        //! Whether to use integral method to sample interaction length
-        bool use_integral_xs{true};
-    };
-
   public:
-    //! Construct from Coulomb scattering data
+    // Construct from Coulomb scattering data
     CoulombScatteringProcess(SPConstParticles particles,
                              SPConstMaterials materials,
-                             SPConstImported process_data,
-                             Options const& options);
+                             SPConstImported process_data);
 
-    //! Construct the models associated with this process
+    // Construct the models associated with this process
     VecModel build_models(ActionIdIter start_id) const final;
 
-    //! Get the interaction cross sections for the given energy range
-    StepLimitBuilders step_limits(Applicability range) const final;
+    // Get the interaction cross sections for the given energy range
+    XsGrid macro_xs(Applicability range) const final;
 
-    //! Whether to use the integral method to sample interaction length
-    bool use_integral_xs() const final;
+    // Get the energy loss for the given energy range
+    EnergyLossGrid energy_loss(Applicability range) const final;
+
+    //! Whether the integral method can be used to sample interaction length
+    bool supports_integral_xs() const final { return true; }
 
     //! Whether the process applies when the particle is stopped
     bool applies_at_rest() const final { return imported_.applies_at_rest(); }
@@ -64,7 +60,6 @@ class CoulombScatteringProcess : public Process
     SPConstParticles particles_;
     SPConstMaterials materials_;
     ImportedProcessAdapter imported_;
-    Options options_;
 };
 
 //---------------------------------------------------------------------------//

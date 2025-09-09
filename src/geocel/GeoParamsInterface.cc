@@ -13,8 +13,4 @@ namespace celeritas
 GeoParamsInterface::~GeoParamsInterface() = default;
 
 //---------------------------------------------------------------------------//
-//! Default virtual destructor
-GeoParamsSurfaceInterface::~GeoParamsSurfaceInterface() = default;
-
-//---------------------------------------------------------------------------//
 }  // namespace celeritas

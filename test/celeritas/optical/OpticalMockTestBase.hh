@@ -6,11 +6,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas/GlobalTestBase.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/MaterialParams.hh"
-
-#include "../GlobalTestBase.hh"
 
 namespace celeritas
 {
@@ -39,14 +38,19 @@ class OpticalMockTestBase : public GlobalTestBase
     ImportOpticalModel const& import_model_by_class(ImportModelClass) const;
 
     //! Number of mock optical materials
-    OpticalMaterialId::size_type num_optical_materials() const
+    OptMatId::size_type num_optical_materials() const
     {
         return this->imported_data().optical_materials.size();
     }
 
+    std::string_view gdml_basename() const override
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
+
     //!@{
     //! \name Unsupported params builders
-    SPConstGeo build_geometry() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstCoreGeo build_geometry() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstGeoMaterial build_geomaterial() override
     {
         CELER_ASSERT_UNREACHABLE();
@@ -59,6 +63,14 @@ class OpticalMockTestBase : public GlobalTestBase
     SPConstWentzelOKVI build_wentzel() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstAction build_along_step() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstCherenkov build_cherenkov() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstOpticalPhysics build_optical_physics() override
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
+    SPConstOpticalSurfacePhysics build_optical_surface_physics() override
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
     SPConstScintillation build_scintillation() override
     {
         CELER_ASSERT_UNREACHABLE();

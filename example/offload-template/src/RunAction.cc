@@ -2,13 +2,16 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file example/offload-template/src/RunAction.cc
+//! \file offload-template/src/RunAction.cc
 //---------------------------------------------------------------------------//
 #include "RunAction.hh"
 
-#include "Celeritas.hh"
-#include "G4Threading.hh"
+#include <accel/TrackingManagerIntegration.hh>
 
+namespace celeritas
+{
+namespace example
+{
 //---------------------------------------------------------------------------//
 /*!
  * Construct empty.
@@ -21,7 +24,7 @@ RunAction::RunAction() : G4UserRunAction() {}
  */
 void RunAction::BeginOfRunAction(G4Run const* run)
 {
-    CelerSimpleOffload().BeginOfRunAction(run);
+    celeritas::TrackingManagerIntegration::Instance().BeginOfRunAction(run);
 }
 
 //---------------------------------------------------------------------------//
@@ -30,5 +33,8 @@ void RunAction::BeginOfRunAction(G4Run const* run)
  */
 void RunAction::EndOfRunAction(G4Run const* run)
 {
-    CelerSimpleOffload().EndOfRunAction(run);
+    celeritas::TrackingManagerIntegration::Instance().EndOfRunAction(run);
 }
+
+}  // namespace example
+}  // namespace celeritas

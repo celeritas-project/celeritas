@@ -32,6 +32,33 @@ std::ostream& operator<<(std::ostream& os, SignedSense s)
     return (os << to_cstring(s));
 }
 
+template<>
+struct ReprTraits<N>
+{
+    static void print_type(std::ostream&, char const* = nullptr) {}
+    static void init(std::ostream&) {}
+    static void print_value(std::ostream& os, N value)
+    {
+        orangeinp::test::stream_node_id(os, value);
+    }
+};
+
+template<>
+struct ReprTraits<S>
+{
+    static void print_type(std::ostream&, char const* = nullptr) {}
+    static void init(std::ostream&) {}
+    static void print_value(std::ostream& os, S s)
+    {
+        os << "S{";
+        if (s)
+        {
+            os << s.unchecked_get();
+        }
+        os << '}';
+    }
+};
+
 namespace orangeinp
 {
 namespace test
@@ -97,11 +124,10 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
     auto bdy = this->insert(Joined{op_and, {bdy_outer, mz, below_pz}});
     auto zslab = this->insert(Joined{op_and, {mz, below_pz}});
 
+    auto always_false = this->insert(Joined{op_and, {shell, inner_cyl}});
+
     EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
-        "surface 2, 6: not{5}, 7: all{2,4,6}, 8: surface 3, 9: not{8}, 10: "
-        "all{2,4,9}, 11: not{7}, 12: all{10,11}, 13: surface 4, 14: "
-        "all{2,4,13}, 15: all{2,4}, }",
+        R"({0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: surface 2, 6: not{5}, 7: all{2,4,6}, 8: surface 3, 9: not{8}, 10: all{2,4,9}, 11: not{7}, 12: all{2,4,9,11}, 13: surface 4, 14: all{2,4,13}, 15: all{2,4}, 16: all{2,4,6,9,11}, })",
         to_string(tree_));
 
     // Test postfix and internal surface flagger
@@ -195,7 +221,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
 
-        EXPECT_EQ("all(all(+0, -1, -3), !all(+0, -1, -2))",
+        EXPECT_EQ("all(+0, -1, -3, !all(+0, -1, -2))",
                   build_infix_string(tree_, shell));
 
         EXPECT_EQ(SignedSense::outside, is_inside(shell, {0, 0, 0}));
@@ -215,15 +241,29 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_VEC_EQ(expected_faces, faces);
         EXPECT_EQ("all(+0, -1, +4)", build_infix_string(tree_, bdy));
     }
+    {
+        EXPECT_TRUE(has_internal_surfaces(always_false));
+        auto&& [faces, lgc] = build_postfix(always_false);
+
+        static size_type const expected_lgc[] = {
+            0u,          1u,          logic::lnot, logic::land, 2u,
+            logic::lnot, logic::land, 3u,          logic::lnot, logic::land,
+            0u,          1u,          logic::lnot, logic::land, 2u,
+            logic::lnot, logic::land, logic::lnot, logic::land,
+        };
+        static S const expected_faces[] = {S{0}, S{1}, S{2}, S{3}};
+        EXPECT_VEC_EQ(expected_lgc, lgc) << ReprLogic{lgc};
+        EXPECT_VEC_EQ(expected_faces, faces);
+        EXPECT_EQ("all(+0, -1, -2, -3, !all(+0, -1, -2))",
+                  build_infix_string(tree_, always_false));
+    }
 
     // Imply inside boundary
     replace_and_simplify(&tree_, bdy, True{});
 
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: ->{0}, 3: ->{1}, 4: ->{0}, 5: surface 2, 6: "
-        "not{5}, 7: ->{6}, 8: surface 3, 9: not{8}, 10: ->{9}, 11: ->{5}, 12: "
-        "all{5,9}, 13: ->{0}, 14: ->{0}, 15: ->{0}, }",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["=",0],["=",1],["=",0],["S",2],["~",5],["=",6],["S",3],["~",8],["=",9],["=",5],["&",[5,9]],["=",0],["=",0],["=",0],["&",[5,6,9]]])json",
+        to_json_string(tree_));
 
     // Test postfix builder with remapping
     {
@@ -259,12 +299,9 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
     auto bdy = this->insert(Joined{op_and, {bdy_outer, mz, below_pz}});
     auto zslab = this->insert(Joined{op_and, {mz, below_pz}});
 
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
-        "surface 2, 6: not{5}, 7: all{2,4,6}, 8: surface 3, 9: not{8}, 10: "
-        "all{2,4,9}, 11: not{7}, 12: all{10,11}, 13: surface 4, 14: "
-        "all{2,4,13}, 15: all{2,4}, }",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["S",0],["S",1],["~",3],["S",2],["~",5],["&",[2,4,6]],["S",3],["~",8],["&",[2,4,9]],["~",7],["&",[2,4,9,11]],["S",4],["&",[2,4,13]],["&",[2,4]]])json",
+        to_json_string(tree_));
 
     // Test infix and internal surface flagger
     InternalSurfaceFlagger has_internal_surfaces(tree_);
@@ -341,20 +378,33 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
         EXPECT_TRUE(has_internal_surfaces(shell));
         auto&& [faces, lgc] = build_infix(shell);
 
-        static size_type const expected_lgc[]
-            = {logic::lopen,  logic::lopen, 0u,
-               logic::land,   logic::lnot,  1u,
-               logic::land,   logic::lnot,  3u,
-               logic::lclose, logic::land,  logic::lnot,
-               logic::lopen,  0u,           logic::land,
-               logic::lnot,   1u,           logic::land,
-               logic::lnot,   2u,           logic::lclose,
-               logic::lclose};
+        static size_type const expected_lgc[] = {
+            logic::lopen,
+            0u,
+            logic::land,
+            logic::lnot,
+            1u,
+            logic::land,
+            logic::lnot,
+            3u,
+            logic::land,
+            logic::lnot,
+            logic::lopen,
+            0u,
+            logic::land,
+            logic::lnot,
+            1u,
+            logic::land,
+            logic::lnot,
+            2u,
+            logic::lclose,
+            logic::lclose,
+        };
         static S const expected_faces[] = {S{0u}, S{1u}, S{2u}, S{3u}};
-        EXPECT_VEC_EQ(expected_lgc, lgc);
+        EXPECT_VEC_EQ(expected_lgc, lgc) << ReprLogic{lgc};
         EXPECT_VEC_EQ(expected_faces, faces);
 
-        EXPECT_EQ("all(all(+0, -1, -3), !all(+0, -1, -2))",
+        EXPECT_EQ("all(+0, -1, -3, !all(+0, -1, -2))",
                   build_infix_string(tree_, shell));
 
         EXPECT_EQ(SignedSense::outside, is_inside(shell, {0, 0, 0}));
@@ -384,11 +434,9 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
     // Imply inside boundary
     replace_and_simplify(&tree_, bdy, True{});
 
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: ->{0}, 3: ->{1}, 4: ->{0}, 5: surface 2, 6: "
-        "not{5}, 7: ->{6}, 8: surface 3, 9: not{8}, 10: ->{9}, 11: ->{5}, 12: "
-        "all{5,9}, 13: ->{0}, 14: ->{0}, 15: ->{0}, }",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["=",0],["=",1],["=",0],["S",2],["~",5],["=",6],["S",3],["~",8],["=",9],["=",5],["&",[5,9]],["=",0],["=",0],["=",0]])json",
+        to_json_string(tree_));
 
     // Test infix builder with remapping
     {
@@ -426,22 +474,16 @@ TEST_F(CsgTreeUtilsTest, tilecal_polycone_bug)
     EXPECT_EQ(N{14}, this->insert(Negated{N{13}}));  // outside muon box
     EXPECT_EQ(N{15}, this->insert(Joined{op_and, {N{14}, N{11}}}));  // interior
 
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
-        "surface 2, 6: all{2,4,5}, 7: surface 3, 8: not{7}, 9: surface 4, 10: "
-        "all{3,8,9}, 11: any{6,10}, 12: not{11}, 13: surface 5, 14: not{13}, "
-        "15: all{11,14}, }",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["S",0],["S",1],["~",3],["S",2],["&",[2,4,5]],["S",3],["~",7],["S",4],["&",[3,8,9]],["|",[6,10]],["~",11],["S",5],["~",13],["&",[11,14]]])json",
+        to_json_string(tree_));
 
     // Imply inside boundary
     replace_and_simplify(&tree_, N{12}, True{});
 
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
-        "surface 2, 6: ->{1}, 7: surface 3, 8: not{7}, 9: surface 4, 10: "
-        "->{1}, 11: ->{1}, 12: ->{0}, 13: surface 5, 14: not{13}, 15: ->{1}, "
-        "}",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["S",0],["S",1],["~",3],["S",2],["=",1],["S",3],["~",7],["S",4],["=",1],["=",1],["=",0],["S",5],["~",13],["=",1]])json",
+        to_json_string(tree_));
 }
 
 //! Cylinder segment didn't correctly propagate logic
@@ -489,27 +531,16 @@ TEST_F(CsgTreeUtilsTest, tilecal_barrel_bug)
 
     EXPECT_EQ(29, tree_.size());
 
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
-        "surface 2, 6: not{5}, 7: all{2,4,6}, 8: surface 3, 9: not{8}, 10: "
-        "all{2,4,9}, 11: not{10}, 12: surface 4, 13: surface 5, 14: "
-        "all{12,13}, 15: all{7,11,14}, 16: not{15}, 17: surface 6, 18: "
-        "surface 7, 19: not{18}, 20: all{6,17,19}, 21: all{9,17,19}, 22: "
-        "not{21}, 23: surface 8, 24: surface 9, 25: all{23,24}, 26: "
-        "all{20,22,25}, 27: not{26}, 28: all{15,27}, }",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["S",0],["S",1],["~",3],["S",2],["~",5],["&",[2,4,6]],["S",3],["~",8],["&",[2,4,9]],["~",10],["S",4],["S",5],["&",[12,13]],["&",[2,4,6,11,12,13]],["~",15],["S",6],["S",7],["~",18],["&",[6,17,19]],["&",[9,17,19]],["~",21],["S",8],["S",9],["&",[23,24]],["&",[6,17,19,22,23,24]],["~",26],["&",[2,4,6,11,12,13,27]]])json",
+        to_json_string(tree_));
 
-    EXPECT_EQ("!all(all(+0, -1, -2), !all(+0, -1, -3), all(+4, +5))",
+    EXPECT_EQ("!all(+0, -1, -2, !all(+0, -1, -3), +4, +5)",
               build_infix_string(tree_, N{16}));
     replace_and_simplify(&tree_, N{16}, False{});
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: ->{0}, 3: ->{1}, 4: ->{0}, 5: ->{1}, 6: "
-        "->{0}, 7: ->{0}, 8: ->{0}, 9: ->{1}, 10: ->{1}, 11: ->{0}, 12: "
-        "->{0}, 13: ->{0}, 14: ->{0}, 15: ->{0}, 16: ->{1}, 17: surface 6, "
-        "18: surface 7, 19: not{18}, 20: all{17,19}, 21: ->{1}, 22: ->{0}, "
-        "23: surface 8, 24: surface 9, 25: all{23,24}, 26: all{20,25}, 27: "
-        "not{26}, 28: ->{27}, }",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["=",0],["=",1],["=",0],["=",1],["=",0],["=",0],["=",0],["=",1],["=",1],["=",0],["=",0],["=",0],["=",0],["=",0],["=",1],["S",6],["S",7],["~",18],["&",[17,19]],["=",1],["=",0],["S",8],["S",9],["&",[23,24]],["&",[17,19,23,24]],["~",26],["=",27]])json",
+        to_json_string(tree_));
 }
 
 TEST_F(CsgTreeUtilsTest, replace_union)
@@ -520,17 +551,15 @@ TEST_F(CsgTreeUtilsTest, replace_union)
     auto inside_b = this->insert(Negated{b});
     auto inside_a_or_b = this->insert(Joined{op_or, {inside_a, inside_b}});
 
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{2}, 5: "
-        "not{3}, 6: any{4,5}, }",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["S",0],["S",1],["~",2],["~",3],["|",[4,5]]])json",
+        to_json_string(tree_));
 
     // Imply inside neither
     replace_and_simplify(&tree_, inside_a_or_b, False{});
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: ->{0}, 3: ->{0}, 4: ->{1}, 5: ->{1}, 6: "
-        "->{1}, }",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["=",0],["=",0],["=",1],["=",1],["=",1]])json",
+        to_json_string(tree_));
 }
 
 TEST_F(CsgTreeUtilsTest, replace_union_2)
@@ -539,15 +568,14 @@ TEST_F(CsgTreeUtilsTest, replace_union_2)
     auto b = this->insert(S{1});
     this->insert(Negated{b});
     auto outside_a_or_b = this->insert(Joined{op_or, {a, b}});
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
-        "any{2,3}, }",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["S",0],["S",1],["~",3],["|",[2,3]]])json",
+        to_json_string(tree_));
 
     // Imply !(a | b) -> a & b
     replace_and_simplify(&tree_, outside_a_or_b, False{});
-    EXPECT_EQ("{0: true, 1: not{0}, 2: ->{1}, 3: ->{1}, 4: ->{0}, 5: ->{1}, }",
-              to_string(tree_));
+    EXPECT_JSON_EQ(R"json(["t",["~",0],["=",1],["=",1],["=",0],["=",1]])json",
+                   to_json_string(tree_));
 }
 
 TEST_F(CsgTreeUtilsTest, calc_surfaces)
@@ -568,228 +596,250 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
     auto j0 = this->insert(Joined{op_and, {s0, n0}});
 
     // Check a well-formed tree
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
-        "all{2,4}, }",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["S",0],["S",1],["~",3],["&",[2,4]]])json",
+        to_json_string(tree_));
     // Check that we have a noop
     {
         auto simplified = transform_negated_joins(tree_);
-        EXPECT_EQ(
-            "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
-            "all{2,4}, }",
-            to_string(simplified.tree));
-        constexpr N expected_new_nodes[]{N{0}, N{1}, N{2}, N{3}, N{4}, N{5}};
+        EXPECT_JSON_EQ(
+            R"json(["t",["~",0],["S",0],["S",1],["~",3],["&",[2,4]]])json",
+            to_json_string(simplified.tree));
+        constexpr N expected_new_nodes[]{
+            N{0},
+            N{1},
+            N{2},
+            N{3},
+            N{4},
+            N{5},
+        };
         EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
     }
 
     auto n1 = this->insert(Negated{j0});
 
     // Check a well-formed tree
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
-        "all{2,4}, 6: not{5}, }",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["S",0],["S",1],["~",3],["&",[2,4]],["~",5]])json",
+        to_json_string(tree_));
     // Check an easy case with just a single negated operand
     {
         auto simplified = transform_negated_joins(tree_);
-        EXPECT_EQ(
-            "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
-            "any{3,4}, }",
-            to_string(simplified.tree));
+        EXPECT_JSON_EQ(
+            R"json(["t",["~",0],["S",0],["~",2],["S",1],["|",[3,4]]])json",
+            to_json_string(simplified.tree));
         constexpr N expected_new_nodes[]{
-            N{0}, N{1}, N{2}, N{4}, N{}, N{}, N{5}};
+            N{0},
+            N{1},
+            N{2},
+            N{4},
+            N{},
+            N{},
+            N{5},
+        };
         EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
     }
 
     // Check a well-formed tree
     auto j1 = this->insert(Joined{op_or, {s0, n0}});
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
-        "all{2,4}, 6: not{5}, 7: any{2,4}, }",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["S",0],["S",1],["~",3],["&",[2,4]],["~",5],["|",[2,4]]])json",
+        to_json_string(tree_));
 
     // Check that the non-negated operand maps to correct new node_ids and
     // that not{2} is not deleted
     {
         auto simplified = transform_negated_joins(tree_);
-        EXPECT_EQ(
-            "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
-            "not{4}, 6: any{3,4}, 7: any{2,5}, }",
-            to_string(simplified.tree));
+        EXPECT_JSON_EQ(
+            R"json(["t",["~",0],["S",0],["~",2],["S",1],["~",4],["|",[3,4]],["|",[2,5]]])json",
+            to_json_string(simplified.tree));
         constexpr N expected_new_nodes[]{
-            N{0}, N{1}, N{2}, N{4}, N{5}, N{}, N{6}, N{7}};
+            N{0},
+            N{1},
+            N{2},
+            N{4},
+            N{5},
+            N{},
+            N{6},
+            N{7},
+        };
         EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
     }
 
     // Check a well-formed tree
     auto n2 = this->insert(Negated{j1});
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
-        "all{2,4}, 6: not{5}, 7: any{2,4}, 8: not{7}, }",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["S",0],["S",1],["~",3],["&",[2,4]],["~",5],["|",[2,4]],["~",7]])json",
+        to_json_string(tree_));
     // Check that the two operands are transformed, removing dangling
     // operators
     {
         auto simplified = transform_negated_joins(tree_);
-        EXPECT_EQ(
-            "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
-            "any{3,4}, 6: all{3,4}, }",
-            to_string(simplified.tree));
+        EXPECT_JSON_EQ(
+            R"json(["t",["~",0],["S",0],["~",2],["S",1],["|",[3,4]],["&",[3,4]]])json",
+            to_json_string(simplified.tree));
         constexpr N expected_new_nodes[]{
-            N{0}, N{1}, N{2}, N{4}, N{}, N{}, N{5}, N{}, N{6}};
+            N{0},
+            N{1},
+            N{2},
+            N{4},
+            N{},
+            N{},
+            N{5},
+            N{},
+            N{6},
+        };
         EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
     }
 
     // Check a well-formed tree
     auto s2 = this->insert(Surface{S{2}});
     this->insert(Negated{s2});
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
-        "all{2,4}, 6: not{5}, 7: any{2,4}, 8: not{7}, 9: surface 2, 10: "
-        "not{9}, }",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["S",0],["S",1],["~",3],["&",[2,4]],["~",5],["|",[2,4]],["~",7],["S",2],["~",9]])json",
+        to_json_string(tree_));
     // Check that disjoint trees are correctly handled
     {
         auto simplified = transform_negated_joins(tree_);
-        EXPECT_EQ(
-            "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
-            "any{3,4}, 6: all{3,4}, 7: surface 2, 8: not{7}, }",
-            to_string(simplified.tree));
+        EXPECT_JSON_EQ(
+            R"json(["t",["~",0],["S",0],["~",2],["S",1],["|",[3,4]],["&",[3,4]],["S",2],["~",7]])json",
+            to_json_string(simplified.tree));
         constexpr N expected_new_nodes[]{
-            N{0}, N{1}, N{2}, N{4}, N{}, N{}, N{5}, N{}, N{6}, N{7}, N{8}};
+            N{0},
+            N{1},
+            N{2},
+            N{4},
+            N{},
+            N{},
+            N{5},
+            N{},
+            N{6},
+            N{7},
+            N{8},
+        };
         EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
     }
 
     // Check a well-formed tree
     auto j2 = this->insert(Joined{op_and, {j0, j1}});
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
-        "all{2,4}, 6: not{5}, 7: any{2,4}, 8: not{7}, 9: surface 2, 10: "
-        "not{9}, 11: all{5,7}, }",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["S",0],["S",1],["~",3],["&",[2,4]],["~",5],["|",[2,4]],["~",7],["S",2],["~",9],["&",[2,4,7]]])json",
+        to_json_string(tree_));
 
     // Add a non-transformed operand with suboperands
     {
         auto simplified = transform_negated_joins(tree_);
-        EXPECT_EQ(
-            "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
-            "not{4}, 6: any{3,4}, 7: all{2,5}, 8: all{3,4}, 9: any{2,5}, 10: "
-            "surface 2, 11: not{10}, 12: all{7,9}, }",
-            to_string(simplified.tree));
-        constexpr N expected_new_nodes[]{N{0},
-                                         N{1},
-                                         N{2},
-                                         N{4},
-                                         N{5},
-                                         N{7},
-                                         N{6},
-                                         N{9},
-                                         N{8},
-                                         N{10},
-                                         N{11},
-                                         N{12}};
+        EXPECT_JSON_EQ(
+            R"json(["t",["~",0],["S",0],["~",2],["S",1],["~",4],["|",[3,4]],["&",[3,4]],["|",[2,5]],["S",2],["~",9],["&",[2,5,8]]])json",
+            to_json_string(simplified.tree));
+        constexpr N expected_new_nodes[]{
+            N{0},
+            N{1},
+            N{2},
+            N{4},
+            N{5},
+            N{},
+            N{6},
+            N{8},
+            N{7},
+            N{9},
+            N{10},
+            N{11},
+        };
         EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
     }
 
     // Check a well-formed tree
     auto n3 = this->insert(Negated{j2});
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
-        "all{2,4}, 6: not{5}, 7: any{2,4}, 8: not{7}, 9: surface 2, 10: "
-        "not{9}, 11: all{5,7}, 12: not{11}, }",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["S",0],["S",1],["~",3],["&",[2,4]],["~",5],["|",[2,4]],["~",7],["S",2],["~",9],["&",[2,4,7]],["~",11]])json",
+        to_json_string(tree_));
 
     // Top-level operand is negated and should be simplified, no need to
     // duplicate intermediary Joined nodes
     {
         auto simplified = transform_negated_joins(tree_);
-        EXPECT_EQ(
-            "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
-            "any{3,4}, 6: all{3,4}, 7: surface 2, 8: not{7}, 9: any{5,6}, }",
-            to_string(simplified.tree));
-        constexpr N expected_new_nodes[]{N{0},
-                                         N{1},
-                                         N{2},
-                                         N{4},
-                                         N{},
-                                         N{},
-                                         N{5},
-                                         N{},
-                                         N{6},
-                                         N{7},
-                                         N{8},
-                                         N{},
-                                         N{9}};
+        EXPECT_JSON_EQ(
+            R"json(["t",["~",0],["S",0],["~",2],["S",1],["|",[3,4]],["&",[3,4]],["S",2],["~",7],["|",[3,4,6]]])json",
+            to_json_string(simplified.tree));
+        constexpr N expected_new_nodes[]{
+            N{0},
+            N{1},
+            N{2},
+            N{4},
+            N{},
+            N{},
+            N{5},
+            N{},
+            N{6},
+            N{7},
+            N{8},
+            N{},
+            N{9},
+        };
         EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
     }
 
     // Check a well-formed tree
     auto j3 = this->insert(Joined{op_and, {n1, n2, n3}});
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
-        "all{2,4}, 6: not{5}, 7: any{2,4}, 8: not{7}, 9: surface 2, 10: "
-        "not{9}, 11: all{5,7}, 12: not{11}, 13: all{6,8,12}, }",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["S",0],["S",1],["~",3],["&",[2,4]],["~",5],["|",[2,4]],["~",7],["S",2],["~",9],["&",[2,4,7]],["~",11],["&",[6,8,12]]])json",
+        to_json_string(tree_));
 
     // Top-level joined has Negated{Joined{}} chldrens
     {
         auto simplified = transform_negated_joins(tree_);
-        EXPECT_EQ(
-            "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
-            "any{3,4}, 6: all{3,4}, 7: surface 2, 8: not{7}, 9: any{5,6}, 10: "
-            "all{5,6,9}, }",
-            to_string(simplified.tree));
-        constexpr N expected_new_nodes[]{N{0},
-                                         N{1},
-                                         N{2},
-                                         N{4},
-                                         N{},
-                                         N{},
-                                         N{5},
-                                         N{},
-                                         N{6},
-                                         N{7},
-                                         N{8},
-                                         N{},
-                                         N{9},
-                                         N{10}};
+        EXPECT_JSON_EQ(
+            R"json(["t",["~",0],["S",0],["~",2],["S",1],["|",[3,4]],["&",[3,4]],["S",2],["~",7],["|",[3,4,6]],["&",[3,4,5,9]]])json",
+            to_json_string(simplified.tree));
+        constexpr N expected_new_nodes[]{
+            N{0},
+            N{1},
+            N{2},
+            N{4},
+            N{},
+            N{},
+            N{5},
+            N{},
+            N{6},
+            N{7},
+            N{8},
+            N{},
+            N{9},
+            N{10},
+        };
         EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
     }
 
     // Check a well-formed tree
     this->insert(Negated{j3});
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
-        "all{2,4}, 6: not{5}, 7: any{2,4}, 8: not{7}, 9: surface 2, 10: "
-        "not{9}, 11: all{5,7}, 12: not{11}, 13: all{6,8,12}, 14: not{13}, }",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["S",0],["S",1],["~",3],["&",[2,4]],["~",5],["|",[2,4]],["~",7],["S",2],["~",9],["&",[2,4,7]],["~",11],["&",[6,8,12]],["~",13]])json",
+        to_json_string(tree_));
 
     // Complex case with a negated join with negated join as children
     {
         auto simplified = transform_negated_joins(tree_);
-        EXPECT_EQ(
-            "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
-            "not{4}, 6: any{3,4}, 7: all{2,5}, 8: all{3,4}, 9: any{2,5}, 10: "
-            "surface 2, 11: not{10}, 12: any{6,8}, 13: all{7,9}, 14: "
-            "any{7,9,13}, "
-            "}",
-            to_string(simplified.tree));
-        constexpr N expected_new_nodes[]{N{0},
-                                         N{1},
-                                         N{2},
-                                         N{4},
-                                         N{5},
-                                         N{7},
-                                         N{6},
-                                         N{9},
-                                         N{8},
-                                         N{10},
-                                         N{11},
-                                         N{13},
-                                         N{12},
-                                         N{},
-                                         N{14}};
+        EXPECT_JSON_EQ(
+            R"json(["t",["~",0],["S",0],["~",2],["S",1],["~",4],["|",[3,4]],["&",[2,5]],["&",[3,4]],["|",[2,5]],["S",2],["~",10],["|",[3,4,8]],["&",[2,5,9]],["|",[2,5,7,13]]])json",
+            to_json_string(simplified.tree));
+        constexpr N expected_new_nodes[]{
+            N{0},
+            N{1},
+            N{2},
+            N{4},
+            N{5},
+            N{7},
+            N{6},
+            N{9},
+            N{8},
+            N{10},
+            N{11},
+            N{13},
+            N{12},
+            N{},
+            N{14},
+        };
         EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
     }
 
@@ -805,21 +855,29 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
     auto n4 = this->insert(Negated{s2});
     this->insert(Joined{op_and, {n3, n4}});
     // Check a well-formed tree
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{2}, 5: "
-        "not{3}, 6: any{4,5}, 7: not{6}, 8: surface 2, 9: not{8}, 10: "
-        "all{7,9}, }",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["S",0],["S",1],["~",2],["~",3],["|",[4,5]],["~",6],["S",2],["~",8],["&",[7,9]]])json",
+        to_json_string(tree_));
 
     // Complex case with a negated join with negated children
     {
         auto simplified = transform_negated_joins(tree_);
-        EXPECT_EQ(
-            "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: all{2,3}, 5: "
-            "surface 2, 6: not{5}, 7: all{4,6}, }",
-            to_string(simplified.tree));
+        EXPECT_JSON_EQ(
+            R"json(["t",["~",0],["S",0],["S",1],["&",[2,3]],["S",2],["~",5],["&",[2,3,6]]])json",
+            to_json_string(simplified.tree));
         constexpr N expected_new_nodes[]{
-            N{0}, N{1}, N{2}, N{3}, N{}, N{}, N{}, N{4}, N{5}, N{6}, N{7}};
+            N{0},
+            N{1},
+            N{2},
+            N{3},
+            N{},
+            N{},
+            N{},
+            N{4},
+            N{5},
+            N{6},
+            N{7},
+        };
         EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
     }
 
@@ -831,18 +889,25 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
     this->insert(Joined{op_and, {n0, n1}});
     j0 = this->insert(Joined{op_or, {n0, n1}});
     this->insert(Negated{j0});
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{2}, 5: "
-        "not{3}, 6: all{4,5}, 7: any{4,5}, 8: not{7}, }",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["S",0],["S",1],["~",2],["~",3],["&",[4,5]],["|",[4,5]],["~",7]])json",
+        to_json_string(tree_));
     {
         auto simplified = transform_negated_joins(tree_);
-        EXPECT_EQ(
-            "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{2}, 5: "
-            "not{3}, 6: all{4,5}, 7: all{2,3}, }",
-            to_string(simplified.tree));
+        EXPECT_JSON_EQ(
+            R"json(["t",["~",0],["S",0],["S",1],["~",2],["~",3],["&",[4,5]],["&",[2,3]]])json",
+            to_json_string(simplified.tree));
         constexpr N expected_new_nodes[]{
-            N{0}, N{1}, N{2}, N{3}, N{4}, N{5}, N{6}, N{}, N{7}};
+            N{0},
+            N{1},
+            N{2},
+            N{3},
+            N{4},
+            N{5},
+            N{6},
+            N{},
+            N{7},
+        };
         EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
     }
 }
@@ -862,24 +927,35 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
     tree_.insert_volume(j1);
     tree_.insert_volume(n3);
     // Check a well-formed tree
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{2}, 5: "
-        "not{3}, 6: any{4,5}, 7: not{6}, 8: surface 2, 9: not{8}, 10: "
-        "all{7,9}, }",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["S",0],["S",1],["~",2],["~",3],["|",[4,5]],["~",6],["S",2],["~",8],["&",[7,9]]])json",
+        to_json_string(tree_));
 
     // Complex case with a negated join with negated children
     {
         auto simplified = transform_negated_joins(tree_);
-        EXPECT_EQ(
-            "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{2}, 5: "
-            "not{3}, 6: all{2,3}, 7: any{4,5}, 8: surface 2, 9: not{8}, 10: "
-            "all{6,9}, }",
-            to_string(simplified.tree));
+        EXPECT_JSON_EQ(
+            R"json(["t",["~",0],["S",0],["S",1],["~",2],["~",3],["&",[2,3]],["|",[4,5]],["S",2],["~",8],["&",[2,3,9]]])json",
+            to_json_string(simplified.tree));
         constexpr N expected_new_nodes[]{
-            N{0}, N{1}, N{2}, N{3}, N{4}, N{5}, N{7}, N{6}, N{8}, N{9}, N{10}};
+            N{0},
+            N{1},
+            N{2},
+            N{3},
+            N{4},
+            N{5},
+            N{7},
+            N{6},
+            N{8},
+            N{9},
+            N{10},
+        };
         EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
-        constexpr N expected_volumes[]{N{7}, N{10}, N{6}};
+        constexpr N expected_volumes[]{
+            N{7},
+            N{10},
+            N{6},
+        };
         EXPECT_VEC_EQ(expected_volumes, simplified.tree.volumes());
     }
     // Check that the new volumes map to the correct node
@@ -902,32 +978,31 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
     tree_.insert_volume(inner_cyl);
     {
         auto simplified = transform_negated_joins(tree_);
-        EXPECT_EQ(
-            "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
-            "not{4}, 6: surface 2, 7: not{6}, 8: any{3,4,6}, 9: all{2,5,7}, "
-            "10: "
-            "surface 3, 11: not{10}, 12: all{2,5,11}, 13: all{8,12}, 14: "
-            "surface "
-            "4, 15: all{2,5,14}, 16: all{2,5}, }",
-            to_string(simplified.tree));
-        constexpr N expected_new_nodes[]{N{0},
-                                         N{1},
-                                         N{2},
-                                         N{4},
-                                         N{5},
-                                         N{6},
-                                         N{7},
-                                         N{9},
-                                         N{10},
-                                         N{11},
-                                         N{12},
-                                         N{8},
-                                         N{13},
-                                         N{14},
-                                         N{15},
-                                         N{16}};
+        EXPECT_JSON_EQ(
+            R"json(["t",["~",0],["S",0],["~",2],["S",1],["~",4],["S",2],["~",6],["|",[3,4,6]],["&",[2,5,7]],["S",3],["~",10],["&",[2,5,11]],["&",[2,5,8,11]],["S",4],["&",[2,5,14]],["&",[2,5]]])json",
+            to_json_string(simplified.tree));
+        constexpr N expected_new_nodes[]{
+            N{0},
+            N{1},
+            N{2},
+            N{4},
+            N{5},
+            N{6},
+            N{7},
+            N{9},
+            N{10},
+            N{11},
+            N{12},
+            N{8},
+            N{13},
+            N{14},
+            N{15},
+            N{16},
+        };
         EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
-        constexpr N expected_volumes[]{N{9}};
+        constexpr N expected_volumes[]{
+            N{9},
+        };
         EXPECT_VEC_EQ(expected_volumes, simplified.tree.volumes());
     }
 
@@ -972,41 +1047,26 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
     EXPECT_EQ(N{27}, this->insert(Negated{N{26}}));
     EXPECT_EQ(N{28}, this->insert(Joined{op_and, {N{15}, N{27}}}));
 
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
-        "surface 2, 6: not{5}, 7: all{2,4,6}, 8: surface 3, 9: not{8}, 10: "
-        "all{2,4,9}, 11: not{10}, 12: surface 4, 13: surface 5, 14: "
-        "all{12,13}, 15: all{7,11,14}, 16: not{15}, 17: surface 6, 18: "
-        "surface 7, 19: not{18}, 20: all{6,17,19}, 21: all{9,17,19}, 22: "
-        "not{21}, 23: surface 8, 24: surface 9, 25: all{23,24}, 26: "
-        "all{20,22,25}, 27: not{26}, 28: all{15,27}, }",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["S",0],["S",1],["~",3],["S",2],["~",5],["&",[2,4,6]],["S",3],["~",8],["&",[2,4,9]],["~",10],["S",4],["S",5],["&",[12,13]],["&",[2,4,6,11,12,13]],["~",15],["S",6],["S",7],["~",18],["&",[6,17,19]],["&",[9,17,19]],["~",21],["S",8],["S",9],["&",[23,24]],["&",[6,17,19,22,23,24]],["~",26],["&",[2,4,6,11,12,13,27]]])json",
+        to_json_string(tree_));
 
     tree_.insert_volume(N{16});
     {
         auto simplified = transform_negated_joins(tree_);
-        EXPECT_EQ(
-            "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
-            "not{4}, 6: surface 2, 7: not{6}, 8: any{3,4,6}, 9: all{2,5,7}, "
-            "10: "
-            "surface 3, 11: not{10}, 12: any{3,4,10}, 13: all{2,5,11}, 14: "
-            "surface 4, 15: not{14}, 16: surface 5, 17: not{16}, 18: "
-            "any{15,17}, "
-            "19: all{14,16}, 20: any{8,13,18}, 21: all{9,12,19}, 22: surface "
-            "6, "
-            "23: not{22}, 24: surface 7, 25: not{24}, 26: any{6,23,24}, 27: "
-            "any{10,23,24}, 28: all{11,22,25}, 29: surface 8, 30: not{29}, "
-            "31: "
-            "surface 9, 32: not{31}, 33: any{30,32}, 34: any{26,28,33}, 35: "
-            "all{21,34}, }",
-            to_string(simplified.tree));
-        constexpr N expected_new_nodes[]{
-            N{0},  N{1},  N{2},  N{4},  N{5},  N{6},  N{7},  N{9},
-            N{10}, N{11}, N{13}, N{12}, N{14}, N{16}, N{19}, N{21},
-            N{20}, N{22}, N{24}, N{25}, N{},   N{28}, N{27}, N{29},
-            N{31}, N{},   N{},   N{34}, N{35}};
+        EXPECT_JSON_EQ(
+            R"json(["t",["~",0],["S",0],["~",2],["S",1],["~",4],["S",2],["~",6],["&",[2,5,7]],["S",3],["~",9],["|",[3,4,9]],["&",[2,5,10]],["S",4],["~",13],["S",5],["~",15],["&",[13,15]],["|",[3,4,6,12,14,16]],["S",6],["~",19],["S",7],["~",21],["&",[7,19,22]],["|",[9,20,21]],["&",[10,19,22]],["S",8],["~",26],["S",9],["~",28],["&",[26,28]],["|",[6,20,21,25,27,29]],["&",[2,5,7,11,13,15,31]]])json",
+            to_json_string(simplified.tree));
+        constexpr N expected_new_nodes[] = {
+            N{0},  N{1},  N{2},  N{4},  N{5},  N{6},  N{7},  N{8},
+            N{9},  N{10}, N{12}, N{11}, N{13}, N{15}, N{17}, N{},
+            N{18}, N{19}, N{21}, N{22}, N{23}, N{25}, N{24}, N{26},
+            N{28}, N{30}, N{},   N{31}, N{32},
+        };
         EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
-        constexpr N expected_volumes[]{N{20}};
+        constexpr N expected_volumes[]{
+            N{18},
+        };
         EXPECT_VEC_EQ(expected_volumes, simplified.tree.volumes());
     }
 }
@@ -1019,18 +1079,24 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_aliases)
     auto j0 = this->insert(Joined{op_and, {s0, n0}});
     auto a0 = this->insert(Aliased{j0});
     this->insert(Negated{a0});
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
-        "all{2,4}, 6: ->{5}, 7: not{5}, }",
-        to_string(tree_));
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["S",0],["S",1],["~",3],["&",[2,4]],["=",5],["~",5]])json",
+        to_json_string(tree_));
     {
         auto simplified = transform_negated_joins(tree_);
-        EXPECT_EQ(
-            "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
-            "not{4}, 6: any{3,4}, 7: all{2,5}, }",
-            to_string(simplified.tree));
+        EXPECT_JSON_EQ(
+            R"json(["t",["~",0],["S",0],["~",2],["S",1],["~",4],["|",[3,4]],["&",[2,5]]])json",
+            to_json_string(simplified.tree));
         constexpr N expected_new_nodes[]{
-            N{0}, N{1}, N{2}, N{4}, N{5}, N{}, N{7}, N{6}};
+            N{0},
+            N{1},
+            N{2},
+            N{4},
+            N{5},
+            N{},
+            N{7},
+            N{6},
+        };
         EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
     }
 }

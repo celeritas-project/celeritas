@@ -11,11 +11,11 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/random/distribution/BernoulliDistribution.hh"
+#include "corecel/random/distribution/UniformRealDistribution.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/mat/IsotopeView.hh"
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
 {
@@ -92,7 +92,7 @@ class MomentumTransferSampler
 
     //// COMMON PROPERTIES ////
 
-    // Covert from clhep::MeV value to clhep::GeV value
+    // Convert from clhep::MeV value to clhep::GeV value
     static CELER_CONSTEXPR_FUNCTION real_type to_gev() { return 1e-3; }
 
     // S-wave limit for neutron, log(p) < -4.3 (GeV/c) (kinetic energy < 0.1
@@ -141,8 +141,8 @@ MomentumTransferSampler::MomentumTransferSampler(NeutronElasticRef const& shared
  *
  */
 template<class Engine>
-CELER_FUNCTION auto
-MomentumTransferSampler::operator()(Engine& rng) -> real_type
+CELER_FUNCTION auto MomentumTransferSampler::operator()(Engine& rng)
+    -> real_type
 {
     // Sample \f$ Q^{2} \f$ below S-wave limit
     if (neutron_p_ < this->s_wave_limit())

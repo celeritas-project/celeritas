@@ -11,13 +11,12 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Array.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
-#include "corecel/math/ArrayUtils.hh"
-#include "corecel/math/Atomics.hh"
+#include "corecel/random/data/RngData.hh"
+#include "geocel/Types.hh"
+#include "celeritas/Units.hh"
 #include "celeritas/geo/GeoData.hh"
-#include "celeritas/random/RngData.hh"
 
 namespace celeritas
 {
@@ -31,13 +30,17 @@ struct HeuristicGeoScalars
     // User-configurable options
     Real3 lower{0, 0, 0};
     Real3 upper{0, 0, 0};
-    real_type log_min_step{-16.11809565095832};  // 1 nm
-    real_type log_max_step{2.302585092994046};  // 10 cm
+    real_type log_min_step{-16.11809565095832};  // 1 nm (1e-7)
+    real_type log_max_step{2.302585092994046};  // 10 cm (1e2)
+
+    static constexpr real_type safety_tol = 0.01;
+    // High limit prevents truncation to safety distance
+    real_type geom_limit = 5e-8 * units::millimeter;
 
     // Set from geometry
-    VolumeId::size_type num_volumes{};
+    ImplVolumeId::size_type num_volumes{};
     bool ignore_zero_safety{};
-    VolumeId world_volume;
+    ImplVolumeId world_volume;
 
     explicit CELER_FUNCTION operator bool() const
     {
@@ -88,8 +91,9 @@ struct HeuristicGeoStateData
     GeoStateData<W, M> geometry;
     RngStateData<W, M> rng;
     StateItems<LifeStatus> status;
+    size_type step{0};
 
-    Collection<real_type, W, M, VolumeId> accum_path;
+    Collection<real_type, W, M, ImplVolumeId> accum_path;
 
     //! Number of state elements
     CELER_FUNCTION size_type size() const { return geometry.size(); }

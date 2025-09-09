@@ -61,7 +61,7 @@ TEST_F(UniformGridTest, find)
 
 TEST_F(UniformGridTest, from_bounds)
 {
-    input = UniformGridData::from_bounds(-1, 5, 7);
+    input = UniformGridData::from_bounds({-1, 5}, 7);
     ASSERT_TRUE(input);
 
     UniformGrid grid(input);
@@ -75,7 +75,7 @@ TEST_F(UniformGridTest, TEST_IF_CELERITAS_DOUBLE(from_logbounds))
 {
     real_type const log_emin = std::log(real_type{1.0});
     real_type const log_emax = std::log(real_type{1e5});
-    input = UniformGridData::from_bounds(log_emin, log_emax, 6);
+    input = UniformGridData::from_bounds({log_emin, log_emax}, 6);
 
     UniformGrid grid(input);
     EXPECT_EQ(6, grid.size());

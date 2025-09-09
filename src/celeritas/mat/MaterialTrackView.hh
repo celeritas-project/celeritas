@@ -28,7 +28,7 @@ namespace celeritas
  * anything else that needs to access particle properties. Assume that all
  * these functions are expensive: when using them as accessors, locally store
  * the results rather than calling the function repeatedly. If any of the
- * calculations prove to be hot spots we will experiment with cacheing some of
+ * calculations prove to be hot spots we will experiment with caching some of
  * the variables.
  *
  * The element scratch space is "thread-private" data with a fixed size
@@ -58,12 +58,12 @@ class MaterialTrackView
     //// DYNAMIC PROPERTIES (pure accessors, free) ////
 
     // Current material identifier
-    CELER_FORCEINLINE_FUNCTION MaterialId material_id() const;
+    CELER_FORCEINLINE_FUNCTION PhysMatId material_id() const;
 
     //// STATIC PROPERTIES ////
 
     // Get a view to material properties
-    CELER_FORCEINLINE_FUNCTION MaterialView make_material_view() const;
+    CELER_FORCEINLINE_FUNCTION MaterialView material_record() const;
 
     // Access scratch space with at least one real per element component
     inline CELER_FUNCTION Span<real_type> element_scratch();
@@ -107,7 +107,7 @@ MaterialTrackView::operator=(Initializer_t const& other)
 /*!
  * Current material identifier.
  */
-CELER_FUNCTION MaterialId MaterialTrackView::material_id() const
+CELER_FUNCTION PhysMatId MaterialTrackView::material_id() const
 {
     return this->state().material_id;
 }
@@ -116,7 +116,7 @@ CELER_FUNCTION MaterialId MaterialTrackView::material_id() const
 /*!
  * Get material properties for the current material.
  */
-CELER_FUNCTION MaterialView MaterialTrackView::make_material_view() const
+CELER_FUNCTION MaterialView MaterialTrackView::material_record() const
 {
     return MaterialView(params_, this->material_id());
 }

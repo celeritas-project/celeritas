@@ -25,6 +25,10 @@ namespace detail
  *
  * As a reminder, \em geometry materials correspond to \c G4Material and
  * \em physics materials correspond to \c G4MaterialCutsCouple .
+ *
+ * \todo Use GeantGeoParams (or an upcoming GeantModel) to translate geometry
+ * IDs: the G4Material's "index" can be offset from the GeantGeoParams material
+ * if the geometry has been reloaded.
  */
 class GeoOpticalIdMap
 {
@@ -36,20 +40,20 @@ class GeoOpticalIdMap
     explicit GeoOpticalIdMap(G4MaterialTable const&);
 
     // Return the optical ID corresponding to a geo ID
-    inline OpticalMaterialId operator[](GeoMaterialId) const;
+    inline OptMatId operator[](GeoMatId) const;
 
     //! True if no optical materials are present
     bool empty() const { return geo_to_opt_.empty(); }
 
     //! Number of geometry materials
-    GeoMaterialId::size_type num_geo() const { return geo_to_opt_.size(); }
+    GeoMatId::size_type num_geo() const { return geo_to_opt_.size(); }
 
     //! Number of optical materials
-    OpticalMaterialId::size_type num_optical() const { return num_optical_; }
+    OptMatId::size_type num_optical() const { return num_optical_; }
 
   private:
-    std::vector<OpticalMaterialId> geo_to_opt_;
-    OpticalMaterialId::size_type num_optical_{};
+    std::vector<OptMatId> geo_to_opt_;
+    OptMatId::size_type num_optical_{};
 };
 
 //---------------------------------------------------------------------------//
@@ -60,7 +64,7 @@ class GeoOpticalIdMap
  *
  * The result \em may be a "null" ID if there's no associated optical physics.
  */
-OpticalMaterialId GeoOpticalIdMap::operator[](GeoMaterialId m) const
+OptMatId GeoOpticalIdMap::operator[](GeoMatId m) const
 {
     CELER_EXPECT(!this->empty());
     CELER_EXPECT(m < this->num_geo());

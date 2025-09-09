@@ -7,12 +7,12 @@
 #include "LogicalVolumeConverter.hh"
 
 #include <G4LogicalVolume.hh>
-#include <G4Material.hh>
 #include <G4VSolid.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Environment.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
 
 #include "SolidConverter.hh"
@@ -26,8 +26,9 @@ namespace g4org
 /*!
  * Construct with solid conversion helper.
  */
-LogicalVolumeConverter::LogicalVolumeConverter(SolidConverter& convert_solid)
-    : convert_solid_(convert_solid)
+LogicalVolumeConverter::LogicalVolumeConverter(GeantGeoParams const& geo,
+                                               SolidConverter& convert_solid)
+    : geo_{geo}, convert_solid_(convert_solid)
 {
 }
 
@@ -64,29 +65,13 @@ auto LogicalVolumeConverter::construct_impl(arg_type g4lv) -> SPLV
 {
     auto result = std::make_shared<LogicalVolume>();
 
-    // Save Geant4 volume pointer for later mappings
-    result->g4lv = &g4lv;
-
-    // Save name
-    result->name = g4lv.GetName();
-    if (result->name.find("0x") == std::string::npos)
-    {
-        // No pointer address: add one
-        result->name = make_gdml_name(g4lv);
-    }
-
-    // Save material ID
-    // NOTE: this is *not* the physics material ("cut couple")
-    if (auto* mat = g4lv.GetMaterial())
-    {
-        result->material_id = id_cast<GeoMaterialId>(mat->GetIndex());
-    }
-    else
-    {
-        CELER_LOG(warning) << "Logical volume '" << result->name
-                           << "' has no associated material";
-        result->material_id = GeoMaterialId{0};
-    }
+    // Save Geant4 volume ID
+    result->id = geo_.geant_to_id(g4lv);
+    result->material_id = [this, mat = g4lv.GetMaterial()]() -> GeoMatId {
+        if (!mat)
+            return {};
+        return geo_.geant_to_id(*mat);
+    }();
 
     // Convert solid
     try

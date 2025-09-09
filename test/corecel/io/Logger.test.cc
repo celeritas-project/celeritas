@@ -30,6 +30,11 @@ TEST(NullLoggerMessage, all)
                         << std::setw(5) << 123;
 }
 
+TEST(LoggerTypes, all)
+{
+    EXPECT_TRUE(std::is_trivially_destructible_v<LogProvenance>);
+}
+
 }  // namespace test
 }  // namespace detail
 

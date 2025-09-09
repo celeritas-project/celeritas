@@ -1,6 +1,5 @@
-//---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------ -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/interactor/detail/PhysicsConstants.hh
@@ -57,12 +56,6 @@ CELER_CONSTEXPR_FUNCTION MevPerLen lpm_constant()
 //---------------------------------------------------------------------------//
 // Constant functions for model limits
 //---------------------------------------------------------------------------//
-
-//! Maximum energy for the SeltzerBerger model - TODO: make this configurable
-CELER_CONSTEXPR_FUNCTION units::MevEnergy seltzer_berger_upper_limit()
-{
-    return units::MevEnergy{1e3};  //! 1 GeV
-}
 
 //! Maximum energy for EM models to be valid
 CELER_CONSTEXPR_FUNCTION units::MevEnergy high_energy_limit()

@@ -11,9 +11,9 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/random/distribution/PoissonDistribution.hh"
+#include "corecel/random/distribution/UniformRealDistribution.hh"
 #include "celeritas/em/data/FluctuationData.hh"
-#include "celeritas/random/distribution/PoissonDistribution.hh"
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 #include "EnergyLossGaussianDistribution.hh"
 #include "EnergyLossHelper.hh"
@@ -40,8 +40,8 @@ namespace celeritas
  * large and the energy loss can be sampled from a Gaussian distribution, and
  * an upper range in which the energy loss is sampled for each collision.
  *
- * See section 7.3.2 of the Geant4 Physics Reference Manual and GEANT3 PHYS332
- * section 2.4 for details.
+ * See section 7.3.2 of \cite{g4prm} and PHYS332 section 2.4 of
+ * \cite{geant3-1993} for details.
  */
 class EnergyLossUrbanDistribution
 {
@@ -161,7 +161,7 @@ CELER_FUNCTION EnergyLossUrbanDistribution::EnergyLossUrbanDistribution(
 
     // Calculate the excitation macroscopic cross sections and apply the width
     // correction
-    auto const& mat = cur_mat.make_material_view();
+    auto const& mat = cur_mat.material_record();
     if (max_energy_ > value_as<Energy>(mat.mean_excitation_energy()))
     {
         // Common term in the numerator and denominator of PRM Eq. 7.10
@@ -235,8 +235,8 @@ CELER_FUNCTION EnergyLossUrbanDistribution::EnergyLossUrbanDistribution(
  * Sample energy loss according to the distribution.
  */
 template<class Generator>
-CELER_FUNCTION auto
-EnergyLossUrbanDistribution::operator()(Generator& rng) -> Energy
+CELER_FUNCTION auto EnergyLossUrbanDistribution::operator()(Generator& rng)
+    -> Energy
 {
     // Calculate actual energy loss from the loss contributions from excitation
     // and ionization

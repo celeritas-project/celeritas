@@ -1,6 +1,5 @@
-//---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------ -*- cuda -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/user/SlotDiagnostic.cu
@@ -34,7 +33,7 @@ void SlotDiagnostic::step(CoreParams const& params, CoreStateDevice& state) cons
     device_buffer.copy_to_host(this->get_host_buffer(state.aux()));
     device_buffer = {};
 
-    // Write IDs to
+    // Write IDs to the file
     this->write_buffer(state.aux());
 }
 

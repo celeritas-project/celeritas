@@ -28,7 +28,7 @@ class EPlusGGModel final : public Model, public StaticConcreteAction
     SetApplicability applicability() const final;
 
     // Get the microscopic cross sections for the given particle and material
-    MicroXsBuilders micro_xs(Applicability) const final;
+    XsTable micro_xs(Applicability) const final;
 
     // Apply the interaction kernel on host
     void step(CoreParams const&, CoreStateHost&) const final;

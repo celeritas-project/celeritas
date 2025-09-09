@@ -6,24 +6,27 @@
 //---------------------------------------------------------------------------//
 #include "OpticalCollector.hh"
 
+#include "corecel/Assert.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
+#include "corecel/data/AuxStateVec.hh"
+#include "corecel/io/OutputInterfaceAdapter.hh"
+#include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/ActionRegistryOutput.hh"
 #include "celeritas/global/CoreParams.hh"
-#include "celeritas/track/TrackInitParams.hh"
 
-#include "CherenkovParams.hh"
 #include "CoreParams.hh"
+#include "CoreState.hh"
 #include "MaterialParams.hh"
-#include "OffloadData.hh"
-#include "ScintillationParams.hh"
+#include "PhysicsParams.hh"
+#include "gen/CherenkovParams.hh"
+#include "gen/GeneratorAction.hh"
+#include "gen/OffloadAction.hh"
+#include "gen/OffloadGatherAction.hh"
+#include "gen/ScintillationParams.hh"
 
-#include "detail/CherenkovGeneratorAction.hh"
-#include "detail/CherenkovOffloadAction.hh"
-#include "detail/OffloadGatherAction.hh"
-#include "detail/OffloadParams.hh"
 #include "detail/OpticalLaunchAction.hh"
-#include "detail/ScintGeneratorAction.hh"
-#include "detail/ScintOffloadAction.hh"
+#include "detail/OpticalSizes.json.hh"
 
 namespace celeritas
 {
@@ -37,111 +40,152 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
 {
     CELER_EXPECT(inp);
 
-    OffloadOptions setup;
-    setup.cherenkov = inp.cherenkov && inp.material;
-    setup.scintillation = static_cast<bool>(inp.scintillation);
-    setup.capacity = inp.buffer_capacity;
-
-    // Create offload params
-    AuxParamsRegistry& aux = *core.aux_reg();
-    offload_params_
-        = std::make_shared<detail::OffloadParams>(aux.next_id(), setup);
-    aux.insert(offload_params_);
-
-    // Action to gather pre-step data needed to generate optical distributions
-    ActionRegistry& actions = *core.action_reg();
-    gather_action_ = std::make_shared<detail::OffloadGatherAction>(
-        actions.next_id(), offload_params_->aux_id());
-    actions.insert(gather_action_);
-
-    if (setup.cherenkov)
-    {
-        // Action to generate Cherenkov optical distributions
-        cherenkov_action_ = std::make_shared<detail::CherenkovOffloadAction>(
-            actions.next_id(),
-            offload_params_->aux_id(),
-            inp.material,
-            inp.cherenkov);
-        actions.insert(cherenkov_action_);
-    }
-
-    if (setup.scintillation)
-    {
-        // Action to generate scintillation optical distributions
-        scint_action_ = std::make_shared<detail::ScintOffloadAction>(
-            actions.next_id(), offload_params_->aux_id(), inp.scintillation);
-        actions.insert(scint_action_);
-    }
-
-    if (setup.cherenkov)
-    {
-        // Action to generate Cherenkov primaries
-        cherenkov_gen_action_
-            = std::make_shared<detail::CherenkovGeneratorAction>(
-                actions.next_id(),
-                offload_params_->aux_id(),
-                // TODO: Hack: generator action must be before launch action
-                // but needs optical state aux ID
-                core.aux_reg()->next_id(),
-                inp.material,
-                std::move(inp.cherenkov),
-                inp.auto_flush);
-        actions.insert(cherenkov_gen_action_);
-    }
-
-    if (setup.scintillation)
-    {
-        // Action to generate scintillation primaries
-        scint_gen_action_ = std::make_shared<detail::ScintGeneratorAction>(
-            actions.next_id(),
-            offload_params_->aux_id(),
-            // TODO: Hack: generator action must be before launch action
-            // but needs optical state aux ID
-            core.aux_reg()->next_id(),
-            std::move(inp.scintillation),
-            inp.auto_flush);
-        actions.insert(scint_gen_action_);
-    }
-
-    // Create launch action with optical params+state and access to gen data
+    // Create launch action with optical params+state and access to aux data
     detail::OpticalLaunchAction::Input la_inp;
-    la_inp.material = inp.material;
-    la_inp.offload = offload_params_;
     la_inp.num_track_slots = inp.num_track_slots;
-    la_inp.initializer_capacity = inp.initializer_capacity;
-    launch_action_ = detail::OpticalLaunchAction::make_and_insert(
-        core, std::move(la_inp));
+    la_inp.max_step_iters = inp.max_step_iters;
+    la_inp.auto_flush = inp.auto_flush;
+    la_inp.optical_params = inp.optical_params;
+    launch_ = detail::OpticalLaunchAction::make_and_insert(core,
+                                                           std::move(la_inp));
 
-    // Launch action must be *after* offload and generator actions
-    CELER_ENSURE(!cherenkov_action_
-                 || launch_action_->action_id()
-                        > cherenkov_action_->action_id());
-    CELER_ENSURE(!scint_action_
-                 || launch_action_->action_id() > scint_action_->action_id());
-    CELER_ENSURE(!cherenkov_gen_action_
-                 || launch_action_->action_id()
-                        > cherenkov_gen_action_->action_id());
-    CELER_ENSURE(!scint_gen_action_
-                 || launch_action_->action_id()
-                        > scint_gen_action_->action_id());
+    // Create core action to gather pre-step data for populating distributions
+    gather_ = OffloadGatherAction::make_and_insert(core);
+
+    if (inp.cherenkov)
+    {
+        // Create optical action to generate Cherenkov primaries
+        optical::GeneratorAction<GT::cherenkov>::Input ga_inp;
+        ga_inp.material = inp.optical_params->material();
+        ga_inp.shared = inp.cherenkov;
+        ga_inp.capacity = inp.buffer_capacity;
+        cherenkov_generate_
+            = optical::GeneratorAction<GT::cherenkov>::make_and_insert(
+                core, *inp.optical_params, std::move(ga_inp));
+
+        // Create core action to generate Cherenkov optical distributions
+        OffloadAction<GT::cherenkov>::Input oa_inp;
+        oa_inp.step_id = gather_->aux_id();
+        oa_inp.gen_id = cherenkov_generate_->aux_id();
+        oa_inp.optical_id = launch_->aux_id();
+        oa_inp.material = inp.optical_params->material();
+        oa_inp.shared = inp.cherenkov;
+        cherenkov_offload_ = OffloadAction<GT::cherenkov>::make_and_insert(
+            core, std::move(oa_inp));
+    }
+    if (inp.scintillation)
+    {
+        // Create action to generate scintillation primaries
+        optical::GeneratorAction<GT::scintillation>::Input ga_inp;
+        ga_inp.material = inp.optical_params->material();
+        ga_inp.shared = inp.scintillation;
+        ga_inp.capacity = inp.buffer_capacity;
+        scint_generate_
+            = optical::GeneratorAction<GT::scintillation>::make_and_insert(
+                core, *inp.optical_params, std::move(ga_inp));
+
+        // Create action to generate scintillation optical distributions
+        OffloadAction<GT::scintillation>::Input oa_inp;
+        oa_inp.step_id = gather_->aux_id();
+        oa_inp.gen_id = scint_generate_->aux_id();
+        oa_inp.optical_id = launch_->aux_id();
+        oa_inp.material = inp.optical_params->material();
+        oa_inp.shared = inp.scintillation;
+        scint_offload_ = OffloadAction<GT::scintillation>::make_and_insert(
+            core, std::move(oa_inp));
+    }
+
+    // Save optical diagnostic information
+    core.output_reg()->insert(std::make_shared<ActionRegistryOutput>(
+        inp.optical_params->action_reg(), "optical-actions"));
+
+    // Add optical sizes
+    detail::OpticalSizes sizes;
+    sizes.streams = core.max_streams();
+    sizes.generators = sizes.streams * inp.buffer_capacity;
+    sizes.tracks = sizes.streams * inp.num_track_slots;
+
+    core.output_reg()->insert(
+        OutputInterfaceAdapter<detail::OpticalSizes>::from_rvalue_ref(
+            OutputInterface::Category::internal,
+            "optical-sizes",
+            std::move(sizes)));
+
+    // Save core params
+    optical_params_ = std::move(inp.optical_params);
+
+    CELER_ENSURE(optical_params_);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Aux ID for optical generator data used for offloading.
+ * Access Cherenkov params (may be null).
  */
-AuxId OpticalCollector::offload_aux_id() const
+auto OpticalCollector::cherenkov() const -> SPConstCherenkov
 {
-    return offload_params_->aux_id();
+    if (!cherenkov_offload_)
+        return nullptr;
+    return cherenkov_offload_->params();
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Aux ID for optical core state data.
+ * Access scintillation params (may be null).
  */
-AuxId OpticalCollector::optical_aux_id() const
+auto OpticalCollector::scintillation() const -> SPConstScintillation
 {
-    return launch_action_->aux_id();
+    if (!scint_offload_)
+        return nullptr;
+    return scint_offload_->params();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the generator registry.
+ */
+GeneratorRegistry const& OpticalCollector::gen_reg() const
+{
+    return *optical_params_->gen_reg();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get and reset cumulative statistics on optical generation from a state.
+ */
+OpticalAccumStats OpticalCollector::exchange_counters(AuxStateVec& aux) const
+{
+    auto& state
+        = dynamic_cast<optical::CoreStateBase&>(aux.at(launch_->aux_id()));
+    auto& accum = state.accum();
+
+    accum.generators.resize(this->gen_reg().size());
+    for (auto id : range(GeneratorId{this->gen_reg().size()}))
+    {
+        auto& gen_accum = this->gen_reg().at(id)->counters(aux).accum;
+        accum.generators[id.get()] = std::exchange(gen_accum, {});
+    }
+
+    return std::exchange(accum, {});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get info on the number of tracks in the buffer.
+ */
+auto OpticalCollector::buffer_counts(AuxStateVec const& aux) const
+    -> OpticalBufferSize
+{
+    OpticalBufferSize result;
+
+    for (auto id : range(GeneratorId{this->gen_reg().size()}))
+    {
+        auto const& counters = this->gen_reg().at(id)->counters(aux).counters;
+        result.buffer_size += counters.buffer_size;
+        result.num_pending += counters.num_pending;
+        result.num_generated += counters.num_generated;
+    }
+
+    return result;
 }
 
 //---------------------------------------------------------------------------//

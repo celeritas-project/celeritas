@@ -89,7 +89,7 @@ struct WentzelOKVIData
     template<class T>
     using IsotopeItems = celeritas::Collection<T, W, M, IsotopeId>;
     template<class T>
-    using MaterialItems = Collection<T, W, M, MaterialId>;
+    using MaterialItems = Collection<T, W, M, PhysMatId>;
 
     //// DATA ////
 

@@ -6,52 +6,26 @@
 //---------------------------------------------------------------------------//
 #include "OpticalLaunchAction.hh"
 
+#include <mutex>
+
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/OutputInterfaceAdapter.hh"
-#include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/optical/CoreParams.hh"
-#include "celeritas/optical/CoreState.hh"
-#include "celeritas/optical/TrackInitParams.hh"
-#include "celeritas/optical/action/ActionGroups.hh"
-#include "celeritas/optical/action/BoundaryAction.hh"
-#include "celeritas/track/TrackInitParams.hh"
+#include "celeritas/phys/GeneratorRegistry.hh"
 
-#include "OffloadParams.hh"
-#include "OpticalSizes.json.hh"
+#include "../CoreParams.hh"
+#include "../CoreState.hh"
+#include "../Transporter.hh"
+#include "../action/ActionGroups.hh"
+#include "../gen/GeneratorData.hh"
 
 namespace celeritas
 {
 namespace detail
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-auto get_core_sizes(OpticalLaunchAction const& ola)
-{
-    // Optical core params
-    auto const& cp = ola.optical_params();
-
-    OpticalSizes result;
-    result.streams = cp.max_streams();
-
-    // NOTE: quantities are *per-process* quantities: integrated over streams,
-    // but not processes
-    result.generators = result.streams
-                        * ola.offload_params().host_ref().setup.capacity;
-    result.initializers = result.streams * cp.init()->capacity();
-    result.tracks = result.streams * ola.state_size();
-
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct and add to core params.
@@ -63,7 +37,7 @@ OpticalLaunchAction::make_and_insert(CoreParams const& core, Input&& input)
     ActionRegistry& actions = *core.action_reg();
     AuxParamsRegistry& aux = *core.aux_reg();
     auto result = std::make_shared<OpticalLaunchAction>(
-        actions.next_id(), aux.next_id(), core, std::move(input));
+        actions.next_id(), aux.next_id(), std::move(input));
 
     actions.insert(result);
     aux.insert(result);
@@ -75,49 +49,29 @@ OpticalLaunchAction::make_and_insert(CoreParams const& core, Input&& input)
  * Construct with action ID, generator storage.
  */
 OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
-                                         AuxId data_id,
-                                         CoreParams const& core,
+                                         AuxId aux_id,
                                          Input&& input)
-    : action_id_{action_id}
-    , aux_id_{data_id}
-    , offload_params_{std::move(input.offload)}
-    , state_size_{input.num_track_slots}
+    : action_id_{action_id}, aux_id_{aux_id}, data_(std::move(input))
 {
-    CELER_EXPECT(offload_params_);
-    CELER_EXPECT(state_size_ > 0);
-    CELER_EXPECT(input.material);
-    CELER_EXPECT(input.initializer_capacity > 0);
+    CELER_EXPECT(data_);
+}
 
-    // Create optical core params
-    optical_params_ = std::make_shared<optical::CoreParams>([&] {
-        optical::CoreParams::Input inp;
-        inp.geometry = core.geometry();
-        inp.material = std::move(input.material);
-        // TODO: unique RNG streams for optical loop
-        inp.rng = core.rng();
-        inp.init = std::make_shared<optical::TrackInitParams>(
-            input.initializer_capacity);
-        inp.action_reg = std::make_shared<ActionRegistry>();
-        inp.max_streams = core.max_streams();
-        CELER_ENSURE(inp);
-        return inp;
-    }());
+//---------------------------------------------------------------------------//
+/*!
+ * Create the action groups and get a pointer to the aux data.
+ */
+void OpticalLaunchAction::begin_run(CoreParams const&, CoreStateHost& state)
+{
+    this->begin_run_impl(state);
+}
 
-    // Add optical sizes
-    core.output_reg()->insert(
-        OutputInterfaceAdapter<detail::OpticalSizes>::from_rvalue_ref(
-            OutputInterface::Category::internal,
-            "optical-sizes",
-            get_core_sizes(*this)));
-
-    // TODO: add generators to the *optical* stepping loop instead of part of
-    // the main loop; for now just make sure enough track initializers are
-    // allocated so that we can initialize them all at the beginning of step
-
-    // TODO: should we initialize this at begin-run so that we can add
-    // additional optical actions?
-    optical_actions_
-        = std::make_shared<ActionGroupsT>(*optical_params_->action_reg());
+//---------------------------------------------------------------------------//
+/*!
+ * Create the action groups and get a pointer to the aux data.
+ */
+void OpticalLaunchAction::begin_run(CoreParams const&, CoreStateDevice& state)
+{
+    this->begin_run_impl(state);
 }
 
 //---------------------------------------------------------------------------//
@@ -139,12 +93,12 @@ auto OpticalLaunchAction::create_state(MemSpace m, StreamId sid, size_type) cons
     if (m == MemSpace::host)
     {
         return std::make_unique<optical::CoreState<MemSpace::host>>(
-            *optical_params_, sid, state_size_);
+            this->optical_params(), sid, this->state_size());
     }
     else if (m == MemSpace::device)
     {
         return std::make_unique<optical::CoreState<MemSpace::device>>(
-            *optical_params_, sid, state_size_);
+            this->optical_params(), sid, this->state_size());
     }
     CELER_ASSERT_UNREACHABLE();
 }
@@ -177,57 +131,56 @@ template<MemSpace M>
 void OpticalLaunchAction::execute_impl(CoreParams const&,
                                        CoreState<M>& core_state) const
 {
-    auto& offload_state = get<OpticalOffloadState<M>>(
-        core_state.aux(), offload_params_->aux_id());
-    auto& optical_state
-        = get<optical::CoreState<M>>(core_state.aux(), this->aux_id());
-    CELER_ASSERT(offload_state);
-    CELER_ASSERT(optical_state.size() > 0);
+    auto& state = get<optical::CoreState<M>>(core_state.aux(), this->aux_id());
+    CELER_ASSERT(state.size() > 0);
 
-    constexpr size_type max_step_iters{1024};
-    size_type num_step_iters{0};
-    size_type num_steps{0};
+    auto const& core_counters = core_state.counters();
+    auto& counters = state.counters();
 
-    // Loop while photons are yet to be tracked
-    auto& counters = optical_state.counters();
-    auto const& step_actions = optical_actions_->step();
-    while (counters.num_initializers > 0 || counters.num_alive > 0)
+    if ((counters.num_pending < data_.auto_flush
+         && (core_counters.num_alive > 0 || core_counters.num_initializers > 0))
+        || counters.num_pending == 0 || data_.max_step_iters == 0)
     {
-        // Loop through actions
-        for (auto const& action : step_actions)
+        // Don't launch the optical loop if the number of pending tracks is
+        // below the threshold and the core stepping loop hasn't completed yet
+        return;
+    }
+
+    // Transport pending optical tracks
+    (*transport_)(state);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create the transporter and cache a pointer to the auxiliary data.
+ *
+ * This allows additional optical actions to be added after the launch action
+ * has been constructed.
+ */
+template<MemSpace M>
+void OpticalLaunchAction::begin_run_impl(CoreState<M>& core_state)
+{
+    if (!transport_)
+    {
+        static std::mutex launch_mutex;
+        std::lock_guard<std::mutex> scoped_lock{launch_mutex};
+
+        if (!transport_)
         {
-            action->step(*optical_params_, optical_state);
-        }
-
-        num_steps += counters.num_active;
-        if (CELER_UNLIKELY(++num_step_iters == max_step_iters))
-        {
-            CELER_LOG_LOCAL(error)
-                << "Exceeded step count of " << max_step_iters
-                << ": aborting optical transport loop with "
-                << counters.num_active << " active tracks, "
-                << counters.num_alive << " alive tracks, "
-                << counters.num_vacancies << " vacancies, and "
-                << counters.num_initializers << " queued";
-            break;
+            // Create the transporter
+            optical::Transporter::Input inp;
+            inp.params = data_.optical_params;
+            inp.max_step_iters = data_.max_step_iters;
+            transport_ = std::make_shared<optical::Transporter>(std::move(inp));
         }
     }
 
-    if (num_step_iters > 0)
-    {
-        CELER_LOG_LOCAL(debug)
-            << "Generated " << counters.num_generated
-            << " optical photons which completed " << num_steps
-            << " total steps over " << num_step_iters << " iterations";
-    }
-    else
-    {
-        CELER_LOG_LOCAL(debug) << "No optical steps taken";
-    }
+    // Store a pointer to the auxiliary state vector
+    auto& state = get<optical::CoreState<M>>(core_state.aux(), this->aux_id());
+    state.aux() = core_state.aux_ptr();
 
-    // TODO: generation is done *outside* of the optical tracking loop;
-    // once we move it inside, update the generation count in the loop here
-    counters.num_generated = 0;
+    CELER_ENSURE(transport_);
+    CELER_ENSURE(state.aux());
 }
 
 //---------------------------------------------------------------------------//

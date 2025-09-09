@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file example/offload-template/src/DetectorConstruction.cc
+//! \file offload-template/src/DetectorConstruction.cc
 //---------------------------------------------------------------------------//
 #include "DetectorConstruction.hh"
 
@@ -17,6 +17,10 @@
 
 #include "SensitiveDetector.hh"
 
+namespace celeritas
+{
+namespace example
+{
 //---------------------------------------------------------------------------//
 /*!
  * Construct empty.
@@ -57,3 +61,6 @@ void DetectorConstruction::ConstructSDandField()
     G4SDManager::GetSDMpointer()->AddNewDetector(world_sd);
     G4VUserDetectorConstruction::SetSensitiveDetector("world_lv", world_sd);
 }
+
+}  // namespace example
+}  // namespace celeritas

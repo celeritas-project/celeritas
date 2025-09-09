@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/GeantGeoUtils.hh
+//! \todo Move to g4/ subdir
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,10 +18,10 @@
 
 //---------------------------------------------------------------------------//
 // Forward declarations
+class G4Field;
 class G4LogicalVolume;
-class G4VPhysicalVolume;
-class G4Navigator;
 class G4NavigationHistory;
+class G4VPhysicalVolume;
 
 #if CELERITAS_GEANT4_VERSION >= 0x0b0200
 // Geant4 11.2 removed G4VTouchable
@@ -54,64 +55,36 @@ struct PrintableLV
 };
 
 // Print detailed information about the touchable history.
-std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh);
+std::ostream& operator<<(std::ostream&, PrintableNavHistory const&);
 
 // Print the logical volume name, ID, and address.
-std::ostream& operator<<(std::ostream& os, PrintableLV const& pnh);
+std::ostream& operator<<(std::ostream&, PrintableLV const&);
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-// Load a GDML file and return the world volume (Geant4 owns!)
-G4VPhysicalVolume* load_geant_geometry(std::string const& gdml_filename);
-
-// Load a GDML file, stripping pointers
-G4VPhysicalVolume* load_geant_geometry_native(std::string const& gdml_filename);
-
-// Write a GDML file to the given filename
-void write_geant_geometry(G4VPhysicalVolume const* world,
-                          std::string const& out_filename);
-
+// TODO: move all these to GeantGeoParams
 //---------------------------------------------------------------------------//
 // Reset all Geant4 geometry stores if *not* using RunManager
 void reset_geant_geometry();
-
-//---------------------------------------------------------------------------//
-// Get a view to the Geant4 LV store
-Span<G4LogicalVolume*> geant_logical_volumes();
 
 //---------------------------------------------------------------------------//
 // Get the world volume if the geometry has been set up
 G4VPhysicalVolume const* geant_world_volume();
 
 //---------------------------------------------------------------------------//
+// Get the field from the global field manager
+G4Field const* geant_field();
+
+//---------------------------------------------------------------------------//
 // Find Geant4 logical volumes corresponding to a list of names
+// TODO: remove in favor of VolumeIdBuilder
 std::unordered_set<G4LogicalVolume const*>
     find_geant_volumes(std::unordered_set<std::string>);
-
-//---------------------------------------------------------------------------//
-// Generate the GDML name for a Geant4 logical volume
-std::string make_gdml_name(G4LogicalVolume const&);
-
-//---------------------------------------------------------------------------//
-// Update a nav history to match the given pv stack
-void set_history(Span<G4VPhysicalVolume const*> stack,
-                 G4NavigationHistory* nav);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4
-inline G4VPhysicalVolume* load_geant_geometry(std::string const&)
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-
-inline G4VPhysicalVolume* load_geant_geometry_native(std::string const&)
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-
 inline void reset_geant_geometry()
 {
     CELER_NOT_CONFIGURED("Geant4");
@@ -128,11 +101,6 @@ find_geant_volumes(std::unordered_set<std::string>)
     CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline std::string make_gdml_name(G4LogicalVolume const&)
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-
 inline std::ostream& operator<<(std::ostream&, PrintableNavHistory const&)
 {
     CELER_NOT_CONFIGURED("Geant4");
@@ -142,6 +110,7 @@ inline std::ostream& operator<<(std::ostream&, PrintableLV const&)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
+
 #endif
 
 //---------------------------------------------------------------------------//

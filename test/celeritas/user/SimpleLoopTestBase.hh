@@ -9,9 +9,8 @@
 #include <string>
 
 #include "corecel/Types.hh"
+#include "celeritas/GlobalTestBase.hh"
 #include "celeritas/phys/Primary.hh"
-
-#include "../GlobalTestBase.hh"
 
 namespace celeritas
 {

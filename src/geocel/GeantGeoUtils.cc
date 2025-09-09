@@ -9,12 +9,12 @@
 #include <algorithm>
 #include <iostream>
 #include <string>
-#include <string_view>
 #include <unordered_set>
 #include <G4Element.hh>
-#include <G4GDMLParser.hh>
-#include <G4GDMLWriteStructure.hh>
+#include <G4FieldManager.hh>
 #include <G4Isotope.hh>
+#include <G4LogicalBorderSurface.hh>
+#include <G4LogicalSkinSurface.hh>
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
 #include <G4Material.hh>
@@ -35,13 +35,7 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedStreamRedirect.hh"
-#include "corecel/io/ScopedTimeLog.hh"
-#include "corecel/math/Algorithms.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "orange/g4org/Converter.hh"
-
-#include "ScopedGeantExceptionHandler.hh"
-#include "ScopedGeantLogger.hh"
 
 // Check Geant4-reported and CMake-configured versions, mapping from
 // Geant4's base-10 XXYZ -> to Celeritas base-16 0xXXYYZZ
@@ -56,47 +50,6 @@ namespace celeritas
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-/*!
- * Load a gdml input file, creating a pointer owned by Geant4.
- *
- * Geant4's constructors for physical/logical volumes register \c this pointers
- * in a vector which is cleaned up manually. Yuck.
- *
- * \return the world volume
- */
-G4VPhysicalVolume*
-load_geant_geometry_impl(std::string const& filename, bool strip_pointer_ext)
-{
-    CELER_LOG(info) << "Loading Geant4 geometry from GDML at " << filename;
-
-    if (!G4Threading::IsMasterThread())
-    {
-        // Always-on debug assertion (not a "runtime" error but a
-        // subtle programming logic error that always causes a crash)
-        CELER_DEBUG_FAIL(
-            "Geant4 geometry cannot be loaded from a worker thread", internal);
-    }
-
-    ScopedMem record_mem("load_geant_geometry");
-    ScopedTimeLog scoped_time;
-
-    ScopedGeantLogger scoped_logger;
-    ScopedGeantExceptionHandler scoped_exceptions;
-
-    G4GDMLParser gdml_parser;
-    // Note that material and element names (at least as
-    // of Geant4@11.0) are *always* stripped: only volumes and solids keep
-    // their extension.
-    gdml_parser.SetStripFlag(strip_pointer_ext);
-
-    gdml_parser.Read(filename, /* validate_gdml_schema = */ false);
-
-    G4VPhysicalVolume* result(gdml_parser.GetWorldVolume());
-    CELER_ENSURE(result);
-    return result;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Free all pointers in a table.
@@ -169,75 +122,6 @@ std::ostream& operator<<(std::ostream& os, PrintableLV const& plv)
 
 //---------------------------------------------------------------------------//
 /*!
- * Load a Geant4 geometry, leaving the pointer suffixes intact for VecGeom.
- *
- * Do *not* strip `0x` extensions since those are needed to deduplicate complex
- * geometries (e.g. CMS) when loaded separately by VGDML and Geant4. The
- * pointer-based deduplication is handled by the Label and LabelIdMultiMap.
- *
- * \return Geant4-owned world volume
- */
-G4VPhysicalVolume* load_geant_geometry(std::string const& filename)
-{
-    return load_geant_geometry_impl(filename, false);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Load a Geant4 geometry, stripping suffixes like a typical Geant4 app.
- *
- * With this implementation, we let Geant4 strip the uniquifying pointers,
- * which allows our application to construct its own based on the actual
- * in-memory addresses.
- *
- * \return Geant4-owned world volume
- */
-G4VPhysicalVolume* load_geant_geometry_native(std::string const& filename)
-{
-    return load_geant_geometry_impl(filename, true);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Write a GDML file to the given filename.
- */
-void write_geant_geometry(G4VPhysicalVolume const* world,
-                          std::string const& out_filename)
-{
-    CELER_EXPECT(world);
-
-    CELER_LOG(info) << "Writing Geant4 geometry to GDML at " << out_filename;
-    ScopedMem record_mem("write_geant_geometry");
-    ScopedTimeLog scoped_time;
-
-    ScopedGeantLogger scoped_logger;
-    ScopedGeantExceptionHandler scoped_exceptions;
-
-    G4GDMLParser parser;
-    parser.SetOverlapCheck(false);
-
-    if (!world->GetLogicalVolume()->GetRegion())
-    {
-        CELER_LOG(warning) << "Geant4 regions have not been set up: skipping "
-                              "export of energy cuts and regions";
-    }
-    else
-    {
-        parser.SetEnergyCutsExport(true);
-        parser.SetRegionExport(true);
-    }
-
-    parser.SetSDExport(true);
-    parser.SetStripFlag(false);
-#if G4VERSION_NUMBER >= 1070
-    parser.SetOutputFileOverwrite(true);
-#endif
-
-    parser.Write(out_filename, world, /* append_pointers = */ true);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Reset all Geant4 geometry stores if *not* using RunManager.
  *
  * Use this function if reading geometry and cleaning up *without* doing any
@@ -245,7 +129,7 @@ void write_geant_geometry(G4VPhysicalVolume const* world,
  */
 void reset_geant_geometry()
 {
-    CELER_LOG(debug) << "Resetting Geant4 geometry stores";
+    CELER_LOG(status) << "Resetting Geant4 geometry stores";
 
     std::string msg;
     {
@@ -258,8 +142,11 @@ void reset_geant_geometry()
 #if G4VERSION_NUMBER >= 1100
         G4ReflectionFactory::Instance()->Clean();
 #endif
+        G4LogicalSkinSurface::CleanSurfaceTable();
+        G4LogicalBorderSurface::CleanSurfaceTable();
         free_and_clear(G4Material::GetMaterialTable());
-        free_and_clear(const_cast<std::vector<G4Element*>*>(G4Element::GetElementTable()));
+        free_and_clear(const_cast<std::vector<G4Element*>*>(
+            G4Element::GetElementTable()));
         free_and_clear(const_cast<std::vector<G4Isotope*>*>(
             G4Isotope::GetIsotopeTable()));
         msg = scoped_log.str();
@@ -300,8 +187,27 @@ G4VPhysicalVolume const* geant_world_volume()
     auto* man = G4TransportationManager::GetTransportationManager();
     CELER_ASSERT(man);
     auto* nav = man->GetNavigatorForTracking();
-    CELER_ASSERT(nav);
+    if (!nav)
+        return nullptr;
     return nav->GetWorldVolume();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get an optional global magnetic field for the tracking geometry.
+ *
+ * \return Field if geometry has been initialized and field exists, nullptr
+ * otherwise.
+ */
+G4Field const* geant_field()
+{
+    auto* man = G4TransportationManager::GetTransportationManager();
+    CELER_ASSERT(man);
+    auto* field_mgr = man->GetFieldManager();
+    if (!field_mgr)
+        return nullptr;
+    auto* detector_field = field_mgr->GetDetectorField();
+    return detector_field;
 }
 
 //---------------------------------------------------------------------------//
@@ -343,7 +249,7 @@ find_geant_volumes(std::unordered_set<std::string> names)
         {
             CELER_LOG(warning)
                 << "Multiple Geant4 volumes are mapped to name '"
-                << lv->GetName();
+                << lv->GetName() << "'";
         }
     }
 
@@ -354,94 +260,6 @@ find_geant_volumes(std::unordered_set<std::string> names)
                    << join(names.begin(), names.end(), ", "));
 
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Generate the GDML name for a Geant4 logical volume.
- */
-std::string make_gdml_name(G4LogicalVolume const& lv)
-{
-    // Run the LV through the GDML export name generator so that the volume is
-    // uniquely identifiable in VecGeom. Reuse the same instance to reduce
-    // overhead: note that the method isn't const correct.
-    static G4GDMLWriteStructure temp_writer;
-
-    auto const* refl_factory = G4ReflectionFactory::Instance();
-    if (auto const* unrefl_lv
-        = refl_factory->GetConstituentLV(const_cast<G4LogicalVolume*>(&lv)))
-    {
-        // If this is a reflected volume, add the reflection extension after
-        // the final pointer to match the converted VecGeom name
-        std::string name
-            = temp_writer.GenerateName(unrefl_lv->GetName(), unrefl_lv);
-        name += refl_factory->GetVolumesNameExtension();
-        return name;
-    }
-
-    return temp_writer.GenerateName(lv.GetName(), &lv);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Update a nav history to match the given pv stack.
- *
- * \warning The stack cannot have a parameterized/replicated volume.
- *
- * \note The stack should have the same semantics as \c LevelId, i.e. the
- * initial entry is the "most global" level.
- */
-void set_history(Span<G4VPhysicalVolume const*> stack, G4NavigationHistory* nav)
-{
-    CELER_EXPECT(!stack.empty());
-    CELER_EXPECT(std::all_of(stack.begin(), stack.end(), LogicalTrue{}));
-    CELER_EXPECT(nav);
-
-    size_type level = 0;
-    auto nav_stack_size
-        = [nav] { return static_cast<size_type>(nav->GetDepth()) + 1; };
-
-    // Loop deeper until stack and nav disagree
-    for (auto end_level = std::min<size_type>(stack.size(), nav_stack_size());
-         level != end_level;
-         ++level)
-    {
-        if (nav->GetVolume(level) != stack[level])
-        {
-            break;
-        }
-    }
-
-    if (CELER_UNLIKELY(level == 0))
-    {
-        // Top level disagrees (rare? should always be world):
-        // reset to top level
-        nav->Reset();
-        nav->SetFirstEntry(const_cast<G4VPhysicalVolume*>(stack[0]));
-        ++level;
-    }
-    else if (level < nav_stack_size())
-    {
-        // Decrease nav stack to the parent's level
-        nav->BackLevel(nav_stack_size() - level);
-        CELER_ASSERT(nav_stack_size() == level);
-    }
-
-    // Add all remaining levels
-    for (auto end_level = stack.size(); level != end_level; ++level)
-    {
-        G4VPhysicalVolume const* pv = stack[level];
-        constexpr auto volume_type = EVolume::kNormal;
-        CELER_VALIDATE(pv->VolumeType() == volume_type,
-                       << "sensitive detectors inside of "
-                          "replica/parameterized volumes are not supported: '"
-                       << pv->GetName() << "' inside "
-                       << PrintableNavHistory{nav});
-        nav->NewLevel(
-            const_cast<G4VPhysicalVolume*>(pv), volume_type, pv->GetCopyNo());
-    }
-
-    CELER_ENSURE(nav_stack_size() == stack.size());
 }
 
 //---------------------------------------------------------------------------//

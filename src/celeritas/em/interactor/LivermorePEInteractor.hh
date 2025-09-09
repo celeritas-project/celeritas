@@ -11,11 +11,11 @@
 #include "corecel/data/StackAllocator.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/PolyEvaluator.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/em/xs/LivermorePEMicroXsCalculator.hh"
-#include "celeritas/grid/GenericCalculator.hh"
-#include "celeritas/grid/PolyEvaluator.hh"
+#include "celeritas/grid/NonuniformGridCalculator.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/InteractionUtils.hh"
@@ -58,7 +58,7 @@ class LivermorePEInteractor
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    LivermorePEInteractor(LivermorePERef const& shared,
+    LivermorePEInteractor(NativeCRef<LivermorePEData> const& shared,
                           AtomicRelaxationHelper const& relaxation,
                           ElementId el_id,
                           ParticleTrackView const& particle,
@@ -74,7 +74,7 @@ class LivermorePEInteractor
     //// DATA ////
 
     // Shared constant physics properties
-    LivermorePERef const& shared_;
+    NativeCRef<LivermorePEData> const& shared_;
     // Shared scratch space
     AtomicRelaxationHelper const& relaxation_;
     // Index in MaterialParams elements
@@ -114,7 +114,7 @@ class LivermorePEInteractor
  */
 CELER_FUNCTION
 LivermorePEInteractor::LivermorePEInteractor(
-    LivermorePERef const& shared,
+    NativeCRef<LivermorePEData> const& shared,
     AtomicRelaxationHelper const& relaxation,
     ElementId el_id,
     ParticleTrackView const& particle,
@@ -250,7 +250,7 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
             }
 
             // Use the tabulated subshell cross sections
-            GenericCalculator calc_xs(shell.xs, shared_.xs.reals);
+            NonuniformGridCalculator calc_xs(shell.xs, shared_.xs.reals);
             xs += inv_cube_energy * calc_xs(inc_energy_);
 
             if (xs > cutoff)

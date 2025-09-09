@@ -38,4 +38,3 @@ Carlo particle transport states.
 .. doxygenstruct:: celeritas::inp::StepDiagnostic
    :members:
    :no-link:
-

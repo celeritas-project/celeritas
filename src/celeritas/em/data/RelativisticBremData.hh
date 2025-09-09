@@ -8,7 +8,6 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Array.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
@@ -31,11 +30,14 @@ struct RelBremFormFactor
 
 //---------------------------------------------------------------------------//
 /*!
- * A special metadata structure per element used in the differential cross
- * section calculation.
+ * Per-element metadata used in the differential cross section calculation.
+ *
+ * Gamma and epsilon are in units of mass.
  */
 struct RelBremElementData
 {
+    using Mass = units::MevMass;
+
     real_type fz;  //!< \f$ \ln(Z)/3 + f_c (Coulomb correction) \f$
     real_type factor1;  //!< \f$ ((Fel-fc)+Finel*invZ)\f$
     real_type factor2;  //!< \f$ (1.0+invZ)/12 \f$
@@ -60,6 +62,9 @@ struct RelativisticBremData
 
     //! Electron mass [MeVMass]
     units::MevMass electron_mass;
+
+    //! Low energy limit of the model
+    units::MevEnergy low_energy_limit;
 
     //! LPM flag
     bool enable_lpm{};
@@ -88,14 +93,11 @@ struct RelativisticBremData
         CELER_EXPECT(other);
         ids = other.ids;
         electron_mass = other.electron_mass;
+        low_energy_limit = other.low_energy_limit;
         enable_lpm = other.enable_lpm;
         elem_data = other.elem_data;
         return *this;
     }
 };
-
-using RelativisticBremDeviceRef = DeviceCRef<RelativisticBremData>;
-using RelativisticBremHostRef = HostCRef<RelativisticBremData>;
-using RelativisticBremRef = NativeCRef<RelativisticBremData>;
 
 }  // namespace celeritas

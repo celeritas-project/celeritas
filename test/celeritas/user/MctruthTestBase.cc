@@ -75,7 +75,8 @@ void MctruthTestBase::RunResult::print_expected() const
 /*!
  * Run a number of tracks.
  */
-auto MctruthTestBase::run(size_type num_tracks, size_type num_steps) -> RunResult
+auto MctruthTestBase::run(size_type num_tracks, size_type num_steps)
+    -> RunResult
 {
     this->run_impl<MemSpace::host>(num_tracks, num_steps);
 

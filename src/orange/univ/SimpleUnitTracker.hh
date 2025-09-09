@@ -307,7 +307,7 @@ CELER_FUNCTION real_type SimpleUnitTracker::safety(Real3 const& pos,
         return 0;
     }
 
-    // Calculate minimim distance to all local faces
+    // Calculate minimum distance to all local faces
     real_type result = numeric_limits<real_type>::infinity();
     LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
     detail::CalcSafetyDistance calc_safety{pos};
@@ -344,9 +344,8 @@ CELER_FUNCTION auto SimpleUnitTracker::get_neighbors(LocalSurfaceId surf) const
 {
     CELER_EXPECT(surf < this->num_surfaces());
 
-    OpaqueId<ConnectivityRecord> conn_id
-        = unit_record_.connectivity[surf.unchecked_get()];
-    ConnectivityRecord const& conn = params_.connectivity_records[conn_id];
+    ConnectivityRecord const& conn
+        = params_.connectivity_records[unit_record_.connectivity[surf]];
 
     CELER_ENSURE(!conn.neighbors.empty());
     return params_.local_volume_ids[conn.neighbors];

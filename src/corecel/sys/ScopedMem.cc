@@ -82,7 +82,7 @@ std::size_t get_gpu_mem()
 {
     std::size_t free{0};
     std::size_t total{0};
-    CELER_DEVICE_CALL_PREFIX(MemGetInfo(&free, &total));
+    CELER_DEVICE_API_CALL(MemGetInfo(&free, &total));
     CELER_ASSERT(total > free);
     return total - free;
 }

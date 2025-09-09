@@ -19,6 +19,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"  // IWYU pragma: keep
+#include "corecel/random/params/RngParams.hh"  // IWYU pragma: keep
 #include "corecel/sys/ActionRegistry.hh"  // IWYU pragma: keep
 #include "corecel/sys/ActionRegistryOutput.hh"
 #include "corecel/sys/Device.hh"
@@ -32,10 +33,12 @@
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "geocel/GeoParamsOutput.hh"
+#include "geocel/SurfaceParams.hh"
+#include "geocel/VolumeParams.hh"
 #include "celeritas/alongstep/AlongStepNeutralAction.hh"
-#include "celeritas/em/params/WentzelOKVIParams.hh"
+#include "celeritas/em/params/WentzelOKVIParams.hh"  // IWYU pragma: keep
+#include "celeritas/geo/CoreGeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/GeoMaterialParams.hh"  // IWYU pragma: keep
-#include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/detail/BoundaryAction.hh"
 #include "celeritas/mat/MaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/mat/MaterialParamsOutput.hh"
@@ -45,7 +48,6 @@
 #include "celeritas/phys/PhysicsParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/phys/detail/TrackingCutAction.hh"
-#include "celeritas/random/RngParams.hh"  // IWYU pragma: keep
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/ExtendFromSecondariesAction.hh"
 #include "celeritas/track/InitializeTracksAction.hh"
@@ -58,10 +60,10 @@
 #include "detail/CoreSizes.json.hh"
 
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
-#    include "orange/OrangeParams.hh"
+#    include "orange/OrangeParams.hh"  // IWYU pragma: keep
 #    include "orange/OrangeParamsOutput.hh"
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
-#    include "geocel/vg/VecgeomParams.hh"
+#    include "geocel/vg/VecgeomParams.hh"  // IWYU pragma: keep
 #    include "geocel/vg/VecgeomParamsOutput.hh"
 #endif
 
@@ -90,7 +92,10 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.physics = get_ref<M>(*p.physics);
     ref.rng = get_ref<M>(*p.rng);
     ref.sim = get_ref<M>(*p.sim);
+    ref.surface = get_ref<M>(*p.surface);
     ref.init = get_ref<M>(*p.init);
+    // TODO when volume params is visible on device:
+    // ref.volume = get_ref<M>(*p.volume);
     if (p.wentzel)
     {
         ref.wentzel = get_ref<M>(*p.wentzel);
@@ -251,7 +256,9 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     CP_VALIDATE_INPUT(physics);
     CP_VALIDATE_INPUT(rng);
     CP_VALIDATE_INPUT(sim);
+    CP_VALIDATE_INPUT(surface);
     CP_VALIDATE_INPUT(init);
+    CP_VALIDATE_INPUT(volume);
     CP_VALIDATE_INPUT(action_reg);
     CP_VALIDATE_INPUT(output_reg);
     CP_VALIDATE_INPUT(max_streams);

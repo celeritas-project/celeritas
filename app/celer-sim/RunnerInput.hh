@@ -6,10 +6,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include "corecel/Config.hh"
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/sys/Environment.hh"
 #include "celeritas/Types.hh"
@@ -18,6 +22,7 @@
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "celeritas/user/RootStepWriter.hh"
+#include "celeritas/user/RootStepWriterInput.hh"
 
 #ifdef _WIN32
 #    include <cstdlib>
@@ -57,14 +62,18 @@ struct RunnerInput
         // Sizes are divided among streams
         size_type num_track_slots{};  //!< Number of optical loop tracks slots
         size_type buffer_capacity{};  //!< Number of steps that created photons
-        size_type initializer_capacity{};  //!< Maximum queued tracks
         size_type auto_flush{};  //!< Threshold number of primaries for
                                  //!< launching optical tracking loop
+        size_type max_steps = static_cast<size_type>(-1);  //!< Step iterations
+
+        // Optical photon generation
+        bool cherenkov{true};
+        bool scintillation{true};
 
         explicit operator bool() const
         {
-            return num_track_slots > 0 && buffer_capacity > 0
-                   && initializer_capacity > 0 && auto_flush > 0;
+            return num_track_slots > 0 && buffer_capacity > 0 && auto_flush > 0
+                   && max_steps > 0;
         }
     };
     static constexpr Real3 no_field() { return Real3{0, 0, 0}; }
@@ -99,15 +108,19 @@ struct RunnerInput
     bool write_track_counts{true};  //!< Output track counts for each step
     bool write_step_times{true};  //!< Output elapsed times for each step
     bool transporter_result{true};  //!< Output transporter result event data
+    bool status_checker{false};  //!< Detailed debug checking of track states
     size_type log_progress{1};  //!< CELER_LOG progress every N events
 
     // Control
     unsigned int seed{};
-    size_type num_track_slots{};  //!< Divided among streams
+    size_type num_track_slots{};  //!< Divided among streams. Defaults to 2^20
+                                  //!< on device, 2^12 on host
+    size_type initializer_capacity{};  //!< Divided among streams. Defaults to
+                                       //!< 8 * num_track_slots
     size_type max_steps = static_cast<size_type>(-1);  //!< Step *iterations*
-    size_type initializer_capacity{};  //!< Divided among streams
-    size_type spline_eloss_order = 1;
-    real_type secondary_stack_factor{};
+    InterpolationType interpolation{InterpolationType::linear};
+    size_type poly_spline_order{1};
+    real_type secondary_stack_factor{2};
     bool use_device{};
     bool action_times{};
     bool merge_events{false};  //!< Run all events at once on a single stream
@@ -121,9 +134,6 @@ struct RunnerInput
     // Optional fixed-size step limiter for charged particles
     // (non-positive for unused)
     real_type step_limiter{};
-
-    // Options for physics
-    bool brem_combined{false};
 
     // Track reordering options
     TrackOrder track_order{TrackOrder::none};

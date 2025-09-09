@@ -11,7 +11,7 @@ Testing and debugging
 Each class must be thoroughly tested with an independent unit test in the
 `test` directory.  For complete coverage, each function of the class should have
 at least as many tests to cover all parts of code, and possibly as many as the
-number of code flow paths. So, if your function has one ``if`` statements, it
+number of code flow paths. So, if your function has a single ``if`` statement, it
 should have at least two tests (to make sure each branch is tested); and if it
 has three ``if`` statements, it may need up to eight different tests to ensure
 that all combinations are tested. (For further discussion, read about
@@ -37,7 +37,9 @@ and prints only test failures.
 Using GoogleTest
 ----------------
 
-Google test is `very well documented <https://google.github.io/googletest/>`.
+`Google test`_ is very well documented, and because so much testing code exists
+in AI training data, tools like ChatGPT and Copilot are very good at writing a
+first pass at test code.
 Celeritas defines a base class test harness with some utility functions:
 
 .. doxygenclass:: celeritas::test::Test
@@ -63,6 +65,7 @@ only a subset of tests run::
 
    $ ./test/celeritas/global_Stepper --gtest_filter=SimpleComptonTest.host
 
+.. _Google test: https://google.github.io/googletest/
 
 Using LLDB
 ----------

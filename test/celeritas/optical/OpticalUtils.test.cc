@@ -17,6 +17,7 @@
 #include "corecel/data/Ref.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/optical/action/detail/TrackInitAlgorithms.hh"
+#include "celeritas/optical/gen/detail/GeneratorAlgorithms.hh"
 
 #include "celeritas_test.hh"
 
@@ -33,6 +34,11 @@ using StateRef = StateCollection<T, Ownership::reference, M>;
 template<MemSpace M>
 std::vector<int> locate_vacancies(std::vector<TrackStatus> const& input)
 {
+    if constexpr (M == MemSpace::device)
+    {
+        device().create_streams(1);
+    }
+
     StateVal<TrackStatus, MemSpace::host> host_status;
     make_builder(&host_status).insert_back(input.begin(), input.end());
     StateVal<TrackStatus, M> status(host_status);
@@ -43,7 +49,7 @@ std::vector<int> locate_vacancies(std::vector<TrackStatus> const& input)
     StateRef<TrackStatus, M> status_ref(status);
     StateRef<TrackSlotId, M> vacancies_ref(vacancies);
     size_type num_vacancies = optical::detail::copy_if_vacant(
-        status_ref, vacancies_ref, StreamId{});
+        status_ref, vacancies_ref, StreamId{0});
 
     auto host_vacancies = copy_to_host(vacancies);
 
@@ -61,42 +67,34 @@ std::vector<int> locate_vacancies(std::vector<TrackStatus> const& input)
 
 TEST(OpticalUtilsTest, find_distribution_index)
 {
-    using detail::find_distribution_index;
+    using optical::detail::find_distribution_index;
 
-    size_type num_workers = 8;
-    std::vector<size_type> work = {1, 1, 5, 2, 5, 8, 1, 6, 7, 7};
-    std::vector<size_type> offsets(work.size());
-    std::partial_sum(work.begin(), work.end(), offsets.begin());
+    size_type num_threads = 8;
+    std::vector<size_type> vacancies = {1, 2, 4, 6, 7};
 
-    static unsigned int const expected_offsets[]
+    // Number of photons to generate from each distribution
+    std::vector<size_type> distributions = {1, 1, 5, 2, 5, 8, 1, 6, 7, 7};
+
+    // Calculate the inclusive prefix sum of the number of photons
+    std::vector<size_type> counts(distributions.size());
+    std::partial_sum(
+        distributions.begin(), distributions.end(), counts.begin());
+
+    static unsigned int const expected_counts[]
         = {1u, 2u, 7u, 9u, 14u, 22u, 23u, 29u, 36u, 43u};
-    EXPECT_VEC_EQ(expected_offsets, offsets);
+    EXPECT_VEC_EQ(expected_counts, counts);
 
-    LocalWorkCalculator<size_type> calc_local_work{offsets.back(), num_workers};
-
-    std::vector<size_type> result(offsets.back());
-    for (auto i : range(num_workers))
+    std::vector<int> result(num_threads, -1);
+    for (auto thread_idx : range(vacancies.size()))
     {
-        size_type local_work = calc_local_work(i);
-        for (auto j : range(local_work))
-        {
-            size_type result_idx = j * num_workers + i;
-            size_type work_idx
-                = find_distribution_index(make_span(offsets), result_idx);
-            result[result_idx] = work_idx;
-        }
+        // In the vacsnt track slot, store the index of the distribution that
+        // will generate the track
+        result[vacancies[thread_idx]]
+            = find_distribution_index(make_span(counts), thread_idx);
     }
-    static unsigned int const expected_result[]
-        = {0u, 1u, 2u, 2u, 2u, 2u, 2u, 3u, 3u, 4u, 4u, 4u, 4u, 4u, 5u,
-           5u, 5u, 5u, 5u, 5u, 5u, 5u, 6u, 7u, 7u, 7u, 7u, 7u, 7u, 8u,
-           8u, 8u, 8u, 8u, 8u, 8u, 9u, 9u, 9u, 9u, 9u, 9u, 9u};
+    PRINT_EXPECTED(result);
+    static int const expected_result[] = {-1, 0, 1, -1, 2, -1, 2, 2};
     EXPECT_VEC_EQ(expected_result, result);
-
-    EXPECT_EQ(0, find_distribution_index(make_span(offsets), 0));
-    EXPECT_EQ(1, find_distribution_index(make_span(offsets), 1));
-    EXPECT_EQ(4, find_distribution_index(make_span(offsets), 13));
-    EXPECT_EQ(5, find_distribution_index(make_span(offsets), 14));
-    EXPECT_EQ(9, find_distribution_index(make_span(offsets), 42));
 }
 
 TEST(OpticalUtilsTest, copy_if_vacant_host)

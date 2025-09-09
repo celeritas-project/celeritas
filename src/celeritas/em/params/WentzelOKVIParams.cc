@@ -141,14 +141,13 @@ void WentzelOKVIParams::build_data(HostVal<WentzelOKVIData>& host_data,
     if (host_data.params.is_combined)
     {
         std::vector<real_type> inv_mass_cbrt_sq(materials.num_materials(), 0);
-        for (auto mat_id : range(MaterialId(materials.num_materials())))
+        for (auto mat_id : range(PhysMatId(materials.num_materials())))
         {
             auto mat = materials.get(mat_id);
             for (auto elcomp_id : range(ElementComponentId(mat.num_elements())))
             {
                 auto const& el_comp = mat.elements()[elcomp_id.get()];
-                auto atomic_mass
-                    = mat.make_element_view(elcomp_id).atomic_mass();
+                auto atomic_mass = mat.element_record(elcomp_id).atomic_mass();
                 inv_mass_cbrt_sq[mat_id.get()]
                     += el_comp.fraction
                        / std::pow(atomic_mass.value(), real_type(2) / 3);

@@ -37,7 +37,15 @@ class Sphere;
   \f]
  *
  * This can represent axis-aligned hyperboloids, ellipsoids, elliptical
- * cylinders, etc.
+ * cylinders, etc.  The quadric is ill-defined if all non-constants are zero.
+ *
+ * Even though this equation can be scaled arbitrarily, the quadratic solver
+ * is sensitive to the scale of the coefficients to avoid numerical precision
+ * loss. If present, the first-order coefficients should be on the length scale
+ * of the problem (i.e., translations avoid catastrophic precision loss).
+ * In most non-pathological cases, the scale of the second-order components
+ * should be unity, as is the case when promoting spheres, cones, and
+ * cylinders.
  */
 class SimpleQuadric
 {
@@ -158,7 +166,8 @@ CELER_FUNCTION SignedSense SimpleQuadric::calc_sense(Real3 const& pos) const
 CELER_FUNCTION auto
 SimpleQuadric::calc_intersections(Real3 const& pos,
                                   Real3 const& dir,
-                                  SurfaceState on_surface) const -> Intersections
+                                  SurfaceState on_surface) const
+    -> Intersections
 {
     real_type const x = pos[to_int(Axis::x)];
     real_type const y = pos[to_int(Axis::y)];

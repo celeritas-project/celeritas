@@ -40,7 +40,7 @@ FluctuationParams::FluctuationParams(ParticleParams const& particles,
 
     // Loop over materials
     auto urban = make_builder(&data.urban);
-    for (auto mat_id : range(MaterialId{materials.size()}))
+    for (auto mat_id : range(PhysMatId{materials.size()}))
     {
         auto const&& mat = materials.get(mat_id);
 

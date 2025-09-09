@@ -14,6 +14,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/Repr.hh"
 
 namespace celeritas
 {
@@ -26,19 +27,6 @@ namespace test
 template<class GTV>
 CheckedGeoTrackView<GTV>&
 CheckedGeoTrackView<GTV>::operator=(GeoTrackInitializer const& init)
-{
-    GTV::operator=(init);
-    CELER_ENSURE(!this->is_outside());
-    return *this;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Initialize the state from a parent state and new direction.
- */
-template<class GTV>
-CheckedGeoTrackView<GTV>&
-CheckedGeoTrackView<GTV>::operator=(DetailedInitializer const& init)
 {
     GTV::operator=(init);
     CELER_ENSURE(!this->is_outside());
@@ -110,7 +98,7 @@ Propagation CheckedGeoTrackView<GTV>::find_next_step(real_type distance)
                        << std::setprecision(16) << "safety " << safety
                        << " exceeds actual distance " << result.distance
                        << " to boundary at " << this->pos() << " in "
-                       << this->volume_id().get());
+                       << this->impl_volume_id().get());
     }
     return result;
 }
@@ -145,17 +133,18 @@ void CheckedGeoTrackView<GTV>::move_internal(Real3 const& pos)
     CELER_ASSERT(!this->is_on_boundary());
     if (!checked_internal_ && orig_safety > this->safety_tol())
     {
-        VolumeId expected = this->volume_id();
+        ImplVolumeId expected = this->impl_volume_id();
         Initializer_t here{this->pos(), this->dir()};
         *this = here;
         CELER_VALIDATE(!this->is_outside(),
                        << std::setprecision(16)
                        << "internal move ends up 'outside' at " << this->pos());
-        CELER_VALIDATE(this->volume_id() == expected,
+        CELER_VALIDATE(this->impl_volume_id() == expected,
                        << std::setprecision(16)
-                       << "volume ID changed during internal move at "
-                       << this->pos() << ": was " << expected.get() << ", now "
-                       << this->volume_id().get());
+                       << "volume ID changed during internal move from"
+                       << repr(orig_pos) << " to " << repr(this->pos())
+                       << ": was " << expected.get() << ", now "
+                       << this->impl_volume_id().get());
         checked_internal_ = true;
     }
     if (orig_safety == 0 && !this->is_on_boundary())
@@ -166,9 +155,9 @@ void CheckedGeoTrackView<GTV>::move_internal(Real3 const& pos)
             CELER_LOG_LOCAL(warning)
                 << "Moved internally from boundary but safety didn't "
                    "increase: volume "
-                << this->volume_id().get() << " from " << orig_pos << " to "
-                << this->pos() << " (distance: " << distance(orig_pos, pos)
-                << ")";
+                << this->impl_volume_id().get() << " from " << repr(orig_pos)
+                << " to " << repr(this->pos())
+                << " (distance: " << repr(distance(orig_pos, pos)) << ")";
         }
     }
 }
@@ -193,9 +182,9 @@ template<class GTV>
 void CheckedGeoTrackView<GTV>::cross_boundary()
 {
     // Cross boundary
-    VolumeId prev = this->volume_id();
+    ImplVolumeId prev = this->impl_volume_id();
     GTV::cross_boundary();
-    if (!this->is_outside() && prev == this->volume_id())
+    if (!this->is_outside() && prev == this->impl_volume_id())
     {
         CELER_LOG_LOCAL(warning)
             << "Volume did not change from " << prev.get()

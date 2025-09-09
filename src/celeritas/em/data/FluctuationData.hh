@@ -37,7 +37,7 @@ template<Ownership W, MemSpace M>
 struct FluctuationData
 {
     template<class T>
-    using MaterialItems = Collection<T, W, M, MaterialId>;
+    using MaterialItems = Collection<T, W, M, PhysMatId>;
     using Mass = units::MevMass;
 
     //// MEMBER DATA ////

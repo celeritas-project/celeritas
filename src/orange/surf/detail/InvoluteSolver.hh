@@ -135,10 +135,10 @@ CELER_FUNCTION InvoluteSolver::InvoluteSolver(
  * {0, beta - a, beta - a - pi, beta - a + pi, beta - a - 2pi, beta - a + 2pi
  * ...} /f] Where \em beta is: \f[ beta = arctan(-v/u) \f]
  */
-CELER_FUNCTION auto
-InvoluteSolver::operator()(Real3 const& pos,
-                           Real3 const& dir,
-                           SurfaceState on_surface) const -> Intersections
+CELER_FUNCTION auto InvoluteSolver::operator()(Real3 const& pos,
+                                               Real3 const& dir,
+                                               SurfaceState on_surface) const
+    -> Intersections
 {
     using constants::pi;
     // Flatten pos and dir in xyz and uv respectively
@@ -155,13 +155,13 @@ InvoluteSolver::operator()(Real3 const& pos,
         u = -u;
     }
 
-    // Results initalization and root counter
+    // Results initialization and root counter
     Intersections result;
     int j = 0;
     // Initial result vector.
     result = {no_intersection(), no_intersection(), no_intersection()};
 
-    // Return result if particle is travelling along z-axis.
+    // Return result if particle is travelling along the z axis
     if (u == 0 && v == 0)
     {
         return result;
@@ -235,7 +235,7 @@ InvoluteSolver::operator()(Real3 const& pos,
         }
         else
         {
-            // Incremet interval slowly until root is in interval
+            // Increment interval slowly until root is in interval
             // i used to slow down approach to next root
             t_lower = t_upper;
             t_upper += pi / i;

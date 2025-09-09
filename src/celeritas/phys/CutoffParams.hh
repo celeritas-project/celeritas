@@ -49,7 +49,7 @@ struct ImportData;
  *
  * Some processes (e.g. photoelectric effect, decay) can produce secondaries
  * below the production threshold, while others (e.g. bremsstrahlung,
- * ionization) use the production cut as their instrinsic limit. By default all
+ * ionization) use the production cut as their intrinsic limit. By default all
  * of these secondaries are transported, even if their energy is below the
  * threshold. If the \c apply_post_interaction option is enabled, any secondary
  * photon, electron, or positron with energy below the cutoff will be killed
@@ -85,7 +85,7 @@ class CutoffParams final : public ParamsDataInterface<CutoffParamsData>
     explicit CutoffParams(Input const& input);
 
     // Access cutoffs on host
-    inline CutoffView get(MaterialId material) const;
+    inline CutoffView get(PhysMatId material) const;
 
     //! Access cutoff data on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }
@@ -110,7 +110,7 @@ class CutoffParams final : public ParamsDataInterface<CutoffParamsData>
 /*!
  * Access cutoffs on host.
  */
-CutoffView CutoffParams::get(MaterialId material) const
+CutoffView CutoffParams::get(PhysMatId material) const
 {
     CELER_EXPECT(material < this->host_ref().num_materials);
     return CutoffView(this->host_ref(), material);

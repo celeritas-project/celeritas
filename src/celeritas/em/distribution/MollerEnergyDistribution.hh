@@ -9,9 +9,9 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/random/distribution/RejectionSampler.hh"
+#include "corecel/random/distribution/UniformRealDistribution.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/random/distribution/RejectionSampler.hh"
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
 {

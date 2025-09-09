@@ -41,6 +41,10 @@ class StatusChecker final : public AuxParamsInterface,
                             public ParamsDataInterface<StatusCheckParamsData>
 {
   public:
+    // Construct and add to core params
+    static std::shared_ptr<StatusChecker>
+    make_and_insert(CoreParams const& core);
+
     // Construct with IDs
     StatusChecker(ActionId action_id, AuxId aux_id);
 

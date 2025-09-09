@@ -20,9 +20,9 @@ template<Ownership W, MemSpace M>
 struct GeoMaterialParamsData
 {
     template<class T>
-    using VolumeItems = celeritas::Collection<T, W, M, VolumeId>;
+    using VolumeItems = celeritas::Collection<T, W, M, ImplVolumeId>;
 
-    VolumeItems<MaterialId> materials;
+    VolumeItems<PhysMatId> materials;
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const

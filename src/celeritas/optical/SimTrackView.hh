@@ -43,6 +43,9 @@ class SimTrackView
     // Add the time change over the step
     inline CELER_FUNCTION void add_time(real_type delta);
 
+    // Increment the total number of steps
+    inline CELER_FUNCTION void increment_num_steps();
+
     // Reset step limiter
     inline CELER_FUNCTION void reset_step_limit();
 
@@ -59,6 +62,9 @@ class SimTrackView
     inline CELER_FUNCTION void post_step_action(ActionId action);
 
     //// DYNAMIC PROPERTIES ////
+
+    // Total number of steps taken by the track
+    inline CELER_FUNCTION size_type num_steps() const;
 
     // Time elapsed in the lab frame since the start of the event
     inline CELER_FUNCTION real_type time() const;
@@ -101,6 +107,7 @@ CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer const& init)
     states_.step_length[track_slot_] = {};
     states_.status[track_slot_] = TrackStatus::initializing;
     states_.post_step_action[track_slot_] = {};
+    states_.num_steps[track_slot_] = 0;
     return *this;
 }
 
@@ -112,6 +119,15 @@ CELER_FUNCTION void SimTrackView::status(TrackStatus status)
 {
     CELER_EXPECT(status != TrackStatus::size_);
     states_.status[track_slot_] = status;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Increment the total number of steps.
+ */
+CELER_FORCEINLINE_FUNCTION void SimTrackView::increment_num_steps()
+{
+    ++states_.num_steps[track_slot_];
 }
 
 //---------------------------------------------------------------------------//
@@ -198,6 +214,15 @@ CELER_FUNCTION bool SimTrackView::step_limit(StepLimit const& sl)
 
 //---------------------------------------------------------------------------//
 // DYNAMIC PROPERTIES
+//---------------------------------------------------------------------------//
+/*!
+ * Total number of steps taken by the track.
+ */
+CELER_FORCEINLINE_FUNCTION size_type SimTrackView::num_steps() const
+{
+    return states_.num_steps[track_slot_];
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Time elapsed in the lab frame since the start of the event [s].

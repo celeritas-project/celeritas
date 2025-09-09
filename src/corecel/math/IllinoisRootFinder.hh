@@ -14,7 +14,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/math/Algorithms.hh"
+
+#include "Algorithms.hh"
 
 namespace celeritas
 {
@@ -32,7 +33,7 @@ template<class F>
 class IllinoisRootFinder
 {
   public:
-    // Contruct with function to solve and solution tolerance
+    // Construct with function to solve and solution tolerance
     inline CELER_FUNCTION IllinoisRootFinder(F&& func, real_type tol);
 
     // Solve for a root between two points
@@ -75,7 +76,7 @@ template<class F>
 CELER_FUNCTION real_type IllinoisRootFinder<F>::operator()(real_type left,
                                                            real_type right)
 {
-    //! Enum defining side of aproximated root to true root
+    //! Enum defining side of approximated root to true root
     enum class Side
     {
         left = -1,

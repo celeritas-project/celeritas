@@ -15,7 +15,6 @@
 #include <VecGeom/navigation/NavigationState.h>
 
 #include "corecel/Assert.hh"
-#include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/sys/ThreadId.hh"
@@ -131,7 +130,7 @@ struct VecgeomNavCollection<Ownership::value, MemSpace::device>
  *
  * The NavStatePool underpinning the storage returns a void pointer that must
  * be manually manipulated to get a single state pointer. The max_depth
- * argument must be the same as the GeoParams.
+ * argument must be the same as the given to VecgeomGeoParams.
  */
 template<>
 struct VecgeomNavCollection<Ownership::reference, MemSpace::device>

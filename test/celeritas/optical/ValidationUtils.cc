@@ -41,7 +41,7 @@ GridAccessor::operator()(ItemRange<real_type> const& real_ids) const
  * Retrieve a table of grid views built on the storage.
  *
  * Each grid view is a pair of spans representing the grid and value of a
- * \c GenericGridRecord.
+ * \c NonuniformGridRecord.
  */
 auto GridAccessor::operator()(ItemRange<Grid> grid_ids) const
     -> std::vector<GridView>

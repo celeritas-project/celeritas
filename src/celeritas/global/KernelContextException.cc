@@ -12,6 +12,7 @@
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/math/QuantityIO.json.hh"
 #include "corecel/sys/Environment.hh"
+#include "celeritas/geo/CoreGeoTraits.hh"
 
 #include "CoreTrackView.hh"
 #include "Debug.hh"
@@ -30,6 +31,17 @@ void insert_if_valid(char const* key,
     {
         (*obj)[key] = val.unchecked_get();
     }
+}
+
+//---------------------------------------------------------------------------//
+template<class Traits, class GTV>
+ImplSurfaceId impl_surface_id(GTV const& geo)
+{
+    if constexpr (Traits::has_impl_surface)
+    {
+        return geo.impl_surface_id();
+    }
+    return {};
 }
 
 //---------------------------------------------------------------------------//
@@ -112,7 +124,7 @@ void KernelContextException::output(JsonPimpl* json) const
 void KernelContextException::initialize(CoreTrackView const& core)
 {
     track_slot_ = core.track_slot_id();
-    auto const&& sim = core.make_sim_view();
+    auto const&& sim = core.sim();
     if (sim.status() != TrackStatus::inactive)
     {
         event_ = sim.event_id();
@@ -120,39 +132,28 @@ void KernelContextException::initialize(CoreTrackView const& core)
         parent_ = sim.parent_id();
         num_steps_ = sim.num_steps();
         {
-            auto const&& par = core.make_particle_view();
+            auto const&& par = core.particle();
             particle_ = par.particle_id();
             energy_ = par.energy();
         }
         {
-            auto const&& geo = core.make_geo_view();
+            auto const&& geo = core.geometry();
             pos_ = geo.pos();
             dir_ = geo.dir();
             if (!geo.is_outside())
             {
-                volume_ = geo.volume_id();
+                volume_ = geo.impl_volume_id();
             }
-            surface_ = geo.surface_id();
-        }
-
-        if (!celeritas::getenv("CELERITAS_EXCEPTION_DEBUG").empty())
-        {
-            // This shouldn't *really* be necessary for full functionality of
-            // the exception, but adding a direct reference to the
-            // "debug_print" symbol allows it to be accessed in downstream
-            // frameworks that use Celeritas, even if they use LTO and
-            // -Wl,--exclude-libs,ALL
-            debug_print(core);
+            surface_ = impl_surface_id<CoreGeoTraits>(geo);
         }
     }
     {
         // Construct std::exception message
         std::ostringstream os;
-        os << "kernel context: track slot " << track_slot_ << " in '" << label_
-           << "'";
+        os << "track slot " << track_slot_ << " in kernel '" << label_ << "'";
         if (track_)
         {
-            os << ", track " << track_ << " of event " << event_;
+            os << ": " << StreamableTrack{core};
         }
         what_ = os.str();
     }

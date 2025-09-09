@@ -25,7 +25,16 @@ namespace celeritas
  * \c AuxParamsInterface subclass.
  *
  * The state class \c S must have a \c resize method that's constructable with
- * a templated params data class \c P, a stream ID, and a state size.
+ * an optional templated params data class \c P, a stream ID, and a state size.
+ *
+ * The \c make_aux_state helper functions can be used to construct this class:
+ * \code
+    return make_aux_state<FooStateData>(*this, memspace, stream, size);
+ * \endcode
+ * or
+ * \code
+    return make_aux_state<BarStateData>(memspace, stream, size);
+ * \endcode
  */
 template<template<Ownership, MemSpace> class S, MemSpace M>
 class AuxStateData final : public AuxStateInterface
@@ -43,6 +52,9 @@ class AuxStateData final : public AuxStateInterface
                         StreamId stream_id,
                         size_type size);
 
+    // Construct by resizing without params
+    inline AuxStateData(StreamId stream_id, size_type size);
+
     //! Whether any data is being stored
     explicit operator bool() const { return static_cast<bool>(store_); }
 
@@ -59,17 +71,13 @@ class AuxStateData final : public AuxStateInterface
     CollectionStateStore<S, M> store_;
 };
 
+//! \cond (CELERITAS_DOC_DEV)
 //---------------------------------------------------------------------------//
 /*!
- * Create an auxiliary state given a runtime memory space.
- *
- * Example:
- * \code
-    return make_aux_state<ParticleTallyStateData>(
-        *this, memspace, stream, size);
- * \endcode
+ * Create an auxiliary state given a runtime memory space and host params.
  */
-template<template<Ownership, MemSpace> class S, template<Ownership, MemSpace> class P>
+template<template<Ownership, MemSpace> class S,
+         template<Ownership, MemSpace> class P>
 std::unique_ptr<AuxStateInterface>
 make_aux_state(ParamsDataInterface<P> const& params,
                MemSpace m,
@@ -78,16 +86,38 @@ make_aux_state(ParamsDataInterface<P> const& params,
 {
     if (m == MemSpace::host)
     {
-        return std::make_unique<AuxStateData<S, MemSpace::host>>(
-            params.host_ref(), stream_id, size);
+        using ASD = AuxStateData<S, MemSpace::host>;
+        return std::make_unique<ASD>(params.host_ref(), stream_id, size);
     }
     else if (m == MemSpace::device)
     {
-        return std::make_unique<AuxStateData<S, MemSpace::device>>(
-            params.host_ref(), stream_id, size);
+        using ASD = AuxStateData<S, MemSpace::device>;
+        return std::make_unique<ASD>(params.host_ref(), stream_id, size);
     }
     CELER_ASSERT_UNREACHABLE();
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create an auxiliary state given a runtime memory space.
+ */
+template<template<Ownership, MemSpace> class S>
+std::unique_ptr<AuxStateInterface>
+make_aux_state(MemSpace m, StreamId stream_id, size_type size)
+{
+    if (m == MemSpace::host)
+    {
+        using ASD = AuxStateData<S, MemSpace::host>;
+        return std::make_unique<ASD>(stream_id, size);
+    }
+    else if (m == MemSpace::device)
+    {
+        using ASD = AuxStateData<S, MemSpace::device>;
+        return std::make_unique<ASD>(stream_id, size);
+    }
+    CELER_ASSERT_UNREACHABLE();
+}
+//! \endcond
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -101,6 +131,16 @@ AuxStateData<S, M>::AuxStateData(HostCRef<P> const& p,
                                  StreamId stream_id,
                                  size_type size)
     : store_{p, stream_id, size}
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct by resizing.
+ */
+template<template<Ownership, MemSpace> class S, MemSpace M>
+AuxStateData<S, M>::AuxStateData(StreamId stream_id, size_type size)
+    : store_{stream_id, size}
 {
 }
 

@@ -11,14 +11,14 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/grid/NonuniformGridData.hh"
 #include "corecel/grid/VectorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
-#include "celeritas/grid/GenericGridBuilder.hh"
-#include "celeritas/grid/GenericGridData.hh"
+#include "celeritas/grid/NonuniformGridInserter.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 
@@ -40,7 +40,7 @@ MaterialParams::from_import(ImportData const& data,
 
     CELER_VALIDATE(std::all_of(data.optical_materials.begin(),
                                data.optical_materials.end(),
-                               LogicalTrue{}),
+                               Identity{}),
                    << "one or more optical materials lack required data");
 
     Input inp;
@@ -55,10 +55,10 @@ MaterialParams::from_import(ImportData const& data,
     // Construct volume-to-optical mapping
     inp.volume_to_mat.reserve(geo_mat.num_volumes());
     bool has_opt_mat{false};
-    for (auto vid : range(VolumeId{geo_mat.num_volumes()}))
+    for (auto impl_id : range(ImplVolumeId{geo_mat.num_volumes()}))
     {
-        OpticalMaterialId optmat;
-        if (auto matid = geo_mat.material_id(vid))
+        OptMatId optmat;
+        if (PhysMatId matid = geo_mat.material_id(impl_id))
         {
             auto mat_view = mat.get(matid);
             optmat = mat_view.optical_material_id();
@@ -76,8 +76,8 @@ MaterialParams::from_import(ImportData const& data,
 
     // Construct optical to core material mapping
     inp.optical_to_core
-        = std::vector<CoreMaterialId>(inp.properties.size(), CoreMaterialId{});
-    for (auto core_id : range(CoreMaterialId{mat.num_materials()}))
+        = std::vector<PhysMatId>(inp.properties.size(), PhysMatId{});
+    for (auto core_id : range(PhysMatId{mat.num_materials()}))
     {
         if (auto opt_mat_id = mat.get(core_id).optical_material_id())
         {
@@ -88,7 +88,7 @@ MaterialParams::from_import(ImportData const& data,
     }
 
     CELER_ENSURE(std::all_of(
-        inp.optical_to_core.begin(), inp.optical_to_core.end(), LogicalTrue{}));
+        inp.optical_to_core.begin(), inp.optical_to_core.end(), Identity{}));
 
     return std::make_shared<MaterialParams>(std::move(inp));
 }
@@ -104,8 +104,7 @@ MaterialParams::MaterialParams(Input const& inp)
     CELER_EXPECT(inp.optical_to_core.size() == inp.properties.size());
 
     HostVal<MaterialParamsData> data;
-    CollectionBuilder refractive_index{&data.refractive_index};
-    GenericGridBuilder build_grid(&data.reals);
+    NonuniformGridInserter insert_grid(&data.reals, &data.refractive_index);
     for (auto opt_mat_idx : range(inp.properties.size()))
     {
         auto const& mat = inp.properties[opt_mat_idx];
@@ -113,27 +112,26 @@ MaterialParams::MaterialParams(Input const& inp)
         // Store refractive index tabulated as a function of photon energy.
         // In a dispersive medium, the index of refraction is an increasing
         // function of photon energy
-        auto const& ri_vec = mat.refractive_index;
-        CELER_VALIDATE(ri_vec,
+        auto const& ri = mat.refractive_index;
+        CELER_VALIDATE(ri,
                        << "no refractive index data is defined for optical "
                           "material "
                        << opt_mat_idx);
-        CELER_VALIDATE(is_monotonic_increasing(make_span(ri_vec.x)),
+        CELER_VALIDATE(is_monotonic_increasing(make_span(ri.x)),
                        << "refractive index energy grid values are not "
                           "monotonically increasing");
-        CELER_VALIDATE(is_monotonic_increasing(make_span(ri_vec.y)),
-                       << "refractive index values are not monotonically "
+        CELER_VALIDATE(is_monotonic_nondecreasing(make_span(ri.y)),
+                       << "refractive index values are not constant or "
                           "increasing");
-        if (ri_vec.y.front() < 1)
+        if (ri.y.front() < 1)
         {
             CELER_LOG(warning) << "Encountered refractive index below unity "
                                   "for optical material "
                                << opt_mat_idx;
         }
-
-        refractive_index.push_back(build_grid(ri_vec));
+        insert_grid(ri);
     }
-    CELER_ASSERT(refractive_index.size() == inp.properties.size());
+    CELER_ASSERT(data.refractive_index.size() == inp.properties.size());
 
     for (auto optmat : inp.volume_to_mat)
     {
@@ -155,7 +153,7 @@ MaterialParams::MaterialParams(Input const& inp)
 /*!
  * Construct a material view for the given identifier.
  */
-MaterialView MaterialParams::get(OpticalMaterialId mat) const
+MaterialView MaterialParams::get(OptMatId mat) const
 {
     return MaterialView(this->host_ref(), mat);
 }

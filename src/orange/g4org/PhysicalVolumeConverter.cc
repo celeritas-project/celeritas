@@ -12,7 +12,7 @@
 #include <unordered_set>
 #include <G4LogicalVolume.hh>
 #include <G4PVPlacement.hh>
-#include <G4ReflectionFactory.hh>
+#include <G4ReplicaNavigation.hh>
 #include <G4VPVParameterisation.hh>
 #include <G4VPhysicalVolume.hh>
 
@@ -23,7 +23,7 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TypeDemangler.hh"
-#include "geocel/GeantGeoUtils.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "orange/transform/TransformIO.hh"
 
 #include "LogicalVolumeConverter.hh"
@@ -35,9 +35,43 @@ namespace celeritas
 {
 namespace g4org
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+// See G4Navigator::LocateGlobalPointAndSetup for implementation of these
+struct ReplicaUpdater
+{
+    void operator()(int copy_no, G4VPhysicalVolume& g4pv)
+    {
+        nav_.ComputeTransformation(copy_no, &g4pv);
+        g4pv.SetCopyNo(copy_no);
+    }
+
+    G4ReplicaNavigation nav_;
+};
+
+struct ParamUpdater
+{
+    void operator()(int copy_no, G4VPhysicalVolume& g4pv)
+    {
+        // TODO: this only works with parameterized transformations, not
+        // changes to the solid or material.
+        param_.ComputeTransformation(copy_no, &g4pv);
+        g4pv.SetCopyNo(copy_no);
+    }
+
+    G4VPVParameterisation& param_;
+};
+
+}  // namespace
+
 //---------------------------------------------------------------------------//
 struct PhysicalVolumeConverter::Data
 {
+    explicit Data(GeantGeoParams const& g) : geo{g} {}
+
+    // Geometry pointer
+    GeantGeoParams const& geo;
     // Scale with CLHEP units (mm)
     Scaler scale;
     // Transform using the scale
@@ -45,7 +79,7 @@ struct PhysicalVolumeConverter::Data
     // Convert a solid/shape
     SolidConverter make_solid{scale, make_transform};
     // Convert and cache a logical volume
-    LogicalVolumeConverter make_lv{make_solid};
+    LogicalVolumeConverter make_lv{geo, make_solid};
     // Whether to print extra output
     bool verbose{false};
 };
@@ -77,8 +111,9 @@ struct PhysicalVolumeConverter::Builder
 /*!
  * Construct with options.
  */
-PhysicalVolumeConverter::PhysicalVolumeConverter(Options opts)
-    : data_{std::make_unique<Data>()}
+PhysicalVolumeConverter::PhysicalVolumeConverter(GeantGeoParams const& geo,
+                                                 Options opts)
+    : data_{std::make_unique<Data>(geo)}
 {
     data_->scale = Scaler{opts.scale};
     data_->verbose = opts.verbose;
@@ -117,8 +152,10 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
 {
     PhysicalVolume result;
 
-    result.name = g4pv.GetName();
-    result.copy_number = g4pv.GetCopyNo();
+    // Get PV ID, using embedded copy number
+    result.id = this->data->geo.geant_to_id(g4pv);
+
+    // Get transform
     result.transform = [&]() -> VariantTransform {
         auto const& g4trans = g4pv.GetObjectTranslation();
         if (g4pv.GetFrameRotation())
@@ -138,19 +175,8 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
         return NoTransformation{};
     }();
 
-    auto* g4lv = g4pv.GetLogicalVolume();
-    if (auto* unrefl_g4lv
-        = G4ReflectionFactory::Instance()->GetConstituentLV(g4lv))
-    {
-        // Replace with constituent volume, and reflect across Z.
-        // See G4ReflectionFactory::CheckScale: the reflection value is
-        // hardcoded to {1, 1, -1}
-        // NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores)
-        g4lv = unrefl_g4lv;
-        CELER_NOT_IMPLEMENTED("reflecting a placed volume");
-    }
-
     // Convert logical volume
+    auto* g4lv = g4pv.GetLogicalVolume();
     auto&& [lv, inserted] = this->data->make_lv(*g4lv);
     if (inserted)
     {
@@ -184,40 +210,41 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
 void PhysicalVolumeConverter::Builder::place_child(
     int depth, G4VPhysicalVolume const& g4pv, LogicalVolume* lv)
 {
-    if (dynamic_cast<G4PVPlacement const*>(&g4pv))
-    {
-        // Place child, accounting for reflection
+    auto place_single = [&] {
+        // Place child
         lv->children.push_back(this->make_pv(depth, g4pv));
-    }
-    else if (G4VPVParameterisation* param = g4pv.GetParameterisation())
-    {
-        if (CELER_UNLIKELY(data->verbose))
+    };
+    auto place_multiple = [&](auto&& update_pv) {
+        for (auto copy_no : range(g4pv.GetMultiplicity()))
         {
-            CELER_LOG(debug)
-                << "Processing parameterized volume " << g4pv.GetName()
-                << " with " << g4pv.GetMultiplicity() << " instances";
-        }
-
-        // Loop over number of replicas
-        for (auto j : range(g4pv.GetMultiplicity()))
-        {
-            // Use the parameterization to *change* the physical volume's
-            // position (yes, this is how Geant4 does it too)
-            param->ComputeTransformation(
-                j, const_cast<G4VPhysicalVolume*>(&g4pv));
-
-            // Add a copy
+            // Modify the volume's position/size/orientation in-place
+            update_pv(copy_no, const_cast<G4VPhysicalVolume&>(g4pv));
+            // Place the copy: note that this uses the "updated" PV's state
             lv->children.push_back(this->make_pv(depth, g4pv));
         }
-    }
-    else
+    };
+
+    switch (g4pv.VolumeType())
     {
-        TypeDemangler<G4VPhysicalVolume> demangle_pv_type;
-        CELER_LOG(error)
-            << "Unsupported type '" << demangle_pv_type(g4pv)
-            << "' for physical volume '" << g4pv.GetName()
-            << "' (corresponding LV: " << PrintableLV{g4pv.GetLogicalVolume()}
-            << ")";
+        case EVolume::kNormal:
+            // Place daughter once
+            place_single();
+            break;
+        case EVolume::kReplica:
+            // Place daughter in each replicated location
+            place_multiple(ReplicaUpdater{});
+            break;
+        case EVolume::kParameterised:
+            // Place each parameterized instance of the daughter
+            CELER_ASSERT(g4pv.GetParameterisation());
+            place_multiple(ParamUpdater{*g4pv.GetParameterisation()});
+            break;
+        default:
+            CELER_LOG(error) << "Unsupported type '"
+                             << TypeDemangler<G4VPhysicalVolume>{}(g4pv)
+                             << "' for physical volume '" << g4pv.GetName()
+                             << "' (corresponding LV: "
+                             << PrintableLV{g4pv.GetLogicalVolume()} << ")";
     }
 }
 

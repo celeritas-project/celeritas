@@ -33,15 +33,14 @@ template<class ES>
 CELER_FUNCTION Interaction
 MuHadIonizationExecutor<ES>::operator()(CoreTrackView const& track)
 {
-    auto particle = track.make_particle_view();
-    auto cutoff = track.make_cutoff_view();
-    auto const& dir = track.make_geo_view().dir();
-    auto allocate_secondaries
-        = track.make_physics_step_view().make_secondary_allocator();
+    auto particle = track.particle();
+    auto cutoff = track.cutoff();
+    auto const& dir = track.geometry().dir();
+    auto allocate_secondaries = track.physics_step().make_secondary_allocator();
 
     MuHadIonizationInteractor<ES> interact(
         params, particle, cutoff, dir, allocate_secondaries);
-    auto rng = track.make_rng_engine();
+    auto rng = track.rng();
     return interact(rng);
 }
 

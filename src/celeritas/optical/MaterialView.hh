@@ -2,14 +2,14 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/mat/MaterialView.hh
+//! \file celeritas/optical/MaterialView.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/GenericCalculator.hh"
+#include "celeritas/grid/NonuniformGridCalculator.hh"
 
 #include "MaterialData.hh"
 
@@ -27,15 +27,16 @@ class MaterialView
     //!@{
     //! \name Type aliases
     using ParamsRef = NativeCRef<MaterialParamsData>;
-    using MaterialId = OpticalMaterialId;
+    using MatId = OptMatId;
     //!@}
 
   public:
     // Construct from params and material ID
-    inline CELER_FUNCTION MaterialView(ParamsRef const& params, MaterialId id);
+    inline CELER_FUNCTION MaterialView(ParamsRef const& params, MatId id);
 
     // Construct from params and volume ID
-    inline CELER_FUNCTION MaterialView(ParamsRef const& params, VolumeId vol);
+    inline CELER_FUNCTION
+    MaterialView(ParamsRef const& params, ImplVolumeId vol);
 
     // Whether the view is into an optical material
     inline CELER_FUNCTION operator bool() const;
@@ -43,22 +44,22 @@ class MaterialView
     //// MATERIAL DATA ////
 
     // ID of this optical material
-    CELER_FORCEINLINE_FUNCTION MaterialId material_id() const;
+    CELER_FORCEINLINE_FUNCTION MatId material_id() const;
 
-    // ID of the associated core material
-    CELER_FORCEINLINE_FUNCTION CoreMaterialId core_material_id() const;
+    // ID of the associated core physics material
+    CELER_FORCEINLINE_FUNCTION PhysMatId core_material_id() const;
 
     //// PARAMETER DATA ////
 
     // Access energy-dependent refractive index
-    inline CELER_FUNCTION GenericCalculator
+    inline CELER_FUNCTION NonuniformGridCalculator
     make_refractive_index_calculator() const;
 
   private:
     //// DATA ////
 
     ParamsRef const& params_;
-    MaterialId mat_id_;
+    MatId mat_id_;
 };
 
 //---------------------------------------------------------------------------//
@@ -68,7 +69,7 @@ class MaterialView
  * Construct from an optical material.
  */
 CELER_FUNCTION
-MaterialView::MaterialView(ParamsRef const& params, MaterialId id)
+MaterialView::MaterialView(ParamsRef const& params, MatId id)
     : params_(params), mat_id_(id)
 {
     CELER_EXPECT(id < params_.refractive_index.size());
@@ -79,7 +80,7 @@ MaterialView::MaterialView(ParamsRef const& params, MaterialId id)
  * Construct from the current geometry volume.
  */
 CELER_FUNCTION
-MaterialView::MaterialView(ParamsRef const& params, VolumeId id)
+MaterialView::MaterialView(ParamsRef const& params, ImplVolumeId id)
     : params_{params}
 {
     CELER_EXPECT(id < params_.optical_id.size());
@@ -102,7 +103,7 @@ CELER_FORCEINLINE_FUNCTION MaterialView::operator bool() const
 /*!
  * Get the optical material id.
  */
-CELER_FUNCTION auto MaterialView::material_id() const -> MaterialId
+CELER_FUNCTION auto MaterialView::material_id() const -> MatId
 {
     return mat_id_;
 }
@@ -111,7 +112,7 @@ CELER_FUNCTION auto MaterialView::material_id() const -> MaterialId
 /*!
  * Get the id of the core material associated with this optical material.
  */
-CELER_FUNCTION CoreMaterialId MaterialView::core_material_id() const
+CELER_FUNCTION PhysMatId MaterialView::core_material_id() const
 {
     return params_.core_material_id[mat_id_];
 }
@@ -120,11 +121,12 @@ CELER_FUNCTION CoreMaterialId MaterialView::core_material_id() const
 /*!
  * Access energy-dependent refractive index.
  */
-CELER_FUNCTION GenericCalculator
+CELER_FUNCTION NonuniformGridCalculator
 MaterialView::make_refractive_index_calculator() const
 {
     CELER_EXPECT(*this);
-    return GenericCalculator(params_.refractive_index[mat_id_], params_.reals);
+    return NonuniformGridCalculator(params_.refractive_index[mat_id_],
+                                    params_.reals);
 }
 
 //---------------------------------------------------------------------------//

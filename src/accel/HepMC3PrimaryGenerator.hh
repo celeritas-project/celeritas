@@ -31,17 +31,20 @@ namespace celeritas
 /*!
  * HepMC3 reader class for sharing across threads.
  *
- * This singleton is shared among threads so that events can be correctly split
- * up between them, being constructed the first time `instance()` is invoked.
- * As this is a derived `G4VPrimaryGenerator` class, the HepMC3PrimaryGenerator
- * must be used by a concrete implementation of the
- * `G4VUserPrimaryGeneratorAction` class:
+ * This class should be \em shared among threads so that events can be
+ * correctly split up between them. It should be called from a user's primary
+ * generator action:
  * \code
-   void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
-   {
-       HepMC3PrimaryGenerator::Instance()->GeneratePrimaryVertex(event);
-   }
+    void MyAction::GeneratePrimaries(G4Event* event)
+    {
+        CELER_TRY_HANDLE(generator_->GeneratePrimaryVertex(event),
+                         ExceptionConverter("celer.event.generate"));
+    }
  * \endcode
+ *
+ * \note This class assumes that all threads will be reading all events
+ * sequentially and that events in the HepMC3 file are numbered sequentially
+ * from zero.
  */
 class HepMC3PrimaryGenerator final : public G4VPrimaryGenerator
 {
@@ -52,7 +55,7 @@ class HepMC3PrimaryGenerator final : public G4VPrimaryGenerator
     CELER_DELETE_COPY_MOVE(HepMC3PrimaryGenerator);
     ~HepMC3PrimaryGenerator() final = default;
 
-    //! Add primaries to Geant4 event
+    // Add primaries to Geant4 event
     void GeneratePrimaryVertex(G4Event* g4_event) final;
 
     //! Get total number of events
@@ -70,6 +73,7 @@ class HepMC3PrimaryGenerator final : public G4VPrimaryGenerator
     std::mutex read_mutex_;
     std::deque<SPHepEvt> event_buffer_;
     size_type start_event_{0};
+    bool warned_mismatched_events_{false};
 
     // Read
     SPHepEvt read_event(size_type event_id);
@@ -80,12 +84,19 @@ class HepMC3PrimaryGenerator final : public G4VPrimaryGenerator
 inline HepMC3PrimaryGenerator::HepMC3PrimaryGenerator(std::string const&)
 {
     CELER_NOT_CONFIGURED("HepMC3");
+    CELER_DISCARD(num_events_);
     CELER_DISCARD(world_solid_);
     CELER_DISCARD(reader_);
     CELER_DISCARD(read_mutex_);
+    CELER_DISCARD(event_buffer_);
+    CELER_DISCARD(start_event_);
+    CELER_DISCARD(warned_mismatched_events_);
 }
 
-inline void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event*) {}
+inline void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event*)
+{
+    CELER_ASSERT_UNREACHABLE();
+}
 #endif
 
 //---------------------------------------------------------------------------//

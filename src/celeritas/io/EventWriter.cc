@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "EventWriter.hh"
 
-#include <set>
 #include <HepMC3/GenParticle.h>
 #include <HepMC3/GenVertex.h>
 #include <HepMC3/Print.h>
@@ -73,8 +72,7 @@ EventWriter::EventWriter(std::string const& filename,
     // See EventReader.hh
     set_hepmc3_verbosity_from_env();
 
-    CELER_LOG(info) << "Creating " << to_cstring(fmt) << " event file at "
-                    << filename;
+    CELER_LOG(info) << "Creating " << fmt << " event file at " << filename;
     ScopedTimeAndRedirect temp_{"HepMC3"};
 
     writer_ = [&]() -> std::shared_ptr<HepMC3::Writer> {
@@ -101,8 +99,6 @@ EventWriter::EventWriter(std::string const& filename,
 void EventWriter::operator()(VecPrimary const& primaries)
 {
     CELER_EXPECT(!primaries.empty());
-
-    std::set<EventId::size_type> mismatched_events;
 
     HepMC3::GenEvent evt(HepMC3::Units::MEV, HepMC3::Units::CM);
 
@@ -151,27 +147,28 @@ void EventWriter::operator()(VecPrimary const& primaries)
         par->set_pid(particles_->id_to_pdg(p.particle_id).get());
         par->set_status(final_code);
 
+        auto mass
+            = value_as<units::MevMass>(particles_->get(p.particle_id).mass());
+        auto energy = value_as<units::MevEnergy>(p.energy) + mass;
+        real_type mom_mag = std::sqrt(ipow<2>(energy) - ipow<2>(mass));
+
         HepMC3::FourVector mom;
-        mom.set_px(p.direction[0]);
-        mom.set_py(p.direction[1]);
-        mom.set_pz(p.direction[2]);
-        mom.set_e(value_as<units::MevEnergy>(p.energy));
+        mom.set_px(mom_mag * p.direction[0]);
+        mom.set_py(mom_mag * p.direction[1]);
+        mom.set_pz(mom_mag * p.direction[2]);
+        mom.set_e(energy);
         par->set_momentum(mom);
 
-        if (CELER_UNLIKELY(p.event_id != event_id))
+        if (!warned_mismatched_events_ && p.event_id != event_id)
         {
-            mismatched_events.insert(p.event_id.unchecked_get());
+            CELER_LOG_LOCAL(warning)
+                << R"(Event IDs will not match output: this is a known issue)";
+            warned_mismatched_events_ = true;
         }
 
         // Note: primary's track ID is ignored
     }
 
-    if (CELER_UNLIKELY(!mismatched_events.empty()))
-    {
-        CELER_LOG_LOCAL(warning)
-            << "Overwriting primary event IDs with " << event_id.get() << ": "
-            << join(mismatched_events.begin(), mismatched_events.end(), ", ");
-    }
     evt.set_event_number(event_id.get());
 
     if (fmt_ == Format::hepevt)

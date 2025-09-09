@@ -9,6 +9,8 @@
 #include <cmath>
 
 #include "corecel/math/Algorithms.hh"
+#include "corecel/random/distribution/ReciprocalDistribution.hh"
+#include "corecel/random/distribution/RejectionSampler.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/RelativisticBremData.hh"
@@ -17,8 +19,6 @@
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
-#include "celeritas/random/distribution/ReciprocalDistribution.hh"
-#include "celeritas/random/distribution/RejectionSampler.hh"
 
 #include "PhysicsConstants.hh"
 
@@ -42,11 +42,12 @@ class RBEnergySampler
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION RBEnergySampler(RelativisticBremRef const& shared,
-                                          ParticleTrackView const& particle,
-                                          CutoffView const& cutoffs,
-                                          MaterialView const& material,
-                                          ElementComponentId elcomp_id);
+    inline CELER_FUNCTION
+    RBEnergySampler(NativeCRef<RelativisticBremData> const& shared,
+                    ParticleTrackView const& particle,
+                    CutoffView const& cutoffs,
+                    MaterialView const& material,
+                    ElementComponentId elcomp_id);
 
     // Sample the bremsstrahlung photon energy with the given RNG
     template<class Engine>
@@ -55,7 +56,7 @@ class RBEnergySampler
   private:
     //// DATA ////
 
-    // Differential cross section calcuator
+    // Differential cross section calculator
     RBDiffXsCalculator calc_dxsec_;
     // Square of minimum of incident particle energy and cutoff
     real_type tmin_sq_;
@@ -70,19 +71,17 @@ class RBEnergySampler
  * Construct from incident particle and energy.
  */
 CELER_FUNCTION
-RBEnergySampler::RBEnergySampler(RelativisticBremRef const& shared,
+RBEnergySampler::RBEnergySampler(NativeCRef<RelativisticBremData> const& shared,
                                  ParticleTrackView const& particle,
                                  CutoffView const& cutoffs,
                                  MaterialView const& material,
                                  ElementComponentId elcomp_id)
     : calc_dxsec_(shared, particle, material, elcomp_id)
+    , tmin_sq_(ipow<2>(value_as<Energy>(
+          min(cutoffs.energy(shared.ids.gamma), particle.energy()))))
+    , tmax_sq_(ipow<2>(value_as<Energy>(
+          min(detail::high_energy_limit(), particle.energy()))))
 {
-    // Min and max kinetic energy limits for sampling the secondary photon
-    tmin_sq_ = ipow<2>(value_as<Energy>(
-        min(cutoffs.energy(shared.ids.gamma), particle.energy())));
-    tmax_sq_ = ipow<2>(
-        value_as<Energy>(min(detail::high_energy_limit(), particle.energy())));
-
     CELER_ENSURE(tmax_sq_ >= tmin_sq_);
 }
 

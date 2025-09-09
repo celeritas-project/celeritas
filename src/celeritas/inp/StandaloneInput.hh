@@ -60,7 +60,7 @@ struct StandaloneInput
 
     //! Whether using Geant4 or loading from ROOT
     std::variant<GeantImport, FileImport> physics_import;
-    //! If using Geant4 or overriding or sparse input?
+    //! If using Geant4 or overriding or sparse input (NOT YET IMPLEMENTED)
     std::optional<GeantDataImport> geant_data;
     //! If loading from an existing input, option to update data
     std::optional<UpdateImport> update;

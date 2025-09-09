@@ -9,10 +9,10 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/grid/NonuniformGridData.hh"
 #include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/GenericGridData.hh"
 
 namespace celeritas
 {
@@ -69,7 +69,7 @@ struct NeutronElasticData
     units::MevMass neutron_mass;
 
     //! Microscopic (element) cross section data (G4PARTICLEXS/neutron/elZ)
-    ElementItems<GenericGridRecord> micro_xs;
+    ElementItems<NonuniformGridRecord> micro_xs;
 
     //! A-dependent coefficients for the momentum transfer of the CHIPS model
     IsotopeItems<ChipsDiffXsCoefficients> coeffs;

@@ -10,9 +10,10 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StreamableVariant.hh"
 #include "orange/OrangeData.hh"
-#include "orange/orangeinp/CsgTreeUtils.hh"
 #include "orange/transform/TransformIO.hh"
 #include "orange/transform/TransformSimplifier.hh"
+
+#include "../CsgTreeUtils.hh"
 
 namespace celeritas
 {
@@ -159,7 +160,7 @@ void CsgUnitBuilder::fill_exterior()
 /*!
  * Fill a volume node with a material.
  */
-void CsgUnitBuilder::fill_volume(LocalVolumeId v, GeoMaterialId m)
+void CsgUnitBuilder::fill_volume(LocalVolumeId v, GeoMatId m)
 {
     CELER_EXPECT(v < unit_->fills.size());
     CELER_EXPECT(m);

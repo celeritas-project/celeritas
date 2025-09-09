@@ -3,10 +3,9 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/sys/MpiCommunicator.hh
+//! \note Including this file requires linking against the corecel_mpi target
 //---------------------------------------------------------------------------//
 #pragma once
-
-#include "MpiCommunicator.hh"
 
 #include "detail/MpiCommunicatorImpl.hh"  // IWYU pragma: keep
 

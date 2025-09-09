@@ -1,6 +1,9 @@
 .. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 .. SPDX-License-Identifier: CC-BY-4.0
 
+.. **NOTE**: this file is referenced by README.md:
+.. if changing the former, update the latter!!
+
 .. highlight:: cmake
 
 .. _infrastructure:
@@ -30,7 +33,7 @@ The code requires external dependencies to build with full functionality, but
 none of them need to be installed externally for the code to work.
 Most can be omitted entirely to enable limited development on experimental HPC
 systems or personal machines with fewer available components. Items with an
-asterisk in the category below will be fetched from the
+asterisk ``*`` in the category below will be fetched from the
 internet if required but not available on the user's system.
 
 .. tabularcolumns:: lll
@@ -39,9 +42,11 @@ internet if required but not available on the user's system.
    :header: Component, Category, Description
    :widths: 10, 10, 20
 
+   CLI11_, Runtime*, "Command line parsing"
    CUDA_, Runtime, "GPU computation"
    Geant4_, Runtime, "Preprocessing physics data for a problem input"
    G4EMLOW_, Runtime, "EM physics model data"
+   G4VG_, Runtime, "Geant4-to-VecGeom translation"
    HepMC3_, Runtime, "Event input"
    HIP_, Runtime, "GPU computation"
    libpng_, Runtime, "PNG output for raytracing"
@@ -53,31 +58,37 @@ internet if required but not available on the user's system.
    Doxygen_, Docs, "Code documentation"
    Sphinx_, Docs, "User documentation"
    sphinxbib_, Docs, "Reference generation for user documentation"
-   clang-format_, Development, "Code formatting enforcement"
+   clang-format_, Development, "C++ code formatting"
+   codespell_, Development, "Spell checking"
    CMake_, Development, "Build system"
    Git_, Development, "Repository management"
+   pre-commit_, Development, "Formatting enforcement"
    GoogleTest_, Development*, "Test harness"
    Perfetto_, Development*, "CPU profiling"
 
+.. _breathe: https://github.com/michaeljones/breathe#readme
+.. _clang-format: https://clang.llvm.org/docs/ClangFormat.html
+.. _codespell: https://github.com/codespell-project/codespell
+.. _CLI11: https://cliutils.github.io/CLI11/book/
 .. _CMake: https://cmake.org
 .. _CUDA: https://developer.nvidia.com/cuda-toolkit
 .. _Doxygen: https://www.doxygen.nl
+.. _G4VG: https://github.com/celeritas-project/g4vg
 .. _G4EMLOW: https://geant4.web.cern.ch/support/download
 .. _Geant4: https://geant4.web.cern.ch/support/download
 .. _Git: https://git-scm.com
 .. _GoogleTest: https://github.com/google/googletest
 .. _HepMC3: http://hepmc.web.cern.ch/hepmc/
-.. _libpng: http://www.libpng.org/
 .. _HIP: https://docs.amd.com
+.. _libpng: http://www.libpng.org/
+.. _nljson: https://github.com/nlohmann/json
 .. _Open MPI: https://www.open-mpi.org
+.. _Perfetto: https://perfetto.dev/
+.. _pre-commit: https://pre-commit.com
 .. _ROOT: https://root.cern
 .. _Sphinx: https://www.sphinx-doc.org/
-.. _VecGeom: https://gitlab.cern.ch/VecGeom/VecGeom
-.. _breathe: https://github.com/michaeljones/breathe#readme
-.. _clang-format: https://clang.llvm.org/docs/ClangFormat.html
-.. _nljson: https://github.com/nlohmann/json
 .. _sphinxbib: https://pypi.org/project/sphinxcontrib-bibtex/
-.. _Perfetto: https://perfetto.dev/
+.. _VecGeom: https://gitlab.cern.ch/VecGeom/VecGeom
 
 
 Ideally you will build Celeritas with all dependencies to gain the full
@@ -105,6 +116,10 @@ easy way to toggle through all the valid options.
   Enable features of the given dependency. The configuration will fail if the
   dependent package is not found.
 
+``CELERITAS_BUILTIN_{package}``
+  Force a package to be built from an internally downloaded copy (when true/on)
+  or externally installed code (when false/off).
+
 ``CELERITAS_BUILD_{DOCS|TESTS}``
   Build optional documentation and/or tests.
 
@@ -120,7 +135,10 @@ easy way to toggle through all the valid options.
 
 ``CELERITAS_DEBUG``
   Enable detailed runtime assertions. These *will* slow down the code
-  considerably, especially on GPU builds.
+  considerably. A separate ``CELERITAS_DEBUG_DEVICE`` option allows debug
+  checking inside device code to be enabled/disabled since the generated code
+  substantially increases kernel size and build time in addition to affecting
+  performance more substantially.
 
 ``CELERITAS_OPENMP``
   Choose between no multithreaded OpenMP parallelism (``disabled``),

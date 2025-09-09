@@ -15,23 +15,52 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 
 //! Opaque index to a scintillation particle id
-using ScintillationParticleId = OpaqueId<struct ScintillationParticle_>;
+using ScintParticleId = OpaqueId<struct ScintParticle_>;
 
 //! Opaque index to a scintillation spectrum
-using ParticleScintSpectrumId = OpaqueId<struct ParScintSpectrumRecord_>;
+using ParScintSpectrumId = OpaqueId<struct ParScintSpectrum>;
 
 //---------------------------------------------------------------------------//
-/*!
- * Physics classes used inside the optical physics loop.
- *
- * Interface classes that integrate with the main Celeritas stepping loop are
- * in the main namespace.
- */
+// ENUMERATIONS
+//---------------------------------------------------------------------------//
+
+//! Process used to generate optical photons
+enum class GeneratorType
+{
+    cherenkov,
+    scintillation,
+};
+
 namespace optical
 {
+
+//! Ordering of surface physics boundary crossing models
+enum class SurfacePhysicsOrder
+{
+    roughness,
+    reflectivity,
+    interaction,
+    size_
+};
+
+//! Traversal direction of a sub-subsurface
+enum class SubsurfaceDirection : bool
+{
+    reverse = false,
+    forward = true
+};
+
 //---------------------------------------------------------------------------//
-//! Alias for MaterialId in core Celeritas namespace
-using CoreMaterialId = ::celeritas::MaterialId;
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+char const* to_cstring(SurfacePhysicsOrder);
+
+//! Convert sub-surface direction to a sign (+1/-1 for forward/reverse resp.)
+CELER_FORCEINLINE_FUNCTION int to_signed_offset(SubsurfaceDirection d)
+{
+    return 2 * static_cast<int>(d) - 1;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

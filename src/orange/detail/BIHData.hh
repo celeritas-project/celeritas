@@ -54,7 +54,7 @@ struct BIHInnerNode
     };
 
     BIHNodeId parent;  //!< Parent node ID
-    Axis axis;  //!< Axis that the partition is peformed on
+    Axis axis;  //!< Axis that the partition is performed on
     EnumArray<Side, Edge> edges;  //!< Left/right edges
 
     explicit CELER_FUNCTION operator bool() const
@@ -108,7 +108,7 @@ struct BIHTree
             // Degenerate single leaf node case. This occurs when a tree
             // contains either:
             // a) a single volume
-            // b) muliple non-partitionable volumes,
+            // b) multiple non-partitionable volumes,
             // b) only infinite volumes.
             return !bboxes.empty() && leaf_nodes.size() == 1;
         }

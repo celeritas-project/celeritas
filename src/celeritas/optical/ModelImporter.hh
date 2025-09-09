@@ -21,6 +21,7 @@ namespace celeritas
 {
 class MaterialParams;
 struct ImportData;
+struct ImportOpticalParameters;
 struct ImportOpticalRayleigh;
 struct ImportWavelengthShift;
 
@@ -81,6 +82,7 @@ class ModelImporter
   private:
     UserBuildInput input_;
     UserBuildMap user_build_map_;
+    ImportOpticalParameters const& params_;
 
     SPConstImported const& imported() const { return input_.imported; }
     SPConstMaterial const& material() const { return input_.material; }
@@ -95,6 +97,8 @@ class ModelImporter
 
     ModelBuilder build_absorption() const;
     ModelBuilder build_rayleigh() const;
+    ModelBuilder build_wls() const;
+    ModelBuilder build_wls2() const;
 };
 
 //---------------------------------------------------------------------------//

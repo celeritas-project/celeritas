@@ -55,7 +55,7 @@ auto MuBetheBlochModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto MuBetheBlochModel::micro_xs(Applicability) const -> MicroXsBuilders
+auto MuBetheBlochModel::micro_xs(Applicability) const -> XsTable
 {
     // Aside from the production cut, the discrete interaction is material
     // independent, so no element is sampled

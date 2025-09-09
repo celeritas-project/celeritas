@@ -11,11 +11,9 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Stopwatch.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/rasterize/RaytraceImager.hh"
 #include "orange/OrangeParams.hh"
-#if CELERITAS_USE_GEANT4
-#    include "geocel/g4/GeantGeoParams.hh"
-#endif
 #if CELERITAS_USE_VECGEOM
 #    include "geocel/vg/VecgeomParams.hh"
 #endif
@@ -49,7 +47,9 @@ Runner::Runner(ModelSetup const& input) : input_{input}
     if (CELERITAS_USE_GEANT4 && ends_with(input_.geometry_file, ".gdml"))
     {
         // Retain the Geant4 world for possible reuse across geometries
+        CELER_EXPECT(celeritas::global_geant_geo().expired());
         this->load_geometry<Geometry::geant4>();
+        CELER_EXPECT(!celeritas::global_geant_geo().expired());
     }
 }
 
@@ -57,8 +57,8 @@ Runner::Runner(ModelSetup const& input) : input_{input}
 /*!
  * Perform a raytrace.
  */
-auto Runner::operator()(TraceSetup const& trace,
-                        ImageInput const& image_inp) -> SPImage
+auto Runner::operator()(TraceSetup const& trace, ImageInput const& image_inp)
+    -> SPImage
 {
     // Create image params
     last_image_ = std::make_shared<ImageParams>(image_inp);
@@ -93,10 +93,10 @@ std::vector<std::string> Runner::get_volumes(Geometry g) const&
     CELER_EXPECT(geo_cache_[g]);
 
     auto const& geo = *geo_cache_[g];
-    std::vector<std::string> result(geo.volumes().size());
-    for (auto i : range<VolumeId::size_type>(result.size()))
+    std::vector<std::string> result(geo.impl_volumes().size());
+    for (auto i : range<ImplVolumeId::size_type>(result.size()))
     {
-        result[i] = geo.volumes().at(VolumeId{i}).name;
+        result[i] = geo.impl_volumes().at(ImplVolumeId{i}).name;
     }
     return result;
 }
@@ -131,20 +131,22 @@ auto Runner::load_geometry() -> std::shared_ptr<GeoParams_t<G> const>
     else
     {
         Stopwatch get_time;
-        if (geant_world_)
+        if constexpr (G != Geometry::geant4)
         {
-            // Load from existing Geant4 geometry
-            geo = std::make_shared<GP>(geant_world_);
+            if (geo_cache_[Geometry::geant4])
+            {
+                // Load from existing Geant4 geometry
+                auto geant_geo
+                    = std::dynamic_pointer_cast<GeantGeoParams const>(
+                        geo_cache_[Geometry::geant4]);
+                CELER_ASSUME(geant_geo);
+                geo = GP::from_geant(geant_geo);
+            }
         }
-        else
+        if (!geo)
         {
             // Load directly from input file
-            geo = std::make_shared<GP>(input_.geometry_file);
-            if constexpr (G == Geometry::geant4)
-            {
-                // Save world for later reuse
-                geant_world_ = static_cast<GP const&>(*geo).world();
-            }
+            geo = GP::from_gdml(input_.geometry_file);
         }
         // Save load time
         timers_[std::string{"load_"} + to_cstring(G)] = get_time();
@@ -200,8 +202,8 @@ auto Runner::make_imager() -> SPImager
 /*!
  * Allocate and perform a raytrace using an enumeration.
  */
-auto Runner::make_traced_image(MemSpace m,
-                               ImagerInterface& generate_image) -> SPImage
+auto Runner::make_traced_image(MemSpace m, ImagerInterface& generate_image)
+    -> SPImage
 {
     switch (m)
     {

@@ -14,7 +14,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/math/Algorithms.hh"
+
+#include "Algorithms.hh"
 
 namespace celeritas
 {
@@ -37,7 +38,7 @@ template<class F>
 class BisectionRootFinder
 {
   public:
-    // Contruct with function to solve and solution tolerance
+    // Construct with function to solve and solution tolerance
     inline CELER_FUNCTION BisectionRootFinder(F&& func, real_type tol);
 
     // Solve for a root between two points

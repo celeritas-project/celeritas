@@ -128,12 +128,12 @@ class PolySolidBase : public ObjectInterface
     PolySegments const& segments() const { return segments_; }
 
     //! Optional azimuthal angular restriction
-    SolidEnclosedAngle enclosed_angle() const { return enclosed_; }
+    EnclosedAzi enclosed_azi() const { return enclosed_; }
 
   protected:
     PolySolidBase(std::string&& label,
                   PolySegments&& segments,
-                  SolidEnclosedAngle&& enclosed);
+                  EnclosedAzi&& enclosed);
 
     //!@{
     //! Allow construction and assignment only through daughter classes
@@ -143,7 +143,7 @@ class PolySolidBase : public ObjectInterface
   private:
     std::string label_;
     PolySegments segments_;
-    SolidEnclosedAngle enclosed_;
+    EnclosedAzi enclosed_;
 };
 
 //---------------------------------------------------------------------------//
@@ -156,12 +156,12 @@ class PolyCone final : public PolySolidBase
     // Return a polycone *or* a simplified version for only a single segment
     static SPConstObject or_solid(std::string&& label,
                                   PolySegments&& segments,
-                                  SolidEnclosedAngle&& enclosed);
+                                  EnclosedAzi&& enclosed);
 
     // Build with label, axial segments, optional restriction
     PolyCone(std::string&& label,
              PolySegments&& segments,
-             SolidEnclosedAngle&& enclosed);
+             EnclosedAzi&& enclosed);
 
     // Construct a volume from this object
     NodeId build(VolumeBuilder&) const final;
@@ -180,14 +180,14 @@ class PolyPrism final : public PolySolidBase
     // Return a polyprism *or* a simplified version for only a single segment
     static SPConstObject or_solid(std::string&& label,
                                   PolySegments&& segments,
-                                  SolidEnclosedAngle&& enclosed,
+                                  EnclosedAzi&& enclosed,
                                   int num_sides,
                                   real_type orientation);
 
     // Build with label, axial segments, parameters, optional restriction
     PolyPrism(std::string&& label,
               PolySegments&& segments,
-              SolidEnclosedAngle&& enclosed,
+              EnclosedAzi&& enclosed,
               int num_sides,
               real_type orientation);
 

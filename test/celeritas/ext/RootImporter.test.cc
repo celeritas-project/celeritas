@@ -11,6 +11,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
+#include "celeritas/RootTestBase.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
@@ -39,38 +40,11 @@ namespace test
  * This test only checks if the loaded ROOT file is minimally correct. Detailed
  * verification of the imported data is done by \c GeantImporter.test .
  */
-class RootImporterTest : public Test
+class RootImporterTest : public RootTestBase
 {
   protected:
-    std::string_view geometry_basename() const { return "four-steel-slabs"sv; }
-
-    ImportData const& imported_data() const;
+    std::string_view gdml_basename() const { return "four-steel-slabs"sv; }
 };
-
-//---------------------------------------------------------------------------//
-auto RootImporterTest::imported_data() const -> ImportData const&
-{
-    static struct
-    {
-        std::string geometry_basename;
-        ImportData imported;
-    } i;
-    auto geo_basename = this->geometry_basename();
-    if (i.geometry_basename != geo_basename)
-    {
-        ScopedRootErrorHandler scoped_root_error;
-
-        i.geometry_basename = geo_basename;
-        std::string root_inp
-            = this->test_data_path("celeritas", i.geometry_basename + ".root");
-
-        RootImporter import(root_inp.c_str());
-        i.imported = import();
-        scoped_root_error.throw_if_errors();
-    }
-    CELER_ENSURE(!i.imported.particles.empty());
-    return i.imported;
-}
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -187,18 +161,20 @@ TEST_F(RootImporterTest, volumes)
     }
 
     unsigned int const expected_material_ids[] = {1, 1, 1, 1, 0};
-
-    static char const* expected_names[] = {"box0x125555be0",
-                                           "box0x125556d20",
-                                           "box0x125557160",
-                                           "box0x1255575a0",
-                                           "World0x125555f10"};
-
-    static char const* expected_solids[] = {"box0x125555b70",
-                                            "box0x125556c70",
-                                            "box0x1255570a0",
-                                            "box0x125557500",
-                                            "World0x125555ea0"};
+    static char const* expected_names[] = {
+        "box@0",
+        "box@1",
+        "box@2",
+        "box@3",
+        "World",
+    };
+    static char const* expected_solids[] = {
+        "box",
+        "box",
+        "box",
+        "box",
+        "World",
+    };
 
     EXPECT_VEC_EQ(expected_material_ids, material_ids);
     EXPECT_VEC_EQ(expected_names, names);

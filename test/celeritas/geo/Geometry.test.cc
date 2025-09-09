@@ -4,26 +4,60 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/geo/Geometry.test.cc
 //---------------------------------------------------------------------------//
+#include <gtest/gtest.h>
+
 #include "corecel/Config.hh"
 
+#include "corecel/StringSimplifier.hh"
 #include "geocel/GeoParamsOutput.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 
 #include "HeuristicGeoTestBase.hh"
+#include "TestMacros.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
 {
 namespace test
 {
-constexpr bool not_orange_geo
-    = (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE);
+constexpr bool using_orange_geo
+    = (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE);
+constexpr bool using_vecgeom_surface = CELERITAS_VECGEOM_SURFACE
+                                       && CELERITAS_CORE_GEO
+                                              == CELERITAS_CORE_GEO_VECGEOM;
+
 //---------------------------------------------------------------------------//
+class GeometryTest : public HeuristicGeoTestBase
+{
+  public:
+    using VecReal = std::vector<real_type>;
+    static void TearDownTestSuite() { last_path() = {}; }
+
+    static void compare_against_previous(SpanConstReal values)
+    {
+        auto& lp = GeometryTest::last_path();
+        if (lp.empty())
+        {
+            lp.assign(values.begin(), values.end());
+        }
+        else
+        {
+            EXPECT_VEC_SOFT_EQ(lp, values);
+        }
+    }
+
+  private:
+    static VecReal& last_path()
+    {
+        static VecReal p;
+        return p;
+    }
+};
 
 class TestEm3Test : public HeuristicGeoTestBase
 {
   protected:
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "testem3-flat"sv;
     }
@@ -33,11 +67,11 @@ class TestEm3Test : public HeuristicGeoTestBase
         HeuristicGeoScalars result;
         result.lower = {-19.77, -20, -20};
         result.upper = {19.43, 20, 20};
-        result.world_volume = this->geometry()->volumes().find_unique("world");
+        result.world_volume
+            = this->geometry()->impl_volumes().find_unique("world");
         return result;
     }
 
-    size_type num_steps() const final { return 1024; }
     SpanConstStr reference_volumes() const final;
     SpanConstReal reference_avg_path() const final;
 };
@@ -76,7 +110,7 @@ auto TestEm3Test::reference_volumes() const -> SpanConstStr
 
 auto TestEm3Test::reference_avg_path() const -> SpanConstReal
 {
-    static real_type const orange_paths[]
+    static real_type const paths[]
         = {7.504,  0.07378, 0.2057, 0.102,  0.2408, 0.1006, 0.3019, 0.1153,
            0.2812, 0.1774,  0.4032, 0.1354, 0.3163, 0.1673, 0.3465, 0.1786,
            0.4494, 0.2237,  0.5863, 0.192,  0.4027, 0.1905, 0.5949, 0.3056,
@@ -90,7 +124,9 @@ auto TestEm3Test::reference_avg_path() const -> SpanConstReal
            0.7295, 0.2874,  0.6328, 0.2524, 0.532,  0.2354, 0.5435, 0.2612,
            0.5484, 0.2294,  0.5671, 0.246,  0.5157, 0.1953, 0.3996, 0.1301,
            0.3726, 0.1642,  0.3317, 0.1375, 0.1909};
-    return make_span(orange_paths);
+    return make_span(paths);
+    //(void)paths;
+    // return {};
 }
 
 //---------------------------------------------------------------------------//
@@ -98,10 +134,7 @@ auto TestEm3Test::reference_avg_path() const -> SpanConstReal
 class SimpleCmsTest : public HeuristicGeoTestBase
 {
   protected:
-    std::string_view geometry_basename() const override
-    {
-        return "simple-cms"sv;
-    }
+    std::string_view gdml_basename() const override { return "simple-cms"sv; }
 
     HeuristicGeoScalars build_scalars() const final
     {
@@ -110,11 +143,11 @@ class SimpleCmsTest : public HeuristicGeoTestBase
         result.upper = {30, 30, 700};
         result.log_min_step = std::log(1e-4);
         result.log_max_step = std::log(1e2);
-        result.world_volume = this->geometry()->volumes().find_unique("world");
+        result.world_volume
+            = this->geometry()->impl_volumes().find_unique("world");
         return result;
     }
 
-    size_type num_steps() const final { return 1024; }
     SpanConstStr reference_volumes() const final;
     SpanConstReal reference_avg_path() const final;
 };
@@ -143,7 +176,7 @@ auto SimpleCmsTest::reference_avg_path() const -> SpanConstReal
 class ThreeSpheresTest : public HeuristicGeoTestBase
 {
   protected:
-    std::string_view geometry_basename() const override
+    std::string_view gdml_basename() const override
     {
         return "three-spheres"sv;
     }
@@ -156,7 +189,6 @@ class ThreeSpheresTest : public HeuristicGeoTestBase
         return result;
     }
 
-    size_type num_steps() const final { return 1024; }
     SpanConstStr reference_volumes() const final;
     SpanConstReal reference_avg_path() const final;
 };
@@ -181,7 +213,7 @@ auto ThreeSpheresTest::reference_avg_path() const -> SpanConstReal
 class CmseTest : public HeuristicGeoTestBase
 {
   protected:
-    std::string_view geometry_basename() const override { return "cmse"sv; }
+    std::string_view gdml_basename() const override { return "cmse"sv; }
 
     HeuristicGeoScalars build_scalars() const final
     {
@@ -193,7 +225,6 @@ class CmseTest : public HeuristicGeoTestBase
         return result;
     }
 
-    size_type num_steps() const final { return 1024; }
     SpanConstStr reference_volumes() const final;
     SpanConstReal reference_avg_path() const final;
 };
@@ -225,7 +256,7 @@ auto CmseTest::reference_avg_path() const -> SpanConstReal
 // TESTEM3
 //---------------------------------------------------------------------------//
 
-TEST_F(TestEm3Test, host)
+TEST_F(TestEm3Test, run)
 {
     if (CELERITAS_USE_GEANT4 || CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
     {
@@ -236,32 +267,42 @@ TEST_F(TestEm3Test, host)
         // ORANGE from JSON file doesn't support safety
         EXPECT_FALSE(this->geometry()->supports_safety());
     }
-    real_type tol = not_orange_geo ? 0.35 : 1e-3;
-    this->run_host(512, tol);
-}
 
-TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
-{
-    real_type tol = not_orange_geo ? 0.25 : 1e-3;
-    this->run_device(512, tol);
+    // Note: with geom_limit=inf, at step 183, track 358 scatters exactly
+    // on the boundary. This results in substantial differences between the
+    // geometry implementations which is instructive but not useful necessarily
+    // for this test.
+
+    // With the default geom_limit, slight numerical differences in the
+    // direction due to `rotate` leave the CPU vgsurf at 2.6299999999999999 but
+    // the GPU at 2.6300000000000003, heading in the negative direction after
+    // scattering. The former sees the correct distance to boundary, but the
+    // latter intersects immediately.
+
+    // VecGeom solid and ORANGE also diverge fairly quickly: this is in part
+    // due to bumps
+
+    if (using_vecgeom_surface && celeritas::device())
+    {
+        GTEST_SKIP() << "GPU and CPU diverge for vgsurf due to sensitivity to "
+                        "boundaries";
+    }
+
+    real_type tol = using_orange_geo         ? 1e-3
+                    : !using_vecgeom_surface ? 0.35
+                                             : 1000;
+    this->run(512, /* num_steps = */ 1024, tol);
 }
 
 //---------------------------------------------------------------------------//
 // SIMPLECMS
 //---------------------------------------------------------------------------//
 
-TEST_F(SimpleCmsTest, host)
+TEST_F(SimpleCmsTest, avg_path)
 {
     // Results were generated with ORANGE
-    real_type tol = not_orange_geo ? 0.05 : 1e-3;
-    this->run_host(512, tol);
-}
-
-TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(device))
-{
-    // Results were generated with ORANGE
-    real_type tol = not_orange_geo ? 0.025 : 1e-3;
-    this->run_device(512, tol);
+    real_type tol = using_orange_geo ? 1e-3 : 0.05;
+    this->run(512, /* num_steps = */ 1024, tol);
 }
 
 TEST_F(SimpleCmsTest, output)
@@ -269,24 +310,14 @@ TEST_F(SimpleCmsTest, output)
     GeoParamsOutput out(this->geometry());
     EXPECT_EQ("geometry", out.label());
 
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
+    StringSimplifier simplify_str(1);
+    auto s = simplify_str(to_string(out));
+
+    if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE && CELERITAS_USE_GEANT4)
     {
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-1000.001,-1000.001,-2000.001],[1000.001,1000.001,2000.001]],"max_depth":2,"supports_safety":true,"volumes":{"label":["vacuum_tube","si_tracker","em_calorimeter","had_calorimeter","sc_solenoid","fe_muon_chambers","world"]}})json",
-            to_string(out));
-    }
-    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
-             && CELERITAS_USE_GEANT4)
-    {
-        EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-1000.0,-1000.0,-2000.0],[1000.0,1000.0,2000.0]],"max_depth":1,"supports_safety":false,"surfaces":{"label":["world_box@mx","world_box@px","world_box@my","world_box@py","world_box@mz","world_box@pz","crystal_em_calorimeter@excluded.mz","crystal_em_calorimeter@excluded.pz","lhc_vacuum_tube@cz","crystal_em_calorimeter@excluded.cz","crystal_em_calorimeter@interior.cz","hadron_calorimeter@interior.cz","iron_muon_chambers@excluded.cz","iron_muon_chambers@interior.cz"]},"volumes":{"label":["[EXTERIOR]@world0x0","vacuum_tube@0x0","si_tracker@0x0","em_calorimeter@0x0","had_calorimeter@0x0","sc_solenoid@0x0","fe_muon_chambers@0x0","world@0x0"]}})json",
-            this->genericize_pointers(to_string(out)));
-    }
-    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-    {
-        EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-1000.0,-1000.0,-2000.0],[1000.0,1000.0,2000.0]],"max_depth":1,"supports_safety":false,"surfaces":{"label":["world_box.mx@global","world_box.px@global","world_box.my@global","world_box.py@global","world_box.mz@global","world_box.pz@global","guide_tube.coz@global","crystal_em_calorimeter_outer.mz@global","crystal_em_calorimeter_outer.pz@global","silicon_tracker_outer.coz@global","crystal_em_calorimeter_outer.coz@global","hadron_calorimeter_outer.coz@global","superconducting_solenoid_outer.coz@global","iron_muon_chambers_outer.coz@global"]},"volumes":{"label":["[EXTERIOR]@global","vacuum_tube@global","si_tracker@global","em_calorimeter@global","had_calorimeter@global","sc_solenoid@global","fe_muon_chambers@global","world@global"]}})json",
-            this->genericize_pointers(to_string(out)));
+            R"json({"_category":"internal","_label":"geometry","bbox":[[-1e3,-1e3,-2e3],[1e3,1e3,2e3]],"supports_safety":true,"volumes":{"label":["vacuum_tube","si_tracker","em_calorimeter","had_calorimeter","sc_solenoid","fe_muon_chambers","world"]}})json",
+            s);
     }
 }
 
@@ -294,26 +325,22 @@ TEST_F(SimpleCmsTest, output)
 // THREE_SPHERES
 //---------------------------------------------------------------------------//
 
-TEST_F(ThreeSpheresTest, host)
+TEST_F(ThreeSpheresTest, avg_path)
 {
     // Results were generated with ORANGE
-    real_type tol = not_orange_geo ? 0.05 : 1e-3;
+    // TODO: investigate differences w.r.t. surface model
+    real_type tol = using_orange_geo         ? 1e-3
+                    : !using_vecgeom_surface ? 0.05
+                                             : 0.80;
     EXPECT_TRUE(this->geometry()->supports_safety());
-    this->run_host(512, tol);
-}
-
-TEST_F(ThreeSpheresTest, TEST_IF_CELER_DEVICE(device))
-{
-    // Results were generated with ORANGE
-    real_type tol = not_orange_geo ? 0.025 : 1e-3;
-    this->run_device(512, tol);
+    this->run(512, /* num_steps = */ 1024, tol);
 }
 
 //---------------------------------------------------------------------------//
 // CMSE
 //---------------------------------------------------------------------------//
 // TODO: ensure reference values are the same for all CI platforms (see #1570)
-TEST_F(CmseTest, DISABLED_host)
+TEST_F(CmseTest, DISABLED_avg_path)
 {
     auto const& bbox = this->geometry()->bbox();
     real_type const geo_eps
@@ -326,12 +353,7 @@ TEST_F(CmseTest, DISABLED_host)
 
     real_type tol = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM ? 0.005
                                                                      : 0.35;
-    this->run_host(512, tol);
-}
-
-TEST_F(CmseTest, TEST_IF_CELER_DEVICE(device))
-{
-    this->run_device(512, 0.005);
+    this->run(512, /* num_steps = */ 1024, tol);
 }
 
 //---------------------------------------------------------------------------//

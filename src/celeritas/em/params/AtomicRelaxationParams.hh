@@ -26,6 +26,10 @@ class ParticleParams;
 //---------------------------------------------------------------------------//
 /*!
  * Data management for the EADL transition data for atomic relaxation.
+ *
+ * \note The EADL only provides transition probabilities for 6 <= Z <= 100, so
+ * there will be no atomic relaxation data for Z < 6. Transitions are only
+ * provided for K, L, M, N, and some O shells.
  */
 class AtomicRelaxationParams final
     : public ParamsDataInterface<AtomicRelaxParamsData>

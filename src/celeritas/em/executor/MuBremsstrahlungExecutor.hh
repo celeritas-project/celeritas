@@ -8,6 +8,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/random/engine/RngEngine.hh"
 #include "celeritas/em/data/MuBremsstrahlungData.hh"
 #include "celeritas/em/interactor/MuBremsstrahlungInteractor.hh"
 #include "celeritas/geo/GeoTrackView.hh"
@@ -15,7 +16,6 @@
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/PhysicsStepView.hh"
-#include "celeritas/random/RngEngine.hh"
 
 namespace celeritas
 {
@@ -35,21 +35,19 @@ struct MuBremsstrahlungExecutor
 CELER_FUNCTION Interaction
 MuBremsstrahlungExecutor::operator()(CoreTrackView const& track)
 {
-    auto cutoff = track.make_cutoff_view();
-    auto material_track = track.make_material_view();
-    auto material = material_track.make_material_view();
-    auto particle = track.make_particle_view();
+    auto cutoff = track.cutoff();
+    auto material = track.material().material_record();
+    auto particle = track.particle();
 
-    auto elcomp_id = track.make_physics_step_view().element();
+    auto elcomp_id = track.physics_step().element();
     CELER_ASSERT(elcomp_id);
-    auto allocate_secondaries
-        = track.make_physics_step_view().make_secondary_allocator();
-    auto const& dir = track.make_geo_view().dir();
+    auto allocate_secondaries = track.physics_step().make_secondary_allocator();
+    auto const& dir = track.geometry().dir();
 
     MuBremsstrahlungInteractor interact(
         params, particle, dir, cutoff, allocate_secondaries, material, elcomp_id);
 
-    auto rng = track.make_rng_engine();
+    auto rng = track.rng();
     return interact(rng);
 }
 

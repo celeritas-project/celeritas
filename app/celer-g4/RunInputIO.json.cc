@@ -30,6 +30,7 @@ void from_json(nlohmann::json const& j, PhysicsListSelection& value)
     auto const& s = j.get<std::string>();
     if (CELER_UNLIKELY(s == "geant_physics_list"))
     {
+        // DEPRECATED: remove in v1.0
         CELER_LOG(warning) << "Deprecated option value '" << s
                            << "': use 'celer_em' instead";
         value = PhysicsListSelection::celer_em;
@@ -68,6 +69,8 @@ void from_json(nlohmann::json const& j, RunInput& v)
 #define RI_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, v, NAME)
 #define RI_LOAD_REQUIRED(NAME) CELER_JSON_LOAD_REQUIRED(j, v, NAME)
 #define RI_LOAD_DEPRECATED(OLD, NEW) CELER_JSON_LOAD_DEPRECATED(j, v, OLD, NEW)
+#define RI_LOAD_DEFAULT(NAME, DEFAULT) \
+    CELER_JSON_LOAD_DEFAULT(j, v, NAME, DEFAULT)
 
     // Check version (if available)
     check_format(j, "celer-g4");
@@ -81,27 +84,29 @@ void from_json(nlohmann::json const& j, RunInput& v)
 
     RI_LOAD_OPTION(primary_options);
 
+    // DEPRECATED: remove in v1.0
     RI_LOAD_DEPRECATED(sync, action_times);
 
     RI_LOAD_OPTION(num_track_slots);
+    RI_LOAD_DEFAULT(num_track_slots,
+                    celeritas::Device::num_devices() ? 262144 : 1024);
     RI_LOAD_OPTION(max_steps);
-    RI_LOAD_OPTION(initializer_capacity);
+    RI_LOAD_DEFAULT(initializer_capacity, 8 * v.num_track_slots);
     RI_LOAD_OPTION(secondary_stack_factor);
     RI_LOAD_OPTION(action_times);
-    RI_LOAD_OPTION(default_stream);
-    if (auto iter = j.find("auto_flush"); iter != j.end())
+    if (j.count("default_stream"))
     {
-        iter->get_to(v.auto_flush);
+        // DEPRECATED: remove in v1.0
+        CELER_LOG(warning) << "Ignoring removed option 'default_stream'";
     }
-    else
-    {
-        v.auto_flush = v.num_track_slots;
-    }
+    RI_LOAD_DEFAULT(auto_flush, v.num_track_slots);
 
     RI_LOAD_OPTION(track_order);
 
     RI_LOAD_OPTION(physics_list);
     RI_LOAD_OPTION(physics_options);
+    RI_LOAD_OPTION(interpolation);
+    RI_LOAD_OPTION(poly_spline_order);
 
     RI_LOAD_OPTION(field_type);
     RI_LOAD_OPTION(field_file);
@@ -110,8 +115,9 @@ void from_json(nlohmann::json const& j, RunInput& v)
 
     if (auto iter = j.find("enable_sd"); iter != j.end())
     {
-        CELER_LOG(warning) << "Deprecated option 'enable_sd': refactor as "
-                              "'sd_type'";
+        // DEPRECATED: remove in v1.0
+        CELER_LOG(warning)
+            << R"(Deprecated option 'enable_sd': refactor as 'sd_type')";
         if (iter->get<bool>())
         {
             v.sd_type = SensitiveDetectorType::event_hit;
@@ -130,6 +136,7 @@ void from_json(nlohmann::json const& j, RunInput& v)
 
     if (auto iter = j.find("write_sd_hits"); iter != j.end())
     {
+        // DEPRECATED: remove in v1.0
         CELER_LOG(warning) << "Deprecated option 'write_sd_hits': disable "
                               "output using CELER_DISABLE_ROOT";
         if (!iter->get<bool>())
@@ -192,7 +199,6 @@ void to_json(nlohmann::json& j, RunInput const& v)
     RI_SAVE(initializer_capacity);
     RI_SAVE(secondary_stack_factor);
     RI_SAVE(action_times);
-    RI_SAVE(default_stream);
     RI_SAVE(auto_flush);
 
     RI_SAVE(track_order);
@@ -202,6 +208,8 @@ void to_json(nlohmann::json& j, RunInput const& v)
     {
         RI_SAVE(physics_options);
     }
+    RI_SAVE(interpolation);
+    RI_SAVE(poly_spline_order);
 
     RI_SAVE(field_type);
     if (v.field_type == "rzmap")

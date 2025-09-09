@@ -9,7 +9,9 @@
 #include <G4AffineTransform.hh>
 #include <G4RotationMatrix.hh>
 #include <G4ThreeVector.hh>
+#include <G4Transform3D.hh>
 
+#include "geocel/Types.hh"
 #include "orange/transform/VariantTransform.hh"
 
 #include "Scaler.hh"
@@ -39,7 +41,7 @@ class Transformer
   public:
     //!@{
     //! \name Type aliases
-    using Real3 = Array<double, 3>;
+    using Real3 = Array<real_type, 3>;
     //!@}
 
   public:
@@ -56,9 +58,8 @@ class Transformer
     inline Transformation
     operator()(G4ThreeVector const& t, G4RotationMatrix const& rot) const;
 
-    // Convert a translation + optional rotation
-    inline VariantTransform
-    operator()(G4ThreeVector const& t, G4RotationMatrix const* rot) const;
+    // Convert a more general transform (includes reflection)
+    inline Transformation operator()(G4Transform3D const& tran) const;
 
     // Convert an affine transform
     inline Transformation operator()(G4AffineTransform const& at) const;
@@ -71,6 +72,14 @@ class Transformer
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+// Convert a ThreeVector
+inline Real3 convert_from_geant(G4ThreeVector const& vec);
+
+//---------------------------------------------------------------------------//
+// Convert three doubles to a Real3
+inline Real3 convert_from_geant(double x, double y, double z);
+
 //---------------------------------------------------------------------------//
 // Convert a rotation matrix
 inline SquareMatrixReal3 convert_from_geant(G4RotationMatrix const& rot);
@@ -101,9 +110,24 @@ auto Transformer::operator()(G4ThreeVector const& t) const -> Translation
  * Create a transform from a translation plus rotation.
  */
 auto Transformer::operator()(G4ThreeVector const& trans,
-                             G4RotationMatrix const& rot) const -> Transformation
+                             G4RotationMatrix const& rot) const
+    -> Transformation
 {
     return Transformation{convert_from_geant(rot), scale_.to<Real3>(trans)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a more general transform (including possibly reflection).
+ */
+Transformation Transformer::operator()(G4Transform3D const& tran) const
+{
+    SquareMatrixReal3 rot{convert_from_geant(tran.xx(), tran.xy(), tran.xz()),
+                          convert_from_geant(tran.yx(), tran.yy(), tran.yz()),
+                          convert_from_geant(tran.zx(), tran.zy(), tran.zz())};
+
+    return Transformation{rot,
+                          scale_.to<Real3>(tran.dx(), tran.dy(), tran.dz())};
 }
 
 //---------------------------------------------------------------------------//
@@ -121,13 +145,33 @@ auto Transformer::operator()(G4AffineTransform const& affine) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Convert a ThreeVector.
+ */
+Real3 convert_from_geant(G4ThreeVector const& vec)
+{
+    return convert_from_geant(vec[0], vec[1], vec[2]);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert three doubles to a Real3.
+ */
+Real3 convert_from_geant(double x, double y, double z)
+{
+    return Real3{{static_cast<real_type>(x),
+                  static_cast<real_type>(y),
+                  static_cast<real_type>(z)}};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Convert a rotation matrix.
  */
 SquareMatrixReal3 convert_from_geant(G4RotationMatrix const& rot)
 {
-    return {Real3{{rot.xx(), rot.xy(), rot.xz()}},
-            Real3{{rot.yx(), rot.yy(), rot.yz()}},
-            Real3{{rot.zx(), rot.zy(), rot.zz()}}};
+    return {convert_from_geant(rot.xx(), rot.xy(), rot.xz()),
+            convert_from_geant(rot.yx(), rot.yy(), rot.yz()),
+            convert_from_geant(rot.zx(), rot.zy(), rot.zz())};
 }
 
 //---------------------------------------------------------------------------//
@@ -136,9 +180,9 @@ SquareMatrixReal3 convert_from_geant(G4RotationMatrix const& rot)
  */
 SquareMatrixReal3 transposed_from_geant(G4RotationMatrix const& rot)
 {
-    return {Real3{{rot.xx(), rot.yx(), rot.zx()}},
-            Real3{{rot.xy(), rot.yy(), rot.zy()}},
-            Real3{{rot.xz(), rot.yz(), rot.zz()}}};
+    return {convert_from_geant(rot.xx(), rot.yx(), rot.zx()),
+            convert_from_geant(rot.xy(), rot.yy(), rot.zy()),
+            convert_from_geant(rot.xz(), rot.yz(), rot.zz())};
 }
 
 //---------------------------------------------------------------------------//

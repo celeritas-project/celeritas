@@ -14,6 +14,8 @@
 #include "corecel/io/LoggerTypes.hh"
 #include "corecel/io/Repr.hh"
 
+#include "StringSimplifier.hh"
+
 namespace celeritas
 {
 namespace test
@@ -71,11 +73,8 @@ void ScopedLogStorer::operator()(LogProvenance, LogLevel lev, std::string msg)
         return;
     }
 
-    static std::regex const delete_ansi("\033\\[[0-9;]*m");
-    static std::regex const subs_ptr("0x[0-9a-f]+");
-    msg = std::regex_replace(msg, delete_ansi, "");
-    msg = std::regex_replace(msg, subs_ptr, "0x0");
-    messages_.push_back(std::move(msg));
+    StringSimplifier simplify{float_digits_};
+    messages_.push_back(simplify(std::move(msg)));
     levels_.push_back(to_cstring(lev));
 }
 

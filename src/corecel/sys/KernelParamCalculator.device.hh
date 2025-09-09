@@ -1,6 +1,5 @@
-//---------------------------------*-C++-*-----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------ -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/sys/KernelParamCalculator.device.hh
@@ -43,7 +42,7 @@
                                  0,                                          \
                                  STREAM,                                     \
                                  __VA_ARGS__);                               \
-        CELER_DEVICE_CHECK_ERROR();                                          \
+        CELER_DEVICE_API_CALL(PeekAtLastError());                            \
     } while (0)
 
 /*!
@@ -66,7 +65,7 @@
                                  0,                                          \
                                  STREAM,                                     \
                                  __VA_ARGS__);                               \
-        CELER_DEVICE_CHECK_ERROR();                                          \
+        CELER_DEVICE_API_CALL(PeekAtLastError());                            \
     } while (0)
 
 #if CELERITAS_USE_CUDA
@@ -117,7 +116,7 @@ class KernelParamCalculator
     using dim_type = unsigned int;
     //!@}
 
-    //! Parameters needed for a CUDA lauch call
+    //! Parameters needed for a CUDA launch call
     struct LaunchParams
     {
         dim3 blocks_per_grid;  //!< Number of blocks for kernel grid

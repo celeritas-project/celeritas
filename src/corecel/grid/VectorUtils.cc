@@ -9,7 +9,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/grid/Interpolator.hh"
+
+#include "Interpolator.hh"
 
 namespace celeritas
 {
@@ -53,11 +54,10 @@ std::vector<double> linspace(double start, double stop, size_type n)
 /*!
  * Return logarithmically spaced numbers over a given interval.
  *
- * Unlike numpy's logspace which assumes the start and stop are log-10 values
- * (unless given another argument), the start and stop are the *actual* first
- * and last values of the resulting vector.
+ * This is a geometric progression of values, where the ratio between each
+ * neighbor is constant.
  */
-std::vector<double> logspace(double start, double stop, size_type n)
+std::vector<double> geomspace(double start, double stop, size_type n)
 {
     CELER_EXPECT(0 < start);
     CELER_EXPECT(start < stop);

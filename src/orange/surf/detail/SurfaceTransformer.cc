@@ -95,7 +95,7 @@ ORANGE_INSTANTIATE_OP(GeneralQuadric, CylAligned);
 Plane SurfaceTransformer::operator()(Plane const& other) const
 {
     // Rotate the normal direction
-    Real3 normal = tr_.rotate_up(other.normal());
+    Real3 normal = make_unit_vector(tr_.rotate_up(other.normal()));
 
     // Transform a point on the original plane
     Real3 point = tr_.transform_up(other.displacement() * other.normal());
@@ -109,6 +109,12 @@ Plane SurfaceTransformer::operator()(Plane const& other) const
  */
 Sphere SurfaceTransformer::operator()(Sphere const& other) const
 {
+    if (CELER_UNLIKELY(tr_.calc_properties().scales))
+    {
+        // Future work: return type needs to be gq
+        CELER_NOT_IMPLEMENTED("transforming a sphere with scaling");
+    }
+
     // Transform origin, keep the same radius
     return Sphere::from_radius_sq(tr_.transform_up(other.origin()),
                                   other.radius_sq());
@@ -218,7 +224,7 @@ GeneralQuadric SurfaceTransformer::operator()(GeneralQuadric const& other) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Transform an Involute.
+ * Transform an involute.
  */
 Involute SurfaceTransformer::operator()(Involute const&) const
 {

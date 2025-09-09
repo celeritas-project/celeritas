@@ -6,16 +6,16 @@
 //---------------------------------------------------------------------------//
 #include "corecel/data/CollectionStateStore.hh"
 #include "geocel/UnitUtils.hh"
+#include "celeritas/GeantTestBase.hh"
+#include "celeritas/RootTestBase.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoMaterialView.hh"
-#include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/mat/MaterialParams.hh"
 
 #include "celeritas_test.hh"
-#include "../RootTestBase.hh"
-#include "../TestEm3Base.hh"
 
 namespace celeritas
 {
@@ -31,7 +31,7 @@ class GeoMaterialTestBase : virtual public GlobalTestBase
     using VecString = std::vector<std::string>;
 
   protected:
-    std::string material_name(MaterialId matid) const
+    std::string material_name(PhysMatId matid) const
     {
         if (!matid)
             return "---";
@@ -41,8 +41,8 @@ class GeoMaterialTestBase : virtual public GlobalTestBase
     VecString trace_materials(Real3 const& pos, Real3 dir);
 };
 
-auto GeoMaterialTestBase::trace_materials(Real3 const& pos_cm,
-                                          Real3 dir) -> VecString
+auto GeoMaterialTestBase::trace_materials(Real3 const& pos_cm, Real3 dir)
+    -> VecString
 {
     CollectionStateStore<GeoStateData, MemSpace::host> host_state{
         this->geometry()->host_ref(), 1};
@@ -58,8 +58,8 @@ auto GeoMaterialTestBase::trace_materials(Real3 const& pos_cm,
     geo = {from_cm(pos_cm), make_unit_vector(dir)};
     while (!geo.is_outside())
     {
-        result.push_back(
-            this->material_name(geo_mat_view.material_id(geo.volume_id())));
+        result.push_back(this->material_name(
+            geo_mat_view.material_id(geo.impl_volume_id())));
 
         geo.find_next_step();
         geo.move_to_boundary();
@@ -70,30 +70,37 @@ auto GeoMaterialTestBase::trace_materials(Real3 const& pos_cm,
 
 //---------------------------------------------------------------------------//
 
-#define SimpleCmsRoot TEST_IF_CELERITAS_USE_ROOT(SimpleCmsRoot)
-class SimpleCmsRoot : public RootTestBase, public GeoMaterialTestBase
+#if CELERITAS_USE_ROOT
+#    define CMS_TEST_BASE RootTestBase
+#else
+#    define CMS_TEST_BASE GeantTestBase
+#endif
+
+class SimpleCmsTest : public CMS_TEST_BASE, public GeoMaterialTestBase
 {
   public:
-    std::string_view geometry_basename() const override
-    {
-        return "simple-cms"sv;
-    }
-    SPConstTrackInit build_init() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstAction build_along_step() override { CELER_ASSERT_UNREACHABLE(); }
+    std::string_view gdml_basename() const override { return "simple-cms"sv; }
 };
 
 //---------------------------------------------------------------------------//
 
-#define TestEm3 TEST_IF_CELERITAS_GEANT(TestEm3)
-class TestEm3 : public TestEm3Base, public GeoMaterialTestBase
+class Em3Test : public GeantTestBase, public GeoMaterialTestBase
 {
+    std::string_view gdml_basename() const override { return "testem3-flat"; }
+};
+
+//---------------------------------------------------------------------------//
+
+class MultiLevelTest : public GeantTestBase, public GeoMaterialTestBase
+{
+    std::string_view gdml_basename() const final { return "multi-level"sv; }
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(SimpleCmsRoot, plus_z)
+TEST_F(SimpleCmsTest, plus_z)
 {
     auto materials = this->trace_materials({0, 0, 0}, {1, 0, 0});
     static char const* const expected_materials[]
@@ -101,11 +108,52 @@ TEST_F(SimpleCmsRoot, plus_z)
     EXPECT_VEC_EQ(expected_materials, materials);
 }
 
-TEST_F(TestEm3, plus_x)
+TEST_F(Em3Test, plus_x)
 {
     auto materials = this->trace_materials({19.01, 0, 0}, {1, 0, 0});
     static char const* const expected_materials[]
         = {"lAr", "Pb", "lAr", "vacuum"};
+    EXPECT_VEC_EQ(expected_materials, materials);
+}
+
+TEST_F(MultiLevelTest, high)
+{
+    auto materials = this->trace_materials({-19.9, 7.5, 0}, {1, 0, 0});
+
+    static char const* const expected_materials[] = {
+        "lAr",
+        "Pb",
+        "lAr",
+        "Pb",
+        "lAr",
+        "Pb",
+        "lAr",
+        "Pb",
+        "lAr",
+        "Pb",
+        "lAr",
+        "Pb",
+        "lAr",
+    };
+    EXPECT_VEC_EQ(expected_materials, materials);
+}
+
+TEST_F(MultiLevelTest, low)
+{
+    auto materials = this->trace_materials({-19.9, -7.5, 0}, {1, 0, 0});
+    static char const* const expected_materials[] = {
+        "lAr",
+        "Pb",
+        "lAr",
+        "Pb",
+        "lAr",
+        "Pb",
+        "lAr",
+        "Pb",
+        "lAr",
+        "Pb",
+        "lAr",
+    };
     EXPECT_VEC_EQ(expected_materials, materials);
 }
 

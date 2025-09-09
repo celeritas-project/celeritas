@@ -59,4 +59,3 @@ celeritas@abcd1234:~/src$ ./scripts/docker/ci/run-ci.sh valgrind
 ```
 
 Note that running as the `root` user requires the `MPIEXEC_PREFLAGS=--allow-run-as-root` to be defined for CMake: this is done by cmake-presets/ci-rocky-cuda.
-

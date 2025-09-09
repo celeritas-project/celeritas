@@ -82,7 +82,13 @@ Storage
 Containers
 ----------
 
-.. doxygenstruct:: celeritas::Array
+These are containers and container-like objects used throughout Celeritas.
+
+.. doxygenclass:: celeritas::Array
+
+.. doxygenclass:: celeritas::EnumArray
+
+.. doxygenclass:: celeritas::Range
 
 .. doxygenclass:: celeritas::Span
 
@@ -102,7 +108,5 @@ Users and other parts of the code can add their own shared and stream-local
 .. doxygenclass:: celeritas::AuxParamsRegistry
 
 .. doxygenclass:: celeritas::AuxStateData
-
-.. doxygenfunction:: celeritas::make_aux_state
 
 .. doxygenclass:: celeritas::AuxStateVec

@@ -6,8 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "Types.hh"
 
-#include "corecel/io/EnumStringMapper.hh"
-#include "corecel/io/StringEnumMapper.hh"
+#include "io/EnumStringMapper.hh"
+#include "io/StringEnumMapper.hh"
 
 namespace celeritas
 {
@@ -19,16 +19,6 @@ char const* to_cstring(MemSpace value)
 {
     static EnumStringMapper<MemSpace> const to_cstring_impl{
         "host", "device", "mapped"};
-    return to_cstring_impl(value);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a string corresponding to an interpolation.
- */
-char const* to_cstring(Interp value)
-{
-    static EnumStringMapper<Interp> const to_cstring_impl{"linear", "log"};
     return to_cstring_impl(value);
 }
 

@@ -11,6 +11,7 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/em/process/BremsstrahlungProcess.hh"
 #include "celeritas/em/process/ComptonProcess.hh"
@@ -62,14 +63,10 @@ auto ProcessBuilder::get_all_process_classes(
 ProcessBuilder::ProcessBuilder(ImportData const& data,
                                SPConstParticle particle,
                                SPConstMaterial material,
-                               UserBuildMap user_build,
-                               Options options)
+                               UserBuildMap user_build)
     : input_{std::move(material), std::move(particle), nullptr}
     , user_build_map_(std::move(user_build))
-    , selection_(options.brems_selection)
-    , brem_combined_(options.brem_combined)
     , enable_lpm_(data.em_params.lpm)
-    , use_integral_xs_(data.em_params.integral_approach)
 {
     CELER_EXPECT(input_.material);
     CELER_EXPECT(input_.particle);
@@ -100,13 +97,9 @@ ProcessBuilder::ProcessBuilder(ImportData const& data,
  */
 ProcessBuilder::ProcessBuilder(ImportData const& data,
                                SPConstParticle particle,
-                               SPConstMaterial material,
-                               Options options)
-    : ProcessBuilder(data,
-                     std::move(particle),
-                     std::move(material),
-                     UserBuildMap{},
-                     options)
+                               SPConstMaterial material)
+    : ProcessBuilder(
+          data, std::move(particle), std::move(material), UserBuildMap{})
 {
 }
 
@@ -116,7 +109,7 @@ ProcessBuilder::~ProcessBuilder() = default;
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a \c Process from a given processs class.
+ * Construct a \c Process from a given process class.
  *
  * This may return a null process (with a warning) if the user specifically
  * requests that the process be omitted.
@@ -152,8 +145,8 @@ auto ProcessBuilder::operator()(IPC ipc) -> SPProcess
     {
         auto iter = builtin_build.find(ipc);
         CELER_VALIDATE(iter != builtin_build.end(),
-                       << "cannot build unsupported EM process '"
-                       << to_cstring(ipc) << "'");
+                       << "cannot build unsupported EM process '" << ipc
+                       << "'");
 
         BuilderMemFn build_impl{iter->second};
         auto result = (this->*build_impl)();
@@ -165,21 +158,15 @@ auto ProcessBuilder::operator()(IPC ipc) -> SPProcess
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_eioni() -> SPProcess
 {
-    EIonizationProcess::Options options;
-    options.use_integral_xs = use_integral_xs_;
-
-    return std::make_shared<EIonizationProcess>(
-        this->particle(), this->imported(), options);
+    return std::make_shared<EIonizationProcess>(this->particle(),
+                                                this->imported());
 }
 
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_ebrems() -> SPProcess
 {
     BremsstrahlungProcess::Options options;
-    options.selection = selection_;
-    options.combined_model = brem_combined_;
     options.enable_lpm = enable_lpm_;
-    options.use_integral_xs = use_integral_xs_;
 
     if (!read_sb_)
     {
@@ -207,7 +194,7 @@ auto ProcessBuilder::build_photoelectric() -> SPProcess
 {
     if (!read_livermore_)
     {
-        read_livermore_ = LivermorePEReader{};
+        read_livermore_ = LivermorePEReader{{}};
     }
 
     return std::make_shared<PhotoelectricProcess>(
@@ -240,51 +227,36 @@ auto ProcessBuilder::build_rayleigh() -> SPProcess
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_annihilation() -> SPProcess
 {
-    EPlusAnnihilationProcess::Options options;
-    options.use_integral_xs = use_integral_xs_;
-
-    return std::make_shared<EPlusAnnihilationProcess>(
-        this->particle(), this->imported(), options);
+    return std::make_shared<EPlusAnnihilationProcess>(this->particle(),
+                                                      this->imported());
 }
 
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_coulomb() -> SPProcess
 {
-    CoulombScatteringProcess::Options options;
-    options.use_integral_xs = use_integral_xs_;
-
     return std::make_shared<CoulombScatteringProcess>(
-        this->particle(), this->material(), this->imported(), options);
+        this->particle(), this->material(), this->imported());
 }
 
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_mubrems() -> SPProcess
 {
-    MuBremsstrahlungProcess::Options options;
-    options.use_integral_xs = use_integral_xs_;
-
-    return std::make_shared<MuBremsstrahlungProcess>(
-        this->particle(), this->imported(), options);
+    return std::make_shared<MuBremsstrahlungProcess>(this->particle(),
+                                                     this->imported());
 }
 
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_muioni() -> SPProcess
 {
-    MuIonizationProcess::Options options;
-    options.use_integral_xs = use_integral_xs_;
-
     return std::make_shared<MuIonizationProcess>(
-        this->particle(), this->imported(), options);
+        this->particle(), this->imported(), MuIonizationProcess::Options{});
 }
 
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_mupairprod() -> SPProcess
 {
-    MuPairProductionProcess::Options options;
-    options.use_integral_xs = use_integral_xs_;
-
     return std::make_shared<MuPairProductionProcess>(
-        this->particle(), this->imported(), options, mu_pairprod_table_);
+        this->particle(), this->imported(), mu_pairprod_table_);
 }
 
 //---------------------------------------------------------------------------//
@@ -293,7 +265,7 @@ auto ProcessBuilder::build_mupairprod() -> SPProcess
  */
 auto WarnAndIgnoreProcess::operator()(argument_type) const -> result_type
 {
-    CELER_LOG(warning) << "Omitting " << to_cstring(this->process)
+    CELER_LOG(warning) << "Omitting " << process
                        << " from physics process list";
     return nullptr;
 }

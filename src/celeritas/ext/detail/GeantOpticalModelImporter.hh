@@ -49,7 +49,7 @@ class GeantOpticalModelImporter
     std::vector<G4MaterialPropertiesTable const*> opt_to_mat_;
 
     // Import MFP table for the given property name
-    std::vector<ImportPhysicsVector>
+    std::vector<inp::Grid>
     import_mfps(std::string const& mfp_property_name) const;
 };
 

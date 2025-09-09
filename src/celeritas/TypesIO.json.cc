@@ -16,7 +16,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Read options from JSON.
+ * Read track order options from JSON.
  */
 void from_json(nlohmann::json const& j, TrackOrder& value)
 {
@@ -52,9 +52,30 @@ void from_json(nlohmann::json const& j, TrackOrder& value)
 
 //---------------------------------------------------------------------------//
 /*!
- * Write options to JSON.
+ * Read interpolation method from JSON.
+ */
+void from_json(nlohmann::json const& j, InterpolationType& value)
+{
+    static auto const from_string
+        = StringEnumMapper<InterpolationType>::from_cstring_func(
+            to_cstring, "interpolation");
+    value = from_string(j.get<std::string>());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write track order options to JSON.
  */
 void to_json(nlohmann::json& j, TrackOrder const& value)
+{
+    j = std::string{to_cstring(value)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write interpolation method to JSON.
+ */
+void to_json(nlohmann::json& j, InterpolationType const& value)
 {
     j = std::string{to_cstring(value)};
 }

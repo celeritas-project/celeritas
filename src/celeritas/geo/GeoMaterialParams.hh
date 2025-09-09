@@ -7,6 +7,8 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
+#include <variant>
 #include <vector>
 
 #include "corecel/Types.hh"
@@ -14,7 +16,6 @@
 #include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/io/Label.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/mat/MaterialParams.hh"
 
 #include "GeoFwd.hh"
 #include "GeoMaterialData.hh"
@@ -22,13 +23,15 @@
 namespace celeritas
 {
 struct ImportData;
+class MaterialParams;
+class VolumeParams;
 
 //---------------------------------------------------------------------------//
 /*!
  * Map a track's geometry state to a material ID.
  *
- * For the forseeable future this class should just be a vector of MaterialIds,
- * one per volume.
+ * For the foreseeable future this class should just be a vector of
+ * PhysicsMaterialIds, one per volume.
  *
  * The constructor takes an array of material IDs for every volume. Missing
  * material IDs may be allowed if they correspond to unreachable volume IDs. If
@@ -40,6 +43,10 @@ struct ImportData;
  * the corresponding volume name is empty (corresponding perhaps to a "parallel
  * world" or otherwise unused volume) or is enclosed with braces (used for
  * virtual volumes such as `[EXTERIOR]` or temporary boolean/reflected volumes.
+ *
+ * \todo This class's functionality should be split between VolumeParams (for
+ * mapping volume IDs to GeoMatId) and the physics (for determining the
+ * PhysMatId from the geometry/material/region state).
  */
 class GeoMaterialParams final
     : public ParamsDataInterface<GeoMaterialParamsData>
@@ -47,28 +54,37 @@ class GeoMaterialParams final
   public:
     //!@{
     //! \name Type aliases
-    using SPConstGeo = std::shared_ptr<GeoParams const>;
+    using SPConstCoreGeo = std::shared_ptr<CoreGeoParams const>;
     using SPConstMaterial = std::shared_ptr<MaterialParams const>;
+    using SPConstVolume = std::shared_ptr<VolumeParams const>;
     //!@}
 
     //! Input parameters
     struct Input
     {
-        SPConstGeo geometry;
+        //! Vector for each canonical VolumeId
+        using VecMat = std::vector<PhysMatId>;
+        //! Map using labels
+        using MapLabelMat = std::unordered_map<Label, PhysMatId>;
+        //! Map using implementation volume IDs
+        using MapImplMat = std::unordered_map<ImplVolumeId, PhysMatId>;
+
+        SPConstCoreGeo geometry;
         SPConstMaterial materials;
-        std::vector<MaterialId> volume_to_mat;
-        std::vector<Label> volume_labels;  // Optional
+
+        std::variant<VecMat, MapLabelMat, MapImplMat> volume_to_mat;
     };
 
   public:
     // Construct with imported data
     static std::shared_ptr<GeoMaterialParams>
     from_import(ImportData const& data,
-                SPConstGeo geo_params,
+                SPConstCoreGeo geo_params,
+                SPConstVolume vol_params,
                 SPConstMaterial material_params);
 
     // Construct from geometry and material params
-    explicit GeoMaterialParams(Input);
+    explicit GeoMaterialParams(Input const&);
 
     //! Access material properties on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }
@@ -77,10 +93,10 @@ class GeoMaterialParams final
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
     // Get the total number of volumes
-    inline VolumeId::size_type num_volumes() const;
+    inline ImplVolumeId::size_type num_volumes() const;
 
     // Get the material ID corresponding to a volume ID
-    inline MaterialId material_id(VolumeId v) const;
+    inline PhysMatId material_id(ImplVolumeId v) const;
 
   private:
     CollectionMirror<GeoMaterialParamsData> data_;
@@ -94,7 +110,7 @@ class GeoMaterialParams final
 /*!
  * Get the total number of volumes.
  */
-VolumeId::size_type GeoMaterialParams::num_volumes() const
+ImplVolumeId::size_type GeoMaterialParams::num_volumes() const
 {
     return this->host_ref().materials.size();
 }
@@ -105,7 +121,7 @@ VolumeId::size_type GeoMaterialParams::num_volumes() const
  *
  * Some "virtual" volumes may have a null ID.
  */
-MaterialId GeoMaterialParams::material_id(VolumeId v) const
+PhysMatId GeoMaterialParams::material_id(ImplVolumeId v) const
 {
     CELER_EXPECT(v < this->num_volumes());
 

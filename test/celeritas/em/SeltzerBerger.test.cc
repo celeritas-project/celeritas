@@ -72,7 +72,8 @@ class SeltzerBergerTest : public InteractorHostTestBase
                 pdg::electron(),
                 pdg::gamma(),
                 ImportProcessClass::e_brems,
-                {ImportModelClass::e_brems_sb, ImportModelClass::e_brems_lpm});
+                {ImportModelClass::e_brems_sb, ImportModelClass::e_brems_lpm},
+                {{0, 1e3}, {1e3, 1e12}});
             ImportProcess ip_positron = ip_electron;
             ip_positron.particle_pdg = pdg::positron().get();
             this->set_imported_processes(
@@ -103,7 +104,7 @@ class SeltzerBergerTest : public InteractorHostTestBase
         this->set_material("Cu");
     }
 
-    EnergySq density_correction(MaterialId matid, Energy e) const
+    EnergySq density_correction(PhysMatId matid, Energy e) const
     {
         CELER_EXPECT(matid);
         CELER_EXPECT(e > zero_quantity());
@@ -131,7 +132,7 @@ class SeltzerBergerTest : public InteractorHostTestBase
 
   protected:
     std::shared_ptr<SeltzerBergerModel> model_;
-    SeltzerBergerRef data_;
+    NativeCRef<SeltzerBergerData> data_;
 };
 
 //---------------------------------------------------------------------------//
@@ -227,7 +228,7 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
             model_->host_ref().differential_xs,
             Energy{inc_energy},
             ElementId{0},
-            this->density_correction(MaterialId{0}, Energy{inc_energy}),
+            this->density_correction(PhysMatId{0}, Energy{inc_energy}),
             gamma_cutoff);
         max_xs.push_back(edist_helper.max_xs().value());
 
@@ -263,7 +264,7 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
             model_->host_ref().differential_xs,
             Energy{inc_energy},
             ElementId{0},
-            this->density_correction(MaterialId{0}, Energy{inc_energy}),
+            this->density_correction(PhysMatId{0}, Energy{inc_energy}),
             gamma_cutoff);
 
         // Sample with a "correction" that's constant, which shouldn't change
@@ -315,8 +316,8 @@ TEST_F(SeltzerBergerTest, basic)
     this->resize_secondaries(num_samples);
 
     // Production cuts
-    auto material_view = this->material_track().make_material_view();
-    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
+    auto material_view = this->material_track().material_record();
+    auto cutoffs = this->cutoff_params()->get(PhysMatId{0});
 
     // Create the interactor
     SeltzerBergerInteractor interact(model_->host_ref(),
@@ -377,8 +378,8 @@ TEST_F(SeltzerBergerTest, stress_test)
     std::vector<real_type> avg_engine_samples;
 
     // Views
-    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
-    auto material_view = this->material_track().make_material_view();
+    auto cutoffs = this->cutoff_params()->get(PhysMatId{0});
+    auto material_view = this->material_track().material_record();
 
     // Loop over a set of incident gamma energies
     for (auto particle : {pdg::electron(), pdg::positron()})

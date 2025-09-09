@@ -46,22 +46,22 @@ TEST(VectorUtils, linspace)
 
 //---------------------------------------------------------------------------//
 
-TEST(VectorUtils, logspace)
+TEST(VectorUtils, geomspace)
 {
     if (CELERITAS_DEBUG)
     {
-        EXPECT_THROW(logspace(1.23, 4.56, 0), DebugError);
-        EXPECT_THROW(logspace(1.23, 4.56, 1), DebugError);
-        EXPECT_THROW(logspace(4.56, 1.23, 3), DebugError);
+        EXPECT_THROW(geomspace(1.23, 4.56, 0), DebugError);
+        EXPECT_THROW(geomspace(1.23, 4.56, 1), DebugError);
+        EXPECT_THROW(geomspace(4.56, 1.23, 3), DebugError);
     }
 
     {
         static double const expected[] = {10, 100};
-        EXPECT_VEC_SOFT_EQ(expected, logspace(10, 100, 2));
+        EXPECT_VEC_SOFT_EQ(expected, geomspace(10, 100, 2));
     }
     {
         static double const expected[] = {2, 4, 8, 16, 32, 64, 128};
-        EXPECT_VEC_SOFT_EQ(expected, logspace(2, 128, 7));
+        EXPECT_VEC_SOFT_EQ(expected, geomspace(2, 128, 7));
     }
     {
         static double const expected[] = {2,
@@ -71,11 +71,11 @@ TEST(VectorUtils, logspace)
                                           5.0396841995795,
                                           6.3496042078728,
                                           8};
-        EXPECT_VEC_SOFT_EQ(expected, logspace(2, 8, 7));
+        EXPECT_VEC_SOFT_EQ(expected, geomspace(2, 8, 7));
     }
     {
         // Guard against accumulation error
-        auto result = logspace(exact_third, 2 * exact_third, 32768);
+        auto result = geomspace(exact_third, 2 * exact_third, 32768);
         ASSERT_EQ(32768, result.size());
         EXPECT_DOUBLE_EQ(exact_third, result.front());
         EXPECT_DOUBLE_EQ(2 * exact_third, result.back());
@@ -84,19 +84,47 @@ TEST(VectorUtils, logspace)
 
 //---------------------------------------------------------------------------//
 
+TEST(VectorUtils, monotonic_nondecreasing)
+{
+    {
+        std::vector<real_type> v{2, 4, 8, 16, 32};
+        EXPECT_TRUE(is_monotonic_nondecreasing(make_span(v)));
+    }
+    {
+        std::vector<real_type> v{10, 100, 1000, 1000};
+        EXPECT_TRUE(is_monotonic_nondecreasing(make_span(v)));
+    }
+    {
+        std::vector<real_type> v{10, 100, 1000, 100};
+        EXPECT_FALSE(is_monotonic_nondecreasing(make_span(v)));
+    }
+}
+
 TEST(VectorUtils, monotonic_increasing)
 {
     {
-        std::vector<double> v{2, 4, 8, 16, 32};
+        std::vector<real_type> v{2, 4, 8, 16, 32};
         EXPECT_TRUE(is_monotonic_increasing(make_span(v)));
     }
     {
-        std::vector<double> v{10, 100, 1000, 1000};
+        std::vector<real_type> v{10, 100, 1000, 1000};
         EXPECT_FALSE(is_monotonic_increasing(make_span(v)));
     }
     {
-        std::vector<double> v{1e-16, 0, 1, 2};
+        std::vector<real_type> v{1e-16, 0, 1, 2};
         EXPECT_FALSE(is_monotonic_increasing(make_span(v)));
+    }
+}
+
+TEST(VectorUtils, has_log_spacing)
+{
+    {
+        std::vector<real_type> const v{1e1, 1e2, 1e3, 1e4};
+        EXPECT_TRUE(has_log_spacing(make_span(v)));
+    }
+    {
+        std::vector<real_type> const v{1e1, 1e2, 1e3, 1e5};
+        EXPECT_FALSE(has_log_spacing(make_span(v)));
     }
 }
 

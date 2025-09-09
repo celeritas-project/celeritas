@@ -34,9 +34,8 @@ HepMC3PrimaryGeneratorAction::HepMC3PrimaryGeneratorAction(SPGenerator gen)
  */
 void HepMC3PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 {
-    ExceptionConverter call_g4exception{"celer0000"};
     CELER_TRY_HANDLE(generator_->GeneratePrimaryVertex(event),
-                     call_g4exception);
+                     ExceptionConverter{"celer.event.generate"});
 }
 
 //---------------------------------------------------------------------------//

@@ -19,7 +19,6 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
-#include "celeritas/grid/XsGridData.hh"
 #include "celeritas/io/ImportLivermorePE.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -58,7 +57,7 @@ LivermorePEModel::LivermorePEModel(ActionId id,
     // Save particle properties
     host_data.inv_electron_mass
         = 1
-          / value_as<LivermorePERef::Mass>(
+          / value_as<units::MevMass>(
               particles.get(host_data.ids.electron).mass());
 
     // Load Livermore cross section data
@@ -93,7 +92,7 @@ auto LivermorePEModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto LivermorePEModel::micro_xs(Applicability) const -> MicroXsBuilders
+auto LivermorePEModel::micro_xs(Applicability) const -> XsTable
 {
     // Cross sections are calculated on the fly
     return {};

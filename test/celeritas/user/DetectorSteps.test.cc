@@ -59,6 +59,12 @@ class DetectorStepsTest : public ::celeritas::test::Test
         host_data.volume_instance_depth = 4;
 
         params_ = CollectionMirror<StepParamsData>(std::move(host_data));
+
+        if (auto& d = celeritas::device())
+        {
+            // Copies happen asynchronously
+            d.create_streams(1);
+        }
     }
 
     // Select all attributes by default
@@ -78,6 +84,7 @@ class DetectorStepsTest : public ::celeritas::test::Test
         result.track_step_count = true;
         result.action_id = true;
         result.step_length = true;
+        result.weight = true;
         result.particle = true;
         result.energy_deposition = true;
         return result;
@@ -107,7 +114,7 @@ class DetectorStepsTest : public ::celeritas::test::Test
                 if (!state_point.dir.empty())
                     state_point.dir[tid] = Real3{real_type(i++), 10, 20};
                 if (!state_point.volume_id.empty())
-                    state_point.volume_id[tid] = VolumeId(i++ % 4);
+                    state_point.volume_id[tid] = ImplVolumeId(i++ % 4);
                 if (!state_point.energy.empty())
                     state_point.energy[tid] = units::MevEnergy(i++);
 
@@ -120,7 +127,7 @@ class DetectorStepsTest : public ::celeritas::test::Test
                         VolumeInstanceId val;
                         if (j <= depth)
                         {
-                            val = VolumeInstanceId{(j + i) % 8};
+                            val = id_cast<VolumeInstanceId>((j + i) % 8);
                         }
                         ViId vi_id{result.volume_instance_depth
                                        * tid.unchecked_get()
@@ -146,7 +153,8 @@ class DetectorStepsTest : public ::celeritas::test::Test
                 step.action_id[tid] = ActionId(i++);
             if (!step.step_length.empty())
                 step.step_length[tid] = i++;
-
+            if (!step.weight.empty())
+                step.weight[tid] = 0.9;
             if (!step.particle.empty())
                 step.particle[tid] = ParticleId(i++);
             if (!step.energy_deposition.empty())
@@ -192,6 +200,7 @@ TEST_F(DetectorStepsTest, host)
     EXPECT_EQ(num_tracks, output.event_id.size());
     EXPECT_EQ(num_tracks, output.track_step_count.size());
     EXPECT_EQ(num_tracks, output.step_length.size());
+    EXPECT_EQ(num_tracks, output.weight.size());
     EXPECT_EQ(num_tracks, output.particle.size());
     EXPECT_EQ(num_tracks, output.energy_deposition.size());
 
@@ -249,6 +258,7 @@ TEST_F(DetectorStepsTest, TEST_IF_CELER_DEVICE(device))
     EXPECT_VEC_EQ(host_output.event_id, output.event_id);
     EXPECT_VEC_EQ(host_output.track_step_count, output.track_step_count);
     EXPECT_VEC_EQ(host_output.step_length, output.step_length);
+    EXPECT_VEC_EQ(host_output.weight, output.weight);
     EXPECT_VEC_EQ(host_output.particle, output.particle);
     EXPECT_VEC_EQ(host_output.energy_deposition, output.energy_deposition);
 
@@ -286,6 +296,7 @@ TEST_F(SmallDetectorStepsTest, host)
     EXPECT_EQ(0, output.event_id.size());
     EXPECT_EQ(0, output.track_step_count.size());
     EXPECT_EQ(0, output.step_length.size());
+    EXPECT_EQ(0, output.weight.size());
     EXPECT_EQ(0, output.particle.size());
     EXPECT_EQ(num_tracks, output.energy_deposition.size());
 
@@ -327,6 +338,7 @@ TEST_F(SmallDetectorStepsTest, TEST_IF_CELER_DEVICE(device))
     EXPECT_EQ(0, output.event_id.size());
     EXPECT_EQ(0, output.track_step_count.size());
     EXPECT_EQ(0, output.step_length.size());
+    EXPECT_EQ(0, output.weight.size());
     EXPECT_EQ(0, output.particle.size());
     EXPECT_EQ(num_tracks, output.energy_deposition.size());
 

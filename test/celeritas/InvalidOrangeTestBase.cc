@@ -42,14 +42,12 @@ make_sph(std::string&& label, real_type radius, Real3 const& trans)
         make_sph(std::move(label), radius), Translation{trans});
 }
 
-auto make_material(std::string&& label,
-                   GeoMaterialId::size_type m,
-                   SPConstObject obj)
+auto make_material(std::string&& label, GeoMatId::size_type m, SPConstObject obj)
 {
     CELER_EXPECT(obj);
     orangeinp::UnitProto::MaterialInput result;
     result.interior = std::move(obj);
-    result.fill = GeoMaterialId{m};
+    result.fill = GeoMatId{m};
     result.label = std::move(label);
     return result;
 }
@@ -58,7 +56,7 @@ auto make_material(std::string&& label,
 }  // namespace
 
 //---------------------------------------------------------------------------//
-auto InvalidOrangeTestBase::build_geometry() -> SPConstGeo
+auto InvalidOrangeTestBase::build_geometry() -> SPConstCoreGeo
 {
     using namespace orangeinp;
     constexpr auto inside = Sense::inside;
@@ -111,22 +109,14 @@ auto InvalidOrangeTestBase::build_geometry() -> SPConstGeo
 //---------------------------------------------------------------------------//
 auto InvalidOrangeTestBase::build_geomaterial() -> SPConstGeoMaterial
 {
-    GeoMaterialParams::Input input;
+    using Input = GeoMaterialParams::Input;
+    Input input;
     input.geometry = this->geometry();
     input.materials = this->material();
-    input.volume_to_mat = {
-        MaterialId{0},
-        MaterialId{0},
-        MaterialId{1},
-        MaterialId{},
-        MaterialId{},
-    };
-    input.volume_labels = {
-        Label{"interior"},
-        Label{"also-interior"},
-        Label{"world"},
-        Label{"[missing material]"},
-        Label{"[EXTERIOR]"},
+    input.volume_to_mat = Input::MapLabelMat{
+        {"interior", PhysMatId{0}},
+        {"also-interior", PhysMatId{0}},
+        {"world", PhysMatId{1}},
     };
     return std::make_shared<GeoMaterialParams>(std::move(input));
 }

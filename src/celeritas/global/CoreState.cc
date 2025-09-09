@@ -68,8 +68,8 @@ CoreState<M>::CoreState(CoreParams const& params,
     if (params.aux_reg())
     {
         // Allocate auxiliary data
-        aux_state_
-            = AuxStateVec{*params.aux_reg(), M, stream_id, num_track_slots};
+        aux_state_ = std::make_shared<AuxStateVec>(
+            *params.aux_reg(), M, stream_id, num_track_slots);
     }
 
     if (is_action_sorted(params.init()->track_order()))
@@ -77,9 +77,10 @@ CoreState<M>::CoreState(CoreParams const& params,
         offsets_.resize(params.action_reg()->num_actions() + 1);
     }
 
-    CELER_LOG_LOCAL(status) << "Celeritas core state initialization complete";
+    CELER_LOG(status) << "Celeritas core state initialization complete";
     CELER_ENSURE(states_);
     CELER_ENSURE(ptr_);
+    CELER_ENSURE(aux_state_);
 }
 
 //---------------------------------------------------------------------------//
@@ -91,9 +92,9 @@ CoreState<M>::~CoreState()
 {
     try
     {
-        CELER_LOG_LOCAL(debug)
-            << "Deallocating " << to_cstring(M) << " core state (stream "
-            << this->stream_id().unchecked_get() << ')';
+        CELER_LOG(debug) << "Deallocating " << to_cstring(M)
+                         << " core state (stream "
+                         << this->stream_id().unchecked_get() << ')';
     }
     catch (...)  // NOLINT(bugprone-empty-catch)
     {

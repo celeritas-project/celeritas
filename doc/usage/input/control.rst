@@ -21,3 +21,10 @@ parameters that affect the simulation results without changing the physics.
    :members:
    :no-link:
 
+.. doxygenstruct:: celeritas::inp::CoreStateCapacity
+   :members:
+   :no-link:
+
+.. doxygenstruct:: celeritas::inp::OpticalStateCapacity
+   :members:
+   :no-link:

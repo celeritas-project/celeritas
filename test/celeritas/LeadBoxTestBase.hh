@@ -19,7 +19,7 @@ namespace test
 class LeadBoxTestBase : virtual public GeantTestBase
 {
   protected:
-    std::string_view geometry_basename() const override { return "lead-box"; }
+    std::string_view gdml_basename() const override { return "lead-box"; }
 };
 
 //---------------------------------------------------------------------------//

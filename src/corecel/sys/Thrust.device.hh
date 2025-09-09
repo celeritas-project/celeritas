@@ -11,85 +11,45 @@
 #include <thrust/mr/allocator.h>
 #include <thrust/version.h>
 
-#include "corecel/Config.hh"
-
-#include "corecel/Assert.hh"
+#include "corecel/DeviceRuntimeApi.hh"  // IWYU pragma: keep
 
 #include "Device.hh"
 #include "Stream.hh"
 #include "ThreadId.hh"
 
+#include "detail/AsyncMemoryResource.device.hh"  // IWYU pragma: keep
+
 namespace celeritas
 {
-#if CELERITAS_USE_CUDA
-namespace thrust_native = thrust::cuda;
-#elif CELERITAS_USE_HIP
-namespace thrust_native = thrust::hip;
-#endif
-
-//---------------------------------------------------------------------------//
-// ENUMERATIONS
-//---------------------------------------------------------------------------//
-//! Execution semantics for thrust algorithms.
-enum class ThrustExecMode
-{
-    Sync,
-    Async,
-};
-
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Returns an execution policy depending on thrust's version.
+ * Get the Thrust synchronous parallel policy.
  */
-template<ThrustExecMode T = ThrustExecMode::Async>
-inline auto& thrust_execution_policy()
+inline auto& thrust_execute()
 {
-    if constexpr (T == ThrustExecMode::Async)
-    {
-#if THRUST_MAJOR_VERSION == 1 && THRUST_MINOR_VERSION < 16
-        return thrust_native::par;
-#else
-        return thrust_native::par_nosync;
-#endif
-    }
-    else
-    {
-        return thrust_native::par;
-    }
-#if (__CUDACC_VER_MAJOR__ < 11) \
-    || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 5)
-    CELER_ASSERT_UNREACHABLE();
-#endif
+    return thrust::CELER_DEVICE_PLATFORM::par;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Returns an execution space for the given stream.
+ * Get a Thrust asynchronous parallel policy for the given stream.
  *
- * The template parameter defines whether the algorithm should be executed
- * synchronously or asynchrounously.
+ * For older versions of thrust, this executes synchronously on the stream.
  */
-template<ThrustExecMode T = ThrustExecMode::Async>
 inline auto thrust_execute_on(StreamId stream_id)
 {
-    if constexpr (T == ThrustExecMode::Sync)
-    {
-        return thrust_execution_policy<T>().on(
-            celeritas::device().stream(stream_id).get());
-    }
-    else if constexpr (T == ThrustExecMode::Async)
-    {
-        using Alloc = thrust::mr::allocator<char, Stream::ResourceT>;
-        Stream& stream = celeritas::device().stream(stream_id);
-        return thrust_execution_policy<T>()(Alloc(&stream.memory_resource()))
-            .on(stream.get());
-    }
-#if (__CUDACC_VER_MAJOR__ < 11) \
-    || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 5)
-    CELER_ASSERT_UNREACHABLE();
+    using Alloc = thrust::mr::allocator<char, Stream::ResourceT>;
+    Stream& stream = celeritas::device().stream(stream_id);
+#if THRUST_VERSION >= 101600
+    // Newer thrust supports asynchronous par
+    auto& par_nosync = thrust::CELER_DEVICE_PLATFORM::par_nosync;
+#else
+    // Fall back to synchronous execution
+    auto& par_nosync = thrust::CELER_DEVICE_PLATFORM::par;
 #endif
+    return par_nosync(Alloc(&stream.memory_resource())).on(stream.get());
 }
 
 //---------------------------------------------------------------------------//

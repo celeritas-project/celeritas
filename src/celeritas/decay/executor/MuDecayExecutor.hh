@@ -28,13 +28,12 @@ struct MuDecayExecutor
  */
 CELER_FUNCTION Interaction MuDecayExecutor::operator()(CoreTrackView const& track)
 {
-    auto allocate_secondaries
-        = track.make_physics_step_view().make_secondary_allocator();
-    auto particle = track.make_particle_view();
-    auto const& dir = track.make_geo_view().dir();
+    auto allocate_secondaries = track.physics_step().make_secondary_allocator();
+    auto particle = track.particle();
+    auto const& dir = track.geometry().dir();
 
     MuDecayInteractor interact(data, particle, dir, allocate_secondaries);
-    auto rng = track.make_rng_engine();
+    auto rng = track.rng();
     return interact(rng);
 }
 

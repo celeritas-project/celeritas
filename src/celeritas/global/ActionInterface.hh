@@ -26,32 +26,6 @@ using CoreBeginRunActionInterface
 //! Action interface for core stepping loop
 using CoreStepActionInterface = StepActionInterface<CoreParams, CoreState>;
 
-// TODO: Remove in v0.6
-using ActionOrder [[deprecated]] = StepActionOrder;
-
-// TODO: Remove in v0.6
-class [[deprecated]] ExplicitCoreActionInterface
-    : public CoreStepActionInterface
-{
-    //! Execute the action with host data
-    void step(CoreParams const& params, CoreStateHost& state) const final
-    {
-        return this->execute(params, state);
-    }
-
-    //! Execute the action with device data
-    void step(CoreParams const& params, CoreStateDevice& state) const final
-    {
-        return this->execute(params, state);
-    }
-
-    //! Execute the action with host data
-    virtual void execute(CoreParams const&, CoreStateHost&) const = 0;
-
-    //! Execute the action with device data
-    virtual void execute(CoreParams const&, CoreStateDevice&) const = 0;
-};
-
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//

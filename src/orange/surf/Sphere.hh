@@ -134,10 +134,10 @@ CELER_FUNCTION SignedSense Sphere::calc_sense(Real3 const& pos) const
 /*!
  * Calculate all possible straight-line intersections with this surface.
  */
-CELER_FUNCTION auto
-Sphere::calc_intersections(Real3 const& pos,
-                           Real3 const& dir,
-                           SurfaceState on_surface) const -> Intersections
+CELER_FUNCTION auto Sphere::calc_intersections(Real3 const& pos,
+                                               Real3 const& dir,
+                                               SurfaceState on_surface) const
+    -> Intersections
 {
     Real3 tpos{pos[0] - origin_[0], pos[1] - origin_[1], pos[2] - origin_[2]};
 

@@ -8,6 +8,7 @@
 
 #include <string>
 #include <variant>
+#include <vector>
 
 #include "corecel/Types.hh"
 #include "geocel/Types.hh"
@@ -20,75 +21,115 @@ namespace inp
 {
 //---------------------------------------------------------------------------//
 //! Generate at a single point
-struct PointShape
+struct PointDistribution
 {
-    Real3 pos{0, 0, 0};
+    Real3 pos{0, 0, 0};  // [length]
 };
 
 //! Sample uniformly in a box
-struct UniformBoxShape
+struct UniformBoxDistribution
 {
-    Real3 lower{0, 0, 0};
-    Real3 upper{0, 0, 0};
+    Real3 lower{0, 0, 0};  // [length]
+    Real3 upper{0, 0, 0};  // [length]
 };
 
+// TODO: cylinder shape
+// TODO: shape with volume rejection
+
 //! Choose a spatial distribution for the primary generator
-using ShapeDistribution = std::variant<PointShape, UniformBoxShape>;
+using ShapeDistribution
+    = std::variant<PointDistribution, UniformBoxDistribution>;
 
 //---------------------------------------------------------------------------//
 //! Generate angles isotropically
-struct IsotropicAngle
+struct IsotropicDistribution
 {
 };
 
 //! Generate angles in a single direction
-struct MonodirectionalAngle
+struct MonodirectionalDistribution
 {
     Real3 dir{0, 0, 1};
 };
 
 //! Choose an angular distribution for the primary generator
-using AngleDistribution = std::variant<IsotropicAngle, MonodirectionalAngle>;
+using AngleDistribution
+    = std::variant<IsotropicDistribution, MonodirectionalDistribution>;
 
 //---------------------------------------------------------------------------//
 //! Generate primaries at a single energy value
-struct Monoenergetic
+struct MonoenergeticDistribution
 {
-    units::MevEnergy energy;
+    using MevEnergy = Quantity<units::Mev, double>;
+
+    MevEnergy energy;
 };
 
-//! Choose an angular distribution for the primary generator
-using EnergyDistribution = Monoenergetic;
+//! Choose an energy distribution for the primary generator
+using EnergyDistribution = MonoenergeticDistribution;
 
 //---------------------------------------------------------------------------//
 /*!
  * Generate from a hardcoded distribution of primary particles.
  *
- * \todo Allow programmatic setting from particle ID as well
- * \todo Units?
- * \code using Particle = std::variant<PDGNumber, ParticleId>; \endcode
+ * \todo move num_events to StandaloneInput
  */
 struct PrimaryGenerator
 {
-    //! Random number seed
-    unsigned int seed{};
-    //! Sample evenly from this vector of particle types
-    std::vector<PDGNumber> pdg;
     //! Number of events to generate
     size_type num_events{};
     //! Number of primaries per event
     size_type primaries_per_event{};
 
-    //! Distribution for sampling source position
+    //! Distribution for sampling spatial component (position)
     ShapeDistribution shape;
-    //! Distribution for sampling source direction
+    //! Distribution for sampling angular component (direction)
     AngleDistribution angle;
     //! Distribution for sampling source energy
     EnergyDistribution energy;
+
+    //! True if there's at least one primary
+    explicit operator bool() const
+    {
+        return num_events > 0 && primaries_per_event > 0;
+    }
 };
 
 //---------------------------------------------------------------------------//
-//! Sample random events from an input file
+/*!
+ * Generate particles in the core stepping loop.
+ *
+ * \todo Allow programmatic setting from particle ID as well:
+ * \code using Particle = std::variant<PDGNumber, ParticleId>; \endcode
+ */
+struct CorePrimaryGenerator : PrimaryGenerator
+{
+    //! Random number seed
+    unsigned int seed{};
+    //! Sample evenly from this vector of particle types
+    std::vector<PDGNumber> pdg;
+
+    //! True if there's at least one primary
+    explicit operator bool() const
+    {
+        return PrimaryGenerator::operator bool() && !pdg.empty();
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Generate optical photon primary particles.
+ *
+ * \todo Time? Polarization?
+ */
+using OpticalPrimaryGenerator = PrimaryGenerator;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sample random events from an input file.
+ *
+ * \todo move num_events to StandaloneInput
+ */
 struct SampleFileEvents
 {
     //! Total number of events to sample
@@ -112,7 +153,8 @@ struct ReadFileEvents
 
 //---------------------------------------------------------------------------//
 //! Mechanism for generating events for tracking
-using Events = std::variant<PrimaryGenerator, SampleFileEvents, ReadFileEvents>;
+using Events
+    = std::variant<CorePrimaryGenerator, SampleFileEvents, ReadFileEvents>;
 
 //---------------------------------------------------------------------------//
 }  // namespace inp

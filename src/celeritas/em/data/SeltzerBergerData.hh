@@ -22,9 +22,9 @@ namespace celeritas
 /*!
  * Seltzer-Berger differential cross section tables for a single element.
  *
- * The 2D grid data is organized by log E on the x axis and fractional exiting
- * energy (0 to 1) on the y axis. The values are in millibarns, but their
- * magnitude isn't important since we always take ratios.
+ * The 2D grid data is organized by \f$ \log E \f$ on the *x* axis and
+ * fractional exiting energy (0 to 1) on the *y* axis. The values are in
+ * millibarns, but their magnitude isn't important since we always take ratios.
  *
  * \c argmax is the y index of the largest cross section at a given incident
  * energy point.
@@ -101,6 +101,7 @@ template<Ownership W, MemSpace M>
 struct SeltzerBergerData
 {
     using MevMass = units::MevMass;
+    using Energy = units::MevEnergy;
 
     //// MEMBER DATA ////
 
@@ -109,6 +110,9 @@ struct SeltzerBergerData
 
     //! Electron mass [MeV / c^2]
     MevMass electron_mass;
+
+    //! High energy limit of the model
+    Energy high_energy_limit;
 
     // Differential cross section storage
     SeltzerBergerTableData<W, M> differential_xs;
@@ -128,14 +132,11 @@ struct SeltzerBergerData
         CELER_EXPECT(other);
         ids = other.ids;
         electron_mass = other.electron_mass;
+        high_energy_limit = other.high_energy_limit;
         differential_xs = other.differential_xs;
         return *this;
     }
 };
-
-using SeltzerBergerDeviceRef = DeviceCRef<SeltzerBergerData>;
-using SeltzerBergerHostRef = HostCRef<SeltzerBergerData>;
-using SeltzerBergerRef = NativeCRef<SeltzerBergerData>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

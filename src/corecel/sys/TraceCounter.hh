@@ -7,32 +7,39 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
+#include <type_traits>
 
 #include "corecel/Config.hh"
+
+#include "ScopedProfiling.hh"
+
+#include "detail/TraceCounterImpl.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-// Simple tracing counter
+/*!
+ * Simple performance tracing counter.
+ * \tparam T Arithmetic counter type
+ *
+ * Records a named value at the current timestamp which
+ * can then be displayed on a timeline. This is implemented for Perfetto and
+ * CUDA NVTX.
+ *
+ * See https://perfetto.dev/docs/instrumentation/track-events#counters
+ */
 template<class T>
-void trace_counter(char const* name, T value);
-
-#if CELERITAS_USE_PERFETTO
-// Explicit instantiations
-extern template void trace_counter(char const*, unsigned int);
-extern template void trace_counter(char const*, std::size_t);
-extern template void trace_counter(char const*, float);
-extern template void trace_counter(char const*, double);
-
-#else
-
-// Ignore if Perfetto is unavailable
-template<class T>
-inline void trace_counter(char const*, T)
+inline void trace_counter(char const* name, T value)
 {
+    static_assert(std::is_arithmetic_v<T>,
+                  "Only numeric counters are supported");
+    if ((CELERITAS_USE_PERFETTO || CELERITAS_USE_CUDA) && use_profiling())
+    {
+        using counter_type = detail::trace_counter_type<T>;
+        detail::trace_counter_impl<counter_type>(name, value);
+    }
 }
-
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

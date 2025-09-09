@@ -16,7 +16,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Map an input grid to an ID type, returning invalid ID if outside bounds.
+ * Map an input grid to an ID type, returning null ID if outside bounds.
  *
  * The input grid should be a monotonic increasing series, and the
  * corresponding ID values should be one fewer (cell-centered data). Values
@@ -80,8 +80,8 @@ GridIdFinder<K, V>::GridIdFinder(SpanConstGrid grid, SpanConstValue value)
  * Find the ID corresponding to the given value.
  */
 template<class K, class V>
-CELER_FUNCTION auto
-GridIdFinder<K, V>::operator()(argument_type quant) const -> result_type
+CELER_FUNCTION auto GridIdFinder<K, V>::operator()(argument_type quant) const
+    -> result_type
 {
     auto iter
         = celeritas::lower_bound(grid_.begin(), grid_.end(), quant.value());

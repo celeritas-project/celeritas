@@ -13,6 +13,7 @@
 #include "corecel/io/LogContextException.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "geocel/UnitUtils.hh"
+#include "celeritas/TestEm3Base.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -26,7 +27,6 @@
 #include "celeritas/track/detail/TrackSortUtils.hh"
 
 #include "celeritas_test.hh"
-#include "../TestEm3Base.hh"
 
 namespace celeritas
 {
@@ -50,6 +50,12 @@ class TrackSortTestBase : virtual public GlobalTestBase
         result.params = this->core();
         result.stream_id = StreamId{0};
         result.num_track_slots = tracks;
+
+        if constexpr (M == MemSpace::device)
+        {
+            device().create_streams(1);
+        }
+
         return Stepper<M>{std::move(result)};
     }
 
@@ -281,7 +287,7 @@ TEST_F(TestTrackPartitionEm3Stepper, host_is_partitioned)
             });
     };
 
-    // we partition at the start of the step so we need to explictly partition
+    // we partition at the start of the step so we need to explicitly partition
     // again after a step before checking
     for (auto i = 0; i < 10; ++i)
     {
@@ -325,7 +331,7 @@ TEST_F(TestTrackPartitionEm3Stepper,
                        != TrackStatus::inactive;
             });
     };
-    // we partition at the start of the step so we need to explictly partition
+    // we partition at the start of the step so we need to explicitly partition
     // again after a step before checking
     for (auto i = 0; i < 10; ++i)
     {

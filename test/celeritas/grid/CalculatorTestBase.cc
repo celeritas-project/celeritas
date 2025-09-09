@@ -19,60 +19,66 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-void CalculatorTestBase::build(real_type emin, real_type emax, size_type count)
+/*!
+ * Construct a cross section grid.
+ */
+void CalculatorTestBase::build(inp::XsGrid grid)
 {
-    this->build({emin, emax}, count, [](real_type energy) { return energy; });
-    CELER_ENSURE(soft_equal(emax, value_ref_[data_.value].back()));
+    return this->build_impl(grid.lower, grid.upper, false);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Set the index above which data is scaled by 1/E.
+ * Construct a uniform grid.
  */
-void CalculatorTestBase::set_prime_index(size_type i)
+void CalculatorTestBase::build(inp::UniformGrid grid)
 {
-    CELER_EXPECT(data_);
-    CELER_EXPECT(i < data_.log_energy.size);
-    data_.prime_index = i;
+    return this->build_impl(grid, {}, false);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get cross sections that can be modified.
+ * Construct an inverted uniform grid.
  */
-auto CalculatorTestBase::mutable_values() -> SpanReal
+void CalculatorTestBase::build_inverted(inp::UniformGrid grid)
 {
-    CELER_EXPECT(data_);
-    return value_storage_[data_.value];
+    return this->build_impl(grid, {}, true);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct from an arbitrary function.
+ * Construct from grid bounds and cross section values.
  */
-void CalculatorTestBase::build(Real2 bounds, size_type count, XsFunc calc_xs)
+void CalculatorTestBase::build_impl(inp::UniformGrid lower,
+                                    inp::UniformGrid upper,
+                                    bool invert)
 {
-    CELER_EXPECT(bounds[1] > bounds[0]);
-    CELER_EXPECT(count >= 2);
-    CELER_EXPECT(calc_xs);
-
-    data_.log_energy = UniformGridData::from_bounds(
-        std::log(bounds[0]), std::log(bounds[1]), count);
-
-    UniformGrid loge{data_.log_energy};
-    CELER_ASSERT(loge.size() == count);
-
-    std::vector<real_type> temp_xs(loge.size());
-    temp_xs.front() = calc_xs(bounds[0]);
-    for (auto i : range<std::size_t>(1, loge.size() - 1))
-    {
-        temp_xs[i] = calc_xs(std::exp(loge[i]));
-    }
-    temp_xs.back() = calc_xs(bounds[1]);
+    CELER_EXPECT(
+        (lower || upper)
+        && (!lower || !upper || lower.x[Bound::hi] == upper.x[Bound::lo]));
+    CELER_EXPECT(!lower || (lower.y.size() >= 2 && lower.x[Bound::lo] > 0));
+    CELER_EXPECT(!upper || (upper.y.size() >= 2 && upper.x[Bound::lo] > 0));
 
     value_storage_ = {};
-    data_.value = make_builder(&value_storage_)
-                      .insert_back(temp_xs.begin(), temp_xs.end());
+
+    if (lower)
+    {
+        this->build_grid(data_.lower, lower, invert);
+    }
+    if (upper)
+    {
+        // Scale cross section values by energy
+        auto loge_grid = UniformGridData::from_bounds(
+            {std::log(upper.x[Bound::lo]), std::log(upper.x[Bound::hi])},
+            upper.y.size());
+        UniformGrid loge{loge_grid};
+        for (auto i : range(loge.size()))
+        {
+            upper.y[i] *= std::exp(loge[i]);
+        }
+        this->build_grid(data_.upper, upper, invert);
+    }
+
     value_ref_ = value_storage_;
 
     CELER_ENSURE(data_);
@@ -80,22 +86,28 @@ void CalculatorTestBase::build(Real2 bounds, size_type count, XsFunc calc_xs)
 
 //---------------------------------------------------------------------------//
 /*!
- * Scale cross sections at or above this index by a factor of E.
+ * Build a uniform grid.
  */
-void CalculatorTestBase::convert_to_prime(size_type prime_index)
+void CalculatorTestBase::build_grid(UniformGridRecord& data,
+                                    inp::UniformGrid const& grid,
+                                    bool invert)
 {
-    CELER_EXPECT(data_);
-    CELER_EXPECT(prime_index < data_.log_energy.size);
-    CELER_EXPECT(data_.prime_index == XsGridData::no_scaling());
+    CollectionBuilder build(&value_storage_);
 
-    UniformGrid loge{data_.log_energy};
-    SpanReal values = value_storage_[data_.value];
+    data.grid = UniformGridData::from_bounds(
+        {std::log(grid.x[Bound::lo]), std::log(grid.x[Bound::hi])},
+        grid.y.size());
+    data.value = build.insert_back(grid.y.begin(), grid.y.end());
+    data.spline_order = grid.interpolation.order;
 
-    for (auto i : range(prime_index, data_.log_energy.size))
+    if (grid.interpolation.type == InterpolationType::cubic_spline)
     {
-        values[i] *= std::exp(loge[i]);
+        Data value_ref{value_storage_};
+        SplineDerivCalculator calc(grid.interpolation.bc);
+        auto deriv = invert ? calc.calc_from_inverse(data, value_ref)
+                            : calc(data, value_ref);
+        data.derivative = build.insert_back(deriv.begin(), deriv.end());
     }
-    data_.prime_index = prime_index;
 }
 
 //---------------------------------------------------------------------------//

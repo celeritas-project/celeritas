@@ -10,12 +10,12 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/MiniStack.hh"
 #include "corecel/cont/Span.hh"
+#include "geocel/random/IsotropicDistribution.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/AtomicRelaxationData.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/random/distribution/IsotropicDistribution.hh"
 
 namespace celeritas
 {

@@ -94,7 +94,7 @@ MaterialParams::from_import(ImportData const& data)
         MaterialParams::ElementInput element_params;
         element_params.atomic_number = AtomicNumber{element.atomic_number};
         element_params.atomic_mass = units::AmuMass(element.atomic_mass);
-        element_params.label = Label::from_geant(element.name);
+        element_params.label = element.name;
 
         for (auto const& key : element.isotopes_fractions)
         {
@@ -109,8 +109,7 @@ MaterialParams::from_import(ImportData const& data)
     if (!data.optical_materials.empty())
     {
         // Initialize optical material array with "not an optical material"
-        input.mat_to_optical.assign(data.phys_materials.size(),
-                                    OpticalMaterialId{});
+        input.mat_to_optical.assign(data.phys_materials.size(), OptMatId{});
     }
 
     // Populate input.materials *using physics material ID* but with *geo
@@ -129,7 +128,7 @@ MaterialParams::from_import(ImportData const& data)
         material_params.temperature = geo_mat.temperature;
         material_params.number_density = geo_mat.number_density;
         material_params.matter_state = to_matter_state(geo_mat.state);
-        material_params.label = Label::from_geant(geo_mat.name);
+        material_params.label = geo_mat.name;
 
         for (auto const& elem_comp : geo_mat.elements)
         {
@@ -146,7 +145,7 @@ MaterialParams::from_import(ImportData const& data)
             CELER_VALIDATE(opt_mat_idx < data.optical_materials.size(),
                            << "optical material id " << opt_mat_idx
                            << " is out of range");
-            input.mat_to_optical[mat_idx] = OpticalMaterialId{opt_mat_idx};
+            input.mat_to_optical[mat_idx] = OptMatId{opt_mat_idx};
         }
     }
 
@@ -195,7 +194,7 @@ MaterialParams::MaterialParams(Input const& inp)
         mat_labels[i] = inp.materials[i].label;
         this->append_material_def(inp.materials[i], &host_data);
     }
-    mat_labels_ = LabelIdMultiMap<MaterialId>(std::move(mat_labels));
+    mat_labels_ = LabelIdMultiMap<MatId>(std::move(mat_labels));
 
     // Mapping of material to optical data
     make_builder(&host_data.optical_id)
@@ -217,7 +216,7 @@ MaterialParams::MaterialParams(Input const& inp)
 /*!
  * Get the label of a material.
  */
-Label const& MaterialParams::id_to_label(MaterialId mat) const
+Label const& MaterialParams::id_to_label(MatId mat) const
 {
     CELER_EXPECT(mat < mat_labels_.size());
     return mat_labels_.at(mat);
@@ -229,7 +228,7 @@ Label const& MaterialParams::id_to_label(MaterialId mat) const
  *
  * If the label isn't among the materials, a null ID will be returned.
  */
-MaterialId MaterialParams::find_material(std::string const& name) const
+auto MaterialParams::find_material(std::string const& name) const -> MatId
 {
     auto result = mat_labels_.find_all(name);
     if (result.empty())

@@ -3,12 +3,22 @@
   "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
   "configurePresets": [
     {
+      "name": ".ccache",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER_LAUNCHER": "/opt/homebrew/bin/ccache",
+        "CMAKE_CXX_FLAGS": "-Wall -Wextra -Werror -Wno-error=deprecated -pedantic -fdiagnostics-color=always -ffile-prefix-map=${sourceDir}/=./"
+      }
+    },
+    {
       "name": ".base",
+      "hidden": true,
       "generator": "Ninja",
-      "inherits": [".spack-base"],
+      "inherits": [".spack-env"],
       "binaryDir": "${sourceDir}/build-${presetName}",
       "cacheVariables": {
         "BUILD_SHARED_LIBS":     {"type": "BOOL",   "value": "ON"},
+        "CELERITAS_USE_covfie":  {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_CUDA":    {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_HIP":     {"type": "BOOL",   "value": "OFF"},
@@ -18,14 +28,20 @@
         "CELERITAS_USE_ROOT":    {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL",   "value": "ON"},
+        "CELERITAS_BUILTIN_CLI11": {"type": "BOOL",   "value": "OFF"},
+        "CELERITAS_BUILTIN_G4VG": {"type": "BOOL",   "value": "OFF"},
+        "CELERITAS_BUILTIN_nlohmann_json": {"type": "BOOL",   "value": "OFF"},
+        "CELERITAS_BUILTIN_GTest": {"type": "BOOL",   "value": "OFF"},
+        "CMAKE_C_COMPILER_LAUNCHER": null,
+        "CMAKE_CXX_COMPILER_LAUNCHER": null,
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL",   "value": "ON"},
-        "CMAKE_OSX_DEPLOYMENT_TARGET": {"type": "STRING", "value": "14"},
+        "CMAKE_OSX_DEPLOYMENT_TARGET": {"type": "STRING", "value": "15"},
         "CMAKE_CXX_STANDARD":   {"type": "STRING",   "value": "17"},
         "CMAKE_CXX_EXTENSIONS": {"type": "BOOL",   "value": "OFF"},
         "CMAKE_FIND_FRAMEWORK": {"type": "STRING", "value": "LAST"},
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-${presetName}",
         "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fno-inline -fno-omit-frame-pointer",
-        "CMAKE_CXX_FLAGS": "-Wall -Wextra -Werror -Wno-error=deprecated -pedantic -fdiagnostics-color=always -ffile-prefix-map=${sourceDir}/=./"
+        "CMAKE_CXX_FLAGS": "-Wall -Wextra -Werror -Wno-error=deprecated -pedantic -fdiagnostics-color=always"
       }
     },
     {
@@ -40,11 +56,9 @@
     {
       "name": "base",
       "displayName": "Goldfinger default options",
-      "inherits": [".base", ".debug", "default"],
+      "inherits": [".ccache", ".base", ".debug", "default"],
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
-        "CELERITAS_USE_ROOT":    {"type": "BOOL",   "value": "OFF"},
-        "CMAKE_CXX_COMPILER_LAUNCHER": "/opt/homebrew/bin/ccache",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install"
       }
     },
@@ -53,6 +67,7 @@
       "displayName": "Single-precision arithmetic",
       "inherits": [".base", ".debug", "default"],
       "cacheVariables": {
+        "CELERITAS_USE_ROOT": {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_REAL_TYPE": "float"
       }
     },
@@ -64,6 +79,11 @@
         "CELERITAS_UNITS": "CLHEP",
         "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "ON"}
       }
+    },
+    {
+      "name": "mini",
+      "displayName": "Minimal deps",
+      "inherits": ["minimal", ".base", ".debug"]
     },
     {
       "name": "si",
@@ -78,9 +98,34 @@
     {
       "name": "vecgeom",
       "displayName": "With vecgeom",
-      "inherits": [".base", ".debug", "default"],
+      "inherits": [".ccache", ".base", ".debug", "default"],
       "cacheVariables": {
         "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "ON"}
+      }
+    },
+    {
+      "name": "vglocal",
+      "displayName": "With local vecgeom",
+      "inherits": [".base", ".debug", "default"],
+      "cacheVariables": {
+        "CELERITAS_BUILTIN_G4VG": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "ON"}
+      },
+      "environment": {
+        "CMAKE_PREFIX_PATH": "/Users/seth/Code/vecgeom/install:/opt/spack/opt/spack/sequoia/geant4/11.3.1/b7lttaq:/opt/spack/opt/spack/sequoia/googletest/1.15.2/kqcyiil:/opt/spack/opt/spack/sequoia/cli11/2.5.0/nsqiz3t:/opt/spack/opt/spack/sequoia/nlohmann-json/3.11.3/fpe7aef:/opt/spack/opt/spack/sequoia/covfie/0.13.0/tabnbjs:/opt/spack/opt/spack/sequoia/zlib-ng/2.2.1/6s4rdcx"
+      }
+    },
+    {
+      "name": "vgsurf",
+      "displayName": "With vecgeom surface",
+      "inherits": ["vecgeom"],
+      "cacheVariables": {
+        "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "ON"}
+      },
+      "environment": {
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-vgsurf/.spack-env/view"
       }
     },
     {
@@ -127,14 +172,7 @@
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"},
-        "CMAKE_CXX_COMPILER_LAUNCHER": "/opt/homebrew/bin/ccache",
-        "Geant4_DIR": "/Users/seth/Code/geant4-dev/install/lib/cmake/Geant4",
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_UNITS": "CLHEP"
-      },
-      "environment": {
-        "PATH": "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/Library/Apple/usr/bin",
-        "CMAKE_PREFIX_PATH": "/opt/spack/opt/spack/sequoia/libpng/1.6.39/3g6j5kh:/opt/spack/opt/spack/sequoia/zlib-ng/2.2.1/6s4rdcx:/opt/spack/opt/spack/sequoia/vecgeom/1.2.8/own7ofl:/opt/spack/opt/spack/sequoia/xerces-c/3.2.5/3zdtn2m:/opt/spack/opt/spack/sequoia/veccore/0.8.1/x34t746:/opt/spack/opt/spack/sequoia/nlohmann-json/3.11.3/fpe7aef:/opt/spack/opt/spack/sequoia/hepmc3/3.3.0/rrfyfcx:/opt/spack/opt/spack/sequoia/googletest/1.14.0/cwduo4b"
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
       }
     }
   ],

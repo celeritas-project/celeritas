@@ -16,7 +16,7 @@
 #include "celeritas/grid/EnergyLossCalculator.hh"
 #include "celeritas/grid/InverseRangeCalculator.hh"
 #include "celeritas/grid/RangeCalculator.hh"
-#include "celeritas/grid/XsCalculator.hh"
+#include "celeritas/grid/UniformLogGridCalculator.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 
@@ -78,7 +78,7 @@ class UrbanMscHelper
     inline CELER_FUNCTION UrbanMscParMatData const& pmdata() const;
 
     // Scaled cross section data for this particle+material
-    inline CELER_FUNCTION XsGridData const& xs() const;
+    inline CELER_FUNCTION UniformGridRecord const& xs() const;
 
   private:
     //// DATA ////
@@ -116,7 +116,7 @@ UrbanMscHelper::UrbanMscHelper(UrbanMscRef const& shared,
 CELER_FUNCTION real_type UrbanMscHelper::calc_msc_mfp(Energy energy) const
 {
     CELER_EXPECT(energy > zero_quantity());
-    XsCalculator calc_scaled_xs(this->xs(), shared_.reals);
+    UniformLogGridCalculator calc_scaled_xs(this->xs(), shared_.reals);
 
     real_type xsec = calc_scaled_xs(energy) / ipow<2>(energy.value());
     CELER_ENSURE(xsec >= 0 && 1 / xsec > 0);
@@ -127,14 +127,14 @@ CELER_FUNCTION real_type UrbanMscHelper::calc_msc_mfp(Energy energy) const
 /*!
  * Calculate the energy corresponding to a given particle range.
  *
- * This is an exact value based on the range claculation. It can be used to
+ * This is an exact value based on the range calculation. It can be used to
  * find the exact energy loss over a step.
  */
-CELER_FUNCTION auto
-UrbanMscHelper::calc_inverse_range(real_type step) const -> Energy
+CELER_FUNCTION auto UrbanMscHelper::calc_inverse_range(real_type step) const
+    -> Energy
 {
     auto range_to_energy = physics_.make_calculator<InverseRangeCalculator>(
-        physics_.range_grid());
+        physics_.inverse_range_grid());
     return range_to_energy(step);
 }
 
@@ -151,12 +151,12 @@ CELER_FUNCTION real_type UrbanMscHelper::max_step() const
 /*!
  * Evaluate the kinetic energy at the end of a given msc step.
  */
-CELER_FUNCTION auto
-UrbanMscHelper::calc_end_energy(real_type step) const -> Energy
+CELER_FUNCTION auto UrbanMscHelper::calc_end_energy(real_type step) const
+    -> Energy
 {
     CELER_EXPECT(step <= physics_.dedx_range());
     real_type range = physics_.dedx_range();
-    if (step <= range * shared_.params.dtrl())
+    if (step <= range * shared_.params.small_range_frac)
     {
         // Assume constant energy loss rate over the step
         real_type dedx = physics_.make_calculator<EnergyLossCalculator>(
@@ -175,7 +175,7 @@ UrbanMscHelper::calc_end_energy(real_type step) const -> Energy
 /*!
  * Scaled cross section data for this particle+material.
  */
-CELER_FUNCTION XsGridData const& UrbanMscHelper::xs() const
+CELER_FUNCTION UniformGridRecord const& UrbanMscHelper::xs() const
 {
     auto par_id = shared_.pid_to_xs[particle_.particle_id()];
     CELER_ASSERT(par_id < shared_.num_particles);
@@ -184,7 +184,7 @@ CELER_FUNCTION XsGridData const& UrbanMscHelper::xs() const
                     + par_id.unchecked_get();
     CELER_ASSERT(idx < shared_.xs.size());
 
-    return shared_.xs[ItemId<XsGridData>(idx)];
+    return shared_.xs[ItemId<UniformGridRecord>(idx)];
 }
 
 //---------------------------------------------------------------------------//

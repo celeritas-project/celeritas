@@ -7,7 +7,7 @@
 
 cmake_minimum_required(VERSION 3.18)
 project(offload-template VERSION 0.0.1 LANGUAGES CXX)
-cmake_policy(VERSION 3.12...3.22)
+cmake_policy(VERSION 3.12...3.30)
 
 # Only necessary for the CI
 # Users can export Celeritas_ROOT or set CMAKE_INSTALL_PREFIX
@@ -15,7 +15,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/..")
 
 #-----------------------------------------------------------------------------#
 # Find packages
-find_package(Celeritas 0.5)
+find_package(Celeritas 0.6 REQUIRED)
 find_package(Geant4)
 
 if(NOT Celeritas_FOUND)
@@ -32,25 +32,38 @@ endif()
 
 #-----------------------------------------------------------------------------#
 # Add executable
-add_executable(run-offload
-  main.cc
+
+macro(polysource_append var filename_we)
+  list(APPEND ${var} "${filename_we}.cc")
+  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+    list(APPEND ${var} "${filename_we}.cu")
+  endif()
+endmacro()
+
+
+set(SOURCES
   src/ActionInitialization.cc
-  src/Celeritas.cc
   src/DetectorConstruction.cc
   src/EventAction.cc
+  src/MakeCelerOptions.cc
   src/PrimaryGeneratorAction.cc
   src/RunAction.cc
   src/SensitiveDetector.cc
+)
+polysource_append(SOURCES src/StepDiagnostic)
+
+add_executable(run-offload
+  run-offload.cc
+  ${SOURCES}
 )
 
 target_include_directories(run-offload PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 )
 
-# Use Celeritas CUDA RDC macros to correctly link libraries using VecGeom
-include(CudaRdcUtils)
-cuda_rdc_target_link_libraries(run-offload
+# Use special linking macros to support CUDA+VecGeom when used
+celeritas_target_link_libraries(run-offload
   ${Geant4_LIBRARIES}
-  Celeritas::celeritas
-  Celeritas::accel
+  Celeritas::celeritas # for user action
+  Celeritas::G4
 )

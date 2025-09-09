@@ -14,9 +14,10 @@
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeantUtils.hh"
-#include "geocel/g4/GeantGeoParams.hh"
+#include "geocel/VolumeParams.hh"
 
 #include "SharedParams.hh"
 
@@ -122,10 +123,10 @@ auto GeantSimpleCalo::MakeSensitiveDetector() -> UPSensitiveDetector
     // Attach SD to LVs
     for (auto const& lv_idx : storage_->volume_to_index)
     {
-        CELER_LOG_LOCAL(debug)
-            << "Attaching '" << storage_->name << "'@" << detector.get()
-            << " to '" << lv_idx.first->GetName() << "'@"
-            << static_cast<void const*>(lv_idx.first);
+        CELER_LOG(debug) << "Attaching '" << storage_->name << "'@"
+                         << detector.get() << " to '"
+                         << lv_idx.first->GetName() << "'@"
+                         << static_cast<void const*>(lv_idx.first);
         lv_idx.first->SetSensitiveDetector(detector.get());
     }
     return detector;
@@ -188,15 +189,31 @@ void GeantSimpleCalo::output(JsonPimpl* j) const
 
     // Save detector volumes
     {
-        auto const& geo = *params_->geant_geo_params();
+        auto ggp = celeritas::global_geant_geo().lock();
+        auto vols = celeritas::global_volumes().lock();
+        if (!ggp)
+        {
+            // This can happen if using this class without Celeritas offloading
+            // enabled, i.e. CELER_DISABLE=1
+            ggp = GeantGeoParams::from_tracking_manager();
+        }
+        CELER_ASSERT(ggp);
+
         std::vector<int> ids(volumes_.size());
         std::vector<Label> labels(volumes_.size());
 
         for (auto idx : range(volumes_.size()))
         {
-            auto id = geo.find_volume(volumes_[idx]);
-            ids[idx] = id.unchecked_get();
-            labels[idx] = geo.volumes().at(id);
+            CELER_ASSERT(volumes_[idx]);
+            auto id = ggp->geant_to_id(*volumes_[idx]);
+            if (id)
+            {
+                ids[idx] = id.unchecked_get();
+                if (vols)
+                {
+                    labels[idx] = vols->volume_labels().at(id);
+                }
+            }
         }
         obj["volume_ids"] = std::move(ids);
         obj["volume_labels"] = std::move(labels);

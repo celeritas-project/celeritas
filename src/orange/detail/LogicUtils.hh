@@ -12,7 +12,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Join.hh"
-#include "orange/OrangeTypes.hh"
+
+#include "../OrangeTypes.hh"
 
 namespace celeritas
 {

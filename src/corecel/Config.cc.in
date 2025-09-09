@@ -1,0 +1,20 @@
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file corecel/Config.cc
+//! \brief Celeritas config definition.
+//---------------------------------------------------------------------------//
+#include "corecel/Config.hh"
+
+namespace celeritas
+{
+namespace cmake
+{
+//---------------------------------------------------------------------------//
+
+@CELERITAS_CMAKE_STRINGS_DEF@
+
+//---------------------------------------------------------------------------//
+}
+}  // namespace celeritas

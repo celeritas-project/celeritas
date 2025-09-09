@@ -10,9 +10,10 @@
 
 #include "corecel/data/CollectionStateStore.hh"
 #include "geocel/GeoTraits.hh"
-#include "geocel/detail/LengthUnits.hh"
 
-#include "LazyGeoManager.hh"
+#include "GenericGeoResults.hh"
+#include "GenericGeoTestInterface.hh"
+#include "LazyGeantGeoManager.hh"
 #include "Test.hh"
 
 class G4VPhysicalVolume;
@@ -21,36 +22,6 @@ namespace celeritas
 {
 namespace test
 {
-//---------------------------------------------------------------------------//
-struct GenericGeoTrackingResult
-{
-    std::vector<std::string> volumes;
-    std::vector<std::string> volume_instances;
-    std::vector<real_type> distances;  //!< [cm]
-    std::vector<real_type> halfway_safeties;  //!< [cm]
-
-    void print_expected();
-};
-
-//---------------------------------------------------------------------------//
-struct GenericGeoGeantImportVolumeResult
-{
-    static constexpr int empty = -1;
-    static constexpr int missing = -2;
-
-    static GenericGeoGeantImportVolumeResult
-    from_import(GeoParamsInterface const& geom, G4VPhysicalVolume const* world);
-
-    static GenericGeoGeantImportVolumeResult
-    from_pointers(GeoParamsInterface const& geom,
-                  G4VPhysicalVolume const* world);
-
-    std::vector<int> volumes;  //!< Volume ID for each Geant4 instance ID
-    std::vector<std::string> missing_names;  //!< G4LV names without a match
-
-    void print_expected() const;
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Templated base class for loading geometry.
@@ -62,7 +33,9 @@ struct GenericGeoGeantImportVolumeResult
  * \note This class is instantiated in XTestBase.cc for geometry type X.
  */
 template<class G>
-class GenericGeoTestBase : virtual public Test, private LazyGeoManager
+class GenericGeoTestBase : virtual public Test,
+                           public GenericGeoTestInterface,
+                           public LazyGeantGeoManager
 {
     static_assert(std::is_base_of_v<GeoParamsInterface, G>);
 
@@ -73,59 +46,56 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
     //! \name Type aliases
     using SPConstGeo = std::shared_ptr<G const>;
     using GeoTrackView = typename TraitsT::TrackView;
-    using TrackingResult = GenericGeoTrackingResult;
-    using GeantVolResult = GenericGeoGeantImportVolumeResult;
     //!@}
 
   public:
-    //! Get the basename or unique geometry key (defaults to suite name)
-    virtual std::string geometry_basename() const;
+    // Default constructors and anchored destructor
+    GenericGeoTestBase();
+    virtual ~GenericGeoTestBase();
+    CELER_DELETE_COPY_MOVE(GenericGeoTestBase);
 
-    //! Build the geometry
-    virtual SPConstGeo build_geometry() = 0;
+    // Build geometry during setup
+    void SetUp() override;
+
+    //// Interface ////
+
+    // Default to using test suite name
+    std::string_view gdml_basename() const override;
+
+    // Build the geometry for a new test (default to lazy geo)
+    virtual SPConstGeo build_geometry() const;
 
     //! Maximum number of local track slots
     virtual size_type num_track_slots() const { return 1; }
 
-    //! Unit length for "track" testing and other results
-    virtual Constant unit_length() const { return lengthunits::centimeter; }
+    //// Geometry-specific functions ////
 
-    //! Construct from celeritas test data and "basename" value
-    SPConstGeo build_geometry_from_basename();
-
-    // Access geometry
+    // Build and/or access geometry
     SPConstGeo const& geometry();
     SPConstGeo const& geometry() const;
 
     //! Get the name of the current volume
     std::string volume_name(GeoTrackView const& geo) const;
     //! Get the name of the current surface if available
-    std::string surface_name(GeoTrackView const& geo) const;
+    virtual std::string surface_name(GeoTrackView const& geo) const;
     //! Get the stack of volume instances
-    std::string all_volume_instance_names(GeoTrackView const& geo) const;
+    std::string unique_volume_name(GeoTrackView const& geo) const;
 
     //! Get a host track view
     GeoTrackView make_geo_track_view(TrackSlotId tsid = TrackSlotId{0});
     //! Get and initialize a single-thread host track view
     GeoTrackView make_geo_track_view(Real3 const& pos_cm, Real3 dir);
 
-    //! Find linear segments until outside
-    TrackingResult track(Real3 const& pos_cm, Real3 const& dir);
-    //! Find linear segments until outside (maximum count
-    TrackingResult track(Real3 const& pos_cm, Real3 const& dir, int max_step);
+    //// GenericGeoTestInterface ////
 
-    //! Try to map Geant4 volumes using ImportVolume and name
-    GeantVolResult
-    get_import_geant_volumes(G4VPhysicalVolume const* world) const
-    {
-        return GeantVolResult::from_import(*this->geometry(), world);
-    }
-    //! Try to map Geant4 volumes using pointers
-    GeantVolResult
-    get_direct_geant_volumes(G4VPhysicalVolume const* world) const
-    {
-        return GeantVolResult::from_pointers(*this->geometry(), world);
-    }
+    // Get the label for this geometry: Geant4, VecGeom, ORANGE
+    std::string_view geometry_type() const final;
+    // Access the geometry interface
+    GeoParamsInterface const& geometry_interface() const final;
+    // Find linear segments until outside
+    TrackingResult track(Real3 const& pos_cm, Real3 const& dir) final;
+    // Get the geometry volume path to the given position
+    VolumeStackResult volume_stack(Real3 const& pos_cm) final;
 
   private:
     template<Ownership W, MemSpace M>
@@ -133,9 +103,18 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
     using HostStateStore = CollectionStateStore<StateData, MemSpace::host>;
 
     SPConstGeo geo_;
+    SPConstVolumes volumes_;
     HostStateStore host_state_;
 
-    SPConstGeoI build_fresh_geometry(std::string_view) override;
+    //// LAZY GEO INTERFACE ////
+
+    // Implementation builds from Geant4 on request
+    [[nodiscard]] SPConstGeoI
+    build_geo_from_geant(SPConstGeantGeo const&) const final;
+
+    // Backup method when Geant4 is disabled
+    [[nodiscard]] SPConstGeoI
+    build_geo_from_gdml(std::string const& filename) const final;
 };
 
 //---------------------------------------------------------------------------//

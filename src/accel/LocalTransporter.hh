@@ -13,12 +13,12 @@
 
 #include "corecel/Types.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/BoundingBox.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/global/CoreParams.hh"
-#include "celeritas/global/Stepper.hh"
 #include "celeritas/phys/Primary.hh"
 
 class G4Track;
+class G4EventManager;
 
 namespace celeritas
 {
@@ -31,6 +31,9 @@ class OffloadWriter;
 
 struct SetupOptions;
 class SharedParams;
+class ParticleParams;
+class CoreStateInterface;
+class StepperInterface;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -66,14 +69,14 @@ class LocalTransporter
     // Alternative to construction + move assignment
     inline void Initialize(SetupOptions const& options, SharedParams& params);
 
-    // Set the event ID and reseed the Celeritas RNG (remove in v1.0)
+    // Set the event ID and reseed the Celeritas RNG (remove in v0.6)
     [[deprecated]] void SetEventId(int id) { this->InitializeEvent(id); }
 
     // Set the event ID and reseed the Celeritas RNG at the start of an event
     void InitializeEvent(int);
 
     // Offload this track
-    void Push(G4Track const&);
+    void Push(G4Track&);
 
     // Transport all buffered tracks to completion
     void Flush();
@@ -87,26 +90,56 @@ class LocalTransporter
     // Number of buffered tracks
     size_type GetBufferSize() const { return buffer_.size(); }
 
+    // Access core state data for user diagnostics
+    CoreStateInterface const& GetState() const;
+
+    // Access core state data for user diagnostics
+    CoreStateInterface& GetState();
+
     //! Whether the class instance is initialized
     explicit operator bool() const { return static_cast<bool>(step_); }
 
   private:
+    //// TYPES ////
+
     using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
+    using BBox = BoundingBox<double>;
+
+    struct BufferAccum
+    {
+        double energy{0};  // MeV
+        double lost_energy{0};  // MeV
+        std::size_t lost_primaries{0};
+    };
+
+    struct RunAccum
+    {
+        std::size_t events{0};
+        std::size_t primaries{0};
+        std::size_t steps{0};
+        std::size_t lost_primaries{0};
+        std::size_t hits{0};
+    };
+
+    //// DATA ////
 
     std::shared_ptr<ParticleParams const> particles_;
+    BBox bbox_;
+
+    // Thread-local data
     std::shared_ptr<StepperInterface> step_;
     std::vector<Primary> buffer_;
     std::shared_ptr<detail::HitProcessor> hit_processor_;
 
+    // Current event ID or manager for obtaining it
     UniqueEventId event_id_;
+    G4EventManager* event_manager_{nullptr};
 
     size_type auto_flush_{};
     size_type max_step_iters_{};
-    double buffer_energy_{0};
 
-    std::size_t accum_num_events_{0};
-    std::size_t accum_num_primaries_{0};
-    std::size_t accum_num_steps_{0};
+    BufferAccum buffer_accum_;
+    RunAccum run_accum_;
 
     // Shared across threads to write flushed particles
     SPOffloadWriter dump_primaries_;

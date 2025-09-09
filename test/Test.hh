@@ -45,9 +45,6 @@ class Test : public ::testing::Test
     static std::string
     test_data_path(std::string_view subdir, std::string_view filename);
 
-    // Replace pointer addresses with 0x0 for improved testability
-    [[nodiscard]] static std::string genericize_pointers(std::string_view s);
-
     // True if CELER_TEST_STRICT is set (under CI)
     static bool strict_testing();
 
@@ -56,6 +53,12 @@ class Test : public ::testing::Test
     static constexpr float inff = HUGE_VALF;
 
     // Define coarse epsilon (sqrt typical precision)
+
+#if CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+    static constexpr double fine_eps = 1e-12;
+#elif CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT
+    static constexpr float fine_eps = 1e-6f;
+#endif
 
 #if CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
     static constexpr double coarse_eps = 1e-6;

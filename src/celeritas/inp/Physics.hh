@@ -11,10 +11,13 @@
 #include <vector>
 
 #include "corecel/Types.hh"
+#include "corecel/io/Label.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 
 #include "PhysicsProcess.hh"
+#include "ProcessBuilder.hh"
+#include "SurfacePhysics.hh"
 
 namespace celeritas
 {
@@ -23,6 +26,11 @@ namespace inp
 //---------------------------------------------------------------------------//
 /*!
  * Electromagnetic physics processes and options.
+ *
+ * \todo The ProcessBuilder is the "general" process builder type and should be
+ * refactored once import data is moved into the `inp` classes. The \c
+ * user_processes can be set externally or via
+ * \c FrameworkInput.geant.ignore_processes.
  */
 struct EmPhysics
 {
@@ -34,22 +42,46 @@ struct EmPhysics
     //!@{
     //! \name Energy loss and slowing down
 
-    //! Use cubic spline interpolation for energy loss
-    bool eloss_spline{false};
+    // TODO: currently eloss fluctuations are set up via geant importer, then
+    // read into ImportEmParams
 #if 0
      //! Energy loss fluctuations
      bool eloss_fluct{true};
 #endif
     //
     //!@}
+
+    //!
+    ProcessBuilderMap user_processes;
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Optical physics processes and options.
+ * Optical physics processes, options, and surface definitions.
  */
 struct OpticalPhysics
 {
+    //!@{
+    /*! \name Optical photon generation
+     *
+     *  \todo Replace with a mapping of volume to \c ScintillationPhysics or \c
+     *  CherenkovPhysics
+     */
+
+    //! Generate Cherenkov photons
+    bool cherenkov{true};
+
+    //! Generate scintillation photons
+    bool scintillation{true};
+    //!@}
+
+    //!@{
+    //! \name Optical surface physics and properties
+    SurfacePhysics surfaces;
+    //!@}
+
+    //! Whether the data are assigned
+    explicit operator bool() const { return static_cast<bool>(surfaces); }
 };
 
 //---------------------------------------------------------------------------//

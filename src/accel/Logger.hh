@@ -14,15 +14,24 @@ class G4RunManager;
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-// Manually create a multithread-friendly logger
-Logger MakeMTLogger(G4RunManager const&);
+// Manually create a G4MT-friendly logger for event-specific info
+Logger MakeMTSelfLogger(G4RunManager const&);
 
 //---------------------------------------------------------------------------//
-//! Manually create a multithread-friendly logger (remove in v1.0)
-[[deprecated]] inline Logger make_mt_logger(G4RunManager const& rm)
+// Manually create a logger for setup info
+Logger MakeMTWorldLogger(G4RunManager const&);
+
+//---------------------------------------------------------------------------//
+//! Manually create a multithread-friendly logger
+//! \deprecated Remove in v1.0; replaced by MakeMTSelfLogger
+[[deprecated]] inline Logger MakeMTLogger(G4RunManager const& rm)
 {
-    return MakeMTLogger(rm);
+    return MakeMTSelfLogger(rm);
 }
+
+//---------------------------------------------------------------------------//
+// Get the thread ID printed to logger messages.
+std::string get_thread_label();
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

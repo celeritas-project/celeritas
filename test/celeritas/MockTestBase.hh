@@ -11,14 +11,15 @@
 
 #include "corecel/cont/Span.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/inp/Physics.hh"
 
-#include "GlobalGeoTestBase.hh"
+#include "GlobalTestBase.hh"
 #include "OnlyCoreTestBase.hh"
 
 namespace celeritas
 {
 struct Applicability;
-struct PhysicsParamsOptions;
+struct PhysicsOptions;
 }  // namespace celeritas
 
 namespace celeritas
@@ -43,12 +44,11 @@ namespace test
  *
  * Cutoff values are all zero.
  */
-class MockTestBase : virtual public GlobalGeoTestBase, public OnlyCoreTestBase
+class MockTestBase : virtual public GlobalTestBase, public OnlyCoreTestBase
 {
   public:
     //!@{
     //! \name Type aliases
-    using PhysicsOptions = PhysicsParamsOptions;
     using ModelCallback = std::function<void(ActionId)>;
     using SpanConstModel = Span<ModelId const>;
     //!@}
@@ -66,10 +66,7 @@ class MockTestBase : virtual public GlobalGeoTestBase, public OnlyCoreTestBase
     }
 
   protected:
-    std::string_view geometry_basename() const override
-    {
-        return "three-spheres";
-    }
+    std::string_view gdml_basename() const override { return "three-spheres"; }
 
     SPConstMaterial build_material() override;
     SPConstGeoMaterial build_geomaterial() override;
@@ -82,6 +79,7 @@ class MockTestBase : virtual public GlobalGeoTestBase, public OnlyCoreTestBase
     SPConstWentzelOKVI build_wentzel() override { return nullptr; }
 
     virtual PhysicsOptions build_physics_options() const;
+    virtual inp::Interpolation interpolation() const;
 
   private:
     //// DATA ////

@@ -13,12 +13,13 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "corecel/Config.hh"
-
+#include "corecel/Assert.hh"
+#include "corecel/StringSimplifier.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/io/StreamableVariant.hh"
 #include "orange/BoundingBoxUtils.hh"
+#include "orange/OrangeTypes.hh"
 #include "orange/orangeinp/CsgTree.hh"
 #include "orange/orangeinp/CsgTreeIO.json.hh"
 #include "orange/orangeinp/CsgTreeUtils.hh"
@@ -37,6 +38,7 @@ namespace orangeinp
 {
 namespace test
 {
+
 //---------------------------------------------------------------------------//
 std::string to_json_string(CsgTree const& tree)
 {
@@ -58,6 +60,9 @@ std::vector<int> to_vec_int(std::vector<NodeId> const& nodes)
 //---------------------------------------------------------------------------//
 std::vector<std::string> surface_strings(CsgUnit const& u)
 {
+    // Simplify floats to 5 digits of precision
+    ::celeritas::test::StringSimplifier simplify_string(5);
+
     // Loop through CSG tree's encountered surfaces
     std::vector<std::string> result;
     for (auto nid : range(NodeId{u.tree.size()}))
@@ -66,13 +71,11 @@ std::vector<std::string> surface_strings(CsgUnit const& u)
         {
             auto lsid = surf_node->id;
             CELER_ASSERT(lsid < u.surfaces.size());
-            result.push_back(std::visit(
-                [](auto&& surf) {
-                    std::ostringstream os;
-                    os << std::setprecision(5) << surf;
-                    return os.str();
-                },
-                u.surfaces[lsid.get()]));
+            std::ostringstream os;
+            os << std::setprecision(6);
+            std::visit([&os](auto&& surf) { os << surf; },
+                       u.surfaces[lsid.get()]);
+            result.push_back(simplify_string(std::move(os).str()));
         }
     }
     return result;
@@ -107,19 +110,20 @@ std::string tree_string(CsgUnit const& u)
 std::vector<std::string> md_strings(CsgUnit const& u)
 {
     std::vector<std::string> result;
+    ::celeritas::test::StringSimplifier simplify;
     for (auto const& md_set : u.metadata)
     {
-        result.push_back(to_string(join_stream(
-            md_set.begin(),
-            md_set.end(),
-            ',',
-            [](std::ostream& os, Label const& l) {
-                os << ::celeritas::test::Test::genericize_pointers(l.name);
-                if (!l.ext.empty())
-                {
-                    os << Label::default_sep << l.ext;
-                }
-            })));
+        result.push_back(to_string(
+            join_stream(md_set.begin(),
+                        md_set.end(),
+                        ',',
+                        [&simplify](std::ostream& os, Label const& l) {
+                            os << simplify(l.name);
+                            if (!l.ext.empty())
+                            {
+                                os << Label::default_sep << l.ext;
+                            }
+                        })));
     }
     return result;
 }
@@ -218,7 +222,7 @@ std::vector<std::string> fill_strings(CsgUnit const& u)
         {
             result.push_back("<UNASSIGNED>");
         }
-        else if (auto* mid = std::get_if<GeoMaterialId>(&f))
+        else if (auto* mid = std::get_if<GeoMatId>(&f))
         {
             result.push_back("m" + std::to_string(mid->unchecked_get()));
         }
@@ -295,7 +299,7 @@ EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
 EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
 EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
 )cpp"
-              << "EXPECT_EQ(GeoMaterialId{";
+              << "EXPECT_EQ(GeoMatId{";
     if (u.background)
     {
         std::cout << u.background.unchecked_get();
@@ -326,6 +330,58 @@ EXPECT_VEC_SOFT_EQ(expected_global_bz, flattened(css.global_bzone));
 EXPECT_VEC_EQ(expected_nodes, to_vec_int(css.nodes));
 /*************************/
 )cpp" << std::endl;
+}
+
+void stream_node_id(std::ostream& os, NodeId n)
+{
+    os << "N{";
+    if (n)
+    {
+        os << n.unchecked_get();
+    }
+    os << '}';
+}
+
+void stream_logic_int(std::ostream& os, logic_int value)
+{
+    using namespace logic;
+    if (is_operator_token(value))
+    {
+        os << "logic::";
+        switch (static_cast<OperatorToken>(value))
+        {
+            case lopen:
+                os << "lopen";
+                return;
+            case lclose:
+                os << "lclose";
+                return;
+            case lor:
+                os << "lor";
+                return;
+            case land:
+                os << "land";
+                return;
+            case lnot:
+                os << "lnot";
+                return;
+            case ltrue:
+                os << "ltrue";
+                return;
+            default:
+                CELER_ASSERT_UNREACHABLE();
+        }
+    }
+    os << value << 'u';
+}
+
+std::ostream& operator<<(std::ostream& os, ReprLogic const& rl)
+{
+    os << '{'
+       << join_stream(
+              std::begin(rl.logic), std::end(rl.logic), ", ", stream_logic_int)
+       << ",}";
+    return os;
 }
 
 //---------------------------------------------------------------------------//

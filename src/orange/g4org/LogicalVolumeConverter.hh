@@ -6,8 +6,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
 #include <unordered_map>
+#include <vector>
 
+#include "corecel/io/Label.hh"
 #include "geocel/Types.hh"
 #include "orange/orangeinp/ObjectInterface.hh"
 
@@ -19,6 +22,7 @@ class G4LogicalVolume;
 
 namespace celeritas
 {
+class GeantGeoParams;
 namespace g4org
 {
 //---------------------------------------------------------------------------//
@@ -38,12 +42,14 @@ class LogicalVolumeConverter
     //!@{
     //! \name Type aliases
     using arg_type = G4LogicalVolume const&;
+    using VecLabel = std::vector<Label>;
     using SPLV = std::shared_ptr<LogicalVolume>;
     using result_type = std::pair<SPLV, bool>;
     //!@}
 
   public:
-    explicit LogicalVolumeConverter(SolidConverter& convert_solid);
+    LogicalVolumeConverter(GeantGeoParams const& geo,
+                           SolidConverter& convert_solid);
 
     // Convert a volume, return result plus insertion
     result_type operator()(arg_type);
@@ -53,6 +59,7 @@ class LogicalVolumeConverter
 
     //// DATA ////
 
+    GeantGeoParams const& geo_;
     SolidConverter& convert_solid_;
     std::unordered_map<G4LogicalVolume const*, WPLV> cache_;
 

@@ -109,8 +109,8 @@ template<>
 struct Less<void>
 {
     template<class T, class U>
-    CELER_CONSTEXPR_FUNCTION auto
-    operator()(T&& lhs, U&& rhs) const -> decltype(auto)
+    CELER_CONSTEXPR_FUNCTION auto operator()(T&& lhs, U&& rhs) const
+        -> decltype(auto)
     {
         return ::celeritas::forward<T>(lhs) < ::celeritas::forward<U>(rhs);
     }
@@ -118,27 +118,41 @@ struct Less<void>
 
 //---------------------------------------------------------------------------//
 /*!
- * Evaluate whether the argument is "true".
+ * A function object type whose operator() returns its argument unchanged.
  *
  * This is useful for calls to \c std::all_of .
  */
-template<class T = void>
-struct LogicalTrue
+struct Identity
 {
-    CELER_CONSTEXPR_FUNCTION bool operator()(T const& value) const noexcept
+    template<class T>
+    CELER_CONSTEXPR_FUNCTION T&& operator()(T&& value) const noexcept
     {
-        return static_cast<bool>(value);
+        return std::forward<T>(value);
     }
 };
 
-//! Specialization of LogicalTrue with template deduction
+//---------------------------------------------------------------------------//
+/*!
+ * A Function object for performing logical NOT (logical negation). Effectively
+ * calls operator! for type T.
+ */
+template<class T = void>
+struct LogicalNot
+{
+    CELER_CONSTEXPR_FUNCTION bool operator()(T const& value) const noexcept
+    {
+        return !value;
+    }
+};
+
+//! Specialization with template deduction
 template<>
-struct LogicalTrue<void>
+struct LogicalNot<void>
 {
     template<class T>
     CELER_CONSTEXPR_FUNCTION bool operator()(T const& value) const noexcept
     {
-        return static_cast<bool>(value);
+        return !value;
     }
 };
 
@@ -210,6 +224,8 @@ inline CELER_FUNCTION bool all_adjacent(InputIt iter, InputIt last, Predicate p)
    max(v, min(v, lo))
  * \endcode
  * assuming that the relationship between \c lo and \c hi holds.
+ *
+ * This is constructed to propagate \c NaN.
  */
 template<class T>
 inline CELER_FUNCTION T const& clamp(T const& v, T const& lo, T const& hi)
@@ -222,7 +238,7 @@ inline CELER_FUNCTION T const& clamp(T const& v, T const& lo, T const& hi)
 /*!
  * Return the value or (if it's negative) then zero.
  *
- * This is constructed to correctly propagate \c NaN.
+ * This is constructed to propagate \c NaN.
  */
 template<class T>
 CELER_CONSTEXPR_FUNCTION T clamp_to_nonneg(T v) noexcept
@@ -288,7 +304,7 @@ CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound_linear(ForwardIt first,
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the first element which is greater than <value>
+ * Find the first element which is greater than <value>.
  */
 template<class ForwardIt, class T, class Compare>
 CELER_FORCEINLINE_FUNCTION ForwardIt
@@ -302,7 +318,7 @@ upper_bound(ForwardIt first, ForwardIt last, T const& value, Compare comp)
 //! \cond (CELERITAS_DOC_DEV)
 //---------------------------------------------------------------------------//
 /*!
- * Find the first element which is greater than <value>
+ * Find the first element which is greater than <value>.
  */
 template<class ForwardIt, class T>
 CELER_FORCEINLINE_FUNCTION ForwardIt upper_bound(ForwardIt first,
@@ -400,6 +416,7 @@ CELER_CONSTEXPR_FUNCTION T const& max(T const& a, T const& b) noexcept
 }
 
 //!\cond (CELERITAS_DOC_DEV)
+// Note: fmax treats NaN as "missing data"
 template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
 CELER_CONSTEXPR_FUNCTION T max(T a, T b) noexcept
 {
@@ -421,6 +438,7 @@ CELER_CONSTEXPR_FUNCTION T const& min(T const& a, T const& b) noexcept
 }
 
 //!\cond (CELERITAS_DOC_DEV)
+// Note: fmin treats NaN as "missing data"
 template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
 CELER_CONSTEXPR_FUNCTION T min(T a, T b) noexcept
 {
@@ -491,8 +509,7 @@ CELER_CONSTEXPR_FUNCTION T ipow(T v) noexcept
     {
         return v * ipow<(N - 1) / 2>(v) * ipow<(N - 1) / 2>(v);
     }
-#if (__CUDACC_VER_MAJOR__ < 11) \
-    || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 5)
+#if CELER_CUDACC_BUGGY_IF_CONSTEXPR
     // "error: missing return statement at end of non-void function"
     return T{0};
 #endif
@@ -533,6 +550,7 @@ CELER_FORCEINLINE_FUNCTION T fma(T a, T b, T y)
     return std::fma(a, b, y);
 }
 
+//! \cond (CELERITAS_DOC_DEV)
 //---------------------------------------------------------------------------//
 /*!
  * Provide an FMA-like interface for integers.
@@ -542,6 +560,7 @@ CELER_CONSTEXPR_FUNCTION T fma(T a, T b, T y)
 {
     return a * b + y;
 }
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -634,7 +653,9 @@ CELER_CONSTEXPR_FUNCTION T diffsq(T a, T b)
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the Euclidian modulus of two numbers.
+ * Calculate the Euclidean modulus of two numbers.
+ * \arg num numerator
+ * \arg denom denominator
  *
  * If both numbers are positive, this should be the same as fmod. If the
  * sign of the remainder and denominator don't match, the remainder will be
@@ -648,9 +669,9 @@ CELER_CONSTEXPR_FUNCTION T diffsq(T a, T b)
    \endcode
  */
 template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
-CELER_CONSTEXPR_FUNCTION T eumod(T numer, T denom)
+CELER_CONSTEXPR_FUNCTION T eumod(T num, T denom)
 {
-    T r = std::fmod(numer, denom);
+    T r = std::fmod(num, denom);
     if (r < 0)
     {
         if (denom >= 0)
@@ -707,24 +728,19 @@ CELER_FORCEINLINE_FUNCTION double rsqrt(double value)
 #endif
 }
 
-#if CELER_DEVICE_SOURCE
+#ifndef CELER_DEVICE_SOURCE
 // CUDA/HIP define sinpi, cospi, sinpif, cospif, ...
-#    undef CELERITAS_SINCOSPI_PREFIX
-#    define CELERITAS_SINCOSPI_PREFIX
-#endif
-
-#ifdef CELERITAS_SINCOSPI_PREFIX
+#    ifdef CELERITAS_SINCOSPI_PREFIX
 // Apple-supplied headers define __sinpi, __sinpif, __sincospi, ...
-#    define CELER_CONCAT_IMPL(PREFIX, FUNC) PREFIX##FUNC
-#    define CELER_CONCAT(PREFIX, FUNC) CELER_CONCAT_IMPL(PREFIX, FUNC)
-#    define CELER_SINCOS_MANGLED(FUNC) \
-        CELER_CONCAT(CELERITAS_SINCOSPI_PREFIX, FUNC)
-#else
+#        define CELER_CONCAT_IMPL(PREFIX, FUNC) PREFIX##FUNC
+#        define CELER_CONCAT(PREFIX, FUNC) CELER_CONCAT_IMPL(PREFIX, FUNC)
+#        define CELER_SINCOS_MANGLED(FUNC) \
+            CELER_CONCAT(CELERITAS_SINCOSPI_PREFIX, FUNC)
+#    else
 // Use implementations from detail/MathImpl.hh
-#    define CELERITAS_SINCOSPI_PREFIX ::celeritas::detail::
-#    define CELER_SINCOS_MANGLED(FUNC) ::celeritas::detail::FUNC
-#endif
-
+#        define CELERITAS_SINCOSPI_PREFIX ::celeritas::detail::
+#        define CELER_SINCOS_MANGLED(FUNC) ::celeritas::detail::FUNC
+#    endif
 //!@{
 //! Get the sine or cosine of a value multiplied by pi for increased precision
 CELER_FORCEINLINE_FUNCTION float sinpi(float a)
@@ -768,6 +784,7 @@ CELER_FORCEINLINE_FUNCTION void sincospi(double a, double* s, double* c)
     return CELER_SINCOS_MANGLED(sincospi)(a, s, c);
 }
 //!@}
+#endif
 
 //!@}
 

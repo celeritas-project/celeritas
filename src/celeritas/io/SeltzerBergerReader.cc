@@ -56,8 +56,6 @@ SeltzerBergerReader::operator()(AtomicNumber atomic_number) const
     CELER_EXPECT(atomic_number);
 
     std::string z_str = std::to_string(atomic_number.unchecked_get());
-    CELER_LOG(debug) << "Reading SB cross sections for Z=" << z_str;
-
     result_type result;
 
     // Open file for given atomic number

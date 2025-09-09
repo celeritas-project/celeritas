@@ -54,7 +54,8 @@ class RelativisticBremTest : public InteractorHostTestBase
                 pdg::electron(),
                 pdg::gamma(),
                 ImportProcessClass::e_brems,
-                {ImportModelClass::e_brems_sb, ImportModelClass::e_brems_lpm});
+                {ImportModelClass::e_brems_sb, ImportModelClass::e_brems_lpm},
+                {{0, 1e3}, {1e3, 1e12}});
             ImportProcess ip_positron = ip_electron;
             ip_positron.particle_pdg = pdg::positron().get();
             this->set_imported_processes(
@@ -120,7 +121,7 @@ TEST_F(RelativisticBremTest, dxsec)
     real_type const all_energy[] = {1, 2, 5, 10, 20, 50, 100, 200, 500, 1000};
 
     // Production cuts
-    auto material_view = this->material_track().make_material_view();
+    auto material_view = this->material_track().material_record();
 
     // Create the differential cross section
     RBDiffXsCalculator dxsec_lpm(model_lpm_->host_ref(),
@@ -182,8 +183,8 @@ TEST_F(RelativisticBremTest, basic_without_lpm)
     this->resize_secondaries(num_samples);
 
     // Production cuts
-    auto material_view = this->material_track().make_material_view();
-    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
+    auto material_view = this->material_track().material_record();
+    auto cutoffs = this->cutoff_params()->get(PhysMatId{0});
 
     // Create the interactor
     RelativisticBremInteractor interact(model_->host_ref(),
@@ -247,8 +248,8 @@ TEST_F(RelativisticBremTest, basic_with_lpm)
     this->resize_secondaries(num_samples);
 
     // Production cuts
-    auto material_view = this->material_track().make_material_view();
-    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
+    auto material_view = this->material_track().material_record();
+    auto cutoffs = this->cutoff_params()->get(PhysMatId{0});
 
     // Create the interactor
     RelativisticBremInteractor interact(model_lpm_->host_ref(),
@@ -304,8 +305,8 @@ TEST_F(RelativisticBremTest, stress_with_lpm)
     this->resize_secondaries(num_samples);
 
     // Production cuts
-    auto material_view = this->material_track().make_material_view();
-    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
+    auto material_view = this->material_track().material_record();
+    auto cutoffs = this->cutoff_params()->get(PhysMatId{0});
 
     // Create the interactor
     RelativisticBremInteractor interact(model_lpm_->host_ref(),

@@ -35,6 +35,7 @@ struct SetupOptions;
   secondaryStackFactor | At least the average number of secondaries per track
   autoFlush            | Number of tracks to buffer before offloading
   maxFieldSubsteps     | Limit on substeps in field propagator
+  slotDiagnosticPrefix | Print IDs of particles in all slots (expensive)
 
  * The following option is exposed in the \c /celer/detector/ command
  * "directory":
@@ -44,14 +45,14 @@ struct SetupOptions;
   enabled | Call back to Geant4 sensitive detectors
 
  * If a CUDA/HIP device is available, additional options are available under \c
- * /celer/cuda/ :
+ * /celer/device/ (or a DEPRECATED /celer/cuda path, to be removed in v0.7):
  *
   Command        | Description
   -------------- | ------------------------------------------------
   stackSize      | Set the CUDA per-thread stack size for VecGeom
   heapSize       | Set the CUDA per-thread heap size for VecGeom
   actionTimes    | Add timers around every action (may reduce performance)
-  defaultStream  | Launch all kernels on the default stream
+  defaultStream  | Launch all kernels on the default stream (DEPRECATED)
  *
  * \warning The given SetupOptions should be global *or* otherwise must exceed
  * the scope of this UI messenger.

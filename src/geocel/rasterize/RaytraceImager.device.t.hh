@@ -1,6 +1,5 @@
-//---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------ -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 /*!
@@ -14,9 +13,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "geocel/rasterize/RaytraceImager.hh"
+#include "RaytraceImager.hh"
 
 #include "corecel/sys/KernelLauncher.device.hh"
+#include "corecel/sys/ThreadId.hh"
 
 #include "detail/RaytraceExecutor.hh"
 
@@ -40,7 +40,7 @@ void RaytraceImager<G>::launch_raytrace_kernel(
 
     static KernelLauncher<decltype(execute_thread)> const launch_kernel{
         std::string{"raytrace-"} + GeoTraits<G>::name};
-    launch_kernel(geo_states.size(), StreamId{0}, execute_thread);
+    launch_kernel(geo_states.size(), StreamId{}, execute_thread);
 }
 
 //---------------------------------------------------------------------------//

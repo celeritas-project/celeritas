@@ -18,13 +18,13 @@ jobs:
     runs-on: ubuntu-24.04
     needs: build-docs
     steps:
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
       - name: Check out Celeritas doc base
         uses: actions/checkout@v4
         with:
           ref: doc/gh-pages-base
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
       - name: Install Python packages
         run: |
           pip install --upgrade pip

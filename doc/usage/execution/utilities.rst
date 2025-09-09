@@ -15,10 +15,9 @@ The ``celer-geo`` app is a server-like front end to the Celeritas geometry
 interfaces that can generate exact images of a user geometry model. It should
 be invoked only as part of the celerpy_ python app.  See :ref:`example_celer_geo` for an example.
 
-Usage::
+Usage:
 
-  celer-geo {input}.jsonl
-            -
+.. literalinclude:: _usage/celer-geo.txt
 
 .. _celerpy: https://github.com/celeritas-project/celerpy
 
@@ -94,10 +93,10 @@ can be used in one of two modes:
 
 ----
 
-Usage::
+Usage:
 
-   celer-export-geant {input}.gdml [{options}.json, -, ''] {output}.[root, json]
-   celer-export-geant --dump-default
+.. literalinclude:: _usage/celer-export-geant.txt
+
 
 input
   Detector definition file
@@ -107,26 +106,10 @@ options
   corresponding to the :ref:`api_geant4_physics_options` struct.
 
 output
-  A ROOT/JSON output file with the exported :ref:`api_importdata`.
+  A ROOT/JSON output file with the exported import data.
 
 
 The ``--dump-default`` usage renders the default options.
-
-
-celer-dump-data
-^^^^^^^^^^^^^^^
-
-This utility prints an RST-formatted high-level dump of physics data exported
-via :ref:`celer-export-geant`.
-
-----
-
-Usage::
-
-   celer-dump-data {output}.root
-
-output
-  A ROOT file containing exported :ref:`api_importdata`.
 
 
 orange-update
@@ -138,10 +121,9 @@ names or fewer options) to a newer version.
 
 ----
 
-Usage::
+Usage:
 
-   orange-update {input}.org.json {output}.org.json
+.. literalinclude:: _usage/orange-update.txt
 
 Either of the filenames can be replaced by ``-`` to read from stdin or write to
 stdout.
-

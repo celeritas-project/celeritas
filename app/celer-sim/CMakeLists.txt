@@ -13,24 +13,16 @@ set(SOURCES
 )
 set(LIBRARIES
   Celeritas::celeritas
-  Celeritas::DeviceToolkit
+  Celeritas::ExtDeviceApi
+  Celeritas::ExtOpenMP
   nlohmann_json::nlohmann_json
+  CLI11::CLI11
+  celer_app_utils
 )
-
-if(CELERITAS_USE_CUDA AND CELERITAS_CORE_GEO STREQUAL "VecGeom")
-  list(APPEND LIBRARIES VecGeom::vecgeom)
-endif()
-if(CELERITAS_USE_OpenMP)
-  list(APPEND LIBRARIES OpenMP::OpenMP_CXX)
-endif()
-if(CELERITAS_USE_ROOT)
-  list(APPEND SOURCES RootOutput.cc)
-  list(APPEND LIBRARIES ROOT::Core ROOT::Tree)
-endif()
 
 # Add the executable
 celeritas_add_executable(celer-sim ${SOURCES})
-celeritas_target_link_libraries(celer-sim ${LIBRARIES})
+celeritas_target_link_libraries(celer-sim PRIVATE ${LIBRARIES})
 
 #-----------------------------------------------------------------------------#
 # TESTS
@@ -82,7 +74,7 @@ function(celer_sim_test test_ext gdml_inp_name hepmc3_inp_name mctruth_name)
     "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}" "${_mctruth_out}"
   )
   set_tests_properties("${_name}" PROPERTIES
-    ENVIRONMENT "${_env};${CELER_G4ENV}"
+    ENVIRONMENT "${_env};${CELER_G4ENV};${CELER_OMP_ENV}"
     RESOURCE_LOCK gpu
     REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
     LABELS "app;nomemcheck;gpu"

@@ -1,6 +1,5 @@
-//---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------ -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/sys/KernelLauncher.device.hh
@@ -46,12 +45,11 @@ namespace celeritas
  *
  * Example:
  * \code
- void FooAction::launch_kernel(size_type count) const
+ void launch_kernel(DeviceParams const& params, size_type count) const
  {
-    auto execute_thread = make_blah_executor(blah);
-    static KernelLauncher<decltype(execute_thread)> const
- launch_kernel("blah");
-    launch_kernel(state, execute_thread);
+    auto execute_thread = BlahExecutor{params};
+    static KernelLauncher<decltype(execute_thread)> const launch("blah");
+    launch_kernel(count, StreamId{}, execute_thread);
  }
  * \endcode
  */
@@ -105,7 +103,7 @@ void KernelLauncher<F>::operator()(Range<ThreadId> threads,
 {
     if (!threads.empty())
     {
-        using StreamT = CELER_DEVICE_PREFIX(Stream_t);
+        using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
         StreamT stream = stream_id
                              ? celeritas::device().stream(stream_id).get()
                              : nullptr;

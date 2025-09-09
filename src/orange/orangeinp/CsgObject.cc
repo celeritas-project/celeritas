@@ -75,8 +75,8 @@ constexpr OperatorToken JoinObjects<Op>::op_token;
  * important.
  */
 template<OperatorToken Op>
-auto JoinObjects<Op>::or_object(std::string&& label,
-                                VecObject&& objects) -> SPConstObject
+auto JoinObjects<Op>::or_object(std::string&& label, VecObject&& objects)
+    -> SPConstObject
 {
     CELER_EXPECT(!objects.empty());
     if (objects.size() == 1)
@@ -98,13 +98,13 @@ JoinObjects<Op>::JoinObjects(std::string&& label, VecObject&& objects)
     : label_{std::move(label)}, objects_{std::move(objects)}
 {
     CELER_EXPECT(!label_.empty());
-    CELER_EXPECT(std::all_of(objects_.begin(), objects_.end(), LogicalTrue{}));
+    CELER_EXPECT(std::all_of(objects_.begin(), objects_.end(), Identity{}));
     CELER_EXPECT(!objects_.empty());
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a volume from the joined objets.
+ * Construct a volume from the joined objects.
  */
 template<OperatorToken Op>
 NodeId JoinObjects<Op>::build(VolumeBuilder& vb) const

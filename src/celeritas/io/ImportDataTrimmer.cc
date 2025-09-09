@@ -7,6 +7,7 @@
 #include "ImportDataTrimmer.hh"
 
 #include <algorithm>
+#include <limits>
 #include <utility>
 
 #include "corecel/Assert.hh"
@@ -14,6 +15,24 @@
 
 namespace celeritas
 {
+
+template<class T>
+void filter_out_infs(std::vector<T>& data)
+{
+    if constexpr (std::is_floating_point_v<T>)
+    {
+        constexpr auto max_real
+            = std::min(std::numeric_limits<T>::max(), 1e308);
+        for (auto& value : data)
+        {
+            if (std::isinf(value) || std::fabs(value) > max_real)
+            {
+                value = std::copysign(max_real, value);
+            }
+        }
+    }
+}
+
 //---------------------------------------------------------------------------//
 struct ImportDataTrimmer::GridFilterer
 {
@@ -85,6 +104,12 @@ void ImportDataTrimmer::operator()(ImportData& data)
         // Reduce the resolution of the muon pair production table
         (*this)(data.mu_pair_production_data);
     }
+
+    // Trim infinities from grid
+    this->for_each(data.optical_physics.surfaces.reflectivity.grid);
+    this->for_each(
+        data.optical_physics.surfaces.interaction.dielectric_dielectric);
+    this->for_each(data.optical_physics.surfaces.interaction.dielectric_metal);
 }
 
 //---------------------------------------------------------------------------//
@@ -135,8 +160,6 @@ void ImportDataTrimmer::operator()(ImportOpticalModel& data)
 //---------------------------------------------------------------------------//
 void ImportDataTrimmer::operator()(ImportModelMaterial& data)
 {
-    (*this)(data.energy);
-
     if (options_.materials)
     {
         (*this)(data.micro_xs);
@@ -171,9 +194,9 @@ void ImportDataTrimmer::operator()(ImportMuPairProductionTable& data)
     }
 
     (*this)(data.atomic_number);
-    (*this)(data.physics_vectors);
+    (*this)(data.grids);
 
-    this->for_each(data.physics_vectors);
+    this->for_each(data.grids);
 
     CELER_ENSURE(data);
 }
@@ -199,7 +222,6 @@ void ImportDataTrimmer::operator()(ImportLivermoreSubshell& data)
         (*this)(data.param_lo);
         (*this)(data.param_hi);
         (*this)(data.xs);
-        (*this)(data.energy);
     }
 }
 
@@ -215,25 +237,48 @@ void ImportDataTrimmer::operator()(ImportParticle&) {}
 //---------------------------------------------------------------------------//
 void ImportDataTrimmer::operator()(ImportProcess& data)
 {
-    if (options_.materials)
-    {
-        (*this)(data.tables);
-    }
     if (options_.physics)
     {
         (*this)(data.models);
     }
 
     this->for_each(data.models);
-    this->for_each(data.tables);
+
+    (*this)(data.lambda);
+    (*this)(data.lambda_prim);
+    (*this)(data.dedx);
 
     CELER_ENSURE(data);
 }
 
 //---------------------------------------------------------------------------//
-void ImportDataTrimmer::operator()(ImportPhysicsVector& data)
+void ImportDataTrimmer::operator()(inp::ReflectionForm& data)
+{
+    filter_out_infs(data.specular_spike.x);
+    filter_out_infs(data.specular_spike.y);
+    filter_out_infs(data.specular_lobe.x);
+    filter_out_infs(data.specular_lobe.y);
+    filter_out_infs(data.backscatter.x);
+    filter_out_infs(data.backscatter.y);
+}
+
+//---------------------------------------------------------------------------//
+void ImportDataTrimmer::operator()(inp::GridReflection& data)
+{
+    filter_out_infs(data.reflectivity.x);
+    filter_out_infs(data.reflectivity.y);
+}
+
+//---------------------------------------------------------------------------//
+void ImportDataTrimmer::operator()(inp::Grid& data)
 {
     (*this)(data.x);
+    (*this)(data.y);
+}
+
+//---------------------------------------------------------------------------//
+void ImportDataTrimmer::operator()(inp::UniformGrid& data)
+{
     (*this)(data.y);
 }
 
@@ -242,14 +287,14 @@ void ImportDataTrimmer::operator()(ImportPhysicsTable& data)
 {
     if (options_.materials)
     {
-        (*this)(data.physics_vectors);
+        (*this)(data.grids);
     }
 
-    this->for_each(data.physics_vectors);
+    this->for_each(data.grids);
 }
 
 //---------------------------------------------------------------------------//
-void ImportDataTrimmer::operator()(ImportPhysics2DVector& data)
+void ImportDataTrimmer::operator()(inp::TwodGrid& data)
 {
     auto x_filter = this->make_filterer(data.x.size());
     auto y_filter = this->make_filterer(data.y.size());
@@ -276,6 +321,8 @@ void ImportDataTrimmer::operator()(ImportPhysics2DVector& data)
     CELER_ASSERT(src == data.value.cend());
     CELER_ASSERT(new_value.size() == data.x.size() * data.y.size());
 
+    filter_out_infs(new_value);
+
     data.value = std::move(new_value);
 
     CELER_ENSURE(data);
@@ -288,6 +335,8 @@ void ImportDataTrimmer::operator()(ImportPhysics2DVector& data)
 template<class T>
 void ImportDataTrimmer::operator()(std::vector<T>& data)
 {
+    filter_out_infs(data);
+
     auto filter = this->make_filterer(data.size());
     if (!filter)
     {

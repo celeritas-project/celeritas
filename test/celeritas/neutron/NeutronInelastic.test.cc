@@ -8,13 +8,12 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/grid/NonuniformGridData.hh"
 #include "corecel/grid/TwodGridCalculator.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/grid/GenericGridData.hh"
 #include "celeritas/io/NeutronXsReader.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
-#include "celeritas/neutron/NeutronTestBase.hh"
 #include "celeritas/neutron/interactor/NeutronInelasticInteractor.hh"
 #include "celeritas/neutron/interactor/detail/CascadeCollider.hh"
 #include "celeritas/neutron/interactor/detail/CascadeParticle.hh"
@@ -24,6 +23,7 @@
 #include "celeritas/neutron/xs/NucleonNucleonXsCalculator.hh"
 #include "celeritas/phys/MacroXsCalculator.hh"
 
+#include "NeutronTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -79,7 +79,7 @@ TEST_F(NeutronInelasticTest, micro_xs)
     // Check the size of the element cross section data (G4PARTICLEXS4.0)
     // The neutron/inelZ data are pruned by a factor of 5 for this test
     NeutronInelasticRef shared = model_->host_ref();
-    GenericGridRecord grid = shared.micro_xs[el_id];
+    NonuniformGridRecord grid = shared.micro_xs[el_id];
     EXPECT_EQ(grid.grid.size(), 61);
 
     // Microscopic cross section (units::BarnXs) in [1e-04:1e+4] (MeV)
@@ -109,7 +109,7 @@ TEST_F(NeutronInelasticTest, micro_xs)
 TEST_F(NeutronInelasticTest, macro_xs)
 {
     // Calculate the inelastic neutron-nucleus macroscopic cross section
-    auto material = this->material_track().make_material_view();
+    auto material = this->material_track().material_record();
     auto calc_xs = MacroXsCalculator<NeutronInelasticMicroXsCalculator>(
         model_->host_ref(), material);
 
@@ -374,7 +374,7 @@ TEST_F(NeutronInelasticTest, model_data)
 
 TEST_F(NeutronInelasticTest, angular_cdf)
 {
-    // Check the tabulated cummulative distribution function (c.d.f) data used
+    // Check the tabulated cumulative distribution function (c.d.f) data used
     // for sampling cos\theta of the intra-nucleus nucleon-nucleon collision
     NeutronInelasticRef shared = model_->host_ref();
 

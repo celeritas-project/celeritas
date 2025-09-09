@@ -57,8 +57,7 @@ class ElementView
     inline CELER_FUNCTION IsotopeComponentId::size_type num_isotopes() const;
 
     // View properties of a specific isotope
-    inline CELER_FUNCTION IsotopeView
-    make_isotope_view(IsotopeComponentId id) const;
+    inline CELER_FUNCTION IsotopeView isotope_record(IsotopeComponentId id) const;
 
     // ID of an isotope component of this element
     inline CELER_FUNCTION IsotopeId isotope_id(IsotopeComponentId id) const;
@@ -123,8 +122,7 @@ CELER_FUNCTION IsotopeComponentId::size_type ElementView::num_isotopes() const
 /*!
  * Get isotope properties for a given index.
  */
-CELER_FUNCTION IsotopeView
-ElementView::make_isotope_view(IsotopeComponentId id) const
+CELER_FUNCTION IsotopeView ElementView::isotope_record(IsotopeComponentId id) const
 {
     CELER_EXPECT(id < this->num_isotopes());
     return IsotopeView(params_, this->isotope_id(id));

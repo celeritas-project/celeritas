@@ -10,6 +10,8 @@
 #include <functional>
 #include <iosfwd>
 #include <string>
+#include <string_view>
+#include <tuple>
 #include <utility>
 
 #include "corecel/Config.hh"
@@ -24,8 +26,9 @@ namespace celeritas
  *
  * This class is needed because names in Geant4/VecGeom can be non-unique. The
  * only way to map between duplicate volume names between VecGeom and Geant4 is
- * to ensure that pointers are written on output (and not cleared on input),
- * and to use those as an "extension" to differentiate the duplicate volumes.
+ * to ensure that uniquifying, consistent extensions are written on output (and
+ * not cleared on input), and to use those to differentiate the duplicate
+ * volumes.
  *
  * Materials likewise can have duplicate names (perhaps because some have
  * different range cutoffs, etc.), so this class can be used to return a range
@@ -48,14 +51,13 @@ struct Label
     //! Create an empty label
     Label() = default;
 
-    //! Create *implicitly* from a C string (mostly for testing)
-    Label(char const* cstr) : name{cstr} {}
-
-    //! Create *implicitly* from just a string name (capture)
+    //! Create *implicitly* from a captured string name
     Label(std::string&& n) : name{std::move(n)} {}
 
-    //! Create *implicitly* from just a string name (copy)
-    Label(std::string const& n) : name{n} {}
+    // Create *implicitly* from a string name
+    Label(std::string_view n);
+    Label(char const* n) : Label{std::string_view{n}} {}
+    Label(std::string const& n) : Label{std::string_view{n}} {}
 
     //! Create from a name and label
     Label(std::string n, std::string e) : name{std::move(n)}, ext{std::move(e)}
@@ -67,12 +69,8 @@ struct Label
 
     //// STATIC METHODS ////
 
-    // Construct a label from a Geant4 pointer-appended name
-    static Label from_geant(std::string const& name);
-
     // Construct a label from by splitting on a separator
-    static Label
-    from_separator(std::string const& name, char sep = default_sep);
+    static Label from_separator(std::string_view name, char sep = default_sep);
 };
 
 //---------------------------------------------------------------------------//
@@ -91,13 +89,7 @@ inline bool operator!=(Label const& lhs, Label const& rhs)
 //! Less-than comparison for sorting
 inline bool operator<(Label const& lhs, Label const& rhs)
 {
-    if (lhs.name < rhs.name)
-        return true;
-    else if (lhs.name > rhs.name)
-        return false;
-    if (lhs.ext < rhs.ext)
-        return true;
-    return false;
+    return std::tie(lhs.name, lhs.ext) < std::tie(rhs.name, rhs.ext);
 }
 
 //---------------------------------------------------------------------------//

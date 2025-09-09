@@ -39,11 +39,11 @@ template<class GridType>
 struct PhysicsGridTraits;
 
 //---------------------------------------------------------------------------//
-//! Specialization for \c ImportPhysicsVector
+//! Specialization for \c inp::Grid.
 template<>
-struct PhysicsGridTraits<ImportPhysicsVector>
+struct PhysicsGridTraits<inp::Grid>
 {
-    using grid_type = ImportPhysicsVector;
+    using grid_type = inp::Grid;
 
     static constexpr std::vector<double> const& grid(grid_type const& v)
     {

@@ -390,14 +390,14 @@ acceptance of all terms of the Geant4 Software license.
      <rotationref ref="rotatebyx"/>
    </physvol>
 
-   <physvol name="reflected0x123">
+   <physvol name="reflected0x1234">
      <volumeref ref="trd3"/>
      <positionref ref="posReflect"/>
      <rotationref ref="rotatebyx"/>
      <scale x="1" y="1" z="-1"/>
    </physvol>
 
-   <physvol name="reflected0x456">
+   <physvol name="reflected0x567890ab">
      <volumeref ref="trd3_refl"/>
      <position name="trd3_refl_pos" unit="mm" x="-5250" y="-1250" z="0"/>
      <rotationref ref="rotatebyx"/>

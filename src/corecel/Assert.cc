@@ -62,7 +62,7 @@ std::string build_runtime_error_msg(RuntimeErrorDetails const& d)
 
     std::ostringstream msg;
 
-    msg << "celeritas: " << color_code('R') << (d.which ? d.which : "unknown")
+    msg << color_code('R') << (d.which ? d.which : "unknown")
         << " error: " << color_code(' ');
     if (cstring_equal(d.which, RuntimeError::not_config_err_str))
     {
@@ -140,6 +140,24 @@ std::string mpi_error_to_string(int errorcode)
     CELER_DISCARD(errorcode);
     CELER_NOT_CONFIGURED("MPI");
 #endif
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Throw a debug error.
+ */
+[[noreturn]] void throw_debug_error(DebugErrorDetails&& d)
+{
+    throw DebugError{std::move(d)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Throw a runtime error.
+ */
+[[noreturn]] void throw_runtime_error(RuntimeErrorDetails&& d)
+{
+    throw RuntimeError{std::move(d)};
 }
 
 //---------------------------------------------------------------------------//

@@ -1,6 +1,5 @@
-//---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------ -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/Constants.hh
@@ -51,7 +50,7 @@ namespace celeritas
  * with the units provided in the CODATA 2018 dataset. The \c Constants.test.cc
  * unit tests compare the numerical value against the derivative values inside
  * the celeritas unit system. All experimental values include the final
- * (ususally two) imprecise digits; their precision is usually on the order of
+ * (usually two) imprecise digits; their precision is usually on the order of
  * \f$ 10^{-11} \f$.
  */
 namespace constants

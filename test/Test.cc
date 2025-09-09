@@ -9,7 +9,6 @@
 #include <algorithm>
 #include <cctype>
 #include <fstream>
-#include <regex>
 
 #include "celeritas_test_config.h"
 
@@ -40,16 +39,6 @@ Test::test_data_path(std::string_view subdir, std::string_view filename)
                        << "Failed to open test data file at '" << path << "'");
     }
     return path;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Replace pointer addresses with 0x0 for improved testability.
- */
-[[nodiscard]] std::string Test::genericize_pointers(std::string_view s)
-{
-    static std::regex const subs_ptr("0x[0-9a-f]{2,}");
-    return std::regex_replace(std::string{s}, subs_ptr, "0x0");
 }
 
 //---------------------------------------------------------------------------//
@@ -160,7 +149,7 @@ bool Test::strict_testing()
 
 //---------------------------------------------------------------------------//
 // Provide a definition for the "inf" value. (This is needed by C++ < 17 so
-// that the adddress off the static value can be taken.)
+// that the address off the static value can be taken.)
 constexpr double Test::inf;
 constexpr real_type Test::coarse_eps;
 //---------------------------------------------------------------------------//

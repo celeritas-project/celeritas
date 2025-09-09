@@ -142,6 +142,7 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
     GPO_LOAD_OPTION(ionization);
     GPO_LOAD_OPTION(annihilation);
     GPO_LOAD_OPTION(brems);
+    GPO_LOAD_OPTION(seltzer_berger_limit);
     GPO_LOAD_OPTION(msc);
     GPO_LOAD_OPTION(relaxation);
 
@@ -195,6 +196,7 @@ void to_json(nlohmann::json& j, GeantPhysicsOptions const& inp)
         CELER_JSON_PAIR(inp, ionization),
         CELER_JSON_PAIR(inp, annihilation),
         CELER_JSON_PAIR(inp, brems),
+        CELER_JSON_PAIR(inp, seltzer_berger_limit),
         CELER_JSON_PAIR(inp, msc),
         CELER_JSON_PAIR(inp, relaxation),
 

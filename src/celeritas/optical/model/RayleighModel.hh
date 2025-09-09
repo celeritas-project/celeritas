@@ -6,9 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "../ImportedModelAdapter.hh"
-#include "../Model.hh"
-#include "../Types.hh"
+#include "celeritas/optical/ImportedModelAdapter.hh"
+#include "celeritas/optical/Model.hh"
+#include "celeritas/optical/Types.hh"
 
 namespace celeritas
 {
@@ -57,7 +57,7 @@ class RayleighModel : public Model
     RayleighModel(ActionId id, SPConstImported imported, Input input);
 
     // Build the mean free paths for this model
-    void build_mfps(OpticalMaterialId, MfpBuilder&) const final;
+    void build_mfps(OptMatId, MfpBuilder&) const final;
 
     // Execute the model with host data
     void step(CoreParams const&, CoreStateHost&) const final;

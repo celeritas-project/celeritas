@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "celeritas/ext/GeantPhysicsOptions.hh"
+#include "celeritas/inp/ProcessBuilder.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/io/ImportSBTable.hh"
 
@@ -28,14 +29,6 @@ class ParticleParams;
 struct ImportData;
 struct ImportLivermorePE;
 struct ImportMuPairProductionTable;
-
-//---------------------------------------------------------------------------//
-//! Options used for constructing built-in Celeritas processes
-struct ProcessBuilderOptions
-{
-    bool brem_combined{false};
-    BremsModelSelection brems_selection{BremsModelSelection::all};
-};
 
 //---------------------------------------------------------------------------//
 /*!
@@ -62,25 +55,17 @@ class ProcessBuilder
     //!@{
     //! \name Type aliases
     using IPC = ImportProcessClass;
-    using Options = ProcessBuilderOptions;
     using SPProcess = std::shared_ptr<Process>;
     using SPConstParticle = std::shared_ptr<ParticleParams const>;
     using SPConstMaterial = std::shared_ptr<MaterialParams const>;
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 
-    //! Input argument for user-provided process construction
-    struct UserBuildInput
-    {
-        SPConstMaterial material;
-        SPConstParticle particle;
-        SPConstImported imported;
-    };
-
     //!@{
     //! \name User builder type aliases
-    using UserBuildFunction = std::function<SPProcess(UserBuildInput const&)>;
-    using UserBuildMap = std::unordered_map<IPC, UserBuildFunction>;
+    using UserBuildInput = inp::ProcessBuilderInput;
+    using UserBuildFunction = inp::ProcessBuilderFunction;
+    using UserBuildMap = inp::ProcessBuilderMap;
     //!@}
 
   public:
@@ -92,14 +77,12 @@ class ProcessBuilder
     ProcessBuilder(ImportData const& data,
                    SPConstParticle particle,
                    SPConstMaterial material,
-                   UserBuildMap user_build,
-                   Options options);
+                   UserBuildMap user_build);
 
     // Construct without custom user builders
     ProcessBuilder(ImportData const& data,
                    SPConstParticle particle,
-                   SPConstMaterial material,
-                   Options options);
+                   SPConstMaterial material);
 
     // Default destructor
     ~ProcessBuilder();
@@ -114,13 +97,10 @@ class ProcessBuilder
     UserBuildMap user_build_map_;
     std::function<ImportSBTable(AtomicNumber)> read_sb_;
     std::function<ImportLivermorePE(AtomicNumber)> read_livermore_;
-    std::function<ImportPhysicsVector(AtomicNumber)> read_neutron_elastic_;
+    std::function<inp::Grid(AtomicNumber)> read_neutron_elastic_;
     std::shared_ptr<ImportMuPairProductionTable> mu_pairprod_table_;
 
-    BremsModelSelection selection_;
-    bool brem_combined_;
     bool enable_lpm_;
-    bool use_integral_xs_;
 
     //// HELPER FUNCTIONS ////
 

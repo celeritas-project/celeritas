@@ -22,8 +22,8 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/math/QuantityIO.hh"
 #include "corecel/sys/Environment.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
-#include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/KernelContextException.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -35,23 +35,16 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-bool determine_strip()
-{
-    if (!celeritas::getenv("CELER_STRIP_SOURCEDIR").empty())
-    {
-        return true;
-    }
-    return static_cast<bool>(CELERITAS_DEBUG);
-}
-
-//---------------------------------------------------------------------------//
 //! Try removing up to and including the filename from the reported path.
 std::string strip_source_dir(std::string const& filename)
 {
-    static bool const do_strip = determine_strip();
+    static bool const do_strip = [] {
+        auto result = getenv_flag("CELER_STRIP_SOURCEDIR", !CELERITAS_DEBUG);
+        return result.value;
+    }();
     if (!do_strip)
     {
-        // Don't strip in debug mode
+        // Don't strip in debug builds
         return filename;
     }
 
@@ -109,7 +102,7 @@ void log_state(Logger::Message& msg,
     if (core_params && kce.volume())
     {
         auto const& geo_params = *core_params->geometry();
-        msg << "\n- Volume: " << geo_params.volumes().at(kce.volume())
+        msg << "\n- Volume: " << geo_params.impl_volumes().at(kce.volume())
             << " (ID=" << kce.volume() << ')';
     }
     else
@@ -117,16 +110,7 @@ void log_state(Logger::Message& msg,
         msg << "\n- Volume ID: " << kce.volume();
     }
 
-    if (core_params && kce.surface())
-    {
-        if (auto* geo = dynamic_cast<GeoParamsSurfaceInterface const*>(
-                core_params->geometry().get()))
-        {
-            msg << "\n- Surface: " << geo->surfaces().at(kce.surface())
-                << " (ID=" << kce.surface() << ')';
-        }
-    }
-    else if (kce.surface())
+    if (kce.surface())
     {
         msg << "\n- Surface ID: " << kce.surface();
     }

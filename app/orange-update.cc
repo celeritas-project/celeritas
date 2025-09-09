@@ -10,14 +10,18 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <CLI/CLI.hpp>
 #include <nlohmann/json.hpp>
 
 #include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/io/FileOrConsole.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "orange/OrangeInputIO.json.hh"
+
+#include "CliUtils.hh"
 
 namespace celeritas
 {
@@ -26,19 +30,16 @@ namespace app
 namespace
 {
 //---------------------------------------------------------------------------//
-void print_usage(char const* exec_name)
-{
-    std::cerr << "usage: " << exec_name
-              << " {input}.org.json {output}.org.json\n";
-}
-
-//---------------------------------------------------------------------------//
-std::string run(std::istream* is)
+void run(std::string const& input_file, std::string const& output_file)
 {
     OrangeInput inp;
-    nlohmann::json::parse(*is).get_to(inp);
+    {
+        celeritas::FileOrStdin instream{input_file};
+        nlohmann::json::parse(instream).get_to(inp);
+    }
 
-    return nlohmann::json(inp).dump(/* indent = */ 0);
+    celeritas::FileOrStdout outstream{output_file};
+    outstream << nlohmann::json(inp).dump(/* indent = */ 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -52,80 +53,27 @@ std::string run(std::istream* is)
  */
 int main(int argc, char* argv[])
 {
-    using namespace celeritas;
     using namespace celeritas::app;
 
-    ScopedMpiInit scoped_mpi(&argc, &argv);
+    celeritas::ScopedMpiInit scoped_mpi(&argc, &argv);
     if (scoped_mpi.is_world_multiprocess())
     {
         CELER_LOG(critical) << "This app cannot run in parallel";
         return EXIT_FAILURE;
     }
 
-    std::vector<std::string> args(argv + 1, argv + argc);
-    if (args.size() == 1 && (args.front() == "--help" || args.front() == "-h"))
-    {
-        print_usage(argv[0]);
-        return EXIT_SUCCESS;
-    }
-    if (args.size() != 2)
-    {
-        // Incorrect number of arguments: print help and exit
-        print_usage(argv[0]);
-        return 2;
-    }
+    auto& cli = cli_app();
+    cli.description("Read in and write back an ORANGE JSON file");
 
-    // Set up input/output files
-    std::ifstream infile;
-    std::istream* instream = nullptr;
-    if (args[0] == "-")
-    {
-        instream = &std::cin;
-    }
-    else
-    {
-        // Open the specified file
-        infile.open(args[0]);
-        if (!infile)
-        {
-            CELER_LOG(critical) << "Failed to open '" << args[0] << "'";
-            return EXIT_FAILURE;
-        }
-        instream = &infile;
-    }
+    std::string input_file;
+    std::string output_file;
+    cli.add_option("input", input_file, "Input ORANGE JSON file")
+        ->required()
+        ->check(CLI::ExistingFile | dash_validator());
+    cli.add_option("output", output_file, "Output ORANGE JSON file")
+        ->required()
+        ->check(CLI::ExistingFile | dash_validator());
 
-    std::string result;
-    try
-    {
-        result = celeritas::app::run(instream);
-    }
-    catch (RuntimeError const& e)
-    {
-        CELER_LOG(critical) << "Runtime error: " << e.what();
-        return EXIT_FAILURE;
-    }
-    catch (DebugError const& e)
-    {
-        CELER_LOG(critical) << "Assertion failure: " << e.what();
-        return EXIT_FAILURE;
-    }
-
-    if (args[1] == "-")
-    {
-        std::cout << result;
-    }
-    else
-    {
-        // Open the specified file
-        std::ofstream outfile{args[1]};
-        if (!outfile)
-        {
-            CELER_LOG(critical)
-                << "Failed to open '" << args[1] << "' for writing";
-            return EXIT_FAILURE;
-        }
-        outfile << result;
-    }
-
-    return EXIT_SUCCESS;
+    CELER_CLI11_PARSE(argc, argv);
+    return run_safely(run, input_file, output_file);
 }

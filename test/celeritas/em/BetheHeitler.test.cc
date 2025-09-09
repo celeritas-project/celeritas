@@ -92,8 +92,8 @@ TEST_F(BetheHeitlerInteractorTest, basic)
     this->resize_secondaries(2 * num_samples);
 
     // Get views to the current material and element
-    auto const material = this->material_track().make_material_view();
-    auto const element = material.make_element_view(ElementComponentId{0});
+    auto const material = this->material_track().material_record();
+    auto const element = material.element_record(ElementComponentId{0});
 
     // Create the interactor
     BetheHeitlerInteractor interact(data_,
@@ -171,9 +171,8 @@ TEST_F(BetheHeitlerInteractorTest, stress_test)
             this->resize_secondaries(2 * num_samples);
 
             // Get views to the current material and element
-            auto const material = this->material_track().make_material_view();
-            auto const element
-                = material.make_element_view(ElementComponentId{0});
+            auto const material = this->material_track().material_record();
+            auto const element = material.element_record(ElementComponentId{0});
 
             // Create interactor
             BetheHeitlerInteractor interact(data_,
@@ -214,8 +213,8 @@ TEST_F(BetheHeitlerInteractorTest, distributions)
     this->set_inc_direction(inc_direction);
 
     // Get views to the current material and element
-    auto const material = this->material_track().make_material_view();
-    auto const element = material.make_element_view(ElementComponentId{0});
+    auto const material = this->material_track().material_record();
+    auto const element = material.element_record(ElementComponentId{0});
 
     auto bin_epsilon = [&](real_type inc_energy) -> std::vector<int> {
         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_energy});

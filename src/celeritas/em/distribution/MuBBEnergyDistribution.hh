@@ -11,10 +11,10 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/random/distribution/InverseSquareDistribution.hh"
+#include "corecel/random/distribution/RejectionSampler.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
-#include "celeritas/random/distribution/InverseSquareDistribution.hh"
-#include "celeritas/random/distribution/RejectionSampler.hh"
 
 #include "detail/Utils.hh"
 
@@ -74,7 +74,7 @@ class MuBBEnergyDistribution
   private:
     //// DATA ////
 
-    // Incident partcle mass
+    // Incident particle mass
     real_type inc_mass_;
     // Total energy of the incident particle [MeV]
     real_type total_energy_;

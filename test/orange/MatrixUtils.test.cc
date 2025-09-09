@@ -290,5 +290,41 @@ TEST_F(MatrixUtilsTest, make_arb_rotation)
 }
 
 //---------------------------------------------------------------------------//
+
+TEST_F(MatrixUtilsTest, make_scaling)
+{
+    {
+        auto r = make_scaling(real_type{2.0});
+
+        static double const expected_r[] = {2, 0, 0, 0, 2, 0, 0, 0, 2};
+        EXPECT_VEC_SOFT_EQ(expected_r, flattened(r));
+    }
+    {
+        auto r = make_scaling(Axis::z, real_type{2.0});
+
+        static double const expected_r[] = {1, 0, 0, 0, 1, 0, 0, 0, 2};
+        EXPECT_VEC_SOFT_EQ(expected_r, flattened(r));
+    }
+    {
+        auto r = make_scaling({2, 3, 4});
+
+        static double const expected_r[] = {2, 0, 0, 0, 3, 0, 0, 0, 4};
+        EXPECT_VEC_SOFT_EQ(expected_r, flattened(r));
+    }
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(MatrixUtilsTest, make_reflection)
+{
+    {
+        auto r = make_reflection(Axis::z);
+
+        static double const expected_r[] = {1, 0, 0, 0, 1, 0, 0, 0, -1};
+        EXPECT_VEC_SOFT_EQ(expected_r, flattened(r));
+    }
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

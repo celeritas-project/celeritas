@@ -30,9 +30,9 @@ class MockContextException : public std::exception
 class MultiExceptionHandlerTest : public ::celeritas::test::Test
 {
   protected:
-    MultiExceptionHandlerTest() : store_log_(&celeritas::self_logger()) {}
+    MultiExceptionHandlerTest() : scoped_log_(&celeritas::self_logger()) {}
 
-    ScopedLogStorer store_log_;
+    ScopedLogStorer scoped_log_;
 };
 
 TEST_F(MultiExceptionHandlerTest, single)
@@ -59,18 +59,18 @@ TEST_F(MultiExceptionHandlerTest, multi)
     }
     EXPECT_THROW(log_and_rethrow(std::move(capture_exception)), RuntimeError);
 
-    static char const* const expected_messages[]
-        = {"ignoring exception: test.cc:0:\nceleritas: internal assertion "
-           "failed: false",
-           "ignoring exception: test.cc:1:\nceleritas: internal assertion "
-           "failed: false",
-           "ignoring exception: test.cc:2:\nceleritas: internal assertion "
-           "failed: false"};
-    EXPECT_VEC_EQ(expected_messages, store_log_.messages());
-
+    static char const* const expected_log_messages[] = {
+        R"(Suppressed exception from parallel thread: test.cc:0:
+celeritas: internal assertion failed: false)",
+        R"(Suppressed exception from parallel thread: test.cc:1:
+celeritas: internal assertion failed: false)",
+        R"(Suppressed exception from parallel thread: test.cc:2:
+celeritas: internal assertion failed: false)",
+    };
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
     static char const* const expected_log_levels[]
         = {"critical", "critical", "critical"};
-    EXPECT_VEC_EQ(expected_log_levels, store_log_.levels());
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
 TEST_F(MultiExceptionHandlerTest, multi_nested)
@@ -81,16 +81,25 @@ TEST_F(MultiExceptionHandlerTest, multi_nested)
         capture_exception,
         MockContextException{});
     DebugErrorDetails deets{DebugErrorType::internal, "false", "test.cc", 2};
-    CELER_TRY_HANDLE_CONTEXT(throw DebugError(std::move(deets)),
-                             capture_exception,
-                             MockContextException{});
+    for (auto i = 0; i < 4; ++i)
+    {
+        CELER_TRY_HANDLE_CONTEXT(throw DebugError(std::move(deets)),
+                                 capture_exception,
+                                 MockContextException{});
+    }
+
     EXPECT_THROW(log_and_rethrow(std::move(capture_exception)),
                  MockContextException);
 
-    static char const* const expected_messages[]
-        = {"ignoring exception: test.cc:2:\nceleritas: internal assertion "
-           "failed: false\n... from: some context"};
-    EXPECT_VEC_EQ(expected_messages, store_log_.messages());
+    static char const* const expected_log_messages[] = {
+        R"(Suppressed exception from parallel thread: test.cc:2:
+celeritas: internal assertion failed: false
+... from some context)",
+        "Suppressed 3 similar exceptions",
+    };
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    static char const* const expected_log_levels[] = {"critical", "warning"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
 // Failure case can't be tested as part of the rest of the suite

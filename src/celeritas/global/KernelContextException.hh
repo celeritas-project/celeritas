@@ -86,9 +86,9 @@ class KernelContextException : public RichContextException
     //! Direction
     Real3 const& dir() const { return dir_; }
     //! Volume ID
-    VolumeId volume() const { return volume_; }
+    ImplVolumeId volume() const { return volume_; }
     //! Surface
-    SurfaceId surface() const { return surface_; }
+    ImplSurfaceId surface() const { return surface_; }
     //!@}
 
     //! Label of the kernel that died
@@ -105,8 +105,8 @@ class KernelContextException : public RichContextException
     Energy energy_;
     Real3 pos_;
     Real3 dir_;
-    VolumeId volume_;
-    SurfaceId surface_;
+    ImplVolumeId volume_;
+    ImplSurfaceId surface_;
 
     std::string label_;
     std::string what_;

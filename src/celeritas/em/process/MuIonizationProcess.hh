@@ -36,8 +36,6 @@ class MuIonizationProcess : public Process
         Energy bragg_icru73qo_upper_limit{0.2};  //!< 200 keV
         //! Maximum energy for the Bethe-Bloch model
         Energy bethe_bloch_upper_limit{1e3};  //!< 1 GeV
-        //! Use integral method for sampling discrete interaction length
-        bool use_integral_xs{true};
     };
 
   public:
@@ -50,10 +48,13 @@ class MuIonizationProcess : public Process
     VecModel build_models(ActionIdIter start_id) const final;
 
     // Get the interaction cross sections for the given energy range
-    StepLimitBuilders step_limits(Applicability applicability) const final;
+    XsGrid macro_xs(Applicability range) const final;
 
-    //! Whether to use the integral method to sample interaction length
-    bool use_integral_xs() const final { return options_.use_integral_xs; }
+    // Get the energy loss for the given energy range
+    EnergyLossGrid energy_loss(Applicability range) const final;
+
+    //! Whether the integral method can be used to sample interaction length
+    bool supports_integral_xs() const final { return true; }
 
     //! Whether the process applies when the particle is stopped
     bool applies_at_rest() const final { return imported_.applies_at_rest(); }

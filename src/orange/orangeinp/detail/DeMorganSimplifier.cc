@@ -14,9 +14,10 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/orangeinp/CsgTree.hh"
-#include "orange/orangeinp/CsgTreeUtils.hh"
-#include "orange/orangeinp/CsgTypes.hh"
+
+#include "../CsgTree.hh"
+#include "../CsgTreeUtils.hh"
+#include "../CsgTypes.hh"
 
 namespace celeritas
 {
@@ -57,9 +58,11 @@ size_type DeMorganSimplifier::Matrix2D::extent() const noexcept
 
 //---------------------------------------------------------------------------//
 /*!
+ * Find the simplified node corresponding to the original node.
+ *
  * For node_id in the original tree, find the equivalent node in the simplified
- * tree, i.e., either the DeMorgan simplification or the same node, return an
- * invalid id if there are no equivalent.
+ * tree, i.e., either the DeMorgan simplification or the same node. Return a
+ * null id if there are no equivalent.
  */
 NodeId DeMorganSimplifier::MatchingNodes::equivalent_node() const
 {

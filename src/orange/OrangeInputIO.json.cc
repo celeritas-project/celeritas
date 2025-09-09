@@ -15,11 +15,13 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
+#include "corecel/OpaqueIdIO.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/LabelIO.json.hh"
@@ -65,24 +67,6 @@ VariantTransform make_transform(Real3 const& translation)
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert a vector of variants to a json array.
- */
-template<class T>
-nlohmann::json variants_to_json(std::vector<T> const& values)
-{
-    auto result = nlohmann::json::array();
-    for (auto const& var : values)
-    {
-        auto j = nlohmann::json::object();
-        std::visit([&j](auto&& u) { to_json(j, u); }, var);
-        result.push_back(std::move(j));
-    }
-
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get the bounding box or infinite if not there.
  */
 BBox get_bbox(nlohmann::json const& j)
@@ -104,14 +88,7 @@ BBox get_bbox(nlohmann::json const& j)
 void from_json(nlohmann::json const& j, VolumeInput& value)
 {
     // Convert faces to OpaqueId
-    std::vector<LocalSurfaceId::size_type> temp_faces;
-    j.at("faces").get_to(temp_faces);
-    value.faces.reserve(temp_faces.size());
-    for (auto surf_id : temp_faces)
-    {
-        CELER_ASSERT(surf_id != LocalSurfaceId{}.unchecked_get());
-        value.faces.emplace_back(surf_id);
-    }
+    j.at("faces").get_to(value.faces);
 
     // Read scalars, including optional flags
     if (auto iter = j.find("flags"); iter != j.end())
@@ -178,14 +155,8 @@ void to_json(nlohmann::json& j, VolumeInput const& value)
 {
     CELER_EXPECT(value);
 
-    // Convert faces from OpaqueId
-    std::vector<LocalSurfaceId::size_type> temp_faces;
-    temp_faces.reserve(value.faces.size());
-    for (auto surf_id : value.faces)
-    {
-        temp_faces.emplace_back(surf_id.unchecked_get());
-    }
-    j["faces"] = std::move(temp_faces);
+    // Convert faces from OpaqueId (using JsonUtils)
+    j["faces"] = value.faces;
 
     // Convert logic string to vector
     if (!value.logic.empty())
@@ -206,6 +177,26 @@ void to_json(nlohmann::json& j, VolumeInput const& value)
     {
         j["zorder"] = std::string(1, to_char(value.zorder));
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Read background metadata from an ORANGE JSON file.
+ */
+void from_json(nlohmann::json const& j, BackgroundInput& value)
+{
+    CELER_JSON_LOAD_REQUIRED(j, value, label);
+    CELER_JSON_LOAD_REQUIRED(j, value, volume);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write background metadata to an ORANGE JSON file.
+ */
+void to_json(nlohmann::json& j, BackgroundInput const& value)
+{
+    CELER_JSON_SAVE(j, value, label);
+    CELER_JSON_SAVE(j, value, volume);
 }
 
 //---------------------------------------------------------------------------//
@@ -318,6 +309,8 @@ void from_json(nlohmann::json const& j, UnitInput& value)
                                        std::move(daughter));
         }
     }
+
+    CELER_JSON_LOAD_OPTION(j, value, background);
 }
 
 //---------------------------------------------------------------------------//
@@ -343,7 +336,8 @@ void to_json(nlohmann::json& j, UnitInput const& value)
         auto volume_labels = nlohmann::json::array();
         for (auto const& v : value.volumes)
         {
-            volume_labels.push_back(v.label);
+            volume_labels.push_back(std::visit(
+                [](auto&& obj) -> nlohmann::json { return obj; }, v.label));
         }
         return volume_labels;
     }();
@@ -373,6 +367,8 @@ void to_json(nlohmann::json& j, UnitInput const& value)
         j["daughters"] = std::move(daughters);
         j["transforms"] = std::move(transforms);
     }
+
+    CELER_JSON_SAVE_WHEN(j, value, background, value.background);
 }
 
 //---------------------------------------------------------------------------//

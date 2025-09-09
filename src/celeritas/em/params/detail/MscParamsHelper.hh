@@ -18,7 +18,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ParticleParams;
-struct XsGridData;
+struct UniformGridRecord;
 
 namespace detail
 {
@@ -36,7 +36,8 @@ class MscParamsHelper
     using VecImportMscModel = std::vector<ImportMscModel>;
     using IndexValues
         = Collection<MscParticleId, Ownership::value, MemSpace::host, ParticleId>;
-    using XsValues = Collection<XsGridData, Ownership::value, MemSpace::host>;
+    using XsValues
+        = Collection<UniformGridRecord, Ownership::value, MemSpace::host>;
     using Values = Collection<real_type, Ownership::value, MemSpace::host>;
     //!@}
 

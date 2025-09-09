@@ -196,6 +196,7 @@ TEST_F(StatusCheckerTest, host)
 
 TEST_F(StatusCheckerTest, TEST_IF_CELER_DEVICE(device))
 {
+    device().create_streams(1);
     CoreState<MemSpace::device> state{*this->core(), StreamId{0}, 128};
     this->begin_run(state);
     this->insert_primaries(state, make_span(this->make_primaries(64)));

@@ -17,6 +17,7 @@
 #include <utility>
 #include <vector>
 #include <CLHEP/Units/SystemOfUnits.h>
+#include <G4Cerenkov.hh>
 #include <G4Element.hh>
 #include <G4ElementTable.hh>
 #include <G4ElementVector.hh>
@@ -48,6 +49,7 @@
 #include <G4RToEConvForProton.hh>
 #include <G4Region.hh>
 #include <G4RegionStore.hh>
+#include <G4Scintillation.hh>
 #include <G4String.hh>
 #include <G4Transportation.hh>
 #include <G4TransportationManager.hh>
@@ -59,20 +61,33 @@
 #include <G4VRangeToEnergyConverter.hh>
 #include <G4Version.hh>
 
+#include "celeritas/io/ImportUnits.hh"
+#if G4VERSION_NUMBER >= 1070
+#    include <G4OpWLS2.hh>
+#    include <G4OpticalParameters.hh>
+#endif
+
 #include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/PdfUtils.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TypeDemangler.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
-#include "geocel/g4/VisitGeantVolumes.hh"
+#include "geocel/VolumeParams.hh"
+#include "geocel/inp/Model.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/inp/Grid.hh"
 #include "celeritas/io/AtomicRelaxationReader.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/LivermorePEReader.hh"
@@ -85,6 +100,7 @@
 #include "detail/GeantMaterialPropertyGetter.hh"
 #include "detail/GeantOpticalModelImporter.hh"
 #include "detail/GeantProcessImporter.hh"
+#include "detail/GeantSurfacePhysicsLoader.hh"
 
 inline constexpr double mev_scale = 1 / CLHEP::MeV;
 inline constexpr celeritas::PDGNumber g4_photon_pdg{-22};
@@ -203,7 +219,7 @@ fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
     {
         bool any_found = false;
         auto get = [&](double* dst, std::string const& ext, ImportUnits u) {
-            any_found = get_property(dst, prefix + ext, comp_idx, u);
+            any_found |= get_property(dst, prefix + ext, comp_idx, u);
         };
 
         ImportScintComponent comp;
@@ -215,11 +231,38 @@ fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
 
         // Rise time is not defined for particle type in Geant4
         get(&comp.rise_time, "RISETIME", ImportUnits::time);
-
         get(&comp.fall_time, "TIMECONSTANT", ImportUnits::time);
 
         if (any_found)
         {
+            if (comp.lambda_mean == 0)
+            {
+                // Geant4 uses a tabulated distribution for the scintillation
+                // wavelength, while Celeritas samples from a Gaussian
+                // distribution with user-provided mean and standard deviation.
+                // If these custom-defined properties aren't found, try getting
+                // the Geant4-defined property and estimating the distribution
+                // parameters from the tabulated values.
+                inp::Grid grid;
+                auto name = prefix + "COMPONENT" + std::to_string(comp_idx);
+                if (get_property(
+                        &grid, name, {ImportUnits::len, ImportUnits::unitless}))
+                {
+                    auto const& grid_cref = grid;
+                    auto moments = MomentCalculator{}(make_span(grid_cref.x),
+                                                      make_span(grid_cref.y));
+                    comp.lambda_mean = moments.mean;
+                    comp.lambda_sigma = std::sqrt(moments.variance);
+
+                    CELER_LOG(info)
+                        << "Estimated custom properties " << prefix
+                        << "LAMBDAMEAN" << comp_idx << "=" << comp.lambda_mean
+                        << " and " << prefix << "LAMBDASIGMA" << comp_idx
+                        << "=" << comp.lambda_sigma
+                        << " from Geant4-defined property " << name;
+                }
+            }
+
             // Note that the user may be missing some properties: in that case
             // (if Geant4 didn't warn/error/die already) then we will rely on
             // the downstream code to validate.
@@ -466,7 +509,7 @@ std::vector<ImportElement> import_elements()
  * material ID".
  */
 std::vector<ImportOpticalMaterial>
-import_optical(detail::GeoOpticalIdMap const& geo_to_opt)
+import_optical_materials(detail::GeoOpticalIdMap const& geo_to_opt)
 {
     if (geo_to_opt.empty())
     {
@@ -482,7 +525,7 @@ import_optical(detail::GeoOpticalIdMap const& geo_to_opt)
     std::vector<ImportOpticalMaterial> result(geo_to_opt.num_optical());
 
     // Loop over optical materials
-    for (auto geo_mat_id : range(GeoMaterialId{geo_to_opt.num_geo()}))
+    for (auto geo_mat_id : range(GeoMatId{geo_to_opt.num_geo()}))
     {
         auto opt_mat_id = geo_to_opt[geo_mat_id];
         if (!opt_mat_id)
@@ -492,8 +535,7 @@ import_optical(detail::GeoOpticalIdMap const& geo_to_opt)
         // Get Geant4 material properties
         G4Material const* material = mt[geo_mat_id.get()];
         CELER_ASSERT(material);
-        CELER_ASSERT(geo_mat_id
-                     == id_cast<GeoMaterialId>(material->GetIndex()));
+        CELER_ASSERT(geo_mat_id == id_cast<GeoMatId>(material->GetIndex()));
         auto const* mpt = material->GetMaterialPropertiesTable();
         CELER_ASSERT(mpt);
 
@@ -504,9 +546,10 @@ import_optical(detail::GeoOpticalIdMap const& geo_to_opt)
         CELER_ASSERT(!optical);
 
         // Save common properties
-        bool has_rindex = get_property(&optical.properties.refractive_index,
-                                       "RINDEX",
-                                       ImportUnits::unitless);
+        bool has_rindex
+            = get_property(&optical.properties.refractive_index,
+                           "RINDEX",
+                           {ImportUnits::mev, ImportUnits::unitless});
         // Existence of RINDEX should correspond to GeoOpticalIdMap
         // construction
         CELER_ASSERT(has_rindex);
@@ -527,7 +570,7 @@ import_optical(detail::GeoOpticalIdMap const& geo_to_opt)
             ImportScintData::IPSS scint_part_spec;
             get_property(&scint_part_spec.yield_vector,
                          prefix + "SCINTILLATIONYIELD",
-                         ImportUnits::inv_mev);
+                         {ImportUnits::mev, ImportUnits::inv_mev});
             scint_part_spec.components
                 = fill_vec_import_scint_comp(get_property, prefix);
 
@@ -545,6 +588,30 @@ import_optical(detail::GeoOpticalIdMap const& geo_to_opt)
         get_property(&optical.rayleigh.compressibility,
                      "ISOTHERMAL_COMPRESSIBILITY",
                      ImportUnits::len_time_sq_per_mass);
+        if (optical.rayleigh.compressibility == 0
+            && material->GetName() == "Water")
+        {
+            // Use special default hardcoded value for water
+            // in G4OpRayleigh::CalculateRayleighMeanFreePaths
+            using CLHEP::m3;
+            using CLHEP::MeV;
+            double const betat = 7.658e-23 * m3 / MeV;
+            optical.rayleigh.compressibility
+                = betat
+                  * native_value_from_clhep(ImportUnits::len_time_sq_per_mass);
+            CELER_LOG(info) << "Setting compressibility of water to "
+                            << optical.rayleigh.compressibility << " m^2/N";
+
+            if (!soft_equal(material->GetTemperature(), 283.15 * CLHEP::kelvin))
+            {
+                CELER_LOG(warning)
+                    << "Geant4 Rayleigh optical scattering ignores material "
+                       "temperature for Water (overriding "
+                    << material->GetTemperature()
+                    << " K with 283.15 K) if no `RAYLEIGH` mean free paths "
+                       "are provided";
+            }
+        }
 
         // Save WLS properties
         get_property(&optical.wls.mean_num_photons,
@@ -552,13 +619,64 @@ import_optical(detail::GeoOpticalIdMap const& geo_to_opt)
                      ImportUnits::unitless);
         get_property(
             &optical.wls.time_constant, "WLSTIMECONSTANT", ImportUnits::time);
+        get_property(&optical.wls.component,
+                     "WLSCOMPONENT",
+                     {ImportUnits::mev, ImportUnits::unitless});
+
+        // Save WLS2 properties
+        get_property(&optical.wls2.mean_num_photons,
+                     "WLSMEANNUMBERPHOTONS2",
+                     ImportUnits::unitless);
         get_property(
-            &optical.wls.component, "WLSCOMPONENT", ImportUnits::unitless);
+            &optical.wls2.time_constant, "WLSTIMECONSTANT2", ImportUnits::time);
+        get_property(&optical.wls2.component,
+                     "WLSCOMPONENT2",
+                     {ImportUnits::mev, ImportUnits::unitless});
 
         CELER_ASSERT(optical);
     }
 
     CELER_LOG(debug) << "Loaded " << result.size() << " optical materials";
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Import optical surface physics information.
+ */
+inp::OpticalPhysics import_optical_physics()
+{
+    inp::OpticalPhysics result;
+    auto geo = celeritas::global_geant_geo().lock();
+    CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
+
+    MultiExceptionHandler handle;
+    detail::GeantSurfacePhysicsLoader load_surface(result.surfaces);
+    for (auto sid : range(SurfaceId(geo->num_surfaces())))
+    {
+        CELER_TRY_HANDLE(load_surface(sid), handle);
+    }
+    log_and_rethrow(std::move(handle));
+
+    // Default Geant4 surface
+    size_type num_phys_surfaces{0};
+    for (auto const& mats : result.surfaces.materials)
+    {
+        num_phys_surfaces += mats.size() + 1;
+    }
+    PhysSurfaceId default_surface(num_phys_surfaces);
+    result.surfaces.materials.push_back({});
+    result.surfaces.roughness.polished.emplace(default_surface,
+                                               inp::NoRoughness{});
+    result.surfaces.reflectivity.fresnel.emplace(default_surface,
+                                                 inp::FresnelReflection{});
+    result.surfaces.interaction.dielectric_dielectric.emplace(
+        default_surface, inp::ReflectionForm::from_spike());
+
+    CELER_LOG(debug) << "Loaded " << result.surfaces.materials.size()
+                     << " optical surfaces (" << num_phys_surfaces
+                     << " physics surfaces)";
+    CELER_ENSURE(result || (geo->num_surfaces() == 0));
     return result;
 }
 
@@ -701,7 +819,7 @@ import_phys_materials(GeantImporter::DataSelection::Flags particle_flags,
         if (!geo_to_opt.empty())
         {
             if (auto opt_id
-                = geo_to_opt[id_cast<GeoMaterialId>(g4material->GetIndex())])
+                = geo_to_opt[id_cast<GeoMatId>(g4material->GetIndex())])
             {
                 // Assign the optical material corresponding to the geometry
                 // material
@@ -772,7 +890,7 @@ std::vector<ImportRegion> import_regions()
 /*!
  * Return a populated \c ImportProcess vector.
  */
-auto import_processes(GeantImporter::DataSelection::Flags process_flags,
+auto import_processes(GeantImporter::DataSelection selected,
                       std::vector<ImportParticle> const& particles,
                       std::vector<ImportElement> const& elements,
                       std::vector<ImportPhysMaterial> const& materials,
@@ -781,8 +899,8 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
                   std::vector<ImportMscModel>,
                   std::vector<ImportOpticalModel>>
 {
-    ParticleFilter include_particle{process_flags};
-    ProcessFilter include_process{process_flags};
+    ParticleFilter include_particle{selected.processes};
+    ProcessFilter include_process{selected.processes};
 
     std::vector<ImportProcess> processes;
     std::vector<ImportMscModel> msc_models;
@@ -790,7 +908,8 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
 
     static celeritas::TypeDemangler<G4VProcess> const demangle_process;
     std::unordered_map<G4VProcess const*, G4ParticleDefinition const*> visited;
-    detail::GeantProcessImporter import_process(materials, elements);
+    detail::GeantProcessImporter import_process(
+        materials, elements, selected.interpolation);
     detail::GeantOpticalModelImporter import_optical_model(geo_to_opt);
 
     auto append_process = [&](G4ParticleDefinition const& particle,
@@ -849,23 +968,36 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
                               std::make_move_iterator(new_msc_models.begin()),
                               std::make_move_iterator(new_msc_models.end()));
         }
-        else if (import_optical_model)
+        else if (import_optical_model
+                 && dynamic_cast<G4OpAbsorption const*>(&process))
         {
-            if (dynamic_cast<G4OpAbsorption const*>(&process))
-            {
-                optical_models.push_back(import_optical_model(
-                    optical::ImportModelClass::absorption));
-            }
-            else if (dynamic_cast<G4OpRayleigh const*>(&process))
-            {
-                optical_models.push_back(
-                    import_optical_model(optical::ImportModelClass::rayleigh));
-            }
-            else if (dynamic_cast<G4OpWLS const*>(&process))
-            {
-                optical_models.push_back(
-                    import_optical_model(optical::ImportModelClass::wls));
-            }
+            optical_models.push_back(
+                import_optical_model(optical::ImportModelClass::absorption));
+        }
+        else if (import_optical_model
+                 && dynamic_cast<G4OpRayleigh const*>(&process))
+        {
+            optical_models.push_back(
+                import_optical_model(optical::ImportModelClass::rayleigh));
+        }
+        else if (import_optical_model && dynamic_cast<G4OpWLS const*>(&process))
+        {
+            optical_models.push_back(
+                import_optical_model(optical::ImportModelClass::wls));
+        }
+#if G4VERSION_NUMBER >= 1070
+        else if (import_optical_model
+                 && dynamic_cast<G4OpWLS2 const*>(&process))
+        {
+            optical_models.push_back(
+                import_optical_model(optical::ImportModelClass::wls2));
+        }
+#endif
+        else if (dynamic_cast<G4Cerenkov const*>(&process)
+                 || dynamic_cast<G4Scintillation const*>(&process))
+        {
+            // The data needed for Cherenkov and scintillation is imported from
+            // the optical material property table
         }
         else
         {
@@ -897,15 +1029,45 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
             G4VProcess const& process = *process_list[j];
             if (!include_process(process.GetProcessType()))
             {
-                CELER_LOG(debug)
-                    << "Filtered process '" << process.GetProcessName() << "'";
                 continue;
             }
 
             append_process(*g4_particle_def, process);
         }
     }
+
+    // Optical photon PDG in Geant4 is 0 before version 10.7
+    if (G4VERSION_NUMBER < 1070
+        && G4ParticleTable::GetParticleTable()->FindParticle("opticalphoton"))
+    {
+        auto* photon_def = G4OpticalPhoton::OpticalPhoton();
+        CELER_ASSERT(photon_def);
+
+        if (!include_particle(g4_photon_pdg))
+        {
+            CELER_LOG(debug) << "Filtered all processes from particle '"
+                             << photon_def->GetParticleName() << "'";
+        }
+        else
+        {
+            G4ProcessVector const& process_list
+                = *photon_def->GetProcessManager()->GetProcessList();
+
+            for (auto j : range(process_list.size()))
+            {
+                G4VProcess const& process = *process_list[j];
+                if (!include_process(process.GetProcessType()))
+                {
+                    continue;
+                }
+
+                append_process(*photon_def, process);
+            }
+        }
+    }
+
     CELER_LOG(debug) << "Loaded " << processes.size() << " processes";
+    CELER_LOG(debug) << "Loaded " << optical_models.size() << " optical models";
     return {
         std::move(processes), std::move(msc_models), std::move(optical_models)};
 }
@@ -978,6 +1140,39 @@ import_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
 
     CELER_ENSURE(result);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Import optical parameters.
+ */
+ImportOpticalParameters import_optical_parameters()
+{
+    ImportOpticalParameters iop;
+
+#if G4VERSION_NUMBER >= 1070
+    auto* params = G4OpticalParameters::Instance();
+    CELER_ASSERT(params);
+
+    auto to_enum = [](std::string time_profile) {
+        if (time_profile == "delta")
+        {
+            return WlsTimeProfile::delta;
+        }
+        if (time_profile == "exponential")
+        {
+            return WlsTimeProfile::exponential;
+        }
+        CELER_ASSERT_UNREACHABLE();
+    };
+    iop.wls_time_profile = to_enum(params->GetWLSTimeProfile());
+    iop.wls2_time_profile = to_enum(params->GetWLS2TimeProfile());
+
+    //! \todo Set \c scintillation_by_particle when supported
+    //! \todo For older Geant4 versions, set based on user input?
+#endif
+
+    return iop;
 }
 
 //---------------------------------------------------------------------------//
@@ -1056,9 +1251,8 @@ ImportMuPairProductionTable import_mupp_table(PDGNumber pdg)
             if (G4Physics2DVector const* pv = el_data->GetElement2DData(z))
             {
                 result.atomic_number.push_back(z);
-                result.physics_vectors.push_back(
-                    detail::import_physics_2dvector(
-                        *pv, {IU::unitless, IU::mev, IU::mev_len_sq}));
+                result.grids.push_back(detail::import_physics_2dvector(
+                    *pv, {IU::unitless, IU::mev, IU::mev_len_sq}));
             }
         }
     }
@@ -1071,7 +1265,7 @@ ImportMuPairProductionTable import_mupp_table(PDGNumber pdg)
         {
             G4Physics2DVector const* pv = el_data->GetElement2DData(i);
             CELER_ASSERT(pv);
-            result.physics_vectors.push_back(detail::import_physics_2dvector(
+            result.grids.push_back(detail::import_physics_2dvector(
                 *pv, {IU::unitless, IU::mev, IU::mev_len_sq}));
         }
     }
@@ -1081,30 +1275,60 @@ ImportMuPairProductionTable import_mupp_table(PDGNumber pdg)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace
+/*!
+ * Return a populated \c ImportVolume vector.
+ */
+std::vector<ImportVolume> import_volumes()
+{
+    auto geo = celeritas::global_geant_geo().lock();
+    CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
+
+    VolumeParams volume_params{geo->make_model_input().volumes};
+
+    auto const& volumes = volume_params.volume_labels();
+    std::vector<ImportVolume> result(volumes.size());
+    size_type count{0};
+
+    for (auto vol_id : range(VolumeId{volumes.size()}))
+    {
+        auto* g4lv = geo->id_to_geant(vol_id);
+        if (!g4lv)
+            continue;
+
+        ImportVolume& volume = result[vol_id.get()];
+        if (auto* mat = g4lv->GetMaterial())
+        {
+            volume.geo_material_id = mat->GetIndex();
+        }
+        if (auto* reg = g4lv->GetRegion())
+        {
+            volume.region_id = reg->GetInstanceID();
+        }
+        if (auto* cuts = g4lv->GetMaterialCutsCouple())
+        {
+            volume.phys_material_id = cuts->GetIndex();
+        }
+        volume.name = to_string(volume_params.volume_labels().at(vol_id));
+        volume.solid_name = g4lv->GetSolid()->GetName();
+
+        ++count;
+    }
+
+    CELER_LOG(debug) << "Loaded " << count << " of " << result.size()
+                     << " volumes";
+    return result;
+}
 
 //---------------------------------------------------------------------------//
-/*!
- * Get an externally loaded Geant4 top-level geometry element.
- *
- * This is only defined if Geant4 has already been set up. It's meant to be
- * used in concert with GeantImporter or other Geant-importing classes.
- */
-G4VPhysicalVolume const* GeantImporter::get_world_volume()
-{
-    auto* world = celeritas::geant_world_volume();
-    CELER_VALIDATE(world,
-                   << "no world volume has been defined in the navigator");
-    return world;
-}
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct from an existing Geant4 geometry, assuming physics is loaded.
  */
-GeantImporter::GeantImporter(G4VPhysicalVolume const* world) : world_(world)
+GeantImporter::GeantImporter()
 {
-    CELER_EXPECT(world_);
+    CELER_EXPECT(!celeritas::global_geant_geo().expired());
 }
 
 //---------------------------------------------------------------------------//
@@ -1114,8 +1338,7 @@ GeantImporter::GeantImporter(G4VPhysicalVolume const* world) : world_(world)
 GeantImporter::GeantImporter(GeantSetup&& setup) : setup_(std::move(setup))
 {
     CELER_EXPECT(setup_);
-    world_ = setup_.world();
-    CELER_ENSURE(world_);
+    CELER_EXPECT(!celeritas::global_geant_geo().expired());
 }
 
 //---------------------------------------------------------------------------//
@@ -1157,7 +1380,8 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
             {
                 geo_to_opt
                     = detail::GeoOpticalIdMap(*G4Material::GetMaterialTable());
-                imported.optical_materials = import_optical(geo_to_opt);
+                imported.optical_materials
+                    = import_optical_materials(geo_to_opt);
             }
 
             imported.isotopes = import_isotopes();
@@ -1171,7 +1395,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
             std::tie(imported.processes,
                      imported.msc_models,
                      imported.optical_models)
-                = import_processes(selected.processes,
+                = import_processes(selected,
                                    imported.particles,
                                    imported.elements,
                                    imported.phys_materials,
@@ -1181,16 +1405,22 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
             {
                 auto mu_minus = import_mupp_table(pdg::mu_minus());
                 auto mu_plus = import_mupp_table(pdg::mu_plus());
-                CELER_VALIDATE(
-                    mu_minus.atomic_number == mu_plus.atomic_number
-                        && mu_minus.physics_vectors == mu_plus.physics_vectors,
-                    << "muon pair production sampling tables for "
-                       "mu- and mu+ differ");
+                CELER_VALIDATE(mu_minus.atomic_number == mu_plus.atomic_number
+                                   && mu_minus.grids == mu_plus.grids,
+                               << "muon pair production sampling tables for "
+                                  "mu- and mu+ differ");
                 imported.mu_pair_production_data = std::move(mu_minus);
             }
         }
+        if (selected.unique_volumes)
+        {
+            // TODO: remove in v0.7
+            CELER_LOG(warning)
+                << R"(DEPRECATED: volumes are always reproducibly uniquified)";
+        }
+
         imported.regions = import_regions();
-        imported.volumes = import_volumes(*world_, selected.unique_volumes);
+        imported.volumes = import_volumes();
         if (selected.particles != DataSelection::none)
         {
             imported.trans_params = import_trans_parameters(selected.particles);
@@ -1198,6 +1428,11 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         if (selected.processes & DataSelection::em)
         {
             imported.em_params = import_em_parameters();
+        }
+        if (selected.processes & DataSelection::optical)
+        {
+            imported.optical_params = import_optical_parameters();
+            imported.optical_physics = import_optical_physics();
         }
     }
 
@@ -1214,7 +1449,8 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         }
         if (have_process(ImportProcessClass::photoelectric))
         {
-            imported.livermore_pe_data = load_data(LivermorePEReader{});
+            imported.livermore_pe_data
+                = load_data(LivermorePEReader{selected.interpolation});
         }
         if (G4EmParameters::Instance()->Fluo())
         {
@@ -1231,68 +1467,6 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
 
     imported.units = units::NativeTraits::label();
     return imported;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return a populated \c ImportVolume vector.
- */
-std::vector<ImportVolume>
-import_volumes(G4VPhysicalVolume const& world, bool unique_volumes)
-{
-    // Note: if the LV has been purged (i.e. by trying to run multiple
-    // geometries in the same execution), the instance ID's won't correspond to
-    // the location in the vector.
-    G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
-    CELER_ASSERT(lv_store);
-    std::vector<ImportVolume> result;
-    result.reserve(lv_store->size());
-
-    // Recursive loop over all logical volumes to populate volumes
-    int count = 0;
-    visit_geant_volumes(
-        [unique_volumes, &result, &count](G4LogicalVolume const& lv) {
-            auto i = static_cast<std::size_t>(lv.GetInstanceID());
-            if (i >= result.size())
-            {
-                result.resize(i + 1);
-            }
-            ++count;
-
-            ImportVolume& volume = result[lv.GetInstanceID()];
-            if (auto* mat = lv.GetMaterial())
-            {
-                volume.geo_material_id = mat->GetIndex();
-            }
-            if (auto* reg = lv.GetRegion())
-            {
-                volume.region_id = reg->GetInstanceID();
-            }
-            if (auto* cuts = lv.GetMaterialCutsCouple())
-            {
-                volume.phys_material_id = cuts->GetIndex();
-            }
-            volume.name = lv.GetName();
-            volume.solid_name = lv.GetSolid()->GetName();
-
-            if (volume.name.empty())
-            {
-                CELER_LOG(warning)
-                    << "No logical volume name specified for instance ID " << i
-                    << " (material " << volume.phys_material_id << ")";
-            }
-            else if (unique_volumes)
-            {
-                // Add pointer as GDML writer does
-                volume.name = make_gdml_name(lv);
-            }
-        },
-        world);
-
-    CELER_LOG(debug) << "Loaded " << count << " volumes with "
-                     << (unique_volumes ? "uniquified" : "original")
-                     << " names";
-    return result;
 }
 
 //---------------------------------------------------------------------------//

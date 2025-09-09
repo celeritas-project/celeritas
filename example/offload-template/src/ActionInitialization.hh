@@ -2,12 +2,16 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file example/offload-template/src/ActionInitialization.hh
+//! \file offload-template/src/ActionInitialization.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <G4VUserActionInitialization.hh>
 
+namespace celeritas
+{
+namespace example
+{
 //---------------------------------------------------------------------------//
 /*!
  * Initialize all user action classes, set up Celeritas offloading interface,
@@ -26,3 +30,5 @@ class ActionInitialization final : public G4VUserActionInitialization
     // Worker thread actions and Celeritas offload interface
     void Build() const final;
 };
+}  // namespace example
+}  // namespace celeritas

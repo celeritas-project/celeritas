@@ -56,8 +56,6 @@ enum class PhysicsListSelection
 //---------------------------------------------------------------------------//
 /*!
  * Input for a single run.
- *
- * TODO: field type should be std::variant
  */
 struct RunInput
 {
@@ -79,14 +77,13 @@ struct RunInput
     PrimaryGeneratorOptions primary_options;
 
     // Control
-    size_type num_track_slots{};
+    size_type num_track_slots{};  //!< Defaults to 2^18 on device, 2^10 on host
     size_type max_steps{unspecified};
-    size_type initializer_capacity{};
+    size_type initializer_capacity{};  //!< Defaults to 8 * num_track_slots
     real_type secondary_stack_factor{2};
     size_type auto_flush{};  //!< Defaults to num_track_slots
 
     bool action_times{false};
-    bool default_stream{false};  //!< Launch all kernels on the default stream
 
     // Track reordering options
     TrackOrder track_order{Device::num_devices() ? TrackOrder::init_charge
@@ -95,6 +92,8 @@ struct RunInput
     // Physics setup options
     PhysicsListSelection physics_list{PhysicsListSelection::celer_ftfp_bert};
     GeantPhysicsOptions physics_options;
+    InterpolationType interpolation{InterpolationType::linear};
+    size_type poly_spline_order{1};
 
     // Field setup options
     std::string field_type{"uniform"};
@@ -115,6 +114,7 @@ struct RunInput
     bool step_diagnostic{false};
     int step_diagnostic_bins{1000};
     std::string slot_diagnostic_prefix;
+    std::string tracing_file;
 
     // Whether the run arguments are valid
     explicit operator bool() const;

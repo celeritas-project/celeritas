@@ -11,6 +11,7 @@
 #include "corecel/Types.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/user/StepData.hh"
 
 namespace celeritas
 {
@@ -45,8 +46,9 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
     CELER_EXPECT(params && state);
 
     {
-        auto const sim = track.make_sim_view();
-        bool inactive = (sim.status() == TrackStatus::inactive);
+        auto const sim = track.sim();
+        bool inactive = (sim.status() == TrackStatus::inactive
+                         || sim.status() == TrackStatus::errored);
 
         if (P == StepPoint::post)
         {
@@ -74,9 +76,9 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
         // stepping)
         if (P == StepPoint::pre)
         {
-            auto const geo = track.make_geo_view();
+            auto const geo = track.geometry();
             CELER_ASSERT(!geo.is_outside());
-            VolumeId vol = geo.volume_id();
+            ImplVolumeId vol = geo.impl_volume_id();
             CELER_ASSERT(vol);
 
             // Map volume ID to detector ID
@@ -93,7 +95,7 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
         if (P == StepPoint::post && this->params.nonzero_energy_deposition)
         {
             // Filter out tracks that didn't deposit energy over the step
-            auto const pstep = track.make_physics_step_view();
+            auto const pstep = track.physics_step();
             if (pstep.energy_deposition() == zero_quantity())
             {
                 // Clear detector ID and stop recording
@@ -124,27 +126,30 @@ StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
     } while (0)
 
     {
-        auto const sim = track.make_sim_view();
+        auto const sim = track.sim();
 
         SGL_SET_IF_SELECTED(points[P].time, sim.time());
         if constexpr (P == StepPoint::post)
         {
             SGL_SET_IF_SELECTED(event_id, sim.event_id());
             SGL_SET_IF_SELECTED(parent_id, sim.parent_id());
+            SGL_SET_IF_SELECTED(primary_id, sim.primary_id());
             SGL_SET_IF_SELECTED(track_step_count, sim.num_steps());
 
             SGL_SET_IF_SELECTED(action_id, sim.post_step_action());
             SGL_SET_IF_SELECTED(step_length, sim.step_length());
+            SGL_SET_IF_SELECTED(weight, sim.weight());
         }
     }
 
     {
-        auto const geo = track.make_geo_view();
+        auto const geo = track.geometry();
 
         SGL_SET_IF_SELECTED(points[P].pos, geo.pos());
         SGL_SET_IF_SELECTED(points[P].dir, geo.dir());
         SGL_SET_IF_SELECTED(points[P].volume_id,
-                            geo.is_outside() ? VolumeId{} : geo.volume_id());
+                            geo.is_outside() ? ImplVolumeId{}
+                                             : geo.impl_volume_id());
 
         if (this->params.selection.points[P].volume_instance_ids)
         {
@@ -159,9 +164,13 @@ StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
             }();
 
             // Fill every level from the geometry
-            size_type depth = geo.level().unchecked_get() + 1;
+            size_type depth
+                = geo.is_outside() ? 0 : geo.level().unchecked_get() + 1;
             CELER_ASSERT(depth <= dst.size());
-            geo.volume_instance_id(dst.first(depth));
+            if (depth != 0)
+            {
+                geo.volume_instance_id(dst.first(depth));
+            }
             if constexpr (CELERITAS_DEBUG)
             {
                 for (auto level : range(depth))
@@ -179,11 +188,11 @@ StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
     }
 
     {
-        auto const par = track.make_particle_view();
+        auto const par = track.particle();
 
         if constexpr (P == StepPoint::post)
         {
-            auto const pstep = track.make_physics_step_view();
+            auto const pstep = track.physics_step();
             SGL_SET_IF_SELECTED(energy_deposition, pstep.energy_deposition());
             SGL_SET_IF_SELECTED(particle, par.particle_id());
         }

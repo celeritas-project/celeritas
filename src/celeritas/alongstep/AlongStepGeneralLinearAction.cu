@@ -1,6 +1,5 @@
-//---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------ -*- cuda -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/alongstep/AlongStepGeneralLinearAction.cu
@@ -18,7 +17,8 @@ namespace celeritas
 /*!
  * Launch the along-step action on device.
  *
- * The six kernels should correspons to the six function calls in \c AlongStep.
+ * The six kernels should correspond to the six function calls in \c
+ * AlongStep.
  */
 void AlongStepGeneralLinearAction::step(CoreParams const& params,
                                         CoreStateDevice& state) const

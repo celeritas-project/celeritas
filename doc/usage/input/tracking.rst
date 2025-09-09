@@ -15,4 +15,3 @@ Tracking options control trade-offs between performance and accuracy.
 .. doxygenstruct:: celeritas::inp::TrackingLimits
    :members:
    :no-link:
-

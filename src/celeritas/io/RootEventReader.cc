@@ -54,6 +54,7 @@ RootEventReader::RootEventReader(std::string const& filename,
 auto RootEventReader::operator()(EventId event_id) -> result_type
 {
     CELER_EXPECT(event_id < num_events_);
+    CELER_EXPECT(params_);
 
     if (event_id < event_to_entry_.size())
     {

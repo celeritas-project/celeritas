@@ -1,6 +1,5 @@
-//---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+//------------------------------ -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/sys/detail/KernelLauncherImpl.device.hh
@@ -12,9 +11,10 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/sys/KernelParamCalculator.device.hh"
-#include "corecel/sys/KernelTraits.hh"
-#include "corecel/sys/ThreadId.hh"
+
+#include "../KernelParamCalculator.device.hh"
+#include "../KernelTraits.hh"
+#include "../ThreadId.hh"
 
 namespace celeritas
 {

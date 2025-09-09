@@ -10,7 +10,6 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
-#include "celeritas/em/model/CombinedBremModel.hh"
 #include "celeritas/em/model/RelativisticBremModel.hh"
 #include "celeritas/em/model/SeltzerBergerModel.hh"
 #include "celeritas/io/ImportProcess.hh"
@@ -39,72 +38,60 @@ BremsstrahlungProcess::BremsstrahlungProcess(SPConstParticles particles,
     CELER_EXPECT(particles_);
     CELER_EXPECT(materials_);
     CELER_EXPECT(load_sb_);
-    CELER_VALIDATE(options_.selection != BremsModelSelection::none
-                       && options_.selection != BremsModelSelection::size_,
-                   << "Cannot construct BremsstrahlungProcess without a valid "
-                      "BremsModelSelection enum");
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct the models associated with this process.
  */
-auto BremsstrahlungProcess::build_models(ActionIdIter start_id) const -> VecModel
+auto BremsstrahlungProcess::build_models(ActionIdIter start_id) const
+    -> VecModel
 {
-    switch (options_.selection)
+    using IMC = ImportModelClass;
+
+    VecModel result;
+    if (imported_.has_model(pdg::electron(), IMC::e_brems_sb))
     {
-        case BremsModelSelection::seltzer_berger:
-            return {std::make_shared<SeltzerBergerModel>(*start_id++,
-                                                         *particles_,
-                                                         *materials_,
-                                                         imported_.processes(),
-                                                         load_sb_)};
-        case BremsModelSelection::relativistic:
-            return {
-                std::make_shared<RelativisticBremModel>(*start_id++,
-                                                        *particles_,
-                                                        *materials_,
-                                                        imported_.processes(),
-                                                        options_.enable_lpm)};
-        case BremsModelSelection::all:
-            if (options_.combined_model)
-            {
-                return {
-                    std::make_shared<CombinedBremModel>(*start_id++,
-                                                        *particles_,
-                                                        *materials_,
-                                                        imported_.processes(),
-                                                        load_sb_,
-                                                        options_.enable_lpm)};
-            }
-            else
-            {
-                return {
-                    std::make_shared<SeltzerBergerModel>(*start_id++,
-                                                         *particles_,
-                                                         *materials_,
-                                                         imported_.processes(),
-                                                         load_sb_),
-                    std::make_shared<RelativisticBremModel>(
-                        *start_id++,
-                        *particles_,
-                        *materials_,
-                        imported_.processes(),
-                        options_.enable_lpm)};
-            }
-        default:
-            CELER_ASSERT_UNREACHABLE();
+        CELER_ASSERT(imported_.has_model(pdg::positron(), IMC::e_brems_sb));
+        result.push_back(
+            std::make_shared<SeltzerBergerModel>(*start_id++,
+                                                 *particles_,
+                                                 *materials_,
+                                                 imported_.processes(),
+                                                 load_sb_));
     }
+    if (imported_.has_model(pdg::electron(), IMC::e_brems_lpm))
+    {
+        CELER_ASSERT(imported_.has_model(pdg::positron(), IMC::e_brems_lpm));
+        result.push_back(
+            std::make_shared<RelativisticBremModel>(*start_id++,
+                                                    *particles_,
+                                                    *materials_,
+                                                    imported_.processes(),
+                                                    options_.enable_lpm));
+    }
+    CELER_VALIDATE(!result.empty(),
+                   << "No models found for bremsstrahlung process");
+    return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the interaction cross sections for the given energy range.
  */
-auto BremsstrahlungProcess::step_limits(Applicability applic) const
-    -> StepLimitBuilders
+auto BremsstrahlungProcess::macro_xs(Applicability applic) const -> XsGrid
 {
-    return imported_.step_limits(std::move(applic));
+    return imported_.macro_xs(std::move(applic));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the energy loss for the given energy range.
+ */
+auto BremsstrahlungProcess::energy_loss(Applicability applic) const
+    -> EnergyLossGrid
+{
+    return imported_.energy_loss(std::move(applic));
 }
 
 //---------------------------------------------------------------------------//

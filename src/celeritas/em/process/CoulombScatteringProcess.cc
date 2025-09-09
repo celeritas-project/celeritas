@@ -20,15 +20,13 @@ namespace celeritas
  */
 CoulombScatteringProcess::CoulombScatteringProcess(SPConstParticles particles,
                                                    SPConstMaterials materials,
-                                                   SPConstImported process_data,
-                                                   Options const& options)
+                                                   SPConstImported process_data)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
     , imported_(process_data,
                 particles_,
                 ImportProcessClass::coulomb_scat,
                 {pdg::electron(), pdg::positron()})
-    , options_(options)
 {
     CELER_EXPECT(particles_);
     CELER_EXPECT(materials_);
@@ -38,7 +36,8 @@ CoulombScatteringProcess::CoulombScatteringProcess(SPConstParticles particles,
 /*!
  * Construct the models associated with this process.
  */
-auto CoulombScatteringProcess::build_models(ActionIdIter start_id) const -> VecModel
+auto CoulombScatteringProcess::build_models(ActionIdIter start_id) const
+    -> VecModel
 {
     return {std::make_shared<CoulombScatteringModel>(
         *start_id++, *particles_, *materials_, imported_.processes())};
@@ -48,10 +47,19 @@ auto CoulombScatteringProcess::build_models(ActionIdIter start_id) const -> VecM
 /*!
  * Get the interaction cross sections for the given energy range.
  */
-auto CoulombScatteringProcess::step_limits(Applicability applic) const
-    -> StepLimitBuilders
+auto CoulombScatteringProcess::macro_xs(Applicability applic) const -> XsGrid
 {
-    return imported_.step_limits(std::move(applic));
+    return imported_.macro_xs(std::move(applic));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the energy loss for the given energy range.
+ */
+auto CoulombScatteringProcess::energy_loss(Applicability applic) const
+    -> EnergyLossGrid
+{
+    return imported_.energy_loss(std::move(applic));
 }
 
 //---------------------------------------------------------------------------//
@@ -61,16 +69,6 @@ auto CoulombScatteringProcess::step_limits(Applicability applic) const
 std::string_view CoulombScatteringProcess::label() const
 {
     return "Coulomb scattering";
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether to use the integral method to sample interaction length.
- * May be controlled via options provided in the constructor.
- */
-bool CoulombScatteringProcess::use_integral_xs() const
-{
-    return options_.use_integral_xs;
 }
 
 //---------------------------------------------------------------------------//

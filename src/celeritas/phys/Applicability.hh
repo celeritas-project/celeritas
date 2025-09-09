@@ -34,7 +34,7 @@ struct Applicability
     using EnergyUnits = units::Mev;
     using Energy = RealQuantity<EnergyUnits>;
 
-    MaterialId material{};
+    PhysMatId material{};
     ParticleId particle{};
     Energy lower = zero_quantity();
     Energy upper = max_quantity();
