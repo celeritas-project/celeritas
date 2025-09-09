@@ -20,6 +20,7 @@
 #include <G4Transportation.hh>
 #include <G4TransportationManager.hh>
 #include <G4VPhysicalVolume.hh>
+#include <G4VSensitiveDetector.hh>
 #include <G4VSolid.hh>
 #include <G4Version.hh>
 #include <G4VisExtent.hh>
@@ -389,6 +390,19 @@ std::vector<inp::Surface> make_inp_surfaces(GeantGeoParams const& geo)
 std::weak_ptr<GeantGeoParams const> g_geant_geo_;
 
 //---------------------------------------------------------------------------//
+//! Placeholder SD class for generating model data from GDML
+class GdmlSensitiveDetector final : public G4VSensitiveDetector
+{
+  public:
+    GdmlSensitiveDetector(std::string const& name) : G4VSensitiveDetector{name}
+    {
+    }
+
+    void Initialize(G4HCofThisEvent*) final {}
+    bool ProcessHits(G4Step*, G4TouchableHistory*) final { return false; }
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -456,6 +470,19 @@ std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
  * This assumes that Celeritas is driving and will manage Geant4 logging
  * and exceptions. It saves the result to the global Celeritas Geant4 geometry
  * weak pointer \c global_geant_geo.
+ *
+ * Due to limitations in the Geant4 GDML code, this task \c must be performed
+ * from the main thread.
+ *
+ * It also loads sensitive detectors and assigns dummy sensitive detectors to
+ * volumes annotated with <code>auxiliary auxtype="SensDet"</code> tags. It
+ * creates one detector per unique \c auxvalue name and shares that one among
+ * the volumes that use the same detector name. The resulting \c GeantGeoParams
+ * class retains ownership of the created detectors. Since this function is
+ * only called on the main thread, and the \c SensitiveDetector getter/setter
+ * on \c G4LogicalVolume uses a thread-local "split" class, <em>worker threads
+ * will not see the sensitive detectors this loader creates</em>. Use \c
+ * celeritas::DetectorConstruction if thread-local detectors are needed.
  */
 std::shared_ptr<GeantGeoParams>
 GeantGeoParams::from_gdml(std::string const& filename)
@@ -472,8 +499,41 @@ GeantGeoParams::from_gdml(std::string const& filename)
         CELER_LOG(warning) << "Expected '.gdml' extension for GDML input";
     }
 
-    auto result = std::make_shared<GeantGeoParams>(load_gdml(filename),
-                                                   Ownership::value);
+    // Load world and detectors
+    auto loaded = [&filename] {
+        GeantGdmlLoader::Options opts;
+        opts.detectors = true;
+        GeantGdmlLoader load(opts);
+        return load(filename);
+    }();
+
+    // Build placeholder SD
+    using MapDetCIter = GeantGdmlLoader::MapDetectors::const_iterator;
+    GeantGeoParams::MapStrDetector built_detectors;
+    foreach_detector(
+        loaded.detectors,
+        [&built_detectors](MapDetCIter iter, MapDetCIter stop) {
+            // Construct an SD based on the name
+            auto sd = std::make_shared<GdmlSensitiveDetector>(iter->first);
+            built_detectors.emplace(iter->first, sd);
+
+            // Attach sensitive detectors
+            for (; iter != stop; ++iter)
+            {
+                CELER_LOG(debug)
+                    << "Attaching dummy GDML SD '" << sd->GetName()
+                    << "' to volume '" << iter->second->GetName() << "'";
+                iter->second->SetSensitiveDetector(sd.get());
+            }
+        });
+
+    // Create geo params
+    auto result
+        = std::make_shared<GeantGeoParams>(loaded.world, Ownership::value);
+    // Set detectors (hack)
+    result->built_detectors_ = std::move(built_detectors);
+
+    // Save for use outside in Celeritas
     celeritas::global_geant_geo(result);
     return result;
 }
