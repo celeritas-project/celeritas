@@ -10,6 +10,8 @@
 #include <unordered_set>
 #include <utility>
 
+#include "corecel/math/Algorithms.hh"
+
 #include "../CsgTypes.hh"
 
 namespace celeritas
@@ -68,25 +70,17 @@ struct NegationSimplifier
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Return a simplified negation via its target.
- */
-struct IsJoinedLike
+//! Return a pointer to a node if joined in the given way, otherwise nullptr
+Joined const* get_if_joined_like(Node const* n, OperatorToken op)
 {
-    OperatorToken op;
-
-    Joined const* operator()(Joined const& j) const
+    auto const* j = std::get_if<Joined>(n);
+    if (j && j->op != op)
     {
-        return j.op == op ? &j : nullptr;
+        // Same variant type, different join type
+        j = nullptr;
     }
-
-    // Other types are not joinable
-    template<class T>
-    Joined const* operator()(T const&) const
-    {
-        return nullptr;
-    }
-};
+    return j;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -153,32 +147,32 @@ auto NodeSimplifier::operator()(Joined& j) const -> Node
         }
         else if (d == ignore_node)
         {
-            // Replace with a null ID that will be sorted to the back of the
-            // list
+            // Replace with a null ID (to be eliminated during sort/unique)
             d = NodeId{};
         }
-        else if (Joined const* dj = visit_node_(IsJoinedLike{j.op}, d))
+        else if (Joined const* dj = get_if_joined_like(&tree_[d], j.op))
         {
-            // Add nodes to merge; use a new list to avoid invalidating
-            // iterators
+            // Add to a merge queue to avoid invalidating iterators
             to_merge.insert(to_merge.end(), dj->nodes.begin(), dj->nodes.end());
             d = NodeId{};
         }
     }
 
-    // Add any merged nodes
+    // Add any nodes to be merged into the expression after looping
     j.nodes.insert(j.nodes.end(), to_merge.begin(), to_merge.end());
 
-    // Sort and uniquify the node ID
+    // Sort and uniquify the node IDs
     std::sort(j.nodes.begin(), j.nodes.end());
     j.nodes.erase(std::unique(j.nodes.begin(), j.nodes.end()), j.nodes.end());
 
     // Pop any ignored node, which will be a single one at the back (but the
-    // given list may be empty so check that first!)
+    // updated list may be empty so check that first!)
     if (!j.nodes.empty() && !j.nodes.back())
     {
         j.nodes.pop_back();
     }
+    // Double check that all nodes are valid (null nodes sort to the back)
+    CELER_ASSERT(std::all_of(j.nodes.begin(), j.nodes.end(), Identity{}));
 
     if (j.nodes.empty())
     {
@@ -188,13 +182,14 @@ auto NodeSimplifier::operator()(Joined& j) const -> Node
 
     if (j.nodes.size() == 1)
     {
+        // Single-element join is just an alias
         return Aliased{j.nodes.front()};
     }
 
     // After merging daughter nodes and uniquifying, track the "negated" IDs of
-    // encountered nodes to eliminate join(A, ~A, ...)
+    // encountered nodes to eliminate join<op>(A, ~A, ...)
     std::unordered_set<NodeId> negated;
-    for (NodeId& d : j.nodes)
+    for (NodeId const& d : j.nodes)
     {
         if (negated.count(d))
         {
