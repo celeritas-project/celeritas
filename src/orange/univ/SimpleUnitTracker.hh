@@ -23,6 +23,14 @@
 #include "detail/Types.hh"
 #include "detail/Utils.hh"
 
+#if 1
+#    include <iostream>
+
+#    include "corecel/OpaqueIdIO.hh"
+using std::cout;
+using std::endl;
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -161,10 +169,6 @@ SimpleUnitTracker::SimpleUnitTracker(ParamsRef const& params, SimpleUnitId suid)
  *
  * To avoid edge cases and inconsistent logical/physical states, it is
  * prohibited to initialize from an arbitrary point directly onto a surface.
- *
- * \todo This prohibition currently also extends to *internal* surfaces, even
- * if both sides of that surface are "in" the current cell. We may need to
- * relax that.
  */
 CELER_FUNCTION auto
 SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
@@ -176,10 +180,18 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
     // a surface in the found volume
     detail::OnFace on_surface;
     auto is_inside = [this, &state, &on_surface](LocalVolumeId id) -> bool {
+        cout << "-> Testing volume " << id;
+        if (on_surface)
+        {
+            cout << " on face " << on_surface.id();
+        }
+        cout << endl;
         VolumeView vol = this->make_local_volume(id);
         auto calc_senses = detail::LazySenseCalculator(
             this->make_surface_visitor(), vol, state.pos, on_surface);
-        return detail::LogicEvaluator(vol.logic())(calc_senses);
+        auto result = detail::LogicEvaluator(vol.logic())(calc_senses);
+        cout << "<- " << (result ? "inside" : "not inside") << endl;
+        return result;
     };
     LocalVolumeId id = this->find_volume_where(state.pos, is_inside);
 

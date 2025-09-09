@@ -16,6 +16,14 @@
 #include "Types.hh"
 #include "../VolumeView.hh"
 
+#if 1
+#    include <iostream>
+
+#    include "corecel/OpaqueIdIO.hh"
+using std::cout;
+using std::endl;
+#endif
+
 namespace celeritas
 {
 namespace detail
@@ -100,6 +108,11 @@ CELER_FUNCTION auto LazySenseCalculator::operator()(FaceId face_id) -> Sense
         {
             // This is the first face that we're exactly on: save it
             face_ = {face_id, sense};
+            cout << " * Saving face " << face_id << endl;
+        }
+        else if (ss == SignedSense::on)
+        {
+            cout << " * Ignoring face " << face_id << endl;
         }
     }
     else
