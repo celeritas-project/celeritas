@@ -17,8 +17,6 @@ namespace celeritas
 {
 namespace optical
 {
-namespace
-{
 //---------------------------------------------------------------------------//
 /*!
  * Trivial applier which just forwards the track to the executor.
@@ -62,8 +60,6 @@ struct BuiltinApplier<SurfacePhysicsOrder::interaction>
     using Applier = TrivialApplier<T>;
 };
 
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Templated base class for built-in optical surface physics models.
@@ -80,7 +76,7 @@ class BuiltinSurfaceModel : public SurfaceModel
     //!@{
     //! \name Type aliases
     template<class T>
-    using Applier = typename BuiltinApplier<S>::Applier<T>;
+    using Applier = typename BuiltinApplier<S>::template Applier<T>;
     //!@}
 
   public:

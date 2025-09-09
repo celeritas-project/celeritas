@@ -123,6 +123,10 @@ class SurfacePhysicsView
         SurfaceModelView surface_model(SubsurfaceDirection,
                                        SurfacePhysicsOrder) const;
 
+    // Get surface model for the given step
+    inline CELER_FUNCTION SurfaceModelView
+    surface_model(Real3 const&, SurfacePhysicsOrder) const;
+
     // Get local facet normal
     inline CELER_FUNCTION Real3 const& facet_normal() const;
 
@@ -373,6 +377,21 @@ CELER_FUNCTION SurfaceModelView SurfacePhysicsView::surface_model(
         SurfacePhysicsMapView{params_.model_maps[step], phys_surface},
         this->subsurface_material(this->subsurface_position()),
         this->subsurface_material(this->subsurface_position() + dir)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get surface model view of the given step for a track moving in the given
+ * direction.
+ *
+ * Helper function that determines the traversal direction from the track
+ * direction and constructs a surface model from it.
+ */
+CELER_FUNCTION SurfaceModelView SurfacePhysicsView::surface_model(
+    Real3 const& dir, SurfacePhysicsOrder step) const
+{
+    CELER_EXPECT(this->is_crossing_boundary());
+    return this->surface_model(this->traversal_direction(dir), step);
 }
 
 //---------------------------------------------------------------------------//

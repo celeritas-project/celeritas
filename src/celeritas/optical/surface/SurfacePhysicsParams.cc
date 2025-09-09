@@ -11,10 +11,11 @@
 #include "celeritas/inp/SurfacePhysics.hh"
 #include "celeritas/phys/SurfacePhysicsMapBuilder.hh"
 
-#include "BuiltinSurfaceModelBuilder.hh"
 #include "model/GaussianRoughnessModel.hh"
 #include "model/PolishedRoughnessModel.hh"
 #include "model/SmearRoughnessModel.hh"
+
+#include "detail/BuiltinSurfaceModelBuilder.hh"
 
 namespace celeritas
 {
@@ -133,7 +134,7 @@ auto SurfacePhysicsParams::build_models(
     for (auto step : range(SurfacePhysicsOrder::size_))
     {
         // Build fake models
-        BuiltinSurfaceModelBuilder build_model{step_models[step]};
+        detail::BuiltinSurfaceModelBuilder build_model{step_models[step]};
         switch (step)
         {
             case SurfacePhysicsOrder::roughness:

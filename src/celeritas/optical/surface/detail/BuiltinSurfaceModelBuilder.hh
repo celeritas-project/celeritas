@@ -2,20 +2,17 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/surface/BuiltinSurfaceModelBuilder.hh
+//! \file celeritas/optical/surface/detail/BuiltinSurfaceModelBuilder.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
 
-#include "SurfaceModel.hh"
-#include "model/BuiltinSurfaceModel.hh"
+#include "celeritas/optical/surface/model/BuiltinSurfaceModel.hh"
 
 namespace celeritas
 {
 namespace optical
-{
-namespace
 {
 //---------------------------------------------------------------------------//
 template<>
@@ -25,6 +22,10 @@ struct BuiltinApplier<SurfacePhysicsOrder::size_>
     using Applier = TrivialApplier<T>;
 };
 
+namespace detail
+{
+namespace
+{
 //---------------------------------------------------------------------------//
 /*!
  * Fake model as a placeholder for surface models yet to be implemented.
@@ -88,7 +89,7 @@ class BuiltinSurfaceModelBuilder
 
   public:
     // Construct with storage to fill
-    inline BuiltinSurfaceModelBuilder(std::vector<SPModel>& models);
+    explicit inline BuiltinSurfaceModelBuilder(std::vector<SPModel>& models);
 
     // Construct a fake surface model
     template<class T>
@@ -190,5 +191,6 @@ std::shared_ptr<M> BuiltinSurfaceModelBuilder::builtin_model_from_input(
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace optical
 }  // namespace celeritas

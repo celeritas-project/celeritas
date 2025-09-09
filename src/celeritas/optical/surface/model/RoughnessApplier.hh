@@ -42,8 +42,10 @@ struct RoughnessApplier
 template<class T>
 CELER_FUNCTION void RoughnessApplier<T>::operator()(CoreTrackView& track) const
 {
+    auto const& track_dir = track.geometry().dir();
     auto s_physics = track.surface_physics();
-    auto model_view = track.surface_model(SurfacePhysicsOrder::roughness);
+    auto model_view
+        = s_physics.surface_model(track_dir, SurfacePhysicsOrder::roughness);
     auto rng = track.rng();
 
     // Ensure the local normal follows the entering surface convention
@@ -53,15 +55,14 @@ CELER_FUNCTION void RoughnessApplier<T>::operator()(CoreTrackView& track) const
         normal = -normal;
     }
 
-    CELER_ASSERT(is_entering_surface(track.geometry().dir(), normal));
+    CELER_ASSERT(is_entering_surface(track_dir, normal));
 
     // Construct normal sampler from executor
-    auto sample = make_sampler(model_view, track.geometry().dir(), normal);
+    auto sample = make_sampler(model_view, track_dir, normal);
 
     s_physics.facet_normal(sample(rng));
 
-    CELER_ENSURE(
-        is_entering_surface(track.geometry().dir(), s_physics.facet_normal()));
+    CELER_ENSURE(is_entering_surface(track_dir, s_physics.facet_normal()));
 }
 
 //---------------------------------------------------------------------------//

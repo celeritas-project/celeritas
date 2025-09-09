@@ -27,8 +27,7 @@ void GaussianRoughnessModel::step(CoreParams const& params,
     auto execute = this->make_executor(
         params, state, GaussianRoughnessExecutor{data_.device_ref()});
 
-    static ActionLauncher<decltype(execute), SurfaceModel> const launch_kernel(
-        *this);
+    static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 }
 

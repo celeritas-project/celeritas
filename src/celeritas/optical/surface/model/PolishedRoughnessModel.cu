@@ -27,8 +27,7 @@ void PolishedRoughnessModel::step(CoreParams const& params,
     auto execute
         = this->make_executor(params, state, PolishedRoughnessExecutor{});
 
-    static ActionLauncher<decltype(execute), SurfaceModel> const launch_kernel(
-        *this);
+    static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 }
 
