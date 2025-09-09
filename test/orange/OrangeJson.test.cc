@@ -762,6 +762,43 @@ TEST_F(InputBuilderTest, globalspheres)
 }
 
 //---------------------------------------------------------------------------//
+
+TEST_F(InputBuilderTest, lar_split_detector)
+{
+    {
+        auto result = this->track({0, 0, -16}, {0, 0, 1});
+
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
+            "[OUTSIDE]",
+            "outer_region",
+            "lower_shell",
+            "inner",
+            "upper_shell",
+            "outer_region",
+        };
+        ref.volume_instances = {
+            "outer_region@global",
+            "lower_shell@global",
+            "inner@global",
+            "upper_shell@global",
+            "outer_region@global",
+        };
+        ref.distances = {1, 5, 5, 10, 5, 5};
+        ref.halfway_safeties = {2.5, 2.5, inf, 2.5, 2.5};
+        ref.bumps = {};
+        auto tol = this->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
+    }
+
+    {
+        SCOPED_TRACE("Initialize on irrelevant surface");
+        auto geo = this->make_geo_track_view();
+        EXPECT_NO_THROW((geo = Initializer_t{{1, 2, 0}, {0, 0, 1}}));
+    }
+}
+
+//---------------------------------------------------------------------------//
 TEST_F(InputBuilderTest, bgspheres)
 {
     {
