@@ -115,7 +115,6 @@ TEST_F(ConverterTest, simple_cms)
 //---------------------------------------------------------------------------//
 TEST_F(ConverterTest, testem3)
 {
-    verbose_ = true;
     std::string const basename = "testem3";
     this->load_test_gdml(basename);
     auto convert = this->make_converter(basename);
