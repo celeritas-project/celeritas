@@ -8,6 +8,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/optical/SimTrackView.hh"
