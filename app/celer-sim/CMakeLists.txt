@@ -133,9 +133,4 @@ celer_sim_test(lar
   lar-sphere.gdml gamma-4evt-15prim.hepmc3 lar-mctruth.root
 )
 
-if(NOT CELERITAS_CORE_GEO STREQUAL "ORANGE")
-    set_tests_properties("app/celer-sim:lar:cpu" PROPERTIES DISABLED True)
-    set_tests_properties("app/celer-sim:lar:gpu" PROPERTIES DISABLED True)
-endif()
-
 #-----------------------------------------------------------------------------#
