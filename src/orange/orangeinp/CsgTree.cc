@@ -85,7 +85,7 @@ auto CsgTree::insert(Node&& n) -> Insertion
         }
     }
 
-    auto [iter, inserted] = ids_.emplace(std::move(n), {});
+    auto [iter, inserted] = ids_.emplace(std::move(n), NodeId{});
     if (inserted)
     {
         // Save new node ID
