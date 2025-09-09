@@ -729,7 +729,7 @@ CELER_FORCEINLINE_FUNCTION double rsqrt(double value)
 }
 
 #if defined(CELER_DEVICE_SOURCE)
-// CUDA/HIP define in global namespace
+// CUDA/HIP define ::sinpi, ::sincos, ... (in global namespace)
 #    define CELER_SINCOS_MANGLED(FUNC) ::FUNC
 #elif defined(CELERITAS_SINCOSPI_PREFIX)
 // Apple-supplied headers define __sinpi, __sinpif, __sincospi, ...
