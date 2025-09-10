@@ -5,6 +5,7 @@
 //! \file offload-template/run-offload.cc
 //! \brief Minimal Geant4 application with Celeritas offloading
 //---------------------------------------------------------------------------//
+#include <filesystem>
 #include <iostream>
 #include <memory>
 #include <FTFP_BERT.hh>
@@ -12,10 +13,39 @@
 #include <G4UImanager.hh>
 #include <accel/TrackingManagerConstructor.hh>
 #include <accel/TrackingManagerIntegration.hh>
+#include <corecel/io/Logger.hh>
 
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
 #include "MakeCelerOptions.hh"
+#include "SourceFiles.hh"
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return the shorter of the relative path to current directory or the full
+ * path.
+ */
+std::string shorter_path(std::string const& path_str)
+{
+    namespace fs = std::filesystem;
+
+    if (path_str.empty())
+        return path_str;
+
+    fs::path path{path_str};
+    fs::path cwd = fs::current_path();
+
+    try
+    {
+        std::string rel_path = fs::relative(path, cwd).string();
+        return (rel_path.size() < path_str.size()) ? rel_path : path_str;
+    }
+    catch (fs::filesystem_error const&)
+    {
+        // If we can't get a relative path (e.g., different drives on Windows)
+        return path_str;
+    }
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -25,6 +55,26 @@
  */
 int main(int argc, char* argv[])
 {
+    namespace fs = std::filesystem;
+    // Get current working directory
+    fs::path cwd = fs::current_path();
+    CELER_LOG(info) << "Current working directory: " << cwd.string();
+
+    // Get canonical path of executable and show relative to cwd
+    CELER_LOG(info) << "Executable: " << shorter_path(argv[0]);
+
+    // Show other paths relative to cwd
+    CELER_LOG(info) << "Source code: "
+                    << shorter_path(celeritas::example::source_dir);
+
+    // Show build and installation paths relative to cwd
+    CELER_LOG(info) << "Build dir: "
+                    << shorter_path(celeritas::example::build_dir);
+    CELER_LOG(info) << "Celeritas install: "
+                    << shorter_path(celeritas::example::celeritas_install_dir);
+    CELER_LOG(info) << "Geant4 install: "
+                    << shorter_path(celeritas::example::geant4_install_dir);
+
     if (argc > 2)
     {
         // Print help message
