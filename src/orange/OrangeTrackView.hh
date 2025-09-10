@@ -1323,20 +1323,23 @@ CELER_FUNCTION Real3 OrangeTrackView::geo_normal() const
 {
     CELER_EXPECT(this->is_on_boundary());
 
-    auto lsa = this->make_lsa(this->surface_level());
-    TrackerVisitor visit_tracker{params_};
-    auto normal = visit_tracker(
-        [pos = lsa.pos(), local_surface = this->surf()](auto&& t) {
-            return t.normal(pos, local_surface);
-        },
-        lsa.universe());
+    auto normal = [this] {
+        auto lsa = this->make_lsa(this->surface_level());
+        auto const& pos = lsa.pos();
+        auto local_surf = this->surf();
+        TrackerVisitor visit_tracker{params_};
+        return visit_tracker(
+            [&](auto&& t) { return t.normal(pos, local_surf); },
+            lsa.universe());
+    }();
 
     // Rotate normal up to global coordinates
     auto apply_transform = TransformVisitor{params_};
     auto rotate_up = [&normal](auto&& t) { normal = t.rotate_up(normal); };
-    for (auto level : range<int>(this->level().unchecked_get()).step(-1))
+    for (auto level : range<int>(this->surface_level().get()).step(-1))
     {
-        apply_transform(rotate_up, this->get_transform(LevelId(level)));
+        apply_transform(rotate_up,
+                        this->get_transform(id_cast<LevelId>(level)));
     }
 
     CELER_ENSURE(is_soft_unit_vector(normal));

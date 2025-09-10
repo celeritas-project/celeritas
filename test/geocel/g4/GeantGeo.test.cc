@@ -7,6 +7,7 @@
 #include <regex>
 #include <string_view>
 #include <G4LogicalVolume.hh>
+#include <G4VSensitiveDetector.hh>
 
 #include "corecel/Config.hh"
 
@@ -408,6 +409,21 @@ TEST_F(MultiLevelTest, model)
     };
     ref.world = "world";
     EXPECT_REF_EQ(ref, result);
+}
+
+TEST_F(MultiLevelTest, sd_creation)
+{
+    auto const& geo = *this->geometry();
+
+    auto* lv = geo.id_to_geant(VolumeId{0});  // sph; see model above
+    auto* sd = lv->GetSensitiveDetector();
+    ASSERT_TRUE(sd);
+    EXPECT_EQ("sph_sd", sd->GetName());
+
+    auto* lv2 = geo.id_to_geant(VolumeId{5});  // sph_refl
+    auto* sd2 = lv2->GetSensitiveDetector();
+    ASSERT_TRUE(sd2);
+    EXPECT_EQ(sd, sd2);
 }
 
 TEST_F(MultiLevelTest, trace)
