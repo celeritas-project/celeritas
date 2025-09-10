@@ -397,7 +397,7 @@ CELER_FUNCTION bool VecgeomTrackView::is_on_boundary() const
  */
 CELER_FUNCTION Real3 VecgeomTrackView::normal() const
 {
-    // TODO: Temporary surface normal for testing only
+    // FIXME: temporarily return a bogus but valid surface normal
     return this->dir();
 }
 
