@@ -15,7 +15,6 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMem.hh"
-#include "celeritas/inp/Particle.hh"
 #include "celeritas/io/ImportData.hh"
 
 #include "PDGNumber.hh"

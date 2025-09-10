@@ -7,7 +7,6 @@
 #include "NeutronTestBase.hh"
 
 #include "corecel/math/ArrayUtils.hh"
-#include "celeritas/inp/Particle.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 

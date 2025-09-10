@@ -13,7 +13,6 @@
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/inp/Particle.hh"
 
 #include "TestMacros.hh"
 

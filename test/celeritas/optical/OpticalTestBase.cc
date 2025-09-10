@@ -7,7 +7,6 @@
 #include "OpticalTestBase.hh"
 
 #include "geocel/UnitUtils.hh"
-#include "celeritas/inp/Particle.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/track/SimParams.hh"

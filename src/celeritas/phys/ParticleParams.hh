@@ -17,6 +17,7 @@
 #include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/inp/Particle.hh"
 
 #include "PDGNumber.hh"
 #include "ParticleData.hh"
@@ -25,11 +26,6 @@
 namespace celeritas
 {
 struct ImportData;
-
-namespace inp
-{
-struct Particle;
-}  // namespace inp
 
 //---------------------------------------------------------------------------//
 /*!
