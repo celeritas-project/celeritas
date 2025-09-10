@@ -87,8 +87,9 @@ int main(int argc, char* argv[])
             << "Geant4 install: "
             << shorter_path(celeritas::example::geant4_install_dir);
 
-        CELER_LOG(info) << "Run manager type: "
-                        << celeritas::TypeDemangler<G4RunManager>{}(*run_manager);
+        CELER_LOG(info)
+            << "Run manager type: "
+            << celeritas::TypeDemangler<G4RunManager>{}(*run_manager);
     }
 
     // Initialize physics with celeritas offload
