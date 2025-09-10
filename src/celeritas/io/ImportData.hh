@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "celeritas/inp/Grid.hh"
+#include "celeritas/inp/Particle.hh"
 #include "celeritas/inp/Physics.hh"
 // IWYU pragma: begin_exports
 #include "ImportAtomicRelaxation.hh"
@@ -19,7 +20,6 @@
 #include "ImportOpticalMaterial.hh"
 #include "ImportOpticalModel.hh"
 #include "ImportParameters.hh"
-#include "ImportParticle.hh"
 #include "ImportProcess.hh"
 #include "ImportVolume.hh"
 // IWYU pragma: end_exports
@@ -83,7 +83,7 @@ struct ImportData
 
     //!@{
     //! \name Physics data
-    std::vector<ImportParticle> particles;
+    std::vector<inp::Particle> particles;
     std::vector<ImportProcess> processes;
     std::vector<ImportMscModel> msc_models;
     ImportSBMap sb_data;

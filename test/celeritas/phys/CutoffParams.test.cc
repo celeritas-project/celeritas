@@ -11,6 +11,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/RootTestBase.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/inp/Particle.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialData.hh"
 #include "celeritas/mat/MaterialParams.hh"

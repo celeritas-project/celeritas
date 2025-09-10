@@ -361,16 +361,16 @@ to_form_factor_type(G4NuclearFormfactorType const& form_factor_type)
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a populated \c ImportParticle vector.
+ * Return a populated \c inp::Particle vector.
  */
-std::vector<ImportParticle>
+std::vector<inp::Particle>
 import_particles(GeantImporter::DataSelection::Flags particle_flags)
 {
     G4ParticleTable::G4PTblDicIterator& particle_iterator
         = *(G4ParticleTable::GetParticleTable()->GetIterator());
     particle_iterator.reset();
 
-    std::vector<ImportParticle> particles;
+    std::vector<inp::Particle> particles;
 
     ParticleFilter include_particle{particle_flags};
     while (particle_iterator())
@@ -891,7 +891,7 @@ std::vector<ImportRegion> import_regions()
  * Return a populated \c ImportProcess vector.
  */
 auto import_processes(GeantImporter::DataSelection selected,
-                      std::vector<ImportParticle> const& particles,
+                      std::vector<inp::Particle> const& particles,
                       std::vector<ImportElement> const& elements,
                       std::vector<ImportPhysMaterial> const& materials,
                       detail::GeoOpticalIdMap const& geo_to_opt)
@@ -1011,7 +1011,7 @@ auto import_processes(GeantImporter::DataSelection selected,
     for (auto const& p : particles)
     {
         G4ParticleDefinition const* g4_particle_def
-            = G4ParticleTable::GetParticleTable()->FindParticle(p.pdg);
+            = G4ParticleTable::GetParticleTable()->FindParticle(p.pdg.get());
         CELER_ASSERT(g4_particle_def);
 
         if (!include_particle(PDGNumber{g4_particle_def->GetPDGEncoding()}))
@@ -1471,25 +1471,23 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
 
 //---------------------------------------------------------------------------//
 /*!
- * Create an import patricle.
+ * Create particle input.
  */
-ImportParticle import_particle(G4ParticleDefinition const& p)
+inp::Particle import_particle(G4ParticleDefinition const& p)
 {
-    ImportParticle result;
+    inp::Particle result;
     result.name = p.GetParticleName();
-    result.pdg = p.GetPDGEncoding();
-    result.mass = p.GetPDGMass();
-    result.charge = p.GetPDGCharge();
-    result.spin = p.GetPDGSpin();
-    result.lifetime = p.GetPDGLifeTime();
-    result.is_stable = p.GetPDGStable();
+    result.pdg = PDGNumber{p.GetPDGEncoding()};
+    result.mass = inp::Particle::MevMass{p.GetPDGMass()};
+    result.charge = inp::Particle::Charge{p.GetPDGCharge()};
 
-    if (!result.is_stable)
+    if (!p.GetPDGStable())
     {
         double const time_scale = native_value_from_clhep(ImportUnits::time);
 
-        // Convert lifetime of unstable particles to seconds
-        result.lifetime *= time_scale;
+        // Calculate decay constant, converting lifetime of unstable particles
+        // to seconds
+        result.decay_constant = 1 / (p.GetPDGLifeTime() * time_scale);
     }
 
     return result;

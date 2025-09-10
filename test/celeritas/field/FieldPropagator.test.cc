@@ -28,6 +28,7 @@
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/inp/Particle.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 

@@ -15,6 +15,7 @@
 #include "celeritas/em/distribution/EnergyLossGaussianDistribution.hh"
 #include "celeritas/em/distribution/EnergyLossUrbanDistribution.hh"
 #include "celeritas/em/params/FluctuationParams.hh"
+#include "celeritas/inp/Particle.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"

@@ -12,6 +12,7 @@
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/em/process/ComptonProcess.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
+#include "celeritas/inp/Particle.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/io/detail/ImportDataConverter.hh"
 #include "celeritas/mat/MaterialParams.hh"

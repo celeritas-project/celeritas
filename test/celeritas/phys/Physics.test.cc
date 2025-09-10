@@ -20,6 +20,7 @@
 #include "celeritas/grid/RangeCalculator.hh"
 #include "celeritas/grid/SplineCalculator.hh"
 #include "celeritas/grid/XsCalculator.hh"
+#include "celeritas/inp/Particle.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
