@@ -55,25 +55,22 @@ std::string shorter_path(std::string const& path_str)
  */
 int main(int argc, char* argv[])
 {
-    namespace fs = std::filesystem;
-    // Get current working directory
-    fs::path cwd = fs::current_path();
-    CELER_LOG(info) << "Current working directory: " << cwd.string();
-
-    // Get canonical path of executable and show relative to cwd
-    CELER_LOG(info) << "Executable: " << shorter_path(argv[0]);
-
-    // Show other paths relative to cwd
-    CELER_LOG(info) << "Source code: "
-                    << shorter_path(celeritas::example::source_dir);
-
-    // Show build and installation paths relative to cwd
-    CELER_LOG(info) << "Build dir: "
-                    << shorter_path(celeritas::example::build_dir);
-    CELER_LOG(info) << "Celeritas install: "
-                    << shorter_path(celeritas::example::celeritas_install_dir);
-    CELER_LOG(info) << "Geant4 install: "
-                    << shorter_path(celeritas::example::geant4_install_dir);
+    {
+        namespace fs = std::filesystem;
+        fs::path cwd = fs::current_path();
+        CELER_LOG(info) << "Current working directory: " << cwd.string();
+        CELER_LOG(info) << "Executable: " << shorter_path(argv[0]);
+        CELER_LOG(info) << "Source code: "
+                        << shorter_path(celeritas::example::source_dir);
+        CELER_LOG(info) << "Build dir: "
+                        << shorter_path(celeritas::example::build_dir);
+        CELER_LOG(info)
+            << "Celeritas install: "
+            << shorter_path(celeritas::example::celeritas_install_dir);
+        CELER_LOG(info)
+            << "Geant4 install: "
+            << shorter_path(celeritas::example::geant4_install_dir);
+    }
 
     if (argc > 2)
     {
