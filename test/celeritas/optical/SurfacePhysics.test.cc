@@ -379,6 +379,7 @@ TEST_F(SurfacePhysicsTest, init_surface_physics_view)
         this->surface_physics_view(TrackSlotId(track))
             = SurfacePhysicsView::Initializer{expected_surfaces[track],
                                               expected_orientations[track],
+                                              Real3{0, 0, -1},
                                               OptMatId{0},
                                               OptMatId{1}};
     }
@@ -470,7 +471,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
 
         auto s_physics = this->surface_physics_view(TrackSlotId{0});
         s_physics = SurfacePhysicsView::Initializer{
-            SurfaceId{2}, forward, OptMatId{0}, OptMatId{1}};
+            SurfaceId{2}, forward, Real3{0, 0, -1}, OptMatId{0}, OptMatId{1}};
 
         EXPECT_TRUE(s_physics.is_crossing_boundary());
         EXPECT_TRUE(s_physics.in_pre_volume());
@@ -499,7 +500,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
 
         auto s_physics = this->surface_physics_view(TrackSlotId{1});
         s_physics = SurfacePhysicsView::Initializer{
-            SurfaceId{2}, reverse, OptMatId{1}, OptMatId{0}};
+            SurfaceId{2}, reverse, Real3{0, 0, -1}, OptMatId{1}, OptMatId{0}};
 
         EXPECT_TRUE(s_physics.is_crossing_boundary());
         EXPECT_TRUE(s_physics.in_pre_volume());
@@ -537,7 +538,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
 
         auto s_physics = this->surface_physics_view(TrackSlotId{2});
         s_physics = SurfacePhysicsView::Initializer{
-            SurfaceId{0}, forward, OptMatId{0}, OptMatId{1}};
+            SurfaceId{0}, forward, Real3{0, 0, -1}, OptMatId{0}, OptMatId{1}};
 
         EXPECT_TRUE(s_physics.is_crossing_boundary());
         EXPECT_TRUE(s_physics.in_pre_volume());
@@ -572,7 +573,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
 
         auto s_physics = this->surface_physics_view(TrackSlotId{3});
         s_physics = SurfacePhysicsView::Initializer{
-            SurfaceId{1}, reverse, OptMatId{1}, OptMatId{0}};
+            SurfaceId{1}, reverse, Real3{0, 0, -1}, OptMatId{1}, OptMatId{0}};
 
         EXPECT_TRUE(s_physics.is_crossing_boundary());
         EXPECT_TRUE(s_physics.in_pre_volume());
@@ -592,6 +593,77 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
         EXPECT_VEC_EQ(expected.position, result.position);
         EXPECT_VEC_EQ(expected.material, result.material);
         EXPECT_VEC_EQ(expected.interface, result.interface);
+    }
+}
+
+//---------------------------------------------------------------------------//
+// Test track geometry to direction conversion
+TEST_F(SurfacePhysicsTest, traversal_direction)
+{
+    [[maybe_unused]] auto params = this->optical_surface_physics();
+    this->initialize_states(10);
+
+    {
+        auto s_physics = this->surface_physics_view(TrackSlotId{2});
+        s_physics = SurfacePhysicsView::Initializer{
+            SurfaceId{1},
+            forward,
+            make_unit_vector(Real3{-1, 2, 3}),
+            OptMatId{0},
+            OptMatId{1}};
+
+        std::vector<Real3> geo_directions{
+            make_unit_vector(Real3{1, 0, 1}),
+            make_unit_vector(Real3{-1, 2, 3}),
+            make_unit_vector(Real3{-3, -4, -1}),
+            make_unit_vector(Real3{1, 0, 0}),
+        };
+
+        std::vector<SubsurfaceDirection> directions;
+        for (auto const& dir : geo_directions)
+        {
+            directions.push_back(s_physics.traversal_direction(dir));
+        }
+
+        std::vector<SubsurfaceDirection> expected_directions{
+            reverse,
+            reverse,
+            forward,
+            forward,
+        };
+
+        EXPECT_VEC_EQ(expected_directions, directions);
+    }
+    {
+        auto s_physics = this->surface_physics_view(TrackSlotId{3});
+        s_physics
+            = SurfacePhysicsView::Initializer{SurfaceId{2},
+                                              reverse,
+                                              make_unit_vector(Real3{1, 1, 1}),
+                                              OptMatId{1},
+                                              OptMatId{0}};
+
+        std::vector<Real3> geo_directions{
+            make_unit_vector(Real3{-1, -1, -1}),
+            make_unit_vector(Real3{-1, 2, 3}),
+            make_unit_vector(Real3{-3, -4, -1}),
+            make_unit_vector(Real3{0, 0, 1}),
+        };
+
+        std::vector<SubsurfaceDirection> directions;
+        for (auto const& dir : geo_directions)
+        {
+            directions.push_back(s_physics.traversal_direction(dir));
+        }
+
+        std::vector<SubsurfaceDirection> expected_directions{
+            forward,
+            reverse,
+            forward,
+            reverse,
+        };
+
+        EXPECT_VEC_EQ(expected_directions, directions);
     }
 }
 
