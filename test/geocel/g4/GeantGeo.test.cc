@@ -367,6 +367,41 @@ TEST_F(FourLevelsTest, levels)
 }
 
 //---------------------------------------------------------------------------//
+using LarSphereTest
+    = GenericGeoParameterizedTest<GeantGeoTest, LarSphereGeoTest>;
+
+TEST_F(LarSphereTest, model)
+{
+    auto result = this->summarize_model();
+
+    GenericGeoModelInp ref;
+    ref.volume.labels
+        = {"sphere", "detshell_top", "detshell_bot", "detshell", "world"};
+    ref.volume.materials = {1, 1, 1, 0, 0};
+    ref.volume.daughters = {{}, {}, {}, {2, 3}, {1, 4}};
+    ref.volume_instance.labels = {
+        "world_PV",
+        "detshell_PV",
+        "detshell_top_PV",
+        "detshell_bot_PV",
+        "sphere_PV",
+    };
+    ref.volume_instance.volumes = {4, 3, 1, 2, 0};
+    ref.world = "world";
+    EXPECT_REF_EQ(ref, result);
+}
+
+TEST_F(LarSphereTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(LarSphereTest, volume_stack)
+{
+    this->impl().test_volume_stack();
+}
+
+//---------------------------------------------------------------------------//
 using MultiLevelTest
     = GenericGeoParameterizedTest<GeantGeoTest, MultiLevelGeoTest>;
 
