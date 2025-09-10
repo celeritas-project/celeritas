@@ -14,6 +14,7 @@
 #include <accel/TrackingManagerConstructor.hh>
 #include <accel/TrackingManagerIntegration.hh>
 #include <corecel/io/Logger.hh>
+#include <corecel/sys/TypeDemangler.hh>
 
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
@@ -55,6 +56,21 @@ std::string shorter_path(std::string const& path_str)
  */
 int main(int argc, char* argv[])
 {
+    if (argc > 2)
+    {
+        // Print help message
+        std::cout << "Usage: " << argv[0] << " [input.mac]" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    using namespace celeritas::example;
+
+    std::unique_ptr<G4RunManager> run_manager{
+        G4RunManagerFactory::CreateRunManager(G4RunManagerType::Default)};
+
+    // Initialize Celeritas
+    auto& tmi = celeritas::TrackingManagerIntegration::Instance();
+
     {
         namespace fs = std::filesystem;
         fs::path cwd = fs::current_path();
@@ -70,22 +86,10 @@ int main(int argc, char* argv[])
         CELER_LOG(info)
             << "Geant4 install: "
             << shorter_path(celeritas::example::geant4_install_dir);
+
+        CELER_LOG(info) << "Run manager type: "
+                        << TypeDemangler<G4RunManager>{}(*run_manager);
     }
-
-    if (argc > 2)
-    {
-        // Print help message
-        std::cout << "Usage: " << argv[0] << " [input.mac]" << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    using namespace celeritas::example;
-
-    std::unique_ptr<G4RunManager> run_manager{
-        G4RunManagerFactory::CreateRunManager(G4RunManagerType::Default)};
-
-    // Initialize Celeritas
-    auto& tmi = celeritas::TrackingManagerIntegration::Instance();
 
     // Initialize physics with celeritas offload
     auto* physics_list = new FTFP_BERT{/* verbosity = */ 0};
