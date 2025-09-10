@@ -31,8 +31,8 @@ if(NOT CELERITAS_USE_Geant4)
 endif()
 
 #-----------------------------------------------------------------------------#
-# Configure path helper files
-configure_file("src/SourceFiles.hh.in" "SourceFiles.hh")
+# Configure build info strings for use by run-offload.cc
+configure_file("BuildInfo.hh.in" "BuildInfo.hh")
 
 #-----------------------------------------------------------------------------#
 # Add executable

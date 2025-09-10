@@ -13,14 +13,17 @@
 #include <G4UImanager.hh>
 #include <accel/TrackingManagerConstructor.hh>
 #include <accel/TrackingManagerIntegration.hh>
+#include <corecel/io/BuildOutput.hh>
 #include <corecel/io/Logger.hh>
 #include <corecel/sys/TypeDemangler.hh>
 
 #include "ActionInitialization.hh"
+#include "BuildInfo.hh"
 #include "DetectorConstruction.hh"
 #include "MakeCelerOptions.hh"
-#include "SourceFiles.hh"
 
+namespace
+{
 //---------------------------------------------------------------------------//
 /*!
  * Return the shorter of the relative path to current directory or the full
@@ -50,6 +53,36 @@ std::string shorter_path(std::string const& path_str)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Print information about the example's build system and dependencies.
+ *
+ * This uses the CMake-exported build information stored in BuildInfo.hh , as
+ * well as the configuration printed by \c celeritas::BuildOutput.
+ *
+ * \note Because this function uses CELER_LOG, it must \em not be called before
+ * Celeritas logging is initialized (during the first call to \c
+ * celeritas::TrackingManagerIntegration::Instance ).
+ */
+void print_build_info(char const* argv0)
+{
+    namespace fs = std::filesystem;
+    namespace ex = celeritas::example;
+
+    fs::path cwd = fs::current_path();
+    CELER_LOG(info) << "Working directory: " << cwd.string();
+    CELER_LOG(info) << "Executable: " << shorter_path(argv0);
+    CELER_LOG(info) << "Source code: " << shorter_path(ex::source_dir);
+    CELER_LOG(info) << "Build dir: " << shorter_path(ex::build_dir);
+    CELER_LOG(info) << "Celeritas install: "
+                    << shorter_path(ex::celeritas_install_dir);
+    CELER_LOG(info) << "Geant4 install: "
+                    << shorter_path(ex::geant4_install_dir);
+    CELER_LOG(debug) << "Full Celeritas configuration: "
+                     << celeritas::BuildOutput{};
+}
+}  // namespace
+
+//---------------------------------------------------------------------------//
+/*!
  * Geant4-Celeritas offloading template.
  *
  * See README for details.
@@ -71,26 +104,10 @@ int main(int argc, char* argv[])
     // Initialize Celeritas
     auto& tmi = celeritas::TrackingManagerIntegration::Instance();
 
-    {
-        namespace fs = std::filesystem;
-        fs::path cwd = fs::current_path();
-        CELER_LOG(info) << "Current working directory: " << cwd.string();
-        CELER_LOG(info) << "Executable: " << shorter_path(argv[0]);
-        CELER_LOG(info) << "Source code: "
-                        << shorter_path(celeritas::example::source_dir);
-        CELER_LOG(info) << "Build dir: "
-                        << shorter_path(celeritas::example::build_dir);
-        CELER_LOG(info)
-            << "Celeritas install: "
-            << shorter_path(celeritas::example::celeritas_install_dir);
-        CELER_LOG(info)
-            << "Geant4 install: "
-            << shorter_path(celeritas::example::geant4_install_dir);
-
-        CELER_LOG(info)
-            << "Run manager type: "
-            << celeritas::TypeDemangler<G4RunManager>{}(*run_manager);
-    }
+    // Print diagnostics about the build setup and chosen run manager
+    print_build_info(argv[0]);
+    CELER_LOG(info) << "Run manager type: "
+                    << celeritas::TypeDemangler<G4RunManager>{}(*run_manager);
 
     // Initialize physics with celeritas offload
     auto* physics_list = new FTFP_BERT{/* verbosity = */ 0};
