@@ -86,6 +86,25 @@ class FourLevelsGeoTest
 
 //---------------------------------------------------------------------------//
 /*!
+ * Test the LAr sphere.
+ */
+class LarSphereGeoTest
+{
+  public:
+    static std::string_view gdml_basename() { return "lar-sphere"; }
+
+    //! Construct with a reference to the GoogleTest
+    LarSphereGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
+
+    void test_trace() const;
+    void test_volume_stack() const;
+
+  private:
+    GenericGeoTestInterface* test_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Test the multi-level geometry.
  */
 class MultiLevelGeoTest

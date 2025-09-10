@@ -34,9 +34,8 @@ is_entering_surface(Real3 const& dir, Real3 const& normal)
  *
  * Some facet normal calculators might not produce surface normals valid for
  * optical physics surface crossings (see \c is_entering_surface ). This
- * functor will construct and repeatedly sample the distribution until a valid
- * facet normal is sampled.
- *
+ * functor will construct and repeatedly sample the distribution until the
+ * track is exiting the sampled facet normal.
  */
 template<class Calculator>
 class EnteringSurfaceNormalSampler

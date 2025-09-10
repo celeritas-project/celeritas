@@ -150,7 +150,8 @@ void GenericGeoTrackingResult::print_expected() const
     {
         IRE_VEC_SOFT_EQ(dot_normal, tol.normal);
     }
-    IRE_VEC_SOFT_EQ(halfway_safeties, SoftEqual(tol.safety, tol.safety));
+    IRE_VEC_SOFT_EQ(halfway_safeties,
+                    EqualOr{SoftEqual(tol.safety, tol.safety)});
     IRE_VEC_SOFT_EQ(bumps, SoftEqual(tol.safety, tol.safety));
 
 #undef IRE_VEC_EQ
