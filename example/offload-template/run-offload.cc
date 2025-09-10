@@ -55,8 +55,10 @@ std::string shorter_path(std::string const& path_str)
 /*!
  * Print information about the example's build system and dependencies.
  *
- * This uses the CMake-exported build information stored in BuildInfo.hh , as
- * well as the configuration printed by \c celeritas::BuildOutput.
+ * This uses the CMake-exported build information stored in BuildInfo.hh
+ * (configured by cmake to the build directory from the source directory's
+ * BuildInfo.hh.in), as well as the configuration printed by \c
+ * celeritas::BuildOutput.
  *
  * \note Because this function uses CELER_LOG, it must \em not be called before
  * Celeritas logging is initialized (during the first call to \c
@@ -69,13 +71,13 @@ void print_build_info(char const* argv0)
 
     fs::path cwd = fs::current_path();
     CELER_LOG(info) << "Working directory: " << cwd.string();
-    CELER_LOG(info) << "Executable: " << shorter_path(argv0);
-    CELER_LOG(info) << "Source code: " << shorter_path(ex::source_dir);
-    CELER_LOG(info) << "Build dir: " << shorter_path(ex::build_dir);
-    CELER_LOG(info) << "Celeritas install: "
-                    << shorter_path(ex::celeritas_install_dir);
-    CELER_LOG(info) << "Geant4 install: "
-                    << shorter_path(ex::geant4_install_dir);
+    CELER_LOG(debug) << "Executable: " << shorter_path(argv0);
+    CELER_LOG(debug) << "Source code: " << shorter_path(ex::source_dir);
+    CELER_LOG(debug) << "Build dir: " << shorter_path(ex::build_dir);
+    CELER_LOG(debug) << "Celeritas install: "
+                     << shorter_path(ex::celeritas_install_dir);
+    CELER_LOG(debug) << "Geant4 install: "
+                     << shorter_path(ex::geant4_install_dir);
     CELER_LOG(debug) << "Full Celeritas configuration: "
                      << celeritas::BuildOutput{};
 }
