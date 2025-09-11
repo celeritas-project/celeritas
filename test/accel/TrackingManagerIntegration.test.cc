@@ -6,10 +6,15 @@
 //---------------------------------------------------------------------------//
 #include "accel/TrackingManagerIntegration.hh"
 
+#include <atomic>
+#include <functional>
 #include <G4RunManager.hh>
+#include <G4Threading.hh>
+#include <G4UImanager.hh>
 #include <G4VModularPhysicsList.hh>
 
 #include "corecel/io/Logger.hh"
+#include "celeritas/global/CoreState.hh"
 #include "accel/SetupOptions.hh"
 #include "accel/TrackingManagerConstructor.hh"
 #include "accel/detail/IntegrationSingleton.hh"
@@ -23,6 +28,16 @@ namespace celeritas
 {
 namespace test
 {
+namespace
+{
+//! Query thread-local data to determine whether the thread is running
+bool is_running_events()
+{
+    return !G4Threading::IsMasterThread()
+           || !G4Threading::IsMultithreadedApplication();
+}
+
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -51,6 +66,10 @@ class TMITestBase : virtual public IntegrationTestBase
     void BeginOfRunAction(G4Run const* run) override
     {
         TMI::Instance().BeginOfRunAction(run);
+        if (check_during_run_)
+        {
+            check_during_run_();
+        }
     }
     void EndOfRunAction(G4Run const* run) override
     {
@@ -63,6 +82,8 @@ class TMITestBase : virtual public IntegrationTestBase
             = detail::IntegrationSingleton::local_transporter();
         EXPECT_EQ(0, local_transport.GetBufferSize());
     }
+
+    std::function<void()> check_during_run_;
 };
 
 //---------------------------------------------------------------------------//
@@ -83,6 +104,52 @@ TEST_F(LarSphere, run)
 
     CELER_LOG(status) << "Beam on (second run)";
     rm.BeamOn(1);
+}
+
+TEST_F(LarSphere, ui)
+{
+    auto& rm = this->run_manager();
+    auto& tmi = TMI::Instance();
+
+    tmi.SetOptions(this->make_setup_options());
+    auto mode = tmi.GetMode();
+    EXPECT_EQ(mode, OffloadMode::uninitialized);
+
+    std::atomic<int> check_count{0};
+
+    auto& ui = *G4UImanager::GetUIpointer();
+    if (SharedParams::GetMode() != OffloadMode::disabled)
+    {
+        ui.ApplyCommand("/celer/maxNumTracks 128");
+        ui.ApplyCommand("/celer/maxInitializers 10000");
+
+        check_during_run_ = [&check_count, &tmi] {
+            EXPECT_NE(OffloadMode::uninitialized, tmi.GetMode());
+
+            if (tmi.GetMode() == OffloadMode::enabled && is_running_events())
+            {
+                CELER_LOG_LOCAL(debug) << "Checking number of tracks";
+                ++check_count;
+
+                auto const& state = tmi.GetState();
+                EXPECT_EQ(state.size(), 128);
+            }
+        };
+    }
+    else
+    {
+        check_during_run_ = [&check_count] {
+            if (is_running_events())
+            {
+                ++check_count;
+            }
+        };
+    }
+
+    ui.ApplyCommand("/run/initialize");
+    ui.ApplyCommand("/run/beamOn 2");
+
+    EXPECT_EQ(rm.GetNumberOfThreads(), check_count.load());
 }
 
 //---------------------------------------------------------------------------//
