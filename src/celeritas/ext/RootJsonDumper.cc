@@ -37,8 +37,7 @@ void RootJsonDumper::operator()(ImportData const& import_data)
 {
     CELER_LOG(debug) << "Converting import data to JSON";
     *os_ << TBufferJSON::ConvertToJSON(&import_data,
-                                       TClass::GetClass(typeid(import_data)),
-                                       /* compact = */ kTRUE);
+                                       TClass::GetClass(typeid(import_data)));
 }
 
 //---------------------------------------------------------------------------//
