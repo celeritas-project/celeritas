@@ -397,14 +397,12 @@ std::vector<inp::Detector> make_inp_detectors(GeantGeoParams const& geo)
     // Process each logical volume
     for (auto iv_id : range(ImplVolumeId{vol_labels.size()}))
     {
-        auto const& label = vol_labels.at(iv_id);
-        if (label.empty())
+        auto vol_id = geo.volume_id(iv_id);
+        if (!vol_id)
         {
             // This volume isn't part of the world hierarchy
             continue;
         }
-
-        auto vol_id = geo.volume_id(iv_id);
         auto& g4lv = *geo.id_to_geant(vol_id);
 
         G4VSensitiveDetector* sd = g4lv.GetSensitiveDetector();
@@ -417,7 +415,7 @@ std::vector<inp::Detector> make_inp_detectors(GeantGeoParams const& geo)
             // Loop over existing input detectors in the result vector and
             // append volume id to input detector volume id list if labels
             // match.
-            for (auto detector : result)
+            for (auto& detector : result)
             {
                 if (detector.label == sd_label)
                 {
