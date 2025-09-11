@@ -39,13 +39,7 @@ void IntegrationBase::SetOptions(SetupOptions&& opts)
  */
 OffloadMode IntegrationBase::GetMode() const
 {
-    auto const& singleton = IntegrationSingleton::instance();
-    if (singleton.offloaded_particles().empty())
-    {
-        CELER_LOG(warning) << "GetMode cannot be called before SetOptions";
-        return OffloadMode::uninitialized;
-    }
-    return singleton.shared_params().mode();
+    return IntegrationSingleton::instance().mode();
 }
 
 //---------------------------------------------------------------------------//
@@ -121,7 +115,8 @@ CoreStateInterface& IntegrationBase::GetState()
  * Initialize logging on first access.
  *
  * Since this is done during static initialization, it is guaranteed to be
- * thread safe.
+ * thread safe. By ensuring \c IntegrationSingleton has been constructed, it
+ * guarantees MPI is initialized (or disabled) before the first log message.
  */
 IntegrationBase::IntegrationBase()
 {

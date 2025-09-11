@@ -61,6 +61,9 @@ class IntegrationSingleton
     //! Return list of particles to be offloaded during run
     VecG4PD const& offloaded_particles() const { return offloaded_; }
 
+    // Access whether Celeritas is set up, enabled, or uninitialized
+    OffloadMode mode() const;
+
     //!@{
     //! Static global Celeritas problem data
     SharedParams& shared_params() { return params_; }

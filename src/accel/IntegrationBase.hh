@@ -25,8 +25,10 @@ class CoreParams;
  *
  * This implements common functionality for the Celeritas integration classes.
  * The \c GetParams and \c GetState methods may only be used during a run with
- * Celeritas offloading enabled. It cannot be accessed before the run manager
- * is created (this requirement may be relaxed in the future).
+ * Celeritas offloading enabled.
+ *
+ * \note It cannot be accessed before the Geant4 run manager is created (this
+ * requirement may be relaxed in the future).
  *
  * \sa celeritas::UserActionIntegration
  * \sa celeritas::TrackingManagerIntegration

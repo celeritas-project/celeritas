@@ -118,9 +118,9 @@ TEST_F(LarSphere, ui)
     auto& rm = this->run_manager();
     auto& tmi = TMI::Instance();
 
+    EXPECT_EQ(tmi.GetMode(), OffloadMode::uninitialized);
     tmi.SetOptions(this->make_setup_options());
-    auto mode = tmi.GetMode();
-    EXPECT_EQ(mode, OffloadMode::uninitialized);
+    EXPECT_NE(tmi.GetMode(), OffloadMode::uninitialized);
 
     std::atomic<int> check_count{0};
 

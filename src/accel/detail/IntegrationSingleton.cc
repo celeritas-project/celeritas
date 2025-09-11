@@ -103,6 +103,23 @@ void IntegrationSingleton::setup_options(SetupOptions&& opts)
         CELER_LOG(warning)
             << R"(SetOptions called with incomplete input: you must use the UI to update before /run/initialize)";
     }
+
+    CELER_ENSURE(!offloaded_.empty());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access whether Celeritas is set up, enabled, or uninitialized.
+ */
+OffloadMode IntegrationSingleton::mode() const
+{
+    if (offloaded_.empty())
+    {
+        CELER_LOG(warning) << "GetMode must not be called before SetOptions";
+        return OffloadMode::uninitialized;
+    }
+
+    return SharedParams::GetMode();
 }
 
 //---------------------------------------------------------------------------//
