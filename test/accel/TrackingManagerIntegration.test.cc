@@ -91,6 +91,9 @@ class LarSphere : public LarSphereIntegrationMixin, public TMITestBase
 {
 };
 
+/*!
+ * Check that multiple sequential runs complete successfully.
+ */
 TEST_F(LarSphere, run)
 {
     auto& rm = this->run_manager();
@@ -106,6 +109,9 @@ TEST_F(LarSphere, run)
     rm.BeamOn(1);
 }
 
+/*!
+ * Check that UI commands are correctly propagated to the Celeritas runtime.
+ */
 TEST_F(LarSphere, ui)
 {
     auto& rm = this->run_manager();
@@ -157,6 +163,9 @@ class TestEm3 : public TestEm3IntegrationMixin, public TMITestBase
 {
 };
 
+/*!
+ * Check that TestEm3 runs.
+ */
 TEST_F(TestEm3, run)
 {
     auto& rm = this->run_manager();

@@ -320,6 +320,7 @@ SetupOptions IntegrationTestBase::make_setup_options()
 
     // Save diagnostic file to a unique name
     std::string ext = "-" + celeritas::getenv("CELER_OFFLOAD");
+    ext += "-" + celeritas::tolower(celeritas::getenv("G4RUN_MANAGER_TYPE"));
     ext += ".out.json";
     opts.output_file = this->make_unique_filename(ext);
     return opts;
