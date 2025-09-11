@@ -134,7 +134,7 @@ struct Detectors
 
     VecDetector detectors;
 
-    //! True if at least one detctor is defined
+    //! True if at least one detector is defined
     explicit operator bool() const { return !detectors.empty(); }
 };
 

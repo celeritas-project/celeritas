@@ -427,8 +427,8 @@ std::vector<inp::Detector> make_inp_detectors(GeantGeoParams const& geo)
                 }
             }
 
-            // If no existing input detector matchs volume SD label, create new
-            // input detector struct and add label and volume ID to it.
+            // If no existing input detector matches volume SD label, create
+            // new input detector struct and add label and volume ID to it.
             if (!existing_sd)
             {
                 inp::Detector detector;
