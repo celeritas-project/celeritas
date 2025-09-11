@@ -14,6 +14,7 @@
 #include <G4VModularPhysicsList.hh>
 
 #include "corecel/io/Logger.hh"
+#include "geocel/GeantUtils.hh"
 #include "celeritas/global/CoreState.hh"
 #include "accel/SetupOptions.hh"
 #include "accel/TrackingManagerConstructor.hh"
@@ -155,7 +156,7 @@ TEST_F(LarSphere, ui)
     ui.ApplyCommand("/run/initialize");
     ui.ApplyCommand("/run/beamOn 2");
 
-    EXPECT_EQ(rm.GetNumberOfThreads(), check_count.load());
+    EXPECT_EQ(get_geant_num_threads(rm), check_count.load());
 }
 
 //---------------------------------------------------------------------------//
