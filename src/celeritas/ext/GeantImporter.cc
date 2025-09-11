@@ -94,6 +94,7 @@
 #include "celeritas/io/SeltzerBergerReader.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
+#include "GeantParticleView.hh"
 #include "GeantSetup.hh"
 
 #include "detail/AllElementReader.hh"
@@ -1475,20 +1476,16 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
  */
 inp::Particle import_particle(G4ParticleDefinition const& p)
 {
+    GeantParticleView particle_view{p};
+
     inp::Particle result;
-    result.name = p.GetParticleName();
-    result.pdg = PDGNumber{p.GetPDGEncoding()};
-    result.mass = inp::Particle::MevMass{p.GetPDGMass()};
-    result.charge = inp::Particle::Charge{p.GetPDGCharge()};
+    result.name = particle_view.name();
+    result.pdg = particle_view.pdg();
+    result.mass = particle_view.mass();
+    result.charge = particle_view.charge();
 
-    if (!p.GetPDGStable())
-    {
-        double const time_scale = native_value_from_clhep(ImportUnits::time);
-
-        // Calculate decay constant, converting lifetime of unstable particles
-        // to seconds
-        result.decay_constant = 1 / (p.GetPDGLifeTime() * time_scale);
-    }
+    // Use decay constant from GeantParticleView (already in correct units)
+    result.decay_constant = particle_view.decay_constant();
 
     return result;
 }
