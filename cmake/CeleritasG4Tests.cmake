@@ -72,6 +72,7 @@ function(celeritas_g4_add_one_test test_name target args labels offload rmtype)
   endif()
   set(_env
     ${_celer_g4_test_env}
+    "CELER_OFFLOAD=${offload}" # Used only by test framework for now
     "G4RUN_MANAGER_TYPE=${_rm_${rmtype}}"
   )
   if(offload STREQUAL "cpu")

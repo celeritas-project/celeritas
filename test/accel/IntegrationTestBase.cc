@@ -29,6 +29,7 @@
 
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
+#include "corecel/sys/Environment.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
@@ -318,7 +319,9 @@ SetupOptions IntegrationTestBase::make_setup_options()
     opts.make_along_step = celeritas::UniformAlongStepFactory();
 
     // Save diagnostic file to a unique name
-    opts.output_file = this->make_unique_filename(".out.json");
+    std::string ext = "-" + celeritas::getenv("CELER_OFFLOAD");
+    ext += ".out.json";
+    opts.output_file = this->make_unique_filename(ext);
     return opts;
 }
 
