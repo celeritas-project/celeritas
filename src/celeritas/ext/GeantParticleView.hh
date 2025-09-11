@@ -11,7 +11,6 @@
 #include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/Units.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 namespace celeritas
@@ -49,6 +48,9 @@ class GeantParticleView
     // Decay constant [1/s]
     inline real_type decay_constant() const;
 
+    // Whether it is an antiparticle
+    inline bool is_antiparticle() const;
+
   private:
     G4ParticleDefinition const& pd_;
 };
@@ -69,6 +71,15 @@ real_type GeantParticleView::decay_constant() const
 
     // Decay constant is 1/lifetime
     return 1 / native_value_from(Time{pd_.GetPDGLifeTime()});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether it is an antiparticle.
+ */
+bool GeantParticleView::is_antiparticle() const
+{
+    return this->pdg() && this->pdg().get() < 0;
 }
 
 //---------------------------------------------------------------------------//
