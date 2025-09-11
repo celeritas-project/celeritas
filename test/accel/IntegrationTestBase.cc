@@ -28,7 +28,6 @@
 #include "corecel/Config.hh"
 
 #include "corecel/io/Logger.hh"
-#include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantUtils.hh"
@@ -225,7 +224,6 @@ G4RunManager& IntegrationTestBase::run_manager()
         CELER_LOG(status) << "Creating run manager";
         // Run manager writes output that cannot be redirected with
         // GeantLoggerAdapter: capture all output from this section
-        ScopedTimeAndRedirect scoped_time{"G4RunManager"};
         ScopedGeantExceptionHandler scoped_exceptions;
 
         // Access the particle table before creating the run manager, so that
