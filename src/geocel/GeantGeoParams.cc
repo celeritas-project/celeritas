@@ -394,6 +394,9 @@ std::vector<inp::Detector> make_inp_detectors(GeantGeoParams const& geo)
 
     auto const& vol_labels = geo.impl_volumes();
 
+    std::unordered_map<G4VSensitiveDetector const*, std::vector<VolumeId>>
+        detector_map;
+
     // Process each logical volume
     for (auto iv_id : range(ImplVolumeId{vol_labels.size()}))
     {
@@ -405,37 +408,27 @@ std::vector<inp::Detector> make_inp_detectors(GeantGeoParams const& geo)
         }
         auto& g4lv = *geo.id_to_geant(vol_id);
 
-        G4VSensitiveDetector* sd = g4lv.GetSensitiveDetector();
-        // check if volume is part of a sensitive detector
+        G4VSensitiveDetector const* sd = g4lv.GetSensitiveDetector();
+        // Add volume id to detector map if it is in a detector region
         if (sd)
         {
-            Label sd_label = sd->GetName();
-            bool existing_sd = false;
-
-            // Loop over existing input detectors in the result vector and
-            // append volume id to input detector volume id list if labels
-            // match.
-            for (auto& detector : result)
-            {
-                if (detector.label == sd_label)
-                {
-                    existing_sd = true;
-                    detector.volumes.push_back(vol_id);
-                    break;
-                }
-            }
-
-            // If no existing input detector matches volume SD label, create
-            // new input detector struct and add label and volume ID to it.
-            if (!existing_sd)
-            {
-                inp::Detector detector;
-                detector.label = sd_label;
-                detector.volumes.push_back(vol_id);
-                result.push_back(detector);
-            }
+            detector_map[sd].push_back(vol_id);
         }
     }
+
+    // Loop over detector_map and add detectors to result vector
+    for (auto const& sd_pair : detector_map)
+    {
+        inp::Detector detector;
+        detector.label = sd_pair.first->GetName();
+        detector.volumes = detector_map[sd_pair.first];
+        std::sort(detector.volumes.begin(), detector.volumes.end());
+        result.push_back(detector);
+    }
+
+    std::sort(result.begin(), result.end(), [](auto& left, auto& right) {
+        return left.volumes.front() < right.volumes.front();
+    });
 
     return result;
 }
