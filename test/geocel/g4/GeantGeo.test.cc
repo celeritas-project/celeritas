@@ -221,7 +221,7 @@ TEST_F(CmsEeBackDeeTest, model)
     ref.volume_instance.volumes = {3, 2, 0, 1, 4, 5, 6};
     ref.world = "EEBackDee";
     ref.detector.labels = {"ee_back_plate", "ee_s_ring"};
-    ref.detector.volumes = {{0}, {1}};
+    ref.detector.volumes = {{0, 5}, {1, 6}};
     EXPECT_REF_EQ(ref, result);
 }
 
@@ -391,7 +391,7 @@ TEST_F(LarSphereTest, model)
     ref.volume_instance.volumes = {4, 3, 1, 2, 0};
     ref.world = "world";
     ref.detector.labels = {"detshell"};
-    ref.detector.volumes = {{1}};
+    ref.detector.volumes = {{1, 2}};
     EXPECT_REF_EQ(ref, result);
 }
 
@@ -448,7 +448,7 @@ TEST_F(MultiLevelTest, model)
     };
     ref.world = "world";
     ref.detector.labels = {"sph_sd"};
-    ref.detector.volumes = {{0}};
+    ref.detector.volumes = {{0, 5}};
     EXPECT_REF_EQ(ref, result);
 }
 
