@@ -343,6 +343,8 @@ void GenericGeoModelInp::print_expected() const
     IRE_COMPARE(world);
     IRE_COMPARE(surface.labels);
     IRE_COMPARE(surface.volumes);
+    IRE_COMPARE(detector.labels);
+    IRE_COMPARE(detector.volumes);
 
 #undef IRE_COMPARE
     return result;

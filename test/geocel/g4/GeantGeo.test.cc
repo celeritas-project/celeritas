@@ -390,6 +390,8 @@ TEST_F(LarSphereTest, model)
     };
     ref.volume_instance.volumes = {4, 3, 1, 2, 0};
     ref.world = "world";
+    ref.detector.labels = {"detshell"};
+    ref.detector.volumes = {{1}};
     EXPECT_REF_EQ(ref, result);
 }
 
@@ -445,6 +447,8 @@ TEST_F(MultiLevelTest, model)
         6,
     };
     ref.world = "world";
+    ref.detector.labels = {"sph_sd"};
+    ref.detector.volumes = {{0}};
     EXPECT_REF_EQ(ref, result);
 }
 
