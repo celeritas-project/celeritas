@@ -54,7 +54,7 @@ class ImportDataTrimmer
     void operator()(ImportMuPairProductionTable& data);
     void operator()(ImportOpticalMaterial& data);
     void operator()(ImportOpticalModel& data);
-    void operator()(ImportParticle& data);
+    void operator()(inp::Particle& data);
     void operator()(ImportPhysMaterial& data);
     void operator()(ImportProcess& data);
     //!@}

@@ -7,6 +7,7 @@
 #include <regex>
 #include <string_view>
 #include <G4LogicalVolume.hh>
+#include <G4VSensitiveDetector.hh>
 
 #include "corecel/Config.hh"
 
@@ -368,6 +369,41 @@ TEST_F(FourLevelsTest, levels)
 }
 
 //---------------------------------------------------------------------------//
+using LarSphereTest
+    = GenericGeoParameterizedTest<GeantGeoTest, LarSphereGeoTest>;
+
+TEST_F(LarSphereTest, model)
+{
+    auto result = this->summarize_model();
+
+    GenericGeoModelInp ref;
+    ref.volume.labels
+        = {"sphere", "detshell_top", "detshell_bot", "detshell", "world"};
+    ref.volume.materials = {1, 1, 1, 0, 0};
+    ref.volume.daughters = {{}, {}, {}, {2, 3}, {1, 4}};
+    ref.volume_instance.labels = {
+        "world_PV",
+        "detshell_PV",
+        "detshell_top_PV",
+        "detshell_bot_PV",
+        "sphere_PV",
+    };
+    ref.volume_instance.volumes = {4, 3, 1, 2, 0};
+    ref.world = "world";
+    EXPECT_REF_EQ(ref, result);
+}
+
+TEST_F(LarSphereTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(LarSphereTest, volume_stack)
+{
+    this->impl().test_volume_stack();
+}
+
+//---------------------------------------------------------------------------//
 using MultiLevelTest
     = GenericGeoParameterizedTest<GeantGeoTest, MultiLevelGeoTest>;
 
@@ -410,6 +446,21 @@ TEST_F(MultiLevelTest, model)
     };
     ref.world = "world";
     EXPECT_REF_EQ(ref, result);
+}
+
+TEST_F(MultiLevelTest, sd_creation)
+{
+    auto const& geo = *this->geometry();
+
+    auto* lv = geo.id_to_geant(VolumeId{0});  // sph; see model above
+    auto* sd = lv->GetSensitiveDetector();
+    ASSERT_TRUE(sd);
+    EXPECT_EQ("sph_sd", sd->GetName());
+
+    auto* lv2 = geo.id_to_geant(VolumeId{5});  // sph_refl
+    auto* sd2 = lv2->GetSensitiveDetector();
+    ASSERT_TRUE(sd2);
+    EXPECT_EQ(sd, sd2);
 }
 
 TEST_F(MultiLevelTest, trace)

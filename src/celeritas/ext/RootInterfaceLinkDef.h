@@ -35,7 +35,6 @@
 #pragma link C++ class celeritas::ImportOpticalParameters+;
 #pragma link C++ class celeritas::ImportOpticalProperty+;
 #pragma link C++ class celeritas::ImportOpticalRayleigh+;
-#pragma link C++ class celeritas::ImportParticle+;
 #pragma link C++ class celeritas::ImportParticleScintSpectrum+;
 #pragma link C++ class celeritas::ImportPhysicsTable+;
 #pragma link C++ class celeritas::ImportPhysMaterial+;
@@ -57,6 +56,7 @@
 #pragma link C++ class celeritas::inp::Interpolation+;
 #pragma link C++ class celeritas::inp::NoRoughness+;
 #pragma link C++ class celeritas::inp::OpticalPhysics+;
+#pragma link C++ class celeritas::inp::Particle+;
 #pragma link C++ class celeritas::inp::ReflectionForm+;
 #pragma link C++ class celeritas::inp::ReflectivityModels+;
 #pragma link C++ class celeritas::inp::RoughnessModels+;
@@ -66,6 +66,10 @@
 #pragma link C++ class celeritas::inp::UniformGrid+;
 #pragma link C++ class celeritas::inp::UniformGrid::GridBound+;
 
+// Quantities
+#pragma link C++ class celeritas::Quantity<celeritas::units::EElectron,double>+;
+#pragma link C++ class celeritas::Quantity<celeritas::units::MevPerCsq,double>+;
+
 // Event data used by Geant4/Celeritas offloading applications
 #pragma link C++ class celeritas::EventHitData+;
 #pragma link C++ class celeritas::EventData+;
@@ -74,6 +78,7 @@
 #pragma link C++ class celeritas::SurfaceId+;
 #pragma link C++ class celeritas::PhysSurfaceId+;
 #pragma link C++ class celeritas::OptMatId+;
+#pragma link C++ class celeritas::PDGNumber+;
 // clang-format on
 
 #endif

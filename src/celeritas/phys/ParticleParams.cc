@@ -27,28 +27,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Conversion function.
- */
-auto ParticleParams::ParticleInput::from_import(ImportParticle const& ip)
-    -> ParticleInput
-{
-    ParticleInput result;
-
-    // Convert metadata
-    result.name = ip.name;
-    result.pdg_code = PDGNumber{ip.pdg};
-
-    // Convert data
-    result.mass = units::MevMass(ip.mass);
-    result.charge = units::ElementaryCharge(ip.charge);
-    result.decay_constant
-        = (ip.is_stable ? constants::stable_decay_constant : 1 / ip.lifetime);
-
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct with imported data.
  */
 std::shared_ptr<ParticleParams>
@@ -56,11 +34,7 @@ ParticleParams::from_import(ImportData const& data)
 {
     CELER_EXPECT(!data.particles.empty());
 
-    Input defs;
-    for (auto const& ip : data.particles)
-    {
-        defs.push_back(ParticleInput::from_import(ip));
-    }
+    Input defs = data.particles;
 
     // Sort by increasing mass, then by PDG code (positive before negative of
     // the same absolute value). Placing lighter particles
@@ -69,7 +43,7 @@ ParticleParams::from_import(ImportData const& data)
     // easier to human-read the particles while debugging, and having them
     // at adjacent memory locations could improve caching.
     auto to_particle_key = [](auto const& inp) {
-        int pdg = inp.pdg_code.get();
+        int pdg = inp.pdg.get();
         return std::make_tuple(inp.mass, std::abs(pdg), pdg < 0);
     };
     std::sort(defs.begin(),
@@ -96,7 +70,7 @@ ParticleParams::ParticleParams(Input const& input)
     detail::ParticleInserter insert_particle(&host_data);
     for (auto const& particle : input)
     {
-        CELER_VALIDATE(particle.pdg_code,
+        CELER_VALIDATE(particle.pdg,
                        << "input particle '" << particle.name
                        << "' was not assigned a PDG code");
         CELER_EXPECT(!particle.name.empty());
@@ -104,16 +78,16 @@ ParticleParams::ParticleParams(Input const& input)
         ParticleId id = insert_particle(particle);
 
         // Add host metadata
-        md_.push_back({particle.name, particle.pdg_code});
+        md_.push_back({particle.name, particle.pdg});
         bool inserted = name_to_id_.insert({particle.name, id}).second;
         CELER_VALIDATE(inserted,
                        << "multiple particles share the name '"
                        << particle.name << "'");
-        inserted = pdg_to_id_.insert({particle.pdg_code, id}).second;
+        inserted = pdg_to_id_.insert({particle.pdg, id}).second;
         if (!inserted)
         {
             CELER_LOG(warning) << "multiple particles share the PDG code "
-                               << particle.pdg_code.get();
+                               << particle.pdg.get();
         }
     }
 

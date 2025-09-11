@@ -63,12 +63,6 @@ class InputBuilderTest : public JsonOrangeTest
         return geometry_basename();
     }
 
-    // FIXME: normal is inconsistent between topbox3 and world_PV
-    bool supports_surface_normal() const override
-    {
-        return supports_surface_normal_;
-    }
-
   protected:
     bool supports_surface_normal_{true};
 
@@ -765,6 +759,43 @@ TEST_F(InputBuilderTest, globalspheres)
     EXPECT_JSON_EQ(
         R"json({"_category":"internal","_label":"orange","scalars":{"max_depth":1,"max_faces":2,"max_intersections":4,"max_logic_depth":2,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":3,"inner_nodes":0,"leaf_nodes":1,"local_volume_ids":3},"connectivity_records":2,"daughters":0,"local_surface_ids":4,"local_volume_ids":4,"logic_ints":7,"real_ids":2,"reals":2,"rect_arrays":0,"simple_units":1,"surface_types":2,"transforms":0,"universe_indices":1,"universe_types":1,"volume_records":3},"surfaces":{"label":["[EXTERIOR]@global","inner@s"]}})json",
         to_string(out));
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(InputBuilderTest, lar_split_detector)
+{
+    {
+        auto result = this->track({0, 0, -16}, {0, 0, 1});
+
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
+            "[OUTSIDE]",
+            "outer_region",
+            "lower_shell",
+            "inner",
+            "upper_shell",
+            "outer_region",
+        };
+        ref.volume_instances = {
+            "outer_region@global",
+            "lower_shell@global",
+            "inner@global",
+            "upper_shell@global",
+            "outer_region@global",
+        };
+        ref.distances = {1, 5, 5, 10, 5, 5};
+        ref.halfway_safeties = {2.5, 2.5, inf, 2.5, 2.5};
+        ref.bumps = {};
+        auto tol = this->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
+    }
+
+    {
+        SCOPED_TRACE("Initialize on irrelevant surface");
+        auto geo = this->make_geo_track_view();
+        EXPECT_NO_THROW((geo = Initializer_t{{1, 2, 0}, {0, 0, 1}}));
+    }
 }
 
 //---------------------------------------------------------------------------//

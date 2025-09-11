@@ -18,6 +18,10 @@
 #define EXPECT_RESULT_NEAR(EXPECTED, ACTUAL, TOL) \
     EXPECT_REF_NEAR(EXPECTED, ACTUAL, TOL)
 
+//! Check that a surface normal is equivalent (modulo the sign)
+#define EXPECT_NORMAL_EQUIV(expected, actual) \
+    EXPECT_PRED_FORMAT2(::celeritas::test::IsNormalEquiv, expected, actual)
+
 namespace celeritas
 {
 template<class T>
@@ -30,6 +34,13 @@ struct Model;
 namespace test
 {
 class GenericGeoTestInterface;
+
+//---------------------------------------------------------------------------//
+// Test whether two surface normals are about the same, modulo sign
+::testing::AssertionResult IsNormalEquiv(char const* expected_expr,
+                                         char const* actual_expr,
+                                         Real3 const& expected,
+                                         Real3 const& actual);
 
 //---------------------------------------------------------------------------//
 // TRACKING RESULT

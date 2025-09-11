@@ -10,7 +10,7 @@ Dependencies
 ------------
 
 - Geant4 v11 or newer
-- Celeritas v0.5 or newer with ``CELERITAS_USE_Geant4=ON``
+- Celeritas v0.6 or newer with ``CELERITAS_USE_Geant4=ON``
 
 Build and run
 -------------

@@ -12,6 +12,7 @@
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/Types.hh"
 
+#include "GenericGeoResults.hh"
 #include "TestMacros.hh"
 #include "UnitUtils.hh"
 
@@ -78,6 +79,25 @@ class FourLevelsGeoTest
 
     template<class GeoTest>
     inline static void test_detailed_tracking(GeoTest* geo_test);
+
+  private:
+    GenericGeoTestInterface* test_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Test the LAr sphere.
+ */
+class LarSphereGeoTest
+{
+  public:
+    static std::string_view gdml_basename() { return "lar-sphere"; }
+
+    //! Construct with a reference to the GoogleTest
+    LarSphereGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
+
+    void test_trace() const;
+    void test_volume_stack() const;
 
   private:
     GenericGeoTestInterface* test_;
@@ -373,17 +393,9 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         }
         EXPECT_EQ("Shape2", test->volume_name(geo));
         geo.cross_boundary();
-        if (!check_normal)
+        if (check_normal)
         {
-            // Don't check
-        }
-        else if (test->geometry_type() != "ORANGE")
-        {
-            EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
-        }
-        else
-        {
-            EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
+            EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
         }
         EXPECT_EQ("Shape1", test->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
@@ -533,11 +545,9 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         EXPECT_LE(next.distance, from_cm(1e-5));
         geo.move_to_boundary();
         EXPECT_TRUE(geo.is_on_boundary());
-        Real3 pre_normal;
         if (check_normal)
         {
-            pre_normal = geo.normal();
-            EXPECT_SOFT_NEAR(1.0, pre_normal[0], sqrt_tol()) << pre_normal;
+            EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
         }
 
         geo.cross_boundary();
@@ -545,8 +555,7 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         EXPECT_TRUE(geo.is_on_boundary());
         if (check_normal)
         {
-            EXPECT_SOFT_EQ(1.0, dot_product(pre_normal, geo.normal()))
-                << "Expected " << pre_normal << ", got " << geo.normal();
+            EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
         }
         EXPECT_EQ("Shape1", test->volume_name(geo));
     }

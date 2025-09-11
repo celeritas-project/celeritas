@@ -103,7 +103,7 @@ class GeantImporter final : public ImporterInterface
 
 //---------------------------------------------------------------------------//
 
-ImportParticle import_particle(G4ParticleDefinition const& p);
+inp::Particle import_particle(G4ParticleDefinition const& p);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

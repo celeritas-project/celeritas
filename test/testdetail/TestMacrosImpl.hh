@@ -19,7 +19,6 @@
 #include "corecel/math/SoftEqual.hh"
 
 #include "../AssertionHelper.hh"
-#include "gtest/gtest.h"
 
 namespace celeritas
 {
