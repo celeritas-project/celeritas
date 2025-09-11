@@ -72,9 +72,11 @@ CoreParams const& IntegrationBase::GetParams()
     auto& singleton = IntegrationSingleton::instance();
     CELER_TRY_HANDLE(
         {
+            auto mode = singleton.shared_params().mode();
             CELER_VALIDATE(
-                singleton.mode() != IntegrationSingleton::Mode::disabled,
-                << R"(cannot access shared params when Celeritas is disabled)");
+                mode != OffloadMode::disabled
+                    && mode != OffloadMode::uninitialized,
+                << R"(cannot access shared params when Celeritas is disabled or outside of a run)");
         },
         ExceptionConverter{"celer.get.params"});
     return *singleton.shared_params().Params();
@@ -94,8 +96,8 @@ CoreStateInterface& IntegrationBase::GetState()
                     || G4Threading::IsWorkerThread(),
                 << R"(cannot call Integration::GetState from master thread in a multithreaded application)");
             CELER_VALIDATE(
-                singleton.mode() != IntegrationSingleton::Mode::disabled,
-                << R"(cannot access local state when Celeritas is disabled)");
+                singleton.shared_params().mode() == OffloadMode::enabled,
+                << R"(cannot access local state unless Celeritas is enabled)");
         },
         ExceptionConverter{"celer.get.state"});
 
