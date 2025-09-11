@@ -21,15 +21,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Access whether Celeritas is set up, enabled, or uninitialized.
- */
-OffloadMode IntegrationBase::GetMode() const
-{
-    return IntegrationSingleton::instance().shared_params().mode();
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Set options before starting the run.
  *
  * This captures the input to indicate that options cannot be modified after
@@ -38,6 +29,23 @@ OffloadMode IntegrationBase::GetMode() const
 void IntegrationBase::SetOptions(SetupOptions&& opts)
 {
     IntegrationSingleton::instance().setup_options(std::move(opts));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access whether Celeritas is set up, enabled, or uninitialized.
+ *
+ * This is only legal to call after \c SetOptions.
+ */
+OffloadMode IntegrationBase::GetMode() const
+{
+    auto const& singleton = IntegrationSingleton::instance();
+    if (singleton.offloaded_particles().empty())
+    {
+        CELER_LOG(warning) << "GetMode cannot be called before SetOptions";
+        return OffloadMode::uninitialized;
+    }
+    return singleton.shared_params().mode();
 }
 
 //---------------------------------------------------------------------------//
@@ -85,6 +93,10 @@ CoreParams const& IntegrationBase::GetParams()
 //---------------------------------------------------------------------------//
 /*!
  * Access THREAD-LOCAL Celeritas core state data for user diagnostics.
+ *
+ * - This can \em only be called when Celeritas is enabled (not kill-offload,
+ *   not disabled)
+ * - This cannot be called from the main thread of an MT application.
  */
 CoreStateInterface& IntegrationBase::GetState()
 {

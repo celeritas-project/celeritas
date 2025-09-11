@@ -186,7 +186,7 @@ bool IntegrationSingleton::initialize_local_transporter()
 {
     CELER_EXPECT(params_);
 
-    if (params_.mode() == celeritas::SharedParams::Mode::disabled)
+    if (params_.mode() == OffloadMode::disabled)
     {
         CELER_LOG(debug)
             << R"(Skipping state construction since Celeritas is completely disabled)";
@@ -203,7 +203,7 @@ bool IntegrationSingleton::initialize_local_transporter()
     CELER_ASSERT(!G4Threading::IsMultithreadedApplication()
                  || G4Threading::IsWorkerThread());
 
-    if (params_.mode() == celeritas::SharedParams::Mode::kill_offload)
+    if (params_.mode() == OffloadMode::kill_offload)
     {
         // When "kill offload", we still need to intercept tracks
         CELER_LOG(debug)
@@ -234,7 +234,7 @@ void IntegrationSingleton::finalize_local_transporter()
 {
     CELER_EXPECT(params_);
 
-    if (params_.mode() != celeritas::SharedParams::Mode::enabled)
+    if (params_.mode() != OffloadMode::enabled)
     {
         return;
     }

@@ -37,11 +37,11 @@ class CoreParams;
 class IntegrationBase
 {
   public:
-    // Access Celeritas offload mode type
-    OffloadMode GetMode() const;
-
     // Set options before starting the run
     void SetOptions(SetupOptions&& opts);
+
+    // Access Celeritas offload mode type after options are set
+    OffloadMode GetMode() const;
 
     // REMOVE in v0.7
     [[deprecated]] void BuildForMaster() {}

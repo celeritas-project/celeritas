@@ -38,6 +38,12 @@ namespace detail
 class IntegrationSingleton
 {
   public:
+    //!@{
+    //! \name Types
+    using VecG4PD = SetupOptions::VecG4PD;
+    //!@}
+
+  public:
     // Static GLOBAL shared singleton
     static IntegrationSingleton& instance();
 
@@ -53,7 +59,7 @@ class IntegrationSingleton
     SetupOptions const& setup_options() const { return options_; }
 
     //! Return list of particles to be offloaded during run
-    SetupOptions::VecG4PD const& offloaded_particles() { return offloaded_; }
+    VecG4PD const& offloaded_particles() const { return offloaded_; }
 
     //!@{
     //! Static global Celeritas problem data
