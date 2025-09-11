@@ -9,8 +9,7 @@
 #include <G4ParticleDefinition.hh>
 
 #include "corecel/math/Quantity.hh"
-#include "celeritas/Quantities.hh"
-#include "celeritas/Types.hh"
+#include "celeritas/UnitTypes.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 namespace celeritas
@@ -18,15 +17,17 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Access invariant particle data from Geant4 with Celeritas units.
+ *
+ * Geant4 data are all in double precision.
  */
 class GeantParticleView
 {
   public:
     //!@{
     //! \name Type aliases
-    using Charge = units::ElementaryCharge;
-    using Energy = units::MevEnergy;
-    using Mass = units::MevMass;
+    using Charge = Quantity<units::EElectron, double>;
+    using Mass = Quantity<units::MevPerCsq, double>;
+    using real_type = double;
     //!@}
 
   public:
@@ -59,10 +60,11 @@ class GeantParticleView
 /*!
  * Decay constant [1/s].
  */
-real_type GeantParticleView::decay_constant() const
+auto GeantParticleView::decay_constant() const -> real_type
 {
     if (pd_.GetPDGStable())
     {
+        // Decay constant of zero is an infinite half-life, i.e., stable
         return 0;
     }
 
