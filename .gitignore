@@ -1,20 +1,28 @@
+# Globs for anywhere
 *.cache
 *.pyc
 *.swp
 *.temp.org.xml
 *~
+.nfs*
+
+# Specific filenames anywhere
+cmake_install.cmake
+compile_commands.json
+Testing
 .DS_Store
 .idea
-.nfs*
-/.vscode
+
+# Globs in specific places
 /build*
+/example/*/.clangd
 /install*
 /spack-build*
-/CMakeUserPresets.json
-Testing
-compile_commands.json
-cmake_install.cmake
+
+# Specific files in the top level
+/.clangd
+/.vscode
 /CMakeCache.txt
 /CMakeFiles
+/CMakeUserPresets.json
 /spack.yaml
-/.clangd

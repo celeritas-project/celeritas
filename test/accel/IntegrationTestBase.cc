@@ -369,7 +369,7 @@ auto LarSphereIntegrationMixin::make_primary_input() const -> PrimaryInput
 auto LarSphereIntegrationMixin::make_sens_det(std::string const& sd_name)
     -> UPSensDet
 {
-    EXPECT_EQ("detector", sd_name);
+    EXPECT_EQ("detshell", sd_name);
 
     return std::make_unique<SimpleSensitiveDetector>(sd_name);
 }

@@ -59,7 +59,7 @@ if(CELERITAS_USE_Geant4)
     g4/detail/GeantGeoNavCollection.cc
   )
 
-  celeritas_get_g4libs(_cg4_libs global geometry materials particles
+  celeritas_get_g4libs(_cg4_libs global geometry digits_hits materials particles
     persistency intercoms)
   celeritas_target_link_libraries(geocel_geant4
     PRIVATE

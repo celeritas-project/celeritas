@@ -254,6 +254,64 @@ TEST_F(ProtoConstructorTest, intersection_boxes)
 }
 
 //---------------------------------------------------------------------------//
+TEST_F(ProtoConstructorTest, lar_sphere)
+{
+    auto global_proto = this->load("lar-sphere");
+    ProtoMap protos{*global_proto};
+
+    ASSERT_EQ(1, protos.size());
+    {
+        SCOPED_TRACE("global");
+        auto u = this->build_unit(protos, UniverseId{0});
+
+        static char const* const expected_surface_strings[] = {
+            "Sphere: r=1000",
+            "Sphere: r=110",
+            "Sphere: r=100",
+            "Plane: y=0",
+        };
+        static char const* const expected_volume_strings[] = {
+            "+0",
+            "all(-1, +2, !any(all(-1, +2, +3), all(-1, +2, -3)))",
+            "all(-1, +2, +3)",
+            "all(-1, +2, -3)",
+            "-2",
+            "all(-0, !any(-2, all(-1, +2)))",
+        };
+        static char const* const expected_md_strings[] = {
+            "",
+            "",
+            "[EXTERIOR],world_sphere@s",
+            "world_sphere",
+            "det_shell@int.s,det_shell_bot@int.s,det_shell_top@int.s",
+            "det_shell@int,det_shell_bot@int,det_shell_top@int",
+            R"(det_shell@exc.s,det_shell_bot@exc.s,det_shell_top@exc.s,lar_sphere@s)",
+            "det_shell@exc,det_shell_bot@exc,det_shell_top@exc,lar_sphere",
+            "det_shell",
+            R"(det_shell_bot@awm,det_shell_bot@awp,det_shell_top@awm,det_shell_top@awp,det_shell_top@azi)",
+            "det_shell_top",
+            "det_shell_bot@azi",
+            "det_shell_bot",
+            "detshell.children",
+            "",
+            "detshell",
+            "world.children",
+            "",
+            "world",
+        };
+        static int const expected_volume_nodes[] = {2, 15, 10, 12, 7, 18};
+        static char const expected_tree_string[]
+            = R"json(["t",["~",0],["S",0],["~",2],["S",1],["~",4],["S",2],["~",6],["&",[5,6]],["S",3],["&",[5,6,9]],["~",9],["&",[5,6,11]],["|",[10,12]],["~",13],["&",[5,6,14]],["|",[7,8]],["~",16],["&",[3,17]]])json";
+
+        EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+        EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+        EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
+        EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
+    }
+}
+
+//---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, simple_cms)
 {
     // NOTE: GDML stores widths for box and cylinder Z; Geant4 uses halfwidths
