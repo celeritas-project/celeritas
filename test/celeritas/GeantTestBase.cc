@@ -162,7 +162,6 @@ auto GeantTestBase::load(std::string const& filename) const
         CELER_ASSERT(!celeritas::global_geant_geo().expired());
 
         i->imported = (*i->import)(sel);
-        this->fixup(i->imported);
         i->selection = sel;
         i->options.verbose = false;
         ps.set(filename, i);
