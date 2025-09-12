@@ -113,7 +113,7 @@ struct ImportData
 
     // Physics groups
     inp::OpticalPhysics optical_physics;
-
+    inp::DecayPhysics decay;
     //!@}
 };
 

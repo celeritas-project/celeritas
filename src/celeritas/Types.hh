@@ -192,6 +192,20 @@ enum class MscStepLimitAlgorithm
 };
 
 //---------------------------------------------------------------------------//
+//! Decay channel type
+enum class DecayChannelType
+{
+    dalitz,
+    kl3,
+    muon,
+    neutron_beta,
+    phase_space,
+    pion_radiative,
+    tau_leptonic,
+    size_
+};
+
+//---------------------------------------------------------------------------//
 //! Nuclear form factor model for Coulomb scattering
 enum class NuclearFormFactorType
 {
