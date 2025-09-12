@@ -7,6 +7,7 @@
 #include "celeritas/phys/ProcessBuilder.hh"
 
 #include "corecel/sys/Environment.hh"
+#include "celeritas/GeantTestBase.hh"
 #include "celeritas/em/process/BremsstrahlungProcess.hh"
 #include "celeritas/em/process/ComptonProcess.hh"
 #include "celeritas/em/process/CoulombScatteringProcess.hh"
@@ -17,12 +18,8 @@
 #include "celeritas/em/process/MuIonizationProcess.hh"
 #include "celeritas/em/process/PhotoelectricProcess.hh"
 #include "celeritas/em/process/RayleighProcess.hh"
-#include "celeritas/ext/RootImporter.hh"
-#include "celeritas/ext/ScopedRootErrorHandler.hh"
+#include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/io/ImportData.hh"
-#include "celeritas/io/LivermorePEReader.hh"
-#include "celeritas/io/NeutronXsReader.hh"
-#include "celeritas/io/SeltzerBergerReader.hh"
 #include "celeritas/neutron/process/NeutronElasticProcess.hh"
 #include "celeritas/phys/Model.hh"
 
@@ -46,7 +43,7 @@ bool is_process_type(Process const* p)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ProcessBuilderTest : public Test
+class ProcessBuilderTest : public GeantTestBase
 {
   protected:
     using SPConstParticle = std::shared_ptr<ParticleParams const>;
@@ -55,19 +52,22 @@ class ProcessBuilderTest : public Test
     using ActionIdIter = Process::ActionIdIter;
     using IPC = ImportProcessClass;
 
-    static ImportData& import_data();
-    static SPConstParticle& particle();
-    static SPConstMaterial& material();
-
-    static void SetUpTestCase()
+    GeantPhysicsOptions build_geant_options() const override
     {
-        ScopedRootErrorHandler scoped_root_error_;
-        RootImporter import_from_root(
-            Test::test_data_path("celeritas", "four-steel-slabs.root").c_str());
-        import_data() = import_from_root();
-        particle() = ParticleParams::from_import(import_data());
-        material() = MaterialParams::from_import(import_data());
-        CELER_ENSURE(particle() && material());
+        GeantPhysicsOptions opts;
+        opts.relaxation = RelaxationSelection::all;
+        opts.muon.ionization = true;
+        opts.muon.bremsstrahlung = true;
+        opts.muon.pair_production = true;
+        opts.coulomb_scattering = true;
+        opts.verbose = true;
+        opts.msc = MscModelSelection::urban_wentzelvi;
+        return opts;
+    }
+
+    std::string_view gdml_basename() const override
+    {
+        return "four-steel-slabs"sv;
     }
 
     static bool has_env(std::string const& var)
@@ -94,24 +94,6 @@ class ProcessBuilderTest : public Test
     }
 };
 
-ImportData& ProcessBuilderTest::import_data()
-{
-    static ImportData id;
-    return id;
-}
-
-auto ProcessBuilderTest::particle() -> SPConstParticle&
-{
-    static SPConstParticle particle;
-    return particle;
-}
-
-auto ProcessBuilderTest::material() -> SPConstMaterial&
-{
-    static SPConstMaterial material;
-    return material;
-}
-
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
@@ -119,7 +101,7 @@ auto ProcessBuilderTest::material() -> SPConstMaterial&
 TEST_F(ProcessBuilderTest, compton)
 {
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material());
+        this->imported_data(), this->particle(), this->material());
     // Create process
     auto process = build_process(IPC::compton);
     EXPECT_PROCESS_TYPE(ComptonProcess, process.get());
@@ -153,7 +135,7 @@ TEST_F(ProcessBuilderTest, compton)
 TEST_F(ProcessBuilderTest, e_ionization)
 {
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material());
+        this->imported_data(), this->particle(), this->material());
     // Create process
     auto process = build_process(IPC::e_ioni);
     EXPECT_PROCESS_TYPE(EIonizationProcess, process.get());
@@ -189,7 +171,7 @@ TEST_F(ProcessBuilderTest, e_ionization)
 TEST_F(ProcessBuilderTest, eplus_annihilation)
 {
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material());
+        this->imported_data(), this->particle(), this->material());
     // Create process
     auto process = build_process(IPC::annihilation);
     EXPECT_PROCESS_TYPE(EPlusAnnihilationProcess, process.get());
@@ -226,7 +208,7 @@ TEST_F(ProcessBuilderTest, eplus_annihilation)
 TEST_F(ProcessBuilderTest, gamma_conversion)
 {
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material());
+        this->imported_data(), this->particle(), this->material());
     // Create process
     auto process = build_process(IPC::conversion);
     EXPECT_PROCESS_TYPE(GammaConversionProcess, process.get());
@@ -265,13 +247,10 @@ TEST_F(ProcessBuilderTest, gamma_conversion)
 
 TEST_F(ProcessBuilderTest, photoelectric)
 {
-    if (!this->has_le_data())
-    {
-        GTEST_SKIP() << "Missing G4LEDATA";
-    }
+    ASSERT_TRUE(this->has_le_data());
 
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material());
+        this->imported_data(), this->particle(), this->material());
     // Create process
     auto process = build_process(IPC::photoelectric);
     EXPECT_PROCESS_TYPE(PhotoelectricProcess, process.get());
@@ -304,13 +283,10 @@ TEST_F(ProcessBuilderTest, photoelectric)
 
 TEST_F(ProcessBuilderTest, bremsstrahlung_multiple_models)
 {
-    if (!this->has_le_data())
-    {
-        GTEST_SKIP() << "Missing G4LEDATA";
-    }
+    ASSERT_TRUE(this->has_le_data());
 
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material());
+        this->imported_data(), this->particle(), this->material());
 
     // Create process
     auto process = build_process(IPC::e_brems);
@@ -354,7 +330,7 @@ TEST_F(ProcessBuilderTest, bremsstrahlung_multiple_models)
 TEST_F(ProcessBuilderTest, rayleigh)
 {
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material());
+        this->imported_data(), this->particle(), this->material());
 
     // Create process
     auto process = build_process(IPC::rayleigh);
@@ -395,7 +371,7 @@ TEST_F(ProcessBuilderTest, rayleigh)
 TEST_F(ProcessBuilderTest, coulomb)
 {
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material());
+        this->imported_data(), this->particle(), this->material());
 
     // Create process
     auto process = build_process(IPC::coulomb_scat);
@@ -439,10 +415,7 @@ TEST_F(ProcessBuilderTest, coulomb)
 
 TEST_F(ProcessBuilderTest, neutron_elastic)
 {
-    if (!this->has_neutron_data())
-    {
-        GTEST_SKIP() << "Missing G4PARTICLEXSDATA";
-    }
+    ASSERT_TRUE(this->has_neutron_data());
 
     // Create ParticleParams with neutron
     ParticleParams::Input particle_inp = {
@@ -456,7 +429,7 @@ TEST_F(ProcessBuilderTest, neutron_elastic)
         = std::make_shared<ParticleParams>(std::move(particle_inp));
 
     ProcessBuilder build_process(
-        this->import_data(), particle_params, this->material());
+        this->imported_data(), particle_params, this->material());
 
     // Create process
     auto process = build_process(IPC::neutron_elastic);
@@ -492,7 +465,7 @@ TEST_F(ProcessBuilderTest, neutron_elastic)
 TEST_F(ProcessBuilderTest, mu_ionization)
 {
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material());
+        this->imported_data(), this->particle(), this->material());
 
     // Create process
     auto process = build_process(IPC::mu_ioni);
@@ -537,7 +510,7 @@ TEST_F(ProcessBuilderTest, mu_ionization)
 TEST_F(ProcessBuilderTest, mu_bremsstrahlung)
 {
     ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material());
+        this->imported_data(), this->particle(), this->material());
 
     // Create process
     auto process = build_process(IPC::mu_brems);
