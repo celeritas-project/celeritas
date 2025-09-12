@@ -54,6 +54,9 @@ using VolumeInstanceId = OpaqueId<struct VolumeInstance_, unsigned int>;
 //! Identifier for a unique volume in global space (aka touchable)
 using VolumeUniqueInstanceId = OpaqueId<struct VolumeInstance_, ull_int>;
 
+//! Opaque index for mapping volume-specific "sensitive detector" objects
+using DetectorId = OpaqueId<struct Detector_>;
+
 //---------------------------------------------------------------------------//
 //!@{
 //! \name Geometry-specific implementation details

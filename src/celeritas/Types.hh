@@ -68,9 +68,6 @@ using TrackId = OpaqueId<struct Track_>;
 //! Opaque index of particle-nucleon cascade channel
 using ChannelId = OpaqueId<struct Channel_>;
 
-//! Opaque index for mapping volume-specific "sensitive detector" objects
-using DetectorId = OpaqueId<struct Detector_>;
-
 //! Opaque index to one elemental component datum in a particular material
 using ElementComponentId = OpaqueId<struct MatElementComponent>;
 
