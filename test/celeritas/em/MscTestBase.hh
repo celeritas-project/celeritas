@@ -10,18 +10,14 @@
 
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
-#include "celeritas/RootTestBase.hh"
+#include "celeritas/GeantTestBase.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoTrackView.hh"
-#include "celeritas/grid/RangeCalculator.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 #include "celeritas/track/SimData.hh"
-#include "celeritas/track/SimTrackView.hh"
-
-#include "Test.hh"
 
 namespace celeritas
 {
@@ -29,9 +25,9 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Test harness base class for multiple scattering models.
+ * Test harness base class for multiple scattering models using steel.
  */
-class MscTestBase : public RootTestBase
+class MscTestBase : public GeantTestBase
 {
   public:
     //!@{
@@ -41,13 +37,8 @@ class MscTestBase : public RootTestBase
     //!@}
 
   public:
-    //!@{
-    //! Initialize and destroy
-    MscTestBase();
-    virtual ~MscTestBase();
-    //!@}
-
-    std::string_view gdml_basename() const final { return "four-steel-slabs"; }
+    std::string_view gdml_basename() const override;
+    GeantPhysicsOptions build_geant_options() const override;
 
     SPConstTrackInit build_init() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstAction build_along_step() override { CELER_ASSERT_UNREACHABLE(); }
@@ -60,16 +51,16 @@ class MscTestBase : public RootTestBase
     }
 
     // Access particle track data
-    ParticleTrackView make_par_view(PDGNumber pdg, MevEnergy energy) const;
+    ParticleTrackView make_par_view(PDGNumber pdg, MevEnergy energy);
 
     // Access physics track data
     PhysicsTrackView
     make_phys_view(ParticleTrackView const& par,
                    std::string const& matname,
-                   HostCRef<PhysicsParamsData> const& host_ref) const;
+                   HostCRef<PhysicsParamsData> const& host_ref);
 
     // Access geometry track data
-    GeoTrackView make_geo_view(real_type r) const;
+    GeoTrackView make_geo_view(real_type r);
 
   private:
     template<template<Ownership, MemSpace> class S>
@@ -78,7 +69,6 @@ class MscTestBase : public RootTestBase
     StateStore<PhysicsStateData> physics_state_;
     StateStore<ParticleStateData> particle_state_;
     StateStore<GeoStateData> geo_state_;
-    StateStore<SimStateData> sim_state_;
     RandomEngine rng_;
 };
 

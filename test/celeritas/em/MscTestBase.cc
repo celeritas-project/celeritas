@@ -6,7 +6,11 @@
 //---------------------------------------------------------------------------//
 #include "MscTestBase.hh"
 
+#include <fstream>
+
+#include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
+#include "celeritas/grid/RangeCalculator.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
@@ -16,39 +20,42 @@ namespace celeritas
 {
 namespace test
 {
+
 //---------------------------------------------------------------------------//
-/*!
- * Initialize states on construction.
- */
-MscTestBase::MscTestBase()
+std::string_view MscTestBase::gdml_basename() const
 {
-    size_type state_size = 1;
-    physics_state_ = StateStore<PhysicsStateData>(this->physics()->host_ref(),
-                                                  state_size);
-    particle_state_ = StateStore<ParticleStateData>(
-        this->particle()->host_ref(), state_size);
-    geo_state_
-        = StateStore<GeoStateData>(this->geometry()->host_ref(), state_size);
-    sim_state_ = StateStore<SimStateData>(this->sim()->host_ref(), state_size);
+    return "four-steel-slabs";
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Default destructor.
+ * Use reduced load options for input data.
  */
-MscTestBase::~MscTestBase() = default;
+GeantPhysicsOptions MscTestBase::build_geant_options() const
+{
+    std::ifstream infile{
+        this->test_data_path("celeritas", "four-steel-slabs.geant.json")};
+    GeantPhysicsOptions result;
+    infile >> result;
+    return result;
+}
 
 //---------------------------------------------------------------------------//
 /*!
  * Access particle state data.
  */
-ParticleTrackView
-MscTestBase::make_par_view(PDGNumber pdg, MevEnergy energy) const
+ParticleTrackView MscTestBase::make_par_view(PDGNumber pdg, MevEnergy energy)
 {
     CELER_EXPECT(pdg);
     CELER_EXPECT(energy > zero_quantity());
     auto pid = this->particle()->find(pdg);
     CELER_ASSERT(pid);
+
+    if (!particle_state_)
+    {
+        particle_state_
+            = StateStore<ParticleStateData>(this->particle()->host_ref(), 1);
+    };
 
     ParticleTrackView par{
         this->particle()->host_ref(), particle_state_.ref(), TrackSlotId{0}};
@@ -66,10 +73,16 @@ MscTestBase::make_par_view(PDGNumber pdg, MevEnergy energy) const
 PhysicsTrackView
 MscTestBase::make_phys_view(ParticleTrackView const& par,
                             std::string const& matname,
-                            HostCRef<PhysicsParamsData> const& host_ref) const
+                            HostCRef<PhysicsParamsData> const& host_ref)
 {
     auto mid = this->material()->find_material(matname);
     CELER_ASSERT(mid);
+
+    if (!physics_state_)
+    {
+        physics_state_
+            = StateStore<PhysicsStateData>(this->physics()->host_ref(), 1);
+    }
 
     // Initialize physics
     PhysicsTrackView phys_view(
@@ -89,8 +102,13 @@ MscTestBase::make_phys_view(ParticleTrackView const& par,
 /*!
  * Access geometry state data.
  */
-GeoTrackView MscTestBase::make_geo_view(real_type r) const
+GeoTrackView MscTestBase::make_geo_view(real_type r)
 {
+    if (!geo_state_)
+    {
+        geo_state_ = StateStore<GeoStateData>(this->geometry()->host_ref(), 1);
+    }
+
     GeoTrackView geo_view(
         this->geometry()->host_ref(), geo_state_.ref(), TrackSlotId{0});
     geo_view = {{r, r, r}, Real3{0, 0, 1}};

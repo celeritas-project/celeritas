@@ -9,6 +9,7 @@
 #include <iosfwd>
 
 #include "celeritas/Types.hh"
+#include "celeritas/io/ImportData.hh"
 
 #include "ImportedDataTestBase.hh"
 
@@ -50,6 +51,9 @@ class GeantTestBase : public ImportedDataTestBase
 
     // Import data potentially with different selection options
     virtual GeantImportDataSelection build_import_data_selection() const;
+
+    // Allow modification of the data after import for better reproducibility
+    virtual void fixup(ImportData&) const {}
 
   private:
     struct ImportSetup;

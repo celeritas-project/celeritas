@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/em/msc/UrbanMsc.hh"
 
+#include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/grid/Interpolator.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -13,6 +14,7 @@
 #include "corecel/random/Histogram.hh"
 #include "corecel/random/HistogramSampler.hh"
 #include "geocel/UnitUtils.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/em/msc/detail/MscStepFromGeo.hh"
 #include "celeritas/em/msc/detail/MscStepToGeo.hh"
 #include "celeritas/em/msc/detail/UrbanMscMinimalStepLimit.hh"
@@ -136,7 +138,6 @@ TEST(Details, UrbanPositronCorrector)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-#define UrbanMscTest TEST_IF_CELERITAS_USE_ROOT(UrbanMscTest)
 class UrbanMscTest : public ::celeritas::test::MscTestBase
 {
   protected:
@@ -150,6 +151,46 @@ class UrbanMscTest : public ::celeritas::test::MscTestBase
         ASSERT_TRUE(msc_params_);
     }
 
+#if 0
+    // Allow modification of the data after import for better reproducibility
+    void fixup(ImportData& imported) const override
+    {
+        auto get_msc_grid
+            = [&imported](size_type idx,
+                          PDGNumber particle) -> inp::UniformGrid& {
+            constexpr auto expected_model_class = ImportModelClass::urban_msc;
+            constexpr PhysMatId steel_matid{1};
+            CELER_VALIDATE(idx < imported.msc_models.size(), );
+            ImportMscModel& result = imported.msc_models[idx];
+            CELER_VALIDATE(result.particle_pdg == particle.get(), );
+            CELER_VALIDATE(result.model_class == expected_model_class, );
+            CELER_VALIDATE(steel_matid < result.xs_table.grids.size(), );
+            return result.xs_table.grids[steel_matid.get()];
+        };
+        auto& xs = get_msc_grid(0, pdg::positron());
+        xs.x = {-9.21034037197618, 4.60517018598809};
+        xs.y = {
+            0.0919755519795958, 0.132900963976506, 0.19953297849341,
+            0.280248009949892,  0.412434135515678, 0.577846326204234,
+            0.836999284766557,  1.15902019763745,  1.47957776261487,
+            2.052014459235,     2.57261849642637,  3.35563207043403,
+            4.14380707627582,   5.15166161934045,  6.13023418267953,
+            6.95606949060722,   8.11334056017544,  9.05714301181434,
+            10.1880242538167,   11.2718068677715,  12.4903486721521,
+            13.7863416571119,   15.2480640088516,  17.0875341703214,
+            19.3355128269973,   22.1625176709395,  25.7210593647364,
+            30.0731058803504,   35.3074803448091,  41.4542598999884,
+            48.0905422503477,   55.3230904823152,  62.548162889432,
+            69.8745161693273,   76.8807571072142,  83.7035006574751,
+            111.187468082381,   118.231697749561,  122.529806587644,
+            125.180651249548,   126.841138029124,  127.900135154874,
+            128.588033594672,
+        };
+        auto& electron_xs = get_msc_grid(2, pdg::electron());
+        electron_xs = xs;
+    }
+
+#endif
   protected:
     std::shared_ptr<UrbanMscParams const> msc_params_;
 };
