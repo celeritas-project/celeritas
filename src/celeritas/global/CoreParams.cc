@@ -54,6 +54,7 @@
 #include "celeritas/track/SimParams.hh"  // IWYU pragma: keep
 #include "celeritas/track/SortTracksAction.hh"
 #include "celeritas/track/TrackInitParams.hh"  // IWYU pragma: keep
+#include "celeritas/user/SDParams.hh"
 
 #include "ActionInterface.hh"
 
@@ -91,6 +92,7 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.cutoffs = get_ref<M>(*p.cutoff);
     ref.physics = get_ref<M>(*p.physics);
     ref.rng = get_ref<M>(*p.rng);
+    ref.detector = get_ref<M>(*p.detector);
     ref.sim = get_ref<M>(*p.sim);
     ref.surface = get_ref<M>(*p.surface);
     ref.init = get_ref<M>(*p.init);

@@ -28,6 +28,7 @@ class MpiCommunicator;
 class OutputRegistry;
 class ParticleParams;
 class PhysicsParams;
+class SDParams;
 class SimParams;
 class SurfaceParams;
 class TrackInitParams;
@@ -56,6 +57,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstCutoff = std::shared_ptr<CutoffParams const>;
     using SPConstPhysics = std::shared_ptr<PhysicsParams const>;
     using SPConstRng = std::shared_ptr<RngParams const>;
+    using SPConstSensDet = std::shared_ptr<SDParams const>;
     using SPConstSim = std::shared_ptr<SimParams const>;
     using SPConstSurface = std::shared_ptr<SurfaceParams const>;
     using SPConstTrackInit = std::shared_ptr<TrackInitParams const>;
@@ -83,6 +85,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstCutoff cutoff;
         SPConstPhysics physics;
         SPConstRng rng;
+        SPConstSensDet detector;
         SPConstSim sim;
         SPConstSurface surface;
         SPConstTrackInit init;
@@ -125,6 +128,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPConstCutoff const& cutoff() const { return input_.cutoff; }
     SPConstPhysics const& physics() const { return input_.physics; }
     SPConstRng const& rng() const { return input_.rng; }
+    SPConstSensDet const& detector() { return input_.detector; }
     SPConstSim const& sim() const { return input_.sim; }
     SPConstSurface const& surface() const { return input_.surface; }
     SPConstTrackInit const& init() const { return input_.init; }

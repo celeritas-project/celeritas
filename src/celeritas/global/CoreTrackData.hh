@@ -21,6 +21,7 @@
 #include "celeritas/phys/PhysicsData.hh"
 #include "celeritas/track/SimData.hh"
 #include "celeritas/track/TrackInitData.hh"
+#include "celeritas/user/SDData.hh"
 
 #include "CoreTrackDataFwd.hh"
 
@@ -72,6 +73,7 @@ struct CoreParamsData
     CutoffParamsData<W, M> cutoffs;
     PhysicsParamsData<W, M> physics;
     RngParamsData<W, M> rng;
+    SDParamsData<W, M> detector;
     SimParamsData<W, M> sim;
     SurfaceParamsData<W, M> surface;
     TrackInitParamsData<W, M> init;
@@ -98,6 +100,7 @@ struct CoreParamsData
         cutoffs = other.cutoffs;
         physics = other.physics;
         rng = other.rng;
+        detector = other.detector;
         sim = other.sim;
         surface = other.surface;
         init = other.init;

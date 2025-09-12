@@ -150,6 +150,8 @@ auto GlobalTestBase::build_geometry() -> SPConstCoreGeo
     celeritas::global_volumes(volume_);
     surface_ = std::make_shared<SurfaceParams>(mi.surfaces, *volume_);
 
+    detector_ = std::make_shared<SDParams>();
+
     return core_geo;
 }
 
@@ -208,6 +210,10 @@ auto GlobalTestBase::build_core() -> SPConstCore
     {
         volume_ = std::make_shared<VolumeParams>();
     }
+    if (!detector_)
+    {
+        detector_ = std::make_shared<SDParams>();
+    }
 
     inp.cutoff = this->cutoff();
     inp.geomaterial = this->geomaterial();
@@ -219,6 +225,7 @@ auto GlobalTestBase::build_core() -> SPConstCore
     inp.sim = this->sim();
     inp.surface = surface_;
     inp.volume = volume_;
+    inp.detector = detector_;
     inp.wentzel = this->wentzel();
 
     inp.action_reg = this->action_reg();
