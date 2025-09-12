@@ -152,7 +152,7 @@ auto GlobalTestBase::build_geometry() -> SPConstCoreGeo
 
     if (mi.detectors)
     {
-        detector_ = std::make_shared<SDParams>(core_geo, mi.detectors);
+        detector_ = std::make_shared<SDParams>(*core_geo, mi.detectors);
     }
     else
     {

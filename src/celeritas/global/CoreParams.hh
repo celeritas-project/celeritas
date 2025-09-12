@@ -128,7 +128,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPConstCutoff const& cutoff() const { return input_.cutoff; }
     SPConstPhysics const& physics() const { return input_.physics; }
     SPConstRng const& rng() const { return input_.rng; }
-    SPConstSensDet const& detector() { return input_.detector; }
+    SPConstSensDet const& detector() const { return input_.detector; }
     SPConstSim const& sim() const { return input_.sim; }
     SPConstSurface const& surface() const { return input_.surface; }
     SPConstTrackInit const& init() const { return input_.init; }
