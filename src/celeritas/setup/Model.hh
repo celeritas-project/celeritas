@@ -20,6 +20,7 @@ struct Model;
 
 class SurfaceParams;
 class VolumeParams;
+class SDParams;
 
 namespace setup
 {
@@ -30,6 +31,7 @@ struct ModelLoaded
     std::shared_ptr<CoreGeoParams> geometry;
     std::shared_ptr<SurfaceParams> surface;
     std::shared_ptr<VolumeParams> volume;
+    std::shared_ptr<SDParams> detector;
 };
 
 //---------------------------------------------------------------------------//

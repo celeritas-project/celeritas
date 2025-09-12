@@ -12,13 +12,13 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 #include "geocel/inp/Model.hh"
+#include "celeritas/geo/GeoFwd.hh"
 
 #include "SDData.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-class GeoParamsInterface;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -39,7 +39,7 @@ class SDParams final : public ParamsDataInterface<SDParamsData>
     SDParams() = default;
 
     //! Construct from canonical volume IDs
-    SDParams(GeoParamsInterface const& geo, inp::Detectors detectors);
+    SDParams(CoreGeoParams const& geo, inp::Detectors detectors);
 
     //! Whether any detectors are present
     bool empty() const { return !static_cast<bool>(mirror_); }
