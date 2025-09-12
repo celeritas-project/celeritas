@@ -88,7 +88,6 @@ struct ImportData
     std::vector<ImportMscModel> msc_models;
     ImportSBMap sb_data;
     ImportLivermorePEMap livermore_pe_data;
-    ImportNeutronElasticMap neutron_elastic_data;
     ImportAtomicRelaxationMap atomic_relaxation_data;
     ImportMuPairProductionTable mu_pair_production_data;
     //!@}

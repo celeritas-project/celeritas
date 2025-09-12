@@ -404,7 +404,6 @@
   }],
   "sb_data" : [],
   "livermore_pe_data" : [],
-  "neutron_elastic_data" : [],
   "atomic_relaxation_data" : [],
   "mu_pair_production_data" : {
     "_typename" : "celeritas::ImportMuPairProductionTable",

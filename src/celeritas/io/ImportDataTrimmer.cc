@@ -71,7 +71,6 @@ void ImportDataTrimmer::operator()(ImportData& data)
 
         (*this)(data.sb_data);
         (*this)(data.livermore_pe_data);
-        (*this)(data.neutron_elastic_data);
         (*this)(data.atomic_relaxation_data);
 
         (*this)(data.optical_materials);
@@ -92,7 +91,6 @@ void ImportDataTrimmer::operator()(ImportData& data)
         this->for_each(data.msc_models);
         this->for_each(data.sb_data);
         this->for_each(data.livermore_pe_data);
-        this->for_each(data.neutron_elastic_data);
         this->for_each(data.atomic_relaxation_data);
 
         this->for_each(data.optical_models);

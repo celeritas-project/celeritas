@@ -82,11 +82,6 @@ ProcessBuilder::ProcessBuilder(ImportData const& data,
     {
         read_livermore_ = make_imported_element_loader(data.livermore_pe_data);
     }
-    if (!data.neutron_elastic_data.empty())
-    {
-        read_neutron_elastic_
-            = make_imported_element_loader(data.neutron_elastic_data);
-    }
     mu_pairprod_table_ = std::make_shared<ImportMuPairProductionTable>(
         data.mu_pair_production_data);
 }
