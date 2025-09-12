@@ -14,6 +14,7 @@
 
 #include "corecel/Assert.hh"
 #include "geocel/VolumeParams.hh"
+#include "geocel/inp/Model.hh"
 #include "celeritas/GlobalTestBase.hh"
 #include "celeritas/OnlyCoreTestBase.hh"
 #include "celeritas/OnlyGeoTestBase.hh"
@@ -30,25 +31,28 @@ class SDParamsTest : public OnlyGeoTestBase
 {
   public:
     using VecStr = std::vector<std::string>;
-    using VecVolId = std::vector<VolumeId>;
 
     std::string_view gdml_basename() const override
     {
         return "testem3-flat"sv;
     }
 
-    VecVolId find_volumes(VecStr const& labels)
+    // This assigns a unique detector to each volume label passed in
+    inp::Detectors find_volumes(VecStr const& labels)
     {
         auto const& vols = this->volumes();
         CELER_VALIDATE(vols, << "volumes were not set up");
 
-        VecVolId result;
+        inp::Detectors result;
         auto const& all_vol_labels = vols->volume_labels();
         for (auto const& name : labels)
         {
-            result.push_back(all_vol_labels.find_unique(name));
-            CELER_VALIDATE(result.back(),
-                           << "invalid detector volume " << name);
+            VolumeId vol_id = all_vol_labels.find_unique(name);
+            CELER_VALIDATE(vol_id, << "invalid detector volume " << name);
+            inp::Detector detector;
+            detector.label = name;
+            detector.volumes.push_back(vol_id);
+            result.detectors.push_back(detector);
         }
         return result;
     }
@@ -73,7 +77,8 @@ TEST_F(SDParamsTest, empty_constructor_test)
 TEST_F(SDParamsTest, TEST_IF_CELERITAS_DEBUG(invalid_label_test))
 {
     auto const& geo = *this->geometry();
-    EXPECT_THROW(SDParams(geo, {VolumeId{}}), celeritas::RuntimeError);
+    inp::Detectors detectors;
+    EXPECT_THROW(SDParams(geo, detectors), celeritas::RuntimeError);
 }
 
 TEST_F(SDParamsTest, detector_test)
@@ -87,13 +92,24 @@ TEST_F(SDParamsTest, detector_test)
     EXPECT_FALSE(params.empty());
     EXPECT_EQ(3, params.size());
 
-    for (auto iv_id : range(ImplVolumeId{impl_volumes.size()}))
+    for (auto iv_id :
+         range(ImplVolumeId{static_cast<size_type>(impl_volumes.size())}))
     {
         auto det_id = params.volume_to_detector_id(iv_id);
         if (det_id)
         {
             EXPECT_EQ(detector_labels[det_id.get()],
                       this->geometry()->impl_volumes().at(iv_id).name);
+
+            std::vector<VolumeId> vol_ids
+                = params.detector_to_volume_id(det_id);
+            auto vol_id = id_cast<VolumeId>(iv_id.get());
+            EXPECT_NE(std::find_if(vol_ids.begin(),
+                                   vol_ids.end(),
+                                   [vol_id](VolumeId const& v_id) {
+                                       return v_id.get() == vol_id.get();
+                                   }),
+                      vol_ids.end());
         }
     }
 }

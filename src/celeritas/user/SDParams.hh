@@ -11,6 +11,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "geocel/inp/Model.hh"
 
 #include "SDData.hh"
 
@@ -38,13 +39,13 @@ class SDParams final : public ParamsDataInterface<SDParamsData>
     SDParams() = default;
 
     //! Construct from canonical volume IDs
-    SDParams(GeoParamsInterface const& geo, VecVolId&& volume_ids);
+    SDParams(GeoParamsInterface const& geo, inp::Detectors detectors);
 
     //! Whether any detectors are present
     bool empty() const { return !static_cast<bool>(mirror_); }
 
     //! Number of detectors
-    DetectorId::size_type size() const { return volume_ids_.size(); }
+    DetectorId::size_type size() const { return detectors_.detectors.size(); }
 
     //! Access detector ID based on implementation volume ID
     DetectorId volume_to_detector_id(ImplVolumeId iv_id)
@@ -53,10 +54,10 @@ class SDParams final : public ParamsDataInterface<SDParamsData>
     }
 
     //! Access volume ID based on detector ID
-    VolumeId detector_to_volume_id(DetectorId det_id)
+    std::vector<VolumeId> detector_to_volume_id(DetectorId det_id)
     {
         CELER_EXPECT(det_id < this->size());
-        return volume_ids_[det_id.get()];
+        return detectors_.detectors[det_id.get()].volumes;
     }
 
     //!@{
@@ -71,6 +72,8 @@ class SDParams final : public ParamsDataInterface<SDParamsData>
   private:
     VecVolId volume_ids_;
     CollectionMirror<SDParamsData> mirror_;
+
+    inp::Detectors detectors_;
 };
 
 //---------------------------------------------------------------------------//

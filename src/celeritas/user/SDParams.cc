@@ -18,25 +18,34 @@ namespace celeritas
 /*!
  * Construct from list of volume labels.
  */
-SDParams::SDParams(GeoParamsInterface const& geo, VecVolId&& volume_ids)
-    : volume_ids_{std::move(volume_ids)}
+SDParams::SDParams(GeoParamsInterface const& geo, inp::Detectors detectors)
+    : detectors_{std::move(detectors)}
 {
-    CELER_EXPECT(!volume_ids_.empty());
+    CELER_VALIDATE(detectors_, << "empty Detectors list passed to SDParams");
 
     // Map labels to volume IDs
     auto const num_impl_volumes = geo.impl_volumes().size();
 
-    CELER_VALIDATE(std::all_of(volume_ids_.begin(),
-                               volume_ids_.end(),
-                               [num_impl_volumes](VolumeId id) {
-                                   return id < num_impl_volumes;
-                               }),
-                   << "invalid volume IDs given to SDParams");
+    for (auto& detector : detectors_.detectors)
+    {
+        CELER_VALIDATE(std::all_of(detector.volumes.begin(),
+                                   detector.volumes.end(),
+                                   [num_impl_volumes](VolumeId id) {
+                                       return id < num_impl_volumes;
+                                   }),
+                       << "invalid volume IDs given to SDParams");
+    }
 
     std::unordered_map<VolumeId, DetectorId> detector_map;
-    for (auto didx : range<DetectorId::size_type>(volume_ids_.size()))
+    for (size_type det_num = 0; det_num < detectors_.detectors.size();
+         ++det_num)
     {
-        detector_map[volume_ids_[didx]] = DetectorId{didx};
+        DetectorId det_id(det_num);
+        auto& detector = detectors_.detectors[det_num];
+        for (auto& volume : detector.volumes)
+        {
+            detector_map[volume] = det_id;
+        }
     }
 
     mirror_ = CollectionMirror{[&] {
