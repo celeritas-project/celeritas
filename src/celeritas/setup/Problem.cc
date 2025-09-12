@@ -436,6 +436,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
             }
             params.surface = std::make_shared<SurfaceParams>();
         }
+        params.detector = std::move(loaded_model.detector);
     }
 
     // Load materials
