@@ -408,20 +408,19 @@ std::vector<inp::Detector> make_inp_detectors(GeantGeoParams const& geo)
         }
         auto& g4lv = *geo.id_to_geant(vol_id);
 
-        G4VSensitiveDetector const* sd = g4lv.GetSensitiveDetector();
         // Add volume id to detector map if it is in a detector region
-        if (sd)
+        if (G4VSensitiveDetector const* sd = g4lv.GetSensitiveDetector())
         {
             detector_map[sd].push_back(vol_id);
         }
     }
 
     // Loop over detector_map and add detectors to result vector
-    for (auto const& sd_pair : detector_map)
+    for (auto&& [sd, volumes] : detector_map)
     {
         inp::Detector detector;
-        detector.label = sd_pair.first->GetName();
-        detector.volumes = detector_map[sd_pair.first];
+        detector.label = sd->GetName();
+        detector.volumes = std::move(volumes);
         std::sort(detector.volumes.begin(), detector.volumes.end());
         result.push_back(detector);
     }
