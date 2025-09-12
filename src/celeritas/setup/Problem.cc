@@ -303,6 +303,7 @@ auto build_optical_params(CoreParams const& core, ImportData const& imported)
     params.action_reg = std::make_shared<ActionRegistry>();
     params.gen_reg = std::make_shared<GeneratorRegistry>();
     params.max_streams = core.max_streams();
+    params.detectors = core.detector();
     {
         // Construct optical physics models
         optical::PhysicsParams::Input pp_inp;
