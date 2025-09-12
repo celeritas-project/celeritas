@@ -150,7 +150,14 @@ auto GlobalTestBase::build_geometry() -> SPConstCoreGeo
     celeritas::global_volumes(volume_);
     surface_ = std::make_shared<SurfaceParams>(mi.surfaces, *volume_);
 
-    detector_ = std::make_shared<SDParams>();
+    if (mi.detectors)
+    {
+        detector_ = std::make_shared<SDParams>(core_geo, mi.detectors);
+    }
+    else
+    {
+        detector_ = std::make_shared<SDParams>();
+    }
 
     return core_geo;
 }
