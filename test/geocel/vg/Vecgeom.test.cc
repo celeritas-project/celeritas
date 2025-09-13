@@ -100,7 +100,7 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
     //! Helper function: build via Geant4 GDML reader
     SPConstGeo build_geometry() final
     {
-        ScopedLogStorer scoped_log_{&celeritas::self_logger(),
+        ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::warning};
 
         auto& geo = geant_geo(this->test_data_path(

@@ -47,7 +47,7 @@ class GeantGeoTest : public GeantGeoTestBase
 
     SPConstGeo build_geometry() final
     {
-        ScopedLogStorer scoped_log_{&celeritas::self_logger(),
+        ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::warning};
         auto result = this->build_geometry_from_basename();
         EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
