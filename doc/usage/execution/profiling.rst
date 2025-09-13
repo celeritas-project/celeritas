@@ -38,32 +38,37 @@ Celeritas provides a few counter events. Currently it writes:
 - active, alive, and dead track counts at each step iteration, and
 - the number of hits in a step.
 
-Profiling Celeritas example app
--------------------------------
+Profiling a Celeritas example app
+---------------------------------
 
 A detailed timeline of the Celeritas construction, steps, and kernel launches
 can be gathered, the example below illustrates how to do it using `NVIDIA Nsight systems`_.
 
 .. _NVIDIA Nsight systems: https://docs.nvidia.com/nsight-systems/UserGuide/index.html
 
-Here is an example using the ``celer-sim`` app to generate a timeline:
+Here is an example invoking the ``celer-sim`` app through the Nvidia utility to
+generate a timeline:
 
 .. sourcecode::
    :linenos:
 
    $ CELER_ENABLE_PROFILING=1 \
    > nsys profile \
-   > -c nvtx  --trace=cuda,nvtx,osrt
-   > -p celer-sim@celeritas
-   > --osrt-backtrace-stack-size=16384 --backtrace=fp
-   > -f true -o report.qdrep \
-   > celer-sim inp.json
+   >   --trace=cuda,nvtx,osrt \
+   >   --capture-range nvtx --nvtx-domain celeritas \
+   >   --osrt-backtrace-stack-size=16384 --backtrace=fp \
+   >   -o report.qdrep -f true \
+   >   celer-sim inp.json
 
+Line 2 specifies the APIs to be captured: in this case, CUDA calls, NVTX
+ranges, and OS runtime libraries.
 To use the NVTX ranges, you must enable the ``CELER_ENABLE_PROFILING`` variable
-and use the NVTX "capture" option (lines 1 and 3). The ``celer-sim`` range in
-the ``celeritas`` domain (line 4) enables profiling over the whole application.
-Additional system backtracing is specified in line 5; line 6 writes (and
-overwrites) to a particular output file; the final line invokes the
+in addition to using the NVTX "trace" option (lines 1 and 2).
+The capture domain in line 3 restricts profiling to the Celeritas application.
+(You can use, e.g., ``--nvtx-capture celer-sim@celeritas`` to capture a smaller
+range.)
+Additional frame-pointer-based backtracing is specified in line 5; line 6
+writes (and overwrites) to a particular output file; the final line invokes the
 application.
 
 On AMD hardware using the ROCProfiler_, here's an example that writes out timeline information:
@@ -103,12 +108,13 @@ the `Perfetto documentation`_. Root access on the system is required.
 Integration with user applications
 ----------------------------------
 
-When using a CUDA or HIP backend, there is nothing that needs to be done on the user side.
-The commands shown in the previous sections can be used to profile your application. If your application
-already uses NVTX, or ROCTX, you can exclude Celeritas events by excluding the "celeritas" domain.
+When using a CUDA or HIP backend, **no additional code is needed in the user
+application**.
+The commands shown in the previous sections can be used to profile your application.
+If your application already uses NVTX, or ROCTX, you can exclude Celeritas events by excluding the ``celeritas`` domain.
 
-When using Perfetto, you need to create a ``TracingSession``
-instance. The profiling session needs to be explictitly started, and will end when the object goes out of scope,
+When using Perfetto for CPU profiling, you need to create a ``TracingSession``
+instance. The profiling session needs to be explicitly started, and will end when the object goes out of scope,
 but it can be moved to extend its lifetime.
 
 .. sourcecode:: cpp
@@ -129,7 +135,7 @@ The system-level profiling requires starting external services. Details on how t
 When the tracing session is started with a filename, the application-level profiling is used and written to the specified file.
 Omitting the filename will use the system-level profiling, in which case you must have the external Perfetto tracing processes started. The container in ``scripts/docker/interactive`` provides an example Perfetto configuration for tracing both system-level and celeritas events.
 
-As with NVTX and ROCTX, if your application already uses Perfetto, you can exclude Celeritas events by excluding the "celeritas" category.
+As with NVTX and ROCTX, if your application already uses Perfetto, you can exclude Celeritas events by excluding the ``celeritas`` category.
 
 .. _Perfetto documentation: https://perfetto.dev/docs/quickstart/linux-tracing
 

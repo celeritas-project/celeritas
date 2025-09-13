@@ -7,6 +7,196 @@ Series 0.6
 Major development version 0.6 can be cited through its Zenodo code release
 :cite:p:`celeritas-0-6`.
 
+.. _release_v0.6.1:
+
+Version 0.6.1
+-------------
+*Released 2025/09/13*
+
+Version 0.6.1 is a minor capability and bug fix update. Geant4-to-ORANGE
+conversion has gained new abilities including:
+
+- Support for reflection
+- Support for replicated and parameterized volumes
+- New shapes including G4ExtrudedSolid, G4GenericPolycone, G4Paraboloid,
+  polar-truncated sphere
+- Fixes and improvements to deduplication of general quadric surfaces such as
+  twisted trap faces and ellipsoids
+
+Geant4 integration has improved with:
+
+- Automatic generation of field maps from in-memory G4Field
+- Track IDs are now reconstructed when returning hits to Geant4
+- Track weights are propagated through Celeritas and returned to Geant4
+- Additional data members are reconstructed in hit track/steps to reduce null
+  pointers
+- G4VTrackUserInfo and G4VProcess are reconstructed as valid (but not
+  necessarily meaningful) pointers
+
+Code compatibility improvements include:
+
+- Support for CUDA 12.9 and NVCC with cxxstd=20
+- Changes to allow GCC's overzealous ``-Wmissing-braces`` (#1863) used by CMSSW
+- Fixes to include-what-you-use errors that failed newer compilers/c++ libs
+- Support for CMake ``find_package(Celeritas)`` multiple times (still
+  discouraged though)
+- Allow multiple runs when using GPU
+- Improved compatibility for Geant4 10
+- Improved use of environment variables (now the *value* of ``CELER_DISABLE``
+  and others are considered, not just their existence)
+
+
+Changes since v0.6.0 follow.
+
+New features
+^^^^^^^^^^^^
+
+* Add default values for track slots and initializer capacity *(@amandalund, #1772)*
+* Complete optical stepping loop *(@amandalund, #1792)*
+* Create IntersectRegion for a convex extruded polygon *(@elliottbiondo, #1783)*
+* Adds Sensitive Detector parameter Class *(@lebuller, #1764)*
+* Print Celeritas configuration options when loading downstream *(@sethrj, #1802)*
+* Make optical ``max_step_iters`` configurable and properly reset state after aborting *(@amandalund, #1805)*
+* Add reflection to ORANGE *(@sethrj, #1807)*
+* Add options to forcibly disable Cherenkov and scintillation *(@amandalund, #1814)*
+* Add replica+parameterisation support to ORANGE *(@sethrj, #1817)*
+* Add surface normal calculations in GeoTrackView *(@hhollenb, #1804)*
+* Add WLS model class, generator, and executor and support second WLS process *(@amandalund, #1816)*
+* Support configurable WLS reemission time distribution *(@amandalund, #1822)*
+* Add volume params to represent Geant4 volume graph *(@sethrj, #1821)*
+* Full G4ExtrudedSolid support *(@elliottbiondo, #1808)*
+* Read and export Geant4 surface definitions *(@sethrj, #1824)*
+* Add in-situ cartesian field map construction from Geant4 *(@esseivaju, #1828)*
+* Add geometry surface definitions to runtime *(@sethrj, #1812)*
+* Output optical actions *(@amandalund, #1836)*
+* Add polar truncation for sphere shape *(@sethrj, #1832)*
+* Generate optical photons directly into track slots for 2× GPU speedup *(@amandalund, #1844)*
+* Add track weight propagation to secondaries track *(@Rashika-Gupta, #1847)*
+* Reconstruct Geant4 TrackID *(@esseivaju, #1837)*
+* Update HitProcessor test to support non unit weights *(@Rashika-Gupta, #1853)*
+* Add optical primary generator *(@amandalund, #1858)*
+* Add VolumeSurfaceSelector *(@hhollenb, #1859)*
+* Add pre-commit spell checking *(@sethrj, #1867)*
+* Reconstruct G4VTrackUserInfo and G4VProcess *(@esseivaju, #1866)*
+* Allow multiple "activate device" calls if not modifying device *(@sethrj, #1938)*
+* Add TrackProcessor class for reconstructing Geant4 tracks *(@esseivaju, #1869)*
+* Add RevolvedSpecialTrapezoid as a first step towards G4GenericPolycone *(@elliottbiondo, #1840)*
+* Add full support for G4GenericPolycone *(@elliottbiondo, #1892)*
+* Add support for G4Paraboloid *(@elliottbiondo, #1893)*
+* Support discontinuities in nonuniform grid calculator *(@sethrj, #1906)*
+* Use environment variable values if set *(@sethrj, #1937)*
+
+Bug fixes
+^^^^^^^^^
+
+* Patch covfie shasum *(@esseivaju, #1771)*
+* Fix table size in physics construction *(@amandalund, #1780)*
+* Fix and refactor maximum cross section energy calculation for integral approach *(@amandalund, #1776)*
+* Support CUDA 12.9 and NVCC with cxxstd=20 *(@sethrj, #1787)*
+* Fix ``sincospi`` on device *(@amandalund, #1791)*
+* Fix assigning parent ID to track initializer *(@amandalund, #1795)*
+* Fix orange polyhedron orientation and roundoff error *(@sethrj, #1806)*
+* Flush optical tracks at the end of core stepping loop *(@amandalund, #1834)*
+* Reconstruct additional data in G4Track *(@sethrj, #1835)*
+* Add null pointer checks for Geant4 surfaces *(@sethrj, #1841)*
+* Fix counters in optical generator action *(@amandalund, #1857)*
+* Protect Celeritas::G4 CMake target against double creation *(@drbenmorgan, #1879)*
+* Fix oversimplification of simple quadrics *(@sethrj, #1897)*
+* Fix normalization and edge cases on twisted GenPrism faces *(@sethrj, #1899)*
+* Fix weight reconstruction for GeantSd *(@sethrj, #1940)*
+
+Documentation improvements
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Release v0.6.0 *(@sethrj, #1688)*
+* Add helper for accumulating histograms *(@sethrj, #1759)*
+* Add zenodo citations to celeritas user manual *(@sethrj, #1762)*
+* Require covfie v0.14 *(@esseivaju, #1767)*
+* Replace hand-rolled hooks with pre-commit and CI *(@sethrj, #1765)*
+* Refactor micro xs CDF calculation and add test *(@amandalund, #1768)*
+* Edit user manual and fix PDF build *(@sethrj, #1782)*
+* Document geometry hierarchy and move EM table *(@sethrj, #1788)*
+* Round all floating point numbers in test output to a few digits *(@sethrj, #1758)*
+* Work around a doxy/breathe rendering bug and make some notes internal *(@sethrj, #1797)*
+* Replace EXPECT_VEC_CLOSE with soft comparator *(@sethrj, #1819)*
+* Finish updating copyrights *(@amandalund, #1820)*
+* Update build script and user presets *(@sethrj, #1845)*
+* Detect and use ccache *(@esseivaju, #1848)*
+* Revert one unintentional typo change from #1867 *(@pcanal, #1871)*
+
+Minor internal changes
+^^^^^^^^^^^^^^^^^^^^^^
+
+* Fail early if find-or-builtin package is missing *(@sethrj, #1770)*
+* Remove ``ValueGridBuilder`` s *(@amandalund, #1766)*
+* Add ostream support for enums *(@amandalund, #1774)*
+* Add missing typename and const to CartMapField *(@esseivaju, #1769)*
+* Apply pre-commit hooks across repository *(@sethrj, #1773)*
+* Rename logspace to geomspace *(@sethrj, #1777)*
+* Use correct types for physics grids *(@amandalund, #1781)*
+* Add tests and documentation for Tsai nuclear screening functions *(@sethrj, #1779)*
+* Adjust version compatibility for covfie *(@sethrj, #1778)*
+* Simplify nested join nodes *(@sethrj, #1784)*
+* Store hardwired model data by reference *(@amandalund, #1785)*
+* Organize optical directory *(@amandalund, #1789)*
+* Move core track initialization to ``CoreTrackView`` *(@amandalund, #1794)*
+* Add make_orthogonal helper function *(@sethrj, #1793)*
+* Move magnetic field retrieval to a helper function *(@sethrj, #1798)*
+* Extend auxiliary data helpers to support aux state data without params *(@amandalund, #1799)*
+* Keep persistent GeantGeoParams for geometry translation *(@sethrj, #1796)*
+* Refactor optical generation to reduce duplication *(@amandalund, #1800)*
+* Move optical photon generation to optical stepping loop *(@amandalund, #1803)*
+* Make Geant4 volume IDs consistent wrt load order *(@sethrj, #1809)*
+* Fix configuring against latest VecGeom with CUDA disabled *(@pcanal, #1813)*
+* Rename SurfaceId in preparation for volume-based surface definitions *(@sethrj, #1811)*
+* Rearrange generic geo test interface *(@sethrj, #1818)*
+* Use variant set for uniform field input *(@amandalund, #1826)*
+* Rename solid angle class *(@sethrj, #1825)*
+* Optimize cosine for turn *(@sethrj, #1830)*
+* Refactor solid Z slab as Truncated object *(@sethrj, #1827)*
+* Use start/stop instead of start/interior for azimuthal wedge *(@sethrj, #1831)*
+* Add surface properties to core and optical params *(@amandalund, #1838)*
+* Add a helper function for launching a CPU kernel with an arbitrary number of threads *(@amandalund, #1842)*
+* Define geometry implementation IDs *(@sethrj, #1839)*
+* Add generator interface and registry *(@amandalund, #1849)*
+* Document and improve build script *(@sethrj, #1854)*
+* Hotfix: revert accidental changes from #1839 *(@sethrj, #1856)*
+* Add volume params to core *(@sethrj, #1846)*
+* Add surface physics map *(@sethrj, #1852)*
+* Begin exposing Cherenkov/optical loop outside of the optical collector  *(@sethrj, #1861)*
+* IWYU on some files *(@sethrj, #1935)*
+* Convert to using counterclockwise order for polygons *(@elliottbiondo, #1873)*
+* Delete IPAContextException *(@sethrj, #1882)*
+* Use class constructors rather than initialization for Array to fix CMS *(@sethrj, #1887)*
+* Add RevolvedPolygon class *(@elliottbiondo, #1888)*
+* Define throw helper functions to reduce code bloat and improve performance *(@sethrj, #1908)*
+* Update particle speed calculation to be more robust against round-off error *(@amandalund, #1917)*
+* Add custom error handler to unify G4 exception handlers *(@sethrj, #1919)*
+
+Deprecation and removal
+^^^^^^^^^^^^^^^^^^^^^^^
+
+* Remove combined bremsstrahlung model *(@amandalund, #1786)*
+* Remove SpecialTrapezoid and RevolvedSpecialTrapezoid classes *(@elliottbiondo, #1890)*
+
+Reviewers
+^^^^^^^^^
+
+* Seth R. Johnson *(@sethrj)*: 50
+* Amanda Lund *(@amandalund)*: 30
+* Philippe Canal *(@pcanal)*: 13
+* Julien Esseiva *(@esseivaju)*: 9
+* Elliott Biondo *(@elliottbiondo)*: 9
+* Guilherme Lima *(@mrguilima)*: 4
+* Soon Yung Jun *(@whokion)*: 2
+* Rashika Gupta *(@Rashika-Gupta)*: 2
+* Stefano Tognini *(@stognini)*: 1
+* Sakib Rahman *(@rahmans1)*: 1
+* Lance Bullerwell *(@lebuller)*: 1
+* Hayden Hollenbeck *(@hhollenb)*: 1
+
+**Full Changelog**: https://github.com/celeritas-project/celeritas/compare/v0.6.0...v0.6.1
+
 .. _release_v0.6.0:
 
 Version 0.6.0
