@@ -16,6 +16,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 ## Presentations
 
+- S. R. Johnson. "Celeritas for LHCb". *LHCb Week*, 16 Jun 2025. [presentation](https://indico.cern.ch/event/1555409/contributions/6557235/attachments/3087215/5466168/celeritas.pdf)
 - H. Hollenbeck. "Celeritas for Optical Processes and Calorimetry". *Third Annual US Higgs Factory Future Circular Collider Workshop*, 16 Apr 2025. [presentation](https://indico.fnal.gov/event/67484/contributions/311378/attachments/187168/258057/hollenbeck-celeritas.pdf)
 - P. Heywood. "Benchmarking Celeritas". *GridPP/SWIFT-HEP Workshop*, 11 Apr 2025. [presentation](https://indico.cern.ch/event/1476120/contributions/6463764/attachments/3049625/5389684/2025-04-11-benchmarking-celeritas.pdf)
 - B. Morgan. "Geant4 R&D on use of GPU: AdePT, Celeritas, G4HepEm". *GridPP/SWIFT-HEP Workshop*, 09 Apr 2025. [presentation](https://indico.cern.ch/event/1476120/contributions/6442360/)
