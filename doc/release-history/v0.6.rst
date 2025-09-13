@@ -128,7 +128,7 @@ Minor internal changes
 ^^^^^^^^^^^^^^^^^^^^^^
 
 * Fail early if find-or-builtin package is missing *(@sethrj, #1770)*
-* Remove ``ValueGridBuilder``s *(@amandalund, #1766)*
+* Remove ``ValueGridBuilder`` s *(@amandalund, #1766)*
 * Add ostream support for enums *(@amandalund, #1774)*
 * Add missing typename and const to CartMapField *(@esseivaju, #1769)*
 * Apply pre-commit hooks across repository *(@sethrj, #1773)*
