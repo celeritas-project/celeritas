@@ -89,8 +89,13 @@ auto ModelImporter::operator()(IMC imc) const -> std::optional<ModelBuilder>
     CELER_VALIDATE(iter != builtin_build.end(),
                    << "cannot build unsupported optical model '" << imc << "'");
 
-    BuilderMemFn build_impl{iter->second};
-    return (this->*build_impl)();
+    auto builder_opt = (this->*iter->second)();
+    if (!builder_opt)
+    {
+        CELER_LOG(debug) << "Skipping optical model '" << to_cstring(imc)
+                         << "' (no data)";
+    }
+    return builder_opt;
 }
 
 //---------------------------------------------------------------------------//
@@ -129,8 +134,17 @@ auto ModelImporter::build_wls() const -> ModelBuilder
     input.time_profile = params_.wls_time_profile;
     for (auto mid : range(OptMatId{input_.import_material->num_materials()}))
     {
-        input.data.push_back(input_.import_material->wls(mid));
+        auto wls_data = input_.import_material->wls(mid);
+        if (wls_data)
+        {
+            input.data.push_back(std::move(wls_data));
+        }
+        else
+        {
+            return {};
+        }
     }
+    // Build if at least one material has data
     return WavelengthShiftModel::make_builder(this->imported(),
                                               std::move(input));
 }
@@ -148,7 +162,15 @@ auto ModelImporter::build_wls2() const -> ModelBuilder
     input.time_profile = params_.wls2_time_profile;
     for (auto mid : range(OptMatId{input_.import_material->num_materials()}))
     {
-        input.data.push_back(input_.import_material->wls2(mid));
+        auto wls2_data = input_.import_material->wls2(mid);
+        if (wls2_data)
+        {
+            input.data.push_back(input_.import_material->wls2(mid));
+        }
+        else
+        {
+            return {};
+        }
     }
     return WavelengthShiftModel::make_builder(this->imported(),
                                               std::move(input));
