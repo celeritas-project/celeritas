@@ -105,11 +105,13 @@ void ProblemSetup::operator()(inp::Problem& p) const
     {
         inp::OpticalPhysics optical_physics;
         optical_physics.cherenkov = true;
-        optical_physics.scintillation = true;
+        optical_physics.scintillation = false;
 
         p.physics.optical = optical_physics;
 
         CELER_LOG(debug) << "Optical physics enabled";
+        CELER_LOG(debug) << " Scintillation status : "
+                         << optical_physics.scintillation;
     }
     if (so.max_num_events)
     {
