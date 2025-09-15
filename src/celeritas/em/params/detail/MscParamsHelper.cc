@@ -66,7 +66,7 @@ MscParamsHelper::MscParamsHelper(ParticleParams const& particles,
         // Save particle ID and scaled cross section table
         par_ids_.push_back(pid);
         CELER_ASSERT(imm.xs_table.x_units == ImportUnits::mev);
-        CELER_ASSERT(imm.xs_table.y_units == ImportUnits::mev_2_per_cm);
+        CELER_ASSERT(imm.xs_table.y_units == ImportUnits::mev_sq_per_len);
         xs_tables_.push_back(&imm.xs_table);
     }
     CELER_VALIDATE(!xs_tables_.empty(),

@@ -732,7 +732,7 @@ TEST_F(FourSteelSlabsEmStandard, eioni)
         // Test energy loss table
         ImportPhysicsTable const& dedx = proc.dedx;
         EXPECT_EQ(ImportUnits::mev, dedx.x_units);
-        EXPECT_EQ(ImportUnits::mev_per_cm, dedx.y_units);
+        EXPECT_EQ(ImportUnits::mev_per_len, dedx.y_units);
         ASSERT_EQ(2, dedx.grids.size());
 
         auto const& steel = dedx.grids.back();
@@ -746,7 +746,7 @@ TEST_F(FourSteelSlabsEmStandard, eioni)
         // Test cross-section table
         ImportPhysicsTable const& lambda = proc.lambda;
         EXPECT_EQ(ImportUnits::mev, lambda.x_units);
-        EXPECT_EQ(ImportUnits::cm_inv, lambda.y_units);
+        EXPECT_EQ(ImportUnits::len_inv, lambda.y_units);
         ASSERT_EQ(2, lambda.grids.size());
 
         auto const& steel = lambda.grids.back();
@@ -936,7 +936,7 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
         // Test energy loss table
         ImportPhysicsTable const& dedx = mu_minus.dedx;
         EXPECT_EQ(ImportUnits::mev, dedx.x_units);
-        EXPECT_EQ(ImportUnits::mev_per_cm, dedx.y_units);
+        EXPECT_EQ(ImportUnits::mev_per_len, dedx.y_units);
         ASSERT_EQ(2, dedx.grids.size());
 
         auto const& steel = dedx.grids.back();
@@ -950,7 +950,7 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
         // Test cross-section table
         ImportPhysicsTable const& xs = mu_minus.lambda;
         EXPECT_EQ(ImportUnits::mev, xs.x_units);
-        EXPECT_EQ(ImportUnits::cm_inv, xs.y_units);
+        EXPECT_EQ(ImportUnits::len_inv, xs.y_units);
         ASSERT_EQ(2, xs.grids.size());
 
         auto const& steel = xs.grids.back();
