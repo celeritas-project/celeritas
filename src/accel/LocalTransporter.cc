@@ -282,13 +282,6 @@ void LocalTransporter::Push(G4Track& g4track)
     track.direction = convert_from_geant(g4track.GetMomentumDirection(), 1);
     track.time = convert_from_geant(g4track.GetGlobalTime(), clhep_time);
     track.weight = g4track.GetWeight();
-    if (CELER_UNLIKELY(g4track.GetWeight() != 1.0))
-    {
-        //! \todo Non-unit weights: see issue #1268
-        CELER_LOG(error) << "incoming track (PDG " << pdg.get()
-                         << ", track ID " << g4track.GetTrackID()
-                         << ") has non-unit weight " << g4track.GetWeight();
-    }
 
     /*!
      * \todo Eliminate event ID from primary.
