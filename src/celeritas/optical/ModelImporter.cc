@@ -131,17 +131,13 @@ auto ModelImporter::build_wls() const -> ModelBuilder
     input.time_profile = params_.wls_time_profile;
     for (auto mid : range(OptMatId{input_.import_material->num_materials()}))
     {
-        auto wls_data = input_.import_material->wls(mid);
-        if (wls_data)
-        {
-            input.data.push_back(std::move(wls_data));
-        }
-        else
-        {
-            return {};
-        }
+        input.data.push_back(input_.import_material->wls(mid));
     }
-    // Build if at least one material has data
+    if (!std::any_of(input.data.begin(), input.data.end(), Identity{}))
+    {
+        // None of the materials have WLS data
+        return {};
+    }
     return WavelengthShiftModel::make_builder(this->imported(),
                                               std::move(input));
 }
@@ -159,15 +155,12 @@ auto ModelImporter::build_wls2() const -> ModelBuilder
     input.time_profile = params_.wls2_time_profile;
     for (auto mid : range(OptMatId{input_.import_material->num_materials()}))
     {
-        auto wls2_data = input_.import_material->wls2(mid);
-        if (wls2_data)
-        {
-            input.data.push_back(input_.import_material->wls2(mid));
-        }
-        else
-        {
-            return {};
-        }
+        input.data.push_back(input_.import_material->wls2(mid));
+    }
+    if (!std::any_of(input.data.begin(), input.data.end(), Identity{}))
+    {
+        // None of the materials have WLS2 data
+        return {};
     }
     return WavelengthShiftModel::make_builder(this->imported(),
                                               std::move(input));
