@@ -28,15 +28,14 @@ namespace celeritas
  *
  * This is true by default when compiling with Perfetto enabled. The
  * \c CELER_ENABLE_PROFILING environment variable is used to override this
- * behavior. Profiling is never enabled if CUDA/HIP/Perfetto are unavailable.
+ * behavior. Profiling is never enabled if CUDA/ROC-TX/Perfetto are
+ * unavailable.
  */
 bool use_profiling()
 {
     static bool const result = [] {
-        // TODO: determine whether NVTX is available?
-        bool running_nvtx = false;
-        auto result = celeritas::getenv_flag(
-            "CELER_ENABLE_PROFILING", running_nvtx || CELERITAS_USE_PERFETTO);
+        auto result = celeritas::getenv_flag("CELER_ENABLE_PROFILING",
+                                             CELERITAS_USE_PERFETTO);
         if (result.value)
         {
             if constexpr (CELERITAS_USE_HIP && !CELERITAS_HAVE_ROCTX)
@@ -45,17 +44,11 @@ bool use_profiling()
                                     "ROC-TX is unavailable";
                 return false;
             }
-            if constexpr (!CELER_USE_DEVICE && !CELERITAS_USE_PERFETTO)
+            else if constexpr (!CELER_USE_DEVICE && !CELERITAS_USE_PERFETTO)
             {
                 CELER_LOG(error)
                     << "CELER_ENABLE_PROFILING is set but Celeritas "
                        "was compiled without a profiling backend";
-                return false;
-            }
-            if (CELERITAS_USE_CUDA && !running_nvtx)
-            {
-                CELER_LOG(error) << "CELER_ENABLE_PROFILING is set but NVTX "
-                                    "does not seem to be running";
                 return false;
             }
         }
