@@ -36,6 +36,11 @@ Example classes
   master and worker threads, setting up a tracking manager under the hood.
   :cpp:class:`EndOfRunAction` clears data and finalizes Celeritas data.
 
+:cpp:class:`EventAction`
+  The event action is not necessary to run Celeritas, but its use of
+  :cpp:class:`celeritas::ScopedProfiling` demonstrates how to profile Geant4
+  and annotate GPU profiling results in a Geant4 context.
+
 :cpp:class:`SensitiveDetector`
   :cpp:class:`ProcessHits`: is currently the *only* Celeritas callback
   interface to Geant4; at each step, Celeritas sends data back as a
