@@ -25,6 +25,7 @@ class ActionRegistry;
 class AuxStateVec;
 class CherenkovParams;
 class CoreParams;
+class CoreStateInterface;
 template<GeneratorType G>
 class OffloadAction;
 class OffloadGatherAction;
@@ -32,6 +33,7 @@ class ScintillationParams;
 
 namespace optical
 {
+class CoreStateBase;
 template<GeneratorType G>
 class GeneratorAction;
 class MaterialParams;
@@ -115,6 +117,10 @@ class OpticalCollector
     {
         return optical_params_;
     }
+
+    // Access optical state
+    optical::CoreStateBase const&
+    optical_state(CoreStateInterface const& core) const;
 
     // Access Cherenkov params (may be null)
     SPConstCherenkov cherenkov() const;
