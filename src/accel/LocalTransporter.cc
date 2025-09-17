@@ -249,11 +249,12 @@ void LocalTransporter::Push(G4Track& g4track)
     {
         // Primary may have been created by a particle generator outside the
         // geometry
-        double energy = g4track.GetKineticEnergy() / CLHEP::MeV;
-        CELER_LOG(debug)
-            << "Discarding track outside world: " << energy << " MeV from "
-            << g4track.GetDefinition()->GetParticleName() << " at " << pos
-            << " along "
+        double energy
+            = convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV);
+        CELER_LOG_LOCAL(error)
+            << "Discarding track outside world bounds: " << energy
+            << " MeV from " << g4track.GetDefinition()->GetParticleName()
+            << " at " << pos << " along "
             << convert_from_geant(g4track.GetMomentumDirection(), 1);
 
         buffer_accum_.lost_energy += energy;
@@ -295,10 +296,6 @@ void LocalTransporter::Push(G4Track& g4track)
     buffer_accum_.energy += track.energy.value();
     if (buffer_.size() >= auto_flush_)
     {
-        /*!
-         * \todo Maybe only run one iteration? But then make sure that Flush
-         * still transports active tracks to completion.
-         */
         this->Flush();
     }
 }
