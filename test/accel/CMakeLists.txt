@@ -43,49 +43,50 @@ celeritas_add_test(RZMapMagneticField.test.cc)
 #-----------------------------------------------------------------------------#
 # INTEGRATION TESTS
 #-----------------------------------------------------------------------------#
-set(_integration_tests
-  UserActionIntegration
-  TrackingManagerIntegration
-)
-function(celerias_accel_add_tests target name suite test)
-  celeritas_g4_add_tests(${target}
-    NAME "${name}:${suite}.${test}"
+
+function(celeritas_add_integration_tests basename suite test)
+  set(_target "${CELERITASTEST_DIR}_${basename}")
+  set(_name "${CELERITASTEST_DIR}/${basename}")
+
+  if(NOT TARGET "${_target}")
+    add_executable(${_target} "${basename}.test.cc")
+    set_property(TARGET ${_target}
+      PROPERTY OUTPUT_NAME "${basename}"
+    )
+    celeritas_target_link_libraries(${_target}
+      ${CELERITASTEST_LINK_LIBRARIES}
+      ${_g4_libs}
+      testcel_harness
+    )
+  endif()
+
+  celeritas_g4_add_tests(${_target}
+    NAME "${_name}:${suite}.${test}"
     ARGS "--gtest_filter=${suite}.${test}"
     LABELS unit
     ${ARGN}
   )
 endfunction()
 
-foreach(_basename IN LISTS _integration_tests)
-  # Create the executable
-  set(_target "${CELERITASTEST_DIR}_${_basename}")
-  set(_name "${CELERITASTEST_DIR}/${_basename}")
+#-----------------------------------------------------------------------------#
 
-  add_executable(${_target} "${_basename}.test.cc")
-  set_property(TARGET ${_target}
-    PROPERTY OUTPUT_NAME "${_basename}"
-  )
-  celeritas_target_link_libraries(${_target}
-    ${CELERITASTEST_LINK_LIBRARIES}
-    ${_g4_libs}
-    testcel_harness
-  )
-
+foreach(_basename IN ITEMS UserActionIntegration TrackingManagerIntegration)
   # Add every combination of test for LArSphere.run
-  celerias_accel_add_tests("${_target}" "${_name}" LarSphere run)
-
-  if(_basename STREQUAL "TrackingManagerIntegration")
-    # Add cpu/disabled for UI
-    celerias_accel_add_tests("${_target}" "${_name}" LarSphere ui
-      OFFLOAD cpu g4
-      RMTYPE serial mt
-    )
-  endif()
+  celeritas_add_integration_tests(${_basename} LarSphere run)
 
   # Do TestEm3 only with celeritas cpu/gpu and serial run manager
-  celerias_accel_add_tests("${_target}" "${_name}" TestEm3 run
+  celeritas_add_integration_tests(${_basename} TestEm3 run
     OFFLOAD cpu gpu
     RMTYPE serial
+  )
+endforeach()
+
+# Only test a few combinations for these tests
+foreach(_lar_tmi_test IN ITEMS run_ui)
+  celeritas_add_integration_tests(
+    TrackingManagerIntegration LarSphere ${_lar_tmi_test}
+    OFFLOAD cpu gpu g4
+    RMTYPE serial mt
   )
 endforeach()
 
