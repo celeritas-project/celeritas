@@ -32,6 +32,8 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Environment.hh"
+#include "corecel/sys/ScopedProfiling.hh"
+#include "corecel/sys/TracingSession.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
@@ -50,6 +52,8 @@
 
 #include "PersistentSP.hh"
 #include "ShimSensitiveDetector.hh"
+
+using SPTracing = std::shared_ptr<celeritas::TracingSession>;
 
 namespace celeritas
 {
@@ -79,10 +83,11 @@ std::string thread_description()
 class RunAction final : public G4UserRunAction
 {
   public:
-    explicit RunAction(IntegrationTestBase* test)
-        : test_{test}, exceptions_([this](std::exception_ptr ep) {
-            this->handle_exception(ep);
-        })
+    RunAction(IntegrationTestBase* test, SPTracing tracing)
+        : test_{test}
+        , tracing_{std::move(tracing)}
+        , exceptions_(
+              [this](std::exception_ptr ep) { this->handle_exception(ep); })
     {
     }
 
@@ -95,6 +100,11 @@ class RunAction final : public G4UserRunAction
     {
         CELER_LOG_LOCAL(debug) << "RunAction::EndOfRunAction";
         test_->EndOfRunAction(run);
+        if (tracing_)
+        {
+            CELER_LOG_LOCAL(debug) << "Flushing Perfetto trace";
+            tracing_->flush();
+        }
     }
 
     // TODO: push exception onto a vector that can be checked
@@ -127,6 +137,7 @@ class RunAction final : public G4UserRunAction
 
   private:
     IntegrationTestBase* test_;
+    SPTracing tracing_;
     ScopedGeantExceptionHandler exceptions_;
 };
 
@@ -155,19 +166,27 @@ class EventAction final : public G4UserEventAction
 class ActionInitialization final : public G4VUserActionInitialization
 {
   public:
-    explicit ActionInitialization(IntegrationTestBase* test) : test_{test} {}
+    explicit ActionInitialization(IntegrationTestBase* test) : test_{test}
+    {
+        if (!CELER_USE_DEVICE && use_profiling())
+        {
+            tracing_ = std::make_unique<TracingSession>(
+                test_->make_unique_filename(".perf.proto"));
+            tracing_->start();
+        }
+    }
 
     void BuildForMaster() const final
     {
         CELER_LOG_LOCAL(debug) << "ActionInitialization::BuildForMaster";
-        this->SetUserAction(new RunAction{test_});
+        this->SetUserAction(new RunAction{test_, tracing_});
     }
     void Build() const final
     {
         CELER_LOG_LOCAL(debug) << "ActionInitialization::Build";
 
         // Run and event actions
-        this->SetUserAction(new RunAction{test_});
+        this->SetUserAction(new RunAction{test_, tracing_});
         this->SetUserAction(new EventAction{test_});
 
         // Primary generator
@@ -194,6 +213,7 @@ class ActionInitialization final : public G4VUserActionInitialization
 
   private:
     IntegrationTestBase* test_;
+    SPTracing tracing_;
 };
 
 //---------------------------------------------------------------------------//
