@@ -1160,11 +1160,16 @@ ImportOpticalParameters import_optical_parameters()
         {
             return WlsTimeProfile::delta;
         }
-        if (time_profile == "exponential")
+        else if (time_profile == "exponential")
         {
             return WlsTimeProfile::exponential;
         }
-        CELER_ASSERT_UNREACHABLE();
+        else
+        {
+            CELER_LOG(error) << "unknown WLS time profile '" << time_profile
+                             << "': using exponential";
+            return WlsTimeProfile::exponential;
+        }
     };
     iop.wls_time_profile = to_enum(params->GetWLSTimeProfile());
     iop.wls2_time_profile = to_enum(params->GetWLS2TimeProfile());
