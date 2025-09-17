@@ -11,10 +11,12 @@
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 #include <G4UImanager.hh>
+#include <G4UserTrackingAction.hh>
 #include <G4VModularPhysicsList.hh>
 
 #include "corecel/io/Logger.hh"
 #include "geocel/GeantUtils.hh"
+#include "geocel/UnitUtils.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/optical/OpticalCollector.hh"
 #include "accel/LocalTransporter.hh"
@@ -201,13 +203,47 @@ TEST_F(LarSphere, run_ui)
 //---------------------------------------------------------------------------//
 // LAR SPHERE WITH OPTICAL
 //---------------------------------------------------------------------------//
+class TrackingAction : public G4UserTrackingAction
+{
+  public:
+    void PreUserTrackingAction(G4Track const* t)
+    {
+        if (t->GetParticleDefinition()->GetPDGEncoding() == -22)
+        {
+            ++counter_;
+        }
+    }
+    std::size_t num_photons() const { return counter_; }
+
+  private:
+    std::size_t counter_{};
+};
+
 /*!
  * Test the LarSphere, offloading both EM tracks *and* optical photons.
  */
 class LarSphereOptical : public LarSphere
 {
+  public:
     PhysicsInput make_physics_input() const override;
+    PrimaryInput make_primary_input() const override;
+    SetupOptions make_setup_options() override;
     void EndOfRunAction(G4Run const* run) override;
+    UPTrackAction make_tracking_action() override
+    {
+        auto result = std::make_unique<TrackingAction>();
+        {
+            // Store the raw pointer in the tracking_ vector using a static
+            // mutex
+            static std::mutex mutex;
+            std::lock_guard<std::mutex> lock(mutex);
+            tracking_.push_back(result.get());
+        }
+        return result;
+    }
+
+  private:
+    std::vector<TrackingAction*> tracking_;
 };
 
 //---------------------------------------------------------------------------//
@@ -227,6 +263,33 @@ auto LarSphereOptical::make_physics_input() const -> PhysicsInput
     using WLSO = WavelengthShiftingOptions;
     optical.wavelength_shifting = WLSO::deactivated();
     optical.wavelength_shifting2 = WLSO::deactivated();
+
+    return result;
+}
+
+auto LarSphereOptical::make_primary_input() const -> PrimaryInput
+{
+    auto result = LarSphereIntegrationMixin::make_primary_input();
+
+    result.shape = inp::PointDistribution{from_cm({0.1, 0.1, 0})};
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Enable optical tracking.
+ */
+auto LarSphereOptical::make_setup_options() -> SetupOptions
+{
+    auto result = LarSphereIntegrationMixin::make_setup_options();
+
+    result.optical_capacity = [] {
+        inp::OpticalStateCapacity cap;
+        cap.primaries = 32768;
+        cap.tracks = 4096;
+        cap.generators = 2048;
+        return cap;
+    }();
 
     return result;
 }
@@ -257,6 +320,10 @@ void LarSphereOptical::EndOfRunAction(G4Run const* run)
             // Use diagnostic methods to check counters
             auto& aux_state = local_transporter.GetState().aux();
             auto accum_stats = optical_collector->exchange_counters(aux_state);
+            CELER_LOG_LOCAL(info)
+                << "Ran " << accum_stats.steps << " over "
+                << accum_stats.step_iters << " step iterations from "
+                << accum_stats.flushes << " flushes";
             EXPECT_GT(accum_stats.steps, 0);
             EXPECT_GT(accum_stats.step_iters, 0);
             EXPECT_GT(accum_stats.flushes, 0);
@@ -265,6 +332,25 @@ void LarSphereOptical::EndOfRunAction(G4Run const* run)
             EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators
             EXPECT_EQ(0, counts.num_pending);  //!< Photons pending generation
             EXPECT_EQ(0, counts.num_generated);  //!< Photons generated
+        }
+    }
+    if (G4Threading::IsMasterThread())
+    {
+        std::size_t num_photons_generated{0};
+        for (auto* tracking_action : tracking_)
+        {
+            num_photons_generated += tracking_action->num_photons();
+        }
+        CELER_LOG(info) << "Processed a total of " << num_photons_generated
+                        << " photons";
+
+        if (integration.mode() == OffloadMode::enabled)
+        {
+            EXPECT_EQ(0, num_photons_generated);
+        }
+        else
+        {
+            EXPECT_GT(num_photons_generated, 0);
         }
     }
 
