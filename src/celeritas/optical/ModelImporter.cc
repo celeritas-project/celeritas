@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "ModelImporter.hh"
 
+#include <algorithm>
+
 #include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/io/ImportData.hh"
