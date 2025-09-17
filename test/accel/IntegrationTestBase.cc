@@ -362,7 +362,7 @@ auto LarSphereIntegrationMixin::make_primary_input() const -> PrimaryInput
     result.energy = inp::MonoenergeticDistribution{MevEnergy{10}};
     result.shape = inp::PointDistribution{from_cm({99, 0.1, 0})};
     result.angle = inp::IsotropicDistribution{};
-    result.num_events = 4;
+    result.num_events = 4;  // Overridden with BeamOn
     result.primaries_per_event = 10;
     return result;
 }
@@ -386,13 +386,23 @@ auto LarSphereIntegrationMixin::make_sens_det(std::string const& sd_name)
  */
 void LarSphereIntegrationMixin::process_hit(G4Step const* step)
 {
-    ASSERT_TRUE(step);
-    ASSERT_TRUE(step->GetTrack());
+    if (!step || !step->GetTrack())
+    {
+        // Reduce testing overhead: google assertions allocate memory
+        ASSERT_TRUE(step);
+        ASSERT_TRUE(step->GetTrack());
+        return;
+    }
+
     auto& track = *step->GetTrack();
-    EXPECT_GT(track.GetWeight(), 0);
-    EXPECT_TRUE(track.GetVolume());
-    // Since we don't have any detectors on the boundary of the problem:
-    EXPECT_TRUE(track.GetNextVolume());
+    if (!(track.GetWeight() > 0) || !track.GetVolume()
+        || !track.GetNextVolume())
+    {
+        EXPECT_GT(track.GetWeight(), 0);
+        EXPECT_TRUE(track.GetVolume());
+        // Since we don't have any detectors on the boundary of the problem:
+        EXPECT_TRUE(track.GetNextVolume());
+    }
 }
 
 //---------------------------------------------------------------------------//

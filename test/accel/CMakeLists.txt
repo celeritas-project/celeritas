@@ -81,13 +81,18 @@ foreach(_basename IN ITEMS UserActionIntegration TrackingManagerIntegration)
   )
 endforeach()
 
-# Only test a few combinations for these tests
-foreach(_lar_tmi_test IN ITEMS run_ui)
-  celeritas_add_integration_tests(
-    TrackingManagerIntegration LarSphere ${_lar_tmi_test}
-    OFFLOAD cpu gpu g4
-    RMTYPE serial mt
-  )
-endforeach()
+# Test that the UI integration works (and ignores if Celeritas is disabled)
+celeritas_add_integration_tests(
+  TrackingManagerIntegration LarSphere run_ui
+  OFFLOAD cpu g4
+  RMTYPE serial mt
+)
+
+# Test with optical physics
+celeritas_add_integration_tests(
+  TrackingManagerIntegration LarSphereOptical run
+  OFFLOAD cpu gpu g4
+  RMTYPE serial mt
+)
 
 #-----------------------------------------------------------------------------#
