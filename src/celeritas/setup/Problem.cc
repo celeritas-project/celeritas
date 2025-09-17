@@ -645,6 +645,14 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
         result.optical_collector
             = build_optical_offload(p, *core_params, imported);
     }
+    else
+    {
+        CELER_VALIDATE(imported.optical_models.empty(),
+                       << "optical physics models were imported but no "
+                          "optical capacity was set. Either define optical "
+                          "tracking loop parameters, or ignore optical "
+                          "physics");
+    }
 
     if (result.root_manager)
     {
