@@ -90,6 +90,35 @@ class TMITestBase : virtual public IntegrationTestBase
 //---------------------------------------------------------------------------//
 class LarSphere : public LarSphereIntegrationMixin, public TMITestBase
 {
+    void BeginOfEventAction(G4Event const* event) override
+    {
+        if (event->GetEventID() == 1)
+        {
+            for (auto i : range(event->GetNumberOfPrimaryVertex()))
+            {
+                G4PrimaryVertex* vtx = event->GetPrimaryVertex(i);
+                for (auto j : range(vtx->GetNumberOfParticle()))
+                {
+                    G4PrimaryParticle* p = vtx->GetPrimary(j);
+                    p->SetWeight(10.0);
+                }
+            }
+        }
+    }
+
+    virtual void process_hit(G4Step const* step) override
+    {
+        LarSphereIntegrationMixin::process_hit(step);
+        ASSERT_TRUE(step);
+
+        // Check the weight is consistent with our modification at
+        // begin-of-event
+        auto event_id = G4EventManager::GetEventManager()
+                            ->GetConstCurrentEvent()
+                            ->GetEventID();
+        EXPECT_DOUBLE_EQ((event_id == 1 ? 10.0 : 1.0),
+                         step->GetTrack()->GetWeight());
+    }
 };
 
 /*!

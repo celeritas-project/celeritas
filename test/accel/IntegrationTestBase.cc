@@ -19,6 +19,8 @@
 #include <G4VUserPrimaryGeneratorAction.hh>
 #include <G4Version.hh>
 
+#include "corecel/Assert.hh"
+
 #if G4VERSION_NUMBER >= 1100
 #    include <G4RunManagerFactory.hh>
 #else
@@ -47,6 +49,7 @@
 #include "accel/SetupOptions.hh"
 
 #include "PersistentSP.hh"
+#include "ShimSensitiveDetector.hh"
 
 namespace celeritas
 {
@@ -372,8 +375,24 @@ auto LarSphereIntegrationMixin::make_sens_det(std::string const& sd_name)
     -> UPSensDet
 {
     EXPECT_EQ("detshell", sd_name);
+    return std::make_unique<ShimSensitiveDetector>(
+        sd_name,
+        [this](G4Step const* step) { return this->process_hit(step); });
+}
 
-    return std::make_unique<SimpleSensitiveDetector>(sd_name);
+//---------------------------------------------------------------------------//
+/*!
+ * Process a hit locally.
+ */
+void LarSphereIntegrationMixin::process_hit(G4Step const* step)
+{
+    ASSERT_TRUE(step);
+    ASSERT_TRUE(step->GetTrack());
+    auto& track = *step->GetTrack();
+    EXPECT_GT(track.GetWeight(), 0);
+    EXPECT_TRUE(track.GetVolume());
+    // Since we don't have any detectors on the boundary of the problem:
+    EXPECT_TRUE(track.GetNextVolume());
 }
 
 //---------------------------------------------------------------------------//
