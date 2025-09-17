@@ -24,7 +24,6 @@
 
 #include "corecel/Config.hh"
 
-#include "corecel/ScopedProfiling.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Span.hh"
