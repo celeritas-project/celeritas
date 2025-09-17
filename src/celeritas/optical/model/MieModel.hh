@@ -1,15 +1,20 @@
 #pragma once
 
+#include <vector>
+
+#include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
+#include "celeritas/io/ImportOpticalModel.hh"
 #include "celeritas/optical/ImportedModelAdapter.hh"
 #include "celeritas/optical/Model.hh"
 
 namespace celeritas
 {
-class MaterialParams;
+// class MaterialParams;
+// struct ImportMie;
+//  struct ImportOpticalRayleigh;
+struct ImportData;
 struct ImportMie;
-// struct ImportOpticalRayleigh;
-
 namespace optical
 {
 
@@ -27,13 +32,15 @@ class MieModel final : public Model
         = std::shared_ptr<::celeritas::MaterialParams const>;
     struct Input
     {
-        SPConstMaterials materials;
-        SPConstCoreMaterials core_materials;
-        SPConstImportedMaterials imported_materials;
-        explicit operator bool() const
-        {
-            return materials && core_materials && imported_materials;
-        }
+        ImportModelClass model{ImportModelClass::size_};
+        std::vector<ImportMie> data;
+        //   SPConstMaterials materials;
+        // SPConstCoreMaterials core_materials;
+        // SPConstImportedMaterials imported_materials;
+        // explicit operator bool() const
+        //{
+        //    return materials && core_materials && imported_materials;
+        //}
     };
 
     static ModelBuilder make_builder(SPConstImported imported, Input input);
@@ -47,6 +54,7 @@ class MieModel final : public Model
   private:
     ImportedModelAdapter imported_;
     Input input_;
+    std::vector<ImportMie> mie_data_;
 };
 
 }  // namespace optical
