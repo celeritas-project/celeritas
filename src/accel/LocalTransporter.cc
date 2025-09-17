@@ -380,6 +380,12 @@ void LocalTransporter::Flush()
         (*dump_primaries_)(buffer_);
     }
 
+    if (run_accum_.steps == 0)
+    {
+        CELER_LOG_LOCAL(status)
+            << R"(Executing the first Celeritas stepping loop)";
+    }
+
     /*!
      * Abort cleanly for interrupt and user-defined (i.e., job manager)
      * signals.
