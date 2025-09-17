@@ -152,7 +152,7 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
         mat.interior = std::move(obj);
         mat.fill = pv.lv->material_id;
         mat.label = pv.id;
-        proto->materials.push_back(std::move(mat));
+        proto->materials.push_back(mat);
     };
 
     if (pv.lv->children.empty())
