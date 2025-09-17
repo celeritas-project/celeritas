@@ -221,7 +221,7 @@ auto LarSphereOptical::make_physics_input() const -> PhysicsInput
     // Set default optical physics
     auto& optical = result.optical;
     optical = {};
-    optical.verbose = true;
+    EXPECT_TRUE(optical);
 
     // Disable WLS which isn't yet working (reemission) in Celeritas
     using WLSO = WavelengthShiftingOptions;

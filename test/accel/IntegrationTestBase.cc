@@ -89,12 +89,12 @@ class RunAction final : public G4UserRunAction
     void BeginOfRunAction(G4Run const* run) final
     {
         CELER_LOG_LOCAL(debug) << "RunAction::BeginOfRunAction";
-        test_->BeginOfRunAction(run);
+        CELER_TRY_HANDLE(test_->BeginOfRunAction(run), this->handle_exception);
     }
     void EndOfRunAction(G4Run const* run) final
     {
         CELER_LOG_LOCAL(debug) << "RunAction::EndOfRunAction";
-        test_->EndOfRunAction(run);
+        CELER_TRY_HANDLE(test_->EndOfRunAction(run), this->handle_exception);
     }
 
     // TODO: push exception onto a vector that can be checked
@@ -110,13 +110,15 @@ class RunAction final : public G4UserRunAction
             if (cstring_equal(d.which, "Geant4"))
             {
                 // GeantExceptionHandler wrapped this error
-                FAIL() << '(' << thread_label() << ',' << d.condition
-                       << "): from " << d.file << ": " << d.what;
+                FAIL() << "GeantExceptionHandler caught runtime error ("
+                       << thread_label() << ',' << d.condition << "): from "
+                       << d.file << ": " << d.what;
             }
             else
             {
                 // Some other error
-                FAIL() << "From " << thread_description() << ": " << e.what();
+                FAIL() << "Caught runtime error from " << thread_description()
+                       << ": " << e.what();
             }
         }
         catch (std::exception const& e)
@@ -138,6 +140,17 @@ class EventAction final : public G4UserEventAction
 
     void BeginOfEventAction(G4Event const* event) final
     {
+        if (test_->HasFatalFailure())
+        {
+            CELER_LOG_LOCAL(critical)
+                << "Cancelling event " << event->GetEventID()
+                << " due to fatal test failure";
+            if (auto* event_mgr = G4EventManager::GetEventManager())
+            {
+                event_mgr->AbortCurrentEvent();
+            }
+            return;
+        }
         CELER_LOG_LOCAL(debug) << "EventAction::BeginOfEventAction";
         test_->BeginOfEventAction(event);
     }
