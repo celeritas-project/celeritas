@@ -11,15 +11,16 @@
 #include "corecel/Assert.hh"
 #include "corecel/Constants.hh"
 #include "corecel/Types.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArraySoftUnit.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/random/distribution/RejectionSampler.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
+#include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/Interaction.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
-
 namespace celeritas
 {
 namespace optical
@@ -40,16 +41,17 @@ namespace optical
 class MieInteractor
 {
   public:
-    struct Params
-    {
-        real_type forward_g;
-        real_type backward_g;
-        real_type forward_ratio;
-    };
+    // struct ImportMie;
+    //   struct Params
+    //   {
+    //       real_type forward_g;
+    //       real_type backward_g;
+    //       real_type forward_ratio;
+    //   };
 
     inline CELER_FUNCTION MieInteractor(ParticleTrackView const& particle,
                                         Real3 const& direction,
-                                        Params const& mie);
+                                        ImportMie const& mie_params);
 
     template<class Engine>
     inline CELER_FUNCTION Interaction operator()(Engine& rng) const;
@@ -57,7 +59,7 @@ class MieInteractor
   private:
     Real3 const& inc_dir_;  //!< Incident photon direction
     Real3 const& inc_pol_;  //!< Incident polarization
-    Params mie_params_;  //!< Mie scattering params
+    ImportMie const& mie_params_;  //!< Mie scattering params
 };
 
 //---------------------------------------------------------------------------//
@@ -66,9 +68,12 @@ class MieInteractor
 CELER_FUNCTION
 MieInteractor::MieInteractor(ParticleTrackView const& particle,
                              Real3 const& direction,
-                             Params const& mie)
-    : inc_dir_(direction), inc_pol_(particle.polarization()), mie_params_(mie)
+                             ImportMie const& mie_params)
+    : inc_dir_(direction)
+    , inc_pol_(particle.polarization())
+    , mie_params_(mie_params)
 {
+    CELER_LOG(debug) << "in mie interactor";
     CELER_EXPECT(is_soft_unit_vector(inc_dir_));
     CELER_EXPECT(is_soft_unit_vector(inc_pol_));
     CELER_EXPECT(soft_zero(dot_product(inc_dir_, inc_pol_)));
