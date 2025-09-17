@@ -124,10 +124,17 @@ TracingSession::TracingSession(std::string const& filename) noexcept
 {
     if (session_)
     {
+        auto msg = CELER_LOG(info);
+        msg << "Opening Perfetto tracing session ";
         if (!filename.empty())
         {
+            msg << "to " << filename;
             // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
             fd_ = open(filename.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0660);
+        }
+        else
+        {
+            msg << "to system daemon";
         }
         session_->Setup(configure_session(), fd_);
     }
