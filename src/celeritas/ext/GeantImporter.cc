@@ -634,6 +634,15 @@ import_optical_materials(detail::GeoOpticalIdMap const& geo_to_opt)
                      "WLSCOMPONENT2",
                      {ImportUnits::mev, ImportUnits::unitless});
 
+        // Save Mie properties
+        get_property(&optical.mie.forward_ratio,
+                     "MIEHG_FORWARD_RATIO",
+                     ImportUnits::unitless);
+        get_property(
+            &optical.mie.forward_g, "MIEHG_FORWARD", ImportUnits::unitless);
+        get_property(
+            &optical.mie.backward_g, "MIEHG_BACKWARD", ImportUnits::unitless);
+
         CELER_ASSERT(optical);
     }
 
