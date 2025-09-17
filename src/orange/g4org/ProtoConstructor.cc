@@ -158,8 +158,8 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
     if (pv.lv->children.empty())
     {
         // No children! This LV is just a material.
-        auto obj = Transformed::or_object(pv.lv->solid, std::move(transform));
-        add_material(obj);
+        add_material(
+            Transformed::or_object(pv.lv->solid, std::move(transform)));
 
         if (CELER_UNLIKELY(verbose_))
         {
@@ -175,8 +175,7 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
         // Child can be inlined into the parent because it's used only once
         // *and* it doesn't have a rotation relative to the parent
         // OR: it must be inlined if it's a union (see #1260)
-        auto obj = this->make_explicit_background(*pv.lv, transform);
-        add_material(obj);
+        add_material(this->make_explicit_background(*pv.lv, transform));
 
         if (CELER_UNLIKELY(verbose_))
         {
