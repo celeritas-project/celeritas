@@ -223,6 +223,16 @@ class ActionInitialization final : public G4VUserActionInitialization
 // Default destructor to enable base class deletion and anchor vtable
 IntegrationTestBase::~IntegrationTestBase() = default;
 
+std::string IntegrationTestBase::make_unique_filename(std::string_view ext)
+{
+    std::string new_ext = "-";
+    new_ext += celeritas::getenv("CELER_OFFLOAD");
+    new_ext += "-";
+    new_ext += celeritas::tolower(celeritas::getenv("G4RUN_MANAGER_TYPE"));
+    new_ext += ext;
+    return ::celeritas::test::Test::make_unique_filename(new_ext);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Create or access the run manager (created once per execution).
@@ -342,10 +352,7 @@ SetupOptions IntegrationTestBase::make_setup_options()
     opts.make_along_step = celeritas::UniformAlongStepFactory();
 
     // Save diagnostic file to a unique name
-    std::string ext = "-" + celeritas::getenv("CELER_OFFLOAD");
-    ext += "-" + celeritas::tolower(celeritas::getenv("G4RUN_MANAGER_TYPE"));
-    ext += ".out.json";
-    opts.output_file = this->make_unique_filename(ext);
+    opts.output_file = this->make_unique_filename(".out.json");
     return opts;
 }
 
