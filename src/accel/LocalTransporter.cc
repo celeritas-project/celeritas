@@ -24,6 +24,7 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/ScopedProfiling.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Span.hh"
@@ -241,6 +242,8 @@ void LocalTransporter::Push(G4Track& g4track)
 {
     CELER_EXPECT(*this);
 
+    ScopedProfiling profile_this{"push"};
+
     if (Real3 pos = convert_from_geant(g4track.GetPosition(), 1);
         !is_inside(bbox_, pos))
     {
@@ -311,6 +314,8 @@ void LocalTransporter::Flush()
     {
         return;
     }
+
+    ScopedProfiling profile_this("flush");
 
     if (event_manager_ || !event_id_)
     {
