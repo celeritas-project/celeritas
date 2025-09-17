@@ -48,19 +48,22 @@ class ParticleTest : public Test
                         pdg::electron(),
                         MevMass{0.5109989461},
                         ElementaryCharge{-1},
-                        stable_decay_constant});
+                        stable_decay_constant,
+                        {}});
         defs.push_back(
-            {"gamma", pdg::gamma(), zero, zero, stable_decay_constant});
+            {"gamma", pdg::gamma(), zero, zero, stable_decay_constant, {}});
         defs.push_back({"neutron",
                         PDGNumber{2112},
                         MevMass{939.565413},
                         zero,
-                        1.0 / (879.4 * second)});
+                        1.0 / (879.4 * second),
+                        {}});
         defs.push_back({"positron",
                         pdg::positron(),
                         MevMass{0.5109989461},
                         ElementaryCharge{1},
-                        stable_decay_constant});
+                        stable_decay_constant,
+                        {}});
 
         particle_params = std::make_shared<ParticleParams>(std::move(defs));
     }

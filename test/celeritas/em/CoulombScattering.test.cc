@@ -42,17 +42,20 @@ class CoulombScatteringTest : public InteractorHostTestBase
              pdg::electron(),
              emass,
              ElementaryCharge{-1},
-             stable_decay_constant},
+             stable_decay_constant,
+             {}},
             {"positron",
              pdg::positron(),
              emass,
              ElementaryCharge{1},
-             stable_decay_constant},
+             stable_decay_constant,
+             {}},
             {"proton",
              pdg::proton(),
              units::MevMass{938.28},
              ElementaryCharge{1},
-             stable_decay_constant},
+             stable_decay_constant,
+             {}},
         };
         this->set_particle_params(std::move(par_inp));
 

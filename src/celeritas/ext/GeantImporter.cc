@@ -453,6 +453,8 @@ import_particles(GeantImporter::DataSelection::Flags particle_flags)
             result.mass = particle_view.mass();
             result.charge = particle_view.charge();
             result.decay_constant = particle_view.decay_constant();
+            result.decay_table
+                = import_decay_table(*(particle_iterator.value()));
 
             if (G4VERSION_NUMBER < 1070 && particle_view.is_optical_photon())
             {
@@ -968,13 +970,15 @@ std::vector<ImportRegion> import_regions()
 /*!
  * Import a decay table from a Geant4 particle definition.
  */
-inp::DecayPhysics::DecayTable import_decay_table(G4ParticleDefinition const& p)
+std::vector<inp::DecayChannel> import_decay_table(G4ParticleDefinition const& p)
 {
-    inp::DecayPhysics::DecayTable result;
-
     auto* g4_table = p.GetDecayTable();
-    CELER_ASSERT(g4_table);
+    if (!g4_table)
+    {
+        return {};
+    }
 
+    std::vector<inp::DecayChannel> result;
     for (auto channel_idx : range(g4_table->entries()))
     {
         auto* g4_channel = (*g4_table)[channel_idx];
@@ -986,6 +990,15 @@ inp::DecayPhysics::DecayTable import_decay_table(G4ParticleDefinition const& p)
         for (auto daughter_idx : range(g4_channel->GetNumberOfDaughters()))
         {
             auto const* daughter = g4_channel->GetDaughter(daughter_idx);
+            if (!daughter)
+            {
+                CELER_LOG(warning)
+                    << "Ignoring decay table for particle "
+                    << p.GetParticleName() << " since daughter '"
+                    << g4_channel->GetDaughterName(daughter_idx)
+                    << "' is not defined";
+                return {};
+            }
             channel.daughters.push_back(PDGNumber(daughter->GetPDGEncoding()));
         }
         result.push_back(std::move(channel));
@@ -1026,9 +1039,8 @@ auto import_processes(GeantImporter::DataSelection selected,
                               G4VProcess const& process) -> void {
         if (dynamic_cast<G4Decay const*>(&process))
         {
-            // Store decay table if decay process is enabled for this particle
-            decay.tables.insert({PDGNumber(particle.GetPDGEncoding()),
-                                 import_decay_table(particle)});
+            // Add decay process if enabled for this particle
+            decay.particles.insert({PDGNumber(particle.GetPDGEncoding())});
             return;
         }
 

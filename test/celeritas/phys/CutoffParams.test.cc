@@ -72,19 +72,22 @@ class CutoffParamsTest : public Test
                            pdg::electron(),
                            MevMass{0.5109989461},
                            ElementaryCharge{-1},
-                           stable_decay_constant});
+                           stable_decay_constant,
+                           {}});
         p_input.push_back(
-            {"gamma", pdg::gamma(), zero, zero, stable_decay_constant});
+            {"gamma", pdg::gamma(), zero, zero, stable_decay_constant, {}});
         p_input.push_back({"positron",
                            pdg::positron(),
                            MevMass{0.5109989461},
                            ElementaryCharge{1},
-                           stable_decay_constant});
+                           stable_decay_constant,
+                           {}});
         p_input.push_back({"proton",
                            pdg::proton(),
                            MevMass{938.27208816},
                            ElementaryCharge{1},
-                           stable_decay_constant});
+                           stable_decay_constant,
+                           {}});
         particles = std::make_shared<ParticleParams>(std::move(p_input));
     }
 

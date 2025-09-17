@@ -8,6 +8,7 @@
 
 #include <optional>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "corecel/Types.hh"
@@ -98,25 +99,12 @@ struct OpticalPhysics
 
 //---------------------------------------------------------------------------//
 /*!
- * Branching ratio and daughters for a decay channel.
- */
-struct DecayChannel
-{
-    DecayChannelType type{DecayChannelType::size_};
-    double branching_ratio{};
-    std::vector<PDGNumber> daughters;
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Decay processes and options.
  */
 struct DecayPhysics
 {
-    using DecayTable = std::vector<DecayChannel>;
-
-    //! Decay channels for particles for which decay is enabled
-    std::unordered_map<PDGNumber, DecayTable> tables;
+    //! Particles for which decay is enabled
+    std::unordered_set<PDGNumber> particles;
 };
 
 //---------------------------------------------------------------------------//

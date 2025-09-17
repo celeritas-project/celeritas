@@ -29,12 +29,14 @@ OpticalTestBase::OpticalTestBase()
                    pdg::electron(),
                    e_mass,
                    units::ElementaryCharge{-1},
-                   constants::stable_decay_constant});
+                   constants::stable_decay_constant,
+                   {}});
     inp.push_back({"positron",
                    pdg::positron(),
                    e_mass,
                    units::ElementaryCharge{1},
-                   constants::stable_decay_constant});
+                   constants::stable_decay_constant,
+                   {}});
     particle_params_ = std::make_shared<ParticleParams>(std::move(inp));
 
     particle_state_

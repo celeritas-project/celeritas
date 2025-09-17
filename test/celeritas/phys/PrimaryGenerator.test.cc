@@ -37,12 +37,13 @@ class PrimaryGeneratorTest : public Test
 
         // Create particle defs
         ParticleParams::Input defs{
-            {"gamma", pdg::gamma(), zero, zero, stable_decay_constant},
+            {"gamma", pdg::gamma(), zero, zero, stable_decay_constant, {}},
             {"electron",
              pdg::electron(),
              units::MevMass{0.5109989461},
              units::ElementaryCharge{-1},
-             stable_decay_constant}};
+             stable_decay_constant,
+             {}}};
         particles_ = std::make_shared<ParticleParams>(std::move(defs));
     }
 
