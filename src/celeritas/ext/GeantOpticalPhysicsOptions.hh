@@ -83,20 +83,29 @@ constexpr bool operator==(ScintillationPhysicsOptions const& a,
 //! Optical wavelength shifting process options
 struct WavelengthShiftingOptions
 {
-    //! Enable the process
-    bool enable{true};
     //! Select a model for sampling reemission time
     WlsTimeProfile time_profile{WlsTimeProfile::delta};
 
     //! True if the process is activated
-    explicit operator bool() const { return enable; }
+    explicit operator bool() const
+    {
+        return time_profile != WlsTimeProfile::size_;
+    }
+
+    //! Return instance with all processes deactivated
+    static WavelengthShiftingOptions deactivated()
+    {
+        WavelengthShiftingOptions result;
+        result.time_profile = WlsTimeProfile::size_;
+        return result;
+    }
 };
 
 //! Equality operator, mainly for test harness
 constexpr bool operator==(WavelengthShiftingOptions const& a,
                           WavelengthShiftingOptions const& b)
 {
-    return a.enable == b.enable && a.time_profile == b.time_profile;
+    return a.time_profile == b.time_profile;
 }
 
 //---------------------------------------------------------------------------//
@@ -174,8 +183,8 @@ struct GeantOpticalPhysicsOptions
         GeantOpticalPhysicsOptions opts;
         opts.cherenkov.enable = false;
         opts.scintillation.enable = false;
-        opts.wavelength_shifting.enable = false;
-        opts.wavelength_shifting2.enable = false;
+        opts.wavelength_shifting = WavelengthShiftingOptions::deactivated();
+        opts.wavelength_shifting2 = WavelengthShiftingOptions::deactivated();
         opts.boundary.enable = false;
         opts.absorption = false;
         opts.rayleigh_scattering = false;
