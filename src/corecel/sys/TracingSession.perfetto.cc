@@ -117,7 +117,7 @@ TracingSession::TracingSession() noexcept
 /*!
  * Start an in-process tracing session.
  */
-TracingSession::TracingSession(std::string_view filename) noexcept
+TracingSession::TracingSession(std::string const& filename) noexcept
     : session_{initialize_session(filename.empty() ? TracingMode::system
                                                    : TracingMode::in_process)
                    .release()}
@@ -127,7 +127,7 @@ TracingSession::TracingSession(std::string_view filename) noexcept
         if (!filename.empty())
         {
             // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
-            fd_ = open(filename.data(), O_RDWR | O_CREAT | O_TRUNC, 0660);
+            fd_ = open(filename.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0660);
         }
         session_->Setup(configure_session(), fd_);
     }
