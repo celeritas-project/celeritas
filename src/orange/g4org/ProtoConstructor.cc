@@ -146,7 +146,7 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
     }
 
     // Track relationship between this volume instance and embedded children
-    auto add_material = [&](SPConstObject&& obj) {
+    auto add_material = [&](SPConstObject const& obj) {
         CELER_EXPECT(obj);
         UnitProto::MaterialInput mat;
         mat.interior = std::move(obj);
@@ -158,8 +158,8 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
     if (pv.lv->children.empty())
     {
         // No children! This LV is just a material.
-        add_material(
-            Transformed::or_object(pv.lv->solid, std::move(transform)));
+        auto obj = Transformed::or_object(pv.lv->solid, std::move(transform));
+        add_material(obj);
 
         if (CELER_UNLIKELY(verbose_))
         {
@@ -175,7 +175,8 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
         // Child can be inlined into the parent because it's used only once
         // *and* it doesn't have a rotation relative to the parent
         // OR: it must be inlined if it's a union (see #1260)
-        add_material(this->make_explicit_background(*pv.lv, transform));
+        auto obj = this->make_explicit_background(*pv.lv, transform);
+        add_material(obj);
 
         if (CELER_UNLIKELY(verbose_))
         {
