@@ -65,8 +65,10 @@ std::string const& getenv(std::string const& key)
  * specifying whether the default was used. The insertion result can be useful
  * for providing a diagnostic message to the user.
  *
- * As with the general \c Environment class, the already-set values override
- * whatever variables are in the system.
+ * As with the general \c Environment instance that this references, any
+ * already-set values (e.g., from JSON input) override whatever variables are
+ * in the system environment (e.g., from the shell script that invoked this
+ * executable).
  *
  * - Allowed true values: <code>"1", "t", "yes", "true", "True"</code>
  * - Allowed false values: <code>"0", "f", "no", "false", "False"</code>
@@ -187,11 +189,12 @@ bool Environment::insert(value_type const& value)
 //---------------------------------------------------------------------------//
 /*!
  * Remove all entries.
+ *
+ * \deprecated Use `env = {}` instead.
  */
 void Environment::clear()
 {
-    vars_.clear();
-    ordered_.clear();
+    *this = {};
 }
 
 //---------------------------------------------------------------------------//
@@ -202,7 +205,18 @@ void Environment::merge(Environment const& other)
 {
     for (auto const& kv : other.ordered_environment())
     {
-        this->insert(kv);
+        auto inserted = this->insert(kv);
+        if (!inserted)
+        {
+            auto&& [key, val] = kv.get();
+            auto const& existing = vars_.at(key);
+            if (val != existing)
+            {
+                CELER_LOG(warning)
+                    << "Ignoring new environment variable " << key << "="
+                    << val << ": using existing value '" << existing << "'";
+            }
+        }
     }
 }
 
