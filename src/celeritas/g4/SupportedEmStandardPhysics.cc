@@ -104,6 +104,8 @@ SupportedEmStandardPhysics::SupportedEmStandardPhysics(Options const& options)
     : G4VPhysicsConstructor("CelerEmStandard", bElectromagnetic)
     , options_(options)
 {
+    CELER_LOG(debug) << "Setting EM parameters";
+
     // Set EM options using limits from G4EmParameters
     auto& em_params = *G4EmParameters::Instance();
     CELER_VALIDATE(options_.em_bins_per_decade >= 5,
@@ -159,9 +161,13 @@ SupportedEmStandardPhysics::SupportedEmStandardPhysics(Options const& options)
  * and includes gamma, e+, e-, mu+, mu-, pi+, pi-, K+, K-, p, pbar, deuteron,
  * triton, He3, alpha, and generic ion, along with Geant4's pseudo-particles
  * geantino and charged geantino.
+ *
+ * This method is called when the physics list is provided to the run manager.
  */
 void SupportedEmStandardPhysics::ConstructParticle()
 {
+    CELER_LOG(debug) << "Constructing particles";
+
     G4Gamma::GammaDefinition();
     G4Electron::ElectronDefinition();
     G4Positron::PositronDefinition();
@@ -182,6 +188,8 @@ void SupportedEmStandardPhysics::ConstructParticle()
  */
 void SupportedEmStandardPhysics::ConstructProcess()
 {
+    CELER_LOG_LOCAL(debug) << "Constructing processes";
+
     // Add E.M. processes for photons, electrons, and positrons
     this->add_gamma_processes();
     this->add_e_processes(G4Electron::Electron());

@@ -453,13 +453,13 @@ void LocalTransporter::Finalize()
     std::size_t num_optical_steps{0};
     {
         auto msg = CELER_LOG_LOCAL(info);
-        msg << "Finalizing Celeritas after " << run_accum_.steps << " steps ";
+        msg << "Finalizing Celeritas after " << run_accum_.steps << " steps";
         if (optical_)
         {
             auto const& state = optical_->optical_state(this->GetState());
             auto const& accum = state.accum();
             num_optical_steps = state.accum().steps;
-            msg << "and " << num_optical_steps << " optical steps (over "
+            msg << " and " << num_optical_steps << " optical steps (over "
                 << accum.step_iters << " step iterations)";
         }
         msg << " from " << run_accum_.primaries << " offloaded tracks over "

@@ -170,6 +170,13 @@ class ActionInitialization final : public G4VUserActionInitialization
   public:
     explicit ActionInitialization(IntegrationTestBase* test) : test_{test} {}
 
+    ~ActionInitialization()
+    {
+        CELER_TRY_HANDLE((CELER_LOG_LOCAL(debug)
+                          << R"(Tearing down action initialization)"),
+                         static_cast<void>);
+    }
+
     void BuildForMaster() const final
     {
         CELER_LOG_LOCAL(debug) << "ActionInitialization::BuildForMaster";
