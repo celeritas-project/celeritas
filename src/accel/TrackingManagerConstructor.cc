@@ -122,6 +122,9 @@ void TrackingManagerConstructor::ConstructProcess()
                             [](G4ParticleDefinition const* pd) {
                                 return pd->GetParticleName();
                             });
+#else
+    // Constructor should've prevented this
+    CELER_ASSERT_UNREACHABLE();
 #endif
 }
 
