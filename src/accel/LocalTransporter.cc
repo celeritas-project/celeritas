@@ -241,16 +241,19 @@ void LocalTransporter::Push(G4Track& g4track)
 {
     CELER_EXPECT(*this);
 
+    ScopedProfiling profile_this{"push"};
+
     if (Real3 pos = convert_from_geant(g4track.GetPosition(), 1);
         !is_inside(bbox_, pos))
     {
         // Primary may have been created by a particle generator outside the
         // geometry
-        double energy = g4track.GetKineticEnergy() / CLHEP::MeV;
-        CELER_LOG(debug)
-            << "Discarding track outside world: " << energy << " MeV from "
-            << g4track.GetDefinition()->GetParticleName() << " at " << pos
-            << " along "
+        double energy
+            = convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV);
+        CELER_LOG_LOCAL(error)
+            << "Discarding track outside world bounds: " << energy
+            << " MeV from " << g4track.GetDefinition()->GetParticleName()
+            << " at " << pos << " along "
             << convert_from_geant(g4track.GetMomentumDirection(), 1);
 
         buffer_accum_.lost_energy += energy;
@@ -292,10 +295,6 @@ void LocalTransporter::Push(G4Track& g4track)
     buffer_accum_.energy += track.energy.value();
     if (buffer_.size() >= auto_flush_)
     {
-        /*!
-         * \todo Maybe only run one iteration? But then make sure that Flush
-         * still transports active tracks to completion.
-         */
         this->Flush();
     }
 }
@@ -311,6 +310,8 @@ void LocalTransporter::Flush()
     {
         return;
     }
+
+    ScopedProfiling profile_this("flush");
 
     if (event_manager_ || !event_id_)
     {
@@ -354,6 +355,12 @@ void LocalTransporter::Flush()
     {
         // Write offload particles if user requested
         (*dump_primaries_)(buffer_);
+    }
+
+    if (run_accum_.steps == 0)
+    {
+        CELER_LOG_LOCAL(status)
+            << R"(Executing the first Celeritas stepping loop)";
     }
 
     /*!
