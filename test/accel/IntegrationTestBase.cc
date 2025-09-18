@@ -97,7 +97,7 @@ class RunAction final : public G4UserRunAction
         CELER_TRY_HANDLE(test_->EndOfRunAction(run), this->handle_exception);
     }
 
-    // TODO: push exception onto a vector that can be checked
+    // TODO: push exception onto a vector so we can do validation testing
     void handle_exception(std::exception_ptr ep)
     {
         try

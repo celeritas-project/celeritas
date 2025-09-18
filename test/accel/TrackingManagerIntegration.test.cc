@@ -325,13 +325,15 @@ void LarSphereOptical::EndOfRunAction(G4Run const* run)
             auto& aux_state = local_transporter.GetState().aux();
             auto accum_stats = optical_collector->exchange_counters(aux_state);
             CELER_LOG_LOCAL(info)
-                << "Ran " << accum_stats.steps << " over "
+                << "Ran " << accum_stats.steps << " steps over "
                 << accum_stats.step_iters << " step iterations from "
                 << accum_stats.flushes << " flushes";
             EXPECT_GT(accum_stats.steps, 0);
             EXPECT_GT(accum_stats.step_iters, 0);
             EXPECT_GT(accum_stats.flushes, 0);
 
+            // Ensure that everything has been flushed (TODO: is num_generated
+            // correct?)
             auto counts = optical_collector->buffer_counts(aux_state);
             EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators
             EXPECT_EQ(0, counts.num_pending);  //!< Photons pending generation
