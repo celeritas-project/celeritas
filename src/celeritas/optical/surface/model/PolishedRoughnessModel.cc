@@ -23,10 +23,8 @@ namespace optical
  * Construct model from surfaces and inputs.
  */
 PolishedRoughnessModel::PolishedRoughnessModel(
-    SurfaceModelId model,
-    std::vector<PhysSurfaceId> surfaces,
-    std::vector<InputT> const&)
-    : BuiltinRoughnessModel(model, "polished", std::move(surfaces))
+    SurfaceModelId model, std::map<PhysSurfaceId, InputT> const& inputs)
+    : BuiltinRoughnessModel(model, "polished", inputs)
 {
 }
 

@@ -35,8 +35,7 @@ class PolishedRoughnessModel : public BuiltinRoughnessModel
   public:
     // Construct model from surfaces and inputs
     PolishedRoughnessModel(SurfaceModelId model,
-                           std::vector<PhysSurfaceId> surfaces,
-                           std::vector<inp::NoRoughness> const&);
+                           std::map<PhysSurfaceId, InputT> const& inputs);
 
     // Launch kernel on host
     void step(CoreParams const& params, CoreStateHost& state) const final;

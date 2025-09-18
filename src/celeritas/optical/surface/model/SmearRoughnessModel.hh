@@ -38,8 +38,7 @@ class SmearRoughnessModel : public BuiltinRoughnessModel
   public:
     // Construct model from surfaces and inputs
     SmearRoughnessModel(SurfaceModelId model,
-                        std::vector<PhysSurfaceId> surfaces,
-                        std::vector<InputT> const& inputs);
+                        std::map<PhysSurfaceId, InputT> const& inputs);
 
     // Launch kernel on host
     void step(CoreParams const& params, CoreStateHost& state) const final;

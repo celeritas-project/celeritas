@@ -34,51 +34,16 @@ struct TrivialApplier
 
 //---------------------------------------------------------------------------//
 /*!
- * Template trait used to select applier wrapper for built-in executors.
- */
-template<SurfacePhysicsOrder>
-struct BuiltinApplier;
-
-template<>
-struct BuiltinApplier<SurfacePhysicsOrder::roughness>
-{
-    template<class T>
-    using Applier = RoughnessApplier<T>;
-};
-
-template<>
-struct BuiltinApplier<SurfacePhysicsOrder::reflectivity>
-{
-    template<class T>
-    using Applier = TrivialApplier<T>;
-};
-
-template<>
-struct BuiltinApplier<SurfacePhysicsOrder::interaction>
-{
-    template<class T>
-    using Applier = TrivialApplier<T>;
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Templated base class for built-in optical surface physics models.
  *
  * Built-in surface physics models share a common format for their input data
  * as well as the parameters to pass to their kernel launchers. The \c
- * BuiltinApplier wrappers executor calls to factor out common behavior between
+ * Applier wrappers executor calls to factor out common behavior between
  * surface physics steps.
  */
-template<SurfacePhysicsOrder S>
+template<SurfacePhysicsOrder S, template<class> class Applier>
 class BuiltinSurfaceModel : public SurfaceModel
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    template<class T>
-    using Applier = typename BuiltinApplier<S>::template Applier<T>;
-    //!@}
-
   public:
     //! Get surfaces handled by this model.
     std::vector<PhysSurfaceId> const& get_surfaces() const final
@@ -88,13 +53,14 @@ class BuiltinSurfaceModel : public SurfaceModel
 
   protected:
     // Construct from ID, label, and surfaces
+    template<class InputT>
     BuiltinSurfaceModel(SurfaceModelId model_id,
                         std::string_view label,
-                        std::vector<PhysSurfaceId> surfaces);
+                        std::map<PhysSurfaceId, InputT> const& layer_map);
 
     // Construct executor with applier wrapper
     template<MemSpace M, class E>
-    auto make_executor(CoreParams const&, CoreState<M>&, E&&) const;
+    inline auto make_executor(CoreParams const&, CoreState<M>&, E&&) const;
 
   private:
     std::vector<PhysSurfaceId> surfaces_;
@@ -105,23 +71,34 @@ class BuiltinSurfaceModel : public SurfaceModel
 /*!
  * Construct from ID, label, and surfaces.
  */
-template<SurfacePhysicsOrder S>
-BuiltinSurfaceModel<S>::BuiltinSurfaceModel(SurfaceModelId model_id,
-                                            std::string_view label,
-                                            std::vector<PhysSurfaceId> surfaces)
-    : SurfaceModel(model_id, label), surfaces_(std::move(surfaces))
+template<SurfacePhysicsOrder S, template<class> class Applier>
+template<class InputT>
+BuiltinSurfaceModel<S, Applier>::BuiltinSurfaceModel(
+    SurfaceModelId model_id,
+    std::string_view label,
+    std::map<PhysSurfaceId, InputT> const& layer_map)
+    : SurfaceModel(model_id, label)
 {
+    surfaces_.reserve(layer_map.size());
+
+    for (auto const& [surface, input] : layer_map)
+    {
+        CELER_ENSURE(surface);
+        surfaces_.push_back(surface);
+    }
+
+    CELER_ENSURE(layer_map.size() == surfaces_.size());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct a surface physics executor with built-in applier wrapper.
  */
-template<SurfacePhysicsOrder S>
+template<SurfacePhysicsOrder S, template<class> class Applier>
 template<MemSpace M, class E>
-auto BuiltinSurfaceModel<S>::make_executor(CoreParams const& params,
-                                           CoreState<M>& state,
-                                           E&& exec) const
+auto BuiltinSurfaceModel<S, Applier>::make_executor(CoreParams const& params,
+                                                    CoreState<M>& state,
+                                                    E&& exec) const
 {
     return make_surface_physics_executor(params.ptr<M>(),
                                          state.ptr(),
@@ -135,11 +112,11 @@ auto BuiltinSurfaceModel<S>::make_executor(CoreParams const& params,
 //---------------------------------------------------------------------------//
 
 using BuiltinRoughnessModel
-    = BuiltinSurfaceModel<SurfacePhysicsOrder::roughness>;
+    = BuiltinSurfaceModel<SurfacePhysicsOrder::roughness, RoughnessApplier>;
 using BuiltinReflectivityModel
-    = BuiltinSurfaceModel<SurfacePhysicsOrder::reflectivity>;
+    = BuiltinSurfaceModel<SurfacePhysicsOrder::reflectivity, TrivialApplier>;
 using BuiltinInteractionModel
-    = BuiltinSurfaceModel<SurfacePhysicsOrder::interaction>;
+    = BuiltinSurfaceModel<SurfacePhysicsOrder::interaction, TrivialApplier>;
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

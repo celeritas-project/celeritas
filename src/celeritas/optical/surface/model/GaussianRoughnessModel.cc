@@ -24,15 +24,13 @@ namespace optical
  * Construct model from surfaces and inputs.
  */
 GaussianRoughnessModel::GaussianRoughnessModel(
-    SurfaceModelId model,
-    std::vector<PhysSurfaceId> surfaces,
-    std::vector<InputT> const& inputs)
-    : BuiltinRoughnessModel(model, "gaussian", std::move(surfaces))
+    SurfaceModelId model, std::map<PhysSurfaceId, InputT> const& inputs)
+    : BuiltinRoughnessModel(model, "gaussian", inputs)
 {
     HostVal<GaussianRoughnessData> data;
     auto build_sigma_alpha = CollectionBuilder{&data.sigma_alpha};
 
-    for (auto const& gaussian : inputs)
+    for (auto const& [surface, gaussian] : inputs)
     {
         CELER_ENSURE(gaussian);
         build_sigma_alpha.push_back(gaussian.sigma_alpha);

@@ -15,13 +15,6 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
-template<>
-struct BuiltinApplier<SurfacePhysicsOrder::size_>
-{
-    template<class T>
-    using Applier = TrivialApplier<T>;
-};
-
 namespace detail
 {
 namespace
@@ -31,43 +24,21 @@ namespace
  * Fake model as a placeholder for surface models yet to be implemented.
  */
 template<class T>
-class FakeModel : public BuiltinSurfaceModel<SurfacePhysicsOrder::size_>
+class FakeModel
+    : public BuiltinSurfaceModel<SurfacePhysicsOrder::size_, TrivialApplier>
 {
   public:
     FakeModel(SurfaceModelId model_id,
               std::string_view label,
-              std::vector<PhysSurfaceId> surfaces)
-        : BuiltinSurfaceModel<SurfacePhysicsOrder::size_>(
-              model_id, label, std::move(surfaces))
+              std::map<PhysSurfaceId, T> const& surfaces)
+        : BuiltinSurfaceModel<SurfacePhysicsOrder::size_, TrivialApplier>(
+              model_id, label, surfaces)
     {
     }
 
     void step(CoreParams const&, CoreStateHost&) const final {}
     void step(CoreParams const&, CoreStateDevice&) const final {}
 };
-
-//---------------------------------------------------------------------------//
-/*!
- * Build a fake model from input.
- */
-template<class T>
-std::shared_ptr<FakeModel<T>>
-fake_builtin_model_from_input(SurfaceModelId model_id,
-                              std::string_view label,
-                              std::map<PhysSurfaceId, T> const& layer_map)
-{
-    std::vector<PhysSurfaceId> surfaces;
-    for (auto const& [layer, input] : layer_map)
-    {
-        CELER_EXPECT(layer);
-        CELER_DISCARD(input);
-        surfaces.push_back(layer);
-    }
-
-    CELER_ENSURE(surfaces.size() == layer_map.size());
-
-    return std::make_shared<FakeModel<T>>(model_id, label, std::move(surfaces));
-}
 
 }  // namespace
 
@@ -105,11 +76,6 @@ class BuiltinSurfaceModelBuilder
   private:
     std::vector<SPModel>& models_;
     size_type num_surf_{0};
-
-    // Construct built-in surface model from input
-    template<class M>
-    std::shared_ptr<M> builtin_model_from_input(
-        SurfaceModelId, std::map<PhysSurfaceId, typename M::InputT> const&);
 };
 
 //---------------------------------------------------------------------------//
@@ -136,8 +102,8 @@ void BuiltinSurfaceModelBuilder::build(
 {
     if (!layer_map.empty())
     {
-        models_.push_back(builtin_model_from_input<M>(
-            SurfaceModelId(models_.size()), layer_map));
+        models_.push_back(
+            std::make_shared<M>(SurfaceModelId(models_.size()), layer_map));
         num_surf_ += layer_map.size();
     }
 }
@@ -155,39 +121,10 @@ void BuiltinSurfaceModelBuilder::build_fake(
 {
     if (!layer_map.empty())
     {
-        models_.push_back(fake_builtin_model_from_input(
+        models_.push_back(std::make_shared<FakeModel<T>>(
             SurfaceModelId(models_.size()), label, layer_map));
         num_surf_ += layer_map.size();
     }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct built-in model of type \c M from \c inp::SurfacePhysics surface
- * layer map.
- *
- * The model \c M should have a type alias \c M::InputT which corresponds to
- * the input type associated with each surface.
- */
-template<class M>
-std::shared_ptr<M> BuiltinSurfaceModelBuilder::builtin_model_from_input(
-    SurfaceModelId model_id,
-    std::map<PhysSurfaceId, typename M::InputT> const& layer_map)
-{
-    std::vector<PhysSurfaceId> surfaces;
-    std::vector<typename M::InputT> inputs;
-
-    for (auto const& [surface, input] : layer_map)
-    {
-        CELER_ENSURE(surface);
-        surfaces.push_back(surface);
-        inputs.push_back(input);
-    }
-
-    CELER_ENSURE(surfaces.size() == layer_map.size());
-    CELER_ENSURE(inputs.size() == layer_map.size());
-
-    return std::make_shared<M>(model_id, std::move(surfaces), inputs);
 }
 
 //---------------------------------------------------------------------------//

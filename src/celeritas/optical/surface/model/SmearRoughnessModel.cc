@@ -23,15 +23,14 @@ namespace optical
 /*!
  * Construct model from surfaces and inputs.
  */
-SmearRoughnessModel::SmearRoughnessModel(SurfaceModelId model,
-                                         std::vector<PhysSurfaceId> surfaces,
-                                         std::vector<InputT> const& inputs)
-    : BuiltinRoughnessModel(model, "smear", std::move(surfaces))
+SmearRoughnessModel::SmearRoughnessModel(
+    SurfaceModelId model, std::map<PhysSurfaceId, InputT> const& inputs)
+    : BuiltinRoughnessModel(model, "smear", inputs)
 {
     HostVal<SmearRoughnessData> data;
     auto build_roughness = CollectionBuilder{&data.roughness};
 
-    for (auto const& smear : inputs)
+    for (auto const& [surface, smear] : inputs)
     {
         CELER_ENSURE(smear);
         build_roughness.push_back(smear.roughness);
