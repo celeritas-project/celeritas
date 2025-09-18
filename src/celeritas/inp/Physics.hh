@@ -35,9 +35,14 @@ namespace inp
 struct EmPhysics
 {
     //! Bremsstrahlung process
-    std::optional<BremsProcess> brems{std::in_place};
+    BremsProcess brems;
     //! Electron+positron pair production process
-    std::optional<PairProductionProcess> pair_production{std::in_place};
+    PairProductionProcess pair_production;
+    //! Photoelectric effect
+    PhotoelectricProcess photoelectric;
+
+    //! Atomic relaxation
+    AtomicRelaxation atomic_relaxation;
 
     //!@{
     //! \name Energy loss and slowing down
@@ -51,7 +56,7 @@ struct EmPhysics
     //
     //!@}
 
-    //!
+    //! Add custom user processes
     ProcessBuilderMap user_processes;
 };
 
@@ -62,10 +67,9 @@ struct EmPhysics
 struct OpticalPhysics
 {
     //!@{
-    /*! \name Optical photon generation
+    /*! \name Optical photon generation from EM particles
      *
-     *  \todo Replace with a mapping of volume to \c ScintillationPhysics or \c
-     *  CherenkovPhysics
+     *  \todo Replace with physics input data
      */
 
     //! Generate Cherenkov photons
@@ -92,6 +96,8 @@ struct OpticalPhysics
  */
 struct HadronicPhysics
 {
+    //! Whether physics group is to be used
+    explicit operator bool() const { return false; }
 };
 
 //---------------------------------------------------------------------------//
@@ -111,20 +117,24 @@ struct DecayPhysics
  * \todo Move particle data from \c celeritas::ImportParticle
  * \todo Add function for injecting user processes for
  *       \c celeritas::PhysicsParams
+ *
+ * \todo Separate bulk/volume physics (volumetric/discrete) from surface
+ * physics (surface) from decay physics (time) since that's how the runtime
+ * classes will be organized?
  */
 struct Physics
 {
     //! Enable electromagnetic physics
-    std::optional<EmPhysics> em{std::in_place};
+    EmPhysics em;
 
     //! Enable optical photon physics
-    std::optional<OpticalPhysics> optical;
+    OpticalPhysics optical;
 
     //! Enable hadronic physics
-    std::optional<HadronicPhysics> hadronic;
+    HadronicPhysics hadronic;
 
     //! Enable decay physics
-    std::optional<DecayPhysics> decay;
+    DecayPhysics decay;
 };
 
 //---------------------------------------------------------------------------//
