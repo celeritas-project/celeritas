@@ -366,7 +366,7 @@ void LarSphereOptical::EndOfRunAction(G4Run const* run)
             electrons += tracking_action->num_electrons();
         }
         CELER_LOG(info) << "Geant4 tracked a total of " << photons
-                        << " photons"
+                        << " optical photons"
                         << " and " << electrons << " electrons";
 
         if (integration.mode() == OffloadMode::enabled)
