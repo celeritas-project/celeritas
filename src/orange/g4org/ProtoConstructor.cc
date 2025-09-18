@@ -146,10 +146,10 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
     }
 
     // Track relationship between this volume instance and embedded children
-    auto add_material = [&](SPConstObject&& obj) {
+    auto add_material = [&](SPConstObject const& obj) {
         CELER_EXPECT(obj);
         UnitProto::MaterialInput mat;
-        mat.interior = std::move(obj);
+        mat.interior = obj;
         mat.fill = pv.lv->material_id;
         mat.label = pv.id;
         proto->materials.push_back(std::move(mat));
