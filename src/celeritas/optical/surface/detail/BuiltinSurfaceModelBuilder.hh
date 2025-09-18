@@ -64,11 +64,12 @@ class BuiltinSurfaceModelBuilder
 
     // Construct a fake surface model
     template<class T>
-    void build_fake(std::string_view label, std::map<PhysSurfaceId, T> const&);
+    inline void
+    build_fake(std::string_view label, std::map<PhysSurfaceId, T> const&);
 
     // Construct a built-in surface model
     template<class M>
-    void build(std::map<PhysSurfaceId, typename M::InputT> const&);
+    inline void build(std::map<PhysSurfaceId, typename M::InputT> const&);
 
     // Number of physics surfaces that have been constructed
     size_type num_surfaces() const { return num_surf_; }

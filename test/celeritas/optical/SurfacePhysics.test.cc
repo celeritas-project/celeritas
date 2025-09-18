@@ -91,13 +91,13 @@ TraceResult trace_directions(SurfacePhysicsView& s_physics,
 
     for (auto direction : directions)
     {
+        s_physics.traversal_direction(direction);
+
         for (auto step : range(SurfacePhysicsOrder::size_))
         {
-            auto surface_model = s_physics.surface_model(direction, step);
+            auto surface_model = s_physics.surface_model(step);
 
-            EXPECT_EQ(direction, surface_model.direction());
-
-            result.models[step].push_back(surface_model.surface_model());
+            result.models[step].push_back(surface_model.model_id());
             result.per_model_ids[step].push_back(
                 surface_model.internal_surface_id());
             result.pre_material[step].push_back(surface_model.pre_material());
@@ -739,7 +739,8 @@ TEST_F(SurfacePhysicsTest, traversal_direction)
         std::vector<SubsurfaceDirection> directions;
         for (auto const& dir : geo_directions)
         {
-            directions.push_back(s_physics.traversal_direction(dir));
+            s_physics.traversal_direction(dir);
+            directions.push_back(s_physics.traversal_direction());
         }
 
         std::vector<SubsurfaceDirection> expected_directions{
@@ -770,7 +771,8 @@ TEST_F(SurfacePhysicsTest, traversal_direction)
         std::vector<SubsurfaceDirection> directions;
         for (auto const& dir : geo_directions)
         {
-            directions.push_back(s_physics.traversal_direction(dir));
+            s_physics.traversal_direction(dir);
+            directions.push_back(s_physics.traversal_direction());
         }
 
         std::vector<SubsurfaceDirection> expected_directions{

@@ -29,17 +29,13 @@ class SurfaceModelView
     //!@}
 
   public:
-    // Construct from a direction, map view, and materials
-    inline CELER_FUNCTION SurfaceModelView(SubsurfaceDirection,
-                                           SurfacePhysicsMapView,
+    // Construct from map view and materials
+    inline CELER_FUNCTION SurfaceModelView(SurfacePhysicsMapView,
                                            OptMatId pre_mat,
                                            OptMatId post_mat);
 
-    // Get subsurface track direction
-    inline CELER_FUNCTION SubsurfaceDirection direction() const;
-
     // Get surface model ID
-    inline CELER_FUNCTION SurfaceModelId surface_model() const;
+    inline CELER_FUNCTION SurfaceModelId model_id() const;
 
     // Get internal surface ID for the model
     inline CELER_FUNCTION InternalSurfaceId internal_surface_id() const;
@@ -51,7 +47,6 @@ class SurfaceModelView
     inline CELER_FUNCTION OptMatId post_material() const;
 
   private:
-    SubsurfaceDirection dir_;
     SurfacePhysicsMapView physics_map_;
     OptMatId pre_material_;
     OptMatId post_material_;
@@ -61,15 +56,13 @@ class SurfaceModelView
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct from track direction, physics map view, and materials.
+ * Construct from physics map view and materials.
  */
 CELER_FUNCTION
-SurfaceModelView::SurfaceModelView(SubsurfaceDirection dir,
-                                   SurfacePhysicsMapView physics_map,
+SurfaceModelView::SurfaceModelView(SurfacePhysicsMapView physics_map,
                                    OptMatId pre_material,
                                    OptMatId post_material)
-    : dir_(dir)
-    , physics_map_(physics_map)
+    : physics_map_(physics_map)
     , pre_material_(pre_material)
     , post_material_(post_material)
 {
@@ -77,18 +70,9 @@ SurfaceModelView::SurfaceModelView(SubsurfaceDirection dir,
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the subsurface track direction pointing to this surface.
- */
-CELER_FUNCTION SubsurfaceDirection SurfaceModelView::direction() const
-{
-    return dir_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get the surface model for this physics surface.
  */
-CELER_FUNCTION SurfaceModelId SurfaceModelView::surface_model() const
+CELER_FUNCTION SurfaceModelId SurfaceModelView::model_id() const
 {
     return physics_map_.surface_model_id();
 }

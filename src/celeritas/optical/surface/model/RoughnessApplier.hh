@@ -44,14 +44,12 @@ CELER_FUNCTION void RoughnessApplier<T>::operator()(CoreTrackView& track) const
 {
     auto const& track_dir = track.geometry().dir();
     auto s_physics = track.surface_physics();
-    auto model_view
-        = s_physics.surface_model(s_physics.traversal_direction(track_dir),
-                                  SurfacePhysicsOrder::roughness);
+    auto model_view = s_physics.surface_model(SurfacePhysicsOrder::roughness);
     auto rng = track.rng();
 
     // Ensure the local normal follows the entering surface convention
     auto normal = s_physics.global_normal();
-    if (model_view.direction() == SubsurfaceDirection::reverse)
+    if (s_physics.traversal_direction() == SubsurfaceDirection::reverse)
     {
         normal = -normal;
     }

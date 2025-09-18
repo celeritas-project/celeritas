@@ -28,11 +28,7 @@ struct IsSurfaceModelEqual
     {
         auto s_phys = track.surface_physics();
         return s_phys.is_crossing_boundary()
-               && s_phys.surface_model(
-                            s_phys.traversal_direction(track.geometry().dir()),
-                            step)
-                          .surface_model()
-                      == model;
+               && s_phys.surface_model(step).model_id() == model;
     }
 };
 

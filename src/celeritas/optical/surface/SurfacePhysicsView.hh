@@ -95,14 +95,18 @@ class SurfacePhysicsView
     // Number of valid positions of the track in the surface crossing
     inline CELER_FUNCTION SurfaceTrackPosition::size_type num_positions() const;
 
-    // Calculate traversal direction from track momentum
-    inline CELER_FUNCTION SubsurfaceDirection
-    traversal_direction(Real3 const&) const;
+    // Get current track traversal direction
+    inline CELER_FUNCTION SubsurfaceDirection traversal_direction() const;
+
+    // Set track traversal direction
+    inline CELER_FUNCTION void traversal_direction(SubsurfaceDirection);
+
+    // Calculate and update traversal direction from track momentum
+    inline CELER_FUNCTION void traversal_direction(Real3 const&);
 
     // Get surface model for the given step
     inline CELER_FUNCTION
-        SurfaceModelView surface_model(SubsurfaceDirection,
-                                       SurfacePhysicsOrder) const;
+        SurfaceModelView surface_model(SurfacePhysicsOrder) const;
 
     // Get local facet normal
     inline CELER_FUNCTION Real3 const& facet_normal() const;
@@ -180,6 +184,7 @@ SurfacePhysicsView::operator=(Initializer const& init)
     states_.global_normal[track_id_] = init.global_normal;
     states_.facet_normal[track_id_] = init.global_normal;
     states_.surface_position[track_id_] = SurfaceTrackPosition{0};
+    states_.track_direction[track_id_] = SubsurfaceDirection::forward;
     states_.pre_volume_material[track_id_] = init.pre_volume_material;
     states_.post_volume_material[track_id_] = init.post_volume_material;
     return *this;
@@ -325,24 +330,49 @@ SurfacePhysicsView::num_positions() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate traversal direction from track momentum.
+ * Get current track traversal direction.
+ *
+ * This quantity is cached for a single loop of surface boundary crossing to
+ * avoid repeated queries of the geometry. The traversal direction should be
+ * updated when the geometry direction is updated after an interaction.
  */
-CELER_FUNCTION SubsurfaceDirection
-SurfacePhysicsView::traversal_direction(Real3 const& dir) const
+CELER_FUNCTION SubsurfaceDirection SurfacePhysicsView::traversal_direction() const
+{
+    CELER_EXPECT(this->is_crossing_boundary());
+    return states_.track_direction[track_id_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set current track traversal direction.
+ */
+CELER_FUNCTION void
+SurfacePhysicsView::traversal_direction(SubsurfaceDirection dir)
+{
+    CELER_EXPECT(this->is_crossing_boundary());
+    states_.track_direction[track_id_] = dir;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate and update traversal direction from track momentum.
+ */
+CELER_FUNCTION void SurfacePhysicsView::traversal_direction(Real3 const& dir)
 {
     CELER_EXPECT(this->is_crossing_boundary());
     CELER_EXPECT(is_soft_unit_vector(dir));
-    return static_cast<SubsurfaceDirection>(
-        is_entering_surface(dir, this->global_normal()));
+    this->traversal_direction(static_cast<SubsurfaceDirection>(
+        is_entering_surface(dir, this->global_normal())));
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get surface model view of the given step in the given direction.
  */
-CELER_FUNCTION SurfaceModelView SurfacePhysicsView::surface_model(
-    SubsurfaceDirection dir, SurfacePhysicsOrder step) const
+CELER_FUNCTION SurfaceModelView
+SurfacePhysicsView::surface_model(SurfacePhysicsOrder step) const
 {
+    auto dir = this->traversal_direction();
     CELER_EXPECT(this->is_crossing_boundary());
     CELER_EXPECT(!this->is_exiting(dir));
     CELER_EXPECT(step != SurfacePhysicsOrder::size_);
@@ -351,7 +381,6 @@ CELER_FUNCTION SurfaceModelView SurfacePhysicsView::surface_model(
     CELER_ASSERT(phys_surface);
 
     return SurfaceModelView{
-        dir,
         SurfacePhysicsMapView{params_.model_maps[step], phys_surface},
         this->subsurface_material(this->subsurface_position()),
         this->subsurface_material(advance_subsurface_position_along(
