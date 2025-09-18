@@ -12,7 +12,7 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/SeltzerBergerData.hh"
-#include "celeritas/io/ImportSBTable.hh"
+#include "celeritas/inp/PhysicsModel.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/ImportedModelAdapter.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
@@ -47,10 +47,10 @@ class SeltzerBergerModel final : public Model, public StaticConcreteAction
   public:
     //!@{
     using Mass = units::MevMass;
-    using ReadData = std::function<ImportSBTable(AtomicNumber)>;
     using HostRef = HostCRef<SeltzerBergerData>;
     using DeviceRef = DeviceCRef<SeltzerBergerData>;
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
+    using Input = inp::SeltzerBergerModel;
     //!@}
 
   public:
@@ -59,7 +59,7 @@ class SeltzerBergerModel final : public Model, public StaticConcreteAction
                        ParticleParams const& particles,
                        MaterialParams const& materials,
                        SPConstImported data,
-                       ReadData load_sb_table);
+                       Input const& input);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;

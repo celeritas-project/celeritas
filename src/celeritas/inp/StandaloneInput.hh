@@ -23,7 +23,7 @@ namespace inp
  * Set up a Geant4 run manager and problem.
  *
  * \note We should change celer-g4 so it just uses \c GeantSetup as an outer
- * wrapper, rather than trying to be a Geant4 example.
+ * wrapper, rather than trying to be a Geant4 example. Or maybe just delete it.
  *
  * \note Most of the "physics options" will be deleted. Only a few options
  * specific to Geant4, such as \c gamma_general , will be left.
@@ -34,7 +34,9 @@ using GeantSetup = GeantPhysicsOptions;
 /*!
  * Celeritas setup for standalone apps.
  *
- * The order of initialization and loading follows the member declarations:
+ * The order of initialization and loading (see \c celeritas::setup::Problem )
+ * follows the member declarations:
+ *
  * - System attributes (GPU activation etc.) are set first
  * - Problem info is loaded
  * - Geant4 is initialized (if not using full ROOT data)

@@ -58,7 +58,8 @@ class LivermorePETest : public InteractorHostTestBase
 
         // Set up shared material data
         MaterialParams::Input mi;
-        mi.elements = {{AtomicNumber{19}, AmuMass{39.0983}, {}, "K"}};
+        constexpr AtomicNumber z_k{19};
+        mi.elements = {{z_k, AmuMass{39.0983}, {}, "K"}};
         mi.materials = {{native_value_from(MolCcDensity{1e-5}),
                          293.,
                          MatterState::solid,
@@ -75,8 +76,12 @@ class LivermorePETest : public InteractorHostTestBase
         // Set Livermore photoelectric data
         std::string data_path = this->test_data_path("celeritas", "");
         LivermorePEReader read_element_data(data_path.c_str(), {});
-        model_ = std::make_shared<LivermorePEModel>(
-            ActionId{0}, particles, *this->material_params(), read_element_data);
+        inp::LivermorePhotoModel model_inp;
+        model_inp.atomic_xs = {{z_k, read_element_data(z_k)}};
+        model_ = std::make_shared<LivermorePEModel>(ActionId{0},
+                                                    particles,
+                                                    *this->material_params(),
+                                                    std::move(model_inp));
 
         // Set atomic relaxation data
         AtomicRelaxationReader read_transition_data(data_path.c_str(),

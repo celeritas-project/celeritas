@@ -18,6 +18,7 @@
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "celeritas_test.hh"
@@ -1056,7 +1057,7 @@ TEST_F(FourSteelSlabsEmStandard, sb_data)
 {
     auto&& import_data = this->imported_data();
 
-    auto const& sb_map = import_data.sb_data;
+    auto const& sb_map = import_data.seltzer_berger.atomic_xs;
     EXPECT_EQ(4, sb_map.size());
 
     std::vector<int> atomic_numbers;
@@ -1066,7 +1067,7 @@ TEST_F(FourSteelSlabsEmStandard, sb_data)
 
     for (auto const& key : sb_map)
     {
-        atomic_numbers.push_back(key.first);
+        atomic_numbers.push_back(key.first.get());
 
         auto const& sb_table = key.second;
         sb_table_x.push_back(sb_table.x.front());
@@ -1102,9 +1103,10 @@ TEST_F(FourSteelSlabsEmStandard, mu_pair_production_data)
 {
     auto&& import_data = this->imported_data();
 
-    auto const& data = import_data.mu_pair_production_data;
+    auto const& data = import_data.mu_production.muppet_table;
 
-    int const expected_atomic_number[] = {1, 4, 13, 29, 92};
+    using Z = AtomicNumber;
+    Z const expected_atomic_number[] = {Z{1}, Z{4}, Z{13}, Z{29}, Z{92}};
     EXPECT_VEC_EQ(expected_atomic_number, data.atomic_number);
 
     EXPECT_EQ(5, data.grids.size());
@@ -1174,7 +1176,7 @@ TEST_F(FourSteelSlabsEmStandard, livermore_pe_data)
     auto&& import_data = this->imported_data();
     EXPECT_TRUE(scoped_log.empty()) << scoped_log;
 
-    auto const& lpe_map = import_data.livermore_pe_data;
+    auto const& lpe_map = import_data.livermore_photo.atomic_xs;
     EXPECT_EQ(4, lpe_map.size());
 
     std::vector<int> atomic_numbers;
@@ -1188,7 +1190,7 @@ TEST_F(FourSteelSlabsEmStandard, livermore_pe_data)
 
     for (auto const& key : lpe_map)
     {
-        atomic_numbers.push_back(key.first);
+        atomic_numbers.push_back(key.first.get());
 
         auto const& ilpe = key.second;
 
@@ -1278,7 +1280,7 @@ TEST_F(FourSteelSlabsEmStandard, atomic_relaxation_data)
 {
     auto&& import_data = this->imported_data();
 
-    auto const& ar_map = import_data.atomic_relaxation_data;
+    auto const& ar_map = import_data.atomic_relaxation.atomic_xs;
     EXPECT_EQ(4, ar_map.size());
 
     std::vector<int> atomic_numbers;
@@ -1291,7 +1293,7 @@ TEST_F(FourSteelSlabsEmStandard, atomic_relaxation_data)
 
     for (auto const& key : ar_map)
     {
-        atomic_numbers.push_back(key.first);
+        atomic_numbers.push_back(key.first.get());
 
         auto const& shells = key.second.shells;
         shell_sizes.push_back(shells.size());

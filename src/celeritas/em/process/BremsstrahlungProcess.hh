@@ -10,7 +10,7 @@
 #include <memory>
 
 #include "celeritas/ext/GeantPhysicsOptions.hh"
-#include "celeritas/io/ImportSBTable.hh"
+#include "celeritas/inp/PhysicsModel.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/Applicability.hh"
 #include "celeritas/phys/AtomicNumber.hh"
@@ -32,11 +32,11 @@ class BremsstrahlungProcess : public Process
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
-    using ReadData = std::function<ImportSBTable(AtomicNumber)>;
+    using SBInput = inp::SeltzerBergerModel;
     //!@}
 
     // Options for the Bremsstrahlung process
-    // TODO: update options based on ImportData
+    // TODO: just use BremsProcess
     struct Options
     {
         //! Account for LPM effect at very high energies
@@ -48,7 +48,7 @@ class BremsstrahlungProcess : public Process
     BremsstrahlungProcess(SPConstParticles particles,
                           SPConstMaterials materials,
                           SPConstImported process_data,
-                          ReadData load_sb_table,
+                          SBInput sb_input,
                           Options options);
 
     // Construct the models associated with this process
@@ -73,7 +73,7 @@ class BremsstrahlungProcess : public Process
     SPConstParticles particles_;
     SPConstMaterials materials_;
     ImportedProcessAdapter imported_;
-    ReadData load_sb_;
+    SBInput sb_input_;
     Options options_;
 };
 

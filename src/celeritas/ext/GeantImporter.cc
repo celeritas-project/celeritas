@@ -67,14 +67,11 @@
 #    include <G4OpticalParameters.hh>
 #endif
 
-#include "corecel/Config.hh"
-
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
-#include "corecel/math/Algorithms.hh"
 #include "corecel/math/PdfUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
@@ -1221,7 +1218,7 @@ ImportEmParameters import_em_parameters()
 /*!
  * Get the sampling table for electron-positron pair production by muons.
  */
-ImportMuPairProductionTable import_mupp_table(PDGNumber pdg)
+inp::MuPairProductionEnergyTransferTable import_mupp_table(PDGNumber pdg)
 {
     CELER_EXPECT(pdg == pdg::mu_minus() || pdg == pdg::mu_plus());
 
@@ -1243,7 +1240,7 @@ ImportMuPairProductionTable import_mupp_table(PDGNumber pdg)
     G4ElementData* el_data = model->GetElementData();
     CELER_ASSERT(el_data);
 
-    ImportMuPairProductionTable result;
+    inp::MuPairProductionEnergyTransferTable result;
     if (G4VERSION_NUMBER < 1120)
     {
         constexpr int element_data_size = 99;
@@ -1251,7 +1248,7 @@ ImportMuPairProductionTable import_mupp_table(PDGNumber pdg)
         {
             if (G4Physics2DVector const* pv = el_data->GetElement2DData(z))
             {
-                result.atomic_number.push_back(z);
+                result.atomic_number.push_back(AtomicNumber{z});
                 result.grids.push_back(detail::import_physics_2dvector(
                     *pv, {IU::unitless, IU::mev, IU::mev_len_sq}));
             }
@@ -1261,7 +1258,8 @@ ImportMuPairProductionTable import_mupp_table(PDGNumber pdg)
     {
         // The muon pair production model in newer Geant4 versions initializes
         // and accesses the element data by Z index rather than Z number
-        result.atomic_number = {1, 4, 13, 29, 92};
+        using Z = AtomicNumber;
+        result.atomic_number = {Z{1}, Z{4}, Z{13}, Z{29}, Z{92}};
         for (int i : range(result.atomic_number.size()))
         {
             G4Physics2DVector const* pv = el_data->GetElement2DData(i);
@@ -1410,7 +1408,9 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
                                    && mu_minus.grids == mu_plus.grids,
                                << "muon pair production sampling tables for "
                                   "mu- and mu+ differ");
-                imported.mu_pair_production_data = std::move(mu_minus);
+                inp::MuProductionModel mupp_model;
+                mupp_model.muppet_table = std::move(mu_minus);
+                imported.mu_production = std::move(mupp_model);
             }
         }
         if (selected.unique_volumes)
@@ -1446,18 +1446,23 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
 
         if (have_process(ImportProcessClass::e_brems))
         {
-            imported.sb_data = load_data(SeltzerBergerReader{});
+            inp::SeltzerBergerModel sb_model;
+            sb_model.atomic_xs = load_data(SeltzerBergerReader{});
+            imported.seltzer_berger = std::move(sb_model);
         }
         if (have_process(ImportProcessClass::photoelectric))
         {
-            imported.livermore_pe_data
+            inp::LivermorePhotoModel lp_model;
+            lp_model.atomic_xs
                 = load_data(LivermorePEReader{selected.interpolation});
+            imported.livermore_photo = std::move(lp_model);
         }
         if (G4EmParameters::Instance()->Fluo())
         {
             // TODO: only read auger data if that option is enabled
-            imported.atomic_relaxation_data
-                = load_data(AtomicRelaxationReader{});
+            inp::AtomicRelaxation ar_process;
+            ar_process.atomic_xs = load_data(AtomicRelaxationReader{});
+            imported.atomic_relaxation = std::move(ar_process);
         }
         else if (G4EmParameters::Instance()->Auger())
         {

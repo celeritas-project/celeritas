@@ -63,9 +63,8 @@ FrameworkLoaded framework_input(inp::FrameworkInput& fi)
                              << "' is unknown to Celeritas";
             continue;
         }
-        CELER_ASSUME(problem.physics.em);
-        problem.physics.em->user_processes.emplace(ipc,
-                                                   WarnAndIgnoreProcess{ipc});
+        problem.physics.em.user_processes.emplace(ipc,
+                                                  WarnAndIgnoreProcess{ipc});
     }
 
     if (fi.update)

@@ -61,7 +61,7 @@ class MuPairProductionTest : public InteractorHostBase, public RootTestBase
             ActionId{0},
             *this->particle_params(),
             imported,
-            this->imported_data().mu_pair_production_data);
+            this->imported_data().mu_production);
 
         // Set default particle to 10 GeV muon
         this->set_inc_particle(pdg::mu_minus(), MevEnergy{1e4});

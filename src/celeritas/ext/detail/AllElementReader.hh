@@ -45,13 +45,13 @@ class AllElementReader
     {
         using result_type = typename ReadOneElement::result_type;
 
-        std::map<int, result_type> result_map;
+        std::map<AtomicNumber, result_type> result_map;
 
         for (ImportElement const& element : elements_)
         {
             AtomicNumber z{element.atomic_number};
             CELER_ASSERT(z);
-            result_map.insert({z.unchecked_get(), read_el(z)});
+            result_map.insert({z, read_el(z)});
         }
         return result_map;
     }
