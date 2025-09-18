@@ -139,23 +139,37 @@
     "solid_name" : "World"
   }],
   "particles" : [{
-    "_typename" : "celeritas::ImportParticle",
+    "_typename" : "celeritas::inp::Particle",
     "name" : "e+",
-    "pdg" : -11,
-    "mass" : 0.51099891,
-    "charge" : 1,
-    "spin" : 0.5,
-    "lifetime" : -1,
-    "is_stable" : true
+    "pdg" : {
+      "_typename" : "celeritas::PDGNumber",
+      "value_" : -11
+    },
+    "mass" : {
+      "_typename" : "celeritas::Quantity<celeritas::units::MevPerCsq,double>",
+      "value_" : 0.51099891
+    },
+    "charge" : {
+      "_typename" : "celeritas::Quantity<celeritas::units::EElectron,double>",
+      "value_" : 1
+    },
+    "decay_constant" : 0
   }, {
-    "_typename" : "celeritas::ImportParticle",
+    "_typename" : "celeritas::inp::Particle",
     "name" : "mu-",
-    "pdg" : 13,
-    "mass" : 105.6583715,
-    "charge" : -1,
-    "spin" : 0.5,
-    "lifetime" : 2.19698e-6,
-    "is_stable" : false
+    "pdg" : {
+      "_typename" : "celeritas::PDGNumber",
+      "value_" : 13
+    },
+    "mass" : {
+      "_typename" : "celeritas::Quantity<celeritas::units::MevPerCsq,double>",
+      "value_" : 105.6583715
+    },
+    "charge" : {
+      "_typename" : "celeritas::Quantity<celeritas::units::EElectron,double>",
+      "value_" : -1
+    },
+    "decay_constant" : 455170.279201449
   }],
   "processes" : [{
     "_typename" : "celeritas::ImportProcess",

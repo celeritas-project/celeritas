@@ -111,7 +111,6 @@ TEST_F(ConverterTest, lar_sphere)
 //---------------------------------------------------------------------------//
 TEST_F(ConverterTest, simple_cms)
 {
-    verbose_ = true;
     std::string const basename = "simple-cms";
     this->load_test_gdml(basename);
     auto convert = this->make_converter(basename);
@@ -193,7 +192,6 @@ TEST_F(ConverterTest, tilecal_plug)
 //---------------------------------------------------------------------------//
 TEST_F(ConverterTest, znenv)
 {
-    verbose_ = true;
     std::string const basename = "znenv";
     this->load_test_gdml(basename);
     auto convert = this->make_converter(basename);

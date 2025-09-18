@@ -6,10 +6,16 @@
 //---------------------------------------------------------------------------//
 #include "accel/TrackingManagerIntegration.hh"
 
+#include <atomic>
+#include <functional>
 #include <G4RunManager.hh>
+#include <G4Threading.hh>
+#include <G4UImanager.hh>
 #include <G4VModularPhysicsList.hh>
 
 #include "corecel/io/Logger.hh"
+#include "geocel/GeantUtils.hh"
+#include "celeritas/global/CoreState.hh"
 #include "accel/SetupOptions.hh"
 #include "accel/TrackingManagerConstructor.hh"
 #include "accel/detail/IntegrationSingleton.hh"
@@ -23,6 +29,16 @@ namespace celeritas
 {
 namespace test
 {
+namespace
+{
+//! Query thread-local data to determine whether the thread is running
+bool is_running_events()
+{
+    return !G4Threading::IsMasterThread()
+           || !G4Threading::IsMultithreadedApplication();
+}
+
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -51,6 +67,10 @@ class TMITestBase : virtual public IntegrationTestBase
     void BeginOfRunAction(G4Run const* run) override
     {
         TMI::Instance().BeginOfRunAction(run);
+        if (check_during_run_)
+        {
+            check_during_run_();
+        }
     }
     void EndOfRunAction(G4Run const* run) override
     {
@@ -63,13 +83,47 @@ class TMITestBase : virtual public IntegrationTestBase
             = detail::IntegrationSingleton::local_transporter();
         EXPECT_EQ(0, local_transport.GetBufferSize());
     }
+
+    std::function<void()> check_during_run_;
 };
 
 //---------------------------------------------------------------------------//
 class LarSphere : public LarSphereIntegrationMixin, public TMITestBase
 {
+    void BeginOfEventAction(G4Event const* event) override
+    {
+        if (event->GetEventID() == 1)
+        {
+            for (auto i : range(event->GetNumberOfPrimaryVertex()))
+            {
+                G4PrimaryVertex* vtx = event->GetPrimaryVertex(i);
+                for (auto j : range(vtx->GetNumberOfParticle()))
+                {
+                    G4PrimaryParticle* p = vtx->GetPrimary(j);
+                    p->SetWeight(10.0);
+                }
+            }
+        }
+    }
+
+    virtual void process_hit(G4Step const* step) override
+    {
+        LarSphereIntegrationMixin::process_hit(step);
+        ASSERT_TRUE(step);
+
+        // Check the weight is consistent with our modification at
+        // begin-of-event
+        auto event_id = G4EventManager::GetEventManager()
+                            ->GetConstCurrentEvent()
+                            ->GetEventID();
+        EXPECT_DOUBLE_EQ((event_id == 1 ? 10.0 : 1.0),
+                         step->GetTrack()->GetWeight());
+    }
 };
 
+/*!
+ * Check that multiple sequential runs complete successfully.
+ */
 TEST_F(LarSphere, run)
 {
     auto& rm = this->run_manager();
@@ -85,11 +139,63 @@ TEST_F(LarSphere, run)
     rm.BeamOn(1);
 }
 
+/*!
+ * Check that UI commands are correctly propagated to the Celeritas runtime.
+ */
+TEST_F(LarSphere, ui)
+{
+    auto& rm = this->run_manager();
+    auto& tmi = TMI::Instance();
+
+    EXPECT_EQ(tmi.GetMode(), OffloadMode::uninitialized);
+    tmi.SetOptions(this->make_setup_options());
+    EXPECT_NE(tmi.GetMode(), OffloadMode::uninitialized);
+
+    std::atomic<int> check_count{0};
+
+    auto& ui = *G4UImanager::GetUIpointer();
+    if (SharedParams::GetMode() != OffloadMode::disabled)
+    {
+        ui.ApplyCommand("/celer/maxNumTracks 128");
+        ui.ApplyCommand("/celer/maxInitializers 10000");
+
+        check_during_run_ = [&check_count, &tmi] {
+            EXPECT_NE(OffloadMode::uninitialized, tmi.GetMode());
+
+            if (tmi.GetMode() == OffloadMode::enabled && is_running_events())
+            {
+                CELER_LOG_LOCAL(debug) << "Checking number of tracks";
+                ++check_count;
+
+                auto const& state = tmi.GetState();
+                EXPECT_EQ(state.size(), 128);
+            }
+        };
+    }
+    else
+    {
+        check_during_run_ = [&check_count] {
+            if (is_running_events())
+            {
+                ++check_count;
+            }
+        };
+    }
+
+    ui.ApplyCommand("/run/initialize");
+    ui.ApplyCommand("/run/beamOn 2");
+
+    EXPECT_EQ(get_geant_num_threads(rm), check_count.load());
+}
+
 //---------------------------------------------------------------------------//
 class TestEm3 : public TestEm3IntegrationMixin, public TMITestBase
 {
 };
 
+/*!
+ * Check that TestEm3 runs.
+ */
 TEST_F(TestEm3, run)
 {
     auto& rm = this->run_manager();

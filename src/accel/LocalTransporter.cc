@@ -8,6 +8,7 @@
 
 #include <csignal>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <type_traits>
 #include <CLHEP/Units/SystemOfUnits.h>
@@ -27,6 +28,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
@@ -46,6 +48,8 @@
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
+#include "celeritas/optical/CoreState.hh"
+#include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 
@@ -65,6 +69,22 @@ bool nonfatal_flush()
         return result.value;
     }();
     return result;
+}
+
+bool not_release_build()
+{
+    std::string_view build_props{cmake::build_type};
+    // Instead of searching for `release`, which may not be present in some
+    // build systems, see if we have debug or relwithdebinfo.
+    if (build_props.find("debug") != std::string_view::npos)
+    {
+        return true;
+    }
+    if (build_props.find("relwithdebinfo") != std::string_view::npos)
+    {
+        return true;
+    }
+    return false;
 }
 
 //---------------------------------------------------------------------------//
@@ -208,6 +228,9 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     // Save state for reductions at the end
     params.set_state(stream_id.get(), step_->sp_state());
 
+    // Save optical pointers if available, for diagnostics
+    optical_ = params.optical();
+
     CELER_ENSURE(*this);
 }
 
@@ -241,16 +264,19 @@ void LocalTransporter::Push(G4Track& g4track)
 {
     CELER_EXPECT(*this);
 
+    ScopedProfiling profile_this{"push"};
+
     if (Real3 pos = convert_from_geant(g4track.GetPosition(), 1);
         !is_inside(bbox_, pos))
     {
         // Primary may have been created by a particle generator outside the
         // geometry
-        double energy = g4track.GetKineticEnergy() / CLHEP::MeV;
-        CELER_LOG(debug)
-            << "Discarding track outside world: " << energy << " MeV from "
-            << g4track.GetDefinition()->GetParticleName() << " at " << pos
-            << " along "
+        double energy
+            = convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV);
+        CELER_LOG_LOCAL(error)
+            << "Discarding track outside world bounds: " << energy
+            << " MeV from " << g4track.GetDefinition()->GetParticleName()
+            << " at " << pos << " along "
             << convert_from_geant(g4track.GetMomentumDirection(), 1);
 
         buffer_accum_.lost_energy += energy;
@@ -282,13 +308,6 @@ void LocalTransporter::Push(G4Track& g4track)
     track.direction = convert_from_geant(g4track.GetMomentumDirection(), 1);
     track.time = convert_from_geant(g4track.GetGlobalTime(), clhep_time);
     track.weight = g4track.GetWeight();
-    if (CELER_UNLIKELY(g4track.GetWeight() != 1.0))
-    {
-        //! \todo Non-unit weights: see issue #1268
-        CELER_LOG(error) << "incoming track (PDG " << pdg.get()
-                         << ", track ID " << g4track.GetTrackID()
-                         << ") has non-unit weight " << g4track.GetWeight();
-    }
 
     /*!
      * \todo Eliminate event ID from primary.
@@ -299,10 +318,6 @@ void LocalTransporter::Push(G4Track& g4track)
     buffer_accum_.energy += track.energy.value();
     if (buffer_.size() >= auto_flush_)
     {
-        /*!
-         * \todo Maybe only run one iteration? But then make sure that Flush
-         * still transports active tracks to completion.
-         */
         this->Flush();
     }
 }
@@ -318,6 +333,8 @@ void LocalTransporter::Flush()
     {
         return;
     }
+
+    ScopedProfiling profile_this("flush");
 
     if (event_manager_ || !event_id_)
     {
@@ -361,6 +378,12 @@ void LocalTransporter::Flush()
     {
         // Write offload particles if user requested
         (*dump_primaries_)(buffer_);
+    }
+
+    if (run_accum_.steps == 0)
+    {
+        CELER_LOG_LOCAL(status)
+            << R"(Executing the first Celeritas stepping loop)";
     }
 
     /*!
@@ -427,16 +450,41 @@ void LocalTransporter::Finalize()
                    << "offloaded tracks (" << buffer_.size()
                    << " in buffer) were not flushed");
 
-    CELER_LOG_LOCAL(info) << "Finalizing Celeritas after " << run_accum_.steps
-                          << " steps from " << run_accum_.primaries
-                          << " offloaded tracks over " << run_accum_.events
-                          << " events, generating " << run_accum_.hits
-                          << " hits";
+    std::size_t num_optical_steps{0};
+    {
+        auto msg = CELER_LOG_LOCAL(info);
+        msg << "Finalizing Celeritas after " << run_accum_.steps << " steps ";
+        if (optical_)
+        {
+            auto const& state = optical_->optical_state(this->GetState());
+            auto const& accum = state.accum();
+            num_optical_steps = state.accum().steps;
+            msg << "and " << num_optical_steps << " optical steps (over "
+                << accum.step_iters << " step iterations)";
+        }
+        msg << " from " << run_accum_.primaries << " offloaded tracks over "
+            << run_accum_.events << " events, generating " << run_accum_.hits
+            << " hits";
+    }
     if (run_accum_.lost_primaries > 0)
     {
         CELER_LOG_LOCAL(warning)
             << "Lost a total of " << run_accum_.lost_primaries
             << " primaries that started outside the world";
+    }
+    static bool have_warned_slow{false};
+    if (!have_warned_slow && (run_accum_.steps + num_optical_steps > 1000000)
+        && (CELERITAS_DEBUG || not_release_build()))
+    {
+        static std::mutex mu;
+        std::lock_guard scoped_lock{mu};
+        if (!have_warned_slow)
+        {
+            CELER_LOG(warning) << "Performance is degraded due to "
+                                  "non-optimized build options: "
+                               << BuildOutput{};
+            have_warned_slow = true;
+        }
     }
 
     if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)

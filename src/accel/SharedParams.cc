@@ -154,7 +154,8 @@ std::mutex& updating_mutex()
 /*!
  * Whether celeritas is disabled, set to kill, or to be enabled.
  *
- * This gets the value from environment variables and
+ * Currently the mode is set by querying the environment variables \c
+ * CELER_KILL_OFFLOAD and \c CELER_DISABLE .
  *
  * \todo This will be refactored for 0.7 to take a \c celeritas::inp object and
  * determine values rather than from the environment .

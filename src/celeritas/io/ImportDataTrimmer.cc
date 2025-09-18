@@ -232,7 +232,7 @@ void ImportDataTrimmer::operator()(ImportAtomicRelaxation&)
 }
 
 //---------------------------------------------------------------------------//
-void ImportDataTrimmer::operator()(ImportParticle&) {}
+void ImportDataTrimmer::operator()(inp::Particle&) {}
 
 //---------------------------------------------------------------------------//
 void ImportDataTrimmer::operator()(ImportProcess& data)

@@ -103,6 +103,7 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
             ti.sim.parent_id = track_id;
             ti.sim.event_id = sim.event_id();
             ti.sim.time = sim.time();
+            ti.sim.weight = sim.weight();
             ti.geo.pos = geo.pos();
             ti.geo.dir = secondary.direction;
             ti.particle.particle_id = secondary.particle_id;

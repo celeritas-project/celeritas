@@ -38,14 +38,12 @@ namespace detail
 class IntegrationSingleton
 {
   public:
-    enum class Mode
-    {
-        disabled,
-        kill_offload,
-        enabled,
-        size_
-    };
+    //!@{
+    //! \name Types
+    using VecG4PD = SetupOptions::VecG4PD;
+    //!@}
 
+  public:
     // Static GLOBAL shared singleton
     static IntegrationSingleton& instance();
 
@@ -61,10 +59,10 @@ class IntegrationSingleton
     SetupOptions const& setup_options() const { return options_; }
 
     //! Return list of particles to be offloaded during run
-    SetupOptions::VecG4PD const& offloaded_particles() { return offloaded_; }
+    VecG4PD const& offloaded_particles() const { return offloaded_; }
 
-    //! Whether Celeritas is enabled
-    Mode mode() const { return mode_; }
+    // Access whether Celeritas is set up, enabled, or uninitialized
+    OffloadMode mode() const;
 
     //!@{
     //! Static global Celeritas problem data
@@ -100,7 +98,6 @@ class IntegrationSingleton
     IntegrationSingleton();
 
     //// DATA ////
-    Mode mode_{Mode::size_};
     SetupOptions options_;
     SetupOptions::VecG4PD offloaded_;
     SharedParams params_;

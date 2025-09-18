@@ -60,7 +60,7 @@ TEST_F(RootImporterTest, particles)
     for (auto const& particle : particles)
     {
         loaded_names.push_back(particle.name);
-        loaded_pdgs.push_back(particle.pdg);
+        loaded_pdgs.push_back(particle.pdg.get());
     }
 
     // Particle ordering is the same as in the ROOT file

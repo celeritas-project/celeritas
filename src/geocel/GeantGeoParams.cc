@@ -384,6 +384,55 @@ std::vector<inp::Surface> make_inp_surfaces(GeantGeoParams const& geo)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Create sensitive detectors input from Geant4 sensitive detectors.
+ */
+std::vector<inp::Detector> make_inp_detectors(GeantGeoParams const& geo)
+{
+    // Process detectors
+    std::vector<inp::Detector> result;
+
+    auto const& vol_labels = geo.impl_volumes();
+
+    std::unordered_map<G4VSensitiveDetector const*, std::vector<VolumeId>>
+        detector_map;
+
+    // Process each logical volume
+    for (auto iv_id : range(ImplVolumeId{vol_labels.size()}))
+    {
+        auto vol_id = geo.volume_id(iv_id);
+        if (!vol_id)
+        {
+            // This volume isn't part of the world hierarchy
+            continue;
+        }
+        auto& g4lv = *geo.id_to_geant(vol_id);
+
+        // Add volume id to detector map if it is in a detector region
+        if (G4VSensitiveDetector const* sd = g4lv.GetSensitiveDetector())
+        {
+            detector_map[sd].push_back(vol_id);
+        }
+    }
+
+    // Loop over detector_map and add detectors to result vector
+    for (auto&& [sd, volumes] : detector_map)
+    {
+        inp::Detector detector;
+        detector.label = sd->GetName();
+        detector.volumes = std::move(volumes);
+        std::sort(detector.volumes.begin(), detector.volumes.end());
+        result.push_back(detector);
+    }
+
+    std::sort(result.begin(), result.end(), [](auto& left, auto& right) {
+        return left.volumes.front() < right.volumes.front();
+    });
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 //! Global tracking geometry instance: may be nullptr
 // Note that this is safe to declare statically: see
 // https://en.cppreference.com/w/cpp/memory/weak_ptr/weak_ptr
@@ -637,6 +686,12 @@ inp::Model GeantGeoParams::make_model_input() const
     result.surfaces = [this] {
         inp::Surfaces result;
         result.surfaces = make_inp_surfaces(*this);
+        return result;
+    }();
+
+    result.detectors = [this] {
+        inp::Detectors result;
+        result.detectors = make_inp_detectors(*this);
         return result;
     }();
 

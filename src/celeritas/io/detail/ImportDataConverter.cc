@@ -173,11 +173,11 @@ void ImportDataConverter::operator()(ImportMscModel* data)
 }
 
 //---------------------------------------------------------------------------//
-void ImportDataConverter::operator()(ImportParticle* data)
+void ImportDataConverter::operator()(inp::Particle* data)
 {
     CELER_EXPECT(data);
 
-    data->lifetime *= time_;
+    data->decay_constant /= time_;
 }
 
 //---------------------------------------------------------------------------//

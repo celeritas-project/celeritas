@@ -262,7 +262,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
     replace_and_simplify(&tree_, bdy, True{});
 
     EXPECT_JSON_EQ(
-        R"json(["t",["~",0],["=",0],["=",1],["=",0],["S",2],["~",5],["=",6],["S",3],["~",8],["=",9],["=",5],["&",[5,9]],["=",0],["=",0],["=",0],["&",[5,6,9]]])json",
+        R"json(["t",["~",0],["=",0],["=",1],["=",0],["S",2],["~",5],["=",6],["S",3],["~",8],["=",9],["=",5],["&",[5,9]],["=",0],["=",0],["=",0],["=",1]])json",
         to_json_string(tree_));
 
     // Test postfix builder with remapping

@@ -47,6 +47,15 @@ set(_integration_tests
   UserActionIntegration
   TrackingManagerIntegration
 )
+function(celerias_accel_add_tests target name suite test)
+  celeritas_g4_add_tests(${target}
+    NAME "${name}:${suite}.${test}"
+    ARGS "--gtest_filter=${suite}.${test}"
+    LABELS unit
+    ${ARGN}
+  )
+endfunction()
+
 foreach(_basename IN LISTS _integration_tests)
   # Create the executable
   set(_target "${CELERITASTEST_DIR}_${_basename}")
@@ -62,24 +71,21 @@ foreach(_basename IN LISTS _integration_tests)
     testcel_harness
   )
 
-  # Add every combination of test for the LAr sphere
-  foreach(_suite LarSphere)
-    foreach(_test run)
-      celeritas_g4_add_tests(${_target}
-        NAME "${_name}:${_suite}.${_test}"
-        ARGS "--gtest_filter=${_suite}.${_test}"
-        LABELS unit
-      )
-    endforeach()
-  endforeach()
+  # Add every combination of test for LArSphere.run
+  celerias_accel_add_tests("${_target}" "${_name}" LarSphere run)
 
-  # Do TestEm3 only with celeritas cpu serial
-  celeritas_g4_add_one_test(
-    "${_name}:TestEm3.run:cpu:serial"
-    ${_target}
-    "--gtest_filter=TestEm3.run"
-    ""
-    cpu serial
+  if(_basename STREQUAL "TrackingManagerIntegration")
+    # Add cpu/disabled for UI
+    celerias_accel_add_tests("${_target}" "${_name}" LarSphere ui
+      OFFLOAD cpu g4
+      RMTYPE serial mt
+    )
+  endif()
+
+  # Do TestEm3 only with celeritas cpu/gpu and serial run manager
+  celerias_accel_add_tests("${_target}" "${_name}" TestEm3 run
+    OFFLOAD cpu gpu
+    RMTYPE serial
   )
 endforeach()
 

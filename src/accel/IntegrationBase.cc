@@ -21,15 +21,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Access whether Celeritas is set up, enabled, or uninitialized.
- */
-OffloadMode IntegrationBase::GetMode() const
-{
-    return IntegrationSingleton::instance().shared_params().mode();
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Set options before starting the run.
  *
  * This captures the input to indicate that options cannot be modified after
@@ -38,6 +29,17 @@ OffloadMode IntegrationBase::GetMode() const
 void IntegrationBase::SetOptions(SetupOptions&& opts)
 {
     IntegrationSingleton::instance().setup_options(std::move(opts));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access whether Celeritas is set up, enabled, or uninitialized.
+ *
+ * This is only legal to call after \c SetOptions.
+ */
+OffloadMode IntegrationBase::GetMode() const
+{
+    return IntegrationSingleton::instance().mode();
 }
 
 //---------------------------------------------------------------------------//
@@ -72,9 +74,11 @@ CoreParams const& IntegrationBase::GetParams()
     auto& singleton = IntegrationSingleton::instance();
     CELER_TRY_HANDLE(
         {
+            auto mode = singleton.shared_params().mode();
             CELER_VALIDATE(
-                singleton.mode() != IntegrationSingleton::Mode::disabled,
-                << R"(cannot access shared params when Celeritas is disabled)");
+                mode != OffloadMode::disabled
+                    && mode != OffloadMode::uninitialized,
+                << R"(cannot access shared params when Celeritas is disabled or outside of a run)");
         },
         ExceptionConverter{"celer.get.params"});
     return *singleton.shared_params().Params();
@@ -83,6 +87,10 @@ CoreParams const& IntegrationBase::GetParams()
 //---------------------------------------------------------------------------//
 /*!
  * Access THREAD-LOCAL Celeritas core state data for user diagnostics.
+ *
+ * - This can \em only be called when Celeritas is enabled (not kill-offload,
+ *   not disabled)
+ * - This cannot be called from the main thread of an MT application.
  */
 CoreStateInterface& IntegrationBase::GetState()
 {
@@ -94,8 +102,8 @@ CoreStateInterface& IntegrationBase::GetState()
                     || G4Threading::IsWorkerThread(),
                 << R"(cannot call Integration::GetState from master thread in a multithreaded application)");
             CELER_VALIDATE(
-                singleton.mode() != IntegrationSingleton::Mode::disabled,
-                << R"(cannot access local state when Celeritas is disabled)");
+                singleton.shared_params().mode() == OffloadMode::enabled,
+                << R"(cannot access local state unless Celeritas is enabled)");
         },
         ExceptionConverter{"celer.get.state"});
 
@@ -107,7 +115,8 @@ CoreStateInterface& IntegrationBase::GetState()
  * Initialize logging on first access.
  *
  * Since this is done during static initialization, it is guaranteed to be
- * thread safe.
+ * thread safe. By ensuring \c IntegrationSingleton has been constructed, it
+ * guarantees MPI is initialized (or disabled) before the first log message.
  */
 IntegrationBase::IntegrationBase()
 {

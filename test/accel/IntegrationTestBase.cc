@@ -19,6 +19,8 @@
 #include <G4VUserPrimaryGeneratorAction.hh>
 #include <G4Version.hh>
 
+#include "corecel/Assert.hh"
+
 #if G4VERSION_NUMBER >= 1100
 #    include <G4RunManagerFactory.hh>
 #else
@@ -28,8 +30,8 @@
 #include "corecel/Config.hh"
 
 #include "corecel/io/Logger.hh"
-#include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/io/StringUtils.hh"
+#include "corecel/sys/Environment.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
@@ -47,6 +49,7 @@
 #include "accel/SetupOptions.hh"
 
 #include "PersistentSP.hh"
+#include "ShimSensitiveDetector.hh"
 
 namespace celeritas
 {
@@ -225,7 +228,6 @@ G4RunManager& IntegrationTestBase::run_manager()
         CELER_LOG(status) << "Creating run manager";
         // Run manager writes output that cannot be redirected with
         // GeantLoggerAdapter: capture all output from this section
-        ScopedTimeAndRedirect scoped_time{"G4RunManager"};
         ScopedGeantExceptionHandler scoped_exceptions;
 
         // Access the particle table before creating the run manager, so that
@@ -320,7 +322,10 @@ SetupOptions IntegrationTestBase::make_setup_options()
     opts.make_along_step = celeritas::UniformAlongStepFactory();
 
     // Save diagnostic file to a unique name
-    opts.output_file = this->make_unique_filename(".out.json");
+    std::string ext = "-" + celeritas::getenv("CELER_OFFLOAD");
+    ext += "-" + celeritas::tolower(celeritas::getenv("G4RUN_MANAGER_TYPE"));
+    ext += ".out.json";
+    opts.output_file = this->make_unique_filename(ext);
     return opts;
 }
 
@@ -370,8 +375,24 @@ auto LarSphereIntegrationMixin::make_sens_det(std::string const& sd_name)
     -> UPSensDet
 {
     EXPECT_EQ("detshell", sd_name);
+    return std::make_unique<ShimSensitiveDetector>(
+        sd_name,
+        [this](G4Step const* step) { return this->process_hit(step); });
+}
 
-    return std::make_unique<SimpleSensitiveDetector>(sd_name);
+//---------------------------------------------------------------------------//
+/*!
+ * Process a hit locally.
+ */
+void LarSphereIntegrationMixin::process_hit(G4Step const* step)
+{
+    ASSERT_TRUE(step);
+    ASSERT_TRUE(step->GetTrack());
+    auto& track = *step->GetTrack();
+    EXPECT_GT(track.GetWeight(), 0);
+    EXPECT_TRUE(track.GetVolume());
+    // Since we don't have any detectors on the boundary of the problem:
+    EXPECT_TRUE(track.GetNextVolume());
 }
 
 //---------------------------------------------------------------------------//

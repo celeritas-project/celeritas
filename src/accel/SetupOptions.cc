@@ -278,14 +278,11 @@ inp::FrameworkInput to_inp(SetupOptions const& so)
     inp::FrameworkInput result;
     result.system = load_system(so);
     result.geant.ignore_processes = so.ignore_processes;
-    result.geant.data_selection.particles = GeantImportDataSelection::em_basic
-                                            | GeantImportDataSelection::optical;
-    result.geant.data_selection.processes = GeantImportDataSelection::em_basic
-                                            | GeantImportDataSelection::optical;
     result.geant.data_selection.interpolation = so.interpolation;
 
     // Correctly assign DataSelection import flags when muons are present
-    auto const selection = includes_muon() ? GIDS::em : GIDS::em_basic;
+    auto const selection = GIDS::optical
+                           | (includes_muon() ? GIDS::em : GIDS::em_basic);
     result.geant.data_selection.particles = selection;
     result.geant.data_selection.processes = selection;
 

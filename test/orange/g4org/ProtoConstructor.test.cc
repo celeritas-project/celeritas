@@ -412,7 +412,7 @@ TEST_F(ProtoConstructorTest, testem3)
             "Plane: x=-0.17",
         };
         static char const* const expected_volume_strings[]
-            = {"F", "-6", "+6", "!any(+6, -6)"};
+            = {"F", "-6", "+6", "F"};
         static char const* const expected_md_strings[] = {
             "",
             "",
@@ -547,7 +547,7 @@ TEST_F(ProtoConstructorTest, znenv)
             "Plane: y=0",
         };
         static char const* const expected_volume_strings[]
-            = {"F", "-6", "+6", "!any(+6, -6)"};
+            = {"F", "-6", "+6", "F"};
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
