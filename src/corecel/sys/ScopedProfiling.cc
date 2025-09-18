@@ -26,7 +26,8 @@ namespace celeritas
 /*!
  * Whether profiling is enabled.
  *
- * This is true by default when compiling with Perfetto enabled. The
+ * This is off by default but must be enabled (in conjunction with other tools;
+ * see \rstref{the profiling section}{profiling} for more details). The
  * \c CELER_ENABLE_PROFILING environment variable is used to override this
  * behavior. Profiling is never enabled if CUDA/ROC-TX/Perfetto are
  * unavailable.
@@ -34,8 +35,7 @@ namespace celeritas
 bool use_profiling()
 {
     static bool const result = [] {
-        auto result = celeritas::getenv_flag("CELER_ENABLE_PROFILING",
-                                             CELERITAS_USE_PERFETTO);
+        auto result = celeritas::getenv_flag("CELER_ENABLE_PROFILING", false);
         if (result.value)
         {
             if constexpr (CELERITAS_USE_HIP && !CELERITAS_HAVE_ROCTX)
@@ -53,9 +53,13 @@ bool use_profiling()
             }
         }
 
+        // Log level is 'info' if user-specified, 'warning' if defaulted to
+        // false but Perfetto was compiled, 'debug' otherwise
         auto msg = world_logger()(CELER_CODE_PROVENANCE,
-                                  result.defaulted ? LogLevel::debug
-                                                   : LogLevel::info);
+                                  !result.defaulted ? LogLevel::info
+                                  : (CELERITAS_USE_PERFETTO && !result.value)
+                                      ? LogLevel::warning
+                                      : LogLevel::debug);
 
         msg << (result.value ? "En" : "Dis") << "abling "
             << (CELERITAS_USE_PERFETTO ? "Perfetto"
