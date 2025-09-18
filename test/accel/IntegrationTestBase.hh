@@ -69,6 +69,9 @@ class IntegrationTestBase : public ::celeritas::test::Test
     // Default destructor to enable base class deletion and anchor vtable
     virtual ~IntegrationTestBase();
 
+    // Make a unique filename that incorporates run env information
+    std::string make_unique_filename(std::string_view ext) override;
+
     // Lazily create and/or access the run manager
     G4RunManager& run_manager();
 

@@ -137,6 +137,10 @@ int test_main(int argc, char** argv)
         listeners.Append(new NonMasterResultPrinter(comm.rank()));
     }
 
+    // Default profiling to off, not warning if CELERITAS_USE_PERFETTO
+    // (otherwise some tests will emit warnings in mid-test)
+    celeritas::getenv_flag("CELER_ENABLE_PROFILING", false);
+
     if (CELER_USE_DEVICE && !celeritas::device())
     {
         cout << color_code('y') << "Disabling tests with 'device' in the name"

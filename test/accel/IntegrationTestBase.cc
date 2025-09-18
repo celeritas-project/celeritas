@@ -32,6 +32,8 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Environment.hh"
+#include "corecel/sys/ScopedProfiling.hh"
+#include "corecel/sys/TracingSession.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
@@ -50,6 +52,8 @@
 
 #include "PersistentSP.hh"
 #include "ShimSensitiveDetector.hh"
+
+using SPTracing = std::shared_ptr<celeritas::TracingSession>;
 
 namespace celeritas
 {
@@ -79,10 +83,11 @@ std::string thread_description()
 class RunAction final : public G4UserRunAction
 {
   public:
-    explicit RunAction(IntegrationTestBase* test)
-        : test_{test}, exceptions_([this](std::exception_ptr ep) {
-            this->handle_exception(ep);
-        })
+    RunAction(IntegrationTestBase* test, SPTracing tracing)
+        : test_{test}
+        , tracing_{std::move(tracing)}
+        , exceptions_(
+              [this](std::exception_ptr ep) { this->handle_exception(ep); })
     {
     }
 
@@ -95,6 +100,11 @@ class RunAction final : public G4UserRunAction
     {
         CELER_LOG_LOCAL(debug) << "RunAction::EndOfRunAction";
         CELER_TRY_HANDLE(test_->EndOfRunAction(run), this->handle_exception);
+        if (tracing_)
+        {
+            CELER_LOG_LOCAL(debug) << "Flushing Perfetto trace";
+            tracing_->flush();
+        }
     }
 
     // TODO: push exception onto a vector so we can do validation testing
@@ -129,6 +139,7 @@ class RunAction final : public G4UserRunAction
 
   private:
     IntegrationTestBase* test_;
+    SPTracing tracing_;
     ScopedGeantExceptionHandler exceptions_;
 };
 
@@ -168,7 +179,15 @@ class EventAction final : public G4UserEventAction
 class ActionInitialization final : public G4VUserActionInitialization
 {
   public:
-    explicit ActionInitialization(IntegrationTestBase* test) : test_{test} {}
+    explicit ActionInitialization(IntegrationTestBase* test) : test_{test}
+    {
+        if (CELERITAS_USE_PERFETTO && use_profiling())
+        {
+            tracing_ = std::make_unique<TracingSession>(
+                test_->make_unique_filename(".perf.proto"));
+            tracing_->start();
+        }
+    }
 
     ~ActionInitialization()
     {
@@ -180,14 +199,14 @@ class ActionInitialization final : public G4VUserActionInitialization
     void BuildForMaster() const final
     {
         CELER_LOG_LOCAL(debug) << "ActionInitialization::BuildForMaster";
-        this->SetUserAction(new RunAction{test_});
+        this->SetUserAction(new RunAction{test_, tracing_});
     }
     void Build() const final
     {
         CELER_LOG_LOCAL(debug) << "ActionInitialization::Build";
 
         // Run and event actions
-        this->SetUserAction(new RunAction{test_});
+        this->SetUserAction(new RunAction{test_, tracing_});
         this->SetUserAction(new EventAction{test_});
 
         // Primary generator
@@ -214,6 +233,7 @@ class ActionInitialization final : public G4VUserActionInitialization
 
   private:
     IntegrationTestBase* test_;
+    SPTracing tracing_;
 };
 
 //---------------------------------------------------------------------------//
@@ -222,6 +242,16 @@ class ActionInitialization final : public G4VUserActionInitialization
 //---------------------------------------------------------------------------//
 // Default destructor to enable base class deletion and anchor vtable
 IntegrationTestBase::~IntegrationTestBase() = default;
+
+std::string IntegrationTestBase::make_unique_filename(std::string_view ext)
+{
+    std::string new_ext = "-";
+    new_ext += celeritas::getenv("CELER_OFFLOAD");
+    new_ext += "-";
+    new_ext += celeritas::tolower(celeritas::getenv("G4RUN_MANAGER_TYPE"));
+    new_ext += ext;
+    return ::celeritas::test::Test::make_unique_filename(new_ext);
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -342,10 +372,7 @@ SetupOptions IntegrationTestBase::make_setup_options()
     opts.make_along_step = celeritas::UniformAlongStepFactory();
 
     // Save diagnostic file to a unique name
-    std::string ext = "-" + celeritas::getenv("CELER_OFFLOAD");
-    ext += "-" + celeritas::tolower(celeritas::getenv("G4RUN_MANAGER_TYPE"));
-    ext += ".out.json";
-    opts.output_file = this->make_unique_filename(ext);
+    opts.output_file = this->make_unique_filename(".out.json");
     return opts;
 }
 

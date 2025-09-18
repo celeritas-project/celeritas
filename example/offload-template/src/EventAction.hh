@@ -7,7 +7,9 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <G4UserEventAction.hh>
+#include <corecel/sys/ScopedProfiling.hh>
 
 namespace celeritas
 {
@@ -36,11 +38,12 @@ class EventAction final : public G4UserEventAction
 
     EventAction() = default;
 
-    void BeginOfEventAction(G4Event const*) final {};
+    void BeginOfEventAction(G4Event const*) final;
     void EndOfEventAction(G4Event const* event) final;
 
   private:
     SPStepDiagnostic params_;
+    std::optional<ScopedProfiling> profile_this_;
 };
 
 //---------------------------------------------------------------------------//

@@ -140,6 +140,16 @@ MPI support
 .. doxygenclass:: celeritas::ScopedMpiInit
 .. doxygenclass:: celeritas::MpiCommunicator
 
+Performance profiling
+^^^^^^^^^^^^^^^^^^^^^
+
+These classes generalize the different low-level profiling libraries, both
+device and host, described in :ref:`profiling`.
+
+
+.. doxygenfunction:: celeritas::use_profiling
+.. doxygenclass:: celeritas::ScopedProfiling
+
 Utility functions
 -----------------
 
