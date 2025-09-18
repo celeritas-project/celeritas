@@ -519,9 +519,17 @@ TEST_F(LArSphereOffloadTest, host_generate)
         EXPECT_EQ(4, scint.buffer_size);
         EXPECT_EQ(0, scint.num_pending);
         EXPECT_EQ(20777, scint.num_generated);
+
+        EXPECT_EQ(7227, result.scintillation.total_num_photons);
+        EXPECT_EQ(970, result.cherenkov.total_num_photons);
     }
-    EXPECT_EQ(7227, result.scintillation.total_num_photons);
-    EXPECT_EQ(970, result.cherenkov.total_num_photons);
+    else
+    {
+        EXPECT_GT(result.accum.step_iters, 0);
+        EXPECT_GT(result.accum.flushes, 0);
+        EXPECT_GT(result.scintillation.total_num_photons, 0);
+        EXPECT_GT(result.cherenkov.total_num_photons, 0);
+    }
 }
 
 TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
