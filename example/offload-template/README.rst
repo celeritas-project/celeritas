@@ -37,9 +37,9 @@ Example classes
   :cpp:class:`EndOfRunAction` clears data and finalizes Celeritas data.
 
 :cpp:class:`EventAction`
-  The event action is not necessary to run Celeritas, but its use of
-  :cpp:class:`celeritas::ScopedProfiling` demonstrates how to profile Geant4
-  and annotate GPU profiling results in a Geant4 context.
+  This optional event action demonstrates how to profile Geant4
+  and annotate GPU profiling results in a Geant4 context using
+  :cpp:class:`celeritas::ScopedProfiling`.
 
 :cpp:class:`SensitiveDetector`
   :cpp:class:`ProcessHits`: is currently the *only* Celeritas callback
