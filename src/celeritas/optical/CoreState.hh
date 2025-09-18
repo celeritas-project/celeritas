@@ -75,9 +75,6 @@ class CoreStateBase : public CoreStateInterface
     CoreStateCounters const& counters() const final { return counters_; }
 
     //! Optical loop statistics
-    OpticalAccumStats const& accum() const { return accum_; }
-
-    //! Optical loop statistics
     OpticalAccumStats& accum() { return accum_; }
 
   private:
