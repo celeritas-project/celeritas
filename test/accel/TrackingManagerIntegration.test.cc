@@ -20,6 +20,7 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/OpticalCollector.hh"
+#include "celeritas/phys/PDGNumber.hh"
 #include "accel/LocalTransporter.hh"
 #include "accel/SetupOptions.hh"
 #include "accel/SharedParams.hh"
@@ -204,20 +205,35 @@ TEST_F(LarSphere, run_ui)
 //---------------------------------------------------------------------------//
 // LAR SPHERE WITH OPTICAL
 //---------------------------------------------------------------------------//
+/*!
+ * Count particle types.
+ *
+ * \todo This is redundant with (but more "Geant4-like" than)
+ * \c GeantStepDiagnostic .
+ */
 class TrackingAction : public G4UserTrackingAction
 {
   public:
     void PreUserTrackingAction(G4Track const* t)
     {
-        if (t->GetParticleDefinition()->GetPDGEncoding() == -22)
+        constexpr PDGNumber optical_photon{-pdg::gamma().unchecked_get()};
+
+        PDGNumber track_pdg{t->GetParticleDefinition()->GetPDGEncoding()};
+        if (track_pdg == optical_photon)
         {
-            ++counter_;
+            ++num_photons_;
+        }
+        if (track_pdg == pdg::electron())
+        {
+            ++num_electrons_;
         }
     }
-    std::size_t num_photons() const { return counter_; }
+    std::size_t num_photons() const { return num_photons_; }
+    std::size_t num_electrons() const { return num_electrons_; }
 
   private:
-    std::size_t counter_{};
+    std::size_t num_photons_{};
+    std::size_t num_electrons_{};
 };
 
 /*!
@@ -342,21 +358,26 @@ void LarSphereOptical::EndOfRunAction(G4Run const* run)
     }
     if (G4Threading::IsMasterThread())
     {
-        std::size_t num_photons_generated{0};
+        std::size_t photons{0};
+        std::size_t electrons{0};
         for (auto* tracking_action : tracking_)
         {
-            num_photons_generated += tracking_action->num_photons();
+            photons += tracking_action->num_photons();
+            electrons += tracking_action->num_electrons();
         }
-        CELER_LOG(info) << "Processed a total of " << num_photons_generated
-                        << " photons";
+        CELER_LOG(info) << "Geant4 tracked a total of " << photons
+                        << " photons"
+                        << " and " << electrons << " electrons";
 
         if (integration.mode() == OffloadMode::enabled)
         {
-            EXPECT_EQ(0, num_photons_generated);
+            EXPECT_EQ(0, photons);
+            EXPECT_EQ(0, electrons);
         }
         else
         {
-            EXPECT_GT(num_photons_generated, 0);
+            EXPECT_GT(photons, 0);
+            EXPECT_GT(electrons, 0);
         }
     }
 
