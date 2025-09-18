@@ -118,7 +118,11 @@ void from_json(nlohmann::json const& j, WavelengthShiftingOptions& options)
         return;
     }
 #define GBPO_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, options, NAME)
-    GBPO_LOAD_OPTION(time_profile);
+    GBPO_LOAD_OPTION(enable);
+    if (options)
+    {
+        GBPO_LOAD_OPTION(time_profile);
+    }
 #undef GBPO_LOAD_OPTION
 }
 
@@ -156,6 +160,7 @@ void from_json_deprecated(nlohmann::json const& j,
             else
             {
                 iter->get_to(options.time_profile);
+                options.enable = true;
                 CELER_ENSURE(options);
             }
         }

@@ -83,20 +83,19 @@ constexpr bool operator==(ScintillationPhysicsOptions const& a,
 //! Optical wavelength shifting process options
 struct WavelengthShiftingOptions
 {
+    //! Enable the process
+    bool enable{true};
     //! Select a model for sampling reemission time
     WlsTimeProfile time_profile{WlsTimeProfile::delta};
 
     //! True if the process is activated
-    explicit operator bool() const
-    {
-        return time_profile != WlsTimeProfile::size_;
-    }
+    explicit operator bool() const { return enable; }
 
-    //! Return instance with all processes deactivated
+    //! Return instance with WLS deactivated
     static WavelengthShiftingOptions deactivated()
     {
         WavelengthShiftingOptions result;
-        result.time_profile = WlsTimeProfile::size_;
+        result.enable = false;
         return result;
     }
 };
@@ -105,6 +104,9 @@ struct WavelengthShiftingOptions
 constexpr bool operator==(WavelengthShiftingOptions const& a,
                           WavelengthShiftingOptions const& b)
 {
+    if (!a.enable && !b.enable)
+        return true;
+
     return a.time_profile == b.time_profile;
 }
 
