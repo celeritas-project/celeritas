@@ -30,10 +30,9 @@ class OffloadWriter;
 }  // namespace detail
 
 struct SetupOptions;
-class CoreStateInterface;
-class OpticalCollector;
-class ParticleParams;
 class SharedParams;
+class ParticleParams;
+class CoreStateInterface;
 class StepperInterface;
 
 //---------------------------------------------------------------------------//
@@ -131,7 +130,6 @@ class LocalTransporter
     std::shared_ptr<StepperInterface> step_;
     std::vector<Primary> buffer_;
     std::shared_ptr<detail::HitProcessor> hit_processor_;
-    std::shared_ptr<OpticalCollector const> optical_;
 
     // Current event ID or manager for obtaining it
     UniqueEventId event_id_;
