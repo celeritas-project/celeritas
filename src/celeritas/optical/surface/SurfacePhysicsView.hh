@@ -18,25 +18,6 @@ namespace celeritas
 {
 namespace optical
 {
-
-namespace
-{
-//---------------------------------------------------------------------------//
-/*!
- * Get the next track surface position in the given direction.
- *
- * Type-safe operation to ensure direction is only added in track-local frames.
- * Uses unsigned underflow when moving reverse (dir = -1) while on a
- * pre-surface (pos = 0) to wrap to an invalid position value.
- */
-CELER_FORCEINLINE_FUNCTION SurfaceTrackPosition
-operator+(SurfaceTrackPosition pos, SubsurfaceDirection dir)
-{
-    return pos + to_signed_offset(dir);
-}
-
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Optical surface physics data for a track.
@@ -122,10 +103,6 @@ class SurfacePhysicsView
     inline CELER_FUNCTION
         SurfaceModelView surface_model(SubsurfaceDirection,
                                        SurfacePhysicsOrder) const;
-
-    // Get surface model for the given step
-    inline CELER_FUNCTION SurfaceModelView
-    surface_model(Real3 const&, SurfacePhysicsOrder) const;
 
     // Get local facet normal
     inline CELER_FUNCTION Real3 const& facet_normal() const;
@@ -280,7 +257,8 @@ CELER_FUNCTION bool SurfacePhysicsView::is_exiting(SubsurfaceDirection d) const
     CELER_EXPECT(this->is_crossing_boundary());
     // Use unsigned underflow when moving reverse (-1) on the pre-surface
     // (position 0) to wrap to an invalid position value
-    return (this->subsurface_position() + d).unchecked_get()
+    return advance_subsurface_position_along(this->subsurface_position(), d)
+               .unchecked_get()
            >= this->num_positions();
 }
 
@@ -376,22 +354,8 @@ CELER_FUNCTION SurfaceModelView SurfacePhysicsView::surface_model(
         dir,
         SurfacePhysicsMapView{params_.model_maps[step], phys_surface},
         this->subsurface_material(this->subsurface_position()),
-        this->subsurface_material(this->subsurface_position() + dir)};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get surface model view of the given step for a track moving in the given
- * direction.
- *
- * Helper function that determines the traversal direction from the track
- * direction and constructs a surface model from it.
- */
-CELER_FUNCTION SurfaceModelView SurfacePhysicsView::surface_model(
-    Real3 const& dir, SurfacePhysicsOrder step) const
-{
-    CELER_EXPECT(this->is_crossing_boundary());
-    return this->surface_model(this->traversal_direction(dir), step);
+        this->subsurface_material(advance_subsurface_position_along(
+            this->subsurface_position(), dir))};
 }
 
 //---------------------------------------------------------------------------//
@@ -424,7 +388,8 @@ SurfacePhysicsView::cross_subsurface_interface(SubsurfaceDirection d)
 {
     CELER_EXPECT(this->is_crossing_boundary());
     CELER_EXPECT(!this->is_exiting(d));
-    this->subsurface_position(this->subsurface_position() + d);
+    this->subsurface_position(
+        advance_subsurface_position_along(this->subsurface_position(), d));
 }
 
 //---------------------------------------------------------------------------//

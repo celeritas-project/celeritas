@@ -30,7 +30,7 @@ GaussianRoughnessModel::GaussianRoughnessModel(
     : BuiltinRoughnessModel(model, "gaussian", std::move(surfaces))
 {
     HostVal<GaussianRoughnessData> data;
-    auto build_sigma_alpha = ::celeritas::make_builder(&data.sigma_alpha);
+    auto build_sigma_alpha = CollectionBuilder{&data.sigma_alpha};
 
     for (auto const& gaussian : inputs)
     {

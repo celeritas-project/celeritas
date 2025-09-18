@@ -29,7 +29,7 @@ SmearRoughnessModel::SmearRoughnessModel(SurfaceModelId model,
     : BuiltinRoughnessModel(model, "smear", std::move(surfaces))
 {
     HostVal<SmearRoughnessData> data;
-    auto build_roughness = ::celeritas::make_builder(&data.roughness);
+    auto build_roughness = CollectionBuilder{&data.roughness};
 
     for (auto const& smear : inputs)
     {

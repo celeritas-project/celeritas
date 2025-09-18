@@ -26,9 +26,11 @@ struct IsSurfaceModelEqual
     //! Whether the surface model should be executed for the track
     CELER_FUNCTION bool operator()(CoreTrackView const& track) const
     {
-        return track.surface_physics().is_crossing_boundary()
-               && track.surface_physics()
-                          .surface_model(track.geometry().dir(), step)
+        auto s_phys = track.surface_physics();
+        return s_phys.is_crossing_boundary()
+               && s_phys.surface_model(
+                            s_phys.traversal_direction(track.geometry().dir()),
+                            step)
                           .surface_model()
                       == model;
     }
