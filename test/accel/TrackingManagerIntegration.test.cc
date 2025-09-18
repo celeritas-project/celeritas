@@ -18,6 +18,7 @@
 #include "geocel/GeantUtils.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/OpticalCollector.hh"
 #include "accel/LocalTransporter.hh"
 #include "accel/SetupOptions.hh"
@@ -269,9 +270,12 @@ auto LarSphereOptical::make_physics_input() const -> PhysicsInput
 
 auto LarSphereOptical::make_primary_input() const -> PrimaryInput
 {
+    using MevEnergy = Quantity<units::Mev, double>;
     auto result = LarSphereIntegrationMixin::make_primary_input();
 
     result.shape = inp::PointDistribution{from_cm({0.1, 0.1, 0})};
+    result.primaries_per_event = 1;
+    result.energy = inp::MonoenergeticDistribution{MevEnergy{2}};
     return result;
 }
 
@@ -285,9 +289,9 @@ auto LarSphereOptical::make_setup_options() -> SetupOptions
 
     result.optical_capacity = [] {
         inp::OpticalStateCapacity cap;
-        cap.primaries = 32768;
-        cap.tracks = 4096;
-        cap.generators = 2048;
+        cap.tracks = 32768;
+        cap.generators = 32768 * 8;
+        cap.primaries = cap.generators;
         return cap;
     }();
 
