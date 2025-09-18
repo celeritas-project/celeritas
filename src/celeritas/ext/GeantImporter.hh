@@ -102,10 +102,6 @@ class GeantImporter final : public ImporterInterface
 };
 
 //---------------------------------------------------------------------------//
-
-inp::Particle import_particle(G4ParticleDefinition const& p);
-
-//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 inline constexpr bool operator==(GeantImporter::DataSelection const& lhs,

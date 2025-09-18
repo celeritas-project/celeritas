@@ -17,6 +17,7 @@
 #include "corecel/io/Logger.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/UnitUtils.hh"
+#include "celeritas/ext/GeantParticleView.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/OpticalCollector.hh"
@@ -216,16 +217,15 @@ class TrackingAction : public G4UserTrackingAction
   public:
     void PreUserTrackingAction(G4Track const* t)
     {
-        constexpr PDGNumber optical_photon{-pdg::gamma().unchecked_get()};
+        GeantParticleView particle{*t->GetParticleDefinition()};
 
-        PDGNumber track_pdg{t->GetParticleDefinition()->GetPDGEncoding()};
-        if (track_pdg == optical_photon)
-        {
-            ++num_photons_;
-        }
-        if (track_pdg == pdg::electron())
+        if (particle.pdg() == pdg::electron())
         {
             ++num_electrons_;
+        }
+        else if (particle.is_optical_photon())
+        {
+            ++num_photons_;
         }
     }
     std::size_t num_photons() const { return num_photons_; }
