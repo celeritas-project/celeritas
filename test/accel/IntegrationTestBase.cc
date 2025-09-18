@@ -168,7 +168,7 @@ class ActionInitialization final : public G4VUserActionInitialization
   public:
     explicit ActionInitialization(IntegrationTestBase* test) : test_{test}
     {
-        if (!CELER_USE_DEVICE && use_profiling())
+        if (CELERITAS_USE_PERFETTO && use_profiling())
         {
             tracing_ = std::make_unique<TracingSession>(
                 test_->make_unique_filename(".perf.proto"));
