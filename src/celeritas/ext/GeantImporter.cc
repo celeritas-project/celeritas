@@ -1155,7 +1155,7 @@ ImportOpticalParameters import_optical_parameters()
     auto* params = G4OpticalParameters::Instance();
     CELER_ASSERT(params);
 
-    auto to_enum = [](std::string time_profile) {
+    auto to_enum = [](std::string const& time_profile) {
         if (time_profile == "delta")
         {
             return WlsTimeProfile::delta;
@@ -1164,12 +1164,7 @@ ImportOpticalParameters import_optical_parameters()
         {
             return WlsTimeProfile::exponential;
         }
-        else
-        {
-            CELER_LOG(error) << "unknown WLS time profile '" << time_profile
-                             << "': using exponential";
-            return WlsTimeProfile::exponential;
-        }
+        CELER_NOT_IMPLEMENTED("unknown WLS time profile " + time_profile);
     };
     iop.wls_time_profile = to_enum(params->GetWLSTimeProfile());
     iop.wls2_time_profile = to_enum(params->GetWLS2TimeProfile());
