@@ -53,10 +53,10 @@ bool use_profiling()
             }
         }
 
-        // Log level is 'info' if user-specified, 'warning' if defaulted to
+        // Log level is 'debug' if user-specified, 'warning' if defaulted to
         // false but Perfetto was compiled, 'debug' otherwise
         auto msg = world_logger()(CELER_CODE_PROVENANCE,
-                                  !result.defaulted ? LogLevel::info
+                                  !result.defaulted ? LogLevel::debug
                                   : (CELERITAS_USE_PERFETTO && !result.value)
                                       ? LogLevel::warning
                                       : LogLevel::debug);
