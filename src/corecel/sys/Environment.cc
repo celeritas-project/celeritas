@@ -12,6 +12,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StringUtils.hh"
 
 namespace celeritas
 {
@@ -64,6 +65,9 @@ std::string const& getenv(std::string const& key)
  * specifying whether the default was used. The insertion result can be useful
  * for providing a diagnostic message to the user.
  *
+ * As with the general \c Environment class, the already-set values override
+ * whatever variables are in the system.
+ *
  * - Allowed true values: <code>"1", "t", "yes", "true", "True"</code>
  * - Allowed false values: <code>"0", "f", "no", "false", "False"</code>
  * - Empty value returns the default
@@ -73,32 +77,49 @@ GetenvFlagResult getenv_flag(std::string const& key, bool default_val)
 {
     std::scoped_lock lock_{getenv_mutex()};
 
-    std::string value;
-    if (char const* sys_value = std::getenv(key.c_str()))
+    std::string value = [&key]() -> std::string {
+        auto& env = environment();
+        if (auto iter = env.find(key); iter != env.end())
+        {
+            // Variable was already loaded internally
+            return iter->second;
+        }
+        else if (char const* sys_value = std::getenv(key.c_str()))
+        {
+            // Variable is set in the user environment
+            return sys_value;
+        }
+        return {};
+    }();
+    if (value.empty())
     {
-        // Variable is set in the user environment
-        value = sys_value;
-    }
-    if (value.empty() && environment().insert({key, default_val ? "1" : "0"}))
-    {
-        // Variable is empty
+        // Variable should be defaulted
+        bool inserted = environment().insert({key, default_val ? "1" : "0"});
+        if (!inserted)
+        {
+            // Someone else added an empty value for this variable to the
+            // environment; since the "default" value won't be inserted into
+            // the persistent environment, print here
+            CELER_LOG(debug) << "Using default environment value " << key
+                             << '=' << default_val;
+        }
         return {default_val, true};
     }
+    value = tolower(value);
 
-    std::string const& result = environment()[key];
-    static char const* const true_str[] = {"1", "t", "yes", "true", "True"};
-    if (std::find(std::begin(true_str), std::end(true_str), result)
+    static char const* const true_str[] = {"1", "t", "yes", "true"};
+    if (std::find(std::begin(true_str), std::end(true_str), value)
         != std::end(true_str))
     {
         return {true, false};
     }
-    static char const* const false_str[] = {"0", "f", "no", "false", "False"};
-    if (std::find(std::begin(false_str), std::end(false_str), result)
+    static char const* const false_str[] = {"0", "f", "no", "false"};
+    if (std::find(std::begin(false_str), std::end(false_str), value)
         != std::end(false_str))
     {
         return {false, false};
     }
-    CELER_LOG(warning) << "Invalid environment value " << key << "=" << result
+    CELER_LOG(warning) << "Invalid environment value " << key << "=" << value
                        << ": expected a flag";
     return {default_val, true};
 }

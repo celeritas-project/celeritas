@@ -50,6 +50,7 @@ TEST(EnvironmentTest, local)
 
 TEST(EnvironmentTest, global)
 {
+    environment() = {};
     EXPECT_EQ("", getenv("ENVTEST_EMPTY"));
 
     EXPECT_EQ((GetenvFlagResult{false, false}),
@@ -76,6 +77,19 @@ TEST(EnvironmentTest, global)
               getenv_flag("ENVTEST_FALSE", false));
     EXPECT_EQ((GetenvFlagResult{true, false}),
               getenv_flag("ENVTEST_TRUE", false));
+}
+
+TEST(EnvironmentTest, global_override_default)
+{
+    auto& env = environment();
+
+    // Reset already-read variables
+    env = {};
+    // Override a system environment variable
+    EXPECT_TRUE(env.insert({"ENVTEST_ONE", "f"}));
+    // Check that getenv_flag works
+    EXPECT_EQ((GetenvFlagResult{false, false}),
+              getenv_flag("ENVTEST_ONE", true));
 }
 
 TEST(EnvironmentTest, merge)
