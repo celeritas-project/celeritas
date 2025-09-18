@@ -8,6 +8,7 @@
 
 #include <csignal>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <type_traits>
 #include <CLHEP/Units/SystemOfUnits.h>
@@ -27,6 +28,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
@@ -65,6 +67,22 @@ bool nonfatal_flush()
         return result.value;
     }();
     return result;
+}
+
+bool not_release_build()
+{
+    std::string_view build_props{cmake::build_type};
+    // Instead of searching for `release`, which may not be present in some
+    // build systems, see if we have debug or relwithdebinfo.
+    if (build_props.find("debug") != std::string_view::npos)
+    {
+        return true;
+    }
+    if (build_props.find("relwithdebinfo") != std::string_view::npos)
+    {
+        return true;
+    }
+    return false;
 }
 
 //---------------------------------------------------------------------------//
@@ -427,16 +445,32 @@ void LocalTransporter::Finalize()
                    << "offloaded tracks (" << buffer_.size()
                    << " in buffer) were not flushed");
 
-    CELER_LOG_LOCAL(info) << "Finalizing Celeritas after " << run_accum_.steps
-                          << " steps from " << run_accum_.primaries
-                          << " offloaded tracks over " << run_accum_.events
-                          << " events, generating " << run_accum_.hits
-                          << " hits";
+    {
+        auto msg = CELER_LOG_LOCAL(info);
+        msg << "Finalizing Celeritas after " << run_accum_.steps << " steps ";
+        msg << " from " << run_accum_.primaries << " offloaded tracks over "
+            << run_accum_.events << " events, generating " << run_accum_.hits
+            << " hits";
+    }
     if (run_accum_.lost_primaries > 0)
     {
         CELER_LOG_LOCAL(warning)
             << "Lost a total of " << run_accum_.lost_primaries
             << " primaries that started outside the world";
+    }
+    static bool have_warned_slow{false};
+    if (!have_warned_slow && (run_accum_.steps > 1000000)
+        && (CELERITAS_DEBUG || not_release_build()))
+    {
+        static std::mutex mu;
+        std::lock_guard scoped_lock{mu};
+        if (!have_warned_slow)
+        {
+            CELER_LOG(warning) << "Performance is degraded due to "
+                                  "non-optimized build options: "
+                               << BuildOutput{};
+            have_warned_slow = true;
+        }
     }
 
     if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)

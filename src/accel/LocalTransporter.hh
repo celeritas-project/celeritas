@@ -30,9 +30,9 @@ class OffloadWriter;
 }  // namespace detail
 
 struct SetupOptions;
-class SharedParams;
-class ParticleParams;
 class CoreStateInterface;
+class ParticleParams;
+class SharedParams;
 class StepperInterface;
 
 //---------------------------------------------------------------------------//
