@@ -79,7 +79,7 @@ TEST(EnvironmentTest, global)
               getenv_flag("ENVTEST_TRUE", false));
 }
 
-TEST(EnvironmentTest, global_override_default)
+TEST(EnvironmentTest, global_overrides)
 {
     auto& env = environment();
 
@@ -90,6 +90,11 @@ TEST(EnvironmentTest, global_override_default)
     // Check that getenv_flag works
     EXPECT_EQ((GetenvFlagResult{false, false}),
               getenv_flag("ENVTEST_ONE", true));
+
+    // This should pull from the system environment and store the saved result
+    EXPECT_EQ((GetenvFlagResult{false, false}),
+              getenv_flag("ENVTEST_ZERO", true));
+    EXPECT_TRUE(env.find("ENVTEST_ZERO") != env.cend());
 }
 
 TEST(EnvironmentTest, merge)
