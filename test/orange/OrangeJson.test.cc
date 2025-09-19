@@ -765,6 +765,7 @@ TEST_F(InputBuilderTest, globalspheres)
 
 TEST_F(InputBuilderTest, lar_split_detector)
 {
+    auto inf = std::numeric_limits<real_type>::infinity();
     {
         auto result = this->track({0, 0, -16}, {0, 0, 1});
 

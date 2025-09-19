@@ -336,12 +336,12 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(3562272,
+        EXPECT_EQ(381086,
                   result.cherenkov.total_num_photons
                       + result.scintillation.total_num_photons);
 
-        EXPECT_EQ(38699, result.cherenkov.total_num_photons);
-        EXPECT_EQ(82, result.cherenkov.num_photons.size());
+        EXPECT_EQ(38126, result.cherenkov.total_num_photons);
+        EXPECT_EQ(78, result.cherenkov.num_photons.size());
         static unsigned int const expected_cherenkov_num_photons[] = {
             337u,  504u,  1609u, 1582u, 1314u, 1466u, 1164u, 880u, 777u,
             1477u, 1251u, 433u,  398u,  1273u, 271u,  1301u, 282u, 1132u,
@@ -351,49 +351,45 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
             608u,  213u,  550u,  228u,  528u,  160u,  485u,  334u, 480u,
             44u,   406u,  83u,   382u,  3u,    423u,  193u,  344u, 316u,
             248u,  265u,  41u,   232u,  210u,  37u,   124u,  154u, 53u,
-            19u,   118u,  302u,  162u,  162u,  1u,    301u,  27u,  3u,
-            160u,
+            19u,   118u,  53u,   164u,  24u,   304u,
         };
         EXPECT_VEC_EQ(expected_cherenkov_num_photons,
                       result.cherenkov.num_photons);
 
-        EXPECT_EQ(3523573, result.scintillation.total_num_photons);
-        EXPECT_EQ(191, result.scintillation.num_photons.size());
+        EXPECT_EQ(342960, result.scintillation.total_num_photons);
+        EXPECT_EQ(188, result.scintillation.num_photons.size());
         static unsigned int const expected_scintillation_num_photons[] = {
-            27991u, 38157u,  114070u, 114477u, 95923u, 106832u, 82858u, 66126u,
-            57893u, 103619u, 90287u,  33901u,  28955u, 88563u,  20427u, 98050u,
-            21827u, 83989u,  55095u,  84026u,  63443u, 18590u,  43852u, 8258u,
-            38355u, 3894u,   33219u,  30807u,  2363u,  48420u,  34733u, 71951u,
-            24182u, 41506u,  43246u,  15732u,  5282u,  25256u,  27512u, 43955u,
-            28341u, 47956u,  26749u,  47994u,  34426u, 44063u,  22581u, 41383u,
-            22830u, 37627u,  20074u,  38203u,  27903u, 34719u,  18699u, 32830u,
-            19233u, 30026u,  17229u,  30547u,  22604u, 27778u,  11994u, 26337u,
-            13618u, 23721u,  4019u,   24306u,  18720u, 22417u,  21616u, 18459u,
-            19787u, 317u,    19892u,  11747u,  16520u, 16590u,  10760u, 17217u,
-            2425u,  17185u,  183u,    12042u,  2856u,  313u,    2398u,  162u,
-            3256u,  181u,    6066u,   241u,    1003u,  579u,    11401u, 502u,
-            6016u,  269u,    2524u,   143u,    157u,   1274u,   18u,    6273u,
-            5298u,  1995u,   1958u,   408u,    161u,   327u,    11457u, 257u,
-            3367u,  2349u,   294u,    2716u,   215u,   478u,    700u,   638u,
-            4677u,  667u,    544u,    170u,    16u,    683u,    378u,   2103u,
-            1048u,  8963u,   3773u,   2223u,   2446u,  510u,    2535u,  155u,
-            2303u,  12407u,  1867u,   6069u,   14643u, 68u,     19850u, 2063u,
-            13u,    17011u,  2461u,   3346u,   1034u,  4914u,   2982u,  155u,
-            864u,   3400u,   7123u,   7028u,   3053u,  643u,    172u,   161u,
-            1031u,  153u,    6319u,   3720u,   1003u,  5885u,   5529u,  176u,
-            4786u,  34u,     25324u,  20567u,  3106u,  15352u,  13363u, 13176u,
-            2050u,  20835u,  17342u,  158u,    157u,   26088u,  18297u, 38u,
-            17647u, 3953u,   339u,    922u,    21243u, 9972u,   948u,
+            2826u,  3863u, 11346u, 11391u, 9567u, 10569u, 8310u, 6604u, 5701u,
+            10383u, 8938u, 3409u,  2929u,  8819u, 2016u,  9815u, 2192u, 8369u,
+            5504u,  8478u, 6466u,  1894u,  4402u, 823u,   3864u, 399u,  3423u,
+            3072u,  202u,  4837u,  3463u,  7204u, 2365u,  4159u, 4377u, 1568u,
+            537u,   2544u, 2682u,  4316u,  2846u, 4839u,  2672u, 4729u, 3384u,
+            4449u,  2248u, 4125u,  2253u,  3731u, 2017u,  3818u, 2821u, 3469u,
+            1861u,  3281u, 1983u,  3010u,  1670u, 3100u,  2266u, 2805u, 1177u,
+            2665u,  1407u, 2303u,  389u,   2433u, 1875u,  2268u, 2241u, 1842u,
+            1987u,  30u,   1982u,  1139u,  1641u, 1641u,  1090u, 1692u, 245u,
+            1667u,  23u,   1185u,  285u,   33u,   233u,   17u,   320u,  20u,
+            595u,   24u,   88u,    48u,    1137u, 53u,    604u,  28u,   243u,
+            11u,    15u,   122u,   3u,     646u,  507u,   219u,  184u,  44u,
+            17u,    27u,   1163u,  32u,    345u,  240u,   29u,   277u,  13u,
+            51u,    68u,   62u,    455u,   62u,   54u,    19u,   2u,    56u,
+            39u,    216u,  90u,    874u,   395u,  202u,   253u,  51u,   258u,
+            15u,    218u,  1244u,  183u,   593u,  1443u,  6u,    1967u, 199u,
+            3u,     1684u, 339u,   317u,   90u,   494u,   59u,   15u,   90u,
+            494u,   611u,  693u,   286u,   56u,   17u,    150u,  664u,  836u,
+            465u,   20u,   564u,   58u,    231u,  992u,   336u,  743u,  285u,
+            58u,    112u,  1918u,  329u,   1060u, 1363u,  10u,   17u,   39u,
+            722u,   12u,   1377u,  1808u,  2485u, 414u,   8u,    14u,
         };
         EXPECT_VEC_EQ(expected_scintillation_num_photons,
                       result.scintillation.num_photons);
     }
     else
     {
-        EXPECT_EQ(41814, result.cherenkov.total_num_photons);
-        EXPECT_EQ(89, result.cherenkov.num_photons.size());
+        EXPECT_EQ(41339, result.cherenkov.total_num_photons);
+        EXPECT_EQ(88, result.cherenkov.num_photons.size());
 
-        EXPECT_EQ(3773161, result.scintillation.total_num_photons);
+        EXPECT_EQ(373102, result.scintillation.total_num_photons);
         EXPECT_EQ(202, result.scintillation.num_photons.size());
     }
 }
@@ -547,8 +543,8 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(818, result.accum.step_iters);
-        EXPECT_EQ(2, result.accum.flushes);
+        EXPECT_EQ(95, result.accum.step_iters);
+        EXPECT_EQ(1, result.accum.flushes);
         ASSERT_EQ(2, result.accum.generators.size());
 
         auto const& cherenkov = result.accum.generators[0];
@@ -559,7 +555,7 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
         auto const& scint = result.accum.generators[1];
         EXPECT_EQ(35, scint.buffer_size);
         EXPECT_EQ(0, scint.num_pending);
-        EXPECT_EQ(500472, scint.num_generated);
+        EXPECT_EQ(50159, scint.num_generated);
     }
     EXPECT_EQ(0, result.scintillation.total_num_photons);
     EXPECT_EQ(0, result.cherenkov.total_num_photons);
