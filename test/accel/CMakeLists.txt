@@ -88,11 +88,17 @@ celeritas_add_integration_tests(
   RMTYPE serial mt
 )
 
-# Test with optical physics
+set(_optical_rm_type "serial")
+if(NOT (CELERITAS_CORE_GEO STREQUAL "Geant4"))
+  list(APPEND _optical_rm_type "mt")
+endif()
+
+# Test with optical physics, except that currently trying to use Geant4
+# navigation for the optical tracks wreaks havoc
 celeritas_add_integration_tests(
   TrackingManagerIntegration LarSphereOptical run
   OFFLOAD cpu gpu g4
-  RMTYPE serial mt
+  RMTYPE ${_optical_rm_type}
 )
 
 #-----------------------------------------------------------------------------#
