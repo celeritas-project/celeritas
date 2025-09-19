@@ -56,11 +56,11 @@ During initialization:
 1. The detector geometry is loaded on the main thread.
 2. In an serial run, ``UserActionInitialization::Build`` is called on the
    thread.
-2. Thread-local (on both main and worker) Geant4 components are constructed:
+3. Thread-local (on both main and worker) Geant4 components are constructed:
    sensitive detectors, fields, and physics processes in that order. At the end
    of physics initialization, tracking managers are built and physics tables
    constructed.
-3. In an MT run, ``UserActionInitialization::Build`` is called for each worker
+4. In an MT run, ``UserActionInitialization::Build`` is called for each worker
    thread and the thread-local construction is repeated.
 
 During each run:
