@@ -61,7 +61,8 @@ struct PhysicsFromGeant
  * Options for loading cross section data from Geant4 data files.
  *
  * \todo Since Geant4 data structures don't provide access to these, we must
- * read them ourselves. Maybe add accessors to Geant4?
+ * read them ourselves. Maybe add accessors to Geant4 and eliminate these/roll
+ * them upstream?
  *
  * Defaults:
  * - \c livermore_dir: usually <code>$G4LEDATA/livermore/phot_epics2014</code>

@@ -13,6 +13,7 @@
 #include "celeritas/em/interactor/MuPairProductionInteractor.hh"
 #include "celeritas/em/model/MuPairProductionModel.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/io/ImportProcess.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/InteractionIO.hh"
@@ -31,6 +32,20 @@ namespace test
 class MuPairProductionTest : public InteractorHostBase, public RootTestBase
 {
   protected:
+    void fixup_data(ImportData& imported) const override
+    {
+        // Keep only the mu pair production process
+        auto& processes = imported.processes;
+        processes.erase(
+            std::remove_if(processes.begin(),
+                           processes.end(),
+                           [](ImportProcess const& ip) {
+                               return ip.process_class
+                                      != ImportProcessClass::mu_pair_prod;
+                           }),
+            processes.end());
+    }
+
     void SetUp() override
     {
         using namespace units;

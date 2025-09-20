@@ -15,6 +15,7 @@
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
+#include "celeritas/io/ImportProcess.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -43,7 +44,30 @@ namespace test
 class RootImporterTest : public RootTestBase
 {
   protected:
-    std::string_view gdml_basename() const { return "four-steel-slabs"sv; }
+    std::string_view gdml_basename() const override
+    {
+        return "four-steel-slabs"sv;
+    }
+
+    void fixup_data(ImportData& imported) const override
+    {
+        // Delete processes that need geant4 data files
+        auto needs_data = [](ImportProcessClass ipc) {
+            return ipc == ImportProcessClass::e_brems
+                   || ipc == ImportProcessClass::photoelectric;
+        };
+
+        auto& processes = imported.processes;
+        processes.erase(std::remove_if(processes.begin(),
+                                       processes.end(),
+                                       [needs_data](ImportProcess const& ip) {
+                                           return needs_data(ip.process_class);
+                                       }),
+                        processes.end());
+
+        imported.em_params.fluorescence = false;
+        imported.em_params.auger = false;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -124,7 +148,7 @@ TEST_F(RootImporterTest, phys_materials)
 TEST_F(RootImporterTest, processes)
 {
     auto const& processes = this->imported_data().processes;
-    EXPECT_EQ(17, processes.size());
+    EXPECT_EQ(14, processes.size());
 
     auto find_process = [&processes](PDGNumber pdg, ImportProcessClass ipc) {
         return std::find_if(processes.begin(),

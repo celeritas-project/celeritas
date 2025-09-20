@@ -25,6 +25,7 @@
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/geo/CoreGeoTraits.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/setup/Import.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "PersistentSP.hh"
@@ -150,6 +151,7 @@ auto GeantTestBase::load(std::string const& filename) const
 
     static PersistentImportSetup ps{"Geant4 import"};
     std::shared_ptr<ImportSetup> i;
+    bool stale{true};
     if (!ps)
     {
         CELER_VALIDATE(!filename.empty(),
@@ -161,9 +163,6 @@ auto GeantTestBase::load(std::string const& filename) const
         CELER_ASSERT(i->geo);
         CELER_ASSERT(!celeritas::global_geant_geo().expired());
 
-        i->imported = (*i->import)(sel);
-        i->selection = sel;
-        i->options.verbose = false;
         ps.set(filename, i);
     }
     else
@@ -183,12 +182,23 @@ auto GeantTestBase::load(std::string const& filename) const
                        << "cannot change physics options after setup "
                        << explanation);
 
-        if (sel != i->selection)
+        if (sel == i->selection)
         {
-            // Reload with new selection
-            CELER_ASSERT(i->import);
-            i->imported = (*i->import)(sel);
-            i->selection = sel;
+            // No need to reload
+            stale = false;
+        }
+    }
+
+    if (stale)
+    {
+        CELER_ASSERT(i->import);
+        i->imported = (*i->import)(sel);
+        i->selection = sel;
+        i->options.verbose = false;
+
+        if (i->selection.reader_data)
+        {
+            setup::physics_from(inp::PhysicsFromGeantFiles{}, i->imported);
         }
     }
 
