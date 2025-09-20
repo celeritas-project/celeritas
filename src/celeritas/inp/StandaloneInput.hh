@@ -48,24 +48,26 @@ using GeantSetup = GeantPhysicsOptions;
  * The input \c Problem can be an embedded struct or a path to a file to
  * import.
  *
- * \todo physics_import will be a `std::optional<GeantImport>` after all the
- * \c ImportData is merged into \c Problem .
+ * \internal
+ *
+ * \todo Replace problem with a variant (either problem or file to load from)?
+ * \note geant_setup is always required for real problems
+ * \todo \c physics_import will be a `std::optional<GeantImport>` after all the
+ *   \c ImportData is merged into \c Problem .
+ * \todo Add \c PhysicsFromGeantFiles after physics_import
+ * \todo Add an option to override control/diagnostics?
  */
 struct StandaloneInput
 {
     //! System attributes
     System system;
     //! Base problem options and input data
-    std::variant<FileImport, Problem> problem;
+    Problem problem;
     //! Set up Geant4 (if all the data isn't serialized)
     std::optional<GeantSetup> geant_setup;
 
     //! Whether using Geant4 or loading from ROOT
-    std::variant<GeantImport, FileImport> physics_import;
-    //! If using Geant4 or overriding or sparse input (NOT YET IMPLEMENTED)
-    std::optional<GeantDataImport> geant_data;
-    //! If loading from an existing input, option to update data
-    std::optional<UpdateImport> update;
+    std::variant<PhysicsFromGeant, PhysicsFromFile> physics_import;
 
     //! Primary particles
     Events events;

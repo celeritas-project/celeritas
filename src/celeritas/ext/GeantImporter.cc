@@ -85,16 +85,12 @@
 #include "geocel/inp/Model.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/inp/Grid.hh"
-#include "celeritas/io/AtomicRelaxationReader.hh"
 #include "celeritas/io/ImportData.hh"
-#include "celeritas/io/LivermorePEReader.hh"
-#include "celeritas/io/SeltzerBergerReader.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "GeantParticleView.hh"
 #include "GeantSetup.hh"
 
-#include "detail/AllElementReader.hh"
 #include "detail/GeantMaterialPropertyGetter.hh"
 #include "detail/GeantOpticalModelImporter.hh"
 #include "detail/GeantProcessImporter.hh"
@@ -1351,8 +1347,6 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         (selected.materials && selected.particles != DataSelection::none)
             || selected.processes == DataSelection::none,
         << "materials and particles must be enabled if requesting processes");
-    ScopedMem record_mem("GeantImporter.load");
-    ScopedProfiling profile_this{"import-geant"};
     ImportData imported;
 
     auto have_process = [&imported](ImportProcessClass ipc) {
@@ -1436,40 +1430,6 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         {
             imported.optical_params = import_optical_parameters();
             imported.optical_physics = import_optical_physics();
-        }
-    }
-
-    if (selected.reader_data)
-    {
-        CELER_LOG(status) << "Loading external elemental data";
-        ScopedTimeLog scoped_time;
-
-        detail::AllElementReader load_data{imported.elements};
-
-        if (have_process(ImportProcessClass::e_brems))
-        {
-            inp::SeltzerBergerModel sb_model;
-            sb_model.atomic_xs = load_data(SeltzerBergerReader{});
-            imported.seltzer_berger = std::move(sb_model);
-        }
-        if (have_process(ImportProcessClass::photoelectric))
-        {
-            inp::LivermorePhotoModel lp_model;
-            lp_model.atomic_xs
-                = load_data(LivermorePEReader{selected.interpolation});
-            imported.livermore_photo = std::move(lp_model);
-        }
-        if (G4EmParameters::Instance()->Fluo())
-        {
-            // TODO: only read auger data if that option is enabled
-            inp::AtomicRelaxation ar_process;
-            ar_process.atomic_xs = load_data(AtomicRelaxationReader{});
-            imported.atomic_relaxation = std::move(ar_process);
-        }
-        else if (G4EmParameters::Instance()->Auger())
-        {
-            CELER_LOG(warning) << "Auger emission is ignored because "
-                                  "fluorescent atomic relaxation is disabled";
         }
     }
 
