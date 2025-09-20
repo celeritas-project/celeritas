@@ -1190,6 +1190,7 @@ ImportEmParameters import_em_parameters()
     import.linear_loss_limit = g4.LinearLossLimit();
     import.lowest_electron_energy = g4.LowestElectronEnergy() * mev_scale;
     import.lowest_muhad_energy = g4.LowestMuHadEnergy() * mev_scale;
+    import.fluorescence = g4.Fluo();
     import.auger = g4.Auger();
     import.msc_step_algorithm = to_msc_step_algorithm(g4.MscStepLimitType());
     import.msc_muhad_step_algorithm
@@ -1429,6 +1430,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         if (selected.processes & DataSelection::em)
         {
             imported.em_params = import_em_parameters();
+            imported.em_params.interpolation = selected.interpolation;
         }
         if (selected.processes & DataSelection::optical)
         {
