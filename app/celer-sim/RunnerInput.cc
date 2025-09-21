@@ -273,6 +273,9 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
     {
         // Set up Geant4
         si.geant_setup = ri.physics_options;
+        // Set up processes to spawn optical photons
+        si.geant_setup->optical.cherenkov.enable = ri.optical.cherenkov;
+        si.geant_setup->optical.scintillation.enable = ri.optical.scintillation;
 
         inp::PhysicsFromGeant geant_import;
         CELER_VALIDATE(
