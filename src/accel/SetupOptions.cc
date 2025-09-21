@@ -277,14 +277,14 @@ inp::FrameworkInput to_inp(SetupOptions const& so)
 
     inp::FrameworkInput result;
     result.system = load_system(so);
-    result.geant.ignore_processes = so.ignore_processes;
-    result.geant.data_selection.interpolation = so.interpolation;
+    result.physics_import.ignore_processes = so.ignore_processes;
+    result.physics_import.data_selection.interpolation = so.interpolation;
 
     // Correctly assign DataSelection import flags when muons are present
     auto const selection = GIDS::optical
                            | (includes_muon() ? GIDS::em : GIDS::em_basic);
-    result.geant.data_selection.particles = selection;
-    result.geant.data_selection.processes = selection;
+    result.physics_import.data_selection.particles = selection;
+    result.physics_import.data_selection.processes = selection;
 
     result.adjust = ProblemSetup{so};
     return result;

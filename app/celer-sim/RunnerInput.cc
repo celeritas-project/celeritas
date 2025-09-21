@@ -267,14 +267,14 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
             ends_with(ri.physics_file, ".root"),
             << R"(physics_file must be a ROOT input: use GDML for geometry_file and if forcing an ORANGE geometry, use the `ORANGE_FORCE_INPUT` environment variable)");
         // Read ROOT input
-        si.physics_import = inp::FileImport{ri.physics_file};
+        si.physics_import = inp::PhysicsFromFile{ri.physics_file};
     }
     else
     {
         // Set up Geant4
         si.geant_setup = ri.physics_options;
 
-        inp::GeantImport geant_import;
+        inp::PhysicsFromGeant geant_import;
         CELER_VALIDATE(
             ri.poly_spline_order == 1
                 || ri.interpolation == InterpolationType::poly_spline,
@@ -305,7 +305,7 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
     CELER_ASSERT(num_events > 0);
 
     // Save number of events
-    auto& ctl = std::get<inp::Problem>(si.problem).control;
+    auto& ctl = si.problem.control;
     ctl.capacity.events = num_events;
     // Limit number of streams
     ctl.num_streams = std::min(ctl.num_streams, num_events);
