@@ -51,6 +51,10 @@ FrameworkLoaded framework_input(inp::FrameworkInput& fi)
     // Set up problem
     inp::Problem problem;
 
+    // Copy optical physics from import data
+    // (TODO: will be replaced)
+    problem.physics.optical = imported.optical_physics;
+
     // Load geometry, surfaces, regions from Geant4 world pointer
     problem.model = geo->make_model_input();
 

@@ -98,26 +98,6 @@ struct OpticalPhysics
 
 //---------------------------------------------------------------------------//
 /*!
- * Hadronic physics processes and options.
- *
- * This can be used to enable or set up Geant4 hadronic physics.
- */
-struct HadronicPhysics
-{
-    //! Whether physics group is to be used
-    explicit operator bool() const { return false; }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Decay processes and options.
- */
-struct DecayPhysics
-{
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Set up physics options.
  *
  * \todo Move optical and hadronic physics options from
@@ -132,17 +112,11 @@ struct DecayPhysics
  */
 struct Physics
 {
-    //! Enable electromagnetic physics
+    //! Physics that applies to offloaded EM particles
     EmPhysics em;
 
-    //! Enable optical photon physics
+    //! Physics for optical photons
     OpticalPhysics optical;
-
-    //! Enable hadronic physics
-    HadronicPhysics hadronic;
-
-    //! Enable decay physics
-    DecayPhysics decay;
 };
 
 //---------------------------------------------------------------------------//

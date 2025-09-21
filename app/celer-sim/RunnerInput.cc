@@ -203,12 +203,9 @@ inp::Problem load_problem(RunnerInput const& ri)
         }();
         p.tracking.limits.optical_step_iters = ri.optical.max_steps;
 
-        p.physics.optical = [&ri] {
-            inp::OpticalPhysics op;
-            op.cherenkov = ri.optical.cherenkov;
-            op.scintillation = ri.optical.scintillation;
-            return op;
-        }();
+        // NOTE: optical physics setup is applied to g4 physics list and
+        // then copied from import data (i.e., you can't currently disable it
+        // when using a ROOT input)
     }
 
     // Simple calorimeter scoring

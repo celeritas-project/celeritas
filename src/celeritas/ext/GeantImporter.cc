@@ -653,14 +653,14 @@ import_optical_materials(detail::GeoOpticalIdMap const& geo_to_opt)
 /*!
  * Import optical surface physics information.
  */
-inp::OpticalPhysics import_optical_physics()
+inp::SurfacePhysics import_optical_surface_physics()
 {
-    inp::OpticalPhysics result;
+    inp::SurfacePhysics result;
     auto geo = celeritas::global_geant_geo().lock();
     CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
 
     MultiExceptionHandler handle;
-    detail::GeantSurfacePhysicsLoader load_surface(result.surfaces);
+    detail::GeantSurfacePhysicsLoader load_surface(result);
     for (auto sid : range(SurfaceId(geo->num_surfaces())))
     {
         CELER_TRY_HANDLE(load_surface(sid), handle);
@@ -669,20 +669,19 @@ inp::OpticalPhysics import_optical_physics()
 
     // Default Geant4 surface
     size_type num_phys_surfaces{0};
-    for (auto const& mats : result.surfaces.materials)
+    for (auto const& mats : result.materials)
     {
         num_phys_surfaces += mats.size() + 1;
     }
     PhysSurfaceId default_surface(num_phys_surfaces);
-    result.surfaces.materials.push_back({});
-    result.surfaces.roughness.polished.emplace(default_surface,
-                                               inp::NoRoughness{});
-    result.surfaces.reflectivity.fresnel.emplace(default_surface,
-                                                 inp::FresnelReflection{});
-    result.surfaces.interaction.dielectric_dielectric.emplace(
+    result.materials.push_back({});
+    result.roughness.polished.emplace(default_surface, inp::NoRoughness{});
+    result.reflectivity.fresnel.emplace(default_surface,
+                                        inp::FresnelReflection{});
+    result.interaction.dielectric_dielectric.emplace(
         default_surface, inp::ReflectionForm::from_spike());
 
-    CELER_LOG(debug) << "Loaded " << result.surfaces.materials.size()
+    CELER_LOG(debug) << "Loaded " << result.materials.size()
                      << " optical surfaces (" << num_phys_surfaces
                      << " physics surfaces)";
     CELER_ENSURE(result || (geo->num_surfaces() == 0));
@@ -903,17 +902,15 @@ auto import_processes(GeantImporter::DataSelection selected,
                       std::vector<inp::Particle> const& particles,
                       std::vector<ImportElement> const& elements,
                       std::vector<ImportPhysMaterial> const& materials,
-                      detail::GeoOpticalIdMap const& geo_to_opt)
-    -> std::tuple<std::vector<ImportProcess>,
-                  std::vector<ImportMscModel>,
-                  std::vector<ImportOpticalModel>>
+                      detail::GeoOpticalIdMap const& geo_to_opt,
+                      ImportData& imported)
 {
     ParticleFilter include_particle{selected.processes};
     ProcessFilter include_process{selected.processes};
 
-    std::vector<ImportProcess> processes;
-    std::vector<ImportMscModel> msc_models;
-    std::vector<ImportOpticalModel> optical_models;
+    auto& processes = imported.processes;
+    auto& msc_models = imported.msc_models;
+    auto& optical_models = imported.optical_models;
 
     static celeritas::TypeDemangler<G4VProcess> const demangle_process;
     std::unordered_map<G4VProcess const*, G4ParticleDefinition const*> visited;
@@ -936,6 +933,8 @@ auto import_processes(GeantImporter::DataSelection selected,
                 << prev->second->GetParticleName();
             return;
         }
+
+        // TODO: change this to a map of processes like g4vg/g4org
 
         if (auto const* gg_process
             = dynamic_cast<G4GammaGeneralProcess const*>(&process))
@@ -1002,11 +1001,13 @@ auto import_processes(GeantImporter::DataSelection selected,
                 import_optical_model(optical::ImportModelClass::wls2));
         }
 #endif
-        else if (dynamic_cast<G4Cerenkov const*>(&process)
-                 || dynamic_cast<G4Scintillation const*>(&process))
+        else if (dynamic_cast<G4Cerenkov const*>(&process))
         {
-            // The data needed for Cherenkov and scintillation is imported from
-            // the optical material property table
+            imported.optical_physics.cherenkov = true;
+        }
+        else if (dynamic_cast<G4Scintillation const*>(&process))
+        {
+            imported.optical_physics.scintillation = true;
         }
         else
         {
@@ -1076,9 +1077,8 @@ auto import_processes(GeantImporter::DataSelection selected,
     }
 
     CELER_LOG(debug) << "Loaded " << processes.size() << " processes";
+    CELER_LOG(debug) << "Loaded " << msc_models.size() << " msc models";
     CELER_LOG(debug) << "Loaded " << optical_models.size() << " optical models";
-    return {
-        std::move(processes), std::move(msc_models), std::move(optical_models)};
 }
 
 //---------------------------------------------------------------------------//
@@ -1401,14 +1401,12 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         }
         if (selected.processes != DataSelection::none)
         {
-            std::tie(imported.processes,
-                     imported.msc_models,
-                     imported.optical_models)
-                = import_processes(selected,
-                                   imported.particles,
-                                   imported.elements,
-                                   imported.phys_materials,
-                                   geo_to_opt);
+            import_processes(selected,
+                             imported.particles,
+                             imported.elements,
+                             imported.phys_materials,
+                             geo_to_opt,
+                             imported);
 
             if (have_process(ImportProcessClass::mu_pair_prod))
             {
@@ -1444,7 +1442,8 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         if (selected.processes & DataSelection::optical)
         {
             imported.optical_params = import_optical_parameters();
-            imported.optical_physics = import_optical_physics();
+            imported.optical_physics.surfaces
+                = import_optical_surface_physics();
         }
     }
 

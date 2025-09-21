@@ -65,16 +65,19 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
     }
 
     // Import physics data from Geant4 or ROOT: see Import.hh
-    ImportData imported = std::visit(
-        [](auto const& physics_source_opts) {
-            ImportData result;
-            setup::physics_from(physics_source_opts, result);
-            return result;
+    ImportData imported;
+    std::visit(
+        [&imported](auto const& physics_source_opts) {
+            setup::physics_from(physics_source_opts, imported);
         },
         si.physics_import);
 
     // Load from external Geant4 data files
     setup::physics_from(inp::PhysicsFromGeantFiles{}, imported);
+
+    // Copy optical physics from import data
+    // (TODO: will be replaced)
+    problem.physics.optical = imported.optical_physics;
 
     StandaloneLoaded result;
 
