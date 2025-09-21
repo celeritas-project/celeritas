@@ -97,7 +97,7 @@
 #include "detail/GeantSurfacePhysicsLoader.hh"
 
 inline constexpr double mev_scale = 1 / CLHEP::MeV;
-inline constexpr celeritas::PDGNumber g4_photon_pdg{-22};
+inline constexpr celeritas::PDGNumber g4_optical_pdg{-22};
 
 namespace celeritas
 {
@@ -143,7 +143,7 @@ struct ParticleFilter
         {
             return (which & DataSelection::em_ex);
         }
-        else if (pdgnum == g4_photon_pdg)
+        else if (pdgnum == g4_optical_pdg)
         {
             return (which & DataSelection::optical);
         }
@@ -369,16 +369,31 @@ import_particles(GeantImporter::DataSelection::Flags particle_flags)
     ParticleFilter include_particle{particle_flags};
     while (particle_iterator())
     {
-        G4ParticleDefinition const& p = *(particle_iterator.value());
+        GeantParticleView particle_view{*(particle_iterator.value())};
 
-        PDGNumber pdg{p.GetPDGEncoding()};
-        if (!include_particle(pdg))
+        if (!include_particle(particle_view.pdg()))
         {
             continue;
         }
 
-        particles.push_back(import_particle(p));
+        particles.push_back([&particle_view] {
+            inp::Particle result;
+            result.name = particle_view.name();
+            result.pdg = particle_view.pdg();
+            result.mass = particle_view.mass();
+            result.charge = particle_view.charge();
+            result.decay_constant = particle_view.decay_constant();
+
+            if (G4VERSION_NUMBER < 1070 && particle_view.is_optical_photon())
+            {
+                // Before 10.7, geant4 uses PDG 0 plus a unique string name
+                result.pdg = g4_optical_pdg;
+            }
+
+            return result;
+        }());
     }
+
     CELER_LOG(debug) << "Loaded " << particles.size() << " particles";
     CELER_ENSURE(!particles.empty());
     return particles;
@@ -1037,7 +1052,7 @@ auto import_processes(GeantImporter::DataSelection selected,
         auto* photon_def = G4OpticalPhoton::OpticalPhoton();
         CELER_ASSERT(photon_def);
 
-        if (!include_particle(g4_photon_pdg))
+        if (!include_particle(g4_optical_pdg))
         {
             CELER_LOG(debug) << "Filtered all processes from particle '"
                              << photon_def->GetParticleName() << "'";
@@ -1148,16 +1163,16 @@ ImportOpticalParameters import_optical_parameters()
     auto* params = G4OpticalParameters::Instance();
     CELER_ASSERT(params);
 
-    auto to_enum = [](std::string time_profile) {
+    auto to_enum = [](std::string const& time_profile) {
         if (time_profile == "delta")
         {
             return WlsTimeProfile::delta;
         }
-        if (time_profile == "exponential")
+        else if (time_profile == "exponential")
         {
             return WlsTimeProfile::exponential;
         }
-        CELER_ASSERT_UNREACHABLE();
+        CELER_NOT_IMPLEMENTED("unknown WLS time profile " + time_profile);
     };
     iop.wls_time_profile = to_enum(params->GetWLSTimeProfile());
     iop.wls2_time_profile = to_enum(params->GetWLS2TimeProfile());
@@ -1435,26 +1450,6 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
 
     imported.units = units::NativeTraits::label();
     return imported;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Create particle input.
- */
-inp::Particle import_particle(G4ParticleDefinition const& p)
-{
-    GeantParticleView particle_view{p};
-
-    inp::Particle result;
-    result.name = particle_view.name();
-    result.pdg = particle_view.pdg();
-    result.mass = particle_view.mass();
-    result.charge = particle_view.charge();
-
-    // Use decay constant from GeantParticleView (already in correct units)
-    result.decay_constant = particle_view.decay_constant();
-
-    return result;
 }
 
 //---------------------------------------------------------------------------//

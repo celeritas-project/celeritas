@@ -5,8 +5,8 @@
 
 .. _profiling:
 
-Profiling
-=========
+Performance profiling
+=====================
 
 Since the primary motivator of Celeritas is performance on GPU hardware,
 profiling is a necessity. Celeritas uses NVTX (CUDA),  ROCTX (HIP) or Perfetto (CPU)

@@ -76,7 +76,7 @@ PrimaryGenerator::operator()(Generator& rng)
         result.polarization = make_unit_vector(
             make_orthogonal(sample_angle_(rng), result.direction));
     } while (CELER_UNLIKELY(
-        !soft_zero(dot_product(result.polarization, result.direction))));
+        !is_soft_orthogonal(result.polarization, result.direction)));
 
     return result;
 }

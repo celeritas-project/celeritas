@@ -11,6 +11,7 @@
 #include <accel/TrackingManagerIntegration.hh>
 #include <corecel/Assert.hh>
 #include <corecel/io/Logger.hh>
+#include <corecel/sys/TraceCounter.hh>
 
 #include "StepDiagnostic.hh"
 
@@ -61,9 +62,24 @@ void EventAction::ClearStepDiagnostic()
 /*!
  * At the end of each event, copy statistics from the local Celeritas state.
  */
+void EventAction::BeginOfEventAction(G4Event const* event)
+{
+    trace_counter("event", event->GetEventID());
+
+    // Start the range for the event
+    profile_this_.emplace("Event");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * At the end of each event, copy statistics from the local Celeritas state.
+ */
 void EventAction::EndOfEventAction(G4Event const* event)
 {
     CELER_VALIDATE(step_diagnostic(), << "step diagnostic was not constructed");
+
+    // End the range for the event
+    profile_this_.reset();
 
     // Note that the diagnostic is *const* (unmodified, thread safe) and the
     // state data (thread local!) is mutable

@@ -18,6 +18,7 @@
 #include "corecel/sys/Environment.hh"
 #include "celeritas/ext/RootFileManager.hh"
 #include "accel/SetupOptionsMessenger.hh"
+#include "accel/SharedParams.hh"
 
 #include "RunInputIO.json.hh"
 
@@ -132,6 +133,13 @@ void GlobalSetup::ReadInput(std::string const& filename)
                 << fi_hack_envname << "='" << filename << "'";
             options_->geometry_file = filename;
         }
+    }
+
+    if (input_.physics_options.muon)
+    {
+        // Offload muons in addition to EM tracks if enabled
+        options_->offload_particles
+            = SharedParams::supported_offload_particles();
     }
 
     // Output options

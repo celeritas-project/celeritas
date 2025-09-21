@@ -185,7 +185,7 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
         // Enforce orthogonality
         return make_unit_vector(make_orthogonal(pol, photon.direction));
     }();
-    CELER_ASSERT(soft_zero(dot_product(photon.polarization, photon.direction)));
+    CELER_ASSERT(is_soft_orthogonal(photon.polarization, photon.direction));
 
     // Sample position: endpoint (collision site) if neutral, else uniform
     real_type u = is_neutral_ ? 1 : UniformRealDist{}(rng);

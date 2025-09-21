@@ -7,6 +7,7 @@
 #pragma once
 
 #include <G4ParticleDefinition.hh>
+#include <G4Version.hh>
 
 #include "corecel/math/Quantity.hh"
 #include "celeritas/UnitTypes.hh"
@@ -49,8 +50,11 @@ class GeantParticleView
     // Decay constant [1/s]
     inline real_type decay_constant() const;
 
-    // Whether it is an antiparticle
+    // Whether it is antimatter
     inline bool is_antiparticle() const;
+
+    // Whether it is an optical photon
+    inline bool is_optical_photon() const;
 
   private:
     G4ParticleDefinition const& pd_;
@@ -82,6 +86,25 @@ auto GeantParticleView::decay_constant() const -> real_type
 bool GeantParticleView::is_antiparticle() const
 {
     return this->pdg() && this->pdg().get() < 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether it is an optical photon.
+ *
+ * Newer versions of Geant4 have a special PDG number.
+ */
+bool GeantParticleView::is_optical_photon() const
+{
+    if constexpr (G4VERSION_NUMBER >= 1070)
+    {
+        // Special Geant4 internal terminology for optical photon
+        return this->pdg() == PDGNumber{-22};
+    }
+    else
+    {
+        return this->pdg() == PDGNumber{0} && this->name() == "opticalphoton";
+    }
 }
 
 //---------------------------------------------------------------------------//

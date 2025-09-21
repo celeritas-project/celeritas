@@ -19,6 +19,8 @@
 #include <G4VUserPrimaryGeneratorAction.hh>
 #include <G4Version.hh>
 
+#include "corecel/Assert.hh"
+
 #if G4VERSION_NUMBER >= 1100
 #    include <G4RunManagerFactory.hh>
 #else
@@ -30,6 +32,8 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Environment.hh"
+#include "corecel/sys/ScopedProfiling.hh"
+#include "corecel/sys/TracingSession.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
@@ -47,6 +51,9 @@
 #include "accel/SetupOptions.hh"
 
 #include "PersistentSP.hh"
+#include "ShimSensitiveDetector.hh"
+
+using SPTracing = std::shared_ptr<celeritas::TracingSession>;
 
 namespace celeritas
 {
@@ -76,25 +83,31 @@ std::string thread_description()
 class RunAction final : public G4UserRunAction
 {
   public:
-    explicit RunAction(IntegrationTestBase* test)
-        : test_{test}, exceptions_([this](std::exception_ptr ep) {
-            this->handle_exception(ep);
-        })
+    RunAction(IntegrationTestBase* test, SPTracing tracing)
+        : test_{test}
+        , tracing_{std::move(tracing)}
+        , exceptions_(
+              [this](std::exception_ptr ep) { this->handle_exception(ep); })
     {
     }
 
     void BeginOfRunAction(G4Run const* run) final
     {
         CELER_LOG_LOCAL(debug) << "RunAction::BeginOfRunAction";
-        test_->BeginOfRunAction(run);
+        CELER_TRY_HANDLE(test_->BeginOfRunAction(run), this->handle_exception);
     }
     void EndOfRunAction(G4Run const* run) final
     {
         CELER_LOG_LOCAL(debug) << "RunAction::EndOfRunAction";
-        test_->EndOfRunAction(run);
+        CELER_TRY_HANDLE(test_->EndOfRunAction(run), this->handle_exception);
+        if (tracing_)
+        {
+            CELER_LOG_LOCAL(debug) << "Flushing Perfetto trace";
+            tracing_->flush();
+        }
     }
 
-    // TODO: push exception onto a vector that can be checked
+    // TODO: push exception onto a vector so we can do validation testing
     void handle_exception(std::exception_ptr ep)
     {
         try
@@ -107,13 +120,15 @@ class RunAction final : public G4UserRunAction
             if (cstring_equal(d.which, "Geant4"))
             {
                 // GeantExceptionHandler wrapped this error
-                FAIL() << '(' << thread_label() << ',' << d.condition
-                       << "): from " << d.file << ": " << d.what;
+                FAIL() << "GeantExceptionHandler caught runtime error ("
+                       << thread_label() << ',' << d.condition << "): from "
+                       << d.file << ": " << d.what;
             }
             else
             {
                 // Some other error
-                FAIL() << "From " << thread_description() << ": " << e.what();
+                FAIL() << "Caught runtime error from " << thread_description()
+                       << ": " << e.what();
             }
         }
         catch (std::exception const& e)
@@ -124,6 +139,7 @@ class RunAction final : public G4UserRunAction
 
   private:
     IntegrationTestBase* test_;
+    SPTracing tracing_;
     ScopedGeantExceptionHandler exceptions_;
 };
 
@@ -135,6 +151,17 @@ class EventAction final : public G4UserEventAction
 
     void BeginOfEventAction(G4Event const* event) final
     {
+        if (test_->HasFatalFailure())
+        {
+            CELER_LOG_LOCAL(critical)
+                << "Cancelling event " << event->GetEventID()
+                << " due to fatal test failure";
+            if (auto* event_mgr = G4EventManager::GetEventManager())
+            {
+                event_mgr->AbortCurrentEvent();
+            }
+            return;
+        }
         CELER_LOG_LOCAL(debug) << "EventAction::BeginOfEventAction";
         test_->BeginOfEventAction(event);
     }
@@ -152,19 +179,34 @@ class EventAction final : public G4UserEventAction
 class ActionInitialization final : public G4VUserActionInitialization
 {
   public:
-    explicit ActionInitialization(IntegrationTestBase* test) : test_{test} {}
+    explicit ActionInitialization(IntegrationTestBase* test) : test_{test}
+    {
+        if (CELERITAS_USE_PERFETTO && use_profiling())
+        {
+            tracing_ = std::make_unique<TracingSession>(
+                test_->make_unique_filename(".perf.proto"));
+            tracing_->start();
+        }
+    }
+
+    ~ActionInitialization()
+    {
+        CELER_TRY_HANDLE((CELER_LOG_LOCAL(debug)
+                          << R"(Tearing down action initialization)"),
+                         static_cast<void>);
+    }
 
     void BuildForMaster() const final
     {
         CELER_LOG_LOCAL(debug) << "ActionInitialization::BuildForMaster";
-        this->SetUserAction(new RunAction{test_});
+        this->SetUserAction(new RunAction{test_, tracing_});
     }
     void Build() const final
     {
         CELER_LOG_LOCAL(debug) << "ActionInitialization::Build";
 
         // Run and event actions
-        this->SetUserAction(new RunAction{test_});
+        this->SetUserAction(new RunAction{test_, tracing_});
         this->SetUserAction(new EventAction{test_});
 
         // Primary generator
@@ -191,6 +233,7 @@ class ActionInitialization final : public G4VUserActionInitialization
 
   private:
     IntegrationTestBase* test_;
+    SPTracing tracing_;
 };
 
 //---------------------------------------------------------------------------//
@@ -199,6 +242,16 @@ class ActionInitialization final : public G4VUserActionInitialization
 //---------------------------------------------------------------------------//
 // Default destructor to enable base class deletion and anchor vtable
 IntegrationTestBase::~IntegrationTestBase() = default;
+
+std::string IntegrationTestBase::make_unique_filename(std::string_view ext)
+{
+    std::string new_ext = "-";
+    new_ext += celeritas::getenv("CELER_OFFLOAD");
+    new_ext += "-";
+    new_ext += celeritas::tolower(celeritas::getenv("G4RUN_MANAGER_TYPE"));
+    new_ext += ext;
+    return ::celeritas::test::Test::make_unique_filename(new_ext);
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -319,10 +372,7 @@ SetupOptions IntegrationTestBase::make_setup_options()
     opts.make_along_step = celeritas::UniformAlongStepFactory();
 
     // Save diagnostic file to a unique name
-    std::string ext = "-" + celeritas::getenv("CELER_OFFLOAD");
-    ext += "-" + celeritas::tolower(celeritas::getenv("G4RUN_MANAGER_TYPE"));
-    ext += ".out.json";
-    opts.output_file = this->make_unique_filename(ext);
+    opts.output_file = this->make_unique_filename(".out.json");
     return opts;
 }
 
@@ -359,7 +409,7 @@ auto LarSphereIntegrationMixin::make_primary_input() const -> PrimaryInput
     result.energy = inp::MonoenergeticDistribution{MevEnergy{10}};
     result.shape = inp::PointDistribution{from_cm({99, 0.1, 0})};
     result.angle = inp::IsotropicDistribution{};
-    result.num_events = 4;
+    result.num_events = 4;  // Overridden with BeamOn
     result.primaries_per_event = 10;
     return result;
 }
@@ -372,8 +422,34 @@ auto LarSphereIntegrationMixin::make_sens_det(std::string const& sd_name)
     -> UPSensDet
 {
     EXPECT_EQ("detshell", sd_name);
+    return std::make_unique<ShimSensitiveDetector>(
+        sd_name,
+        [this](G4Step const* step) { return this->process_hit(step); });
+}
 
-    return std::make_unique<SimpleSensitiveDetector>(sd_name);
+//---------------------------------------------------------------------------//
+/*!
+ * Process a hit locally.
+ */
+void LarSphereIntegrationMixin::process_hit(G4Step const* step)
+{
+    if (!step || !step->GetTrack())
+    {
+        // Reduce testing overhead: google assertions allocate memory
+        ASSERT_TRUE(step);
+        ASSERT_TRUE(step->GetTrack());
+        return;
+    }
+
+    auto& track = *step->GetTrack();
+    if (!(track.GetWeight() > 0) || !track.GetVolume()
+        || !track.GetNextVolume())
+    {
+        EXPECT_GT(track.GetWeight(), 0);
+        EXPECT_TRUE(track.GetVolume());
+        // Since we don't have any detectors on the boundary of the problem:
+        EXPECT_TRUE(track.GetNextVolume());
+    }
 }
 
 //---------------------------------------------------------------------------//

@@ -196,12 +196,18 @@ SupportedOpticalPhysics::SupportedOpticalPhysics(Options const& options)
     params->SetScintTrackInfo(options_.scintillation.track_info);
 
     // WLS
-    params->SetWLSTimeProfile(
-        to_cstring(options_.wavelength_shifting.time_profile));
+    if (options_.wavelength_shifting)
+    {
+        params->SetWLSTimeProfile(
+            to_cstring(options_.wavelength_shifting.time_profile));
+    }
 
     // WLS2
-    params->SetWLS2TimeProfile(
-        to_cstring(options_.wavelength_shifting2.time_profile));
+    if (options_.wavelength_shifting2)
+    {
+        params->SetWLS2TimeProfile(
+            to_cstring(options_.wavelength_shifting2.time_profile));
+    }
 
     // boundary
     params->SetBoundaryInvokeSD(options_.boundary.invoke_sd);

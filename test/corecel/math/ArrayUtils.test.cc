@@ -91,6 +91,17 @@ TEST(ArrayUtilsTest, make_orthogonal)
         make_orthogonal(Dbl3{2, 1, 3}, make_unit_vector(Dbl3{1, 1, 0})));
 }
 
+TEST(ArrayUtilsTest, is_soft_orthogonal)
+{
+    EXPECT_TRUE(is_soft_orthogonal(Dbl3{2, 0, 0}, Dbl3{0, 0, 1}));
+    EXPECT_TRUE(is_soft_orthogonal(Dbl3{0, 1, 0}, Dbl3{1, 0, 0}));
+    EXPECT_TRUE(is_soft_orthogonal(Dbl3{0, 1, 1}, Dbl3{1, 0, 0}));
+    EXPECT_TRUE(is_soft_orthogonal(Dbl3{1e-13, 1, 0}, Dbl3{1, 0, 0}));
+
+    EXPECT_FALSE(is_soft_orthogonal(Dbl3{2, 1, 3}, Dbl3{1, 0, 0}));
+    EXPECT_FALSE(is_soft_orthogonal(Dbl3{1e-6, 1, 0}, Dbl3{1, 0, 0}));
+}
+
 TEST(ArrayUtilsTest, is_soft_unit_vector)
 {
     Real3 dir = make_unit_vector(Real3{1, 2, 3});

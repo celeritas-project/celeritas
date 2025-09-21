@@ -26,34 +26,48 @@ namespace celeritas
 /*!
  * Whether profiling is enabled.
  *
- * This is true only if the \c CELER_ENABLE_PROFILING environment variable is
- * set to a non-empty value. Profiling is never enabled if CUDA/HIP/Perfetto
- * isn't available.
+ * This is off by default but must be enabled (in conjunction with other tools;
+ * see \rstref{the profiling section,profiling} for more details). The
+ * \c CELER_ENABLE_PROFILING environment variable is used to override this
+ * behavior. Profiling is never enabled if CUDA/ROC-TX/Perfetto are
+ * unavailable.
  */
 bool use_profiling()
 {
     static bool const result = [] {
-        if (!celeritas::getenv("CELER_ENABLE_PROFILING").empty())
+        auto result = celeritas::getenv_flag("CELER_ENABLE_PROFILING", false);
+        if (result.value)
         {
-            if constexpr (CELERITAS_USE_PERFETTO || CELER_USE_DEVICE)
+            if constexpr (CELERITAS_USE_HIP && !CELERITAS_HAVE_ROCTX)
             {
-                if constexpr (CELERITAS_USE_HIP && !CELERITAS_HAVE_ROCTX)
-                {
-                    CELER_LOG(warning) << "Disabling profiling support "
-                                          "since ROC-TX is unavailable";
-                    return false;
-                }
-                CELER_LOG(info)
-                    << "Enabling profiling support since the "
-                       "'CELER_ENABLE_PROFILING' "
-                       "environment variable is present and non-empty";
-                return true;
+                CELER_LOG(error) << "Profiling support is disabled since "
+                                    "ROC-TX is unavailable";
+                return false;
             }
-            CELER_LOG(warning)
-                << "CELER_ENABLE_PROFILING is set but Celeritas "
-                   "was compiled without a profiling backend.";
+            else if constexpr (!CELER_USE_DEVICE && !CELERITAS_USE_PERFETTO)
+            {
+                CELER_LOG(error)
+                    << "CELER_ENABLE_PROFILING is set but Celeritas "
+                       "was compiled without a profiling backend";
+                return false;
+            }
         }
-        return false;
+
+        // Log level is 'debug' if user-specified, 'warning' if defaulted to
+        // false but Perfetto was compiled, 'debug' otherwise
+        auto msg = world_logger()(CELER_CODE_PROVENANCE,
+                                  !result.defaulted ? LogLevel::debug
+                                  : (CELERITAS_USE_PERFETTO && !result.value)
+                                      ? LogLevel::warning
+                                      : LogLevel::debug);
+
+        msg << (result.value ? "En" : "Dis") << "abling "
+            << (CELERITAS_USE_PERFETTO ? "Perfetto"
+                : CELERITAS_HAVE_ROCTX ? "ROC-TX"
+                : CELERITAS_USE_CUDA   ? "NVTX"
+                                       : "unavailable")
+            << " performance profiling";
+        return result.value;
     }();
     return result;
 }
