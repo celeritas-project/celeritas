@@ -63,6 +63,9 @@ struct EmPhysics
 //---------------------------------------------------------------------------//
 /*!
  * Optical physics processes, options, and surface definitions.
+ *
+ * \todo Processes that apply only to EM particles (cherenkov, scintillation)
+ * will live in EmPhysics
  */
 struct OpticalPhysics
 {
@@ -73,10 +76,10 @@ struct OpticalPhysics
      */
 
     //! Generate Cherenkov photons
-    bool cherenkov{true};
+    bool cherenkov{false};
 
     //! Generate scintillation photons
-    bool scintillation{true};
+    bool scintillation{false};
     //!@}
 
     //!@{
@@ -84,8 +87,13 @@ struct OpticalPhysics
     SurfacePhysics surfaces;
     //!@}
 
-    //! Whether the data are assigned
-    explicit operator bool() const { return static_cast<bool>(surfaces); }
+    //! \todo Move optical bulk models here
+
+    //! Whether optical physics is enabled
+    explicit operator bool() const
+    {
+        return cherenkov || scintillation || surfaces;
+    }
 };
 
 //---------------------------------------------------------------------------//
