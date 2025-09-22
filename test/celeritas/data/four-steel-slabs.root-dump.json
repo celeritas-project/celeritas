@@ -504,8 +504,8 @@
   },
   "optical_physics" : {
     "_typename" : "celeritas::inp::OpticalPhysics",
-    "cherenkov" : true,
-    "scintillation" : true,
+    "cherenkov" : false,
+    "scintillation" : false,
     "surfaces" : {
       "_typename" : "celeritas::inp::SurfacePhysics",
       "materials" : [[]],
