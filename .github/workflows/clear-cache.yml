@@ -48,7 +48,7 @@ jobs:
                 const now = Date.now();
                 if (now < globalBackoffUntil) {
                   const waitTime = globalBackoffUntil - now;
-                  console.log(`Global backoff active. Waiting ${waitTime/1000} seconds before attempting ${cache.key}...`);
+                  console.log(`Global backoff active. Waiting ${waitTime/1000} seconds before attempting to delete ${cache.key}...`);
                   await new Promise(resolve => setTimeout(resolve, waitTime));
                 }
 
