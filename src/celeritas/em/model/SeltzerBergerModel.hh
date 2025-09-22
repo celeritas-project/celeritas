@@ -40,7 +40,7 @@ class ParticleParams;
  *
  * Seltzer and Berger tabulated the scaled DCS (in mb) for elements 1 <= Z <=
  * 100 and incident charged particle energies from 1 keV to 10 GeV
- * in \citett{sb-brems-1986, https://doi.org/10.1016/0092-640X(86)90014-8}.
+ * in \citet{sb-brems-1986, https://doi.org/10.1016/0092-640X(86)90014-8}.
  */
 class SeltzerBergerModel final : public Model, public StaticConcreteAction
 {
