@@ -105,7 +105,7 @@ void ProblemSetup::operator()(inp::Problem& p) const
     {
         inp::OpticalPhysics optical_physics;
         optical_physics.cherenkov = true;
-        optical_physics.scintillation = false;
+        optical_physics.scintillation = true;
 
         p.physics.optical = optical_physics;
 
