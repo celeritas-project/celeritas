@@ -33,7 +33,7 @@ class MuPairProductionModel final : public Model, public StaticConcreteAction
     using HostRef = HostCRef<MuPairProductionData>;
     using DeviceRef = DeviceCRef<MuPairProductionData>;
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
-    using Input = inp::MuProductionModel;
+    using Input = inp::MuPairProductionModel;
     //!@}
 
   public:

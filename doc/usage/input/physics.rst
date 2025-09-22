@@ -6,6 +6,14 @@
 Physics
 =======
 
+.. note:: For discussion of model and process naming, see
+   issue 1562_ .
+
+.. _1562: https://github.com/celeritas-project/celeritas/pull/1562
+
+The selection and data used to create physics classes will be defined
+underneath this struct.
+
 .. doxygenstruct:: celeritas::inp::Physics
    :members:
    :no-link:
@@ -52,7 +60,7 @@ better extensibility and reduces kernel size/complexity on the GPU.
 Processes
 ---------
 
-.. doxygenstruct:: celeritas::inp::BremsProcess
+.. doxygenstruct:: celeritas::inp::BremsstrahlungProcess
    :members:
    :no-link:
 
@@ -88,7 +96,7 @@ Models
    :members:
    :no-link:
 
-.. doxygenstruct:: celeritas::inp::MuProductionModel
+.. doxygenstruct:: celeritas::inp::MuPairProductionModel
    :members:
    :no-link:
 

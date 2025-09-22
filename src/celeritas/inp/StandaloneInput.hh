@@ -23,10 +23,13 @@ namespace inp
  * Set up a Geant4 run manager and problem.
  *
  * \note We should change celer-g4 so it just uses \c GeantSetup as an outer
- * wrapper, rather than trying to be a Geant4 example. Or maybe just delete it.
+ * wrapper, rather than trying to be a Geant4 example. Or maybe just delete
+ * GeantSetup.
  *
  * \note Most of the "physics options" will be deleted. Only a few options
  * specific to Geant4, such as \c gamma_general , will be left.
+ *
+ * \todo Add run manager type, number of threads
  */
 using GeantSetup = GeantPhysicsOptions;
 
@@ -63,7 +66,7 @@ struct StandaloneInput
     System system;
     //! Base problem options and input data
     Problem problem;
-    //! Set up Geant4 (if all the data isn't serialized)
+    //! Set up Geant4 (if all the data isn't already loaded into Problem)
     std::optional<GeantSetup> geant_setup;
 
     //! Whether using Geant4 or loading from ROOT

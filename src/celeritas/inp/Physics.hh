@@ -35,7 +35,7 @@ namespace inp
 struct EmPhysics
 {
     //! Bremsstrahlung process
-    BremsProcess brems;
+    BremsstrahlungProcess brems;
     //! Electron+positron pair production process
     PairProductionProcess pair_production;
     //! Photoelectric effect
@@ -64,8 +64,7 @@ struct EmPhysics
 /*!
  * Optical physics processes, options, and surface definitions.
  *
- * \todo Processes that apply only to EM particles (cherenkov, scintillation)
- * will live in EmPhysics
+ * \todo Move cherenkov/scintillation to a OpticalGenPhysics class.
  */
 struct OpticalPhysics
 {
@@ -106,9 +105,8 @@ struct OpticalPhysics
  * \todo Add function for injecting user processes for
  *       \c celeritas::PhysicsParams
  *
- * \todo Separate bulk/volume physics (volumetric/discrete) from surface
- * physics (surface) from decay physics (time) since that's how the runtime
- * classes will be organized?
+ * \todo How to better group these, especially when adding
+ * hadronic/photonuclear/decay/...?
  */
 struct Physics
 {

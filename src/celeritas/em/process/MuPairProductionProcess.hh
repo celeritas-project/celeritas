@@ -28,7 +28,7 @@ class MuPairProductionProcess : public Process
     //! \name Type aliases
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
-    using ModelInput = inp::MuProductionModel;
+    using ModelInput = inp::MuPairProductionModel;
     //!@}
 
   public:

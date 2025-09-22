@@ -105,7 +105,7 @@ struct ImportData
 
     // Models
     inp::LivermorePhotoModel livermore_photo;
-    inp::MuProductionModel mu_production;
+    inp::MuPairProductionModel mu_production;
     inp::SeltzerBergerModel seltzer_berger;
 
     // Processes

@@ -67,7 +67,7 @@
 // Input models
 #pragma link C++ class celeritas::inp::InteractionModels+;
 #pragma link C++ class celeritas::inp::LivermorePhotoModel+;
-#pragma link C++ class celeritas::inp::MuProductionModel+;
+#pragma link C++ class celeritas::inp::MuPairProductionModel+;
 #pragma link C++ class celeritas::inp::ReflectivityModels+;
 #pragma link C++ class celeritas::inp::RoughnessModels+;
 #pragma link C++ class celeritas::inp::SeltzerBergerModel+;

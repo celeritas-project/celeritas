@@ -21,11 +21,16 @@ namespace inp
 /*!
  * Construct a physics process for bremsstrahlung.
  */
-struct BremsProcess
+struct BremsstrahlungProcess
 {
+    //! Lower-energy electron/positron
     SeltzerBergerModel sb;
+    //! High-energy electron/positron
     RelBremsModel rel;
+    //! Muon (-/+)
     MuBremsModel mu;
+
+    //! TODO: macroscopic xs tables
 
     //! Whether process has data and is to be used
     explicit operator bool() const { return sb || rel || mu; }
@@ -33,14 +38,14 @@ struct BremsProcess
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a physics process for pair production from gammas.
+ * Construct a physics process for electron/positron pair production.
  */
 struct PairProductionProcess
 {
-    //! Bethe-Heitler pair production
+    //! Pair production from gammas
     BetheHeitlerProductionModel bethe_heitler;
-    //! Muonic pair production
-    MuProductionModel mu;
+    //! Pair production from muons
+    MuPairProductionModel mu;
 
     //! Whether process has data and is to be used
     explicit operator bool() const { return bethe_heitler || mu; }
@@ -80,7 +85,6 @@ struct AtomicRelaxation
 //! \name Process aliases
 //! \todo rename `em/model` to match, merge muon and electron processes
 
-using BremsstrahlungProcess = BremsProcess;
 using GammaConversionProcess = PairProductionProcess;
 using MuPairProductionProcess = PairProductionProcess;
 

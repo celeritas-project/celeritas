@@ -26,7 +26,7 @@ struct SeltzerBergerModel
     //! Differential cross sections [(log MeV, unitless) -> millibarn]
     std::map<AtomicNumber, inp::TwodGrid> atomic_xs;
 
-    //! TODO: macro xs tables
+    //! TODO: microscopic elemental xs tables
 
     //! Whether model has data and is to be used
     explicit operator bool() const { return !atomic_xs.empty(); }
@@ -78,7 +78,7 @@ struct BetheHeitlerProductionModel
  * in \f$ \log T \f$; the y grid stores the ratio \f$ \log \epsilon_p / T \f$.
  * The values are the unnormalized CDF.
  *
- * \todo move directly into MuProductionModel?
+ * \todo move directly into MuPairProductionModel?
  */
 struct MuPairProductionEnergyTransferTable
 {
@@ -98,9 +98,9 @@ struct MuPairProductionEnergyTransferTable
 /*!
  * Pair production from muons.
  */
-struct MuProductionModel
+struct MuPairProductionModel
 {
-    //! Grid for sampling table
+    //! Grid for sampling the energy of the electron-positron
     MuPairProductionEnergyTransferTable muppet_table;
 
     //! True if data is assigned

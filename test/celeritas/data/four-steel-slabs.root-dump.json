@@ -471,7 +471,7 @@
     "atomic_xs" : []
   },
   "mu_production" : {
-    "_typename" : "celeritas::inp::MuProductionModel",
+    "_typename" : "celeritas::inp::MuPairProductionModel",
     "muppet_table" : {
       "_typename" : "celeritas::inp::MuPairProductionEnergyTransferTable",
       "atomic_number" : [{

@@ -6,14 +6,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <functional>
 #include <memory>
 
-#include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/inp/PhysicsModel.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/Applicability.hh"
-#include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Process.hh"
@@ -35,8 +32,7 @@ class BremsstrahlungProcess : public Process
     using SBInput = inp::SeltzerBergerModel;
     //!@}
 
-    // Options for the Bremsstrahlung process
-    // TODO: just use BremsProcess
+    // Options for the Bremsstrahlung process (will be replaced by inp)
     struct Options
     {
         //! Account for LPM effect at very high energies

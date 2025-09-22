@@ -66,7 +66,7 @@ LivermorePEModel::LivermorePEModel(ActionId id,
         AtomicNumber z = materials.get(el_id).atomic_number();
         auto iter = input.atomic_xs.find(z);
         CELER_VALIDATE(iter != input.atomic_xs.end(),
-                       << "missing SB atomic xs for Z=" << z.get());
+                       << "missing Livermore atomic xs for Z=" << z.get());
 
         insert_element(iter->second);
     }

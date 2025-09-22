@@ -1416,7 +1416,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
                                    && mu_minus.grids == mu_plus.grids,
                                << "muon pair production sampling tables for "
                                   "mu- and mu+ differ");
-                inp::MuProductionModel mupp_model;
+                inp::MuPairProductionModel mupp_model;
                 mupp_model.muppet_table = std::move(mu_minus);
                 imported.mu_production = std::move(mupp_model);
             }
