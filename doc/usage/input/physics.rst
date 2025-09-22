@@ -17,20 +17,6 @@ Electromagnetic
    :members:
    :no-link:
 
-Decay
-^^^^^
-
-.. doxygenstruct:: celeritas::inp::DecayPhysics
-   :members:
-   :no-link:
-
-Hadronic
-^^^^^^^^
-
-.. doxygenstruct:: celeritas::inp::HadronicPhysics
-   :members:
-   :no-link:
-
 Optical
 ^^^^^^^
 
@@ -70,6 +56,18 @@ Processes
    :members:
    :no-link:
 
+.. doxygenstruct:: celeritas::inp::PairProductionProcess
+   :members:
+   :no-link:
+
+.. doxygenstruct:: celeritas::inp::PhotoelectricProcess
+   :members:
+   :no-link:
+
+.. doxygenstruct:: celeritas::inp::AtomicRelaxation
+   :members:
+   :no-link:
+
 
 Models
 ------
@@ -83,5 +81,17 @@ Models
    :no-link:
 
 .. doxygenstruct:: celeritas::inp::MuBremsModel
+   :members:
+   :no-link:
+
+.. doxygenstruct:: celeritas::inp::BetheHeitlerProductionModel
+   :members:
+   :no-link:
+
+.. doxygenstruct:: celeritas::inp::MuProductionModel
+   :members:
+   :no-link:
+
+.. doxygenstruct:: celeritas::inp::LivermorePhotoModel
    :members:
    :no-link:

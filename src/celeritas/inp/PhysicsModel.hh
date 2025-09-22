@@ -77,6 +77,8 @@ struct BetheHeitlerProductionModel
  * the logarithm of the incident muon energy \f$ T \f$ using equal spacing
  * in \f$ \log T \f$; the y grid stores the ratio \f$ \log \epsilon_p / T \f$.
  * The values are the unnormalized CDF.
+ *
+ * \todo move directly into MuProductionModel?
  */
 struct MuPairProductionEnergyTransferTable
 {
