@@ -113,9 +113,9 @@ endif()
 
 if(CELERITAS_BUILTIN_G4VG)
   celer_fetch_external(
-    G4VG 1.0.4
+    G4VG 1.0.5
     "https://github.com/celeritas-project/g4vg/releases/download/v@VERSION@/g4vg-@VERSION@.tar.gz"
-    ac38878aedaf9fe628f498290cf4fa6cdd21980b7b83663ce8ef3c8f3ff31cb2
+    fa44d071aaf95de596f7b22d2062830acd7e154a3bc9d67ad5a306eff64630d2
   )
   foreach(_var BUILD_TESTS DEBUG)
     set(G4VG_${_var} ${CELERITAS_${_var}})
