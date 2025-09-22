@@ -27,7 +27,9 @@ void StreamLogHandler::operator()(LogProvenance prov,
         // Output problem line/file for debugging or high level
         os_ << color_code('x') << prov.file;
         if (prov.line)
+        {
             os_ << ':' << prov.line;
+        }
         os_ << color_code(' ') << ": ";
     }
 
