@@ -49,6 +49,12 @@ std::ostream& operator<<(std::ostream& os, CleanedProvenance ssd)
         // Only print after the last found path component
         os << ssd.filename.substr(max_pos + 1);
     }
+    else
+    {
+        // Print entire filename
+        os << ssd.filename;
+    }
+
     if (ssd.line > 0)
     {
         os << ':' << ssd.line;
