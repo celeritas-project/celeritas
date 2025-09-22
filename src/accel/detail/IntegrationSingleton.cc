@@ -15,6 +15,7 @@
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "geocel/GeantUtils.hh"
 
+#include "LoggerImpl.hh"
 #include "../ExceptionConverter.hh"
 #include "../Logger.hh"
 #include "../SetupOptionsMessenger.hh"
@@ -85,12 +86,17 @@ LocalTransporter& IntegrationSingleton::local_transporter()
 
 //---------------------------------------------------------------------------//
 /*!
- * Assign global setup options before constructing params.
+ * Assign global setup options after run manager initialization but before run.
  */
 void IntegrationSingleton::setup_options(SetupOptions&& opts)
 {
     CELER_TRY_HANDLE(
         {
+            // Run manager initialization requires no G4ParticleDef exists
+            CELER_VALIDATE(
+                G4RunManager::GetRunManager(),
+                << R"(options cannot be set before G4RunManager is constructed)");
+            // SharedParams require options to be set at BeginOfRun
             CELER_VALIDATE(
                 !params_,
                 << R"(options cannot be set after Celeritas is constructed)");
@@ -124,25 +130,6 @@ OffloadMode IntegrationSingleton::mode() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Set up logging.
- */
-void IntegrationSingleton::initialize_logger()
-{
-    CELER_TRY_HANDLE(
-        {
-            auto* run_man = G4RunManager::GetRunManager();
-            CELER_VALIDATE(run_man,
-                           << "logger cannot be set up before run manager");
-            CELER_VALIDATE(!params_,
-                           << "logger cannot be set up after shared params");
-            celeritas::world_logger() = celeritas::MakeMTWorldLogger(*run_man);
-            celeritas::self_logger() = celeritas::MakeMTSelfLogger(*run_man);
-        },
-        ExceptionConverter{"celer.init.logger"});
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct shared params on master (or single) thread.
  *
  * \todo The query for CeleritasDisabled initializes the environment before
@@ -169,6 +156,11 @@ void IntegrationSingleton::initialize_shared_params()
                 CELER_VALIDATE(
                     !params_,
                     << R"(BeginOfRunAction cannot be called more than once)");
+
+                // Update logger in case run manager has changed number of
+                // threads, or user called initialization after run manager
+                this->update_logger();
+
                 params_.Initialize(options_);
             },
             call_g4exception);
@@ -307,8 +299,35 @@ IntegrationSingleton::IntegrationSingleton()
         {
             scoped_mpi_ = std::make_unique<ScopedMpiInit>();
             messenger_ = std::make_unique<SetupOptionsMessenger>(&options_);
+            this->update_logger();
         },
         ExceptionConverter{"celer.init.singleton"});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create or update the number of threads for the logger.
+ */
+void IntegrationSingleton::update_logger()
+{
+    if (auto* run_man = G4RunManager::GetRunManager())
+    {
+        if (!have_created_logger_)
+        {
+            celeritas::world_logger() = celeritas::MakeMTWorldLogger(*run_man);
+            celeritas::self_logger() = celeritas::MakeMTSelfLogger(*run_man);
+            have_created_logger_ = true;
+        }
+        else
+        {
+            if (auto* handle
+                = celeritas::world_logger().handle().target<MtSelfWriter>())
+            {
+                // Update thread count
+                *handle = MtSelfWriter{get_geant_num_threads(*run_man)};
+            }
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//
