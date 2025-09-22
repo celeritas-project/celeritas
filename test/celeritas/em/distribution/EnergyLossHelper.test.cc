@@ -86,14 +86,12 @@ class EnergyLossDistributionTest : public Test
                                        pdg::electron(),
                                        MevMass{0.5109989461},
                                        ElementaryCharge{-1},
-                                       stable_decay_constant,
-                                       {}},
+                                       stable_decay_constant},
                                       {"mu_minus",
                                        pdg::mu_minus(),
                                        MevMass{105.6583745},
                                        ElementaryCharge{-1},
-                                       stable_decay_constant,
-                                       {}}};
+                                       stable_decay_constant}};
         particles = std::make_shared<ParticleParams>(std::move(par_inp));
 
         // Construct shared cutoff params

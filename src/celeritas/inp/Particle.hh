@@ -20,24 +20,12 @@ namespace inp
 {
 //---------------------------------------------------------------------------//
 /*!
- * Branching ratio and daughters for a decay channel.
- */
-struct DecayChannel
-{
-    DecayChannelType type{DecayChannelType::size_};
-    double branching_ratio{};
-    std::vector<PDGNumber> daughters;
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Particle data.
  */
 struct Particle
 {
     using Charge = Quantity<units::EElectron, double>;
     using MevMass = Quantity<units::MevPerCsq, double>;
-    using DecayTable = std::vector<DecayChannel>;
 
     //! Particle name
     std::string name;
@@ -49,8 +37,6 @@ struct Particle
     Charge charge;
     //! Decay constant [1/time]
     double decay_constant{constants::stable_decay_constant};
-    //! Decay channels
-    DecayTable decay_channels;
 };
 
 //---------------------------------------------------------------------------//

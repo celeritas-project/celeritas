@@ -970,15 +970,13 @@ std::vector<ImportRegion> import_regions()
 /*!
  * Import a decay table from a Geant4 particle definition.
  */
-std::vector<inp::DecayChannel> import_decay_table(G4ParticleDefinition const& p)
+inp::DecayPhysics::DecayTable import_decay_table(G4ParticleDefinition const& p)
 {
-    auto* g4_table = p.GetDecayTable();
-    if (!g4_table)
-    {
-        return {};
-    }
+    inp::DecayPhysics::DecayTable result;
 
-    std::vector<inp::DecayChannel> result;
+    auto* g4_table = p.GetDecayTable();
+    CELER_ASSERT(g4_table);
+
     for (auto channel_idx : range(g4_table->entries()))
     {
         auto* g4_channel = (*g4_table)[channel_idx];
@@ -990,15 +988,6 @@ std::vector<inp::DecayChannel> import_decay_table(G4ParticleDefinition const& p)
         for (auto daughter_idx : range(g4_channel->GetNumberOfDaughters()))
         {
             auto const* daughter = g4_channel->GetDaughter(daughter_idx);
-            if (!daughter)
-            {
-                CELER_LOG(warning)
-                    << "Ignoring decay table for particle "
-                    << p.GetParticleName() << " since daughter '"
-                    << g4_channel->GetDaughterName(daughter_idx)
-                    << "' is not defined";
-                return {};
-            }
             channel.daughters.push_back(PDGNumber(daughter->GetPDGEncoding()));
         }
         result.push_back(std::move(channel));
@@ -1039,8 +1028,9 @@ auto import_processes(GeantImporter::DataSelection selected,
                               G4VProcess const& process) -> void {
         if (dynamic_cast<G4Decay const*>(&process))
         {
-            // Add decay process if enabled for this particle
-            decay.particles.insert({PDGNumber(particle.GetPDGEncoding())});
+            // Store decay table if decay process is enabled for this particle
+            decay.tables.insert({PDGNumber(particle.GetPDGEncoding()),
+                                 import_decay_table(particle)});
             return;
         }
 

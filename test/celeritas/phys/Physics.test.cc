@@ -872,9 +872,8 @@ auto EPlusAnnihilationTest::build_particle() -> SPConstParticle
          pdg::positron(),
          MevMass{0.5109989461},
          ElementaryCharge{1},
-         stable_decay_constant,
-         {}},
-        {"gamma", pdg::gamma(), zero, zero, stable_decay_constant, {}}});
+         stable_decay_constant},
+        {"gamma", pdg::gamma(), zero, zero, stable_decay_constant}});
 }
 
 //---------------------------------------------------------------------------//

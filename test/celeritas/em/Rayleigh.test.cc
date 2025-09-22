@@ -38,7 +38,7 @@ class RayleighInteractorTest : public InteractorHostTestBase
 
         // Set up shared particle data for RayleighModel
         Base::set_particle_params(
-            {{"gamma", pdg::gamma(), zero, zero, stable_decay_constant, {}}});
+            {{"gamma", pdg::gamma(), zero, zero, stable_decay_constant}});
         auto const& particles = *this->particle_params();
         model_ref_.gamma = particles.find(pdg::gamma());
 

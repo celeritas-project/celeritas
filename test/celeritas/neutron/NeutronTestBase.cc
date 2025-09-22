@@ -31,8 +31,8 @@ NeutronTestBase::NeutronTestBase()
 
     // Setup default particle params
     ParticleParams::Input par_inp = {
-        {"neutron", pdg::neutron(), neutron_mass, zero, stable_decay_constant, {}},
-        {"proton", pdg::proton(), proton_mass, zero, stable_decay_constant, {}}};
+        {"neutron", pdg::neutron(), neutron_mass, zero, stable_decay_constant},
+        {"proton", pdg::proton(), proton_mass, zero, stable_decay_constant}};
     this->set_particle_params(std::move(par_inp));
 
     // Setup default material params

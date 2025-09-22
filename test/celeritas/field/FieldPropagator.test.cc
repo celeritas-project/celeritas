@@ -107,20 +107,17 @@ auto FieldPropagatorTestBase::build_particle() const -> SPConstParticle
                                    pdg::electron(),
                                    MevMass{0.5109989461},
                                    ElementaryCharge{-1},
-                                   stable_decay_constant,
-                                   {}},
+                                   stable_decay_constant},
                                   {"positron",
                                    pdg::positron(),
                                    MevMass{0.5109989461},
                                    ElementaryCharge{1},
-                                   stable_decay_constant,
-                                   {}},
+                                   stable_decay_constant},
                                   {"gamma",
                                    pdg::gamma(),
                                    zero_quantity(),
                                    zero_quantity(),
-                                   stable_decay_constant,
-                                   {}}};
+                                   stable_decay_constant}};
     return std::make_shared<ParticleParams>(std::move(defs));
 }
 

@@ -463,8 +463,7 @@ TEST_F(ProcessBuilderTest, neutron_elastic)
          pdg::neutron(),
          units::MevMass{939.5654133},
          zero_quantity(),
-         constants::stable_decay_constant,
-         {}},
+         constants::stable_decay_constant},
     };
     SPConstParticle particle_params
         = std::make_shared<ParticleParams>(std::move(particle_inp));
