@@ -141,6 +141,9 @@ CoreTrackView::operator=(TrackInitializer const& init)
     // Initialize the physics state
     this->physics() = PhysicsTrackView::Initializer{};
 
+    // Initialize the surface state
+    this->surface_physics().reset();
+
     return *this;
 }
 

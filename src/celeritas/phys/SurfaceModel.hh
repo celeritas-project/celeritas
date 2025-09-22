@@ -45,7 +45,7 @@ class SurfaceModel
     virtual ~SurfaceModel() = 0;
 
     //! Get the list of surfaces/layers this applies to
-    virtual VecSurfaceLayer get_surfaces() const = 0;
+    virtual VecSurfaceLayer const& get_surfaces() const = 0;
 
     //// ID/LABEL INTERFACE ////
 

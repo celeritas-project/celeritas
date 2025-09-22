@@ -11,80 +11,14 @@
 #include "celeritas/inp/SurfacePhysics.hh"
 #include "celeritas/phys/SurfacePhysicsMapBuilder.hh"
 
+#include "detail/BuiltinSurfaceModelBuilder.hh"
+
 namespace celeritas
 {
 namespace optical
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-/*!
- * A fake model used to mock actual surface physics models.
- *
- * TODO: Remove and replace with actual built-in surface models.
- */
-template<class T>
-class FakeModel : public SurfaceModel
-{
-  public:
-    FakeModel(SurfaceModelId model_id,
-              std::string_view label,
-              std::map<PhysSurfaceId, T> const& layer_map)
-        : SurfaceModel(model_id, label), layers_(layer_map)
-    {
-    }
-
-    VecSurfaceLayer get_surfaces() const final
-    {
-        VecSurfaceLayer result;
-        for ([[maybe_unused]] auto const& [layer, data] : layers_)
-        {
-            result.push_back(PhysSurfaceId(layer.get()));
-        }
-        return result;
-    }
-
-    void step(CoreParams const&, CoreStateHost&) const final {}
-    void step(CoreParams const&, CoreStateDevice&) const final {}
-
-  private:
-    std::map<PhysSurfaceId, T> layers_;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Helper to build fake models.
- *
- * Doesn't insert empty models and keeps track of number of physics surfaces
- * for validation purposes.
- */
-class FakeModelBuilder
-{
-  public:
-    FakeModelBuilder(std::vector<std::shared_ptr<SurfaceModel>>& models)
-        : models_(models)
-    {
-    }
-
-    template<class T>
-    void operator()(std::string_view label,
-                    std::map<PhysSurfaceId, T> const& layer_map)
-    {
-        if (!layer_map.empty())
-        {
-            models_.push_back(std::make_shared<FakeModel<T>>(
-                SurfaceModelId(models_.size()), label, layer_map));
-            num_surf_ += layer_map.size();
-        }
-    }
-
-    size_type num_surfaces() const { return num_surf_; }
-
-  private:
-    std::vector<std::shared_ptr<SurfaceModel>>& models_;
-    size_type num_surf_{0};
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Calculate number of physics surfaces as defined by interstitial materials.
@@ -196,24 +130,23 @@ auto SurfacePhysicsParams::build_models(
     for (auto step : range(SurfacePhysicsOrder::size_))
     {
         // Build fake models
-        FakeModelBuilder build_model{step_models[step]};
+        detail::BuiltinSurfaceModelBuilder build_model{step_models[step]};
         switch (step)
         {
             case SurfacePhysicsOrder::roughness:
-                build_model("polished", input.roughness.polished);
-                build_model("smear", input.roughness.smear);
-                build_model("gaussian", input.roughness.gaussian);
+                build_model.build_fake("polished", input.roughness.polished);
+                build_model.build_fake("smear", input.roughness.smear);
+                build_model.build_fake("gaussian", input.roughness.gaussian);
                 break;
-
             case SurfacePhysicsOrder::reflectivity:
-                build_model("grid", input.reflectivity.grid);
-                build_model("fresnel", input.reflectivity.fresnel);
+                build_model.build_fake("grid", input.reflectivity.grid);
+                build_model.build_fake("fresnel", input.reflectivity.fresnel);
                 break;
             case SurfacePhysicsOrder::interaction:
-                build_model("dielectric-dielectric",
-                            input.interaction.dielectric_dielectric);
-                build_model("dielectric-metal",
-                            input.interaction.dielectric_metal);
+                build_model.build_fake("dielectric-dielectric",
+                                       input.interaction.dielectric_dielectric);
+                build_model.build_fake("dielectric-metal",
+                                       input.interaction.dielectric_metal);
                 break;
             default:
                 CELER_ASSERT_UNREACHABLE();

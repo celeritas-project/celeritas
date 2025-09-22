@@ -148,6 +148,7 @@ struct SurfacePhysicsStateData
     StateItems<OptMatId> post_volume_material;
 
     StateItems<SurfaceTrackPosition> surface_position;
+    StateItems<SubsurfaceDirection> track_direction;
     StateItems<Real3> facet_normal;
 
     //! Whether data is assigned
@@ -155,6 +156,7 @@ struct SurfacePhysicsStateData
     {
         return !surface.empty() && surface.size() == surface_orientation.size()
                && surface.size() == surface_position.size()
+               && surface.size() == track_direction.size()
                && surface.size() == pre_volume_material.size()
                && surface.size() == post_volume_material.size()
                && surface.size() == global_normal.size()
@@ -174,6 +176,7 @@ struct SurfacePhysicsStateData
         surface_orientation = other.surface_orientation;
         global_normal = other.global_normal;
         surface_position = other.surface_position;
+        track_direction = other.track_direction;
         pre_volume_material = other.pre_volume_material;
         post_volume_material = other.post_volume_material;
         facet_normal = other.facet_normal;
@@ -196,6 +199,7 @@ resize(SurfacePhysicsStateData<Ownership::value, M>* state, size_type size)
     resize(&state->surface_orientation, size);
     resize(&state->global_normal, size);
     resize(&state->surface_position, size);
+    resize(&state->track_direction, size);
     resize(&state->pre_volume_material, size);
     resize(&state->post_volume_material, size);
     resize(&state->facet_normal, size);

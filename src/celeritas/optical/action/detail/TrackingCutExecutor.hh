@@ -31,6 +31,11 @@ struct TrackingCutExecutor
 //---------------------------------------------------------------------------//
 CELER_FUNCTION void TrackingCutExecutor::operator()(CoreTrackView& track)
 {
+    if (track.surface_physics().is_crossing_boundary())
+    {
+        return;
+    }
+
     using Energy = ParticleTrackView::Energy;
 
     auto deposited = track.particle().energy().value();

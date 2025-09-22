@@ -33,7 +33,7 @@ class MockSurfaceModel final : public SurfaceModel
     {
     }
 
-    VecSurfaceLayer get_surfaces() const final { return surfaces_; }
+    VecSurfaceLayer const& get_surfaces() const final { return surfaces_; }
 
   private:
     VecSurfaceLayer surfaces_;

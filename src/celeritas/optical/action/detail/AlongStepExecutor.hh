@@ -34,6 +34,11 @@ struct AlongStepExecutor
 //---------------------------------------------------------------------------//
 CELER_FUNCTION void AlongStepExecutor::operator()(CoreTrackView& track)
 {
+    if (track.surface_physics().is_crossing_boundary())
+    {
+        return;
+    }
+
     auto sim = track.sim();
 
     CELER_ASSERT(sim.status() == TrackStatus::alive);
