@@ -11,7 +11,6 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/io/Logger.hh"
 
 #include "Algorithms.hh"
 
@@ -135,18 +134,6 @@ class MomentCalculator
         }
         mean /= integral;
         variance = variance / integral - ipow<2>(mean);
-
-        if (x.size() == 2)
-        {
-            // Treating the distribution as uniform when only two sample points
-            // are given
-            T dx = x.back() - x.front();
-            variance = ipow<2>(dx) / 12;
-            CELER_LOG(warning)
-                << "Variance evaluated for two sample points"
-                << " using uniform fallback over range [" << x.front() << ", "
-                << x.back() << "] with variance=" << variance;
-        }
         return {mean, variance};
     }
 };
