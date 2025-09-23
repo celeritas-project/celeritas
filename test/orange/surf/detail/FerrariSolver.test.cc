@@ -37,7 +37,7 @@ class FerrariSolverTest : public ::celeritas::test::Test
             ASSERT_EQ(expected.size(), actual.size());
             for (auto i : range(expected.size()))
             {
-                EXPECT_SOFT_EQ(expected[i], actual[i])
+                EXPECT_SOFT_EQ(expected[i], actual[i]);
             }
         }
 
@@ -59,9 +59,9 @@ class FerrariSolverTest : public ::celeritas::test::Test
         {
             FerrariSolver solve_quartic(1,1,1,1);
             real_type bigroot = solve_quartic.dominant_root_normalized_cubic(bcd[0], bcd[1], bcd[2]);
-            EXPECT_SOFT_EQ(expected, bigroot)
+            EXPECT_SOFT_EQ(expected, bigroot);
         }
-}
+};
 
 //---------------------------------------------------------------------------//
 /*
@@ -194,7 +194,7 @@ TEST_F(FerrariSolverTest, surf_one_root)
     {
         expect_surface_roots(
             Intersections(1.0, no_intersection(), no_intersection(), no_intersection()),
-            Coeffs4(1, 5, 9. 5)
+            Coeffs4(1, 5, 9, 5)
         );
     }
     // x**4 - 2*x**3 + x**2
