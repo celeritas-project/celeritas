@@ -125,12 +125,12 @@ TEST_F(FerrariSolverTest, one_root)
 
 TEST_F(FerrariSolverTest, two_roots)
 {
-    // x**4 - 5*x**3 + 9.000001*x**2 - 7.000003*x + 2.000002
+    // x**4 + x**3 - 5*x**2 - 7*x + 10
     // Two roots at 2, 1, two imaginary roots
     {
         expect_nonsurface_roots(
             Intersections(1.0, 2.0, no_intersection(), no_intersection()),
-            Coeffs5(1, -5, 9.000001, -7.000003, 2.000002)
+            Coeffs5(1, 1, -5, -7, 10)
         );
     }
     // x**4 - 6*x**3 + 13*x**2 - 12*x + 4
@@ -158,7 +158,7 @@ TEST_F(FerrariSolverTest, three_roots)
     {
         expect_nonsurface_roots(
             Intersections(1.0, 2.0, 3.0, no_intersection()),
-            Coeffs5(1, -5, 5, 5, 6)
+            Coeffs5(1, -5, 5, 5, -6)
         );
     }
 }
@@ -189,12 +189,12 @@ TEST_F(FerrariSolverTest, surf_zero_roots)
 
 TEST_F(FerrariSolverTest, surf_one_root)
 {
-    // x**4 + 5*x**3 + 9*x**2 + 5*x
+    // x**4 + 3*x**3 + 1*x**2 + -5*x
     // Surface, one root at 1, two imaginary roots
     {
         expect_surface_roots(
             Intersections(1.0, no_intersection(), no_intersection(), no_intersection()),
-            Coeffs4(1, 5, 9, 5)
+            Coeffs4(1, 3, 1, -5)
         );
     }
     // x**4 - 2*x**3 + x**2
