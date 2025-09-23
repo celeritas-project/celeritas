@@ -7,6 +7,7 @@
 #pragma once
 
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/SoftEqual.hh"
 
 namespace celeritas
 {
@@ -26,12 +27,27 @@ struct PhotonPhasor
 {
     Real3 direction;
     Real3 polarization;
+
+    //! Whether the phaser is a valid photon state
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return is_soft_unit_vector(direction)
+               && is_soft_unit_vector(polarization)
+               && soft_zero(dot_product(direction, polarization));
+    }
 };
 
 struct SurfaceInteraction
 {
-    bool crossed_surface{false};
-    PhotonPhasor state;
+    enum Action
+    {
+        absorb,
+        reflect,
+        refract
+    };
+
+    Action action{absorb};
+    PhotonPhasor photon;
 };
 
 //---------------------------------------------------------------------------//
