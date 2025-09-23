@@ -21,7 +21,7 @@ namespace celeritas
 /*!
  * Bremsstrahlung process for electrons and positrons.
  */
-class BremsstrahlungProcess : public Process
+class BremsstrahlungProcess : public InteractionProcess
 {
   public:
     //!@{

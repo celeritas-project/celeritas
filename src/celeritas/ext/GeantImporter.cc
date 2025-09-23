@@ -453,8 +453,6 @@ import_particles(GeantImporter::DataSelection::Flags particle_flags)
             result.mass = particle_view.mass();
             result.charge = particle_view.charge();
             result.decay_constant = particle_view.decay_constant();
-            result.decay_table
-                = import_decay_table(*(particle_iterator.value()));
 
             if (G4VERSION_NUMBER < 1070 && particle_view.is_optical_photon())
             {
@@ -985,9 +983,21 @@ inp::DecayPhysics::DecayTable import_decay_table(G4ParticleDefinition const& p)
         inp::DecayChannel channel;
         channel.type = to_decay_channel_type(g4_channel);
         channel.branching_ratio = g4_channel->GetBR();
-        for (auto daughter_idx : range(g4_channel->GetNumberOfDaughters()))
+
+        // Exclude the neutrino daughters for muon decay
+        //! \todo Remove once neutrinos are included in \c MuDecayInteractor
+        size_type num_daughters = channel.type == DecayChannelType::muon
+                                      ? 1
+                                      : g4_channel->GetNumberOfDaughters();
+
+        for (auto daughter_idx : range(num_daughters))
         {
             auto const* daughter = g4_channel->GetDaughter(daughter_idx);
+            CELER_VALIDATE(daughter,
+                           << "decay process is enabled for particle "
+                           << p.GetParticleName() << ", but daughter '"
+                           << g4_channel->GetDaughterName(daughter_idx)
+                           << "' is not defined");
             channel.daughters.push_back(PDGNumber(daughter->GetPDGEncoding()));
         }
         result.push_back(std::move(channel));
@@ -1029,6 +1039,9 @@ auto import_processes(GeantImporter::DataSelection selected,
         if (dynamic_cast<G4Decay const*>(&process))
         {
             // Store decay table if decay process is enabled for this particle
+            CELER_LOG(debug) << "Saving process '" << process.GetProcessName()
+                             << "' for particle " << particle.GetParticleName()
+                             << " (" << particle.GetPDGEncoding() << ')';
             decay.tables.insert({PDGNumber(particle.GetPDGEncoding()),
                                  import_decay_table(particle)});
             return;

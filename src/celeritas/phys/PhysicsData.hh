@@ -12,6 +12,7 @@
 #include "corecel/data/StackAllocatorData.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/decay/DecayData.hh"
 #include "celeritas/em/data/AtomicRelaxationData.hh"
 #include "celeritas/em/data/EPlusGGData.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
@@ -132,6 +133,7 @@ struct ProcessGroup
     UniformTable energy_loss;  //!< Process-integrated energy loss
     UniformTable range;  //!< Process-integrated range
     UniformTable inverse_range;  //!< Inverse process-integrated range
+    DecayTableData decay;  //!< Decay channels and branching ratios
     ParticleProcessId at_rest;  //!< ID of the particle's at-rest process
 
     //! True if assigned and valid
@@ -243,6 +245,10 @@ struct PhysicsParamsScalars
     ActionId::size_type model_to_action{};
     //! Number of physics models
     ModelId::size_type num_models{};
+    //! Number of decay channels
+    ModelId::size_type num_channels{};
+    //! ID of the decay process
+    ProcessId decay;
 
     // User-configurable constants
     real_type min_eprime_over_e{};  //!< xi [unitless]
@@ -300,7 +306,7 @@ struct PhysicsParamsScalars
     //! Indicate an interaction failed to allocate memory
     CELER_FORCEINLINE_FUNCTION ActionId failure_action() const
     {
-        return ActionId{model_to_action + num_models};
+        return ActionId{model_to_action + num_models + num_channels};
     }
 };
 
@@ -323,6 +329,8 @@ struct PhysicsParamsData
     using ParticleItems = Collection<T, W, M, ParticleId>;
     template<class T>
     using ParticleModelItems = Collection<T, W, M, ParticleModelId>;
+    template<class T>
+    using DecayChannelItems = Collection<T, W, M, DecayChannelId>;
 
     //// DATA ////
 
@@ -348,6 +356,12 @@ struct PhysicsParamsData
     ParticleModelItems<ModelId> model_ids;
     Items<ParticleModelId> pmodel_ids;
     Items<ProcessId> process_ids;
+
+    // Decay table storage
+    Items<ParticleId> daughters;
+    Items<DecayChannelId> channel_ids;
+    DecayChannelItems<DecayChannelData> channels;
+    DecayChannelItems<ActionId> actions;
 
     // Backend storage
     Items<real_type> reals;
@@ -384,6 +398,11 @@ struct PhysicsParamsData
         model_ids = other.model_ids;
         pmodel_ids = other.pmodel_ids;
         process_ids = other.process_ids;
+
+        daughters = other.daughters;
+        channel_ids = other.channel_ids;
+        channels = other.channels;
+        actions = other.actions;
 
         reals = other.reals;
 
@@ -454,6 +473,7 @@ struct PhysicsStateData
 
     StateItems<PhysicsTrackState> state;  //!< Track state [track]
     StateItems<MscStep> msc_step;  //!< Internal MSC data [track]
+    StateItems<DecayChannelId> decay_channel;  //!< Sampled channel [track]
 
     Items<real_type> per_process_xs;  //!< XS [track][particle process]
 
@@ -478,6 +498,7 @@ struct PhysicsStateData
         CELER_EXPECT(other);
         state = other.state;
         msc_step = other.msc_step;
+        decay_channel = other.decay_channel;
 
         per_process_xs = other.per_process_xs;
 
@@ -501,6 +522,10 @@ inline void resize(PhysicsStateData<Ownership::value, M>* state,
     CELER_EXPECT(params.scalars.max_particle_processes > 0);
     resize(&state->state, size);
     resize(&state->msc_step, size);
+    if (params.scalars.decay)
+    {
+        resize(&state->decay_channel, size);
+    }
     resize(&state->per_process_xs,
            size * params.scalars.max_particle_processes);
     resize(&state->relaxation, params.hardwired.relaxation, size);

@@ -135,8 +135,16 @@ class PhysicsTrackView
         TabulatedElementSelector make_element_selector(UniformTableId,
                                                        Energy) const;
 
+    // Sample a decay channel according to the branching ratios
+    template<class Engine>
+    inline CELER_FUNCTION DecayChannelId select_decay_channel(Engine&) const;
+
     // ID of the particle's at-rest process
     inline CELER_FUNCTION ParticleProcessId at_rest_process() const;
+
+    // Get the daughters for a decay channel
+    inline CELER_FUNCTION Span<ParticleId const>
+        daughters(DecayChannelId) const;
 
     //// PARAMETER DATA ////
 
@@ -145,6 +153,9 @@ class PhysicsTrackView
 
     // Convert a selected model ID into a simulation action ID
     inline CELER_FUNCTION ActionId model_to_action(ModelId) const;
+
+    // Convert a selected decay channel ID into a simulation action ID
+    inline CELER_FUNCTION ActionId channel_to_action(DecayChannelId) const;
 
     // Get the model ID corresponding to the given ParticleModelId
     inline CELER_FUNCTION ModelId model_id(ParticleModelId) const;
@@ -605,6 +616,23 @@ PhysicsTrackView::make_element_selector(UniformTableId table_id,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Sample a decay channel according to the branching ratios.
+ */
+template<class Engine>
+CELER_FUNCTION DecayChannelId
+PhysicsTrackView::select_decay_channel(Engine& rng) const
+{
+    auto const& table = this->process_group().decay;
+    CELER_ASSERT(table);
+    auto branching_ratios = params_.reals[table.branching_ratios];
+    auto idx = make_selector(
+        [&branching_ratios](size_type i) { return branching_ratios[i]; },
+        branching_ratios.size())(rng);
+    return params_.channel_ids[table.channel_ids[idx]];
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * ID of the particle's at-rest process.
  *
  * If the particle can have a discrete interaction at rest, this returns the \c
@@ -613,6 +641,21 @@ PhysicsTrackView::make_element_selector(UniformTableId table_id,
 CELER_FUNCTION ParticleProcessId PhysicsTrackView::at_rest_process() const
 {
     return this->process_group().at_rest;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the daughters for a decay channel.
+ */
+CELER_FUNCTION Span<ParticleId const>
+PhysicsTrackView::daughters(DecayChannelId channel_id) const
+{
+    CELER_EXPECT(channel_id < params_.channel_ids.size());
+    auto const& table = this->process_group().decay;
+    CELER_ASSERT(table);
+    auto const& channel = params_.channels[channel_id];
+    CELER_ASSERT(channel);
+    return params_.daughters[channel.daughters];
 }
 
 //---------------------------------------------------------------------------//
@@ -641,6 +684,21 @@ CELER_FUNCTION ActionId PhysicsTrackView::model_to_action(ModelId model) const
 {
     CELER_ASSERT(model < params_.scalars.num_models);
     return ActionId{model.unchecked_get() + params_.scalars.model_to_action};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a sampled decay channel ID into a simulation action ID.
+ *
+ * Unlike the model-to-action ID conversion, there isn't a one-to-one
+ * correspondence between the channel ID and the action ID. Multiple channel
+ * IDs can map to a single channel action.
+ */
+CELER_FUNCTION ActionId
+PhysicsTrackView::channel_to_action(DecayChannelId channel) const
+{
+    CELER_ASSERT(channel < params_.actions.size());
+    return params_.actions[channel];
 }
 
 //---------------------------------------------------------------------------//

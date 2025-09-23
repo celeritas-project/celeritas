@@ -92,6 +92,24 @@ char const* to_cstring(NuclearFormFactorType value)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get a string corresponding to the decay channel.
+ */
+char const* to_cstring(DecayChannelType value)
+{
+    static EnumStringMapper<DecayChannelType> const to_cstring_impl{
+        "dalitz",
+        "kl3",
+        "muon",
+        "neutron_beta",
+        "phase_space",
+        "pion_radiative",
+        "tau_leptonic",
+    };
+    return to_cstring_impl(value);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get a string corresponding to the wavelength shifting time model selection.
  */
 char const* to_cstring(WlsTimeProfile value)

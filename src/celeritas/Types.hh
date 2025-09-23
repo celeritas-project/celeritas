@@ -68,6 +68,9 @@ using TrackId = OpaqueId<struct Track_>;
 //! Opaque index of particle-nucleon cascade channel
 using ChannelId = OpaqueId<struct Channel_>;
 
+//! Opaque index of decay channel
+using DecayChannelId = OpaqueId<struct DecayChannelData>;
+
 //! Opaque index to one elemental component datum in a particular material
 using ElementComponentId = OpaqueId<struct MatElementComponent>;
 
@@ -192,6 +195,17 @@ enum class MscStepLimitAlgorithm
 };
 
 //---------------------------------------------------------------------------//
+//! Nuclear form factor model for Coulomb scattering
+enum class NuclearFormFactorType
+{
+    none,
+    flat,
+    exponential,
+    gaussian,
+    size_
+};
+
+//---------------------------------------------------------------------------//
 //! Decay channel type
 enum class DecayChannelType
 {
@@ -202,17 +216,6 @@ enum class DecayChannelType
     phase_space,
     pion_radiative,
     tau_leptonic,
-    size_
-};
-
-//---------------------------------------------------------------------------//
-//! Nuclear form factor model for Coulomb scattering
-enum class NuclearFormFactorType
-{
-    none,
-    flat,
-    exponential,
-    gaussian,
     size_
 };
 
@@ -290,6 +293,9 @@ char const* to_cstring(MscStepLimitAlgorithm value);
 
 // Get a string corresponding to the nuclear form factor model
 char const* to_cstring(NuclearFormFactorType value);
+
+// Get a string corresponding to the decay channel
+char const* to_cstring(DecayChannelType value);
 
 // Get a string corresponding to the interpolation method
 char const* to_cstring(InterpolationType value);

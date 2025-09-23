@@ -19,7 +19,7 @@ namespace celeritas
 /*!
  * Compton scattering process for gammas.
  */
-class ComptonProcess : public Process
+class ComptonProcess : public InteractionProcess
 {
   public:
     //!@{

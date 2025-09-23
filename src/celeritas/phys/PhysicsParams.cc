@@ -52,6 +52,7 @@
 #include "PhysicsData.hh"
 #include "Process.hh"
 
+#include "detail/DecayTableInserter.hh"
 #include "detail/DiscreteSelectAction.hh"
 #include "detail/EnergyMaxXsCalculator.hh"
 #include "detail/PreStepAction.hh"
@@ -87,6 +88,7 @@ bool ignore_particle(PDGNumber pdg)
  */
 PhysicsParams::PhysicsParams(Input inp)
     : processes_(std::move(inp.processes))
+    , decay_(std::move(inp.decay))
     , relaxation_(std::move(inp.relaxation))
 {
     CELER_EXPECT(!processes_.empty());
@@ -136,6 +138,9 @@ PhysicsParams::PhysicsParams(Input inp)
         // Emit models for associated processes
         models_ = this->build_models(inp.action_registry);
 
+        // Emit channels for the decay process
+        channels_ = this->build_channels(inp.action_registry);
+
         // Place "failure" *after* all the model IDs
         auto failure_action = make_shared<ImplicitPhysicsAction>(
             action_reg.next_id(),
@@ -149,7 +154,7 @@ PhysicsParams::PhysicsParams(Input inp)
     HostValue host_data;
     this->build_options(inp.options, &host_data);
     this->build_ids(*inp.particles, &host_data);
-    this->build_tables(inp.options, *inp.materials, &host_data);
+    this->build_tables(inp, &host_data);
     this->build_model_tables(*inp.materials, &host_data);
 
     // Add step limiter if being used (TODO: remove this hack from physics)
@@ -205,6 +210,9 @@ auto PhysicsParams::processes(ParticleId id) const -> SpanConstProcessId
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
+/*!
+ * Construct models and add to the action registry.
+ */
 auto PhysicsParams::build_models(ActionRegistry* mgr) const -> VecModel
 {
     VecModel models;
@@ -229,6 +237,33 @@ auto PhysicsParams::build_models(ActionRegistry* mgr) const -> VecModel
 
     CELER_ENSURE(!models.empty());
     return models;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct decay channels and add to the action registry.
+ */
+auto PhysicsParams::build_channels(ActionRegistry* reg) const -> VecChannel
+{
+    if (!decay_)
+    {
+        // No decay process
+        return {};
+    }
+
+    // Construct channels, assigning each channel ID
+    auto id_iter = Process::ActionIdIter{reg->next_id()};
+    auto result = decay_->build_channels(id_iter);
+    CELER_ASSERT(!result.empty());
+    for (auto const& channel : result)
+    {
+        CELER_ASSERT(channel);
+        CELER_ASSERT(channel->action_id() == *id_iter++);
+
+        // Add channel to action registry
+        reg->insert(channel);
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -315,7 +350,7 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
     data->scalars.model_to_action = this->model(ModelId{0})->action_id().get();
 
     // Note: use map to keep ProcessId sorted
-    std::vector<MapProcessModel> particle_models(particles.size());
+    std::vector<MapProcessModel> particle_to_proc(particles.size());
     std::vector<ModelId> temp_model_ids;
     ParticleModelId::size_type pm_idx{0};
 
@@ -339,11 +374,24 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
                            << " MeV) to be less than upper energy limit ("
                            << value_as<ModelGroup::Energy>(applic.upper)
                            << " MeV) for model " << m.label());
-            particle_models[applic.particle.get()][process_id].push_back(
+            particle_to_proc[applic.particle.get()][process_id].push_back(
                 {value_as<ModelGroup::Energy>(applic.lower),
                  value_as<ModelGroup::Energy>(applic.upper),
                  ParticleModelId{pm_idx++}});
             temp_model_ids.push_back(mid);
+        }
+    }
+    if (decay_)
+    {
+        // Store decay process ID
+        data->scalars.decay = ProcessId(processes_.size());
+        for (auto pid : range(ParticleId(particles.size())))
+        {
+            if (decay_->is_applicable(pid))
+            {
+                // Add null models for decay process
+                particle_to_proc[pid.get()][data->scalars.decay].push_back({});
+            }
         }
     }
     make_builder(&data->model_ids)
@@ -355,13 +403,14 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
     CollectionBuilder pmodel_ids(&data->pmodel_ids);
     DedupeCollectionBuilder reals(&data->reals);
 
-    process_groups.reserve(particle_models.size());
+    process_groups.reserve(particle_to_proc.size());
 
     // Loop over particle IDs, set ProcessGroup
     ProcessId::size_type max_particle_processes = 0;
     for (auto par_id : range(ParticleId{particles.size()}))
     {
-        auto& process_to_models = particle_models[par_id.get()];
+        // Get map of process ID to model range for this particle
+        auto& process_to_models = particle_to_proc[par_id.get()];
         if (process_to_models.empty()
             && !ignore_particle(particles.id_to_pdg(par_id)))
         {
@@ -380,8 +429,15 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
             // Add process ID
             temp_processes.push_back(pid_models.first);
 
+            if (pid_models.second.empty())
+            {
+                // Skip constructing model data for decay, which has no models
+                CELER_ASSERT(pid_models.first == data->scalars.decay);
+                temp_model_groups.push_back({});
+                continue;
+            }
+
             std::vector<ModelRange>& models = pid_models.second;
-            CELER_ASSERT(!models.empty());
 
             // Construct model data
             std::vector<real_type> temp_energy_grid;
@@ -431,6 +487,7 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
     }
     data->scalars.max_particle_processes = max_particle_processes;
     data->scalars.num_models = this->num_models();
+    data->scalars.num_channels = this->channels_.size();
 
     // Assign hardwired models that do on-the-fly xs calculation
     for (auto model_id : range(ModelId(this->num_models())))
@@ -493,9 +550,7 @@ void PhysicsParams::build_hardwired()
 /*!
  * Construct cross section data.
  */
-void PhysicsParams::build_tables(Options const& opts,
-                                 MaterialParams const& mats,
-                                 HostValue* data) const
+void PhysicsParams::build_tables(Input const& inp, HostValue* data) const
 {
     CELER_EXPECT(*data);
 
@@ -510,6 +565,7 @@ void PhysicsParams::build_tables(Options const& opts,
 
     XsGridInserter insert_xs(&data->reals, &data->xs_grids);
     UniformGridInserter insert_uniform(&data->reals, &data->uniform_grids);
+    detail::DecayTableInserter insert_decay(inp.particles, channels_, *data);
 
     Applicability applic;
     for (auto particle_id : range(ParticleId(data->process_groups.size())))
@@ -531,93 +587,120 @@ void PhysicsParams::build_tables(Options const& opts,
         // Loop over per-particle processes
         for (auto pp_idx : range(process_ids.size()))
         {
-            // Get energy bounds for this process
-            auto energy_grid = data->reals[model_groups[pp_idx].energy];
-            applic.lower = Energy{energy_grid.front()};
-            applic.upper = Energy{energy_grid.back()};
-            CELER_ASSERT(applic.lower < applic.upper);
-
-            Process const& proc = *this->process(process_ids[pp_idx]);
-
             // Grid IDs for each grid type, each material
-            std::vector<XsGridId> macro_xs_ids(mats.size());
-            std::vector<UniformGridId> energy_loss_ids(mats.size());
-            std::vector<UniformGridId> range_ids(mats.size());
+            std::vector<XsGridId> macro_xs_ids(inp.materials->size());
+            std::vector<UniformGridId> energy_loss_ids(inp.materials->size());
+            std::vector<UniformGridId> range_ids(inp.materials->size());
             std::vector<UniformGridId> inverse_range_ids;
-
-            // Energy of maximum cross section for each material
-            detail::EnergyMaxXsCalculator calc_integral_xs(opts, proc);
             std::vector<real_type> energy_max_xs;
-            if (calc_integral_xs)
-            {
-                energy_max_xs.resize(mats.size());
-            }
 
-            if (proc.applies_at_rest())
-            {
-                /* \todo For now assume only one process per particle applies
-                 * at rest. If a particle has multiple at-rest processes, we
-                 * will need to check which process has the shortest time to
-                 * interaction and choose that process in \c
-                 * select_discrete_interaction.
-                 */
-                CELER_VALIDATE(!process_group.at_rest,
-                               << "particle ID " << particle_id.get()
-                               << " has multiple at-rest processes");
-
-                // Discrete interaction can occur at rest
-                process_group.at_rest = ParticleProcessId(pp_idx);
-            }
-
-            // Loop over materials
-            for (auto mat_idx : range(mats.size()))
-            {
-                applic.material = PhysMatId(mat_idx);
-
-                // Construct macroscopic cross section grid
-                auto macro_xs = proc.macro_xs(applic);
-                if (macro_xs)
+            auto set_at_rest = [&](Process const& p) {
+                if (p.applies_at_rest())
                 {
-                    macro_xs_ids[mat_idx] = insert_xs(macro_xs);
+                    /* \todo For now assume only one process per particle
+                     * applies at rest. If a particle has multiple
+                     * at-rest processes, we will need to select the
+                     * process with the shortest time to interaction in
+                     * \c select_discrete_interaction.
+                     */
+                    CELER_VALIDATE(!process_group.at_rest,
+                                   << "particle "
+                                   << inp.particles->id_to_label(particle_id)
+                                   << " has multiple at-rest processes");
+
+                    // Discrete interaction can occur at rest
+                    process_group.at_rest = ParticleProcessId(pp_idx);
                 }
+            };
 
-                // Construct energy loss grid
-                auto energy_loss = proc.energy_loss(applic);
-                if (energy_loss)
-                {
-                    energy_loss_ids[mat_idx] = insert_uniform(energy_loss);
+            ProcessId process_id = process_ids[pp_idx];
+            if (process_id == data->scalars.decay)
+            {
+                // Check whether discrete interaction can occur at rest
+                CELER_ASSERT(decay_);
+                set_at_rest(*decay_);
 
-                    // Construct range grid from energy loss
-                    auto range = RangeGridCalculator(BC::geant)(energy_loss);
-                    range_ids[mat_idx] = insert_uniform(range);
+                // Build the decay table for this particle
+                auto table = decay_->decay_table(particle_id);
+                process_group.decay = insert_decay(table);
+            }
+            else
+            {
+                // Build the cross section and energy loss grids
+                InteractionProcess const& proc = *this->process(process_id);
 
-                    if (range.interpolation.type
-                        == InterpolationType::cubic_spline)
-                    {
-                        // Build the inverse range grid if cubic spline
-                        // interpolation is used
-                        inverse_range_ids.resize(mats.size(), UniformGridId{});
+                // Check whether discrete interaction can occur at rest
+                set_at_rest(proc);
 
-                        // The range and energy values are not inverted on the
-                        // grid, but the derivatives are calculated using the
-                        // inverted grid.
-                        auto inverse_range
-                            = data->uniform_grids[range_ids[mat_idx]];
-                        auto derivative
-                            = SplineDerivCalculator(BC::geant).calc_from_inverse(
-                                inverse_range, make_const_ref(*data).reals);
-                        inverse_range.derivative = reals.insert_back(
-                            derivative.begin(), derivative.end());
-                        inverse_range_ids[mat_idx]
-                            = uniform_grids.push_back(inverse_range);
-                    }
-                }
+                // Get energy bounds for this process
+                auto energy_grid = data->reals[model_groups[pp_idx].energy];
+                applic.lower = Energy{energy_grid.front()};
+                applic.upper = Energy{energy_grid.back()};
+                CELER_ASSERT(applic.lower < applic.upper);
 
+                // Energy of maximum cross section for each material
+                detail::EnergyMaxXsCalculator calc_integral_xs(inp.options,
+                                                               proc);
                 if (calc_integral_xs)
                 {
-                    // Find and store the energy of the largest cross section
-                    // for this material if the integral approach is used
-                    energy_max_xs[mat_idx] = calc_integral_xs(macro_xs);
+                    energy_max_xs.resize(inp.materials->size());
+                }
+
+                // Loop over materials
+                for (auto mat_idx : range(inp.materials->size()))
+                {
+                    applic.material = PhysMatId(mat_idx);
+
+                    // Construct macroscopic cross section grid
+                    auto macro_xs = proc.macro_xs(applic);
+                    if (macro_xs)
+                    {
+                        macro_xs_ids[mat_idx] = insert_xs(macro_xs);
+                    }
+
+                    // Construct energy loss grid
+                    auto energy_loss = proc.energy_loss(applic);
+                    if (energy_loss)
+                    {
+                        energy_loss_ids[mat_idx] = insert_uniform(energy_loss);
+
+                        // Construct range grid from energy loss
+                        auto range
+                            = RangeGridCalculator(BC::geant)(energy_loss);
+                        range_ids[mat_idx] = insert_uniform(range);
+
+                        if (range.interpolation.type
+                            == InterpolationType::cubic_spline)
+                        {
+                            // Build the inverse range grid if cubic spline
+                            // interpolation is used
+                            inverse_range_ids.resize(inp.materials->size(),
+                                                     UniformGridId{});
+
+                            // The range and energy values are not inverted on
+                            // the grid, but the derivatives are calculated
+                            // using the inverted grid.
+                            auto inverse_range
+                                = data->uniform_grids[range_ids[mat_idx]];
+                            auto derivative
+                                = SplineDerivCalculator(BC::geant)
+                                      .calc_from_inverse(
+                                          inverse_range,
+                                          make_const_ref(*data).reals);
+                            inverse_range.derivative = reals.insert_back(
+                                derivative.begin(), derivative.end());
+                            inverse_range_ids[mat_idx]
+                                = uniform_grids.push_back(inverse_range);
+                        }
+                    }
+
+                    if (calc_integral_xs)
+                    {
+                        // Find and store the energy of the largest cross
+                        // section for this material if the integral approach
+                        // is used
+                        energy_max_xs[mat_idx] = calc_integral_xs(macro_xs);
+                    }
                 }
             }
 

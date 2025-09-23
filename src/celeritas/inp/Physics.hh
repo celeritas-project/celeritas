@@ -117,6 +117,9 @@ struct DecayPhysics
 
     //! Decay channels for particles for which decay is enabled
     std::unordered_map<PDGNumber, DecayTable> tables;
+
+    //! Whether the data are assigned
+    explicit operator bool() const { return !tables.empty(); }
 };
 
 //---------------------------------------------------------------------------//

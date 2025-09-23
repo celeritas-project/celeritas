@@ -68,7 +68,6 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/Process.hh"
-#include "celeritas/phys/ProcessBuilder.hh"
 #include "celeritas/setup/FrameworkInput.hh"
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"

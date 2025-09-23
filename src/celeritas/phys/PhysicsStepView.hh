@@ -56,6 +56,9 @@ class PhysicsStepView
     // Set the sampled element
     inline CELER_FUNCTION void element(ElementComponentId);
 
+    // Set the sampled decay channel
+    inline CELER_FUNCTION void decay_channel(DecayChannelId);
+
     // Save MSC step data
     inline CELER_FUNCTION void msc_step(MscStep const&);
 
@@ -76,6 +79,9 @@ class PhysicsStepView
 
     // Sampled element for discrete interaction
     CELER_FORCEINLINE_FUNCTION ElementComponentId element() const;
+
+    // Sampled decay channel
+    CELER_FORCEINLINE_FUNCTION DecayChannelId decay_channel() const;
 
     // Mutable access to MSC step data (TODO: hack)
     inline CELER_FUNCTION MscStep& msc_step();
@@ -150,6 +156,16 @@ CELER_FUNCTION void PhysicsStepView::element(ElementComponentId elcomp_id)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Set the sampled decay channel.
+ */
+CELER_FUNCTION void PhysicsStepView::decay_channel(DecayChannelId channel_id)
+{
+    CELER_EXPECT(track_slot_ < states_.decay_channel.size());
+    states_.decay_channel[track_slot_] = channel_id;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Save MSC step limit data.
  */
 CELER_FUNCTION void PhysicsStepView::msc_step(MscStep const& limit)
@@ -220,6 +236,16 @@ CELER_FUNCTION real_type PhysicsStepView::macro_xs() const
 CELER_FUNCTION ElementComponentId PhysicsStepView::element() const
 {
     return this->state().element;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sampled decay channel.
+ */
+CELER_FUNCTION DecayChannelId PhysicsStepView::decay_channel() const
+{
+    CELER_EXPECT(track_slot_ < states_.decay_channel.size());
+    return states_.decay_channel[track_slot_];
 }
 
 //---------------------------------------------------------------------------//

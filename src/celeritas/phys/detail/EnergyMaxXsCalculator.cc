@@ -22,7 +22,7 @@ namespace detail
  * Construct with physics options and process.
  */
 EnergyMaxXsCalculator::EnergyMaxXsCalculator(PhysicsOptions const& opts,
-                                             Process const& proc)
+                                             InteractionProcess const& proc)
     : use_integral_xs_(!opts.disable_integral_xs && proc.supports_integral_xs())
     , is_annihilation_(dynamic_cast<EPlusAnnihilationProcess const*>(&proc))
 {

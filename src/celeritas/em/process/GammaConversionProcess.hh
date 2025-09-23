@@ -19,7 +19,7 @@ namespace celeritas
 /*!
  * Conversion of gammas to electrons and positrons.
  */
-class GammaConversionProcess : public Process
+class GammaConversionProcess : public InteractionProcess
 {
   public:
     //!@{

@@ -36,6 +36,7 @@ list(APPEND PUBLIC_DEPS ${_core_geo_deps})
 list(APPEND SOURCES
   Types.cc
   TypesIO.json.cc
+  decay/DecayProcess.cc
   em/detail/Utils.cc
   em/params/AtomicRelaxationParams.cc
   em/params/FluctuationParams.cc
@@ -118,6 +119,7 @@ list(APPEND SOURCES
   optical/surface/SurfacePhysicsParams.cc
   optical/surface/SurfaceSteppingAction.cc
   phys/CutoffParams.cc
+  phys/detail/DecayTableInserter.cc
   phys/detail/EnergyMaxXsCalculator.cc
   phys/GeneratorInterface.cc
   phys/GeneratorRegistry.cc
@@ -328,6 +330,7 @@ celeritas_polysource(alongstep/AlongStepNeutralAction)
 celeritas_polysource(alongstep/AlongStepUniformMscAction)
 celeritas_polysource(alongstep/AlongStepRZMapFieldMscAction)
 celeritas_polysource(alongstep/AlongStepCylMapFieldMscAction)
+celeritas_polysource(decay/channel/MuDecayChannel)
 celeritas_polysource(em/model/BetheHeitlerModel)
 celeritas_polysource(em/model/BetheBlochModel)
 celeritas_polysource(em/model/BraggModel)

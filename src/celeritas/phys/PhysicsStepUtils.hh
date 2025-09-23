@@ -116,7 +116,13 @@ calc_physics_step_limit(MaterialTrackView const& material,
     for (auto ppid : range(ParticleProcessId{physics.num_particle_processes()}))
     {
         real_type process_xs = 0;
-        if (auto const& process = physics.integral_xs_process(ppid))
+        if (physics.process(ppid) == physics.scalars().decay)
+        {
+            // Calculate the macroscopic cross section as the inverse of the
+            // particle's decay length
+            process_xs = 1 / particle.decay_length();
+        }
+        else if (auto const& process = physics.integral_xs_process(ppid))
         {
             // If the integral approach is used and this particle has an energy
             // loss process, estimate the maximum cross section over the step
@@ -312,6 +318,16 @@ select_discrete_interaction(MaterialView const& material,
     if (!ppid)
     {
         return physics.scalars().integral_rejection_action();
+    }
+
+    if (physics.process(ppid) == physics.scalars().decay)
+    {
+        // The decay process was selected: sample a decay channel according to
+        // the branching ratios and return the action corresponding to the
+        // channel type
+        auto channel_id = physics.select_decay_channel(rng);
+        pstep.decay_channel(channel_id);
+        return physics.channel_to_action(channel_id);
     }
 
     // Find the model that applies at the particle energy

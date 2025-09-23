@@ -22,7 +22,7 @@ namespace celeritas
 /*!
  * Elastic scattering process for neutrons.
  */
-class NeutronElasticProcess : public Process
+class NeutronElasticProcess : public InteractionProcess
 {
   public:
     //!@{
