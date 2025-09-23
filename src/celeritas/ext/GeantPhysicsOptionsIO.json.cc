@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "GeantPhysicsOptionsIO.json.hh"
 
+#include <iostream>
 #include <string>
 
 #include "corecel/io/JsonUtils.json.hh"
@@ -234,6 +235,24 @@ void to_json(nlohmann::json& j, GeantPhysicsOptions const& inp)
 
     save_format(j, format_str);
     save_units(j);
+}
+
+//---------------------------------------------------------------------------//
+// Helper to read the options from a file or stream.
+std::istream& operator>>(std::istream& is, GeantPhysicsOptions& inp)
+{
+    auto j = nlohmann::json::parse(is);
+    j.get_to(inp);
+    return is;
+}
+
+//---------------------------------------------------------------------------//
+// Helper to write the options to a file or stream.
+std::ostream& operator<<(std::ostream& os, GeantPhysicsOptions const& inp)
+{
+    nlohmann::json j = inp;
+    os << j.dump(0);
+    return os;
 }
 
 //---------------------------------------------------------------------------//
