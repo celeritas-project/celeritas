@@ -45,6 +45,11 @@ class FerrariSolver
         using Intersections = Array<real_type, 4>;
         //!@}
 
+        // General case solve
+        static inline CELER_FUNCTION Intersections solve_general(
+            real_type a, real_type b, real_type c, real_type d, real_type e, SurfaceState on_surface
+        );
+
     public:
         // Construct w/ a, b, c, d
         inline CELER_FUNCTION FerrariSolver(real_type a, real_type b, real_type c, real_type d);
@@ -63,6 +68,17 @@ class FerrariSolver
         real_type da_; // d/a
         real_type ea_; // e/a
 
+        //// UTIL ////
+        // Find dominant root of normalized cubic
+        static inline CELER_FUNCTION real_type dominant_root_normalized_cubic(
+            real_type b, real_type c, real_type d
+        );
+
+        // Place real root in an ascending list
+        static inline CELER_FUNCTION void place_root_sorted(
+            Intersections roots, real_type new_root
+        );
+
 };
 
 //---------------------------------------------------------------------------//
@@ -78,11 +94,11 @@ CELER_FUNCTION auto FerrariSolver::solve_general(real_type a,
                                                  real_type b,
                                                  real_type c,
                                                  real_type d,
-                                                 real_type_e,
+                                                 real_type e,
                                                  SurfaceState on_surface)
     -> Intersections
 {
-    FerrariSolver solve(a, b, c, d, e);
+    FerrariSolver solve(a, b, c, d);
     if (on_surface == SurfaceState::on) {
         return solve();
     } else {
@@ -106,22 +122,22 @@ CELER_FUNCTION FerrariSolver::FerrariSolver(real_type a, real_type b, real_type 
  * 
  * Replaces negative or complex roots with no_intersection()
  */
-CELER_FUNCTION auto FerrariSolver::operator()(real_type c) const
+CELER_FUNCTION auto FerrariSolver::operator()(real_type e) const
     -> Intersections
 {
     real_type qb = 0.25*ba_;
     real_type qb2 = qb*qb;
 
     // Incomplete quartic
-    real_type p = 3*qb2 - 0.5*c;
-    real_type q = 4*qb*qb2 - c*qb + 0.5*d;
-    real_type r = 3*qb2*qb2 - c*qb2 + d*qb - e;
+    real_type p = 3*qb2 - 0.5*ca_;
+    real_type q = 4*qb*qb2 - ca_*qb + 0.5*da_;
+    real_type r = 3*qb2*qb2 - ca_*qb2 + da_*qb - (e*a_inv_);
     
     // Final roots to return
     Intersections roots(no_intersection(), no_intersection(), no_intersection(), no_intersection());
 
     // Edge case: equation is biquadratic TODO: need biquadratic tolerance
-    if std::abs(q) <= 0 {
+    if (std::abs(q) <= 0) {
         QuadraticSolver solve(1, -2*p);
         auto ir = solve(-r);
         // QuadraticSolver puts real & >0 roots last
@@ -153,7 +169,7 @@ CELER_FUNCTION auto FerrariSolver::operator()(real_type c) const
     }
 
     // One real root of subsidiary cubic
-    real_type z0 = FerrariSolver::dominant_root_normalized_cubic(p, r, p*r - 0.5*q*q)
+    real_type z0 = FerrariSolver::dominant_root_normalized_cubic(p, r, p*r - 0.5*q*q);
 
     real_type s2 = 2*p + 2*z0;
     if (s2 >= 0) {
