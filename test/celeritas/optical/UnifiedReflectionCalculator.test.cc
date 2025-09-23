@@ -70,8 +70,9 @@ TEST_F(UnifiedReflectionCalculatorTest, modes)
     {
         auto result = calc_reflection.specular_spike();
 
-        PhotonPhasor expected{{-0.05832118, 0.99146013, 0.11664237},
-                              {-0.89442719, 0, -0.4472136}};
+        PhotonPhasor expected{
+            {-0.0583211843519805, 0.991460133983668, 0.116642368703961},
+            {-0.894427190999916, 0, -0.447213595499958}};
 
         EXPECT_VEC_SOFT_EQ(expected.direction, result.direction);
         EXPECT_VEC_SOFT_EQ(expected.polarization, result.polarization);
@@ -80,8 +81,9 @@ TEST_F(UnifiedReflectionCalculatorTest, modes)
     {
         auto result = calc_reflection.specular_lobe();
 
-        PhotonPhasor expected{{0.05832118, 0.99146013, -0.11664237},
-                              {-0.89442719, -0., -0.4472136}};
+        PhotonPhasor expected{
+            {0.0583211843519804, 0.991460133983668, -0.116642368703961},
+            {-0.894427190999916, 0, -0.447213595499958}};
 
         EXPECT_VEC_SOFT_EQ(expected.direction, result.direction);
         EXPECT_VEC_SOFT_EQ(expected.polarization, result.polarization);

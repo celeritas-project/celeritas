@@ -7,6 +7,7 @@
 #pragma once
 
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Types.hh"
 
@@ -26,6 +27,16 @@ inline CELER_FUNCTION bool
 is_entering_surface(Real3 const& dir, Real3 const& normal)
 {
     return dot_product(dir, normal) < 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate geometric reflection of an incident vector about a normal.
+ */
+inline CELER_FUNCTION Real3 geometric_reflection(Real3 const& dir,
+                                                 Real3 const& normal)
+{
+    return dir - 2 * dot_product(dir, normal) * normal;
 }
 
 //---------------------------------------------------------------------------//
