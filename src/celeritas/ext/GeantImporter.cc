@@ -255,6 +255,22 @@ fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
                     comp.lambda_mean = moments.mean;
                     comp.lambda_sigma = std::sqrt(moments.variance);
 
+                    if (comp.lambda_sigma == 0)
+                    {
+                        // This case is triggered when Geant4 provides only two
+                        // points for a scintillation component (so the
+                        // variance from MomentCalculator is zero). We
+                        // approximate the distribution as a Gaussian centered
+                        // at the midpoint with sigma ~ FWHM/2.355.
+                        double emin = grid.x.front();
+                        double emax = grid.x.back();
+                        comp.lambda_mean = (emax + emin) / 2;
+                        comp.lambda_sigma = (emax - emin) / 2.355;
+                        CELER_LOG(warning)
+                            << "Scintillation component " << comp_idx
+                            << " has only two points: approximating spectrum "
+                               "as a Gaussian ";
+                    }
                     CELER_LOG(info)
                         << "Estimated custom properties " << prefix
                         << "LAMBDAMEAN" << comp_idx << "=" << comp.lambda_mean
