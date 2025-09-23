@@ -132,7 +132,6 @@ CELER_FUNCTION FerrariSolver::FerrariSolver(real_type a, real_type b, real_type 
 CELER_FUNCTION auto FerrariSolver::operator()(real_type e) const
     -> Intersections
 {
-    std::cout << "Solving quartic: x^4 + " << ba_ << "x^3 + " << ca_ << "x^2 + " << da_ << "x + " << (e*a_inv_) <<" \n";
     real_type qb = 0.25*ba_;
     real_type qb2 = qb*qb;
 
@@ -141,18 +140,14 @@ CELER_FUNCTION auto FerrariSolver::operator()(real_type e) const
     real_type q = 4*qb*qb2 - ca_*qb + 0.5*da_;
     real_type r = 3*qb2*qb2 - ca_*qb2 + da_*qb - (e*a_inv_);
 
-    std::cout << "Incomplete quartic: " << p << ", " << q << ", " << r << "\n";
-
     // Final roots to return
     Intersections roots(no_intersection(), no_intersection(), no_intersection(), no_intersection());
 
     // Edge case: equation is biquadratic TODO: need biquadratic tolerance
     if (std::abs(q) <= 0) {
-        std::cout << "Entering biquadratic path\n";
         // QuadraticSolver solve(1, -2*p);
         // auto ir = solve(-r);
         auto ir = real_roots_normalized_quadratic(-p, -r);
-        std::cout << "Biquadratic roots: " << ir[0] << ", " << ir[1] << "\n";
         // QuadraticSolver puts real & >0 roots last
         if (ir[1] != no_intersection() && ir[1] > 0) {
             real_type sqrt_ir1 = std::sqrt(ir[1]);
@@ -170,18 +165,11 @@ CELER_FUNCTION auto FerrariSolver::operator()(real_type e) const
                 place_root_sorted(roots, -sqrt_ir0 - qb);
             }
         }
-        std::cout << "Final roots: ";
-        for (int i = 0; i < 4; i++) {
-            std::cout << roots[i] << ", ";
-        }
-        std::cout << "\n";
         return roots;
     }
 
     // One real root of subsidiary cubic
-    std::cout << "Normalized cubic input: " << p << ", " << r << ", " << (p*r - 0.5*q*q) << "\n";
     real_type z0 = FerrariSolver::dominant_root_normalized_cubic(p, r, p*r - 0.5*q*q);
-    std::cout << "z0: " << z0 << "\n";
 
     real_type s2 = 2*p + 2*z0;
     if (s2 >= 0) {
@@ -192,31 +180,14 @@ CELER_FUNCTION auto FerrariSolver::operator()(real_type e) const
         } else {
             t = -q / s;
         }
-        std::cout << "s: " << s << "\n";
-        std::cout << "t: " << t << "\n";
-        std::cout << "Solving quadratic x^2 + " << s << "x + " << (z0+t) << "\n";
-        // auto roots01 = QuadraticSolver(1, s*0.5)(z0 + t);
         auto roots01 = real_roots_normalized_quadratic(s*0.5, z0+t);
-        std::cout << "Solving quadratic x^2 + " << (-s) << "x + " << (z0-t) << "\n";
-        // auto roots23 = QuadraticSolver(1,-s*0.5)(z0 - t);
         auto roots23 = real_roots_normalized_quadratic(-s*0.5, z0-t);
-        std::cout << "Prelim roots: " << roots01[0] << ", " << roots01[1] << ", " << roots23[0] << ", " << roots23[1] << "\n";
-        // roots01[0] -= qb;
-        // roots01[1] -= qb;
-        // roots23[0] -= qb;
-        // roots23[1] -= qb;
-        // std::cout << "With qb shift: " << roots01[0] << ", " << roots01[1] << ", " << roots23[0] << ", " << roots23[1] << "\n";
 
         place_root_sorted(roots, roots01[0] - qb);
         place_root_sorted(roots, roots01[1] - qb);
         place_root_sorted(roots, roots23[0] - qb);
         place_root_sorted(roots, roots23[1] - qb);
     }
-    std::cout << "Final roots: ";
-    for (int i = 0; i < 4; i++) {
-        std::cout << roots[i] << ", ";
-    }
-    std::cout << "\n";
     return roots;
 }
 
@@ -234,23 +205,18 @@ CELER_FUNCTION auto FerrariSolver::operator()() const -> Intersections
  */
 CELER_FUNCTION void FerrariSolver::place_root_sorted(Intersections &roots, real_type new_root)
 {
-    std::cout << "Placing in root of " << new_root << "\n";
     if (new_root == no_intersection() || new_root <= 0) {
-        std::cout << "Intersection not valid; aborted\n";
         return;
     }
     for (int i = 0; i < 4; i++) {
-        std::cout << "Index " << i << " features " << roots[i] << "\n";
         if (roots[i] == no_intersection()) {
             roots[i] = new_root;
-            std::cout << "Placed " << roots[i] << " at " << i << "\n";
             break;
         } else if (new_root < roots[i]) {
             for (int j = 3; j > i; j--) {
                 roots[j] = roots[j-1];
             }
             roots[i] = new_root;
-            std::cout << "Placed " << roots[i] << " at " << i << "\n";
             break;
         }
     }
@@ -304,20 +270,15 @@ CELER_FUNCTION real_type FerrariSolver::dominant_root_normalized_cubic(real_type
  */
 CELER_FUNCTION auto FerrariSolver::real_roots_normalized_quadratic(real_type hb, real_type c) -> Roots2
 {
-    std::cout << "original coeffs: " << hb << ", " << c << "\n";
     real_type qb2 = ipow<2>(hb);
-    std::cout << "b^2/4: " << qb2 << "\n";
     if (qb2 > c) {
-        std::cout << "Roots are REAL\n";
         // Two real roots
         real_type ht = std::sqrt(qb2 - c);
-        std::cout << "half sqrt discrim: " << ht << "\n";
         return Roots2(
             -hb - ht,
             -hb + ht
         );
     } else if (qb2 == c) {
-        std::cout << "Roots are critical real\n";
         return Roots2(
             -hb,
             no_intersection()
