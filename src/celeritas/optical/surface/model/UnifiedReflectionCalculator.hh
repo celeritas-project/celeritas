@@ -6,6 +6,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Macros.hh"
+#include "corecel/cont/EnumArray.hh"
+#include "celeritas/optical/Types.hh"
+
+#include "SurfaceInteraction.hh"
+
 namespace celeritas
 {
 namespace optical
@@ -44,6 +50,7 @@ class UnifiedReflectionCalculator
     //!@}
 
   public:
+    explicit inline CELER_FUNCTION
     UnifiedReflectionCalculator(ModeProbs const& probs,
                                 PhotonPhasor const& inc_photon,
                                 Real3 const& global_normal,
@@ -52,25 +59,30 @@ class UnifiedReflectionCalculator
     template<class Engine>
     inline CELER_FUNCTION PhotonPhasor operator()(Engine& rng) const;
 
+    inline CELER_FUNCTION PhotonPhasor specular_spike() const;
+
+    inline CELER_FUNCTION PhotonPhasor specular_lobe() const;
+
+    inline CELER_FUNCTION PhotonPhasor back_scattering() const;
+
+    template<class Engine>
+    inline CELER_FUNCTION PhotonPhasor lambertian_reflection(Engine& rng) const;
+
   private:
-    ModeArray<real_type> const& mode_probs_;
+    ModeProbs const& mode_probs_;
     PhotonPhasor const& inc_photon_;
     Real3 const& global_normal_;
     Real3 const& facet_normal_;
 
     inline CELER_FUNCTION PhotonPhasor
     specular_reflection(Real3 const& normal) const;
-
-    template<class Engine>
-    inline CELER_FUNCTION PhotonPhasor lambertian_reflection(Engine& rng) const;
-
-    inline CELER_FUNCTION PhotonPhasor back_scattering() const;
 };
 
-UnifiedReflectionCalculator(ModeProbs const& probs,
-                            PhotonPhasor const& inc_photon,
-                            Real3 const& global_normal,
-                            Real3 const& facet_normal)
+CELER_FUNCTION UnifiedReflectionCalculator::UnifiedReflectionCalculator(
+    ModeProbs const& probs,
+    PhotonPhasor const& inc_photon,
+    Real3 const& global_normal,
+    Real3 const& facet_normal)
     : mode_probs_(probs)
     , inc_photon_(inc_photon)
     , global_normal_(global_normal)
@@ -84,8 +96,17 @@ CELER_FUNCTION PhotonPhasor UnifiedReflectionCalculator::operator()(Engine&) con
     return {};
 }
 
-CELER_FUNCTION PhotonPhasor
-UnifiedReflectionCalculator::specular_reflection(Real3 const&) const
+CELER_FUNCTION PhotonPhasor UnifiedReflectionCalculator::specular_spike() const
+{
+    return {};
+}
+
+CELER_FUNCTION PhotonPhasor UnifiedReflectionCalculator::specular_lobe() const
+{
+    return {};
+}
+
+CELER_FUNCTION PhotonPhasor UnifiedReflectionCalculator::back_scattering() const
 {
     return {};
 }
@@ -97,7 +118,8 @@ UnifiedReflectionCalculator::lambertian_reflection(Engine&) const
     return {};
 }
 
-CELER_FUNCTION PhotonPhasor UnifiedReflectionCalculator::back_scattering() const
+CELER_FUNCTION PhotonPhasor
+UnifiedReflectionCalculator::specular_reflection(Real3 const&) const
 {
     return {};
 }

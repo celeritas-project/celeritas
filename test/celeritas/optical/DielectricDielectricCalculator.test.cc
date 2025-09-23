@@ -10,6 +10,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/optical/surface/model/FresnelReflectivityCalculator.hh"
+#include "celeritas/optical/surface/model/UnifiedReflectionCalculator.hh"
 
 #include "celeritas_test.hh"
 
