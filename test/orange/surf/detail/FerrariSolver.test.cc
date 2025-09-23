@@ -1,4 +1,3 @@
-
 //------------------------------- -*- C++ -*- -------------------------------//
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -59,7 +58,7 @@ class FerrariSolverTest : public ::celeritas::test::Test
         void expect_dominant_cubic_root(real_type const& expected, Coeffs3 const& bcd)
         {
             FerrariSolver solve_quartic(1,1,1,1);
-            real_type bigroot = solve_quartic.dominant_root_of_cubic(bcd[0], bcd[1], bcd[2]);
+            real_type bigroot = solve_quartic.dominant_root_normalized_cubic(bcd[0], bcd[1], bcd[2]);
             EXPECT_SOFT_EQ(expected, bigroot)
         }
 }
