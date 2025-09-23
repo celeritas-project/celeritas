@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/math/ArrayUtils.hh"
+
 namespace celeritas
 {
 namespace optical
@@ -20,7 +22,7 @@ namespace optical
    \endcode
  */
 
-struct PhotonState
+struct PhotonPhasor
 {
     Real3 direction;
     Real3 polarization;
@@ -29,7 +31,7 @@ struct PhotonState
 struct SurfaceInteraction
 {
     bool crossed_surface{false};
-    PhotonState state;
+    PhotonPhasor state;
 };
 
 //---------------------------------------------------------------------------//
