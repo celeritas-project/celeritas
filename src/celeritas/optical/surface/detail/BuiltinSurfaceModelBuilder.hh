@@ -47,7 +47,7 @@ class FakeModel : public SurfaceModel
     void step(CoreParams const&, CoreStateHost&) const final {}
     void step(CoreParams const&, CoreStateDevice&) const final {}
 
-    VecSurfaceLayer const& get_surfaces() const { return layers_; }
+    VecSurfaceLayer const& get_surfaces() const final { return layers_; }
 
   private:
     VecSurfaceLayer layers_;
