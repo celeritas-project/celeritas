@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/surface/model/DielectricDielectricCalculator.hh
+//! \file celeritas/optical/surface/model/FresnelRefractionCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,16 +17,17 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Calculate refracted wave between two dielectric media.
+ * Calculate refracted wave between two dielectric media analytically from
+ * Fresnel equations.
  */
-class DielectricDielectricCalculator
+class FresnelRefractionCalculator
 {
   public:
     // Construct from photon and surface data
     inline CELER_FUNCTION
-    DielectricDielectricCalculator(PhotonPhasor const& inc_photon,
-                                   Real3 const& normal,
-                                   real_type relative_r_index);
+    FresnelRefractionCalculator(PhotonPhasor const& inc_photon,
+                                Real3 const& normal,
+                                real_type relative_r_index);
 
     // Calculate interaction for refracted wave
     inline CELER_FUNCTION SurfaceInteraction operator()() const;
@@ -38,8 +39,10 @@ class DielectricDielectricCalculator
 /*!
  * Construct from photon and surface data.
  */
-CELER_FUNCTION DielectricDielectricCalculator::DielectricDielectricCalculator(
-    PhotonPhasor const&, Real3 const&, real_type)
+CELER_FUNCTION
+FresnelRefractionCalculator::FresnelRefractionCalculator(PhotonPhasor const&,
+                                                         Real3 const&,
+                                                         real_type)
 {
 }
 
@@ -47,7 +50,7 @@ CELER_FUNCTION DielectricDielectricCalculator::DielectricDielectricCalculator(
 /*!
  * Calculate interaction for refracted wave.
  */
-CELER_FUNCTION SurfaceInteraction DielectricDielectricCalculator::operator()() const
+CELER_FUNCTION SurfaceInteraction FresnelRefractionCalculator::operator()() const
 {
     return {};
 }

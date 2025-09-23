@@ -2,15 +2,13 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/DielectricDielectricCalculator.test.cc
+//! \file celeritas/optical/FresnelTest.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/optical/surface/model/DielectricDielectricCalculator.hh"
-
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/optical/surface/model/FresnelReflectivityCalculator.hh"
-#include "celeritas/optical/surface/model/UnifiedReflectionCalculator.hh"
+#include "celeritas/optical/surface/model/FresnelRefractionCalculator.hh"
 
 #include "celeritas_test.hh"
 
@@ -74,10 +72,9 @@ struct CoordinateAxes
     }
 
     SurfaceInteraction
-    calc_dielectric_dielectric(real_type angle,
-                               LinearPolarization const& pol) const
+    calc_refraction(real_type angle, LinearPolarization const& pol) const
     {
-        return DielectricDielectricCalculator{
+        return FresnelRefractionCalculator{
             PhotonPhasor{this->make_direction(angle),
                          this->make_polarization(angle, pol)},
             n_hat,
@@ -92,18 +89,17 @@ struct ScatteringResult
     std::vector<real_type> p_component;
 };
 
-ScatteringResult
-scan_dielectric_dielectric(CoordinateAxes const& axes,
-                           LinearPolarization const& pol,
-                           std::vector<real_type> const& angles)
+ScatteringResult scan_refraction(CoordinateAxes const& axes,
+                                 LinearPolarization const& pol,
+                                 std::vector<real_type> const& angles)
 {
     ScatteringResult result;
 
     for (auto angle : angles)
     {
-        auto refract = axes.calc_dielectric_dielectric(angle, pol);
+        auto refract = axes.calc_refraction(angle, pol);
 
-        EXPECT_EQ(SurfaceInteraction::refract, refract.action);
+        EXPECT_EQ(SurfaceInteraction::Action::refracted, refract.action);
         EXPECT_TRUE(refract.photon);
         EXPECT_SOFT_EQ(0, dot_product(refract.photon.direction, axes.p_hat));
 
@@ -125,7 +121,7 @@ scan_dielectric_dielectric(CoordinateAxes const& axes,
 // TEST CHASIS
 //---------------------------------------------------------------------------//
 
-class DielectricDielectricCalculatorTest : public ::celeritas::test::Test
+class FresnelTest : public ::celeritas::test::Test
 {
   protected:
     void SetUp() override {}
@@ -146,7 +142,7 @@ class DielectricDielectricCalculatorTest : public ::celeritas::test::Test
 // TESTS
 //---------------------------------------------------------------------------//
 // Scan reflectivities for external reflection
-TEST_F(DielectricDielectricCalculatorTest, external_reflectivity)
+TEST_F(FresnelTest, external_reflectivity)
 {
     // External reflectivity has relative index > 1
     CoordinateAxes axes{13.0 / 7.0,
@@ -220,7 +216,7 @@ TEST_F(DielectricDielectricCalculatorTest, external_reflectivity)
 
 //---------------------------------------------------------------------------//
 // Scan reflectivities for internal reflection
-TEST_F(DielectricDielectricCalculatorTest, internal_reflectivity)
+TEST_F(FresnelTest, internal_reflectivity)
 {
     // Internal reflection has relative index < 1
     CoordinateAxes axes{2.0 / 3.0,
@@ -297,7 +293,7 @@ TEST_F(DielectricDielectricCalculatorTest, internal_reflectivity)
 
 //---------------------------------------------------------------------------//
 // Test dielectric-dielectric refracted wave calculation
-TEST_F(DielectricDielectricCalculatorTest, external_refracted)
+TEST_F(FresnelTest, external_refracted)
 {
     CoordinateAxes axes{13.0 / 7.0,
                         make_unit_vector(Real3{-2, 1, -1}),
@@ -333,7 +329,7 @@ TEST_F(DielectricDielectricCalculatorTest, external_refracted)
 
     // Incident TE
     {
-        auto result = scan_dielectric_dielectric(axes, TE, angles);
+        auto result = scan_refraction(axes, TE, angles);
 
         EXPECT_VEC_SOFT_EQ(expected_cos_theta, result.cos_theta);
         EXPECT_VEC_SOFT_EQ(expected_all_perp, result.s_component);
@@ -341,7 +337,7 @@ TEST_F(DielectricDielectricCalculatorTest, external_refracted)
     }
     // Incident TM
     {
-        auto result = scan_dielectric_dielectric(axes, TM, angles);
+        auto result = scan_refraction(axes, TM, angles);
 
         EXPECT_VEC_SOFT_EQ(expected_cos_theta, result.cos_theta);
         EXPECT_VEC_SOFT_EQ(expected_all_parl, result.s_component);
@@ -349,7 +345,7 @@ TEST_F(DielectricDielectricCalculatorTest, external_refracted)
     }
     // Incident Linear
     {
-        auto result = scan_dielectric_dielectric(axes, {-7, -24}, angles);
+        auto result = scan_refraction(axes, {-7, -24}, angles);
 
         real_type s = -7.0 / 25.0;
         real_type p = -24 / 25.0;
@@ -367,7 +363,7 @@ TEST_F(DielectricDielectricCalculatorTest, external_refracted)
 
 //---------------------------------------------------------------------------//
 // Test dielectric-dielectric refracted wave calculation
-TEST_F(DielectricDielectricCalculatorTest, internal_refracted)
+TEST_F(FresnelTest, internal_refracted)
 {
     CoordinateAxes axes{2.0 / 3.0,
                         make_unit_vector(Real3{-2, 1, -1}),
@@ -395,7 +391,7 @@ TEST_F(DielectricDielectricCalculatorTest, internal_refracted)
 
     // Incident TE
     {
-        auto result = scan_dielectric_dielectric(axes, TE, angles);
+        auto result = scan_refraction(axes, TE, angles);
 
         EXPECT_VEC_SOFT_EQ(expected_cos_theta, result.cos_theta);
         EXPECT_VEC_SOFT_EQ(expected_all_perp, result.s_component);
@@ -403,7 +399,7 @@ TEST_F(DielectricDielectricCalculatorTest, internal_refracted)
     }
     // Incident TM
     {
-        auto result = scan_dielectric_dielectric(axes, TM, angles);
+        auto result = scan_refraction(axes, TM, angles);
 
         EXPECT_VEC_SOFT_EQ(expected_cos_theta, result.cos_theta);
         EXPECT_VEC_SOFT_EQ(expected_all_parl, result.s_component);
@@ -411,7 +407,7 @@ TEST_F(DielectricDielectricCalculatorTest, internal_refracted)
     }
     // Incident Linear
     {
-        auto result = scan_dielectric_dielectric(axes, {4, 3}, angles);
+        auto result = scan_refraction(axes, {4, 3}, angles);
 
         static real_type const expected_s_component[] = {0.8, 0.8, 0.8, 0.8};
         static real_type const expected_p_component[] = {0.6, 0.6, 0.6, 0.6};

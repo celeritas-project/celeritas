@@ -15,14 +15,8 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- * Optional detailed class description, and possibly example usage:
- * \code
-    SurfaceInteraction ...;
-   \endcode
+ * Representation of a photon's direction and polarization as a phasor.
  */
-
 struct PhotonPhasor
 {
     Real3 direction;
@@ -37,18 +31,46 @@ struct PhotonPhasor
     }
 };
 
+//---------------------------------------------------------------------------//
+/*!
+ * Result of a surface physics interaction.
+ */
 struct SurfaceInteraction
 {
-    enum Action
+    //! Interaction result category
+    enum class Action
     {
-        absorb,
-        reflect,
-        refract
+        absorbed,
+        reflected,
+        refracted
     };
 
-    Action action{absorb};
-    PhotonPhasor photon;
+    Action action{Action::absorbed};  //!< Flags for interaction result
+    PhotonPhasor photon;  //!< Post-interaction photon state
+
+    //! Return an interaction representing an absorbed photon
+    static inline CELER_FUNCTION SurfaceInteraction from_absorption();
+
+    //! Whether data is assigned and valid
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return action == Action::absorbed || static_cast<bool>(photon);
+    }
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a surface interaction for an optical photon absorbed on the
+ * surface.
+ */
+CELER_FUNCTION SurfaceInteraction SurfaceInteraction::from_absorption()
+{
+    SurfaceInteraction result;
+    result.action = Action::absorbed;
+    return result;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

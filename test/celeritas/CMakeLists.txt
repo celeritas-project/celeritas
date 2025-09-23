@@ -403,7 +403,7 @@ celeritas_add_test(optical/VolumeSurfaceSelector.test.cc
     LINK_LIBRARIES testcel_geocel)
 celeritas_add_test(optical/SurfacePhysics.test.cc)
 celeritas_add_test(optical/UnifiedReflectionCalculator.test.cc)
-celeritas_add_test(optical/DielectricDielectricCalculator.test.cc)
+celeritas_add_test(optical/Fresnel.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Mat
