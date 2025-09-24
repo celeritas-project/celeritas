@@ -619,7 +619,7 @@ auto SolidConverter::intersectionsolid(arg_type solid_base) -> result_type
 //! Convert a multiunion
 auto SolidConverter::multiunion(arg_type solid_base) -> result_type
 {
-    auto const& mu = static_cast<G4MultiUnion const&>(solid_base);
+    auto const& mu = dynamic_cast<G4MultiUnion const&>(solid_base);
     auto n = mu.GetNumberOfSolids();
     std::vector<result_type> vols(n);
 
