@@ -74,12 +74,10 @@ When importing from Geant4, each optical material corresponds to a single
 (It also provides a special case for water if no material table is associated,
 allowing Rayleigh scattering by default by providing an isothermal
 compressibility and assuming STP.)
-All physical materials that use the geometry material or property table share
-the same optical material.
 
 Celeritas translates many Geant4 material properties into its internal physics
 input parameters. It also allows material-specific user configuration of
-Celeritas-only physics. The following table
+Celeritas-only physics, using properties listed in the following table.
 
 .. table:: Celeritas-only properties, with the ``CELER_`` prefix omitted.
 
@@ -135,12 +133,11 @@ Surface processes
 =================
 
 Optical photons also have special interactions at material boundaries,
-specified largely by user-provided material properties.
+specified by user-provided surface properties.
 Users can define "boundary" and "interface" surfaces representing,
-respectively, the entire surface of a volume (including interior surfaces
-created implicitly by child volumes) and the common face between two adjacent
-volume instances.
-See :ref:`api_geometry` for a discussion of these definitions and
+respectively, the entire boundary of a volume (all points where it touches the
+parent or child volumes) and the common face between two adjacent volume
+instances.  See :ref:`api_geometry` for a discussion of these definitions and
 :ref:`api_geant4_geo` for their translation from Geant4.
 
 .. doxygenclass:: celeritas::optical::VolumeSurfaceSelector
