@@ -46,6 +46,7 @@ except (KeyError, IOError) as e:
             "sphinxmer": False,
         }
     }
+    # Note: 'tags' is available in `locals()` thanks to Sphinx
     tags.add('noconfig')
 
 version = celer_config['version']
@@ -56,6 +57,18 @@ html_title = f"Celeritas {version} documentation"
 for (opt, val) in celer_config['options'].items():
     prefix = '' if val else 'no'
     tags.add(prefix + opt)
+
+
+def setup(app):
+    """Register custom directives when Sphinx loads this config as an extension."""
+    if celer_config['options']['breathe']:
+        from celerdirectives import CelerStructDirective
+        app.add_directive('celerstruct', CelerStructDirective)
+    return {
+        'version': '0.1',
+        'parallel_read_safe': True,
+        'parallel_write_safe': True,
+    }
 
 # -- General configuration ---------------------------------------------------
 

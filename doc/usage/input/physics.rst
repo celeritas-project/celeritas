@@ -14,16 +14,12 @@ Physics
 The selection and data used to create physics classes will be defined
 underneath this struct.
 
-.. doxygenstruct:: celeritas::inp::Physics
-   :members:
-   :no-link:
+.. celerstruct:: inp::Physics
 
 Electromagnetic
-^^^^^^^^^^^^^^^
+---------------
 
-.. doxygenstruct:: celeritas::inp::EmPhysics
-   :members:
-   :no-link:
+.. celerstruct:: inp::EmPhysics
 
 Optical
 ^^^^^^^
