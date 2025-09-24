@@ -90,15 +90,6 @@ Celeritas-only physics. The following table
    +-------------------------------------+-------------------------------------------------------------+
    | :code:`SCINTILLATIONLAMBDASIGMA`    | Standard deviation of the Gaussian scintillation peak [mm]  |
    +-------------------------------------+-------------------------------------------------------------+
-   | :samp:`{P}SCINTILLATIONLAMBDAMEAN`  | Particle-dependent [#par]_ scintillation peak [mm]          |
-   +-------------------------------------+-------------------------------------------------------------+
-   | :samp:`{P}SCINTILLATIONLAMBDASIGMA` | Particle-dependent [#par]_ scintillation peak spread [mm]   |
-   +-------------------------------------+-------------------------------------------------------------+
-
-.. [#par] *P* is allowed to be "PROTON", "DEUTERON", "TRITON", "ALPHA", "ION",
-   and "ELECTRON". For particle-dependent scintillation other particle types
-   use "electron" behavior. Particle-dependent scintillation is not currently
-   supported since electrons are the only particle we track!!
 
 
 Offloading
