@@ -284,9 +284,9 @@ fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
                                "as a Gaussian ";
                     }
                     CELER_LOG(info)
-                        << "Estimated custom properties " << prefix
+                        << "Estimated custom properties CELER_" << prefix
                         << "LAMBDAMEAN" << comp_idx << "=" << comp.lambda_mean
-                        << " and " << prefix << "LAMBDASIGMA" << comp_idx
+                        << " and CELER_" << prefix << "LAMBDASIGMA" << comp_idx
                         << "=" << comp.lambda_sigma
                         << " from Geant4-defined property " << name;
                 }
