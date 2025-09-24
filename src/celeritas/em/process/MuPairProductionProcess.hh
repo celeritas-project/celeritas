@@ -8,7 +8,7 @@
 
 #include <memory>
 
-#include "celeritas/io/ImportMuPairProductionTable.hh"
+#include "celeritas/inp/PhysicsModel.hh"
 #include "celeritas/phys/Applicability.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
@@ -28,15 +28,14 @@ class MuPairProductionProcess : public Process
     //! \name Type aliases
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
-    using SPConstImportTable
-        = std::shared_ptr<ImportMuPairProductionTable const>;
+    using ModelInput = inp::MuPairProductionModel;
     //!@}
 
   public:
     // Construct from pair production data
     MuPairProductionProcess(SPConstParticles particles,
                             SPConstImported process_data,
-                            SPConstImportTable table);
+                            ModelInput input);
 
     // Construct the models associated with this process
     VecModel build_models(ActionIdIter start_id) const final;
@@ -59,7 +58,7 @@ class MuPairProductionProcess : public Process
   private:
     SPConstParticles particles_;
     ImportedProcessAdapter imported_;
-    SPConstImportTable table_;
+    ModelInput table_;
 };
 
 //---------------------------------------------------------------------------//

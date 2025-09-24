@@ -16,6 +16,7 @@
 #include "celeritas/inp/Problem.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
 
+#include "Import.hh"
 #include "Problem.hh"
 #include "System.hh"
 
@@ -40,17 +41,25 @@ FrameworkLoaded framework_input(inp::FrameworkInput& fi)
     auto geo = GeantGeoParams::from_tracking_manager();
     CELER_ASSERT(geo);
 
-    // Import physics data
-    ImportData imported = GeantImporter{}(fi.geant.data_selection);
+    // Load Geant4 data from user setup
+    ImportData imported;
+    setup::physics_from(fi.physics_import, imported);
+
+    // Load physics from external Geant4 data files
+    setup::physics_from(inp::PhysicsFromGeantFiles{}, imported);
 
     // Set up problem
     inp::Problem problem;
+
+    // Copy optical physics from import data
+    // (TODO: will be replaced)
+    problem.physics.optical = imported.optical_physics;
 
     // Load geometry, surfaces, regions from Geant4 world pointer
     problem.model = geo->make_model_input();
 
     // Load physics
-    for (std::string const& process_name : fi.geant.ignore_processes)
+    for (std::string const& process_name : fi.physics_import.ignore_processes)
     {
         ImportProcessClass ipc;
         try
@@ -63,14 +72,8 @@ FrameworkLoaded framework_input(inp::FrameworkInput& fi)
                              << "' is unknown to Celeritas";
             continue;
         }
-        CELER_ASSUME(problem.physics.em);
-        problem.physics.em->user_processes.emplace(ipc,
-                                                   WarnAndIgnoreProcess{ipc});
-    }
-
-    if (fi.update)
-    {
-        CELER_NOT_IMPLEMENTED("updating input problem from external file");
+        problem.physics.em.user_processes.emplace(ipc,
+                                                  WarnAndIgnoreProcess{ipc});
     }
 
     // Adjust problem

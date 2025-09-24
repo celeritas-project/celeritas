@@ -275,6 +275,8 @@ auto LarSphereOptical::make_physics_input() const -> PhysicsInput
     auto& optical = result.optical;
     optical = {};
     EXPECT_TRUE(optical);
+    EXPECT_TRUE(optical.cherenkov);
+    EXPECT_TRUE(optical.scintillation);
 
     // Disable WLS which isn't yet working (reemission) in Celeritas
     using WLSO = WavelengthShiftingOptions;

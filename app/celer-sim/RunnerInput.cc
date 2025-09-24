@@ -203,12 +203,9 @@ inp::Problem load_problem(RunnerInput const& ri)
         }();
         p.tracking.limits.optical_step_iters = ri.optical.max_steps;
 
-        p.physics.optical = [&ri] {
-            inp::OpticalPhysics op;
-            op.cherenkov = ri.optical.cherenkov;
-            op.scintillation = ri.optical.scintillation;
-            return op;
-        }();
+        // NOTE: optical physics setup is applied to g4 physics list and
+        // then copied from import data (i.e., you can't currently disable it
+        // when using a ROOT input)
     }
 
     // Simple calorimeter scoring
@@ -267,14 +264,17 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
             ends_with(ri.physics_file, ".root"),
             << R"(physics_file must be a ROOT input: use GDML for geometry_file and if forcing an ORANGE geometry, use the `ORANGE_FORCE_INPUT` environment variable)");
         // Read ROOT input
-        si.physics_import = inp::FileImport{ri.physics_file};
+        si.physics_import = inp::PhysicsFromFile{ri.physics_file};
     }
     else
     {
         // Set up Geant4
         si.geant_setup = ri.physics_options;
+        // Set up processes to spawn optical photons
+        si.geant_setup->optical.cherenkov.enable = ri.optical.cherenkov;
+        si.geant_setup->optical.scintillation.enable = ri.optical.scintillation;
 
-        inp::GeantImport geant_import;
+        inp::PhysicsFromGeant geant_import;
         CELER_VALIDATE(
             ri.poly_spline_order == 1
                 || ri.interpolation == InterpolationType::poly_spline,
@@ -305,7 +305,7 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
     CELER_ASSERT(num_events > 0);
 
     // Save number of events
-    auto& ctl = std::get<inp::Problem>(si.problem).control;
+    auto& ctl = si.problem.control;
     ctl.capacity.events = num_events;
     // Limit number of streams
     ctl.num_streams = std::min(ctl.num_streams, num_events);

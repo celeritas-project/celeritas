@@ -232,8 +232,7 @@ inp::StandaloneInput to_input(RunInput const& ri)
     // Set up Geant4
     if (ri.physics_list == PhysicsListSelection::celer_ftfp_bert)
     {
-        // Build hadronic physics
-        std::get<inp::Problem>(si.problem).physics.hadronic.emplace();
+        // TODO: physics list is handled elsewhere
     }
     else
     {
@@ -244,13 +243,12 @@ inp::StandaloneInput to_input(RunInput const& ri)
 
     si.geant_setup = ri.physics_options;
 
-    inp::GeantImport geant_import;
+    inp::PhysicsFromGeant geant_import;
     geant_import.ignore_processes.push_back("CoulombScat");
     geant_import.data_selection.interpolation.type = ri.interpolation;
     geant_import.data_selection.interpolation.order = ri.poly_spline_order;
     si.physics_import = std::move(geant_import);
 
-    si.geant_data = inp::GeantDataImport{};
     si.events = load_events(ri);
 
     return si;

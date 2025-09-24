@@ -7,6 +7,53 @@ Series 0.6
 Major development version 0.6 can be cited through its Zenodo code release
 :cite:p:`celeritas-0-6`.
 
+.. _release_v0.6.2:
+
+Version 0.6.2
+-------------
+*Released 2025/09/23*
+
+Version 0.6.2 is a minor bug fix update.
+- Fixed reconstruction of track weights in returned Geant4 hits
+- Improved documentation and use of ``CELER_USE_PROFILING``
+- Added push/flush profiling counters in accel interface
+- Update externals to latest versions (including G4VG 1.0.5 with VecGeom/CUDA fix)
+
+Changes since v0.6.1 follow.
+
+New features
+^^^^^^^^^^^^
+
+* Warn user when running large problems on debug build *(@sethrj, #1971)*
+* Improve version metadata for built-in packages and VecGeom *(@sethrj, #1929)*
+
+Bug fixes
+^^^^^^^^^
+
+* Fix propagation of weight from primary to track to secondary *(@sethrj, #1965)*
+
+Documentation improvements
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Add documentation and use flag for CELER_USE_PROFILING *(@sethrj, #1966)*
+* Fix cache clearing *(@sethrj, #1979)*
+
+Minor internal changes
+^^^^^^^^^^^^^^^^^^^^^^
+
+* Add push/flush profiling to accel interface *(@sethrj, #1968)*
+* Update externals *(@sethrj, #1977)*
+* Add iostream wrappers for Geant physics options *(@sethrj, #1981)*
+
+Reviewers
+^^^^^^^^^
+
+* Philippe Canal *(@pcanal)*: 4
+* Amanda Lund *(@amandalund)*: 3
+* Rashika Gupta *(@Rashika-Gupta)*: 1
+
+**Full Changelog**: https://github.com/celeritas-project/celeritas/compare/v0.6.1...v0.6.2
+
 .. _release_v0.6.1:
 
 Version 0.6.1

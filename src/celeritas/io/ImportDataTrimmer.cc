@@ -69,12 +69,11 @@ void ImportDataTrimmer::operator()(ImportData& data)
         (*this)(data.regions);
         (*this)(data.volumes);
 
-        (*this)(data.sb_data);
-        (*this)(data.livermore_pe_data);
-        (*this)(data.neutron_elastic_data);
-        (*this)(data.atomic_relaxation_data);
-
         (*this)(data.optical_materials);
+
+        (*this)(data.seltzer_berger.atomic_xs);
+        (*this)(data.livermore_photo.atomic_xs);
+        (*this)(data.atomic_relaxation.atomic_xs);
 
         this->for_each(data.elements);
         this->for_each(data.geo_materials);
@@ -90,10 +89,9 @@ void ImportDataTrimmer::operator()(ImportData& data)
 
         this->for_each(data.processes);
         this->for_each(data.msc_models);
-        this->for_each(data.sb_data);
-        this->for_each(data.livermore_pe_data);
-        this->for_each(data.neutron_elastic_data);
-        this->for_each(data.atomic_relaxation_data);
+        this->for_each(data.seltzer_berger.atomic_xs);
+        this->for_each(data.livermore_photo.atomic_xs);
+        this->for_each(data.atomic_relaxation.atomic_xs);
 
         this->for_each(data.optical_models);
         this->for_each(data.optical_materials);
@@ -102,7 +100,7 @@ void ImportDataTrimmer::operator()(ImportData& data)
     if (options_.mupp)
     {
         // Reduce the resolution of the muon pair production table
-        (*this)(data.mu_pair_production_data);
+        (*this)(data.mu_production.muppet_table);
     }
 
     // Trim infinities from grid
@@ -186,7 +184,7 @@ void ImportDataTrimmer::operator()(ImportMscModel& data)
 }
 
 //---------------------------------------------------------------------------//
-void ImportDataTrimmer::operator()(ImportMuPairProductionTable& data)
+void ImportDataTrimmer::operator()(inp::MuPairProductionEnergyTransferTable& data)
 {
     if (!data)
     {

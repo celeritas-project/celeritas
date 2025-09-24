@@ -6,6 +6,14 @@
 Physics
 =======
 
+.. note:: For discussion of model and process naming, see
+   issue 1562_ .
+
+.. _1562: https://github.com/celeritas-project/celeritas/pull/1562
+
+The selection and data used to create physics classes will be defined
+underneath this struct.
+
 .. doxygenstruct:: celeritas::inp::Physics
    :members:
    :no-link:
@@ -14,20 +22,6 @@ Electromagnetic
 ^^^^^^^^^^^^^^^
 
 .. doxygenstruct:: celeritas::inp::EmPhysics
-   :members:
-   :no-link:
-
-Decay
-^^^^^
-
-.. doxygenstruct:: celeritas::inp::DecayPhysics
-   :members:
-   :no-link:
-
-Hadronic
-^^^^^^^^
-
-.. doxygenstruct:: celeritas::inp::HadronicPhysics
    :members:
    :no-link:
 
@@ -66,7 +60,19 @@ better extensibility and reduces kernel size/complexity on the GPU.
 Processes
 ---------
 
-.. doxygenstruct:: celeritas::inp::BremsProcess
+.. doxygenstruct:: celeritas::inp::BremsstrahlungProcess
+   :members:
+   :no-link:
+
+.. doxygenstruct:: celeritas::inp::PairProductionProcess
+   :members:
+   :no-link:
+
+.. doxygenstruct:: celeritas::inp::PhotoelectricProcess
+   :members:
+   :no-link:
+
+.. doxygenstruct:: celeritas::inp::AtomicRelaxation
    :members:
    :no-link:
 
@@ -83,5 +89,17 @@ Models
    :no-link:
 
 .. doxygenstruct:: celeritas::inp::MuBremsModel
+   :members:
+   :no-link:
+
+.. doxygenstruct:: celeritas::inp::BetheHeitlerProductionModel
+   :members:
+   :no-link:
+
+.. doxygenstruct:: celeritas::inp::MuPairProductionModel
+   :members:
+   :no-link:
+
+.. doxygenstruct:: celeritas::inp::LivermorePhotoModel
    :members:
    :no-link:
