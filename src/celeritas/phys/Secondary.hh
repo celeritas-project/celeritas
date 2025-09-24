@@ -18,16 +18,13 @@ namespace celeritas
  *
  * It will be converted into a "track initializer" using the parent track's
  * information.
- *
- * \note Avoid value-initialization of fields to work around nvlink bug
  */
 struct Secondary
 {
     ParticleId particle_id;  //!< New particle type
     units::MevEnergy energy;  //!< New kinetic energy
     Real3 direction;  //!< New direction
-    real_type weight;
-
+    real_type weight{1.0};
     //! Whether the secondary survived cutoffs
     explicit CELER_FUNCTION operator bool() const
     {
