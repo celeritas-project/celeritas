@@ -208,9 +208,12 @@ auto SharedParams::GetMode() -> Mode
 //---------------------------------------------------------------------------//
 /*!
  * Get a list of all supported particles.
+
+ * \note This can only be called after the run manager is constructed.
  */
 auto SharedParams::supported_offload_particles() -> VecG4PD const&
 {
+    CELER_EXPECT(G4RunManager::GetRunManager());
     static VecG4PD const supported_particles = {
         G4Electron::Definition(),
         G4Positron::Definition(),
@@ -227,9 +230,13 @@ auto SharedParams::supported_offload_particles() -> VecG4PD const&
  * Get the list of default particles offloaded in Geant4 applications.
  *
  * If no user-defined list is provided, this defaults to simulating EM showers.
+ *
+ * \note This can only be called after the run manager is constructed.
  */
 auto SharedParams::default_offload_particles() -> VecG4PD const&
 {
+    CELER_EXPECT(G4RunManager::GetRunManager());
+
     static VecG4PD const default_particles = {
         G4Electron::Definition(),
         G4Positron::Definition(),

@@ -27,7 +27,8 @@ struct SetupOptions;
  * application. To use this class in your Geant4 application to offload tracks
  * to Celeritas:
  *
- * - Set up the \c Options before calling \c G4RunManager::Initialize
+ * - Use \c SetOptions to set Celeritas configuration before calling \c
+ *   G4RunManager::BeamOn
  * - Call \c BeginOfRunAction and \c EndOfRunAction from \c UserRunAction
  * - Call \c BeginOfEvent and  \c EndOfEvent from \c UserEventAction
  * - Call \c PreUserTrackingAction from your \c UserTrackingAction
