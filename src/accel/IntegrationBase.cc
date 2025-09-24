@@ -104,14 +104,11 @@ CoreStateInterface& IntegrationBase::GetState()
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize logging on first access.
- *
- * Since this is done during static initialization, it is guaranteed to be
- * thread safe.
+ * Initialize MPI and logging on first access.
  */
 IntegrationBase::IntegrationBase()
 {
-    IntegrationSingleton::instance().initialize_logger();
+    IntegrationSingleton::instance();
 }
 
 //---------------------------------------------------------------------------//

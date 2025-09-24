@@ -6,13 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "ExceptionConverter.hh"
 
-#include <algorithm>
-#include <initializer_list>
 #include <stdexcept>
 #include <string>
 #include <G4Exception.hh>
-
-#include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
@@ -21,7 +17,6 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/math/QuantityIO.hh"
-#include "corecel/sys/Environment.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -30,44 +25,12 @@
 
 #include "SharedParams.hh"
 
+#include "detail/LoggerImpl.hh"
+
 namespace celeritas
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-//! Try removing up to and including the filename from the reported path.
-std::string strip_source_dir(std::string const& filename)
-{
-    static bool const do_strip = [] {
-        auto result = getenv_flag("CELER_STRIP_SOURCEDIR", !CELERITAS_DEBUG);
-        return result.value;
-    }();
-    if (!do_strip)
-    {
-        // Don't strip in debug builds
-        return filename;
-    }
-
-    std::string::size_type max_pos = 0;
-    for (std::string const path : {"src/", "app/", "test/"})
-    {
-        auto pos = filename.rfind(path);
-
-        if (pos != std::string::npos)
-        {
-            pos += path.size() - 1;
-            max_pos = std::max(max_pos, pos);
-        }
-    }
-    if (max_pos == 0)
-    {
-        // No telling where the filename is from...
-        return filename;
-    }
-
-    return filename.substr(max_pos + 1);
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Write a detailed state message.
@@ -169,14 +132,7 @@ void ExceptionConverter::operator()(std::exception_ptr eptr) const
         // Translate a runtime error into a G4Exception call
         std::string const where = [&d = e.details()] {
             std::ostringstream os;
-            if (!d.file.empty())
-            {
-                os << strip_source_dir(d.file);
-            }
-            if (d.line != 0)
-            {
-                os << ':' << d.line;
-            }
+            os << detail::CleanedProvenance{d.file, d.line};
             return std::move(os).str();
         }();
 
@@ -201,7 +157,7 @@ void ExceptionConverter::operator()(std::exception_ptr eptr) const
     {
         // Translate a *debug* error
         std::ostringstream where;
-        where << strip_source_dir(e.details().file) << ':' << e.details().line;
+        where << detail::CleanedProvenance{e.details().file, e.details().line};
         std::ostringstream what;
         what << to_cstring(e.details().which) << ": " << e.details().condition;
         G4Exception(

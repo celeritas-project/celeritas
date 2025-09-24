@@ -39,6 +39,7 @@ list(APPEND SOURCES
   TimeOutput.cc
   UserActionIntegration.cc
   detail/GeantSimpleCaloSD.cc
+  detail/LoggerImpl.cc
   detail/IntegrationSingleton.cc
 )
 
