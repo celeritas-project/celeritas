@@ -215,14 +215,30 @@ fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
         auto get = [&](double* dst, std::string const& ext, ImportUnits u) {
             bool one_found = get_property(dst, prefix + ext, comp_idx, u);
             any_found = any_found || one_found;
+            return one_found;
         };
 
         ImportScintComponent comp;
         get(&comp.yield_frac, "YIELD", ImportUnits::inv_mev);
 
         // Custom-defined properties not available in G4MaterialPropertyIndex
-        get(&comp.lambda_mean, "LAMBDAMEAN", ImportUnits::len);
-        get(&comp.lambda_sigma, "LAMBDASIGMA", ImportUnits::len);
+        for (auto&& [prop, label] : {
+                 std::pair{&comp.lambda_mean, "LAMBDAMEAN"},
+                 std::pair{&comp.lambda_sigma, "LAMBDASIGMA"},
+             })
+        {
+            if (get_property(
+                    prop, "CELER_" + prefix + label, comp_idx, ImportUnits::len))
+            {
+                any_found = true;
+            }
+            else if (get(prop, label, ImportUnits::len))
+            {
+                CELER_LOG(warning)
+                    << "Deprecated property name " << prefix << label
+                    << ": use CELER_" << prefix << label;
+            }
+        }
 
         // Rise time is not defined for particle type in Geant4
         get(&comp.rise_time, "RISETIME", ImportUnits::time);
