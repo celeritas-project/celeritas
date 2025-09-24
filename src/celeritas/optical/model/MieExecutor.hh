@@ -10,15 +10,16 @@
 #include <vector>
 
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/optical/ImportedMaterials.hh"
 #include "celeritas/optical/Interaction.hh"
+#include "celeritas/optical/MieData.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
 #include "celeritas/optical/interactor/MieInteractor.hh"
-
 namespace celeritas
 {
 namespace optical
@@ -28,8 +29,9 @@ struct MieExecutor
 {
     // NativeCRef<ImportedMaterials> imported; // <-- hold material tables
     // ImportedMaterials const* imported;
-    std::vector<ImportMie> const& mie_data;
+    // std::vector<ImportMie> const& mie_data;
     inline CELER_FUNCTION Interaction operator()(CoreTrackView const&);
+    NativeCRef<MieData> data;
 };
 
 //---------------------------------------------------------------------------//
@@ -50,15 +52,16 @@ CELER_FUNCTION Interaction MieExecutor::operator()(CoreTrackView const& track)
 
     // Look up the Mie parameters for this material
     auto matid = track.material_record().material_id();
-    ImportMie const& mie = mie_data[matid.unchecked_get()];
-    CELER_LOG_LOCAL(debug) << "MieExecutor: material=" << matid.get()
-                           << " g_forward=" << mie.forward_g
-                           << " g_backward=" << mie.backward_g
-                           << " forward_ratio=" << mie.forward_ratio;
+    //  ImportMie const& mie = mie_data[matid.unchecked_get()];
+    // CELER_LOG_LOCAL(debug) << "MieExecutor: material=" << matid.get()
+    //                        << " g_forward=" << mie.forward_g
+    //                        << " g_backward=" << mie.backward_g
+    //                        << " forward_ratio=" << mie.forward_ratio;
     //
     //// Construct an interactor that knows how to do Henyey–Greenstein
     /// scattering
-    MieInteractor interact{particle, direction, mie};
+    // MieInteractor interact{particle, direction, mie};
+    MieInteractor interact{data, particle, direction, matid};
     return interact(rng);
     //
     //// Run the interaction, producing a scattering event

@@ -18,8 +18,10 @@
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/random/distribution/RejectionSampler.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/Interaction.hh"
+#include "celeritas/optical/MieData.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
 namespace celeritas
 {
@@ -49,9 +51,10 @@ class MieInteractor
     //       real_type forward_ratio;
     //   };
 
-    inline CELER_FUNCTION MieInteractor(ParticleTrackView const& particle,
+    inline CELER_FUNCTION MieInteractor(NativeCRef<MieData> const& shared,
+                                        ParticleTrackView const& particle,
                                         Real3 const& direction,
-                                        ImportMie const& mie_params);
+                                        OptMatId const& mat_id);
 
     template<class Engine>
     inline CELER_FUNCTION Interaction operator()(Engine& rng) const;
@@ -59,21 +62,36 @@ class MieInteractor
   private:
     Real3 const& inc_dir_;  //!< Incident photon direction
     Real3 const& inc_pol_;  //!< Incident polarization
-    ImportMie const& mie_params_;  //!< Mie scattering params
+    MieMaterialData const& mie_params_;  //!< Mie scattering params
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 CELER_FUNCTION
-MieInteractor::MieInteractor(ParticleTrackView const& particle,
+// MieInteractor::MieInteractor(  NativeCRef<MieData> const&
+// shared,ParticleTrackView const& particle,
+//                                         Real3 const& direction,
+//                                         OptMatId const& mat_id)
+//     : inc_dir_(direction)
+//     , inc_pol_(particle.polarization())
+//     , mie_params_(mie_params)
+//{
+//     CELER_LOG(debug) << "in mie interactor";
+//     CELER_EXPECT(is_soft_unit_vector(inc_dir_));
+//     CELER_EXPECT(is_soft_unit_vector(inc_pol_));
+//     CELER_EXPECT(soft_zero(dot_product(inc_dir_, inc_pol_)));
+// }
+MieInteractor::MieInteractor(NativeCRef<MieData> const& shared,
+                             ParticleTrackView const& particle,
                              Real3 const& direction,
-                             ImportMie const& mie_params)
+                             OptMatId const& mat_id)
     : inc_dir_(direction)
     , inc_pol_(particle.polarization())
-    , mie_params_(mie_params)
+    , mie_params_(shared.mie_record[mat_id])
 {
-    CELER_LOG(debug) << "in mie interactor";
+    CELER_EXPECT(shared);
+    CELER_EXPECT(mat_id < shared.mie_record.size());
     CELER_EXPECT(is_soft_unit_vector(inc_dir_));
     CELER_EXPECT(is_soft_unit_vector(inc_pol_));
     CELER_EXPECT(soft_zero(dot_product(inc_dir_, inc_pol_)));

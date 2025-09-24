@@ -1,12 +1,15 @@
 #include "MieModel.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/Types.hh"
+#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/inp/Grid.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/InteractionApplier.hh"
 #include "celeritas/optical/MfpBuilder.hh"
+#include "celeritas/optical/MieData.hh"
 #include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 #include "celeritas/optical/model/MieExecutor.hh"
@@ -44,11 +47,24 @@ auto MieModel::make_builder(SPConstImported imported, Input input)
 MieModel::MieModel(ActionId id, SPConstImported imported, Input input)
     : Model(id, "optical-mie", "interact by optical Mie scattering")
     , imported_(ImportModelClass::mie, std::move(imported))
-    , mie_data_(std::move(input.data))
+//  , mie_data_(std::move(input.data))
 {
     CELER_LOG(debug) << "Miemodel constructor";
     CELER_LOG(debug) << "MieModel registered with action ID "
                      << this->action_id().get();
+    HostVal<MieData> data;
+    CollectionBuilder mie_record{&data.mie_record};
+    for (auto const& mie : input.data)
+    {
+        MieMaterialData record;
+        record.backward_g = mie.backward_g;
+        record.forward_g = mie.forward_g;
+        record.forward_ratio = mie.forward_ratio;
+
+        mie_record.push_back(record);
+    }
+    // data_ = CollectionMirror<MieData>{std::move(data)};
+    // CELER_ENSURE(data_);
 
     // CELER_EXPECT(!input_ || input_.materials->num_materials()
     //                        == imported_.num_materials());
@@ -78,7 +94,9 @@ void MieModel::build_mfps(OptMatId mat, MfpBuilder& build) const
     }
     else
     {
-        CELER_LOG(debug) << "mie model MFP not found for " << mat.get();
+        CELER_LOG(debug)
+            << "mie model MFP not found for setting to infinity for "
+            << mat.get();
         inp::Grid g;
         g.x = {1.56962, 6.19998};
         g.y = {std::numeric_limits<real_type>::infinity(),
@@ -97,7 +115,7 @@ void MieModel::step(CoreParams const& params, CoreStateHost& state) const
                       params.ptr<MemSpace::native>(),
                       state.ptr(),
                       this->action_id(),
-                      InteractionApplier{MieExecutor{mie_data_}}));
+                      InteractionApplier{MieExecutor{this->host_ref()}}));
 }
 
 #if !CELER_USE_DEVICE

@@ -2,11 +2,14 @@
 
 #include <vector>
 
+#include "corecel/data/CollectionMirror.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/io/ImportOpticalModel.hh"
 #include "celeritas/optical/ImportedModelAdapter.hh"
 #include "celeritas/optical/Model.hh"
+
+#include "../MieData.hh"
 
 namespace celeritas
 {
@@ -26,8 +29,11 @@ class MieModel final : public Model
 {
   public:
     using SPConstImported = std::shared_ptr<ImportedModels const>;
-    using SPConstImportedMaterials = std::shared_ptr<ImportedMaterials const>;
+    // using SPConstImportedMaterials = std::shared_ptr<ImportedMaterials
+    // const>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
+    using HostRef = HostCRef<MieData>;
+    using DeviceRef = DeviceCRef<MieData>;
     using SPConstCoreMaterials
         = std::shared_ptr<::celeritas::MaterialParams const>;
     struct Input
@@ -50,11 +56,16 @@ class MieModel final : public Model
     void build_mfps(OptMatId mat, MfpBuilder& build) const final;
     void step(CoreParams const&, CoreStateHost&) const final;
     void step(CoreParams const&, CoreStateDevice&) const final;
+    //! Access data on the host
+    HostRef const& host_ref() const { return data_.host_ref(); }
+    //! Access data on the device
+    DeviceRef const& device_ref() const { return data_.device_ref(); }
 
   private:
     ImportedModelAdapter imported_;
-    Input input_;
-    std::vector<ImportMie> mie_data_;
+    CollectionMirror<MieData> data_;
+    // Input input_;
+    // std::vector<ImportMie> mie_data_;
 };
 
 }  // namespace optical
