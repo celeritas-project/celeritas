@@ -6,10 +6,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <optional>
 #include <string_view>
 #include <variant>
 #include <vector>
 
+#include "corecel/OpaqueId.hh"
 #include "geocel/Types.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/transform/VariantTransform.hh"
@@ -49,6 +51,9 @@ class UnitProto : public ProtoInterface
     using Unit = detail::CsgUnit;
     using Tol = Tolerance<>;
     using VariantLabel = std::variant<Label, VolumeInstanceId>;
+    using MaterialInputId = OpaqueId<struct MaterialInput>;
+    using LocalParent = std::optional<MaterialInputId>;
+    //!@}
 
     //! Optional "background" inside of exterior, outside of all mat/daughter
     struct BackgroundInput
@@ -66,6 +71,9 @@ class UnitProto : public ProtoInterface
         SPConstObject interior;
         GeoMatId fill;
         VariantLabel label;
+        //! Mark this material as being structurally inside another local one
+        //! Unset = none; set but "null ID" = background
+        LocalParent local_parent;
 
         // True if fully defined
         explicit inline operator bool() const;

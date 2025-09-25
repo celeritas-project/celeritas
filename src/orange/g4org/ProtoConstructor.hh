@@ -63,6 +63,10 @@ class ProtoConstructor
     SPUnitProto operator()(LogicalVolume const&);
 
   private:
+    //// TYPES ////
+
+    using MaterialInputId = orangeinp::UnitProto::MaterialInputId;
+
     //// DATA ////
 
     VolumeParams const& volumes_;
@@ -76,9 +80,9 @@ class ProtoConstructor
     bool can_inline_transform(VariantTransform const&) const;
 
     // Place a physical volume into the given unconstructed proto
-    void place_pv(VariantTransform const& parent_transform,
-                  PhysicalVolume const& pv,
-                  UnitProto::Input* proto);
+    MaterialInputId place_pv(VariantTransform const& parent_transform,
+                             PhysicalVolume const& pv,
+                             UnitProto::Input* proto);
 
     SPConstObject make_explicit_background(LogicalVolume const& lv,
                                            VariantTransform const& transform);

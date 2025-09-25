@@ -421,6 +421,40 @@ void UnitProto::build(ProtoBuilder& input) const
             vol_iter->label = Label{std::string(m.interior->label())};
         }
         vol_iter->zorder = ZOrder::media;
+        if (m.local_parent)
+        {
+            LocalVolumeId parent_id;
+            auto child_id
+                = id_cast<LocalVolumeId>(vol_iter - result.volumes.begin());
+            if (MaterialInputId parent_mi_id = *m.local_parent)
+            {
+                // Offset by 1 for exterior volume + daughters
+                parent_id = LocalVolumeId{1 + input_.daughters.size()
+                                          + parent_mi_id.get()};
+            }
+            else
+            {
+                // Option value is set, but to a "null" ID: parent is
+                // background
+                if (input.next_id() == orange_global_universe)
+                {
+                    // For global universe, background is actually a PV: it's
+                    // the last volume
+                    parent_id
+                        = id_cast<LocalVolumeId>(result.volumes.size() - 1);
+                }
+                else
+                {
+                    // Background is a *volume* not an *instance*
+                    parent_id = {};
+                }
+            }
+            if (parent_id)
+            {
+                CELER_ASSERT(parent_id < result.volumes.size());
+                result.local_parent_map.emplace(child_id, parent_id);
+            }
+        }
         ++vol_iter;
     }
 
