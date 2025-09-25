@@ -4,7 +4,7 @@
 .. _inp_physics:
 
 Physics
-=======
+========
 
 .. note:: For discussion of model and process naming, see issue 1562_ .
 
@@ -71,6 +71,7 @@ Models
 .. celerstruct:: inp::BetheHeitlerProductionModel
 .. celerstruct:: inp::MuPairProductionModel
 .. celerstruct:: inp::LivermorePhotoModel
+
 
 .. _inp_grid:
 

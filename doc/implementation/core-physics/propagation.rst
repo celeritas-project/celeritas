@@ -29,29 +29,22 @@ Propagation
 -----------
 
 .. doxygenclass:: celeritas::LinearPropagator
-
 .. doxygenclass:: celeritas::FieldPropagator
-
 .. doxygenclass:: celeritas::FieldSubstepper
 
 Field integration
 -----------------
 
 .. doxygenclass:: celeritas::DormandPrinceIntegrator
-
 .. doxygenclass:: celeritas::RungeKuttaIntegrator
-
 .. doxygenclass:: celeritas::ZHelixIntegrator
 
 Magnetic field types
 --------------------
 
 .. doxygenclass:: celeritas::UniformField
-
 .. doxygenclass:: celeritas::RZMapField
-
 .. doxygenclass:: celeritas::CartMapField
-
 .. doxygenclass:: celeritas::CylMapField
 
 .. _api_field_data:
