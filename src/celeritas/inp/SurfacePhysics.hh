@@ -26,21 +26,22 @@ namespace inp
 // SURFACE DESCRIPTION: Reflectivity and models for surface normals.
 //---------------------------------------------------------------------------//
 /*!
- * Energy-dependent surface reflectivity.
+ * Model reflectivity as a user-prescribed function of energy.
  *
  * The grid can also be used to represent a constant reflectivity.
  */
 struct GridReflection
 {
+    //! Reflectivity values [MeV -> unitless]
     Grid reflectivity;
 
-    //! Whether the data are assigned
+    // Whether the data are assigned
     explicit operator bool() const { return static_cast<bool>(reflectivity); }
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Analytic reflectivity using the Fresnel equations.
+ * Model reflectivity analytically using the Fresnel equations.
  */
 struct FresnelReflection
 {
@@ -60,17 +61,20 @@ struct NoRoughness
 /*!
  * Global surface normal with smearing.
  *
- * Roughness range is [0, 1], where 0 is specular and 1 is diffuse. This
- * parameter is also the complement of the one defined in Geant4:
+ * Roughness range is \f$ [0, 1] \f$, where 0 is specular and 1 is diffuse.
+ * This parameter is the complement of the \em polish as defined in Geant4:
  * \code roughness = 1 - GetPolish(); \endcode .
  *
- * \note Used by the GLISUR model in Geant4.
+ * See \c celeritas::optical::SmearRoughnessSampler .
+ *
+ * \note This model is used by the GLISUR subroutine in Geant3 and the
+ * corresponding "glisur" surface model in Geant4.
  */
 struct SmearRoughness
 {
     double roughness{-1};  //!< Scale from 0 = specular to 1 = diffuse
 
-    //! Whether the data are assigned
+    // Whether the data are assigned
     explicit operator bool() const { return roughness >= 0 && roughness <= 1; }
 };
 
@@ -78,16 +82,16 @@ struct SmearRoughness
 /*!
  * Approximate the microfacet normal distributions as Gaussian.
  *
- * This is used by the UNIFIED model in Geant4 \citep{levin-morephysical-1996,
- * http://ieeexplore.ieee.org/document/591410/} : the mean of the distribution
- * is zero (as a modification to the macroscopic normal) and the standard
- * deviation is \c sigma_alpha .
+ * See \c celeritas::optical::GaussianRoughnessSampler .
+ *
+ * \note This model is used by the "unified" surface model in Geant4.
  */
 struct GaussianRoughness
 {
-    double sigma_alpha{-1};  //!< Gaussian std. dev.
+    //! Standard deviation of the microfacet slope distribution
+    double sigma_alpha{0};
 
-    //! Whether the surface data are assigned
+    // Whether the roughness has a meaningufl value
     explicit operator bool() const { return sigma_alpha > 0; }
 };
 
@@ -97,14 +101,18 @@ struct GaussianRoughness
 /*!
  * Parameterization of the UNIFIED reflection model.
  *
- * Parameters:
+ * The reflection grids store the probability of each angular distribution in
+ * the UNIFIED model:
  * - \c specular_spike : Reflection probability at the average surface normal.
  * - \c specular_lobe : Reflection probability at the micro facet normal.
  * - \c backscatter : Probability of backscattering after reflecting within a
  *   deep groove.
  *
- * The sum of all three parameters must be < 1 at every grid point, with the
+ * The sum of all three parameters must be <= 1 at every grid point, with the
  * remainder being the probability of diffuse scattering.
+ *
+ * \todo We could require these to all be on the same energy grid for improved
+ * performance and error checking.
  */
 struct ReflectionForm
 {
@@ -113,10 +121,10 @@ struct ReflectionForm
     using ReflectionGrids = EnumArray<optical::ReflectionMode, Grid>;
     //!@}
 
-    //! Between [0, 1] probability
+    //! Probability of reflection for each reflection mode
     ReflectionGrids reflection_grids;
 
-    //! Whether the data are assigned
+    // Whether all grids are specified
     explicit operator bool() const
     {
         return std::all_of(
@@ -139,7 +147,7 @@ struct ReflectionForm
             optical::ReflectionMode::specular_lobe);
     }
 
-    //! Return a Lambertian reflection form
+    //! Return a Lambertian (diffuse) reflection form
     static ReflectionForm from_lambertian()
     {
         // Lambertian grid is implicit
@@ -162,11 +170,11 @@ struct ReflectionForm
 
 //---------------------------------------------------------------------------//
 /*!
- * Analytic interactions between dielectric-dielectric and dielectric-metal
- * interfaces.
+ * Analytic interactions between dielectric and dielectric or metal materials.
  */
 struct DielectricInteraction
 {
+    //! Exiting angular distributions
     ReflectionForm reflection;
 
     //! Whether the interface is dielectric-dielectric or dielectric-metal
@@ -196,11 +204,14 @@ struct DielectricInteraction
  */
 struct RoughnessModels
 {
+    //! Perfectly smooth surfaces
     std::map<PhysSurfaceId, NoRoughness> polished;
+    //! Surfaces using the "smear" roughness model
     std::map<PhysSurfaceId, SmearRoughness> smear;
+    //! Surfaces using the "gaussian" roughness model
     std::map<PhysSurfaceId, GaussianRoughness> gaussian;
 
-    //! Whether the data are assigned
+    // Whether any models are present
     explicit operator bool() const
     {
         return !polished.empty() || !smear.empty() || !gaussian.empty();
@@ -210,15 +221,15 @@ struct RoughnessModels
 //---------------------------------------------------------------------------//
 /*!
  * Reflectivity mechanism.
- *
- * Can be user-defined (grid) and/or analytic (Fresnel equations).
  */
 struct ReflectivityModels
 {
+    //! Surfaces using an energy-dependent, user-specified grid
     std::map<PhysSurfaceId, GridReflection> grid;
+    //! Surfaces using the analytic Fresnel equations
     std::map<PhysSurfaceId, FresnelReflection> fresnel;
 
-    //! Whether the data are assigned
+    // Whether any models are present
     explicit operator bool() const
     {
         return !grid.empty() || !fresnel.empty();
@@ -229,15 +240,14 @@ struct ReflectivityModels
 /*!
  * Interaction models for different interface types.
  *
- * Existing interface types are dielectric-dielectric and dielectric-metal.
- *
  * This will be extended to allow user-provided interaction kernels.
  */
 struct InteractionModels
 {
+    //! Composite reflection distributions at a dielectric interface
     std::map<PhysSurfaceId, DielectricInteraction> dielectric;
 
-    //! Whether the data are assigned
+    // Whether any models are present
     explicit operator bool() const { return !dielectric.empty(); }
 };
 
@@ -263,14 +273,17 @@ struct SurfacePhysics
 
     std::vector<VecInterstitialMaterials> materials;
 
+    //! Microfacet distribution models
     RoughnessModels roughness;
+    //! Reflectivity models
     ReflectivityModels reflectivity;
+    //! Reflection+refraction+absorption models
     InteractionModels interaction;
 
-    //! Whether the data are assigned
+    // Whether the data are assigned
     explicit operator bool() const
     {
-        return reflectivity && roughness && interaction && !materials.empty();
+        return roughness && reflectivity && interaction && !materials.empty();
     }
 };
 
