@@ -26,7 +26,7 @@ namespace celeritas
  * Sample the energy of the delta ray for muon or hadron ionization.
  *
  * This samples the energy according to the Bragg and ICRU73QO models, as
- * described in the Geant4 Physics Reference Manual release 11.2 section 11.1.
+ * described in \cite{g4prm} (release 11.2, section 11.1).
  */
 class BraggICRU73QOEnergyDistribution
 {
