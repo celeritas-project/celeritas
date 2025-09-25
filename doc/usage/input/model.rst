@@ -9,36 +9,21 @@ Model
 This specifies the problem geometry and material properties. See
 :ref:`api_geometry` for details on the definition of volumes and surfaces.
 
-.. doxygenstruct:: celeritas::inp::Model
-   :members:
-   :no-link:
+.. celerstruct:: inp::Model
 
 Volumes
 -------
 
 These input classes describe the volume hierarchy.
 
-.. doxygenstruct:: celeritas::inp::Volumes
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::inp::Volume
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::inp::VolumeInstance
-   :members:
-   :no-link:
+.. celerstruct:: inp::Volumes
+.. celerstruct:: inp::Volume
+.. celerstruct:: inp::VolumeInstance
 
 Surfaces
 --------
 
 Surfaces are defined by the relationship between volumes.
 
-.. doxygenstruct:: celeritas::inp::Surfaces
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::inp::Surface
-   :members:
-   :no-link:
+.. celerstruct:: inp::Surfaces
+.. celerstruct:: inp::Surface

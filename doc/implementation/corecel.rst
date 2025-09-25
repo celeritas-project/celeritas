@@ -202,7 +202,7 @@ These functions replace or extend those in the C++ standard library
 .. doxygenfunction:: celeritas::sincospi(double a, double* s, double* c)
 .. doxygenfunction:: celeritas::popcount
 
-.. doxygenstruct:: celeritas::numeric_limits
+.. celerstruct:: numeric_limits
    :members:
 
 Atomics

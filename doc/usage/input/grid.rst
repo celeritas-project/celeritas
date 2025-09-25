@@ -9,20 +9,10 @@ Grids
 Tabulated physics data such as cross sections or energy loss are stored on
 increasing, sorted 1D or 2D grids.
 
-.. doxygenstruct:: celeritas::inp::Grid
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::inp::UniformGrid
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::inp::TwodGrid
-   :members:
-   :no-link:
+.. celerstruct:: inp::Grid
+.. celerstruct:: inp::UniformGrid
+.. celerstruct:: inp::TwodGrid
 
 Both linear and spline interpolation are supported.
 
-.. doxygenstruct:: celeritas::inp::Interpolation
-   :members:
-   :no-link:
+.. celerstruct:: inp::Interpolation

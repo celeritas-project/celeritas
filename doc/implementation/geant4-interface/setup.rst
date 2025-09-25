@@ -23,13 +23,8 @@ compatible with Celeritas), the Celeritas setup will fail with an error like:
    *** Fatal Exception *** core dump ***
 
 
-.. doxygenstruct:: celeritas::SetupOptions
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::SDSetupOptions
-   :members:
-   :no-link:
+.. celerstruct:: SetupOptions
+.. celerstruct:: SDSetupOptions
 
 Helper functions
 ----------------
@@ -45,9 +40,7 @@ The magnetic fields defined for Celeritas can be used as Geant4 native magnetic
 fields (see :ref:`api_accel_adapters`).
 
 .. doxygenclass:: celeritas::UniformAlongStepFactory
-
 .. doxygenclass:: celeritas::RZMapFieldAlongStepFactory
-
 .. doxygenclass:: celeritas::CylMapFieldAlongStepFactory
 
 .. _g4_ui_macros:

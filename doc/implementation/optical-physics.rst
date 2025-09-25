@@ -68,7 +68,7 @@ Opticks :cite:`blyth-opticks-2019`.
 .. doxygenclass:: celeritas::OpticalCollector
 .. doxygenclass:: celeritas::CherenkovOffload
 .. doxygenclass:: celeritas::ScintillationOffload
-.. doxygenstruct:: celeritas::optical::GeneratorDistributionData
+.. celerstruct:: optical::GeneratorDistributionData
 
 Generating
 ==========
