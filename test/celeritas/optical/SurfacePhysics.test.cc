@@ -49,8 +49,6 @@ using namespace ::celeritas::test;
 template<class T>
 using SurfaceOrderArray = EnumArray<SurfacePhysicsOrder, T>;
 
-using InternalSurfaceId = SurfaceModel::InternalSurfaceId;
-
 auto constexpr forward = SubsurfaceDirection::forward;
 auto constexpr reverse = SubsurfaceDirection::reverse;
 
@@ -69,7 +67,7 @@ struct SurfaceResult
     std::vector<OptMatId> materials{};
     std::vector<PhysSurfaceId> interfaces{};
     SurfaceOrderArray<std::vector<SurfaceModelId>> actions;
-    SurfaceOrderArray<std::vector<InternalSurfaceId>> per_model_ids;
+    SurfaceOrderArray<std::vector<SubModelId>> per_model_ids;
 };
 
 struct TraceResult
@@ -77,7 +75,7 @@ struct TraceResult
     std::vector<SurfaceTrackPosition> position{};
 
     SurfaceOrderArray<std::vector<SurfaceModelId>> models;
-    SurfaceOrderArray<std::vector<InternalSurfaceId>> per_model_ids;
+    SurfaceOrderArray<std::vector<SubModelId>> per_model_ids;
     SurfaceOrderArray<std::vector<OptMatId>> pre_material;
     SurfaceOrderArray<std::vector<OptMatId>> post_material;
 };
@@ -266,9 +264,9 @@ TEST_F(SurfacePhysicsTest, init_params)
                 as_id_vec<SurfaceModelId>(0, 1, 1, 0),
             },
             {
-                as_id_vec<InternalSurfaceId>(0, 1, 0, 0),
-                as_id_vec<InternalSurfaceId>(0, 0, 1, 1),
-                as_id_vec<InternalSurfaceId>(0, 0, 1, 1),
+                as_id_vec<SubModelId>(0, 1, 0, 0),
+                as_id_vec<SubModelId>(0, 0, 1, 1),
+                as_id_vec<SubModelId>(0, 0, 1, 1),
             },
         },
         // Geometric Surface 1
@@ -283,9 +281,9 @@ TEST_F(SurfacePhysicsTest, init_params)
                 as_id_vec<SurfaceModelId>(0, 1),
             },
             {
-                as_id_vec<InternalSurfaceId>(1, 1),
-                as_id_vec<InternalSurfaceId>(2, 2),
-                as_id_vec<InternalSurfaceId>(2, 2),
+                as_id_vec<SubModelId>(1, 1),
+                as_id_vec<SubModelId>(2, 2),
+                as_id_vec<SubModelId>(2, 2),
             },
         },
         // Geometric Surface 2
@@ -300,9 +298,9 @@ TEST_F(SurfacePhysicsTest, init_params)
                 as_id_vec<SurfaceModelId>(0),
             },
             {
-                as_id_vec<InternalSurfaceId>(2),
-                as_id_vec<InternalSurfaceId>(3),
-                as_id_vec<InternalSurfaceId>(3),
+                as_id_vec<SubModelId>(2),
+                as_id_vec<SubModelId>(3),
+                as_id_vec<SubModelId>(3),
             },
         },
         // Geometric Surface 3 - default surface
@@ -315,9 +313,9 @@ TEST_F(SurfacePhysicsTest, init_params)
                 as_id_vec<SurfaceModelId>(0),
             },
             {
-                as_id_vec<InternalSurfaceId>(3),
-                as_id_vec<InternalSurfaceId>(4),
-                as_id_vec<InternalSurfaceId>(4),
+                as_id_vec<SubModelId>(3),
+                as_id_vec<SubModelId>(4),
+                as_id_vec<SubModelId>(4),
             },
         },
     };
@@ -503,9 +501,9 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
                                  as_id_vec<SurfaceModelId>(0),
                              },
                              {
-                                 as_id_vec<InternalSurfaceId>(2),
-                                 as_id_vec<InternalSurfaceId>(3),
-                                 as_id_vec<InternalSurfaceId>(3),
+                                 as_id_vec<SubModelId>(2),
+                                 as_id_vec<SubModelId>(3),
+                                 as_id_vec<SubModelId>(3),
                              },
                              {
                                  as_id_vec<OptMatId>(0),
@@ -558,9 +556,9 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
                                  as_id_vec<SurfaceModelId>(0),
                              },
                              {
-                                 as_id_vec<InternalSurfaceId>(2),
-                                 as_id_vec<InternalSurfaceId>(3),
-                                 as_id_vec<InternalSurfaceId>(3),
+                                 as_id_vec<SubModelId>(2),
+                                 as_id_vec<SubModelId>(3),
+                                 as_id_vec<SubModelId>(3),
                              },
                              {
                                  as_id_vec<OptMatId>(1),
@@ -623,9 +621,9 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
                 as_id_vec<SurfaceModelId>(0, 1, 1, 1, 1, 0, 0, 1, 1, 0),
             },
             {
-                as_id_vec<InternalSurfaceId>(0, 1, 1, 1, 0, 0, 0, 0, 1, 0),
-                as_id_vec<InternalSurfaceId>(0, 0, 0, 0, 1, 1, 1, 1, 0, 0),
-                as_id_vec<InternalSurfaceId>(0, 0, 0, 0, 1, 1, 1, 1, 0, 0),
+                as_id_vec<SubModelId>(0, 1, 1, 1, 0, 0, 0, 0, 1, 0),
+                as_id_vec<SubModelId>(0, 0, 0, 0, 1, 1, 1, 1, 0, 0),
+                as_id_vec<SubModelId>(0, 0, 0, 0, 1, 1, 1, 1, 0, 0),
             },
             {
                 as_id_vec<OptMatId>(0, 3, 1, 3, 1, 2, 1, 2, 1, 3),
@@ -684,9 +682,9 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
                 as_id_vec<SurfaceModelId>(1, 0, 0, 1, 1, 0),
             },
             {
-                as_id_vec<InternalSurfaceId>(1, 1, 1, 1, 1, 1),
-                as_id_vec<InternalSurfaceId>(2, 2, 2, 2, 2, 2),
-                as_id_vec<InternalSurfaceId>(2, 2, 2, 2, 2, 2),
+                as_id_vec<SubModelId>(1, 1, 1, 1, 1, 1),
+                as_id_vec<SubModelId>(2, 2, 2, 2, 2, 2),
+                as_id_vec<SubModelId>(2, 2, 2, 2, 2, 2),
             },
             {
                 as_id_vec<OptMatId>(1, 2, 0, 2, 1, 2),

@@ -25,7 +25,6 @@ class SurfacePhysicsMapView
     //!@{
     //! \name Type aliases
     using SurfaceParamsRef = NativeCRef<SurfacePhysicsMapData>;
-    using InternalSurfaceId = SurfaceModel::InternalSurfaceId;
     //!@}
 
   public:
@@ -44,7 +43,7 @@ class SurfacePhysicsMapView
     CELER_FUNCTION PhysSurfaceId surface_id() const { return surface_; }
 
     // Get the subindex inside that model
-    inline CELER_FUNCTION InternalSurfaceId internal_surface_id() const;
+    inline CELER_FUNCTION SubModelId internal_surface_id() const;
 
   private:
     SurfaceParamsRef const& params_;
@@ -95,7 +94,7 @@ CELER_FUNCTION auto SurfacePhysicsMapView::surface_model_id() const
  * Get the subindex for data inside that model.
  */
 CELER_FUNCTION auto SurfacePhysicsMapView::internal_surface_id() const
-    -> InternalSurfaceId
+    -> SubModelId
 {
     return params_.internal_surface_ids[surface_];
 }

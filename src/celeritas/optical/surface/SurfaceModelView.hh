@@ -23,12 +23,6 @@ namespace optical
 class SurfaceModelView
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using InternalSurfaceId = SurfacePhysicsMapView::InternalSurfaceId;
-    //!@}
-
-  public:
     // Construct from map view and materials
     inline CELER_FUNCTION SurfaceModelView(SurfacePhysicsMapView,
                                            OptMatId pre_mat,
@@ -38,7 +32,7 @@ class SurfaceModelView
     inline CELER_FUNCTION SurfaceModelId model_id() const;
 
     // Get internal surface ID for the model
-    inline CELER_FUNCTION InternalSurfaceId internal_surface_id() const;
+    inline CELER_FUNCTION SubModelId internal_surface_id() const;
 
     // Get pre-volume optical material
     inline CELER_FUNCTION OptMatId pre_material() const;
@@ -81,8 +75,7 @@ CELER_FUNCTION SurfaceModelId SurfaceModelView::model_id() const
 /*!
  * Get the internal surface ID for the physics surface in this model.
  */
-CELER_FUNCTION auto SurfaceModelView::internal_surface_id() const
-    -> InternalSurfaceId
+CELER_FUNCTION auto SurfaceModelView::internal_surface_id() const -> SubModelId
 {
     return physics_map_.internal_surface_id();
 }

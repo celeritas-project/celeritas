@@ -372,19 +372,19 @@ CELER_FUNCTION void SurfacePhysicsView::traversal_direction(Real3 const& dir)
 CELER_FUNCTION SurfaceModelView
 SurfacePhysicsView::surface_model(SurfacePhysicsOrder step) const
 {
-    auto dir = this->traversal_direction();
-    CELER_EXPECT(this->is_crossing_boundary());
-    CELER_EXPECT(!this->is_exiting(dir));
     CELER_EXPECT(step != SurfacePhysicsOrder::size_);
+    auto dir = this->traversal_direction();
 
     auto phys_surface = this->subsurface_interface(dir);
     CELER_ASSERT(phys_surface);
 
+    auto pos = this->subsurface_position();
+    CELER_ASSERT(pos < this->num_positions());
+
     return SurfaceModelView{
         SurfacePhysicsMapView{params_.model_maps[step], phys_surface},
-        this->subsurface_material(this->subsurface_position()),
-        this->subsurface_material(advance_subsurface_position_along(
-            this->subsurface_position(), dir))};
+        this->subsurface_material(pos),
+        this->subsurface_material(advance_subsurface_position_along(pos, dir))};
 }
 
 //---------------------------------------------------------------------------//
@@ -497,14 +497,14 @@ SurfacePhysicsView::subsurface_material(SurfaceTrackPosition pos) const
 
     auto pos_range = range(SurfaceTrackPosition{this->num_positions()});
 
-    // In pre-volume
     if (pos == pos_range.front())
     {
+        // In pre-volume
         return states_.pre_volume_material[track_id_];
     }
-    // In post-volume
     if (pos == pos_range.back())
     {
+        // In post-volume
         return states_.post_volume_material[track_id_];
     }
 

@@ -20,10 +20,6 @@ namespace optical
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
 
-using SurfaceTrackPosition = OpaqueId<struct SurfaceTrackPosition_>;
-using SubsurfaceMaterialId = OpaqueId<struct SubsurfaceMaterial_>;
-using SubsurfaceInterfaceId = OpaqueId<struct SubsurfaceInterface_>;
-
 //---------------------------------------------------------------------------//
 /*!
  * Storage for physics data of a geometric surface.
@@ -141,15 +137,21 @@ struct SurfacePhysicsStateData
     using StateItems = StateCollection<T, W, M>;
     //!@}
 
+    //!@{
+    //! \name Constant state for a single boundary crossing
     StateItems<SurfaceId> surface;
     StateItems<SubsurfaceDirection> surface_orientation;
     StateItems<Real3> global_normal;
     StateItems<OptMatId> pre_volume_material;
     StateItems<OptMatId> post_volume_material;
+    //!@}
 
+    //!@{
+    //! \name Mutable state for a single boundary crossing
     StateItems<SurfaceTrackPosition> surface_position;
     StateItems<SubsurfaceDirection> track_direction;
     StateItems<Real3> facet_normal;
+    //!@}
 
     //! Whether data is assigned
     explicit CELER_FUNCTION operator bool() const
