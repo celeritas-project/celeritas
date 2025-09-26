@@ -18,24 +18,6 @@
 
 #include "corecel/cont/ArrayIO.hh"
 
-namespace
-{
-
-uint64_t const kA_2048[] = {
-    0xed7faa90747aaad9,
-    0x4cec2c78af55c101,
-    0xe64dcb31c48228ec,
-    0x6d8a15a13bee7cb0,
-    0x20b2ca60cb78c509,
-    0x256c3d3c662ea36c,
-    0xff74e54107684ed2,
-    0x492edfcc0cc8e753,
-    0xb48c187cf5b22097,
-};
-
-//---------------------------------------------------------------------------//
-}  // end anonymous namespace
-
 namespace celeritas
 {
 using RanluxppUInt = std::uint64_t;
@@ -215,14 +197,8 @@ class RanluxppDouble final : public RanluxppEngineImpl<48>
         return std::numeric_limits<RanluxppUInt>::max();
     }
 
-    //! Generate a double-precision random number with 48 bits of randomness
-    // CELER_FUNCTION double rndm() { return (*this)(); }
-
     //! Generate a double-precision random number (non-virtual method)
     CELER_FUNCTION RanluxppUInt operator()() { return this->intRndm64(); }
-
-    //! Generate a random integer value with 48 bits
-    // CELER_FUNCTION RanluxppUInt intRndm() { return this->nextRandomBits(); }
 
     //! Generate a uniformly random 64-bit integer by concatenating two 32-bit
     //! words

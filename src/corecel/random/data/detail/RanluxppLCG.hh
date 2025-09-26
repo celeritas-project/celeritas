@@ -70,11 +70,8 @@ CELER_FUNCTION void toRanlux(RanluxppStateArray const& lcg,
                              RanluxppStateArray& ranlux,
                              RanluxppUInt& c_out)
 {
-    RanluxppStateArray r;
-    r.fill(0);
-    auto r_span = celeritas::make_span(r);
-    Span<RanluxppUInt const, 9> lcg_span(lcg.data(), 9);
-    int64_t c = computeR(lcg_span, r_span);
+    RanluxppStateArray r = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    int64_t c = computeR(celeritas::make_span(lcg), celeritas::make_span(r));
 
     // ranlux = t1 + t2 + c
     RanluxppUInt carry = 0;

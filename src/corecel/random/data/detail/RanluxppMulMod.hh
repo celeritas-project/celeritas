@@ -162,14 +162,12 @@ CELER_FUNCTION void modM(StateArray18 const& mul, RanluxppStateArray& out)
 {
     RanluxppStateArray r;
     // Assign r = t0
-    for (int i : celeritas::range(9))
-    {
-        r[i] = mul[i];
-    }
+    std::copy_n(mul.begin(), 9, r.begin());
 
-    auto mul_span = celeritas::make_span(mul);
-    auto subspan = mul_span.subspan<9, 9>();
-    RanluxppUInt c = computeR(subspan, celeritas::make_span(r));
+    // auto mul_span = celeritas::make_span(mul);
+    // auto subspan = mul_span.subspan<9, 9>();
+    RanluxppUInt c = computeR(celeritas::make_span(mul).subspan<9, 9>(),
+                              celeritas::make_span(r));
 
     // To update r = r - c * m, it suffices to know c * (-2 ** 240 + 1)
     // because the 2 ** 576 will cancel out. Also note that c may be zero, but
@@ -244,8 +242,6 @@ CELER_FUNCTION void
 mulmod(RanluxppStateArray const& in1, RanluxppStateArray& inout)
 {
     StateArray18 mul;
-    mul.fill(0);
-
     multiply9x9(in1, inout, mul);
     modM(mul, inout);
 }
@@ -264,18 +260,10 @@ CELER_FUNCTION void powermod(RanluxppStateArray const& base,
                              RanluxppStateArray& res,
                              RanluxppUInt n)
 {
-    RanluxppStateArray fac;
-    fac.fill(0);
-    fac[0] = base[0];
-    res[0] = 1;
-    for (int i : celeritas::range(1, 9))
-    {
-        fac[i] = base[i];
-        res[i] = 0;
-    }
+    RanluxppStateArray fac = base;
+    res = {1, 0, 0, 0, 0, 0, 0, 0};
 
     StateArray18 mul;
-    mul.fill(0);
     while (n)
     {
         if (n & 1)
