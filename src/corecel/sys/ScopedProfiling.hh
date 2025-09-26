@@ -20,7 +20,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 // Whether profiling is enabled
-bool use_profiling();
+bool enable_profiling();
 
 //---------------------------------------------------------------------------//
 /*!
@@ -109,7 +109,7 @@ class ScopedProfiling
  * Activate device profiling with options.
  */
 ScopedProfiling::ScopedProfiling(Input const& input)
-    : activated_{use_profiling()}
+    : activated_{enable_profiling()}
 {
     if (activated_)
     {

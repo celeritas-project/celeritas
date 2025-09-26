@@ -36,7 +36,7 @@ enum class TracingMode : uint32_t
 std::unique_ptr<perfetto::TracingSession>
 initialize_session(TracingMode mode) noexcept
 {
-    if (!celeritas::use_profiling())
+    if (!celeritas::enable_profiling())
     {
         return nullptr;
     }
@@ -94,7 +94,7 @@ perfetto::TraceConfig configure_session() noexcept
  */
 void flush_tracing() noexcept
 {
-    if (use_profiling())
+    if (enable_profiling())
     {
         perfetto::TrackEvent::Flush();
     }
