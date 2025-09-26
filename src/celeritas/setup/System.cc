@@ -50,7 +50,7 @@ void system(inp::System const& sys)
         }
         if (auto size = sys.device->heap_size)
         {
-            set_cuda_stack_size(size);
+            set_cuda_heap_size(size);
         }
     }
 }
