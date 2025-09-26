@@ -30,12 +30,11 @@ using MockStepActionInterface = StepActionInterface<MockParams, MockState>;
 
 //---------------------------------------------------------------------------//
 
-class MyExplicitAction final : public MockStepActionInterface,
-                               public MockBeginRunActionInterface
+class MyStepAction final : public MockStepActionInterface,
+                           public MockBeginRunActionInterface
 {
   public:
-    MyExplicitAction(ActionId ai, StepActionOrder ao)
-        : action_id_(ai), order_{ao}
+    MyStepAction(ActionId ai, StepActionOrder ao) : action_id_(ai), order_{ao}
     {
     }
 
@@ -97,8 +96,8 @@ class ActionRegistryTest : public Test
         auto impl1 = std::make_shared<MyImplicitAction>(mgr.next_id(), "impl1");
         mgr.insert(impl1);
 
-        expl_action = std::make_shared<MyExplicitAction>(mgr.next_id(),
-                                                         StepActionOrder::pre);
+        expl_action = std::make_shared<MyStepAction>(mgr.next_id(),
+                                                     StepActionOrder::pre);
         mgr.insert(expl_action);
 
         auto impl2 = std::make_shared<MyImplicitAction>(
@@ -107,7 +106,7 @@ class ActionRegistryTest : public Test
     }
 
     ActionRegistry mgr;
-    std::shared_ptr<MyExplicitAction> expl_action;
+    std::shared_ptr<MyStepAction> expl_action;
 };
 
 //---------------------------------------------------------------------------//
