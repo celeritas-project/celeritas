@@ -60,8 +60,9 @@ namespace celeritas
  */
 bool ScopedSignalHandler::enable_signals()
 {
+    // Note that we negate the result to go from DISABLE to ENABLE
     static bool const result
-        = celeritas::getenv_flag("CELER_DISABLE_SIGNALS", false).value;
+        = !celeritas::getenv_flag("CELER_DISABLE_SIGNALS", false).value;
     return result;
 }
 

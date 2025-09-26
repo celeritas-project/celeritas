@@ -20,8 +20,9 @@ namespace celeritas
  */
 bool ScopedStreamRedirect::enable_redirect()
 {
+    // Note that we negate the result to go from DISABLE to ENABLE
     static bool const result
-        = celeritas::getenv_flag("CELER_DISABLE_REDIRECT", false).value;
+        = !celeritas::getenv_flag("CELER_DISABLE_REDIRECT", false).value;
     return result;
 }
 
