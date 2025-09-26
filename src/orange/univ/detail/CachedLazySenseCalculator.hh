@@ -81,7 +81,7 @@ CachedLazySenseCalculator::CachedLazySenseCalculator(
 {
     for (auto& sense : sense_cache_)
     {
-        sense.clear();
+        sense.reset();
     }
 }
 
