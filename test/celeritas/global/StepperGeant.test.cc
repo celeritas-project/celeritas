@@ -322,7 +322,7 @@ TEST_F(TestEm3Compton, host)
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -389,7 +389,7 @@ TEST_F(TestEm3NoMsc, host)
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -457,7 +457,7 @@ TEST_F(TestEm3NoMsc, TEST_IF_CELER_DEVICE(device))
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -544,7 +544,7 @@ TEST_F(TestEm3Msc, host)
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -572,7 +572,7 @@ TEST_F(TestEm3Msc, TEST_IF_CELER_DEVICE(device))
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -606,7 +606,7 @@ TEST_F(TestEm3MscNofluct, host)
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -636,7 +636,7 @@ TEST_F(TestEm3MscNofluct, TEST_IF_CELER_DEVICE(device))
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -670,7 +670,7 @@ TEST_F(TestEm3MscNoIntegral, host)
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -736,7 +736,7 @@ TEST_F(TestEm15FieldMsc, host)
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -763,7 +763,7 @@ TEST_F(TestEm15FieldMsc, TEST_IF_CELER_DEVICE(device))
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -830,7 +830,7 @@ TEST_F(OneSteelSphere, host)
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())

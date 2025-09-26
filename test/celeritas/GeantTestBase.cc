@@ -216,7 +216,7 @@ GeantImportDataSelection GeantTestBase::build_import_data_selection() const
 }
 
 //---------------------------------------------------------------------------//
-std::ostream& operator<<(std::ostream& os, PrintableBuildConf const&)
+std::ostream& operator<<(std::ostream& os, StreamableBuildConf const&)
 {
     os << "RNG=\"" << cmake::core_rng << "\", CLHEP=\"" << cmake::clhep_version
        << "\", Geant4=\"" << cmake::geant4_version << '"';
