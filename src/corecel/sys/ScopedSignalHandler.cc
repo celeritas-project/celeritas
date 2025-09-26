@@ -58,18 +58,10 @@ namespace celeritas
 /*!
  * Whether signal handling is enabled.
  */
-bool ScopedSignalHandler::allow_signals()
+bool ScopedSignalHandler::enable_signals()
 {
-    static bool const result = [] {
-        if (!celeritas::getenv("CELER_DISABLE_SIGNALS").empty())
-        {
-            CELER_LOG(info) << "Disabling signal support since the "
-                               "'CELER_DISABLE_SIGNALS' "
-                               "environment variable is present and non-empty";
-            return false;
-        }
-        return true;
-    }();
+    static bool const result
+        = celeritas::getflag("CELER_DISABLE_SIGNALS", false).value;
     return result;
 }
 
@@ -108,7 +100,7 @@ ScopedSignalHandler::ScopedSignalHandler(
                              signals.end(),
                              [](signal_type sig) { return sig >= 0; }));
 
-    if (!ScopedSignalHandler::allow_signals())
+    if (!ScopedSignalHandler::enable_signals())
     {
         // Signal handling is disabled and an info message has already been
         // displayed
