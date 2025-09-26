@@ -61,7 +61,7 @@ namespace celeritas
 bool ScopedSignalHandler::enable_signals()
 {
     static bool const result
-        = celeritas::getflag("CELER_DISABLE_SIGNALS", false).value;
+        = celeritas::getenv_flag("CELER_DISABLE_SIGNALS", false).value;
     return result;
 }
 

@@ -21,7 +21,7 @@ namespace celeritas
 bool ScopedStreamRedirect::enable_redirect()
 {
     static bool const result
-        = celeritas::getflag("CELER_DISABLE_REDIRECT", false).value;
+        = celeritas::getenv_flag("CELER_DISABLE_REDIRECT", false).value;
     return result;
 }
 
