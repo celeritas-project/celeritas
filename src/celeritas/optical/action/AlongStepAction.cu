@@ -29,10 +29,10 @@ void AlongStepAction::step(CoreParams const& params,
 {
     {
         // Propagate
-        auto execute
-            = make_active_thread_executor(params.ptr<MemSpace::native>(),
-                                          state.ptr(),
-                                          detail::PropagateExecutor{});
+        auto execute = make_active_volumetric_thread_executor(
+            params.ptr<MemSpace::native>(),
+            state.ptr(),
+            detail::PropagateExecutor{});
 
         static ActionLauncher<decltype(execute)> const launch_kernel(
             *this, "propagate");
@@ -40,10 +40,10 @@ void AlongStepAction::step(CoreParams const& params,
     }
     {
         // Update state
-        auto execute
-            = make_active_thread_executor(params.ptr<MemSpace::native>(),
-                                          state.ptr(),
-                                          detail::AlongStepExecutor{});
+        auto execute = make_active_volumetric_thread_executor(
+            params.ptr<MemSpace::native>(),
+            state.ptr(),
+            detail::AlongStepExecutor{});
 
         static ActionLauncher<decltype(execute)> const launch_kernel(*this);
         launch_kernel(state, execute);
