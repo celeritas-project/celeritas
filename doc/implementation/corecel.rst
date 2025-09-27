@@ -146,8 +146,6 @@ Performance profiling
 These classes generalize the different low-level profiling libraries, both
 device and host, described in :ref:`profiling`.
 
-
-.. doxygenfunction:: celeritas::use_profiling
 .. doxygenclass:: celeritas::ScopedProfiling
 
 Utility functions
@@ -254,5 +252,7 @@ These functions and classes are for communicating helpfully with the user.
 
 .. doxygendefine:: CELER_LOG
 .. doxygendefine:: CELER_LOG_LOCAL
+.. doxygenenum:: celeritas::Logger
 .. doxygenenum:: celeritas::LogLevel
    :no-link:
+.. doxygenclass:: celeritas::ScopedSignalHandler
