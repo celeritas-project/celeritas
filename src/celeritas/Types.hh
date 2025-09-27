@@ -209,13 +209,7 @@ enum class NuclearFormFactorType
 //! Decay channel type
 enum class DecayChannelType
 {
-    dalitz,
-    kl3,
     muon,
-    neutron_beta,
-    phase_space,
-    pion_radiative,
-    tau_leptonic,
     size_
 };
 

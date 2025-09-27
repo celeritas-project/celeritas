@@ -18,7 +18,6 @@
 #include <vector>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4Cerenkov.hh>
-#include <G4DalitzDecayChannel.hh>
 #include <G4Decay.hh>
 #include <G4DecayTable.hh>
 #include <G4Element.hh>
@@ -26,7 +25,6 @@
 #include <G4ElementVector.hh>
 #include <G4EmParameters.hh>
 #include <G4GammaGeneralProcess.hh>
-#include <G4KL3DecayChannel.hh>
 #include <G4LogicalVolumeStore.hh>
 #include <G4Material.hh>
 #include <G4MaterialCutsCouple.hh>
@@ -35,7 +33,6 @@
 #include <G4MuPairProductionModel.hh>
 #include <G4MuonDecayChannel.hh>
 #include <G4Navigator.hh>
-#include <G4NeutronBetaDecayChannel.hh>
 #include <G4NuclearFormfactorType.hh>
 #include <G4NucleiProperties.hh>
 #include <G4OpAbsorption.hh>
@@ -43,8 +40,6 @@
 #include <G4OpWLS.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
-#include <G4PhaseSpaceDecayChannel.hh>
-#include <G4PionRadiativeDecayChannel.hh>
 #include <G4ProcessManager.hh>
 #include <G4ProcessType.hh>
 #include <G4ProcessVector.hh>
@@ -59,7 +54,6 @@
 #include <G4RegionStore.hh>
 #include <G4Scintillation.hh>
 #include <G4String.hh>
-#include <G4TauLeptonicDecayChannel.hh>
 #include <G4Transportation.hh>
 #include <G4TransportationManager.hh>
 #include <G4Types.hh>
@@ -406,21 +400,17 @@ to_form_factor_type(G4NuclearFormfactorType const& form_factor_type)
  */
 DecayChannelType to_decay_channel_type(G4VDecayChannel const* channel)
 {
-    if (dynamic_cast<G4DalitzDecayChannel const*>(channel))
-        return DecayChannelType::dalitz;
-    if (dynamic_cast<G4KL3DecayChannel const*>(channel))
-        return DecayChannelType::kl3;
+    CELER_EXPECT(channel);
+
+    DecayChannelType result{DecayChannelType::size_};
     if (dynamic_cast<G4MuonDecayChannel const*>(channel))
-        return DecayChannelType::muon;
-    if (dynamic_cast<G4NeutronBetaDecayChannel const*>(channel))
-        return DecayChannelType::neutron_beta;
-    if (dynamic_cast<G4PhaseSpaceDecayChannel const*>(channel))
-        return DecayChannelType::phase_space;
-    if (dynamic_cast<G4PionRadiativeDecayChannel const*>(channel))
-        return DecayChannelType::pion_radiative;
-    if (dynamic_cast<G4TauLeptonicDecayChannel const*>(channel))
-        return DecayChannelType::tau_leptonic;
-    CELER_ASSERT_UNREACHABLE();
+    {
+        result = DecayChannelType::muon;
+    }
+    CELER_VALIDATE(result != DecayChannelType::size_,
+                   << "unsupported decay channel type '"
+                   << channel->GetKinematicsName() << "'");
+    return result;
 }
 
 //---------------------------------------------------------------------------//

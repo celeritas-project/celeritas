@@ -97,13 +97,7 @@ char const* to_cstring(NuclearFormFactorType value)
 char const* to_cstring(DecayChannelType value)
 {
     static EnumStringMapper<DecayChannelType> const to_cstring_impl{
-        "dalitz",
-        "kl3",
         "muon",
-        "neutron_beta",
-        "phase_space",
-        "pion_radiative",
-        "tau_leptonic",
     };
     return to_cstring_impl(value);
 }
