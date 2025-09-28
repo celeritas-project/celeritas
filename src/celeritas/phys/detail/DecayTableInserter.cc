@@ -69,7 +69,7 @@ DecayTableData DecayTableInserter::operator()(DecayTable const& inp)
     channels.reserve(inp.size());
     actions.reserve(inp.size());
 
-    for (auto ch_inp : inp)
+    for (auto const& ch_inp : inp)
     {
         CELER_VALIDATE(ch_inp.type != DCT::size_,
                        << "invalid decay channel type");
