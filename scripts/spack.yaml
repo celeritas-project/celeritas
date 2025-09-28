@@ -34,9 +34,13 @@ spack:
   packages:
     root:
       # Note: ~gsl and ~math are removed because dd4hep requires them
+      # ROOT here is built without GUI to reduce build time
       variants: ~aqua ~davix ~examples ~opengl ~x ~tbb
     all:
-      # Note: C++17 is the minimum required
+      require:
+      # Note: C++17 is the minimum required but we'll default to C++20
+      - any_of: [cxxstd=20, '@:']
+      - any_of: [build_system=cmake, '@:']
+      - any_of: [build_type=Release, '@:']
       # Note: for CUDA support run this command in your environment:
-      # spack config add packages:all:variants:"cxxstd=17 +cuda cuda_arch=<ARCH>"
-      variants: cxxstd=20
+      # spack config add packages:all:variants:"+cuda cuda_arch=<ARCH>"
