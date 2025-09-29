@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "GeoInput.hh"
 
+#include "corecel/Version.hh"
+
 #include "corecel/Types.hh"
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/StringEnumMapper.hh"
@@ -77,6 +79,8 @@ void to_json(nlohmann::json& j, ModelSetup const& v)
     GI_SAVE_NONZERO(cuda_stack_size);
     GI_SAVE_NONZERO(cuda_heap_size);
     GI_SAVE(geometry_file);
+    j["version"] = celeritas::version_string;
+    j["version_hex"] = CELERITAS_VERSION;
 }
 
 void to_json(nlohmann::json& j, TraceSetup const& v)
