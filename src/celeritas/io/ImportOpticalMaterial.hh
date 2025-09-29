@@ -166,8 +166,6 @@ struct ImportMie
     double backward_g{};  //!< Henyey–Greenstein "g" parameter for backward
                           //!< scattering
     double forward_ratio{};  //!< Fraction of forward vs backward scattering
-    double scale_factor{1};  //!< Optional scale for scattering length
-    inp::Grid attenuation;  //!< Energy-dependent scattering length (optional)
 
     //! Whether all data are assigned and valid
     explicit operator bool() const
