@@ -368,7 +368,7 @@ if(CELERITAS_USE_VecGeom)
     )
   endif()
   if(CELERITAS_BUILD_TESTS AND NOT VecGeom_GDML_FOUND
-      AND CELERITAS_CORE_GEO STREQUAL "VecGeom")
+      AND CELERITAS_CORE_GEO MATCHES "^VecGeom")
     celeritas_error_incompatible_option(
       "VecGeom installation at \"${VecGeom_DIR}\" was not built with VGDML:
       celer-sim and many tests will fail"
@@ -500,9 +500,14 @@ if(CELERITAS_USE_VecGeom AND NOT CELERITAS_USE_HIP)
   set(_allow_vecgeom TRUE)
 else()
   set(_allow_vecgeom FALSE)
-  if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
+  if(CELERITAS_CORE_GEO MATCHES "^VecGeom")
     message(SEND_ERROR "VecGeom core geometry is incompatible with HIP")
   endif()
+endif()
+if(CELERITAS_USE_VecGeom AND VECGEOM_USE_SURF)
+  set(_allow_vgsurf TRUE)
+else()
+  set(_allow_vgsurf FALSE)
 endif()
 if(CELERITAS_USE_Geant4 AND NOT (CELERITAS_USE_HIP OR CELERITAS_USE_CUDA OR CELERITAS_OPENMP))
   set(_allow_g4 TRUE)
@@ -513,12 +518,13 @@ else()
   set(_allow_g4 FALSE)
 endif()
 celeritas_setup_option(CELERITAS_CORE_GEO VecGeom _allow_vecgeom)
+celeritas_setup_option(CELERITAS_CORE_GEO VecGeom_surf _allow_vgsurf)
 celeritas_setup_option(CELERITAS_CORE_GEO ORANGE)
 celeritas_setup_option(CELERITAS_CORE_GEO Geant4 _allow_g4)
 celeritas_define_options(CELERITAS_CORE_GEO "Celeritas runtime geometry")
 
 if(CELERITAS_BUILD_TESTS
-    AND CELERITAS_CORE_GEO STREQUAL "VecGeom"
+    AND CELERITAS_CORE_GEO MATCHES "^VecGeom"
     AND NOT VecGeom_GDML_FOUND)
   celeritas_error_incompatible_option(
     "VecGeom installation at \"${VecGeom_DIR}\" was not built with VGDML:

@@ -31,7 +31,7 @@ endif()
 
 if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
   set(_core_geo_libs testcel_orange Celeritas::orange)
-elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
+elseif(CELERITAS_CORE_GEO MATCHES "^VecGeom")
   set(_core_geo_libs testcel_geocel ${VecGeom_LIBRARIES})
 elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
   set(_core_geo_libs testcel_geocel ${Geant4_LIBRARIES})
