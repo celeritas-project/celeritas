@@ -1,10 +1,8 @@
-//---------------------------------*- C++
-//-*----------------------------------//
-// Copyright ...
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/interactor/MieInteractor.hh
-//! \brief Sample optical Mie scattering (Henyey–Greenstein phase function)
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,25 +10,27 @@
 #include "corecel/Constants.hh"
 #include "corecel/Types.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArraySoftUnit.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "corecel/random/distribution/RejectionSampler.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/Interaction.hh"
 #include "celeritas/optical/MieData.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
+
 namespace celeritas
 {
 namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample optical Mie scattering using the Henyey–Greenstein distribution.
- *
+ * Sample optical Mie scattering using the HG distribution.
+
  * Henyey–Greenstein phase function:
  * \f[
  *   P(\cos\theta) \propto \frac{1 - g^2}{(1 + g^2 - 2g\cos\theta)^{3/2}}
@@ -43,14 +43,6 @@ namespace optical
 class MieInteractor
 {
   public:
-    // struct ImportMie;
-    //   struct Params
-    //   {
-    //       real_type forward_g;
-    //       real_type backward_g;
-    //       real_type forward_ratio;
-    //   };
-
     inline CELER_FUNCTION MieInteractor(NativeCRef<MieData> const& shared,
                                         ParticleTrackView const& particle,
                                         Real3 const& direction,
@@ -69,19 +61,6 @@ class MieInteractor
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 CELER_FUNCTION
-// MieInteractor::MieInteractor(  NativeCRef<MieData> const&
-// shared,ParticleTrackView const& particle,
-//                                         Real3 const& direction,
-//                                         OptMatId const& mat_id)
-//     : inc_dir_(direction)
-//     , inc_pol_(particle.polarization())
-//     , mie_params_(mie_params)
-//{
-//     CELER_LOG(debug) << "in mie interactor";
-//     CELER_EXPECT(is_soft_unit_vector(inc_dir_));
-//     CELER_EXPECT(is_soft_unit_vector(inc_pol_));
-//     CELER_EXPECT(soft_zero(dot_product(inc_dir_, inc_pol_)));
-// }
 MieInteractor::MieInteractor(NativeCRef<MieData> const& shared,
                              ParticleTrackView const& particle,
                              Real3 const& direction,
@@ -109,55 +88,59 @@ CELER_FUNCTION Interaction MieInteractor::operator()(Engine& rng) const
     Real3& new_pol = result.polarization;
 
     using UniformRealDist = UniformRealDistribution<real_type>;
+
     UniformRealDist sample_phi(0, real_type(2 * constants::pi));
     UniformRealDist sample_r(0, 1);
-    // --- 1. Choose forward/backward lobe ---
-    // real_type g;
-    // real_type direction;
-    // if (UniformRealDistribution<real_type>{0, 1}(rng) <
-    // mie_params_.forward_ratio)
-    //{
-    //    g = mie_params_.forward_g;
-    //    direction = 1;
-    //}
-    // else
-    //{
-    //    g = mie_params_.backward_g;
-    //    direction = -1;
-    //}
-    // Select forward/backward g
     UniformRealDist sample_g(0, 1);
-    real_type g = (sample_g(rng) < mie_params_.forward_ratio
-                       ? mie_params_.forward_g
-                       : mie_params_.backward_g);
-    // --- 2. Sample cosθ from HG distribution ---
+
+    real_type u = sample_g(rng);
     real_type r = sample_r(rng);
 
-    // real_type costheta = (g != 0)
-    //         ? (1 / (2*g)) * (1 + g*g - ipow<2>((1 - g*g) / (1 - g + 2*g*r)))
-    //         : (2*r - 1);
-    real_type costheta = (g != 0)
-                             ? 2 * r * (1 - g * g * r)
-                                       * ipow<2>(1 + g / (1 - g + 2 * g * r))
-                                   - 1
-                             : (2 * r - 1);
+    // Check if scattering should be forward scattering or backward scattering
+    bool is_forward = u < mie_params_.forward_ratio;
+    real_type g = (is_forward ? mie_params_.forward_g : mie_params_.backward_g);
+
+    // Sample cos theta
+    real_type costheta
+        = (g != 0) ? (2. * r * (1. + g) * (1. + g) * (1. - g + g * r)
+                          / ((1. - g + 2. * g * r) * (1. - g + 2. * g * r))
+                      - 1.)  // will make it cleaner
+                   : (2 * r - 1);
+
+    // Reverse cos theta if backward_g is chosen
+    if (!is_forward)
+        costheta = -costheta;
+
     real_type phi = sample_phi(rng);
 
-    // --- 3. Build new direction ---
+    // Creating new direction
     new_dir = from_spherical(costheta, phi);
 
-    CELER_ENSURE(is_soft_unit_vector(result.direction));
-
-    // --- 4. Build polarization (rejection sampling) ---
+    // Build polarization vector
     SoftZero const soft_zero{SoftEqual{}.rel()};
     do
     {
-        // Project old polarization onto plane perpendicular to new direction
-        new_pol = make_unit_vector(make_orthogonal(inc_pol_, new_dir));
+        do
+        {
+            new_pol = make_unit_vector(make_orthogonal(inc_pol_, new_dir));
 
-        // Rare degenerate case → reject
-    } while (RejectionSampler{std::fabs(dot_product(new_pol, new_dir))}(rng));
+            // Reject rare case of polarization and new direction being
+            // coincident leading to loss of orthogonality
 
+        } while (CELER_UNLIKELY(!soft_zero(dot_product(new_pol, new_dir))));
+
+        if (!BernoulliDistribution{0.5}(rng))
+        {
+            // Flip direction with 50% probability: there are two polarizations
+            // perpendicular to the new direction and the original polarization
+            new_pol = -new_pol;
+        }
+        // Accept with the probability of the scattered polarization overlap
+        // squared
+    } while (RejectionSampler{ipow<2>(
+        clamp<real_type>(dot_product(new_pol, inc_pol_), -1, 1))}(rng));
+
+    CELER_ENSURE(is_soft_unit_vector(new_dir));
     CELER_ENSURE(is_soft_unit_vector(new_pol));
     CELER_ENSURE(soft_zero(dot_product(new_pol, new_dir)));
 

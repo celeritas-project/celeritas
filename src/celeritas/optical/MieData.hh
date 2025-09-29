@@ -3,9 +3,9 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/io/Logger.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-
 namespace celeritas
 {
 namespace optical
@@ -55,7 +55,6 @@ struct MieData
     {
         CELER_EXPECT(other);
         mie_record = other.mie_record;
-        reals = other.reals;
         return *this;
     }
 };
