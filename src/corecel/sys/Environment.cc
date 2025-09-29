@@ -75,8 +75,10 @@ std::string const& getenv(std::string const& key)
  * - Empty value returns the default
  * - Other value warns and returns the default
  */
-GetenvFlagResult getenv_flag(std::string const& key, bool default_val)
+GetenvFlagResult
+getenv_flag(std::string const& key, std::function<bool()> get_default_val)
 {
+    CELER_EXPECT(get_default_val);
     std::scoped_lock lock_{getenv_mutex()};
 
     // Get the string value from the existing environment *or* system
@@ -103,7 +105,6 @@ GetenvFlagResult getenv_flag(std::string const& key, bool default_val)
 
     GetenvFlagResult result;
     result.defaulted = str_value.empty();
-    result.value = default_val;
     if (!result.defaulted)
     {
         str_value = tolower(str_value);
@@ -123,18 +124,31 @@ GetenvFlagResult getenv_flag(std::string const& key, bool default_val)
         }
         else
         {
-            CELER_LOG(warning) << "Invalid environment value " << key << "="
-                               << result.value << ": expected a flag";
+            result.value = get_default_val();
+            CELER_LOG(warning)
+                << "Invalid environment value " << key << "=" << str_value
+                << " (expected a flag): using default=" << result.value;
         }
     }
     else
     {
+        result.value = get_default_val();
         // Save string value to be added to environment
-        str_value = default_val ? "1" : "0";
+        str_value = result.value ? "1" : "0";
     }
 
     environment().insert({key, str_value});
     return result;
+}
+
+/*!
+ * Thread-safe flag access to environment variables.
+ *
+ * This convenience method allows passing a precomputed bool.
+ */
+GetenvFlagResult getenv_flag(std::string const& key, bool default_val)
+{
+    return getenv_flag(key, [default_val] { return default_val; });
 }
 
 //---------------------------------------------------------------------------//

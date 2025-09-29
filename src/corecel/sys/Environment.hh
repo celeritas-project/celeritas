@@ -110,6 +110,10 @@ Environment& environment();
 std::string const& getenv(std::string const& key);
 
 // Thread-safe flag access to environment variables
+GetenvFlagResult
+getenv_flag(std::string const& key, std::function<bool()> get_default_val);
+
+// Thread-safe flag access to environment variables
 GetenvFlagResult getenv_flag(std::string const& key, bool default_val);
 
 // Write the accessed environment variables to a stream

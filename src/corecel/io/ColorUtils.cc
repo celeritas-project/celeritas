@@ -17,53 +17,54 @@
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+// Get a default color based on the terminal settings
+bool default_term_color()
+{
+#ifndef _WIN32
+    if (isatty(fileno(stderr)))
+    {
+        // This stream is a user-facing terminal
+        return true;
+    }
+#endif
+    if (char const* term_str = std::getenv("TERM"))
+    {
+        if (std::string{term_str}.find("xterm") != std::string::npos)
+        {
+            // 'xterm' is in the TERM type, so assume it uses colors
+            return true;
+        }
+    }
+    return false;
+}
+
+// Get a default color based on the terminal settings *or* gtest override
+bool default_gtest_or_term_color()
+{
+    // Don't use celeritas getenv to check gtest variable, to avoid
+    // adding it to the list of exposed variables if unused
+    if (char const* color_cstr = std::getenv("GTEST_COLOR"))
+    {
+        // Since it's used, add it to the environment and use the flag logic to
+        // process its value
+        return celeritas::getenv_flag("GTEST_COLOR", default_term_color).value;
+    }
+    return default_term_color();
+}
+
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Whether colors are enabled (currently read-only).
  */
 bool use_color()
 {
-    static bool const result = [] {
-        [[maybe_unused]] FILE* stream = stderr;
-        std::string color_str = celeritas::getenv("CELER_COLOR");
-        if (color_str.empty())
-        {
-            // Don't use celeritas getenv to check gtest variable, to avoid
-            // adding it to the list of exposed variables
-            if (char const* color_cstr = std::getenv("GTEST_COLOR"))
-            {
-                color_str = std::string(color_cstr);
-            }
-        }
-        if (color_str == "0" || color_str == "no")
-        {
-            // Color is explicitly disabled
-            return false;
-        }
-        if (color_str == "1" || color_str == "yes")
-        {
-            // Color is explicitly enabled
-            return true;
-        }
-#ifndef _WIN32
-        if (!isatty(fileno(stream)))
-        {
-            // This stream is not a user-facing terminal
-            return false;
-        }
-#endif
-        if (char const* term_str = std::getenv("TERM"))
-        {
-            if (std::string{term_str}.find("xterm") != std::string::npos)
-            {
-                // 'xterm' is in the TERM type, so assume it uses colors
-                return true;
-            }
-        }
-
-        return false;
-    }();
-
+    static bool const result
+        = celeritas::getenv_flag("CELER_COLOR", default_gtest_or_term_color).value;
     return result;
 }
 
