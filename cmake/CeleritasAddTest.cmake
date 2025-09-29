@@ -431,7 +431,6 @@ function(celeritas_add_test SOURCE_FILE)
       list(APPEND _ADDED_TESTS "${_TEST_NAME}")
 
       if(_filter AND PARSE_DISABLE_FILTER_REGEX)
-        message("Checking ${_filter} MATCHES ${PARSE_DISABLE_FILTER_REGEX}")
         if(_filter MATCHES "${PARSE_DISABLE_FILTER_REGEX}")
           set_property(TEST ${_TEST_NAME}
             PROPERTY DISABLED true

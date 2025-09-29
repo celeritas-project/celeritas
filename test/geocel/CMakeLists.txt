@@ -132,7 +132,6 @@ if(CELERITAS_USE_VecGeom)
       DISABLE_FILTER_REGEX "^(${_joined_bits})Test.*"
     )
   endif()
-  message("_vecgeom_test_filter=${_vecgeom_test_filter}")
 
   celeritas_add_device_test(vg/Vecgeom
     LINK_LIBRARIES
