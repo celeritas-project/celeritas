@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "ModelImporter.hh"
 
+#include <algorithm>
+
 #include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/io/ImportData.hh"
@@ -86,8 +88,13 @@ auto ModelImporter::operator()(IMC imc) const -> std::optional<ModelBuilder>
     CELER_VALIDATE(iter != builtin_build.end(),
                    << "cannot build unsupported optical model '" << imc << "'");
 
-    BuilderMemFn build_impl{iter->second};
-    return (this->*build_impl)();
+    auto builder_opt = (this->*iter->second)();
+    if (!builder_opt)
+    {
+        CELER_LOG(debug) << "Skipping optical model '" << to_cstring(imc)
+                         << "' (no data)";
+    }
+    return builder_opt;
 }
 
 //---------------------------------------------------------------------------//
@@ -128,6 +135,11 @@ auto ModelImporter::build_wls() const -> ModelBuilder
     {
         input.data.push_back(input_.import_material->wls(mid));
     }
+    if (!std::any_of(input.data.begin(), input.data.end(), Identity{}))
+    {
+        // None of the materials have WLS data
+        return {};
+    }
     return WavelengthShiftModel::make_builder(this->imported(),
                                               std::move(input));
 }
@@ -146,6 +158,11 @@ auto ModelImporter::build_wls2() const -> ModelBuilder
     for (auto mid : range(OptMatId{input_.import_material->num_materials()}))
     {
         input.data.push_back(input_.import_material->wls2(mid));
+    }
+    if (!std::any_of(input.data.begin(), input.data.end(), Identity{}))
+    {
+        // None of the materials have WLS2 data
+        return {};
     }
     return WavelengthShiftModel::make_builder(this->imported(),
                                               std::move(input));

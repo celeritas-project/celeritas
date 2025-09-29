@@ -100,7 +100,7 @@ double native_value_from(UnitSystem sys, ImportUnits q)
 
     switch (q)
     {
-        case ImportUnits::none:
+        case ImportUnits::unitless:
             return 1;
         case ImportUnits::mev:
             return mev;

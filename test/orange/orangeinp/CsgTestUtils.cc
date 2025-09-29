@@ -14,6 +14,7 @@
 #include <nlohmann/json.hpp>
 
 #include "corecel/Assert.hh"
+#include "corecel/OpaqueIdUtils.hh"
 #include "corecel/StringSimplifier.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Repr.hh"
@@ -31,6 +32,7 @@
 #include "Test.hh"
 
 using namespace celeritas::orangeinp::detail;
+using namespace celeritas::test;
 
 namespace celeritas
 {
@@ -52,7 +54,7 @@ std::vector<int> to_vec_int(std::vector<NodeId> const& nodes)
     std::vector<int> result;
     for (auto nid : nodes)
     {
-        result.push_back(nid ? nid.unchecked_get() : -1);
+        result.push_back(id_to_int(nid));
     }
     return result;
 }
@@ -141,7 +143,7 @@ std::vector<std::string> bound_strings(CsgUnit const& u)
         {
             os << "~";
         }
-        os << node.unchecked_get() << ": {";
+        os << id_to_int(node) << ": {";
         auto print_bb = [&os](BBox const& bb) {
             if (!bb)
             {
@@ -173,10 +175,10 @@ std::vector<std::string> transform_strings(CsgUnit const& u)
     for (auto&& [node, reg] : u.regions)
     {
         std::ostringstream os;
-        os << node.unchecked_get() << ": t=";
+        os << id_to_int(node) << ": t=";
         if (auto t = reg.trans_id)
         {
-            os << t.unchecked_get();
+            os << id_to_int(t);
             if (t < u.transforms.size())
             {
                 if (printed_transform.insert(t).second)
@@ -207,7 +209,7 @@ std::vector<int> volume_nodes(CsgUnit const& u)
     std::vector<int> result;
     for (auto nid : u.tree.volumes())
     {
-        result.push_back(nid ? nid.unchecked_get() : -1);
+        result.push_back(id_to_int(nid));
     }
     return result;
 }
@@ -224,7 +226,7 @@ std::vector<std::string> fill_strings(CsgUnit const& u)
         }
         else if (auto* mid = std::get_if<GeoMatId>(&f))
         {
-            result.push_back("m" + std::to_string(mid->unchecked_get()));
+            result.push_back("m" + std::to_string(id_to_int(*mid)));
         }
         else if (auto* d = std::get_if<Daughter>(&f))
         {
@@ -232,7 +234,7 @@ std::vector<std::string> fill_strings(CsgUnit const& u)
             os << "{u=";
             if (auto u = d->universe_id)
             {
-                os << u.unchecked_get();
+                os << id_to_int(u);
             }
             else
             {
@@ -241,7 +243,7 @@ std::vector<std::string> fill_strings(CsgUnit const& u)
             os << ", t=";
             if (auto t = d->trans_id)
             {
-                os << t.unchecked_get();
+                os << id_to_int(t);
             }
             else
             {

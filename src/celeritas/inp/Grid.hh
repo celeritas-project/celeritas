@@ -24,6 +24,8 @@ namespace inp
  *
  * \c order is only used for \c poly_spline interpolation and \c bc is only
  * used for \c cubic_spline interpolation.
+ *
+ * \todo Let's just use "Geant4 spline" and linear interpolation.
  */
 struct Interpolation
 {

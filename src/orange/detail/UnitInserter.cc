@@ -268,7 +268,7 @@ std::string to_string(VolumeInput::VariantLabel const& vlabel)
  */
 UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
     : orange_data_(orange_data)
-    , build_bih_tree_{&orange_data_->bih_tree_data}
+    , build_bih_tree_{&orange_data_->bih_tree_data, BIHBuilder::Input{2}}
     , insert_transform_{&orange_data_->transforms, &orange_data_->reals}
     , build_surfaces_{&orange_data_->surface_types,
                       &orange_data_->real_ids,

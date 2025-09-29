@@ -28,6 +28,16 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+//! Default constructor
+template<class HP>
+GenericGeoTestBase<HP>::GenericGeoTestBase() = default;
+
+//---------------------------------------------------------------------------//
+//! Anchored destructor
+template<class HP>
+GenericGeoTestBase<HP>::~GenericGeoTestBase() = default;
+
+//---------------------------------------------------------------------------//
 /*!
  * Build geometry during setup.
  */
@@ -83,9 +93,14 @@ auto GenericGeoTestBase<HP>::geometry() -> SPConstGeo const&
         volumes_ = this->volumes();
         if (!volumes_)
         {
-            // Possibly built with non-GDML
-            volumes_ = std::make_shared<VolumeParams const>(
-                geo_->make_model_input().volumes);
+            // Built without using Geant4 model
+            static PersistentSP<VolumeParams const> pv{
+                "GenericGeoTestBase volumes"};
+            pv.lazy_update(std::string{basename}, [&g = *geo_]() {
+                return std::make_shared<VolumeParams const>(
+                    g.make_model_input().volumes);
+            });
+            volumes_ = pv.value();
         }
     }
     CELER_ENSURE(geo_);
@@ -194,17 +209,18 @@ template<class HP>
 auto GenericGeoTestBase<HP>::track(Real3 const& pos, Real3 const& dir)
     -> TrackingResult
 {
-    return this->track(pos, dir, std::numeric_limits<int>::max());
-}
+    int remaining_steps = 1000;
 
-//---------------------------------------------------------------------------//
-template<class HP>
-auto GenericGeoTestBase<HP>::track(Real3 const& pos,
-                                   Real3 const& dir,
-                                   int max_step) -> TrackingResult
-{
-    CELER_EXPECT(max_step > 0);
     TrackingResult result;
+
+    bool const check_surface_normal{this->supports_surface_normal()};
+    if (!check_surface_normal)
+    {
+        CELER_LOG(warning) << "Surface normal checking is disabled for "
+                           << this->gdml_basename() << " using "
+                           << this->geometry_type();
+        result.disable_surface_normal();
+    }
 
     GeoTrackView geo = CheckedGeoTrackView{this->make_geo_track_view(pos, dir)};
     CELER_ASSERT(volumes_);
@@ -212,23 +228,77 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
     real_type const inv_length = real_type{1} / this->unit_length();
     real_type const bump_tol = this->bump_tol() * this->unit_length();
 
+    // Cross boundary, checking and recording data
+    auto cross_boundary = [&] {
+        CELER_EXPECT(geo.is_on_boundary());
+
+        std::optional<Real3> pre_norm;
+        if (check_surface_normal && !geo.is_outside())
+        {
+            pre_norm = geo.normal();
+        }
+
+        geo.cross_boundary();
+        EXPECT_TRUE(geo.is_on_boundary());
+
+        if (check_surface_normal && !geo.is_outside())
+        {
+            auto post_norm = geo.normal();
+            if (pre_norm)
+            {
+                CELER_ASSERT(!result.volumes.empty());
+
+                auto post_vol = [&] {
+                    auto vi_id = geo.volume_instance_id();
+                    if (!vi_id)
+                    {
+                        return this->volume_name(geo);
+                    }
+                    return to_string(vol_inst.at(vi_id));
+                }();
+
+                // Not entering or exiting global; check direction similarity
+                EXPECT_NORMAL_EQUIV(*pre_norm, post_norm)
+                    << "Normal is not consistent at boundary from "
+                    << result.volume_instances.back() << " into " << post_vol;
+                if (soft_zero(dot_product(geo.dir(), post_norm)))
+                {
+                    CELER_LOG(warning)
+                        << "Crossed from " << result.volume_instances.back()
+                        << " into " << post_vol
+                        << " at a tangent; traveling along " << repr(geo.dir())
+                        << ", normal is " << repr(post_norm);
+                }
+            }
+
+            // Add post-crossing (interior surface) dot product
+            result.dot_normal.push_back([&] {
+                if (!geo.is_on_boundary())
+                {
+                    return TrackingResult::no_surface_normal;
+                }
+                return std::fabs(dot_product(geo.dir(), post_norm));
+            }());
+        }
+    };
+
     if (geo.is_outside())
     {
         // Initial step is outside but may approach inside
-        result.volumes.push_back("[OUTSIDE]");
+        result.volumes.emplace_back(this->volume_name(geo));
         auto next = geo.find_next_step();
         result.distances.push_back(next.distance * inv_length);
         if (next.boundary)
         {
             geo.move_to_boundary();
-            geo.cross_boundary();
-            EXPECT_TRUE(geo.is_on_boundary());
-            --max_step;
+            cross_boundary();
+            --remaining_steps;
         }
     }
 
-    while (!geo.is_outside() && max_step > 0)
+    while (!geo.is_outside())
     {
+        // Add volume names
         result.volumes.emplace_back(this->volume_name(geo));
         if (!vol_inst.empty())
         {
@@ -253,6 +323,8 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
                 return to_string(vol_inst.at(vi_id));
             }());
         }
+
+        // Add next distance
         auto next = geo.find_next_step();
         result.distances.push_back(next.distance * inv_length);
         if (!next.boundary)
@@ -329,7 +401,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
         geo.move_to_boundary();
         try
         {
-            geo.cross_boundary();
+            cross_boundary();
         }
         catch (std::exception const& e)
         {
@@ -338,8 +410,16 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
                           << ": " << e.what();
             break;
         }
-        --max_step;
+
+        if (remaining_steps-- == 0)
+        {
+            ADD_FAILURE() << "maximum steps exceeded";
+            break;
+        }
     }
+
+    // Delete dot_normals that are all 1
+    result.clear_boring_normals();
 
     return result;
 }

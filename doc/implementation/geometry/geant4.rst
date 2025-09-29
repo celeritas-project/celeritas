@@ -1,6 +1,8 @@
 .. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 .. SPDX-License-Identifier: CC-BY-4.0
 
+.. _api_geant4_geo:
+
 Geant4 geometry
 ===============
 
@@ -12,3 +14,8 @@ navigation for individual track states (though only on CPU, and without full
 support for field navigation).
 
 .. doxygenclass:: celeritas::GeantGeoParams
+
+Runtime interface
+-----------------
+
+.. doxygenclass:: celeritas::GeantGeoTrackView

@@ -25,6 +25,7 @@
 #include <G4GenericTrap.hh>
 #include <G4Hype.hh>
 #include <G4IntersectionSolid.hh>
+#include <G4MultiUnion.hh>
 #include <G4Orb.hh>
 #include <G4Para.hh>
 #include <G4Paraboloid.hh>
@@ -344,6 +345,7 @@ auto SolidConverter::convert_impl(arg_type solid_base) -> result_type
         SC_TYPE_FUNC(GenericTrap      , generictrap),
         SC_TYPE_FUNC(Hype             , hype),
         SC_TYPE_FUNC(IntersectionSolid, intersectionsolid),
+        SC_TYPE_FUNC(MultiUnion       , multiunion),
         SC_TYPE_FUNC(Orb              , orb),
         SC_TYPE_FUNC(Para             , para),
         SC_TYPE_FUNC(Paraboloid       , paraboloid),
@@ -611,6 +613,25 @@ auto SolidConverter::intersectionsolid(arg_type solid_base) -> result_type
     return std::make_shared<AllObjects>(
         std::string{solid_base.GetName()},
         std::vector{std::move(vols[0]), std::move(vols[1])});
+}
+
+//---------------------------------------------------------------------------//
+//! Convert a multiunion
+auto SolidConverter::multiunion(arg_type solid_base) -> result_type
+{
+    auto const& mu = dynamic_cast<G4MultiUnion const&>(solid_base);
+    auto n = mu.GetNumberOfSolids();
+    std::vector<result_type> vols(n);
+
+    for (auto i : range(n))
+    {
+        auto vol = (*this)(*(mu.GetSolid(i)));
+        vols[i] = std::make_shared<Transformed>(
+            std::move(vol), transform_(mu.GetTransformation(i)));
+    }
+
+    return std::make_shared<AnyObjects>(std::string{solid_base.GetName()},
+                                        std::move(vols));
 }
 
 //---------------------------------------------------------------------------//

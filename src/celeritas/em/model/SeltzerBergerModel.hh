@@ -6,14 +6,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <functional>
 #include <memory>
 
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/SeltzerBergerData.hh"
-#include "celeritas/io/ImportSBTable.hh"
-#include "celeritas/phys/AtomicNumber.hh"
+#include "celeritas/inp/PhysicsModel.hh"
 #include "celeritas/phys/ImportedModelAdapter.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/Model.hh"
@@ -38,22 +36,19 @@ class ParticleParams;
  * \f$ \difd{\sigma}{k} \f$ is the bremsstrahlung differential cross
  * section.
  *
- * Seltzer and Berger have tabulated the scaled DCS (in mb) for elements Z = 1
- * - 100 and for incident charged particle energies from 1 keV to 10 GeV
- * (reported in MeV) in Seltzer S.M. and M.J. Berger (1986), "Bremsstrahlung
- * energy spectra from electrons with kinetic energy 1 keV–10 GeV incident on
- * screened nuclei and orbital electrons of neutral atoms with Z = 1–100", At.
- * Data Nucl. Data Tables 35, 345–418.
+ * Seltzer and Berger tabulated the scaled DCS (in mb) for elements 1 <= Z <=
+ * 100 and incident charged particle energies from 1 keV to 10 GeV
+ * in \citet{sb-brems-1986, https://doi.org/10.1016/0092-640X(86)90014-8}.
  */
 class SeltzerBergerModel final : public Model, public StaticConcreteAction
 {
   public:
     //!@{
     using Mass = units::MevMass;
-    using ReadData = std::function<ImportSBTable(AtomicNumber)>;
     using HostRef = HostCRef<SeltzerBergerData>;
     using DeviceRef = DeviceCRef<SeltzerBergerData>;
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
+    using Input = inp::SeltzerBergerModel;
     //!@}
 
   public:
@@ -62,7 +57,7 @@ class SeltzerBergerModel final : public Model, public StaticConcreteAction
                        ParticleParams const& particles,
                        MaterialParams const& materials,
                        SPConstImported data,
-                       ReadData load_sb_table);
+                       Input const& input);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;

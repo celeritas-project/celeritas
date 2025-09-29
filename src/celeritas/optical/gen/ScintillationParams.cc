@@ -11,6 +11,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -36,6 +37,8 @@ ScintillationParams::from_import(ImportData const& data,
                      }))
     {
         // No scintillation data present
+        CELER_LOG(info) << "Skipping scintillation process: no scintillating "
+                           "materials are present";
         return nullptr;
     }
 

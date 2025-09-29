@@ -85,6 +85,7 @@
       <materialref ref="G4_lAr"/>
       <solidref ref="Absorber2"/>
       <auxiliary auxtype="g4matcutcouple" auxvalue="2"/>
+      <auxiliary auxtype="SensDet" auxvalue="lAr"/>
     </volume>
     <volume name="layer">
       <materialref ref="G4_Galactic"/>

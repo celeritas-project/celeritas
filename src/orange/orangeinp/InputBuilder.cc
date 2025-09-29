@@ -41,7 +41,7 @@ void write_protos(detail::ProtoMap const& map, std::string const& filename)
     std::ofstream outf(filename);
     CELER_VALIDATE(outf,
                    << "failed to open output file at \"" << filename << '"');
-    outf << result.dump();
+    outf << result.dump(0);
 
     CELER_LOG(info) << "Wrote ORANGE protos to " << filename;
 }
@@ -74,7 +74,7 @@ class JsonProtoOutput
         std::ofstream outf(filename);
         CELER_VALIDATE(
             outf, << "failed to open output file at \"" << filename << '"');
-        outf << output_.dump();
+        outf << output_.dump(0);
 
         CELER_LOG(info) << "Wrote ORANGE debug info to " << filename;
     }

@@ -39,7 +39,7 @@
     },
     {
       "name": "cxx17",
-      "displayName": "Wildstyle old options (GCC, debug, no omp)",
+      "displayName": "Wildstyle with C++17",
       "inherits": [".debug", ".base"],
       "cacheVariables": {
         "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "OFF"},

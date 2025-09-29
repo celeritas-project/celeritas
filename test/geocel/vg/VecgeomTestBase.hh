@@ -17,7 +17,12 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-using VecgeomTestBase = GenericGeoTestBase<VecgeomParams>;
+class VecgeomTestBase : public GenericGeoTestBase<VecgeomParams>
+{
+  public:
+    // TODO: surface normals do NOT currently work
+    bool supports_surface_normal() const override { return false; }
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace test

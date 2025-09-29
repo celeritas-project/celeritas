@@ -49,6 +49,11 @@ class GenericGeoTestBase : virtual public Test,
     //!@}
 
   public:
+    // Default constructors and anchored destructor
+    GenericGeoTestBase();
+    virtual ~GenericGeoTestBase();
+    CELER_DELETE_COPY_MOVE(GenericGeoTestBase);
+
     // Build geometry during setup
     void SetUp() override;
 
@@ -89,9 +94,7 @@ class GenericGeoTestBase : virtual public Test,
     GeoParamsInterface const& geometry_interface() const final;
     // Find linear segments until outside
     TrackingResult track(Real3 const& pos_cm, Real3 const& dir) final;
-    // Find linear segments until outside or max_step count is reached
-    TrackingResult
-    track(Real3 const& pos_cm, Real3 const& dir, int max_step) final;
+    // Get the geometry volume path to the given position
     VolumeStackResult volume_stack(Real3 const& pos_cm) final;
 
   private:

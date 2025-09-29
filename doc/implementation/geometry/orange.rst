@@ -14,6 +14,8 @@ execution to support platform portability in Celeritas. It can be built via its
 interface to SCALE or constructed automatically from Geant4 geometry
 representation.
 
+.. doxygenclass:: celeritas::OrangeParams
+
 Construction API
 ----------------
 
@@ -209,9 +211,7 @@ each become a CSG unit. This decomposition is currently tuned so that:
 
 .. _Geant4 documentation: https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/index.html
 
-Runtime interfaces
-------------------
-
-.. doxygenclass:: celeritas::OrangeParams
+Runtime interface
+-----------------
 
 .. doxygenclass:: celeritas::OrangeTrackView

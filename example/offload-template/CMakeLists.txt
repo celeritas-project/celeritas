@@ -31,6 +31,10 @@ if(NOT CELERITAS_USE_Geant4)
 endif()
 
 #-----------------------------------------------------------------------------#
+# Configure build info strings for use by run-offload.cc
+configure_file("BuildInfo.hh.in" "BuildInfo.hh")
+
+#-----------------------------------------------------------------------------#
 # Add executable
 
 macro(polysource_append var filename_we)
@@ -59,6 +63,7 @@ add_executable(run-offload
 
 target_include_directories(run-offload PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
 )
 
 # Use special linking macros to support CUDA+VecGeom when used

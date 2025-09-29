@@ -6,9 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <functional>
 #include <memory>
 
+#include "celeritas/inp/PhysicsModel.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/Applicability.hh"
 #include "celeritas/phys/AtomicNumber.hh"
@@ -18,8 +18,6 @@
 
 namespace celeritas
 {
-struct ImportLivermorePE;
-
 //---------------------------------------------------------------------------//
 /*!
  * Photoelectric effect process for gammas.
@@ -32,7 +30,7 @@ class PhotoelectricProcess : public Process
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
-    using ReadData = std::function<ImportLivermorePE(AtomicNumber)>;
+    using LInput = inp::LivermorePhotoModel;
     //!@}
 
   public:
@@ -40,7 +38,7 @@ class PhotoelectricProcess : public Process
     PhotoelectricProcess(SPConstParticles particles,
                          SPConstMaterials materials,
                          SPConstImported process_data,
-                         ReadData load_data);
+                         LInput livermore);
 
     // Construct the models associated with this process
     VecModel build_models(ActionIdIter start_id) const final;
@@ -64,7 +62,7 @@ class PhotoelectricProcess : public Process
     SPConstParticles particles_;
     SPConstMaterials materials_;
     ImportedProcessAdapter imported_;
-    ReadData load_pe_;
+    LInput livermore_;
 };
 
 //---------------------------------------------------------------------------//

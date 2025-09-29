@@ -25,10 +25,7 @@
 #include "celeritas/em/process/PhotoelectricProcess.hh"
 #include "celeritas/em/process/RayleighProcess.hh"
 #include "celeritas/io/ImportData.hh"
-#include "celeritas/io/ImportedElementalMapLoader.hh"
-#include "celeritas/io/LivermorePEReader.hh"
 #include "celeritas/io/NeutronXsReader.hh"
-#include "celeritas/io/SeltzerBergerReader.hh"
 #include "celeritas/neutron/process/NeutronElasticProcess.hh"
 
 #include "ImportedProcessAdapter.hh"
@@ -56,15 +53,13 @@ auto ProcessBuilder::get_all_process_classes(
  *
  * \pre The import data must have already been converted to the native unit
  * system.
- *
- * \warning If Livermore and SB data is present in the import data, their
- * lifetime must extend beyond the \c ProcessBuilder instance.
  */
 ProcessBuilder::ProcessBuilder(ImportData const& data,
                                SPConstParticle particle,
                                SPConstMaterial material,
                                UserBuildMap user_build)
-    : input_{std::move(material), std::move(particle), nullptr}
+    : data_{data}
+    , input_{std::move(material), std::move(particle), nullptr}
     , user_build_map_(std::move(user_build))
     , enable_lpm_(data.em_params.lpm)
 {
@@ -73,22 +68,6 @@ ProcessBuilder::ProcessBuilder(ImportData const& data,
     CELER_EXPECT(std::string(data.units) == units::NativeTraits::label());
 
     input_.imported = std::make_shared<ImportedProcesses>(data.processes);
-
-    if (!data.sb_data.empty())
-    {
-        read_sb_ = make_imported_element_loader(data.sb_data);
-    }
-    if (!data.livermore_pe_data.empty())
-    {
-        read_livermore_ = make_imported_element_loader(data.livermore_pe_data);
-    }
-    if (!data.neutron_elastic_data.empty())
-    {
-        read_neutron_elastic_
-            = make_imported_element_loader(data.neutron_elastic_data);
-    }
-    mu_pairprod_table_ = std::make_shared<ImportMuPairProductionTable>(
-        data.mu_pair_production_data);
 }
 
 //---------------------------------------------------------------------------//
@@ -165,40 +144,33 @@ auto ProcessBuilder::build_eioni() -> SPProcess
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_ebrems() -> SPProcess
 {
+    CELER_EXPECT(data_.seltzer_berger);
     BremsstrahlungProcess::Options options;
     options.enable_lpm = enable_lpm_;
 
-    if (!read_sb_)
-    {
-        read_sb_ = SeltzerBergerReader{};
-    }
-
-    return std::make_shared<BremsstrahlungProcess>(
-        this->particle(), this->material(), this->imported(), read_sb_, options);
+    return std::make_shared<BremsstrahlungProcess>(this->particle(),
+                                                   this->material(),
+                                                   this->imported(),
+                                                   data_.seltzer_berger,
+                                                   options);
 }
 
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_neutron_elastic() -> SPProcess
 {
-    if (!read_neutron_elastic_)
-    {
-        read_neutron_elastic_ = NeutronXsReader{NeutronXsType::el};
-    }
-
+    // FIXME: read neutron data at import
     return std::make_shared<NeutronElasticProcess>(
-        this->particle(), this->material(), read_neutron_elastic_);
+        this->particle(), this->material(), NeutronXsReader{NeutronXsType::el});
 }
 
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_photoelectric() -> SPProcess
 {
-    if (!read_livermore_)
-    {
-        read_livermore_ = LivermorePEReader{{}};
-    }
-
-    return std::make_shared<PhotoelectricProcess>(
-        this->particle(), this->material(), this->imported(), read_livermore_);
+    CELER_EXPECT(data_.livermore_photo);
+    return std::make_shared<PhotoelectricProcess>(this->particle(),
+                                                  this->material(),
+                                                  this->imported(),
+                                                  data_.livermore_photo);
 }
 
 //---------------------------------------------------------------------------//
@@ -256,7 +228,7 @@ auto ProcessBuilder::build_muioni() -> SPProcess
 auto ProcessBuilder::build_mupairprod() -> SPProcess
 {
     return std::make_shared<MuPairProductionProcess>(
-        this->particle(), this->imported(), mu_pairprod_table_);
+        this->particle(), this->imported(), data_.mu_production);
 }
 
 //---------------------------------------------------------------------------//

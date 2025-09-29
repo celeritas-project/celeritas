@@ -30,7 +30,6 @@ namespace optical
  */
 PhysicsParams::PhysicsParams(Input input)
 {
-    CELER_EXPECT(!input.model_builders.empty());
     CELER_EXPECT(input.materials);
     CELER_EXPECT(input.action_registry);
 
@@ -72,6 +71,11 @@ auto PhysicsParams::build_models(VecModelBuilders const& model_builders,
 
     for (auto const& builder : model_builders)
     {
+        if (!builder)
+        {
+            // if model has no data proceed to the next model
+            continue;
+        }
         auto action_id = action_reg.next_id();
         SPConstModel model = builder(action_id);
 
@@ -82,7 +86,6 @@ auto PhysicsParams::build_models(VecModelBuilders const& model_builders,
         models.push_back(std::move(model));
     }
 
-    CELER_ENSURE(models.size() == model_builders.size());
     return models;
 }
 

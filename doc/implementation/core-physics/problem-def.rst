@@ -28,16 +28,16 @@ Setting up problems
 -------------------
 
 Problem data is specified from applications and the Geant4 user interface using
-the :ref:`input` API and loaded through "importers". Different front ends to
-Celeritas use different sets of importers.
+the :ref:`input` API and loaded through "importers". Currently, Celeritas
+relies on Geant4 and external Geant4 data files for its setup.
 
 .. _api_problem_setup_standalone:
 
 Standalone execution
 ^^^^^^^^^^^^^^^^^^^^
 
-Standalone execution describes how to set up physics data (either through
-Geant4 or loaded through an external file) and other problem properties.
+Standalone execution describes how to set up Geant4 physics and what events to
+run.
 
 .. doxygenstruct:: celeritas::inp::StandaloneInput
 
@@ -77,24 +77,20 @@ can be added via the ``adjuster`` parameter to set or change any loaded data.
    :no-link:
 
 
-Importers
-^^^^^^^^^
+Loading data into Celeritas
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Import options are read in to load problem input from various sources.
 
-.. doxygenstruct:: celeritas::inp::FileImport
+.. doxygenstruct:: celeritas::inp::PhysicsFromFile
    :members:
    :no-link:
 
-.. doxygenstruct:: celeritas::inp::GeantImport
+.. doxygenstruct:: celeritas::inp::PhysicsFromGeant
    :members:
    :no-link:
 
-.. doxygenstruct:: celeritas::inp::GeantDataImport
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::inp::UpdateImport
+.. doxygenstruct:: celeritas::inp::PhysicsFromGeantFiles
    :members:
    :no-link:
 

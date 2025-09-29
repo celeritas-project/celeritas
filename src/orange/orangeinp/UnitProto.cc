@@ -13,8 +13,10 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/OpaqueIdIO.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/VolumeToString.hh"
@@ -331,10 +333,9 @@ void UnitProto::build(ProtoBuilder& input) const
         CELER_ASSERT(unit_volumes.size() <= result.volumes.size());
         for (auto vol_idx : range(unit_volumes.size()))
         {
-            if (auto* label = std::get_if<Label>(&result.volumes[vol_idx].label))
-            {
-                jv[vol_idx]["label"] = *label;
-            }
+            jv[vol_idx]["label"]
+                = std::visit([](auto&& obj) -> nlohmann::json { return obj; },
+                             result.volumes[vol_idx].label);
         }
 
         // Save our universe label
