@@ -10,7 +10,6 @@
 #include "celeritas/optical/Types.hh"
 #include "celeritas/phys/SurfacePhysicsMapView.hh"
 
-#include "SurfaceModelView.hh"
 #include "SurfacePhysicsData.hh"
 #include "SurfacePhysicsUtils.hh"
 #include "SurfacePhysicsView.hh"
@@ -60,18 +59,24 @@ class SurfacePhysicsTrackView
     // Reset surface physics state of the track
     inline CELER_FUNCTION void reset();
 
-    // Get global surface normal
-    inline CELER_FUNCTION Real3 const& global_normal() const;
-
     // Whether track is undergoing boundary crossing
     inline CELER_FUNCTION bool is_crossing_boundary() const;
+
+    // Get current subsurface material
+    inline CELER_FUNCTION OptMatId material() const;
+
+    // Get next subsurface material
+    inline CELER_FUNCTION OptMatId next_material() const;
+
+    // Get surface physics map for next surface
+    inline CELER_FUNCTION
+        SurfacePhysicsMapView interface(SurfacePhysicsOrder) const;
 
     // Calculate and update traversal direction from track momentum
     inline CELER_FUNCTION void update_traversal_direction(Real3 const&);
 
-    // Get surface model for the given step
-    inline CELER_FUNCTION
-        SurfaceModelView surface_model(SurfacePhysicsOrder) const;
+    // Get global surface normal
+    inline CELER_FUNCTION Real3 const& global_normal() const;
 
     // Get local facet normal
     inline CELER_FUNCTION Real3 const& facet_normal() const;
@@ -143,20 +148,6 @@ CELER_FUNCTION void SurfacePhysicsTrackView::reset()
 
 //---------------------------------------------------------------------------//
 /*!
- * Get global surface normal.
- *
- * The global surface normal is the normal defined by the geometry and does not
- * include any roughness effects. By convention it points from the post-volume
- * into the pre-volume.
- */
-CELER_FUNCTION Real3 const& SurfacePhysicsTrackView::global_normal() const
-{
-    CELER_EXPECT(this->is_crossing_boundary());
-    return states_.global_normal[track_id_];
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Whether the track is undergoing boundary crossing.
  *
  * Returns true if there's a valid surface ID, otherwise false.
@@ -164,6 +155,37 @@ CELER_FUNCTION Real3 const& SurfacePhysicsTrackView::global_normal() const
 CELER_FUNCTION bool SurfacePhysicsTrackView::is_crossing_boundary() const
 {
     return states_.surface[track_id_] < params_.surfaces.size();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get current subsurface material.
+ */
+CELER_FUNCTION OptMatId SurfacePhysicsTrackView::material() const
+{
+    return this->surface().material(this->traversal().position());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get next subsurface material.
+ */
+CELER_FUNCTION OptMatId SurfacePhysicsTrackView::next_material() const
+{
+    return this->surface().material(this->traversal().next_position());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get surface physics map for next surface.
+ */
+CELER_FUNCTION SurfacePhysicsMapView
+SurfacePhysicsTrackView::interface(SurfacePhysicsOrder step) const
+{
+    auto traverse = this->traversal();
+    return SurfacePhysicsMapView{
+        params_.model_maps[step],
+        this->surface().interface(traverse.position(), traverse.direction())};
 }
 
 //---------------------------------------------------------------------------//
@@ -180,24 +202,16 @@ SurfacePhysicsTrackView::update_traversal_direction(Real3 const& dir)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get surface model view of the given step in the given direction.
+ * Get global surface normal.
+ *
+ * The global surface normal is the normal defined by the geometry and does not
+ * include any roughness effects. By convention it points from the post-volume
+ * into the pre-volume.
  */
-CELER_FUNCTION SurfaceModelView
-SurfacePhysicsTrackView::surface_model(SurfacePhysicsOrder step) const
+CELER_FUNCTION Real3 const& SurfacePhysicsTrackView::global_normal() const
 {
-    CELER_EXPECT(step != SurfacePhysicsOrder::size_);
-
-    auto traverse = this->traversal();
-    CELER_ASSERT(!traverse.is_exiting());
-
-    auto surface = this->surface();
-
-    return SurfaceModelView{
-        SurfacePhysicsMapView{
-            params_.model_maps[step],
-            surface.interface(traverse.position(), traverse.direction())},
-        surface.material(traverse.position()),
-        surface.material(traverse.next_position())};
+    CELER_EXPECT(this->is_crossing_boundary());
+    return states_.global_normal[track_id_];
 }
 
 //---------------------------------------------------------------------------//

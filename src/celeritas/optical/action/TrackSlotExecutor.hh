@@ -166,7 +166,7 @@ struct IsSurfaceModelEqual
     {
         auto s_phys = track.surface_physics();
         return s_phys.is_crossing_boundary()
-               && s_phys.surface_model(step).model_id() == model;
+               && s_phys.interface(step).surface_model_id() == model;
     }
 };
 

@@ -93,13 +93,13 @@ TraceResult trace_directions(SurfacePhysicsTrackView& s_physics,
 
         for (auto step : range(SurfacePhysicsOrder::size_))
         {
-            auto surface_model = s_physics.surface_model(step);
+            auto surface_model = s_physics.interface(step);
 
-            result.models[step].push_back(surface_model.model_id());
+            result.models[step].push_back(surface_model.surface_model_id());
             result.per_model_ids[step].push_back(
                 surface_model.internal_surface_id());
-            result.pre_material[step].push_back(surface_model.pre_material());
-            result.post_material[step].push_back(surface_model.post_material());
+            result.pre_material[step].push_back(s_physics.material());
+            result.post_material[step].push_back(s_physics.next_material());
         }
 
         s_physics.traversal().cross_interface(direction);
