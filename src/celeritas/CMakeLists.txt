@@ -18,7 +18,7 @@ set(PUBLIC_DEPS
 )
 
 # Core data has transient includes
-if(CELERITAS_CORE_GEO MATCHES "^VecGeom")
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
   # NOTE: use vecgeom directly here since we know it's enabled and it's
   # necessary to make CudaRdc work downstream
   set(_core_geo_deps VecGeom::vecgeom)
