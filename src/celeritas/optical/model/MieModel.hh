@@ -13,9 +13,6 @@
 
 namespace celeritas
 {
-// class MaterialParams;
-// struct ImportMie;
-//  struct ImportOpticalRayleigh;
 struct ImportData;
 struct ImportMie;
 namespace optical
@@ -29,8 +26,6 @@ class MieModel final : public Model
 {
   public:
     using SPConstImported = std::shared_ptr<ImportedModels const>;
-    // using SPConstImportedMaterials = std::shared_ptr<ImportedMaterials
-    // const>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
     using HostRef = HostCRef<MieData>;
     using DeviceRef = DeviceCRef<MieData>;
@@ -40,13 +35,6 @@ class MieModel final : public Model
     {
         ImportModelClass model{ImportModelClass::size_};
         std::vector<ImportMie> data;
-        //   SPConstMaterials materials;
-        // SPConstCoreMaterials core_materials;
-        // SPConstImportedMaterials imported_materials;
-        // explicit operator bool() const
-        //{
-        //    return materials && core_materials && imported_materials;
-        //}
     };
 
     static ModelBuilder make_builder(SPConstImported imported, Input input);
@@ -64,8 +52,6 @@ class MieModel final : public Model
   private:
     ImportedModelAdapter imported_;
     CollectionMirror<MieData> data_;
-    // Input input_;
-    // std::vector<ImportMie> mie_data_;
 };
 
 }  // namespace optical
