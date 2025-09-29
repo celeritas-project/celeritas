@@ -294,7 +294,7 @@ if(Sphinx_FOUND)
         VERBATIM COMMAND
         "${CMAKE_COMMAND}" -E copy "${_png_fallback}" "${_output}"
         COMMENT "Copying fallback Mermaid PNG: ${basename}.png"
-        DEPENDS "${_output}"
+        DEPENDS "${inp}"
       )
       list(APPEND _mermaid_output "${_output}")
     else()
@@ -325,6 +325,7 @@ endif()
 
 if(Sphinx_FOUND)
   file(GLOB_RECURSE _sphinx_deps "${CMAKE_CURRENT_SOURCE_DIR}/*.rst")
+  list(APPEND _sphinx_deps ${_mermaid_output})
 else()
   set(_sphinx_deps)
 endif()
