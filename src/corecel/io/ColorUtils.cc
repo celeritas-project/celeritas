@@ -41,18 +41,19 @@ bool default_term_color()
     return false;
 }
 
-// Get a default color based on the terminal settings *or* gtest override
-bool default_gtest_or_term_color()
+//---------------------------------------------------------------------------//
+/*!
+ * Get a default color based on the terminal/env settings.
+ */
+char const* default_color_env_str()
 {
-    // Don't use celeritas getenv to check gtest variable, to avoid
-    // adding it to the list of exposed variables if unused
-    if (char const* color_cstr = std::getenv("GTEST_COLOR"))
-    {
-        // Since it's used, add it to the environment and use the flag logic to
-        // process its value
-        return celeritas::getenv_flag("GTEST_COLOR", default_term_color).value;
-    }
-    return default_term_color();
+    auto hasenv = [](char const* key) { return std::getenv(key) != nullptr; };
+    static char const celer_env[] = "CELER_COLOR";
+    static char const gtest_env[] = "GTEST_COLOR";
+
+    if (hasenv(celer_env) || !hasenv(gtest_env))
+        return celer_env;
+    return gtest_env;
 }
 
 }  // namespace
@@ -60,11 +61,16 @@ bool default_gtest_or_term_color()
 //---------------------------------------------------------------------------//
 /*!
  * Whether colors are enabled (currently read-only).
+ *
+ * This checks the \c CELER_COLOR environment variable, or the \c
+ * GTEST_COLOR variable (if it is defined and CELER_COLOR is not), and defaults
+ * based on the terminal settings of \c stderr.
  */
 bool use_color()
 {
     static bool const result
-        = celeritas::getenv_flag("CELER_COLOR", default_gtest_or_term_color).value;
+        = celeritas::getenv_flag(default_color_env_str(), default_term_color())
+              .value;
     return result;
 }
 

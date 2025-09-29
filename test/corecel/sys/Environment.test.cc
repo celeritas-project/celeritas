@@ -53,23 +53,18 @@ TEST(EnvironmentTest, global)
     environment() = {};
     EXPECT_EQ("", getenv("ENVTEST_EMPTY"));
 
-    auto should_not_call_default = [] {
-        ADD_FAILURE() << "Erroneously tried to check default";
-        return false;
-    };
-
     EXPECT_EQ((GetenvFlagResult{false, false}),
-              getenv_flag("ENVTEST_ZERO", should_not_call_default));
+              getenv_flag("ENVTEST_ZERO", false));
     EXPECT_EQ((GetenvFlagResult{true, false}),
-              getenv_flag("ENVTEST_ONE", should_not_call_default));
+              getenv_flag("ENVTEST_ONE", false));
     EXPECT_EQ((GetenvFlagResult{false, true}),
               getenv_flag("ENVTEST_EMPTY", false));
     EXPECT_EQ((GetenvFlagResult{true, true}),
-              getenv_flag("ENVTEST_EMPTY", [] { return true; }));
+              getenv_flag("ENVTEST_EMPTY", true));
     EXPECT_EQ((GetenvFlagResult{true, true}),
               getenv_flag("ENVTEST_NEW_T", true));
     EXPECT_EQ((GetenvFlagResult{false, true}),
-              getenv_flag("ENVTEST_NEW_F", [] { return false; }));
+              getenv_flag("ENVTEST_NEW_F", false));
 
     EXPECT_EQ("1", environment()["ENVTEST_ONE"]);
     EXPECT_EQ("0", getenv("ENVTEST_ZERO"));
