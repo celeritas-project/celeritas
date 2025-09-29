@@ -24,12 +24,10 @@ namespace
 bool default_term_color()
 {
 #ifndef _WIN32
-    if (isatty(fileno(stderr)))
-    {
-        // This stream is a user-facing terminal
-        return true;
-    }
+    // See if stderr is a user-facing terminal
+    return isatty(fileno(stderr));
 #endif
+    // Fall back to checking environment variable
     if (char const* term_str = std::getenv("TERM"))
     {
         if (std::string{term_str}.find("xterm") != std::string::npos)
