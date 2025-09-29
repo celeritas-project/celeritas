@@ -404,8 +404,8 @@ TEST_F(SurfacePhysicsTest, init_surface_physics_view)
     {
         auto s_physics = this->surface_physics_view(track);
 
-        surfaces.push_back(s_physics.surface());
-        orientations.push_back(s_physics.orientation());
+        surfaces.push_back(s_physics.surface().surface());
+        orientations.push_back(s_physics.surface().orientation());
         num_positions.push_back(s_physics.traversal().num_positions());
 
         EXPECT_TRUE(s_physics.is_crossing_boundary());
@@ -738,7 +738,7 @@ TEST_F(SurfacePhysicsTest, traversal_direction)
         std::vector<SubsurfaceDirection> directions;
         for (auto const& dir : geo_directions)
         {
-            s_physics.traversal_direction(dir);
+            s_physics.update_traversal_direction(dir);
             directions.push_back(s_physics.traversal().direction());
         }
 
@@ -770,7 +770,7 @@ TEST_F(SurfacePhysicsTest, traversal_direction)
         std::vector<SubsurfaceDirection> directions;
         for (auto const& dir : geo_directions)
         {
-            s_physics.traversal_direction(dir);
+            s_physics.update_traversal_direction(dir);
             directions.push_back(s_physics.traversal().direction());
         }
 
