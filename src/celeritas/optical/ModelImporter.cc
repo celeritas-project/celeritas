@@ -177,16 +177,22 @@ auto ModelImporter::build_wls2() const -> ModelBuilder
 }
 //---------------------------------------------------------------------------//
 /*!
- * Create MIE model builder.
+ * Create Mie scattering model builder.
  */
 auto ModelImporter::build_mie() const -> ModelBuilder
 {
-    CELER_EXPECT(this->imported());
-    CELER_LOG(debug) << "Building Mie model for material ";
-    return MieModel::make_builder(
-        this->imported(),  // shared_ptr<const ImportedModels>
-        MieModel::Input{
-            this->material(), this->core_material(), this->import_material()});
+    CELER_EXPECT(input_.import_material);
+    MieModel::Input input;
+
+    input.model = ImportModelClass::mie;
+
+    for (auto mid : range(OptMatId{input_.import_material->num_materials()}))
+    {
+        auto mie_data = input_.import_material->mie(mid);
+        input.data.push_back(mie_data);
+    }
+
+    return MieModel::make_builder(this->imported(), std::move(input));
 }
 
 //---------------------------------------------------------------------------//
