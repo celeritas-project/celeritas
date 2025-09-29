@@ -226,14 +226,14 @@ TEST_F(SurfacePhysicsTest, init_params)
 
         auto& surface = surfaces[geo_surface.get()];
 
-        for (auto i : range(SubsurfaceMaterialId{
+        for (auto i : range(SurfaceTrackPosition{
                  surface_record.subsurface_materials.size()}))
         {
             surface.materials.push_back(
                 data.subsurface_materials[surface_record.subsurface_materials[i]]);
         }
 
-        for (auto i : range(SubsurfaceInterfaceId{
+        for (auto i : range(SurfaceTrackPosition{
                  surface_record.subsurface_interfaces.size()}))
         {
             auto phys_surface = surface_record.subsurface_interfaces[i];

@@ -17,10 +17,6 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
-// TYPE ALIASES
-//---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 /*!
  * Storage for physics data of a geometric surface.
  *
@@ -36,8 +32,8 @@ namespace optical
  */
 struct SurfaceRecord
 {
-    ItemMap<SubsurfaceMaterialId, OpaqueId<OptMatId>> subsurface_materials;
-    ItemMap<SubsurfaceInterfaceId, PhysSurfaceId> subsurface_interfaces;
+    ItemMap<SurfaceTrackPosition, OpaqueId<OptMatId>> subsurface_materials;
+    ItemMap<SurfaceTrackPosition, PhysSurfaceId> subsurface_interfaces;
 
     //! Whether data is assigned
     explicit CELER_FUNCTION operator bool() const

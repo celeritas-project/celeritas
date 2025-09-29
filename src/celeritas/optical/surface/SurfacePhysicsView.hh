@@ -13,7 +13,6 @@
 #include "SurfaceModelView.hh"
 #include "SurfacePhysicsData.hh"
 #include "SurfacePhysicsUtils.hh"
-#include "SurfaceRecordView.hh"
 #include "SurfaceTraversalView.hh"
 
 namespace celeritas
@@ -114,9 +113,17 @@ class SurfacePhysicsView
     SurfaceStateRef const& states_;
     TrackSlotId const track_id_;
 
+    // x
+    inline CELER_FUNCTION SurfaceRecord const& surface_record() const;
+
     // Subsurface material at the given position
     inline CELER_FUNCTION
         OptMatId subsurface_material(SurfaceTrackPosition) const;
+
+    // x
+    inline CELER_FUNCTION
+        PhysSurfaceId subsurface_interface(SurfaceTrackPosition,
+                                           SubsurfaceDirection) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -239,9 +246,8 @@ SurfacePhysicsView::surface_model(SurfacePhysicsOrder step) const
     auto traverse = this->traversal();
     CELER_ASSERT(!traverse.is_exiting());
 
-    auto phys_surface
-        = SurfaceRecordView{params_, this->surface(), this->orientation()}
-              .interface(traverse.position(), traverse.direction());
+    auto phys_surface = this->subsurface_interface(traverse.position(),
+                                                   traverse.direction());
     CELER_ASSERT(phys_surface);
 
     return SurfaceModelView{
@@ -318,6 +324,16 @@ CELER_FUNCTION SurfaceTraversalView SurfacePhysicsView::traversal() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get surface record of current geometric surface.
+ */
+CELER_FUNCTION SurfaceRecord const& SurfacePhysicsView::surface_record() const
+{
+    CELER_EXPECT(this->is_crossing_boundary());
+    return params_.surfaces[this->surface()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return the subsurface material ID of the current track position.
  */
 CELER_FUNCTION OptMatId
@@ -339,8 +355,29 @@ SurfacePhysicsView::subsurface_material(SurfaceTrackPosition pos) const
         return states_.post_volume_material[track_id_];
     }
 
-    return SurfaceRecordView{params_, this->surface(), this->orientation()}
-        .material(pos);
+    auto material_record_id
+        = OrientedItemMap{this->surface_record().subsurface_materials,
+                          this->orientation()}[pos - 1];
+    CELER_ASSERT(material_record_id < params_.subsurface_materials.size());
+
+    return params_.subsurface_materials[material_record_id];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return the subsurface interface ID of the given track position and
+ * direction.
+ */
+CELER_FUNCTION PhysSurfaceId SurfacePhysicsView::subsurface_interface(
+    SurfaceTrackPosition pos, SubsurfaceDirection d) const
+{
+    auto interface_pos = pos + IfReverseDirection<int>{-1}(d);
+
+    CELER_ASSERT(interface_pos
+                 < this->surface_record().subsurface_interfaces.size());
+
+    return OrientedItemMap{this->surface_record().subsurface_interfaces,
+                           this->orientation()}[interface_pos];
 }
 
 //---------------------------------------------------------------------------//
