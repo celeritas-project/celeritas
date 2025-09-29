@@ -89,106 +89,6 @@ celeritas_force_package(CLI11 ${CELERITAS_BUILD_APPS})
 celeritas_force_package(GTest ${CELERITAS_BUILD_TESTS})
 
 #----------------------------------------------------------------------------#
-# CELERITAS CORE IMPLEMENTATION OPTIONS
-#----------------------------------------------------------------------------#
-
-if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-  set(CELERITAS_MAX_BLOCK_SIZE 256
-    CACHE STRING "Threads-per-block launch bound for Celeritas action kernels"
-  )
-else()
-  set(CELERITAS_MAX_BLOCK_SIZE)
-endif()
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# CELERITAS_CORE_RNG
-# Random number generator selection
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-celeritas_setup_option(CELERITAS_CORE_RNG xorwow)
-celeritas_setup_option(CELERITAS_CORE_RNG cuRAND CELERITAS_USE_CUDA)
-celeritas_setup_option(CELERITAS_CORE_RNG hipRAND CELERITAS_USE_HIP)
-# TODO: add wrapper to standard library RNG when not building for device?
-# TODO: add ranluxpp?
-# TODO: maybe even add wrapper to Geant4 RNG??
-celeritas_define_options(CELERITAS_CORE_RNG
-  "Celeritas runtime random number generator")
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# CELERITAS_CORE_GEO
-# Runtime geometry selection
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-if(CELERITAS_USE_VecGeom AND NOT CELERITAS_USE_HIP)
-  set(_allow_vecgeom TRUE)
-else()
-  set(_allow_vecgeom FALSE)
-  if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
-    message(SEND_ERROR "VecGeom core geometry is incompatible with HIP")
-  endif()
-endif()
-if(CELERITAS_USE_Geant4 AND NOT (CELERITAS_USE_HIP OR CELERITAS_USE_CUDA OR CELERITAS_OPENMP))
-  set(_allow_g4 TRUE)
-else()
-  if(CELERITAS_CORE_GEO STREQUAL "Geant4")
-    message(SEND_ERROR "Geant4 core geometry is incompatible with HIP, CUDA, and OpenMP")
-  endif()
-  set(_allow_g4 FALSE)
-endif()
-celeritas_setup_option(CELERITAS_CORE_GEO VecGeom _allow_vecgeom)
-celeritas_setup_option(CELERITAS_CORE_GEO ORANGE)
-celeritas_setup_option(CELERITAS_CORE_GEO Geant4 _allow_g4)
-celeritas_define_options(CELERITAS_CORE_GEO "Celeritas runtime geometry")
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# CELERITAS_OPENMP
-# Thread parallelism
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-if(CELERITAS_USE_OpenMP)
-  set(_disable_openmp FALSE)
-else()
-  set(_disable_openmp TRUE)
-endif()
-
-celeritas_setup_option(CELERITAS_OPENMP disabled _disable_openmp)
-celeritas_setup_option(CELERITAS_OPENMP event CELERITAS_USE_OpenMP)
-celeritas_setup_option(CELERITAS_OPENMP track CELERITAS_USE_OpenMP)
-celeritas_define_options(CELERITAS_OPENMP "Celeritas OpenMP parallelism")
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# CELERITAS_UNITS
-# Unit system for celeritas runtime
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-if(CELERITAS_CORE_GEO STREQUAL Geant4)
-  set(_allow_single_prec FALSE)
-else()
-  set(_allow_single_prec TRUE)
-endif()
-
-celeritas_setup_option(CELERITAS_UNITS CGS)
-celeritas_setup_option(CELERITAS_UNITS SI)
-celeritas_setup_option(CELERITAS_UNITS CLHEP)
-celeritas_define_options(CELERITAS_UNITS
-  "Native unit system for Celeritas")
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# CELERITAS_REAL_TYPE
-# Precision for real numbers
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-celeritas_setup_option(CELERITAS_REAL_TYPE double)
-celeritas_setup_option(CELERITAS_REAL_TYPE float)
-celeritas_define_options(CELERITAS_REAL_TYPE
-  "Global runtime precision for real numbers")
-
-if((CELERITAS_CORE_GEO STREQUAL "ORANGE")
-    AND (NOT CELERITAS_UNITS STREQUAL "CGS"))
-  celeritas_error_incompatible_option(
-    "ORANGE currently requires CGS units"
-    CELERITAS_UNITS
-    CGS
-  )
-endif()
-
-#----------------------------------------------------------------------------#
 # CMAKE VERSION CHECKS
 #----------------------------------------------------------------------------#
 
@@ -566,6 +466,117 @@ include("${_LOCAL_RDCUTILS_FILENAME}")
 # NOTE: include library utils after RDC
 include(CeleritasLibrary)
 include(CeleritasLibraryUtils)
+
+#----------------------------------------------------------------------------#
+# CELERITAS CORE IMPLEMENTATION CONFIG OPTIONS
+#----------------------------------------------------------------------------#
+
+if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+  set(CELERITAS_MAX_BLOCK_SIZE 256
+    CACHE STRING "Threads-per-block launch bound for Celeritas action kernels"
+  )
+else()
+  set(CELERITAS_MAX_BLOCK_SIZE)
+endif()
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# CELERITAS_CORE_RNG
+# Random number generator selection
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+celeritas_setup_option(CELERITAS_CORE_RNG xorwow)
+celeritas_setup_option(CELERITAS_CORE_RNG cuRAND CELERITAS_USE_CUDA)
+celeritas_setup_option(CELERITAS_CORE_RNG hipRAND CELERITAS_USE_HIP)
+# TODO: add wrapper to standard library RNG when not building for device?
+# TODO: add ranluxpp?
+# TODO: maybe even add wrapper to Geant4 RNG??
+celeritas_define_options(CELERITAS_CORE_RNG
+  "Celeritas runtime random number generator")
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# CELERITAS_CORE_GEO
+# Runtime geometry selection
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+if(CELERITAS_USE_VecGeom AND NOT CELERITAS_USE_HIP)
+  set(_allow_vecgeom TRUE)
+else()
+  set(_allow_vecgeom FALSE)
+  if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
+    message(SEND_ERROR "VecGeom core geometry is incompatible with HIP")
+  endif()
+endif()
+if(CELERITAS_USE_Geant4 AND NOT (CELERITAS_USE_HIP OR CELERITAS_USE_CUDA OR CELERITAS_OPENMP))
+  set(_allow_g4 TRUE)
+else()
+  if(CELERITAS_CORE_GEO STREQUAL "Geant4")
+    message(SEND_ERROR "Geant4 core geometry is incompatible with HIP, CUDA, and OpenMP")
+  endif()
+  set(_allow_g4 FALSE)
+endif()
+celeritas_setup_option(CELERITAS_CORE_GEO VecGeom _allow_vecgeom)
+celeritas_setup_option(CELERITAS_CORE_GEO ORANGE)
+celeritas_setup_option(CELERITAS_CORE_GEO Geant4 _allow_g4)
+celeritas_define_options(CELERITAS_CORE_GEO "Celeritas runtime geometry")
+
+if(CELERITAS_BUILD_TESTS
+    AND CELERITAS_CORE_GEO STREQUAL "VecGeom"
+    AND NOT VecGeom_GDML_FOUND)
+  celeritas_error_incompatible_option(
+    "VecGeom installation at \"${VecGeom_DIR}\" was not built with VGDML:
+    celer-sim and many tests will fail"
+    CELERITAS_BUILD_TESTS
+    OFF
+  )
+endif()
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# CELERITAS_OPENMP
+# Thread parallelism
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+if(CELERITAS_USE_OpenMP)
+  set(_disable_openmp FALSE)
+else()
+  set(_disable_openmp TRUE)
+endif()
+
+celeritas_setup_option(CELERITAS_OPENMP disabled _disable_openmp)
+celeritas_setup_option(CELERITAS_OPENMP event CELERITAS_USE_OpenMP)
+celeritas_setup_option(CELERITAS_OPENMP track CELERITAS_USE_OpenMP)
+celeritas_define_options(CELERITAS_OPENMP "Celeritas OpenMP parallelism")
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# CELERITAS_UNITS
+# Unit system for celeritas runtime
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+if(CELERITAS_CORE_GEO STREQUAL Geant4)
+  set(_allow_single_prec FALSE)
+else()
+  set(_allow_single_prec TRUE)
+endif()
+
+celeritas_setup_option(CELERITAS_UNITS CGS)
+celeritas_setup_option(CELERITAS_UNITS SI)
+celeritas_setup_option(CELERITAS_UNITS CLHEP)
+celeritas_define_options(CELERITAS_UNITS
+  "Native unit system for Celeritas")
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# CELERITAS_REAL_TYPE
+# Precision for real numbers
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+celeritas_setup_option(CELERITAS_REAL_TYPE double)
+celeritas_setup_option(CELERITAS_REAL_TYPE float)
+celeritas_define_options(CELERITAS_REAL_TYPE
+  "Global runtime precision for real numbers")
+
+if((CELERITAS_CORE_GEO STREQUAL "ORANGE")
+    AND (NOT CELERITAS_UNITS STREQUAL "CGS"))
+  celeritas_error_incompatible_option(
+    "ORANGE currently requires CGS units"
+    CELERITAS_UNITS
+    CGS
+  )
+endif()
 
 #----------------------------------------------------------------------------#
 # LIBRARY
