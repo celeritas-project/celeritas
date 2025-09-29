@@ -79,7 +79,7 @@ void to_json(nlohmann::json& j, ModelSetup const& v)
     GI_SAVE_NONZERO(cuda_stack_size);
     GI_SAVE_NONZERO(cuda_heap_size);
     GI_SAVE(geometry_file);
-    j["version"] = celeritas::version_string;
+    j["version"] = std::string{celeritas::version_string};
     j["version_hex"] = CELERITAS_VERSION;
 }
 
