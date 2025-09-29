@@ -85,11 +85,11 @@ TraceResult trace_directions(SurfacePhysicsView& s_physics,
 {
     TraceResult result;
 
-    result.position.push_back(s_physics.subsurface_position());
+    result.position.push_back(s_physics.traversal().position());
 
     for (auto direction : directions)
     {
-        s_physics.traversal_direction(direction);
+        s_physics.traversal().direction(direction);
 
         for (auto step : range(SurfacePhysicsOrder::size_))
         {
@@ -102,9 +102,9 @@ TraceResult trace_directions(SurfacePhysicsView& s_physics,
             result.post_material[step].push_back(surface_model.post_material());
         }
 
-        s_physics.cross_subsurface_interface(direction);
+        s_physics.traversal().cross_interface(direction);
 
-        result.position.push_back(s_physics.subsurface_position());
+        result.position.push_back(s_physics.traversal().position());
     }
 
     return result;
@@ -405,12 +405,12 @@ TEST_F(SurfacePhysicsTest, init_surface_physics_view)
 
         surfaces.push_back(s_physics.surface());
         orientations.push_back(s_physics.orientation());
-        num_positions.push_back(s_physics.num_positions());
+        num_positions.push_back(s_physics.traversal().num_positions());
 
         EXPECT_TRUE(s_physics.is_crossing_boundary());
-        EXPECT_TRUE(s_physics.in_pre_volume());
-        EXPECT_FALSE(s_physics.in_post_volume());
-        EXPECT_EQ(0, s_physics.subsurface_position().get());
+        EXPECT_TRUE(s_physics.traversal().in_pre_volume());
+        EXPECT_FALSE(s_physics.traversal().in_post_volume());
+        EXPECT_EQ(0, s_physics.traversal().position().get());
     }
 
     EXPECT_VEC_EQ(expected_surfaces, surfaces);
@@ -421,14 +421,14 @@ TEST_F(SurfacePhysicsTest, init_surface_physics_view)
     for (auto track : range(TrackSlotId(expected_surfaces.size())))
     {
         auto s_physics = this->surface_physics_view(track);
-        s_physics.subsurface_position(
-            SurfaceTrackPosition(s_physics.num_positions() - 1));
+        s_physics.traversal().position(
+            SurfaceTrackPosition(s_physics.traversal().num_positions() - 1));
 
         EXPECT_TRUE(s_physics.is_crossing_boundary());
-        EXPECT_FALSE(s_physics.in_pre_volume());
-        EXPECT_TRUE(s_physics.in_post_volume());
+        EXPECT_FALSE(s_physics.traversal().in_pre_volume());
+        EXPECT_TRUE(s_physics.traversal().in_post_volume());
         EXPECT_EQ(expected_num_positions[track.get()] - 1,
-                  s_physics.subsurface_position().get());
+                  s_physics.traversal().position().get());
     }
 
     // Check some intermediate positions
@@ -447,12 +447,12 @@ TEST_F(SurfacePhysicsTest, init_surface_physics_view)
         if (auto pos = expected_intermediate_positions[track.get()])
         {
             auto s_physics = this->surface_physics_view(track);
-            s_physics.subsurface_position(pos);
+            s_physics.traversal().position(pos);
 
             EXPECT_TRUE(s_physics.is_crossing_boundary());
-            EXPECT_FALSE(s_physics.in_pre_volume());
-            EXPECT_FALSE(s_physics.in_post_volume());
-            EXPECT_EQ(pos, s_physics.subsurface_position());
+            EXPECT_FALSE(s_physics.traversal().in_pre_volume());
+            EXPECT_FALSE(s_physics.traversal().in_post_volume());
+            EXPECT_EQ(pos, s_physics.traversal().position());
         }
     }
 
@@ -485,14 +485,14 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
             SurfaceId{2}, forward, Real3{0, 0, -1}, OptMatId{0}, OptMatId{1}};
 
         EXPECT_TRUE(s_physics.is_crossing_boundary());
-        EXPECT_TRUE(s_physics.in_pre_volume());
-        EXPECT_FALSE(s_physics.in_post_volume());
+        EXPECT_TRUE(s_physics.traversal().in_pre_volume());
+        EXPECT_FALSE(s_physics.traversal().in_post_volume());
 
         auto result = trace_directions(s_physics, directions);
 
         EXPECT_TRUE(s_physics.is_crossing_boundary());
-        EXPECT_FALSE(s_physics.in_pre_volume());
-        EXPECT_TRUE(s_physics.in_post_volume());
+        EXPECT_FALSE(s_physics.traversal().in_pre_volume());
+        EXPECT_TRUE(s_physics.traversal().in_post_volume());
 
         TraceResult expected{as_id_vec<SurfaceTrackPosition>(0, 1),
                              {
@@ -540,14 +540,14 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
             SurfaceId{2}, reverse, Real3{0, 0, -1}, OptMatId{1}, OptMatId{0}};
 
         EXPECT_TRUE(s_physics.is_crossing_boundary());
-        EXPECT_TRUE(s_physics.in_pre_volume());
-        EXPECT_FALSE(s_physics.in_post_volume());
+        EXPECT_TRUE(s_physics.traversal().in_pre_volume());
+        EXPECT_FALSE(s_physics.traversal().in_post_volume());
 
         auto result = trace_directions(s_physics, directions);
 
         EXPECT_TRUE(s_physics.is_crossing_boundary());
-        EXPECT_FALSE(s_physics.in_pre_volume());
-        EXPECT_TRUE(s_physics.in_post_volume());
+        EXPECT_FALSE(s_physics.traversal().in_pre_volume());
+        EXPECT_TRUE(s_physics.traversal().in_post_volume());
 
         TraceResult expected{as_id_vec<SurfaceTrackPosition>(0, 1),
                              {
@@ -604,14 +604,14 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
             SurfaceId{0}, forward, Real3{0, 0, -1}, OptMatId{0}, OptMatId{1}};
 
         EXPECT_TRUE(s_physics.is_crossing_boundary());
-        EXPECT_TRUE(s_physics.in_pre_volume());
-        EXPECT_FALSE(s_physics.in_post_volume());
+        EXPECT_TRUE(s_physics.traversal().in_pre_volume());
+        EXPECT_FALSE(s_physics.traversal().in_post_volume());
 
         auto result = trace_directions(s_physics, directions);
 
         EXPECT_TRUE(s_physics.is_crossing_boundary());
-        EXPECT_TRUE(s_physics.in_pre_volume());
-        EXPECT_FALSE(s_physics.in_post_volume());
+        EXPECT_TRUE(s_physics.traversal().in_pre_volume());
+        EXPECT_FALSE(s_physics.traversal().in_post_volume());
 
         TraceResult expected{
             as_id_vec<SurfaceTrackPosition>(0, 1, 2, 1, 2, 3, 4, 3, 2, 1, 0),
@@ -665,14 +665,14 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
             SurfaceId{1}, reverse, Real3{0, 0, -1}, OptMatId{1}, OptMatId{0}};
 
         EXPECT_TRUE(s_physics.is_crossing_boundary());
-        EXPECT_TRUE(s_physics.in_pre_volume());
-        EXPECT_FALSE(s_physics.in_post_volume());
+        EXPECT_TRUE(s_physics.traversal().in_pre_volume());
+        EXPECT_FALSE(s_physics.traversal().in_post_volume());
 
         auto result = trace_directions(s_physics, directions);
 
         EXPECT_TRUE(s_physics.is_crossing_boundary());
-        EXPECT_FALSE(s_physics.in_pre_volume());
-        EXPECT_TRUE(s_physics.in_post_volume());
+        EXPECT_FALSE(s_physics.traversal().in_pre_volume());
+        EXPECT_TRUE(s_physics.traversal().in_post_volume());
 
         TraceResult expected{
             as_id_vec<SurfaceTrackPosition>(0, 1, 2, 1, 0, 1, 2),
@@ -738,7 +738,7 @@ TEST_F(SurfacePhysicsTest, traversal_direction)
         for (auto const& dir : geo_directions)
         {
             s_physics.traversal_direction(dir);
-            directions.push_back(s_physics.traversal_direction());
+            directions.push_back(s_physics.traversal().direction());
         }
 
         std::vector<SubsurfaceDirection> expected_directions{
@@ -770,7 +770,7 @@ TEST_F(SurfacePhysicsTest, traversal_direction)
         for (auto const& dir : geo_directions)
         {
             s_physics.traversal_direction(dir);
-            directions.push_back(s_physics.traversal_direction());
+            directions.push_back(s_physics.traversal().direction());
         }
 
         std::vector<SubsurfaceDirection> expected_directions{
