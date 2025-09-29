@@ -100,11 +100,11 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
     }
 
     surface_physics
-        = SurfacePhysicsView::Initializer{oriented_surface.surface,
-                                          oriented_surface.orientation,
-                                          global_normal,
-                                          pre_volume_material,
-                                          post_volume_material};
+        = SurfacePhysicsTrackView::Initializer{oriented_surface.surface,
+                                               oriented_surface.orientation,
+                                               global_normal,
+                                               pre_volume_material,
+                                               post_volume_material};
 
     CELER_ASSERT(
         is_entering_surface(geo.dir(), surface_physics.global_normal()));

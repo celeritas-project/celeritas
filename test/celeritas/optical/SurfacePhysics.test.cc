@@ -16,7 +16,7 @@
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/optical/surface/SurfacePhysicsParams.hh"
-#include "celeritas/optical/surface/SurfacePhysicsView.hh"
+#include "celeritas/optical/surface/SurfacePhysicsTrackView.hh"
 
 #include "OpticalMockTestBase.hh"
 #include "celeritas_test.hh"
@@ -80,7 +80,7 @@ struct TraceResult
     SurfaceOrderArray<std::vector<OptMatId>> post_material;
 };
 
-TraceResult trace_directions(SurfacePhysicsView& s_physics,
+TraceResult trace_directions(SurfacePhysicsTrackView& s_physics,
                              std::vector<SubsurfaceDirection> const& directions)
 {
     TraceResult result;
@@ -189,11 +189,12 @@ class SurfacePhysicsTest : public OpticalMockTestBase
         CELER_ASSERT(surface_physics_state_.size() == num_tracks);
     }
 
-    SurfacePhysicsView surface_physics_view(TrackSlotId track)
+    SurfacePhysicsTrackView surface_physics_view(TrackSlotId track)
     {
-        return SurfacePhysicsView(this->optical_surface_physics()->host_ref(),
-                                  surface_physics_state_.ref(),
-                                  track);
+        return SurfacePhysicsTrackView(
+            this->optical_surface_physics()->host_ref(),
+            surface_physics_state_.ref(),
+            track);
     }
 
   private:
@@ -388,11 +389,11 @@ TEST_F(SurfacePhysicsTest, init_surface_physics_view)
     for (auto track : range(expected_surfaces.size()))
     {
         this->surface_physics_view(TrackSlotId(track))
-            = SurfacePhysicsView::Initializer{expected_surfaces[track],
-                                              expected_orientations[track],
-                                              Real3{0, 0, -1},
-                                              OptMatId{0},
-                                              OptMatId{1}};
+            = SurfacePhysicsTrackView::Initializer{expected_surfaces[track],
+                                                   expected_orientations[track],
+                                                   Real3{0, 0, -1},
+                                                   OptMatId{0},
+                                                   OptMatId{1}};
     }
 
     // Check initialization
@@ -481,7 +482,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
         };
 
         auto s_physics = this->surface_physics_view(TrackSlotId{0});
-        s_physics = SurfacePhysicsView::Initializer{
+        s_physics = SurfacePhysicsTrackView::Initializer{
             SurfaceId{2}, forward, Real3{0, 0, -1}, OptMatId{0}, OptMatId{1}};
 
         EXPECT_TRUE(s_physics.is_crossing_boundary());
@@ -536,7 +537,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
         };
 
         auto s_physics = this->surface_physics_view(TrackSlotId{1});
-        s_physics = SurfacePhysicsView::Initializer{
+        s_physics = SurfacePhysicsTrackView::Initializer{
             SurfaceId{2}, reverse, Real3{0, 0, -1}, OptMatId{1}, OptMatId{0}};
 
         EXPECT_TRUE(s_physics.is_crossing_boundary());
@@ -600,7 +601,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
         };
 
         auto s_physics = this->surface_physics_view(TrackSlotId{2});
-        s_physics = SurfacePhysicsView::Initializer{
+        s_physics = SurfacePhysicsTrackView::Initializer{
             SurfaceId{0}, forward, Real3{0, 0, -1}, OptMatId{0}, OptMatId{1}};
 
         EXPECT_TRUE(s_physics.is_crossing_boundary());
@@ -661,7 +662,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
         };
 
         auto s_physics = this->surface_physics_view(TrackSlotId{3});
-        s_physics = SurfacePhysicsView::Initializer{
+        s_physics = SurfacePhysicsTrackView::Initializer{
             SurfaceId{1}, reverse, Real3{0, 0, -1}, OptMatId{1}, OptMatId{0}};
 
         EXPECT_TRUE(s_physics.is_crossing_boundary());
@@ -720,7 +721,7 @@ TEST_F(SurfacePhysicsTest, traversal_direction)
 
     {
         auto s_physics = this->surface_physics_view(TrackSlotId{2});
-        s_physics = SurfacePhysicsView::Initializer{
+        s_physics = SurfacePhysicsTrackView::Initializer{
             SurfaceId{1},
             forward,
             make_unit_vector(Real3{-1, 2, 3}),
@@ -752,12 +753,12 @@ TEST_F(SurfacePhysicsTest, traversal_direction)
     }
     {
         auto s_physics = this->surface_physics_view(TrackSlotId{3});
-        s_physics
-            = SurfacePhysicsView::Initializer{SurfaceId{2},
-                                              reverse,
-                                              make_unit_vector(Real3{1, 1, 1}),
-                                              OptMatId{1},
-                                              OptMatId{0}};
+        s_physics = SurfacePhysicsTrackView::Initializer{
+            SurfaceId{2},
+            reverse,
+            make_unit_vector(Real3{1, 1, 1}),
+            OptMatId{1},
+            OptMatId{0}};
 
         std::vector<Real3> geo_directions{
             make_unit_vector(Real3{-1, -1, -1}),
