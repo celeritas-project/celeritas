@@ -16,8 +16,7 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample a diffuse Lambertian distribution of reflected vectors about a
- * normal.
+ * Sample a reflected vector from a diffuse Lambertian distribution.
  *
  * Lambertian reflectance is an approximation of a diffuse material where the
  * apparent brightness is equal for observers at all angles. Reflected vectors

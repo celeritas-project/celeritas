@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/surface/model/UnifiedReflectionCalculator.hh
+//! \file celeritas/optical/surface/model/UnifiedReflectionSampler.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -33,7 +33,7 @@ namespace optical
  * Only one reflection mode is selected based on the provided list of
  * probabilities.
  */
-class UnifiedReflectionCalculator
+class UnifiedReflectionSampler
 {
   public:
     // Supported reflection modes in UNIFIED model
@@ -54,27 +54,28 @@ class UnifiedReflectionCalculator
   public:
     // Construct from mode probabilities, photon, and surface data
     explicit inline CELER_FUNCTION
-    UnifiedReflectionCalculator(ModeProbs const& probs,
-                                PhotonPhasor const& inc_photon,
-                                Real3 const& global_normal,
-                                Real3 const& facet_normal);
+    UnifiedReflectionSampler(ModeProbs const& probs,
+                             PhotonPhasor const& inc_photon,
+                             Real3 const& global_normal,
+                             Real3 const& facet_normal);
 
     // Sample reflection mode and calculate reflected phasor
     template<class Engine>
     inline CELER_FUNCTION PhotonPhasor operator()(Engine& rng) const;
 
     // Calculate specular spike reflection
-    inline CELER_FUNCTION PhotonPhasor specular_spike() const;
+    inline CELER_FUNCTION PhotonPhasor calc_specular_spike() const;
 
     // Calculate specular lobe reflection
-    inline CELER_FUNCTION PhotonPhasor specular_lobe() const;
+    inline CELER_FUNCTION PhotonPhasor calc_specular_lobe() const;
 
     // Calculate back-scattering reflection
-    inline CELER_FUNCTION PhotonPhasor back_scattering() const;
+    inline CELER_FUNCTION PhotonPhasor calc_back_scattering() const;
 
     // Sample diffuse Lambertian reflection
     template<class Engine>
-    inline CELER_FUNCTION PhotonPhasor lambertian_reflection(Engine& rng) const;
+    inline CELER_FUNCTION PhotonPhasor
+    sample_lambertian_reflection(Engine& rng) const;
 
   private:
     ModeProbs const& mode_probs_;
@@ -84,14 +85,14 @@ class UnifiedReflectionCalculator
 
     // Calculate specular reflection about the given normal
     inline CELER_FUNCTION PhotonPhasor
-    specular_reflection(Real3 const& normal) const;
+    calc_specular_reflection(Real3 const& normal) const;
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct calculator from probabilities, photon, and surface data.
  */
-CELER_FUNCTION UnifiedReflectionCalculator::UnifiedReflectionCalculator(
+CELER_FUNCTION UnifiedReflectionSampler::UnifiedReflectionSampler(
     ModeProbs const& probs,
     PhotonPhasor const& inc_photon,
     Real3 const& global_normal,
@@ -101,7 +102,7 @@ CELER_FUNCTION UnifiedReflectionCalculator::UnifiedReflectionCalculator(
     , global_normal_(global_normal)
     , facet_normal_(facet_normal)
 {
-    CELER_EXPECT(inc_photon_);
+    CELER_EXPECT(inc_photon_.is_valid());
     CELER_EXPECT(is_soft_unit_vector(global_normal_));
     CELER_EXPECT(is_soft_unit_vector(facet_normal_));
     CELER_EXPECT(is_entering_surface(inc_photon_.direction, global_normal_));
@@ -116,8 +117,7 @@ CELER_FUNCTION UnifiedReflectionCalculator::UnifiedReflectionCalculator(
  * Sample reflection mode from probabilities and calculate reflection.
  */
 template<class Engine>
-CELER_FUNCTION PhotonPhasor
-UnifiedReflectionCalculator::operator()(Engine& rng) const
+CELER_FUNCTION PhotonPhasor UnifiedReflectionSampler::operator()(Engine& rng) const
 {
     auto result = celeritas::make_selector(
         [this](Mode m) { return mode_probs_[m]; }, Mode::size_)(rng);
@@ -127,13 +127,13 @@ UnifiedReflectionCalculator::operator()(Engine& rng) const
     switch (result)
     {
         case Mode::specular_spike:
-            return this->specular_spike();
+            return this->calc_specular_spike();
         case Mode::specular_lobe:
-            return this->specular_lobe();
+            return this->calc_specular_lobe();
         case Mode::back_scattering:
-            return this->back_scattering();
+            return this->calc_back_scattering();
         case Mode::diffuse_lambertian:
-            return this->lambertian_reflection(rng);
+            return this->sample_lambertian_reflection(rng);
         default:
             CELER_ASSERT_UNREACHABLE();
     }
@@ -145,9 +145,9 @@ UnifiedReflectionCalculator::operator()(Engine& rng) const
  *
  * This is geometric reflection about the global normal.
  */
-CELER_FUNCTION PhotonPhasor UnifiedReflectionCalculator::specular_spike() const
+CELER_FUNCTION PhotonPhasor UnifiedReflectionSampler::calc_specular_spike() const
 {
-    return this->specular_reflection(global_normal_);
+    return this->calc_specular_reflection(global_normal_);
 }
 
 //---------------------------------------------------------------------------//
@@ -156,9 +156,9 @@ CELER_FUNCTION PhotonPhasor UnifiedReflectionCalculator::specular_spike() const
  *
  * This is geometric reflection about the facet normal.
  */
-CELER_FUNCTION PhotonPhasor UnifiedReflectionCalculator::specular_lobe() const
+CELER_FUNCTION PhotonPhasor UnifiedReflectionSampler::calc_specular_lobe() const
 {
-    return this->specular_reflection(facet_normal_);
+    return this->calc_specular_reflection(facet_normal_);
 }
 
 //---------------------------------------------------------------------------//
@@ -167,7 +167,7 @@ CELER_FUNCTION PhotonPhasor UnifiedReflectionCalculator::specular_lobe() const
  *
  * The photon direction and polarization are reversed.
  */
-CELER_FUNCTION PhotonPhasor UnifiedReflectionCalculator::back_scattering() const
+CELER_FUNCTION PhotonPhasor UnifiedReflectionSampler::calc_back_scattering() const
 {
     return {-inc_photon_.direction, -inc_photon_.polarization};
 }
@@ -180,7 +180,7 @@ CELER_FUNCTION PhotonPhasor UnifiedReflectionCalculator::back_scattering() const
  */
 template<class Engine>
 CELER_FUNCTION PhotonPhasor
-UnifiedReflectionCalculator::lambertian_reflection(Engine& rng) const
+UnifiedReflectionSampler::sample_lambertian_reflection(Engine& rng) const
 {
     return LambertianDistribution{global_normal_}(rng);
 }
@@ -190,7 +190,7 @@ UnifiedReflectionCalculator::lambertian_reflection(Engine& rng) const
  * Helper function to calculate geometric reflection about a given normal.
  */
 CELER_FUNCTION PhotonPhasor
-UnifiedReflectionCalculator::specular_reflection(Real3 const& normal) const
+UnifiedReflectionSampler::calc_specular_reflection(Real3 const& normal) const
 {
     return {geometric_reflection(inc_photon_.direction, normal),
             -geometric_reflection(inc_photon_.polarization, normal)};

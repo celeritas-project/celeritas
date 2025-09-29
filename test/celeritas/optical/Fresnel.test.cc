@@ -100,7 +100,7 @@ ScatteringResult scan_refraction(CoordinateAxes const& axes,
         auto refract = axes.calc_refraction(angle, pol);
 
         EXPECT_EQ(SurfaceInteraction::Action::refracted, refract.action);
-        EXPECT_TRUE(refract.photon);
+        EXPECT_TRUE(refract.photon.is_valid());
         EXPECT_SOFT_EQ(0, dot_product(refract.photon.direction, axes.p_hat));
 
         real_type cos_theta

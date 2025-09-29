@@ -33,10 +33,10 @@ is_entering_surface(Real3 const& dir, Real3 const& normal)
 /*!
  * Calculate geometric reflection of an incident vector about a normal.
  */
-inline CELER_FUNCTION Real3 geometric_reflection(Real3 const& dir,
-                                                 Real3 const& normal)
+inline CELER_FUNCTION Real3 geometric_reflection(Real3 dir, Real3 const& normal)
 {
-    return dir - 2 * dot_product(dir, normal) * normal;
+    axpy(-2 * dot_product(dir, normal), normal, &dir);
+    return dir;
 }
 
 //---------------------------------------------------------------------------//

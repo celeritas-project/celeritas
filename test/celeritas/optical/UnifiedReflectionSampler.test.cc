@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/UnifiedReflectionCalculator.test.cc
+//! \file celeritas/optical/UnifiedReflectionSampler.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/optical/surface/model/UnifiedReflectionCalculator.hh"
+#include "celeritas/optical/surface/model/UnifiedReflectionSampler.hh"
 
 #include "corecel/random/HistogramSampler.hh"
 #include "celeritas/optical/surface/model/LambertianDistribution.hh"
@@ -20,13 +20,13 @@ namespace test
 using namespace ::celeritas::test;
 //---------------------------------------------------------------------------//
 
-class UnifiedReflectionCalculatorTest : public ::celeritas::test::Test
+class UnifiedReflectionSamplerTest : public ::celeritas::test::Test
 {
 };
 
 //---------------------------------------------------------------------------//
 // Test Lambertian distribution
-TEST_F(UnifiedReflectionCalculatorTest, lambertian)
+TEST_F(UnifiedReflectionSamplerTest, lambertian)
 {
     constexpr size_type num_samples = 10000;
     HistogramSampler calc_histogram(20, {0.0, 1.0}, num_samples);
@@ -54,7 +54,7 @@ TEST_F(UnifiedReflectionCalculatorTest, lambertian)
 
 //---------------------------------------------------------------------------//
 // Test specular spike, specular lobe, and back-scattering modes
-TEST_F(UnifiedReflectionCalculatorTest, modes)
+TEST_F(UnifiedReflectionSamplerTest, modes)
 {
     auto global_normal = make_unit_vector(Real3{-1, 3, 2});
     auto facet_normal = make_unit_vector(Real3{-1, 4, 2});
@@ -63,12 +63,12 @@ TEST_F(UnifiedReflectionCalculatorTest, modes)
     photon.direction = make_unit_vector(Real3{1, -1, -2});
     photon.polarization = make_unit_vector(Real3{2, 0, 1});
 
-    UnifiedReflectionCalculator calc_reflection{
+    UnifiedReflectionSampler calc_reflection{
         {0.3, 0.3, 0.4, 0}, photon, global_normal, facet_normal};
 
     // Specular spike
     {
-        auto result = calc_reflection.specular_spike();
+        auto result = calc_reflection.calc_specular_spike();
 
         PhotonPhasor expected{
             {-0.0583211843519805, 0.991460133983668, 0.116642368703961},
@@ -79,7 +79,7 @@ TEST_F(UnifiedReflectionCalculatorTest, modes)
     }
     // Specular lobe
     {
-        auto result = calc_reflection.specular_lobe();
+        auto result = calc_reflection.calc_specular_lobe();
 
         PhotonPhasor expected{
             {0.0583211843519804, 0.991460133983668, -0.116642368703961},
@@ -90,7 +90,7 @@ TEST_F(UnifiedReflectionCalculatorTest, modes)
     }
     // Back scattering
     {
-        auto result = calc_reflection.back_scattering();
+        auto result = calc_reflection.calc_back_scattering();
 
         PhotonPhasor expected{-photon.direction, -photon.polarization};
 

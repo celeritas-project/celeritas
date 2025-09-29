@@ -15,15 +15,15 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Representation of a photon's direction and polarization as a phasor.
+ * Representation of a direction and polarization as a phasor (phase vector).
  */
 struct PhotonPhasor
 {
     Real3 direction;
     Real3 polarization;
 
-    //! Whether the phaser is a valid photon state
-    explicit CELER_FUNCTION operator bool() const
+    //! Whether the phasor is a valid photon state
+    CELER_FUNCTION bool is_valid() const
     {
         return is_soft_unit_vector(direction)
                && is_soft_unit_vector(polarization)
@@ -52,9 +52,9 @@ struct SurfaceInteraction
     static inline CELER_FUNCTION SurfaceInteraction from_absorption();
 
     //! Whether data is assigned and valid
-    explicit CELER_FUNCTION operator bool() const
+    CELER_FUNCTION bool is_valid() const
     {
-        return action == Action::absorbed || static_cast<bool>(photon);
+        return action == Action::absorbed || photon.is_valid();
     }
 };
 
