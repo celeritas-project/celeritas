@@ -21,19 +21,17 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Perform Regula Falsi iterations given a root function \em func and
- * tolerance \em tol .
+ * Find a local root using the Regula Falsi algorithm.
  *
- * Using a \em left and \em right bound a Regula Falsi approximates the \em
- * root as: \f[ root = (left * func(right) - right * func(left)) / (func(right)
- * - func(left)) \f]
+ * Using left bound \f$ x_l \f$ and right bound  \f$ x_r \f$, Regula Falsi
+ * approximates the root \em x' as \f[
+ * x' = \frac{x_l * f(x_r) - x_r * f(x_l)}{f(x_r) f(x_l)}
+ * \f]
  *
- * Then value of \em func at the root is calculated compared to values of
- * \em func at the bounds. The \em root is then used update the bounds based on
- * the sign of \em func(root) and whether it matches the sign of \em func(left)
- * or \em func(right) . Performing this update of the bounds allows for the
- * iteration on root, using the convergence criteria based on \em func(root)
- * proximity to 0.
+ * Then value of \em f at the root is calculated compared to values of
+ * \em f at the bounds. The root is then used to update the bounds based on
+ * the sign of \f$ f(x') \f$ and whether it matches the sign of \f$ f(x_l) \f$
+ * or \f$ f(x_r) \f$ .
  */
 template<class F>
 class RegulaFalsiRootFinder

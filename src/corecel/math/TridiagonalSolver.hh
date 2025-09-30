@@ -21,6 +21,9 @@ namespace celeritas
  *
  * This is a simplified form of Gaussian elimination that can solve a
  * tridiagonal system \f$ \mathbf{T} \mathbf{x} = \mathbf{b} \f$ in O(n) time.
+ *
+ * The class is meant for use during setup (originally for the calculation of
+ * spline coefficients) and cannot be used on device.
  */
 class TridiagonalSolver
 {
