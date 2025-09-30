@@ -252,7 +252,10 @@ These functions and classes are for communicating helpfully with the user.
 
 .. doxygendefine:: CELER_LOG
 .. doxygendefine:: CELER_LOG_LOCAL
-.. doxygenenum:: celeritas::Logger
+
+.. doxygenclass:: celeritas::Logger
+
 .. doxygenenum:: celeritas::LogLevel
    :no-link:
+
 .. doxygenclass:: celeritas::ScopedSignalHandler
