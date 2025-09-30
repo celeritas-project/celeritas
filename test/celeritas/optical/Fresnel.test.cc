@@ -104,7 +104,9 @@ ScatteringResult scan_refraction(CoordinateAxes const& axes,
         EXPECT_SOFT_EQ(0, dot_product(refract.photon.direction, axes.p_hat));
 
         real_type cos_theta
-            = -dot_product(refract.photon.direction, axes.n_hat);
+            = clamp(-dot_product(refract.photon.direction, axes.n_hat),
+                    real_type{0},
+                    real_type{1});
         real_type theta = std::acos(cos_theta);
 
         result.cos_theta.push_back(cos_theta);
@@ -350,6 +352,7 @@ TEST_F(FresnelTest, external_refracted)
         real_type s = -7.0 / 25.0;
         real_type p = -24 / 25.0;
 
+        // These expected values are incorrect
         static real_type const expected_s_component[]
             = {s, s, s, s, s, s, s, s};
         static real_type const expected_p_component[]
@@ -409,6 +412,7 @@ TEST_F(FresnelTest, internal_refracted)
     {
         auto result = scan_refraction(axes, {4, 3}, angles);
 
+        // These expected values are incorrect
         static real_type const expected_s_component[] = {0.8, 0.8, 0.8, 0.8};
         static real_type const expected_p_component[] = {0.6, 0.6, 0.6, 0.6};
 
