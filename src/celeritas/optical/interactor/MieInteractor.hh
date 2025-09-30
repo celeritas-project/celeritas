@@ -8,12 +8,14 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Constants.hh"
+#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArraySoftUnit.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/PolyEvaluator.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "corecel/random/distribution/RejectionSampler.hh"
@@ -29,13 +31,7 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample optical Mie scattering using the HG distribution.
-
- * Henyey–Greenstein phase function:
- * \f[
- *   P(\cos\theta) \propto \frac{1 - g^2}{(1 + g^2 - 2g\cos\theta)^{3/2}}
- * \f]
- *
+ * Sample optical Mie scattering using the Henyey–Greenstein distribution.
  * Parameters:
  * - forward_ratio: probability of using forward vs backward lobe
  * - forward_g, backward_g: HG asymmetry parameters for each lobe
@@ -43,11 +39,13 @@ namespace optical
 class MieInteractor
 {
   public:
+    // Construct with shared and state data
     inline CELER_FUNCTION MieInteractor(NativeCRef<MieData> const& shared,
                                         ParticleTrackView const& particle,
                                         Real3 const& direction,
                                         OptMatId const& mat_id);
 
+    // Sample an interaction with the given RNG
     template<class Engine>
     inline CELER_FUNCTION Interaction operator()(Engine& rng) const;
 
@@ -55,11 +53,17 @@ class MieInteractor
     Real3 const& inc_dir_;  //!< Incident photon direction
     Real3 const& inc_pol_;  //!< Incident polarization
     MieMaterialData const& mie_params_;  //!< Mie scattering params
+
+    // Choose forward/backward scattering using random generator
+    BernoulliDistribution sample_forward_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
+/*!
+ * Construct with shared and state data.
+ */
 CELER_FUNCTION
 MieInteractor::MieInteractor(NativeCRef<MieData> const& shared,
                              ParticleTrackView const& particle,
@@ -68,6 +72,7 @@ MieInteractor::MieInteractor(NativeCRef<MieData> const& shared,
     : inc_dir_(direction)
     , inc_pol_(particle.polarization())
     , mie_params_(shared.mie_record[mat_id])
+    , sample_forward_(mie_params_.forward_g)
 {
     CELER_EXPECT(shared);
     CELER_EXPECT(mat_id < shared.mie_record.size());
@@ -88,57 +93,45 @@ CELER_FUNCTION Interaction MieInteractor::operator()(Engine& rng) const
     Real3& new_pol = result.polarization;
 
     using UniformRealDist = UniformRealDistribution<real_type>;
-
-    UniformRealDist sample_phi(0, real_type(2 * constants::pi));
     UniformRealDist sample_r(0, 1);
-    UniformRealDist sample_g(0, 1);
 
-    real_type u = sample_g(rng);
     real_type r = sample_r(rng);
+    bool is_forward = sample_forward_(rng);
 
-    // Check if scattering should be forward scattering or backward scattering
-    bool is_forward = u < mie_params_.forward_ratio;
+    // Select forward or backward lobe
     real_type g = (is_forward ? mie_params_.forward_g : mie_params_.backward_g);
 
-    // Sample cos theta
-    real_type costheta
-        = (g != 0) ? (2. * r * (1. + g) * (1. + g) * (1. - g + g * r)
-                          / ((1. - g + 2. * g * r) * (1. - g + 2. * g * r))
-                      - 1.)  // will make it cleaner
-                   : (2 * r - 1);
+    using Linear = PolyEvaluator<real_type, 1>;
+
+    // Compute cos(theta) distribution for optical photons that undergo mie
+    // scattering
+    real_type costheta = 2 * r * ipow<2>((1 + g) / Linear(1 - g, 2 * g)(r))
+                             * Linear(1 - g, g)(r)
+                         - 1;
 
     // Reverse cos theta if backward_g is chosen
     if (!is_forward)
         costheta = -costheta;
 
+    // Sample azimuthal angle
+    UniformRealDist sample_phi(0, real_type(2 * constants::pi));
     real_type phi = sample_phi(rng);
 
     // Creating new direction
     new_dir = from_spherical(costheta, phi);
 
-    // Build polarization vector
-    SoftZero const soft_zero{SoftEqual{}.rel()};
+    // Project polarization onto plane perpendicular to new direction
     do
     {
-        do
-        {
-            new_pol = make_unit_vector(make_orthogonal(inc_pol_, new_dir));
+        new_pol = make_unit_vector(make_orthogonal(inc_pol_, new_dir));
+    } while (CELER_UNLIKELY(!is_soft_orthogonal(new_pol, new_dir)));
 
-            // Reject rare case of polarization and new direction being
-            // coincident leading to loss of orthogonality
-
-        } while (CELER_UNLIKELY(!soft_zero(dot_product(new_pol, new_dir))));
-
-        if (!BernoulliDistribution{0.5}(rng))
-        {
-            // Flip direction with 50% probability: there are two polarizations
-            // perpendicular to the new direction and the original polarization
-            new_pol = -new_pol;
-        }
-        // Accept with the probability of the scattered polarization overlap
-        // squared
-    } while (RejectionSampler{ipow<2>(
-        clamp<real_type>(dot_product(new_pol, inc_pol_), -1, 1))}(rng));
+    if (!BernoulliDistribution{0.5}(rng))
+    {
+        // Flip direction with 50% probability: there are two polarizations
+        // perpendicular to the new direction and the original polarization
+        new_pol = -new_pol;
+    }
 
     CELER_ENSURE(is_soft_unit_vector(new_dir));
     CELER_ENSURE(is_soft_unit_vector(new_pol));
@@ -147,5 +140,6 @@ CELER_FUNCTION Interaction MieInteractor::operator()(Engine& rng) const
     return result;
 }
 
+//---------------------------------------------------------------------------//
 }  // namespace optical
 }  // namespace celeritas

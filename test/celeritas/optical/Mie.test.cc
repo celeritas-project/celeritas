@@ -84,6 +84,7 @@ TEST_F(MieTest, mie_basic)
         data_, this->particle_track(), direction_, material_id_);
 
     auto& rng_engine = this->InteractorHostBase::rng();
+    this->set_inc_polarization({0, 1, 0});
 
     std::vector<real_type> dir_angle;
     std::vector<real_type> pol_angle;
@@ -100,19 +101,19 @@ TEST_F(MieTest, mie_basic)
     }
 
     static real_type const expected_dir_angle[] = {
-        0.999978212939673,
-        0.998687015615332,
-        0.99999804657774,
-        0.99635627602535,
+        0.997467127484242,
+        0.999530487034177,
+        0.999999642467185,
+        0.996187032055894,
     };
     static real_type const expected_pol_angle[] = {
-        0.999979036010333,
-        -0.998689642346519,
-        -0.999998838605416,
-        -0.99851580312691,
+        0.999904430863429,
+        -0.99959742953257,
+        -0.999999650643697,
+        0.996510957439599,
     };
 
-    EXPECT_EQ(40, rng_engine.count());
+    EXPECT_EQ(32, rng_engine.count());
     EXPECT_VEC_SOFT_EQ(expected_dir_angle, dir_angle);
     EXPECT_VEC_SOFT_EQ(expected_pol_angle, pol_angle);
 }
