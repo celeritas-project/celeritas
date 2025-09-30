@@ -10,7 +10,7 @@
 
 #include "corecel/data/DeviceVector.hh"
 
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
 #    include <VecGeom/surfaces/cuda/BrepCudaManager.h>
 #endif
 
@@ -19,7 +19,7 @@
 #include "corecel/sys/KernelLauncher.device.hh"
 #include "corecel/sys/ThreadId.hh"
 
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
 using BrepCudaManager = vgbrep::BrepCudaManager<vecgeom::Precision>;
 using SurfData = vgbrep::SurfData<vecgeom::Precision>;
 #endif
@@ -83,7 +83,7 @@ CudaPointers<CudaBVH_t const> bvh_pointers_device()
 //---------------------------------------------------------------------------//
 // VECGEOM SURFACE
 //---------------------------------------------------------------------------//
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
 void setup_surface_tracking_device(SurfData const& surf_data)
 {
     BrepCudaManager::Instance().TransferSurfData(surf_data);
