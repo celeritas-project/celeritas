@@ -499,8 +499,8 @@ void LocalTransporter::Finalize()
 #endif
     }
 
-    // Flush any remaining track counters on the worker thread
-    flush_tracing();
+    // Flush any remaining performance counters on the worker thread
+    TracingSession::flush();
 
     // Reset all data
     *this = {};

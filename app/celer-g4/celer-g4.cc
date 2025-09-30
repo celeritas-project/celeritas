@@ -112,7 +112,6 @@ void run(std::string_view filename, std::shared_ptr<SharedParams> params)
 
     // Start tracing session
     celeritas::TracingSession tracing{setup.input().tracing_file};
-    tracing.start();
 
     auto run_manager = [] {
         // Run manager writes output that cannot be redirected with
