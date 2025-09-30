@@ -26,14 +26,14 @@ spack:
     - py-sphinx
     - py-sphinxcontrib-bibtex
     - py-sphinxcontrib-mermaid
-    # ... plus experimental libraries
+    # ... plus experimental options
     - mpi
   view: true
   concretizer:
     unify: true
   packages:
     root:
-      # Note: ~gsl and ~math are removed because dd4hep requires them
+      # Note: dd4hep requires +gsl+math
       # ROOT here is built without GUI to reduce build time
       variants: ~aqua ~davix ~examples ~opengl ~x ~tbb
     all:
