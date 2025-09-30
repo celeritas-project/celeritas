@@ -108,10 +108,6 @@ void run(std::string_view filename, std::shared_ptr<SharedParams> params)
     // Construct global setup singleton and make options available to UI
     auto& setup = *GlobalSetup::Instance();
 
-    // Start tracing session
-    celeritas::TracingSession tracing{setup.input().tracing_file};
-    tracing.start();
-
     auto run_manager = [] {
         // Run manager writes output that cannot be redirected with
         // GeantLoggerAdapter: capture all output from this section
@@ -141,6 +137,10 @@ void run(std::string_view filename, std::shared_ptr<SharedParams> params)
 
     // Read user input
     setup.ReadInput(std::string(filename));
+
+    // Start tracing session
+    celeritas::TracingSession tracing{setup.input().tracing_file};
+    tracing.start();
 
     // Set up loggers
     world_logger() = Logger::from_handle_env(make_world_handler(), "CELER_LOG");
