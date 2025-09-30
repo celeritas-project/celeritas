@@ -33,6 +33,15 @@ Additional utility functions:
 .. doxygenfunction:: celeritas::negate
 .. doxygenfunction:: celeritas::signum
 
+Several standalone classes can be used to evaluate, integrate, and solver
+expressions and functions.
+
+.. doxygenclass:: celeritas::PolyEvaluator
+.. doxygenclass:: celeritas::Integrator
+.. doxygenclass:: celeritas::BisectionRootFinder
+.. doxygenclass:: celeritas::IllinoisRootFinder
+.. doxygenclass:: celeritas::TridiagonalSolver
+
 Atomics
 ^^^^^^^
 
