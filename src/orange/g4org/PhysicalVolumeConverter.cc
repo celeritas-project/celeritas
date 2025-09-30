@@ -129,7 +129,7 @@ auto PhysicalVolumeConverter::operator()(arg_type g4world) -> result_type
     CELER_EXPECT(!g4world.GetRotation());
     CELER_EXPECT(g4world.GetTranslation() == G4ThreeVector(0, 0, 0));
 
-    ScopedProfiling profile_this{"import-geant-geo"};
+    ScopedProfiling profile_this{"g4org-convert"};
     ScopedMem record_mem("orange.convert-geant");
 
     CELER_LOG(status) << "Converting Geant4 geometry elements to ORANGE input";

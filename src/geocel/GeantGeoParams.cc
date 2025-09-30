@@ -626,6 +626,7 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns)
         CELER_ASSERT(geo_man);
         if (!geo_man->IsGeometryClosed())
         {
+            ScopedProfiling profile_this{"geant-geo-close"};
             CELER_LOG(debug) << "Building geometry manager tracking";
             geo_man->CloseGeometry(
                 /* optimize = */ true, /* verbose = */ false, this->world());
