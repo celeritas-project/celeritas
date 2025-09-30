@@ -42,6 +42,7 @@ class SimParams final : public ParamsDataInterface<SimParamsData>
         // Construct with imported data and max field substeps
         static Input from_import(ImportData const&,
                                  SPConstParticles,
+                                 size_type max_steps,
                                  size_type max_field_substeps);
 
         //// DATA ////

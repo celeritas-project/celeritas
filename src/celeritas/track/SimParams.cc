@@ -26,8 +26,10 @@ namespace celeritas
 SimParams::Input SimParams::Input::from_import(ImportData const& data,
                                                SPConstParticles particle_params)
 {
-    return SimParams::Input::from_import(
-        data, std::move(particle_params), FieldDriverOptions{}.max_substeps);
+    return SimParams::Input::from_import(data,
+                                         std::move(particle_params),
+                                         SimParams::Input{}.max_steps,
+                                         FieldDriverOptions{}.max_substeps);
 }
 
 //---------------------------------------------------------------------------//
@@ -36,6 +38,7 @@ SimParams::Input SimParams::Input::from_import(ImportData const& data,
  */
 SimParams::Input SimParams::Input::from_import(ImportData const& data,
                                                SPConstParticles particle_params,
+                                               size_type max_steps,
                                                size_type max_field_substeps)
 {
     CELER_EXPECT(particle_params);
@@ -77,6 +80,7 @@ SimParams::Input SimParams::Input::from_import(ImportData const& data,
             = LoopingThreshold::Energy(iter->second.important_energy);
         input.looping.insert({pdg, looping});
     }
+    input.max_steps = max_steps;
 
     return input;
 }

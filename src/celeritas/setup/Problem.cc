@@ -469,8 +469,11 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 
     // Construct simulation params
     params.sim = std::make_shared<SimParams>([&] {
-        auto input = SimParams::Input::from_import(
-            imported, params.particle, p.tracking.limits.field_substeps);
+        auto input
+            = SimParams::Input::from_import(imported,
+                                            params.particle,
+                                            p.tracking.limits.steps,
+                                            p.tracking.limits.field_substeps);
         return input;
     }());
 
