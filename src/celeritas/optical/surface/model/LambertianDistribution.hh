@@ -8,7 +8,9 @@
 
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/random/distribution/UniformRealDistribution.hh"
 #include "celeritas/optical/Types.hh"
+#include "celeritas/phys/InteractionUtils.hh"
 
 namespace celeritas
 {
@@ -55,9 +57,10 @@ LambertianDistribution::LambertianDistribution(Real3 const& normal)
  * Sample by Lambertian cosine law.
  */
 template<class Engine>
-CELER_FUNCTION Real3 LambertianDistribution::operator()(Engine&) const
+CELER_FUNCTION Real3 LambertianDistribution::operator()(Engine& rng) const
 {
-    return {0, 0, 0};
+    real_type cos_theta = sqrt(UniformRealDistribution{}(rng));
+    return ExitingDirectionSampler{cos_theta, normal_}(rng);
 }
 
 //---------------------------------------------------------------------------//

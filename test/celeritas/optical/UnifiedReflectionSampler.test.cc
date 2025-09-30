@@ -29,7 +29,7 @@ class UnifiedReflectionSamplerTest : public ::celeritas::test::Test
 TEST_F(UnifiedReflectionSamplerTest, lambertian)
 {
     constexpr size_type num_samples = 10000;
-    HistogramSampler calc_histogram(20, {0.0, 1.0}, num_samples);
+    HistogramSampler calc_histogram(10, {0, 1}, num_samples);
 
     Real3 normal = make_unit_vector(Real3{2, -1, 3});
     auto to_cos_normal
@@ -37,14 +37,20 @@ TEST_F(UnifiedReflectionSamplerTest, lambertian)
 
     auto actual = calc_histogram(to_cos_normal, LambertianDistribution{normal});
 
-    // Approximate values following cos(x) PDF over 20 bins in [0,1]
-    // Replace with PRINT_EXPECTED results after checking they're close
-    static SampledHistogram const expected{
-        {
-            500, 498, 493, 486, 475, 461, 445, 426, 404, 380,
-            353, 324, 293, 261, 226, 191, 154, 116, 78,  39,
-        },
-        2};
+    SampledHistogram expected;
+    expected.distribution = {
+        0.095,
+        0.299,
+        0.487,
+        0.72,
+        0.926,
+        1.066,
+        1.321,
+        1.587,
+        1.643,
+        1.856,
+    };
+    expected.rng_count = 4;
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
