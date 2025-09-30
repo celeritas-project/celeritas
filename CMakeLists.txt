@@ -486,6 +486,12 @@ if(CELERITAS_USE_VecGeom)
     # Enforce minimum version
     celeritas_find_or_builtin_package(G4VG 1.0.3)
   endif()
+
+  # Default to using surface navigation if it's available
+  cmake_dependent_option(CELERITAS_VecGeom_SURFACE
+    "Use VecGeom surface navigation" "ON"
+    "VecGeom_USE_SURF" OFF
+  )
 endif()
 
 if(CELERITAS_BUILD_DOCS)
