@@ -43,7 +43,7 @@ struct FresnelReflectivityCalculator
  */
 CELER_FUNCTION real_type FresnelReflectivityCalculator::operator()() const
 {
-    detail::FresnelCalculator calc{inc_photon, normal, relative_r_index};
+    FresnelCalculator calc{inc_photon, normal, relative_r_index};
     real_type te_comp_sq = ipow<2>(calc.inc_te_component());
     real_type tm_comp_sq = ipow<2>(calc.inc_tm_component());
     real_type total_reflectivity

@@ -16,8 +16,6 @@ namespace celeritas
 {
 namespace optical
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Helper class for calculating quantities for Fresnel equations.
@@ -221,6 +219,5 @@ CELER_FUNCTION real_type FresnelCalculator::reflectivity_ratio(real_type x) cons
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace optical
 }  // namespace celeritas

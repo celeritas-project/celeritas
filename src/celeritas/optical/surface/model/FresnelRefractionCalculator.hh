@@ -35,7 +35,7 @@ struct FresnelRefractionCalculator
  */
 CELER_FUNCTION SurfaceInteraction FresnelRefractionCalculator::operator()() const
 {
-    detail::FresnelCalculator calc{inc_photon, normal, relative_r_index};
+    FresnelCalculator calc{inc_photon, normal, relative_r_index};
     CELER_ASSERT(!calc.is_total_internal_reflection());
 
     SurfaceInteraction result;

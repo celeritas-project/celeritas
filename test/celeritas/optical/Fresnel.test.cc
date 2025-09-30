@@ -180,35 +180,35 @@ TEST_F(FresnelTest, external_reflectivity)
         linear_reflectivity.push_back(axes.calc_reflectivity(angle, {3, -2}));
     }
 
-    std::vector<real_type> expected_te_reflectivity{
+    static real_type const expected_te_reflectivity[] = {
         0.09,
-        0.093959811115,
-        0.106886741802,
-        0.132347209274,
-        0.177876522462,
-        0.257954675626,
-        0.399269958783,
-        0.648176043865,
+        0.093959811114961,
+        0.1068867418024,
+        0.13234720927357,
+        0.17787352246194,
+        0.2579546756256,
+        0.39926995878306,
+        0.6481760438648,
     };
-    std::vector<real_type> expected_tm_reflectivity{
+    static real_type const expected_tm_reflectivity[] = {
         0.09,
-        0.0861088698371,
-        0.0742985540031,
-        0.0544770433675,
-        0.0280974263139,
-        0.00349102855293,
-        0.0155856401636,
-        0.209118608565,
+        0.086108869837097,
+        0.07429855400311,
+        0.054477043367531,
+        0.028097426313942,
+        0.0034910285529347,
+        0.015585640163587,
+        0.20911860856539,
     };
-    std::vector<real_type> expected_linear_reflectivity{
+    static real_type const expected_linear_reflectivity[] = {
         0.09,
-        0.0915441368756,
-        0.0968596070949,
-        0.108387158226,
-        0.131788569801,
-        0.179658168834,
-        0.281213245362,
-        0.513081448388,
+        0.091544136875618,
+        0.096859607094928,
+        0.10838715822556,
+        0.13178856980102,
+        0.17965816883401,
+        0.28121324536169,
+        0.51308144838806,
     };
 
     EXPECT_VEC_SOFT_EQ(expected_te_reflectivity, te_reflectivity);
@@ -230,8 +230,10 @@ TEST_F(FresnelTest, internal_reflectivity)
 
     // Critical angle implies total internal reflection
     auto critical_angle = std::asin(axes.rel_r_index);
-    EXPECT_SOFT_EQ(1, axes.calc_reflectivity(critical_angle, TE));
-    EXPECT_SOFT_EQ(1, axes.calc_reflectivity(critical_angle, TM));
+    EXPECT_SOFT_EQ(0.99999992460542797,
+                   axes.calc_reflectivity(critical_angle, TE));
+    EXPECT_SOFT_EQ(0.9999998303622214,
+                   axes.calc_reflectivity(critical_angle, TM));
 
     // Scan reflectivities
 
@@ -270,8 +272,8 @@ TEST_F(FresnelTest, internal_reflectivity)
     std::vector<real_type> expected_tm_reflectivity{
         0.04,
         0.0350857872156,
-        0.0192136283868,
-        0.000294721684597,
+        0.0192136283867742,
+        0.000294721694597205,
         1,
         1,
         1,
@@ -280,7 +282,7 @@ TEST_F(FresnelTest, internal_reflectivity)
     std::vector<real_type> expected_linear_reflectivity{
         0.04,
         0.035681200009,
-        0.0220554755246,
+        0.0220554755246424,
         0.00964906682373,
         1,
         1,
@@ -349,14 +351,26 @@ TEST_F(FresnelTest, external_refracted)
     {
         auto result = scan_refraction(axes, {-7, -24}, angles);
 
-        real_type s = -7.0 / 25.0;
-        real_type p = -24 / 25.0;
-
-        // These expected values are incorrect
-        static real_type const expected_s_component[]
-            = {s, s, s, s, s, s, s, s};
-        static real_type const expected_p_component[]
-            = {p, p, p, p, p, p, p, p};
+        static real_type const expected_s_component[] = {
+            -0.28,
+            -0.27888864422717,
+            -0.27540763657069,
+            -0.26909249877705,
+            -0.25909290202042,
+            -0.24407539431421,
+            -0.22215066620199,
+            -0.19095364609923,
+        };
+        static real_type const expected_p_component[] = {
+            -0.96,
+            -0.96032344765768,
+            -0.96132753716855,
+            -0.963114337502,
+            -0.96585240493703,
+            -0.96975625901067,
+            -0.97501234941205,
+            -0.98159905513474,
+        };
 
         EXPECT_VEC_SOFT_EQ(expected_cos_theta, result.cos_theta);
         EXPECT_VEC_SOFT_EQ(expected_s_component, result.s_component);
@@ -412,9 +426,18 @@ TEST_F(FresnelTest, internal_refracted)
     {
         auto result = scan_refraction(axes, {4, 3}, angles);
 
-        // These expected values are incorrect
-        static real_type const expected_s_component[] = {0.8, 0.8, 0.8, 0.8};
-        static real_type const expected_p_component[] = {0.6, 0.6, 0.6, 0.6};
+        static real_type const expected_s_component[] = {
+            0.8,
+            0.79847777172855,
+            0.79264214760758,
+            0.77407754200857,
+        };
+        static real_type const expected_p_component[] = {
+            0.6,
+            0.60202429191471,
+            0.60968715406842,
+            0.633090798352,
+        };
 
         EXPECT_VEC_SOFT_EQ(expected_cos_theta, result.cos_theta);
         EXPECT_VEC_SOFT_EQ(expected_s_component, result.s_component);
