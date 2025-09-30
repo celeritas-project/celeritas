@@ -52,7 +52,7 @@ SimParams::Input SimParams::Input::from_import(ImportData const& data,
                               <= std::numeric_limits<MaxSubstepsInt>::max(),
                    << "maximum field substep limit " << max_field_substeps
                    << " is out of range (should be in (0, "
-                   << std::numeric_limits<MaxSubstepsInt>::max() << "))");
+                   << std::numeric_limits<MaxSubstepsInt>::max() << "])");
 
     SimParams::Input input;
     input.particles = std::move(particle_params);
@@ -97,7 +97,7 @@ SimParams::SimParams(Input const& input)
             && input.max_steps <= std::numeric_limits<size_type>::max(),
         << "maximum step limit " << input.max_steps
         << " is out of range (should be in (0, "
-        << std::numeric_limits<size_type>::max() << "))");
+        << std::numeric_limits<size_type>::max() << "])");
 
     HostVal<SimParamsData> host_data;
 
