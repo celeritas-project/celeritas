@@ -9,6 +9,8 @@
 
 #include "corecel/DeviceRuntimeApi.hh"
 
+#include "corecel/Constants.hh"
+#include "corecel/math/Turn.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 
@@ -32,6 +34,8 @@ __global__ void alg_test_kernel(AlgorithmTestData data)
     if (tid.get() < inp.pi_frac.size())
     {
         sincospi(inp.pi_frac[tid], &out.sinpi[tid], &out.cospi[tid]);
+        float radians = constants::pi * inp.pi_frac[tid];
+        sincos(radians, &out.sin[tid], &out.cos[tid]);
     }
     if (tid.get() < inp.a.size())
     {

@@ -24,7 +24,7 @@ bool use_profiling();
 
 //---------------------------------------------------------------------------//
 /*!
- * Input arguments for the nvtx implementation.
+ * Input arguments for the most richly annotated implementation (NVTX).
  */
 struct ScopedProfilingInput
 {
@@ -38,25 +38,40 @@ struct ScopedProfilingInput
 
 //---------------------------------------------------------------------------//
 /*!
- * RAII class for scoped profiling.
+ * Enable and annotate performance profiling during the lifetime of this class.
  *
- * Implementations should support multithreaded context where each thread have
- * one or more alive instance of this class.
+ * This RAII class annotates the profiling output so that, during its scope,
+ * events and timing are associated with the given name. For use cases inside
+ * separate begin/end functions of a class (often seen in Geant4), use
+ * \c std::optional to start and end the class lifetime.
  *
  * This is useful for wrapping specific code fragment in a range for profiling,
- * e.g. ignoring of VecGeom instantiation kernels, profiling a specific action
- * or loop on the CPU.
+ * e.g., ignoring of VecGeom instantiation kernels, or profiling a specific
+ * action.  It is very similar to the [NVTX
+ * `scoped_range`](https://nvidia.github.io/NVTX/doxygen-cpp/#scoped_range).
  *
- * \note The nvtx implementation of \c ScopedProfiling only does something when
- * the application using Celeritas is ran through a tool that supports nvtx,
- * e.g. nsight compute with the --nvtx argument. If this is not the case, API
- * calls to nvtx are no-ops.
+ * Example: \code
+ * void do_program()
+ * {
+ *     do_setup()
+ *     ScopedProfiling profile_this{"run"};
+ *     do_run();
+ * }
+ * \endcode
  *
- * \note The AMD roctx implementation requires the roctx library, which may not
- * be available on all systems.
+ * Caveats:
+ * - The Nvidia/CUDA implementation of \c ScopedProfiling only does something
+ *   when the application using Celeritas is run through a tool that supports
+ *   NVTX, e.g., nsight compute with the --nvtx argument. If this is not the
+ *   case, API calls to nvtx are no-ops.
+ * - The HIP/AMD ROCTX implementation requires the roctx library, which may not
+ *   be available on all systems.
+ * - The CPU implementation requires Perfetto. It is not available when
+ *   Celeritas is built with device support (CUDA/HIP).
  *
- * \note The CPU implementation requires Perfetto. It is not supported when
- * Celeritas is built with device support (CUDA/HIP)
+ * \internal All profiling library implementations must support multithreaded
+ * contexts since each thread may have one or more active instances of this
+ * class.
  */
 class ScopedProfiling
 {

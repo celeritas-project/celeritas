@@ -83,7 +83,33 @@ OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo,
     CELER_EXPECT(geo);
     CELER_EXPECT(volumes);
     CELER_EXPECT(!volumes->empty());
-    auto result = g4org::Converter{}(*geo, *volumes).input;
+
+    // Set up options for debug output
+    g4org::Converter::Options opts;
+    if (celeritas::getenv_flag("G4ORG_VERBOSE", false).value)
+    {
+        opts.verbose = true;
+    }
+    auto export_basename = celeritas::getenv("G4ORG_EXPORT");
+    if (!export_basename.empty())
+    {
+        opts.proto_output_file = export_basename + ".protos.json";
+        opts.debug_output_file = export_basename + ".csg.json";
+    }
+
+    // Convert G4 geometry to ORANGE input data structure
+    auto result = g4org::Converter{std::move(opts)}(*geo, *volumes).input;
+
+    if (!export_basename.empty())
+    {
+        // Debug export of constructed geometry
+        std::string filename = export_basename + ".org.json";
+        std::ofstream outf(filename);
+        CELER_VALIDATE(
+            outf, << "failed to open output file at \"" << filename << '"');
+        outf << nlohmann::json(result).dump(0);
+    }
+
     return std::make_shared<OrangeParams>(std::move(result),
                                           std::move(volumes));
 }

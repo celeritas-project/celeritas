@@ -10,6 +10,13 @@
 #include <set>
 #include <G4ParticleDefinition.hh>
 #include <G4Threading.hh>
+#include <G4Version.hh>
+
+#if G4VERSION_NUMBER >= 1100
+#    include <G4VTrackingManager.hh>
+
+#    include "TrackingManager.hh"
+#endif
 
 #include "corecel/io/Join.hh"
 #include "corecel/sys/Stopwatch.hh"
@@ -18,7 +25,6 @@
 
 #include "ExceptionConverter.hh"
 #include "TimeOutput.hh"
-#include "TrackingManager.hh"
 #include "TrackingManagerConstructor.hh"
 
 #include "detail/IntegrationSingleton.hh"
@@ -46,8 +52,6 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
     std::set<G4PD const*> not_offloaded{actual.begin(), actual.end()};
     std::vector<G4PD const*> missing;
 
-    TypeDemangler<G4VTrackingManager> demangle_tm;
-
     bool all_attached_correctly{true};
     auto log_tm_failure = [&all_attached_correctly](G4PD const* p) {
         all_attached_correctly = false;
@@ -69,6 +73,9 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
         {
             not_offloaded.erase(iter);
         }
+
+#if G4VERSION_NUMBER >= 1100
+        static TypeDemangler<G4VTrackingManager> demangle_tm;
 
         // Check tracking manager setup: note that this is *thread-local*
         // whereas the offloaded track list is *global*
@@ -98,6 +105,12 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
         {
             log_tm_failure(p) << "is not attached";
         }
+#else
+        CELER_DISCARD(expected_shared);
+        CELER_DISCARD(expected_local);
+        CELER_DISCARD(log_tm_failure);
+        CELER_ASSERT_UNREACHABLE();
+#endif
     }
 
     auto printable_pd = [](G4PD const* p) { return PrintablePD{p}; };
@@ -142,6 +155,11 @@ TrackingManagerIntegration& TrackingManagerIntegration::Instance()
  */
 void TrackingManagerIntegration::BeginOfRunAction(G4Run const*)
 {
+    CELER_VALIDATE(G4VERSION_NUMBER >= 1100,
+                   << "the current version of Geant4 (" << G4VERSION_NUMBER
+                   << ") is too old to support the tracking manager offload "
+                      "interface (11.0 or higher is required)");
+
     Stopwatch get_setup_time;
 
     auto& singleton = detail::IntegrationSingleton::instance();

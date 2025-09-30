@@ -111,13 +111,19 @@ class Logger
     explicit Logger(LogHandler&& handle);
 
     // Create a logger that flushes its contents when it destructs
-    inline Message operator()(LogProvenance&& prov, LogLevel lev);
+    inline Message operator()(LogProvenance&& prov, LogLevel lev) const;
 
     //! Set the minimum logging verbosity
     void level(LogLevel lev) { min_level_ = lev; }
 
     //! Get the current logging verbosity
     LogLevel level() const { return min_level_; }
+
+    //! Access the log handle
+    LogHandler const& handle() const { return handle_; }
+
+    //! Access the log handle (mutable, try to avoid using?)
+    LogHandler& handle() { return handle_; }
 
   private:
     LogHandler handle_;
@@ -134,14 +140,14 @@ class Logger
  * anyway), so we mark as \c CELER_UNLIKELY to optimize for the no-logging
  * case.
  */
-auto Logger::operator()(LogProvenance&& prov, LogLevel lev) -> Message
+auto Logger::operator()(LogProvenance&& prov, LogLevel lev) const -> Message
 {
-    LogHandler* handle = nullptr;
+    LogHandler const* handle = nullptr;
     if (CELER_UNLIKELY(handle_ && lev >= min_level_))
     {
         handle = &handle_;
     }
-    return {handle, std::move(prov), lev};
+    return Message{handle, std::move(prov), lev};
 }
 
 //---------------------------------------------------------------------------//

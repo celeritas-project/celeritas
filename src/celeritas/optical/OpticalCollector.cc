@@ -14,6 +14,7 @@
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ActionRegistryOutput.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 
 #include "CoreParams.hh"
 #include "CoreState.hh"
@@ -114,7 +115,20 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     // Save core params
     optical_params_ = std::move(inp.optical_params);
 
+    CELER_ENSURE(launch_);
     CELER_ENSURE(optical_params_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access optical state.
+ */
+optical::CoreStateBase const&
+OpticalCollector::optical_state(CoreStateInterface const& core) const
+{
+    auto& state = dynamic_cast<optical::CoreStateBase const&>(
+        core.aux().at(launch_->aux_id()));
+    return state;
 }
 
 //---------------------------------------------------------------------------//

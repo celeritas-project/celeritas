@@ -10,6 +10,7 @@
 #include <sstream>
 
 #include "corecel/io/Join.hh"
+#include "corecel/io/StreamableVariant.hh"
 
 namespace celeritas
 {
@@ -64,9 +65,7 @@ std::ostream& operator<<(std::ostream& os, Joined const& n)
 
 std::ostream& operator<<(std::ostream& os, Node const& node)
 {
-    CELER_EXPECT(!node.valueless_by_exception());
-    std::visit([&os](auto const& n) { os << n; }, node);
-    return os;
+    return (os << StreamableVariant{node});
 }
 
 //!@}

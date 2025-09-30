@@ -194,6 +194,7 @@ endif()
 
 if(CELERITAS_USE_Geant4)
   set(_cg4_sources
+    g4/DetectorConstruction.cc
     g4/SupportedEmStandardPhysics.cc
     g4/SupportedOpticalPhysics.cc
     g4/detail/GeantBremsstrahlungProcess.cc
@@ -268,13 +269,13 @@ if(CELERITAS_USE_ROOT)
     "celeritas/io/ImportData.hh"
     "celeritas/io/ImportElement.hh"
     "celeritas/io/ImportMaterial.hh"
-    "celeritas/io/ImportParticle.hh"
     "celeritas/io/ImportPhysicsTable.hh"
     "celeritas/io/ImportProcess.hh"
     "celeritas/io/ImportUnits.hh"
     "celeritas/io/ImportVolume.hh"
     "celeritas/io/EventData.hh"
     "celeritas/inp/Grid.hh"
+    "celeritas/inp/Particle.hh"
     NOINSTALL
     MODULE celeritas
     LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/ext/RootInterfaceLinkDef.h"

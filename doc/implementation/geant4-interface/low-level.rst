@@ -20,5 +20,4 @@ Geant4 physics interfaces
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenclass:: celeritas::GeantImporter
-
 .. doxygenclass:: celeritas::GeantSetup

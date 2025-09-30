@@ -178,12 +178,14 @@ void assign_table(G4PhysicsTable const* g4table,
         table->grids.emplace_back(import_physics_log_vector(*g4vector, units));
 #if G4VERSION_NUMBER < 1100
         // Hardcode whether the lambda table uses spline for older Geant4
-        // versions. Always use spline for lambda, energy loss, range, and msc
+        // versions. Always use spline for lambda prime, energy loss, range,
+        // and msc.
         //! \todo Coulomb scattering disables spline when \c isCombined = false
         static std::unordered_set<ImportProcessClass> disable_spline{
             ImportProcessClass::rayleigh};
 
-        if (!disable_spline.count(process_class))
+        bool is_lambda_prim = table->y_units == ImportUnits::len_mev_inv;
+        if (!disable_spline.count(process_class) || is_lambda_prim)
 #else
         if (g4vector->GetSpline())
 #endif

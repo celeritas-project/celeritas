@@ -38,14 +38,12 @@ namespace detail
 class IntegrationSingleton
 {
   public:
-    enum class Mode
-    {
-        disabled,
-        kill_offload,
-        enabled,
-        size_
-    };
+    //!@{
+    //! \name Types
+    using VecG4PD = SetupOptions::VecG4PD;
+    //!@}
 
+  public:
     // Static GLOBAL shared singleton
     static IntegrationSingleton& instance();
 
@@ -61,10 +59,10 @@ class IntegrationSingleton
     SetupOptions const& setup_options() const { return options_; }
 
     //! Return list of particles to be offloaded during run
-    SetupOptions::VecG4PD const& offloaded_particles() { return offloaded_; }
+    VecG4PD const& offloaded_particles() const { return offloaded_; }
 
-    //! Whether Celeritas is enabled
-    Mode mode() const { return mode_; }
+    // Access whether Celeritas is set up, enabled, or uninitialized
+    OffloadMode mode() const;
 
     //!@{
     //! Static global Celeritas problem data
@@ -73,9 +71,6 @@ class IntegrationSingleton
     //!@}
 
     //// HELPERS ////
-
-    // Set up logging
-    void initialize_logger();
 
     // Construct shared params on master (or single) thread
     void initialize_shared_params();
@@ -96,17 +91,22 @@ class IntegrationSingleton
     real_type stop_timer() { return get_time_(); }
 
   private:
-    // Only this class can construct
-    IntegrationSingleton();
-
     //// DATA ////
-    Mode mode_{Mode::size_};
     SetupOptions options_;
     SetupOptions::VecG4PD offloaded_;
     SharedParams params_;
     std::unique_ptr<ScopedMpiInit> scoped_mpi_;
     std::unique_ptr<SetupOptionsMessenger> messenger_;
     Stopwatch get_time_;
+    bool have_created_logger_{false};
+
+    //// PRIVATE MEMBER FUNCTIONS ////
+
+    // Only this class can construct
+    IntegrationSingleton();
+
+    // Set up or update logging if the run manager is enabled
+    void update_logger();
 };
 
 //---------------------------------------------------------------------------//

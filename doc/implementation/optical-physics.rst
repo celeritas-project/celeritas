@@ -61,14 +61,34 @@ tracking loop:
 Optical materials
 =================
 
-Each "physics material" (see :cpp:class:`celeritas::ImportPhysMaterial`) can
-have an associated "optical material." When importing from Geant4, each optical
-material corresponds to a single "geometry material" (see
-:cpp:class:`celeritas::ImportGeoMaterial`) that has a ``RINDEX`` material
-property, and all physical materials that use the geometry material share
-the same optical material.
+Each "physics material" (i.e., a combination of material and physics options) can
+have an associated "optical material" (compatible with optical photons).
 
 .. doxygenclass:: celeritas::optical::MaterialParams
+
+Geant4 integration
+------------------
+
+When importing from Geant4, each optical material corresponds to a single
+:cpp:class:`G4MaterialPropertiesTable` that has a ``RINDEX`` material property.
+(It also provides a special case for water if no material table is associated,
+allowing Rayleigh scattering by default by providing an isothermal
+compressibility and assuming STP.)
+
+Celeritas translates many Geant4 material properties into its internal physics
+input parameters. It also allows material-specific user configuration of
+Celeritas-only physics, using properties listed in the following table.
+
+.. table:: Celeritas-only properties, with the ``CELER_`` prefix omitted.
+
+   +-------------------------------------+-------------------------------------------------------------+
+   | Name                                | Description                                                 |
+   +=====================================+=============================================================+
+   | :code:`SCINTILLATIONLAMBDAMEAN`     | Mean wavelength of the Gaussian scintillation peak [mm]     |
+   +-------------------------------------+-------------------------------------------------------------+
+   | :code:`SCINTILLATIONLAMBDASIGMA`    | Standard deviation of the Gaussian scintillation peak [mm]  |
+   +-------------------------------------+-------------------------------------------------------------+
+
 
 Offloading
 ==========
@@ -113,26 +133,14 @@ Surface processes
 =================
 
 Optical photons also have special interactions at material boundaries,
-specified largely by user-provided material properties. The surface
-definitions are translated from Geant4 "skin" and "border" surfaces to
-Celeritas "boundary" and "interface" surfaces, respectively (see
-:ref:`api_geometry`). The "boundary" of a volume is currently defined, from
-Geant4 input, as a *directional* property.
+specified by user-provided surface properties.
+Users can define "boundary" and "interface" surfaces representing,
+respectively, the entire boundary of a volume (all points where it touches the
+parent or child volumes) and the common face between two adjacent volume
+instances.  See :ref:`api_geometry` for a discussion of these definitions and
+:ref:`api_geant4_geo` for their translation from Geant4.
 
-Celeritas surface physics currently uses the following heuristic to reproduce
-Geant4 boundary physics behavior.  Given a pair of old→new volume instances
-P0→P1 corresponding to volumes L0→L1, the surface properties are determined in
-decreasing precedence by:
-
-1. The interface surface from P0 to P1
-2. If L1 is the child of L0 (crossing into an "enclosed" volume), then the
-   boundary surface of L1
-3. The boundary surface of L0
-4. The boundary surface of L1
-5. The volumetric material properties of L0 and L1
-
-.. todo:: Once surface models are implemented, move the
-   precedence above into SurfacePhysics documentation.
+.. doxygenclass:: celeritas::optical::VolumeSurfaceSelector
 
 Surface normals are defined by the track position in the geometry. Corrections
 may be applied to the geometric surface normal by sampling from a "microfacet

@@ -127,7 +127,7 @@ CELER_FUNCTION TrackInitializer WavelengthShiftGenerator::operator()(Engine& rng
                  : ExponentialDistribution(real_type{1} / time_constant_)(rng));
 
     CELER_ENSURE(is_soft_unit_vector(result.polarization));
-    CELER_ENSURE(soft_zero(dot_product(result.direction, result.polarization)));
+    CELER_ENSURE(is_soft_orthogonal(result.direction, result.polarization));
     return result;
 }
 

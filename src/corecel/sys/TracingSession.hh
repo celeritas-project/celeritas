@@ -8,7 +8,7 @@
 #pragma once
 
 #include <memory>
-#include <string_view>
+#include <string>
 
 #include "corecel/Config.hh"
 
@@ -53,7 +53,7 @@ class TracingSession
     TracingSession() noexcept;
 
     // Configure an in-process session recording to filename
-    explicit TracingSession(std::string_view filename) noexcept;
+    explicit TracingSession(std::string const& filename) noexcept;
 
     // Terminate the session and close open files
     ~TracingSession();
@@ -85,7 +85,7 @@ class TracingSession
 #if !CELERITAS_USE_PERFETTO
 inline void flush_tracing() noexcept {}
 inline TracingSession::TracingSession() noexcept = default;
-inline TracingSession::TracingSession(std::string_view) noexcept {}
+inline TracingSession::TracingSession(std::string const&) noexcept {}
 inline TracingSession::~TracingSession() = default;
 inline void TracingSession::start() noexcept
 {
