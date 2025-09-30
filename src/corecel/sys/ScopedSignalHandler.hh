@@ -67,7 +67,7 @@ class ScopedSignalHandler
 
   public:
     // Whether signals are enabled
-    static bool enable_signals();
+    static bool enabled();
 
     // Raise a signal visible only to ScopedSignalHandler (for testing)
     static int raise(signal_type sig);
