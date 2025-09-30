@@ -75,8 +75,8 @@ TEST_F(ImportedModelAdapterTest, build_mock)
 TEST_F(ImportedModelAdapterTest, builtin_map)
 {
     using IMC = ImportModelClass;
-    std::array<IMC, 4> expected_builtin_imcs{
-        IMC::absorption, IMC::rayleigh, IMC::wls, IMC::wls2};
+    std::array<IMC, 5> expected_builtin_imcs{
+        IMC::absorption, IMC::rayleigh, IMC::wls, IMC::wls2, IMC::mie};
 
     auto imported_models = this->imported_models();
 
