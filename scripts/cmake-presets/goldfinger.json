@@ -59,7 +59,10 @@
       "inherits": [".ccache", ".base", ".debug", "default"],
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install"
+        "CELERITAS_BUILD_DOCS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_SPHINX_USER_HTML_ARGS": "-W;--keep-going",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",
+        "DOXYGEN_WARN_AS_ERROR":  "YES"
       }
     },
     {
