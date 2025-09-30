@@ -1,3 +1,9 @@
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file celeritas/optical/MieData.hh
+//---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Macros.hh"
@@ -6,19 +12,23 @@
 #include "corecel/io/Logger.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+
 namespace celeritas
 {
 namespace optical
 {
-
+//---------------------------------------------------------------------------//
+/*!
+ * Material dependent data of Mie scattering.
+ */
 struct MieMaterialData
 {
-    real_type forward_g{};  //!< Henyey–Greenstein "g" parameter for forward
-                            //!< scattering
-    real_type backward_g{};  //!< Henyey–Greenstein "g" parameter for backward
-                             //!< scattering
-    real_type forward_ratio{};  //!< Fraction of forward vs backward scattering
-
+    //! g parameter for forward scattering
+    real_type forward_g{};
+    //! g parameter for backward scattering
+    real_type backward_g{};
+    //!< Fraction of forward vs backward scattering
+    real_type forward_ratio{};
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
@@ -26,6 +36,11 @@ struct MieMaterialData
                && forward_g <= 1 && backward_g >= -1 && backward_g <= 1;
     }
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Mie scattering data.
+ */
 template<Ownership W, MemSpace M>
 struct MieData
 {
@@ -37,9 +52,6 @@ struct MieData
     //// MEMBER DATA ////
 
     OpticalMaterialItems<MieMaterialData> mie_record;
-
-    // Backend data
-    Items<real_type> reals;
 
     //// MEMBER FUNCTIONS ////
 
@@ -59,5 +71,6 @@ struct MieData
     }
 };
 
+//---------------------------------------------------------------------------//
 }  // namespace optical
 }  // namespace celeritas

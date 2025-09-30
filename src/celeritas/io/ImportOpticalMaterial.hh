@@ -161,11 +161,12 @@ struct ImportWavelengthShift
  */
 struct ImportMie
 {
-    double forward_g{};  //!< Henyey–Greenstein "g" parameter for forward
-                         //!< scattering
-    double backward_g{};  //!< Henyey–Greenstein "g" parameter for backward
-                          //!< scattering
-    double forward_ratio{};  //!< Fraction of forward vs backward scattering
+    //!< Henyey–Greenstein "g" parameter for forward scattering
+    double forward_g{};
+    //!< Henyey–Greenstein "g" parameter for backward scattering
+    double backward_g{};
+    //!< Fraction of forward vs backward scattering
+    double forward_ratio{};
 
     //! Whether all data are assigned and valid
     explicit operator bool() const

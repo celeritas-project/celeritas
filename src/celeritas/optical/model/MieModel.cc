@@ -1,3 +1,9 @@
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file celeritas/optical/model/MieModel.cc
+//---------------------------------------------------------------------------//
 #include "MieModel.hh"
 
 #include "corecel/Assert.hh"
@@ -20,6 +26,9 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Create a model builder from imported data.
+ */
 auto MieModel::make_builder(SPConstImported imported, Input input)
     -> ModelBuilder
 {
@@ -29,7 +38,11 @@ auto MieModel::make_builder(SPConstImported imported, Input input)
         return std::make_shared<MieModel>(id, imported, input);
     };
 }
+
 //---------------------------------------------------------------------------//
+/*!
+ * Construct the model from imported data and imported material parameters.
+ */
 MieModel::MieModel(ActionId id, SPConstImported imported, Input input)
     : Model(id, "optical-mie", "interact by optical Mie scattering")
     , imported_(ImportModelClass::mie, std::move(imported))
@@ -46,11 +59,15 @@ MieModel::MieModel(ActionId id, SPConstImported imported, Input input)
 
         builder.push_back(record);
     }
+
     data_ = CollectionMirror<MieData>{std::move(data)};
     CELER_ENSURE(data_);
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Build the mean free paths for the model.
+ */
 void MieModel::build_mfps(OptMatId mat, MfpBuilder& build) const
 {
     CELER_EXPECT(mat < imported_.num_materials());
@@ -75,6 +92,9 @@ void MieModel::build_mfps(OptMatId mat, MfpBuilder& build) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Execute the model on the host.
+ */
 void MieModel::step(CoreParams const& params, CoreStateHost& state) const
 {
     launch_action(state,
@@ -85,6 +105,10 @@ void MieModel::step(CoreParams const& params, CoreStateHost& state) const
                       InteractionApplier{MieExecutor{this->host_ref()}}));
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Execute the model on the device.
+ */
 #if !CELER_USE_DEVICE
 void MieModel::step(CoreParams const&, CoreStateDevice&) const
 {
@@ -92,5 +116,6 @@ void MieModel::step(CoreParams const&, CoreStateDevice&) const
 }
 #endif
 
+//---------------------------------------------------------------------------//
 }  // namespace optical
 }  // namespace celeritas

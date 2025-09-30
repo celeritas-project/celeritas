@@ -1,13 +1,10 @@
-//---------------------------------*- C++
-//-*----------------------------------//
-// Copyright ...
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/model/MieExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
-
-#include <vector>
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
@@ -20,6 +17,7 @@
 #include "celeritas/optical/MieData.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
 #include "celeritas/optical/interactor/MieInteractor.hh"
+
 namespace celeritas
 {
 namespace optical
@@ -28,6 +26,7 @@ namespace optical
 struct MieExecutor
 {
     inline CELER_FUNCTION Interaction operator()(CoreTrackView const&);
+
     NativeCRef<MieData> data;
 };
 
@@ -39,13 +38,10 @@ CELER_FUNCTION Interaction MieExecutor::operator()(CoreTrackView const& track)
 {
     // Access the current particle track (optical photon)
     auto particle = track.particle();
-
     // Photon’s current direction
     auto const& direction = track.geometry().dir();
-
     // RNG stream for sampling scattering
     auto rng = track.rng();
-
     // Look up the Mie parameters for this material
     auto matid = track.material_record().material_id();
 

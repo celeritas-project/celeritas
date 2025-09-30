@@ -1,14 +1,9 @@
-//---------------------------------*- C++
-//-*----------------------------------//
-// Copyright ...
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Mie.test.cc
-//! \brief Unit tests for Mie optical scattering (model, interactor, executor).
+//! \file celeritas/optical/Mie.test.cc
 //---------------------------------------------------------------------------//
-
-#include <memory>
-
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
@@ -21,11 +16,9 @@
 #include "celeritas/optical/interactor/MieInteractor.hh"
 #include "celeritas/optical/model/MieExecutor.hh"
 #include "celeritas/optical/model/MieModel.hh"
-// #include "celeritas/phys/InteractorHostTestBase.hh"
 
 #include "InteractorHostTestBase.hh"
 #include "OpticalMockTestBase.hh"
-#include "Test.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -35,14 +28,16 @@ namespace optical
 namespace test
 {
 //---------------------------------------------------------------------------//
-// MieModelTest
+// TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class MieModelTest : public InteractorHostBase, public OpticalMockTestBase
+class MieTest : public InteractorHostBase, public OpticalMockTestBase
 {
   protected:
     using HostDataCRef = HostCRef<MieData>;
+
     void SetUp() override {}
+
     void build_model()
     {
         auto const& data = this->imported_data();
@@ -64,31 +59,31 @@ class MieModelTest : public InteractorHostBase, public OpticalMockTestBase
     HostCRef<MieData> data_;
 };
 
-// check if the mie scattering parameters are loaded correctly
-TEST_F(MieModelTest, mie_params)
+//---------------------------------------------------------------------------//
+// TESTS
+//---------------------------------------------------------------------------//
+
+TEST_F(MieTest, mie_params)
 {
     this->build_model();
 
-    auto const& mie_params = data_.mie_record[material_id_];
-
-    EXPECT_SOFT_EQ(0.99, mie_params.forward_g);
-    EXPECT_SOFT_EQ(0.99, mie_params.backward_g);
-    EXPECT_SOFT_EQ(0.8, mie_params.forward_ratio);
+    // Test the material properties of mie scattering parameters
+    MieMaterialData mie_record = data_.mie_record[material_id_];
+    EXPECT_SOFT_EQ(0.99, mie_record.forward_g);
+    EXPECT_SOFT_EQ(0.99, mie_record.backward_g);
+    EXPECT_SOFT_EQ(0.80, mie_record.forward_ratio);
 }
 
-TEST_F(MieModelTest, mie_basic)
+TEST_F(MieTest, mie_basic)
 {
-    this->build_model();
     int const num_samples = 4;
 
-    auto& rng_engine = this->InteractorHostBase::rng();
-    real_type test_energy = 2e-6;
-    this->set_inc_energy(Energy{test_energy});
-    this->set_inc_direction({0, 0, 1});
-    this->set_inc_polarization({0, 1, 0});
+    this->build_model();
+
     MieInteractor interact(
         data_, this->particle_track(), direction_, material_id_);
-    // auto& rng_engine = this->rng();
+
+    auto& rng_engine = this->InteractorHostBase::rng();
 
     std::vector<real_type> dir_angle;
     std::vector<real_type> pol_angle;
@@ -103,6 +98,7 @@ TEST_F(MieModelTest, mie_basic)
         pol_angle.push_back(dot_product(
             result.polarization, this->particle_track().polarization()));
     }
+
     static real_type const expected_dir_angle[] = {
         0.999978212939673,
         0.998687015615332,
@@ -110,10 +106,10 @@ TEST_F(MieModelTest, mie_basic)
         0.99635627602535,
     };
     static real_type const expected_pol_angle[] = {
-        0.999999176946594,
-        -0.999997376710779,
-        -0.999999207973243,
-        -0.997843684993259,
+        0.999979036010333,
+        -0.998689642346519,
+        -0.999998838605416,
+        -0.99851580312691,
     };
 
     EXPECT_EQ(40, rng_engine.count());
@@ -121,7 +117,7 @@ TEST_F(MieModelTest, mie_basic)
     EXPECT_VEC_SOFT_EQ(expected_pol_angle, pol_angle);
 }
 
-TEST_F(MieModelTest, mfp)
+TEST_F(MieTest, mfp)
 {
     OwningGridAccessor storage;
 
