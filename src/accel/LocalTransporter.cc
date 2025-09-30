@@ -94,7 +94,7 @@ class TrackCounters
   public:
     TrackCounters()
     {
-        if (use_profiling())
+        if (ScopedProfiling::enabled())
         {
             std::string stream_id = std::to_string(get_geant_thread_id());
             active_counter_ = std::string("active-" + stream_id);

@@ -16,6 +16,7 @@
 #include "celeritas/em/distribution/WentzelDistribution.hh"
 #include "celeritas/em/xs/WentzelHelper.hh"
 #include "celeritas/mat/ElementView.hh"
+#include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"

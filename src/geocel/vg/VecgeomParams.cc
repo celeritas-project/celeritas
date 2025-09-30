@@ -24,7 +24,7 @@
 #ifdef VECGEOM_ENABLE_CUDA
 #    include <VecGeom/management/CudaManager.h>
 #endif
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
 #    include <VecGeom/surfaces/BrepHelper.h>
 #endif
 #ifdef VECGEOM_GDML
@@ -80,7 +80,7 @@ namespace
 #    define VG_CUDA_CALL(CODE) CELER_UNREACHABLE
 #endif
 
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
 #    define VG_SURF_CALL(CODE) CODE
 #else
 #    define VG_SURF_CALL(CODE) \
@@ -357,7 +357,7 @@ VecgeomParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
  */
 bool VecgeomParams::use_surface_tracking()
 {
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
     return 1;
 #else
     return 0;

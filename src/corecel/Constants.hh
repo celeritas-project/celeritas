@@ -15,21 +15,21 @@ namespace constants
 {
 //---------------------------------------------------------------------------//
 
-#define CELER_ICRT_ inline constexpr Constant
+#define CELER_ICC_ inline constexpr Constant
 
 //!@{
 //! \name Mathemetical constants (truncated)
-CELER_ICRT_ pi{3.14159265358979323846};
-CELER_ICRT_ sqrt_pi{1.77245385090551602730};
+CELER_ICC_ pi{3.14159265358979323846};
+CELER_ICC_ sqrt_pi{1.77245385090551602730};
 
-CELER_ICRT_ euler{2.71828182845904523536};
-CELER_ICRT_ sqrt_euler{1.64872127070012814685};
+CELER_ICC_ euler{2.71828182845904523536};
+CELER_ICC_ sqrt_euler{1.64872127070012814685};
 
-CELER_ICRT_ sqrt_two{1.41421356237309504880};
-CELER_ICRT_ sqrt_three{1.73205080756887729353};
+CELER_ICC_ sqrt_two{1.41421356237309504880};
+CELER_ICC_ sqrt_three{1.73205080756887729353};
 //!@}
 
-#undef CELER_ICRT_
+#undef CELER_ICC_
 
 //---------------------------------------------------------------------------//
 }  // namespace constants

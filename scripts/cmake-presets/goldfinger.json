@@ -35,8 +35,8 @@
         "CMAKE_C_COMPILER_LAUNCHER": null,
         "CMAKE_CXX_COMPILER_LAUNCHER": null,
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL",   "value": "ON"},
-        "CMAKE_OSX_DEPLOYMENT_TARGET": {"type": "STRING", "value": "15"},
-        "CMAKE_CXX_STANDARD":   {"type": "STRING",   "value": "17"},
+        "CMAKE_OSX_DEPLOYMENT_TARGET": {"type": "STRING", "value": "26"},
+        "CMAKE_CXX_STANDARD":   {"type": "STRING",   "value": "20"},
         "CMAKE_CXX_EXTENSIONS": {"type": "BOOL",   "value": "OFF"},
         "CMAKE_FIND_FRAMEWORK": {"type": "STRING", "value": "LAST"},
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-${presetName}",
@@ -59,7 +59,10 @@
       "inherits": [".ccache", ".base", ".debug", "default"],
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install"
+        "CELERITAS_BUILD_DOCS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_SPHINX_USER_HTML_ARGS": "-W;--keep-going",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",
+        "DOXYGEN_WARN_AS_ERROR":  "YES"
       }
     },
     {
@@ -106,7 +109,7 @@
     {
       "name": "vglocal",
       "displayName": "With local vecgeom",
-      "inherits": [".base", ".debug", "default"],
+      "inherits": [".ccache", ".base", ".debug", "default"],
       "cacheVariables": {
         "CELERITAS_BUILTIN_G4VG": {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
@@ -114,7 +117,7 @@
         "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "ON"}
       },
       "environment": {
-        "CMAKE_PREFIX_PATH": "/Users/seth/Code/vecgeom/install:/opt/spack/opt/spack/sequoia/geant4/11.3.1/b7lttaq:/opt/spack/opt/spack/sequoia/googletest/1.15.2/kqcyiil:/opt/spack/opt/spack/sequoia/cli11/2.5.0/nsqiz3t:/opt/spack/opt/spack/sequoia/nlohmann-json/3.11.3/fpe7aef:/opt/spack/opt/spack/sequoia/covfie/0.13.0/tabnbjs:/opt/spack/opt/spack/sequoia/zlib-ng/2.2.1/6s4rdcx"
+        "CMAKE_PREFIX_PATH": "/Users/seth/Code/vecgeom/install:/opt/spack/opt/spack/tahoe/geant4/11.3.2/7oydgus:/opt/spack/opt/spack/tahoe/googletest/1.17.0/c332ssk:/opt/spack/opt/spack/tahoe/cli11/2.5.0/pmtt6hb:/opt/spack/opt/spack/tahoe/nlohmann-json/3.12.0/dkrlqn3:/opt/spack/opt/spack/tahoe/covfie/0.15.3/tlzukkw:/opt/spack/opt/spack/tahoe/zlib-ng/2.2.4/qbbzbte"
       }
     },
     {

@@ -38,7 +38,7 @@ enum class TracingMode
 std::unique_ptr<perfetto::TracingSession>
 initialize_session(TracingMode mode) noexcept
 {
-    if (!celeritas::use_profiling())
+    if (!celeritas::ScopedProfiling::enabled())
     {
         return nullptr;
     }
@@ -100,7 +100,7 @@ perfetto::TraceConfig configure_session() noexcept
  */
 void TracingSession::flush() noexcept
 {
-    if (celeritas::use_profiling())
+    if (ScopedProfiling::enabled())
     {
         perfetto::TrackEvent::Flush();
     }
@@ -120,7 +120,7 @@ TracingSession::TracingSession(std::string const& filename) noexcept
     : session_{initialize_session(filename.empty() ? TracingMode::system
                                                    : TracingMode::in_process)}
 {
-    if (!celeritas::use_profiling())
+    if (ScopedProfiling::enabled())
     {
         CELER_ASSERT(!session_);
         if (!filename.empty())

@@ -244,7 +244,7 @@ void PhysicalVolumeConverter::Builder::place_child(
                              << TypeDemangler<G4VPhysicalVolume>{}(g4pv)
                              << "' for physical volume '" << g4pv.GetName()
                              << "' (corresponding LV: "
-                             << PrintableLV{g4pv.GetLogicalVolume()} << ")";
+                             << StreamableLV{g4pv.GetLogicalVolume()} << ")";
     }
 }
 
