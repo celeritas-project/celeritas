@@ -18,7 +18,7 @@ namespace celeritas
 /*!
  * Whether signal handling is enabled.
  */
-bool ScopedStreamRedirect::enable_redirect()
+bool ScopedStreamRedirect::enabled()
 {
     // Note that we negate the result to go from DISABLE to ENABLE
     static bool const result
@@ -34,7 +34,7 @@ ScopedStreamRedirect::ScopedStreamRedirect(std::ostream* os)
     : input_stream_(os)
 {
     CELER_EXPECT(input_stream_);
-    if (this->enable_redirect())
+    if (this->enabled())
     {
         input_buffer_ = input_stream_->rdbuf();
         input_stream_->rdbuf(temp_stream_.rdbuf());

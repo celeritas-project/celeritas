@@ -58,7 +58,7 @@ namespace celeritas
 /*!
  * Whether signal handling is enabled.
  */
-bool ScopedSignalHandler::enable_signals()
+bool ScopedSignalHandler::enabled()
 {
     // Note that we negate the result to go from DISABLE to ENABLE
     static bool const result
@@ -101,7 +101,7 @@ ScopedSignalHandler::ScopedSignalHandler(
                              signals.end(),
                              [](signal_type sig) { return sig >= 0; }));
 
-    if (!ScopedSignalHandler::enable_signals())
+    if (!ScopedSignalHandler::enabled())
     {
         // Signal handling is disabled and an info message has already been
         // displayed
