@@ -80,4 +80,5 @@ tolerance.
 .. doxygenclass:: celeritas::SoftZero
 .. doxygenclass:: celeritas::EqualOr
 .. doxygenclass:: celeritas::ArraySoftUnit
-.. doxygenclass:: celeritas::is_soft_orthogonal
+
+.. doxygenfunction:: celeritas::is_soft_orthogonal
