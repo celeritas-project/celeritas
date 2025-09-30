@@ -15,6 +15,7 @@
 
 #include "LambertianDistribution.hh"
 #include "SurfaceInteraction.hh"
+#include "UnifiedReflectionData.hh"
 
 namespace celeritas
 {
@@ -36,25 +37,9 @@ namespace optical
 class UnifiedReflectionSampler
 {
   public:
-    // Supported reflection modes in UNIFIED model
-    enum class Mode
-    {
-        specular_spike,
-        specular_lobe,
-        back_scattering,
-        diffuse_lambertian,
-        size_
-    };
-
-    //!@{
-    //! \name Type aliases
-    using ModeProbs = EnumArray<Mode, real_type>;
-    //!@}
-
-  public:
     // Construct from mode probabilities, photon, and surface data
     explicit inline CELER_FUNCTION
-    UnifiedReflectionSampler(ModeProbs const& probs,
+    UnifiedReflectionSampler(UnifiedModeProbs const& probs,
                              PhotonPhasor const& inc_photon,
                              Real3 const& global_normal,
                              Real3 const& facet_normal);
@@ -78,7 +63,7 @@ class UnifiedReflectionSampler
     sample_lambertian_reflection(Engine& rng) const;
 
   private:
-    ModeProbs const& mode_probs_;
+    UnifiedModeProbs const& mode_probs_;
     PhotonPhasor const& inc_photon_;
     Real3 const& global_normal_;
     Real3 const& facet_normal_;
@@ -93,7 +78,7 @@ class UnifiedReflectionSampler
  * Construct calculator from probabilities, photon, and surface data.
  */
 CELER_FUNCTION UnifiedReflectionSampler::UnifiedReflectionSampler(
-    ModeProbs const& probs,
+    UnifiedModeProbs const& probs,
     PhotonPhasor const& inc_photon,
     Real3 const& global_normal,
     Real3 const& facet_normal)
@@ -120,19 +105,20 @@ template<class Engine>
 CELER_FUNCTION PhotonPhasor UnifiedReflectionSampler::operator()(Engine& rng) const
 {
     auto result = celeritas::make_selector(
-        [this](Mode m) { return mode_probs_[m]; }, Mode::size_)(rng);
+        [this](UnifiedReflectionMode m) { return mode_probs_[m]; },
+        UnifiedReflectionMode::size_)(rng);
 
-    CELER_ASSERT(result != Mode::size_);
+    CELER_ASSERT(result != UnifiedReflectionMode::size_);
 
     switch (result)
     {
-        case Mode::specular_spike:
+        case UnifiedReflectionMode::specular_spike:
             return this->calc_specular_spike();
-        case Mode::specular_lobe:
+        case UnifiedReflectionMode::specular_lobe:
             return this->calc_specular_lobe();
-        case Mode::back_scattering:
+        case UnifiedReflectionMode::back_scattering:
             return this->calc_back_scattering();
-        case Mode::diffuse_lambertian:
+        case UnifiedReflectionMode::diffuse_lambertian:
             return this->sample_lambertian_reflection(rng);
         default:
             CELER_ASSERT_UNREACHABLE();
