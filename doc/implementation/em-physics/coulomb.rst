@@ -34,7 +34,7 @@ Models
 
 .. doxygenclass:: celeritas::CoulombScatteringInteractor
 .. doxygenclass:: celeritas::detail::UrbanMscScatter
-.. doxygenstruct:: celeritas::UrbanMscParameters
+.. celerstruct:: UrbanMscParameters
 
 Cross sections
 --------------
@@ -53,7 +53,7 @@ Nuclear form factors
 The nuclear form factors used by :cpp:class:`celeritas::WentzelDistribution`
 are:
 
-.. doxygenstruct:: celeritas::NuclearFormFactorTraits
+.. celerstruct:: NuclearFormFactorTraits
 .. doxygenclass:: celeritas::ExpNuclearFormFactor
 .. doxygenclass:: celeritas::GaussianNuclearFormFactor
 .. doxygenclass:: celeritas::UUNuclearFormFactor

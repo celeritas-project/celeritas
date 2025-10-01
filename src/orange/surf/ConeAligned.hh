@@ -21,9 +21,9 @@ namespace celeritas
 /*!
  * Axis-aligned cone (infinite and double-sheeted).
  *
- * For a cone parallel to the x axis:
+ * For a cone parallel to the z axis:
  * \f[
-    (y - y_0)^2 + (z - z_0)^2 - t^2 (x - x_0)^2 = 0
+    (x - x_0)^2 + (y - y_0)^2 - t^2 (z - z_0)^2 = 0
    \f]
 
  * where \em t is the tangent of the opening angle (\f$r/h\f$ for a finite cone

@@ -21,7 +21,7 @@ include(CMakeDependentOption)
 include(CMakePackageConfigHelpers)
 
 #----------------------------------------------------------------------------#
-# MAIN OPTIONS
+# PACKAGE OPTIONS
 #----------------------------------------------------------------------------#
 
 # NOTE: languages must be *first* because their settings affect the
@@ -87,6 +87,20 @@ endif()
 # Automatic options
 celeritas_force_package(CLI11 ${CELERITAS_BUILD_APPS})
 celeritas_force_package(GTest ${CELERITAS_BUILD_TESTS})
+
+#----------------------------------------------------------------------------#
+# PACKAGE-SPECIFIC OPTIONS
+#----------------------------------------------------------------------------#
+
+if(CELERITAS_USE_Python)
+  # Note that these are used by the celeritas_get_python_env command
+  set(CELERITAS_PYTHONPATH "$ENV{PYTHONPATH}" CACHE STRING
+    "Python path used for finding modules and generating documentation"
+  )
+  set(CELERITAS_PYTHONWARNINGS "$ENV{PYTHONWARNINGS}" CACHE STRING
+    "Warning options to send to Python"
+  )
+endif()
 
 #----------------------------------------------------------------------------#
 # CELERITAS CORE IMPLEMENTATION OPTIONS
@@ -397,9 +411,6 @@ if(CELERITAS_USE_Python)
   if(NOT Python_FOUND)
     find_package(Python 3.6 REQUIRED COMPONENTS Interpreter)
   endif()
-  set(CELERITAS_PYTHONPATH "$ENV{PYTHONPATH}" CACHE STRING
-    "Python path used for finding modules and generating documentation"
-  )
 endif()
 
 if(CELERITAS_USE_ROOT)
@@ -528,9 +539,7 @@ if(CELERITAS_BUILD_DOCS)
     if(CELERITAS_USE_Breathe)
       find_program(LATEXMK_EXECUTABLE latexmk)
     endif()
-    if(CELERITAS_USE_SphinxMermaid)
-      find_program(MMDC_EXECUTABLE mmdc)
-    endif()
+    find_program(MMDC_EXECUTABLE mmdc)
   endif()
   include(ExternalProject)
 endif()
