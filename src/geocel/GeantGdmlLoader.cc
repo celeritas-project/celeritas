@@ -17,7 +17,6 @@
 
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
-#include "corecel/sys/ScopedProfiling.hh"
 
 #include "ScopedGeantExceptionHandler.hh"
 #include "ScopedGeantLogger.hh"
@@ -89,7 +88,6 @@ auto GeantGdmlLoader::operator()(std::string const& filename) const -> Result
 
     ScopedMem record_mem("GeantGdmlLoader.load");
     ScopedTimeLog scoped_time;
-    ScopedProfiling profile_this{"geant-gdml-load"};
 
     ScopedGeantLogger scoped_logger;
     ScopedGeantExceptionHandler scoped_exceptions;

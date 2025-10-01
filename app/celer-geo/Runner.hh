@@ -10,7 +10,6 @@
 #include <string>
 
 #include "corecel/cont/EnumArray.hh"
-#include "corecel/sys/TracingSession.hh"
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/rasterize/Image.hh"
 
@@ -74,7 +73,6 @@ class Runner
     //// DATA ////
 
     ModelSetup input_;
-    TracingSession tracing_;
     GeoArray<SPConstGeometry> geo_cache_;
     SPImageParams last_image_;
     std::string imager_name_;

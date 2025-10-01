@@ -29,9 +29,6 @@ struct ModelSetup
 
     //! Geometry filename to load (usually GDML)
     std::string geometry_file;
-
-    //! Perfetto tracing session output
-    std::string perfetto_file;
 };
 
 //---------------------------------------------------------------------------//
