@@ -113,13 +113,14 @@ if(NOT Sphinx_FOUND)
   function(celeritas_build_sphinx type output depends)
     add_custom_command(
       OUTPUT "${output}"
-      VERBATIM COMMAND
+      COMMAND
         "${CMAKE_COMMAND}"
         -UCELERITAS_PYTHONPATH
         -UCELERITAS_CHECK_PYTHON_MODULE_sphinx
         -DCELERITAS_PYTHONPATH_RERUN:BOOL=ON
         "${CMAKE_BINARY_DIR}"
-        COMMENT "Sphinx not found: rerunning CMake with clean PYTHONPATH"
+      COMMENT "Sphinx not found: rerunning CMake with clean PYTHONPATH"
+      VERBATIM
     )
   endfunction()
 else()
@@ -132,7 +133,7 @@ else()
     endif()
     add_custom_command(
       OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${output}"
-      VERBATIM COMMAND
+      COMMAND
         "${CMAKE_COMMAND}" -E env ${CELER_PYTHONENV}
         "$<TARGET_FILE:Python::Interpreter>" -m sphinx.cmd.build -q
           -d "${CMAKE_CURRENT_BINARY_DIR}/doctrees"
@@ -146,6 +147,7 @@ else()
         "${CMAKE_CURRENT_SOURCE_DIR}/conf.py"
         "${CMAKE_CURRENT_BINARY_DIR}/config.json"
          ${depends}
+      VERBATIM
     )
   endfunction()
 endif()
@@ -160,10 +162,11 @@ function(celeritas_build_latex input output)
     set(LATEXMK_EXECUTABLE "latexmk")
   endif()
   add_custom_command(OUTPUT "${output}"
-    VERBATIM COMMAND
+    COMMAND
       "${CMAKE_COMMAND}" -E env ${_texenv}
-        "${LATEXMK_EXECUTABLE}" -f -pdf "${input}"
+      "${LATEXMK_EXECUTABLE}" -f -pdf "${input}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/latex"
+    VERBATIM
     ${ARGN}
   )
 endfunction()
@@ -264,6 +267,8 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/test/*.hh"
   "${PROJECT_SOURCE_DIR}/test/*.cc"
 )
+# IMPORTANT: the target name and USE_STAMP_FILE generate a dependency used by
+# the downstream sphinx docs when Breathe is available
 doxygen_add_docs(doxygen_xml
   ${_DOXYGEN_SOURCE}
   ${_DOXYGEN_EXTRA_SOURCE}
@@ -290,10 +295,11 @@ if(Sphinx_FOUND)
       set(_output "${_output_base}/${basename}.png")
       add_custom_command(
         OUTPUT "${_output}"
-        VERBATIM COMMAND
+        COMMAND
         "${CMAKE_COMMAND}" -E copy "${_png_fallback}" "${_output}"
         COMMENT "Copying fallback Mermaid PNG: ${basename}.png"
         DEPENDS "${inp}"
+        VERBATIM
       )
       list(APPEND _mermaid_output "${_output}")
     else()
@@ -302,11 +308,12 @@ if(Sphinx_FOUND)
         set(_output "${_output_base}/${basename}.${_fmt}")
         add_custom_command(
           OUTPUT "${_output}"
-          VERBATIM COMMAND
+          COMMAND
             "${MMDC_EXECUTABLE}" -i "${inp}" -o "${_output}"
              --backgroundColor white
           COMMENT "Generating Mermaid: ${basename}.${_fmt}"
           DEPENDS "${inp}"
+          VERBATIM
         )
         list(APPEND _mermaid_output "${_output}")
       endforeach()
@@ -330,14 +337,7 @@ else()
 endif()
 
 if(CELERITAS_USE_BREATHE)
-  set(_doc_xml "${DOXYGEN_XML_OUTPUT}/index.xml")
-  add_custom_command(
-    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${_doc_xml}"
-    DEPENDS doxygen_xml
-    COMMAND "${CMAKE_COMMAND}" -E touch_nocreate "${CMAKE_CURRENT_BINARY_DIR}/${_doc_xml}"
-    VERBATIM
-  )
-  list(APPEND _sphinx_deps "${CMAKE_CURRENT_BINARY_DIR}/${_doc_xml}" doxygen_xml)
+  list(APPEND _sphinx_deps "${CMAKE_CURRENT_BINARY_DIR}/doxygen_xml.stamp")
 endif()
 
 # The built-in 'dummy' builder simply parses the input and caches everything
@@ -409,6 +409,5 @@ else()
 endif()
 
 add_custom_target(doc_pdf DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${_doc_pdf}")
-add_dependencies(doc_pdf doc_preprocess)
 
 #-----------------------------------------------------------------------------#
