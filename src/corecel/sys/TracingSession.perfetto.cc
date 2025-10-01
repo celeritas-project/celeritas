@@ -120,7 +120,7 @@ TracingSession::TracingSession(std::string const& filename) noexcept
     : session_{initialize_session(filename.empty() ? TracingMode::system
                                                    : TracingMode::in_process)}
 {
-    if (ScopedProfiling::enabled())
+    if (!ScopedProfiling::enabled())
     {
         CELER_ASSERT(!session_);
         if (!filename.empty())
