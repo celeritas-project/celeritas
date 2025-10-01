@@ -95,6 +95,7 @@ FresnelCalculator::FresnelCalculator(PhotonPhasor const& inc_photon,
     CELER_EXPECT(relative_r_index > 0);
     CELER_EXPECT(is_entering_surface(inc_photon.direction, normal));
 
+    // \todo Check why the dot product is slightly greater than 1 sometimes
     cos_theta_ = clamp(-dot_product(inc_photon_.direction, normal_),
                        real_type{0},
                        real_type{1});
