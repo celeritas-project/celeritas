@@ -277,6 +277,7 @@ SurfacePhysicsTrackView::material(SurfaceTrackPosition pos) const
 {
     auto pos_range
         = range(SurfaceTrackPosition{this->traversal().num_positions()});
+    CELER_EXPECT(pos < pos_range.size());
 
     if (pos == pos_range.front())
     {
@@ -289,7 +290,7 @@ SurfacePhysicsTrackView::material(SurfaceTrackPosition pos) const
         return states_.post_volume_material[track_id_];
     }
 
-    return this->surface().material(pos - 1);
+    return this->surface().interstitial_material(pos);
 }
 
 //---------------------------------------------------------------------------//

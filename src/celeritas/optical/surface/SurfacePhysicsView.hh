@@ -17,11 +17,11 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Persistent optical surface physics data for a track.
+ * Optical surface physics data.
  *
- * Maps surface track positions to material and interface data for an optical
- * surface. Some persistent track data (orientation, pre-material, and
- * post-material) are track-dependent and used for the mapping.
+ * Maps surface track position to interstitial optical material and interface
+ * data for a given optical surface. The optical surface may be oriented
+ * (forward or reverse) relative to its layout in the data record.
  */
 class SurfacePhysicsView
 {
@@ -42,8 +42,9 @@ class SurfacePhysicsView
     // Get surface orientation
     inline CELER_FUNCTION SubsurfaceDirection orientation() const;
 
-    // Get optical material at the given track position
-    inline CELER_FUNCTION OptMatId material(SurfaceTrackPosition) const;
+    // Get optical interstitial material at the given track position
+    inline CELER_FUNCTION
+        OptMatId interstitial_material(SurfaceTrackPosition) const;
 
     // Get the physics surface at the given position and direction
     inline CELER_FUNCTION PhysSurfaceId interface(SurfaceTrackPosition,
@@ -56,6 +57,11 @@ class SurfacePhysicsView
 
     // Get record data for the current surface
     inline CELER_FUNCTION SurfaceRecord const& surface_record() const;
+
+    // Index a map along a given orientation
+    template<class T>
+    inline CELER_FUNCTION T oriented_map(ItemMap<SurfaceTrackPosition, T> const&,
+                                         SurfaceTrackPosition) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -99,14 +105,21 @@ CELER_FUNCTION SubsurfaceDirection SurfacePhysicsView::orientation() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Return the subsurface material ID of the given track position.
+ * Return the interstitial material ID of the given track position.
+ *
+ * Position should be in the range [1,N] where N is the number of subsurface
+ * materials.
  */
-CELER_FUNCTION OptMatId SurfacePhysicsView::material(SurfaceTrackPosition pos) const
+CELER_FUNCTION OptMatId
+SurfacePhysicsView::interstitial_material(SurfaceTrackPosition pos) const
 {
+    // Position 0 is pre-volume material, and N+1 is post-volume material.
+    // Offset position so it maps to the interstitial material range.
+    --pos;
     CELER_ASSERT(pos < this->surface_record().subsurface_materials.size());
 
-    auto material_record_id = OrientedItemMap{
-        this->surface_record().subsurface_materials, this->orientation()}[pos];
+    auto material_record_id
+        = this->oriented_map(this->surface_record().subsurface_materials, pos);
     CELER_ASSERT(material_record_id < params_.subsurface_materials.size());
 
     return params_.subsurface_materials[material_record_id];
@@ -120,13 +133,13 @@ CELER_FUNCTION OptMatId SurfacePhysicsView::material(SurfaceTrackPosition pos) c
 CELER_FUNCTION PhysSurfaceId SurfacePhysicsView::interface(
     SurfaceTrackPosition pos, SubsurfaceDirection d) const
 {
-    auto interface_pos = pos + IfReverseDirection<int>{-1}(d);
+    auto interface_pos = pos + (d == SubsurfaceDirection::reverse ? -1 : 0);
 
     CELER_ASSERT(interface_pos
                  < this->surface_record().subsurface_interfaces.size());
 
-    return OrientedItemMap{this->surface_record().subsurface_interfaces,
-                           this->orientation()}[interface_pos];
+    return oriented_map(this->surface_record().subsurface_interfaces,
+                        interface_pos);
 }
 
 //---------------------------------------------------------------------------//
@@ -136,6 +149,21 @@ CELER_FUNCTION PhysSurfaceId SurfacePhysicsView::interface(
 CELER_FUNCTION SurfaceRecord const& SurfacePhysicsView::surface_record() const
 {
     return params_.surfaces[this->surface()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Index an \c ItemMap along the surface's orientation.
+ */
+template<class T>
+CELER_FUNCTION T SurfacePhysicsView::oriented_map(
+    ItemMap<SurfaceTrackPosition, T> const& map, SurfaceTrackPosition pos) const
+{
+    auto index = orientation_ == SubsurfaceDirection::reverse
+                     ? SurfaceTrackPosition{(map.size() - 1) - pos.get()}
+                     : pos;
+    CELER_ASSERT(index < map.size());
+    return map[index];
 }
 
 //---------------------------------------------------------------------------//
