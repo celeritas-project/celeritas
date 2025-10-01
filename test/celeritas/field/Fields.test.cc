@@ -4,6 +4,8 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/field/Fields.test.cc
 //---------------------------------------------------------------------------//
+#include "Fields.test.hh"
+
 #include <algorithm>
 #include <fstream>
 
@@ -443,6 +445,67 @@ TEST_F(CartMapFieldTest, all)
         0.33834865689278,
     };
     EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-6});
+}
+
+TEST_F(CartMapFieldTest, TEST_IF_CELER_DEVICE(device))
+{
+    CartMapFieldInput inp;
+    inp.x.min = -2750;
+    inp.x.max = 2750;
+    inp.x.num = static_cast<size_type>(inp.x.max * 2 / 100);
+    inp.y.min = -2750;
+    inp.y.max = 2750;
+    inp.y.num = static_cast<size_type>(inp.y.max * 2 / 100);
+    inp.z.min = -6350;
+    inp.z.max = 6350;
+    inp.z.num = static_cast<size_type>(inp.z.max * 2 / 100);
+    Array<size_type, 4> const dims{
+        inp.x.num, inp.y.num, inp.z.num, static_cast<size_type>(Axis::size_)};
+    size_type const total_points = inp.x.num * inp.y.num * inp.z.num;
+
+    // Resize each component of the field
+    inp.field.resize(static_cast<size_type>(Axis::size_) * total_points);
+
+    // Fill with a simple field pattern
+    HyperslabIndexer const flat_index{dims};
+    for (size_type x = 0; x < inp.x.num; ++x)
+    {
+        for (size_type y = 0; y < inp.y.num; ++y)
+        {
+            for (size_type z = 0; z < inp.z.num; ++z)
+            {
+                auto arr = inp.field.begin() + flat_index(x, y, z, 0);
+                arr[static_cast<size_type>(Axis::x)] = std::cos(x);
+                arr[static_cast<size_type>(Axis::y)] = std::sin(y);
+                arr[static_cast<size_type>(Axis::z)] = std::tan(z);
+            }
+        }
+    }
+
+    Real3 n_samples{3, 3, 3};
+
+    std::vector<real_type> field_values(n_samples[0] * n_samples[1] * n_samples[2] * 3);
+
+    auto span = make_span(field_values);
+    // Run the test on device
+    field_test(inp, span, n_samples);
+
+    static real_type const expected_field[]
+        = {1,         0,         0,        1,         0,         0.16975,
+           1,         0,         0.336311, 1,         0.956376,  0,
+           1,         0.956376,  0.16975,  1,         0.956376,  0.336311,
+           1,         -0.547601, 0,        1,         -0.547601, 0.16975,
+           1,         -0.547601, 0.336311, -0.292139, 0,         0,
+           -0.292139, 0,         0.16975,  -0.292139, 0,         0.336311,
+           -0.292139, 0.956376,  0,        -0.292139, 0.956376,  0.16975,
+           -0.292139, 0.956376,  0.336311, -0.292139, -0.547601, 0,
+           -0.292139, -0.547601, 0.16975,  -0.292139, -0.547601, 0.336311,
+           -0.830352, 0,         0,        -0.830352, 0,         0.16975,
+           -0.830352, 0,         0.336311, -0.830352, 0.956376,  0,
+           -0.830352, 0.956376,  0.16975,  -0.830352, 0.956376,  0.336311,
+           -0.830352, -0.547601, 0,        -0.830352, -0.547601, 0.16975,
+           -0.830352, -0.547601, 0.336311};
+    EXPECT_VEC_NEAR(expected_field, field_values, real_type{1e-5});
 }
 //---------------------------------------------------------------------------//
 }  // namespace test
