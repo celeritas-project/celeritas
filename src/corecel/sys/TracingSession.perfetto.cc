@@ -102,6 +102,7 @@ void TracingSession::flush() noexcept
 {
     if (ScopedProfiling::enabled())
     {
+        CELER_LOG_LOCAL(debug) << "Flushing Perfetto tracing session";
         perfetto::TrackEvent::Flush();
     }
 }
@@ -164,6 +165,8 @@ TracingSession::~TracingSession()
     if (session_)
     {
         TracingSession::flush();
+
+        CELER_LOG(debug) << "Finalizing Perfetto";
         session_->StopBlocking();
         if (fd_ != system_fd_)
         {
