@@ -62,7 +62,7 @@ namespace celeritas
  * Additionally, a \c StateData collection group must define
  * - A member function \c size() returning the number of entries (i.e. number
  *   of threads)
- * - A free function \c resize with one of two signatures:
+ * - A free function \c resize with one of three signatures:
  * \code
    void resize(
        StateData<Ownership::value, M>* data,
