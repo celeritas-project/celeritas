@@ -76,7 +76,7 @@ class VecgeomParams final : public GeoParamsInterface,
 
     //!@{
     //! \name Static constructor helpers
-    //! \todo move these to a "model" abstraction
+    //! \todo Move these to a "model" abstraction
 
     // Build by loading a GDML file (best available method)
     static std::shared_ptr<VecgeomParams>
