@@ -152,6 +152,9 @@ TracingSession::TracingSession(std::string const& filename) noexcept
     }
 }
 
+// Default move construct
+TracingSession::TracingSession(TracingSession&&) = default;
+
 //---------------------------------------------------------------------------//
 /*!
  * Block until the current session is closed.

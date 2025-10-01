@@ -58,8 +58,13 @@ class TracingSession
     // Configure an in-process session recording to filename
     explicit TracingSession(std::string const& filename) noexcept;
 
-    // Prevent copy/move; destructor deallocates forward-declared pointer
-    CELER_DELETE_COPY_MOVE(TracingSession);
+    // Prevent copy/assignment; destructor deallocates forward-declared pointer
+    TracingSession(TracingSession const&) = delete;
+    TracingSession& operator=(TracingSession const&) = delete;
+    TracingSession& operator=(TracingSession&&) = delete;
+
+    // Default move constructor to handle unique_ptr hidden implementation
+    TracingSession(TracingSession&&);
 
     // Terminate the session and close open files
     ~TracingSession();
@@ -96,6 +101,7 @@ inline TracingSession::TracingSession(std::string const& s) noexcept
             << R"(Ignoring tracing session file: Perfetto is disabled)";
     }
 }
+inline TracingSession::TracingSession(TracingSession&&) = default;
 inline TracingSession::~TracingSession() = default;
 inline void TracingSession::flush() noexcept {}
 #endif
