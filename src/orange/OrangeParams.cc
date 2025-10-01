@@ -84,6 +84,8 @@ OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo,
     CELER_EXPECT(volumes);
     CELER_EXPECT(!volumes->empty());
 
+    ScopedProfiling profile_this{"orange-load-geant"};
+
     // Set up options for debug output
     g4org::Converter::Options opts;
     if (celeritas::getenv_flag("G4ORG_VERBOSE", false).value)
@@ -142,6 +144,7 @@ OrangeParams::from_json(std::string const& filename)
 {
     CELER_LOG(info) << "Loading ORANGE geometry from JSON at " << filename;
     ScopedTimeLog scoped_time;
+    ScopedProfiling profile_this{"orange-load-json"};
 
     OrangeInput result;
 
@@ -172,7 +175,7 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
 {
     CELER_VALIDATE(input, << "input geometry is incomplete");
 
-    ScopedProfiling profile_this{"finalize-orange-runtime"};
+    ScopedProfiling profile_this{"orange-construct"};
     ScopedMem record_mem("orange.finalize_runtime");
     CELER_LOG(debug) << "Merging runtime data"
                      << (celeritas::device() ? " and copying to GPU" : "");

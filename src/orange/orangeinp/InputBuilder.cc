@@ -101,7 +101,7 @@ InputBuilder::InputBuilder(Options&& opts) : opts_{std::move(opts)}
  */
 auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
 {
-    ScopedProfiling profile_this{"build-orange-input"};
+    ScopedProfiling profile_this{"orangeinp-build"};
     ScopedMem record_mem("orange.build_input");
     CELER_LOG(status) << "Constructing ORANGE surfaces and runtime data";
     ScopedTimeLog scoped_time;

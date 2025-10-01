@@ -23,6 +23,8 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/DeviceIO.json.hh"
+#include "corecel/sys/Environment.hh"
+#include "corecel/sys/EnvironmentIO.json.hh"
 #include "corecel/sys/KernelRegistry.hh"
 #include "corecel/sys/KernelRegistryIO.json.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
@@ -235,6 +237,7 @@ void run(std::string const& filename)
             {
                 {"device", device()},
                 {"kernels", kernel_registry()},
+                {"environment", environment()},
                 {"build", json_pimpl_output(BuildOutput{})},
             },
         },
