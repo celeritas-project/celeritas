@@ -40,7 +40,7 @@ __global__ void field_test_kernel(unsigned int const size,
                                   AxisGrid<real_type> x_grid,
                                   AxisGrid<real_type> y_grid,
                                   AxisGrid<real_type> z_grid,
-                                  Real3 n_samples,
+                                  Array<size_type, 3> n_samples,
                                   real_type* field_values)
 {
     auto tid = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
@@ -90,7 +90,7 @@ __global__ void field_test_kernel(unsigned int const size,
 //! Run on device and return results
 void field_test(CartMapFieldInput& inp,
                 Span<real_type>& field_values,
-                Real3& n_samples)
+                Array<size_type, 3>& n_samples)
 {
     CartMapFieldParams field_map{inp};
 

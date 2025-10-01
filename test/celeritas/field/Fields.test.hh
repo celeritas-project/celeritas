@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 
 #include "corecel/Assert.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "celeritas/field/CartMapFieldInput.hh"
 
@@ -19,10 +21,11 @@ namespace test
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-void field_test(CartMapFieldInput&, Span<real_type>&, Real3&);
+void field_test(CartMapFieldInput&, Span<real_type>&, Array<size_type, 3>&);
 
 #if !CELER_USE_DEVICE
-inline void field_test(CartMapFieldInput&, Span<real_type>&, Real3&)
+inline void
+field_test(CartMapFieldInput&, Span<real_type>&, Array<size_type, 3>&)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
