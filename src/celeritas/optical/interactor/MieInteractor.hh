@@ -31,7 +31,10 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample optical Mie scattering using the Henyey–Greenstein distribution.
+ * Sample optical Mie scattering using the Henyey–Greenstein distribution
+ *\f[
+ *   P(\cos\theta) \propto \frac{1 - g^2}{(1 + g^2 - 2g\cos\theta)^{3/2}}
+ * \f].
  * Parameters:
  * - forward_ratio: probability of using forward vs backward lobe
  * - forward_g, backward_g: HG asymmetry parameters for each lobe

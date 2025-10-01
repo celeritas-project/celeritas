@@ -1627,7 +1627,7 @@ TEST_F(LarSphere, optical)
 {
     ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::info};
     auto&& imported = this->imported_data();
-    ASSERT_EQ(4, imported.optical_models.size());
+    ASSERT_EQ(5, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(3, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
@@ -1861,7 +1861,7 @@ TEST_F(LarSphere, optical)
 TEST_F(LarSphereExtramat, optical)
 {
     auto&& imported = this->imported_data();
-    ASSERT_EQ(4, imported.optical_models.size());
+    ASSERT_EQ(5, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(3, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());

@@ -4,6 +4,8 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/Mie.test.cc
 //---------------------------------------------------------------------------//
+#include "corecel/random/Histogram.hh"
+#include "corecel/random/HistogramSampler.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
@@ -100,22 +102,26 @@ TEST_F(MieTest, mie_basic)
             result.polarization, this->particle_track().polarization()));
     }
 
-    static real_type const expected_dir_angle[] = {
-        0.997467127484242,
-        0.999530487034177,
-        0.999999642467185,
-        0.996187032055894,
-    };
-    static real_type const expected_pol_angle[] = {
-        0.999904430863429,
-        -0.99959742953257,
-        -0.999999650643697,
-        0.996510957439599,
-    };
+    if constexpr (std::is_same_v<real_type, double>)
+    {
+        static real_type const expected_dir_angle[] = {
+            0.997467127484242,
+            0.999530487034177,
+            0.999999642467185,
+            0.996187032055894,
+        };
+        static real_type const expected_pol_angle[] = {
+            0.999904430863429,
+            -0.99959742953257,
+            -0.999999650643697,
+            0.996510957439599,
+        };
+
+        EXPECT_VEC_SOFT_EQ(expected_dir_angle, dir_angle);
+        EXPECT_VEC_SOFT_EQ(expected_pol_angle, pol_angle);
+    }
 
     EXPECT_EQ(32, rng_engine.count());
-    EXPECT_VEC_SOFT_EQ(expected_dir_angle, dir_angle);
-    EXPECT_VEC_SOFT_EQ(expected_pol_angle, pol_angle);
 }
 
 TEST_F(MieTest, mfp)
@@ -133,6 +139,59 @@ TEST_F(MieTest, mfp)
     EXPECT_TABLE_EQ(
         this->import_model_by_class(ImportModelClass::mie).mfp_table,
         storage(builder.grid_ids()));
+}
+
+TEST_F(MieTest, stress_test)
+{
+    constexpr size_type num_samples = 1'000'000;
+    this->build_model();
+    MieInteractor interact(
+        data_, this->particle_track(), direction_, material_id_);
+
+    auto& rng_engine = this->InteractorHostBase::rng();
+    this->set_inc_polarization({0, 1, 0});
+
+    Histogram accum_dir{8, {-1, 1}};
+    Histogram accum_pol{8, {-1, 1}};
+    accumulate_n(
+        [&](auto&& result) {
+            accum_dir(dot_product(result.direction, direction_));
+            accum_pol(dot_product(result.polarization,
+                                  this->particle_track().polarization()));
+        },
+        interact,
+        rng_engine,
+        num_samples);
+    EXPECT_FALSE(accum_dir.underflow() || accum_dir.overflow()
+                 || accum_pol.underflow() || accum_pol.overflow());
+
+    static double const expected_accum_dir[] = {
+        0.04042,
+        0.001868,
+        0.002324,
+        0.002896,
+        0.0042,
+        0.00708,
+        0.0164,
+        3.924812,
+    };
+    static double const expected_accum_pol[] = {
+        1.992904,
+        0.004736,
+        0.001632,
+        0.003144,
+        0.002992,
+        0.001624,
+        0.004784,
+        1.993412,
+    };
+
+    auto avg_samples = static_cast<double>(rng_engine.exchange_count())
+                       / static_cast<double>(num_samples);
+    SoftEqual<real_type> tol{1e-2, 1e-2};
+    EXPECT_VEC_NEAR(expected_accum_dir, accum_dir.calc_density(), tol);
+    EXPECT_VEC_NEAR(expected_accum_pol, accum_pol.calc_density(), tol);
+    EXPECT_SOFT_NEAR(4.0 * sizeof(real_type) / sizeof(float), avg_samples, tol);
 }
 
 //---------------------------------------------------------------------------//

@@ -78,16 +78,8 @@ void MieModel::build_mfps(OptMatId mat, MfpBuilder& build) const
     }
     else
     {
-        CELER_LOG(debug)
-            << "mie model MFP not found for setting to infinity for "
-            << mat.get();
-        inp::Grid g;
-        // should change these at some point. the .x vals are coming from the
-        // opnovice example as of now
-        g.x = {1.56962, 6.19998};
-        g.y = {std::numeric_limits<real_type>::infinity(),
-               std::numeric_limits<real_type>::infinity()};
-        build(g);
+        build(
+            inp::Grid::from_constant(std::numeric_limits<double>::infinity()));
     }
 }
 
