@@ -97,6 +97,9 @@ class SurfacePhysicsTrackView
     SurfaceParamsRef const& params_;
     SurfaceStateRef const& states_;
     TrackSlotId const track_id_;
+
+    // Get material at the given track position
+    inline CELER_FUNCTION OptMatId material(SurfaceTrackPosition) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -163,7 +166,7 @@ CELER_FUNCTION bool SurfacePhysicsTrackView::is_crossing_boundary() const
  */
 CELER_FUNCTION OptMatId SurfacePhysicsTrackView::material() const
 {
-    return this->surface().material(this->traversal().position());
+    return this->material(this->traversal().position());
 }
 
 //---------------------------------------------------------------------------//
@@ -172,7 +175,7 @@ CELER_FUNCTION OptMatId SurfacePhysicsTrackView::material() const
  */
 CELER_FUNCTION OptMatId SurfacePhysicsTrackView::next_material() const
 {
-    return this->surface().material(this->traversal().next_position());
+    return this->material(this->traversal().next_position());
 }
 
 //---------------------------------------------------------------------------//
@@ -250,7 +253,9 @@ CELER_FUNCTION SurfaceTraversalView SurfacePhysicsTrackView::traversal() const
  */
 CELER_FUNCTION SurfacePhysicsView SurfacePhysicsTrackView::surface() const
 {
-    return SurfacePhysicsView{params_, states_, track_id_};
+    return SurfacePhysicsView{params_,
+                              states_.surface[track_id_],
+                              states_.surface_orientation[track_id_]};
 }
 
 //---------------------------------------------------------------------------//
@@ -261,6 +266,30 @@ CELER_FUNCTION SurfacePhysicsParamsScalars const&
 SurfacePhysicsTrackView::scalars() const
 {
     return params_.scalars;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get material at given track position.
+ */
+CELER_FUNCTION OptMatId
+SurfacePhysicsTrackView::material(SurfaceTrackPosition pos) const
+{
+    auto pos_range
+        = range(SurfaceTrackPosition{this->traversal().num_positions()});
+
+    if (pos == pos_range.front())
+    {
+        // Pre-volume material
+        return states_.pre_volume_material[track_id_];
+    }
+    else if (pos == pos_range.back())
+    {
+        // Post-volume material
+        return states_.post_volume_material[track_id_];
+    }
+
+    return this->surface().material(pos - 1);
 }
 
 //---------------------------------------------------------------------------//

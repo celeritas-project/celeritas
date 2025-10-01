@@ -189,6 +189,8 @@ CELER_FUNCTION void SurfaceTraversalView::position(SurfaceTrackPosition pos)
  *
  * This is equivalent to the number of interstitial sub-surface materials, plus
  * the pre-volume and post-volumes.
+ *
+ * \todo Check if caching this would improve performance over redirections.
  */
 CELER_FUNCTION SurfaceTrackPosition::size_type
 SurfaceTraversalView::num_positions() const

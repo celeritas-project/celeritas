@@ -29,14 +29,12 @@ class SurfacePhysicsView
     //!@{
     //! \name Type aliases
     using SurfaceParamsRef = NativeCRef<SurfacePhysicsParamsData>;
-    using SurfaceStateRef = NativeRef<SurfacePhysicsStateData>;
     //!@}
 
   public:
     // Construct view from data and state
-    inline CELER_FUNCTION SurfacePhysicsView(SurfaceParamsRef const&,
-                                             SurfaceStateRef const&,
-                                             TrackSlotId);
+    inline CELER_FUNCTION
+    SurfacePhysicsView(SurfaceParamsRef const&, SurfaceId, SubsurfaceDirection);
 
     // Get current surface ID
     inline CELER_FUNCTION SurfaceId surface() const;
@@ -53,8 +51,8 @@ class SurfacePhysicsView
 
   private:
     SurfaceParamsRef const& params_;
-    SurfaceStateRef const& states_;
-    TrackSlotId const track_id_;
+    SurfaceId surface_;
+    SubsurfaceDirection orientation_;
 
     // Get record data for the current surface
     inline CELER_FUNCTION SurfaceRecord const& surface_record() const;
@@ -68,12 +66,11 @@ class SurfacePhysicsView
  */
 CELER_FUNCTION
 SurfacePhysicsView::SurfacePhysicsView(SurfaceParamsRef const& params,
-                                       SurfaceStateRef const& states,
-                                       TrackSlotId track)
-    : params_(params), states_(states), track_id_(track)
+                                       SurfaceId surface,
+                                       SubsurfaceDirection orientation)
+    : params_(params), surface_(surface), orientation_(orientation)
 {
-    CELER_EXPECT(track_id_ < states_.size());
-    CELER_EXPECT(this->surface() < params_.surfaces.size());
+    CELER_EXPECT(surface_ < params_.surfaces.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -84,7 +81,7 @@ SurfacePhysicsView::SurfacePhysicsView(SurfaceParamsRef const& params,
  */
 CELER_FUNCTION SurfaceId SurfacePhysicsView::surface() const
 {
-    return states_.surface[track_id_];
+    return surface_;
 }
 
 //---------------------------------------------------------------------------//
@@ -97,32 +94,19 @@ CELER_FUNCTION SurfaceId SurfacePhysicsView::surface() const
  */
 CELER_FUNCTION SubsurfaceDirection SurfacePhysicsView::orientation() const
 {
-    return states_.surface_orientation[track_id_];
+    return orientation_;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Return the subsurface material ID of the current track position.
+ * Return the subsurface material ID of the given track position.
  */
 CELER_FUNCTION OptMatId SurfacePhysicsView::material(SurfaceTrackPosition pos) const
 {
-    auto pos_range = range(SurfaceTrackPosition{
-        this->surface_record().subsurface_materials.size() + 2});
+    CELER_ASSERT(pos < this->surface_record().subsurface_materials.size());
 
-    if (pos == pos_range.front())
-    {
-        // In pre-volume
-        return states_.pre_volume_material[track_id_];
-    }
-    if (pos == pos_range.back())
-    {
-        // In post-volume
-        return states_.post_volume_material[track_id_];
-    }
-
-    auto material_record_id
-        = OrientedItemMap{this->surface_record().subsurface_materials,
-                          this->orientation()}[pos - 1];
+    auto material_record_id = OrientedItemMap{
+        this->surface_record().subsurface_materials, this->orientation()}[pos];
     CELER_ASSERT(material_record_id < params_.subsurface_materials.size());
 
     return params_.subsurface_materials[material_record_id];
