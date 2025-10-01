@@ -16,6 +16,8 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/HyperslabIndexer.hh"
+#include "corecel/grid/GridTypes.hh"
+#include "corecel/grid/Interpolator.hh"
 #include "corecel/math/Quantity.hh"
 #include "corecel/math/Turn.hh"
 #include "geocel/Types.hh"
@@ -339,22 +341,19 @@ TEST_F(CartMapFieldTest, all)
     size_type const ny_samples = 3;
     size_type const nz_samples = 3;
     std::vector<real_type> actual;
-
+    Interpolator interp_x({0, inp.x.min}, {nx_samples - 1, inp.x.max});
+    Interpolator interp_y({0, inp.y.min}, {ny_samples - 1, inp.y.max});
+    Interpolator interp_z({0, inp.z.min}, {nz_samples - 1, inp.z.max});
     for (size_type ix = 0; ix < nx_samples; ++ix)
     {
-        real_type x = inp.x.min
-                      + ix * (inp.x.max - inp.x.min) / (nx_samples - 1);
-        x = std::min(x, inp.x.max - 1);
+        real_type x = std::min(interp_x(ix), inp.x.max - 1);
+
         for (size_type iy = 0; iy < ny_samples; ++iy)
         {
-            real_type y = inp.y.min
-                          + iy * (inp.y.max - inp.y.min) / (ny_samples - 1);
-            y = std::min(y, inp.y.max - 1);
+            real_type y = std::min(interp_y(iy), inp.y.max - 1);
             for (size_type iz = 0; iz < nz_samples; ++iz)
             {
-                real_type z = inp.z.min
-                              + iz * (inp.z.max - inp.z.min) / (nz_samples - 1);
-                z = std::min(z, inp.z.max - 1);
+                real_type z = std::min(interp_z(iz), inp.z.max - 1);
 
                 Real3 field = calc_field({x, y, z});
                 for (real_type f : field)

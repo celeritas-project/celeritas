@@ -13,6 +13,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/DeviceVector.hh"
+#include "corecel/grid/Interpolator.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "celeritas/field/CartMapField.hh"
@@ -53,22 +54,24 @@ __global__ void field_test_kernel(unsigned int const size,
     size_type nz_samples = static_cast<size_type>(n_samples[2]);
 
     size_type index = 0;
+    Interpolator interp_x(
+        {0, x_grid.min}, {static_cast<real_type>(nx_samples - 1), x_grid.max});
+    Interpolator interp_y(
+        {0, y_grid.min}, {static_cast<real_type>(ny_samples - 1), y_grid.max});
+    Interpolator interp_z(
+        {0, z_grid.min}, {static_cast<real_type>(nz_samples - 1), z_grid.max});
 
     for (size_type ix = 0; ix < nx_samples; ++ix)
     {
-        real_type x = x_grid.min
-                      + ix * (x_grid.max - x_grid.min) / (nx_samples - 1);
+        real_type x = interp_x(ix);
         x = celeritas::min(x, x_grid.max - 1);
         for (size_type iy = 0; iy < ny_samples; ++iy)
         {
-            real_type y = y_grid.min
-                          + iy * (y_grid.max - y_grid.min) / (ny_samples - 1);
+            real_type y = interp_y(iy);
             y = celeritas::min(y, y_grid.max - 1);
             for (size_type iz = 0; iz < nz_samples; ++iz)
             {
-                real_type z = z_grid.min
-                              + iz * (z_grid.max - z_grid.min)
-                                    / (nz_samples - 1);
+                real_type z = interp_z(iz);
                 z = celeritas::min(z, z_grid.max - 1);
 
                 Real3 field = calc_field({x, y, z});
