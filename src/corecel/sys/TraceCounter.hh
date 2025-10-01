@@ -34,7 +34,8 @@ inline void trace_counter(char const* name, T value)
 {
     static_assert(std::is_arithmetic_v<T>,
                   "Only numeric counters are supported");
-    if ((CELERITAS_USE_PERFETTO || CELERITAS_USE_CUDA) && use_profiling())
+    if ((CELERITAS_USE_PERFETTO || CELERITAS_USE_CUDA)
+        && ScopedProfiling::enabled())
     {
         using counter_type = detail::trace_counter_type<T>;
         detail::trace_counter_impl<counter_type>(name, value);

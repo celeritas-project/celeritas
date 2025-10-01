@@ -72,6 +72,7 @@ celeritas_add_test(io/Logger.test.cc
 celeritas_add_test(io/OutputRegistry.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(io/Repr.test.cc)
+celeritas_add_test(io/ScopedStreamRedirect.test.cc)
 celeritas_add_test(io/StringEnumMapper.test.cc)
 celeritas_add_test(io/StringUtils.test.cc)
 
@@ -131,7 +132,6 @@ celeritas_add_test(sys/MpiCommunicator.test.cc
 celeritas_add_test(sys/MultiExceptionHandler.test.cc)
 celeritas_add_test(sys/TypeDemangler.test.cc)
 celeritas_add_test(sys/ScopedSignalHandler.test.cc)
-celeritas_add_test(sys/ScopedStreamRedirect.test.cc)
 celeritas_add_test(sys/Stopwatch.test.cc ADDED_TESTS _stopwatch)
 set_tests_properties(${_stopwatch} PROPERTIES LABELS "nomemcheck")
 celeritas_add_test(sys/Version.test.cc)

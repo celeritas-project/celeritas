@@ -32,7 +32,7 @@ namespace celeritas
  * behavior. Profiling is never enabled if CUDA/ROC-TX/Perfetto are
  * unavailable.
  */
-bool use_profiling()
+bool ScopedProfiling::enabled()
 {
     static bool const result = [] {
         auto result = celeritas::getenv_flag("CELER_ENABLE_PROFILING", false);

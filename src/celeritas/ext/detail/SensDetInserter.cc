@@ -45,7 +45,7 @@ void SensDetInserter::operator()(G4LogicalVolume const* lv,
     if (VolumeId id = this->insert_impl(lv))
     {
         CELER_LOG(debug) << "Mapped sensitive detector \"" << sd->GetName()
-                         << "\" on logical volume " << PrintableLV{lv}
+                         << "\" on logical volume " << StreamableLV{lv}
                          << " to volume ID " << id.get();
     }
 }
@@ -61,7 +61,7 @@ void SensDetInserter::operator()(G4LogicalVolume const* lv)
     if (VolumeId id = this->insert_impl(lv))
     {
         CELER_LOG(debug) << "Mapped unspecified detector on logical volume "
-                         << PrintableLV{lv} << " to volume ID " << id.get();
+                         << StreamableLV{lv} << " to volume ID " << id.get();
     }
 }
 
@@ -72,7 +72,7 @@ VolumeId SensDetInserter::insert_impl(G4LogicalVolume const* lv)
     {
         CELER_LOG(debug)
             << "Skipping automatic SD callback for logical volume \""
-            << PrintableLV{lv} << "\" due to user option";
+            << StreamableLV{lv} << "\" due to user option";
         return {};
     }
 
@@ -95,12 +95,12 @@ VolumeId SensDetInserter::insert_impl(G4LogicalVolume const* lv)
                 << "Canonical volume " << id.get()
                 << "\" is mapped to two different volumes with "
                    "sensitive detectors: "
-                << PrintableLV{lv} << " and " << PrintableLV{iter->second};
+                << StreamableLV{lv} << " and " << StreamableLV{iter->second};
         }
         else
         {
             CELER_LOG(debug)
-                << "Ignored duplicate logical volume " << PrintableLV{lv};
+                << "Ignored duplicate logical volume " << StreamableLV{lv};
         }
     }
 

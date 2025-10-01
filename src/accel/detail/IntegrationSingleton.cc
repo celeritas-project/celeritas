@@ -56,7 +56,7 @@ validate_and_return_offloaded(SetupOptions::VecG4PD const& user)
     {
         CELER_ASSERT(pd);
         CELER_VALIDATE(find(pd),
-                       << "Particle " << PrintablePD{pd}
+                       << "Particle " << StreamablePD{pd}
                        << " is not available in Celeritas");
     }
     return user;

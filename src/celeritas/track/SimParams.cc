@@ -27,16 +27,17 @@ SimParams::Input SimParams::Input::from_import(ImportData const& data,
                                                SPConstParticles particle_params)
 {
     return SimParams::Input::from_import(
-        data, std::move(particle_params), FieldDriverOptions{}.max_substeps);
+        data, std::move(particle_params), inp::TrackingLimits{});
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with imported data.
  */
-SimParams::Input SimParams::Input::from_import(ImportData const& data,
-                                               SPConstParticles particle_params,
-                                               size_type max_field_substeps)
+SimParams::Input
+SimParams::Input::from_import(ImportData const& data,
+                              SPConstParticles particle_params,
+                              inp::TrackingLimits const& limits)
 {
     CELER_EXPECT(particle_params);
     CELER_EXPECT(data.trans_params);
@@ -44,12 +45,12 @@ SimParams::Input SimParams::Input::from_import(ImportData const& data,
 
     using MaxSubstepsInt = decltype(FieldDriverOptions{}.max_substeps);
 
-    CELER_VALIDATE(max_field_substeps > 0
-                       && max_field_substeps
+    CELER_VALIDATE(limits.field_substeps > 0
+                       && limits.field_substeps
                               <= std::numeric_limits<MaxSubstepsInt>::max(),
-                   << "maximum field substep limit " << max_field_substeps
+                   << "maximum field substep limit " << limits.field_substeps
                    << " is out of range (should be in (0, "
-                   << std::numeric_limits<MaxSubstepsInt>::max() << "))");
+                   << std::numeric_limits<MaxSubstepsInt>::max() << "])");
 
     SimParams::Input input;
     input.particles = std::move(particle_params);
@@ -58,9 +59,9 @@ SimParams::Input SimParams::Input::from_import(ImportData const& data,
     // can take while looping (ceil(max Geant4 field propagator substeps / max
     // Celeritas field propagator substeps))
     CELER_ASSERT(data.trans_params.max_substeps
-                 >= static_cast<int>(max_field_substeps));
+                 >= static_cast<int>(limits.field_substeps));
     auto max_subthreshold_steps = ceil_div<size_type>(
-        data.trans_params.max_substeps, max_field_substeps);
+        data.trans_params.max_substeps, limits.field_substeps);
 
     for (auto pid : range(ParticleId{input.particles->size()}))
     {
@@ -77,6 +78,7 @@ SimParams::Input SimParams::Input::from_import(ImportData const& data,
             = LoopingThreshold::Energy(iter->second.important_energy);
         input.looping.insert({pdg, looping});
     }
+    input.max_steps = limits.steps;
 
     return input;
 }
@@ -93,7 +95,7 @@ SimParams::SimParams(Input const& input)
             && input.max_steps <= std::numeric_limits<size_type>::max(),
         << "maximum step limit " << input.max_steps
         << " is out of range (should be in (0, "
-        << std::numeric_limits<size_type>::max() << "))");
+        << std::numeric_limits<size_type>::max() << "])");
 
     HostVal<SimParamsData> host_data;
 

@@ -42,23 +42,23 @@ using GeantTouchableBase = G4VTouchable;
 
 //---------------------------------------------------------------------------//
 //! Wrap around a touchable to get a descriptive output.
-struct PrintableNavHistory
+struct StreamableNavHistory
 {
     G4NavigationHistory const* nav{nullptr};
 };
 
 //---------------------------------------------------------------------------//
 //! Wrap around a G4LogicalVolume to get a descriptive output.
-struct PrintableLV
+struct StreamableLV
 {
     G4LogicalVolume const* lv{nullptr};
 };
 
 // Print detailed information about the touchable history.
-std::ostream& operator<<(std::ostream&, PrintableNavHistory const&);
+std::ostream& operator<<(std::ostream&, StreamableNavHistory const&);
 
 // Print the logical volume name, ID, and address.
-std::ostream& operator<<(std::ostream&, PrintableLV const&);
+std::ostream& operator<<(std::ostream&, StreamableLV const&);
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
@@ -101,12 +101,12 @@ find_geant_volumes(std::unordered_set<std::string>)
     CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline std::ostream& operator<<(std::ostream&, PrintableNavHistory const&)
+inline std::ostream& operator<<(std::ostream&, StreamableNavHistory const&)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline std::ostream& operator<<(std::ostream&, PrintableLV const&)
+inline std::ostream& operator<<(std::ostream&, StreamableLV const&)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }

@@ -420,7 +420,7 @@ TEST_F(TestEm3MctruthTest, four_step)
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
