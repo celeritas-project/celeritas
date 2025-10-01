@@ -67,6 +67,7 @@ else()
 endif()
 
 set(_env
+  ${CELER_PYTHONENV}
   ${CELER_G4ENV}
   "CELER_LOG_LOCAL=debug"
   "CELER_DISABLE_PARALLEL=1"

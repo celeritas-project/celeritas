@@ -119,22 +119,21 @@ if(NOT Sphinx_FOUND)
         -UCELERITAS_CHECK_PYTHON_MODULE_sphinx
         -DCELERITAS_PYTHONPATH_RERUN:BOOL=ON
         "${CMAKE_BINARY_DIR}"
-      COMMENT "Rerunning CMake because Sphinx was not found"
+        COMMENT "Sphinx not found: rerunning CMake with clean PYTHONPATH"
     )
   endfunction()
 else()
+  celeritas_get_pyenv(CELER_PYTHONENV)
   function(celeritas_build_sphinx type output depends)
     if(NOT type STREQUAL "dummy")
       set(_comment "Building Sphinx ${type} documentation: doc/${output}")
     else()
-      set(_comment "Processing Sphinx ${type} documentation")
+      set(_comment "Processing Sphinx documentation")
     endif()
     add_custom_command(
       OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${output}"
       VERBATIM COMMAND
-        "${CMAKE_COMMAND}" -E env
-          "PYTHONPATH=${CELERITAS_PYTHONPATH}"
-          "CMAKE_CURRENT_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+        "${CMAKE_COMMAND}" -E env ${CELER_PYTHONENV}
         "$<TARGET_FILE:Python::Interpreter>" -m sphinx.cmd.build -q
           -d "${CMAKE_CURRENT_BINARY_DIR}/doctrees"
           -b ${type}
