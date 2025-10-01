@@ -13,14 +13,13 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/math/NumericLimits.hh"
+#include "corecel/random/data/RanluxppTypes.hh"
 
 namespace celeritas
 {
 namespace detail
 {
-//---------------------------------------------------------------------------//
-//! 64-bit unsigned integer type for Ranluxpp
-using RanluxppUInt = std::uint64_t;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -208,7 +207,7 @@ computeR(Span<RanluxppUInt const, 9> upper, Span<RanluxppUInt, 9> r)
     greater_m &= (r[3] >> 48) == 0xffff;
     for (int i : celeritas::range(4, 9))
     {
-        greater_m &= (r[i] == std::numeric_limits<RanluxppUInt>::max());
+        greater_m &= (r[i] == celeritas::numeric_limits<RanluxppUInt>::max());
     }
     return c + (c == 0 && greater_m);
 }

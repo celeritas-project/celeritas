@@ -8,13 +8,14 @@
 
 #include <cstdint>
 
+#include "corecel/random/data/RanluxppTypes.hh"
+
 #include "RanluxppHelpers.hh"
 
 namespace celeritas
 {
 namespace detail
 {
-using RanluxppStateArray = Array<RanluxppUInt, 9>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -27,7 +28,7 @@ using RanluxppStateArray = Array<RanluxppUInt, 9>;
  * \param[out] lcg     The 576 bits of the LCG state, smaller than m
  */
 CELER_FUNCTION void
-toLCG(RanluxppStateArray const& ranlux, RanluxppUInt c, RanluxppStateArray& lcg)
+toLCG(RanluxppArray9 const& ranlux, RanluxppUInt c, RanluxppArray9& lcg)
 {
     RanluxppUInt carry = 0;
     // Subtract the final 240 bits.
@@ -66,11 +67,10 @@ toLCG(RanluxppStateArray const& ranlux, RanluxppUInt c, RanluxppStateArray& lcg)
  * \param[out] ranlux  The RANLUX numbers as 576 bits
  * \param[out] c       The carry bit of the RANLUX state
  */
-CELER_FUNCTION void toRanlux(RanluxppStateArray const& lcg,
-                             RanluxppStateArray& ranlux,
-                             RanluxppUInt& c_out)
+CELER_FUNCTION void
+toRanlux(RanluxppArray9 const& lcg, RanluxppArray9& ranlux, RanluxppUInt& c_out)
 {
-    RanluxppStateArray r = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    RanluxppArray9 r = {0, 0, 0, 0, 0, 0, 0, 0, 0};
     int64_t c = computeR(celeritas::make_span(lcg), celeritas::make_span(r));
 
     // ranlux = t1 + t2 + c

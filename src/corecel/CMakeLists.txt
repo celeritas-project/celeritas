@@ -208,6 +208,7 @@ list(APPEND SOURCES
   random/data/CuHipRngData.cc
   random/data/XorwowRngData.cc
   random/params/CuHipRngParams.cc
+  random/params/RanluxppRngParams.cc
   random/params/XorwowRngParams.cc
   sys/ActionInterface.cc
   sys/ActionRegistry.cc

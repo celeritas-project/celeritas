@@ -9,6 +9,7 @@
 #include <cstdint>
 
 #include "corecel/Macros.hh"
+#include "corecel/random/data/RanluxppTypes.hh"
 
 #include "RanluxppHelpers.hh"
 
@@ -16,20 +17,18 @@ namespace celeritas
 {
 namespace detail
 {
-using RanluxppStateArray = Array<RanluxppUInt, 9>;
-using StateArray18 = Array<RanluxppUInt, 18>;
 
 //---------------------------------------------------------------------------//
 /*!
  * Multiply two 576 bit numbers, stored as 9 numbers of 64 bits each
  *
- * \param[in] in1  first factor as 9 numbers of 64 bits each
- * \param[in] in2  second factor as 9 numbers of 64 bits each
- * \param[out] out result with 18 numbers of 64 bits each
+ * \param[in]  in1  first factor as 9 numbers of 64 bits each
+ * \param[in]  in2  second factor as 9 numbers of 64 bits each
+ * \param[out] out  result with 18 numbers of 64 bits each
  */
-CELER_FUNCTION void multiply9x9(RanluxppStateArray const& in1,
-                                RanluxppStateArray const& in2,
-                                StateArray18& out)
+CELER_FUNCTION void multiply9x9(RanluxppArray9 const& in1,
+                                RanluxppArray9 const& in2,
+                                RanluxppArray18& out)
 {
     RanluxppUInt next = 0;
     RanluxppUInt nextCarry = 0;
@@ -158,9 +157,9 @@ CELER_FUNCTION void multiply9x9(RanluxppStateArray const& in1,
  * \param[in] mul product from multiply9x9 with 18 numbers of 64 bits each
  * \param[out] out result with 9 numbers of 64 bits each
  */
-CELER_FUNCTION void modM(StateArray18 const& mul, RanluxppStateArray& out)
+CELER_FUNCTION void modM(RanluxppArray18 const& mul, RanluxppArray9& out)
 {
-    RanluxppStateArray r;
+    RanluxppArray9 r;
     // Assign r = t0
     std::copy_n(mul.begin(), 9, r.begin());
 
@@ -238,10 +237,9 @@ CELER_FUNCTION void modM(StateArray18 const& mul, RanluxppStateArray& out)
  * \param[in]    in1   first factor with 9 numbers of 64 bits each
  * \param[inout] inout second factor and also the output of the same size
  */
-CELER_FUNCTION void
-mulmod(RanluxppStateArray const& in1, RanluxppStateArray& inout)
+CELER_FUNCTION void mulmod(RanluxppArray9 const& in1, RanluxppArray9& inout)
 {
-    StateArray18 mul;
+    RanluxppArray18 mul;
     multiply9x9(in1, inout, mul);
     modM(mul, inout);
 }
@@ -256,14 +254,13 @@ mulmod(RanluxppStateArray const& in1, RanluxppStateArray& inout)
  * \param[out] res   output with 9 numbers of 64 bits each
  * \param[in]  n     exponent
  */
-CELER_FUNCTION void powermod(RanluxppStateArray const& base,
-                             RanluxppStateArray& res,
-                             RanluxppUInt n)
+CELER_FUNCTION void
+powermod(RanluxppArray9 const& base, RanluxppArray9& res, RanluxppUInt n)
 {
-    RanluxppStateArray fac = base;
+    RanluxppArray9 fac = base;
     res = {1, 0, 0, 0, 0, 0, 0, 0};
 
-    StateArray18 mul;
+    RanluxppArray18 mul;
     while (n)
     {
         if (n & 1)
