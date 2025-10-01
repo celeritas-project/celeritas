@@ -272,18 +272,18 @@ class EllipticalCylinder final : public IntersectRegionInterface
  * The elliptical cone is defined in an analogous fashion to the regular
  * (i.e., circular) cone. A half-height (hh) defines the \em z extents, such
  * that the centroid of the outer bounding box is the origin. The lower radii
- * are the \em x  and \em y radii at the plane \f$ z = -\textrm{hh} \f$.
- * The upper radii are the \em x and \em y radii at the plane \f$ z =
- * textrm{hh} \f$. There are several restrictions on these radii:
+ * are the \em x  and \em y radii at the plane \f$ z = -\mathrm{hh} \f$.
+ * The upper radii are the \em x and \em y radii at the plane
+ * \f$ z = \mathrm{hh} \f$. There are several restrictions on these radii:
  *
- * 1. Either the lower or upper radii may be \f$(0, 0)\f$; this is the only
- *    permitted way for the elliptical cone to include the vertex.
- * 2. The aspect ratio of the elliptical cross sections is constant. Thus, the
- *    upper radii must be a constant scalar times the upper radii.
- * 3. Degenerate elliptical cones (lower_radii == upper_radii, i.e.,
- *    elliptical cylinders) are not permitted.
- * 4. Degenerate elliptical cones where lower or upper radii are equal to
- *    (0, x) or (x, 0), where x is non-zero, are not permitted.
+ * - Either the lower or upper radii may be \f$(0, 0)\f$; this is the only
+ *   permitted way for the elliptical cone to include the vertex.
+ * - The aspect ratio of the elliptical cross sections is constant. Thus, the
+ *   upper radii must be a constant scalar times the upper radii.
+ * - Degenerate elliptical cones (lower_radii == upper_radii, i.e.,
+ *   elliptical cylinders) are not permitted.
+ * - Degenerate elliptical cones where lower or upper radii are equal to
+ *   \f$(0, x)\f$ or \f$(x, 0)\f$, where \em x is non-zero, are not permitted.
  *
  * The elliptical surface can be expressed as
  * \f[
