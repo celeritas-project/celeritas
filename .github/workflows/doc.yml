@@ -71,8 +71,6 @@ jobs:
             sudo apt-get -y update
             sudo apt-get -y install \
                 cmake graphviz ninja-build doxygen nlohmann-json3-dev
-            sudo npm install -g @mermaid-js/mermaid-cli
-            sudo npm -g rebuild puppeteer
       - name: Check out Celeritas
         uses: actions/checkout@v4
         with:
@@ -81,10 +79,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version-file: .python-version
-      - name: Install Python packages
+      - name: Install Python and Node packages
         run: |
             pip install --upgrade pip
             pip install -r scripts/doc-requirements.txt
+            npm install @mermaid-js/mermaid-cli
+            npx puppeteer browsers install
       - name: Configure celeritas
         run: |
           # NOTE: tags have issues, see https://github.com/actions/checkout/issues/2041
