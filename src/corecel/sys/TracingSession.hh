@@ -14,11 +14,6 @@
 
 #include "corecel/Macros.hh"
 
-namespace perfetto
-{
-class TracingSession;
-}  // namespace perfetto
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -58,28 +53,20 @@ class TracingSession
     // Configure an in-process session recording to filename
     explicit TracingSession(std::string const& filename) noexcept;
 
-    // Prevent copy/assignment; destructor deallocates forward-declared pointer
-    TracingSession(TracingSession const&) = delete;
-    TracingSession& operator=(TracingSession const&) = delete;
-    TracingSession& operator=(TracingSession&&) = delete;
-
-    // Default move constructor to handle unique_ptr hidden implementation
-    TracingSession(TracingSession&&);
-
-    // Terminate the session and close open files
-    ~TracingSession();
-
     // Start the profiling session (DEPRECATED: remove in v1.0)
     //! The session is now started on construction; this is now a null-op
     [[deprecated]] void start() noexcept {}
 
-  private:
-    static constexpr int system_fd_{-1};
+    //! Return whether profiling is enabled
+    explicit operator bool() const { return static_cast<bool>(impl_); }
 
-#if CELERITAS_USE_PERFETTO
-    std::unique_ptr<perfetto::TracingSession> session_;
-    int fd_{system_fd_};
-#endif
+  private:
+    struct Impl;
+    struct ImplDeleter
+    {
+        void operator()(Impl*) noexcept;
+    };
+    std::unique_ptr<Impl, ImplDeleter> impl_;
 };
 
 //---------------------------------------------------------------------------//
@@ -101,9 +88,12 @@ inline TracingSession::TracingSession(std::string const& s) noexcept
             << R"(Ignoring tracing session file: Perfetto is disabled)";
     }
 }
-inline TracingSession::TracingSession(TracingSession&&) = default;
-inline TracingSession::~TracingSession() = default;
 inline void TracingSession::flush() noexcept {}
+
+inline void TracingSession::ImplDeleter::operator()(Impl*) noexcept
+{
+    CELER_UNREACHABLE;
+}
 #endif
 
 //---------------------------------------------------------------------------//
