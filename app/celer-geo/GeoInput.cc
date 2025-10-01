@@ -58,6 +58,7 @@ void from_json(nlohmann::json const& j, ModelSetup& v)
     GI_LOAD_OPTION(cuda_stack_size);
     GI_LOAD_OPTION(cuda_heap_size);
     GI_LOAD_REQUIRED(geometry_file);
+    GI_LOAD_OPTION(perfetto_file);
 }
 
 void from_json(nlohmann::json const& j, TraceSetup& v)
