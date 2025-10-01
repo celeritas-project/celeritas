@@ -1,4 +1,4 @@
-//------------------------------- -*- CUDA -*- //-------------------------------//
+//---------------------------------*-CUDA-*----------------------------------//
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -20,7 +20,6 @@
 #include "celeritas/field/CartMapFieldParams.hh"
 
 #include "TestMacros.hh"
-
 
 namespace celeritas
 {
@@ -86,7 +85,9 @@ __global__ void field_test_kernel(unsigned int const size,
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-void field_test(CartMapFieldInput& inp, Span<real_type>& field_values, Real3& n_samples)
+void field_test(CartMapFieldInput& inp,
+                Span<real_type>& field_values,
+                Real3& n_samples)
 {
     CartMapFieldParams field_map{inp};
 

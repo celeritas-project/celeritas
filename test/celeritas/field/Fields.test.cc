@@ -484,7 +484,8 @@ TEST_F(CartMapFieldTest, TEST_IF_CELER_DEVICE(device))
 
     Real3 n_samples{3, 3, 3};
 
-    std::vector<real_type> field_values(n_samples[0] * n_samples[1] * n_samples[2] * 3);
+    std::vector<real_type> field_values(n_samples[0] * n_samples[1]
+                                        * n_samples[2] * 3);
 
     auto span = make_span(field_values);
     // Run the test on device

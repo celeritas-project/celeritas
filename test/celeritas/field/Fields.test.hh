@@ -5,8 +5,8 @@
 //! \file celeritas/field/Fields.test.hh
 //---------------------------------------------------------------------------//
 
-#include "celeritas/field/CartMapFieldInput.hh"
 #include "corecel/cont/Span.hh"
+#include "celeritas/field/CartMapFieldInput.hh"
 
 namespace celeritas
 {
