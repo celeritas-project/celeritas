@@ -200,7 +200,8 @@ function(celeritas_get_pyenv var)
       "CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}"
     )
     foreach(_var PATH WARNINGS)
-      if(CELERITAS_PYTHON${_var})
+      # Note: use string comparison because 'ignore' evaluates as false
+      if(NOT CELERITAS_PYTHON${_var} STREQUAL "")
         list(APPEND _result
           "PYTHON${_var}=${CELERITAS_PYTHON${_var}}"
         )
