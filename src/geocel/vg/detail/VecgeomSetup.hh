@@ -38,6 +38,10 @@ struct CudaPointers
 CudaPointers<detail::CudaBVH_t const> bvh_pointers_device();
 
 //---------------------------------------------------------------------------//
+// Get pointers to the global nav index after setup, for consistency checking
+CudaPointers<unsigned int const> navindex_pointers_device();
+
+//---------------------------------------------------------------------------//
 #if CELERITAS_VECGEOM_SURFACE && !defined(__NVCC__)
 // Set up surface tracking
 void setup_surface_tracking_device(vgbrep::SurfData<vecgeom::Precision> const&);
@@ -51,6 +55,11 @@ void teardown_surface_tracking_device();
 //---------------------------------------------------------------------------//
 #ifndef VECGEOM_ENABLE_CUDA
 inline CudaPointers<detail::CudaBVH_t const> bvh_pointers_device()
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline CudaPointers<detail::NavIndex_t const> navindex_pointers_device()
 {
     CELER_ASSERT_UNREACHABLE();
 }
