@@ -55,22 +55,22 @@ class SurfaceTraversalView
     inline CELER_FUNCTION bool is_exiting(SubsurfaceDirection) const;
 
     // Position of the track in the surface crossing
-    inline CELER_FUNCTION SurfaceTrackPosition position() const;
+    inline CELER_FUNCTION SurfaceTrackPosition pos() const;
 
-    // Next position of the track in the given direction
-    inline CELER_FUNCTION SurfaceTrackPosition next_position() const;
+    // Next pos of the track in the given direction
+    inline CELER_FUNCTION SurfaceTrackPosition next_pos() const;
 
     // Set position of the track in the surface crossing
-    inline CELER_FUNCTION void position(SurfaceTrackPosition);
+    inline CELER_FUNCTION void pos(SurfaceTrackPosition);
 
     // Number of valid positions of the track in the surface crossing
     inline CELER_FUNCTION SurfaceTrackPosition::size_type num_positions() const;
 
     // Current track traversal direction
-    inline CELER_FUNCTION SubsurfaceDirection direction() const;
+    inline CELER_FUNCTION SubsurfaceDirection dir() const;
 
     // Set track traversal direction
-    inline CELER_FUNCTION void direction(SubsurfaceDirection);
+    inline CELER_FUNCTION void dir(SubsurfaceDirection);
 
     // Cross subsurface interface in the given direction
     inline CELER_FUNCTION void cross_interface(SubsurfaceDirection);
@@ -115,7 +115,7 @@ SurfaceTraversalView::operator=(Initializer const&)
  */
 CELER_FUNCTION bool SurfaceTraversalView::in_pre_volume() const
 {
-    return this->position().get() == 0;
+    return this->pos().get() == 0;
 }
 
 //---------------------------------------------------------------------------//
@@ -124,7 +124,7 @@ CELER_FUNCTION bool SurfaceTraversalView::in_pre_volume() const
  */
 CELER_FUNCTION bool SurfaceTraversalView::in_post_volume() const
 {
-    return this->position().get() + 1 == this->num_positions();
+    return this->pos().get() + 1 == this->num_positions();
 }
 
 //---------------------------------------------------------------------------//
@@ -133,7 +133,7 @@ CELER_FUNCTION bool SurfaceTraversalView::in_post_volume() const
  */
 CELER_FUNCTION bool SurfaceTraversalView::is_exiting() const
 {
-    return this->is_exiting(this->direction());
+    return this->is_exiting(this->dir());
 }
 
 //---------------------------------------------------------------------------//
@@ -145,7 +145,7 @@ SurfaceTraversalView::is_exiting(SubsurfaceDirection d) const
 {
     // Use unsigned underflow when moving reverse (-1) on the pre-surface
     // (position 0) to wrap to an invalid position value
-    return advance_subsurface_position_along(this->position(), d).unchecked_get()
+    return next_subsurface_position(this->pos(), d).unchecked_get()
            >= this->num_positions();
 }
 
@@ -158,7 +158,7 @@ SurfaceTraversalView::is_exiting(SubsurfaceDirection d) const
  * pre-volume and N is the post-volume. Depending on the surface orientation,
  * this will be mapped to the appropriate sub-surface material and interface.
  */
-CELER_FUNCTION SurfaceTrackPosition SurfaceTraversalView::position() const
+CELER_FUNCTION SurfaceTrackPosition SurfaceTraversalView::pos() const
 {
     return states_.surface_position[track_id_];
 }
@@ -166,10 +166,9 @@ CELER_FUNCTION SurfaceTrackPosition SurfaceTraversalView::position() const
 //---------------------------------------------------------------------------//
 /*!
  */
-CELER_FUNCTION SurfaceTrackPosition SurfaceTraversalView::next_position() const
+CELER_FUNCTION SurfaceTrackPosition SurfaceTraversalView::next_pos() const
 {
-    return advance_subsurface_position_along(this->position(),
-                                             this->direction());
+    return next_subsurface_position(this->pos(), this->dir());
 }
 
 //---------------------------------------------------------------------------//
@@ -177,7 +176,7 @@ CELER_FUNCTION SurfaceTrackPosition SurfaceTraversalView::next_position() const
  * Set current position of the track in the sub-surfaces, in track-local
  * coordinates.
  */
-CELER_FUNCTION void SurfaceTraversalView::position(SurfaceTrackPosition pos)
+CELER_FUNCTION void SurfaceTraversalView::pos(SurfaceTrackPosition pos)
 {
     CELER_EXPECT(pos < this->num_positions());
     states_.surface_position[track_id_] = pos;
@@ -208,7 +207,7 @@ SurfaceTraversalView::num_positions() const
  * avoid repeated queries of the geometry. The traversal direction should be
  * updated when the geometry direction is updated after an interaction.
  */
-CELER_FUNCTION SubsurfaceDirection SurfaceTraversalView::direction() const
+CELER_FUNCTION SubsurfaceDirection SurfaceTraversalView::dir() const
 {
     return states_.track_direction[track_id_];
 }
@@ -217,7 +216,7 @@ CELER_FUNCTION SubsurfaceDirection SurfaceTraversalView::direction() const
 /*!
  * Set current track traversal direction.
  */
-CELER_FUNCTION void SurfaceTraversalView::direction(SubsurfaceDirection dir)
+CELER_FUNCTION void SurfaceTraversalView::dir(SubsurfaceDirection dir)
 {
     states_.track_direction[track_id_] = dir;
 }
@@ -229,7 +228,7 @@ CELER_FUNCTION void SurfaceTraversalView::direction(SubsurfaceDirection dir)
 CELER_FUNCTION void SurfaceTraversalView::cross_interface(SubsurfaceDirection d)
 {
     CELER_EXPECT(!this->is_exiting(d));
-    this->position(advance_subsurface_position_along(this->position(), d));
+    this->pos(next_subsurface_position(this->pos(), d));
 }
 
 //---------------------------------------------------------------------------//

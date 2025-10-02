@@ -38,10 +38,20 @@ is_entering_surface(Real3 const& dir, Real3 const& normal)
  * pre-surface (pos = 0) to wrap to an invalid position value.
  */
 CELER_FORCEINLINE_FUNCTION SurfaceTrackPosition
-advance_subsurface_position_along(SurfaceTrackPosition pos,
-                                  SubsurfaceDirection dir)
+next_subsurface_position(SurfaceTrackPosition pos, SubsurfaceDirection dir)
 {
     return pos + to_signed_offset(dir);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate subsurface direction from a track's geometry direction.
+ */
+inline CELER_FUNCTION SubsurfaceDirection
+calc_subsurface_direction(Real3 const& geo_dir, Real3 const& normal)
+{
+    return static_cast<SubsurfaceDirection>(
+        is_entering_surface(geo_dir, normal));
 }
 
 //---------------------------------------------------------------------------//

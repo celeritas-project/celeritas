@@ -166,7 +166,7 @@ CELER_FUNCTION bool SurfacePhysicsTrackView::is_crossing_boundary() const
  */
 CELER_FUNCTION OptMatId SurfacePhysicsTrackView::material() const
 {
-    return this->material(this->traversal().position());
+    return this->material(this->traversal().pos());
 }
 
 //---------------------------------------------------------------------------//
@@ -175,7 +175,7 @@ CELER_FUNCTION OptMatId SurfacePhysicsTrackView::material() const
  */
 CELER_FUNCTION OptMatId SurfacePhysicsTrackView::next_material() const
 {
-    return this->material(this->traversal().next_position());
+    return this->material(this->traversal().next_pos());
 }
 
 //---------------------------------------------------------------------------//
@@ -188,7 +188,7 @@ SurfacePhysicsTrackView::interface(SurfacePhysicsOrder step) const
     auto traverse = this->traversal();
     return SurfacePhysicsMapView{
         params_.model_maps[step],
-        this->surface().interface(traverse.position(), traverse.direction())};
+        this->surface().interface(traverse.pos(), traverse.dir())};
 }
 
 //---------------------------------------------------------------------------//
@@ -199,8 +199,8 @@ CELER_FUNCTION void
 SurfacePhysicsTrackView::update_traversal_direction(Real3 const& dir)
 {
     CELER_EXPECT(is_soft_unit_vector(dir));
-    this->traversal().direction(static_cast<SubsurfaceDirection>(
-        is_entering_surface(dir, this->global_normal())));
+    this->traversal().dir(
+        calc_subsurface_direction(dir, this->global_normal()));
 }
 
 //---------------------------------------------------------------------------//
