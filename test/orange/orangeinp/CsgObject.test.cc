@@ -33,7 +33,7 @@ class CsgObjectTest : public ObjectTestBase
     //! Avoid implicit floating point casts by calling this function
     SPConstObject make_sphere(std::string&& name, real_type radius)
     {
-        return std::make_shared<SphereShape>(std::move(name), radius);
+        return make_shape<Sphere>(std::move(name), radius);
     }
 
     //! Create a translated object
@@ -309,6 +309,63 @@ TEST_F(CsgObjectTest, subtraction)
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
     EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
     EXPECT_VEC_EQ(expected_trans_strings, transform_strings(u));
+}
+
+TEST_F(CsgObjectTest, subtraction_atlas)
+{
+    // Shape definitions are from SolidConverter.test.c
+    using VR2 = GenPrism::VecReal2;
+    auto trap = make_shape<GenPrism>(
+        "trap",
+        23.75,
+        VR2{{4.75, -30.70}, {4.75, 30.70}, {-4.75, 30.70}, {-4.75, -30.70}},
+        VR2{{4.75, -25.917}, {4.75, 25.917}, {-4.75, 25.917}, {-4.75, -25.917}});
+    auto box = make_shape<Box>("box", Real3{5.0, 24.48, 15.0});
+    auto trbox = std::make_shared<Transformed>(
+        box,
+        Transformation{make_rotation(Axis::x, Turn{41.592 / 360}),
+                       {0, -22.349, 19.388}});
+
+    auto sub = make_subtraction("LAr::DM::SPliceBoxr", trap, trbox);
+    ASSERT_TRUE(sub);
+    EXPECT_JSON_EQ(
+        R"json({"_type":"all","daughters":[{"_type":"shape","interior":{"_type":"genprism","halfheight":23.75,"lower":[[4.75,-30.7],[4.75,30.7],[-4.75,30.7],[-4.75,-30.7]],"upper":[[4.75,-25.917],[4.75,25.917],[-4.75,25.917],[-4.75,-25.917]]},"label":"trap"},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[5.0,24.48,15.0]},"label":"box"},"transform":{"_type":"transformation","data":[1.0,0.0,0.0,0.0,0.7478907847960848,-0.6638217938702345,0.0,0.6638217938702345,0.7478907847960848,0.0,-22.349,19.388]}},"label":""}],"label":"LAr::DM::SPliceBoxr"})json",
+        to_string(*sub));
+
+    this->build_volume(*sub);
+    this->print_expected();
+
+    static char const* const expected_surface_strings[] = {
+        "Plane: z=-23.75",
+        "Plane: z=23.75",
+        "Plane: x=4.75",
+        "Plane: n={0,0.99497,0.10019}, d=28.166",
+        "Plane: x=-4.75",
+        "Plane: n={0,0.99497,-0.10019}, d=-28.166",
+        "Plane: x=-5",
+        "Plane: x=5",
+        "Plane: n={0,0.74789,0.66382}, d=-28.324",
+        "Plane: n={0,0.74789,0.66382}, d=20.636",
+        "Plane: n={0,0.66382,-0.74789}, d=-14.336",
+        "Plane: n={0,0.66382,-0.74789}, d=-44.336",
+    };
+    static char const* const expected_volume_strings[]
+        = {"all(+0, -1, -2, -3, +4, +5, !all(+6, -7, +8, -9, -10, +11))"};
+    static char const* const expected_md_strings[] = {
+        "",       "",        "trap@mz", "trap@pz",
+        "",       "trap@p0", "",        "trap@p1",
+        "",       "trap@p2", "trap@p3", "trap",
+        "box@mx", "box@px",  "",        "box@my",
+        "box@py", "",        "box@mz",  "",
+        "box@pz", "box",     "",        "LAr::DM::SPliceBoxr",
+    };
+    static char const expected_tree_string[]
+        = R"json(["t",["~",0],["S",0],["S",1],["~",3],["S",2],["~",5],["S",3],["~",7],["S",4],["S",5],["&",[2,4,6,8,9,10]],["S",6],["S",7],["~",13],["S",8],["S",9],["~",16],["S",10],["~",18],["S",11],["&",[12,14,15,17,19,20]],["~",21],["&",[2,4,6,8,9,10,22]]])json";
+
+    EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+    EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+    EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
 }
 
 TEST_F(CsgObjectTest, rdv)
