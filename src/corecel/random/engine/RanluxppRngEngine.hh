@@ -36,30 +36,8 @@ class RanluxppRngEngineImpl
     //!}
 
   protected:
-    //! Return the next random bits, generate a new block if necessary
-    CELER_FUNCTION RanluxppUInt nextRandomBits()
-    {
-        if (state_->position + w > params_.kMaxPos)
-        {
-            state_->advance(params_.kA_2048);
-        }
-
-        int idx = state_->position / 64;
-        int offset = state_->position % 64;
-        int numBits = 64 - offset;
-
-        RanluxppUInt bits = state_->state[idx] >> offset;
-        if (numBits < w)
-        {
-            bits |= state_->state[idx + 1] << numBits;
-        }
-        bits &= ((RanluxppUInt(1) << w) - 1);
-
-        state_->position += w;
-        CELER_ASSERT(state_->position <= params_.kMaxPos);
-
-        return bits;
-    }
+    // Return the next random bits, generate a new block if necessary
+    CELER_FUNCTION inline RanluxppUInt nextRandomBits();
 
     //! Initialize and seed the state of the generator
     CELER_FUNCTION void setSeed(RanluxppUInt s)
@@ -71,13 +49,13 @@ class RanluxppRngEngineImpl
     CELER_FUNCTION void skip(RanluxppUInt n)
     {
         CELER_ASSERT(n > 0);
-
         state_->skip(n, params_.kMaxPos, params_.kA_2048, w);
     }
 
   public:
     //! Lowest value potentially generated (check this)
     static CELER_CONSTEXPR_FUNCTION result_type min() { return 0u; }
+
     //! Highest value potentially generated (check this)
     static CELER_CONSTEXPR_FUNCTION result_type max()
     {
@@ -153,6 +131,37 @@ class RanluxppRngEngine final : public RanluxppRngEngineImpl<48>
         return (lo << 32) | hi;
     }
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Return the next random bits, generate a new block if necessary
+ */
+template<int w>
+CELER_FUNCTION RanluxppUInt RanluxppRngEngineImpl<w>::nextRandomBits()
+{
+    if (state_->position + w > params_.kMaxPos)
+    {
+        state_->advance(params_.kA_2048);
+    }
+
+    int idx = state_->position / 64;
+    int offset = state_->position % 64;
+    int numBits = 64 - offset;
+
+    RanluxppUInt bits = state_->state[idx] >> offset;
+    if (numBits < w)
+    {
+        bits |= state_->state[idx + 1] << numBits;
+    }
+    bits &= ((RanluxppUInt(1) << w) - 1);
+
+    state_->position += w;
+    CELER_ASSERT(state_->position <= params_.kMaxPos);
+
+    return bits;
+}
 
 //---------------------------------------------------------------------------//
 }  // end namespace celeritas
