@@ -321,9 +321,9 @@ make_inp_volume_instances(GeantGeoParams const& geo)
         vi_inp.volume = geo.geant_to_id(*g4lv);
         if (!vi_inp.volume)
         {
-            CELER_LOG(error)
-                << "No canonical volume ID corresponds to "
-                << PrintableLV{g4lv} << " in physical volume " << vi_inp.label;
+            CELER_LOG(error) << "No canonical volume ID corresponds to "
+                             << StreamableLV{g4lv} << " in physical volume "
+                             << vi_inp.label;
             vi_inp.label = {};
             continue;
         }

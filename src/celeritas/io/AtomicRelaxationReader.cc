@@ -37,9 +37,9 @@ AtomicRelaxationReader::AtomicRelaxationReader()
 /*!
  * Construct the reader with the path to the directory containing the data.
  */
-AtomicRelaxationReader::AtomicRelaxationReader(char const* fluor_path,
-                                               char const* auger_path)
-    : fluor_path_(fluor_path), auger_path_(auger_path)
+AtomicRelaxationReader::AtomicRelaxationReader(std::string fluor_path,
+                                               std::string auger_path)
+    : fluor_path_(std::move(fluor_path)), auger_path_(std::move(auger_path))
 {
     CELER_EXPECT(!fluor_path_.empty());
     CELER_EXPECT(!auger_path_.empty());

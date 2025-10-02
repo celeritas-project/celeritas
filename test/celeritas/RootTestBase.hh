@@ -22,6 +22,9 @@ class RootTestBase : public ImportedDataTestBase
     // Access lazily loaded static ROOT data
     ImportData const& imported_data() const final;
 
+    //! Daughter class can modify data after import
+    virtual void fixup_data(ImportData&) const {}
+
     SPConstTrackInit build_init() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstAction build_along_step() override { CELER_ASSERT_UNREACHABLE(); }
 

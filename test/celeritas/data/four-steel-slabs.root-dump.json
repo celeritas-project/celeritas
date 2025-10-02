@@ -53,7 +53,7 @@
     "name" : "G4_STAINLESS-STEEL",
     "state" : 1,
     "temperature" : 293.15,
-    "number_density" : 86993489258991530803200,
+    "number_density" : 86993489258991547580416,
     "elements" : [{
       "_typename" : "celeritas::ImportMatElemComponent",
       "element_id" : 0,
@@ -356,7 +356,7 @@
           "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
           "data_" : [-9.21034037197618, 4.60517018598809]
         },
-        "y" : [0.0919755519795958, 128.588033594672],
+        "y" : [0.0919755519795959, 128.588033594672],
         "interpolation" : {
           "_typename" : "celeritas::inp::Interpolation",
           "type" : 0,
@@ -402,25 +402,6 @@
       }]
     }
   }],
-  "sb_data" : [],
-  "livermore_pe_data" : [],
-  "neutron_elastic_data" : [],
-  "atomic_relaxation_data" : [],
-  "mu_pair_production_data" : {
-    "_typename" : "celeritas::ImportMuPairProductionTable",
-    "atomic_number" : [1, 92],
-    "grids" : [{
-      "_typename" : "celeritas::inp::TwodGrid",
-      "x" : [6.74523634948436, 18.4206807439524],
-      "y" : [-6.03032981021759, 0],
-      "value" : [0, 2.97408672967084e-28, 0, 2.43638436260564e-25]
-    }, {
-      "_typename" : "celeritas::inp::TwodGrid",
-      "x" : [6.74523634948436, 18.4206807439524],
-      "y" : [-6.03032981021759, 0],
-      "value" : [0, 2.39787798860303e-24, 0, 7.93413967608236e-22]
-    }]
-  },
   "em_params" : {
     "_typename" : "celeritas::ImportEmParameters",
     "energy_loss_fluct" : true,
@@ -429,6 +410,7 @@
     "linear_loss_limit" : 0.01,
     "lowest_electron_energy" : 0.001,
     "lowest_muhad_energy" : 0.001,
+    "fluorescence" : false,
     "auger" : false,
     "msc_step_algorithm" : 1,
     "msc_muhad_step_algorithm" : 0,
@@ -442,7 +424,13 @@
     "apply_cuts" : false,
     "screening_factor" : 1,
     "angle_limit_factor" : 1,
-    "form_factor" : 2
+    "form_factor" : 2,
+    "interpolation" : {
+      "_typename" : "celeritas::inp::Interpolation",
+      "type" : 0,
+      "order" : 1,
+      "bc" : 2
+    }
   },
   "trans_params" : {
     "_typename" : "celeritas::ImportTransParameters",
@@ -478,10 +466,46 @@
   "optical_models" : [],
   "optical_materials" : [],
   "units" : "cgs",
+  "livermore_photo" : {
+    "_typename" : "celeritas::inp::LivermorePhotoModel",
+    "atomic_xs" : []
+  },
+  "mu_production" : {
+    "_typename" : "celeritas::inp::MuPairProductionModel",
+    "muppet_table" : {
+      "_typename" : "celeritas::inp::MuPairProductionEnergyTransferTable",
+      "atomic_number" : [{
+        "_typename" : "celeritas::AtomicNumber",
+        "value_" : 1
+      }, {
+        "_typename" : "celeritas::AtomicNumber",
+        "value_" : 92
+      }],
+      "grids" : [{
+        "_typename" : "celeritas::inp::TwodGrid",
+        "x" : [6.74523634948436, 18.4206807439524],
+        "y" : [-6.03032981021759, 0],
+        "value" : [0, 2.97408672967084e-28, 0, 2.43638436260564e-25]
+      }, {
+        "_typename" : "celeritas::inp::TwodGrid",
+        "x" : [6.74523634948436, 18.4206807439524],
+        "y" : [-6.03032981021759, 0],
+        "value" : [0, 2.39787798860303e-24, 0, 7.93413967608236e-22]
+      }]
+    }
+  },
+  "seltzer_berger" : {
+    "_typename" : "celeritas::inp::SeltzerBergerModel",
+    "atomic_xs" : []
+  },
+  "atomic_relaxation" : {
+    "_typename" : "celeritas::inp::AtomicRelaxation",
+    "atomic_xs" : []
+  },
   "optical_physics" : {
     "_typename" : "celeritas::inp::OpticalPhysics",
-    "cherenkov" : true,
-    "scintillation" : true,
+    "cherenkov" : false,
+    "scintillation" : false,
     "surfaces" : {
       "_typename" : "celeritas::inp::SurfacePhysics",
       "materials" : [[]],

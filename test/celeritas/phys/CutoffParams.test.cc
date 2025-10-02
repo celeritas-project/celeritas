@@ -11,12 +11,12 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/RootTestBase.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/mat/detail/Utils.hh"
 #include "celeritas/phys/CutoffView.hh"
-#include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Secondary.hh"
 
@@ -205,6 +205,12 @@ TEST_F(CutoffParamsTest, apply_post_interaction)
 class CutoffParamsImportTest : public RootTestBase
 {
   protected:
+    void fixup_data(ImportData& imported) const override
+    {
+        // Prevent external data loading, which is not relevant
+        imported.processes.clear();
+    }
+
     std::string_view gdml_basename() const override
     {
         return "four-steel-slabs"sv;

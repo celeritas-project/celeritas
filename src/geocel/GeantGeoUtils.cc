@@ -78,7 +78,7 @@ void free_and_clear(std::vector<T*>* table)
  *
  * For brevity, this does not print the world volume.
  */
-std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh)
+std::ostream& operator<<(std::ostream& os, StreamableNavHistory const& pnh)
 {
     CELER_EXPECT(pnh.nav);
     os << '{';
@@ -105,7 +105,7 @@ std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh)
 /*!
  * Print the logical volume name, ID, and address.
  */
-std::ostream& operator<<(std::ostream& os, PrintableLV const& plv)
+std::ostream& operator<<(std::ostream& os, StreamableLV const& plv)
 {
     if (plv.lv)
     {

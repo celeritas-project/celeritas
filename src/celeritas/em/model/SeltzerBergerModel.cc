@@ -42,7 +42,7 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
                                        ParticleParams const& particles,
                                        MaterialParams const& materials,
                                        SPConstImported data,
-                                       ReadData load_sb_table)
+                                       Input const& inp_model)
     : StaticConcreteAction(
           id, "brems-sb", "interact by Seltzer-Berger bremsstrahlung")
     , imported_(data,
@@ -52,7 +52,6 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
                 {pdg::electron(), pdg::positron()})
 {
     CELER_EXPECT(id);
-    CELER_EXPECT(load_sb_table);
 
     ScopedMem record_mem("SeltzerBergerModel.construct");
 
@@ -82,7 +81,10 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
     for (auto el_id : range(ElementId{materials.num_elements()}))
     {
         AtomicNumber z = materials.get(el_id).atomic_number();
-        insert_element(load_sb_table(z));
+        auto iter = inp_model.atomic_xs.find(z);
+        CELER_VALIDATE(iter != inp_model.atomic_xs.end(),
+                       << "missing SB atomic xs for Z=" << z.get());
+        insert_element(iter->second);
     }
     CELER_ASSERT(host_data.differential_xs.elements.size()
                  == materials.num_elements());

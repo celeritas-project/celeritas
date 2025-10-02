@@ -5,9 +5,8 @@
 # Minimal Geant4 application with Celeritas offloading capabilities
 #-----------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.18...4.1)
 project(offload-template VERSION 0.0.1 LANGUAGES CXX)
-cmake_policy(VERSION 3.12...3.30)
 
 # Only necessary for the CI
 # Users can export Celeritas_ROOT or set CMAKE_INSTALL_PREFIX

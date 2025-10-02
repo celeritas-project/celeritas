@@ -79,43 +79,65 @@ celeritas_add_test(random/UniformBoxDistribution.test.cc)
 
 if(CELERITAS_USE_VecGeom)
   # Vecgeom uses global counters that interfere with copying data to GPU and
-  # change the internal numbering.
-  set(_vecgeom_tests)
-  if(VecGeom_GDML_FOUND)
-    list(APPEND _vecgeom_tests
-      "TwoBoxesVgdmlTest.*"
-      "SimpleCmsVgdmlTest.*"
-      "FourLevelsVgdmlTest.*"
-      # Polyhedra doesn't work because of anonymous position tags
+  # change the internal numbering. Run all tests separately using a filter,
+  # first constructing a list of tests that *could* be run.
+  set(_vgdml_tests
+    "FourLevelsVgdml"
+    "MultiLevelVgdml"
+    "SimpleCmsVgdml"
+    "SolidsVgdml"
+    "TwoBoxesVgdml"
+  )
+  set(_g4vg_tests
+    "CmsEeBackDee"
+    "Cmse"
+    "FourLevels"
+    "MultiLevel"
+    "Polyhedra"
+    "Replica"
+    "Solids"
+    "TransformedBox"
+    "Znenv"
+  )
+  set(_vecgeom_test_filter FILTER)
+  foreach(_test IN LISTS _vgdml_tests _g4vg_tests)
+    list(APPEND _vecgeom_test_filter "${_test}Test.*")
+  endforeach()
+
+  # Now build a list of tests that *can't* successfully run
+  set(_vecgeom_disable)
+  if(NOT VecGeom_GDML_FOUND)
+    list(APPEND _vecgeom_disable
+      ".*Vgdml"
     )
-    if(NOT VecGeom_SURF_FOUND)
-      list(APPEND _vecgeom_tests "SolidsVgdmlTest.*" "MultiLevelVgdmlTest.*")
-    endif()
-  endif()
-  if(CELERITAS_USE_Geant4)
-    list(APPEND _vecgeom_tests
-      "CmseTest.*"
-      "CmsEeBackDeeTest.*"
-      "FourLevelsTest.*"
-      "MultiLevelTest.*"
-      "PolyhedraTest.*"
-      "ReplicaTest.*"
-      "TransformedBoxTest.*"
-      "ZnenvTest.*"
+  elseif(CELERITAS_VecGeom_SURFACE)
+    list(APPEND _vecgeom_disable
+      MultiLevelVgdml # Scaling used to create mirror symmetry
+      SolidsVgdml # Missing shapes
     )
-    if(NOT VecGeom_SURF_FOUND)
-      list(APPEND _vecgeom_tests "SolidsTest.*")
-    endif()
   endif()
-  if(NOT _vecgeom_tests)
-    # Bad: no way of setting up geometry!
-    set(_vecgeom_tests DISABLE)
+
+  if(NOT CELERITAS_USE_Geant4)
+    list(APPEND _vecgeom_disable ${_g4vg_tests})
+  elseif(CELERITAS_VecGeom_SURFACE)
+    list(APPEND _vecgeom_disable
+      Solids # Missing shapes
+    )
   endif()
+
+  if(_vecgeom_disable)
+    # Turn list of tests into (A|B|C)
+    list(JOIN _vecgeom_disable "|" _joined_bits)
+    list(APPEND _vecgeom_test_filter
+      DISABLE_FILTER_REGEX "^(${_joined_bits})Test.*"
+    )
+  endif()
+
   celeritas_add_device_test(vg/Vecgeom
     LINK_LIBRARIES
       VecGeom::vecgeom Celeritas::ExtGeant4Geo Celeritas::ExtThrust
       nlohmann_json::nlohmann_json
-    FILTER ${_vecgeom_tests}
+    ${_vecgeom_test_filter}
     ${_fixme_cgs}
   )
 endif()

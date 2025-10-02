@@ -31,14 +31,8 @@ using ElementId = OpaqueId<struct ElementRecord>;
 //! Zero-indexed counter for the initiating event for a track
 using EventId = OpaqueId<struct Event_>;
 
-//! Unique identifier for an event used by external applications
-using UniqueEventId = OpaqueId<struct Event_, std::uint64_t>;
-
-//! Opaque index to IsotopeRecord in a vector
+//! Opaque index to NuclideRecord in a vector
 using IsotopeId = OpaqueId<struct IsotopeRecord>;
-
-//! Opaque index of a material modified by physics options
-using PhysMatId = OpaqueId<struct PhysicsMaterial_>;
 
 //! Opaque index of model in the list of physics processes
 using ModelId = OpaqueId<struct Model_>;
@@ -48,6 +42,9 @@ using OptMatId = OpaqueId<struct OpticalMaterial_, unsigned int>;
 
 //! Opaque index to ParticleRecord in a vector: represents a particle type
 using ParticleId = OpaqueId<struct Particle_>;
+
+//! Opaque index of a material modified by physics options
+using PhysMatId = OpaqueId<struct PhysicsMaterial_>;
 
 //! Unique ID (for an event) of a track among all primaries
 using PrimaryId = OpaqueId<struct Primary_>;
@@ -63,6 +60,9 @@ using SurfaceModelId = OpaqueId<struct SurfaceModel_>;
 
 //! Unique ID (for an event) of a track among all primaries and secondaries
 using TrackId = OpaqueId<struct Track_>;
+
+//! Unique identifier for an event used by external applications
+using UniqueEventId = OpaqueId<struct Event_, std::uint64_t>;
 
 //---------------------------------------------------------------------------//
 // (detailed type aliases)
@@ -88,6 +88,9 @@ using PhysSurfaceId = OpaqueId<struct PhysSurface_, unsigned int>;
 
 //! Opaque index of electron subshell
 using SubshellId = OpaqueId<struct Subshell_>;
+
+//! Opaque index of surface within a specific physics model
+using SurfaceModelId = OpaqueId<struct SurfaceModel_>;
 
 //! Opaque index of a uniform grid
 using UniformGridId = OpaqueId<struct UniformGridRecord>;

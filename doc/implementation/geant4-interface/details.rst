@@ -9,12 +9,7 @@ interface above hides the complexity of these classes, or for more complex
 applications you can choose to use these classes directly instead of it.
 
 .. doxygenclass:: celeritas::SharedParams
-   :members:
-   :no-link:
-
 .. doxygenclass:: celeritas::LocalTransporter
-   :members:
-   :no-link:
 
 Interface utilities
 -------------------
@@ -23,7 +18,7 @@ Interface utilities
 
 .. doxygenclass:: celeritas::ExceptionConverter
 
-.. doxygenstruct:: celeritas::AlongStepFactoryInput
+.. celerstruct:: AlongStepFactoryInput
 
 .. doxygenclass:: celeritas::AlongStepFactoryInterface
 
@@ -40,16 +35,13 @@ Fields
 ^^^^^^
 
 .. doxygenclass:: celeritas::RZMapMagneticField
-
 .. doxygenclass:: celeritas::CylMapMagneticField
-
 .. doxygenfunction:: celeritas::MakeCylMapFieldInput
 
 Primary generators
 ^^^^^^^^^^^^^^^^^^
 
 .. doxygenclass:: celeritas::HepMC3PrimaryGenerator
-
 .. doxygenclass:: celeritas::PGPrimaryGeneratorAction
 
 .. _api_geant4_physics_options:
@@ -62,10 +54,7 @@ very fine-grained selection of the EM physics processes supported by Celeritas.
 The input options incorporate process and model selection as well as default EM
 parameters to send to Geant4.
 
-.. doxygenstruct:: celeritas::GeantPhysicsOptions
-   :members:
-   :no-link:
-
+.. celerstruct:: GeantPhysicsOptions
 .. doxygenclass:: celeritas::SupportedEmStandardPhysics
 
 Physics lists
@@ -75,10 +64,7 @@ Two physics lists (one using Geant4 hadronics, the other using pure Celeritas)
 allow setup of EM physics using only processes supported by Celeritas.
 
 .. doxygenclass:: celeritas::EmPhysicsList
-
 .. doxygenclass:: celeritas::FtfpBertPhysicsList
-
-
 
 Sensitive detectors
 ^^^^^^^^^^^^^^^^^^^
