@@ -17,7 +17,6 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArraySoftUnit.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "corecel/math/PolyEvaluator.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "corecel/random/distribution/RejectionSampler.hh"
@@ -105,14 +104,11 @@ CELER_FUNCTION Interaction MieInteractor::operator()(Engine& rng) const
     // Select forward or backward lobe
     real_type g = (is_forward ? mie_params_.forward_g : mie_params_.backward_g);
 
-    using Linear = PolyEvaluator<real_type, 1>;
-
     // Compute cos(theta) distribution for optical photons that undergo mie
     // scattering
-    real_type costheta = 2 * r * ipow<2>((1 + g) / Linear(1 - g, 2 * g)(r))
-                             * Linear(1 - g, g)(r)
-                         - 1;
     constexpr real_type tol = 1e-7;
+    real_type costheta
+        = 2 * r * ipow<2>((1 + g) / (1 - g + 2 * g * r)) * (1 - g + g * r) - 1;
     if (costheta > 1.0 + tol || costheta < -1.0 - tol)
     {
         CELER_LOG(error)
