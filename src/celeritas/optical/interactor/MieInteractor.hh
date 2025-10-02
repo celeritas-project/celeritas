@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <iomanip>
+
 #include "corecel/Assert.hh"
 #include "corecel/Constants.hh"
 #include "corecel/Macros.hh"
@@ -24,7 +26,6 @@
 #include "celeritas/optical/Interaction.hh"
 #include "celeritas/optical/MieData.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
-
 namespace celeritas
 {
 namespace optical
@@ -111,6 +112,16 @@ CELER_FUNCTION Interaction MieInteractor::operator()(Engine& rng) const
     real_type costheta = 2 * r * ipow<2>((1 + g) / Linear(1 - g, 2 * g)(r))
                              * Linear(1 - g, g)(r)
                          - 1;
+    constexpr real_type tol = 1e-7;
+    if (costheta > 1.0 + tol || costheta < -1.0 - tol)
+    {
+        CELER_LOG(error)
+            << "costheta out-of-bounds beyond tolerance: "
+            << std::setprecision(std::numeric_limits<real_type>::digits10 + 2)
+            << costheta;
+    }
+
+    CELER_ASSERT(costheta >= -1 && costheta <= 1);
 
     // Reverse cos theta if backward_g is chosen
     if (!is_forward)

@@ -86,6 +86,7 @@ TEST_F(MieTest, mie_basic)
         data_, this->particle_track(), direction_, material_id_);
 
     auto& rng_engine = this->InteractorHostBase::rng();
+    // auto expected_rng_engine_count = rng_engine.count();
     this->set_inc_polarization({0, 1, 0});
 
     std::vector<real_type> dir_angle;
@@ -119,9 +120,8 @@ TEST_F(MieTest, mie_basic)
 
         EXPECT_VEC_SOFT_EQ(expected_dir_angle, dir_angle);
         EXPECT_VEC_SOFT_EQ(expected_pol_angle, pol_angle);
+        EXPECT_EQ(32, rng_engine.count());
     }
-
-    EXPECT_EQ(32, rng_engine.count());
 }
 
 TEST_F(MieTest, mfp)
