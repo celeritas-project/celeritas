@@ -35,7 +35,7 @@ namespace
 struct BvhGetter
 {
     using pointer_type = CudaBVH_t const*;
-    static char const label = "bvh";
+    static constexpr char const label[] = "bvh";
 
     pointer_type* dest{nullptr};
 
@@ -51,11 +51,11 @@ struct BvhGetter
 struct NavIndexGetter
 {
     using pointer_type = NavIndex_t const*;
-    static char const label = "navindex";
+    static constexpr char const label[] = "navindex";
 
     pointer_type* dest{nullptr};
 
-    CELER_FUNCTION void operator()(ThreadId tid)
+    __device__ void operator()(ThreadId tid)
     {
         CELER_EXPECT(tid == ThreadId{0});
         *dest = vecgeom::globaldevicegeomdata::gNavIndex;
