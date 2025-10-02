@@ -14,23 +14,18 @@
 
 #include "corecel/Macros.hh"
 
-namespace perfetto
-{
-class TracingSession;
-}  // namespace perfetto
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 // Flush perfetto track events without requiring a TracingSession instance.
-void flush_tracing() noexcept;
+// DEPRECATED: remove in v1.0
+[[deprecated]] inline void flush_tracing() noexcept;
 
 //---------------------------------------------------------------------------//
 /*!
  * RAII wrapper for a tracing session.
  *
- * Constructors will only configure and initialize the session. It needs to
- * be started explicitly by calling \c TracingSession::start
+ * Constructors will only configure and initialize the session.
  * Only a single tracing mode is supported. If you are only interested in
  * application-level events (\c ScopedProfiling and \c trace_counter),
  * then the in-process mode is sufficient and is enabled by providing the
@@ -44,58 +39,60 @@ void flush_tracing() noexcept;
  * required. To start the system daemons using the perfetto backend,
  * see https://perfetto.dev/docs/quickstart/linux-tracing#capturing-a-trace
  *
- * TODO: Support multiple tracing mode.
+ * TODO: Support multiple tracing modes.
  */
 class TracingSession
 {
   public:
+    // Flush the track events associated with the calling thread
+    static void flush() noexcept;
+
     // Configure a system session recording to a daemon
     TracingSession() noexcept;
 
     // Configure an in-process session recording to filename
     explicit TracingSession(std::string const& filename) noexcept;
 
-    // Terminate the session and close open files
-    ~TracingSession();
+    // Start the profiling session (DEPRECATED: remove in v1.0)
+    //! The session is now started on construction; this is now a null-op
+    [[deprecated]] void start() noexcept {}
 
-    // Start the profiling session
-    void start() noexcept;
-
-    // Flush the track events associated with the calling thread
-    void flush() noexcept;
-
-    CELER_DELETE_COPY_MOVE(TracingSession);
+    //! Return whether profiling is enabled
+    explicit operator bool() const { return static_cast<bool>(impl_); }
 
   private:
-    static constexpr int system_fd_{-1};
-    struct Deleter
+    struct Impl;
+    struct ImplDeleter
     {
-        void operator()(perfetto::TracingSession*);
+        void operator()(Impl*) noexcept;
     };
-
-    bool started_{false};
-    std::unique_ptr<perfetto::TracingSession, Deleter> session_;
-    int fd_{system_fd_};
+    std::unique_ptr<Impl, ImplDeleter> impl_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 
-#if !CELERITAS_USE_PERFETTO
-inline void flush_tracing() noexcept {}
-inline TracingSession::TracingSession() noexcept = default;
-inline TracingSession::TracingSession(std::string const&) noexcept {}
-inline TracingSession::~TracingSession() = default;
-inline void TracingSession::start() noexcept
+inline void flush_tracing() noexcept
 {
-    CELER_DISCARD(started_);
-    CELER_DISCARD(fd_);
+    return TracingSession::flush();
+}
+
+#if !CELERITAS_USE_PERFETTO
+inline TracingSession::TracingSession() noexcept = default;
+inline TracingSession::TracingSession(std::string const& s) noexcept
+{
+    if (!s.empty())
+    {
+        CELER_LOG(warning)
+            << R"(Ignoring tracing session file: Perfetto is disabled)";
+    }
 }
 inline void TracingSession::flush() noexcept {}
-inline void TracingSession::Deleter::operator()(perfetto::TracingSession*)
+
+inline void TracingSession::ImplDeleter::operator()(Impl*) noexcept
 {
-    CELER_ASSERT_UNREACHABLE();
+    CELER_UNREACHABLE;
 }
 #endif
 

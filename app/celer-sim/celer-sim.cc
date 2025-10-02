@@ -89,7 +89,6 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
 
     // Start profiling
     TracingSession tracing_session{run_input->tracing_file};
-    tracing_session.start();
     ScopedProfiling profile_this{"celer-sim"};
 
     // Create runner and save setup time

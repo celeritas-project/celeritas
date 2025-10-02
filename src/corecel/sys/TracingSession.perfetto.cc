@@ -10,6 +10,8 @@
 #include <fcntl.h>
 #include <perfetto.h>
 
+#include "corecel/Assert.hh"
+
 #include "Environment.hh"
 #include "ScopedProfiling.hh"
 
@@ -21,42 +23,6 @@ namespace celeritas
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-//! Supported tracing mode
-enum class TracingMode : uint32_t
-{
-    in_process,  //!< Record in-process, writing to a file
-    system  //!< Record in a system daemon
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Initialize the session for the given mode if profiling is enabled.
- */
-std::unique_ptr<perfetto::TracingSession>
-initialize_session(TracingMode mode) noexcept
-{
-    if (!celeritas::ScopedProfiling::enabled())
-    {
-        return nullptr;
-    }
-    perfetto::TracingInitArgs args;
-    args.backends |= [&] {
-        switch (mode)
-        {
-            case TracingMode::in_process:
-                return perfetto::kInProcessBackend;
-            case TracingMode::system:
-                [[fallthrough]];
-            default:
-                return perfetto::kSystemBackend;
-        }
-    }();
-    perfetto::Tracing::Initialize(args);
-    perfetto::TrackEvent::Register();
-    return perfetto::Tracing::NewTrace();
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Configure the session to record Celeritas track events.
@@ -87,15 +53,51 @@ perfetto::TraceConfig configure_session() noexcept
 }  // namespace
 
 //---------------------------------------------------------------------------//
+// PIMPL class
+struct TracingSession::Impl
+{
+    static constexpr int system_fd{-1};
+
+    int fd{system_fd};
+    std::unique_ptr<perfetto::TracingSession> session;
+};
+
+//---------------------------------------------------------------------------//
 /*!
- * Perform the same action a \c TracingSession::flush, however, it does not
- * require a session instance. This is useful in geant4 applications, where
- * workers do not have access to the session instance.
+ * Destroy the tracing session.
  */
-void flush_tracing() noexcept
+void TracingSession::ImplDeleter::operator()(Impl* impl) noexcept
+{
+    if (impl->session)
+    {
+        TracingSession::flush();
+
+        CELER_LOG(debug) << "Finalizing Perfetto";
+        impl->session->StopBlocking();
+        if (impl->fd != impl->system_fd)
+        {
+            close(impl->fd);
+        }
+        impl->session.reset();
+        delete impl;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Flush profiling events associated with the calling thread.
+ *
+ * In multi-threaded applications, this should be called from each
+ * worker thread to ensure that their track events are correctly written.
+ *
+ * This is used by the Geant4 interface class \c
+ * LocalTransporter which may not have access to the session instance.
+ */
+void TracingSession::flush() noexcept
 {
     if (ScopedProfiling::enabled())
     {
+        CELER_LOG_LOCAL(debug) << "Flushing Perfetto tracing session";
         perfetto::TrackEvent::Flush();
     }
 }
@@ -104,96 +106,65 @@ void flush_tracing() noexcept
 /*!
  * Start a system tracing session.
  */
-TracingSession::TracingSession() noexcept
-    : session_{initialize_session(TracingMode::system).release()}
-{
-    if (session_)
-    {
-        session_->Setup(configure_session());
-    }
-}
+TracingSession::TracingSession() noexcept : TracingSession(std::string{}) {}
 
 //---------------------------------------------------------------------------//
 /*!
  * Start an in-process tracing session.
  */
 TracingSession::TracingSession(std::string const& filename) noexcept
-    : session_{initialize_session(filename.empty() ? TracingMode::system
-                                                   : TracingMode::in_process)
-                   .release()}
 {
-    if (session_)
+    if (!ScopedProfiling::enabled())
     {
-        auto msg = CELER_LOG(info);
-        msg << "Opening Perfetto tracing session ";
         if (!filename.empty())
         {
-            msg << "to " << filename;
-            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
-            fd_ = open(filename.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0660);
+            CELER_LOG(warning)
+                << R"(Skipping Perfetto tracing: profiling is disabled)";
         }
-        else
-        {
-            msg << "to system daemon";
-        }
-        session_->Setup(configure_session(), fd_);
+        return;
     }
-}
 
-//---------------------------------------------------------------------------//
-/*!
- * Block until the current session is closed.
- */
-TracingSession::~TracingSession()
-{
-    if (session_)
+    // Create implementation that stores tracing session and file handle
+    impl_.reset(new Impl);
+    perfetto::TracingInitArgs args;
+    if (filename.empty())
     {
-        if (started_)
-        {
-            this->flush();
-            session_->StopBlocking();
-        }
-        if (fd_ != system_fd_)
-        {
-            close(fd_);
-        }
+        CELER_LOG(info) << "Starting Perfetto system tracing session";
+        args.backends |= perfetto::kSystemBackend;
+        CELER_ASSERT(impl_->fd == Impl::system_fd);
     }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Start the profiling session.
- */
-void TracingSession::start() noexcept
-{
-    if (session_)
+    else
     {
-        started_ = true;
-        session_->StartBlocking();
-    }
-}
+        CELER_LOG(info) << "Saving Perfetto in-app tracing session to "
+                        << filename;
 
-//---------------------------------------------------------------------------//
-/*!
- * Flush track events associated with the calling thread for the profiling
- * session. In multi-threaded applications, this should be called from each
- * worker thread to ensure that their track events are correctly written.
- */
-void TracingSession::flush() noexcept
-{
-    if (session_ && started_)
+        args.backends |= perfetto::kInProcessBackend;
+
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
+        impl_->fd = open(filename.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0660);
+    }
+
+    // Start tracing and cancel if it failed
+    perfetto::Tracing::Initialize(args);
+    if (!perfetto::Tracing::IsInitialized())
     {
-        flush_tracing();
+        CELER_LOG(warning) << "Failed to initialize Perfetto";
+        impl_.reset();
+        return;
     }
-}
 
-//---------------------------------------------------------------------------//
-/*!
- * Define the deleter where the TracingSession definition is accessible.
- */
-void TracingSession::Deleter::operator()(perfetto::TracingSession* p)
-{
-    delete p;
+    perfetto::TrackEvent::Register();
+    auto session = perfetto::Tracing::NewTrace();
+    if (!session)
+    {
+        CELER_LOG(warning) << "Failed to open Perfetto tracing session";
+        impl_.reset();
+        return;
+    }
+
+    session->Setup(configure_session(), impl_->fd);
+    session->StartBlocking();
+    impl_->session = std::move(session);
 }
 
 //---------------------------------------------------------------------------//
