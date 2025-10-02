@@ -25,7 +25,6 @@ spack:
     - py-furo
     - py-sphinx
     - py-sphinxcontrib-bibtex
-    - py-sphinxcontrib-mermaid
     # ... plus experimental options
     - mpi
   view: true

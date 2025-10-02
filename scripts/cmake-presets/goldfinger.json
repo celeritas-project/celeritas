@@ -60,6 +60,7 @@
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CELERITAS_BUILD_DOCS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_PYTHONWARNINGS": "ignore:::urllib3,ignore:::breathe.project,ignore::UserWarning:pybtex.plugin",
         "CELERITAS_SPHINX_USER_HTML_ARGS": "-W;--keep-going",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",
         "DOXYGEN_WARN_AS_ERROR":  "YES"

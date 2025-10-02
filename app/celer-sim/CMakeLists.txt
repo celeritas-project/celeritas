@@ -99,6 +99,7 @@ function(celer_sim_test test_ext gdml_inp_name hepmc3_inp_name mctruth_name)
     "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}" "${_mctruth_out}"
   )
   set(_env
+    ${CELER_PYTHONENV}
     "CELERITAS_EXE=$<TARGET_FILE:celer-sim>"
     "${_geant_exporter_env}"
     "CELER_LOG=debug"

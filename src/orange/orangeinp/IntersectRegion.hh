@@ -267,36 +267,37 @@ class EllipticalCylinder final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * A finite *z*-aligned cone with an elliptical cross section.
+ * A finite \em z-aligned cone with an elliptical cross section.
  *
  * The elliptical cone is defined in an analogous fashion to the regular
- * (i.e., circular) cone. A half-height (hh) defines the z-extents, such
+ * (i.e., circular) cone. A half-height (hh) defines the \em z extents, such
  * that the centroid of the outer bounding box is the origin. The lower radii
- * are the x- and y-radii at the plane z = -hh. The upper radii are the x- and
- * y-radii at the plane z = hh. There are several restrictions on these radii:
+ * are the \em x  and \em y radii at the plane \f$ z = -\mathrm{hh} \f$.
+ * The upper radii are the \em x and \em y radii at the plane
+ * \f$ z = \mathrm{hh} \f$. There are several restrictions on these radii:
  *
- * 1) Either the lower or upper radii may be (0, 0); this is the only permitted
- *    way for the elliptical cone to include the vertex.
- * 2) The aspect ratio of the elliptical cross sections is constant. Thus, the
- *    aspect ratio at z = -hh must equal the aspect ratio at z = hh.
- * 3) Degenerate elliptical cones with lower_radii == upper_radii (i.e.,
- *    elliptical cylinders) are not permitted.
- * 4) Degenerate elliptical cones where lower or upper radii are equal to
- *    (0, x) or (x, 0), where x is non-zero, are not permitted.
+ * - Either the lower or upper radii may be \f$(0, 0)\f$; this is the only
+ *   permitted way for the elliptical cone to include the vertex.
+ * - The aspect ratio of the elliptical cross sections is constant. Thus, the
+ *   upper radii must be a constant scalar times the upper radii.
+ * - Degenerate elliptical cones (lower_radii == upper_radii, i.e.,
+ *   elliptical cylinders) are not permitted.
+ * - Degenerate elliptical cones where lower or upper radii are equal to
+ *   \f$(0, x)\f$ or \f$(x, 0)\f$, where \em x is non-zero, are not permitted.
  *
- * The elliptical surface can be expressed as:
- *
+ * The elliptical surface can be expressed as
  * \f[
    (x/r_x)^2 + (y/r_y)^2 = (v-z)^2,
  * \f]
+ * where \em v is the location of the vertex.
  *
- * where v is the location of the vertex. The r_x, r_y, and v can be calculated
- * from the lower and upper radii as given by \c G4EllipticalCone:
+ * The \f$ r_x \f$, \f$r_y \f$, and \f$v\f$ can be calculated from the lower
+ * and upper radii as given by \c G4EllipticalCone:
  * \verbatim
    r_x = (lower_radii[X] - upper_radii[X])/(2 hh),
    r_y = (lower_radii[Y] - upper_radii[Y])/(2 hh),
-     v = hh (lower_radii[X] + upper_radii[X])/(lower_radii[X] -
- upper_radii[X]).
+     v = hh (lower_radii[X] + upper_radii[X])
+         / (lower_radii[X] - upper_radii[X]).
    \endverbatim
  */
 class EllipticalCone final : public IntersectRegionInterface
@@ -342,11 +343,12 @@ class EllipticalCone final : public IntersectRegionInterface
 /*!
  * Region formed by extruding + scaling a convex polygon along a line segment.
  *
- * The convex polygon is supplied as a set of points on the XY plane in
+ * The convex polygon is supplied as a set of points on the \em xy plane in
  * counterclockwise order. The line segment and scaling factors are specified
  * by providing a line segment point and scaling factor for the top and bottom
  * polygon faces of the region. The line segment point of the top face must
- * have a z value greater than that of the bottom face. Along the line segment,
+ * have a \em z value greater than that of the bottom face. Along the line
+ * segment,
  * the size of the polygon is linearly scaled in accordance with scaling
  * factors.
  *

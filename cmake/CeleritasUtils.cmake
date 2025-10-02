@@ -48,6 +48,14 @@ Miscellaneous utility functions.
 
     celeritas_get_disable_device(<var>)
 
+.. command:: celeritas_get_pyenv
+
+  Use cache variables (set in the main Celeritas CMake) to construct environment
+  variables for a Python command, currently to manage the package path and
+  warnings.
+
+    celeritas_get_pyenv(<var>)
+
 #]=======================================================================]
 include_guard(GLOBAL)
 
@@ -181,5 +189,27 @@ function(celeritas_get_disable_device var)
   endif()
   set(${var} "${CELERITAS_DISABLE_DEVICE}" PARENT_SCOPE)
 endfunction()
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_get_pyenv var)
+  set(_result)
+  if(CELERITAS_USE_Python)
+    set(_result
+      "CMAKE_CURRENT_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+      "CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+    foreach(_var PATH WARNINGS)
+      # Note: use string comparison because 'ignore' evaluates as false
+      if(NOT CELERITAS_PYTHON${_var} STREQUAL "")
+        list(APPEND _result
+          "PYTHON${_var}=${CELERITAS_PYTHON${_var}}"
+        )
+      endif()
+    endforeach()
+  endif()
+  set(${var} "${_result}" PARENT_SCOPE)
+endfunction()
+
 
 #-----------------------------------------------------------------------------#

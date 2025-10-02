@@ -1,0 +1,35 @@
+flowchart TB
+   gun["Gun or external"]
+   geant4-direct["Direct Geant4 offload"]
+   geant4-scint["Geant4 scintillation"]
+   geant4-ceren["Geant4 cherenkov"]
+
+   classDef not-impl stroke-width:2px,stroke-dasharray: 5 5
+   class geant4-direct,geant4-scint,geant4-ceren not-impl
+
+   subgraph main-celeritas-loop["Main celeritas loop"]
+     offload-gather
+     scintillation-offload
+     cherenkov-offload
+   end
+
+   offload-gather -->|pre-step| scintillation-offload
+   offload-gather -->|pre-step| cherenkov-offload
+
+   subgraph photon-gen["Optical photon generation"]
+     scintillation-gen
+     cherenkov-gen
+   end
+
+   scintillation-offload -->|generator dist| scintillation-gen
+   cherenkov-offload -->|generator dist| cherenkov-gen
+   geant4-scint -->|generator dist| scintillation-gen
+   geant4-ceren -->|generator dist| cherenkov-gen
+
+
+   photons["Optical tracking loop"]
+   gun -->|inits| photons
+
+   geant4-direct -->|inits| photons
+   scintillation-gen -->|inits| photons
+   cherenkov-gen -->|inits| photons

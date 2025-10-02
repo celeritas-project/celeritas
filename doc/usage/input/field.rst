@@ -9,14 +9,8 @@ Field
 The field currently allows a few hard-coded options. It will be extended to
 additional field types and may allow completely custom field implementations.
 
-.. doxygenstruct:: celeritas::inp::NoField
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::inp::UniformField
-   :members:
-   :no-link:
-
+.. celerstruct:: inp::NoField
+.. celerstruct:: inp::UniformField
 .. doxygentypedef:: celeritas::inp::RZMapField
 
 The field type is selected with a variant:
