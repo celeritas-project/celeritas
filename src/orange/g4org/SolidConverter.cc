@@ -228,19 +228,9 @@ auto calculate_theta_phi(S const& solid) -> std::pair<Turn, Turn>
  * Construct a shape using the solid's name and forwarded arguments.
  */
 template<class CR, class... Args>
-auto make_shape(std::string&& name, Args&&... args)
-{
-    return std::make_shared<Shape<CR>>(std::move(name),
-                                       CR{std::forward<Args>(args)...});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct a shape using the solid's name and forwarded arguments.
- */
-template<class CR, class... Args>
 auto make_shape(G4VSolid const& solid, Args&&... args)
 {
+    using ::celeritas::orangeinp::make_shape;
     return make_shape<CR>(std::string{solid.GetName()},
                           std::forward<Args>(args)...);
 }
