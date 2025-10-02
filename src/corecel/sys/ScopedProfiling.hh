@@ -19,10 +19,6 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-// Whether profiling is enabled
-bool use_profiling();
-
-//---------------------------------------------------------------------------//
 /*!
  * Input arguments for the most richly annotated implementation (NVTX).
  */
@@ -82,6 +78,9 @@ class ScopedProfiling
     //!@}
 
   public:
+    // Whether profiling is enabled
+    static bool enabled();
+
     // Activate profiling with options
     explicit inline ScopedProfiling(Input const& input);
     // Activate profiling with just a name
@@ -109,7 +108,7 @@ class ScopedProfiling
  * Activate device profiling with options.
  */
 ScopedProfiling::ScopedProfiling(Input const& input)
-    : activated_{use_profiling()}
+    : activated_{ScopedProfiling::enabled()}
 {
     if (activated_)
     {

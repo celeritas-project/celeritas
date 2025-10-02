@@ -48,7 +48,7 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
     CELER_EXPECT([track] {
         auto sim = track.sim();
         return sim.post_step_action()
-                   == track.surface_physics().init_boundary_action()
+                   == track.surface_physics().scalars().init_boundary_action
                && sim.status() == TrackStatus::alive;
     }());
 
@@ -87,7 +87,7 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
         }
 
         // Use default surface data
-        oriented_surface.surface = surface_physics.default_surface();
+        oriented_surface.surface = surface_physics.scalars().default_surface;
         oriented_surface.orientation = SubsurfaceDirection::forward;
     }
 
@@ -100,17 +100,18 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
     }
 
     surface_physics
-        = SurfacePhysicsView::Initializer{oriented_surface.surface,
-                                          oriented_surface.orientation,
-                                          global_normal,
-                                          pre_volume_material,
-                                          post_volume_material};
+        = SurfacePhysicsTrackView::Initializer{oriented_surface.surface,
+                                               oriented_surface.orientation,
+                                               global_normal,
+                                               pre_volume_material,
+                                               post_volume_material};
 
     CELER_ASSERT(
         is_entering_surface(geo.dir(), surface_physics.global_normal()));
 
     // TODO: replace with surface stepping action when implemented
-    track.sim().post_step_action(surface_physics.post_boundary_action());
+    track.sim().post_step_action(
+        surface_physics.scalars().post_boundary_action);
 }
 
 //---------------------------------------------------------------------------//

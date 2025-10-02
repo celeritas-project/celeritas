@@ -35,7 +35,7 @@ class ScopedStreamRedirect
 {
   public:
     // Whether stream redirection is enabled
-    static bool allow_redirect();
+    static bool enabled();
 
     // Construct with pointer to a stream e.g. cout
     explicit ScopedStreamRedirect(std::ostream* os);

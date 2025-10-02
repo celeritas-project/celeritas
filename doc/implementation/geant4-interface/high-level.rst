@@ -12,8 +12,6 @@ sets up the UI commands (see :cpp:class:`celeritas::SetupOptionsMessenger`),
 MPI (if configured), and Celeritas logging.
 
 .. doxygenclass:: celeritas::IntegrationBase
-   :members:
-   :no-link:
 
 Tracking manager
 ----------------
@@ -25,7 +23,8 @@ manager correctly, we recommend using this helper class:
 
 .. doxygenclass:: celeritas::TrackingManagerConstructor
 
-The high-level :cpp:class:`celeritas::TrackingManagerIntegration` class should be used in
+The high-level :cpp:class:`celeritas::TrackingManagerIntegration` class should
+be used in
 addition to the tracking manager constructor to set up and tear down Celeritas.
 See :ref:`example_template` for a template of adding to a user application.
 
@@ -68,5 +67,3 @@ provided.
    Use the :cpp:class:`celeritas::TrackingManagerIntegration` class.
 
 .. doxygenclass:: celeritas::SimpleOffload
-   :members:
-   :no-link:

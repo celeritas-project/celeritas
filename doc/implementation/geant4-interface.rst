@@ -36,7 +36,8 @@ Geant4's `run manager`_ imposes a particular ordering of execution:
 2. Initialization classes are provided to the run manager: these specify how
    the detector geometry and particles will be built on the main thread and how
    sensitive detectors, fields, and physics processes will be built on the worker
-   threads. (In an MT run, ``UserActionInitialization::BuildForMaster``
+   threads. Particles are allowed to be constructed. (In an MT run,
+   ``UserActionInitialization::BuildForMaster``
    is called here. Particles are constructed immediately when the physics is
    provided to the run manager.)
 3. The Geant4 "UI" (macro file) can be used to modify run parameters such as
@@ -83,7 +84,8 @@ The ordering in the previous section determines how Celeritas is integrated
 into Geant4 applications.
 
 - The decision to disable Celeritas, and the particles to offload, must be
-  handled *before* adding tracking managers.
+  handled *before* adding tracking managers but *after* creating the run
+  manager.
 - User macros and code must be able to override Celeritas setup options
   *before* the ``Initialize`` call.
 - Celeritas shared parameters must be initialized *after* the geometry and
@@ -105,8 +107,9 @@ For the high-level integration classes, this means:
 - MPI and logging are initialized at the first call to the integration
   singletons, which can be before or after the run manager is
   constructed.
-- Code-provided options must be "moved" into the integration class before run
-  initialization. This allows the setup messenger options to update the values
+- Code-provided options must be "moved" into the integration class *after*
+  run manager creation but *before* run initialization.
+  This allows the setup messenger options to update the values
   after assignment in the code, and it informs the developer that subsequent
   programmatic changes to the options are prohibited.
 - The decision to disable Celeritas based on user environment settings is made

@@ -36,10 +36,6 @@ class SurfacePhysicsMapBuilder
     void operator()(SurfaceModel const& model);
 
   private:
-    //// TYPES ////
-
-    using InternalSurfaceId = SurfaceModel::InternalSurfaceId;
-
     //// DATA ////
 
     //! Data being modified

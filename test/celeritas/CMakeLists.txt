@@ -235,7 +235,7 @@ else()
   set(_fieldprop_filter)
 endif()
 
-celeritas_add_test(field/Fields.test.cc
+celeritas_add_device_test(field/Fields
   LINK_LIBRARIES Celeritas::Extcovfie
 )
 celeritas_add_test(field/Integrators.test.cc ${_fixme_cgs})
@@ -390,9 +390,9 @@ celeritas_add_test(optical/ImportedModelAdapter.test.cc)
 celeritas_add_test(optical/ImportedMaterials.test.cc)
 celeritas_add_test(optical/ModelImporter.test.cc)
 celeritas_add_test(optical/MfpBuilder.test.cc)
-celeritas_add_test(optical/OpticalCollector.test.cc GPU ${_needs_geant4} ${_needs_orange})
+celeritas_add_test(optical/OpticalCollector.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/OpticalUtils.test.cc GPU)
-celeritas_add_test(optical/PrimaryGenerator.test.cc GPU ${_needs_geant4} ${_needs_orange})
+celeritas_add_test(optical/PrimaryGenerator.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/Rayleigh.test.cc)
 celeritas_add_test(optical/RayleighMfpCalculator.test.cc)
 celeritas_add_test(optical/RoughnessCalculator.test.cc)

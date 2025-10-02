@@ -26,9 +26,7 @@ classes and objects.
 
 The highest-level problem definition input is:
 
-.. doxygenstruct:: celeritas::inp::Problem
-   :members:
-   :no-link:
+.. celerstruct:: inp::Problem
 
 The following sections describe the members and their configuration options.
 Note that most input classes (namespace ``inp``) match up with the runtime

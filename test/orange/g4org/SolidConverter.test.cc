@@ -21,6 +21,7 @@
 #include <G4GenericTrap.hh>
 #include <G4Hype.hh>
 #include <G4IntersectionSolid.hh>
+#include <G4MultiUnion.hh>
 #include <G4Orb.hh>
 #include <G4Para.hh>
 #include <G4Paraboloid.hh>
@@ -537,6 +538,67 @@ TEST_F(SolidConverterTest, intersectionsolid)
         G4IntersectionSolid("b1Intersectionb2", &b1, &b2, transform),
         R"json({"_type":"all","daughters":[{"_type":"shape","interior":{"_type":"box","halfwidths":[2.0,3.0,4.0]},"label":"Test Box #1"},{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[1.0,1.0,1.0]},"label":"Test Box #2"},"transform":{"_type":"transformation","data":[6.123233995736766e-17,1.0,0.0,-1.0,6.123233995736766e-17,0.0,0.0,0.0,1.0,0.0,1.0,0.0]}}],"label":"b1Intersectionb2"})json",
         {{0, 0, 0}, {0, 0, 10}, {0, 1, 0}});
+}
+
+//---------------------------------------------------------------------------//
+/*
+ * Test G4MultiUnion with three transformed volumes.
+  \verbatim
+     y
+   3_|     ____     _     ____
+     |    |    | /     \ |    |
+   2_|    |    |   v1    |    |
+     |    | v2 | \     / | v3 |
+   1_|    |    |    _    |    |
+     |    |    |         |    |
+   0_|____|____|_________|____|_________ x
+     |    |    |    |    |    |    |    |
+     |   -2   -1    0    1    2    3    4
+  -1_|    |    |         |    |
+     |    |    |         |    |
+  -2_|    |    |         |    |
+     |    |    |         |    |
+  -3_|    |____|         |____|
+  \endverbatim
+ */
+TEST_F(SolidConverterTest, multiunion)
+{
+    G4MultiUnion mu("multiunion");
+
+    // Add v1
+    G4Tubs v1("v1", 0, 1 * cm, 1 * cm, 0, 360 * deg);
+    G4Transform3D t1(G4RotationMatrix{}, G4ThreeVector(0, 2 * cm, 0));
+    mu.AddNode(v1, t1);
+
+    // Define rotation matrix for v2 and v3, which we will define horizontally
+    G4RotationMatrix r90;
+    r90.rotateZ(90 * deg);
+
+    // Add v2
+    G4Box v2("v2", 3 * cm, 0.5 * cm, 1 * cm);
+    G4Transform3D t2(r90, G4ThreeVector(1.5 * cm, 0, 0));
+    mu.AddNode(v2, t2);
+
+    // Add v3
+    G4Box v3("v3", 3 * cm, 0.5 * cm, 1 * cm);
+    G4Transform3D t3(r90, G4ThreeVector(-1.5 * cm, 0, 0));
+    mu.AddNode(v3, t3);
+
+    // Voxelize to complete
+    mu.Voxelize();
+
+    this->build_and_test(
+        mu,
+        R"json({"_type":"any","daughters":[{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"cylinder","halfheight":1.0,"radius":1.0},"label":"v1"},"transform":{"_type":"transformation","data":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0,0.0,2.0,0.0]}},{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[3.0,0.5,1.0]},"label":"v2"},"transform":{"_type":"transformation","data":[6.123233995736766e-17,-1.0,0.0,1.0,6.123233995736766e-17,0.0,0.0,0.0,1.0,1.5,0.0,0.0]}},{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[3.0,0.5,1.0]},"label":"v3"},"transform":{"_type":"transformation","data":[6.123233995736766e-17,-1.0,0.0,1.0,6.123233995736766e-17,0.0,0.0,0.0,1.0,-1.5,0.0,0.0]}}],"label":"multiunion"})json",
+        {
+            {0, 2, 0},
+            {0, 2, 0.6},
+            {0, 2, -0.6},
+            {1.5, -2.9, 0},
+            {1.5, -3.1, 0},
+            {-1.9, -2.9, 0},
+            {-2.1, -2.9, 0},
+        });
 }
 
 TEST_F(SolidConverterTest, orb)

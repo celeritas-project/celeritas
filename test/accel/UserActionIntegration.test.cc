@@ -9,6 +9,7 @@
 #include <memory>
 #include <G4RunManager.hh>
 
+#include "geocel/ScopedGeantExceptionHandler.hh"
 #include "accel/SetupOptions.hh"
 #include "accel/detail/IntegrationSingleton.hh"
 
@@ -78,7 +79,6 @@ TEST_F(LarSphere, run)
 
     rm.BeamOn(3);
     cout << "initial run done" << endl;
-
     rm.BeamOn(1);
     cout << "second run done" << endl;
 }
@@ -90,8 +90,18 @@ class TestEm3 : public TestEm3IntegrationMixin, public UAITestBase
 
 TEST_F(TestEm3, run)
 {
+    // Test loading instance before run manager
+    auto& uai = UAI::Instance();
+
+    {
+        // Options can't be set before run manager is initialized
+        ScopedGeantExceptionHandler convert_to_throw;
+        EXPECT_THROW(uai.SetOptions(SetupOptions{}), RuntimeError);
+    }
+
     auto& rm = this->run_manager();
-    UAI::Instance().SetOptions(this->make_setup_options());
+    // Set options for real
+    uai.SetOptions(this->make_setup_options());
 
     rm.Initialize();
     rm.BeamOn(2);

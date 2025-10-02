@@ -100,7 +100,7 @@ VolumeId VolumeIdBuilder::operator()(G4LogicalVolume const* lv) const
         return result;
     }
 
-    CELER_LOG(error) << "logical volume " << PrintableLV{lv}
+    CELER_LOG(error) << "logical volume " << StreamableLV{lv}
                      << " is not in the tracking geometry";
     return {};
 }

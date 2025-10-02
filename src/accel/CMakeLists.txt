@@ -42,6 +42,7 @@ list(APPEND SOURCES
   TrackingManagerIntegration.cc
   UserActionIntegration.cc
   detail/GeantSimpleCaloSD.cc
+  detail/LoggerImpl.cc
   detail/IntegrationSingleton.cc
 )
 

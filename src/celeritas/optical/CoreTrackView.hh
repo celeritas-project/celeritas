@@ -16,7 +16,7 @@
 #include "PhysicsTrackView.hh"
 #include "SimTrackView.hh"
 #include "TrackInitializer.hh"
-#include "surface/SurfacePhysicsView.hh"
+#include "surface/SurfacePhysicsTrackView.hh"
 
 #if !CELER_DEVICE_COMPILE
 #    include "corecel/io/Logger.hh"
@@ -73,7 +73,7 @@ class CoreTrackView
     inline CELER_FUNCTION VolumeSurfaceView surface(VolumeId) const;
 
     // Return a surface physics view
-    inline CELER_FUNCTION SurfacePhysicsView surface_physics() const;
+    inline CELER_FUNCTION SurfacePhysicsTrackView surface_physics() const;
 
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
@@ -140,6 +140,9 @@ CoreTrackView::operator=(TrackInitializer const& init)
 
     // Initialize the physics state
     this->physics() = PhysicsTrackView::Initializer{};
+
+    // Initialize the surface state
+    this->surface_physics().reset();
 
     return *this;
 }
@@ -220,11 +223,12 @@ CELER_FUNCTION auto CoreTrackView::surface(VolumeId vol) const
 /*!
  * Return a surface physics view.
  */
-CELER_FUNCTION auto CoreTrackView::surface_physics() const -> SurfacePhysicsView
+CELER_FUNCTION auto CoreTrackView::surface_physics() const
+    -> SurfacePhysicsTrackView
 {
-    return SurfacePhysicsView{params_.surface_physics,
-                              states_.surface_physics,
-                              this->track_slot_id()};
+    return SurfacePhysicsTrackView{params_.surface_physics,
+                                   states_.surface_physics,
+                                   this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//

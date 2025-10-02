@@ -19,7 +19,6 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
-#include "celeritas/io/ImportLivermorePE.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/InteractionApplier.hh"
@@ -38,12 +37,12 @@ namespace celeritas
 LivermorePEModel::LivermorePEModel(ActionId id,
                                    ParticleParams const& particles,
                                    MaterialParams const& materials,
-                                   ReadData load_data)
+                                   Input const& input)
     : StaticConcreteAction(
           id, "photoel-livermore", "interact by Livermore photoelectric effect")
 {
     CELER_EXPECT(id);
-    CELER_EXPECT(load_data);
+    CELER_EXPECT(input);
 
     HostVal<LivermorePEData> host_data;
 
@@ -65,7 +64,11 @@ LivermorePEModel::LivermorePEModel(ActionId id,
     for (auto el_id : range(ElementId{materials.num_elements()}))
     {
         AtomicNumber z = materials.get(el_id).atomic_number();
-        insert_element(load_data(z));
+        auto iter = input.atomic_xs.find(z);
+        CELER_VALIDATE(iter != input.atomic_xs.end(),
+                       << "missing Livermore atomic xs for Z=" << z.get());
+
+        insert_element(iter->second);
     }
     CELER_ASSERT(host_data.xs.elements.size() == materials.num_elements());
 

@@ -56,7 +56,7 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
     auto log_tm_failure = [&all_attached_correctly](G4PD const* p) {
         all_attached_correctly = false;
         auto msg = CELER_LOG(error);
-        msg << "Particle " << PrintablePD{p} << ": tracking manager ";
+        msg << "Particle " << StreamablePD{p} << ": tracking manager ";
         return msg;
     };
 
@@ -113,7 +113,7 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
 #endif
     }
 
-    auto printable_pd = [](G4PD const* p) { return PrintablePD{p}; };
+    auto printable_pd = [](G4PD const* p) { return StreamablePD{p}; };
 
     if (!not_offloaded.empty())
     {

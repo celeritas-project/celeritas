@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/phys/ProcessBuilder.hh"
 
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/Environment.hh"
 #include "celeritas/em/process/BremsstrahlungProcess.hh"
 #include "celeritas/em/process/ComptonProcess.hh"
@@ -25,6 +26,7 @@
 #include "celeritas/io/SeltzerBergerReader.hh"
 #include "celeritas/neutron/process/NeutronElasticProcess.hh"
 #include "celeritas/phys/Model.hh"
+#include "celeritas/setup/Import.hh"
 
 #include "celeritas_test.hh"
 
@@ -64,9 +66,20 @@ class ProcessBuilderTest : public Test
         ScopedRootErrorHandler scoped_root_error_;
         RootImporter import_from_root(
             Test::test_data_path("celeritas", "four-steel-slabs.root").c_str());
-        import_data() = import_from_root();
-        particle() = ParticleParams::from_import(import_data());
-        material() = MaterialParams::from_import(import_data());
+        ImportData& imported = import_data();
+        imported = import_from_root();
+        try
+        {
+            setup::physics_from(inp::PhysicsFromGeantFiles{}, imported);
+        }
+        catch (RuntimeError const& e)
+        {
+            CELER_LOG(error)
+                << "While loading data from Geant4 datasets:" << e.what();
+        }
+
+        particle() = ParticleParams::from_import(imported);
+        material() = MaterialParams::from_import(imported);
         CELER_ENSURE(particle() && material());
     }
 

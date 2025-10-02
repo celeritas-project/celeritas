@@ -11,12 +11,11 @@
 #include "celeritas/inp/Grid.hh"
 #include "celeritas/inp/Particle.hh"
 #include "celeritas/inp/Physics.hh"
+#include "celeritas/inp/PhysicsModel.hh"
 // IWYU pragma: begin_exports
-#include "ImportAtomicRelaxation.hh"
 #include "ImportElement.hh"
 #include "ImportLivermorePE.hh"
 #include "ImportMaterial.hh"
-#include "ImportMuPairProductionTable.hh"
 #include "ImportOpticalMaterial.hh"
 #include "ImportOpticalModel.hh"
 #include "ImportParameters.hh"
@@ -62,9 +61,6 @@ struct ImportData
     using ZInt = int;
     using GeoMatIndex = unsigned int;
     using ImportSBMap = std::map<ZInt, inp::TwodGrid>;
-    using ImportLivermorePEMap = std::map<ZInt, ImportLivermorePE>;
-    using ImportAtomicRelaxationMap = std::map<ZInt, ImportAtomicRelaxation>;
-    using ImportNeutronElasticMap = std::map<ZInt, inp::Grid>;
     //!@}
 
     //!@{
@@ -86,11 +82,6 @@ struct ImportData
     std::vector<inp::Particle> particles;
     std::vector<ImportProcess> processes;
     std::vector<ImportMscModel> msc_models;
-    ImportSBMap sb_data;
-    ImportLivermorePEMap livermore_pe_data;
-    ImportNeutronElasticMap neutron_elastic_data;
-    ImportAtomicRelaxationMap atomic_relaxation_data;
-    ImportMuPairProductionTable mu_pair_production_data;
     //!@}
 
     //!@{
@@ -111,7 +102,18 @@ struct ImportData
 
     //!@{
     //! \name Current \c inp::Problem data that has been ported
-    inp::OpticalPhysics optical_physics;  //!< \todo: replace by inp::Physics
+
+    // Models
+    inp::LivermorePhotoModel livermore_photo;
+    inp::MuPairProductionModel mu_production;
+    inp::SeltzerBergerModel seltzer_berger;
+
+    // Processes
+    inp::AtomicRelaxation atomic_relaxation;
+
+    // Physics groups
+    inp::OpticalPhysics optical_physics;
+
     //!@}
 };
 

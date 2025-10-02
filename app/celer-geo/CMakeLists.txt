@@ -35,6 +35,7 @@ endif()
 set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/test-harness.py")
 set(_model "${CELER_APP_DATA_DIR}/simple-cms.gdml")
 set(_env
+  ${CELER_PYTHONENV}
   "CELERITAS_EXE=$<TARGET_FILE:celer-geo>"
   "CELER_DISABLE_PARALLEL=1"
 )
@@ -66,6 +67,7 @@ function(celer_app_test ext)
     REQUIRED_FILES "${_driver};${_gdml_inp}"
     LABELS "${_labels}"
     ${_props} ${_extra_props}
+    ${CELER_NEEDS_PYTHON}
   )
 endfunction()
 

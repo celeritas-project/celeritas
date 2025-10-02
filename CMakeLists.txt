@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #----------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.18...3.31)
+cmake_minimum_required(VERSION 3.18...4.1)
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/CgvFindVersion.cmake")
 cgv_find_version(Celeritas)
@@ -21,7 +21,7 @@ include(CMakeDependentOption)
 include(CMakePackageConfigHelpers)
 
 #----------------------------------------------------------------------------#
-# MAIN OPTIONS
+# PACKAGE OPTIONS
 #----------------------------------------------------------------------------#
 
 # NOTE: languages must be *first* because their settings affect the
@@ -38,7 +38,7 @@ celeritas_optional_package(HepMC3 "Enable HepMC3 event record reader")
 celeritas_optional_package(MPI "Enable distributed memory parallelism")
 celeritas_optional_package(OpenMP "Enable CPU shared-memory parallelism")
 celeritas_optional_package(PNG "Enable PNG output with libpng")
-celeritas_optional_package(Python "Use Python to generate and preprocess")
+celeritas_optional_package(Python "Use Python for documentation and testing")
 celeritas_optional_package(ROOT "Enable ROOT I/O")
 celeritas_optional_package(VecGeom "Use VecGeom geometry")
 option(CELERITAS_USE_Perfetto "Perfetto tracing library" OFF)
@@ -87,6 +87,20 @@ endif()
 # Automatic options
 celeritas_force_package(CLI11 ${CELERITAS_BUILD_APPS})
 celeritas_force_package(GTest ${CELERITAS_BUILD_TESTS})
+
+#----------------------------------------------------------------------------#
+# PACKAGE-SPECIFIC OPTIONS
+#----------------------------------------------------------------------------#
+
+if(CELERITAS_USE_Python)
+  # Note that these are used by the celeritas_get_python_env command
+  set(CELERITAS_PYTHONPATH "$ENV{PYTHONPATH}" CACHE STRING
+    "Python path used for finding modules and generating documentation"
+  )
+  set(CELERITAS_PYTHONWARNINGS "$ENV{PYTHONWARNINGS}" CACHE STRING
+    "Warning options to send to Python"
+  )
+endif()
 
 #----------------------------------------------------------------------------#
 # CELERITAS CORE IMPLEMENTATION OPTIONS
@@ -213,11 +227,13 @@ endif()
 #----------------------------------------------------------------------------#
 
 ### Configuration ###
+
 celeritas_set_default(CMAKE_EXPORT_NO_PACKAGE_REGISTRY ON)
 celeritas_set_default(CMAKE_FIND_USE_PACKAGE_REGISTRY FALSE)
 celeritas_set_default(CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY FALSE)
 
 ### Build flags ###
+
 # Default to building CTest tree if using Celeritas tests
 celeritas_set_default(BUILD_TESTING ${CELERITAS_BUILD_TESTS})
 # Default to debug or released based on value of CELERITAS_DEBUG
@@ -231,7 +247,8 @@ if(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE)
   message(STATUS "Set default CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
   unset(_default_build_type)
 endif()
-# Default to using C++17 everywhere
+
+# Default to using C++17
 celeritas_set_default(CMAKE_CXX_STANDARD 17 STRING "C++ standard")
 celeritas_set_default(CMAKE_CXX_EXTENSIONS OFF "Allow C++ compiler extensions")
 if(CELERITAS_USE_CUDA)
@@ -248,6 +265,7 @@ endif()
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 ### Linking flags ###
+
 celeritas_set_default(BUILD_SHARED_LIBS ON
   "Build shared libraries instead of static")
 celeritas_set_default(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON
@@ -267,6 +285,7 @@ celeritas_set_default(CMAKE_POSITION_INDEPENDENT_CODE ${_default_pic}
 unset(_default_pic)
 
 ### Installation flags ###
+
 # When developing add checking for proper usage of `install(`
 if(CELERITAS_DEBUG)
   celeritas_set_default(CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION ON)
@@ -392,9 +411,6 @@ if(CELERITAS_USE_Python)
   if(NOT Python_FOUND)
     find_package(Python 3.6 REQUIRED COMPONENTS Interpreter)
   endif()
-  set(CELERITAS_PYTHONPATH "$ENV{PYTHONPATH}" CACHE STRING
-    "Python path used for finding modules and generating documentation"
-  )
 endif()
 
 if(CELERITAS_USE_ROOT)
@@ -405,8 +421,13 @@ if(CELERITAS_USE_ROOT)
       ON
     )
   endif()
-  # Older ROOT versions are missing CMake macros
+  # ROOT requirement is due to missing CMake commands in old versions
   find_package(ROOT 6.24 REQUIRED)
+  if(NOT ROOT_CXX_STANDARD STREQUAL CMAKE_CXX_STANDARD)
+    message(WARNING "ROOT C++ standard ${ROOT_CXX_STANDARD} "
+      "does not match current CMake standard ${CMAKE_CXX_STANDARD}: "
+      "build warnings/errors may result")
+  endif()
 endif()
 
 if(CELERITAS_USE_covfie)
@@ -486,6 +507,12 @@ if(CELERITAS_USE_VecGeom)
     # Enforce minimum version
     celeritas_find_or_builtin_package(G4VG 1.0.3)
   endif()
+
+  # Default to using surface navigation if it's available
+  cmake_dependent_option(CELERITAS_VecGeom_SURFACE
+    "Use VecGeom surface navigation" "ON"
+    "VecGeom_USE_SURF" OFF
+  )
 endif()
 
 if(CELERITAS_BUILD_DOCS)
@@ -512,9 +539,7 @@ if(CELERITAS_BUILD_DOCS)
     if(CELERITAS_USE_Breathe)
       find_program(LATEXMK_EXECUTABLE latexmk)
     endif()
-    if(CELERITAS_USE_SphinxMermaid)
-      find_program(MMDC_EXECUTABLE mmdc)
-    endif()
+    find_program(MMDC_EXECUTABLE mmdc)
   endif()
   include(ExternalProject)
 endif()

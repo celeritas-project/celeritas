@@ -8,21 +8,20 @@
 
 #include <string>
 
+#include "celeritas/inp/Grid.hh"
 #include "celeritas/phys/AtomicNumber.hh"
-
-#include "ImportSBTable.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Read Seltzer-Berger data from Geant4's $G4LEDATA files.
+ * Read microscopic Brems cross sections from Geant4's $G4LEDATA files.
  *
- * Use \c operator() to retrieve data for different atomic numbers.
+ * Each call to this function-like class loads a single element.
  *
  * \code
     SeltzerBergerReader sb_reader();
-    auto sb_data_vector = sb_reader(1); // Hydrogen
+    auto sb_data_vector = sb_reader(AtomicNumber{1}); // Hydrogen
    \endcode
  */
 class SeltzerBergerReader
@@ -30,7 +29,7 @@ class SeltzerBergerReader
   public:
     //!@{
     //! \name Type aliases
-    using result_type = ImportSBTable;
+    using result_type = inp::TwodGrid;
     //!@}
 
   public:
@@ -38,7 +37,7 @@ class SeltzerBergerReader
     SeltzerBergerReader();
 
     // Construct from a user defined path
-    explicit SeltzerBergerReader(char const* path);
+    explicit SeltzerBergerReader(std::string path);
 
     // Read data from ascii for the given element
     result_type operator()(AtomicNumber atomic_number) const;
