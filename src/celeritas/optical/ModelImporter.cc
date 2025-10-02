@@ -84,7 +84,8 @@ auto ModelImporter::operator()(IMC imc) const -> std::optional<ModelBuilder>
         {IMC::rayleigh, &ModelImporter::build_rayleigh},
         {IMC::wls, &ModelImporter::build_wls},
         {IMC::wls2, &ModelImporter::build_wls2},
-        {IMC::mie, &ModelImporter::build_mie}};
+        {IMC::mie, &ModelImporter::build_mie},
+    };
 
     // Next, try built-in models
     auto iter = builtin_build.find(imc);
@@ -167,11 +168,6 @@ auto ModelImporter::build_wls2() const -> ModelBuilder
         // None of the materials have WLS2 data
         return {};
     }
-    if (!std::any_of(input.data.begin(), input.data.end(), Identity{}))
-    {
-        // None of the materials have WLS2 data
-        return {};
-    }
     return WavelengthShiftModel::make_builder(this->imported(),
                                               std::move(input));
 }
@@ -182,16 +178,19 @@ auto ModelImporter::build_wls2() const -> ModelBuilder
 auto ModelImporter::build_mie() const -> ModelBuilder
 {
     CELER_EXPECT(input_.import_material);
+
     MieModel::Input input;
-
     input.model = ImportModelClass::mie;
-
     for (auto mid : range(OptMatId{input_.import_material->num_materials()}))
     {
         auto mie_data = input_.import_material->mie(mid);
         input.data.push_back(mie_data);
     }
-
+    if (!std::any_of(input.data.begin(), input.data.end(), Identity{}))
+    {
+        // None of the materials have Mie scattering data
+        return {};
+    }
     return MieModel::make_builder(this->imported(), std::move(input));
 }
 
