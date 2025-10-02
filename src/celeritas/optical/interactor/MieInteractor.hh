@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
 #include <iomanip>
 
 #include "corecel/Assert.hh"
@@ -116,6 +117,7 @@ CELER_FUNCTION Interaction MieInteractor::operator()(Engine& rng) const
             << std::setprecision(std::numeric_limits<real_type>::digits10 + 2)
             << costheta;
     }
+    costheta = celeritas::min(costheta, real_type{1});
 
     CELER_ASSERT(costheta >= -1 && costheta <= 1);
 
