@@ -154,13 +154,13 @@ class UrbanMscTest : public ::celeritas::test::MscTestBase
     std::shared_ptr<UrbanMscParams const> msc_params_;
 };
 
-struct PrintableParticle
+struct StreamableParticle
 {
     ParticleTrackView const& par;
     ParticleParams const& params;
 };
 
-std::ostream& operator<<(std::ostream& os, PrintableParticle const& pp)
+std::ostream& operator<<(std::ostream& os, StreamableParticle const& pp)
 {
     os << pp.params.id_to_label(pp.par.particle_id()) << " at "
        << value_as<units::MevEnergy>(pp.par.energy()) << " MeV";
@@ -248,7 +248,7 @@ TEST_F(UrbanMscTest, step_conversion)
     auto test_one = [&](char const* mat, PDGNumber ptype, MevEnergy energy) {
         auto par = this->make_par_view(ptype, energy);
         auto phys = this->make_phys_view(par, mat, this->physics()->host_ref());
-        SCOPED_TRACE((PrintableParticle{par, *this->particle()}));
+        SCOPED_TRACE((StreamableParticle{par, *this->particle()}));
         UrbanMscHelper helper(msc_params_->host_ref(), par, phys);
 
         real_type range = phys.dedx_range();

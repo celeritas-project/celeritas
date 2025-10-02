@@ -57,7 +57,7 @@ endmacro()
 # Dependencies
 #-----------------------------------------------------------------------------#
 cmake_policy(PUSH)
-cmake_policy(VERSION 3.10...3.31)
+cmake_policy(VERSION 3.10...4.1)
 
 include(CMakeFindDependencyMacro)
 

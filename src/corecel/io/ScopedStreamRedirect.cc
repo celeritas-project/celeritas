@@ -18,18 +18,11 @@ namespace celeritas
 /*!
  * Whether signal handling is enabled.
  */
-bool ScopedStreamRedirect::allow_redirect()
+bool ScopedStreamRedirect::enabled()
 {
-    static bool const result = [] {
-        if (!celeritas::getenv("CELER_DISABLE_REDIRECT").empty())
-        {
-            CELER_LOG(info) << "Disabling stream redirection since the "
-                               "'CELER_DISABLE_REDIRECT' "
-                               "environment variable is present and non-empty";
-            return false;
-        }
-        return true;
-    }();
+    // Note that we negate the result to go from DISABLE to ENABLE
+    static bool const result
+        = !celeritas::getenv_flag("CELER_DISABLE_REDIRECT", false).value;
     return result;
 }
 
@@ -41,7 +34,7 @@ ScopedStreamRedirect::ScopedStreamRedirect(std::ostream* os)
     : input_stream_(os)
 {
     CELER_EXPECT(input_stream_);
-    if (this->allow_redirect())
+    if (this->enabled())
     {
         input_buffer_ = input_stream_->rdbuf();
         input_stream_->rdbuf(temp_stream_.rdbuf());

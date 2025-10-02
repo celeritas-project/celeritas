@@ -123,14 +123,15 @@ GetenvFlagResult getenv_flag(std::string const& key, bool default_val)
         }
         else
         {
-            CELER_LOG(warning) << "Invalid environment value " << key << "="
-                               << result.value << ": expected a flag";
+            CELER_LOG(warning)
+                << "Invalid environment value " << key << "=" << str_value
+                << " (expected a flag): using default=" << result.value;
         }
     }
     else
     {
         // Save string value to be added to environment
-        str_value = default_val ? "1" : "0";
+        str_value = result.value ? "1" : "0";
     }
 
     environment().insert({key, str_value});

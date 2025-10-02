@@ -49,7 +49,7 @@ bool GeantSimpleCaloSD::ProcessHits(G4Step* g4step, G4TouchableHistory*)
     CELER_ASSERT(pv);
     auto det_id_iter = storage_->volume_to_index.find(pv->GetLogicalVolume());
     CELER_VALIDATE(det_id_iter != storage_->volume_to_index.end(),
-                   << "logical volume " << PrintableLV{pv->GetLogicalVolume()}
+                   << "logical volume " << StreamableLV{pv->GetLogicalVolume()}
                    << " is not attached to simple calo '" << storage_->name
                    << "'";);
 

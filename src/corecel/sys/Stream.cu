@@ -63,6 +63,7 @@ void Stream::ImplDeleter::operator()(Impl* impl) noexcept
         CELER_LOG_LOCAL(debug)
             << "Destroying stream " << StreamableStream{impl->stream};
         CELER_DEVICE_API_CALL(StreamDestroy(impl->stream));
+        delete impl;
     }
     catch (RuntimeError const& e)
     {

@@ -164,7 +164,7 @@ class SenseValue
     }
 
     //! Clear the sense value
-    CELER_CONSTEXPR_FUNCTION void clear() { sense_.reset(); }
+    CELER_CONSTEXPR_FUNCTION void reset() { sense_.reset(); }
 
   private:
     Bitset<2> sense_;

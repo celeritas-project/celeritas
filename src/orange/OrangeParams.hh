@@ -49,7 +49,7 @@ class OrangeParams final : public GeoParamsInterface,
   public:
     //!@{
     //! \name Static constructor helpers
-    //! \todo: move these to a "model" abstraction that loads/emits geometry,
+    //! \todo Move these to a "model" abstraction that loads/emits geometry,
     //! materials, volumes?
 
     // Build by loading a GDML file
