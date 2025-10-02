@@ -98,43 +98,45 @@ CELER_FUNCTION Interaction MieInteractor::operator()(Engine& rng) const
 
     using UniformRealDist = UniformRealDistribution<real_type>;
     UniformRealDist sample_r(0, 1);
-
-    real_type r = sample_r(rng);
-    bool is_forward = sample_forward_(rng);
-
-    // Select forward or backward lobe
-    real_type g = (is_forward ? mie_params_.forward_g : mie_params_.backward_g);
-
-    // Compute cos(theta) distribution for optical photons that undergo mie
-    // scattering
-    constexpr real_type tol = 1e-7;
-    real_type costheta
-        = 2 * r * ipow<2>((1 + g) / (1 - g + 2 * g * r)) * (1 - g + g * r) - 1;
-    if (costheta > 1.0 + tol || costheta < -1.0 - tol)
-    {
-        CELER_LOG(error)
-            << "costheta out-of-bounds beyond tolerance: "
-            << std::setprecision(std::numeric_limits<real_type>::digits10 + 2)
-            << costheta;
-    }
-    costheta = celeritas::min(costheta, real_type{1});
-
-    CELER_ASSERT(costheta >= -1 && costheta <= 1);
-
-    // Reverse cos theta if backward_g is chosen
-    if (!is_forward)
-        costheta = -costheta;
-
-    // Sample azimuthal angle
-    UniformRealDist sample_phi(0, real_type(2 * constants::pi));
-    real_type phi = sample_phi(rng);
-
-    // Creating new direction
-    new_dir = from_spherical(costheta, phi);
-
-    // Project polarization onto plane perpendicular to new direction
     do
     {
+        real_type r = sample_r(rng);
+        bool is_forward = sample_forward_(rng);
+
+        // Select forward or backward lobe
+        real_type g
+            = (is_forward ? mie_params_.forward_g : mie_params_.backward_g);
+
+        // Compute cos(theta) distribution for optical photons that undergo mie
+        // scattering
+        constexpr real_type tol = 1e-7;
+        real_type costheta = 2 * r * ipow<2>((1 + g) / (1 - g + 2 * g * r))
+                                 * (1 - g + g * r)
+                             - 1;
+        if (costheta > 1.0 + tol || costheta < -1.0 - tol)
+        {
+            CELER_LOG(error)
+                << "costheta out-of-bounds beyond tolerance: "
+                << std::setprecision(std::numeric_limits<real_type>::digits10
+                                     + 2)
+                << costheta;
+        }
+        costheta = celeritas::min(costheta, real_type{1});
+
+        CELER_ASSERT(costheta >= -1 && costheta <= 1);
+
+        // Reverse cos theta if backward_g is chosen
+        if (!is_forward)
+            costheta = -costheta;
+
+        // Sample azimuthal angle
+        UniformRealDist sample_phi(0, real_type(2 * constants::pi));
+        real_type phi = sample_phi(rng);
+
+        // Creating new direction
+        new_dir = from_spherical(costheta, phi);
+
+        // Project polarization onto plane perpendicular to new direction
         new_pol = make_unit_vector(make_orthogonal(inc_pol_, new_dir));
     } while (CELER_UNLIKELY(!is_soft_orthogonal(new_pol, new_dir)));
 
