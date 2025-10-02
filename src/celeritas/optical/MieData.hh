@@ -27,7 +27,7 @@ struct MieMaterialData
     real_type forward_g{};
     //! g parameter for backward scattering
     real_type backward_g{};
-    //!< Fraction of forward vs backward scattering
+    //! Fraction of forward vs backward scattering
     real_type forward_ratio{};
     //! Whether all data are assigned and valid
     explicit operator bool() const
