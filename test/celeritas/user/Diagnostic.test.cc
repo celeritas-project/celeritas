@@ -193,7 +193,7 @@ TEST_F(TestEm3DiagnosticTest, host)
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
     }
 }
@@ -245,7 +245,7 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
     }
 }

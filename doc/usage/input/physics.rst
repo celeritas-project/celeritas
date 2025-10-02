@@ -4,7 +4,7 @@
 .. _inp_physics:
 
 Physics
-=======
+========
 
 .. note:: For discussion of model and process naming, see
    issue 1562_ .
@@ -14,16 +14,12 @@ Physics
 The selection and data used to create physics classes will be defined
 underneath this struct.
 
-.. doxygenstruct:: celeritas::inp::Physics
-   :members:
-   :no-link:
+.. celerstruct:: inp::Physics
 
 Electromagnetic
-^^^^^^^^^^^^^^^
+---------------
 
-.. doxygenstruct:: celeritas::inp::EmPhysics
-   :members:
-   :no-link:
+.. celerstruct:: inp::EmPhysics
 
 Optical
 ^^^^^^^
@@ -35,9 +31,7 @@ stepping loop, where surface physics is the most complex part. Therefore, the
 Cherenkov and scintillation) and surface physics information. The latter
 describing how optical photons should interact with it.
 
-.. doxygenstruct:: celeritas::inp::OpticalPhysics
-   :members:
-   :no-link:
+.. celerstruct:: inp::OpticalPhysics
 
 Celeritas' ``SurfacePhysics`` implementation is designed differently from Geant4
 and is meant to reduce code branching. In Geant4 one single model (e.g. Unified)
@@ -52,54 +46,22 @@ This "model unfolding" leads to a less simple input definition compared to
 Geant4, but allows for a more general surface definition system. This leads to
 better extensibility and reduces kernel size/complexity on the GPU.
 
-.. doxygenstruct:: celeritas::inp::SurfacePhysics
-    :members:
-    :no-link:
-
+.. celerstruct:: inp::SurfacePhysics
 
 Processes
 ---------
 
-.. doxygenstruct:: celeritas::inp::BremsstrahlungProcess
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::inp::PairProductionProcess
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::inp::PhotoelectricProcess
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::inp::AtomicRelaxation
-   :members:
-   :no-link:
-
+.. celerstruct:: inp::BremsstrahlungProcess
+.. celerstruct:: inp::PairProductionProcess
+.. celerstruct:: inp::PhotoelectricProcess
+.. celerstruct:: inp::AtomicRelaxation
 
 Models
 ------
 
-.. doxygenstruct:: celeritas::inp::SeltzerBergerModel
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::inp::RelBremsModel
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::inp::MuBremsModel
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::inp::BetheHeitlerProductionModel
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::inp::MuPairProductionModel
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::inp::LivermorePhotoModel
-   :members:
-   :no-link:
+.. celerstruct:: inp::SeltzerBergerModel
+.. celerstruct:: inp::RelBremsModel
+.. celerstruct:: inp::MuBremsModel
+.. celerstruct:: inp::BetheHeitlerProductionModel
+.. celerstruct:: inp::MuPairProductionModel
+.. celerstruct:: inp::LivermorePhotoModel

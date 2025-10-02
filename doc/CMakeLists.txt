@@ -96,7 +96,6 @@ doxygen_add_docs(doxygen
   "${PROJECT_SOURCE_DIR}/src"
   ${_DOXYGEN_EXTRA_SOURCE}
   ${_DOXYGEN_TEST_SOURCE}
-  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   COMMENT "Generating Doxygen to doc/${DOXYGEN_HTML_OUTPUT}/index.html"
 )
 
@@ -114,36 +113,41 @@ if(NOT Sphinx_FOUND)
   function(celeritas_build_sphinx type output depends)
     add_custom_command(
       OUTPUT "${output}"
-      VERBATIM COMMAND
+      COMMAND
         "${CMAKE_COMMAND}"
         -UCELERITAS_PYTHONPATH
         -UCELERITAS_CHECK_PYTHON_MODULE_sphinx
         -DCELERITAS_PYTHONPATH_RERUN:BOOL=ON
         "${CMAKE_BINARY_DIR}"
-      COMMENT "Rerunning CMake because Sphinx was not found"
+      COMMENT "Sphinx not found: rerunning CMake with clean PYTHONPATH"
+      VERBATIM
     )
   endfunction()
 else()
+  celeritas_get_pyenv(CELER_PYTHONENV)
   function(celeritas_build_sphinx type output depends)
+    if(NOT type STREQUAL "dummy")
+      set(_comment "Building Sphinx ${type} documentation: doc/${output}")
+    else()
+      set(_comment "Processing Sphinx documentation")
+    endif()
     add_custom_command(
       OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${output}"
-      VERBATIM COMMAND
-        "${CMAKE_COMMAND}" -E env
-          "PYTHONPATH=${CELERITAS_PYTHONPATH}"
-          "CMAKE_CURRENT_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+      COMMAND
+        "${CMAKE_COMMAND}" -E env ${CELER_PYTHONENV}
         "$<TARGET_FILE:Python::Interpreter>" -m sphinx.cmd.build -q
           -d "${CMAKE_CURRENT_BINARY_DIR}/doctrees"
           -b ${type}
           ${ARGN}
           "${CMAKE_CURRENT_SOURCE_DIR}"
           "${CMAKE_CURRENT_BINARY_DIR}/${type}"
-      COMMENT "Building Sphinx ${type} documentation: doc/${output}"
+      COMMENT "${_comment}"
       BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/${type}"
       DEPENDS
         "${CMAKE_CURRENT_SOURCE_DIR}/conf.py"
         "${CMAKE_CURRENT_BINARY_DIR}/config.json"
          ${depends}
-      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+      VERBATIM
     )
   endfunction()
 endif()
@@ -158,15 +162,17 @@ function(celeritas_build_latex input output)
     set(LATEXMK_EXECUTABLE "latexmk")
   endif()
   add_custom_command(OUTPUT "${output}"
-    VERBATIM COMMAND
+    COMMAND
       "${CMAKE_COMMAND}" -E env ${_texenv}
-        "${LATEXMK_EXECUTABLE}" -f -pdf "${input}"
+      "${LATEXMK_EXECUTABLE}" -f -pdf "${input}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/latex"
+    VERBATIM
     ${ARGN}
   )
 endfunction()
 
 #-----------------------------------------------------------------------------#
+# USER DOXYGEN
 
 # Define a configure file with version and configuration info
 # NOTE: the resulting JSON file should be syntactically correct because
@@ -174,7 +180,12 @@ endfunction()
 set(CELERITAS_USE_BREATHE ${CELERITAS_USE_Breathe})
 set(CELERITAS_USE_FURO ${CELERITAS_USE_Furo})
 set(CELERITAS_USE_SPHINXBIBTEX ${CELERITAS_USE_SphinxBibtex})
-set(CELERITAS_USE_SPHINXMERMAID ${CELERITAS_USE_SphinxMermaid})
+if(MMDC_EXECUTABLE)
+  set(CELERITAS_USE_MMDC true)
+else()
+  set(CELERITAS_USE_MMDC false)
+endif()
+set(CELERITAS_USE_MMDC ${CELERITAS_USE_SphinxMermaid})
 if(Celeritas_VERSION STREQUAL Celeritas_VERSION_STRING)
   set(Celeritas_SHORT_VERSION "${Celeritas_VERSION}")
 elseif("${Celeritas_VERSION_STRING}" MATCHES
@@ -256,30 +267,83 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/test/*.hh"
   "${PROJECT_SOURCE_DIR}/test/*.cc"
 )
+# IMPORTANT: the target name and USE_STAMP_FILE generate a dependency used by
+# the downstream sphinx docs when Breathe is available
 doxygen_add_docs(doxygen_xml
   ${_DOXYGEN_SOURCE}
   ${_DOXYGEN_EXTRA_SOURCE}
   USE_STAMP_FILE
-  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   COMMENT "Generating Doxygen: doc/${DOXYGEN_XML_OUTPUT}/index.xml"
 )
 
+#-----------------------------------------------------------------------------#
+# MERMAID DIAGRAMS
+
+# Note that *all* mermaid files must be present at the same time to prevent
+# errors when doing separate HTML/PDF builds: the doctrees directory caches the
+# file listing and will fail if only one image type is generated
+set(_mermaid_output)
+
 if(Sphinx_FOUND)
-  file(GLOB_RECURSE _user_deps "${CMAKE_CURRENT_SOURCE_DIR}/*.rst")
+  set(_png_fallback "${CMAKE_CURRENT_SOURCE_DIR}/_static/mermaid-not-found.png")
+  set(_output_base "${CMAKE_CURRENT_SOURCE_DIR}/_static/mermaid")
+
+  macro(_celer_build_mermaid inp)
+    get_filename_component(basename "${inp}" NAME_WE)
+    if(NOT MMDC_EXECUTABLE)
+      # Copy the file and use for both HTML and PDF
+      set(_output "${_output_base}/${basename}.png")
+      add_custom_command(
+        OUTPUT "${_output}"
+        COMMAND
+        "${CMAKE_COMMAND}" -E copy "${_png_fallback}" "${_output}"
+        COMMENT "Copying fallback Mermaid PNG: ${basename}.png"
+        DEPENDS "${inp}"
+        VERBATIM
+      )
+      list(APPEND _mermaid_output "${_output}")
+    else()
+      # Generate SVG and PDF for HTML, PDF respectively
+      foreach(_fmt pdf svg)
+        set(_output "${_output_base}/${basename}.${_fmt}")
+        add_custom_command(
+          OUTPUT "${_output}"
+          COMMAND
+            "${MMDC_EXECUTABLE}" -i "${inp}" -o "${_output}"
+             --backgroundColor white
+          COMMENT "Generating Mermaid: ${basename}.${_fmt}"
+          DEPENDS "${inp}"
+          VERBATIM
+        )
+        list(APPEND _mermaid_output "${_output}")
+      endforeach()
+    endif()
+  endmacro()
+
+  file(GLOB _mermaid_input "${CMAKE_CURRENT_SOURCE_DIR}/_input/*.mmd")
+  foreach(_inp IN LISTS _mermaid_input)
+    _celer_build_mermaid("${_inp}")
+  endforeach()
+endif()
+
+#-----------------------------------------------------------------------------#
+# RST PROCESSING
+
+if(Sphinx_FOUND)
+  file(GLOB_RECURSE _sphinx_deps "${CMAKE_CURRENT_SOURCE_DIR}/*.rst")
+  list(APPEND _sphinx_deps ${_mermaid_output})
 else()
-  set(_user_deps)
+  set(_sphinx_deps)
 endif()
 
 if(CELERITAS_USE_BREATHE)
-  set(_doc_xml "${DOXYGEN_XML_OUTPUT}/index.xml")
-  add_custom_command(
-    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${_doc_xml}"
-    DEPENDS doxygen_xml
-    COMMAND "${CMAKE_COMMAND}" -E touch_nocreate "${CMAKE_CURRENT_BINARY_DIR}/${_doc_xml}"
-    VERBATIM
-  )
-  list(APPEND _user_deps "${CMAKE_CURRENT_BINARY_DIR}/${_doc_xml}" doxygen_xml)
+  list(APPEND _sphinx_deps "${CMAKE_CURRENT_BINARY_DIR}/doxygen_xml.stamp")
 endif()
+
+# The built-in 'dummy' builder simply parses the input and caches everything
+set(_doctree_env "doctrees/environment.pickle")
+celeritas_build_sphinx(dummy "${_doctree_env}" "${_sphinx_deps}")
+add_custom_target(doc_preprocess DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${_doctree_env}")
 
 #-----------------------------------------------------------------------------#
 # HTML
@@ -288,7 +352,7 @@ set(CELERITAS_SPHINX_USER_HTML_ARGS "" CACHE STRING
 mark_as_advanced(CELERITAS_SPHINX_USER_HTML_ARGS)
 
 set(_doc_html "html/index.html")
-celeritas_build_sphinx(html "${_doc_html}" "${_user_deps}" ${CELERITAS_SPHINX_USER_HTML_ARGS})
+celeritas_build_sphinx(html "${_doc_html}" "${_doctree_env}" ${CELERITAS_SPHINX_USER_HTML_ARGS})
 add_custom_target(doc DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${_doc_html}")
 
 install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html/"
@@ -300,7 +364,7 @@ install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html/"
 # PDF
 
 set(_doc_tex "latex/Celeritas.tex")
-celeritas_build_sphinx(latex "${_doc_tex}" "${_user_deps}")
+celeritas_build_sphinx(latex "${_doc_tex}" "${_doctree_env}")
 
 if(Sphinx_FOUND)
   # Download ornltm class
@@ -345,8 +409,5 @@ else()
 endif()
 
 add_custom_target(doc_pdf DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${_doc_pdf}")
-if(CELERITAS_USE_BREATHE)
-  add_dependencies(doc_pdf doxygen_xml)
-endif()
 
 #-----------------------------------------------------------------------------#

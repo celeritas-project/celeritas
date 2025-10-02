@@ -17,25 +17,25 @@ namespace celeritas
 namespace lengthunits
 {
 //---------------------------------------------------------------------------//
-#define CELER_ICRT inline constexpr Constant
+#define CELER_ICC inline constexpr Constant
 
 #if CELERITAS_UNITS == CELERITAS_UNITS_CGS
-CELER_ICRT meter{100};
-CELER_ICRT centimeter{1};
-CELER_ICRT millimeter{0.1};
+CELER_ICC meter{100};
+CELER_ICC centimeter{1};
+CELER_ICC millimeter{0.1};
 #elif CELERITAS_UNITS == CELERITAS_UNITS_SI
-CELER_ICRT meter{1};
-CELER_ICRT centimeter{0.01};
-CELER_ICRT millimeter{0.001};
+CELER_ICC meter{1};
+CELER_ICC centimeter{0.01};
+CELER_ICC millimeter{0.001};
 #elif CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
-CELER_ICRT meter{1000};
-CELER_ICRT centimeter{10};
-CELER_ICRT millimeter{1};
+CELER_ICC meter{1000};
+CELER_ICC centimeter{10};
+CELER_ICC millimeter{1};
 #else
 #    error "CELERITAS_UNITS is undefined"
 #endif
 
-#undef CELER_ICRT
+#undef CELER_ICC
 //---------------------------------------------------------------------------//
 }  // namespace lengthunits
 }  // namespace celeritas

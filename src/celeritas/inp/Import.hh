@@ -39,7 +39,7 @@ struct PhysicsFromFile
 /*!
  * Options for importing data from in-memory Geant4.
  *
- * \todo:
+ * \todo
  * - Use "offload particle types" (variant: grouping, G4PD*, PDG)
  * - Load all processes applicable to offload particles
  * - Determine particle list from process->secondary mapping

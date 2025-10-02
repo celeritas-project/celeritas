@@ -101,7 +101,7 @@ void verify_offload(std::vector<G4ParticleDefinition*> const& offload,
         {
             PDGNumber pdg{pd->GetPDGEncoding()};
             CELER_VALIDATE(
-                pdg, << "unsupported particle type: " << PrintablePD{pd});
+                pdg, << "unsupported particle type: " << StreamablePD{pd});
             pid = particles.find(pdg);
         }
         if (pid)
@@ -121,7 +121,7 @@ void verify_offload(std::vector<G4ParticleDefinition*> const& offload,
     }
 
     auto printable_pd
-        = [](G4ParticleDefinition const* p) { return PrintablePD{p}; };
+        = [](G4ParticleDefinition const* p) { return StreamablePD{p}; };
     CELER_VALIDATE(missing.empty(),
                    << "not all particles from TrackingManagerConstructor are "
                       "active in Celeritas: missing "

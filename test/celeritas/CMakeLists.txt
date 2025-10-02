@@ -235,7 +235,7 @@ else()
   set(_fieldprop_filter)
 endif()
 
-celeritas_add_test(field/Fields.test.cc
+celeritas_add_device_test(field/Fields
   LINK_LIBRARIES Celeritas::Extcovfie
 )
 celeritas_add_test(field/Integrators.test.cc ${_fixme_cgs})
