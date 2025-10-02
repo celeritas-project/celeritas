@@ -32,7 +32,7 @@ namespace detail
  * \return The result of the sum
  */
 CELER_FUNCTION inline RanluxppUInt
-addOverflow(RanluxppUInt a, RanluxppUInt b, RanluxppUInt& overflow)
+addOverflow(RanluxppUInt a, RanluxppUInt b, unsigned int& overflow)
 {
     RanluxppUInt add = a + b;
     overflow = (add < a);
@@ -50,9 +50,9 @@ addOverflow(RanluxppUInt a, RanluxppUInt b, RanluxppUInt& overflow)
  * \return The result of the sum
  */
 CELER_FUNCTION inline RanluxppUInt
-addCarry(RanluxppUInt a, RanluxppUInt b, RanluxppUInt& carry)
+addCarry(RanluxppUInt a, RanluxppUInt b, unsigned int& carry)
 {
-    RanluxppUInt overflow;
+    unsigned int overflow;
     RanluxppUInt add = addOverflow(a, b, overflow);
 
     // Do NOT branch on overflow to avoid jumping code, just add 0 if there was
@@ -72,7 +72,7 @@ addCarry(RanluxppUInt a, RanluxppUInt b, RanluxppUInt& carry)
  * \return The result of the subtraction
  */
 CELER_FUNCTION inline RanluxppUInt
-subOverflow(RanluxppUInt a, RanluxppUInt b, RanluxppUInt& overflow)
+subOverflow(RanluxppUInt a, RanluxppUInt b, unsigned int& overflow)
 {
     RanluxppUInt sub = a - b;
     overflow = (sub > a);
@@ -89,10 +89,10 @@ subOverflow(RanluxppUInt a, RanluxppUInt b, RanluxppUInt& overflow)
  *
  * \return The result of the subtraction
  */
-CELER_FUNCTION static inline RanluxppUInt
-subCarry(RanluxppUInt a, RanluxppUInt b, RanluxppUInt& carry)
+CELER_FUNCTION inline RanluxppUInt
+subCarry(RanluxppUInt a, RanluxppUInt b, unsigned int& carry)
 {
-    RanluxppUInt overflow;
+    unsigned int overflow;
     RanluxppUInt sub = subOverflow(a, b, overflow);
 
     // Do NOT branch on overflow to avoid jumping code, just add 0 if there was
@@ -111,11 +111,11 @@ subCarry(RanluxppUInt a, RanluxppUInt b, RanluxppUInt& carry)
  * mod_m in mulmod.h). The function to_ranlux passes r = 0 and uses only the
  * return value to obtain the decimal expansion after divison by m.
  */
-CELER_FUNCTION inline RanluxppUInt
+CELER_FUNCTION inline int64_t
 computeR(Span<RanluxppUInt const, 9> upper, Span<RanluxppUInt, 9> r)
 {
     // Subtract t1 (24 * 24 = 576 bits)
-    RanluxppUInt carry = 0;
+    unsigned int carry = 0;
     for (int i : celeritas::range(9))
     {
         RanluxppUInt r_i = r[i];
@@ -125,7 +125,7 @@ computeR(Span<RanluxppUInt const, 9> upper, Span<RanluxppUInt, 9> r)
         r_i = subCarry(r_i, t1_i, carry);
         r[i] = r_i;
     }
-    RanluxppUInt c = -(carry);
+    int64_t c = -(static_cast<int64_t>(carry));
 
     // Subtract t2 (only 240 bits, so need to extend)
     carry = 0;

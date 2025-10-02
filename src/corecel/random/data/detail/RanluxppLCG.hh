@@ -27,10 +27,11 @@ namespace detail
  * \param[in]  c       The carry bit of the RANLUX state
  * \param[out] lcg     The 576 bits of the LCG state, smaller than m
  */
-CELER_FUNCTION void
-toLCG(RanluxppArray9 const& ranlux, RanluxppUInt c, RanluxppArray9& lcg)
+CELER_FUNCTION inline void
+toLCG(RanluxppArray9 const& ranlux, unsigned int c, RanluxppArray9& lcg)
 {
-    RanluxppUInt carry = 0;
+    unsigned int carry = 0;
+
     // Subtract the final 240 bits.
     for (int i : celeritas::range(9))
     {
@@ -67,14 +68,14 @@ toLCG(RanluxppArray9 const& ranlux, RanluxppUInt c, RanluxppArray9& lcg)
  * \param[out] ranlux  The RANLUX numbers as 576 bits
  * \param[out] c       The carry bit of the RANLUX state
  */
-CELER_FUNCTION void
-toRanlux(RanluxppArray9 const& lcg, RanluxppArray9& ranlux, RanluxppUInt& c_out)
+CELER_FUNCTION inline void
+toRanlux(RanluxppArray9 const& lcg, RanluxppArray9& ranlux, unsigned int& c_out)
 {
     RanluxppArray9 r = {0, 0, 0, 0, 0, 0, 0, 0, 0};
     int64_t c = computeR(celeritas::make_span(lcg), celeritas::make_span(r));
 
     // ranlux = t1 + t2 + c
-    RanluxppUInt carry = 0;
+    unsigned int carry = 0;
     for (int i : celeritas::range(9))
     {
         RanluxppUInt in_i = lcg[i];
@@ -96,7 +97,7 @@ toRanlux(RanluxppArray9 const& lcg, RanluxppArray9& ranlux, RanluxppUInt& c_out)
     // If c = -1, we need to add it to all components.
     int64_t c1 = c >> 1;
     ranlux[0] = addOverflow(ranlux[0], c, carry);
-    for (int i : celeritas::range(9))
+    for (int i : celeritas::range(1, 9))
     {
         RanluxppUInt ranlux_i = ranlux[i];
         ranlux_i = addOverflow(ranlux_i, carry, carry);

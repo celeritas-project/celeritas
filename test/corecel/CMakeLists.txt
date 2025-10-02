@@ -102,7 +102,7 @@ celeritas_add_device_test(random/RngEngine
   LINK_LIBRARIES Celeritas::ExtThrust)
 celeritas_add_test(random/Selector.test.cc)
 celeritas_add_test(random/XorwowRngEngine.test.cc GPU)
-celeritas_add_test(random/Ranluxpp.test.cc GPU)
+celeritas_add_test(random/RanluxppRngEngine.test.cc GPU)
 
 celeritas_add_test(random/distribution/BernoulliDistribution.test.cc)
 celeritas_add_test(random/distribution/ExponentialDistribution.test.cc)

@@ -24,12 +24,13 @@ namespace celeritas
  */
 void initialize_ranluxpp(Span<RanluxppRngState> states,
                          HostCRef<RanluxppRngParamsData> const& params,
-                         RanluxppUInt seed,
                          StreamId stream)
 {
+    CELER_EXPECT(params);
+
     // Generate well-distributed seed numbers, including StreamId so that each
     // stream has different starting contribution
-    std::vector<std::seed_seq::result_type> host_seeds(1, seed);
+    std::vector<std::seed_seq::result_type> host_seeds(1, params.seed);
     if (stream != StreamId{0})
     {
         host_seeds.push_back(stream.get());
@@ -68,12 +69,12 @@ void resize(RanluxppRngStateData<Ownership::value, M>* state,
     HostVal<RanluxppRngStateData> host_state;
     resize(&host_state.state, size);
     initialize_ranluxpp(
-        &host_state.state[AllItems<RanluxppState>()], params, stream);
+        host_state.state[AllItems<RanluxppRngState>{}], params, stream);
 
     // Move or copy to input
-    if (M == Memspace::host)
+    if constexpr (M == MemSpace::host)
     {
-        state->state = std::move(host_state.statee);
+        state->state = std::move(host_state.state);
     }
     else
     {

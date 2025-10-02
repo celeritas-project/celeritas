@@ -29,7 +29,7 @@ struct RanluxppRngParamsData
 {
     //// DATA ////
     RanluxppArray9 kA_2048;
-    RanluxppUInt kMaxPos;
+    int kMaxPos;
     RanluxppUInt seed = 314159265;
 
     //// FUNCTIONS ////
@@ -38,8 +38,7 @@ struct RanluxppRngParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    RanluxppRngParamsData<W, M>&
-    operator=(RanluxppRngParamsData<W2, M2> const& other)
+    RanluxppRngParamsData& operator=(RanluxppRngParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         kA_2048 = other.kA_2048;
@@ -57,7 +56,7 @@ struct RanluxppRngState
 {
     //// DATA ////
     RanluxppArray9 state;
-    RanluxppUInt carry;
+    unsigned int carry;
     int position;
 
     //! Pickle the state into the given array
@@ -87,7 +86,7 @@ struct RanluxppRngState
 
         // Skip another s states.
         celeritas::detail::powermod(a_seed, a_seed, seed);
-        RanluxppArray9 lcg = {0, 1, 1, 1, 1, 1, 1, 1, 1};
+        RanluxppArray9 lcg = {1, 0, 0, 0, 0, 0, 0, 0};
         celeritas::detail::mulmod(a_seed, lcg);
 
         // Set state and carry variable
@@ -106,10 +105,8 @@ struct RanluxppRngState
     }
 
     // Skip 'n' random numbers without generating them
-    CELER_FUNCTION void skip(RanluxppUInt n,
-                             RanluxppUInt kMaxPos,
-                             RanluxppArray9 const& kA_2048,
-                             RanluxppUInt offset)
+    CELER_FUNCTION void
+    skip(RanluxppUInt n, int kMaxPos, RanluxppArray9 const& kA_2048, int offset)
     {
         CELER_ASSERT(n > 0);
         CELER_ASSERT(kMaxPos > 0);
@@ -128,7 +125,7 @@ struct RanluxppRngState
         n -= left;
         // Need to advance and possibly skip over blocks.
         int nPerState = kMaxPos / offset;
-        int skip = (n / nPerState);
+        int skip = n / nPerState;
 
         RanluxppArray9 a_skip;
         celeritas::detail::powermod(kA_2048, a_skip, skip + 1);
@@ -162,14 +159,20 @@ struct RanluxppRngStateData
     StateItems<RanluxppRngState> state;
 
     //// METHODS ////
-    // Pickle the current state into the given array
-    inline CELER_FUNCTION void saveState(RanluxppArray9& state) const;
+    //! True if assigned
+    explicit CELER_FUNCTION operator bool() const { return !state.empty(); }
 
-    // XOR the state with the given state array
-    inline CELER_FUNCTION void xorState(RanluxppArray9 const& state) const;
+    //! State size
+    CELER_FUNCTION size_type size() const { return state.size(); }
 
-    // Advance the state
-    inline CELER_FUNCTION void advance(RanluxppArray9 const& kA);
+    //! Assign from another set of states
+    template<Ownership W2, MemSpace M2>
+    RanluxppRngStateData& operator=(RanluxppRngStateData<W2, M2>& other)
+    {
+        CELER_EXPECT(other);
+        state = other.state;
+        return *this;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -181,7 +184,7 @@ void initialize_ranluxpp(Span<RanluxppRngState> state,
 //---------------------------------------------------------------------------//
 // Resize and seed the RNG states
 template<MemSpace M>
-void resize(RanluxppStateData<Ownership::value, M>* state,
+void resize(RanluxppRngStateData<Ownership::value, M>* state,
             HostCRef<RanluxppRngParamsData> const& params,
             StreamId stream,
             size_type size);

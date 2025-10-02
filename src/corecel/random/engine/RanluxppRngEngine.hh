@@ -25,13 +25,13 @@ namespace celeritas
  * \tparam w  Position offset amount in bits
  */
 template<int w>
-class RanluxppEngineImpl
+class RanluxppRngEngineImpl
 {
   public:
     //!{
     //! Type aliases
     using ParamsRef = NativeCRef<RanluxppRngParamsData>;
-    using StateRef = NativeRef<RanluxppStateData>;
+    using StateRef = NativeRef<RanluxppRngStateData>;
     using result_type = RanluxppUInt;
     //!}
 
@@ -39,7 +39,7 @@ class RanluxppEngineImpl
     //! Return the next random bits, generate a new block if necessary
     CELER_FUNCTION RanluxppUInt nextRandomBits()
     {
-        if (state_->position + w > static_cast<int>(params_.kMaxPos))
+        if (state_->position + w > params_.kMaxPos)
         {
             state_->advance(params_.kA_2048);
         }
@@ -85,9 +85,14 @@ class RanluxppEngineImpl
     }
 
     // Construct from state and persistent data
-    RanluxppEngineImpl(ParamsRef const& params,
-                       StateRef const& state,
-                       TrackSlotId tid);
+    CELER_FUNCTION RanluxppRngEngineImpl(ParamsRef const& params,
+                                         StateRef const& state,
+                                         TrackSlotId tid)
+        : params_(params)
+    {
+        CELER_EXPECT(tid < state.state.size());
+        state_ = &state.state[tid];
+    }
 
   private:
     /// DATA ///
@@ -97,9 +102,9 @@ class RanluxppEngineImpl
 
 //---------------------------------------------------------------------------//
 
-class RanluxppDouble final : public RanluxppEngineImpl<48>
+class RanluxppRngEngine final : public RanluxppRngEngineImpl<48>
 {
-    using Base = RanluxppEngineImpl<48>;
+    using Base = RanluxppRngEngineImpl<48>;
 
   public:
     //@{
@@ -111,16 +116,20 @@ class RanluxppDouble final : public RanluxppEngineImpl<48>
 
   public:
     //! Instantiate with optional default seed
-    CELER_FUNCTION RanluxppDouble(ParamsRef const& params,
-                                  StateRef const& state,
-                                  TrackSlotId tid)
+    CELER_FUNCTION RanluxppRngEngine(ParamsRef const& params,
+                                     StateRef const& state,
+                                     TrackSlotId tid)
         : Base(params, state, tid)
     {
         /* * */
     }
 
-    // Initialize state
-    inline CELER_FUNCTION RanluxppDouble& operator=(RanluxppUInt seed);
+    //! Initialize state with the given seed
+    inline CELER_FUNCTION RanluxppRngEngine& operator=(RanluxppUInt seed)
+    {
+        Base::setSeed(seed);
+        return *this;
+    }
 
     //! Generate a double-precision random number
     CELER_FUNCTION RanluxppUInt operator()() { return this->intRndm64(); }
@@ -128,7 +137,9 @@ class RanluxppDouble final : public RanluxppEngineImpl<48>
     //! Advance the state \c count times
     inline CELER_FUNCTION void discard(RanluxppUInt count)
     {
-        Base::skip(count);
+        // Have to discard twice because 64-bit random numbers are composed of
+        // *two* calls to nextRandomBits
+        Base::skip(2 * count);
     }
 
   private:

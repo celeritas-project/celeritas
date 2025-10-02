@@ -26,12 +26,12 @@ namespace detail
  * \param[in]  in2  second factor as 9 numbers of 64 bits each
  * \param[out] out  result with 18 numbers of 64 bits each
  */
-CELER_FUNCTION void multiply9x9(RanluxppArray9 const& in1,
-                                RanluxppArray9 const& in2,
-                                RanluxppArray18& out)
+CELER_FUNCTION inline void multiply9x9(RanluxppArray9 const& in1,
+                                       RanluxppArray9 const& in2,
+                                       RanluxppArray18& out)
 {
     RanluxppUInt next = 0;
-    RanluxppUInt nextCarry = 0;
+    unsigned int nextCarry = 0;
 
 #if defined(__clang__) || defined(__INTEL_COMPILER) || defined(__CUDA_ARCH__)
 #    pragma unroll
@@ -42,7 +42,7 @@ CELER_FUNCTION void multiply9x9(RanluxppArray9 const& in1,
     for (int i : celeritas::range(18))
     {
         RanluxppUInt current = next;
-        RanluxppUInt carry = nextCarry;
+        unsigned int carry = nextCarry;
 
         next = 0;
         nextCarry = 0;
@@ -90,7 +90,7 @@ CELER_FUNCTION void multiply9x9(RanluxppArray9 const& in1,
 
             // When adding the two products, the maximum value for middle is
             // 2 * 2 ** 64 - 4 * 2 ** 32 + 2, which exceeds a uint64_t.
-            RanluxppUInt overflow;
+            unsigned int overflow;
             RanluxppUInt middle = addOverflow(middle1, middle2, overflow);
             // Handling the overflow by a multiplication with 0 or 1 is cheaper
             // than branching with an if statement, which the compiler does not
@@ -103,7 +103,8 @@ CELER_FUNCTION void multiply9x9(RanluxppArray9 const& in1,
             // overflowing due to the mixture of 32 bit arithmetic. Moreover,
             // my tests show that the scheme implemented here is actually
             // slightly more performant.
-            RanluxppUInt overflow_add = overflow * (RanluxppUInt(1) << 32);
+            RanluxppUInt overflow_add = overflow
+                                        * (static_cast<RanluxppUInt>(1) << 32);
             // This addition can never overflow because the maximum value of
             // upper is 2 ** 64 - 2 * 2 ** 32 + 1 (see above). When now adding
             // another 2 ** 32, the result is 2 ** 64 - 2 ** 32 + 1 and still
@@ -157,16 +158,18 @@ CELER_FUNCTION void multiply9x9(RanluxppArray9 const& in1,
  * \param[in] mul product from multiply9x9 with 18 numbers of 64 bits each
  * \param[out] out result with 9 numbers of 64 bits each
  */
-CELER_FUNCTION void modM(RanluxppArray18 const& mul, RanluxppArray9& out)
+CELER_FUNCTION inline void modM(RanluxppArray18 const& mul, RanluxppArray9& out)
 {
-    RanluxppArray9 r;
+    RanluxppArray9 r = {0, 0, 0, 0, 0, 0, 0, 0};
     // Assign r = t0
     std::copy_n(mul.begin(), 9, r.begin());
 
-    // auto mul_span = celeritas::make_span(mul);
-    // auto subspan = mul_span.subspan<9, 9>();
-    RanluxppUInt c = computeR(celeritas::make_span(mul).subspan<9, 9>(),
-                              celeritas::make_span(r));
+    // Make a subspan of the last 9 elements of mul
+    auto mul_end = celeritas::make_span(mul).subspan<9, 9>();
+    CELER_ASSERT(mul_end.size() == 9);
+    CELER_ASSERT(std::equal(mul_end.begin(), mul_end.end(), mul.begin() + 9));
+
+    int64_t c = computeR(mul_end, celeritas::make_span(r));
 
     // To update r = r - c * m, it suffices to know c * (-2 ** 240 + 1)
     // because the 2 ** 576 will cancel out. Also note that c may be zero, but
@@ -187,16 +190,16 @@ CELER_FUNCTION void modM(RanluxppArray18 const& mul, RanluxppArray9& out)
     // c = 0 -> t0 = 0; c = 1 -> t0 = 0; c = -1 -> all bits set (sign
     // extension) (The assembly implementation shifts by 63, which gives the
     // same result.)
-    RanluxppUInt t0 = c >> 1;
+    int64_t t0 = c >> 1;
 
     // c = 0 -> t2 = 0; c = 1 -> upper 16 bits set; c = -1 -> lower 48 bits set
-    RanluxppUInt t2 = t0 - (c << 48);
+    int64_t t2 = t0 - (c << 48);
 
     // c = 0 -> t1 = 0; c = 1 -> all bits set; c = -1 -> t1 = 0
     // (The assembly implementation shifts by 63, which gives the same result.)
-    RanluxppUInt t1 = t2 >> 48;
+    int64_t t1 = t2 >> 48;
 
-    RanluxppUInt carry = 0;
+    unsigned int carry = 0;
     {
         RanluxppUInt r_0 = r[0];
 
@@ -237,7 +240,8 @@ CELER_FUNCTION void modM(RanluxppArray18 const& mul, RanluxppArray9& out)
  * \param[in]    in1   first factor with 9 numbers of 64 bits each
  * \param[inout] inout second factor and also the output of the same size
  */
-CELER_FUNCTION void mulmod(RanluxppArray9 const& in1, RanluxppArray9& inout)
+CELER_FUNCTION inline void
+mulmod(RanluxppArray9 const& in1, RanluxppArray9& inout)
 {
     RanluxppArray18 mul;
     multiply9x9(in1, inout, mul);
@@ -254,7 +258,7 @@ CELER_FUNCTION void mulmod(RanluxppArray9 const& in1, RanluxppArray9& inout)
  * \param[out] res   output with 9 numbers of 64 bits each
  * \param[in]  n     exponent
  */
-CELER_FUNCTION void
+CELER_FUNCTION inline void
 powermod(RanluxppArray9 const& base, RanluxppArray9& res, RanluxppUInt n)
 {
     RanluxppArray9 fac = base;
