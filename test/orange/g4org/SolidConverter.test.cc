@@ -767,15 +767,38 @@ TEST_F(SolidConverterTest, sphere)
 
 TEST_F(SolidConverterTest, subtractionsolid)
 {
-    G4Tubs t1("Solid Tube #1", 0, 50., 50., 0., 360. * deg);
-    G4Box b3("Test Box #3", 10., 20., 50.);
-    G4RotationMatrix xRot;
-    xRot.rotateZ(-pi);
-    G4Transform3D const transform(xRot, G4ThreeVector(0, 30, 0));
-    this->build_and_test(
-        G4SubtractionSolid("t1Subtractionb3", &t1, &b3, transform),
-        R"json({"_type":"all","daughters":[{"_type":"shape","interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Solid Tube #1"},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[1.0,2.0,5.0]},"label":"Test Box #3"},"transform":{"_type":"transformation","data":[-1.0,1.2246467991473532e-16,0.0,-1.2246467991473532e-16,-1.0,-0.0,0.0,0.0,1.0,0.0,3.0,0.0]}},"label":""}],"label":"t1Subtractionb3"})json",
-        {{0, 0, 0}, {0, 0, 10}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1}});
+    {
+        G4Tubs t1("Solid Tube #1", 0, 50., 50., 0., 360. * deg);
+        G4Box b3("Test Box #3", 10., 20., 50.);
+        G4RotationMatrix zRot;
+        zRot.rotateZ(-pi);
+        G4Transform3D const transform(zRot, G4ThreeVector(0, 30, 0));
+        this->build_and_test(
+            G4SubtractionSolid("t1Subtractionb3", &t1, &b3, transform),
+            R"json({"_type":"all","daughters":[{"_type":"shape","interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Solid Tube #1"},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[1.0,2.0,5.0]},"label":"Test Box #3"},"transform":{"_type":"transformation","data":[-1.0,1.2246467991473532e-16,0.0,-1.2246467991473532e-16,-1.0,-0.0,0.0,0.0,1.0,0.0,3.0,0.0]}},"label":""}],"label":"t1Subtractionb3"})json",
+            {{0, 0, 0}, {0, 0, 10}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1}});
+    }
+    {
+        G4Trap trap("trap",
+                    /* dz= */ 0.5 * 475,
+                    /* theta = */ 0,
+                    /* phi = */ 0,
+                    /* y1 = */ 0.5 * 614,
+                    /* x1 = */ 0.5 * 95,
+                    /* x2 = */ 0.5 * 95,
+                    /* alpha1 = */ 0,
+                    /* y2 = */ 0.5 * 518.34,
+                    /* x3 = */ 0.5 * 95,
+                    /* x4 = */ 0.5 * 95,
+                    /* alpha2 = */ 0);
+        G4Box box("box", 0.5 * 100, 0.5 * 489.6, 0.5 * 300);
+        G4RotationMatrix xRot;
+        xRot.rotateX(41.592 * deg);
+        G4Transform3D const transform(xRot, G4ThreeVector(0, -223.49, 193.88));
+        this->build_and_test(
+            G4SubtractionSolid("LAr::DM::SPliceBoxr", &trap, &box, transform),
+            R"json({"_type":"all","daughters":[{"_type":"shape","interior":{"_type":"genprism","halfheight":23.75,"lower":[[4.75,-30.700000000000003],[4.75,30.700000000000003],[-4.75,30.700000000000003],[-4.75,-30.700000000000003]],"upper":[[4.75,-25.917],[4.75,25.917],[-4.75,25.917],[-4.75,-25.917]]},"label":"trap"},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[5.0,24.480000000000004,15.0]},"label":"box"},"transform":{"_type":"transformation","data":[1.0,0.0,0.0,0.0,0.747890784796085,-0.6638217938702345,0.0,0.6638217938702345,0.747890784796085,0.0,-22.349000000000004,19.388]}},"label":""}],"label":"LAr::DM::SPliceBoxr"})json");
+    }
 }
 
 TEST_F(SolidConverterTest, reflectedsolid)
@@ -840,10 +863,9 @@ TEST_F(SolidConverterTest, torus)
 
 TEST_F(SolidConverterTest, trap)
 {
-    double tan_alpha = std::tan(45 * deg);
     this->build_and_test(
-        G4Trap("trap0", 10, 0, 0, 10, 10, 10, tan_alpha, 10, 10, 10, tan_alpha),
-        R"json({"_type":"shape","interior":{"_type":"genprism","halfheight":1.0,"lower":[[-0.5574077246549016,-1.0],[2.557407724654902,1.0],[0.5574077246549016,1.0],[-2.557407724654902,-1.0]],"upper":[[-0.5574077246549016,-1.0],[2.557407724654902,1.0],[0.5574077246549016,1.0],[-2.557407724654902,-1.0]]},"label":"trap0"})json");
+        G4Trap("trap0", 10, 0, 0, 10, 10, 10, 45 * deg, 10, 10, 10, 45 * deg),
+        R"json({"_type":"shape","interior":{"_type":"genprism","halfheight":1.0,"lower":[[1.1102230246251565e-16,-1.0],[2.0,1.0],[-1.1102230246251565e-16,1.0],[-2.0,-1.0]],"upper":[[1.1102230246251565e-16,-1.0],[2.0,1.0],[-1.1102230246251565e-16,1.0],[-2.0,-1.0]]},"label":"trap0"})json");
 
     this->build_and_test(
         G4Trap("trap_box", 30, 0, 0, 20, 10, 10, 0, 20, 10, 10, 0),
@@ -860,7 +882,6 @@ TEST_F(SolidConverterTest, trap)
 },"label":"trap_trd"})json",
         {{-10, -20, -40}, {-10, -20, -30 + 1.e-6}, {5, 10, 30}, {10, 10, 30}});
 
-    tan_alpha = std::tan(15 * deg);
     this->build_and_test(
         G4Trap("trap1",
                40,
@@ -869,19 +890,18 @@ TEST_F(SolidConverterTest, trap)
                20,
                10,
                10,
-               tan_alpha,
+               15 * deg,
                30,
                15,
                15,
-               tan_alpha),
-        R"json({"_type":"shape","interior":{"_type":"genprism","halfheight":4.0,"lower":[[0.10625895161288212,-2.060768987951168],[1.2044649352590673,1.9392310120488323],[-0.7955350647409326,1.9392310120488323],[-1.8937410483871178,-2.060768987951168]],"upper":[[1.0209835688293862,-2.939231012048832],[2.668292544298664,3.060768987951168],[-0.33170745570133575,3.060768987951168],[-1.9790164311706138,-2.939231012048832]]},"label":"trap1"})json",
+               15 * deg),
+        R"json({"_type":"shape","interior":{"_type":"genprism","halfheight":4.0,"lower":[[0.11946355857372937,-2.060768987951168],[1.1912603282982202,1.9392310120488323],[-0.8087396717017798,1.9392310120488323],[-1.8805364414262706,-2.060768987951168]],"upper":[[1.0407904792706573,-2.939231012048832],[2.648485633857393,3.060768987951168],[-0.3515143661426068,3.060768987951168],[-1.9592095207293427,-2.939231012048832]]},"label":"trap1"})json",
         {{-1.89, -2.1, -4.01},
          {0.12, -2.07, -4.01},
          {1.20, 1.94, -4.01},
          {-0.81, 1.9, -4.01},
          {-1.96, -2.94, 4.01}});
 
-    tan_alpha = std::tan(30 * deg);
     this->build_and_test(
         G4Trap("trap2",
                10,
@@ -890,12 +910,12 @@ TEST_F(SolidConverterTest, trap)
                20,
                10,
                10,
-               tan_alpha,
+               30 * deg,
                30,
                15,
                15,
-               tan_alpha),
-        R"json({"_type":"shape","interior":{"_type":"genprism","halfheight":1.0,"lower":[[-0.4730945579141699,-1.9543632192272244],[2.132456988838409,2.0456367807727753],[0.13245698883840862,2.0456367807727753],[-2.4730945579141697,-1.9543632192272244]],"upper":[[-0.28384487552655324,-3.0456367807727753],[3.6244824446023145,2.9543632192272247],[0.6244824446023145,2.9543632192272247],[-3.2838448755265532,-3.0456367807727753]]},"label":"trap2"})json",
+               30 * deg),
+        R"json({"_type":"shape","interior":{"_type":"genprism","halfheight":1.0,"lower":[[-0.32501932291713187,-1.9543632192272244],[1.9843817538413706,2.0456367807727753],[-0.01561824615862939,2.0456367807727753],[-2.325019322917132,-1.9543632192272244]],"upper":[[-0.06173202303099612,-3.0456367807727753],[3.4023695921067576,2.9543632192272247],[0.4023695921067574,2.9543632192272247],[-3.061732023030996,-3.0456367807727753]]},"label":"trap2"})json",
         {{-2.33, -1.96, -1.01},
          {-2.32, -1.95, -0.99},
          {3.41, 2.96, 1.01},
