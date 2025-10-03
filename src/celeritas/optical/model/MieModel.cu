@@ -11,6 +11,7 @@
 #include "celeritas/optical/InteractionApplier.hh"
 #include "celeritas/optical/action/ActionLauncher.device.hh"
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
+#include "celeritas/optical/model/MieExecutor.hh"
 
 namespace celeritas
 {

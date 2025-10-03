@@ -9,9 +9,6 @@
 #include <vector>
 
 #include "corecel/data/CollectionMirror.hh"
-#include "celeritas/io/ImportData.hh"
-#include "celeritas/io/ImportOpticalMaterial.hh"
-#include "celeritas/io/ImportOpticalModel.hh"
 #include "celeritas/optical/ImportedModelAdapter.hh"
 #include "celeritas/optical/Model.hh"
 

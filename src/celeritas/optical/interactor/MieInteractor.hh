@@ -7,13 +7,11 @@
 #pragma once
 
 #include <cmath>
-#include <iomanip>
 
 #include "corecel/Assert.hh"
 #include "corecel/Constants.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArraySoftUnit.hh"
@@ -26,6 +24,7 @@
 #include "celeritas/optical/Interaction.hh"
 #include "celeritas/optical/MieData.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
+
 namespace celeritas
 {
 namespace optical
@@ -109,18 +108,11 @@ CELER_FUNCTION Interaction MieInteractor::operator()(Engine& rng) const
 
         // Compute cos(theta) distribution for optical photons that undergo mie
         // scattering
-        constexpr real_type tol = 1e-7;
+        // NOTE: floating point cancellation means the expression can result in
+        // a cosine slightly greater than unity
         real_type costheta = 2 * r * ipow<2>((1 + g) / (1 - g + 2 * g * r))
                                  * (1 - g + g * r)
                              - 1;
-        if (costheta > 1.0 + tol || costheta < -1.0 - tol)
-        {
-            CELER_LOG(error)
-                << "costheta out-of-bounds beyond tolerance: "
-                << std::setprecision(std::numeric_limits<real_type>::digits10
-                                     + 2)
-                << costheta;
-        }
         costheta = celeritas::min(costheta, real_type{1});
 
         CELER_ASSERT(costheta >= -1 && costheta <= 1);
