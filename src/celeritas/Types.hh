@@ -52,6 +52,12 @@ using PrimaryId = OpaqueId<struct Primary_>;
 //! Opaque index of physics process
 using ProcessId = OpaqueId<struct Process_>;
 
+//! Opaque index into internal physics data within a single model
+using SubModelId = OpaqueId<struct SubModel_>;
+
+//! Opaque index of surface physics models
+using SurfaceModelId = OpaqueId<struct SurfaceModel_>;
+
 //! Unique ID (for an event) of a track among all primaries and secondaries
 using TrackId = OpaqueId<struct Track_>;
 
