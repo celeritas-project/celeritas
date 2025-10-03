@@ -25,6 +25,10 @@ namespace detail
  * \param[in]  in1  first factor as 9 numbers of 64 bits each
  * \param[in]  in2  second factor as 9 numbers of 64 bits each
  * \param[out] out  result with 18 numbers of 64 bits each
+ *
+ * \todo We have disabled the branch using 128-bit integers. This causes
+ *       about a 25% performance hit on optimized builds.  A fast portable
+ *       solution would be nice.
  */
 CELER_FUNCTION inline void multiply9x9(RanluxppArray9 const& in1,
                                        RanluxppArray9 const& in2,
@@ -68,12 +72,21 @@ CELER_FUNCTION inline void multiply9x9(RanluxppArray9 const& in1,
             // equally easy to write and should work in older versions of CUDA.
             RanluxppUInt lower = fac1 * fac2;
             RanluxppUInt upper = __umul64hi(fac1, fac2);
+/*
+ * The code block belowis not standards compliant (there is no standard 128-bit
+ * integer). Therefore, we will eliminate this code block.
+ *
+ * Note: Optimally we would do some kind of SIMD instruction, possibly similar
+ * to what is being done in the CUDA block above. That is for future work
+ */
+/*
 #elif defined(__SIZEOF_INT128__)
             unsigned __int128 prod = fac1;
             prod = prod * fac2;
 
             RanluxppUInt upper = prod >> 64;
             RanluxppUInt lower = static_cast<RanluxppUInt>(prod);
+*/
 #else
             RanluxppUInt upper1 = fac1 >> 32;
             RanluxppUInt lower1 = static_cast<uint32_t>(fac1);
@@ -160,7 +173,7 @@ CELER_FUNCTION inline void multiply9x9(RanluxppArray9 const& in1,
  */
 CELER_FUNCTION inline void modM(RanluxppArray18 const& mul, RanluxppArray9& out)
 {
-    RanluxppArray9 r = {0, 0, 0, 0, 0, 0, 0, 0};
+    RanluxppArray9 r = {0, 0, 0, 0, 0, 0, 0, 0, 0};
     // Assign r = t0
     std::copy_n(mul.begin(), 9, r.begin());
 
@@ -235,10 +248,10 @@ CELER_FUNCTION inline void modM(RanluxppArray18 const& mul, RanluxppArray9& out)
 /*!
  * Combine multiply9x9 and mod_m with internal temporary storage
  *
- * The result in inout is guaranteed to be smaller than the modulus.
+ * The result in \p inout is guaranteed to be smaller than the modulus.
  *
- * \param[in]    in1   first factor with 9 numbers of 64 bits each
- * \param[inout] inout second factor and also the output of the same size
+ * \param[in]      in1   first factor with 9 numbers of 64 bits each
+ * \param[in, out] inout second factor and also the output of the same size
  */
 CELER_FUNCTION inline void
 mulmod(RanluxppArray9 const& in1, RanluxppArray9& inout)
@@ -252,7 +265,7 @@ mulmod(RanluxppArray9 const& in1, RanluxppArray9& inout)
 /*!
  * Compute base to the n modulo m
  *
- * The arguments base and res may point to the same location.
+ * The arguments \p base and \p res may point to the same location.
  *
  * \param[in]  base  with 9 numbers of 64 bits each
  * \param[out] res   output with 9 numbers of 64 bits each

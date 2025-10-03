@@ -109,7 +109,7 @@ subCarry(RanluxppUInt a, RanluxppUInt b, unsigned int& carry)
  * because the value can be -1). With an initial value of r = t0, this can
  * be used for computing the remainder after division by m (see the function
  * mod_m in mulmod.h). The function to_ranlux passes r = 0 and uses only the
- * return value to obtain the decimal expansion after divison by m.
+ * return value to obtain the decimal expansion after division by m.
  */
 CELER_FUNCTION inline int64_t
 computeR(Span<RanluxppUInt const, 9> upper, Span<RanluxppUInt, 9> r)
