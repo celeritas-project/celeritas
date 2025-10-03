@@ -2,13 +2,12 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/FresnelTest.test.cc
+//! \file celeritas/optical/Fresnel.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
-#include "celeritas/optical/surface/model/FresnelReflectivityCalculator.hh"
-#include "celeritas/optical/surface/model/FresnelRefractionCalculator.hh"
+#include "celeritas/optical/surface/model/FresnelCalculator.hh"
 
 #include "celeritas_test.hh"
 
@@ -64,21 +63,23 @@ struct CoordinateAxes
     real_type
     calc_reflectivity(real_type angle, LinearPolarization const& pol) const
     {
-        return FresnelReflectivityCalculator{
+        return FresnelCalculator{
             PhotonPhasor{this->make_direction(angle),
                          this->make_polarization(angle, pol)},
             n_hat,
-            rel_r_index}();
+            rel_r_index}
+            .calc_reflectivity();
     }
 
     SurfaceInteraction
     calc_refraction(real_type angle, LinearPolarization const& pol) const
     {
-        return FresnelRefractionCalculator{
+        return FresnelCalculator{
             PhotonPhasor{this->make_direction(angle),
                          this->make_polarization(angle, pol)},
             n_hat,
-            rel_r_index}();
+            rel_r_index}
+            .refracted_interaction();
     }
 };
 

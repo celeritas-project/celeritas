@@ -32,7 +32,6 @@ enum class UnifiedReflectionMode
 };
 
 using UnifiedModeProbs = EnumArray<UnifiedReflectionMode, real_type>;
-using InternalSurfaceId = OpaqueId<class InternalSurface_>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -43,8 +42,7 @@ struct UnifiedReflectionData
 {
     //!@{
     //! \name Type aliases
-    using SurfaceGrids
-        = Collection<NonuniformGridRecord, W, M, InternalSurfaceId>;
+    using SurfaceGrids = Collection<NonuniformGridRecord, W, M, SubModelId>;
 
     template<class T>
     using Items = Collection<T, W, M>;
@@ -95,14 +93,14 @@ class UnifiedReflectionView
   public:
     // Construct from data and a surface
     explicit inline CELER_FUNCTION
-    UnifiedReflectionView(DataRef const&, InternalSurfaceId);
+    UnifiedReflectionView(DataRef const&, SubModelId);
 
     // Calculate probability for each reflection mode
     inline CELER_FUNCTION UnifiedModeProbs operator()(Energy energy) const;
 
   private:
     DataRef const& data_;
-    InternalSurfaceId surface_;
+    SubModelId surface_;
 
     // Calculate probability for a single reflection mode
     inline CELER_FUNCTION real_type calc_probability(NonuniformGridRecord const&,
@@ -117,7 +115,7 @@ class UnifiedReflectionView
  */
 CELER_FUNCTION
 UnifiedReflectionView::UnifiedReflectionView(DataRef const& data,
-                                             InternalSurfaceId surface)
+                                             SubModelId surface)
     : data_(data), surface_(surface)
 {
     CELER_EXPECT(surface < data_.specular_spike.size());

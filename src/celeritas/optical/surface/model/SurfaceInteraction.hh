@@ -8,6 +8,8 @@
 
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/optical/ParticleTrackView.hh"
 
 namespace celeritas
 {
@@ -28,6 +30,13 @@ struct PhotonPhasor
         return is_soft_unit_vector(direction)
                && is_soft_unit_vector(polarization)
                && soft_zero(dot_product(direction, polarization));
+    }
+
+    //! Construct from particle and geometry views
+    static CELER_FUNCTION PhotonPhasor
+    from_track(GeoTrackView const& geo, ParticleTrackView const& particle)
+    {
+        return {geo.dir(), particle.polarization()};
     }
 };
 

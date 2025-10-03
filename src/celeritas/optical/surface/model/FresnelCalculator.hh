@@ -2,11 +2,12 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/surface/model/FresnelUtils.hh
+//! \file celeritas/optical/surface/model/FresnelCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Macros.hh"
+#include "celeritas/optical/MaterialView.hh"
 #include "celeritas/optical/Types.hh"
 #include "celeritas/optical/surface/SurfacePhysicsUtils.hh"
 
@@ -36,35 +37,49 @@ class FresnelCalculator
 {
   public:
     // Construct from initial state
-    CELER_FUNCTION
+    explicit inline CELER_FUNCTION
     FresnelCalculator(PhotonPhasor const& inc_photon,
                       Real3 const& normal,
                       real_type relative_r_index);
 
+    // Construct from track views
+    explicit inline CELER_FUNCTION
+    FresnelCalculator(Real3 const& inc_direction,
+                      ParticleTrackView const& photon,
+                      Real3 const& normal,
+                      MaterialView const& pre_material,
+                      MaterialView const& post_material);
+
     // Whether the interaction will be total internal reflection
-    CELER_FUNCTION bool is_total_internal_reflection() const;
+    inline CELER_FUNCTION bool is_total_internal_reflection() const;
 
-    // Get refracted photon direction
-    CELER_FUNCTION Real3 refracted_direction() const;
+    // Calculate total reflectivity
+    inline CELER_FUNCTION real_type calc_reflectivity() const;
 
-    // Calculate transmission coefficients
-    CELER_FUNCTION real_type calc_transmission_te() const;
-    CELER_FUNCTION real_type calc_transmission_tm() const;
-
-    // Calculate reflectivity coefficients
-    CELER_FUNCTION real_type calc_reflectivity_te() const;
-    CELER_FUNCTION real_type calc_reflectivity_tm() const;
-
-    // Polarization axes
-    CELER_FUNCTION Real3 const& te_axis() const;
-    CELER_FUNCTION Real3 tm_axis(Real3 const& direction) const;
-
-    // Incident photon polarization components
-    CELER_FUNCTION real_type inc_te_component() const;
-    CELER_FUNCTION real_type inc_tm_component() const;
+    // Calculate interaction for refracted wave
+    inline CELER_FUNCTION SurfaceInteraction refracted_interaction() const;
 
   private:
-    PhotonPhasor const& inc_photon_;
+    // Get refracted photon direction
+    inline CELER_FUNCTION Real3 refracted_direction() const;
+
+    // Calculate transmission coefficients
+    inline CELER_FUNCTION real_type calc_transmission_te() const;
+    inline CELER_FUNCTION real_type calc_transmission_tm() const;
+
+    // Calculate reflectivity coefficients
+    inline CELER_FUNCTION real_type calc_reflectivity_te() const;
+    inline CELER_FUNCTION real_type calc_reflectivity_tm() const;
+
+    // Polarization axes
+    inline CELER_FUNCTION Real3 const& te_axis() const;
+    inline CELER_FUNCTION Real3 tm_axis(Real3 const& direction) const;
+
+    // Incident photon polarization components
+    inline CELER_FUNCTION real_type inc_te_component() const;
+    inline CELER_FUNCTION real_type inc_tm_component() const;
+
+    PhotonPhasor inc_photon_;
     Real3 const& normal_;
     real_type relative_r_index_;
 
@@ -73,8 +88,25 @@ class FresnelCalculator
     Real3 p_axis_;
 
     // Helper function for calculating reflectivity
-    CELER_FUNCTION real_type reflectivity_ratio(real_type x) const;
+    inline CELER_FUNCTION real_type reflectivity_ratio(real_type x) const;
 };
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+inline CELER_FUNCTION real_type
+calc_relative_r_index(units::MevEnergy energy,
+                      MaterialView const& pre_material,
+                      MaterialView const& post_material)
+{
+    auto calc_r = [energy](MaterialView const& mat) {
+        return mat.make_refractive_index_calculator()(
+            value_as<units::MevEnergy>(energy));
+    };
+
+    return calc_r(post_material) / calc_r(pre_material);
+}
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -111,6 +143,78 @@ FresnelCalculator::FresnelCalculator(PhotonPhasor const& inc_photon,
                  ? cross_product(inc_photon.polarization, normal)
                  : make_unit_vector(s_axis);
     p_axis_ = cross_product(normal_, s_axis);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from track views.
+ */
+CELER_FUNCTION
+FresnelCalculator::FresnelCalculator(Real3 const& inc_direction,
+                                     ParticleTrackView const& photon,
+                                     Real3 const& normal,
+                                     MaterialView const& pre_material,
+                                     MaterialView const& post_material)
+    : FresnelCalculator(
+          PhotonPhasor{inc_direction, photon.polarization()},
+          normal,
+          calc_relative_r_index(photon.energy(), pre_material, post_material))
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the photon is subject to total internal reflection.
+ */
+CELER_FUNCTION bool FresnelCalculator::is_total_internal_reflection() const
+{
+    // In the constructor, the cosine ratio is set to exactly zero for total
+    // internal reflection.
+    return cosine_ratio_ == 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate total reflectivity for the incident photon.
+ */
+CELER_FUNCTION real_type FresnelCalculator::calc_reflectivity() const
+{
+    real_type te_comp_sq = ipow<2>(this->inc_te_component());
+    real_type tm_comp_sq = ipow<2>(this->inc_tm_component());
+    real_type total_reflectivity
+        = (te_comp_sq * ipow<2>(this->calc_reflectivity_te())
+           + tm_comp_sq * ipow<2>(this->calc_reflectivity_tm()))
+          / (te_comp_sq + tm_comp_sq);
+
+    CELER_ENSURE(0 <= total_reflectivity && total_reflectivity <= 1);
+
+    return total_reflectivity;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate interaction for refracted wave.
+ */
+CELER_FUNCTION SurfaceInteraction FresnelCalculator::refracted_interaction() const
+{
+    CELER_ASSERT(!this->is_total_internal_reflection());
+
+    SurfaceInteraction result;
+    result.action = SurfaceInteraction::Action::refracted;
+    result.photon.direction = this->refracted_direction();
+
+    result.photon.polarization = {0, 0, 0};
+    axpy(this->calc_transmission_te() * this->inc_te_component(),
+         this->te_axis(),
+         &result.photon.polarization);
+    axpy(this->calc_transmission_tm() * this->inc_tm_component(),
+         this->tm_axis(result.photon.direction),
+         &result.photon.polarization);
+    result.photon.polarization = make_unit_vector(result.photon.polarization);
+
+    CELER_ENSURE(result.is_valid());
+
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -197,17 +301,6 @@ CELER_FUNCTION real_type FresnelCalculator::inc_tm_component() const
 {
     return dot_product(inc_photon_.polarization,
                        this->tm_axis(inc_photon_.direction));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether the photon is subject to total internal reflection.
- */
-CELER_FUNCTION bool FresnelCalculator::is_total_internal_reflection() const
-{
-    // In the constructor, the cosine ratio is set to exactly zero for total
-    // internal reflection.
-    return cosine_ratio_ == 0;
 }
 
 //---------------------------------------------------------------------------//
