@@ -16,6 +16,7 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/io/EventIOInterface.hh"
 #include "celeritas/io/EventReader.hh"
+#include "celeritas/io/JsonEventReader.hh"
 #include "celeritas/io/RootEventReader.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/phys/PrimaryGenerator.hh"
@@ -71,7 +72,12 @@ events(inp::Events const& e,
                                                     sfe.seed});
             },
             [&particles](inp::ReadFileEvents const& rfe) {
-                if (ends_with(rfe.event_file, ".root"))
+                if (ends_with(rfe.event_file, ".jsonl"))
+                {
+                    return read_events(
+                        JsonEventReader{rfe.event_file, particles});
+                }
+                else if (ends_with(rfe.event_file, ".root"))
                 {
                     return read_events(
                         RootEventReader{rfe.event_file, particles});
