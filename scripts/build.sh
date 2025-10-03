@@ -65,8 +65,8 @@ ln_presets() {
     return
   fi
 
+  # Create if preset file doesn't exist
   if [ ! -f "${src}" ]; then
-    # Create if
     log info "Creating user presets at ${src} . Please update this file for future configurations."
     cp "scripts/cmake-presets/_dev_.json" "${src}"
     git add "${src}" || error "Could not stage presets"
@@ -75,9 +75,8 @@ ln_presets() {
   ln -s "${src}" "${dst}"
 }
 
-#
+# Check if ccache is full and warn user
 check_ccache_usage() {
-  # Check if ccache is full and warn user
   cache_stats=$(ccache --print-stats)
   current_kb=$(echo "$cache_stats" | grep "^cache_size_kibibyte" | cut -f2)
   max_kb=$(echo "$cache_stats" | grep "^max_cache_size_kibibyte" | cut -f2)
@@ -89,15 +88,15 @@ check_ccache_usage() {
       # Convert to human-readable sizes (GiB)
       current_gb=$((current_kb / 1024 / 1024))
       max_gb=$((max_kb / 1024 / 1024))
-      log warning "ccache is ${usage_percent}% full (${current_gb}/${max_gb} GiB). Consider increasing cache size with 'ccache -M <size>G'"
+      log warning "ccache is ${usage_percent}% full (${current_gb}/${max_gb} GiB)"
+      log info "Consider increasing cache size with 'ccache -M <size>G' or clearing with 'ccache -C'"
     fi
   fi
 }
 
+# Auto-detect and configure ccache if available
 setup_ccache() {
-  # Auto-detect and configure ccache if available
-  if CCACHE_PROGRAM="$(which ccache)" >/dev/null 2>&1; then
-    export CCACHE_PROGRAM="$(which ccache)"
+  if CCACHE_PROGRAM="$(which ccache 2>/dev/null)"; then
     log info "Using ccache: ${CCACHE_PROGRAM}"
     check_ccache_usage
   fi
@@ -132,8 +131,11 @@ setup_ccache
 if [ $# -eq 0 ]; then
   echo "Usage: $0 PRESET [config_args...]" >&2
   if hash cmake 2>/dev/null ; then
-    cmake --list-presets >&2 \
-      || log error "CMake may be too old or JSON file may be broken"
+    if cmake --list-presets >&2 ; then
+      log info "Try using the '${SYSTEM_NAME}' or 'dev' presets ('base'), or 'default' if not"
+    else
+      log error "CMake may be too old or JSON file may be broken"
+    fi
   else
     log error "cmake unavailable: cannot call --list-presets"
   fi
