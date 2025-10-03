@@ -1780,7 +1780,7 @@ TEST_F(LarSphere, optical)
 
     {
         // Check WLS optical properties
-        auto const& model = imported.optical_models[2];
+        auto const& model = imported.optical_models[3];
         EXPECT_EQ(optical::ImportModelClass::wls, model.model_class);
         ASSERT_EQ(1, model.mfp_table.size());
 
@@ -1811,7 +1811,7 @@ TEST_F(LarSphere, optical)
     }
     {
         // Check WLS2 optical properties
-        auto const& model = imported.optical_models[3];
+        auto const& model = imported.optical_models[4];
         EXPECT_EQ(optical::ImportModelClass::wls2, model.model_class);
         ASSERT_EQ(1, model.mfp_table.size());
 

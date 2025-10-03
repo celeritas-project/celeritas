@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "MieModel.hh"
 
+#include <limits>
+
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionBuilder.hh"
@@ -78,8 +80,7 @@ void MieModel::build_mfps(OptMatId mat, MfpBuilder& build) const
     }
     else
     {
-        build(
-            inp::Grid::from_constant(std::numeric_limits<double>::infinity()));
+        build(inp::Grid::from_constant(1e7));
     }
 }
 
