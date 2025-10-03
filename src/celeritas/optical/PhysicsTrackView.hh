@@ -174,8 +174,9 @@ CELER_FUNCTION bool PhysicsTrackView::has_interaction_mfp() const
 /*!
  * Calculate the macroscopic cross section for the given model.
  *
- * Energy is interpolated using \c NonuniformGridCalculator on the model's
- * MFP grid.
+ * The mean free path is interpolated linearly on the model's energy grid using
+ * \c NonuniformGridCalculator, and the result is the macroscopic cross
+ * section.
  */
 CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ModelId model,
                                                    Energy energy) const
@@ -188,10 +189,12 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ModelId model,
         // Model does not apply: cross section is zero
         return 0;
     }
+
+    // Calculate the MFP using the grid, then return its inverse (xs)
     NonuniformGridCalculator calc{grid, params_.reals};
     real_type result = calc(value_as<Energy>(energy));
-    CELER_ENSURE(result >= 0);
-    return result;
+    CELER_ENSURE(result > 0);
+    return 1 / result;
 }
 
 //---------------------------------------------------------------------------//
