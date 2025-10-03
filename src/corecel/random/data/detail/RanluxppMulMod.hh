@@ -72,21 +72,23 @@ CELER_FUNCTION inline void multiply9x9(RanluxppArray9 const& in1,
             // equally easy to write and should work in older versions of CUDA.
             RanluxppUInt lower = fac1 * fac2;
             RanluxppUInt upper = __umul64hi(fac1, fac2);
-/*
- * The code block belowis not standards compliant (there is no standard 128-bit
- * integer). Therefore, we will eliminate this code block.
- *
- * Note: Optimally we would do some kind of SIMD instruction, possibly similar
- * to what is being done in the CUDA block above. That is for future work
- */
-/*
 #elif defined(__SIZEOF_INT128__)
-            unsigned __int128 prod = fac1;
+#    ifdef __GNUC__
+            // This block of code requires 128-bit unsigned integers, which is
+            // non-standard.  If using GCC, we temporarily disable
+            // "-Wpedantic".
+#        pragma GCC diagnostic push
+#        pragma GCC diagnostic ignored "-Wpedantic"
+            using uint128 = unsigned __int128;
+#        pragma GCC diagnostic pop
+#    else
+            using uint128 = unsigned __int128;
+#    endif
+            uint128 prod = fac1;
             prod = prod * fac2;
 
             RanluxppUInt upper = prod >> 64;
             RanluxppUInt lower = static_cast<RanluxppUInt>(prod);
-*/
 #else
             RanluxppUInt upper1 = fac1 >> 32;
             RanluxppUInt lower1 = static_cast<uint32_t>(fac1);
