@@ -184,7 +184,11 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ModelId model,
     CELER_EXPECT(model < this->num_models());
 
     auto const& grid = params_.grids[this->mfp_grid(model)];
-    CELER_ASSERT(grid);
+    if (!grid)
+    {
+        // Model does not apply: cross section is zero
+        return 0;
+    }
     NonuniformGridCalculator calc{grid, params_.reals};
     real_type result = calc(value_as<Energy>(energy));
     CELER_ENSURE(result >= 0);
