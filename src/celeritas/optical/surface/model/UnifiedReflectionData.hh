@@ -34,6 +34,37 @@ enum class UnifiedReflectionMode
 using UnifiedModeProbs = EnumArray<UnifiedReflectionMode, real_type>;
 
 //---------------------------------------------------------------------------//
+// CLASSES
+//---------------------------------------------------------------------------//
+/*!
+ * Data for the dielectric model denoting which interfaces are
+ * dielectric-dielectric and dielectric-metal.
+ */
+template<Ownership W, MemSpace M>
+struct DielectricData
+{
+    //!@{
+    //! \name Type aliases
+    template<class T>
+    using SurfaceItems = Collection<T, W, M, SubModelId>;
+    //!@}
+
+    SurfaceItems<bool> is_metal;
+
+    //! Whether data is assigned and valid
+    explicit CELER_FUNCTION operator bool() const { return !is_metal.empty(); }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    DielectricData<W, M>& operator=(DielectricData<W2, M2> const& other)
+    {
+        CELER_EXPECT(other);
+        is_metal = other.is_metal;
+        return *this;
+    }
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Physics grids for the UNIFIED reflection model.
  */

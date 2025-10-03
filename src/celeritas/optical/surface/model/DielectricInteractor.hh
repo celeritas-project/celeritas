@@ -6,49 +6,53 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/random/distribution/BernoulliDistribution.hh"
+#include "celeritas/optical/CoreTrackView.hh"
+
+#include "FresnelCalculator.hh"
+#include "UnifiedReflectionSampler.hh"
+
 namespace celeritas
 {
 namespace optical
 {
-template<Ownership W, MemSpace M>
-struct DielectricData
-{
-    //!@{
-    //! \name Type aliases
-    template<class T>
-    SurfaceItems = Collection<T, W, M, SubModelId>;
-    //!@}
-
-    SurfaceItems<bool> is_metal;
-};
-
 //---------------------------------------------------------------------------//
 /*!
+ * Sample optical interactions for dielectric-dielectric and dielectric-metal
+ * interfaces.
+ *
+ * For both interfaces, the reflectivity is first calculated from Fresnel
+ * equations and sampled to determine if the photon will reflect or refract. If
+ * it reflects, then the UNIFIED model is used to handle the different forms of
+ * reflection. If it refracts, then dielectric-dielectric interfaces will use
+ * Snell's law to determine the refracted wave direction and polarization. For
+ * dielectric-metal interfaces, refracted waves are just absorbed.
  */
 class DielectricInteractor
 {
   public:
-    //!@{
-    //! \name Type aliases
-    //!@}
-
     struct Builder
     {
         NativeCRef<DielectricData> dielectric_data;
         NativeCRef<UnifiedReflectionData> unified_data;
 
+        // Build the interactor for a track
         inline CELER_FUNCTION DielectricInteractor
         operator()(CoreTrackView const&) const;
     };
 
   public:
+    // Construct interactor from track data
     inline CELER_FUNCTION
     DielectricInteractor(ParticleTrackView const& particle,
                          Real3 const& inc_direction,
                          SurfacePhysicsTrackView const& surface_physics,
                          MaterialView const& pre_material,
-                         MaterialView const& post_material);
+                         MaterialView const& post_material,
+                         UnifiedReflectionView unified_reflection,
+                         bool is_metal);
 
+    // Sample the dielectric interaction
     template<class Engine>
     inline CELER_FUNCTION SurfaceInteraction operator()(Engine&) const;
 
@@ -65,6 +69,7 @@ class DielectricInteractor
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
+ * Create an interactor for the given track.
  */
 CELER_FUNCTION DielectricInteractor
 DielectricInteractor::Builder::operator()(CoreTrackView const& track) const
@@ -77,19 +82,23 @@ DielectricInteractor::Builder::operator()(CoreTrackView const& track) const
         track.particle(),
         track.geometry().dir(),
         s_phys,
-        track.material(s_phys.material()),
-        track.material(s_phys.next_material()),
+        track.material_record(s_phys.material()),
+        track.material_record(s_phys.next_material()),
         UnifiedReflectionView{unified_data, sub_model_id},
         dielectric_data.is_metal[sub_model_id]};
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Construct an interactor from track views.
+ */
 CELER_FUNCTION DielectricInteractor::DielectricInteractor(
     ParticleTrackView const& particle,
     Real3 const& inc_direction,
     SurfacePhysicsTrackView const& surface_physics,
     MaterialView const& pre_material,
     MaterialView const& post_material,
-    UnifiedReflectionView const& unified_reflection,
+    UnifiedReflectionView unified_reflection,
     bool is_metal)
     : fresnel_(inc_direction,
                particle,
@@ -104,9 +113,13 @@ CELER_FUNCTION DielectricInteractor::DielectricInteractor(
 {
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Sample the dielectric interaction.
+ */
 template<class Engine>
 CELER_FUNCTION SurfaceInteraction
-DielectricInteraction::operator()(Engine& rng) const
+DielectricInteractor::operator()(Engine& rng) const
 {
     if (BernoulliDistribution{fresnel_.calc_reflectivity()}(rng))
     {
@@ -120,7 +133,7 @@ DielectricInteraction::operator()(Engine& rng) const
         // Refraction
         if (is_metal_)
         {
-            return SurfaceInteraction::from_absorbed();
+            return SurfaceInteraction::from_absorption();
         }
         else
         {

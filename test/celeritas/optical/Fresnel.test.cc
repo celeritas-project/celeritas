@@ -7,6 +7,7 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "celeritas/optical/surface/model/DielectricInteractor.hh"
 #include "celeritas/optical/surface/model/FresnelCalculator.hh"
 
 #include "celeritas_test.hh"
