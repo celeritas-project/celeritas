@@ -148,7 +148,7 @@ jobs:
         run: |
           spack -e . -v concretize || (
             ERR=$?
-            spach arch
+            spack arch
             cat spack.yaml
             exit $ERR
           )
