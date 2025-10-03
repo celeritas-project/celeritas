@@ -82,7 +82,7 @@ void DielectricInteractionModel::step(CoreParams const& params,
  * Execute model with device data.
  */
 #if !CELER_USE_DEVICE
-void DielectricInteractionModel::step(CoreParams const&, CoreStateHost&) const
+void DielectricInteractionModel::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
