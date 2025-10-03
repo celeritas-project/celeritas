@@ -137,8 +137,15 @@ PolySegments::PolySegments(VecReal&& inner, VecReal&& outer, VecReal&& z)
                    << "inconsistent inner radius size (" << inner_.size()
                    << "): expected " << z_.size());
 
+    if (z_.front() > z_.back())
+    {
+        // Input grid is decreasing: reverse everything
+        std::reverse(z_.begin(), z_.end());
+        std::reverse(inner_.begin(), inner_.end());
+        std::reverse(outer_.begin(), outer_.end());
+    }
     CELER_VALIDATE(is_monotonic_nondecreasing(make_span(z_)),
-                   << "axial grid has decreasing grid points");
+                   << "axial grid is non-monotonic");
     for (auto i : range(outer_.size()))
     {
         CELER_VALIDATE(outer_[i] >= 0, << "invalid outer radius " << outer_[i]);
