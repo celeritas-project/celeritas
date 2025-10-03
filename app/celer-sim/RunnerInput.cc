@@ -294,7 +294,7 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
             [](inp::PrimaryGenerator const& pg) { return pg.num_events; },
             [](inp::SampleFileEvents const& sfe) { return sfe.num_events; },
             [](inp::ReadFileEvents const& rfe) {
-                if (ends_with(rfe.event_file, ".json"))
+                if (ends_with(rfe.event_file, ".jsonl"))
                 {
                     return JsonEventReader{rfe.event_file, nullptr}.num_events();
                 }

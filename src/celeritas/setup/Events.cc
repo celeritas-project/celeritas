@@ -72,7 +72,7 @@ events(inp::Events const& e,
                                                     sfe.seed});
             },
             [&particles](inp::ReadFileEvents const& rfe) {
-                if (ends_with(rfe.event_file, ".json"))
+                if (ends_with(rfe.event_file, ".jsonl"))
                 {
                     return read_events(
                         JsonEventReader{rfe.event_file, particles});

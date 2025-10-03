@@ -369,7 +369,7 @@ SharedParams::SharedParams(SetupOptions const& options)
         !offload_file.empty())
     {
         std::unique_ptr<EventWriterInterface> writer;
-        if (ends_with(offload_file, ".json"))
+        if (ends_with(offload_file, ".jsonl"))
         {
             writer.reset(
                 new JsonEventWriter(offload_file, params_->particle()));

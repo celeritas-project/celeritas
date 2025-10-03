@@ -22,7 +22,7 @@ class JsonEventIOTest : public EventIOTestBase
 
 TEST_F(JsonEventIOTest, write_read)
 {
-    std::string filename = this->make_unique_filename(".json");
+    std::string filename = this->make_unique_filename(".jsonl");
 
     // Write events
     {

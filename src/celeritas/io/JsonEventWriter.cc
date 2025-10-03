@@ -13,6 +13,7 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StringUtils.hh"
 #include "corecel/math/QuantityIO.json.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -30,6 +31,10 @@ JsonEventWriter::JsonEventWriter(std::string const& filename,
     CELER_EXPECT(outfile_);
     CELER_EXPECT(particles_);
 
+    if (!ends_with(filename, ".jsonl"))
+    {
+        CELER_LOG(warning) << "JSON event writer expects a jsonl file";
+    }
     CELER_LOG(info) << "Creating JSON event file at " << filename;
 }
 
