@@ -4,7 +4,7 @@
   "configurePresets": [
     {
       "name": "default",
-      "displayName": "Dependencies enabled by probing environment",
+      "displayName": "generic: dependencies enabled by probing environment",
       "binaryDir": "${sourceDir}/build-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
@@ -17,7 +17,7 @@
     },
     {
       "name": "full",
-      "displayName": "All external dependencies expected",
+      "displayName": "generic: all external dependencies expected",
       "inherits": "default",
       "cacheVariables": {
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "ON"},
@@ -33,7 +33,7 @@
     },
     {
       "name": "minimal",
-      "displayName": "Smallest capabilities for useful development",
+      "displayName": "generic: smallest level of capabilities",
       "generator": "Ninja",
       "inherits": "default",
       "cacheVariables": {
