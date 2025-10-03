@@ -355,12 +355,14 @@ void GeantSurfacePhysicsLoader::insert_interaction(
     switch (helper.surface().GetType())
     {
         case G4ST::dielectric_dielectric:
-            helper.emplace(interaction.dielectric,
-                           inp::DielectricInteraction{std::move(rf), false});
+            helper.emplace(
+                interaction.dielectric,
+                inp::DielectricInteraction::from_dielectric(std::move(rf)));
             break;
         case G4ST::dielectric_metal:
-            helper.emplace(interaction.dielectric,
-                           inp::DielectricInteraction{std::move(rf), true});
+            helper.emplace(
+                interaction.dielectric,
+                inp::DielectricInteraction::from_metal(std::move(rf)));
             break;
         default:
             CELER_VALIDATE(false,
