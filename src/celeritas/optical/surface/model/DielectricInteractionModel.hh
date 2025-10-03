@@ -2,12 +2,15 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/surface/model/PolishedRoughnessModel.hh
+//! \file celeritas/optical/surface/model/DielectricInteractionModel.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/data/CollectionMirror.hh"
 #include "celeritas/inp/SurfacePhysics.hh"
 #include "celeritas/optical/surface/SurfaceModel.hh"
+
+#include "DielectricInteractionData.hh"
 
 namespace celeritas
 {
@@ -15,22 +18,19 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Trivial roughness model for a perfectly polished surface.
- *
- * Sets the facet normal equal to the surface's global normal for each track.
  */
-class PolishedRoughnessModel : public SurfaceModel
+class DielectricInteractionModel : public SurfaceModel
 {
   public:
     //!@{
     //! \name Type aliases
-    using InputT = inp::NoRoughness;
+    using InputT = inp::DielectricInteraction;
     //!@}
 
   public:
     // Construct the model from an ID and layer map
-    PolishedRoughnessModel(SurfaceModelId,
-                           std::map<PhysSurfaceId, InputT> const&);
+    DielectricInteractionModel(SurfaceModelId,
+                               std::map<PhysSurfaceId, InputT> const&);
 
     //! Get the list of physical surfaces this model applies to
     VecSurfaceLayer const& get_surfaces() const final { return surfaces_; }
@@ -43,6 +43,8 @@ class PolishedRoughnessModel : public SurfaceModel
 
   private:
     VecSurfaceLayer surfaces_;
+    CollectionMirror<DielectricData> dielectric_data_;
+    CollectionMirror<UnifiedReflectionData> reflection_data_;
 };
 
 //---------------------------------------------------------------------------//
