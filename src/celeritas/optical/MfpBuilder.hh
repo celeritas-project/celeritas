@@ -72,7 +72,7 @@ MfpBuilder::MfpBuilder(Values* real_data, GridValues* grid_data)
  */
 void MfpBuilder::operator()(inp::Grid const& grid)
 {
-    CELER_EXPECT(!grid || grid.x.front() > 0);
+    CELER_EXPECT(!grid || grid.x.front() >= 0);
     if (!grid)
     {
         // Build empty cross sections
