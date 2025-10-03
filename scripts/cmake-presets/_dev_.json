@@ -4,7 +4,7 @@
   "configurePresets": [
     {
       "name": "dev",
-      "displayName": "Default development options",
+      "displayName": "dev: default development options",
       "inherits": [".debug", "default"],
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
@@ -14,7 +14,7 @@
     },
     {
       "name": "reldeb",
-      "displayName": "With vecgeom in optimized+errcheck mode",
+      "displayName": "dev: with vecgeom in optimized+errcheck mode",
       "inherits": [".reldeb"],
       "cacheVariables": {
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
@@ -23,7 +23,7 @@
     },
     {
       "name": "ndebug",
-      "displayName": "With vecgeom in optimized mode and CLHEP units",
+      "displayName": "dev: with vecgeom in optimized mode and CLHEP units",
       "inherits": [".ndebug"],
       "cacheVariables": {
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},

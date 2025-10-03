@@ -11,6 +11,8 @@
 #include "celeritas/inp/SurfacePhysics.hh"
 #include "celeritas/phys/SurfacePhysicsMapBuilder.hh"
 
+#include "model/PolishedRoughnessModel.hh"
+
 #include "detail/BuiltinSurfaceModelBuilder.hh"
 
 namespace celeritas
@@ -134,7 +136,8 @@ auto SurfacePhysicsParams::build_models(
         switch (step)
         {
             case SurfacePhysicsOrder::roughness:
-                build_model.build_fake("polished", input.roughness.polished);
+                build_model.build<PolishedRoughnessModel>(
+                    input.roughness.polished);
                 build_model.build_fake("smear", input.roughness.smear);
                 build_model.build_fake("gaussian", input.roughness.gaussian);
                 break;

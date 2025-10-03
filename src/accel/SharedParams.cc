@@ -62,6 +62,7 @@
 #include "celeritas/inp/Scoring.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/io/JsonEventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
@@ -368,7 +369,12 @@ SharedParams::SharedParams(SetupOptions const& options)
         !offload_file.empty())
     {
         std::unique_ptr<EventWriterInterface> writer;
-        if (ends_with(offload_file, ".root"))
+        if (ends_with(offload_file, ".jsonl"))
+        {
+            writer.reset(
+                new JsonEventWriter(offload_file, params_->particle()));
+        }
+        else if (ends_with(offload_file, ".root"))
         {
             writer.reset(new RootEventWriter(
                 std::make_shared<RootFileManager>(offload_file.c_str()),
