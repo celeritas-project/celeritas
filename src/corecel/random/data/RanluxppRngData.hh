@@ -157,7 +157,7 @@ RanluxppRngState::initialize(RanluxppUInt seed, RanluxppArray9 const& kA_2048)
 
     // Skip another s states.
     celeritas::detail::powermod(a_seed, a_seed, seed);
-    RanluxppArray9 lcg = {1, 0, 0, 0, 0, 0, 0, 0};
+    RanluxppArray9 lcg = {1, 0, 0, 0, 0, 0, 0, 0, 0};
     celeritas::detail::mulmod(a_seed, lcg);
 
     // Set state and carry variable

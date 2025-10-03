@@ -278,7 +278,7 @@ CELER_FUNCTION inline void
 powermod(RanluxppArray9 const& base, RanluxppArray9& res, RanluxppUInt n)
 {
     RanluxppArray9 fac = base;
-    res = {1, 0, 0, 0, 0, 0, 0, 0};
+    res = {1, 0, 0, 0, 0, 0, 0, 0, 0};
 
     RanluxppArray18 mul;
     while (n)
