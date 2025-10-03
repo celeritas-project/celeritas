@@ -466,10 +466,10 @@ auto SolidConverter::ellipsoid(arg_type solid_base) -> result_type
  * equations given by \c G4EllipticalCone:
  *
  * \verbatim
-   lower_radii[X]/lower_radii[y] = upper_radii[X]/upper_radii[y],
-   r_x = (lower_radii[X] - upper_radii[X])/(2 hh),
-   r_y = (lower_radii[Y] - upper_radii[Y])/(2 hh),
-   v = hh (lower_radii[X] + upper_radii[X])/(lower_radii[X] - upper_radii[X]).
+   lower_radii[X]/lower_radii[Y] = upper_radii[X]/upper_radii[Y];
+   r_x = (lower_radii[X] - upper_radii[X])/(2 * hh);
+   r_y = (lower_radii[Y] - upper_radii[Y])/(2 * hh);
+   v = hh * (lower_radii[X] + upper_radii[X])/(lower_radii[X] - upper_radii[X])
  * \endverbatim
  */
 auto SolidConverter::ellipticalcone(arg_type solid_base) -> result_type
