@@ -8,6 +8,7 @@
 
 #include "corecel/Macros.hh"
 #include "celeritas/optical/MaterialView.hh"
+#include "celeritas/optical/ParticleTrackView.hh"
 #include "celeritas/optical/Types.hh"
 #include "celeritas/optical/surface/SurfacePhysicsUtils.hh"
 
@@ -38,7 +39,8 @@ class FresnelCalculator
   public:
     // Construct from initial state
     explicit inline CELER_FUNCTION
-    FresnelCalculator(PhotonPhasor const& inc_photon,
+    FresnelCalculator(Real3 const& direction,
+                      Real3 const& polarization,
                       Real3 const& normal,
                       real_type relative_r_index);
 
@@ -79,7 +81,8 @@ class FresnelCalculator
     inline CELER_FUNCTION real_type inc_te_component() const;
     inline CELER_FUNCTION real_type inc_tm_component() const;
 
-    PhotonPhasor inc_photon_;
+    Real3 const& direction_;
+    Real3 const& polarization_;
     Real3 const& normal_;
     real_type relative_r_index_;
 
@@ -115,22 +118,24 @@ calc_relative_r_index(units::MevEnergy energy,
  * Construct calculator from initial photon and surface physics data.
  */
 CELER_FUNCTION
-FresnelCalculator::FresnelCalculator(PhotonPhasor const& inc_photon,
+FresnelCalculator::FresnelCalculator(Real3 const& direction,
+                                     Real3 const& polarization,
                                      Real3 const& normal,
                                      real_type relative_r_index)
-    : inc_photon_(inc_photon)
+    : direction_(direction)
+    , polarization_(polarization)
     , normal_(normal)
     , relative_r_index_(relative_r_index)
 {
-    CELER_EXPECT(inc_photon.is_valid());
-    CELER_EXPECT(is_soft_unit_vector(normal));
+    CELER_EXPECT(is_soft_unit_vector(direction_));
+    CELER_EXPECT(is_soft_unit_vector(polarization_));
+    CELER_EXPECT(is_soft_unit_vector(normal_));
     CELER_EXPECT(relative_r_index > 0);
-    CELER_EXPECT(is_entering_surface(inc_photon.direction, normal));
+    CELER_EXPECT(is_entering_surface(direction_, normal));
 
     // \todo Check why the dot product is slightly greater than 1 sometimes
-    cos_theta_ = clamp(-dot_product(inc_photon_.direction, normal_),
-                       real_type{0},
-                       real_type{1});
+    cos_theta_
+        = clamp(-dot_product(direction_, normal_), real_type{0}, real_type{1});
 
     real_type sin_phi = sqrt(1 - ipow<2>(cos_theta_)) / relative_r_index_;
 
@@ -138,10 +143,9 @@ FresnelCalculator::FresnelCalculator(PhotonPhasor const& inc_photon,
     // zero. This gives the correct reflectivity and transmission coefficients.
     cosine_ratio_ = sin_phi >= 1 ? 0 : sqrt(1 - ipow<2>(sin_phi)) / cos_theta_;
 
-    Real3 s_axis = make_orthogonal(inc_photon.direction, normal);
-    s_axis = soft_zero(norm(s_axis))
-                 ? cross_product(inc_photon.polarization, normal)
-                 : make_unit_vector(s_axis);
+    Real3 s_axis = make_orthogonal(direction_, normal);
+    s_axis = soft_zero(norm(s_axis)) ? cross_product(polarization_, normal)
+                                     : make_unit_vector(s_axis);
     p_axis_ = cross_product(normal_, s_axis);
 }
 
@@ -156,7 +160,8 @@ FresnelCalculator::FresnelCalculator(Real3 const& inc_direction,
                                      MaterialView const& pre_material,
                                      MaterialView const& post_material)
     : FresnelCalculator(
-          PhotonPhasor{inc_direction, photon.polarization()},
+          inc_direction,
+          photon.polarization(),
           normal,
           calc_relative_r_index(photon.energy(), pre_material, post_material))
 {
@@ -201,16 +206,16 @@ CELER_FUNCTION SurfaceInteraction FresnelCalculator::refracted_interaction() con
 
     SurfaceInteraction result;
     result.action = SurfaceInteraction::Action::refracted;
-    result.photon.direction = this->refracted_direction();
+    result.direction = this->refracted_direction();
 
-    result.photon.polarization = {0, 0, 0};
+    result.polarization = {0, 0, 0};
     axpy(this->calc_transmission_te() * this->inc_te_component(),
          this->te_axis(),
-         &result.photon.polarization);
+         &result.polarization);
     axpy(this->calc_transmission_tm() * this->inc_tm_component(),
-         this->tm_axis(result.photon.direction),
-         &result.photon.polarization);
-    result.photon.polarization = make_unit_vector(result.photon.polarization);
+         this->tm_axis(result.direction),
+         &result.polarization);
+    result.polarization = make_unit_vector(result.polarization);
 
     CELER_ENSURE(result.is_valid());
 
@@ -224,7 +229,7 @@ CELER_FUNCTION SurfaceInteraction FresnelCalculator::refracted_interaction() con
 CELER_FUNCTION Real3 FresnelCalculator::refracted_direction() const
 {
     CELER_EXPECT(!this->is_total_internal_reflection());
-    Real3 dir = inc_photon_.direction;
+    Real3 dir = direction_;
     axpy(cos_theta_ * (1 - relative_r_index_ * cosine_ratio_), normal_, &dir);
     return make_unit_vector(dir);
 }
@@ -290,7 +295,7 @@ CELER_FUNCTION Real3 FresnelCalculator::tm_axis(Real3 const& direction) const
  */
 CELER_FUNCTION real_type FresnelCalculator::inc_te_component() const
 {
-    return dot_product(inc_photon_.polarization, this->te_axis());
+    return dot_product(polarization_, this->te_axis());
 }
 
 //---------------------------------------------------------------------------//
@@ -299,8 +304,7 @@ CELER_FUNCTION real_type FresnelCalculator::inc_te_component() const
  */
 CELER_FUNCTION real_type FresnelCalculator::inc_tm_component() const
 {
-    return dot_product(inc_photon_.polarization,
-                       this->tm_axis(inc_photon_.direction));
+    return dot_product(polarization_, this->tm_axis(direction_));
 }
 
 //---------------------------------------------------------------------------//

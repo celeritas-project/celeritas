@@ -8,38 +8,11 @@
 
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
-#include "celeritas/geo/GeoTrackView.hh"
-#include "celeritas/optical/ParticleTrackView.hh"
 
 namespace celeritas
 {
 namespace optical
 {
-//---------------------------------------------------------------------------//
-/*!
- * Representation of a direction and polarization as a phasor (phase vector).
- */
-struct PhotonPhasor
-{
-    Real3 direction;
-    Real3 polarization;
-
-    //! Whether the phasor is a valid photon state
-    CELER_FUNCTION bool is_valid() const
-    {
-        return is_soft_unit_vector(direction)
-               && is_soft_unit_vector(polarization)
-               && soft_zero(dot_product(direction, polarization));
-    }
-
-    //! Construct from particle and geometry views
-    static CELER_FUNCTION PhotonPhasor
-    from_track(GeoTrackView const& geo, ParticleTrackView const& particle)
-    {
-        return {geo.dir(), particle.polarization()};
-    }
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Result of a surface physics interaction.
@@ -55,7 +28,8 @@ struct SurfaceInteraction
     };
 
     Action action{Action::absorbed};  //!< Flags for interaction result
-    PhotonPhasor photon;  //!< Post-interaction photon state
+    Real3 direction;
+    Real3 polarization;
 
     //! Return an interaction representing an absorbed photon
     static inline CELER_FUNCTION SurfaceInteraction from_absorption();
@@ -63,7 +37,10 @@ struct SurfaceInteraction
     //! Whether data is assigned and valid
     CELER_FUNCTION bool is_valid() const
     {
-        return action == Action::absorbed || photon.is_valid();
+        return action == Action::absorbed
+               || (is_soft_unit_vector(direction)
+                   && is_soft_unit_vector(polarization)
+                   && is_soft_orthogonal(direction, polarization));
     }
 };
 

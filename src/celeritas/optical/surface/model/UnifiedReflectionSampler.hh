@@ -40,36 +40,38 @@ class UnifiedReflectionSampler
     // Construct from mode probabilities, photon, and surface data
     explicit inline CELER_FUNCTION
     UnifiedReflectionSampler(UnifiedModeProbs const& probs,
-                             PhotonPhasor const& inc_photon,
+                             Real3 const& direction,
+                             Real3 const& polarization,
                              Real3 const& global_normal,
                              Real3 const& facet_normal);
 
     // Sample reflection mode and calculate reflected phasor
     template<class Engine>
-    inline CELER_FUNCTION PhotonPhasor operator()(Engine& rng) const;
+    inline CELER_FUNCTION SurfaceInteraction operator()(Engine& rng) const;
 
     // Calculate specular spike reflection
-    inline CELER_FUNCTION PhotonPhasor calc_specular_spike() const;
+    inline CELER_FUNCTION SurfaceInteraction calc_specular_spike() const;
 
     // Calculate specular lobe reflection
-    inline CELER_FUNCTION PhotonPhasor calc_specular_lobe() const;
+    inline CELER_FUNCTION SurfaceInteraction calc_specular_lobe() const;
 
     // Calculate back-scattering reflection
-    inline CELER_FUNCTION PhotonPhasor calc_back_scattering() const;
+    inline CELER_FUNCTION SurfaceInteraction calc_back_scattering() const;
 
     // Sample diffuse Lambertian reflection
     template<class Engine>
-    inline CELER_FUNCTION PhotonPhasor
+    inline CELER_FUNCTION SurfaceInteraction
     sample_lambertian_reflection(Engine& rng) const;
 
   private:
     UnifiedModeProbs const& mode_probs_;
-    PhotonPhasor const& inc_photon_;
+    Real3 const& direction_;
+    Real3 const& polarization_;
     Real3 const& global_normal_;
     Real3 const& facet_normal_;
 
     // Calculate specular reflection about the given normal
-    inline CELER_FUNCTION PhotonPhasor
+    inline CELER_FUNCTION SurfaceInteraction
     calc_specular_reflection(Real3 const& normal) const;
 };
 
@@ -77,21 +79,22 @@ class UnifiedReflectionSampler
 /*!
  * Construct calculator from probabilities, photon, and surface data.
  */
-CELER_FUNCTION UnifiedReflectionSampler::UnifiedReflectionSampler(
-    UnifiedModeProbs const& probs,
-    PhotonPhasor const& inc_photon,
-    Real3 const& global_normal,
-    Real3 const& facet_normal)
+CELER_FUNCTION
+UnifiedReflectionSampler::UnifiedReflectionSampler(UnifiedModeProbs const& probs,
+                                                   Real3 const& direction,
+                                                   Real3 const& polarization,
+                                                   Real3 const& global_normal,
+                                                   Real3 const& facet_normal)
     : mode_probs_(probs)
-    , inc_photon_(inc_photon)
+    , direction_(direction)
+    , polarization_(polarization)
     , global_normal_(global_normal)
     , facet_normal_(facet_normal)
 {
-    CELER_EXPECT(inc_photon_.is_valid());
     CELER_EXPECT(is_soft_unit_vector(global_normal_));
     CELER_EXPECT(is_soft_unit_vector(facet_normal_));
-    CELER_EXPECT(is_entering_surface(inc_photon_.direction, global_normal_));
-    CELER_EXPECT(is_entering_surface(inc_photon_.direction, facet_normal_));
+    CELER_EXPECT(is_entering_surface(direction_, global_normal_));
+    CELER_EXPECT(is_entering_surface(direction_, facet_normal_));
     CELER_EXPECT(soft_equal(
         std::accumulate(mode_probs_.begin(), mode_probs_.end(), real_type{0}),
         real_type{1}));
@@ -102,7 +105,8 @@ CELER_FUNCTION UnifiedReflectionSampler::UnifiedReflectionSampler(
  * Sample reflection mode from probabilities and calculate reflection.
  */
 template<class Engine>
-CELER_FUNCTION PhotonPhasor UnifiedReflectionSampler::operator()(Engine& rng) const
+CELER_FUNCTION SurfaceInteraction
+UnifiedReflectionSampler::operator()(Engine& rng) const
 {
     auto result = celeritas::make_selector(
         [this](UnifiedReflectionMode m) { return mode_probs_[m]; },
@@ -131,7 +135,8 @@ CELER_FUNCTION PhotonPhasor UnifiedReflectionSampler::operator()(Engine& rng) co
  *
  * This is geometric reflection about the global normal.
  */
-CELER_FUNCTION PhotonPhasor UnifiedReflectionSampler::calc_specular_spike() const
+CELER_FUNCTION SurfaceInteraction
+UnifiedReflectionSampler::calc_specular_spike() const
 {
     return this->calc_specular_reflection(global_normal_);
 }
@@ -142,7 +147,8 @@ CELER_FUNCTION PhotonPhasor UnifiedReflectionSampler::calc_specular_spike() cons
  *
  * This is geometric reflection about the facet normal.
  */
-CELER_FUNCTION PhotonPhasor UnifiedReflectionSampler::calc_specular_lobe() const
+CELER_FUNCTION SurfaceInteraction
+UnifiedReflectionSampler::calc_specular_lobe() const
 {
     return this->calc_specular_reflection(facet_normal_);
 }
@@ -153,9 +159,14 @@ CELER_FUNCTION PhotonPhasor UnifiedReflectionSampler::calc_specular_lobe() const
  *
  * The photon direction and polarization are reversed.
  */
-CELER_FUNCTION PhotonPhasor UnifiedReflectionSampler::calc_back_scattering() const
+CELER_FUNCTION SurfaceInteraction
+UnifiedReflectionSampler::calc_back_scattering() const
 {
-    return {-inc_photon_.direction, -inc_photon_.polarization};
+    SurfaceInteraction result;
+    result.action = SurfaceInteraction::Action::reflected;
+    result.direction = -direction_;
+    result.polarization = -polarization_;
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -165,21 +176,28 @@ CELER_FUNCTION PhotonPhasor UnifiedReflectionSampler::calc_back_scattering() con
  * Ideal diffuse reflection following Lambert's cosine law.
  */
 template<class Engine>
-CELER_FUNCTION PhotonPhasor
+CELER_FUNCTION SurfaceInteraction
 UnifiedReflectionSampler::sample_lambertian_reflection(Engine& rng) const
 {
-    return LambertianDistribution{global_normal_}(rng);
+    SurfaceInteraction result;
+    result.action = SurfaceInteraction::Action::reflected;
+    result.direction = LambertianDistribution{global_normal_}(rng);
+    // \todo get correct polarization?
+    return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Helper function to calculate geometric reflection about a given normal.
  */
-CELER_FUNCTION PhotonPhasor
+CELER_FUNCTION SurfaceInteraction
 UnifiedReflectionSampler::calc_specular_reflection(Real3 const& normal) const
 {
-    return {geometric_reflection(inc_photon_.direction, normal),
-            -geometric_reflection(inc_photon_.polarization, normal)};
+    SurfaceInteraction result;
+    result.action = SurfaceInteraction::Action::reflected;
+    result.direction = geometric_reflection(direction_, normal);
+    result.polarization = -geometric_reflection(polarization_, normal);
+    return result;
 }
 
 //---------------------------------------------------------------------------//

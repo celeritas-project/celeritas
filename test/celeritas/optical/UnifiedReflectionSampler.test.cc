@@ -65,43 +65,45 @@ TEST_F(UnifiedReflectionSamplerTest, modes)
     auto global_normal = make_unit_vector(Real3{-1, 3, 2});
     auto facet_normal = make_unit_vector(Real3{-1, 4, 2});
 
-    PhotonPhasor photon;
-    photon.direction = make_unit_vector(Real3{1, -1, -2});
-    photon.polarization = make_unit_vector(Real3{2, 0, 1});
+    auto direction = make_unit_vector(Real3{1, -1, -2});
+    auto polarization = make_unit_vector(Real3{2, 0, 1});
 
-    UnifiedReflectionSampler calc_reflection{
-        {0.3, 0.3, 0.4, 0}, photon, global_normal, facet_normal};
+    UnifiedReflectionSampler calc_reflection{{0.3, 0.3, 0.4, 0},
+                                             direction,
+                                             polarization,
+                                             global_normal,
+                                             facet_normal};
 
     // Specular spike
     {
         auto result = calc_reflection.calc_specular_spike();
 
-        PhotonPhasor expected{
-            {-0.0583211843519805, 0.991460133983668, 0.116642368703961},
-            {-0.894427190999916, 0, -0.447213595499958}};
+        static Real3 const expected_direction{
+            -0.0583211843519805, 0.991460133983668, 0.116642368703961};
+        static Real3 const expected_polarization{
+            -0.894427190999916, 0, -0.447213595499958};
 
-        EXPECT_VEC_SOFT_EQ(expected.direction, result.direction);
-        EXPECT_VEC_SOFT_EQ(expected.polarization, result.polarization);
+        EXPECT_VEC_SOFT_EQ(expected_direction, result.direction);
+        EXPECT_VEC_SOFT_EQ(expected_polarization, result.polarization);
     }
     // Specular lobe
     {
         auto result = calc_reflection.calc_specular_lobe();
 
-        PhotonPhasor expected{
-            {0.0583211843519804, 0.991460133983668, -0.116642368703961},
-            {-0.894427190999916, 0, -0.447213595499958}};
+        static Real3 const expected_direction{
+            0.0583211843519804, 0.991460133983668, -0.116642368703961};
+        static Real3 const expected_polarization{
+            -0.894427190999916, 0, -0.447213595499958};
 
-        EXPECT_VEC_SOFT_EQ(expected.direction, result.direction);
-        EXPECT_VEC_SOFT_EQ(expected.polarization, result.polarization);
+        EXPECT_VEC_SOFT_EQ(expected_direction, result.direction);
+        EXPECT_VEC_SOFT_EQ(expected_polarization, result.polarization);
     }
     // Back scattering
     {
         auto result = calc_reflection.calc_back_scattering();
 
-        PhotonPhasor expected{-photon.direction, -photon.polarization};
-
-        EXPECT_VEC_SOFT_EQ(expected.direction, result.direction);
-        EXPECT_VEC_SOFT_EQ(expected.polarization, result.polarization);
+        EXPECT_VEC_SOFT_EQ(-direction, result.direction);
+        EXPECT_VEC_SOFT_EQ(-polarization, result.polarization);
     }
 }
 

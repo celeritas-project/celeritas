@@ -63,22 +63,20 @@ struct CoordinateAxes
     real_type
     calc_reflectivity(real_type angle, LinearPolarization const& pol) const
     {
-        return FresnelCalculator{
-            PhotonPhasor{this->make_direction(angle),
-                         this->make_polarization(angle, pol)},
-            n_hat,
-            rel_r_index}
+        return FresnelCalculator{this->make_direction(angle),
+                                 this->make_polarization(angle, pol),
+                                 n_hat,
+                                 rel_r_index}
             .calc_reflectivity();
     }
 
     SurfaceInteraction
     calc_refraction(real_type angle, LinearPolarization const& pol) const
     {
-        return FresnelCalculator{
-            PhotonPhasor{this->make_direction(angle),
-                         this->make_polarization(angle, pol)},
-            n_hat,
-            rel_r_index}
+        return FresnelCalculator{this->make_direction(angle),
+                                 this->make_polarization(angle, pol),
+                                 n_hat,
+                                 rel_r_index}
             .refracted_interaction();
     }
 };
@@ -101,20 +99,18 @@ ScatteringResult scan_refraction(CoordinateAxes const& axes,
         auto refract = axes.calc_refraction(angle, pol);
 
         EXPECT_EQ(SurfaceInteraction::Action::refracted, refract.action);
-        EXPECT_TRUE(refract.photon.is_valid());
-        EXPECT_SOFT_EQ(0, dot_product(refract.photon.direction, axes.p_hat));
+        EXPECT_SOFT_EQ(0, dot_product(refract.direction, axes.p_hat));
 
-        real_type cos_theta
-            = clamp(-dot_product(refract.photon.direction, axes.n_hat),
-                    real_type{0},
-                    real_type{1});
+        real_type cos_theta = clamp(-dot_product(refract.direction, axes.n_hat),
+                                    real_type{0},
+                                    real_type{1});
         real_type theta = std::acos(cos_theta);
 
         result.cos_theta.push_back(cos_theta);
         result.s_component.push_back(dot_product(
-            refract.photon.polarization, axes.make_polarization(theta, TE)));
+            refract.polarization, axes.make_polarization(theta, TE)));
         result.p_component.push_back(dot_product(
-            refract.photon.polarization, axes.make_polarization(theta, TM)));
+            refract.polarization, axes.make_polarization(theta, TM)));
     }
 
     return result;
