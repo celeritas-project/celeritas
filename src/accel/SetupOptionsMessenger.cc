@@ -173,7 +173,7 @@ SetupOptionsMessenger::SetupOptionsMessenger(SetupOptions* options)
             "Filename for ROOT dump of physics data");
     add_cmd(&options->offload_output_file,
             "offloadOutputFile",
-            "Filename for HepMC3/ROOT dump of offloaded tracks");
+            "Filename for HepMC3/ROOT/JSON dump of offloaded tracks");
     add_cmd(&options->geometry_output_file,
             "geometryOutputFile",
             "Filename for GDML export");
