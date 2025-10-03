@@ -1,6 +1,6 @@
 Thank you for your pull request!
 If this is your first one, please read the [contributing guide](https://celeritas-project.github.io/celeritas/user/development/contributing.html#submitting-code-changes) and the text below.
-If you are a frequent contributor, the text below can remind you about correct title  and labeling.
+If you are a frequent contributor, the text below is a reminder about formatting the title and choosing labels.
 **Please delete this text and all of the instructions below before submitting!**
 
 ---
@@ -24,7 +24,7 @@ Examples:
 ## Description
 
 > [!NOTE]
-> This text box is the description.
+> This text box, which you're currently editing, is the description.
 
 **The description should summarize or enumerate the main changes in the pull request.** Illustrative images (flow charts, performance plots) make excellent additions.
 
