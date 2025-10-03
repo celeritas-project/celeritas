@@ -74,8 +74,19 @@ void MieModel::build_mfps(OptMatId mat, MfpBuilder& build) const
 {
     CELER_EXPECT(mat < imported_.num_materials());
 
+    auto const& mie_data = this->host_ref().mie_record[mat];
+
     if (auto const& mfp = imported_.mfp(mat))
     {
+        if (!mie_data)
+        {
+            CELER_VALIDATE(mie_data,
+                           << "Mie parameters out of bounds for material "
+                           << ": forward_g=" << mie_data.forward_g
+                           << ", backward_g=" << mie_data.backward_g
+                           << ", forward_ratio=" << mie_data.forward_ratio);
+        }
+
         build(mfp);
     }
     else
