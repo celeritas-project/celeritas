@@ -26,7 +26,7 @@ struct SetupOptions;
   geometryFile         | Override detector geometry with a custom GDML
   outputFile           | Filename for JSON diagnostic output
   physicsOutputFile    | Filename for ROOT dump of physics data
-  offloadOutputFile    | Filename for HepMC3/ROOT dump of offloaded tracks
+  offloadOutputFile    | Filename for HepMC3/ROOT/JSON dump of offloaded tracks
   geometryOutputFile   | Filename for GDML export
   maxNumTracks         | Number of tracks to be transported simultaneously
   maxNumEvents         | Maximum number of events in use

@@ -71,7 +71,6 @@ void RayleighModel::build_mfps(OptMatId mat, MfpBuilder& build) const
         // User explicitly provided Rayleigh MFP
         build(mfp);
     }
-
     else if (input_ && input_.imported_materials->rayleigh(mat))
     {
         // MFPs can be calculated from user given propcerties
@@ -98,25 +97,8 @@ void RayleighModel::build_mfps(OptMatId mat, MfpBuilder& build) const
     }
     else
     {
-        // Build a grid with infinite MFP to prevent selection of the model
-        auto mat_view = input_.materials->get(mat);
-        auto rindex_calc = mat_view.make_refractive_index_calculator();
-        auto energies = rindex_calc.grid().values();
-
-        if (!energies.empty())
-        {
-            inp::Grid g;
-
-            // Using min and max energy values from the refractive index grid
-            // and setting MFP to infinity
-            g.x = {energies.front(), energies.back()};
-            g.y = {std::numeric_limits<real_type>::infinity(),
-                   std::numeric_limits<real_type>::infinity()};
-            CELER_LOG(debug) << "Material " << mat.get()
-                             << " has no MFP data: setting mfp to infinity";
-
-            build(g);
-        }
+        // Build a grid with infinite MFP that prevents selection of the model
+        build();
     }
 }
 

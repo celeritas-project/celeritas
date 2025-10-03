@@ -75,7 +75,6 @@ void MieModel::build_mfps(OptMatId mat, MfpBuilder& build) const
     CELER_EXPECT(mat < imported_.num_materials());
 
     auto const& mie_data = this->host_ref().mie_record[mat];
-
     if (auto const& mfp = imported_.mfp(mat))
     {
         if (!mie_data)
@@ -91,7 +90,8 @@ void MieModel::build_mfps(OptMatId mat, MfpBuilder& build) const
     }
     else
     {
-        build(inp::Grid::from_constant(1e7));
+        // Cross sections not available
+        build();
     }
 }
 

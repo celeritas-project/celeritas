@@ -47,6 +47,7 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/io/EventWriter.hh"
+#include "celeritas/io/JsonEventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/OpticalCollector.hh"

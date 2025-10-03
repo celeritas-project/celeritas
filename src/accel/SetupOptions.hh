@@ -154,7 +154,7 @@ struct SetupOptions
     std::string output_file{"celeritas.out.json"};
     //! Filename for ROOT dump of physics data
     std::string physics_output_file;
-    //! Filename to dump a ROOT/HepMC3 copy of offloaded tracks as events
+    //! Filename to dump a ROOT/HepMC3/JSON copy of offloaded tracks as events
     std::string offload_output_file;
     //! Filename to dump a GDML file for debugging inside frameworks
     std::string geometry_output_file;

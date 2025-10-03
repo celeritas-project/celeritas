@@ -4,12 +4,13 @@
   "configurePresets": [
     {
       "name": "default",
-      "displayName": "Dependencies enabled by probing environment",
+      "displayName": "generic: dependencies enabled by probing environment",
       "binaryDir": "${sourceDir}/build-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
         "Celeritas_GIT_DESCRIBE": "",
-        "CELERITAS_BUILD_TESTS":{"type": "BOOL", "value": "ON"},
+        "BUILD_TESTING": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
         "CMAKE_CXX_COMPILER_LAUNCHER": { "type": "STRING", "value": "$env{CCACHE_PROGRAM}"},
         "CMAKE_C_COMPILER_LAUNCHER":   { "type": "STRING", "value": "$env{CCACHE_PROGRAM}"},
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-${presetName}"
@@ -17,7 +18,7 @@
     },
     {
       "name": "full",
-      "displayName": "All external dependencies expected",
+      "displayName": "generic: all external dependencies expected",
       "inherits": "default",
       "cacheVariables": {
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "ON"},
@@ -33,7 +34,7 @@
     },
     {
       "name": "minimal",
-      "displayName": "Smallest capabilities for useful development",
+      "displayName": "generic: minimal development capabilities",
       "generator": "Ninja",
       "inherits": "default",
       "cacheVariables": {

@@ -65,8 +65,8 @@ ln_presets() {
     return
   fi
 
+  # Create if preset file doesn't exist
   if [ ! -f "${src}" ]; then
-    # Create if
     log info "Creating user presets at ${src} . Please update this file for future configurations."
     cp "scripts/cmake-presets/_dev_.json" "${src}"
     git add "${src}" || error "Could not stage presets"
@@ -75,9 +75,8 @@ ln_presets() {
   ln -s "${src}" "${dst}"
 }
 
-#
+# Check if ccache is full and warn user
 check_ccache_usage() {
-  # Check if ccache is full and warn user
   cache_stats=$(ccache --print-stats)
   current_kb=$(echo "$cache_stats" | grep "^cache_size_kibibyte" | cut -f2)
   max_kb=$(echo "$cache_stats" | grep "^max_cache_size_kibibyte" | cut -f2)
@@ -89,19 +88,34 @@ check_ccache_usage() {
       # Convert to human-readable sizes (GiB)
       current_gb=$((current_kb / 1024 / 1024))
       max_gb=$((max_kb / 1024 / 1024))
-      log warning "ccache is ${usage_percent}% full (${current_gb}/${max_gb} GiB). Consider increasing cache size with 'ccache -M <size>G'"
+      log warning "ccache is ${usage_percent}% full (${current_gb}/${max_gb} GiB)"
+      log info "Consider increasing cache size with 'ccache -M <size>G' or clearing with 'ccache -C'"
     fi
   fi
 }
 
+# Auto-detect and configure ccache if available
 setup_ccache() {
-  # Auto-detect and configure ccache if available
-  if CCACHE_PROGRAM="$(which ccache)" >/dev/null 2>&1; then
-    export CCACHE_PROGRAM="$(which ccache)"
+  if CCACHE_PROGRAM="$(which ccache 2>/dev/null)"; then
     log info "Using ccache: ${CCACHE_PROGRAM}"
     check_ccache_usage
   fi
   export CCACHE_PROGRAM=${CCACHE_PROGRAM}
+}
+
+# Check if pre-commit hook is installed and install if missing
+install_precommit_if_git() {
+  git_dir=$(git rev-parse --git-dir 2>/dev/null)
+  if [ $? -ne 0 ]; then
+    log debug "Not in a git repository, skipping pre-commit check"
+    return 1
+  fi
+
+  if [ ! -f "${git_dir}/hooks/pre-commit" ]; then
+    log info "Pre-commit hook not found, installing commit hooks"
+    ./scripts/dev/install-commit-hooks.sh
+  fi
+  return 0
 }
 
 #-----------------------------------------------------------------------------#
@@ -113,6 +127,10 @@ cd "$(dirname $0)"/..
 # Determine system name
 SYSTEM_NAME=$(fancy_hostname)
 
+# Check whether cmake changes from environment
+OLD_CMAKE=$(which cmake 2>/dev/null || echo "")
+OLD_PRE_COMMIT=$(which pre-commit 2>/dev/null)
+
 # Load environment paths
 _env_script="scripts/env/${SYSTEM_NAME}.sh"
 if [ -f "${_env_script}" ]; then
@@ -121,6 +139,8 @@ if [ -f "${_env_script}" ]; then
 else
   log debug "No environment script exists at ${_env_script}"
 fi
+
+NEW_CMAKE=$(which cmake 2>/dev/null || echo "cmake unavailable")
 
 # Link preset file
 ln_presets "${SYSTEM_NAME}"
@@ -132,8 +152,11 @@ setup_ccache
 if [ $# -eq 0 ]; then
   echo "Usage: $0 PRESET [config_args...]" >&2
   if hash cmake 2>/dev/null ; then
-    cmake --list-presets >&2 \
-      || log error "CMake may be too old or JSON file may be broken"
+    if cmake --list-presets >&2 ; then
+      log info "Try using the '${SYSTEM_NAME}' or 'dev' presets ('base'), or 'default' if not"
+    else
+      log error "CMake may be too old or JSON file may be broken"
+    fi
   else
     log error "cmake unavailable: cannot call --list-presets"
   fi
@@ -142,12 +165,25 @@ fi
 CMAKE_PRESET=$1
 shift
 
+
 # Configure, build, and test
 log info "Configuring with verbosity"
 cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE "$@"
 log info "Building"
-cmake --build --preset=${CMAKE_PRESET}
-log info "Testing"
-ctest --preset=${CMAKE_PRESET}
+if cmake --build --preset=${CMAKE_PRESET}; then
+  log info "Testing"
+  if ctest --preset=${CMAKE_PRESET} --timeout 15; then
+    log info "Celeritas was successfully built and tested for development!"
+  else
+    log warning "Celeritas built but some tests failed"
+    log info "Ask the Celeritas team whether the failures indicate an actual error"
+  fi
 
-log info "Celeritas was successfully built and tested for development!"
+  install_precommit_if_git
+  if [ "${NEW_CMAKE}" != "${OLD_CMAKE}" ]; then
+    log warning "Local environment script uses a different CMake than your \$PATH:"
+    log info "Recommend adding '. ${PWD}/${_env_script}' to your shell rc"
+  fi
+else
+  log error "build failed: check configuration and build errors above"
+fi
