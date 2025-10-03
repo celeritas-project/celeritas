@@ -87,6 +87,8 @@ list(APPEND SOURCES
   io/ImportOpticalModel.cc
   io/ImportProcess.cc
   io/ImportUnits.cc
+  io/JsonEventReader.cc
+  io/JsonEventWriter.cc
   io/LivermorePEReader.cc
   io/NeutronXsReader.cc
   io/SeltzerBergerReader.cc
