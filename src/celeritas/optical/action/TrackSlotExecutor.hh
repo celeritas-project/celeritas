@@ -136,6 +136,41 @@ class ConditionalTrackSlotExecutor
 };
 
 //---------------------------------------------------------------------------//
+// CONDITIONALS
+//---------------------------------------------------------------------------//
+/*!
+ * Apply only to active tracks undergoing volumetric actions (not crossing a
+ * boundary).
+ */
+struct AppliesValidVolumetric
+{
+    CELER_FUNCTION bool operator()(CoreTrackView const& track) const
+    {
+        return AppliesValid{}(track)
+               && !track.surface_physics().is_crossing_boundary();
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the track is undergoing a surface crossing and it matches the given
+ * step and model.
+ */
+struct IsSurfaceModelEqual
+{
+    SurfacePhysicsOrder step;
+    SurfaceModelId model;
+
+    //! Whether the surface model should be executed for the track
+    CELER_FUNCTION bool operator()(CoreTrackView const& track) const
+    {
+        auto s_phys = track.surface_physics();
+        return s_phys.is_crossing_boundary()
+               && s_phys.interface(step).surface_model_id() == model;
+    }
+};
+
+//---------------------------------------------------------------------------//
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class T>
@@ -185,6 +220,46 @@ make_action_thread_executor(CoreParamsPtr<MemSpace::native> params,
     return ConditionalTrackSlotExecutor{params,
                                         state,
                                         IsStepActionEqual{action},
+                                        celeritas::forward<T>(apply_track)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a track executor that only applies to active tracks undergoing
+ * volumetric actions (not traversing a boundary).
+ */
+template<class T>
+inline CELER_FUNCTION decltype(auto) make_active_volumetric_thread_executor(
+    CoreParamsPtr<MemSpace::native> params,
+    CoreStatePtr<MemSpace::native> const& state,
+    T&& apply_track)
+{
+    return ConditionalTrackSlotExecutor{params,
+                                        state,
+                                        AppliesValidVolumetric{},
+                                        celeritas::forward<T>(apply_track)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a track slot executor that for a given surface step and model.
+ *
+ * The executor will launch kernels only on tracks which are undergoing a
+ * boundary crossing.
+ */
+template<class T>
+inline CELER_FUNCTION decltype(auto)
+make_surface_physics_executor(CoreParamsPtr<MemSpace::native> params,
+                              CoreStatePtr<MemSpace::native> const& state,
+                              SurfacePhysicsOrder step,
+                              SurfaceModelId model,
+                              T&& apply_track)
+{
+    CELER_EXPECT(step != SurfacePhysicsOrder::size_);
+    CELER_EXPECT(model);
+    return ConditionalTrackSlotExecutor{params,
+                                        state,
+                                        IsSurfaceModelEqual{step, model},
                                         celeritas::forward<T>(apply_track)};
 }
 

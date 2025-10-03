@@ -55,20 +55,23 @@ CELER_FUNCTION void PreStepExecutor::operator()(CoreTrackView const& track)
                  || sim.status() == TrackStatus::alive);
     sim.status(TrackStatus::alive);
 
-    auto phys = track.physics();
-    if (!phys.has_interaction_mfp())
+    if (!track.surface_physics().is_crossing_boundary())
     {
-        // Sample mean free path
-        auto rng = track.rng();
-        ExponentialDistribution<real_type> sample_exponential;
-        phys.interaction_mfp(sample_exponential(rng));
+        auto phys = track.physics();
+        if (!phys.has_interaction_mfp())
+        {
+            // Sample mean free path
+            auto rng = track.rng();
+            ExponentialDistribution<real_type> sample_exponential;
+            phys.interaction_mfp(sample_exponential(rng));
+        }
+
+        // Calculate physics step limits and total macro xs
+        auto particle = track.particle();
+        sim.reset_step_limit(calc_physics_step_limit(particle, phys));
+
+        CELER_ENSURE(sim.step_length() > 0);
     }
-
-    // Calculate physics step limits and total macro xs
-    auto particle = track.particle();
-    sim.reset_step_limit(calc_physics_step_limit(particle, phys));
-
-    CELER_ENSURE(sim.step_length() > 0);
 }
 
 //---------------------------------------------------------------------------//

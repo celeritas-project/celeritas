@@ -185,7 +185,6 @@ class ActionInitialization final : public G4VUserActionInitialization
         {
             tracing_ = std::make_unique<TracingSession>(
                 test_->make_unique_filename(".perf.proto"));
-            tracing_->start();
         }
     }
 

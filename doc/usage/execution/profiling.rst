@@ -124,9 +124,8 @@ but it can be moved to extend its lifetime.
 
    int main()
    {
-      // System-level profiling: pass a filename to use application-level profiling
-      celeritas::TracingSession session;
-      session.start()
+      // Pass with empty/no filename for system profiling
+      celeritas::TracingSession session("out.perfetto");
    }
 
 As mentioned above, Perfetto can either profile application events only, or application and system events.

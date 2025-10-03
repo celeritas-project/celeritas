@@ -37,8 +37,6 @@ struct SurfacePhysicsMapData
     //!@{
     //! \name Type aliases
 
-    using InternalSurfaceId = SurfaceModel::InternalSurfaceId;
-
     template<class T>
     using SurfaceItems = Collection<T, W, M, PhysSurfaceId>;
 
@@ -47,7 +45,7 @@ struct SurfacePhysicsMapData
     //// DATA ////
 
     SurfaceItems<SurfaceModelId> surface_models;
-    SurfaceItems<InternalSurfaceId> internal_surface_ids;
+    SurfaceItems<SubModelId> internal_surface_ids;
 
     //// METHODS ////
 

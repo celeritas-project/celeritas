@@ -140,7 +140,6 @@ void run(std::string_view filename, std::shared_ptr<SharedParams> params)
 
     // Start tracing session
     celeritas::TracingSession tracing{setup.input().tracing_file};
-    tracing.start();
 
     // Set up loggers
     world_logger() = Logger::from_handle_env(make_world_handler(), "CELER_LOG");
