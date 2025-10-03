@@ -150,6 +150,31 @@ struct ReflectionForm
 
 //---------------------------------------------------------------------------//
 /*!
+ * Analytic interactions between dielectric-dielectric and dielectric-metal
+ * interfaces.
+ */
+struct DielectricInteraction
+{
+    ReflectionForm reflection;
+
+    //! Whether the interface is dielectric-dielectric or dielectric-metal
+    bool is_metal;
+
+    //! Return a dielectric-dielectric interaction
+    static DielectricInteraction from_dielectric(ReflectionForm r)
+    {
+        return {std::move(r), false};
+    }
+
+    //! Return a dielectric-metal interaction
+    static DielectricInteraction from_metal(ReflectionForm r)
+    {
+        return {std::move(r), true};
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Surface roughness description.
  *
  * \todo Future work will allow the of use multiple surface
@@ -198,14 +223,10 @@ struct ReflectivityModels
  */
 struct InteractionModels
 {
-    std::map<PhysSurfaceId, ReflectionForm> dielectric_dielectric;
-    std::map<PhysSurfaceId, ReflectionForm> dielectric_metal;
+    std::map<PhysSurfaceId, DielectricInteraction> dielectric;
 
     //! Whether the data are assigned
-    explicit operator bool() const
-    {
-        return !dielectric_dielectric.empty() || !dielectric_metal.empty();
-    }
+    explicit operator bool() const { return !dielectric.empty(); }
 };
 
 //---------------------------------------------------------------------------//

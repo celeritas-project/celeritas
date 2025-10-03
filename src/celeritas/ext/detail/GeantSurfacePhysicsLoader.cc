@@ -350,13 +350,17 @@ void GeantSurfacePhysicsLoader::insert_interaction(
     GeantSurfacePhysicsHelper const& helper, inp::ReflectionForm&& rf)
 {
     auto& interaction = models_.interaction;
+    CELER_LOG(info) << "GSPH dielectric size: "
+                    << interaction.dielectric.size();
     switch (helper.surface().GetType())
     {
         case G4ST::dielectric_dielectric:
-            helper.emplace(interaction.dielectric_dielectric, std::move(rf));
+            helper.emplace(interaction.dielectric,
+                           inp::DielectricInteraction{std::move(rf), false});
             break;
         case G4ST::dielectric_metal:
-            helper.emplace(interaction.dielectric_metal, std::move(rf));
+            helper.emplace(interaction.dielectric,
+                           inp::DielectricInteraction{std::move(rf), true});
             break;
         default:
             CELER_VALIDATE(false,
@@ -364,6 +368,8 @@ void GeantSurfacePhysicsLoader::insert_interaction(
                            << to_cstring(helper.surface().GetType())
                            << " for surface model");
     }
+    CELER_LOG(info) << "  GSP dielectric size after: "
+                    << interaction.dielectric.size();
 }
 
 //---------------------------------------------------------------------------//

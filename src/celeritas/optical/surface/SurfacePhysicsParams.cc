@@ -143,10 +143,8 @@ auto SurfacePhysicsParams::build_models(
                 build_model.build_fake("fresnel", input.reflectivity.fresnel);
                 break;
             case SurfacePhysicsOrder::interaction:
-                build_model.build_fake("dielectric-dielectric",
-                                       input.interaction.dielectric_dielectric);
-                build_model.build_fake("dielectric-metal",
-                                       input.interaction.dielectric_metal);
+                build_model.build_fake("interaction-dielectric",
+                                       input.interaction.dielectric);
                 break;
             default:
                 CELER_ASSERT_UNREACHABLE();

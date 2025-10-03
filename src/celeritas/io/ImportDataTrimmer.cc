@@ -105,9 +105,7 @@ void ImportDataTrimmer::operator()(ImportData& data)
 
     // Trim infinities from grid
     this->for_each(data.optical_physics.surfaces.reflectivity.grid);
-    this->for_each(
-        data.optical_physics.surfaces.interaction.dielectric_dielectric);
-    this->for_each(data.optical_physics.surfaces.interaction.dielectric_metal);
+    this->for_each(data.optical_physics.surfaces.interaction.dielectric);
 }
 
 //---------------------------------------------------------------------------//
@@ -247,6 +245,12 @@ void ImportDataTrimmer::operator()(ImportProcess& data)
     (*this)(data.dedx);
 
     CELER_ENSURE(data);
+}
+
+//---------------------------------------------------------------------------//
+void ImportDataTrimmer::operator()(inp::DielectricInteraction& data)
+{
+    (*this)(data.reflection);
 }
 
 //---------------------------------------------------------------------------//

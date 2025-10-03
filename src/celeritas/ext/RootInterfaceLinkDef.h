@@ -45,6 +45,7 @@
 
 
 // Input data
+#pragma link C++ class celeritas::inp::DielectricInteraction+;
 #pragma link C++ class celeritas::inp::FresnelReflection+;
 #pragma link C++ class celeritas::inp::GaussianRoughness+;
 #pragma link C++ class celeritas::inp::Grid+;

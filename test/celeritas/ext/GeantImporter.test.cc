@@ -2002,10 +2002,11 @@ TEST_F(OpticalSurfaces, surfaces)
         EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
         EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
 
-        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
-        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric, sid));
 
-        auto& rf = osp.interaction.dielectric_dielectric.find(sid)->second;
+        auto& di = osp.interaction.dielectric.find(sid)->second;
+        EXPECT_FALSE(di.is_metal);
+        auto& rf = di.reflection;
         EXPECT_SOFT_EQ(1, rf.specular_spike.y[0]);
         EXPECT_SOFT_EQ(0, rf.specular_lobe.y[0]);
         EXPECT_SOFT_EQ(0, rf.backscatter.y[0]);
@@ -2021,14 +2022,15 @@ TEST_F(OpticalSurfaces, surfaces)
         EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
         EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
 
-        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
-        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric, sid));
 
         static double const polish
             = 1 - osp.roughness.smear.find(sid)->second.roughness;
         EXPECT_SOFT_EQ(0.9, polish);
 
-        auto& rf = osp.interaction.dielectric_dielectric.find(sid)->second;
+        auto& di = osp.interaction.dielectric.find(sid)->second;
+        EXPECT_FALSE(di.is_metal);
+        auto& rf = di.reflection;
         EXPECT_SOFT_EQ(0, rf.specular_spike.y[0]);
         EXPECT_SOFT_EQ(1, rf.specular_lobe.y[0]);
         EXPECT_SOFT_EQ(0, rf.backscatter.y[0]);
@@ -2044,10 +2046,11 @@ TEST_F(OpticalSurfaces, surfaces)
         EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
         EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
 
-        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
-        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric, sid));
 
-        auto& rf = osp.interaction.dielectric_dielectric.find(sid)->second;
+        auto& di = osp.interaction.dielectric.find(sid)->second;
+        EXPECT_FALSE(di.is_metal);
+        auto& rf = di.reflection;
         static double const expected_energy[] = {2e-06, 8e-06};
         static double const expected_specular_spike[] = {0.1, 0.3};
         static double const expected_specular_lobe[] = {0.2, 0.2};
@@ -2071,10 +2074,11 @@ TEST_F(OpticalSurfaces, surfaces)
         EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
         EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
 
-        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
-        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric, sid));
 
-        auto& rf = osp.interaction.dielectric_metal.find(sid)->second;
+        auto& di = osp.interaction.dielectric.find(sid)->second;
+        EXPECT_TRUE(di.is_metal);
+        auto& rf = di.reflection;
         EXPECT_SOFT_EQ(1, rf.specular_spike.y[0]);
         EXPECT_SOFT_EQ(0, rf.specular_lobe.y[0]);
         EXPECT_SOFT_EQ(0, rf.backscatter.y[0]);
@@ -2090,14 +2094,15 @@ TEST_F(OpticalSurfaces, surfaces)
         EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
         EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
 
-        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
-        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric, sid));
 
         static double const polish
             = 1 - osp.roughness.smear.find(sid)->second.roughness;
         EXPECT_SOFT_EQ(0.7, polish);
 
-        auto& rf = osp.interaction.dielectric_metal.find(sid)->second;
+        auto& di = osp.interaction.dielectric.find(sid)->second;
+        EXPECT_TRUE(di.is_metal);
+        auto& rf = di.reflection;
         EXPECT_SOFT_EQ(0, rf.specular_spike.y[0]);
         EXPECT_SOFT_EQ(1, rf.specular_lobe.y[0]);
         EXPECT_SOFT_EQ(0, rf.backscatter.y[0]);
