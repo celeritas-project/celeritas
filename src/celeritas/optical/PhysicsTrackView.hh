@@ -8,7 +8,6 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/data/HyperslabIndexer.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/NonuniformGridCalculator.hh"
@@ -267,14 +266,15 @@ CELER_FUNCTION ActionId PhysicsTrackView::discrete_action() const
  * Get the MFP grid ID for the given model.
  *
  * The grid corresponds to the optical material this track view was
- * constructed with and is a simple 2D inedxing.
+ * constructed with.
  */
 CELER_FUNCTION ValueGridId PhysicsTrackView::mfp_grid(ModelId model) const
 {
-    HyperslabIndexer<2> get_index{
-        {params_.scalars.num_models, params_.scalars.num_materials}};
+    CELER_EXPECT(model < this->num_models());
 
-    ValueGridId grid_id{get_index(model.get(), opt_material_.get())};
+    ValueGridId grid_id{opt_material_.get()
+                        + model.get() * params_.scalars.num_materials};
+
     CELER_ENSURE(grid_id < params_.grids.size());
     return grid_id;
 }
