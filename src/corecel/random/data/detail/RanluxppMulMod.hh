@@ -250,17 +250,18 @@ CELER_FUNCTION inline void modM(RanluxppArray18 const& mul, RanluxppArray9& out)
 /*!
  * Combine multiply9x9 and mod_m with internal temporary storage
  *
- * The result in \p inout is guaranteed to be smaller than the modulus.
+ * The result in \p fac_result is guaranteed to be smaller than the modulus.
  *
- * \param[in]      in1   first factor with 9 numbers of 64 bits each
- * \param[in, out] inout second factor and also the output of the same size
+ * \param[in]      factor      first factor with 9 numbers of 64 bits each
+ * \param[in, out] fac_result  second factor and also the output of the same
+ *                             size
  */
 CELER_FUNCTION inline void
-mulmod(RanluxppArray9 const& in1, RanluxppArray9& inout)
+mulmod(RanluxppArray9 const& factor, RanluxppArray9& fac_result)
 {
     RanluxppArray18 mul;
-    multiply9x9(in1, inout, mul);
-    modM(mul, inout);
+    multiply9x9(factor, fac_result, mul);
+    modM(mul, fac_result);
 }
 
 //---------------------------------------------------------------------------//
