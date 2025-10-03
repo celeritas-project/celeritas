@@ -973,7 +973,12 @@ TEST_F(SolidConverterTest, trd)
     // Failing from ATLAS LAr calo model
     this->build_and_test(
         G4Trd("LAr::DM::TBox", 0.5 * 89, 0.5 * 89, 0, 0.5 * 429.44, 0.5 * 188.4),
-        R"json({"_type":"shape","interior":{"_type":"genprism","halfheight":9.42,"lower":[[4.45,-0.0],[4.45,0.0],[-4.45,0.0],[-4.45,-0.0]],"upper":[[4.45,-21.472],[4.45,21.472],[-4.45,21.472],[-4.45,-21.472]]},"label":"LAr::DM::TBox"})json");
+        R"json({"_type":"shape","interior":{"_type":"genprism","halfheight":9.42,"lower":[[4.45,-0.0],[4.45,0.0],[-4.45,0.0],[-4.45,-0.0]],"upper":[[4.45,-21.472],[4.45,21.472],[-4.45,21.472],[-4.45,-21.472]]},"label":"LAr::DM::TBox"})json",
+        {
+            {4.45, 0.0, -9.41},
+            {4.45, 0.0, -9.43},
+            {4.45, 21.472, 9.42},
+        });
 }
 
 TEST_F(SolidConverterTest, tubs)

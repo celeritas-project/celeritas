@@ -118,7 +118,7 @@ template<class IR, class... Args>
 auto make_shape(std::string&& name, Args&&... args)
 {
     return std::make_shared<Shape<IR>>(std::move(name),
-                                       IR{std::forward<Args>(args)...});
+                                       IR(std::forward<Args>(args)...));
 }
 
 //---------------------------------------------------------------------------//
