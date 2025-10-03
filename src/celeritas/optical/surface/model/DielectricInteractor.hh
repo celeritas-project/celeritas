@@ -125,7 +125,7 @@ DielectricInteractor::operator()(Engine& rng) const
     {
         // Reflection
         return UnifiedReflectionSampler{
-            unified_reflection_, inc_photon_, inc_direction_, surface_phys_}(
+            unified_reflection_, inc_direction_, inc_photon_, surface_phys_}(
             rng);
     }
     else

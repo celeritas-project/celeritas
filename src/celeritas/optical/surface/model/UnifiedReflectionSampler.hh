@@ -11,6 +11,8 @@
 #include "corecel/Macros.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/random/distribution/Selector.hh"
+#include "celeritas/optical/ParticleTrackView.hh"
+#include "celeritas/optical/surface/SurfacePhysicsTrackView.hh"
 #include "celeritas/optical/surface/SurfacePhysicsUtils.hh"
 
 #include "LambertianDistribution.hh"
@@ -44,6 +46,13 @@ class UnifiedReflectionSampler
                              Real3 const& polarization,
                              Real3 const& global_normal,
                              Real3 const& facet_normal);
+
+    // Construct from track views
+    explicit inline CELER_FUNCTION
+    UnifiedReflectionSampler(UnifiedReflectionView const& unified_reflection,
+                             Real3 const& inc_direction,
+                             ParticleTrackView const& photon,
+                             SurfacePhysicsTrackView const& surface_physics);
 
     // Sample reflection mode and calculate reflected phasor
     template<class Engine>
@@ -98,6 +107,23 @@ UnifiedReflectionSampler::UnifiedReflectionSampler(UnifiedModeProbs const& probs
     CELER_EXPECT(soft_equal(
         std::accumulate(mode_probs_.begin(), mode_probs_.end(), real_type{0}),
         real_type{1}));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct calculator from a given track's views.
+ */
+CELER_FUNCTION UnifiedReflectionSampler::UnifiedReflectionSampler(
+    UnifiedReflectionView const& unified_reflection,
+    Real3 const& inc_direction,
+    ParticleTrackView const& photon,
+    SurfacePhysicsTrackView const& surface_physics)
+    : UnifiedReflectionSampler(unified_reflection(photon.energy()),
+                               inc_direction,
+                               photon.polarization(),
+                               surface_physics.global_normal(),
+                               surface_physics.facet_normal())
+{
 }
 
 //---------------------------------------------------------------------------//
