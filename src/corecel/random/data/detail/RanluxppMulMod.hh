@@ -43,7 +43,7 @@ CELER_FUNCTION inline void multiply9x9(RanluxppArray9 const& in1,
 // This pragma was introduced in GCC version 8.
 #    pragma GCC unroll 18
 #endif
-    for (int i : celeritas::range(18))
+    for (int i = 0; i < 18; ++i)
     {
         RanluxppUInt current = next;
         unsigned int carry = nextCarry;
@@ -57,7 +57,7 @@ CELER_FUNCTION inline void multiply9x9(RanluxppArray9 const& in1,
 // This pragma was introduced in GCC version 8.
 #    pragma GCC unroll 9
 #endif
-        for (int j : celeritas::range(9))
+        for (int j = 0; j < 9; ++j)
         {
             int k = i - j;
             if (k < 0 || k >= 9)
