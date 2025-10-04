@@ -704,10 +704,13 @@ TEST_F(SolidConverterTest, polycone)
                        rmax),
             R"json({"_type":"transformed","daughter":{"_type":"solid","enclosed_azi":{"start":0.9805555555555555,"stop":1.5194444444444444},"excluded":{"_type":"cone","halfheight":13.0,"radii":[105.0,130.5]},"interior":{"_type":"cone","halfheight":13.0,"radii":[106.0,131.5]},"label":"ECT_TS_CentralTube_top"},"transform":{"_type":"translation","data":[0.0,0.0,186.0]}})json");
 
-        static char const* const expected_log_messages[] = {
-            R"(Polycone 'ECT_TS_CentralTube_top' z coordinates are out of order: {199, 173})",
-        };
-        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+        if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            static char const* const expected_log_messages[] = {
+                R"(Polycone 'ECT_TS_CentralTube_top' z coordinates are out of order: {199, 173})",
+            };
+            EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+        }
         static char const* const expected_log_levels[] = {"warning"};
         EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
     }
