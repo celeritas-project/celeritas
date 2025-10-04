@@ -342,7 +342,7 @@ TEST_F(SurfacePhysicsTest, init_params)
 
     SurfaceOrderArray<std::vector<std::string_view>> expected_model_names;
     expected_model_names[SurfacePhysicsOrder::roughness] = {
-        "polished",
+        "roughness-polished",
         "smear",
         "gaussian",
     };

@@ -19,6 +19,11 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+// Forward declare DedupeCollectionBuilder for use as a friend class
+template<class T, class Id>
+class DedupeCollectionBuilder;
+
+//---------------------------------------------------------------------------//
 /*!
  * \page collections Collection: a data portability class
  *

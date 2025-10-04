@@ -144,9 +144,16 @@ jobs:
           restore-keys: |
             lock-${{hashFiles('spack.yaml')}}
       - name: Concretize
+        id: concretize
         run: |
-          spack -e . -v concretize
+          spack -e . -v concretize || (
+            ERR=$?
+            spack arch
+            cat spack.yaml
+            exit $ERR
+          )
       - name: Install dependencies
+        id: installdeps
         run: |
           spack -e . env depfile -o Makefile
           make -Orecurse -j $(($(nproc) + 1)) SPACK_INSTALL_FLAGS=--no-check-signature
@@ -229,7 +236,7 @@ jobs:
           ccache -z
           ninja -v -k0
       - name: Show ccache stats
-        if: ${{!cancelled()}}
+        if: ${{!cancelled() && steps.installdeps.outcome == 'success'}}
         run: |
           ccache -s
       - name: Save ccache

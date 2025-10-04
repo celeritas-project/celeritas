@@ -12,12 +12,21 @@ Target: upstream/develop (always, even if backporting!)
 - [ ] Run performance regression tests on Perlmutter, Frontier, and an additional machine with debug assertions enabled (e.g., Wildstyle).
 - [ ] Update documentation with release notes from all pull requests newly included in the release.
 - [ ] Ensure PDF documentation builds without error.
-- [ ] For a major release, check for (and delete if found) code marked as "deprecated: to be removed in vX".
+
+### Major release only
+
+- [ ] Check for (and delete if found) code marked as "deprecated: to be removed in vX".
+- [ ] Update the zenodo reference
 
 ## Post-merge checklist
 
 - [ ] If releasing a backported version branch, cherry-pick this documentation commit into the backport branch.
-- [ ] Use the [release scripts](https://github.com/celeritas-project/release-scripts) to create a new release with the documentation update that was just added.
+- [ ] Use the [release scripts](https://github.com/celeritas-project/release-scripts) to:
+  - Add a text description of the release based on the change set
+  - Draft a new GitHub release
+  - (then, using the GitHub web interface) Publish the release
+  - Draft a zenodo release
+  - (then, using the Zenodo web interface) Publish the zenodo citation
 
 ## Post-release checklist
 
