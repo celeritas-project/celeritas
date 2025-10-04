@@ -997,7 +997,7 @@ TEST_F(SolidConverterTest, trd)
 })json",
         {{-10, -20, -40}, {-10, -20, -30 + 1.e-6}, {5, 10, 30}, {10, 10, 30}});
 
-    // Failing from ATLAS LAr calo model
+    // From ATLAS LAr calo model: degenerate lower face
     this->build_and_test(
         G4Trd("LAr::DM::TBox", 0.5 * 89, 0.5 * 89, 0, 0.5 * 429.44, 0.5 * 188.4),
         R"json({"_type":"shape","interior":{"_type":"genprism","halfheight":9.42,"lower":[[4.45,-0.0],[4.45,0.0],[-4.45,0.0],[-4.45,-0.0]],"upper":[[4.45,-21.472],[4.45,21.472],[-4.45,21.472],[-4.45,-21.472]]},"label":"LAr::DM::TBox"})json",

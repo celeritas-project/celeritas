@@ -311,9 +311,10 @@ TEST_F(CsgObjectTest, subtraction)
     EXPECT_VEC_EQ(expected_trans_strings, transform_strings(u));
 }
 
+// Add a test of an object that can't be deleted from the ATLAS boundary
 TEST_F(CsgObjectTest, subtraction_atlas)
 {
-    // Shape definitions are from SolidConverter.test.c
+    // Shape definitions are from SolidConverter.test.cc
     using VR2 = GenPrism::VecReal2;
     auto trap = make_shape<GenPrism>(
         "trap",

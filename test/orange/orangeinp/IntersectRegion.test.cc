@@ -1131,6 +1131,8 @@ TEST_F(GenPrismTest, trd)
     this->check_corners(result.node_id, pri, 0.1);
 }
 
+// Test a trapezoid used by the ATLAS LAr calorimeter geometry that has a
+// zero-area polygon on the lower face
 TEST_F(GenPrismTest, trd_degen)
 {
     auto pri = GenPrism::from_trd(3, {0, 1}, {1, 1});
