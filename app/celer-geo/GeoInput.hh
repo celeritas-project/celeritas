@@ -34,6 +34,13 @@ struct ModelSetup
     std::string perfetto_file;
 };
 
+//! Echoed output from model setup
+struct ModelSetupOutput : public ModelSetup
+{
+    std::string version_string;
+    int version_hex{};
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Input for generating a raytrace.
@@ -57,6 +64,8 @@ struct TraceSetup
 
 void to_json(nlohmann::json& j, ModelSetup const& value);
 void from_json(nlohmann::json const& j, ModelSetup& value);
+
+void to_json(nlohmann::json& j, ModelSetupOutput const& value);
 
 void to_json(nlohmann::json& j, TraceSetup const& value);
 void from_json(nlohmann::json const& j, TraceSetup& value);

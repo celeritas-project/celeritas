@@ -13,6 +13,7 @@
 #include <nlohmann/json.hpp>
 
 #include "corecel/Config.hh"
+#include "corecel/Version.hh"
 
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
@@ -98,7 +99,14 @@ Runner make_runner(json const& input)
     }
 
     Runner result(model_setup);
-    std::cout << json(model_setup) << std::endl;
+
+    // Echo setup with additions by copying base class attributes first
+    ModelSetupOutput out;
+    static_cast<ModelSetup&>(out) = model_setup;
+    out.version_string = std::string{celeritas::version_string};
+    out.version_hex = CELERITAS_VERSION;
+
+    std::cout << json(out) << std::endl;
     return result;
 }
 
