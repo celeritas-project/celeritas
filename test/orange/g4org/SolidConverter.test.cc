@@ -44,6 +44,7 @@
 #include <G4UnionSolid.hh>
 
 #include "corecel/Constants.hh"
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayOperators.hh"
@@ -61,6 +62,7 @@
 #include "celeritas_test.hh"
 
 using celeritas::orangeinp::detail::SenseEvaluator;
+using celeritas::test::ScopedLogStorer;
 using CLHEP::cm;
 using CLHEP::deg;
 using CLHEP::halfpi;
@@ -683,6 +685,31 @@ TEST_F(SolidConverterTest, polycone)
                        rmax),
             R"json({"_type":"polycone","enclosed_azi":{"stop":1.015625,"start":0.984375},"label":"EMEC_WideStretchers","segments":[{"outer":[207.0,207.0,207.0,207.0,207.0,207.0],"z":[-16.5,-1.0,-1.0,1.0,1.0,16.5]},["inner",[204.4,204.4,205.05,205.05,204.4,204.4]]]})json",
             {{206, 0, 0}, {-206, 0, 0}});
+    }
+    {
+        // Test out-of-order z planes used in ATLAS
+        static double const z[] = {1990, 1730};
+        static double const rmin[] = {1305, 1050};
+        static double const rmax[] = {1315, 1060};
+
+        ScopedLogStorer scoped_log_{&celeritas::world_logger(),
+                                    LogLevel::warning};
+        this->build_and_test(
+            G4Polycone("ECT_TS_CentralTube_top",
+                       -7 * deg,
+                       194 * deg,
+                       std::size(z),
+                       z,
+                       rmin,
+                       rmax),
+            R"json({"_type":"transformed","daughter":{"_type":"solid","enclosed_azi":{"start":0.9805555555555555,"stop":1.5194444444444444},"excluded":{"_type":"cone","halfheight":13.0,"radii":[105.0,130.5]},"interior":{"_type":"cone","halfheight":13.0,"radii":[106.0,131.5]},"label":"ECT_TS_CentralTube_top"},"transform":{"_type":"translation","data":[0.0,0.0,186.0]}})json");
+
+        static char const* const expected_log_messages[] = {
+            R"(Polycone 'ECT_TS_CentralTube_top' z coordinates are out of order: {199, 173})",
+        };
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+        static char const* const expected_log_levels[] = {"warning"};
+        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
     }
 }
 

@@ -51,6 +51,7 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/Repr.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArraySoftUnit.hh"
 #include "corecel/math/SoftEqual.hh"
@@ -670,12 +671,12 @@ auto SolidConverter::polycone(arg_type solid_base) -> result_type
     auto const& solid = dynamic_cast<G4Polycone const&>(solid_base);
     auto const& params = *solid.GetOriginalParameters();
 
-    std::vector<real_type> zs(params.Num_z_planes);
-    std::vector<real_type> rmin(zs.size());
-    std::vector<real_type> rmax(zs.size());
-    for (auto i : range(zs.size()))
+    std::vector<real_type> z(params.Num_z_planes);
+    std::vector<real_type> rmin(z.size());
+    std::vector<real_type> rmax(z.size());
+    for (auto i : range(z.size()))
     {
-        zs[i] = scale_(params.Z_values[i]);
+        z[i] = scale_(params.Z_values[i]);
         rmin[i] = scale_(params.Rmin[i]);
         rmax[i] = scale_(params.Rmax[i]);
     }
@@ -686,9 +687,15 @@ auto SolidConverter::polycone(arg_type solid_base) -> result_type
         rmin.clear();
     }
 
+    if (!z.empty() && z.front() > z.back())
+    {
+        CELER_LOG(warning) << "Polycone '" << solid.GetName()
+                           << "' z coordinates are out of order: " << repr(z);
+    }
+
     return PolyCone::or_solid(
         std::string{solid.GetName()},
-        PolySegments{std::move(rmin), std::move(rmax), std::move(zs)},
+        PolySegments{std::move(rmin), std::move(rmax), std::move(z)},
         enclosed_azi_from_poly(solid));
 }
 
