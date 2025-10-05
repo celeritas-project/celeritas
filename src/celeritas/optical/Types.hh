@@ -59,6 +59,15 @@ enum class SubsurfaceDirection : bool
     forward = true
 };
 
+//! Possible reflection moes for UNIFIED reflection model.
+enum class ReflectionMode
+{
+    specular_spike,
+    specular_lobe,
+    backscatter,
+    size_
+};
+
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//

@@ -14,6 +14,7 @@
 #include "geocel/Types.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/inp/Grid.hh"
+#include "celeritas/optical/Types.hh"
 
 namespace celeritas
 {
@@ -107,23 +108,28 @@ struct GaussianRoughness
  */
 struct ReflectionForm
 {
-    Grid specular_spike;  //!< [0, 1] probability
-    Grid specular_lobe;  //!< [0, 1] probability
-    Grid backscatter;  //!< [0, 1] probability
+    //! Between [0, 1] probability
+    EnumArray<optical::ReflectionMode, Grid> reflection_grids;
 
     //! Whether the data are assigned
     explicit operator bool() const
     {
-        return specular_lobe && specular_spike && backscatter;
+        return std::all_of(
+            reflection_grids.begin(),
+            reflection_grids.end(),
+            [](auto const& grid) { return static_cast<bool>(grid); });
     }
 
     //! Return a specular spike reflection form
     static ReflectionForm from_spike()
     {
         ReflectionForm result;
-        result.specular_spike = Grid::from_constant(1.0);
-        result.specular_lobe = Grid::from_constant(0);
-        result.backscatter = Grid::from_constant(0);
+        result.reflection_grids[optical::ReflectionMode::specular_spike]
+            = Grid::from_constant(1.0);
+        result.reflection_grids[optical::ReflectionMode::specular_lobe]
+            = Grid::from_constant(0);
+        result.reflection_grids[optical::ReflectionMode::backscatter]
+            = Grid::from_constant(0);
         return result;
     }
 
@@ -131,9 +137,12 @@ struct ReflectionForm
     static ReflectionForm from_lobe()
     {
         ReflectionForm result;
-        result.specular_spike = Grid::from_constant(0);
-        result.specular_lobe = Grid::from_constant(1.0);
-        result.backscatter = Grid::from_constant(0);
+        result.reflection_grids[optical::ReflectionMode::specular_spike]
+            = Grid::from_constant(0);
+        result.reflection_grids[optical::ReflectionMode::specular_lobe]
+            = Grid::from_constant(1.0);
+        result.reflection_grids[optical::ReflectionMode::backscatter]
+            = Grid::from_constant(0);
         return result;
     }
 
@@ -141,9 +150,12 @@ struct ReflectionForm
     static ReflectionForm from_lambertian()
     {
         ReflectionForm result;
-        result.specular_spike = Grid::from_constant(0);
-        result.specular_lobe = Grid::from_constant(0);
-        result.backscatter = Grid::from_constant(0);
+        result.reflection_grids[optical::ReflectionMode::specular_spike]
+            = Grid::from_constant(0);
+        result.reflection_grids[optical::ReflectionMode::specular_lobe]
+            = Grid::from_constant(0);
+        result.reflection_grids[optical::ReflectionMode::backscatter]
+            = Grid::from_constant(0);
         return result;
     }
 };
@@ -158,7 +170,7 @@ struct DielectricInteraction
     ReflectionForm reflection;
 
     //! Whether the interface is dielectric-dielectric or dielectric-metal
-    bool is_metal;
+    bool is_metal{false};
 
     //! Return a dielectric-dielectric interaction
     static DielectricInteraction from_dielectric(ReflectionForm r)

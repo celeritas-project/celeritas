@@ -175,9 +175,13 @@ inp::ReflectionForm
 load_unified_refl_form(GeantSurfacePhysicsHelper const& helper)
 {
     inp::ReflectionForm refl_form;
-    helper.get_property(&refl_form.specular_lobe, "SPECULARLOBECONSTANT");
-    helper.get_property(&refl_form.specular_spike, "SPECULARSPIKECONSTANT");
-    helper.get_property(&refl_form.backscatter, "BACKSCATTERCONSTANT");
+    auto& refl = refl_form.reflection_grids;
+    helper.get_property(&refl[optical::ReflectionMode::specular_lobe],
+                        "SPECULARLOBECONSTANT");
+    helper.get_property(&refl[optical::ReflectionMode::specular_spike],
+                        "SPECULARSPIKECONSTANT");
+    helper.get_property(&refl[optical::ReflectionMode::backscatter],
+                        "BACKSCATTERCONSTANT");
     CELER_VALIDATE(refl_form, << "missing UNIFIED model reflection form grids");
 
 #define GSPL_VALIDATE_PROB(PARAM)             \
@@ -185,9 +189,9 @@ load_unified_refl_form(GeantSurfacePhysicsHelper const& helper)
                    << "parameter '" << #PARAM \
                    << "' is not within [0, 1] range")
 
-    GSPL_VALIDATE_PROB(refl_form.specular_spike);
-    GSPL_VALIDATE_PROB(refl_form.specular_lobe);
-    GSPL_VALIDATE_PROB(refl_form.backscatter);
+    GSPL_VALIDATE_PROB(refl[optical::ReflectionMode::specular_spike]);
+    GSPL_VALIDATE_PROB(refl[optical::ReflectionMode::specular_lobe]);
+    GSPL_VALIDATE_PROB(refl[optical::ReflectionMode::backscatter]);
 
 #undef GSPL_VALIDATE_PROB
 
@@ -350,8 +354,6 @@ void GeantSurfacePhysicsLoader::insert_interaction(
     GeantSurfacePhysicsHelper const& helper, inp::ReflectionForm&& rf)
 {
     auto& interaction = models_.interaction;
-    CELER_LOG(info) << "GSPH dielectric size: "
-                    << interaction.dielectric.size();
     switch (helper.surface().GetType())
     {
         case G4ST::dielectric_dielectric:
@@ -370,8 +372,6 @@ void GeantSurfacePhysicsLoader::insert_interaction(
                            << to_cstring(helper.surface().GetType())
                            << " for surface model");
     }
-    CELER_LOG(info) << "  GSP dielectric size after: "
-                    << interaction.dielectric.size();
 }
 
 //---------------------------------------------------------------------------//

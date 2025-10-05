@@ -256,12 +256,11 @@ void ImportDataTrimmer::operator()(inp::DielectricInteraction& data)
 //---------------------------------------------------------------------------//
 void ImportDataTrimmer::operator()(inp::ReflectionForm& data)
 {
-    filter_out_infs(data.specular_spike.x);
-    filter_out_infs(data.specular_spike.y);
-    filter_out_infs(data.specular_lobe.x);
-    filter_out_infs(data.specular_lobe.y);
-    filter_out_infs(data.backscatter.x);
-    filter_out_infs(data.backscatter.y);
+    for (auto& grid : data.reflection_grids)
+    {
+        filter_out_infs(grid.x);
+        filter_out_infs(grid.y);
+    }
 }
 
 //---------------------------------------------------------------------------//

@@ -30,10 +30,7 @@ DielectricInteractionModel::DielectricInteractionModel(
     HostVal<DielectricData> dielectric_data;
     HostVal<UnifiedReflectionData> reflection_data;
 
-    auto build_dielectric = make_builder(&dielectric_data.interface);
-    auto build_spec_spike = make_builder(&reflection_data.specular_spike);
-    auto build_spec_lobe = make_builder(&reflection_data.specular_lobe);
-    auto build_back_scatter = make_builder(&reflection_data.back_scattering);
+    auto build_is_metal = CollectionBuilder{&dielectric_data.interface};
     NonuniformGridBuilder build_grid(&reflection_data.reals);
 
     surfaces_.reserve(layer_map.size());
@@ -42,12 +39,15 @@ DielectricInteractionModel::DielectricInteractionModel(
     {
         surfaces_.push_back(surface);
 
-        build_dielectric.push_back(
-            static_cast<DielectricInterface>(input.is_metal));
+        build_is_metal.push_back(input.is_metal
+                                     ? DielectricInterface::metal
+                                     : DielectricInterface::dielectric);
 
-        build_spec_spike.push_back(build_grid(input.reflection.specular_spike));
-        build_spec_lobe.push_back(build_grid(input.reflection.specular_lobe));
-        build_back_scatter.push_back(build_grid(input.reflection.backscatter));
+        for (auto mode : range(ReflectionMode::size_))
+        {
+            CollectionBuilder{&reflection_data.reflection_grids[mode]}.push_back(
+                build_grid(input.reflection.reflection_grids[mode]));
+        }
     }
 
     CELER_ENSURE(dielectric_data);
