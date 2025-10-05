@@ -18,6 +18,18 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Interaction model for analytic dielectric-dielectric and dielectric-metal
+ * surface interactions.
+ *
+ * Uses the refractive indices of two materials in Fresnel equations to
+ * determine the reflectivity of a photon incident on the physical surface. The
+ * reflectivity is sampled to determine whether the photon refracts into the
+ * next material or reflects. Reflection follows the UNIFIED model (see \c
+ * UnifiedReflectionSampler). Refracted waves fall into two cases:
+ *
+ *  1. dielectric-metal: the photon is immediately absorbed.
+ *  2. dielectric-dielectric: refracted direction and polarization are
+ *     calculate from Fresnel equations.
  */
 class DielectricInteractionModel : public SurfaceModel
 {
