@@ -108,8 +108,13 @@ struct GaussianRoughness
  */
 struct ReflectionForm
 {
+    //!@{
+    //! \name Type aliases
+    using ReflectionGrids = EnumArray<optical::ReflectionMode, Grid>;
+    //!@}
+
     //! Between [0, 1] probability
-    EnumArray<optical::ReflectionMode, Grid> reflection_grids;
+    ReflectionGrids reflection_grids;
 
     //! Whether the data are assigned
     explicit operator bool() const

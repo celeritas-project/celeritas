@@ -539,38 +539,39 @@
           "_typename" : "celeritas::inp::DielectricInteraction",
           "reflection" : {
             "_typename" : "celeritas::inp::ReflectionForm",
-            "specular_spike" : {
-              "_typename" : "celeritas::inp::Grid",
-              "x" : [0, 1e308],
-              "y" : [1, 1],
-              "interpolation" : {
-                "_typename" : "celeritas::inp::Interpolation",
-                "type" : 0,
-                "order" : 1,
-                "bc" : 2
-              }
-            },
-            "specular_lobe" : {
-              "_typename" : "celeritas::inp::Grid",
-              "x" : [0, 1e308],
-              "y" : [0, 0],
-              "interpolation" : {
-                "_typename" : "celeritas::inp::Interpolation",
-                "type" : 0,
-                "order" : 1,
-                "bc" : 2
-              }
-            },
-            "backscatter" : {
-              "_typename" : "celeritas::inp::Grid",
-              "x" : [0, 1e308],
-              "y" : [0, 0],
-              "interpolation" : {
-                "_typename" : "celeritas::inp::Interpolation",
-                "type" : 0,
-                "order" : 1,
-                "bc" : 2
-              }
+            "reflection_grids" : {
+              "_typename" : "celeritas::EnumArray<celeritas::optical::ReflectionMode,celeritas::inp::Grid>",
+              "data_" : [{
+                "_typename" : "celeritas::inp::Grid",
+                "x" : [],
+                "y" : [],
+                "interpolation" : {
+                  "_typename" : "celeritas::inp::Interpolation",
+                  "type" : 0,
+                  "order" : 1,
+                  "bc" : 2
+                }
+              }, {
+                "_typename" : "celeritas::inp::Grid",
+                "x" : [],
+                "y" : [],
+                "interpolation" : {
+                  "_typename" : "celeritas::inp::Interpolation",
+                  "type" : 0,
+                  "order" : 1,
+                  "bc" : 2
+                }
+              }, {
+                "_typename" : "celeritas::inp::Grid",
+                "x" : [],
+                "y" : [],
+                "interpolation" : {
+                  "_typename" : "celeritas::inp::Interpolation",
+                  "type" : 0,
+                  "order" : 1,
+                  "bc" : 2
+                }
+              }]
             }
           },
           "is_metal" : false
