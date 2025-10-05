@@ -198,6 +198,13 @@ TEST_F(ParticleTestHost, electron)
     particle.energy(zero_quantity());
     EXPECT_TRUE(particle.is_stopped());
     EXPECT_REAL_EQ(0.0, particle.energy().value());
+
+    {
+        SCOPED_TRACE("High energy electron");
+        particle = Initializer_t{ParticleId{0}, MevEnergy{1e12}};
+        EXPECT_LE(particle.speed().value(), 1);
+        EXPECT_LE(particle.beta_sq(), 1);
+    }
 }
 
 TEST_F(ParticleTestHost, positron)
@@ -219,16 +226,16 @@ TEST_F(ParticleTestHost, gamma)
 {
     ParticleTrackView particle(
         particle_params->host_ref(), state_ref, TrackSlotId(0));
-    particle = Initializer_t{ParticleId{1}, MevEnergy{10}};
+    particle = Initializer_t{ParticleId{1}, MevEnergy{1.234}};
 
     EXPECT_REAL_EQ(0, particle.mass().value());
-    EXPECT_REAL_EQ(10, particle.energy().value());
+    EXPECT_REAL_EQ(1.234, particle.energy().value());
     EXPECT_FALSE(particle.is_antiparticle());
     EXPECT_TRUE(particle.is_stable());
-    EXPECT_REAL_EQ(10, particle.total_energy().value());
-    EXPECT_REAL_EQ(1.0, particle.beta_sq());
-    EXPECT_REAL_EQ(1.0, particle.speed().value());
-    EXPECT_REAL_EQ(10, particle.momentum().value());
+    EXPECT_REAL_EQ(1.234, particle.total_energy().value());
+    EXPECT_EQ(1, particle.beta_sq());
+    EXPECT_EQ(1, particle.speed().value());
+    EXPECT_REAL_EQ(1.234, particle.momentum().value());
     EXPECT_FALSE(particle.is_heavy());
 }
 
@@ -244,6 +251,37 @@ TEST_F(ParticleTestHost, neutron)
     EXPECT_FALSE(particle.is_antiparticle());
     EXPECT_FALSE(particle.is_stable());
     EXPECT_TRUE(particle.is_heavy());
+}
+
+TEST_F(ParticleTestHost, speed)
+{
+    {
+        SCOPED_TRACE("Low energy neutron");
+        ParticleTrackView particle(
+            particle_params->host_ref(), state_ref, TrackSlotId(0));
+        particle = Initializer_t{ParticleId{2}, MevEnergy{1e-3}};
+
+        EXPECT_SOFT_EQ(0.0014589860536436555,
+                       value_as<units::LightSpeed>(particle.speed()));
+
+        particle.energy(MevEnergy(1e-5));
+
+        EXPECT_SOFT_EQ(0.00014589872066202113,
+                       value_as<units::LightSpeed>(particle.speed()));
+    }
+    {
+        SCOPED_TRACE("Low energy electron");
+        ParticleTrackView particle(
+            particle_params->host_ref(), state_ref, TrackSlotId(0));
+        particle = Initializer_t{ParticleId{0}, MevEnergy{1e-5}};
+
+        EXPECT_SOFT_EQ(0.0062560271021212888,
+                       value_as<units::LightSpeed>(particle.speed()));
+
+        particle.energy(MevEnergy(1e-18));
+
+        EXPECT_GT(value_as<units::LightSpeed>(particle.speed()), 0);
+    }
 }
 
 //---------------------------------------------------------------------------//

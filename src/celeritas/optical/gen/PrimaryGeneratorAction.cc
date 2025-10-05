@@ -71,15 +71,16 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(ActionId id,
                       "generation");
     CELER_VALIDATE(inp.energy.energy > zero_quantity(),
                    << "expected nonzero energy in optical primary generator");
-    CELER_VALIDATE(std::holds_alternative<inp::PointShape>(inp.shape),
+    CELER_VALIDATE(std::holds_alternative<inp::PointDistribution>(inp.shape),
                    << "unsupported distribution type for optical primary "
                       "generator position");
-    CELER_VALIDATE(std::holds_alternative<inp::IsotropicAngle>(inp.angle),
-                   << "unsupported distribution type for optical primary "
-                      "generator direction");
+    CELER_VALIDATE(
+        std::holds_alternative<inp::IsotropicDistribution>(inp.angle),
+        << "unsupported distribution type for optical primary "
+           "generator direction");
 
     data_.energy = inp.energy.energy;
-    data_.position = std::get<inp::PointShape>(inp.shape).pos;
+    data_.position = std::get<inp::PointDistribution>(inp.shape).pos;
     data_.num_photons = inp.primaries_per_event;
 
     CELER_ENSURE(data_);

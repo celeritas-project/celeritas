@@ -128,8 +128,8 @@ endforeach()
 
 # Save VecGeom options as always-on macros to simplify testing
 set(CELERITAS_VECGEOM_CONFIG)
-if(DEFINED VecGeom_USE_SURF)
-  set(VecGeom_SURFACE ${VecGeom_USE_SURF})
+if(CELERITAS_VecGeom_SURFACE)
+  set(VecGeom_SURFACE ${CELERITAS_VecGeom_SURFACE})
 endif()
 set(_vecgeom_opts)
 foreach(_opt SURFACE BVH_SINGLE SINGLE_PRECISION)

@@ -18,6 +18,7 @@
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "celeritas_test.hh"
@@ -332,10 +333,8 @@ class LarSphere : public GeantImporterTest
     GeantPhysicsOptions build_geant_options() const override
     {
         auto opts = GeantImporterTest::build_geant_options();
-        opts.optical.absorption = true;
-        opts.optical.rayleigh_scattering = true;
-        opts.optical.wavelength_shifting.enable = true;
-        opts.optical.wavelength_shifting2.enable = true;
+        opts.optical = {};
+        CELER_ENSURE(opts.optical);
         return opts;
     }
 };
@@ -352,10 +351,8 @@ class LarSphereExtramat : public GeantImporterTest
     GeantPhysicsOptions build_geant_options() const override
     {
         auto opts = GeantImporterTest::build_geant_options();
-        opts.optical.absorption = true;
-        opts.optical.rayleigh_scattering = true;
-        opts.optical.wavelength_shifting.enable = true;
-        opts.optical.wavelength_shifting2.enable = true;
+        opts.optical = {};
+        CELER_ENSURE(opts.optical);
         return opts;
     }
 };
@@ -732,7 +729,7 @@ TEST_F(FourSteelSlabsEmStandard, eioni)
         // Test energy loss table
         ImportPhysicsTable const& dedx = proc.dedx;
         EXPECT_EQ(ImportUnits::mev, dedx.x_units);
-        EXPECT_EQ(ImportUnits::mev_per_cm, dedx.y_units);
+        EXPECT_EQ(ImportUnits::mev_per_len, dedx.y_units);
         ASSERT_EQ(2, dedx.grids.size());
 
         auto const& steel = dedx.grids.back();
@@ -746,7 +743,7 @@ TEST_F(FourSteelSlabsEmStandard, eioni)
         // Test cross-section table
         ImportPhysicsTable const& lambda = proc.lambda;
         EXPECT_EQ(ImportUnits::mev, lambda.x_units);
-        EXPECT_EQ(ImportUnits::cm_inv, lambda.y_units);
+        EXPECT_EQ(ImportUnits::len_inv, lambda.y_units);
         ASSERT_EQ(2, lambda.grids.size());
 
         auto const& steel = lambda.grids.back();
@@ -936,7 +933,7 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
         // Test energy loss table
         ImportPhysicsTable const& dedx = mu_minus.dedx;
         EXPECT_EQ(ImportUnits::mev, dedx.x_units);
-        EXPECT_EQ(ImportUnits::mev_per_cm, dedx.y_units);
+        EXPECT_EQ(ImportUnits::mev_per_len, dedx.y_units);
         ASSERT_EQ(2, dedx.grids.size());
 
         auto const& steel = dedx.grids.back();
@@ -950,7 +947,7 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
         // Test cross-section table
         ImportPhysicsTable const& xs = mu_minus.lambda;
         EXPECT_EQ(ImportUnits::mev, xs.x_units);
-        EXPECT_EQ(ImportUnits::cm_inv, xs.y_units);
+        EXPECT_EQ(ImportUnits::len_inv, xs.y_units);
         ASSERT_EQ(2, xs.grids.size());
 
         auto const& steel = xs.grids.back();
@@ -1056,7 +1053,7 @@ TEST_F(FourSteelSlabsEmStandard, sb_data)
 {
     auto&& import_data = this->imported_data();
 
-    auto const& sb_map = import_data.sb_data;
+    auto const& sb_map = import_data.seltzer_berger.atomic_xs;
     EXPECT_EQ(4, sb_map.size());
 
     std::vector<int> atomic_numbers;
@@ -1066,7 +1063,7 @@ TEST_F(FourSteelSlabsEmStandard, sb_data)
 
     for (auto const& key : sb_map)
     {
-        atomic_numbers.push_back(key.first);
+        atomic_numbers.push_back(key.first.get());
 
         auto const& sb_table = key.second;
         sb_table_x.push_back(sb_table.x.front());
@@ -1102,9 +1099,10 @@ TEST_F(FourSteelSlabsEmStandard, mu_pair_production_data)
 {
     auto&& import_data = this->imported_data();
 
-    auto const& data = import_data.mu_pair_production_data;
+    auto const& data = import_data.mu_production.muppet_table;
 
-    int const expected_atomic_number[] = {1, 4, 13, 29, 92};
+    using Z = AtomicNumber;
+    Z const expected_atomic_number[] = {Z{1}, Z{4}, Z{13}, Z{29}, Z{92}};
     EXPECT_VEC_EQ(expected_atomic_number, data.atomic_number);
 
     EXPECT_EQ(5, data.grids.size());
@@ -1174,7 +1172,7 @@ TEST_F(FourSteelSlabsEmStandard, livermore_pe_data)
     auto&& import_data = this->imported_data();
     EXPECT_TRUE(scoped_log.empty()) << scoped_log;
 
-    auto const& lpe_map = import_data.livermore_pe_data;
+    auto const& lpe_map = import_data.livermore_photo.atomic_xs;
     EXPECT_EQ(4, lpe_map.size());
 
     std::vector<int> atomic_numbers;
@@ -1188,7 +1186,7 @@ TEST_F(FourSteelSlabsEmStandard, livermore_pe_data)
 
     for (auto const& key : lpe_map)
     {
-        atomic_numbers.push_back(key.first);
+        atomic_numbers.push_back(key.first.get());
 
         auto const& ilpe = key.second;
 
@@ -1278,7 +1276,7 @@ TEST_F(FourSteelSlabsEmStandard, atomic_relaxation_data)
 {
     auto&& import_data = this->imported_data();
 
-    auto const& ar_map = import_data.atomic_relaxation_data;
+    auto const& ar_map = import_data.atomic_relaxation.atomic_xs;
     EXPECT_EQ(4, ar_map.size());
 
     std::vector<int> atomic_numbers;
@@ -1291,7 +1289,7 @@ TEST_F(FourSteelSlabsEmStandard, atomic_relaxation_data)
 
     for (auto const& key : ar_map)
     {
-        atomic_numbers.push_back(key.first);
+        atomic_numbers.push_back(key.first.get());
 
         auto const& shells = key.second.shells;
         shell_sizes.push_back(shells.size());
@@ -1631,7 +1629,7 @@ TEST_F(LarSphere, optical)
     auto&& imported = this->imported_data();
     ASSERT_EQ(4, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
-    ASSERT_EQ(2, imported.geo_materials.size());
+    ASSERT_EQ(3, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
 
     // First material is vacuum, no optical properties
@@ -1656,7 +1654,7 @@ TEST_F(LarSphere, optical)
     // Material scintillation
     constexpr auto tol = SoftEqual<real_type>{}.rel();
     EXPECT_REAL_EQ(1, scint.resolution_scale);
-    EXPECT_REAL_EQ(50000, scint.material.yield_per_energy);
+    EXPECT_REAL_EQ(5000, scint.material.yield_per_energy);
     EXPECT_EQ(3, scint.material.components.size());
     std::vector<double> components;
     for (auto const& comp : scint.material.components)
@@ -1688,7 +1686,7 @@ TEST_F(LarSphere, optical)
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
         static std::string const expected_messages
-            = R"(Estimated custom properties SCINTILLATIONLAMBDAMEAN3=2e-5 and SCINTILLATIONLAMBDASIGMA3=2.010e-6 from Geant4-defined property SCINTILLATIONCOMPONENT3)";
+            = R"(Estimated custom properties CELER_SCINTILLATIONLAMBDAMEAN3=2e-5 and CELER_SCINTILLATIONLAMBDASIGMA3=2.010e-6 from Geant4-defined property SCINTILLATIONCOMPONENT3)";
         EXPECT_VEC_EQ(expected_messages, scoped_log.messages()[1])
             << scoped_log;
     }
@@ -1792,8 +1790,8 @@ TEST_F(LarSphere, optical)
 
         auto const& mat = optical.wls;
         EXPECT_TRUE(mat);
-        EXPECT_REAL_EQ(3, mat.mean_num_photons);
-        EXPECT_REAL_EQ(6e-9, to_sec(mat.time_constant));
+        EXPECT_SOFT_EQ(0.456, mat.mean_num_photons);
+        EXPECT_SOFT_EQ(6e-9, to_sec(mat.time_constant));
 
         std::vector<double> abslen_grid, comp_grid;
         for (auto i : range(mfp.x.size()))
@@ -1805,9 +1803,9 @@ TEST_F(LarSphere, optical)
         }
 
         static real_type const expected_abslen_grid[]
-            = {1.3778e-06, 86.4473, 1.55e-05, 0.000296154};
+            = {1.3778e-06, 0.1, 1.55e-05, 0.01};
         static double const expected_comp_grid[]
-            = {1.3778e-06, 10, 1.55e-05, 20};
+            = {1.3778e-06, 0.1, 1e-05, 0.9};
         EXPECT_VEC_SOFT_EQ(expected_abslen_grid, abslen_grid);
         EXPECT_VEC_SOFT_EQ(expected_comp_grid, comp_grid);
     }
@@ -1823,7 +1821,7 @@ TEST_F(LarSphere, optical)
 
         auto const& mat = optical.wls2;
         EXPECT_TRUE(mat);
-        EXPECT_REAL_EQ(2, mat.mean_num_photons);
+        EXPECT_REAL_EQ(0.123, mat.mean_num_photons);
         EXPECT_REAL_EQ(6e-9, to_sec(mat.time_constant));
 
         std::vector<double> abslen_grid, comp_grid;
@@ -1836,7 +1834,7 @@ TEST_F(LarSphere, optical)
         }
 
         static double const expected_abslen_grid[]
-            = {1.3778e-06, 86.4473, 1.55e-05, 0.000296154};
+            = {1.3778e-06, 0.1, 1.55e-05, 0.01};
         static double const expected_comp_grid[]
             = {1.771e-06, 0.3, 2.484e-06, 0.8};
         EXPECT_VEC_NEAR(
@@ -1996,7 +1994,7 @@ TEST_F(OpticalSurfaces, surfaces)
 
     // sphere_surf: glisur, polished, dielectric-dielectric, specular spike
     {
-        SurfaceId sid{0};
+        PhysSurfaceId sid{0};
         EXPECT_TRUE(OS_IS_MAPPED(roughness.polished, sid));
         EXPECT_FALSE(OS_IS_MAPPED(roughness.smear, sid));
         EXPECT_FALSE(OS_IS_MAPPED(roughness.gaussian, sid));
@@ -2015,7 +2013,7 @@ TEST_F(OpticalSurfaces, surfaces)
 
     // tube2_surf: glisur, ground, dielectric-dielectric, specular lobe
     {
-        SurfaceId sid{1};
+        PhysSurfaceId sid{1};
         EXPECT_FALSE(OS_IS_MAPPED(roughness.polished, sid));
         EXPECT_TRUE(OS_IS_MAPPED(roughness.smear, sid));
         EXPECT_FALSE(OS_IS_MAPPED(roughness.gaussian, sid));
@@ -2038,7 +2036,7 @@ TEST_F(OpticalSurfaces, surfaces)
 
     // lomid_surf: unified, polished, dielectric-dielectric
     {
-        SurfaceId sid{2};
+        PhysSurfaceId sid{2};
         EXPECT_FALSE(OS_IS_MAPPED(roughness.polished, sid));
         EXPECT_FALSE(OS_IS_MAPPED(roughness.smear, sid));
         EXPECT_TRUE(OS_IS_MAPPED(roughness.gaussian, sid));
@@ -2065,7 +2063,7 @@ TEST_F(OpticalSurfaces, surfaces)
 
     // midlo_surf: glisur, polished, dielectric-metal, specular spike
     {
-        SurfaceId sid{3};
+        PhysSurfaceId sid{3};
         EXPECT_TRUE(OS_IS_MAPPED(roughness.polished, sid));
         EXPECT_FALSE(OS_IS_MAPPED(roughness.smear, sid));
         EXPECT_FALSE(OS_IS_MAPPED(roughness.gaussian, sid));
@@ -2084,7 +2082,7 @@ TEST_F(OpticalSurfaces, surfaces)
 
     // midhi_surf: glisur, ground, dielectric-metal, specular lobe
     {
-        SurfaceId sid{4};
+        PhysSurfaceId sid{4};
         EXPECT_FALSE(OS_IS_MAPPED(roughness.polished, sid));
         EXPECT_TRUE(OS_IS_MAPPED(roughness.smear, sid));
         EXPECT_FALSE(OS_IS_MAPPED(roughness.gaussian, sid));

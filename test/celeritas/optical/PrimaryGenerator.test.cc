@@ -85,7 +85,7 @@ class LArSpherePrimaryGeneratorTest : public LArSphereBase
             inp.num_events = 1;
             inp.primaries_per_event = 65536;
             inp.energy.energy = units::MevEnergy{1e-5};
-            inp.shape = inp::PointShape{Real3{0, 0, 0}};
+            inp.shape = inp::PointDistribution{Real3{0, 0, 0}};
             generate_ = optical::PrimaryGeneratorAction::make_and_insert(
                 *this->core(), *this->optical_params(), std::move(inp));
         }
@@ -163,8 +163,8 @@ TEST_F(LArSpherePrimaryGeneratorTest, primary_generator)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(105163, result.steps);
-        EXPECT_EQ(34, result.step_iters);
+        EXPECT_EQ(105223, result.steps);
+        EXPECT_EQ(33, result.step_iters);
     }
     EXPECT_EQ(1, result.flushes);
     ASSERT_EQ(1, result.generators.size());

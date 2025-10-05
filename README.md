@@ -15,8 +15,8 @@ documentation][user-docs] (including selected code documentation incorporated
 by Breathe) and the [Celeritas code documentation][dev-docs] are mirrored on
 our GitHub pages site. You can generate these yourself (if the necessary
 prerequisites are installed) by
-setting the `CELERITAS_BUILD_DOCS=ON` configuration option and running `ninja
-doc` (user) or `ninja doxygen` (developer).
+setting the `CELERITAS_BUILD_DOCS=ON` configuration option and running
+`ninja doc` (user) or `ninja doxygen` (developer).
 
 [inline-docs]: doc/index.rst
 [user-docs]: https://celeritas-project.github.io/celeritas/user/index.html
@@ -168,14 +168,14 @@ $ make && ctest
 ```
 
 > [!NOTE]
-> It is highly recommended to use the `build.sh` script to set up your user
+> It is **highly** recommended to use the `build.sh` script to set up your
 > environment, even when not using Spack. The first time you run it, edit the
 > `CMakeUserPresets.json` symlink it creates, and submit it in your next pull
 > request.
 
 Celeritas guarantees full compatibility and correctness only on the
 combinations of compilers and dependencies tested under continuous integration.
-See the configure output from the [GitHub runners](https://github.com/celeritas-project/celeritas/actions/workflows/push.yml) for the full list of combinations.
+See the configure output from the [GitHub runners][runners] for the full list of combinations.
 - Compilers
     - GCC 11, 12, 14
     - Clang 10, 15, 18
@@ -202,11 +202,12 @@ behavior changes in external packages may also cause failures.
 
 Since we compile with extra warning flags and avoid non-portable code, most
 other compilers *should* work.
-The full set of configurations is viewable on CI platform [GitHub Actions][gha]).
+The full set of configurations is viewable on CI platform [GitHub Actions][gha].
 Compatibility fixes that do not cause newer versions to fail are welcome.
 
 [installation]: https://celeritas-project.github.io/celeritas/user/usage/installation.html
 [spack]: https://github.com/spack/spack
+[runners]: https://github.com/celeritas-project/celeritas/actions/workflows/push.yml
 [gha]: https://github.com/celeritas-project/celeritas/actions
 
 # Development

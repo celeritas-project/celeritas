@@ -5,6 +5,8 @@
 //! \file geocel/Volume.test.cc
 //! Test VolumeParams and related utilities
 //---------------------------------------------------------------------------//
+#include <unordered_map>
+
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/LabelIdMultiMapUtils.hh"
 #include "geocel/Types.hh"

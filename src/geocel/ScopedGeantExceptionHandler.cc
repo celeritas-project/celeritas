@@ -6,7 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "ScopedGeantExceptionHandler.hh"
 
+#include <regex>
 #include <G4ExceptionSeverity.hh>
+#include <G4RunManager.hh>
 #include <G4StateManager.hh>
 #include <G4Threading.hh>
 #include <G4Types.hh>
@@ -19,6 +21,49 @@ namespace celeritas
 {
 namespace
 {
+//---------------------------------------------------------------------------//
+int& local_eh_depth()
+{
+    static G4ThreadLocal int depth{0};
+    return depth;
+}
+
+//---------------------------------------------------------------------------//
+// NOTE: this is modified from test/corecel/StringSimplifier and could be
+// turned into a helper class
+std::string strip_ansi(std::string const& s)
+{
+    static std::regex re("(?:\033\\[[0-9;]*m|\n|:\\s+)");
+
+    std::string result;
+    result.reserve(s.size());
+    auto current = s.cbegin();
+    std::smatch match;
+
+    // Find all matches and process them one by one
+    while (std::regex_search(current, s.cend(), match, re))
+    {
+        // Add the text between the last match and this one
+        result.append(current, match[0].first);
+        if (*match[0].first == '\033')
+        {
+            // Omit ANSI
+        }
+        else
+        {
+            // Replace newline/separators
+            result += " / ";
+        }
+        // Update current position
+        current = match[0].second;
+    }
+
+    // Add remaining text after the last match
+    result.append(current, s.cend());
+
+    return result;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Process Geant4 exceptions with Celeritas.
@@ -33,11 +78,18 @@ namespace
 class GeantExceptionHandler final : public G4VExceptionHandler
 {
   public:
+    using Handler = ScopedGeantExceptionHandler::StdExceptionHandler;
+
+    GeantExceptionHandler(Handler&& handle) : handle_{std::move(handle)} {}
+
     // Accept error codes from geant4
     G4bool Notify(char const* originOfException,
                   char const* exceptionCode,
                   G4ExceptionSeverity severity,
                   char const* description) final;
+
+  private:
+    Handler handle_;
 };
 
 //---------------------------------------------------------------------------//
@@ -69,7 +121,16 @@ G4bool GeantExceptionHandler::Notify(char const* origin_of_exception,
         case RunMustBeAborted:
         case EventMustBeAborted:
             // Severe or initialization error
-            throw err;
+            CELER_LOG_LOCAL(debug)
+                << "Handling exception: " << strip_ansi(err.what());
+            CELER_TRY_HANDLE(throw err, handle_);
+            if (auto* run_man = G4RunManager::GetRunManager())
+            {
+                CELER_LOG_LOCAL(critical) << "Aborting run due to exception ("
+                                          << exception_code << ")";
+                run_man->AbortRun();
+            }
+            break;
         case JustWarning: {
             // Display a message: log destination depends on whether we're
             // actually running particles and if the thread is a worker (or if
@@ -104,12 +165,20 @@ G4bool GeantExceptionHandler::Notify(char const* origin_of_exception,
  *
  * The base class of the exception handler calls SetExceptionHandler...
  */
-ScopedGeantExceptionHandler::ScopedGeantExceptionHandler()
+ScopedGeantExceptionHandler::ScopedGeantExceptionHandler(
+    StdExceptionHandler handle)
 {
+    CELER_LOG_LOCAL(debug) << "Creating scoped G4 exception handler (depth "
+                           << local_eh_depth()++ << ")";
+    // Get thread-local state manager, to which the handler assigns itself
     auto* state_mgr = G4StateManager::GetStateManager();
     CELER_ASSERT(state_mgr);
     previous_ = state_mgr->GetExceptionHandler();
-    current_ = std::make_unique<GeantExceptionHandler>();
+    if (!handle)
+    {
+        handle = std::rethrow_exception;
+    }
+    current_ = std::make_unique<GeantExceptionHandler>(std::move(handle));
     CELER_ENSURE(state_mgr->GetExceptionHandler() == current_.get());
 }
 
@@ -119,6 +188,8 @@ ScopedGeantExceptionHandler::ScopedGeantExceptionHandler()
  */
 ScopedGeantExceptionHandler::~ScopedGeantExceptionHandler()
 {
+    CELER_LOG_LOCAL(debug) << "Destroying scoped G4 exception handler (depth "
+                           << --local_eh_depth() << ")";
     auto* state_mgr = G4StateManager::GetStateManager();
     if (state_mgr->GetExceptionHandler() == current_.get())
     {

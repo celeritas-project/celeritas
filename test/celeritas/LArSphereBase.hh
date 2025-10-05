@@ -30,10 +30,8 @@ class LArSphereBase : public GeantTestBase
     GeantPhysicsOptions build_geant_options() const override
     {
         auto result = GeantTestBase::build_geant_options();
-        result.optical.absorption = true;
-        result.optical.rayleigh_scattering = true;
-        result.optical.wavelength_shifting.enable = true;
-        result.optical.wavelength_shifting2.enable = true;
+        result.optical = {};
+        CELER_ENSURE(result.optical);
         return result;
     }
 

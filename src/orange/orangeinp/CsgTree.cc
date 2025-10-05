@@ -75,21 +75,17 @@ auto CsgTree::insert(Node&& n) -> Insertion
     CELER_EXPECT(!n.valueless_by_exception()
                  && std::visit(IsUserNodeValid{this->size()}, n));
 
+    // Normalize and simplify in place up to one level
+    if (this->simplify(n))
     {
-        // Try to simplify the node up to one level when inserting.
-        Node repl = std::visit(detail::NodeSimplifier{*this}, n);
-        if (repl != Node{detail::NodeSimplifier::no_simplification()})
+        if (auto* a = std::get_if<orangeinp::Aliased>(&n))
         {
-            n = std::move(repl);
-            if (auto* a = std::get_if<orangeinp::Aliased>(&n))
-            {
-                // Simplified to an aliased node
-                return {a->node, false};
-            }
+            // Simplified to an aliased node
+            return {a->node, false};
         }
     }
 
-    auto [iter, inserted] = ids_.insert({std::move(n), {}});
+    auto [iter, inserted] = ids_.emplace(std::move(n), NodeId{});
     if (inserted)
     {
         // Save new node ID
@@ -102,7 +98,31 @@ auto CsgTree::insert(Node&& n) -> Insertion
 
 //---------------------------------------------------------------------------//
 /*!
+ * Find the node ID of the CSG expression if it exists.
+ *
+ * This consumes the input expression in order to simplify it.
+ */
+NodeId CsgTree::find(Node&& n) const
+{
+    Node temp{std::move(n)};
+    this->simplify(temp);
+    if (auto* a = std::get_if<Aliased>(&temp))
+    {
+        // Node was simplified to an existing ID
+        return a->node;
+    }
+    // Try the node as is
+    auto iter = ids_.find(temp);
+    if (iter == ids_.end())
+        return {};
+    return iter->second;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Replace a node with a simplified version or constant.
+ *
+ * Inserting the node performs one level of simplification.
  */
 auto CsgTree::exchange(NodeId node_id, Node&& n) -> Node
 {
@@ -110,24 +130,21 @@ auto CsgTree::exchange(NodeId node_id, Node&& n) -> Node
     CELER_EXPECT(!n.valueless_by_exception()
                  && std::visit(IsUserNodeValid{node_id.unchecked_get()}, n));
 
-    //! Simplify the node first
-    Node repl = std::visit(detail::NodeSimplifier{*this}, n);
-    if (repl != Node{detail::NodeSimplifier::no_simplification()})
-    {
-        n = std::move(repl);
-    }
+    // Simplify the node first
+    this->simplify(n);
 
+    // Replace the node with an alias to a node deeper in the tree
     if (auto* a = std::get_if<orangeinp::Aliased>(&n))
     {
+        CELER_ASSERT(a->node < node_id);
         return std::exchange(this->at(node_id), orangeinp::Aliased{a->node});
     }
 
     // Add the node to the map of deduplicated nodes
-    auto [iter, inserted] = ids_.insert({std::move(n), NodeId{}});
+    auto [iter, inserted] = ids_.insert({std::move(n), node_id});
     if (inserted)
     {
         // Node representation doesn't exist elsewhere in the tree
-        iter->second = node_id;
         return std::exchange(this->at(node_id), Node{iter->first});
     }
     if (iter->second == node_id)
@@ -163,6 +180,23 @@ auto CsgTree::simplify(NodeId node_id) -> Simplification
         return {};
     }
     return Simplification{std::move(repl)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Simplify a node expression.
+ *
+ * \return Whether simplification was performed
+ */
+bool CsgTree::simplify(Node& n) const
+{
+    Node repl = std::visit(detail::NodeSimplifier{*this}, n);
+    if (repl != Node{detail::NodeSimplifier::no_simplification()})
+    {
+        n = std::move(repl);
+        return true;
+    }
+    return false;
 }
 
 //---------------------------------------------------------------------------//

@@ -30,7 +30,7 @@ struct TrackingLimits
     //! Step iterations before aborting the optical stepping loop
     size_type optical_step_iters{unlimited};
     //! Integration substeps during field propagation before ending the step
-    size_type field_substeps{100};
+    size_type field_substeps{10};
 
     //! Stop electron/positron below this energy
     // TODO: Energy electron_energy = Energy{0.001};

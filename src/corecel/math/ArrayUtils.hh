@@ -56,6 +56,12 @@ template<class T, size_type N>
 make_orthogonal(Array<T, N> const& x, Array<T, N> const& y);
 
 //---------------------------------------------------------------------------//
+// Check whether two vectors are approximately orthogonal
+template<class T, size_type N>
+inline CELER_FUNCTION bool
+is_soft_orthogonal(Array<T, N> const& x, Array<T, N> const& y);
+
+//---------------------------------------------------------------------------//
 // Calculate the Euclidean (2) distance between two points
 template<class T, size_type N>
 [[nodiscard]] inline CELER_FUNCTION T distance(Array<T, N> const& x,
@@ -175,6 +181,21 @@ make_orthogonal(Array<T, N> const& x, Array<T, N> const& y)
     Array<T, N> result{x};
     axpy(-dot_product(x, y), y, &result);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Check whether two vectors are approximately orthogonal.
+ *
+ * Note that the test for orthogonality should use relative tolerance, not
+ * absolute.
+ */
+template<class T, size_type N>
+inline CELER_FUNCTION bool
+is_soft_orthogonal(Array<T, N> const& x, Array<T, N> const& y)
+{
+    SoftZero const soft_zero{SoftEqual{}.rel()};
+    return soft_zero(dot_product(x, y));
 }
 
 //---------------------------------------------------------------------------//

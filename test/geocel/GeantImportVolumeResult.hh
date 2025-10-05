@@ -26,9 +26,6 @@ struct GeantImportVolumeResult
 
     static GeantImportVolumeResult from_import(GeoParamsInterface const& geom);
 
-    static GeantImportVolumeResult
-    from_pointers(GeoParamsInterface const& geom);
-
     std::vector<int> volumes;  //!< Volume ID for each Geant4 instance ID
     std::vector<std::string> missing_labels;  //!< G4LV names without a match
 

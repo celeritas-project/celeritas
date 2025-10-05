@@ -7,7 +7,6 @@
 #include "HitProcessor.hh"
 
 #include <cstddef>
-#include <string>
 #include <utility>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4LogicalVolume.hh>
@@ -28,8 +27,8 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TraceCounter.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/g4/Convert.hh"
-#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
@@ -91,7 +90,6 @@ get_step_status(DetectorStepOutput const& out, size_type step_index)
  * Construct local navigator and step data.
  */
 HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
-                           SPConstCoreGeo const& geo,
                            VecParticle const& particles,
                            StepSelection const& selection,
                            StepPointBool const& locate_touchable)
@@ -103,7 +101,6 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
           && selection.points[StepPoint::post].volume_instance_ids}
 {
     CELER_EXPECT(detector_volumes_ && !detector_volumes_->empty());
-    CELER_EXPECT(geo);
 
     // Even though this is created locally, all threads should be doing the
     // same thing
@@ -160,8 +157,11 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
             else
             {
                 CELER_EXPECT(selection.points[p].volume_instance_ids);
+                // FIXME: pass geant geo into this constructor
+                auto ggeo = ::celeritas::global_geant_geo().lock();
+                CELER_ASSERT(ggeo);
                 update_touchable_
-                    = std::make_unique<LevelTouchableUpdater>(geo);
+                    = std::make_unique<LevelTouchableUpdater>(std::move(ggeo));
             }
         }
     }

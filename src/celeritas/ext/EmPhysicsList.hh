@@ -14,7 +14,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct highly configurable EM-only physics.
+ * Construct highly configurable EM and/or optical physics.
  */
 class EmPhysicsList : public G4VModularPhysicsList
 {

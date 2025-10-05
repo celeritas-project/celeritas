@@ -12,6 +12,7 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/math/NumericLimits.hh"
+#include "celeritas/inp/Tracking.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "SimData.hh"
@@ -42,7 +43,7 @@ class SimParams final : public ParamsDataInterface<SimParamsData>
         // Construct with imported data and max field substeps
         static Input from_import(ImportData const&,
                                  SPConstParticles,
-                                 size_type max_field_substeps);
+                                 inp::TrackingLimits const& limits);
 
         //// DATA ////
 

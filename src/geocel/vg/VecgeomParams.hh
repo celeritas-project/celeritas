@@ -76,8 +76,7 @@ class VecgeomParams final : public GeoParamsInterface,
 
     //!@{
     //! \name Static constructor helpers
-    //! \todo: move these to a "model" abstraction that loads/emits geometry,
-    //! materials, volumes?
+    //! \todo Move these to a "model" abstraction
 
     // Build by loading a GDML file (best available method)
     static std::shared_ptr<VecgeomParams>
@@ -126,16 +125,6 @@ class VecgeomParams final : public GeoParamsInterface,
     // Get volume metadata for VG placed volumes
     inline ImplVolInstanceMap const& impl_volume_instances() const;
 
-    // DEPRECATED
-
-    // Get the volume ID corresponding to a Geant4 logical volume
-    ImplVolumeId find_volume(G4LogicalVolume const* volume) const final;
-
-    // Get the Geant4 physical volume corresponding to a volume instance ID
-    GeantPhysicalInstance id_to_geant(VolumeInstanceId vol_id) const final;
-
-    using GeoParamsInterface::find_volume;
-
     // Get the canonical volume IDs corresponding to an implementation volume
     inline VolumeId volume_id(ImplVolumeId) const final;
 
@@ -157,10 +146,9 @@ class VecgeomParams final : public GeoParamsInterface,
     // Geant4 model used to construct
     std::shared_ptr<GeantGeoParams const> geant_geo_;
 
-    // Host metadata/access (DEPRECATED)
+    // Host metadata/access
     LabelIdMultiMap<ImplVolumeId> impl_volumes_;
     ImplVolInstanceMap impl_vol_instances_;
-    std::unordered_map<G4LogicalVolume const*, ImplVolumeId> g4log_volid_map_;
 
     BBox bbox_;
 

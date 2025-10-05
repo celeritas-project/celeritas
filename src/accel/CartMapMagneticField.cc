@@ -117,7 +117,6 @@ MakeCartMapFieldInput(CartMapFieldGridParams const& params)
 //---------------------------------------------------------------------------//
 // CARTMAPMAGNETIC FIELD IMPLEMENTATION
 //---------------------------------------------------------------------------//
-
 /*!
  * Custom deleter implementation for PIMPL idiom.
  */

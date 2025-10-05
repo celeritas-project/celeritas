@@ -43,9 +43,10 @@ except (KeyError, IOError) as e:
             "breathe": False,
             "furo": furo,
             "sphinxbib": False,
-            "sphinxmer": False,
-        }
+        },
+        "executables": {},
     }
+    # Note: 'tags' is available in `locals()` thanks to Sphinx
     tags.add('noconfig')
 
 version = celer_config['version']
@@ -56,6 +57,18 @@ html_title = f"Celeritas {version} documentation"
 for (opt, val) in celer_config['options'].items():
     prefix = '' if val else 'no'
     tags.add(prefix + opt)
+
+
+def setup(app):
+    """Register custom directives when Sphinx loads this config as an extension."""
+    if celer_config['options']['breathe']:
+        from celerdirectives import CelerStructDirective
+        app.add_directive('celerstruct', CelerStructDirective)
+    return {
+        'version': '0.1',
+        'parallel_read_safe': True,
+        'parallel_write_safe': True,
+    }
 
 # -- General configuration ---------------------------------------------------
 
@@ -92,10 +105,6 @@ if celer_config['options']['sphinxbib']:
     ]
     bibtex_reference_style = 'author_year'
 
-if celer_config['options']['sphinxmer']:
-    extensions.append("sphinxcontrib.mermaid")
-    mermaid_cmd = celer_config['executables']['mmdc'] or None
-
 # Add any paths that contain templates here, relative to this directory.
 templates_path = []
 
@@ -104,10 +113,12 @@ templates_path = []
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
-
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 highlight_language = 'cpp'
+
+# Enable numbered figures/tables
+numfig = True
 
 sys.path.insert(0, os.path.join(os.path.abspath('.'), "_python"))
 import monkeysphinx
@@ -221,7 +232,8 @@ latex_documents = [
      author, 'howto'),
 ]
 
+_latex_suffixes = frozenset(('.tex', '.sty', '.cls', '.pdf', '.png'))
 latex_additional_files = [
     str(p) for p in Path('_static').iterdir()
-    if p.suffix in ('.tex', '.sty', '.cls')
+    if p.suffix in _latex_suffixes
 ]

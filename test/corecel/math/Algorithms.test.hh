@@ -65,6 +65,8 @@ struct AlgorithmOutputData
     // Test sincospi
     Items<double> sinpi;
     Items<double> cospi;
+    Items<float> sin;
+    Items<float> cos;
 
     // Test fastpow
     Items<double> fastpow;
@@ -76,6 +78,7 @@ struct AlgorithmOutputData
     explicit CELER_FUNCTION operator bool() const
     {
         return !sinpi.empty() && sinpi.size() == cospi.size()
+               && sin.size() == cospi.size() && cos.size() == cospi.size()
                && !fastpow.empty() && !hypot.empty();
     }
 
@@ -86,6 +89,8 @@ struct AlgorithmOutputData
         CELER_EXPECT(other);
         sinpi = other.sinpi;
         cospi = other.cospi;
+        sin = other.sin;
+        cos = other.cos;
         fastpow = other.fastpow;
         hypot = other.hypot;
         CELER_ENSURE(*this);
@@ -107,6 +112,8 @@ inline void resize(AlgorithmOutputData<Ownership::value, M>* output,
 
     resize(&output->sinpi, input.pi_frac.size());
     resize(&output->cospi, input.pi_frac.size());
+    resize(&output->sin, input.pi_frac.size());
+    resize(&output->cos, input.pi_frac.size());
 
     resize(&output->fastpow, input.a.size());
 

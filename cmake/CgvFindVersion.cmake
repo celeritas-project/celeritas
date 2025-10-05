@@ -86,7 +86,7 @@ To print only the version string (to stderr), and from a custom directory::
 #]=======================================================================]
 
 if(CMAKE_SCRIPT_MODE_FILE)
-  cmake_minimum_required(VERSION 3.8...3.30)
+  cmake_minimum_required(VERSION 3.8...4.1)
 endif()
 
 set(CGV_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}")

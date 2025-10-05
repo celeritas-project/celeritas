@@ -8,6 +8,7 @@
 
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
+#include "celeritas/setup/Import.hh"
 
 #include "PersistentSP.hh"
 
@@ -35,6 +36,13 @@ auto RootTestBase::imported_data() const -> ImportData const&
 
         // Raise an exception if non-fatal errors were encountered
         scoped_root_error.throw_if_errors();
+
+        // Delete unwanted data that could cause physics readers to try to load
+        this->fixup_data(result);
+
+        // Assume the ROOT file didn't include file-based data
+        setup::physics_from(inp::PhysicsFromGeantFiles{}, result);
+
         return std::make_shared<ImportData>(std::move(result));
     });
     auto const& result = *pid.value();

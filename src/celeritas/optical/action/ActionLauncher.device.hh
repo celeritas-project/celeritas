@@ -52,16 +52,17 @@ class ActionLauncher : public KernelLauncher<F>
          || CELER_COMPILER == CELER_COMPILER_CLANG)
             && !std::is_pointer_v<F> && !std::is_reference_v<F>,
         R"(Launched action must be a trivially copyable function object)");
-    using StepActionT = OpticalStepActionInterface;
 
   public:
     // Create a launcher from a string
     using KernelLauncher<F>::KernelLauncher;
 
     // Create a launcher from an action
+    template<class StepActionT>
     explicit ActionLauncher(StepActionT const& action);
 
     // Create a launcher with a string extension
+    template<class StepActionT>
     ActionLauncher(StepActionT const& action, std::string_view ext);
 
     // Launch a kernel for a thread range or number of threads
@@ -77,8 +78,9 @@ class ActionLauncher : public KernelLauncher<F>
  * Create a launcher from an action.
  */
 template<class F>
+template<class StepActionT>
 ActionLauncher<F>::ActionLauncher(StepActionT const& action)
-    : ActionLauncher{action.label()}
+    : KernelLauncher<F>{action.label()}
 {
 }
 
@@ -87,9 +89,10 @@ ActionLauncher<F>::ActionLauncher(StepActionT const& action)
  * Create a launcher with a string extension.
  */
 template<class F>
+template<class StepActionT>
 ActionLauncher<F>::ActionLauncher(StepActionT const& action,
                                   std::string_view ext)
-    : ActionLauncher{std::string(action.label()) + "-" + std::string(ext)}
+    : KernelLauncher<F>{std::string(action.label()) + "-" + std::string(ext)}
 {
 }
 

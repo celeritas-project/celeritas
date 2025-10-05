@@ -6,7 +6,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <optional>
+#include <map>
+
+#include "celeritas/io/ImportAtomicRelaxation.hh"
+#include "celeritas/phys/AtomicNumber.hh"
 
 #include "PhysicsModel.hh"
 
@@ -18,22 +21,63 @@ namespace inp
 /*!
  * Construct a physics process for bremsstrahlung.
  */
-struct BremsProcess
+struct BremsstrahlungProcess
 {
-    std::optional<SeltzerBergerModel> sb{std::in_place};
-    std::optional<RelBremsModel> rel{std::in_place};
-    std::optional<MuBremsModel> mu;
+    //! Lower-energy electron/positron
+    SeltzerBergerModel sb;
+    //! High-energy electron/positron
+    RelBremsModel rel;
+    //! Muon (-/+)
+    MuBremsModel mu;
+
+    //! TODO: macroscopic xs tables
+
+    //! Whether process has data and is to be used
+    explicit operator bool() const { return sb || rel || mu; }
 };
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct a physics process for electron/positron pair production.
  */
 struct PairProductionProcess
 {
-    //! Bethe-Heitler pair production
-    std::optional<BetheHeitlerModel> bethe_heitler;
-    //! Muonic pair production
-    std::optional<MuPairProductionModel> mu;
+    //! Pair production from gammas
+    BetheHeitlerProductionModel bethe_heitler;
+    //! Pair production from muons
+    MuPairProductionModel mu;
+
+    //! Whether process has data and is to be used
+    explicit operator bool() const { return bethe_heitler || mu; }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a physics process for photoelectric effect.
+ */
+struct PhotoelectricProcess
+{
+    LivermorePhotoModel livermore;
+
+    //! Whether process has data and is to be used
+    explicit operator bool() const { return static_cast<bool>(livermore); }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Emit fluorescence photons/auger electrons from atomic de-excitation.
+ *
+ * \todo Since multiple processes can cause the loss of a bound electron, we
+ * should have a separate "deexcitation" process that manages this efficiently.
+ * (Or perhaps a "generator" class to emit many simultaneously.)
+ */
+struct AtomicRelaxation
+{
+    //! Differential cross sections [(log MeV, unitless) -> millibarn]
+    std::map<AtomicNumber, ImportAtomicRelaxation> atomic_xs;
+
+    //! True if data is assigned
+    explicit operator bool() const { return !atomic_xs.empty(); }
 };
 
 //---------------------------------------------------------------------------//
@@ -41,7 +85,6 @@ struct PairProductionProcess
 //! \name Process aliases
 //! \todo rename `em/model` to match, merge muon and electron processes
 
-using BremsstrahlungProcess = BremsProcess;
 using GammaConversionProcess = PairProductionProcess;
 using MuPairProductionProcess = PairProductionProcess;
 

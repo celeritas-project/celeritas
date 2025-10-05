@@ -22,7 +22,7 @@ class G4ParticleDefinition;  // IWYU pragma: keep
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//! Only import a subset of available Geant4 data
+//! DEPRECATED: Only import a subset of available Geant4 data
 struct GeantImportDataSelection
 {
     //! Bit flags for selecting particles and process types
@@ -100,10 +100,6 @@ class GeantImporter final : public ImporterInterface
     // Optional setup if celeritas handles initialization
     GeantSetup setup_;
 };
-
-//---------------------------------------------------------------------------//
-
-ImportParticle import_particle(G4ParticleDefinition const& p);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

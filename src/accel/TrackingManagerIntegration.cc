@@ -10,6 +10,13 @@
 #include <set>
 #include <G4ParticleDefinition.hh>
 #include <G4Threading.hh>
+#include <G4Version.hh>
+
+#if G4VERSION_NUMBER >= 1100
+#    include <G4VTrackingManager.hh>
+
+#    include "TrackingManager.hh"
+#endif
 
 #include "corecel/io/Join.hh"
 #include "corecel/sys/Stopwatch.hh"
@@ -18,7 +25,6 @@
 
 #include "ExceptionConverter.hh"
 #include "TimeOutput.hh"
-#include "TrackingManager.hh"
 #include "TrackingManagerConstructor.hh"
 
 #include "detail/IntegrationSingleton.hh"
@@ -46,13 +52,11 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
     std::set<G4PD const*> not_offloaded{actual.begin(), actual.end()};
     std::vector<G4PD const*> missing;
 
-    TypeDemangler<G4VTrackingManager> demangle_tm;
-
     bool all_attached_correctly{true};
     auto log_tm_failure = [&all_attached_correctly](G4PD const* p) {
         all_attached_correctly = false;
         auto msg = CELER_LOG(error);
-        msg << "Particle " << PrintablePD{p} << ": tracking manager";
+        msg << "Particle " << StreamablePD{p} << ": tracking manager ";
         return msg;
     };
 
@@ -69,6 +73,9 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
         {
             not_offloaded.erase(iter);
         }
+
+#if G4VERSION_NUMBER >= 1100
+        static TypeDemangler<G4VTrackingManager> demangle_tm;
 
         // Check tracking manager setup: note that this is *thread-local*
         // whereas the offloaded track list is *global*
@@ -98,9 +105,15 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
         {
             log_tm_failure(p) << "is not attached";
         }
+#else
+        CELER_DISCARD(expected_shared);
+        CELER_DISCARD(expected_local);
+        CELER_DISCARD(log_tm_failure);
+        CELER_ASSERT_UNREACHABLE();
+#endif
     }
 
-    auto printable_pd = [](G4PD const* p) { return PrintablePD{p}; };
+    auto printable_pd = [](G4PD const* p) { return StreamablePD{p}; };
 
     if (!not_offloaded.empty())
     {
@@ -109,11 +122,13 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
                            << join(not_offloaded.begin(),
                                    not_offloaded.end(),
                                    ", ",
-                                   printable_pd);
+                                   printable_pd)
+                           << " (perhaps SetupOptions::offload_particles has "
+                              "not been updated?)";
     }
     CELER_VALIDATE(missing.empty(),
                    << "not all particles from TrackingManagerConstructor are "
-                      "active in Celeritas: missing"
+                      "active in Celeritas: missing "
                    << join(missing.begin(), missing.end(), ", ", printable_pd));
     CELER_VALIDATE(all_attached_correctly,
                    << "tracking manager(s) are not attached correctly "
@@ -140,6 +155,11 @@ TrackingManagerIntegration& TrackingManagerIntegration::Instance()
  */
 void TrackingManagerIntegration::BeginOfRunAction(G4Run const*)
 {
+    CELER_VALIDATE(G4VERSION_NUMBER >= 1100,
+                   << "the current version of Geant4 (" << G4VERSION_NUMBER
+                   << ") is too old to support the tracking manager offload "
+                      "interface (11.0 or higher is required)");
+
     Stopwatch get_setup_time;
 
     auto& singleton = detail::IntegrationSingleton::instance();
@@ -153,13 +173,18 @@ void TrackingManagerIntegration::BeginOfRunAction(G4Run const*)
 
     if (enable_offload)
     {
+        // Set particle offloading based on user options
+        auto const& user_offload = singleton.setup_options().offload_particles;
+        auto const& offload_particles
+            = user_offload.empty() ? SharedParams::default_offload_particles()
+                                   : user_offload;
+
         // Set tracking manager on workers when Celeritas is not fully disabled
         CELER_LOG(debug) << "Verifying tracking manager";
-
         CELER_TRY_HANDLE(
             verify_tracking_managers(
-                make_span(TrackingManagerConstructor::OffloadParticles()),
                 make_span(singleton.shared_params().OffloadParticles()),
+                make_span(offload_particles),
                 singleton.shared_params(),
                 singleton.local_transporter()),
             ExceptionConverter{"celer.init.verify"});

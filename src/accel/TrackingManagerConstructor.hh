@@ -12,6 +12,8 @@
 
 #include "corecel/cont/Span.hh"
 
+#include "detail/IntegrationSingleton.hh"
+
 namespace celeritas
 {
 class LocalTransporter;
@@ -50,12 +52,10 @@ class TrackingManagerConstructor final : public G4VPhysicsConstructor
     //!@{
     //! \name Type aliases
     using LocalTransporterFromThread = std::function<LocalTransporter*(int)>;
+    using VecG4PD = SetupOptions::VecG4PD;
     //!@}
 
   public:
-    // Get a list of supported particles
-    static Span<G4ParticleDefinition* const> OffloadParticles();
-
     // Construct name and mode
     TrackingManagerConstructor(SharedParams const* shared,
                                LocalTransporterFromThread get_local);
@@ -63,8 +63,8 @@ class TrackingManagerConstructor final : public G4VPhysicsConstructor
     // Construct from tracking manager integration
     explicit TrackingManagerConstructor(TrackingManagerIntegration* tmi);
 
-    //! Null-op: particles are constructed elsewhere
-    void ConstructParticle() override {}
+    //! Build list of particles to be offloaded
+    void ConstructParticle() override;
 
     // Build and attach tracking manager
     void ConstructProcess() override;
@@ -80,6 +80,7 @@ class TrackingManagerConstructor final : public G4VPhysicsConstructor
   private:
     SharedParams const* shared_{nullptr};
     LocalTransporterFromThread get_local_{};
+    VecG4PD offload_particles_;
 };
 
 //---------------------------------------------------------------------------//

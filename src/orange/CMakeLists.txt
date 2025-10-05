@@ -13,6 +13,8 @@ set(PUBLIC_DEPS Celeritas::corecel)
 
 list(APPEND SOURCES
   BoundingBoxUtils.cc
+  Debug.cc
+  DebugIO.json.cc
   MatrixUtils.cc
   OrangeInputIO.json.cc
   OrangeParams.cc

@@ -15,7 +15,7 @@
 #include <VecGeom/base/Version.h>
 #include <VecGeom/management/ABBoxManager.h>
 
-#if VECGEOM_VERSION < 0x020000 && defined(VECGEOM_USE_SURF)
+#if VECGEOM_VERSION < 0x020000 && CELERITAS_VECGEOM_SURFACE
 #    error \
         "Unsupported: cannot build with VecGeom surface before merge into 2.0"
 #endif

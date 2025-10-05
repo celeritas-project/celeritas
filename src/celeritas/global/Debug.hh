@@ -21,7 +21,7 @@ class ParticleTrackView;
 class SimTrackView;
 
 //---------------------------------------------------------------------------//
-//! Print a track to the given stream
+//! Print a track to a stream
 struct StreamableTrack
 {
     CoreTrackView const& track;
@@ -30,15 +30,15 @@ struct StreamableTrack
 std::ostream& operator<<(std::ostream&, StreamableTrack const&);
 
 //---------------------------------------------------------------------------//
-// Print everything that can be printed about a core track view
+// Print to clog everything that can be printed about a core track view
 void debug_print(CoreTrackView const&);
 
 //---------------------------------------------------------------------------//
-// Print a SimTrackView on host
+// Print to clog a SimTrackView on host
 void debug_print(SimTrackView const&);
 
 //---------------------------------------------------------------------------//
-// Print a ParticleTrackView on host
+// Print to clog a ParticleTrackView on host
 void debug_print(ParticleTrackView const&);
 
 //---------------------------------------------------------------------------//

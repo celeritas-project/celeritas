@@ -17,6 +17,7 @@
 #include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/inp/Particle.hh"
 
 #include "PDGNumber.hh"
 #include "ParticleData.hh"
@@ -25,7 +26,6 @@
 namespace celeritas
 {
 struct ImportData;
-struct ImportParticle;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -44,21 +44,8 @@ struct ImportParticle;
 class ParticleParams final : public ParamsDataInterface<ParticleParamsData>
 {
   public:
-    //! Define a particle's input data
-    struct ParticleInput
-    {
-        std::string name;  //!< Particle name
-        PDGNumber pdg_code;  //!< See "Review of Particle Physics"
-        units::MevMass mass;  //!< Rest mass [MeV / c^2]
-        units::ElementaryCharge charge;  //!< Charge in units of [e]
-        real_type decay_constant{};  //!< Decay constant [1/time]
-
-        // Conversion function
-        static ParticleInput from_import(ImportParticle const&);
-    };
-
     //! Input data to construct this class
-    using Input = std::vector<ParticleInput>;
+    using Input = std::vector<inp::Particle>;
 
   public:
     // Construct with imported data

@@ -22,6 +22,8 @@
 
 namespace celeritas
 {
+class OrangeParams;
+class VolumeParams;
 //---------------------------------------------------------------------------//
 // PARAMS
 //---------------------------------------------------------------------------//
@@ -48,6 +50,10 @@ struct OrangeParamsScalars
 
     // Soft comparison and dynamic "bumping" values
     Tolerance<> tol;
+
+    // Raw pointers to externally owned memory for debug output
+    OrangeParams const* host_geo_params{nullptr};
+    VolumeParams const* host_volume_params{nullptr};
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
@@ -101,16 +107,15 @@ struct VolumeRecord
  * beginning of the data used by the surface. Since the surface type tells us
  * the number of real values needed for that surface, we implicitly get a Span
  * of real values with a single indirection.
- *
- * \todo Change "types" and "data offsets" to be `ItemMap` taking local
- * surface
  */
 struct SurfacesRecord
 {
-    using RealId = OpaqueId<real_type>;
+    using SurfaceTypeId = ItemId<SurfaceType>;
+    using RealId = ItemId<real_type>;  // Pointer to a real
+    using RealIdId = ItemId<RealId>;  // Pointer to pointer to real
 
-    ItemRange<SurfaceType> types;
-    ItemRange<RealId> data_offsets;
+    ItemMap<LocalSurfaceId, SurfaceTypeId> types;
+    ItemMap<LocalSurfaceId, RealIdId> data_offsets;
 
     //! Number of surfaces stored
     CELER_FUNCTION size_type size() const { return types.size(); }
@@ -212,10 +217,11 @@ struct TransformRecord
 struct SimpleUnitRecord
 {
     using VolumeRecordId = OpaqueId<VolumeRecord>;
+    using ConnectivityRecordId = OpaqueId<ConnectivityRecord>;
 
     // Surface data
     SurfacesRecord surfaces;
-    ItemRange<ConnectivityRecord> connectivity;  // Index by LocalSurfaceId
+    ItemMap<LocalSurfaceId, ConnectivityRecordId> connectivity;
 
     // Volume data [index by LocalVolumeId]
     ItemMap<LocalVolumeId, VolumeRecordId> volumes;
