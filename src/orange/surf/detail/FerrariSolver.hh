@@ -27,7 +27,7 @@ namespace detail
  * The quartic equation \f[
  * a x^4 + b x^3 + c x^2 + d x + e = 0
  * \f]
- * has two solutions mathematically, but we only require solutions which are
+ * has four solutions mathematically, but we only require solutions which are
  * both real and positive. This equation is also subject to multiple cases of
  * catastrophic precision-limitation-based error both fundamentally and as a
  * consequence of the particular algorithm chosen. This solver implements the
