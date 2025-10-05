@@ -19,18 +19,18 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*
- * Test Harness for FerrariSolver
+ * Abstract test harness for quartic solvers
  */
-class FerrariSolverTest : public ::celeritas::test::Test
+class QuarticSolverTest : public ::celeritas::test::Test
 {
     public:
-        using FS = FerrariSolver;
         using Intersections = Array<real_type, 4>;
-        using Coeffs3 = Array<real_type, 3>;
         using Coeffs4 = Array<real_type, 4>;
         using Coeffs5 = Array<real_type, 5>;
 
-        FerrariSolverTest(){}
+        QuarticSolverTest(){}
+
+        virtual Intersections get_roots(Coeffs4 const& abcd, real_type const& e = 0) = 0;
 
         void expect_softeq_list(Intersections const& expected, Intersections const& actual)
         {
@@ -43,21 +43,46 @@ class FerrariSolverTest : public ::celeritas::test::Test
 
         void expect_surface_roots(Intersections const& expected, Coeffs4 const& abcd)
         {
-            FerrariSolver solve_quartic(abcd[0], abcd[1], abcd[2], abcd[3]);
-            auto x = solve_quartic();
+            auto x = get_roots(abcd);
             expect_softeq_list(expected, x);
         }
 
         void expect_nonsurface_roots(Intersections const& expected, Coeffs5 const& abcde)
         {
-            FerrariSolver solve_quartic(abcde[0], abcde[1], abcde[2], abcde[3]);
-            auto x = solve_quartic(abcde[4]);
+            auto [a, b, c, d, e] = abcde;
+            auto x = get_roots(Coeffs4(a, b, c, d), e);
             expect_softeq_list(expected, x);
+        }
+};
+
+//---------------------------------------------------------------------------//
+/*
+ * Test harness for the Ferrari-Cardano implementation, including a specific test for the quartic solver
+ */
+class FerrariSolverTest : public QuarticSolverTest
+{
+    public:
+        using FS = FerrariSolver; 
+        using Intersections = Array<real_type, 4>;
+        using Coeffs3 = Array<real_type, 3>;
+        using Coeffs4 = Array<real_type, 4>;
+        using Coeffs5 = Array<real_type, 5>;
+
+        FerrariSolverTest(){}
+
+        Intersections get_roots(Coeffs4 const& abcd, real_type const& e = 0) {
+            auto [a, b, c, d] = abcd;
+            FS solve_quartic(a, b, c, d);
+            if (e == 0) {
+                return solve_quartic();
+            } else {
+                return solve_quartic(e);
+            }
         }
 
         void expect_dominant_cubic_root(real_type const& expected, Coeffs3 const& bcd)
         {
-            FerrariSolver solve_quartic(1,1,1,1);
+            FS solve_quartic(1,1,1,1);
             real_type bigroot = solve_quartic.dominant_root_normalized_cubic(bcd[0], bcd[1], bcd[2]);
             EXPECT_SOFT_EQ(expected, bigroot);
         }
