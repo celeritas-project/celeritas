@@ -22,11 +22,9 @@ SequenceEngine make_rng(double select_val)
     return SequenceEngine::from_reals({select_val});
 }
 
-class PdfSelectorTest : public Test
-{
-};
+using SelectorTest = Test;
 
-TEST_F(PdfSelectorTest, typical)
+TEST_F(SelectorTest, typical)
 {
     static double const prob[] = {0.1, 0.3, 0.5, 0.1};
 
@@ -54,7 +52,7 @@ TEST_F(PdfSelectorTest, typical)
     EXPECT_EQ(3, sample_prob(rng));
 }
 
-TEST_F(PdfSelectorTest, zeros)
+TEST_F(SelectorTest, zeros)
 {
     static double const prob[] = {0.0, 0.0, 0.4, 0.6};
 
@@ -67,18 +65,20 @@ TEST_F(PdfSelectorTest, zeros)
     EXPECT_EQ(2, sample_prob(rng));
 }
 
-TEST_F(PdfSelectorTest, TEST_IF_CELERITAS_DEBUG(invalid_total))
+TEST_F(SelectorTest, TEST_IF_CELERITAS_DEBUG(errors))
 {
-    static double const prob[] = {0.1, 0.3, 0.5, 0.1};
-    auto get_val = [](int i) { return prob[i]; };
+    std::vector<double> prob = {0.1, 0.3, 0.5, 0.1};
+    auto get_val = [&prob](std::size_t i) {
+        CELER_ASSERT(i < prob.size());
+        return prob[i];
+    };
 
-    EXPECT_THROW(make_selector(get_val, 4, 1.1), DebugError);
-    EXPECT_THROW(make_selector(get_val, 4, 0.9), DebugError);
+    EXPECT_THROW(make_selector(get_val, prob.size(), 1.1), DebugError);
+    EXPECT_THROW(make_selector(get_val, prob.size(), 0.9), DebugError);
+
+    prob.push_back(-0.1);
+    EXPECT_THROW(make_selector(get_val, prob.size(), 0.9), DebugError);
 }
-
-//---------------------------------------------------------------------------//
-
-using SelectorTest = Test;
 
 TEST_F(SelectorTest, make_selector)
 {
@@ -86,20 +86,6 @@ TEST_F(SelectorTest, make_selector)
 
     auto sample_prob
         = make_selector([](int i) { return prob[i]; }, std::size(prob));
-
-    auto rng = make_rng(0.0);
-    EXPECT_EQ(0, sample_prob(rng));
-
-    rng = make_rng(0.999999);
-    EXPECT_EQ(3, sample_prob(rng));
-}
-
-TEST_F(SelectorTest, make_unnorm_selector)
-{
-    static double const prob[] = {0.1, 0.3, 0.5};
-
-    auto sample_prob = make_unnormalized_selector(
-        [](int i) { return prob[i]; }, std::size(prob), real_type{1});
 
     auto rng = make_rng(0.0);
     EXPECT_EQ(0, sample_prob(rng));
@@ -149,7 +135,7 @@ TEST_F(SelectorTest, selector_element)
     }
 }
 
-TEST_F(SelectorTest, selector_enum_normalized)
+TEST_F(SelectorTest, selector_enum)
 {
     enum class Interaction
     {
@@ -171,7 +157,25 @@ TEST_F(SelectorTest, selector_enum_normalized)
     EXPECT_EQ(Interaction::unknown, sample_xs(rng));
 }
 
-TEST_F(SelectorTest, selector_enum_unnormalized)
+//---------------------------------------------------------------------------//
+
+using UnnormSelectorTest = Test;
+
+TEST_F(UnnormSelectorTest, make_selector)
+{
+    static double const prob[] = {0.1, 0.3, 0.5};
+
+    auto sample_prob = make_unnormalized_selector(
+        [](int i) { return prob[i]; }, std::size(prob), real_type{1});
+
+    auto rng = make_rng(0.0);
+    EXPECT_EQ(0, sample_prob(rng));
+
+    rng = make_rng(0.999999);
+    EXPECT_EQ(3, sample_prob(rng));
+}
+
+TEST_F(UnnormSelectorTest, selector_enum)
 {
     enum class Interaction
     {
@@ -192,6 +196,17 @@ TEST_F(SelectorTest, selector_enum_unnormalized)
 
     rng = make_rng(0.999999);
     EXPECT_EQ(Interaction::size_, sample_xs(rng));
+}
+
+TEST_F(UnnormSelectorTest, TEST_IF_CELERITAS_DEBUG(errors))
+{
+    std::vector<double> prob = {0.1, 0.3, 0.5, 0.1};
+    auto get_val = [&prob](std::size_t i) {
+        CELER_ASSERT(i < prob.size());
+        return prob[i];
+    };
+
+    EXPECT_THROW(make_selector(get_val, prob.size(), 0.8), DebugError);
 }
 
 //---------------------------------------------------------------------------//
