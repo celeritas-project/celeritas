@@ -73,6 +73,7 @@ enum class ReflectionMode
 //---------------------------------------------------------------------------//
 
 char const* to_cstring(SurfacePhysicsOrder);
+char const* to_cstring(ReflectionMode);
 
 //! Convert sub-surface direction to a sign (+1/-1 for forward/reverse resp.)
 CELER_FORCEINLINE_FUNCTION int to_signed_offset(SubsurfaceDirection d)

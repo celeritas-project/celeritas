@@ -128,39 +128,34 @@ struct ReflectionForm
     //! Return a specular spike reflection form
     static ReflectionForm from_spike()
     {
-        ReflectionForm result;
-        result.reflection_grids[optical::ReflectionMode::specular_spike]
-            = Grid::from_constant(1.0);
-        result.reflection_grids[optical::ReflectionMode::specular_lobe]
-            = Grid::from_constant(0);
-        result.reflection_grids[optical::ReflectionMode::backscatter]
-            = Grid::from_constant(0);
-        return result;
+        return ReflectionForm::from_only_mode(
+            optical::ReflectionMode::specular_spike);
     }
 
     //! Return a specular lobe reflection form
     static ReflectionForm from_lobe()
     {
-        ReflectionForm result;
-        result.reflection_grids[optical::ReflectionMode::specular_spike]
-            = Grid::from_constant(0);
-        result.reflection_grids[optical::ReflectionMode::specular_lobe]
-            = Grid::from_constant(1.0);
-        result.reflection_grids[optical::ReflectionMode::backscatter]
-            = Grid::from_constant(0);
-        return result;
+        return ReflectionForm::from_only_mode(
+            optical::ReflectionMode::specular_lobe);
     }
 
     //! Return a Lambertian reflection form
     static ReflectionForm from_lambertian()
     {
+        // Lambertian grid is implicit
+        return ReflectionForm::from_only_mode(optical::ReflectionMode::size_);
+    }
+
+  private:
+    //! Construct a reflection form with only one active grid
+    static ReflectionForm from_only_mode(optical::ReflectionMode only_mode)
+    {
         ReflectionForm result;
-        result.reflection_grids[optical::ReflectionMode::specular_spike]
-            = Grid::from_constant(0);
-        result.reflection_grids[optical::ReflectionMode::specular_lobe]
-            = Grid::from_constant(0);
-        result.reflection_grids[optical::ReflectionMode::backscatter]
-            = Grid::from_constant(0);
+        for (auto mode : range(optical::ReflectionMode::size_))
+        {
+            result.reflection_grids[mode]
+                = Grid::from_constant(mode == only_mode ? 1 : 0);
+        }
         return result;
     }
 };

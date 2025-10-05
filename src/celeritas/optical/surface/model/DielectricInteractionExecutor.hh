@@ -14,6 +14,8 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
+ * \todo This is a placeholder executor that does nothing until the dielectric
+ * and UNIFIED calculators are implemented.
  */
 struct DielectricInteractionExecutor
 {

@@ -174,26 +174,21 @@ bool is_probability(inp::Grid const& grid)
 inp::ReflectionForm
 load_unified_refl_form(GeantSurfacePhysicsHelper const& helper)
 {
+    static EnumArray<optical::ReflectionMode, char const*> labels{
+        "SPECULARSPIKECONSTANT", "SPECULARLOBECONSTANT", "BACKSCATTERCONSTANT"};
+
     inp::ReflectionForm refl_form;
-    auto& refl = refl_form.reflection_grids;
-    helper.get_property(&refl[optical::ReflectionMode::specular_lobe],
-                        "SPECULARLOBECONSTANT");
-    helper.get_property(&refl[optical::ReflectionMode::specular_spike],
-                        "SPECULARSPIKECONSTANT");
-    helper.get_property(&refl[optical::ReflectionMode::backscatter],
-                        "BACKSCATTERCONSTANT");
+
+    for (auto mode : range(optical::ReflectionMode::size_))
+    {
+        auto& grid = refl_form.reflection_grids[mode];
+        helper.get_property(&grid, labels[mode]);
+        CELER_VALIDATE(is_probability(grid),
+                       << "parameter '" << to_cstring(mode)
+                       << "' is not within [0, 1] range");
+    }
+
     CELER_VALIDATE(refl_form, << "missing UNIFIED model reflection form grids");
-
-#define GSPL_VALIDATE_PROB(PARAM)             \
-    CELER_VALIDATE(is_probability(PARAM),     \
-                   << "parameter '" << #PARAM \
-                   << "' is not within [0, 1] range")
-
-    GSPL_VALIDATE_PROB(refl[optical::ReflectionMode::specular_spike]);
-    GSPL_VALIDATE_PROB(refl[optical::ReflectionMode::specular_lobe]);
-    GSPL_VALIDATE_PROB(refl[optical::ReflectionMode::backscatter]);
-
-#undef GSPL_VALIDATE_PROB
 
     return refl_form;
 }
