@@ -121,7 +121,7 @@ celeritas_add_device_test(surf/LocalSurfaceVisitor)
 
 # Surface details
 celeritas_add_test(surf/detail/QuadraticSolver.test.cc)
-celeritas_add_test(surf/detail/FerrariSolver.test.cc)
+celeritas_add_test(surf/detail/QuarticSolver.test.cc)
 celeritas_add_test(surf/detail/SurfaceTranslator.test.cc)
 celeritas_add_test(surf/detail/SurfaceTransformer.test.cc)
 celeritas_add_test(surf/detail/InvoluteSolver.test.cc)

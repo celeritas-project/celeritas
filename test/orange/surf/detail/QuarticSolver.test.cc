@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surf/detail/FerrariSolver.test.cc
+//! \file orange/surf/detail/QuarticSolver.test.cc
 //---------------------------------------------------------------------------//
 #include "orange/surf/detail/FerrariSolver.hh"
 
