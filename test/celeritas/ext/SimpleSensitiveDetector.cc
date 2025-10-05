@@ -78,6 +78,12 @@ void SimpleHitsResult::print_expected() const
 }
 
 //---------------------------------------------------------------------------//
+SimpleSensitiveDetector::SimpleSensitiveDetector(std::string const& name)
+    : G4VSensitiveDetector{name}
+{
+}
+
+//---------------------------------------------------------------------------//
 SimpleSensitiveDetector::SimpleSensitiveDetector(G4LogicalVolume const* lv)
     : G4VSensitiveDetector{lv->GetName()}, lv_{lv}
 {

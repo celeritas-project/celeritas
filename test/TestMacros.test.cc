@@ -29,8 +29,7 @@ namespace test
 
 TEST(PrintExpected, example)
 {
-    std::string out_result;
-    {
+    std::string out_result = [] {
         ScopedStreamRedirect redirect_out(&std::cout);
         std::cout << '\n';
 
@@ -48,8 +47,8 @@ TEST(PrintExpected, example)
         std::string const strings[] = {"a", "", "special\nchars\t"};
         PRINT_EXPECTED(strings);
 
-        out_result = redirect_out.str();
-    }
+        return redirect_out.str();
+    }();
     out_result.push_back('\n');
     EXPECT_EQ(R"(
 static int const expected_values[] = {1, 2, 3};

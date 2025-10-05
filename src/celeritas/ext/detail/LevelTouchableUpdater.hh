@@ -9,10 +9,9 @@
 #include <memory>
 #include <vector>
 
-#include "geocel/GeantGeoUtils.hh"
+#include "geocel/g4/GeantNavHistoryUpdater.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
-#include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/user/DetectorSteps.hh"
 
 #include "TouchableUpdaterInterface.hh"
@@ -24,6 +23,7 @@ class G4NavigationHistory;
 
 namespace celeritas
 {
+class GeantGeoParams;
 //---------------------------------------------------------------------------//
 namespace detail
 {
@@ -37,7 +37,7 @@ class LevelTouchableUpdater final : public TouchableUpdaterInterface
     //!@{
     //! \name Type aliases
     using SpanVolInst = Span<VolumeInstanceId const>;
-    using SPConstCoreGeo = std::shared_ptr<CoreGeoParams const>;
+    using SPConstGeantGeo = std::shared_ptr<GeantGeoParams const>;
     //!@}
 
   public:
@@ -47,7 +47,7 @@ class LevelTouchableUpdater final : public TouchableUpdaterInterface
                                                StepPoint step_point);
 
     // Construct with the geometry
-    explicit LevelTouchableUpdater(SPConstCoreGeo);
+    explicit LevelTouchableUpdater(SPConstGeantGeo);
 
     // Destroy pointers
     ~LevelTouchableUpdater() final;
@@ -62,12 +62,11 @@ class LevelTouchableUpdater final : public TouchableUpdaterInterface
     bool operator()(SpanVolInst ids, GeantTouchableBase* touchable);
 
   private:
-    // Geometry for doing G4PV translation
-    SPConstCoreGeo geo_;
-    // Temporary storage for physical volumes
-    std::vector<GeantPhysicalInstance> phys_inst_;
+    SPConstGeantGeo geo_;
     // Temporary history
     std::unique_ptr<G4NavigationHistory> nav_hist_;
+    // History updater
+    GeantNavHistoryUpdater update_history_;
 };
 
 //---------------------------------------------------------------------------//

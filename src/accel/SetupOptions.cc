@@ -7,6 +7,7 @@
 #include "SetupOptions.hh"
 
 #include <CLHEP/Random/Random.h>
+#include <G4ParticleDefinition.hh>
 
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -18,6 +19,7 @@
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/inp/FrameworkInput.hh"
 #include "celeritas/inp/Problem.hh"
+#include "celeritas/phys/PDGNumber.hh"
 
 #include "AlongStepFactory.hh"
 #include "ExceptionConverter.hh"
@@ -98,7 +100,7 @@ void ProblemSetup::operator()(inp::Problem& p) const
             = static_cast<size_type>(so.secondary_stack_factor * c.tracks);
         return c;
     }();
-
+    p.control.optical_capacity = so.optical_capacity;
     if (so.max_num_events)
     {
         CELER_LOG(warning) << "Ignoring removed option 'max_num_events': will "
@@ -252,12 +254,27 @@ inp::GeantSd to_inp(SDSetupOptions const& sd)
  */
 inp::FrameworkInput to_inp(SetupOptions const& so)
 {
+    using GIDS = GeantImportDataSelection;
+
+    auto includes_muon = [&so]() -> bool {
+        return std::any_of(so.offload_particles.begin(),
+                           so.offload_particles.end(),
+                           [](G4ParticleDefinition* pd) {
+                               return (std::abs(pd->GetPDGEncoding())
+                                       == pdg::mu_minus().get());
+                           });
+    };
+
     inp::FrameworkInput result;
     result.system = load_system(so);
-    result.geant.ignore_processes = so.ignore_processes;
-    result.geant.data_selection.particles = GeantImportDataSelection::em_basic;
-    result.geant.data_selection.processes = GeantImportDataSelection::em_basic;
-    result.geant.data_selection.interpolation = so.interpolation;
+    result.physics_import.ignore_processes = so.ignore_processes;
+    result.physics_import.data_selection.interpolation = so.interpolation;
+
+    // Correctly assign DataSelection import flags when muons are present
+    auto const selection = GIDS::optical
+                           | (includes_muon() ? GIDS::em : GIDS::em_basic);
+    result.physics_import.data_selection.particles = selection;
+    result.physics_import.data_selection.processes = selection;
 
     result.adjust = ProblemSetup{so};
     return result;

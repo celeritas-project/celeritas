@@ -19,7 +19,6 @@
 #include "corecel/math/SoftEqual.hh"
 
 #include "../AssertionHelper.hh"
-#include "gtest/gtest.h"
 
 namespace celeritas
 {
@@ -763,8 +762,9 @@ IsRefEq(char const* expr1,
             {
                 if (failures++ < max_printable_failures)
                 {
-                    result.fail() << item_result << "\n(Failed in element "
-                                  << i << " of " << expr2 << ")";
+                    result.fail()
+                        << item_result.message() << "\n(Failed in element "
+                        << i << " of " << expr2 << ")";
                 }
             }
         }

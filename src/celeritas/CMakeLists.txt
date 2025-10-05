@@ -87,6 +87,8 @@ list(APPEND SOURCES
   io/ImportOpticalModel.cc
   io/ImportProcess.cc
   io/ImportUnits.cc
+  io/JsonEventReader.cc
+  io/JsonEventWriter.cc
   io/LivermorePEReader.cc
   io/NeutronXsReader.cc
   io/SeltzerBergerReader.cc
@@ -111,9 +113,12 @@ list(APPEND SOURCES
   optical/ModelImporter.cc
   optical/PhysicsParams.cc
   optical/Transporter.cc
+  optical/Types.cc
   optical/action/ActionGroups.cc
   optical/action/LocateVacanciesAction.cc
   optical/detail/OpticalLaunchAction.cc
+  optical/surface/SurfacePhysicsParams.cc
+  optical/surface/SurfaceSteppingAction.cc
   phys/CutoffParams.cc
   phys/detail/EnergyMaxXsCalculator.cc
   phys/GeneratorInterface.cc
@@ -129,6 +134,7 @@ list(APPEND SOURCES
   phys/PrimaryGeneratorOptionsIO.json.cc
   phys/Process.cc
   phys/ProcessBuilder.cc
+  phys/SurfaceModel.cc
   phys/SurfacePhysicsMapBuilder.cc
   setup/Events.cc
   setup/FrameworkInput.cc
@@ -190,15 +196,17 @@ endif()
 
 if(CELERITAS_USE_Geant4)
   set(_cg4_sources
+    g4/DetectorConstruction.cc
+    g4/SupportedEmStandardPhysics.cc
+    g4/SupportedOpticalPhysics.cc
+    g4/detail/GeantBremsstrahlungProcess.cc
     ext/EmPhysicsList.cc
     ext/FtfpBertPhysicsList.cc
     ext/GeantImporter.cc
     ext/GeantSd.cc
     ext/GeantSdOutput.cc
     ext/GeantSetup.cc
-    ext/GeantVolumeMapper.cc
     ext/detail/EmStandardPhysics.cc
-    ext/detail/GeantBremsstrahlungProcess.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
     ext/detail/GeantOpticalModelImporter.cc
@@ -208,9 +216,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeoOpticalIdMap.cc
     ext/detail/HitProcessor.cc
     ext/detail/LevelTouchableUpdater.cc
-    ext/detail/MuHadEmStandardPhysics.cc
     ext/detail/NaviTouchableUpdater.cc
-    ext/detail/OpticalPhysics.cc
     ext/detail/SensDetInserter.cc
     ext/detail/TouchableUpdaterInterface.cc
     ext/detail/TrackProcessor.cc
@@ -265,13 +271,13 @@ if(CELERITAS_USE_ROOT)
     "celeritas/io/ImportData.hh"
     "celeritas/io/ImportElement.hh"
     "celeritas/io/ImportMaterial.hh"
-    "celeritas/io/ImportParticle.hh"
     "celeritas/io/ImportPhysicsTable.hh"
     "celeritas/io/ImportProcess.hh"
     "celeritas/io/ImportUnits.hh"
     "celeritas/io/ImportVolume.hh"
     "celeritas/io/EventData.hh"
     "celeritas/inp/Grid.hh"
+    "celeritas/inp/Particle.hh"
     NOINSTALL
     MODULE celeritas
     LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/ext/RootInterfaceLinkDef.h"
@@ -359,6 +365,7 @@ celeritas_polysource(optical/gen/PrimaryGeneratorAction)
 celeritas_polysource(optical/gen/detail/GeneratorAlgorithms)
 celeritas_polysource(optical/gen/detail/OffloadAlgorithms)
 celeritas_polysource(optical/surface/BoundaryAction)
+celeritas_polysource(optical/surface/model/PolishedRoughnessModel)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)
 celeritas_polysource(phys/detail/TrackingCutAction)

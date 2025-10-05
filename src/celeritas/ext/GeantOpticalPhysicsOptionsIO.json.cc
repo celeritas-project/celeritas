@@ -114,13 +114,15 @@ void from_json(nlohmann::json const& j, WavelengthShiftingOptions& options)
     if (j.is_null())
     {
         // Null json means deactivated process
-        options = WavelengthShiftingOptions{};
-        options.enable = false;
+        options = WavelengthShiftingOptions::deactivated();
         return;
     }
 #define GBPO_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, options, NAME)
     GBPO_LOAD_OPTION(enable);
-    GBPO_LOAD_OPTION(time_profile);
+    if (options)
+    {
+        GBPO_LOAD_OPTION(time_profile);
+    }
 #undef GBPO_LOAD_OPTION
 }
 
@@ -134,7 +136,6 @@ void to_json(nlohmann::json& j, WavelengthShiftingOptions const& inp)
     }
 
     j = {
-        CELER_JSON_PAIR(inp, enable),
         CELER_JSON_PAIR(inp, time_profile),
     };
 }
@@ -154,12 +155,13 @@ void from_json_deprecated(nlohmann::json const& j,
                                   "'WavelengthShiftingOptions'";
             if (iter->get<std::string>() == "none")
             {
-                options.enable = false;
+                options = WavelengthShiftingOptions::deactivated();
             }
             else
             {
                 iter->get_to(options.time_profile);
                 options.enable = true;
+                CELER_ENSURE(options);
             }
         }
         else

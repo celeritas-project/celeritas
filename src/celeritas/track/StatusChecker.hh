@@ -33,7 +33,7 @@ class CoreState;
  * and simulation state are consistent.
  *
  * Since this is called manually by the stepper, multiple times per step, it is
- * \em not an "explicit" action. It's meant to be used inside the \c
+ * \em not a CoreStepAction. It's meant to be used inside the \c
  * ActionSequence itself, called after every action.
  */
 class StatusChecker final : public AuxParamsInterface,

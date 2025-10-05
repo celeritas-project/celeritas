@@ -68,6 +68,9 @@ class CsgTree
     //! Number of nodes
     NodeId::size_type size() const { return nodes_.size(); }
 
+    // Find the node ID of the CSG expression if it exists
+    NodeId find(Node&& n) const;
+
     // Get a node
     inline Node const& operator[](NodeId node_id) const;
 
@@ -94,13 +97,16 @@ class CsgTree
     // Tree structure: nodes may have been simplified
     std::vector<Node> nodes_;
 
-    // Hashed nodes, both original and simplified
+    // Hashed simplified nodes, including eliminated but equivalent nodes
     std::unordered_map<Node, NodeId> ids_;
 
     // CSG node of each volume
     VecNodeId volumes_;
 
     //// HELPER FUNCTIONS ////
+
+    // Get a simplified node expression
+    bool simplify(Node& n) const;
 
     // Get a node (only this class can modify the node once added)
     Node& at(NodeId node_id);
@@ -125,22 +131,22 @@ auto CsgTree::insert(LocalSurfaceId s) -> Insertion
 
 //---------------------------------------------------------------------------//
 /*!
- * Insert a new volume which root is the node id.
- */
-void CsgTree::insert_volume(NodeId node_id)
-{
-    CELER_EXPECT(node_id < nodes_.size());
-    volumes_.push_back(std::move(node_id));
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get a node by ID.
  */
 auto CsgTree::operator[](NodeId node_id) const -> Node const&
 {
     CELER_EXPECT(node_id < nodes_.size());
     return nodes_[node_id.unchecked_get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Insert a new volume which root is the node id.
+ */
+void CsgTree::insert_volume(NodeId node_id)
+{
+    CELER_EXPECT(node_id < nodes_.size());
+    volumes_.push_back(std::move(node_id));
 }
 
 //---------------------------------------------------------------------------//

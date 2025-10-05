@@ -160,7 +160,7 @@ void StatusChecker::begin_run_impl(CoreParams const& params)
             // Loop over all action IDs
             for (auto aidx : range(reg.num_actions()))
             {
-                // Get abstract action shared pointer and see if it's explicit
+                // See if it's a step action
                 auto const& base = reg.action(ActionId{aidx});
                 if (auto const* expl
                     = dynamic_cast<CoreStepActionInterface const*>(base.get()))

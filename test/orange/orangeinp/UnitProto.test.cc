@@ -14,6 +14,7 @@
 #include "corecel/io/Join.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "geocel/Types.hh"
 #include "orange/OrangeInputIO.json.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/orangeinp/CsgObject.hh"
@@ -97,6 +98,7 @@ SPConstProto make_daughter(std::string label)
     UnitProto::Input inp;
     inp.boundary.interior = make_sph(label + ":ext", 1);
     inp.background.fill = GeoMatId{0};
+    inp.background.label = Label{label, "bg"};
     inp.label = std::move(label);
 
     return std::make_shared<UnitProto>(std::move(inp));
@@ -229,10 +231,11 @@ TEST_F(LeafTest, explicit_exterior)
 TEST_F(LeafTest, implicit_exterior)
 {
     UnitProto::Input inp;
+    inp.label = "leaf";
     inp.boundary.interior = make_cyl("bound", 1.0, 1.0);
     inp.boundary.zorder = ZOrder::exterior;
     inp.background.fill = GeoMatId{0};
-    inp.label = "leaf";
+    inp.background.label = Label{inp.label.name, "bg"};
     append_material(inp, make_cyl("middle", 1, 0.5), 1);
     UnitProto const proto{std::move(inp)};
 
@@ -386,6 +389,7 @@ TEST_F(MotherTest, implicit_exterior)
         Transformation{make_rotation(Axis::x, Turn{0.25}), {0, -5, 0}},
         "e");
     inp.background.fill = GeoMatId{3};
+    inp.background.label = Label{inp.label.name, "bg"};
 
     UnitProto const proto{std::move(inp)};
 
@@ -529,6 +533,61 @@ TEST_F(InputBuilderTest, globalspheres)
     this->run_test(global);
 }
 
+TEST_F(InputBuilderTest, lar_split_detector)
+{
+    UnitProto global{[] {
+        UnitProto::Input inp;
+        inp.boundary.interior = make_sph("outer_bound", 15.0);
+        inp.boundary.zorder = ZOrder::media;
+        inp.label = "global";
+
+        auto inner_sphere = make_sph("inner", 5.0);
+        auto middle_sphere = make_sph("middle", 10.0);
+
+        auto split = std::make_shared<Shape<InfPlane>>(
+            "split", InfPlane{Sense::inside, Axis::z, 0});
+        auto lower_half = std::make_shared<AllObjects>(
+            "lower_half", AllObjects::VecObject{middle_sphere, split});
+        auto upper_half = std::make_shared<AllObjects>(
+            "upper_half",
+            AllObjects::VecObject{
+                middle_sphere,
+                std::make_shared<NegatedObject>("negsplit", split)});
+
+        auto lower_shell = make_rdv(
+            "lower_shell",
+            {{Sense::inside, lower_half}, {Sense::outside, inner_sphere}});
+        auto upper_shell = make_rdv(
+            "upper_shell",
+            {{Sense::inside, upper_half}, {Sense::outside, inner_sphere}});
+        auto full_shell = make_rdv(
+            "full_shell",
+            {{Sense::inside, middle_sphere}, {Sense::outside, inner_sphere}});
+
+        // Construct exterior, shell, shell halves, interior
+        append_material(inp,
+                        make_rdv("outer_region",
+                                 {{Sense::inside, inp.boundary.interior},
+                                  {Sense::outside, middle_sphere}}),
+                        4);
+        append_material(inp,
+                        make_rdv("null_subtracted_daughters",
+                                 {
+                                     {Sense::inside, full_shell},
+                                     {Sense::outside, lower_shell},
+                                     {Sense::outside, upper_shell},
+                                 }),
+                        0);
+        append_material(inp, std::move(lower_shell), 2);
+        append_material(inp, std::move(upper_shell), 3);
+        append_material(inp, std::move(inner_sphere), 1);
+
+        return inp;
+    }()};
+
+    this->run_test(global);
+}
+
 TEST_F(InputBuilderTest, bgspheres)
 {
     UnitProto global{[] {
@@ -541,6 +600,7 @@ TEST_F(InputBuilderTest, bgspheres)
         append_material(
             inp, make_translated(make_sph("bottom", 3.0), {0, 0, -3}), 2);
         inp.background.fill = GeoMatId{3};
+        inp.background.label = Label{inp.label.name, "bg"};
         return inp;
     }()};
 
@@ -639,6 +699,7 @@ TEST_F(InputBuilderTest, hierarchy)
             Transformation{make_rotation(Axis::x, Turn{0.25}), {0, -5, 0}},
             "e");
         inp.background.fill = GeoMatId{3};
+        inp.background.label = Label{inp.label.name, "bg"};
         return inp;
     }());
 

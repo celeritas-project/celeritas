@@ -35,7 +35,9 @@ class LoggerMessage
 
   public:
     // Construct with reference to function object, etc.
-    inline LoggerMessage(LogHandler* handle, LogProvenance&& prov, LogLevel lev);
+    inline LoggerMessage(LogHandler const* handle,
+                         LogProvenance&& prov,
+                         LogLevel lev);
 
     // Flush message on destruction
     inline ~LoggerMessage();
@@ -54,7 +56,7 @@ class LoggerMessage
     inline void setstate(std::ostream::iostate state);
 
   private:
-    LogHandler* handle_;
+    LogHandler const* handle_;
     LogProvenance prov_;
     LogLevel lev_;
     std::unique_ptr<std::ostringstream> os_;
@@ -73,7 +75,7 @@ class LoggerMessage
  * The handle *may be* null, indicating that the output of this message will
  * not be displayed.
  */
-CELER_FORCEINLINE LoggerMessage::LoggerMessage(LogHandler* handle,
+CELER_FORCEINLINE LoggerMessage::LoggerMessage(LogHandler const* handle,
                                                LogProvenance&& prov,
                                                LogLevel lev)
     : handle_(handle)

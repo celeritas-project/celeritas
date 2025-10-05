@@ -14,6 +14,10 @@ namespace celeritas
 /*!
  * RAII class for initializing and finalizing MPI.
  *
+ * The \c CELER_DISABLE_PARALLEL environment variable can be used to turn off
+ * MPI calls when built with CELERITAS_USE_MPI . \todo Change to
+ * CELER_ENABLE_MPI .
+ *
  * \note Unlike the MpiCommunicator and MpiOperations class, it is not
  * necessary to link against MPI to use this class.
  */

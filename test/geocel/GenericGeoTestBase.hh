@@ -49,6 +49,11 @@ class GenericGeoTestBase : virtual public Test,
     //!@}
 
   public:
+    // Default constructors and anchored destructor
+    GenericGeoTestBase();
+    virtual ~GenericGeoTestBase();
+    CELER_DELETE_COPY_MOVE(GenericGeoTestBase);
+
     // Build geometry during setup
     void SetUp() override;
 
@@ -85,17 +90,12 @@ class GenericGeoTestBase : virtual public Test,
 
     // Get the label for this geometry: Geant4, VecGeom, ORANGE
     std::string_view geometry_type() const final;
-    // Access the geometry interface, building if needed
-    SPConstGeoInterface geometry_interface() const final;
+    // Access the geometry interface
+    GeoParamsInterface const& geometry_interface() const final;
     // Find linear segments until outside
     TrackingResult track(Real3 const& pos_cm, Real3 const& dir) final;
-    // Find linear segments until outside or max_step count is reached
-    TrackingResult
-    track(Real3 const& pos_cm, Real3 const& dir, int max_step) final;
+    // Get the geometry volume path to the given position
     VolumeStackResult volume_stack(Real3 const& pos_cm) final;
-
-    // Get the model input from the geometry
-    ModelInpResult model_inp() const final;
 
   private:
     template<Ownership W, MemSpace M>

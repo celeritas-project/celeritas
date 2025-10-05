@@ -140,8 +140,8 @@ bool NaviTouchableUpdater::operator()(Real3 const& pos,
             CELER_LOG_LOCAL(debug)
                 << "Bumping navigation state by " << repr(g4step)
                 << " [mm] at " << repr(g4pos) << " [mm] along " << repr(g4dir)
-                << " from " << PrintableNavHistory{touchable->GetHistory()}
-                << " to try to reach " << PrintableLV{lv};
+                << " from " << StreamableNavHistory{touchable->GetHistory()}
+                << " to try to reach " << StreamableLV{lv};
         }
 
         // Move to boundary
@@ -164,7 +164,7 @@ bool NaviTouchableUpdater::operator()(Real3 const& pos,
             CELER_LOG_LOCAL(debug)
                 << "Bumped navigation state by " << repr(g4step) << " to "
                 << repr(g4pos) << " to enter "
-                << PrintableNavHistory{touchable->GetHistory()};
+                << StreamableNavHistory{touchable->GetHistory()};
         }
 
         return pv->GetLogicalVolume() == lv;
@@ -201,8 +201,8 @@ bool NaviTouchableUpdater::operator()(Real3 const& pos,
     CELER_LOG_LOCAL(warning)
         << "Failed to bump navigation state up to a distance of " << g4max_step
         << " [mm] at " << repr(g4pos) << " [mm] along " << repr(g4dir)
-        << " to try to reach " << PrintableLV{lv} << ": found "
-        << PrintableNavHistory{touchable->GetHistory()};
+        << " to try to reach " << StreamableLV{lv} << ": found "
+        << StreamableNavHistory{touchable->GetHistory()};
     return false;
 }
 

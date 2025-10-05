@@ -17,6 +17,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/UnitUtils.hh"
+#include "geocel/VolumeParams.hh"
 #include "geocel/g4/GeantGeoTestBase.hh"
 #include "celeritas/Units.hh"
 
@@ -44,8 +45,12 @@ class NaviTouchableUpdaterBase : public ::celeritas::test::GeantGeoTestBase
 
     G4LogicalVolume const* find_lv(std::string const& name) const
     {
-        auto const& geo = *this->geometry();
-        auto const* lv = geo.id_to_geant(geo.impl_volumes().find_unique(name));
+        auto const& vols = *this->volumes();
+        auto vol_id = vols.volume_labels().find_unique(name);
+        CELER_ASSERT(vol_id);
+
+        auto const& ggeo = *this->geant_geo();
+        auto const* lv = ggeo.id_to_geant(vol_id);
         CELER_ENSURE(lv);
         return lv;
     }

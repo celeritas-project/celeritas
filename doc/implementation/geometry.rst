@@ -16,14 +16,15 @@ instantiation is associated with a transformation and
 other metadata. In HEP geometries, child nodes may not overlap each other or
 their enclosing parent volume.
 
-.. table:: Celeritas nomenclature tends toward computer science terminology.
+.. table:: Approximately equivalent geometry structure terminology for
+   Celeritas, Geant4, VecGeom, and SCALE.
 
    +------------------+-------------------------+----------------+--------------------+
-   | Celeritas/ORANGE | Geant4                  | VecGeom        | KENO/SCALE [#sc]_  |
+   | Celeritas        | Geant4                  | VecGeom        | KENO/SCALE [#sc]_  |
    +==================+=========================+================+====================+
    | Object [#ob]_    | Solid                   | Unplaced       | Shape              |
    +------------------+-------------------------+----------------+--------------------+
-   | Volume           | Logical volume          | Logical volume | Unit/array/media   |
+   | Volume           | Logical volume  [#lv]_  | Logical volume | Unit/array/media   |
    +------------------+-------------------------+----------------+--------------------+
    | Volume instance  | Physical volume [#cn]_  | Placed volume  | Hole/array element |
    +------------------+-------------------------+----------------+--------------------+
@@ -31,25 +32,26 @@ their enclosing parent volume.
    +------------------+-------------------------+----------------+--------------------+
    | Parent           | Mother                  | Mother         | ---                |
    +------------------+-------------------------+----------------+--------------------+
-   | Interface        | Border surface          | ---            | Hole/array element |
+   | Interface        | Border surface          | ---            | ---                |
    +------------------+-------------------------+----------------+--------------------+
-   | Boundary         | Skin surface            | ---            | Hole/placement     |
+   | Boundary         | Skin surface            | ---            | ---                |
    +------------------+-------------------------+----------------+--------------------+
-   | Surface          | Surface property [#sp]_ | ---            | ---                |
-   +------------------+-------------------------+----------------+--------------------+
-   | ImplVolume       | ---                     | ---            | Cell               |
+   | Surface          | Logical surface         | ---            | ---                |
    +------------------+-------------------------+----------------+--------------------+
 
 .. [#sc] The KENO geometry package in SCALE :cite:`scale-632` differs
    substantially from Geant4 geometry definitions. In KENO-VI :cite:`kenovi`
    geometry, parent units mask (rather than strictly contain) child units.
 
-.. [#ob] :ref:`api_orange_objects` are used strictly for construction in ORANGE and are not
-   identifiable during runtime.
+.. [#ob] :ref:`api_orange_objects` are used strictly for ORANGE construction in
+   ORANGE and are not identifiable during runtime.
 
-.. [#sp] Surface properties in Geant4 can be referenced by multiple surfaces.
-   Celeritas will duplicate these (although lower-level data deduplication may
-   result in the referencing the same data again at runtime).
+.. [#lv] The ``G4LogicalVolume`` class is equivalent to a volume except that
+   points inside the children are not considered to be part of the volume. The
+   same is true for ``VecGeom::LogicalVolume``.
+
+.. [#cn] One ``G4PVReplica`` volume is expanded into *several* volume
+   instances, one per "multiplicity".
 
 Celeritas defines abstract geometry concepts, indexed as IDs, to support
 multiple geometry applications [#ga]_ and to make the code backend-agnostic for
@@ -64,24 +66,25 @@ fields as "cells") and "surfaces" defined by the relationships between volumes.
 
 Volume
    A *volume* corresponds to a homogeneous physical object that can have multiple
-   instances but is treated identically. It has a specific shape, material,
-   metadata, and associated scoring/sensitive region. Each volume is
-   simply a *node* in the detector geometry graph. This definition differs
-   slightly from Geant4 and VecGeom, where the ``G4LogicalVolume`` and
-   ``UnplacedVolume`` classes directly reference the child geometry nodes and
-   thus implicitly include the objects embedded in a volume. Celeritas refers
-   to user-defined volumes as *canonical* to differentiate them from
-   *implementation* volumes.
+   instances but is treated identically.
+   It has a specific shape, material, metadata, and associated scoring/sensitive region.
+   Each volume is simply a *node* in the detector geometry graph; it does not
+   include its children.
+   The Celeritas codebase sometimes refers to user-defined volumes as
+   *canonical* to differentiate them from *implementation* volumes.
 
 Volume instance
    An *instance* of a volume is defined in conjunction with a transform and an
    enclosing object (or, in the special case of the outermost or "world" volume
-   instance, no enclosing object). In Geant4 this roughly corresponds to a
-   physical volume. [#cn]_ VecGeom refers to volume instances as *placed
-   volumes*. In a user-provided (or SCALE-generated) ORANGE geometry, a volume
+   instance, no enclosing object).
+   In Geant4 this roughly corresponds to a "physical volume," except that
+   Celeritas generates distinct volume instance IDs for every copy provided by
+   a ``G4PVReplica``.
+   VecGeom refers to volume instances as *placed volumes*.
+   In a user-provided (or SCALE-generated) ORANGE geometry, a volume
    instance might correspond to a particular hole placement (i.e., a universe
-   daughter), an array element, or a media entry (i.e., a cell). The volume
-   instance is an *edge* in the graph of volumes.
+   daughter), an array element, or a media entry (i.e., a cell).
+   The volume instance is an *edge* in the graph of volumes.
 
 Unique instance
    A *unique* instance of a volume refers to the logical definition of a
@@ -108,21 +111,11 @@ ImplVolume
    geometry representation/navigation implementation. They may correspond
    more or less to volumes, volume instances, unique volume instances, or
    anywhere in between. Use of these outside an individual geometry is
-   deprecated; legacy parts of the code use these to map between Geant4
+   discouraged; some parts of the code use these to map between Geant4
    pointers and the geometry state. Use the volume/instance/unique volume
    instead, relying on the cpp:class:`celeritas::VolumeParams` and global
    :cpp:class:`celeritas::GeantGeoParams` to convert between the local geometry
    state and the Geant4 navigation.
-
-
-.. [#cn] A *volume instance* has a one-to-one mapping for ``G4PVPlacement``,
-   but "replica" and "parameterized" volumes in Geant4 use a single physical
-   volume object to represent multiple spatial elements. For those, we
-   currently define a :cpp:struct:`celeritas::GeantPhysicalInstance` that is a
-   tuple of physical volume and a *replica instance*, which corresponds to the
-   "copy number" in a replica volume. In the future, the replica numbers will
-   be hidden and one volume instance will map directly to a PV pointer and copy
-   number.
 
 
 .. toctree::

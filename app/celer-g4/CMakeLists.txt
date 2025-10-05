@@ -9,12 +9,10 @@ if(CELERITAS_USE_Geant4)
     ActionInitialization.cc
     DetectorConstruction.cc
     EventAction.cc
-    ExceptionHandler.cc
     GeantDiagnostics.cc
     GlobalSetup.cc
     HepMC3PrimaryGeneratorAction.cc
     LogHandlers.cc
-    PGPrimaryGeneratorAction.cc
     RunAction.cc
     RunInput.cc
     RunInputIO.json.cc
@@ -69,6 +67,7 @@ else()
 endif()
 
 set(_env
+  ${CELER_PYTHONENV}
   ${CELER_G4ENV}
   "CELER_LOG_LOCAL=debug"
   "CELER_DISABLE_PARALLEL=1"

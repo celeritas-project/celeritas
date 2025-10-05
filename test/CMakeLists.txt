@@ -60,6 +60,13 @@ else()
   set(_fixme_cgs DISABLE)
 endif()
 
+# Set up Geant4 environment variables for testing
+if(CELERITAS_USE_Geant4)
+  # Set environment variables from Geant4-exported configuration or
+  # environment currently used only for CTest setup
+  celeritas_get_g4env(CELER_G4ENV)
+endif()
+
 #-----------------------------------------------------------------------------#
 
 add_subdirectory(corecel)

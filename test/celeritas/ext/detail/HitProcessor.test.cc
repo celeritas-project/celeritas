@@ -128,7 +128,6 @@ auto SimpleCmsTest::make_hit_processor() -> HitProcessor
         }
     }
     return HitProcessor{this->make_detector_volumes(),
-                        this->geometry(),
                         this->make_particles(),
                         selection_,
                         locate_touchable_};
@@ -217,7 +216,6 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
         // Note: the volumes correspond to simple-cms and the detector IDs
         // above
         dso.volume_instance_depth = 2;
-        CELER_ASSERT(this->volumes());
         auto const& vi_names = this->volumes()->volume_instance_labels();
         auto wovi = vi_names.find_unique("world_PV");
         auto emvi = vi_names.find_unique("em_calorimeter_pv");
@@ -402,7 +400,6 @@ TEST_F(SimpleCmsTest, touchable_exiting)
         = {Real3{0, 0, 1}, Real3{0, 0, 1}};
 
     dso.volume_instance_depth = 2;
-    CELER_ASSERT(this->volumes());
     auto const& vol_inst = this->volumes()->volume_instance_labels();
     auto wovi = vol_inst.find_unique("world_PV");
     auto sivi = vol_inst.find_unique("si_tracker_pv");

@@ -10,11 +10,11 @@
 
 #include "corecel/Types.hh"
 
+#include "SurfaceModel.hh"
 #include "SurfacePhysicsMapData.hh"
 
 namespace celeritas
 {
-class SurfaceParams;
 //---------------------------------------------------------------------------//
 /*!
  * Create host data for a surface physics map.
@@ -28,16 +28,21 @@ class SurfacePhysicsMapBuilder
     //!@}
 
   public:
-    // Construct with surface data and result to modify
-    SurfacePhysicsMapBuilder(SurfaceParams const& surfaces, HostData& data);
+    // Construct with default surface ID and result to modify
+    SurfacePhysicsMapBuilder(PhysSurfaceId::size_type num_surfaces,
+                             HostData& data);
 
     // Add and index from a surface model
     void operator()(SurfaceModel const& model);
 
   private:
-    SurfaceParams const& surfaces_;
+    //// DATA ////
+
+    //! Data being modified
     HostData& data_;
-    std::set<ActionId> actions_;
+
+    //! Guard against duplicate IDs
+    std::set<SurfaceModelId> surface_models_;
 };
 
 //---------------------------------------------------------------------------//

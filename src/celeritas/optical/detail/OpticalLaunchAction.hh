@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <string_view>
+#include <vector>
 
 #include "corecel/Macros.hh"
 #include "corecel/data/AuxInterface.hh"

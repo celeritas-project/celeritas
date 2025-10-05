@@ -17,7 +17,6 @@ namespace celeritas
 {
 class MaterialParams;
 class ParticleParams;
-class IsotopeView;
 
 //---------------------------------------------------------------------------//
 /*!

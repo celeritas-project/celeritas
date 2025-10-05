@@ -4,14 +4,11 @@
 .. _inp_scoring:
 
 Scoring
-=======
+========
 
 Scoring setup is for measuring and recording physical simulation results.
 
-.. doxygenstruct:: celeritas::inp::Scoring
-   :members:
-   :no-link:
-
+.. celerstruct:: inp::Scoring
 
 Geant4 sensitive detectors
 --------------------------
@@ -19,20 +16,12 @@ Geant4 sensitive detectors
 These options are used to integrate Celeritas with Geant4 sensitive detectors
 by reconstructing Geant4 hits and calling back to user code.
 
-.. doxygenstruct:: celeritas::inp::GeantSd
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::inp::GeantSdStepPointAttributes
-   :members:
-   :no-link:
-
+.. celerstruct:: inp::GeantSd
+.. celerstruct:: inp::GeantSdStepPointAttributes
 
 Independent scoring
 -------------------
 
 This is used to set up :cpp:class:`celeritas::SimpleCalo`.
 
-.. doxygenstruct:: celeritas::inp::SimpleCalo
-   :members:
-   :no-link:
+.. celerstruct:: inp::SimpleCalo

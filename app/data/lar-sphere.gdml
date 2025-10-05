@@ -16,8 +16,6 @@
     <matrix name="ISY" coldim="2" values="1.0e-6 2000 6 4000"/>
     <matrix name="ESY" coldim="2" values="1.0e-6 3750 6 5000"/>
     <matrix name="ESY1" coldim="1" values="4000"/>
-    <matrix name="ELM1" coldim="1" values="1e-4"/>
-    <matrix name="ELS1" coldim="1" values="1e-5"/>
     <matrix name="ERT1" coldim="1" values="15"/>
     <matrix name="ETC1" coldim="1" values="5"/>
     <!-- End of particle scintillation data -->
@@ -92,10 +90,10 @@
       <property name="SCINTILLATIONTIMECONSTANT1" ref="TC1"/>
       <property name="SCINTILLATIONTIMECONSTANT2" ref="TC2"/>
       <property name="SCINTILLATIONTIMECONSTANT3" ref="TC3"/>
-      <property name="SCINTILLATIONLAMBDAMEAN1" ref="LM1"/>
-      <property name="SCINTILLATIONLAMBDAMEAN2" ref="LM2"/>
-      <property name="SCINTILLATIONLAMBDASIGMA1" ref="LS1"/>
-      <property name="SCINTILLATIONLAMBDASIGMA2" ref="LS2"/>
+      <property name="CELER_SCINTILLATIONLAMBDAMEAN1" ref="LM1"/>
+      <property name="CELER_SCINTILLATIONLAMBDAMEAN2" ref="LM2"/>
+      <property name="CELER_SCINTILLATIONLAMBDASIGMA1" ref="LS1"/>
+      <property name="CELER_SCINTILLATIONLAMBDASIGMA2" ref="LS2"/>
       <property name="SCINTILLATIONCOMPONENT3" ref="SC3"/>
       <property name="PROTONSCINTILLATIONYIELD" ref="PSY"/>
       <property name="DEUTERONSCINTILLATIONYIELD" ref="DSY"/>
@@ -106,8 +104,6 @@
       <property name="ELECTRONSCINTILLATIONYIELD1" ref="ESY1"/>
       <property name="ELECTRONSCINTILLATIONRISETIME1" ref="ERT1"/>
       <property name="ELECTRONSCINTILLATIONTIMECONSTANT1" ref="ETC1"/>
-      <property name="ELECTRONSCINTILLATIONLAMBDAMEAN1" ref="ELM1"/>
-      <property name="ELECTRONSCINTILLATIONLAMBDASIGMA1" ref="ELS1"/>
       <property name="RAYLEIGH" ref="RAY"/>
       <property name="ISOTHERMAL_COMPRESSIBILITY" ref="IC"/>
       <property name="ABSLENGTH" ref="ABS"/>

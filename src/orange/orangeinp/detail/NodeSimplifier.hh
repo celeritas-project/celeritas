@@ -55,6 +55,7 @@ class NodeSimplifier
     }
 
   private:
+    CsgTree const& tree_;
     ContainerVisitor<CsgTree const&, NodeId> visit_node_;
 };
 

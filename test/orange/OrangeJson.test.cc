@@ -8,11 +8,13 @@
 #include <string>
 #include <vector>
 
+#include "corecel/StringSimplifier.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/OutputInterface.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/Types.hh"
+#include "orange/Debug.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/OrangeParamsOutput.hh"
 #include "orange/OrangeTrackView.hh"
@@ -50,18 +52,21 @@ class InputBuilderTest : public JsonOrangeTest
     {
         if (basename_.empty())
         {
-            const_cast<InputBuilderTest*>(this)->set_basename();
+            auto* mthis = const_cast<InputBuilderTest*>(this);
+            mthis->basename_ = mthis->make_unique_filename();
         }
         return basename_;
     }
 
-    std::string_view gdml_basename() const { return geometry_basename(); }
+    std::string_view gdml_basename() const override
+    {
+        return geometry_basename();
+    }
+
+  protected:
+    bool supports_surface_normal_{true};
 
   private:
-    void set_basename()
-    {
-        basename_ = const_cast<InputBuilderTest*>(this)->make_unique_filename();
-    }
     std::string basename_;
 };
 
@@ -218,6 +223,13 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
             "c", this->params().impl_volumes().at(other.impl_volume_id()).name);
         EXPECT_FALSE(other.is_outside());
         EXPECT_FALSE(other.is_on_boundary());
+
+        EXPECT_JSON_EQ(
+            R"json({"levels":[{"dir":[0.0,1.0,0.0],"pos":[0.625,-2.0,1.0],"universe":"outer","volume":{"impl":"inner_b@outer","local":2}},{"dir":[0.0,1.0,0.0],"pos":[-1.375,0.0,0.5],"universe":"inner","volume":{"impl":"c@inner","local":4}}],"surface":null})json",
+            to_json_string(geo));
+        EXPECT_JSON_EQ(
+            R"json({"levels":[{"dir":[1.0,0.0,0.0],"pos":[0.625,-2.0,1.0],"universe":"outer","volume":{"impl":"inner_b@outer","local":2}},{"dir":[1.0,0.0,0.0],"pos":[-1.375,0.0,0.5],"universe":"inner","volume":{"impl":"c@inner","local":4}}],"surface":null})json",
+            to_json_string(other));
     }
 }
 
@@ -599,6 +611,10 @@ TEST_F(NestedRectArraysTest, leaving)
     auto geo = this->make_geo_track_view();
     geo = Initializer_t{{3.5, 1.5, 0.5}, {1, 0, 0}};
 
+    EXPECT_JSON_EQ(
+        R"json({"levels":[{"dir":[1.0,0.0,0.0],"pos":[3.5,1.5,0.5],"universe":"global","volume":{"impl":"arrfill@global","local":1}},{"dir":[1.0,0.0,0.0],"pos":[3.5,1.5,0.5],"universe":"parent","volume":{"impl":"parent+@parent","local":1}},{"dir":[1.0,0.0,0.0],"pos":[3.5,1.5,0.5],"universe":"parent+","volume":{"impl":"{1,0,0}@parent+","local":2}},{"dir":[1.0,0.0,0.0],"pos":[1.5,1.5,0.5],"universe":"arr","volume":{"impl":"arr+@arr","local":1}},{"dir":[1.0,0.0,0.0],"pos":[1.5,1.5,0.5],"universe":"arr+","volume":{"impl":"{1,1,0}@arr+","local":3}},{"dir":[1.0,0.0,0.0],"pos":[0.5,0.5,0.5],"universe":"B","volume":{"impl":"Bfill@B","local":1}}],"surface":null})json",
+        StringSimplifier{3}(to_json_string(geo)));
+
     EXPECT_VEC_SOFT_EQ(Real3({3.5, 1.5, 0.5}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
     EXPECT_EQ("Bfill", this->volume_name(geo));
@@ -746,6 +762,44 @@ TEST_F(InputBuilderTest, globalspheres)
 }
 
 //---------------------------------------------------------------------------//
+
+TEST_F(InputBuilderTest, lar_split_detector)
+{
+    auto inf = std::numeric_limits<real_type>::infinity();
+    {
+        auto result = this->track({0, 0, -16}, {0, 0, 1});
+
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
+            "[OUTSIDE]",
+            "outer_region",
+            "lower_shell",
+            "inner",
+            "upper_shell",
+            "outer_region",
+        };
+        ref.volume_instances = {
+            "outer_region@global",
+            "lower_shell@global",
+            "inner@global",
+            "upper_shell@global",
+            "outer_region@global",
+        };
+        ref.distances = {1, 5, 5, 10, 5, 5};
+        ref.halfway_safeties = {2.5, 2.5, inf, 2.5, 2.5};
+        ref.bumps = {};
+        auto tol = this->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
+    }
+
+    {
+        SCOPED_TRACE("Initialize on irrelevant surface");
+        auto geo = this->make_geo_track_view();
+        EXPECT_NO_THROW((geo = Initializer_t{{1, 2, 0}, {0, 0, 1}}));
+    }
+}
+
+//---------------------------------------------------------------------------//
 TEST_F(InputBuilderTest, bgspheres)
 {
     {
@@ -830,6 +884,22 @@ TEST_F(InputBuilderTest, universes)
 //---------------------------------------------------------------------------//
 TEST_F(InputBuilderTest, hierarchy)
 {
+    // FIXME: normal is inconsistent on transformed boundaries!
+    supports_surface_normal_ = false;
+
+    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    {
+        auto geo = this->make_geo_track_view();
+        geo = Initializer_t{{0, -5, -20}, {0, 1, 0}};
+
+        EXPECT_JSON_EQ(
+            R"json({"levels":[
+{"dir":[0.0,1.0,0.0],"pos":[0.0,-5.0,-20.0],"universe":"global","volume":{"impl":"fd@global","local":3}},
+{"dir":[0.0,1.0,0.0],"pos":[0.0,-5.0,0.0],"universe":"filled_daughter","volume":{"impl":"e@filled_daughter","local":2}},
+{"dir":[0.0,0.0,-1.0],"pos":[0.0,0.0,0.0],"universe":"d2","volume":{"impl":"d2@bg","local":1}}
+],"surface":null})json",
+            StringSimplifier{3}(to_json_string(geo)));
+    }
     {
         SCOPED_TRACE("py");
         auto result = this->track({0, -20, 0}, {0, 1, 0});

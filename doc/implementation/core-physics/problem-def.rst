@@ -28,26 +28,26 @@ Setting up problems
 -------------------
 
 Problem data is specified from applications and the Geant4 user interface using
-the :ref:`input` API and loaded through "importers". Different front ends to
-Celeritas use different sets of importers.
+the :ref:`input` API and loaded through "importers". Currently, Celeritas
+relies on Geant4 and external Geant4 data files for its setup.
 
 .. _api_problem_setup_standalone:
 
 Standalone execution
 ^^^^^^^^^^^^^^^^^^^^
 
-Standalone execution describes how to set up physics data (either through
-Geant4 or loaded through an external file) and other problem properties.
+Standalone execution describes how to set up Geant4 physics and what events to
+run.
 
-.. doxygenstruct:: celeritas::inp::StandaloneInput
+.. celerstruct:: inp::StandaloneInput
 
 Standalone inputs must also specify the mechanism for loading primary
 particles. The ``events`` field is a variant that can be one of these
 structures:
 
-.. doxygenstruct:: celeritas::inp::PrimaryGenerator
-.. doxygenstruct:: celeritas::inp::SampleFileEvents
-.. doxygenstruct:: celeritas::inp::ReadFileEvents
+.. celerstruct:: inp::PrimaryGenerator
+.. celerstruct:: inp::SampleFileEvents
+.. celerstruct:: inp::ReadFileEvents
 
 The primary generator, similar to Geant4's "particle gun", has different
 configuration options:
@@ -57,11 +57,11 @@ configuration options:
 .. doxygentypedef:: celeritas::inp::AngleDistribution
 .. doxygentypedef:: celeritas::inp::EnergyDistribution
 
-.. doxygenstruct:: celeritas::inp::PointShape
-.. doxygenstruct:: celeritas::inp::UniformBoxShape
-.. doxygenstruct:: celeritas::inp::IsotropicAngle
-.. doxygenstruct:: celeritas::inp::MonodirectionalAngle
-.. doxygenstruct:: celeritas::inp::Monoenergetic
+.. celerstruct:: inp::PointDistribution
+.. celerstruct:: inp::UniformBoxDistribution
+.. celerstruct:: inp::IsotropicDistribution
+.. celerstruct:: inp::MonodirectionalDistribution
+.. celerstruct:: inp::MonoenergeticDistribution
 
 .. _api_problem_setup_framework:
 
@@ -72,32 +72,16 @@ User applications define the system configuration, as well as what Celeritas
 physics to enable (via :cpp:struct:`GeantImport`). Additional custom physics
 can be added via the ``adjuster`` parameter to set or change any loaded data.
 
-.. doxygenstruct:: celeritas::inp::FrameworkInput
-   :members:
-   :no-link:
+.. celerstruct:: inp::FrameworkInput
 
-
-Importers
-^^^^^^^^^
+Loading data into Celeritas
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Import options are read in to load problem input from various sources.
 
-.. doxygenstruct:: celeritas::inp::FileImport
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::inp::GeantImport
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::inp::GeantDataImport
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::inp::UpdateImport
-   :members:
-   :no-link:
-
+.. celerstruct:: inp::PhysicsFromFile
+.. celerstruct:: inp::PhysicsFromGeant
+.. celerstruct:: inp::PhysicsFromGeantFiles
 
 Setup
 ^^^^^

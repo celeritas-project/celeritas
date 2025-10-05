@@ -31,8 +31,8 @@ class AtomicRelaxationReader
     AtomicRelaxationReader();
 
     // Construct the reader from the paths to the data directory
-    explicit AtomicRelaxationReader(char const* fluor_path,
-                                    char const* auger_path);
+    explicit AtomicRelaxationReader(std::string fluor_path,
+                                    std::string auger_path);
 
     // Read the data for the given element
     result_type operator()(AtomicNumber atomic_number) const;

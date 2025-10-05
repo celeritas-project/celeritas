@@ -8,9 +8,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "geocel/SurfaceData.hh"
 #include "geocel/VolumeSurfaceView.hh"
-#include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/optical/Types.hh"
 
 namespace celeritas

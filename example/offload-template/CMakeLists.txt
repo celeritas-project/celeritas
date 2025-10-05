@@ -5,9 +5,8 @@
 # Minimal Geant4 application with Celeritas offloading capabilities
 #-----------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.18...4.1)
 project(offload-template VERSION 0.0.1 LANGUAGES CXX)
-cmake_policy(VERSION 3.12...3.30)
 
 # Only necessary for the CI
 # Users can export Celeritas_ROOT or set CMAKE_INSTALL_PREFIX
@@ -29,6 +28,10 @@ if(NOT CELERITAS_USE_Geant4)
   message(SEND_ERROR "This example requires Geant4 support "
     "to be enabled in Celeritas")
 endif()
+
+#-----------------------------------------------------------------------------#
+# Configure build info strings for use by run-offload.cc
+configure_file("BuildInfo.hh.in" "BuildInfo.hh")
 
 #-----------------------------------------------------------------------------#
 # Add executable
@@ -59,6 +62,7 @@ add_executable(run-offload
 
 target_include_directories(run-offload PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
 )
 
 # Use special linking macros to support CUDA+VecGeom when used
