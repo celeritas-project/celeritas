@@ -114,7 +114,7 @@ Runner make_runner(json const& input)
 /*!
  * Execute a single raytrace.
  */
-void run_trace(Runner& run_trace,
+void run_trace(Runner& runner,
                TraceSetup const& trace_setup,
                ImageInput const& image_setup)
 {
@@ -126,12 +126,12 @@ void run_trace(Runner& run_trace,
         if (image_setup)
         {
             // User specified a new image setup
-            return run_trace(trace_setup, image_setup);
+            return runner.trace(trace_setup, image_setup);
         }
         else
         {
             // Reuse last image setup
-            return run_trace(trace_setup);
+            return runner.trace(trace_setup);
         }
     }();
     CELER_ASSERT(image);
@@ -157,7 +157,7 @@ void run_trace(Runner& run_trace,
     if (trace_setup.volumes)
     {
         // Get geometry names
-        out["volumes"] = run_trace.get_volumes(trace_setup.geometry);
+        out["volumes"] = runner.get_volumes(trace_setup.geometry);
     }
 
     std::cout << out.dump() << std::endl;
@@ -201,6 +201,11 @@ void run(std::string const& filename)
         {
             CELER_LOG(diagnostic) << "Exiting raytrace loop";
             break;
+        }
+        if (!json_input.is_object())
+        {
+            CELER_LOG(error) << "Invalid JSON input";
+            continue;
         }
 
         // Load required trace setup (geometry/memspace/output)

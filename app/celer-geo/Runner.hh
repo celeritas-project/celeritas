@@ -50,10 +50,10 @@ class Runner
     explicit Runner(ModelSetup const& input);
 
     // Perform a raytrace
-    SPImage operator()(TraceSetup const&, ImageInput const&);
+    SPImage trace(TraceSetup const&, ImageInput const&);
 
     // Perform a raytrace using the last image but a new geometry
-    SPImage operator()(TraceSetup const&);
+    SPImage trace(TraceSetup const&);
 
     //! Access timers
     MapTimers const& timers() const { return timers_; }
