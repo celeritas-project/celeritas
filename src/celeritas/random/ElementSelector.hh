@@ -19,34 +19,23 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Make a weighted random selection of an element.
+ * Select an element from a material using weighted cross sections.
  *
- * The element chooser is for selecting an elemental component (atom) of a
+ * The element selector chooses a component (atomic element) of a
  * material based on the microscopic cross section and the abundance fraction
  * of the element in the material.
  *
  * On construction, the element chooser uses the provided arguments to
  * precalculate all the microscopic cross sections in the given storage space.
- * The given function `calc_micro_xs` must accept a `ElementId` and return a
- * `real_type`, a non-negative microscopic cross section.
+ * The given function \c calc_micro_xs must accept an \c ElementId and return a
+ * microscopic cross section in \c units::BarnXs .
  *
- * The element chooser does \em not calculate macroscopic cross sections
- * because they're multiplied by fraction, not number density, and we only
- * care about the fractional abundances and cross section weighting.
- *
+ * Typical usage:
  * \code
-    ElementSelector select_element(mat, calc_micro, storage);
-    real_type total_macro_xs
-        = select_element.material_micro_xs() * mat.number_density();
+    ElementSelector select_element(mat, calc_micro, mat.element_scratch());
     ElementComponentId id = select_element(rng);
     ElementView el = mat.element_record(id);
-    // use el.Z(), etc.
    \endcode
- *
- * Note that the units of the calculated microscopic cross section will be
- * identical to the units returned by `calc_micro_xs`. The macroscopic cross
- * section units (micro times \c mat.number_density() ) will be 1/len if and
- * only if calc_micro units are len^2.
  */
 class ElementSelector
 {
@@ -87,9 +76,9 @@ class ElementSelector
     SelectorT select_impl_;
 
     //// HELPER FUNCTIONS ////
-    // Fill storage with micro xs, and return the accumulated total macro xs
+    // Fill storage with micro xs, and return the accumulated weighted xs
     template<class MicroXsCalc>
-    static inline CELER_FUNCTION real_type
+    static inline CELER_FUNCTION MicroXs
     store_and_calc_xs(Span<MatElementComponent const> elements,
                       MicroXsCalc&& calc_micro_xs,
                       SpanReal storage);
@@ -107,25 +96,25 @@ CELER_FUNCTION ElementSelector::ElementSelector(MaterialView const& material,
                                                 SpanReal storage)
     : select_impl_{{material.elements(), storage.data()},
                    id_cast<ElementComponentId>(material.num_elements()),
-                   ElementSelector::store_and_calc_xs(
+                   value_as<MicroXs>(ElementSelector::store_and_calc_xs(
                        material.elements(),
                        celeritas::forward<MicroXsCalc>(calc_micro_xs),
-                       storage),
+                       storage)),
                    SelectorNormalization::normalized}
 {
     CELER_EXPECT(material.num_elements() > 0);
 }
 //---------------------------------------------------------------------------//
 /*!
- * Fill storage with micro xs, and return the accumulated total macro xs.
+ * Fill storage with micro xs, and return the weighted micro xs.
  *
  * This is called by the constructor.
  */
 template<class MicroXsCalc>
-CELER_FUNCTION real_type
+CELER_FUNCTION auto
 ElementSelector::store_and_calc_xs(Span<MatElementComponent const> elements,
                                    MicroXsCalc&& calc_micro_xs,
-                                   SpanReal storage)
+                                   SpanReal storage) -> MicroXs
 {
     CELER_EXPECT(storage.size() >= elements.size());
     real_type total_xs{0};
@@ -136,7 +125,7 @@ ElementSelector::store_and_calc_xs(Span<MatElementComponent const> elements,
         storage[i] = micro_xs;
         total_xs += micro_xs * elements[i].fraction;
     }
-    return total_xs;
+    return MicroXs{total_xs};
 }
 
 //---------------------------------------------------------------------------//
