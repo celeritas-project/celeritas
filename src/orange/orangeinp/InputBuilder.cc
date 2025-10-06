@@ -15,6 +15,7 @@
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "corecel/sys/TraceCounter.hh"
 
 #include "ProtoInterface.hh"
 
@@ -129,6 +130,7 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
     }());
     for (auto univ_id : range(UniverseId{protos.size()}))
     {
+        trace_counter("orange-build-universe", univ_id.get());
         protos.at(univ_id)->build(builder);
     }
 
