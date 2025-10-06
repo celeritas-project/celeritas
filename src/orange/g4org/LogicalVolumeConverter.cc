@@ -84,6 +84,8 @@ auto LogicalVolumeConverter::construct_impl(arg_type g4lv) -> SPLV
                          << g4lv.GetSolid()->GetEntityType() << "' named '"
                          << g4lv.GetSolid()->GetName()
                          << "': " << e.details().what;
+        CELER_LOG(debug) << "Solid conversion failed at " << e.details().file
+                         << ':' << e.details().line;
         result->solid = this->convert_solid_.to_sphere(*g4lv.GetSolid());
         CELER_LOG(warning) << "Replaced unknown solid with sphere ("
                            << to_string(*result->solid) << ")";

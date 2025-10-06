@@ -6,10 +6,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/MiniStack.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/random/distribution/Selector.hh"
 #include "geocel/random/IsotropicDistribution.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -74,10 +76,6 @@ class AtomicRelaxation
 
   private:
     using TransitionId = OpaqueId<AtomicRelaxTransition>;
-
-    template<class Engine>
-    inline CELER_FUNCTION TransitionId
-    sample_transition(AtomicRelaxSubshell const& shell, Engine& rng);
 };
 
 //---------------------------------------------------------------------------//
@@ -143,17 +141,25 @@ AtomicRelaxation::operator()(Engine& rng)
         if (vacancy_id.get() >= shells.size())
             continue;
 
-        // Sample a transition (TODO: refactor to use Selector but with
-        // "remainder")
+        // Sample a transition using shell probabilities
         AtomicRelaxSubshell const& shell = shells[vacancy_id.get()];
-        TransitionId const trans_id = this->sample_transition(shell, rng);
+        auto transitions = shared_.transitions[shell.transitions];
+        TransitionId const trans_id = make_unnormalized_selector(
+            [&transitions](TransitionId i) {
+                CELER_ASSERT(i < transitions.size());
+                return transitions[i.unchecked_get()].probability;
+            },
+            id_cast<TransitionId>(transitions.size()),
+            real_type{1})(rng);
 
-        if (!trans_id)
+        if (trans_id == id_cast<TransitionId>(transitions.size()))
+        {
+            // No transition sampled (probability: 1 - sum of transitions)
             continue;
+        }
 
         // Push the new vacancies onto the stack and create the secondary
-        auto const& transition
-            = shared_.transitions[shell.transitions][trans_id.get()];
+        auto const& transition = transitions[trans_id.get()];
         vacancies.push(transition.initial_shell);
         if (transition.auger_shell)
         {
@@ -190,32 +196,6 @@ AtomicRelaxation::operator()(Engine& rng)
     result.count = count;
     result.energy = Energy{sum_energy};
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Sample an atomic transition.
- *
- * TODO: refactor to use a Selector-like algorithm that allows a "remainder"
- * that indicates "not sampled".
- */
-template<class Engine>
-inline CELER_FUNCTION auto
-AtomicRelaxation::sample_transition(AtomicRelaxSubshell const& shell,
-                                    Engine& rng) -> TransitionId
-{
-    auto const& transitions = shared_.transitions[shell.transitions];
-
-    real_type accum = -generate_canonical(rng);
-    for (size_type i = 0; i < transitions.size(); ++i)
-    {
-        accum += transitions[i].probability;
-        if (accum > 0)
-            return TransitionId{i};
-    }
-
-    // No transition was sampled: skip to the next vacancy
-    return {};
 }
 
 //---------------------------------------------------------------------------//

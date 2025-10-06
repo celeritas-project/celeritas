@@ -9,6 +9,7 @@
 #include "corecel/io/Logger.hh"
 #include "celeritas/grid/NonuniformGridInserter.hh"
 #include "celeritas/inp/Grid.hh"
+
 namespace celeritas
 {
 namespace optical
@@ -39,6 +40,10 @@ class MfpBuilder
 
     // Build the grid
     inline void operator()(inp::Grid const& grid);
+
+    // Build an empty grid for models that do not apply in the material
+    inline void operator()();
+
     // Get the range of grid IDs that have been built
     inline GridIdRange grid_ids() const;
 
@@ -63,20 +68,27 @@ MfpBuilder::MfpBuilder(Values* real_data, GridValues* grid_data)
 
 //---------------------------------------------------------------------------//
 /*!
- * Build the grid.
- *
- * Passes its arguments directly to a \c NonuniformGridInserter.
+ * Build a grid.
  */
 void MfpBuilder::operator()(inp::Grid const& grid)
 {
+    CELER_EXPECT(!grid || grid.x.front() >= 0);
     if (!grid)
     {
-        // insert empty grid
-        insert_grid_();
-        return;
+        // Build empty cross sections
+        return (*this)();
     }
 
     insert_grid_(grid);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build an empty grid for zero interaction probability.
+ */
+void MfpBuilder::operator()()
+{
+    insert_grid_();
 }
 
 //---------------------------------------------------------------------------//

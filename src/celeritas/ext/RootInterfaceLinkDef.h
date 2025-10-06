@@ -31,6 +31,7 @@
 #pragma link C++ class celeritas::ImportOpticalParameters+;
 #pragma link C++ class celeritas::ImportOpticalProperty+;
 #pragma link C++ class celeritas::ImportOpticalRayleigh+;
+#pragma link C++ class celeritas::ImportMie+;
 #pragma link C++ class celeritas::ImportParticleScintSpectrum+;
 #pragma link C++ class celeritas::ImportPhysicsTable+;
 #pragma link C++ class celeritas::ImportPhysMaterial+;

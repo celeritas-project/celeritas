@@ -37,8 +37,22 @@
     {
       "name": "release",
       "displayName": "Build with optimizations and disable debug assertions",
-      "inherits": [".base", ".ndebug"],
+      "inherits": [".base", ".release"],
       "binaryDir": "${sourceDir}/build-release"
+    },
+    {
+      "name": "release-amd",
+      "displayName": "Release build for an AMD device",
+      "inherits": [".base", ".release-amd"],
+      "binaryDir": "${sourceDir}/build-release-amd",
+      "cacheVariables": {
+        "CELERITAS_USE_CUDA": {"type": "BOOL", "value": "OFF"},
+        "CMAKE_CUDA_FLAGS": "",
+        "CMAKE_CUDA_ARCHITECTURES": "",
+        "CELERITAS_USE_HIP": {"type": "BOOL", "value": "ON"},
+        "CMAKE_HIP_FLAGS": "-Werror -Wall -Wextra -pedantic",
+        "CMAKE_HIP_ARCHITECTURES" : {"type": "STRING", "value": "gfx942"}
+      }
     },
     {
       "name": "reldeb",
@@ -103,6 +117,7 @@
       "nativeToolOptions": ["-k0"]
     },
     {"name": "release", "configurePreset": "release", "inherits": "base"},
+    {"name": "release-amd", "configurePreset": "release-amd", "inherits": "base"},
     {"name": "reldeb", "configurePreset": "reldeb", "inherits": "base"},
     {"name": "debug", "configurePreset": "debug", "inherits": "base"},
     {"name": "release-orange", "configurePreset": "release-orange", "inherits": "base"},

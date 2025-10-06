@@ -10,14 +10,17 @@
 
 #include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/optical/model/MieModel.hh"
 
 #include "ImportedMaterials.hh"
 #include "ImportedModelAdapter.hh"
 #include "MaterialParams.hh"
 #include "model/AbsorptionModel.hh"
+#include "model/MieModel.hh"
 #include "model/RayleighModel.hh"
 #include "model/WavelengthShiftModel.hh"
 
@@ -81,6 +84,7 @@ auto ModelImporter::operator()(IMC imc) const -> std::optional<ModelBuilder>
         {IMC::rayleigh, &ModelImporter::build_rayleigh},
         {IMC::wls, &ModelImporter::build_wls},
         {IMC::wls2, &ModelImporter::build_wls2},
+        {IMC::mie, &ModelImporter::build_mie},
     };
 
     // Next, try built-in models
@@ -166,6 +170,28 @@ auto ModelImporter::build_wls2() const -> ModelBuilder
     }
     return WavelengthShiftModel::make_builder(this->imported(),
                                               std::move(input));
+}
+//---------------------------------------------------------------------------//
+/*!
+ * Create Mie scattering model builder.
+ */
+auto ModelImporter::build_mie() const -> ModelBuilder
+{
+    CELER_EXPECT(input_.import_material);
+
+    MieModel::Input input;
+    input.model = ImportModelClass::mie;
+    for (auto mid : range(OptMatId{input_.import_material->num_materials()}))
+    {
+        auto mie_data = input_.import_material->mie(mid);
+        input.data.push_back(mie_data);
+    }
+    if (!std::any_of(input.data.begin(), input.data.end(), Identity{}))
+    {
+        // None of the materials have Mie scattering data
+        return {};
+    }
+    return MieModel::make_builder(this->imported(), std::move(input));
 }
 
 //---------------------------------------------------------------------------//

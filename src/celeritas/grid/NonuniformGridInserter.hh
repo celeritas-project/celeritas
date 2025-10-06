@@ -79,7 +79,7 @@ auto NonuniformGridInserter<Index>::operator()(inp::Grid const& grid) -> Index
 
 //---------------------------------------------------------------------------//
 /*!
- * Add an empty grid.
+ * Add an empty grid for disabled models.
  *
  * Useful for when there's no imported grid present for a given material.
  */
