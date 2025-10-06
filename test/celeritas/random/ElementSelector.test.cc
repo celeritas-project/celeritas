@@ -153,7 +153,7 @@ TEST_F(ElementSelectorTest, single)
 }
 
 //! Equal number densities but unequal cross sections
-TEST_F(ElementSelectorTest, TEST_IF_CELERITAS_DOUBLE(everything_even))
+TEST_F(ElementSelectorTest, everything_even)
 {
     MaterialView material(host_mats, mats->find_material("everything_even"));
     ElementSelector select_el(material, mock_micro_xs, this->storage());
@@ -217,14 +217,12 @@ TEST_F(ElementSelectorTest, everything_weighted)
         ++tally[el_id.get()];
     }
 
-    if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
+    if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        GTEST_SKIP() << "Test results are based on double-precision RNG";
+        // Equiprobable
+        int const expected_tally[] = {2574, 2395, 2589, 2442};
+        EXPECT_VEC_EQ(expected_tally, tally);
     }
-
-    // Equiprobable
-    int const expected_tally[] = {2574, 2395, 2589, 2442};
-    EXPECT_VEC_EQ(expected_tally, tally);
 }
 
 //! Many zero cross sections
