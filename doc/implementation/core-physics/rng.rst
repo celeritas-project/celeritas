@@ -60,6 +60,12 @@ Additionally we define a few helper classes for common physics sampling
 routines.
 
 .. doxygenclass:: celeritas::RejectionSampler
+.. doxygenclass:: celeritas::Selector
+.. doxygenfunction:: celeritas::make_selector
+.. doxygenfunction:: celeritas::make_unnormalized_selector
+
+And specifically for elements and isotopes:
+
 .. doxygenclass:: celeritas::ElementSelector
 .. doxygenclass:: celeritas::IsotopeSelector
 .. doxygenclass:: celeritas::TabulatedElementSelector

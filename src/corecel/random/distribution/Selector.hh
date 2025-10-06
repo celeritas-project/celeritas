@@ -30,7 +30,9 @@ enum class SelectorNormalization
  * This algorithm encapsulates the loop for sampling from distributions
  * of a function <code>f(index) -> real</code> (usually with the
  * function prototype \c real_type(*)(size_type) ).
- * The index can be an integer, an enumeration, or an OpaqueId .
+ * The index can be an integer, an enumeration, or an OpaqueId . The Selector
+ * is constructed with the size of the distribution (but using the indexing
+ * type).
  *
  * Edge cases are thoroughly tested (it will never iterate off the end if
  * normalized, even for incorrect values of the "total" probability/xs), and it
@@ -149,6 +151,7 @@ CELER_FUNCTION T Selector<F, T>::operator()(Engine& rng) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Create a normalized on-the-fly discrete PDF sampler.
  */
 template<class F, class T>
 CELER_FUNCTION Selector<F, T>
