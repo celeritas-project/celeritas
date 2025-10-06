@@ -26,6 +26,7 @@
 #include "celeritas/inp/System.hh"
 #include "celeritas/inp/Tracking.hh"
 #include "celeritas/io/EventReader.hh"
+#include "celeritas/io/JsonEventReader.hh"
 #include "celeritas/io/RootEventReader.hh"
 #ifdef _OPENMP
 #    include <omp.h>
@@ -293,11 +294,14 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
             [](inp::PrimaryGenerator const& pg) { return pg.num_events; },
             [](inp::SampleFileEvents const& sfe) { return sfe.num_events; },
             [](inp::ReadFileEvents const& rfe) {
-                if (ends_with(rfe.event_file, ".root"))
+                if (ends_with(rfe.event_file, ".jsonl"))
+                {
+                    return JsonEventReader{rfe.event_file, nullptr}.num_events();
+                }
+                else if (ends_with(rfe.event_file, ".root"))
                 {
                     return RootEventReader{rfe.event_file, nullptr}.num_events();
                 }
-
                 return EventReader{rfe.event_file, nullptr}.num_events();
             },
         },

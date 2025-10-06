@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -64,7 +65,10 @@ class PhysicsTrackView
     // Whether there's a currently calculated MFP
     inline CELER_FUNCTION bool has_interaction_mfp() const;
 
-    //// Step-Local (non-persistent) track data ////
+    //// Cross section calculation ////
+
+    // Calculate the MFP for the given model and energy
+    inline CELER_FUNCTION real_type calc_xs(ModelId, Energy) const;
 
     // Set total cross section of the step
     inline CELER_FUNCTION void macro_xs(real_type xs);
@@ -86,19 +90,18 @@ class PhysicsTrackView
     // ID of the discrete action
     inline CELER_FUNCTION ActionId discrete_action() const;
 
-    //// Mean free path grids ////
-
-    // Get MFP grid ID for the given model
-    inline CELER_FUNCTION ValueGridId mfp_grid(ModelId) const;
-
-    // Calculate the MFP for the given model and energy
-    inline CELER_FUNCTION real_type calc_mfp(ModelId, Energy) const;
-
   private:
+    //// DATA ////
+
     PhysicsParamsRef const& params_;
     PhysicsStateRef const& states_;
     OptMatId const opt_material_;
     TrackSlotId const track_id_;
+
+    //// HELPER FUNCTIONS ////
+
+    // Get MFP grid ID for the given model
+    inline CELER_FUNCTION ValueGridId mfp_grid(ModelId) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -169,6 +172,51 @@ CELER_FUNCTION bool PhysicsTrackView::has_interaction_mfp() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Calculate the macroscopic cross section for the given model.
+ *
+ * The mean free path is interpolated linearly on the model's energy grid using
+ * \c NonuniformGridCalculator, and the result is the macroscopic cross
+ * section.
+ */
+CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ModelId model,
+                                                   Energy energy) const
+{
+    CELER_EXPECT(model < this->num_models());
+
+    auto const& grid = params_.grids[this->mfp_grid(model)];
+    if (!grid)
+    {
+        // Model does not apply: cross section is zero
+        return 0;
+    }
+
+    // Calculate the MFP using the grid, then return its inverse (xs)
+    NonuniformGridCalculator calc{grid, params_.reals};
+    real_type result = calc(value_as<Energy>(energy));
+    CELER_ENSURE(result > 0);
+    return 1 / result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Retrieve total cross section for this step.
+ */
+CELER_FUNCTION real_type PhysicsTrackView::macro_xs() const
+{
+    return states_.macro_xs[track_id_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set total cross section for this step.
+ */
+CELER_FUNCTION void PhysicsTrackView::macro_xs(real_type xs)
+{
+    states_.macro_xs[track_id_] = xs;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Retrieve the number of optical models.
  */
 CELER_FUNCTION ModelId::size_type PhysicsTrackView::num_models() const
@@ -215,6 +263,8 @@ CELER_FUNCTION ActionId PhysicsTrackView::discrete_action() const
 }
 
 //---------------------------------------------------------------------------//
+// PRIVATE HELPER FUNCTIONS
+//---------------------------------------------------------------------------//
 /*!
  * Get the MFP grid ID for the given model.
  *
@@ -230,41 +280,6 @@ CELER_FUNCTION ValueGridId PhysicsTrackView::mfp_grid(ModelId model) const
 
     CELER_ENSURE(grid_id < params_.grids.size());
     return grid_id;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate the MFP for the given model and energy.
- *
- * Energy is interpolated using \c NonuniformGridCalculator for the model's
- * MFP grid.
- */
-CELER_FUNCTION real_type PhysicsTrackView::calc_mfp(ModelId model,
-                                                    Energy energy) const
-{
-    NonuniformGridCalculator calc{params_.grids[this->mfp_grid(model)],
-                                  params_.reals};
-    real_type result = calc(value_as<Energy>(energy));
-    CELER_ENSURE(result > 0);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Retrieve total cross section for this step.
- */
-CELER_FUNCTION real_type PhysicsTrackView::macro_xs() const
-{
-    return states_.macro_xs[track_id_];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Set total cross section for this step.
- */
-CELER_FUNCTION void PhysicsTrackView::macro_xs(real_type xs)
-{
-    states_.macro_xs[track_id_] = xs;
 }
 
 //---------------------------------------------------------------------------//

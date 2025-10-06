@@ -51,6 +51,7 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/Repr.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArraySoftUnit.hh"
 #include "corecel/math/SoftEqual.hh"
@@ -228,19 +229,9 @@ auto calculate_theta_phi(S const& solid) -> std::pair<Turn, Turn>
  * Construct a shape using the solid's name and forwarded arguments.
  */
 template<class CR, class... Args>
-auto make_shape(std::string&& name, Args&&... args)
-{
-    return std::make_shared<Shape<CR>>(std::move(name),
-                                       CR{std::forward<Args>(args)...});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct a shape using the solid's name and forwarded arguments.
- */
-template<class CR, class... Args>
 auto make_shape(G4VSolid const& solid, Args&&... args)
 {
+    using ::celeritas::orangeinp::make_shape;
     return make_shape<CR>(std::string{solid.GetName()},
                           std::forward<Args>(args)...);
 }
@@ -470,15 +461,17 @@ auto SolidConverter::ellipsoid(arg_type solid_base) -> result_type
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert an elliptical cone
+ * Convert an elliptical cone.
  *
  * Expressions for lower/upper radii were found by solving the system of
  * equations given by \c G4EllipticalCone:
  *
- * lower_radii[X]/lower_radii[y] = upper_radii[X]/upper_radii[y],
- * r_x = (lower_radii[X] - upper_radii[X])/(2 hh),
- * r_y = (lower_radii[Y] - upper_radii[Y])/(2 hh),
- * v = hh (lower_radii[X] + upper_radii[X])/(lower_radii[X] - upper_radii[X]).
+ * \verbatim
+   lower_radii[X]/lower_radii[Y] = upper_radii[X]/upper_radii[Y];
+   r_x = (lower_radii[X] - upper_radii[X])/(2 * hh);
+   r_y = (lower_radii[Y] - upper_radii[Y])/(2 * hh);
+   v = hh * (lower_radii[X] + upper_radii[X])/(lower_radii[X] - upper_radii[X])
+ * \endverbatim
  */
 auto SolidConverter::ellipticalcone(arg_type solid_base) -> result_type
 {
@@ -678,12 +671,12 @@ auto SolidConverter::polycone(arg_type solid_base) -> result_type
     auto const& solid = dynamic_cast<G4Polycone const&>(solid_base);
     auto const& params = *solid.GetOriginalParameters();
 
-    std::vector<real_type> zs(params.Num_z_planes);
-    std::vector<real_type> rmin(zs.size());
-    std::vector<real_type> rmax(zs.size());
-    for (auto i : range(zs.size()))
+    std::vector<real_type> z(params.Num_z_planes);
+    std::vector<real_type> rmin(z.size());
+    std::vector<real_type> rmax(z.size());
+    for (auto i : range(z.size()))
     {
-        zs[i] = scale_(params.Z_values[i]);
+        z[i] = scale_(params.Z_values[i]);
         rmin[i] = scale_(params.Rmin[i]);
         rmax[i] = scale_(params.Rmax[i]);
     }
@@ -694,9 +687,15 @@ auto SolidConverter::polycone(arg_type solid_base) -> result_type
         rmin.clear();
     }
 
+    if (!z.empty() && z.front() > z.back())
+    {
+        CELER_LOG(warning) << "Polycone '" << solid.GetName()
+                           << "' z coordinates are out of order: " << repr(z);
+    }
+
     return PolyCone::or_solid(
         std::string{solid.GetName()},
-        PolySegments{std::move(rmin), std::move(rmax), std::move(zs)},
+        PolySegments{std::move(rmin), std::move(rmax), std::move(z)},
         enclosed_azi_from_poly(solid));
 }
 

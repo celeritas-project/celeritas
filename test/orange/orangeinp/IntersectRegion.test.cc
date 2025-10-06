@@ -783,6 +783,7 @@ class GenPrismTest : public IntersectRegionTest
 
 TEST_F(GenPrismTest, construct)
 {
+    using RtErr = RuntimeError;
     // Validate construction parameters
     EXPECT_THROW(GenPrism(-3,
                           {{-1, -1}, {-1, 1}, {1, 1}, {1, -1}},
@@ -806,11 +807,13 @@ TEST_F(GenPrismTest, construct)
                  RuntimeError);  // collinear top and bottom
 
     // Validate TRD-like construction parameters - 5 half-lengths
-    EXPECT_THROW(GenPrism::from_trd(-3, {1, 1}, {2, 2}), RuntimeError);  // dZ<0
-    EXPECT_THROW(GenPrism::from_trd(3, {-1, 1}, {2, 2}), RuntimeError);  // hx1<0
-    EXPECT_THROW(GenPrism::from_trd(3, {1, -1}, {2, 2}), RuntimeError);  // hy1<0
-    EXPECT_THROW(GenPrism::from_trd(3, {1, 1}, {-2, 2}), RuntimeError);  // hx2<0
-    EXPECT_THROW(GenPrism::from_trd(3, {1, 1}, {2, -2}), RuntimeError);  // hy2<0
+    EXPECT_THROW(GenPrism::from_trd(-3, {1, 1}, {2, 2}), RtErr);  // dZ<0
+    EXPECT_THROW(GenPrism::from_trd(3, {-1, 1}, {2, 2}), RtErr);  // hx1<0
+    EXPECT_THROW(GenPrism::from_trd(3, {1, -1}, {2, 2}), RtErr);  // hy1<0
+    EXPECT_THROW(GenPrism::from_trd(3, {1, 1}, {-2, 2}), RtErr);  // hx2<0
+    EXPECT_THROW(GenPrism::from_trd(3, {1, 1}, {2, -2}), RtErr);  // hy2<0
+    EXPECT_THROW(GenPrism::from_trd(3, {0, 1}, {0, 2}), RtErr);  // degen x
+    EXPECT_THROW(GenPrism::from_trd(3, {0, 1}, {1, 0}), RtErr);  // degen
 
     // Trap angles are invalid (note that we do *not* have the restriction of
     // Geant4 that the turns be the same: this just ends up creating a GenPrism
@@ -1126,6 +1129,26 @@ TEST_F(GenPrismTest, trd)
     EXPECT_VEC_SOFT_EQ((Real3{2, 2, 3}), result.exterior.upper());
 
     this->check_corners(result.node_id, pri, 0.1);
+}
+
+// Test a trapezoid used by the ATLAS LAr calorimeter geometry that has a
+// zero-area polygon on the lower face
+TEST_F(GenPrismTest, trd_degen)
+{
+    auto pri = GenPrism::from_trd(3, {0, 1}, {1, 1});
+    auto result = this->test(pri);
+    IntersectTestResult ref;
+    ref.node = "all(-0, -1, -2, +3, +4)";
+    ref.surfaces = {
+        "Plane: z=3",
+        "Plane: n={0.98639,0,-0.16440}, d=0.49320",
+        "Plane: y=1",
+        "Plane: n={0.98639,0,0.16440}, d=-0.49320",
+        "Plane: y=-1",
+    };
+    ref.interior = {};
+    ref.exterior = {{-1, -1, -3}, {1, 1, 3}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(GenPrismTest, trap_theta)

@@ -59,6 +59,13 @@ TEST(PolySegmentsTest, hollow)
     EXPECT_VEC_EQ((Real2{3, 4}), seg.outer(2));
     EXPECT_VEC_EQ((Real2{-1, 0}), seg.z(0));
     EXPECT_VEC_EQ((Real2{2, 6}), seg.z(2));
+
+    // Reversed order
+    using VecReal = PolySegments::VecReal;
+    PolySegments rev({2, 1, 4}, {3, 2, 5}, {6, 4, 1});
+    EXPECT_VEC_EQ(VecReal({4, 1, 2}), rev.inner());
+    EXPECT_VEC_EQ(VecReal({5, 2, 3}), rev.outer());
+    EXPECT_VEC_EQ(VecReal({1, 4, 6}), rev.z());
 }
 
 //---------------------------------------------------------------------------//

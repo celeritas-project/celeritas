@@ -24,7 +24,6 @@ namespace test
  *
  * This defines several particles: proton, d_quark, anti_u_quark, w_minus,
  * gamma; and provides utilities for reading all primaries from a file.
- *
  */
 class EventIOTestBase : public Test
 {
