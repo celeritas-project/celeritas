@@ -183,6 +183,8 @@ CELER_FUNCTION ElementComponentId::size_type MaterialView::num_elements() const
 //---------------------------------------------------------------------------//
 /*!
  * Get element properties from a material-specific index.
+ *
+ * \todo Rename element
  */
 CELER_FUNCTION ElementView MaterialView::element_record(ElementComponentId id) const
 {

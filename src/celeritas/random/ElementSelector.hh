@@ -11,7 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/random/distribution/GenerateCanonical.hh"
+#include "corecel/random/distribution/Selector.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/mat/MaterialView.hh"
 
@@ -39,8 +39,6 @@ namespace celeritas
     real_type total_macro_xs
         = select_element.material_micro_xs() * mat.number_density();
     ElementComponentId id = select_element(rng);
-    real_type selected_micro_xs
-        = select_element.elemental_micro_xs()[el.get()];
     ElementView el = mat.element_record(id);
     // use el.Z(), etc.
    \endcode
@@ -49,8 +47,6 @@ namespace celeritas
  * identical to the units returned by `calc_micro_xs`. The macroscopic cross
  * section units (micro times \c mat.number_density() ) will be 1/len if and
  * only if calc_micro units are len^2.
- *
- * \todo Refactor to use Selector.
  */
 class ElementSelector
 {
@@ -58,7 +54,7 @@ class ElementSelector
     //!@{
     //! \name Type aliases
     using SpanReal = Span<real_type>;
-    using SpanConstReal = LdgSpan<real_type const>;
+    using MicroXs = units::BarnXs;
     //!@}
 
   public:
@@ -70,18 +66,33 @@ class ElementSelector
 
     // Sample with the given RNG
     template<class Engine>
-    inline CELER_FUNCTION ElementComponentId operator()(Engine& rng) const;
-
-    //! Weighted material microscopic cross section
-    CELER_FUNCTION real_type material_micro_xs() const { return material_xs_; }
-
-    // Individual (unweighted) microscopic cross sections
-    inline CELER_FUNCTION SpanConstReal elemental_micro_xs() const;
+    CELER_FORCEINLINE_FUNCTION ElementComponentId operator()(Engine& rng) const
+    {
+        return select_impl_(rng);
+    }
 
   private:
-    Span<MatElementComponent const> elements_;
-    real_type material_xs_{0};
-    real_type* elemental_xs_;
+    //// TYPES ////
+
+    struct MicroXsComponentGetter
+    {
+        Span<MatElementComponent const> elements_;
+        real_type const* elemental_xs_{nullptr};
+
+        inline CELER_FUNCTION real_type operator()(ElementComponentId) const;
+    };
+    using SelectorT = Selector<MicroXsComponentGetter, ElementComponentId>;
+
+    //// DATA ////
+    SelectorT select_impl_;
+
+    //// HELPER FUNCTIONS ////
+    // Fill storage with micro xs, and return the accumulated total macro xs
+    template<class MicroXsCalc>
+    static inline CELER_FUNCTION real_type
+    store_and_calc_xs(Span<MatElementComponent const> elements,
+                      MicroXsCalc&& calc_micro_xs,
+                      SpanReal storage);
 };
 
 //---------------------------------------------------------------------------//
@@ -94,52 +105,50 @@ template<class MicroXsCalc>
 CELER_FUNCTION ElementSelector::ElementSelector(MaterialView const& material,
                                                 MicroXsCalc&& calc_micro_xs,
                                                 SpanReal storage)
-    : elements_(material.elements()), elemental_xs_(storage.data())
+    : select_impl_{{material.elements(), storage.data()},
+                   id_cast<ElementComponentId>(material.num_elements()),
+                   ElementSelector::store_and_calc_xs(
+                       material.elements(),
+                       celeritas::forward<MicroXsCalc>(calc_micro_xs),
+                       storage),
+                   SelectorNormalization::normalized}
 {
-    CELER_EXPECT(!elements_.empty());
-    CELER_EXPECT(storage.size() >= material.num_elements());
-    for (auto i : range<size_type>(elements_.size()))
-    {
-        real_type const micro_xs
-            = (calc_micro_xs(elements_[i].element)).value();
-        CELER_ASSERT(micro_xs >= 0);
-        real_type const frac = elements_[i].fraction;
-
-        elemental_xs_[i] = micro_xs;
-        material_xs_ += micro_xs * frac;
-    }
-    CELER_ENSURE(material_xs_ >= 0);
+    CELER_EXPECT(material.num_elements() > 0);
 }
-
 //---------------------------------------------------------------------------//
 /*!
- * Sample the element with the given RNG.
+ * Fill storage with micro xs, and return the accumulated total macro xs.
  *
- * To reduce register usage, this function starts with the cumulative sums and
- * counts backward.
+ * This is called by the constructor.
  */
-template<class Engine>
-CELER_FUNCTION ElementComponentId ElementSelector::operator()(Engine& rng) const
+template<class MicroXsCalc>
+CELER_FUNCTION real_type
+ElementSelector::store_and_calc_xs(Span<MatElementComponent const> elements,
+                                   MicroXsCalc&& calc_micro_xs,
+                                   SpanReal storage)
 {
-    real_type accum_xs = -material_xs_ * generate_canonical(rng);
-    size_type i = 0;
-    size_type imax = elements_.size() - 1;
-    for (; i != imax; ++i)
+    CELER_EXPECT(storage.size() >= elements.size());
+    real_type total_xs{0};
+    for (auto i : range<size_type>(elements.size()))
     {
-        accum_xs += elements_[i].fraction * elemental_xs_[i];
-        if (accum_xs > 0)
-            break;
+        auto micro_xs = value_as<MicroXs>(calc_micro_xs(elements[i].element));
+        CELER_ASSERT(micro_xs >= 0);
+        storage[i] = micro_xs;
+        total_xs += micro_xs * elements[i].fraction;
     }
-    return ElementComponentId{i};
+    return total_xs;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get individual microscopic cross sections.
+ * Get weighted cross section for the given element component.
  */
-CELER_FUNCTION auto ElementSelector::elemental_micro_xs() const -> SpanConstReal
+CELER_FUNCTION real_type
+ElementSelector::MicroXsComponentGetter::operator()(ElementComponentId i) const
 {
-    return {elemental_xs_, elements_.size()};
+    CELER_EXPECT(i < elements_.size());
+    return elements_[i.unchecked_get()].fraction
+           * elemental_xs_[i.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//

@@ -66,8 +66,8 @@ routines.
 
 And specifically for elements and isotopes:
 
+.. doxygenfunction:: celeritas::make_isotope_selector
 .. doxygenclass:: celeritas::ElementSelector
-.. doxygenclass:: celeritas::IsotopeSelector
 .. doxygenclass:: celeritas::TabulatedElementSelector
 
 The physics model implementations are built on top of these helper

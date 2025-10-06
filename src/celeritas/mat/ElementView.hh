@@ -96,6 +96,7 @@ ElementView::ElementView(MaterialParamsRef const& params, ElementId el_id)
     : params_(params), def_(params.elements[el_id])
 {
     CELER_EXPECT(el_id < params.elements.size());
+    CELER_EXPECT(this->num_isotopes() > 0);
 }
 
 //---------------------------------------------------------------------------//

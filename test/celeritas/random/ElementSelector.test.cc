@@ -9,6 +9,7 @@
 #include <memory>
 #include <random>
 
+#include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/random/SequenceEngine.hh"
 #include "celeritas/Quantities.hh"
@@ -75,14 +76,22 @@ class ElementSelectorTest : public Test
         mats = std::make_shared<MaterialParams>(std::move(inp));
         host_mats = mats->host_ref();
 
-        // Allocate storage
-        storage.assign(mats->max_element_components(), -1);
+        // Allocate storage_
+        storage_.assign(mats->max_element_components(), -1);
+    }
+
+    Span<real_type> storage() { return make_span(storage_); }
+
+    Span<real_type> storage(size_type num_elements)
+    {
+        CELER_EXPECT(num_elements <= storage_.size());
+        return this->storage().subspan(0, num_elements);
     }
 
     std::shared_ptr<MaterialParams> mats;
     MaterialParamsRef host_mats;
     RandomEngine rng;
-    std::vector<real_type> storage;
+    std::vector<real_type> storage_;
 };
 
 // Return cross section proportional to the element ID offset by 1.
@@ -120,7 +129,7 @@ struct CalcFancyMicroXs
 TEST_F(ElementSelectorTest, TEST_IF_CELERITAS_DEBUG(vacuum))
 {
     MaterialView material(mats->host_ref(), mats->find_material("hard_vacuum"));
-    EXPECT_THROW(ElementSelector(material, mock_micro_xs, make_span(storage)),
+    EXPECT_THROW(ElementSelector(material, mock_micro_xs, this->storage()),
                  DebugError);
 }
 
@@ -128,13 +137,12 @@ TEST_F(ElementSelectorTest, TEST_IF_CELERITAS_DEBUG(vacuum))
 TEST_F(ElementSelectorTest, single)
 {
     MaterialView material(host_mats, mats->find_material("Al"));
-    ElementSelector select_el(material, mock_micro_xs, make_span(storage));
+    ElementSelector select_el(material, mock_micro_xs, this->storage());
 
     // Construction should have precalculated cross sections
     real_type const expected_elemental_micro_xs[] = {3};
     EXPECT_VEC_SOFT_EQ(expected_elemental_micro_xs,
-                       select_el.elemental_micro_xs());
-    EXPECT_SOFT_EQ(3.0, select_el.material_micro_xs());
+                       this->storage(material.num_elements()));
 
     // Select a single element
     for ([[maybe_unused]] auto i : range(100))
@@ -148,13 +156,12 @@ TEST_F(ElementSelectorTest, single)
 TEST_F(ElementSelectorTest, TEST_IF_CELERITAS_DOUBLE(everything_even))
 {
     MaterialView material(host_mats, mats->find_material("everything_even"));
-    ElementSelector select_el(material, mock_micro_xs, make_span(storage));
+    ElementSelector select_el(material, mock_micro_xs, this->storage());
 
     // Test cross sections
     real_type const expected_elemental_micro_xs[] = {1, 2, 3, 4};
     EXPECT_VEC_SOFT_EQ(expected_elemental_micro_xs,
-                       select_el.elemental_micro_xs());
-    EXPECT_SOFT_EQ(2.5, select_el.material_micro_xs());
+                       this->storage(material.num_elements()));
 
     // Select a single element
     std::vector<int> tally(material.num_elements(), 0);
@@ -174,7 +181,7 @@ TEST_F(ElementSelectorTest, TEST_IF_CELERITAS_DOUBLE(everything_even))
 TEST_F(ElementSelectorTest, everything_even_seq)
 {
     MaterialView material(host_mats, mats->find_material("everything_even"));
-    ElementSelector select_el(material, mock_micro_xs, make_span(storage));
+    ElementSelector select_el(material, mock_micro_xs, this->storage());
 
     // Test with sequence engine
     auto seq_rng = SequenceEngine::from_reals(
@@ -194,13 +201,12 @@ TEST_F(ElementSelectorTest, everything_weighted)
 {
     MaterialView material(host_mats,
                           mats->find_material("everything_weighted"));
-    ElementSelector select_el(material, mock_micro_xs, make_span(storage));
+    ElementSelector select_el(material, mock_micro_xs, this->storage());
 
     // Test cross sections
     real_type const expected_elemental_micro_xs[] = {1, 2, 3, 4};
     EXPECT_VEC_SOFT_EQ(expected_elemental_micro_xs,
-                       select_el.elemental_micro_xs());
-    EXPECT_SOFT_EQ(1.92, select_el.material_micro_xs());
+                       this->storage(material.num_elements()));
 
     // Select a single element
     std::vector<int> tally(material.num_elements(), 0);
@@ -228,7 +234,7 @@ TEST_F(ElementSelectorTest, even_zero_xs)
     auto calc_xs = [](ElementId el) -> BarnXs {
         return BarnXs((el.get() % 2 ? 1 : 0));
     };
-    ElementSelector select_el(material, calc_xs, make_span(storage));
+    ElementSelector select_el(material, calc_xs, this->storage());
 
     auto seq_rng = SequenceEngine::from_reals({0.0, 0.01, 0.49, 0.5, 0.51});
     std::vector<int> selection;
@@ -248,14 +254,13 @@ TEST_F(ElementSelectorTest, fancy_xs)
     MaterialView material(host_mats,
                           mats->find_material("everything_weighted"));
     ElementSelector select_el(
-        material, CalcFancyMicroXs{host_mats, energy}, make_span(storage));
+        material, CalcFancyMicroXs{host_mats, energy}, this->storage());
 
     // Test cross sections
     real_type const expected_elemental_micro_xs[] = {
         0.008130081300813, 0.01808113894772, 0.01911654217659, 0.0305389085709};
     EXPECT_VEC_SOFT_EQ(expected_elemental_micro_xs,
-                       select_el.elemental_micro_xs());
-    EXPECT_SOFT_EQ(0.014965228148605575, select_el.material_micro_xs());
+                       this->storage(material.num_elements()));
 }
 //---------------------------------------------------------------------------//
 }  // namespace test
