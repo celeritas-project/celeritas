@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/io/ImportOpticalModel.hh"
 
 #include "Model.hh"
@@ -24,6 +25,7 @@ struct ImportData;
 struct ImportOpticalParameters;
 struct ImportOpticalRayleigh;
 struct ImportWavelengthShift;
+struct ImportMie;
 
 namespace optical
 {
@@ -99,6 +101,7 @@ class ModelImporter
     ModelBuilder build_rayleigh() const;
     ModelBuilder build_wls() const;
     ModelBuilder build_wls2() const;
+    ModelBuilder build_mie() const;
 };
 
 //---------------------------------------------------------------------------//

@@ -87,6 +87,8 @@ list(APPEND SOURCES
   io/ImportOpticalModel.cc
   io/ImportProcess.cc
   io/ImportUnits.cc
+  io/JsonEventReader.cc
+  io/JsonEventWriter.cc
   io/LivermorePEReader.cc
   io/NeutronXsReader.cc
   io/SeltzerBergerReader.cc
@@ -349,6 +351,7 @@ celeritas_polysource(global/detail/TrackSlotUtils)
 celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
 celeritas_polysource(neutron/model/NeutronInelasticModel)
 celeritas_polysource(optical/model/AbsorptionModel)
+celeritas_polysource(optical/model/MieModel)
 celeritas_polysource(optical/model/RayleighModel)
 celeritas_polysource(optical/model/WavelengthShiftModel)
 celeritas_polysource(optical/action/AlongStepAction)
@@ -363,6 +366,7 @@ celeritas_polysource(optical/gen/PrimaryGeneratorAction)
 celeritas_polysource(optical/gen/detail/GeneratorAlgorithms)
 celeritas_polysource(optical/gen/detail/OffloadAlgorithms)
 celeritas_polysource(optical/surface/BoundaryAction)
+celeritas_polysource(optical/surface/model/PolishedRoughnessModel)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)
 celeritas_polysource(phys/detail/TrackingCutAction)

@@ -157,6 +157,27 @@ struct ImportWavelengthShift
 
 //---------------------------------------------------------------------------//
 /*!
+ * Store Mie scattering properties (Henyey–Greenstein model).
+ */
+struct ImportMie
+{
+    //! Henyey–Greenstein "g" parameter for forward scattering
+    double forward_g{};
+    //! Henyey–Greenstein "g" parameter for backward scattering
+    double backward_g{};
+    //! Fraction of forward vs backward scattering
+    double forward_ratio{};
+
+    //! Whether all data are assigned and valid
+    explicit operator bool() const
+    {
+        return forward_ratio >= 0 && forward_ratio <= 1 && forward_g >= -1
+               && forward_g <= 1 && backward_g >= -1 && backward_g <= 1;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Store optical material properties.
  *
  * \todo boolean for enabling cherenkov in the material?? DUNE e.g. disables
@@ -172,6 +193,7 @@ struct ImportOpticalMaterial
     ImportOpticalRayleigh rayleigh;
     ImportWavelengthShift wls;
     ImportWavelengthShift wls2;
+    ImportMie mie;
     //!@}
 
     //! Whether minimal useful data is stored

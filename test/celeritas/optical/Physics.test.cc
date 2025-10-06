@@ -171,7 +171,7 @@ TEST_F(OpticalPhysicsTest, TEST_IF_CELERITAS_DOUBLE(select_discrete))
     for (auto model : range(ModelId{num_models}))
     {
         model_xs[model.get()]
-            = 1 / physics.calc_mfp(model, this->make_particle_view().energy());
+            = physics.calc_xs(model, this->make_particle_view().energy());
         total_xs += model_xs[model.get()];
     }
     physics.macro_xs(total_xs);
@@ -314,42 +314,6 @@ TEST_F(OpticalPhysicsTest, track_view_interaction_mfp)
         auto const physics
             = this->make_track_view(cycle_material_id(track + 5), track);
         EXPECT_FALSE(physics.has_interaction_mfp());
-    }
-}
-
-//---------------------------------------------------------------------------//
-/* Test MFP grid ID access by track views.
- *
- * Valid grid construction tested by \c MfpBuilder tests. Here we just check
- * that grids retrieved by the track view correspond to the expected data.
- */
-TEST_F(OpticalPhysicsTest, track_view_grids)
-{
-    TrackSlotId::size_type num_tracks = 10;
-    this->initialize_states(num_tracks);
-
-    auto const& grids = this->optical_physics()->host_ref().grids;
-    auto const& reals = this->optical_physics()->host_ref().reals;
-
-    for (auto track_id : range(TrackSlotId{num_tracks}))
-    {
-        for (auto mat_id : range(OptMatId(this->num_optical_materials())))
-        {
-            auto const physics = this->make_track_view(mat_id, track_id);
-
-            for (auto model_id : range(ModelId{physics.num_models()}))
-            {
-                auto grid_id = physics.mfp_grid(model_id);
-
-                ASSERT_LT(grid_id, grids.size());
-                ValueGrid const& grid = grids[grid_id];
-
-                EXPECT_VEC_EQ(expected_mfp_grid(mat_id, model_id).x,
-                              reals[grid.grid]);
-                EXPECT_VEC_EQ(expected_mfp_grid(mat_id, model_id).y,
-                              reals[grid.value]);
-            }
-        }
     }
 }
 
