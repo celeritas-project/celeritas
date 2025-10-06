@@ -16,6 +16,9 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 ## Presentations
 
+- S. Tognini. "Muon-catalyzed fusion beamline simulation using Celeritas". *SciDAC PI meeting*, 16 Sep 2025.
+- S. R. Johnson. "New integrations and capabilities in Celeritas". *SciDAC PI meeting*, 16 Sep 2025.
+- S. R. Johnson. "Celeritas SciDAC update: toward production use". *SciDAC PI meeting*, 16 Sep 2025.
 - H. Hollenbeck. "GPU-accelerated Optical Physics in Detector Simulations". *ACAT 2025*, 11 Sep 2025. [presentation](https://indico.cern.ch/event/1488410/contributions/6562823/attachments/3132977/5558230/hollenbeck-celeritas.pdf)
 - S. Tognini. "Celeritas: Bringing GPU capabilities to HEP detector simulation". *2nd Annual US Muon Collider Meeting*, 07 Aug 2025. [poster](https://indico.uchicago.edu/event/479/contributions/2088/attachments/838/1337/poster.pdf)
 - S. R. Johnson. "Celeritas for LHCb". *LHCb Week*, 16 Jun 2025. [presentation](https://indico.cern.ch/event/1555409/contributions/6557235/attachments/3087215/5466168/celeritas.pdf)
