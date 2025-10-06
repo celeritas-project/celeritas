@@ -33,7 +33,7 @@ class CsgObjectTest : public ObjectTestBase
     //! Avoid implicit floating point casts by calling this function
     SPConstObject make_sphere(std::string&& name, real_type radius)
     {
-        return std::make_shared<SphereShape>(std::move(name), radius);
+        return make_shape<Sphere>(std::move(name), radius);
     }
 
     //! Create a translated object
@@ -311,6 +311,64 @@ TEST_F(CsgObjectTest, subtraction)
     EXPECT_VEC_EQ(expected_trans_strings, transform_strings(u));
 }
 
+// Add a test of an object that can't be deleted from the ATLAS boundary
+TEST_F(CsgObjectTest, subtraction_atlas)
+{
+    // Shape definitions are from SolidConverter.test.cc
+    using VR2 = GenPrism::VecReal2;
+    auto trap = make_shape<GenPrism>(
+        "trap",
+        23.75,
+        VR2{{4.75, -30.70}, {4.75, 30.70}, {-4.75, 30.70}, {-4.75, -30.70}},
+        VR2{{4.75, -25.917}, {4.75, 25.917}, {-4.75, 25.917}, {-4.75, -25.917}});
+    auto box = make_shape<Box>("box", Real3{5.0, 24.48, 15.0});
+    auto trbox = std::make_shared<Transformed>(
+        box,
+        Transformation{make_rotation(Axis::x, Turn{41.592 / 360}),
+                       {0, -22.349, 19.388}});
+
+    auto sub = make_subtraction("LAr::DM::SPliceBoxr", trap, trbox);
+    ASSERT_TRUE(sub);
+    EXPECT_JSON_EQ(
+        R"json({"_type":"all","daughters":[{"_type":"shape","interior":{"_type":"genprism","halfheight":23.75,"lower":[[4.75,-30.7],[4.75,30.7],[-4.75,30.7],[-4.75,-30.7]],"upper":[[4.75,-25.917],[4.75,25.917],[-4.75,25.917],[-4.75,-25.917]]},"label":"trap"},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[5.0,24.48,15.0]},"label":"box"},"transform":{"_type":"transformation","data":[1.0,0.0,0.0,0.0,0.7478907847960848,-0.6638217938702345,0.0,0.6638217938702345,0.7478907847960848,0.0,-22.349,19.388]}},"label":""}],"label":"LAr::DM::SPliceBoxr"})json",
+        to_string(*sub));
+
+    this->build_volume(*sub);
+
+    static char const* const expected_surface_strings[] = {
+        "Plane: z=-23.75",
+        "Plane: z=23.75",
+        "Plane: x=4.75",
+        "Plane: n={0,0.99497,0.10019}, d=28.166",
+        "Plane: x=-4.75",
+        "Plane: n={0,0.99497,-0.10019}, d=-28.166",
+        "Plane: x=-5",
+        "Plane: x=5",
+        "Plane: n={0,0.74789,0.66382}, d=-28.324",
+        "Plane: n={0,0.74789,0.66382}, d=20.636",
+        "Plane: n={0,0.66382,-0.74789}, d=-14.336",
+        "Plane: n={0,0.66382,-0.74789}, d=-44.336",
+    };
+    static char const* const expected_volume_strings[]
+        = {"all(+0, -1, -2, -3, +4, +5, !all(+6, -7, +8, -9, -10, +11))"};
+    static char const* const expected_md_strings[] = {
+        "",       "",        "trap@mz", "trap@pz",
+        "",       "trap@p0", "",        "trap@p1",
+        "",       "trap@p2", "trap@p3", "trap",
+        "box@mx", "box@px",  "",        "box@my",
+        "box@py", "",        "box@mz",  "",
+        "box@pz", "box",     "",        "LAr::DM::SPliceBoxr",
+    };
+    static char const expected_tree_string[]
+        = R"json(["t",["~",0],["S",0],["S",1],["~",3],["S",2],["~",5],["S",3],["~",7],["S",4],["S",5],["&",[2,4,6,8,9,10]],["S",6],["S",7],["~",13],["S",8],["S",9],["~",16],["S",10],["~",18],["S",11],["&",[12,14,15,17,19,20]],["~",21],["&",[2,4,6,8,9,10,22]]])json";
+
+    auto const& u = this->unit();
+    EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+    EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+    EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
+}
+
 TEST_F(CsgObjectTest, rdv)
 {
     auto apple = this->make_sphere("apple", 1.0);
@@ -343,32 +401,28 @@ TEST_F(CsgObjectTest, rdv)
         "air",
         "biteair",
     };
-    static char const* const expected_bound_strings[]
-        = {"~2: {{{-0.866,-0.866,-0.866}, {0.866,0.866,0.866}}, {{-1,-1,-1}, "
-           "{1,1,1}}}",
-           "3: {{{-0.866,-0.866,-0.866}, {0.866,0.866,0.866}}, {{-1,-1,-1}, "
-           "{1,1,1}}}",
-           "~4: {{{-0.433,-0.433,0.567}, {0.433,0.433,1.43}}, "
-           "{{-0.5,-0.5,0.5}, {0.5,0.5,1.5}}}",
-           "5: {{{-0.433,-0.433,0.567}, {0.433,0.433,1.43}}, "
-           "{{-0.5,-0.5,0.5}, {0.5,0.5,1.5}}}",
-           "6: {null, inf}",
-           "~7: {{{-1.08,-1.08,2.92}, {1.08,1.08,5.08}}, {{-1.25,-1.25,2.75}, "
-           "{1.25,1.25,5.25}}}",
-           "8: {{{-1.08,-1.08,2.92}, {1.08,1.08,5.08}}, {{-1.25,-1.25,2.75}, "
-           "{1.25,1.25,5.25}}}",
-           "9: {null, inf}",
-           "10: {{{-0.433,-0.433,0.567}, {0.433,0.433,0.866}}, "
-           "{{-0.5,-0.5,0.5}, {0.5,0.5,1}}}"};
-    static char const* const expected_trans_strings[] = {"2: t=0 -> {}",
-                                                         "3: t=0",
-                                                         "4: t=0",
-                                                         "5: t=1 -> {{0,0,1}}",
-                                                         "6: t=0",
-                                                         "7: t=0",
-                                                         "8: t=2 -> {{0,0,4}}",
-                                                         "9: t=0",
-                                                         "10: t=0"};
+    static char const* const expected_bound_strings[] = {
+        R"(~2: {{{-0.866,-0.866,-0.866}, {0.866,0.866,0.866}}, {{-1,-1,-1}, {1,1,1}}})",
+        R"(3: {{{-0.866,-0.866,-0.866}, {0.866,0.866,0.866}}, {{-1,-1,-1}, {1,1,1}}})",
+        R"(~4: {{{-0.433,-0.433,0.567}, {0.433,0.433,1.43}}, {{-0.5,-0.5,0.5}, {0.5,0.5,1.5}}})",
+        R"(5: {{{-0.433,-0.433,0.567}, {0.433,0.433,1.43}}, {{-0.5,-0.5,0.5}, {0.5,0.5,1.5}}})",
+        "6: {null, inf}",
+        R"(~7: {{{-1.08,-1.08,2.92}, {1.08,1.08,5.08}}, {{-1.25,-1.25,2.75}, {1.25,1.25,5.25}}})",
+        R"(8: {{{-1.08,-1.08,2.92}, {1.08,1.08,5.08}}, {{-1.25,-1.25,2.75}, {1.25,1.25,5.25}}})",
+        "9: {null, inf}",
+        R"(10: {{{-0.433,-0.433,0.567}, {0.433,0.433,0.866}}, {{-0.5,-0.5,0.5}, {0.5,0.5,1}}})",
+    };
+    static char const* const expected_trans_strings[] = {
+        "2: t=0 -> {}",
+        "3: t=0",
+        "4: t=0",
+        "5: t=1 -> {{0,0,1}}",
+        "6: t=0",
+        "7: t=0",
+        "8: t=2 -> {{0,0,4}}",
+        "9: t=0",
+        "10: t=0",
+    };
     static int const expected_volume_nodes[] = {6, 8, 9, 10};
 
     auto const& u = this->unit();

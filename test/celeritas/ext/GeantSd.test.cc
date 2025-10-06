@@ -237,7 +237,8 @@ TEST_F(SimpleCmsTest, detached_detector)
 {
     // Detector for LV that isn't in the world tree
     sd_setup_.skip_volumes = {};
-    sd_setup_.force_volumes = std::unordered_set{SimpleCmsTest::detached_lv};
+    sd_setup_.force_volumes = std::unordered_set<G4LogicalVolume const*>{
+        SimpleCmsTest::detached_lv};
     EXPECT_THROW(
         try {
             this->make_hit_manager();

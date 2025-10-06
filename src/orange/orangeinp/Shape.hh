@@ -111,6 +111,17 @@ template<class T>
 Shape(std::string&&, T&&) -> Shape<T>;
 
 //---------------------------------------------------------------------------//
+/*!
+ * Construct a shape by forwarding intersect region arguments.
+ */
+template<class IR, class... Args>
+auto make_shape(std::string&& name, Args&&... args)
+{
+    return std::make_shared<Shape<IR>>(std::move(name),
+                                       IR(std::forward<Args>(args)...));
+}
+
+//---------------------------------------------------------------------------//
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
 
