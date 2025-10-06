@@ -136,6 +136,14 @@
       "inherits": ["type-reldeb", ".vecgeom", "spack"]
     },
     {
+      "name": "reldeb-vecgeom-code-coverage",
+      "description": "FINAL: VecGeom and code coverage",
+      "inherits": ["type-reldeb", ".vecgeom", "spack"],
+      "cacheVariables": {
+        "CELERITAS_CODE_COVERAGE": {"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
       "name": "reldeb-vgsurf",
       "description": "FINAL: release, assertions, VecGeom 2+surf",
       "inherits": ["type-reldeb", ".vecgeom", "spack"]

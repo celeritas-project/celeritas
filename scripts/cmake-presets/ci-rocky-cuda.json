@@ -90,6 +90,14 @@
         "BUILD_TESTING":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
       }
+    },
+    {
+      "name": "reldeb-vecgeom-code-coverage",
+      "description": "Build with RelWithDebInfo, VecGeom and code coverage",
+      "inherits": [".reldeb", ".vecgeom", "base"],
+      "cacheVariables": {
+        "CELERITAS_CODE_COVERAGE": {"type": "BOOL", "value": "ON"}
+      }
     }
   ],
   "buildPresets": [
