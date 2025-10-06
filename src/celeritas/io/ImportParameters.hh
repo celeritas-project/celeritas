@@ -42,6 +42,8 @@ struct ImportEmParameters
     double lowest_electron_energy{0.001};
     //! Lowest muon/hadron kinetic energy [MeV]
     double lowest_muhad_energy{0.001};
+    //! Whether fluorescence via atomic relaxation is enabled
+    bool fluorescence{false};
     //! Whether auger emission should be enabled (valid only for relaxation)
     bool auger{false};
     //! MSC step limit algorithm for e-/e+
@@ -71,6 +73,10 @@ struct ImportEmParameters
     double angle_limit_factor{1};
     //! Nuclear form factor model for Coulomb scattering
     NuclearFormFactorType form_factor{NuclearFormFactorType::exponential};
+
+    //! Use spline interpolation (*NOT* from geant; set from data selection as
+    //! a stopgap for use in celeritas::setup)
+    inp::Interpolation interpolation{};
 
     //! Whether parameters are assigned and valid
     explicit operator bool() const

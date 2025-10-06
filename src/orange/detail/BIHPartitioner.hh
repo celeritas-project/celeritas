@@ -70,7 +70,7 @@ class BIHPartitioner
     }
 
     // Find a suitable partition for the given bounding boxes
-    Partition operator()(VecIndices const& indicies) const;
+    Partition operator()(VecIndices const& indices) const;
 
   private:
     /// TYPES ///

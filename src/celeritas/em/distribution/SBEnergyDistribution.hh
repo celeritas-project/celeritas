@@ -154,7 +154,8 @@ CELER_FUNCTION auto SBEnergyDistribution<X>::operator()(Engine& rng) -> Energy
         // Sample scaled energy and subtract correction factor
         exit_energy = helper_.sample_exit_energy(rng);
 
-        // Interpolate the differential cross setion at the sampled exit energy
+        // Interpolate the differential cross section at the sampled exit
+        // energy
         xs = helper_.calc_xs(exit_energy).value() * scale_xs_(exit_energy);
     } while (RejectionSampler<>(xs, helper_.max_xs().value())(rng));
     return exit_energy;

@@ -153,7 +153,7 @@ InteractionApplierBaseImpl<F>::operator()(celeritas::CoreTrackView const& track)
                 // Secondary is an electron, positron or gamma with energy
                 // below the production cut -- deposit the energy locally
                 // and clear the secondary
-                deposition += secondary.energy.value();
+                deposition += secondary.energy.value() * sim.weight();
                 auto sec_par = track.particle_record(secondary.particle_id);
                 if (sec_par.is_antiparticle())
                 {

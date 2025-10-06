@@ -21,8 +21,11 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Perform Regula Falsi (see RegulaFalsi for more details) iterations given a
- * root function \em func and tolerance \em tol using the Illinois method.
+ * Solve for a single local root using the Illinois method.
+ *
+ * Perform Regula Falsi (see celeritas::RegulaFalsiSolver for more details)
+ * iterations given a root function \em func and tolerance \em tol using the
+ * Illinois method.
  *
  * Illinois method modifies the standard approach by comparing the sign of
  * \em func(root) approximation in the current iteration with the previous
@@ -76,7 +79,7 @@ template<class F>
 CELER_FUNCTION real_type IllinoisRootFinder<F>::operator()(real_type left,
                                                            real_type right)
 {
-    //! Enum defining side of aproximated root to true root
+    //! Enum defining side of approximated root to true root
     enum class Side
     {
         left = -1,

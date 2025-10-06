@@ -1,6 +1,8 @@
 .. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 .. SPDX-License-Identifier: CC-BY-4.0
 
+.. highlight:: none
+
 .. _api_orange:
 
 ORANGE
@@ -11,6 +13,8 @@ The Oak Ridge Advanced Nested Geometry Engine (ORANGE)
 execution to support platform portability in Celeritas. It can be built via its
 interface to SCALE or constructed automatically from Geant4 geometry
 representation.
+
+.. doxygenclass:: celeritas::OrangeParams
 
 Construction API
 ----------------
@@ -30,13 +34,20 @@ helps construct these objects.
 .. doxygenclass:: celeritas::orangeinp::Cone
 .. doxygenclass:: celeritas::orangeinp::Cylinder
 .. doxygenclass:: celeritas::orangeinp::Ellipsoid
+.. doxygenclass:: celeritas::orangeinp::EllipticalCylinder
+.. doxygenclass:: celeritas::orangeinp::EllipticalCone
 .. doxygenclass:: celeritas::orangeinp::ExtrudedPolygon
 .. doxygenclass:: celeritas::orangeinp::GenPrism
-.. doxygenclass:: celeritas::orangeinp::InfWedge
+.. doxygenclass:: celeritas::orangeinp::InfPlane
+.. doxygenclass:: celeritas::orangeinp::InfAziWedge
+.. doxygenclass:: celeritas::orangeinp::InfPolarWedge
 .. doxygenclass:: celeritas::orangeinp::Involute
+.. doxygenclass:: celeritas::orangeinp::Paraboloid
 .. doxygenclass:: celeritas::orangeinp::Parallelepiped
 .. doxygenclass:: celeritas::orangeinp::Prism
 .. doxygenclass:: celeritas::orangeinp::Sphere
+
+.. _api_orange_objects:
 
 Objects
 ^^^^^^^
@@ -68,78 +79,42 @@ AnyObjects, AllObjects, and NegatedObject
    are implemented as templates of a JoinObjects class.
 
 Objects are typically constructed and used as shared pointers so that they can
-be reused in multiple locations.
+be reused in multiple locations. :numref:`fig-orangeinp-types` summarizes these types.
+
+.. _fig-orangeinp-types:
+
+.. figure:: /_static/mermaid/orangeinp-types.*
+   :align: center
+   :width: 80%
+
+   Examples of objects and "intersect regions" used by ORANGE input
+   preprocessing.
+
+
+.. highlight:: cpp
 
 .. doxygenclass:: celeritas::orangeinp::Shape
-
 .. doxygenclass:: celeritas::orangeinp::Solid
+.. doxygenclass:: celeritas::orangeinp::Truncated
+
+.. highlight:: none
 
 .. doxygenclass:: celeritas::orangeinp::PolyCone
-
+.. doxygenclass:: celeritas::orangeinp::PolyPrism
+.. doxygenclass:: celeritas::orangeinp::RevolvedPolygon
 .. doxygenclass:: celeritas::orangeinp::StackedExtrudedPolygon
+
+.. highlight:: cpp
 
 .. doxygenclass:: celeritas::orangeinp::Transformed
 
 .. doxygenclass:: celeritas::orangeinp::NegatedObject
-
 .. doxygenclass:: celeritas::orangeinp::JoinObjects
 
 .. doxygenfunction:: celeritas::orangeinp::make_subtraction
-
 .. doxygenfunction:: celeritas::orangeinp::make_rdv
 
 
-.. mermaid::
-
-   classDiagram
-     Object <|-- Transformed
-     Object <|-- Shape
-     Object <|-- NegatedObject
-     Object <|-- JoinObjects
-     ShapeBase <|-- Shape
-     class Object {
-       +string_view label()*
-       +NodeId build(VolumeBuilder&)*
-     }
-     <<Interface>> Object
-     class Transformed {
-       -SPConstObject obj
-       -VariantTransform transform
-     }
-     Transformed *-- Object
-
-     class ShapeBase {
-       #IntersectRegion const& interior()*
-     }
-     <<Abstract>> ShapeBase
-
-     class Shape {
-       -string label;
-       -IntersectRegion region;
-     }
-     Shape *-- IntersectRegion
-
-     class IntersectRegion {
-       +void build(IntersectSurfaceBuilder&)*
-     }
-     <<Interface>> IntersectRegion
-     IntersectRegion <|-- Box
-     IntersectRegion <|-- Sphere
-
-     class Box {
-       -Real3 halfwidths
-     }
-     class Sphere {
-       -real_type radius
-     }
-
-     Shape <|.. BoxShape
-     Shape <|.. SphereShape
-
-     BoxShape *-- Box
-     SphereShape *-- Sphere
-
-.. stop weird vim formatting here... |--|
 
 CSG unit
 ^^^^^^^^
@@ -195,9 +170,7 @@ each become a CSG unit. This decomposition is currently tuned so that:
 
 .. _Geant4 documentation: https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/index.html
 
-Runtime interfaces
-------------------
-
-.. doxygenclass:: celeritas::OrangeParams
+Runtime interface
+-----------------
 
 .. doxygenclass:: celeritas::OrangeTrackView

@@ -8,7 +8,6 @@
 
 #include "orange/surf/FaceNamer.hh"
 
-#include "CsgUnitBuilder.hh"
 #include "IntersectSurfaceState.hh"
 #include "VolumeBuilder.hh"
 #include "../IntersectRegion.hh"

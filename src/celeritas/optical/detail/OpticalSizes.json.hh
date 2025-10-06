@@ -24,7 +24,6 @@ namespace detail
 struct OpticalSizes
 {
     size_type generators{};
-    size_type initializers{};
     size_type tracks{};
     size_type streams{};
 };
@@ -35,7 +34,6 @@ void to_json(nlohmann::json& j, OpticalSizes const& inp)
 {
     j = {
         CELER_JSON_PAIR(inp, generators),
-        CELER_JSON_PAIR(inp, initializers),
         CELER_JSON_PAIR(inp, tracks),
         CELER_JSON_PAIR(inp, streams),
     };

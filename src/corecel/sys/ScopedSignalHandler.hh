@@ -25,9 +25,8 @@ namespace celeritas
  * When the class exits scope, the signal for the active type will be cleared.
  *
  * Signal handling can be disabled by setting the environment variable \c
- * CELER_DISABLE_SIGNALS to a
- * non-empty value, but hopefully this will not be necessary because signal
- * handling should be used sparingly.
+ * CELER_DISABLE_SIGNALS flag, but hopefully this will not be necessary because
+ * signal handling should be used sparingly.
  *
  * \code
    #include <csignal>
@@ -53,6 +52,10 @@ namespace celeritas
       return interrupted() ? 1 : 0;
    }
    \endcode
+ *
+ * \warning This class is not thread safe. If multiple threads have this in
+ * scope, only one active (and indeterminate!) thread will mark the flag as
+ * intercepted.
  */
 class ScopedSignalHandler
 {
@@ -64,7 +67,7 @@ class ScopedSignalHandler
 
   public:
     // Whether signals are enabled
-    static bool allow_signals();
+    static bool enabled();
 
     // Raise a signal visible only to ScopedSignalHandler (for testing)
     static int raise(signal_type sig);

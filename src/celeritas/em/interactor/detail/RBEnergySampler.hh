@@ -56,7 +56,7 @@ class RBEnergySampler
   private:
     //// DATA ////
 
-    // Differential cross section calcuator
+    // Differential cross section calculator
     RBDiffXsCalculator calc_dxsec_;
     // Square of minimum of incident particle energy and cutoff
     real_type tmin_sq_;

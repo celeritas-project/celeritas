@@ -62,22 +62,13 @@ Field data input and options
 JSON input for the field setup corresponds to the uniform field input
 :cpp:struct:`celeritas::inp::UniformField` and the rz-map field input:
 
-.. doxygenstruct:: celeritas::RZMapFieldInput
-   :members:
-   :no-link:
+.. celerstruct:: RZMapFieldInput
 
 as well as fully Cartesian or cylindrical input:
 
-.. doxygenstruct:: celeritas::CartMapFieldInput
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::CylMapFieldInput
-   :members:
-   :no-link:
+.. celerstruct:: CartMapFieldInput
+.. celerstruct:: CylMapFieldInput
 
 The field driver options are not yet a stable part of the API:
 
-.. doxygenstruct:: celeritas::FieldDriverOptions
-   :members:
-   :no-link:
+.. celerstruct:: FieldDriverOptions

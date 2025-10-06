@@ -8,11 +8,13 @@
 #include <string>
 #include <vector>
 
+#include "corecel/StringSimplifier.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/OutputInterface.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/Types.hh"
+#include "orange/Debug.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/OrangeParamsOutput.hh"
 #include "orange/OrangeTrackView.hh"
@@ -34,31 +36,51 @@ class JsonOrangeTest : public OrangeGeoTestBase
     size_type num_track_slots() const override { return 2; }
     Constant unit_length() const override { return Constant{1}; }
 
+    virtual std::string_view geometry_basename() const = 0;
+
     void SetUp() final
     {
-        this->build_geometry(this->geometry_basename() + ".org.json");
+        this->build_geometry(std::string{this->geometry_basename()}
+                             + ".org.json");
     }
 };
 
 class InputBuilderTest : public JsonOrangeTest
 {
-    std::string geometry_basename() const final
+  public:
+    std::string_view geometry_basename() const final
     {
-        return const_cast<InputBuilderTest*>(this)->make_unique_filename();
+        if (basename_.empty())
+        {
+            auto* mthis = const_cast<InputBuilderTest*>(this);
+            mthis->basename_ = mthis->make_unique_filename();
+        }
+        return basename_;
     }
+
+    std::string_view gdml_basename() const override
+    {
+        return geometry_basename();
+    }
+
+  protected:
+    bool supports_surface_normal_{true};
+
+  private:
+    std::string basename_;
 };
 
 //---------------------------------------------------------------------------//
 class FiveVolumesTest : public JsonOrangeTest
 {
-    std::string geometry_basename() const final { return "five-volumes"; }
+    std::string_view geometry_basename() const final { return "five-volumes"; }
 };
 
 TEST_F(FiveVolumesTest, params)
 {
     OrangeParams const& geo = this->params();
 
-    EXPECT_EQ(6, geo.volumes().size());
+    EXPECT_EQ(6, geo.impl_volumes().size());
     EXPECT_EQ(12, geo.surfaces().size());
     EXPECT_FALSE(geo.supports_safety());
 }
@@ -66,13 +88,13 @@ TEST_F(FiveVolumesTest, params)
 //---------------------------------------------------------------------------//
 class UniversesTest : public JsonOrangeTest
 {
-    std::string geometry_basename() const final { return "universes"; }
+    std::string_view geometry_basename() const final { return "universes"; }
 };
 
 TEST_F(UniversesTest, params)
 {
     OrangeParams const& geo = this->params();
-    EXPECT_EQ(12, geo.volumes().size());
+    EXPECT_EQ(12, geo.impl_volumes().size());
     EXPECT_EQ(25, geo.surfaces().size());
     EXPECT_EQ(3, geo.max_depth());
     EXPECT_FALSE(geo.supports_safety());
@@ -80,22 +102,24 @@ TEST_F(UniversesTest, params)
     EXPECT_VEC_SOFT_EQ(Real3({-2, -6, -1}), geo.bbox().lower());
     EXPECT_VEC_SOFT_EQ(Real3({8, 4, 2}), geo.bbox().upper());
 
-    std::vector<std::string> expected = {"[EXTERIOR]",
-                                         "inner_a",
-                                         "inner_b",
-                                         "bobby",
-                                         "johnny",
-                                         "[EXTERIOR]",
-                                         "inner_c",
-                                         "a",
-                                         "b",
-                                         "c",
-                                         "[EXTERIOR]",
-                                         "patty"};
+    std::vector<std::string> expected = {
+        "[EXTERIOR]",
+        "inner_a",
+        "inner_b",
+        "bobby",
+        "johnny",
+        "[EXTERIOR]",
+        "inner_c",
+        "a",
+        "b",
+        "c",
+        "[EXTERIOR]",
+        "patty",
+    };
     std::vector<std::string> actual;
-    for (auto const id : range(VolumeId{geo.volumes().size()}))
+    for (auto const id : range(ImplVolumeId{geo.impl_volumes().size()}))
     {
-        actual.push_back(geo.volumes().at(id).name);
+        actual.push_back(geo.impl_volumes().at(id).name);
     }
 
     EXPECT_VEC_EQ(expected, actual);
@@ -195,9 +219,17 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
         other = Initializer_t{geo.pos(), {1, 0, 0}, TrackSlotId{0}};
         EXPECT_VEC_SOFT_EQ(Real3({0.625, -2, 1}), other.pos());
         EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), other.dir());
-        EXPECT_EQ("c", this->params().volumes().at(other.volume_id()).name);
+        EXPECT_EQ(
+            "c", this->params().impl_volumes().at(other.impl_volume_id()).name);
         EXPECT_FALSE(other.is_outside());
         EXPECT_FALSE(other.is_on_boundary());
+
+        EXPECT_JSON_EQ(
+            R"json({"levels":[{"dir":[0.0,1.0,0.0],"pos":[0.625,-2.0,1.0],"universe":"outer","volume":{"impl":"inner_b@outer","local":2}},{"dir":[0.0,1.0,0.0],"pos":[-1.375,0.0,0.5],"universe":"inner","volume":{"impl":"c@inner","local":4}}],"surface":null})json",
+            to_json_string(geo));
+        EXPECT_JSON_EQ(
+            R"json({"levels":[{"dir":[1.0,0.0,0.0],"pos":[0.625,-2.0,1.0],"universe":"outer","volume":{"impl":"inner_b@outer","local":2}},{"dir":[1.0,0.0,0.0],"pos":[-1.375,0.0,0.5],"universe":"inner","volume":{"impl":"c@inner","local":4}}],"surface":null})json",
+            to_json_string(other));
     }
 }
 
@@ -508,13 +540,13 @@ TEST_F(UniversesTest, reentrant)
 //---------------------------------------------------------------------------//
 class RectArrayTest : public JsonOrangeTest
 {
-    std::string geometry_basename() const final { return "rect-array"; }
+    std::string_view geometry_basename() const final { return "rect-array"; }
 };
 
 TEST_F(RectArrayTest, params)
 {
     OrangeParams const& geo = this->params();
-    EXPECT_EQ(35, geo.volumes().size());
+    EXPECT_EQ(35, geo.impl_volumes().size());
     EXPECT_EQ(22, geo.surfaces().size());
     EXPECT_EQ(4, geo.max_depth());
     EXPECT_FALSE(geo.supports_safety());
@@ -537,7 +569,7 @@ TEST_F(RectArrayTest, tracking)
 
 class NestedRectArraysTest : public JsonOrangeTest
 {
-    std::string geometry_basename() const final
+    std::string_view geometry_basename() const final
     {
         return "nested-rect-arrays";
     }
@@ -579,6 +611,10 @@ TEST_F(NestedRectArraysTest, leaving)
     auto geo = this->make_geo_track_view();
     geo = Initializer_t{{3.5, 1.5, 0.5}, {1, 0, 0}};
 
+    EXPECT_JSON_EQ(
+        R"json({"levels":[{"dir":[1.0,0.0,0.0],"pos":[3.5,1.5,0.5],"universe":"global","volume":{"impl":"arrfill@global","local":1}},{"dir":[1.0,0.0,0.0],"pos":[3.5,1.5,0.5],"universe":"parent","volume":{"impl":"parent+@parent","local":1}},{"dir":[1.0,0.0,0.0],"pos":[3.5,1.5,0.5],"universe":"parent+","volume":{"impl":"{1,0,0}@parent+","local":2}},{"dir":[1.0,0.0,0.0],"pos":[1.5,1.5,0.5],"universe":"arr","volume":{"impl":"arr+@arr","local":1}},{"dir":[1.0,0.0,0.0],"pos":[1.5,1.5,0.5],"universe":"arr+","volume":{"impl":"{1,1,0}@arr+","local":3}},{"dir":[1.0,0.0,0.0],"pos":[0.5,0.5,0.5],"universe":"B","volume":{"impl":"Bfill@B","local":1}}],"surface":null})json",
+        StringSimplifier{3}(to_json_string(geo)));
+
     EXPECT_VEC_SOFT_EQ(Real3({3.5, 1.5, 0.5}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
     EXPECT_EQ("Bfill", this->volume_name(geo));
@@ -608,7 +644,10 @@ TEST_F(NestedRectArraysTest, leaving)
 //---------------------------------------------------------------------------//
 class Geant4Testem15Test : public JsonOrangeTest
 {
-    std::string geometry_basename() const final { return "geant4-testem15"; }
+    std::string_view geometry_basename() const final
+    {
+        return "geant4-testem15";
+    }
 };
 
 TEST_F(Geant4Testem15Test, safety)
@@ -618,8 +657,8 @@ TEST_F(Geant4Testem15Test, safety)
     geo = Initializer_t{{0, 0, 0}, {1, 0, 0}};
     EXPECT_VEC_SOFT_EQ(Real3({0, 0, 0}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
-    EXPECT_EQ(VolumeId{1}, geo.volume_id());
-    EXPECT_EQ(InternalSurfaceId{}, geo.internal_surface_id());
+    EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
+    EXPECT_EQ(ImplSurfaceId{}, geo.impl_surface_id());
     EXPECT_FALSE(geo.is_outside());
 
     // Safety at middle should be to the box boundary
@@ -647,7 +686,7 @@ TEST_F(Geant4Testem15Test, safety)
 
 class HexArrayTest : public JsonOrangeTest
 {
-    std::string geometry_basename() const final { return "hex-array"; }
+    std::string_view geometry_basename() const final { return "hex-array"; }
 };
 
 TEST_F(HexArrayTest, TEST_IF_CELERITAS_DOUBLE(output))
@@ -682,7 +721,7 @@ TEST_F(HexArrayTest, track_out)
 
 class TestEM3Test : public JsonOrangeTest
 {
-    std::string geometry_basename() const final { return "testem3"; }
+    std::string_view geometry_basename() const final { return "testem3"; }
 };
 
 // Test safety distance within a geometry that supports simple safety
@@ -720,6 +759,44 @@ TEST_F(InputBuilderTest, globalspheres)
     EXPECT_JSON_EQ(
         R"json({"_category":"internal","_label":"orange","scalars":{"max_depth":1,"max_faces":2,"max_intersections":4,"max_logic_depth":2,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":3,"inner_nodes":0,"leaf_nodes":1,"local_volume_ids":3},"connectivity_records":2,"daughters":0,"local_surface_ids":4,"local_volume_ids":4,"logic_ints":7,"real_ids":2,"reals":2,"rect_arrays":0,"simple_units":1,"surface_types":2,"transforms":0,"universe_indices":1,"universe_types":1,"volume_records":3},"surfaces":{"label":["[EXTERIOR]@global","inner@s"]}})json",
         to_string(out));
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(InputBuilderTest, lar_split_detector)
+{
+    auto inf = std::numeric_limits<real_type>::infinity();
+    {
+        auto result = this->track({0, 0, -16}, {0, 0, 1});
+
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
+            "[OUTSIDE]",
+            "outer_region",
+            "lower_shell",
+            "inner",
+            "upper_shell",
+            "outer_region",
+        };
+        ref.volume_instances = {
+            "outer_region@global",
+            "lower_shell@global",
+            "inner@global",
+            "upper_shell@global",
+            "outer_region@global",
+        };
+        ref.distances = {1, 5, 5, 10, 5, 5};
+        ref.halfway_safeties = {2.5, 2.5, inf, 2.5, 2.5};
+        ref.bumps = {};
+        auto tol = this->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
+    }
+
+    {
+        SCOPED_TRACE("Initialize on irrelevant surface");
+        auto geo = this->make_geo_track_view();
+        EXPECT_NO_THROW((geo = Initializer_t{{1, 2, 0}, {0, 0, 1}}));
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -807,6 +884,22 @@ TEST_F(InputBuilderTest, universes)
 //---------------------------------------------------------------------------//
 TEST_F(InputBuilderTest, hierarchy)
 {
+    // FIXME: normal is inconsistent on transformed boundaries!
+    supports_surface_normal_ = false;
+
+    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    {
+        auto geo = this->make_geo_track_view();
+        geo = Initializer_t{{0, -5, -20}, {0, 1, 0}};
+
+        EXPECT_JSON_EQ(
+            R"json({"levels":[
+{"dir":[0.0,1.0,0.0],"pos":[0.0,-5.0,-20.0],"universe":"global","volume":{"impl":"fd@global","local":3}},
+{"dir":[0.0,1.0,0.0],"pos":[0.0,-5.0,0.0],"universe":"filled_daughter","volume":{"impl":"e@filled_daughter","local":2}},
+{"dir":[0.0,0.0,-1.0],"pos":[0.0,0.0,0.0],"universe":"d2","volume":{"impl":"d2@bg","local":1}}
+],"surface":null})json",
+            StringSimplifier{3}(to_json_string(geo)));
+    }
     {
         SCOPED_TRACE("py");
         auto result = this->track({0, -20, 0}, {0, 1, 0});

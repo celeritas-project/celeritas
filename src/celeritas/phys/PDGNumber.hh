@@ -87,7 +87,7 @@ inline constexpr bool operator<(PDGNumber lhs, PDGNumber rhs)
  *
  * This namespace acts an enumeration for PDG codes that are used by the
  * various processes in Celeritas. (Unlike an enumeration, though, PDG codes
- * can be arbitary and aren't limited to the ones defined below.) They should
+ * can be arbitrary and aren't limited to the ones defined below.) They should
  * be extended as needed when new particle types are used by processes.
  *
  * PDG numbers between 81 and 100 are reserved for internal use.

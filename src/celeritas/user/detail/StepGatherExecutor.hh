@@ -11,6 +11,7 @@
 #include "corecel/Types.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/user/StepData.hh"
 
 namespace celeritas
 {
@@ -77,7 +78,7 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
         {
             auto const geo = track.geometry();
             CELER_ASSERT(!geo.is_outside());
-            VolumeId vol = geo.volume_id();
+            ImplVolumeId vol = geo.impl_volume_id();
             CELER_ASSERT(vol);
 
             // Map volume ID to detector ID
@@ -132,10 +133,12 @@ StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
         {
             SGL_SET_IF_SELECTED(event_id, sim.event_id());
             SGL_SET_IF_SELECTED(parent_id, sim.parent_id());
+            SGL_SET_IF_SELECTED(primary_id, sim.primary_id());
             SGL_SET_IF_SELECTED(track_step_count, sim.num_steps());
 
             SGL_SET_IF_SELECTED(action_id, sim.post_step_action());
             SGL_SET_IF_SELECTED(step_length, sim.step_length());
+            SGL_SET_IF_SELECTED(weight, sim.weight());
         }
     }
 
@@ -145,7 +148,8 @@ StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
         SGL_SET_IF_SELECTED(points[P].pos, geo.pos());
         SGL_SET_IF_SELECTED(points[P].dir, geo.dir());
         SGL_SET_IF_SELECTED(points[P].volume_id,
-                            geo.is_outside() ? VolumeId{} : geo.volume_id());
+                            geo.is_outside() ? ImplVolumeId{}
+                                             : geo.impl_volume_id());
 
         if (this->params.selection.points[P].volume_instance_ids)
         {

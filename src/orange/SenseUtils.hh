@@ -157,14 +157,14 @@ class SenseValue
         return *this;
     }
 
-    //! Check wether there is a cached sense value
+    //! Check whether there is a cached sense value
     CELER_CONSTEXPR_FUNCTION bool is_assigned() const
     {
         return sense_[is_assigned_bit];
     }
 
     //! Clear the sense value
-    CELER_CONSTEXPR_FUNCTION void clear() { sense_.reset(); }
+    CELER_CONSTEXPR_FUNCTION void reset() { sense_.reset(); }
 
   private:
     Bitset<2> sense_;

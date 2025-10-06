@@ -21,7 +21,7 @@ namespace celeritas
  *
  * A material is a combination of nuclides/elements at a particular state (e.g.
  * density, temperature). The proportions and identities of a material's
- * constitutents are encoded in the \c elements accessor, where each index of
+ * constituents are encoded in the \c elements accessor, where each index of
  * the returned span corresponds to an \c ElementComponentId for this material.
  * The \c get_element_density and \c element_view helper functions can be used
  * to calculate elemental densities and properties.
@@ -158,7 +158,7 @@ CELER_FUNCTION MatterState MaterialView::matter_state() const
 /*!
  * Get the index in the optical properties for this material.
  *
- * This will return an invalid ID if the material has no optical properties
+ * This will return a null ID if the material has no optical properties
  * attached.
  */
 CELER_FUNCTION OptMatId MaterialView::optical_material_id() const
@@ -183,6 +183,8 @@ CELER_FUNCTION ElementComponentId::size_type MaterialView::num_elements() const
 //---------------------------------------------------------------------------//
 /*!
  * Get element properties from a material-specific index.
+ *
+ * \todo Rename element
  */
 CELER_FUNCTION ElementView MaterialView::element_record(ElementComponentId id) const
 {

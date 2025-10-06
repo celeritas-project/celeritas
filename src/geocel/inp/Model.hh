@@ -29,6 +29,9 @@ namespace inp
  * IDs and instance IDs, we should just have a vector of volume instances here.
  *
  * \todo Add region definitions.
+ *
+ * \note Currently, to support internal geometry mappings a volume \em is
+ * allowed to be null.
  */
 struct Volume
 {
@@ -56,8 +59,6 @@ struct VolumeInstance
     //! Logical volume referenced by this instance
     VolumeId volume;
 
-    // TODO: replica numbers
-
     //! True if it has a label and ID
     explicit operator bool() const { return volume && !label.empty(); }
 };
@@ -72,9 +73,11 @@ struct Volumes
     std::vector<Volume> volumes;
     //! Properties of edges in the graph (physical volumes)
     std::vector<VolumeInstance> volume_instances;
+    //! Root volume of the geometry graph
+    VolumeId world;
 
     //! True if at least one node is defined
-    explicit operator bool() const { return !volumes.empty(); }
+    explicit operator bool() const { return !volumes.empty() && world; }
 };
 
 //---------------------------------------------------------------------------//
@@ -102,6 +105,37 @@ struct Surfaces
     using VecSurface = std::vector<Surface>;
 
     VecSurface surfaces;
+
+    //! True if at least one surface is defined
+    explicit operator bool() const { return !surfaces.empty(); }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Define a single sensitive detector region.
+ *
+ * A detector is constructed by a list of volumes which create the volume
+ * region and a label for the detector region.
+ */
+
+struct Detector
+{
+    Label label;
+    std::vector<VolumeId> volumes;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * List all detector regions in a problem.
+ */
+struct Detectors
+{
+    using VecDetector = std::vector<Detector>;
+
+    VecDetector detectors;
+
+    //! True if at least one detector is defined
+    explicit operator bool() const { return !detectors.empty(); }
 };
 
 //---------------------------------------------------------------------------//
@@ -124,6 +158,7 @@ struct Model
     // TODO: Regions
     Volumes volumes;
     Surfaces surfaces;
+    Detectors detectors;
 };
 
 //---------------------------------------------------------------------------//

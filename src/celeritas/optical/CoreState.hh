@@ -75,6 +75,9 @@ class CoreStateBase : public CoreStateInterface
     CoreStateCounters const& counters() const final { return counters_; }
 
     //! Optical loop statistics
+    OpticalAccumStats const& accum() const { return accum_; }
+
+    //! Optical loop statistics
     OpticalAccumStats& accum() { return accum_; }
 
   private:
@@ -135,7 +138,7 @@ class CoreState final : public CoreStateBase
     //! Get a native-memspace pointer to the mutable state data
     Ptr ptr() { return ptr_; }
 
-    //! Reset the state data
+    // Reset the data for a new step
     void reset();
 
     // Inject primaries to be turned into TrackInitializers

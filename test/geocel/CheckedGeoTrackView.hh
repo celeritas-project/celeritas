@@ -75,9 +75,9 @@ class CheckedGeoTrackView : public GTV
     // Cross from one side of the current surface to the other
     void cross_boundary();
 
-    //! Number of calls fo find_next_step
+    //! Number of calls of find_next_step
     size_type intersect_count() const { return num_intersect_; }
-    //! Number of calls fo find_safety
+    //! Number of calls of find_safety
     size_type safety_count() const { return num_safety_; }
     //! Reset the stepscounter
     void reset_count() { num_intersect_ = num_safety_ = 0; }

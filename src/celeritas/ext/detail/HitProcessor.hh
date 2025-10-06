@@ -13,13 +13,14 @@
 #include <G4TouchableHandle.hh>
 
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
 
 #include "TouchableUpdaterInterface.hh"
+#include "TrackProcessor.hh"
 
 class G4LogicalVolume;
 class G4ParticleDefinition;
@@ -68,7 +69,6 @@ class HitProcessor
     //! \name Type aliases
     using StepStateHostRef = HostRef<StepStateData>;
     using StepStateDeviceRef = DeviceRef<StepStateData>;
-    using SPConstGeo = std::shared_ptr<GeoParams const>;
     using SPConstVecLV
         = std::shared_ptr<std::vector<G4LogicalVolume const*> const>;
     using VecParticle = std::vector<G4ParticleDefinition const*>;
@@ -78,13 +78,11 @@ class HitProcessor
   public:
     // Construct from volumes that have SDs and step selection
     HitProcessor(SPConstVecLV detector_volumes,
-                 SPConstGeo const& geo,
                  VecParticle const& particles,
                  StepSelection const& selection,
                  StepPointBool const& locate_touchable);
 
-    // Log on destruction
-    ~HitProcessor();
+    ~HitProcessor() = default;
     CELER_DEFAULT_MOVE_DELETE_COPY(HitProcessor);
 
     // Process CPU-generated hits
@@ -108,6 +106,13 @@ class HitProcessor
     // Get and reset the hits counted (generally once per event)
     inline size_type exchange_hits();
 
+    // Access track processor
+    inline TrackProcessor& track_processor() { return track_processor_; }
+    inline TrackProcessor const& track_processor() const
+    {
+        return track_processor_;
+    }
+
   private:
     //! Detector volumes for navigation updating
     SPConstVecLV detector_volumes_;
@@ -116,12 +121,13 @@ class HitProcessor
     //! Temporary CPU hit information
     DetectorStepOutput steps_;
 
+    //! Track processor for track reconstruction
+    TrackProcessor track_processor_;
+
     //! Temporary step
-    std::unique_ptr<G4Step> step_;
+    G4Step* step_;
     //! Step points
     EnumArray<StepPoint, G4StepPoint*> step_points_{{nullptr, nullptr}};
-    //! Tracks for each particle type
-    std::vector<std::unique_ptr<G4Track>> tracks_;
 
     //! Geant4 reference-counted pointer to a G4VTouchable
     EnumArray<StepPoint, G4TouchableHandle> touch_handle_;
@@ -133,7 +139,7 @@ class HitProcessor
     //! Accumulated number of hits
     size_type num_hits_;
 
-    void update_track(ParticleId id) const;
+    void update_track(G4Track&) const;
 };
 
 //---------------------------------------------------------------------------//

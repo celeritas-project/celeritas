@@ -13,6 +13,7 @@
 
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/io/Label.hh"
+#include "celeritas/Types.hh"
 
 class G4LogicalVolume;
 
@@ -121,6 +122,9 @@ struct GeantSd
  * Integrate energy deposition in each volume over all events.
  *
  * \sa celeritas::SimpleCalo.
+ *
+ * \todo Delete this; detectors can be set up through standalone, or we want to
+ * integrate directly with G4 detectors.
  */
 struct SimpleCalo
 {

@@ -8,18 +8,18 @@
 
 #include <memory>
 #include <string_view>
+#include <vector>
 
 #include "corecel/Macros.hh"
 #include "corecel/data/AuxInterface.hh"
+#include "corecel/data/AuxStateVec.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "celeritas/global/ActionInterface.hh"
 
 #include "../Model.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-template<class P, template<MemSpace M> class S>
-class ActionGroups;
 class CoreParams;
 
 namespace optical
@@ -27,6 +27,7 @@ namespace optical
 class CoreParams;
 template<MemSpace M>
 class CoreState;
+class Transporter;
 }  // namespace optical
 
 namespace detail
@@ -39,7 +40,8 @@ namespace detail
  * the beginning of the run, and stores the optical core state as "aux" data.
  */
 class OpticalLaunchAction : public AuxParamsInterface,
-                            public CoreStepActionInterface
+                            public CoreStepActionInterface,
+                            public CoreBeginRunActionInterface
 {
   public:
     //!@{
@@ -51,14 +53,13 @@ class OpticalLaunchAction : public AuxParamsInterface,
     {
         SPOpticalParams optical_params;
         size_type num_track_slots{};
-        size_type max_step_iters{};
+        size_type max_step_iters{numeric_limits<size_type>::max()};
         size_type auto_flush{};
 
         //! True if all input is assigned and valid
         explicit operator bool() const
         {
-            return optical_params && num_track_slots > 0 && max_step_iters > 0
-                   && auto_flush > 0;
+            return optical_params && num_track_slots > 0 && auto_flush > 0;
         }
     };
 
@@ -89,12 +90,21 @@ class OpticalLaunchAction : public AuxParamsInterface,
     //!@}
 
     //!@{
+    //! \name BeginRunAction interface
+
+    // Create the action groups and get a pointer to the aux data
+    void begin_run(CoreParams const&, CoreStateHost&) final;
+    // Create the action groups and get a pointer to the aux data
+    void begin_run(CoreParams const&, CoreStateDevice&) final;
+    //!@}
+
+    //!@{
     //! \name Action interface
 
     //! ID of the model
     ActionId action_id() const final { return action_id_; }
     //! Dependency ordering of the action
-    StepActionOrder order() const final { return StepActionOrder::user_post; }
+    StepActionOrder order() const final { return StepActionOrder::end; }
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;
     // Launch kernel with device data
@@ -107,32 +117,30 @@ class OpticalLaunchAction : public AuxParamsInterface,
     //! \name Accessors
 
     //! Optical tracks per stream
-    size_type state_size() const { return state_size_; }
+    size_type state_size() const { return data_.num_track_slots; }
     //! Optical core params
     optical::CoreParams const& optical_params() const
     {
-        return *optical_params_;
+        return *data_.optical_params;
     }
     //!@}
 
   private:
-    using ActionGroupsT = ActionGroups<optical::CoreParams, optical::CoreState>;
-    using SPActionGroups = std::shared_ptr<ActionGroupsT>;
+    using SPTransporter = std::shared_ptr<optical::Transporter>;
 
     //// DATA ////
 
     ActionId action_id_;
     AuxId aux_id_;
-    SPOpticalParams optical_params_;
-    SPActionGroups optical_actions_;
-    size_type state_size_;
-    size_type max_step_iters_;
-    size_type auto_flush_;
+    Input data_;
+    SPTransporter transport_;
 
     //// HELPERS ////
 
     template<MemSpace M>
     void execute_impl(CoreParams const&, CoreState<M>&) const;
+    template<MemSpace M>
+    void begin_run_impl(CoreState<M>&);
 };
 
 //---------------------------------------------------------------------------//

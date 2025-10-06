@@ -180,7 +180,7 @@ enum class UniverseType : unsigned char
  * with inter-universe coincident surfaces as well as carefully placed
  * particle sources and ray tracing.
  *
- * As an implementataion detail, the "on" case is currently *exact*, but future
+ * As an implementation detail, the "on" case is currently *exact*, but future
  * changes might increase the width of "on" to a finite but small range
  * ("fuzziness").
  */
@@ -393,6 +393,9 @@ CELER_CONSTEXPR_FUNCTION bool is_operator_token(logic_int lv)
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//
+// Get a string corresponding to a surface sense
+char const* to_cstring(Sense);
+
 // Get a string corresponding to a surface type
 char const* to_cstring(SurfaceType);
 

@@ -74,7 +74,7 @@ class MuBBEnergyDistribution
   private:
     //// DATA ////
 
-    // Incident partcle mass
+    // Incident particle mass
     real_type inc_mass_;
     // Total energy of the incident particle [MeV]
     real_type total_energy_;

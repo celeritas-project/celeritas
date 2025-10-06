@@ -11,7 +11,6 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/io/Logger.hh"
 #include "corecel/sys/Environment.hh"
 
 namespace celeritas
@@ -35,9 +34,10 @@ SeltzerBergerReader::SeltzerBergerReader()
  * The path should point to the files that are usually stored in
  * [Geant4-install]/share/Geant4-10.7.0/data/G4EMLOW7.12/brem_SB/.
  */
-SeltzerBergerReader::SeltzerBergerReader(char const* path) : path_(path)
+SeltzerBergerReader::SeltzerBergerReader(std::string path)
+    : path_(std::move(path))
 {
-    CELER_EXPECT(path_.size());
+    CELER_VALIDATE(!path_.empty(), << "no path specified for SB data");
     if (path_.back() == '/')
     {
         path_.pop_back();

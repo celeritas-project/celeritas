@@ -2,7 +2,29 @@ name: clear-cache
 
 on:
   workflow_dispatch:
+    inputs:
+      initial_delay:
+        description: 'Initial backoff delay in seconds'
+        required: false
+        default: 30
+        type: number
+      max_retries:
+        description: 'Maximum number of retries per cache entry'
+        required: false
+        default: 5
+        type: number
   workflow_call:
+    inputs:
+      initial_delay:
+        description: 'Initial backoff delay in seconds'
+        required: false
+        default: 30
+        type: number
+      max_retries:
+        description: 'Maximum number of retries per cache entry'
+        required: false
+        default: 5
+        type: number
 
 jobs:
   clear-cache:
@@ -12,6 +34,55 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            // Get configuration from inputs
+            const initialDelaySeconds = parseInt('${{ inputs.initial_delay || 30 }}');
+            const maxRetries = parseInt('${{ inputs.max_retries || 5 }}');
+
+            // Global backoff state shared across all operations
+            let globalBackoffUntil = 0;
+            let globalDelay = initialDelaySeconds * 1000; // Convert to milliseconds
+
+            async function deleteWithRetry(cache, maxRetries) {
+              for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                // Check if we need to wait due to global backoff
+                const now = Date.now();
+                if (now < globalBackoffUntil) {
+                  const waitTime = globalBackoffUntil - now;
+                  console.log(`Global backoff active. Waiting ${waitTime/1000} seconds before attempting to delete ${cache.key}...`);
+                  await new Promise(resolve => setTimeout(resolve, waitTime));
+                }
+
+                try {
+                  console.log(`Deleting cache entry (attempt ${attempt}):`, cache.key);
+                  await github.rest.actions.deleteActionsCacheById({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    cache_id: cache.id,
+                  });
+                  return; // Success, exit retry loop
+                } catch (error) {
+                  if (error.message && error.message.includes("wait a few minutes")) {
+                    console.log(`Rate limit hit on attempt ${attempt} for ${cache.key}. Setting global backoff of ${globalDelay/1000} seconds...`);
+
+                    // Set global backoff time that affects all operations
+                    globalBackoffUntil = Date.now() + globalDelay;
+
+                    if (attempt < maxRetries) {
+                      await new Promise(resolve => setTimeout(resolve, globalDelay));
+                      globalDelay *= 2; // Double the delay for next time
+                    } else {
+                      console.log(`Max retries (${maxRetries}) reached for cache ${cache.key}`);
+                      throw error;
+                    }
+                  } else {
+                    // Non-rate-limit error, don't retry
+                    throw error;
+                  }
+                }
+              }
+            }
+
+            console.log(`Configuration: initial delay ${initialDelaySeconds}s, max retries ${maxRetries}`);
             console.log("Getting action cache")
             const parameters = {
               owner: context.repo.owner,
@@ -27,12 +98,7 @@ jobs:
             )
             for (const cache of caches) {
               if (cache.key.startsWith("ccache-")) {
-                console.log("Deleting cache entry", cache)
-                github.rest.actions.deleteActionsCacheById({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  cache_id: cache.id,
-                })
+                await deleteWithRetry(cache, maxRetries);
               }
             }
 

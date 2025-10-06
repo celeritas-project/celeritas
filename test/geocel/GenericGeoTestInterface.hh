@@ -11,7 +11,6 @@
 #include <vector>
 #include <gtest/gtest.h>
 
-#include "geocel/GeoParamsInterface.hh"
 #include "geocel/Types.hh"
 #include "geocel/detail/LengthUnits.hh"
 
@@ -19,12 +18,15 @@ class G4VPhysicalVolume;
 
 namespace celeritas
 {
+class GeoParamsInterface;
+class VolumeParams;
+
 namespace test
 {
 //---------------------------------------------------------------------------//
 struct GenericGeoTrackingResult;
+struct GenericGeoTrackingTolerance;
 struct GenericGeoVolumeStackResult;
-struct GenericGeoModelInp;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -43,59 +45,37 @@ class GenericGeoTestInterface
     //! \name Type aliases
     using TrackingResult = GenericGeoTrackingResult;
     using VolumeStackResult = GenericGeoVolumeStackResult;
-    using ModelInpResult = GenericGeoModelInp;
-    using SPConstGeoInterface = std::shared_ptr<GeoParamsInterface const>;
     //!@}
 
   public:
-    //!@{
-    // Generate a track
+    //! Generate a track
     virtual TrackingResult track(Real3 const& pos_cm, Real3 const& dir) = 0;
-    virtual TrackingResult
-    track(Real3 const& pos_cm, Real3 const& dir, int max_step)
-        = 0;
-    //!@}
+
+    //! Get the safety tolerance (defaults to SoftEq tol) for tracking result
+    virtual GenericGeoTrackingTolerance tracking_tol() const;
 
     //!@{
     //! Obtain the "touchable history" at a point
     virtual VolumeStackResult volume_stack(Real3 const& pos_cm) = 0;
     //!@}
 
-    //! Get the model input from the geometry
-    virtual ModelInpResult model_inp() const = 0;
-
     //! Get the label for this geometry: Geant4, VecGeom, ORANGE
     virtual std::string_view geometry_type() const = 0;
 
-    //! Access the geometry interface, building if needed
-    virtual SPConstGeoInterface geometry_interface() const = 0;
+    //! Access the geometry interface
+    virtual GeoParamsInterface const& geometry_interface() const = 0;
 
-    // Get the basename or unique geometry key (defaults to suite name)
-    virtual std::string geometry_basename() const;
+    // Get the basename or unique geometry key
+    virtual std::string_view gdml_basename() const = 0;
 
-    // Get the safety tolerance (defaults to SoftEq tol)
-    virtual real_type safety_tol() const;
+    // Whether surface normals work for the current geometry/test
+    virtual bool supports_surface_normal() const;
 
     // Get the threshold in "unit lengths" for a movement being a "bump"
     virtual real_type bump_tol() const;
 
     //! Unit length for "track" testing and other results
     virtual Constant unit_length() const { return lengthunits::centimeter; }
-
-    //! Access the loaded geant4 world (if one exists)
-    virtual G4VPhysicalVolume const* g4world() const { return nullptr; }
-
-    // Get all logical volume names
-    std::vector<std::string> get_volume_labels() const;
-
-    // Get all physical volume names
-    std::vector<std::string> get_volume_instance_labels() const;
-
-    // Get mapped Geant4 physical volume names
-    std::vector<std::string> get_g4pv_labels() const;
-
-    // Get the volume name, adjusting for offsets from loading multiple geo
-    std::string_view get_volume_name(VolumeId i) const;
 
   protected:
     // Virtual interface only

@@ -86,7 +86,7 @@ To print only the version string (to stderr), and from a custom directory::
 #]=======================================================================]
 
 if(CMAKE_SCRIPT_MODE_FILE)
-  cmake_minimum_required(VERSION 3.8...3.30)
+  cmake_minimum_required(VERSION 3.8...4.1)
 endif()
 
 set(CGV_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}")
@@ -145,7 +145,7 @@ function(_cgv_store_version vstring vsuffix vhash tsfile)
 endfunction()
 
 #-----------------------------------------------------------------------------#
-# Get the path to the git head used to describe the current repostiory
+# Get the path to the git head used to describe the current repository
 function(_cgv_git_path resultvar)
   if(GIT_EXECUTABLE)
     _cgv_git_call_output(_TSFILE "rev-parse" "--git-path" "HEAD")

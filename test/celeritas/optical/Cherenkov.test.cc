@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <vector>
 
+#include "corecel/Config.hh"
+
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionStateStore.hh"
@@ -61,7 +63,7 @@ using celeritas::test::from_cm;
  *
  * See G4OpticalMaterialProperties.hh.
  */
-Span<real_type const> get_wavelength()
+Span<real_type const> get_water_wavelength()
 {
     static real_type const wavelength[] = {
         1.129,  1.12,   1.11,   1.101,  1.091,  1.082,  1.072,  1.063,  1.053,
@@ -79,7 +81,7 @@ Span<real_type const> get_wavelength()
     return make_span(wavelength);
 }
 
-Span<real_type const> get_refractive_index()
+Span<real_type const> get_water_refractive_index()
 {
     static real_type const refractive_index[]
         = {1.3235601610672, 1.3236962786529, 1.3238469492274, 1.3239820826015,
@@ -128,19 +130,14 @@ class CherenkovTest : public ::celeritas::test::OpticalTestBase
     using Energy = units::MevEnergy;
     using Rng = ::celeritas::test::DiagnosticRngEngine<std::mt19937>;
 
+    //! Return the optical properties for the material being tested
+    virtual ImportOpticalProperty build_import_property() const = 0;
+
     void SetUp() override
     {
-        // Build optical material: only one material (water)
-        ImportOpticalProperty water;
-        for (double wl : get_wavelength())
-        {
-            water.refractive_index.x.push_back(um_to_mev(wl));
-        }
-        water.refractive_index.y
-            = {get_refractive_index().begin(), get_refractive_index().end()};
-
+        // Build optical material
         optical::MaterialParams::Input input;
-        input.properties.push_back(std::move(water));
+        input.properties.push_back(this->build_import_property());
         input.volume_to_mat = {OptMatId{0}};
         input.optical_to_core = {PhysMatId{0}};
         material = std::make_shared<optical::MaterialParams>(std::move(input));
@@ -151,14 +148,32 @@ class CherenkovTest : public ::celeritas::test::OpticalTestBase
 
     std::shared_ptr<optical::MaterialParams const> material;
     std::shared_ptr<CherenkovParams const> params;
-    OptMatId material_id{0};
+    // Only one material is present
+    OptMatId const material_id{0};
+};
+
+class CherenkovWaterTest : public CherenkovTest
+{
+  public:
+    ImportOpticalProperty build_import_property() const final
+    {
+        // Build optical material: only one material (water)
+        ImportOpticalProperty water;
+        for (double wl : get_water_wavelength())
+        {
+            water.refractive_index.x.push_back(um_to_mev(wl));
+        }
+        auto rindex_view = get_water_refractive_index();
+        water.refractive_index.y = {rindex_view.begin(), rindex_view.end()};
+        return water;
+    }
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(CherenkovTest, angle_integral)
+TEST_F(CherenkovWaterTest, angle_integral)
 {
     // Check conversion: 1 μm wavelength is approximately 1.2398 eV
     EXPECT_SOFT_EQ(1.2398419843320026e-6, um_to_mev(1));
@@ -173,12 +188,12 @@ TEST_F(CherenkovTest, angle_integral)
 
     auto const& angle_integral = params->host_ref().reals[grid.value];
     EXPECT_EQ(0, angle_integral.front());
-    EXPECT_SOFT_EQ(3.0617629000727e-6, angle_integral.back());
+    EXPECT_SOFT_EQ(3.061762900072668e-06, angle_integral.back());
 }
 
 //---------------------------------------------------------------------------//
 
-TEST_F(CherenkovTest, dndx)
+TEST_F(CherenkovWaterTest, dndx)
 {
     EXPECT_SOFT_NEAR(369.81e6,
                      constants::alpha_fine_structure * units::Mev::value()
@@ -218,7 +233,7 @@ TEST_F(CherenkovTest, dndx)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
+TEST_F(CherenkovWaterTest, pre_generator)
 {
     Rng rng;
     optical::MaterialView const mat_view{material->host_ref(), material_id};
@@ -239,7 +254,7 @@ TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
         Real3 pos = {sim.step_length(), 0, 0};
 
         CherenkovOffload pre_generate(
-            particle, sim, mat_view, pos, params->host_ref(), pre_step);
+            pre_step, mat_view, particle, sim, pos, params->host_ref());
 
         size_type num_samples = 10;
         std::vector<size_type> sampled_num_photons;
@@ -262,10 +277,13 @@ TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
             EXPECT_VEC_EQ(pos, result.points[StepPoint::post].pos);
         }
 
-        // Only number of photons is sampled
-        static size_type const expected_num_photons[]
-            = {15, 17, 11, 15, 14, 19, 23, 13, 10, 12};
-        EXPECT_VEC_EQ(expected_num_photons, sampled_num_photons);
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            // Only number of photons is sampled
+            static size_type const expected_num_photons[]
+                = {15, 17, 11, 15, 14, 19, 23, 13, 10, 12};
+            EXPECT_VEC_EQ(expected_num_photons, sampled_num_photons);
+        }
     }
 
     // Below Cherenkov threshold
@@ -284,7 +302,7 @@ TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
         Real3 pos = {sim.step_length(), 0, 0};
 
         CherenkovOffload pre_generate(
-            particle, sim, mat_view, pos, params->host_ref(), pre_step);
+            pre_step, mat_view, particle, sim, pos, params->host_ref());
         auto const result = pre_generate(rng);
 
         EXPECT_FALSE(result);
@@ -294,7 +312,7 @@ TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
 
 //---------------------------------------------------------------------------//
 
-TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
+TEST_F(CherenkovWaterTest, generator)
 {
     Rng rng;
     optical::MaterialView mat_view{material->host_ref(), material_id};
@@ -313,8 +331,10 @@ TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
     std::vector<real_type> displacement_dist(num_bins);
 
     // Energy distribution binning
-    real_type emin = um_to_mev(get_wavelength().front());
-    real_type emax = um_to_mev(get_wavelength().back());
+    auto rindex_grid
+        = material->get(material_id).make_refractive_index_calculator().grid();
+    real_type emin = rindex_grid.front();
+    real_type emax = rindex_grid.back();
     real_type edel = (emax - emin) / num_bins;
 
     auto sample = [&](OffloadPreStepData& pre_step,
@@ -336,7 +356,7 @@ TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
 
         // Calculate the average number of photons produced per unit length
         CherenkovOffload pre_generate(
-            particle, sim, mat_view, pos, params->host_ref(), pre_step);
+            pre_step, mat_view, particle, sim, pos, params->host_ref());
 
         Real3 inc_dir = make_unit_vector(pos - pre_step.pos);
         for (size_type i = 0; i < num_samples; ++i)
@@ -345,7 +365,7 @@ TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
             CELER_ASSERT(dist);
 
             // Sample the optical photons
-            CherenkovGenerator generate_photon(
+            optical::CherenkovGenerator generate_photon(
                 mat_view, params->host_ref(), dist);
 
             for (size_type j = 0; j < dist.num_photons; ++j)
@@ -426,14 +446,17 @@ TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
 
         sample(pre_step, particle, sim, pos, num_samples);
 
-        EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
-        EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
-        EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
-        EXPECT_SOFT_EQ(0.73055857883146702, avg_costheta);
-        EXPECT_SOFT_EQ(4.0497726102182314e-06, avg_energy);
-        EXPECT_SOFT_EQ(0.50020101984474064, avg_displacement);
-        EXPECT_SOFT_EQ(983.734375, total_num_photons / num_samples);
-        EXPECT_SOFT_EQ(10.609603075017075, avg_engine_samples);
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
+            EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
+            EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
+            EXPECT_SOFT_EQ(0.73055857883146702, avg_costheta);
+            EXPECT_SOFT_EQ(4.0497726102182314e-06, avg_energy);
+            EXPECT_SOFT_EQ(0.50020101984474064, avg_displacement);
+            EXPECT_SOFT_EQ(983.734375, total_num_photons / num_samples);
+            EXPECT_SOFT_EQ(10.609603075017075, avg_engine_samples);
+        }
     }
 
     // 500 keV e-: 1/beta_avg ~ 1.336
@@ -462,14 +485,67 @@ TEST_F(CherenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
 
         sample(pre_step, particle, sim, pos, num_samples);
 
-        EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
-        EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
-        EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
-        EXPECT_SOFT_EQ(0.95045221539598979, avg_costheta);
-        EXPECT_SOFT_EQ(5.5902203966702514e-06, avg_energy);
-        EXPECT_SOFT_EQ(0.049715603846029896, avg_displacement);
-        EXPECT_SOFT_EQ(15.484375, total_num_photons / num_samples);
-        EXPECT_SOFT_EQ(25.077699293642784, avg_engine_samples);
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
+            EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
+            EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
+            EXPECT_SOFT_EQ(0.95045221539598979, avg_costheta);
+            EXPECT_SOFT_EQ(5.5902203966702514e-06, avg_energy);
+            EXPECT_SOFT_EQ(0.049715603846029896, avg_displacement);
+            EXPECT_SOFT_EQ(15.484375, total_num_photons / num_samples);
+            EXPECT_SOFT_EQ(25.077699293642784, avg_engine_samples);
+        }
+    }
+}
+class CherenkovAirTest : public CherenkovTest
+{
+  public:
+    ImportOpticalProperty build_import_property() const final
+    {
+        ImportOpticalProperty prop;
+        std::vector<double> wl = {1.29, 1.20, 1.10, 1.00, 0.90, 0.82};
+        prop.refractive_index.x.reserve(wl.size());
+        for (double w : wl)
+        {
+            prop.refractive_index.x.push_back(um_to_mev(w));
+        }
+        prop.refractive_index.y = {1.1, 1.2, 1.31, 1.31, 1.320, 1.330};
+        return prop;
+    };
+};
+
+TEST_F(CherenkovAirTest, dndx)
+{
+    EXPECT_SOFT_NEAR(369.81e6,
+                     constants::alpha_fine_structure * units::Mev::value()
+                         * units::centimeter
+                         / (constants::hbar_planck * constants::c_light),
+                     1e-6);
+
+    optical::MaterialView mat_view{material->host_ref(), material_id};
+    CherenkovDndxCalculator calc_dndx(
+        mat_view,
+        params->host_ref(),
+        this->particle_params()->get(ParticleId{0}).charge());
+
+    std::vector<real_type> betas{real_type{1.0 / 1.2},
+                                 real_type{1.0 / 1.3},
+                                 1 / 1.31,
+                                 real_type{1.0 / 1.4}};
+
+    std::vector<real_type> dndx;
+    for (real_type beta : betas)
+    {
+        dndx.push_back(
+            native_value_to<InvCmLength>(calc_dndx(units::LightSpeed(beta)))
+                .value());
+    }
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        static double const expected_dndx[]
+            = {26.95328666191, 3.3931341666038, 1.5013818039724, 0.0};
+        EXPECT_VEC_SOFT_EQ(expected_dndx, dndx);
     }
 }
 

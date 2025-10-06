@@ -12,7 +12,6 @@
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/g4/Convert.hh"
-#include "celeritas/GeantTestBase.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
 
 #include "celeritas_test.hh"

@@ -9,16 +9,16 @@
 #include <vector>
 
 #include "celeritas/inp/Grid.hh"
+#include "celeritas/inp/Particle.hh"
+#include "celeritas/inp/Physics.hh"
+#include "celeritas/inp/PhysicsModel.hh"
 // IWYU pragma: begin_exports
-#include "ImportAtomicRelaxation.hh"
 #include "ImportElement.hh"
 #include "ImportLivermorePE.hh"
 #include "ImportMaterial.hh"
-#include "ImportMuPairProductionTable.hh"
 #include "ImportOpticalMaterial.hh"
 #include "ImportOpticalModel.hh"
 #include "ImportParameters.hh"
-#include "ImportParticle.hh"
 #include "ImportProcess.hh"
 #include "ImportVolume.hh"
 // IWYU pragma: end_exports
@@ -50,6 +50,9 @@ namespace celeritas
  * convert_to_native function will convert a data structure in place and update
  * the units label. Refer to \c base/Units.hh for further information on unit
  * systems.
+ *
+ * \note  \c ImportData will eventually become \c inp::Problem once the import
+ * system populates all its \c inp:: objects.
  */
 struct ImportData
 {
@@ -58,9 +61,6 @@ struct ImportData
     using ZInt = int;
     using GeoMatIndex = unsigned int;
     using ImportSBMap = std::map<ZInt, inp::TwodGrid>;
-    using ImportLivermorePEMap = std::map<ZInt, ImportLivermorePE>;
-    using ImportAtomicRelaxationMap = std::map<ZInt, ImportAtomicRelaxation>;
-    using ImportNeutronElasticMap = std::map<ZInt, inp::Grid>;
     //!@}
 
     //!@{
@@ -79,14 +79,9 @@ struct ImportData
 
     //!@{
     //! \name Physics data
-    std::vector<ImportParticle> particles;
+    std::vector<inp::Particle> particles;
     std::vector<ImportProcess> processes;
     std::vector<ImportMscModel> msc_models;
-    ImportSBMap sb_data;
-    ImportLivermorePEMap livermore_pe_data;
-    ImportNeutronElasticMap neutron_elastic_data;
-    ImportAtomicRelaxationMap atomic_relaxation_data;
-    ImportMuPairProductionTable mu_pair_production_data;
     //!@}
 
     //!@{
@@ -104,6 +99,22 @@ struct ImportData
 
     //! Unit system of the stored data: "cgs", "clhep", or "si"
     std::string units;
+
+    //!@{
+    //! \name Current \c inp::Problem data that has been ported
+
+    // Models
+    inp::LivermorePhotoModel livermore_photo;
+    inp::MuPairProductionModel mu_production;
+    inp::SeltzerBergerModel seltzer_berger;
+
+    // Processes
+    inp::AtomicRelaxation atomic_relaxation;
+
+    // Physics groups
+    inp::OpticalPhysics optical_physics;
+
+    //!@}
 };
 
 //---------------------------------------------------------------------------//

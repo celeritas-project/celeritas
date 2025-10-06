@@ -37,7 +37,7 @@ join(InputIterator first, InputIterator last, Conjunction&& conjunction)
 /*!
  * Join items transformed by a helper functor.
  *
- * This joins all given elements, inserting conjunction betwen them. The 'op'
+ * This joins all given elements, inserting conjunction between them. The 'op'
  * operator must transform each element into a printable object. For example,
  * \code
       [](const std::pair<int, int>& item) { return item->first; }

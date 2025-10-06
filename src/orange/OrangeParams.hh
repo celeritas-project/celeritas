@@ -6,14 +6,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
 #include <string>
-#include <vector>
 
 #include "corecel/Types.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
-#include "corecel/io/Label.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/inp/Model.hh"
@@ -27,6 +26,7 @@ namespace celeritas
 {
 struct OrangeInput;
 class GeantGeoParams;
+class VolumeParams;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -41,19 +41,39 @@ class OrangeParams final : public GeoParamsInterface,
   public:
     //!@{
     //! \name Type aliases
-    using SurfaceMap = LabelIdMultiMap<InternalSurfaceId>;
+    using SurfaceMap = LabelIdMultiMap<ImplSurfaceId>;
     using UniverseMap = LabelIdMultiMap<UniverseId>;
+    using SPConstVolumes = std::shared_ptr<VolumeParams const>;
     //!@}
 
   public:
-    // Construct from a JSON or GDML file (if JSON or Geant4 are enabled)
-    explicit OrangeParams(std::string const& filename);
+    //!@{
+    //! \name Static constructor helpers
+    //! \todo Move these to a "model" abstraction that loads/emits geometry,
+    //! materials, volumes?
 
-    // Construct in-memory from Geant4
-    explicit OrangeParams(G4VPhysicalVolume const* world);
+    // Build by loading a GDML file
+    static std::shared_ptr<OrangeParams> from_gdml(std::string const& filename);
+
+    // Build from a Geant4 geometry
+    static std::shared_ptr<OrangeParams>
+    from_geant(std::shared_ptr<GeantGeoParams const> const& geo,
+               SPConstVolumes volumes);
+
+    // Build from a Geant4 geometry (no volumes available?)
+    static std::shared_ptr<OrangeParams>
+    from_geant(std::shared_ptr<GeantGeoParams const> const& geo);
+
+    // Build from a JSON input
+    static std::shared_ptr<OrangeParams> from_json(std::string const& filename);
+
+    //!@}
 
     // ADVANCED usage: construct from explicit host data
-    explicit OrangeParams(OrangeInput&& input);
+    OrangeParams(OrangeInput&& input);
+
+    // ADVANCED usage: construct from explicit host data with volumes
+    OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes);
 
     // Default destructor to anchor vtable
     ~OrangeParams() final;
@@ -67,11 +87,11 @@ class OrangeParams final : public GeoParamsInterface,
     //! Outer bounding box of geometry
     BBox const& bbox() const final { return bbox_; }
 
-    // Maximum universe depth
-    inline size_type max_depth() const final;
+    // Maximum universe depth (not geometry volume depth!)
+    inline size_type max_depth() const;
 
     // Create model parameters corresponding to our internal representation
-    inline inp::Model make_model_input() const final;
+    inp::Model make_model_input() const final;
 
     //// LABELS AND MAPPING ////
 
@@ -82,17 +102,13 @@ class OrangeParams final : public GeoParamsInterface,
     inline UniverseMap const& universes() const;
 
     // Get volume metadata
-    inline VolumeMap const& volumes() const final;
+    inline ImplVolumeMap const& impl_volumes() const final;
 
-    // Get (physical) volume instance metadata
-    inline VolInstanceMap const& volume_instances() const final;
+    // Get the canonical volume IDs corresponding to an implementation volume
+    inline VolumeId volume_id(ImplVolumeId) const final;
 
-    // Get the volume ID corresponding to a Geant4 logical volume
-    inline VolumeId find_volume(G4LogicalVolume const* volume) const final;
-
-    // Get the Geant4 physical volume corresponding to a volume instance ID
-    inline GeantPhysicalInstance
-    id_to_geant(VolumeInstanceId vol_id) const final;
+    // Get the volume instance ID corresponding to an implementation volume
+    inline VolumeInstanceId volume_instance_id(ImplVolumeId) const;
 
     //// DATA ACCESS ////
 
@@ -104,12 +120,14 @@ class OrangeParams final : public GeoParamsInterface,
 
   private:
     // Host metadata/access
-    SurfaceMap surf_labels_;
+    SurfaceMap impl_surf_labels_;
     UniverseMap univ_labels_;
-    VolumeMap vol_labels_;
-    VolInstanceMap vol_instances_;
+    ImplVolumeMap impl_vol_labels_;
     BBox bbox_;
     bool supports_safety_{};
+
+    // Retain volumes since we save a pointer for debugging
+    SPConstVolumes volumes_;
 
     // Host/device storage and reference
     CollectionMirror<OrangeParamsData> data_;
@@ -133,20 +151,11 @@ size_type OrangeParams::max_depth() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Create model parameters corresponding to our internal representation.
- */
-inp::Model OrangeParams::make_model_input() const
-{
-    CELER_NOT_IMPLEMENTED("model input from ORANGE");
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get surface metadata.
  */
 auto OrangeParams::surfaces() const -> SurfaceMap const&
 {
-    return surf_labels_;
+    return impl_surf_labels_;
 }
 
 //---------------------------------------------------------------------------//
@@ -162,40 +171,34 @@ auto OrangeParams::universes() const -> UniverseMap const&
 /*!
  * Get volume metadata.
  */
-auto OrangeParams::volumes() const -> VolumeMap const&
+auto OrangeParams::impl_volumes() const -> ImplVolumeMap const&
 {
-    return vol_labels_;
+    return impl_vol_labels_;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get volume instance metadata.
+ * Get the canonical volume IDs corresponding to an implementation volume.
  */
-auto OrangeParams::volume_instances() const -> VolInstanceMap const&
+VolumeId OrangeParams::volume_id(ImplVolumeId iv_id) const
 {
-    return vol_instances_;
+    auto const& volume_id_map = this->host_ref().volume_ids;
+    CELER_EXPECT(iv_id < volume_id_map.size());
+    return volume_id_map[iv_id];
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Locate the volume ID corresponding to a Geant4 volume.
+ * Get the canonical volume instance corresponding to an implementation volume.
  *
- * \todo Implement using \c g4org::Converter
+ * This may be null if the local volume corresponds to a "background" volume or
+ * "outside".
  */
-VolumeId OrangeParams::find_volume(G4LogicalVolume const*) const
+VolumeInstanceId OrangeParams::volume_instance_id(ImplVolumeId iv_id) const
 {
-    return VolumeId{};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the Geant4 physical volume corresponding to a volume instance ID.
- *
- * \todo Implement using \c g4org::Converter
- */
-GeantPhysicalInstance OrangeParams::id_to_geant(VolumeInstanceId) const
-{
-    return {};
+    auto const& volume_inst_id_map = this->host_ref().volume_instance_ids;
+    CELER_EXPECT(iv_id < volume_inst_id_map.size());
+    return volume_inst_id_map[iv_id];
 }
 
 //---------------------------------------------------------------------------//

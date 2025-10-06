@@ -146,18 +146,35 @@ std::vector<Label> make_surface_labels(UnitInput& inp)
 
 //---------------------------------------------------------------------------//
 //! Construct volume labels from the input volumes
-std::vector<Label> make_volume_labels(UnitInput const& inp)
+auto make_volume_labels(UnitInput const& inp)
 {
-    std::vector<Label> result;
+    UniverseInserter::VecVarLabel result;
     for (auto const& v : inp.volumes)
     {
-        Label vl = v.label;
-        if (vl.ext.empty())
-        {
-            vl.ext = inp.label.name;
-        }
-        result.push_back(std::move(vl));
+        // Convert a <Label, VolInstId> -> <Label, VolInstId, VolId>
+        // using a default extension
+        result.emplace_back(
+            std::visit(return_as<UniverseInserter::VariantLabel>(Overload{
+                           [](auto&& obj) { return obj; },
+                           [&inp](Label const& label) {
+                               Label result = label;
+                               // Add the unit's name as an extension if blank
+                               if (result.ext.empty())
+                               {
+                                   result.ext = inp.label.name;
+                               }
+                               return result;
+                           },
+                       }),
+                       v.label));
     }
+
+    if (auto const& bg = inp.background)
+    {
+        CELER_ASSERT(bg.volume < result.size());
+        result[bg.volume.get()] = bg.label;
+    }
+
     return result;
 }
 
@@ -231,6 +248,18 @@ ForceMax const& forced_scalar_max()
 }
 
 //---------------------------------------------------------------------------//
+std::string to_string(VolumeInput::VariantLabel const& vlabel)
+{
+    return std::visit(Overload{[](Label const& lab) { return to_string(lab); },
+                               [](VolumeInstanceId const& id) -> std::string {
+                                   if (!id)
+                                       return "<null>";
+                                   return "vi " + std::to_string(id.get());
+                               }},
+                      vlabel);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -239,7 +268,7 @@ ForceMax const& forced_scalar_max()
  */
 UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
     : orange_data_(orange_data)
-    , build_bih_tree_{&orange_data_->bih_tree_data}
+    , build_bih_tree_{&orange_data_->bih_tree_data, BIHBuilder::Input{2}}
     , insert_transform_{&orange_data_->transforms, &orange_data_->reals}
     , build_surfaces_{&orange_data_->surface_types,
                       &orange_data_->real_ids,
@@ -353,7 +382,8 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
                            invalid.end(),
                            ", ",
                            [&inp, &bboxes](std::ostream& os, size_type i) {
-                               os << i << "='" << inp.volumes[i].label
+                               os << i << "='"
+                                  << to_string(inp.volumes[i].label)
                                   << "': " << bboxes[i];
                            }));
     }
@@ -456,7 +486,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
         CELER_LOG(warning) << "Max intersections (" << output.max_intersections
                            << ") and/or faces (" << output.faces.size()
                            << ") exceed limits of '" << mfi_hack_envname
-                           << " in volume '" << v.label
+                           << " in volume '" << to_string(v.label)
                            << "': replacing with unreachable volume";
 
         output.faces = {};

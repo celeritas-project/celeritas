@@ -25,8 +25,8 @@
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/UniformZField.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/geo/GeoData.hh"
-#include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -71,11 +71,6 @@ class FieldPropagatorTestBase : public CoreGeoTestBase, public FieldTestBase
     //!@}
 
   protected:
-    SPConstGeo build_geometry() final
-    {
-        return this->build_geometry_from_basename();
-    }
-
     //! Get a single-thread host track view
     CGeoTrackView make_geo_track_view()
     {
@@ -89,6 +84,21 @@ class FieldPropagatorTestBase : public CoreGeoTestBase, public FieldTestBase
     }
 
     SPConstParticle build_particle() const final;
+
+    std::string
+    surface_name(CoreGeoTestBase::GeoTrackView const& geo) const override
+    {
+        if (!geo.is_on_boundary())
+        {
+            return "---";
+        }
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+        return to_string(
+            this->geometry()->surfaces().at(geo.impl_surface_id()));
+#else
+        return "[unknown]";
+#endif
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -119,17 +129,17 @@ auto FieldPropagatorTestBase::build_particle() const -> SPConstParticle
 
 class TwoBoxesTest : public FieldPropagatorTestBase
 {
-    std::string geometry_basename() const override { return "two-boxes"; }
+    std::string_view gdml_basename() const override { return "two-boxes"; }
 };
 
 class LayersTest : public FieldPropagatorTestBase
 {
-    std::string geometry_basename() const override { return "field-layers"; }
+    std::string_view gdml_basename() const override { return "field-layers"; }
 };
 
 class SimpleCmsTest : public FieldPropagatorTestBase
 {
-    std::string geometry_basename() const override { return "simple-cms"; }
+    std::string_view gdml_basename() const override { return "simple-cms"; }
 };
 
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
@@ -137,7 +147,7 @@ class SimpleCmsTest : public FieldPropagatorTestBase
 #endif
 class CmseTest : public FieldPropagatorTestBase
 {
-    std::string geometry_basename() const override { return "cmse"; }
+    std::string_view gdml_basename() const override { return "cmse"; }
 };
 
 //---------------------------------------------------------------------------//
@@ -743,7 +753,7 @@ TEST_F(TwoBoxesTest, electron_tangent_cross)
 
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
-            EXPECT_EQ("inner_box.py", this->surface_name(geo));
+            EXPECT_EQ("inner_box@py", this->surface_name(geo));
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
@@ -799,7 +809,7 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
 
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
-            EXPECT_EQ("inner_box.py", this->surface_name(geo));
+            EXPECT_EQ("inner_box@py", this->surface_name(geo));
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
@@ -827,7 +837,7 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
 
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
-            EXPECT_EQ("inner_box.py", this->surface_name(geo));
+            EXPECT_EQ("inner_box@py", this->surface_name(geo));
         }
         geo.cross_boundary();
         EXPECT_EQ(this->volume_name(geo), "world");
@@ -849,7 +859,7 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
 
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
-            EXPECT_EQ("inner_box.mx", this->surface_name(geo));
+            EXPECT_EQ("inner_box@mx", this->surface_name(geo));
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
@@ -1264,7 +1274,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
             ASSERT_TRUE(geo.is_on_boundary());
             if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
             {
-                EXPECT_EQ("guide_tube.coz", this->surface_name(geo));
+                EXPECT_EQ("guide_tube@cz", this->surface_name(geo));
             }
             geo.cross_boundary();
         }
@@ -1279,6 +1289,11 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
         EXPECT_SOFT_NEAR(
             double{30}, static_cast<double>(integrate.count()), 0.2);
         EXPECT_EQ(geo.is_on_boundary(), !using_vecgeom_surface);
+        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        {
+            EXPECT_EQ("guide_tube@cz", this->surface_name(geo));
+        }
+        //EXPECT_SOFT_EQ(30, calc_radius());
         EXPECT_SOFT_NEAR(calc_radius(), 29.9999996, 4e-7);
         geo.cross_boundary();
         EXPECT_EQ(this->volume_name(geo),

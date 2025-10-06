@@ -56,7 +56,7 @@ auto make_material(std::string&& label, GeoMatId::size_type m, SPConstObject obj
 }  // namespace
 
 //---------------------------------------------------------------------------//
-auto InvalidOrangeTestBase::build_geometry() -> SPConstGeo
+auto InvalidOrangeTestBase::build_geometry() -> SPConstCoreGeo
 {
     using namespace orangeinp;
     constexpr auto inside = Sense::inside;
@@ -109,22 +109,14 @@ auto InvalidOrangeTestBase::build_geometry() -> SPConstGeo
 //---------------------------------------------------------------------------//
 auto InvalidOrangeTestBase::build_geomaterial() -> SPConstGeoMaterial
 {
-    GeoMaterialParams::Input input;
+    using Input = GeoMaterialParams::Input;
+    Input input;
     input.geometry = this->geometry();
     input.materials = this->material();
-    input.volume_to_mat = {
-        PhysMatId{0},
-        PhysMatId{0},
-        PhysMatId{1},
-        PhysMatId{},
-        PhysMatId{},
-    };
-    input.volume_labels = {
-        Label{"interior"},
-        Label{"also-interior"},
-        Label{"world"},
-        Label{"[missing material]"},
-        Label{"[EXTERIOR]"},
+    input.volume_to_mat = Input::MapLabelMat{
+        {"interior", PhysMatId{0}},
+        {"also-interior", PhysMatId{0}},
+        {"world", PhysMatId{1}},
     };
     return std::make_shared<GeoMaterialParams>(std::move(input));
 }

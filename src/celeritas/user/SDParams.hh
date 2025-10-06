@@ -6,13 +6,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <vector>
+
 #include "corecel/Assert.hh"
-#include "corecel/data/AuxInterface.hh"
-#include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
-#include "corecel/io/Label.hh"
-#include "celeritas/user/DetectorSteps.hh"
 
 #include "SDData.hh"
 
@@ -23,27 +21,35 @@ class GeoParamsInterface;
 
 //---------------------------------------------------------------------------//
 /*!
- * Manage params and state data for sensitive detectors.
+ * Map Geant4 sensitive detectors to distinct detector IDs.
+ *
+ * \note See \c celeritas::VolumeIdBuilder for how to construct these easily.
  */
 class SDParams final : public ParamsDataInterface<SDParamsData>
 {
   public:
-    using VecLabel = std::vector<Label>;
+    //!@{
+    //! \name Type aliases
+    using VecVolId = std::vector<VolumeId>;
+    //!@}
 
   public:
-    //! Default Constructor
-    SDParams() {};
+    //! Default constructor: no detectors
+    SDParams() = default;
 
-    //! Construct from volume labels
-    SDParams(VecLabel const& volume_labels, GeoParamsInterface const& geo);
+    //! Construct from canonical volume IDs
+    SDParams(GeoParamsInterface const& geo, VecVolId&& volume_ids);
+
+    //! Whether any detectors are present
+    bool empty() const { return !static_cast<bool>(mirror_); }
 
     //! Number of detectors
     DetectorId::size_type size() const { return volume_ids_.size(); }
 
-    //! Access detector ID based on volume ID
-    DetectorId volume_to_detector_id(VolumeId vol_id)
+    //! Access detector ID based on implementation volume ID
+    DetectorId volume_to_detector_id(ImplVolumeId iv_id)
     {
-        return host_ref().detector[vol_id];
+        return host_ref().detector[iv_id];
     }
 
     //! Access volume ID based on detector ID
@@ -63,7 +69,7 @@ class SDParams final : public ParamsDataInterface<SDParamsData>
     //!@}
 
   private:
-    std::vector<VolumeId> volume_ids_;
+    VecVolId volume_ids_;
     CollectionMirror<SDParamsData> mirror_;
 };
 

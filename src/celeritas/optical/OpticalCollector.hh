@@ -9,9 +9,10 @@
 #include <memory>
 #include <optional>
 
-#include "corecel/data/AuxInterface.hh"
-#include "corecel/io/Label.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/phys/GeneratorCounters.hh"
+#include "celeritas/phys/GeneratorRegistry.hh"
 
 #include "Model.hh"
 #include "gen/OffloadData.hh"
@@ -24,20 +25,22 @@ class ActionRegistry;
 class AuxStateVec;
 class CherenkovParams;
 class CoreParams;
+class CoreStateInterface;
+template<GeneratorType G>
+class OffloadAction;
+class OffloadGatherAction;
 class ScintillationParams;
 
 namespace optical
 {
+class CoreStateBase;
+template<GeneratorType G>
+class GeneratorAction;
 class MaterialParams;
 }  // namespace optical
 
 namespace detail
 {
-template<GeneratorType G>
-class GeneratorAction;
-template<GeneratorType G>
-class OffloadAction;
-class OffloadGatherAction;
 class OpticalLaunchAction;
 }  // namespace detail
 
@@ -69,20 +72,18 @@ class OpticalCollector
     using SPConstCherenkov = std::shared_ptr<CherenkovParams const>;
     using SPConstMaterial = std::shared_ptr<optical::MaterialParams const>;
     using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
-    using OpticalBufferSize = OpticalOffloadCounters<size_type>;
+    using OpticalBufferSize = GeneratorCounters<size_type>;
+    using SPConstOpticalParams = std::shared_ptr<optical::CoreParams const>;
     //!@}
 
     struct Input
     {
-        //! Optical physics models
-        std::vector<optical::Model::ModelBuilder> model_builders;
+        //! Optical params
+        std::shared_ptr<optical::CoreParams> optical_params;
 
-        //! Optical physics material for materials
-        SPConstMaterial material;
+        //! Optical photon generating processes
         SPConstCherenkov cherenkov;
         SPConstScintillation scintillation;
-
-        std::optional<std::vector<Label>> detector_labels;
 
         //! Number track slots in the optical loop
         size_type num_track_slots{};
@@ -90,22 +91,18 @@ class OpticalCollector
         //! Number of steps that have created optical particles
         size_type buffer_capacity{};
 
-        //! Maximum number of buffered initializers in optical tracking loop
-        size_type initializer_capacity{};
-
-        //! Threshold number of initializers for launching optical loop
+        //! Threshold number of photons for launching optical loop
         size_type auto_flush{};
 
         //! Maximum step iterations before aborting optical loop
-        size_type max_step_iters{static_cast<size_type>(-1)};
+        size_type max_step_iters{numeric_limits<size_type>::max()};
 
         //! True if all input is assigned and valid
         explicit operator bool() const
         {
-            return material && (scintillation || cherenkov)
+            return optical_params && (scintillation || cherenkov)
                    && num_track_slots > 0 && buffer_capacity > 0
-                   && initializer_capacity > 0 && auto_flush > 0
-                   && max_step_iters > 0 && !model_builders.empty();
+                   && auto_flush > 0;
         }
     };
 
@@ -113,14 +110,28 @@ class OpticalCollector
     // Construct with core data and optical params
     OpticalCollector(CoreParams const&, Input&&);
 
-    // Aux ID for optical Cherenkov offload data
-    AuxId cherenkov_aux_id() const;
+    //// ACCESSORS ////
 
-    // Aux ID for optical scintillation offload data
-    AuxId scintillation_aux_id() const;
+    //! Access optical params
+    SPConstOpticalParams const& optical_params() const
+    {
+        return optical_params_;
+    }
 
-    // Aux ID for optical state data
-    AuxId optical_aux_id() const;
+    // Access optical state
+    optical::CoreStateBase const&
+    optical_state(CoreStateInterface const& core) const;
+
+    // Access Cherenkov params (may be null)
+    SPConstCherenkov cherenkov() const;
+
+    // Access scintillation params (may be null)
+    SPConstScintillation scintillation() const;
+
+    //// GENERATOR MANAGEMENT ////
+
+    // Get the generator registry
+    GeneratorRegistry const& gen_reg() const;
 
     // Get and reset cumulative statistics on optical tracks from a state
     OpticalAccumStats exchange_counters(AuxStateVec& aux) const;
@@ -131,20 +142,19 @@ class OpticalCollector
   private:
     //// TYPES ////
 
-    using GT = detail::GeneratorType;
-    template<GT G>
-    using GeneratorAction = detail::GeneratorAction<G>;
-    template<GT G>
-    using OffloadAction = detail::OffloadAction<G>;
+    using GT = GeneratorType;
     using SPCherenkovOffload = std::shared_ptr<OffloadAction<GT::cherenkov>>;
     using SPScintOffload = std::shared_ptr<OffloadAction<GT::scintillation>>;
-    using SPGatherAction = std::shared_ptr<detail::OffloadGatherAction>;
-    using SPCherenkovGen = std::shared_ptr<GeneratorAction<GT::cherenkov>>;
-    using SPScintGen = std::shared_ptr<GeneratorAction<GT::scintillation>>;
+    using SPGatherAction = std::shared_ptr<OffloadGatherAction>;
+    using SPCherenkovGen
+        = std::shared_ptr<optical::GeneratorAction<GT::cherenkov>>;
+    using SPScintGen
+        = std::shared_ptr<optical::GeneratorAction<GT::scintillation>>;
     using SPLaunchAction = std::shared_ptr<detail::OpticalLaunchAction>;
 
     //// DATA ////
 
+    SPConstOpticalParams optical_params_;
     SPGatherAction gather_;
     SPCherenkovOffload cherenkov_offload_;
     SPScintOffload scint_offload_;

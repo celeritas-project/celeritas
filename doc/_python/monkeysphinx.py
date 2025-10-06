@@ -21,11 +21,15 @@ except ImportError as e:
     print("ERROR: failed to import writers/builders:", e)
     LaTeXTranslator = Table = BibliographyTransform = None
 
+
 def monkey(cls, replace=True):
     if cls is None:
+        # Import failed: just ignore the function (define it locally)
         def _monkey(func):
             return func
     else:
+        # Define a function wrapper that takes the following function and sets
+        # it as a member of the given class
         def _monkey(func, cls=cls, replace=replace):
             exists = hasattr(cls, func.__name__)
             if exists != replace:

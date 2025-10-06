@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "HitProcessor.hh"
 
-#include <string>
+#include <cstddef>
 #include <utility>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4LogicalVolume.hh>
@@ -20,13 +20,15 @@
 #include <G4VSensitiveDetector.hh>
 #include <G4Version.hh>
 
+#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TraceCounter.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/g4/Convert.hh"
-#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
@@ -88,26 +90,22 @@ get_step_status(DetectorStepOutput const& out, size_type step_index)
  * Construct local navigator and step data.
  */
 HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
-                           SPConstGeo const& geo,
                            VecParticle const& particles,
                            StepSelection const& selection,
                            StepPointBool const& locate_touchable)
     : detector_volumes_(std::move(detector_volumes))
+    , track_processor_{particles}
+    , step_{&track_processor_.step()}
     , step_post_status_{
           selection.points[StepPoint::pre].volume_instance_ids
           && selection.points[StepPoint::post].volume_instance_ids}
 {
     CELER_EXPECT(detector_volumes_ && !detector_volumes_->empty());
-    CELER_EXPECT(geo);
 
     // Even though this is created locally, all threads should be doing the
     // same thing
     CELER_LOG(debug) << "Setting up thread-local hit processor for "
                      << detector_volumes_->size() << " sensitive detectors";
-
-    // Create step and step-owned structures
-    step_ = std::make_unique<G4Step>();
-    step_->NewSecondaryVector();
 
 #if G4VERSION_NUMBER >= 1103
 #    define HP_CLEAR_STEP_POINT(CMD) step_->CMD(nullptr)
@@ -159,8 +157,11 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
             else
             {
                 CELER_EXPECT(selection.points[p].volume_instance_ids);
+                // FIXME: pass geant geo into this constructor
+                auto ggeo = ::celeritas::global_geant_geo().lock();
+                CELER_ASSERT(ggeo);
                 update_touchable_
-                    = std::make_unique<LevelTouchableUpdater>(geo);
+                    = std::make_unique<LevelTouchableUpdater>(std::move(ggeo));
             }
         }
     }
@@ -178,22 +179,12 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
         p->SetLocalTime(std::numeric_limits<double>::infinity());
         // Time in rest frame since track was created
         p->SetProperTime(std::numeric_limits<double>::infinity());
-        // Speed
+        // Speed (TODO: use ParticleView)
         p->SetVelocity(std::numeric_limits<double>::infinity());
         // Safety distance
         p->SetSafety(std::numeric_limits<double>::infinity());
         // Polarization (default to zero)
         p->SetPolarization(G4ThreeVector());
-    }
-
-    // Create track if user requested particle types
-    for (G4ParticleDefinition const* pd : particles)
-    {
-        CELER_ASSERT(pd);
-        tracks_.emplace_back(new G4Track(
-            new G4DynamicParticle(pd, G4ThreeVector()), 0.0, G4ThreeVector()));
-        tracks_.back()->SetTrackID(-1);
-        tracks_.back()->SetParentID(-1);
     }
 
     // Convert logical volumes (global) to sensitive detectors (thread local)
@@ -210,20 +201,6 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     }
 
     CELER_ENSURE(!detectors_.empty());
-}
-
-//---------------------------------------------------------------------------//
-//! Log on destruction
-HitProcessor::~HitProcessor()
-{
-    try
-    {
-        CELER_LOG(debug) << "Deallocating hit processor";
-    }
-    catch (...)  // NOLINT(bugprone-empty-catch)
-    {
-        // Ignore anything bad that happens while logging
-    }
 }
 
 //---------------------------------------------------------------------------//
@@ -322,12 +299,11 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
         HP_SET(g4sp->SetPosition, out.points[sp].pos, clhep_length);
         HP_SET(g4sp->SetKineticEnergy, out.points[sp].energy, CLHEP::MeV);
         HP_SET(g4sp->SetMomentumDirection, out.points[sp].dir, 1);
-        /*!
-         * \todo Celeritas currently ignores incoming particle weight and
-         * does not perform any variance reduction. See issue #1268.
-         */
-        g4sp->SetWeight(1.0);
 
+        if (!out.weight.empty())
+        {
+            g4sp->SetWeight(out.weight[i]);
+        }
         G4LogicalVolume const* point_lv = [&]() -> G4LogicalVolume const* {
             if (sp == StepPoint::pre)
                 return lv;
@@ -355,11 +331,12 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
     }
 #undef HP_SET
 
-    if (!tracks_.empty())
+    if (!out.particle.empty())
     {
-        // Set the track particle type
-        CELER_ASSERT(!out.particle.empty());
-        this->update_track(out.particle[i]);
+        G4Track& g4track = track_processor_.restore_track(
+            out.particle[i],
+            !out.primary_id.empty() ? out.primary_id[i] : PrimaryId{});
+        this->update_track(g4track);
     }
 
     if (step_post_status_)
@@ -371,7 +348,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
     }
 
     // Hit sensitive detector
-    this->detector(out.detector[i])->Hit(step_.get());
+    this->detector(out.detector[i])->Hit(step_);
 }
 
 //---------------------------------------------------------------------------//
@@ -380,11 +357,10 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
  *
  * This is a bit like \c G4Step::UpdateTrack .
  */
-void HitProcessor::update_track(ParticleId id) const
+void HitProcessor::update_track(G4Track& track) const
 {
-    CELER_EXPECT(id < tracks_.size());
-    G4Track& track = *tracks_[id.unchecked_get()];
-    step_->SetTrack(&track);
+    // Copy data from step to track
+    track.SetStepLength(step_->GetStepLength());
 
     G4ParticleDefinition const& pd = *track.GetParticleDefinition();
 
@@ -399,6 +375,13 @@ void HitProcessor::update_track(ParticleId id) const
         p->SetMass(pd.GetPDGMass());
         p->SetCharge(pd.GetPDGCharge());
     }
+
+    if (G4StepPoint* pre_step = step_points_[StepPoint::pre])
+    {
+        // Copy data from post-step to track
+        track.SetTouchableHandle(pre_step->GetTouchableHandle());
+    }
+
     if (G4StepPoint* post_step = step_points_[StepPoint::post])
     {
         // Copy data from post-step to track
@@ -407,6 +390,9 @@ void HitProcessor::update_track(ParticleId id) const
         track.SetKineticEnergy(post_step->GetKineticEnergy());
         track.SetMomentumDirection(post_step->GetMomentumDirection());
         track.SetWeight(post_step->GetWeight());
+
+        track.SetNextTouchableHandle(post_step->GetTouchableHandle());
+        track.SetVelocity(post_step->GetVelocity());
     }
 }
 

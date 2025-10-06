@@ -149,7 +149,7 @@ bool Test::strict_testing()
 
 //---------------------------------------------------------------------------//
 // Provide a definition for the "inf" value. (This is needed by C++ < 17 so
-// that the adddress off the static value can be taken.)
+// that the address off the static value can be taken.)
 constexpr double Test::inf;
 constexpr real_type Test::coarse_eps;
 //---------------------------------------------------------------------------//

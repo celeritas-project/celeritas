@@ -10,21 +10,20 @@
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ScopedMem.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "geocel/SurfaceParams.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/track/SimParams.hh"
-#include "celeritas/track/TrackInitParams.hh"
 
 #include "CoreState.hh"
 #include "MaterialParams.hh"
 #include "PhysicsParams.hh"
-#include "TrackInitParams.hh"
 #include "action/AlongStepAction.hh"
-#include "action/BoundaryAction.hh"
-#include "action/InitializeTracksAction.hh"
 #include "action/LocateVacanciesAction.hh"
 #include "action/PreStepAction.hh"
 #include "action/TrackingCutAction.hh"
+#include "surface/SurfacePhysicsParams.hh"
 
 namespace celeritas
 {
@@ -48,8 +47,9 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.geometry = get_ref<M>(*p.geometry);
     ref.material = get_ref<M>(*p.material);
     ref.physics = get_ref<M>(*p.physics);
+    ref.surface = get_ref<M>(*p.surface);
+    ref.surface_physics = get_ref<M>(*p.surface_physics);
     ref.rng = get_ref<M>(*p.rng);
-    ref.init = get_ref<M>(*p.init);
 
     CELER_ENSURE(ref);
     return ref;
@@ -65,10 +65,6 @@ CoreScalars build_actions(ActionRegistry* reg)
 
     CoreScalars scalars;
 
-    //// START ACTIONS ////
-
-    reg->insert(make_shared<InitializeTracksAction>(reg->next_id()));
-
     //// PRE-STEP ACTIONS ////
 
     reg->insert(make_shared<PreStepAction>(reg->next_id()));
@@ -81,20 +77,12 @@ CoreScalars build_actions(ActionRegistry* reg)
 
     // TODO: process selection action (or constructed by physics?)
 
-    // TODO: it might make more sense to build the surface crossing action
-    // right before making the action group: re-examine once we add a surface
-    // physics manager
-    scalars.boundary_action = reg->next_id();
-    reg->insert(make_shared<BoundaryAction>(scalars.boundary_action));
-
     scalars.tracking_cut_action = reg->next_id();
     reg->insert(make_shared<TrackingCutAction>(scalars.tracking_cut_action));
 
     //// END ACTIONS ////
 
     reg->insert(make_shared<LocateVacanciesAction>(reg->next_id()));
-
-    // TODO: extend from secondaries action
 
     return scalars;
 }
@@ -115,21 +103,18 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CP_VALIDATE_INPUT(material);
     CP_VALIDATE_INPUT(physics);
     CP_VALIDATE_INPUT(rng);
-    CP_VALIDATE_INPUT(init);
+    CP_VALIDATE_INPUT(surface);
+    CP_VALIDATE_INPUT(surface_physics);
     CP_VALIDATE_INPUT(action_reg);
+    CP_VALIDATE_INPUT(gen_reg);
     CP_VALIDATE_INPUT(max_streams);
 #undef CP_VALIDATE_INPUT
 
     CELER_EXPECT(input_);
 
-    // Build detector params based on input detector labels vector. If label
-    // returns false, create an empty label vector.
-    if (input_.detector_labels)
-    {
-        detectors_ = std::make_shared<SDParams>(*(input_.detector_labels),
-                                                *(input_.geometry));
-    }
-    else
+    // TODO: provide detectors in input, passing from core params
+    detectors_ = input_.detectors;
+    if (!detectors_)
     {
         detectors_ = std::make_shared<SDParams>();
     }

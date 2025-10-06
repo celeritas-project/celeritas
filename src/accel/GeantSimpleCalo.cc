@@ -17,6 +17,7 @@
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeantUtils.hh"
+#include "geocel/VolumeParams.hh"
 
 #include "SharedParams.hh"
 
@@ -74,7 +75,7 @@ GeantSimpleCalo::GeantSimpleCalo(std::string name,
         auto&& [iter, inserted]
             = storage_->volume_to_index.insert({volumes_[i], i});
         CELER_VALIDATE(inserted,
-                       << "logical volume " << PrintableLV{iter->first}
+                       << "logical volume " << StreamableLV{iter->first}
                        << " is duplicated in the list of volumes for "
                           "GeantSimpleCalo '"
                        << this->label() << "'");
@@ -188,25 +189,30 @@ void GeantSimpleCalo::output(JsonPimpl* j) const
 
     // Save detector volumes
     {
-        auto const* geo = celeritas::geant_geo();
-        std::shared_ptr<GeantGeoParams> ggp;
-        if (!geo)
+        auto ggp = celeritas::global_geant_geo().lock();
+        auto vols = celeritas::global_volumes().lock();
+        if (!ggp)
         {
             // This can happen if using this class without Celeritas offloading
             // enabled, i.e. CELER_DISABLE=1
             ggp = GeantGeoParams::from_tracking_manager();
-            geo = ggp.get();
         }
+        CELER_ASSERT(ggp);
+
         std::vector<int> ids(volumes_.size());
         std::vector<Label> labels(volumes_.size());
 
         for (auto idx : range(volumes_.size()))
         {
-            auto id = geo->find_volume(volumes_[idx]);
+            CELER_ASSERT(volumes_[idx]);
+            auto id = ggp->geant_to_id(*volumes_[idx]);
             if (id)
             {
                 ids[idx] = id.unchecked_get();
-                labels[idx] = geo->volumes().at(id);
+                if (vols)
+                {
+                    labels[idx] = vols->volume_labels().at(id);
+                }
             }
         }
         obj["volume_ids"] = std::move(ids);

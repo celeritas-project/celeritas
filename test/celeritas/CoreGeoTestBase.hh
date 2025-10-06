@@ -20,13 +20,19 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+//! Testing class for the core geometry
+class CoreGeoTestBase : public
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
-using CoreGeoTestBase = VecgeomTestBase;
+                        VecgeomTestBase
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
-using CoreGeoTestBase = OrangeTestBase;
+                        OrangeTestBase
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
-using CoreGeoTestBase = GeantGeoTestBase;
+                        GeantGeoTestBase
 #endif
+{
+  public:
+    using SPConstCoreGeo = SPConstGeo;
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace test

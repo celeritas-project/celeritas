@@ -155,7 +155,7 @@ CELER_FUNCTION auto InvoluteSolver::operator()(Real3 const& pos,
         u = -u;
     }
 
-    // Results initalization and root counter
+    // Results initialization and root counter
     Intersections result;
     int j = 0;
     // Initial result vector.
@@ -235,7 +235,7 @@ CELER_FUNCTION auto InvoluteSolver::operator()(Real3 const& pos,
         }
         else
         {
-            // Incremet interval slowly until root is in interval
+            // Increment interval slowly until root is in interval
             // i used to slow down approach to next root
             t_lower = t_upper;
             t_upper += pi / i;

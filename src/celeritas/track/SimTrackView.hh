@@ -75,6 +75,9 @@ class SimTrackView
     // Unique track identifier
     inline CELER_FUNCTION TrackId track_id() const;
 
+    // Originating primary identifier
+    inline CELER_FUNCTION PrimaryId primary_id() const;
+
     // Track ID of parent
     inline CELER_FUNCTION TrackId parent_id() const;
 
@@ -95,6 +98,8 @@ class SimTrackView
 
     // Limiting step
     inline CELER_FUNCTION real_type step_length() const;
+    // weight
+    inline CELER_FUNCTION real_type weight() const;
 
     // Update limiting step
     inline CELER_FUNCTION void step_length(real_type length);
@@ -148,9 +153,11 @@ SimTrackView::SimTrackView(SimParamsRef const& params,
 CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer_t const& other)
 {
     states_.track_ids[track_slot_] = other.track_id;
+    states_.primary_ids[track_slot_] = other.primary_id;
     states_.parent_ids[track_slot_] = other.parent_id;
     states_.event_ids[track_slot_] = other.event_id;
     states_.num_steps[track_slot_] = 0;
+    states_.weight[track_slot_] = other.weight;
     if (!states_.num_looping_steps.empty())
     {
         states_.num_looping_steps[track_slot_] = 0;
@@ -329,6 +336,14 @@ CELER_FORCEINLINE_FUNCTION TrackId SimTrackView::track_id() const
     return states_.track_ids[track_slot_];
 }
 
+/*!
+ * Originating primary identifier.
+ */
+CELER_FORCEINLINE_FUNCTION PrimaryId SimTrackView::primary_id() const
+{
+    return states_.primary_ids[track_slot_];
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Track ID of parent.
@@ -390,6 +405,14 @@ CELER_FORCEINLINE_FUNCTION TrackStatus SimTrackView::status() const
 CELER_FORCEINLINE_FUNCTION real_type SimTrackView::step_length() const
 {
     return states_.step_length[track_slot_];
+}
+//---------------------------------------------------------------------------//
+/*!
+ * Get the weight.
+ */
+CELER_FORCEINLINE_FUNCTION real_type SimTrackView::weight() const
+{
+    return states_.weight[track_slot_];
 }
 
 //---------------------------------------------------------------------------//

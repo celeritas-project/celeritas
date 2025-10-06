@@ -72,6 +72,9 @@ if core_geo == "orange-json":
 simple_calo = []
 if not rootout_filename and "cms" in geometry_filename:
     simple_calo = ["si_tracker", "em_calorimeter"]
+    # Volumes (needed for the simple calo) are currently only loaded if Geant4
+    # import is enabled
+    physics_filename = None
 
 num_tracks = 128 * 32 if use_device else 32
 num_primaries = 3 * 15 # assuming test hepmc input
@@ -106,12 +109,14 @@ inp = {
 }
 
 if "lar" in geometry_filename:
+    # Volume and surface properties are currently only loaded if Geant4 import
+    # is enabled
+    physics_filename = None
     num_optical_tracks = 4096
     inp['max_steps'] = 2
     inp['optical'] = {
         'num_track_slots': num_optical_tracks,
         'buffer_capacity': 3 * max_steps * num_optical_tracks,
-        'initializer_capacity': 2048 * num_optical_tracks,
         'max_steps': 4,
         'auto_flush': num_optical_tracks,
     }
@@ -193,7 +198,6 @@ if not use_device:
 if not use_device and "lar" in geometry_filename:
     expected_opt_sizes = {
        "generators": 3145728,
-       "initializers": 8388608,
        "tracks": 4096
     }
 

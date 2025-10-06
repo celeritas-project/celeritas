@@ -78,6 +78,12 @@ void SimpleHitsResult::print_expected() const
 }
 
 //---------------------------------------------------------------------------//
+SimpleSensitiveDetector::SimpleSensitiveDetector(std::string const& name)
+    : G4VSensitiveDetector{name}
+{
+}
+
+//---------------------------------------------------------------------------//
 SimpleSensitiveDetector::SimpleSensitiveDetector(G4LogicalVolume const* lv)
     : G4VSensitiveDetector{lv->GetName()}, lv_{lv}
 {
@@ -91,14 +97,18 @@ bool SimpleSensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
     auto* pre_step = step->GetPreStepPoint();
     CELER_ASSERT(pre_step);
 
-    hits_.energy_deposition.push_back(step->GetTotalEnergyDeposit()
-                                      / CLHEP::MeV);
     hits_.step_length.push_back(step->GetStepLength() / CLHEP::cm);
+
+    double edep = step->GetTotalEnergyDeposit() / CLHEP::MeV;
+
     if (auto* track = step->GetTrack())
     {
         hits_.particle.push_back(track->GetDefinition()->GetParticleName());
+        double weight = track->GetWeight();
+        CELER_ASSERT(weight > 0);
+        edep *= weight;
     }
-
+    hits_.energy_deposition.push_back(edep);
     hits_.pre_energy.push_back(pre_step->GetKineticEnergy() / CLHEP::MeV);
 
     for (int i : range(3))

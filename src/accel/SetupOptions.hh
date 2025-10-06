@@ -19,6 +19,7 @@
 #include "celeritas/inp/Physics.hh"
 
 class G4LogicalVolume;
+class G4ParticleDefinition;
 
 namespace celeritas
 {
@@ -135,6 +136,7 @@ struct SetupOptions
         = std::function<SPConstAction(AlongStepFactoryInput const&)>;
     using IntAccessor = std::function<int()>;
     using VecString = std::vector<std::string>;
+    using VecG4PD = std::vector<G4ParticleDefinition*>;
     //!@}
 
     //! Don't limit the number of steps
@@ -152,10 +154,17 @@ struct SetupOptions
     std::string output_file{"celeritas.out.json"};
     //! Filename for ROOT dump of physics data
     std::string physics_output_file;
-    //! Filename to dump a ROOT/HepMC3 copy of offloaded tracks as events
+    //! Filename to dump a ROOT/HepMC3/JSON copy of offloaded tracks as events
     std::string offload_output_file;
     //! Filename to dump a GDML file for debugging inside frameworks
     std::string geometry_output_file;
+    //!@}
+
+    //!@{
+    //! \name Optical photon options
+
+    //! Capacity for storing optical photon state
+    std::optional<inp::OpticalStateCapacity> optical_capacity;
     //!@}
 
     //!@{
@@ -205,6 +214,8 @@ struct SetupOptions
 
     //! Do not use Celeritas physics for the given Geant4 process names
     VecString ignore_processes;
+    //! Only offload a subset of particles
+    VecG4PD offload_particles;
     //! Physics grid interpolation options
     inp::Interpolation interpolation{};
     //!@}
@@ -230,7 +241,6 @@ struct SetupOptions
 
     //! Add additional diagnostic user actions [EXPERIMENTAL]
     std::function<void(CoreParams const&)> add_user_actions;
-
     //!@}
 
     explicit inline operator bool() const
@@ -254,7 +264,8 @@ inp::GeantSd to_inp(SDSetupOptions const& so);
 inp::FrameworkInput to_inp(SetupOptions const& so);
 
 // Get runtime-dependent default capacity values
-inp::StateCapacity get_default(SetupOptions const& so, size_type num_streams);
+inp::CoreStateCapacity
+get_default(SetupOptions const& so, size_type num_streams);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

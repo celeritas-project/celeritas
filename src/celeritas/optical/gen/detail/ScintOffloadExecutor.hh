@@ -34,7 +34,7 @@ struct ScintOffloadExecutor
 
     NativeCRef<celeritas::optical::MaterialParamsData> const material;
     NativeCRef<ScintillationData> const scint;
-    NativeRef<GeneratorStateData> const offload;
+    NativeRef<optical::GeneratorStateData> const offload;
     NativeRef<OffloadStepStateData> const steps;
     size_type buffer_size;
 };
@@ -51,7 +51,7 @@ CELER_FUNCTION void ScintOffloadExecutor::operator()(CoreTrackView const& track)
     CELER_EXPECT(offload);
     CELER_EXPECT(steps);
 
-    using DistId = ItemId<GeneratorDistributionData>;
+    using DistId = ItemId<optical::GeneratorDistributionData>;
 
     auto tsid = track.track_slot_id();
     CELER_ASSERT(buffer_size + tsid.get() < offload.distributions.size());

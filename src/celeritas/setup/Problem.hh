@@ -15,7 +15,7 @@ namespace celeritas
 namespace inp
 {
 struct Problem;
-}
+}  // namespace inp
 
 class CoreParams;
 class GeantSd;

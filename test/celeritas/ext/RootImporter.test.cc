@@ -11,9 +11,11 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
+#include "celeritas/RootTestBase.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
+#include "celeritas/io/ImportProcess.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -39,38 +41,34 @@ namespace test
  * This test only checks if the loaded ROOT file is minimally correct. Detailed
  * verification of the imported data is done by \c GeantImporter.test .
  */
-class RootImporterTest : public Test
+class RootImporterTest : public RootTestBase
 {
   protected:
-    std::string_view geometry_basename() const { return "four-steel-slabs"sv; }
-
-    ImportData const& imported_data() const;
-};
-
-//---------------------------------------------------------------------------//
-auto RootImporterTest::imported_data() const -> ImportData const&
-{
-    static struct
+    std::string_view gdml_basename() const override
     {
-        std::string geometry_basename;
-        ImportData imported;
-    } i;
-    auto geo_basename = this->geometry_basename();
-    if (i.geometry_basename != geo_basename)
-    {
-        ScopedRootErrorHandler scoped_root_error;
-
-        i.geometry_basename = geo_basename;
-        std::string root_inp
-            = this->test_data_path("celeritas", i.geometry_basename + ".root");
-
-        RootImporter import(root_inp.c_str());
-        i.imported = import();
-        scoped_root_error.throw_if_errors();
+        return "four-steel-slabs"sv;
     }
-    CELER_ENSURE(!i.imported.particles.empty());
-    return i.imported;
-}
+
+    void fixup_data(ImportData& imported) const override
+    {
+        // Delete processes that need geant4 data files
+        auto needs_data = [](ImportProcessClass ipc) {
+            return ipc == ImportProcessClass::e_brems
+                   || ipc == ImportProcessClass::photoelectric;
+        };
+
+        auto& processes = imported.processes;
+        processes.erase(std::remove_if(processes.begin(),
+                                       processes.end(),
+                                       [needs_data](ImportProcess const& ip) {
+                                           return needs_data(ip.process_class);
+                                       }),
+                        processes.end());
+
+        imported.em_params.fluorescence = false;
+        imported.em_params.auger = false;
+    }
+};
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -86,7 +84,7 @@ TEST_F(RootImporterTest, particles)
     for (auto const& particle : particles)
     {
         loaded_names.push_back(particle.name);
-        loaded_pdgs.push_back(particle.pdg);
+        loaded_pdgs.push_back(particle.pdg.get());
     }
 
     // Particle ordering is the same as in the ROOT file
@@ -150,7 +148,7 @@ TEST_F(RootImporterTest, phys_materials)
 TEST_F(RootImporterTest, processes)
 {
     auto const& processes = this->imported_data().processes;
-    EXPECT_EQ(17, processes.size());
+    EXPECT_EQ(14, processes.size());
 
     auto find_process = [&processes](PDGNumber pdg, ImportProcessClass ipc) {
         return std::find_if(processes.begin(),

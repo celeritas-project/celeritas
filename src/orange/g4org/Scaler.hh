@@ -27,25 +27,35 @@ namespace g4org
 class Scaler
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using Real2 = Array<real_type, 2>;
+    using Real3 = Array<real_type, 3>;
+    //!@}
+
+  public:
+    //! Scale with an explicit factor from Geant4 or for testing
+    explicit Scaler(double sc) : scale_{sc} { CELER_EXPECT(scale_ > 0); }
+
     //! Default scale to CLHEP units (mm)
     Scaler() : scale_{celeritas::lengthunits::millimeter} {}
 
-    //! Scale with an explicit factor, probably for testing
-    explicit Scaler(double sc) : scale_{sc} { CELER_EXPECT(scale_ > 0); }
-
-    //! Multiply a value by the scale
-    double operator()(double val) const { return val * scale_; }
+    //! Multiply a value by the scale, converting to Celeritas precision
+    real_type operator()(double val) const
+    {
+        return static_cast<real_type>(val * scale_);
+    }
 
     //! Convert and scale a 2D point
-    Array<double, 2> operator()(G4TwoVector const& vec) const
+    Real2 operator()(G4TwoVector const& vec) const
     {
-        return this->to<Array<double, 2>>(vec.x(), vec.y());
+        return this->to<Real2>(vec.x(), vec.y());
     }
 
     //! Convert and scale a 3D point
-    Array<double, 3> operator()(G4ThreeVector const& vec) const
+    Real3 operator()(G4ThreeVector const& vec) const
     {
-        return this->to<Array<double, 3>>(vec.x(), vec.y(), vec.z());
+        return this->to<Real3>(vec.x(), vec.y(), vec.z());
     }
 
     //! Create an array or other object by scaling each argument
@@ -54,6 +64,9 @@ class Scaler
     {
         return S{(*this)(std::forward<Ts>(args))...};
     }
+
+    //! Scaling value in Geant4 precision
+    double value() const { return scale_; }
 
   private:
     double scale_;

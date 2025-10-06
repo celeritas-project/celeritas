@@ -202,7 +202,7 @@ CoreTrackView::operator=(TrackInitializer const& init)
     }
 
     // Initialize the material
-    auto matid = this->geo_material().material_id(geo.volume_id());
+    auto matid = this->geo_material().material_id(geo.impl_volume_id());
     if (CELER_UNLIKELY(!matid))
     {
 #if !CELER_DEVICE_COMPILE

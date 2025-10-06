@@ -23,6 +23,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Construct a nonuniform grid and add it to the specified grid collection.
+ *
+ * \todo Validate input doesn't contain more than two coincident x grid points?
  */
 template<class Index>
 class NonuniformGridInserter
@@ -77,7 +79,7 @@ auto NonuniformGridInserter<Index>::operator()(inp::Grid const& grid) -> Index
 
 //---------------------------------------------------------------------------//
 /*!
- * Add an empty grid.
+ * Add an empty grid for disabled models.
  *
  * Useful for when there's no imported grid present for a given material.
  */

@@ -9,7 +9,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/math/ArrayUtils.hh"
+#include "geocel/Types.hh"
 
 #include "FieldDriverOptions.hh"
 
@@ -27,7 +27,7 @@ struct UniformFieldParamsData
 {
     using Real3 = Array<real_type, 3>;
     template<class T>
-    using VolumeItems = celeritas::Collection<T, W, M, VolumeId>;
+    using VolumeItems = celeritas::Collection<T, W, M, ImplVolumeId>;
 
     Real3 field{0, 0, 0};  //!< Field strength (native units)
     FieldDriverOptions options;
@@ -36,7 +36,7 @@ struct UniformFieldParamsData
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return options && norm(field) > 0;
+        return options && (field[0] != 0 || field[1] != 0 || field[2] != 0);
     }
 
     //! Assign from another set of data

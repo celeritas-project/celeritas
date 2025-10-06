@@ -7,6 +7,7 @@
 #pragma once
 
 #include "corecel/random/engine/RngEngine.hh"
+#include "geocel/VolumeSurfaceView.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 
 #include "CoreTrackData.hh"
@@ -15,6 +16,7 @@
 #include "PhysicsTrackView.hh"
 #include "SimTrackView.hh"
 #include "TrackInitializer.hh"
+#include "surface/SurfacePhysicsTrackView.hh"
 
 #if !CELER_DEVICE_COMPILE
 #    include "corecel/io/Logger.hh"
@@ -52,7 +54,7 @@ class CoreTrackView
     // Return a material view
     inline CELER_FUNCTION MaterialView material_record() const;
 
-    // Return a material view (using an existing geo view
+    // Return a material view (using an existing geo view)
     inline CELER_FUNCTION MaterialView material_record(GeoTrackView const&) const;
 
     // Return a simulation management view
@@ -64,14 +66,20 @@ class CoreTrackView
     // Return a physics view
     inline CELER_FUNCTION PhysicsTrackView physics() const;
 
+    // Return a volume surface view
+    inline CELER_FUNCTION VolumeSurfaceView surface() const;
+
+    // Return a volume surface view from volume ID
+    inline CELER_FUNCTION VolumeSurfaceView surface(VolumeId) const;
+
+    // Return a surface physics view
+    inline CELER_FUNCTION SurfacePhysicsTrackView surface_physics() const;
+
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
 
     // Get the track's index among the states
     inline CELER_FUNCTION TrackSlotId track_slot_id() const;
-
-    // Action ID for encountering a geometry boundary
-    inline CELER_FUNCTION ActionId boundary_action() const;
 
     // Flag a track for deletion
     inline CELER_FUNCTION void apply_errored();
@@ -133,6 +141,9 @@ CoreTrackView::operator=(TrackInitializer const& init)
     // Initialize the physics state
     this->physics() = PhysicsTrackView::Initializer{};
 
+    // Initialize the surface state
+    this->surface_physics().reset();
+
     return *this;
 }
 
@@ -164,7 +175,7 @@ CELER_FUNCTION auto
 CoreTrackView::material_record(GeoTrackView const& geo) const -> MaterialView
 {
     CELER_EXPECT(!geo.is_outside());
-    return MaterialView{params_.material, geo.volume_id()};
+    return MaterialView{params_.material, geo.impl_volume_id()};
 }
 
 //---------------------------------------------------------------------------//
@@ -186,6 +197,38 @@ CELER_FUNCTION auto CoreTrackView::physics() const -> PhysicsTrackView
     CELER_ASSERT(mat_id);
     return PhysicsTrackView{
         params_.physics, states_.physics, mat_id, this->track_slot_id()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a volume surface view into the track's current volume.
+ */
+CELER_FUNCTION auto CoreTrackView::surface() const -> VolumeSurfaceView
+{
+    return this->surface(this->geometry().volume_id());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a volume surface view from volume ID.
+ */
+CELER_FUNCTION auto CoreTrackView::surface(VolumeId vol) const
+    -> VolumeSurfaceView
+{
+    CELER_EXPECT(vol);
+    return VolumeSurfaceView{params_.surface, vol};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a surface physics view.
+ */
+CELER_FUNCTION auto CoreTrackView::surface_physics() const
+    -> SurfacePhysicsTrackView
+{
+    return SurfacePhysicsTrackView{params_.surface_physics,
+                                   states_.surface_physics,
+                                   this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//
@@ -213,15 +256,6 @@ CELER_FUNCTION SimTrackView CoreTrackView::sim() const
 CELER_FORCEINLINE_FUNCTION TrackSlotId CoreTrackView::track_slot_id() const
 {
     return track_slot_id_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the action ID for encountering a geometry boundary.
- */
-CELER_FUNCTION ActionId CoreTrackView::boundary_action() const
-{
-    return params_.scalars.boundary_action;
 }
 
 //---------------------------------------------------------------------------//

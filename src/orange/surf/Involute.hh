@@ -184,7 +184,7 @@ CELER_FUNCTION auto Involute::sign() const -> Chirality
  * center of one of the circles is given by: \f[ x_prime = (d^2 - r^2 +
  * R^2)/(2d) \f] Where \em d is the distance between the center of the two
  * circles, \em r is the radius of the displaced circle, and \em R is the
- * radius of the circle at the orgin. Then the point \em y_prime can be
+ * radius of the circle at the origin. Then the point \em y_prime can be
  * obatined from: \f[ y_prime = \pm sqrt(R^2 - x_prime^2) \f] Then to convert (
  * \em x_prime , \em y_prime ) to ( \em x, \em y ) the following rotation is
  * applied:\f[ x = x_prime*cos(theta) - y_prime*sin(theta) y =

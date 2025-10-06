@@ -8,25 +8,21 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/data/CollectionBuilder.hh"
-#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 template<Ownership W, MemSpace M>
 struct SDParamsData
 {
     //// DATA ////
 
     //! Mapping for volume -> sensitive detector
-    Collection<DetectorId, W, M, VolumeId> detector;
+    Collection<DetectorId, W, M, ImplVolumeId> detector;
 
     //! Whether the data is assigned
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return (!detector.empty());
-    }
+    explicit CELER_FUNCTION operator bool() const { return !detector.empty(); }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>

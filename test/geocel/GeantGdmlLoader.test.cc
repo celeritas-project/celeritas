@@ -40,13 +40,7 @@ using SolidsTest = GeantGdmlLoaderTest;
 
 TEST_F(SolidsTest, load_save)
 {
-    ScopedLogStorer scoped_log_local_{&celeritas::self_logger(),
-                                      LogLevel::warning};
     auto* world = load_gdml(this->gdml_path("solids"));
-    static char const* const expected_local_log_levels[] = {"error"};
-    EXPECT_VEC_EQ(expected_local_log_levels, scoped_log_local_.levels());
-    scoped_log_local_ = {};
-
     ASSERT_TRUE(world);
 
     auto vols = find_geant_volumes({"box500", "trd3", "trd1"});
@@ -54,9 +48,16 @@ TEST_F(SolidsTest, load_save)
     save_gdml(world, this->make_unique_filename(".gdml"));
 
     static char const* const expected_log_messages[] = {
+        R"(Geant4 error: There exists more than ONE logical volume in store named: trd3_refl.
+NOTE: assigning all such volumes as root logical volumes for region: Turds!
+G4GDMLParser::ImportRegions(): 'Notification' failed)",
         R"(Geant4 regions have not been set up: skipping export of energy cuts and regions)"};
-    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
-    static char const* const expected_log_levels[] = {"warning"};
+    if (CELERITAS_GEANT4_VERSION % 0x100 == 0x0b03)
+    {
+        // The error message changes slightly over versions
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    }
+    static char const* const expected_log_levels[] = {"error", "warning"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 

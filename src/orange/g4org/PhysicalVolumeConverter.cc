@@ -38,12 +38,13 @@ namespace g4org
 namespace
 {
 //---------------------------------------------------------------------------//
+// See G4Navigator::LocateGlobalPointAndSetup for implementation of these
 struct ReplicaUpdater
 {
-    void operator()(int copy_no, G4VPhysicalVolume* g4pv)
+    void operator()(int copy_no, G4VPhysicalVolume& g4pv)
     {
-        // TODO: check and error if the replica uses the kRaxis replication
-        nav_.ComputeTransformation(copy_no, g4pv);
+        nav_.ComputeTransformation(copy_no, &g4pv);
+        g4pv.SetCopyNo(copy_no);
     }
 
     G4ReplicaNavigation nav_;
@@ -51,12 +52,15 @@ struct ReplicaUpdater
 
 struct ParamUpdater
 {
-    void operator()(int copy_no, G4VPhysicalVolume* g4pv)
+    void operator()(int copy_no, G4VPhysicalVolume& g4pv)
     {
-        param_->ComputeTransformation(copy_no, g4pv);
+        // TODO: this only works with parameterized transformations, not
+        // changes to the solid or material.
+        param_.ComputeTransformation(copy_no, &g4pv);
+        g4pv.SetCopyNo(copy_no);
     }
 
-    G4VPVParameterisation* param_;
+    G4VPVParameterisation& param_;
 };
 
 }  // namespace
@@ -148,9 +152,8 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
 {
     PhysicalVolume result;
 
-    // Get PV ID and replica ID if applicable
+    // Get PV ID, using embedded copy number
     result.id = this->data->geo.geant_to_id(g4pv);
-    result.replica_id = this->data->geo.replica_id(g4pv);
 
     // Get transform
     result.transform = [&]() -> VariantTransform {
@@ -212,14 +215,12 @@ void PhysicalVolumeConverter::Builder::place_child(
         lv->children.push_back(this->make_pv(depth, g4pv));
     };
     auto place_multiple = [&](auto&& update_pv) {
-        auto* g4pv_mutable = const_cast<G4VPhysicalVolume*>(&g4pv);
-        for (auto j : range(g4pv.GetMultiplicity()))
+        for (auto copy_no : range(g4pv.GetMultiplicity()))
         {
             // Modify the volume's position/size/orientation in-place
-            update_pv(j, g4pv_mutable);
-            g4pv_mutable->SetCopyNo(j);
-            // Place the copy
-            place_single();
+            update_pv(copy_no, const_cast<G4VPhysicalVolume&>(g4pv));
+            // Place the copy: note that this uses the "updated" PV's state
+            lv->children.push_back(this->make_pv(depth, g4pv));
         }
     };
 
@@ -234,16 +235,16 @@ void PhysicalVolumeConverter::Builder::place_child(
             place_multiple(ReplicaUpdater{});
             break;
         case EVolume::kParameterised:
-            // Place each paramterized instance of the daughter
+            // Place each parameterized instance of the daughter
             CELER_ASSERT(g4pv.GetParameterisation());
-            place_multiple(ParamUpdater{g4pv.GetParameterisation()});
+            place_multiple(ParamUpdater{*g4pv.GetParameterisation()});
             break;
         default:
             CELER_LOG(error) << "Unsupported type '"
                              << TypeDemangler<G4VPhysicalVolume>{}(g4pv)
                              << "' for physical volume '" << g4pv.GetName()
                              << "' (corresponding LV: "
-                             << PrintableLV{g4pv.GetLogicalVolume()} << ")";
+                             << StreamableLV{g4pv.GetLogicalVolume()} << ")";
     }
 }
 

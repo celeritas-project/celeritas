@@ -87,7 +87,7 @@ class IntegratorsTest : public Test
 
         for (unsigned int i : range(param.nstates))
         {
-            // Initial state and the epected state after revolutions
+            // Initial state and the expected state after revolutions
             OdeState y;
             y.pos = {param.radius, 0, i * real_type{1e-6}};
             y.mom = {0, param.momentum_y, param.momentum_z};

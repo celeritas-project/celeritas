@@ -31,7 +31,7 @@ namespace celeritas
  * \f[
  *  \difd{y_{i}}{s} = f_i (s, y_{i})
  * \f]
- * and the fouth order Runge-Kutta solution for a given step size, \em h is
+ * and the fourth order Runge-Kutta solution for a given step size, \em h is
  * \f[
  *  y_{n+1} - y_{n} = h f(x_n, y_n) = \frac{h}{6} (k_1 + 2 k_2 + 2 k_3 + k_4)
  * \f]

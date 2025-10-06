@@ -285,7 +285,7 @@ inline CELER_FUNCTION T calc_dist_to_inside(BoundingBox<T> const& bbox,
         {
             if (dir[ax] == 0)
             {
-                // Short circut if there is not movement in this dir
+                // Short circuit if there is not movement in this dir
                 continue;
             }
 
@@ -293,7 +293,7 @@ inline CELER_FUNCTION T calc_dist_to_inside(BoundingBox<T> const& bbox,
                      / dir[ax];
             if (dist <= 0)
             {
-                // Short circut if the plane is behind us
+                // Short circuit if the plane is behind us
                 continue;
             }
 

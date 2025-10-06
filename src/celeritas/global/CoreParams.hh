@@ -21,7 +21,6 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-class ActionRegistry;
 class CutoffParams;
 class GeoMaterialParams;
 class MaterialParams;
@@ -30,9 +29,13 @@ class OutputRegistry;
 class ParticleParams;
 class PhysicsParams;
 class SimParams;
+class SurfaceParams;
 class TrackInitParams;
-class AuxParamsRegistry;
+class VolumeParams;
 class WentzelOKVIParams;
+
+class ActionRegistry;
+class AuxParamsRegistry;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -46,7 +49,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
   public:
     //!@{
     //! \name Type aliases
-    using SPConstGeo = std::shared_ptr<GeoParams const>;
+    using SPConstCoreGeo = std::shared_ptr<CoreGeoParams const>;
     using SPConstMaterial = std::shared_ptr<MaterialParams const>;
     using SPConstGeoMaterial = std::shared_ptr<GeoMaterialParams const>;
     using SPConstParticle = std::shared_ptr<ParticleParams const>;
@@ -54,12 +57,16 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstPhysics = std::shared_ptr<PhysicsParams const>;
     using SPConstRng = std::shared_ptr<RngParams const>;
     using SPConstSim = std::shared_ptr<SimParams const>;
+    using SPConstSurface = std::shared_ptr<SurfaceParams const>;
     using SPConstTrackInit = std::shared_ptr<TrackInitParams const>;
+    using SPConstVolume = std::shared_ptr<VolumeParams const>;
+
     using SPConstWentzelOKVI = std::shared_ptr<WentzelOKVIParams const>;
-    using SPConstMpiCommunicator = std::shared_ptr<MpiCommunicator const>;
+
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
     using SPAuxRegistry = std::shared_ptr<AuxParamsRegistry>;
+    using SPConstMpiCommunicator = std::shared_ptr<MpiCommunicator const>;
 
     template<MemSpace M>
     using ConstRef = CoreParamsData<Ownership::const_reference, M>;
@@ -69,7 +76,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
     struct Input
     {
-        SPConstGeo geometry;
+        SPConstCoreGeo geometry;
         SPConstMaterial material;
         SPConstGeoMaterial geomaterial;
         SPConstParticle particle;
@@ -77,8 +84,10 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstPhysics physics;
         SPConstRng rng;
         SPConstSim sim;
+        SPConstSurface surface;
         SPConstTrackInit init;
-        SPConstWentzelOKVI wentzel;  //!< Optional (TODO: aux data?)
+        SPConstVolume volume;
+        SPConstWentzelOKVI wentzel;  //!< Optional (TODO: move to EM physics)
 
         SPActionRegistry action_reg;
         SPOutputRegistry output_reg;
@@ -95,8 +104,8 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         explicit operator bool() const
         {
             return geometry && material && geomaterial && particle && cutoff
-                   && physics && rng && sim && init && action_reg && output_reg
-                   && max_streams;
+                   && physics && rng && sim && surface && init && volume
+                   && action_reg && output_reg && max_streams;
         }
     };
 
@@ -106,7 +115,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
     //!@{
     //! Access shared problem parameter data.
-    SPConstGeo const& geometry() const { return input_.geometry; }
+    SPConstCoreGeo const& geometry() const { return input_.geometry; }
     SPConstMaterial const& material() const { return input_.material; }
     SPConstGeoMaterial const& geomaterial() const
     {
@@ -117,7 +126,9 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPConstPhysics const& physics() const { return input_.physics; }
     SPConstRng const& rng() const { return input_.rng; }
     SPConstSim const& sim() const { return input_.sim; }
+    SPConstSurface const& surface() const { return input_.surface; }
     SPConstTrackInit const& init() const { return input_.init; }
+    SPConstVolume const& volume() const { return input_.volume; }
     SPConstWentzelOKVI const& wentzel() const { return input_.wentzel; }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
     SPOutputRegistry const& output_reg() const { return input_.output_reg; }

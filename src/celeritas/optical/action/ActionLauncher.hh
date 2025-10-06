@@ -22,6 +22,26 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Helper function to run an action in parallel on CPU.
+ *
+ * This allows using a custom number of threads rather than the state size.
+ */
+template<class F>
+void launch_action(size_type num_threads, F&& execute_thread)
+{
+    MultiExceptionHandler capture_exception;
+#if defined(_OPENMP) && CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
+#    pragma omp parallel for
+#endif
+    for (size_type i = 0; i < num_threads; ++i)
+    {
+        CELER_TRY_HANDLE(execute_thread(ThreadId{i}), capture_exception);
+    }
+    log_and_rethrow(std::move(capture_exception));
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Helper function to run an action in parallel on CPU over all states.
  *
  * Example:
@@ -36,16 +56,7 @@ namespace optical
 template<class F>
 void launch_action(CoreState<MemSpace::host>& state, F&& execute_thread)
 {
-    MultiExceptionHandler capture_exception;
-    size_type const size = state.size();
-#if defined(_OPENMP) && CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
-#    pragma omp parallel for
-#endif
-    for (size_type i = 0; i < size; ++i)
-    {
-        CELER_TRY_HANDLE(execute_thread(ThreadId{i}), capture_exception);
-    }
-    log_and_rethrow(std::move(capture_exception));
+    return launch_action(state.size(), std::forward<F>(execute_thread));
 }
 
 //---------------------------------------------------------------------------//

@@ -65,7 +65,7 @@ class MagFieldEquation
     // Field evaluator
     Field_t calc_field_;
 
-    // The (Lorentz) coefficent in 1/OdeState::MomentumUnits
+    // The (Lorentz) coefficient in 1/OdeState::MomentumUnits
     real_type coeffi_;
 };
 

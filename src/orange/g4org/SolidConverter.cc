@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "SolidConverter.hh"
 
+#include <memory>
 #include <typeindex>
 #include <typeinfo>
 #include <unordered_map>
@@ -24,6 +25,7 @@
 #include <G4GenericTrap.hh>
 #include <G4Hype.hh>
 #include <G4IntersectionSolid.hh>
+#include <G4MultiUnion.hh>
 #include <G4Orb.hh>
 #include <G4Para.hh>
 #include <G4Paraboloid.hh>
@@ -49,16 +51,20 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/Repr.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArraySoftUnit.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "orange/orangeinp/CsgObject.hh"
+#include "orange/orangeinp/IntersectRegion.hh"
 #include "orange/orangeinp/PolySolid.hh"
+#include "orange/orangeinp/RevolvedPolygon.hh"
 #include "orange/orangeinp/Shape.hh"
 #include "orange/orangeinp/Solid.hh"
 #include "orange/orangeinp/StackedExtrudedPolygon.hh"
 #include "orange/orangeinp/Transformed.hh"
+#include "orange/orangeinp/Truncated.hh"
 
 #include "Scaler.hh"
 #include "Transformer.hh"
@@ -78,16 +84,46 @@ namespace
  * This constructs from native Geant4 radians and truncates to \c real_type,
  * ensuring that roundoff doesn't push the turn beyond a full one.
  */
-EnclosedAzi enclosed_azi_radians(double start_rad, double delta_rad)
+auto enclosed_azi_radians(double start_rad, double stop_rad)
 {
     auto start = native_value_to<RealTurn>(start_rad);
-    auto delta = native_value_to<RealTurn>(delta_rad);
-    if (soft_equal(delta.value(), real_type{1}))
+    auto stop = native_value_to<RealTurn>(stop_rad);
+    auto delta_turn = value_as<RealTurn>(stop - start);
+    CELER_VALIDATE(delta_turn <= 1 || soft_equal(delta_turn, real_type{1}),
+                   << "azimuthal restriction [" << start.value() << ", "
+                   << stop.value() << "] [turn] exceeds 1 turn");
+    if (delta_turn >= real_type{1} || soft_equal(delta_turn, real_type{1}))
     {
-        // Avoid roundoff error
-        delta = RealTurn{1};
+        // Avoid roundoff error: return full region
+        return EnclosedAzi{};
     }
-    return EnclosedAzi{start, delta};
+    return EnclosedAzi{start, stop};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get an EnclosedPolar, avoiding values slightly beyond a half turn.
+ *
+ * This constructs from native Geant4 radians and truncates to \c real_type,
+ * ensuring that roundoff doesn't push the turn beyond a full one. The
+ * G4Sphere::CheckThetaAngles implementation prevents the endpoint being
+ * greater than 180 degrees, so we do the same here.
+ */
+auto enclosed_polar_radians(double start_rad, double stop_rad)
+{
+    constexpr RealTurn half_turn{0.5};
+
+    auto start = native_value_to<RealTurn>(start_rad);
+    auto stop = native_value_to<RealTurn>(stop_rad);
+    CELER_VALIDATE(start.value() >= 0 || soft_zero(start.value()),
+                   << "polar start angle " << start.value()
+                   << " [turn] exceeds half a turn");
+    start = min(half_turn, start);
+    CELER_VALIDATE(
+        stop <= half_turn || soft_equal(stop.value(), half_turn.value()),
+        << "polar end angle " << stop.value() << " [turn] exceeds half a turn");
+    stop = min(half_turn, stop);
+    return EnclosedPolar{start, stop};
 }
 
 //---------------------------------------------------------------------------//
@@ -99,8 +135,8 @@ EnclosedAzi enclosed_azi_radians(double start_rad, double delta_rad)
 template<class S>
 EnclosedAzi enclosed_azi_from(S const& solid)
 {
-    return enclosed_azi_radians(solid.GetStartPhiAngle(),
-                                solid.GetDeltaPhiAngle());
+    auto start = solid.GetStartPhiAngle();
+    return enclosed_azi_radians(start, start + solid.GetDeltaPhiAngle());
 }
 
 //---------------------------------------------------------------------------//
@@ -114,7 +150,8 @@ EnclosedAzi enclosed_azi_from(S const& solid)
 template<>
 EnclosedAzi enclosed_azi_from<G4Torus>(G4Torus const& solid)
 {
-    return enclosed_azi_radians(solid.GetSPhi(), solid.GetDPhi());
+    auto start = solid.GetSPhi();
+    return enclosed_azi_radians(start, start + solid.GetDPhi());
 }
 
 //---------------------------------------------------------------------------//
@@ -127,9 +164,7 @@ EnclosedAzi enclosed_azi_from<G4Torus>(G4Torus const& solid)
 template<class S>
 EnclosedAzi enclosed_azi_from_poly(S const& solid)
 {
-    auto start = solid.GetStartPhi();
-    auto stop = solid.GetEndPhi();
-    return enclosed_azi_radians(start, stop - start);
+    return enclosed_azi_radians(solid.GetStartPhi(), solid.GetEndPhi());
 }
 
 //---------------------------------------------------------------------------//
@@ -137,11 +172,11 @@ EnclosedAzi enclosed_azi_from_poly(S const& solid)
  * Get the enclosed polar angle by a solid.
  */
 template<class S>
-EnclosedAzi enclosed_pol_from(S const& solid)
+EnclosedPolar enclosed_pol_from(S const& solid)
 {
-    // FIXME: polar angle will be a different class
-    return enclosed_azi_radians(solid.GetStartThetaAngle(),
-                                solid.GetDeltaThetaAngle());
+    auto start = solid.GetStartThetaAngle();
+    auto delta = solid.GetDeltaThetaAngle();
+    return enclosed_polar_radians(start, start + delta);
 }
 
 //---------------------------------------------------------------------------//
@@ -160,11 +195,9 @@ EnclosedAzi enclosed_pol_from(S const& solid)
     -> std::pair<Turn, Turn>
 {
     CELER_EXPECT(axis.z() > 0);
-    CELER_EXPECT(
-        is_soft_unit_vector(Array<double, 3>{axis.x(), axis.y(), axis.z()}));
+    CELER_EXPECT(is_soft_unit_vector(convert_from_geant(axis)));
 
-    double const theta = std::acos(axis.z());
-    return {native_value_to<Turn>(theta),
+    return {native_value_to<Turn>(std::acos(axis.z())),
             atan2turn<real_type>(axis.y(), axis.x())};
 }
 
@@ -196,19 +229,9 @@ auto calculate_theta_phi(S const& solid) -> std::pair<Turn, Turn>
  * Construct a shape using the solid's name and forwarded arguments.
  */
 template<class CR, class... Args>
-auto make_shape(std::string&& name, Args&&... args)
-{
-    return std::make_shared<Shape<CR>>(std::move(name),
-                                       CR{std::forward<Args>(args)...});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct a shape using the solid's name and forwarded arguments.
- */
-template<class CR, class... Args>
 auto make_shape(G4VSolid const& solid, Args&&... args)
 {
+    using ::celeritas::orangeinp::make_shape;
     return make_shape<CR>(std::string{solid.GetName()},
                           std::forward<Args>(args)...);
 }
@@ -217,16 +240,32 @@ auto make_shape(G4VSolid const& solid, Args&&... args)
 /*!
  * Construct an ORANGE solid using the G4Solid's name and forwarded arguments.
  */
-template<class CR>
-auto make_solid(G4VSolid const& solid,
-                CR&& interior,
-                std::optional<CR>&& excluded,
-                EnclosedAzi&& enclosed)
+template<class CR, class... Args>
+auto make_solid(G4VSolid const& solid, CR&& interior, Args&&... args)
 {
     return Solid<CR>::or_shape(std::string{solid.GetName()},
                                std::forward<CR>(interior),
-                               std::move(excluded),
-                               std::move(enclosed));
+                               std::forward<Args>(args)...);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct an ORANGE solid using the G4Solid's name and forwarded arguments.
+ */
+template<class CR>
+auto make_truncated(G4VSolid const& solid,
+                    CR&& interior,
+                    Truncated::VecPlane&& planes) -> SPConstObject
+{
+    if (planes.empty())
+    {
+        return make_shape<CR>(solid, std::forward<CR>(interior));
+    }
+
+    return std::make_shared<Truncated>(
+        std::string{solid.GetName()},
+        std::make_unique<CR>(std::forward<CR>(interior)),
+        std::move(planes));
 }
 
 //---------------------------------------------------------------------------//
@@ -252,6 +291,9 @@ auto SolidConverter::operator()(arg_type solid_base) -> result_type
         cache_iter->second = this->convert_impl(solid_base);
     }
 
+    // TODO: we can't cache parameterized volumes. Maybe we shouldn't cache at
+    // all?
+
     CELER_ENSURE(cache_iter->second);
     return cache_iter->second;
 }
@@ -263,7 +305,8 @@ auto SolidConverter::operator()(arg_type solid_base) -> result_type
 auto SolidConverter::to_sphere(arg_type solid_base) const -> result_type
 {
     double vol = this->calc_capacity(solid_base);
-    double radius = std::cbrt(vol / (4.0 / 3.0 * constants::pi));
+    auto radius
+        = static_cast<real_type>(std::cbrt(vol / (4.0 / 3.0 * constants::pi)));
     return make_shape<Sphere>(solid_base, radius);
 }
 
@@ -293,6 +336,7 @@ auto SolidConverter::convert_impl(arg_type solid_base) -> result_type
         SC_TYPE_FUNC(GenericTrap      , generictrap),
         SC_TYPE_FUNC(Hype             , hype),
         SC_TYPE_FUNC(IntersectionSolid, intersectionsolid),
+        SC_TYPE_FUNC(MultiUnion       , multiunion),
         SC_TYPE_FUNC(Orb              , orb),
         SC_TYPE_FUNC(Para             , para),
         SC_TYPE_FUNC(Paraboloid       , paraboloid),
@@ -398,34 +442,36 @@ auto SolidConverter::ellipsoid(arg_type solid_base) -> result_type
     auto radii = scale_.to<Real3>(solid.GetSemiAxisMax(to_int(Axis::x)),
                                   solid.GetSemiAxisMax(to_int(Axis::y)),
                                   solid.GetSemiAxisMax(to_int(Axis::z)));
-    auto bottom_cut = scale_(solid.GetZBottomCut());
-    auto top_cut = scale_(solid.GetZTopCut());
 
-    if (!(soft_equal(-radii[to_int(Axis::z)], bottom_cut)
-          && soft_equal(radii[to_int(Axis::z)], top_cut)))
+    using Plane = InfPlane;
+    std::vector<Plane> truncate;
+    if (auto cut = scale_(solid.GetZBottomCut());
+        !soft_equal(-radii[to_int(Axis::z)], cut))
     {
-        // Non-default z-cuts, make a solid instead of a shape
-        return std::make_shared<Solid<Ellipsoid>>(
-            std::string{solid.GetName()},
-            Ellipsoid(radii),
-            SolidZSlab{bottom_cut, top_cut});
+        truncate.push_back(InfPlane{Sense::outside, Axis::z, cut});
+    }
+    if (auto cut = scale_(solid.GetZTopCut());
+        !soft_equal(radii[to_int(Axis::z)], cut))
+    {
+        truncate.push_back(InfPlane{Sense::inside, Axis::z, cut});
     }
 
-    // No Z cuts, make an ellipsoid shape
-    return make_shape<Ellipsoid>(solid, radii);
+    return make_truncated(solid, Ellipsoid{radii}, std::move(truncate));
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert an elliptical cone
+ * Convert an elliptical cone.
  *
  * Expressions for lower/upper radii were found by solving the system of
  * equations given by \c G4EllipticalCone:
  *
- * lower_radii[X]/lower_radii[y] = upper_radii[X]/upper_radii[y],
- * r_x = (lower_radii[X] - upper_radii[X])/(2 hh),
- * r_y = (lower_radii[Y] - upper_radii[Y])/(2 hh),
- * v = hh (lower_radii[X] + upper_radii[X])/(lower_radii[X] - upper_radii[X]).
+ * \verbatim
+   lower_radii[X]/lower_radii[Y] = upper_radii[X]/upper_radii[Y];
+   r_x = (lower_radii[X] - upper_radii[X])/(2 * hh);
+   r_y = (lower_radii[Y] - upper_radii[Y])/(2 * hh);
+   v = hh * (lower_radii[X] + upper_radii[X])/(lower_radii[X] - upper_radii[X])
+ * \endverbatim
  */
 auto SolidConverter::ellipticalcone(arg_type solid_base) -> result_type
 {
@@ -433,8 +479,8 @@ auto SolidConverter::ellipticalcone(arg_type solid_base) -> result_type
 
     // Read and scale parameters. Do not scale r_x and r_y because they are
     // unitless slopes within the context of this calculation.
-    auto r_x = solid.GetSemiAxisX();
-    auto r_y = solid.GetSemiAxisY();
+    auto r_x = static_cast<real_type>(solid.GetSemiAxisX());
+    auto r_y = static_cast<real_type>(solid.GetSemiAxisY());
     auto v = scale_(solid.GetZMax());
     auto hh = scale_(solid.GetZTopCut());
 
@@ -467,10 +513,12 @@ auto SolidConverter::extrudedsolid(arg_type solid_base) -> result_type
 
     auto const& solid = dynamic_cast<G4ExtrudedSolid const&>(solid_base);
 
-    // Get the polygon
+    // Get the polygon and reverse its order; ORANGE uses standard
+    // counterclockwise ordering for polygons whereas GEANT4 uses clockwise
+    // ordering.
     std::vector<G4TwoVector> g4polygon = solid.GetPolygon();
     VecReal2 polygon;
-    for (auto i : range(g4polygon.size()))
+    for (auto i : range<int>(g4polygon.size()).step(-1))
     {
         auto point = g4polygon[i];
         polygon.push_back(Real2{scale_(point[0]), scale_(point[1])});
@@ -502,8 +550,22 @@ auto SolidConverter::extrudedsolid(arg_type solid_base) -> result_type
 auto SolidConverter::genericpolycone(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4GenericPolycone const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("genericpolycone");
+
+    // Get the polygon. Although Geant4 prefers clockwise order upon input,
+    // GetCorner actually returns points in counterclockwise order, as used
+    // by ORANGE.
+    size_type num_points = solid.GetNumRZCorner();
+    std::vector<Real2> polygon;
+    polygon.reserve(num_points);
+    for (auto i : range(num_points))
+    {
+        auto point = solid.GetCorner(i);
+        polygon.push_back(scale_.to<Real2>(point.r, point.z));
+    }
+
+    return std::make_shared<RevolvedPolygon>(std::string{solid.GetName()},
+                                             std::move(polygon),
+                                             enclosed_azi_from_poly(solid));
 }
 
 //---------------------------------------------------------------------------//
@@ -547,6 +609,25 @@ auto SolidConverter::intersectionsolid(arg_type solid_base) -> result_type
 }
 
 //---------------------------------------------------------------------------//
+//! Convert a multiunion
+auto SolidConverter::multiunion(arg_type solid_base) -> result_type
+{
+    auto const& mu = dynamic_cast<G4MultiUnion const&>(solid_base);
+    auto n = mu.GetNumberOfSolids();
+    std::vector<result_type> vols(n);
+
+    for (auto i : range(n))
+    {
+        auto vol = (*this)(*(mu.GetSolid(i)));
+        vols[i] = std::make_shared<Transformed>(
+            std::move(vol), transform_(mu.GetTransformation(i)));
+    }
+
+    return std::make_shared<AnyObjects>(std::string{solid_base.GetName()},
+                                        std::move(vols));
+}
+
+//---------------------------------------------------------------------------//
 //! Convert an orb
 auto SolidConverter::orb(arg_type solid_base) -> result_type
 {
@@ -575,8 +656,12 @@ auto SolidConverter::para(arg_type solid_base) -> result_type
 auto SolidConverter::paraboloid(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Paraboloid const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("paraboloid");
+
+    auto lower_radius = scale_(solid.GetRadiusMinusZ());
+    auto upper_radius = scale_(solid.GetRadiusPlusZ());
+    auto hh = scale_(solid.GetZHalfLength());
+
+    return make_shape<Paraboloid>(solid, lower_radius, upper_radius, hh);
 }
 
 //---------------------------------------------------------------------------//
@@ -586,12 +671,12 @@ auto SolidConverter::polycone(arg_type solid_base) -> result_type
     auto const& solid = dynamic_cast<G4Polycone const&>(solid_base);
     auto const& params = *solid.GetOriginalParameters();
 
-    std::vector<double> zs(params.Num_z_planes);
-    std::vector<double> rmin(zs.size());
-    std::vector<double> rmax(zs.size());
-    for (auto i : range(zs.size()))
+    std::vector<real_type> z(params.Num_z_planes);
+    std::vector<real_type> rmin(z.size());
+    std::vector<real_type> rmax(z.size());
+    for (auto i : range(z.size()))
     {
-        zs[i] = scale_(params.Z_values[i]);
+        z[i] = scale_(params.Z_values[i]);
         rmin[i] = scale_(params.Rmin[i]);
         rmax[i] = scale_(params.Rmax[i]);
     }
@@ -602,9 +687,15 @@ auto SolidConverter::polycone(arg_type solid_base) -> result_type
         rmin.clear();
     }
 
+    if (!z.empty() && z.front() > z.back())
+    {
+        CELER_LOG(warning) << "Polycone '" << solid.GetName()
+                           << "' z coordinates are out of order: " << repr(z);
+    }
+
     return PolyCone::or_solid(
         std::string{solid.GetName()},
-        PolySegments{std::move(rmin), std::move(rmax), std::move(zs)},
+        PolySegments{std::move(rmin), std::move(rmax), std::move(z)},
         enclosed_azi_from_poly(solid));
 }
 
@@ -618,9 +709,9 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
     // Convert from circumradius to apothem
     double const radius_factor = cospi(1 / static_cast<double>(params.numSide));
 
-    std::vector<double> zs(params.Num_z_planes);
-    std::vector<double> rmin(zs.size());
-    std::vector<double> rmax(zs.size());
+    std::vector<real_type> zs(params.Num_z_planes);
+    std::vector<real_type> rmin(zs.size());
+    std::vector<real_type> rmax(zs.size());
     for (auto i : range(zs.size()))
     {
         zs[i] = scale_(params.Z_values[i]);
@@ -634,14 +725,15 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
         rmin.clear();
     }
 
-    auto angle = enclosed_azi_from_poly(solid);
+    // Get orientation from the start/end phi, which still may be a full Turn
+    auto frac_turn = native_value_to<Turn>(solid.GetStartPhi()).value();
     double const orientation
-        = std::fmod(params.numSide * angle.start().value(), real_type{1});
+        = std::fmod(params.numSide * frac_turn, real_type{1});
 
     return PolyPrism::or_solid(
         std::string{solid.GetName()},
         PolySegments{std::move(rmin), std::move(rmax), std::move(zs)},
-        std::move(angle),
+        enclosed_azi_from_poly(solid),
         params.numSide,
         orientation);
 }
@@ -690,15 +782,12 @@ auto SolidConverter::sphere(arg_type solid_base) -> result_type
     }
 
     auto polar_cone = enclosed_pol_from(solid);
-    if (!soft_equal(value_as<Turn>(polar_cone.interior()), 0.5))
-    {
-        CELER_NOT_IMPLEMENTED("sphere with polar limits");
-    }
 
     return make_solid(solid,
                       Sphere{scale_(solid.GetOuterRadius())},
                       std::move(inner),
-                      enclosed_azi_from(solid));
+                      enclosed_azi_from(solid),
+                      std::move(polar_cone));
 }
 
 //---------------------------------------------------------------------------//
@@ -857,7 +946,7 @@ auto SolidConverter::make_bool_solids(G4BooleanSolid const& bs)
 //! Calculate the capacity in native celeritas units
 double SolidConverter::calc_capacity(G4VSolid const& g4) const
 {
-    return const_cast<G4VSolid&>(g4).GetCubicVolume() * ipow<3>(scale_(1.0));
+    return const_cast<G4VSolid&>(g4).GetCubicVolume() * ipow<3>(scale_.value());
 }
 
 //---------------------------------------------------------------------------//

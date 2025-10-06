@@ -16,6 +16,16 @@ namespace celeritas
 {
 namespace orangeinp
 {
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with label from a daughter class.
+ */
+ShapeBase::ShapeBase(std::string&& label) : label_{std::move(label)}
+{
+    CELER_EXPECT(!label_.empty());
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct a volume from this shape.

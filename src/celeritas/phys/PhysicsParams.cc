@@ -69,10 +69,13 @@ class ImplicitPhysicsAction final : public StaticConcreteAction
 };
 
 //---------------------------------------------------------------------------//
-//! PDG recommends 81-100 for internal MC pseudoparticles
-bool is_fake_particle(PDGNumber pdg)
+bool ignore_particle(PDGNumber pdg)
 {
-    return pdg.get() >= 81 && pdg.get() <= 100;
+    // PDG recommends 81-100 for internal MC pseudoparticles. The optical
+    // physics is constructed separately from the rest of the physics: Geant4
+    // uses 0 for the optical photon PDG before version 10.7 and -22 after.
+    return (pdg.get() >= 81 && pdg.get() <= 100) || pdg.get() == 0
+           || pdg.get() == -22;
 }
 
 //---------------------------------------------------------------------------//
@@ -87,8 +90,7 @@ PhysicsParams::PhysicsParams(Input inp)
     , relaxation_(std::move(inp.relaxation))
 {
     CELER_EXPECT(!processes_.empty());
-    CELER_EXPECT(
-        std::all_of(processes_.begin(), processes_.end(), LogicalTrue{}));
+    CELER_EXPECT(std::all_of(processes_.begin(), processes_.end(), Identity{}));
     CELER_EXPECT(inp.particles);
     CELER_EXPECT(inp.materials);
     CELER_EXPECT(inp.action_registry);
@@ -131,7 +133,7 @@ PhysicsParams::PhysicsParams(Input inp)
         inp.action_registry->insert(integral_action);
         integral_rejection_action_ = std::move(integral_action);
 
-        // Emit models for associated proceses
+        // Emit models for associated processes
         models_ = this->build_models(inp.action_registry);
 
         // Place "failure" *after* all the model IDs
@@ -361,7 +363,7 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
     {
         auto& process_to_models = particle_models[par_id.get()];
         if (process_to_models.empty()
-            && !is_fake_particle(particles.id_to_pdg(par_id)))
+            && !ignore_particle(particles.id_to_pdg(par_id)))
         {
             CELER_LOG(warning) << "No processes are defined for particle '"
                                << particles.id_to_label(par_id) << '\'';

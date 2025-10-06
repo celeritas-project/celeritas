@@ -18,10 +18,14 @@
 #define EXPECT_RESULT_NEAR(EXPECTED, ACTUAL, TOL) \
     EXPECT_REF_NEAR(EXPECTED, ACTUAL, TOL)
 
+//! Check that a surface normal is equivalent (modulo the sign)
+#define EXPECT_NORMAL_EQUIV(expected, actual) \
+    EXPECT_PRED_FORMAT2(::celeritas::test::IsNormalEquiv, expected, actual)
+
 namespace celeritas
 {
-class GeoParamsInterface;
-
+template<class T>
+class LabelIdMultiMap;
 namespace inp
 {
 struct Model;
@@ -30,6 +34,13 @@ struct Model;
 namespace test
 {
 class GenericGeoTestInterface;
+
+//---------------------------------------------------------------------------//
+// Test whether two surface normals are about the same, modulo sign
+::testing::AssertionResult IsNormalEquiv(char const* expected_expr,
+                                         char const* actual_expr,
+                                         Real3 const& expected,
+                                         Real3 const& actual);
 
 //---------------------------------------------------------------------------//
 // TRACKING RESULT
@@ -41,10 +52,29 @@ struct GenericGeoTrackingResult
     std::vector<std::string> volumes;
     std::vector<std::string> volume_instances;
     std::vector<real_type> distances;  //!< [cm]
+    std::vector<real_type> dot_normal;  //!< [cos theta]
     std::vector<real_type> halfway_safeties;  //!< [cm]
     // Locations the particle had a very tiny distance in a volume
     std::vector<real_type> bumps;  //!< [cm * 3]
 
+    //// STATIC HELPER FUNCTIONS ////
+
+    //! Sentinel value for dot_normal when not on surface
+    static constexpr real_type no_surface_normal
+        = std::numeric_limits<real_type>::infinity();
+
+    //// HELPER FUNCTIONS ////
+
+    // Delete dot_normals that are all 1
+    void clear_boring_normals();
+
+    // Replace dot-normals with a sentinel value
+    void disable_surface_normal();
+
+    // Whether surface normals are disabled
+    bool disabled_surface_normal() const;
+
+    // Print expected expression to cout
     void print_expected() const;
 };
 
@@ -52,10 +82,8 @@ struct GenericGeoTrackingResult
 struct GenericGeoTrackingTolerance
 {
     real_type distance{0};
+    real_type normal{0};
     real_type safety{0};
-
-    static GenericGeoTrackingTolerance
-    from_test(GenericGeoTestInterface const&);
 };
 
 // Compare tracking results
@@ -83,11 +111,12 @@ IsRefEq(char const* expected_expr,
 //! Get the volume instances and replica IDs from a point
 struct GenericGeoVolumeStackResult
 {
+    using LabelMap = LabelIdMultiMap<VolumeInstanceId>;
+
     std::vector<std::string> volume_instances;
-    std::vector<int> replicas;
 
     static GenericGeoVolumeStackResult
-    from_span(GeoParamsInterface const&, Span<VolumeInstanceId const>);
+    from_span(LabelMap const&, Span<VolumeInstanceId const>);
     void print_expected() const;
 };
 
@@ -114,11 +143,19 @@ struct GenericGeoModelInp
         std::vector<std::string> labels;
         std::vector<int> volumes;
     } volume_instance;
+    std::string world;
+
     struct
     {
         std::vector<std::string> labels;
         std::vector<std::string> volumes;
     } surface;
+
+    struct
+    {
+        std::vector<std::string> labels;
+        std::vector<std::vector<int>> volumes;
+    } detector;
 
     static GenericGeoModelInp from_model_input(inp::Model const& in);
     void print_expected() const;

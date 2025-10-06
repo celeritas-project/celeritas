@@ -24,6 +24,7 @@
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/UniformFieldParams.hh"
+#include "celeritas/inp/Field.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -290,7 +291,7 @@ TEST_F(MockAlongStepTest, basic)
         auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_EQ(1.0540925533894607e-10, result.displacement);
         EXPECT_SOFT_EQ(1, result.angle);
-        EXPECT_SOFT_EQ(0, result.time);
+        EXPECT_SOFT_EQ(2.4862399723875997e-12, result.time);
         EXPECT_SOFT_EQ(1.0540925533894607e-10, result.step);
         EXPECT_EQ("eloss-range", result.action);
     }
@@ -483,7 +484,7 @@ TEST_F(Em3AlongStepTest, msc_nofluct_finegrid)
         // on a finer energy grid the discontinuity in the positron cross
         // section means the cross section could have a *positive* slope just
         // above 10 MeV.
-        SCOPED_TRACE("positron wth MSC cross section near discontinuity");
+        SCOPED_TRACE("positron with MSC cross section near discontinuity");
         inp.particle_id = this->particle()->find(pdg::positron());
         inp.energy = MevEnergy{10.6026777729432};
         inp.position

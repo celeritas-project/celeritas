@@ -69,21 +69,23 @@ class ConvexHullFinderTest : public ::celeritas::test::Test
  *
  * The starting point is point 5.
  *
- *    1 _______________________ 2
- *     |                      /
- *     |                    /
- *     |                  /
- *     |                /
- *     |              3 \
- *     |                  \
- *     |                    \
- *     |                      \ 4
- *     |                      /
- *   0 |_____________________/ 5
+ * \verbatim
+   2 _______________________ 1
+     \                      |
+       \                    |
+         \                  |
+           \                |
+           / 3              |
+         /                  |
+       /                    |
+   4 /                      |
+     \                      |
+    5 \_____________________| 0
+   \endverbatim
  */
 TEST_F(ConvexHullFinderTest, basic)
 {
-    VecReal2 p{{0, 0}, {0, 1}, {1, 1}, {0.8, 0.5}, {0.95, 0.2}, {0.9, 0}};
+    VecReal2 p{{0, 0}, {0, 1}, {-1, 1}, {-0.8, 0.5}, {-0.95, 0.2}, {-0.9, 0}};
 
     // Compare convex hulls using 1--6 points
     expect_eq(VecReal2({p[0], p[1], p[2]}),
@@ -105,18 +107,19 @@ TEST_F(ConvexHullFinderTest, basic)
  * hull.
  *
  * The starting point is point 2.
- *
- *  0 _______________ 1
- *    \              |
- *      \       3    |
- *        \    /\    |
- *          \/    \  |
- *           4      \|
- *                   2
+ * \verbatim
+   1 _______________ 0
+    |              /
+    |    3       /
+    |    /\    /
+    |  /    \/
+    |/      4
+    2
+    \endverbatim
  */
 TEST_F(ConvexHullFinderTest, first_concavity)
 {
-    VecReal2 p{{-0.3, 1}, {0.9, 1}, {0.8, 0.4}, {0.5, 0.7}, {0.15, 0.5}};
+    VecReal2 p{{0.3, 1}, {-0.9, 1}, {-0.8, 0.4}, {-0.5, 0.7}, {-0.15, 0.5}};
     CHF chf(p, t);
     expect_eq(VecReal2({p[0], p[1], p[2], p[4]}), chf.make_convex_hull());
     expect_eq(VecVecReal2({{p[4], p[3], p[2]}}), chf.calc_concave_regions());
@@ -127,17 +130,18 @@ TEST_F(ConvexHullFinderTest, first_concavity)
  * Test case where the last point encountered is *not* part of the convex hull.
  *
  * The starting point is point 4.
- *
- *  0 _______________ 1
- *    \              |
- *      \      3 ____|
- *        \    /     2
- *          \/
- *           4
+ * \verbatim
+   1 _______________ 0
+    |              /
+    |____ 3      /
+    2     \    /
+            \/
+            4
+   \endverbatim
  */
 TEST_F(ConvexHullFinderTest, last_concavity)
 {
-    VecReal2 p{{0, 0}, {1, 0}, {1, -0.5}, {0.6, -0.5}, {0.4, -0.8}};
+    VecReal2 p{{0, 0}, {-1, 0}, {-1, -0.5}, {-0.6, -0.5}, {-0.4, -0.8}};
     CHF chf(p, t);
     expect_eq(VecReal2({p[0], p[1], p[2], p[4]}), chf.make_convex_hull());
     expect_eq(VecVecReal2({{p[4], p[3], p[2]}}), chf.calc_concave_regions());
@@ -149,26 +153,27 @@ TEST_F(ConvexHullFinderTest, last_concavity)
  * encountered.
  *
  * The starting point is point 7.
- *
- *  0 _______1_______ 2
- *    \              |_3
- *      \     5 _____|
- *     8  \   /_6    4
- *          \/
- *           7
+ * \verbatim
+    2 _______1_______ 0
+   3_|              /
+     |_____ 5     /
+     4    6_\   /  8
+             \/
+             7
+   \endverbatim
  *
  */
 TEST_F(ConvexHullFinderTest, collinear)
 {
     VecReal2 p{{0, 0},
-               {0.5, 0},
-               {1, 0},
-               {1, -0.2},
-               {1, -0.5},
-               {0.6, -0.5},
-               {0.5, -0.65},
-               {0.4, -0.8},
-               {0.2, -0.4}};
+               {-0.5, 0},
+               {-1, 0},
+               {-1, -0.2},
+               {-1, -0.5},
+               {-0.6, -0.5},
+               {-0.5, -0.65},
+               {-0.4, -0.8},
+               {-0.2, -0.4}};
     CHF chf(p, t);
     expect_eq(VecReal2({p[0], p[1], p[2], p[3], p[4], p[7], p[8]}),
               chf.make_convex_hull());
@@ -180,33 +185,34 @@ TEST_F(ConvexHullFinderTest, collinear)
  * Test case with a quadruply nested concavity.
  *
  * The starting point is point 9.
- *
- *                     7
- *   1                 |\
- *   \\                | \
- *    \ \      3  5    |  \
- *     \  \    /\/\    |   \
- *      \   \/   4  \  |    \ 8
- *       \   2        \|    /
- *        \            6   /
- *         \ 11           /
- *          \/\__________/
- *          0  10        9
+ * \verbatim
+          7
+         /|                 1
+        / |                //
+       /  |    5  3      / /
+      /   |    /\/\    /  /
+   8 /    |  /  4   \/   /
+     \    |/        2   /
+      \   6            /
+       \           11 /
+        \__________/\/
+        9        01  0
+   \endverbatim
  */
 TEST_F(ConvexHullFinderTest, nested_concavity)
 {
-    VecReal2 p{{0.001, 0.001},
-               {-0.3, 1},
-               {0.15, 0.5},
-               {0.4, 0.7},
-               {0.45, 0.6},
-               {0.5, 0.7},
-               {0.8, 0.4},
-               {0.9, 1.2},
-               {1.2, 0.5},
-               {1, 0},
-               {0.1, 0},
-               {0.05, 0.01}};
+    VecReal2 p{{-0.001, 0.001},
+               {0.3, 1},
+               {-0.15, 0.5},
+               {-0.4, 0.7},
+               {-0.45, 0.6},
+               {-0.5, 0.7},
+               {-0.8, 0.4},
+               {-0.9, 1.2},
+               {-1.2, 0.5},
+               {-1, 0},
+               {-0.1, 0},
+               {-0.05, 0.01}};
 
     // Test level 0
     CHF chf0(p, t);

@@ -6,48 +6,28 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <vector>
+
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/phys/GeneratorCounters.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Current sizes of the buffers of distribution data.
- *
- * These sizes are updated by value on the host at each core step. To allow
- * accumulation over many steps which each may have many photons, the type is
- * templated.
+ * Cumulative statistics of optical tracking.
  */
-template<class T = ::celeritas::size_type>
-struct OpticalOffloadCounters
-{
-    using size_type = T;
-
-    //! Number of generators
-    size_type distributions{0};
-    //! Number of generated tracks
-    size_type photons{0};
-
-    //! True if any queued generators/tracks exist
-    CELER_FUNCTION bool empty() const
-    {
-        return distributions == 0 && photons == 0;
-    }
-};
-
-//! Cumulative statistics of optical tracking
 struct OpticalAccumStats
 {
     using size_type = std::size_t;
-    using OpticalBufferSize = OpticalOffloadCounters<size_type>;
+    using OpticalBufferSize = GeneratorCounters<size_type>;
 
-    OpticalBufferSize cherenkov;
-    OpticalBufferSize scintillation;
+    std::vector<OpticalBufferSize> generators;
 
     size_type steps{0};
     size_type step_iters{0};

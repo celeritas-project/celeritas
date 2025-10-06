@@ -50,7 +50,7 @@ class AlongStepUniformMscAction final : public CoreStepActionInterface
     // Construct the along-step action from input parameters
     static std::shared_ptr<AlongStepUniformMscAction>
     from_params(ActionId id,
-                GeoParams const& geometry,
+                CoreGeoParams const& geometry,
                 MaterialParams const& materials,
                 ParticleParams const& particles,
                 Input const& field_input,
@@ -59,7 +59,7 @@ class AlongStepUniformMscAction final : public CoreStepActionInterface
 
     // Construct with next action ID, optional MSC, magnetic field
     AlongStepUniformMscAction(ActionId id,
-                              GeoParams const& geometry,
+                              CoreGeoParams const& geometry,
                               Input const& field_input,
                               SPConstFluctuations fluct,
                               SPConstMsc msc);

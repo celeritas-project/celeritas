@@ -4,6 +4,8 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/field/Fields.test.cc
 //---------------------------------------------------------------------------//
+#include "Fields.test.hh"
+
 #include <algorithm>
 #include <fstream>
 
@@ -14,6 +16,8 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/HyperslabIndexer.hh"
+#include "corecel/grid/GridTypes.hh"
+#include "corecel/grid/Interpolator.hh"
 #include "corecel/math/Quantity.hh"
 #include "corecel/math/Turn.hh"
 #include "geocel/Types.hh"
@@ -286,32 +290,32 @@ TEST_F(CylMapFieldTest, all)
 #endif
 using CartMapFieldTest = ::celeritas::test::Test;
 
-TEST_F(CartMapFieldTest, all)
+CartMapFieldInput build_cart_map_input()
 {
     CartMapFieldInput inp;
-    inp.min_x = -2750;
-    inp.max_x = 2750;
-    inp.num_x = static_cast<size_type>(inp.max_x * 2 / 100);
-    inp.min_y = -2750;
-    inp.max_y = 2750;
-    inp.num_y = static_cast<size_type>(inp.max_y * 2 / 100);
-    inp.min_z = -6350;
-    inp.max_z = 6350;
-    inp.num_z = static_cast<size_type>(inp.max_z * 2 / 100);
+    inp.x.min = -2750;
+    inp.x.max = 2750;
+    inp.x.num = static_cast<size_type>(inp.x.max * 2 / 100);
+    inp.y.min = -2750;
+    inp.y.max = 2750;
+    inp.y.num = static_cast<size_type>(inp.y.max * 2 / 100);
+    inp.z.min = -6350;
+    inp.z.max = 6350;
+    inp.z.num = static_cast<size_type>(inp.z.max * 2 / 100);
     Array<size_type, 4> const dims{
-        inp.num_x, inp.num_y, inp.num_z, static_cast<size_type>(Axis::size_)};
-    size_type const total_points = inp.num_x * inp.num_y * inp.num_z;
+        inp.x.num, inp.y.num, inp.z.num, static_cast<size_type>(Axis::size_)};
+    size_type const total_points = inp.x.num * inp.y.num * inp.z.num;
 
     // Resize each component of the field
     inp.field.resize(static_cast<size_type>(Axis::size_) * total_points);
 
     // Fill with a simple field pattern
     HyperslabIndexer const flat_index{dims};
-    for (size_type x = 0; x < inp.num_x; ++x)
+    for (size_type x = 0; x < inp.x.num; ++x)
     {
-        for (size_type y = 0; y < inp.num_y; ++y)
+        for (size_type y = 0; y < inp.y.num; ++y)
         {
-            for (size_type z = 0; z < inp.num_z; ++z)
+            for (size_type z = 0; z < inp.z.num; ++z)
             {
                 auto arr = inp.field.begin() + flat_index(x, y, z, 0);
                 arr[static_cast<size_type>(Axis::x)] = std::cos(x);
@@ -320,7 +324,12 @@ TEST_F(CartMapFieldTest, all)
             }
         }
     }
+    return inp;
+}
 
+TEST_F(CartMapFieldTest, all)
+{
+    CartMapFieldInput inp = build_cart_map_input();
     CartMapFieldParams field_map{inp};
 
     CartMapField calc_field(field_map.host_ref());
@@ -332,22 +341,22 @@ TEST_F(CartMapFieldTest, all)
     size_type const ny_samples = 3;
     size_type const nz_samples = 3;
     std::vector<real_type> actual;
-
+    Interpolator interp_x({0, inp.x.min}, {nx_samples - 1, inp.x.max});
+    Interpolator interp_y({0, inp.y.min}, {ny_samples - 1, inp.y.max});
+    Interpolator interp_z({0, inp.z.min}, {nz_samples - 1, inp.z.max});
     for (size_type ix = 0; ix < nx_samples; ++ix)
     {
-        real_type x = inp.min_x
-                      + ix * (inp.max_x - inp.min_x) / (nx_samples - 1);
-        x = std::min(x, inp.max_x - 1);
+        real_type x
+            = std::min(interp_x(static_cast<real_type>(ix)), inp.x.max - 1);
+
         for (size_type iy = 0; iy < ny_samples; ++iy)
         {
-            real_type y = inp.min_y
-                          + iy * (inp.max_y - inp.min_y) / (ny_samples - 1);
-            y = std::min(y, inp.max_y - 1);
+            real_type y = std::min(interp_y(static_cast<real_type>(iy)),
+                                   inp.y.max - 1);
             for (size_type iz = 0; iz < nz_samples; ++iz)
             {
-                real_type z = inp.min_z
-                              + iz * (inp.max_z - inp.min_z) / (nz_samples - 1);
-                z = std::min(z, inp.max_z - 1);
+                real_type z = std::min(interp_z(static_cast<real_type>(iz)),
+                                       inp.z.max - 1);
 
                 Real3 field = calc_field({x, y, z});
                 for (real_type f : field)
@@ -443,6 +452,36 @@ TEST_F(CartMapFieldTest, all)
         0.33834865689278,
     };
     EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-6});
+}
+
+TEST_F(CartMapFieldTest, TEST_IF_CELER_DEVICE(device))
+{
+    Array<size_type, 3> n_samples{3, 3, 3};
+
+    std::vector<real_type> field_values(n_samples[0] * n_samples[1]
+                                        * n_samples[2] * 3);
+
+    auto input = build_cart_map_input();
+    auto span = make_span(field_values);
+    // Run the test on device
+    field_test(input, span, n_samples);
+
+    static real_type const expected_field[]
+        = {1,         0,         0,        1,         0,         0.16975,
+           1,         0,         0.336311, 1,         0.956376,  0,
+           1,         0.956376,  0.16975,  1,         0.956376,  0.336311,
+           1,         -0.547601, 0,        1,         -0.547601, 0.16975,
+           1,         -0.547601, 0.336311, -0.292139, 0,         0,
+           -0.292139, 0,         0.16975,  -0.292139, 0,         0.336311,
+           -0.292139, 0.956376,  0,        -0.292139, 0.956376,  0.16975,
+           -0.292139, 0.956376,  0.336311, -0.292139, -0.547601, 0,
+           -0.292139, -0.547601, 0.16975,  -0.292139, -0.547601, 0.336311,
+           -0.830352, 0,         0,        -0.830352, 0,         0.16975,
+           -0.830352, 0,         0.336311, -0.830352, 0.956376,  0,
+           -0.830352, 0.956376,  0.16975,  -0.830352, 0.956376,  0.336311,
+           -0.830352, -0.547601, 0,        -0.830352, -0.547601, 0.16975,
+           -0.830352, -0.547601, 0.336311};
+    EXPECT_VEC_NEAR(expected_field, field_values, real_type{1e-5});
 }
 //---------------------------------------------------------------------------//
 }  // namespace test

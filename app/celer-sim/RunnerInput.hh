@@ -62,7 +62,6 @@ struct RunnerInput
         // Sizes are divided among streams
         size_type num_track_slots{};  //!< Number of optical loop tracks slots
         size_type buffer_capacity{};  //!< Number of steps that created photons
-        size_type initializer_capacity{};  //!< Maximum queued tracks
         size_type auto_flush{};  //!< Threshold number of primaries for
                                  //!< launching optical tracking loop
         size_type max_steps = static_cast<size_type>(-1);  //!< Step iterations
@@ -73,8 +72,7 @@ struct RunnerInput
 
         explicit operator bool() const
         {
-            return num_track_slots > 0 && buffer_capacity > 0
-                   && initializer_capacity > 0 && auto_flush > 0
+            return num_track_slots > 0 && buffer_capacity > 0 && auto_flush > 0
                    && max_steps > 0;
         }
     };

@@ -7,20 +7,18 @@
 #include "GenericGeoResults.hh"
 
 #include "corecel/OpaqueIdUtils.hh"
+#include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/cont/VariantUtils.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
+#include "corecel/math/ArrayOperators.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/inp/Model.hh"
 
 #include "GenericGeoTestInterface.hh"
 #include "testdetail/TestMacrosImpl.hh"
 
-// Redefined in .hh -- removed from here
-/*// DEPRECATED: remove in v0.7
-#define EXPECT_RESULT_EQ(EXPECTED, ACTUAL) EXPECT_REF_EQ(EXPECTED, ACTUAL)
-#define EXPECT_RESULT_NEAR(EXPECTED, ACTUAL, TOL) \
-    EXPECT_REF_NEAR(EXPECTED, ACTUAL, TOL)
-*/
 //!@{
 //! Helper macros
 #define CELER_REF_ATTR(ATTR) "ref." #ATTR " = " << repr(this->ATTR) << ";\n"
@@ -31,8 +29,54 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+::testing::AssertionResult IsNormalEquiv(char const* expected_expr,
+                                         char const* actual_expr,
+                                         Real3 const& expected,
+                                         Real3 const& actual)
+{
+    // Test that the normals are either in the same or opposite directions
+    constexpr auto eps = SoftEqual<>{}.rel();
+    if (norm(expected - actual) < eps || norm(expected + actual) < eps)
+    {
+        return ::testing::AssertionSuccess();
+    }
+
+    // Failed: print nice error message
+    ::testing::AssertionResult result = ::testing::AssertionFailure();
+
+    result << "Value of: " << actual_expr << "\n  Actual: " << repr(actual)
+           << "\nExpected: " << expected_expr
+           << "\nWhich is: " << repr(expected) << '\n';
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 // TRACKING RESULT
 //---------------------------------------------------------------------------//
+// Replace dot-normals with a sentinel value
+void GenericGeoTrackingResult::disable_surface_normal()
+{
+    this->dot_normal = {-2};
+}
+
+// Whether surface normals are disabled
+bool GenericGeoTrackingResult::disabled_surface_normal() const
+{
+    auto& dn = this->dot_normal;
+    return dn.size() == 1 && dn.front() == -2;
+}
+
+void GenericGeoTrackingResult::clear_boring_normals()
+{
+    auto& dn = this->dot_normal;
+    if (std::all_of(dn.begin(), dn.end(), [](real_type n) {
+            return soft_equal(n, real_type{1});
+        }))
+    {
+        dn.clear();
+    }
+}
 
 void GenericGeoTrackingResult::print_expected() const
 {
@@ -40,20 +84,29 @@ void GenericGeoTrackingResult::print_expected() const
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "GenericGeoTrackingResult ref;\n"
          << CELER_REF_ATTR(volumes) << CELER_REF_ATTR(volume_instances)
-         << CELER_REF_ATTR(distances) << CELER_REF_ATTR(halfway_safeties)
-         << CELER_REF_ATTR(bumps)
-         << "auto tol = GenericGeoTrackingTolerance::from_test(*test_);\n"
-            "EXPECT_RESULT_NEAR(ref, result, tol);\n"
-            "/*** END CODE ***/\n";
-}
+         << CELER_REF_ATTR(distances);
+    if (this->dot_normal.empty())
+    {
+        // See clear_boring_normals
+        cout << "ref.dot_normal = {}; // All normals are along track dir\n";
+    }
+    else if (this->disabled_surface_normal())
+    {
+        cout << "// Surface normal checking is disabled\n";
+    }
+    else
+    {
+        cout << CELER_REF_ATTR(dot_normal);
+    }
+    cout << CELER_REF_ATTR(halfway_safeties);
+    if (!bumps.empty())
+    {
+        cout << CELER_REF_ATTR(bumps);
+    }
 
-GenericGeoTrackingTolerance
-GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
-{
-    GenericGeoTrackingTolerance tol;
-    tol.safety = test.safety_tol();
-    tol.distance = SoftEqual{}.rel();
-    return tol;
+    cout << "auto tol = test_->;\n"
+            "EXPECT_REF_NEAR(ref, result, tol);\n"
+            "/*** END CODE ***/\n";
 }
 
 ::testing::AssertionResult IsRefEq(char const* expr1,
@@ -89,8 +142,17 @@ GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
     IRE_VEC_EQ(volumes);
     IRE_VEC_EQ(volume_instances);
     IRE_VEC_SOFT_EQ(distances, tol.distance);
-    IRE_VEC_SOFT_EQ(halfway_safeties, SoftEqual(tol.safety, tol.safety));
-    //IRE_VEC_SOFT_EQ(bumps, SoftEqual(tol.safety, tol.safety));
+    if (val1.disabled_surface_normal() || val2.disabled_surface_normal())
+    {
+        CELER_LOG(warning) << "Skipping surface normal comparison";
+    }
+    else
+    {
+        IRE_VEC_SOFT_EQ(dot_normal, tol.normal);
+    }
+    IRE_VEC_SOFT_EQ(halfway_safeties,
+                    EqualOr{SoftEqual(tol.safety, tol.safety)});
+    IRE_VEC_SOFT_EQ(bumps, SoftEqual(tol.safety, tol.safety));
 
 #undef IRE_VEC_EQ
 #undef IRE_VEC_SOFT_EQ
@@ -104,14 +166,11 @@ GenericGeoTrackingTolerance::from_test(GenericGeoTestInterface const& test)
  * Construct a stack result from raw geometry output.
  */
 GenericGeoVolumeStackResult
-GenericGeoVolumeStackResult::from_span(GeoParamsInterface const& geo,
+GenericGeoVolumeStackResult::from_span(LabelMap const& vol_inst,
                                        Span<VolumeInstanceId const> inst_ids)
 {
-    auto const& vol_inst = geo.volume_instances();
-
     GenericGeoVolumeStackResult result;
     result.volume_instances.resize(inst_ids.size());
-    result.replicas.assign(inst_ids.size(), -1);
     for (auto i : range(inst_ids.size()))
     {
         auto vi_id = inst_ids[i];
@@ -120,18 +179,7 @@ GenericGeoVolumeStackResult::from_span(GeoParamsInterface const& geo,
             result.volume_instances[i] = "<null>";
             continue;
         }
-        auto const& label = vol_inst.at(vi_id);
-        if (auto phys_inst = geo.id_to_geant(vi_id))
-        {
-            if (phys_inst.replica)
-            {
-                result.replicas[i] = id_to_int(phys_inst.replica);
-            }
-        }
-        // Only write extension if not a replica, because Geant4
-        // effectively gives multiple volume instances the same name+ext
-        result.volume_instances[i] = !result.replicas[i] ? to_string(label)
-                                                         : label.name;
+        result.volume_instances[i] = to_string(vol_inst.at(vi_id));
     }
 
     return result;
@@ -143,8 +191,7 @@ void GenericGeoVolumeStackResult::print_expected() const
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "GenericGeoVolumeStackResult ref;\n"
             << CELER_REF_ATTR(volume_instances)
-            << CELER_REF_ATTR(replicas)
-            "EXPECT_RESULT_EQ(ref, result);\n"
+            "EXPECT_REF_EQ(ref, result);\n"
             "/*** END CODE ***/\n";
 }
 
@@ -162,7 +209,6 @@ void GenericGeoVolumeStackResult::print_expected() const
                       << " but got " << repr(val2.ATTR);           \
     }
     IRE_COMPARE(volume_instances);
-    IRE_COMPARE(replicas);
 #undef IRE_COMPARE
     return result;
 }
@@ -208,6 +254,15 @@ GenericGeoModelInp GenericGeoModelInp::from_model_input(inp::Model const& in)
         result.volume_instance.volumes.push_back(id_to_int(vol_inst.volume));
     }
 
+    if (in.volumes.world < result.volume.labels.size())
+    {
+        result.world = result.volume.labels[in.volumes.world.get()];
+    }
+    else
+    {
+        result.world = "<invalid>";
+    }
+
     // Extract surface data
     result.surface.labels.reserve(in.surfaces.surfaces.size());
     result.surface.volumes.reserve(in.surfaces.surfaces.size());
@@ -227,6 +282,21 @@ GenericGeoModelInp GenericGeoModelInp::from_model_input(inp::Model const& in)
             surf.surface));
     }
 
+    // Extract detector data
+    result.detector.labels.reserve(in.detectors.detectors.size());
+    result.detector.volumes.reserve(in.detectors.detectors.size());
+    for (auto const& det : in.detectors.detectors)
+    {
+        result.detector.labels.push_back(to_string(det.label));
+        std::vector<int> volumes;
+        volumes.reserve(det.volumes.size());
+        for (auto vol_id : det.volumes)
+        {
+            volumes.push_back(id_to_int(vol_id));
+        }
+        result.detector.volumes.push_back(std::move(volumes));
+    }
+
     return result;
 }
 
@@ -238,14 +308,14 @@ void GenericGeoModelInp::print_expected() const
          << CELER_REF_ATTR(volume.labels) << CELER_REF_ATTR(volume.materials)
          << CELER_REF_ATTR(volume.daughters)
          << CELER_REF_ATTR(volume_instance.labels)
-         << CELER_REF_ATTR(volume_instance.volumes);
+         << CELER_REF_ATTR(volume_instance.volumes) << CELER_REF_ATTR(world);
 
     if (!surface.labels.empty())
     {
         cout << CELER_REF_ATTR(surface.labels)
              << CELER_REF_ATTR(surface.volumes);
     }
-    cout << "EXPECT_RESULT_EQ(ref, result);\n"
+    cout << "EXPECT_REF_EQ(ref, result);\n"
             "/*** END CODE ***/\n";
 }
 
@@ -270,8 +340,11 @@ void GenericGeoModelInp::print_expected() const
     IRE_COMPARE(volume.daughters);
     IRE_COMPARE(volume_instance.labels);
     IRE_COMPARE(volume_instance.volumes);
+    IRE_COMPARE(world);
     IRE_COMPARE(surface.labels);
     IRE_COMPARE(surface.volumes);
+    IRE_COMPARE(detector.labels);
+    IRE_COMPARE(detector.volumes);
 
 #undef IRE_COMPARE
     return result;

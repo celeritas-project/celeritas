@@ -37,20 +37,16 @@ enum class UrbanParMatType
  *
  * Mapping of parameter names from Geant4 to Celeritas:
 <table>
-  <thead>
     <tr>
       <th>Geant4 Symbol</th>
       <th>Celeritas Symbol</th>
     </tr>
-  </thead>
-  <tbody>
     <tr><td><code>dtrl</code></td><td><code>small_range_frac</code></td></tr>
     <tr><td><code>tlimitminfix</code></td><td><code>min_step</code></td></tr>
     <tr><td><code>stepmin</code></td><td><code>min_step_fallback</code></td></tr>
     <tr><td><code>tlimitminfix2</code></td><td><code>min_step_transform</code></td></tr>
     <tr><td><em>(hardcoded)</em></td><td><code>min_endpoint_energy</code></td></tr>
     <tr><td><code>tlow</code></td><td><code>min_scaling_energy</code></td></tr>
-  </tbody>
 </table>
  *
  * \todo Unify min_endpoint_energy with low energy limit
@@ -96,7 +92,7 @@ struct UrbanMscParameters
  * UrbanMsc material data (see UrbanMscParams::calc_material_data) is a set of
  * precalculated material dependent parameters used in sampling the angular
  * distribution of MSC, \f$ \cos\theta \f$, and in the step limiter. The
- * coeffient vectors are used in polynomial evaluation.
+ * coefficient vectors are used in polynomial evaluation.
  */
 struct UrbanMscMaterialData
 {

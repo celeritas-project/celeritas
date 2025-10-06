@@ -16,6 +16,7 @@
 #include "celeritas/em/distribution/WentzelDistribution.hh"
 #include "celeritas/em/xs/WentzelHelper.hh"
 #include "celeritas/mat/ElementView.hh"
+#include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
@@ -150,7 +151,7 @@ CELER_FUNCTION Interaction CoulombScatteringInteractor::operator()(Engine& rng)
     real_type cos_theta = sample_angle_(rng);
     result.direction = ExitingDirectionSampler{cos_theta, inc_direction_}(rng);
 
-    // Recoil energy is kinetic energy transfered to the atom
+    // Recoil energy is kinetic energy transferred to the atom
     real_type inc_energy = value_as<Energy>(particle_.energy());
     real_type recoil_energy = this->calc_recoil_energy(cos_theta);
     CELER_ASSERT(0 <= recoil_energy && recoil_energy <= inc_energy);

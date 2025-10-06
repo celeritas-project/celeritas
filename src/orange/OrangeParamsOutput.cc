@@ -90,7 +90,7 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
     // Save surface names
     obj["surfaces"] = [&surfaces = orange_->surfaces()] {
         auto label = json::array();
-        for (auto id : range(InternalSurfaceId{surfaces.size()}))
+        for (auto id : range(ImplSurfaceId{surfaces.size()}))
         {
             label.push_back(to_string(surfaces.at(id)));
         }

@@ -8,8 +8,11 @@
 
 #include <string_view>
 
+#include "corecel/cont/ArrayIO.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "geocel/Types.hh"
 
+#include "GenericGeoResults.hh"
 #include "TestMacros.hh"
 #include "UnitUtils.hh"
 
@@ -29,12 +32,11 @@ class GenericGeoTestInterface;
 class CmsEeBackDeeGeoTest
 {
   public:
-    static std::string_view geometry_basename() { return "cms-ee-back-dee"; }
+    static std::string_view gdml_basename() { return "cms-ee-back-dee"; }
 
     //! Construct with a reference to the GoogleTest
     CmsEeBackDeeGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
-    void test_model() const;
     void test_accessors() const;
     void test_trace() const;
 
@@ -49,12 +51,11 @@ class CmsEeBackDeeGeoTest
 class CmseGeoTest
 {
   public:
-    static std::string_view geometry_basename() { return "cmse"; }
+    static std::string_view gdml_basename() { return "cmse"; }
 
     //! Construct with a reference to the GoogleTest
     CmseGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
-    void test_model() const;
     void test_trace() const;
 
   private:
@@ -68,17 +69,38 @@ class CmseGeoTest
 class FourLevelsGeoTest
 {
   public:
-    static std::string_view geometry_basename() { return "four-levels"; }
+    static std::string_view gdml_basename() { return "four-levels"; }
 
     //! Construct with a reference to the GoogleTest
     FourLevelsGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
-    void test_model() const;
     void test_accessors() const;
     void test_trace() const;
 
     template<class GeoTest>
+    inline static void test_consecutive_compute(GeoTest* geo_test);
+
+    template<class GeoTest>
     inline static void test_detailed_tracking(GeoTest* geo_test);
+
+  private:
+    GenericGeoTestInterface* test_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Test the LAr sphere.
+ */
+class LarSphereGeoTest
+{
+  public:
+    static std::string_view gdml_basename() { return "lar-sphere"; }
+
+    //! Construct with a reference to the GoogleTest
+    LarSphereGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
+
+    void test_trace() const;
+    void test_volume_stack() const;
 
   private:
     GenericGeoTestInterface* test_;
@@ -91,13 +113,13 @@ class FourLevelsGeoTest
 class MultiLevelGeoTest
 {
   public:
-    static std::string_view geometry_basename() { return "multi-level"; }
+    static std::string_view gdml_basename() { return "multi-level"; }
 
     //! Construct with a reference to the GoogleTest
     MultiLevelGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
-    void test_model() const;
     void test_trace() const;
+    void test_volume_stack() const;
 
   private:
     GenericGeoTestInterface* test_;
@@ -110,14 +132,13 @@ class MultiLevelGeoTest
 class OpticalSurfacesGeoTest
 {
   public:
-    static std::string_view geometry_basename() { return "optical-surfaces"; }
+    static std::string_view gdml_basename() { return "optical-surfaces"; }
 
     //! Construct with a reference to the GoogleTest
     OpticalSurfacesGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test}
     {
     }
 
-    void test_model() const;
     void test_trace() const;
 
   private:
@@ -131,12 +152,11 @@ class OpticalSurfacesGeoTest
 class PolyhedraGeoTest
 {
   public:
-    static std::string_view geometry_basename() { return "polyhedra"; }
+    static std::string_view gdml_basename() { return "polyhedra"; }
 
     //! Construct with a reference to the GoogleTest
     PolyhedraGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
-    void test_model() const;
     void test_trace() const;
 
   private:
@@ -150,12 +170,11 @@ class PolyhedraGeoTest
 class ReplicaGeoTest
 {
   public:
-    static std::string_view geometry_basename() { return "replica"; }
+    static std::string_view gdml_basename() { return "replica"; }
 
     //! Construct with a reference to the GoogleTest
     ReplicaGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
-    void test_model() const;
     void test_trace() const;
     void test_volume_stack() const;
 
@@ -170,12 +189,11 @@ class ReplicaGeoTest
 class SimpleCmsGeoTest
 {
   public:
-    static std::string_view geometry_basename() { return "simple-cms"; }
+    static std::string_view gdml_basename() { return "simple-cms"; }
 
     //! Construct with a reference to the GoogleTest
     SimpleCmsGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
-    void test_model() const;
     void test_trace() const;
 
     template<class GeoTest>
@@ -192,13 +210,12 @@ class SimpleCmsGeoTest
 class SolidsGeoTest
 {
   public:
-    static std::string_view geometry_basename() { return "solids"; }
+    static std::string_view gdml_basename() { return "solids"; }
 
     //! Construct with a reference to the GoogleTest
     SolidsGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
     void test_accessors() const;
-    void test_model() const;
     void test_trace() const;
 
   private:
@@ -212,12 +229,11 @@ class SolidsGeoTest
 class TestEm3GeoTest
 {
   public:
-    static std::string_view geometry_basename() { return "testem3"; }
+    static std::string_view gdml_basename() { return "testem3"; }
 
     //! Construct with a reference to the GoogleTest
     TestEm3GeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
-    void test_model() const;
     void test_trace() const;
 
   private:
@@ -231,10 +247,28 @@ class TestEm3GeoTest
 class TestEm3FlatGeoTest
 {
   public:
-    static std::string_view geometry_basename() { return "testem3-flat"; }
+    static std::string_view gdml_basename() { return "testem3-flat"; }
 
     //! Construct with a reference to the GoogleTest
     TestEm3FlatGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
+
+    void test_trace() const;
+
+  private:
+    GenericGeoTestInterface* test_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Test tilecal plug.
+ */
+class TilecalPlugGeoTest
+{
+  public:
+    static std::string_view gdml_basename() { return "tilecal-plug"; }
+
+    //! Construct with a reference to the GoogleTest
+    TilecalPlugGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
     void test_trace() const;
 
@@ -249,7 +283,7 @@ class TestEm3FlatGeoTest
 class TransformedBoxGeoTest
 {
   public:
-    static std::string_view geometry_basename() { return "transformed-box"; }
+    static std::string_view gdml_basename() { return "transformed-box"; }
 
     //! Construct with a reference to the GoogleTest
     TransformedBoxGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test}
@@ -257,7 +291,6 @@ class TransformedBoxGeoTest
     }
 
     void test_accessors() const;
-    void test_model() const;
     void test_trace() const;
 
   private:
@@ -271,13 +304,12 @@ class TransformedBoxGeoTest
 class TwoBoxesGeoTest
 {
   public:
-    static std::string_view geometry_basename() { return "two-boxes"; }
+    static std::string_view gdml_basename() { return "two-boxes"; }
 
     //! Construct with a reference to the GoogleTest
     TwoBoxesGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
     void test_accessors() const;
-    void test_model() const;
     void test_trace() const;
 
     template<class GeoTest>
@@ -294,12 +326,11 @@ class TwoBoxesGeoTest
 class ZnenvGeoTest
 {
   public:
-    static std::string_view geometry_basename() { return "znenv"; }
+    static std::string_view gdml_basename() { return "znenv"; }
 
     //! Construct with a reference to the GoogleTest
     ZnenvGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
-    void test_model() const;
     void test_trace() const;
 
   private:
@@ -311,8 +342,31 @@ class ZnenvGeoTest
 //---------------------------------------------------------------------------//
 
 template<class GeoTest>
+void FourLevelsGeoTest::test_consecutive_compute(GeoTest* test)
+{
+    auto geo = test->make_geo_track_view({-9, -10, -10}, {1, 0, 0});
+    ASSERT_FALSE(geo.is_outside());
+    EXPECT_EQ("Shape2", test->volume_name(geo));
+    EXPECT_FALSE(geo.is_on_boundary());
+
+    auto next = geo.find_next_step(from_cm(10.0));
+    EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
+    EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
+
+    next = geo.find_next_step(from_cm(10.0));
+    EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
+    EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
+
+    // Find safety from a freshly initialized state
+    geo = {from_cm({-9, -10, -10}), {1, 0, 0}};
+    EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
+}
+
+template<class GeoTest>
 void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
 {
+    CELER_EXPECT(test);
+    bool const check_normal = test->supports_surface_normal();
     {
         SCOPED_TRACE("rightward along corner");
         auto geo = test->make_geo_track_view({-10, -10, -10}, {1, 0, 0});
@@ -335,8 +389,17 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         EXPECT_SOFT_EQ(1.5, to_cm(next.distance));
         EXPECT_TRUE(next.boundary);
         geo.move_to_boundary();
+        EXPECT_TRUE(geo.is_on_boundary());
+        if (check_normal)
+        {
+            EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
+        }
         EXPECT_EQ("Shape2", test->volume_name(geo));
         geo.cross_boundary();
+        if (check_normal)
+        {
+            EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+        }
         EXPECT_EQ("Shape1", test->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
 
@@ -381,6 +444,10 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
 
         geo.move_to_boundary();
         EXPECT_FALSE(geo.is_outside());
+        if (check_normal)
+        {
+            EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
+        }
         geo.cross_boundary();
         EXPECT_TRUE(geo.is_outside());
 
@@ -393,9 +460,6 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
     }
     {
         SCOPED_TRACE("reentrant boundary");
-
-//      bool const is_surface_vg = (CELERITAS_VECGEOM_SURFACE
-//                               && test->geometry_type() == "VecGeom");
 
         // Start inside box "Shape1" in the gap outside sphere "Shape2"
         auto geo = test->make_geo_track_view({15.5, 10, 10}, {-1, 0, 0});
@@ -413,7 +477,7 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         geo.set_dir({0, 1, 0});
         next = geo.find_next_step(from_cm(1.0)); // fix vgnext_ after set_dir()
         EXPECT_EQ("Shape1", test->volume_name(geo));
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
         EXPECT_SOFT_EQ(1, to_cm(next.distance));
 #else
         geo.move_to_boundary(); // re-synch solids-model with surface-model
@@ -441,50 +505,74 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         EXPECT_EQ("Shape1", test->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
 
-        // Move to the sphere boundary then scatter still into the sphere
-        auto expected_distance = to_cm(1e-13);
-        EXPECT_SOFT_EQ(expected_distance, next.distance);
-        EXPECT_TRUE(next.boundary);
-        geo.move_to_boundary();
+        // Check the distance to the sphere boundary again, then scatter
+        // into the sphere (this may be a "bump": 1e-13 for surface VG, Geant4;
+        // 1e-8 for volume VG; BUT exactly zero for ORANGE thanks to
+        // "reentrant" logic)
+        next = geo.find_next_step(from_cm(20.0));
+        EXPECT_LE(next.distance, to_cm(1e-8));
+        ASSERT_TRUE(next.boundary);
+        if (next.distance > 0)
+        {
+            // ORANGE will not accept a zero-distance move-to-boundary call
+            geo.move_to_boundary();
+        }
+        else if (CELERITAS_DEBUG)
+        {
+            EXPECT_THROW(geo.move_to_boundary(), DebugError);
+        }
         EXPECT_TRUE(geo.is_on_boundary());
-        EXPECT_EQ("Shape1", test->volume_name(geo));
 
-        geo.set_dir({0, -1, 0});
-        next = geo.find_next_step(from_cm(10.0)); // fix vgnext_ after set_dir()
-        EXPECT_EQ("Shape1", test->volume_name(geo));
-        geo.move_to_boundary(); // re-synch solids-model with surface-model
-#ifndef VECGEOM_USE_SURF
-        EXPECT_SOFT_EQ(1.e-13, to_cm(next.distance));
-        EXPECT_EQ("Shape1", test->volume_name(geo));
-        next = geo.find_next_step(from_cm(10.0));
-        EXPECT_SOFT_EQ(1.e-13, to_cm(next.distance));
-        EXPECT_EQ("Shape1", test->volume_name(geo));
-        geo.move_to_boundary(); // re-synch solids-model with surface-model
-        next = geo.find_next_step(from_cm(10.0));
-#endif
-        EXPECT_EQ("Shape1", test->volume_name(geo));
-        EXPECT_SOFT_EQ(6, to_cm(next.distance));
-        EXPECT_TRUE(geo.is_on_boundary());
-        next = geo.find_next_step(from_cm(10.0));
-        geo.move_to_boundary();
+        // Enter the spehre
         geo.cross_boundary();
         EXPECT_TRUE(geo.is_on_boundary());
         EXPECT_EQ("Envelope", test->volume_name(geo));
 
-        // Travel nearly tangent to the right edge of the sphere, then scatter
-        // to still outside
-        // TODO: understand difference in distance for surface implementation
-        next = geo.find_next_step(from_cm(10.0));
-        EXPECT_SOFT_EQ(2, to_cm(next.distance));
+        if (CELERITAS_DEBUG && test->geometry_type() == "Geant4")
+        {
+            // TODO: Geant4 does not allow crossing to new volume and returning
+            // to old
+            EXPECT_THROW(geo.cross_boundary(), DebugError);
+        }
+        else if (test->geometry_type() == "ORANGE")
+        {
+            // Should be able to relocate back and forth
+            geo.cross_boundary();
+            EXPECT_EQ("Shape1", test->volume_name(geo));
+            geo.cross_boundary();
+            EXPECT_EQ("Shape2", test->volume_name(geo));
+        }
+        else
+        {
+            // Vecgeom doesn't correctly cross back and forth, but it doesn't
+            // throw on debug...
+        }
+
+        // Now move just barely inside the sphere
+        next = geo.find_next_step(from_cm(1e-6));
+        EXPECT_FALSE(next.boundary);
+        geo.move_internal(next.distance);
+        EXPECT_FALSE(geo.is_on_boundary());
+
+        // Exit the sphere
+        geo.set_dir({1, 0, 0});
+        next = geo.find_next_step(from_cm(1));
+        EXPECT_LE(next.distance, from_cm(1e-5));
         geo.move_to_boundary();
         EXPECT_TRUE(geo.is_on_boundary());
-        geo.set_dir({1, 0, 0});
-        EXPECT_TRUE(geo.is_on_boundary());
-        geo.cross_boundary();
-        EXPECT_EQ("World", test->volume_name(geo));
+        if (check_normal)
+        {
+            EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+        }
 
+        geo.cross_boundary();
+        EXPECT_EQ("Shape1", test->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
-        next = geo.find_next_step(from_cm(10.0));
+        if (check_normal)
+        {
+            EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+        }
+        EXPECT_EQ("Shape1", test->volume_name(geo));
     }
 }
 
@@ -493,8 +581,10 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
 template<class GeoTest>
 void SimpleCmsGeoTest::test_detailed_tracking(GeoTest* test)
 {
-    // TODO: understand the error from Geant4 navigator
-    auto safety_tol = test->safety_tol();
+    CELER_EXPECT(test);
+    auto safety_tol = test->tracking_tol().safety;
+    bool const check_normal = test->supports_surface_normal();
+
     auto geo = test->make_geo_track_view({0, 0, 0}, {0, 0, 1});
     EXPECT_EQ("vacuum_tube", test->volume_name(geo));
 
@@ -510,8 +600,18 @@ void SimpleCmsGeoTest::test_detailed_tracking(GeoTest* test)
     EXPECT_TRUE(next.boundary);
 
     geo.move_to_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_FALSE(geo.is_outside());
+    if (check_normal)
+    {
+        EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
+    }
+
     geo.cross_boundary();
+    if (check_normal)
+    {
+        EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
+    }
     EXPECT_EQ("si_tracker", test->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({30, 0, 20}), to_cm(geo.pos()));
 
@@ -538,6 +638,10 @@ void SimpleCmsGeoTest::test_detailed_tracking(GeoTest* test)
 template<class GeoTest>
 void TwoBoxesGeoTest::test_detailed_tracking(GeoTest* test)
 {
+    CELER_EXPECT(test);
+    bool const check_normal = test->supports_surface_normal();
+    auto safety_tol = test->tracking_tol().safety;
+
     auto geo = test->make_geo_track_view({0, 0, 0}, {0, 0, 1});
     EXPECT_FALSE(geo.is_outside());
     EXPECT_EQ("inner", test->volume_name(geo));
@@ -549,8 +653,7 @@ void TwoBoxesGeoTest::test_detailed_tracking(GeoTest* test)
 
     geo.move_internal(from_cm(1.25));
     real_type expected_safety = 5 - 1.25;
-    EXPECT_SOFT_NEAR(
-        expected_safety, to_cm(geo.find_safety()), test->safety_tol());
+    EXPECT_SOFT_NEAR(expected_safety, to_cm(geo.find_safety()), safety_tol);
 
     // Change direction and try again (hit)
     geo.set_dir({1, 0, 0});
@@ -561,6 +664,10 @@ void TwoBoxesGeoTest::test_detailed_tracking(GeoTest* test)
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_FALSE(geo.is_outside());
+    if (check_normal)
+    {
+        EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
+    }
     geo.cross_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_EQ("world", test->volume_name(geo));
@@ -572,7 +679,9 @@ void TwoBoxesGeoTest::test_detailed_tracking(GeoTest* test)
     }
 
     // Scatter to tangent along boundary
-    geo.set_dir({1e-8, 1, 0});
+    constexpr real_type dx
+        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e-8 : 1e-4);
+    geo.set_dir({dx, 1, 0});
     next = geo.find_next_step(from_cm(1000));
     EXPECT_SOFT_EQ(500, to_cm(next.distance));
     EXPECT_TRUE(next.boundary);
@@ -585,20 +694,37 @@ void TwoBoxesGeoTest::test_detailed_tracking(GeoTest* test)
     next = geo.find_next_step(from_cm(1000));
     EXPECT_EQ("world", test->volume_name(geo));
     EXPECT_TRUE(next.boundary);
-    if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
-    {
-      // TODO: VecGeom's returns 5 + 2e-8
-      EXPECT_LT(to_cm(5+2e-8), to_cm(next.distance));
-      GTEST_SKIP() << "FIXME: VecGeom solid-model misses surface for point ~2e-8 away";
-    }
+    // if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
+    // {
+    //   // TODO: VecGeom's returns 5 + 2e-8
+    //   EXPECT_LT(to_cm(5+2e-8), to_cm(next.distance));
+    //   GTEST_SKIP() << "FIXME: VecGeom solid-model misses surface for point ~2e-8 away";
+    // }
 
-    geo.move_to_boundary();
-    EXPECT_EQ("world", test->volume_name(geo));
-
-    EXPECT_SOFT_NEAR(2e-8, to_cm(next.distance), 1e-4);
+    // geo.move_to_boundary();
+    // EXPECT_EQ("world", test->volume_name(geo));
+    EXPECT_SOFT_NEAR(2 * dx, to_cm(next.distance), 1e-4);
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
+    if (check_normal)
+    {
+        EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
+    }
+
     geo.cross_boundary();
+    if (!check_normal)
+    {
+        // Skip check
+    }
+    else if (test->geometry_type() == "Geant4")
+    {
+        EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
+    }
+    else
+    {
+        EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
+    }
+
     EXPECT_FALSE(geo.is_outside());
     EXPECT_EQ("inner", test->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({5, 2, 1.25}), to_cm(geo.pos()));

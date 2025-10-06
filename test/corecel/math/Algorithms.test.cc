@@ -87,16 +87,20 @@ TEST(UtilityTest, exchange)
 TEST(AlgorithmsTest, all_of)
 {
     static bool const items[] = {true, false, true, true};
-    LogicalTrue<bool> is_true;
+    Identity is_true;
     EXPECT_TRUE(all_of(std::begin(items), std::begin(items), is_true));
     EXPECT_FALSE(all_of(std::begin(items), std::end(items), is_true));
     EXPECT_TRUE(all_of(std::begin(items) + 2, std::end(items), is_true));
+
+    LogicalNot<bool> is_false;
+    EXPECT_FALSE(all_of(std::begin(items), std::end(items), is_false));
+    EXPECT_TRUE(all_of(std::begin(items) + 1, std::begin(items) + 2, is_false));
 }
 
 TEST(AlgorithmsTest, any_of)
 {
     static bool const items[] = {false, true, false, false};
-    LogicalTrue<> is_true;
+    Identity is_true;
     EXPECT_FALSE(any_of(std::begin(items), std::begin(items), is_true));
     EXPECT_TRUE(any_of(std::begin(items), std::end(items), is_true));
     EXPECT_FALSE(any_of(std::begin(items) + 2, std::end(items), is_true));
@@ -659,6 +663,10 @@ TEST(MathTest, TEST_IF_CELER_DEVICE(device))
             = {0.92626575101906661, 1.0, 0.0, -1.0, 0.0};
         EXPECT_VEC_SOFT_EQ(expected_sinpi, host_output.sinpi[threads]);
         EXPECT_VEC_SOFT_EQ(expected_cospi, host_output.cospi[threads]);
+
+        // Single precision without using sincos
+        EXPECT_VEC_SOFT_EQ(expected_sinpi, host_output.sin[threads]);
+        EXPECT_VEC_SOFT_EQ(expected_cospi, host_output.cos[threads]);
     }
     {
         // fastpow

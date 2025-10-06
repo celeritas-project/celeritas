@@ -94,8 +94,8 @@ template<class T>
         // The enclosed angle is "true" (specified by the user to truncate the
         // shape azimuthally): construct a wedge to be added or deleted
         auto&& [sense, wedge] = azi.make_sense_region();
-        NodeId wedge_id
-            = build_intersect_region(vb, base.label(), "angle", wedge);
+        char const* ext = (sense == Sense::outside ? "~azi" : "azi");
+        NodeId wedge_id = build_intersect_region(vb, base.label(), ext, wedge);
         if (sense == Sense::outside)
         {
             wedge_id = vb.insert_region({}, Negated{wedge_id});
@@ -137,8 +137,15 @@ PolySegments::PolySegments(VecReal&& inner, VecReal&& outer, VecReal&& z)
                    << "inconsistent inner radius size (" << inner_.size()
                    << "): expected " << z_.size());
 
+    if (z_.front() > z_.back())
+    {
+        // Input grid is decreasing: reverse everything
+        std::reverse(z_.begin(), z_.end());
+        std::reverse(inner_.begin(), inner_.end());
+        std::reverse(outer_.begin(), outer_.end());
+    }
     CELER_VALIDATE(is_monotonic_nondecreasing(make_span(z_)),
-                   << "axial grid has decreasing grid points");
+                   << "axial grid is non-monotonic");
     for (auto i : range(outer_.size()))
     {
         CELER_VALIDATE(outer_[i] >= 0, << "invalid outer radius " << outer_[i]);

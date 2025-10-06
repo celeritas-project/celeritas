@@ -254,7 +254,7 @@ CELER_FUNCTION auto StackAllocator<T>::size() const -> size_type
 /*!
  * View all allocated data.
  *
- * This cannot be called while any running kernel could be modifiying the size.
+ * This cannot be called while any running kernel could be modifying the size.
  */
 template<class T>
 CELER_FUNCTION auto StackAllocator<T>::get() -> Span<value_type>
@@ -266,7 +266,7 @@ CELER_FUNCTION auto StackAllocator<T>::get() -> Span<value_type>
 /*!
  * View all allocated data (const).
  *
- * This cannot be called while any running kernel could be modifiying the size.
+ * This cannot be called while any running kernel could be modifying the size.
  */
 template<class T>
 CELER_FUNCTION auto StackAllocator<T>::get() const -> Span<value_type const>

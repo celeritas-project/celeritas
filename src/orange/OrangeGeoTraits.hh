@@ -36,11 +36,12 @@ struct GeoTraits<OrangeParams>
     //! Geometry track view
     using TrackView = OrangeTrackView;
 
+    //! ORANGE implementation uses surfaces
+    static constexpr bool has_impl_surface = true;
+    static constexpr bool has_impl_volume_instance = false;
+
     //! Descriptive name for the geometry
     static constexpr char const name[] = "ORANGE";
-
-    //! TO BE REMOVED: "native" file extension for this geometry
-    static constexpr char const ext[] = ".org.json";
 };
 
 //---------------------------------------------------------------------------//

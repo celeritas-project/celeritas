@@ -22,7 +22,7 @@ namespace test
 class OrangeTestBase : public GenericGeoTestBase<OrangeParams>
 {
   public:
-    std::string surface_name(GeoTrackView const& geo) const final;
+    std::string surface_name(GeoTrackView const& geo) const override;
 };
 
 extern template class CheckedGeoTrackView<OrangeTrackView>;

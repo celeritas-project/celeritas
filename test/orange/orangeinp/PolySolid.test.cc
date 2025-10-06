@@ -59,6 +59,13 @@ TEST(PolySegmentsTest, hollow)
     EXPECT_VEC_EQ((Real2{3, 4}), seg.outer(2));
     EXPECT_VEC_EQ((Real2{-1, 0}), seg.z(0));
     EXPECT_VEC_EQ((Real2{2, 6}), seg.z(2));
+
+    // Reversed order
+    using VecReal = PolySegments::VecReal;
+    PolySegments rev({2, 1, 4}, {3, 2, 5}, {6, 4, 1});
+    EXPECT_VEC_EQ(VecReal({4, 1, 2}), rev.inner());
+    EXPECT_VEC_EQ(VecReal({5, 2, 3}), rev.outer());
+    EXPECT_VEC_EQ(VecReal({1, 4, 6}), rev.z());
 }
 
 //---------------------------------------------------------------------------//
@@ -182,7 +189,7 @@ TEST_F(PolyconeTest, sliced)
 {
     this->build_volume(PolyCone{"pc",
                                 PolySegments{{2, 1, 3}, {-2, 0, 2}},
-                                EnclosedAzi{Turn{0.125}, Turn{0.75}}});
+                                EnclosedAzi{Turn{0.125}, Turn{0.875}}});
 
     static char const* const expected_surface_strings[] = {
         "Plane: z=-2",
@@ -190,8 +197,8 @@ TEST_F(PolyconeTest, sliced)
         "Cone z: t=0.5 at {0,0,2}",
         "Plane: z=2",
         "Cone z: t=1 at {0,0,-1}",
-        "Plane: n={0.70711,0.70711,0}, d=0",
         "Plane: n={0.70711,-0.70711,0}, d=0",
+        "Plane: n={0.70711,0.70711,0}, d=0",
     };
     static char const* const expected_volume_strings[] = {
         "all(any(all(+0, -1, -2), all(+1, -3, -4)), !all(+5, +6))",
@@ -211,9 +218,9 @@ TEST_F(PolyconeTest, sliced)
         "",
         "pc@1.interior",
         "pc@segments",
-        "pc@angle.p0",
-        "pc@angle.p1",
-        "pc@angle",
+        "pc@awm",
+        "pc@awp",
+        "pc@~azi",
         "",
         "pc@restricted",
     };

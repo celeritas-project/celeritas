@@ -11,6 +11,10 @@ VecGeom are enabled) and directly to CMake if not. It should be loaded
 automatically by Celeritas in the main CMakeLists.txt, and for downstream
 projects automatically by the CeleritasConfig.cmake file.
 
+.. note:: :cmake:command:`celeritas_add_executable` and similar live in
+   CeleritasLibraryUtils and are specifically for generating libraries within
+   the Celeritas project. This file exclusively contains shims.
+
 .. command:: celeritas_add_library
 
   CudaRdcUtils version of ``add_library``.
@@ -46,7 +50,7 @@ if(NOT DEFINED CELERITAS_USE_VecGeom)
 endif()
 
 if(NOT (CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA))
-  # Forward all arguments direcly to CMake builtins
+  # Forward all arguments directly to CMake builtins
   macro(celeritas_add_library)
     add_library(${ARGV})
   endmacro()
