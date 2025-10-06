@@ -81,7 +81,6 @@ class FerrariSolver
     real_type ba_;  // b/a
     real_type ca_;  // c/a
     real_type da_;  // d/a
-    real_type ea_;  // e/a
 
     //// UTIL ////
     // Place real root in an ascending list
