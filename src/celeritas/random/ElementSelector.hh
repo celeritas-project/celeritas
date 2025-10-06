@@ -57,7 +57,7 @@ class ElementSelector
     template<class Engine>
     CELER_FORCEINLINE_FUNCTION ElementComponentId operator()(Engine& rng) const
     {
-        return select_impl_(rng);
+        return select_component_(rng);
     }
 
   private:
@@ -73,9 +73,11 @@ class ElementSelector
     using SelectorT = Selector<MicroXsComponentGetter, ElementComponentId>;
 
     //// DATA ////
-    SelectorT select_impl_;
+
+    SelectorT select_component_;
 
     //// HELPER FUNCTIONS ////
+
     // Fill storage with micro xs, and return the accumulated weighted xs
     template<class MicroXsCalc>
     static inline CELER_FUNCTION MicroXs
@@ -94,13 +96,13 @@ template<class MicroXsCalc>
 CELER_FUNCTION ElementSelector::ElementSelector(MaterialView const& material,
                                                 MicroXsCalc&& calc_micro_xs,
                                                 SpanReal storage)
-    : select_impl_{{material.elements(), storage.data()},
-                   id_cast<ElementComponentId>(material.num_elements()),
-                   value_as<MicroXs>(ElementSelector::store_and_calc_xs(
-                       material.elements(),
-                       celeritas::forward<MicroXsCalc>(calc_micro_xs),
-                       storage)),
-                   SelectorNormalization::normalized}
+    : select_component_{{material.elements(), storage.data()},
+                        id_cast<ElementComponentId>(material.num_elements()),
+                        value_as<MicroXs>(ElementSelector::store_and_calc_xs(
+                            material.elements(),
+                            celeritas::forward<MicroXsCalc>(calc_micro_xs),
+                            storage)),
+                        SelectorNormalization::normalized}
 {
     CELER_EXPECT(material.num_elements() > 0);
 }
