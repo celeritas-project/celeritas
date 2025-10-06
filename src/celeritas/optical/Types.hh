@@ -20,6 +20,15 @@ using ScintParticleId = OpaqueId<struct ScintParticle_>;
 //! Opaque index to a scintillation spectrum
 using ParScintSpectrumId = OpaqueId<struct ParScintSpectrum>;
 
+namespace optical
+{
+
+//! Opaque index into subsurface track position, in range [0, num subsurface
+//! interfaces + 1]
+using SurfaceTrackPosition = OpaqueId<struct SurfaceTrackPosition_>;
+
+}  // namespace optical
+
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//

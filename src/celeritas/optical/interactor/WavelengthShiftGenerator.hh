@@ -116,7 +116,7 @@ CELER_FUNCTION TrackInitializer WavelengthShiftGenerator::operator()(Engine& rng
     result.position = distribution_.position;
 
     // Sample the emitted photon (incoherent) direction and polarization
-    result.direction = IsotropicDistribution()(rng);
+    result.direction = IsotropicDistribution{}(rng);
     result.polarization = ExitingDirectionSampler{0, result.direction}(rng);
 
     // Sample the delta time (based on the exponential relaxation)

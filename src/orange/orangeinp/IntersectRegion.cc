@@ -682,10 +682,10 @@ auto ExtrudedPolygon::calc_range(VecReal2 const& polygon, size_type dim)
 
     // Find the extrema taking into account the extrusion process
     Range range;
-    range[0]
+    range[X]
         = std::min(poly_min * scaling_factors_[bot] + line_segment_[bot][dim],
                    poly_min * scaling_factors_[top] + line_segment_[top][dim]);
-    range[1]
+    range[Y]
         = std::max(poly_max * scaling_factors_[bot] + line_segment_[bot][dim],
                    poly_max * scaling_factors_[top] + line_segment_[top][dim]);
 
@@ -700,17 +700,20 @@ auto ExtrudedPolygon::calc_range(VecReal2 const& polygon, size_type dim)
  */
 GenPrism GenPrism::from_trd(real_type halfz, Real2 const& lo, Real2 const& hi)
 {
-    CELER_VALIDATE(lo[0] > 0, << "nonpositive lower x half-edge: " << lo[0]);
-    CELER_VALIDATE(hi[0] > 0, << "nonpositive upper x half-edge: " << hi[0]);
-    CELER_VALIDATE(lo[1] > 0, << "nonpositive lower y half-edge: " << lo[1]);
-    CELER_VALIDATE(hi[1] > 0, << "nonpositive upper y half-edge: " << hi[1]);
+    CELER_VALIDATE(lo[X] >= 0, << "nonpositive lower x half-edge: " << lo[X]);
+    CELER_VALIDATE(hi[X] >= 0, << "nonpositive upper x half-edge: " << hi[X]);
+    CELER_VALIDATE(lo[Y] >= 0, << "nonpositive lower y half-edge: " << lo[Y]);
+    CELER_VALIDATE(hi[Y] >= 0, << "nonpositive upper y half-edge: " << hi[Y]);
     CELER_VALIDATE(halfz > 0, << "nonpositive half-height: " << halfz);
+
+    CELER_VALIDATE(lo[X] > 0 || hi[X] > 0, << "degenerate x width");
+    CELER_VALIDATE(lo[Y] > 0 || hi[Y] > 0, << "degenerate y width");
 
     // Construct points like prism: lower right is first
     VecReal2 lower
-        = {{lo[0], -lo[1]}, {lo[0], lo[1]}, {-lo[0], lo[1]}, {-lo[0], -lo[1]}};
+        = {{lo[X], -lo[Y]}, {lo[X], lo[Y]}, {-lo[X], lo[Y]}, {-lo[X], -lo[Y]}};
     VecReal2 upper
-        = {{hi[0], -hi[1]}, {hi[0], hi[1]}, {-hi[0], hi[1]}, {-hi[0], -hi[1]}};
+        = {{hi[X], -hi[Y]}, {hi[X], hi[Y]}, {-hi[X], hi[Y]}, {-hi[X], -hi[Y]}};
 
     return GenPrism{halfz, std::move(lower), std::move(upper)};
 }
