@@ -14,7 +14,6 @@
 #include "corecel/random/distribution/RejectionSampler.hh"
 #include "geocel/random/IsotropicDistribution.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/decay/data/MuDecayData.hh"
 #include "celeritas/phys/FourVector.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -64,7 +63,7 @@ class MuDecayInteractor
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    MuDecayInteractor(MuDecayData const& shared,
+    MuDecayInteractor(Span<ParticleId const> daughters,
                       ParticleTrackView const& particle,
                       Real3 const& inc_direction,
                       StackAllocator<Secondary>& allocate);
@@ -82,14 +81,12 @@ class MuDecayInteractor
 
     //// DATA ////
 
-    // Constant data
-    MuDecayData const& shared_;
+    // Daughter particle properties
+    ParticleView daughter_;
     // Incident muon energy
     Energy const inc_energy_;
     // Allocate space for secondary particles (electron only)
     StackAllocator<Secondary>& allocate_;
-    // Define decay channel based on muon or anti-muon primary
-    ParticleId sec_id_;
     // Incident muon four vector
     FourVector inc_fourvec_;
     // Maximum electron energy [MeV]
@@ -121,23 +118,18 @@ class MuDecayInteractor
  * using the physics manual definition.
  */
 CELER_FUNCTION
-MuDecayInteractor::MuDecayInteractor(MuDecayData const& shared,
+MuDecayInteractor::MuDecayInteractor(Span<ParticleId const> daughters,
                                      ParticleTrackView const& particle,
                                      Real3 const& inc_direction,
                                      StackAllocator<Secondary>& allocate)
-    : shared_(shared)
+    : daughter_(particle.particle_view(daughters.front()))
     , inc_energy_(particle.energy())
     , allocate_(allocate)
-    , sec_id_((particle.particle_id() == shared_.mu_minus_id)
-                  ? shared_.electron_id
-                  : shared_.positron_id)
     , inc_fourvec_{FourVector::from_particle(particle, inc_direction)}
-    , max_energy_(real_type{0.5} * shared_.muon_mass.value()
-                  - shared_.electron_mass.value())
+    , max_energy_(real_type{0.5} * value_as<Mass>(particle.mass())
+                  - value_as<Mass>(daughter_.mass()))
 {
-    CELER_EXPECT(shared_);
-    CELER_EXPECT(particle.particle_id() == shared_.mu_minus_id
-                 || particle.particle_id() == shared_.mu_plus_id);
+    CELER_EXPECT(daughters.size() == 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -163,26 +155,26 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
         {
             electron_nu_energy_frac = generate_canonical(rng);
         } while (RejectionSampler(
-            electron_nu_energy_frac * (real_type{1} - electron_nu_energy_frac),
+            electron_nu_energy_frac * (1 - electron_nu_energy_frac),
             real_type{0.25})(rng));
 
         electron_energy_frac = generate_canonical(rng);
-    } while (electron_nu_energy_frac + electron_energy_frac < real_type{1});
+    } while (electron_nu_energy_frac + electron_energy_frac < 1);
 
     // Decay isotropically in rest frame and boost secondaries to the lab frame
     auto charged_lep_fv = this->to_lab_frame(
         IsotropicDistribution{}(rng),
-        this->calc_momentum(electron_energy_frac, shared_.electron_mass),
-        shared_.electron_mass);
+        this->calc_momentum(electron_energy_frac, daughter_.mass()),
+        daughter_.mass());
 
     // Return charged lepton only
     Interaction result = Interaction::from_absorption();
-    result.secondaries = {secondaries, 1};
-    result.secondaries[0].particle_id = sec_id_;
+    secondaries[0].particle_id = daughter_.particle_id();
     // Interaction stores kinetic energy; FourVector stores total energy
-    result.secondaries[0].energy
-        = Energy{charged_lep_fv.energy - shared_.electron_mass.value()};
-    result.secondaries[0].direction = make_unit_vector(charged_lep_fv.mom);
+    secondaries[0].energy
+        = Energy{charged_lep_fv.energy - value_as<Mass>(daughter_.mass())};
+    secondaries[0].direction = make_unit_vector(charged_lep_fv.mom);
+    result.secondaries = {secondaries, 1};
 
     return result;
 }

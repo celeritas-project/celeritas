@@ -14,6 +14,7 @@
 #include "corecel/io/Label.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/phys/AtomicNumber.hh"
+#include "celeritas/phys/PDGNumber.hh"
 
 #include "PhysicsProcess.hh"
 #include "ProcessBuilder.hh"
@@ -93,6 +94,32 @@ struct OpticalPhysics
     {
         return cherenkov || scintillation || surfaces;
     }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Branching ratio and daughters for a decay channel.
+ */
+struct DecayChannel
+{
+    DecayChannelType type{DecayChannelType::size_};
+    double branching_ratio{};
+    std::vector<PDGNumber> daughters;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Decay processes and options.
+ */
+struct DecayPhysics
+{
+    using DecayTable = std::vector<DecayChannel>;
+
+    //! Decay channels for particles for which decay is enabled
+    std::unordered_map<PDGNumber, DecayTable> tables;
+
+    //! Whether the data are assigned
+    explicit operator bool() const { return !tables.empty(); }
 };
 
 //---------------------------------------------------------------------------//

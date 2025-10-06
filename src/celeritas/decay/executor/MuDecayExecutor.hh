@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/decay/data/MuDecayData.hh"
 #include "celeritas/decay/interactor/MuDecayInteractor.hh"
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/phys/Interaction.hh"
@@ -18,8 +17,6 @@ struct MuDecayExecutor
 {
     inline CELER_FUNCTION Interaction
     operator()(celeritas::CoreTrackView const& track);
-
-    MuDecayData data;
 };
 
 //---------------------------------------------------------------------------//
@@ -31,8 +28,10 @@ CELER_FUNCTION Interaction MuDecayExecutor::operator()(CoreTrackView const& trac
     auto allocate_secondaries = track.physics_step().make_secondary_allocator();
     auto particle = track.particle();
     auto const& dir = track.geometry().dir();
+    auto daughters
+        = track.physics().daughters(track.physics_step().decay_channel());
 
-    MuDecayInteractor interact(data, particle, dir, allocate_secondaries);
+    MuDecayInteractor interact(daughters, particle, dir, allocate_secondaries);
     auto rng = track.rng();
     return interact(rng);
 }

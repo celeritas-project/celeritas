@@ -18,6 +18,8 @@
 #include <vector>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4Cerenkov.hh>
+#include <G4Decay.hh>
+#include <G4DecayTable.hh>
 #include <G4Element.hh>
 #include <G4ElementTable.hh>
 #include <G4ElementVector.hh>
@@ -29,6 +31,7 @@
 #include <G4MscStepLimitType.hh>
 #include <G4MuPairProduction.hh>
 #include <G4MuPairProductionModel.hh>
+#include <G4MuonDecayChannel.hh>
 #include <G4Navigator.hh>
 #include <G4NuclearFormfactorType.hh>
 #include <G4NucleiProperties.hh>
@@ -55,6 +58,7 @@
 #include <G4Transportation.hh>
 #include <G4TransportationManager.hh>
 #include <G4Types.hh>
+#include <G4VDecayChannel.hh>
 #include <G4VEnergyLossProcess.hh>
 #include <G4VMultipleScattering.hh>
 #include <G4VPhysicalVolume.hh>
@@ -172,6 +176,8 @@ struct ProcessFilter
                 return (which & DataSelection::em);
             case G4ProcessType::fOptical:
                 return (which & DataSelection::optical);
+            case G4ProcessType::fDecay:
+                return (which & (DataSelection::em | DataSelection::hadron));
             case G4ProcessType::fHadronic:
                 return (which & DataSelection::hadron);
             default:
@@ -387,6 +393,25 @@ to_form_factor_type(G4NuclearFormfactorType const& form_factor_type)
             return NuclearFormFactorType::flat;
     }
     CELER_ASSERT_UNREACHABLE();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a \c DecayChannelType from a \c G4VDecayChannel subclass.
+ */
+DecayChannelType to_decay_channel_type(G4VDecayChannel const* channel)
+{
+    CELER_EXPECT(channel);
+
+    DecayChannelType result{DecayChannelType::size_};
+    if (dynamic_cast<G4MuonDecayChannel const*>(channel))
+    {
+        result = DecayChannelType::muon;
+    }
+    CELER_VALIDATE(result != DecayChannelType::size_,
+                   << "unsupported decay channel type '"
+                   << channel->GetKinematicsName() << "'");
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -941,6 +966,50 @@ std::vector<ImportRegion> import_regions()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Import a decay table from a Geant4 particle definition.
+ */
+inp::DecayPhysics::DecayTable import_decay_table(G4ParticleDefinition const& p)
+{
+    inp::DecayPhysics::DecayTable result;
+
+    auto* g4_table = p.GetDecayTable();
+    CELER_ASSERT(g4_table);
+
+    for (auto channel_idx : range(g4_table->entries()))
+    {
+        auto* g4_channel = (*g4_table)[channel_idx];
+        CELER_ASSERT(g4_channel);
+
+        inp::DecayChannel channel;
+        channel.type = to_decay_channel_type(g4_channel);
+        channel.branching_ratio = g4_channel->GetBR();
+
+        // Exclude the neutrino daughters for muon decay
+        //! \todo Remove once neutrinos are included in \c MuDecayInteractor
+        size_type num_daughters = channel.type == DecayChannelType::muon
+                                      ? 1
+                                      : g4_channel->GetNumberOfDaughters();
+
+        for (auto daughter_idx : range(num_daughters))
+        {
+            auto const* daughter = g4_channel->GetDaughter(daughter_idx);
+            CELER_VALIDATE(daughter,
+                           << "decay process is enabled for particle "
+                           << p.GetParticleName() << ", but daughter '"
+                           << g4_channel->GetDaughterName(daughter_idx)
+                           << "' is not defined");
+            channel.daughters.push_back(PDGNumber(daughter->GetPDGEncoding()));
+        }
+        result.push_back(std::move(channel));
+    }
+
+    CELER_LOG(debug) << "Imported decay table for particle "
+                     << p.GetParticleName();
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return a populated \c ImportProcess vector.
  */
 auto import_processes(GeantImporter::DataSelection selected,
@@ -957,6 +1026,7 @@ auto import_processes(GeantImporter::DataSelection selected,
     auto& processes = imported.processes;
     auto& msc_models = imported.msc_models;
     auto& optical_models = imported.optical_models;
+    auto& decay = imported.decay;
 
     static celeritas::TypeDemangler<G4VProcess> const demangle_process;
     std::unordered_map<G4VProcess const*, G4ParticleDefinition const*> visited;
@@ -966,6 +1036,17 @@ auto import_processes(GeantImporter::DataSelection selected,
 
     auto append_process = [&](G4ParticleDefinition const& particle,
                               G4VProcess const& process) -> void {
+        if (dynamic_cast<G4Decay const*>(&process))
+        {
+            // Store decay table if decay process is enabled for this particle
+            CELER_LOG(debug) << "Saving process '" << process.GetProcessName()
+                             << "' for particle " << particle.GetParticleName()
+                             << " (" << particle.GetPDGEncoding() << ')';
+            decay.tables.insert({PDGNumber(particle.GetPDGEncoding()),
+                                 import_decay_table(particle)});
+            return;
+        }
+
         // Check for duplicate processes
         auto [prev, inserted] = visited.insert({&process, &particle});
 

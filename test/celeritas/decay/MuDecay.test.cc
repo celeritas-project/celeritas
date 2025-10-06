@@ -23,18 +23,14 @@ class MuDecayInteractorTest : public InteractorHostTestBase
     void SetUp() override
     {
         auto const& params = *this->particle_params();
-        data_.electron_id = params.find(pdg::electron());
-        data_.positron_id = params.find(pdg::positron());
-        data_.mu_minus_id = params.find(pdg::mu_minus());
-        data_.mu_plus_id = params.find(pdg::mu_plus());
-        data_.electron_mass = params.get(data_.electron_id).mass();
-        data_.muon_mass = params.get(data_.mu_minus_id).mass();
-
+        mu_minus_daughters_.push_back(params.find(pdg::electron()));
+        mu_plus_daughters_.push_back(params.find(pdg::positron()));
         this->set_inc_direction({0, 0, 1});
     }
 
   protected:
-    MuDecayData data_;
+    std::vector<ParticleId> mu_minus_daughters_;
+    std::vector<ParticleId> mu_plus_daughters_;
 
     struct TestResult
     {
@@ -46,7 +42,7 @@ class MuDecayInteractorTest : public InteractorHostTestBase
     {
         this->resize_secondaries(num_samples);
         this->set_inc_particle(pdg::mu_minus(), energy);
-        MuDecayInteractor interact(data_,
+        MuDecayInteractor interact(make_span(mu_minus_daughters_),
                                    this->particle_track(),
                                    this->direction(),
                                    this->secondary_allocator());
@@ -75,13 +71,15 @@ TEST_F(MuDecayInteractorTest, basic)
 {
     auto const& params = *this->particle_params();
     auto const at_rest = MevEnergy{0};
-    auto const max_lepton_energy = real_type{0.5} * data_.muon_mass.value()
-                                   - data_.electron_mass.value();
+    auto const max_lepton_energy
+        = real_type{0.5}
+              * params.get(params.find(pdg::mu_minus())).mass().value()
+          - params.get(params.find(pdg::electron())).mass().value();
 
     // Anti-muon decay
     {
         this->set_inc_particle(pdg::mu_plus(), at_rest);
-        MuDecayInteractor interact(data_,
+        MuDecayInteractor interact(make_span(mu_plus_daughters_),
                                    this->particle_track(),
                                    this->direction(),
                                    this->secondary_allocator());
@@ -97,7 +95,7 @@ TEST_F(MuDecayInteractorTest, basic)
     // Muon decay
     {
         this->set_inc_particle(pdg::mu_minus(), at_rest);
-        MuDecayInteractor interact(data_,
+        MuDecayInteractor interact(make_span(mu_minus_daughters_),
                                    this->particle_track(),
                                    this->direction(),
                                    this->secondary_allocator());

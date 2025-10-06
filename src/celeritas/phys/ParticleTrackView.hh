@@ -77,7 +77,11 @@ class ParticleTrackView
 
     //// STATIC PROPERTIES (requires an indirection) ////
 
+    // Get static particle properties for the current state
     CELER_FORCEINLINE_FUNCTION ParticleView particle_view() const;
+
+    // Get static particle properties for another particle type
+    CELER_FORCEINLINE_FUNCTION ParticleView particle_view(ParticleId) const;
 
     // Rest mass [MeV / c^2]
     CELER_FORCEINLINE_FUNCTION Mass mass() const;
@@ -116,6 +120,9 @@ class ParticleTrackView
 
     // Relativistic momentum squared [MeV^2 / c^2]
     inline CELER_FUNCTION MomentumSq momentum_sq() const;
+
+    // Decay length [len]
+    inline CELER_FUNCTION real_type decay_length() const;
 
   private:
     ParamsRef const& params_;
@@ -217,6 +224,16 @@ CELER_FUNCTION bool ParticleTrackView::is_stopped() const
 CELER_FUNCTION ParticleView ParticleTrackView::particle_view() const
 {
     return ParticleView(params_, states_.particle_id[track_slot_]);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get static particle properties for another particle type.
+ */
+CELER_FUNCTION ParticleView ParticleTrackView::particle_view(ParticleId id) const
+{
+    CELER_EXPECT(id < params_.size());
+    return ParticleView(params_, id);
 }
 
 //---------------------------------------------------------------------------//
@@ -403,6 +420,19 @@ CELER_FUNCTION auto ParticleTrackView::momentum_sq() const -> MomentumSq
 CELER_FUNCTION auto ParticleTrackView::momentum() const -> Momentum
 {
     return Momentum{std::sqrt(this->momentum_sq().value())};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Decay length \f$ d = \beta \gamma c \tau \f$ [len].
+ */
+CELER_FUNCTION real_type ParticleTrackView::decay_length() const
+{
+    CELER_EXPECT(this->mass() > zero_quantity());
+    CELER_EXPECT(this->decay_constant() != constants::stable_decay_constant);
+
+    return constants::c_light * value_as<Momentum>(this->momentum())
+           / (value_as<Mass>(this->mass()) * this->decay_constant());
 }
 
 //---------------------------------------------------------------------------//

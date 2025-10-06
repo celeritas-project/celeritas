@@ -69,7 +69,22 @@ void PhysicsParamsOutput::output(JsonPimpl* j) const
             Process const& p = *physics_->process(id);
             label.push_back(p.label());
         }
+        if (auto p = physics_->decay_process())
+        {
+            label.push_back(p->label());
+        }
         obj["processes"] = {{"label", std::move(label)}};
+    }
+
+    // Save decay channels
+    {
+        auto label = json::array();
+
+        for (auto const& channel : physics_->decay_channels())
+        {
+            label.push_back(channel->label());
+        }
+        obj["decay_channels"] = {{"label", std::move(label)}};
     }
 
     // Save options

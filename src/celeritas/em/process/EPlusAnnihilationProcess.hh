@@ -19,7 +19,7 @@ namespace celeritas
 /*!
  * Annihiliation process for positrons.
  */
-class EPlusAnnihilationProcess final : public Process
+class EPlusAnnihilationProcess final : public InteractionProcess
 {
   public:
     //!@{

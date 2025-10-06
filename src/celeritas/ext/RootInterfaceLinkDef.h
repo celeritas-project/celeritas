@@ -46,6 +46,8 @@
 
 
 // Input data
+#pragma link C++ class celeritas::inp::DecayChannel+;
+#pragma link C++ class celeritas::inp::DecayPhysics+;
 #pragma link C++ class celeritas::inp::FresnelReflection+;
 #pragma link C++ class celeritas::inp::GaussianRoughness+;
 #pragma link C++ class celeritas::inp::Grid+;

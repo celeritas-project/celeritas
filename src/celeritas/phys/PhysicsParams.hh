@@ -20,6 +20,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
+#include "celeritas/decay/DecayProcess.hh"
 #include "celeritas/global/ActionInterface.hh"
 
 #include "Model.hh"
@@ -62,10 +63,12 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
     //! \name Type aliases
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
-    using SPConstProcess = std::shared_ptr<Process const>;
+    using SPConstProcess = std::shared_ptr<InteractionProcess const>;
+    using SPConstDecay = std::shared_ptr<DecayProcess const>;
     using SPConstModel = std::shared_ptr<Model const>;
     using SPConstRelaxation = std::shared_ptr<AtomicRelaxationParams const>;
 
+    using VecChannel = DecayProcess::VecChannel;
     using VecProcess = std::vector<SPConstProcess>;
     using SpanConstProcessId = Span<ProcessId const>;
     using ActionIdRange = Range<ActionId>;
@@ -78,6 +81,7 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
         SPConstParticles particles;
         SPConstMaterials materials;
         VecProcess processes;
+        SPConstDecay decay;  //!< Optional decay process
         SPConstRelaxation relaxation;  //!< Optional atomic relaxation
         ActionRegistry* action_registry = nullptr;
 
@@ -111,6 +115,12 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
     // Get the process for the given model
     inline ProcessId process_id(ModelId id) const;
 
+    //! Get decay process
+    SPConstDecay decay_process() const { return decay_; }
+
+    //! Get decay channels
+    VecChannel const& decay_channels() const { return channels_; }
+
     // Get the action IDs for all models
     inline ActionIdRange model_actions() const;
 
@@ -142,6 +152,8 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
     // Host metadata/access
     VecProcess processes_;
     VecModel models_;
+    SPConstDecay decay_;
+    VecChannel channels_;
     SPConstRelaxation relaxation_;
 
     // Host/device storage and reference
@@ -152,10 +164,11 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
 
   private:
     VecModel build_models(ActionRegistry*) const;
+    VecChannel build_channels(ActionRegistry*) const;
     void build_options(Options const&, HostValue*) const;
     void build_particle_options(ParticleOptions const&, ParticleScalars*) const;
     void build_ids(ParticleParams const&, HostValue*) const;
-    void build_tables(Options const&, MaterialParams const&, HostValue*) const;
+    void build_tables(Input const& inp, HostValue*) const;
     void build_model_tables(MaterialParams const&, HostValue*) const;
     void build_hardwired();
 };

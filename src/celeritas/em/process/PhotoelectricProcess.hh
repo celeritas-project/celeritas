@@ -22,7 +22,7 @@ namespace celeritas
 /*!
  * Photoelectric effect process for gammas.
  */
-class PhotoelectricProcess : public Process
+class PhotoelectricProcess : public InteractionProcess
 {
   public:
     //!@{

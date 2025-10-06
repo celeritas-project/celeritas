@@ -18,7 +18,7 @@ namespace celeritas
 class ImportedProcesses;
 class MaterialParams;
 class ParticleParams;
-class Process;
+class InteractionProcess;
 
 namespace inp
 {
@@ -38,7 +38,8 @@ struct ProcessBuilderInput
 //!@{
 //! \name User builder type aliases
 using ProcessBuilderFunction
-    = std::function<std::shared_ptr<Process>(ProcessBuilderInput const&)>;
+    = std::function<std::shared_ptr<InteractionProcess>(
+        ProcessBuilderInput const&)>;
 using ProcessBuilderMap
     = std::unordered_map<ImportProcessClass, ProcessBuilderFunction>;
 //!@}
