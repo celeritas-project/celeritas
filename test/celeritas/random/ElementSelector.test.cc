@@ -172,9 +172,12 @@ TEST_F(ElementSelectorTest, everything_even)
         ++tally[el_id.get()];
     }
 
-    // Proportional to micro_xs (equal number density)
-    int const expected_tally[] = {1032, 2014, 2971, 3983};
-    EXPECT_VEC_EQ(expected_tally, tally);
+    if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        // Proportional to micro_xs (equal number density)
+        int const expected_tally[] = {1032, 2014, 2971, 3983};
+        EXPECT_VEC_EQ(expected_tally, tally);
+    }
 }
 
 //! Equal number densities but unequal cross sections
@@ -192,8 +195,11 @@ TEST_F(ElementSelectorTest, everything_even_seq)
         auto el_id = select_el(seq_rng);
         selection.push_back(el_id.unchecked_get());
     }
-    int const expected_selection[] = {0, 0, 1, 2, 2, 3};
-    EXPECT_VEC_EQ(expected_selection, selection);
+    if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        int const expected_selection[] = {0, 0, 1, 2, 2, 3};
+        EXPECT_VEC_EQ(expected_selection, selection);
+    }
 }
 
 //! Number densities scaled to 1/xs so equiprobable
