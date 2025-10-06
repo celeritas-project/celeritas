@@ -35,7 +35,7 @@ char const* to_cstring(ReflectionMode mode)
     static EnumStringMapper<ReflectionMode> const to_cstring_impl{
         "specular spike",
         "specular lobe",
-        "back scattering",
+        "backscattering",
     };
     return to_cstring_impl(mode);
 }

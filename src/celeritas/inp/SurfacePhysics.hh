@@ -100,7 +100,7 @@ struct GaussianRoughness
  * Parameters:
  * - \c specular_spike : Reflection probability at the average surface normal.
  * - \c specular_lobe : Reflection probability at the micro facet normal.
- * - \c backscatter : Probability of back scattering after reflecting within a
+ * - \c backscatter : Probability of backscattering after reflecting within a
  *   deep groove.
  *
  * The sum of all three parameters must be < 1 at every grid point, with the

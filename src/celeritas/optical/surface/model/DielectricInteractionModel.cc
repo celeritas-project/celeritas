@@ -30,7 +30,7 @@ DielectricInteractionModel::DielectricInteractionModel(
     HostVal<DielectricData> dielectric_data;
     HostVal<UnifiedReflectionData> reflection_data;
 
-    auto build_is_metal = CollectionBuilder{&dielectric_data.interface};
+    auto interface = CollectionBuilder{&dielectric_data.interface};
     NonuniformGridBuilder build_grid(&reflection_data.reals);
 
     surfaces_.reserve(layer_map.size());
@@ -39,9 +39,8 @@ DielectricInteractionModel::DielectricInteractionModel(
     {
         surfaces_.push_back(surface);
 
-        build_is_metal.push_back(input.is_metal
-                                     ? DielectricInterface::metal
-                                     : DielectricInterface::dielectric);
+        interface.push_back(input.is_metal ? DielectricInterface::metal
+                                           : DielectricInterface::dielectric);
 
         for (auto mode : range(ReflectionMode::size_))
         {
