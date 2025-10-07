@@ -223,6 +223,10 @@ class TrackingAction : public G4UserTrackingAction
         {
             ++num_electrons_;
         }
+        if (particle.pdg() == pdg::positron())
+        {
+            ++num_positrons_;
+        }
         else if (particle.is_optical_photon())
         {
             ++num_photons_;
@@ -230,10 +234,12 @@ class TrackingAction : public G4UserTrackingAction
     }
     std::size_t num_photons() const { return num_photons_; }
     std::size_t num_electrons() const { return num_electrons_; }
+    std::size_t num_positrons() const { return num_positrons_; }
 
   private:
     std::size_t num_photons_{};
     std::size_t num_electrons_{};
+    std::size_t num_positrons_{};
 };
 
 /*!
@@ -392,6 +398,273 @@ void LarSphereOptical::EndOfRunAction(G4Run const* run)
  * Check that the test runs.
  */
 TEST_F(LarSphereOptical, run)
+{
+    auto& rm = this->run_manager();
+    TMI::Instance().SetOptions(this->make_setup_options());
+
+    CELER_LOG(status) << "Run initialization";
+    rm.Initialize();
+    CELER_LOG(status) << "Run two events";
+    rm.BeamOn(2);
+
+    if (this->HasFailure())
+    {
+        GTEST_SKIP() << "Skipping remaining tests since we've already failed";
+    }
+    CELER_LOG(status) << "Run one more event";
+    rm.BeamOn(2);
+}
+
+//---------------------------------------------------------------------------//
+// OpNovice
+//---------------------------------------------------------------------------//
+class OpNovice : public OpNoviceIntegrationMixin, public TMITestBase
+{
+    void BeginOfEventAction(G4Event const* event) override
+    {
+        if (event->GetEventID() == 1)
+        {
+            for (auto i : range(event->GetNumberOfPrimaryVertex()))
+            {
+                G4PrimaryVertex* vtx = event->GetPrimaryVertex(i);
+                for (auto j : range(vtx->GetNumberOfParticle()))
+                {
+                    G4PrimaryParticle* p = vtx->GetPrimary(j);
+                    p->SetWeight(10.0);
+                }
+            }
+        }
+    }
+};
+
+/*!
+ * Check that multiple sequential runs complete successfully.
+ */
+TEST_F(OpNovice, run)
+{
+    auto& rm = this->run_manager();
+    TMI::Instance().SetOptions(this->make_setup_options());
+
+    CELER_LOG(status) << "Run initialization";
+    rm.Initialize();
+
+    CELER_LOG(status) << "Beam on (first run)";
+    rm.BeamOn(3);
+
+    if (this->HasFailure())
+    {
+        GTEST_SKIP() << "Skipping remaining tests since we've already failed";
+    }
+
+    CELER_LOG(status) << "Beam on (second run)";
+    rm.BeamOn(1);
+}
+
+/*!
+ * Check that UI commands are correctly propagated to the Celeritas runtime.
+ */
+TEST_F(OpNovice, run_ui)
+{
+    auto& rm = this->run_manager();
+    auto& tmi = TMI::Instance();
+
+    EXPECT_EQ(tmi.GetMode(), OffloadMode::uninitialized);
+    tmi.SetOptions(this->make_setup_options());
+    EXPECT_NE(tmi.GetMode(), OffloadMode::uninitialized);
+
+    std::atomic<int> check_count{0};
+
+    auto& ui = *G4UImanager::GetUIpointer();
+    if (SharedParams::GetMode() != OffloadMode::disabled)
+    {
+        ui.ApplyCommand("/celer/maxNumTracks 128");
+        ui.ApplyCommand("/celer/maxInitializers 10000");
+
+        check_during_run_ = [&check_count, &tmi] {
+            EXPECT_NE(OffloadMode::uninitialized, tmi.GetMode());
+
+            if (tmi.GetMode() == OffloadMode::enabled && is_running_events())
+            {
+                CELER_LOG_LOCAL(debug) << "Checking number of tracks";
+                ++check_count;
+
+                auto const& state = tmi.GetState();
+                EXPECT_EQ(state.size(), 128);
+            }
+        };
+    }
+    else
+    {
+        check_during_run_ = [&check_count] {
+            if (is_running_events())
+            {
+                ++check_count;
+            }
+        };
+    }
+
+    ui.ApplyCommand("/run/initialize");
+    ui.ApplyCommand("/run/beamOn 2");
+
+    EXPECT_EQ(get_geant_num_threads(rm), check_count.load());
+}
+
+/*!
+ * Test the Op-Novice, offloading both EM tracks *and* optical photons.
+ */
+class OpNoviceOptical : public OpNovice
+{
+  public:
+    PhysicsInput make_physics_input() const override;
+    PrimaryInput make_primary_input() const override;
+    SetupOptions make_setup_options() override;
+    void EndOfRunAction(G4Run const* run) override;
+    UPTrackAction make_tracking_action() override
+    {
+        auto result = std::make_unique<TrackingAction>();
+        {
+            // Store the raw pointer in the tracking_ vector using a static
+            // mutex
+            static std::mutex mutex;
+            std::lock_guard<std::mutex> lock(mutex);
+            tracking_.push_back(result.get());
+        }
+        return result;
+    }
+
+  private:
+    std::vector<TrackingAction*> tracking_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Enable optical physics.
+ */
+auto OpNoviceOptical::make_physics_input() const -> PhysicsInput
+{
+    auto result = OpNoviceIntegrationMixin::make_physics_input();
+
+    // Set default optical physics
+    auto& optical = result.optical;
+    optical = {};
+    EXPECT_TRUE(optical);
+    EXPECT_TRUE(optical.cherenkov);
+    EXPECT_TRUE(optical.scintillation);
+
+    // Disable WLS which isn't yet working (reemission) in Celeritas
+    using WLSO = WavelengthShiftingOptions;
+    optical.wavelength_shifting = WLSO::deactivated();
+    optical.wavelength_shifting2 = WLSO::deactivated();
+
+    return result;
+}
+
+auto OpNoviceOptical::make_primary_input() const -> PrimaryInput
+{
+    using MevEnergy = Quantity<units::Mev, double>;
+    auto result = OpNoviceIntegrationMixin::make_primary_input();
+
+    result.shape = inp::PointDistribution{from_cm({0.1, 0.1, 0})};
+    result.primaries_per_event = 1;
+    result.energy = inp::MonoenergeticDistribution{MevEnergy{2.0}};
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Enable optical tracking.
+ */
+auto OpNoviceOptical::make_setup_options() -> SetupOptions
+{
+    auto result = OpNoviceIntegrationMixin::make_setup_options();
+
+    result.optical_capacity = [] {
+        inp::OpticalStateCapacity cap;
+        cap.tracks = 32768;
+        cap.generators = 32768 * 8;
+        cap.primaries = cap.generators;
+        return cap;
+    }();
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Test that the optical tracking loop completed correctly.
+ *
+ * - Generator counters show whether any photons are queued but not run
+ * - Accumulated stats show whether the state has run some photons
+ */
+void OpNoviceOptical::EndOfRunAction(G4Run const* run)
+{
+    auto& integration = detail::IntegrationSingleton::instance();
+    if (integration.mode() == OffloadMode::enabled)
+    {
+        auto& local_transporter = integration.local_transporter();
+        auto const& shared_params = integration.shared_params();
+
+        // Check that local/shared data is available before end of run
+        EXPECT_EQ(is_running_events(), static_cast<bool>(local_transporter));
+        EXPECT_TRUE(shared_params) << "Celeritas was not enabled";
+
+        auto const& optical_collector = shared_params.optical();
+        EXPECT_TRUE(optical_collector) << "optical offloading was not enabled";
+        if (local_transporter && optical_collector)
+        {
+            // Use diagnostic methods to check counters
+            auto const& accum_stats
+                = optical_collector->optical_state(local_transporter.GetState())
+                      .accum();
+            CELER_LOG_LOCAL(info)
+                << "Ran " << accum_stats.steps << " over "
+                << accum_stats.step_iters << " step iterations from "
+                << accum_stats.flushes << " flushes";
+            EXPECT_GT(accum_stats.steps, 0);
+            EXPECT_GT(accum_stats.step_iters, 0);
+            EXPECT_GT(accum_stats.flushes, 0);
+
+            auto& aux_state = local_transporter.GetState().aux();
+            auto counts = optical_collector->buffer_counts(aux_state);
+            EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators
+            EXPECT_EQ(0, counts.num_pending);  //!< Photons pending generation
+            EXPECT_EQ(0, counts.num_generated);  //!< Photons generated
+        }
+    }
+    if (G4Threading::IsMasterThread())
+    {
+        std::size_t photons{0};
+        std::size_t positrons{0};
+        for (auto* tracking_action : tracking_)
+        {
+            photons += tracking_action->num_photons();
+            positrons += tracking_action->num_positrons();
+        }
+        CELER_LOG(info) << "Geant4 tracked a total of " << photons
+                        << " optical photons"
+                        << " and " << positrons << " positrons";
+
+        if (integration.mode() == OffloadMode::enabled)
+        {
+            EXPECT_EQ(0, photons);
+            EXPECT_EQ(0, positrons);
+        }
+        else
+        {
+            EXPECT_GT(photons, 0);
+            EXPECT_GT(positrons, 0);
+        }
+    }
+
+    // Continue cleanup and other checks at end of run
+    OpNovice::EndOfRunAction(run);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Check that the test runs.
+ */
+TEST_F(OpNoviceOptical, run)
 {
     auto& rm = this->run_manager();
     TMI::Instance().SetOptions(this->make_setup_options());
