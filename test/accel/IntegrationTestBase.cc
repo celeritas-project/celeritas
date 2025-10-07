@@ -498,5 +498,49 @@ auto TestEm3IntegrationMixin::make_sens_det(std::string const& sd_name)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Create physics list: default is EM only using make_physics_input.
+ */
+auto OpNoviceIntegrationMixin::make_physics_input() const -> PhysicsInput
+{
+    PhysicsInput result = Base::make_physics_input();
+    result.em_bins_per_decade = 5;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a 0.5 MeV positron primary.
+ */
+auto OpNoviceIntegrationMixin::make_primary_input() const -> PrimaryInput
+{
+    using MevEnergy = Quantity<units::Mev, double>;
+
+    PrimaryInput result;
+    result.pdg = {pdg::positron()};
+    result.energy = inp::MonoenergeticDistribution{MevEnergy{0.5}};
+    result.shape = inp::PointDistribution{from_cm({99, 0.1, 0})};
+    result.angle = inp::IsotropicDistribution{};
+    result.num_events = 4;  // Overridden with BeamOn
+    result.primaries_per_event = 10;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return null pointer for the sensitive detector
+ */
+auto OpNoviceIntegrationMixin::make_sens_det(std::string const&) -> UPSensDet
+{
+    return nullptr;
+}
+SetupOptions OpNoviceIntegrationMixin::make_setup_options()
+{
+    auto result = Base::make_setup_options();
+    result.sd.enabled = false;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
