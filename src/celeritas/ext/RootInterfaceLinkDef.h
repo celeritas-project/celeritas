@@ -37,7 +37,6 @@
 #pragma link C++ class celeritas::ImportPhysMaterial+;
 #pragma link C++ class celeritas::ImportProcess+;
 #pragma link C++ class celeritas::ImportProductionCut+;
-#pragma link C++ class celeritas::ImportRegion+;
 #pragma link C++ class celeritas::ImportScintComponent+;
 #pragma link C++ class celeritas::ImportScintData+;
 #pragma link C++ class celeritas::ImportTransParameters+;
