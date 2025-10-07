@@ -723,8 +723,10 @@ inp::SurfacePhysics import_optical_surface_physics()
     result.roughness.polished.emplace(default_surface, inp::NoRoughness{});
     result.reflectivity.fresnel.emplace(default_surface,
                                         inp::FresnelReflection{});
-    result.interaction.dielectric_dielectric.emplace(
-        default_surface, inp::ReflectionForm::from_spike());
+    result.interaction.dielectric.emplace(
+        default_surface,
+        inp::DielectricInteraction::from_dielectric(
+            inp::ReflectionForm::from_spike()));
 
     CELER_LOG(debug) << "Loaded " << result.materials.size()
                      << " optical surfaces (" << num_phys_surfaces
