@@ -59,8 +59,9 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
     UnitProto::Input input;
     input.boundary.interior = lv.solid;
     input.label = label;
+    input.delete_exterior = opts_.delete_exterior;
 
-    if (CELER_UNLIKELY(verbose_))
+    if (CELER_UNLIKELY(opts_.verbose_structure))
     {
         std::clog << std::string(depth_, ' ') << "* New proto: '" << label
                   << "' with shape " << to_string(*lv.solid) << std::endl;
@@ -90,7 +91,7 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
         input.boundary.zorder = ZOrder::media;
         input.materials.push_back(std::move(background));
 
-        if (CELER_UNLIKELY(verbose_))
+        if (CELER_UNLIKELY(opts_.verbose_structure))
         {
             std::clog << std::string(depth_, ' ') << " - explicit background "
                       << " for proto '" << label << "'" << std::endl;
@@ -105,7 +106,7 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
         input.background.label = VolumeInstanceId{};
         CELER_ASSERT(input.background);
 
-        if (CELER_UNLIKELY(verbose_))
+        if (CELER_UNLIKELY(opts_.verbose_structure))
         {
             std::clog << std::string(depth_, ' ') << " - implicit background"
                       << " for proto '" << label << "'" << std::endl;
@@ -122,7 +123,7 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
  */
 bool ProtoConstructor::can_inline_transform(VariantTransform const& vt) const
 {
-    switch (inline_singletons_)
+    switch (opts_.inline_singletons)
     {
         case InlineSingletons::none:
             return false;
@@ -156,7 +157,7 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
     // that's subtracted from an inlined LV
     auto transform = apply_transform(parent_transform, pv.transform);
 
-    if (CELER_UNLIKELY(verbose_))
+    if (CELER_UNLIKELY(opts_.verbose_structure))
     {
         std::clog << std::string(depth_, ' ') << "- Add pv '"
                   << volumes_.volume_instance_labels().at(pv.id)
@@ -176,13 +177,13 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
         proto->materials.push_back(std::move(mat));
     };
 
-    if (pv.lv->children.empty())
+    if (pv.lv->children.empty() && opts_.inline_childless)
     {
         // No children! This LV is just a material.
         add_material(
             Transformed::or_object(pv.lv->solid, std::move(transform)));
 
-        if (CELER_UNLIKELY(verbose_))
+        if (CELER_UNLIKELY(opts_.verbose_structure))
         {
             std::clog << std::string(depth_, ' ') << " -> "
                       << "material at " << StreamableVariant{pv.transform}
@@ -190,14 +191,14 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
         }
     }
     else if ((pv.lv.use_count() == 1 && this->can_inline_transform(pv.transform))
-             || (inline_unions_ && is_union(pv.lv->solid)))
+             || (opts_.inline_unions && is_union(pv.lv->solid)))
     {
         // Child can be inlined into the parent because it's used only once
         // *and* it doesn't have a rotation relative to the parent
         // OR: it must be inlined if it's a union (see #1260)
         add_material(this->make_explicit_background(*pv.lv, transform));
 
-        if (CELER_UNLIKELY(verbose_))
+        if (CELER_UNLIKELY(opts_.verbose_structure))
         {
             std::clog << std::string(depth_, ' ') << " -> "
                       << "inlined child to material at "
@@ -220,7 +221,7 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
         // transform *BUT* is not a union
         auto [iter, inserted] = protos_.emplace(pv.lv.get(), nullptr);
 
-        if (CELER_UNLIKELY(verbose_))
+        if (CELER_UNLIKELY(opts_.verbose_structure))
         {
             std::clog << std::string(depth_, ' ') << " -> "
                       << "placing " << (inserted ? "new" : "existing")
@@ -245,7 +246,7 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
         daughter.label = pv.id;
         proto->daughters.push_back(std::move(daughter));
 
-        if (CELER_UNLIKELY(verbose_))
+        if (CELER_UNLIKELY(opts_.verbose_structure))
         {
             std::clog << std::string(depth_, ' ') << " :  "
                       << "daughter shape is "

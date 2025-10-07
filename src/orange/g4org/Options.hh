@@ -15,6 +15,7 @@ namespace celeritas
 {
 namespace g4org
 {
+//---------------------------------------------------------------------------//
 //! How to inline volumes used only once
 enum class InlineSingletons
 {
@@ -46,11 +47,17 @@ struct Options
     //! Volumes with up to this many children construct an explicit interior
     unsigned int explicit_interior_threshold{2};
 
-    //! Forcibly inline logical volumes that are only used once
+    //! Forcibly inline volumes that have no children
+    bool inline_childless{true};
+
+    //! Forcibly inline volumes that are only used once
     InlineSingletons inline_singletons{InlineSingletons::untransformed};
 
     //! Forcibly copy child volumes that have union boundaries
     bool inline_unions{true};
+
+    //! Delete the exterior of non-world universes
+    bool delete_exterior{true};
 
     //!@}
     //!@{
@@ -65,9 +72,21 @@ struct Options
     std::string proto_output_file;
     //! Write intermediate debug output (CSG construction) to a JSON file
     std::string debug_output_file;
+    //! Write final org.json to a JSON file
+    std::string final_output_file;
 
     //!@}
 };
+
+//---------------------------------------------------------------------------//
+// NOTE: these are implemented in OptionsIO.json.cc
+
+char const* to_cstring(InlineSingletons value);
+
+// Helper to read from a file or stream
+std::istream& operator>>(std::istream& is, Options&);
+// Helper to write to a file or stream
+std::ostream& operator<<(std::ostream& os, Options const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace g4org

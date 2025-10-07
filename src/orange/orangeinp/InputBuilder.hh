@@ -42,14 +42,14 @@ class InputBuilder
         std::string proto_output_file;
         //! Write intermediate build output to a JSON file
         std::string debug_output_file;
+
+        // True if all required options are set
+        explicit operator bool() const { return static_cast<bool>(tol); }
     };
 
   public:
     // Construct with options
     explicit InputBuilder(Options&& opts);
-
-    //! Construct with defaults
-    InputBuilder() : InputBuilder{Options{}} {}
 
     // Convert a proto
     result_type operator()(ProtoInterface const& global) const;

@@ -9,7 +9,6 @@
 #include <memory>
 #include <unordered_map>
 
-#include "corecel/OpaqueId.hh"
 #include "orange/orangeinp/ObjectInterface.hh"
 #include "orange/orangeinp/UnitProto.hh"
 
@@ -56,11 +55,7 @@ class ProtoConstructor
   public:
     //! Construct with verbosity setting
     ProtoConstructor(VolumeParams const& vols, Options const& options)
-        : volumes_{vols}
-        , explicit_interior_threshold_{options.explicit_interior_threshold}
-        , inline_singletons_{options.inline_singletons}
-        , inline_unions_{options.inline_unions}
-        , verbose_{options.verbose_structure}
+        : volumes_{vols}, opts_{options}
     {
     }
 
@@ -73,10 +68,7 @@ class ProtoConstructor
     VolumeParams const& volumes_;
     std::unordered_map<LogicalVolume const*, SPUnitProto> protos_;
     int depth_{0};
-    size_type explicit_interior_threshold_{};
-    InlineSingletons inline_singletons_{};
-    bool inline_unions_{};
-    bool verbose_{false};
+    Options const& opts_;
 
     //// HELPER FUNCTIONS ////
 
@@ -94,7 +86,7 @@ class ProtoConstructor
     //! Number of daughters above which we use a "fill" material
     CELER_FORCEINLINE size_type fill_daughter_threshold()
     {
-        return explicit_interior_threshold_;
+        return opts_.explicit_interior_threshold;
     }
 };
 

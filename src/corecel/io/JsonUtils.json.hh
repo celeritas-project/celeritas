@@ -80,6 +80,8 @@
  * Save a field if the condition is met.
  *
  * If not met, a "null" placeholder is saved.
+ *
+ * \note Prefer CELER_JSON_PAIR_WHEN over this.
  */
 #define CELER_JSON_SAVE_WHEN(OBJ, STRUCT, NAME, COND) \
     do                                                \
@@ -98,6 +100,18 @@
  * Construct a key/value pair for a JSON object.
  */
 #define CELER_JSON_PAIR(STRUCT, NAME) {#NAME, STRUCT.NAME}
+
+/*!
+ * Construct a key/value pair with null value when condition is false.
+ */
+#define CELER_JSON_PAIR_WHEN(STRUCT, NAME, COND) \
+    {#NAME, (COND ? nlohmann::json(STRUCT.NAME) : nlohmann::json(nullptr))}
+
+/*!
+ * Construct a key/value pair with null value when condition is false.
+ */
+#define CELER_JSON_PAIR_OPTION(STRUCT, NAME) \
+    CELER_JSON_PAIR_WHEN(STRUCT, NAME, STRUCT.NAME)
 
 //---------------------------------------------------------------------------//
 

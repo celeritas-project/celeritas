@@ -49,6 +49,7 @@ void write_protos(detail::ProtoMap const& map, std::string const& filename)
 
 //---------------------------------------------------------------------------//
 //! Helper struct to save JSON to a file
+// (TODO: could use jsonl, one line per proto?)
 class JsonProtoOutput
 {
   public:
@@ -71,7 +72,7 @@ class JsonProtoOutput
     //! Write debug information to a file
     void write(std::string const& filename) const
     {
-        CELER_ASSERT(!output_.empty());
+        CELER_ASSERT(*this);
         std::ofstream outf(filename);
         CELER_VALIDATE(
             outf, << "failed to open output file at \"" << filename << '"');
@@ -79,6 +80,9 @@ class JsonProtoOutput
 
         CELER_LOG(info) << "Wrote ORANGE debug info to " << filename;
     }
+
+    //! Whether output is to be written
+    explicit operator bool() const { return !output_.empty(); }
 
   private:
     nlohmann::json output_;
@@ -134,7 +138,7 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
         protos.at(univ_id)->build(builder);
     }
 
-    if (!opts_.debug_output_file.empty())
+    if (debug_outp)
     {
         debug_outp.write(opts_.debug_output_file);
     }
