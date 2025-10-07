@@ -36,8 +36,8 @@ class DielectricInteractor
         NativeCRef<DielectricData> dielectric_data;
         NativeCRef<UnifiedReflectionData> unified_data;
 
-        // Build the interactor for a track
-        inline CELER_FUNCTION DielectricInteractor
+        // Build and sample interactor for a track
+        inline CELER_FUNCTION SurfaceInteraction
         operator()(CoreTrackView const&) const;
     };
 
@@ -69,11 +69,12 @@ class DielectricInteractor
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Create an interactor for the given track.
+ * Create an interactor and sample it for the given track.
  */
-CELER_FUNCTION DielectricInteractor
+CELER_FUNCTION SurfaceInteraction
 DielectricInteractor::Builder::operator()(CoreTrackView const& track) const
 {
+    auto rng = track.rng();
     auto s_phys = track.surface_physics();
     auto sub_model_id = s_phys.interface(SurfacePhysicsOrder::interaction)
                             .internal_surface_id();
@@ -86,7 +87,7 @@ DielectricInteractor::Builder::operator()(CoreTrackView const& track) const
         track.material_record(s_phys.next_material()),
         ReflectionModeSampler{
             unified_data, sub_model_id, track.particle().energy()},
-        dielectric_data.interface[sub_model_id]};
+        dielectric_data.interface[sub_model_id]}(rng);
 }
 
 //---------------------------------------------------------------------------//
