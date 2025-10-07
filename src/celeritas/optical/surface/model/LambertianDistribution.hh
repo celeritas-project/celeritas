@@ -23,7 +23,13 @@ namespace optical
  * Lambertian reflectance is an approximation of a diffuse material where the
  * apparent brightness is equal for observers at all angles. Reflected vectors
  * follow Lambert's cosine law, which states the intensity of reflected light
- * is proportional to the cosine of the reflection angle.
+ * is proportional to the cosine of the reflection angle \f( \alpha \f):
+ *
+ * \f[ I = I_0 \cos \alpha \f]
+ *
+ * Treating the incident light as a collection of photons, they are reflected
+ * with probability \f( p(\alpha) = \cos\alpha \f) about the surface normal,
+ * and the azimuthal angle is uniformly randomly sampled.
  */
 class LambertianDistribution
 {
