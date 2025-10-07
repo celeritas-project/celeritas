@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/UnifiedReflectionSampler.test.cc
+//! \file celeritas/optical/ReflectionFormSampler.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/optical/surface/model/UnifiedReflectionSampler.hh"
+#include "celeritas/optical/surface/model/ReflectionFormSampler.hh"
 
 #include "corecel/random/HistogramSampler.hh"
 #include "celeritas/optical/surface/model/LambertianDistribution.hh"
@@ -20,13 +20,13 @@ namespace test
 using namespace ::celeritas::test;
 //---------------------------------------------------------------------------//
 
-class UnifiedReflectionSamplerTest : public ::celeritas::test::Test
+class ReflectionFormSamplerTest : public ::celeritas::test::Test
 {
 };
 
 //---------------------------------------------------------------------------//
 // Test Lambertian distribution
-TEST_F(UnifiedReflectionSamplerTest, lambertian)
+TEST_F(ReflectionFormSamplerTest, lambertian)
 {
     constexpr size_type num_samples = 10000;
     HistogramSampler calc_histogram(10, {0, 1}, num_samples);
@@ -60,7 +60,7 @@ TEST_F(UnifiedReflectionSamplerTest, lambertian)
 
 //---------------------------------------------------------------------------//
 // Test specular spike, specular lobe, and back-scattering modes
-TEST_F(UnifiedReflectionSamplerTest, modes)
+TEST_F(ReflectionFormSamplerTest, modes)
 {
     auto global_normal = make_unit_vector(Real3{-1, 3, 2});
     auto facet_normal = make_unit_vector(Real3{-1, 4, 2});
@@ -68,11 +68,8 @@ TEST_F(UnifiedReflectionSamplerTest, modes)
     auto direction = make_unit_vector(Real3{1, -1, -2});
     auto polarization = make_unit_vector(Real3{2, 0, 1});
 
-    UnifiedReflectionSampler calc_reflection{{0.3, 0.3, 0.4, 0},
-                                             direction,
-                                             polarization,
-                                             global_normal,
-                                             facet_normal};
+    ReflectionFormCalculator calc_reflection{
+        direction, polarization, global_normal, facet_normal};
 
     // Specular spike
     {
@@ -100,7 +97,7 @@ TEST_F(UnifiedReflectionSamplerTest, modes)
     }
     // Back scattering
     {
-        auto result = calc_reflection.calc_back_scattering();
+        auto result = calc_reflection.calc_backscatter();
 
         EXPECT_VEC_SOFT_EQ(-direction, result.direction);
         EXPECT_VEC_SOFT_EQ(-polarization, result.polarization);

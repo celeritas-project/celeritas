@@ -10,7 +10,7 @@
 #include "celeritas/optical/CoreTrackView.hh"
 
 #include "FresnelCalculator.hh"
-#include "UnifiedReflectionSampler.hh"
+#include "ReflectionFormSampler.hh"
 
 namespace celeritas
 {
@@ -49,7 +49,7 @@ class DielectricInteractor
                          SurfacePhysicsTrackView const& surface_physics,
                          MaterialView const& pre_material,
                          MaterialView const& post_material,
-                         ReflectionFormCalculator reflection_calc,
+                         ReflectionModeSampler reflection_calc,
                          DielectricInterface dielectric_interface);
 
     // Sample the dielectric interaction
@@ -61,7 +61,7 @@ class DielectricInteractor
     Real3 const& inc_direction_;
     ParticleTrackView const& inc_photon_;
     SurfacePhysicsTrackView const& surface_phys_;
-    ReflectionFormCalculator reflection_calc_;
+    ReflectionModeSampler reflection_calc_;
     DielectricInterface dielectric_interface_;
 };
 
@@ -84,7 +84,7 @@ DielectricInteractor::Builder::operator()(CoreTrackView const& track) const
         s_phys,
         track.material_record(s_phys.material()),
         track.material_record(s_phys.next_material()),
-        ReflectionFormCalculator{
+        ReflectionModeSampler{
             unified_data, sub_model_id, track.particle().energy()},
         dielectric_data.interface[sub_model_id]};
 }
@@ -99,7 +99,7 @@ CELER_FUNCTION DielectricInteractor::DielectricInteractor(
     SurfacePhysicsTrackView const& surface_physics,
     MaterialView const& pre_material,
     MaterialView const& post_material,
-    ReflectionFormCalculator reflection_calc,
+    ReflectionModeSampler reflection_calc,
     DielectricInterface dielectric_interface)
     : fresnel_(inc_direction,
                particle,
@@ -125,8 +125,10 @@ DielectricInteractor::operator()(Engine& rng) const
     if (BernoulliDistribution{fresnel_.calc_reflectivity()}(rng))
     {
         // Reflection
-        return UnifiedReflectionSampler{
-            reflection_calc_, inc_direction_, inc_photon_, surface_phys_}(rng);
+        return ReflectionFormSampler{
+            reflection_calc_,
+            ReflectionFormCalculator{
+                inc_direction_, inc_photon_, surface_phys_}}(rng);
     }
     else
     {

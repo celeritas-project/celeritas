@@ -4,13 +4,13 @@
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_REAL_TYPE STREQUAL "double")
-  set(_needs_double)
+set(_needs_double)
   set(_fixme_single)
 else()
-  # Test relies on "gold" data; don't bother updating
+#Test relies on "gold" data; don't bother updating
   set(_needs_double DISABLE)
-  # Test has legitimate errors and we should fix if we support
-  # single-precision in the long term
+#Test has legitimate errors and we should fix if we support
+#single - precision in the long term
   set(_fixme_single DISABLE)
 endif()
 
@@ -38,16 +38,16 @@ elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
 endif()
 
 set(_all_geo_libs
-  # Geometry includes
+#Geometry includes
   Celeritas::orange ${VecGeom_LIBRARIES} Celeritas::ExtGeant4Geo
-  # Test harness instantiations
+#Test harness instantiations
   testcel_geocel testcel_orange
 )
 
 if(CELERITAS_UNITS STREQUAL "CGS")
   set(_fixme_cgs)
 else()
-  # Unit tests haven't yet been updated to include the correct units
+#Unit tests haven't yet been updated to include the correct units
   set(_fixme_cgs DISABLE)
 endif()
 
@@ -404,7 +404,7 @@ celeritas_add_test(optical/Physics.test.cc)
 celeritas_add_test(optical/VolumeSurfaceSelector.test.cc
     LINK_LIBRARIES testcel_geocel)
 celeritas_add_test(optical/SurfacePhysics.test.cc)
-celeritas_add_test(optical/UnifiedReflectionSampler.test.cc)
+celeritas_add_test(optical/ReflectionFormSampler.test.cc)
 celeritas_add_test(optical/Fresnel.test.cc)
 
 #-----------------------------------------------------------------------------#
