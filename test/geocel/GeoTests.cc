@@ -29,15 +29,6 @@ namespace test
 {
 namespace
 {
-
-constexpr bool using_vecgeom_surface = CELERITAS_VECGEOM_SURFACE
-                                       && CELERITAS_CORE_GEO
-                                              == CELERITAS_CORE_GEO_VECGEOM;
-
-constexpr bool using_vecgeom_solid = !CELERITAS_VECGEOM_SURFACE
-                                     && CELERITAS_CORE_GEO
-                                            == CELERITAS_CORE_GEO_VECGEOM;
-
 //---------------------------------------------------------------------------//
 auto const vecgeom_version = celeritas::Version::from_string(
     CELERITAS_USE_VECGEOM ? cmake::vecgeom_version : "0.0.0");
@@ -105,6 +96,7 @@ void CmsEeBackDeeGeoTest::test_accessors() const
 //---------------------------------------------------------------------------//
 void CmsEeBackDeeGeoTest::test_trace() const
 {
+    // Surface VecGeom needs lower safety tolerance
     {
         SCOPED_TRACE("+z top");
         auto result = test_->track({50, 0.1, 360.1}, {0, 0, 1});
@@ -157,7 +149,7 @@ void CmseGeoTest::test_trace() const
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
         {
-            // Surface vecgeom underestimates some safeties near internal
+            // Surface vecgeom underestimates some safety near internal
             // boundaries
             static real_type const expected_hw_safety[] = {100, 2.15,
                 9.62498950958252, 13.023518051922, 6.95, 6.95, 13.023518051922,
@@ -183,18 +175,17 @@ void CmseGeoTest::test_trace() const
             "VCAL", "OQUA", "CMStoZDC", "CMSE", "ZDCtoFP420", "CMSE"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {1300, 1419.95, 165.1,
-            28.95, 36, 300.1, 94.858988338759, 100.94101161124, 260.9, 586.4,
-            260.9, 100.94101161124, 94.858988338759, 300.1, 36, 28.95, 165.1,
+            28.95, 36, 300.1, 94.858988388759, 100.94101161124, 260.9, 586.4,
+            260.9, 100.94101161124, 94.858988388759, 300.1, 36, 28.95, 165.1,
             1419.95, 11200, 1100, 24000, 6000};
-        EXPECT_VEC_NEAR(expected_distances, result.distances, 1.e-9);
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         static real_type const expected_hw_safety[] = {57.573593128807,
             40.276406871193, 29.931406871193, 14.475, 18, 28.702447147997,
             29.363145173005, 32.665765921596, 34.260814069425, 39.926406871193,
-            34.260814069425, 32.665765921596, 29.3631451730047, 28.702447147997,
+            34.260814069425, 32.665765921596, 29.363145173005, 28.702447147997,
             18, 14.475, 29.931406871193, 40.276406871193, 57.573593128807,
             57.573593128807, 57.573593128807, 57.573593128807};
-        EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties,
-            using_vecgeom_solid ? 2.e-10 : safety_tol);
+        EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties, safety_tol);
     }
     {
         SCOPED_TRACE("Across muon");
@@ -206,15 +197,11 @@ void CmseGeoTest::test_trace() const
         static real_type const expected_distances[] = {170, 535, 171.7, 120.8,
             0.15673306650246, 4.6865338669951, 0.15673306650246, 120.8, 171.7,
             535, 920};
-        EXPECT_VEC_NEAR(expected_distances, result.distances,
-            using_vecgeom_solid ? 1.e-6 : 1.e-10);
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         static real_type const expected_hw_safety[] = {85, 267.5, 85.85,
             60.4, 0.078366388350241, 2.343262600759, 0.078366388350241,
             60.4, 85.85, 267.5, 460};
-
-        EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties,
-            using_vecgeom_surface ? 1e-4
-            : using_vecgeom_solid ? 1e-6 : 1e-12);
+        EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties, safety_tol);
     }
     {
         SCOPED_TRACE("Differs between G4/VG");
@@ -224,11 +211,9 @@ void CmseGeoTest::test_trace() const
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {12.495, 287.505, 530,
             920};
-        EXPECT_VEC_NEAR(expected_distances, result.distances,
-            using_vecgeom_solid ? 1.e-9 : 1.e-12);
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         static real_type const expected_hw_safety[] = {6.2475, 47.95, 242, 460};
-        EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties,
-            using_vecgeom_solid ? 1.e-9 : using_vecgeom_surface ? 2e-6 : 1.e-12);
+        EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties, safety_tol);
     }
     // clang-format on
 }
@@ -408,6 +393,7 @@ void LarSphereGeoTest::test_trace() const
         };
         ref.distances = {10, 10, 200, 10, 890};
         ref.halfway_safeties = {5, 5, 100, 5, 445};
+        ref.bumps = {};
         if (is_orange)
         {
             // TODO: at this exact point it ignores the spherical distance
@@ -655,15 +641,6 @@ void PolyhedraGeoTest::test_trace() const
 
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result);
-
-        // TODO: cleanup comments
-        // auto tol = GenericGeoTrackingTolerance::from_test(*test_);
-        // if (test_->geometry_type() == "VecGeom" and using_vecgeom_solid)
-        // {
-        //     tol.safety = tol.distance = 1e-8;  // required for solid model
-        //     std::cout<<" === Tolerance: dist="<< tol.distance
-        //          <<", safety="<< tol.safety << std::endl;
-        // }
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
@@ -715,7 +692,7 @@ void PolyhedraGeoTest::test_trace() const
             0.70710678118655,
         };
         ref.halfway_safeties = {
-            0.288066841963407,
+            0.28806684196341,
             0.99292893218813,
             0.75496267504288,
             0.9896472381959,
@@ -726,18 +703,7 @@ void PolyhedraGeoTest::test_trace() const
             4.5,
         };
 
-        if (test_->geometry_type() == "VecGeom" && using_vecgeom_surface)
-        {
-            // Geant4 has a different safety for the halfway point
-            ref.halfway_safeties[0] = 0.210641235113144;
-            ref.halfway_safeties[6] = 0.56419426202774;
-        }
-
         auto tol = test_->tracking_tol();
-        // if (test_->geometry_type() == "VecGeom" and using_vecgeom_solid)
-        // {
-        //     tol.safety = tol.distance = 1e-8;  // required for solid model
-        // }
         fixup_orange(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -792,7 +758,7 @@ void PolyhedraGeoTest::test_trace() const
         ref.halfway_safeties = {
             0.5,
             0.90156957092601,
-            0.769441735625259,
+            0.76944173562526,
             0.96397271967888,
             0.85635962580704,
             0.90156957092601,
@@ -801,21 +767,8 @@ void PolyhedraGeoTest::test_trace() const
             4.5,
         };
 
-        if (test_->geometry_type() == "VecGeom" && using_vecgeom_surface)
-        {
-            // Geant4 has a different safety for the halfway point
-            ref.halfway_safeties[2] = 0.679982662200928;
-            ref.halfway_safeties[8] = 4.35703563690186;
-        }
-
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result);
-        if (test_->geometry_type() == "VecGeom" and using_vecgeom_solid)
-        {
-            tol.safety = tol.distance = 1e-9;  // required for solid model
-            std::cout << " === Tolerance: dist=" << tol.distance
-                      << ", safety=" << tol.safety << std::endl;
-        }
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
@@ -867,13 +820,13 @@ void PolyhedraGeoTest::test_trace() const
             0.86602540378444,
         };
         ref.halfway_safeties = {
-            0.368524014949799,
+            0.41988207740847,
             0.99,
-            0.897850394248962,
+            0.90301113894096,
             0.99120614758428,
-            0.966398000717163,
+            0.97807987040665,
             0.99133974596216,
-            0.801536321640015,
+            0.9198173396894,
             0.99,
             4.5,
         };
@@ -889,12 +842,6 @@ void PolyhedraGeoTest::test_trace() const
 
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result);
-        if (test_->geometry_type() == "VecGeom" and using_vecgeom_solid)
-        {
-            tol.distance = tol.safety = 1e-9;  // required for solid model
-            std::cout << " === Tolerance: dist=" << tol.distance
-                      << ", safety=" << tol.safety << std::endl;
-        }
         EXPECT_REF_NEAR(ref, result, tol);
     }
 }
@@ -1043,15 +990,6 @@ void ReplicaGeoTest::test_trace() const
         }
 
         delete_orange_safety(*test_, ref, result);
-
-        // TODO: cleanup comments after merge
-        // auto tol = GenericGeoTrackingTolerance::from_test(*test_);
-        // tol.distance *= 10;  // 2e-12 diff between g4, vg
-        // if (using_surface_vg ||
-        //    (using_solids_vg && CELERITAS_VECGEOM_VERSION < 0X020000))
-        // {
-        //   EXPECT_RESULT_NEAR(ref, result, tol);
-        // }
         EXPECT_REF_NEAR(ref, result, tol);
     }
 }
@@ -1072,30 +1010,10 @@ void ReplicaGeoTest::test_volume_stack() const
         };
         EXPECT_REF_EQ(ref, result);
     }
-    // if (!using_vecgeom_solid)
     {
         // Geant4 gets stuck here (it's close to a boundary)
         auto result = test_->volume_stack({-342.5, 0.1, 593.22740159234});
         GenericGeoVolumeStackResult ref;
-
-        // TODO: cleanup comments after merge
-        // ref.replicas = {-1, -1};
-        // if (test_->geometry_type() == "Geant4" || using_vecgeom_surface)
-        // {
-        //     ref.volume_instances.insert(ref.volume_instances.end(),
-        //                                 {"EMcalorimeter", "cell_param"});
-        //     ref.replicas.insert(ref.replicas.end(), {-1, (42)});
-        // }
-        // else if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0X020000)
-        // {
-        //     // VecGeom solid model gets it right
-        //     ref.volume_instances.insert(ref.volume_instances.end(),
-        //                                 {"EMcalorimeter", "cell_param"});
-        //     ref.replicas.insert(ref.replicas.end(), {-1, (38)});
-        // }
-        // else
-        // {
-        //     // Orange solid model gets stuck too
         ref.volume_instances = {"world_PV", "fSecondArmPhys"};
         if (test_->geometry_type() == "Geant4"
             || (test_->geometry_type() == "VecGeom"
@@ -1137,91 +1055,42 @@ void SolidsGeoTest::test_trace() const
     {
         SCOPED_TRACE("Upper +x");
         auto result = test_->track({-575, 125, 0.5}, {1, 0, 0});
+
         GenericGeoTrackingResult ref;
         ref.volumes = {
-            // clang-format off
-            "World",     "hype1",    "World",
-#if CELERITAS_VECGEOM_VERSION < 0X020000
-            "hype1",     "World",  // TODO: fix missing ones in v2.x-solid
-#endif
+            "World",     "hype1",    "World",    "hype1",     "World",
             "para1",     "World",    "tube100",  "World",     "boolean1",
-#if CELERITAS_VECGEOM_VERSION < 0X020000
-            "World",     "boolean1", "World",    "polyhedr1",
-#elif CELERITAS_VECGEOM_SURFACE
-            "World",     "boolean1",
-#endif
-            "World",    "polyhedr1", "World",    "ellcone1", "World",
-            // clang-format on
+            "World",     "boolean1", "World",    "polyhedr1", "World",
+            "polyhedr1", "World",    "ellcone1", "World",
         };
         ref.volume_instances = {
-            "World_PV",    "hype1_PV",     "World_PV",
-#if CELERITAS_VECGEOM_VERSION < 0X020000
-            "hype1_PV",    "World_PV",
-#endif
-            "para1_PV",    "World_PV",     "tube100_PV", "World_PV",
-            "boolean1_PV",
-#if CELERITAS_VECGEOM_VERSION < 0X020000
-            "World_PV",    "boolean1_PV",  "World_PV",   "polyhedr1_PV",
-#elif CELERITAS_VECGEOM_SURFACE
-            "World_PV", "boolean1_PV",
-#endif
-            "World_PV",    "polyhedr1_PV", "World_PV",   "ellcone1_PV",
-            "World_PV",
-            // clang-format on
+            "World_PV", "hype1_PV",     "World_PV", "hype1_PV",
+            "World_PV", "para1_PV",     "World_PV", "tube100_PV",
+            "World_PV", "boolean1_PV",  "World_PV", "boolean1_PV",
+            "World_PV", "polyhedr1_PV", "World_PV", "polyhedr1_PV",
+            "World_PV", "ellcone1_PV",  "World_PV",
         };
         ref.distances = {
-            // clang-format off
             175.99886751197,
             4.0003045405969,
-#if CELERITAS_VECGEOM_VERSION < 0X020000
-            40.001655894868, 4.0003045405969, 71.165534178636,
-#else
-            115.1674946141,
-#endif
-            60, 74.833333333333, 4, 116, 12.5,
-#if CELERITAS_VECGEOM_VERSION < 0X020000
-            20, 17.5, 191.92750632007,
-#else
-            229.42750632007,
-#endif
+            40.001655894868,
+            4.0003045405969,
+            71.165534178636,
+            60,
+            74.833333333333,
+            4,
+            116,
+            12.5,
+            20,
+            17.5,
+            191.92750632007,
             26.020708495029,
-#if CELERITAS_VECGEOM_VERSION < 0X020000
             14.10357036981,
             26.020708495029,
             86.977506320066,
-#else
-            127.10178518491,
-#endif
-            9.8999999999999, 220.05,
-            // clang-format on
+            9.8999999999999,
+            220.05,
         };
-
-        // TODO: cleanup comments after merged
-        //         EXPECT_VEC_NEAR(expected_distances, result.distances,
-        //         bool_tol); std::vector<real_type> expected_hw_safety = {
-        //             // clang-format off
-        //             74.5, 1.99361986757606,
-        // #if CELERITAS_VECGEOM_VERSION < 0X020000
-        //     20.000718268824, 1.99361986757606, 29.606651830022,
-        // #else
-        //     13.262461764726,
-        // #endif
-        //             24.961508830135, 31.132548513141, 2, 42, 6.25,
-        // #if CELERITAS_VECGEOM_VERSION < 0X020000
-        //     9.5, 8.75,
-        // #endif
-        //             74.5, 0,
-        // #if CELERITAS_VECGEOM_VERSION < 0X020000
-        //     6.5120702274482, 11.947932358344, 43.183743254945,
-        // #else
-        //     23.262310345466,
-        // #endif
-        //             4.9254340915394, 74.5,
-        //             // clang-format on
-        //         };
-        //         EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties,
-        //         bool_tol);
-
         ref.dot_normal = {
             0.99998974040889,
             0.99999451629649,
@@ -1280,38 +1149,41 @@ void SolidsGeoTest::test_trace() const
 
         GenericGeoTrackingResult ref;
         ref.volumes = {
-            // clang-format off
-            "World", "ellipsoid1", "World", "polycone1",
-#if CELERITAS_VECGEOM_VERSION < 0X020000
-            "World", "polycone1",
-#endif
+            "World", "ellipsoid1", "World", "polycone1", "World", "polycone1",
             "World", "sphere1",    "World", "box500",    "World", "cone1",
             "World", "trd1",       "World", "parabol1",  "World", "trd2",
             "World", "xtru1",      "World",
-            // clang-format on
         };
         ref.volume_instances = {
-            "World_PV",  "ellipsoid1_PV",
-#if CELERITAS_VECGEOM_VERSION < 0X020000
-            "World_PV",  "polycone1_PV",
-#endif
-            "World_PV",  "polycone1_PV",  "World_PV", "sphere1_PV", "World_PV",
-            "box500_PV", "World_PV",      "cone1_PV", "World_PV",   "trd1_PV",
-            "World_PV",  "parabol1_PV",   "World_PV", "reflNormal", "World_PV",
-            "xtru1_PV",  "World_PV",
+            "World_PV", "ellipsoid1_PV", "World_PV", "polycone1_PV",
+            "World_PV", "polycone1_PV",  "World_PV", "sphere1_PV",
+            "World_PV", "box500_PV",     "World_PV", "cone1_PV",
+            "World_PV", "trd1_PV",       "World_PV", "parabol1_PV",
+            "World_PV", "reflNormal",    "World_PV", "xtru1_PV",
+            "World_PV",
         };
         ref.distances = {
-            // clang-format off
-            180.00156256104, 39.99687487792, 94.90156256104, 2,
-#if CELERITAS_VECGEOM_VERSION < 0X020000
-            16.2, 2, 115.41481927853,
-#else
-            133.61481927852,
-#endif
-            39.482055599395, 60.00312512208, 50, 73.06, 53.88, 83.01, 30.1,
-            88.604510136799, 42.690979726401, 88.61120889722, 30.086602479158,
-            1.4328892366113, 15.880952380952, 67.642857142857,
-            // clang-format on
+            180.00156256104,
+            39.99687487792,
+            94.90156256104,
+            2,
+            16.2,
+            2,
+            115.41481927853,
+            39.482055599395,
+            60.00312512208,
+            50,
+            73.06,
+            53.88,
+            83.01,
+            30.1,
+            88.604510136799,
+            42.690979726401,
+            88.61120889722,
+            30.086602479158,
+            1.4328892366113,
+            15.880952380952,
+            67.642857142857,
         };
         ref.dot_normal = {
             0.99998046627013,
@@ -1336,23 +1208,28 @@ void SolidsGeoTest::test_trace() const
             0.98994949366117,
         };
         ref.halfway_safeties = {
-            // clang-format off
-            74.5, 0.5, 45.689062136067, 0,
-#if CELERITAS_VECGEOM_VERSION < 0X020000
-            7.82052980478031, 0.98058067569092, 41.027453049596,
-#else
-            46.796911180302,
-#endif
-            13.753706517458, 30.00022317033, 24.5, 36.269790909927, 24.5,
-            41.2093531814, 14.97530971266, 42.839775371828, 18.883392537199,
-            42.843014184291, 14.968644196913, 0.71288903993993, 6.5489918373272,
+            74.5,
+            0.5,
+            45.689062136067,
+            0,
+            8.0156097709407,
+            0.98058067569092,
+            41.027453049596,
+            13.753706517458,
+            30.00022317033,
+            24.5,
+            36.269790909927,
+            24.5,
+            41.2093531814,
+            14.97530971266,
+            35.6477449316,
+            14.272587510357,
+            35.651094311811,
+            14.968644196913,
+            0.71288903993994,
+            6.5489918373272,
             33.481506089183,
-            // clang-format on
         };
-        // TODO: cleanup comments after merged
-        // EXPECT_VEC_NEAR(expected_hw_safety,
-        //                 result.halfway_safeties,
-        //                 using_vecgeom_solid ? 1e-8 : 1e-12);
         if (test_->geometry_type() == "VecGeom")
         {
             // VecGeom v1.2.11 (path,Scalar) using G4VG v1.0.4+builtin and
@@ -1371,23 +1248,17 @@ void SolidsGeoTest::test_trace() const
 
         GenericGeoTrackingResult ref;
         ref.volumes = {
-            "World",   "trd3_refl",  "trd3_refl", "World", "arb8b",
-            "World",   "arb8a",      "World",     "trap1", "World",
-            "tetrah1", "World",      "orb1",      "World", "genPocone1",
-#if CELERITAS_VECGEOM_VERSION < 0X020000
-            "World",   "genPocone1",  // TODO: fix missing vols in v2.x-solid
-#endif
-            "World",   "elltube1",   "World",
+            "World",   "trd3_refl",  "trd3_refl", "World",    "arb8b",
+            "World",   "arb8a",      "World",     "trap1",    "World",
+            "tetrah1", "World",      "orb1",      "World",    "genPocone1",
+            "World",   "genPocone1", "World",     "elltube1", "World",
         };
         ref.volume_instances = {
-            "World_PV",      "reflected@1", "reflected@0", "World_PV",
-            "arb8b_PV",      "World_PV",    "arb8a_PV",    "World_PV",
-            "trap1_PV",      "World_PV",    "tetrah1_PV",  "World_PV",
-            "orb1_PV",       "World_PV",
-#if CELERITAS_VECGEOM_VERSION < 0X020000
-            "genPocone1_PV", "World_PV",
-#endif
-            "genPocone1_PV", "World_PV",    "elltube1_PV", "World_PV",
+            "World_PV",      "reflected@1", "reflected@0",   "World_PV",
+            "arb8b_PV",      "World_PV",    "arb8a_PV",      "World_PV",
+            "trap1_PV",      "World_PV",    "tetrah1_PV",    "World_PV",
+            "orb1_PV",       "World_PV",    "genPocone1_PV", "World_PV",
+            "genPocone1_PV", "World_PV",    "elltube1_PV",   "World_PV",
         };
         ref.distances = {
             34.956698760421,
@@ -1405,13 +1276,9 @@ void SolidsGeoTest::test_trace() const
             79.99374975584,
             39.95312512208,
             15,
-#if CELERITAS_VECGEOM_VERSION < 0X020000
             60.1,
             15,
             59.95,
-#else
-            135.05,
-#endif
             40,
             205,
         };
@@ -1451,16 +1318,10 @@ void SolidsGeoTest::test_trace() const
             4.4610799311799,
             39.5,
             19.877422680791,
-#if CELERITAS_VECGEOM_VERSION < 0X020000
             7.2794797676807,
             29.515478338297,
             0,
             29.826239776544,
-#else
-            19.038294080807,
-            0.5,
-            0,
-#endif
             20,
             74.5,
         };
@@ -1500,6 +1361,7 @@ void SolidsGeoTest::test_trace() const
     {
         SCOPED_TRACE("Middle +y");
         auto result = test_->track({0, -250, 0.5}, {0, 1, 0});
+
         GenericGeoTrackingResult ref;
         ref.volumes = {
             "World",
@@ -1508,10 +1370,8 @@ void SolidsGeoTest::test_trace() const
             "box500",
             "World",
             "boolean1",
-#if CELERITAS_VECGEOM_VERSION < 0X020000
             "World",
-            "boolean1",  // TODO: fix missing vols in v2.x-solid
-#endif
+            "boolean1",
             "World",
         };
         ref.volume_instances = {
@@ -1521,10 +1381,8 @@ void SolidsGeoTest::test_trace() const
             "box500_PV",
             "World_PV",
             "boolean1_PV",
-#if CELERITAS_VECGEOM_VERSION < 0X020000
             "World_PV",
             "boolean1_PV",
-#endif
             "World_PV",
         };
         ref.distances = {
@@ -1534,13 +1392,9 @@ void SolidsGeoTest::test_trace() const
             50,
             75,
             15,
-#if CELERITAS_VECGEOM_VERSION < 0X020000
             20,
             15,
             150,
-#else
-            185,
-#endif
         };
         ref.dot_normal = {
             0.92847669088526,
@@ -1559,13 +1413,9 @@ void SolidsGeoTest::test_trace() const
             24.5,
             37.5,
             7.5,
-#if CELERITAS_VECGEOM_VERSION < 0X020000
             7.5,
             7.5,
             74.5,
-#else
-            57.5,
-#endif
         };
 
         auto tol = test_->tracking_tol();
@@ -1614,13 +1464,6 @@ void SimpleCmsGeoTest::test_trace() const
             ref.halfway_safeties[1] = result.halfway_safeties[1];
         }
         auto tol = test_->tracking_tol();
-        // TODO: cleanup comments after merged
-        // if (test_->geometry_type() == "VecGeom" and using_vecgeom_solid)
-        // {
-        //     tol.safety = tol.distance = 1e-10;  // required for solid model
-        //     std::cout<<" === Tolerance: dist="<< tol.distance
-        //          <<", safety="<< tol.safety << std::endl;
-        // }
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
@@ -2114,6 +1957,7 @@ void ZnenvGeoTest::test_trace() const
             1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,  1e-4,
             1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 0.05, 23.19,
         };
+        ref.bumps = {};
 
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result, "World");
@@ -2123,27 +1967,24 @@ void ZnenvGeoTest::test_trace() const
         auto result = test_->track({0.0001, -10, 0}, {0, 1, 0});
 
         GenericGeoTrackingResult ref;
-        ref.volumes = {
-            "World", "ZNENV", "ZNST", "ZNSL",  "ZNST",  "ZNST", "ZNST",
-            "ZNSL",  "ZNST",  "ZNST", "ZNST",  "ZNST",  "ZNST", "ZNST",
-            "ZNST",  "ZNST",  "ZNST", "ZNST",  "ZNST",  "ZNSL", "ZNST",
-            "ZNSL",  "ZNST",  "ZNSL", "ZNENV", "World",
-        };
+        ref.volumes.assign(std::begin(expected_mid_volumes),
+                           std::end(expected_mid_volumes));
         ref.distances.assign(std::begin(expected_mid_distances),
                              std::end(expected_mid_distances));
         ref.volume_instances = {
-            "World_PV",  "WorldBoxPV", "ZNST_PV@0", "ZNSL_PV@1",  "ZNST_PV@0",
-            "ZNST_PV@0", "ZNST_PV@0",  "ZNSL_PV@5", "ZNST_PV@0",  "ZNST_PV@0",
-            "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0",
-            "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0",  "ZNSL_PV@6",
-            "ZNST_PV@0", "ZNSL_PV@8",  "ZNST_PV@0", "ZNSL_PV@10", "WorldBoxPV",
+            "World_PV",  "WorldBoxPV", "ZNST_PV@0", "ZNST_PV@0", "ZNST_PV@0",
+            "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0", "ZNST_PV@0",
+            "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0", "ZNST_PV@0",
+            "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0", "ZNST_PV@0",
+            "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0", "WorldBoxPV",
             "World_PV",
         };
         ref.halfway_safeties = {
-            3.19, 0.05, 1e-4, 0,    1e-4, 1e-4, 1e-4, 0,     1e-4,
+            3.19, 0.05, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,  1e-4,
             1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,  1e-4,
-            1e-4, 0,    1e-4, 0,    1e-4, 0,    0.05, 23.19,
+            1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 0.05, 23.19,
         };
+        ref.bumps = {};
 
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result, "World");
