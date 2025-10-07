@@ -105,7 +105,6 @@ void CmsEeBackDeeGeoTest::test_accessors() const
 //---------------------------------------------------------------------------//
 void CmsEeBackDeeGeoTest::test_trace() const
 {
-    // Solid VecGeom needs lower safety tolerance
     {
         SCOPED_TRACE("+z top");
         auto result = test_->track({50, 0.1, 360.1}, {0, 0, 1});
@@ -158,7 +157,7 @@ void CmseGeoTest::test_trace() const
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
         {
-            // Surface vecgeom underestimates some near internal
+            // Surface vecgeom underestimates some safeties near internal
             // boundaries
             static real_type const expected_hw_safety[] = {100, 2.15,
                 9.62498950958252, 13.023518051922, 6.95, 6.95, 13.023518051922,
@@ -409,7 +408,6 @@ void LarSphereGeoTest::test_trace() const
         };
         ref.distances = {10, 10, 200, 10, 890};
         ref.halfway_safeties = {5, 5, 100, 5, 445};
-        ref.bumps = {};
         if (is_orange)
         {
             // TODO: at this exact point it ignores the spherical distance
@@ -728,14 +726,12 @@ void PolyhedraGeoTest::test_trace() const
             4.5,
         };
 
-        // TODO: cleanup comments when done merging
-        // if (test_->geometry_type() == "VecGeom" && using_vecgeom_surface)
-        // {
-        //     // Geant4 has a different safety for the halfway point
-        //     ref.halfway_safeties[0] = 0.210641235113144;
-        //     ref.halfway_safeties[6] = 0.56419426202774;
-        // }
-        // ref.bumps = {};
+        if (test_->geometry_type() == "VecGeom" && using_vecgeom_surface)
+        {
+            // Geant4 has a different safety for the halfway point
+            ref.halfway_safeties[0] = 0.210641235113144;
+            ref.halfway_safeties[6] = 0.56419426202774;
+        }
 
         auto tol = test_->tracking_tol();
         // if (test_->geometry_type() == "VecGeom" and using_vecgeom_solid)
@@ -805,14 +801,12 @@ void PolyhedraGeoTest::test_trace() const
             4.5,
         };
 
-        // TODO: cleanup comments after merge
-        // if (test_->geometry_type() == "VecGeom" && using_vecgeom_surface)
-        // {
-        //     // Geant4 has a different safety for the halfway point
-        //     ref.halfway_safeties[2] = 0.679982662200928;
-        //     ref.halfway_safeties[8] = 4.35703563690186;
-        // }
-        //ref.bumps = {};
+        if (test_->geometry_type() == "VecGeom" && using_vecgeom_surface)
+        {
+            // Geant4 has a different safety for the halfway point
+            ref.halfway_safeties[2] = 0.679982662200928;
+            ref.halfway_safeties[8] = 4.35703563690186;
+        }
 
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result);
@@ -883,18 +877,15 @@ void PolyhedraGeoTest::test_trace() const
             0.99,
             4.5,
         };
-
-        // TODO: cleanup comments after merge
-        // if (test_->geometry_type() == "Geant4" ||
-        //     (test_->geometry_type() == "VecGeom" && using_vecgeom_solid))
-        // {
-        //     // Geant4 has a different safety for the halfway point
-        //     ref.halfway_safeties[0] = 0.41988207740847;
-        //     ref.halfway_safeties[2] = 0.90301113894096;
-        //     ref.halfway_safeties[4] = 0.978079870406647;
-        //     ref.halfway_safeties[6] = 0.919817339689397;
-        // }
-        // ref.bumps = {};
+        if (test_->geometry_type() == "Geant4" ||
+            (test_->geometry_type() == "VecGeom" && using_vecgeom_solid))
+        {
+            // Geant4 has a different safety for the halfway point
+            ref.halfway_safeties[0] = 0.41988207740847;
+            ref.halfway_safeties[2] = 0.90301113894096;
+            ref.halfway_safeties[4] = 0.978079870406647;
+            ref.halfway_safeties[6] = 0.919817339689397;
+        }
 
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result);
@@ -1156,6 +1147,8 @@ void SolidsGeoTest::test_trace() const
             "para1",     "World",    "tube100",  "World",     "boolean1",
 #if CELERITAS_VECGEOM_VERSION < 0X020000
             "World",     "boolean1", "World",    "polyhedr1",
+#elif CELERITAS_VECGEOM_SURFACE
+            "World",     "boolean1",
 #endif
             "World",    "polyhedr1", "World",    "ellcone1", "World",
             // clang-format on
@@ -1168,6 +1161,8 @@ void SolidsGeoTest::test_trace() const
             "para1_PV", "World_PV", "tube100_PV", "World_PV", "boolean1_PV",
 #if CELERITAS_VECGEOM_VERSION < 0X020000
             "World_PV", "boolean1_PV", "World_PV", "polyhedr1_PV",
+#elif CELERITAS_VECGEOM_SURFACE
+            "World_PV", "boolean1_PV",
 #endif
             "World_PV", "polyhedr1_PV", "World_PV", "ellcone1_PV",  "World_PV",
             // clang-format on
@@ -1383,9 +1378,9 @@ void SolidsGeoTest::test_trace() const
             "World",     "elltube1", "World",
         };
         ref.volume_instances = {
-            "World_PV",      "reflected", "reflected",     "World_PV",
-            "arb8b_PV",      "World_PV",  "arb8a_PV",      "World_PV",
-            "trap1_PV",      "World_PV",  "tetrah1_PV",    "World_PV",
+            "World_PV",   "reflected@1", "reflected@0",  "World_PV",
+            "arb8b_PV",      "World_PV",    "arb8a_PV",  "World_PV",
+            "trap1_PV",      "World_PV",  "tetrah1_PV",  "World_PV",
             "orb1_PV",       "World_PV",
 #if CELERITAS_VECGEOM_VERSION < 0X020000
             "genPocone1_PV", "World_PV",
@@ -2102,7 +2097,6 @@ void ZnenvGeoTest::test_trace() const
             1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,  1e-4,
             1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 0.05, 23.19,
         };
-        ref.bumps = {};
 
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result, "World");
@@ -2112,24 +2106,27 @@ void ZnenvGeoTest::test_trace() const
         auto result = test_->track({0.0001, -10, 0}, {0, 1, 0});
 
         GenericGeoTrackingResult ref;
-        ref.volumes.assign(std::begin(expected_mid_volumes),
-                           std::end(expected_mid_volumes));
+        ref.volumes = {
+            "World", "ZNENV", "ZNST", "ZNSL",  "ZNST",  "ZNST", "ZNST",
+            "ZNSL",  "ZNST",  "ZNST", "ZNST",  "ZNST",  "ZNST", "ZNST",
+            "ZNST",  "ZNST",  "ZNST", "ZNST",  "ZNST",  "ZNSL", "ZNST",
+            "ZNSL",  "ZNST",  "ZNSL", "ZNENV", "World",
+        };
         ref.distances.assign(std::begin(expected_mid_distances),
                              std::end(expected_mid_distances));
         ref.volume_instances = {
-            "World_PV",  "WorldBoxPV", "ZNST_PV@0", "ZNST_PV@0", "ZNST_PV@0",
+            "World_PV",  "WorldBoxPV", "ZNST_PV@0", "ZNSL_PV@1", "ZNST_PV@0",
+            "ZNST_PV@0", "ZNST_PV@0",  "ZNSL_PV@5", "ZNST_PV@0", "ZNST_PV@0",
             "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0", "ZNST_PV@0",
-            "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0", "ZNST_PV@0",
-            "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0", "ZNST_PV@0",
-            "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0", "WorldBoxPV",
+            "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0", "ZNSL_PV@6",
+            "ZNST_PV@0", "ZNSL_PV@8",  "ZNST_PV@0", "ZNSL_PV@10", "WorldBoxPV",
             "World_PV",
         };
         ref.halfway_safeties = {
-            3.19, 0.05, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,  1e-4,
+            3.19, 0.05, 1e-4,    0, 1e-4, 1e-4, 1e-4,    0,  1e-4,
             1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,  1e-4,
-            1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 0.05, 23.19,
+            1e-4,    0, 1e-4,    0, 1e-4,    0, 0.05, 23.19,
         };
-        ref.bumps = {};
 
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result, "World");

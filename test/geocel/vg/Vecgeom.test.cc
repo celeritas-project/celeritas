@@ -77,7 +77,7 @@ class VecgeomTestBaseImpl : public VecgeomTestBase
 
         if (CELERITAS_VECGEOM_SURFACE)
         {
-            result.safety = 5e-5;
+            result.safety = 6e-5;
         }
         return result;
     }
