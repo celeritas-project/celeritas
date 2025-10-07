@@ -67,6 +67,7 @@ class ImportDataTrimmer
     void operator()(inp::UniformGrid& data);
     void operator()(ImportPhysicsTable& data);
     void operator()(inp::TwodGrid& data);
+    void operator()(inp::DielectricInteraction& data);
     //!@}
 
   private:

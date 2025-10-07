@@ -30,6 +30,8 @@ namespace celeritas
  * The "derived quantities" may be calculated on-the-fly or stored in global
  * memory. As with the particle track view, assume that accessing them is
  * expensive and store them locally.
+ *
+ * \note For testing purposes, isotopic data may be unavailable.
  */
 class ElementView
 {

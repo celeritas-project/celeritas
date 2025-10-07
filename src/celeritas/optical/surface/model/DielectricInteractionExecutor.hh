@@ -2,24 +2,28 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/io/ImportOpticalModel.cc
+//! \file celeritas/optical/surface/model/DielectricInteractionExecutor.hh
 //---------------------------------------------------------------------------//
-#include "ImportOpticalModel.hh"
+#pragma once
 
-#include "corecel/io/EnumStringMapper.hh"
+#include "DielectricInteractionData.hh"
 
 namespace celeritas
 {
 namespace optical
 {
 //---------------------------------------------------------------------------//
-
-char const* to_cstring(ImportModelClass imc)
+/*!
+ * \todo This is a placeholder executor that does nothing until the dielectric
+ * and UNIFIED calculators are implemented.
+ */
+struct DielectricInteractionExecutor
 {
-    static EnumStringMapper<ImportModelClass> const to_cstring_impl{
-        "absorption", "rayleigh", "wls", "wls2", "mie"};
-    return to_cstring_impl(imc);
-}
+    NativeCRef<DielectricData> dielectric_data;
+    NativeCRef<UnifiedReflectionData> reflection_data;
+
+    inline CELER_FUNCTION void operator()(CoreTrackView&) const {}
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace optical
