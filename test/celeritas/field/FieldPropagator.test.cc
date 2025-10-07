@@ -1293,7 +1293,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
         {
             EXPECT_EQ("guide_tube@cz", this->surface_name(geo));
         }
-        //EXPECT_SOFT_EQ(30, calc_radius());
+        // EXPECT_SOFT_EQ(30, calc_radius());
         EXPECT_SOFT_NEAR(calc_radius(), 29.9999996, 4e-7);
         geo.cross_boundary();
         EXPECT_EQ(this->volume_name(geo),

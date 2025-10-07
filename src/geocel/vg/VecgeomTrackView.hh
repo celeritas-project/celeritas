@@ -557,9 +557,9 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
         }
 #else
         //// Some navigators require an lvalue temp_pos
-        //auto temp_pos = detail::to_vector(this->pos_);
-        //Navigator::RelocateToNextVolume(
-        //    temp_pos, detail::to_vector(this->dir_), vgnext_);
+        // auto temp_pos = detail::to_vector(this->pos_);
+        // Navigator::RelocateToNextVolume(
+        //     temp_pos, detail::to_vector(this->dir_), vgnext_);
 #endif
     }
 

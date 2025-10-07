@@ -217,7 +217,7 @@ class SolidsNavigator
         }
     }
 
-//---------------------------------------------------------------------------//
+    //---------------------------------------------------------------------------//
     CELER_FUNCTION static VPlacedVolumePtr_t
     RelocatePoint(Vector3D const& localpoint, vecgeom::NavigationState& path)
     {

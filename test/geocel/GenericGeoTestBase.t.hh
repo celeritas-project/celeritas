@@ -27,8 +27,10 @@ namespace celeritas
 {
 namespace test
 {
-  constexpr bool using_surface_vg = CELERITAS_VECGEOM_VERSION && CELERITAS_VECGEOM_SURFACE;
-  constexpr bool using_solids_vg  = CELERITAS_VECGEOM_VERSION && !CELERITAS_VECGEOM_SURFACE;
+constexpr bool using_surface_vg = CELERITAS_VECGEOM_VERSION
+                                  && CELERITAS_VECGEOM_SURFACE;
+constexpr bool using_solids_vg = CELERITAS_VECGEOM_VERSION
+                                 && !CELERITAS_VECGEOM_SURFACE;
 
 //---------------------------------------------------------------------------//
 //! Default constructor
@@ -393,13 +395,13 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos, Real3 const& dir)
                 }
                 auto new_next = geo.find_next_step();
                 EXPECT_TRUE(new_next.boundary);
-                if (using_surface_vg ||
-                   (using_solids_vg && CELERITAS_VECGEOM_VERSION < 0x20000))
+                if (using_surface_vg
+                    || (using_solids_vg && CELERITAS_VECGEOM_VERSION < 0x20000))
                 {
                     // TODO: Understand why solids model v2.x fails here
                     EXPECT_SOFT_NEAR(new_next.distance,
-                                 next.distance / 2,
-                                 100 * SoftEqual<>{}.rel())
+                                     next.distance / 2,
+                                     100 * SoftEqual<>{}.rel())
                         << "reinitialized distance mismatch at index "
                         << result.volumes.size() - 1 << ": " << init.pos
                         << " along " << init.dir;

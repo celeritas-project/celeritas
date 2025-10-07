@@ -22,8 +22,9 @@ namespace test
 {
 class GenericGeoTestInterface;
 
-  constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE;
-  constexpr bool using_solids_vg = CELERITAS_VECGEOM_VERSION && !CELERITAS_VECGEOM_SURFACE;
+constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE;
+constexpr bool using_solids_vg = CELERITAS_VECGEOM_VERSION
+                                 && !CELERITAS_VECGEOM_SURFACE;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -477,13 +478,15 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         geo.move_to_boundary();
         EXPECT_TRUE(geo.is_on_boundary());
         geo.set_dir({0, 1, 0});
-        next = geo.find_next_step(from_cm(1.0)); // fix vgnext_ after set_dir()
+        next = geo.find_next_step(from_cm(1.0));  // fix vgnext_ after
+                                                  // set_dir()
         EXPECT_EQ("Shape1", test->volume_name(geo));
 #if CELERITAS_VECGEOM_SURFACE
         EXPECT_SOFT_EQ(1, to_cm(next.distance));
 #else
-        geo.move_to_boundary(); // re-synch solids-model with surface-model
-        next = geo.find_next_step(from_cm(1.0)); // fix vgnext_ after set_dir()
+        geo.move_to_boundary();  // re-synch solids-model with surface-model
+        next = geo.find_next_step(from_cm(1.0));  // fix vgnext_ after
+                                                  // set_dir()
         EXPECT_SOFT_EQ(1, to_cm(next.distance));
 #endif
         next = geo.find_next_step(from_cm(10.0));
@@ -502,7 +505,8 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         }
         EXPECT_SOFT_EQ(6, to_cm(next.distance));
         geo.set_dir({-1, 0, 0});
-        next = geo.find_next_step(from_cm(10.0)); // fix vgnext_ after set_dir()
+        next = geo.find_next_step(from_cm(10.0));  // fix vgnext_ after
+                                                   // set_dir()
         EXPECT_VEC_SOFT_EQ((Real3{15, 10, 10}), to_cm(geo.pos()));
         EXPECT_EQ("Shape1", test->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
@@ -691,14 +695,14 @@ void TwoBoxesGeoTest::test_detailed_tracking(GeoTest* test)
 
     // Scatter back inside
     geo.set_dir({-1, 0, 0});
-    EXPECT_VEC_SOFT_EQ((Real3{5+2.e-8, 2, 1.25}), from_cm(geo.pos()));
+    EXPECT_VEC_SOFT_EQ((Real3{5 + 2.e-8, 2, 1.25}), from_cm(geo.pos()));
 
     if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
     {
-      next = geo.find_next_step(from_cm(1000));
-      EXPECT_SOFT_NEAR(505 + 2 * dx, to_cm(next.distance), 1e-4);
-      EXPECT_EQ("world", test->volume_name(geo));
-      // move across boundary? 
+        next = geo.find_next_step(from_cm(1000));
+        EXPECT_SOFT_NEAR(505 + 2 * dx, to_cm(next.distance), 1e-4);
+        EXPECT_EQ("world", test->volume_name(geo));
+        // move across boundary?
     }
     next = geo.find_next_step(from_cm(1000));
     EXPECT_SOFT_NEAR(2 * dx, to_cm(next.distance), 1e-4);
@@ -706,9 +710,10 @@ void TwoBoxesGeoTest::test_detailed_tracking(GeoTest* test)
     EXPECT_TRUE(next.boundary);
     if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
     {
-      // TODO: VecGeom's returns 5 + 2e-8
-      EXPECT_LT(to_cm(5+2e-8), to_cm(next.distance));
-      GTEST_SKIP() << "FIXME: VecGeom solid-model misses surface for point ~2e-8 away";
+        // TODO: VecGeom's returns 5 + 2e-8
+        EXPECT_LT(to_cm(5 + 2e-8), to_cm(next.distance));
+        GTEST_SKIP() << "FIXME: VecGeom solid-model misses surface for point "
+                        "~2e-8 away";
     }
 
     geo.move_to_boundary();

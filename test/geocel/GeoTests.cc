@@ -810,11 +810,11 @@ void PolyhedraGeoTest::test_trace() const
 
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result);
-        if(test_->geometry_type() == "VecGeom" and using_vecgeom_solid)
+        if (test_->geometry_type() == "VecGeom" and using_vecgeom_solid)
         {
             tol.safety = tol.distance = 1e-9;  // required for solid model
-            std::cout<<" === Tolerance: dist="<< tol.distance
-                 <<", safety="<< tol.safety << std::endl;
+            std::cout << " === Tolerance: dist=" << tol.distance
+                      << ", safety=" << tol.safety << std::endl;
         }
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -877,8 +877,8 @@ void PolyhedraGeoTest::test_trace() const
             0.99,
             4.5,
         };
-        if (test_->geometry_type() == "Geant4" ||
-            (test_->geometry_type() == "VecGeom" && using_vecgeom_solid))
+        if (test_->geometry_type() == "Geant4"
+            || (test_->geometry_type() == "VecGeom" && using_vecgeom_solid))
         {
             // Geant4 has a different safety for the halfway point
             ref.halfway_safeties[0] = 0.41988207740847;
@@ -889,11 +889,11 @@ void PolyhedraGeoTest::test_trace() const
 
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result);
-        if(test_->geometry_type() == "VecGeom" and using_vecgeom_solid)
+        if (test_->geometry_type() == "VecGeom" and using_vecgeom_solid)
         {
             tol.distance = tol.safety = 1e-9;  // required for solid model
-            std::cout<<" === Tolerance: dist="<< tol.distance
-                 <<", safety="<< tol.safety << std::endl;
+            std::cout << " === Tolerance: dist=" << tol.distance
+                      << ", safety=" << tol.safety << std::endl;
         }
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -1154,17 +1154,19 @@ void SolidsGeoTest::test_trace() const
             // clang-format on
         };
         ref.volume_instances = {
-            "World_PV", "hype1_PV",     "World_PV",
+            "World_PV",    "hype1_PV",     "World_PV",
 #if CELERITAS_VECGEOM_VERSION < 0X020000
-            "hype1_PV", "World_PV",
+            "hype1_PV",    "World_PV",
 #endif
-            "para1_PV", "World_PV", "tube100_PV", "World_PV", "boolean1_PV",
+            "para1_PV",    "World_PV",     "tube100_PV", "World_PV",
+            "boolean1_PV",
 #if CELERITAS_VECGEOM_VERSION < 0X020000
-            "World_PV", "boolean1_PV", "World_PV", "polyhedr1_PV",
+            "World_PV",    "boolean1_PV",  "World_PV",   "polyhedr1_PV",
 #elif CELERITAS_VECGEOM_SURFACE
             "World_PV", "boolean1_PV",
 #endif
-            "World_PV", "polyhedr1_PV", "World_PV", "ellcone1_PV",  "World_PV",
+            "World_PV",    "polyhedr1_PV", "World_PV",   "ellcone1_PV",
+            "World_PV",
             // clang-format on
         };
         ref.distances = {
@@ -1195,29 +1197,30 @@ void SolidsGeoTest::test_trace() const
         };
 
         // TODO: cleanup comments after merged
-//         EXPECT_VEC_NEAR(expected_distances, result.distances, bool_tol);
-//         std::vector<real_type> expected_hw_safety = {
-//             // clang-format off
-//             74.5, 1.99361986757606,
-// #if CELERITAS_VECGEOM_VERSION < 0X020000
-//     20.000718268824, 1.99361986757606, 29.606651830022,
-// #else
-//     13.262461764726,
-// #endif
-//             24.961508830135, 31.132548513141, 2, 42, 6.25,
-// #if CELERITAS_VECGEOM_VERSION < 0X020000
-//     9.5, 8.75,
-// #endif
-//             74.5, 0,
-// #if CELERITAS_VECGEOM_VERSION < 0X020000
-//     6.5120702274482, 11.947932358344, 43.183743254945,
-// #else
-//     23.262310345466,
-// #endif
-//             4.9254340915394, 74.5,
-//             // clang-format on
-//         };
-//         EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties, bool_tol);
+        //         EXPECT_VEC_NEAR(expected_distances, result.distances,
+        //         bool_tol); std::vector<real_type> expected_hw_safety = {
+        //             // clang-format off
+        //             74.5, 1.99361986757606,
+        // #if CELERITAS_VECGEOM_VERSION < 0X020000
+        //     20.000718268824, 1.99361986757606, 29.606651830022,
+        // #else
+        //     13.262461764726,
+        // #endif
+        //             24.961508830135, 31.132548513141, 2, 42, 6.25,
+        // #if CELERITAS_VECGEOM_VERSION < 0X020000
+        //     9.5, 8.75,
+        // #endif
+        //             74.5, 0,
+        // #if CELERITAS_VECGEOM_VERSION < 0X020000
+        //     6.5120702274482, 11.947932358344, 43.183743254945,
+        // #else
+        //     23.262310345466,
+        // #endif
+        //             4.9254340915394, 74.5,
+        //             // clang-format on
+        //         };
+        //         EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties,
+        //         bool_tol);
 
         ref.dot_normal = {
             0.99998974040889,
@@ -1288,15 +1291,14 @@ void SolidsGeoTest::test_trace() const
             // clang-format on
         };
         ref.volume_instances = {
-            "World_PV", "ellipsoid1_PV",
+            "World_PV",  "ellipsoid1_PV",
 #if CELERITAS_VECGEOM_VERSION < 0X020000
-              "World_PV", "polycone1_PV",
+            "World_PV",  "polycone1_PV",
 #endif
-            "World_PV", "polycone1_PV",  "World_PV", "sphere1_PV",
-            "World_PV", "box500_PV",     "World_PV", "cone1_PV",
-            "World_PV", "trd1_PV",       "World_PV", "parabol1_PV",
-            "World_PV", "reflNormal",    "World_PV", "xtru1_PV",
-            "World_PV",
+            "World_PV",  "polycone1_PV",  "World_PV", "sphere1_PV", "World_PV",
+            "box500_PV", "World_PV",      "cone1_PV", "World_PV",   "trd1_PV",
+            "World_PV",  "parabol1_PV",   "World_PV", "reflNormal", "World_PV",
+            "xtru1_PV",  "World_PV",
         };
         ref.distances = {
             // clang-format off
@@ -1334,7 +1336,7 @@ void SolidsGeoTest::test_trace() const
             0.98994949366117,
         };
         ref.halfway_safeties = {
-// clang-format off
+            // clang-format off
             74.5, 0.5, 45.689062136067, 0,
 #if CELERITAS_VECGEOM_VERSION < 0X020000
             7.82052980478031, 0.98058067569092, 41.027453049596,
@@ -1345,7 +1347,7 @@ void SolidsGeoTest::test_trace() const
             41.2093531814, 14.97530971266, 42.839775371828, 18.883392537199,
             42.843014184291, 14.968644196913, 0.71288903993993, 6.5489918373272,
             33.481506089183,
-// clang-format on
+            // clang-format on
         };
         // TODO: cleanup comments after merged
         // EXPECT_VEC_NEAR(expected_hw_safety,
@@ -1369,23 +1371,23 @@ void SolidsGeoTest::test_trace() const
 
         GenericGeoTrackingResult ref;
         ref.volumes = {
-            "World",   "trd3_refl",  "trd3_refl", "World",    "arb8b",
-            "World",   "arb8a",      "World",     "trap1",    "World",
-            "tetrah1", "World",      "orb1",      "World",    "genPocone1",
+            "World",   "trd3_refl",  "trd3_refl", "World", "arb8b",
+            "World",   "arb8a",      "World",     "trap1", "World",
+            "tetrah1", "World",      "orb1",      "World", "genPocone1",
 #if CELERITAS_VECGEOM_VERSION < 0X020000
             "World",   "genPocone1",  // TODO: fix missing vols in v2.x-solid
 #endif
-            "World",     "elltube1", "World",
+            "World",   "elltube1",   "World",
         };
         ref.volume_instances = {
-            "World_PV",   "reflected@1", "reflected@0",  "World_PV",
-            "arb8b_PV",      "World_PV",    "arb8a_PV",  "World_PV",
-            "trap1_PV",      "World_PV",  "tetrah1_PV",  "World_PV",
+            "World_PV",      "reflected@1", "reflected@0", "World_PV",
+            "arb8b_PV",      "World_PV",    "arb8a_PV",    "World_PV",
+            "trap1_PV",      "World_PV",    "tetrah1_PV",  "World_PV",
             "orb1_PV",       "World_PV",
 #if CELERITAS_VECGEOM_VERSION < 0X020000
             "genPocone1_PV", "World_PV",
 #endif
-            "genPocone1_PV", "World_PV",  "elltube1_PV",   "World_PV",
+            "genPocone1_PV", "World_PV",    "elltube1_PV", "World_PV",
         };
         ref.distances = {
             34.956698760421,
@@ -1450,9 +1452,14 @@ void SolidsGeoTest::test_trace() const
             39.5,
             19.877422680791,
 #if CELERITAS_VECGEOM_VERSION < 0X020000
-            7.2794797676807, 29.515478338297, 0, 29.826239776544,
+            7.2794797676807,
+            29.515478338297,
+            0,
+            29.826239776544,
 #else
-            19.038294080807, 0.5, 0,
+            19.038294080807,
+            0.5,
+            0,
 #endif
             20,
             74.5,
@@ -1495,18 +1502,28 @@ void SolidsGeoTest::test_trace() const
         auto result = test_->track({0, -250, 0.5}, {0, 1, 0});
         GenericGeoTrackingResult ref;
         ref.volumes = {
-            "World", "tetrah1", "World", "box500",
-            "World", "boolean1",
+            "World",
+            "tetrah1",
+            "World",
+            "box500",
+            "World",
+            "boolean1",
 #if CELERITAS_VECGEOM_VERSION < 0X020000
-            "World", "boolean1",    // TODO: fix missing vols in v2.x-solid
+            "World",
+            "boolean1",  // TODO: fix missing vols in v2.x-solid
 #endif
             "World",
         };
         ref.volume_instances = {
-            "World_PV", "tetrah1_PV", "World_PV", "box500_PV",
-            "World_PV", "boolean1_PV",
+            "World_PV",
+            "tetrah1_PV",
+            "World_PV",
+            "box500_PV",
+            "World_PV",
+            "boolean1_PV",
 #if CELERITAS_VECGEOM_VERSION < 0X020000
-            "World_PV", "boolean1_PV",
+            "World_PV",
+            "boolean1_PV",
 #endif
             "World_PV",
         };
@@ -2115,17 +2132,17 @@ void ZnenvGeoTest::test_trace() const
         ref.distances.assign(std::begin(expected_mid_distances),
                              std::end(expected_mid_distances));
         ref.volume_instances = {
-            "World_PV",  "WorldBoxPV", "ZNST_PV@0", "ZNSL_PV@1", "ZNST_PV@0",
-            "ZNST_PV@0", "ZNST_PV@0",  "ZNSL_PV@5", "ZNST_PV@0", "ZNST_PV@0",
-            "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0", "ZNST_PV@0",
-            "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0", "ZNSL_PV@6",
+            "World_PV",  "WorldBoxPV", "ZNST_PV@0", "ZNSL_PV@1",  "ZNST_PV@0",
+            "ZNST_PV@0", "ZNST_PV@0",  "ZNSL_PV@5", "ZNST_PV@0",  "ZNST_PV@0",
+            "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0",
+            "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0",  "ZNSL_PV@6",
             "ZNST_PV@0", "ZNSL_PV@8",  "ZNST_PV@0", "ZNSL_PV@10", "WorldBoxPV",
             "World_PV",
         };
         ref.halfway_safeties = {
-            3.19, 0.05, 1e-4,    0, 1e-4, 1e-4, 1e-4,    0,  1e-4,
+            3.19, 0.05, 1e-4, 0,    1e-4, 1e-4, 1e-4, 0,     1e-4,
             1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,  1e-4,
-            1e-4,    0, 1e-4,    0, 1e-4,    0, 0.05, 23.19,
+            1e-4, 0,    1e-4, 0,    1e-4, 0,    0.05, 23.19,
         };
 
         auto tol = test_->tracking_tol();
