@@ -49,8 +49,8 @@ class DielectricInteractor
                          SurfacePhysicsTrackView const& surface_physics,
                          MaterialView const& pre_material,
                          MaterialView const& post_material,
-                         UnifiedReflectionView unified_reflection,
-                         bool is_metal);
+                         ReflectionFormCalculator reflection_calc,
+                         DielectricInterface dielectric_interface);
 
     // Sample the dielectric interaction
     template<class Engine>
@@ -61,8 +61,8 @@ class DielectricInteractor
     Real3 const& inc_direction_;
     ParticleTrackView const& inc_photon_;
     SurfacePhysicsTrackView const& surface_phys_;
-    UnifiedReflectionView unified_reflection_;
-    bool is_metal_;
+    ReflectionFormCalculator reflection_calc_;
+    DielectricInterface dielectric_interface_;
 };
 
 //---------------------------------------------------------------------------//
@@ -84,8 +84,9 @@ DielectricInteractor::Builder::operator()(CoreTrackView const& track) const
         s_phys,
         track.material_record(s_phys.material()),
         track.material_record(s_phys.next_material()),
-        UnifiedReflectionView{unified_data, sub_model_id},
-        dielectric_data.is_metal[sub_model_id]};
+        ReflectionFormCalculator{
+            unified_data, sub_model_id, track.particle().energy()},
+        dielectric_data.interface[sub_model_id]};
 }
 
 //---------------------------------------------------------------------------//
@@ -98,8 +99,8 @@ CELER_FUNCTION DielectricInteractor::DielectricInteractor(
     SurfacePhysicsTrackView const& surface_physics,
     MaterialView const& pre_material,
     MaterialView const& post_material,
-    UnifiedReflectionView unified_reflection,
-    bool is_metal)
+    ReflectionFormCalculator reflection_calc,
+    DielectricInterface dielectric_interface)
     : fresnel_(inc_direction,
                particle,
                surface_physics.facet_normal(),
@@ -108,8 +109,8 @@ CELER_FUNCTION DielectricInteractor::DielectricInteractor(
     , inc_direction_(inc_direction)
     , inc_photon_(particle)
     , surface_phys_(surface_physics)
-    , unified_reflection_(unified_reflection)
-    , is_metal_(is_metal)
+    , reflection_calc_(reflection_calc)
+    , dielectric_interface_(dielectric_interface)
 {
 }
 
@@ -125,19 +126,19 @@ DielectricInteractor::operator()(Engine& rng) const
     {
         // Reflection
         return UnifiedReflectionSampler{
-            unified_reflection_, inc_direction_, inc_photon_, surface_phys_}(
-            rng);
+            reflection_calc_, inc_direction_, inc_photon_, surface_phys_}(rng);
     }
     else
     {
         // Refraction
-        if (is_metal_)
+        switch (dielectric_interface_)
         {
-            return SurfaceInteraction::from_absorption();
-        }
-        else
-        {
-            return fresnel_.refracted_interaction();
+            case DielectricInterface::metal:
+                return SurfaceInteraction::from_absorption();
+            case DielectricInterface::dielectric:
+                return fresnel_.refracted_interaction();
+            default:
+                CELER_ASSERT_UNREACHABLE();
         }
     }
 }

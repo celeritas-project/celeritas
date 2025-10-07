@@ -16,8 +16,8 @@
 #include "celeritas/optical/surface/SurfacePhysicsUtils.hh"
 
 #include "LambertianDistribution.hh"
+#include "ReflectionFormCalculator.hh"
 #include "SurfaceInteraction.hh"
-#include "UnifiedReflectionData.hh"
 
 namespace celeritas
 {
@@ -41,7 +41,7 @@ class UnifiedReflectionSampler
   public:
     // Construct from mode probabilities, photon, and surface data
     explicit inline CELER_FUNCTION
-    UnifiedReflectionSampler(UnifiedModeProbs const& probs,
+    UnifiedReflectionSampler(ReflectionFormCalculator calc_prob,
                              Real3 const& direction,
                              Real3 const& polarization,
                              Real3 const& global_normal,
@@ -49,7 +49,7 @@ class UnifiedReflectionSampler
 
     // Construct from track views
     explicit inline CELER_FUNCTION
-    UnifiedReflectionSampler(UnifiedReflectionView const& unified_reflection,
+    UnifiedReflectionSampler(ReflectionFormCalculator const& calc_prob,
                              Real3 const& inc_direction,
                              ParticleTrackView const& photon,
                              SurfacePhysicsTrackView const& surface_physics);
@@ -65,7 +65,7 @@ class UnifiedReflectionSampler
     inline CELER_FUNCTION SurfaceInteraction calc_specular_lobe() const;
 
     // Calculate back-scattering reflection
-    inline CELER_FUNCTION SurfaceInteraction calc_back_scattering() const;
+    inline CELER_FUNCTION SurfaceInteraction calc_backscatter() const;
 
     // Sample diffuse Lambertian reflection
     template<class Engine>
@@ -73,7 +73,7 @@ class UnifiedReflectionSampler
     sample_lambertian_reflection(Engine& rng) const;
 
   private:
-    UnifiedModeProbs const& mode_probs_;
+    Selector<ReflectionFormCalculator, ReflectionMode> sample_mode_;
     Real3 const& direction_;
     Real3 const& polarization_;
     Real3 const& global_normal_;
@@ -89,12 +89,16 @@ class UnifiedReflectionSampler
  * Construct calculator from probabilities, photon, and surface data.
  */
 CELER_FUNCTION
-UnifiedReflectionSampler::UnifiedReflectionSampler(UnifiedModeProbs const& probs,
-                                                   Real3 const& direction,
-                                                   Real3 const& polarization,
-                                                   Real3 const& global_normal,
-                                                   Real3 const& facet_normal)
-    : mode_probs_(probs)
+UnifiedReflectionSampler::UnifiedReflectionSampler(
+    ReflectionFormCalculator calc_prob,
+    Real3 const& direction,
+    Real3 const& polarization,
+    Real3 const& global_normal,
+    Real3 const& facet_normal)
+    : sample_mode_{std::move(calc_prob),
+                   ReflectionMode::size_,
+                   real_type{1},
+                   SelectorNormalization::unnormalized}
     , direction_(direction)
     , polarization_(polarization)
     , global_normal_(global_normal)
@@ -104,9 +108,6 @@ UnifiedReflectionSampler::UnifiedReflectionSampler(UnifiedModeProbs const& probs
     CELER_EXPECT(is_soft_unit_vector(facet_normal_));
     CELER_EXPECT(is_entering_surface(direction_, global_normal_));
     CELER_EXPECT(is_entering_surface(direction_, facet_normal_));
-    CELER_EXPECT(soft_equal(
-        std::accumulate(mode_probs_.begin(), mode_probs_.end(), real_type{0}),
-        real_type{1}));
 }
 
 //---------------------------------------------------------------------------//
@@ -114,11 +115,11 @@ UnifiedReflectionSampler::UnifiedReflectionSampler(UnifiedModeProbs const& probs
  * Construct calculator from a given track's views.
  */
 CELER_FUNCTION UnifiedReflectionSampler::UnifiedReflectionSampler(
-    UnifiedReflectionView const& unified_reflection,
+    ReflectionFormCalculator const& calc_prob,
     Real3 const& inc_direction,
     ParticleTrackView const& photon,
     SurfacePhysicsTrackView const& surface_physics)
-    : UnifiedReflectionSampler(unified_reflection(photon.energy()),
+    : UnifiedReflectionSampler(calc_prob,
                                inc_direction,
                                photon.polarization(),
                                surface_physics.global_normal(),
@@ -134,21 +135,15 @@ template<class Engine>
 CELER_FUNCTION SurfaceInteraction
 UnifiedReflectionSampler::operator()(Engine& rng) const
 {
-    auto result = celeritas::make_selector(
-        [this](UnifiedReflectionMode m) { return mode_probs_[m]; },
-        UnifiedReflectionMode::size_)(rng);
-
-    CELER_ASSERT(result != UnifiedReflectionMode::size_);
-
-    switch (result)
+    switch (sample_mode_(rng))
     {
-        case UnifiedReflectionMode::specular_spike:
+        case ReflectionMode::specular_spike:
             return this->calc_specular_spike();
-        case UnifiedReflectionMode::specular_lobe:
+        case ReflectionMode::specular_lobe:
             return this->calc_specular_lobe();
-        case UnifiedReflectionMode::back_scattering:
-            return this->calc_back_scattering();
-        case UnifiedReflectionMode::diffuse_lambertian:
+        case ReflectionMode::backscatter:
+            return this->calc_backscatter();
+        case ReflectionMode::size_:
             return this->sample_lambertian_reflection(rng);
         default:
             CELER_ASSERT_UNREACHABLE();
@@ -185,8 +180,7 @@ UnifiedReflectionSampler::calc_specular_lobe() const
  *
  * The photon direction and polarization are reversed.
  */
-CELER_FUNCTION SurfaceInteraction
-UnifiedReflectionSampler::calc_back_scattering() const
+CELER_FUNCTION SurfaceInteraction UnifiedReflectionSampler::calc_backscatter() const
 {
     SurfaceInteraction result;
     result.action = SurfaceInteraction::Action::reflected;
