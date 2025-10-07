@@ -11,6 +11,8 @@
 #include "orange/OrangeInput.hh"
 #include "orange/OrangeTypes.hh"
 
+#include "Options.hh"
+
 //---------------------------------------------------------------------------//
 // Forward declarations
 //---------------------------------------------------------------------------//
@@ -51,19 +53,6 @@ class Converter
     //! \name Type aliases
     using arg_type = GeantGeoParams const&;
     //!@}
-
-    //! Input options for the conversion
-    struct Options
-    {
-        //! Write output about volumes being converted
-        bool verbose{false};
-        //! Manually specify a tracking/construction tolerance
-        Tolerance<> tol;
-        //! Write interpreted geometry to a JSON file
-        std::string proto_output_file;
-        //! Write intermediate debug output (CSG construction) to a JSON file
-        std::string debug_output_file;
-    };
 
     struct result_type
     {

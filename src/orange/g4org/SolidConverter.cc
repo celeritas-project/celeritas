@@ -8,7 +8,7 @@
 
 #include <memory>
 #include <typeindex>
-#include <typeinfo>
+#include <typeinfo>  // IWYU pragma: keep
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -290,9 +290,6 @@ auto SolidConverter::operator()(arg_type solid_base) -> result_type
         // First time converting the solid
         cache_iter->second = this->convert_impl(solid_base);
     }
-
-    // TODO: we can't cache parameterized volumes. Maybe we shouldn't cache at
-    // all?
 
     CELER_ENSURE(cache_iter->second);
     return cache_iter->second;

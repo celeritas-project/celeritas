@@ -145,6 +145,7 @@ class UnitProto : public ProtoInterface
         //! \name Construction options
 
         Simplify simplify{Simplify::none};
+        bool delete_exterior{true};
 
         //!@}
 

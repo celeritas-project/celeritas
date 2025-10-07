@@ -40,21 +40,19 @@ class ProtoConstructorTest : public GeantLoadTestBase
         // Load GDML into Geant4
         this->load_test_gdml(basename);
 
+        Options opts;
+        opts.unit_length = 0.1;
+
         // Convert volumes into ORANGE representation
         auto const& geant_geo = this->geo();
-        PhysicalVolumeConverter make_pv(geant_geo, [] {
-            PhysicalVolumeConverter::Options opts;
-            opts.verbose = false;
-            opts.scale = 0.1;
-            return opts;
-        }());
+        PhysicalVolumeConverter make_pv(geant_geo, opts);
         PhysicalVolume world = make_pv(*geant_geo.world());
 
         EXPECT_TRUE(std::holds_alternative<NoTransformation>(world.transform));
         EXPECT_EQ(1, world.lv.use_count());
 
         // Construct proto
-        ProtoConstructor make_proto(*this->volumes(), false);
+        ProtoConstructor make_proto(*this->volumes(), opts);
         return make_proto(*world.lv);
     }
 

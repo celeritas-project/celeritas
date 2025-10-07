@@ -34,8 +34,8 @@ class ConverterTest : public GeantLoadTestBase
     //! Make a converter
     Converter make_converter(std::string_view filename = {})
     {
-        Converter::Options opts;
-        opts.verbose = verbose_;
+        Options opts;
+        opts.verbose_structure = verbose_;
         if (!filename.empty())
         {
             opts.proto_output_file = std::string(filename) + ".protos.json";

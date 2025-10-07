@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file orange/OrangeTypesIO.json.cc
 //---------------------------------------------------------------------------//
-#include "OrangeTypesIO.hh"
+#include "OrangeTypesIO.json.hh"
 
 namespace celeritas
 {

@@ -118,6 +118,27 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether we should inline a volume based on its pv's transform.
+ */
+bool ProtoConstructor::can_inline_transform(VariantTransform const& vt) const
+{
+    switch (inline_singletons_)
+    {
+        case InlineSingletons::none:
+            return false;
+        case InlineSingletons::untransformed:
+            return std::holds_alternative<NoTransformation>(vt);
+        case InlineSingletons::unrotated:
+            return !std::holds_alternative<Transformation>(vt);
+        case InlineSingletons::all:
+            return true;
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Place this physical volume into a proto being constructed.
  *
  * It will return a "local child ID" if it generates a material input, but not
@@ -168,9 +189,8 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
                       << std::endl;
         }
     }
-    else if ((pv.lv.use_count() == 1
-              && std::holds_alternative<NoTransformation>(pv.transform))
-             || is_union(pv.lv->solid))
+    else if ((pv.lv.use_count() == 1 && this->can_inline_transform(pv.transform))
+             || (inline_unions_ && is_union(pv.lv->solid)))
     {
         // Child can be inlined into the parent because it's used only once
         // *and* it doesn't have a rotation relative to the parent

@@ -447,7 +447,7 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
     // Build background fill (optional)
     result.background = input_.background.fill;
 
-    if (!is_global_universe)
+    if (!is_global_universe && input_.delete_exterior)
     {
         // Replace "exterior" with "False" (i.e. interior with true)
         NodeId ext_node = result.tree.volumes()[ext_vol.unchecked_get()];

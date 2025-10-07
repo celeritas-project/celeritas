@@ -87,10 +87,11 @@ OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo,
     ScopedProfiling profile_this{"orange-load-geant"};
 
     // Set up options for debug output
-    g4org::Converter::Options opts;
+    g4org::Options opts;
     if (celeritas::getenv_flag("G4ORG_VERBOSE", false).value)
     {
-        opts.verbose = true;
+        opts.verbose_structure = true;
+        opts.verbose_volumes = true;
     }
     auto export_basename = celeritas::getenv("G4ORG_EXPORT");
     if (!export_basename.empty())

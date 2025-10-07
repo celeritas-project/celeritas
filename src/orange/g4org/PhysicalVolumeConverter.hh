@@ -8,8 +8,6 @@
 
 #include <memory>
 
-#include "geocel/detail/LengthUnits.hh"
-
 #include "Volume.hh"
 
 class G4LogicalVolume;
@@ -20,6 +18,9 @@ namespace celeritas
 class GeantGeoParams;
 namespace g4org
 {
+//---------------------------------------------------------------------------//
+struct Options;
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct a "physical volume" and its children from a Geant4 object.
@@ -36,18 +37,9 @@ class PhysicalVolumeConverter
     using result_type = PhysicalVolume;
     //!@}
 
-    //! Input options for the conversion
-    struct Options
-    {
-        //! Write output about volumes being converted
-        bool verbose{false};
-        //! Scale factor, customizable for unit testing
-        double scale{celeritas::lengthunits::millimeter};
-    };
-
   public:
     // Construct with options and parent geometry
-    PhysicalVolumeConverter(GeantGeoParams const& geo, Options options);
+    PhysicalVolumeConverter(GeantGeoParams const& geo, Options const& options);
 
     // Default destructor
     ~PhysicalVolumeConverter();
