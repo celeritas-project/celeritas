@@ -499,12 +499,26 @@ auto TestEm3IntegrationMixin::make_sens_det(std::string const& sd_name)
 
 //---------------------------------------------------------------------------//
 /*!
- * Create physics list: default is EM only using make_physics_input.
+ * Create physics list
  */
 auto OpNoviceIntegrationMixin::make_physics_input() const -> PhysicsInput
 {
-    PhysicsInput result = Base::make_physics_input();
-    result.em_bins_per_decade = 5;
+    auto result = Base::make_physics_input();
+
+    // Enable optical physics (scintillation + Cherenkov)
+    auto& optical = result.optical;
+    optical = {};
+    EXPECT_TRUE(optical);
+    EXPECT_TRUE(optical.scintillation);
+    EXPECT_TRUE(optical.cherenkov);
+    EXPECT_TRUE(optical.mie_scattering);
+    EXPECT_TRUE(optical.rayleigh_scattering);
+
+    // Disable WLS (reemission not yet supported)
+    using WLSO = WavelengthShiftingOptions;
+    optical.wavelength_shifting = WLSO::deactivated();
+    optical.wavelength_shifting2 = WLSO::deactivated();
+
     return result;
 }
 
@@ -519,9 +533,9 @@ auto OpNoviceIntegrationMixin::make_primary_input() const -> PrimaryInput
     PrimaryInput result;
     result.pdg = {pdg::positron()};
     result.energy = inp::MonoenergeticDistribution{MevEnergy{0.5}};
-    result.shape = inp::PointDistribution{from_cm({99, 0.1, 0})};
-    result.angle = inp::IsotropicDistribution{};
-    result.num_events = 4;  // Overridden with BeamOn
+    result.shape = inp::PointDistribution{from_cm({0., 0., 0.})};
+    result.angle = inp::MonodirectionalDistribution{from_cm({1., 0., 0.})};
+    result.num_events = 12;  // Overridden with BeamOn
     result.primaries_per_event = 10;
     return result;
 }
@@ -534,10 +548,22 @@ auto OpNoviceIntegrationMixin::make_sens_det(std::string const&) -> UPSensDet
 {
     return nullptr;
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Enable optical physics options
+ */
 SetupOptions OpNoviceIntegrationMixin::make_setup_options()
 {
     auto result = Base::make_setup_options();
     result.sd.enabled = false;
+    result.optical_capacity = [] {
+        inp::OpticalStateCapacity cap;
+        cap.tracks = 32768;
+        cap.generators = 32768 * 8;
+        cap.primaries = cap.generators;
+        return cap;
+    }();
     return result;
 }
 
