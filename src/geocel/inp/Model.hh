@@ -141,9 +141,9 @@ struct Detectors
 /*!
  * Define a single region.
  *
- * A region is a set of volumes that share properties such as production cuts,
- * fields, usert limits, or fast simulation. A volume cannot belong to multiple
- * regions.
+ * A region is a set of volumes that share physics properties such as
+ * production cuts, fields, user limits, or fast simulation. A volume can
+ * belong to only one region.
  */
 struct Region
 {

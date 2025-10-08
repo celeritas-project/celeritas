@@ -273,6 +273,8 @@ TEST_F(FourLevelsTest, model)
         2,
     };
     ref.world = "World";
+    ref.region.labels = {"envelope_region"};
+    ref.region.volumes = {{0, 1, 2}};
     EXPECT_REF_EQ(ref, result);
 }
 
@@ -449,6 +451,8 @@ TEST_F(MultiLevelTest, model)
     ref.world = "world";
     ref.detector.labels = {"sph_sd"};
     ref.detector.volumes = {{0, 5}};
+    ref.region.labels = {"box_region", "tri_region", "sph_region"};
+    ref.region.volumes = {{2, 4}, {1, 6}, {0, 5}};
     EXPECT_REF_EQ(ref, result);
 }
 
