@@ -142,7 +142,7 @@ complete description of the code's dependencies and installation process for
 development.
 
 As an example, if you have the [Spack][spack] package manager
-installed and want to do development on a CUDA system with Volta-class graphics
+installed and want to do development on a CUDA system with Ampere-class graphics
 cards, execute the following steps from within the cloned Celeritas source
 directory:
 ```console
