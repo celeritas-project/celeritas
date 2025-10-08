@@ -228,7 +228,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 - H. Haber. "Properties of proper and improper rotation matrices". 2011. [scipp.ucsc.edu](http://scipp.ucsc.edu/~haber/archives/physics251_11/rotreflect.pdf)
 - M. Stich, H. Friedrich, A. Dietrich. "Spatial splits in bounding volume hierarchies". in *Proceedings of the 1st ACM conference on High Performance Graphics - HPG '09*, New Orleans, Louisiana, 2009. [10.1145/1572769.1572771](https://doi.org/10.1145/1572769.1572771)
 - I. Wald. "On fast Construction of SAH-based Bounding Volume Hierarchies". in *2007 IEEE Symposium on Interactive Ray Tracing*, Ulm, Sep 2007. [10.1109/RT.2007.4342588](https://doi.org/10.1109/RT.2007.4342588)
-- C. Wächter, A. Keller. "Instant ray tracing: the Bounding Interval Hierarchy". 2006. [10.2312/EGWR/EGSR06/139-149](https://doi.org/10.2312/EGWR/EGSR06/139-149)
+- *[wachter-bih-2006]*: C. Wächter, A. Keller. "Instant ray tracing: the Bounding Interval Hierarchy". 2006. [10.2312/EGWR/EGSR06/139-149](https://doi.org/10.2312/EGWR/EGSR06/139-149)
 - *[collision-2004]*: C. Ericson. "Real-time collision detection". CRC Press, Dec 2004. [www.taylorfrancis.com](https://www.taylorfrancis.com/books/9780080474144)
 - Martínez Morera, D, J. Estrada Sarlabous. "On the Distance from a Point to a Quadric Surface". *Investigacion Operacional*, 2003.
 - *[sphere-tracing-1996]*: J. C. Hart. "Sphere tracing: a geometric method for the antialiased ray tracing of implicit surfaces". *The Visual Computer*, Dec 1996. [10.1007/s003710050084](https://doi.org/10.1007/s003710050084)
