@@ -27,5 +27,19 @@ char const* to_cstring(SurfacePhysicsOrder step)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get a string corresponding to a UNIFIED reflection mode.
+ */
+char const* to_cstring(ReflectionMode mode)
+{
+    static EnumStringMapper<ReflectionMode> const to_cstring_impl{
+        "specular spike",
+        "specular lobe",
+        "backscattering",
+    };
+    return to_cstring_impl(mode);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace optical
 }  // namespace celeritas

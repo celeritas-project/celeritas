@@ -53,7 +53,7 @@
     "name" : "G4_STAINLESS-STEEL",
     "state" : 1,
     "temperature" : 293.15,
-    "number_density" : 86993489258991547580416,
+    "number_density" : 86993489258991530803200,
     "elements" : [{
       "_typename" : "celeritas::ImportMatElemComponent",
       "element_id" : 0,
@@ -356,7 +356,7 @@
           "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
           "data_" : [-9.21034037197618, 4.60517018598809]
         },
-        "y" : [0.0919755519795959, 128.588033594672],
+        "y" : [0.0919755519795958, 128.588033594672],
         "interpolation" : {
           "_typename" : "celeritas::inp::Interpolation",
           "type" : 0,
@@ -532,46 +532,50 @@
       },
       "interaction" : {
         "_typename" : "celeritas::inp::InteractionModels",
-        "dielectric_dielectric" : [{"$pair" : "pair<celeritas::OpaqueId<celeritas::PhysSurface_,unsigned int>,celeritas::inp::ReflectionForm>", "first" : {
+        "dielectric" : [{"$pair" : "pair<celeritas::OpaqueId<celeritas::PhysSurface_,unsigned int>,celeritas::inp::DielectricInteraction>", "first" : {
           "_typename" : "celeritas::OpaqueId<celeritas::PhysSurface_,unsigned int>",
           "value_" : 0
         }, "second" : {
-          "_typename" : "celeritas::inp::ReflectionForm",
-          "specular_spike" : {
-            "_typename" : "celeritas::inp::Grid",
-            "x" : [0, 1e308],
-            "y" : [1, 1],
-            "interpolation" : {
-              "_typename" : "celeritas::inp::Interpolation",
-              "type" : 0,
-              "order" : 1,
-              "bc" : 2
+          "_typename" : "celeritas::inp::DielectricInteraction",
+          "reflection" : {
+            "_typename" : "celeritas::inp::ReflectionForm",
+            "reflection_grids" : {
+              "_typename" : "celeritas::EnumArray<celeritas::optical::ReflectionMode,celeritas::inp::Grid>",
+              "data_" : [{
+                "_typename" : "celeritas::inp::Grid",
+                "x" : [0, 1e308],
+                "y" : [1, 1],
+                "interpolation" : {
+                  "_typename" : "celeritas::inp::Interpolation",
+                  "type" : 0,
+                  "order" : 1,
+                  "bc" : 2
+                }
+              }, {
+                "_typename" : "celeritas::inp::Grid",
+                "x" : [0, 1e308],
+                "y" : [0, 0],
+                "interpolation" : {
+                  "_typename" : "celeritas::inp::Interpolation",
+                  "type" : 0,
+                  "order" : 1,
+                  "bc" : 2
+                }
+              }, {
+                "_typename" : "celeritas::inp::Grid",
+                "x" : [0, 1e308],
+                "y" : [0, 0],
+                "interpolation" : {
+                  "_typename" : "celeritas::inp::Interpolation",
+                  "type" : 0,
+                  "order" : 1,
+                  "bc" : 2
+                }
+              }]
             }
           },
-          "specular_lobe" : {
-            "_typename" : "celeritas::inp::Grid",
-            "x" : [0, 1e308],
-            "y" : [0, 0],
-            "interpolation" : {
-              "_typename" : "celeritas::inp::Interpolation",
-              "type" : 0,
-              "order" : 1,
-              "bc" : 2
-            }
-          },
-          "backscatter" : {
-            "_typename" : "celeritas::inp::Grid",
-            "x" : [0, 1e308],
-            "y" : [0, 0],
-            "interpolation" : {
-              "_typename" : "celeritas::inp::Interpolation",
-              "type" : 0,
-              "order" : 1,
-              "bc" : 2
-            }
-          }
-        }}],
-        "dielectric_metal" : []
+          "is_metal" : false
+        }}]
       }
     }
   }
