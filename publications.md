@@ -20,7 +20,9 @@ These publications are extracted from the Celeritas team's Zotero database.
 - S. R. Johnson. "New integrations and capabilities in Celeritas". *SciDAC PI meeting*, 16 Sep 2025.
 - S. R. Johnson. "Celeritas SciDAC update: toward production use". *SciDAC PI meeting*, 16 Sep 2025.
 - H. Hollenbeck. "GPU-accelerated Optical Physics in Detector Simulations". *ACAT 2025*, 11 Sep 2025. [presentation](https://indico.cern.ch/event/1488410/contributions/6562823/attachments/3132977/5558230/hollenbeck-celeritas.pdf)
+- O. Strong. "Analyzing Precision Loss in Ray-Toroid Intersections". 19 Aug 2025.
 - S. Tognini. "Celeritas: Bringing GPU capabilities to HEP detector simulation". *2nd Annual US Muon Collider Meeting*, 07 Aug 2025. [poster](https://indico.uchicago.edu/event/479/contributions/2088/attachments/838/1337/poster.pdf)
+- S. Martinez. "Parallelizing Steps Process in Celeritas". 31 Jul 2025.
 - S. R. Johnson. "Celeritas for LHCb". *LHCb Week*, 16 Jun 2025. [presentation](https://indico.cern.ch/event/1555409/contributions/6557235/attachments/3087215/5466168/celeritas.pdf)
 - S. R. Johnson. "Celeritas integration and benchmarks". *HSF Seminar*, 28 May 2025. [presentation](https://indico.cern.ch/event/1528440/#4-celeritas-for-detector-simul)
 - H. Hollenbeck. "Celeritas for Optical Processes and Calorimetry". *Third Annual US Higgs Factory Future Circular Collider Workshop*, 16 Apr 2025. [presentation](https://indico.fnal.gov/event/67484/contributions/311378/attachments/187168/258057/hollenbeck-celeritas.pdf)
@@ -108,6 +110,8 @@ These publications are extracted from the Celeritas team's Zotero database.
 ## Technical reports
 
 - *[orange-tm]*: S. R. Johnson, R. Lefebvre, K. Bekar. "ORANGE: Oak Ridge Advanced Nested Geometry Engine". 2025.
+- O. Strong, E. Biondo, S. R. Johnson. "Comparing precision loss in ray-toroid intersections". Aug 2025.
+- S. Martinez, S. R. Johnson. "Parallelizing GPU-Accelerated Monte Carlo Transport in Celeritas Using NVIDIA CUDA Streams". Jul 2025.
 - S. Johnson, S. Castro Tognini, T. Evans, A. Lund, M. Demarteau, *et al*. "Celeritas midterm SciDAC report". Nov 2024. [www.osti.gov](https://www.osti.gov/servlets/purl/2481196/)
 - *[celer-rd-2024]*: S. R. Johnson, S. Castro Tognini, E. Biondo, T. Evans, J. Esseiva, *et al*. "Celeritas R&D report: accelerating Geant4". Jan 2024. [www.osti.gov](https://www.osti.gov/servlets/purl/2281972/)
 
