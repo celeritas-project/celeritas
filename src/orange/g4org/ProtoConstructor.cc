@@ -59,7 +59,8 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
     UnitProto::Input input;
     input.boundary.interior = lv.solid;
     input.label = label;
-    input.delete_exterior = opts_.delete_exterior;
+    input.remove_interior = opts_.remove_interior;
+    input.remove_negated_join = opts_.remove_negated_join;
 
     if (CELER_UNLIKELY(opts_.verbose_structure))
     {

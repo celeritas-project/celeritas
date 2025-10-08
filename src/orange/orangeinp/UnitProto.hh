@@ -125,13 +125,6 @@ class UnitProto : public ProtoInterface
         explicit inline operator bool() const;
     };
 
-    //! Optional transformations to apply when building a CsgUnit.
-    enum class Simplification
-    {
-        none,  //!< No simplification
-        infix,  //!< CsgTree suitable for infix logic evaluation
-    };
-
     //! Required input data to create a unit proto
     struct Input
     {
@@ -144,8 +137,10 @@ class UnitProto : public ProtoInterface
         //!@{
         //! \name Construction options
 
-        Simplification simplify{Simplification::none};
-        bool delete_exterior{true};
+        //! For non-global units, assume inside the boundary
+        bool remove_interior{true};
+        //! Use DeMorgan's law to remove negated joins
+        bool remove_negated_join{false};
 
         //!@}
 

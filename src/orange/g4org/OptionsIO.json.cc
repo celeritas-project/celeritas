@@ -63,7 +63,8 @@ void to_json(nlohmann::json& j, Options const& v)
         CELER_JSON_PAIR(v, inline_childless),
         CELER_JSON_PAIR(v, inline_singletons),
         CELER_JSON_PAIR(v, inline_unions),
-        CELER_JSON_PAIR(v, delete_exterior),
+        CELER_JSON_PAIR(v, remove_interior),
+        CELER_JSON_PAIR(v, remove_negated_join),
         CELER_JSON_PAIR(v, verbose_volumes),
         CELER_JSON_PAIR(v, verbose_structure),
         CELER_JSON_PAIR_OPTION(v, tol),
@@ -89,7 +90,8 @@ void from_json(nlohmann::json const& j, Options& v)
     OPT_LOAD_OPTION(inline_childless);
     OPT_LOAD_OPTION(inline_singletons);
     OPT_LOAD_OPTION(inline_unions);
-    OPT_LOAD_OPTION(delete_exterior);
+    OPT_LOAD_OPTION(remove_interior);
+    OPT_LOAD_OPTION(remove_negated_join);
     OPT_LOAD_OPTION(verbose_volumes);
     OPT_LOAD_OPTION(verbose_structure);
     OPT_LOAD_OPTION(objects_output_file);

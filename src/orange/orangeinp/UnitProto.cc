@@ -447,7 +447,7 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
     // Build background fill (optional)
     result.background = input_.background.fill;
 
-    if (!is_global_universe && input_.delete_exterior)
+    if (!is_global_universe && input_.remove_interior)
     {
         // Replace "exterior" with "False" (i.e. interior with true)
         NodeId ext_node = result.tree.volumes()[ext_vol.unchecked_get()];
@@ -471,7 +471,7 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
         }
     }
 
-    if (input_.simplify == Simplify::infix)
+    if (input_.remove_negated_join)
     {
         unit_builder.simplify_joins();
     }

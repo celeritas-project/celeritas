@@ -40,7 +40,7 @@ enum class InlineSingletons
  * \warning Currently ORANGE tracking requires:
  * - inline unions to be true (see
  * https://github.com/celeritas-project/celeritas/issues/1260)
- * - delete_exterior to be true (see
+ * - remove_interior to be true (see
  * https://github.com/celeritas-project/celeritas/issues/2012 )
  */
 struct Options
@@ -69,8 +69,11 @@ struct Options
     //! Forcibly copy child volumes that have union boundaries
     bool inline_unions{true};
 
-    //! Delete the exterior of non-world universes
-    bool delete_exterior{true};
+    //! Replace 'interior' unit boundaries with 'true' and simplify
+    bool remove_interior{true};
+
+    //! Use DeMorgan's law to replace "not all of" with "any of not"
+    bool remove_negated_join{false};
 
     //!@}
     //!@{

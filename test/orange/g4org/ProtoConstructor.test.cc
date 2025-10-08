@@ -600,15 +600,17 @@ TEST_F(ProtoConstructorTest, znenv_explicit)
     Options opts;
     std::istringstream{R"json({
 "_format": "g4org-options",
-"csg_output_file": "",
-"delete_exterior": false,
 "explicit_interior_threshold": 0,
 "inline_childless": false,
 "inline_singletons": "none",
 "inline_unions": false,
-"objects_output_file": null,
-"tol": {"rel": 0.001, "abs": 1e-4},
+"remove_interior": false,
+"remove_negated_join": true,
+"tol": {"abs": 0.0001, "rel": 0.001},
 "unit_length": 1.0,
+"csg_output_file": null,
+"objects_output_file": null,
+"org_output_file": null,
 "verbose_structure": false,
 "verbose_volumes": false
 })json"} >> opts;
@@ -618,7 +620,7 @@ TEST_F(ProtoConstructorTest, znenv_explicit)
         os << opts;
         return std::move(os).str();
     }();
-    EXPECT_EQ(18, std::count(opts_str.begin(), opts_str.end(), '\n'))
+    EXPECT_EQ(19, std::count(opts_str.begin(), opts_str.end(), '\n'))
         << "JSON output changed: actual is " << repr(opts_str);
 
     auto global_proto = this->load("znenv", opts);
@@ -648,8 +650,8 @@ TEST_F(ProtoConstructorTest, znenv_explicit)
         SCOPED_TRACE("global");
         auto u = this->build_unit(protos, UniverseId{0});
 
-        static char const* const expected_volume_strings[] = {
-            "!all(+0, -1, +2, -3, +4, -5)", "all(+6, -7, +8, -9, +10, -11)"};
+        static char const* const expected_volume_strings[]
+            = {"any(-0, +1, -2, +3, -4, +5)", "all(+6, -7, +8, -9, +10, -11)"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_EQ(GeoMatId{3}, u.background);
     }
@@ -666,20 +668,20 @@ TEST_F(ProtoConstructorTest, znenv_explicit)
             "Cyl z: r=0.1825",
         };
         static char const* const expected_volume_strings[]
-            = {"!all(+0, -1, +2, -3, +4, -5)", "all(+4, -5, -6)"};
+            = {"any(-0, +1, -2, +3, -4, +5)", "all(+4, -5, -6)"};
         static char const* const expected_md_strings[] = {
             "",
             "",
             "ZNG10x0@mx",
+            "",
             "ZNG10x0@px",
-            "",
             "ZNG10x0@my",
-            "ZNG10x0@py",
             "",
+            "ZNG10x0@py",
             "ZNF10x0@mz,ZNG10x0@mz",
+            "",
             "ZNF10x0@pz,ZNG10x0@pz",
             "",
-            "ZNG10x0",
             "[EXTERIOR]",
             "ZNF10x0@cz",
             "",
@@ -698,17 +700,18 @@ TEST_F(ProtoConstructorTest, znenv_explicit)
         static char const* const expected_surface_strings[]
             = {"Plane: z=-500", "Plane: z=500", "Cyl z: r=0.1825"};
         static char const* const expected_volume_strings[]
-            = {"!all(+0, -1, -2)", "all(+0, -1, -2)"};
+            = {"any(-0, +1, +2)", "all(+0, -1, -2)"};
         static char const* const expected_md_strings[] = {
             "",
             "",
             "ZNF10x0@mz",
+            "",
             "ZNF10x0@pz",
             "",
             "ZNF10x0@cz",
             "",
-            "ZNF10x0",
             "[EXTERIOR]",
+            "ZNF10x0",
         };
         static char const* const expected_fill_strings[]
             = {"<UNASSIGNED>", "m0"};
