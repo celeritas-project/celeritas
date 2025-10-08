@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Macros.hh"
-#include "corecel/sys/KernelTraits.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 
 #include "SurfaceInteraction.hh"
@@ -24,53 +22,11 @@ namespace optical
  * SurfaceInteraction.
  */
 template<class F>
-struct SurfaceInteractionApplierBaseImpl
+struct SurfaceInteractionApplier
 {
     F sample_interaction;
 
     inline CELER_FUNCTION void operator()(CoreTrackView const&) const;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * This class is partially specialized with a second template argument to
- * extract any launch bounds from the functor class.
- *
- * \todo Generalize this with the core interaction applier
- */
-template<class F, typename = void>
-struct SurfaceInteractionApplier : public SurfaceInteractionApplierBaseImpl<F>
-{
-    CELER_FUNCTION SurfaceInteractionApplier(F&& f)
-        : SurfaceInteractionApplierBaseImpl<F>{celeritas::forward<F>(f)}
-    {
-    }
-};
-
-template<class F>
-struct SurfaceInteractionApplier<F,
-                                 std::enable_if_t<kernel_max_blocks_min_warps<F>>>
-    : public SurfaceInteractionApplierBaseImpl<F>
-{
-    static constexpr int max_block_size = F::max_block_size;
-    static constexpr int min_warps_per_eu = F::min_warps_per_eu;
-
-    CELER_FUNCTION SurfaceInteractionApplier(F&& f)
-        : SurfaceInteractionApplierBaseImpl<F>{celeritas::forward<F>(f)}
-    {
-    }
-};
-
-template<class F>
-struct SurfaceInteractionApplier<F, std::enable_if_t<kernel_max_blocks<F>>>
-    : public SurfaceInteractionApplierBaseImpl<F>
-{
-    static constexpr int max_block_size = F::max_block_size;
-
-    CELER_FUNCTION SurfaceInteractionApplier(F&& f)
-        : SurfaceInteractionApplierBaseImpl<F>{celeritas::forward<F>(f)}
-    {
-    }
 };
 
 //---------------------------------------------------------------------------//
@@ -87,7 +43,7 @@ CELER_FUNCTION SurfaceInteractionApplier(F&&) -> SurfaceInteractionApplier<F>;
  */
 template<class F>
 CELER_FUNCTION void
-SurfaceInteractionApplierBaseImpl<F>::operator()(CoreTrackView const& track) const
+SurfaceInteractionApplier<F>::operator()(CoreTrackView const& track) const
 {
     // Sample interaction
     SurfaceInteraction result = this->sample_interaction(track);
