@@ -10,6 +10,7 @@
 
 #include "ObjectIO.json.hh"
 
+#include "detail/CsgUnitBuilder.hh"
 #include "detail/VolumeBuilder.hh"
 
 namespace celeritas

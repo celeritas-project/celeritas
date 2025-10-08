@@ -16,6 +16,7 @@
 
 #include "detail/BoundingZone.hh"
 #include "detail/BuildIntersectRegion.hh"
+#include "detail/CsgUnitBuilder.hh"
 #include "detail/VolumeBuilder.hh"
 
 namespace celeritas

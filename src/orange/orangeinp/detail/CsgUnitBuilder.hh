@@ -96,6 +96,9 @@ class CsgUnitBuilder
     // Mark a CSG node as a volume of real space
     LocalVolumeId insert_volume(NodeId);
 
+    // Fill LocalVolumeId{0} with "exterior" to adjust the interior region
+    void fill_exterior();
+
     // Fill a volume node with a material
     void fill_volume(LocalVolumeId, GeoMatId);
 
