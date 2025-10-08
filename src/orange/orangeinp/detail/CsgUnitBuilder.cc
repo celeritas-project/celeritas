@@ -188,33 +188,22 @@ void CsgUnitBuilder::simplify_joins()
 
     std::map<NodeId, CsgUnit::Region> regions;
 
-    for (auto node_idx : range(tree.size()))
+    for (auto node_id : range(tree.size()))
     {
-        if (auto equivalent_node = simplification.new_nodes[node_idx])
+        if (auto equivalent_node = simplification.new_nodes[node_id])
         {
             CELER_EXPECT(equivalent_node < md.size());
             md[equivalent_node.unchecked_get()]
-                = std::move(unit_->metadata[node_idx]);
+                = std::move(unit_->metadata[node_id]);
             regions[equivalent_node]
-                = std::move(unit_->regions[NodeId{node_idx}]);
+                = std::move(unit_->regions[NodeId{node_id}]);
         }
-        else
+        else if (unit_->regions.find(NodeId{node_id}) != unit_->regions.end()
+                 || !unit_->metadata[node_id].empty())
         {
-            auto region = unit_->regions.find(NodeId{node_idx});
-            auto& md = unit_->metadata[node_idx];
-            if (region != unit_->regions.end() || !md.empty())
-            {
-                auto msg = CELER_LOG(warning);
-                msg << "Simplification removed node " << node_idx;
-                if (!md.empty())
-                {
-                    msg << "='" << join(md.begin(), md.end(), "','") << "'";
-                }
-                if (region != unit_->regions.end())
-                {
-                    msg << " (which has a region)";
-                }
-            }
+            CELER_LOG(warning)
+                << "While simplifying node '" << node_id
+                << "': has metadata or region but no equivalent node";
         }
     }
     unit_->metadata = std::move(md);
