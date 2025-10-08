@@ -494,7 +494,7 @@ std::vector<inp::Region> make_inp_regions(GeantGeoParams const& geo)
 
     auto const& vol_labels = geo.impl_volumes();
 
-    std::unordered_map<G4Region const*, std::set<VolumeId>> region_map;
+    std::map<G4Region const*, std::set<VolumeId>> region_map;
 
     // Process each logical volume
     for (auto iv_id : range(ImplVolumeId{vol_labels.size()}))
