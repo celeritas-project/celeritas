@@ -2,14 +2,25 @@
 
 module use /soft/modulefiles
 export PROJ=/vast/projects/celeritas
-export SPACKROOT=/vast/projects/celeritas/spack
+export SPACKROOT=$PROJ/spack
 . $SPACKROOT/share/spack/setup-env.sh
 
-# Interactive job on an MI30
-alias mi300x="qsub -I -t 60 -n 1 -q gpu_amd_mi300x"
+qsub-gpu() {
+    # Usage: qsub-gpu [mi300x|h100] <qsub args>
+    [[ $(hostname) =~ ^jlselogin[0-9]+ ]] || {
+        echo "Error: must be on a jlselogin* host to submit jobs."
+        return 1
+    }
 
-# Interactive job on an H100
-alias h100="qsub -I -t 60 -n 1 -q gpu_h100"
+    case "$1" in
+        mi300x) queue="gpu_amd_mi300x" ;;
+        h100)   queue="gpu_h100" ;;
+        *)      echo "Error: unknown GPU type '$1'"; return 1 ;;
+    esac
+
+    shift
+    exec qsub -q "$queue" "$@"
+}
 
 # Load Nvidia/AMD environment if on a compute node
 if [[ "$(hostname -s)" == hopper* ]]; then
