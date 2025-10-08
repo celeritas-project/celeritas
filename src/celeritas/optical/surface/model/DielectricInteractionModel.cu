@@ -12,6 +12,7 @@
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
 #include "DielectricInteractionExecutor.hh"
+#include "SurfaceInteractionApplier.hh"
 
 namespace celeritas
 {
@@ -29,8 +30,8 @@ void DielectricInteractionModel::step(CoreParams const& params,
         state.ptr(),
         SurfacePhysicsOrder::interaction,
         this->surface_model_id(),
-        DielectricInteractionExecutor{dielectric_data_.device_ref(),
-                                      reflection_data_.device_ref()});
+        SurfaceInteractionApplier{DielectricInteractionExecutor{
+            dielectric_data_.device_ref(), reflection_data_.device_ref()}});
 
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
