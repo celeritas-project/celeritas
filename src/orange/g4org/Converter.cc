@@ -99,8 +99,8 @@ auto Converter::operator()(GeantGeoParams const& geo,
     InputBuilder build_input([&opts = opts_] {
         InputBuilder::Options ibo;
         ibo.tol = opts.tol;
-        ibo.proto_output_file = opts.proto_output_file;
-        ibo.debug_output_file = opts.debug_output_file;
+        ibo.objects_output_file = opts.objects_output_file;
+        ibo.csg_output_file = opts.csg_output_file;
         CELER_ENSURE(ibo);
         return ibo;
     }());
@@ -140,13 +140,13 @@ auto Converter::operator()(GeantGeoParams const& geo,
         }
     }
 
-    if (!opts_.final_output_file.empty())
+    if (!opts_.org_output_file.empty())
     {
         // Export constructed geometry for debugging
-        std::ofstream outf(opts_.final_output_file);
+        std::ofstream outf(opts_.org_output_file);
         CELER_VALIDATE(outf,
                        << "failed to open output file at \""
-                       << opts_.final_output_file << '"');
+                       << opts_.org_output_file << '"');
         outf << result.input;
     }
 

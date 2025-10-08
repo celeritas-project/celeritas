@@ -600,13 +600,13 @@ TEST_F(ProtoConstructorTest, znenv_explicit)
     Options opts;
     std::istringstream{R"json({
 "_format": "g4org-options",
-"debug_output_file": "",
+"csg_output_file": "",
 "delete_exterior": false,
 "explicit_interior_threshold": 0,
 "inline_childless": false,
 "inline_singletons": "none",
 "inline_unions": false,
-"proto_output_file": null,
+"objects_output_file": null,
 "tol": {"rel": 0.001, "abs": 1e-4},
 "unit_length": 1.0,
 "verbose_structure": false,

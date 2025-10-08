@@ -38,8 +38,8 @@ class ConverterTest : public GeantLoadTestBase
         opts.verbose_structure = verbose_;
         if (!filename.empty())
         {
-            opts.proto_output_file = std::string(filename) + ".protos.json";
-            opts.debug_output_file = std::string(filename) + ".csg.json";
+            opts.objects_output_file = std::string(filename) + ".objects.json";
+            opts.csg_output_file = std::string(filename) + ".csg.json";
         }
         return Converter{std::move(opts)};
     };

@@ -114,9 +114,9 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
     // Construct the hierarchy of protos
     detail::ProtoMap const protos{global};
     CELER_ASSERT(protos.find(&global) == orange_global_universe);
-    if (!opts_.proto_output_file.empty())
+    if (!opts_.objects_output_file.empty())
     {
-        write_protos(protos, opts_.proto_output_file);
+        write_protos(protos, opts_.objects_output_file);
     }
 
     // Build surfaces and metadata
@@ -125,7 +125,7 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
     detail::ProtoBuilder builder(&result, protos, [&] {
         detail::ProtoBuilder::Options pbopts;
         pbopts.tol = opts_.tol;
-        if (!opts_.debug_output_file.empty())
+        if (!opts_.csg_output_file.empty())
         {
             debug_outp = JsonProtoOutput{protos.size()};
             pbopts.save_json = std::ref(debug_outp);
@@ -140,7 +140,7 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
 
     if (debug_outp)
     {
-        debug_outp.write(opts_.debug_output_file);
+        debug_outp.write(opts_.csg_output_file);
     }
 
     CELER_ENSURE(result);

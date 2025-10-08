@@ -39,9 +39,9 @@ class InputBuilder
         //! Manually specify a tracking/construction tolerance
         Tolerance<> tol;
         //! Write unfolded universe structure to a JSON file
-        std::string proto_output_file;
-        //! Write intermediate build output to a JSON file
-        std::string debug_output_file;
+        std::string objects_output_file;
+        //! Write transformed and simplified CSG trees to a JSON file
+        std::string csg_output_file;
 
         // True if all required options are set
         explicit operator bool() const { return static_cast<bool>(tol); }

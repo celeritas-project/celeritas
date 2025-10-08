@@ -67,9 +67,9 @@ void to_json(nlohmann::json& j, Options const& v)
         CELER_JSON_PAIR(v, verbose_volumes),
         CELER_JSON_PAIR(v, verbose_structure),
         CELER_JSON_PAIR_OPTION(v, tol),
-        OPT_JSON_STRING(proto_output_file),
-        OPT_JSON_STRING(debug_output_file),
-        OPT_JSON_STRING(final_output_file),
+        OPT_JSON_STRING(objects_output_file),
+        OPT_JSON_STRING(csg_output_file),
+        OPT_JSON_STRING(org_output_file),
     };
 
 #undef OPT_JSON_STRING
@@ -92,9 +92,9 @@ void from_json(nlohmann::json const& j, Options& v)
     OPT_LOAD_OPTION(delete_exterior);
     OPT_LOAD_OPTION(verbose_volumes);
     OPT_LOAD_OPTION(verbose_structure);
-    OPT_LOAD_OPTION(proto_output_file);
-    OPT_LOAD_OPTION(debug_output_file);
-    OPT_LOAD_OPTION(debug_output_file);
+    OPT_LOAD_OPTION(objects_output_file);
+    OPT_LOAD_OPTION(csg_output_file);
+    OPT_LOAD_OPTION(csg_output_file);
 
 #undef OPT_LOAD_OPTION
 }

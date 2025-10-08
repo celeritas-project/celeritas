@@ -29,6 +29,16 @@ enum class InlineSingletons
 //---------------------------------------------------------------------------//
 /*!
  * Construction options for Geant4 conversion.
+ *
+ * Note that most of these should \em never be touched when running an actual
+ * problem. If the length unit is changed, the resulting geometry is
+ * inconsistent with Geant4's scale.
+ *
+ * \warning Currently ORANGE tracking requires:
+ * - inline unions to be true (see
+ * https://github.com/celeritas-project/celeritas/issues/1260)
+ * - delete_exterior to be true (see
+ * https://github.com/celeritas-project/celeritas/issues/2012 )
  */
 struct Options
 {
@@ -68,12 +78,12 @@ struct Options
     //! Write output about proto-universes being constructed
     bool verbose_structure{false};
 
-    //! Write interpreted geometry to a JSON file
-    std::string proto_output_file;
-    //! Write intermediate debug output (CSG construction) to a JSON file
-    std::string debug_output_file;
+    //! Write converted Geant4 object structure to a JSON file
+    std::string objects_output_file;
+    //! Write constructed CSG surfaces and tree to a JSON file
+    std::string csg_output_file;
     //! Write final org.json to a JSON file
-    std::string final_output_file;
+    std::string org_output_file;
 
     //!@}
 };
