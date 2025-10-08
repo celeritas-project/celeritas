@@ -108,11 +108,11 @@ TEST_F(TestEm3, run)
 }
 
 //---------------------------------------------------------------------------//
-class OpNovice : public OpNoviceIntegrationMixin, public UAITestBase
+class OpNoviceOptical : public OpNoviceIntegrationMixin, public UAITestBase
 {
 };
 
-TEST_F(OpNovice, run)
+TEST_F(OpNoviceOptical, run)
 {
     auto& rm = this->run_manager();
     UAI::Instance().SetOptions(this->make_setup_options());

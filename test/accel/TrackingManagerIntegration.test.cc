@@ -415,109 +415,12 @@ TEST_F(LarSphereOptical, run)
     rm.BeamOn(2);
 }
 
-//---------------------------------------------------------------------------//
-// OpNovice
-//---------------------------------------------------------------------------//
-class OpNovice : public OpNoviceIntegrationMixin, public TMITestBase
-{
-    void BeginOfEventAction(G4Event const* event) override
-    {
-        if (event->GetEventID() == 1)
-        {
-            for (auto i : range(event->GetNumberOfPrimaryVertex()))
-            {
-                G4PrimaryVertex* vtx = event->GetPrimaryVertex(i);
-                for (auto j : range(vtx->GetNumberOfParticle()))
-                {
-                    G4PrimaryParticle* p = vtx->GetPrimary(j);
-                    p->SetWeight(10.0);
-                }
-            }
-        }
-    }
-};
-
 /*!
- * Check that multiple sequential runs complete successfully.
+ * Test the Op-Novice example, offloading optical photons.
  */
-TEST_F(OpNovice, run)
-{
-    auto& rm = this->run_manager();
-    TMI::Instance().SetOptions(this->make_setup_options());
-
-    CELER_LOG(status) << "Run initialization";
-    rm.Initialize();
-
-    CELER_LOG(status) << "Beam on (first run)";
-    rm.BeamOn(3);
-
-    if (this->HasFailure())
-    {
-        GTEST_SKIP() << "Skipping remaining tests since we've already failed";
-    }
-
-    CELER_LOG(status) << "Beam on (second run)";
-    rm.BeamOn(1);
-}
-
-/*!
- * Check that UI commands are correctly propagated to the Celeritas runtime.
- */
-TEST_F(OpNovice, run_ui)
-{
-    auto& rm = this->run_manager();
-    auto& tmi = TMI::Instance();
-
-    EXPECT_EQ(tmi.GetMode(), OffloadMode::uninitialized);
-    tmi.SetOptions(this->make_setup_options());
-    EXPECT_NE(tmi.GetMode(), OffloadMode::uninitialized);
-
-    std::atomic<int> check_count{0};
-
-    auto& ui = *G4UImanager::GetUIpointer();
-    if (SharedParams::GetMode() != OffloadMode::disabled)
-    {
-        ui.ApplyCommand("/celer/maxNumTracks 128");
-        ui.ApplyCommand("/celer/maxInitializers 10000");
-
-        check_during_run_ = [&check_count, &tmi] {
-            EXPECT_NE(OffloadMode::uninitialized, tmi.GetMode());
-
-            if (tmi.GetMode() == OffloadMode::enabled && is_running_events())
-            {
-                CELER_LOG_LOCAL(debug) << "Checking number of tracks";
-                ++check_count;
-
-                auto const& state = tmi.GetState();
-                EXPECT_EQ(state.size(), 128);
-            }
-        };
-    }
-    else
-    {
-        check_during_run_ = [&check_count] {
-            if (is_running_events())
-            {
-                ++check_count;
-            }
-        };
-    }
-
-    ui.ApplyCommand("/run/initialize");
-    ui.ApplyCommand("/run/beamOn 2");
-
-    EXPECT_EQ(get_geant_num_threads(rm), check_count.load());
-}
-
-/*!
- * Test the Op-Novice, offloading both EM tracks *and* optical photons.
- */
-class OpNoviceOptical : public OpNovice
+class OpNoviceOptical : public OpNoviceIntegrationMixin, public TMITestBase
 {
   public:
-    PhysicsInput make_physics_input() const override;
-    PrimaryInput make_primary_input() const override;
-    SetupOptions make_setup_options() override;
     void EndOfRunAction(G4Run const* run) override;
     UPTrackAction make_tracking_action() override
     {
@@ -535,59 +438,6 @@ class OpNoviceOptical : public OpNovice
   private:
     std::vector<TrackingAction*> tracking_;
 };
-
-//---------------------------------------------------------------------------//
-/*!
- * Enable optical physics.
- */
-auto OpNoviceOptical::make_physics_input() const -> PhysicsInput
-{
-    auto result = OpNoviceIntegrationMixin::make_physics_input();
-
-    // Set default optical physics
-    auto& optical = result.optical;
-    optical = {};
-    EXPECT_TRUE(optical);
-    EXPECT_TRUE(optical.cherenkov);
-    EXPECT_TRUE(optical.scintillation);
-
-    // Disable WLS which isn't yet working (reemission) in Celeritas
-    using WLSO = WavelengthShiftingOptions;
-    optical.wavelength_shifting = WLSO::deactivated();
-    optical.wavelength_shifting2 = WLSO::deactivated();
-
-    return result;
-}
-
-auto OpNoviceOptical::make_primary_input() const -> PrimaryInput
-{
-    using MevEnergy = Quantity<units::Mev, double>;
-    auto result = OpNoviceIntegrationMixin::make_primary_input();
-
-    result.shape = inp::PointDistribution{from_cm({0.1, 0.1, 0})};
-    result.primaries_per_event = 1;
-    result.energy = inp::MonoenergeticDistribution{MevEnergy{2.0}};
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Enable optical tracking.
- */
-auto OpNoviceOptical::make_setup_options() -> SetupOptions
-{
-    auto result = OpNoviceIntegrationMixin::make_setup_options();
-
-    result.optical_capacity = [] {
-        inp::OpticalStateCapacity cap;
-        cap.tracks = 32768;
-        cap.generators = 32768 * 8;
-        cap.primaries = cap.generators;
-        return cap;
-    }();
-
-    return result;
-}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -657,12 +507,12 @@ void OpNoviceOptical::EndOfRunAction(G4Run const* run)
     }
 
     // Continue cleanup and other checks at end of run
-    OpNovice::EndOfRunAction(run);
+    TMITestBase::EndOfRunAction(run);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Check that the test runs.
+ * Check that the OpNovice test run.
  */
 TEST_F(OpNoviceOptical, run)
 {
@@ -672,14 +522,14 @@ TEST_F(OpNoviceOptical, run)
     CELER_LOG(status) << "Run initialization";
     rm.Initialize();
     CELER_LOG(status) << "Run two events";
-    rm.BeamOn(2);
+    rm.BeamOn(12);
 
     if (this->HasFailure())
     {
         GTEST_SKIP() << "Skipping remaining tests since we've already failed";
     }
     CELER_LOG(status) << "Run one more event";
-    rm.BeamOn(2);
+    rm.BeamOn(12);
 }
 
 //---------------------------------------------------------------------------//
