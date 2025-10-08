@@ -15,6 +15,7 @@
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "corecel/sys/TraceCounter.hh"
 
 #include "ProtoInterface.hh"
 
@@ -101,7 +102,7 @@ InputBuilder::InputBuilder(Options&& opts) : opts_{std::move(opts)}
  */
 auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
 {
-    ScopedProfiling profile_this{"build-orange-input"};
+    ScopedProfiling profile_this{"orangeinp-build"};
     ScopedMem record_mem("orange.build_input");
     CELER_LOG(status) << "Constructing ORANGE surfaces and runtime data";
     ScopedTimeLog scoped_time;
@@ -129,6 +130,7 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
     }());
     for (auto univ_id : range(UniverseId{protos.size()}))
     {
+        trace_counter("orange-build-universe", univ_id.get());
         protos.at(univ_id)->build(builder);
     }
 
