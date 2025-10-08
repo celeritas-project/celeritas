@@ -6,7 +6,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <iosfwd>
 #include <string>
+
+#include "corecel/Config.hh"
 
 #include "geocel/detail/LengthUnits.hh"
 #include "orange/OrangeTypes.hh"
@@ -97,6 +100,17 @@ char const* to_cstring(InlineSingletons value);
 std::istream& operator>>(std::istream& is, Options&);
 // Helper to write to a file or stream
 std::ostream& operator<<(std::ostream& os, Options const&);
+
+#if !CELERITAS_USE_GEANT4
+inline std::istream& operator>>(std::istream&, Options&)
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+inline std::ostream& operator<<(std::ostream&, Options const&)
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace g4org
