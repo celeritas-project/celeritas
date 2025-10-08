@@ -19,6 +19,7 @@
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/VolumeToString.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeInput.hh"
@@ -107,6 +108,8 @@ void UnitProto::build(ProtoBuilder& input) const
     // Bounding box should be finite if and only if this is the global universe
     CELER_EXPECT((input.next_id() == orange_global_universe)
                  == !input.bbox(input.next_id()));
+
+    ScopedProfiling profile_this{"orange-unitproto"};
 
     // Build CSG unit
     auto csg_unit = this->build(input.tol(), input.bbox(input.next_id()));
@@ -384,6 +387,8 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
     CELER_LOG(debug) << "Building '" << this->label() << "' inside " << bbox
                      << ": " << input_.daughters.size() << " daughters and "
                      << input_.materials.size() << " materials...";
+
+    ScopedProfiling profile_this{"orange-csg"};
 
     detail::CsgUnit result;
     detail::CsgUnitBuilder unit_builder(

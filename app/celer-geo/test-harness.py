@@ -60,6 +60,11 @@ commands = [
     },
 ]
 
+env = dict(environ)
+if env["CMAKE_BUILD_TYPE"].lower() == "release":
+    commands[0]["perfetto_file"] = "out.perfetto"
+    env["CELER_ENABLE_PROFILING"] = "1"
+
 filename = f"{problem_name}.inp.jsonl"
 with open(filename, 'w') as f:
     for c in commands:
@@ -68,7 +73,8 @@ with open(filename, 'w') as f:
 
 print("Running", exe, filename, "from", getcwd(), file=stderr)
 result = subprocess.run([exe, filename],
-                        stdout=subprocess.PIPE)
+                        stdout=subprocess.PIPE,
+                        env=env)
 if result.returncode:
     print("Run failed with error", result.returncode)
     exit(result.returncode)
