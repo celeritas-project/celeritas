@@ -37,13 +37,13 @@
     {
       "name": "release",
       "displayName": "Build with optimizations and disable debug assertions",
-      "inherits": [".base", ".release"],
+      "inherits": [".base", ".ndebug"],
       "binaryDir": "${sourceDir}/build-release"
     },
     {
       "name": "release-amd",
       "displayName": "Release build for an AMD device",
-      "inherits": [".base", ".release-amd"],
+      "inherits": [".base", ".ndebug"],
       "binaryDir": "${sourceDir}/build-release-amd",
       "cacheVariables": {
         "CELERITAS_USE_CUDA": {"type": "BOOL", "value": "OFF"},
