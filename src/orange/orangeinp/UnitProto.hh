@@ -126,7 +126,7 @@ class UnitProto : public ProtoInterface
     };
 
     //! Optional transformations to apply when building a CsgUnit.
-    enum class Simplify
+    enum class Simplification
     {
         none,  //!< No simplification
         infix,  //!< CsgTree suitable for infix logic evaluation
@@ -144,7 +144,7 @@ class UnitProto : public ProtoInterface
         //!@{
         //! \name Construction options
 
-        Simplify simplify{Simplify::none};
+        Simplification simplify{Simplification::none};
         bool delete_exterior{true};
 
         //!@}
