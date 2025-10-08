@@ -111,7 +111,7 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
 
     // TODO: replace with surface stepping action when implemented
     track.sim().post_step_action(
-        surface_physics.scalars().surface_stepping_action);
+        surface_physics.scalars().post_boundary_action);
 }
 
 //---------------------------------------------------------------------------//
