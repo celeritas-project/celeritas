@@ -56,6 +56,7 @@ void from_json(nlohmann::json const& j, ModelSetup& v)
     GI_LOAD_OPTION(cuda_stack_size);
     GI_LOAD_OPTION(cuda_heap_size);
     GI_LOAD_REQUIRED(geometry_file);
+    GI_LOAD_OPTION(perfetto_file);
 }
 
 void from_json(nlohmann::json const& j, TraceSetup& v)
@@ -77,6 +78,15 @@ void to_json(nlohmann::json& j, ModelSetup const& v)
     GI_SAVE_NONZERO(cuda_stack_size);
     GI_SAVE_NONZERO(cuda_heap_size);
     GI_SAVE(geometry_file);
+}
+
+void to_json(nlohmann::json& j, ModelSetupOutput const& v)
+{
+    // Save base attributes
+    j = static_cast<ModelSetup const&>(v);
+    // Save versions
+    GI_SAVE(version_string);
+    GI_SAVE(version_hex);
 }
 
 void to_json(nlohmann::json& j, TraceSetup const& v)

@@ -37,24 +37,27 @@ class ProtoConstructorTest : public GeantLoadTestBase
 
     std::shared_ptr<UnitProto> load(std::string const& basename)
     {
+        Options opts;
+        opts.unit_length = 0.1;
+        return load(basename, opts);
+    }
+
+    std::shared_ptr<UnitProto>
+    load(std::string const& basename, Options const& opts)
+    {
         // Load GDML into Geant4
         this->load_test_gdml(basename);
 
         // Convert volumes into ORANGE representation
         auto const& geant_geo = this->geo();
-        PhysicalVolumeConverter make_pv(geant_geo, [] {
-            PhysicalVolumeConverter::Options opts;
-            opts.verbose = false;
-            opts.scale = 0.1;
-            return opts;
-        }());
+        PhysicalVolumeConverter make_pv(geant_geo, opts);
         PhysicalVolume world = make_pv(*geant_geo.world());
 
         EXPECT_TRUE(std::holds_alternative<NoTransformation>(world.transform));
         EXPECT_EQ(1, world.lv.use_count());
 
         // Construct proto
-        ProtoConstructor make_proto(*this->volumes(), false);
+        ProtoConstructor make_proto(*this->volumes(), opts);
         return make_proto(*world.lv);
     }
 
@@ -163,7 +166,6 @@ TEST_F(ProtoConstructorTest, two_boxes)
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
     }
 }
-
 //---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, intersection_boxes)
 {
@@ -492,7 +494,7 @@ TEST_F(ProtoConstructorTest, znenv)
     auto global_proto = this->load("znenv");
     ProtoMap protos{*global_proto};
 
-    static std::string const expected_proto_names[] = {
+    static char const* const expected_proto_names[] = {
         "World",
         "ZNTX",
         "ZN1",
@@ -588,6 +590,136 @@ TEST_F(ProtoConstructorTest, znenv)
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+        EXPECT_EQ(GeoMatId{}, u.background);
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(ProtoConstructorTest, znenv_explicit)
+{
+    Options opts;
+    std::istringstream{R"json({
+"_format": "g4org-options",
+"explicit_interior_threshold": 0,
+"inline_childless": false,
+"inline_singletons": "none",
+"inline_unions": false,
+"remove_interior": false,
+"remove_negated_join": true,
+"tol": {"abs": 0.0001, "rel": 0.001},
+"unit_length": 1.0,
+"csg_output_file": null,
+"objects_output_file": null,
+"org_output_file": null,
+"verbose_structure": false,
+"verbose_volumes": false
+})json"} >> opts;
+
+    auto&& opts_str = [&opts] {
+        std::ostringstream os;
+        os << opts;
+        return std::move(os).str();
+    }();
+    EXPECT_EQ(19, std::count(opts_str.begin(), opts_str.end(), '\n'))
+        << "JSON output changed: actual is " << repr(opts_str);
+
+    auto global_proto = this->load("znenv", opts);
+    ProtoMap protos{*global_proto};
+
+    static std::string const expected_proto_names[] = {
+        "World",
+        "ZNENV",
+        "ZNEU",
+        "ZNTX",
+        "ZN1",
+        "ZNSL",
+        "ZNST",
+        "ZNG1",
+        "ZNG2",
+        "ZNG3",
+        "ZNG4",
+        "ZNF1",
+        "ZNF2",
+        "ZNF3",
+        "ZNF4",
+    };
+    EXPECT_VEC_EQ(expected_proto_names, get_proto_names(protos));
+
+    ASSERT_EQ(15, protos.size());
+    {
+        SCOPED_TRACE("global");
+        auto u = this->build_unit(protos, UniverseId{0});
+
+        static char const* const expected_volume_strings[]
+            = {"any(-0, +1, -2, +3, -4, +5)", "all(+6, -7, +8, -9, +10, -11)"};
+        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+        EXPECT_EQ(GeoMatId{3}, u.background);
+    }
+    {
+        SCOPED_TRACE("ZNG1");
+        auto u = this->build_unit(protos, UniverseId{7});
+        static char const* const expected_surface_strings[] = {
+            "Plane: x=-0.3",
+            "Plane: x=0.3",
+            "Plane: y=-0.3",
+            "Plane: y=0.3",
+            "Plane: z=-500",
+            "Plane: z=500",
+            "Cyl z: r=0.1825",
+        };
+        static char const* const expected_volume_strings[]
+            = {"any(-0, +1, -2, +3, -4, +5)", "all(+4, -5, -6)"};
+        static char const* const expected_md_strings[] = {
+            "",
+            "",
+            "ZNG10x0@mx",
+            "",
+            "ZNG10x0@px",
+            "ZNG10x0@my",
+            "",
+            "ZNG10x0@py",
+            "ZNF10x0@mz,ZNG10x0@mz",
+            "",
+            "ZNF10x0@pz,ZNG10x0@pz",
+            "",
+            "[EXTERIOR]",
+            "ZNF10x0@cz",
+            "",
+            "ZNF10x0",
+        };
+
+        EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+        EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+        EXPECT_EQ(GeoMatId{1}, u.background);
+    }
+    {
+        SCOPED_TRACE("ZNF1");
+        auto u = this->build_unit(protos, UniverseId{11});
+
+        static char const* const expected_surface_strings[]
+            = {"Plane: z=-500", "Plane: z=500", "Cyl z: r=0.1825"};
+        static char const* const expected_volume_strings[]
+            = {"any(-0, +1, +2)", "all(+0, -1, -2)"};
+        static char const* const expected_md_strings[] = {
+            "",
+            "",
+            "ZNF10x0@mz",
+            "",
+            "ZNF10x0@pz",
+            "",
+            "ZNF10x0@cz",
+            "",
+            "[EXTERIOR]",
+            "ZNF10x0",
+        };
+        static char const* const expected_fill_strings[]
+            = {"<UNASSIGNED>", "m0"};
+
+        EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+        EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+        EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
         EXPECT_EQ(GeoMatId{}, u.background);
     }
 }

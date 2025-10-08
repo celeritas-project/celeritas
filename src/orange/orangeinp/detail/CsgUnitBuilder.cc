@@ -203,7 +203,7 @@ void CsgUnitBuilder::fill_volume(LocalVolumeId v,
  * \c CsgUnit data is updated to point to the simplified tree \c NodeId but any
  * previously cached \c NodeId is invalid.
  */
-void CsgUnitBuilder::simplifiy_joins()
+void CsgUnitBuilder::simplify_joins()
 {
     auto& tree = unit_->tree;
     auto simplification = transform_negated_joins(tree);

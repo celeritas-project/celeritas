@@ -84,31 +84,30 @@ OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo,
     CELER_EXPECT(volumes);
     CELER_EXPECT(!volumes->empty());
 
+    ScopedProfiling profile_this{"orange-load-geant"};
+
     // Set up options for debug output
-    g4org::Converter::Options opts;
-    if (celeritas::getenv_flag("G4ORG_VERBOSE", false).value)
+    g4org::Options opts;
+    if (auto opt_filename = celeritas::getenv("G4ORG_OPTIONS");
+        !opt_filename.empty())
     {
-        opts.verbose = true;
-    }
-    auto export_basename = celeritas::getenv("G4ORG_EXPORT");
-    if (!export_basename.empty())
-    {
-        opts.proto_output_file = export_basename + ".protos.json";
-        opts.debug_output_file = export_basename + ".csg.json";
+        std::ifstream infile{opt_filename};
+        CELER_VALIDATE(infile,
+                       << "failed to open g4org option file at '"
+                       << opt_filename << "'");
+        try
+        {
+            infile >> opts;
+        }
+        catch (std::exception const& e)
+        {
+            CELER_LOG(critical)
+                << "Failed to load options from " << opt_filename;
+        }
     }
 
     // Convert G4 geometry to ORANGE input data structure
     auto result = g4org::Converter{std::move(opts)}(*geo, *volumes).input;
-
-    if (!export_basename.empty())
-    {
-        // Debug export of constructed geometry
-        std::string filename = export_basename + ".org.json";
-        std::ofstream outf(filename);
-        CELER_VALIDATE(
-            outf, << "failed to open output file at \"" << filename << '"');
-        outf << nlohmann::json(result).dump(0);
-    }
 
     return std::make_shared<OrangeParams>(std::move(result),
                                           std::move(volumes));
@@ -142,6 +141,7 @@ OrangeParams::from_json(std::string const& filename)
 {
     CELER_LOG(info) << "Loading ORANGE geometry from JSON at " << filename;
     ScopedTimeLog scoped_time;
+    ScopedProfiling profile_this{"orange-load-json"};
 
     OrangeInput result;
 
@@ -172,7 +172,7 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
 {
     CELER_VALIDATE(input, << "input geometry is incomplete");
 
-    ScopedProfiling profile_this{"finalize-orange-runtime"};
+    ScopedProfiling profile_this{"orange-construct"};
     ScopedMem record_mem("orange.finalize_runtime");
     CELER_LOG(debug) << "Merging runtime data"
                      << (celeritas::device() ? " and copying to GPU" : "");

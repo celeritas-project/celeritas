@@ -76,6 +76,11 @@ void check_format(nlohmann::json const& j, std::string_view format)
                        << "invalid format for \"" << format << "\" input: \""
                        << format_str << "\"");
     }
+    else
+    {
+        CELER_LOG(debug) << "Missing validation for JSON '" << format
+                         << "' format";
+    }
 }
 
 //---------------------------------------------------------------------------//

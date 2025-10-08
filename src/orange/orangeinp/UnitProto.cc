@@ -19,6 +19,7 @@
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/VolumeToString.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeInput.hh"
@@ -107,6 +108,8 @@ void UnitProto::build(ProtoBuilder& input) const
     // Bounding box should be finite if and only if this is the global universe
     CELER_EXPECT((input.next_id() == orange_global_universe)
                  == !input.bbox(input.next_id()));
+
+    ScopedProfiling profile_this{"orange-unitproto"};
 
     // Build CSG unit
     auto csg_unit = this->build(input.tol(), input.bbox(input.next_id()));
@@ -385,6 +388,8 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
                      << ": " << input_.daughters.size() << " daughters and "
                      << input_.materials.size() << " materials...";
 
+    ScopedProfiling profile_this{"orange-csg"};
+
     detail::CsgUnit result;
     detail::CsgUnitBuilder unit_builder(
         &result, tol, is_global_universe ? BBox::from_infinite() : bbox);
@@ -442,7 +447,7 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
     // Build background fill (optional)
     result.background = input_.background.fill;
 
-    if (!is_global_universe)
+    if (!is_global_universe && input_.remove_interior)
     {
         // Replace "exterior" with "False" (i.e. interior with true)
         NodeId ext_node = result.tree.volumes()[ext_vol.unchecked_get()];
@@ -464,11 +469,11 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
                                ", ",
                                write_node_labels);
         }
+    }
 
-        if (input_.simplification == UnitSimplification::infix_logic)
-        {
-            unit_builder.simplifiy_joins();
-        }
+    if (input_.remove_negated_join)
+    {
+        unit_builder.simplify_joins();
     }
 
     return result;
