@@ -138,7 +138,9 @@ CELER_FUNCTION PhysSurfaceId SurfacePhysicsView::interface(
     CELER_EXPECT(pos);
 
     auto interface_pos = SurfaceTrackPosition{
-        pos.unchecked_get() + (d == SubsurfaceDirection::reverse ? -1 : 0)};
+        pos.unchecked_get()
+        + static_cast<SurfaceTrackPosition::size_type>(
+            d == SubsurfaceDirection::reverse ? -1 : 0)};
 
     CELER_ASSERT(interface_pos
                  < this->surface_record().subsurface_interfaces.size());
@@ -164,12 +166,13 @@ template<class T>
 CELER_FUNCTION T SurfacePhysicsView::oriented_map(
     ItemMap<SurfaceTrackPosition, T> const& map, SurfaceTrackPosition pos) const
 {
-    CELER_EXPECT(pos);
+    CELER_EXPECT(pos < map.size());
+
     auto index
         = orientation_ == SubsurfaceDirection::reverse
               ? SurfaceTrackPosition{map.size() - 1 - pos.unchecked_get()}
               : pos;
-    CELER_ASSERT(index < map.size());
+
     return map[index];
 }
 
