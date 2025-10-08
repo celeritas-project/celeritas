@@ -171,59 +171,6 @@ void CsgUnitBuilder::fill_volume(LocalVolumeId v,
 
 //---------------------------------------------------------------------------//
 /*!
- * Simplify negated joins for Infix evaluation.
- *
- * Apply DeMorgan simplification to use the \c CsgUnit in infix evaluation.
- * \c NodeId indexing in the \c CsgTree are invalidated after calling this,
- * \c CsgUnit data is updated to point to the simplified tree \c NodeId but any
- * previously cached \c NodeId is invalid.
- */
-void CsgUnitBuilder::simplify_joins()
-{
-    auto& tree = unit_->tree;
-    auto simplification = transform_negated_joins(tree);
-    CELER_ASSERT(tree.size() == simplification.new_nodes.size());
-    std::vector<std::set<CsgUnit::Metadata>> md;
-    md.resize(simplification.tree.size());
-
-    std::map<NodeId, CsgUnit::Region> regions;
-
-    for (auto node_idx : range(tree.size()))
-    {
-        if (auto equivalent_node = simplification.new_nodes[node_idx])
-        {
-            CELER_EXPECT(equivalent_node < md.size());
-            md[equivalent_node.unchecked_get()]
-                = std::move(unit_->metadata[node_idx]);
-            regions[equivalent_node]
-                = std::move(unit_->regions[NodeId{node_idx}]);
-        }
-        else
-        {
-            auto region = unit_->regions.find(NodeId{node_idx});
-            auto& md = unit_->metadata[node_idx];
-            if (region != unit_->regions.end() || !md.empty())
-            {
-                auto msg = CELER_LOG(warning);
-                msg << "Simplification removed node " << node_idx;
-                if (!md.empty())
-                {
-                    msg << "='" << join(md.begin(), md.end(), "','") << "'";
-                }
-                if (region != unit_->regions.end())
-                {
-                    msg << " (which has a region)";
-                }
-            }
-        }
-    }
-    unit_->metadata = std::move(md);
-    unit_->regions = std::move(regions);
-    unit_->tree = std::move(simplification.tree);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get a variant surface from a node ID.
  */
 VariantSurface const& CsgUnitBuilder::get_surface_impl(NodeId nid) const

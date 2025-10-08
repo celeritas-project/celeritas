@@ -103,9 +103,6 @@ class CsgUnitBuilder
     void
     fill_volume(LocalVolumeId, UniverseId, VariantTransform const& transform);
 
-    // Simplify negated joins for Infix evaluation
-    void simplify_joins();
-
   private:
     CsgUnit* unit_;
     Tol tol_;
@@ -118,6 +115,12 @@ class CsgUnitBuilder
 
     // TODO: cache of weak_ptr<{Transform,ObjectInterface}> -> NodeId?
 };
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+CsgUnit simplify_joins();
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

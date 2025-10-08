@@ -7,7 +7,9 @@
 #include "UnitProto.hh"
 
 #include <algorithm>
+#include <map>
 #include <numeric>
+#include <set>
 #include <utility>
 #include <nlohmann/json.hpp>
 
@@ -43,6 +45,120 @@ namespace celeritas
 {
 namespace orangeinp
 {
+namespace
+{
+using detail::CsgUnit;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Simplify a CSG tree by replaing 'exterior' with 'false'.
+ *
+ * This is allowed (and required, to avoid coincident surfaces) for non-global
+ * universes because higher levels truncate lower ones.
+ */
+void remove_interior(CsgUnit& unit, std::string_view label)
+{
+    CELER_EXPECT(!unit.tree.volumes().empty());
+    NodeId ext_node
+        = unit.tree.volumes()[orange_exterior_volume.unchecked_get()];
+    auto unknowns = replace_and_simplify(&unit.tree, ext_node, False{});
+    if (!unknowns.empty())
+    {
+        auto write_node_labels
+            = [&md = unit.metadata](std::ostream& os, NodeId nid) {
+                  CELER_ASSERT(nid < md.size());
+                  auto const& labels = md[nid.get()];
+                  os << '{' << join(labels.begin(), labels.end(), ", ") << '}';
+              };
+        CELER_LOG(warning)
+            << "While building '" << label
+            << "', encountered surfaces that could not be logically "
+               "eliminated from the boundary: "
+            << join_stream(
+                   unknowns.begin(), unknowns.end(), ", ", write_node_labels);
+    }
+}
+//---------------------------------------------------------------------------//
+/*!
+ * Simplify negated joins for infix evaluation.
+ *
+ * Apply DeMorgan simplification to use the \c CsgUnit in infix evaluation.
+ * \c NodeId indexing in the \c CsgTree are invalidated after calling this,
+ * \c CsgUnit data is updated to point to the simplified tree \c NodeId but any
+ * previously cached \c NodeId is invalid.
+ */
+void remove_negated_join(CsgUnit& unit, std::string_view label)
+{
+    // Apply demorgan simplification
+    auto&& [tree, nodes] = transform_negated_joins(unit.tree);
+    CELER_ASSERT(unit.tree.size() == nodes.size());
+    CELER_ASSERT(tree.volumes().size() == unit.tree.volumes().size());
+
+    // CsgUnit attributes with updated node IDs
+    std::vector<std::set<CsgUnit::Metadata>> metadata(tree.size());
+    std::map<NodeId, CsgUnit::Region> regions;
+
+    // Map metadata
+    for (auto old_id : range(id_cast<NodeId>(unit.tree.size())))
+    {
+        auto& old_md = unit.metadata[old_id.get()];
+        if (auto new_id = nodes[old_id.get()])
+        {
+            CELER_ASSERT(new_id < metadata.size());
+
+            // Update metadata
+            auto& new_md = metadata[new_id.get()];
+            if (CELER_UNLIKELY(!new_md.empty()))
+            {
+                // Node was merged with another node
+                CELER_LOG(warning)
+                    << "Merged CSG node "
+                    << join(new_md.begin(), new_md.end(), "','") << " into "
+                    << join(old_md.begin(), old_md.end(), "','");
+                new_md.insert(old_md.begin(), old_md.end());
+                old_md.clear();
+            }
+            else
+            {
+                new_md = std::move(old_md);
+            }
+
+            // Update region
+            if (auto iter = unit.regions.find(new_id);
+                iter != unit.regions.end())
+            {
+                regions.insert(unit.regions.extract(iter));
+            }
+        }
+        else
+        {
+            // Node was removed from the tree
+            auto region = unit.regions.find(old_id);
+            if (CELER_UNLIKELY(region != unit.regions.end() || !old_md.empty()))
+            {
+                auto msg = CELER_LOG(warning);
+                msg << "Simplification removed node " << old_id.get();
+                if (!old_md.empty())
+                {
+                    msg << "='" << join(old_md.begin(), old_md.end(), "','")
+                        << "'";
+                }
+                if (region != unit.regions.end())
+                {
+                    msg << " (which has a region)";
+                }
+                msg << " from '" << label << "'";
+            }
+        }
+    }
+
+    // Update the unit
+    unit.metadata = std::move(metadata);
+    unit.regions = std::move(regions);
+    unit.tree = std::move(tree);
+}
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with required input data.
@@ -401,6 +517,7 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
     };
 
     // Build exterior volume and optional background fill
+    // (Exterior volume *must* be built first so that its volume ID is zero).
     if (input_.boundary.zorder != ZOrder::media && !input_.background)
     {
         CELER_NOT_IMPLEMENTED("implicit exterior without background fill");
@@ -449,31 +566,13 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
 
     if (!is_global_universe && input_.remove_interior)
     {
-        // Replace "exterior" with "False" (i.e. interior with true)
-        NodeId ext_node = result.tree.volumes()[ext_vol.unchecked_get()];
-        auto unknowns = replace_and_simplify(&result.tree, ext_node, False{});
-        if (!unknowns.empty())
-        {
-            auto write_node_labels = [&md = result.metadata](std::ostream& os,
-                                                             NodeId nid) {
-                CELER_ASSERT(nid < md.size());
-                auto const& labels = md[nid.get()];
-                os << '{' << join(labels.begin(), labels.end(), ", ") << '}';
-            };
-            CELER_LOG(warning)
-                << "While building '" << this->label()
-                << "', encountered surfaces that could not be logically "
-                   "eliminated from the boundary: "
-                << join_stream(unknowns.begin(),
-                               unknowns.end(),
-                               ", ",
-                               write_node_labels);
-        }
+        // Assume that the enclosing universe provides our boundary conditions
+        remove_interior(result, this->label());
     }
 
     if (input_.remove_negated_join)
     {
-        unit_builder.simplify_joins();
+        remove_negated_join(result, this->label());
     }
 
     return result;
