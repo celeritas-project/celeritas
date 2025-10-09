@@ -111,6 +111,7 @@ std::string tree_string(CsgUnit const& u)
 //---------------------------------------------------------------------------//
 std::vector<std::string> md_strings(CsgUnit const& u)
 {
+    // NOTE: string simplifier removes pointer addresses from G4-derived names
     std::vector<std::string> result;
     ::celeritas::test::StringSimplifier simplify;
     for (auto const& md_set : u.metadata)

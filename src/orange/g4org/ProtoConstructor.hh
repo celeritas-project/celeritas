@@ -9,10 +9,10 @@
 #include <memory>
 #include <unordered_map>
 
-#include "corecel/OpaqueId.hh"
 #include "orange/orangeinp/ObjectInterface.hh"
 #include "orange/orangeinp/UnitProto.hh"
 
+#include "Options.hh"
 #include "Volume.hh"
 
 namespace celeritas
@@ -54,8 +54,8 @@ class ProtoConstructor
 
   public:
     //! Construct with verbosity setting
-    ProtoConstructor(VolumeParams const& vols, bool verbose)
-        : volumes_{vols}, verbose_{verbose}
+    ProtoConstructor(VolumeParams const& vols, Options const& options)
+        : volumes_{vols}, opts_{options}
     {
     }
 
@@ -68,9 +68,12 @@ class ProtoConstructor
     VolumeParams const& volumes_;
     std::unordered_map<LogicalVolume const*, SPUnitProto> protos_;
     int depth_{0};
-    bool verbose_{false};
+    Options const& opts_;
 
     //// HELPER FUNCTIONS ////
+
+    // Whether we should inline a volume based on its pv's transform
+    bool can_inline_transform(VariantTransform const&) const;
 
     // Place a physical volume into the given unconstructed proto
     void place_pv(VariantTransform const& parent_transform,
@@ -80,9 +83,11 @@ class ProtoConstructor
     SPConstObject make_explicit_background(LogicalVolume const& lv,
                                            VariantTransform const& transform);
 
-    // (TODO: make this configurable)
     //! Number of daughters above which we use a "fill" material
-    static constexpr int fill_daughter_threshold() { return 2; }
+    CELER_FORCEINLINE size_type fill_daughter_threshold()
+    {
+        return opts_.explicit_interior_threshold;
+    }
 };
 
 //---------------------------------------------------------------------------//

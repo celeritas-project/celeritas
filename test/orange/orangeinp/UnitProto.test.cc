@@ -470,8 +470,8 @@ class InputBuilderTest : public UnitProtoTest
         InputBuilder build_input([&] {
             InputBuilder::Options opts;
             opts.tol = this->tol_;
-            opts.proto_output_file = output_base + ".protos.json";
-            opts.debug_output_file = output_base + ".csg.json";
+            opts.objects_output_file = output_base + ".objects.json";
+            opts.csg_output_file = output_base + ".csg.json";
             return opts;
         }());
         OrangeInput inp = build_input(global);

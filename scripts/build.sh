@@ -124,12 +124,17 @@ install_precommit_if_git() {
 # source dir)
 cd "$(dirname $0)"/..
 
-# Determine system name
+# Determine system name, failing on an empty string
 SYSTEM_NAME=$(fancy_hostname)
+if [ -z "${SYSTEM_NAME}" ]; then
+  log warning "Could not determine SYSTEM_NAME from LMOD_SYSTEM_NAME or HOSTNAME"
+  log error "Empty SYSTEM_NAME"
+  exit 1
+fi
 
 # Check whether cmake changes from environment
 OLD_CMAKE=$(which cmake 2>/dev/null || echo "")
-OLD_PRE_COMMIT=$(which pre-commit 2>/dev/null)
+OLD_PRE_COMMIT=$(which pre-commit 2>/dev/null || echo "")
 
 # Load environment paths
 _env_script="scripts/env/${SYSTEM_NAME}.sh"
@@ -141,6 +146,7 @@ else
 fi
 
 NEW_CMAKE=$(which cmake 2>/dev/null || echo "cmake unavailable")
+NEW_PRE_COMMIT=$(which pre-commit 2>/dev/null || echo "")
 
 # Link preset file
 ln_presets "${SYSTEM_NAME}"
@@ -180,6 +186,11 @@ if cmake --build --preset=${CMAKE_PRESET}; then
   fi
 
   install_precommit_if_git
+  if [ "${NEW_PRE_COMMIT}" != "${OLD_PRE_COMMIT}" ]; then
+    log warning "Local environment script uses a different pre-commit than your \$PATH:"
+    log info "Recommend adding '. ${PWD}/${_env_script}' to your shell rc"
+  fi
+
   if [ "${NEW_CMAKE}" != "${OLD_CMAKE}" ]; then
     log warning "Local environment script uses a different CMake than your \$PATH:"
     log info "Recommend adding '. ${PWD}/${_env_script}' to your shell rc"

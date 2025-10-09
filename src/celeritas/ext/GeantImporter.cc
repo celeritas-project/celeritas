@@ -911,38 +911,6 @@ import_phys_materials(GeantImporter::DataSelection::Flags particle_flags,
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a populated \c ImportRegion vector.
- */
-std::vector<ImportRegion> import_regions()
-{
-    auto& regions = *G4RegionStore::GetInstance();
-
-    std::vector<ImportRegion> result(regions.size());
-
-    // Loop over region data
-    for (auto i : range(result.size()))
-    {
-        // Fetch material, element, and production cuts lists
-        auto const* g4reg = regions[i];
-        CELER_ASSERT(g4reg);
-        CELER_ASSERT(static_cast<std::size_t>(g4reg->GetInstanceID()) == i);
-
-        ImportRegion region;
-        region.name = g4reg->GetName();
-        region.field_manager = (g4reg->GetFieldManager() != nullptr);
-        region.production_cuts = (g4reg->GetProductionCuts() != nullptr);
-        region.user_limits = (g4reg->GetUserLimits() != nullptr);
-
-        // Add region to result
-        result[i] = std::move(region);
-    }
-
-    CELER_LOG(debug) << "Loaded " << result.size() << " regions";
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Return a populated \c ImportProcess vector.
  */
 auto import_processes(GeantImporter::DataSelection selected,
@@ -1479,7 +1447,6 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
                 << R"(DEPRECATED: volumes are always reproducibly uniquified)";
         }
 
-        imported.regions = import_regions();
         imported.volumes = import_volumes();
         if (selected.particles != DataSelection::none)
         {

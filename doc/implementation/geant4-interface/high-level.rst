@@ -23,8 +23,7 @@ manager correctly, we recommend using this helper class:
 
 .. doxygenclass:: celeritas::TrackingManagerConstructor
 
-The high-level :cpp:class:`celeritas::TrackingManagerIntegration` class should
-be used in
+The high-level :cpp:class:`celeritas::TrackingManagerIntegration` class should be used in
 addition to the tracking manager constructor to set up and tear down Celeritas.
 See :ref:`example_template` for a template of adding to a user application.
 
@@ -38,7 +37,6 @@ It is currently *not* recommended to offload tracks on a per-region basis, since
 tracks exiting that region remain in Celeritas and on GPU.
 
 .. doxygenclass:: celeritas::FastSimulationModel
-
 .. doxygenclass:: celeritas::FastSimulationIntegration
    :members:
 
@@ -51,7 +49,6 @@ class to integrate Celeritas by manually intercepting tracks with a
 
 .. doxygenclass:: celeritas::UserActionIntegration
    :members:
-
 
 The :cpp:class:`celeritas::SimpleOffload` class is a slightly lower level
 interface for

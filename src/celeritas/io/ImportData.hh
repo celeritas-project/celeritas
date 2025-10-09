@@ -73,7 +73,6 @@ struct ImportData
 
     //!@{
     //! \name Spatial region data
-    std::vector<ImportRegion> regions;
     std::vector<ImportVolume> volumes;
     //!@}
 

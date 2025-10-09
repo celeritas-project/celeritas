@@ -1923,7 +1923,6 @@ TEST_F(Solids, volumes_only)
     EXPECT_EQ(0, imported.particles.size());
     EXPECT_EQ(0, imported.elements.size());
     EXPECT_EQ(0, imported.geo_materials.size());
-    EXPECT_EQ(3, imported.regions.size());
     EXPECT_EQ(0, imported.phys_materials.size());
 
     std::vector<std::string> names;

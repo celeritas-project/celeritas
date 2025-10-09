@@ -38,8 +38,24 @@ struct PostBoundaryExecutor
  */
 CELER_FUNCTION void PostBoundaryExecutor::operator()(CoreTrackView& track) const
 {
-    // Force-kill tracks for now
-    track.sim().status(TrackStatus::killed);
+    auto traverse = track.surface_physics().traversal();
+    CELER_EXPECT(traverse.is_exiting());
+
+    if (traverse.in_pre_volume())
+    {
+        // Re-entrant into the pre-volume
+        auto geo = track.geometry();
+        geo.cross_boundary();
+        if (CELER_UNLIKELY(geo.failed()))
+        {
+            track.apply_errored();
+            return;
+        }
+    }
+
+    track.surface_physics().reset();
+
+    CELER_ENSURE(!track.surface_physics().is_crossing_boundary());
 }
 
 //---------------------------------------------------------------------------//

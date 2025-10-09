@@ -107,7 +107,7 @@ class CsgUnitBuilder
     fill_volume(LocalVolumeId, UniverseId, VariantTransform const& transform);
 
     // Simplify negated joins for Infix evaluation
-    void simplifiy_joins();
+    void simplify_joins();
 
   private:
     CsgUnit* unit_;

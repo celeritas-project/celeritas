@@ -7,6 +7,7 @@
 #pragma once
 
 #include "DielectricInteractionData.hh"
+#include "SurfaceInteraction.hh"
 
 namespace celeritas
 {
@@ -22,7 +23,10 @@ struct DielectricInteractionExecutor
     NativeCRef<DielectricData> dielectric_data;
     NativeCRef<UnifiedReflectionData> reflection_data;
 
-    inline CELER_FUNCTION void operator()(CoreTrackView&) const {}
+    inline CELER_FUNCTION SurfaceInteraction operator()(CoreTrackView const&) const
+    {
+        return SurfaceInteraction::from_absorption();
+    }
 };
 
 //---------------------------------------------------------------------------//

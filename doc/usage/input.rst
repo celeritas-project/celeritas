@@ -24,10 +24,6 @@ used both to enable options and to set up low-level C++ data structures. Many
 of the struct names in the ``inp`` namespace correspond to runtime Celeritas
 classes and objects.
 
-The highest-level problem definition input is:
-
-.. celerstruct:: inp::Problem
-
 The following sections describe the members and their configuration options.
 Note that most input classes (namespace ``inp``) match up with the runtime
 classes that they help construct. Many of these definitions allow selection
@@ -43,12 +39,11 @@ Problems are loaded into the framework or application front end via :ref:`api_pr
    :maxdepth: 2
    :caption: Input definition
 
+   input/problem.rst
    input/model.rst
    input/physics.rst
-   input/grid.rst
    input/field.rst
    input/scoring.rst
    input/tracking.rst
    input/control.rst
    input/diagnostics.rst
-   input/system.rst
