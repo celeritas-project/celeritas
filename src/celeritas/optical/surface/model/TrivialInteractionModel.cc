@@ -6,6 +6,15 @@
 //---------------------------------------------------------------------------//
 #include "TrivialInteractionModel.hh"
 
+#include "corecel/data/CollectionBuilder.hh"
+#include "celeritas/optical/CoreParams.hh"
+#include "celeritas/optical/CoreState.hh"
+#include "celeritas/optical/action/ActionLauncher.hh"
+#include "celeritas/optical/action/TrackSlotExecutor.hh"
+
+#include "SurfaceInteractionApplier.hh"
+#include "TrivialInteractor.hh"
+
 namespace celeritas
 {
 namespace optical

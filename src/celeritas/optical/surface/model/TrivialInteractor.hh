@@ -6,37 +6,42 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas/optical/CoreTrackView.hh"
+
+#include "TrivialInteractionData.hh"
+
 namespace celeritas
+{
+namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- * Optional detailed class description, and possibly example usage:
- * \code
-    TrivialInteractor ...;
-   \endcode
  */
-class TrivialInteractor
+struct TrivialInteractionExecutor
 {
-  public:
-    //!@{
-    //! \name Type aliases
-  <++>
-      //!@}
+    NativeCRef<TrivialInteractionData> data;
 
-      public :
-      // Construct with defaults
-      inline TrivialInteractor();
+    CELER_FUNCTION SurfaceInteraction operator()(CoreTrackView& track) const
+    {
+        auto sub_model_id = s_phys.interface(SurfacePhysicsOrder::interaction)
+                                .internal_surface_id();
+
+        switch (data.modes[sub_model_id])
+        {
+            case TrivialInteractionMode::absorb:
+                return SurfaceInteraction::from_absorption();
+            case TrivialInteractionMode::transmit:
+                return {SurfaceInteraction::Action::refracted,
+                        track.geometry().dir(),
+                        track.particle().polarization()};
+            case TrivialInteractionMode::backscatter:
+                return {SurfaceInteraction::Action::reflected,
+                        -track.geometry().dir(),
+                        -track.particle().polarization()};
+        }
+    }
 };
 
 //---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Construct with defaults.
- */
-TrivialInteractor::TrivialInteractor() {}
-
-//---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

@@ -6,6 +6,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Macros.hh"
+#include "corecel/data/Collection.hh"
+#include "celeritas/optical/Types.hh"
+
 namespace celeritas
 {
 namespace optical
@@ -16,9 +20,7 @@ enum class TrivialInteractionMode
 {
     absorb,  //!< absorb on surface
     transmit,  //!< transmit with no change
-    reflect,  //!< geometric reflection
     backscatter,  //!< back scatter
-    size_
 };
 
 //---------------------------------------------------------------------------//
