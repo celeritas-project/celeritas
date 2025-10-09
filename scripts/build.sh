@@ -141,6 +141,7 @@ else
 fi
 
 NEW_CMAKE=$(which cmake 2>/dev/null || echo "cmake unavailable")
+NEW_PRE_COMMIT=$(which pre-commit 2>/dev/null || echo "")
 
 # Link preset file
 ln_presets "${SYSTEM_NAME}"
@@ -180,6 +181,11 @@ if cmake --build --preset=${CMAKE_PRESET}; then
   fi
 
   install_precommit_if_git
+  if [ "${NEW_PRE_COMMIT}" != "${OLD_PRE_COMMIT}" ]; then
+    log warning "Local environment script uses a different pre-commit than your \$PATH:"
+    log info "Recommend adding '. ${PWD}/${_env_script}' to your shell rc"
+  fi
+
   if [ "${NEW_CMAKE}" != "${OLD_CMAKE}" ]; then
     log warning "Local environment script uses a different CMake than your \$PATH:"
     log info "Recommend adding '. ${PWD}/${_env_script}' to your shell rc"
