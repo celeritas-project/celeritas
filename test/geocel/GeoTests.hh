@@ -693,11 +693,14 @@ void TwoBoxesGeoTest::test_detailed_tracking(GeoTest* test)
     geo.set_dir({-1, 0, 0});
     next = geo.find_next_step(from_cm(1000));
     EXPECT_TRUE(next.boundary);
-    if (test->geometry_type() == "VecGeom" && using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
+    if (test->geometry_type() == "VecGeom" && using_solids_vg
+        && CELERITAS_VECGEOM_VERSION >= 0x020000)
     {
-        // TODO: investigate why VecGeom 2.x-solids gets lost with a grazing track
-        EXPECT_SOFT_EQ(505+2*dx, to_cm(next.distance));
-        GTEST_SKIP() << "FIXME: VecGeom 2.x-solids gets lost with a grazing track";
+        // TODO: investigate why VecGeom 2.x-solids gets lost with a grazing
+        // track
+        EXPECT_SOFT_EQ(505 + 2 * dx, to_cm(next.distance));
+        GTEST_SKIP() << "FIXME: VecGeom 2.x-solids gets lost with a grazing "
+                        "track";
     }
     EXPECT_SOFT_NEAR(2 * dx, to_cm(next.distance), 1e-12);
     geo.move_to_boundary();

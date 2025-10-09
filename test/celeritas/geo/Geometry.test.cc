@@ -23,9 +23,11 @@ namespace test
 constexpr bool using_orange_geo
     = (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE);
 constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
-            && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
+                                  && CELERITAS_CORE_GEO
+                                         == CELERITAS_CORE_GEO_VECGEOM;
 constexpr bool using_solids_vg = !CELERITAS_VECGEOM_SURFACE
-            && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
+                                 && CELERITAS_CORE_GEO
+                                        == CELERITAS_CORE_GEO_VECGEOM;
 
 //---------------------------------------------------------------------------//
 class GeometryTest : public HeuristicGeoTestBase
@@ -343,9 +345,7 @@ TEST_F(TestEm3Test, run)
                         "boundaries";
     }
 
-    real_type tol = using_orange_geo         ? 1e-3
-                    : !using_surface_vg ? 0.35
-                                             : 1000;
+    real_type tol = using_orange_geo ? 1e-3 : !using_surface_vg ? 0.35 : 1000;
     this->run(512, /* num_steps = */ 1024, tol);
 }
 
@@ -384,8 +384,7 @@ TEST_F(ThreeSpheresTest, avg_path)
 {
     // Results were generated with ORANGE
     // TODO: investigate differences w.r.t. surface model
-    real_type tol = using_orange_geo ? 1e-3
-                                     : !using_surface_vg ? 0.05 : 0.80;
+    real_type tol = using_orange_geo ? 1e-3 : !using_surface_vg ? 0.05 : 0.80;
     EXPECT_TRUE(this->geometry()->supports_safety());
     this->run(512, /* num_steps = */ 1024, tol);
 }
