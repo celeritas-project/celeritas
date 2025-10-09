@@ -534,7 +534,7 @@ auto OpNoviceIntegrationMixin::make_primary_input() const -> PrimaryInput
     result.pdg = {pdg::positron()};
     result.energy = inp::MonoenergeticDistribution{MevEnergy{0.5}};
     result.shape = inp::PointDistribution{from_cm({0., 0., 0.})};
-    result.angle = inp::MonodirectionalDistribution{from_cm({1., 0., 0.})};
+    result.angle = inp::MonodirectionalDistribution{{1., 0., 0.}};
     result.num_events = 12;  // Overridden with BeamOn
     result.primaries_per_event = 10;
     return result;
