@@ -1,4 +1,38 @@
 #!/bin/bash
+#-------------------------------- -*- sh -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+#
+# SYNOPSIS
+#   gcov_for_clang.sh gcov-options
+#
+# DESCRIPTION
+#   A wrapper script that provides gcov-compatible interface for LLVM's
+#   llvm-cov tool when using Clang compiler. This script automatically
+#   detects and uses the appropriate LLVM coverage tool version.
+#
+#   If `LLVM_COV` is set in the environment, it uses that as the coverage tool.
+#   If not set, it first attempts to use 'llvm-cov' if available in PATH.
+#   If not found, it determines the Clang version and looks for a
+#   version-specific instance like 'llvm-cov-18'.
+#
+#   If `llvm-cov` is not found issues an error message and list available
+#   `llvm-cov` found on the PATH.
+#
+# ENVIRONMENT VARIABLES
+#   LLVM_COV  - Path to the LLVM coverage tool (optional)
+#   CXX       - C++ compiler to detect version from (defaults to clang++)
+#
+# USAGE EXAMPLES
+#   # Basic usage (gcovr will call this script)
+#   gcovr --gcov-executable=./scripts/gcov_for_clang.sh
+#
+# EXIT STATUS
+#   0   Success
+#   1   LLVM coverage tool not found
+#   *   Exit code from llvm-cov gcov command
+#
 
 if [ -z ${LLVM_COV+x} ];
 then
