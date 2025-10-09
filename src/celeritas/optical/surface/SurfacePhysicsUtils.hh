@@ -62,7 +62,8 @@ calc_subsurface_direction(Real3 const& geo_dir, Real3 const& normal)
 /*!
  * Calculate geometric reflection of an incident vector about a normal.
  */
-inline CELER_FUNCTION Real3 geometric_reflection(Real3 dir, Real3 const& normal)
+[[nodiscard]] inline CELER_FUNCTION Real3
+geometric_reflected_from(Real3 dir, Real3 const& normal)
 {
     axpy(-2 * dot_product(dir, normal), normal, &dir);
     return dir;

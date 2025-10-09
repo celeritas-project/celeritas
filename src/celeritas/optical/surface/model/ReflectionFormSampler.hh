@@ -17,7 +17,7 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * A view into UNIFIED model grids to sample reflection mode probabilities.
+ * Calculate probability for each reflection mode from UNIFIED model grids.
  */
 class ReflectionModeSampler
 {
@@ -125,10 +125,10 @@ ReflectionFormSampler::operator()(Engine& rng) const
             return calc_reflection_.calc_specular_lobe();
         case ReflectionMode::backscatter:
             return calc_reflection_.calc_backscatter();
-        case ReflectionMode::size_:
-            return calc_reflection_.sample_lambertian_reflection(rng);
         default:
-            CELER_ASSERT_UNREACHABLE();
+            // The other probabilities are allowed to sum to less than unity:
+            // the remainder is diffuse
+            return calc_reflection_.sample_lambertian_reflection(rng);
     }
 }
 //---------------------------------------------------------------------------//

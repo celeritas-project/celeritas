@@ -6,6 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <iomanip>
+#include <iostream>
+
 #include "corecel/Macros.hh"
 #include "celeritas/optical/MaterialView.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
@@ -133,9 +136,11 @@ FresnelCalculator::FresnelCalculator(Real3 const& direction,
     CELER_EXPECT(relative_r_index > 0);
     CELER_EXPECT(is_entering_surface(direction_, normal));
 
-    // \todo Check why the dot product is slightly greater than 1 sometimes
-    cos_theta_
-        = clamp(-dot_product(direction_, normal_), real_type{0}, real_type{1});
+    // Sometimes dot product of normalized parallel vectors is the next
+    // representation after 1. Round down to exactly 1 to avoid errors.
+    CELER_EXPECT(-dot_product(direction_, normal_)
+                 <= std::nextafter(real_type{1}, real_type{2}));
+    cos_theta_ = min(-dot_product(direction_, normal_), real_type{1});
 
     real_type sin_phi = sqrt(1 - ipow<2>(cos_theta_)) / relative_r_index_;
 

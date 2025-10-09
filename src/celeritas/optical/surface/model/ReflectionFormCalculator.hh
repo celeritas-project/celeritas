@@ -26,9 +26,6 @@ namespace optical
  *  2. Specular lobe: geometric reflection about facet normal
  *  3. Back-scattering: reversed photon direction and polarization
  *  4. Diffuse Lambertian: reflection following Lambert's cosine law
- *
- * Only one reflection mode is selected based on the provided list of
- * probabilities.
  */
 class ReflectionFormCalculator
 {
@@ -171,8 +168,8 @@ ReflectionFormCalculator::calc_specular_reflection(Real3 const& normal) const
 {
     SurfaceInteraction result;
     result.action = SurfaceInteraction::Action::reflected;
-    result.direction = geometric_reflection(direction_, normal);
-    result.polarization = -geometric_reflection(polarization_, normal);
+    result.direction = geometric_reflected_from(direction_, normal);
+    result.polarization = -geometric_reflected_from(polarization_, normal);
     return result;
 }
 

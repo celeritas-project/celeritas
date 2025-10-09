@@ -22,7 +22,11 @@ using namespace ::celeritas::test;
 //---------------------------------------------------------------------------//
 // HELPER CLASSES
 //---------------------------------------------------------------------------//
-
+/*!
+ * In the \c CoordinateAxes definition, the transverse-electric mode is the
+ * polarization component along \f(\hat{p}\f), and the transverse-magnetic mode
+ * is the remaining component.
+ */
 struct LinearPolarization
 {
     real_type t_e;
@@ -32,13 +36,23 @@ struct LinearPolarization
 static LinearPolarization const TE{1, 0};
 static LinearPolarization const TM{0, 1};
 
+//---------------------------------------------------------------------------//
+/*!
+ * Coordinate frame for a surface normal with an incident photon.
+ *
+ * The \f(\hat{n}\f) axis is the surface normal. If the incident photon
+ * direction is antiparallel to the normal, then \f(\hat{p}\f) is the photon
+ * polarization. Otherwise, \f(\hat{s}\f) is the orthogonal component of the
+ * direction from the normal. In both cases, the remaining vector is defined
+ * through the remaining cross product.
+ */
 struct CoordinateAxes
 {
     real_type rel_r_index;
 
-    Real3 n_hat;
-    Real3 s_hat;
-    Real3 p_hat;
+    Real3 n_hat;  //!< surface normal
+    Real3 s_hat;  //!< direction in plane (along photon direction)
+    Real3 p_hat;  //!< out-of-plane direction
 
     explicit operator bool() const
     {
