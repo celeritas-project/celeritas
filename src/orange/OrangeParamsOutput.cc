@@ -15,6 +15,7 @@
 
 #include "OrangeInputIO.json.hh"
 #include "OrangeParams.hh"  // IWYU pragma: keep
+#include "OrangeTypesIO.json.hh"
 
 namespace celeritas
 {

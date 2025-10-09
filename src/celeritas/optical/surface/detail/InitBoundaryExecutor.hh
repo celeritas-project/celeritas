@@ -109,9 +109,8 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
     CELER_ASSERT(
         is_entering_surface(geo.dir(), surface_physics.global_normal()));
 
-    // TODO: replace with surface stepping action when implemented
     track.sim().post_step_action(
-        surface_physics.scalars().post_boundary_action);
+        surface_physics.scalars().surface_stepping_action);
 }
 
 //---------------------------------------------------------------------------//

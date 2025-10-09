@@ -87,8 +87,11 @@ Volumetric processes
 Like other particles, optical photons undergo stochastic interactions inside
 optical materials.
 
-.. doxygenclass:: celeritas::optical::AbsorptionModel
-.. doxygenclass:: celeritas::optical::RayleighModel
++.. doxygenclass:: celeritas::optical::AbsorptionInteractor
++.. doxygenclass:: celeritas::optical::RayleighInteractor
++.. doxygenclass:: celeritas::optical::MieInteractor
++.. doxygenclass:: celeritas::optical::WaveLengthShiftInteractor
+
 .. doxygenclass:: celeritas::optical::RayleighMfpCalculator
 
 .. _surface_processes:

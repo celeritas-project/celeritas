@@ -33,6 +33,7 @@
 #include <G4NuclearFormfactorType.hh>
 #include <G4NucleiProperties.hh>
 #include <G4OpAbsorption.hh>
+#include <G4OpMieHG.hh>
 #include <G4OpRayleigh.hh>
 #include <G4OpWLS.hh>
 #include <G4ParticleDefinition.hh>
@@ -677,6 +678,15 @@ import_optical_materials(detail::GeoOpticalIdMap const& geo_to_opt)
                      "WLSCOMPONENT2",
                      {ImportUnits::mev, ImportUnits::unitless});
 
+        // Save Mie properties
+        get_property(&optical.mie.forward_ratio,
+                     "MIEHG_FORWARD_RATIO",
+                     ImportUnits::unitless);
+        get_property(
+            &optical.mie.forward_g, "MIEHG_FORWARD", ImportUnits::unitless);
+        get_property(
+            &optical.mie.backward_g, "MIEHG_BACKWARD", ImportUnits::unitless);
+
         CELER_ASSERT(optical);
     }
 
@@ -713,8 +723,10 @@ inp::SurfacePhysics import_optical_surface_physics()
     result.roughness.polished.emplace(default_surface, inp::NoRoughness{});
     result.reflectivity.fresnel.emplace(default_surface,
                                         inp::FresnelReflection{});
-    result.interaction.dielectric_dielectric.emplace(
-        default_surface, inp::ReflectionForm::from_spike());
+    result.interaction.dielectric.emplace(
+        default_surface,
+        inp::DielectricInteraction::from_dielectric(
+            inp::ReflectionForm::from_spike()));
 
     CELER_LOG(debug) << "Loaded " << result.materials.size()
                      << " optical surfaces (" << num_phys_surfaces
@@ -899,38 +911,6 @@ import_phys_materials(GeantImporter::DataSelection::Flags particle_flags,
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a populated \c ImportRegion vector.
- */
-std::vector<ImportRegion> import_regions()
-{
-    auto& regions = *G4RegionStore::GetInstance();
-
-    std::vector<ImportRegion> result(regions.size());
-
-    // Loop over region data
-    for (auto i : range(result.size()))
-    {
-        // Fetch material, element, and production cuts lists
-        auto const* g4reg = regions[i];
-        CELER_ASSERT(g4reg);
-        CELER_ASSERT(static_cast<std::size_t>(g4reg->GetInstanceID()) == i);
-
-        ImportRegion region;
-        region.name = g4reg->GetName();
-        region.field_manager = (g4reg->GetFieldManager() != nullptr);
-        region.production_cuts = (g4reg->GetProductionCuts() != nullptr);
-        region.user_limits = (g4reg->GetUserLimits() != nullptr);
-
-        // Add region to result
-        result[i] = std::move(region);
-    }
-
-    CELER_LOG(debug) << "Loaded " << result.size() << " regions";
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Return a populated \c ImportProcess vector.
  */
 auto import_processes(GeantImporter::DataSelection selected,
@@ -1029,6 +1009,14 @@ auto import_processes(GeantImporter::DataSelection selected,
             optical_models.push_back(
                 import_optical_model(optical::ImportModelClass::wls));
         }
+        //  CELER_LOG(debug)<<"Adding mie";
+        else if (import_optical_model
+                 && dynamic_cast<G4OpMieHG const*>(&process))
+        {
+            optical_models.push_back(
+                import_optical_model(optical::ImportModelClass::mie));
+        }
+
 #if G4VERSION_NUMBER >= 1070
         else if (import_optical_model
                  && dynamic_cast<G4OpWLS2 const*>(&process))
@@ -1459,7 +1447,6 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
                 << R"(DEPRECATED: volumes are always reproducibly uniquified)";
         }
 
-        imported.regions = import_regions();
         imported.volumes = import_volumes();
         if (selected.particles != DataSelection::none)
         {

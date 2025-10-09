@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "OpticalMockTestBase.hh"
 
+#include "celeritas/UnitTypes.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/io/ImportOpticalModel.hh"
 
@@ -209,6 +210,11 @@ void OpticalMockTestBase::build_import_data(ImportData& data) const
         data.optical_materials[0].wls2.component.x = {
             1.771e-6, 1.850e-6, 1.901e-6, 2.003e-6, 2.073e-6, 2.141e-6, 2.171e-6};
 
+        // Add parameters for mie scattering
+        data.optical_materials[0].mie.forward_g = 0.99;
+        data.optical_materials[0].mie.backward_g = 0.99;
+        data.optical_materials[0].mie.forward_ratio = 0.8;
+
         data.optical_materials[1].properties.refractive_index
             = native_physics_vector_from<units::ElectronVolt, units::Native>(
                 {1.098177, 1.256172, 1.484130},
@@ -241,7 +247,7 @@ void OpticalMockTestBase::build_import_data(ImportData& data) const
 
     // Build mock imported optical models
     {
-        data.optical_models.resize(4);
+        data.optical_models.resize(5);
 
         data.optical_models[0].model_class = ImportModelClass::absorption;
         data.optical_models[0].mfp_table
@@ -282,6 +288,17 @@ void OpticalMockTestBase::build_import_data(ImportData& data) const
                 {{2e-3, 2e2}, {4.9, 9.4}},
                 {{1e-3, 4e-3, 5e-1}, {1.3, 5.9, 8.4}},
             });
+
+        // Mie scattering model
+        data.optical_models[4].model_class = ImportModelClass::mie;
+        data.optical_models[4].mfp_table
+            = native_physics_table_from<units::Mev, units::Centimeter>({
+                {{1e-1, 1e1}, {2.3, 5.4}},
+                {{2e-2, 1e0, 3e2}, {5.7, 6.2, 9.3}},
+                {{3e-2, 3e2}, {3.2, 9.4}},
+                {{2e-3, 2e2}, {4.9, 9.4}},
+                {{1e-3, 4e-3, 5e-1}, {1.3, 5.9, 8.4}},
+            });
     }
 }
 
@@ -301,6 +318,8 @@ OpticalMockTestBase::import_model_by_class(ImportModelClass imc) const
             return this->imported_data().optical_models[1];
         case ImportModelClass::wls:
             return this->imported_data().optical_models[2];
+        case ImportModelClass::mie:
+            return this->imported_data().optical_models[4];
         default:
             CELER_ASSERT_UNREACHABLE();
     }

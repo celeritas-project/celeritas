@@ -190,8 +190,10 @@ auto ImportedDataTestBase::build_optical_surface_physics()
         input.materials.push_back(std::vector<OptMatId>{});
         input.roughness.polished.emplace(s, inp::NoRoughness{});
         input.reflectivity.fresnel.emplace(s, inp::FresnelReflection{});
-        input.interaction.dielectric_dielectric.emplace(
-            s, inp::ReflectionForm::from_spike());
+        input.interaction.dielectric.emplace(
+            s,
+            inp::DielectricInteraction::from_dielectric(
+                inp::ReflectionForm::from_spike()));
     }
 
     return std::make_shared<optical::SurfacePhysicsParams>(

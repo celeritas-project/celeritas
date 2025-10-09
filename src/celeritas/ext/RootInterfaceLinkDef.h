@@ -31,12 +31,12 @@
 #pragma link C++ class celeritas::ImportOpticalParameters+;
 #pragma link C++ class celeritas::ImportOpticalProperty+;
 #pragma link C++ class celeritas::ImportOpticalRayleigh+;
+#pragma link C++ class celeritas::ImportMie+;
 #pragma link C++ class celeritas::ImportParticleScintSpectrum+;
 #pragma link C++ class celeritas::ImportPhysicsTable+;
 #pragma link C++ class celeritas::ImportPhysMaterial+;
 #pragma link C++ class celeritas::ImportProcess+;
 #pragma link C++ class celeritas::ImportProductionCut+;
-#pragma link C++ class celeritas::ImportRegion+;
 #pragma link C++ class celeritas::ImportScintComponent+;
 #pragma link C++ class celeritas::ImportScintData+;
 #pragma link C++ class celeritas::ImportTransParameters+;
@@ -45,6 +45,7 @@
 
 
 // Input data
+#pragma link C++ class celeritas::inp::DielectricInteraction+;
 #pragma link C++ class celeritas::inp::FresnelReflection+;
 #pragma link C++ class celeritas::inp::GaussianRoughness+;
 #pragma link C++ class celeritas::inp::Grid+;
@@ -55,6 +56,7 @@
 #pragma link C++ class celeritas::inp::OpticalPhysics+;
 #pragma link C++ class celeritas::inp::Particle+;
 #pragma link C++ class celeritas::inp::ReflectionForm+;
+#pragma link C++ class celeritas::inp::ReflectionForm::ReflectionGrids+;
 #pragma link C++ class celeritas::inp::SmearRoughness+;
 #pragma link C++ class celeritas::inp::SurfacePhysics+;
 #pragma link C++ class celeritas::inp::TwodGrid+;

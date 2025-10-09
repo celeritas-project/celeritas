@@ -1627,7 +1627,7 @@ TEST_F(LarSphere, optical)
 {
     ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::info};
     auto&& imported = this->imported_data();
-    ASSERT_EQ(4, imported.optical_models.size());
+    ASSERT_EQ(5, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(3, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
@@ -1780,7 +1780,7 @@ TEST_F(LarSphere, optical)
 
     {
         // Check WLS optical properties
-        auto const& model = imported.optical_models[2];
+        auto const& model = imported.optical_models[3];
         EXPECT_EQ(optical::ImportModelClass::wls, model.model_class);
         ASSERT_EQ(1, model.mfp_table.size());
 
@@ -1811,7 +1811,7 @@ TEST_F(LarSphere, optical)
     }
     {
         // Check WLS2 optical properties
-        auto const& model = imported.optical_models[3];
+        auto const& model = imported.optical_models[4];
         EXPECT_EQ(optical::ImportModelClass::wls2, model.model_class);
         ASSERT_EQ(1, model.mfp_table.size());
 
@@ -1861,7 +1861,7 @@ TEST_F(LarSphere, optical)
 TEST_F(LarSphereExtramat, optical)
 {
     auto&& imported = this->imported_data();
-    ASSERT_EQ(4, imported.optical_models.size());
+    ASSERT_EQ(5, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(3, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
@@ -1923,7 +1923,6 @@ TEST_F(Solids, volumes_only)
     EXPECT_EQ(0, imported.particles.size());
     EXPECT_EQ(0, imported.elements.size());
     EXPECT_EQ(0, imported.geo_materials.size());
-    EXPECT_EQ(3, imported.regions.size());
     EXPECT_EQ(0, imported.phys_materials.size());
 
     std::vector<std::string> names;
@@ -1987,6 +1986,21 @@ TEST_F(Solids, physics)
 
 TEST_F(OpticalSurfaces, surfaces)
 {
+    auto specular_spike = [](inp::DielectricInteraction const& di) {
+        return di.reflection
+            .reflection_grids[optical::ReflectionMode::specular_spike];
+    };
+
+    auto specular_lobe = [](inp::DielectricInteraction const& di) {
+        return di.reflection
+            .reflection_grids[optical::ReflectionMode::specular_lobe];
+    };
+
+    auto backscatter = [](inp::DielectricInteraction const& di) {
+        return di.reflection
+            .reflection_grids[optical::ReflectionMode::backscatter];
+    };
+
     auto&& osp = this->imported_data().optical_physics.surfaces;
     EXPECT_TRUE(osp);
 
@@ -2002,13 +2016,13 @@ TEST_F(OpticalSurfaces, surfaces)
         EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
         EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
 
-        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
-        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric, sid));
 
-        auto& rf = osp.interaction.dielectric_dielectric.find(sid)->second;
-        EXPECT_SOFT_EQ(1, rf.specular_spike.y[0]);
-        EXPECT_SOFT_EQ(0, rf.specular_lobe.y[0]);
-        EXPECT_SOFT_EQ(0, rf.backscatter.y[0]);
+        auto& di = osp.interaction.dielectric.find(sid)->second;
+        EXPECT_FALSE(di.is_metal);
+        EXPECT_SOFT_EQ(1, specular_spike(di).y[0]);
+        EXPECT_SOFT_EQ(0, specular_lobe(di).y[0]);
+        EXPECT_SOFT_EQ(0, backscatter(di).y[0]);
     }
 
     // tube2_surf: glisur, ground, dielectric-dielectric, specular lobe
@@ -2021,17 +2035,17 @@ TEST_F(OpticalSurfaces, surfaces)
         EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
         EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
 
-        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
-        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric, sid));
 
         static double const polish
             = 1 - osp.roughness.smear.find(sid)->second.roughness;
         EXPECT_SOFT_EQ(0.9, polish);
 
-        auto& rf = osp.interaction.dielectric_dielectric.find(sid)->second;
-        EXPECT_SOFT_EQ(0, rf.specular_spike.y[0]);
-        EXPECT_SOFT_EQ(1, rf.specular_lobe.y[0]);
-        EXPECT_SOFT_EQ(0, rf.backscatter.y[0]);
+        auto& di = osp.interaction.dielectric.find(sid)->second;
+        EXPECT_FALSE(di.is_metal);
+        EXPECT_SOFT_EQ(0, specular_spike(di).y[0]);
+        EXPECT_SOFT_EQ(1, specular_lobe(di).y[0]);
+        EXPECT_SOFT_EQ(0, backscatter(di).y[0]);
     }
 
     // lomid_surf: unified, polished, dielectric-dielectric
@@ -2044,21 +2058,21 @@ TEST_F(OpticalSurfaces, surfaces)
         EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
         EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
 
-        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
-        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric, sid));
 
-        auto& rf = osp.interaction.dielectric_dielectric.find(sid)->second;
+        auto& di = osp.interaction.dielectric.find(sid)->second;
+        EXPECT_FALSE(di.is_metal);
         static double const expected_energy[] = {2e-06, 8e-06};
         static double const expected_specular_spike[] = {0.1, 0.3};
         static double const expected_specular_lobe[] = {0.2, 0.2};
         static double const expected_backscatter[] = {0.3, 0.1};
 
-        EXPECT_VEC_SOFT_EQ(expected_energy, rf.specular_lobe.x);
-        EXPECT_VEC_SOFT_EQ(expected_energy, rf.specular_spike.x);
-        EXPECT_VEC_SOFT_EQ(expected_energy, rf.backscatter.x);
-        EXPECT_VEC_SOFT_EQ(expected_specular_lobe, rf.specular_lobe.y);
-        EXPECT_VEC_SOFT_EQ(expected_specular_spike, rf.specular_spike.y);
-        EXPECT_VEC_SOFT_EQ(expected_backscatter, rf.backscatter.y);
+        EXPECT_VEC_SOFT_EQ(expected_energy, specular_lobe(di).x);
+        EXPECT_VEC_SOFT_EQ(expected_energy, specular_spike(di).x);
+        EXPECT_VEC_SOFT_EQ(expected_energy, backscatter(di).x);
+        EXPECT_VEC_SOFT_EQ(expected_specular_lobe, specular_lobe(di).y);
+        EXPECT_VEC_SOFT_EQ(expected_specular_spike, specular_spike(di).y);
+        EXPECT_VEC_SOFT_EQ(expected_backscatter, backscatter(di).y);
     }
 
     // midlo_surf: glisur, polished, dielectric-metal, specular spike
@@ -2071,13 +2085,13 @@ TEST_F(OpticalSurfaces, surfaces)
         EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
         EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
 
-        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
-        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric, sid));
 
-        auto& rf = osp.interaction.dielectric_metal.find(sid)->second;
-        EXPECT_SOFT_EQ(1, rf.specular_spike.y[0]);
-        EXPECT_SOFT_EQ(0, rf.specular_lobe.y[0]);
-        EXPECT_SOFT_EQ(0, rf.backscatter.y[0]);
+        auto& di = osp.interaction.dielectric.find(sid)->second;
+        EXPECT_TRUE(di.is_metal);
+        EXPECT_SOFT_EQ(1, specular_spike(di).y[0]);
+        EXPECT_SOFT_EQ(0, specular_lobe(di).y[0]);
+        EXPECT_SOFT_EQ(0, backscatter(di).y[0]);
     }
 
     // midhi_surf: glisur, ground, dielectric-metal, specular lobe
@@ -2090,17 +2104,17 @@ TEST_F(OpticalSurfaces, surfaces)
         EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
         EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
 
-        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
-        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric, sid));
 
         static double const polish
             = 1 - osp.roughness.smear.find(sid)->second.roughness;
         EXPECT_SOFT_EQ(0.7, polish);
 
-        auto& rf = osp.interaction.dielectric_metal.find(sid)->second;
-        EXPECT_SOFT_EQ(0, rf.specular_spike.y[0]);
-        EXPECT_SOFT_EQ(1, rf.specular_lobe.y[0]);
-        EXPECT_SOFT_EQ(0, rf.backscatter.y[0]);
+        auto& di = osp.interaction.dielectric.find(sid)->second;
+        EXPECT_TRUE(di.is_metal);
+        EXPECT_SOFT_EQ(0, specular_spike(di).y[0]);
+        EXPECT_SOFT_EQ(1, specular_lobe(di).y[0]);
+        EXPECT_SOFT_EQ(0, backscatter(di).y[0]);
     }
 
 #undef OS_IS_MAPPED

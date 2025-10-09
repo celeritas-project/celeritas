@@ -18,6 +18,7 @@
       "binaryDir": "${sourceDir}/build-${presetName}",
       "cacheVariables": {
         "BUILD_SHARED_LIBS":     {"type": "BOOL",   "value": "ON"},
+        "BUILD_TESTING":         {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_covfie":  {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_CUDA":    {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL",   "value": "ON"},

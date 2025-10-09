@@ -40,7 +40,10 @@ is_entering_surface(Real3 const& dir, Real3 const& normal)
 CELER_FORCEINLINE_FUNCTION SurfaceTrackPosition
 next_subsurface_position(SurfaceTrackPosition pos, SubsurfaceDirection dir)
 {
-    return pos + to_signed_offset(dir);
+    CELER_EXPECT(pos);
+    return SurfaceTrackPosition{
+        pos.unchecked_get()
+        + static_cast<SurfaceTrackPosition::size_type>(to_signed_offset(dir))};
 }
 
 //---------------------------------------------------------------------------//
