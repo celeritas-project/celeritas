@@ -91,7 +91,7 @@ struct GaussianRoughness
     //! Standard deviation of the microfacet slope distribution
     double sigma_alpha{0};
 
-    // Whether the roughness has a meaningufl value
+    // Whether the roughness has a meaningful value
     explicit operator bool() const { return sigma_alpha > 0; }
 };
 
@@ -118,7 +118,8 @@ struct ReflectionForm
 {
     //!@{
     //! \name Type aliases
-    using ReflectionGrids = EnumArray<optical::ReflectionMode, Grid>;
+    using Mode = optical::ReflectionMode;
+    using ReflectionGrids = EnumArray<Mode, Grid>;
     //!@}
 
     //! Probability of reflection for each reflection mode
@@ -136,27 +137,23 @@ struct ReflectionForm
     //! Return a specular spike reflection form
     static ReflectionForm from_spike()
     {
-        return ReflectionForm::from_only_mode(
-            optical::ReflectionMode::specular_spike);
+        return ReflectionForm::from_mode(Mode::specular_spike);
     }
 
     //! Return a specular lobe reflection form
     static ReflectionForm from_lobe()
     {
-        return ReflectionForm::from_only_mode(
-            optical::ReflectionMode::specular_lobe);
+        return ReflectionForm::from_mode(Mode::specular_lobe);
     }
 
     //! Return a Lambertian (diffuse) reflection form
     static ReflectionForm from_lambertian()
     {
-        // Lambertian grid is implicit
-        return ReflectionForm::from_only_mode(optical::ReflectionMode::size_);
+        return ReflectionForm::from_mode(Mode::diffuse_lobe);
     }
 
-  private:
     //! Construct a reflection form with only one active grid
-    static ReflectionForm from_only_mode(optical::ReflectionMode only_mode)
+    static ReflectionForm from_mode(Mode only_mode)
     {
         ReflectionForm result;
         for (auto mode : range(optical::ReflectionMode::size_))
