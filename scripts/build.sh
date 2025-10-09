@@ -124,8 +124,13 @@ install_precommit_if_git() {
 # source dir)
 cd "$(dirname $0)"/..
 
-# Determine system name
+# Determine system name, failing on an empty string
 SYSTEM_NAME=$(fancy_hostname)
+if [ -z "${SYSTEM_NAME}" ]; then
+  log warning "Could not determine SYSTEM_NAME from LMOD_SYSTEM_NAME or HOSTNAME"
+  log error "Empty SYSTEM_NAME"
+  exit 1
+fi
 
 # Check whether cmake changes from environment
 OLD_CMAKE=$(which cmake 2>/dev/null || echo "")
