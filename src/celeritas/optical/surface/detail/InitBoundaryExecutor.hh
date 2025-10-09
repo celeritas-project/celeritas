@@ -70,6 +70,13 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
     }
 
     OptMatId post_volume_material = track.material_record().material_id();
+    // If pre-volume and post-volume materials are the same, there's no surface
+    // interaction
+    if (pre_volume_material == post_volume_material)
+    {
+        return;
+    }
+
     auto surface_physics = track.surface_physics();
 
     // Find oriented surface after crossing boundary using post-volume

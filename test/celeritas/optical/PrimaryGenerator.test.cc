@@ -163,8 +163,8 @@ TEST_F(LArSpherePrimaryGeneratorTest, primary_generator)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(106933, result.steps);
-        EXPECT_EQ(35, result.step_iters);
+        EXPECT_EQ(106584, result.steps);
+        EXPECT_EQ(36, result.step_iters);
     }
     EXPECT_EQ(1, result.flushes);
     ASSERT_EQ(1, result.generators.size());
