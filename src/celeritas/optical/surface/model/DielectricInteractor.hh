@@ -74,8 +74,23 @@ class DielectricInteractor
 CELER_FUNCTION SurfaceInteraction
 DielectricInteractor::Builder::operator()(CoreTrackView const& track) const
 {
-    auto rng = track.rng();
     auto s_phys = track.surface_physics();
+
+    // Can't do analytic interaction if there's no post-volume optical material
+    if (!s_phys.next_material())
+    {
+        return SurfaceInteraction::from_absorption();
+    }
+
+    // No interaction if optical materials are identical
+    if (s_phys.material() == s_phys.next_material())
+    {
+        return SurfaceInteraction{SurfaceInteraction::Action::refracted,
+                                  track.geometry().dir(),
+                                  track.particle().polarization()};
+    }
+
+    auto rng = track.rng();
     auto sub_model_id = s_phys.interface(SurfacePhysicsOrder::interaction)
                             .internal_surface_id();
 
