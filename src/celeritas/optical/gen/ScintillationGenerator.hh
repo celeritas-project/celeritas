@@ -161,10 +161,16 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
     // "spare" value that the wavelength sampler might have stored
     sample_lambda_
         = NormalDistribution{component.lambda_mean, component.lambda_sigma};
+    real_type wavelength;
+    do
+    {
+        wavelength = sample_lambda_(rng);
+    } while (CELER_UNLIKELY(wavelength <= 0));
+
     ExponentialDist sample_time(real_type{1} / component.fall_time);
 
     TrackInitializer photon;
-    photon.energy = detail::wavelength_to_energy(sample_lambda_(rng));
+    photon.energy = detail::wavelength_to_energy(wavelength);
 
     // Sample direction
     real_type cost = sample_cost_(rng);
