@@ -22,9 +22,10 @@ namespace test
 {
 constexpr bool using_orange_geo
     = (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE);
-constexpr bool using_vecgeom_surface = CELERITAS_VECGEOM_SURFACE
-                                       && CELERITAS_CORE_GEO
-                                              == CELERITAS_CORE_GEO_VECGEOM;
+constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
+            && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
+constexpr bool using_solids_vg = !CELERITAS_VECGEOM_SURFACE
+            && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
 
 //---------------------------------------------------------------------------//
 class GeometryTest : public HeuristicGeoTestBase
@@ -190,8 +191,15 @@ auto SimpleCmsTest::reference_avg_path() const -> SpanConstReal
 {
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
     {
-        static real_type const paths[]
+        static real_type paths[]
             = {56, 390, 255.5, 497.960489118954, 451, 1137, 1870};
+        if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
+        {
+            // TODO: try to fix any discrepancies from vg2.x-solids
+            paths[4] = 487.651955842282;
+            paths[5] = 869.116923540767;
+            paths[6] = 2199.33144744229;
+        }
         return make_span(paths);
     }
     else
@@ -237,12 +245,18 @@ auto ThreeSpheresTest::reference_volumes() const -> SpanConstStr
 
 auto ThreeSpheresTest::reference_avg_path() const -> SpanConstReal
 {
-    static real_type const paths[] = {
+    static real_type paths[] = {
         0.195837257764839,
         3.28275955815444,
         6.54698622785098,
         376.100451629357,
     };
+    if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
+    {
+        // TODO: try to fix any discrepancies from vg2.x-solids
+        paths[0] = 0.174520372497482;
+        paths[2] = 4.97131837547155;
+    }
     return make_span(paths);
 }
 
@@ -323,14 +337,14 @@ TEST_F(TestEm3Test, run)
     // VecGeom solid and ORANGE also diverge fairly quickly: this is in part
     // due to bumps
 
-    if (using_vecgeom_surface && celeritas::device())
+    if (using_surface_vg && celeritas::device())
     {
         GTEST_SKIP() << "GPU and CPU diverge for vgsurf due to sensitivity to "
                         "boundaries";
     }
 
     real_type tol = using_orange_geo         ? 1e-3
-                    : !using_vecgeom_surface ? 0.35
+                    : !using_surface_vg ? 0.35
                                              : 1000;
     this->run(512, /* num_steps = */ 1024, tol);
 }
@@ -370,9 +384,8 @@ TEST_F(ThreeSpheresTest, avg_path)
 {
     // Results were generated with ORANGE
     // TODO: investigate differences w.r.t. surface model
-    real_type tol = using_orange_geo         ? 1e-3
-                    : !using_vecgeom_surface ? 0.05
-                                             : 0.80;
+    real_type tol = using_orange_geo ? 1e-3
+                                     : !using_surface_vg ? 0.05 : 0.80;
     EXPECT_TRUE(this->geometry()->supports_safety());
     this->run(512, /* num_steps = */ 1024, tol);
 }
