@@ -51,6 +51,20 @@ celeritas_target_include_directories(BuildFlags
 )
 
 #----------------------------------------------------------------------------#
+# Enable test coverage
+#----------------------------------------------------------------------------#
+if(CELERITAS_CODE_COVERAGE)
+  set(GCC_COVERAGE_COMPILE_FLAGS "-fprofile-arcs -ftest-coverage")
+  set(GCC_COVERAGE_LINK_FLAGS    "-fprofile-arcs")
+  target_compile_options(BuildFlags
+    INTERFACE "$<$<COMPILE_LANGUAGE:CXX>${GCC_COVERAGE_COMPILE_FLAGS}>"
+  )
+  target_link_options(BuildFlags
+    INTERFACE "${GCC_COVERAGE_LINK_FLAGS}"
+  )
+endif()
+
+#----------------------------------------------------------------------------#
 
 # Define an interface library for propagating include paths for GPU compilers.
 # This allow API calls, so long as the compiler or linker implicitly bring in
