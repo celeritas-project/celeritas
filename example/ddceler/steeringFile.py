@@ -12,14 +12,14 @@ UNIFORM_FIELD_STRENGTH = 4.0
 # Physics configuration
 def setupPhysics(kernel):
   from DDG4 import PhysicsList, Geant4
-  from dd4hep import DD4hep
+  import dd4hep
 
   # Override the field first, before setting up physics
   description = kernel.detectorDescription()
 
   # Create a constant uniform field in Z direction
-  field = DD4hep.ConstantField(description, "UniformField",
-                                DD4hep.Direction(0, 0, UNIFORM_FIELD_STRENGTH))
+  field = dd4hep.ConstantField(description, "UniformField",
+                                dd4hep.Direction(0, 0, UNIFORM_FIELD_STRENGTH))
 
   # Set this as the new field
   description.setField(field)
