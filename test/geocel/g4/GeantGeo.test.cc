@@ -451,8 +451,8 @@ TEST_F(MultiLevelTest, model)
     ref.world = "world";
     ref.detector.labels = {"sph_sd"};
     ref.detector.volumes = {{0, 5}};
-    ref.region.labels = {"box_region", "tri_region", "sph_region"};
-    ref.region.volumes = {{2, 4}, {1, 6}, {0, 5}};
+    ref.region.labels = {"sph_region", "tri_region", "box_region"};
+    ref.region.volumes = {{0, 5}, {1, 6}, {2, 4}};
     EXPECT_REF_EQ(ref, result);
 }
 

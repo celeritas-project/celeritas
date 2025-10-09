@@ -494,7 +494,7 @@ std::vector<inp::Region> make_inp_regions(GeantGeoParams const& geo)
 
     auto const& vol_labels = geo.impl_volumes();
 
-    std::map<G4Region const*, std::set<VolumeId>> region_map;
+    std::unordered_map<G4Region const*, std::set<VolumeId>> region_map;
 
     // Process each logical volume
     for (auto iv_id : range(ImplVolumeId{vol_labels.size()}))
@@ -525,7 +525,9 @@ std::vector<inp::Region> make_inp_regions(GeantGeoParams const& geo)
             // Some of the volume data could override the region data: create a
             // new Celeritas region containing only this volume
             inp::Region region;
-            region.label = g4lv.GetName();
+            region.label
+                = {g4lv.GetRegion() ? g4lv.GetRegion()->GetName() : "null",
+                   g4lv.GetName()};
             region.volumes = {vol_id};
             result.push_back(region);
         }
@@ -543,6 +545,10 @@ std::vector<inp::Region> make_inp_regions(GeantGeoParams const& geo)
         region.volumes = std::move(volumes);
         result.push_back(region);
     }
+
+    std::sort(result.begin(), result.end(), [](auto& left, auto& right) {
+        return *left.volumes.begin() < *right.volumes.begin();
+    });
 
     return result;
 }
