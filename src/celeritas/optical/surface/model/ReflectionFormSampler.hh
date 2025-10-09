@@ -125,10 +125,12 @@ ReflectionFormSampler::operator()(Engine& rng) const
             return calc_reflection_.calc_specular_lobe();
         case ReflectionMode::backscatter:
             return calc_reflection_.calc_backscatter();
-        default:
+        case ReflectionMode::diffuse_lobe:
             // The other probabilities are allowed to sum to less than unity:
             // the remainder is diffuse
             return calc_reflection_.sample_lambertian_reflection(rng);
+        default:
+            CELER_ASSERT_UNREACHABLE();
     }
 }
 //---------------------------------------------------------------------------//
