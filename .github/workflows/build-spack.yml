@@ -326,7 +326,6 @@ jobs:
         uses: ./.github/actions/generate-coverage
         if: ${{ matrix.special == 'code-coverage' && !cancelled() && steps.unittest.outcome == 'success' }}
         with:
-          core_count: '4'
           codecov_token: ${{ secrets.codecov_token }}
           fail_ci_if_error: 'true'
           gcov_executable: ${{env.LLVM_COV_WRAPPER}}
