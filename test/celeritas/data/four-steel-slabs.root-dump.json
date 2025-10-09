@@ -110,19 +110,6 @@
       "range" : 0.1
     }}]
   }],
-  "regions" : [{
-    "_typename" : "celeritas::ImportRegion",
-    "name" : "DefaultRegionForTheWorld",
-    "field_manager" : false,
-    "production_cuts" : true,
-    "user_limits" : false
-  }, {
-    "_typename" : "celeritas::ImportRegion",
-    "name" : "DefaultRegionForParallelWorld",
-    "field_manager" : false,
-    "production_cuts" : true,
-    "user_limits" : false
-  }],
   "volumes" : [{
     "_typename" : "celeritas::ImportVolume",
     "geo_material_id" : 0,

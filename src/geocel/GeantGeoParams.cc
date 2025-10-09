@@ -17,6 +17,8 @@
 #include <G4LogicalVolumeStore.hh>
 #include <G4Material.hh>
 #include <G4PhysicalVolumeStore.hh>
+#include <G4Region.hh>
+#include <G4RegionStore.hh>
 #include <G4Transportation.hh>
 #include <G4TransportationManager.hh>
 #include <G4VPhysicalVolume.hh>
@@ -226,6 +228,50 @@ std::vector<G4LogicalSurface const*> make_surface_vec(GeantGeoParams const& geo)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether the volume has data attached not related to the geometry structure.
+ */
+bool has_volume_extras(G4LogicalVolume const& vol)
+{
+    return vol.GetFastSimulationManager() || vol.GetUserLimits()
+           || vol.GetFieldManager() || vol.GetMaterialCutsCouple();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the region has data attached not related to the geometry structure.
+ */
+bool has_region_extras(G4LogicalVolume const& vol)
+{
+    auto* reg = vol.GetRegion();
+    if (!reg)
+    {
+        return false;
+    }
+    return reg->GetFastSimulationManager() || reg->GetUserLimits()
+           || reg->GetFieldManager() || reg->GetProductionCuts()
+           || reg->FindCouple(vol.GetMaterial());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * True if the region data won't be overridden by any volume data.
+ *
+ * \todo Compare production cuts?
+ */
+bool has_same_extras(G4LogicalVolume const& vol)
+{
+    auto* reg = vol.GetRegion();
+    if (!reg)
+    {
+        return false;
+    }
+    return reg->GetFastSimulationManager() == vol.GetFastSimulationManager()
+           && reg->GetUserLimits() == vol.GetUserLimits()
+           && reg->GetFieldManager() == vol.GetFieldManager();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Create volumes input from Geant4 volumes.
  *
  * Logical volume labels have already been "uniquified" as part of the
@@ -427,6 +473,81 @@ std::vector<inp::Detector> make_inp_detectors(GeantGeoParams const& geo)
 
     std::sort(result.begin(), result.end(), [](auto& left, auto& right) {
         return left.volumes.front() < right.volumes.front();
+    });
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create region input from Geant4 regions.
+ *
+ * There is not a direct mapping between Celeritas and Geant4 regions. Geant4
+ * regions not associated with any volumes will be ignored. If a volume has
+ * extra data that overrides the region data, a new Celeritas region will be
+ * created containing only that volume. This ensures that a single region will
+ * always have an identical physics configuration.
+ */
+std::vector<inp::Region> make_inp_regions(GeantGeoParams const& geo)
+{
+    std::vector<inp::Region> result;
+
+    auto const& vol_labels = geo.impl_volumes();
+
+    std::unordered_map<G4Region const*, std::set<VolumeId>> region_map;
+
+    // Process each logical volume
+    for (auto iv_id : range(ImplVolumeId{vol_labels.size()}))
+    {
+        auto vol_id = geo.volume_id(iv_id);
+        if (!vol_id)
+        {
+            // This volume isn't part of the world hierarchy
+            continue;
+        }
+        auto const& g4lv = *geo.id_to_geant(vol_id);
+
+        if (!(has_region_extras(g4lv) || has_volume_extras(g4lv)))
+        {
+            // No extra data assigned to the region (if present) or volume
+            continue;
+        }
+        else if (has_same_extras(g4lv))
+        {
+            // Volume belongs to a region and the volume data won't override
+            // the region data: add volume ID to the region map
+            auto const* g4reg = g4lv.GetRegion();
+            CELER_ASSERT(g4reg);
+            region_map[g4reg].insert(vol_id);
+        }
+        else
+        {
+            // Some of the volume data could override the region data: create a
+            // new Celeritas region containing only this volume
+            inp::Region region;
+            region.label
+                = {g4lv.GetRegion() ? g4lv.GetRegion()->GetName() : "null",
+                   g4lv.GetName()};
+            region.volumes = {vol_id};
+            result.push_back(region);
+        }
+    }
+    CELER_LOG(debug) << "Loaded " << region_map.size() << " regions out of "
+                     << G4RegionStore::GetInstance()->size()
+                     << " Geant4 regions and created " << result.size()
+                     << " new regions";
+
+    // Add regions to result vector
+    for (auto&& [g4reg, volumes] : region_map)
+    {
+        inp::Region region;
+        region.label = g4reg->GetName();
+        region.volumes = std::move(volumes);
+        result.push_back(region);
+    }
+
+    std::sort(result.begin(), result.end(), [](auto& left, auto& right) {
+        return *left.volumes.begin() < *right.volumes.begin();
     });
 
     return result;
@@ -695,6 +816,12 @@ inp::Model GeantGeoParams::make_model_input() const
     result.detectors = [this] {
         inp::Detectors result;
         result.detectors = make_inp_detectors(*this);
+        return result;
+    }();
+
+    result.regions = [this] {
+        inp::Regions result;
+        result.regions = make_inp_regions(*this);
         return result;
     }();
 

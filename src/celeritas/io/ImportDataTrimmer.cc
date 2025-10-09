@@ -66,7 +66,6 @@ void ImportDataTrimmer::operator()(ImportData& data)
         (*this)(data.geo_materials);
         (*this)(data.phys_materials);
 
-        (*this)(data.regions);
         (*this)(data.volumes);
 
         (*this)(data.optical_materials);
