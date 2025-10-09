@@ -7,6 +7,7 @@
 #pragma once
 
 #include "corecel/Macros.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "orange/OrangeTypes.hh"
 
 #include "VariantTransform.hh"
