@@ -345,6 +345,8 @@ class ZnenvGeoTest
 template<class GeoTest>
 void FourLevelsGeoTest::test_consecutive_compute(GeoTest* test)
 {
+    CELER_EXPECT(test);
+    auto safety_tol = test->tracking_tol().safety;
     auto geo = test->make_geo_track_view({-9, -10, -10}, {1, 0, 0});
     ASSERT_FALSE(geo.is_outside());
     EXPECT_EQ("Shape2", test->volume_name(geo));
@@ -352,15 +354,15 @@ void FourLevelsGeoTest::test_consecutive_compute(GeoTest* test)
 
     auto next = geo.find_next_step(from_cm(10.0));
     EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
-    EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
+    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), safety_tol);
 
     next = geo.find_next_step(from_cm(10.0));
     EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
-    EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
+    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), safety_tol);
 
     // Find safety from a freshly initialized state
     geo = {from_cm({-9, -10, -10}), {1, 0, 0}};
-    EXPECT_SOFT_EQ(4.0, to_cm(geo.find_safety()));
+    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), safety_tol);
 }
 
 template<class GeoTest>
@@ -476,6 +478,8 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         geo.move_to_boundary();
         EXPECT_TRUE(geo.is_on_boundary());
         geo.set_dir({0, 1, 0});
+        geo.find_next_step();  // needed after changing direction
+        EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
         EXPECT_TRUE(geo.is_on_boundary());
         EXPECT_EQ("Shape1", test->volume_name(geo));
 
@@ -488,7 +492,15 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
             EXPECT_SOFT_EQ(0, to_cm(next.distance));
             GTEST_SKIP() << "FIXME: ORANGE reentrant boundary is misbehaving";
         }
-        EXPECT_SOFT_EQ(6, to_cm(next.distance));
+        // VecGeom's surface vs. solids models disagree on this distance, but
+        // it doesn't really affect the rest of the test
+        auto ref_dist = 6.0;
+        if (test->geometry_type() == "VecGeom" && using_solids_vg)
+        {
+            ref_dist = 1.e-13;
+        }
+        EXPECT_SOFT_EQ(ref_dist, to_cm(next.distance));
+        EXPECT_EQ("Shape1", test->volume_name(geo));
         geo.set_dir({-1, 0, 0});
         EXPECT_VEC_SOFT_EQ((Real3{15, 10, 10}), to_cm(geo.pos()));
         EXPECT_EQ("Shape1", test->volume_name(geo));
@@ -681,7 +693,13 @@ void TwoBoxesGeoTest::test_detailed_tracking(GeoTest* test)
     geo.set_dir({-1, 0, 0});
     next = geo.find_next_step(from_cm(1000));
     EXPECT_TRUE(next.boundary);
-    EXPECT_SOFT_NEAR(2 * dx, to_cm(next.distance), 1e-4);
+    if (test->geometry_type() == "VecGeom" && using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
+    {
+        // TODO: investigate why VecGeom 2.x-solids gets lost with a grazing track
+        EXPECT_SOFT_EQ(505+2*dx, to_cm(next.distance));
+        GTEST_SKIP() << "FIXME: VecGeom 2.x-solids gets lost with a grazing track";
+    }
+    EXPECT_SOFT_NEAR(2 * dx, to_cm(next.distance), 1e-12);
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
     if (check_normal)

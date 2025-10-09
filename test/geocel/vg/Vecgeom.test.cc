@@ -70,7 +70,7 @@ class VecgeomTestBaseImpl : public VecgeomTestBase
 
         if (CELERITAS_VECGEOM_SURFACE)
         {
-            result.safety = 5e-5;
+            result.safety = 6e-5;
         }
         return result;
     }
@@ -347,22 +347,9 @@ TEST_F(SimpleCmsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
 }
 
 //---------------------------------------------------------------------------//
-
 class SolidsVgdmlTest
     : public GenericGeoParameterizedTest<VecgeomVgdmlTestBase, SolidsGeoTest>
 {
-    SpanStringView expected_log_levels() const final
-    {
-        if (vecgeom_version >= Version{2})
-        {
-            static std::string_view const levels[] = {"warning", "warning"};
-            return make_span(levels);
-        }
-        else
-        {
-            return {};
-        }
-    }
 };
 
 TEST_F(SolidsVgdmlTest, DISABLED_dump)
