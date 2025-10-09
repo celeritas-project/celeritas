@@ -89,84 +89,6 @@ class ProtoConstructorTest : public GeantLoadTestBase
 };
 
 //---------------------------------------------------------------------------//
-TEST_F(ProtoConstructorTest, one_box)
-{
-    auto global_proto = this->load("one-box");
-    ProtoMap protos{*global_proto};
-    ASSERT_EQ(1, protos.size());
-    {
-        SCOPED_TRACE("global");
-        auto u = this->build_unit(protos, UniverseId{0});
-
-        static char const* const expected_surface_strings[] = {
-            "Plane: x=-500",
-            "Plane: x=500",
-            "Plane: y=-500",
-            "Plane: y=500",
-            "Plane: z=-500",
-            "Plane: z=500",
-        };
-        static char const* const expected_volume_strings[] = {
-            "!all(+0, -1, +2, -3, +4, -5)",
-            "all(+0, -1, +2, -3, +4, -5)",
-        };
-        static char const* const expected_md_strings[] = {
-            "",
-            "",
-            "world_box@mx",
-            "world_box@px",
-            "",
-            "world_box@my",
-            "world_box@py",
-            "",
-            "world_box@mz",
-            "world_box@pz",
-            "",
-            "world_box",
-            "[EXTERIOR]",
-        };
-
-        EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
-        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
-        EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
-        EXPECT_EQ(GeoMatId{}, u.background);
-    }
-}
-
-//---------------------------------------------------------------------------//
-TEST_F(ProtoConstructorTest, two_boxes)
-{
-    auto global_proto = this->load("two-boxes");
-    ProtoMap protos{*global_proto};
-    ASSERT_EQ(1, protos.size());
-    {
-        SCOPED_TRACE("global");
-        auto u = this->build_unit(protos, UniverseId{0});
-
-        static char const* const expected_surface_strings[] = {
-            "Plane: x=-500",
-            "Plane: x=500",
-            "Plane: y=-500",
-            "Plane: y=500",
-            "Plane: z=-500",
-            "Plane: z=500",
-            "Plane: x=-5",
-            "Plane: x=5",
-            "Plane: y=-5",
-            "Plane: y=5",
-            "Plane: z=-5",
-            "Plane: z=5",
-        };
-        static char const* const expected_volume_strings[] = {
-            "!all(+0, -1, +2, -3, +4, -5)",
-            "all(+6, -7, +8, -9, +10, -11)",
-            "all(+0, -1, +2, -3, +4, -5, !all(+6, -7, +8, -9, +10, -11))",
-        };
-        EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
-        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
-    }
-}
-//---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, intersection_boxes)
 {
     auto global_proto = this->load("intersection-boxes");
@@ -310,6 +232,51 @@ TEST_F(ProtoConstructorTest, lar_sphere)
         EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
         EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
         EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(ProtoConstructorTest, one_box)
+{
+    auto global_proto = this->load("one-box");
+    ProtoMap protos{*global_proto};
+    ASSERT_EQ(1, protos.size());
+    {
+        SCOPED_TRACE("global");
+        auto u = this->build_unit(protos, UniverseId{0});
+
+        static char const* const expected_surface_strings[] = {
+            "Plane: x=-500",
+            "Plane: x=500",
+            "Plane: y=-500",
+            "Plane: y=500",
+            "Plane: z=-500",
+            "Plane: z=500",
+        };
+        static char const* const expected_volume_strings[] = {
+            "!all(+0, -1, +2, -3, +4, -5)",
+            "all(+0, -1, +2, -3, +4, -5)",
+        };
+        static char const* const expected_md_strings[] = {
+            "",
+            "",
+            "world_box@mx",
+            "world_box@px",
+            "",
+            "world_box@my",
+            "world_box@py",
+            "",
+            "world_box@mz",
+            "world_box@pz",
+            "",
+            "world_box",
+            "[EXTERIOR]",
+        };
+
+        EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+        EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+        EXPECT_EQ(GeoMatId{}, u.background);
     }
 }
 
@@ -484,6 +451,40 @@ TEST_F(ProtoConstructorTest, TEST_IF_CELERITAS_DOUBLE(tilecal_plug))
         EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
         EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
         EXPECT_EQ(GeoMatId{}, u.background);
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(ProtoConstructorTest, two_boxes)
+{
+    auto global_proto = this->load("two-boxes");
+    ProtoMap protos{*global_proto};
+    ASSERT_EQ(1, protos.size());
+    {
+        SCOPED_TRACE("global");
+        auto u = this->build_unit(protos, UniverseId{0});
+
+        static char const* const expected_surface_strings[] = {
+            "Plane: x=-500",
+            "Plane: x=500",
+            "Plane: y=-500",
+            "Plane: y=500",
+            "Plane: z=-500",
+            "Plane: z=500",
+            "Plane: x=-5",
+            "Plane: x=5",
+            "Plane: y=-5",
+            "Plane: y=5",
+            "Plane: z=-5",
+            "Plane: z=5",
+        };
+        static char const* const expected_volume_strings[] = {
+            "!all(+0, -1, +2, -3, +4, -5)",
+            "all(+6, -7, +8, -9, +10, -11)",
+            "all(+0, -1, +2, -3, +4, -5, !all(+6, -7, +8, -9, +10, -11))",
+        };
+        EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
     }
 }
 
