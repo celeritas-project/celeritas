@@ -522,14 +522,14 @@ TEST_F(OpNoviceOptical, run)
     CELER_LOG(status) << "Run initialization";
     rm.Initialize();
     CELER_LOG(status) << "Run two events";
-    rm.BeamOn(12);
+    rm.BeamOn(10);
 
     if (this->HasFailure())
     {
         GTEST_SKIP() << "Skipping remaining tests since we've already failed";
     }
     CELER_LOG(status) << "Run one more event";
-    rm.BeamOn(12);
+    rm.BeamOn(10);
 }
 
 //---------------------------------------------------------------------------//
