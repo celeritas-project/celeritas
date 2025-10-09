@@ -40,65 +40,57 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
     auto obj = json::object();
     auto const& data = orange_->host_ref();
 
+#define OPO_PAIR(DATA, NAME) {#NAME, DATA.NAME}
+#define OPO_SIZE_PAIR(DATA, NAME) {#NAME, DATA.NAME.size()}
+
     // Save param scalars
-    obj["scalars"] = [&sdata = data.scalars] {
-        auto scalars = json::object();
-#define OPO_SAVE_SCALAR(NAME) scalars[#NAME] = sdata.NAME;
-        OPO_SAVE_SCALAR(max_depth);
-        OPO_SAVE_SCALAR(max_faces);
-        OPO_SAVE_SCALAR(max_intersections);
-        OPO_SAVE_SCALAR(max_logic_depth);
-        OPO_SAVE_SCALAR(tol);
-#undef OPO_SAVE_SCALAR
-        return scalars;
-    }();
+    obj["scalars"] = {
+        OPO_PAIR(data.scalars, max_depth),
+        OPO_PAIR(data.scalars, max_faces),
+        OPO_PAIR(data.scalars, max_intersections),
+        OPO_PAIR(data.scalars, max_logic_depth),
+        OPO_PAIR(data.scalars, tol),
+    };
 
     // Save sizes
-    obj["sizes"] = [&data] {
-        auto sizes = json::object();
-#define OPO_SAVE_SIZE(NAME) sizes[#NAME] = data.NAME.size()
-        OPO_SAVE_SIZE(universe_types);
-        OPO_SAVE_SIZE(universe_indices);
-        OPO_SAVE_SIZE(simple_units);
-        OPO_SAVE_SIZE(rect_arrays);
-        OPO_SAVE_SIZE(transforms);
-        OPO_SAVE_SIZE(local_surface_ids);
-        OPO_SAVE_SIZE(local_volume_ids);
-        OPO_SAVE_SIZE(real_ids);
-        OPO_SAVE_SIZE(logic_ints);
-        OPO_SAVE_SIZE(reals);
-        OPO_SAVE_SIZE(surface_types);
-        OPO_SAVE_SIZE(connectivity_records);
-        OPO_SAVE_SIZE(volume_records);
-        OPO_SAVE_SIZE(daughters);
-#undef OPO_SAVE_SIZE
-
-        // Save BIH sizes
-        sizes["bih"] = [&bihdata = data.bih_tree_data] {
-            auto bih = json::object();
-#define OPO_SAVE_BIH_SIZE(NAME) bih[#NAME] = bihdata.NAME.size()
-            OPO_SAVE_BIH_SIZE(bboxes);
-            OPO_SAVE_BIH_SIZE(local_volume_ids);
-            OPO_SAVE_BIH_SIZE(inner_nodes);
-            OPO_SAVE_BIH_SIZE(leaf_nodes);
-#undef OPO_SAVE_BIH_SIZE
-            return bih;
-        }();
-
-        return sizes;
+    obj["sizes"] = {
+        OPO_SIZE_PAIR(data, universe_types),
+        OPO_SIZE_PAIR(data, universe_indices),
+        OPO_SIZE_PAIR(data, simple_units),
+        OPO_SIZE_PAIR(data, rect_arrays),
+        OPO_SIZE_PAIR(data, transforms),
+        OPO_SIZE_PAIR(data, volume_ids),
+        OPO_SIZE_PAIR(data, volume_instance_ids),
+        OPO_SIZE_PAIR(data, local_surface_ids),
+        OPO_SIZE_PAIR(data, local_volume_ids),
+        OPO_SIZE_PAIR(data, real_ids),
+        OPO_SIZE_PAIR(data, logic_ints),
+        OPO_SIZE_PAIR(data, reals),
+        OPO_SIZE_PAIR(data, fast_real3s),
+        OPO_SIZE_PAIR(data, surface_types),
+        OPO_SIZE_PAIR(data, connectivity_records),
+        OPO_SIZE_PAIR(data, volume_records),
+        OPO_SIZE_PAIR(data, daughters),
+        OPO_SIZE_PAIR(data, obz_records),
+    };
+    obj["sizes"]["bih"] = [&bihdata = data.bih_tree_data] {
+        return json::object({
+            OPO_SIZE_PAIR(bihdata, bboxes),
+            OPO_SIZE_PAIR(bihdata, local_volume_ids),
+            OPO_SIZE_PAIR(bihdata, inner_nodes),
+            OPO_SIZE_PAIR(bihdata, leaf_nodes),
+        });
+    }();
+    obj["sizes"]["universe_indexer"] = [&uidata = data.universe_indexer_data] {
+        auto ui = json::object({
+            OPO_SIZE_PAIR(uidata, surfaces),
+            OPO_SIZE_PAIR(uidata, volumes),
+        });
+        return ui;
     }();
 
-    // Save surface names
-    obj["surfaces"] = [&surfaces = orange_->surfaces()] {
-        auto label = json::array();
-        for (auto id : range(ImplSurfaceId{surfaces.size()}))
-        {
-            label.push_back(to_string(surfaces.at(id)));
-        }
-        return json::object({{"label", std::move(label)}});
-    }();
-
-    //! \todo Make universe metadata accessible from ORANGE, and write it
+#undef OPO_SIZE_PAIR
+#undef OPO_PAIR
 
     j->obj = std::move(obj);
 }
