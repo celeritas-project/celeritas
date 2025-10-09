@@ -62,9 +62,8 @@ struct Grid
     //! Construct a grid with a constant value for all real numbers
     static Grid from_constant(double y)
     {
-        constexpr auto inf = std::numeric_limits<double>::infinity();
         Grid result;
-        result.x = {-inf, inf};
+        result.x = {0, std::numeric_limits<double>::infinity()};
         result.y = {y, y};
         return result;
     }
