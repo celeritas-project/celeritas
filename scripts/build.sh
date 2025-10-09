@@ -129,7 +129,7 @@ SYSTEM_NAME=$(fancy_hostname)
 
 # Check whether cmake changes from environment
 OLD_CMAKE=$(which cmake 2>/dev/null || echo "")
-OLD_PRE_COMMIT=$(which pre-commit 2>/dev/null)
+OLD_PRE_COMMIT=$(which pre-commit 2>/dev/null || echo "")
 
 # Load environment paths
 _env_script="scripts/env/${SYSTEM_NAME}.sh"
