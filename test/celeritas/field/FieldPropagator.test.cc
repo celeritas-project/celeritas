@@ -48,10 +48,12 @@ template<class E>
 using DiagnosticDPIntegrator = DiagnosticIntegrator<DormandPrinceIntegrator<E>>;
 
 constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
-        && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
+                                  && CELERITAS_CORE_GEO
+                                         == CELERITAS_CORE_GEO_VECGEOM;
 
 constexpr bool using_solids_vg = !CELERITAS_VECGEOM_SURFACE
-        && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
+                                 && CELERITAS_CORE_GEO
+                                        == CELERITAS_CORE_GEO_VECGEOM;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -1574,7 +1576,7 @@ TEST_F(CmseTest, coarse)
             expected_num_intercept = {30322, 19551, 16170, 9868};
             expected_num_integration = {80462, 58282, 41914, 25942};
             EXPECT_EQ(scoped_log_.messages().size(), 253);
-        }        
+        }
         else
         {
             // FIXME: version 1.x needs much more steps -> taking much longer!
