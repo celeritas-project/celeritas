@@ -391,8 +391,7 @@ TEST_F(ProtoConstructorTest, testem3)
         auto bounds = bound_strings(u);
         ASSERT_EQ(transforms.size(), bounds.size());
         EXPECT_EQ(
-            "28: {{{-18.4,-20,-20}, {-17.6,20,20}}, {{-18.4,-20,-20}, "
-            "{-17.6,20,20}}}",
+            R"(28: {{{-18.4,-20,-20}, {-17.6,20,20}}, {{-18.4,-20,-20}, {-17.6,20,20}}})",
             bounds[4]);
 
         auto vols = volume_strings(u);
