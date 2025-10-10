@@ -26,18 +26,21 @@ qsub_gpu() {
 }
 
 # Load Nvidia/AMD environment if on a compute node
-if [[ "$(hostname -s)" == hopper* ]]; then
-  echo "Loading environment for H100"
-  module purge
-  module load cmake/3.28.3
-  module load cuda/12.9.1
-  spacktivate h100
-  export ENVFILE="$SPACKROOT/var/spack/environments/h100/spack.yaml"
-elif [[ "$(hostname -s)" == amdgpu* ]]; then
-  echo "Loading environment for MI300X"
-  module purge
-  module load cmake/3.28.3
-  module load aomp/rocm-6.4.1
-  spacktivate mi300x
-  export ENVFILE="$SPACKROOT/var/spack/environments/mi300x/spack.yaml"
-fi
+case "$(uname -n)" in
+  hopper*)
+    echo "Loading environment for H100"
+    module purge
+    module load cmake/3.28.3
+    module load cuda/12.9.1
+    spacktivate h100
+    ENVFILE="$SPACKROOT/var/spack/environments/h100/spack.yaml"; export ENVFILE
+    ;;
+  amdgpu*)
+    echo "Loading environment for MI300X"
+    module purge
+    module load cmake/3.28.3
+    module load aomp/rocm-6.4.1
+    spacktivate mi300x
+    ENVFILE="$SPACKROOT/var/spack/environments/mi300x/spack.yaml"; export ENVFILE
+    ;;
+esac
