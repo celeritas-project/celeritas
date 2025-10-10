@@ -117,14 +117,8 @@ TEST_F(OpNoviceOptical, run)
     auto& rm = this->run_manager();
     UAI::Instance().SetOptions(this->make_setup_options());
 
-    cout << "initializing" << endl;
     rm.Initialize();
-    cout << "beam on" << endl;
-
-    rm.BeamOn(3);
-    cout << "initial run done" << endl;
-    rm.BeamOn(1);
-    cout << "second run done" << endl;
+    rm.BeamOn(2);
 }
 
 //---------------------------------------------------------------------------//

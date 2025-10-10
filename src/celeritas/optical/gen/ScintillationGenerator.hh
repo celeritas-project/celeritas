@@ -159,11 +159,13 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
 
     // Sample a photon for a single scintillation component, reusing the
     // "spare" value that the wavelength sampler might have stored
+    CELER_ASSERT(component.lambda_mean > 0);
     sample_lambda_
         = NormalDistribution{component.lambda_mean, component.lambda_sigma};
     real_type wavelength;
     do
     {
+        // Rejecting the case of very large sigma and/or very small lambda
         wavelength = sample_lambda_(rng);
     } while (CELER_UNLIKELY(wavelength <= 0));
 

@@ -514,11 +514,6 @@ auto OpNoviceIntegrationMixin::make_physics_input() const -> PhysicsInput
     EXPECT_TRUE(optical.mie_scattering);
     EXPECT_TRUE(optical.rayleigh_scattering);
 
-    // Disable WLS (reemission not yet supported)
-    using WLSO = WavelengthShiftingOptions;
-    optical.wavelength_shifting = WLSO::deactivated();
-    optical.wavelength_shifting2 = WLSO::deactivated();
-
     return result;
 }
 
