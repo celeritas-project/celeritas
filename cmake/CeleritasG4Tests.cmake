@@ -96,6 +96,7 @@ function(celeritas_g4_add_one_test test_name target args labels offload rmtype)
 
   set_tests_properties("${test_name}" PROPERTIES
     ENVIRONMENT "${_env}"
+    TIMEOUT 120
     LABELS "${labels}"
     ${_extra_props}
     ${ARGN}
