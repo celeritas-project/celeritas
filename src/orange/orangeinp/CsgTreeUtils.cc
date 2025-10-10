@@ -7,7 +7,6 @@
 #include "CsgTreeUtils.hh"
 
 #include <algorithm>
-#include <utility>
 #include <variant>
 #include <vector>
 
@@ -172,7 +171,7 @@ void simplify(CsgTree* tree, NodeId start)
  * This is required if the tree's logic expression is used with
  * \c InfixEvaluator as negated joins are not supported.
  */
-SimplifiedCsgTree transform_negated_joins(CsgTree const& tree)
+TransformedTree transform_negated_joins(CsgTree const& tree)
 {
     return detail::DeMorganSimplifier{tree}();
 }

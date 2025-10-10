@@ -322,19 +322,21 @@ TEST_F(MotherTest, explicit_exterior)
             "-4",
             "all(-0, +1, +2, +3, +4)",
         };
-        static char const* const expected_md_strings[] = {"",
-                                                          "",
-                                                          "[EXTERIOR],bound@s",
-                                                          "bound",
-                                                          "d1:ext@s",
-                                                          "d1:ext",
-                                                          "d2:ext@s",
-                                                          "d2:ext",
-                                                          "leaf@s",
-                                                          "leaf",
-                                                          "leaf2@s",
-                                                          "leaf2",
-                                                          "interior"};
+        static char const* const expected_md_strings[] = {
+            "",
+            "",
+            "[EXTERIOR],bound@s",
+            "bound",
+            "d1:ext@s",
+            "d1:ext",
+            "d2:ext@s",
+            "d2:ext",
+            "leaf@s",
+            "leaf",
+            "leaf2@s",
+            "leaf2",
+            "interior",
+        };
         static char const* const expected_trans_strings[] = {
             "2: t=0 -> {}",
             "3: t=0",
@@ -436,15 +438,17 @@ TEST_F(MotherTest, fuzziness)
             = {"Sphere: r=10", "Sphere: r=1", "Sphere: r=1.0001"};
         static char const* const expected_volume_strings[]
             = {"+0", "-1", "all(-0, +2)"};
-        static char const* const expected_md_strings[] = {"",
-                                                          "",
-                                                          "[EXTERIOR],bound@s",
-                                                          "bound",
-                                                          "d1:ext@s",
-                                                          "d1:ext",
-                                                          "similar@s",
-                                                          "similar",
-                                                          "interior"};
+        static char const* const expected_md_strings[] = {
+            "",
+            "",
+            "[EXTERIOR],bound@s",
+            "bound",
+            "d1:ext@s",
+            "d1:ext",
+            "similar@s",
+            "similar",
+            "interior",
+        };
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
