@@ -9,6 +9,7 @@
 #include <memory>
 #include <string_view>
 
+#include "corecel/Assert.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/inp/Events.hh"
 
@@ -134,6 +135,21 @@ class TestEm3IntegrationMixin : virtual public IntegrationTestBase
     PrimaryInput make_primary_input() const override;
     PhysicsInput make_physics_input() const override;
     UPSensDet make_sens_det(std::string const&) override;
+};
+
+//---------------------------------------------------------------------------//
+//! Generate Op-Novice geometry with 500 keV positrons and no sensitive
+//! detector
+class OpNoviceIntegrationMixin : virtual public IntegrationTestBase
+{
+    using Base = IntegrationTestBase;
+
+  public:
+    std::string_view gdml_basename() const final { return "op-novice"; }
+    PrimaryInput make_primary_input() const override;
+    PhysicsInput make_physics_input() const override;
+    UPSensDet make_sens_det(std::string const&) override;
+    SetupOptions make_setup_options() override;
 };
 
 //---------------------------------------------------------------------------//
