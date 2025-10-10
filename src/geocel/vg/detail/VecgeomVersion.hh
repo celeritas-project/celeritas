@@ -22,7 +22,7 @@
 
 #ifndef VECGEOM_PRECISION_NAMESPACE
 // VecGeom <= 2.0.0-rc.7 puts navindex, precision in global namespace
-#define VECGEOM_PRECISION_NAMESPACE
+#    define VECGEOM_PRECISION_NAMESPACE
 #endif
 
 namespace celeritas
