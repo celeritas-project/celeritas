@@ -912,12 +912,14 @@ TEST_F(InputBuilderTest, hierarchy)
     {
         SCOPED_TRACE("py_filled");
         auto result = this->track({0, -9, -20}, {0, 1, 0});
-        static char const* const expected_volumes[] = {"filled_daughter",
-                                                       "d2",
-                                                       "filled_daughter",
-                                                       "d1",
-                                                       "filled_daughter",
-                                                       "interior"};
+        static char const* const expected_volumes[] = {
+            "filled_daughter",
+            "d2",
+            "filled_daughter",
+            "d1",
+            "filled_daughter",
+            "interior",
+        };
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[]
             = {3, 2, 8, 2, 4, 87.979589711327};
@@ -928,18 +930,20 @@ TEST_F(InputBuilderTest, hierarchy)
     {
         SCOPED_TRACE("pz");
         auto result = this->track({0, 0, -50}, {0, 0, 1});
-        static char const* const expected_volumes[] = {"interior",
-                                                       "filled_daughter",
-                                                       "leaf1",
-                                                       "filled_daughter",
-                                                       "leaf2",
-                                                       "filled_daughter",
-                                                       "interior",
-                                                       "leaf1",
-                                                       "interior",
-                                                       "bottom",
-                                                       "top",
-                                                       "interior"};
+        static char const* const expected_volumes[] = {
+            "interior",
+            "filled_daughter",
+            "leaf1",
+            "filled_daughter",
+            "leaf2",
+            "filled_daughter",
+            "interior",
+            "leaf1",
+            "interior",
+            "bottom",
+            "top",
+            "interior",
+        };
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[]
             = {20, 4, 2, 8, 2, 4, 4, 2, 23, 1, 1, 79};

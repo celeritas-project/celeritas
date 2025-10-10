@@ -238,6 +238,12 @@
     </volume>
   </structure>
 
+  <userinfo>
+    <auxiliary auxtype="Region" auxvalue="envelope_region">
+      <auxiliary auxtype="volume" auxvalue="Envelope"/>
+    </auxiliary>
+  </userinfo>
+
   <setup name="Default" version="1.0">
     <world ref="World0xdeadbeef"/>
   </setup>

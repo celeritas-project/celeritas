@@ -79,6 +79,11 @@ foreach(_basename IN ITEMS UserActionIntegration TrackingManagerIntegration)
     OFFLOAD cpu gpu
     RMTYPE serial
   )
+  # Test OpNovice
+  celeritas_add_integration_tests(
+    ${_basename} OpNoviceOptical run
+    OFFLOAD cpu gpu g4
+    RMTYPE ${_optical_rm_type})
 endforeach()
 
 # Test that the UI integration works (and ignores if Celeritas is disabled)

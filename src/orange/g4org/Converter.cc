@@ -7,6 +7,7 @@
 #include "Converter.hh"
 
 #include <algorithm>
+#include <fstream>
 #include <variant>
 
 #include "corecel/io/Logger.hh"
@@ -61,8 +62,7 @@ Converter::Converter(Options&& opts) : opts_{std::move(opts)}
 {
     if (!opts_.tol)
     {
-        opts_.tol
-            = Tolerance<>::from_default(real_type{lengthunits::millimeter});
+        opts_.tol = Tolerance<>::from_default(opts_.unit_length);
     }
 
     if (real_type{1} - ipow<2>(opts_.tol.rel) == real_type{1})
@@ -86,23 +86,22 @@ auto Converter::operator()(GeantGeoParams const& geo,
     using orangeinp::InputBuilder;
 
     // Convert solids, logical volumes, physical volumes
-    PhysicalVolumeConverter::Options options;
-    options.verbose = opts_.verbose;
-    PhysicalVolumeConverter convert_pv(geo, std::move(options));
+    PhysicalVolumeConverter convert_pv(geo, opts_);
     PhysicalVolume world = convert_pv(*geo.world());
     CELER_VALIDATE(std::holds_alternative<NoTransformation>(world.transform),
                    << "world volume should not have a transformation");
 
     // Convert logical volumes into protos
-    auto global_proto = ProtoConstructor{volumes, opts_.verbose}(*world.lv);
+    auto global_proto = ProtoConstructor{volumes, opts_}(*world.lv);
 
     // Build universes from protos
     result_type result;
     InputBuilder build_input([&opts = opts_] {
         InputBuilder::Options ibo;
         ibo.tol = opts.tol;
-        ibo.proto_output_file = opts.proto_output_file;
-        ibo.debug_output_file = opts.debug_output_file;
+        ibo.objects_output_file = opts.objects_output_file;
+        ibo.csg_output_file = opts.csg_output_file;
+        CELER_ENSURE(ibo);
         return ibo;
     }());
     result.input = build_input(*global_proto);
@@ -139,6 +138,16 @@ auto Converter::operator()(GeantGeoParams const& geo,
                 = volumes.volume_labels().find_exact(unit->label);
             unit->background.volume = bg_vol_id;
         }
+    }
+
+    if (!opts_.org_output_file.empty())
+    {
+        // Export constructed geometry for debugging
+        std::ofstream outf(opts_.org_output_file);
+        CELER_VALIDATE(outf,
+                       << "failed to open output file at \""
+                       << opts_.org_output_file << '"');
+        outf << result.input;
     }
 
     return result;

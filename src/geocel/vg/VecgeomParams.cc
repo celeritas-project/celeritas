@@ -368,7 +368,7 @@ std::shared_ptr<VecgeomParams>
 VecgeomParams::from_gdml_vg(std::string const& filename)
 {
     {
-        ScopedProfiling profile_this{"load-vecgeom"};
+        ScopedProfiling profile_this{"vecgeom-vgdml-load"};
         ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
 
         CELER_LOG(status) << "Loading VecGeom geometry using VGDML from '"
@@ -401,7 +401,7 @@ VecgeomParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
                          "geometry";
 #if CELERITAS_USE_GEANT4
     // Convert the geometry to VecGeom
-    ScopedProfiling profile_this{"load-vecgeom"};
+    ScopedProfiling profile_this{"vecgeom-g4vg-load"};
     ScopedMem record_mem("Converter.convert");
     ScopedTimeLog scoped_time;
     g4vg::Options opts;

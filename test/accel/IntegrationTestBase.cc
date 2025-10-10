@@ -498,5 +498,70 @@ auto TestEm3IntegrationMixin::make_sens_det(std::string const& sd_name)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Create physics list
+ */
+auto OpNoviceIntegrationMixin::make_physics_input() const -> PhysicsInput
+{
+    auto result = Base::make_physics_input();
+
+    // Enable optical physics (scintillation + Cherenkov)
+    auto& optical = result.optical;
+    optical = {};
+    EXPECT_TRUE(optical);
+    EXPECT_TRUE(optical.scintillation);
+    EXPECT_TRUE(optical.cherenkov);
+    EXPECT_TRUE(optical.mie_scattering);
+    EXPECT_TRUE(optical.rayleigh_scattering);
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a 0.5 MeV positron primary.
+ */
+auto OpNoviceIntegrationMixin::make_primary_input() const -> PrimaryInput
+{
+    using MevEnergy = Quantity<units::Mev, double>;
+
+    PrimaryInput result;
+    result.pdg = {pdg::positron()};
+    result.energy = inp::MonoenergeticDistribution{MevEnergy{0.5}};
+    result.shape = inp::PointDistribution{from_cm({0., 0., 0.})};
+    result.angle = inp::MonodirectionalDistribution{{1., 0., 0.}};
+    result.num_events = 12;  // Overridden with BeamOn
+    result.primaries_per_event = 10;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return null pointer for the sensitive detector
+ */
+auto OpNoviceIntegrationMixin::make_sens_det(std::string const&) -> UPSensDet
+{
+    return nullptr;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Enable optical physics options
+ */
+SetupOptions OpNoviceIntegrationMixin::make_setup_options()
+{
+    auto result = Base::make_setup_options();
+    result.sd.enabled = false;
+    result.optical_capacity = [] {
+        inp::OpticalStateCapacity cap;
+        cap.tracks = 32768;
+        cap.generators = 32768 * 8;
+        cap.primaries = cap.generators;
+        return cap;
+    }();
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

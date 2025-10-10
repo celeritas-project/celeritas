@@ -72,16 +72,6 @@ struct Joined
 //! Generic node
 using Node = std::variant<True, False, Aliased, Negated, Surface, Joined>;
 
-/*!
- * Optional transformations to apply when building a CsgUnit.
- */
-enum class UnitSimplification : size_type
-{
-    none = 0,  //!< No simplification
-    infix_logic,  //!< CsgTree suitable for infix logic evaluation
-    size_
-};
-
 //---------------------------------------------------------------------------//
 // Equality operators
 //---------------------------------------------------------------------------//
