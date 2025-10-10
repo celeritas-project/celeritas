@@ -51,16 +51,21 @@ celeritas_target_include_directories(BuildFlags
 )
 
 #----------------------------------------------------------------------------#
-# Enable test coverage
+# Add Extra Compile and Link Flags
 #----------------------------------------------------------------------------#
-if(CELERITAS_CODE_COVERAGE)
-  set(GCC_COVERAGE_COMPILE_FLAGS "-fprofile-arcs;-ftest-coverage")
-  set(GCC_COVERAGE_LINK_FLAGS    "-fprofile-arcs")
+if(DEFINED CELERITAS_C_FLAGS)
   target_compile_options(BuildFlags
-    INTERFACE "$<$<COMPILE_LANGUAGE:CXX>:${GCC_COVERAGE_COMPILE_FLAGS}>"
+    INTERFACE "$<$<COMPILE_LANGUAGE:C>:${CELERITAS_C_FLAGS}>"
   )
+endif()
+if(DEFINED CELERITAS_CXX_FLAGS)
+  target_compile_options(BuildFlags
+    INTERFACE "$<$<COMPILE_LANGUAGE:CXX>:${CELERITAS_CXX_FLAGS}>"
+  )
+endif()
+if(DEFINED CELERITAS_LINK_FLAGS)
   target_link_options(BuildFlags
-    INTERFACE "${GCC_COVERAGE_LINK_FLAGS}"
+    INTERFACE "${CELERITAS_LINK_FLAGS}"
   )
 endif()
 

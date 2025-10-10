@@ -61,9 +61,6 @@ cmake_dependent_option(CELERITAS_DEVICE_DEBUG
   "_celeritas_use_device;CELERITAS_DEBUG" OFF
 )
 
-option(CELERITAS_CODE_COVERAGE "Instrument code to produce gcov data and notes files" OFF)
-mark_as_advanced(CELERITAS_CODE_COVERAGE)
-
 # Secondary testing options (only applies to CTest)
 if(NOT CELERITAS_DEBUG OR CELERITAS_USE_VecGeom)
   set(_default_lock ON)
