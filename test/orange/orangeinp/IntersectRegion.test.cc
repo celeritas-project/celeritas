@@ -2556,6 +2556,19 @@ TEST_F(TetTest, reordered)
               this->calc_sense(result.node_id, Real3{0.3, 0.3, 0.3}));
 }
 
+TEST_F(TetTest, soft_degenerate)
+{
+    Tet tet({1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, 0, 1e-6});
+
+    auto result = this->test(tet);
+    IntersectTestResult ref;
+    ref.node = "F";
+    ref.surfaces = {"Plane: z=0", "Plane: y=0"};
+    ref.interior = {{-1, 0, 0}, {1, 1, 0}};
+    ref.exterior = {{-1, 0, 0}, {1, 1, 0}};
+    EXPECT_REF_EQ(ref, result);
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace orangeinp
