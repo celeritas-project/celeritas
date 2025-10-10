@@ -66,6 +66,11 @@ namespace celeritas
  * table).  Surface labels are accessed via the SurfaceParams object, which can
  * be created by the model input returned by this class.
  *
+ * When running standalone for testing, a "secret" environment flag
+ * \c G4_GEO_OPTIMIZE can disable Geant4 "voxelization" (acceleration structure
+ * setup) which can be slow for large problems and is unnecessary if \em not
+ * tracking on the Geant4 geometry.
+ *
  * \todo Much of the conversion should be factored out into a separate Model
  * class which provides adapters to materials, detectors, and geometry
  * structure.

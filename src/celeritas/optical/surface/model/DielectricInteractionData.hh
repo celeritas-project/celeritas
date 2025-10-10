@@ -22,7 +22,7 @@ namespace optical
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
 // Dielectric interface type
-enum class DielectricInterface : bool
+enum class DielectricInterface
 {
     metal,
     dielectric,

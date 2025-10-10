@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/OrangeInput.hh
+//! \todo Move to inp/Orange.hh ?
 //---------------------------------------------------------------------------//
 #pragma once
 

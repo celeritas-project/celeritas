@@ -21,16 +21,12 @@ namespace orangeinp
 
 //---------------------------------------------------------------------------//
 /*!
- * Result of a DeMorgan simplification.
+ * Transformed CSG tree and mapping from the old one.
+ *
+ * The \c new_nodes member has the same size as the original tree, and is a map
+ * from {old node ID} -> {equivalent simplified node ID}.
  */
-struct SimplifiedCsgTree
-{
-    //! The simplified tree
-    CsgTree tree;
-    //! Has the same size as the original tree, indexed by old node id, with
-    //! the value pointing to the equivalent node in the simplified tree
-    std::vector<NodeId> new_nodes;
-};
+using TransformedTree = std::pair<CsgTree, std::vector<NodeId>>;
 
 //---------------------------------------------------------------------------//
 
@@ -46,7 +42,7 @@ orangeinp::NodeId simplify_up(CsgTree* tree, orangeinp::NodeId start);
 void simplify(CsgTree* tree, orangeinp::NodeId start);
 
 // Replace ~&(xs...) with |(~xs...) and ~|(xs...) with &(~xs...)
-[[nodiscard]] SimplifiedCsgTree transform_negated_joins(CsgTree const& tree);
+[[nodiscard]] TransformedTree transform_negated_joins(CsgTree const& tree);
 
 // Transform a CSG node into a string expression
 [[nodiscard]] std::string
