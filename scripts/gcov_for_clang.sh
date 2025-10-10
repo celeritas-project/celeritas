@@ -29,7 +29,7 @@
 #   *   Exit code from llvm-cov gcov command
 #
 
-if [ -z ${LLVM_COV} ];
+if [ -z "${LLVM_COV}" ];
 then
   if command -v llvm-cov >/dev/null 2>&1; then
     LLVM_COV=$(command -v llvm-cov)
