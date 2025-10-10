@@ -38,7 +38,7 @@ class PolishedRoughnessModel : public SurfaceModel
     // Execute the model with host data
     void step(CoreParams const&, CoreStateHost&) const final;
 
-    // Execute the model with state data
+    // Execute the model with device data
     void step(CoreParams const&, CoreStateDevice&) const final;
 
   private:

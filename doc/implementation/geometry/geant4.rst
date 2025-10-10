@@ -15,6 +15,21 @@ support for field navigation).
 
 .. doxygenclass:: celeritas::GeantGeoParams
 
+Integration with Celeritas
+--------------------------
+
+.. table:: Celeritas geometry IDs and their analogous Geant4 classes.
+
+   =================== =========================
+   Celeritas           Geant4
+   =================== =========================
+   VolumeInstanceId    G4VPhysicalVolume
+   VolumeId            G4LogicalVolume
+   GeoMatId            G4Material
+   SurfaceId           G4LogicalSurface
+   =================== =========================
+
+
 Runtime interface
 -----------------
 

@@ -30,11 +30,11 @@ namespace app
 /*!
  * Construct with model setup.
  */
-Runner::Runner(ModelSetup const& input) : input_{input}
+Runner::Runner(ModelSetup const& input)
+    : input_{input}, tracing_{input_.perfetto_file}
 {
     // Initialize GPU
     activate_device();
-
     if (input_.cuda_heap_size)
     {
         set_cuda_heap_size(input_.cuda_heap_size);

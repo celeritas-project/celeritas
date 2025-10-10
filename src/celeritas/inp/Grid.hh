@@ -25,7 +25,8 @@ namespace inp
  * \c order is only used for \c poly_spline interpolation and \c bc is only
  * used for \c cubic_spline interpolation.
  *
- * \todo Let's just use "Geant4 spline" and linear interpolation.
+ * \todo Let's just use "Geant4 spline" and linear interpolation, and maybe
+ * it shouldn't be inside every single grid?
  */
 struct Interpolation
 {
@@ -58,7 +59,7 @@ struct Grid
         return !y.empty() && x.size() == y.size();
     }
 
-    // Construct a constant grid with a single value
+    //! Construct a grid with a constant value for all real numbers
     static Grid from_constant(double y)
     {
         Grid result;

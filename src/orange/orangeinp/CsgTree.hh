@@ -9,7 +9,6 @@
 #include <iostream>
 #include <optional>
 #include <unordered_map>
-#include <variant>
 #include <vector>
 
 #include "corecel/OpaqueId.hh"

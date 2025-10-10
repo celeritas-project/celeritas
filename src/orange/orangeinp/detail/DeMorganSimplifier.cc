@@ -90,7 +90,7 @@ DeMorganSimplifier::DeMorganSimplifier(CsgTree const& tree)
  * Perform the simplification. The state of the instance isn't cleared, so only
  * call this once.
  */
-SimplifiedCsgTree DeMorganSimplifier::operator()()
+TransformedTree DeMorganSimplifier::operator()()
 {
     this->find_join_negations();
     auto simplified_tree{this->build_simplified_tree()};

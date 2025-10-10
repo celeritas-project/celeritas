@@ -10,8 +10,6 @@
 #include <string>
 #include <string_view>
 
-#include "corecel/Config.hh"
-
 #include "corecel/Macros.hh"
 
 #include "CsgTypes.hh"

@@ -59,11 +59,22 @@ enum class SubsurfaceDirection : bool
     forward = true
 };
 
+//! Possible reflection moes for UNIFIED reflection model.
+enum class ReflectionMode
+{
+    specular_spike,
+    specular_lobe,
+    backscatter,
+    diffuse_lobe,
+    size_ = diffuse_lobe,
+};
+
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
 char const* to_cstring(SurfacePhysicsOrder);
+char const* to_cstring(ReflectionMode);
 
 //! Convert sub-surface direction to a sign (+1/-1 for forward/reverse resp.)
 CELER_FORCEINLINE_FUNCTION int to_signed_offset(SubsurfaceDirection d)

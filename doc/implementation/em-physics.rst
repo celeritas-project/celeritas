@@ -37,11 +37,3 @@ described in :ref:`limits`.
    em-physics/photon-interaction.rst
    em-physics/pair-production.rst
    em-physics/annihilation.rst
-
-Imported data
-=============
-
-Celeritas reads physics data from Geant4 (or from a ROOT file exported from
-data previously loaded into Geant4). Different versions of Geant4 (and Geant4
-data) can be used seamlessly with any version of Celeritas, allowing
-differences to be isolated without respect to machine or model implementation.

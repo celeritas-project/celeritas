@@ -13,6 +13,7 @@
 #include <nlohmann/json.hpp>
 
 #include "corecel/Config.hh"
+#include "corecel/Version.hh"
 
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
@@ -23,6 +24,8 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/DeviceIO.json.hh"
+#include "corecel/sys/Environment.hh"
+#include "corecel/sys/EnvironmentIO.json.hh"
 #include "corecel/sys/KernelRegistry.hh"
 #include "corecel/sys/KernelRegistryIO.json.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
@@ -96,7 +99,14 @@ Runner make_runner(json const& input)
     }
 
     Runner result(model_setup);
-    std::cout << json(model_setup) << std::endl;
+
+    // Echo setup with additions by copying base class attributes first
+    ModelSetupOutput out;
+    static_cast<ModelSetup&>(out) = model_setup;
+    out.version_string = std::string{celeritas::version_string};
+    out.version_hex = CELERITAS_VERSION;
+
+    std::cout << json(out) << std::endl;
     return result;
 }
 
@@ -235,6 +245,7 @@ void run(std::string const& filename)
             {
                 {"device", device()},
                 {"kernels", kernel_registry()},
+                {"environment", environment()},
                 {"build", json_pimpl_output(BuildOutput{})},
             },
         },

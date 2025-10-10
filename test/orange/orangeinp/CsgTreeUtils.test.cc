@@ -601,10 +601,10 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         to_json_string(tree_));
     // Check that we have a noop
     {
-        auto simplified = transform_negated_joins(tree_);
+        auto&& [new_tree, new_nodes] = transform_negated_joins(tree_);
         EXPECT_JSON_EQ(
             R"json(["t",["~",0],["S",0],["S",1],["~",3],["&",[2,4]]])json",
-            to_json_string(simplified.tree));
+            to_json_string(new_tree));
         constexpr N expected_new_nodes[]{
             N{0},
             N{1},
@@ -613,7 +613,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
             N{4},
             N{5},
         };
-        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+        EXPECT_VEC_EQ(expected_new_nodes, new_nodes);
     }
 
     auto n1 = this->insert(Negated{j0});
@@ -624,10 +624,10 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         to_json_string(tree_));
     // Check an easy case with just a single negated operand
     {
-        auto simplified = transform_negated_joins(tree_);
+        auto&& [new_tree, new_nodes] = transform_negated_joins(tree_);
         EXPECT_JSON_EQ(
             R"json(["t",["~",0],["S",0],["~",2],["S",1],["|",[3,4]]])json",
-            to_json_string(simplified.tree));
+            to_json_string(new_tree));
         constexpr N expected_new_nodes[]{
             N{0},
             N{1},
@@ -637,7 +637,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
             N{},
             N{5},
         };
-        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+        EXPECT_VEC_EQ(expected_new_nodes, new_nodes);
     }
 
     // Check a well-formed tree
@@ -649,10 +649,10 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
     // Check that the non-negated operand maps to correct new node_ids and
     // that not{2} is not deleted
     {
-        auto simplified = transform_negated_joins(tree_);
+        auto&& [new_tree, new_nodes] = transform_negated_joins(tree_);
         EXPECT_JSON_EQ(
             R"json(["t",["~",0],["S",0],["~",2],["S",1],["~",4],["|",[3,4]],["|",[2,5]]])json",
-            to_json_string(simplified.tree));
+            to_json_string(new_tree));
         constexpr N expected_new_nodes[]{
             N{0},
             N{1},
@@ -663,7 +663,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
             N{6},
             N{7},
         };
-        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+        EXPECT_VEC_EQ(expected_new_nodes, new_nodes);
     }
 
     // Check a well-formed tree
@@ -674,10 +674,10 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
     // Check that the two operands are transformed, removing dangling
     // operators
     {
-        auto simplified = transform_negated_joins(tree_);
+        auto&& [new_tree, new_nodes] = transform_negated_joins(tree_);
         EXPECT_JSON_EQ(
             R"json(["t",["~",0],["S",0],["~",2],["S",1],["|",[3,4]],["&",[3,4]]])json",
-            to_json_string(simplified.tree));
+            to_json_string(new_tree));
         constexpr N expected_new_nodes[]{
             N{0},
             N{1},
@@ -689,7 +689,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
             N{},
             N{6},
         };
-        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+        EXPECT_VEC_EQ(expected_new_nodes, new_nodes);
     }
 
     // Check a well-formed tree
@@ -700,10 +700,10 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         to_json_string(tree_));
     // Check that disjoint trees are correctly handled
     {
-        auto simplified = transform_negated_joins(tree_);
+        auto&& [new_tree, new_nodes] = transform_negated_joins(tree_);
         EXPECT_JSON_EQ(
             R"json(["t",["~",0],["S",0],["~",2],["S",1],["|",[3,4]],["&",[3,4]],["S",2],["~",7]])json",
-            to_json_string(simplified.tree));
+            to_json_string(new_tree));
         constexpr N expected_new_nodes[]{
             N{0},
             N{1},
@@ -717,7 +717,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
             N{7},
             N{8},
         };
-        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+        EXPECT_VEC_EQ(expected_new_nodes, new_nodes);
     }
 
     // Check a well-formed tree
@@ -728,10 +728,10 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
 
     // Add a non-transformed operand with suboperands
     {
-        auto simplified = transform_negated_joins(tree_);
+        auto&& [new_tree, new_nodes] = transform_negated_joins(tree_);
         EXPECT_JSON_EQ(
             R"json(["t",["~",0],["S",0],["~",2],["S",1],["~",4],["|",[3,4]],["&",[3,4]],["|",[2,5]],["S",2],["~",9],["&",[2,5,8]]])json",
-            to_json_string(simplified.tree));
+            to_json_string(new_tree));
         constexpr N expected_new_nodes[]{
             N{0},
             N{1},
@@ -746,7 +746,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
             N{10},
             N{11},
         };
-        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+        EXPECT_VEC_EQ(expected_new_nodes, new_nodes);
     }
 
     // Check a well-formed tree
@@ -758,10 +758,10 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
     // Top-level operand is negated and should be simplified, no need to
     // duplicate intermediary Joined nodes
     {
-        auto simplified = transform_negated_joins(tree_);
+        auto&& [new_tree, new_nodes] = transform_negated_joins(tree_);
         EXPECT_JSON_EQ(
             R"json(["t",["~",0],["S",0],["~",2],["S",1],["|",[3,4]],["&",[3,4]],["S",2],["~",7],["|",[3,4,6]]])json",
-            to_json_string(simplified.tree));
+            to_json_string(new_tree));
         constexpr N expected_new_nodes[]{
             N{0},
             N{1},
@@ -777,7 +777,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
             N{},
             N{9},
         };
-        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+        EXPECT_VEC_EQ(expected_new_nodes, new_nodes);
     }
 
     // Check a well-formed tree
@@ -788,10 +788,10 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
 
     // Top-level joined has Negated{Joined{}} chldrens
     {
-        auto simplified = transform_negated_joins(tree_);
+        auto&& [new_tree, new_nodes] = transform_negated_joins(tree_);
         EXPECT_JSON_EQ(
             R"json(["t",["~",0],["S",0],["~",2],["S",1],["|",[3,4]],["&",[3,4]],["S",2],["~",7],["|",[3,4,6]],["&",[3,4,5,9]]])json",
-            to_json_string(simplified.tree));
+            to_json_string(new_tree));
         constexpr N expected_new_nodes[]{
             N{0},
             N{1},
@@ -808,7 +808,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
             N{9},
             N{10},
         };
-        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+        EXPECT_VEC_EQ(expected_new_nodes, new_nodes);
     }
 
     // Check a well-formed tree
@@ -819,10 +819,10 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
 
     // Complex case with a negated join with negated join as children
     {
-        auto simplified = transform_negated_joins(tree_);
+        auto&& [new_tree, new_nodes] = transform_negated_joins(tree_);
         EXPECT_JSON_EQ(
             R"json(["t",["~",0],["S",0],["~",2],["S",1],["~",4],["|",[3,4]],["&",[2,5]],["&",[3,4]],["|",[2,5]],["S",2],["~",10],["|",[3,4,8]],["&",[2,5,9]],["|",[2,5,7,13]]])json",
-            to_json_string(simplified.tree));
+            to_json_string(new_tree));
         constexpr N expected_new_nodes[]{
             N{0},
             N{1},
@@ -840,7 +840,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
             N{},
             N{14},
         };
-        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+        EXPECT_VEC_EQ(expected_new_nodes, new_nodes);
     }
 
     tree_ = {};
@@ -861,10 +861,10 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
 
     // Complex case with a negated join with negated children
     {
-        auto simplified = transform_negated_joins(tree_);
+        auto&& [new_tree, new_nodes] = transform_negated_joins(tree_);
         EXPECT_JSON_EQ(
             R"json(["t",["~",0],["S",0],["S",1],["&",[2,3]],["S",2],["~",5],["&",[2,3,6]]])json",
-            to_json_string(simplified.tree));
+            to_json_string(new_tree));
         constexpr N expected_new_nodes[]{
             N{0},
             N{1},
@@ -878,7 +878,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
             N{6},
             N{7},
         };
-        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+        EXPECT_VEC_EQ(expected_new_nodes, new_nodes);
     }
 
     tree_ = {};
@@ -893,10 +893,10 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         R"json(["t",["~",0],["S",0],["S",1],["~",2],["~",3],["&",[4,5]],["|",[4,5]],["~",7]])json",
         to_json_string(tree_));
     {
-        auto simplified = transform_negated_joins(tree_);
+        auto&& [new_tree, new_nodes] = transform_negated_joins(tree_);
         EXPECT_JSON_EQ(
             R"json(["t",["~",0],["S",0],["S",1],["~",2],["~",3],["&",[4,5]],["&",[2,3]]])json",
-            to_json_string(simplified.tree));
+            to_json_string(new_tree));
         constexpr N expected_new_nodes[]{
             N{0},
             N{1},
@@ -908,7 +908,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
             N{},
             N{7},
         };
-        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+        EXPECT_VEC_EQ(expected_new_nodes, new_nodes);
     }
 }
 
@@ -933,10 +933,10 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
 
     // Complex case with a negated join with negated children
     {
-        auto simplified = transform_negated_joins(tree_);
+        auto&& [new_tree, new_nodes] = transform_negated_joins(tree_);
         EXPECT_JSON_EQ(
             R"json(["t",["~",0],["S",0],["S",1],["~",2],["~",3],["&",[2,3]],["|",[4,5]],["S",2],["~",8],["&",[2,3,9]]])json",
-            to_json_string(simplified.tree));
+            to_json_string(new_tree));
         constexpr N expected_new_nodes[]{
             N{0},
             N{1},
@@ -950,13 +950,13 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
             N{9},
             N{10},
         };
-        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+        EXPECT_VEC_EQ(expected_new_nodes, new_nodes);
         constexpr N expected_volumes[]{
             N{7},
             N{10},
             N{6},
         };
-        EXPECT_VEC_EQ(expected_volumes, simplified.tree.volumes());
+        EXPECT_VEC_EQ(expected_volumes, new_tree.volumes());
     }
     // Check that the new volumes map to the correct node
 
@@ -977,10 +977,10 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
     this->insert(Joined{op_and, {mz, below_pz}});
     tree_.insert_volume(inner_cyl);
     {
-        auto simplified = transform_negated_joins(tree_);
+        auto&& [new_tree, new_nodes] = transform_negated_joins(tree_);
         EXPECT_JSON_EQ(
             R"json(["t",["~",0],["S",0],["~",2],["S",1],["~",4],["S",2],["~",6],["|",[3,4,6]],["&",[2,5,7]],["S",3],["~",10],["&",[2,5,11]],["&",[2,5,8,11]],["S",4],["&",[2,5,14]],["&",[2,5]]])json",
-            to_json_string(simplified.tree));
+            to_json_string(new_tree));
         constexpr N expected_new_nodes[]{
             N{0},
             N{1},
@@ -999,11 +999,11 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
             N{15},
             N{16},
         };
-        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+        EXPECT_VEC_EQ(expected_new_nodes, new_nodes);
         constexpr N expected_volumes[]{
             N{9},
         };
-        EXPECT_VEC_EQ(expected_volumes, simplified.tree.volumes());
+        EXPECT_VEC_EQ(expected_volumes, new_tree.volumes());
     }
 
     tree_ = {};
@@ -1053,21 +1053,21 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
 
     tree_.insert_volume(N{16});
     {
-        auto simplified = transform_negated_joins(tree_);
+        auto&& [new_tree, new_nodes] = transform_negated_joins(tree_);
         EXPECT_JSON_EQ(
             R"json(["t",["~",0],["S",0],["~",2],["S",1],["~",4],["S",2],["~",6],["&",[2,5,7]],["S",3],["~",9],["|",[3,4,9]],["&",[2,5,10]],["S",4],["~",13],["S",5],["~",15],["&",[13,15]],["|",[3,4,6,12,14,16]],["S",6],["~",19],["S",7],["~",21],["&",[7,19,22]],["|",[9,20,21]],["&",[10,19,22]],["S",8],["~",26],["S",9],["~",28],["&",[26,28]],["|",[6,20,21,25,27,29]],["&",[2,5,7,11,13,15,31]]])json",
-            to_json_string(simplified.tree));
+            to_json_string(new_tree));
         constexpr N expected_new_nodes[] = {
             N{0},  N{1},  N{2},  N{4},  N{5},  N{6},  N{7},  N{8},
             N{9},  N{10}, N{12}, N{11}, N{13}, N{15}, N{17}, N{},
             N{18}, N{19}, N{21}, N{22}, N{23}, N{25}, N{24}, N{26},
             N{28}, N{30}, N{},   N{31}, N{32},
         };
-        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+        EXPECT_VEC_EQ(expected_new_nodes, new_nodes);
         constexpr N expected_volumes[]{
             N{18},
         };
-        EXPECT_VEC_EQ(expected_volumes, simplified.tree.volumes());
+        EXPECT_VEC_EQ(expected_volumes, new_tree.volumes());
     }
 }
 
@@ -1083,10 +1083,10 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_aliases)
         R"json(["t",["~",0],["S",0],["S",1],["~",3],["&",[2,4]],["=",5],["~",5]])json",
         to_json_string(tree_));
     {
-        auto simplified = transform_negated_joins(tree_);
+        auto&& [new_tree, new_nodes] = transform_negated_joins(tree_);
         EXPECT_JSON_EQ(
             R"json(["t",["~",0],["S",0],["~",2],["S",1],["~",4],["|",[3,4]],["&",[2,5]]])json",
-            to_json_string(simplified.tree));
+            to_json_string(new_tree));
         constexpr N expected_new_nodes[]{
             N{0},
             N{1},
@@ -1097,7 +1097,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_aliases)
             N{7},
             N{6},
         };
-        EXPECT_VEC_EQ(expected_new_nodes, simplified.new_nodes);
+        EXPECT_VEC_EQ(expected_new_nodes, new_nodes);
     }
 }
 //---------------------------------------------------------------------------//
