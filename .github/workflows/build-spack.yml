@@ -182,12 +182,6 @@ jobs:
           echo "${SPACK_VIEW}/bin" >> $GITHUB_PATH
           echo "CMAKE_PREFIX_PATH=${SPACK_VIEW}:${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
           spack env activate . --sh > "${SPACK_VIEW}/rc"
-      - name: Install cov packages
-        if: ${{matrix.special == 'code-coverage'}}
-        run: |
-          sudo apt-get -q -y update
-          sudo apt-get -q -y install lcov
-          sudo pip3 install gcovr
 
       ### CONFIGURE ###
 
@@ -322,6 +316,13 @@ jobs:
           path: "test-output/**/*.xml"
           if-no-files-found: error
           retention-days: 1
+      - name: Install cov packages
+        # TODO: move to spack.
+        if: ${{matrix.special == 'code-coverage'}}
+        run: |
+          sudo apt-get -q -y update
+          sudo apt-get -q -y install lcov
+          sudo pip3 install gcovr
       - name: Generate Coverage Report and Upload to Codecov
         uses: ./.github/actions/generate-coverage
         if: ${{ matrix.special == 'code-coverage' && !cancelled() && steps.unittest.outcome == 'success' }}
