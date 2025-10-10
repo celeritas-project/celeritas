@@ -2,6 +2,9 @@ name: build-docker
 on:
   workflow_dispatch:
   workflow_call:
+    secrets:
+      codecov_token:
+        required: false
 
 concurrency:
   group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
@@ -34,6 +37,12 @@ jobs:
           - geometry: "vecgeom"
             buildtype: "reldeb"
             image: "rocky-cuda"
+          - buildtype: "reldeb"
+            geometry: "vecgeom"
+            special: "code-coverage"
+            geant: "11.3"
+            image: "rocky-cuda"
+
     env:
       CELER_TEST_STRICT: 0 # TODO: enable with Geant4 v11.3
       CELER_DISABLE_DEVICE: 1 # REQUIRED for GHA runners
@@ -98,6 +107,20 @@ jobs:
           path: "test-output/**/*.xml"
           if-no-files-found: error
           retention-days: 1
+
+      - name: Install cov packages
+        # TODO: move to docker image
+        if: ${{matrix.special == 'code-coverage'}}
+        run: |
+          dnf -y install lcov
+          pip3 install gcovr
+
+      - name: Generate Coverage Report and Upload to Codecov
+        uses: ./.github/actions/generate-coverage
+        if: ${{ matrix.special == 'code-coverage' && !cancelled() && steps.test.outcome == 'success' }}
+        with:
+          codecov_token: ${{ secrets.codecov_token }}
+          fail_ci_if_error: 'true'
 
       ### INSTALL ###
 

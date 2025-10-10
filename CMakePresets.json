@@ -125,6 +125,16 @@
       }
     },
     {
+      "name": ".gcov",
+      "hidden": true,
+      "description": "Enable coverage using GCC/LLVM",
+      "cacheVariables": {
+        "CELERITAS_C_FLAGS":    {"type": "STRING", "value": "-fprofile-arcs;-ftest-coverage"},
+        "CELERITAS_CXX_FLAGS":  {"type": "STRING", "value": "-fprofile-arcs;-ftest-coverage"},
+        "CELERITAS_LINK_FLAGS": {"type": "STRING", "value": "-fprofile-arcs"}
+      }
+    },
+   {
       "name": ".spack-base",
       "description": "Setup for using Spack, possibly in a local env",
       "hidden": true,

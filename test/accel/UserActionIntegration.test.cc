@@ -108,5 +108,19 @@ TEST_F(TestEm3, run)
 }
 
 //---------------------------------------------------------------------------//
+class OpNoviceOptical : public OpNoviceIntegrationMixin, public UAITestBase
+{
+};
+
+TEST_F(OpNoviceOptical, run)
+{
+    auto& rm = this->run_manager();
+    UAI::Instance().SetOptions(this->make_setup_options());
+
+    rm.Initialize();
+    rm.BeamOn(2);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
