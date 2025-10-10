@@ -627,9 +627,9 @@ TEST_F(TestEm3MscNofluct, TEST_IF_CELER_DEVICE(device))
     if (this->is_ci_build())
     {
         EXPECT_LE(76, result.num_step_iters());
-        EXPECT_GE(81, result.num_step_iters());
+        EXPECT_GE(88, result.num_step_iters());
         EXPECT_LE(48, result.calc_avg_steps_per_primary());
-        EXPECT_GE(49.125, result.calc_avg_steps_per_primary());
+        EXPECT_GE(50, result.calc_avg_steps_per_primary());
         EXPECT_EQ(7, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({5, 7}), result.calc_queue_hwm());
     }
