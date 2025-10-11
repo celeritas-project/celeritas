@@ -107,14 +107,6 @@ jobs:
           path: "test-output/**/*.xml"
           if-no-files-found: error
           retention-days: 1
-
-      - name: Install cov packages
-        # TODO: move to docker image
-        if: ${{matrix.special == 'code-coverage'}}
-        run: |
-          dnf -y install lcov
-          pip3 install gcovr
-
       - name: Generate Coverage Report and Upload to Codecov
         uses: ./.github/actions/generate-coverage
         if: ${{ matrix.special == 'code-coverage' && !cancelled() && steps.test.outcome == 'success' }}

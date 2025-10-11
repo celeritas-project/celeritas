@@ -320,9 +320,6 @@ jobs:
         # TODO: move to spack.
         if: ${{matrix.special == 'code-coverage'}}
         run: |
-          sudo apt-get -q -y update
-          sudo apt-get -q -y install lcov
-          sudo pip3 install gcovr
       - name: Generate Coverage Report and Upload to Codecov
         uses: ./.github/actions/generate-coverage
         if: ${{ matrix.special == 'code-coverage' && !cancelled() && steps.unittest.outcome == 'success' }}

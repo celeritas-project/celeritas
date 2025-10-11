@@ -24,6 +24,16 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Install dependencies
+      run: |
+        if command -v dnf >/dev/null 2>&1; then
+          dnf -y install lcov
+          pip3 install gcovr
+        else
+          sudo apt-get -q -y update
+          sudo apt-get -q -y install lcov
+        fi
+        pip3 install gcovr
     - name: Generate Coverage Report
       shell: bash
       env:
