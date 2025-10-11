@@ -25,6 +25,7 @@ runs:
   using: 'composite'
   steps:
     - name: Install dependencies
+      shell: sh
       run: |
         if command -v dnf >/dev/null 2>&1; then
           dnf -y install lcov
@@ -35,7 +36,7 @@ runs:
         fi
         pip3 install gcovr
     - name: Generate Coverage Report
-      shell: bash
+      shell: sh
       env:
         exclude_dictionaries: "--exclude='.*/.*RootInterface.*' --gcov-exclude='.*RootInterface.*'"
         # We get some of these errors:
