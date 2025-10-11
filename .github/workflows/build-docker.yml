@@ -3,8 +3,8 @@ on:
   workflow_dispatch:
   workflow_call:
     secrets:
-      codecov_token:
-        required: false
+      CODECOV_TOKEN:
+        required: true
 
 concurrency:
   group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
@@ -116,7 +116,7 @@ jobs:
             && steps.test.outcome == 'success'
           }}
         with:
-          codecov_token: ${{secrets.codecov_token}}
+          codecov_token: ${{secrets.CODECOV_TOKEN}}
           fail_ci_if_error: true
 
       ### INSTALL ###

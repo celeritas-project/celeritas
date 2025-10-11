@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
   workflow_call:
     secrets:
-      codecov_token:
+      CODECOV_TOKEN:
         required: false
 
 
@@ -326,7 +326,7 @@ jobs:
             && steps.apptest.outcome == 'success'
           }}
         with:
-          codecov_token: ${{secrets.codecov_token}}
+          codecov_token: ${{secrets.CODECOV_TOKEN}}
           fail_ci_if_error: true
           gcov_executable: ${{env.GCOV}}
 
