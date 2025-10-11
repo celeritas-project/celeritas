@@ -32,8 +32,6 @@ jobs:
       with:
         name: event-file
         path: ${{github.event_path}}
-  doc:
-    uses: ./.github/workflows/doc.yml
   build-spack:
     uses: ./.github/workflows/build-spack.yml
     secrets:
@@ -43,7 +41,6 @@ jobs:
   all:
     if: ${{always()}}
     needs:
-    - doc
     - build-spack
     runs-on: ubuntu-24.04
     steps:
