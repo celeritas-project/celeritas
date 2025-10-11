@@ -109,7 +109,12 @@ jobs:
           retention-days: 1
       - name: Generate Coverage Report and Upload to Codecov
         uses: ./.github/actions/generate-coverage
-        if: ${{ matrix.special == 'code-coverage' && !cancelled() && steps.test.outcome == 'success' }}
+        if: >-
+          ${{
+            matrix.special == 'code-coverage'
+            && !cancelled()
+            && steps.test.outcome == 'success'
+          }}
         with:
           codecov_token: ${{secrets.codecov_token}}
           fail_ci_if_error: true
