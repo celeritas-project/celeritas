@@ -92,7 +92,7 @@ jobs:
       CXX: "clang++-18"
       CLANG_TIDY: "clang-tidy-18"
       LLVM_COV: "llvm-cov-18"
-      LLVM_COV_WRAPPER: "${{github.workspace}}/scripts/gcov_for_clang.sh"
+      GCOV: "${{github.workspace}}/scripts/ci/llvm-gcov.sh"
       CXXSTD: ${{(matrix.geant == '10.5' || matrix.geant == '10.6')
                  && 17 || 20}}
     runs-on: ubuntu-24.04
