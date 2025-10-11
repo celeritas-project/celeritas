@@ -109,7 +109,7 @@
       "inherits": ["type-reldeb", "spack"]
     },
     {
-      "name": "reldeb-vecgeom-clang-tidy",
+      "name": "reldeb-vecgeom-tidy",
       "description": "FINAL: VecGeom and clang-tidy checks",
       "inherits": ["type-reldeb", ".vecgeom", "spack"],
       "cacheVariables": {
@@ -136,7 +136,7 @@
       "inherits": ["type-reldeb", ".vecgeom", "spack"]
     },
     {
-      "name": "reldeb-vecgeom-code-coverage",
+      "name": "reldeb-vecgeom-codecov",
       "description": "FINAL: VecGeom and code coverage",
       "inherits": ["type-reldeb", ".vecgeom", ".gcov", "spack"]
     },
