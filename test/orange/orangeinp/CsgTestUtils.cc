@@ -271,6 +271,28 @@ std::vector<real_type> flattened(BoundingZone const& bz)
 }
 
 //---------------------------------------------------------------------------//
+std::string count_surface_types(detail::CsgUnit const& u)
+{
+    EnumArray<SurfaceType, size_type> counts = {};
+    for (auto const& surf_variant : u.surfaces)
+    {
+        std::visit([&counts](auto&& surf) { ++counts[surf.surface_type()]; },
+                   surf_variant);
+    }
+
+    nlohmann::json j;
+    for (auto st : range(SurfaceType::size_))
+    {
+        if (counts[st] > 0)
+        {
+            j[std::string{to_cstring(st)}] = counts[st];
+        }
+    }
+
+    return j.dump();
+}
+
+//---------------------------------------------------------------------------//
 void print_expected(CsgUnit const& u)
 {
     std::cout << R"cpp(

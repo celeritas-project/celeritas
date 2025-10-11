@@ -89,6 +89,21 @@ class ProtoConstructorTest : public GeantLoadTestBase
 };
 
 //---------------------------------------------------------------------------//
+TEST_F(ProtoConstructorTest, atlas_lar_endcap)
+{
+    auto global_proto = this->load("atlas-lar-endcap");
+    ProtoMap protos{*global_proto};
+    ASSERT_EQ(1, protos.size());
+    {
+        SCOPED_TRACE("global");
+        auto u = this->build_unit(protos, UniverseId{0});
+
+        EXPECT_JSON_EQ(R"json({"czc": 2, "gq": 25, "p": 50, "pz": 2})json",
+                       count_surface_types(u));
+    }
+}
+
+//---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, intersection_boxes)
 {
     auto global_proto = this->load("intersection-boxes");
@@ -554,6 +569,14 @@ TEST_F(ProtoConstructorTest, znenv)
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_EQ(GeoMatId{}, u.background);
+    }
+    {
+        SCOPED_TRACE("ZN1");
+        auto u = this->build_unit(protos, UniverseId{2});
+
+        print_expected(u);
+        EXPECT_JSON_EQ(R"json({"px":2,"py":17,"pz":2})json",
+                       count_surface_types(u));
     }
     {
         SCOPED_TRACE("ZNST");
