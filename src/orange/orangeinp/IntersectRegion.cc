@@ -17,6 +17,7 @@
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/Types.hh"
+#include "orange/MatrixUtils.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/surf/CylCentered.hh"
 #include "orange/surf/Involute.hh"
@@ -1563,16 +1564,14 @@ bool Sphere::encloses(Sphere const& other) const
 Tet::Tet(ArrReal3 const& vertices) : v_{vertices}
 {
     // Check that vertices are not coplanar by computing volume
-    // Volume = |det(v1-v0, v2-v0, v3-v0)| / 6
-    Array<Real3, 3> delta;
+    SquareMatrixReal3 delta;
     for (auto i : range(size_type(3)))
     {
         delta[i] = v_[i + 1] - v_[0];
     }
 
-    real_type volume = dot_product(delta[0], cross_product(delta[1], delta[2]))
-                       / 6;
-
+    // The determinant is dot(a, cross(b, c))
+    real_type volume = determinant(delta) / 6;
     CELER_VALIDATE(volume != 0,
                    << "vertices are degenerate: "
                    << join(v_.begin(), v_.end(), ", "));
@@ -1591,16 +1590,11 @@ Tet::Tet(ArrReal3 const& vertices) : v_{vertices}
  */
 void Tet::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    // Build four triangular faces
-    // Each face is defined by three vertices in counterclockwise order
-    // when viewed from outside
-    // Face ordering: for face i, use vertices according to the pattern
-    // that excludes vertex i from the tetrahedron
     constexpr size_type face_vertices[4][3] = {
-        {0, 2, 1},  // Face 0: bottom (excludes vertex 3)
-        {0, 1, 3},  // Face 1: front (excludes vertex 2)
-        {1, 2, 3},  // Face 2: right (excludes vertex 0)
-        {2, 0, 3}  // Face 3: left (excludes vertex 1)
+        {0, 2, 1},  // bottom
+        {0, 1, 3},  // front
+        {1, 2, 3},  // right
+        {2, 0, 3}  // left
     };
 
     for (auto i : range(size_type(4)))
