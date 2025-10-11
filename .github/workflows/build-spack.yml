@@ -75,7 +75,7 @@ jobs:
             geant: "11.2"
           - build_type: "reldeb"
             geometry: "vecgeom"
-            special: "code-coverage"
+            special: "codecov"
             geant: "11.3"
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
@@ -320,7 +320,7 @@ jobs:
         uses: ./.github/actions/generate-coverage
         if: >-
           ${{
-            matrix.special == 'code-coverage'
+            matrix.special == 'codecov'
             && !cancelled()
             && steps.unittest.outcome == 'success'
             && steps.apptest.outcome == 'success'

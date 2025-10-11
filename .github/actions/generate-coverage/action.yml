@@ -17,7 +17,7 @@ inputs:
     required: false
     default: true
   gcov_executable:
-    description: 'Path to gcov executable (if using llvm, set to llvm-gcov wrapper)'
+    description: 'Path to gcov executable (if using llvm, set to llvm-gcov)'
     required: false
     default: 'gcov'
 
