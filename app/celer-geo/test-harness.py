@@ -14,7 +14,7 @@ from pathlib import Path
 try:
     (model_file,) = argv[1:]
 except TypeError:
-    print("usage: {} inp.gdml".format(sys.argv[0]))
+    print("usage: {} inp.gdml".format(argv[0]))
     exit(2)
 
 def decode_line(jsonline):
@@ -45,16 +45,22 @@ commands = [
         "geometry_file": model_file,
     },
     {
+        "_cmd": "orange_stats",
+    },
+    {
+        "_cmd": "trace",
         "image": image,
         "volumes": True,
         "bin_file": f"{problem_name}.orange.bin",
     },
     {
         # Reuse image setup
+        "_cmd": "trace",
         "bin_file": f"{problem_name}.geant4.bin",
         "geometry": "geant4",
     },
     {
+        # DEPRECATED: omitting _cmd should work until v1.0
         "bin_file": f"{problem_name}.vecgeom.bin",
         "geometry": "vecgeom",
     },
@@ -79,8 +85,10 @@ if result.returncode:
     print("Run failed with error", result.returncode)
     exit(result.returncode)
 
-print("Received {} bytes of data".format(len(result.stdout)))
-with open(f'{problem_name}.out.json', 'wb') as f:
+num_bytes = len(result.stdout)
+outname = Path(f'{problem_name}.out.jsonl')
+print(f"Received {num_bytes} bytes of data via stdin and echoed to {outname.absolute()}")
+with open(outname, 'wb') as f:
     f.write(result.stdout)
 out_lines = result.stdout.decode().splitlines()
 
@@ -92,7 +100,8 @@ for line in out_lines[1:-1]:
     if result.get("_label") == "exception":
         # Note that it's *OK* for the trace to fail e.g. if we have disabled
         # vecgeom or GPU
-        print("Ray trace failed:")
-        print(json.dumps(result, indent=1))
+        print("Failure may be ok:", json.dumps(result, indent=1))
 
-print(json.dumps(decode_line(out_lines[-1]), indent=1))
+summary = decode_line(out_lines[-1])
+summary.pop('runtime')
+print("Run succeeded:", json.dumps(summary, indent=0))

@@ -61,6 +61,10 @@ class Runner
     //! Access volumes
     std::vector<std::string> get_volumes(Geometry) const&;
 
+    //! Load a geometry
+    template<Geometry G>
+    std::shared_ptr<GeoParams_t<G> const> load_geometry();
+
   private:
     //// TYPES ////
 
@@ -81,10 +85,6 @@ class Runner
     MapTimers timers_;
 
     //// HELPER FUNCTIONS ////
-
-    // Load a geometry
-    template<Geometry G>
-    std::shared_ptr<GeoParams_t<G> const> load_geometry();
 
     // Create a tracer
     SPImager make_imager(Geometry);
