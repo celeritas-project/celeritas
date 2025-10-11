@@ -905,9 +905,8 @@ class Sphere final : public IntersectRegionInterface
  * counterclockwise order (following the right-hand rule for outward normals).
  *
  * The tetrahedron is constructed by defining four planes, one for each face.
- * Each plane is determined by three vertices, and the interior of the
- * tetrahedron is the intersection of the negative half-spaces of all four
- * planes.
+ * Each plane is determined by three vertices. Face \em i uses all the vertices
+ * except for the one at index \em i .
  */
 class Tet final : public IntersectRegionInterface
 {
@@ -923,7 +922,7 @@ class Tet final : public IntersectRegionInterface
 
     //! Construct from four vertices
     Tet(Real3 const& v0, Real3 const& v1, Real3 const& v2, Real3 const& v3)
-        : Tet({{v0, v1, v2, v3}})
+        : Tet(ArrReal3{v0, v1, v2, v3})
     {
     }
 
