@@ -316,17 +316,13 @@ jobs:
           path: "test-output/**/*.xml"
           if-no-files-found: error
           retention-days: 1
-      - name: Install cov packages
-        # TODO: move to spack.
-        if: ${{matrix.special == 'code-coverage'}}
-        run: |
       - name: Generate Coverage Report and Upload to Codecov
         uses: ./.github/actions/generate-coverage
         if: ${{ matrix.special == 'code-coverage' && !cancelled() && steps.unittest.outcome == 'success' }}
         with:
-          codecov_token: ${{ secrets.codecov_token }}
-          fail_ci_if_error: 'true'
-          gcov_executable: ${{env.LLVM_COV_WRAPPER}}
+          codecov_token: ${{secrets.codecov_token}}
+          fail_ci_if_error: true
+          gcov_executable: ${{env.GCOV}}
 
       ### INSTALL ###
 

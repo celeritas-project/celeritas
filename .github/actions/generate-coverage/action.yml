@@ -15,9 +15,9 @@ inputs:
   fail_ci_if_error:
     description: 'Fail CI if codecov upload fails'
     required: false
-    default: 'true'
+    default: true
   gcov_executable:
-    description: 'Path to gcov executable (if using llvm, set to llvm-cov)'
+    description: 'Path to gcov executable (if using llvm, set to llvm-gcov wrapper)'
     required: false
     default: 'gcov'
 

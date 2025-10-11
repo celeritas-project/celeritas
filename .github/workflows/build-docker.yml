@@ -111,8 +111,8 @@ jobs:
         uses: ./.github/actions/generate-coverage
         if: ${{ matrix.special == 'code-coverage' && !cancelled() && steps.test.outcome == 'success' }}
         with:
-          codecov_token: ${{ secrets.codecov_token }}
-          fail_ci_if_error: 'true'
+          codecov_token: ${{secrets.codecov_token}}
+          fail_ci_if_error: true
 
       ### INSTALL ###
 
