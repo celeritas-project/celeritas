@@ -1,0 +1,51 @@
+name: 'Generate Coverage Report'
+description: 'Generates coverage report using gcovr and uploads to Codecov'
+inputs:
+  codecov_token:
+    description: 'Codecov token'
+    required: true
+  working_directory:
+    description: 'Working directory for coverage generation'
+    required: false
+    default: '.'
+  codecov_name:
+    description: 'Name for the codecov upload'
+    required: false
+    default: 'codecov-umbrella'
+  fail_ci_if_error:
+    description: 'Fail CI if codecov upload fails'
+    required: false
+    default: 'true'
+  gcov_executable:
+    description: 'Path to gcov executable (if using llvm, set to llvm-cov)'
+    required: false
+    default: 'gcov'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Generate Coverage Report
+      shell: bash
+      env:
+        exclude_dictionaries: "--exclude='.*/.*RootInterface.*' --gcov-exclude='.*RootInterface.*'"
+        # We get some of these errors:
+        # gcovr.formats.gcov.parser.common.NegativeHits: /__w/celeritas/celeritas/src/celeritas/field/FieldDriverOptions.hh:82 Got negative hit value in: branch  1 taken -12
+        # This is caused by a bug in gcov tool, see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=68080. Use option
+        # --gcov-ignore-parse-errors with a value of negative_hits.warn, or negative_hits.warn_once_per_file.
+        ignore_errors: >-
+          --gcov-ignore-parse-errors=negative_hits.warn
+      working-directory: ${{ inputs.working_directory }}
+      run: |
+        gcovr --gcov-executable=${{ inputs.gcov_executable }} -j $(($(nproc) + 1)) \
+          --output=cobertura-cov.xml --cobertura-pretty \
+          --merge-mode-functions=merge-use-line-min --exclude-unreachable-branches \
+          ${ignore_errors} ${ignore_directories} ${exclude_dictionaries}
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ inputs.codecov_token }}
+        fail_ci_if_error: ${{ inputs.fail_ci_if_error }}
+        name: ${{ inputs.codecov_name }}
+        verbose: true
+        gcov_executable: ${{ inputs.gcov_executable }}
