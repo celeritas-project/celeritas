@@ -50,7 +50,7 @@ runs:
           sudo apt-get -q -y install lcov
         fi
         pip3 install gcovr
-    - name: Generate Coverage Report
+    - name: Generate coverage report
       shell: sh
       working-directory: ${{inputs.working_directory}}
       run: |
