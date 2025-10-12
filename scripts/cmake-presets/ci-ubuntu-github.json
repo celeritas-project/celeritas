@@ -49,6 +49,7 @@
       "inherits": ["base", ".spack-base"],
       "displayName": "CONFIG: use full spack toolchain",
       "cacheVariables": {
+        "CELERITAS_USE_covfie": {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_ROOT":    null,
@@ -107,7 +108,8 @@
       "displayName": "FINAL: ultralite build with only app tests",
       "cacheVariables": {
         "BUILD_TESTING":         {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "OFF"}
       }
     },
     {
@@ -116,7 +118,8 @@
       "displayName": "FINAL: ultralite code coverage with only app tests",
       "cacheVariables": {
         "BUILD_TESTING":         {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "OFF"}
       }
     },
     {
