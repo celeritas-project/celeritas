@@ -1,9 +1,16 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
 # Build directly on the GitHub runner with caching
+#
 # NOTE: sync spack versions with https://github.com/celeritas-project/spack-gha-buildcache
 # - Spack version
 # - Any required spack patches
 # - Github runner versions
 # - Environment versions at scripts/ci/spack.yaml
+#-----------------------------------------------------------------------------#
+
 name: build-spack
 on:
   workflow_dispatch:
