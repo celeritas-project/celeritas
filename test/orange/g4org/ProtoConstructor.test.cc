@@ -574,9 +574,7 @@ TEST_F(ProtoConstructorTest, znenv)
         SCOPED_TRACE("ZN1");
         auto u = this->build_unit(protos, UniverseId{2});
 
-        print_expected(u);
-        EXPECT_JSON_EQ(R"json({"px":2,"py":17,"pz":2})json",
-                       count_surface_types(u));
+        EXPECT_JSON_EQ(R"json({"py":10})json", count_surface_types(u));
     }
     {
         SCOPED_TRACE("ZNST");
@@ -677,6 +675,13 @@ TEST_F(ProtoConstructorTest, znenv_explicit)
             = {"any(-0, +1, -2, +3, -4, +5)", "all(+6, -7, +8, -9, +10, -11)"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_EQ(GeoMatId{3}, u.background);
+    }
+    {
+        SCOPED_TRACE("ZN1");
+        auto u = this->build_unit(protos, UniverseId{4});
+
+        EXPECT_JSON_EQ(R"json({"px":2,"py":12,"pz":2})json",
+                       count_surface_types(u));
     }
     {
         SCOPED_TRACE("ZNG1");
