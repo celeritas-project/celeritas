@@ -78,7 +78,7 @@ jobs:
             geant: "11.3"
           - build_type: "reldeb"
             geometry: "vecgeom"
-            special: "tidy"
+            special: "clang-tidy"
             geant: "11.2"
           - build_type: "reldeb"
             geometry: "vecgeom"
@@ -108,7 +108,7 @@ jobs:
       - name: Check out Celeritas
         uses: actions/checkout@v4
         with:
-          fetch-depth: ${{format('{0}', matrix.special != 'tidy' && 383 || 0)}}
+          fetch-depth: ${{format('{0}', matrix.special != 'clang-tidy' && 383 || 0)}}
           fetch-tags: true # to get version information
 
       ### ENVIRONMENT ###
@@ -137,6 +137,9 @@ jobs:
                 && (matrix.special != 'static')
                 && (env.CXXSTD == '20')}}; then
             spack -e . add root
+          fi
+          if ${{env.CXXSTD == '20'}}; then
+            spack -e . add covfie
           fi
           if ${{matrix.geant != ''}}; then
             spack -e . add geant4@${{matrix.geant}}
@@ -199,7 +202,7 @@ jobs:
             . ${SPACK_VIEW}/rc
             test -n "${G4LEDATA}"
           fi
-          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
+          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE -DCELERITAS_USE_covfie=${{env.CXXSTD == '20' && 'ON' || 'OFF'}}
 
       ### BUILD ###
 
@@ -211,9 +214,9 @@ jobs:
           restore-keys: |
             ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}
             ccache-${{env.CMAKE_PRESET}}
-      - name: Build incremental tidy
-        id: tidy
-        if: ${{matrix.special == 'tidy'}}
+      - name: Build incremental clang-tidy
+        id: clang-tidy
+        if: ${{matrix.special == 'clang-tidy'}}
         env:
           BASE_REF: "${{format('{0}', github.base_ref || 'develop')}}"
         run: |
@@ -244,7 +247,7 @@ jobs:
           exit $?
       - name: Build all
         id: build
-        if: ${{matrix.special != 'tidy'}}
+        if: ${{matrix.special != 'clang-tidy'}}
         working-directory: build
         run: |
           ccache -z
@@ -276,7 +279,7 @@ jobs:
         id: unittest
         if: >-
           ${{
-            matrix.special != 'tidy'
+            matrix.special != 'clang-tidy'
             && matrix.special != 'static'
           }}
         continue-on-error: >- # TODO: fix failing tests
@@ -297,7 +300,7 @@ jobs:
         if: >-
           ${{
             !cancelled()
-            && matrix.special != 'tidy'
+            && matrix.special != 'clang-tidy'
             && steps.build.outcome == 'success'
           }}
         continue-on-error: ${{matrix.geant == '10.6'}} # TODO: rogue output from G4DeexPrecoParameters
@@ -343,7 +346,7 @@ jobs:
             !cancelled()
             && steps.build.outcome == 'success'
             && matrix.special != 'asanlite'
-            && matrix.special != 'tidy'
+            && matrix.special != 'clang-tidy'
           }}
         env:
           CELER_DISABLE_G4_EXAMPLES: 1 # Only run minimal example
@@ -356,7 +359,7 @@ jobs:
           ${{
             !cancelled()
             && steps.build.outcome == 'success'
-            && matrix.special != 'tidy'
+            && matrix.special != 'clang-tidy'
           }}
         working-directory: build
         run: |
@@ -382,7 +385,7 @@ jobs:
         if: >-
           ${{
             matrix.special != 'asanlite'
-            && matrix.special != 'tidy'
+            && matrix.special != 'clang-tidy'
           }}
         run: |
           . ${SPACK_VIEW}/rc
