@@ -343,6 +343,7 @@ jobs:
             !cancelled()
             && steps.build.outcome == 'success'
             && matrix.special != 'asanlite'
+            && matrix.special != 'codecov'
             && matrix.special != 'tidy'
           }}
         env:
