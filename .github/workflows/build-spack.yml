@@ -1,9 +1,16 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
 # Build directly on the GitHub runner with caching
+#
 # NOTE: sync spack versions with https://github.com/celeritas-project/spack-gha-buildcache
 # - Spack version
 # - Any required spack patches
 # - Github runner versions
 # - Environment versions at scripts/ci/spack.yaml
+#-----------------------------------------------------------------------------#
+
 name: build-spack
 on:
   workflow_dispatch:
@@ -214,7 +221,7 @@ jobs:
           BASE_REF: "${{format('{0}', github.base_ref || 'develop')}}"
         run: |
           if ${{github.event_name == 'schedule'}}; then
-            echo "Full tidy check on scheduled run."
+            echo "Full clang-tidy check on scheduled run."
             ninja -Cbuild -k0
             exit $?
           fi
@@ -232,10 +239,10 @@ jobs:
           done)
           set -e
           if [ -z "$CC_FILES" ]; then
-            echo "No files to run tidy on."
+            echo "No files to run clang-tidy on."
             exit 0
           fi
-          echo "Running tidy on: $CC_FILES"
+          echo "Running clang-tidy on: $CC_FILES"
           ${{env.CLANG_TIDY}} -p build $CC_FILES
           exit $?
       - name: Build all

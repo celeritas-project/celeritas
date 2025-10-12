@@ -1,3 +1,13 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Generate and upload code coverage reports.
+#
+# This *must* be run from inside an existing build after compiling with
+# appropriate coverage flags and running tests.
+#-----------------------------------------------------------------------------#
+
 name: 'Generate Coverage Report'
 description: 'Generates coverage report using gcovr and uploads to Codecov'
 inputs:
