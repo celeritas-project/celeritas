@@ -17,17 +17,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-docker:
-    uses: ./.github/workflows/build-docker.yml
+  build-ultralite:
+    uses: ./.github/workflows/build-ultralite.yml
     secrets: inherit
-  build-spack:
-    uses: ./.github/workflows/build-spack.yml
-    secrets: inherit
-  all:
-    needs: [build-docker, build-spack]
-    runs-on: ubuntu-24.04
-    steps:
-    - name: Success
-      run: "true"
 
 # vim: set nowrap tw=100:
