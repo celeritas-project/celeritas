@@ -1,9 +1,5 @@
-#-------------------------------- -*- yaml -*- ---------------------------------#
-# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
-# SPDX-License-Identifier: (Apache-2.0 OR MIT)
-#-----------------------------------------------------------------------------#
-
 name: clear-cache
+
 on:
   workflow_dispatch:
     inputs:
