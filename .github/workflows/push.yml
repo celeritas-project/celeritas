@@ -10,13 +10,18 @@ name: push
 on:
   push:
     branches:
-      - codecov-temp
+      - develop
+      - backports/**
 
 concurrency:
   group: push-${{github.ref}}-${{github.run_number}}-${{github.workflow}}
   cancel-in-progress: true
 
 jobs:
+  build-ultralite:
+    uses: ./.github/workflows/build-ultralite.yml
+  build-fast:
+    uses: ./.github/workflows/build-fast.yml
   build-docker:
     uses: ./.github/workflows/build-docker.yml
     secrets: inherit
@@ -24,7 +29,7 @@ jobs:
     uses: ./.github/workflows/build-spack.yml
     secrets: inherit
   all:
-    needs: [build-docker, build-spack]
+    needs: [build-fast, build-docker, build-spack]
     runs-on: ubuntu-24.04
     steps:
     - name: Success
