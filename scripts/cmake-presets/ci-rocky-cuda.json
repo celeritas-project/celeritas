@@ -92,7 +92,7 @@
       }
     },
     {
-      "name": "reldeb-vecgeom-code-coverage",
+      "name": "reldeb-vecgeom-codecov",
       "description": "Build with RelWithDebInfo, VecGeom and code coverage (no CUDA)",
       "inherits": [".reldeb", ".vecgeom", ".gcov", "base"],
       "cacheVariables": {
