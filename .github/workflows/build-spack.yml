@@ -323,7 +323,7 @@ jobs:
           path: "test-output/**/*.xml"
           if-no-files-found: error
           retention-days: 1
-      - name: Generate Coverage Report and Upload to Codecov
+      - name: Generate and upload coverage report
         uses: ./.github/actions/generate-coverage
         if: >-
           ${{
