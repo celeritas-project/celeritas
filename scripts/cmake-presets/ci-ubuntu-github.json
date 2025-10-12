@@ -49,6 +49,7 @@
       "inherits": ["base", ".spack-base"],
       "displayName": "CONFIG: use full spack toolchain",
       "cacheVariables": {
+        "CELERITAS_USE_covfie": {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_ROOT":    null,
@@ -127,7 +128,7 @@
       "inherits": ["type-reldeb", "spack"]
     },
     {
-      "name": "reldeb-vecgeom-clang-tidy",
+      "name": "reldeb-vecgeom-tidy",
       "description": "FINAL: VecGeom and clang-tidy checks",
       "inherits": ["type-reldeb", ".vecgeom", "spack"],
       "cacheVariables": {
