@@ -31,9 +31,9 @@ jobs:
   spack:
     name: >-
       ${{format('{0}{1}{2}{3}{4}',
-                matrix.geometry,
-                matrix.special && '-' || '',
                 matrix.special,
+                matrix.special && '-' || '',
+                matrix.geometry,
                 matrix.geant && '-g4@' || '',
                 matrix.geant)}}
     strategy:
