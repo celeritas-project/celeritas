@@ -55,7 +55,10 @@ class BIHBuilder
     struct Options
     {
         //! Minimum number of bboxes needed to trigger a partitioning attempt
-        size_type min_split_size;
+        size_type min_split_size = 2;
+
+        //! Whether the options are valid
+        explicit operator bool() const { return min_split_size >= 2; }
     };
 
     using VecBBox = std::vector<FastBBox>;

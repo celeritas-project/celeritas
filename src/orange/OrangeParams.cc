@@ -211,7 +211,8 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
                                                       &impl_volume_labels,
                                                       &host_data};
         Overload insert_universe{
-            detail::UnitInserter{&insert_universe_base, &host_data},
+            detail::UnitInserter{
+                &insert_universe_base, &host_data, &(input.construction_opts)},
             detail::RectArrayInserter{&insert_universe_base, &host_data}};
 
         for (auto&& u : input.universes)
