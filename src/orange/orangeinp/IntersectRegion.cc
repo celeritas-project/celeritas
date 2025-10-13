@@ -12,10 +12,12 @@
 #include "corecel/Constants.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/Join.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/Types.hh"
+#include "orange/MatrixUtils.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/surf/CylCentered.hh"
 #include "orange/surf/Involute.hh"
@@ -1551,6 +1553,90 @@ void Sphere::output(JsonPimpl* j) const
 bool Sphere::encloses(Sphere const& other) const
 {
     return radius_ >= other.radius();
+}
+
+//---------------------------------------------------------------------------//
+// TET
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from four vertices.
+ */
+Tet::Tet(ArrReal3 const& vertices) : v_{vertices}
+{
+    // Check that vertices are not coplanar by computing volume
+    SquareMatrixReal3 delta;
+    for (auto i : range(size_type(3)))
+    {
+        delta[i] = v_[i + 1] - v_[0];
+    }
+
+    // The determinant is dot(a, cross(b, c))
+    real_type volume = determinant(delta) / 6;
+    CELER_VALIDATE(volume != 0,
+                   << "vertices are degenerate: "
+                   << join(v_.begin(), v_.end(), ", "));
+
+    // If volume is negative, vertices are in wrong order (left-handed)
+    // Swap two vertices to make right-handed
+    if (volume < 0)
+    {
+        std::swap(v_[0], v_[1]);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void Tet::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    constexpr size_type face_vertices[4][3] = {
+        {0, 2, 1},  // bottom
+        {0, 1, 3},  // front
+        {1, 2, 3},  // right
+        {2, 0, 3}  // left
+    };
+
+    for (auto i : range(size_type(4)))
+    {
+        auto const& indices = face_vertices[i];
+        insert_surface(
+            Sense::inside,
+            Plane{detail::normal_from_triangle(
+                      v_[indices[0]], v_[indices[1]], v_[indices[2]]),
+                  v_[indices[0]]},
+            "t" + std::to_string(i));
+    }
+
+    // Construct exterior bounding box
+    BBox exterior_bbox;
+    for (auto const& vertex : v_)
+    {
+        for (auto ax : {Axis::x, Axis::y, Axis::z})
+        {
+            exterior_bbox.grow(ax, vertex[to_int(ax)]);
+        }
+    }
+    insert_surface(Sense::inside, exterior_bbox);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Tet::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a vertex by index.
+ */
+Real3 const& Tet::vertex(size_type i) const
+{
+    CELER_EXPECT(i < 4);
+    return v_[i];
 }
 
 //---------------------------------------------------------------------------//

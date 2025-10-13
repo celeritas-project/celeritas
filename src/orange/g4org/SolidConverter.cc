@@ -812,8 +812,12 @@ auto SolidConverter::tessellatedsolid(arg_type solid_base) -> result_type
 auto SolidConverter::tet(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Tet const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("tet");
+    std::vector<G4ThreeVector> vertices = solid.GetVertices();
+    CELER_ASSERT(vertices.size() == 4);
+    return make_shape<Tet>(
+        solid,
+        scale_.to<Tet::ArrReal3>(
+            vertices[0], vertices[1], vertices[2], vertices[3]));
 }
 
 //---------------------------------------------------------------------------//

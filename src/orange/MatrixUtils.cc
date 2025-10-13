@@ -21,18 +21,20 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the determiniant of a 3x3 matrix.
+ *
+ * \internal This loop typically gets unrolled and uses literals instead of a
+ * modulo.
  */
 template<class T>
 T determinant(SquareMatrix<T, 3> const& mat)
 {
-    // clang-format off
-    return   mat[0][0] * mat[1][1] * mat[2][2]
-           + mat[1][0] * mat[2][1] * mat[0][2]
-           + mat[2][0] * mat[0][1] * mat[1][2]
-           - mat[2][0] * mat[1][1] * mat[0][2]
-           - mat[1][0] * mat[0][1] * mat[2][2]
-           - mat[0][0] * mat[2][1] * mat[1][2];
-    // clang-format on
+    T result = 0;
+    for (size_type i = 0; i != 3; ++i)  // LCOV_EXCL_LINE
+    {
+        result += mat[0][i] * mat[1][(i + 1) % 3] * mat[2][(i + 2) % 3];
+        result -= mat[0][i] * mat[1][(i + 2) % 3] * mat[2][(i + 1) % 3];
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
