@@ -97,7 +97,7 @@ void put_json_line(nlohmann::json const& j)
  */
 void put_json_line(OutputInterface const& oi)
 {
-    std::cout << oi << std::endl;
+    return put_json_line(json_pimpl_output(oi));
 }
 
 //---------------------------------------------------------------------------//
@@ -185,10 +185,16 @@ void run_trace(Runner& runner,
 }
 
 //---------------------------------------------------------------------------//
-using CmdFuncPtr = void (*)(Runner&, nlohmann::json const&);
+using CmdFuncPtr = void (*)(Runner*, nlohmann::json const&);
 
-void cmd_trace(Runner& runner, nlohmann::json const& input)
+void cmd_config(Runner*, nlohmann::json const&)
 {
+    put_json_line(BuildOutput{});
+}
+
+void cmd_trace(Runner* runner, nlohmann::json const& input)
+{
+    CELER_EXPECT(runner);
     // Load required trace setup (geometry/memspace/output)
     TraceSetup trace_setup;
     ImageInput image_setup;
@@ -211,35 +217,41 @@ void cmd_trace(Runner& runner, nlohmann::json const& input)
         return;
     }
 
-    run_trace(runner, trace_setup, image_setup);
+    run_trace(*runner, trace_setup, image_setup);
 }
 
-void cmd_orange_stats(Runner& runner, nlohmann::json const&)
+void cmd_orange_stats(Runner* runner, nlohmann::json const&)
 {
-    put_json_line(OrangeParamsOutput{runner.load_geometry<Geometry::orange>()});
+    CELER_EXPECT(runner);
+    put_json_line(
+        OrangeParamsOutput{runner->load_geometry<Geometry::orange>()});
 }
 
-CmdFuncPtr get_cmd_funcptr(nlohmann::json const& input)
+CmdFuncPtr
+get_cmd_funcptr(nlohmann::json const& input, std::string_view cmd_str)
 {
     auto iter = input.find("_cmd");
     if (iter == input.end())
     {
-        CELER_LOG(warning) << "Missing '_cmd' key: assuming 'trace' "
-                              "(DEPRECATED: will be removed in v1.0)";
-        return &cmd_trace;
+        CELER_LOG(warning) << "Missing '_cmd' key: assuming '" << cmd_str
+                           << "' (DEPRECATED: will be removed in v1.0)";
+    }
+    else
+    {
+        CELER_VALIDATE(iter->is_string(), << "invalid type for _cmd");
+        cmd_str = iter->get_ref<std::string const&>();
     }
 
-    CELER_VALIDATE(iter->is_string(), << "invalid type for _cmd");
-    using MapCmdConverter = std::unordered_map<std::string, CmdFuncPtr>;
-
+    using MapCmdConverter = std::unordered_map<std::string_view, CmdFuncPtr>;
     static MapCmdConverter const cmd_to_func = {
+        {"config", &cmd_config},
         {"trace", &cmd_trace},
         {"orange_stats", &cmd_orange_stats},
     };
 
-    auto func_iter = cmd_to_func.find(iter->get<std::string>());
+    auto func_iter = cmd_to_func.find(cmd_str);
     CELER_VALIDATE(func_iter != cmd_to_func.end(),
-                   << "invalid _cmd='" << iter->get<std::string>() << "'");
+                   << "invalid _cmd='" << cmd_str << "'");
     return func_iter->second;
 }
 
@@ -263,6 +275,14 @@ void run(std::string const& filename)
     // Load the model
     CELER_LOG(diagnostic) << "Waiting for model setup";
     auto json_input = get_json_line(infile);
+    if (json_input.is_null())
+    {
+        CELER_LOG(info)
+            << R"(No input provided: printing build configuration and exiting)";
+        cmd_config(nullptr, {});
+        return;
+    }
+
     CELER_VALIDATE(json_input.is_object(),
                    << "missing or invalid JSON-formatted run input");
 
@@ -287,8 +307,8 @@ void run(std::string const& filename)
         {
             CELER_VALIDATE(json_input.is_object(),
                            << "invalid JSON input: must be object");
-            auto cmd_funcptr = get_cmd_funcptr(json_input);
-            (*cmd_funcptr)(runner, json_input);
+            auto cmd_funcptr = get_cmd_funcptr(json_input, "trace");
+            (*cmd_funcptr)(&runner, json_input);
         }
         catch (std::exception const& e)
         {
