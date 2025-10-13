@@ -2489,6 +2489,87 @@ TEST_F(SphereTest, standard)
 }
 
 //---------------------------------------------------------------------------//
+// TET
+//---------------------------------------------------------------------------//
+using TetTest = IntersectRegionTest;
+
+TEST_F(TetTest, errors)
+{
+    // Coplanar vertices (all in xy plane)
+    EXPECT_THROW(Tet({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {1, 1, 0}), RuntimeError);
+    // Degenerate: duplicate vertices
+    EXPECT_THROW(Tet({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {0, 0, 0}), RuntimeError);
+    // Three collinear points
+    EXPECT_THROW(Tet({0, 0, 0}, {1, 0, 0}, {2, 0, 0}, {0, 1, 1}), RuntimeError);
+}
+
+TEST_F(TetTest, standard)
+{
+    // Regular tetrahedron vertices
+    Tet tet({1, 1, 1}, {1, -1, -1}, {-1, 1, -1}, {-1, -1, 1});
+
+    auto result = this->test(tet);
+
+    IntersectTestResult ref;
+    ref.node = "all(-0, -1, -2, +3)";
+    ref.surfaces = {
+        "Plane: n={0.57735,0.57735,-0.57735}, d=0.57735",
+        "Plane: n={0.57735,-0.57735,0.57735}, d=0.57735",
+        "Plane: n={-0.57735,0.57735,0.57735}, d=0.57735",
+        "Plane: n={0.57735,0.57735,0.57735}, d=-0.57735",
+    };
+    ref.interior = {};
+    ref.exterior = {{-1, -1, -1}, {1, 1, 1}};
+    EXPECT_REF_EQ(ref, result);
+
+    // Test senses
+    EXPECT_EQ(SignedSense::inside,
+              this->calc_sense(result.node_id, Real3{0, 0, 0}));
+    for (auto i : range(4))
+    {
+        EXPECT_EQ(SignedSense::on,
+                  this->calc_sense(result.node_id, tet.vertex(i)));
+    }
+    EXPECT_EQ(SignedSense::outside,
+              this->calc_sense(result.node_id, Real3{2, 2, 2}));
+}
+
+TEST_F(TetTest, reordered)
+{
+    // Right-angled tetrahedron at origin, with first two points switched
+    Tet tet({1, 0, 0}, {0, 0, 0}, {0, 1, 0}, {0, 0, 1});
+
+    auto result = this->test(tet);
+    IntersectTestResult ref;
+    ref.node = "all(+0, +1, -2, +3)";
+    ref.surfaces = {
+        "Plane: z=0",
+        "Plane: y=0",
+        "Plane: n={0.57735,0.57735,0.57735}, d=0.57735",
+        "Plane: x=0",
+    };
+    ref.interior = {};
+    ref.exterior = {{0, 0, 0}, {1, 1, 1}};
+    EXPECT_REF_EQ(ref, result);
+
+    EXPECT_EQ(SignedSense::inside,
+              this->calc_sense(result.node_id, Real3{0.3, 0.3, 0.3}));
+}
+
+TEST_F(TetTest, soft_degenerate)
+{
+    Tet tet({1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, 0, 1e-6});
+
+    auto result = this->test(tet);
+    IntersectTestResult ref;
+    ref.node = "F";
+    ref.surfaces = {"Plane: z=0", "Plane: y=0"};
+    ref.interior = {{-1, 0, 0}, {1, 1, 0}};
+    ref.exterior = {{-1, 0, 0}, {1, 1, 0}};
+    EXPECT_REF_EQ(ref, result);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace orangeinp
 }  // namespace celeritas

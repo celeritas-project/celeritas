@@ -896,5 +896,54 @@ class Sphere final : public IntersectRegionInterface
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * A tetrahedron defined by four vertices.
+ *
+ * A tetrahedron is a polyhedron with four triangular faces. The four vertices
+ * should not be coplanar, and they should be ordered such that when viewed
+ * from outside the tetrahedron, each triangular face has vertices in
+ * counterclockwise order (following the right-hand rule for outward normals).
+ *
+ * The tetrahedron is constructed by defining four planes, one for each face.
+ * Each plane is determined by three vertices. Face \em i uses all the vertices
+ * except for the one at index \em i .
+ */
+class Tet final : public IntersectRegionInterface
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using ArrReal3 = Array<Real3, 4>;
+    //!@}
+
+  public:
+    // Construct from an array of four vertices
+    explicit Tet(ArrReal3 const&);
+
+    //! Construct from four vertices
+    Tet(Real3 const& v0, Real3 const& v1, Real3 const& v2, Real3 const& v3)
+        : Tet(ArrReal3{v0, v1, v2, v3})
+    {
+    }
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    // Get a vertex by index
+    Real3 const& vertex(size_type i) const;
+
+    //! Get all vertices
+    ArrReal3 const& vertices() const { return v_; }
+
+  private:
+    ArrReal3 v_;  //!< Four vertices defining the tetrahedron
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace orangeinp
 }  // namespace celeritas
