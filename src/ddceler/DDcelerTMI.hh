@@ -32,7 +32,6 @@ class DDcelerTMI : public Geant4PhysicsList
 
     int m_maxNumTracks;
     int m_initCapacity;
-    std::vector<double> m_uniformFieldStrength;
 
   public:
     // Standard constructor
@@ -59,7 +58,6 @@ DDcelerTMI::DDcelerTMI(Geant4Context* ctxt, std::string const& nam)
 {
     declareProperty("MaxNumTracks", m_maxNumTracks);
     declareProperty("InitCapacity", m_initCapacity);
-    declareProperty("UniformFieldStrength", m_uniformFieldStrength);
 }
 
 //---------------------------------------------------------------------------//

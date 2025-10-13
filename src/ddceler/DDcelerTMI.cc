@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "DDcelerTMI.hh"
 
+#include <DD4hep/Detector.h>
 #include <DDG4/Factories.h>
 
 #include "celeritas/field/FieldDriverOptions.hh"
@@ -29,19 +30,25 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
     // Celeritas does not support EmStandard MSC physics above 200 MeV
     opts.ignore_processes = {"CoulombScat"};
 
-    // Use a placeholder non-zero uniform magnetic field
-    auto make_field_input = [this] {
+    // Get the field from DD4hep detector description
+    auto& detector = context()->detectorDescription();
+    auto field = detector.field();
+    auto uniform_field_strength = field.magneticField(Position(0, 0, 0));
+
+    this->info(
+        "Celeritas will assume a constant field everywhere that matches "
+        "the field value at origin as specified in dd4hep xml description.");
+
+    // Use a uniform magnetic field based on DD4hep field at origin
+    auto make_field_input = [uniform_field_strength] {
         celeritas::inp::UniformField input;
 
-        if (m_uniformFieldStrength.size() != 3)
-        {
-            throw std::runtime_error(
-                "UniformFieldStrength must have exactly 3 components (x, y, "
-                "z)");
-        }
-        input.strength = {m_uniformFieldStrength[0],
-                          m_uniformFieldStrength[1],
-                          m_uniformFieldStrength[2]};
+        // Convert from DD4hep units (tesla) to Celeritas field units
+        constexpr double dd4hep_tesla = dd4hep::tesla;
+        input.strength = {uniform_field_strength.X() / dd4hep_tesla,
+                          uniform_field_strength.Y() / dd4hep_tesla,
+                          uniform_field_strength.Z() / dd4hep_tesla};
+
         constexpr auto celer_mm = celeritas::units::millimeter;
         input.driver_options.minimum_step = 1e-6 * celer_mm;
         input.driver_options.delta_chord = 0.025 * celer_mm;
