@@ -432,7 +432,7 @@ auto LarSphereIntegrationMixin::make_sens_det(std::string const& sd_name)
  */
 void LarSphereIntegrationMixin::process_hit(G4Step const* step)
 {
-    if (!step || !step->GetTrack())
+    if (CELER_UNLIKELY(!step || !step->GetTrack()))
     {
         // Reduce testing overhead: google assertions allocate memory
         ASSERT_TRUE(step);
@@ -441,8 +441,8 @@ void LarSphereIntegrationMixin::process_hit(G4Step const* step)
     }
 
     auto& track = *step->GetTrack();
-    if (!(track.GetWeight() > 0) || !track.GetVolume()
-        || !track.GetNextVolume())
+    if (CELER_UNLIKELY(!(track.GetWeight() > 0) || !track.GetVolume()
+                       || !track.GetNextVolume()))
     {
         EXPECT_GT(track.GetWeight(), 0);
         EXPECT_TRUE(track.GetVolume());
