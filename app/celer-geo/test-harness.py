@@ -76,7 +76,10 @@ if ext == "errcheck":
         stdout=subprocess.PIPE,
         env=env,
     )
-    exception_obj = json.loads(result.stdout.decode())
+    lines = result.stdout.decode().split('\n')
+    if len(lines) != 1:
+        log("Unexpected number of lines: ", lines)
+    exception_obj = json.loads(lines[0])
     log("Result:", exception_obj)
     if result.returncode:
         assert exception_obj['type'] == "RuntimeError"
