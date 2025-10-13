@@ -2524,7 +2524,7 @@ TEST_F(TetTest, standard)
 
     // Test senses
     EXPECT_EQ(SignedSense::inside,
-              this->calc_sense(result.node_id, Real3{0, 0, 0}));
+              this->calc_sense(result.node_id, Real3{0.1, 0.1, 0.1}));
     for (auto i : range(4))
     {
         EXPECT_EQ(SignedSense::on,
