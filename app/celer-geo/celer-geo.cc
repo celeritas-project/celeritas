@@ -104,7 +104,7 @@ void put_json_line(OutputInterface const& oi)
 /*!
  * Create a Runner from user input.
  */
-Runner make_runner(json const& input)
+std::unique_ptr<Runner> make_runner(json const& input)
 {
     ModelSetup model_setup;
     try
@@ -119,7 +119,7 @@ Runner make_runner(json const& input)
         throw;
     }
 
-    Runner result(model_setup);
+    auto result = std::make_unique<Runner>(model_setup);
 
     // Echo setup with additions by copying base class attributes first
     ModelSetupOutput out;
@@ -286,7 +286,17 @@ void run(std::string const& filename)
     CELER_VALIDATE(json_input.is_object(),
                    << "missing or invalid JSON-formatted run input");
 
-    auto runner = make_runner(json_input);
+    std::unique_ptr<Runner> runner;
+    try
+    {
+        runner = make_runner(json_input);
+    }
+    catch (std::exception const& e)
+    {
+        CELER_LOG(critical) << "Failed to load model";
+        put_json_line(ExceptionOutput{std::current_exception()});
+        throw;
+    }
 
     while (true)
     {
@@ -308,7 +318,7 @@ void run(std::string const& filename)
             CELER_VALIDATE(json_input.is_object(),
                            << "invalid JSON input: must be object");
             auto cmd_funcptr = get_cmd_funcptr(json_input, "trace");
-            (*cmd_funcptr)(&runner, json_input);
+            (*cmd_funcptr)(runner.get(), json_input);
         }
         catch (std::exception const& e)
         {
@@ -319,7 +329,7 @@ void run(std::string const& filename)
 
     // Construct json output
     put_json_line(json::object({
-        {"timers", runner.timers()},
+        {"timers", runner->timers()},
         {
             "runtime",
             {

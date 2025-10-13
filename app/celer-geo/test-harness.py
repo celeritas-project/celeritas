@@ -45,6 +45,48 @@ def make_problem_path(ext):
     return Path("".join([problem_name, ext]))
 
 
+def write_commands(commands):
+    inp_path = make_problem_path(".inp.jsonl")
+    with open(inp_path, "w") as f:
+        for c in commands:
+            try:
+                json.dump(c, f)
+            except TypeError:
+                log(repr(c))
+                raise
+            f.write("\n")
+        f.write("\n")
+    return inp_path
+
+
+# Error check test is a separate case and ignores the model path
+if ext == "errcheck":
+    inp_path = write_commands(
+        [
+            {
+                "geometry_file": "nonexistent.gdml",
+            },
+        ]
+    )
+    log("Running", exe, inp_path, "from", getcwd())
+    env = environ.copy()
+    env["CELER_LOG"] = "debug"
+    result = subprocess.run(
+        [exe, inp_path],
+        stdout=subprocess.PIPE,
+        env=env,
+    )
+    exception_obj = json.loads(result.stdout.decode())
+    log("Result:", exception_obj)
+    if result.returncode:
+        assert exception_obj['type'] == "RuntimeError"
+        log("Initial config run returned with error", result.returncode)
+        log("Successfully checked failure mode for the app")
+        exit(0)
+
+    exit(result.returncode)
+
+# Run to get configuration
 log("Running", exe, "from", getcwd())
 result = subprocess.run(
     [exe, "-"], input=b"\n", stdout=subprocess.PIPE, env={"CELER_LOG": "debug"}
@@ -105,7 +147,7 @@ enabled_deps = set(build_config["config"]["use"])
 
 env = dict(environ)
 perfetto_path = None
-if 'perfetto' in enabled_deps:
+if "perfetto" in enabled_deps:
     perfetto_path = make_problem_path(".out.perfetto")
     perfetto_path.unlink(missing_ok=True)
     commands[0]["perfetto_file"] = str(perfetto_path)
@@ -124,16 +166,7 @@ if "geant4" in enabled_deps:
     env["G4ORG_OPTIONS"] = str(g4orgopt["config"])
 env["CELER_LOG"] = "debug"
 
-inp_path = make_problem_path(".inp.jsonl")
-with open(inp_path, "w") as f:
-    for c in commands:
-        try:
-            json.dump(c, f)
-        except TypeError:
-            log(repr(c))
-            raise
-        f.write("\n")
-
+inp_path = write_commands(commands)
 log("Running", exe, inp_path, "from", getcwd())
 result = subprocess.run([exe, inp_path], stdout=subprocess.PIPE, env=env)
 if result.returncode:
