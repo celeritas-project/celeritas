@@ -52,10 +52,6 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
                && sim.status() == TrackStatus::alive;
     }());
 
-#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
-    // \todo VecGeom surface normals are not currently supported, see PR #1926
-    track.sim().status(TrackStatus::killed);
-#else
     auto geo = track.geometry();
     CELER_EXPECT(geo.is_on_boundary());
 
@@ -115,7 +111,6 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
 
     track.sim().post_step_action(
         surface_physics.scalars().surface_stepping_action);
-#endif
 }
 
 //---------------------------------------------------------------------------//
