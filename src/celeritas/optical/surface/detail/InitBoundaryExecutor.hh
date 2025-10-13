@@ -55,6 +55,22 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
     auto geo = track.geometry();
     CELER_EXPECT(geo.is_on_boundary());
 
+    // Move the particle across the boundary
+    geo.cross_boundary();
+    if (CELER_UNLIKELY(geo.failed()))
+    {
+        track.apply_errored();
+        return;
+    }
+
+    // If post volume is not an optical material, kill the track.
+    if (!track.material_record().material_id())
+    {
+        track.sim().status(TrackStatus::killed);
+        return;
+    }
+
+    /*
     // Surface selector must be created before crossing boundary to store
     // pre-volume information
     VolumeSurfaceSelector select_surface{track.surface(),
@@ -111,6 +127,7 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
 
     track.sim().post_step_action(
         surface_physics.scalars().surface_stepping_action);
+        */
 }
 
 //---------------------------------------------------------------------------//

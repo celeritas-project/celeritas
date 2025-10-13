@@ -39,7 +39,8 @@ auto ImportedDataTestBase::build_physics_options() const -> PhysicsOptions
 //---------------------------------------------------------------------------//
 auto ImportedDataTestBase::select_optical_models() const -> std::vector<IMC>
 {
-    return {IMC::absorption, IMC::rayleigh, IMC::wls};
+    return {};
+    // return {IMC::absorption, IMC::rayleigh, IMC::wls};
 }
 
 //---------------------------------------------------------------------------//

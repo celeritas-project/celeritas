@@ -77,6 +77,9 @@ void Transporter::transport_impl(CoreState<M>& state) const
             action->step(*params_, state);
         }
 
+        CELER_LOG(info) << " step_iter " << num_step_iters << ": "
+                        << counters.num_active << " active tracks";
+
         num_steps += counters.num_active;
         if (CELER_UNLIKELY(++num_step_iters == max_step_iters_))
         {
