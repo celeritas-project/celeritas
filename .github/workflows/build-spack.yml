@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
   workflow_call:
     secrets:
-      codecov_token:
+      CODECOV_TOKEN:
         required: false
 
 
@@ -75,7 +75,7 @@ jobs:
             geant: "11.2"
           - build_type: "reldeb"
             geometry: "vecgeom"
-            special: "code-coverage"
+            special: "codecov"
             geant: "11.3"
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
@@ -92,7 +92,7 @@ jobs:
       CXX: "clang++-18"
       CLANG_TIDY: "clang-tidy-18"
       LLVM_COV: "llvm-cov-18"
-      LLVM_COV_WRAPPER: "${{github.workspace}}/scripts/gcov_for_clang.sh"
+      GCOV: "${{github.workspace}}/scripts/ci/llvm-gcov.sh"
       CXXSTD: ${{(matrix.geant == '10.5' || matrix.geant == '10.6')
                  && 17 || 20}}
     runs-on: ubuntu-24.04
@@ -316,20 +316,19 @@ jobs:
           path: "test-output/**/*.xml"
           if-no-files-found: error
           retention-days: 1
-      - name: Install cov packages
-        # TODO: move to spack.
-        if: ${{matrix.special == 'code-coverage'}}
-        run: |
-          sudo apt-get -q -y update
-          sudo apt-get -q -y install lcov
-          sudo pip3 install gcovr
-      - name: Generate Coverage Report and Upload to Codecov
+      - name: Generate and upload coverage report
         uses: ./.github/actions/generate-coverage
-        if: ${{ matrix.special == 'code-coverage' && !cancelled() && steps.unittest.outcome == 'success' }}
+        if: >-
+          ${{
+            matrix.special == 'codecov'
+            && !cancelled()
+            && steps.unittest.outcome == 'success'
+            && steps.apptest.outcome == 'success'
+          }}
         with:
-          codecov_token: ${{ secrets.codecov_token }}
-          fail_ci_if_error: 'true'
-          gcov_executable: ${{env.LLVM_COV_WRAPPER}}
+          codecov_token: ${{secrets.CODECOV_TOKEN}}
+          fail_ci_if_error: true
+          gcov_executable: ${{env.GCOV}}
 
       ### INSTALL ###
 
