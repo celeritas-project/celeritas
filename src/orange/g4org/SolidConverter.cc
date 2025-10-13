@@ -705,6 +705,7 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
 
     // Convert from circumradius to apothem
     double const radius_factor = cospi(1 / static_cast<double>(params.numSide));
+    CELER_ASSERT(radius_factor > 0);
 
     std::vector<real_type> zs(params.Num_z_planes);
     std::vector<real_type> rmin(zs.size());
