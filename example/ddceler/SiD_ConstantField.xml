@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lccdd>
+  <comment>
+    Using a constant field in the DD4hep example SiD detector description
+  </comment>
+
+  <includes>
+    <gdmlFile  ref="${DD4hepINSTALL}/DDDetectors/compact/elements.xml"/>
+    <gdmlFile  ref="${DD4hepINSTALL}/DDDetectors/compact/materials.xml"/>
+  </includes>
+
+  <define>
+    <constant name="world_side"             value="10*m"/>
+    <constant name="world_x"                value="world_side/2"/>
+    <constant name="world_y"                value="world_side/2"/>
+    <constant name="world_z"                value="world_side/2"/>
+    <constant name="CrossingAngle"          value="0.014*rad"/>
+  </define>
+
+  <detectors>
+    <include ref="${DD4hepINSTALL}/DDDetectors/compact/SiD.xml"/>
+  </detectors>
+
+  <fields>
+
+    <comment>
+      The following block defines a constant magnetic field everywhere
+    </comment>
+    <field name="MagnetFields_Constant" type="ConstantField" field="magnetic">
+      <strength x="0" y="0" z="4.0*tesla"/>
+    </field>
+
+    <comment>
+     The following block neutralizes the default solenoidal field in the upstream example
+     ${DD4hepINSTALL}/DDDetectors/compact/SiD/SiD_Field.xml
+    </comment>
+    <field name="MagnetFields_Solenoid" type="solenoid"
+	   inner_field="-5.0*tesla"
+	   outer_field="1.5*tesla"
+	   zmax="SolenoidCoilOuterZ"
+	   outer_radius="SolenoidalFieldRadius">
+    </field>
+
+  </fields>
+</lccdd>
