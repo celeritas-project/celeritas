@@ -18,15 +18,18 @@ except TypeError:
     print("usage: {} inp.gdml".format(argv[0]))
     exit(2)
 
+
 # Print messages to stderr, not stdout
 def log(*args, **kwargs):
     return print(*args, **kwargs, file=stderr)
+
 
 model_path = Path(model_path)
 exe = Path(environ.get("CELERITAS_EXE", "./celer-geo"))
 ext = environ.get("CELER_TEST_EXT", "unknown")
 
 problem_name = "-".join([model_path.stem, ext])
+
 
 def decode_line(jsonline):
     try:
@@ -42,6 +45,16 @@ def make_problem_path(ext):
     return Path("".join([problem_name, ext]))
 
 
+log("Running", exe, "from", getcwd())
+result = subprocess.run(
+    [exe, "-"], input=b"\n", stdout=subprocess.PIPE, env={"CELER_LOG": "debug"}
+)
+if result.returncode:
+    log("Initial config run failed with error", result.returncode)
+    exit(result.returncode)
+build_config = json.loads(result.stdout.decode())
+log("Build config:", repr(build_config))
+
 image = {
     "_units": "cgs",
     "lower_left": [-800, 0, -1500],
@@ -49,7 +62,6 @@ image = {
     "rightward": [1, 0, 0],
     "vertical_pixels": 128,
 }
-
 
 commands = [
     {
@@ -97,16 +109,17 @@ if env["CMAKE_BUILD_TYPE"].lower() == "release":
     commands[0]["perfetto_file"] = str(perfetto_path)
     env["CELER_ENABLE_PROFILING"] = "1"
 
-g4orgopt_filename = make_problem_path(".g4orgopt.json")
-g4orgopt = {}
-for k in ['csg', 'org', 'objects']:
-    path = make_problem_path(f".{k}.json")
-    path.unlink(missing_ok=True)
-    g4orgopt[f"{k}_output_file"] = path
+g4orgopt = None
+if "geant4" in build_config["config"]["use"]:
+    g4orgopt = {"config": make_problem_path(".g4orgconf.json")}
+    for k in ["csg", "org", "objects"]:
+        path = make_problem_path(f".{k}.json")
+        path.unlink(missing_ok=True)
+        g4orgopt[f"{k}_output_file"] = path
 
-with open(g4orgopt_filename, "w") as f:
-    json.dump({k: str(v) for k, v in g4orgopt.items()}, f)
-env["G4ORG_OPTIONS"] = str(g4orgopt_filename)
+    with open(g4orgopt["config"], "w") as f:
+        json.dump({k: str(v) for k, v in g4orgopt.items()}, f)
+    env["G4ORG_OPTIONS"] = str(g4orgopt["config"])
 env["CELER_LOG"] = "debug"
 
 inp_path = make_problem_path(".inp.jsonl")
@@ -127,19 +140,18 @@ if result.returncode:
 
 num_bytes = len(result.stdout)
 outfile = make_problem_path(".out.jsonl")
-log(
-    f"Received {num_bytes} bytes of data via stdin and echoed to {outfile.absolute()}"
-)
+log(f"Received {num_bytes} bytes of data via stdin and echoed to {outfile.absolute()}")
 with open(outfile, "wb") as f:
     f.write(result.stdout)
 out_lines = result.stdout.decode().splitlines()
 
-# Check that the ORANGE output is valid
-g4org_debug_out = {}
-for k, outpath in g4orgopt.items():
-    assert outpath.exists(), outpath
-    with open(outpath) as f:
-        g4org_debug_out[k] = json.load(f)
+# Check that the converted ORANGE output is valid
+if g4orgopt is not None:
+    g4org_debug_out = {}
+    for k, outpath in g4orgopt.items():
+        assert outpath.exists(), outpath
+        with open(outpath) as f:
+            g4org_debug_out[k] = json.load(f)
 
 # Check that profiling information was written
 if perfetto_path is not None:
