@@ -77,6 +77,10 @@ jobs:
             geometry: "vecgeom"
             special: "codecov"
             geant: "11.3"
+          - build_type: "reldeb"
+            geometry: "orange"
+            special: "code-coverage"
+            geant: "11.3"
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "${{matrix.build_type == 'reldebinfo' && '500' || '300'}}Mi"
