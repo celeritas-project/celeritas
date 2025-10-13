@@ -15,11 +15,17 @@ RUNNER = DD4hepSimulation()
 # Physics configuration
 def setupPhysics(kernel):
   from DDG4 import PhysicsList,Geant4
+  import dd4hep
+  field = kernel.detectorDescription().field()
+  uniform_field_strength = field.magneticField((0,0,0))
+  print("Warning: Celeritas will assume a constant field everywhere that matches the field value at origin as specified in dd4hep xml description.")
   phys = Geant4(kernel).setupPhysics('QGSP_BERT')
   celer_phys = PhysicsList(kernel, str('DDcelerTMI'))
   celer_phys.MaxNumTracks = 2048
   celer_phys.InitCapacity = 245760
-  celer_phys.UniformFieldStrength = 4.0
+  celer_phys.UniformFieldStrength = [uniform_field_strength.X()/dd4hep.tesla,
+                                      uniform_field_strength.Y()/dd4hep.tesla,
+                                      uniform_field_strength.Z()/dd4hep.tesla]
   phys.adopt(celer_phys)
   phys.dump()
   return None

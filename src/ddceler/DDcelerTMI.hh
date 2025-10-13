@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <vector>
 #include <CeleritasG4.hh>
 #include <DDG4/Geant4Action.h>
 #include <DDG4/Geant4PhysicsList.h>
@@ -31,7 +32,7 @@ class DDcelerTMI : public Geant4PhysicsList
 
     int m_maxNumTracks;
     int m_initCapacity;
-    float m_uniformFieldStrength;
+    std::vector<double> m_uniformFieldStrength;
 
   public:
     // Standard constructor

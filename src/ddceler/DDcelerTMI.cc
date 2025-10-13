@@ -33,7 +33,15 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
     auto make_field_input = [this] {
         celeritas::inp::UniformField input;
 
-        input.strength = {0, 0, m_uniformFieldStrength};
+        if (m_uniformFieldStrength.size() != 3)
+        {
+            throw std::runtime_error(
+                "UniformFieldStrength must have exactly 3 components (x, y, "
+                "z)");
+        }
+        input.strength = {m_uniformFieldStrength[0],
+                          m_uniformFieldStrength[1],
+                          m_uniformFieldStrength[2]};
         constexpr auto celer_mm = celeritas::units::millimeter;
         input.driver_options.minimum_step = 1e-6 * celer_mm;
         input.driver_options.delta_chord = 0.025 * celer_mm;
