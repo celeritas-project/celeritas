@@ -8,14 +8,19 @@
 import json
 import subprocess
 from os import environ, getcwd
-from sys import exit, argv, stderr
+from sys import exit, argv, stderr, stdout
 from pathlib import Path
+from functools import partial
 
 try:
     (model_path,) = argv[1:]
 except TypeError:
     print("usage: {} inp.gdml".format(argv[0]))
     exit(2)
+
+# Print messages to stderr, not stdout
+def log(*args, **kwargs):
+    return print(*args, **kwargs, file=stderr)
 
 model_path = Path(model_path)
 exe = Path(environ.get("CELERITAS_EXE", "./celer-geo"))
@@ -27,9 +32,9 @@ def decode_line(jsonline):
     try:
         return json.loads(jsonline)
     except json.decoder.JSONDecodeError as e:
-        print("error: expected a JSON object but got the following stdout:")
-        print(jsonline)
-        print("fatal:", str(e))
+        log("error: expected a JSON object but got the following stdout:")
+        log(jsonline)
+        log("fatal:", str(e))
         exit(1)
 
 
@@ -110,19 +115,19 @@ with open(inp_path, "w") as f:
         try:
             json.dump(c, f)
         except TypeError:
-            print(repr(c))
+            log(repr(c))
             raise
         f.write("\n")
 
-print("Running", exe, inp_path, "from", getcwd(), file=stderr)
+log("Running", exe, inp_path, "from", getcwd())
 result = subprocess.run([exe, inp_path], stdout=subprocess.PIPE, env=env)
 if result.returncode:
-    print("Run failed with error", result.returncode)
+    log("Run failed with error", result.returncode)
     exit(result.returncode)
 
 num_bytes = len(result.stdout)
 outfile = make_problem_path(".out.jsonl")
-print(
+log(
     f"Received {num_bytes} bytes of data via stdin and echoed to {outfile.absolute()}"
 )
 with open(outfile, "wb") as f:
@@ -141,15 +146,17 @@ if perfetto_path is not None:
     assert perfetto_path.exists()
 
 # Geometry diagnostic information
-print(decode_line(out_lines[0]))
+log("Setup:", decode_line(out_lines[0]))
 
 for line in out_lines[1:-1]:
     result = decode_line(line)
     if result.get("_label") == "exception":
         # Note that it's *OK* for the trace to fail e.g. if we have disabled
         # vecgeom or GPU
-        print("Failure may be ok:", json.dumps(result, indent=1))
+        log("Failure may be ok:", json.dumps(result, indent=1))
+
+log("Run succeeded")
 
 summary = decode_line(out_lines[-1])
 summary.pop("runtime")
-print("Run succeeded:", json.dumps(summary, indent=0))
+print("Output (without runtime):", json.dumps(summary, indent=1))
