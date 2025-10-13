@@ -70,6 +70,18 @@ commands = [
         "bin_file": str(make_problem_path(".vecgeom.bin")),
         "geometry": "vecgeom",
     },
+    # Test error conditions
+    {
+        "_cmd": "trace",
+        "geometry": "bad",
+        "bin_file": str(make_problem_path(".bad.bin")),
+    },
+    {
+        "_cmd": "trace",
+    },
+    {
+        "_cmd": "nonexistent",
+    },
 ]
 
 env = dict(environ)
