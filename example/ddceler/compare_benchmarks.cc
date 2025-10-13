@@ -75,9 +75,9 @@ void loop(TString file, TH1D* hist, TString plot_type)
     TTreeReaderValue<std::vector<dd4hep::sim::Geant4Particle*>> mcParticles(
         reader, "MCParticles");
     TTreeReaderValue<std::vector<dd4hep::sim::Geant4Tracker::Hit*>> trackerHits(
-        reader, "TrackerHits");
+        reader, "SiTrackerBarrelHits");
     TTreeReaderValue<std::vector<dd4hep::sim::Geant4Calorimeter::Hit*>>
-        calorimeterHits(reader, "CalorimeterHits");
+        calorimeterHits(reader, "HcalEndcapHits");
 
     // Event loop
     while (reader.Next())
@@ -404,9 +404,9 @@ void create_2D_histograms(TString file, TH2D* h, TString plot_type)
 
     // Define TTreeReaderValues for different branches
     TTreeReaderValue<std::vector<dd4hep::sim::Geant4Tracker::Hit*>> trackerHits(
-        reader, "TrackerHits");
+        reader, "SiTrackerBarrelHits");
     TTreeReaderValue<std::vector<dd4hep::sim::Geant4Calorimeter::Hit*>>
-        calorimeterHits(reader, "CalorimeterHits");
+        calorimeterHits(reader, "HcalEndcapHits");
 
     // Event loop
     while (reader.Next())
@@ -458,6 +458,8 @@ int compare_2D_histos(TString f1_name,
 {
     // Create histograms based on plot type
     TH2D *h1, *h2;
+    f1_name += ".root";
+    f2_name += ".root";
 
     if (plot_type == "calo_xy")
     {
@@ -585,18 +587,20 @@ void compare_benchmarks(TString config1_rootfile, TString config2_rootfile)
     compare_1D_histos(config1_rootfile, config2_rootfile, "calo_energy");
 
     std::cout << "Running 2D histogram comparisons..." << std::endl;
+    config1_rootfile.ReplaceAll(".root", "");
+    config2_rootfile.ReplaceAll(".root", "");
     // Example 2D comparisons
     compare_2D_histos(config1_rootfile,
                       config2_rootfile,
-                      config1_rootfile.ReplaceAll(".root", ""),
-                      config2_rootfile.ReplaceAll(".root", ""),
+                      config1_rootfile,
+                      config2_rootfile,
                       "calo_xy",
                       "DD4hep Calorimeter Analysis");
 
     compare_2D_histos(config1_rootfile,
                       config2_rootfile,
-                      config1_rootfile.ReplaceAll(".root", ""),
-                      config2_rootfile.ReplaceAll(".root", ""),
+                      config1_rootfile,
+                      config2_rootfile,
                       "tracker_rz",
                       "DD4hep Tracker Analysis");
 }
