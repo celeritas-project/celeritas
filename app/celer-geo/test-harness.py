@@ -101,16 +101,18 @@ commands = [
     },
 ]
 
+enabled_deps = set(build_config["config"]["use"])
+
 env = dict(environ)
 perfetto_path = None
-if env["CMAKE_BUILD_TYPE"].lower() == "release":
+if 'perfetto' in enabled_deps:
     perfetto_path = make_problem_path(".out.perfetto")
     perfetto_path.unlink(missing_ok=True)
     commands[0]["perfetto_file"] = str(perfetto_path)
     env["CELER_ENABLE_PROFILING"] = "1"
 
 g4orgopt = None
-if "geant4" in build_config["config"]["use"]:
+if "geant4" in enabled_deps:
     g4orgopt = {"config": make_problem_path(".g4orgconf.json")}
     for k in ["csg", "org", "objects"]:
         path = make_problem_path(f".{k}.json")
