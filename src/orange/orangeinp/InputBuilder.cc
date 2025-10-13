@@ -29,8 +29,9 @@ namespace orangeinp
 namespace
 {
 //---------------------------------------------------------------------------//
-void write_protos(detail::ProtoMap const& map, std::string const& filename)
+void write_objects(detail::ProtoMap const& map, std::string const& filename)
 {
+    ScopedProfiling profile_this{"orangeinp-dump-objects"};
     auto result = nlohmann::json(std::vector<std::nullptr_t>(map.size()));
     for (auto univ_id : range(UniverseId{map.size()}))
     {
@@ -50,13 +51,13 @@ void write_protos(detail::ProtoMap const& map, std::string const& filename)
 //---------------------------------------------------------------------------//
 //! Helper struct to save JSON to a file
 // (TODO: could use jsonl, one line per proto?)
-class JsonProtoOutput
+class JsonCsgOutput
 {
   public:
-    JsonProtoOutput() = default;
+    JsonCsgOutput() = default;
 
     //! Construct with the number of universes
-    explicit JsonProtoOutput(UniverseId::size_type size)
+    explicit JsonCsgOutput(UniverseId::size_type size)
     {
         CELER_EXPECT(size > 0);
         output_ = nlohmann::json(std::vector<std::nullptr_t>(size));
@@ -73,6 +74,7 @@ class JsonProtoOutput
     void write(std::string const& filename) const
     {
         CELER_ASSERT(*this);
+        ScopedProfiling profile_this{"orangeinp-dump-csg"};
         std::ofstream outf(filename);
         CELER_VALIDATE(
             outf, << "failed to open output file at \"" << filename << '"');
@@ -116,19 +118,19 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
     CELER_ASSERT(protos.find(&global) == orange_global_universe);
     if (!opts_.objects_output_file.empty())
     {
-        write_protos(protos, opts_.objects_output_file);
+        write_objects(protos, opts_.objects_output_file);
     }
 
     // Build surfaces and metadata
     OrangeInput result;
-    JsonProtoOutput debug_outp;
+    JsonCsgOutput csg_outp;
     detail::ProtoBuilder builder(&result, protos, [&] {
         detail::ProtoBuilder::Options pbopts;
         pbopts.tol = opts_.tol;
         if (!opts_.csg_output_file.empty())
         {
-            debug_outp = JsonProtoOutput{protos.size()};
-            pbopts.save_json = std::ref(debug_outp);
+            csg_outp = JsonCsgOutput{protos.size()};
+            pbopts.save_json = std::ref(csg_outp);
         }
         return pbopts;
     }());
@@ -138,9 +140,9 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
         protos.at(univ_id)->build(builder);
     }
 
-    if (debug_outp)
+    if (csg_outp)
     {
-        debug_outp.write(opts_.csg_output_file);
+        csg_outp.write(opts_.csg_output_file);
     }
 
     CELER_ENSURE(result);
