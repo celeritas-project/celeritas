@@ -641,8 +641,8 @@ TEST_F(ProtoConstructorTest, znenv_explicit)
         os << opts;
         return std::move(os).str();
     }();
-    EXPECT_EQ(19, std::count(opts_str.begin(), opts_str.end(), '\n'))
-        << "JSON output changed: actual is " << repr(opts_str);
+    EXPECT_EQ(15, std::count(opts_str.begin(), opts_str.end(), ','))
+        << "JSON items changed: actual is " << repr(opts_str);
 
     auto global_proto = this->load("znenv", opts);
     ProtoMap protos{*global_proto};
