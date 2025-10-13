@@ -51,8 +51,8 @@ class BIHBuilder
     //!@{
     //! \name Type aliases
 
-    //! Input parameters
-    struct Input
+    //! Options parameters
+    struct Options
     {
         //! Minimum number of bboxes needed to trigger a partitioning attempt
         size_type min_split_size;
@@ -64,8 +64,8 @@ class BIHBuilder
     //!@}
 
   public:
-    // Construct from Storage and Input objects
-    BIHBuilder(Storage* storage, Input inp);
+    // Construct from Storage and Options objects
+    BIHBuilder(Storage* storage, Options options);
 
     // Create BIH Nodes
     BIHTree operator()(VecBBox&& bboxes, SetLocalVolId const& implicit_vol_id);
@@ -94,7 +94,7 @@ class BIHBuilder
     CollectionBuilder<BIHInnerNode> inner_nodes_;
     CollectionBuilder<BIHLeafNode> leaf_nodes_;
 
-    Input inp_;
+    Options options_;
 
     //// HELPER FUNCTIONS ////
 

@@ -58,7 +58,7 @@ class BIHIntersectingVolFinderTest : public Test
             {{0, -1, 0}, {5, 0, 100}},
         };
 
-        BIHBuilder build(&storage_, BIHBuilder::Input{min_split_size});
+        BIHBuilder build(&storage_, BIHBuilder::Options{min_split_size});
         BIHBuilder::SetLocalVolId implicit_vol_ids_;
         bih_tree_ = build(std::move(bboxes), implicit_vol_ids_);
         ref_storage_ = storage_;

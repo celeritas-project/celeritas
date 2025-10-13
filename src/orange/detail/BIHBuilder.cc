@@ -17,17 +17,17 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from Storage and Input objects.
+ * Construct from Storage and Options objects.
  */
-BIHBuilder::BIHBuilder(Storage* storage, Input inp)
+BIHBuilder::BIHBuilder(Storage* storage, Options options)
     : bboxes_{&storage->bboxes}
     , local_volume_ids_{&storage->local_volume_ids}
     , inner_nodes_{&storage->inner_nodes}
     , leaf_nodes_{&storage->leaf_nodes}
-    , inp_{inp}
+    , options_{options}
 {
     CELER_EXPECT(storage);
-    CELER_EXPECT(inp_.min_split_size > 1);
+    CELER_EXPECT(options_.min_split_size > 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -138,7 +138,7 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
         (*nodes)[current_index] = node;
     };
 
-    if (indices.size() < inp_.min_split_size)
+    if (indices.size() < options_.min_split_size)
     {
         // All bboxes fit on a single leaf; make it and exit early
         make_leaf();
