@@ -92,9 +92,17 @@
       }
     },
     {
-      "name": "reldeb-vecgeom-codecov",
+      "name": "debug-vecgeom-codecov",
       "description": "Build with RelWithDebInfo, VecGeom and code coverage (no CUDA)",
-      "inherits": [".reldeb", ".vecgeom", ".gcov", "base"],
+      "inherits": [".debug", ".vecgeom", ".gcov", "base"],
+      "cacheVariables": {
+        "CELERITAS_USE_CUDA":  {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "debug-orange-codecov",
+      "description": "Build with RelWithDebInfo, Orange and code coverage (no CUDA)",
+      "inherits": ["debug-orange", ".gcov", "base"],
       "cacheVariables": {
         "CELERITAS_USE_CUDA":  {"type": "BOOL", "value": "OFF"}
       }

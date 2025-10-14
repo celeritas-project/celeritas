@@ -118,7 +118,8 @@
       "cacheVariables": {
         "BUILD_TESTING":         {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "OFF"},
+        "CMAKE_BUILD_TYPE": {"type": "STRING", "value": "Debug"}
       }
     },
     {
@@ -154,9 +155,26 @@
       "inherits": ["type-reldeb", ".vecgeom", "spack"]
     },
     {
-      "name": "reldeb-vecgeom-codecov",
+      "name": "debug-vecgeom-codecov",
       "description": "FINAL: VecGeom and code coverage",
-      "inherits": ["type-reldeb", ".vecgeom", ".gcov", "spack"]
+      "inherits": ["type-debug", ".vecgeom", ".gcov", "spack"],
+      "cacheVariables": {
+        "CELERITAS_DEBUG":       {"type": "BOOL", "value": "ON"},
+        "CELERITAS_DEVICE_DEBUG":{"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_CUDA":   {"type": "BOOL", "value": "OFF"},
+        "CMAKE_BUILD_TYPE": {"type": "STRING", "value": "Debug"}
+      }
+    },
+    {
+      "name": "debug-orange-codecov",
+      "description": "FINAL: Orange and code coverage",
+      "inherits": ["type-debug", ".gcov", "spack"],
+      "cacheVariables": {
+        "CELERITAS_DEBUG":       {"type": "BOOL", "value": "ON"},
+        "CELERITAS_DEVICE_DEBUG":{"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_CUDA":   {"type": "BOOL", "value": "OFF"},
+        "CMAKE_BUILD_TYPE": {"type": "STRING", "value": "Debug"}
+      }
     },
     {
       "name": "reldeb-vgsurf",
