@@ -32,6 +32,10 @@ namespace orangeinp
  * the solid, and an angle of less than or equal to 0.5 turns results in the
  * intersection of the solid with a wedge.
  *
+ * An instance of this class evaluates to \em true if truncation is to take
+ * place, or \em false if the enclosed angle is a full circle.
+ *
+ * \par Example:
  * \code
   // Truncates a solid to the east-facing quadrant:
   EnclosedAzi{Turn{-0.125}, Turn{0.125}};
@@ -126,7 +130,7 @@ class EnclosedPolar
 /*!
  * A hollow shape with an optional start and end angle.
  *
- * Solids are a shape with (optionally) the same *kind* of shape subtracted
+ * Solids are a shape with (optionally) the same \em kind of shape subtracted
  * from it, and (optionally) an azimuthal section removed from it.
  */
 class SolidBase : public ObjectInterface

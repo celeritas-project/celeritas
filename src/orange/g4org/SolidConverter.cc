@@ -725,13 +725,19 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
 
     // Get orientation from the start/end phi, which still may be a full Turn
     auto frac_turn = native_value_to<Turn>(solid.GetStartPhi()).value();
+
     double const orientation
         = std::fmod(params.numSide * frac_turn, real_type{1});
+
+    auto azi = enclosed_azi_from_poly(solid);
+    CELER_VALIDATE(
+        !azi,
+        << R"(azimuthal clipping isn't properly implemented for poylhedra)");
 
     return PolyPrism::or_solid(
         std::string{solid.GetName()},
         PolySegments{std::move(rmin), std::move(rmax), std::move(zs)},
-        enclosed_azi_from_poly(solid),
+        std::move(azi),
         params.numSide,
         orientation);
 }
