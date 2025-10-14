@@ -63,6 +63,15 @@
     <field name="MagnetFields2_Constant" type="ConstantField" field="magnetic">
       <strength x="0" y="0" z="3.0*tesla"/>
     </field>
+    <properties>
+      <field_tracking
+        min_chord_step="1e-6*mm"
+        delta_chord="0.025*mm"
+        delta_intersection="1e-5*mm"
+        delta_one_step="0.01*mm"
+        eps_min="5e-5*mm"
+        eps_max="0.001*mm"/>
+    </properties>
   </fields>
 
 </lccdd>

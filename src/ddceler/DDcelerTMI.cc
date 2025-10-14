@@ -9,6 +9,15 @@
 #include <DD4hep/Detector.h>
 #include <DD4hep/FieldTypes.h>
 #include <DDG4/Factories.h>
+#include <DDG4/Geant4Field.h>
+#include <Evaluator/DD4hepUnits.h>
+#include <Evaluator/Evaluator.h>
+#include <G4ChordFinder.hh>
+#include <G4ClassicalRK4.hh>
+#include <G4FieldManager.hh>
+#include <G4MagIntegratorStepper.hh>
+#include <G4Mag_UsualEqRhs.hh>
+#include <G4TransportationManager.hh>
 
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/inp/Field.hh"
@@ -84,22 +93,95 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
 
     Direction field_direction = summed_direction;
 
+    // Print field strength
+    // Note: field_direction is already in DD4hep internal units (parsed from
+    // XML) DD4hep supports tesla, gauss, kilogauss, etc. in XML and converts
+    // to internal units
+    constexpr double dd4hep_tesla = dd4hep::tesla;
+    CELER_LOG(debug) << "Field strength: ("
+                     << field_direction.X() / dd4hep_tesla << ", "
+                     << field_direction.Y() / dd4hep_tesla << ", "
+                     << field_direction.Z() / dd4hep_tesla << ") T";
+
+    // Query field properties for driver options from OverlayedField
+    auto const& overlayed_properties = overlayed_obj->properties;
+
+    // Default values for field driver options (in Celeritas units)
+    // Note: Geant4-specific parameters (delta_one_step, eps_min, eps_max) are
+    // handled in updateFieldTracking()
+    constexpr auto celer_mm = celeritas::units::millimeter;
+    double min_step = 1e-6 * celer_mm;
+    double delta_chord = 0.025 * celer_mm;
+    double delta_intersection = 1e-5 * celer_mm;
+
+    // Try to read from DD4hep overlayed field properties if available
+    if (overlayed_properties.count("field_tracking"))
+    {
+        auto const& tracking_props = overlayed_properties.at("field_tracking");
+
+        // Create evaluator for parsing expressions with units
+        // The evaluator uses DD4hep's default unit system
+        dd4hep::tools::Evaluator eval;
+
+        // Helper to parse property value with units using DD4hep's evaluator
+        auto parse_length = [&](std::string const& key) -> double {
+            if (!tracking_props.count(key))
+                return 0.0;
+
+            std::string const& value_str = tracking_props.at(key);
+
+            // Evaluate expression (e.g., "1e-6*mm", "0.01*cm", etc.)
+            // evaluate() returns pair<int, double> where first is status,
+            // second is value
+            auto result = eval.evaluate(value_str.c_str());
+
+            if (result.first != dd4hep::tools::Evaluator::OK)
+            {
+                throw std::runtime_error("Failed to parse field property '" + key
+                                         + "' with value '" + value_str + "'");
+            }
+
+            // Convert: DD4hep internal units -> Celeritas mm
+            return result.second / dd4hep::mm * celer_mm;
+        };
+
+        if (tracking_props.count("min_chord_step"))
+        {
+            min_step = parse_length("min_chord_step");
+        }
+        if (tracking_props.count("delta_chord"))
+        {
+            delta_chord = parse_length("delta_chord");
+        }
+        if (tracking_props.count("delta_intersection"))
+        {
+            delta_intersection = parse_length("delta_intersection");
+        }
+    }
+
+    // Print field driver options
+    CELER_LOG(debug)
+        << "Field driver options: min_step=" << min_step / celer_mm
+        << " mm, delta_chord=" << delta_chord / celer_mm
+        << " mm, delta_intersection=" << delta_intersection / celer_mm
+        << " mm";
+
     // Use a uniform magnetic field based on DD4hep ConstantField
-    auto make_field_input = [field_direction] {
-        celeritas::inp::UniformField input;
+    auto make_field_input
+        = [field_direction, min_step, delta_chord, delta_intersection] {
+              celeritas::inp::UniformField input;
 
-        // Convert from DD4hep units (tesla) to Celeritas field units
-        constexpr double dd4hep_tesla = dd4hep::tesla;
-        input.strength = {field_direction.X() / dd4hep_tesla,
-                          field_direction.Y() / dd4hep_tesla,
-                          field_direction.Z() / dd4hep_tesla};
+              // Convert from DD4hep units (tesla) to Celeritas field units
+              constexpr double dd4hep_tesla = dd4hep::tesla;
+              input.strength = {field_direction.X() / dd4hep_tesla,
+                                field_direction.Y() / dd4hep_tesla,
+                                field_direction.Z() / dd4hep_tesla};
 
-        constexpr auto celer_mm = celeritas::units::millimeter;
-        input.driver_options.minimum_step = 1e-6 * celer_mm;
-        input.driver_options.delta_chord = 0.025 * celer_mm;
-        input.driver_options.delta_intersection = 1e-5 * celer_mm;
-        return input;
-    };
+              input.driver_options.minimum_step = min_step;
+              input.driver_options.delta_chord = delta_chord;
+              input.driver_options.delta_intersection = delta_intersection;
+              return input;
+          };
     opts.make_along_step = celeritas::UniformAlongStepFactory(make_field_input);
     opts.sd.ignore_zero_deposition = false;
 

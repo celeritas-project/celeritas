@@ -35,7 +35,10 @@ class DDcelerRunAction : public Geant4RunAction
     // Default destructor
     ~DDcelerRunAction();
 
-    // Make options for Celeritas tracking manager
+    // Update Geant4 field tracking parameters from DD4hep properties
+    void updateFieldTracking();
+
+    // Run action callbacks
     void begin(G4Run const* run) override;
     void end(G4Run const* run) override;
 };
