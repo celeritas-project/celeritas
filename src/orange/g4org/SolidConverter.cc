@@ -831,13 +831,20 @@ auto SolidConverter::tet(arg_type solid_base) -> result_type
 //! Convert a torus
 auto SolidConverter::torus(arg_type solid_base) -> result_type
 {
-    CELER_LOG(warning) << "G4Torus is not fully supported; approximating with "
-                          "bounding cylinders";
     auto const& solid = dynamic_cast<G4Torus const&>(solid_base);
+    CELER_LOG(error) << "G4Torus is not fully supported: approximating '"
+                     << solid.GetName() << "' with bounding cylinders";
+
     auto rmax = scale_(solid.GetRmax());
     auto rtor = scale_(solid.GetRtor());
+    CELER_VALIDATE(rtor >= rmax,
+                   << "invalid rtor=" << rtor << " < rmax=" << rmax);
 
-    std::optional<Cylinder> inner{std::in_place, rtor - rmax, rmax};
+    std::optional<Cylinder> inner;
+    if (!soft_equal(rtor, rmax))
+    {
+        inner.emplace(rtor - rmax, rmax);
+    }
 
     return make_solid(solid,
                       Cylinder{rtor + rmax, rmax},
