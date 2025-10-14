@@ -105,6 +105,10 @@ class Box final : public IntersectRegionInterface
  *
  * This intersect region, along with the Cylinder, is a base component of the
  * G4Polycone (PCON).
+ *
+ * \note The Cone is allowed to be "degenerate" in the sense of
+ * having nearly equal lower and upper radii. It will construct a cylinder with
+ * an average of the two radii.
  */
 class Cone final : public IntersectRegionInterface
 {
