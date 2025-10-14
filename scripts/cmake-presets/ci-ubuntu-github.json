@@ -157,7 +157,7 @@
     {
       "name": "debug-vecgeom-codecov",
       "description": "FINAL: VecGeom and code coverage",
-      "inherits": ["type-debug", ".vecgeom", ".gcov", "spack"],
+      "inherits": ["type-reldeb", ".vecgeom", ".gcov", "spack"],
       "cacheVariables": {
         "CELERITAS_DEBUG":       {"type": "BOOL", "value": "ON"},
         "CELERITAS_DEVICE_DEBUG":{"type": "BOOL", "value": "ON"},
@@ -168,7 +168,7 @@
     {
       "name": "debug-orange-codecov",
       "description": "FINAL: Orange and code coverage",
-      "inherits": ["type-debug", ".gcov", "spack"],
+      "inherits": ["type-reldeb", ".gcov", "spack"],
       "cacheVariables": {
         "CELERITAS_DEBUG":       {"type": "BOOL", "value": "ON"},
         "CELERITAS_DEVICE_DEBUG":{"type": "BOOL", "value": "ON"},
