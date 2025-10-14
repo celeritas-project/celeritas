@@ -53,6 +53,7 @@ class Paraboloid;
 class Parallelepiped;
 class Prism;
 class Sphere;
+class Tet;
 
 //---------------------------------------------------------------------------//
 
@@ -95,6 +96,7 @@ void to_json(nlohmann::json& j, Paraboloid const& cr);
 void to_json(nlohmann::json& j, Parallelepiped const& cr);
 void to_json(nlohmann::json& j, Prism const& cr);
 void to_json(nlohmann::json& j, Sphere const& cr);
+void to_json(nlohmann::json& j, Tet const& cr);
 
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp

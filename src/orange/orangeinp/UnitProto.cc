@@ -23,6 +23,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/VolumeToString.hh"
+#include "orange/BoundingBoxUtils.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeInput.hh"
 #include "orange/transform/VariantTransform.hh"
@@ -165,7 +166,9 @@ void remove_negated_join(CsgUnit& unit, std::string_view label)
  */
 UnitProto::UnitProto(Input&& inp) : input_{std::move(inp)}
 {
-    CELER_VALIDATE(input_, << "no fill, daughters, or volumes are defined");
+    CELER_VALIDATE(input_,
+                   << "no fill, daughters, or volumes are defined in '"
+                   << this->label() << "'");
     CELER_VALIDATE(std::all_of(input_.materials.begin(),
                                input_.materials.begin(),
                                Identity{}),
@@ -532,11 +535,13 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
         auto region_iter = result.regions.find(interior_node);
         CELER_ASSERT(region_iter != result.regions.end());
         auto const& bz = region_iter->second.bounds;
-        CELER_VALIDATE(!bz.negated && is_finite(bz.exterior),
-                       << "global boundary must be finite: cannot determine "
-                          "extents of interior '"
-                       << input_.boundary.interior->label() << "' in '"
-                       << this->label() << '\'');
+        CELER_VALIDATE(
+            !bz.negated && is_finite(bz.exterior),
+            << "global boundary must be finite: cannot determine "
+               "extents of interior '"
+            << input_.boundary.interior->label() << "' in '" << this->label()
+            << "': " << (bz.negated ? "negated interior" : "exterior")
+            << " bounds are " << (bz.negated ? bz.interior : bz.exterior));
     }
 
     // Build daughters

@@ -27,12 +27,12 @@ if(WIN32)
     target_compile_options(BuildFlags INTERFACE
       $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus /Zc:preprocessor /EHsc>
     )
+    # Inheriting via dominance is correct behavior
+    target_compile_options(BuildFlags
+      INTERFACE "$<$<COMPILE_LANGUAGE:CXX>:/wd4267$<SEMICOLON>/wd4250>"
+    )
   endif()
 
-  # Inheriting via dominance is correct behavior
-  target_compile_options(BuildFlags
-    INTERFACE "$<$<COMPILE_LANGUAGE:CXX>:/wd4267$<SEMICOLON>/wd4250>"
-  )
 endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
     AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 13)
