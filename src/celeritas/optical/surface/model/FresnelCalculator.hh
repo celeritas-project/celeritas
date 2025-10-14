@@ -36,6 +36,9 @@ namespace optical
  * This calculator helps handle this degenerate case, and also handles
  * calculating reflectivity and transmission in the total internal reflection
  * case.
+ *
+ * Convention follows \cite{fowles-modern-optics} section 2.6, except that
+ * photon phase is not tracked in Celeritas.
  */
 class FresnelCalculator
 {
@@ -142,6 +145,7 @@ FresnelCalculator::FresnelCalculator(Real3 const& direction,
                  <= std::nextafter(real_type{1}, real_type{2}));
     cos_theta_ = min(-dot_product(direction_, normal_), real_type{1});
 
+    // Snell's law
     real_type sin_phi = sqrt(1 - ipow<2>(cos_theta_)) / relative_r_index_;
 
     // If undergoing total internal reflection, set the cosine ratio to exactly
@@ -242,6 +246,8 @@ CELER_FUNCTION Real3 FresnelCalculator::refracted_direction() const
 //---------------------------------------------------------------------------//
 /*!
  * Calculate transmission coefficient of the TE component.
+ *
+ * Derived from equation 2.52 of \cite{fowles-modern-optics}.
  */
 CELER_FUNCTION real_type FresnelCalculator::calc_transmission_te() const
 {
@@ -251,6 +257,8 @@ CELER_FUNCTION real_type FresnelCalculator::calc_transmission_te() const
 //---------------------------------------------------------------------------//
 /*!
  * Calculate transmission coefficient of the TM component.
+ *
+ * Derived from equation 2.53 of \cite{fowles-modern-optics}.
  */
 CELER_FUNCTION real_type FresnelCalculator::calc_transmission_tm() const
 {
@@ -260,15 +268,19 @@ CELER_FUNCTION real_type FresnelCalculator::calc_transmission_tm() const
 //---------------------------------------------------------------------------//
 /*!
  * Calculate reflectivity coefficient of the TE component.
+ *
+ * Equivalent to equation 2.54 of \cite{fowles-modern-optics}.
  */
 CELER_FUNCTION real_type FresnelCalculator::calc_reflectivity_te() const
 {
-    return this->reflectivity_ratio(cosine_ratio_ * relative_r_index_);
+    return -this->reflectivity_ratio(cosine_ratio_ * relative_r_index_);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Calculate reflectivity coefficient of the TM component.
+ *
+ * Equivalent to equation 2.55 of \cite{fowles-modern-optics}.
  */
 CELER_FUNCTION real_type FresnelCalculator::calc_reflectivity_tm() const
 {

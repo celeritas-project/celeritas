@@ -363,25 +363,26 @@ TEST_F(FresnelTest, external_refracted)
     {
         auto result = scan_refraction(axes, {-7, -24}, angles);
 
-        static real_type const expected_s_component[] = {
+        static double const expected_s_component[] = {
             -0.28,
-            -0.27888864422717,
-            -0.27540763657069,
-            -0.26909249877705,
-            -0.25909290202042,
-            -0.24407539431421,
-            -0.22215066620199,
-            -0.19095364609923,
+            -0.15234346055511,
+            -0.14380497983219,
+            -0.12924485161699,
+            -0.10845936020105,
+            -0.081863630504069,
+            -0.051329677353957,
+            -0.021000222305329,
         };
-        static real_type const expected_p_component[] = {
+
+        static double const expected_p_component[] = {
             -0.96,
-            -0.96032344765768,
-            -0.96132753716855,
-            -0.963114337502,
-            -0.96585240493703,
-            -0.96975625901067,
-            -0.97501234941205,
-            -0.98159905513474,
+            -0.98832761270041,
+            -0.98960604675571,
+            -0.99161271085566,
+            -0.99410088380646,
+            -0.99664354008878,
+            -0.99868176323729,
+            -0.99977947101505,
         };
 
         EXPECT_VEC_SOFT_EQ(expected_cos_theta, result.cos_theta);
@@ -438,17 +439,17 @@ TEST_F(FresnelTest, internal_refracted)
     {
         auto result = scan_refraction(axes, {4, 3}, angles);
 
-        static real_type const expected_s_component[] = {
+        static double const expected_s_component[] = {
             0.8,
-            0.79847777172855,
-            0.79264214760758,
-            0.77407754200857,
+            0.89814489255168,
+            0.91127846614442,
+            0.94349725847037,
         };
-        static real_type const expected_p_component[] = {
+        static double const expected_p_component[] = {
             0.6,
-            0.60202429191471,
-            0.60968715406842,
-            0.633090798352,
+            0.43969961562791,
+            0.41179067150856,
+            0.33138033022328,
         };
 
         EXPECT_VEC_SOFT_EQ(expected_cos_theta, result.cos_theta);
