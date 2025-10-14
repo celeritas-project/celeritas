@@ -268,6 +268,53 @@ TEST_F(PolyconeTest, degenerate)
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
 }
 
+// Try to build a polycone with segments that have zero-width cylinders
+// (from alice-pipe-its.gdml)
+TEST_F(PolyconeTest, degenerate_inner)
+{
+    this->build_volume(PolyCone{
+        "TGeoPcon",
+        PolySegments{
+            /* inner = */ {
+                0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 1.55, 0, 0, 0, 0},
+            /* outer = */
+            {
+                3.5,
+                3.5,
+                1,
+                1,
+                1.75,
+                1.75,
+                1,
+                1,
+                2.5,
+                2.5,
+                1.75,
+                1.75,
+                1.75,
+                0.75,
+                0.75,
+            },
+            /* z = */
+            {0,
+             1.2699999809265137,
+             1.2699999809265137,
+             4.070000171661377,
+             4.070000171661377,
+             5.6700000762939453,
+             5.6700000762939453,
+             10.869999885559082,
+             10.869999885559082,
+             12.869999885559082,
+             12.869999885559082,
+             18.569999694824219,
+             18.770000457763672,
+             18.770000457763672,
+             19.270000457763672}},
+        /* azi = */ {}});
+    this->print_expected();
+}
+
 TEST_F(PolyconeTest, or_solid)
 {
     {
