@@ -44,7 +44,7 @@ jobs:
             image: "rocky-cuda"
           - buildtype: "reldeb"
             geometry: "orange"
-            special: "code-coverage"
+            special: "codecov"
             geant: "11.3"
             image: "rocky-cuda"
 

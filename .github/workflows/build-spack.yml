@@ -79,7 +79,7 @@ jobs:
             geant: "11.3"
           - build_type: "reldeb"
             geometry: "orange"
-            special: "code-coverage"
+            special: "codecov"
             geant: "11.3"
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
