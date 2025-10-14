@@ -26,12 +26,12 @@ namespace optical
  * Helper class for calculating quantities for Fresnel equations.
  *
  * Incident waves are decomposed into transverse-electric (TE) and
- * transverse-magnetic (TM) modes. The interaction plane is defined as the span
- * of the photon direction and the surface normal. The TE (TM) mode has the
- * electric (magnetic) field polarization transverse to the interaction plane.
- * If the direction is parallel to the surface normal, then interaction plane
- * is degenerate and the incident photon is defined to be entirely in the TE
- * mode.
+ * transverse-magnetic (TM) polarizations. The interaction plane is defined as
+ * the span of the photon direction and the surface normal. The TE (TM)
+ * polarization has the electric (magnetic) field polarization transverse to
+ * the interaction plane. If the direction is parallel to the surface normal,
+ * then interaction plane is degenerate and the incident photon is defined to
+ * be entirely in the TE polarization.
  *
  * This calculator helps handle this degenerate case, and also handles
  * calculating reflectivity and transmission in the total internal reflection

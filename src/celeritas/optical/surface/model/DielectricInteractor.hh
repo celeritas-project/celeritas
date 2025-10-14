@@ -85,9 +85,7 @@ DielectricInteractor::Builder::operator()(CoreTrackView const& track) const
     // No interaction if optical materials are identical
     if (s_phys.material() == s_phys.next_material())
     {
-        return SurfaceInteraction{SurfaceInteraction::Action::refracted,
-                                  track.geometry().dir(),
-                                  track.particle().polarization()};
+        return SurfaceInteraction::from_transmission();
     }
 
     auto rng = track.rng();
