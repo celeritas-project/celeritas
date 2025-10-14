@@ -269,50 +269,118 @@ TEST_F(PolyconeTest, degenerate)
 }
 
 // Try to build a polycone with segments that have zero-width cylinders
-// (from alice-pipe-its.gdml)
+// (TGeoPcon0x16 from alice-pipe-its.gdml)
 TEST_F(PolyconeTest, degenerate_inner)
 {
     this->build_volume(PolyCone{
-        "TGeoPcon",
+        "pc",
         PolySegments{
-            /* inner = */ {
-                0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 1.55, 0, 0, 0, 0},
-            /* outer = */
-            {
-                3.5,
-                3.5,
-                1,
-                1,
-                1.75,
-                1.75,
-                1,
-                1,
-                2.5,
-                2.5,
-                1.75,
-                1.75,
-                1.75,
-                0.75,
-                0.75,
-            },
-            /* z = */
-            {0,
-             1.2699999809265137,
-             1.2699999809265137,
-             4.070000171661377,
-             4.070000171661377,
-             5.6700000762939453,
-             5.6700000762939453,
-             10.869999885559082,
-             10.869999885559082,
-             12.869999885559082,
-             12.869999885559082,
-             18.569999694824219,
-             18.770000457763672,
-             18.770000457763672,
-             19.270000457763672}},
-        /* azi = */ {}});
-    this->print_expected();
+            {0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 1.6, 0.0, 0.0, 0.0, 0.0},
+            {3.5, 3.5, 1, 1, 1.75, 1.75, 1, 1, 2.5, 2.5, 1.75, 1.75, 1.75, 0.75, 0.75},
+            {0.00,
+             1.27,
+             1.27,
+             4.07,
+             4.07,
+             5.67,
+             5.67,
+             10.87,
+             10.87,
+             12.87,
+             12.87,
+             18.57,
+             18.77,
+             18.77,
+             19.27}},
+        {}});
+
+    static char const* const expected_surface_strings[] = {
+        "Plane: z=0",
+        "Plane: z=1.27",
+        "Cyl z: r=3.5",
+        "Cyl z: r=0.8",
+        "Plane: z=4.07",
+        "Cyl z: r=1",
+        "Plane: z=5.67",
+        "Cyl z: r=1.75",
+        "Plane: z=10.87",
+        "Plane: z=12.87",
+        "Cyl z: r=2.5",
+        "Plane: z=18.57",
+        "Cone z: t=0.28070 at {0,0,18.57}",
+        "Plane: z=18.77",
+        "Plane: z=19.27",
+        "Cyl z: r=0.75",
+    };
+    static char const* const expected_volume_strings[] = {
+        R"(any(all(+0, -1, -2, !all(+0, -1, -3)), all(+1, -5, -6, !all(+1, -3, -5)), all(+5, -7, -8, !all(-3, +5, -7)), all(-6, +7, -9, !all(-3, +7, -9)), all(+9, -10, -11, !all(-3, +9, -10)), all(-8, +10, -13, !all(+10, -13, -14)), all(-8, +13, -15), all(+15, -17, -18)))"};
+    static char const* const expected_md_strings[] = {
+        "",
+        "",
+        "pc@0.excluded.mz,pc@0.interior.mz",
+        "pc@0.excluded.pz,pc@0.interior.pz,pc@2.excluded.mz,pc@2.interior.mz",
+        "",
+        "pc@0.interior.cz",
+        "",
+        "pc@0.interior",
+        R"(pc@0.excluded.cz,pc@2.excluded.cz,pc@4.excluded.cz,pc@6.excluded.cz,pc@8.excluded.cz)",
+        "",
+        "pc@0.excluded",
+        "",
+        "pc@0",
+        "pc@2.excluded.pz,pc@2.interior.pz,pc@4.excluded.mz,pc@4.interior.mz",
+        "",
+        "pc@2.interior.cz,pc@6.interior.cz",
+        "",
+        "pc@2.interior",
+        "pc@2.excluded",
+        "",
+        "pc@2",
+        "pc@4.excluded.pz,pc@4.interior.pz,pc@6.excluded.mz,pc@6.interior.mz",
+        "",
+        "pc@10.interior.cz,pc@11.interior.cz,pc@4.interior.cz",
+        "",
+        "pc@4.interior",
+        "pc@4.excluded",
+        "",
+        "pc@4",
+        "pc@6.excluded.pz,pc@6.interior.pz,pc@8.excluded.mz,pc@8.interior.mz",
+        "",
+        "pc@6.interior",
+        "pc@6.excluded",
+        "",
+        "pc@6",
+        R"(pc@10.excluded.mz,pc@10.interior.mz,pc@8.excluded.pz,pc@8.interior.pz)",
+        "",
+        "pc@8.interior.cz",
+        "",
+        "pc@8.interior",
+        "pc@8.excluded",
+        "",
+        "pc@8",
+        "pc@10.excluded.pz,pc@10.interior.pz,pc@11.interior.mz",
+        "",
+        "pc@10.interior",
+        "pc@10.excluded.kz",
+        "",
+        "pc@10.excluded",
+        "",
+        "pc@10",
+        "pc@11.interior.pz,pc@13.interior.mz",
+        "",
+        "pc@11.interior",
+        "pc@13.interior.pz",
+        "",
+        "pc@13.interior.cz",
+        "",
+        "pc@13.interior",
+        "pc@segments",
+    };
+
+    auto const& u = this->unit();
+    EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+    EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
 }
 
 TEST_F(PolyconeTest, or_solid)
