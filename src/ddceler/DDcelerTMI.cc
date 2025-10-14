@@ -45,19 +45,15 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
     auto* overlayed_obj = field.data<OverlayedField::Object>();
 
     // Validate field configuration: no electric components
-    if (!overlayed_obj->electric_components.empty())
-    {
-        throw std::runtime_error(
-            "Celeritas does not support electric field components. Found "
-            + std::to_string(overlayed_obj->electric_components.size())
-            + " electric component(s).");
-    }
+    CELER_VALIDATE(overlayed_obj->electric_components.empty(),
+                   << "Celeritas does not support electric field components. "
+                      "Found "
+                   << overlayed_obj->electric_components.size()
+                   << " electric component(s).");
 
-    if (overlayed_obj->magnetic_components.empty())
-    {
-        throw std::runtime_error(
-            "No magnetic field components found in DD4hep field description.");
-    }
+    CELER_VALIDATE(!overlayed_obj->magnetic_components.empty(),
+                   << "No magnetic field components found in DD4hep field "
+                      "description.");
 
     // Check that all magnetic components are ConstantField and sum them
     Direction summed_direction(0, 0, 0);
@@ -67,13 +63,12 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
         auto* cartesian_obj = mag_component.data<CartesianField::Object>();
         auto* const_field = dynamic_cast<ConstantField const*>(cartesian_obj);
 
-        if (!const_field)
-        {
-            throw std::runtime_error(
-                "Celeritas currently only supports ConstantField magnetic "
-                "fields. Found non-constant field component in DD4hep "
-                "description.");
-        }
+        CELER_VALIDATE(const_field,
+                       << "Celeritas currently only supports ConstantField "
+                          "magnetic "
+                       << "fields. Found non-constant field component in "
+                          "DD4hep "
+                       << "description.");
 
         summed_direction
             = Direction(summed_direction.X() + const_field->direction.X(),
@@ -102,9 +97,8 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
     // These are set in the steering file via RUNNER.field.*
     auto const& overlayed_properties = overlayed_obj->properties;
 
-    // Default values (in DD4hep mm units)
+    // Default values
     constexpr auto celer_mm = celeritas::units::millimeter;
-    constexpr auto dd4hep_mm = dd4hep::mm;
 
     double min_step = 1e-6 * celer_mm;
     double delta_chord = 0.025 * celer_mm;
@@ -129,12 +123,9 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
 
             // Evaluate expression to get value in DD4hep internal units (mm=1)
             auto result = eval.evaluate(value_str.c_str());
-            if (result.first != dd4hep::tools::Evaluator::OK)
-            {
-                throw std::runtime_error(
-                    "Failed to parse field tracking parameter '" + key
-                    + "' with value '" + value_str + "'");
-            }
+            CELER_VALIDATE(result.first == dd4hep::tools::Evaluator::OK,
+                           << "Failed to parse field tracking parameter '"
+                           << key << "' with value '" << value_str << "'");
 
             // result.second is already in mm (DD4hep's base unit)
             // Convert to Celeritas internal units
