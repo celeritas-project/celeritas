@@ -66,7 +66,7 @@ template<class T>
         NodeId segment_node;
         {
             auto outer = segments.outer(i);
-            segment_node = build_isect(std::to_string(i) + ".interior",
+            segment_node = build_isect(std::to_string(i) + ".int",
                                        build_region(outer, hz));
         }
 
@@ -76,8 +76,8 @@ template<class T>
             if (!soft_zero(inner[0]) || !soft_zero(inner[1]))
             {
                 // Build inner shape
-                NodeId inner_node = build_isect(
-                    std::to_string(i) + ".excluded", build_region(inner, hz));
+                NodeId inner_node = build_isect(std::to_string(i) + ".exc",
+                                                build_region(inner, hz));
 
                 // Subtract (i.e., "and not") inner shape from this segment
                 auto sub_node = vb.insert_region({}, Negated{inner_node});
