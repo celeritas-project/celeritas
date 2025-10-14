@@ -29,10 +29,10 @@ jobs:
           export LD_LIBRARY_PATH=$PWD/install/lib:${LD_LIBRARY_PATH}
 
           # Run with Celeritas enabled
-          ddsim --action.run DDcelerRunAction --compactFile=$PWD/example/ddceler/SiD_ConstantField.xml --steering $PWD/example/ddceler/steeringFile.py -N 20 -G --gun.particle e- --gun.etaMax 2 --gun.etaMin 1 --gun.energy 5*GeV --gun.distribution uniform --outputFile output_celeritas.root --outputConfig.forceDD4HEP  --action.tracker "Geant4TrackerAction" --action.trackerSDTypes "tracker" --action.calorimeter "Geant4CalorimeterAction" --action.calorimeterSDTypes "calorimeter"
+          ddsim --compactFile=$PWD/example/ddceler/SiD_ConstantField.xml --steering $PWD/example/ddceler/steeringFile.py --outputFile output_celeritas.root
 
           # Run with Celeritas disabled (Geant4 only)
-          CELER_DISABLE=1 ddsim --action.run DDcelerRunAction --compactFile=$PWD/example/ddceler/SiD_ConstantField.xml --steering $PWD/example/ddceler/steeringFile.py -N 20 -G --gun.particle e- --gun.etaMax 2 --gun.etaMin 1 --gun.energy 5*GeV --gun.distribution uniform --outputFile output_geant4.root --outputConfig.forceDD4HEP  --action.tracker "Geant4TrackerAction" --action.trackerSDTypes "tracker" --action.calorimeter "Geant4CalorimeterAction" --action.calorimeterSDTypes "calorimeter"
+          CELER_DISABLE=1 ddsim --compactFile=$PWD/example/ddceler/SiD_ConstantField.xml --steering $PWD/example/ddceler/steeringFile.py --outputFile output_geant4.root
 
           # Compare benchmarks and generate plots
           root -l -b -q '$PWD/example/ddceler/compare_benchmarks.cc("output_geant4.root", "output_celeritas.root")'
