@@ -9,14 +9,9 @@
 #include <DD4hep/Detector.h>
 #include <DD4hep/FieldTypes.h>
 #include <DDG4/Factories.h>
-#include <DDG4/Geant4Field.h>
 #include <Evaluator/DD4hepUnits.h>
 #include <Evaluator/Evaluator.h>
-#include <G4ChordFinder.hh>
-#include <G4ClassicalRK4.hh>
 #include <G4FieldManager.hh>
-#include <G4MagIntegratorStepper.hh>
-#include <G4Mag_UsualEqRhs.hh>
 #include <G4TransportationManager.hh>
 
 #include "celeritas/field/FieldDriverOptions.hh"
@@ -103,60 +98,53 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
                      << field_direction.Y() / dd4hep_tesla << ", "
                      << field_direction.Z() / dd4hep_tesla << ") T";
 
-    // Query field properties for driver options from OverlayedField
+    // Query field tracking parameters from DD4hep overlayed field properties
+    // These are set in the steering file via RUNNER.field.*
     auto const& overlayed_properties = overlayed_obj->properties;
 
-    // Default values for field driver options (in Celeritas units)
-    // Note: Geant4-specific parameters (delta_one_step, eps_min, eps_max) are
-    // handled in updateFieldTracking()
+    // Default values (in DD4hep mm units)
     constexpr auto celer_mm = celeritas::units::millimeter;
+    constexpr auto dd4hep_mm = dd4hep::mm;
+
     double min_step = 1e-6 * celer_mm;
     double delta_chord = 0.025 * celer_mm;
     double delta_intersection = 1e-5 * celer_mm;
 
-    // Try to read from DD4hep overlayed field properties if available
+    // Try to read from DD4hep field_tracking properties if available
     if (overlayed_properties.count("field_tracking"))
     {
         auto const& tracking_props = overlayed_properties.at("field_tracking");
 
         // Create evaluator for parsing expressions with units
-        // The evaluator uses DD4hep's default unit system
         dd4hep::tools::Evaluator eval;
 
-        // Helper to parse property value with units using DD4hep's evaluator
-        auto parse_length = [&](std::string const& key) -> double {
+        auto get_param
+            = [&](std::string const& key, double default_val) -> double {
             if (!tracking_props.count(key))
-                return 0.0;
+                return default_val;
 
+            // Values from RUNNER.field can include units (e.g., "0.025*mm" or
+            // "0.025")
             std::string const& value_str = tracking_props.at(key);
 
-            // Evaluate expression (e.g., "1e-6*mm", "0.01*cm", etc.)
-            // evaluate() returns pair<int, double> where first is status,
-            // second is value
+            // Evaluate expression to get value in DD4hep internal units (mm=1)
             auto result = eval.evaluate(value_str.c_str());
-
             if (result.first != dd4hep::tools::Evaluator::OK)
             {
-                throw std::runtime_error("Failed to parse field property '" + key
-                                         + "' with value '" + value_str + "'");
+                throw std::runtime_error(
+                    "Failed to parse field tracking parameter '" + key
+                    + "' with value '" + value_str + "'");
             }
 
-            // Convert: DD4hep internal units -> Celeritas mm
-            return result.second / dd4hep::mm * celer_mm;
+            // result.second is already in mm (DD4hep's base unit)
+            // Convert to Celeritas internal units
+            return result.second * celer_mm;
         };
 
-        if (tracking_props.count("min_chord_step"))
-        {
-            min_step = parse_length("min_chord_step");
-        }
-        if (tracking_props.count("delta_chord"))
-        {
-            delta_chord = parse_length("delta_chord");
-        }
-        if (tracking_props.count("delta_intersection"))
-        {
-            delta_intersection = parse_length("delta_intersection");
-        }
+        min_step = get_param("min_chord_step", min_step);
+        delta_chord = get_param("delta_chord", delta_chord);
+        delta_intersection
+            = get_param("delta_intersection", delta_intersection);
     }
 
     // Print field driver options

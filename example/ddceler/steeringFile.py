@@ -33,6 +33,14 @@ RUNNER.gun.distribution = "uniform"
 RUNNER.gun.etaMin = 1
 RUNNER.gun.etaMax = 2
 
+# Field tracking configuration - defined once, used by both DD4hep/Geant4 and Celeritas
+RUNNER.field.delta_chord = 0.025  # mm
+RUNNER.field.delta_intersection = 1e-5  # mm
+RUNNER.field.delta_one_step = 0.01  # mm
+RUNNER.field.eps_min = 5e-5  # mm
+RUNNER.field.eps_max = 0.001  # mm
+RUNNER.field.min_chord_step = 1e-6  # mm
+
 # Physics configuration
 def setupPhysics(kernel):
   from DDG4 import PhysicsList,Geant4
