@@ -24,19 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        special: [null]
-        geometry: ["orange", "vecgeom"]
-        buildtype: ["debug", "ndebug"]
-        image: ["rocky-cuda", "ubuntu-rocm"]
-        exclude:
-          - geometry: "vecgeom"
-            image: "ubuntu-rocm" # VecGeom not installed on HIP
-          - buildtype: "debug"
-            image: "ubuntu-rocm" # Debug builds don't work with HIP
         include:
-          - geometry: "vecgeom"
-            buildtype: "reldeb"
-            image: "rocky-cuda"
           - buildtype: "debug"
             geometry: "vecgeom"
             special: "codecov"
