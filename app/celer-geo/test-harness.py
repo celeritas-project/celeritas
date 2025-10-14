@@ -58,6 +58,10 @@ def write_commands(commands):
         f.write("\n")
     return inp_path
 
+# NOTE: it's important to inherit the environment rather than replacing it for
+# apps; MPI will fail if HOME is undefined, for example
+env = dict(environ)
+env["CELER_LOG"] = "debug"
 
 # Error check test is a separate case and ignores the model path
 if ext == "errcheck":
@@ -69,8 +73,6 @@ if ext == "errcheck":
         ]
     )
     log("Running", exe, inp_path, "from", getcwd())
-    env = environ.copy()
-    env["CELER_LOG"] = "debug"
     result = subprocess.run(
         [exe, inp_path],
         stdout=subprocess.PIPE,
@@ -92,7 +94,7 @@ if ext == "errcheck":
 # Run to get configuration
 log("Running", exe, "from", getcwd())
 result = subprocess.run(
-    [exe, "-"], input=b"\n", stdout=subprocess.PIPE, env={"CELER_LOG": "debug"}
+    [exe, "-"], input=b"\n", stdout=subprocess.PIPE, env=env,
 )
 if result.returncode:
     log("Initial config run failed with error", result.returncode)
