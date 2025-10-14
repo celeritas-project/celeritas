@@ -76,10 +76,8 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
                         summed_direction.Z() + const_field->direction.Z());
     }
 
-    this->info(("All "
-                + std::to_string(overlayed_obj->magnetic_components.size())
-                + " magnetic component(s) are ConstantField.")
-                   .c_str());
+    CELER_LOG(info) << "All " << overlayed_obj->magnetic_components.size()
+                    << " magnetic component(s) are ConstantField.";
 
     Direction field_direction = summed_direction;
 
@@ -172,9 +170,7 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
 
 void DDcelerTMI::constructPhysics(G4VModularPhysicsList* physics)
 {
-    this->info(
-        "Using Celeritas tracking for "
-        "e-/e+/gamma.");
+    CELER_LOG(info) << "Using Celeritas tracking for e-/e+/gamma.";
 
     // Register Celeritas tracking manager
     auto& tmi = TMI::Instance();
@@ -183,7 +179,7 @@ void DDcelerTMI::constructPhysics(G4VModularPhysicsList* physics)
     // Configure Celeritas options
     tmi.SetOptions(makeOptions());
 
-    this->info("Celeritas TrackingManager registered.");
+    CELER_LOG(info) << "Celeritas TrackingManager registered.";
 }
 //---------------------------------------------------------------------------//
 }  // namespace sim
