@@ -832,7 +832,7 @@ auto SolidConverter::tet(arg_type solid_base) -> result_type
 auto SolidConverter::torus(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Torus const&>(solid_base);
-    CELER_LOG(error) << "G4Torus is not fully supported: approximating '"
+    CELER_LOG(error) << "G4Torus is not fully supported: replacing '"
                      << solid.GetName() << "' with bounding cylinders";
 
     auto rmax = scale_(solid.GetRmax());
