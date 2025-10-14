@@ -32,6 +32,7 @@ class DDcelerTMI : public Geant4PhysicsList
 
     int m_maxNumTracks;
     int m_initCapacity;
+    std::vector<std::string> m_ignoreProcesses;
 
   public:
     // Standard constructor
@@ -58,6 +59,7 @@ DDcelerTMI::DDcelerTMI(Geant4Context* ctxt, std::string const& nam)
 {
     declareProperty("MaxNumTracks", m_maxNumTracks);
     declareProperty("InitCapacity", m_initCapacity);
+    declareProperty("IgnoreProcesses", m_ignoreProcesses);
 }
 
 //---------------------------------------------------------------------------//

@@ -40,6 +40,8 @@ def setupPhysics(kernel):
   celer_phys = PhysicsList(kernel, str('DDcelerTMI'))
   celer_phys.MaxNumTracks = 2048
   celer_phys.InitCapacity = 245760
+  # Celeritas does not support EmStandard MSC physics above 200 MeV
+  celer_phys.IgnoreProcesses = ["CoulombScat"]
   phys.adopt(celer_phys)
   phys.dump()
   return None

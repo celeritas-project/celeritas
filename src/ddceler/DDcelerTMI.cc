@@ -28,8 +28,12 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
     // through the UI using `/celer/`
     opts.max_num_tracks = m_maxNumTracks;
     opts.initializer_capacity = m_initCapacity;
-    // Celeritas does not support EmStandard MSC physics above 200 MeV
-    opts.ignore_processes = {"CoulombScat"};
+
+    // Set ignored processes from configuration
+    for (auto const& proc : m_ignoreProcesses)
+    {
+        opts.ignore_processes.push_back(proc);
+    }
 
     // Get the field from DD4hep detector description and validate its type
     auto& detector = context()->detectorDescription();
