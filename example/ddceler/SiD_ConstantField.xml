@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <lccdd>
   <comment>
     Using a constant field in the DD4hep example SiD detector description
@@ -10,36 +9,60 @@
   </includes>
 
   <define>
-    <constant name="world_side"             value="10*m"/>
-    <constant name="world_x"                value="world_side/2"/>
-    <constant name="world_y"                value="world_side/2"/>
-    <constant name="world_z"                value="world_side/2"/>
-    <constant name="CrossingAngle"          value="0.014*rad"/>
+    <include ref="${DD4hepINSTALL}/DDDetectors/compact/SiDConstants.xml"/>
   </define>
 
-  <detectors>
-    <include ref="${DD4hepINSTALL}/DDDetectors/compact/SiD.xml"/>
-  </detectors>
 
+  <limits>
+    <include ref="${DD4hepINSTALL}/DDDetectors/compact/SiD_Limits.xml"/>
+  </limits>
+
+  <regions>
+    <region name="SiTrackerBarrelRegion" eunit="MeV" lunit="mm" cut="0.001" threshold="0.001">
+      <limitsetref name="SiTrackerBarrelRegionLimitSet"/>
+    </region>
+  </regions>
+
+
+  <comment>Common Generic visualization attributes</comment>
+  <display>
+    <vis name="InvisibleNoDaughters"      showDaughters="false" visible="false"/>
+    <vis name="InvisibleWithDaughters"    showDaughters="true" visible="false"/>
+    <vis name="GreenVis"   alpha="1" r="0.0" g="1.0" b="0.0" showDaughters="true" visible="true"/>
+    <vis name="RedVis"     alpha="1" r="1.0" g="0.0" b="0.0" showDaughters="true" visible="true"/>
+    <vis name="BlueVis"    alpha="1" r="0.0" g="0.0" b="1.0" showDaughters="true" visible="true"/>
+  </display>
+
+  <comment>Additional design specific material definitions</comment>
+  <include ref="${DD4hepINSTALL}/DDDetectors/compact/SiD/SiD_Materials.xml"/>
+
+  <comment>Tracking detectors</comment>
+  <include ref="${DD4hepINSTALL}/DDDetectors/compact/SiD/SiD_Vertex.xml"/>
+  <include ref="${DD4hepINSTALL}/DDDetectors/compact/SiD/SiD_Tracker.xml"/>
+
+  <comment>Calorimeters</comment>
+  <include ref="${DD4hepINSTALL}/DDDetectors/compact/SiD/SiD_Ecal.xml"/>
+  <include ref="${DD4hepINSTALL}/DDDetectors/compact/SiD/SiD_Hcal.xml"/>
+  <include ref="${DD4hepINSTALL}/DDDetectors/compact/SiD/SiD_HcalPlug.xml"/>
+  <include ref="${DD4hepINSTALL}/DDDetectors/compact/SiD/SiD_Muon.xml"/>
+  <include ref="${DD4hepINSTALL}/DDDetectors/compact/SiD/SiD_Lumical.xml"/>
+  <include ref="${DD4hepINSTALL}/DDDetectors/compact/SiD/SiD_Beamcal.xml"/>
+
+  <comment>Beampipe</comment>
+  <include ref="${DD4hepINSTALL}/DDDetectors/compact/SiD/SiD_Beampipe.xml"/>
+
+  <comment>Dead material, supports and magnet</comment>
+  <include ref="${DD4hepINSTALL}/DDDetectors/compact/SiD/SiD_Shields.xml"/>
+  <include ref="${DD4hepINSTALL}/DDDetectors/compact/SiD/SiD_Solenoid.xml"/>
+
+  <comment>Magnetic field</comment>
   <fields>
-
-    <comment>
-      The following block defines a constant magnetic field everywhere
-    </comment>
-    <field name="MagnetFields_Constant" type="ConstantField" field="magnetic">
+    <field name="MagnetFields1_Constant" type="ConstantField" field="magnetic">
       <strength x="0" y="0" z="4.0*tesla"/>
     </field>
-
-    <comment>
-     The following block neutralizes the default solenoidal field in the upstream example
-     ${DD4hepINSTALL}/DDDetectors/compact/SiD/SiD_Field.xml
-    </comment>
-    <field name="MagnetFields_Solenoid" type="solenoid"
-	   inner_field="-5.0*tesla"
-	   outer_field="1.5*tesla"
-	   zmax="SolenoidCoilOuterZ"
-	   outer_radius="SolenoidalFieldRadius">
+    <field name="MagnetFields2_Constant" type="ConstantField" field="magnetic">
+      <strength x="0" y="0" z="3.0*tesla"/>
     </field>
-
   </fields>
+
 </lccdd>
