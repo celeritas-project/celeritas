@@ -985,7 +985,7 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
                          mxl - mxr,
                          canonicalize_zero(txr * myl - txl * myr + tyl * mxr
                                            - tyr * mxl)};
-            // Cross product of midpoint
+            // Cross product of midpoint ("displacement")
             real_type js = canonicalize_zero(mxr * myl - mxl * myr);
 
             // Normalize based on linear components to represent as a plane

@@ -40,6 +40,8 @@ std::vector<int> volume_nodes(detail::CsgUnit const& u);
 std::vector<std::string> fill_strings(detail::CsgUnit const& u);
 std::vector<real_type> flattened(detail::BoundingZone const& bz);
 
+std::string count_surface_types(detail::CsgUnit const& u);
+
 void print_expected(detail::CsgUnit const& u);
 void print_expected(detail::IntersectSurfaceState const& css);
 

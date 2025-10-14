@@ -89,83 +89,20 @@ class ProtoConstructorTest : public GeantLoadTestBase
 };
 
 //---------------------------------------------------------------------------//
-TEST_F(ProtoConstructorTest, one_box)
+TEST_F(ProtoConstructorTest, atlas_lar_endcap)
 {
-    auto global_proto = this->load("one-box");
+    auto global_proto = this->load("atlas-lar-endcap");
     ProtoMap protos{*global_proto};
     ASSERT_EQ(1, protos.size());
     {
         SCOPED_TRACE("global");
         auto u = this->build_unit(protos, UniverseId{0});
 
-        static char const* const expected_surface_strings[] = {
-            "Plane: x=-500",
-            "Plane: x=500",
-            "Plane: y=-500",
-            "Plane: y=500",
-            "Plane: z=-500",
-            "Plane: z=500",
-        };
-        static char const* const expected_volume_strings[] = {
-            "!all(+0, -1, +2, -3, +4, -5)",
-            "all(+0, -1, +2, -3, +4, -5)",
-        };
-        static char const* const expected_md_strings[] = {
-            "",
-            "",
-            "world_box@mx",
-            "world_box@px",
-            "",
-            "world_box@my",
-            "world_box@py",
-            "",
-            "world_box@mz",
-            "world_box@pz",
-            "",
-            "world_box",
-            "[EXTERIOR]",
-        };
-
-        EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
-        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
-        EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
-        EXPECT_EQ(GeoMatId{}, u.background);
+        EXPECT_JSON_EQ(R"json({"czc": 2, "gq": 25, "p": 50, "pz": 2})json",
+                       count_surface_types(u));
     }
 }
 
-//---------------------------------------------------------------------------//
-TEST_F(ProtoConstructorTest, two_boxes)
-{
-    auto global_proto = this->load("two-boxes");
-    ProtoMap protos{*global_proto};
-    ASSERT_EQ(1, protos.size());
-    {
-        SCOPED_TRACE("global");
-        auto u = this->build_unit(protos, UniverseId{0});
-
-        static char const* const expected_surface_strings[] = {
-            "Plane: x=-500",
-            "Plane: x=500",
-            "Plane: y=-500",
-            "Plane: y=500",
-            "Plane: z=-500",
-            "Plane: z=500",
-            "Plane: x=-5",
-            "Plane: x=5",
-            "Plane: y=-5",
-            "Plane: y=5",
-            "Plane: z=-5",
-            "Plane: z=5",
-        };
-        static char const* const expected_volume_strings[] = {
-            "!all(+0, -1, +2, -3, +4, -5)",
-            "all(+6, -7, +8, -9, +10, -11)",
-            "all(+0, -1, +2, -3, +4, -5, !all(+6, -7, +8, -9, +10, -11))",
-        };
-        EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
-        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
-    }
-}
 //---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, intersection_boxes)
 {
@@ -310,6 +247,51 @@ TEST_F(ProtoConstructorTest, lar_sphere)
         EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
         EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
         EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(ProtoConstructorTest, one_box)
+{
+    auto global_proto = this->load("one-box");
+    ProtoMap protos{*global_proto};
+    ASSERT_EQ(1, protos.size());
+    {
+        SCOPED_TRACE("global");
+        auto u = this->build_unit(protos, UniverseId{0});
+
+        static char const* const expected_surface_strings[] = {
+            "Plane: x=-500",
+            "Plane: x=500",
+            "Plane: y=-500",
+            "Plane: y=500",
+            "Plane: z=-500",
+            "Plane: z=500",
+        };
+        static char const* const expected_volume_strings[] = {
+            "!all(+0, -1, +2, -3, +4, -5)",
+            "all(+0, -1, +2, -3, +4, -5)",
+        };
+        static char const* const expected_md_strings[] = {
+            "",
+            "",
+            "world_box@mx",
+            "world_box@px",
+            "",
+            "world_box@my",
+            "world_box@py",
+            "",
+            "world_box@mz",
+            "world_box@pz",
+            "",
+            "world_box",
+            "[EXTERIOR]",
+        };
+
+        EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+        EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+        EXPECT_EQ(GeoMatId{}, u.background);
     }
 }
 
@@ -488,6 +470,40 @@ TEST_F(ProtoConstructorTest, TEST_IF_CELERITAS_DOUBLE(tilecal_plug))
 }
 
 //---------------------------------------------------------------------------//
+TEST_F(ProtoConstructorTest, two_boxes)
+{
+    auto global_proto = this->load("two-boxes");
+    ProtoMap protos{*global_proto};
+    ASSERT_EQ(1, protos.size());
+    {
+        SCOPED_TRACE("global");
+        auto u = this->build_unit(protos, UniverseId{0});
+
+        static char const* const expected_surface_strings[] = {
+            "Plane: x=-500",
+            "Plane: x=500",
+            "Plane: y=-500",
+            "Plane: y=500",
+            "Plane: z=-500",
+            "Plane: z=500",
+            "Plane: x=-5",
+            "Plane: x=5",
+            "Plane: y=-5",
+            "Plane: y=5",
+            "Plane: z=-5",
+            "Plane: z=5",
+        };
+        static char const* const expected_volume_strings[] = {
+            "!all(+0, -1, +2, -3, +4, -5)",
+            "all(+6, -7, +8, -9, +10, -11)",
+            "all(+0, -1, +2, -3, +4, -5, !all(+6, -7, +8, -9, +10, -11))",
+        };
+        EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+    }
+}
+
+//---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, znenv)
 {
     auto global_proto = this->load("znenv");
@@ -555,6 +571,12 @@ TEST_F(ProtoConstructorTest, znenv)
         EXPECT_EQ(GeoMatId{}, u.background);
     }
     {
+        SCOPED_TRACE("ZN1");
+        auto u = this->build_unit(protos, UniverseId{2});
+
+        EXPECT_JSON_EQ(R"json({"py":10})json", count_surface_types(u));
+    }
+    {
         SCOPED_TRACE("ZNST");
         auto u = this->build_unit(protos, UniverseId{4});
 
@@ -619,8 +641,8 @@ TEST_F(ProtoConstructorTest, znenv_explicit)
         os << opts;
         return std::move(os).str();
     }();
-    EXPECT_EQ(19, std::count(opts_str.begin(), opts_str.end(), '\n'))
-        << "JSON output changed: actual is " << repr(opts_str);
+    EXPECT_EQ(15, std::count(opts_str.begin(), opts_str.end(), ','))
+        << "JSON items changed: actual is " << repr(opts_str);
 
     auto global_proto = this->load("znenv", opts);
     ProtoMap protos{*global_proto};
@@ -653,6 +675,13 @@ TEST_F(ProtoConstructorTest, znenv_explicit)
             = {"any(-0, +1, -2, +3, -4, +5)", "all(+6, -7, +8, -9, +10, -11)"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_EQ(GeoMatId{3}, u.background);
+    }
+    {
+        SCOPED_TRACE("ZN1");
+        auto u = this->build_unit(protos, UniverseId{4});
+
+        EXPECT_JSON_EQ(R"json({"px":2,"py":12,"pz":2})json",
+                       count_surface_types(u));
     }
     {
         SCOPED_TRACE("ZNG1");

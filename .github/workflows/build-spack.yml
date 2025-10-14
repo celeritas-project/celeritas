@@ -365,7 +365,7 @@ jobs:
           }}
         working-directory: install
         run: |
-          for exe in orange-update celer-export-geant \
+          for exe in orange-update celer-geo celer-export-geant \
             celer-sim celer-g4; do
             test -x "bin/${exe}"
           done

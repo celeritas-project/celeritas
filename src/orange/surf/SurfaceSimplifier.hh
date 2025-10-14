@@ -30,9 +30,10 @@ namespace celeritas
  * possible simplified class forms, or a \c std::monostate if no simplification
  * was applied.
  *
- * \internal \todo Use a \c Tolerance object instead of a single tolerance? (Or
- * use local length scale with \c SoftClose.) Also, compare implementations
- * with \c SoftSurfaceEqual for consistency.
+ * \internal \todo Use local absolute length tolerance with \c SoftClose;
+ * compare implementations with \c SoftSurfaceEqual for consistency; ensure
+ * quadric constant components are scaled as \em length (currently most, with
+ * the exception of the twisted face in GenPrism are length squared).
  */
 class SurfaceSimplifier
 {

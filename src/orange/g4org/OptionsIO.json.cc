@@ -96,7 +96,7 @@ void from_json(nlohmann::json const& j, Options& v)
     OPT_LOAD_OPTION(verbose_structure);
     OPT_LOAD_OPTION(objects_output_file);
     OPT_LOAD_OPTION(csg_output_file);
-    OPT_LOAD_OPTION(csg_output_file);
+    OPT_LOAD_OPTION(org_output_file);
 
 #undef OPT_LOAD_OPTION
 }
@@ -127,7 +127,7 @@ std::istream& operator>>(std::istream& is, Options& inp)
 std::ostream& operator<<(std::ostream& os, Options const& inp)
 {
     nlohmann::json j = inp;
-    os << j.dump(0);
+    os << j.dump();
     return os;
 }
 
