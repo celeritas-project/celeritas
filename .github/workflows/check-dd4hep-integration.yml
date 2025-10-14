@@ -23,10 +23,9 @@ jobs:
         network_types: "none"
         run: |
           eic-info
-          cmake -DCMAKE_BUILD_TYPE=Debug -DCELERITAS_USE_DD4hep=ON -DCMAKE_INSTALL_PREFIX=install -S . -B build
+          cmake -DCELERITAS_USE_DD4hep=ON -DCMAKE_INSTALL_PREFIX=install -S . -B build
           cmake --build build -j 8
           cmake --install build
           export LD_LIBRARY_PATH=$PWD/install/lib:${LD_LIBRARY_PATH}
 
-          CELER_LOG=debug CELER_LOG_LOCAL=debug ddsim --action.run DDcelerRunAction --compactFile=$PWD/example/ddceler/SiD_ConstantField.xml --steering $PWD/example/ddceler/steeringFile.py -N 20 -G --gun.particle e- --gun.etaMax 2 --gun.etaMin 1 --gun.energy 5*GeV --gun.distribution uniform --outputFile output.root --outputConfig.forceDD4HEP  --action.tracker "Geant4TrackerAction" --action.trackerSDTypes "tracker" --action.calorimeter "Geant4CalorimeterAction" --action.calorimeterSDTypes "calorimeter"
-          
+          ddsim --action.run DDcelerRunAction --compactFile=$PWD/example/ddceler/SiD_ConstantField.xml --steering $PWD/example/ddceler/steeringFile.py -N 20 -G --gun.particle e- --gun.etaMax 2 --gun.etaMin 1 --gun.energy 5*GeV --gun.distribution uniform --outputFile output.root --outputConfig.forceDD4HEP  --action.tracker "Geant4TrackerAction" --action.trackerSDTypes "tracker" --action.calorimeter "Geant4CalorimeterAction" --action.calorimeterSDTypes "calorimeter"
