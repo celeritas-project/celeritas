@@ -125,13 +125,6 @@ class UnitProto : public ProtoInterface
         explicit inline operator bool() const;
     };
 
-    //! Optional transformations to apply when building a CsgUnit.
-    enum class Simplify
-    {
-        none,  //!< No simplification
-        infix,  //!< CsgTree suitable for infix logic evaluation
-    };
-
     //! Required input data to create a unit proto
     struct Input
     {

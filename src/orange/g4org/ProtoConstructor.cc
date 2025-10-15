@@ -84,7 +84,7 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
         // special "empty volume instance" label indicates to the
         // find_bg_volume function in Converter.cc that this needs to be set
         // as an LV rather than a PV.
-        UnitProto::MaterialInput background;
+        orangeinp::UnitProto::MaterialInput background;
         background.interior
             = this->make_explicit_background(lv, NoTransformation{});
         background.label = VolumeInstanceId{};
@@ -115,7 +115,7 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
     }
 
     CELER_ENSURE(input);
-    return std::make_shared<UnitProto>(std::move(input));
+    return std::make_shared<orangeinp::UnitProto>(std::move(input));
 }
 
 //---------------------------------------------------------------------------//
