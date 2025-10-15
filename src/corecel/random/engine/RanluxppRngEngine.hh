@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/random/engine/RanluxppRngEngine.hh
+//! \file corecel/random/engine/RanluxppRngEnginee.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,8 +11,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/random/data/RanluxppRngData.hh"
-#include "corecel/random/data/detail/RanluxppLCG.hh"
-#include "corecel/random/data/detail/RanluxppMulMod.hh"
+#include "corecel/random/data/detail/RanluxppImpl.hh"
 #include "corecel/sys/ThreadId.hh"
 
 namespace celeritas
