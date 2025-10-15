@@ -237,6 +237,57 @@ void Cone::output(JsonPimpl* j) const
 }
 
 //---------------------------------------------------------------------------//
+// CUTCYLINDER
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with radius, half-height, and bottom/top cutting plane normals
+ */
+CutCylinder::CutCylinder(real_type radius,
+                         real_type halfheight,
+                         Real3 bottom_normal,
+                         Real3 top_normal)
+    : radius_{radius}
+    , hh_{halfheight}
+    , bot_normal_{bottom_normal}
+    , top_normal_{top_normal}
+{
+    CELER_VALIDATE(radius_ > 0, << "nonpositive radius: " << radius_);
+    CELER_VALIDATE(hh_ > 0, << "nonpositive half-height: " << hh_);
+    CELER_VALIDATE(bot_normal_[Z] < 0,
+                   << "bottom cutting plane normal not pointing down: "
+                   << bot_normal_[Z]);
+    CELER_VALIDATE(top_normal_[Z] > 0,
+                   << "top cutting plane normal not pointing up: "
+                   << bot_normal_[Z]);
+    CELER_VALIDATE(is_soft_unit_vector(bot_normal_),
+                   << "bottom cutting plane normal is not a unit vector");
+    CELER_VALIDATE(is_soft_unit_vector(bot_normal_),
+                   << "top cutting plane normal is not a unit vector");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void CutCylinder::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    insert_surface(Sense::outside, Plane{bot_normal_, {0, 0, -hh_}});
+    insert_surface(Sense::inside, Plane{top_normal_, {0, 0, hh_}});
+    insert_surface(CCylZ{radius_});
+    insert_surface(Sense::inside,
+                   BBox{{-radius_, -radius_, -hh_}, {radius_, radius_, hh_}});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void CutCylinder::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
 // CYLINDER
 //---------------------------------------------------------------------------//
 /*!
