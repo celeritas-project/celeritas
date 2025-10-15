@@ -879,6 +879,22 @@ TEST_F(SolidConverterTest, DISABLED_scaledsolid)
                          });
 }
 
+TEST_F(SolidConverterTest, tet)
+{
+    this->build_and_test(
+        G4Tet("tet",
+              G4ThreeVector(0., 0., 0.),
+              G4ThreeVector(2.1, 0., 0.),
+              G4ThreeVector(0., 2.2, 0.),
+              G4ThreeVector(0., 0., 2.3)),
+        R"json({"_type":"shape","interior":{"_type":"tet","vertices":[[0.0,0.0,0.0],[0.21,0.0,0.0],[0.0,0.22,0.0],[0.0,0.0,0.23]]},"label":"tet"})json",
+        {
+            {0, 0, 0},
+            {0.1, 0.1, 0.1},
+            {0.3, 0.3, 0.3},
+        });
+}
+
 TEST_F(SolidConverterTest, torus)
 {
     G4Torus torus("testTorus", 0 * cm, 20 * cm, 50 * cm, 0 * deg, 270 * deg);

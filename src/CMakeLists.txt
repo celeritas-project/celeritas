@@ -27,12 +27,12 @@ if(WIN32)
     target_compile_options(BuildFlags INTERFACE
       $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus /Zc:preprocessor /EHsc>
     )
+    # Inheriting via dominance is correct behavior
+    target_compile_options(BuildFlags
+      INTERFACE "$<$<COMPILE_LANGUAGE:CXX>:/wd4267$<SEMICOLON>/wd4250>"
+    )
   endif()
 
-  # Inheriting via dominance is correct behavior
-  target_compile_options(BuildFlags
-    INTERFACE "$<$<COMPILE_LANGUAGE:CXX>:/wd4267$<SEMICOLON>/wd4250>"
-  )
 endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
     AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 13)
@@ -49,6 +49,25 @@ celeritas_target_include_directories(BuildFlags
     "$<BUILD_INTERFACE:${CELERITAS_HEADER_CONFIG_DIRECTORY}>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
+
+#----------------------------------------------------------------------------#
+# Add Extra Compile and Link Flags
+#----------------------------------------------------------------------------#
+if(DEFINED CELERITAS_C_FLAGS)
+  target_compile_options(BuildFlags
+    INTERFACE "$<$<COMPILE_LANGUAGE:C>:${CELERITAS_C_FLAGS}>"
+  )
+endif()
+if(DEFINED CELERITAS_CXX_FLAGS)
+  target_compile_options(BuildFlags
+    INTERFACE "$<$<COMPILE_LANGUAGE:CXX>:${CELERITAS_CXX_FLAGS}>"
+  )
+endif()
+if(DEFINED CELERITAS_LINK_FLAGS)
+  target_link_options(BuildFlags
+    INTERFACE "${CELERITAS_LINK_FLAGS}"
+  )
+endif()
 
 #----------------------------------------------------------------------------#
 

@@ -256,7 +256,7 @@ void PolyCone::output(JsonPimpl* j) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a polycone *or* a simplified version for only a single segment.
+ * Return a polyprism *or* a simplified version for only a single segment.
  */
 auto PolyPrism::or_solid(std::string&& label,
                          PolySegments&& segments,
@@ -266,7 +266,7 @@ auto PolyPrism::or_solid(std::string&& label,
 {
     if (segments.size() > 1)
     {
-        // Can't be simplified: make a polycone
+        // Can't be simplified: make a polyprism
         return std::make_shared<PolyPrism>(std::move(label),
                                            std::move(segments),
                                            std::move(enclosed),

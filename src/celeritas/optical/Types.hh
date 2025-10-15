@@ -65,7 +65,8 @@ enum class ReflectionMode
     specular_spike,
     specular_lobe,
     backscatter,
-    size_
+    diffuse_lobe,
+    size_ = diffuse_lobe,
 };
 
 //---------------------------------------------------------------------------//

@@ -432,7 +432,7 @@ auto LarSphereIntegrationMixin::make_sens_det(std::string const& sd_name)
  */
 void LarSphereIntegrationMixin::process_hit(G4Step const* step)
 {
-    if (!step || !step->GetTrack())
+    if (CELER_UNLIKELY(!step || !step->GetTrack()))
     {
         // Reduce testing overhead: google assertions allocate memory
         ASSERT_TRUE(step);
@@ -441,8 +441,8 @@ void LarSphereIntegrationMixin::process_hit(G4Step const* step)
     }
 
     auto& track = *step->GetTrack();
-    if (!(track.GetWeight() > 0) || !track.GetVolume()
-        || !track.GetNextVolume())
+    if (CELER_UNLIKELY(!(track.GetWeight() > 0) || !track.GetVolume()
+                       || !track.GetNextVolume()))
     {
         EXPECT_GT(track.GetWeight(), 0);
         EXPECT_TRUE(track.GetVolume());
@@ -495,6 +495,71 @@ auto TestEm3IntegrationMixin::make_sens_det(std::string const& sd_name)
     EXPECT_EQ("lAr", sd_name);
 
     return std::make_unique<SimpleSensitiveDetector>(sd_name);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create physics list
+ */
+auto OpNoviceIntegrationMixin::make_physics_input() const -> PhysicsInput
+{
+    auto result = Base::make_physics_input();
+
+    // Enable optical physics (scintillation + Cherenkov)
+    auto& optical = result.optical;
+    optical = {};
+    EXPECT_TRUE(optical);
+    EXPECT_TRUE(optical.scintillation);
+    EXPECT_TRUE(optical.cherenkov);
+    EXPECT_TRUE(optical.mie_scattering);
+    EXPECT_TRUE(optical.rayleigh_scattering);
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a 0.5 MeV positron primary.
+ */
+auto OpNoviceIntegrationMixin::make_primary_input() const -> PrimaryInput
+{
+    using MevEnergy = Quantity<units::Mev, double>;
+
+    PrimaryInput result;
+    result.pdg = {pdg::positron()};
+    result.energy = inp::MonoenergeticDistribution{MevEnergy{0.5}};
+    result.shape = inp::PointDistribution{from_cm({0., 0., 0.})};
+    result.angle = inp::MonodirectionalDistribution{{1., 0., 0.}};
+    result.num_events = 12;  // Overridden with BeamOn
+    result.primaries_per_event = 10;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return null pointer for the sensitive detector
+ */
+auto OpNoviceIntegrationMixin::make_sens_det(std::string const&) -> UPSensDet
+{
+    return nullptr;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Enable optical physics options
+ */
+SetupOptions OpNoviceIntegrationMixin::make_setup_options()
+{
+    auto result = Base::make_setup_options();
+    result.sd.enabled = false;
+    result.optical_capacity = [] {
+        inp::OpticalStateCapacity cap;
+        cap.tracks = 32768;
+        cap.generators = 32768 * 8;
+        cap.primaries = cap.generators;
+        return cap;
+    }();
+    return result;
 }
 
 //---------------------------------------------------------------------------//

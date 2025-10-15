@@ -14,14 +14,11 @@ applications you can choose to use these classes directly instead of it.
 Interface utilities
 -------------------
 
-.. doxygenfunction:: celeritas::MakeMTLogger
-
-.. doxygenclass:: celeritas::ExceptionConverter
-
 .. celerstruct:: AlongStepFactoryInput
 
+.. doxygenfunction:: celeritas::MakeMTLogger
+.. doxygenclass:: celeritas::ExceptionConverter
 .. doxygenclass:: celeritas::AlongStepFactoryInterface
-
 
 .. _api_accel_adapters:
 

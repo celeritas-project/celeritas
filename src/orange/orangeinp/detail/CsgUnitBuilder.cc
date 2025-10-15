@@ -133,31 +133,6 @@ LocalVolumeId CsgUnitBuilder::insert_volume(NodeId n)
 
 //---------------------------------------------------------------------------//
 /*!
- * Fill LocalVolumeId{0} with "exterior" to adjust the interior region.
- *
- * This should be called to process the exterior volume *immediately* after its
- * creation.
- */
-void CsgUnitBuilder::fill_exterior()
-{
-    CELER_EXPECT(unit_->tree.volumes().size() == 1);
-    static_assert(orange_exterior_volume == LocalVolumeId{0});
-
-    NodeId n = unit_->tree.volumes()[orange_exterior_volume.get()];
-    auto iter = unit_->regions.find(n);
-    CELER_ASSERT(iter != unit_->regions.end());
-    CELER_VALIDATE(!iter->second.bounds.negated,
-                   << "exterior volume is inside out");
-
-    /*!
-     * \todo Handle edge case where exterior is the composite of two volumes
-     * and we need to adjust those volumes' bboxes?
-     */
-    bbox_ = calc_intersection(bbox_, iter->second.bounds.exterior);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Fill a volume node with a material.
  */
 void CsgUnitBuilder::fill_volume(LocalVolumeId v, GeoMatId m)
@@ -192,48 +167,6 @@ void CsgUnitBuilder::fill_volume(LocalVolumeId v,
     unit_->fills[v.unchecked_get()] = std::move(new_daughter);
 
     CELER_ENSURE(is_filled(unit_->fills[v.unchecked_get()]));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Simplify negated joins for Infix evaluation.
- *
- * Apply DeMorgan simplification to use the \c CsgUnit in infix evaluation.
- * \c NodeId indexing in the \c CsgTree are invalidated after calling this,
- * \c CsgUnit data is updated to point to the simplified tree \c NodeId but any
- * previously cached \c NodeId is invalid.
- */
-void CsgUnitBuilder::simplify_joins()
-{
-    auto& tree = unit_->tree;
-    auto simplification = transform_negated_joins(tree);
-    CELER_ASSERT(tree.size() == simplification.new_nodes.size());
-    std::vector<std::set<CsgUnit::Metadata>> md;
-    md.resize(simplification.tree.size());
-
-    std::map<NodeId, CsgUnit::Region> regions;
-
-    for (auto node_id : range(tree.size()))
-    {
-        if (auto equivalent_node = simplification.new_nodes[node_id])
-        {
-            CELER_EXPECT(equivalent_node < md.size());
-            md[equivalent_node.unchecked_get()]
-                = std::move(unit_->metadata[node_id]);
-            regions[equivalent_node]
-                = std::move(unit_->regions[NodeId{node_id}]);
-        }
-        else if (unit_->regions.find(NodeId{node_id}) != unit_->regions.end()
-                 || !unit_->metadata[node_id].empty())
-        {
-            CELER_LOG(warning)
-                << "While simplifying node '" << node_id
-                << "': has metadata or region but no equivalent node";
-        }
-    }
-    unit_->metadata = std::move(md);
-    unit_->regions = std::move(regions);
-    unit_->tree = std::move(simplification.tree);
 }
 
 //---------------------------------------------------------------------------//

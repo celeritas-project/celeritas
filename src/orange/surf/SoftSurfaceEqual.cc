@@ -126,6 +126,8 @@ ORANGE_INSTANTIATE_OP(CylAligned);
  * comparison here adds an extra bump to account for the precision loss.
  *
  * \image html orange-surface-softeq-plane.png
+ *
+ * \todo Just use SoftClose for each planar component?
  */
 bool SoftSurfaceEqual::operator()(Plane const& a, Plane const& b) const
 {
@@ -168,7 +170,10 @@ ORANGE_INSTANTIATE_OP(ConeAligned);
 /*!
  * Compare two simple quadrics for near equality.
  *
- * \note This is an ad hoc comparison.
+ * \note This is an ad hoc comparison. To compare correctly on zeroth order
+ * terms, we need the quadrics to be scaled so that the constant is order \c
+ * length not \c squared length. Then using a soft equivalence on each element
+ * would more or less work?
  */
 bool SoftSurfaceEqual::operator()(SimpleQuadric const& a,
                                   SimpleQuadric const& b) const
@@ -184,7 +189,7 @@ bool SoftSurfaceEqual::operator()(SimpleQuadric const& a,
 /*!
  * Compare two general quadrics for near equality.
  *
- * \note This is an ad hoc comparison.
+ * \todo See note on SQ.
  */
 bool SoftSurfaceEqual::operator()(GeneralQuadric const& a,
                                   GeneralQuadric const& b) const

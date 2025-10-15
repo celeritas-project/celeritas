@@ -87,8 +87,9 @@ auto LogicalVolumeConverter::construct_impl(arg_type g4lv) -> SPLV
         CELER_LOG(debug) << "Solid conversion failed at " << e.details().file
                          << ':' << e.details().line;
         result->solid = this->convert_solid_.to_sphere(*g4lv.GetSolid());
-        CELER_LOG(warning) << "Replaced unknown solid with sphere ("
-                           << to_string(*result->solid) << ")";
+        CELER_LOG(warning)
+            << "Replaced invalid solid with equivalent-volume sphere ("
+            << to_string(*result->solid) << ")";
         CELER_LOG(info) << "Unsupported solid belongs to logical volume "
                         << StreamableLV{&g4lv};
     }

@@ -142,6 +142,8 @@ auto Converter::operator()(GeantGeoParams const& geo,
 
     if (!opts_.org_output_file.empty())
     {
+        CELER_LOG(info) << "Writing constructed ORANGE geometry to "
+                        << opts_.org_output_file;
         // Export constructed geometry for debugging
         std::ofstream outf(opts_.org_output_file);
         CELER_VALIDATE(outf,

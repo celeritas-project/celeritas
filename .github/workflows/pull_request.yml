@@ -49,9 +49,13 @@ jobs:
     if: ${{github.event.pull_request.draft == false}}
     needs: [all-prechecks]
     uses: ./.github/workflows/build-docker.yml
+    secrets:
+      codecov_token: ${{ secrets.CODECOV_TOKEN }}
   build-spack:
     needs: [all-prechecks]
     uses: ./.github/workflows/build-spack.yml
+    secrets:
+      codecov_token: ${{ secrets.CODECOV_TOKEN }}
 
   # Specifying a dependent job allows us to select a single "requires" check in the project GitHub settings
   all:

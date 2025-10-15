@@ -7,6 +7,7 @@
 #pragma once
 
 #include "corecel/Macros.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "orange/OrangeTypes.hh"
 
 #include "VariantTransform.hh"
@@ -22,9 +23,10 @@ namespace celeritas
  * point that's at the length scale from the origin. Setting the length scale
  * to unity (the default), we use the relative tolerance.
  *
- * A *translation* can be deleted if its magnitude is less than epsilon.
+ * A \em translation can be deleted if its magnitude is less than epsilon.
  *
- * For a translation, we use the fact that the trace (sum of diagonal elements)
+ * For a \em rotation, we use the fact that the trace (sum of diagonal
+ elements)
  * of any proper (non-reflecting) rotation matrix has an angle of rotation \f[
    \mathrm{Tr}[R] = 2 \cos \theta + 1
  * \f] about an axis of rotation. Applying the rotation to a point
@@ -40,6 +42,8 @@ namespace celeritas
  *
  * Note that this means no rotational simplifications may be performed when the
  * geometry tolerance is less than the square root of machine precision.
+ *
+ * \todo Define soft_identity functor
  */
 class TransformSimplifier
 {
@@ -57,7 +61,7 @@ class TransformSimplifier
     VariantTransform operator()(Transformation const& nt);
 
   private:
-    real_type eps_;
+    SoftZero<> soft_zero_;
 };
 
 //---------------------------------------------------------------------------//
@@ -67,7 +71,7 @@ class TransformSimplifier
  * Construct with tolerance.
  */
 TransformSimplifier::TransformSimplifier(Tolerance<> const& tol)
-    : eps_{tol.rel}
+    : soft_zero_{tol.rel}
 {
     CELER_EXPECT(tol);
 }
