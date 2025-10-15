@@ -80,6 +80,7 @@ analogous to secondary particles in Geant4.
 
 .. doxygenclass:: celeritas::optical::CherenkovGenerator
 .. doxygenclass:: celeritas::optical::ScintillationGenerator
+.. doxygenclass:: celeritas::optical::WavelengthShiftGenerator
 
 Volumetric processes
 ====================
@@ -90,7 +91,7 @@ optical materials.
 .. doxygenclass:: celeritas::optical::AbsorptionInteractor
 .. doxygenclass:: celeritas::optical::RayleighInteractor
 .. doxygenclass:: celeritas::optical::MieInteractor
-.. doxygenclass:: celeritas::optical::WaveLengthShiftInteractor
+.. doxygenclass:: celeritas::optical::WavelengthShiftInteractor
 
 .. doxygenclass:: celeritas::optical::RayleighMfpCalculator
 
