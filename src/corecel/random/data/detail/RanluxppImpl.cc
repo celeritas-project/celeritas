@@ -216,7 +216,8 @@ CELER_FUNCTION int64_t compute_remainder(Span<RanluxppUInt const, 9> upper,
  *
  * \param[in]  in1  first factor as 9 numbers of 64 bits each
  * \param[in]  in2  second factor as 9 numbers of 64 bits each
- * \param[out] out  result with 18 numbers of 64 bits each
+ *
+ * \return  result with 18 numbers of 64 bits each
  */
 CELER_FUNCTION RanluxppArray18 multiply_9x9(RanluxppArray9 const& in1,
                                             RanluxppArray9 const& in2)
@@ -447,15 +448,14 @@ CELER_FUNCTION RanluxppArray9 compute_modulus(RanluxppArray18 const& mul)
  *
  * The result in \p fac_result is guaranteed to be smaller than the modulus.
  *
- * \param[in]      factor      first factor with 9 numbers of 64 bits each
- * \param[in, out] fac_result  second factor and also the output of the same
- *                             size
+ * \param[in] factor1 first factor with 9 numbers of 64 bits each
+ * \param[in] factor2 second factor with 9 numbers of 64 bits each
  */
-CELER_FUNCTION void
-compute_mod_multiply(RanluxppArray9 const& factor, RanluxppArray9& fac_result)
+CELER_FUNCTION RanluxppArray9 compute_mod_multiply(
+    RanluxppArray9 const& factor1, RanluxppArray9 const& factor2)
 {
-    RanluxppArray18 mul = multiply_9x9(factor, fac_result);
-    fac_result = compute_modulus(mul);
+    RanluxppArray18 mul = multiply_9x9(factor1, factor2);
+    return compute_modulus(mul);
 }
 
 //---------------------------------------------------------------------------//
@@ -468,19 +468,17 @@ compute_mod_multiply(RanluxppArray9 const& factor, RanluxppArray9& fac_result)
  * \param[out] res   output with 9 numbers of 64 bits each
  * \param[in]  n     exponent
  */
-CELER_FUNCTION void compute_power_modulus(RanluxppArray9 const& base,
-                                          RanluxppArray9& res,
-                                          RanluxppUInt n)
+CELER_FUNCTION RanluxppArray9 compute_power_modulus(RanluxppArray9 base,
+                                                    RanluxppUInt n)
 {
-    RanluxppArray9 fac = base;
-    res = {1, 0, 0, 0, 0, 0, 0, 0, 0};
+    RanluxppArray9 res = {1, 0, 0, 0, 0, 0, 0, 0, 0};
 
     RanluxppArray18 mul;
     while (n)
     {
         if (n & 1)
         {
-            mul = multiply_9x9(res, fac);
+            mul = multiply_9x9(res, base);
             res = compute_modulus(mul);
         }
         n >>= 1;
@@ -488,9 +486,11 @@ CELER_FUNCTION void compute_power_modulus(RanluxppArray9 const& base,
         {
             break;
         }
-        mul = multiply_9x9(fac, fac);
-        fac = compute_modulus(mul);
+        mul = multiply_9x9(base, base);
+        base = compute_modulus(mul);
     }
+
+    return res;
 }
 
 //---------------------------------------------------------------------------//
@@ -503,12 +503,13 @@ CELER_FUNCTION void compute_power_modulus(RanluxppArray9 const& base,
  * \param[in]  c       The carry bit of the RANLUX state
  * \param[out] lcg     The 576 bits of the LCG state, smaller than m
  */
-CELER_FUNCTION void
-to_lcg(RanluxppArray9 const& ranlux, unsigned int c, RanluxppArray9& lcg)
+CELER_FUNCTION RanluxppArray9 to_lcg(RanluxppArray9 const& ranlux,
+                                     unsigned int c)
 {
-    unsigned int carry = 0;
+    RanluxppArray9 result;
 
     // Subtract the final 240 bits.
+    unsigned int carry = 0;
     for (int i : celeritas::range(9))
     {
         RanluxppUInt ranlux_i = ranlux[i];
@@ -524,14 +525,16 @@ to_lcg(RanluxppArray9 const& ranlux, unsigned int c, RanluxppArray9& lcg)
             }
         }
         lcg_i = sub_carry(lcg_i, bits, carry);
-        lcg[i] = lcg_i;
+        result[i] = lcg_i;
     }
 
     // Add and propagate the carry bit.
-    for (RanluxppUInt& lcg_val : lcg)
+    for (RanluxppUInt& lcg_val : result)
     {
         lcg_val = add_overflow(lcg_val, c, c);
     }
+
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -544,13 +547,12 @@ to_lcg(RanluxppArray9 const& ranlux, unsigned int c, RanluxppArray9& lcg)
  * \param[out] ranlux  The RANLUX numbers as 576 bits
  * \param[out] c       The carry bit of the RANLUX state
  */
-CELER_FUNCTION void to_ranlux(RanluxppArray9 const& lcg,
-                              RanluxppArray9& ranlux,
-                              unsigned int& c_out)
+CELER_FUNCTION RanluxppArray9 to_ranlux(RanluxppArray9 const& lcg,
+                                        unsigned int& c_out)
 {
-    RanluxppArray9 r = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    RanluxppArray9 result = {0, 0, 0, 0, 0, 0, 0, 0, 0};
     int64_t c = compute_remainder(celeritas::make_span(lcg),
-                                  celeritas::make_span(r));
+                                  celeritas::make_span(result));
 
     // ranlux = t1 + t2 + c
     unsigned int carry = 0;
@@ -569,20 +571,22 @@ CELER_FUNCTION void to_ranlux(RanluxppArray9 const& lcg,
             }
         }
         tmp_i = add_carry(tmp_i, bits, carry);
-        ranlux[i] = tmp_i;
+        result[i] = tmp_i;
     }
 
     // If c = -1, we need to add it to all components.
     int64_t c1 = c >> 1;
-    ranlux[0] = add_overflow(ranlux[0], c, carry);
+    result[0] = add_overflow(result[0], c, carry);
     for (int i : celeritas::range(1, 9))
     {
-        RanluxppUInt ranlux_i = ranlux[i];
+        RanluxppUInt ranlux_i = result[i];
         ranlux_i = add_overflow(ranlux_i, carry, carry);
         ranlux_i = add_carry(ranlux_i, c1, carry);
     }
 
     c_out = carry;
+
+    return result;
 }
 
 //---------------------------------------------------------------------------//

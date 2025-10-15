@@ -39,29 +39,29 @@ CELER_FUNCTION int64_t compute_remainder(Span<RanluxppUInt const, 9> upper,
                                          Span<RanluxppUInt, 9> r);
 
 // Multiply two 576 bit numbers, stored as 9 numbers of 64 bits each
-CELER_FUNCTION RanluxppArray18 multiply_9x9(RanluxppArray9 const& in1,
-                                            RanluxppArray9 const& in2);
+CELER_FUNCTION [[nodiscard]] RanluxppArray18
+multiply_9x9(RanluxppArray9 const& in1, RanluxppArray9 const& in2);
 
 // Compute a value congruent to mul modulo m less than 2 ** 576
-CELER_FUNCTION RanluxppArray9 compute_modulus(RanluxppArray18 const& mul);
+CELER_FUNCTION [[nodiscard]] RanluxppArray9
+compute_modulus(RanluxppArray18 const& mul);
 
 // Combine multiply9x9 and mod_m with internal temporary storage
-CELER_FUNCTION void
-compute_mod_multiply(RanluxppArray9 const& factor, RanluxppArray9& fac_result);
+CELER_FUNCTION [[nodiscard]] RanluxppArray9
+compute_mod_multiply(RanluxppArray9 const& factor1,
+                     RanluxppArray9 const& factor2);
 
 // Compute base to the n modulo m
-CELER_FUNCTION void compute_power_modulus(RanluxppArray9 const& base,
-                                          RanluxppArray9& res,
-                                          RanluxppUInt n);
+CELER_FUNCTION [[nodiscard]] RanluxppArray9
+compute_power_modulus(RanluxppArray9 base, RanluxppUInt n);
 
 // Convert RANLUX numbers to an LCG state
-CELER_FUNCTION void
-to_lcg(RanluxppArray9 const& ranlux, unsigned int c, RanluxppArray9& lcg);
+CELER_FUNCTION [[nodiscard]] RanluxppArray9
+to_lcg(RanluxppArray9 const& ranlux, unsigned int c);
 
 // Convert an LCG state to RANLUX numbers
-CELER_FUNCTION void to_ranlux(RanluxppArray9 const& lcg,
-                              RanluxppArray9& ranlux,
-                              unsigned int& c_out);
+CELER_FUNCTION [[nodiscard]] RanluxppArray9
+to_ranlux(RanluxppArray9 const& lcg, unsigned int& c_out);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

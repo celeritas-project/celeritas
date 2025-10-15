@@ -81,10 +81,9 @@ struct RanluxppRngState
     // Produce the next block of random bits
     CELER_FUNCTION void advance(RanluxppArray9 const& kA)
     {
-        RanluxppArray9 lcg;
-        celeritas::detail::to_lcg(state, carry, lcg);
-        celeritas::detail::compute_mod_multiply(kA, lcg);
-        celeritas::detail::to_ranlux(lcg, state, carry);
+        RanluxppArray9 lcg = celeritas::detail::to_lcg(state, carry);
+        lcg = celeritas::detail::compute_mod_multiply(kA, lcg);
+        state = celeritas::detail::to_ranlux(lcg, carry);
         position = 0;
     }
 
@@ -150,19 +149,18 @@ CELER_FUNCTION void
 RanluxppRngState::initialize(RanluxppUInt seed, RanluxppArray9 const& kA_2048)
 {
     // Skip 2 ** 96 states
-    RanluxppArray9 a_seed;
-    celeritas::detail::compute_power_modulus(
-        kA_2048, a_seed, RanluxppUInt(1) << 48);
-    celeritas::detail::compute_power_modulus(
-        a_seed, a_seed, RanluxppUInt(1) << 48);
+    RanluxppArray9 a_seed = celeritas::detail::compute_power_modulus(
+        kA_2048, RanluxppUInt(1) << 48);
+    a_seed = celeritas::detail::compute_power_modulus(a_seed,
+                                                      RanluxppUInt(1) << 48);
 
     // Skip another s states.
-    celeritas::detail::compute_power_modulus(a_seed, a_seed, seed);
+    a_seed = celeritas::detail::compute_power_modulus(a_seed, seed);
     RanluxppArray9 lcg = {1, 0, 0, 0, 0, 0, 0, 0, 0};
-    celeritas::detail::compute_mod_multiply(a_seed, lcg);
+    lcg = celeritas::detail::compute_mod_multiply(a_seed, lcg);
 
     // Set state and carry variable
-    celeritas::detail::to_ranlux(lcg, state, carry);
+    state = celeritas::detail::to_ranlux(lcg, carry);
     position = 0;
 }
 
@@ -194,13 +192,12 @@ CELER_FUNCTION void RanluxppRngState::skip(RanluxppUInt n,
     int nPerState = kMaxPos / offset;
     int skip = n / nPerState;
 
-    RanluxppArray9 a_skip;
-    celeritas::detail::compute_power_modulus(kA_2048, a_skip, skip + 1);
+    RanluxppArray9 a_skip
+        = celeritas::detail::compute_power_modulus(kA_2048, skip + 1);
 
-    RanluxppArray9 lcg;
-    celeritas::detail::to_lcg(state, carry, lcg);
-    celeritas::detail::compute_mod_multiply(a_skip, lcg);
-    celeritas::detail::to_ranlux(lcg, state, carry);
+    RanluxppArray9 lcg = celeritas::detail::to_lcg(state, carry);
+    lcg = celeritas::detail::compute_mod_multiply(a_skip, lcg);
+    state = celeritas::detail::to_ranlux(lcg, carry);
 
     // Potentially skip numbers in the freshly generated block.
     int remaining = n - skip * nPerState;
