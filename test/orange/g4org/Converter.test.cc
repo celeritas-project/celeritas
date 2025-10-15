@@ -34,12 +34,12 @@ class ConverterTest : public GeantLoadTestBase
     //! Make a converter
     Converter make_converter(std::string_view filename = {})
     {
-        Converter::Options opts;
-        opts.verbose = verbose_;
+        Options opts;
+        opts.verbose_structure = verbose_;
         if (!filename.empty())
         {
-            opts.proto_output_file = std::string(filename) + ".protos.json";
-            opts.debug_output_file = std::string(filename) + ".csg.json";
+            opts.objects_output_file = std::string(filename) + ".objects.json";
+            opts.csg_output_file = std::string(filename) + ".csg.json";
         }
         return Converter{std::move(opts)};
     };
@@ -92,9 +92,25 @@ struct VolumeInstanceAccessor
 };
 
 //---------------------------------------------------------------------------//
-TEST_F(ConverterTest, simple_cms)
+TEST_F(ConverterTest, lar_sphere)
 {
     verbose_ = true;
+    std::string const basename = "lar-sphere";
+    this->load_test_gdml(basename);
+    auto convert = this->make_converter(basename);
+    auto result = convert(this->geo(), *this->volumes()).input;
+    write_org_json(result, basename);
+
+    ASSERT_EQ(1, result.universes.size());
+    {
+        auto const& unit = std::get<UnitInput>(result.universes[0]);
+        EXPECT_EQ(6, unit.volumes.size());
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(ConverterTest, simple_cms)
+{
     std::string const basename = "simple-cms";
     this->load_test_gdml(basename);
     auto convert = this->make_converter(basename);
@@ -176,7 +192,6 @@ TEST_F(ConverterTest, tilecal_plug)
 //---------------------------------------------------------------------------//
 TEST_F(ConverterTest, znenv)
 {
-    verbose_ = true;
     std::string const basename = "znenv";
     this->load_test_gdml(basename);
     auto convert = this->make_converter(basename);

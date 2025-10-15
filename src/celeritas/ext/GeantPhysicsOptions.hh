@@ -296,4 +296,12 @@ char const* to_cstring(MscModelSelection value);
 char const* to_cstring(RelaxationSelection value);
 
 //---------------------------------------------------------------------------//
+// Helper to read the options from a file or stream.
+std::istream& operator>>(std::istream& is, GeantPhysicsOptions&);
+
+//---------------------------------------------------------------------------//
+// Helper to write the options to a file or stream.
+std::ostream& operator<<(std::ostream& os, GeantPhysicsOptions const&);
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

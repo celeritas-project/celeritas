@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <string>
+#include <string_view>
 #include <variant>
 #include <vector>
 
@@ -140,7 +140,16 @@ class UnitProto : public ProtoInterface
         std::vector<DaughterInput> daughters;
         BoundaryInput boundary;
         Label label;
-        Simplify simplify{Simplify::infix};
+
+        //!@{
+        //! \name Construction options
+
+        //! For non-global units, assume inside the boundary
+        bool remove_interior{true};
+        //! Use DeMorgan's law to remove negated joins
+        bool remove_negated_join{false};
+
+        //!@}
 
         // True if fully defined
         explicit inline operator bool() const;

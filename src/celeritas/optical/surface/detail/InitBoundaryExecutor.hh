@@ -8,6 +8,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/optical/SimTrackView.hh"
@@ -47,7 +48,7 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
     CELER_EXPECT([track] {
         auto sim = track.sim();
         return sim.post_step_action()
-                   == track.surface_physics().init_boundary_action()
+                   == track.surface_physics().scalars().init_boundary_action
                && sim.status() == TrackStatus::alive;
     }());
 
@@ -86,17 +87,30 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
         }
 
         // Use default surface data
-        oriented_surface.surface = surface_physics.default_surface();
+        oriented_surface.surface = surface_physics.scalars().default_surface;
         oriented_surface.orientation = SubsurfaceDirection::forward;
     }
 
+    // Enforce surface normal convention, swapping normal if geometry returns
+    // one not entering the surface
+    Real3 global_normal = geo.normal();
+    if (!is_entering_surface(geo.dir(), global_normal))
+    {
+        global_normal = -global_normal;
+    }
+
     surface_physics
-        = SurfacePhysicsView::Initializer{oriented_surface.surface,
-                                          oriented_surface.orientation,
-                                          pre_volume_material,
-                                          post_volume_material};
-    // TODO: replace with surface stepping action when implemented
-    track.sim().post_step_action(surface_physics.post_boundary_action());
+        = SurfacePhysicsTrackView::Initializer{oriented_surface.surface,
+                                               oriented_surface.orientation,
+                                               global_normal,
+                                               pre_volume_material,
+                                               post_volume_material};
+
+    CELER_ASSERT(
+        is_entering_surface(geo.dir(), surface_physics.global_normal()));
+
+    track.sim().post_step_action(
+        surface_physics.scalars().surface_stepping_action);
 }
 
 //---------------------------------------------------------------------------//

@@ -190,18 +190,20 @@ TEST_F(StackedExtrudedPolygonTest, concave_stack)
     this->build_volume(StackedExtrudedPolygon{
         "pc", std::move(polygon), std::move(polyline), std::move(scaling)});
 
-    static char const* const expected_surface_strings[] = {"Plane: z=0",
-                                                           "Plane: z=1",
-                                                           "Plane: x=5",
-                                                           "Plane: y=3",
-                                                           "Plane: x=0",
-                                                           "Plane: y=0",
-                                                           "Plane: x=1",
-                                                           "Plane: y=1",
-                                                           "Plane: x=4",
-                                                           "Plane: x=3",
-                                                           "Plane: y=2",
-                                                           "Plane: x=2"};
+    static char const* const expected_surface_strings[] = {
+        "Plane: z=0",
+        "Plane: z=1",
+        "Plane: x=5",
+        "Plane: y=3",
+        "Plane: x=0",
+        "Plane: y=0",
+        "Plane: x=1",
+        "Plane: y=1",
+        "Plane: x=4",
+        "Plane: x=3",
+        "Plane: y=2",
+        "Plane: x=2",
+    };
 
     static char const* const expected_volume_strings[] = {
         R"(all(+0, -1, -2, -3, +4, +5, !all(+0, -1, -3, +6, +7, -8, !all(+0, -1, +7, -9, -10, +11))))"};

@@ -9,6 +9,7 @@
 #include <memory>
 #include <string_view>
 
+#include "corecel/Assert.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/inp/Events.hh"
 
@@ -21,6 +22,7 @@ class G4UserTrackingAction;
 class G4Event;
 class G4VModularPhysicsList;
 class G4VSensitiveDetector;
+class G4Step;
 
 namespace celeritas
 {
@@ -68,6 +70,9 @@ class IntegrationTestBase : public ::celeritas::test::Test
     // Default destructor to enable base class deletion and anchor vtable
     virtual ~IntegrationTestBase();
 
+    // Make a unique filename that incorporates run env information
+    std::string make_unique_filename(std::string_view ext) override;
+
     // Lazily create and/or access the run manager
     G4RunManager& run_manager();
 
@@ -105,7 +110,7 @@ class IntegrationTestBase : public ::celeritas::test::Test
 };
 
 //---------------------------------------------------------------------------//
-//! Generate LAr sphere geometry with 10 MeV electrons
+//! Generate LAr sphere geometry with 10 MeV electrons and functional hit call
 class LarSphereIntegrationMixin : virtual public IntegrationTestBase
 {
     using Base = IntegrationTestBase;
@@ -114,7 +119,9 @@ class LarSphereIntegrationMixin : virtual public IntegrationTestBase
     std::string_view gdml_basename() const final { return "lar-sphere"; }
     PrimaryInput make_primary_input() const override;
     PhysicsInput make_physics_input() const override;
-    UPSensDet make_sens_det(std::string const&) override;
+    UPSensDet make_sens_det(std::string const&) final;
+
+    virtual void process_hit(G4Step const*);
 };
 
 //---------------------------------------------------------------------------//
@@ -128,6 +135,21 @@ class TestEm3IntegrationMixin : virtual public IntegrationTestBase
     PrimaryInput make_primary_input() const override;
     PhysicsInput make_physics_input() const override;
     UPSensDet make_sens_det(std::string const&) override;
+};
+
+//---------------------------------------------------------------------------//
+//! Generate Op-Novice geometry with 500 keV positrons and no sensitive
+//! detector
+class OpNoviceIntegrationMixin : virtual public IntegrationTestBase
+{
+    using Base = IntegrationTestBase;
+
+  public:
+    std::string_view gdml_basename() const final { return "op-novice"; }
+    PrimaryInput make_primary_input() const override;
+    PhysicsInput make_physics_input() const override;
+    UPSensDet make_sens_det(std::string const&) override;
+    SetupOptions make_setup_options() override;
 };
 
 //---------------------------------------------------------------------------//

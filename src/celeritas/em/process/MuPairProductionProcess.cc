@@ -22,13 +22,13 @@ namespace celeritas
  */
 MuPairProductionProcess::MuPairProductionProcess(SPConstParticles particles,
                                                  SPConstImported process_data,
-                                                 SPConstImportTable table)
+                                                 ModelInput input)
     : particles_(std::move(particles))
     , imported_(process_data,
                 particles_,
                 ImportProcessClass::mu_pair_prod,
                 {pdg::mu_minus(), pdg::mu_plus()})
-    , table_(std::move(table))
+    , table_(std::move(input))
 {
     CELER_EXPECT(particles_);
     CELER_EXPECT(table_);
@@ -42,7 +42,7 @@ auto MuPairProductionProcess::build_models(ActionIdIter start_id) const
     -> VecModel
 {
     return {std::make_shared<MuPairProductionModel>(
-        *start_id++, *particles_, imported_.processes(), *table_)};
+        *start_id++, *particles_, imported_.processes(), table_)};
 }
 
 //---------------------------------------------------------------------------//

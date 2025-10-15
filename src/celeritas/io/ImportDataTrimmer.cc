@@ -66,15 +66,13 @@ void ImportDataTrimmer::operator()(ImportData& data)
         (*this)(data.geo_materials);
         (*this)(data.phys_materials);
 
-        (*this)(data.regions);
         (*this)(data.volumes);
 
-        (*this)(data.sb_data);
-        (*this)(data.livermore_pe_data);
-        (*this)(data.neutron_elastic_data);
-        (*this)(data.atomic_relaxation_data);
-
         (*this)(data.optical_materials);
+
+        (*this)(data.seltzer_berger.atomic_xs);
+        (*this)(data.livermore_photo.atomic_xs);
+        (*this)(data.atomic_relaxation.atomic_xs);
 
         this->for_each(data.elements);
         this->for_each(data.geo_materials);
@@ -90,10 +88,9 @@ void ImportDataTrimmer::operator()(ImportData& data)
 
         this->for_each(data.processes);
         this->for_each(data.msc_models);
-        this->for_each(data.sb_data);
-        this->for_each(data.livermore_pe_data);
-        this->for_each(data.neutron_elastic_data);
-        this->for_each(data.atomic_relaxation_data);
+        this->for_each(data.seltzer_berger.atomic_xs);
+        this->for_each(data.livermore_photo.atomic_xs);
+        this->for_each(data.atomic_relaxation.atomic_xs);
 
         this->for_each(data.optical_models);
         this->for_each(data.optical_materials);
@@ -102,14 +99,12 @@ void ImportDataTrimmer::operator()(ImportData& data)
     if (options_.mupp)
     {
         // Reduce the resolution of the muon pair production table
-        (*this)(data.mu_pair_production_data);
+        (*this)(data.mu_production.muppet_table);
     }
 
     // Trim infinities from grid
     this->for_each(data.optical_physics.surfaces.reflectivity.grid);
-    this->for_each(
-        data.optical_physics.surfaces.interaction.dielectric_dielectric);
-    this->for_each(data.optical_physics.surfaces.interaction.dielectric_metal);
+    this->for_each(data.optical_physics.surfaces.interaction.dielectric);
 }
 
 //---------------------------------------------------------------------------//
@@ -186,7 +181,7 @@ void ImportDataTrimmer::operator()(ImportMscModel& data)
 }
 
 //---------------------------------------------------------------------------//
-void ImportDataTrimmer::operator()(ImportMuPairProductionTable& data)
+void ImportDataTrimmer::operator()(inp::MuPairProductionEnergyTransferTable& data)
 {
     if (!data)
     {
@@ -232,7 +227,7 @@ void ImportDataTrimmer::operator()(ImportAtomicRelaxation&)
 }
 
 //---------------------------------------------------------------------------//
-void ImportDataTrimmer::operator()(ImportParticle&) {}
+void ImportDataTrimmer::operator()(inp::Particle&) {}
 
 //---------------------------------------------------------------------------//
 void ImportDataTrimmer::operator()(ImportProcess& data)
@@ -252,14 +247,19 @@ void ImportDataTrimmer::operator()(ImportProcess& data)
 }
 
 //---------------------------------------------------------------------------//
+void ImportDataTrimmer::operator()(inp::DielectricInteraction& data)
+{
+    (*this)(data.reflection);
+}
+
+//---------------------------------------------------------------------------//
 void ImportDataTrimmer::operator()(inp::ReflectionForm& data)
 {
-    filter_out_infs(data.specular_spike.x);
-    filter_out_infs(data.specular_spike.y);
-    filter_out_infs(data.specular_lobe.x);
-    filter_out_infs(data.specular_lobe.y);
-    filter_out_infs(data.backscatter.x);
-    filter_out_infs(data.backscatter.y);
+    for (auto& grid : data.reflection_grids)
+    {
+        filter_out_infs(grid.x);
+        filter_out_infs(grid.y);
+    }
 }
 
 //---------------------------------------------------------------------------//

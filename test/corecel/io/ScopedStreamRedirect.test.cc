@@ -2,33 +2,30 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/io/ImportParticle.hh
+//! \file corecel/io/ScopedStreamRedirect.test.cc
 //---------------------------------------------------------------------------//
-#pragma once
+#include "corecel/io/ScopedStreamRedirect.hh"
 
-#include <string>
+#include "celeritas_test.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Store particle data.
- */
-struct ImportParticle
+namespace test
 {
-    //!@{
-    //! \name Type aliases
-    using PdgInt = int;
-    //!@}
+//---------------------------------------------------------------------------//
+TEST(ScopedStreamRedirectTest, all)
+{
+    auto const* orig_buf = std::cout.rdbuf();
+    {
+        ScopedStreamRedirect redirect(&std::cout);
+        EXPECT_NE(orig_buf, std::cout.rdbuf());
 
-    std::string name;
-    PdgInt pdg{0};
-    double mass{0};  //!< [MeV]
-    double charge{0};  //!< [Multiple of electron charge value]
-    double spin{0};  //!< [Multiple of hbar]
-    double lifetime{0};  //!< [time]
-    bool is_stable{false};
-};
+        std::cout << "More output  \n";
+        EXPECT_EQ("More output", redirect.str());
+    }
+    EXPECT_EQ(orig_buf, std::cout.rdbuf());
+}
 
 //---------------------------------------------------------------------------//
+}  // namespace test
 }  // namespace celeritas

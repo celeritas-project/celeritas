@@ -48,7 +48,7 @@ TEST_F(RootJsonDumperTest, all)
         trim(imported);
     }
 
-    std::string str = [&imported] {
+    std::string actual = [&imported] {
         std::ostringstream os;
         ScopedRootErrorHandler scoped_root_error;
         RootJsonDumper{os}(imported);
@@ -56,21 +56,32 @@ TEST_F(RootJsonDumperTest, all)
         return std::move(os).str();
     }();
 
-    std::string expected = [this] {
-        std::ifstream infile(this->test_data_path(
-            "celeritas", "four-steel-slabs.root-dump.json"));
-        std::ostringstream os;
-        std::string line;
-        while (std::getline(infile, line))
-        {
-            os << line << "\n";
-        }
-        return std::move(os).str();
-    }();
+    std::string const ref_path = this->test_data_path("celeritas", "")
+                                 + "four-steel-slabs.root-dump.json";
+
+    std::ifstream infile(ref_path);
+    if (!infile)
+    {
+        ADD_FAILURE() << "failed to open reference file at '" << ref_path
+                      << "': writing new reference file instead";
+        infile.close();
+
+        std::ofstream outfile(ref_path);
+        CELER_VALIDATE(outfile,
+                       << "failed to open reference file '" << ref_path
+                       << "' for writing");
+        outfile << actual << "\n";
+        return;
+    }
+
+    std::stringstream expected;
+    expected << infile.rdbuf();
 
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
-        EXPECT_JSON_EQ(expected, str);
+        EXPECT_JSON_EQ(expected.str(), actual)
+            << "remove file at " << ref_path
+            << " and rerun to generate new reference file";
     }
 }
 

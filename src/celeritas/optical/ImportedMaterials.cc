@@ -7,6 +7,7 @@
 #include "ImportedMaterials.hh"
 
 #include <algorithm>
+#include <vector>
 
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
@@ -26,7 +27,7 @@ ImportedMaterials::from_import(ImportData const& data)
     if (!std::any_of(data.optical_materials.begin(),
                      data.optical_materials.end(),
                      [](auto const& mat) {
-                         return mat.rayleigh || mat.wls || mat.wls2;
+                         return mat.rayleigh || mat.wls || mat.wls2 || mat.mie;
                      }))
     {
         return nullptr;
@@ -45,19 +46,24 @@ ImportedMaterials::from_import(ImportData const& data)
     std::vector<ImportWavelengthShift> wls2;
     wls2.reserve(num_materials);
 
+    std::vector<ImportMie> mie;
+    mie.reserve(num_materials);
+
     for (auto const& mat : data.optical_materials)
     {
         rayleigh.push_back(mat.rayleigh);
         wls.push_back(mat.wls);
         wls2.push_back(mat.wls2);
+        mie.push_back(mat.mie);
     }
 
     CELER_ENSURE(rayleigh.size() == num_materials);
     CELER_ENSURE(wls.size() == num_materials);
     CELER_ENSURE(wls2.size() == num_materials);
+    CELER_ENSURE(mie.size() == num_materials);
 
     return std::make_shared<ImportedMaterials>(
-        std::move(rayleigh), std::move(wls), std::move(wls2));
+        std::move(rayleigh), std::move(wls), std::move(wls2), std::move(mie));
 }
 
 //---------------------------------------------------------------------------//
@@ -66,14 +72,17 @@ ImportedMaterials::from_import(ImportData const& data)
  */
 ImportedMaterials::ImportedMaterials(std::vector<ImportOpticalRayleigh> rayleigh,
                                      std::vector<ImportWavelengthShift> wls,
-                                     std::vector<ImportWavelengthShift> wls2)
+                                     std::vector<ImportWavelengthShift> wls2,
+                                     std::vector<ImportMie> mie)
     : rayleigh_(std::move(rayleigh))
     , wls_(std::move(wls))
     , wls2_(std::move(wls2))
+    , mie_(std::move(mie))
 {
     CELER_EXPECT(!rayleigh_.empty());
     CELER_EXPECT(rayleigh_.size() == wls_.size());
     CELER_EXPECT(rayleigh_.size() == wls2_.size());
+    CELER_EXPECT(rayleigh_.size() == mie_.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -113,6 +122,16 @@ ImportWavelengthShift const& ImportedMaterials::wls2(OptMatId mat) const
 {
     CELER_EXPECT(mat < this->num_materials());
     return wls2_[mat.get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get imported Mie properties for the given material.
+ */
+ImportMie const& ImportedMaterials::mie(OptMatId mat) const
+{
+    CELER_EXPECT(mat < this->num_materials());
+    return mie_[mat.get()];
 }
 
 //---------------------------------------------------------------------------//

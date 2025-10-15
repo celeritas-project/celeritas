@@ -109,12 +109,13 @@ TEST_F(TransformedTest, several)
         "11: {{{1.27,-1.73,-1.73}, {4.73,1.73,1.73}}, {{1,-2,-2}, {5,2,2}}}",
         "14: {{{-0.707,-0.707,2}, {0.707,0.707,6}}, {{-1,-1,2}, {1,1,6}}}",
         "20: {{{-0.707,3,-0.707}, {0.707,7,0.707}}, {{-1,3,-1}, {1,7,1}}}"};
-    static char const* const expected_trans_strings[]
-        = {"3: t=0 -> {}",
-           "9: t=0",
-           "11: t=1 -> {{3,0,0}}",
-           "14: t=2 -> {{0,0,4}}",
-           "20: t=3 -> {{{1,0,0},{0,0,-1},{0,1,0}}, {0,5,0}}"};
+    static char const* const expected_trans_strings[] = {
+        "3: t=0 -> {}",
+        "9: t=0",
+        "11: t=1 -> {{3,0,0}}",
+        "14: t=2 -> {{0,0,4}}",
+        "20: t=3 -> {{{1,0,0},{0,0,-1},{0,1,0}}, {0,5,0}}",
+    };
 
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
@@ -137,20 +138,22 @@ TEST_F(TransformedTest, stacked)
     this->build_volume(*trsph);
     this->build_volume(*sph);
 
-    static char const* const expected_surface_strings[]
-        = {"Sphere: r=1 at {1,2,3}",
-           "Sphere: r=1 at {1,2,0}",
-           "Sphere: r=1 at {2,0,0}",
-           "Sphere: r=1"};
+    static char const* const expected_surface_strings[] = {
+        "Sphere: r=1 at {1,2,3}",
+        "Sphere: r=1 at {1,2,0}",
+        "Sphere: r=1 at {2,0,0}",
+        "Sphere: r=1",
+    };
     static char const* const expected_volume_strings[]
         = {"-0", "-1", "-2", "-3"};
     static char const* const expected_md_strings[] = {
         "", "", "sph@s", "sph", "sph@s", "sph", "sph@s", "sph", "sph@s", "sph"};
-    static char const* const expected_trans_strings[]
-        = {"3: t=3 -> {{{0,-1,0},{1,0,0},{0,0,1}}, {1,2,3}}",
-           "5: t=5 -> {{{0,-1,0},{1,0,0},{0,0,1}}, {1,2,0}}",
-           "7: t=6 -> {{2,0,0}}",
-           "9: t=0 -> {}"};
+    static char const* const expected_trans_strings[] = {
+        "3: t=3 -> {{{0,-1,0},{1,0,0},{0,0,1}}, {1,2,3}}",
+        "5: t=5 -> {{{0,-1,0},{1,0,0},{0,0,1}}, {1,2,0}}",
+        "7: t=6 -> {{2,0,0}}",
+        "9: t=0 -> {}",
+    };
 
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
@@ -189,20 +192,22 @@ TEST_F(TransformedTest, inverse)
     };
     static char const* const expected_volume_strings[]
         = {"all(+0, -1, -2)", "all(+3, -4, -5)", "all(+0, -1, -2)"};
-    static char const* const expected_md_strings[] = {"",
-                                                      "",
-                                                      "cyl@mz",
-                                                      "cyl@pz",
-                                                      "",
-                                                      "cyl@cz",
-                                                      "",
-                                                      "cyl",
-                                                      "cyl@mz",
-                                                      "cyl@pz",
-                                                      "",
-                                                      "cyl@cz",
-                                                      "",
-                                                      "cyl"};
+    static char const* const expected_md_strings[] = {
+        "",
+        "",
+        "cyl@mz",
+        "cyl@pz",
+        "",
+        "cyl@cz",
+        "",
+        "cyl",
+        "cyl@mz",
+        "cyl@pz",
+        "",
+        "cyl@cz",
+        "",
+        "cyl",
+    };
     static char const* const expected_trans_strings[]
         = {"7: t=0 -> {}", "13: t=1 -> {{{1,0,0},{0,0,1},{0,-1,0}}, {0,2,0}}"};
 

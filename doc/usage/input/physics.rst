@@ -4,35 +4,24 @@
 .. _inp_physics:
 
 Physics
-=======
+========
 
-.. doxygenstruct:: celeritas::inp::Physics
-   :members:
-   :no-link:
+.. note:: For discussion of model and process naming, see issue 1562_ .
+
+.. _1562: https://github.com/celeritas-project/celeritas/pull/1562
+
+The selection and data used to create physics classes will be defined
+underneath this struct.
+
+.. celerstruct:: inp::Physics
 
 Electromagnetic
-^^^^^^^^^^^^^^^
+---------------
 
-.. doxygenstruct:: celeritas::inp::EmPhysics
-   :members:
-   :no-link:
-
-Decay
-^^^^^
-
-.. doxygenstruct:: celeritas::inp::DecayPhysics
-   :members:
-   :no-link:
-
-Hadronic
-^^^^^^^^
-
-.. doxygenstruct:: celeritas::inp::HadronicPhysics
-   :members:
-   :no-link:
+.. celerstruct:: inp::EmPhysics
 
 Optical
-^^^^^^^
+-------
 
 Optical photon _generation_ is a part of the standard stepping loop that manages
 EM, decay, and hadronic physics, but its _transport_ has its own separate
@@ -41,47 +30,58 @@ stepping loop, where surface physics is the most complex part. Therefore, the
 Cherenkov and scintillation) and surface physics information. The latter
 describing how optical photons should interact with it.
 
-.. doxygenstruct:: celeritas::inp::OpticalPhysics
-   :members:
-   :no-link:
+.. celerstruct:: inp::OpticalPhysics
 
-Celeritas' ``SurfacePhysics`` implementation is designed differently from Geant4
-and is meant to reduce code branching. In Geant4 one single model (e.g. Unified)
-encompasses interface type (e.g. dielectric-dielectric), multiple reflection
-mechanisms (specular spike, specular lobe, etc.), and surface roughness types
-(polished or Gaussian). Celeritas describes an optical surface based on its
-interface type, the possible reflection mechanisms it can undergo, its
-roughness, and other parameters, such as detector efficiency in case it is a
-scoring surface for an optical detector such as a PMT or SiPM. A specific Geant4
-model (e.g. Unified) is simply a specific combination of such characteristics.
+Celeritas' surface physics implementation is designed differently from Geant4
+and is meant to reduce code complexity and improve extensibility.
+In Geant4, a single model (e.g. "unified") is a hard-coded combination of:
+
+- surface roughness types (e.g., polished or Gaussian),
+- reflectivity calculation (whether to use a grid or not), and
+- interaction description (e.g. dielectric-dielectric).
+
+Celeritas separates these out into fully configurable surface physics inputs,
+so that a given surface ID must be present in three separate surface models.
 This "model unfolding" leads to a less simple input definition compared to
-Geant4, but allows for a more general surface definition system. This leads to
-better extensibility and reduces kernel size/complexity on the GPU.
+Geant4, but it allows for user-extensible surface physics models.
 
-.. doxygenstruct:: celeritas::inp::SurfacePhysics
-    :members:
-    :no-link:
+.. celerstruct:: inp::SurfacePhysics
+
+Reflection
+^^^^^^^^^^
+
+.. celerstruct:: inp::GridReflection
 
 
 Processes
 ---------
 
-.. doxygenstruct:: celeritas::inp::BremsProcess
-   :members:
-   :no-link:
+.. celerstruct:: inp::BremsstrahlungProcess
+.. celerstruct:: inp::PairProductionProcess
+.. celerstruct:: inp::PhotoelectricProcess
+.. celerstruct:: inp::AtomicRelaxation
 
 
 Models
 ------
 
-.. doxygenstruct:: celeritas::inp::SeltzerBergerModel
-   :members:
-   :no-link:
+.. celerstruct:: inp::SeltzerBergerModel
+.. celerstruct:: inp::RelBremsModel
+.. celerstruct:: inp::MuBremsModel
+.. celerstruct:: inp::BetheHeitlerProductionModel
+.. celerstruct:: inp::MuPairProductionModel
+.. celerstruct:: inp::LivermorePhotoModel
 
-.. doxygenstruct:: celeritas::inp::RelBremsModel
-   :members:
-   :no-link:
 
-.. doxygenstruct:: celeritas::inp::MuBremsModel
-   :members:
-   :no-link:
+.. _inp_grid:
+
+Grids
+-----
+
+Tabulated physics data such as cross sections or energy loss are stored on
+increasing, sorted 1D or 2D grids. Both linear and spline interpolation are supported.
+
+.. celerstruct:: inp::Grid
+.. celerstruct:: inp::UniformGrid
+.. celerstruct:: inp::TwodGrid
+.. celerstruct:: inp::Interpolation

@@ -7,6 +7,7 @@
 #include <regex>
 #include <string_view>
 #include <G4LogicalVolume.hh>
+#include <G4VSensitiveDetector.hh>
 
 #include "corecel/Config.hh"
 
@@ -219,6 +220,8 @@ TEST_F(CmsEeBackDeeTest, model)
     };
     ref.volume_instance.volumes = {3, 2, 0, 1, 4, 5, 6};
     ref.world = "EEBackDee";
+    ref.detector.labels = {"ee_back_plate", "ee_s_ring"};
+    ref.detector.volumes = {{0, 5}, {1, 6}};
     EXPECT_REF_EQ(ref, result);
 }
 
@@ -270,6 +273,8 @@ TEST_F(FourLevelsTest, model)
         2,
     };
     ref.world = "World";
+    ref.region.labels = {"envelope_region"};
+    ref.region.volumes = {{0, 1, 2}};
     EXPECT_REF_EQ(ref, result);
 }
 
@@ -366,6 +371,43 @@ TEST_F(FourLevelsTest, levels)
 }
 
 //---------------------------------------------------------------------------//
+using LarSphereTest
+    = GenericGeoParameterizedTest<GeantGeoTest, LarSphereGeoTest>;
+
+TEST_F(LarSphereTest, model)
+{
+    auto result = this->summarize_model();
+
+    GenericGeoModelInp ref;
+    ref.volume.labels
+        = {"sphere", "detshell_top", "detshell_bot", "detshell", "world"};
+    ref.volume.materials = {1, 1, 1, 0, 0};
+    ref.volume.daughters = {{}, {}, {}, {2, 3}, {1, 4}};
+    ref.volume_instance.labels = {
+        "world_PV",
+        "detshell_PV",
+        "detshell_top_PV",
+        "detshell_bot_PV",
+        "sphere_PV",
+    };
+    ref.volume_instance.volumes = {4, 3, 1, 2, 0};
+    ref.world = "world";
+    ref.detector.labels = {"detshell"};
+    ref.detector.volumes = {{1, 2}};
+    EXPECT_REF_EQ(ref, result);
+}
+
+TEST_F(LarSphereTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(LarSphereTest, volume_stack)
+{
+    this->impl().test_volume_stack();
+}
+
+//---------------------------------------------------------------------------//
 using MultiLevelTest
     = GenericGeoParameterizedTest<GeantGeoTest, MultiLevelGeoTest>;
 
@@ -407,7 +449,26 @@ TEST_F(MultiLevelTest, model)
         6,
     };
     ref.world = "world";
+    ref.detector.labels = {"sph_sd"};
+    ref.detector.volumes = {{0, 5}};
+    ref.region.labels = {"sph_region", "tri_region", "box_region"};
+    ref.region.volumes = {{0, 5}, {1, 6}, {2, 4}};
     EXPECT_REF_EQ(ref, result);
+}
+
+TEST_F(MultiLevelTest, sd_creation)
+{
+    auto const& geo = *this->geometry();
+
+    auto* lv = geo.id_to_geant(VolumeId{0});  // sph; see model above
+    auto* sd = lv->GetSensitiveDetector();
+    ASSERT_TRUE(sd);
+    EXPECT_EQ("sph_sd", sd->GetName());
+
+    auto* lv2 = geo.id_to_geant(VolumeId{5});  // sph_refl
+    auto* sd2 = lv2->GetSensitiveDetector();
+    ASSERT_TRUE(sd2);
+    EXPECT_EQ(sd, sd2);
 }
 
 TEST_F(MultiLevelTest, trace)
@@ -711,6 +772,8 @@ TEST_F(SimpleCmsTest, model)
                                   "iron_muon_chambers_pv"};
     ref.volume_instance.volumes = {6, 0, 1, 2, 3, 4, 5};
     ref.world = "world";
+    ref.detector.labels = {"si_tracker_sd", "em_calorimeter_sd"};
+    ref.detector.volumes = {{1}, {2}};
     EXPECT_REF_EQ(ref, result);
 }
 

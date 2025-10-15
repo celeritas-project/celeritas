@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <map>
 #include <memory>
 #include <string>
 
@@ -26,6 +27,7 @@
 class G4LogicalSurface;
 class G4Material;
 class G4VPhysicalVolume;
+class G4VSensitiveDetector;
 
 namespace celeritas
 {
@@ -63,6 +65,15 @@ namespace celeritas
  * Geant4 object pointers, which is what the Geant4 implementation stores in a
  * table).  Surface labels are accessed via the SurfaceParams object, which can
  * be created by the model input returned by this class.
+ *
+ * When running standalone for testing, a "secret" environment flag
+ * \c G4_GEO_OPTIMIZE can disable Geant4 "voxelization" (acceleration structure
+ * setup) which can be slow for large problems and is unnecessary if \em not
+ * tracking on the Geant4 geometry.
+ *
+ * \todo Much of the conversion should be factored out into a separate Model
+ * class which provides adapters to materials, detectors, and geometry
+ * structure.
  */
 class GeantGeoParams final : public GeoParamsInterface,
                              public ParamsDataInterface<GeantGeoParamsData>
@@ -161,10 +172,14 @@ class GeantGeoParams final : public GeoParamsInterface,
     }
 
   private:
+    using MapStrDetector
+        = std::map<std::string, std::shared_ptr<G4VSensitiveDetector>>;
+
     //// DATA ////
 
     Ownership ownership_{Ownership::reference};
     bool closed_geometry_{false};
+    MapStrDetector built_detectors_;
 
     // Host metadata/access
     ImplVolumeMap impl_volumes_;

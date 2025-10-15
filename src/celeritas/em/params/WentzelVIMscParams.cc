@@ -9,7 +9,6 @@
 #include <algorithm>
 #include <utility>
 
-#include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/ParticleParams.hh"

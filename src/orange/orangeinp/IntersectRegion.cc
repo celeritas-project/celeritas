@@ -12,10 +12,12 @@
 #include "corecel/Constants.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/Join.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/Types.hh"
+#include "orange/MatrixUtils.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/surf/CylCentered.hh"
 #include "orange/surf/Involute.hh"
@@ -682,10 +684,10 @@ auto ExtrudedPolygon::calc_range(VecReal2 const& polygon, size_type dim)
 
     // Find the extrema taking into account the extrusion process
     Range range;
-    range[0]
+    range[X]
         = std::min(poly_min * scaling_factors_[bot] + line_segment_[bot][dim],
                    poly_min * scaling_factors_[top] + line_segment_[top][dim]);
-    range[1]
+    range[Y]
         = std::max(poly_max * scaling_factors_[bot] + line_segment_[bot][dim],
                    poly_max * scaling_factors_[top] + line_segment_[top][dim]);
 
@@ -700,17 +702,20 @@ auto ExtrudedPolygon::calc_range(VecReal2 const& polygon, size_type dim)
  */
 GenPrism GenPrism::from_trd(real_type halfz, Real2 const& lo, Real2 const& hi)
 {
-    CELER_VALIDATE(lo[0] > 0, << "nonpositive lower x half-edge: " << lo[0]);
-    CELER_VALIDATE(hi[0] > 0, << "nonpositive upper x half-edge: " << hi[0]);
-    CELER_VALIDATE(lo[1] > 0, << "nonpositive lower y half-edge: " << lo[1]);
-    CELER_VALIDATE(hi[1] > 0, << "nonpositive upper y half-edge: " << hi[1]);
+    CELER_VALIDATE(lo[X] >= 0, << "nonpositive lower x half-edge: " << lo[X]);
+    CELER_VALIDATE(hi[X] >= 0, << "nonpositive upper x half-edge: " << hi[X]);
+    CELER_VALIDATE(lo[Y] >= 0, << "nonpositive lower y half-edge: " << lo[Y]);
+    CELER_VALIDATE(hi[Y] >= 0, << "nonpositive upper y half-edge: " << hi[Y]);
     CELER_VALIDATE(halfz > 0, << "nonpositive half-height: " << halfz);
+
+    CELER_VALIDATE(lo[X] > 0 || hi[X] > 0, << "degenerate x width");
+    CELER_VALIDATE(lo[Y] > 0 || hi[Y] > 0, << "degenerate y width");
 
     // Construct points like prism: lower right is first
     VecReal2 lower
-        = {{lo[0], -lo[1]}, {lo[0], lo[1]}, {-lo[0], lo[1]}, {-lo[0], -lo[1]}};
+        = {{lo[X], -lo[Y]}, {lo[X], lo[Y]}, {-lo[X], lo[Y]}, {-lo[X], -lo[Y]}};
     VecReal2 upper
-        = {{hi[0], -hi[1]}, {hi[0], hi[1]}, {-hi[0], hi[1]}, {-hi[0], -hi[1]}};
+        = {{hi[X], -hi[Y]}, {hi[X], hi[Y]}, {-hi[X], hi[Y]}, {-hi[X], -hi[Y]}};
 
     return GenPrism{halfz, std::move(lower), std::move(upper)};
 }
@@ -980,7 +985,7 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
                          mxl - mxr,
                          canonicalize_zero(txr * myl - txl * myr + tyl * mxr
                                            - tyr * mxl)};
-            // Cross product of midpoint
+            // Cross product of midpoint ("displacement")
             real_type js = canonicalize_zero(mxr * myl - mxl * myr);
 
             // Normalize based on linear components to represent as a plane
@@ -1548,6 +1553,90 @@ void Sphere::output(JsonPimpl* j) const
 bool Sphere::encloses(Sphere const& other) const
 {
     return radius_ >= other.radius();
+}
+
+//---------------------------------------------------------------------------//
+// TET
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from four vertices.
+ */
+Tet::Tet(ArrReal3 const& vertices) : v_{vertices}
+{
+    // Check that vertices are not coplanar by computing volume
+    SquareMatrixReal3 delta;
+    for (auto i : range(size_type(3)))
+    {
+        delta[i] = v_[i + 1] - v_[0];
+    }
+
+    // The determinant is dot(a, cross(b, c))
+    real_type volume = determinant(delta) / 6;
+    CELER_VALIDATE(volume != 0,
+                   << "vertices are degenerate: "
+                   << join(v_.begin(), v_.end(), ", "));
+
+    // If volume is negative, vertices are in wrong order (left-handed)
+    // Swap two vertices to make right-handed
+    if (volume < 0)
+    {
+        std::swap(v_[0], v_[1]);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void Tet::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    constexpr size_type face_vertices[4][3] = {
+        {0, 2, 1},  // bottom
+        {0, 1, 3},  // front
+        {1, 2, 3},  // right
+        {2, 0, 3}  // left
+    };
+
+    for (auto i : range(size_type(4)))
+    {
+        auto const& indices = face_vertices[i];
+        insert_surface(
+            Sense::inside,
+            Plane{detail::normal_from_triangle(
+                      v_[indices[0]], v_[indices[1]], v_[indices[2]]),
+                  v_[indices[0]]},
+            "t" + std::to_string(i));
+    }
+
+    // Construct exterior bounding box
+    BBox exterior_bbox;
+    for (auto const& vertex : v_)
+    {
+        for (auto ax : {Axis::x, Axis::y, Axis::z})
+        {
+            exterior_bbox.grow(ax, vertex[to_int(ax)]);
+        }
+    }
+    insert_surface(Sense::inside, exterior_bbox);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Tet::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a vertex by index.
+ */
+Real3 const& Tet::vertex(size_type i) const
+{
+    CELER_EXPECT(i < 4);
+    return v_[i];
 }
 
 //---------------------------------------------------------------------------//

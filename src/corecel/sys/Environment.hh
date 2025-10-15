@@ -61,6 +61,9 @@ class Environment
     // Get an environment variable from current or system environments
     inline mapped_type const& operator[](key_type const&);
 
+    // Determine whether a variable has already been set (mostly internal)
+    inline const_iterator find(key_type const&) const;
+
     // Insert possibly new environment variables
     bool insert(value_type const& value);
 
@@ -114,6 +117,15 @@ std::ostream& operator<<(std::ostream&, Environment const&);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Determine whether a variable has already been set and get its value if so.
+ */
+auto Environment::find(key_type const& env_var) const -> const_iterator
+{
+    return vars_.find(env_var);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Get an environment variable from current or system environments.

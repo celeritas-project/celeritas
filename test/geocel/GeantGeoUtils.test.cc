@@ -88,7 +88,7 @@ TEST_F(MultiLevelTest, printable_nav)
     auto get_nav_str = [&geo](Real3 const& pos) {
         geo = {from_cm(pos), Real3{1, 0, 0}};
         std::ostringstream os;
-        os << PrintableNavHistory{geo.nav_history()};
+        os << StreamableNavHistory{geo.nav_history()};
         return std::move(os).str();
     };
 

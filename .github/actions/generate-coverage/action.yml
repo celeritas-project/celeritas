@@ -1,0 +1,70 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Generate and upload code coverage reports.
+#
+# This *must* be run from inside an existing build after compiling with
+# appropriate coverage flags and running tests.
+#-----------------------------------------------------------------------------#
+
+name: 'Generate Coverage Report'
+description: 'Generates coverage report using gcovr and uploads to Codecov'
+inputs:
+  codecov_token:
+    description: 'Codecov token'
+    required: true
+  working_directory:
+    description: 'Working directory for coverage generation'
+    required: false
+    default: '.'
+  codecov_name:
+    description: 'Name for the codecov upload'
+    required: false
+    default: 'codecov-umbrella'
+  fail_ci_if_error:
+    description: 'Fail CI if codecov upload fails'
+    required: false
+    default: true
+  gcov_executable:
+    description: 'Path to gcov executable (if using llvm, set to llvm-gcov)'
+    required: false
+    default: 'gcov'
+  gcovr_config:
+    description: 'Path to gcovr config file'
+    required: false
+    default: 'scripts/ci/gcovr.cfg'
+
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install dependencies
+      shell: bash
+      run: |
+        if command -v dnf >/dev/null 2>&1; then
+          dnf -y install lcov
+        else
+          sudo apt-get -q -y update
+          sudo apt-get -q -y install lcov
+        fi
+        pip install gcovr
+    - name: Generate coverage report
+      shell: sh
+      working-directory: ${{inputs.working_directory}}
+      run: |
+        gcovr \
+          --config=${{inputs.gcovr_config}} \
+          --gcov-executable=${{inputs.gcov_executable}} \
+          -j $(($(nproc) + 1)) \
+          --output=cobertura-cov.xml --cobertura-pretty \
+          --merge-mode-functions=merge-use-line-min
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
+      with:
+        token: ${{inputs.codecov_token }}
+        fail_ci_if_error: ${{inputs.fail_ci_if_error}}
+        name: ${{inputs.codecov_name}}
+        verbose: true
+        gcov_executable: ${{inputs.gcov_executable}}

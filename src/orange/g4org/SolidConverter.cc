@@ -8,7 +8,7 @@
 
 #include <memory>
 #include <typeindex>
-#include <typeinfo>
+#include <typeinfo>  // IWYU pragma: keep
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -25,6 +25,7 @@
 #include <G4GenericTrap.hh>
 #include <G4Hype.hh>
 #include <G4IntersectionSolid.hh>
+#include <G4MultiUnion.hh>
 #include <G4Orb.hh>
 #include <G4Para.hh>
 #include <G4Paraboloid.hh>
@@ -50,6 +51,7 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/Repr.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArraySoftUnit.hh"
 #include "corecel/math/SoftEqual.hh"
@@ -227,19 +229,9 @@ auto calculate_theta_phi(S const& solid) -> std::pair<Turn, Turn>
  * Construct a shape using the solid's name and forwarded arguments.
  */
 template<class CR, class... Args>
-auto make_shape(std::string&& name, Args&&... args)
-{
-    return std::make_shared<Shape<CR>>(std::move(name),
-                                       CR{std::forward<Args>(args)...});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct a shape using the solid's name and forwarded arguments.
- */
-template<class CR, class... Args>
 auto make_shape(G4VSolid const& solid, Args&&... args)
 {
+    using ::celeritas::orangeinp::make_shape;
     return make_shape<CR>(std::string{solid.GetName()},
                           std::forward<Args>(args)...);
 }
@@ -299,9 +291,6 @@ auto SolidConverter::operator()(arg_type solid_base) -> result_type
         cache_iter->second = this->convert_impl(solid_base);
     }
 
-    // TODO: we can't cache parameterized volumes. Maybe we shouldn't cache at
-    // all?
-
     CELER_ENSURE(cache_iter->second);
     return cache_iter->second;
 }
@@ -344,6 +333,7 @@ auto SolidConverter::convert_impl(arg_type solid_base) -> result_type
         SC_TYPE_FUNC(GenericTrap      , generictrap),
         SC_TYPE_FUNC(Hype             , hype),
         SC_TYPE_FUNC(IntersectionSolid, intersectionsolid),
+        SC_TYPE_FUNC(MultiUnion       , multiunion),
         SC_TYPE_FUNC(Orb              , orb),
         SC_TYPE_FUNC(Para             , para),
         SC_TYPE_FUNC(Paraboloid       , paraboloid),
@@ -468,15 +458,17 @@ auto SolidConverter::ellipsoid(arg_type solid_base) -> result_type
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert an elliptical cone
+ * Convert an elliptical cone.
  *
  * Expressions for lower/upper radii were found by solving the system of
  * equations given by \c G4EllipticalCone:
  *
- * lower_radii[X]/lower_radii[y] = upper_radii[X]/upper_radii[y],
- * r_x = (lower_radii[X] - upper_radii[X])/(2 hh),
- * r_y = (lower_radii[Y] - upper_radii[Y])/(2 hh),
- * v = hh (lower_radii[X] + upper_radii[X])/(lower_radii[X] - upper_radii[X]).
+ * \verbatim
+   lower_radii[X]/lower_radii[Y] = upper_radii[X]/upper_radii[Y];
+   r_x = (lower_radii[X] - upper_radii[X])/(2 * hh);
+   r_y = (lower_radii[Y] - upper_radii[Y])/(2 * hh);
+   v = hh * (lower_radii[X] + upper_radii[X])/(lower_radii[X] - upper_radii[X])
+ * \endverbatim
  */
 auto SolidConverter::ellipticalcone(arg_type solid_base) -> result_type
 {
@@ -614,6 +606,25 @@ auto SolidConverter::intersectionsolid(arg_type solid_base) -> result_type
 }
 
 //---------------------------------------------------------------------------//
+//! Convert a multiunion
+auto SolidConverter::multiunion(arg_type solid_base) -> result_type
+{
+    auto const& mu = dynamic_cast<G4MultiUnion const&>(solid_base);
+    auto n = mu.GetNumberOfSolids();
+    std::vector<result_type> vols(n);
+
+    for (auto i : range(n))
+    {
+        auto vol = (*this)(*(mu.GetSolid(i)));
+        vols[i] = std::make_shared<Transformed>(
+            std::move(vol), transform_(mu.GetTransformation(i)));
+    }
+
+    return std::make_shared<AnyObjects>(std::string{solid_base.GetName()},
+                                        std::move(vols));
+}
+
+//---------------------------------------------------------------------------//
 //! Convert an orb
 auto SolidConverter::orb(arg_type solid_base) -> result_type
 {
@@ -657,12 +668,12 @@ auto SolidConverter::polycone(arg_type solid_base) -> result_type
     auto const& solid = dynamic_cast<G4Polycone const&>(solid_base);
     auto const& params = *solid.GetOriginalParameters();
 
-    std::vector<real_type> zs(params.Num_z_planes);
-    std::vector<real_type> rmin(zs.size());
-    std::vector<real_type> rmax(zs.size());
-    for (auto i : range(zs.size()))
+    std::vector<real_type> z(params.Num_z_planes);
+    std::vector<real_type> rmin(z.size());
+    std::vector<real_type> rmax(z.size());
+    for (auto i : range(z.size()))
     {
-        zs[i] = scale_(params.Z_values[i]);
+        z[i] = scale_(params.Z_values[i]);
         rmin[i] = scale_(params.Rmin[i]);
         rmax[i] = scale_(params.Rmax[i]);
     }
@@ -673,9 +684,15 @@ auto SolidConverter::polycone(arg_type solid_base) -> result_type
         rmin.clear();
     }
 
+    if (!z.empty() && z.front() > z.back())
+    {
+        CELER_LOG(warning) << "Polycone '" << solid.GetName()
+                           << "' z coordinates are out of order: " << repr(z);
+    }
+
     return PolyCone::or_solid(
         std::string{solid.GetName()},
-        PolySegments{std::move(rmin), std::move(rmax), std::move(zs)},
+        PolySegments{std::move(rmin), std::move(rmax), std::move(z)},
         enclosed_azi_from_poly(solid));
 }
 
@@ -688,6 +705,7 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
 
     // Convert from circumradius to apothem
     double const radius_factor = cospi(1 / static_cast<double>(params.numSide));
+    CELER_ASSERT(radius_factor > 0);
 
     std::vector<real_type> zs(params.Num_z_planes);
     std::vector<real_type> rmin(zs.size());
@@ -707,13 +725,19 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
 
     // Get orientation from the start/end phi, which still may be a full Turn
     auto frac_turn = native_value_to<Turn>(solid.GetStartPhi()).value();
+
     double const orientation
         = std::fmod(params.numSide * frac_turn, real_type{1});
+
+    auto azi = enclosed_azi_from_poly(solid);
+    CELER_VALIDATE(
+        !azi,
+        << R"(azimuthal clipping isn't properly implemented for poylhedra)");
 
     return PolyPrism::or_solid(
         std::string{solid.GetName()},
         PolySegments{std::move(rmin), std::move(rmax), std::move(zs)},
-        enclosed_azi_from_poly(solid),
+        std::move(azi),
         params.numSide,
         orientation);
 }
@@ -795,21 +819,32 @@ auto SolidConverter::tessellatedsolid(arg_type solid_base) -> result_type
 auto SolidConverter::tet(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Tet const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("tet");
+    std::vector<G4ThreeVector> vertices = solid.GetVertices();
+    CELER_ASSERT(vertices.size() == 4);
+    return make_shape<Tet>(
+        solid,
+        scale_.to<Tet::ArrReal3>(
+            vertices[0], vertices[1], vertices[2], vertices[3]));
 }
 
 //---------------------------------------------------------------------------//
 //! Convert a torus
 auto SolidConverter::torus(arg_type solid_base) -> result_type
 {
-    CELER_LOG(warning) << "G4Torus is not fully supported; approximating with "
-                          "bounding cylinders";
     auto const& solid = dynamic_cast<G4Torus const&>(solid_base);
+    CELER_LOG(error) << "G4Torus is not fully supported: replacing '"
+                     << solid.GetName() << "' with bounding cylinders";
+
     auto rmax = scale_(solid.GetRmax());
     auto rtor = scale_(solid.GetRtor());
+    CELER_VALIDATE(rtor >= rmax,
+                   << "invalid rtor=" << rtor << " < rmax=" << rmax);
 
-    std::optional<Cylinder> inner{std::in_place, rtor - rmax, rmax};
+    std::optional<Cylinder> inner;
+    if (!soft_equal(rtor, rmax))
+    {
+        inner.emplace(rtor - rmax, rmax);
+    }
 
     return make_solid(solid,
                       Cylinder{rtor + rmax, rmax},

@@ -63,8 +63,10 @@ TrackingManagerConstructor::TrackingManagerConstructor(
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct particles before \c ::ConstructProcess since any
- * \c G4ParticleDefinition other than ions and shortlived must be created
+ * Construct particles and determine which to offload.
+ *
+ * This is called \em early in the application, when the physics list is passed
+ * to the run manager. It is only called once on a multithreaded run,
  * during Geant4's \c Pre_Init state.
  */
 void TrackingManagerConstructor::ConstructParticle()
@@ -91,7 +93,7 @@ void TrackingManagerConstructor::ConstructProcess()
         return;
     }
 
-    CELER_LOG(debug) << "Activating tracking manager";
+    CELER_LOG_LOCAL(debug) << "Activating tracking manager";
 
     // Note that error checking occurs here to provide better error messages
     CELER_VALIDATE(
@@ -122,6 +124,9 @@ void TrackingManagerConstructor::ConstructProcess()
                             [](G4ParticleDefinition const* pd) {
                                 return pd->GetParticleName();
                             });
+#else
+    // Constructor should've prevented this
+    CELER_ASSERT_UNREACHABLE();
 #endif
 }
 

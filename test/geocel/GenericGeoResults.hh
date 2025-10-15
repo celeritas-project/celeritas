@@ -151,6 +151,18 @@ struct GenericGeoModelInp
         std::vector<std::string> volumes;
     } surface;
 
+    struct
+    {
+        std::vector<std::string> labels;
+        std::vector<std::vector<int>> volumes;
+    } region;
+
+    struct
+    {
+        std::vector<std::string> labels;
+        std::vector<std::vector<int>> volumes;
+    } detector;
+
     static GenericGeoModelInp from_model_input(inp::Model const& in);
     void print_expected() const;
 };

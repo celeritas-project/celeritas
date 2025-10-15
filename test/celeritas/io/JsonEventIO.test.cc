@@ -2,10 +2,12 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/sys/ScopedStreamRedirect.test.cc
+//! \file celeritas/io/JsonEventIO.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/io/ScopedStreamRedirect.hh"
+#include "celeritas/io/JsonEventReader.hh"
+#include "celeritas/io/JsonEventWriter.hh"
 
+#include "EventIOTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -13,17 +15,24 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-TEST(ScopedStreamRedirectTest, all)
-{
-    auto const* orig_buf = std::cout.rdbuf();
-    {
-        ScopedStreamRedirect redirect(&std::cout);
-        EXPECT_NE(orig_buf, std::cout.rdbuf());
 
-        std::cout << "More output  \n";
-        EXPECT_EQ("More output", redirect.str());
+class JsonEventIOTest : public EventIOTestBase
+{
+};
+
+TEST_F(JsonEventIOTest, write_read)
+{
+    std::string filename = this->make_unique_filename(".jsonl");
+
+    // Write events
+    {
+        JsonEventWriter write_event(filename, this->particles());
+        this->write_test_event(std::ref(write_event));
     }
-    EXPECT_EQ(orig_buf, std::cout.rdbuf());
+
+    JsonEventReader reader(filename, this->particles());
+    EXPECT_EQ(3, reader.num_events());
+    this->read_check_test_event(reader);
 }
 
 //---------------------------------------------------------------------------//

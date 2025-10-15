@@ -87,6 +87,8 @@ list(APPEND SOURCES
   io/ImportOpticalModel.cc
   io/ImportProcess.cc
   io/ImportUnits.cc
+  io/JsonEventReader.cc
+  io/JsonEventWriter.cc
   io/LivermorePEReader.cc
   io/NeutronXsReader.cc
   io/SeltzerBergerReader.cc
@@ -269,13 +271,13 @@ if(CELERITAS_USE_ROOT)
     "celeritas/io/ImportData.hh"
     "celeritas/io/ImportElement.hh"
     "celeritas/io/ImportMaterial.hh"
-    "celeritas/io/ImportParticle.hh"
     "celeritas/io/ImportPhysicsTable.hh"
     "celeritas/io/ImportProcess.hh"
     "celeritas/io/ImportUnits.hh"
     "celeritas/io/ImportVolume.hh"
     "celeritas/io/EventData.hh"
     "celeritas/inp/Grid.hh"
+    "celeritas/inp/Particle.hh"
     NOINSTALL
     MODULE celeritas
     LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/ext/RootInterfaceLinkDef.h"
@@ -349,6 +351,7 @@ celeritas_polysource(global/detail/TrackSlotUtils)
 celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
 celeritas_polysource(neutron/model/NeutronInelasticModel)
 celeritas_polysource(optical/model/AbsorptionModel)
+celeritas_polysource(optical/model/MieModel)
 celeritas_polysource(optical/model/RayleighModel)
 celeritas_polysource(optical/model/WavelengthShiftModel)
 celeritas_polysource(optical/action/AlongStepAction)
@@ -363,6 +366,8 @@ celeritas_polysource(optical/gen/PrimaryGeneratorAction)
 celeritas_polysource(optical/gen/detail/GeneratorAlgorithms)
 celeritas_polysource(optical/gen/detail/OffloadAlgorithms)
 celeritas_polysource(optical/surface/BoundaryAction)
+celeritas_polysource(optical/surface/model/PolishedRoughnessModel)
+celeritas_polysource(optical/surface/model/DielectricInteractionModel)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)
 celeritas_polysource(phys/detail/TrackingCutAction)

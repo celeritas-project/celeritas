@@ -14,10 +14,6 @@ else()
   set(_fixme_single DISABLE)
 endif()
 
-if(CELERITAS_DEBUG)
-  set(_disable_if_debug DISABLE)
-endif()
-
 if(NOT CELERITAS_USE_Geant4)
   set(_needs_geant4 DISABLE)
 else()
@@ -34,7 +30,6 @@ if(NOT CELERITAS_USE_ROOT)
 endif()
 
 if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
-  set(_needs_not_orange DISABLE)
   set(_core_geo_libs testcel_orange Celeritas::orange)
 elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
   set(_core_geo_libs testcel_geocel ${VecGeom_LIBRARIES})
@@ -240,7 +235,7 @@ else()
   set(_fieldprop_filter)
 endif()
 
-celeritas_add_test(field/Fields.test.cc
+celeritas_add_device_test(field/Fields
   LINK_LIBRARIES Celeritas::Extcovfie
 )
 celeritas_add_test(field/Integrators.test.cc ${_fixme_cgs})
@@ -384,6 +379,7 @@ celeritas_add_test(grid/XsCalculator.test.cc)
 celeritas_add_test(io/EventIO.test.cc ${_needs_hepmc}
   LINK_LIBRARIES ${HepMC3_LIBRARIES})
 celeritas_add_test(io/ImportUnits.test.cc)
+celeritas_add_test(io/JsonEventIO.test.cc)
 celeritas_add_test(io/RootEventIO.test.cc ${_needs_root})
 celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
@@ -395,19 +391,20 @@ celeritas_add_test(optical/ImportedModelAdapter.test.cc)
 celeritas_add_test(optical/ImportedMaterials.test.cc)
 celeritas_add_test(optical/ModelImporter.test.cc)
 celeritas_add_test(optical/MfpBuilder.test.cc)
+celeritas_add_test(optical/Mie.test.cc)
 celeritas_add_test(optical/OpticalCollector.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/OpticalUtils.test.cc GPU)
 celeritas_add_test(optical/PrimaryGenerator.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/Rayleigh.test.cc)
 celeritas_add_test(optical/RayleighMfpCalculator.test.cc)
 celeritas_add_test(optical/RoughnessCalculator.test.cc)
-celeritas_add_test(optical/OpticalRootImport.test.cc ${_needs_root})
 celeritas_add_test(optical/Scintillation.test.cc)
 celeritas_add_test(optical/WavelengthShift.test.cc ${_needs_double})
 celeritas_add_test(optical/Physics.test.cc)
 celeritas_add_test(optical/VolumeSurfaceSelector.test.cc
     LINK_LIBRARIES testcel_geocel)
 celeritas_add_test(optical/SurfacePhysics.test.cc)
+celeritas_add_test(optical/SurfacePhysicsUtils.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Mat
@@ -512,7 +509,7 @@ add_custom_target(debug-root-test-data
 )
 
 if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
-  foreach(_filename "four-steel-slabs" "simple-cms" "lar-sphere")
+  foreach(_filename "four-steel-slabs" "simple-cms")
     set(_gdml "${PROJECT_SOURCE_DIR}/test/geocel/data/${_filename}.gdml")
     set(_basename "${CMAKE_CURRENT_SOURCE_DIR}/data/${_filename}")
     set(_output "${_basename}.root")

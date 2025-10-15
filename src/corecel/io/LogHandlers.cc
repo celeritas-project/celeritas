@@ -22,12 +22,14 @@ void StreamLogHandler::operator()(LogProvenance prov,
                                   LogLevel lev,
                                   std::string msg) const
 {
-    if (lev == LogLevel::debug || lev >= LogLevel::warning)
+    if (lev < LogLevel::status || lev >= LogLevel::warning)
     {
         // Output problem line/file for debugging or high level
         os_ << color_code('x') << prov.file;
         if (prov.line)
+        {
             os_ << ':' << prov.line;
+        }
         os_ << color_code(' ') << ": ";
     }
 

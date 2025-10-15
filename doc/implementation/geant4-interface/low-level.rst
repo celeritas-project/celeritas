@@ -19,6 +19,8 @@ These utility classes are used to set up the Geant4 global geometry state.
 Geant4 physics interfaces
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. doxygenclass:: celeritas::GeantImporter
+This will be replaced by other utilities in conjunction with the
+:ref:`problem input <input>`.
 
+.. doxygenclass:: celeritas::GeantImporter
 .. doxygenclass:: celeritas::GeantSetup

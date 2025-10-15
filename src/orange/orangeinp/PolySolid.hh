@@ -22,9 +22,11 @@ namespace orangeinp
 /*!
  * Radial extents and axial segments for a stacked solid.
  *
- * Axial grid points must be nondecreasing. If "inner" points are specified,
- * they must be less than the outer points and more than zero. The inner list
- * is allowed to be empty indicating no inner (hollow) exclusion.
+ * Axial grid points must be monotonic. (If increasing, the inputs will be
+ * reversed. Coincident points are allowed.) If "inner" points are specified,
+ * each must be less than the corresponding outer point and greater than zero.
+ * The inner list is allowed to be empty to indicate no inner (hollow)
+ * exclusion.
  */
 class PolySegments
 {
@@ -173,6 +175,9 @@ class PolyCone final : public PolySolidBase
 //---------------------------------------------------------------------------//
 /*!
  * A series of stacked regular prisms or cone-y prisms.
+ *
+ * \todo This class is analogous to the PolyCone but does \em not behave like
+ * the \c polyhedra object in Geant4 unless there is no azimuthal truncation.
  */
 class PolyPrism final : public PolySolidBase
 {

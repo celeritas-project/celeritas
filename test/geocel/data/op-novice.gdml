@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!--
+Copied from a Geant4 example: extended/persistency/gdml/G01/solids.gdml
+
+License and Disclaimer
+
+The Geant4 software is copyright of the Copyright Holders of
+the Geant4 Collaboration. It is provided under the terms and
+conditions of the Geant4 Software License, included in the file
+LICENSE and available at http://cern.ch/geant4/license . These
+include a list of copyright holders.
+
+Neither the authors of this software system, nor their employing
+institutes, nor the agencies providing financial support for this
+work make any representation or warranty, express or implied,
+regarding this software system or assume any liability for its
+use. Please see the license in the file LICENSE and URL above
+for the full disclaimer and the limitation of liability.
+
+This code implementation is the result of the scientific and
+technical work of the GEANT4 collaboration.
+By using, copying, modifying or distributing the software (or
+any work based on the software) you agree to acknowledge its
+use in resulting scientific publications, and indicate your
+acceptance of all terms of the Geant4 Software license.
+
+-->
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define>
+    <matrix coldim="2" name="REFLECTIVITY0x10b0906d0" values="2.034e-06 0.3 4.136e-06 0.5"/>
+    <matrix coldim="2" name="EFFICIENCY0x10b0907c0" values="2.034e-06 0.8 4.136e-06 1"/>
+    <matrix coldim="2" name="RINDEX0x10b08c0a0" values="2.034e-06 1.3435 2.068e-06 1.344 2.103e-06 1.3445 2.139e-06 1.345 2.177e-06 1.3455 2.216e-06 1.346 2.256e-06 1.3465 2.298e-06 1.347 2.341e-06 1.3475 2.386e-06 1.348 2.433e-06 1.3485 2.481e-06 1.3492 2.532e-06 1.35 2.585e-06 1.3505 2.64e-06 1.351 2.697e-06 1.3518 2.757e-06 1.3522 2.82e-06 1.353 2.885e-06 1.3535 2.954e-06 1.354 3.026e-06 1.3545 3.102e-06 1.355 3.181e-06 1.3555 3.265e-06 1.356 3.353e-06 1.3568 3.446e-06 1.3572 3.545e-06 1.358 3.649e-06 1.3585 3.76e-06 1.359 3.877e-06 1.3595 4.002e-06 1.36 4.136e-06 1.3608"/>
+    <matrix coldim="2" name="GROUPVEL0x10b08c170" values="2.034e-06 218.243 2.051e-06 218.204 2.0855e-06 218.183 2.121e-06 218.157 2.158e-06 218.246 2.1965e-06 218.204 2.236e-06 218.158 2.277e-06 218.212 2.3195e-06 218.155 2.3635e-06 218.188 2.4095e-06 218.208 2.457e-06 216.507 2.5065e-06 215.846 2.5585e-06 218.128 2.6125e-06 218.11 2.6685e-06 215.856 2.727e-06 218.798 2.7885e-06 215.988 2.8525e-06 218.001 2.9195e-06 218.046 2.99e-06 218.029 3.064e-06 218.046 3.1415e-06 218.01 3.223e-06 218.041 3.309e-06 216.226 3.3995e-06 218.568 3.4955e-06 216.325 3.597e-06 217.945 3.7045e-06 217.962 3.8185e-06 217.941 3.9395e-06 217.951 4.136e-06 216.443"/>
+    <matrix coldim="2" name="MIEHG0x10b08ce10" values="1.56962e-06 1.67024e+08 1.58974e-06 1.58727e+08 1.61039e-06 1.50742e+08 1.63157e-06 1.43062e+08 1.65333e-06 1.3568e+08 1.67567e-06 1.28587e+08 1.69863e-06 1.21776e+08 1.72222e-06 1.1524e+08 1.74647e-06 1.0897e+08 1.77142e-06 1.02959e+08 1.7971e-06 9.72004e+07 1.82352e-06 9.16869e+07 1.85074e-06 8.64113e+07 1.87878e-06 8.13668e+07 1.90769e-06 7.65464e+07 1.93749e-06 7.19435e+07 1.96825e-06 6.75513e+07 1.99999e-06 6.33634e+07 2.03278e-06 5.93732e+07 2.06666e-06 5.55746e+07 2.10169e-06 5.19612e+07 2.13793e-06 4.8527e+07 2.17543e-06 4.52659e+07 2.21428e-06 4.21719e+07 2.25454e-06 3.92394e+07 2.29629e-06 3.64625e+07 2.33962e-06 3.38357e+07 2.38461e-06 3.13534e+07 2.43137e-06 2.90103e+07 2.47999e-06 2.6801e+07 2.53061e-06 2.47204e+07 2.58333e-06 2.27634e+07 2.63829e-06 2.09249e+07 2.69565e-06 1.92001e+07 2.75555e-06 1.75842e+07 2.81817e-06 1.60724e+07 2.88371e-06 1.46604e+07 2.95237e-06 1.33435e+07 3.02438e-06 1.21173e+07 3.09999e-06 1.09777e+07 3.17948e-06 9.92042e+06 3.26315e-06 8.94141e+06 3.35134e-06 8.03671e+06 3.44444e-06 7.20247e+06 3.54285e-06 6.43493e+06 3.64705e-06 5.73043e+06 3.75757e-06 5.08542e+06 3.87499e-06 4.49647e+06 3.99999e-06 3.96021e+06 4.13332e-06 3.47341e+06 4.27585e-06 3.03294e+06 4.42856e-06 2.63575e+06 4.59258e-06 2.27891e+06 4.76922e-06 1.95959e+06 4.95999e-06 1.67506e+06 5.16665e-06 1.42271e+06 5.39129e-06 1.2e+06 5.63635e-06 1.00453e+06 5.90475e-06 833967 6.19998e-06 686106"/>
+    <matrix coldim="2" name="ABSLENGTH0x10b08c740" values="2.034e-06 3448 2.068e-06 4082 2.103e-06 6329 2.139e-06 9174 2.177e-06 12346 2.216e-06 13889 2.256e-06 15152 2.298e-06 17241 2.341e-06 18868 2.386e-06 20000 2.433e-06 26316 2.481e-06 35714 2.532e-06 45455 2.585e-06 47619 2.64e-06 52632 2.697e-06 52632 2.757e-06 55556 2.82e-06 52632 2.885e-06 52632 2.954e-06 47619 3.026e-06 45455 3.102e-06 41667 3.181e-06 37037 3.265e-06 33333 3.353e-06 30000 3.446e-06 28500 3.545e-06 27000 3.649e-06 24500 3.76e-06 22000 3.877e-06 19500 4.002e-06 17500 4.136e-06 14500"/>
+    <matrix coldim="2" name="SCINTILLATIONCOMPONENT10x10b08bed0" values="2.034e-06 1 4.136e-06 1"/>
+    <matrix coldim="2" name="SCINTILLATIONCOMPONENT20x10b08ca10" values="2.034e-06 0.01 2.068e-06 1 2.103e-06 2 2.139e-06 3 2.177e-06 4 2.216e-06 5 2.256e-06 6 2.298e-06 7 2.341e-06 8 2.386e-06 9 2.433e-06 8 2.481e-06 7 2.532e-06 6 2.585e-06 4 2.64e-06 3 2.697e-06 2 2.757e-06 1 2.82e-06 0.01 2.885e-06 1 2.954e-06 2 3.026e-06 3 3.102e-06 4 3.181e-06 5 3.265e-06 6 3.353e-06 7 3.446e-06 8 3.545e-06 9 3.649e-06 8 3.76e-06 7 3.877e-06 6 4.002e-06 5 4.136e-06 4"/>
+    <matrix coldim="1" name="MIEHG_FORWARD0x10b08a840" values="0.99"/>
+    <matrix coldim="1" name="MIEHG_BACKWARD0x10b08a840" values="0.99"/>
+    <matrix coldim="1" name="MIEHG_FORWARD_RATIO0x10b08a840" values="0.8"/>
+    <matrix coldim="1" name="SCINTILLATIONYIELD0x10b08a840" values="50"/>
+    <matrix coldim="1" name="RESOLUTIONSCALE0x10b08a840" values="1"/>
+    <matrix coldim="1" name="SCINTILLATIONTIMECONSTANT10x10b08a840" values="1"/>
+    <matrix coldim="1" name="SCINTILLATIONTIMECONSTANT20x10b08a840" values="10"/>
+    <matrix coldim="1" name="SCINTILLATIONYIELD10x10b08a840" values="0.8"/>
+    <matrix coldim="1" name="SCINTILLATIONYIELD20x10b08a840" values="0.2"/>
+  </define>
+
+  <materials>
+    <isotope N="14" Z="7" name="N140x10b0894c0">
+      <atom unit="g/mole" value="14.0031"/>
+    </isotope>
+    <isotope N="15" Z="7" name="N150x10b089500">
+      <atom unit="g/mole" value="15.0001"/>
+    </isotope>
+    <element name="Nitrogen0x10b089610">
+      <fraction n="0.99632" ref="N140x10b0894c0"/>
+      <fraction n="0.00368" ref="N150x10b089500"/>
+    </element>
+    <isotope N="16" Z="8" name="O160x10b089820">
+      <atom unit="g/mole" value="15.9949"/>
+    </isotope>
+    <isotope N="17" Z="8" name="O170x10b089880">
+      <atom unit="g/mole" value="16.9991"/>
+    </isotope>
+    <isotope N="18" Z="8" name="O180x10b0898c0">
+      <atom unit="g/mole" value="17.9992"/>
+    </isotope>
+    <element name="Oxygen0x10b089730">
+      <fraction n="0.99757" ref="O160x10b089820"/>
+      <fraction n="0.00038" ref="O170x10b089880"/>
+      <fraction n="0.00205" ref="O180x10b0898c0"/>
+    </element>
+    <material name="Air0x10b0899b0" state="gas">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="85.7030667332998"/>
+      <D unit="g/cm3" value="0.00129"/>
+      <fraction n="0.7" ref="Nitrogen0x10b089610"/>
+      <fraction n="0.3" ref="Oxygen0x10b089730"/>
+    </material>
+    <isotope N="1" Z="1" name="H10x10b089cc0">
+      <atom unit="g/mole" value="1.00782503081372"/>
+    </isotope>
+    <isotope N="2" Z="1" name="H20x10b089d00">
+      <atom unit="g/mole" value="2.01410199966617"/>
+    </isotope>
+    <element name="Hydrogen0x10b08a480">
+      <fraction n="0.999885" ref="H10x10b089cc0"/>
+      <fraction n="0.000115" ref="H20x10b089d00"/>
+    </element>
+    <material name="Water0x10b08a570" state="solid">
+      <property name="RINDEX" ref="RINDEX0x10b08c0a0"/>
+      <property name="GROUPVEL" ref="GROUPVEL0x10b08c170"/>
+      <property name="MIEHG" ref="MIEHG0x10b08ce10"/>
+      <property name="ABSLENGTH" ref="ABSLENGTH0x10b08c740"/>
+      <property name="SCINTILLATIONCOMPONENT1" ref="SCINTILLATIONCOMPONENT10x10b08bed0"/>
+      <property name="SCINTILLATIONCOMPONENT2" ref="SCINTILLATIONCOMPONENT20x10b08ca10"/>
+      <property name="MIEHG_FORWARD" ref="MIEHG_FORWARD0x10b08a840"/>
+      <property name="MIEHG_BACKWARD" ref="MIEHG_BACKWARD0x10b08a840"/>
+      <property name="MIEHG_FORWARD_RATIO" ref="MIEHG_FORWARD_RATIO0x10b08a840"/>
+      <property name="SCINTILLATIONYIELD" ref="SCINTILLATIONYIELD0x10b08a840"/>
+      <property name="RESOLUTIONSCALE" ref="RESOLUTIONSCALE0x10b08a840"/>
+      <property name="SCINTILLATIONTIMECONSTANT1" ref="SCINTILLATIONTIMECONSTANT10x10b08a840"/>
+      <property name="SCINTILLATIONTIMECONSTANT2" ref="SCINTILLATIONTIMECONSTANT20x10b08a840"/>
+      <property name="SCINTILLATIONYIELD1" ref="SCINTILLATIONYIELD10x10b08a840"/>
+      <property name="SCINTILLATIONYIELD2" ref="SCINTILLATIONYIELD20x10b08a840"/>
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="68.9984174679527"/>
+      <D unit="g/cm3" value="1"/>
+      <fraction n="0.112097669256382" ref="Hydrogen0x10b08a480"/>
+      <fraction n="0.887902330743618" ref="Oxygen0x10b089730"/>
+    </material>
+  </materials>
+
+  <solids>
+    <box lunit="mm" name="Bubble0x10b08f630" x="1000" y="1000" z="1000"/>
+    <opticalsurface finish="0" model="0" name="AirSurface0x10b08f910" type="1" value="1">
+      <property name="REFLECTIVITY" ref="REFLECTIVITY0x10b0906d0"/>
+      <property name="EFFICIENCY" ref="EFFICIENCY0x10b0907c0"/>
+    </opticalsurface>
+    <box lunit="mm" name="Tank0x10b08f350" x="10000" y="10000" z="10000"/>
+    <box lunit="mm" name="expHall0x10b08f0c0" x="20000" y="20000" z="20000"/>
+    <box lunit="mm" name="World0x10b08e4e0" x="30000" y="30000" z="30000"/>
+  </solids>
+
+  <structure>
+    <volume name="Bubble0x10b08f710">
+      <materialref ref="Air0x10b0899b0"/>
+      <solidref ref="Bubble0x10b08f630"/>
+      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00099"/>
+      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.00099"/>
+      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.00099"/>
+      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.07"/>
+      <auxiliary auxtype="SensDet" auxvalue="OpNoviceSD"/>
+    </volume>
+    <volume name="Tank0x10b08f430">
+      <materialref ref="Water0x10b08a570"/>
+      <solidref ref="Tank0x10b08f350"/>
+      <physvol name="Bubble0x10b08f840">
+        <volumeref ref="Bubble0x10b08f710"/>
+        <position name="Bubble0x10b08f840_pos" unit="mm" x="0" y="2500" z="0"/>
+      </physvol>
+      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00252493"/>
+      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.277585"/>
+      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.270777"/>
+      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.07"/>
+      <auxiliary auxtype="SensDet" auxvalue="OpNoviceSD"/>
+    </volume>
+    <volume name="expHall0x10b08f180">
+      <materialref ref="Air0x10b0899b0"/>
+      <solidref ref="expHall0x10b08f0c0"/>
+      <physvol name="Tank0x10b08f560">
+        <volumeref ref="Tank0x10b08f430"/>
+      </physvol>
+      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00099"/>
+      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.00099"/>
+      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.00099"/>
+      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.07"/>
+      <auxiliary auxtype="SensDet" auxvalue="OpNoviceSD"/>
+    </volume>
+    <volume name="World0x10b08e8c0">
+      <materialref ref="Air0x10b0899b0"/>
+      <solidref ref="World0x10b08e4e0"/>
+      <physvol name="expHall0x10b08f2a0">
+        <volumeref ref="expHall0x10b08f180"/>
+      </physvol>
+      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00099"/>
+      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.00099"/>
+      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.00099"/>
+      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="0.07"/>
+      <auxiliary auxtype="SensDet" auxvalue="OpNoviceSD"/>
+    </volume>
+    <skinsurface name="AirSurface0x10b08f990" surfaceproperty="AirSurface0x10b08f910">
+      <volumeref ref="Bubble0x10b08f710"/>
+    </skinsurface>
+  </structure>
+
+  <userinfo>
+    <auxiliary auxtype="Region" auxvalue="DefaultRegionForTheWorld0x137f2a670">
+      <auxiliary auxtype="volume" auxvalue="World0x10b08e8c0"/>
+      <auxiliary auxtype="gamcut" auxunit="mm" auxvalue="0.7"/>
+      <auxiliary auxtype="ecut" auxunit="mm" auxvalue="0.7"/>
+      <auxiliary auxtype="poscut" auxunit="mm" auxvalue="0.7"/>
+      <auxiliary auxtype="pcut" auxunit="mm" auxvalue="0.7"/>
+    </auxiliary>
+  </userinfo>
+
+  <setup name="Default" version="1.0">
+    <world ref="World0x10b08e8c0"/>
+  </setup>
+
+</gdml>

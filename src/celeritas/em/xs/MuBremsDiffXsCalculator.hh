@@ -58,10 +58,8 @@ namespace celeritas
  *
  * This performs the same calculation as in Geant4's \c
  * G4MuBremsstrahlungModel::ComputeDMicroscopicCrossSection() and as described
- * in section 11.2.1 of the Physics Reference Manual. The formulae are taken
- * mainly from SR Kelner, RP Kokoulin, and AA Petrukhin. About cross section
- * for high-energy muon bremsstrahlung. Technical Report, MEphI, 1995. Preprint
- * MEPhI 024-95, Moscow, 1995, CERN SCAN-9510048.
+ * in section 11.2.1 of \cite{g4prm}. The formulae are taken
+ * mainly from \citet{kelner-muxs-1995, https://cds.cern.ch/record/288828/}.
  */
 class MuBremsDiffXsCalculator
 {

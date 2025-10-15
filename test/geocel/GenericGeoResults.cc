@@ -150,7 +150,8 @@ void GenericGeoTrackingResult::print_expected() const
     {
         IRE_VEC_SOFT_EQ(dot_normal, tol.normal);
     }
-    IRE_VEC_SOFT_EQ(halfway_safeties, SoftEqual(tol.safety, tol.safety));
+    IRE_VEC_SOFT_EQ(halfway_safeties,
+                    EqualOr{SoftEqual(tol.safety, tol.safety)});
     IRE_VEC_SOFT_EQ(bumps, SoftEqual(tol.safety, tol.safety));
 
 #undef IRE_VEC_EQ
@@ -281,6 +282,36 @@ GenericGeoModelInp GenericGeoModelInp::from_model_input(inp::Model const& in)
             surf.surface));
     }
 
+    // Extract region data
+    result.region.labels.reserve(in.regions.regions.size());
+    result.region.volumes.reserve(in.regions.regions.size());
+    for (auto const& reg : in.regions.regions)
+    {
+        result.region.labels.push_back(to_string(reg.label));
+        std::vector<int> volumes;
+        volumes.reserve(reg.volumes.size());
+        for (auto vol_id : reg.volumes)
+        {
+            volumes.push_back(id_to_int(vol_id));
+        }
+        result.region.volumes.push_back(std::move(volumes));
+    }
+
+    // Extract detector data
+    result.detector.labels.reserve(in.detectors.detectors.size());
+    result.detector.volumes.reserve(in.detectors.detectors.size());
+    for (auto const& det : in.detectors.detectors)
+    {
+        result.detector.labels.push_back(to_string(det.label));
+        std::vector<int> volumes;
+        volumes.reserve(det.volumes.size());
+        for (auto vol_id : det.volumes)
+        {
+            volumes.push_back(id_to_int(vol_id));
+        }
+        result.detector.volumes.push_back(std::move(volumes));
+    }
+
     return result;
 }
 
@@ -298,6 +329,15 @@ void GenericGeoModelInp::print_expected() const
     {
         cout << CELER_REF_ATTR(surface.labels)
              << CELER_REF_ATTR(surface.volumes);
+    }
+    if (!region.labels.empty())
+    {
+        cout << CELER_REF_ATTR(region.labels) << CELER_REF_ATTR(region.volumes);
+    }
+    if (!detector.labels.empty())
+    {
+        cout << CELER_REF_ATTR(detector.labels)
+             << CELER_REF_ATTR(detector.volumes);
     }
     cout << "EXPECT_REF_EQ(ref, result);\n"
             "/*** END CODE ***/\n";
@@ -327,6 +367,10 @@ void GenericGeoModelInp::print_expected() const
     IRE_COMPARE(world);
     IRE_COMPARE(surface.labels);
     IRE_COMPARE(surface.volumes);
+    IRE_COMPARE(region.labels);
+    IRE_COMPARE(region.volumes);
+    IRE_COMPARE(detector.labels);
+    IRE_COMPARE(detector.volumes);
 
 #undef IRE_COMPARE
     return result;

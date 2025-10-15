@@ -17,9 +17,12 @@
 #include <G4LogicalVolumeStore.hh>
 #include <G4Material.hh>
 #include <G4PhysicalVolumeStore.hh>
+#include <G4Region.hh>
+#include <G4RegionStore.hh>
 #include <G4Transportation.hh>
 #include <G4TransportationManager.hh>
 #include <G4VPhysicalVolume.hh>
+#include <G4VSensitiveDetector.hh>
 #include <G4VSolid.hh>
 #include <G4Version.hh>
 #include <G4VisExtent.hh>
@@ -225,6 +228,50 @@ std::vector<G4LogicalSurface const*> make_surface_vec(GeantGeoParams const& geo)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether the volume has data attached not related to the geometry structure.
+ */
+bool has_volume_extras(G4LogicalVolume const& vol)
+{
+    return vol.GetFastSimulationManager() || vol.GetUserLimits()
+           || vol.GetFieldManager() || vol.GetMaterialCutsCouple();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the region has data attached not related to the geometry structure.
+ */
+bool has_region_extras(G4LogicalVolume const& vol)
+{
+    auto* reg = vol.GetRegion();
+    if (!reg)
+    {
+        return false;
+    }
+    return reg->GetFastSimulationManager() || reg->GetUserLimits()
+           || reg->GetFieldManager() || reg->GetProductionCuts()
+           || reg->FindCouple(vol.GetMaterial());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * True if the region data won't be overridden by any volume data.
+ *
+ * \todo Compare production cuts?
+ */
+bool has_same_extras(G4LogicalVolume const& vol)
+{
+    auto* reg = vol.GetRegion();
+    if (!reg)
+    {
+        return false;
+    }
+    return reg->GetFastSimulationManager() == vol.GetFastSimulationManager()
+           && reg->GetUserLimits() == vol.GetUserLimits()
+           && reg->GetFieldManager() == vol.GetFieldManager();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Create volumes input from Geant4 volumes.
  *
  * Logical volume labels have already been "uniquified" as part of the
@@ -320,9 +367,9 @@ make_inp_volume_instances(GeantGeoParams const& geo)
         vi_inp.volume = geo.geant_to_id(*g4lv);
         if (!vi_inp.volume)
         {
-            CELER_LOG(error)
-                << "No canonical volume ID corresponds to "
-                << PrintableLV{g4lv} << " in physical volume " << vi_inp.label;
+            CELER_LOG(error) << "No canonical volume ID corresponds to "
+                             << StreamableLV{g4lv} << " in physical volume "
+                             << vi_inp.label;
             vi_inp.label = {};
             continue;
         }
@@ -383,10 +430,147 @@ std::vector<inp::Surface> make_inp_surfaces(GeantGeoParams const& geo)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Create sensitive detectors input from Geant4 sensitive detectors.
+ */
+std::vector<inp::Detector> make_inp_detectors(GeantGeoParams const& geo)
+{
+    // Process detectors
+    std::vector<inp::Detector> result;
+
+    auto const& vol_labels = geo.impl_volumes();
+
+    std::unordered_map<G4VSensitiveDetector const*, std::vector<VolumeId>>
+        detector_map;
+
+    // Process each logical volume
+    for (auto iv_id : range(ImplVolumeId{vol_labels.size()}))
+    {
+        auto vol_id = geo.volume_id(iv_id);
+        if (!vol_id)
+        {
+            // This volume isn't part of the world hierarchy
+            continue;
+        }
+        auto& g4lv = *geo.id_to_geant(vol_id);
+
+        // Add volume id to detector map if it is in a detector region
+        if (G4VSensitiveDetector const* sd = g4lv.GetSensitiveDetector())
+        {
+            detector_map[sd].push_back(vol_id);
+        }
+    }
+
+    // Loop over detector_map and add detectors to result vector
+    for (auto&& [sd, volumes] : detector_map)
+    {
+        inp::Detector detector;
+        detector.label = sd->GetName();
+        detector.volumes = std::move(volumes);
+        std::sort(detector.volumes.begin(), detector.volumes.end());
+        result.push_back(detector);
+    }
+
+    std::sort(result.begin(), result.end(), [](auto& left, auto& right) {
+        return left.volumes.front() < right.volumes.front();
+    });
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create region input from Geant4 regions.
+ *
+ * There is not a direct mapping between Celeritas and Geant4 regions. Geant4
+ * regions not associated with any volumes will be ignored. If a volume has
+ * extra data that overrides the region data, a new Celeritas region will be
+ * created containing only that volume. This ensures that a single region will
+ * always have an identical physics configuration.
+ */
+std::vector<inp::Region> make_inp_regions(GeantGeoParams const& geo)
+{
+    std::vector<inp::Region> result;
+
+    auto const& vol_labels = geo.impl_volumes();
+
+    std::unordered_map<G4Region const*, std::set<VolumeId>> region_map;
+
+    // Process each logical volume
+    for (auto iv_id : range(ImplVolumeId{vol_labels.size()}))
+    {
+        auto vol_id = geo.volume_id(iv_id);
+        if (!vol_id)
+        {
+            // This volume isn't part of the world hierarchy
+            continue;
+        }
+        auto const& g4lv = *geo.id_to_geant(vol_id);
+
+        if (!(has_region_extras(g4lv) || has_volume_extras(g4lv)))
+        {
+            // No extra data assigned to the region (if present) or volume
+            continue;
+        }
+        else if (has_same_extras(g4lv))
+        {
+            // Volume belongs to a region and the volume data won't override
+            // the region data: add volume ID to the region map
+            auto const* g4reg = g4lv.GetRegion();
+            CELER_ASSERT(g4reg);
+            region_map[g4reg].insert(vol_id);
+        }
+        else
+        {
+            // Some of the volume data could override the region data: create a
+            // new Celeritas region containing only this volume
+            inp::Region region;
+            region.label
+                = {g4lv.GetRegion() ? g4lv.GetRegion()->GetName() : "null",
+                   g4lv.GetName()};
+            region.volumes = {vol_id};
+            result.push_back(region);
+        }
+    }
+    CELER_LOG(debug) << "Loaded " << region_map.size() << " regions out of "
+                     << G4RegionStore::GetInstance()->size()
+                     << " Geant4 regions and created " << result.size()
+                     << " new regions";
+
+    // Add regions to result vector
+    for (auto&& [g4reg, volumes] : region_map)
+    {
+        inp::Region region;
+        region.label = g4reg->GetName();
+        region.volumes = std::move(volumes);
+        result.push_back(region);
+    }
+
+    std::sort(result.begin(), result.end(), [](auto& left, auto& right) {
+        return *left.volumes.begin() < *right.volumes.begin();
+    });
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 //! Global tracking geometry instance: may be nullptr
 // Note that this is safe to declare statically: see
 // https://en.cppreference.com/w/cpp/memory/weak_ptr/weak_ptr
 std::weak_ptr<GeantGeoParams const> g_geant_geo_;
+
+//---------------------------------------------------------------------------//
+//! Placeholder SD class for generating model data from GDML
+class GdmlSensitiveDetector final : public G4VSensitiveDetector
+{
+  public:
+    GdmlSensitiveDetector(std::string const& name) : G4VSensitiveDetector{name}
+    {
+    }
+
+    void Initialize(G4HCofThisEvent*) final {}
+    bool ProcessHits(G4Step*, G4TouchableHistory*) final { return false; }
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -456,6 +640,19 @@ std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
  * This assumes that Celeritas is driving and will manage Geant4 logging
  * and exceptions. It saves the result to the global Celeritas Geant4 geometry
  * weak pointer \c global_geant_geo.
+ *
+ * Due to limitations in the Geant4 GDML code, this task \c must be performed
+ * from the main thread.
+ *
+ * It also loads sensitive detectors and assigns dummy sensitive detectors to
+ * volumes annotated with <code>auxiliary auxtype="SensDet"</code> tags. It
+ * creates one detector per unique \c auxvalue name and shares that one among
+ * the volumes that use the same detector name. The resulting \c GeantGeoParams
+ * class retains ownership of the created detectors. Since this function is
+ * only called on the main thread, and the \c SensitiveDetector getter/setter
+ * on \c G4LogicalVolume uses a thread-local "split" class, <em>worker threads
+ * will not see the sensitive detectors this loader creates</em>. Use \c
+ * celeritas::DetectorConstruction if thread-local detectors are needed.
  */
 std::shared_ptr<GeantGeoParams>
 GeantGeoParams::from_gdml(std::string const& filename)
@@ -472,8 +669,41 @@ GeantGeoParams::from_gdml(std::string const& filename)
         CELER_LOG(warning) << "Expected '.gdml' extension for GDML input";
     }
 
-    auto result = std::make_shared<GeantGeoParams>(load_gdml(filename),
-                                                   Ownership::value);
+    // Load world and detectors
+    auto loaded = [&filename] {
+        GeantGdmlLoader::Options opts;
+        opts.detectors = true;
+        GeantGdmlLoader load(opts);
+        return load(filename);
+    }();
+
+    // Build placeholder SD
+    using MapDetCIter = GeantGdmlLoader::MapDetectors::const_iterator;
+    GeantGeoParams::MapStrDetector built_detectors;
+    foreach_detector(
+        loaded.detectors,
+        [&built_detectors](MapDetCIter iter, MapDetCIter stop) {
+            // Construct an SD based on the name
+            auto sd = std::make_shared<GdmlSensitiveDetector>(iter->first);
+            built_detectors.emplace(iter->first, sd);
+
+            // Attach sensitive detectors
+            for (; iter != stop; ++iter)
+            {
+                CELER_LOG(debug)
+                    << "Attaching dummy GDML SD '" << sd->GetName()
+                    << "' to volume '" << iter->second->GetName() << "'";
+                iter->second->SetSensitiveDetector(sd.get());
+            }
+        });
+
+    // Create geo params
+    auto result
+        = std::make_shared<GeantGeoParams>(loaded.world, Ownership::value);
+    // Set detectors (hack)
+    result->built_detectors_ = std::move(built_detectors);
+
+    // Save for use outside in Celeritas
     celeritas::global_geant_geo(result);
     return result;
 }
@@ -517,9 +747,12 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns)
         CELER_ASSERT(geo_man);
         if (!geo_man->IsGeometryClosed())
         {
+            ScopedProfiling profile_this{"geant-geo-close"};
             CELER_LOG(debug) << "Building geometry manager tracking";
+            auto optimize
+                = celeritas::getenv_flag("G4_GEO_OPTIMIZE", true).value;
             geo_man->CloseGeometry(
-                /* optimize = */ true, /* verbose = */ false, this->world());
+                optimize, /* verbose = */ false, this->world());
             closed_geometry_ = true;
         }
     }
@@ -577,6 +810,18 @@ inp::Model GeantGeoParams::make_model_input() const
     result.surfaces = [this] {
         inp::Surfaces result;
         result.surfaces = make_inp_surfaces(*this);
+        return result;
+    }();
+
+    result.detectors = [this] {
+        inp::Detectors result;
+        result.detectors = make_inp_detectors(*this);
+        return result;
+    }();
+
+    result.regions = [this] {
+        inp::Regions result;
+        result.regions = make_inp_regions(*this);
         return result;
     }();
 

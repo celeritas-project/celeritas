@@ -663,6 +663,10 @@ TEST(MathTest, TEST_IF_CELER_DEVICE(device))
             = {0.92626575101906661, 1.0, 0.0, -1.0, 0.0};
         EXPECT_VEC_SOFT_EQ(expected_sinpi, host_output.sinpi[threads]);
         EXPECT_VEC_SOFT_EQ(expected_cospi, host_output.cospi[threads]);
+
+        // Single precision without using sincos
+        EXPECT_VEC_SOFT_EQ(expected_sinpi, host_output.sin[threads]);
+        EXPECT_VEC_SOFT_EQ(expected_cospi, host_output.cos[threads]);
     }
     {
         // fastpow

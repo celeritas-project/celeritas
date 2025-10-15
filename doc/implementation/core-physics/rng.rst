@@ -60,8 +60,14 @@ Additionally we define a few helper classes for common physics sampling
 routines.
 
 .. doxygenclass:: celeritas::RejectionSampler
+.. doxygenclass:: celeritas::Selector
+.. doxygenfunction:: celeritas::make_selector
+.. doxygenfunction:: celeritas::make_unnormalized_selector
+
+And specifically for elements and isotopes:
+
+.. doxygenfunction:: celeritas::make_isotope_selector
 .. doxygenclass:: celeritas::ElementSelector
-.. doxygenclass:: celeritas::IsotopeSelector
 .. doxygenclass:: celeritas::TabulatedElementSelector
 
 The physics model implementations are built on top of these helper

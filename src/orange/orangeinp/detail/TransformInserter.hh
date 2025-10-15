@@ -22,8 +22,12 @@ namespace detail
  * Deduplicate transforms as they're being built.
  *
  * This currently only works for *exact* transforms rather than *almost exact*
- * transforms. We may eventually want to add a "transform simplifier" and
- * "transform soft equal".
+ * transforms.
+ *
+ * \todo Add "soft" transform comparisons (translation vectors should be
+ * soft equal [magnitude of distance, compare difference between], and rotation
+ * matrix times inverse (transpose) of other should result in a matrix that
+ * satisfies \c soft_identity.
  */
 class TransformInserter
 {

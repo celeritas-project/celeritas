@@ -15,6 +15,7 @@
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "corecel/sys/TraceCounter.hh"
 
 #include "ProtoInterface.hh"
 
@@ -28,8 +29,9 @@ namespace orangeinp
 namespace
 {
 //---------------------------------------------------------------------------//
-void write_protos(detail::ProtoMap const& map, std::string const& filename)
+void write_objects(detail::ProtoMap const& map, std::string const& filename)
 {
+    ScopedProfiling profile_this{"orangeinp-dump-objects"};
     auto result = nlohmann::json(std::vector<std::nullptr_t>(map.size()));
     for (auto univ_id : range(UniverseId{map.size()}))
     {
@@ -41,20 +43,21 @@ void write_protos(detail::ProtoMap const& map, std::string const& filename)
     std::ofstream outf(filename);
     CELER_VALIDATE(outf,
                    << "failed to open output file at \"" << filename << '"');
-    outf << result.dump();
+    outf << result.dump(0);
 
     CELER_LOG(info) << "Wrote ORANGE protos to " << filename;
 }
 
 //---------------------------------------------------------------------------//
 //! Helper struct to save JSON to a file
-class JsonProtoOutput
+// (TODO: could use jsonl, one line per proto?)
+class JsonCsgOutput
 {
   public:
-    JsonProtoOutput() = default;
+    JsonCsgOutput() = default;
 
     //! Construct with the number of universes
-    explicit JsonProtoOutput(UniverseId::size_type size)
+    explicit JsonCsgOutput(UniverseId::size_type size)
     {
         CELER_EXPECT(size > 0);
         output_ = nlohmann::json(std::vector<std::nullptr_t>(size));
@@ -70,14 +73,18 @@ class JsonProtoOutput
     //! Write debug information to a file
     void write(std::string const& filename) const
     {
-        CELER_ASSERT(!output_.empty());
+        CELER_ASSERT(*this);
+        ScopedProfiling profile_this{"orangeinp-dump-csg"};
         std::ofstream outf(filename);
         CELER_VALIDATE(
             outf, << "failed to open output file at \"" << filename << '"');
-        outf << output_.dump();
+        outf << output_.dump(0);
 
         CELER_LOG(info) << "Wrote ORANGE debug info to " << filename;
     }
+
+    //! Whether output is to be written
+    explicit operator bool() const { return !output_.empty(); }
 
   private:
     nlohmann::json output_;
@@ -101,7 +108,7 @@ InputBuilder::InputBuilder(Options&& opts) : opts_{std::move(opts)}
  */
 auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
 {
-    ScopedProfiling profile_this{"build-orange-input"};
+    ScopedProfiling profile_this{"orangeinp-build"};
     ScopedMem record_mem("orange.build_input");
     CELER_LOG(status) << "Constructing ORANGE surfaces and runtime data";
     ScopedTimeLog scoped_time;
@@ -109,32 +116,33 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
     // Construct the hierarchy of protos
     detail::ProtoMap const protos{global};
     CELER_ASSERT(protos.find(&global) == orange_global_universe);
-    if (!opts_.proto_output_file.empty())
+    if (!opts_.objects_output_file.empty())
     {
-        write_protos(protos, opts_.proto_output_file);
+        write_objects(protos, opts_.objects_output_file);
     }
 
     // Build surfaces and metadata
     OrangeInput result;
-    JsonProtoOutput debug_outp;
+    JsonCsgOutput csg_outp;
     detail::ProtoBuilder builder(&result, protos, [&] {
         detail::ProtoBuilder::Options pbopts;
         pbopts.tol = opts_.tol;
-        if (!opts_.debug_output_file.empty())
+        if (!opts_.csg_output_file.empty())
         {
-            debug_outp = JsonProtoOutput{protos.size()};
-            pbopts.save_json = std::ref(debug_outp);
+            csg_outp = JsonCsgOutput{protos.size()};
+            pbopts.save_json = std::ref(csg_outp);
         }
         return pbopts;
     }());
     for (auto univ_id : range(UniverseId{protos.size()}))
     {
+        trace_counter("orange-build-universe", univ_id.get());
         protos.at(univ_id)->build(builder);
     }
 
-    if (!opts_.debug_output_file.empty())
+    if (csg_outp)
     {
-        debug_outp.write(opts_.debug_output_file);
+        csg_outp.write(opts_.csg_output_file);
     }
 
     CELER_ENSURE(result);

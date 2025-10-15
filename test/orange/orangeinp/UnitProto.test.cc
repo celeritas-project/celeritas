@@ -14,6 +14,7 @@
 #include "corecel/io/Join.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "geocel/Types.hh"
 #include "orange/OrangeInputIO.json.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/orangeinp/CsgObject.hh"
@@ -321,19 +322,21 @@ TEST_F(MotherTest, explicit_exterior)
             "-4",
             "all(-0, +1, +2, +3, +4)",
         };
-        static char const* const expected_md_strings[] = {"",
-                                                          "",
-                                                          "[EXTERIOR],bound@s",
-                                                          "bound",
-                                                          "d1:ext@s",
-                                                          "d1:ext",
-                                                          "d2:ext@s",
-                                                          "d2:ext",
-                                                          "leaf@s",
-                                                          "leaf",
-                                                          "leaf2@s",
-                                                          "leaf2",
-                                                          "interior"};
+        static char const* const expected_md_strings[] = {
+            "",
+            "",
+            "[EXTERIOR],bound@s",
+            "bound",
+            "d1:ext@s",
+            "d1:ext",
+            "d2:ext@s",
+            "d2:ext",
+            "leaf@s",
+            "leaf",
+            "leaf2@s",
+            "leaf2",
+            "interior",
+        };
         static char const* const expected_trans_strings[] = {
             "2: t=0 -> {}",
             "3: t=0",
@@ -435,15 +438,17 @@ TEST_F(MotherTest, fuzziness)
             = {"Sphere: r=10", "Sphere: r=1", "Sphere: r=1.0001"};
         static char const* const expected_volume_strings[]
             = {"+0", "-1", "all(-0, +2)"};
-        static char const* const expected_md_strings[] = {"",
-                                                          "",
-                                                          "[EXTERIOR],bound@s",
-                                                          "bound",
-                                                          "d1:ext@s",
-                                                          "d1:ext",
-                                                          "similar@s",
-                                                          "similar",
-                                                          "interior"};
+        static char const* const expected_md_strings[] = {
+            "",
+            "",
+            "[EXTERIOR],bound@s",
+            "bound",
+            "d1:ext@s",
+            "d1:ext",
+            "similar@s",
+            "similar",
+            "interior",
+        };
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
@@ -469,8 +474,8 @@ class InputBuilderTest : public UnitProtoTest
         InputBuilder build_input([&] {
             InputBuilder::Options opts;
             opts.tol = this->tol_;
-            opts.proto_output_file = output_base + ".protos.json";
-            opts.debug_output_file = output_base + ".csg.json";
+            opts.objects_output_file = output_base + ".objects.json";
+            opts.csg_output_file = output_base + ".csg.json";
             return opts;
         }());
         OrangeInput inp = build_input(global);
@@ -526,6 +531,61 @@ TEST_F(InputBuilderTest, globalspheres)
                                   {Sense::outside, inner}}),
                         1);
         append_material(inp, std::move(inner), 2);
+        return inp;
+    }()};
+
+    this->run_test(global);
+}
+
+TEST_F(InputBuilderTest, lar_split_detector)
+{
+    UnitProto global{[] {
+        UnitProto::Input inp;
+        inp.boundary.interior = make_sph("outer_bound", 15.0);
+        inp.boundary.zorder = ZOrder::media;
+        inp.label = "global";
+
+        auto inner_sphere = make_sph("inner", 5.0);
+        auto middle_sphere = make_sph("middle", 10.0);
+
+        auto split = std::make_shared<Shape<InfPlane>>(
+            "split", InfPlane{Sense::inside, Axis::z, 0});
+        auto lower_half = std::make_shared<AllObjects>(
+            "lower_half", AllObjects::VecObject{middle_sphere, split});
+        auto upper_half = std::make_shared<AllObjects>(
+            "upper_half",
+            AllObjects::VecObject{
+                middle_sphere,
+                std::make_shared<NegatedObject>("negsplit", split)});
+
+        auto lower_shell = make_rdv(
+            "lower_shell",
+            {{Sense::inside, lower_half}, {Sense::outside, inner_sphere}});
+        auto upper_shell = make_rdv(
+            "upper_shell",
+            {{Sense::inside, upper_half}, {Sense::outside, inner_sphere}});
+        auto full_shell = make_rdv(
+            "full_shell",
+            {{Sense::inside, middle_sphere}, {Sense::outside, inner_sphere}});
+
+        // Construct exterior, shell, shell halves, interior
+        append_material(inp,
+                        make_rdv("outer_region",
+                                 {{Sense::inside, inp.boundary.interior},
+                                  {Sense::outside, middle_sphere}}),
+                        4);
+        append_material(inp,
+                        make_rdv("null_subtracted_daughters",
+                                 {
+                                     {Sense::inside, full_shell},
+                                     {Sense::outside, lower_shell},
+                                     {Sense::outside, upper_shell},
+                                 }),
+                        0);
+        append_material(inp, std::move(lower_shell), 2);
+        append_material(inp, std::move(upper_shell), 3);
+        append_material(inp, std::move(inner_sphere), 1);
+
         return inp;
     }()};
 

@@ -15,6 +15,7 @@
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "geocel/GeantUtils.hh"
 
+#include "LoggerImpl.hh"
 #include "../ExceptionConverter.hh"
 #include "../Logger.hh"
 #include "../SetupOptionsMessenger.hh"
@@ -55,7 +56,7 @@ validate_and_return_offloaded(SetupOptions::VecG4PD const& user)
     {
         CELER_ASSERT(pd);
         CELER_VALIDATE(find(pd),
-                       << "Particle " << PrintablePD{pd}
+                       << "Particle " << StreamablePD{pd}
                        << " is not available in Celeritas");
     }
     return user;
@@ -85,12 +86,17 @@ LocalTransporter& IntegrationSingleton::local_transporter()
 
 //---------------------------------------------------------------------------//
 /*!
- * Assign global setup options before constructing params.
+ * Assign global setup options after run manager initialization but before run.
  */
 void IntegrationSingleton::setup_options(SetupOptions&& opts)
 {
     CELER_TRY_HANDLE(
         {
+            // Run manager initialization requires no G4ParticleDef exists
+            CELER_VALIDATE(
+                G4RunManager::GetRunManager(),
+                << R"(options cannot be set before G4RunManager is constructed)");
+            // SharedParams require options to be set at BeginOfRun
             CELER_VALIDATE(
                 !params_,
                 << R"(options cannot be set after Celeritas is constructed)");
@@ -103,25 +109,23 @@ void IntegrationSingleton::setup_options(SetupOptions&& opts)
         CELER_LOG(warning)
             << R"(SetOptions called with incomplete input: you must use the UI to update before /run/initialize)";
     }
+
+    CELER_ENSURE(!offloaded_.empty());
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Set up logging.
+ * Access whether Celeritas is set up, enabled, or uninitialized.
  */
-void IntegrationSingleton::initialize_logger()
+OffloadMode IntegrationSingleton::mode() const
 {
-    CELER_TRY_HANDLE(
-        {
-            auto* run_man = G4RunManager::GetRunManager();
-            CELER_VALIDATE(run_man,
-                           << "logger cannot be set up before run manager");
-            CELER_VALIDATE(!params_,
-                           << "logger cannot be set up after shared params");
-            celeritas::world_logger() = celeritas::MakeMTWorldLogger(*run_man);
-            celeritas::self_logger() = celeritas::MakeMTSelfLogger(*run_man);
-        },
-        ExceptionConverter{"celer.init.logger"});
+    if (offloaded_.empty())
+    {
+        CELER_LOG(warning) << "GetMode must not be called before SetOptions";
+        return OffloadMode::uninitialized;
+    }
+
+    return SharedParams::GetMode();
 }
 
 //---------------------------------------------------------------------------//
@@ -152,6 +156,11 @@ void IntegrationSingleton::initialize_shared_params()
                 CELER_VALIDATE(
                     !params_,
                     << R"(BeginOfRunAction cannot be called more than once)");
+
+                // Update logger in case run manager has changed number of
+                // threads, or user called initialization after run manager
+                this->update_logger();
+
                 params_.Initialize(options_);
             },
             call_g4exception);
@@ -186,7 +195,7 @@ bool IntegrationSingleton::initialize_local_transporter()
 {
     CELER_EXPECT(params_);
 
-    if (params_.mode() == celeritas::SharedParams::Mode::disabled)
+    if (params_.mode() == OffloadMode::disabled)
     {
         CELER_LOG(debug)
             << R"(Skipping state construction since Celeritas is completely disabled)";
@@ -203,7 +212,7 @@ bool IntegrationSingleton::initialize_local_transporter()
     CELER_ASSERT(!G4Threading::IsMultithreadedApplication()
                  || G4Threading::IsWorkerThread());
 
-    if (params_.mode() == celeritas::SharedParams::Mode::kill_offload)
+    if (params_.mode() == OffloadMode::kill_offload)
     {
         // When "kill offload", we still need to intercept tracks
         CELER_LOG(debug)
@@ -234,7 +243,7 @@ void IntegrationSingleton::finalize_local_transporter()
 {
     CELER_EXPECT(params_);
 
-    if (params_.mode() != celeritas::SharedParams::Mode::enabled)
+    if (params_.mode() != OffloadMode::enabled)
     {
         return;
     }
@@ -290,8 +299,35 @@ IntegrationSingleton::IntegrationSingleton()
         {
             scoped_mpi_ = std::make_unique<ScopedMpiInit>();
             messenger_ = std::make_unique<SetupOptionsMessenger>(&options_);
+            this->update_logger();
         },
         ExceptionConverter{"celer.init.singleton"});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create or update the number of threads for the logger.
+ */
+void IntegrationSingleton::update_logger()
+{
+    if (auto* run_man = G4RunManager::GetRunManager())
+    {
+        if (!have_created_logger_)
+        {
+            celeritas::world_logger() = celeritas::MakeMTWorldLogger(*run_man);
+            celeritas::self_logger() = celeritas::MakeMTSelfLogger(*run_man);
+            have_created_logger_ = true;
+        }
+        else
+        {
+            if (auto* handle
+                = celeritas::world_logger().handle().target<MtSelfWriter>())
+            {
+                // Update thread count
+                *handle = MtSelfWriter{get_geant_num_threads(*run_man)};
+            }
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//

@@ -12,6 +12,7 @@
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/VolumeParams.hh"
 #include "orange/MatrixUtils.hh"
+#include "orange/g4org/Options.hh"
 #include "orange/orangeinp/ObjectInterface.hh"
 #include "orange/transform/TransformIO.hh"
 
@@ -32,9 +33,8 @@ constexpr RealTurn degrees_to_turn(double v)
 
 auto make_options()
 {
-    PhysicalVolumeConverter::Options opts;
-    opts.verbose = false;
-    opts.scale = 0.1;
+    Options opts;
+    opts.unit_length = 0.1;
     return opts;
 }
 
@@ -61,9 +61,6 @@ class PhysicalVolumeConverterTest : public GeantLoadTestBase
 TEST_F(PhysicalVolumeConverterTest, four_levels)
 {
     this->load_test_gdml("four-levels");
-    PhysicalVolumeConverter::Options opts;
-    opts.verbose = false;
-    opts.scale = 0.1;
     PhysicalVolumeConverter convert{this->geo(), make_options()};
 
     PhysicalVolume world = convert(this->world());
