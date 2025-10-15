@@ -29,7 +29,7 @@ template<class T>
 T determinant(SquareMatrix<T, 3> const& mat)
 {
     T result = 0;
-    for (size_type i = 0; i != 3; ++i)  // LCOV_EXCL_LINE
+    for (size_type i = 0; i != 3; ++i)  // GCOVR_EXCL_LINE
     {
         result += mat[0][i] * mat[1][(i + 1) % 3] * mat[2][(i + 2) % 3];
         result -= mat[0][i] * mat[1][(i + 2) % 3] * mat[2][(i + 1) % 3];

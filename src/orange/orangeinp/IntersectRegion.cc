@@ -132,6 +132,7 @@ Cone::Cone(Real2 const& radii, real_type halfheight)
     {
         CELER_VALIDATE(radii_[i] >= 0, << "negative radius: " << radii_[i]);
     }
+    CELER_VALIDATE(radii_[0] > 0 || radii_[1] > 0, << "degenerate zero radii");
     CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
 }
 
@@ -985,7 +986,7 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
                          mxl - mxr,
                          canonicalize_zero(txr * myl - txl * myr + tyl * mxr
                                            - tyr * mxl)};
-            // Cross product of midpoint
+            // Cross product of midpoint ("displacement")
             real_type js = canonicalize_zero(mxr * myl - mxl * myr);
 
             // Normalize based on linear components to represent as a plane

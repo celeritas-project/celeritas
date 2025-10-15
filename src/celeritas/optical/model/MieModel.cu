@@ -24,11 +24,11 @@ namespace optical
 
 void MieModel::step(CoreParams const& params, CoreStateDevice& state) const
 {
-    auto execute
-        = make_action_thread_executor(params.ptr<MemSpace::native>(),
-                                      state.ptr(),
-                                      this->action_id(),
-                                      InteractionApplier{MieExecutor{}});
+    auto execute = make_action_thread_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        this->action_id(),
+        InteractionApplier{MieExecutor{this->device_ref()}});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 }

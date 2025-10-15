@@ -38,7 +38,6 @@ set(_env
   ${CELER_PYTHONENV}
   "CELERITAS_EXE=$<TARGET_FILE:celer-geo>"
   "CELER_DISABLE_PARALLEL=1"
-  "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
 )
 set(_props
   TIMEOUT 20
@@ -55,7 +54,7 @@ function(celer_app_test ext)
     if(CELER_DISABLE_DEVICE)
       list(APPEND _extra_props DISABLED true)
     endif()
-  elseif(ext STREQUAL "cpu")
+  else()
     list(APPEND _extra_env "CELER_DISABLE_DEVICE=1")
   endif()
 
@@ -65,7 +64,7 @@ function(celer_app_test ext)
 
   set_tests_properties("app/celer-geo:${ext}" PROPERTIES
     ENVIRONMENT "${_env};${_extra_env}"
-    REQUIRED_FILES "${_driver};${_gdml_inp}"
+    REQUIRED_FILES "${_driver};${_model}"
     LABELS "${_labels}"
     ${_props} ${_extra_props}
     ${CELER_NEEDS_PYTHON}
@@ -76,5 +75,6 @@ endfunction()
 
 celer_app_test("gpu")
 celer_app_test("cpu")
+celer_app_test("errcheck")
 
 #-----------------------------------------------------------------------------#

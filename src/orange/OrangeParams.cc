@@ -98,6 +98,7 @@ OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo,
         try
         {
             infile >> opts;
+            CELER_LOG(debug) << "Loaded ORANGE conversion options: " << opts;
         }
         catch (std::exception const& e)
         {

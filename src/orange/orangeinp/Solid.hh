@@ -32,6 +32,10 @@ namespace orangeinp
  * the solid, and an angle of less than or equal to 0.5 turns results in the
  * intersection of the solid with a wedge.
  *
+ * An instance of this class evaluates to \em true if truncation is to take
+ * place, or \em false if the enclosed angle is a full circle.
+ *
+ * \par Examples:
  * \code
   // Truncates a solid to the east-facing quadrant:
   EnclosedAzi{Turn{-0.125}, Turn{0.125}};
@@ -80,6 +84,8 @@ class EnclosedAzi
  *
  * A start angle of zero corresponding to the \em +z axis. An interior angle of
  * 0.5 results in no exclusion from the resulting solid.
+ *
+ * \par Examples:
  * \code
   // Truncates a solid to the top hemisphere (no cones, just equatorial plane)
   EnclosedPolar{Turn{0}, Turn{0.25}};
@@ -126,7 +132,7 @@ class EnclosedPolar
 /*!
  * A hollow shape with an optional start and end angle.
  *
- * Solids are a shape with (optionally) the same *kind* of shape subtracted
+ * Solids are a shape with (optionally) the same \em kind of shape subtracted
  * from it, and (optionally) an azimuthal section removed from it.
  */
 class SolidBase : public ObjectInterface
@@ -164,20 +170,23 @@ class SolidBase : public ObjectInterface
 /*!
  * A shape that has undergone an intersection or combination of intersections.
  *
- * This shape may be:
- * A) hollow (excluded interior),
- * B) truncated azimuthally (enclosed angle),
- * C) truncated in z (intersected with z-slab),
- * D) both A and B.
+ * This shape may be any combination of:
  *
- * Examples: \code
+ *  1. hollow (excluded interior),
+ *  2. truncated azimuthally (see \c EnclosedAzi), or
+ *  3. truncated in polar angle (see \c EnclosedPolar).
+ *
+ * \par Examples:
+ * \code
+ * using T = Turn; using EA = EnclosedAzi; using EP = EnclosedPolar;
    // A cone with a thickness of 0.1
    Solid s{"cone", Cone{{1, 2}, 10.0}, Cone{{0.9, 1.9}, 10.0}};
    // A cylinder segment in z={-2.5, 2.5}, r={0.5, 0.75}, theta={-45, 45} deg
-   Solid s{"cyl", Cylinder{0.75, 5.0}, Cylinder{0.5, 5.0},
-           {Turn{0}, Turn{0.25}};
+   Solid s{"cyl", Cylinder{0.75, 5.0}, Cylinder{0.5, 5.0}, EA{T{0}, T{0.25}};
    // The east-facing quarter of a cone shape
-   Solid s{"cone", Cone{{1, 2}, 10.0}, {Turn{-0.125}, Turn{0.25}};
+   Solid s{"econe", Cone{{1, 2}, 10.0}, {}, EA{T{-0.125}, T{0.25}};
+   // The -x,-y,+z octant of a sphere
+   Solid s{"oct", Sphere{10.0}, {}, EA{T{0.5}, T{0.75}}, EP{T{0.0}, T{0.25}})
  * \endcode
  */
 template<class T>

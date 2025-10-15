@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define/>
+
+  <materials>
+    <material Z="13" name="std__Aluminium" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="166"/>
+      <D unit="g/cm3" value="2.70000024772552"/>
+      <atom unit="g/mole" value="26.9815"/>
+    </material>
+  </materials>
+
+  <solids>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="G4Tubs0x31478100" rmax="2475" rmin="2400" startphi="0" z="412"/>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="G4Tube0x31478200" rmax="170" rmin="0" startphi="0" z="600"/>
+    <subtraction name="Subtraction0x1ed49860">
+      <first ref="G4Tubs0x31478100"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed49860_pos" unit="mm" x="-2209.12523090183" y="-1030.13201299295" z="-41"/>
+      <rotation name="Subtraction0x1ed49860_rot" unit="deg" x="90" y="0" z="-65"/>
+    </subtraction>
+    <subtraction name="Subtraction0x1ed497c0">
+      <first ref="Subtraction0x1ed49860"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed497c0_pos" unit="mm" x="-1996.68310795442" y="-1398.09256360567" z="-41"/>
+      <rotation name="Subtraction0x1ed497c0_rot" unit="deg" x="90" y="0" z="-55"/>
+    </subtraction>
+    <subtraction name="Subtraction0x1ed49720">
+      <first ref="Subtraction0x1ed497c0"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed49720_pos" unit="mm" x="-1723.57277914221" y="-1723.57277914221" z="-41"/>
+      <rotation name="Subtraction0x1ed49720_rot" unit="deg" x="90" y="0" z="-45"/>
+    </subtraction>
+    <subtraction name="Subtraction0x1ed49680">
+      <first ref="Subtraction0x1ed49720"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed49680_pos" unit="mm" x="-1398.09256360567" y="-1996.68310795442" z="-41"/>
+      <rotation name="Subtraction0x1ed49680_rot" unit="deg" x="90" y="0" z="-35"/>
+    </subtraction>
+    <subtraction name="Subtraction0x1ed495e0">
+      <first ref="Subtraction0x1ed49680"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed495e0_pos" unit="mm" x="-1030.13201299295" y="-2209.12523090183" z="-41"/>
+      <rotation name="Subtraction0x1ed495e0_rot" unit="deg" x="90" y="0" z="-25"/>
+    </subtraction>
+    <subtraction name="Subtraction0x1ed49180">
+      <first ref="Subtraction0x1ed495e0"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed49180_pos" unit="mm" x="-630.871422437395" y="-2354.4442015796" z="-41"/>
+      <rotation name="Subtraction0x1ed49180_rot" unit="deg" x="90" y="0" z="-15"/>
+    </subtraction>
+    <subtraction name="Subtraction0x1ed494a0">
+      <first ref="Subtraction0x1ed49180"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed494a0_pos" unit="mm" x="630.871422437395" y="-2354.4442015796" z="-41"/>
+      <rotation name="Subtraction0x1ed494a0_rot" unit="deg" x="90" y="0" z="15"/>
+    </subtraction>
+    <subtraction name="Subtraction0x1ed49400">
+      <first ref="Subtraction0x1ed494a0"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed49400_pos" unit="mm" x="1030.13201299295" y="-2209.12523090183" z="-41"/>
+      <rotation name="Subtraction0x1ed49400_rot" unit="deg" x="90" y="0" z="25"/>
+    </subtraction>
+    <subtraction name="Subtraction0x1ed49360">
+      <first ref="Subtraction0x1ed49400"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed49360_pos" unit="mm" x="1398.09256360567" y="-1996.68310795442" z="-41"/>
+      <rotation name="Subtraction0x1ed49360_rot" unit="deg" x="90" y="0" z="35"/>
+    </subtraction>
+    <subtraction name="Subtraction0x1ed492c0">
+      <first ref="Subtraction0x1ed49360"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed492c0_pos" unit="mm" x="1723.57277914221" y="-1723.57277914221" z="-41"/>
+      <rotation name="Subtraction0x1ed492c0_rot" unit="deg" x="90" y="0" z="45"/>
+    </subtraction>
+    <subtraction name="Subtraction0x1ed49220">
+      <first ref="Subtraction0x1ed492c0"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed49220_pos" unit="mm" x="1996.68310795442" y="-1398.09256360567" z="-41"/>
+      <rotation name="Subtraction0x1ed49220_rot" unit="deg" x="90" y="0" z="55"/>
+    </subtraction>
+    <subtraction name="Subtraction0x1ed48dc0">
+      <first ref="Subtraction0x1ed49220"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed48dc0_pos" unit="mm" x="2209.12523090183" y="-1030.13201299295" z="-41"/>
+      <rotation name="Subtraction0x1ed48dc0_rot" unit="deg" x="90" y="0" z="65"/>
+    </subtraction>
+    <subtraction name="Subtraction0x1ed490e0">
+      <first ref="Subtraction0x1ed48dc0"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed490e0_pos" unit="mm" x="2416.64684959866" y="318.157593536376" z="-41"/>
+      <rotation name="Subtraction0x1ed490e0_rot" unit="deg" x="90" y="0" z="97.5"/>
+    </subtraction>
+    <subtraction name="Subtraction0x1ed49040">
+      <first ref="Subtraction0x1ed490e0"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed49040_pos" unit="mm" x="2324.6850674488" y="732.970386291666" z="-41"/>
+      <rotation name="Subtraction0x1ed49040_rot" unit="deg" x="90" y="0" z="107.5"/>
+    </subtraction>
+    <subtraction name="Subtraction0x1ed48fa0">
+      <first ref="Subtraction0x1ed49040"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed48fa0_pos" unit="mm" x="2162.08890587192" y="1125.5122447604" z="-41"/>
+      <rotation name="Subtraction0x1ed48fa0_rot" unit="deg" x="90" y="0" z="117.5"/>
+    </subtraction>
+    <subtraction name="Subtraction0x1ed48f00">
+      <first ref="Subtraction0x1ed48fa0"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed48f00_pos" unit="mm" x="1933.79876695989" y="1483.85598320876" z="-41"/>
+      <rotation name="Subtraction0x1ed48f00_rot" unit="deg" x="90" y="0" z="127.5"/>
+    </subtraction>
+    <subtraction name="Subtraction0x1ed48e60">
+      <first ref="Subtraction0x1ed48f00"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed48e60_pos" unit="mm" x="1646.75113106317" y="1797.11350847468" z="-41"/>
+      <rotation name="Subtraction0x1ed48e60_rot" unit="deg" x="90" y="0" z="137.5"/>
+    </subtraction>
+    <subtraction name="Subtraction0x1ed48a00">
+      <first ref="Subtraction0x1ed48e60"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed48a00_pos" unit="mm" x="1309.66779534538" y="2055.76664916891" z="-41"/>
+      <rotation name="Subtraction0x1ed48a00_rot" unit="deg" x="90" y="0" z="147.5"/>
+    </subtraction>
+    <subtraction name="Subtraction0x1ed48d20">
+      <first ref="Subtraction0x1ed48a00"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed48d20_pos" unit="mm" x="-212.442122947416" y="2428.22457659863" z="-41"/>
+      <rotation name="Subtraction0x1ed48d20_rot" unit="deg" x="90" y="0" z="-175"/>
+    </subtraction>
+    <subtraction name="Subtraction0x1ed48c80">
+      <first ref="Subtraction0x1ed48d20"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed48c80_pos" unit="mm" x="-1309.66779534538" y="2055.76664916891" z="-41"/>
+      <rotation name="Subtraction0x1ed48c80_rot" unit="deg" x="90" y="0" z="-147.5"/>
+    </subtraction>
+    <subtraction name="Subtraction0x1ed48be0">
+      <first ref="Subtraction0x1ed48c80"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed48be0_pos" unit="mm" x="-1646.75113106317" y="1797.11350847468" z="-41"/>
+      <rotation name="Subtraction0x1ed48be0_rot" unit="deg" x="90" y="0" z="-137.5"/>
+    </subtraction>
+    <subtraction name="Subtraction0x1ed48b40">
+      <first ref="Subtraction0x1ed48be0"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed48b40_pos" unit="mm" x="-1933.79876695989" y="1483.85598320876" z="-41"/>
+      <rotation name="Subtraction0x1ed48b40_rot" unit="deg" x="90" y="0" z="-127.5"/>
+    </subtraction>
+    <subtraction name="Subtraction0x1ed48aa0">
+      <first ref="Subtraction0x1ed48b40"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed48aa0_pos" unit="mm" x="-2162.08890587192" y="1125.5122447604" z="-41"/>
+      <rotation name="Subtraction0x1ed48aa0_rot" unit="deg" x="90" y="0" z="-117.5"/>
+    </subtraction>
+    <subtraction name="Subtraction0x1ed48640">
+      <first ref="Subtraction0x1ed48aa0"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="Subtraction0x1ed48640_pos" unit="mm" x="-2324.6850674488" y="732.970386291665" z="-41"/>
+      <rotation name="Subtraction0x1ed48640_rot" unit="deg" x="90" y="0" z="-107.5"/>
+    </subtraction>
+    <subtraction name="LAr__Endcap__Cryostat__Cylinder__Mixed0x1ed48960">
+      <first ref="Subtraction0x1ed48640"/>
+      <second ref="G4Tube0x31478200"/>
+      <position name="LAr__Endcap__Cryostat__Cylinder__Mixed0x1ed48960_pos" unit="mm" x="-2416.64684959866" y="318.157593536376" z="-41"/>
+      <rotation name="LAr__Endcap__Cryostat__Cylinder__Mixed0x1ed48960_rot" unit="deg" x="90" y="0" z="-97.5"/>
+    </subtraction>
+  </solids>
+
+  <structure>
+    <volume name="LArMgr__LAr__Endcap__Cryostat__Cylinder__Mixed0x3145f1e0">
+      <materialref ref="std__Aluminium"/>
+      <solidref ref="LAr__Endcap__Cryostat__Cylinder__Mixed0x1ed48960"/>
+    </volume>
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="LArMgr__LAr__Endcap__Cryostat__Cylinder__Mixed0x3145f1e0"/>
+  </setup>
+
+</gdml>
