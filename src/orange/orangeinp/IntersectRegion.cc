@@ -245,8 +245,8 @@ void Cone::output(JsonPimpl* j) const
  */
 CutCylinder::CutCylinder(real_type radius,
                          real_type halfheight,
-                         Real3 bottom_normal,
-                         Real3 top_normal)
+                         Real3 const& bottom_normal,
+                         Real3 const& top_normal)
     : radius_{radius}
     , hh_{halfheight}
     , bot_normal_{bottom_normal}

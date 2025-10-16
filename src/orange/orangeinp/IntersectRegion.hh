@@ -153,8 +153,8 @@ class CutCylinder final : public IntersectRegionInterface
     // Construct with radius, half-height, and bottom/top cut plane normals
     CutCylinder(real_type radius,
                 real_type halfheight,
-                Real3 bottom_normal,
-                Real3 top_normal);
+                Real3 const& bottom_normal,
+                Real3 const& top_normal);
 
     // Build surfaces
     void build(IntersectSurfaceBuilder&) const final;
@@ -176,10 +176,10 @@ class CutCylinder final : public IntersectRegionInterface
     real_type halfheight() const { return hh_; }
 
     //! Outward-facing normal of the bottom cuting plane
-    Real3 bottom_normal() const { return bot_normal_; }
+    Real3 const& bottom_normal() const { return bot_normal_; }
 
     //! Outward-facing normal of the top cuting plane
-    Real3 top_normal() const { return top_normal_; }
+    Real3 const& top_normal() const { return top_normal_; }
 
   private:
     real_type radius_;
