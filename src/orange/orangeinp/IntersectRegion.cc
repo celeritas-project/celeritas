@@ -255,17 +255,17 @@ CutCylinder::CutCylinder(real_type radius,
     CELER_VALIDATE(radius_ > 0, << "nonpositive radius: " << radius_);
     CELER_VALIDATE(hh_ > 0, << "nonpositive half-height: " << hh_);
     CELER_VALIDATE(bot_normal_[Z] < 0,
-                   << "bottom cutting plane normal not pointing down: "
+                   << "bottom cutting plane normal is not pointing down: "
                    << bot_normal_[Z]);
     CELER_VALIDATE(top_normal_[Z] > 0,
-                   << "top cutting plane normal not pointing up: "
-                   << bot_normal_[Z]);
+                   << "top cutting plane normal is not pointing up: "
+                   << top_normal_[Z]);
     CELER_VALIDATE(is_soft_unit_vector(bot_normal_),
                    << "bottom cutting plane normal is not a unit vector");
     CELER_VALIDATE(is_soft_unit_vector(top_normal_),
                    << "top cutting plane normal is not a unit vector");
     CELER_VALIDATE(
-        !(soft_equal(-1., bot_normal_[Z]) && soft_equal(1., top_normal_[Z])),
+        !soft_equal(-1., bot_normal_[Z]) || !soft_equal(1., top_normal_[Z]),
         << "both planes are perpendicular to Z; use Cylinder instead");
 }
 
@@ -277,7 +277,7 @@ bool CutCylinder::encloses(CutCylinder const& other) const
 {
     // Check that cylinders have the same cut planes. Since the normal vectors
     // have unit magnitude, a check for collinearity is sufficient. When
-    // cylinders have different cut planes, testing from enclosure becomes
+    // cylinders have different cut planes, testing for enclosure becomes
     // challenging.
     if (!is_soft_collinear(bot_normal_, other.bottom_normal())
         || !is_soft_collinear(top_normal_, other.top_normal()))

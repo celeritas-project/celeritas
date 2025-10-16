@@ -62,10 +62,10 @@ inline CELER_FUNCTION bool
 is_soft_orthogonal(Array<T, N> const& x, Array<T, N> const& y);
 
 //---------------------------------------------------------------------------//
-// Check whether two vectors are approximately parallel
+// Check whether two vectors are approximately collinear
 template<class T, size_type N>
 inline CELER_FUNCTION bool
-is_soft_parallel(Array<T, N> const& x, Array<T, N> const& y);
+is_soft_collinear(Array<T, N> const& x, Array<T, N> const& y);
 
 //---------------------------------------------------------------------------//
 // Calculate the Euclidean (2) distance between two points
