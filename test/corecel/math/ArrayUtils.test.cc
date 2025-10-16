@@ -104,17 +104,26 @@ TEST(ArrayUtilsTest, is_soft_orthogonal)
 
 TEST(ArrayUtilsTest, is_soft_collinear)
 {
-    EXPECT_TRUE(is_soft_collinear(Dbl3{2, 0, 0}, Dbl3{1, 0, 0}));
-    EXPECT_TRUE(is_soft_collinear(Dbl3{0, 1, 0}, Dbl3{0, -3, 0}));
-    EXPECT_TRUE(is_soft_collinear(Dbl3{0, -5, -5}, Dbl3{0, 1, 1}));
-    EXPECT_TRUE(is_soft_collinear(Dbl3{1e-13, 1, 0}, Dbl3{0, 1, 0}));
-    EXPECT_TRUE(is_soft_collinear(Dbl3{-1e-13, 1, 0}, Dbl3{0, 1, 0}));
+    double x2 = std::sqrt(2) / 2;
+    double x3 = std::sqrt(3) / 3;
 
-    EXPECT_FALSE(is_soft_collinear(Dbl3{2, 1, 3}, Dbl3{1, 0, 0}));
-    EXPECT_FALSE(is_soft_collinear(Dbl3{1e-6, 1, 0}, Dbl3{0, 1, 0}));
-    EXPECT_FALSE(is_soft_collinear(Dbl3{1, -1e-6, 0}, Dbl3{1, 0, 0}));
-    EXPECT_FALSE(is_soft_collinear(Dbl3{0, 0, 0}, Dbl3{1, 0, 0}));
-    EXPECT_FALSE(is_soft_collinear(Dbl3{3, 2, 1}, Dbl3{0, 0, 0}));
+    EXPECT_TRUE(is_soft_collinear(Dbl3{1, 0, 0}, Dbl3{1, 0, 0}));
+    EXPECT_TRUE(is_soft_collinear(Dbl3{0, x2, x2}, Dbl3{0, x2, x2}));
+    EXPECT_TRUE(is_soft_collinear(Dbl3{-x3, x3, -x3}, Dbl3{-x3, x3, -x3}));
+    EXPECT_TRUE(is_soft_collinear(make_unit_vector(Dbl3{x3 + 1e-12, x3, x3}),
+                                  Dbl3{x3, x3, x3}));
+    EXPECT_TRUE(is_soft_collinear(make_unit_vector(Dbl3{x3 - 1e-12, x3, x3}),
+                                  Dbl3{x3, x3, x3}));
+
+    EXPECT_FALSE(is_soft_collinear(Dbl3{1, 0, 0}, Dbl3{0, 1, 0}));
+    EXPECT_FALSE(is_soft_collinear(Dbl3{x3, x3, x3}, Dbl3{x3, x3, -x3}));
+    EXPECT_FALSE(is_soft_collinear(make_unit_vector(Dbl3{x3 + 1e-4, x3, x3}),
+                                   Dbl3{x3, x3, x3}));
+    EXPECT_FALSE(is_soft_collinear(make_unit_vector(Dbl3{x3 - 1e-4, x3, x3}),
+                                   Dbl3{x3, x3, x3}));
+
+    EXPECT_THROW(is_soft_collinear(Dbl3{1, 0, 0}, Dbl3{1, 1, 0}), DebugError);
+    EXPECT_THROW(is_soft_collinear(Dbl3{x3, x3, 0}, Dbl3{1, 0, 0}), DebugError);
 }
 
 TEST(ArrayUtilsTest, is_soft_unit_vector)
