@@ -413,12 +413,8 @@ auto SolidConverter::cuttubs(arg_type solid_base) -> result_type
     real_type const hh = scale_(solid.GetZHalfLength());
 
     // Get bottom and top normal vectors
-    auto to_real3 = [](G4ThreeVector const& v) {
-        return Real3{
-            v[to_int(Axis::x)], v[to_int(Axis::y)], v[to_int(Axis::z)]};
-    };
-    auto const b_norm = to_real3(solid.GetLowNorm());
-    auto const t_norm = to_real3(solid.GetHighNorm());
+    auto const b_norm = convert_from_geant(solid.GetLowNorm());
+    auto const t_norm = convert_from_geant(solid.GetHighNorm());
 
     // Optional inner cylinder
     std::optional<CutCylinder> inner;
