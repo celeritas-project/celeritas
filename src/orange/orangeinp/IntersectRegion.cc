@@ -14,6 +14,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/Types.hh"
@@ -274,6 +275,17 @@ CutCylinder::CutCylinder(real_type radius,
  */
 bool CutCylinder::encloses(CutCylinder const& other) const
 {
+    // Check that cylinders have the same cut planes. Since the normal vectors
+    // have unit magnitude, a check for collinearity is sufficient. When
+    // cylinders have different cut planes, testing from enclosure becomes
+    // challenging.
+    if (!is_soft_collinear(bot_normal_, other.bottom_normal())
+        || !is_soft_collinear(top_normal_, other.top_normal()))
+    {
+        CELER_NOT_IMPLEMENTED(
+            "enclosure checks for cut cylinders with different cut planes");
+    }
+
     return radius_ >= other.radius_ && hh_ >= other.hh_;
 }
 

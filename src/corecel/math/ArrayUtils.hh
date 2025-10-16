@@ -62,6 +62,12 @@ inline CELER_FUNCTION bool
 is_soft_orthogonal(Array<T, N> const& x, Array<T, N> const& y);
 
 //---------------------------------------------------------------------------//
+// Check whether two vectors are approximately parallel
+template<class T, size_type N>
+inline CELER_FUNCTION bool
+is_soft_parallel(Array<T, N> const& x, Array<T, N> const& y);
+
+//---------------------------------------------------------------------------//
 // Calculate the Euclidean (2) distance between two points
 template<class T, size_type N>
 [[nodiscard]] inline CELER_FUNCTION T distance(Array<T, N> const& x,
@@ -196,6 +202,33 @@ is_soft_orthogonal(Array<T, N> const& x, Array<T, N> const& y)
 {
     SoftZero const soft_zero{SoftEqual{}.rel()};
     return soft_zero(dot_product(x, y));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Check whether two vectors are approximately collinear.
+ *
+ * This is done by checking if the Gram determinant is soft zero:
+ * \f[
+ * (x \cdot x) (y \cdot y) - (x \cdot y)^2 \approx 0
+ * \f]
+ * This method is advantageous because it doesn't require normalizing inputs.
+ */
+template<class T, size_type N>
+inline CELER_FUNCTION bool
+is_soft_collinear(Array<T, N> const& x, Array<T, N> const& y)
+{
+    SoftZero const soft_zero{SoftEqual{}.rel()};
+    T const xxyy = dot_product(x, x) * dot_product(y, y);
+
+    if (soft_zero(xxyy))
+    {
+        // Degenerate case: at least one vector has zero magnitude
+        return false;
+    }
+
+    T const xy = dot_product(x, y);
+    return soft_zero(xxyy - ipow<2>(xy));
 }
 
 //---------------------------------------------------------------------------//

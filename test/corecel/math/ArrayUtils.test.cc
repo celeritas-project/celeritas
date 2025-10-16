@@ -102,6 +102,20 @@ TEST(ArrayUtilsTest, is_soft_orthogonal)
     EXPECT_FALSE(is_soft_orthogonal(Dbl3{1e-6, 1, 0}, Dbl3{1, 0, 0}));
 }
 
+TEST(ArrayUtilsTest, is_soft_collinear)
+{
+    EXPECT_TRUE(is_soft_collinear(Dbl3{2, 0, 0}, Dbl3{1, 0, 0}));
+    EXPECT_TRUE(is_soft_collinear(Dbl3{0, 1, 0}, Dbl3{0, -3, 0}));
+    EXPECT_TRUE(is_soft_collinear(Dbl3{0, -5, -5}, Dbl3{0, 1, 1}));
+    EXPECT_TRUE(is_soft_collinear(Dbl3{1e-13, 1, 0}, Dbl3{0, 1, 0}));
+
+    EXPECT_FALSE(is_soft_collinear(Dbl3{2, 1, 3}, Dbl3{1, 0, 0}));
+    EXPECT_FALSE(is_soft_collinear(Dbl3{1e-6, 1, 0}, Dbl3{0, 1, 0}));
+    EXPECT_FALSE(is_soft_collinear(Dbl3{1e-6, 1, 0}, Dbl3{0, 1, 0}));
+    EXPECT_FALSE(is_soft_collinear(Dbl3{0, 0, 0}, Dbl3{1, 0, 0}));
+    EXPECT_FALSE(is_soft_collinear(Dbl3{3, 2, 1}, Dbl3{0, 0, 0}));
+}
+
 TEST(ArrayUtilsTest, is_soft_unit_vector)
 {
     Real3 dir = make_unit_vector(Real3{1, 2, 3});
