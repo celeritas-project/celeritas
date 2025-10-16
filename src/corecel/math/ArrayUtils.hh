@@ -191,7 +191,7 @@ make_orthogonal(Array<T, N> const& x, Array<T, N> const& y)
 
 //---------------------------------------------------------------------------//
 /*!
- * Check whether two vectors are approximately orthogonal.
+ * Check whether two unit vectors are approximately orthogonal.
  *
  * Note that the test for orthogonality should use relative tolerance, not
  * absolute.
@@ -200,7 +200,7 @@ template<class T, size_type N>
 inline CELER_FUNCTION bool
 is_soft_orthogonal(Array<T, N> const& x, Array<T, N> const& y)
 {
-    SoftZero const soft_zero{SoftEqual{}.rel()};
+    SoftZero const soft_zero{SoftEqual<T>{}.rel()};
     return soft_zero(dot_product(x, y));
 }
 
@@ -215,7 +215,7 @@ inline CELER_FUNCTION bool
 is_soft_collinear(Array<T, N> const& x, Array<T, N> const& y)
 {
     CELER_EXPECT(is_soft_unit_vector(x) && is_soft_unit_vector(y));
-    SoftEqual const soft_eq;
+    SoftEqual<T> const soft_eq;
     return soft_eq(dot_product(x, y), 1);
 }
 
