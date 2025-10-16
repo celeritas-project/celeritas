@@ -11,3 +11,4 @@ include:
 - _layouts
 - _sources
 - _static
+- _static/mermaid
